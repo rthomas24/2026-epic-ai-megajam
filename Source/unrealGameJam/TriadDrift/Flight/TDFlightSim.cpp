@@ -200,7 +200,14 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		else
 		{
 			// After a drift burst the extra speed bleeds off slowly so the burst is felt.
-			Rate = S.bBurstOverspeed ? T.OverspeedDeceleration : T.Deceleration;
+			if (S.bBurstOverspeed)
+			{
+				Rate = T.OverspeedDeceleration;
+			}
+			else
+			{
+				Rate = S.ForwardSpeed > T.BoostSpeed ? T.HighOverspeedDeceleration : T.Deceleration;
+			}
 		}
 		S.ForwardSpeed = FMath::FInterpConstantTo(S.ForwardSpeed, Target, Dt, Rate);
 		if (S.ForwardSpeed <= Target + 1.f || S.bBoosting || In.bBrake)
