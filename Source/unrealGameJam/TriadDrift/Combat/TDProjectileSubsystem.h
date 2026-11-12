@@ -54,6 +54,9 @@ public:
 	/** Flashes playing right now (tests). */
 	int32 GetPlayingFlashCount() const;
 
+	/** Flashes playing within Radius of Location (tests: muzzle vs impact). */
+	int32 CountPlayingFlashesNear(const FVector& Location, float Radius) const;
+
 	int32 MaxFlashes = 48;
 
 	int32 GetLiveCount() const { return Live.Num(); }
