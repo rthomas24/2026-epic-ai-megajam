@@ -23,9 +23,18 @@ $logFile = Join-Path $root "Saved\Logs\td-package_$Name.log"
 New-Item -ItemType Directory -Force -Path (Split-Path $logFile) | Out-Null
 
 $sw = [Diagnostics.Stopwatch]::StartNew()
-& $uat BuildCookRun "-project=$project" -noP4 -platform=Win64 "-clientconfig=$Configuration" `
-    -build -cook -stage -pak -archive "-archivedirectory=$archive" -prereqs -utf8output -unattended -nocompileeditor *> $logFile
-$code = $LASTEXITCODE
+# -WaitMutex: other worktrees build at the same time and UnrealBuildTool allows one instance per engine.
+# The log is written as UTF-8 (Windows PowerShell's `*>` would write UTF-16, which grep cannot read).
+$code = 1
+for ($attempt = 1; $attempt -le 6; $attempt++) {
+    & $uat BuildCookRun "-project=$project" -noP4 -platform=Win64 "-clientconfig=$Configuration" `
+        -build -cook -stage -pak -archive "-archivedirectory=$archive" -prereqs -utf8output -unattended -nocompileeditor `
+        "-ubtargs=-WaitMutex" 2>&1 | Out-File -FilePath $logFile -Encoding utf8
+    $code = $LASTEXITCODE
+    if ($code -eq 0) { break }
+    if (-not (Select-String -Path $logFile -Pattern "ConflictingInstance" -Quiet)) { break }
+    Start-Sleep -Seconds 30
+}
 
 $log = Get-Content $logFile
 $errors = $log | Where-Object { $_ -match '(Error: |ERROR: |: error )' } | Select-Object -First 40
