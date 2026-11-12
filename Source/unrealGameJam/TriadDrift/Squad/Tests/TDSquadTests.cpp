@@ -1813,6 +1813,24 @@ bool FTDSquadBarkTriggers::RunTest(const FString& Parameters)
 	F.W.Advance(3.f);
 	TestEqual(TEXT("not repeated while still low"), F.Events->CountBarks(TDBarkIds::LowHull), 1);
 
+	// Live playtest: a low-hull line held back by the limiter must not play late. Fill the window with
+	// wingman-kill lines, dip Lancer low, wait out the window, free the limiter: no late Kato line.
+	{
+		F.W.Advance(11.f); // the limiter's 10 s window is empty again
+		for (int32 i = 0; i < 3; ++i)
+		{
+			// Distinct ids (no per-line cooldown) spaced past the minimum gap: the window is then full.
+			TestTrue(TEXT("filler line played"), F.Squad->RequestSquadBark(FName(*FString::Printf(TEXT("Test_Filler%d"), i)), ETDShipId::Rift));
+			F.W.Advance(2.6f);
+		}
+		UTDHealthComponent* LH = F.Health(ETDShipId::Lancer);
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), LH->MaxShield + LH->MaxHull * 0.8f, ETDDamageKind::Energy, Enemy, Enemy);
+		F.W.Advance(1.6f); // the line's window: it plays now or never
+		const int32 InWindow = F.Events->CountBarks(TDBarkIds::LowHull);
+		F.W.Advance(12.f); // the limiter frees up long after
+		TestEqual(TEXT("no late low-hull line"), F.Events->CountBarks(TDBarkIds::LowHull), InWindow);
+	}
+
 	// Ship down: high priority, a survivor calls it.
 	F.Kill(ETDShipId::Bastion);
 	F.W.Tick();
