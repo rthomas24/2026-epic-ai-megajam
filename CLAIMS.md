@@ -70,7 +70,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 13:57 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 14:00 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -116,8 +116,8 @@ open) · `done` (on `main`, tests pass, review closed).
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
 | C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) | Lead | done | Nov 12 12:48 | Nov 12 13:02, this push | **Claim released.** `Content/TriadDrift/Maps/**` now exists: empty World Partition levels, streaming off, One File Per Actor. Both sides may place actors (they save as separate `__ExternalActors__` files): claim the map and what you add first. Do not re-save the `.umap` or change World Settings without a claim here; game modes are set by map name in `/Config/DefaultEngine.ini`. See `MESSAGEBOARD.md` R-001 |
 | ENG-27 balance + difficulty | Lead | queued | | | none |
-| ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | all 15 review fixes merged Nov 12 13:02, this push (`e046c82`); second review queued | none |
-| ENG-15 hyperdrive, ENG-20 atmosphere flight + landing (first pass) | T1 | in review | Nov 12 | Nov 12 13:02, this push (`2686272`); not reviewed yet | none |
+| ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | second review done Nov 12 13:58: ENG-02 acceptable; ENG-01 needs drift-burst pumping and pinned-contact damage fixed; in progress | none |
+| ENG-15 hyperdrive, ENG-20 atmosphere flight + landing | T1 | in review | Nov 12 | hardening batch merged Nov 12 13:59 (`479857b`: keyed speed overrides, look-ahead, hyperdrive locks, travel guards); review done: landing dead end (BLOCKER), wingman overshoot, landing state on death, cue loops; fixes in progress | none |
 | Modular ship parts from `UTDShipVisuals.Parts`; flight and travel cues played from data | T1 | done | Nov 12 13:19 | Nov 12 13:38 (`1588fdb`) | none |
 | ENG-20 end to end: first half verified live (`L_Galaxy` -> atmosphere -> `L_Transition` -> `L_Planet_Verdance`); landing hand-off, re-board, take-off and return wait on T5's ENG-25 / 26 ground mode | T1 + T5 | in progress | Nov 12 13:02 | | none |
 | Placeholder look: squad-coloured hulls, glowing engines, `UTDShipVisuals` slot | T1 | done | Nov 12 | Nov 12 13:02, this push (`ab8915b`) | none |
@@ -135,7 +135,8 @@ open) · `done` (on `main`, tests pass, review closed).
 | ENG-19 game instance / saves / travel, C-03 #3 scenes and takes | T5 | in review | Nov 12 | `a2fdf3e`; all 12 review fixes merged Nov 12 12:45, this push (`125146f`); second review queued | none |
 | ENG-21 first-person character, ENG-22 energy blade, ENG-24 objective framework | T5 | in review | Nov 12 | Nov 12 13:02, this push (`fc329d0`); not reviewed yet | none |
 | Menu and transition game modes (`ATDMenuGameMode`, `ATDTransitionGameMode`) | T5 | done | Nov 12 | Nov 12 13:10, this push (`85af40b`) | `/Config/DefaultEngine.ini` map prefixes |
-| ENG-23 crew enemies | T5 | in review | Nov 12 13:10 | Nov 12 13:24 (`0136518`); review running | none |
+| ENG-21 to ENG-24 on-foot review fixes (objective soft-lock on retake, respawn point, encounter resets, blade on press, deflect aim) | T5 | in progress | Nov 12 13:58 | review done Nov 12 13:58: ENG-19 and Flow side of C-03 #3 acceptable; Ground items not done | none |
+| ENG-23 crew enemies | T5 | in review | Nov 12 13:10 | Nov 12 13:24 (`0136518`); trooper cover merged 13:50 | none |
 | ENG-25 Verdance gameplay, ENG-26 Cinder gameplay | T5 | in progress | Nov 12 13:24 | | places gameplay in `L_Planet_*` from C++ only; reads `/Game/TriadDrift/Presentation/DA_*` by path |
 | ENG-29 docking, ENG-30 interior + core fight, ENG-31 escape (stretch) | unassigned | queued | | | only after core is solid |
 

@@ -26,6 +26,9 @@ agent commit to this same repo at the same time.**
 - **[features.md](features.md) is the source of truth** for what to build and who builds it: every
   feature, the role split, folder ownership and the contracts between gameplay and presentation.
   Read it before you start work.
+- **[AAA.md](AAA.md) is the quality standard** every human and agent works to: build, verify, refine,
+  verify again, integrate; and report honestly which stage a piece of work has reached. Read it before
+  your next task.
 
 ### Team
 
@@ -542,6 +545,9 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
 
 - **Boards:** `CLAIMS.md` at every task start and finish (§6.5); `MESSAGEBOARD.md` for questions and
   decisions (§6.10).
+- **Quality standard and honest stages:** `AAA.md`. Every report says which of its stages the work
+  has reached: prototype complete, technically verified, presentation approved, integrated, gameplay
+  validated. Tests and screenshots alone never make something gameplay validated or final.
 - **Per-item ledger:** each side keeps one table of every features.md item it owns, with owner, state,
   the `main` commit, how it was verified and open findings: `docs/eng/STATUS.md` and
   `docs/visual/STATUS.md`. An item is done only when it is on `main`, verified, reviewed and played.

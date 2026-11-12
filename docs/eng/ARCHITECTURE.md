@@ -143,6 +143,13 @@ From your worktree root (PowerShell):
 
 ## 6. Definition of done (every ENG item)
 
+**Quality standard:** `/AAA.md` applies to all engineering work. Every report to the Lead names the stage
+reached, in AAA.md's words: *prototype complete*, *technically verified* (builds, tests pass, real-path
+tests at 30 / 60 / 120 fps), *integrated* (on `main`), *gameplay validated* (played in a running game,
+by a human or by an agent through the MCP play tools, with captures). *Presentation approved* belongs to
+Nick's side. Nothing is called done or final on tests and screenshots alone; after it works, find and fix
+the most noticeable weakness a player would feel before adding anything new.
+
 1. **Builds clean** in your worktree: exit 0, no new warnings.
 2. **Behaviour is proven by automation tests** that assert the numbers in features.md (for example
    "shield starts regenerating 3 s after the last hit, at 25%/s"). No test, not done.
