@@ -40,6 +40,9 @@ ATDPortalGate::ATDPortalGate()
 	Surface->SetCollisionProfileName(TEXT("NoCollision"));
 	Surface->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));	// cylinder axis along X: the disc faces forward
 	if (Cylinder.Succeeded()) { Surface->SetStaticMesh(Cylinder.Object); }
+
+	// Permanent gates are shortcuts, not reflectors: shots pass through unchanged (no return, no stat).
+	TransitParams.bReturnEnemyProjectiles = false;
 }
 
 void ATDPortalGate::LinkGates(ATDPortalGate* A, ATDPortalGate* B)
@@ -74,6 +77,37 @@ void ATDPortalGate::BeginPlay()
 	if (TravelFX)
 	{
 		UTDStatics::PlayCueAttached(TravelFX->PortalIdle, Surface);
+	}
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnSpacecraftTeleported.AddUniqueDynamic(this, &ATDPortalGate::HandleSpacecraftTeleported);
+	}
+}
+
+void ATDPortalGate::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnSpacecraftTeleported.RemoveDynamic(this, &ATDPortalGate::HandleSpacecraftTeleported);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void ATDPortalGate::HandleSpacecraftTeleported(AActor* Spacecraft, FVector /*From*/, FVector To)
+{
+	// Anything that arrives right by this gate (a transit out of our partner, or a wingman follow-warp
+	// placed behind its leader) must not be bounced straight back through us.
+	if (!Spacecraft)
+	{
+		return;
+	}
+	const FVector Rel = To - GetActorLocation();
+	const float Along = FVector::DotProduct(Rel, GetActorForwardVector());
+	const float Lateral = (Rel - GetActorForwardVector() * Along).Size();
+	if (FMath::Abs(Along) <= ArrivalGuardDepth && Lateral <= Radius * 1.5f)
+	{
+		const UWorld* World = GetWorld();
+		ArrivalBlockedUntil.Add(Spacecraft, (World ? World->GetTimeSeconds() : 0.0) + ArrivalGuardSeconds);
 	}
 }
 
@@ -135,6 +169,11 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 	if (!IsValid(Traveller) || !Partner || !UTDPortalTransit::CanTransit(Traveller, TransitParams.ReentryCooldownSeconds))
 	{
 		return false;
+	}
+	if (const double* Until = ArrivalBlockedUntil.Find(Traveller))
+	{
+		if (GetWorld() && GetWorld()->GetTimeSeconds() < *Until) { return false; }
+		ArrivalBlockedUntil.Remove(Traveller);
 	}
 	const FVector Now = Traveller->GetActorLocation();
 	const FVector Before = Now - Traveller->GetVelocity() * DeltaSeconds;

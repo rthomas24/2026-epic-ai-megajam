@@ -78,6 +78,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDTravelFX> TravelFX;
 
+	/** Ships teleported to within this depth of the gate plane (and inside 1.5x the radius) ignore it for ArrivalGuardSeconds. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "0"))
+	float ArrivalGuardDepth = 6000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "0"))
+	float ArrivalGuardSeconds = 1.5f;
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Gate")
 	FTDGateTransitSignature OnTransit;
 
@@ -85,6 +92,11 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	UFUNCTION()
+	void HandleSpacecraftTeleported(AActor* Spacecraft, FVector From, FVector To);
 
 	bool TryTransit(AActor* Traveller, float DeltaSeconds);
 	void UpdateLook();
@@ -100,4 +112,5 @@ protected:
 
 	int32 TransitCount = 0;
 	TArray<AActor*> Scratch;
+	TMap<TWeakObjectPtr<AActor>, double> ArrivalBlockedUntil;
 };

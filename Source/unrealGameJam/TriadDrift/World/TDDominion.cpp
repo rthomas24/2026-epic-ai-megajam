@@ -647,25 +647,15 @@ void ATDDominion::Tick(float DeltaSeconds)
 		if (StateTime >= BreakupSeconds)
 		{
 			SetState(ETDDominionState::Finished);
-			if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+			// Victory is a phase on L_Galaxy (no map): stops the run clock, saves, and drives Nick's
+			// victory screen through OnPhaseChanged. Exactly once.
+			if (!bVictoryAccepted)
 			{
-				Flow->SetPhase(ETDGamePhase::Victory);
-			}
-			VictoryRetryTimer = 0.f;
-		}
-		break;
-
-	case ETDDominionState::Finished:
-		// TravelTo can refuse (another travel pending, map not ready): keep asking until it's accepted.
-		if (!bVictoryAccepted)
-		{
-			VictoryRetryTimer -= DeltaSeconds;
-			if (VictoryRetryTimer <= 0.f)
-			{
-				VictoryRetryTimer = VictoryRetrySeconds;
-				ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
-				bVictoryAccepted = !Flow || Flow->TravelTo(ETDDestination::Victory, NAME_None);
-				++VictoryAttempts;
+				bVictoryAccepted = true;
+				if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+				{
+					Flow->SetPhase(ETDGamePhase::Victory);
+				}
 			}
 		}
 		break;

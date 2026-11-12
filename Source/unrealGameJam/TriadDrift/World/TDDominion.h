@@ -60,7 +60,7 @@ struct UNREALGAMEJAM_API FTDDominionStage
  * a GeneratorKill highlight. All four down -> SetDominionState(true, true) and the reactor trench
  * opens. The reactor has a 3-phase health bar with escalating turret fire and fighter launches.
  * Reactor kill -> ReactorKill highlight, OnBreakupStarted (Nick's sequence), then after
- * BreakupSeconds Flow->TravelTo(Victory).
+ * BreakupSeconds Flow->SetPhase(Victory) (a phase on L_Galaxy; there is no victory map).
  *
  * Stretch (ENG-29): set bDockingFinale and override BeginDockingFinale() in a subclass; the core
  * reactor path is then skipped. Not built.
@@ -183,14 +183,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDEnemyVisuals> TurretVisuals;
 
-	/** Seconds between TravelTo(Victory) attempts until the flow accepts one. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0.1"))
-	float VictoryRetrySeconds = 1.f;
-
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	bool IsVictoryAccepted() const { return bVictoryAccepted; }
-
-	int32 GetVictoryAttempts() const { return VictoryAttempts; }
 
 	/** Nick's single presentation asset for the whole mothership (hull, generators, reactor). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
@@ -297,6 +291,5 @@ protected:
 	int32 Stage = 0;
 	bool bPartsBuilt = false;
 	bool bVictoryAccepted = false;
-	float VictoryRetryTimer = 0.f;
-	int32 VictoryAttempts = 0;
+
 };

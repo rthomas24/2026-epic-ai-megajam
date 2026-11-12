@@ -13,6 +13,8 @@
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Flight/TDShip.h"
 
 namespace
 {
@@ -110,18 +112,46 @@ bool FTDWorldGateEnemy::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateProjectile, "TriadDrift.World.Gate.EnemyShotsAreReturned", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateProjectile, "TriadDrift.World.Gate.ShotsPassThroughUnchanged", TD_TEST_FLAGS)
 bool FTDWorldGateProjectile::RunTest(const FString& Parameters)
 {
 	FTDGateTestRig R;
 	ATDSpacecraft* Shooter = R.SpawnShip(FVector(-30000.f, 0.f, 0.f), FRotator::ZeroRotator, ETDTeam::Enemy);
-	Shooter->SetSpeedOverride(0.f, 0.f);
 	const FTDWeaponSpec& Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPulseGuns);
 	ATDProjectile* Shot = ATDProjectile::Spawn(R.W.GetWorld(), Spec.Projectile, FTransform(FRotator::ZeroRotator, FVector(-1500.f, 0.f, 0.f)), Shooter, ETDTeam::Enemy);
 	if (!TestNotNull(TEXT("projectile spawned"), Shot)) { return false; }
 	R.W.Advance(0.2f);
 	TestEqual(TEXT("projectile transited"), R.A->GetTransitCount(), 1);
-	TestTrue(TEXT("enemy shot returned to the Player team"), Shot->GetTeam() == ETDTeam::Player);
+	TestTrue(TEXT("a permanent gate is not a reflector: still an enemy shot"), Shot->GetTeam() == ETDTeam::Enemy);
+	TestTrue(TEXT("came out of the partner"), FVector::Dist(Shot->GetActorLocation(), R.B->GetActorLocation()) < 15000.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateSquad, "TriadDrift.World.Gate.SquadFollowsWithoutBouncing", TD_TEST_FLAGS)
+bool FTDWorldGateSquad::RunTest(const FString& Parameters)
+{
+	FTDGateTestRig R;
+	APlayerController* PC = R.W.SpawnPlayerController();
+	ATDSquadManager* Squad = R.W.Spawn<ATDSquadManager>();
+	if (!TestNotNull(TEXT("squad manager"), Squad)) { return false; }
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(-5000.f, 0.f, 0.f)));
+	R.W.Tick();
+	ATDShip* Lead = Squad->GetActiveShip();
+	if (!TestNotNull(TEXT("player ship"), Lead)) { return false; }
+	Lead->SetActorLocation(FVector(-3000.f, 0.f, 0.f));
+	Lead->SetSpeedOverride(6000.f, 0.f);	// straight through gate A
+
+	R.W.Advance(1.5f);
+	TestEqual(TEXT("the leader transited once"), R.A->GetTransitCount(), 1);
+	R.W.Advance(4.f);
+	TestEqual(TEXT("nobody bounced back through B"), R.B->GetTransitCount(), 0);
+	for (ATDShip* S : Squad->GetLivingShips())
+	{
+		const float ToB = FVector::Dist(S->GetActorLocation(), R.B->GetActorLocation());
+		const float ToA = FVector::Dist(S->GetActorLocation(), R.A->GetActorLocation());
+		TestTrue(*FString::Printf(TEXT("ship %d ended up on the far side (to B %.0f, to A %.0f)"), (int32)S->GetShipId(), ToB, ToA), ToB < ToA);
+	}
 	return true;
 }
 

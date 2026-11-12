@@ -154,14 +154,15 @@ bool FTDWorldReactorPhases::RunTest(const FString& Parameters)
 	TestFalse(TEXT("reactor destroyed"), Reactor->IsAlive());
 	TestTrue(TEXT("ReactorKill highlight"), R.L->Highlights.Contains(ETDHighlightKind::ReactorKill));
 	TestTrue(TEXT("breakup started"), R.D->GetState() == ETDDominionState::Breakup);
-	TestEqual(TEXT("no Victory before the breakup plays"), R.GI->Travels.Num(), 0);
+	TestFalse(TEXT("no Victory before the breakup plays"), R.GI->Phases.Contains(ETDGamePhase::Victory));
 
 	R.W.Advance(R.D->BreakupSeconds - 0.2f);
-	TestEqual(TEXT("still breaking up"), R.GI->Travels.Num(), 0);
+	TestFalse(TEXT("still breaking up"), R.GI->Phases.Contains(ETDGamePhase::Victory));
 	R.W.Advance(2.5f);	// + the Director's ReactorKill slow-mo beat (game time runs slow for ~1 s)
-	TestTrue(TEXT("TravelTo(Victory)"), R.GI->Travels.Num() == 1 && R.GI->Travels[0] == ETDDestination::Victory);
+	TestTrue(TEXT("SetPhase(Victory)"), R.GI->Progress.Phase == ETDGamePhase::Victory);
 	R.W.Advance(2.f);
-	TestEqual(TEXT("Victory requested once"), R.GI->Travels.Num(), 1);
+	TestEqual(TEXT("Victory set once"), R.GI->Phases.FilterByPredicate([](ETDGamePhase P) { return P == ETDGamePhase::Victory; }).Num(), 1);
+	TestEqual(TEXT("no level travel (Victory is a phase on L_Galaxy)"), R.GI->Travels.Num(), 0);
 	return true;
 }
 
@@ -262,7 +263,7 @@ bool FTDWorldDominionVisuals::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldVictorySafe, "TriadDrift.World.Dominion.VictoryRetriesAndIsSafe", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldVictorySafe, "TriadDrift.World.Dominion.VictoryIsSafeAndSetOnce", TD_TEST_FLAGS)
 bool FTDWorldVictorySafe::RunTest(const FString& Parameters)
 {
 	FTDDominionTestRig R(true);
@@ -271,7 +272,6 @@ bool FTDWorldVictorySafe::RunTest(const FString& Parameters)
 	R.W.Advance(R.D->Stages[0].LaunchInterval);	// some fighters are out
 	const int32 FightersBefore = R.D->GetLaunchedAlive();
 	TestTrue(TEXT("fighters in the air before the kill"), FightersBefore > 0);
-	R.GI->RefuseTravels = 2;	// e.g. another travel pending
 
 	R.D->DebugDropShields();
 	ATDDominionReactor* Reactor = R.D->GetReactor();
@@ -286,12 +286,9 @@ bool FTDWorldVictorySafe::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the squad can't be hurt during the breakup"), UTDStatics::GetHealth(R.Player)->IsInvulnerable());
 	TestEqual(TEXT("damage on the squad is ignored"), UTDStatics::ApplyTDDamage(R.Player, 50.f, ETDDamageKind::Energy, nullptr, nullptr), 0.f);
 
-	R.W.Advance(R.D->BreakupSeconds + 2.f + R.D->VictoryRetrySeconds * 3.f);
-	TestTrue(TEXT("phase set to Victory"), R.GI->Progress.Phase == ETDGamePhase::Victory);
-	TestEqual(TEXT("two refusals"), R.GI->RefusedTravels, 2);
-	TestTrue(TEXT("third attempt accepted"), R.GI->Travels.Num() == 1 && R.D->IsVictoryAccepted());
-	R.W.Advance(3.f);
-	TestEqual(TEXT("no more attempts after acceptance"), R.GI->Travels.Num(), 1);
+	R.W.Advance(R.D->BreakupSeconds + 2.5f);
+	TestTrue(TEXT("phase set to Victory"), R.GI->Progress.Phase == ETDGamePhase::Victory && R.D->IsVictoryAccepted());
+	TestTrue(TEXT("squad still protected at the victory screen"), UTDStatics::GetHealth(R.Player)->IsInvulnerable());
 	return true;
 }
 
