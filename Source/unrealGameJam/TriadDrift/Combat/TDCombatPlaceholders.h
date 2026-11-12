@@ -1,0 +1,89 @@
+// Triad Drift - Combat (Teammate 2). Placeholder looks that read before art exists: projectile streaks,
+// muzzle flashes and impact flashes. Each hides as soon as the weapon's DA_<Id>_FX supplies its slot.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "TDCombatPlaceholders.generated.h"
+
+struct FTDProjectileSpec;
+class UStaticMeshComponent;
+class UStaticMesh;
+class UMaterialInterface;
+class UMaterialInstanceDynamic;
+
+/** How a projectile's placeholder is drawn: a glowing streak trailing the shot, plus a head on missiles. */
+struct FTDStreakLook
+{
+	/** False for slow things (mines): they keep their PlaceholderScale sphere. */
+	bool bStreak = false;
+	/** Rockets, missiles, shells: fatter and shorter. */
+	bool bHeavy = false;
+	/** A bright head sphere at the front (homing missiles). */
+	bool bHead = false;
+	float Length = 0.f;
+	float Thickness = 0.f;
+	float HeadDiameter = 0.f;
+};
+
+struct UNREALGAMEJAM_API FTDCombatPlaceholders
+{
+	/** Placeholder glow strength (Color * this) for streaks and flashes. */
+	static constexpr float StreakGlow = 10.f;
+	static constexpr float FlashGlow = 14.f;
+
+	/**
+	 * Lasers and needles: 300-800 cm long (0.015 s of flight), 35-60 cm thick. Rockets, missiles and shells:
+	 * 250-500 cm, 70-140 cm thick. Homing missiles and missiles also get a head 1.8x the thickness.
+	 */
+	static FTDStreakLook ComputeStreak(const FTDProjectileSpec& Spec);
+
+	/** Muzzle flash radius for a shot of Spec. */
+	static float MuzzleFlashRadius(const FTDProjectileSpec& Spec);
+
+	/** Impact flash radius (splash weapons scale with their splash). */
+	static float ImpactFlashRadius(const FTDProjectileSpec& Spec);
+};
+
+/**
+ * A short glowing sphere that swells and fades: the muzzle / impact flash placeholder. Pooled by
+ * UTDProjectileSubsystem::PlayPlaceholderFlash; never spawn it directly. Engine sphere and glow material are
+ * hard-referenced by the class default object so they always cook.
+ */
+UCLASS(NotBlueprintable)
+class UNREALGAMEJAM_API ATDCombatFlash : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	ATDCombatFlash();
+
+	void Play(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds, USceneComponent* AttachTo);
+	bool IsPlaying() const { return bPlaying; }
+	float GetRadius() const { return Radius; }
+	void Stop();
+
+	virtual void Tick(float DeltaSeconds) override;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> SphereMesh;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> GlowMaterial;
+
+private:
+	void Apply(float Alpha);
+
+	UPROPERTY(VisibleAnywhere, Category = "Flash")
+	TObjectPtr<UStaticMeshComponent> Mesh;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> MID;
+
+	FLinearColor Color = FLinearColor::White;
+	float Radius = 100.f;
+	float Life = 0.1f;
+	float Age = 0.f;
+	bool bPlaying = false;
+};

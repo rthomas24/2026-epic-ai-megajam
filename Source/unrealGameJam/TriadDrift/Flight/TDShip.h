@@ -69,6 +69,18 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	/** How fast the camera's reference "up" may swing back toward world up (deg/s): smooths loops and dives. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float ReferenceUpRate = 120.f;
+
+	/**
+	 * Camera motion blur in space (0..1, engine default 0.5). Off by default: any camera-rotation blur turns the
+	 * small bright stars into dashes (0.1 with a 1% cap still smeared in the Lead's playtest, Nov 12); speed
+	 * reads through FOV, speed lines and trails instead.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float MotionBlurAmount = 0.f;
+
+	/** Cap on motion-blur length as a percentage of screen width (engine default 5). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "100"))
+	float MotionBlurMax = 0.f;
 };
 
 /** A squad ship (Rift, Lancer, Bastion). Squad stats come from T3's UTDShipLibrary through ApplyFlightTuning. */
@@ -107,6 +119,9 @@ public:
 	 * asset is assigned, even if the slot is empty (then nothing plays). For tests and debugging.
 	 */
 	int32 GetCueRequestCount(FName Slot) const { const int32* N = CueRequests.Find(Slot); return N ? *N : 0; }
+
+	/** True while a looping cue slot ("EngineTrail", "EngineLoop", "BoostLoop", "DriftLoop") is running on this ship. */
+	bool IsCueLoopActive(FName Slot) const { return ActiveLoops.Contains(Slot); }
 
 	/** True while real art (a Mesh or any Part) replaces the placeholder. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
@@ -223,7 +238,19 @@ protected:
 	USceneComponent* GetEngineAttach(FName& OutSocket) const;
 	void StartEngineTrail();
 	void StartLoop(FName Slot, const FTDFXCue& Cue, TWeakObjectPtr<UNiagaraComponent>& OutFX, TWeakObjectPtr<UAudioComponent>& OutAudio);
-	static void StopLoop(TWeakObjectPtr<UNiagaraComponent>& FX, TWeakObjectPtr<UAudioComponent>& Audio);
+	void StopLoop(FName Slot, TWeakObjectPtr<UNiagaraComponent>& FX, TWeakObjectPtr<UAudioComponent>& Audio);
+	void StopEngine();
+	/** Engines run while the ship is alive, not parked, and (during landing) the engines are on. */
+	bool ShouldEnginesRun() const;
+	/** Shakes only for the ship the player flies: a wingman's boost must not shake the player's camera. */
+	FTDFXCue ForThisShip(const FTDFXCue& Cue) const;
+	TSet<FName> ActiveLoops;
+	TWeakObjectPtr<UAudioComponent> EngineLoopAudio;
+	double LastScrapeCueTime = -1000.0;
+
+	/** Minimum time between two scrape cues (a long scrape is one sound, not a machine gun). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float ScrapeCueInterval = 0.25f;
 	void NoteCue(FName Slot) { CueRequests.FindOrAdd(Slot)++; }
 
 	TMap<FName, int32> CueRequests;

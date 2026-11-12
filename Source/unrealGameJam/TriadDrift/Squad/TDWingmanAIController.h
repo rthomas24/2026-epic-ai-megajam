@@ -104,6 +104,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "deg"))
 	float FireConeDeg = 6.f;
 
+	/** Distance bands (2000 cm each) a target directly behind the leader costs vs one dead ahead, so
+	 *  with a choice wingmen fight in front of the player's camera. 0 = ignore. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0"))
+	float OnScreenTargetBias = 4.f;
+
 	/** The player's last attacker counts as a threat for this long after its last hit. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
 	float ThreatMemorySeconds = 4.f;
@@ -155,6 +160,10 @@ public:
 	/** Keep at least this far from squadmates. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
 	float TeammateSeparation = 1500.f;
+
+	/** While a director shot runs, keep at least this far from its camera (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wingman|Avoidance", meta = (ClampMin = "0"))
+	float ShotCameraClearance = 2500.f;
 
 	/** Steering gain: degrees of error that map to full stick deflection. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Steering", meta = (Units = "deg"))

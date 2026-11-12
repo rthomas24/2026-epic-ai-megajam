@@ -18,6 +18,10 @@ class UNREALGAMEJAM_API ATDDebugHUD : public AHUD
 public:
 	virtual void DrawHUD() override;
 
+	/** Set by the UI host (TriadDrift/UI) while the real space HUD is on screen in World; the dev HUD then draws nothing there. */
+	static void SetRealHUDActive(const UWorld* World, bool bActive);
+	static bool IsRealHUDActive(const UWorld* World);
+
 private:
 	void DrawSquad(float& Y);
 	void DrawWave();

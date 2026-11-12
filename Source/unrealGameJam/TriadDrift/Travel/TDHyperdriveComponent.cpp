@@ -9,11 +9,28 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
 #include "Engine/World.h"
 #include "Components/SphereComponent.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 
 const FName UTDHyperdriveComponent::OverrideOwner(TEXT("Hyperdrive"));
+
+template <typename TFX>
+concept TDHyperdrive_HasRefusedCue = requires(TFX* FX) { FX->HyperdriveRefused; };
+
+/** Plays UTDTravelFX::HyperdriveRefused once Core has that slot (compiles to nothing before). */
+template <typename TFX>
+void TDHyperdrive_PlayRefusedCue(TFX* FX, const ATDSpacecraft* Craft)
+{
+	if constexpr (TDHyperdrive_HasRefusedCue<TFX>)
+	{
+		if (FX && Craft)
+		{
+			UTDStatics::PlayCueAttached(FX->HyperdriveRefused, Craft->GetRootComponent());
+		}
+	}
+}
 
 UTDHyperdriveComponent::UTDHyperdriveComponent()
 {
@@ -26,7 +43,7 @@ void UTDHyperdriveComponent::BeginPlay()
 	Super::BeginPlay();
 	if (!TravelFX)
 	{
-		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX();
+		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX(this);
 	}
 	if (ATDSpacecraft* Craft = GetCraft())
 	{
@@ -38,6 +55,7 @@ void UTDHyperdriveComponent::BeginPlay()
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
 			Move->OnFlightImpact.AddDynamic(this, &UTDHyperdriveComponent::HandleImpact);
+			Craft->OnTeleported.AddDynamic(this, &UTDHyperdriveComponent::HandleTeleported);
 			// Run after the flight model so well checks see this frame's movement.
 			AddTickPrerequisiteComponent(Move);
 		}
@@ -145,6 +163,47 @@ float UTDHyperdriveComponent::SweepAhead(float MaxDistance) const
 	return -1.f;
 }
 
+FText UTDHyperdriveComponent::GetBlockReasonText() const
+{
+	switch (GetBlockReason())
+	{
+	case ETDHyperdriveBlock::Locked:
+	{
+		FText LockText;
+		if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+		{
+			Travel->IsHyperdriveLocked(LockText);
+		}
+		return LockText.IsEmpty() ? NSLOCTEXT("TDHyperdrive", "Locked", "HYPERDRIVE LOCKED") : LockText;
+	}
+	case ETDHyperdriveBlock::RecentDamage: return NSLOCTEXT("TDHyperdrive", "Damage", "HYPERDRIVE DISRUPTED - TAKING FIRE");
+	case ETDHyperdriveBlock::InAtmosphere: return NSLOCTEXT("TDHyperdrive", "Atmosphere", "NO HYPERDRIVE IN ATMOSPHERE");
+	case ETDHyperdriveBlock::NearGravityWell: return NSLOCTEXT("TDHyperdrive", "Well", "TOO CLOSE TO A GRAVITY WELL");
+	case ETDHyperdriveBlock::Cooldown: return NSLOCTEXT("TDHyperdrive", "Cooldown", "HYPERDRIVE RECHARGING");
+	case ETDHyperdriveBlock::ObstacleAhead: return NSLOCTEXT("TDHyperdrive", "Obstacle", "OBSTACLE AHEAD");
+	case ETDHyperdriveBlock::NotPlayerFlown:
+	case ETDHyperdriveBlock::Disabled: return NSLOCTEXT("TDHyperdrive", "Offline", "HYPERDRIVE OFFLINE");
+	default: return FText::GetEmpty();
+	}
+}
+
+bool UTDHyperdriveComponent::RequestSpoolFromPilot()
+{
+	if (State != ETDHyperdriveState::Idle)
+	{
+		return false;
+	}
+	const ETDHyperdriveBlock Block = GetBlockReason();
+	if (Block != ETDHyperdriveBlock::None)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive refused: %s"), *GetBlockReasonText().ToString());
+		OnSpoolRefused.Broadcast(this, Block, GetBlockReasonText());
+		TDHyperdrive_PlayRefusedCue(TravelFX.Get(), GetCraft());
+		return false;
+	}
+	return StartSpool();
+}
+
 bool UTDHyperdriveComponent::StartSpool()
 {
 	if (State != ETDHyperdriveState::Idle || !CanSpool())
@@ -157,7 +216,7 @@ bool UTDHyperdriveComponent::StartSpool()
 	{
 		if (const ATDSpacecraft* Craft = GetCraft())
 		{
-			LoopFX = UTDStatics::PlayCueAttached(TravelFX->HyperdriveSpool, Craft->GetRootComponent());
+			StartLoopFX(TravelFX->HyperdriveSpool);
 		}
 	}
 	return true;
@@ -254,7 +313,7 @@ void UTDHyperdriveComponent::BeginJump()
 	SetState(ETDHyperdriveState::Jumping);
 	if (TravelFX)
 	{
-		LoopFX = UTDStatics::PlayCueAttached(TravelFX->HyperdriveTunnel, Craft->GetRootComponent());
+		StartLoopFX(TravelFX->HyperdriveTunnel);
 	}
 }
 
@@ -297,13 +356,31 @@ void UTDHyperdriveComponent::FinishDropOut()
 	SetState(ETDHyperdriveState::Idle);
 }
 
+void UTDHyperdriveComponent::StartLoopFX(const FTDFXCue& Cue)
+{
+	StopLoopFX();
+	const ATDSpacecraft* Craft = GetCraft();
+	if (!Craft)
+	{
+		return;
+	}
+	UAudioComponent* Audio = nullptr;
+	LoopFX = UTDStatics::PlayCueAttachedLoop(Cue, Craft->GetRootComponent(), NAME_None, Audio);
+	LoopAudio = Audio;
+}
+
 void UTDHyperdriveComponent::StopLoopFX()
 {
 	if (UNiagaraComponent* FX = LoopFX.Get())
 	{
 		FX->Deactivate();
 	}
+	if (UAudioComponent* Audio = LoopAudio.Get())
+	{
+		Audio->FadeOut(0.2f, 0.f); // the spool whine / tunnel roar must stop with the state
+	}
 	LoopFX.Reset();
+	LoopAudio.Reset();
 }
 
 void UTDHyperdriveComponent::HandleDamaged(UTDHealthComponent* HealthComp, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
@@ -350,6 +427,11 @@ void UTDHyperdriveComponent::ResetHyperdrive()
 	LastDropOutTime = -1000.0;
 	LastDropOutWell = NAME_None;
 	SetState(ETDHyperdriveState::Idle);
+}
+
+void UTDHyperdriveComponent::HandleTeleported(ATDSpacecraft* Spacecraft, FVector FromLocation, FVector ToLocation, FRotator NewFacing)
+{
+	LastLocation = ToLocation; // a portal mid-jump isn't a path through every well in between
 }
 
 void UTDHyperdriveComponent::HandleDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow)
@@ -421,7 +503,8 @@ void UTDHyperdriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		{
 			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Locked);
 		}
-		else if (Tuning.bDropOutAtBoundary && Craft->GetShipMovement() && Craft->GetShipMovement()->IsNearBoundary())
+		else if (Tuning.bDropOutAtBoundary && Craft->GetShipMovement() && Craft->GetShipMovement()->IsNearBoundary()
+			&& FVector::DotProduct(Craft->GetVelocity(), Craft->GetActorLocation() - Craft->GetShipMovement()->GetBoundaryCenter()) > 0.f)
 		{
 			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Boundary);
 		}

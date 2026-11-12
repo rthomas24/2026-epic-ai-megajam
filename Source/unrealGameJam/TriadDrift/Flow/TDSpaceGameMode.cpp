@@ -5,6 +5,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDFlowReflection.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
+#include "TriadDrift/Flow/TDPlaceholderSky.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "Engine/World.h"
@@ -164,6 +165,11 @@ void ATDSpaceGameMode::HandOverPlayers()
 	for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
 	{
 		UTDCheatManager::InstallOn(It->Get());
+		if (APlayerController* PC = It->Get(); PC && PC->IsLocalController())
+		{
+			PC->SetInputMode(FInputModeGameOnly()); // never inherit the menu's UI-only input
+			PC->SetShowMouseCursor(false);
+		}
 		PossessActiveShip(It->Get());
 	}
 	if (!SquadManager)
@@ -312,88 +318,22 @@ void ATDSpaceGameMode::RestartScene()
 void ATDSpaceGameMode::SpawnEnvironment()
 {
 	UWorld* World = GetWorld();
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	if (!TDSandbox::WorldHasActor<ADirectionalLight>(World))
+	// Placeholder sun / fill / sky light / exposure only where the map has none of its own (N-004):
+	// Nick's sky actor (tagged TD.Presentation.Sky, or any directional light / unbound post-process)
+	// switches them off, also when it streams in later.
+	if (ATDPlaceholderSky* Sky = ATDPlaceholderSky::SpawnIfNeeded(World, ETDPlaceholderSkyStyle::Space))
 	{
-		// Key light: a warm "sun".
-		ADirectionalLight* Sun = World->SpawnActorDeferred<ADirectionalLight>(ADirectionalLight::StaticClass(), FTransform(FRotator(-35.f, 40.f, 0.f)));
-		if (Sun)
-		{
-			Sun->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-			Sun->FinishSpawning(FTransform(FRotator(-35.f, 40.f, 0.f)));
-			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Sun->GetLightComponent()))
-			{
-				L->SetIntensity(8.f);
-				L->SetForwardShadingPriority(1); // the sun owns forward shading
-				L->SetLightColor(FLinearColor(1.f, 0.93f, 0.82f));
-			}
-			SpawnedEnvironment.Add(Sun);
-		}
-		// Fill light from the opposite side, nebula-tinted, so the dark side of ships stays readable.
-		ADirectionalLight* Fill = World->SpawnActorDeferred<ADirectionalLight>(ADirectionalLight::StaticClass(), FTransform(FRotator(25.f, 220.f, 0.f)));
-		if (Fill)
-		{
-			Fill->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-			Fill->FinishSpawning(FTransform(FRotator(25.f, 220.f, 0.f)));
-			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Fill->GetLightComponent()))
-			{
-				L->SetIntensity(1.5f);
-				L->SetForwardShadingPriority(0); // fill never competes with the sun for forward shading
-				L->SetLightColor(FLinearColor(0.55f, 0.35f, 1.f));
-				L->SetCastShadows(false);
-				L->SetAtmosphereSunLight(false);
-			}
-			SpawnedEnvironment.Add(Fill);
-		}
+		SpawnedEnvironment.Add(Sky);
 	}
-
-	if (!TDSandbox::WorldHasActor<ASkyLight>(World))
+	if (!ATDPlaceholderSky::Scan(World).bTaggedSky)
 	{
-		ASkyLight* Sky = World->SpawnActorDeferred<ASkyLight>(ASkyLight::StaticClass(), FTransform::Identity);
-		if (Sky)
-		{
-			Sky->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-			Sky->FinishSpawning(FTransform::Identity);
-			if (USkyLightComponent* L = Sky->GetLightComponent())
-			{
-				L->SetIntensity(1.f);
-				L->bLowerHemisphereIsBlack = false;
-				L->SetLightColor(FLinearColor(0.6f, 0.7f, 1.f));
-				L->RecaptureSky();
-			}
-			SpawnedEnvironment.Add(Sky);
-		}
+		SpawnStarBackdrop(); // a real skybox brings its own stars
 	}
-
-	if (!TDSandbox::WorldHasActor<APostProcessVolume>(World))
-	{
-		// Fixed exposure: auto exposure in a black void pumps badly when bright explosions appear.
-		APostProcessVolume* PP = World->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass(), FTransform::Identity, Params);
-		if (PP)
-		{
-			PP->bUnbound = true;
-			FPostProcessSettings& S = PP->Settings;
-			S.bOverride_AutoExposureMethod = true;
-			S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
-			S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
-			S.AutoExposureApplyPhysicalCameraExposure = false;
-			S.bOverride_AutoExposureBias = true;
-			S.AutoExposureBias = 0.f;
-			S.bOverride_BloomIntensity = true;
-			S.BloomIntensity = 1.2f;
-			SpawnedEnvironment.Add(PP);
-		}
-	}
-
-	SpawnStarBackdrop();
 	if (!GalaxyLayout)
 	{
 		SpawnAsteroids();
 	}
 }
-
 void ATDSpaceGameMode::SpawnStarBackdrop()
 {
 	UStaticMesh* Sphere = TDSandbox::LoadEngineObject<UStaticMesh>(TDSandbox::SphereMesh);

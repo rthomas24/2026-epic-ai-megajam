@@ -32,14 +32,14 @@ presentation/readability, measured cost, integration and subjective approval.
 |---|---|---|
 | ART-01 Direction | Lead coordination; foundation palette/layout approved, AAA target raised | Preserve cyan/violet environment and ship identity; benchmark approval next |
 | ART-02 Inventory/sourcing | Lead + specialists; initial source inventory | Source package957b45e; every acquisition needs license/provenance before use |
-| ART-03 Ships | Ships & Weapons; Lancer M02 in refinement, Rift/Bastion backlog | M01 draftPR3/43dc320; M02 round02 57,372tri,33locators/12rays pass,16UVzeroarea/coplanar failures; repair then multi-angle Nick review, no native import |
+| ART-03 Ships | Ships & Weapons; Lancer refined source foundation integrated, Rift Phase1 active | PR3 merged100f21c, manual foundation approval recorded;57,788tris/33locators/12rays/9views+clay technical pass, fresh source review clear; finalAAA/native/export/collision/LOD/runtime gates remain; Bastion waits Rift approval |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
 | ART-05 Space | Environment & VFX; native foundation integrated, new Hero benchmark active | Main9c629e8,12native/5captures; isolated UE reload9assets0errors/warnings; no real-map playtest; HeroM02 before-after and zenith fix need Nick review |
 | ART-06 Planets | Environment & VFX planning; queued, not dispatched | Geometry/dressing absent; supplied ground dimensions unchanged; no shared map editing |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
 | ART-08 Ground visuals | Lead coordinates production owner; queued | No approved crew/arms/blade art; engineering supplies optional mesh/animation/cue contracts |
-| ART-09 HUD | UI/UX & HUD; focused readability/centering pass in native validation | DraftPR4/6d9739e baseline; health/shield icons/labels, signature/key/readiness, controlled ship, hit-text centering; Nick screenshots then engineering-approved R007 integration/host/cook gates |
-| ART-10 Audio/music | Audio & Music; all concepts rejected; licensed-library research only | M02 5979cff/draftPR5 rejected; M03 frozen/superseded; RiftConcept01 also rejected; all media archived on branch8cd30fb, read-only professional licensed-library shortlist only |
+| ART-09 HUD | UI/UX & HUD; readability milestone integrated, runtime acceptance gated | PR4 head2f55512 merged8963477; human functional readability approved; real-project build/326tests pass; N004actual-unlock fix plus engineering host/fullsuite/Shipping/cook/liveHUD remain; finalLancer styling separate |
+| ART-10 Audio/music | Audio & Music; all concepts rejected; licensed-library research only | M02 5979cff/draftPR5 rejected; M03 frozen/superseded; RiftConcept01 also rejected; all media archived on branch8cd30fb, existing Epic/Fab library audit: published exclusive paths d2a594e, five private playable candidates, no unapproved import/licensed raw media in Git |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
 | ART-12 Cinematics | Lead coordinates UI/Environment; queued implementation | Engineering switch-cut/director/scene/take hooks exist; runtime presentation not complete |
 | ART-13 Performance/look | Environment/Lead coordinate; measurements pending | Sky compiler counts are not GPU timings; real-map exposure/cost and integrated playtest pending |
@@ -49,11 +49,11 @@ presentation/readability, measured cost, integration and subjective approval.
 
 ## Immediate production sequence
 
-One global heavy-app slot on this approximately 16 GB PC. Lightweight source/audio
-work continues in separate worktrees. Ships bounded round03 repair/QA/render → HUD DPI-centering recheck → Lead current-main
-playtest window → HeroM02 native benchmark window. The prior HUD build/three tests/
-seven captures passed; a measured 3 px offset at 720p is being corrected. Recheck processes/RAM and claims
-at every dispatch; never overlap heavy apps or grant a slot from a stale snapshot.
+One global heavy-app slot on this approximately16GB PC. Ships04 passed and released;
+HUD M02 recheck/publishing complete; Lead build/suite/Galaxy scripted smoke complete.
+HeroM02 native benchmark next, then Lancer-only HUD styling native verification.
+Source-only UI and existing-library audition work may continue in exclusive roots.
+Fresh RAM/process guard at each dispatch; no concurrent heavy applications.
 
 Hero benchmark: identical camera/exposure before-after, natural multiscale structure,
 realistic angular stars without pole stretching, native reload/compile/stability and
@@ -67,14 +67,52 @@ failures, then show cohesion/materials from multiple angles before final approva
 
 ## Integration/playtest boundary
 
-Only the native sky foundation is integrated from these new native milestones.
+Native sky foundation9c629e8 and HUD source milestone8963477 are integrated; HUD host/default-on is engineering-owned and remains gated.
 It is reusable content, not proof that it appears in the real Galaxy or meets final
 AAA quality. Shared placement still needs explicit scope/claims and map-owner
 coordination. No code/config/shared map/plugin activation was changed by its merge.
 AGENTS11 now requires current-main playtests after integration batches and at least
 every 2 hours while work lands; queued live MCP input/log/viewport review is preferred,
-with scripted captures disclosed as the minimum fallback. Current sky batch has not
-been gameplay-playtested. Record results in DEVLOG; do not label assets done on tests.
+with scripted captures disclosed as the minimum fallback. Lead minimum default-Galaxy scripted capture ran at8963477:3images inspected, exit0/reasonok/noerrors; no input/sky-placement/HUD-host/fullgameplay validation. Record results in DEVLOG; do not label assets done on tests.
 
 Use existing engineering Tools read-only; shared tooling/skill changes require owner
 coordination. No unrequested tool consolidation or new production assignment here.
+
+## Full PR audit — November12
+
+| PR | Verified disposition | Remaining gate |
+|---|---|---|
+|1 Claims | Closed/unmerged, superseded by authoritative narrow main claims | Do not merge stale claims |
+|2 Source kits | GitHub merged957b45e;40source files exact,credits/log evolved | Native/presentation gates separate |
+|3 Lancer foundation | GitHub merge100f21c;111source/review additions,33LFS checked; human foundation approval + independent/postmerge review | FinalAAA/native integration not approved |
+|4 HUD | GitHub merged8963477;37files exact | RyanT2 host/config/progression/Shipping/cook/livegame acceptance pending; N007 |
+|5 Audio | Open draft8cd30fb;30files/8LFS integrity passes, sounds rejected | No main merge; owned-library audition remains frozen |
+|6 Environment | Closed/unmerged onGitHub, all37files exact onmain via9c629e8 cherry-pick | No repeat merge; presentation/actual-placement/perf gates remain |
+
+Lancer current foundation approval supersedes approval-pending wording in frozen
+historical source reports; it does not grant finalAAA or native approval. No runtime
+file changed in PR3 integration. New own-source branches stay isolated/unapproved.
+Sky component/PP MAJOR closed at fresh code review726909f; late-star-backdrop MINOR
+remains engineering-owned. Hero01cold-start watchdog125 before asset script;
+private SM6/longer-bound retry follows queued UI clean capture. Audio skill remains
+unpublished, Ryan actively authors/tests it, N006confirmed no action until notice.
+
+## Coordination checkpoint — November12,15:04EST
+
+N004 both original MAJOR findings closed at fresh independent code review: sky
+component/PP fallback726909f and earned ability producer727b511 (reviewed main
+e356921). Ability None/readiness0 while locked, actual installed ability/readiness
+after unlock, respawn/retake persistence; regression sequence inspected, not rerun
+by reviewer. Actual attached-widget sequence remains N007 host-validation gate.
+Ryan accepts/owns late-star-backdrop MINOR. No shared Source edits by Nick.
+
+Heavy slot: HeroM02 SM6 retry02 still active, PID24260/private8024, previous188s
+startup timeout preserved; no source-script/native result yet. Rift one2thread
+under60s QA/review follows actualrelease/freshRAMguard unless published realHUDhost
+needs validation priority. M03 aca9334 safely branch-published/frozen, screenshots
+being delivered, no new art assignment. Audio skill still unpublished.
+
+MESSAGEBOARD now uses INFO and verified verbatim archive; all five prior Nick
+messages checked byte-for-byte as text against precompaction blocks. Do not alter
+archived message history or reuse IDs. Current summaries coexist with newer N008
+source-foundation approval; earlier held-PR decisions remain historical.

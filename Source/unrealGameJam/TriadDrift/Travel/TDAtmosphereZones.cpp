@@ -13,6 +13,8 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/AudioComponent.h"
+#include "NiagaraComponent.h"
 
 namespace
 {
@@ -56,7 +58,7 @@ void UTDAtmosphereEntryComponent::BeginPlay()
 	}
 	if (!TravelFX)
 	{
-		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX();
+		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX(this);
 	}
 }
 
@@ -132,7 +134,9 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	}
 	if (TravelFX)
 	{
-		UTDStatics::PlayCueAttached(TravelFX->AtmosphericEntry, Craft->GetRootComponent());
+		UAudioComponent* Audio = nullptr;
+		EntryFX = UTDStatics::PlayCueAttachedLoop(TravelFX->AtmosphericEntry, Craft->GetRootComponent(), NAME_None, Audio);
+		EntryAudio = Audio;
 	}
 	OnEntryStarted.Broadcast(this);
 	if (EntrySeconds <= 0.f)
@@ -163,8 +167,17 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 	}
 }
 
+void UTDAtmosphereEntryComponent::StopEntryCue()
+{
+	if (UNiagaraComponent* FX = EntryFX.Get()) { FX->Deactivate(); }
+	if (UAudioComponent* Audio = EntryAudio.Get()) { Audio->FadeOut(0.3f, 0.f); }
+	EntryFX.Reset();
+	EntryAudio.Reset();
+}
+
 void UTDAtmosphereEntryComponent::RestoreFlight()
 {
+	StopEntryCue(); // aborted or travel failed: the roar and plasma must stop
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
 	{
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())

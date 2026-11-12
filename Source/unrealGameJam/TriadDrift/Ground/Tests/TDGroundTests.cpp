@@ -297,13 +297,28 @@ bool FTDGroundHeavy::RunTest(const FString& Parameters)
 	W.Advance(1.8f);
 	TestTrue(TEXT("ready after 2 s"), B->HeavyLunge());
 
-	// Hold-to-heavy through the input path.
+	// Hold-to-heavy through the input path: the press whiffs (target 5 m away), holding 0.35 s lunges.
 	W.Advance(2.1f);
+	C->SetActorLocation(FVector(0.f, 0.f, C->GetActorLocation().Z));
+	Target->SetActorLocation(FVector(500.f, 0.f, Target->GetActorLocation().Z));
+	W.Advance(0.1f);
 	const float Before = TDGroundTest::Hull(Target);
 	B->PressAttack();
+	TestEqual(TEXT("the press itself whiffs"), TDGroundTest::Hull(Target), Before, 0.1f);
 	W.Advance(0.4f);
 	B->ReleaseAttack();
-	TestEqual(TEXT("holding attack 0.35 s = heavy (70)"), Before - TDGroundTest::Hull(Target), 70.f, 0.1f);
+	TestEqual(TEXT("holding a whiffed press 0.35 s = heavy (70)"), Before - TDGroundTest::Hull(Target), 70.f, 0.1f);
+
+	// A press that connects stays a light hit even if held (no lunge out of a landed swing).
+	W.Advance(2.2f);
+	C->SetActorLocation(FVector(Target->GetActorLocation().X - 130.f, 0.f, C->GetActorLocation().Z));
+	W.Advance(0.1f);
+	const float Before2 = TDGroundTest::Hull(Target);
+	B->PressAttack();
+	TestEqual(TEXT("press lands the light hit at once (25)"), Before2 - TDGroundTest::Hull(Target), 25.f, 0.1f);
+	W.Advance(0.5f);
+	B->ReleaseAttack();
+	TestEqual(TEXT("holding after a hit does not lunge"), Before2 - TDGroundTest::Hull(Target), 25.f, 0.1f);
 	return true;
 }
 
@@ -671,6 +686,42 @@ bool FTDGroundHitStop::RunTest(const FString& Parameters)
 	TestTrue(TEXT("kill hit-stop still active at 90 ms"), Feel->GetCurrentDilation() < 0.99f);
 	W.Advance(0.05f, 0.01f);
 	TestEqual(TEXT("kill hit-stop over after 120 ms"), Feel->GetCurrentDilation(), 1.f, 1e-3f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundTickOrder, "TriadDrift.Ground.NoTickPrerequisiteCycles", TD_TEST_FLAGS)
+bool FTDGroundTickOrder::RunTest(const FString& Parameters)
+{
+	TDGroundTest::FScopedLogWatch Cycles(TEXT("would form a cycle"));
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+		TDGroundTest::SpawnDummy(W, FVector(400.f, 0.f, 95.f));
+		if (!TestNotNull(TEXT("character"), C)) { return false; }
+		// Exercise every movement path: run, dash, jump, slide, lunge.
+		C->SetMoveInput(FVector2D(0.f, 1.f));
+		C->SetSprintHeld(true);
+		W.Advance(0.6f);
+		C->TrySlide();
+		W.Advance(0.8f);
+		C->TryDash();
+		W.Advance(0.4f);
+		C->TryJump();
+		W.Advance(0.6f);
+		C->GetBlade()->HeavyLunge();
+		W.Advance(0.6f);
+
+		// The movement component ticks before its owner; nothing may point the other way as well.
+		const UCharacterMovementComponent* Move = C->GetCharacterMovement();
+		bool bMoveWaitsForActor = false;
+		for (const FTickPrerequisite& Pre : Move->PrimaryComponentTick.GetPrerequisites())
+		{
+			bMoveWaitsForActor |= (Pre.Get() == &C->PrimaryActorTick);
+		}
+		TestFalse(TEXT("movement does not wait for the character's tick"), bMoveWaitsForActor);
+	}
+	TestEqual(TEXT("no LogTick prerequisite-cycle warnings"), Cycles.Count, 0);
 	return true;
 }
 

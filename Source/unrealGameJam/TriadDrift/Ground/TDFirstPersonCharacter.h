@@ -113,6 +113,7 @@ public:
 	UTDHealthComponent* GetHealth() const { return Health; }
 	UTDEnergyBladeComponent* GetBlade() const { return Blade; }
 	UStaticMeshComponent* GetBladeMesh() const { return BladePlaceholder; }
+	USceneComponent* GetBladeGrip() const { return BladeGrip; }
 
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
 	void ApplyBladeVisuals();
@@ -149,6 +150,7 @@ public:
 	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void NotifyControllerChanged() override;
+	virtual void UnPossessed() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -159,6 +161,13 @@ protected:
 	/** Placeholder blade (engine cube) until Nick's blade mesh arrives. */
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Ground")
 	TObjectPtr<UStaticMeshComponent> BladePlaceholder;
+
+	/** The hand: posed each frame; the blade and hilt hang off it (blade along +Z). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Ground")
+	TObjectPtr<USceneComponent> BladeGrip;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Ground")
+	TObjectPtr<UStaticMeshComponent> BladeHilt;
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Ground")
 	TObjectPtr<UTDHealthComponent> Health;
@@ -178,6 +187,7 @@ private:
 	void CancelInteract();
 	void BuildInput();
 	void HandleBladeRetract(bool bRetracted);
+	void UpdateBladePose(float DeltaSeconds);
 	bool bBladeMeshFromArt = false;
 
 	UFUNCTION()

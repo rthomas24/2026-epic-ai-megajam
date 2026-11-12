@@ -146,7 +146,8 @@ bool FTDWorldGateSquad::RunTest(const FString& Parameters)
 	{
 		R.W.Tick();
 	}
-	TestEqual(TEXT("the leader transited once"), R.A->GetTransitCount(), 1);
+	// The leader (and, with T3's forward-swept wedge, possibly a wingman flying through on its own) went through A.
+	TestTrue(TEXT("the squad went through gate A"), R.A->GetTransitCount() >= 1 && R.A->GetTransitCount() <= 3);
 	R.W.Advance(4.f);
 	TestEqual(TEXT("nobody bounced back through B"), R.B->GetTransitCount(), 0);
 	for (ATDShip* S : Squad->GetLivingShips())

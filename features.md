@@ -315,7 +315,7 @@ shooting backwards feels great.
 | Aim | Mouse | Right stick |
 | Roll | A / D | Left stick X |
 | Fire primary / secondary | LMB / RMB | RB / LB |
-| Boost / Drift | Shift / Alt or C | L3 / B (hold) |
+| Boost / Drift | Shift / C | L3 / B (hold) |
 | Signature power 1 / 2 (hold, Bastion) | Q / hold Q | X / hold X |
 | Unlocked ability | E | Y |
 | Switch next / prev / direct | Tab / Shift+Tab / 1-2-3 | D-pad right / left / hold up = radial |
@@ -326,10 +326,11 @@ shooting backwards feels great.
 
 #### ENG-03 · Health, shields, death and respawn · `⬜`
 - **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s.
-- **Hull:** doesn't regenerate in combat, but slowly repairs between waves.
+- **Hull:** doesn't regenerate in combat, but repairs at 8% per second in the breather between waves.
 - **Death:** a 0.6 s tumble, then an explosion (`UTDShipVisuals` tier), then **auto-switch** to the
   healthiest living ship. A downed ship warps back in after 12 s. There are 2 s of invulnerability
-  after a respawn or switch-in.
+  after a respawn or an automatic switch; a manual switch gives 0.35 s, at most once every 6 s per
+  ship, so switching cannot be spammed for permanent invulnerability.
 - **Squad wipe:** if all three ships are down at once, fire `OnSquadWiped`, then
   `ReportPlayerDefeated()` (Director's Cut: "CUT!", then the next take).
 
@@ -434,11 +435,15 @@ and on `OnAbilityUnlocked`.
 |---|---|---|---|---|---|---|
 | Shard Fighter | Swarm | 30 / 0 | 7000 | Pulse guns (5, 4/s) | Packs of 4–8, strafing runs | Needles, Splitter, Flak |
 | Hook Interceptor | Hunter | 50 / 20 | 9000 | Pulse guns + homing missile (25) every 8 s | Chases the player's ship | Portal missile return, drift |
-| Wall Gunship | Tank | 400 / frontal shield 300 | 3000 | Slow heavy bolts (20) + missile salvo (3×20) | Faces its target; shield blocks frontal fire | Flank, portal behind it, Ram, EMP |
-| Maul Bomber | Area denial | 150 / 50 | 4000 | Plasma mines (60, 800 cm) | Lays mine trails | Flak, Gravity Well |
-| Hive Carrier | Spawner / mini-boss | 2000 hull + 3 bays × 300 | 1500 | 4 point-defense turrets (6) | Launches 3 fighters per bay every 12 s | Kill bays (Ram breaks doors), Missile Swarm |
+| Wall Gunship | Tank | 400 / frontal shield 300 (recovers 15 s after it is broken) | 3000 | Heavy bolt volley (20) every 4.5 s + missile salvo (3×20) every 12 s | Faces its target; shield blocks frontal fire | Flank, portal behind it, Ram, EMP |
+| Maul Bomber | Area denial | 150 / 50 | 4000 | Plasma mines (60, 800 cm) | Lays a trail of 4 mines every 5 s | Flak, Gravity Well |
+| Hive Carrier | Spawner / mini-boss | 1500 hull + 3 bays × 300 | 1500 | 4 point-defense turrets (6; bursts of 1.0 s, then 2.0 s quiet) | Launches 3 fighters per bay every 12 s, at most 3 launches per bay and 8 of its fighters alive at once | Kill bays (Ram breaks doors), Missile Swarm |
 
 - `ATDEnemyShip` + AI: approach, attack run, break off, re-approach; fighters fly in formation.
+  Attack runs on the player's ship cross in front of its nose, so the fight stays on screen; a group
+  that falls behind catches up, so a wave can always be finished.
+- **Balance (Nov 12):** the numbers above were tuned with the headless balance run after wave 5 proved
+  unwinnable at the first values; the reasoning and the per-wave tables are in `docs/eng/balance.md`.
 - Every big attack has a **telegraph** state for Nick's VFX and audio.
 - Visuals: `UTDEnemyVisuals` (Nick).
 
@@ -465,9 +470,15 @@ drift, hyperdrive.
   too and arrive in formation.
 - Exposes state for `OnHyperdriveState` (spool, tunnel and drop-out VFX and audio are Nick's).
 
+- **Difficulty:** three presets, Story / Standard / Ace (`UTDDifficultySettings`), scale enemy hull,
+  damage, aim error and wave size. Target on Standard: the five waves take 8-10 minutes in total.
+- **Hyperdrive lock:** the hyperdrive is locked while a wave is active and during the Dominion
+  assault, and free in the breather between waves and in the planet phases.
+
 #### ENG-16 · Portal gates (galaxy shortcuts) · `⬜`
 Three permanent `ATDPortalGate` pairs: combat zone ↔ Verdance orbit, combat zone ↔ Cinder orbit, and
-a flank pair used in waves 3–5. They reuse ENG-09's transit logic, and wingmen follow.
+a flank pair used in waves 3–5. They reuse ENG-09's transit logic, and wingmen follow. Shots pass
+through a gate unchanged: only Rift's own portals return enemy missiles.
 
 #### ENG-17 · Galaxy level: gameplay layout · `⬜`
 - **Zones:** the combat zone (asteroids, station ruins as cover), Verdance and Cinder orbits, and
@@ -480,12 +491,13 @@ a flank pair used in waves 3–5. They reuse ENG-09's transit logic, and wingmen
 - **Arrival:** when `bDominionRevealed` is set after wave 5, the Dominion warps in (Nick's reveal
   sequence plays).
 - **Assault:**
-  - 4 `ATDShieldGenerator`s (800 HP each, guarded by turrets) and 8–12 `ATDDominionTurret`s
-    (telegraphed charge shots); fighters keep launching.
+  - 4 `ATDShieldGenerator`s (800 HP each, guarded by turrets), 10 `ATDDominionTurret`s on the hull
+    and 4 in the reactor trench (telegraphed charge shots); fighters keep launching.
   - Each generator kill drops part of the shield and fires `OnHighlightMoment`.
   - All four down sets `SetDominionState(DefensesDown)` and **exposes the reactor**.
-- **Core ending:** fly the exposed reactor trench and destroy the reactor (a 3-phase health bar with
-  escalating turret fire and launches), then `TravelTo(Victory)` after Nick's breakup sequence.
+- **Core ending:** fly the exposed reactor trench and destroy the reactor (3 phases of 1200 HP with
+  escalating turret fire and launches). When it dies the squad is protected and every remaining
+  enemy is destroyed; victory is a phase change on the galaxy map after Nick's breakup sequence.
 - **Stretch ending:** the docking bay opens instead and leads to ENG-29.
 
 ### Game loop & progression

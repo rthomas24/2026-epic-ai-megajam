@@ -18,6 +18,22 @@
 
 namespace TDPowerTest
 {
+	/** Every Powers test body runs once per step (30 / 60 / 120 fps); W.Advance / W.Tick / AdvanceUntil use the current one. */
+	inline constexpr float kPowerFrameSteps[] = { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f };
+
+	inline float& PowerFrameStep()
+	{
+		static float Step = 1.f / 60.f;
+		return Step;
+	}
+
+	struct FScopedPowerFrameStep
+	{
+		float Previous;
+		explicit FScopedPowerFrameStep(float Step) : Previous(PowerFrameStep()) { PowerFrameStep() = Step; }
+		~FScopedPowerFrameStep() { PowerFrameStep() = Previous; }
+	};
+
 	/** A box with health. bSolid = blocks everything (walls); otherwise query-only and ignores all channels (never blocks flight). */
 	inline AActor* SpawnBody(FTDTestWorld& W, ETDTeam Team, const FVector& Location, const FVector& Extent = FVector(100.f),
 		float Hull = 100.f, float Shield = 0.f, bool bSolid = false, bool bWithHealth = true)
@@ -92,8 +108,12 @@ namespace TDPowerTest
 			FTransform(Dir.Rotation(), From), Shooter, ETDTeam::Enemy, Target);
 	}
 
-	inline float AdvanceUntil(FTDTestWorld& W, TFunctionRef<bool()> Pred, float MaxSeconds, float Step = 1.f / 60.f)
+	inline float AdvanceUntil(FTDTestWorld& W, TFunctionRef<bool()> Pred, float MaxSeconds, float Step = -1.f)
 	{
+		if (Step <= 0.f)
+		{
+			Step = PowerFrameStep();
+		}
 		float T = 0.f;
 		while (T < MaxSeconds)
 		{

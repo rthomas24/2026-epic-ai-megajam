@@ -16,6 +16,8 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "AIController.h"
+#include "Misc/OutputDevice.h"
+#include "Misc/OutputDeviceRedirector.h"
 
 namespace TDGroundTest
 {
@@ -102,7 +104,22 @@ namespace TDGroundTest
 			S->TransitionMap = Transition;
 		}
 	};
+	/** Counts log lines containing a pattern while alive (e.g. tick-prerequisite cycle warnings). */
+	struct FScopedLogWatch : public FOutputDevice
+	{
+		FString Pattern;
+		int32 Count = 0;
+		explicit FScopedLogWatch(const FString& InPattern) : Pattern(InPattern) { GLog->AddOutputDevice(this); }
+		virtual ~FScopedLogWatch() override { GLog->RemoveOutputDevice(this); }
+		virtual void Serialize(const TCHAR* V, ELogVerbosity::Type Verbosity, const FName& Category) override
+		{
+			if (V && FCString::Stristr(V, *Pattern))
+			{
+				++Count;
+			}
+		}
+		virtual bool CanBeUsedOnAnyThread() const override { return true; }
+	};
 }
-
 
 #endif // WITH_DEV_AUTOMATION_TESTS

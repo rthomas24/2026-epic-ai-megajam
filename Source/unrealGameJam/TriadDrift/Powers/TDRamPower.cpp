@@ -31,6 +31,8 @@ namespace
 	}
 }
 
+const FName UTDRamPower::RamOverrideKey(TEXT("Ram"));
+
 UTDRamPower::UTDRamPower()
 {
 	Slot = ETDPowerInput::Signature1;
@@ -81,22 +83,9 @@ bool UTDRamPower::IsHyperdriveBusy() const
 
 bool UTDRamPower::CanActivate() const
 {
-	if (!Super::CanActivate() || IsHyperdriveBusy())
-	{
-		return false;
-	}
-	// Someone else (hyperdrive, atmosphere entry) owns the speed override: don't fight it.
-	if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
-	{
-		if (const UTDShipMovementComponent* Move = Craft->GetShipMovement())
-		{
-			if (Move->HasSpeedOverride())
-			{
-				return false;
-			}
-		}
-	}
-	return true;
+	// Never mid-jump. Other overrides (atmosphere entry...) are fine: keyed overrides stack and ours is
+	// removed alone at the end, restoring whatever was underneath.
+	return Super::CanActivate() && !IsHyperdriveBusy();
 }
 
 void UTDRamPower::RefreshInvulnerability(float Seconds)
@@ -157,20 +146,31 @@ void UTDRamPower::BeginDash()
 	if (!HasActiveArt() && !PlaceholderCone)
 	{
 		// Lancer's afterburner spear: a cyan cone ahead of the nose (engine cone axis is +Z: pitch -90 points it forward).
-		PlaceholderCone = FTDPowerPresentation::AddShape(Owner, nullptr, FTDPowerPresentation::EShape::Cone, FVector(3.f, 3.f, 5.f),
+		PlaceholderCone = FTDPowerPresentation::AddShape(Owner, nullptr, FTDPowerPresentation::EShape::Cone, FVector(5.f, 5.f, 9.f),
 			FRotator(-90.f, 0.f, 0.f), UTDStatics::ShipColor(ETDShipId::Lancer), 5.f);
 		if (PlaceholderCone)
 		{
-			PlaceholderCone->SetRelativeLocation(FVector(450.f, 0.f, 0.f));
+			PlaceholderCone->SetRelativeLocation(FVector(700.f, 0.f, 0.f));
+			// The chase camera sits behind Lancer, so the cone alone hides behind the hull: two long afterburner
+			// streaks trailing off the wingtips read from behind (cylinder axis is +Z: pitch 90 lays it along X).
+			for (const float Side : { -1.f, 1.f })
+			{
+				if (UStaticMeshComponent* Streak = FTDPowerPresentation::AddShape(Owner, PlaceholderCone, FTDPowerPresentation::EShape::Cylinder,
+					FVector(0.35f, 0.35f, 14.f), FRotator(0.f, 0.f, 0.f), UTDStatics::ShipColor(ETDShipId::Lancer), 8.f))
+				{
+					Streak->ComponentTags.Remove(FTDPowerPresentation::PlaceholderTag); // part of the cone placeholder
+					Streak->SetUsingAbsoluteScale(true);
+					Streak->SetWorldScale3D(FVector(0.35f, 0.35f, 14.f));
+					Streak->SetRelativeLocation(FVector(0.f, Side * 380.f / 5.f, -1400.f / 9.f)); // cone space: Z is backwards along the hull
+				}
+			}
 		}
 	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Owner))
 	{
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
-			// Order matters: SetSpeedOverride resets the override acceleration to its default.
-			Move->SetSpeedOverride(GetDashSpeed(), SteeringScale);
-			Move->SetOverrideAcceleration(DashAcceleration);
+			Move->SetSpeedOverrideFor(RamOverrideKey, GetDashSpeed(), SteeringScale, DashAcceleration);
 			// The flight model's velocity grip eases speed changes in over ~0.2 s; the ram is a kick.
 			Move->Velocity = Owner->GetActorForwardVector() * GetDashSpeed();
 			bOwnsOverride = true;
@@ -364,7 +364,7 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 	}
 	if (PlaceholderCone)
 	{
-		PlaceholderCone->DestroyComponent();
+		FTDPowerPresentation::DestroyPlaceholder(PlaceholderCone); // the streaks are its children: they go too
 		PlaceholderCone = nullptr;
 	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Owner))
@@ -374,8 +374,7 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 			Move->OnFlightImpact.RemoveAll(this);
 			if (bOwnsOverride)
 			{
-				Move->ClearSpeedOverride();
-				Move->SetOverrideAcceleration(-1.f);
+				Move->ClearSpeedOverrideFor(RamOverrideKey); // only ours: anything underneath is restored
 			}
 		}
 	}

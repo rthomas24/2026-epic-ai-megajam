@@ -163,4 +163,5 @@ private:
 
 	TArray<TWeakObjectPtr<ATDPortal>> Portals;
 	int32 RefusedPlacements = 0;
+	bool bWindowRestarted = false;
 };

@@ -1,0 +1,8 @@
+C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review_lancer.py:237: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  sc.world.use_nodes = True
+REVIEW_RENDER_START 01_hero_front_3q
+00:24.906  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\01_hero_front_3q.png'
+REVIEW_RENDER_DONE 01_hero_front_3q
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

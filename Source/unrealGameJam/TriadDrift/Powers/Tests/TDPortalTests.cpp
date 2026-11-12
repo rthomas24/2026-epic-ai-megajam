@@ -44,6 +44,10 @@ namespace TDPowerTest
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalPlacement, "TriadDrift.Powers.Portal.PlacementPairingAndRecycle", TD_TEST_FLAGS)
 bool FTDPortalPlacement::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
 	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
@@ -59,7 +63,7 @@ bool FTDPortalPlacement::RunTest(const FString& Parameters)
 	// Third shot recycles the oldest (A).
 	Rift->SetActorRotation(FRotator(0.f, -90.f, 0.f));
 	Power->HandleInputPressed();
-	W.Tick();
+	W.Tick(PowerFrameStep());
 	TestEqual(TEXT("still two portals"), Power->GetPortals().Num(), 2);
 	TestFalse(TEXT("A closed"), IsValid(A));
 	ATDPortal* C = Power->GetPortals()[1].Get();
@@ -74,12 +78,18 @@ bool FTDPortalPlacement::RunTest(const FString& Parameters)
 	ATDPortal* OnWall = Power2->GetPortals().Num() ? Power2->GetPortals()[0].Get() : nullptr;
 	// 100 cm sweep sphere touches at x = 4900, minus the 300 cm offset.
 	TestTrue(TEXT("placed off the wall"), OnWall && FMath::IsNearlyEqual(OnWall->GetActorLocation().X, 4600.f, 5.f));
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalShipTransit, "TriadDrift.Powers.Portal.ShipKeepsSpeedTakesExitFacing", TD_TEST_FLAGS)
 bool FTDPortalShipTransit::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
 	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
@@ -107,17 +117,23 @@ bool FTDPortalShipTransit::RunTest(const FString& Parameters)
 	TestTrue(TEXT("lateral offset kept (150 cm right of centre)"), FMath::Abs(Ship->GetActorLocation().X - (-150.f)) < 200.f
 		|| FMath::Abs(Ship->GetActorLocation().X - 150.f) < 200.f);
 	TestTrue(TEXT("0.3 s invulnerable"), Ship->GetHealth() && Ship->GetHealth()->IsInvulnerable());
-	W.Advance(0.4f);
+	W.Advance(0.4f, PowerFrameStep());
 	TestFalse(TEXT("invulnerability over"), Ship->GetHealth() && Ship->GetHealth()->IsInvulnerable());
 
-	W.Advance(2.f);
+	W.Advance(2.f, PowerFrameStep());
 	TestEqual(TEXT("exactly one transit (no bounce back)"), PortalTestTotalTransits(Power), 1);
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalMissileReturn, "TriadDrift.Powers.Portal.EnemyMissileReturnsToShooter", TD_TEST_FLAGS)
 bool FTDPortalMissileReturn::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
 	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
@@ -152,12 +168,18 @@ bool FTDPortalMissileReturn::RunTest(const FString& Parameters)
 		Bus->OnHighlightMoment.RemoveAll(Listener);
 	}
 	Listener->RemoveFromRoot();
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalTransitHelper, "TriadDrift.Powers.Portal.TransitHelperRules", TD_TEST_FLAGS)
 bool FTDPortalTransitHelper::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	const FTransform Entry(FRotator::ZeroRotator, FVector(1000.f, 0.f, 0.f));
 	const FTransform Exit(FRotator(0.f, 90.f, 0.f), FVector(0.f, 5000.f, 0.f));
@@ -173,39 +195,51 @@ bool FTDPortalTransitHelper::RunTest(const FString& Parameters)
 	TestTrue(TEXT("fighter loses tracking"), Fighter && Fighter->IsTrackingLost());
 	TestTrue(TEXT("fighter takes the exit facing"), Fighter && Fighter->GetActorForwardVector().Equals(FVector::RightVector, 0.01f));
 	TestFalse(TEXT("re-entry cooldown blocks an instant bounce"), UTDPortalTransit::TransitActor(Fighter, Exit, Entry, nullptr, Params));
-	W.Advance(2.1f);
+	W.Advance(2.1f, PowerFrameStep());
 	TestFalse(TEXT("tracking back after 2 s"), Fighter && Fighter->IsTrackingLost());
 	TestTrue(TEXT("transits again after the cooldown"), UTDPortalTransit::TransitActor(Fighter, Exit, Entry, nullptr, Params));
 
 	AActor* NotATraveller = SpawnBody(W, ETDTeam::Enemy, FVector(1000.f, 0.f, 0.f));
 	TestFalse(TEXT("plain actors are refused"), UTDPortalTransit::TransitActor(NotATraveller, Entry, Exit, nullptr, Params));
 	TestFalse(TEXT("null is refused"), UTDPortalTransit::TransitActor(nullptr, Entry, Exit, nullptr, Params));
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalWindow, "TriadDrift.Powers.Portal.OpenFor12sThen8sCooldown", TD_TEST_FLAGS)
 bool FTDPortalWindow::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
 	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
-	W.Advance(11.8f);
+	W.Advance(11.8f, PowerFrameStep());
 	TestTrue(TEXT("still open at 11.8 s"), Power->IsPowerActive() && Power->GetPortals().Num() == 2);
 	TestEqual(TEXT("cooldown frozen while open"), Power->GetCooldown01(), 0.f);
-	W.Advance(0.3f);
+	W.Advance(0.3f, PowerFrameStep());
 	TestFalse(TEXT("closed after 12 s"), Power->IsPowerActive());
 	TestEqual(TEXT("portals gone"), Power->GetPortals().Num(), 0);
 	TestFalse(TEXT("on cooldown"), Power->CanActivate());
-	W.Advance(7.8f);
+	W.Advance(7.8f, PowerFrameStep());
 	TestFalse(TEXT("not ready at 7.8 s"), Power->CanActivate());
-	W.Advance(0.3f);
+	W.Advance(0.3f, PowerFrameStep());
 	TestTrue(TEXT("ready after 8 s"), Power->CanActivate());
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalClearance, "TriadDrift.Powers.Portal.NeverExitsIntoGeometry", TD_TEST_FLAGS)
 bool FTDPortalClearance::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	// Placement: boxed in front and behind -> bounded push-out fails -> refused.
 	{
 		FTDTestWorld W;
@@ -229,9 +263,11 @@ bool FTDPortalClearance::RunTest(const FString& Parameters)
 		FTDFlightInput In;
 		In.Throttle = 1.f;
 		Ship->SetFlightInput(In);
-		W.Advance(2.f);
+		W.Advance(2.f, PowerFrameStep());
 		TestEqual(TEXT("blocked exit: no transit"), PortalTestTotalTransits(Power), 0);
 		TestTrue(TEXT("ship flew straight on past A"), Ship->GetActorLocation().X > 12000.f);
+	}
+	continue;
 	}
 	return true;
 }
@@ -239,6 +275,10 @@ bool FTDPortalClearance::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalBlink, "TriadDrift.Powers.Portal.BlinkFallback", TD_TEST_FLAGS)
 bool FTDPortalBlink::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	for (const bool bViaCVar : { false, true })
 	{
 		FTDTestWorld W;
@@ -268,18 +308,20 @@ bool FTDPortalBlink::RunTest(const FString& Parameters)
 		TestNull(TEXT("reflect field is not a squad dome"), UTDPowerSubsystem::Get(W.GetWorld())->FindDomeCovering(Rift->GetActorLocation()));
 
 		ATDProjectile* Missile = LaunchMissile(W, FVector(14000.f, 0.f, 0.f), -FVector::ForwardVector, Interceptor, Rift);
-		W.Advance(0.3f);
+		W.Advance(0.3f, PowerFrameStep());
 		TestTrue(TEXT("reflect field turned the missile"), Missile && Missile->GetTeam() == ETDTeam::Player);
-		W.Advance(3.f);
+		W.Advance(3.f, PowerFrameStep());
 		TestEqual(TEXT("Rift unharmed"), Shield(Rift), 100.f);
 
 		TestFalse(TEXT("8 s cooldown"), Power->CanActivate());
-		W.Advance(5.f);
+		W.Advance(5.f, PowerFrameStep());
 		TestTrue(TEXT("ready after 8 s"), Power->CanActivate());
 		if (CVar)
 		{
 			CVar->Set(0);
 		}
+	}
+	continue;
 	}
 	return true;
 }
@@ -313,6 +355,10 @@ bool FTDPortalFreshShots::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalDynamicGeometry, "TriadDrift.Powers.Portal.DynamicGeometryAndOversizeTravellers", TD_TEST_FLAGS)
 bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	auto DynamicWall = [](FTDTestWorld& W, const FVector& Loc, const FVector& Extent)
 	{
 		AActor* Wall = SpawnWall(W, Loc, Extent);
@@ -325,7 +371,7 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		ATDDominion* D = W.Spawn<ATDDominion>(FVector(40000.f, 0.f, 0.f));
 		D->WarpInSeconds = 0.f;
 		D->WarpIn();
-		W.Tick();
+		W.Tick(PowerFrameStep());
 		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);
 		Power->MaxRange = 30000.f; // reaches the hull face at x = 10 000
@@ -345,7 +391,7 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		FTDFlightInput In;
 		In.Throttle = 1.f;
 		Ship->SetFlightInput(In);
-		W.Advance(2.f);
+		W.Advance(2.f, PowerFrameStep());
 		TestEqual(TEXT("dynamic blocker on the exit: no transit"), PortalTestTotalTransits(Power), 0);
 	}
 	// Blink into a dynamic box enclosure: refused, Rift stays put.
@@ -365,10 +411,12 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		AActor* Rift = nullptr;
 		UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 		ATDEnemyShip* Carrier = SpawnEnemyShip(W, TDEnemyIds::HiveCarrier, FVector(11000.f, 0.f, 0.f));
-		W.Tick();
+		W.Tick(PowerFrameStep());
 		Carrier->SetActorLocation(FVector(13000.f, 0.f, 0.f)); // crosses A's plane at its centre
-		W.Tick();
+		W.Tick(PowerFrameStep());
 		TestEqual(TEXT("oversize traveller refused"), PortalTestTotalTransits(Power), 0);
+	}
+	continue;
 	}
 	return true;
 }

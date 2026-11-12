@@ -11,6 +11,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "NiagaraComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/AudioComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
@@ -94,6 +96,17 @@ void ATDShip::BeginPlay()
 	SpringArm->CameraRotationLagSpeed = CameraTuning.RotationLag;
 	SpringArm->CameraLagMaxDistance = CameraTuning.LagMaxDistance;
 	CurrentFOV = CameraTuning.MinFOV;
+	for (UCameraComponent* Cam : { ChaseCamera.Get(), CockpitCamera.Get() })
+	{
+		if (Cam)
+		{
+			Cam->PostProcessSettings.bOverride_MotionBlurAmount = true;
+			Cam->PostProcessSettings.MotionBlurAmount = CameraTuning.MotionBlurAmount;
+			Cam->PostProcessSettings.bOverride_MotionBlurMax = true;
+			Cam->PostProcessSettings.MotionBlurMax = CameraTuning.MotionBlurMax;
+			Cam->PostProcessBlendWeight = 1.f;
+		}
+	}
 	ChaseCamera->SetFieldOfView(CurrentFOV);
 
 	SetPlayerControlled(bPlayerControlled);
@@ -260,35 +273,87 @@ USceneComponent* ATDShip::GetEngineAttach(FName& OutSocket) const
 	return bHasRealArt ? static_cast<USceneComponent*>(HullMesh) : static_cast<USceneComponent*>(EngineGlow);
 }
 
-void ATDShip::StopLoop(TWeakObjectPtr<UNiagaraComponent>& FX, TWeakObjectPtr<UAudioComponent>& Audio)
+FTDFXCue ATDShip::ForThisShip(const FTDFXCue& Cue) const
+{
+	FTDFXCue Out = Cue;
+	if (!bPlayerControlled)
+	{
+		Out.Shake.Reset();
+	}
+	return Out;
+}
+
+void ATDShip::StopLoop(FName Slot, TWeakObjectPtr<UNiagaraComponent>& FX, TWeakObjectPtr<UAudioComponent>& Audio)
 {
 	if (UNiagaraComponent* N = FX.Get()) { N->Deactivate(); }
 	if (UAudioComponent* A = Audio.Get()) { A->FadeOut(0.25f, 0.f); }
 	FX.Reset();
 	Audio.Reset();
+	ActiveLoops.Remove(Slot);
 }
 
 void ATDShip::StartLoop(FName Slot, const FTDFXCue& Cue, TWeakObjectPtr<UNiagaraComponent>& OutFX, TWeakObjectPtr<UAudioComponent>& OutAudio)
 {
-	StopLoop(OutFX, OutAudio);
+	StopLoop(Slot, OutFX, OutAudio);
 	if (!Visuals)
 	{
 		return;
 	}
 	NoteCue(Slot);
+	ActiveLoops.Add(Slot);
 	FName Socket;
 	USceneComponent* Attach = GetEngineAttach(Socket);
 	UAudioComponent* Audio = nullptr;
-	OutFX = UTDStatics::PlayCueAttachedLoop(Cue, Attach, Socket, Audio);
+	OutFX = UTDStatics::PlayCueAttachedLoop(ForThisShip(Cue), Attach, Socket, Audio);
 	OutAudio = Audio;
+}
+
+bool ATDShip::ShouldEnginesRun() const
+{
+	if (!Visuals)
+	{
+		return false;
+	}
+	if (const UTDHealthComponent* H = GetHealth())
+	{
+		if (H->IsDead())
+		{
+			return false;
+		}
+	}
+	if (Landing && Landing->IsBusy())
+	{
+		return Landing->AreEnginesOn(); // gear / canopy steps keep the engines lit until EnginesOff
+	}
+	return !IsFlightParked();
+}
+
+void ATDShip::StopEngine()
+{
+	StopLoop(TEXT("EngineTrail"), EngineTrailFX, EngineTrailAudio);
+	if (UAudioComponent* A = EngineLoopAudio.Get()) { A->FadeOut(0.3f, 0.f); }
+	EngineLoopAudio.Reset();
+	ActiveLoops.Remove(TEXT("EngineLoop"));
 }
 
 void ATDShip::StartEngineTrail()
 {
-	StopLoop(EngineTrailFX, EngineTrailAudio);
-	if (Visuals)
+	StopEngine();
+	if (!ShouldEnginesRun())
 	{
-		StartLoop(TEXT("EngineTrail"), Visuals->EngineTrail, EngineTrailFX, EngineTrailAudio);
+		return;
+	}
+	StartLoop(TEXT("EngineTrail"), Visuals->EngineTrail, EngineTrailFX, EngineTrailAudio);
+	// The engine hum (UTDShipVisuals::EngineLoop): pitched by speed in Tick.
+	NoteCue(TEXT("EngineLoop"));
+	ActiveLoops.Add(TEXT("EngineLoop"));
+	if (!Visuals->EngineLoop.IsNull())
+	{
+		if (USoundBase* Sound = Visuals->EngineLoop.LoadSynchronous())
+		{
+			FName Socket;
+			EngineLoopAudio = UGameplayStatics::SpawnSoundAttached(Sound, GetEngineAttach(Socket), Socket);
+		}
 	}
 }
 
@@ -300,13 +365,13 @@ void ATDShip::HandleBoostStarted()
 	}
 	NoteCue(TEXT("BoostStart"));
 	FName Socket;
-	UTDStatics::PlayCueAttached(Visuals->BoostStart, GetEngineAttach(Socket), Socket);
+	UTDStatics::PlayCueAttached(ForThisShip(Visuals->BoostStart), GetEngineAttach(Socket), Socket);
 	StartLoop(TEXT("BoostLoop"), Visuals->BoostLoop, BoostLoopFX, BoostLoopAudio);
 }
 
 void ATDShip::HandleBoostEnded()
 {
-	StopLoop(BoostLoopFX, BoostLoopAudio);
+	StopLoop(TEXT("BoostLoop"), BoostLoopFX, BoostLoopAudio);
 }
 
 void ATDShip::HandleDriftStarted()
@@ -319,21 +384,24 @@ void ATDShip::HandleDriftStarted()
 
 void ATDShip::HandleDriftEnded(bool bBurst)
 {
-	StopLoop(DriftLoopFX, DriftLoopAudio);
+	StopLoop(TEXT("DriftLoop"), DriftLoopFX, DriftLoopAudio);
 	if (Visuals && bBurst)
 	{
 		NoteCue(TEXT("DriftRelease"));
 		FName Socket;
-		UTDStatics::PlayCueAttached(Visuals->DriftRelease, GetEngineAttach(Socket), Socket);
+		UTDStatics::PlayCueAttached(ForThisShip(Visuals->DriftRelease), GetEngineAttach(Socket), Socket);
 	}
 }
 
 void ATDShip::HandleFlightImpactCue(const FTDFlightImpact& Impact)
 {
-	if (Visuals && !Impact.bHeadOn)
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetTimeSeconds() : 0.0;
+	if (Visuals && !Impact.bHeadOn && Now - LastScrapeCueTime >= ScrapeCueInterval)
 	{
+		LastScrapeCueTime = Now;
 		NoteCue(TEXT("CollisionScrape"));
-		UTDStatics::PlayCue(this, Visuals->CollisionScrape, Impact.ImpactPoint, Impact.ImpactNormal.Rotation());
+		UTDStatics::PlayCue(this, ForThisShip(Visuals->CollisionScrape), Impact.ImpactPoint, Impact.ImpactNormal.Rotation());
 	}
 }
 
@@ -436,6 +504,21 @@ void ATDShip::Tick(float DeltaSeconds)
 	if (bPlayerControlled && !bCockpitView)
 	{
 		UpdateChaseCamera(DeltaSeconds, false);
+	}
+
+	// Engine loops follow the ship's state: off while dead, parked (downed, hidden) or with engines off.
+	const bool bRun = ShouldEnginesRun();
+	if (bRun && !ActiveLoops.Contains(TEXT("EngineTrail")))
+	{
+		StartEngineTrail();
+	}
+	else if (!bRun && ActiveLoops.Contains(TEXT("EngineTrail")))
+	{
+		StopEngine();
+	}
+	if (UAudioComponent* A = EngineLoopAudio.Get())
+	{
+		A->SetPitchMultiplier(0.8f + 0.6f * GetSpeed01());
 	}
 }
 

@@ -16,6 +16,11 @@ UTDAbilityComponent::UTDAbilityComponent()
 	AbilityClasses.Add(ETDAbilityId::EMPPulse, UTDEMPPower::StaticClass());
 }
 
+float UTDAbilityComponent::GetReadiness01() const
+{
+	return HasAbility() ? Power->GetCooldown01() : 0.f;
+}
+
 void UTDAbilityComponent::BeginPlay()
 {
 	Super::BeginPlay();

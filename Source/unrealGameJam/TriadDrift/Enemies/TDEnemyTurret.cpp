@@ -56,6 +56,11 @@ void ATDEnemyTurret::Init(const FTDEnemyAttackSpec& InGuns, float Hull)
 	bInitialized = true;
 }
 
+void ATDEnemyTurret::SetDamageMultiplier(float Multiplier)
+{
+	if (Weapons) { Weapons->SetOutgoingDamageMultiplier(TEXT("Difficulty"), Multiplier); }
+}
+
 void ATDEnemyTurret::BeginPlay()
 {
 	Super::BeginPlay();
@@ -67,10 +72,7 @@ void ATDEnemyTurret::BeginPlay()
 	{
 		Health->OnDeath.AddUniqueDynamic(this, &ATDEnemyTurret::HandleDeath);
 	}
-	if (UMaterialInstanceDynamic* MID = Mesh ? Mesh->CreateDynamicMaterialInstance(0) : nullptr)
-	{
-		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.15f, 0.02f, 0.02f));
-	}
+	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.55f, 0.06f, 0.04f), 0.f);
 }
 
 void ATDEnemyTurret::EndPlay(const EEndPlayReason::Type EndPlayReason)

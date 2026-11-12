@@ -7,6 +7,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Components/SphereComponent.h"
@@ -72,8 +73,20 @@ void UTDLandingComponent::BeginPlay()
 	Super::BeginPlay();
 	if (!TravelFX)
 	{
-		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX();
+		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX(this);
 	}
+	if (ATDShip* Ship = GetShip())
+	{
+		if (UTDHealthComponent* Health = Ship->GetHealth())
+		{
+			Health->OnDeath.AddDynamic(this, &UTDLandingComponent::HandleOwnerDeath);
+		}
+	}
+}
+
+void UTDLandingComponent::HandleOwnerDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow)
+{
+	AbortToFlying(); // a ship that dies mid-landing (or landed) frees its pad and never respawns "Landed"
 }
 
 ATDShip* UTDLandingComponent::GetShip() const
@@ -258,6 +271,11 @@ void UTDLandingComponent::PauseFlight(bool bPause)
 	if (ATDShip* Ship = GetShip())
 	{
 		Ship->SetFlightParked(bPause);
+		// Invulnerable through the landing sequence and while landed (the pilot is on foot / boarding).
+		if (UTDHealthComponent* Health = Ship->GetHealth())
+		{
+			Health->SetInvulnerable(bPause);
+		}
 	}
 }
 

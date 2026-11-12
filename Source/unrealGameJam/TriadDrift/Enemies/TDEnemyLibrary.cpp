@@ -41,6 +41,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::ShardFighter;
+		S.VisualsAssetName = TEXT("DA_Enemy_Fighter_Visuals");
 		S.DisplayName = LOCTEXT("ShardFighter", "Shard Fighter");
 		S.Role = ETDEnemyRole::Fighter;
 		S.Size = ETDEnemySize::Small;
@@ -66,6 +67,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::HookInterceptor;
+		S.VisualsAssetName = TEXT("DA_Enemy_Interceptor_Visuals");
 		S.DisplayName = LOCTEXT("HookInterceptor", "Hook Interceptor");
 		S.Role = ETDEnemyRole::Interceptor;
 		S.Size = ETDEnemySize::Small;
@@ -92,6 +94,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::WallGunship;
+		S.VisualsAssetName = TEXT("DA_Enemy_Gunship_Visuals");
 		S.DisplayName = LOCTEXT("WallGunship", "Wall Gunship");
 		S.Role = ETDEnemyRole::Gunship;
 		S.Size = ETDEnemySize::Large;
@@ -104,9 +107,9 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.TurnRateDeg = 45.f;
 		S.MinSpeedFraction = 0.f;	// holds range, nose to the threat
 		S.Radius = 700.f;
-		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::HeavyBolt, TDEnemyWeaponIds::HeavyBolt, 20.f, 3, 3.5f, 0.6f, 18000.f, 15.f);
+		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::HeavyBolt, TDEnemyWeaponIds::HeavyBolt, 20.f, 3, 4.5f, 0.6f, 18000.f, 15.f);	// ENG-27: 3.5 s made gunships the top damage source in waves 3-4
 		// One FireOnce of Enemy_SalvoMissile = T2's 3-missile ripple.
-		S.Heavy2 = TDEnemyLib_MakeAttack(ETDEnemyAttack::MissileSalvo, TDEnemyWeaponIds::SalvoMissile, 20.f, 3, 10.f, 1.2f, 20000.f, 40.f, 0.f);
+		S.Heavy2 = TDEnemyLib_MakeAttack(ETDEnemyAttack::MissileSalvo, TDEnemyWeaponIds::SalvoMissile, 20.f, 3, 12.f, 1.2f, 20000.f, 40.f, 0.f);
 		S.EngageRange = 15000.f;
 		S.BreakOffRange = 4000.f;
 		S.BreakOffSeconds = 0.f;		// gunships hold range instead of breaking off
@@ -121,6 +124,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::MaulBomber;
+		S.VisualsAssetName = TEXT("DA_Enemy_Bomber_Visuals");
 		S.DisplayName = LOCTEXT("MaulBomber", "Maul Bomber");
 		S.Role = ETDEnemyRole::Bomber;
 		S.Size = ETDEnemySize::Medium;
@@ -146,10 +150,11 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::HiveCarrier;
+		S.VisualsAssetName = TEXT("DA_Enemy_Carrier_Visuals");
 		S.DisplayName = LOCTEXT("HiveCarrier", "Hive Carrier");
 		S.Role = ETDEnemyRole::Carrier;
 		S.Size = ETDEnemySize::Boss;
-		S.Hull = 2000.f;
+		S.Hull = 1500.f;	// ENG-27: features.md 2000; the balance run (Standard, average pilot) put wave 5 at 267 s
 		S.Shield = 0.f;
 		S.CruiseSpeed = 1500.f;
 		S.TurnRateDeg = 15.f;
@@ -157,6 +162,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.Radius = 1800.f;
 		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::LaunchFighters, NAME_None, 0.f, 3, 12.f, 1.5f, 60000.f, 180.f);
 		S.BayCount = 3;
+		S.MaxLaunchesPerBay = 3;	// 3 bays x 3 x 3 = at most 27 fighters per carrier
 		S.BayHull = 300.f;
 		S.LaunchedEnemyId = TDEnemyIds::ShardFighter;
 		S.TurretCount = 4;

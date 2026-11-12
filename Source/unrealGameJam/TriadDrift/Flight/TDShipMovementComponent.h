@@ -85,6 +85,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool HasSpeedOverride() const { return OverrideStack.Num() > 0; }
 
+	/** Ends a boost and a drift now, with their end events (parking, death). Velocity untouched. */
+	void EndBoostAndDrift();
+
 	/** Drops every override request (reset / respawn). */
 	void ClearAllSpeedOverrides();
 
@@ -119,6 +122,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsInAtmosphere() const { return Context.bAtmosphere; }
+
+	/** Centre of the current spherical play space. */
+	FVector GetBoundaryCenter() const { return Context.BoundaryCenter; }
 
 	/** Re-orients the flight state after a teleport. bKeepSpeed keeps the speed along the new facing. */
 	void NotifyTeleported(const FQuat& NewFacing, bool bKeepSpeed);
@@ -230,6 +236,8 @@ private:
 	/** Velocity we wrote last tick; a mismatch means someone outside changed Velocity (knockback). */
 	FVector LastWrittenVelocity = FVector::ZeroVector;
 	double LastCollisionDamageTime = -1000.0;
+	TWeakObjectPtr<AActor> LastImpactActor;
+	double LastImpactTime = -1000.0;
 	struct FSpeedOverrideRequest
 	{
 		FName Owner;

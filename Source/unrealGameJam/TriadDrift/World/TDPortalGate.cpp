@@ -160,15 +160,9 @@ void ATDPortalGate::UpdateLook()
 	for (UStaticMeshComponent* Bar : Frame)
 	{
 		if (!FrameMeshOverride.IsNull()) { break; }	// art keeps its own materials
-		if (UMaterialInstanceDynamic* MID = Bar ? Bar->CreateDynamicMaterialInstance(0) : nullptr)
-		{
-			MID->SetVectorParameterValue(TEXT("Color"), Col);
-		}
+		UTDStatics::TintPlaceholder(Bar, Col, IsGateActive() ? 3.f : 0.f);
 	}
-	if (UMaterialInstanceDynamic* MID = Surface->CreateDynamicMaterialInstance(0))
-	{
-		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.9f, 0.3f, 1.f));
-	}
+	UTDStatics::TintPlaceholder(Surface, FLinearColor(0.7f, 0.2f, 1.f), 2.f);
 }
 
 bool ATDPortalGate::SegmentCrossesGate(const FTransform& GateTransform, float InRadius, const FVector& From, const FVector& To, bool& bOutForward)
@@ -205,7 +199,10 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 		ArrivalBlockedUntil.Remove(Traveller);
 	}
 	const FVector Now = Traveller->GetActorLocation();
-	const FVector Before = Now - Traveller->GetVelocity() * DeltaSeconds;
+	// Projectiles report where their last step started (launch point / post-teleport point), so a shot
+	// fired this frame isn't treated as having crossed the plane. Ships integrate a full step.
+	const ATDProjectile* Proj = Cast<ATDProjectile>(Traveller);
+	const FVector Before = Proj ? Proj->GetPreviousLocation() : Now - Traveller->GetVelocity() * DeltaSeconds;
 	bool bForward = true;
 	if (!SegmentCrossesGate(GetActorTransform(), Radius, Before, Now, bForward))
 	{

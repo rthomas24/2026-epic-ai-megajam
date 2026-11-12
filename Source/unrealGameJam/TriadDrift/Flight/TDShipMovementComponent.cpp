@@ -96,6 +96,23 @@ bool UTDShipMovementComponent::HasSpeedOverrideFor(FName Owner) const
 	return OverrideStack.ContainsByPredicate([Owner](const FSpeedOverrideRequest& R) { return R.Owner == Owner; });
 }
 
+void UTDShipMovementComponent::EndBoostAndDrift()
+{
+	if (State.bBoosting)
+	{
+		State.bBoosting = false;
+		State.TimeSinceBoost = 0.f;
+		OnBoostEnded.Broadcast();
+	}
+	if (State.bDrifting)
+	{
+		State.bDrifting = false;
+		OnDriftReleased.Broadcast(false);
+	}
+	Input.bBoost = false;
+	Input.bDrift = false;
+}
+
 void UTDShipMovementComponent::ClearAllSpeedOverrides()
 {
 	OverrideStack.Reset();
@@ -379,6 +396,19 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 		return;
 	}
 
+	const UWorld* ContactWorld = GetWorld();
+	const double ContactNow = ContactWorld ? ContactWorld->GetTimeSeconds() : 0.0;
+	const bool bResting = Hit.GetActor() && LastImpactActor.Get() == Hit.GetActor() && ContactNow - LastImpactTime < Tuning.RestingContactWindow;
+	LastImpactActor = Hit.GetActor();
+	LastImpactTime = ContactNow;
+	if (bResting)
+	{
+		// Pinned against the same thing (holding throttle into a wall): slide, hold the engine down, no damage.
+		State.Velocity = V + Normal * Into;
+		State.ForwardSpeed = FMath::Min(State.ForwardSpeed, Tuning.MinSpeed);
+		return;
+	}
+
 	FTDFlightImpact Impact;
 	Impact.OtherActor = Hit.GetActor();
 	Impact.ImpactPoint = Hit.ImpactPoint;
@@ -394,8 +424,9 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 		// Bounce straight back off the surface, losing most of the speed.
 		State.Velocity = V + Normal * Into * (1.f + Tuning.HeadOnRestitution);
 		State.Velocity *= Tuning.HeadOnSpeedRetain;
-		State.ForwardSpeed = FMath::Min(State.ForwardSpeed, State.Velocity.Size());
-		Damage = Tuning.HeadOnDamage * (Into / CruiseRef);
+		// Hold the engine down after a head-on bounce so full throttle doesn't ram it straight back in.
+		State.ForwardSpeed = FMath::Min(State.ForwardSpeed, FMath::Min(State.Velocity.Size(), Tuning.MinSpeed));
+		Damage = Tuning.HeadOnDamage * (FMath::Min(Into, Tuning.BoostSpeed) / CruiseRef);
 	}
 	else
 	{
@@ -412,7 +443,7 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 			UpdatedComponent->SetWorldRotation(State.Rotation);
 		}
 		const float Angle01 = Tuning.HeadOnThreshold > 0.f ? Impact.HeadOn01 / Tuning.HeadOnThreshold : 1.f;
-		Damage = Tuning.GlancingDamage * Angle01 * (Speed / CruiseRef);
+		Damage = Tuning.GlancingDamage * Angle01 * (FMath::Min(Speed, Tuning.BoostSpeed) / CruiseRef);
 	}
 
 	if (State.bDrifting)
@@ -425,7 +456,7 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 	if (Now - LastCollisionDamageTime >= Tuning.CollisionDamageCooldown)
 	{
 		LastCollisionDamageTime = Now;
-		Impact.Damage = Damage;
+		Impact.Damage = FMath::Min(Damage, Tuning.MaxImpactDamage);
 	}
 
 	OnFlightImpact.Broadcast(Impact);

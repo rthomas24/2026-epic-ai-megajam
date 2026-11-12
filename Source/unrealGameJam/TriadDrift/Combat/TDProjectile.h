@@ -110,6 +110,10 @@ public:
 	void SetLastTransitTime(double Time) { LastTransitTime = Time; }
 
 	const FTDProjectileSpec& GetSpec() const { return Spec; }
+
+	/** The placeholder streak (engine sphere stretched behind the shot) and the missile head; tests and diagnostics. */
+	const UStaticMeshComponent* GetPlaceholderMesh() const { return PlaceholderMesh; }
+	const UStaticMeshComponent* GetPlaceholderHead() const { return PlaceholderHead; }
 	float GetDamageMultiplier() const { return DamageMultiplier; }
 	float GetAge() const { return Age; }
 
@@ -144,6 +148,8 @@ private:
 	void ApplyKnockback(AActor* Victim) const;
 	bool CanDamage(const AActor* Victim) const;
 	void UpdatePlaceholderLook();
+	/** Placeholder impact flash, unless the cue the art would play there has content. */
+	void PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt) const;
 
 	UPROPERTY(VisibleAnywhere, Category = "Projectile")
 	TObjectPtr<USceneComponent> Root;
@@ -154,6 +160,17 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> PlaceholderMID;
+
+	/** Bright head on homing missiles (placeholder only). */
+	UPROPERTY(VisibleAnywhere, Category = "Projectile")
+	TObjectPtr<UStaticMeshComponent> PlaceholderHead;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> HeadMID;
+
+	/** Engine glow material, hard-referenced so it cooks. Streaks fall back to the lit material without it. */
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInterface> GlowMaterial;
 
 	/** One persistent tracer per pooled projectile: SetAsset + Activate on launch, Deactivate on death (ribbons finish). */
 	UPROPERTY(Transient)
