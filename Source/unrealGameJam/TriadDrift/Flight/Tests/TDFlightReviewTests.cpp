@@ -652,4 +652,80 @@ bool FTDReviewAimRay::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewDriftPumping, "TriadDrift.Flight.Drift.PumpingNeverExceedsLegalSpeed", TD_TEST_FLAGS)
+bool FTDReviewDriftPumping::RunTest(const FString& Parameters)
+{
+	const FTDFlightTuning T;
+	for (const bool bAtmosphere : { false, true })
+	{
+		FTDFlightContext C;
+		C.bBoundaryEnabled = false;
+		C.bAtmosphere = bAtmosphere;
+		const float Legal = bAtmosphere ? T.CruiseSpeed * C.AtmosphereSpeedCapFraction : T.CruiseSpeed;
+		const float Ceiling = Legal * (1.f + T.DriftReleaseBurst);
+
+		FTDFlightState S;
+		S.ForwardSpeed = Legal;
+		S.Velocity = FVector::ForwardVector * Legal;
+		FTDFlightInput In;
+		In.Throttle = 1.f;
+		In.Aim = FVector2D(0.3f, 0.f);
+		float MaxSpeed = 0.f;
+		float SustainedAbove = 0.f;
+		int32 Bursts = 0;
+		for (int32 Frame = 0; Frame < 1200; ++Frame) // 10 s at 120 fps
+		{
+			In.bDrift = (Frame % 48) < 40; // 0.33 s on, 0.07 s off: the pumping pattern from the review
+			TDFlightSim::Advance(S, In, T, C, 1.f / 120.f);
+			const float Horizontal = bAtmosphere ? (float)FVector(S.Velocity.X, S.Velocity.Y, 0.f).Size() : (float)S.Velocity.Size();
+			MaxSpeed = FMath::Max(MaxSpeed, Horizontal);
+			SustainedAbove += (Horizontal > Legal * 1.02f) ? 1.f / 120.f : 0.f;
+			Bursts += S.bDriftBurstThisStep ? 1 : 0;
+		}
+		const TCHAR* Where = bAtmosphere ? TEXT("atmosphere") : TEXT("space");
+		TestTrue(FString::Printf(TEXT("%s: pumping never exceeds legal x1.2 (max %.0f, ceiling %.0f)"), Where, MaxSpeed, Ceiling), MaxSpeed <= Ceiling + 1.f);
+		TestTrue(FString::Printf(TEXT("%s: the burst cooldown limits bursts (%d in 10 s)"), Where, Bursts), Bursts <= 7);
+		TestTrue(FString::Printf(TEXT("%s: no sustained speed above legal (%.1f s of 10)"), Where, SustainedAbove), SustainedAbove < 6.f);
+		if (bAtmosphere)
+		{
+			TestTrue(FString::Printf(TEXT("atmosphere: gravity still wins over pumping (vz %.0f)"), (float)S.Velocity.Z), S.Location.Z < 0.f);
+		}
+	}
+
+	// Boosting into a drift still earns boost x1.2 (legal: the meter was used).
+	FTDFlightState B;
+	B.ForwardSpeed = T.BoostSpeed;
+	B.Velocity = FVector::ForwardVector * T.BoostSpeed;
+	FTDFlightContext Open;
+	Open.bBoundaryEnabled = false;
+	FTDFlightInput Boost;
+	Boost.Throttle = 1.f;
+	Boost.bBoost = true;
+	for (int32 i = 0; i < 60; ++i) { TDFlightSim::Advance(B, Boost, T, Open, 1.f / 120.f); }
+	Boost.bBoost = false;
+	Boost.bDrift = true;
+	for (int32 i = 0; i < 48; ++i) { TDFlightSim::Advance(B, Boost, T, Open, 1.f / 120.f); }
+	const float Before = B.Velocity.Size();
+	Boost.bDrift = false;
+	TDFlightSim::Advance(B, Boost, T, Open, 1.f / 120.f);
+	TestTrue(TEXT("boost -> drift -> release earns the burst"), B.bDriftBurstThisStep);
+	TestTrue(FString::Printf(TEXT("burst above cruise x1.2 after a real boost (%.0f)"), (float)B.Velocity.Size()), B.Velocity.Size() > T.CruiseSpeed * 1.2f && B.Velocity.Size() <= Before * 1.2f + 1.f);
+
+	// Braking is always at least as strong as not braking, even far above the burst cap.
+	FTDFlightState Fast, FastBrake;
+	Fast.ForwardSpeed = FastBrake.ForwardSpeed = 40000.f;
+	Fast.Velocity = FastBrake.Velocity = FVector::ForwardVector * 40000.f;
+	FTDFlightInput Coast, Brake;
+	Coast.Throttle = 1.f;
+	Brake.Throttle = 1.f;
+	Brake.bBrake = true;
+	for (int32 i = 0; i < 60; ++i)
+	{
+		TDFlightSim::Advance(Fast, Coast, T, Open, 1.f / 120.f);
+		TDFlightSim::Advance(FastBrake, Brake, T, Open, 1.f / 120.f);
+	}
+	TestTrue(TEXT("braking sheds overspeed at least as fast as coasting"), FastBrake.Velocity.Size() <= Fast.Velocity.Size() + 1.f);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

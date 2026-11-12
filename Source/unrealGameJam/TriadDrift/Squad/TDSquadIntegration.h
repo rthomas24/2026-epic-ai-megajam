@@ -152,6 +152,11 @@ namespace TDSquad
 	/** True if a game flow received the defeat (it then owns the restart). */
 	bool ReportPlayerDefeated(const UObject* WorldContext);
 	void AddShipSwitchStat(const UObject* WorldContext);
+	/** A voice line: ITDGameFlow::RequestBark, or straight to UTDEventBus::OnBarkRequested with no flow. */
+	void RequestBark(const UObject* WorldContext, FName BarkId, FName Speaker);
+	/** Subscribe / unsubscribe Squad->HandleActorKilled to UTDEventBus::OnActorKilled (wingman kill barks). */
+	void BindActorKilled(ATDSquadManager* Squad);
+	void UnbindActorKilled(ATDSquadManager* Squad);
 
 	/** Subscribe / unsubscribe Squad->HandlePowerUsed to UTDEventBus::OnPowerUsed (T2 broadcasts it). */
 	void BindPowerUsed(ATDSquadManager* Squad);

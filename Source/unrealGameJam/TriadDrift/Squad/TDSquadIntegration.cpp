@@ -807,6 +807,34 @@ namespace TDSquad
 		return false;
 	}
 
+	void RequestBark(const UObject* WorldContext, FName BarkId, FName Speaker)
+	{
+		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(WorldContext))
+		{
+			Flow->RequestBark(BarkId, Speaker);
+		}
+		else if (UTDEventBus* Bus = UTDEventBus::Get(WorldContext))
+		{
+			Bus->BroadcastBarkRequested(BarkId, Speaker);
+		}
+	}
+
+	void BindActorKilled(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnActorKilled.AddUniqueDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+		}
+	}
+
+	void UnbindActorKilled(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnActorKilled.RemoveDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+		}
+	}
+
 	void AddShipSwitchStat(const UObject* WorldContext)
 	{
 		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(WorldContext))

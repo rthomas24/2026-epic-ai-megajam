@@ -29,6 +29,22 @@ FTDFlightInput TDFlightSim::Sanitize(const FTDFlightInput& In)
 	return Out;
 }
 
+float TDFlightSim::LegalTopSpeed(const FTDFlightState& S, const FTDFlightTuning& T, const FTDFlightContext& C)
+{
+	if (C.bAtmosphere)
+	{
+		return T.CruiseSpeed * C.AtmosphereSpeedCapFraction;
+	}
+	float Top = FMath::Max(T.CruiseSpeed, C.ThrottleTopSpeed);
+	// Boost speed is legal while the meter is in use, or was in use right up to the current drift.
+	const float BoostGrace = (S.bDrifting ? S.DriftTime : 0.f) + 0.25f;
+	if (S.bBoosting || S.TimeSinceBoost <= BoostGrace)
+	{
+		Top = FMath::Max(Top, T.BoostSpeed);
+	}
+	return Top;
+}
+
 float TDFlightSim::ComputeTargetSpeed(const FTDFlightState& State, const FTDFlightInput& In, const FTDFlightTuning& Tuning, const FTDFlightContext& Context)
 {
 	if (Context.bSpeedOverride)
@@ -67,6 +83,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 
 	S.bDriftBurstThisStep = false;
 	S.bDriftEndedThisStep = false;
+	S.TimeSinceBurst += Dt;
 	const float SteerScale = C.bSpeedOverride ? FMath::Max(0.f, C.OverrideSteeringScale) : 1.f;
 
 	// ---- Drift start (before rotation so the locked direction is the pre-turn travel direction) ---
@@ -189,20 +206,23 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	const FVector Up = S.Rotation.GetUpVector();
 
 	// ---- Drift release: snap travel to the nose with a burst ------------------------------------------
-	// The burst never takes the ship past boost speed + burst, and needs a real drift (time or swing).
-	const float BurstCap = T.BoostSpeed * (1.f + T.DriftReleaseBurst);
+	// The burst is capped at the LEGAL top speed right now x (1 + burst): cruise unless the boost meter was
+	// used, the atmosphere cap in atmosphere. It needs a real drift (time or swing) and has a cooldown, so
+	// pulsing drift can't pump speed.
+	const float BurstCap = LegalTopSpeed(S, T, C) * (1.f + T.DriftReleaseBurst);
 	if (!bWantDrift && S.bDrifting)
 	{
 		S.bDrifting = false;
 		S.bDriftEndedThisStep = true;
 		const float Swing = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(S.DriftStartForward, Forward), -1.f, 1.f)));
 		const bool bPilotReleased = !In.bDrift; // an override starting mid-drift ends it without a burst
-		const bool bEarned = S.DriftTime >= T.DriftBurstMinSeconds || Swing >= T.DriftBurstMinAngle;
+		const bool bEarned = (S.DriftTime >= T.DriftBurstMinSeconds || Swing >= T.DriftBurstMinAngle) && S.TimeSinceBurst >= T.DriftBurstCooldown;
 		const float DriftSpeed = S.Velocity.Size();
 		S.StrafeVelocity = FVector2D::ZeroVector;
 		if (bPilotReleased && bEarned)
 		{
 			S.bDriftBurstThisStep = true;
+			S.TimeSinceBurst = 0.f;
 			const float BurstSpeed = FMath::Min(DriftSpeed * (1.f + T.DriftReleaseBurst), FMath::Max(BurstCap, DriftSpeed));
 			S.ForwardSpeed = BurstSpeed;
 			S.bBurstOverspeed = true;
@@ -223,16 +243,23 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		float DriftSpeed = S.Velocity.Size();
 		if (DriftSpeed > BurstCap)
 		{
-			// Drifting out of a hyperdrive jump or ram: bleed the excess hard, like any other overspeed.
+			// Above the legal speed (out of a jump or ram, or a previous burst): bleed the excess hard.
 			DriftSpeed = FMath::FInterpConstantTo(DriftSpeed, BurstCap, Dt, T.HighOverspeedDeceleration);
 		}
 		else
 		{
-			DriftSpeed = FMath::Max(0.f, DriftSpeed - T.DriftDrag * Dt);
+			// Above the plain legal speed (a previous burst) drift bleeds like any burst overspeed, so
+			// pulsing drift can't hold free speed; at or below it, only the light drift drag applies.
+			const float Legal = LegalTopSpeed(S, T, C);
+			DriftSpeed = DriftSpeed > Legal
+				? FMath::Max(Legal, DriftSpeed - FMath::Max(T.OverspeedDeceleration, T.DriftDrag) * Dt)
+				: FMath::Max(0.f, DriftSpeed - T.DriftDrag * Dt);
 		}
 		if (In.bBrake)
 		{
-			DriftSpeed = FMath::FInterpConstantTo(DriftSpeed, T.MinSpeed, Dt, T.BrakeDeceleration);
+			// Braking is always at least as strong as the overspeed bleed.
+			const float BrakeRate = DriftSpeed > BurstCap ? FMath::Max(T.BrakeDeceleration, T.HighOverspeedDeceleration) : T.BrakeDeceleration;
+			DriftSpeed = FMath::FInterpConstantTo(DriftSpeed, T.MinSpeed, Dt, BrakeRate);
 		}
 		S.Velocity = S.DriftDirection * DriftSpeed;
 		S.ForwardSpeed = DriftSpeed;
@@ -252,13 +279,15 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		}
 		else if (In.bBrake)
 		{
-			Rate = T.BrakeDeceleration;
+			// Braking is always at least as strong as not braking.
+			Rate = S.ForwardSpeed > FMath::Min(BurstCap, T.BoostSpeed) ? FMath::Max(T.BrakeDeceleration, T.HighOverspeedDeceleration) : T.BrakeDeceleration;
 		}
 		else
 		{
 			// After a drift burst the extra speed bleeds off slowly so the burst is felt; anything above
 			// the burst cap (or above boost speed otherwise) drops fast.
-			if (S.ForwardSpeed > BurstCap)
+			// (absolute ceiling here: a normal boost ending still eases down at Deceleration)
+			if (S.ForwardSpeed > T.BoostSpeed * (1.f + T.DriftReleaseBurst))
 			{
 				Rate = T.HighOverspeedDeceleration;
 			}

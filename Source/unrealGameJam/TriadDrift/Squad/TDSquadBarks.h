@@ -1,0 +1,88 @@
+// Triad Drift - Squad (Teammate 3). Squad bark triggers (ART-11 voice lines, Nick's audio).
+//
+// Gameplay asks for a line with an id + speaker through ITDGameFlow::RequestBark (which re-broadcasts
+// UTDEventBus::OnBarkRequested for the audio / subtitle side). The limiter keeps it from ever
+// spamming: a per-bark cooldown, a global minimum gap between lines, and a cap per time window.
+// High-priority lines (a ship going down, a squad wipe) skip the global gap but still respect their
+// own cooldown and the window cap. Real time, so slow-mo never bunches lines up.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "TriadDrift/Core/TDTypes.h"
+#include "TDSquadBarks.generated.h"
+
+/** Bark ids (Nick's DT_Barks rows key on these; see docs/eng/squad.md). */
+namespace TDBarkIds
+{
+	inline const FName SwitchIn(TEXT("Bark_SquadSwitchIn"));        // speaker = the pilot you switched to
+	inline const FName ShipDownRift(TEXT("Bark_SquadShipDownRift")); // speaker = a squadmate reacting
+	inline const FName ShipDownLancer(TEXT("Bark_SquadShipDownLancer"));
+	inline const FName ShipDownBastion(TEXT("Bark_SquadShipDownBastion"));
+	inline const FName Respawn(TEXT("Bark_SquadRespawn"));          // speaker = the pilot back in
+	inline const FName FocusAck(TEXT("Bark_SquadFocusAck"));        // speaker = a wingman acknowledging
+	inline const FName WingmanKill(TEXT("Bark_SquadWingmanKill"));  // speaker = the wingman who scored
+	inline const FName LowHull(TEXT("Bark_SquadLowHull"));          // speaker = the pilot in trouble
+	inline const FName SquadWipe(TEXT("Bark_SquadWipe"));           // speaker = the last pilot down
+
+	UNREALGAMEJAM_API FName ShipDownFor(ETDShipId Ship);
+	/** "Wren" / "Kato" / "Moss" (the speaker names RequestBark expects). */
+	UNREALGAMEJAM_API FName SpeakerFor(ETDShipId Ship);
+}
+
+/** Normal lines respect everything; High skips the global gap; Critical (squad wipe: once per take)
+ *  also skips the window cap. Every line still respects its own cooldown. */
+UENUM(BlueprintType)
+enum class ETDBarkPriority : uint8
+{
+	Normal,
+	High,
+	Critical
+};
+
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDBarkTuning
+{
+	GENERATED_BODY()
+
+	/** Minimum real seconds between any two squad lines (normal priority). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (Units = "s"))
+	float GlobalMinGapSeconds = 2.5f;
+
+	/** At most this many lines per window... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (ClampMin = "1"))
+	int32 MaxPerWindow = 3;
+
+	/** ...of this many real seconds (also caps high-priority lines). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (Units = "s"))
+	float WindowSeconds = 10.f;
+
+	/** Cooldown per bark id when not listed in CooldownById. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (Units = "s"))
+	float DefaultCooldownSeconds = 8.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks")
+	TMap<FName, float> CooldownById;
+
+	/** Low-hull line when a ship's hull falls below this... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (ClampMin = "0", ClampMax = "1"))
+	float LowHullFraction = 0.3f;
+
+	/** ...and only again after it has been repaired above this. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (ClampMin = "0", ClampMax = "1"))
+	float LowHullRearmFraction = 0.55f;
+
+	FTDBarkTuning();
+};
+
+/** The limiter: pure logic, no world. */
+struct UNREALGAMEJAM_API FTDBarkLimiter
+{
+	/** True if the line may play now (and records it). */
+	bool TryConsume(const FTDBarkTuning& Tuning, FName BarkId, ETDBarkPriority Priority, double RealNow);
+	void Reset();
+
+	TMap<FName, double> LastById;
+	TArray<double> Recent; // real times of recent lines, oldest first
+	double LastAny = -1000.0;
+};
