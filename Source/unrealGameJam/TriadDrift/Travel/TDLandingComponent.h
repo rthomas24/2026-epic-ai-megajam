@@ -44,9 +44,30 @@ struct UNREALGAMEJAM_API FTDLandingTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0", ClampMax = "1"))
 	float MaxSpeedFraction = 0.6f;
 
-	/** Within this distance of a pad, a ship too fast to land is told to slow down (cm). */
+	/** Within this distance of a pad, holding F starts the approach assist; if it cannot, the HUD says slow down (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
 	float SlowDownPromptRange = 40000.f;
+
+	// ---- Approach assist (hold F near a pad: Lead decision, Nov 12) -----------------------------------
+	/** Top approach speed (cm/s). Above the atmosphere cap, so 400 m takes seconds, not a crawl. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing|Assist", meta = (ClampMin = "0"))
+	float AssistSpeed = 6000.f;
+
+	/** Braking toward the hover point (cm/s^2): speed follows sqrt(End^2 + 2 * Brake * distance-to-go). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing|Assist", meta = (ClampMin = "1"))
+	float AssistBrake = 3000.f;
+
+	/** Speed when the assist hands over to the landing sequence (cm/s). Never below this while assisting. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing|Assist", meta = (ClampMin = "0"))
+	float AssistEndSpeed = 1500.f;
+
+	/** Distance to the hover point at which the landing sequence takes over (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing|Assist", meta = (ClampMin = "0"))
+	float AssistHandOffDistance = 2500.f;
+
+	/** How fast the assist swings the nose onto the pad (deg/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing|Assist", meta = (ClampMin = "0"))
+	float AssistTurnRate = 150.f;
 
 	/** Seconds the land button must be held (the controller applies it). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
@@ -119,13 +140,30 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
 	bool CanLandNow() const { return GetAvailablePad() != nullptr; }
 
-	/** "Hold F to land" when landing is available, empty otherwise (HUD). */
-	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
 	/**
 	 * What the HUD shows for landing (feeds ITDHUDData::GetInteractPrompt in flight): the pad's "Hold F to land"
-	 * when landing is possible, "SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE" near a pad while too fast, else empty.
+	 * when landing or the approach assist is possible, "SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE" near a pad
+	 * while too fast and the assist cannot start (boosting), else empty.
 	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
 	FText GetLandPrompt() const;
+
+	/**
+	 * Approach assist (hold F within SlowDownPromptRange of the player pad): flies the ship to the pad's hover point,
+	 * nose on the pad, braking late and never below AssistEndSpeed, then starts the landing sequence. The pilot's
+	 * steering is ignored while it runs; releasing F stops it.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	bool StartApproachAssist();
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	void StopApproachAssist();
+
+	/** The pad the assist would fly to right now, or null (flying, player-flown, not boosting, hyperdrive idle, in range). */
+	ATDLandingPad* GetAssistPad() const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool IsApproachAssisting() const { return AssistPad.IsValid(); }
 	/** Landing speed limit right now (cm/s). */
 	float GetLandingSpeedLimit() const;
 
@@ -216,6 +254,9 @@ private:
 	void LandWingmen(ATDLandingPad* PlayerPad);
 	void TakeOffWingmen();
 	void FinishTakeOff();
+	void TickApproachAssist(float DeltaTime);
+	/** Begins the landing sequence on a pad (shared by RequestLand, LandOnPad and the assist). */
+	bool BeginLanding(ATDLandingPad* InPad);
 
 	ETDLandingState State = ETDLandingState::Flying;
 	float StateTime = 0.f;
@@ -225,4 +266,7 @@ private:
 	bool bGearDown = false;
 	bool bCanopyOpen = false;
 	bool bEnginesOn = true;
+	TWeakObjectPtr<ATDLandingPad> AssistPad;
+	/** Aligning time for this landing: longer when the sequence starts far from the hover point. */
+	float AlignSecondsNow = 1.5f;
 };
