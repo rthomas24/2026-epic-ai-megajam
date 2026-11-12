@@ -83,6 +83,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI")
 	bool bDebugDraw = false;
 
+	/**
+	 * Pure steering maths (tests call it without a world): Aim input (X yaw, Y pitch, each -1..1)
+	 * that turns a ship with transform Ship toward WorldPoint. Full deflection at FullDeflectionDeg.
+	 */
+	static FVector2D ComputeSteer(const FTransform& Ship, const FVector& WorldPoint, float FullDeflectionDeg);
+
+	/** Seconds in the current state. */
+	float GetStateTime() const { return StateTime; }
+
 	/** Deterministic seed for aim error / break-off direction (tests). */
 	void SetRandomSeed(int32 Seed) { Rng.Initialize(Seed); }
 
@@ -101,6 +110,10 @@ protected:
 	void TickApproach(ATDEnemyShip& Ship, float DeltaSeconds);
 	void TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds);
 	void TickBreakOff(ATDEnemyShip& Ship, float DeltaSeconds);
+	void TickBomber(ATDEnemyShip& Ship, AActor& InTarget, float DeltaSeconds);
+	void TickCarrier(ATDEnemyShip& Ship, AActor& InTarget, float DeltaSeconds);
+	void TickGunship(ATDEnemyShip& Ship, AActor& InTarget, float DeltaSeconds);
+	bool IsValidTarget(const AActor* Candidate) const;
 
 	/** Steer toward a world point with a throttle 0..1. Writes SetFlightInput. */
 	void SteerToward(ATDEnemyShip& Ship, const FVector& WorldPoint, float Throttle01, bool bBoost = false);

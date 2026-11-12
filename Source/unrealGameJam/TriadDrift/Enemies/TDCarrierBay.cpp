@@ -125,8 +125,8 @@ void ATDCarrierBay::Tick(float DeltaSeconds)
 		return;
 	}
 
-	ATDEnemyShip* Owner = Carrier.Get();
-	if (!Owner || Owner->IsDying())
+	ATDEnemyShip* CarrierShip = Carrier.Get();
+	if (!CarrierShip || CarrierShip->IsDying())
 	{
 		return;
 	}
@@ -142,7 +142,7 @@ void ATDCarrierBay::Tick(float DeltaSeconds)
 	if (NextLaunchRemaining <= 0.f)
 	{
 		bTelegraphing = false;
-		Owner->LaunchFightersFromBay(this, FightersPerLaunch);
+		CarrierShip->LaunchFightersFromBay(this, FightersPerLaunch);
 		++LaunchCount;
 		OnLaunched.Broadcast(this);
 		// Keep the cadence exact regardless of frame time.

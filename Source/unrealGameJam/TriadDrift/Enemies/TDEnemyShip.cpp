@@ -5,6 +5,7 @@
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -22,7 +23,8 @@ ATDEnemyShip::ATDEnemyShip()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	Weapons = CreateDefaultSubobject<UTDWeaponComponent>(TEXT("Weapons"));
+	// Weapons: ATDSpacecraft is gaining its own "Weapons" subobject (T1); EnsureWeapons() uses
+	// that one when present and creates one otherwise, so no subobject name can clash.
 
 	AIControllerClass = ATDEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -73,7 +75,7 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 		Sphere->SetSphereRadius(Spec.Radius);
 	}
 
-	if (Weapons)
+	if (EnsureWeapons())
 	{
 		if (!Spec.Guns.WeaponId.IsNone())
 		{
@@ -102,9 +104,44 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	}
 }
 
+UTDWeaponComponent* ATDEnemyShip::EnsureWeapons()
+{
+	if (!Weapons)
+	{
+		Weapons = FindComponentByClass<UTDWeaponComponent>();
+	}
+	if (!Weapons)
+	{
+		Weapons = NewObject<UTDWeaponComponent>(this, TEXT("EnemyWeapons"));
+		if (Weapons)
+		{
+			AddInstanceComponent(Weapons);
+			Weapons->RegisterComponent();
+		}
+	}
+	return Weapons;
+}
+
+void ATDEnemyShip::JoinFormation(AActor* Leader, const FVector& LocalOffset)
+{
+	if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(GetController()))
+	{
+		AI->SetFormationLeader(Cast<ATDEnemyShip>(Leader), LocalOffset);
+	}
+}
+
+void ATDEnemyShip::PlayWarpIn()
+{
+	if (Visuals)
+	{
+		UTDStatics::PlayCue(this, Visuals->WarpIn, GetActorLocation(), GetActorRotation());
+	}
+}
+
 void ATDEnemyShip::BeginPlay()
 {
 	Super::BeginPlay();
+	EnsureWeapons();
 
 	if (UTDHealthComponent* H = GetHealth())
 	{
@@ -676,9 +713,13 @@ void ATDEnemyShip::LaunchFightersFromBay(ATDCarrierBay* Bay, int32 Count)
 		{
 			Leader = Ship;
 		}
-		else if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(Ship->GetController()))
+		else
 		{
-			AI->SetFormationLeader(Leader, FVector(-500.f * i, (i % 2 ? -1.f : 1.f) * 600.f * ((i + 1) / 2), 0.f));
+			Ship->JoinFormation(Leader, FVector(-500.f * i, (i % 2 ? -1.f : 1.f) * 600.f * ((i + 1) / 2), 0.f));
+		}
+		if (ATDWaveDirector* Director = ATDWaveDirector::Get(this))
+		{
+			Director->RegisterEnemy(Ship);	// launched fighters count toward the wave
 		}
 		OnEnemyLaunched.Broadcast(this, Ship);
 	}

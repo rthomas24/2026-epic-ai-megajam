@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Enemies/TDEnemyTypes.h"
+#include "TriadDrift/Waves/TDWaveEnemy.h"
 #include "TDEnemyShip.generated.h"
 
 class UTDWeaponComponent;
@@ -29,7 +30,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDEnemyShieldSignature, ATDEnemyShi
  * Lifecycle: spawn -> InitFromSpec(Id) -> (AI possesses) -> ... -> death -> tumble -> explode -> destroy.
  */
 UCLASS(Blueprintable)
-class UNREALGAMEJAM_API ATDEnemyShip : public ATDSpacecraft
+class UNREALGAMEJAM_API ATDEnemyShip : public ATDSpacecraft, public ITDWaveEnemy
 {
 	GENERATED_BODY()
 
@@ -56,8 +57,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	ETDEnemySize GetSize() const { return Spec.Size; }
 
+	/** The weapon component (found on the pawn, or created on first use). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	UTDWeaponComponent* GetWeapons() const { return Weapons; }
+
+	// ITDWaveEnemy
+	virtual void InitWaveEnemy(FName EnemyId) override { InitFromSpec(EnemyId); }
+	virtual void JoinFormation(AActor* Leader, const FVector& LocalOffset) override;
+	virtual void PlayWarpIn() override;
 
 	// --- Attacks (driven by ATDEnemyAIController) -----------------------------------------------
 
@@ -266,8 +273,9 @@ protected:
 	void ApplyPrimaryTrigger();
 	void UpdatePlaceholderLook();
 	void SetBaysPaused(bool bPaused);
+	UTDWeaponComponent* EnsureWeapons();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Enemy")
+	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "TriadDrift|Enemy")
 	TObjectPtr<UTDWeaponComponent> Weapons;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "TriadDrift|Enemy")
