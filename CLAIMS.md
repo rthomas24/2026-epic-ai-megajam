@@ -63,7 +63,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 13:16 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 13:21 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -98,10 +98,11 @@ open) · `done` (on `main`, tests pass, review closed).
 | Independent code review of Squad + Director | Lead | done | Nov 12 12:43 | Nov 12 13:05; findings with T3, T1, T2, T4 | none |
 | Independent code review of Powers + World (ENG-09 to 12, 16, 17, 18) | Lead | done | Nov 12 12:46 | Nov 12 13:15; findings with T2 and T4 | none |
 | Core: `UTDShipVisuals.Parts` (modular ships), `UTDWeaponFX.ProjectileMeshOffset`, highlight broadcast restricted to the director | Lead | done | Nov 12 13:16 | Nov 12 13:16, this push (answers `MESSAGEBOARD.md` N-001) | none |
-| Second review pass on Flow fixes | Lead | queued | | | none |
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
-| ENG-28 Shipping package under 1 GB | Lead | queued | | | `/Config/DefaultGame.ini` (maps and `/Engine/BasicShapes` are in the cook list as of this push) |
-| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-003 complete, N-001 answered, R-004 and R-005 open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
+| ENG-28 Shipping package under 1 GB | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
+| Second-pass reviews: Ground + Flow (ENG-19, 21, 22, 24), Travel + Flight (ENG-01, 02, 15, 20) | Lead | in progress | Nov 12 13:21 | | none |
+| Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
+| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-004 complete, N-001 answered, R-005 open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
 | C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) | Lead | done | Nov 12 12:48 | Nov 12 13:02, this push | **Claim released.** `Content/TriadDrift/Maps/**` now exists: empty World Partition levels, streaming off, One File Per Actor. Both sides may place actors (they save as separate `__ExternalActors__` files): claim the map and what you add first. Do not re-save the `.umap` or change World Settings without a claim here; game modes are set by map name in `/Config/DefaultEngine.ini`. See `MESSAGEBOARD.md` R-001 |
 | ENG-27 balance + difficulty | Lead | queued | | | none |
 | ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | all 15 review fixes merged Nov 12 13:02, this push (`e046c82`); second review queued | none |
