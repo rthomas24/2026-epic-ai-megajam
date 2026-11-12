@@ -436,6 +436,11 @@ and on `OnAbilityUnlocked`.
 
 `UTDAbilityBase` + three children. Visuals: `UTDAbilityFX` (Nick).
 
+**Powers and ship switching (decided Nov 12):** a power or ability that is running when the player
+switches away (cloak, shield dome, an open portal pair, a gravity well) keeps running on that ship
+and ends on its own timer. The new ship's presses never reach the old ship's powers, and an
+AI-flown ship never starts one.
+
 #### ENG-13 · Enemy ships & AI · `⬜`
 | Enemy | Role | HP / Shield | Speed | Weapons | Behaviour | Counter |
 |---|---|---|---|---|---|---|
