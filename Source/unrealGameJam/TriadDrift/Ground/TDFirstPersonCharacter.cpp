@@ -93,8 +93,8 @@ void ATDFirstPersonCharacter::BeginPlay()
 	ApplyBladeVisuals();
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
 
-	// Movement integrates after our Tick, so forced moves and slides set velocity deterministically.
-	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(this, PrimaryActorTick);
+	// No extra tick ordering: CharacterMovement already ticks before its owner (bTickBeforeOwner). Forced
+	// moves sweep the capsule themselves in our Tick, so they don't depend on the order.
 }
 
 void ATDFirstPersonCharacter::ApplyBladeVisuals()
