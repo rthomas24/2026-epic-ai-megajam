@@ -115,6 +115,8 @@ namespace TDSquad
 	 *  hold it in the transit cooldown so it flies through the frame; the leader's transit follow-warps
 	 *  it across. Returns true while held. */
 	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds);
+	/** Where the director's money-shot camera is, while one is running. */
+	bool GetDirectorShotCamera(const AActor* WorldContext, FVector& OutLocation);
 	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection);
 	/** True if a hostile homing projectile is tracking Ship. */
 	bool IsMissileIncoming(const ATDShip* Ship);

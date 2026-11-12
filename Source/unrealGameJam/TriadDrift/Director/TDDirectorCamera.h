@@ -180,6 +180,7 @@ public:
 	int32 GetCancelCount() const { return CancelCount; }
 	const FVector& GetShotLocation() const { return ShotLocation; }
 	const FVector& GetTrackedLocation() const { return TrackedLocation; }
+	const FVector& GetLastFocus() const { return LastFocus; }
 	UTDDirectorFOVPunch* GetFOVPunch() const { return FOVPunch.Get(); }
 
 	/**

@@ -25,6 +25,8 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDDirectorCamera.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
@@ -543,6 +545,18 @@ namespace TDSquad
 		{
 			Registry->GetHostilesOf(ETDTeam::Player, OutHostiles, /*bIncludeUntargetable*/ false);
 		}
+	}
+
+	bool GetDirectorShotCamera(const AActor* WorldContext, FVector& OutLocation)
+	{
+		const UTDDirectorSubsystem* Director = WorldContext ? UTDDirectorSubsystem::Get(WorldContext) : nullptr;
+		const UTDDirectorCameraRig* Rig = Director ? Director->GetCameraRig() : nullptr;
+		if (!Rig || !Rig->IsActive())
+		{
+			return false;
+		}
+		OutLocation = Rig->GetTrackedLocation();
+		return true;
 	}
 
 	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds)

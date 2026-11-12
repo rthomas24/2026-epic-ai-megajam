@@ -786,6 +786,17 @@ FVector ATDWingmanAIController::ComputeSeparation(const ATDShip* Ship) const
 			Separation += (Delta / D) * (1.f - D / TeammateSeparation) * TeammateSeparationStrength;
 		}
 	}
+	// A director money shot is running: stay out of its lens (C-03 #2).
+	FVector ShotCamera;
+	if (TDSquad::GetDirectorShotCamera(Ship, ShotCamera))
+	{
+		const FVector Delta = Loc - ShotCamera;
+		const float D = Delta.Size();
+		if (D > KINDA_SMALL_NUMBER && D < ShotCameraClearance)
+		{
+			Separation += (Delta / D) * (1.f - D / ShotCameraClearance) * TeammateSeparationStrength * 2.f;
+		}
+	}
 	return Separation;
 }
 

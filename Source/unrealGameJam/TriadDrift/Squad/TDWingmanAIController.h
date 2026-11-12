@@ -161,6 +161,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
 	float TeammateSeparation = 1500.f;
 
+	/** While a director shot runs, keep at least this far from its camera (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wingman|Avoidance", meta = (ClampMin = "0"))
+	float ShotCameraClearance = 2500.f;
+
 	/** Steering gain: degrees of error that map to full stick deflection. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Steering", meta = (Units = "deg"))
 	float FullStickAngleDeg = 25.f;
