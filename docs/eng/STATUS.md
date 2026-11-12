@@ -20,13 +20,13 @@ Nothing below has been hand-flown in a windowed session yet: every "tests pass" 
 | ENG-03 health / death / respawn | Lead + T3 | in review | `448f658` | `TriadDrift.Core.Health`, `TriadDrift.Squad` | Component done; squad respawn rules merged. Flight and weapon state reset on respawn still open (T1 / T2 / T3) |
 | ENG-04 three ships | T3 | in review | `448f658` | `TriadDrift.Squad` (21) | Review running |
 | ENG-05 ship weapons | T2 | in review | `6bd14ec` | `TriadDrift.Combat` (19) | Review done: pool identity, retake cleanup, tracer pooling, 11 minor, test gaps. T2 fixing |
-| ENG-06 targeting | T2 | in review | `6bd14ec` | `TriadDrift.Combat` | Review done: lead and aim assist wrong under drift (MAJOR), HUD data not on `ITDHUDData` (fix `0734b8c` pending merge). T2 fixing |
+| ENG-06 targeting | T2 | in review | `6bd14ec` | `TriadDrift.Combat` | Review done: lead and aim assist wrong under drift (MAJOR), HUD data not on `ITDHUDData` (`ITDHUDData` getters merged in `0734b8c`; squad forwarders pending). T2 fixing |
 | ENG-07 squad + switching | T3 | in review | `448f658` | `TriadDrift.Squad` | Review running |
 | ENG-08 wingman AI | T3 | in review | `448f658` | `TriadDrift.Squad` | Review running. Form-up on hyperdrive spool and passive-for-landing added |
-| ENG-09 Rift portal blaster | T2 | in progress | eng/t2 `6455ee0` | `TriadDrift.Powers` | Reported complete with tests; merge next, then independent review |
-| ENG-10 Lancer ram | T2 | in progress | eng/t2 `6455ee0` | `TriadDrift.Powers` | Same branch |
-| ENG-11 Bastion swarm + dome | T2 | in progress | eng/t2 `6455ee0` | `TriadDrift.Powers` | Same branch |
-| ENG-12 unlockable abilities | T2 | in progress | eng/t2 `6455ee0` | `TriadDrift.Powers` | Same branch |
+| ENG-09 Rift portal blaster | T2 | in review | `6455ee0` merged | `TriadDrift.Powers` (16) | Merged, tests pass; independent review running |
+| ENG-10 Lancer ram | T2 | in review | `6455ee0` merged | `TriadDrift.Powers` (16) | Merged, tests pass; independent review running |
+| ENG-11 Bastion swarm + dome | T2 | in review | `6455ee0` merged | `TriadDrift.Powers` (16) | Merged, tests pass; independent review running |
+| ENG-12 unlockable abilities | T2 | in review | `6455ee0` merged | `TriadDrift.Powers` (16) | Merged, tests pass; independent review running |
 | ENG-13 enemy ships + AI | T4 | BUG | `d484243` | `TriadDrift.Enemies` (9) | Review done: BLOCKER carrier bays and turrets unreachable inside the hull sphere; MAJOR no leash, attack runs ram the player, per-type visuals not assignable, tests cannot fail. T4 fixing |
 | ENG-14 wave director | T4 | in review | `d484243` | `TriadDrift.Waves` (7) | Waits on the leash / stale spawn point fix |
 | ENG-15 hyperdrive | T1 | in progress | | `TriadDrift.Travel` | |
@@ -63,3 +63,4 @@ Nothing below has been hand-flown in a windowed session yet: every "tests pass" 
 - `448f658` T3 squad, T4 Dominion (ENG-18) merged. 86/86.
 - `609ffb1` Nick's ten text-only art-source commits integrated; Ryan-side claims published in `CLAIMS.md`.
 - This merge: T5 `125146f` (flow review fixes), T3 `1309c5b` (C-03 #1, #2), T4 `ea32ff5` (ENG-16, ENG-17), Core dev HUD + placeholder tint + pooled cues, `CLAIMS.md` board and AGENTS.md start / finish rule. Build clean, 114/114 headless (26 s): Combat 19, Core 8, Director 9, Enemies 9, Flight 11, Flow 16, Squad 21, Waves 7, World 14. Sandbox capture shows the dev HUD with squad cards, wave counter and hostile markers.
+- T2 `6455ee0` powers and abilities (ENG-09 to ENG-12) and `0734b8c` targeting HUD data on `ITDHUDData` merged. Build clean, 130/130 headless (28 s): Powers 16 added.
