@@ -50,6 +50,8 @@ normal. Never run the editor GUI from a worktree.
 | Game flow | `if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this)) { ... }` (null in plain test worlds) |
 | VFX / sound / shake | `UTDStatics::PlayCue(this, Cue, Location, Rotation)` / `PlayCueAttached(Cue, Component)` with an `FTDFXCue` from a presentation data asset |
 | Hit-stop / slow motion | `UTDFeelSubsystem::Get(this)->RequestHitStop()` / `RequestSlowMo(Seconds, Dilation)`. Never set global time dilation yourself |
+| Say "go here" to the HUD | Add the actor tag `TDTags::ObjectiveMarker` to the actor while it is the objective, remove it after. The squad manager returns tagged live actors from `GetObjectiveMarkers()` |
+| Tell audio what the game is doing | Nothing to call. `UTDAudioStateSubsystem` (Core) reads `ITDHUDData`, the event bus and the feel subsystem every frame. Your job is to keep those truthful: broadcast phase changes, cuts, takes, hits and highlights on the bus |
 
 Damage does **not** go through `AActor::TakeDamage`: `ApplyTDDamage` calls the health component
 directly, so overriding `TakeDamage` will not intercept gameplay damage. Use `DamageFilter`.
@@ -109,6 +111,11 @@ bool FTDFlightCruise::RunTest(const FString& Parameters)
 | Compiles in the editor, fails when packaging (`C4756 overflow in constant arithmetic`) | The `INFINITY` / `NAN` macros in constant expressions fail the Development game target. Use `std::numeric_limits<float>::infinity()` / `quiet_NaN()` |
 | Held fire / boost goes dead after a ship switch | Re-adding an Enhanced Input mapping context ignores keys that are already down until they are released. Only add or remove contexts when they actually change |
 | Build fails only in another agent's file | You merged `main` mid-change or touched a folder you do not own. Message the owner; do not "fix" their file |
+| The suite crashes once in ten runs with an access violation in a test (`FSoftObjectPtr::Get`, `IsValid` on a raw pointer) | A garbage collection ran in the middle of the test. Objects made with a bare `NewObject<>()` and nothing holding them are freed; raw pointers to actors that die dangle. Hold test-made data assets in `TStrongObjectPtr`, actors that can die in `TWeakObjectPtr`, and add a `CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS)` in the test so it fails every time if it is wrong. In game code every pointer to a presentation asset is a `UPROPERTY` |
+| A placeholder disappears when presentation assigns only a sound | `FTDFXCue::IsEmpty()` is false when only `Sound` or `Shake` is set. Decide whether to hide a visual placeholder with `Cue.VFX.IsNull()` |
+| A placeholder is visible from one side and black from the other (stars, markers, far ships) | It uses the lit `BasicShapeMaterial`. Anything that must read from every direction uses the unlit glow material, hard-referenced on a CDO so it cooks |
+| A test passes but the enemy never does its attack against a real player | The test asserted positions or timers, not the attack. Assert the thing itself happened (a projectile was fired, damage landed) against a moving, real ship, at 30 / 60 / 120 fps |
+| A console command with a wrong argument "works" silently | It only logged the valid list. Mistyped cheats must say so on screen; check the log after every cheat in a playtest |
 
 ## Try it by hand (human or agent with a screen)
 
