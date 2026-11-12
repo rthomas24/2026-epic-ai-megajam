@@ -93,6 +93,14 @@ The flight model is parked throughout, so controller and AI input is ignored.
 
 **Checkpoints:** `SnapLanded(Pad)` puts a ship straight onto a pad, in the Landed state.
 
+**Exit point:** `GetExitTransform()` is where the pilot steps out and where re-boarding is offered. It sits 320 cm to the ship's right and 96 cm (capsule half height) above the deck, facing the ship's forward. Tune it with `ExitSideOffset` and `ExitHeightAboveDeck`.
+
+**Agreed with T5** (docs/eng/ground.md, "Planet arrival and hand-off"):
+- **Fresh arrival:** the squad spawns flying at `PlayerStart_Descent`, and the zone takes over.
+- **Checkpoint or retake after landing:** `SnapLanded`, with the pilot on foot.
+- **On `OnShipLanded`** for the player-flown ship: T5 spawns and possesses the first-person character at `GetExitTransform()`.
+- **Re-board:** T5 possesses the ship and calls `RequestTakeOff`.
+
 ## How to try it
 
 ```powershell

@@ -74,6 +74,14 @@ struct UNREALGAMEJAM_API FTDLandingTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
 	float TakeOffSpeedFraction = 0.4f;
 
+	/** Pilot exit point: this far to the ship's right of its centre (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing")
+	float ExitSideOffset = 320.f;
+
+	/** Height of the exit point above the pad deck (cm): a character capsule's half height. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float ExitHeightAboveDeck = 96.f;
+
 	/** Squadmates within this distance land on side pads with the player. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
 	float WingmanLandRadius = 60000.f;
@@ -147,6 +155,14 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
 	ATDLandingPad* GetPad() const { return Pad.Get(); }
+
+	/**
+	 * Where the pilot steps out on foot (T5's first-person spawn) and where re-boarding should be offered:
+	 * beside the ship on its right, at capsule height above the deck, facing the ship's forward.
+	 * Valid whenever the ship is on or above a pad; otherwise beside the ship at its current height.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	FTransform GetExitTransform() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Landing")
 	FTDOnLandingStateChanged OnLandingStateChanged;

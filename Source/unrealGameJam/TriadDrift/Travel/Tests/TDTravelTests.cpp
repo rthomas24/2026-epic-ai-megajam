@@ -380,6 +380,14 @@ bool FTDTravelLanding::RunTest(const FString& Parameters)
 	TestTrue(TEXT("stationary"), Ship->GetVelocity().IsNearlyZero(1.f));
 	TestTrue(TEXT("wingman landed beside"), Mate->GetLanding()->IsLanded());
 
+	// Pilot exit point for the first-person hand-off: to the right, at capsule height above the deck.
+	const FTransform Exit = Land->GetExitTransform();
+	const FVector ToExit = Exit.GetLocation() - Ship->GetActorLocation();
+	TestTrue(TEXT("exit is on the ship's right"), FVector::DotProduct(ToExit.GetSafeNormal2D(), Ship->GetActorRightVector()) > 0.99f);
+	TestEqual(TEXT("exit offset"), (float)ToExit.Size2D(), Land->Tuning.ExitSideOffset, 1.f);
+	TestEqual(TEXT("exit at capsule height above the deck"), (float)Exit.GetLocation().Z, (float)Touch.Z + Land->Tuning.ExitHeightAboveDeck, 1.f);
+	TestTrue(TEXT("exit faces the ship's forward"), Exit.GetRotation().GetForwardVector().Equals(Ship->GetActorForwardVector(), 0.01f));
+
 	// Flight input is ignored while landed.
 	FTDFlightInput Full;
 	Full.Throttle = 1.f;
