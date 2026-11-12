@@ -18,12 +18,12 @@ class UNREALGAMEJAM_API UTDWaveTestGameInstance : public UGameInstance, public I
 	GENERATED_BODY()
 
 public:
-	virtual bool TravelTo(ETDDestination Destination, FName ReturnPoint) override { return false; }
+	virtual bool TravelTo(ETDDestination Destination, FName ReturnPoint) override { Travels.Add(Destination); return true; }
 	virtual FTDProgress GetProgress() const override { return Progress; }
 	virtual void SetPhase(ETDGamePhase Phase) override { Progress.Phase = Phase; }
 	virtual void ReportWaveCleared(int32 WaveNumber) override { ReportedWaves.Add(WaveNumber); Progress.WavesCleared = FMath::Max(Progress.WavesCleared, WaveNumber); }
 	virtual void CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, ETDShipId ForShip) override {}
-	virtual void SetDominionState(bool bRevealed, bool bDefensesDown) override { Progress.bDominionRevealed = bRevealed; Progress.bDominionDefensesDown = bDefensesDown; }
+	virtual void SetDominionState(bool bRevealed, bool bDefensesDown) override { ++DominionStateCalls; Progress.bDominionRevealed = bRevealed; Progress.bDominionDefensesDown = bDefensesDown; }
 	virtual void ReportPlayerDefeated() override {}
 	virtual void AddStat(FName StatName, int32 Amount) override {}
 	virtual void RequestBark(FName BarkId, FName Speaker) override {}
@@ -32,7 +32,10 @@ public:
 
 	FTDProgress Progress;
 	TArray<int32> ReportedWaves;
+	TArray<ETDDestination> Travels;
+	int32 DominionStateCalls = 0;
 	TArray<FName> Tips;
+	TArray<ETDHighlightKind> Highlights;
 };
 
 /** Records event-bus wave events (dynamic delegates need UFUNCTION receivers). */
@@ -49,6 +52,7 @@ public:
 	UFUNCTION() void OnTakeStarted(FName SceneId, int32 TakeNumber) { Takes.Add(FString::Printf(TEXT("%s:%d"), *SceneId.ToString(), TakeNumber)); }
 	UFUNCTION() void OnMarkerRevealed(ETDDestination Destination) { Markers.Add(Destination); }
 	UFUNCTION() void OnTipRequested(FName TipId) { Tips.Add(TipId); }
+	UFUNCTION() void OnHighlight(ETDHighlightKind Kind, AActor* Subject, float Importance01) { Highlights.Add(Kind); }
 
 	TArray<int32> Started;
 	TArray<float> Intensities;
@@ -56,6 +60,7 @@ public:
 	TArray<FString> Takes;
 	TArray<ETDDestination> Markers;
 	TArray<FName> Tips;
+	TArray<ETDHighlightKind> Highlights;
 };
 
 /** A minimal wave enemy: a health component on the Enemy team, records what the director asked. */
