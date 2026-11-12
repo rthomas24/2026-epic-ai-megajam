@@ -171,9 +171,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
 	bool CanSpool() const { return GetBlockReason() == ETDHyperdriveBlock::None; }
 
-	/** Player-facing text for a block reason (HUD), e.g. "HYPERDRIVE LOCKED - ENEMIES IN RANGE". Empty for None. */
+	/**
+	 * Player-facing text for the current block (HUD), e.g. "HYPERDRIVE LOCKED - ENEMIES IN RANGE". Empty for None.
+	 * Cheap enough to call every frame: the obstacle sweep behind it is refreshed every HUDSweepInterval seconds
+	 * (gameplay checks such as a pilot's press always sweep live).
+	 */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
 	FText GetBlockReasonText() const;
+
+	/** How often the HUD text refreshes the obstacle sweep (s). */
+	static constexpr double HUDSweepInterval = 0.2;
 
 	/** The pilot pressed hyperdrive but it couldn't spool: HUD message + refused sound (Nick). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Hyperdrive")
@@ -247,4 +254,10 @@ private:
 
 	UFUNCTION()
 	void HandleTeleported(class ATDSpacecraft* Spacecraft, FVector FromLocation, FVector ToLocation, FRotator NewFacing);
+
+private:
+	ETDHyperdriveBlock ComputeBlockReason(bool bCachedSweep) const;
+	FText TextForBlock(ETDHyperdriveBlock Block) const;
+	mutable double SweepCacheTime = -1.0;
+	mutable bool bSweepCacheBlocked = false;
 };
