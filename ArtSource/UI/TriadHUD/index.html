@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Triad Drift · HUD visual prototype</title>
+<link rel="stylesheet" href="hud.css">
+</head>
+<body>
+<main id="stage" aria-label="Triad Drift flight HUD visual prototype">
+  <div class="space" aria-hidden="true"><div class="nebula"></div><div class="stars"></div><div class="planet"><div class="planet-ring"></div></div><div class="sun"></div></div>
+  <div class="topline"><div class="wordmark">TRIAD<span>DRIFT</span><small>DIRECTOR’S CUT</small></div><div class="compass" aria-hidden="true"><span>240</span><i></i><span>270</span><i></i><strong>285</strong><i></i><span>300</span><i></i><span>330</span></div><div class="record"><b></b> SCENE <strong>02</strong><em>TAKE <span id="take">01</span></em></div></div>
+  <section class="mission"><div class="eyebrow">VERDANCE ORBIT <span>•</span> ACT I</div><h1>Hold the line.</h1><p>Clear the Armada patrol</p><div class="mission-count"><span class="diamond"></span> <strong>06</strong> HOSTILES REMAINING</div></section>
+  <div class="waypoint" aria-label="Verdance relay 12.4 kilometers"><span>◇</span><div>VERDANCE RELAY<small>12.4 km</small></div></div>
+  <div class="flight-lines" aria-hidden="true"><div class="pitch"><span>+10</span><i></i><span>0</span><i></i><span>−10</span></div><div class="speed-line"><small>VELOCITY</small><strong>6,240</strong><span>cm/s</span></div></div>
+  <section class="target" id="target" aria-label="Hostile target"><div class="target-caption"><span>NULL ARMADA</span><strong>INTERCEPTOR / 04</strong></div><svg viewBox="0 0 160 110" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2"><path d="M27 3H3v24M133 3h24v24M3 83v24h24M157 83v24h-24"/><path d="m80 41 22 21-22-7-22 7Z" fill="#ef8069" stroke="none"/><path d="M64 58 55 76M96 58l9 18"/></g></svg><div class="target-health"><i></i></div><small>1,280 m <b>LOCKED</b></small></section>
+  <div class="lead-point" aria-hidden="true"><i></i><span></span></div>
+  <div class="reticle" id="reticle" aria-label="Aim reticle"><svg viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M50 20v12M50 68v12M20 50h12M68 50h12"/><path d="M38 34a20 20 0 0 1 24 0M66 38a20 20 0 0 1 0 24M62 66a20 20 0 0 1-24 0M34 62a20 20 0 0 1 0-24" opacity=".4"/><circle cx="50" cy="50" r="2" fill="currentColor" stroke="none"/></g></svg></div>
+  <div class="hit-marker" id="hit" aria-hidden="true">✕<small>HIT CONFIRMED</small></div>
+  <div class="boundary" id="warning" role="status" hidden><span>△</span> HULL CRITICAL <small>SWITCH TO A WINGMAN</small></div>
+  <section class="squad" aria-label="Squad and active ship"><div class="squad-heading"><span>YOUR WING</span><small>LINK STABLE <i></i></small></div><div id="shipCards"></div><div class="switch-hint"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> DIRECT CUT <span><kbd>Tab</kbd> NEXT SHIP</span></div></section>
+  <section class="active-system"><div class="eyebrow">PILOT LINK <span>/</span> <b id="pilot">WREN</b></div><div class="ship-title"><h2 id="shipName">RIFT</h2><span id="shipRole">TRICKSTER</span></div><div class="system-bars"><label>BOOST<strong id="boostValue">82%</strong><span class="track"><i id="boostFill"></i></span></label><label>WEAPON HEAT<strong id="heatValue">24%</strong><span class="track thin"><i id="heatFill"></i></span></label></div><div class="ability"><div class="ability-icon" id="abilityIcon">◉</div><div><small>SIGNATURE READY</small><strong id="powerName">PORTAL BLASTER</strong></div><kbd>Q</kbd></div></section>
+  <div class="bottom-center"><span class="mode-dot"></span> FLIGHT ASSIST <b>ON</b><i></i><small>HYPERDRIVE</small><span class="hyper"><span></span></span><kbd>H</kbd></div>
+  <div class="cut-card" id="cutCard" role="status"><small>TAKING THE LEAD</small><strong id="cutShip">RIFT</strong><span id="cutPilot">WREN / TRICKSTER</span><div></div></div>
+  <div class="slate" id="slate" role="status"><div class="clapper"></div><small>TRIAD DRIFT <span>DIRECTOR’S CUT</span></small><h2>VERDANCE ORBIT</h2><div><span>SCENE <b>02</b></span><span>TAKE <b id="slateTake">01</b></span></div><p>Hold the line.</p></div>
+  <div class="prototype-label">VISUAL PROTOTYPE <span>•</span> MOCK DATA</div>
+</main>
+<nav class="demo-controls" aria-label="Prototype controls"><strong>HUD STUDY <span>01</span></strong><button data-ship="0">1 · Rift</button><button data-ship="1">2 · Lancer</button><button data-ship="2">3 · Bastion</button><span class="divider"></span><button id="hitButton">Hit feedback</button><button id="targetButton" aria-pressed="true">Target on</button><button id="damageButton" aria-pressed="false">Low hull</button><button id="slateButton">Scene slate</button><button id="resetButton">Reset</button><label class="motion"><input type="checkbox" id="reduceMotion"> Reduce motion</label></nav>
+<script src="hud.js"></script>
+</body></html>

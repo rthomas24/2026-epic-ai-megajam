@@ -53,6 +53,20 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool HasSpeedOverride() const { return Context.bSpeedOverride; }
 
+	/**
+	 * AI catch-up allowance (wingman formation): Throttle +1 flies at TopSpeed instead of cruise, with
+	 * normal acceleration and no boost meter. Values <= CruiseSpeed clear it. Player ships shouldn't use it.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetThrottleTopSpeed(float TopSpeedCmPerSec) { Context.ThrottleTopSpeed = FMath::Max(0.f, TopSpeedCmPerSec); }
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ClearThrottleTopSpeed() { Context.ThrottleTopSpeed = 0.f; }
+
+	/** Speed Throttle +1 currently flies at (cruise, or the catch-up allowance). Map Throttle over MinSpeed..this. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	float GetThrottleTopSpeed() const { return FMath::Max(Tuning.CruiseSpeed, Context.ThrottleTopSpeed); }
+
 	/** Centre of the soft spherical play space (radius is FTDFlightTuning::BoundaryRadius). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void SetBoundary(const FVector& Center, float Radius, bool bEnabled = true);

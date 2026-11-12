@@ -333,6 +333,27 @@ it if it doesn't exist:
   them can coordinate.
 - `git lfs lock <file>` / `git lfs unlock <file>` is available if you want a hard lock on a hot file.
 
+**Start / finish rule (mandatory for both humans' agents).** `CLAIMS.md` is the live board both
+sides read to know **what is in progress, what is coming next and what is done**. It is only useful
+if it is current, so:
+
+1. **Before starting any task:** `git fetch origin`, then read `CLAIMS.md` on `origin/main`, both
+   sides' sections. Don't start work that overlaps a row that is in progress or queued on the
+   other side; tell your human instead.
+2. **On task start:** the Lead adds or updates that task's row in its own side's section (item,
+   owner, state `in progress`, start time, the paths it touches) and pushes it to `main` with the
+   dispatch. For anything binary or shared (maps, `.uproject`, `Config/`, shared Blueprints,
+   plugins) the row must be on `origin/main` **before** the first edit.
+3. **On task finish:** once the work is integrated and pushed to `main`, the Lead sets the row to
+   `done` with the `main` commit and time, and releases any file claim, in that same push. A task
+   that is merged but still has open review fixes is `in review`, not `done`.
+4. **Queue what is coming:** list the next tasks per owner as `queued`, with the shared paths they
+   will touch, so the other side can plan around them.
+5. **Workers never edit `CLAIMS.md`.** They tell their Lead when they start and finish; the Lead
+   updates the board. Each Lead edits only its own side's section and never rewrites the other's.
+6. Keep `done` rows until the other side has had a day to see them, then prune them (the history
+   lives in `docs/eng/STATUS.md` and `DEVLOG.md`).
+
 ### 6.6 Structure the project to avoid collisions
 - **Folder ownership:** each person works only in their own role's folders
   ([features.md §2](features.md#2-folder--file-ownership)). Ryan has code, config and gameplay
@@ -372,7 +393,8 @@ not give permission for concurrent remote synchronization or overlapping asset e
 - Each human has their own Lead Agent. Nick's Lead coordinates Nick's workers only; it does not
   direct Ryan's agent or assume ownership of Ryan's files. Cross-role changes go through the humans.
 - Before dispatch, record the worker ID, human, task, exact writable paths, read-only references,
-  branch, absolute worktree path, base commit and claims. An unspecified path is read-only. Shared
+  branch, absolute worktree path, base commit and claims. The task row goes on the `CLAIMS.md`
+  board at dispatch and is closed at integration (start / finish rule, §6.5). An unspecified path is read-only. Shared
   maps/actors and dependency changes still require the existing claims and coordination (§6.5–§6.6).
 - The Lead owns worktree/branch creation, remote synchronization, claim publication and integration.
   Workers request a serialized preflight from the Lead before each task and commit; the Lead runs

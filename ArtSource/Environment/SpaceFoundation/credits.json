@@ -1,0 +1,10 @@
+{
+  "asset": "Triad Drift Space Foundation",
+  "author": "nicholastosti-tech with OpenAI Codex Environment Agent",
+  "created": "2026-11-12",
+  "source": "Original deterministic procedural code and hand-authored visual design; no downloaded image, mesh or audio resources",
+  "license": "Original project-authored source; no third-party asset license dependencies",
+  "tools": ["OpenAI Codex", "Python standard library", "Unreal Engine Python API"],
+  "third_party_content": [],
+  "engine_reference": "/Engine/BasicShapes/Sphere may be used by the team under their existing Unreal Engine license; no engine content redistributed here"
+}

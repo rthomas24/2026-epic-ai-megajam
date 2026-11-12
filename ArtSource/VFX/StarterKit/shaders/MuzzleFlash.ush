@@ -1,0 +1,12 @@
+float elapsed = max(Clock - StartTime, 0.0);
+float age = saturate(elapsed / max(Lifetime, 0.01));
+if (PreviewLoop > 0.5) age = frac(Clock / max(Lifetime * 6.0, 0.06));
+float2 p = (UV - 0.5) * float2(1.0 / max(Length,0.05), 1.0 / max(Width,0.05));
+float r = length(p);
+float a = atan2(p.y, p.x);
+float spokes = pow(abs(cos(a * 3.0 + age * 0.4)), 12.0);
+float burst = exp(-r * 9.0) + spokes * exp(-r * 5.0) * 0.65;
+float flash = pow(saturate(1.0 - age * 2.5), 3.0);
+float mask = saturate(burst * flash);
+float3 color = lerp(Tint, float3(1.0,0.95,0.8), exp(-r*20.0)*0.65);
+return float4(color * max(Intensity,0.0), mask);
