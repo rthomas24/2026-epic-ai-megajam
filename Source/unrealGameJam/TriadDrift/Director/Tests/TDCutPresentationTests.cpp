@@ -6,6 +6,7 @@
 
 #include "GameFramework/PlayerController.h"
 #include "Misc/ScopeExit.h"
+#include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
@@ -63,6 +64,40 @@ bool FTDCutPresSwitch::RunTest(const FString& Parameters)
 		TestTrue(TEXT("letterbox eases out") + Fps, F.S().Letterbox < 0.11f);
 		F.W.Advance(1.f, Step);
 		TestTrue(TEXT("everything gone after the card") + Fps, F.S().IsEmpty());
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresRealHUD, "TriadDrift.Director.CutPresentation.RealHUDOwnsTheNameCard", TD_TEST_FLAGS)
+bool FTDCutPresRealHUD::RunTest(const FString& Parameters)
+{
+	// N-007: Nick's real HUD draws its own "CUT TO" card. While it is up, ours never shows; the
+	// flash and letterbox still play. With it off, nothing changes.
+	for (const bool bRealHUD : { true, false })
+	{
+		const FString Case = bRealHUD ? TEXT(" (real HUD on)") : TEXT(" (real HUD off)");
+		FFixture F;
+		ATDDebugHUD::SetRealHUDActive(F.W.GetWorld(), bRealHUD);
+		ON_SCOPE_EXIT { ATDDebugHUD::SetRealHUDActive(F.W.GetWorld(), false); };
+		TestTrue(TEXT("switch") + Case, F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+		F.W.Tick();
+		TestEqual(TEXT("flash still plays") + Case, F.S().FlashAlpha, 1.f);
+		float MaxCard = 0.f, MaxBars = 0.f;
+		for (int32 i = 0; i < 90; ++i)
+		{
+			F.W.Tick();
+			MaxCard = FMath::Max(MaxCard, F.S().NameCardAlpha);
+			MaxBars = FMath::Max(MaxBars, F.S().Letterbox);
+		}
+		TestTrue(TEXT("letterbox still plays") + Case, MaxBars > 0.1f);
+		if (bRealHUD)
+		{
+			TestEqual(TEXT("our name card never shows") + Case, MaxCard, 0.f);
+		}
+		else
+		{
+			TestTrue(TEXT("our name card shows") + Case, MaxCard > 0.5f);
+		}
 	}
 	return true;
 }
