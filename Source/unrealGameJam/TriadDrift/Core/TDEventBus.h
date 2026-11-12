@@ -1,4 +1,4 @@
-﻿// Triad Drift - gameplay event bus (features.md Â§3.4). Lead-owned; append only.
+// Triad Drift - gameplay event bus (features.md Â§3.4). Lead-owned; append only.
 // Gameplay fires; UI, VFX, audio and other systems listen. Get it with UTDEventBus::Get(this).
 
 #pragma once
@@ -26,6 +26,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnBarkRequested, FName, BarkId, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FTDOnSpacecraftTeleported, AActor*, Spacecraft, FVector, From, FVector, To);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FTDOnHighlightMoment, ETDHighlightKind, Kind, AActor*, Subject, float, Importance01);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnTakeStarted, FName, SceneId, int32, TakeNumber);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FTDOnSceneCut, FName, SceneId, int32, NextTakeNumber, float, DelaySeconds);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnMarkerRevealed, ETDDestination, Destination);
 
 UCLASS()
@@ -106,6 +107,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Events")
 	FTDOnTakeStarted OnTakeStarted;
 
+	/** "CUT!": the player was defeated; the scene restarts as NextTakeNumber after DelaySeconds (real time). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Events")
+	FTDOnSceneCut OnSceneCut;
+
 	// ------------------------------------------------------------------ broadcast helpers
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
 	void BroadcastWaveStarted(int32 WaveNumber, float Intensity01) { OnWaveStarted.Broadcast(WaveNumber, Intensity01); }
@@ -162,8 +167,14 @@ public:
 	void BroadcastBarkRequested(FName BarkId, FName Speaker) { OnBarkRequested.Broadcast(BarkId, Speaker); }
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
-	void BroadcastHighlightMoment(ETDHighlightKind Kind, AActor* Subject, float Importance01) { OnHighlightMoment.Broadcast(Kind, Subject, Importance01); }
+	void BroadcastTakeStarted(FName SceneId, int32 TakeNumber) { OnTakeStarted.Broadcast(SceneId, TakeNumber); }
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
-	void BroadcastTakeStarted(FName SceneId, int32 TakeNumber) { OnTakeStarted.Broadcast(SceneId, TakeNumber); }
+	void BroadcastSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds) { OnSceneCut.Broadcast(SceneId, NextTakeNumber, DelaySeconds); }
+
+private:
+	// Money shots go through UTDDirectorSubsystem::ReportHighlight (rate limit, slow-mo, camera hint,
+	// blocked during CUT and travel). Only the director may put one on the bus.
+	friend class UTDDirectorSubsystem;
+	void BroadcastHighlightMoment(ETDHighlightKind Kind, AActor* Subject, float Importance01) { OnHighlightMoment.Broadcast(Kind, Subject, Importance01); }
 };

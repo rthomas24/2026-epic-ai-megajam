@@ -16,6 +16,8 @@ class UStaticMesh;
 class USkeletalMesh;
 class UMaterialInterface;
 class UTexture2D;
+class UAnimInstance;
+class UUserWidget;
 
 /** One presentation moment: an effect, a sound and a camera shake, each optional. */
 USTRUCT(BlueprintType)
@@ -45,6 +47,34 @@ struct FTDFXCue
 	bool IsEmpty() const { return VFX.IsNull() && Sound.IsNull() && Shake.IsNull(); }
 };
 
+/**
+ * One extra mesh of a modular ship (wing, pod, engine block): attached to the hull, either at a
+ * socket of the primary mesh or at a transform relative to the ship root. Purely visual.
+ */
+USTRUCT(BlueprintType)
+struct FTDShipVisualPart
+{
+	GENERATED_BODY()
+
+	/** Name for tooling and for gameplay to find the part (for example "Pod_L", "Engine_R"). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Part")
+	FName PartName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Part")
+	TSoftObjectPtr<UStaticMesh> Mesh;
+
+	/** Socket on the ship's primary mesh to attach to; None attaches to the ship root. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Part")
+	FName ParentSocket;
+
+	/** Offset from the socket (or from the ship root when no socket is given). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Part")
+	FTransform RelativeTransform = FTransform::Identity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Part")
+	TArray<TSoftObjectPtr<UMaterialInterface>> MaterialOverrides;
+};
+
 UCLASS(BlueprintType)
 class UNREALGAMEJAM_API UTDShipVisuals : public UPrimaryDataAsset
 {
@@ -59,6 +89,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	TArray<TSoftObjectPtr<UMaterialInterface>> MaterialOverrides;
+
+	/**
+	 * Optional modular assembly: extra meshes attached to the hull. A ship can be one assembled
+	 * Mesh, a Mesh plus Parts, or Parts only (then the first part should be the fuselage).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TArray<FTDShipVisualPart> Parts;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Identity")
 	FLinearColor SquadColor = FLinearColor::White;
@@ -146,6 +183,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
 	TSoftObjectPtr<UStaticMesh> ProjectileMesh;
 
+	/**
+	 * Visual-only offset of ProjectileMesh from the projectile's collision centre, in the
+	 * projectile's local space (X forward). For centre-pivoted meshes whose tail would clip the
+	 * launcher at spawn. Never moves collision or gameplay.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
+	FVector ProjectileMeshOffset = FVector::ZeroVector;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
 	FLinearColor Color = FLinearColor::White;
 
@@ -201,6 +246,123 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue Explosion;
+
+	// ---- per-attack wind-ups; an empty slot falls back to Telegraph
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphMissile;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphHeavyBolt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphSalvo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphMineTrail;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TurretTelegraph;
+
+	// ---- carrier
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue BayLaunchTelegraph;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue BayLaunch;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue BayDestroyed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue TurretDestroyed;
+
+	// ---- gunship frontal shield (hits use ShieldHit)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Frontal Shield")
+	FTDFXCue FrontalShieldBreak;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Frontal Shield")
+	FTDFXCue FrontalShieldRestore;
+
+	// ---- damage states
+	/** Attached loop once the hull is below 50%. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	FTDFXCue DamagedSmoke;
+
+	/** Attached, plays when the death tumble starts; Explosion plays at the end. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	FTDFXCue DeathTumble;
+
+	// ---- on-foot crew (all optional)
+	/** Animation Blueprint class for SkeletalMesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
+	TSoftClassPtr<UAnimInstance> AnimBPClass;
+
+	/** Played when the enemy is staggered (parry, guard break, heavy hit). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
+	FTDFXCue Stagger;
+
+	/** Played when an on-foot enemy dies. Gameplay owns the ragdoll; this is the presentation cue. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
+	FTDFXCue Death;
+};
+
+/** The Dominion mothership (features.md ENG-18). */
+UCLASS(BlueprintType)
+class UNREALGAMEJAM_API UTDDominionVisuals : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> HullMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> GeneratorMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> ReactorMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arrival")
+	FTDFXCue WarpIn;
+
+	/** Attached loop while the main shield is up. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldIdle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldHit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldSectionDown;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldCollapse;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Generators")
+	FTDFXCue GeneratorHit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Generators")
+	FTDFXCue GeneratorExplosion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorExposed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorHit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorPhaseChange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorDestroyed;
+
+	/** Plays when the breakup begins; Nick's Level Sequence can also listen for the same event. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue BreakupSequence;
+
+	/** Stretch: the docking bay opening (ENG-29). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue DockingBayOpen;
 };
 
 UCLASS(BlueprintType)
@@ -303,6 +465,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue AirSlam;
+
+	/** First-person blade mesh. Empty = engineering placeholder. Colour comes from BladeColor. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Blade")
+	TSoftObjectPtr<UStaticMesh> BladeMesh;
 };
 
 UCLASS(BlueprintType)
@@ -319,4 +485,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icons")
 	TMap<ETDAbilityId, TSoftObjectPtr<UTexture2D>> AbilityIcons;
+
+	// ---- front end (optional). The menu / transition game modes use these when their own
+	// widget class is not set, so the UI is assigned from this asset with no Blueprint or config edit.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> MainMenuWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> LoadingWidgetClass;
 };

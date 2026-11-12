@@ -4,22 +4,24 @@
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Pawn.h"
 #include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
 
 namespace
 {
-	const FTDWeaponSpec& InvalidSpec()
+	const FTDWeaponSpec& TDWeapInvalidSpec()
 	{
 		static const FTDWeaponSpec Invalid;
 		return Invalid;
 	}
 
-	const FName& MuzzleSocketName(int32 Index)
+	const FName& TDWeapMuzzleSocketName(int32 Index)
 	{
 		static const FName Names[] = {
 			FName(TEXT("Muzzle_0")), FName(TEXT("Muzzle_1")), FName(TEXT("Muzzle_2")), FName(TEXT("Muzzle_3")),
@@ -27,9 +29,9 @@ namespace
 		return Names[FMath::Clamp(Index, 0, 7)];
 	}
 
-	constexpr int32 MaxMuzzleSockets = 8;
+	constexpr int32 TDWeapMaxMuzzleSockets = 8;
 	/** Safety cap on shots per slot per frame (a 20/s gun at a 0.25 s hitch fires 5). */
-	constexpr int32 MaxShotsPerFrame = 12;
+	constexpr int32 TDWeapMaxShotsPerFrame = 12;
 }
 
 UTDWeaponComponent::UTDWeaponComponent()
@@ -74,18 +76,27 @@ void UTDWeaponComponent::EquipWeapon(ETDWeaponSlot Slot, FName WeaponId)
 	const FTDWeaponSpec& Spec = UTDWeaponLibrary::Get(WeaponId);
 	SpecPtr(Slot) = Spec.IsValid() ? &Spec : nullptr;
 
+	TObjectPtr<UTDWeaponFX>& SlotFX = Slot == ETDWeaponSlot::Primary ? PrimaryFX : SecondaryFX;
+	bool& bAuto = Slot == ETDWeaponSlot::Primary ? bPrimaryFXAuto : bSecondaryFXAuto;
+	if (!SlotFX || bAuto)
+	{
+		SlotFX = Spec.IsValid() ? FTDPowerPresentation::LoadWeaponFX(WeaponId) : nullptr;
+		bAuto = true;
+	}
+
 	FTDWeaponSlotState& S = State(Slot);
-	const bool bWasHeld = S.bTriggerHeld;
+	const bool bWasRequested = S.bTriggerRequested;
 	S = FTDWeaponSlotState();
 	S.WeaponId = Spec.IsValid() ? WeaponId : NAME_None;
 	S.Ammo = Spec.IsValid() ? Spec.MaxAmmo : 0;
-	S.bTriggerHeld = bWasHeld && Spec.IsValid() && !AreWeaponsBlocked();
+	S.bTriggerRequested = bWasRequested;
+	S.bTriggerHeld = bWasRequested && Spec.IsValid() && !AreWeaponsBlocked();
 }
 
 const FTDWeaponSpec& UTDWeaponComponent::GetSpec(ETDWeaponSlot Slot) const
 {
 	const FTDWeaponSpec* Spec = SpecPtr(Slot);
-	return Spec ? *Spec : InvalidSpec();
+	return Spec ? *Spec : TDWeapInvalidSpec();
 }
 
 const FTDWeaponSlotState& UTDWeaponComponent::GetSlotState(ETDWeaponSlot Slot) const
@@ -103,18 +114,28 @@ FName UTDWeaponComponent::GetWeaponId(ETDWeaponSlot Slot) const
 void UTDWeaponComponent::SetTriggerHeld(ETDWeaponSlot Slot, bool bHeld)
 {
 	FTDWeaponSlotState& S = State(Slot);
+	const bool bWasRequested = S.bTriggerRequested;
+	S.bTriggerRequested = bHeld;
+	UpdateEffectiveTrigger(Slot, bWasRequested && !bHeld);
+}
+
+void UTDWeaponComponent::UpdateEffectiveTrigger(ETDWeaponSlot Slot, bool bPilotRelease)
+{
+	FTDWeaponSlotState& S = State(Slot);
 	const FTDWeaponSpec* Spec = SpecPtr(Slot);
-	const bool bNewHeld = bHeld && Spec && !AreWeaponsBlocked();
-	if (S.bTriggerHeld == bNewHeld)
+	const bool bBlocked = AreWeaponsBlocked();
+	const bool bNewHeld = S.bTriggerRequested && Spec && !bBlocked;
+	if (S.bTriggerHeld == bNewHeld && !bPilotRelease)
 	{
 		return;
 	}
+	const bool bWasHeld = S.bTriggerHeld;
 	S.bTriggerHeld = bNewHeld;
 
-	if (!bNewHeld && Spec && Spec->FireMode == ETDFireMode::Charge)
+	if (bWasHeld && !bNewHeld && Spec && Spec->FireMode == ETDFireMode::Charge)
 	{
-		// Charge weapons fire on release, only when fully charged.
-		const bool bFire = S.bChargeReady && HasResourceToFire(*Spec, S) && !S.bOverheated && !AreWeaponsBlocked();
+		// Charge weapons fire when the PILOT releases a full charge; a block or death just drops it.
+		const bool bFire = bPilotRelease && !bBlocked && S.bChargeReady && HasResourceToFire(*Spec, S) && !S.bOverheated;
 		S.ChargeHeld = 0.f;
 		S.bChargeReady = false;
 		StopChargeFX(Slot);
@@ -124,6 +145,26 @@ void UTDWeaponComponent::SetTriggerHeld(ETDWeaponSlot Slot, bool bHeld)
 			S.RefireTimer = Spec->GetRefireSeconds();
 		}
 	}
+}
+
+void UTDWeaponComponent::CancelCharge(ETDWeaponSlot Slot)
+{
+	FTDWeaponSlotState& S = State(Slot);
+	S.ChargeHeld = 0.f;
+	S.bChargeReady = false;
+	S.bTriggerRequested = false;
+	S.bTriggerHeld = false;
+	StopChargeFX(Slot);
+}
+
+bool UTDWeaponComponent::AreWeaponsBlocked() const
+{
+	if (BlockSources.Num() > 0)
+	{
+		return true;
+	}
+	const UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner());
+	return Health && Health->IsDead();
 }
 
 void UTDWeaponComponent::SetAimTarget(AActor* Target)
@@ -243,16 +284,18 @@ void UTDWeaponComponent::SetWeaponsBlocked(FName SourceKey, bool bBlocked)
 		for (ETDWeaponSlot Slot : { ETDWeaponSlot::Primary, ETDWeaponSlot::Secondary })
 		{
 			FTDWeaponSlotState& S = State(Slot);
-			S.bTriggerHeld = false;
+			S.SalvoRemaining = 0;
+			UpdateEffectiveTrigger(Slot, false); // drops a charge, keeps the request
 			S.ChargeHeld = 0.f;
 			S.bChargeReady = false;
-			S.SalvoRemaining = 0;
 			StopChargeFX(Slot);
 		}
 	}
 	else
 	{
 		BlockSources.Remove(SourceKey);
+		UpdateEffectiveTrigger(ETDWeaponSlot::Primary, false);
+		UpdateEffectiveTrigger(ETDWeaponSlot::Secondary, false);
 	}
 }
 
@@ -299,6 +342,9 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 	FTDWeaponSlotState& S = State(Slot);
 	S.TimeSinceShot += DeltaTime;
 
+	// Death, blocks ending, etc. (never fires a charge: only a pilot release does).
+	UpdateEffectiveTrigger(Slot, false);
+
 	// Ammo regeneration.
 	if (Spec->Resource == ETDWeaponResource::Ammo && Spec->AmmoRegenSeconds > 0.f)
 	{
@@ -333,7 +379,8 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 				OnOverheatChanged.Broadcast(Slot, false);
 			}
 		}
-		else if (!S.bTriggerHeld && S.TimeSinceShot >= Spec->HeatCoolDelay && S.Heat > 0.f)
+		// Cooling waits at least 1.5 refire intervals, so tap-firing at the max rate can't dodge heat.
+		else if (!S.bTriggerHeld && S.TimeSinceShot >= FMath::Max(Spec->HeatCoolDelay, 1.5f * Spec->GetRefireSeconds()) && S.Heat > 0.f)
 		{
 			S.Heat = FMath::Max(0.f, S.Heat - DeltaTime / FMath::Max(Spec->HeatSecondsToCool, KINDA_SMALL_NUMBER));
 		}
@@ -344,7 +391,7 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 	{
 		S.SalvoTimer -= DeltaTime;
 		int32 Guard = 0;
-		while (S.SalvoRemaining > 0 && S.SalvoTimer <= 0.f && Guard++ < MaxShotsPerFrame)
+		while (S.SalvoRemaining > 0 && S.SalvoTimer <= 0.f && Guard++ < TDWeapMaxShotsPerFrame)
 		{
 			SpawnProjectile(Slot, -S.SalvoTimer);
 			--S.SalvoRemaining;
@@ -358,7 +405,7 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 	if (Spec->FireMode == ETDFireMode::Automatic)
 	{
 		int32 Guard = 0;
-		while (S.bTriggerHeld && bCanShoot && !S.bOverheated && S.RefireTimer <= 0.f && HasResourceToFire(*Spec, S) && Guard++ < MaxShotsPerFrame)
+		while (S.bTriggerHeld && bCanShoot && !S.bOverheated && S.RefireTimer <= 0.f && HasResourceToFire(*Spec, S) && Guard++ < TDWeapMaxShotsPerFrame)
 		{
 			// -RefireTimer = how late this shot is inside the frame; the projectile is advanced by that much.
 			BeginShot(Slot, FMath::Min(-S.RefireTimer, DeltaTime));
@@ -375,8 +422,11 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 				{
 					if (AActor* Owner = GetOwner())
 					{
-						UNiagaraComponent* Loop = UTDStatics::PlayCueAttached(FX->ChargeLoop, Owner->GetRootComponent());
+						StopChargeFX(Slot);
+						UAudioComponent* Audio = nullptr;
+						UNiagaraComponent* Loop = UTDStatics::PlayCueAttachedLoop(FX->ChargeLoop, Owner->GetRootComponent(), NAME_None, Audio);
 						(Slot == ETDWeaponSlot::Primary ? PrimaryChargeFX : SecondaryChargeFX) = Loop;
+						(Slot == ETDWeaponSlot::Primary ? PrimaryChargeAudio : SecondaryChargeAudio) = Audio;
 					}
 				}
 			}
@@ -420,8 +470,10 @@ void UTDWeaponComponent::BeginShot(ETDWeaponSlot Slot, float SubFrameAge)
 		S.Ammo = FMath::Max(0, S.Ammo - 1);
 	}
 	S.TimeSinceShot = SubFrameAge;
+	++S.ShotsFired;
 	S.ShotMultiplier = NextShotMultiplier;
 	NextShotMultiplier = 1.f;
+	S.SalvoTarget = ResolveAimTarget();
 	LastFired.Reset();
 
 	const int32 Count = FMath::Max(1, Spec->ProjectilesPerShot);
@@ -500,7 +552,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	FTDProjectileSpec ProjSpec = Spec->Projectile;
 	ProjSpec.FX = GetFX(Slot);
 
-	AActor* HomingTarget = ProjSpec.bHoming ? ResolveAimTarget() : nullptr;
+	AActor* HomingTarget = ProjSpec.bHoming ? (S.SalvoTarget.IsValid() ? S.SalvoTarget.Get() : ResolveAimTarget()) : nullptr;
 	const float Multiplier = GetOutgoingDamageMultiplier() * S.ShotMultiplier;
 
 	ATDProjectile* P = ATDProjectile::Launch(World, ProjSpec, FTransform(Dir.Rotation(), MuzzleLocation), Owner, GetOwnerTeam(), HomingTarget,
@@ -509,7 +561,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	{
 		return;
 	}
-	LastFired.Add(P);
+	LastFired.Add({ P, P->GetLaunchSerial() });
 	if (SubFrameAge > 0.f)
 	{
 		P->Step(SubFrameAge);
@@ -595,11 +647,11 @@ void UTDWeaponComponent::GetMuzzleTransforms(TArray<FTransform>& Out) const
 	TInlineComponentArray<UStaticMeshComponent*> Meshes(Owner);
 	for (const UStaticMeshComponent* Mesh : Meshes)
 	{
-		if (Mesh && Mesh->DoesSocketExist(MuzzleSocketName(0)))
+		if (Mesh && Mesh->DoesSocketExist(TDWeapMuzzleSocketName(0)))
 		{
-			for (int32 i = 0; i < MaxMuzzleSockets && Mesh->DoesSocketExist(MuzzleSocketName(i)); ++i)
+			for (int32 i = 0; i < TDWeapMaxMuzzleSockets && Mesh->DoesSocketExist(TDWeapMuzzleSocketName(i)); ++i)
 			{
-				Out.Add(Mesh->GetSocketTransform(MuzzleSocketName(i)));
+				Out.Add(Mesh->GetSocketTransform(TDWeapMuzzleSocketName(i)));
 			}
 			return;
 		}
@@ -612,6 +664,16 @@ void UTDWeaponComponent::GetMuzzleTransforms(TArray<FTransform>& Out) const
 	}
 }
 
+ATDProjectile* UTDWeaponComponent::GetLastFiredProjectile(int32 Index) const
+{
+	if (!LastFired.IsValidIndex(Index))
+	{
+		return nullptr;
+	}
+	ATDProjectile* P = LastFired[Index].Projectile.Get();
+	return (P && P->IsActive() && P->GetLaunchSerial() == LastFired[Index].Serial) ? P : nullptr;
+}
+
 void UTDWeaponComponent::StopChargeFX(ETDWeaponSlot Slot)
 {
 	TObjectPtr<UNiagaraComponent>& Comp = Slot == ETDWeaponSlot::Primary ? PrimaryChargeFX : SecondaryChargeFX;
@@ -619,5 +681,11 @@ void UTDWeaponComponent::StopChargeFX(ETDWeaponSlot Slot)
 	{
 		Comp->Deactivate();
 		Comp = nullptr;
+	}
+	TObjectPtr<UAudioComponent>& Audio = Slot == ETDWeaponSlot::Primary ? PrimaryChargeAudio : SecondaryChargeAudio;
+	if (Audio)
+	{
+		Audio->FadeOut(0.1f, 0.f);
+		Audio = nullptr;
 	}
 }

@@ -1,6 +1,10 @@
 #include "TriadDrift/Core/TDStatics.h"
 
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "Camera/CameraShakeBase.h"
+#include "Components/AudioComponent.h"
+#include "Components/MeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
@@ -9,6 +13,9 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/WorldSettings.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
+#include "Misc/PackageName.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
@@ -217,7 +224,8 @@ UNiagaraComponent* UTDStatics::PlayCue(const UObject* WorldContextObject, const 
 	{
 		if (UNiagaraSystem* System = Cue.VFX.LoadSynchronous())
 		{
-			Component = UNiagaraFunctionLibrary::SpawnSystemAtLocation(WorldContextObject, System, Location, Rotation, Cue.VFXScale);
+			Component = UNiagaraFunctionLibrary::SpawnSystemAtLocation(WorldContextObject, System, Location, Rotation, Cue.VFXScale,
+				true, true, ENCPoolMethod::AutoRelease, true);
 		}
 	}
 	if (!Cue.Sound.IsNull())
@@ -233,6 +241,14 @@ UNiagaraComponent* UTDStatics::PlayCue(const UObject* WorldContextObject, const 
 
 UNiagaraComponent* UTDStatics::PlayCueAttached(const FTDFXCue& Cue, USceneComponent* AttachTo, FName Socket)
 {
+	UAudioComponent* Audio = nullptr;
+	return PlayCueAttachedLoop(Cue, AttachTo, Socket, Audio);
+}
+
+UNiagaraComponent* UTDStatics::PlayCueAttachedLoop(const FTDFXCue& Cue, USceneComponent* AttachTo, FName Socket,
+	UAudioComponent*& OutAudio)
+{
+	OutAudio = nullptr;
 	if (!IsValid(AttachTo) || Cue.IsEmpty())
 	{
 		return nullptr;
@@ -251,11 +267,136 @@ UNiagaraComponent* UTDStatics::PlayCueAttached(const FTDFXCue& Cue, USceneCompon
 	{
 		if (USoundBase* Sound = Cue.Sound.LoadSynchronous())
 		{
-			UGameplayStatics::SpawnSoundAttached(Sound, AttachTo, Socket);
+			OutAudio = UGameplayStatics::SpawnSoundAttached(Sound, AttachTo, Socket);
 		}
 	}
 	PlayCueShake(AttachTo, Cue, AttachTo->GetComponentLocation());
 	return Component;
+}
+
+UMaterialInstanceDynamic* UTDStatics::TintPlaceholder(UMeshComponent* Mesh, FLinearColor Color, float EmissiveBoost)
+{
+	if (!IsValid(Mesh))
+	{
+		return nullptr;
+	}
+
+	// LoadObject is a cheap find after the first call; weak pointers survive a level change safely.
+	static TWeakObjectPtr<UMaterialInterface> LitBase;
+	static TWeakObjectPtr<UMaterialInterface> GlowBase;
+	if (!LitBase.IsValid())
+	{
+		LitBase = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	}
+	if (EmissiveBoost > 0.f && !GlowBase.IsValid())
+	{
+		GlowBase = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
+	}
+
+	// The glow material may be missing from a cooked build; the lit one is always cooked.
+	const bool bGlow = EmissiveBoost > 0.f && GlowBase.IsValid();
+	UMaterialInterface* Base = bGlow ? GlowBase.Get() : LitBase.Get();
+	if (!Base)
+	{
+		return nullptr;
+	}
+
+	const FLinearColor Final = bGlow ? Color * EmissiveBoost : Color;
+	UMaterialInstanceDynamic* First = nullptr;
+	const int32 SlotCount = FMath::Max(1, Mesh->GetNumMaterials());
+	for (int32 Slot = 0; Slot < SlotCount; ++Slot)
+	{
+		UMaterialInstanceDynamic* Instance = Mesh->CreateDynamicMaterialInstance(Slot, Base);
+		if (!Instance)
+		{
+			continue;
+		}
+		Instance->SetVectorParameterValue(TEXT("Color"), Final);
+		if (bGlow)
+		{
+			Instance->SetVectorParameterValue(TEXT("EmissiveColor"), Final);
+		}
+		First = First ? First : Instance;
+	}
+	return First;
+}
+
+FLinearColor UTDStatics::ShipColor(ETDShipId Ship)
+{
+	switch (Ship)
+	{
+	case ETDShipId::Rift: return FLinearColor(1.f, 0.17f, 0.84f);
+	case ETDShipId::Lancer: return FLinearColor(0.25f, 0.91f, 1.f);
+	default: return FLinearColor(1.f, 0.7f, 0.12f);
+	}
+}
+
+FLinearColor UTDStatics::TeamColor(ETDTeam Team)
+{
+	switch (Team)
+	{
+	case ETDTeam::Player: return FLinearColor(0.55f, 1.f, 0.7f);
+	case ETDTeam::Enemy: return FLinearColor(1.f, 0.16f, 0.08f);
+	default: return FLinearColor(0.5f, 0.5f, 0.5f);
+	}
+}
+
+FString UTDStatics::GetPresentationFolder()
+{
+	return TEXT("/Game/TriadDrift/Presentation");
+}
+
+UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf<UObject> ExpectedClass)
+{
+	if (AssetName.IsEmpty())
+	{
+		return nullptr;
+	}
+
+	// Remembered misses: asking again every frame for art that does not exist yet must cost nothing.
+	static TMap<FString, double> MissTimes;
+	const double Now = FPlatformTime::Seconds();
+	if (const double* MissedAt = MissTimes.Find(AssetName))
+	{
+		if (!GIsEditor || Now - *MissedAt < 10.0)
+		{
+			return nullptr;
+		}
+	}
+
+	const FString PackagePath = GetPresentationFolder() / AssetName;
+	const FSoftObjectPath ObjectPath(PackagePath + TEXT(".") + AssetName);
+
+	// Ask the asset registry first (silent, and it is what a cooked build has). While the editor is
+	// still scanning, fall back to the package file check.
+	bool bExists = false;
+	if (IAssetRegistry* Registry = IAssetRegistry::Get())
+	{
+		bExists = Registry->GetAssetByObjectPath(ObjectPath).IsValid();
+		if (!bExists && Registry->IsLoadingAssets())
+		{
+			bExists = FPackageName::DoesPackageExist(PackagePath);
+		}
+	}
+	else
+	{
+		bExists = FPackageName::DoesPackageExist(PackagePath);
+	}
+
+	UObject* Asset = bExists ? ObjectPath.TryLoad() : nullptr;
+	if (Asset && ExpectedClass && !Asset->IsA(ExpectedClass))
+	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("Presentation asset %s is a %s, expected %s"), *AssetName,
+			*Asset->GetClass()->GetName(), *ExpectedClass->GetName());
+		Asset = nullptr;
+	}
+	if (!Asset)
+	{
+		MissTimes.Add(AssetName, Now);
+		return nullptr;
+	}
+	MissTimes.Remove(AssetName);
+	return Asset;
 }
 
 bool UTDStatics::ShouldDrawPlaceholders()

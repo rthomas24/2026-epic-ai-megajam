@@ -13,6 +13,7 @@ class USphereComponent;
 class UStaticMeshComponent;
 class UTDShipMovementComponent;
 class UTDHealthComponent;
+class UTDWeaponComponent;
 class UDamageType;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FTDOnTeleported, ATDSpacecraft*, Spacecraft, FVector, FromLocation, FVector, ToLocation, FRotator, NewFacing);
@@ -60,6 +61,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsOutOfBounds() const;
 
+	/** Metres above the ground straight below (atmosphere flight HUD), or -1 if nothing is below within 20 km. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	float GetAltitudeMeters() const;
+
 	/** Instant move (portals, gates, hyperdrive drop-out). Fires OnTeleported. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void TeleportSpacecraft(const FVector& Location, const FRotator& Facing, bool bKeepSpeed);
@@ -71,6 +76,28 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ClearSpeedOverride();
 
+	/** Keyed override (see UTDShipMovementComponent::SetSpeedOverrideFor): owners stack, clearing restores the previous. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetSpeedOverrideFor(FName OverrideOwner, float SpeedCmPerSec, float SteeringScale = 1.f, float AccelerationCmPerSec2 = -1.f);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ClearSpeedOverrideFor(FName OverrideOwner);
+
+	/**
+	 * Clean flight state: latched input cleared, boost meter full, no drift / boost / speed override /
+	 * catch-up allowance, angular rates zeroed. bKeepVelocity=false restarts at cruise along the nose.
+	 * Squad: call on ship down and on respawn.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ResetFlightState(bool bKeepVelocity = false);
+
+	/** Parked: the flight model stops simulating (zero velocity, input ignored). Downed / hidden ships, landing. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetFlightParked(bool bParked);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsFlightParked() const;
+
 	/** Fired after every TeleportSpacecraft (wingmen warp-follow, presentation transit FX). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
 	FTDOnTeleported OnTeleported;
@@ -79,6 +106,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift")
 	UTDHealthComponent* GetHealth() const { return Health; }
+
+	/** T2's weapons (squad and enemy ships both fire through it). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift")
+	UTDWeaponComponent* GetWeapons() const { return Weapons; }
 
 	/** Placeholder hull (engine basic shape). Presentation swaps the mesh later. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift")
@@ -90,11 +121,27 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift")
 	void SetTeam(ETDTeam NewTeam);
 
+	/**
+	 * Show / hide the placeholder-only parts (cube wings, engine glow block). Call with false once a
+	 * real presentation mesh is on the hull (ATDShip does this itself from its UTDShipVisuals).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift")
+	void SetPlaceholderPartsVisible(bool bVisible);
+
+	/** Re-applies the placeholder colours (team colour here; squad colour on ATDShip). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift")
+	virtual void ApplyPlaceholderLook();
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift")
+	UStaticMeshComponent* GetEngineGlow() const { return EngineGlow; }
+
 	virtual ETDTeam GetTeam() const override { return Team; }
 
 	// ---- AActor / APawn ------------------------------------------------------------------------------
 	virtual void Tick(float DeltaSeconds) override;
 	virtual UPawnMovementComponent* GetMovementComponent() const override;
+	/** APawn::Restart (run on every possess) stops movement; ships keep flying through a switch. */
+	virtual void Restart() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -121,6 +168,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
 	TObjectPtr<UTDHealthComponent> Health;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	TObjectPtr<UTDWeaponComponent> Weapons;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift")
 	ETDTeam Team = ETDTeam::Neutral;
 
@@ -132,10 +182,40 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
 	TObjectPtr<UStaticMeshComponent> PlaceholderWings;
 
+	/** Placeholder engine block at the tail: glows in the ship colour and stretches with boost. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	TObjectPtr<UStaticMeshComponent> EngineGlow;
+
+	/** Emissive strength of the placeholder engine glow. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	float EngineGlowBoost = 8.f;
+
+	/** Engine glow length at cruise and at full boost (relative X scale). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	FVector2D EngineGlowLength = FVector2D(0.35f, 1.4f);
+
+	/** Colour used for the placeholder look (resolved by ApplyPlaceholderLook). */
+	virtual FLinearColor GetPlaceholderColor() const;
+
+	/** Tints the placeholder hull, wings and engine block (no-op once real art replaced them). */
+	void TintPlaceholderParts();
+
+	/** Puts the engine cone back on the hull component (after real art is removed). */
+	void RestorePlaceholderHull();
+
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMesh> PlaceholderHullMesh;
+
+	FRotator PlaceholderHullRotation = FRotator(-90.f, 0.f, 0.f);
+	FVector PlaceholderHullScale = FVector(1.6f, 1.6f, 4.2f);
+
+	bool bPlaceholderParts = true;
+
 	/** Pitch added on top of the visual bank so the nose dips into hard turns (deg at full pitch rate). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Flight")
 	float VisualPitchLean = 6.f;
 
 private:
 	float VisualPitch = 0.f;
+	float GlowLength01 = 0.f;
 };

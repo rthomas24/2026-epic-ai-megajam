@@ -26,6 +26,9 @@ agent commit to this same repo at the same time.**
 - **[features.md](features.md) is the source of truth** for what to build and who builds it: every
   feature, the role split, folder ownership and the contracts between gameplay and presentation.
   Read it before you start work.
+- **[AAA.md](AAA.md) is the quality standard** every human and agent works to: build, verify, refine,
+  verify again, integrate; and report honestly which stage a piece of work has reached. Read it before
+  your next task.
 
 ### Team
 
@@ -33,6 +36,12 @@ agent commit to this same repo at the same time.**
 |---|---|---|---|
 | Ryan T | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
 | Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | **Art, Visuals & Player Experience Lead**: art direction, models, environments, lighting, VFX, HUD/UI, audio, cinematics (`ART-xx`) | OpenAI Codex |
+
+**Delegation (Nov 12).** Both humans have told their Lead agent to decide routine things without asking:
+Ryan's Lead makes all engineering decisions and approvals on Ryan's behalf; Nicholas's Lead decides
+routine naming, paths, sequencing and integration order, while Nicholas keeps art, visual and audio
+direction, scope changes and final quality sign-off. A Lead that decides for its human says so and
+reports it (§6.10).
 
 Run `git config user.name` / `git config user.email` to know which human you're working for. Each
 human has their own agent session, and **you only ever act for your own human.** The other agent is
@@ -271,7 +280,8 @@ For a task branch, the Lead chooses the appropriate base and integration operati
 do not blindly run the `main` pull command there.
 
 Check `CLAIMS.md` in both the working tree and fetched `origin/main` (§6.5), plus pending claims
-recorded by the Lead, before editing. If it is missing, the Lead creates it; absence is not permission
+recorded by the Lead, before editing. Read `MESSAGEBOARD.md` on `origin/main` at the same time and
+answer or relay anything waiting for your side (§6.10). If it is missing, the Lead creates it; absence is not permission
 to edit shared assets. After synchronization changes loaded assets, tell the human which assets
 must be reloaded; request an editor restart for changed C++ modules or when reload is unsafe.
 
@@ -333,6 +343,27 @@ it if it doesn't exist:
   them can coordinate.
 - `git lfs lock <file>` / `git lfs unlock <file>` is available if you want a hard lock on a hot file.
 
+**Start / finish rule (mandatory for both humans' agents).** `CLAIMS.md` is the live board both
+sides read to know **what is in progress, what is coming next and what is done**. It is only useful
+if it is current, so:
+
+1. **Before starting any task:** `git fetch origin`, then read `CLAIMS.md` on `origin/main`, both
+   sides' sections. Don't start work that overlaps a row that is in progress or queued on the
+   other side; tell your human instead.
+2. **On task start:** the Lead adds or updates that task's row in its own side's section (item,
+   owner, state `in progress`, start time, the paths it touches) and pushes it to `main` with the
+   dispatch. For anything binary or shared (maps, `.uproject`, `Config/`, shared Blueprints,
+   plugins) the row must be on `origin/main` **before** the first edit.
+3. **On task finish:** once the work is integrated and pushed to `main`, the Lead sets the row to
+   `done` with the `main` commit and time, and releases any file claim, in that same push. A task
+   that is merged but still has open review fixes is `in review`, not `done`.
+4. **Queue what is coming:** list the next tasks per owner as `queued`, with the shared paths they
+   will touch, so the other side can plan around them.
+5. **Workers never edit `CLAIMS.md`.** They tell their Lead when they start and finish; the Lead
+   updates the board. Each Lead edits only its own side's section and never rewrites the other's.
+6. Keep `done` rows until the other side has had a day to see them, then prune them (the history
+   lives in `docs/eng/STATUS.md` and `DEVLOG.md`).
+
 ### 6.6 Structure the project to avoid collisions
 - **Folder ownership:** each person works only in their own role's folders
   ([features.md §2](features.md#2-folder--file-ownership)). Ryan has code, config and gameplay
@@ -372,7 +403,8 @@ not give permission for concurrent remote synchronization or overlapping asset e
 - Each human has their own Lead Agent. Nick's Lead coordinates Nick's workers only; it does not
   direct Ryan's agent or assume ownership of Ryan's files. Cross-role changes go through the humans.
 - Before dispatch, record the worker ID, human, task, exact writable paths, read-only references,
-  branch, absolute worktree path, base commit and claims. An unspecified path is read-only. Shared
+  branch, absolute worktree path, base commit and claims. The task row goes on the `CLAIMS.md`
+  board at dispatch and is closed at integration (start / finish rule, §6.5). An unspecified path is read-only. Shared
   maps/actors and dependency changes still require the existing claims and coordination (§6.5–§6.6).
 - The Lead owns worktree/branch creation, remote synchronization, claim publication and integration.
   Workers request a serialized preflight from the Lead before each task and commit; the Lead runs
@@ -387,6 +419,33 @@ not give permission for concurrent remote synchronization or overlapping asset e
   human or teammate changes to unblock this process.
 - Stop at infrastructure setup until the human authorizes game development. Do not launch asset or
   gameplay workers merely because their folders exist.
+
+### 6.10 Message board (`MESSAGEBOARD.md`)
+`MESSAGEBOARD.md` at the repo root is how Ryan's agents and Nick's agents **ask each other
+questions and leave each other messages**. `CLAIMS.md` says who is doing what; the message board
+is for everything that needs an answer. It is a **log: never delete a message.**
+
+- **Who writes:** only each side's Lead. Workers give their questions to their Lead, who posts
+  them and relays the answers back.
+- **When to read it:** on every `git fetch` (so before every task and before every commit, §6.2
+  and §6.3) and at least every 30 minutes while working. Anything `OPEN` that is addressed to your
+  side, and anything `ANSWERED` that your side asked, needs you.
+- **Posting:** add the message at the bottom of **your own side's section** with status `OPEN`, an
+  id (`R-001`... for Ryan's side, `N-001`... for Nick's side), who it is from, who it is for, the
+  time, and whether it needs agents or a human (`Needs: Ryan` / `Needs: Nick`).
+- **Answering:** add a `**Reply ...**` block under the message and set its status to `ANSWERED`.
+  Don't edit the other side's words. Agents never answer a question marked for a human; they tell
+  their human it is waiting. The one exception: when that human has told their Lead to decide that
+  kind of thing for them, the Lead may answer, says so in the reply ("decided by Ryan's Lead under
+  Ryan's standing delegation"), and reports it to the human, who can overrule it on the board.
+- **Closing:** the side that asked reads the reply, acts on it, then sets the status to `COMPLETE`.
+  If the reply isn't enough, add a follow-up under it and set the status back to `OPEN`.
+- **Pushing:** commit it alone (`coordination: message board ...`) and push to `main` right away,
+  after fetching and merging anything new. If both sides edited at once, keep both edits.
+- **Ids are never reused or changed once pushed.** Fetch first and take the next free number. If a
+  merge shows two messages with the same id, the one that was not yet on `origin/main` is renumbered.
+- Decisions reached on the board that change the plan are copied to where they belong
+  (features.md, `CLAIMS.md`, the area docs); the board itself is not the source of truth.
 
 ---
 
@@ -403,7 +462,8 @@ not give permission for concurrent remote synchronization or overlapping asset e
 - collision channels and the maps
 - the C++ contracts and presentation hooks (C-02)
 - building the three Director's Cut hooks (C-03 #1–#3: decided, not built yet)
-- `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`
+- `CREDITS.md` and `DEVLOG.md` entries from the engineering side (`CLAIMS.md` and
+  `MESSAGEBOARD.md` exist and are in use)
 
 ---
 
@@ -441,6 +501,12 @@ git-ignored `.agents/skills/` after each pull:
 
 The research behind the skills is in `reports/Blender MCP game asset practices.md`.
 
+Unreal 5.9 also has its own skill loader: any agent connected to the editor's MCP server can list
+Markdown skills (`AgentSkillToolset`: `ListSkills`, `GetSkills`) found in `<Project>/Skills/`, in each
+enabled plugin's `Skills/` folder and in `Engine/Extras/AgentTools/Skills/`. To expose this repo's
+skills there, mirror them into the git-ignored `Skills/` folder the same way:
+`robocopy .claude\skills Skills /MIR`.
+
 | Skill | Path | Use it when |
 |---|---|---|
 | `blender-mcp` | `.claude/skills/blender-mcp/SKILL.md` | Anything in Blender: MCP connection, bpy code on 5.2, headless runs, and verification (review renders, mesh report, floating-part check). **Read first.** |
@@ -467,7 +533,67 @@ Check that a machine's Blender works with the skills:
 - **Stay in your role** (features.md §1 and §2). Ask before touching the other role's systems or
   folders.
 - Keep the game **always playable** on `main`.
-- Verify changes in the editor (Play In Editor) before committing, and report honestly what was and
-  wasn't tested.
+- Verify changes in the running game before committing (Play In Editor, or the headless tools for
+  agents working in worktrees), and report honestly what was and wasn't tested. See "Playtests" below.
 - When you're unsure whether something conflicts with the teammate's work, **ask your human. Don't
   guess.**
+
+### Shared protocols (both sides keep these in step)
+When either side adopts a way of working that the other should follow too (a ledger, a review step, a
+tool convention, a naming rule), its Lead **posts it on `MESSAGEBOARD.md` and writes it here in the
+same push**, so the two sets of agents never drift apart. Current shared protocols:
+
+- **Boards:** `CLAIMS.md` at every task start and finish (§6.5); `MESSAGEBOARD.md` for questions and
+  decisions (§6.10).
+- **Quality standard and honest stages:** `AAA.md`. Every report says which of its stages the work
+  has reached: prototype complete, technically verified, presentation approved, integrated, gameplay
+  validated. Tests and screenshots alone never make something gameplay validated or final.
+- **Per-item ledger:** each side keeps one table of every features.md item it owns, with owner, state,
+  the `main` commit, how it was verified and open findings: `docs/eng/STATUS.md` and
+  `docs/visual/STATUS.md`. An item is done only when it is on `main`, verified, reviewed and played.
+- **Independent review:** after a lane lands, a fresh agent that did not write it reviews it against
+  features.md and reports findings as BLOCKER / MAJOR / MINOR with a concrete failure for each. The item
+  stays `in review` until every BLOCKER and MAJOR is closed and re-checked. Passing tests or hashes is
+  not a review.
+- **Never leave an agent idle:** every lane has a next queued row on the board before the current one
+  finishes.
+- **Unreal's built-in MCP server** (UE 5.9 "Unreal MCP", doc link in §9): the project enables the
+  engine toolsets (Editor targets only). The human's editor owns port 8000. Any editor or game an
+  agent launches itself passes `-ModelContextProtocolPort=<port>`: Ryan's side 8010-8019 and
+  21000-29000, Nick's side 8020-8029. One agent per editor; tool calls run one at a time.
+  `Tools/td-play-mcp.ps1` starts a session and `Tools/td_mcp.py` calls it from a shell.
+- **Epic's own agent tooling** ships with the engine in `Engine/Extras/AgentTools/`: skills for
+  headless runs, log triage, build diagnosis and trimming build size
+  (`Skills/<name>/SKILL.md`), and scripts such as `ue_log_digest.py` and `ue_crash_triage.py`. Read the
+  relevant one before inventing a workflow.
+- **What ships:** only the maps in the cook list, what they reference, and every data asset in
+  `/Game/TriadDrift/Presentation/` (always cooked, with everything it references). An asset that is
+  loaded only by a path string from anywhere else will be missing from the packaged game.
+- **Presentation asset names** are fixed in `docs/visual/Presentation-Asset-Paths.md`; gameplay looks
+  them up by those exact paths, optional and null-safe.
+
+### Playtests (mandatory, both sides)
+Automation tests and screenshots prove that code runs. They do not prove the game is fun, readable
+or even finishable. So `main` is **played** regularly, not only tested:
+
+- **Who and when:** each side's Lead playtests the current `main` after every integration batch,
+  and at least every two hours while work is landing. Workers playtest their own feature in their
+  own worktree before reporting it done.
+- **How:** a real windowed session, not a headless test. A human at the controls is best. An agent
+  does it by driving a running game: launch it on a private port with the engine's built-in MCP
+  server (`-ModelContextProtocolPort=<port>`), inject inputs, capture the viewport, read the log.
+  Scripted captures with `Tools/td-shot.ps1` are the minimum when neither is possible; say which of
+  the three it was.
+- **What to cover (engineering checklist):** boot from the default map; fly, boost and drift; switch
+  between all three ships; clear a wave; use each ship's signature power and any unlocked ability;
+  die and see the "CUT!" retake; hyperdrive; fly through a portal gate; enter a planet, land, walk,
+  use the blade, finish an objective, take off and return; the Dominion assault through to victory.
+  Play whatever part of that exists today, in the packaged build at least once a day.
+- **What to cover (presentation checklist):** every new asset or effect is seen in the running game
+  on the real map at gameplay distance and speed: readable silhouette, the squad / enemy colour
+  code, no clipping, sound heard in context, frame rate acceptable.
+- **Record it:** add a short dated entry to `DEVLOG.md`: build or commit played, how it was played,
+  what worked, what was broken or felt wrong, screenshots. Send each problem to the owner as a
+  task; anything that breaks the three-ship switching or combat feel is fixed before new features.
+- **Never report a feature as done on tests alone.** State plainly whether it has been played, and
+  by whom or what.

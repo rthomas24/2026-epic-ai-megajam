@@ -3,6 +3,7 @@
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "Components/SphereComponent.h"
@@ -47,10 +48,11 @@ ATDSpacecraft::ATDSpacecraft()
 	HullMesh->CanCharacterStepUpOn = ECB_No;
 	if (ConeMesh.Succeeded())
 	{
+		PlaceholderHullMesh = ConeMesh.Object;
 		HullMesh->SetStaticMesh(ConeMesh.Object);
 		// Cone points +Z; pitch it so the tip points along +X (forward). 100 cm base mesh.
-		HullMesh->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
-		HullMesh->SetRelativeScale3D(FVector(1.6f, 1.6f, 4.2f));
+		HullMesh->SetRelativeRotation(PlaceholderHullRotation);
+		HullMesh->SetRelativeScale3D(PlaceholderHullScale);
 	}
 
 	PlaceholderWings = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlaceholderWings"));
@@ -65,10 +67,24 @@ ATDSpacecraft::ATDSpacecraft()
 		PlaceholderWings->SetRelativeScale3D(FVector(1.2f, 4.4f, 0.14f));
 	}
 
+	EngineGlow = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EngineGlow"));
+	EngineGlow->SetupAttachment(HullPivot);
+	EngineGlow->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	EngineGlow->SetGenerateOverlapEvents(false);
+	EngineGlow->CanCharacterStepUpOn = ECB_No;
+	EngineGlow->SetCastShadow(false);
+	if (CubeMesh.Succeeded())
+	{
+		EngineGlow->SetStaticMesh(CubeMesh.Object);
+		EngineGlow->SetRelativeLocation(FVector(-215.f, 0.f, 0.f));
+		EngineGlow->SetRelativeScale3D(FVector(0.35f, 0.9f, 0.35f));
+	}
+
 	ShipMovement = CreateDefaultSubobject<UTDShipMovementComponent>(TEXT("ShipMovement"));
 	ShipMovement->UpdatedComponent = CollisionSphere;
 
 	Health = CreateDefaultSubobject<UTDHealthComponent>(TEXT("Health"));
+	Weapons = CreateDefaultSubobject<UTDWeaponComponent>(TEXT("Weapons"));
 
 	// Ships are flown through SetFlightInput only; no control-rotation coupling.
 	bUseControllerRotationPitch = false;
@@ -85,6 +101,53 @@ void ATDSpacecraft::BeginPlay()
 		ShipMovement->OnFlightImpact.AddDynamic(this, &ATDSpacecraft::HandleFlightImpact);
 		AddTickPrerequisiteComponent(ShipMovement);
 	}
+	ApplyPlaceholderLook();
+}
+
+FLinearColor ATDSpacecraft::GetPlaceholderColor() const
+{
+	return UTDStatics::TeamColor(Team);
+}
+
+void ATDSpacecraft::ApplyPlaceholderLook()
+{
+	TintPlaceholderParts();
+}
+
+void ATDSpacecraft::TintPlaceholderParts()
+{
+	if (!bPlaceholderParts)
+	{
+		return;
+	}
+	const FLinearColor Color = GetPlaceholderColor();
+	UTDStatics::TintPlaceholder(HullMesh, Color);
+	UTDStatics::TintPlaceholder(PlaceholderWings, Color * 0.45f);
+	UTDStatics::TintPlaceholder(EngineGlow, Color, EngineGlowBoost);
+}
+
+void ATDSpacecraft::RestorePlaceholderHull()
+{
+	if (!HullMesh)
+	{
+		return;
+	}
+	HullMesh->SetStaticMesh(PlaceholderHullMesh);
+	HullMesh->SetRelativeRotation(PlaceholderHullRotation);
+	HullMesh->SetRelativeScale3D(PlaceholderHullScale);
+	HullMesh->EmptyOverrideMaterials();
+	HullMesh->SetVisibility(true);
+}
+
+void ATDSpacecraft::SetPlaceholderPartsVisible(bool bVisible)
+{
+	bPlaceholderParts = bVisible;
+	if (PlaceholderWings) { PlaceholderWings->SetVisibility(bVisible); }
+	if (EngineGlow) { EngineGlow->SetVisibility(bVisible); }
+	if (bVisible)
+	{
+		TintPlaceholderParts();
+	}
 }
 
 void ATDSpacecraft::Tick(float DeltaSeconds)
@@ -96,6 +159,14 @@ void ATDSpacecraft::Tick(float DeltaSeconds)
 UPawnMovementComponent* ATDSpacecraft::GetMovementComponent() const
 {
 	return ShipMovement;
+}
+
+void ATDSpacecraft::Restart()
+{
+	// Deliberately not calling Super: APawn::Restart calls StopMovementImmediately, which would
+	// zero velocity on every possess and break instant ship switching (ENG-07).
+	ConsumeMovementInputVector();
+	RecalculateBaseEyeHeight();
 }
 
 void ATDSpacecraft::SetFlightInput(const FTDFlightInput& In)
@@ -126,6 +197,25 @@ bool ATDSpacecraft::IsDrifting() const { return ShipMovement && ShipMovement->Is
 float ATDSpacecraft::GetBoost01() const { return ShipMovement ? ShipMovement->GetBoost01() : 0.f; }
 bool ATDSpacecraft::IsOutOfBounds() const { return ShipMovement && ShipMovement->IsOutOfBounds(); }
 
+float ATDSpacecraft::GetAltitudeMeters() const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return -1.f;
+	}
+	const FVector Start = GetActorLocation();
+	const FVector End = Start - FVector(0.f, 0.f, 2000000.f);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDAltitude), false, this);
+	FHitResult Hit;
+	if (World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		const float Radius = CollisionSphere ? CollisionSphere->GetScaledSphereRadius() : 0.f;
+		return FMath::Max(0.f, (Hit.Distance - Radius) / 100.f);
+	}
+	return -1.f;
+}
+
 void ATDSpacecraft::TeleportSpacecraft(const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
 {
 	const FVector From = GetActorLocation();
@@ -149,6 +239,22 @@ void ATDSpacecraft::SetSpeedOverride(float SpeedCmPerSec, float SteeringScale)
 	}
 }
 
+void ATDSpacecraft::SetSpeedOverrideFor(FName OverrideOwner, float SpeedCmPerSec, float SteeringScale, float AccelerationCmPerSec2)
+{
+	if (ShipMovement)
+	{
+		ShipMovement->SetSpeedOverrideFor(OverrideOwner, SpeedCmPerSec, SteeringScale, AccelerationCmPerSec2);
+	}
+}
+
+void ATDSpacecraft::ClearSpeedOverrideFor(FName OverrideOwner)
+{
+	if (ShipMovement)
+	{
+		ShipMovement->ClearSpeedOverrideFor(OverrideOwner);
+	}
+}
+
 void ATDSpacecraft::ClearSpeedOverride()
 {
 	if (ShipMovement)
@@ -157,9 +263,44 @@ void ATDSpacecraft::ClearSpeedOverride()
 	}
 }
 
+void ATDSpacecraft::ResetFlightState(bool bKeepVelocity)
+{
+	if (ShipMovement)
+	{
+		ShipMovement->ResetFlightState(bKeepVelocity);
+	}
+}
+
+void ATDSpacecraft::SetFlightParked(bool bParked)
+{
+	if (!ShipMovement)
+	{
+		return;
+	}
+	if (bParked)
+	{
+		ShipMovement->SetFlightInput(FTDFlightInput());
+		ShipMovement->StopMovementImmediately();
+		ShipMovement->SetComponentTickEnabled(false);
+	}
+	else
+	{
+		ShipMovement->SetComponentTickEnabled(true);
+	}
+}
+
+bool ATDSpacecraft::IsFlightParked() const
+{
+	return ShipMovement && !ShipMovement->IsComponentTickEnabled();
+}
+
 void ATDSpacecraft::SetTeam(ETDTeam NewTeam)
 {
 	Team = NewTeam;
+	if (HasActorBegunPlay())
+	{
+		ApplyPlaceholderLook();
+	}
 }
 
 void ATDSpacecraft::HandleFlightImpact(const FTDFlightImpact& Impact)
@@ -196,4 +337,15 @@ void ATDSpacecraft::UpdateHullPresentation(float DeltaSeconds)
 	const float Pitch01 = Tuning.TurnRate > 0.f ? FMath::Clamp(Rates.Y / Tuning.TurnRate, -1.f, 1.f) : 0.f;
 	VisualPitch = FMath::FInterpTo(VisualPitch, Pitch01 * VisualPitchLean, DeltaSeconds, 6.f);
 	HullPivot->SetRelativeRotation(FRotator(VisualPitch, 0.f, ShipMovement->GetVisualBank()));
+
+	// Engine glow stretches with speed above cruise, so boost reads at a glance.
+	if (EngineGlow && bPlaceholderParts)
+	{
+		const float Range = FMath::Max(Tuning.BoostSpeed - Tuning.CruiseSpeed, 1.f);
+		const float Target01 = FMath::Clamp(((float)GetVelocity().Size() - Tuning.CruiseSpeed) / Range, 0.f, 1.f);
+		GlowLength01 = FMath::FInterpTo(GlowLength01, IsBoosting() ? FMath::Max(Target01, 0.6f) : Target01, DeltaSeconds, 8.f);
+		const float LengthX = FMath::Lerp(EngineGlowLength.X, EngineGlowLength.Y, GlowLength01);
+		EngineGlow->SetRelativeScale3D(FVector(LengthX, 0.9f, 0.35f));
+		EngineGlow->SetRelativeLocation(FVector(-200.f - 50.f * LengthX, 0.f, 0.f));
+	}
 }

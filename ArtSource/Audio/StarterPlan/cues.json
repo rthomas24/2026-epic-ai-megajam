@@ -1,0 +1,667 @@
+{
+  "schema_version": 1,
+  "project": "Triad Drift",
+  "reviewed_commit": "eb8b8b5",
+  "milestone": "source_only",
+  "units": {
+    "fades": "milliseconds",
+    "pitch": "playback ratio",
+    "peak": "requested dBFS ceiling, not measured"
+  },
+  "global_mix": {
+    "routes": [
+      "Master",
+      "Music",
+      "SFX",
+      "VO",
+      "UI"
+    ],
+    "master_preview_gain": 0.12,
+    "vo_music_duck_db": -6,
+    "duck_attack_ms": 80,
+    "duck_release_ms": 350,
+    "note": "Starting values only. No exported audio or measured loudness. Confirm final runtime bindings with Ryan."
+  },
+  "cues": [
+    {
+      "id": "Engine_Rift",
+      "route": "SFX",
+      "loop": true,
+      "fade_in_out_ms": [
+        120,
+        220
+      ],
+      "pitch_range": [
+        0.85,
+        1.3
+      ],
+      "max_voices": 3,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Airy harmonic turbine; leave room around UI fifth",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Switch_Rift",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        5,
+        80
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Distinct authored cut signature; browser audition is original source sketch",
+      "source_candidate": "Original synthesis source in audition.html",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Engine_Lancer",
+      "route": "SFX",
+      "loop": true,
+      "fade_in_out_ms": [
+        120,
+        220
+      ],
+      "pitch_range": [
+        0.9,
+        1.5
+      ],
+      "max_voices": 3,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Fast focused turbine, dry high-mid rasp",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Switch_Lancer",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        5,
+        80
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Distinct authored cut signature; browser audition is original source sketch",
+      "source_candidate": "Original synthesis source in audition.html",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Engine_Bastion",
+      "route": "SFX",
+      "loop": true,
+      "fade_in_out_ms": [
+        120,
+        220
+      ],
+      "pitch_range": [
+        0.75,
+        1.15
+      ],
+      "max_voices": 3,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Weighty low turbine with restrained sub layer",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Switch_Bastion",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        5,
+        80
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Distinct authored cut signature; browser audition is original source sketch",
+      "source_candidate": "Original synthesis source in audition.html",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Fire_RiftPulse",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        2,
+        30
+      ],
+      "pitch_range": [
+        0.96,
+        1.04
+      ],
+      "max_voices": 6,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Rounded phase zap, magenta identity; at least 3 non-repeating variants",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Fire_LancerCannon",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        2,
+        30
+      ],
+      "pitch_range": [
+        0.96,
+        1.04
+      ],
+      "max_voices": 6,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Dry short high-velocity snap; at least 3 non-repeating variants",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Fire_BastionBreaker",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        2,
+        30
+      ],
+      "pitch_range": [
+        0.96,
+        1.04
+      ],
+      "max_voices": 6,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Heavier low-mid pulse, short tail; at least 3 non-repeating variants",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Impact_Hull",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        2,
+        80
+      ],
+      "pitch_range": [
+        0.92,
+        1.08
+      ],
+      "max_voices": 8,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Metallic crack plus short debris tick; at least 3 variants; distance cull",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Impact_Shield",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        2,
+        80
+      ],
+      "pitch_range": [
+        0.92,
+        1.08
+      ],
+      "max_voices": 8,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Bright resonant membrane ping; at least 3 variants; distance cull",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Impact_Rock",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        2,
+        80
+      ],
+      "pitch_range": [
+        0.92,
+        1.08
+      ],
+      "max_voices": 8,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Dense brittle stone chip; at least 3 variants; distance cull",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Hyperdrive_Spool",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        40,
+        180
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Tension rise with a clean transition point",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Hyperdrive_Travel",
+      "route": "SFX",
+      "loop": true,
+      "fade_in_out_ms": [
+        40,
+        180
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Wide filtered rushing bed, no sharp UI masking",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Hyperdrive_Exit",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        40,
+        180
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Short release transient and spacious tail",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "UI_Confirm",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        3,
+        35
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -12,
+      "design": "Crisp two-note confirmation",
+      "source_candidate": "Original synthesis first; Kenney after acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "UI_Back",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        3,
+        35
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -12,
+      "design": "Soft descending tick",
+      "source_candidate": "Original synthesis first; Kenney after acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "UI_TargetAcquired",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        3,
+        35
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -12,
+      "design": "Readable rising lock chirp",
+      "source_candidate": "Original synthesis first; Kenney after acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "UI_HitConfirm",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        3,
+        35
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -12,
+      "design": "Very short dry tick",
+      "source_candidate": "Original synthesis first; Kenney after acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Warning_Missile",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        5,
+        60
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Urgent alternating pulse, rate limited",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Warning_LowHull",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        5,
+        60
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Warm low warning, never a constant siren",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Warning_Overheat",
+      "route": "UI",
+      "loop": false,
+      "fade_in_out_ms": [
+        5,
+        60
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 1,
+      "export_peak_ceiling_dbfs": -9,
+      "design": "Short descending failure rattle",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "PortalOpen",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        3,
+        180
+      ],
+      "pitch_range": [
+        0.9,
+        1.1
+      ],
+      "max_voices": 4,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Air tear with glassy edge",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "PortalClose",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        3,
+        180
+      ],
+      "pitch_range": [
+        0.9,
+        1.1
+      ],
+      "max_voices": 4,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Tight collapse response",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Explosion",
+      "route": "SFX",
+      "loop": false,
+      "fade_in_out_ms": [
+        3,
+        180
+      ],
+      "pitch_range": [
+        0.9,
+        1.1
+      ],
+      "max_voices": 4,
+      "export_peak_ceiling_dbfs": -6,
+      "design": "Layered transient/body/debris; scale by tier",
+      "source_candidate": "Kenney / Sonniss, pending acquisition",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Music_SpaceCalm",
+      "route": "Music",
+      "loop": true,
+      "fade_in_out_ms": [
+        1000,
+        1500
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -3,
+      "design": "Sparse bright ambient bed; music LUFS set only after whole-mix audition",
+      "source_candidate": "Original composition or WeLoveIndies after exact project-license clearance",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Music_SpaceCombat",
+      "route": "Music",
+      "loop": true,
+      "fade_in_out_ms": [
+        1000,
+        1500
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -3,
+      "design": "Rhythmic layer aligned with calm stem; music LUFS set only after whole-mix audition",
+      "source_candidate": "Original composition or WeLoveIndies after exact project-license clearance",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Music_Verdance",
+      "route": "Music",
+      "loop": true,
+      "fade_in_out_ms": [
+        1000,
+        1500
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -3,
+      "design": "Airy organic exploration; music LUFS set only after whole-mix audition",
+      "source_candidate": "Original composition or WeLoveIndies after exact project-license clearance",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Music_Cinder",
+      "route": "Music",
+      "loop": true,
+      "fade_in_out_ms": [
+        1000,
+        1500
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -3,
+      "design": "Restrained crystalline percussion; music LUFS set only after whole-mix audition",
+      "source_candidate": "Original composition or WeLoveIndies after exact project-license clearance",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Music_Dominion",
+      "route": "Music",
+      "loop": true,
+      "fade_in_out_ms": [
+        1000,
+        1500
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -3,
+      "design": "Dark industrial tension; music LUFS set only after whole-mix audition",
+      "source_candidate": "Original composition or WeLoveIndies after exact project-license clearance",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Music_Menu",
+      "route": "Music",
+      "loop": true,
+      "fade_in_out_ms": [
+        1000,
+        1500
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -3,
+      "design": "Theme motif; music LUFS set only after whole-mix audition",
+      "source_candidate": "Original composition or WeLoveIndies after exact project-license clearance",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    },
+    {
+      "id": "Music_Victory",
+      "route": "Music",
+      "loop": false,
+      "fade_in_out_ms": [
+        1000,
+        1500
+      ],
+      "pitch_range": [
+        1,
+        1
+      ],
+      "max_voices": 2,
+      "export_peak_ceiling_dbfs": -3,
+      "design": "Short heroic resolution; music LUFS set only after whole-mix audition",
+      "source_candidate": "Original composition or WeLoveIndies after exact project-license clearance",
+      "asset": null,
+      "status": "planned_unacquired",
+      "binding": "proposal_only"
+    }
+  ]
+}

@@ -63,6 +63,14 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Rotation", meta = (ClampMin = "0"))
 	float AngularResponse = 12.f;
 
+	/** Auto-level proportional gain: deg/s of roll per degree of bank. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Rotation", meta = (ClampMin = "0"))
+	float AutoLevelGain = 2.5f;
+
+	/** Above this |forward.Z| the nose counts as vertical and auto-level is suspended. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Rotation", meta = (ClampMin = "0", ClampMax = "1"))
+	float VerticalNoseLimit = 0.9f;
+
 	/** Gentle roll back toward world up when there is no roll input (deg/s). 0 = off (pure 6DOF). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Rotation", meta = (ClampMin = "0"))
 	float AutoLevelRate = 40.f;
@@ -113,6 +121,14 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
 	float DriftReleaseBurst = 0.2f;
 
+	/** The release burst is only granted after drifting this long... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
+	float DriftBurstMinSeconds = 0.25f;
+
+	/** ...or after the nose has swung at least this far from where the drift started (deg). Stops tap-spam. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
+	float DriftBurstMinAngle = 20.f;
+
 	/** Speed lost per second while drifting (cm/s^2). 0 = drift keeps all speed. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
 	float DriftDrag = 300.f;
@@ -120,6 +136,10 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	/** Bleed-off rate of speed above the current target after a drift burst (cm/s^2). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
 	float OverspeedDeceleration = 2500.f;
+
+	/** Deceleration when far above boost speed (dropping out of hyperdrive, end of a ram). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "0"))
+	float HighOverspeedDeceleration = 30000.f;
 
 	// ---- Collision -----------------------------------------------------------------------------
 
@@ -134,6 +154,18 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	/** Damage for a glancing hit at cruise speed and HeadOnThreshold angle; scales with angle and speed. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
 	float GlancingDamage = 12.f;
+
+	/** Impacts slower than this into the surface (cm/s) are resolved silently: no event, no damage (resting contact). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
+	float MinImpactSpeed = 300.f;
+
+	/** Fraction of the bounced velocity kept after a head-on hit. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0", ClampMax = "1"))
+	float HeadOnSpeedRetain = 0.5f;
+
+	/** How far the nose turns toward the surface tangent on a scrape (0 = not at all, 1 = fully). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0", ClampMax = "1"))
+	float ScrapeNoseAlign = 0.5f;
 
 	/** Fraction of the into-surface speed bounced back on a head-on hit. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0", ClampMax = "1"))
@@ -153,7 +185,7 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 
 	// ---- Play-space boundary -------------------------------------------------------------------
 
-	/** Distance from the boundary centre past which the ship counts as out of bounds and is steered back. */
+	/** Default radius when no world play bounds are set (UTDTravelSubsystem::SetPlayBounds / SetBoundary win). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Boundary", meta = (ClampMin = "0"))
 	float BoundaryRadius = 1500000.f;
 
@@ -165,9 +197,10 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Boundary", meta = (ClampMin = "1"))
 	float BoundaryFullStrengthDepth = 20000.f;
 
-	/** Max rate the nose is turned back toward the centre (deg/s, at full strength). */
+	/** Max rate the nose is turned back toward the centre (deg/s, at full strength). Above any ship's turn rate
+	 *  (incl. drift) so the pilot can't out-steer it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Boundary", meta = (ClampMin = "0"))
-	float BoundarySteerRate = 90.f;
+	float BoundarySteerRate = 220.f;
 
 	/** Inward push acceleration at full strength (cm/s^2). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Boundary", meta = (ClampMin = "0"))

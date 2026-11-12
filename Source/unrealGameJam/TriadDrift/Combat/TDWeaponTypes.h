@@ -225,8 +225,8 @@ struct UNREALGAMEJAM_API FTDWeaponSpec
 
 	bool IsValid() const { return !WeaponId.IsNone(); }
 	float GetRefireSeconds() const { return 1.f / FMath::Max(FireRate, 0.01f); }
-	/** Heat added per shot so that HeatSecondsToOverheat of continuous fire reaches 1. */
-	float GetHeatPerShot() const { return 1.f / FMath::Max(HeatSecondsToOverheat * FireRate, 1.f); }
+	/** Heat added per shot so that holding the trigger from cold overheats exactly HeatSecondsToOverheat later (the first shot is at t = 0). */
+	float GetHeatPerShot() const { return 1.f / FMath::Max(HeatSecondsToOverheat * FireRate + 1.f, 1.f); }
 };
 
 /** Stable weapon ids for UTDWeaponLibrary::Get. */

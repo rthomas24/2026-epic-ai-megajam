@@ -32,6 +32,10 @@ work, reviews, integrates and verifies; when you finish or block, tell the Lead 
   worktrees. The Lead integrates: it merges `eng/t<N>` into `main`, builds, runs the tests and pushes.
 - When the Lead announces "main is at `<sha>`, merge it", run `git merge main` in your worktree
   (local ref only), rebuild, and fix anything you broke.
+- **Tell the Lead when you start a task and when you finish one** (item id, paths, commit hash).
+  The Lead mirrors both on the `CLAIMS.md` board on `main`, which is how Nick's agents see what
+  engineering is doing, what is coming and what is done (AGENTS.md §6.5 start / finish rule).
+  Read `CLAIMS.md` before starting anything outside pure C++ in your own folders. Never edit it.
 - No Unreal Editor GUI in worktrees. Build and test headless with the tools in §5.
 - Binary assets (`.uasset`, `.umap`) are avoided on the engineering side for now: **gameplay must run
   with zero content assets**, using C++ defaults and engine basic shapes as placeholders. Nick's
@@ -138,6 +142,13 @@ From your worktree root (PowerShell):
 - Builds queue behind each other (`-WaitMutex`); a headless test run takes a minute or two.
 
 ## 6. Definition of done (every ENG item)
+
+**Quality standard:** `/AAA.md` applies to all engineering work. Every report to the Lead names the stage
+reached, in AAA.md's words: *prototype complete*, *technically verified* (builds, tests pass, real-path
+tests at 30 / 60 / 120 fps), *integrated* (on `main`), *gameplay validated* (played in a running game,
+by a human or by an agent through the MCP play tools, with captures). *Presentation approved* belongs to
+Nick's side. Nothing is called done or final on tests and screenshots alone; after it works, find and fix
+the most noticeable weakness a player would feel before adding anything new.
 
 1. **Builds clean** in your worktree: exit 0, no new warnings.
 2. **Behaviour is proven by automation tests** that assert the numbers in features.md (for example

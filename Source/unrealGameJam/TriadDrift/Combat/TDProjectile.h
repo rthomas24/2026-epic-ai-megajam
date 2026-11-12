@@ -10,6 +10,9 @@
 #include "TDProjectile.generated.h"
 
 class UStaticMeshComponent;
+class UStaticMesh;
+class UMaterialInterface;
+class UNiagaraComponent;
 class UMaterialInstanceDynamic;
 class USceneComponent;
 
@@ -59,6 +62,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Projectile")
 	void SetVelocity(const FVector& NewVelocity) { Velocity = NewVelocity; }
 
+	/** Scales all damage this projectile (and its shards) deals from now on. Blade perfect deflect: x2. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Projectile")
+	void SetDamageMultiplier(float NewMultiplier) { DamageMultiplier = FMath::Max(NewMultiplier, 0.f); }
+
+	/** Stop homing entirely and fly straight (a normal deflect aimed at the crosshair: call right after Deflect). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Projectile")
+	void ClearHoming() { Spec.bHoming = false; HomingTarget = nullptr; }
+
 	/** Move without sweeping (portal transit). Keeps speed; NewDirection zero = keep direction. */
 	void TeleportProjectile(const FVector& NewLocation, const FVector& NewDirection);
 
@@ -83,6 +94,20 @@ public:
 	AActor* GetShooter() const { return Shooter.Get(); }
 
 	virtual FVector GetVelocity() const override { return Velocity; }
+
+	/**
+	 * Where this projectile was at the start of its last step (its launch point before the first step, the
+	 * arrival point right after a teleport). Portals and gates test Prev -> Cur against their plane with
+	 * this, never Cur - Velocity * dt (a shot fired this frame hasn't flown a full step yet).
+	 */
+	FVector GetPreviousLocation() const { return PreviousLocation; }
+
+	/** Unique per launch: pooled actors are reused, so anything keyed by actor must compare this too. */
+	uint32 GetLaunchSerial() const { return LaunchSerial; }
+
+	/** World time of this launch's last portal / gate transit (-1 = never). Reset on every launch. */
+	double GetLastTransitTime() const { return LastTransitTime; }
+	void SetLastTransitTime(double Time) { LastTransitTime = Time; }
 
 	const FTDProjectileSpec& GetSpec() const { return Spec; }
 	float GetDamageMultiplier() const { return DamageMultiplier; }
@@ -113,7 +138,7 @@ private:
 	/** Sweep from Start to End; returns true and fills OutHit on the first valid hit (skipping friendlies). */
 	bool SweepPath(const FVector& Start, const FVector& End, FHitResult& OutHit) const;
 	void HandleImpact(const FHitResult& Hit);
-	void DealDamage(AActor* Victim, float Amount, const FVector& FromLocation);
+	void DealDamage(AActor* Victim, float Amount, const FVector& FromLocation, const FVector& Direction);
 	void ApplySplash(const FVector& Center, AActor* Exclude);
 	void SpawnShards(const FVector& Origin, const FVector& Direction, AActor* Ignore);
 	void ApplyKnockback(AActor* Victim) const;
@@ -130,19 +155,35 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> PlaceholderMID;
 
+	/** One persistent tracer per pooled projectile: SetAsset + Activate on launch, Deactivate on death (ribbons finish). */
 	UPROPERTY(Transient)
-	TObjectPtr<USceneComponent> TracerFX;
+	TObjectPtr<UNiagaraComponent> TracerComp;
+
+	/** Engine sphere + basic material: restored on every launch so a reused actor never keeps another weapon's look. */
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMesh> DefaultMesh;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInterface> DefaultMaterial;
 
 	UPROPERTY(Transient)
 	FTDProjectileSpec Spec;
 
+	/** Turn rate a deflected shot gets while re-homing on its original shooter (returns must land). */
+	static constexpr float DeflectHomingTurnRateDeg = 360.f;
+
 	ETDTeam Team = ETDTeam::Neutral;
+	uint32 LaunchSerial = 0;
+	FVector PreviousLocation = FVector::ZeroVector;
+	double LastTransitTime = -1.0;
 	FVector Velocity = FVector::ZeroVector;
 	float Age = 0.f;
 	float Lifetime = 1.f;
 	float DamageMultiplier = 1.f;
 	float TrackingBlockedFor = 0.f;
 	bool bReacquireAfterBlock = false;
+	/** BreakTracking(.., false): never pick a new target for the rest of this flight. */
+	bool bTrackingAbandoned = false;
 	bool bActive = false;
 	bool bReportHits = false;
 	int32 DeflectCount = 0;
