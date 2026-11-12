@@ -80,6 +80,10 @@ public:
 	/** Settings mode, unless td.DirectorCam overrides it (0 off, 1 reduced, 2 full, -1 = use this). */
 	static ETDDirectorCameraMode GetEffectiveMode();
 
+	/** Dev builds only: td.Director.DebugHoldSeconds extends shots and cards so a slow screenshot tool
+	 *  can catch them. Always 0 in Shipping and by default. */
+	static float GetDebugHoldSeconds();
+
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Camera")
 	ETDDirectorCameraMode CameraMode = ETDDirectorCameraMode::Full;
 
@@ -175,6 +179,7 @@ public:
 	ETDDirectorCameraCancel GetLastCancel() const { return LastCancel; }
 	int32 GetCancelCount() const { return CancelCount; }
 	const FVector& GetShotLocation() const { return ShotLocation; }
+	const FVector& GetTrackedLocation() const { return TrackedLocation; }
 	UTDDirectorFOVPunch* GetFOVPunch() const { return FOVPunch.Get(); }
 
 	/**
@@ -219,6 +224,12 @@ private:
 	FRotator FromRotation = FRotator::ZeroRotator;
 	float FromFOV = 90.f;
 	FVector ShotLocation = FVector::ZeroVector;
+	/** Camera offset from the focus at placement: the camera tracks the action (a fast ram would
+	 *  otherwise leave a fixed camera in a second). */
+	FVector ShotOffset = FVector::ZeroVector;
+	/** Where the camera currently is in its tracking hold (after the per-frame clearance check). */
+	FVector TrackedLocation = FVector::ZeroVector;
+	FVector TrackedLocationFor(const FVector& Focus) const;
 	FVector LastFocus = FVector::ZeroVector;
 	float ShotFOV = 65.f;
 

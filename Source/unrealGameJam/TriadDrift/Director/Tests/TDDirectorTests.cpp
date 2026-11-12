@@ -409,4 +409,17 @@ bool FTDDirectorDeflectBeat::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorFarSecondary, "TriadDrift.Director.FarSecondaryFramesSubjectAlone", TD_TEST_FLAGS)
+bool FTDDirectorFarSecondary::RunTest(const FString& Parameters)
+{
+	// Live playtest finding: a generator killed from 3 km away framed the empty space in between.
+	FDirectorFixture F;
+	AActor* Far = F.Spawn(ETDTeam::Enemy, FVector(300000.f, 0.f, 0.f));
+	TestTrue(TEXT("accepted"), F.Director->ReportHighlight(ETDHighlightKind::GeneratorKill, Far, -1.f, F.Player));
+	const FTDDirectorShot& Shot = F.Director->GetCurrentShot();
+	TestTrue(TEXT("focus is ON the far subject"), FVector::Dist(Shot.FocusLocation, Far->GetActorLocation()) < 1.f);
+	TestTrue(TEXT("camera near the subject, not halfway"), FVector::Dist(Shot.SuggestedCameraLocation, Far->GetActorLocation()) < 8000.f);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

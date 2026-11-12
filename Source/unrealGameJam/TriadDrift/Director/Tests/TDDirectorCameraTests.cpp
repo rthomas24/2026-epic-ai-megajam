@@ -128,6 +128,15 @@ bool FTDDirectorCamRam::RunTest(const FString& Parameters)
 		TestTrue(TEXT("camera away from the player's ship") + Fps, FVector::Dist(Cam->GetActorLocation(), F.Player()->GetActorLocation()) > 900.f);
 		TestTrue(TEXT("camera is not the chase camera") + Fps,
 			FVector::Dist(Cam->GetActorLocation(), F.Player()->GetChaseCameraTransformNow().GetLocation()) > 500.f);
+		// A tracking shot: the camera keeps its distance to the (fast) subject instead of being left behind.
+		const AActor* Subject = F.Director->GetCurrentShot().Subject.Get();
+		const float D0 = Subject ? FVector::Dist(Cam->GetActorLocation(), Subject->GetActorLocation()) : 0.f;
+		for (int32 i = 0; i < FMath::CeilToInt(0.3f / Step); ++i)
+		{
+			F.W.Tick(Step);
+		}
+		const float D1 = Subject ? FVector::Dist(Cam->GetActorLocation(), Subject->GetActorLocation()) : 0.f;
+		TestTrue(FString::Printf(TEXT("camera tracks the subject (%.0f -> %.0f cm)"), D0, D1) + Fps, Subject && D1 < D0 * 1.5f + 500.f && D1 > D0 * 0.5f);
 		// The player is still flying: the movement keeps integrating under the shot.
 		const FVector Before = F.Player()->GetActorLocation();
 		F.W.Tick(Step);

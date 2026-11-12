@@ -9,6 +9,7 @@
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Director/TDDirectorCamera.h"
 #include "Widgets/SLeafWidget.h"
 
 #define LOCTEXT_NAMESPACE "TDCutPresentation"
@@ -232,6 +233,9 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 	}
 	SwitchStart = Now();
 	SwitchTiming = Cut.Timing;
+	const float DebugHold = UTDDirectorSettings::GetDebugHoldSeconds();
+	SwitchTiming.LetterboxHoldSeconds += DebugHold;
+	SwitchTiming.NameCardSeconds += DebugHold;
 	bQuickCut = Cut.bQuickCut;
 	FlashFramesLeft = FMath::Max(0, Cut.Timing.FlashFrames);
 	NameCard = Cut.NameCardText;
@@ -246,7 +250,7 @@ void UTDCutPresentation::HandleSceneCut(float DelaySeconds)
 		return;
 	}
 	CutStart = Now();
-	CutSeconds = FMath::Max(Tuning.CutCardMinSeconds, DelaySeconds);
+	CutSeconds = FMath::Max(Tuning.CutCardMinSeconds, DelaySeconds) + UTDDirectorSettings::GetDebugHoldSeconds();
 	SlateStart = -1000.0;
 }
 
@@ -268,7 +272,7 @@ void UTDCutPresentation::HandleShotStarted(float RealSeconds)
 		return;
 	}
 	ShotStart = Now();
-	ShotSeconds = FMath::Max(0.f, RealSeconds);
+	ShotSeconds = FMath::Max(0.f, RealSeconds) + UTDDirectorSettings::GetDebugHoldSeconds();
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -337,7 +341,11 @@ void UTDCutPresentation::Tick(double RealNow)
 	}
 
 	// Slate.
-	const float SlateA = CardAlpha(RealNow, SlateStart, Tuning.SlateSeconds, Tuning.CardFadeSeconds);
+	float SlateA = CardAlpha(RealNow, SlateStart, Tuning.SlateSeconds, Tuning.CardFadeSeconds);
+	if (SlateA <= 0.f && UTDDirectorSettings::GetDebugHoldSeconds() > 0.f)
+	{
+		SlateA = CardAlpha(RealNow, SlateStart, Tuning.SlateSeconds + UTDDirectorSettings::GetDebugHoldSeconds(), Tuning.CardFadeSeconds);
+	}
 	if (SlateA > 0.f)
 	{
 		S.SlateText = Slate;
