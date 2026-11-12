@@ -5,6 +5,13 @@ not launch development, relax claims, grant a heavy-tool slot or authorize a mai
 Lead Coordinator coordinates Nick's agents and integration, rather than producing
 their assets. The dedicated Environment & VFX Agent owns future work in this lane.
 
+Verified authorization update: Nicholas approved the branch-only native environment
+exception in the new chat's user message `01a1d0ce-e918-7920-8372-0ccb794f01e6`.
+It covers ONLY `ArtSource/Environment/SpaceFoundation/UnrealNative/**` and
+`Content/TriadDrift/Environment/SpaceFoundation/**` on `nick/environment-vfx`.
+The general gate below still applies to other lanes, including future VFX binaries.
+Heavy-tool scheduling and main-merge approval remain separate gates.
+
 ## Preserved checkpoint
 
 - Canonical source review: `nick/visual-assets`, checkpoint `e2d4139` before this handoff.
@@ -66,6 +73,11 @@ overlap first. This preserves source history without cherry-picking duplicate ki
 Do not work in Lead's or the old source workers' worktrees. Do not auto-pull/rebase an
 active worktree. Any workspace creation/integration is coordinated through Lead.
 
+Provisioned by Lead during handoff: the recommended worktree/branch now exists at
+`e0868df`, preserving this source history and merging reviewed `origin/main` at
+`571d85f` into the new branch only. No conflicts or source-kit changes occurred.
+This is workspace setup, not a new development dispatch or a merge into main.
+
 Until PR #2 is integrated into main, the new branch will inherit its source changes.
 At end-of-day review integrate PR #2 once, then only the Environment/VFX follow-up
 delta; do not separately merge equivalent legacy worker commits. Nicholas must
@@ -77,6 +89,8 @@ explicitly approve any main merge after Ryan's current work is checked.
    contain the visual claims. Shared AGENTS.md §6.9 requires main-published claims
    before binary editing; alternatively obtain Nicholas's explicit narrow exception.
    UI and Lancer permissions are specific to those agents and are not transferable.
+   The verified environment-only exception above resolves this gate for the first
+   native sky milestone, but does not publish or release any other teammate claim.
 2. Remain read-only until workspace/ownership is confirmed. No heavy window is
    granted here. HUD currently owns the sequential compile/test/capture slot; a
    Lancer diagnostic rerender is queued afterward. Recheck the live queue with Lead.
