@@ -70,7 +70,43 @@ bool FTDReviewFighterFires::RunTest(const FString& Parameters)
 			}
 			const TCHAR* Name = Case == 0 ? TEXT("head-on") : TEXT("side");
 			TestTrue(*FString::Printf(TEXT("%s @%.0f fps: the fighter fired (%d shots)"), Name, Fps, Shots(F)), Shots(F) > 0);
-			TestTrue(*FString::Printf(TEXT("%s @%.0f fps: and hit (hull %.0f -> %.0f)"), Name, Fps, Hull0, Player->GetHealth()->GetHull()), Player->GetHealth()->GetHull() < Hull0);
+			// A healthy number of hits, not one: 5 damage per pulse bolt.
+			const int32 Hits = FMath::RoundToInt((Hull0 - Player->GetHealth()->GetHull()) / 5.f);
+			const int32 MinHits = 2;
+			TestTrue(*FString::Printf(TEXT("%s @%.0f fps: and hit at least %d times in 6 s (%d hits of %d shots)"), Name, Fps, MinHits, Hits, Shots(F)), Hits >= MinHits);
+		}
+	}
+	return true;
+}
+
+// Lead finding: head-on hits sat on a knife edge. Sweep closing speeds 8000-16 000 cm/s at 30/60/120 fps:
+// the first head-on pass must land hits at every one (logged per case so the margin is visible).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewHeadOnSweep, "TriadDrift.Enemies.Review.HeadOnPassLandsHitsAtEveryClosingSpeed", TD_TEST_FLAGS)
+bool FTDReviewHeadOnSweep::RunTest(const FString& Parameters)
+{
+	using namespace TDEnemyReview;
+	const float PlayerSpeeds[] = { 2000.f, 4000.f, 6000.f, 8000.f, 10000.f };	// + fighter ~6000 = 8000..16 000 closing
+	for (const float Fps : Rates)
+	{
+		for (const float V : PlayerSpeeds)
+		{
+			FTDTestWorld W;
+			ATDSpacecraft* Player = SpawnPlayer(W, FVector(22000.f, 0.f, 0.f), FRotator(0.f, 180.f, 0.f), V);
+			ATDEnemyShip* F = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector::ZeroVector, FRotator::ZeroRotator);
+			const ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(F->GetController());
+			const float Hull0 = Player->GetHealth()->GetHull();
+			// Until the first break-off (one head-on pass).
+			bool bRan = false;
+			for (int32 i = 0; i < FMath::RoundToInt(Fps * 6.f); ++i)
+			{
+				W.Tick(1.f / Fps);
+				bRan |= AI && AI->GetAIState() == ETDEnemyAIState::AttackRun;
+				if (bRan && AI && AI->GetAIState() == ETDEnemyAIState::BreakOff) { break; }
+			}
+			W.Advance(0.4f, 1.f / Fps);	// bolts in flight land
+			const int32 Hits = FMath::RoundToInt((Hull0 - Player->GetHealth()->GetHull()) / 5.f);
+			AddInfo(FString::Printf(TEXT("head-on pass @%.0f fps, player %.0f cm/s: %d shots, %d hits"), Fps, V, Shots(F), Hits));
+			TestTrue(*FString::Printf(TEXT("@%.0f fps, player %.0f cm/s: the pass landed hits (%d of %d shots)"), Fps, V, Hits, Shots(F)), Hits >= (V <= 6000.f ? 2 : 1));
 		}
 	}
 	return true;
