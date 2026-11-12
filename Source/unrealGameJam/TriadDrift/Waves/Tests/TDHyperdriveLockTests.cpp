@@ -10,6 +10,7 @@
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -89,6 +90,10 @@ bool FTDHyperLockFinale::RunTest(const FString& Parameters)
 	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
 	ATDDominion* Dom = W.Spawn<ATDDominion>(FVector(100000.f, 0.f, 0.f));
 	Dom->MaxLaunchedAlive = 0;
+	// The squad has arrived (inside the Dominion's well): the finale only locks once it has.
+	ATDSpacecraft* Arrived = W.Spawn<ATDSpacecraft>(FVector(60000.f, 0.f, 0.f));
+	Arrived->SetTeam(ETDTeam::Player);
+	if (UTDHealthComponent* H = Arrived->GetHealth()) { H->DefaultTeam = ETDTeam::Player; H->InitMaxValues(1e6f, 0.f, true); H->SetInvulnerable(true); }
 	TestFalse(TEXT("free while the Dominion is hidden"), Locked(W));
 	GI->Progress.bDominionRevealed = true;
 	W.Advance(Dom->ProgressPollSeconds + 0.1f);
