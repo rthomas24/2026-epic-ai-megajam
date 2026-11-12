@@ -425,6 +425,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Warp")
 	FTDFXCue EnemyWarpIn;
+
+	/** Played when the player presses the hyperdrive key while it is locked (wave active, finale) or blocked. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
+	FTDFXCue HyperdriveRefused;
 };
 
 UCLASS(BlueprintType)

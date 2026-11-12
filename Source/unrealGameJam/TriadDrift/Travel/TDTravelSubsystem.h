@@ -54,7 +54,7 @@ public:
 	 * Nick's shared travel cues (/Game/TriadDrift/Presentation/DA_Travel_FX), loaded once if the asset
 	 * exists; null otherwise. Hyperdrive, entry and landing components use it when their own slot is empty.
 	 */
-	static UTDTravelFX* GetDefaultTravelFX();
+	static UTDTravelFX* GetDefaultTravelFX(const UObject* WorldContextObject);
 
 	// ---- Gravity wells --------------------------------------------------------------------------
 	/** Adds or replaces (same Id) a well. Owner may be null for a static point. */
@@ -97,8 +97,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Travel")
 	void RemoveHyperdriveLock(FName Owner);
 
-	/** True if any lock is active; OutReason is the most recent lock's reason. */
+	/** True if any lock is active; OutReason is the most recent lock's reason (player-facing). */
 	bool IsHyperdriveLocked(FText& OutReason) const;
+
+	/** Drops every lock (CUT retake; also implicit on level travel since locks live per world). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Travel")
+	void ClearAllHyperdriveLocks();
+
+	/** HUD / dev HUD line: the active lock's text, or empty. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Travel")
+	FText GetHyperdriveLockText() const;
 
 	// ---- Level travel guard --------------------------------------------------------------------
 	/**
@@ -140,6 +148,15 @@ private:
 	TArray<TWeakObjectPtr<ATDLandingPad>> Pads;
 
 	TArray<TPair<FName, FText>> HyperdriveLocks;
+
+	/** Strong per-world reference: survives garbage collection after a level change, reloaded with each world. */
+	UPROPERTY(Transient)
+	TObjectPtr<UTDTravelFX> TravelFX;
+	bool bTravelFXLooked = false;
+	FDelegateHandle SceneRestartHandle;
+
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void Deinitialize() override;
 	bool bLevelTravelRequested = false;
 
 	bool bHasPlayBounds = false;

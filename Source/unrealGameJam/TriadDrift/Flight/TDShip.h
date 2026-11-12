@@ -108,6 +108,9 @@ public:
 	 */
 	int32 GetCueRequestCount(FName Slot) const { const int32* N = CueRequests.Find(Slot); return N ? *N : 0; }
 
+	/** True while a looping cue slot ("EngineTrail", "EngineLoop", "BoostLoop", "DriftLoop") is running on this ship. */
+	bool IsCueLoopActive(FName Slot) const { return ActiveLoops.Contains(Slot); }
+
 	/** True while real art (a Mesh or any Part) replaces the placeholder. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	bool HasRealArt() const { return bHasRealArt; }
@@ -223,7 +226,19 @@ protected:
 	USceneComponent* GetEngineAttach(FName& OutSocket) const;
 	void StartEngineTrail();
 	void StartLoop(FName Slot, const FTDFXCue& Cue, TWeakObjectPtr<UNiagaraComponent>& OutFX, TWeakObjectPtr<UAudioComponent>& OutAudio);
-	static void StopLoop(TWeakObjectPtr<UNiagaraComponent>& FX, TWeakObjectPtr<UAudioComponent>& Audio);
+	void StopLoop(FName Slot, TWeakObjectPtr<UNiagaraComponent>& FX, TWeakObjectPtr<UAudioComponent>& Audio);
+	void StopEngine();
+	/** Engines run while the ship is alive, not parked, and (during landing) the engines are on. */
+	bool ShouldEnginesRun() const;
+	/** Shakes only for the ship the player flies: a wingman's boost must not shake the player's camera. */
+	FTDFXCue ForThisShip(const FTDFXCue& Cue) const;
+	TSet<FName> ActiveLoops;
+	TWeakObjectPtr<UAudioComponent> EngineLoopAudio;
+	double LastScrapeCueTime = -1000.0;
+
+	/** Minimum time between two scrape cues (a long scrape is one sound, not a machine gun). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float ScrapeCueInterval = 0.25f;
 	void NoteCue(FName Slot) { CueRequests.FindOrAdd(Slot)++; }
 
 	TMap<FName, int32> CueRequests;

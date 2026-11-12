@@ -341,7 +341,7 @@ bool FTDReviewCollisionEvents::RunTest(const FString& Parameters)
 		In.Throttle = 1.f;
 		Ship->SetFlightInput(In);
 		W.Advance(3.f);
-		TestTrue(FString::Printf(TEXT("pinned against a wall: few damaging hits in 3 s (%d)"), Counter->DamagingImpacts), Counter->DamagingImpacts <= 10);
+		TestTrue(FString::Printf(TEXT("pinned against a wall: few damaging hits in 3 s (%d)"), Counter->DamagingImpacts), Counter->DamagingImpacts <= 2);
 		const float Cooldown = Ship->GetShipMovement()->GetFlightTuning().CollisionDamageCooldown;
 		TestTrue(TEXT("0.3 s damage cooldown bounds the hit rate"), Counter->DamagingImpacts <= FMath::CeilToInt(3.f / Cooldown) + 1);
 		const int32 ImpactsSoFar = Counter->Impacts;

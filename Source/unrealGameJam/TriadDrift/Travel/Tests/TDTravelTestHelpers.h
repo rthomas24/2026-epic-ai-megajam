@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TDTravelTestHelpers.generated.h"
 
 UCLASS(Transient, NotBlueprintable)
@@ -20,4 +21,8 @@ public:
 	void HandleState(ETDHyperdriveState State) { States.Add(State); }
 
 	bool LastIs(ETDHyperdriveState State) const { return States.Num() > 0 && States.Last() == State; }
+
+	TArray<FText> RefusedTexts;
+	UFUNCTION()
+	void HandleRefused(UTDHyperdriveComponent* Hyperdrive, ETDHyperdriveBlock Reason, FText ReasonText) { RefusedTexts.Add(ReasonText); }
 };

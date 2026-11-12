@@ -110,6 +110,7 @@ struct UNREALGAMEJAM_API FTDHyperdriveTuning
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnHyperdriveStateChanged, UTDHyperdriveComponent*, Hyperdrive, ETDHyperdriveState, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FTDOnHyperdriveRefused, UTDHyperdriveComponent*, Hyperdrive, ETDHyperdriveBlock, Reason, FText, ReasonText);
 
 /**
  * Hold to spool (1.2 s), jump at 80,000 cm/s with 10% steering (ATDSpacecraft::SetSpeedOverride),
@@ -169,6 +170,17 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
 	bool CanSpool() const { return GetBlockReason() == ETDHyperdriveBlock::None; }
+
+	/** Player-facing text for a block reason (HUD), e.g. "HYPERDRIVE LOCKED - ENEMIES IN RANGE". Empty for None. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
+	FText GetBlockReasonText() const;
+
+	/** The pilot pressed hyperdrive but it couldn't spool: HUD message + refused sound (Nick). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Hyperdrive")
+	FTDOnHyperdriveRefused OnSpoolRefused;
+
+	/** Pilot input (controller): spool, or say why not (fires OnSpoolRefused + the refused cue). */
+	bool RequestSpoolFromPilot();
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
 	bool IsJumping() const { return State == ETDHyperdriveState::Jumping; }
@@ -230,4 +242,9 @@ private:
 	ETDHyperdriveEndCause LastEndCause = ETDHyperdriveEndCause::None;
 	FVector LastLocation = FVector::ZeroVector;
 	TWeakObjectPtr<UNiagaraComponent> LoopFX;
+	TWeakObjectPtr<class UAudioComponent> LoopAudio;
+	void StartLoopFX(const struct FTDFXCue& Cue);
+
+	UFUNCTION()
+	void HandleTeleported(class ATDSpacecraft* Spacecraft, FVector FromLocation, FVector ToLocation, FRotator NewFacing);
 };
