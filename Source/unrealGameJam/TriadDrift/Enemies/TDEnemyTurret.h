@@ -62,7 +62,7 @@ public:
 
 	/** Seconds the guns stay on per burst. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
-	float BurstSeconds = 1.5f;
+	float BurstSeconds = 1.0f;	// ENG-27: carrier PD was the top damage source in wave 5 at 1.5 s
 
 	/** Pause between bursts. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))

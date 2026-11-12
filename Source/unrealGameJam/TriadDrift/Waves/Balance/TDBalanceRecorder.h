@@ -25,6 +25,44 @@ struct UNREALGAMEJAM_API FTDBalanceWaveStats
 	int32 ShipDowns = 0;
 	TMap<ETDShipId, int32> KillsByShip;
 	TMap<ETDDamageKind, int32> KillsByKind;
+
+	// --- diagnostics (why is a wave slow / lost?) ---
+	/** Damage taken by the squad, by what dealt it: enemy id, "Turret", "Collision/Other". */
+	TMap<FName, float> DamageBySource;
+	int32 BaysKilled = 0;
+	int32 TurretsKilled = 0;
+	int32 CarriersKilled = 0;
+	/** Seconds the player's pilot spent on each kind of target. */
+	float SecondsOnBays = 0.f;
+	float SecondsOnShips = 0.f;
+	float SecondsNoTarget = 0.f;
+	int32 PowersUsed = 0;
+	int32 Switches = 0;
+};
+
+/** How well the scripted player flies. */
+USTRUCT()
+struct UNREALGAMEJAM_API FTDPilotSkill
+{
+	GENERATED_BODY()
+
+	FName Name = TEXT("Average");
+	/** Aim error cone (deg) re-rolled every half second. */
+	float AimErrorDeg = 3.f;
+	/** Seconds before the pilot reacts to a new best target. */
+	float ReactionSeconds = 0.4f;
+	/** Fires the primary inside this cone (deg). */
+	float FireConeDeg = 8.f;
+	/** Ship switch every N s (0 = never). */
+	float SwitchEverySeconds = 25.f;
+	/** Signature power every N s when a target is close (0 = never). */
+	float PowerEverySeconds = 12.f;
+	/** Whether the pilot goes for carrier bays from stand-off range (a player who has learned the carrier). */
+	bool bHuntsBays = true;
+
+	static FTDPilotSkill Weak();
+	static FTDPilotSkill Average() { return FTDPilotSkill(); }
+	static FTDPilotSkill Strong();
 };
 
 /**
@@ -63,20 +101,26 @@ private:
  */
 struct UNREALGAMEJAM_API FTDBalancePilot
 {
-	/** Seconds between ship switches (exercises the switching loop). */
-	float SwitchEverySeconds = 25.f;
-	/** Fires the primary when the target is within this cone (deg) and range (cm). */
-	float FireConeDeg = 8.f;
+	FTDPilotSkill Skill;
+	/** Fires the primary when the target is within the skill's cone and this range (cm). */
 	float FireRange = 25000.f;
 	/** Secondary FireOnce every this many seconds when lined up. */
 	float SecondaryEverySeconds = 2.5f;
 	/** Stay this far from carrier bays (outside the 8000 cm point defense). */
 	float StandOffDistance = 11000.f;
 
-	void Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSeconds);
+	/** Stats are written into Stats (the recorder's current wave). */
+	void Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSeconds, FTDBalanceWaveStats& Stats);
 
 private:
+	AActor* PickTarget(UWorld* World, const AActor* Ship) const;
+
 	float SwitchTimer = 0.f;
 	float SecondaryTimer = 0.f;
-	TWeakObjectPtr<AActor> LastShip;
+	float PowerTimer = 0.f;
+	float ReactionTimer = 0.f;
+	float AimRerollTimer = 0.f;
+	FVector AimJitter = FVector::ZeroVector;
+	TWeakObjectPtr<AActor> Target;
+	FRandomStream Rng{ 2026 };
 };

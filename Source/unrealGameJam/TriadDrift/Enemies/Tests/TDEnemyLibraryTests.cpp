@@ -49,7 +49,7 @@ bool FTDEnemiesStats::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Bomber mine 800 cm"), B.Heavy.SplashRadius, 800.f);
 
 	const FTDEnemySpec& C = UTDEnemyLibrary::Get(HiveCarrier);
-	TestEqual(TEXT("Carrier hull 2000"), C.Hull, 2000.f);
+	TestEqual(TEXT("Carrier hull 1500 (ENG-27 tuned from features.md 2000, see docs/eng/balance.md)"), C.Hull, 1500.f);
 	TestEqual(TEXT("Carrier 3 bays"), C.BayCount, 3);
 	TestEqual(TEXT("Carrier bay 300 HP"), C.BayHull, 300.f);
 	TestEqual(TEXT("Carrier speed 1500"), C.CruiseSpeed, 1500.f);
