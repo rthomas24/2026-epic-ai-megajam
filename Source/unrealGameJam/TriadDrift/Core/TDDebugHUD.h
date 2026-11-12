@@ -17,6 +17,8 @@ class UNREALGAMEJAM_API ATDDebugHUD : public AHUD
 
 public:
 	virtual void DrawHUD() override;
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/** Set by the UI host (TriadDrift/UI) while the real space HUD is on screen in World; the dev HUD then draws nothing there. */
 	static void SetRealHUDActive(const UWorld* World, bool bActive);
@@ -26,6 +28,11 @@ private:
 	void DrawSquad(float& Y);
 	void DrawWave();
 	void DrawTargets();
+	void DrawObjective();
+	void DrawWingmen();
+
+	UFUNCTION()
+	void HandleHitConfirmed(AActor* Target, bool bKill);
 	void DrawCrosshair();
 	void DrawFlight();
 	void DrawLine2D(const FVector2D& A, const FVector2D& B, const FLinearColor& Color, float Thickness = 1.f);
@@ -34,6 +41,10 @@ private:
 
 	TWeakObjectPtr<AActor> CachedHUDDataActor;
 	float NextSearchTime = 0.f;
+
+	/** Hit marker around the crosshair: real seconds, so slow motion does not stretch it. */
+	double HitMarkerUntil = 0.0;
+	bool bLastHitWasKill = false;
 };
 
 /** Installs ATDDebugHUD for local players that still have the stock HUD. Not created in Shipping. */

@@ -163,6 +163,8 @@ protected:
 	virtual bool OnActivate() override;
 	virtual void OnTickActive(float DeltaTime) override;
 	virtual void OnEnd(bool bInterrupted) override;
+	/** Switched away with only one portal placed: close it (never an orphan). A full pair keeps running. */
+	virtual void OnLostPlayerControl() override;
 
 private:
 	ATDPortal* PlacePortal();

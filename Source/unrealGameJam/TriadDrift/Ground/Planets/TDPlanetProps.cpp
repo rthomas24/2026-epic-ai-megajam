@@ -269,6 +269,11 @@ void ATDExtractionSite::BeginPlay()
 {
 	Super::BeginPlay();
 	UTDStatics::TintPlaceholder(Core, FLinearColor(0.5f, 1.f, 0.6f), 4.f);
+	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.2f); // the console glows: it reads in the dark
+	// The glowing core is what the eye goes to: it takes the interact trace too (playtest).
+	Core->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Core->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Core->SetCollisionResponseToChannel(TDCollision::Interactable, ECR_Block);
 	CoreHome = Core->GetRelativeTransform();
 	if (LinkedObjective)
 	{
@@ -349,6 +354,7 @@ void ATDExtractionSite::Interact(AActor* Interactor)
 	P->SetCarrying(true);
 	if (UCameraComponent* Cam = P->FindComponentByClass<UCameraComponent>())
 	{
+		Core->SetCollisionEnabled(ECollisionEnabled::NoCollision); // in hand: never in the way of a trace
 		Core->AttachToComponent(Cam, FAttachmentTransformRules::KeepRelativeTransform);
 		Core->SetRelativeLocationAndRotation(FVector(70.f, -18.f, -32.f), FRotator::ZeroRotator);
 		Core->SetRelativeScale3D(FVector(0.28f));
@@ -374,6 +380,7 @@ void ATDExtractionSite::DropCore()
 	Carrier = nullptr;
 	Core->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	Core->SetRelativeTransform(CoreHome);
+	Core->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
 void ATDExtractionSite::ResetSite()
