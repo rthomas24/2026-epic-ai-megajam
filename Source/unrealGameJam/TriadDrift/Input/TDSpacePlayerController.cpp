@@ -14,6 +14,8 @@
 #include "InputTriggers.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Camera/CameraComponent.h"
 
@@ -285,6 +287,80 @@ void ATDSpacePlayerController::BeginPlay()
 		SetInputMode(FInputModeGameOnly());
 		bShowMouseCursor = false;
 	}
+	// Bound for every controller: BeginPlay can run before the local player is attached (IsLocalController false).
+	OnPauseInput.AddUniqueDynamic(this, &ATDSpacePlayerController::HandlePauseInput);
+}
+
+void ATDSpacePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (bPausedByPlayer)
+	{
+		SetPlayerPaused(false); // never leave a world paused behind us
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void ATDSpacePlayerController::HandlePauseInput()
+{
+	TogglePlayerPause();
+}
+
+bool ATDSpacePlayerController::CanPauseNow(FText* OutReason) const
+{
+	auto No = [OutReason](const FText& Why) { if (OutReason) { *OutReason = Why; } return false; };
+	const UWorld* World = GetWorld();
+	if (const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr)
+	{
+		if (GI->IsTravelPending())
+		{
+			return No(NSLOCTEXT("TDPause", "Travel", "Travelling"));
+		}
+		if (GI->IsRetakePending())
+		{
+			return No(NSLOCTEXT("TDPause", "Retake", "CUT! - new take starting"));
+		}
+		if (GI->GetProgressRef().Phase == ETDGamePhase::Victory)
+		{
+			return No(NSLOCTEXT("TDPause", "Victory", "Victory"));
+		}
+	}
+	return true;
+}
+
+bool ATDSpacePlayerController::SetPlayerPaused(bool bPause)
+{
+	if (bPause == bPausedByPlayer)
+	{
+		return true;
+	}
+	if (bPause && !CanPauseNow())
+	{
+		return false;
+	}
+	if (!UGameplayStatics::SetGamePaused(this, bPause))
+	{
+		return false;
+	}
+	bPausedByPlayer = bPause;
+	if (IsLocalController())
+	{
+		if (bPause)
+		{
+			// The pause menu (Nick, ART-09) needs the cursor; Escape keeps working through bTriggerWhenPaused.
+			FInputModeGameAndUI Mode;
+			Mode.SetHideCursorDuringCapture(false);
+			SetInputMode(Mode);
+			bShowMouseCursor = true;
+		}
+		else
+		{
+			SetInputMode(FInputModeGameOnly());
+			bShowMouseCursor = false;
+		}
+	}
+	UE_LOG(LogTriadDrift, Log, TEXT("TDInput: game %s by the player"), bPause ? TEXT("paused") : TEXT("resumed"));
+	OnPauseChanged.Broadcast(bPause);
+	return true;
 }
 
 void ATDSpacePlayerController::ApplyMappingContexts()
