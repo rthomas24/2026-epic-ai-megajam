@@ -102,6 +102,9 @@ bool FTDFlightCruise::RunTest(const FString& Parameters)
 | FX component held after `UTDStatics::PlayCue` | One-shot cues come from the Niagara pool (auto-release). Use the return value this frame only. For loops use `PlayCueAttachedLoop` and stop both halves yourself |
 | Engine `LoadGameFromSlot` asserts on a corrupt `.sav` | Read the bytes, check the header, then `LoadGameFromMemory` (see `Flow/TDGameInstance.cpp`) |
 | A test passes but the feature is broken in play | The test called an internal directly (`Kill()`, `ApplyTDDamage`, a counter of attempts). Drive the real path: real projectile, real possession, real input, at 30 / 60 / 120 fps |
+| Build breaks only after a merge: `ambiguous call to overloaded function`, or C4459 `hides global declaration` in someone else's file | Unity builds glue several `.cpp` files together, and the grouping changes when other branches land. In any `.cpp`: no generic names at namespace scope (`Steps`, `Spawn`, `Advance`), no file-scope `using namespace`, and helpers used by two files live in ONE header as `inline` functions in an area namespace. Before reporting done, merge `main` and build |
+| `/Game/...` argument turns into `C:/Program Files/Git/Game/...` | Git Bash rewrites leading-slash arguments. `export MSYS_NO_PATHCONV=1` before calling `Tools/td-shot.ps1 -Map /Game/...`, or run it from PowerShell |
+| A test depends on whether a real map exists on disk | Point the settings at a bogus path (or `/Engine/Maps/Entry`) for the test and restore them; never `OpenLevel` a real map inside an automation world |
 | Build fails only in another agent's file | You merged `main` mid-change or touched a folder you do not own. Message the owner; do not "fix" their file |
 
 ## Try it by hand (human or agent with a screen)
