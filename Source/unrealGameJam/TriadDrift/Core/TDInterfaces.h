@@ -127,6 +127,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual FText GetObjectiveText() const { return FText::GetEmpty(); }
 
+	/** One entry per squad ship, so a HUD can show where the wing is and who is fighting. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual TArray<FTDSquadMarker> GetSquadMarkers() const { return TArray<FTDSquadMarker>(); }
+
+	/** Recent hits on what the player controls, newest first, so a HUD can show where fire is coming from. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual TArray<FTDDamageIndicator> GetDamageIndicators() const { return TArray<FTDDamageIndicator>(); }
+
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual float GetSpeed01() const { return 0.f; }
 

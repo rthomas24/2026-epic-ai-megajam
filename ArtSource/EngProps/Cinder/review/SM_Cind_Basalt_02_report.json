@@ -1,0 +1,182 @@
+{
+ "asset": "SM_Cind_Basalt_02",
+ "tris": 1008,
+ "budget": [
+  500,
+  2000
+ ],
+ "in_budget": true,
+ "height_cm": 130.3,
+ "below_ground_cm": 18.7,
+ "width_cm": [
+  211.3,
+  144.7
+ ],
+ "base_center_offset_cm": [
+  0.0,
+  0.0
+ ],
+ "material_slots": [
+  "M_Cind_Basalt"
+ ],
+ "uv_layers": [
+  "UVMap"
+ ],
+ "errors": 0,
+ "warnings": 0,
+ "issues": [],
+ "assembly_ok": true,
+ "assembly": {
+  "islands": 4,
+  "groups": 1,
+  "floating": [],
+  "tolerance_m": 0.00444
+ },
+ "asset_report": {
+  "status": "ok",
+  "scene_units": {
+   "system": "METRIC",
+   "scale_length": 1.0,
+   "length_unit": "METERS"
+  },
+  "objects": [
+   {
+    "name": "SM_Cind_Basalt_02",
+    "type": "MESH",
+    "parent": null,
+    "collections": [
+     "Cinder"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     211.3,
+     144.72,
+     149.03
+    ],
+    "hide_render": false,
+    "modifiers": [],
+    "materials": [
+     "M_Cind_Basalt"
+    ],
+    "verts": 512,
+    "faces": 1008,
+    "tris": 1008,
+    "quads": 0,
+    "ngons": 0,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 0.0,
+    "has_custom_normals": false,
+    "uv_layers": [
+     "UVMap"
+    ],
+    "faces_per_material_index": {
+     "0": 1008
+    },
+    "local_bbox_min": [
+     -1.02395,
+     -0.76604,
+     -0.18735
+    ],
+    "local_bbox_max": [
+     1.0891,
+     0.68116,
+     1.30294
+    ],
+    "origin_placement": "custom"
+   },
+   {
+    "name": "UCX_SM_Cind_Basalt_02",
+    "type": "MESH",
+    "parent": "SM_Cind_Basalt_02",
+    "collections": [
+     "Cinder"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     210.91,
+     144.72,
+     129.84
+    ],
+    "hide_render": true,
+    "modifiers": [],
+    "materials": [],
+    "verts": 21,
+    "faces": 38,
+    "tris": 38,
+    "quads": 0,
+    "ngons": 0,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 0.0,
+    "has_custom_normals": false,
+    "uv_layers": [],
+    "faces_per_material_index": {
+     "0": 38
+    },
+    "local_bbox_min": [
+     -1.02352,
+     -0.76604,
+     -0.02
+    ],
+    "local_bbox_max": [
+     1.08556,
+     0.68116,
+     1.27839
+    ],
+    "origin_placement": "bottom_center"
+   }
+  ],
+  "totals": {
+   "objects": 2,
+   "tris": 1046,
+   "errors": 0,
+   "warnings": 0
+  },
+  "issues": []
+ }
+}

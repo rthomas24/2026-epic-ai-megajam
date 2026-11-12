@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
+#include "TriadDrift/UI/TDUIHostSettings.h"
 
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -161,7 +162,16 @@ void UTDCutPresentation::EnsureViewportWidget()
 		return;
 	}
 	Widget = SNew(STDCutOverlay, this);
-	GEngine->GameViewport->AddViewportWidgetContent(Widget.ToSharedRef(), 900); // under T5's F10 menu (1000)
+	WidgetZOrder = OverlayZOrder(ATDDebugHUD::IsRealHUDActive(World));
+	GEngine->GameViewport->AddViewportWidgetContent(Widget.ToSharedRef(), WidgetZOrder);
+}
+
+int32 UTDCutPresentation::OverlayZOrder(bool bRealHUDActive)
+{
+	// Live capture with the real HUD: our letterbox bars covered Nick's top row and the squad cards right
+	// when a switch needs them. Under his HUD the bars frame the picture and leave the panels readable.
+	// Without it, stay above gameplay widgets and under T5's F10 menu (1000).
+	return bRealHUDActive ? UTDUIHostSettings::Get()->ZOrder - 1 : 900;
 }
 
 void UTDCutPresentation::RemoveViewportWidget()
@@ -292,6 +302,11 @@ void UTDCutPresentation::HandleShotStarted(float RealSeconds)
 
 void UTDCutPresentation::Tick(double RealNow)
 {
+	// The real HUD can come and go (TD.UI.NativeHUD, travel): keep the overlay on the right layer.
+	if (Widget.IsValid() && OverlayZOrder(ATDDebugHUD::IsRealHUDActive(OwnerWorld.Get())) != WidgetZOrder)
+	{
+		RemoveViewportWidget();
+	}
 	EnsureViewportWidget();
 	BindSquad();
 	if (bHandledExternally)

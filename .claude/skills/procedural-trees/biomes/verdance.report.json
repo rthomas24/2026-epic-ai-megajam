@@ -1,0 +1,1638 @@
+{
+ "biome": "Verdance",
+ "species": [
+  {
+   "id": "Kapok",
+   "common_name": "Kapok",
+   "latin_name": "Ceiba pentandra",
+   "layer": "emergent",
+   "variants": [
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/PVE_Kapok_S100_11",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S100_11",
+     "target_height_m": 61.8,
+     "target_crown_width_m": 58.4,
+     "passes": [
+      {
+       "scale": 5.0,
+       "crown_scale": 1.0,
+       "height_m": 65.16,
+       "crown_width_m": 45.16,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 4.7421,
+       "crown_scale": 1.2814,
+       "height_m": 69.39,
+       "crown_width_m": 56.35,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 4.2233,
+       "crown_scale": 1.4466,
+       "height_m": 60.02,
+       "crown_width_m": 58.57,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "height_m": 60.02,
+     "below_ground_m": 0.07,
+     "crown_width_m": 58.57,
+     "triangles": 4649,
+     "vertices": 11254,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_Kapok_Bark",
+      "MI_TDVeg_Kapok_Foliage"
+     ],
+     "target_trunk_diameter_m": 1.895,
+     "trunk_base_diameter_m": 1.576,
+     "scale": 4.2233,
+     "crown_scale": 1.4466,
+     "stage": 1.0,
+     "seed": 11,
+     "params": {
+      "height_m": 61.799,
+      "crown_width_m": 58.395,
+      "trunk_diameter_m": 1.895,
+      "mature_height_m": 60.0,
+      "crown_base_fraction": 0.415,
+      "apical_dominance": 0.25,
+      "branch_angle_deg": 61.062,
+      "branch_droop": 0.171,
+      "branch_density": 0.541,
+      "branch_orders": 4,
+      "crown_flatness": 0.7,
+      "stem_count": 1,
+      "leaf_length_m": 0.13,
+      "leaf_density": 0.7,
+      "crown_leaf_count": 0,
+      "evergreen": false,
+      "growth_stage": 1.0,
+      "seed": 11,
+      "archetype": "BROAD_SPREADING",
+      "leaf_type": "COMPOUND_BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/PVE_Kapok_S070_12",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S070_12",
+     "target_height_m": 49.34,
+     "target_crown_width_m": 39.6,
+     "passes": [
+      {
+       "scale": 5.0,
+       "crown_scale": 1.0,
+       "height_m": 44.32,
+       "crown_width_m": 27.62,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 5.5662,
+       "crown_scale": 1.2245,
+       "height_m": 53.02,
+       "crown_width_m": 34.94,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 5.1797,
+       "crown_scale": 1.4338,
+       "height_m": 52.1,
+       "crown_width_m": 37.34,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 4.9052,
+       "crown_scale": 1.5699,
+       "height_m": 49.88,
+       "crown_width_m": 46.87,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 4.852,
+       "crown_scale": 1.384,
+       "height_m": 48.61,
+       "crown_width_m": 36.33,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "height_m": 48.61,
+     "below_ground_m": 0.06,
+     "crown_width_m": 36.33,
+     "triangles": 2313,
+     "vertices": 4482,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_Kapok_Bark",
+      "MI_TDVeg_Kapok_Foliage"
+     ],
+     "target_trunk_diameter_m": 1.364,
+     "trunk_base_diameter_m": 1.304,
+     "scale": 4.852,
+     "crown_scale": 1.384,
+     "stage": 0.7,
+     "seed": 12,
+     "params": {
+      "height_m": 49.339,
+      "crown_width_m": 39.605,
+      "trunk_diameter_m": 1.364,
+      "mature_height_m": 60.0,
+      "crown_base_fraction": 0.389,
+      "apical_dominance": 0.385,
+      "branch_angle_deg": 65.736,
+      "branch_droop": 0.168,
+      "branch_density": 0.539,
+      "branch_orders": 4,
+      "crown_flatness": 0.49,
+      "stem_count": 1,
+      "leaf_length_m": 0.114,
+      "leaf_density": 0.7,
+      "crown_leaf_count": 0,
+      "evergreen": false,
+      "growth_stage": 0.7,
+      "seed": 12,
+      "archetype": "BROAD_SPREADING",
+      "leaf_type": "COMPOUND_BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/PVE_Kapok_S030_13",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S030_13",
+     "target_height_m": 29.83,
+     "target_crown_width_m": 23.84,
+     "passes": [
+      {
+       "scale": 5.0,
+       "crown_scale": 1.0,
+       "height_m": 24.35,
+       "crown_width_m": 19.24,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 6.1245,
+       "crown_scale": 1.0093,
+       "height_m": 29.82,
+       "crown_width_m": 23.2,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "height_m": 29.82,
+     "below_ground_m": 0.02,
+     "crown_width_m": 23.2,
+     "triangles": 1821,
+     "vertices": 3380,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_Kapok_Bark",
+      "MI_TDVeg_Kapok_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.647,
+     "trunk_base_diameter_m": 0.739,
+     "scale": 6.1245,
+     "crown_scale": 1.0093,
+     "stage": 0.3,
+     "seed": 13,
+     "params": {
+      "height_m": 29.826,
+      "crown_width_m": 23.842,
+      "trunk_diameter_m": 0.647,
+      "mature_height_m": 60.0,
+      "crown_base_fraction": 0.254,
+      "apical_dominance": 0.565,
+      "branch_angle_deg": 60.41,
+      "branch_droop": 0.154,
+      "branch_density": 0.537,
+      "branch_orders": 3,
+      "crown_flatness": 0.21,
+      "stem_count": 1,
+      "leaf_length_m": 0.094,
+      "leaf_density": 0.7,
+      "crown_leaf_count": 0,
+      "evergreen": false,
+      "growth_stage": 0.3,
+      "seed": 13,
+      "archetype": "BROAD_SPREADING",
+      "leaf_type": "COMPOUND_BROADLEAF"
+     }
+    }
+   ],
+   "archetype": "BROAD_SPREADING",
+   "archetype_reason": "spreading crown shape",
+   "defaulted": [
+    "ClearBoleFraction"
+   ],
+   "notes": [],
+   "preset": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/PVP_Kapok"
+  },
+  {
+   "id": "BrazilNut",
+   "common_name": "Brazil nut",
+   "latin_name": "Bertholletia excelsa",
+   "layer": "emergent",
+   "variants": [
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/PVE_BrazilNut_S100_21",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/SM_TDVeg_BrazilNut_S100_21",
+     "target_height_m": 38.16,
+     "target_crown_width_m": 25.55,
+     "passes": [
+      {
+       "scale": 3.3333,
+       "crown_scale": 1.0,
+       "height_m": 37.48,
+       "crown_width_m": 19.39,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 3.3937,
+       "crown_scale": 1.2291,
+       "height_m": 41.18,
+       "crown_width_m": 22.88,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 3.1447,
+       "crown_scale": 1.4268,
+       "height_m": 40.19,
+       "crown_width_m": 24.64,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 2.9858,
+       "crown_scale": 1.5308,
+       "height_m": 39.49,
+       "crown_width_m": 25.18,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 2.8851,
+       "crown_scale": 1.5917,
+       "height_m": 39.12,
+       "crown_width_m": 25.13,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "height_m": 39.12,
+     "below_ground_m": 0.03,
+     "crown_width_m": 25.13,
+     "triangles": 4506,
+     "vertices": 10683,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_BrazilNut_Bark",
+      "MI_TDVeg_BrazilNut_Foliage"
+     ],
+     "target_trunk_diameter_m": 1.446,
+     "trunk_base_diameter_m": 1.151,
+     "scale": 2.8851,
+     "crown_scale": 1.5917,
+     "stage": 1.0,
+     "seed": 21,
+     "params": {
+      "height_m": 38.159,
+      "crown_width_m": 25.547,
+      "trunk_diameter_m": 1.446,
+      "mature_height_m": 40.0,
+      "crown_base_fraction": 0.622,
+      "apical_dominance": 0.45,
+      "branch_angle_deg": 52.801,
+      "branch_droop": 0.188,
+      "branch_density": 0.671,
+      "branch_orders": 4,
+      "crown_flatness": 0.2,
+      "stem_count": 1,
+      "leaf_length_m": 0.275,
+      "leaf_density": 0.8,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 1.0,
+      "seed": 21,
+      "archetype": "ROUND_OVAL",
+      "leaf_type": "BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/PVE_BrazilNut_S070_22",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/SM_TDVeg_BrazilNut_S070_22",
+     "target_height_m": 30.48,
+     "target_crown_width_m": 17.34,
+     "passes": [
+      {
+       "scale": 3.3333,
+       "crown_scale": 1.0,
+       "height_m": 27.46,
+       "crown_width_m": 14.38,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 3.6999,
+       "crown_scale": 1.0684,
+       "height_m": 32.1,
+       "crown_width_m": 16.57,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 3.5132,
+       "crown_scale": 1.1546,
+       "height_m": 30.44,
+       "crown_width_m": 16.03,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "height_m": 30.44,
+     "below_ground_m": 0.03,
+     "crown_width_m": 16.03,
+     "triangles": 4973,
+     "vertices": 9893,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_BrazilNut_Bark",
+      "MI_TDVeg_BrazilNut_Foliage"
+     ],
+     "target_trunk_diameter_m": 1.04,
+     "trunk_base_diameter_m": 2.499,
+     "scale": 3.5132,
+     "crown_scale": 1.1546,
+     "stage": 0.7,
+     "seed": 22,
+     "params": {
+      "height_m": 30.48,
+      "crown_width_m": 17.337,
+      "trunk_diameter_m": 1.04,
+      "mature_height_m": 40.0,
+      "crown_base_fraction": 0.487,
+      "apical_dominance": 0.525,
+      "branch_angle_deg": 47.475,
+      "branch_droop": 0.092,
+      "branch_density": 0.829,
+      "branch_orders": 4,
+      "crown_flatness": 0.14,
+      "stem_count": 1,
+      "leaf_length_m": 0.242,
+      "leaf_density": 0.8,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 0.7,
+      "seed": 22,
+      "archetype": "ROUND_OVAL",
+      "leaf_type": "BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/PVE_BrazilNut_S030_23",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/SM_TDVeg_BrazilNut_S030_23",
+     "target_height_m": 18.43,
+     "target_crown_width_m": 10.42,
+     "passes": [
+      {
+       "scale": 3.3333,
+       "crown_scale": 1.0,
+       "height_m": 14.75,
+       "crown_width_m": 8.11,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 4.1661,
+       "crown_scale": 1.0226,
+       "height_m": 17.12,
+       "crown_width_m": 10.95,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 4.4861,
+       "crown_scale": 0.9265,
+       "height_m": 19.85,
+       "crown_width_m": 10.46,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 4.1663,
+       "crown_scale": 0.9801,
+       "height_m": 18.44,
+       "crown_width_m": 9.81,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "height_m": 18.44,
+     "below_ground_m": 0.02,
+     "crown_width_m": 9.81,
+     "triangles": 1950,
+     "vertices": 3450,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_BrazilNut_Bark",
+      "MI_TDVeg_BrazilNut_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.493,
+     "trunk_base_diameter_m": 0.543,
+     "scale": 4.1663,
+     "crown_scale": 0.9801,
+     "stage": 0.3,
+     "seed": 23,
+     "params": {
+      "height_m": 18.435,
+      "crown_width_m": 10.423,
+      "trunk_diameter_m": 0.493,
+      "mature_height_m": 40.0,
+      "crown_base_fraction": 0.313,
+      "apical_dominance": 0.625,
+      "branch_angle_deg": 52.149,
+      "branch_droop": 0.089,
+      "branch_density": 0.827,
+      "branch_orders": 3,
+      "crown_flatness": 0.06,
+      "stem_count": 1,
+      "leaf_length_m": 0.198,
+      "leaf_density": 0.8,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 0.3,
+      "seed": 23,
+      "archetype": "ROUND_OVAL",
+      "leaf_type": "BROADLEAF"
+     }
+    }
+   ],
+   "archetype": "ROUND_OVAL",
+   "archetype_reason": "round or oval crown shape",
+   "defaulted": [
+    "CrownWidthM"
+   ],
+   "notes": [],
+   "preset": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/PVP_BrazilNut"
+  },
+  {
+   "id": "TrumpetTree",
+   "common_name": "Trumpet tree",
+   "latin_name": "Cecropia peltata",
+   "layer": "mid canopy",
+   "variants": [
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/PVE_TrumpetTree_S100_31",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/SM_TDVeg_TrumpetTree_S100_31",
+     "target_height_m": 15.27,
+     "target_crown_width_m": 14.88,
+     "passes": [
+      {
+       "scale": 1.25,
+       "crown_scale": 1.0,
+       "height_m": 18.82,
+       "crown_width_m": 10.71,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.0142,
+       "crown_scale": 1.5376,
+       "height_m": 17.62,
+       "crown_width_m": 14.05,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8789,
+       "crown_scale": 1.8051,
+       "height_m": 15.95,
+       "crown_width_m": 12.31,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8414,
+       "crown_scale": 2.1752,
+       "height_m": 15.71,
+       "crown_width_m": 12.06,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8178,
+       "crown_scale": 2.6324,
+       "height_m": 15.55,
+       "crown_width_m": 14.32,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "triangle_budget": 15000,
+     "foliage_density_scale": 1.0,
+     "height_m": 15.55,
+     "below_ground_m": 0.01,
+     "crown_width_m": 14.32,
+     "triangles": 5574,
+     "vertices": 14418,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_TrumpetTree_Bark",
+      "MI_TDVeg_TrumpetTree_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.196,
+     "trunk_base_diameter_m": 0.153,
+     "scale": 0.8178,
+     "crown_scale": 2.6324,
+     "stage": 1.0,
+     "seed": 31,
+     "params": {
+      "height_m": 15.269,
+      "crown_width_m": 14.878,
+      "trunk_diameter_m": 0.196,
+      "mature_height_m": 15.0,
+      "crown_base_fraction": 0.599,
+      "apical_dominance": 0.25,
+      "branch_angle_deg": 64.541,
+      "branch_droop": 0.206,
+      "branch_density": 0.661,
+      "branch_orders": 4,
+      "crown_flatness": 0.7,
+      "stem_count": 1,
+      "leaf_length_m": 0.2,
+      "leaf_density": 0.7,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 1.0,
+      "seed": 31,
+      "archetype": "BROAD_SPREADING",
+      "leaf_type": "BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/PVE_TrumpetTree_S070_32",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/SM_TDVeg_TrumpetTree_S070_32",
+     "target_height_m": 12.19,
+     "target_crown_width_m": 10.1,
+     "passes": [
+      {
+       "scale": 1.25,
+       "crown_scale": 1.0,
+       "height_m": 10.86,
+       "crown_width_m": 6.85,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.4033,
+       "crown_scale": 1.244,
+       "height_m": 13.57,
+       "crown_width_m": 8.38,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.2607,
+       "crown_scale": 1.574,
+       "height_m": 13.22,
+       "crown_width_m": 9.74,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.1627,
+       "crown_scale": 1.7293,
+       "height_m": 13.5,
+       "crown_width_m": 9.85,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.05,
+       "crown_scale": 1.9147,
+       "height_m": 12.67,
+       "crown_width_m": 8.66,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.0104,
+       "crown_scale": 2.2336,
+       "height_m": 13.86,
+       "crown_width_m": 11.07,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.7818,
+       "crown_scale": 2.3005,
+       "height_m": 10.82,
+       "crown_width_m": 8.71,
+       "triangles": 2931,
+       "note": "height rescale",
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8809,
+       "crown_scale": 2.3005,
+       "height_m": 12.14,
+       "crown_width_m": 9.73,
+       "triangles": 2085,
+       "note": "height rescale",
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "triangle_budget": 15000,
+     "foliage_density_scale": 1.0,
+     "height_m": 12.14,
+     "below_ground_m": 0.01,
+     "crown_width_m": 9.73,
+     "triangles": 2085,
+     "vertices": 4640,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_TrumpetTree_Bark",
+      "MI_TDVeg_TrumpetTree_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.141,
+     "trunk_base_diameter_m": 0.095,
+     "scale": 0.8809,
+     "crown_scale": 2.3005,
+     "stage": 0.7,
+     "seed": 32,
+     "params": {
+      "height_m": 12.192,
+      "crown_width_m": 10.103,
+      "trunk_diameter_m": 0.141,
+      "mature_height_m": 15.0,
+      "crown_base_fraction": 0.464,
+      "apical_dominance": 0.385,
+      "branch_angle_deg": 69.215,
+      "branch_droop": 0.202,
+      "branch_density": 0.659,
+      "branch_orders": 4,
+      "crown_flatness": 0.49,
+      "stem_count": 1,
+      "leaf_length_m": 0.176,
+      "leaf_density": 0.7,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 0.7,
+      "seed": 32,
+      "archetype": "BROAD_SPREADING",
+      "leaf_type": "BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/PVE_TrumpetTree_S030_33",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/SM_TDVeg_TrumpetTree_S030_33",
+     "target_height_m": 7.37,
+     "target_crown_width_m": 6.07,
+     "passes": [
+      {
+       "scale": 1.25,
+       "crown_scale": 1.0,
+       "height_m": 6.28,
+       "crown_width_m": 4.25,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.4671,
+       "crown_scale": 1.1694,
+       "height_m": 8.41,
+       "crown_width_m": 5.52,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.2858,
+       "crown_scale": 1.4014,
+       "height_m": 7.21,
+       "crown_width_m": 5.28,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.3144,
+       "crown_scale": 1.5385,
+       "height_m": 7.62,
+       "crown_width_m": 5.92,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.2714,
+       "crown_scale": 1.611,
+       "height_m": 7.42,
+       "crown_width_m": 5.91,
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "triangle_budget": 8000,
+     "foliage_density_scale": 1.0,
+     "height_m": 7.42,
+     "below_ground_m": 0.0,
+     "crown_width_m": 5.91,
+     "triangles": 3002,
+     "vertices": 6101,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_TrumpetTree_Bark",
+      "MI_TDVeg_TrumpetTree_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.067,
+     "trunk_base_diameter_m": 0.068,
+     "scale": 1.2714,
+     "crown_scale": 1.611,
+     "stage": 0.3,
+     "seed": 33,
+     "params": {
+      "height_m": 7.371,
+      "crown_width_m": 6.066,
+      "trunk_diameter_m": 0.067,
+      "mature_height_m": 15.0,
+      "crown_base_fraction": 0.29,
+      "apical_dominance": 0.565,
+      "branch_angle_deg": 63.889,
+      "branch_droop": 0.089,
+      "branch_density": 0.657,
+      "branch_orders": 3,
+      "crown_flatness": 0.21,
+      "stem_count": 1,
+      "leaf_length_m": 0.144,
+      "leaf_density": 0.7,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 0.3,
+      "seed": 33,
+      "archetype": "BROAD_SPREADING",
+      "leaf_type": "BROADLEAF"
+     }
+    }
+   ],
+   "archetype": "BROAD_SPREADING",
+   "archetype_reason": "spreading crown shape",
+   "defaulted": [
+    "CrownWidthM"
+   ],
+   "notes": [],
+   "preset": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/PVP_TrumpetTree"
+  },
+  {
+   "id": "StiltPalm",
+   "common_name": "Walking palm (cashapona)",
+   "latin_name": "Socratea exorrhiza",
+   "layer": "mid canopy",
+   "variants": [
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/PVE_StiltPalm_S100_41",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/SM_TDVeg_StiltPalm_S100_41",
+     "target_height_m": 15.54,
+     "target_crown_width_m": 5.78,
+     "passes": [
+      {
+       "scale": 1.375,
+       "crown_scale": 1.0,
+       "height_m": 18.08,
+       "crown_width_m": 3.57,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 1.182,
+       "crown_scale": 1.0,
+       "height_m": 15.71,
+       "crown_width_m": 3.57,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      }
+     ],
+     "height_m": 15.71,
+     "below_ground_m": 0.0,
+     "crown_width_m": 3.57,
+     "triangles": 1074,
+     "vertices": 1472,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_StiltPalm_Bark",
+      "MI_TDVeg_StiltPalm_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.15,
+     "trunk_base_diameter_m": 0.129,
+     "scale": 1.182,
+     "crown_scale": 1.0,
+     "stage": 1.0,
+     "seed": 41,
+     "params": {
+      "height_m": 15.542,
+      "crown_width_m": 5.782,
+      "trunk_diameter_m": 0.15,
+      "mature_height_m": 16.5,
+      "crown_base_fraction": 0.876,
+      "apical_dominance": 1.0,
+      "branch_angle_deg": 56.28,
+      "branch_droop": 0.473,
+      "branch_density": 0.0,
+      "branch_orders": 1,
+      "crown_flatness": 0.0,
+      "stem_count": 1,
+      "leaf_length_m": 1.75,
+      "leaf_density": 0.5,
+      "crown_leaf_count": 7,
+      "evergreen": true,
+      "growth_stage": 1.0,
+      "seed": 41,
+      "archetype": "PALM",
+      "leaf_type": "FROND"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/PVE_StiltPalm_S070_42",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/SM_TDVeg_StiltPalm_S070_42",
+     "target_height_m": 12.42,
+     "target_crown_width_m": 3.93,
+     "passes": [
+      {
+       "scale": 1.375,
+       "crown_scale": 1.0,
+       "height_m": 14.49,
+       "crown_width_m": 3.08,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 1.1782,
+       "crown_scale": 1.0,
+       "height_m": 12.56,
+       "crown_width_m": 3.08,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      }
+     ],
+     "height_m": 12.56,
+     "below_ground_m": 0.0,
+     "crown_width_m": 3.08,
+     "triangles": 1020,
+     "vertices": 1366,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_StiltPalm_Bark",
+      "MI_TDVeg_StiltPalm_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.108,
+     "trunk_base_diameter_m": 0.117,
+     "scale": 1.1782,
+     "crown_scale": 1.0,
+     "stage": 0.7,
+     "seed": 42,
+     "params": {
+      "height_m": 12.416,
+      "crown_width_m": 3.929,
+      "trunk_diameter_m": 0.108,
+      "mature_height_m": 16.5,
+      "crown_base_fraction": 0.763,
+      "apical_dominance": 1.0,
+      "branch_angle_deg": 60.954,
+      "branch_droop": 0.425,
+      "branch_density": 0.0,
+      "branch_orders": 1,
+      "crown_flatness": 0.0,
+      "stem_count": 1,
+      "leaf_length_m": 1.54,
+      "leaf_density": 0.5,
+      "crown_leaf_count": 6,
+      "evergreen": true,
+      "growth_stage": 0.7,
+      "seed": 42,
+      "archetype": "PALM",
+      "leaf_type": "FROND"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/PVE_StiltPalm_S030_43",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/SM_TDVeg_StiltPalm_S030_43",
+     "target_height_m": 7.51,
+     "target_crown_width_m": 2.36,
+     "passes": [
+      {
+       "scale": 1.375,
+       "crown_scale": 1.0,
+       "height_m": 9.0,
+       "crown_width_m": 2.58,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 1.1473,
+       "crown_scale": 1.0,
+       "height_m": 7.65,
+       "crown_width_m": 2.58,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      }
+     ],
+     "height_m": 7.65,
+     "below_ground_m": 0.0,
+     "crown_width_m": 2.58,
+     "triangles": 765,
+     "vertices": 1063,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_StiltPalm_Bark",
+      "MI_TDVeg_StiltPalm_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.051,
+     "trunk_base_diameter_m": 0.047,
+     "scale": 1.1473,
+     "crown_scale": 1.0,
+     "stage": 0.3,
+     "seed": 43,
+     "params": {
+      "height_m": 7.51,
+      "crown_width_m": 2.356,
+      "trunk_diameter_m": 0.051,
+      "mature_height_m": 16.5,
+      "crown_base_fraction": 0.51,
+      "apical_dominance": 1.0,
+      "branch_angle_deg": 55.628,
+      "branch_droop": 0.352,
+      "branch_density": 0.0,
+      "branch_orders": 1,
+      "crown_flatness": 0.0,
+      "stem_count": 1,
+      "leaf_length_m": 1.26,
+      "leaf_density": 0.5,
+      "crown_leaf_count": 5,
+      "evergreen": true,
+      "growth_stage": 0.3,
+      "seed": 43,
+      "archetype": "PALM",
+      "leaf_type": "FROND"
+     }
+    }
+   ],
+   "archetype": "PALM",
+   "archetype_reason": "frond leaves, a rosette crown or an unbranched stem",
+   "defaulted": [
+    "CrownWidthM",
+    "ClearBoleFraction"
+   ],
+   "notes": [],
+   "preset": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/PVP_StiltPalm"
+  },
+  {
+   "id": "TreeFern",
+   "common_name": "West Indian tree fern",
+   "latin_name": "Cyathea arborea",
+   "layer": "understorey",
+   "variants": [
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/PVE_TreeFern_S100_51",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/SM_TDVeg_TreeFern_S100_51",
+     "target_height_m": 9.05,
+     "target_crown_width_m": 3.18,
+     "passes": [
+      {
+       "scale": 0.75,
+       "crown_scale": 1.0,
+       "height_m": 11.64,
+       "crown_width_m": 6.26,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 0.5833,
+       "crown_scale": 1.0,
+       "height_m": 9.53,
+       "crown_width_m": 6.28,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 0.5542,
+       "crown_scale": 1.0,
+       "height_m": 9.14,
+       "crown_width_m": 6.26,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      }
+     ],
+     "height_m": 9.14,
+     "below_ground_m": 0.0,
+     "crown_width_m": 6.26,
+     "triangles": 1833,
+     "vertices": 2524,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_TreeFern_Bark",
+      "MI_TDVeg_TreeFern_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.101,
+     "trunk_base_diameter_m": 0.092,
+     "scale": 0.5542,
+     "crown_scale": 1.0,
+     "stage": 1.0,
+     "seed": 51,
+     "params": {
+      "height_m": 9.053,
+      "crown_width_m": 3.183,
+      "trunk_diameter_m": 0.101,
+      "mature_height_m": 9.0,
+      "crown_base_fraction": 0.934,
+      "apical_dominance": 1.0,
+      "branch_angle_deg": 63.02,
+      "branch_droop": 0.541,
+      "branch_density": 0.0,
+      "branch_orders": 1,
+      "crown_flatness": 0.0,
+      "stem_count": 1,
+      "leaf_length_m": 3.0,
+      "leaf_density": 0.5,
+      "crown_leaf_count": 12,
+      "evergreen": true,
+      "growth_stage": 1.0,
+      "seed": 51,
+      "archetype": "PALM",
+      "leaf_type": "FROND"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/PVE_TreeFern_S070_52",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/SM_TDVeg_TreeFern_S070_52",
+     "target_height_m": 7.23,
+     "target_crown_width_m": 2.16,
+     "passes": [
+      {
+       "scale": 0.75,
+       "crown_scale": 1.0,
+       "height_m": 9.89,
+       "crown_width_m": 5.59,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 0.5482,
+       "crown_scale": 1.0,
+       "height_m": 7.78,
+       "crown_width_m": 5.59,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 0.5094,
+       "crown_scale": 1.0,
+       "height_m": 7.37,
+       "crown_width_m": 5.59,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      }
+     ],
+     "height_m": 7.37,
+     "below_ground_m": 0.0,
+     "crown_width_m": 5.59,
+     "triangles": 1717,
+     "vertices": 2296,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_TreeFern_Bark",
+      "MI_TDVeg_TreeFern_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.073,
+     "trunk_base_diameter_m": 0.047,
+     "scale": 0.5094,
+     "crown_scale": 1.0,
+     "stage": 0.7,
+     "seed": 52,
+     "params": {
+      "height_m": 7.229,
+      "crown_width_m": 2.164,
+      "trunk_diameter_m": 0.073,
+      "mature_height_m": 9.0,
+      "crown_base_fraction": 0.74,
+      "apical_dominance": 1.0,
+      "branch_angle_deg": 57.694,
+      "branch_droop": 0.392,
+      "branch_density": 0.0,
+      "branch_orders": 1,
+      "crown_flatness": 0.0,
+      "stem_count": 1,
+      "leaf_length_m": 2.64,
+      "leaf_density": 0.5,
+      "crown_leaf_count": 10,
+      "evergreen": true,
+      "growth_stage": 0.7,
+      "seed": 52,
+      "archetype": "PALM",
+      "leaf_type": "FROND"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/PVE_TreeFern_S030_53",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/SM_TDVeg_TreeFern_S030_53",
+     "target_height_m": 4.37,
+     "target_crown_width_m": 1.3,
+     "passes": [
+      {
+       "scale": 0.75,
+       "crown_scale": 1.0,
+       "height_m": 6.04,
+       "crown_width_m": 4.73,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 0.5427,
+       "crown_scale": 1.0,
+       "height_m": 4.73,
+       "crown_width_m": 4.73,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      },
+      {
+       "scale": 0.5015,
+       "crown_scale": 1.0,
+       "height_m": 4.47,
+       "crown_width_m": 4.73,
+       "messages": [
+        "Warning Mesher: Convex hull generation produced zero convex particles, collision will fail for this primitive."
+       ],
+       "warnings": []
+      }
+     ],
+     "height_m": 4.47,
+     "below_ground_m": 0.0,
+     "crown_width_m": 4.73,
+     "triangles": 1393,
+     "vertices": 1854,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_TreeFern_Bark",
+      "MI_TDVeg_TreeFern_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.035,
+     "trunk_base_diameter_m": 0.023,
+     "scale": 0.5015,
+     "crown_scale": 1.0,
+     "stage": 0.3,
+     "seed": 53,
+     "params": {
+      "height_m": 4.371,
+      "crown_width_m": 1.296,
+      "trunk_diameter_m": 0.035,
+      "mature_height_m": 9.0,
+      "crown_base_fraction": 0.488,
+      "apical_dominance": 1.0,
+      "branch_angle_deg": 62.368,
+      "branch_droop": 0.319,
+      "branch_density": 0.0,
+      "branch_orders": 1,
+      "crown_flatness": 0.0,
+      "stem_count": 1,
+      "leaf_length_m": 2.16,
+      "leaf_density": 0.5,
+      "crown_leaf_count": 8,
+      "evergreen": true,
+      "growth_stage": 0.3,
+      "seed": 53,
+      "archetype": "PALM",
+      "leaf_type": "FROND"
+     }
+    }
+   ],
+   "archetype": "PALM",
+   "archetype_reason": "frond leaves, a rosette crown or an unbranched stem",
+   "defaulted": [
+    "CrownWidthM",
+    "ClearBoleFraction",
+    "CrownLeafCount"
+   ],
+   "notes": [],
+   "preset": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/PVP_TreeFern"
+  },
+  {
+   "id": "Cacao",
+   "common_name": "Cacao",
+   "latin_name": "Theobroma cacao",
+   "layer": "understorey",
+   "variants": [
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/PVE_Cacao_S100_61",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/SM_TDVeg_Cacao_S100_61",
+     "target_height_m": 8.56,
+     "target_crown_width_m": 5.3,
+     "passes": [
+      {
+       "scale": 0.6667,
+       "crown_scale": 1.0,
+       "height_m": 6.31,
+       "crown_width_m": 5.74,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.9043,
+       "crown_scale": 0.7355,
+       "height_m": 8.98,
+       "crown_width_m": 5.89,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.862,
+       "crown_scale": 0.7027,
+       "height_m": 8.12,
+       "crown_width_m": 5.28,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.9086,
+       "crown_scale": 0.6761,
+       "height_m": 7.88,
+       "crown_width_m": 5.22,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.987,
+       "crown_scale": 0.6409,
+       "height_m": 10.49,
+       "crown_width_m": 5.85,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8053,
+       "crown_scale": 0.6972,
+       "height_m": 7.29,
+       "crown_width_m": 5.1,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.9456,
+       "crown_scale": 0.6326,
+       "height_m": 7.35,
+       "crown_width_m": 5.28,
+       "triangles": 9540,
+       "note": "foliage density x0.60 for the 8000 triangle budget",
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.9456,
+       "crown_scale": 0.6326,
+       "height_m": 7.52,
+       "crown_width_m": 5.1,
+       "triangles": 8160,
+       "note": "foliage density x0.36 for the 8000 triangle budget",
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.9456,
+       "crown_scale": 0.6326,
+       "height_m": 7.36,
+       "crown_width_m": 5.1,
+       "triangles": 6909,
+       "note": "foliage density x0.22 for the 8000 triangle budget",
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.0997,
+       "crown_scale": 0.6326,
+       "height_m": 9.9,
+       "crown_width_m": 6.96,
+       "triangles": 4434,
+       "note": "height rescale",
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.9508,
+       "crown_scale": 0.6326,
+       "height_m": 8.59,
+       "crown_width_m": 6.02,
+       "triangles": 5864,
+       "note": "height rescale",
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "triangle_budget": 8000,
+     "foliage_density_scale": 0.216,
+     "height_m": 8.59,
+     "below_ground_m": 0.02,
+     "crown_width_m": 6.02,
+     "triangles": 5864,
+     "vertices": 7264,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_Cacao_Bark",
+      "MI_TDVeg_Cacao_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.257,
+     "trunk_base_diameter_m": 0.592,
+     "scale": 0.9508,
+     "crown_scale": 0.6326,
+     "stage": 1.0,
+     "seed": 61,
+     "params": {
+      "height_m": 8.559,
+      "crown_width_m": 5.303,
+      "trunk_diameter_m": 0.257,
+      "mature_height_m": 8.0,
+      "crown_base_fraction": 0.161,
+      "apical_dominance": 0.45,
+      "branch_angle_deg": 49.759,
+      "branch_droop": 0.158,
+      "branch_density": 0.752,
+      "branch_orders": 4,
+      "crown_flatness": 0.2,
+      "stem_count": 1,
+      "leaf_length_m": 0.3,
+      "leaf_density": 0.8,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 1.0,
+      "seed": 61,
+      "archetype": "ROUND_OVAL",
+      "leaf_type": "BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/PVE_Cacao_S070_62",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/SM_TDVeg_Cacao_S070_62",
+     "target_height_m": 5.94,
+     "target_crown_width_m": 3.61,
+     "passes": [
+      {
+       "scale": 0.6667,
+       "crown_scale": 1.0,
+       "height_m": 4.83,
+       "crown_width_m": 3.83,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8204,
+       "crown_scale": 0.8075,
+       "height_m": 5.76,
+       "crown_width_m": 4.02,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8465,
+       "crown_scale": 0.7221,
+       "height_m": 5.64,
+       "crown_width_m": 3.85,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.892,
+       "crown_scale": 0.6573,
+       "height_m": 6.04,
+       "crown_width_m": 3.67,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.892,
+       "crown_scale": 0.6573,
+       "height_m": 6.03,
+       "crown_width_m": 4.01,
+       "triangles": 5655,
+       "note": "foliage density x0.60 for the 8000 triangle budget",
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "triangle_budget": 8000,
+     "foliage_density_scale": 0.6,
+     "height_m": 6.03,
+     "below_ground_m": 0.02,
+     "crown_width_m": 4.01,
+     "triangles": 5655,
+     "vertices": 9701,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_Cacao_Bark",
+      "MI_TDVeg_Cacao_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.185,
+     "trunk_base_diameter_m": 1.667,
+     "scale": 0.892,
+     "crown_scale": 0.6573,
+     "stage": 0.7,
+     "seed": 62,
+     "params": {
+      "height_m": 5.943,
+      "crown_width_m": 3.607,
+      "trunk_diameter_m": 0.185,
+      "mature_height_m": 8.0,
+      "crown_base_fraction": 0.113,
+      "apical_dominance": 0.525,
+      "branch_angle_deg": 54.433,
+      "branch_droop": 0.162,
+      "branch_density": 0.75,
+      "branch_orders": 4,
+      "crown_flatness": 0.14,
+      "stem_count": 1,
+      "leaf_length_m": 0.264,
+      "leaf_density": 0.8,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 0.7,
+      "seed": 62,
+      "archetype": "ROUND_OVAL",
+      "leaf_type": "BROADLEAF"
+     }
+    },
+    {
+     "graph": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/PVE_Cacao_S030_63",
+     "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/SM_TDVeg_Cacao_S030_63",
+     "target_height_m": 3.6,
+     "target_crown_width_m": 1.77,
+     "passes": [
+      {
+       "scale": 0.6667,
+       "crown_scale": 1.0,
+       "height_m": 2.38,
+       "crown_width_m": 2.54,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.0071,
+       "crown_scale": 0.5375,
+       "height_m": 3.1,
+       "crown_width_m": 2.54,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.168,
+       "crown_scale": 0.3569,
+       "height_m": 4.68,
+       "crown_width_m": 2.51,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8973,
+       "crown_scale": 0.3327,
+       "height_m": 3.6,
+       "crown_width_m": 2.15,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8961,
+       "crown_scale": 0.2845,
+       "height_m": 3.59,
+       "crown_width_m": 2.25,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 0.8975,
+       "crown_scale": 0.25,
+       "height_m": 3.19,
+       "crown_width_m": 2.16,
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.14,
+       "crown_scale": 0.25,
+       "height_m": 3.89,
+       "crown_width_m": 2.43,
+       "triangles": 5058,
+       "note": "height rescale",
+       "messages": [],
+       "warnings": []
+      },
+      {
+       "scale": 1.0537,
+       "crown_scale": 0.25,
+       "height_m": 3.64,
+       "crown_width_m": 2.33,
+       "triangles": 5104,
+       "note": "height rescale",
+       "messages": [],
+       "warnings": []
+      }
+     ],
+     "triangle_budget": 8000,
+     "foliage_density_scale": 1.0,
+     "height_m": 3.64,
+     "below_ground_m": 0.01,
+     "crown_width_m": 2.33,
+     "triangles": 5104,
+     "vertices": 7392,
+     "lods": 1,
+     "nanite": true,
+     "material_slots": [
+      "MI_TDVeg_Cacao_Bark",
+      "MI_TDVeg_Cacao_Foliage"
+     ],
+     "target_trunk_diameter_m": 0.088,
+     "trunk_base_diameter_m": 0.533,
+     "scale": 1.0537,
+     "crown_scale": 0.25,
+     "stage": 0.3,
+     "seed": 63,
+     "params": {
+      "height_m": 3.595,
+      "crown_width_m": 1.766,
+      "trunk_diameter_m": 0.088,
+      "mature_height_m": 8.0,
+      "crown_base_fraction": 0.056,
+      "apical_dominance": 0.625,
+      "branch_angle_deg": 49.107,
+      "branch_droop": 0.059,
+      "branch_density": 0.748,
+      "branch_orders": 3,
+      "crown_flatness": 0.06,
+      "stem_count": 1,
+      "leaf_length_m": 0.216,
+      "leaf_density": 0.8,
+      "crown_leaf_count": 0,
+      "evergreen": true,
+      "growth_stage": 0.3,
+      "seed": 63,
+      "archetype": "ROUND_OVAL",
+      "leaf_type": "BROADLEAF"
+     }
+    }
+   ],
+   "archetype": "ROUND_OVAL",
+   "archetype_reason": "round or oval crown shape",
+   "defaulted": [
+    "CrownWidthM"
+   ],
+   "notes": [],
+   "preset": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/PVP_Cacao"
+  }
+ ]
+}

@@ -1,0 +1,65 @@
+{
+  "asset": "SM_SpaceDebris_03",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.claude\\worktrees\\agent-ac042639111712983\\ArtSource\\EngProps\\SpaceRocks\\SM_SpaceDebris_03\\SM_SpaceDebris_03.fbx",
+  "tris": 440,
+  "size_cm": [
+    76.1,
+    87.2,
+    65.4
+  ],
+  "pivot": "root object origin (SM_SpaceDebris_03~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_SpaceDebris_03_Rock"
+  ],
+  "material_params": [
+    {
+      "name": "M_SpaceDebris_03_Rock",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [
+    "T_SpaceDebris_03_BC.png",
+    "T_SpaceDebris_03_N.png",
+    "T_SpaceDebris_03_ORM.png"
+  ],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_SpaceDebris_03.fbx",
+  "sizing_contract": {
+    "bounding_sphere_diameter_cm": 100.0,
+    "pivot": "centre of the bounding sphere",
+    "measured_diameter_cm_in_blend": 100.0
+  },
+  "emission_strength": 0.0,
+  "texture_size": 512
+}

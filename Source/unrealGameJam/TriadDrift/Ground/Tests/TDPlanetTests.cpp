@@ -422,8 +422,8 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	if (!TestNotNull(TEXT("core"), Core)) { return false; }
 	TestTrue(TEXT("first wave drops in"), Core->WaveA && Core->WaveA->IsActive());
 	{
-		// Damage must not break this hold.
-		const FVector Target = Core->GetActorLocation();
+		// Damage must not break this hold. Aim at the glowing core (what the eye goes to), not the console.
+		const FVector Target = Core->Core->GetComponentLocation();
 		R.FP->RespawnAt(FTransform(FRotator::ZeroRotator, Target + FVector(-160.f, 0.f, 40.f)));
 		R.Tick(0.2f);
 		V.PC->SetControlRotation((Target - R.FP->FindComponentByClass<UCameraComponent>()->GetComponentLocation()).Rotation());

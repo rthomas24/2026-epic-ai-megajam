@@ -8,6 +8,8 @@
 //   TD.Director.RevealDominion    reveal the Dominion through the game flow (it warps in)
 //   TD.Director.GeneratorKill     the player's ship destroys the first live shield generator
 //   TD.Director.Status            log the camera rig / presentation state
+//   TD.Director.MultiKill         the player's ship kills three live enemies in one beat (spawns fighters if needed)
+//   TD.Director.MissileReturn     Rift opens both portals; an enemy missile goes through and back at its shooter
 //   TD.Squad.Frame                log where the wingmen and the nearest enemy are on screen (-1..1),
 //                                 for a scripted live pilot and for measuring "wingmen in frame"
 
@@ -27,6 +29,10 @@
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TimerManager.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -109,6 +115,79 @@ namespace TDDirectorDebug
 		UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, true);
 		UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.RamKill: Lancer ramming a fighter 9000 cm ahead"));
+	}
+
+	static ATDEnemyShip* SpawnParkedFighter(UWorld* World, const FVector& At, const FVector& Facing)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ATDEnemyShip* E = World->SpawnActor<ATDEnemyShip>(ATDEnemyShip::StaticClass(), At, Facing.Rotation(), Params);
+		if (E)
+		{
+			E->InitFromSpec(TDEnemyIds::ShardFighter);
+			E->SetFlightParked(true);
+		}
+		return E;
+	}
+
+	static void MultiKill(const TArray<FString>&, UWorld* World)
+	{
+		ATDSquadManager* S = Squad(World);
+		ATDShip* Player = S ? S->GetActiveShip() : nullptr;
+		if (!Player)
+		{
+			return;
+		}
+		// Three enemies in front of the player, so the shot has something to frame.
+		TArray<ATDEnemyShip*> Victims;
+		for (int32 i = 0; i < 3; ++i)
+		{
+			const FVector At = Player->GetActorLocation() + Player->GetActorForwardVector() * (6000.f + 1500.f * i) + Player->GetActorRightVector() * (i - 1) * 1500.f;
+			if (ATDEnemyShip* E = SpawnParkedFighter(World, At, -Player->GetActorForwardVector()))
+			{
+				Victims.Add(E);
+			}
+		}
+		for (ATDEnemyShip* E : Victims)
+		{
+			UTDStatics::ApplyTDDamage(E, 1000000.f, ETDDamageKind::Energy, Player, Player);
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.MultiKill: the player's ship killed %d fighters"), Victims.Num());
+	}
+
+	static void MissileReturn(const TArray<FString>&, UWorld* World)
+	{
+		ATDSquadManager* S = Squad(World);
+		if (!S)
+		{
+			return;
+		}
+		if (S->GetActiveShipId() != ETDShipId::Rift)
+		{
+			S->RequestSwitchTo(ETDShipId::Rift);
+		}
+		ATDShip* Rift = S->GetShip(ETDShipId::Rift);
+		UTDPortalBlasterPower* Portal = Rift ? Cast<UTDPortalBlasterPower>(UTDPowerComponent::FindPower(Rift, ETDPowerInput::Signature1)) : nullptr;
+		if (!Portal || S->GetActiveShipId() != ETDShipId::Rift)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Director.MissileReturn: couldn't take Rift (switch cooldown?); try again"));
+			return;
+		}
+		// The power test's layout: portal A ahead, portal B to the side, a missile from ahead at Rift.
+		Rift->SetFlightParked(true);
+		const FRotator Rot = Rift->GetActorRotation();
+		Portal->HandleInputPressed();
+		Rift->SetActorRotation(Rot + FRotator(0.f, 90.f, 0.f));
+		Portal->HandleInputPressed();
+		Rift->SetActorRotation(Rot);
+		const FVector F = Rot.Vector();
+		ATDEnemyShip* Shooter = SpawnParkedFighter(World, Rift->GetActorLocation() + F * 20000.f, -F);
+		ATDProjectile::Spawn(World, UTDWeaponLibrary::Get(TDWeaponIds::EnemyHomingMissile).Projectile,
+			FTransform((-F).Rotation(), Rift->GetActorLocation() + F * 15000.f), Shooter, ETDTeam::Enemy, Rift);
+		FTimerHandle H;
+		TWeakObjectPtr<ATDShip> Weak(Rift);
+		World->GetTimerManager().SetTimer(H, [Weak] { if (Weak.IsValid()) { Weak->SetFlightParked(false); } }, 4.f, false);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.MissileReturn: portals open, missile inbound"));
 	}
 
 	static void RevealDominion(const TArray<FString>&, UWorld* World)
@@ -230,9 +309,15 @@ namespace TDDirectorDebug
 			const bool bOn = ScreenPos(PC, Nearest->GetActorLocation(), P);
 			Enemy = FString::Printf(TEXT("%s(%.2f,%.2f) score=%.0fm local=(%.2f,%.2f,%.2f)"), bOn ? TEXT("ON") : TEXT("off"), P.X, P.Y, Best / 100.f, L.X, L.Y, L.Z);
 		}
-		UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.Frame: wingOn=%d%s | enemiesOn=%d/%d nearest=%s"), WingOn, *Wing, EnemiesOn, Enemies, *Enemy);
+		const FRotator R = Player->GetActorRotation();
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.Frame: wingOn=%d%s | enemiesOn=%d/%d nearest=%s | player=%s rot=(P %.1f Y %.1f R %.1f)"), WingOn, *Wing, EnemiesOn, Enemies, *Enemy,
+			*UEnum::GetDisplayValueAsText(Player->GetShipId()).ToString(), R.Pitch, R.Yaw, R.Roll);
 	}
 
+	static FAutoConsoleCommandWithWorldAndArgs CmdMulti(TEXT("TD.Director.MultiKill"), TEXT("TD.Director.MultiKill: three kills in one beat"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MultiKill));
+	static FAutoConsoleCommandWithWorldAndArgs CmdMissile(TEXT("TD.Director.MissileReturn"), TEXT("TD.Director.MissileReturn: Rift sends a missile back through its portals"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MissileReturn));
 	static FAutoConsoleCommandWithWorldAndArgs CmdFrame(TEXT("TD.Squad.Frame"), TEXT("TD.Squad.Frame: log wingmen / nearest enemy screen positions"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Frame));
 	static FAutoConsoleCommandWithWorldAndArgs CmdSwitch(TEXT("TD.Squad.Switch"), TEXT("TD.Squad.Switch <Rift|Lancer|Bastion|Next|Prev>"),

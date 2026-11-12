@@ -1039,4 +1039,34 @@ bool FTDReviewBoxFloorNoWarning::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewClimbFromCushion, "TriadDrift.Flight.Review.PilotCanClimbAwayFromTheGround", TD_TEST_FLAGS)
+bool FTDReviewClimbFromCushion::RunTest(const FString& Parameters)
+{
+	// Guard: the ground floor and cushion only ever push up. A pilot on the 15 m cushion who pulls the nose up
+	// (0.6 s of full stick, ~40 deg) and lets go climbs away from the ground.
+	FTDTestWorld W;
+	AActor* Ground = TDReviewTest::SpawnWall(W, FVector(0.f, 0.f, -200.f));
+	Cast<UBoxComponent>(Ground->GetRootComponent())->SetBoxExtent(FVector(400000.f, 400000.f, 200.f));
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1700.f));
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	Move->SetAtmosphereMode(true, 1200.f, 0.6f);
+	Move->SetBoxBoundary(FBox(FVector(-300000.f, -300000.f, -500.f), FVector(300000.f, 300000.f, 120000.f)));
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Ship->SetFlightInput(In);
+	W.Advance(3.f); // settle on the cushion
+	const float Z0 = Ship->GetActorLocation().Z;
+	In.Aim = FVector2D(0.f, 1.f); // + = nose up
+	Ship->SetFlightInput(In);
+	W.Advance(0.6f);
+	const float Pitch = Ship->GetActorRotation().Pitch;
+	In.Aim = FVector2D::ZeroVector;
+	Ship->SetFlightInput(In);
+	W.Advance(5.f);
+	const float Z1 = Ship->GetActorLocation().Z;
+	TestTrue(*FString::Printf(TEXT("the nose comes up from the cushion (%.1f deg)"), Pitch), Pitch > 25.f);
+	TestTrue(*FString::Printf(TEXT("and the ship climbs away (Z %.0f -> %.0f)"), Z0, Z1), Z1 > Z0 + 5000.f);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

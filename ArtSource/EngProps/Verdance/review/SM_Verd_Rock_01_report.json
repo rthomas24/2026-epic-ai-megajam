@@ -1,0 +1,119 @@
+{
+ "asset": "SM_Verd_Rock_01",
+ "tris": 1066,
+ "budget": [
+  500,
+  2000
+ ],
+ "in_budget": true,
+ "height_cm": 36.5,
+ "below_ground_cm": 10.6,
+ "width_cm": [
+  72.2,
+  54.5
+ ],
+ "base_center_offset_cm": [
+  0.0,
+  0.0
+ ],
+ "material_slots": [
+  "M_Verd_Rocks"
+ ],
+ "uv_layers": [
+  "UVMap"
+ ],
+ "errors": 0,
+ "warnings": 0,
+ "issues": [],
+ "assembly_ok": true,
+ "assembly": {
+  "islands": 3,
+  "groups": 1,
+  "floating": [],
+  "tolerance_m": 0.00153
+ },
+ "asset_report": {
+  "status": "ok",
+  "scene_units": {
+   "system": "METRIC",
+   "scale_length": 1.0,
+   "length_unit": "METERS"
+  },
+  "objects": [
+   {
+    "name": "SM_Verd_Rock_01",
+    "type": "MESH",
+    "parent": null,
+    "collections": [
+     "Verdance"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     72.24,
+     54.46,
+     47.12
+    ],
+    "hide_render": false,
+    "modifiers": [],
+    "materials": [
+     "M_Verd_Rocks"
+    ],
+    "verts": 539,
+    "faces": 1066,
+    "tris": 1066,
+    "quads": 0,
+    "ngons": 0,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 1.0,
+    "has_custom_normals": false,
+    "uv_layers": [
+     "UVMap"
+    ],
+    "faces_per_material_index": {
+     "0": 1066
+    },
+    "local_bbox_min": [
+     -0.35596,
+     -0.28547,
+     -0.1064
+    ],
+    "local_bbox_max": [
+     0.36642,
+     0.25912,
+     0.3648
+    ],
+    "origin_placement": "custom"
+   }
+  ],
+  "totals": {
+   "objects": 1,
+   "tris": 1066,
+   "errors": 0,
+   "warnings": 0
+  },
+  "issues": []
+ }
+}

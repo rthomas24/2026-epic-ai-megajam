@@ -202,6 +202,9 @@ private:
 	FVector PreviousLocation = FVector::ZeroVector;
 	double LastTransitTime = -1.0;
 
+	/** Re-entry guard for carrying a step's remainder through a portal (at most two portals per step). */
+	uint8 PortalCarryDepth = 0;
+
 	/** World time of the launch: the projectile's own Tick skips that frame (the weapon already stepped it). */
 	double LaunchWorldTime = -1.0;
 	FVector Velocity = FVector::ZeroVector;

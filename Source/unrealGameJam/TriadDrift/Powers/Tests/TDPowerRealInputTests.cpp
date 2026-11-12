@@ -14,6 +14,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Powers/TDAbilityPowers.h"
 #include "TriadDrift/Powers/TDBastionPowers.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
@@ -153,7 +154,10 @@ bool FTDPowerRealInputAll::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPowerRealInputSlowMo, "TriadDrift.Powers.RealInput.EveryPowerInSlowMotion", TD_TEST_FLAGS)
 bool FTDPowerRealInputSlowMo::RunTest(const FString& Parameters)
 {
-	TDPowerRealInputTest::PressEveryPower(*this, 1.f / 60.f, 0.25f);
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
+	{
+		TDPowerRealInputTest::PressEveryPower(*this, Step, 0.25f);
+	}
 	return true;
 }
 
@@ -189,6 +193,85 @@ bool FTDPowerRealInputSwitchMid::RunTest(const FString& Parameters)
 		TestTrue(TEXT("dome still up after switching to Rift") + Fps, DomeActor.IsValid() && Dome->IsPowerActive());
 		S.W.Advance(7.f, Step);
 		TestFalse(TEXT("dome collapsed on time") + Fps, Dome && Dome->IsPowerActive());
+	}
+	return true;
+}
+
+/**
+ * Switching away mid-ram or with one portal placed (Lead's question): the ram's wind-up is cancelled and a dash
+ * ends at once (never AI-flown at dash speed, never left invulnerable); a lone portal closes; a full pair stays.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPowerRealInputSwitchMidRamPortal, "TriadDrift.Powers.RealInput.SwitchAwayMidRamAndHalfPortal", TD_TEST_FLAGS)
+bool FTDPowerRealInputSwitchMidRamPortal::RunTest(const FString& Parameters)
+{
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
+	{
+		for (const bool bDuringDash : { false, true })
+		{
+			const FString Tag = FString::Printf(TEXT(" @ %.0f fps, %s"), 1.f / Step, bDuringDash ? TEXT("mid-dash") : TEXT("mid-wind-up"));
+			TDPowerRealInputTest::FSquad S(Step);
+			ATDShip* Lancer = S.Fly(ETDShipId::Lancer);
+			S.W.Advance(1.1f, Step); // switch cooldown passes before the press
+			UTDRamPower* Ram = S.Power<UTDRamPower>(Lancer, ETDPowerInput::Signature1);
+			UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, true);
+			S.W.Tick(Step);
+			UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
+			if (bDuringDash)
+			{
+				for (float T = 0.f; T < 1.f && !(Ram && Ram->IsDashing()); T += Step)
+				{
+					S.W.Tick(Step);
+				}
+				TestTrue(TEXT("dashing before the switch") + Tag, Ram && Ram->IsDashing());
+			}
+			else
+			{
+				TestTrue(TEXT("winding up before the switch") + Tag, Ram && Ram->IsPowerActive() && !Ram->IsDashing());
+			}
+			TestTrue(TEXT("switch allowed") + Tag, S.Squad->RequestSwitchTo(ETDShipId::Rift));
+			S.W.Tick(Step);
+			S.W.Tick(Step);
+			TestFalse(TEXT("ram over once Lancer is AI-flown") + Tag, Ram && Ram->IsPowerActive());
+			TestFalse(TEXT("no Ram speed override left") + Tag, Lancer->GetShipMovement()->HasSpeedOverrideFor(TEXT("Ram")));
+			bool bEverDashedUnderAI = false;
+			for (float T = 0.f; T < 2.f; T += Step)
+			{
+				S.W.Tick(Step);
+				bEverDashedUnderAI |= Ram && Ram->IsDashing();
+			}
+			TestFalse(TEXT("never dashes under AI") + Tag, bEverDashedUnderAI);
+			const UTDHealthComponent* Health = UTDStatics::GetHealth(Lancer);
+			TestFalse(TEXT("not left invulnerable") + Tag, Health && Health->IsInvulnerable());
+			TestTrue(TEXT("back to normal speed") + Tag, Lancer->GetVelocity().Size() <= Lancer->GetShipMovement()->GetFlightTuning().BoostSpeed * 1.05f);
+		}
+
+		// One portal placed, then a switch: it closes. A full pair stays open (the confirmed rule).
+		for (const int32 Placed : { 1, 2 })
+		{
+			const FString Tag = FString::Printf(TEXT(" @ %.0f fps, %d portal(s)"), 1.f / Step, Placed);
+			TDPowerRealInputTest::FSquad S(Step);
+			ATDShip* Rift = S.Fly(ETDShipId::Rift);
+			S.W.Advance(1.1f, Step);
+			UTDPortalBlasterPower* Portal = S.Power<UTDPortalBlasterPower>(Rift, ETDPowerInput::Signature1);
+			S.Press(Rift, ETDPowerInput::Signature1);
+			if (Placed == 2)
+			{
+				Rift->SetActorRotation(Rift->GetActorRotation() + FRotator(0.f, 90.f, 0.f));
+				S.Press(Rift, ETDPowerInput::Signature1);
+			}
+			TestEqual(TEXT("portals placed") + Tag, Portal ? Portal->GetPortals().Num() : -1, Placed);
+			TestTrue(TEXT("switch allowed") + Tag, S.Squad->RequestSwitchTo(ETDShipId::Lancer));
+			S.W.Advance(0.2f, Step);
+			if (Placed == 1)
+			{
+				TestFalse(TEXT("lone portal closed: no orphan") + Tag, Portal && Portal->IsPowerActive());
+				TestEqual(TEXT("no portal left") + Tag, Portal ? Portal->GetPortals().Num() : -1, 0);
+			}
+			else
+			{
+				TestTrue(TEXT("a full pair keeps running after the switch") + Tag, Portal && Portal->IsPowerActive() && Portal->GetPortals().Num() == 2);
+			}
+		}
 	}
 	return true;
 }
