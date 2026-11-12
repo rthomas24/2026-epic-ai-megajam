@@ -5,6 +5,9 @@
 #include "Engine/World.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "Misc/PackageName.h"
+#include "TriadDrift/Core/TDInterfaces.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 
 UTDTravelSubsystem* UTDTravelSubsystem::Get(const UObject* WorldContextObject)
 {
@@ -118,6 +121,68 @@ bool UTDTravelSubsystem::GetPlayBounds(FVector& OutCenter, float& OutRadius) con
 	OutCenter = PlayBoundsCenter;
 	OutRadius = PlayBoundsRadius;
 	return bHasPlayBounds;
+}
+
+void UTDTravelSubsystem::AddHyperdriveLock(FName Owner, FText Reason)
+{
+	HyperdriveLocks.RemoveAll([Owner](const TPair<FName, FText>& L) { return L.Key == Owner; });
+	HyperdriveLocks.Emplace(Owner, Reason);
+}
+
+void UTDTravelSubsystem::RemoveHyperdriveLock(FName Owner)
+{
+	HyperdriveLocks.RemoveAll([Owner](const TPair<FName, FText>& L) { return L.Key == Owner; });
+}
+
+bool UTDTravelSubsystem::IsHyperdriveLocked(FText& OutReason) const
+{
+	if (HyperdriveLocks.Num() == 0)
+	{
+		return false;
+	}
+	OutReason = HyperdriveLocks.Last().Value;
+	return true;
+}
+
+bool UTDTravelSubsystem::CanRequestLevelTravel(FText* OutReason) const
+{
+	auto Fail = [OutReason](const TCHAR* Key, const TCHAR* Text)
+	{
+		if (OutReason) { *OutReason = FText::AsCultureInvariant(Text); }
+		return false;
+	};
+	if (bLevelTravelRequested)
+	{
+		return Fail(TEXT("Requested"), TEXT("Travel already requested from this level"));
+	}
+	const UWorld* World = GetWorld();
+	if (const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr)
+	{
+		if (GI->IsTravelPending())
+		{
+			return Fail(TEXT("Pending"), TEXT("Travel already pending"));
+		}
+		if (GI->IsRetakePending())
+		{
+			return Fail(TEXT("Retake"), TEXT("Retake pending"));
+		}
+	}
+	return true;
+}
+
+bool UTDTravelSubsystem::RequestLevelTravel(ETDDestination Destination, FName ReturnPoint)
+{
+	if (!CanRequestLevelTravel())
+	{
+		return false;
+	}
+	ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
+	if (!Flow)
+	{
+		return false;
+	}
+	bLevelTravelRequested = Flow->TravelTo(Destination, ReturnPoint);
+	return bLevelTravelRequested;
 }
 
 void UTDTravelSubsystem::RegisterPad(ATDLandingPad* Pad)

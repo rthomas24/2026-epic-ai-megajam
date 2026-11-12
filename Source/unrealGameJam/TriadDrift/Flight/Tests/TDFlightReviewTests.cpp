@@ -18,6 +18,7 @@
 #include "EnhancedPlayerInput.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputAction.h"
+#include "Camera/CameraActor.h"
 
 /** Reaches the controller's private input state and handlers (tests only). */
 struct FTDSpaceControllerTestAccess
@@ -615,6 +616,39 @@ bool FTDReviewInputRouting::RunTest(const FString& Parameters)
 	TestEqual(TEXT("disabled controller doesn't overwrite scripted input"), Ship->GetFlightInput().Throttle, -1.f);
 	TestEqual(TEXT("scripted aim kept"), (float)Ship->GetFlightInput().Aim.X, 0.3f, 0.001f);
 	TestTrue(TEXT("Pause works while paused"), PC->FindActionByName(TEXT("IA_Pause"))->bTriggerWhenPaused);
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewAimRay, "TriadDrift.Flight.Input.AimRayIgnoresViewTarget", TD_TEST_FLAGS)
+bool FTDReviewAimRay::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(1000.f, -2000.f, 500.f), FRotator(0.f, 30.f, 0.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	Ship->SetFlightParked(true); // hold still so directions compare exactly
+	W.Tick();
+	W.Tick();
+
+	const FVector Centre = PC->GetAimWorldDirectionForViewport(1920, 1080);
+	TestTrue(TEXT("centred reticle aims along the nose"), FVector::DotProduct(Centre, Ship->GetActorForwardVector()) > 0.999f);
+
+	FTDSpaceControllerTestAccess Access{ PC };
+	Access.Mouse(FVector2D(100.f, 0.f)); // reticle to the right
+	const FVector Right = PC->GetAimWorldDirectionForViewport(1920, 1080);
+	TestTrue(TEXT("reticle right aims right of the nose"), FVector::DotProduct(Right, Ship->GetActorRightVector()) > 0.05f);
+
+	// A director shot takes the view target: the aim must not move.
+	ACameraActor* Director = W.Spawn<ACameraActor>(FVector(50000.f, 40000.f, 9000.f), FRotator(-20.f, -120.f, 15.f));
+	PC->SetViewTarget(Director);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("view target really switched"), PC->GetViewTarget() == Director);
+	const FVector DuringShot = PC->GetAimWorldDirectionForViewport(1920, 1080);
+	TestTrue(FString::Printf(TEXT("aim unchanged by the director camera (dot %.5f)"), FVector::DotProduct(DuringShot, Right)), FVector::DotProduct(DuringShot, Right) > 0.9999f);
+	TestTrue(TEXT("headless default viewport works"), !PC->GetAimWorldDirection().IsNearlyZero());
 	return true;
 }
 

@@ -49,19 +49,44 @@ public:
 
 	// ---- Gameplay overrides -----------------------------------------------------------------------
 
-	/** Forces a speed (hyperdrive, ram). SteeringScale multiplies turn/roll rates while active. */
+	/**
+	 * Keyed speed override (hyperdrive "Hyperdrive", atmospheric entry "AtmosphereEntry", T2's ram "Ram",
+	 * enemy AI...). Requests stack: the most recent request is the one flown; setting an existing owner
+	 * updates it and moves it to the top. Clearing an owner removes only its request, so the previous
+	 * owner's override is restored rather than everything being cleared.
+	 * Steering multiplies turn/roll rates; Acceleration < 0 uses the default (60000 cm/s^2).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetSpeedOverrideFor(FName Owner, float SpeedCmPerSec, float SteeringScale = 1.f, float AccelerationCmPerSec2 = -1.f);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ClearSpeedOverrideFor(FName Owner);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool HasSpeedOverrideFor(FName Owner) const;
+
+	/** Owner of the override currently flown (NAME_None = the unkeyed legacy request, or none at all). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	FName GetActiveSpeedOverrideOwner() const { return OverrideStack.Num() > 0 ? OverrideStack.Last().Owner : NAME_None; }
+
+	/** Legacy unkeyed override: the request owned by NAME_None in the stack. Prefer the keyed calls. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void SetSpeedOverride(float SpeedCmPerSec, float SteeringScale = 1.f);
 
+	/** Clears only the unkeyed (NAME_None) request; keyed owners keep theirs. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ClearSpeedOverride();
 
-	/** Acceleration used to reach the override speed; negative restores the default (60000 cm/s^2). */
+	/** Acceleration for the unkeyed request (now and future); negative restores the default (60000 cm/s^2). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void SetOverrideAcceleration(float AccelerationCmPerSec2);
 
+	/** Any override active (any owner). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
-	bool HasSpeedOverride() const { return Context.bSpeedOverride; }
+	bool HasSpeedOverride() const { return OverrideStack.Num() > 0; }
+
+	/** Drops every override request (reset / respawn). */
+	void ClearAllSpeedOverrides();
 
 	/**
 	 * AI catch-up allowance (wingman formation): Throttle +1 flies at TopSpeed instead of cruise, with
@@ -205,6 +230,18 @@ private:
 	/** Velocity we wrote last tick; a mismatch means someone outside changed Velocity (knockback). */
 	FVector LastWrittenVelocity = FVector::ZeroVector;
 	double LastCollisionDamageTime = -1000.0;
+	struct FSpeedOverrideRequest
+	{
+		FName Owner;
+		float Speed = 0.f;
+		float Steering = 1.f;
+		float Acceleration = -1.f;
+	};
+	/** Override requests, oldest first; the last one is flown. */
+	TArray<FSpeedOverrideRequest> OverrideStack;
+	float LegacyOverrideAcceleration = -1.f;
+	void ApplyOverrideStack();
+
 	int32 AppliedPlayBoundsVersion = -1;
 	bool bWorldBoundsApplied = false;
 	void ApplyWorldPlayBounds();
