@@ -38,8 +38,12 @@ Hyperdrive, atmosphere and landing are in [travel.md](travel.md).
     slow-motion shot, the cooldown, or when the ship isn't player-flown (wingmen and enemies never dodge).
   - API: `ATDShip::TryDodge(±1)`, `UTDShipMovementComponent::RequestDodge` / `CanDodge` / `IsDodging` /
     `GetDodgeReady01` (HUD pip), `OnDodge(Direction)`, and the cue request `"Dodge"`.
-  - Measured against three real fighters (`Flight.Feel.EvasiveFlyingReducesHits`, 6 seeds): weaving takes about
-    57–67% of straight-line damage, and weaving with well-timed dodges about 40–50%.
+  - Measured against three real fighters (`Flight.Feel.EvasiveFlyingReducesHits`, 6 seeds, fully deterministic
+    with T4's spawn seeds), against flying straight:
+    - weaving alone: 51%
+    - weaving with well-timed dodges: 25%, which meets the Lead's 35% target and is asserted
+    - drifting: 121%, observation only
+    - strafing: 144%, observation only
   - At the 60 m/s first spec the dodge gave no measurable gain, so `DodgeSpeed` is 100 m/s; a sweep is in
     `TDExplore.Flight.DodgeSweep`.
 - **Boost:**
@@ -210,7 +214,7 @@ To capture screenshots:
 | `Rotation.TurnAndRollRateCaps` | 110 / 110 / 180°/s, roll direction, auto-level, visual bank |
 | `Strafe.LateralAndVertical` | `StrafeSpeed` (4000 cm/s) on both axes |
 | `Review.DodgeMovesTheHullAndRespectsGates` | ~speed × time sideways at 30/60/120 fps, also boosting and drifting; no invulnerability; cooldown; refused for wingmen, the ram, hyperdrive spool and slow motion |
-| `Feel.EvasiveFlyingReducesHits` | three real fighters, 6 seeds: weaving clearly below straight, weave + timed dodge ≤ 62% (target 35%, reported), drift no worse than straight |
+| `Feel.EvasiveFlyingReducesHits` | three real fighters, 6 seeds, deterministic: weave + timed dodge ≤ 35% of straight-line damage (asserted); weave, drift and strafe printed only |
 | `Boundary.SteersBack` / `Boundary.CannotBeOutSteered` / `Boundary.SurvivesApplyFlightTuning` | warn band, steer and push; a pilot fighting it (aim out, boost, drift) is held within 400 m; bounds survive a later tuning |
 | `FrameRate.SameAt30And120` | the same scripted flight at 30, 60 and 120 fps is within 5 cm; 37 fps is within 0.5% |
 | `Robustness.BadInputAndTime` | zero, negative and NaN dt; NaN and infinite inputs; hitch clamp |

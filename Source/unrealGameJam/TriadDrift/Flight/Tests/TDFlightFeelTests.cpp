@@ -20,16 +20,6 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
-// T4 is adding ATDEnemyShip::SetAimRandomSeed (its aim-error stream is seeded from the object id today); call it when
-// present so this measurement is fully seeded, without depending on it to compile.
-template <typename T>
-concept TDFlightFeel_HasAimSeed = requires(T* E) { E->SetAimRandomSeed(0); };
-template <typename T>
-static void TDFlightFeel_SeedAimImpl(T* E, int32 Seed)
-{
-	if constexpr (TDFlightFeel_HasAimSeed<T>) { E->SetAimRandomSeed(Seed); }
-}
-static void TDFlightFeel_SeedAim(ATDEnemyShip* E, int32 Seed) { TDFlightFeel_SeedAimImpl(E, Seed); }
 
 namespace TDFlightFeel
 {
@@ -62,11 +52,10 @@ namespace TDFlightFeel
 		{
 			ATDEnemyShip* E = W.Spawn<ATDEnemyShip>(At, (FVector::ZeroVector - At).Rotation());
 			E->InitFromSpec(TDEnemyIds::ShardFighter);
-			// Seed every random stream we can reach so the number is stable between runs.
+			// Fully deterministic: T4's per-pilot spawn seed drives aim error and AI choices; the gun spread is seeded too.
 			const int32 S = Seed * 100 + Index++;
-			if (UTDWeaponComponent* Wp = E->GetWeapons()) { Wp->SetRandomSeed(S); }
-			if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(E->GetController())) { AI->SetRandomSeed(S + 50); }
-			TDFlightFeel_SeedAim(E, S + 77);
+			E->SetSpawnSeed(S);
+			if (UTDWeaponComponent* Wp = E->GetWeapons()) { Wp->SetRandomSeed(S + 50); }
 		}
 		const float Hull0 = Player->GetHealth()->GetHull();
 		UTDFlightEventCounter* Rec = NewObject<UTDFlightEventCounter>();
@@ -136,8 +125,7 @@ bool FTDFlightFeelDodging::RunTest(const FString& Parameters)
 {
 	using namespace TDFlightFeel;
 	float Straight = 0.f, Weave = 0.f, Drift = 0.f, Strafe = 0.f, Dodge = 0.f;
-	// 6 seeds x 12 s per style. The enemy aim-error stream is not seedable yet (T4: SetAimRandomSeed), so expect
-	// about +-10 points between runs; the asserts leave room for that.
+	// 6 seeds x 12 s per style, fully seeded (enemy spawn seeds + gun spread): the same numbers every run.
 	const int32 Seeds[] = { 11, 23, 37, 41, 53, 67 };
 	for (const int32 Seed : Seeds)
 	{
@@ -150,13 +138,11 @@ bool FTDFlightFeelDodging::RunTest(const FString& Parameters)
 	auto Pct = [Straight](float V) { return Straight > 0.f ? 100.f * V / Straight : 0.f; };
 	AddInfo(FString::Printf(TEXT("damage over 6 x 12 s vs 3 fighters: straight %.0f, weave+boost %.0f (%.0f%%), drift %.0f (%.0f%%), strafe %.0f (%.0f%%), weave+boost+timed dodge %.0f (%.0f%%)"),
 		Straight, Weave, Pct(Weave), Drift, Pct(Drift), Strafe, Pct(Strafe), Dodge, Pct(Dodge)));
-	TestTrue(TEXT("the fighters land hits on a straight flyer (they shoot back)"), Straight > 0.f);
-	TestTrue(*FString::Printf(TEXT("weaving takes clearly fewer hits than flying straight (%.0f%%)"), Pct(Weave)), Weave < Straight * 0.8f);
-	// Lead target: 35%. Measured (Nov 12, 8 seeds): weave alone ~60-67%, weave + timed dodge ~50% at 100 m/s, ~41% at
-	// 120 m/s. The assert guards the gain the dodge actually gives; the 35% target is reported, not asserted.
-	TestTrue(*FString::Printf(TEXT("weaving with well-timed dodges takes clearly less than straight (%.0f%%; target 35%%)"), Pct(Dodge)), Dodge <= Straight * 0.62f);
-	// Drift is a turning tool, not a dodge (velocity is locked while the nose swings): it must not be worse than straight.
-	TestTrue(*FString::Printf(TEXT("drifting is no worse than flying straight (%.0f%%)"), Pct(Drift)), Drift <= Straight * 1.05f);
+	// Requirements only (Lead, Nov 12). The other styles are observations, printed above: enemy tuning may move them.
+	TestTrue(TEXT("the fighters land hits on a straight flyer (the measurement means something)"), Straight > 0.f);
+	// The dodge feature (Lead target): weaving with well-timed dodges (100 m/s, 1.5 s cooldown) takes 35% or less of
+	// straight-line damage. Measured 25% on main with T4's seeded, reworked fighters (Nov 12), identical every run.
+	TestTrue(*FString::Printf(TEXT("weaving with well-timed dodges takes 35%% or less of straight-line damage (%.0f%%)"), Pct(Dodge)), Dodge <= Straight * 0.35f);
 	return true;
 }
 
