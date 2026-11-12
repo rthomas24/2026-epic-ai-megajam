@@ -10,6 +10,7 @@
 #include "EngineUtils.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -97,6 +98,9 @@ bool FTDRetakeLocksFollowState::RunTest(const FString& Parameters)
 		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
 		ATDDominion* Dom = W.Spawn<ATDDominion>(FVector(100000.f, 0.f, 0.f));
 		Dom->MaxLaunchedAlive = 0;
+		ATDSpacecraft* Arrived = W.Spawn<ATDSpacecraft>(FVector(60000.f, 0.f, 0.f));	// the squad is at the Dominion
+		Arrived->SetTeam(ETDTeam::Player);
+		if (UTDHealthComponent* H = Arrived->GetHealth()) { H->DefaultTeam = ETDTeam::Player; H->InitMaxValues(1e6f, 0.f, true); H->SetInvulnerable(true); }
 		GI->Progress.bDominionRevealed = true;
 		W.Advance(Dom->ProgressPollSeconds + Dom->WarpInSeconds + 0.5f);
 		TestTrue(TEXT("finale locked"), LockReason(W).Contains(TEXT("DOMINION")));
