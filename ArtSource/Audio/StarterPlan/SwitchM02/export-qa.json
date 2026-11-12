@@ -1,0 +1,126 @@
+{
+  "method": "Independent decoded PCM byte inspection; no auditory or Unreal verification",
+  "files": [
+    {
+      "file": "audition/SW_TD_Bastion_Switch_M02.wav",
+      "bytes": 512684,
+      "sha256": "8270b46ac035f3778ea05db4b0c8d767ddf08e942d47ed0c42fc43d18cfd50b0",
+      "header": {
+        "channels": 2,
+        "sample_rate": 48000,
+        "bytes_per_sample": 3,
+        "frames": 85440,
+        "compression": "NONE"
+      },
+      "duration_s": 1.78,
+      "peak_dbfs": -3.2524196073483487,
+      "clipped_samples": 0,
+      "dc_offset_dbfs": -204.85134566472627,
+      "onset_above_minus_50_dbfs_ms": 0.3125,
+      "channel_rms_dbfs": [
+        -23.599547942123085,
+        -23.543381270281884
+      ],
+      "correlation": 0.9838812383132047,
+      "mono_rms_dbfs": -23.60656209140306,
+      "spectral_energy_percent": {
+        "0-120Hz": 51.529,
+        "120-500Hz": 34.085,
+        "500-2000Hz": 13.082,
+        "2000-8000Hz": 1.27,
+        "8000-24000Hz": 0.035
+      },
+      "checks": {
+        "pcm24_stereo_48k": true,
+        "no_clipped_samples": true,
+        "sample_peak_below_minus_2_9": true,
+        "offset_below_minus_100_dbfs": true,
+        "clean_file_edges": true,
+        "immediate_event_onset": true,
+        "positive_mono_compatibility": true
+      },
+      "passed": true
+    },
+    {
+      "file": "audition/SW_TD_Lancer_Switch_M02.wav",
+      "bytes": 368684,
+      "sha256": "e19782adeab22c6d79d33d186491bd7d7059945b65617ae98ad0fd40fc5f97a5",
+      "header": {
+        "channels": 2,
+        "sample_rate": 48000,
+        "bytes_per_sample": 3,
+        "frames": 61440,
+        "compression": "NONE"
+      },
+      "duration_s": 1.28,
+      "peak_dbfs": -4.028362460157662,
+      "clipped_samples": 0,
+      "dc_offset_dbfs": -197.0961722172751,
+      "onset_above_minus_50_dbfs_ms": 1.0833333333333333,
+      "channel_rms_dbfs": [
+        -23.67030469947649,
+        -24.09651135687795
+      ],
+      "correlation": 0.9641833507396358,
+      "mono_rms_dbfs": -23.959226158448498,
+      "spectral_energy_percent": {
+        "0-120Hz": 9.09,
+        "120-500Hz": 34.778,
+        "500-2000Hz": 46.959,
+        "2000-8000Hz": 8.243,
+        "8000-24000Hz": 0.93
+      },
+      "checks": {
+        "pcm24_stereo_48k": true,
+        "no_clipped_samples": true,
+        "sample_peak_below_minus_2_9": true,
+        "offset_below_minus_100_dbfs": true,
+        "clean_file_edges": true,
+        "immediate_event_onset": true,
+        "positive_mono_compatibility": true
+      },
+      "passed": true
+    },
+    {
+      "file": "audition/SW_TD_Rift_Switch_M02.wav",
+      "bytes": 466604,
+      "sha256": "1db4b41aeed8798ed594797debe24d4d975730026266883eb00c1a9bb93445e5",
+      "header": {
+        "channels": 2,
+        "sample_rate": 48000,
+        "bytes_per_sample": 3,
+        "frames": 77760,
+        "compression": "NONE"
+      },
+      "duration_s": 1.62,
+      "peak_dbfs": -3.027459240217208,
+      "clipped_samples": 0,
+      "dc_offset_dbfs": -190.2683231305161,
+      "onset_above_minus_50_dbfs_ms": 0.8541666666666666,
+      "channel_rms_dbfs": [
+        -24.862801085022056,
+        -25.634644301034406
+      ],
+      "correlation": 0.9319933599809724,
+      "mono_rms_dbfs": -25.39009437932098,
+      "spectral_energy_percent": {
+        "0-120Hz": 16.019,
+        "120-500Hz": 36.039,
+        "500-2000Hz": 29.21,
+        "2000-8000Hz": 18.411,
+        "8000-24000Hz": 0.321
+      },
+      "checks": {
+        "pcm24_stereo_48k": true,
+        "no_clipped_samples": true,
+        "sample_peak_below_minus_2_9": true,
+        "offset_below_minus_100_dbfs": true,
+        "clean_file_edges": true,
+        "immediate_event_onset": true,
+        "positive_mono_compatibility": true
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

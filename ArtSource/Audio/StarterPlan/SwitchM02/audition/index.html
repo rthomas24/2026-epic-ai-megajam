@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Triad Drift · Cinematic switch review</title>
+<style>
+:root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;color:#e2e9f1;background:#080d16}*{box-sizing:border-box}body{margin:0}main{max-width:1050px;margin:auto;padding:52px 24px 70px}.eyebrow{font-size:12px;letter-spacing:.15em;color:#a7bacb}h1{font-weight:550;letter-spacing:-.04em;font-size:clamp(30px,5vw,52px);line-height:1.1;margin:20px 0}p{max-width:740px;color:#aec0d0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:30px 0}.card{padding:24px 20px;background:#101b29;border:1px solid #2c3e50;border-top:3px solid var(--accent);border-radius:7px}h2{color:var(--accent);font-size:22px;margin:0 0 4px}.card p{font-size:14px;min-height:110px}audio{width:100%;margin:12px 0}a{color:#b9ddff;text-underline-offset:4px}a:focus-visible,button:focus-visible{outline:3px solid #fff;outline-offset:4px}button{font:inherit;color:inherit;background:#1d2d41;border:1px solid #698098;border-radius:4px;padding:8px 16px;cursor:pointer}.status{font-size:13px;border-left:2px solid #7492ae;padding:8px 16px}.meta{font-size:12px;color:#9caec0}.help{margin-top:28px} @media(max-width:760px){.grid{grid-template-columns:1fr}.card p{min-height:0}main{padding-top:32px}}
+</style>
+<main>
+<div class="eyebrow">TRIAD DRIFT / AUDIO &amp; MUSIC / SWITCH M02</div>
+<h1>Three ships. Three cinematic cuts.</h1>
+<p>Original layered procedural sound-design candidates. Each file starts at the switch event; the mechanical body and tail unfold after the camera cut. Review at a comfortable volume, then compare on headphones and speakers.</p>
+<p class="status">Awaiting Nicholas's listening approval. Technical export checks do not establish sound quality or an Unreal gameplay mix.</p>
+<div class="grid">
+<section class="card" style="--accent:#f286e1"><h2>Rift</h2><div class="eyebrow">SPATIAL TEAR · 1.62 S</div><p>A pressure implosion and textured dimensional wake, with a moving air layer and short, dark reflections.</p><audio controls preload="metadata" aria-label="Rift switch candidate"><source src="SW_TD_Rift_Switch_M02.wav" type="audio/wav">Open the WAV link below to listen.</audio><a href="SW_TD_Rift_Switch_M02.wav" download>Rift WAV</a></section>
+<section class="card" style="--accent:#7dddfa"><h2>Lancer</h2><div class="eyebrow">MECHANICAL SURGE · 1.28 S</div><p>Fast armature contacts lock into a broad turbine pressure surge. A compact, bright attack emphasizes speed.</p><audio controls preload="metadata" aria-label="Lancer switch candidate"><source src="SW_TD_Lancer_Switch_M02.wav" type="audio/wav">Open the WAV link below to listen.</audio><a href="SW_TD_Lancer_Switch_M02.wav" download>Lancer WAV</a></section>
+<section class="card" style="--accent:#f2bd67"><h2>Bastion</h2><div class="eyebrow">ARMORED ENGAGEMENT · 1.78 S</div><p>Offset heavy clamps, damped plate vibration and deep pressure weight settle into a restrained spatial tail.</p><audio controls preload="metadata" aria-label="Bastion switch candidate"><source src="SW_TD_Bastion_Switch_M02.wav" type="audio/wav">Open the WAV link below to listen.</audio><a href="SW_TD_Bastion_Switch_M02.wav" download>Bastion WAV</a></section>
+</div>
+<button id="stop" type="button">Stop playback</button>
+<p class="meta">48,000 Hz · 24-bit PCM · stereo · matched short-SFX loudness · ≥3 dB measured interpolated headroom. No autoplay, network requests or live tone synthesis.</p>
+<p class="help">Review: Are the ships identifiable with your eyes closed? Does each feel physical and substantial? Is the transient comfortable after repeated switching? Does Bastion retain clarity on small speakers? Do the tails stay out of the way of rapid cuts?</p>
+<p class="meta"><a href="../README.md">Design and integration handoff</a> · <a href="../verification.json">Render measurements</a> · <a href="../export-qa.json">Decoded export checks</a></p>
+</main>
+<script>
+const players=[...document.querySelectorAll('audio')];
+for(const player of players)player.addEventListener('play',()=>{for(const other of players)if(other!==player){other.pause();other.currentTime=0}});
+document.querySelector('#stop').addEventListener('click',()=>{for(const player of players){player.pause();player.currentTime=0}});
+</script></html>

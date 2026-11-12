@@ -1,0 +1,29 @@
+{
+  "milestone": "Triad Drift cinematic ship-switch candidates M02",
+  "date": "2026-11-12",
+  "author": "Nicholas Tosti / OpenAI Codex Audio & Music Agent",
+  "audio_origin": "Original deterministic procedural sound design; no third-party audio incorporated",
+  "source": "render_switches.py in this directory; seed 261112",
+  "files": [
+    "audition/SW_TD_Rift_Switch_M02.wav",
+    "audition/SW_TD_Lancer_Switch_M02.wav",
+    "audition/SW_TD_Bastion_Switch_M02.wav"
+  ],
+  "tools_used": [
+    {"name": "OpenAI Codex", "usage": "AI-assisted original DSP code, design, documentation and export QA"},
+    {"name": "Python", "version": "3.13.9", "usage": "Standalone offline audio rendering; existing Blender distribution interpreter; Blender not launched", "software_license": "Python Software Foundation License; runtime not redistributed"},
+    {"name": "NumPy", "version": "2.3.4", "usage": "Seeded stochastic synthesis, FFTs, PCM measurement", "software_license": "BSD-3-Clause; package not redistributed"}
+  ],
+  "asset_license": "Original project-created assets; distribution governed by the team's repository/project licensing policy. No separate third-party audio license asserted.",
+  "third_party_audio": [],
+  "external_audio_acquired": false,
+  "paid_credits_spent": 0,
+  "reviewed_sources_not_used": [
+    {"name": "Project template grenade audio", "status": "Filename inventory only; not extracted or used"},
+    {"name": "WeLoveIndies jam offer", "status": "Resources document identifies conditional non-commercial offer; account/grant not verified, not downloaded or used"},
+    {"name": "Kenney and Sonniss", "status": "Read prior source-plan notes only; not acquired or incorporated"},
+    {"name": "Previous five Web Audio tone sketches", "status": "Rejected stylistic references, source preserved read-only; no waveform reused"}
+  ],
+  "acceptance": "Manual listening review pending; numerical verification does not establish perceptual quality",
+  "root_credits_update": "Lead to append CREDITS-HANDOFF.md after review; worker has no root-document write claim"
+}

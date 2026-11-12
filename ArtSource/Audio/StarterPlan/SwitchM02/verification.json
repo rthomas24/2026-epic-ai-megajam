@@ -1,0 +1,56 @@
+{
+  "sample_rate": 48000,
+  "bit_depth": 24,
+  "channels": 2,
+  "seed": 261112,
+  "python": "3.13.9",
+  "numpy": "2.3.4",
+  "level_reference": "BS.1770 gated short-SFX loudness; not perceptual approval",
+  "target_lufs": -19.956,
+  "listening_status": "Manual headphone/speaker review pending; no claim of auditory QA",
+  "unreal_status": "Not imported or runtime-tested",
+  "files": [
+    {
+      "ship": "Rift",
+      "file": "audition/SW_TD_Rift_Switch_M02.wav",
+      "duration_s": 1.62,
+      "sample_peak_dbfs": -3.027,
+      "true_peak_dbfs_4x_fft": -3.0,
+      "short_sfx_lufs": -19.956,
+      "rms_dbfs": -25.232,
+      "dc_offset": 4.2832527615969114e-18,
+      "stereo_correlation": 0.932,
+      "mono_downmix_peak_dbfs": -3.676,
+      "tail_100ms_rms_dbfs": -75.786,
+      "sha256": "1db4b41aeed8798ed594797debe24d4d975730026266883eb00c1a9bb93445e5"
+    },
+    {
+      "ship": "Lancer",
+      "file": "audition/SW_TD_Lancer_Switch_M02.wav",
+      "duration_s": 1.28,
+      "sample_peak_dbfs": -4.028,
+      "true_peak_dbfs_4x_fft": -3.913,
+      "short_sfx_lufs": -19.956,
+      "rms_dbfs": -23.878,
+      "dc_offset": 1.4625527518290944e-18,
+      "stereo_correlation": 0.9642,
+      "mono_downmix_peak_dbfs": -4.813,
+      "tail_100ms_rms_dbfs": -84.127,
+      "sha256": "e19782adeab22c6d79d33d186491bd7d7059945b65617ae98ad0fd40fc5f97a5"
+    },
+    {
+      "ship": "Bastion",
+      "file": "audition/SW_TD_Bastion_Switch_M02.wav",
+      "duration_s": 1.78,
+      "sample_peak_dbfs": -3.252,
+      "true_peak_dbfs_4x_fft": -3.252,
+      "short_sfx_lufs": -19.956,
+      "rms_dbfs": -23.571,
+      "dc_offset": 5.0831609899039276e-18,
+      "stereo_correlation": 0.9839,
+      "mono_downmix_peak_dbfs": -3.662,
+      "tail_100ms_rms_dbfs": -65.032,
+      "sha256": "8270b46ac035f3778ea05db4b0c8d767ddf08e942d47ed0c42fc43d18cfd50b0"
+    }
+  ]
+}
