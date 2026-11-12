@@ -1,0 +1,10 @@
+{
+  "asset": "Triad Drift texture-free VFX starter kit",
+  "files": ["build_unreal.py", "shaders/*.ush", "preview.html"],
+  "source": "Original code and procedural artwork authored for Nicholas Tosti using OpenAI Codex",
+  "license": "Original project work; no third-party art, textures or fonts bundled",
+  "added_by": "Nicholas / Codex VFX Agent",
+  "tools_used": ["OpenAI Codex"],
+  "external_references": "Epic Unreal Python API documentation, linked in README.md; no downloaded source or media",
+  "delivery": "Source-only. No native Unreal assets, screenshots, textures or audio generated."
+}
