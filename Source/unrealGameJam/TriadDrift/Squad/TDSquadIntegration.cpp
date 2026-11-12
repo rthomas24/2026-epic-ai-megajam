@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDPresentation.h"
 
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -251,6 +252,15 @@ namespace TDSquad
 			{
 				H->SetInvulnerableFor(Seconds);
 			}
+		}
+	}
+
+	void RepairHull(AActor* Actor, float Amount)
+	{
+		UTDHealthComponent* H = Health(Actor);
+		if (H && H->IsAlive() && Amount > 0.f && H->GetHull01() < 1.f)
+		{
+			H->RepairHull(Amount);
 		}
 	}
 
@@ -622,6 +632,40 @@ namespace TDSquad
 		if (UTDEventBus* Bus = UTDEventBus::Get(Wingman))
 		{
 			Bus->OnSpacecraftTeleported.RemoveDynamic(Wingman, &ATDWingmanAIController::HandleSpacecraftTeleported);
+		}
+	}
+
+	void BindWaveEvents(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnWaveCleared.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
+			Bus->OnWaveStarted.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
+		}
+	}
+
+	void UnbindWaveEvents(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnWaveCleared.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
+			Bus->OnWaveStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
+		}
+	}
+
+	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		if (bAttached)
+		{
+			UTDStatics::PlayCueAttached(Cue, Ship->GetRootComponent());
+		}
+		else
+		{
+			UTDStatics::PlayCue(Ship, Cue, Ship->GetActorLocation(), Ship->GetActorRotation());
 		}
 	}
 

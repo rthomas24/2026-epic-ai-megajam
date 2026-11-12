@@ -6,6 +6,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "TriadDrift/Core/TDPresentation.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDSquad, Log, All);
 
@@ -62,11 +63,13 @@ void ATDSquadManager::BeginPlay()
 	Super::BeginPlay();
 	TDSquadManagerPrivate::GInstances.AddUnique(this);
 	TDSquad::BindPowerUsed(this);
+	TDSquad::BindWaveEvents(this);
 }
 
 void ATDSquadManager::EndPlay(const EEndPlayReason::Type Reason)
 {
 	TDSquad::UnbindPowerUsed(this);
+	TDSquad::UnbindWaveEvents(this);
 	EndSwitchStrike();
 	TDSquadManagerPrivate::GInstances.Remove(this);
 	Super::EndPlay(Reason);
@@ -463,6 +466,15 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	}
 	TDSquad::SetVelocity(NewShip, NewVel);
 
+	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(Ship); V && *V)
+	{
+		TDSquad::PlayShipCue(NewShip, (*V)->SwitchIn, true);
+	}
+	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(OldId); V && *V && OldShip)
+	{
+		TDSquad::PlayShipCue(OldShip, (*V)->SwitchOut, true);
+	}
+
 	// 4) Switch-in grace (ENG-03) and Switch Strike (ENG-07).
 	TDSquad::SetInvulnerable(NewShip, SwitchInInvulnerability);
 	if (bArmSwitchStrike)
@@ -502,6 +514,16 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 // ---------------------------------------------------------------------------------------------
 // Powers & Switch Strike
 // ---------------------------------------------------------------------------------------------
+
+void ATDSquadManager::HandleWaveCleared(int32 WaveNumber)
+{
+	bBetweenWaves = true;
+}
+
+void ATDSquadManager::HandleWaveStarted(int32 WaveNumber, float Intensity01)
+{
+	bBetweenWaves = false;
+}
 
 void ATDSquadManager::NotifyPowerUsed(ETDShipId Ship)
 {
@@ -599,6 +621,18 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 		EndSwitchStrike();
 	}
 
+	// ENG-03: the hull doesn't regenerate in combat but slowly repairs between waves.
+	if (bBetweenWaves && BetweenWaveHullRepairPerSecond > 0.f)
+	{
+		for (FTDSquadSlot& Slot : Slots)
+		{
+			if (Slot.State == ETDSquadSlotState::Alive)
+			{
+				TDSquad::RepairHull(Slot.Ship, BetweenWaveHullRepairPerSecond * DeltaSeconds);
+			}
+		}
+	}
+
 	for (FTDSquadSlot& Slot : Slots)
 	{
 		switch (Slot.State)
@@ -661,6 +695,10 @@ void ATDSquadManager::HandleShipDeath(ETDShipId Ship)
 void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 {
 	Slot.State = ETDSquadSlotState::Downed;
+	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(Slot.ShipId); V && *V)
+	{
+		TDSquad::PlayShipCue(Slot.Ship, (*V)->Explosion, false);
+	}
 	if (ATDShip* Ship = Slot.Ship)
 	{
 		TDSquad::SetTriggerHeld(Ship, ETDWeaponSlot::Primary, false);
@@ -724,6 +762,10 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 		}
 	}
 	bSquadWiped = false;
+	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(Slot.ShipId); V && *V)
+	{
+		TDSquad::PlayShipCue(Ship, (*V)->RespawnWarpIn, false);
+	}
 	TDSquad::BroadcastShipRespawned(this, Slot.ShipId);
 }
 

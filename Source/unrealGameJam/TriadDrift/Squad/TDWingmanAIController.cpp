@@ -372,6 +372,9 @@ void ATDWingmanAIController::FlyToPoint(ATDShip* Ship, const FVector& Point, con
 		const float LookAhead = FMath::Max(2500.f, RefSpeed * 0.6f);
 		Dir = (RefForward * LookAhead + Lateral).GetSafeNormal();
 		TargetSpeed = RefSpeed + FMath::Clamp(Along * FormationSpeedGain, -RefSpeed, 6000.f);
+		// A squadmate right ahead or behind can't be steered around at matched speed: open the gap
+		// along the track too (ahead of us -> ease off, behind us -> speed up).
+		TargetSpeed += FVector::DotProduct(ComputeSeparation(Ship), RefForward) * SeparationSpeedGain;
 		bBoost = Along > CatchUpBoostDistance; // short gap-closing burst when well behind
 	}
 	else
@@ -725,27 +728,36 @@ FVector ATDWingmanAIController::ApplyAvoidance(ATDShip* Ship, const FVector& Des
 	}
 
 	// Squadmates (and the player): keep TeammateSeparation.
-	FVector Separation = FVector::ZeroVector;
-	if (S)
-	{
-		for (const FTDSquadSlot& Slot : S->GetSlots())
-		{
-			const ATDShip* Mate = Slot.Ship;
-			if (Slot.State != ETDSquadSlotState::Alive || !Mate || Mate == Ship)
-			{
-				continue;
-			}
-			const FVector Delta = Loc - Mate->GetActorLocation();
-			const float D = Delta.Size();
-			if (D > KINDA_SMALL_NUMBER && D < TeammateSeparation)
-			{
-				Separation += (Delta / D) * (1.f - D / TeammateSeparation) * 2.f;
-			}
-		}
-	}
+	const FVector Separation = ComputeSeparation(Ship);
 
 	const FVector Result = (DesiredDir + CachedAvoidance + Separation).GetSafeNormal();
 	return Result.IsNearlyZero() ? DesiredDir : Result;
+}
+
+FVector ATDWingmanAIController::ComputeSeparation(const ATDShip* Ship) const
+{
+	FVector Separation = FVector::ZeroVector;
+	const ATDSquadManager* S = Squad.Get();
+	if (!S || !Ship)
+	{
+		return Separation;
+	}
+	const FVector Loc = Ship->GetActorLocation();
+	for (const FTDSquadSlot& Slot : S->GetSlots())
+	{
+		const ATDShip* Mate = Slot.Ship;
+		if (Slot.State != ETDSquadSlotState::Alive || !Mate || Mate == Ship)
+		{
+			continue;
+		}
+		const FVector Delta = Loc - Mate->GetActorLocation();
+		const float D = Delta.Size();
+		if (D > KINDA_SMALL_NUMBER && D < TeammateSeparation)
+		{
+			Separation += (Delta / D) * (1.f - D / TeammateSeparation) * TeammateSeparationStrength;
+		}
+	}
+	return Separation;
 }
 
 void ATDWingmanAIController::SetTriggers(bool bPrimary, bool bSecondary)

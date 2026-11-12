@@ -318,4 +318,16 @@ bool FTDDirectorTravel::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorDeflectBeat, "TriadDrift.Director.PerfectDeflectIsAShortBeat", TD_TEST_FLAGS)
+bool FTDDirectorDeflectBeat::RunTest(const FString& Parameters)
+{
+	FDirectorFixture F;
+	TestTrue(TEXT("perfect deflect accepted"), F.Director->ReportHighlight(ETDHighlightKind::PerfectDeflect, F.Player, 0.6f));
+	TestEqual(TEXT("ENG-22: 0.15 s beat, not a 0.5-1 s money shot"), F.Director->GetCurrentShot().DurationSeconds, 0.15f, 0.001f);
+	TestTrue(TEXT("slow-mo on"), F.SlowMo());
+	F.W.Advance(0.25f);
+	TestFalse(TEXT("over after 0.15 s"), F.SlowMo() || F.Director->IsShotActive());
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

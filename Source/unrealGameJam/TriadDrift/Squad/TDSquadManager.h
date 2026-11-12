@@ -14,6 +14,7 @@
 class ATDShip;
 class ATDWingmanAIController;
 class APlayerController;
+class UTDShipVisuals;
 
 /** C-03 #1: a switch, as a director's cut. Same frame as the switch; presentation only. */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnSwitchCut, const FTDSwitchCut&, Cut);
@@ -265,6 +266,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
 	FVector FormationRightOffset = FVector(-1600.f, 1600.f, -150.f);
 
+	/** ENG-03: hull points per second repaired on living squad ships between waves (after OnWaveCleared until OnWaveStarted). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
+	float BetweenWaveHullRepairPerSecond = 8.f;
+
+	/** Nick's per-ship presentation data (optional). Squad plays SwitchIn/SwitchOut, Explosion and RespawnWarpIn from it. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Presentation")
+	TMap<ETDShipId, TObjectPtr<UTDShipVisuals>> ShipVisuals;
+
+	UFUNCTION()
+	void HandleWaveCleared(int32 WaveNumber);
+
+	UFUNCTION()
+	void HandleWaveStarted(int32 WaveNumber, float Intensity01);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	bool IsBetweenWaves() const { return bBetweenWaves; }
+
 	/** Weapon-component multiplier key for Switch Strike (agreed with T2). */
 	static const FName SwitchStrikeKey;
 
@@ -308,6 +326,7 @@ protected:
 	TWeakObjectPtr<APlayerController> SquadPC;
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
+	bool bBetweenWaves = false;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	int32 SwitchCount = 0;
 	FTDSwitchCut LastSwitchCut;

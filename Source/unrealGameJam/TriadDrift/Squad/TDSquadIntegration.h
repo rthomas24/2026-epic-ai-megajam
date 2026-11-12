@@ -15,6 +15,7 @@ class ATDSquadManager;
 class ATDWingmanAIController;
 class UWorld;
 struct FTDShipSpec;
+struct FTDFXCue;
 
 namespace TDSquad
 {
@@ -43,6 +44,7 @@ namespace TDSquad
 	float GetHull01(const AActor* Actor);
 	float GetShield01(const AActor* Actor);
 	void SetInvulnerable(AActor* Actor, float Seconds);
+	void RepairHull(AActor* Actor, float Amount);
 	/** Full hull and shield, alive again. */
 	void RestoreFullHealth(AActor* Actor);
 
@@ -117,6 +119,13 @@ namespace TDSquad
 	/** Subscribe / unsubscribe Wingman->HandleSpacecraftTeleported to UTDEventBus::OnSpacecraftTeleported. */
 	void BindTeleported(ATDWingmanAIController* Wingman);
 	void UnbindTeleported(ATDWingmanAIController* Wingman);
+
+	/** Subscribe / unsubscribe Squad->HandleWaveCleared / HandleWaveStarted (between-wave hull repair). */
+	void BindWaveEvents(ATDSquadManager* Squad);
+	void UnbindWaveEvents(ATDSquadManager* Squad);
+
+	/** Presentation (Nick's UTDShipVisuals): null-safe; an empty cue does nothing. */
+	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached);
 
 	/** Subscribe / unsubscribe Wingman->HandleHyperdriveState to UTDEventBus::OnHyperdriveState. */
 	void BindHyperdriveState(ATDWingmanAIController* Wingman);
