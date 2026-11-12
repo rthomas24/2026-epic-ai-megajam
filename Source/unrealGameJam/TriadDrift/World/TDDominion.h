@@ -206,7 +206,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Dominion")
 	FTDDominionStateSignature OnBreakupStarted;
 
-	virtual ETDTeam GetTeam() const override { return ETDTeam::Enemy; }
+	/** The hull itself is Neutral so it blocks EVERY team's projectiles (trench cover works both ways). Its parts are Enemy. */
+	virtual ETDTeam GetTeam() const override { return ETDTeam::Neutral; }
 	virtual void Tick(float DeltaSeconds) override;
 
 	/** The hull's true size (the root is a bare scene component). */
@@ -230,7 +231,9 @@ protected:
 	void TickLaunches(float DeltaSeconds);
 	void LaunchGroup();
 	void OnDefensesDown(bool bFromSave);
-	void ExposeReactor();
+	void ExposeReactor(bool bPlayCues = true);
+	void LayoutParts();
+	virtual void OnConstruction(const FTransform& Transform) override;
 	void StartShieldIdle();
 	void StopShieldIdle();
 

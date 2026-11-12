@@ -64,14 +64,14 @@ void ATDDominionReactor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void ATDDominionReactor::SetExposed(bool bInExposed)
+void ATDDominionReactor::SetExposed(bool bInExposed, bool bPlayCue)
 {
 	bExposed = bInExposed;
 	if (Health)
 	{
 		Health->SetTargetable(bExposed && !bDestroyed);
 	}
-	if (bExposed && Visuals)
+	if (bExposed && Visuals && bPlayCue)
 	{
 		UTDStatics::PlayCue(this, Visuals->ReactorExposed, GetActorLocation(), GetActorRotation());
 	}

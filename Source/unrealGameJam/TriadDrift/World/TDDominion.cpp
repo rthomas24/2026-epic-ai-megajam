@@ -126,6 +126,22 @@ void ATDDominion::BeginPlay()
 		TurretVisuals = LoadObject<UTDEnemyVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_DominionTurret_Visuals.DA_DominionTurret_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
 	}
 
+	LayoutParts();
+
+	LayoutParts();
+	ShowHull(false);
+	SetState(ETDDominionState::Hidden);
+	SyncWithProgress();
+}
+
+void ATDDominion::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	LayoutParts();	// a placed Dominion shows its real shape in the editor
+}
+
+void ATDDominion::LayoutParts()
+{
 	// Lay the placeholder out from HullExtent so tuning the size keeps everything consistent.
 	const FVector E = HullExtent;
 	HullMesh->SetRelativeScale3D(E * 2.f / 100.f);
@@ -164,9 +180,17 @@ void ATDDominion::BeginPlay()
 		}
 	}
 
-	ShowHull(false);
-	SetState(ETDDominionState::Hidden);
-	SyncWithProgress();
+	// Art rules: a real hull mesh hides the placeholder bridge and trench-wall visuals (their collision
+	// stays: the trench is gameplay cover); a ShieldIdle effect replaces the emitter towers.
+	const bool bArtHull = Visuals && !Visuals->HullMesh.IsNull() && HullMesh->GetStaticMesh() == Visuals->HullMesh.Get();
+	BridgeMesh->SetVisibility(!bArtHull);
+	TrenchWallLeft->SetVisibility(!bArtHull);
+	TrenchWallRight->SetVisibility(!bArtHull);
+	const bool bArtShield = Visuals && !Visuals->ShieldIdle.VFX.IsNull();
+	for (UStaticMeshComponent* S : ShieldSections)
+	{
+		if (S && bArtShield) { S->SetVisibility(false); }
+	}
 }
 
 void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -522,7 +546,7 @@ void ATDDominion::OnDefensesDown(bool bFromSave)
 		}
 	}
 	StopShieldIdle();
-	if (Visuals)
+	if (Visuals && !bFromSave)
 	{
 		UTDStatics::PlayCue(this, Visuals->ShieldCollapse, GetActorLocation(), GetActorRotation());
 	}
@@ -531,21 +555,21 @@ void ATDDominion::OnDefensesDown(bool bFromSave)
 		BeginDockingFinale();
 		return;
 	}
-	ExposeReactor();
+	ExposeReactor(/*bPlayCues*/ !bFromSave);
 }
 
 void ATDDominion::BeginDockingFinale()
 {
 	// ENG-29 (stretch) overrides this to open the docking bay and hand off to the boarding flow.
 	UE_LOG(LogTriadDrift, Warning, TEXT("ATDDominion: docking finale is not built (ENG-29); using the reactor ending."));
-	ExposeReactor();
+	ExposeReactor(true);
 }
 
-void ATDDominion::ExposeReactor()
+void ATDDominion::ExposeReactor(bool bPlayCues)
 {
 	if (Reactor)
 	{
-		Reactor->SetExposed(true);
+		Reactor->SetExposed(true, bPlayCues);
 	}
 	for (ATDEnemyTurret* T : TrenchTurretActors)
 	{
