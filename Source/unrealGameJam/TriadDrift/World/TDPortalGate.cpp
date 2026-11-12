@@ -263,7 +263,9 @@ void ATDPortalGate::Tick(float DeltaSeconds)
 		for (const TWeakObjectPtr<AActor>& Weak : Registry->GetAll())
 		{
 			AActor* A = Weak.Get();
-			if (A && A->IsA<ATDSpacecraft>() && IsNear(A))
+			// Squad ships only: an Armada ship that wandered through an always-open planet gate would reappear
+			// ~400 000 cm away and stall its wave (review minor 6). Enemy ships fly through the frame.
+			if (A && A->IsA<ATDSpacecraft>() && (bTransitEnemyShips || UTDStatics::GetTeam(A) != ETDTeam::Enemy) && IsNear(A))
 			{
 				Scratch.Add(A);	// copy: a transit moves the actor, never mutate while iterating
 			}
