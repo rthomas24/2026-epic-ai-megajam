@@ -50,6 +50,14 @@ bool FTDCombatPlaceholderStreakSizes::RunTest(const FString& Parameters)
 	TestTrue(TEXT("heavy shell carries a hot head"), Shell.bHeavy && Shell.bHead);
 	TestTrue(TEXT("far away, a heavy shell is drawn bigger than a needle"),
 		Shell.Thickness * FTDCombatPlaceholders::DistanceGrowth(Shell, 20000.f) > Needle.Thickness * FTDCombatPlaceholders::DistanceGrowth(Needle, 20000.f) * 1.4f);
+	// Incoming hostile fire (flying toward the camera) keeps a bigger floor than the player's own outgoing shots.
+	const FTDStreakLook EnemyBolt = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::EnemyPulseGuns).Projectile);
+	TestTrue(TEXT("an enemy bolt flying at the camera is incoming"),
+		FTDCombatPlaceholders::IsIncoming(FVector(-30000.f, 0.f, 0.f), FVector(20000.f, 0.f, 0.f), FVector::ZeroVector));
+	TestFalse(TEXT("one flying away is not"),
+		FTDCombatPlaceholders::IsIncoming(FVector(30000.f, 0.f, 0.f), FVector(20000.f, 0.f, 0.f), FVector::ZeroVector));
+	const float IncomingPx = EnemyBolt.Thickness * FTDCombatPlaceholders::DistanceGrowth(EnemyBolt, 30000.f, FTDCombatPlaceholders::MinIncomingStreakPixels) * 1280.f / (2.f * 30000.f);
+	TestTrue(FString::Printf(TEXT("incoming enemy bolt at 300 m is at least 18 px (%.1f)"), IncomingPx), IncomingPx >= FTDCombatPlaceholders::MinIncomingStreakPixels - 0.01f);
 	const float HullRadius = 400.f;
 	const float Capped = FTDCombatPlaceholders::CapMuzzleFlashRadius(FTDCombatPlaceholders::MuzzleFlashRadius(UTDWeaponLibrary::Get(TDWeaponIds::BreakerBlaster).Projectile), HullRadius);
 	TestTrue(TEXT("muzzle flash at its biggest is at most a third of the hull across"), 2.f * 1.2f * Capped <= 2.f * HullRadius / 3.f + 0.01f);
