@@ -37,7 +37,7 @@ namespace TDPlanetTest
 		APlayerController* PC = nullptr;
 		ATDPlanetDirector* Director = nullptr;
 
-		explicit FVisit(FName PresetReturnPoint = NAME_None, FName Planet = TEXT("Verdance"), bool bCourse = true)
+		explicit FVisit(FName PresetReturnPoint = NAME_None, FName Planet = TEXT("Verdance"), bool bCourse = true, const TArray<FName>& AlreadyDone = TArray<FName>())
 			: W(UTDGameInstance::StaticClass())
 		{
 			const bool bCinder = Planet == TEXT("Cinder");
@@ -48,6 +48,7 @@ namespace TDPlanetTest
 				GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationTest"));
 				GI->NotifyLevelEntered(bCinder ? ETDDestination::Cinder : ETDDestination::Verdance);
 				GI->GetMutableProgress().ReturnPoint = PresetReturnPoint;
+				for (const FName& Id : AlreadyDone) { GI->GetMutableProgress().CompletedObjectives.Add(Id); } // a reload mid-planet
 			}
 			const FTransform Pad(FRotator::ZeroRotator, FVector(0.f, 0.f, 0.f));
 			Director = W.GetWorld()->SpawnActorDeferred<ATDPlanetDirector>(ATDPlanetDirector::StaticClass(), Pad);
@@ -587,4 +588,72 @@ bool FTDPlanetBoardUnderAttack::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+// Review MAJOR 4: a reload with one objective already done keeps its rooms cleared, doors and gate open,
+// conduits gone; the other objective still plays.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseReloadDone, "TriadDrift.Ground.Course.ReloadKeepsACompletedObjectiveOpen", TD_TEST_FLAGS)
+bool FTDCourseReloadDone::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"), true, { TEXT("Obj_Outpost") });
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	R.Tick(0.5f);
+	ATDObjective* Outpost = R.Course->FindObjective(TEXT("Obj_Outpost"));
+	ATDObjective* Jammer = R.Course->FindObjective(TEXT("Obj_Jammer"));
+	if (!TestNotNull(TEXT("outpost"), Outpost) || !TestNotNull(TEXT("jammer"), Jammer)) { return false; }
+	TestTrue(TEXT("outpost complete on load"), Outpost->IsComplete());
+	int32 Rooms = 0, OpenDoors = 0, Doors = 0;
+	for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective != Outpost) { continue; }
+		++Rooms;
+		TestTrue(*FString::Printf(TEXT("%s cleared"), *It->GetName()), It->IsCleared());
+		for (ATDDoor* D : It->DoorsToOpen) { ++Doors; OpenDoors += D && D->IsOpen() ? 1 : 0; }
+	}
+	TestTrue(TEXT("outpost rooms found"), Rooms >= 4);
+	TestEqual(TEXT("every room door open"), OpenDoors, Doors);
+	int32 GateOpen = 0;
+	for (TActorIterator<ATDDoor> It(V.W.GetWorld()); It; ++It) { GateOpen += It->IsOpen() ? 1 : 0; }
+	TestEqual(TEXT("gate and all room doors open (4)"), GateOpen, 4);
+	for (ATDShatterCrystal* C : R.Props<ATDShatterCrystal>(Outpost)) { TestTrue(TEXT("conduit gone"), C->IsShattered()); }
+	// Walking into a cleared room spawns nobody.
+	R.TeleportTo(R.StepFight(Outpost, 2), -150.f);
+	R.Tick(1.f);
+	TestEqual(TEXT("no crew in a cleared room"), R.StepFight(Outpost, 2)->GetAliveCount(), 0);
+	// The jammer still plays.
+	TestTrue(TEXT("jammer still starts"), R.StartAt(TEXT("Obj_Jammer")));
+	R.Tick(0.5f);
+	TestTrue(*FString::Printf(TEXT("idle/next line is sane ('%s')"), *R.Line()), !R.Line().IsEmpty());
+	return true;
+}
+
+// Review MAJOR 5: nothing can finish a step (and so an objective) inside the CUT delay; the retake replays it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseNoFinishDuringCut, "TriadDrift.Ground.Course.NothingCompletesDuringTheCutDelay", TD_TEST_FLAGS)
+bool FTDCourseNoFinishDuringCut::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Jammer = R.Course->FindObjective(TEXT("Obj_Jammer"));
+	if (!R.StartAt(TEXT("Obj_Jammer"))) { return false; }
+	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 0)[0], 60.f);
+	for (ATDInteractableActor* C : R.Props<ATDInteractableActor>(Jammer, 1)) { R.Use(C, C->HoldTime); }
+	TestEqual(TEXT("on the collapse run"), R.Step(Jammer), 2);
+	// CUT! lands (another death, the timer): the exit is reached inside the delay.
+	V.GI->ReportPlayerDefeated();
+	TestTrue(TEXT("CUT pending"), V.GI->IsRetakePending());
+	TestFalse(TEXT("a step can't complete now"), Jammer->CompleteStep(2));
+	R.FP->RespawnAt(FTransform(R.Props<ATDStepTrigger>(Jammer, 2)[0]->GetActorLocation() + FVector(0.f, 0.f, 120.f)));
+	for (int32 i = 0; i < 10; ++i) { V.W.Tick(1.f / 30.f); } // no flow tick: still inside the delay
+	TestFalse(TEXT("not complete inside the delay"), Jammer->IsComplete());
+	TestFalse(TEXT("not recorded either"), V.GI->GetProgressRef().CompletedObjectives.Contains(TEXT("Obj_Jammer")));
+	R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.5f);
+	TestTrue(TEXT("take 2 replays the jammer"), Jammer->IsActive() && R.Step(Jammer) == 0);
+	// And it can be finished properly.
+	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 0)[0], 60.f);
+	for (ATDInteractableActor* C : R.Props<ATDInteractableActor>(Jammer, 1)) { R.Use(C, C->HoldTime); }
+	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 2)[0], 60.f);
+	TestTrue(TEXT("finished on take 2 and recorded"), Jammer->IsComplete() && V.GI->GetProgressRef().CompletedObjectives.Contains(TEXT("Obj_Jammer")));
+	return true;
+}
 #endif // WITH_DEV_AUTOMATION_TESTS

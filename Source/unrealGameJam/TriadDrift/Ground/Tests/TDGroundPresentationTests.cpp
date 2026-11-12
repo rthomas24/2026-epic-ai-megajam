@@ -323,7 +323,7 @@ bool FTDGroundBindings::RunTest(const FString& Parameters)
 	{
 		Mapped.Add(M.Action);
 	}
-	TestEqual(TEXT("11 ground actions (pause added)"), Mapped.Num(), 11);
+	TestEqual(TEXT("11 ground actions (pause included)"), Mapped.Num(), 11);
 	for (const UInputAction* A : Mapped)
 	{
 		TestTrue(FString::Printf(TEXT("%s is bound to a handler"), *GetNameSafe(A)), Bound.Contains(A));

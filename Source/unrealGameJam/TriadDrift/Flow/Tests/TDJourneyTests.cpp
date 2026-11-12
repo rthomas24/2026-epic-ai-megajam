@@ -369,8 +369,8 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 // Enemies review: the last enemy dies inside the 1.75 s CUT delay. The flow voids that clear (the scene is
 // about to restart); the retake must then rebuild the wave, so the run can never be left with no enemies
 // and no phase change. Real GI, real wave director, real kills, in exactly that order.
-// DISABLED until T4's director rebuilds the wave on the retake (fails today: wave 2 is left empty, no phase change).
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyClearDuringCut, "TriadDrift.Flow.Journey.LastKillDuringCutNeverSoftLocks", TD_TEST_FLAGS | EAutomationTestFlags::Disabled)
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyClearDuringCut, "TriadDrift.Flow.Journey.LastKillDuringCutNeverSoftLocks", TD_TEST_FLAGS)
 bool FTDJourneyClearDuringCut::RunTest(const FString& Parameters)
 {
 	TDJourneyTest::FGalaxy G;

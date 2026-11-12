@@ -21,6 +21,28 @@ void UTDGroundSceneSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		RestartHandle = GI->OnSceneRestart.AddUObject(this, &UTDGroundSceneSubsystem::HandleSceneRestart);
 	}
+	InWorld.GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]() { ApplyCompletedState(); }));
+}
+
+void UTDGroundSceneSubsystem::ApplyCompletedState()
+{
+	for (const TWeakObjectPtr<ATDEncounterVolume>& E : Encounters)
+	{
+		ATDEncounterVolume* Enc = E.Get();
+		if (Enc && Enc->LinkedObjective && Enc->LinkedObjective->IsComplete())
+		{
+			Enc->MarkClearedOnLoad();
+		}
+	}
+	for (const TWeakObjectPtr<ATDInteractableActor>& I : Interactables)
+	{
+		ATDInteractableActor* Act = I.Get();
+		if (Act && Act->LinkedObjective && Act->LinkedObjective->IsComplete())
+		{
+			Act->bEnabled = false;
+		}
+	}
+	OnCompletedOnLoad.Broadcast();
 }
 
 void UTDGroundSceneSubsystem::Deinitialize()

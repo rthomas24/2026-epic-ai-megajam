@@ -391,6 +391,24 @@ void ATDEncounterVolume::BeginPlay()
 	ActivateIfPlayerInside();
 }
 
+void ATDEncounterVolume::MarkClearedOnLoad()
+{
+	if (bCleared)
+	{
+		return;
+	}
+	bActivated = true;
+	bCleared = true;
+	for (ATDDoor* D : DoorsToOpen)
+	{
+		if (D) { D->Open(); }
+	}
+	for (ATDDoor* D : DoorsToLock)
+	{
+		if (D) { D->Open(); }
+	}
+}
+
 void ATDEncounterVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))

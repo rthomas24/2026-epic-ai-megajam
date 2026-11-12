@@ -37,6 +37,15 @@ public:
 	/** An objective step began: encounters linked to it check for a player already inside. */
 	void NotifyStepStarted(ATDObjective* Objective, int32 StepIndex);
 
+	/**
+	 * Objectives already complete when the level loaded (Continue, a reload mid-planet): their encounters are
+	 * cleared with doors open, their interactables used, and props show their done state (OnCompletedOnLoad).
+	 * Runs the tick after world begin play, and again whenever a course finishes building.
+	 */
+	void ApplyCompletedState();
+	DECLARE_MULTICAST_DELEGATE(FTDOnCompletedOnLoad);
+	FTDOnCompletedOnLoad OnCompletedOnLoad;
+
 	/** Reset everything unfinished (called on a retake; public for tests and cheats). */
 	void ResetUnfinished(FName CurrentScene);
 
