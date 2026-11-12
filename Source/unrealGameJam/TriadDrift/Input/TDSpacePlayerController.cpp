@@ -989,7 +989,7 @@ void ATDSpacePlayerController::RouteHyperdrive(bool bPressed)
 		}
 		else
 		{
-			Hyper->StartSpool();
+			Hyper->RequestSpoolFromPilot(); // refused: HUD reason + refused cue
 		}
 	}
 	else

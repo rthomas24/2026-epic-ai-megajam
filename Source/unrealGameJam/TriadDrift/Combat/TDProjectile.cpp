@@ -2,6 +2,8 @@
 
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -185,9 +187,13 @@ void ATDProjectile::UpdatePlaceholderLook()
 	{
 		PlaceholderMesh->EmptyOverrideMaterials();
 		PlaceholderMesh->SetRelativeScale3D(FVector::OneVector);
+		// Visual-only offset (centre-pivoted meshes, e.g. a rocket whose tail would clip into the pod).
+		// Collision is a sweep from the actor origin, so gameplay never moves.
+		PlaceholderMesh->SetRelativeLocation(Spec.FX->ProjectileMeshOffset);
 	}
 	else
 	{
+		PlaceholderMesh->SetRelativeLocation(FVector::ZeroVector);
 		if (!PlaceholderMID && DefaultMaterial)
 		{
 			PlaceholderMID = UMaterialInstanceDynamic::Create(DefaultMaterial, this);
@@ -411,6 +417,57 @@ void ATDProjectile::Step(float DeltaSeconds)
 		// Only fly the part of this step that was still inside the lifetime.
 		const float Over = Age - Lifetime;
 		End = Start + Velocity * FMath::Max(0.f, DeltaSeconds - Over);
+	}
+
+	// Hostile shield domes: stop exactly on the shell if this step enters one (a fast shot can't skip
+	// through the shell and hit a ship inside in the same frame).
+	if (UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(this))
+	{
+		float BestT = 2.f;
+		ATDShieldDome* HitDome = nullptr;
+		for (ATDShieldDome* Dome : Powers->GetActiveDomes())
+		{
+			if (!IsValid(Dome) || !Dome->Intercepts(this))
+			{
+				continue;
+			}
+			const FVector C = Dome->GetActorLocation();
+			const float R = Dome->GetRadius();
+			if (FVector::DistSquared(Start, C) <= R * R)
+			{
+				continue; // already inside: the dome's own tick handles it
+			}
+			// First entry of the segment into the sphere.
+			const FVector D = End - Start;
+			const double A = FVector::DotProduct(D, D);
+			const double B = 2.0 * FVector::DotProduct(Start - C, D);
+			const double Cc = FVector::DotProduct(Start - C, Start - C) - (double)R * R;
+			const double Disc = B * B - 4.0 * A * Cc;
+			if (A > KINDA_SMALL_NUMBER && Disc >= 0.0)
+			{
+				const double T = (-B - FMath::Sqrt(Disc)) / (2.0 * A);
+				if (T >= 0.0 && T <= 1.0 && T < BestT)
+				{
+					BestT = (float)T;
+					HitDome = Dome;
+				}
+			}
+		}
+		if (HitDome)
+		{
+			const FVector ShellPoint = Start + (End - Start) * BestT;
+			// A ship (or rock) before the shell still takes the hit first.
+			FHitResult Hit;
+			if (SweepPath(Start, ShellPoint, Hit))
+			{
+				SetActorLocation(Hit.Location);
+				HandleImpact(Hit);
+				return;
+			}
+			SetActorLocation(ShellPoint);
+			HitDome->ReceiveProjectile(this, ShellPoint);
+			return;
+		}
 	}
 
 	// Point defense style: knock hostile missiles out of the air along the path.

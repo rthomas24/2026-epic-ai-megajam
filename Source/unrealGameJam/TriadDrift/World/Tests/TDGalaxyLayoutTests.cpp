@@ -14,6 +14,8 @@
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Flight/TDShip.h"
 #include "Components/InstancedStaticMeshComponent.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldLayoutData, "TriadDrift.World.Layout.DefaultData", TD_TEST_FLAGS)
@@ -179,6 +181,40 @@ bool FTDWorldLayoutTravel::RunTest(const FString& Parameters)
 	TestEqual(TEXT("obstacles unchanged"), WS->GetObstacleCount(), Obstacles);
 	G->SetHidePlaceholderDressing(false);
 	TestTrue(TEXT("visible again"), Ast && Ast->IsVisible());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldPlanetEntry, "TriadDrift.World.Planet.SquadEntryStopsAboveTheSurface", TD_TEST_FLAGS)
+bool FTDWorldPlanetEntry::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Verdance;
+	ATDPlanetAtmosphere* P = W.Spawn<ATDPlanetAtmosphere>(FVector(100000.f, 0.f, 0.f));
+	P->Configure(ETDDestination::Verdance, TDReturnPoints::VerdanceOrbit, 20000.f, 32000.f, FLinearColor::Green);
+	W.Tick();
+	TestTrue(TEXT("open"), P->IsOpen());
+
+	// A real squad ship, player-controlled, flying straight at the planet at cruise.
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(100000.f - 40000.f, 0.f, 0.f));
+	W.SpawnPlayerController(Ship);
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Ship->SetFlightInput(In);
+	UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry();
+	if (!TestNotNull(TEXT("squad ships carry T1's entry component"), Entry)) { return false; }
+
+	float Closest = TNumericLimits<float>::Max();
+	bool bEntered = false;
+	for (int32 i = 0; i < 60 * 6; ++i)
+	{
+		W.Tick();
+		bEntered |= Entry->IsEntering();
+		Closest = FMath::Min(Closest, FVector::Dist(Ship->GetActorLocation(), P->GetPlanetCenter()));
+	}
+	TestTrue(TEXT("the atmosphere started the ENG-20 entry (seen committed at least once)"), bEntered || GI->Travels.Num() == 1);
+	TestTrue(*FString::Printf(TEXT("the dive stops above the surface (closest %.0f cm from the centre, surface %.0f)"), Closest, P->GetPlanetRadius()), Closest > P->GetPlanetRadius());
+	TestEqual(TEXT("exactly one travel to Verdance"), GI->Travels.Num(), 1);
 	return true;
 }
 

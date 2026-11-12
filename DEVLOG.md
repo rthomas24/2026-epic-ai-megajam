@@ -62,3 +62,24 @@ including a 239 MB symbol file.
 
 **Captures:** `Saved/TDShots/playtest1/` and `Saved/TDShots/packaged1/` (local, not in git).
 **Stage, in AAA.md terms:** technically verified and integrated. Not gameplay validated.
+
+## 2026-11-12 14:32 EST — Nick Lead integration check
+
+PR4 head2f55512 merged as8963477, only37UI-owned files. Current-main real-project
+UE5.9 Editor build passed, one compiler action at a time;326automationtests passed,
+0failed/engineerrors/suppressed dialogs. Expected automation forced exit-request0;
+9123Ground CharacterMovement tick-cycle warnings sent to engineering in N005.
+
+Played revision8963477 (board-only cabcf77 has same runtime tree): default Galaxy
+windowed scripted-capture minimum on private8020,3captures at3/10/20seconds,
+28seconds play/43.8seconds process, exit0, reasonok,0errors/dialogs. Viewed all3PNG:
+Rift magenta placeholder, squad-color debugHUD, moving flight and enemy combat
+visible; shields change. This is not injected-input or human gameplay validation.
+NewHUD is correctly NOT attached before engineering's guarded host; native sky
+not placed. No proof of boost/switch/abilities/retake/portal/ground/finale or frame
+budget. Timed cheat commands were requested, their effects not independently proven.
+Warnings: missing WorldPartitionHLODUtilities classes on supplied Galaxy HLODlayers
+(3Linker),23EditorDataStorageUI,1MCPlicense notice; no crash. Engineering receives
+these for owner triage. No Source/config/maps/project changes made by Nick.
+Captures/results/logs: Saved/LeadIntegration/ (local ignored). PR3/PR5 held for
+subjective approval/rejected direction; M02Lancer source4b7ef12 safely branch-published.

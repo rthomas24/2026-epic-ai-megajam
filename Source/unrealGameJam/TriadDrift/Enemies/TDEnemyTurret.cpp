@@ -56,6 +56,11 @@ void ATDEnemyTurret::Init(const FTDEnemyAttackSpec& InGuns, float Hull)
 	bInitialized = true;
 }
 
+void ATDEnemyTurret::SetDamageMultiplier(float Multiplier)
+{
+	if (Weapons) { Weapons->SetOutgoingDamageMultiplier(TEXT("Difficulty"), Multiplier); }
+}
+
 void ATDEnemyTurret::BeginPlay()
 {
 	Super::BeginPlay();

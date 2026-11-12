@@ -127,7 +127,7 @@ void ATDCarrierBay::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (!IsAlive() || bPaused || FightersPerLaunch <= 0)
+	if (!IsAlive() || bPaused || FightersPerLaunch <= 0 || IsSpent())
 	{
 		if (bPaused) { bTelegraphing = false; }
 		return;

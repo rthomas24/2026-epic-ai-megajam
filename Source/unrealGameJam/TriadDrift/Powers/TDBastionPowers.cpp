@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Powers/TDBastionPowers.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "Engine/World.h"
@@ -30,6 +31,15 @@ UTDMissileSwarmPower::UTDMissileSwarmPower()
 	MissileSpec.bInheritShooterVelocity = true;
 	MissileSpec.PlaceholderColor = FLinearColor(1.0f, 0.62f, 0.08f);
 	MissileSpec.PlaceholderScale = FVector(0.8f, 0.25f, 0.25f);
+}
+
+void UTDMissileSwarmPower::BeginPlay()
+{
+	Super::BeginPlay();
+	if (!MissileSpec.FX)
+	{
+		MissileSpec.FX = FTDPowerPresentation::LoadMissileSwarmFX();
+	}
 }
 
 UTDTargetingComponent* UTDMissileSwarmPower::GetTargeting() const

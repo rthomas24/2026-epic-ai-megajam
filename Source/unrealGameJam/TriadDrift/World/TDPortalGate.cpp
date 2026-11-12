@@ -205,7 +205,10 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 		ArrivalBlockedUntil.Remove(Traveller);
 	}
 	const FVector Now = Traveller->GetActorLocation();
-	const FVector Before = Now - Traveller->GetVelocity() * DeltaSeconds;
+	// Projectiles report where their last step started (launch point / post-teleport point), so a shot
+	// fired this frame isn't treated as having crossed the plane. Ships integrate a full step.
+	const ATDProjectile* Proj = Cast<ATDProjectile>(Traveller);
+	const FVector Before = Proj ? Proj->GetPreviousLocation() : Now - Traveller->GetVelocity() * DeltaSeconds;
 	bool bForward = true;
 	if (!SegmentCrossesGate(GetActorTransform(), Radius, Before, Now, bForward))
 	{

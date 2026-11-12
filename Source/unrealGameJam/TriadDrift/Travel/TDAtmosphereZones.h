@@ -109,6 +109,10 @@ private:
 	void FinishEntry();
 	void RestoreFlight();
 
+	TWeakObjectPtr<class UNiagaraComponent> EntryFX;
+	TWeakObjectPtr<class UAudioComponent> EntryAudio;
+	void StopEntryCue();
+
 	ETDAtmosphereEntryState EntryState = ETDAtmosphereEntryState::Idle;
 	ETDDestination Destination = ETDDestination::Verdance;
 	FName ReturnPoint = NAME_None;
