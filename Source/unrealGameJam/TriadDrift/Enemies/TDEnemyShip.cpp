@@ -916,6 +916,9 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 	}
 	bDying = true;
 	LastKiller = Killer;
+	// Weapons first: a wreck launches nothing (a gunship killed after missile 1 of a salvo fired 2 and 3).
+	if (Weapons) { Weapons->SetWeaponsBlocked(TEXT("Death"), true); }
+	BurstShotsRemaining = 0;
 	CancelTelegraph();
 	bGunsFiring = false;
 	ApplyPrimaryTrigger();
