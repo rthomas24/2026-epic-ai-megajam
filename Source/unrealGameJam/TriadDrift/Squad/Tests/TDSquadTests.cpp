@@ -424,21 +424,26 @@ bool FTDSquadHUD::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadFormation, "TriadDrift.Squad.Wingmen.HoldFormation", TD_TEST_FLAGS)
 bool FTDSquadFormation::RunTest(const FString& Parameters)
 {
-	FSquadFixture F;
-	F.W.Advance(8.f);
-	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+	// Same result at 30, 60 and 120 fps.
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
 	{
-		const ATDShip* Ship = F.Ship(Id);
-		const ATDWingmanAIController* Wing = F.Wing(Id);
-		if (!TestNotNull(TEXT("wingman"), Wing) || !Ship)
+		FSquadFixture F;
+		F.W.Advance(8.f, Step);
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
 		{
-			return false;
+			const ATDShip* Ship = F.Ship(Id);
+			const ATDWingmanAIController* Wing = F.Wing(Id);
+			if (!TestNotNull(TEXT("wingman"), Wing) || !Ship)
+			{
+				return false;
+			}
+			const FString Label = FString::Printf(TEXT("%s @ %.0f fps"), *UEnum::GetValueAsString(Id), 1.f / Step);
+			const float Dist = FVector::Dist(Ship->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
+			TestTrue(FString::Printf(TEXT("%s within 1500 cm of its slot (%.0f)"), *Label, Dist), Dist < 1500.f);
+			TestTrue(Label + TEXT(" in formation state"), Wing->GetWingmanState() == ETDWingmanState::Formation);
+			const float LeaderDist = FVector::Dist(Ship->GetActorLocation(), F.Ship(ETDShipId::Rift)->GetActorLocation());
+			TestTrue(Label + TEXT(" 1200-3000 cm from the leader"), LeaderDist > 1200.f && LeaderDist < 3000.f);
 		}
-		const float Dist = FVector::Dist(Ship->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
-		TestTrue(FString::Printf(TEXT("%s within 1500 cm of its slot (%.0f)"), *UEnum::GetValueAsString(Id), Dist), Dist < 1500.f);
-		TestTrue(TEXT("in formation state"), Wing->GetWingmanState() == ETDWingmanState::Formation);
-		const float LeaderDist = FVector::Dist(Ship->GetActorLocation(), F.Ship(ETDShipId::Rift)->GetActorLocation());
-		TestTrue(TEXT("formation offset 1500-3000 cm from the leader"), LeaderDist > 1200.f && LeaderDist < 3000.f);
 	}
 	return true;
 }
