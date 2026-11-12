@@ -90,6 +90,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
 	FVector GetAimWorldDirection() const;
 
+	/** As GetAimWorldDirection for an explicit viewport size (tests, offscreen). Uses the ship's own camera. */
+	FVector GetAimWorldDirectionForViewport(int32 SizeX, int32 SizeY) const;
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
 	const FTDFlightInput& GetCurrentFlightInput() const { return CurrentFlightInput; }
 

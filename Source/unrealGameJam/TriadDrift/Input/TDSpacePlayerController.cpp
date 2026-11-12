@@ -15,6 +15,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Camera/CameraComponent.h"
 
 // Other areas' classes: routing switches on automatically when their headers are merged in.
 #if __has_include("TriadDrift/Combat/TDWeaponComponent.h")
@@ -552,31 +553,67 @@ void ATDSpacePlayerController::PushFlightInput()
 
 FVector ATDSpacePlayerController::GetAimWorldDirection() const
 {
+	int32 SizeX = 0, SizeY = 0;
+	GetViewportSize(SizeX, SizeY);
+	if (SizeX <= 0 || SizeY <= 0)
+	{
+		SizeX = 1920; // headless / not yet rendered: assume 16:9
+		SizeY = 1080;
+	}
+	return GetAimWorldDirectionForViewport(SizeX, SizeY);
+}
+
+FVector ATDSpacePlayerController::GetAimWorldDirectionForViewport(int32 SizeX, int32 SizeY) const
+{
 	const ATDSpacecraft* Craft = GetSpacecraft();
 	const FVector Fallback = Craft ? Craft->GetActorForwardVector() : FVector::ForwardVector;
-	if (!PlayerCameraManager || !Craft)
+	if (!Craft || SizeX <= 0 || SizeY <= 0)
+	{
+		return Fallback;
+	}
+
+	// The reticle ray comes from the ship's OWN camera (chase or cockpit), never from the current view
+	// target: a director shot (T3) can take over the screen without moving the player's aim.
+	FTransform CameraXf;
+	float FOV = 90.f;
+	if (const ATDShip* Ship = Cast<ATDShip>(Craft))
+	{
+		if (Ship->IsCockpitView() && Ship->GetCockpitCamera())
+		{
+			CameraXf = Ship->GetCockpitCamera()->GetComponentTransform();
+			FOV = Ship->GetCockpitCamera()->FieldOfView;
+		}
+		else
+		{
+			CameraXf = Ship->GetChaseCameraTransformNow();
+			FOV = (Ship->IsPlayerFlown() && Ship->GetChaseCamera()) ? Ship->GetChaseCamera()->FieldOfView : Ship->GetChaseCameraFOVNow();
+		}
+	}
+	else if (PlayerCameraManager)
+	{
+		CameraXf = FTransform(PlayerCameraManager->GetCameraRotation(), PlayerCameraManager->GetCameraLocation());
+		FOV = PlayerCameraManager->GetFOVAngle();
+	}
+	else
 	{
 		return Fallback;
 	}
 
 	// The reticle sits at VirtualStick on screen; on gamepad it is the screen centre.
-	int32 SizeX = 0, SizeY = 0;
-	GetViewportSize(SizeX, SizeY);
-	if (SizeX <= 0 || SizeY <= 0)
-	{
-		return Fallback;
-	}
 	const FVector2D Stick = bUsingGamepad ? FVector2D::ZeroVector : VirtualStick;
 	const float HalfMin = 0.5f * FMath::Min(SizeX, SizeY);
 	const FVector2D ScreenPos(0.5f * SizeX + Stick.X * HalfMin * ReticleScreenScale, 0.5f * SizeY - Stick.Y * HalfMin * ReticleScreenScale);
 
-	FVector WorldPos, WorldDir;
-	if (!DeprojectScreenPositionToWorld(ScreenPos.X, ScreenPos.Y, WorldPos, WorldDir))
-	{
-		return Fallback;
-	}
+	// Perspective deprojection with a horizontal FOV (Unreal's convention).
+	const float NdcX = (ScreenPos.X / SizeX) * 2.f - 1.f;
+	const float NdcY = 1.f - (ScreenPos.Y / SizeY) * 2.f;
+	const float TanHalf = FMath::Tan(FMath::DegreesToRadians(FMath::Clamp(FOV, 5.f, 170.f) * 0.5f));
+	const float Aspect = static_cast<float>(SizeX) / static_cast<float>(SizeY);
+	const FQuat CamQ = CameraXf.GetRotation();
+	const FVector WorldDir = (CamQ.GetForwardVector() + CamQ.GetRightVector() * (NdcX * TanHalf) + CamQ.GetUpVector() * (NdcY * TanHalf / Aspect)).GetSafeNormal();
+
 	// Converge on a point far ahead so shots from the ship's muzzles meet the reticle line.
-	const FVector AimPoint = WorldPos + WorldDir * AimConvergenceDistance;
+	const FVector AimPoint = CameraXf.GetLocation() + WorldDir * AimConvergenceDistance;
 	return (AimPoint - Craft->GetActorLocation()).GetSafeNormal(UE_SMALL_NUMBER, Fallback);
 }
 
