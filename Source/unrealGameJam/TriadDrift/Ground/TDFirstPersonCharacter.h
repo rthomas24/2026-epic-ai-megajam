@@ -91,6 +91,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
 	void RespawnAt(const FTransform& Where);
 
+	/** Put back on the last solid ground stood on (magma). Floors tagged TD.Unsafe never count as safe. */
+	void ReturnToSafeGround();
+	FVector GetLastSafeLocation() const { return LastSafeLocation; }
+
 	// ------------------------------------------------------------------ state (HUD / anim)
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ground") bool IsSprinting() const { return bSprinting; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ground") bool IsSliding() const { return bSliding; }
@@ -103,6 +107,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ground") float GetDashRecharge01() const;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ground") float GetInteractProgress01() const;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ground") AActor* GetInteractTarget() const { return InteractTarget.Get(); }
+	/** The interactable being held right now (null when not holding). */
+	AActor* GetHoldTarget() const { return HoldTarget.Get(); }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ground") bool IsObjectivePinged() const { return PingTimeLeft > 0.f; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ground") ETDBladeState GetBladeState() const;
 
@@ -218,6 +224,9 @@ private:
 	FVector2D MoveInput = FVector2D::ZeroVector;
 	bool bSprintHeld = false;
 	bool bCarrying = false;
+	FVector LastSafeLocation = FVector::ZeroVector;
+	float SafeSampleTimer = 0.f;
+	void TickSafeGround(float DeltaSeconds);
 	int32 JumpsUsed = 0;
 
 	int32 DashCharges = 2;

@@ -69,6 +69,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
 	bool bRigPlaceholderGround = true;
 
+	/** Build the playable course (ENG-25 / 26) around the pad. Off for tests that want an empty planet. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	bool bBuildCourse = true;
+
 	/** Start the visit on BeginPlay (tests can set things up first and call StartVisit). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
 	bool bAutoStart = true;
@@ -89,6 +93,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Planet") ATDFirstPersonCharacter* GetFirstPerson() const { return FirstPerson; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Planet") ATDShip* GetPlayerShip() const { return PlayerShip.Get(); }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Planet") ATDBoardShipInteractable* GetBoardPoint() const { return BoardPoint; }
+	class ATDPlanetCourse* GetCourse() const { return Course; }
+
+	/**
+	 * Safety net: a required objective with no objective actor in the world can never be finished, so it is
+	 * logged as an error and completed (with its reward). Returns how many were completed this way.
+	 */
+	int32 CompleteMissingObjectives();
 
 	/** ReturnPoint saved while the player is on foot here: "<Planet>_Pad". */
 	FName GetPadReturnPoint() const;
@@ -112,6 +123,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<ATDPlanetTravelRig> Rig;
 	UPROPERTY(Transient) TObjectPtr<ATDFirstPersonCharacter> FirstPerson;
 	UPROPERTY(Transient) TObjectPtr<ATDBoardShipInteractable> BoardPoint;
+	UPROPERTY(Transient) TObjectPtr<class ATDPlanetCourse> Course;
 	TWeakObjectPtr<ATDShip> PlayerShip;
 	bool bOnFoot = false;
 	bool bStarted = false;
