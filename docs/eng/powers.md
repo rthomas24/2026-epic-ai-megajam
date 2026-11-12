@@ -22,9 +22,10 @@ TriadDrift.Powers`, 17 tests).
   retakes (`OnTakeStarted`, take > 1). It closes portals, collapses domes, ends gravity wells, ends
   every running power and readies all cooldowns.
 
-**Installing:** `UTDPowerLibrary::InstallShipPowers(Ship, ShipId)` adds the ship's signature powers and a
-`UTDAbilityComponent`, and is idempotent. T3's Squad installs them data-driven from `FTDShipSpec` with
-the same defaults.
+**Installing:** `FTDShipSpec` (T3's `UTDShipLibrary`) is the single source of truth:
+`Signature1PowerClass`, `Signature2PowerClass` and `AbilityComponentClass`. Squad creates them once
+per ship and never re-creates them; on respawn and retake it calls `ResetPower()`. Powers has no
+installer of its own.
 
 | Ship | Signature1 | Signature2 | Ability (unlocked) |
 |---|---|---|---|

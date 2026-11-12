@@ -24,7 +24,6 @@
 #include "TriadDrift/Powers/TDAbilityPowers.h"
 #include "TriadDrift/Powers/TDBastionPowers.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
-#include "TriadDrift/Powers/TDPowerLibrary.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Powers/TDRamPower.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
@@ -652,39 +651,6 @@ bool FTDPortalWindowRestart::RunTest(const FString& Parameters)
 		const FTransform Exit(FRotator(0.f, 90.f, 0.f), FVector(0.f, 9000.f, 0.f));
 		TestTrue(TEXT("missile transits"), UTDPortalTransit::TransitActor(M, Entry, Exit, Rift, FTDPortalTransitParams()));
 		TestEqual(TEXT("MissilesReturned +1"), GI ? GI->GetProgressRef().Stats.MissilesReturned : -1, Before + 1);
-	}
-	continue;
-	}
-	return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInstallPowers, "TriadDrift.Powers.Library.InstallShipPowersIdempotent", TD_TEST_FLAGS)
-bool FTDInstallPowers::RunTest(const FString& Parameters)
-{
-	for (const float TDFrameStep : kPowerFrameSteps)
-	{
-	FScopedPowerFrameStep TDStepScope(TDFrameStep);
-	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
-	FTDTestWorld W;
-	struct FCase { ETDShipId Id; UClass* Sig1; UClass* Sig2; };
-	const FCase Cases[] = {
-		{ ETDShipId::Rift, UTDPortalBlasterPower::StaticClass(), nullptr },
-		{ ETDShipId::Lancer, UTDRamPower::StaticClass(), nullptr },
-		{ ETDShipId::Bastion, UTDMissileSwarmPower::StaticClass(), UTDShieldDomePower::StaticClass() } };
-	for (const FCase& C : Cases)
-	{
-		ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
-		Ship->SetShipId(C.Id);
-		UTDPowerLibrary::InstallShipPowers(Ship, C.Id);
-		UTDPowerLibrary::InstallShipPowers(Ship, C.Id); // second call (respawn) must not double up
-		UTDPowerComponent* S1 = UTDPowerComponent::FindPower(Ship, ETDPowerInput::Signature1);
-		UTDPowerComponent* S2 = UTDPowerComponent::FindPower(Ship, ETDPowerInput::Signature2);
-		TestTrue(TEXT("signature 1 class"), S1 && S1->GetClass() == C.Sig1);
-		TestTrue(TEXT("signature 2 class"), C.Sig2 ? (S2 && S2->GetClass() == C.Sig2) : S2 == nullptr);
-		TInlineComponentArray<UTDPowerComponent*> Powers(Ship);
-		TestEqual(TEXT("no duplicates"), Powers.Num(), C.Sig2 ? 2 : 1);
-		TInlineComponentArray<UTDAbilityComponent*> Slots(Ship);
-		TestEqual(TEXT("one ability slot"), Slots.Num(), 1);
 	}
 	continue;
 	}
