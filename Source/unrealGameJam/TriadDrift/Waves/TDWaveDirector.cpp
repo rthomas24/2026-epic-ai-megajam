@@ -2,6 +2,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
 #include "TriadDrift/Waves/TDWaveEnemy.h"
+#include "TriadDrift/Waves/TDWarpInMarker.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -221,6 +222,10 @@ void ATDWaveDirector::BeginPlay()
 	Instances().AddUnique(this);
 	Rng.Initialize(RandomSeed);
 	LoadWaveTable();
+	if (!TravelFX)
+	{
+		TravelFX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));	// Nick's EnemyWarpIn cue
+	}
 
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
@@ -424,7 +429,18 @@ void ATDWaveDirector::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		return;
 	}
 	const bool bRunning = State == ETDWaveState::WarpingIn || State == ETDWaveState::Active;
-	if (TakeNumber > CurrentTake && bRunning)
+	// The last enemy can die during the CUT delay (an asteroid, a mine): the wave then finishes, the flow voids
+	// the clear because the scene is restarting, and the retake arrives here with the wave already over. If
+	// the flow doesn't count this wave as cleared, it is still being played: rebuild it (no soft-lock).
+	bool bClearVoided = false;
+	if (!bRunning && CurrentWave != INDEX_NONE)
+	{
+		if (const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+		{
+			bClearVoided = Flow->GetProgress().WavesCleared < CurrentWave + 1;
+		}
+	}
+	if (TakeNumber > CurrentTake && (bRunning || bClearVoided))
 	{
 		// "CUT!" -> next take: rebuild the scene.
 		CurrentTake = TakeNumber;
@@ -457,6 +473,22 @@ void ATDWaveDirector::FireTips(const FTDWaveDef& Wave)
 }
 
 // ----------------------------------------------------------------------------------------- spawning
+
+void ATDWaveDirector::SpawnWarpInMarker(const FVector& Location, float EnemyRadius)
+{
+	UWorld* World = GetWorld();
+	if (!World || !bWarpInPlaceholder)
+	{
+		return;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	if (ATDWarpInMarker* M = World->SpawnActor<ATDWarpInMarker>(ATDWarpInMarker::StaticClass(), Location, FRotator::ZeroRotator, Params))
+	{
+		const AActor* Anchor = GetSpawnAnchor();
+		M->Begin(WarpInSeconds, FMath::Max(2500.f, EnemyRadius * 6.f), Anchor ? Anchor->GetActorLocation() : Location + FVector::ForwardVector);
+	}
+}
 
 AActor* ATDWaveDirector::GetSpawnAnchor() const
 {
@@ -847,6 +879,18 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	// The wave lock follows the state: re-asserted a few times a second while a wave runs, so a retake or
+	// anything else that clears locks can't open the hyperdrive mid-wave (whatever order handlers run in).
+	if (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active)
+	{
+		LockSyncTimer -= DeltaSeconds;
+		if (LockSyncTimer <= 0.f)
+		{
+			LockSyncTimer = 0.25f;
+			SetWaveHyperdriveLock(true);
+		}
+	}
+
 	switch (State)
 	{
 	case ETDWaveState::WarpingIn:
@@ -865,6 +909,11 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 				if (TravelFX)
 				{
 					UTDStatics::PlayCue(this, TravelFX->EnemyWarpIn, P.Location, P.Facing);
+				}
+				if (!TravelFX || TravelFX->EnemyWarpIn.VFX.IsNull())
+				{
+					// Placeholder telegraph until Nick's VFX lands: the player must see where a wave arrives.
+					SpawnWarpInMarker(P.Location, Spec.IsValid() ? Spec.Radius : 300.f);
 				}
 			}
 			if (P.Remaining <= 0.f)
@@ -914,6 +963,16 @@ FTDWaveInfo ATDWaveDirector::GetWaveInfo() const
 	Info.bWaveActive = State == ETDWaveState::WarpingIn || State == ETDWaveState::Active;
 	Info.bInBreather = State == ETDWaveState::Breather;
 	Info.BreatherRemaining = GetBreatherRemaining();
+	if (State == ETDWaveState::AllComplete)
+	{
+		// All waves done (the Dominion assault and after): no wave number, nothing to count. The objective
+		// line (T5) carries the finale; a HUD shows its wave block only while bWaveActive or bInBreather.
+		Info.WaveNumber = 0;
+		Info.SceneId = NAME_None;
+		Info.EnemiesAlive = 0;
+		Info.EnemiesTotal = 0;
+		Info.Intensity01 = 0.f;
+	}
 	return Info;
 }
 

@@ -186,3 +186,64 @@ the objective-marker tag (`TD.Objective.Marker`).
 **Stage, in AAA.md terms:** the HUD host and the visible projectiles are technically verified,
 integrated and played by an agent. ENG-05, ENG-06 and ENG-13 are back to "in review" with open
 MAJOR findings. Nothing is validated by a human yet.
+
+## November 12, 2026, 16:07 EST — Lead actual HUD checks and production handoffs
+
+Lead played pinned `0543dbd` in a real windowed Galaxy through MCP input, not preview data. Editor build and 7 UI/host tests passed. Successful live02 driver/result exit 0, reason ok, 30.1 seconds, no engine errors: ten viewport captures cover all three ship switches, boost/speed, fire heat, earned/charging ability, force off/on, on-foot removal and space return. Saved Blueprint class and squad-manager provider were confirmed. Health/shields remained full; damage/regen, target lock, hyperdrive and the whole journey were not exercised. First quiet-game attempt hit the log-silence watchdog and remains preserved, not erased. Evidence is local ignored `Worktrees/day1-integration/Saved/LeadIntegration/HUDHostValidation/`; tested revision predates newer objective/name-card fixes, which are not claimed replayed here. Human gameplay/Shipping acceptance remains open.
+
+Dedicated HUD M03 checkpoint `b21a98f` is pushed: 26 owned paths, 16 actual-game captures, successful build and 8 UI tests; independent fresh source/viewport review found no BLOCKER/MAJOR. Nick approves current prototype styling only. Lead synchronized its clean branch to current gameplay at `a4b91fb` and dispatched optional published `GetObjectiveText()` consumption and late-attach regression before final focused native verification. No shared configuration activation or gameplay edit by Nick's agents.
+
+Audio skill `4096f47` is published and adopted by Audio & Music. Lead inspected its full skill/relevant references and research, memory-compiled all eight scripts, and ran `audio_report.py --targets`. ffmpeg/ffprobe are not on the Lead shell PATH; Audio uses the existing Shotcut binaries, no install. Scratch-project research is distinct from actual-project verification. Audio PrototypeV1's source QA and both private-host builds pass; native assets/playback are still pending. Root granted only bounded NullRHI author/check after fresh resource guard, no parallel heavy application or licensed media in Git. No paid/AI acquisition, map placement or audio-director integration is authorized.
+
+Ships' latest direct Nick instruction holds all spacecraft redesign until three new references and an approved revised plan. Lancer `4b7ef12`/main `100f21c` and Rift `a7c0463`/draft PR7 stay preserved technical references, not final accepted designs. No rollback, remodeling or import. Lancer's exact source/LFS availability was independently verified and handed to Ryan in N-009 (`2310d19`); no FBX/glTF/native export exists. Provisional new accent colors do not alter gameplay contracts.
+
+## 2026-11-12 16:31 EST — Engineering playtest 4, more reviews, and engineering starts making small props (Ryan / Lead, Claude Code)
+
+**Build played:** integration head on top of `main` `c7a909b` (389 headless tests at the time; `main` is now past 416).
+**How:** an agent flying the running game through Unreal's MCP server (port 8010, 1280x720), real injected input,
+Nick's HUD switched on, `TD.Stage` journey jumps. Also a packaged Development build run from the command line.
+Not a human at the controls.
+
+**Worked:**
+- A Tab switch with the real HUD on shows only the HUD's "CUT TO / BASTION" card: our fallback name card steps aside.
+- The HUD draws an objective marker with distance, and on the planet approach the objective line read
+  "LAND AT THE BEACON" with the pad marked "OBJECTIVE 130 m".
+- The new landing assist: hold F from arrival, the ship flies itself to the pad, lands, and the pilot is on foot
+  with the blade. One motion, no crash.
+- The packaged build hosts Nick's widget Blueprint from the cook, runs wave 5 and quits cleanly.
+
+**Broken or wrong (each sent to its owner):**
+- The new unlit stars were almost invisible. Cause: the engine's glow material is not allowed on instanced meshes, so
+  the game fell back to the grey default material (a log warning said so). In a packaged game it would be worse.
+  Fix, ours: one project-owned glow material (`M_TD_PlaceholderGlow`) that every placeholder now shares, with a test
+  that checks it is unlit, has the colour parameter and works on instanced meshes.
+- The HUD objective line still read "AWAITING MISSION DATA" in space when the HUD was switched on after the wave
+  started; fixed since by a getter and a re-broadcast.
+- The planet was an empty plain with nothing to do. Fixed the same hour: both planets now have two finishable
+  objectives each (tests drive the real landing, every step, the rewards and the way back to space).
+
+**Reviews, round two (fresh agents that did not write the code):**
+- Squad: after a wipe and retake, the ship you had been flying never flew again under AI once you switched away.
+  A blocker the suite never saw, because the test switched ships but never looked at the old one. Fixed with a test
+  that fails without the fix, then seen live.
+- Travel: nothing in the game could complete a planet objective, so a run ended at Verdance; and dying once in the
+  finale let the next take jump away from it. Both fixed.
+- Powers: the ram mostly does no damage to carrier bays, turrets and shield generators at 30 and 60 frames a second,
+  because it stops on them before its damage sweep. The existing test applied the damage by hand and never dashed.
+- Ground: the hidden pilot can still be killed after boarding; a trooper can pin itself against its own cover and
+  never fire; there is no pause on foot.
+- One lesson repeated in every review: a test must make the real thing happen (a real dash, a real shot, a real
+  switch) and then assert the result, at 30, 60 and 120 frames a second.
+
+**A test that told us something by failing:** at one intermediate merge "the fighter fires head-on and hits" failed
+three times out of three at 60 frames a second, then passed again one merge later, with no change to the fighter.
+We did not shrug and re-run: it means head-on hits sit on a knife edge, so the owner is measuring the miss margin.
+
+**New way of working, from Ryan:** engineering agents now build the small environment pieces the art side has not
+started (asteroids, rocks, crystals, mushrooms, ferns, and trees through Unreal's Procedural Vegetation Editor),
+announce it on the message board first so it comes off the art side's list, and keep it in engineering's own folders.
+Art direction stays with Nicholas, who can restyle or replace any of it. Three agents are building now.
+
+**Captures:** `Saved/TDShots/mcp/pt4_*`, `Saved/TDShots/pkg_1538/` (local, not in git).
+**Stage, in AAA.md terms:** landing assist, HUD hosting and the cut presentation are gameplay validated by an agent.
+Both planets are technically verified and not yet played. Nothing is validated by a human yet.

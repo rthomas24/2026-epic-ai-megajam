@@ -3,6 +3,8 @@
 #include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
+#include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -124,6 +126,31 @@ void ATDPlanetDirector::StartVisit()
 	{
 		Rig->bPlaceholderGround = bRigPlaceholderGround;
 	}
+	if (bBuildCourse)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.bDeferConstruction = true;
+		Course = GetWorld()->SpawnActor<ATDPlanetCourse>(ATDPlanetCourse::StaticClass(), PadTransform, Params);
+		if (Course)
+		{
+			Course->PlanetId = PlanetId;
+			Course->FinishSpawning(PadTransform);
+		}
+		// The course brings its own ground; until the rig takes the flag at spawn (T1), switch its slab off here.
+		if (Rig)
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(Rig);
+			for (UStaticMeshComponent* M : Meshes)
+			{
+				if (M && M->GetFName() == TEXT("PlaceholderGround"))
+				{
+					M->SetVisibility(false);
+					M->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				}
+			}
+		}
+	}
 
 	ATDSquadManager* Squad = EnsureSquad();
 	UTDGameInstance* GI = UTDGameInstance::Get(this);
@@ -193,8 +220,53 @@ void ATDPlanetDirector::HandleShipLanded(ATDShip* Ship, ATDLandingPad* Pad)
 	}
 }
 
+int32 ATDPlanetDirector::CompleteMissingObjectives()
+{
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
+	if (!GI)
+	{
+		return 0;
+	}
+	struct FReward { const TCHAR* Id; ETDAbilityId Ability; ETDShipId Ship; };
+	static const FReward Rewards[] = {
+		{ TEXT("Obj_WreckCore"), ETDAbilityId::GravityWell, ETDShipId::Bastion },
+		{ TEXT("Obj_Relay"), ETDAbilityId::Cloak, ETDShipId::Rift },
+		{ TEXT("Obj_Outpost"), ETDAbilityId::EMPPulse, ETDShipId::Lancer },
+		{ TEXT("Obj_Jammer"), ETDAbilityId::None, ETDShipId::Rift },
+	};
+	int32 Fixed = 0;
+	for (const FName& Id : RequiredObjectives)
+	{
+		if (GI->GetProgressRef().CompletedObjectives.Contains(Id))
+		{
+			continue;
+		}
+		bool bExists = false;
+		for (TActorIterator<ATDObjective> It(GetWorld()); It; ++It)
+		{
+			bExists |= It->ObjectiveId == Id;
+		}
+		if (bExists)
+		{
+			continue;
+		}
+		ETDAbilityId Ability = ETDAbilityId::None;
+		ETDShipId Ship = ETDShipId::Rift;
+		for (const FReward& R : Rewards)
+		{
+			if (Id == FName(R.Id)) { Ability = R.Ability; Ship = R.Ship; }
+		}
+		UE_LOG(LogTriadDrift, Error, TEXT("Planet %s: required objective %s has no objective actor in the world; completing it so the run can't be trapped."),
+			*PlanetId.ToString(), *Id.ToString());
+		GI->CompleteObjective(Id, Ability, Ship);
+		++Fixed;
+	}
+	return Fixed;
+}
+
 bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 {
+	CompleteMissingObjectives();
 	APlayerController* PC = GetPlayerController();
 	if (!Ship || !PC)
 	{

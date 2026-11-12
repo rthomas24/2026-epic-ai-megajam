@@ -199,7 +199,7 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 	if (!bRingBuilt && (!FX || !FTDPowerPresentation::HasArt(FX->Loop)))
 	{
 		bRingBuilt = true;
-		FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 48, 70.f, FLinearColor(0.55f, 0.2f, 1.f), 4.f);
+		FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 48, 30.f, FLinearColor(0.55f, 0.2f, 1.f), 4.f);
 	}
 }
 

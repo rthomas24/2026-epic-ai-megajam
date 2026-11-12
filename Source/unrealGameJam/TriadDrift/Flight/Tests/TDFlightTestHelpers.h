@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "TriadDrift/Flight/TDFlightTypes.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
 #include "TDFlightTestHelpers.generated.h"
 
@@ -48,4 +49,7 @@ public:
 	UFUNCTION() void HandleDriftStarted() { ++DriftStarted; }
 	UFUNCTION() void HandleDriftEnded(bool bBurst) { ++DriftEnded; DriftBursts += bBurst ? 1 : 0; }
 	UFUNCTION() void HandleImpact(const FTDFlightImpact& Impact);
+
+	TArray<ETDBoundaryState> BoundaryStates;
+	UFUNCTION() void HandleBoundary(ETDBoundaryState NewState) { BoundaryStates.Add(NewState); }
 };

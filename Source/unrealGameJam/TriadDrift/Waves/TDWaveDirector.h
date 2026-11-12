@@ -182,6 +182,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Waves")
 	FTDWarpInSignature OnWarpInStarted;
 
+	/** Placeholder warp-in telegraph (a growing red ring) while DA_Travel_FX has no EnemyWarpIn VFX. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves")
+	bool bWarpInPlaceholder = true;
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Waves")
 	FTDWaveStateSignature OnStateChanged;
 
@@ -243,6 +247,8 @@ protected:
 	ETDWaveState State = ETDWaveState::Idle;
 	float StateRemaining = 0.f;
 	int32 CurrentWave = INDEX_NONE;
+	float LockSyncTimer = 0.f;
+	void SpawnWarpInMarker(const FVector& Location, float EnemyRadius);
 	int32 EnemiesTotal = 0;
 	int32 CurrentTake = 1;
 	bool bTakeAnnouncedByFlow = false;

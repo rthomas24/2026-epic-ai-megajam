@@ -2,6 +2,7 @@
 // collisions and events, camera, input routing. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Flight
 
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -838,6 +839,78 @@ bool FTDReviewSwitchResetsMouseStick::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the new ship gets no turn on its first frame"), Other->GetFlightInput().Aim.IsNearlyZero());
 	W.Tick();
 	TestTrue(TEXT("still straight after a frame"), PC->GetCurrentFlightInput().Aim.IsNearlyZero());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewBoundaryExperience, "TriadDrift.Flight.Review.BoundaryWarnsTurnsBackNeverTeleports", TD_TEST_FLAGS)
+bool FTDReviewBoundaryExperience::RunTest(const FString& Parameters)
+{
+	// The edge of the galaxy: warning text and one event per state change, a gentle turn-back, never a wall or a
+	// teleport, and a pilot holding the stick outward can't escape.
+	for (const bool bPilotFightsIt : { false, true })
+	{
+		const FString Tag = bPilotFightsIt ? TEXT("pilot steering out: ") : TEXT("hands-off: ");
+		FTDTestWorld W;
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 0.f));
+		UTDShipMovementComponent* Move = Ship->GetShipMovement();
+		const float Radius = 200000.f;
+		Move->SetBoundary(FVector::ZeroVector, Radius, true);
+		Ship->TeleportSpacecraft(FVector(Radius - 60000.f, 0.f, 0.f), FRotator::ZeroRotator, false); // nose out, 600 m inside
+		UTDFlightEventCounter* Counter = NewObject<UTDFlightEventCounter>();
+		Counter->AddToRoot(); // a GC during a long full run must not unbind it
+		ON_SCOPE_EXIT { Counter->RemoveFromRoot(); };
+		Move->OnBoundaryStateChanged.AddDynamic(Counter, &UTDFlightEventCounter::HandleBoundary);
+		W.Tick();
+		TestEqual(*(Tag + TEXT("starts inside")), Move->GetBoundaryState(), ETDBoundaryState::Inside);
+		TestTrue(*(Tag + TEXT("no text inside")), Move->GetBoundaryWarningText().IsEmpty());
+
+		float MaxDist = 0.f;
+		float MaxStep = 0.f;
+		bool bSawWarning = false, bSawOutside = false;
+		FVector Last = Ship->GetActorLocation();
+		for (int32 i = 0; i < 60 * 40; ++i)
+		{
+			FTDFlightInput In;
+			In.Throttle = 1.f;
+			if (bPilotFightsIt)
+			{
+				// Always steer the nose away from the centre.
+				const FVector Out = Ship->GetActorLocation().GetSafeNormal();
+				In.Aim.X = FVector::DotProduct(Ship->GetActorRightVector(), Out) >= 0.f ? 1.f : -1.f;
+			}
+			Ship->SetFlightInput(In);
+			W.Tick();
+			const FVector Now = Ship->GetActorLocation();
+			MaxStep = FMath::Max(MaxStep, (float)FVector::Dist(Now, Last));
+			Last = Now;
+			MaxDist = FMath::Max(MaxDist, (float)Now.Size());
+			if (Move->GetBoundaryState() == ETDBoundaryState::Warning)
+			{
+				bSawWarning = true;
+				TestEqual(*(Tag + TEXT("warning text")), Move->GetBoundaryWarningText().ToString(), FString(TEXT("EDGE OF THE COMBAT ZONE")));
+			}
+			if (Move->GetBoundaryState() == ETDBoundaryState::Outside && !bSawOutside)
+			{
+				bSawOutside = true;
+				TestEqual(*(Tag + TEXT("outside text")), Move->GetBoundaryWarningText().ToString(), FString(TEXT("LEAVING THE COMBAT ZONE - TURN BACK")));
+			}
+		}
+		TestTrue(*(Tag + TEXT("warned before the edge")), bSawWarning);
+		TestTrue(*(Tag + TEXT("crossed the edge")), bSawOutside);
+		TestTrue(*(Tag + FString::Printf(TEXT("turned back within 300 m past the edge (max %.0f m past)"), (MaxDist - Radius) / 100.f)), MaxDist < Radius + 30000.f);
+		const float SpeedCap = Move->GetFlightTuning().BoostSpeed;
+		TestTrue(*(Tag + FString::Printf(TEXT("no teleport: largest frame step %.0f cm"), MaxStep)), MaxStep < SpeedCap / 60.f * 1.5f);
+		if (!bPilotFightsIt)
+		{
+			TestTrue(*(Tag + TEXT("ends back inside")), Ship->GetActorLocation().Size() < Radius);
+			TestTrue(*(Tag + TEXT("events: inside -> warning -> outside, then back")), Counter->BoundaryStates.Num() >= 4
+				&& Counter->BoundaryStates[0] == ETDBoundaryState::Warning && Counter->BoundaryStates[1] == ETDBoundaryState::Outside);
+			for (int32 i = 1; i < Counter->BoundaryStates.Num(); ++i)
+			{
+				TestTrue(*(Tag + TEXT("one event per change")), Counter->BoundaryStates[i] != Counter->BoundaryStates[i - 1]);
+			}
+		}
+	}
 	return true;
 }
 

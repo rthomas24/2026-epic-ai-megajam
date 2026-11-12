@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -224,6 +225,19 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 			FinishEntry();
 		}
 	}
+	else if (EntryState == ETDAtmosphereEntryState::Travelling)
+	{
+		// The load was voided or timed out and we are still here (review minor 6): give the ship back
+		// (override, invulnerability, hyperdrive, switch lock) so the player can fly in again.
+		const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+		if (!Travel || !Travel->HasRequestedLevelTravel())
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("Atmosphere entry: the level travel fell through; returning control."));
+			RestoreFlight();
+			EntryState = ETDAtmosphereEntryState::Idle;
+			EntryTime = 0.f;
+		}
+	}
 }
 
 // ========================================================================== ATDAtmosphereFlightZone
@@ -268,9 +282,8 @@ bool ATDAtmosphereFlightZone::IsExitAllowed() const
 	{
 		return true;
 	}
-	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	auto AllDone = [this](const FTDProgress& Progress)
 	{
-		const FTDProgress Progress = Flow->GetProgress();
 		for (const FName& Id : RequiredObjectives)
 		{
 			if (!Progress.CompletedObjectives.Contains(Id))
@@ -279,6 +292,16 @@ bool ATDAtmosphereFlightZone::IsExitAllowed() const
 			}
 		}
 		return true;
+	};
+	// Every frame: read the game instance's progress in place instead of copying it (review minor 8).
+	const UWorld* World = GetWorld();
+	if (const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr)
+	{
+		return AllDone(GI->GetProgressRef());
+	}
+	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	{
+		return AllDone(Flow->GetProgress());
 	}
 	return false;
 }
@@ -317,6 +340,16 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 	const bool bExitOpen = IsExitAllowed();
 	const FBox Box = GetZoneBox();
 
+	// A travel that was voided or timed out frees the exit for another climb-out (review minor 6).
+	if (bExitTriggered)
+	{
+		const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+		if (Travel && !Travel->HasRequestedLevelTravel() && Travel->GetWorld() && Cast<UTDGameInstance>(Travel->GetWorld()->GetGameInstance()))
+		{
+			bExitTriggered = false;
+		}
+	}
+
 	TArray<ATDShip*> Ships;
 	TDAtmosphere_GetSquadShips(this, Ships);
 	for (ATDShip* Ship : Ships)
@@ -335,11 +368,14 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		const float Z = Ship->GetActorLocation().Z;
 		if (bExitOpen && !bLanding && Z >= Box.Max.Z + ExitHeightAboveCeiling)
 		{
-			bExitTriggered = true;
-			OnExitTriggered.Broadcast(Ship);
-			if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+			// Latched only on a successful request (review minor 6); a refused request retries next frame.
+			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+			const bool bRequested = Travel && Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
+			// No game flow (tests, sandbox): still report the exit, as the entry does.
+			if (bRequested || !Travel || !UTDStatics::GetGameFlow(this))
 			{
-				Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
+				bExitTriggered = true;
+				OnExitTriggered.Broadcast(Ship);
 			}
 		}
 		else if (!bExitOpen && Z >= Box.Max.Z - 500.f)

@@ -12,6 +12,7 @@
 class ITDGameFlow;
 class UAudioComponent;
 class UMaterialInstanceDynamic;
+class UMaterialInterface;
 class UMeshComponent;
 class UNiagaraComponent;
 class USceneComponent;
@@ -23,6 +24,8 @@ class UNREALGAMEJAM_API UTDStatics : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	UTDStatics();
+
 	// ------------------------------------------------------------------ teams
 	/** ITDTeam on the actor, else its UTDHealthComponent::DefaultTeam, else Neutral. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Team")
@@ -91,6 +94,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|FX")
 	static UMaterialInstanceDynamic* TintPlaceholder(UMeshComponent* Mesh, FLinearColor Color, float EmissiveBoost = 0.f);
 
+	/**
+	 * The one unlit glow material for placeholders: /Game/TriadDrift/Gameplay/Materials/M_TD_PlaceholderGlow.
+	 * Emissive = the vector parameter "Color". It works on instanced static meshes, skeletal meshes and
+	 * Niagara mesh particles and is always cooked. Use it (through a dynamic instance) for anything that
+	 * must read from every direction: stars, shots, flashes, eyes, markers. The engine's
+	 * EmissiveMeshMaterial has no instanced-mesh usage and falls back to grey in a cooked game.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")
+	static UMaterialInterface* GetPlaceholderGlowMaterial();
+
 	/** Squad colour code: Rift magenta, Lancer cyan, Bastion amber. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")
 	static FLinearColor ShipColor(ETDShipId Ship);
@@ -121,6 +134,10 @@ public:
 	/** True in the editor / dev builds when placeholder debug drawing should stand in for missing art. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")
 	static bool ShouldDrawPlaceholders();
+private:
+	/** Hard reference held by the class default object, so the cooker includes the material. */
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> PlaceholderGlowMaterial;
 };
 
 /**

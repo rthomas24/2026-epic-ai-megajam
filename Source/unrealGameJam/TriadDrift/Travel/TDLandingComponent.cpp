@@ -454,9 +454,20 @@ void UTDLandingComponent::TakeOffWingmen()
 	for (AActor* Actor : Squad)
 	{
 		ATDShip* Mate = Cast<ATDShip>(Actor);
-		if (Mate && Mate != Self && Mate->GetLanding() && Mate->GetLanding()->IsLanded())
+		UTDLandingComponent* MateLanding = (Mate && Mate != Self) ? Mate->GetLanding() : nullptr;
+		if (!MateLanding)
 		{
-			Mate->GetLanding()->RequestTakeOff();
+			continue;
+		}
+		if (MateLanding->IsLanded())
+		{
+			MateLanding->RequestTakeOff();
+		}
+		else if (MateLanding->IsLandingInProgress())
+		{
+			// Still coming down when the player re-boards (review minor 3): straight back to flying, so it never
+			// finishes landing afterwards and stays parked, invulnerable and holding its pad.
+			MateLanding->AbortToFlying();
 		}
 	}
 }

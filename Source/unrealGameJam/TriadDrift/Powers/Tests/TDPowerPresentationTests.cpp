@@ -35,7 +35,7 @@ bool FTDPresPlaceholders::RunTest(const FString& Parameters)
 	UTDPortalBlasterPower* Portal = AddPower<UTDPortalBlasterPower>(Rift);
 	Portal->HandleInputPressed();
 	ATDPortal* P = Portal->GetPortals().Num() ? Portal->GetPortals()[0].Get() : nullptr;
-	TestTrue(TEXT("portal has its placeholder disc and rim"), P && FTDPowerPresentation::CountPlaceholders(P) >= 2);
+	TestTrue(TEXT("portal has its placeholder rings (open centre, no solid disc)"), P && FTDPowerPresentation::CountPlaceholders(P) >= 2);
 
 	// Dome: lattice shell.
 	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector(0.f, -30000.f, 0.f), FVector(100.f));

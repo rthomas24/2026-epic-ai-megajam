@@ -18,6 +18,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
@@ -31,6 +32,33 @@ ATDEnemyShip::ATDEnemyShip()
 	AIControllerClass = ATDEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	Team = ETDTeam::Enemy;
+
+	// Placeholder presentation (hidden once Nick's mesh is set). The glow material is held here so the cook
+	// ships it: TintPlaceholder only finds it by path.
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> GlowMat(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMesh(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	if (GlowMat.Succeeded()) { PlaceholderGlowMaterial = GlowMat.Object; }
+	auto MakePart = [this](const TCHAR* Name, UStaticMesh* Mesh, const FVector& Loc, const FRotator& Rot, const FVector& Scale)
+	{
+		UStaticMeshComponent* C = CreateDefaultSubobject<UStaticMeshComponent>(Name);
+		C->SetupAttachment(HullPivot);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetGenerateOverlapEvents(false);
+		C->SetCastShadow(false);
+		C->CanCharacterStepUpOn = ECB_No;
+		if (Mesh) { C->SetStaticMesh(Mesh); }
+		C->SetRelativeLocationAndRotation(Loc, Rot);
+		C->SetRelativeScale3D(Scale);
+		return C;
+	};
+	UStaticMesh* Sphere = SphereMesh.Succeeded() ? SphereMesh.Object : nullptr;
+	PlaceholderEyeLeft = MakePart(TEXT("PlaceholderEyeLeft"), Sphere, FVector(70.f, -32.f, 22.f), FRotator::ZeroRotator, FVector(0.42f));
+	PlaceholderEyeRight = MakePart(TEXT("PlaceholderEyeRight"), Sphere, FVector(70.f, 32.f, 22.f), FRotator::ZeroRotator, FVector(0.42f));
+	// A thin disc across the nose: the gunship's frontal shield (shown only while it is up).
+	PlaceholderShieldPlate = MakePart(TEXT("PlaceholderShieldPlate"), CylinderMesh.Succeeded() ? CylinderMesh.Object : nullptr,
+		FVector(240.f, 0.f, 0.f), FRotator(90.f, 0.f, 0.f), FVector(2.6f, 2.6f, 0.04f));
+	PlaceholderShieldPlate->SetVisibility(false);
 }
 
 // ------------------------------------------------------------------------------------------ setup
@@ -259,7 +287,12 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 				}
 			}
 			if (PlaceholderWings) { PlaceholderWings->SetVisibility(false); }
+			for (UStaticMeshComponent* C : { PlaceholderEyeLeft.Get(), PlaceholderEyeRight.Get(), PlaceholderShieldPlate.Get() })
+			{
+				if (C) { C->SetVisibility(false); }
+			}
 			if (HullPivot) { HullPivot->SetRelativeScale3D(FVector::OneVector); }
+			bPlaceholderLook = false;
 			return;
 		}
 	}
@@ -278,14 +311,27 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 		case ETDEnemyRole::Carrier:     Shape = FVector(2.0f, 1.2f, 0.7f); break;	// long slab
 		default: break;
 		}
-		HullPivot->SetRelativeScale3D(Shape * FMath::Max(0.2f, Spec.Radius / 220.f));
+		// Placeholder-only readability scale (collision keeps the gameplay radius).
+		const float Readable = Spec.Size == ETDEnemySize::Small ? PlaceholderSmallShipScale
+			: (Spec.Size == ETDEnemySize::Medium ? PlaceholderMediumShipScale : PlaceholderLargeShipScale);
+		HullPivot->SetRelativeScale3D(Shape * FMath::Max(0.2f, Spec.Radius / 220.f) * Readable);
 	}
-	// Red-orange hull with glowing white "eyes" (Core helper), per the art direction.
-	// Lit red-orange body, dark wings, and the engine block as the glowing white "eyes" (playtest: an
-	// emissive-tinted hull rendered black on black and enemies were invisible).
-	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, 0.f);
-	UTDStatics::TintPlaceholder(PlaceholderWings, FLinearColor(0.06f, 0.05f, 0.05f), 0.f);
+	// The colour code on its own, on black space (Lead playtest 3: lit hulls were dark specks): a glowing
+	// red-orange body that blooms, dark-red wings for the silhouette, two white glowing "eyes" at the nose,
+	// a white-hot engine, and the gunship's shield as a cyan plate while it is up.
+	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, PlaceholderBodyGlow);
+	UTDStatics::TintPlaceholder(PlaceholderWings, FLinearColor(0.35f, 0.03f, 0.02f), 0.6f);
 	UTDStatics::TintPlaceholder(GetEngineGlow(), FLinearColor(1.f, 0.95f, 0.9f), PlaceholderEmissiveBoost);
+	for (UStaticMeshComponent* Eye : { PlaceholderEyeLeft.Get(), PlaceholderEyeRight.Get() })
+	{
+		if (Eye) { Eye->SetVisibility(true); UTDStatics::TintPlaceholder(Eye, FLinearColor::White, PlaceholderEmissiveBoost); }
+	}
+	bPlaceholderLook = true;
+	if (PlaceholderShieldPlate)
+	{
+		UTDStatics::TintPlaceholder(PlaceholderShieldPlate, FLinearColor(0.1f, 0.5f, 0.8f), 0.7f);
+		PlaceholderShieldPlate->SetVisibility(HasFrontalShield() && IsFrontalShieldUp());
+	}
 }
 
 // ---------------------------------------------------------------------------------------- attacks
@@ -870,6 +916,9 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 	}
 	bDying = true;
 	LastKiller = Killer;
+	// Weapons first: a wreck launches nothing (a gunship killed after missile 1 of a salvo fired 2 and 3).
+	if (Weapons) { Weapons->SetWeaponsBlocked(TEXT("Death"), true); }
+	BurstShotsRemaining = 0;
 	CancelTelegraph();
 	bGunsFiring = false;
 	ApplyPrimaryTrigger();
@@ -1022,6 +1071,12 @@ void ATDEnemyShip::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	TickTimers(DeltaSeconds);
+
+	if (bPlaceholderLook && PlaceholderShieldPlate && HasFrontalShield())
+	{
+		const bool bUp = IsFrontalShieldUp();
+		if (PlaceholderShieldPlate->IsVisible() != bUp) { PlaceholderShieldPlate->SetVisibility(bUp); }
+	}
 
 	if (IsTelegraphing())
 	{

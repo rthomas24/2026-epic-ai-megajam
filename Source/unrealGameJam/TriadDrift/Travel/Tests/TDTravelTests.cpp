@@ -1,6 +1,7 @@
 // Automation tests for travel (ENG-15 hyperdrive, ENG-20 atmosphere + landing). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Travel
 
 #include "Misc/AutomationTest.h"
+#include "GameFramework/WorldSettings.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -821,6 +822,107 @@ bool FTDTravelPadMarker::RunTest(const FString& Parameters)
 	Ship->Destroy();
 	W.Tick();
 	TestFalse(TEXT("ship destroyed: unmarked"), Marked());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelLateWingman, "TriadDrift.Travel.Landing.ReboardLiftsAWingmanStillComingDown", TD_TEST_FLAGS)
+bool FTDTravelLateWingman::RunTest(const FString& Parameters)
+{
+	// Review minor 3: a wingman that lands after the player and is still coming down at re-board must not finish
+	// landing later and stay parked, invulnerable and holding its pad.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform PadXf = Rig->GetPlayerPad()->GetActorTransform();
+	ATDShip* Lead = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-1500.f, 0.f, 1500.f)));
+	ATDShip* Mate = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-50000.f, 3000.f, 8000.f))); // 500 m out: lands late
+	Mate->SetShipId(ETDShipId::Bastion);
+	Lead->SetPlayerControlled(true);
+	W.Tick();
+	Lead->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("player lands"), Lead->GetLanding()->RequestLand());
+	TestTrue(TEXT("the far wingman lands too"), Mate->GetLanding()->IsBusy());
+	for (int32 i = 0; i < 60 * 8 && !Lead->GetLanding()->IsLanded(); ++i) { W.Tick(); }
+	TestTrue(TEXT("player landed"), Lead->GetLanding()->IsLanded());
+	TestTrue(TEXT("wingman still coming down"), Mate->GetLanding()->IsLandingInProgress());
+	ATDLandingPad* MatePad = Mate->GetLanding()->GetPad();
+
+	TestTrue(TEXT("re-board: take off"), Lead->GetLanding()->RequestTakeOff());
+	W.Tick();
+	TestEqual(TEXT("late wingman straight back to flying"), Mate->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	W.Advance(6.f);
+	TestEqual(TEXT("and it stays flying"), Mate->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("not parked"), Mate->IsFlightParked());
+	TestFalse(TEXT("not invulnerable"), Mate->GetHealth()->IsInvulnerable());
+	TestTrue(TEXT("its pad is free"), !MatePad || !MatePad->IsOccupied());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelRigNoPlaceholder, "TriadDrift.Travel.Planet.PlaceholderGroundCanBeSwitchedOff", TD_TEST_FLAGS)
+bool FTDTravelRigNoPlaceholder::RunTest(const FString& Parameters)
+{
+	// Review minor 5: with real terrain the 4 km placeholder slab must be off from the first frame.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Off = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") }, false);
+	if (!TestNotNull(TEXT("rig"), Off)) { return false; }
+	W.Tick();
+	ATDShip* Probe = TDTravelTest::SpawnShip(W, FVector(3000.f, 3000.f, 1500.f));
+	W.Tick();
+	TestTrue(TEXT("no placeholder: nothing under a ship beside the pads"), Probe->GetAltitudeMeters() < 0.f);
+	Off->SetPlaceholderGround(true);
+	W.Tick();
+	TestTrue(TEXT("switched back on: ground under the ship"), Probe->GetAltitudeMeters() >= 0.f);
+	Off->SetPlaceholderGround(false);
+	W.Tick();
+	TestTrue(TEXT("switched off after BeginPlay too"), Probe->GetAltitudeMeters() < 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAssistRates, "TriadDrift.Travel.Landing.HoldFLandsAtAnyFrameRateAndInSlowMotion", TD_TEST_FLAGS)
+bool FTDTravelAssistRates::RunTest(const FString& Parameters)
+{
+	// Review minor 9: the arrival, ground floor and approach assist at 30 / 60 / 120 fps and under slow motion
+	// (a director money shot can be running while the player lands).
+	struct FCase { float Fps; float Dilation; };
+	const FCase Cases[] = { { 30.f, 1.f }, { 60.f, 1.f }, { 120.f, 1.f }, { 60.f, 0.25f } };
+	for (const FCase& C : Cases)
+	{
+		const FString Tag = FString::Printf(TEXT("%.0f fps x%.2f: "), C.Fps, C.Dilation);
+		FTDTestWorld W;
+		W.GetWorld()->GetWorldSettings()->SetTimeDilation(C.Dilation);
+		ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+		if (!TestNotNull(*(Tag + TEXT("rig")), Rig) || !Rig->GetPlayerPad()) { return false; }
+		const FTransform Start = Rig->GetDescentStart();
+		ATDShip* Ship = TDTravelTest::SpawnShip(W, Start.GetLocation(), Start.Rotator());
+		ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+		if (!TestNotNull(*(Tag + TEXT("controller")), PC)) { return false; }
+		Ship->SetPlayerControlled(true);
+		const float Dt = 1.f / C.Fps;
+		W.Tick(Dt);
+		UTDLandingComponent* Land = Ship->GetLanding();
+		ATDLandingPad* Pad = Rig->GetPlayerPad();
+		const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
+		const float GroundZ = Pad->GetActorLocation().Z - 200.f;
+		float MinGap = TNumericLimits<float>::Max();
+		const int32 MaxFrames = FMath::CeilToInt(40.f / (Dt * C.Dilation)); // 40 s of game time
+		int32 i = 0;
+		for (; i < MaxFrames && Land->GetLandPrompt().IsEmpty(); ++i)
+		{
+			W.Tick(Dt);
+			MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		}
+		TestFalse(*(Tag + TEXT("prompt appears")), Land->GetLandPrompt().IsEmpty());
+		FTDTestWorld::InjectKey(PC, EKeys::F, true);
+		for (; i < MaxFrames && !Land->IsLanded(); ++i)
+		{
+			W.Tick(Dt);
+			MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		}
+		FTDTestWorld::InjectKey(PC, EKeys::F, false);
+		W.Tick(Dt);
+		TestTrue(*(Tag + TEXT("landed on the player pad")), Land->IsLanded() && Land->GetPad() == Pad);
+		TestTrue(*(Tag + FString::Printf(TEXT("never touched the ground (min gap %.0f cm)"), MinGap)), MinGap > 0.f);
+	}
 	return true;
 }
 

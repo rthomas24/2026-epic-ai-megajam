@@ -9,6 +9,9 @@
 #include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
 #include "TriadDrift/Combat/Tests/TDCombatTestHelpers.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "GameFramework/PlayerController.h"
 
 namespace TDCombatReviewTest
 {
@@ -133,6 +136,101 @@ bool FTDReviewMarkersKeepTargets::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the (farthest) current target has a marker"),
 		Targeting->K2_GetMarkers().ContainsByPredicate([Farthest](const FTDTargetMarker& M) { return M.Actor.Get() == Farthest; }));
 	TestTrue(TEXT("never more markers than MaxMarkers"), Targeting->K2_GetMarkers().Num() <= Targeting->MaxMarkers);
+	return true;
+}
+
+/** Minor 10: ResetWeapons clears heat, overheat, ammo, charge and a salvo in flight. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewResetWeapons, "TriadDrift.Combat.Review.ResetWeaponsClearsEverything", TD_TEST_FLAGS)
+bool FTDReviewResetWeapons::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	AActor* Ship = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+	UTDWeaponComponent* Weapons = TDCombatTest::AddWeapons(Ship);
+	Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
+	Weapons->EquipWeapon(ETDWeaponSlot::Secondary, TDWeaponIds::SpikeRockets);
+	Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
+	W.Advance(4.5f);
+	TestTrue(TEXT("overheated before the reset"), Weapons->IsOverheated(ETDWeaponSlot::Primary));
+	Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, false);
+	Weapons->FireOnce(ETDWeaponSlot::Secondary);
+	const int32 AmmoAfterShot = Weapons->GetSlotState(ETDWeaponSlot::Secondary).Ammo;
+	Weapons->ResetWeapons();
+	TestFalse(TEXT("not overheated"), Weapons->IsOverheated(ETDWeaponSlot::Primary));
+	TestEqual(TEXT("heat 0"), Weapons->GetSlotState(ETDWeaponSlot::Primary).Heat, 0.f);
+	TestTrue(TEXT("ammo refilled"), Weapons->GetSlotState(ETDWeaponSlot::Secondary).Ammo > AmmoAfterShot);
+	TestEqual(TEXT("no salvo left"), Weapons->GetSlotState(ETDWeaponSlot::Secondary).SalvoRemaining, 0);
+	TestTrue(TEXT("fires again at once"), Weapons->FireOnce(ETDWeaponSlot::Primary));
+	return true;
+}
+
+/** Minor 10: hits are reported for a player-controlled ship, not for the same ship flown by AI. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewReportsOnlyPlayerHits, "TriadDrift.Combat.Review.HitReportsFollowPlayerControl", TD_TEST_FLAGS)
+bool FTDReviewReportsOnlyPlayerHits::RunTest(const FString& Parameters)
+{
+	for (const bool bPlayer : { true, false })
+	{
+		FTDTestWorld W;
+		ATDSpacecraft* Ship = W.Spawn<ATDSpacecraft>(FVector::ZeroVector);
+		Ship->SetTeam(ETDTeam::Player);
+		if (bPlayer)
+		{
+			W.SpawnPlayerController(Ship);
+		}
+		UTDWeaponComponent* Weapons = TDCombatTest::AddWeapons(Ship);
+		Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
+		Weapons->MuzzleOffsets = { FVector(300.f, 0.f, 0.f) };
+		Weapons->SetAimDirection(FVector::ForwardVector);
+		TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(3000.f, 0.f, 0.f), FVector(200.f), 1000.f, 0.f);
+		UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+		UTDTestHitListener* Listener = NewObject<UTDTestHitListener>();
+		Listener->AddToRoot();
+		if (Bus)
+		{
+			Bus->OnHitConfirmed.AddDynamic(Listener, &UTDTestHitListener::OnHit);
+		}
+		Weapons->FireOnce(ETDWeaponSlot::Primary);
+		W.Advance(0.3f);
+		if (bPlayer)
+		{
+			TestEqual(TEXT("player-flown: hit reported"), Listener->Hits, 1);
+		}
+		else
+		{
+			TestEqual(TEXT("AI-flown: no hit reported"), Listener->Hits, 0);
+		}
+		if (Bus)
+		{
+			Bus->OnHitConfirmed.RemoveAll(Listener);
+		}
+		Listener->RemoveFromRoot();
+	}
+	return true;
+}
+
+/** Minor 10: drift with a real ship's movement (not a hand-set ComponentVelocity): nose on target = hit. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewRealShipDrift, "TriadDrift.Combat.Review.RealShipDriftShotHits", TD_TEST_FLAGS)
+bool FTDReviewRealShipDrift::RunTest(const FString& Parameters)
+{
+	for (const float Step : TDCombatTest::kCombatFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FTDTestWorld W;
+		ATDSpacecraft* Ship = W.Spawn<ATDSpacecraft>(FVector::ZeroVector);
+		Ship->SetTeam(ETDTeam::Player);
+		UTDWeaponComponent* Weapons = TDCombatTest::AddWeapons(Ship);
+		Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
+		Weapons->MuzzleOffsets = { FVector(300.f, 0.f, 0.f) };
+		Weapons->SetAimDirection(FVector::ForwardVector);
+		AActor* Target = TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(15000.f, 0.f, 0.f), FVector(150.f), 1000.f, 0.f);
+		Ship->GetShipMovement()->Velocity = FVector(0.f, 6000.f, 0.f); // sliding sideways, nose on the target
+		W.Tick(Step);
+		AddInfo(FString::Printf(TEXT("ship velocity at fire %s"), *Ship->GetVelocity().ToString()));
+		const FVector Muzzle = Ship->GetActorLocation();
+		Target->SetActorLocation(FVector(Muzzle.X + 15000.f, Muzzle.Y, 0.f));
+		Weapons->FireOnce(ETDWeaponSlot::Primary);
+		W.Advance(0.8f, Step);
+		TestTrue(TEXT("drift shot hits what the nose points at") + Fps, TDCombatTest::Hull(Target) < 1000.f);
+	}
 	return true;
 }
 
