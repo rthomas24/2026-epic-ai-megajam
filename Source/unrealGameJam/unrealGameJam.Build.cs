@@ -18,7 +18,12 @@ public class unrealGameJam : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate",
+			"SlateCore",
+			"Niagara",
+			"DeveloperSettings",
+			"PhysicsCore",
+			"NavigationSystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
