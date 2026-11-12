@@ -380,6 +380,10 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   prompt, and for 1.5 s why a switch was refused), `GetSquadMarkers` (where each squad ship is and whether
   the wingman is engaging: off-screen wing arrows), `GetDamageIndicators` (direction of recent hits on the
   player: "who is shooting me").
+- Dodge (player ship only, added Nov 12): a 0.25 s sideways burst at 100 m/s with a 1.5 s cooldown and no
+  invulnerability. Left Alt (toward the held roll or steering side), double-tap A or D, or a double flick of
+  the left stick. Refused during the ram, landing, atmosphere entry, hyperdrive and director slow motion.
+  Measured: weaving with a timed dodge takes about 40-50% of straight-line damage. Strafe is 40 m/s.
 - Pause: Escape / gamepad Start, in space and on foot (`OnPauseChanged` on the player controller;
   `UTDUIStyle.PauseWidgetClass` for the menu). Refused during level travel, a pending retake and victory.
 

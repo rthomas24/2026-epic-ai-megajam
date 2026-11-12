@@ -106,6 +106,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue EngineTrail;
 
+	/** Dodge: a short side-thruster burst, attached at the engine (player ship only). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
+	FTDFXCue Dodge;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue BoostStart;
 
