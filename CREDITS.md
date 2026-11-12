@@ -17,3 +17,17 @@ Per-kit credits.json files retain provenance. The audio README lists candidate p
 
 ## Coordinated separate source branch
 Lancer M01 source prototype and modular weapon sources: original geometry authored for Nicholas with OpenAI Codex; deterministic Node.js and offline SVG/Canvas previews. No downloaded assets. Separate branch nick/ships-lancer; code hull is a design proxy pending silhouette approval, Blender/UV/export and Unreal validation. See its provenance.json for exact source and helper dependency notes.
+
+## Audio switch candidates M02 — branch review only
+
+Rift, Lancer and Bastion ship-switch WAVs: original layered procedural sound design
+for Nicholas Tosti with OpenAI Codex Audio & Music Agent, November 12, 2026.
+Python 3.13.9 and NumPy 2.3.4 rendered stochastic pressure, inharmonic shell modes,
+mechanical friction and original finite reflections. Existing standalone runtimes
+only; no external recordings, library samples, impulse responses, pretrained audio
+outputs, downloads or paid credits. Runtime libraries are not redistributed.
+Project licensing applies; no third-party audio license is asserted.
+Sources/provenance/hashes: `nick/audio-music` at `5979cff`,
+`ArtSource/Audio/StarterPlan/SwitchM02/`; draft PR #5. Manual audition and Unreal
+integration are pending; candidate media are not integrated into main. The older
+Audio Starter Plan tones above were rejected stylistically and remain preserved.
