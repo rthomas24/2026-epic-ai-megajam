@@ -93,8 +93,8 @@ Dying calls CUT! and you respawn as the next take. F10 opens the debug menu and 
 | Galaxy → planet | T1 | After the 2.5 s entry, `UTDAtmosphereEntryComponent` calls `TravelTo(Verdance or Cinder, ReturnPoint)`. T4's planet atmosphere supplies the return point. |
 | Fresh arrival on a planet map | T5 | The ground mode spawns the squad **in the air, flying**, at `PlayerStart_Descent`, so T1's `ATDAtmosphereFlightZone` takes over the descent. |
 | Checkpoint or retake on a planet, after landing | T5 | The player respawns on foot at the last pad, and the ship is snapped down with `GetLanding()->SnapLanded(Pad)`. |
-| Landed | T1 → T5 | `UTDTravelSubsystem::OnShipLanded(Ship, Pad)`. For the player-flown ship only (`Ship->IsPlayerFlown()`), T5 spawns the first-person character at the ship's side and possesses it. The ship stays parked. |
-| Re-board | T5 → T1 | A board interactable on the parked ship possesses the ship again, then calls `Ship->GetLanding()->RequestTakeOff()`. T1 fires `OnShipTookOff`, and the squadmates lift with the player. |
+| Landed | T1 → T5 | `UTDTravelSubsystem::OnShipLanded(Ship, Pad)`. For the player-flown ship only (`Ship->IsPlayerFlown()`), T5 spawns the first-person character at ``Ship->GetLanding()->GetExitTransform()`` (320 cm to the ship's right, on the deck) and possesses it. Bind ``UTDTravelSubsystem::OnShipLanded`` / ``OnShipTookOff`` (dynamic delegates) from the ground mode. The ship stays parked. |
+| Re-board | T5 → T1 | A board interactable at the same exit transform possesses the ship again, then calls `Ship->GetLanding()->RequestTakeOff()`. T1 fires `OnShipTookOff`, and the squadmates lift with the player. |
 | Planet → galaxy | T1 | Once `RequiredObjectives` are done and the player climbs out, the zone calls `TravelTo(Galaxy, "<Planet>_Orbit")`. |
 | Galaxy arrival | T4 + T5 | T5's space mode places the squad at `ATDGalaxyLayout::FindReturnPoint(ReturnPoint)`. T4 positions that point outside the atmosphere trigger and inside T1's gravity well. |
 
