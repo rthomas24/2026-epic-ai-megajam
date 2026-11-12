@@ -11,6 +11,8 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
@@ -196,6 +198,10 @@ void ATDDominion::LayoutParts()
 
 void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale);
+	}
 	for (ATDShieldGenerator* G : Generators)
 	{
 		if (IsValid(G)) { G->OnGeneratorDestroyed.RemoveDynamic(this, &ATDDominion::HandleGeneratorDestroyed); }
@@ -214,6 +220,14 @@ void ATDDominion::SetState(ETDDominionState NewState)
 	if (State != NewState)
 	{
 		State = NewState;
+		// The assault (warp-in to victory) locks the hyperdrive: the finale is fought, not skipped.
+		if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+		{
+			const bool bLocked = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
+				|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+			if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT")); }
+			else { Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale); }
+		}
 		OnStateChanged.Broadcast(this, NewState);
 	}
 }

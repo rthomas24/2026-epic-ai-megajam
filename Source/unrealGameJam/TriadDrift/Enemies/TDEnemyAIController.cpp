@@ -14,6 +14,7 @@
 namespace
 {
 	int32 GTDEnemyAIDebug = 0;
+	const FName TDEnemyAIOverride(TEXT("EnemyAI"));	// T1 keyed speed overrides: ours never clears an EMP / gravity well
 	FAutoConsoleVariableRef CVarTDEnemyAIDebug(TEXT("TD.EnemyAIDebug"), GTDEnemyAIDebug, TEXT("Draw enemy AI state and target lines (1 = on)."));
 
 	FTDFlightInput TDEnemyAI_MakeInput(const FVector2D& Aim, float Throttle01, bool bBoost)
@@ -211,12 +212,12 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 	if (bWant && !bCatchingUp)
 	{
 		const float Mult = FormationLeader.IsValid() ? CatchUpSpeedMultiplier * 1.3f : CatchUpSpeedMultiplier;
-		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * Mult, 1.f);
+		Ship.SetSpeedOverrideFor(TDEnemyAIOverride, Ship.GetSpec().CruiseSpeed * Mult, 1.f);
 		bCatchingUp = true;
 	}
 	else if (!bWant && bCatchingUp)
 	{
-		Ship.ClearSpeedOverride();
+		Ship.ClearSpeedOverrideFor(TDEnemyAIOverride);
 		bCatchingUp = false;
 	}
 }

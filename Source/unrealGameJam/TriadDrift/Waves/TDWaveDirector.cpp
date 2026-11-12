@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 
 #include "Engine/DataTable.h"
 #include "Engine/World.h"
@@ -251,6 +252,7 @@ void ATDWaveDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 	Living.Reset();
 	Pending.Reset();
+	SetWaveHyperdriveLock(false);	// never leave the player locked in
 	Instances().Remove(this);
 	Super::EndPlay(EndPlayReason);
 }
@@ -377,6 +379,7 @@ void ATDWaveDirector::BeginWave(int32 Index)
 	}
 
 	SetState(ETDWaveState::WarpingIn);
+	SetWaveHyperdriveLock(true);	// no jumping out of a fight (breathers and planet phases are free)
 
 	// Sync the take with the flow BEFORE broadcasting: the flow answers OnWaveStarted with
 	// OnTakeStarted, and a take number above ours would otherwise restart this wave re-entrantly.
@@ -681,6 +684,7 @@ void ATDWaveDirector::FinishWave()
 	}
 	const FTDWaveDef& Wave = Waves[CurrentWave];
 	const int32 WaveNumber = CurrentWave + 1;
+	SetWaveHyperdriveLock(false);
 
 	// Decide the next state first so listeners of OnWaveCleared see a consistent director.
 	const int32 NextIndex = CurrentWave + 1;
@@ -787,8 +791,26 @@ void ATDWaveDirector::ClearEnemies()
 	}
 }
 
+void ATDWaveDirector::SetWaveHyperdriveLock(bool bLocked)
+{
+	UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+	if (!Travel)
+	{
+		return;
+	}
+	if (bLocked)
+	{
+		Travel->AddHyperdriveLock(TDHyperdriveLocks::Wave, NSLOCTEXT("TD", "HyperLockWave", "HYPERDRIVE LOCKED - ENEMIES IN RANGE"));
+	}
+	else
+	{
+		Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Wave);
+	}
+}
+
 void ATDWaveDirector::StopAndClear()
 {
+	SetWaveHyperdriveLock(false);
 	ClearEnemies();
 	// Leftover enemy mines and shots go too (T2's pool).
 	if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))

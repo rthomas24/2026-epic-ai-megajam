@@ -884,7 +884,7 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 	{
 		Sphere->SetCollisionResponseToChannel(TDCollision::Ship, ECR_Ignore);
 	}
-	ClearSpeedOverride();
+	ClearSpeedOverrideFor(TEXT("EnemyAI"));
 	if (EngineTrailFX) { EngineTrailFX->Deactivate(); EngineTrailFX = nullptr; }
 	if (Visuals)
 	{
