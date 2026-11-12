@@ -1,0 +1,204 @@
+// Triad Drift - Enemies & Waves (Teammate 4).
+#include "TriadDrift/Enemies/TDEnemyTurret.h"
+
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "UObject/ConstructorHelpers.h"
+
+ATDEnemyTurret::ATDEnemyTurret()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	SetRootComponent(Mesh);
+	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	Mesh->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.f));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	if (Cylinder.Succeeded())
+	{
+		Mesh->SetStaticMesh(Cylinder.Object);
+	}
+
+	Health = CreateDefaultSubobject<UTDHealthComponent>(TEXT("Health"));
+	Health->DefaultTeam = ETDTeam::Enemy;
+	Health->MaxShield = 0.f;
+
+	Weapons = CreateDefaultSubobject<UTDWeaponComponent>(TEXT("Weapons"));
+
+	Guns.Kind = ETDEnemyAttack::Guns;
+	Guns.WeaponId = TEXT("Enemy_PointDefense");
+	Guns.Damage = 6.f;
+	Guns.Range = 8000.f;
+	Guns.ConeHalfAngleDeg = 6.f;
+}
+
+void ATDEnemyTurret::Init(const FTDEnemyAttackSpec& InGuns, float Hull)
+{
+	if (InGuns.IsValid())
+	{
+		Guns = InGuns;
+	}
+	StartHull = FMath::Max(1.f, Hull);
+	if (Health)
+	{
+		Health->InitMaxValues(StartHull, 0.f, true);
+	}
+	if (Weapons && !Guns.WeaponId.IsNone())
+	{
+		Weapons->EquipWeapon(ETDWeaponSlot::Primary, Guns.WeaponId);
+	}
+	bInitialized = true;
+}
+
+void ATDEnemyTurret::BeginPlay()
+{
+	Super::BeginPlay();
+	if (!bInitialized)
+	{
+		Init(Guns, StartHull);	// placed standalone in a level
+	}
+	if (Health)
+	{
+		Health->OnDeath.AddUniqueDynamic(this, &ATDEnemyTurret::HandleDeath);
+	}
+	if (UMaterialInstanceDynamic* MID = Mesh ? Mesh->CreateDynamicMaterialInstance(0) : nullptr)
+	{
+		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.15f, 0.02f, 0.02f));
+	}
+}
+
+void ATDEnemyTurret::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (Health)
+	{
+		Health->OnDeath.RemoveDynamic(this, &ATDEnemyTurret::HandleDeath);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+ETDTeam ATDEnemyTurret::GetTeam() const
+{
+	return ETDTeam::Enemy;
+}
+
+bool ATDEnemyTurret::IsAlive() const
+{
+	return !bDestroyed && Health && Health->IsAlive();
+}
+
+void ATDEnemyTurret::ApplyStun(float Seconds)
+{
+	StunRemaining = FMath::Max(StunRemaining, Seconds);
+	bTelegraphing = false;
+	TelegraphRemaining = 0.f;
+	BurstRemaining = 0.f;
+	if (Weapons) { Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, false); }
+}
+
+void ATDEnemyTurret::HandleDeath(UTDHealthComponent* /*InHealth*/, const FTDDamageInfo& /*KillingBlow*/)
+{
+	if (bDestroyed)
+	{
+		return;
+	}
+	bDestroyed = true;
+	if (Weapons) { Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, false); }
+	if (Mesh)
+	{
+		Mesh->SetVisibility(false);
+		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	OnTurretDestroyed.Broadcast(this);
+}
+
+void ATDEnemyTurret::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (!IsAlive() || !Weapons)
+	{
+		return;
+	}
+
+	if (StunRemaining > 0.f)
+	{
+		StunRemaining -= DeltaSeconds;
+		return;
+	}
+
+	CooldownRemaining = FMath::Max(0.f, CooldownRemaining - DeltaSeconds);
+
+	RetargetTimer -= DeltaSeconds;
+	if (RetargetTimer <= 0.f || !Target.IsValid())
+	{
+		RetargetTimer = 0.5f;
+		UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
+		Target = Registry ? Registry->FindNearestHostile(ETDTeam::Enemy, GetActorLocation(), Guns.Range, this) : nullptr;
+	}
+
+	AActor* T = Target.Get();
+	if (!T)
+	{
+		if (BurstRemaining > 0.f)
+		{
+			BurstRemaining = 0.f;
+			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, false);
+		}
+		bTelegraphing = false;
+		return;
+	}
+
+	const FVector ToTarget = T->GetActorLocation() - GetActorLocation();
+	const FRotator Desired = ToTarget.Rotation();
+	SetActorRotation(FMath::RInterpConstantTo(GetActorRotation(), Desired, DeltaSeconds, TurnRateDeg));
+
+	const FVector Aim = GetActorForwardVector();
+	const bool bLinedUp = FVector::DotProduct(Aim, ToTarget.GetSafeNormal()) >= FMath::Cos(FMath::DegreesToRadians(Guns.ConeHalfAngleDeg));
+	const bool bInRange = ToTarget.SizeSquared() <= FMath::Square(Guns.Range);
+	Weapons->SetAimDirection(ToTarget.GetSafeNormal());
+
+	if (BurstRemaining > 0.f)
+	{
+		BurstRemaining -= DeltaSeconds;
+		if (BurstRemaining <= 0.f || !bInRange)
+		{
+			BurstRemaining = 0.f;
+			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, false);
+			CooldownRemaining = BurstCooldownSeconds;
+		}
+		return;
+	}
+
+	if (bTelegraphing)
+	{
+		TelegraphRemaining -= DeltaSeconds;
+		if (TelegraphRemaining <= 0.f)
+		{
+			bTelegraphing = false;
+			BurstRemaining = BurstSeconds;
+			++BurstCount;
+			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
+		}
+		return;
+	}
+
+	if (CooldownRemaining <= 0.f && bLinedUp && bInRange)
+	{
+		if (Guns.TelegraphSeconds > 0.f)
+		{
+			bTelegraphing = true;
+			TelegraphRemaining = Guns.TelegraphSeconds;
+			OnTelegraphStarted.Broadcast(this);
+		}
+		else
+		{
+			BurstRemaining = BurstSeconds;
+			++BurstCount;
+			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
+		}
+	}
+}
