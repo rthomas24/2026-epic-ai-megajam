@@ -61,6 +61,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsOutOfBounds() const;
 
+	/** Metres above the ground straight below (atmosphere flight HUD), or -1 if nothing is below within 20 km. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	float GetAltitudeMeters() const;
+
 	/** Instant move (portals, gates, hyperdrive drop-out). Fires OnTeleported. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void TeleportSpacecraft(const FVector& Location, const FRotator& Facing, bool bKeepSpeed);
@@ -71,6 +75,21 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ClearSpeedOverride();
+
+	/**
+	 * Clean flight state: latched input cleared, boost meter full, no drift / boost / speed override /
+	 * catch-up allowance, angular rates zeroed. bKeepVelocity=false restarts at cruise along the nose.
+	 * Squad: call on ship down and on respawn.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ResetFlightState(bool bKeepVelocity = false);
+
+	/** Parked: the flight model stops simulating (zero velocity, input ignored). Downed / hidden ships, landing. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetFlightParked(bool bParked);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsFlightParked() const;
 
 	/** Fired after every TeleportSpacecraft (wingmen warp-follow, presentation transit FX). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")

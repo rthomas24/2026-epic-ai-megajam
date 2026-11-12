@@ -136,6 +136,25 @@ bool ATDSpacecraft::IsDrifting() const { return ShipMovement && ShipMovement->Is
 float ATDSpacecraft::GetBoost01() const { return ShipMovement ? ShipMovement->GetBoost01() : 0.f; }
 bool ATDSpacecraft::IsOutOfBounds() const { return ShipMovement && ShipMovement->IsOutOfBounds(); }
 
+float ATDSpacecraft::GetAltitudeMeters() const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return -1.f;
+	}
+	const FVector Start = GetActorLocation();
+	const FVector End = Start - FVector(0.f, 0.f, 2000000.f);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDAltitude), false, this);
+	FHitResult Hit;
+	if (World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		const float Radius = CollisionSphere ? CollisionSphere->GetScaledSphereRadius() : 0.f;
+		return FMath::Max(0.f, (Hit.Distance - Radius) / 100.f);
+	}
+	return -1.f;
+}
+
 void ATDSpacecraft::TeleportSpacecraft(const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
 {
 	const FVector From = GetActorLocation();
@@ -165,6 +184,37 @@ void ATDSpacecraft::ClearSpeedOverride()
 	{
 		ShipMovement->ClearSpeedOverride();
 	}
+}
+
+void ATDSpacecraft::ResetFlightState(bool bKeepVelocity)
+{
+	if (ShipMovement)
+	{
+		ShipMovement->ResetFlightState(bKeepVelocity);
+	}
+}
+
+void ATDSpacecraft::SetFlightParked(bool bParked)
+{
+	if (!ShipMovement)
+	{
+		return;
+	}
+	if (bParked)
+	{
+		ShipMovement->SetFlightInput(FTDFlightInput());
+		ShipMovement->StopMovementImmediately();
+		ShipMovement->SetComponentTickEnabled(false);
+	}
+	else
+	{
+		ShipMovement->SetComponentTickEnabled(true);
+	}
+}
+
+bool ATDSpacecraft::IsFlightParked() const
+{
+	return ShipMovement && !ShipMovement->IsComponentTickEnabled();
 }
 
 void ATDSpacecraft::SetTeam(ETDTeam NewTeam)
