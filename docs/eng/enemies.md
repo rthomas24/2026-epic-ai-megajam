@@ -152,3 +152,15 @@ It flies only through `SetFlightInput`.
   T2's `UTDProjectileSubsystem::KillAll` landing on main; retakes already clear them on T2's side.
 - **Cooking:** the convention visuals assets are referenced only by path, so
   `/Game/TriadDrift/Presentation` must be in `DirectoriesToAlwaysCook` (Lead / Config).
+
+## The Dominion assault across takes and phases (World review, Nov 12)
+- **One scene:** the whole assault is the flow's "Dominion" scene. On a new take (`OnTakeStarted("Dominion", n > 1)`):
+  destroyed generators **stay destroyed**, a reactor phase already passed **stays passed**, the current reactor
+  phase **restarts at full**, live generators and turrets are repaired and re-armed, launched fighters are cleared
+  and the next launch comes one interval later. A take during the breakup keeps the squad protected (victory wins).
+- **Hyperdrive:** the "Finale" lock holds only once a squad ship has been inside the Dominion's gravity well
+  (`HyperdriveLockRadius` = the layout's `DominionWellRadius`), so the first approach is a hyperdrive jump that
+  drops out at the well. It is released at victory.
+- **Reveal:** needs the reveal flag **and** the `DominionAssault` phase (a voided wave-5 clear never starts it).
+- **Victory phase:** a won save or `TD.Stage Victory` leaves the Dominion `Finished`: hidden, no weapons, no
+  launches, no lock.

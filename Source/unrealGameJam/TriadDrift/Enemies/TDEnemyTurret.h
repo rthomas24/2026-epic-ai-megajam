@@ -48,6 +48,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Turret")
 	bool IsStunned() const { return StunRemaining > 0.f; }
 
+	/** Ends any stun now (a retake re-arms the turret). */
+	void ClearStun() { StunRemaining = 0.f; }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Turret")
 	UTDHealthComponent* GetHealth() const { return Health; }
 

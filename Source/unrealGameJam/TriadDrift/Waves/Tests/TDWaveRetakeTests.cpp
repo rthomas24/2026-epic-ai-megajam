@@ -101,7 +101,7 @@ bool FTDRetakeLocksFollowState::RunTest(const FString& Parameters)
 		ATDSpacecraft* Arrived = W.Spawn<ATDSpacecraft>(FVector(60000.f, 0.f, 0.f));	// the squad is at the Dominion
 		Arrived->SetTeam(ETDTeam::Player);
 		if (UTDHealthComponent* H = Arrived->GetHealth()) { H->DefaultTeam = ETDTeam::Player; H->InitMaxValues(1e6f, 0.f, true); H->SetInvulnerable(true); }
-		GI->Progress.bDominionRevealed = true;
+		GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
 		W.Advance(Dom->ProgressPollSeconds + Dom->WarpInSeconds + 0.5f);
 		TestTrue(TEXT("finale locked"), LockReason(W).Contains(TEXT("DOMINION")));
 		UTDTravelSubsystem::Get(W.GetWorld())->RemoveHyperdriveLock(TDHyperdriveLocks::Finale);	// the retake's clear-all

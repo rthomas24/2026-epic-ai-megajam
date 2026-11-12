@@ -126,7 +126,7 @@ bool FTDPerfStress::RunTest(const FString& Parameters)
 	UWorld* World = W.GetWorld();
 	if (UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance()))
 	{
-		GI->Progress.bDominionRevealed = true;
+		GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
 	}
 	ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::SpawnDefaultGalaxy(World);
 	ATDDominion* Dom = Galaxy ? Galaxy->GetDominion() : nullptr;

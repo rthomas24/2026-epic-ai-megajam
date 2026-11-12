@@ -142,7 +142,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionRealShot, "TriadDrift.World.Dominion
 bool FTDDominionRealShot::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
-	Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.bDominionRevealed = true;
+	Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.bDominionRevealed = true; Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.Phase = ETDGamePhase::DominionAssault;
 	ATDDominion* D = W.Spawn<ATDDominion>(FVector::ZeroVector);
 	D->MaxLaunchedAlive = 0;
 	W.Advance(D->WarpInSeconds + 0.2f);

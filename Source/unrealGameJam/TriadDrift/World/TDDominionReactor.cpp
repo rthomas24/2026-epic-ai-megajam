@@ -82,6 +82,17 @@ bool ATDDominionReactor::IsAlive() const
 	return !bDestroyed && Health && Health->IsAlive();
 }
 
+void ATDDominionReactor::RestartCurrentPhase()
+{
+	if (!Health || bDestroyed || Phase > PhaseCount)
+	{
+		return;
+	}
+	// Phases already passed stay passed; the current one is back to full.
+	const float Full = PhaseHull * (PhaseCount - Phase + 1);
+	if (Health->GetHull() < Full) { Health->RepairHull(Full - Health->GetHull()); }
+}
+
 float ATDDominionReactor::GetPhaseHealth01() const
 {
 	if (!Health || bDestroyed)
