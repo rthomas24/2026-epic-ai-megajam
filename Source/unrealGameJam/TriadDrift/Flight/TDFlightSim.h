@@ -55,6 +55,17 @@ struct UNREALGAMEJAM_API FTDFlightContext
 	FVector BoundaryCenter = FVector::ZeroVector;
 	bool bBoundaryEnabled = true;
 
+	/** Box play space instead of the sphere (atmosphere zones: soft walls + ceiling). */
+	bool bBoxBoundary = false;
+	FBox BoundaryBox = FBox(ForceInit);
+
+	/** Atmosphere flight (ENG-20): gravity, capped speed, no boost. */
+	bool bAtmosphere = false;
+	/** Downward pull in atmosphere (cm/s^2). Grip counters most of it, so the nose sags gently. */
+	float AtmosphereGravity = 1200.f;
+	/** Max speed in atmosphere as a fraction of the space CruiseSpeed. */
+	float AtmosphereSpeedCapFraction = 0.6f;
+
 	bool bSpeedOverride = false;
 	float OverrideSpeed = 0.f;
 	/** Multiplier on turn and roll rates while the override is active. */

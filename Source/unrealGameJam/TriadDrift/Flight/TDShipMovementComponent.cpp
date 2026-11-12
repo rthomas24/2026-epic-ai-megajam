@@ -3,6 +3,7 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 
 UTDShipMovementComponent::UTDShipMovementComponent()
 {
@@ -49,11 +50,53 @@ void UTDShipMovementComponent::ClearSpeedOverride()
 	Context.bSpeedOverride = false;
 }
 
+void UTDShipMovementComponent::SetOverrideAcceleration(float AccelerationCmPerSec2)
+{
+	Context.OverrideAcceleration = AccelerationCmPerSec2 >= 0.f ? AccelerationCmPerSec2 : FTDFlightContext().OverrideAcceleration;
+}
+
 void UTDShipMovementComponent::SetBoundary(const FVector& Center, float Radius, bool bEnabled)
 {
 	Context.BoundaryCenter = Center;
 	Context.bBoundaryEnabled = bEnabled;
 	Tuning.BoundaryRadius = FMath::Max(0.f, Radius);
+}
+
+void UTDShipMovementComponent::SetBoxBoundary(const FBox& Box)
+{
+	Context.bBoxBoundary = Box.IsValid != 0;
+	Context.BoundaryBox = Box;
+	Context.bBoundaryEnabled = true;
+}
+
+void UTDShipMovementComponent::ClearBoxBoundary()
+{
+	Context.bBoxBoundary = false;
+}
+
+void UTDShipMovementComponent::SetAtmosphereMode(bool bEnabled, float Gravity, float SpeedCapFraction)
+{
+	Context.bAtmosphere = bEnabled;
+	Context.AtmosphereGravity = FMath::Max(0.f, Gravity);
+	Context.AtmosphereSpeedCapFraction = FMath::Clamp(SpeedCapFraction, 0.05f, 1.f);
+}
+
+void UTDShipMovementComponent::ApplyWorldPlayBounds()
+{
+	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+	if (!Travel || Travel->GetPlayBoundsVersion() == AppliedPlayBoundsVersion)
+	{
+		return;
+	}
+	AppliedPlayBoundsVersion = Travel->GetPlayBoundsVersion();
+	FVector Center;
+	float Radius;
+	if (Travel->GetPlayBounds(Center, Radius))
+	{
+		Context.BoundaryCenter = Center;
+		Tuning.BoundaryRadius = Radius;
+		Context.bBoundaryEnabled = true;
+	}
 }
 
 void UTDShipMovementComponent::NotifyTeleported(const FQuat& NewFacing, bool bKeepSpeed)
@@ -161,6 +204,7 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		return;
 	}
 
+	ApplyWorldPlayBounds();
 	SyncStateFromComponent();
 	const FTDFlightState Before = State;
 	const FVector StartLocation = State.Location;

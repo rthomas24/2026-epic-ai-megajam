@@ -50,6 +50,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ClearSpeedOverride();
 
+	/** Acceleration used to reach the override speed; negative restores the default (60000 cm/s^2). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetOverrideAcceleration(float AccelerationCmPerSec2);
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool HasSpeedOverride() const { return Context.bSpeedOverride; }
 
@@ -70,6 +74,20 @@ public:
 	/** Centre of the soft spherical play space (radius is FTDFlightTuning::BoundaryRadius). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void SetBoundary(const FVector& Center, float Radius, bool bEnabled = true);
+
+	/** Box play space (atmosphere zones): soft walls and ceiling. Clear returns to the sphere. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetBoxBoundary(const FBox& Box);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ClearBoxBoundary();
+
+	/** Atmosphere flight (ENG-20): gravity, speed capped at a fraction of space cruise, no boost. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetAtmosphereMode(bool bEnabled, float Gravity = 1200.f, float SpeedCapFraction = 0.6f);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsInAtmosphere() const { return Context.bAtmosphere; }
 
 	/** Re-orients the flight state after a teleport. bKeepSpeed keeps the speed along the new facing. */
 	void NotifyTeleported(const FQuat& NewFacing, bool bKeepSpeed);
@@ -170,5 +188,7 @@ private:
 	/** Velocity we wrote last tick; a mismatch means someone outside changed Velocity (knockback). */
 	FVector LastWrittenVelocity = FVector::ZeroVector;
 	double LastCollisionDamageTime = -1000.0;
+	int32 AppliedPlayBoundsVersion = -1;
+	void ApplyWorldPlayBounds();
 	bool bStateInitialised = false;
 };

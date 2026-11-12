@@ -41,17 +41,27 @@ float TDFlightSim::ComputeTargetSpeed(const FTDFlightState& State, const FTDFlig
 	{
 		return FMath::Max(0.f, Context.OverrideSpeed);
 	}
+	float Target;
 	if (State.bBoosting)
 	{
-		return Tuning.BoostSpeed;
+		Target = Tuning.BoostSpeed;
 	}
-	if (In.bBrake)
+	else if (In.bBrake)
 	{
-		return Tuning.MinSpeed;
+		Target = Tuning.MinSpeed;
 	}
-	const float Throttle01 = (SafeAxis(In.Throttle) + 1.f) * 0.5f;
-	const float Top = FMath::Max(Tuning.CruiseSpeed, Context.ThrottleTopSpeed);
-	return FMath::Lerp(Tuning.MinSpeed, Top, Throttle01);
+	else
+	{
+		const float Throttle01 = (SafeAxis(In.Throttle) + 1.f) * 0.5f;
+		const float Top = FMath::Max(Tuning.CruiseSpeed, Context.ThrottleTopSpeed);
+		Target = FMath::Lerp(Tuning.MinSpeed, Top, Throttle01);
+	}
+	if (Context.bAtmosphere)
+	{
+		const float Cap = Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction;
+		Target = FMath::Min(Target, Cap);
+	}
+	return Target;
 }
 
 void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFlightTuning& T, const FTDFlightContext& C, float Dt)
@@ -73,7 +83,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	}
 
 	// ---- Boost meter ---------------------------------------------------------------------------------
-	const bool bWantBoost = In.bBoost && !S.bDrifting && !C.bSpeedOverride;
+	const bool bWantBoost = In.bBoost && !S.bDrifting && !C.bSpeedOverride && !C.bAtmosphere;
 	const bool bCanBoost = S.Boost01 > 0.f && (S.bBoosting || S.Boost01 >= T.BoostMinToStart);
 	S.bBoosting = bWantBoost && bCanBoost;
 	if (S.bBoosting)
@@ -124,7 +134,20 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	FVector ToCenter = FVector::ZeroVector;
 	S.bOutOfBounds = false;
 	S.bNearBoundary = false;
-	if (C.bBoundaryEnabled && T.BoundaryRadius > 0.f)
+	if (C.bBoundaryEnabled && C.bBoxBoundary && C.BoundaryBox.IsValid)
+	{
+		const FVector Closest = C.BoundaryBox.GetClosestPointTo(S.Location);
+		const float Outside = FVector::Dist(Closest, S.Location);
+		S.bNearBoundary = Outside > 0.f || !C.BoundaryBox.ExpandBy(-T.BoundaryWarnDistance).IsInsideOrOn(S.Location);
+		if (Outside > KINDA_SMALL_NUMBER)
+		{
+			S.bOutOfBounds = true;
+			ToCenter = (Closest - S.Location) / Outside;
+			const float Depth01 = FMath::Clamp(Outside / T.BoundaryFullStrengthDepth, 0.f, 1.f);
+			BoundaryStrength = 0.25f + 0.75f * Depth01;
+		}
+	}
+	else if (C.bBoundaryEnabled && T.BoundaryRadius > 0.f)
 	{
 		const FVector Offset = S.Location - C.BoundaryCenter;
 		const float Dist = Offset.Size();
@@ -135,20 +158,22 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 			ToCenter = -Offset / Dist;
 			const float Depth01 = FMath::Clamp((Dist - T.BoundaryRadius) / T.BoundaryFullStrengthDepth, 0.f, 1.f);
 			BoundaryStrength = 0.25f + 0.75f * Depth01; // gentle at the edge, firm deeper out
-
-			Forward = S.Rotation.GetForwardVector();
-			const float CosAngle = FMath::Clamp(FVector::DotProduct(Forward, ToCenter), -1.f, 1.f);
-			const float Angle = FMath::Acos(CosAngle);
-			if (Angle > KINDA_SMALL_NUMBER)
+		}
+	}
+	if (BoundaryStrength > 0.f)
+	{
+		Forward = S.Rotation.GetForwardVector();
+		const float CosAngle = FMath::Clamp(FVector::DotProduct(Forward, ToCenter), -1.f, 1.f);
+		const float Angle = FMath::Acos(CosAngle);
+		if (Angle > KINDA_SMALL_NUMBER)
+		{
+			FVector Axis = FVector::CrossProduct(Forward, ToCenter);
+			if (!Axis.Normalize())
 			{
-				FVector Axis = FVector::CrossProduct(Forward, ToCenter);
-				if (!Axis.Normalize())
-				{
-					Axis = S.Rotation.GetUpVector(); // pointing straight out: turn around the up axis
-				}
-				const float MaxStep = FMath::DegreesToRadians(T.BoundarySteerRate * BoundaryStrength) * Dt;
-				S.Rotation = (FQuat(Axis, FMath::Min(Angle, MaxStep)) * S.Rotation).GetNormalized();
+				Axis = S.Rotation.GetUpVector(); // pointing straight out: turn around the up axis
 			}
+			const float MaxStep = FMath::DegreesToRadians(T.BoundarySteerRate * BoundaryStrength) * Dt;
+			S.Rotation = (FQuat(Axis, FMath::Min(Angle, MaxStep)) * S.Rotation).GetNormalized();
 		}
 	}
 
@@ -221,6 +246,12 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 
 		const FVector Desired = Forward * S.ForwardSpeed + Right * S.StrafeVelocity.X + Up * S.StrafeVelocity.Y;
 		S.Velocity = FMath::Lerp(S.Velocity, Desired, ExpAlpha(T.VelocityGrip, Dt));
+	}
+
+	// Atmosphere: gravity pulls down (grip mostly counters it, so the ship sags rather than falls).
+	if (C.bAtmosphere && !C.bSpeedOverride)
+	{
+		S.Velocity.Z -= C.AtmosphereGravity * Dt;
 	}
 
 	// Boundary push-back on top of whatever the pilot is doing.

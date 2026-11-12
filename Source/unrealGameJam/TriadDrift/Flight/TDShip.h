@@ -9,6 +9,9 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UTDTargetingComponent;
+class UTDHyperdriveComponent;
+class UTDLandingComponent;
+class UTDAtmosphereEntryComponent;
 
 /** Chase-camera feel. Defaults are features.md ENG-01. */
 USTRUCT(BlueprintType)
@@ -80,6 +83,31 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	UTDTargetingComponent* GetTargeting() const { return Targeting; }
 
+	/** ENG-15 hyperdrive. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	UTDHyperdriveComponent* GetHyperdrive() const { return Hyperdrive; }
+
+	/** ENG-20 auto-landing / take-off (gear, canopy, Landing01 state). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	UTDLandingComponent* GetLanding() const { return Landing; }
+
+	/** ENG-20 atmospheric entry (T4's planet atmosphere calls BeginEntry). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	UTDAtmosphereEntryComponent* GetAtmosphereEntry() const { return AtmosphereEntry; }
+
+	/** Cockpit view (optional camera, ENG-01). The chase camera is the default. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
+	void SetCockpitView(bool bCockpit);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
+	void ToggleCockpitView() { SetCockpitView(!bCockpitView); }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	bool IsCockpitView() const { return bCockpitView; }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	UCameraComponent* GetCockpitCamera() const { return CockpitCamera; }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	USpringArmComponent* GetSpringArm() const { return SpringArm; }
 
@@ -115,8 +143,29 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
 	TObjectPtr<UTDTargetingComponent> Targeting;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
+	TObjectPtr<UTDHyperdriveComponent> Hyperdrive;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
+	TObjectPtr<UTDLandingComponent> Landing;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
+	TObjectPtr<UTDAtmosphereEntryComponent> AtmosphereEntry;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Camera")
+	TObjectPtr<UCameraComponent> CockpitCamera;
+
+	/** Cockpit eye point relative to the hull pivot. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Camera")
+	FVector CockpitOffset = FVector(140.f, 0.f, 70.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Camera", meta = (ClampMin = "5", ClampMax = "170"))
+	float CockpitFOV = 95.f;
+
 private:
 	bool bPlayerControlled = false;
+	bool bCockpitView = false;
+	void ApplyCameraActivation();
 	float CurrentFOV = 90.f;
 	int32 SnapFramesRemaining = 0;
 	FVector2D LookAhead = FVector2D::ZeroVector;

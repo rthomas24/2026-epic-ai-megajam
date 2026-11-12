@@ -3,6 +3,8 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Travel/TDLandingComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
@@ -26,6 +28,13 @@
 #define TD_HAS_TARGETING 1
 #else
 #define TD_HAS_TARGETING 0
+#endif
+
+#if __has_include("TriadDrift/Powers/TDPowerComponent.h")
+#include "TriadDrift/Powers/TDPowerComponent.h"
+#define TD_HAS_POWERS 1
+#else
+#define TD_HAS_POWERS 0
 #endif
 
 #if __has_include("TriadDrift/Squad/TDSquadManager.h")
@@ -138,6 +147,7 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IA_Land = MakeAction(TEXT("IA_Land"), V::Boolean);
 	IA_Pause = MakeAction(TEXT("IA_Pause"), V::Boolean);
 	IA_GalaxyMap = MakeAction(TEXT("IA_GalaxyMap"), V::Boolean);
+	IA_CameraToggle = MakeAction(TEXT("IA_CameraToggle"), V::Boolean);
 
 	IMC_SpaceCommon = NewObject<UInputMappingContext>(this, TEXT("IMC_SpaceCommon"));
 	IMC_Space = NewObject<UInputMappingContext>(this, TEXT("IMC_Space"));
@@ -216,6 +226,9 @@ void ATDSpacePlayerController::BuildInputObjects()
 	C->MapKey(IA_Pause, EKeys::Gamepad_Special_Right);
 	C->MapKey(IA_GalaxyMap, EKeys::M);
 	C->MapKey(IA_GalaxyMap, EKeys::Gamepad_Special_Left);
+
+	// Camera: chase / cockpit (not in the ENG-02 table; V is free).
+	C->MapKey(IA_CameraToggle, EKeys::V);
 
 	// IMC_Space: hyperdrive + squad command.
 	IMC_Space->MapKey(IA_Hyperdrive, EKeys::H);
@@ -307,6 +320,8 @@ void ATDSpacePlayerController::SetupInputComponent()
 	EIC->BindAction(IA_Hyperdrive, E::Completed, this, &ThisClass::OnHyperdriveReleased);
 	EIC->BindAction(IA_SquadCommand, E::Started, this, &ThisClass::OnSquadCommand);
 	EIC->BindAction(IA_Land, E::Started, this, &ThisClass::OnLand);
+	EIC->BindAction(IA_Land, E::Completed, this, &ThisClass::OnLandReleased);
+	EIC->BindAction(IA_CameraToggle, E::Started, this, &ThisClass::OnCameraToggle);
 	EIC->BindAction(IA_Pause, E::Started, this, &ThisClass::OnPause);
 	EIC->BindAction(IA_GalaxyMap, E::Started, this, &ThisClass::OnGalaxyMap);
 }
@@ -402,6 +417,18 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	{
 		bPowerHoldFired = true;
 		RoutePower(ETDPowerInput::Signature2);
+	}
+
+	// Hold F / A to land (the ship's landing component decides whether a pad is in reach).
+	if (LandPressTime >= 0.0 && !bLandFired)
+	{
+		const ATDShip* Ship = Cast<ATDShip>(GetPawn());
+		const float Hold = (Ship && Ship->GetLanding()) ? Ship->GetLanding()->Tuning.HoldToLandSeconds : 0.5f;
+		if (Now - LandPressTime >= Hold)
+		{
+			bLandFired = true;
+			RouteLand();
+		}
 	}
 
 	// Hold D-pad up: open the switch radial.
@@ -602,6 +629,10 @@ void ATDSpacePlayerController::OnPowerReleased(const FInputActionValue&)
 	{
 		RoutePower(ETDPowerInput::Signature1);
 	}
+	else if (bPowerHoldFired)
+	{
+		RoutePower(ETDPowerInput::Signature2, false); // release edge after a hold (Bastion's dome)
+	}
 	PowerPressTime = -1.0;
 	bPowerHoldFired = false;
 }
@@ -645,10 +676,29 @@ void ATDSpacePlayerController::OnSwitchRadialReleased(const FInputActionValue&)
 }
 
 void ATDSpacePlayerController::OnTargetCycle(const FInputActionValue&) { RouteTargetCycle(); }
-void ATDSpacePlayerController::OnHyperdrivePressed(const FInputActionValue&) { OnHyperdriveInput.Broadcast(true); }
-void ATDSpacePlayerController::OnHyperdriveReleased(const FInputActionValue&) { OnHyperdriveInput.Broadcast(false); }
+void ATDSpacePlayerController::OnHyperdrivePressed(const FInputActionValue&) { OnHyperdriveInput.Broadcast(true); RouteHyperdrive(true); }
+void ATDSpacePlayerController::OnHyperdriveReleased(const FInputActionValue&) { OnHyperdriveInput.Broadcast(false); RouteHyperdrive(false); }
 void ATDSpacePlayerController::OnSquadCommand(const FInputActionValue&) { RouteSquadCommand(); }
-void ATDSpacePlayerController::OnLand(const FInputActionValue&) { OnLandInput.Broadcast(); }
+void ATDSpacePlayerController::OnLand(const FInputActionValue&)
+{
+	OnLandInput.Broadcast();
+	LandPressTime = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
+	bLandFired = false;
+}
+
+void ATDSpacePlayerController::OnLandReleased(const FInputActionValue&)
+{
+	LandPressTime = -1.0;
+	bLandFired = false;
+}
+
+void ATDSpacePlayerController::OnCameraToggle(const FInputActionValue&)
+{
+	if (ATDShip* Ship = Cast<ATDShip>(GetPawn()))
+	{
+		Ship->ToggleCockpitView();
+	}
+}
 void ATDSpacePlayerController::OnPause(const FInputActionValue&) { OnPauseInput.Broadcast(); }
 void ATDSpacePlayerController::OnGalaxyMap(const FInputActionValue&) { OnGalaxyMapInput.Broadcast(); }
 
@@ -668,9 +718,19 @@ void ATDSpacePlayerController::RouteTrigger(ETDWeaponSlot Slot, bool bHeld)
 #endif
 }
 
-void ATDSpacePlayerController::RoutePower(ETDPowerInput Power)
+void ATDSpacePlayerController::RoutePower(ETDPowerInput Power, bool bPressed)
 {
-	OnPowerInput.Broadcast(Power);
+	if (bPressed)
+	{
+		OnPowerInput.Broadcast(Power);
+	}
+	if (!bSpaceInputEnabled && bPressed)
+	{
+		return;
+	}
+#if TD_HAS_POWERS
+	UTDPowerComponent::RoutePowerInput(GetPawn(), Power, bPressed);
+#endif
 }
 
 void ATDSpacePlayerController::RouteSwitchStep(int32 Direction)
@@ -709,6 +769,41 @@ void ATDSpacePlayerController::RouteTargetCycle()
 		}
 	}
 #endif
+}
+
+void ATDSpacePlayerController::RouteHyperdrive(bool bPressed)
+{
+	const ATDShip* Ship = Cast<ATDShip>(GetPawn());
+	UTDHyperdriveComponent* Hyper = Ship ? Ship->GetHyperdrive() : nullptr;
+	if (!Hyper || !bSpaceInputEnabled)
+	{
+		return;
+	}
+	if (bPressed)
+	{
+		// Press again during a jump = drop out; otherwise start spooling (hold).
+		if (Hyper->IsJumping())
+		{
+			Hyper->RequestDropOut();
+		}
+		else
+		{
+			Hyper->StartSpool();
+		}
+	}
+	else
+	{
+		Hyper->StopSpool();
+	}
+}
+
+void ATDSpacePlayerController::RouteLand()
+{
+	const ATDShip* Ship = Cast<ATDShip>(GetPawn());
+	if (Ship && Ship->GetLanding() && bSpaceInputEnabled)
+	{
+		Ship->GetLanding()->RequestLand();
+	}
 }
 
 void ATDSpacePlayerController::RouteSquadCommand()

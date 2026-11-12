@@ -178,7 +178,7 @@ protected:
 
 	/** Holding the power key longer than this triggers Signature2 instead of Signature1. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "0.05"))
-	float PowerHoldSeconds = 0.35f;
+	float PowerHoldSeconds = 0.5f;
 
 	/** Holding D-pad up longer than this opens the switch radial. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "0.05"))
@@ -227,12 +227,16 @@ private:
 	void OnHyperdriveReleased(const FInputActionValue& Value);
 	void OnSquadCommand(const FInputActionValue& Value);
 	void OnLand(const FInputActionValue& Value);
+	void OnLandReleased(const FInputActionValue& Value);
+	void OnCameraToggle(const FInputActionValue& Value);
+	void RouteHyperdrive(bool bPressed);
+	void RouteLand();
 	void OnPause(const FInputActionValue& Value);
 	void OnGalaxyMap(const FInputActionValue& Value);
 
 	// Routing to other areas (no-ops until their classes are merged)
 	void RouteTrigger(ETDWeaponSlot Slot, bool bHeld);
-	void RoutePower(ETDPowerInput Power);
+	void RoutePower(ETDPowerInput Power, bool bPressed = true);
 	void RouteSwitchStep(int32 Direction);
 	void RouteSwitchDirect(ETDShipId Ship);
 	void RouteTargetCycle();
@@ -267,6 +271,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Land;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Pause;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_GalaxyMap;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_CameraToggle;
 
 	ETDFlightContext FlightContext = ETDFlightContext::Space;
 	bool bSpaceInputEnabled = true;
@@ -282,6 +287,8 @@ private:
 	double PowerPressTime = -1.0;
 	bool bPowerHoldFired = false;
 	double RadialPressTime = -1.0;
+	double LandPressTime = -1.0;
+	bool bLandFired = false;
 	bool bRadialOpen = false;
 	bool bFirePrimaryHeld = false;
 	bool bFireSecondaryHeld = false;

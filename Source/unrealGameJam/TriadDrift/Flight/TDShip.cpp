@@ -3,6 +3,9 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -26,6 +29,15 @@ ATDShip::ATDShip()
 	ChaseCamera->SetAutoActivate(false);
 
 	Targeting = CreateDefaultSubobject<UTDTargetingComponent>(TEXT("Targeting"));
+	Hyperdrive = CreateDefaultSubobject<UTDHyperdriveComponent>(TEXT("Hyperdrive"));
+	Landing = CreateDefaultSubobject<UTDLandingComponent>(TEXT("Landing"));
+	AtmosphereEntry = CreateDefaultSubobject<UTDAtmosphereEntryComponent>(TEXT("AtmosphereEntry"));
+
+	CockpitCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CockpitCamera"));
+	CockpitCamera->SetupAttachment(HullPivot);
+	CockpitCamera->SetRelativeLocation(CockpitOffset);
+	CockpitCamera->bUsePawnControlRotation = false;
+	CockpitCamera->SetAutoActivate(false);
 
 	bFindCameraComponentWhenViewTarget = true;
 }
@@ -55,18 +67,48 @@ void ATDShip::SetPlayerControlled(bool bInPlayerControlled)
 {
 	const bool bWasControlled = bPlayerControlled;
 	bPlayerControlled = bInPlayerControlled;
-	if (ChaseCamera)
+	ApplyCameraActivation();
+	if (!bInPlayerControlled && bWasControlled && Hyperdrive)
 	{
-		ChaseCamera->SetActive(bInPlayerControlled);
-	}
-	if (SpringArm)
-	{
-		SpringArm->SetComponentTickEnabled(bInPlayerControlled);
+		Hyperdrive->CancelSpool(); // a switch mid-spool cancels it (a jump in progress carries on)
 	}
 	if (bInPlayerControlled && !bWasControlled)
 	{
 		SnapCamera(); // a switch is a hard cut (Director's Cut hook #1): no lag swoop from the old ship
 	}
+}
+
+void ATDShip::SetCockpitView(bool bCockpit)
+{
+	bCockpitView = bCockpit;
+	ApplyCameraActivation();
+	if (!bCockpit)
+	{
+		SnapCamera();
+	}
+}
+
+void ATDShip::ApplyCameraActivation()
+{
+	const bool bChase = bPlayerControlled && !bCockpitView;
+	const bool bCockpit = bPlayerControlled && bCockpitView;
+	if (ChaseCamera)
+	{
+		ChaseCamera->SetActive(bChase);
+	}
+	if (SpringArm)
+	{
+		SpringArm->SetComponentTickEnabled(bChase);
+	}
+	if (CockpitCamera)
+	{
+		CockpitCamera->SetRelativeLocation(CockpitOffset);
+		CockpitCamera->SetFieldOfView(CockpitFOV);
+		CockpitCamera->SetActive(bCockpit);
+	}
+	// The pilot doesn't see their own placeholder hull from inside it.
+	if (HullMesh) { HullMesh->SetOwnerNoSee(bCockpit); }
+	if (PlaceholderWings) { PlaceholderWings->SetOwnerNoSee(bCockpit); }
 }
 
 void ATDShip::SnapCamera()
@@ -93,7 +135,7 @@ void ATDShip::HandleTeleported(ATDSpacecraft* Spacecraft, FVector FromLocation, 
 void ATDShip::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (bPlayerControlled)
+	if (bPlayerControlled && !bCockpitView)
 	{
 		UpdateChaseCamera(DeltaSeconds, false);
 	}

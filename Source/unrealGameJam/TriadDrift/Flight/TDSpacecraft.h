@@ -61,6 +61,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsOutOfBounds() const;
 
+	/** Metres above the ground straight below (atmosphere flight HUD), or -1 if nothing is below within 20 km. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	float GetAltitudeMeters() const;
+
 	/** Instant move (portals, gates, hyperdrive drop-out). Fires OnTeleported. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void TeleportSpacecraft(const FVector& Location, const FRotator& Facing, bool bKeepSpeed);
