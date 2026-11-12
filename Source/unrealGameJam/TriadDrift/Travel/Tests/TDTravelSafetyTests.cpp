@@ -551,7 +551,7 @@ bool FTDTravelReviewLandingDeath::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelReviewLocks, "TriadDrift.Travel.Safety.LockReasonRefusedEventAndRetakeRelease", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelReviewLocks, "TriadDrift.Travel.Safety.LockReasonRefusedEventOwnedLocks", TD_TEST_FLAGS)
 bool FTDTravelReviewLocks::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W(UTDGameInstance::StaticClass());
@@ -571,14 +571,31 @@ bool FTDTravelReviewLocks::RunTest(const FString& Parameters)
 	TestFalse(TEXT("pilot press refused"), Ship->GetHyperdrive()->RequestSpoolFromPilot());
 	TestTrue(TEXT("refused event carries the reason"), Rec->RefusedTexts.Num() == 1 && Rec->RefusedTexts[0].EqualTo(LockText));
 
-	// A CUT retake drops every lock (the wave re-adds its own when the retake starts).
+	// A CUT retake does NOT clear locks (review MAJOR): an active wave and the finale keep theirs through it.
+	AActor* WaveOwner = W.Spawn<AActor>(FVector::ZeroVector);
+	AActor* FinaleOwner = W.Spawn<AActor>(FVector::ZeroVector);
+	const FText FinaleText = FText::FromString(TEXT("HYPERDRIVE LOCKED - DOMINION ASSAULT"));
+	Travel->AddHyperdriveLock(TEXT("Wave"), LockText, WaveOwner);
+	Travel->AddHyperdriveLock(TEXT("Finale"), FinaleText, FinaleOwner);
 	GI->OnSceneRestart.Broadcast(TEXT("Wave1"), 2);
+	W.Tick();
 	FText Any;
-	TestFalse(TEXT("retake releases the lock"), Travel->IsHyperdriveLocked(Any));
+	TestTrue(TEXT("retake: still locked"), Travel->IsHyperdriveLocked(Any));
+	TestTrue(TEXT("retake: the finale lock is the active reason"), Any.EqualTo(FinaleText));
+	TestFalse(TEXT("retake: pilot press still refused"), Ship->GetHyperdrive()->RequestSpoolFromPilot());
+	Travel->RemoveHyperdriveLock(TEXT("Finale"));
+	TestTrue(TEXT("finale released: the wave's lock remains"), Travel->IsHyperdriveLocked(Any) && Any.EqualTo(LockText));
+
+	// A lock whose owner was destroyed is gone (no orphan can block the hyperdrive forever).
+	WaveOwner->Destroy();
+	W.Tick();
+	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+	TestFalse(TEXT("owner destroyed: lock gone"), Travel->IsHyperdriveLocked(Any));
+	TestTrue(TEXT("HUD line empty"), Travel->GetHyperdriveLockText().IsEmpty());
 	TestTrue(TEXT("pilot press spools again"), Ship->GetHyperdrive()->RequestSpoolFromPilot());
 
 	// Level travel: locks live per world, so a new level starts unlocked.
-	Travel->AddHyperdriveLock(TEXT("Finale"), LockText);
+	Travel->AddHyperdriveLock(TEXT("Finale"), LockText, FinaleOwner);
 	FTDTestWorld Next;
 	TestFalse(TEXT("new level: no locks"), UTDTravelSubsystem::Get(Next.GetWorld())->IsHyperdriveLocked(Any));
 	Rec->RemoveFromRoot();
