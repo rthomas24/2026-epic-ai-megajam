@@ -34,4 +34,3 @@ A standalone source overview is in hud-overview.svg. Regenerate the overview
 and 12 SVG icons with: node export_sources.js. This writes text SVG only.
 Validation: node syntax checks; in-memory display-state smoke checks; all
 13 SVG documents parsed as XML. Browser visual QA remains for the Lead.
-

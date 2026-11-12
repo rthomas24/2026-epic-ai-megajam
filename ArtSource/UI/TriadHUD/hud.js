@@ -43,4 +43,3 @@ window.TriadHUDPreview={selectShip,hit,scene,getState:()=>structuredClone(state)
   render();
 }};
 render();
-
