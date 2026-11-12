@@ -375,6 +375,13 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   the destination planet's atmosphere, live shield generators, the reactor, on-foot waypoints and the
   board-ship point; the landing pad while in atmosphere (flight). Nothing is tagged during a wave.
 - Incoming-missile warning state (Nick supplies the sound and UI).
+- More HUD data on the same source, all optional zero-input getters (added Nov 12): `GetObjectiveText`
+  (current objective line), `GetBoundaryWarningText` (edge of the play area), `GetInteractPrompt` (landing
+  prompt, and for 1.5 s why a switch was refused), `GetSquadMarkers` (where each squad ship is and whether
+  the wingman is engaging: off-screen wing arrows), `GetDamageIndicators` (direction of recent hits on the
+  player: "who is shooting me").
+- Pause: Escape / gamepad Start, in space and on foot (`OnPauseChanged` on the player controller;
+  `UTDUIStyle.PauseWidgetClass` for the menu). Refused during level travel, a pending retake and victory.
 
 #### ENG-07 · Squad manager & instant switching (PROTECT) · `⬜`
 - `ATDSquadManager` spawns, tracks and respawns all three ships, and owns who the player controls.
