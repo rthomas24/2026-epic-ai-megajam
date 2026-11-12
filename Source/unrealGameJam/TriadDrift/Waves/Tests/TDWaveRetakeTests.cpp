@@ -110,6 +110,25 @@ bool FTDRetakeLocksFollowState::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWaveInfoAfterLastWave, "TriadDrift.Waves.NoWaveInfoAfterTheLastWave", TD_TEST_FLAGS)
+bool FTDWaveInfoAfterLastWave::RunTest(const FString& Parameters)
+{
+	using namespace TDWaveRetakeTest;
+	// Lead playtest 3: the HUD read "WAVE 05 / 00 HOSTILES" through the Dominion assault.
+	FTDTestWorld W;
+	ATDWaveDirector* D = Director(W);
+	D->StartWave(D->GetWaveCount() - 1);
+	W.Advance(D->WarpInSeconds + 8.f);
+	TestTrue(TEXT("wave 5 active"), D->GetWaveInfo().bWaveActive && D->GetWaveInfo().WaveNumber == D->GetWaveCount());
+	for (int32 i = 0; i < 20 && D->GetState() != ETDWaveState::AllComplete; ++i) { KillAll(D); W.Advance(1.f); }
+	const FTDWaveInfo Info = D->GetWaveInfo();
+	TestTrue(TEXT("all complete"), D->GetState() == ETDWaveState::AllComplete);
+	TestFalse(TEXT("no wave active"), Info.bWaveActive || Info.bInBreather);
+	TestEqual(TEXT("no wave number"), Info.WaveNumber, 0);
+	TestEqual(TEXT("nothing to count"), Info.EnemiesAlive + Info.EnemiesTotal, 0);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWarpInTelegraphShows, "TriadDrift.Waves.WarpInTelegraphIsVisible", TD_TEST_FLAGS)
 bool FTDWarpInTelegraphShows::RunTest(const FString& Parameters)
 {

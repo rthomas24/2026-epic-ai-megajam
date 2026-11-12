@@ -963,6 +963,16 @@ FTDWaveInfo ATDWaveDirector::GetWaveInfo() const
 	Info.bWaveActive = State == ETDWaveState::WarpingIn || State == ETDWaveState::Active;
 	Info.bInBreather = State == ETDWaveState::Breather;
 	Info.BreatherRemaining = GetBreatherRemaining();
+	if (State == ETDWaveState::AllComplete)
+	{
+		// All waves done (the Dominion assault and after): no wave number, nothing to count. The objective
+		// line (T5) carries the finale; a HUD shows its wave block only while bWaveActive or bInBreather.
+		Info.WaveNumber = 0;
+		Info.SceneId = NAME_None;
+		Info.EnemiesAlive = 0;
+		Info.EnemiesTotal = 0;
+		Info.Intensity01 = 0.f;
+	}
 	return Info;
 }
 
