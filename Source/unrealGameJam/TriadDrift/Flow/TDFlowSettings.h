@@ -55,6 +55,13 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Scenes and takes", meta = (ClampMin = "0.0", Units = "s"))
 	float RetakeDelaySeconds = 1.75f;
 
+	/**
+	 * Story phase entered when a wave (1-based number) is cleared. Defaults follow features.md §0:
+	 * wave 2 -> Verdance, wave 4 -> Cinder, wave 5 -> Dominion assault.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Progression")
+	TMap<int32, ETDGamePhase> PhaseAfterWaveCleared;
+
 	/** Which ship owns each unlockable ability (features.md §0 player journey). */
 	UPROPERTY(Config, EditAnywhere, Category = "Progression")
 	TMap<ETDAbilityId, ETDShipId> AbilityOwners;

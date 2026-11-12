@@ -1,4 +1,4 @@
-// Triad Drift - zero-asset playable space sandbox (ENG-19). Owner: Teammate 5.
+﻿// Triad Drift - zero-asset playable space sandbox (ENG-19). Owner: Teammate 5.
 //
 // UnrealEditor.exe <uproject> /Engine/Maps/Entry?game=/Script/unrealGameJam.TDSpaceGameMode -game -windowed
 
@@ -26,7 +26,6 @@ public:
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void StartPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	/** Where the squad spawns and where retakes put it back. */

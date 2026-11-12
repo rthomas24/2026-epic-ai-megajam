@@ -42,13 +42,13 @@ public:
 
 	// ---------------------------------------------------------------- ITDGameFlow
 	virtual bool TravelTo(ETDDestination Destination, FName ReturnPoint) override;
-	virtual const FTDProgress& GetProgress() const override;
+	virtual FTDProgress GetProgress() const override;
 	virtual void SetPhase(ETDGamePhase NewPhase) override;
-	virtual void ReportWaveCleared(int32 WaveIndex) override;
+	virtual void ReportWaveCleared(int32 WaveNumber) override;
 	virtual void CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, ETDShipId ForShip) override;
 	virtual void SetDominionState(bool bRevealed, bool bDefensesDown) override;
 	virtual void ReportPlayerDefeated() override;
-	virtual void AddStat(FName StatName, int32 Delta) override;
+	virtual void AddStat(FName StatName, int32 Amount) override;
 	virtual void RequestBark(FName BarkId, FName Speaker) override;
 	virtual void ShowTip(FName TipId) override;
 	virtual void SaveCheckpoint() override;
@@ -148,10 +148,27 @@ public:
 	/** Pauses the run timer (menus, transitions, victory). */
 	void SetRunTimerPaused(bool bPaused) { bRunTimerPaused = bPaused; }
 
+	/** Read-only view without a copy (C++ callers on hot paths). */
+	const FTDProgress& GetProgressRef() const { return Progress; }
+
 	/** Mutable access for cheats and tests only. */
 	FTDProgress& GetMutableProgress() { return Progress; }
 
+	// Event bus listeners (public so tests can drive them directly).
+	UFUNCTION()
+	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
+
+	UFUNCTION()
+	void HandleWaveStarted(int32 WaveNumber, float Intensity01);
+
+	UFUNCTION()
+	void HandleWaveCleared(int32 WaveNumber);
+
+	/** Scene id used for a wave (matches FTDWaveInfo::SceneId: "Wave3"). */
+	static FName WaveSceneId(int32 WaveNumber);
+
 private:
+	void BindEventBus();
 	bool TickRunTimer(float DeltaSeconds);
 	void ExecuteRetake();
 	void OpenDestination(ETDDestination Destination, const FString& PackageName);
@@ -169,6 +186,8 @@ private:
 	TArray<FName> SceneOrder;
 
 	FName CurrentSceneId;
+	FName LastAnnouncedScene;
+	int32 LastAnnouncedTake = 0;
 	ETDDestination CurrentDestination = ETDDestination::MainMenu;
 	ETDDestination PendingDestination = ETDDestination::MainMenu;
 	bool bTravelPending = false;
