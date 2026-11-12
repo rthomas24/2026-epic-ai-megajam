@@ -12,6 +12,7 @@ class UTDTargetingComponent;
 class UTDHyperdriveComponent;
 class UTDLandingComponent;
 class UTDAtmosphereEntryComponent;
+class UTDShipVisuals;
 
 /** Chase-camera feel. Defaults are features.md ENG-01. */
 USTRUCT(BlueprintType)
@@ -80,6 +81,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ship")
 	void SetShipId(ETDShipId NewId);
+
+	/** Presentation (Nick, ART-03). With a mesh set it replaces the placeholder hull; otherwise the
+	 *  placeholder is tinted in the squad colour. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ship")
+	void SetShipVisuals(UTDShipVisuals* InVisuals);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	UTDShipVisuals* GetShipVisuals() const { return Visuals; }
+
+	virtual void ApplyPlaceholderLook() override;
 
 	/**
 	 * Only toggles the chase camera (active + ticking). Never touches velocity, input latching or
@@ -152,6 +163,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
 	ETDShipId ShipId = ETDShipId::Rift;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
+	TObjectPtr<UTDShipVisuals> Visuals;
+
+	virtual FLinearColor GetPlaceholderColor() const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Camera")
 	FTDChaseCameraTuning CameraTuning;
