@@ -1,6 +1,8 @@
 // Triad Drift - Combat (Teammate 2). Weapon slots: fire rate, heat, ammo, charge, salvos, spread, aim assist.
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
@@ -570,6 +572,16 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	if (ProjSpec.FX)
 	{
 		UTDStatics::PlayCue(this, ProjSpec.FX->Muzzle, MuzzleLocation, Dir.Rotation());
+	}
+	if (!ProjSpec.FX || ProjSpec.FX->Muzzle.IsEmpty())
+	{
+		// Placeholder muzzle flash, riding on the ship so it stays at the barrel.
+		if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))
+		{
+			const FLinearColor Color = (ProjSpec.FX && !ProjSpec.FX->Color.Equals(FLinearColor::White)) ? ProjSpec.FX->Color : ProjSpec.PlaceholderColor;
+			Projectiles->PlayPlaceholderFlash(MuzzleLocation, FTDCombatPlaceholders::MuzzleFlashRadius(ProjSpec),
+				FMath::Lerp(Color, FLinearColor::White, 0.35f), 0.06f, Owner->GetRootComponent());
+		}
 	}
 }
 

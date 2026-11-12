@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "Engine/World.h"
@@ -121,6 +122,57 @@ void UTDProjectileSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 	{
 		KillAll(false);
 	}
+}
+
+ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds,
+	USceneComponent* AttachTo)
+{
+	UWorld* World = GetWorld();
+	if (!World || !World->IsGameWorld())
+	{
+		return nullptr;
+	}
+	Flashes.RemoveAll([](const TObjectPtr<ATDCombatFlash>& F) { return !IsValid(F); });
+
+	ATDCombatFlash* Flash = nullptr;
+	for (ATDCombatFlash* Candidate : Flashes)
+	{
+		if (!Candidate->IsPlaying())
+		{
+			Flash = Candidate;
+			break;
+		}
+	}
+	if (!Flash && Flashes.Num() < MaxFlashes)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.ObjectFlags |= RF_Transient;
+		Flash = World->SpawnActor<ATDCombatFlash>(ATDCombatFlash::StaticClass(), Location, FRotator::ZeroRotator, Params);
+		if (Flash)
+		{
+			Flashes.Add(Flash);
+		}
+	}
+	if (!Flash && Flashes.Num() > 0)
+	{
+		Flash = Flashes[NextFlash++ % Flashes.Num()];
+	}
+	if (Flash)
+	{
+		Flash->Play(Location, Radius, Color, Seconds, AttachTo);
+	}
+	return Flash;
+}
+
+int32 UTDProjectileSubsystem::GetPlayingFlashCount() const
+{
+	int32 Count = 0;
+	for (const ATDCombatFlash* Flash : Flashes)
+	{
+		Count += (IsValid(Flash) && Flash->IsPlaying()) ? 1 : 0;
+	}
+	return Count;
 }
 
 int32 UTDProjectileSubsystem::KillAll(bool bPlayFX)
