@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "agent": "Characters & Enemies Agent",
+  "role": "Humanoid character and enemy asset production",
+  "stage": "offline source preparation only",
+  "prepared_utc": "2026-11-12T22:37:47.922051+00:00",
+  "branch": "nick/characters-infantry",
+  "worktree": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-infantry",
+  "base_commit": "da9a0a4547aa4983f46ef770f200efba9573f02a",
+  "claim_publication": "da9a0a4547aa4983f46ef770f200efba9573f02a",
+  "claim_timestamp_correction": "22627be",
+  "owned_root": "ArtSource/Characters/NullArmada/Infantry/M01/",
+  "hud_checkpoint": "ca579ab7380f830647aa3d49e4f442f5cf3714a2",
+  "hud_worktree_frozen": true,
+  "priority": "Lead under Nick delegation: infantry first, Lancer pilot deferred; full campaign preserved",
+  "source_reference": {
+    "original": "C:\\Users\\nicho\\AppData\\Local\\Temp\\codex-clipboard-86c032e1-f7c6-42c2-b8c9-bded985d3cfa.png",
+    "file": "refs/NullArmada_Infantry_Approved_FourView.png",
+    "sha256": "24982c685ee6039482aa1abd5f2ffa472dfa9691a5599e9e1d429ffb93a9fa34",
+    "bytes": 2514669,
+    "resolution": [
+      1536,
+      1024
+    ],
+    "copy_is_byte_identical": true,
+    "png_crc_and_decompression_pass": true
+  },
+  "read_only_packages": [
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SKM_Manny_Simple.uasset",
+      "character_tree": "LFS pointer only",
+      "read_only_actual_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Content\\Characters\\Mannequins\\Meshes\\SKM_Manny_Simple.uasset",
+      "actual_bytes": 15825101,
+      "sha256": "be9f011191ee1887b97cd13bce09886a6066c2fd62c619991070ec142184e1bf",
+      "lfs_oid_matches_actual": true,
+      "exported": false
+    },
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SK_Mannequin.uasset",
+      "character_tree": "LFS pointer only",
+      "read_only_actual_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Content\\Characters\\Mannequins\\Meshes\\SK_Mannequin.uasset",
+      "actual_bytes": 191198,
+      "sha256": "22029d47455f24471195b26a0e04a1e1389f27d6a924e88c9f46a0f600c9a530",
+      "lfs_oid_matches_actual": true,
+      "exported": false
+    }
+  ],
+  "actual_model": {
+    "exists": false,
+    "blend": null,
+    "fbx": null,
+    "geometry_counts": null,
+    "material_counts": null,
+    "review_renders": []
+  },
+  "authorization": {
+    "offline_preparation": true,
+    "heavy_slot": false,
+    "geometry": false,
+    "export": false,
+    "rigging": false,
+    "animation": false,
+    "native_integration": false
+  },
+  "next_gate": "Lead fresh heavy-slot grant before read-only mannequin export and any Blender operation",
+  "shared_files_changed": false
+}

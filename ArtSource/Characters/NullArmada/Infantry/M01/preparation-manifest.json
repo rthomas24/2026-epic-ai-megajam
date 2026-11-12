@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "scope": "Offline preparation files only; no completed model",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 2717,
+      "sha256": "bb710e23a18ffa30dc51e25db81d404d7959d82d99b8c9d461d16c77513abf39",
+      "sha256_lf_normalized_utf8": "bb710e23a18ffa30dc51e25db81d404d7959d82d99b8c9d461d16c77513abf39"
+    },
+    {
+      "path": "brief.md",
+      "bytes": 6178,
+      "sha256": "d5737fa7a86a2f6b57528439146b03e95d0b0f4dd9d127ee9bf327d4eeedfbb9",
+      "sha256_lf_normalized_utf8": "d5737fa7a86a2f6b57528439146b03e95d0b0f4dd9d127ee9bf327d4eeedfbb9"
+    },
+    {
+      "path": "checkpoint.json",
+      "bytes": 2804,
+      "sha256": "93e539ff13dfdc63511b408bd048add56e442d9356a64edbefc96a4a570d8d9e",
+      "sha256_lf_normalized_utf8": "44f13834ab40a2f0e2d56f997139a365b63a998da924997388a1f18edc9abfeb"
+    },
+    {
+      "path": "production-plan.json",
+      "bytes": 4121,
+      "sha256": "f42156da55cd73e42eb3c7b0215a12c0e393e28783291d8d684c4c8cebf6c847",
+      "sha256_lf_normalized_utf8": "b5394e6459fed89e3544566558cf569149e8ab71bfaf20d7c45a5c1f47bfa3d5"
+    },
+    {
+      "path": "qa-plan.md",
+      "bytes": 4778,
+      "sha256": "41bc3c81cd5289ac1b216b59e48c1639ca3e67c06cd77948bdb77d8669d08966",
+      "sha256_lf_normalized_utf8": "41bc3c81cd5289ac1b216b59e48c1639ca3e67c06cd77948bdb77d8669d08966"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2105,
+      "sha256": "05b89f68a273eb02bf61189d1b8da54fc78da442973db00da3b5db7a6fcc75ca",
+      "sha256_lf_normalized_utf8": "05b89f68a273eb02bf61189d1b8da54fc78da442973db00da3b5db7a6fcc75ca"
+    },
+    {
+      "path": "refs/NullArmada_Infantry_Approved_FourView.png",
+      "bytes": 2514669,
+      "sha256": "24982c685ee6039482aa1abd5f2ffa472dfa9691a5599e9e1d429ffb93a9fa34"
+    },
+    {
+      "path": "source/SOURCE.md",
+      "bytes": 2466,
+      "sha256": "5c883b0044a6892dec950b2d5b51c1c217a5c1de273c9e8cb237f536a8157e1f",
+      "sha256_lf_normalized_utf8": "5c883b0044a6892dec950b2d5b51c1c217a5c1de273c9e8cb237f536a8157e1f"
+    }
+  ],
+  "excludes_self": true,
+  "hash_basis": "sha256 and bytes describe raw files at preparation; text LF-normalized hash supports Git checkout line-ending conversion"
+}

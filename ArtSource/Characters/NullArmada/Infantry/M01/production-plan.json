@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "asset": "NullArmada_Infantry_M01",
+  "status": "PLAN ONLY - no geometry",
+  "route": "B: owned UE5 mannequin foundation plus original modular armor",
+  "scale": {
+    "blender_m_per_unit": 1,
+    "standing_target_cm": 180,
+    "unreal_cm_per_unit": 1,
+    "unreal_forward": "+X",
+    "unreal_up": "+Z",
+    "rest_pose": "UE5 Manny A-pose",
+    "origin": "between feet on ground",
+    "measured_height_cm": null
+  },
+  "budget": {
+    "target_evaluated_tris": [
+      35000,
+      55000
+    ],
+    "ceiling_tris": 60000,
+    "provisional": true,
+    "base_inventory_required": true,
+    "actual_evaluated_tris": null,
+    "material_roles_target": 4,
+    "actual_material_count": null
+  },
+  "components": [
+    {
+      "name": "Helmet",
+      "form": "Crown, brow/face keel, cheek/jaw, side mechanism, narrow V visor",
+      "joint_zone": "head/neck",
+      "construction": "paired shell panels; preserve visor shape"
+    },
+    {
+      "name": "Torso",
+      "form": "Pectorals, lower ribs, segmented abdomen, compact dorsal spine",
+      "joint_zone": "spine/chest",
+      "construction": "no plate across waist bend"
+    },
+    {
+      "name": "Shoulders",
+      "form": "Angular athletic caps and visible undersuit mounts",
+      "joint_zone": "clavicle/upperarm",
+      "construction": "paired reusable caps, no heavy silhouette"
+    },
+    {
+      "name": "Arms",
+      "form": "Biceps, elbow cap and tapered bracer",
+      "joint_zone": "upperarm/lowerarm",
+      "construction": "front plate separated from inner elbow"
+    },
+    {
+      "name": "Gloves",
+      "form": "Dorsal hand armor, individual finger protection",
+      "joint_zone": "wrist/fingers/thumb",
+      "construction": "preserve thumb web and palm flexibility"
+    },
+    {
+      "name": "BeltPelvis",
+      "form": "Utility pouches, buckle, center/lateral pelvis protection",
+      "joint_zone": "pelvis/hips",
+      "construction": "clear groin and thigh lift"
+    },
+    {
+      "name": "Thighs",
+      "form": "Tapered angular outer/front plates",
+      "joint_zone": "thigh",
+      "construction": "separate from knee and hip"
+    },
+    {
+      "name": "KneesCalves",
+      "form": "Distinct knee cap and calf/shin shell",
+      "joint_zone": "knee/calf",
+      "construction": "clear knee back and ankle bend"
+    },
+    {
+      "name": "Boots",
+      "form": "Ankle hinge, layered instep/toe, practical sole",
+      "joint_zone": "foot/toes",
+      "construction": "retain foot volume and toe flex"
+    },
+    {
+      "name": "Undersuit",
+      "form": "Existing body-derived charcoal flex regions",
+      "joint_zone": "all flex joints",
+      "construction": "no new procedural anatomy; inspect base before adapting"
+    }
+  ],
+  "materials": [
+    {
+      "role": "CoatedGunmetal",
+      "srgb_hex": "#343940",
+      "metallic": 0,
+      "roughness_range": [
+        0.32,
+        0.5
+      ]
+    },
+    {
+      "role": "FlexibleCharcoal",
+      "srgb_hex": "#25282C",
+      "metallic": 0,
+      "roughness_range": [
+        0.65,
+        0.85
+      ]
+    },
+    {
+      "role": "CrimsonTrim",
+      "srgb_hex": "#6E232A",
+      "metallic": 0,
+      "roughness_range": [
+        0.4,
+        0.55
+      ]
+    },
+    {
+      "role": "OrangeOptics",
+      "srgb_hex": "#FF6B1B",
+      "metallic": 0,
+      "roughness_range": [
+        0.12,
+        0.25
+      ],
+      "emission_strength_target": [
+        1,
+        3
+      ],
+      "maximum_emissive_surface_fraction": 0.05
+    }
+  ],
+  "planned_outputs": [
+    "source/NullArmada_Infantry_M01_v01.blend",
+    "review/M01_front.png",
+    "review/M01_back.png",
+    "review/M01_left.png",
+    "review/M01_right.png",
+    "review/M01_beauty.png",
+    "review/geometry-validation.json"
+  ],
+  "approval": {
+    "concept": "user supplied approved four-view direction",
+    "model_visual": "NOT YET - model does not exist",
+    "rigging_animation_native": "NOT AUTHORIZED",
+    "other_characters": "NOT AUTHORIZED"
+  }
+}
