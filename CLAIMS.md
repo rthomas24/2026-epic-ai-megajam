@@ -68,7 +68,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 13:25 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 13:33 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -104,6 +104,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | Independent code review of Powers + World (ENG-09 to 12, 16, 17, 18) | Lead | done | Nov 12 12:46 | Nov 12 13:15; findings with T2 and T4 | none |
 | Core: `UTDShipVisuals.Parts` (modular ships), `UTDWeaponFX.ProjectileMeshOffset`, highlight broadcast restricted to the director | Lead | done | Nov 12 13:16 | Nov 12 13:16, this push (answers `MESSAGEBOARD.md` N-001) | none |
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
+| Enable Unreal 5.9 agent toolsets for the built-in MCP server; MCP play-test tools | Lead | in progress | Nov 12 13:33 | | **CLAIMED by Ryan / Lead: `/unrealGameJam.uproject`** (adds engine toolset plugins, Editor targets only, `EngineAssociation` untouched); `/Tools/**` |
 | ENG-28 Shipping package under 1 GB | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Second-pass reviews: Ground + Flow (ENG-19, 21, 22, 24), Travel + Flight (ENG-01, 02, 15, 20) | Lead | in progress | Nov 12 13:21 | | none |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
@@ -136,7 +137,7 @@ open) · `done` (on `main`, tests pass, review closed).
 - `/Config/DefaultEngine.ini` now boots into `L_Galaxy` and assigns game modes by map name
   (`L_Galaxy` space, `L_Planet*` and `L_Dominion*` ground). A menu game mode for `L_MainMenu`
   and the boot-map switch to it follow when the menu exists.
-- `unrealGameJam.uproject` is unclaimed. Nick's `Plugins/TriadDriftHUD/**` row implies a plugin
+- `unrealGameJam.uproject` is claimed by Ryan / Lead while the toolset plugins are added (see the row above). Nick's `Plugins/TriadDriftHUD/**` row implies a plugin
   entry there and a module dependency. A plugin cannot include the game module's headers
   (`ITDHUDData`, `UTDEventBus`), so how the HUD reads gameplay data needs to be agreed between
   Ryan and Nick before that plugin is integrated.
