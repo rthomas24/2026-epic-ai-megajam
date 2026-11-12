@@ -86,9 +86,9 @@ namespace TDCutPresentationPrivate
 			// Slate, top centre under the bar.
 			if (S.SlateAlpha > 0.f)
 			{
-				const float BarH = Size.Y * FMath::Max(S.Letterbox, 0.06f);
-				Box(FVector2D(Size.X * 0.5f - 300.f, BarH + 16.f), FVector2D(600.f, 64.f), FLinearColor(0.f, 0.f, 0.f, 0.65f * S.SlateAlpha));
-				Text(S.SlateText, 28, FVector2D(Size.X * 0.5f, BarH + 48.f), FLinearColor(1.f, 1.f, 1.f, S.SlateAlpha), true);
+				const FBox2D R = UTDCutPresentation::SlateRect(Size, S.Letterbox);
+				Box(R.Min, R.GetSize(), FLinearColor(0.f, 0.f, 0.f, 0.65f * S.SlateAlpha));
+				Text(S.SlateText, 28, R.GetCenter(), FLinearColor(1.f, 1.f, 1.f, S.SlateAlpha), true);
 			}
 			// "CUT!"
 			if (S.CutCardAlpha > 0.f)
@@ -205,6 +205,14 @@ void UTDCutPresentation::ClearAll()
 	SwitchStart = CutStart = SlateStart = ShotStart = -1000.0;
 	FlashFramesLeft = 0;
 	State = FTDCutPresentationState();
+}
+
+FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox)
+{
+	const FVector2D Half(300.f, 32.f);
+	const float CentreY = FMath::Max(Size.Y * 0.27f, Size.Y * Letterbox + Half.Y + 16.f);
+	const FVector2D C(Size.X * 0.5f, CentreY);
+	return FBox2D(C - Half, C + Half);
 }
 
 FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber)
