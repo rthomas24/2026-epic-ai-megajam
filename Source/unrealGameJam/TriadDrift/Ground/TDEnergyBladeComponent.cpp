@@ -15,6 +15,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/World.h"
+#include "Misc/PackageName.h"
 
 namespace TDBlade
 {
@@ -51,15 +52,16 @@ void UTDEnergyBladeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	Stamina = BlockStaminaSeconds;
+	if (!BladeFX && FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Presentation/DA_Blade_FX")))
+	{
+		BladeFX = LoadObject<UTDBladeFX>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Blade_FX.DA_Blade_FX"));
+	}
 	OwnerHealth = UTDStatics::GetHealth(GetOwner());
 	if (OwnerHealth)
 	{
 		OwnerHealth->DamageFilter.BindUObject(this, &UTDEnergyBladeComponent::FilterIncomingDamage);
 	}
-	if (BladeFX)
-	{
-		UTDStatics::PlayCueAttached(BladeFX->Ignite, GetOwner() ? GetOwner()->GetRootComponent() : nullptr);
-	}
+	PlayBladeCue(TEXT("Ignite"), BladeFX ? &BladeFX->Ignite : nullptr, true, FVector::ZeroVector);
 }
 
 void UTDEnergyBladeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -69,6 +71,46 @@ void UTDEnergyBladeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		OwnerHealth->DamageFilter.Unbind();
 	}
 	Super::EndPlay(EndPlayReason);
+}
+
+void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool bAttached, const FVector& Location)
+{
+	OnCueRequested.Broadcast(Name);
+	if (!Cue || Cue->IsEmpty() || !GetOwner())
+	{
+		return;
+	}
+	if (bAttached)
+	{
+		UTDStatics::PlayCueAttached(*Cue, GetOwner()->GetRootComponent());
+	}
+	else
+	{
+		UTDStatics::PlayCue(this, *Cue, Location, GetOwner()->GetActorRotation());
+	}
+}
+
+void UTDEnergyBladeComponent::Retract()
+{
+	if (bRetracted)
+	{
+		return;
+	}
+	CancelAll();
+	bRetracted = true;
+	PlayBladeCue(TEXT("Retract"), BladeFX ? &BladeFX->Retract : nullptr, true, FVector::ZeroVector);
+	OnRetractChanged.Broadcast(true);
+}
+
+void UTDEnergyBladeComponent::Ignite()
+{
+	if (!bRetracted)
+	{
+		return;
+	}
+	bRetracted = false;
+	PlayBladeCue(TEXT("Ignite"), BladeFX ? &BladeFX->Ignite : nullptr, true, FVector::ZeroVector);
+	OnRetractChanged.Broadcast(false);
 }
 
 ACharacter* UTDEnergyBladeComponent::GetOwnerCharacter() const
@@ -174,7 +216,7 @@ void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 	bBlockHeld = bHeld;
 	if (bHeld)
 	{
-		if (!IsAttacking() && State != ETDBladeState::GuardBroken && Stamina > 0.f && State != ETDBladeState::Blocking)
+		if (!bRetracted && !IsAttacking() && State != ETDBladeState::GuardBroken && Stamina > 0.f && State != ETDBladeState::Blocking)
 		{
 			State = ETDBladeState::Blocking;
 			BlockTime = 0.f;
@@ -197,7 +239,7 @@ void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 
 bool UTDEnergyBladeComponent::LightAttack()
 {
-	if (LightCombo.Num() == 0 || State == ETDBladeState::GuardBroken || State == ETDBladeState::Blocking)
+	if (bRetracted || LightCombo.Num() == 0 || State == ETDBladeState::GuardBroken || State == ETDBladeState::Blocking)
 	{
 		return false;
 	}
@@ -226,16 +268,13 @@ void UTDEnergyBladeComponent::StartSwing(int32 Index)
 	ComboTimeLeft = 0.f;
 	bLightQueued = false;
 	OnSwing.Broadcast(State);
-	if (BladeFX)
-	{
-		UTDStatics::PlayCueAttached(BladeFX->SwingLight, GetOwner()->GetRootComponent());
-	}
+	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	HitArc(Swing.Range, Swing.ArcDegrees, Swing.Damage, Swing.Knockback);
 }
 
 bool UTDEnergyBladeComponent::HeavyLunge()
 {
-	if (HeavyCooldownLeft > 0.f || State == ETDBladeState::GuardBroken || IsAttacking())
+	if (bRetracted || HeavyCooldownLeft > 0.f || State == ETDBladeState::GuardBroken || IsAttacking())
 	{
 		return false;
 	}
@@ -257,10 +296,7 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	ComboIndex = 0;
 	ComboTimeLeft = 0.f;
 	OnSwing.Broadcast(State);
-	if (BladeFX)
-	{
-		UTDStatics::PlayCueAttached(BladeFX->SwingHeavy, Owner->GetRootComponent());
-	}
+	PlayBladeCue(TEXT("SwingHeavy"), BladeFX ? &BladeFX->SwingHeavy : nullptr, true, FVector::ZeroVector);
 
 	// Stab the first hostile along the lunge path.
 	const FVector Start = Owner->GetActorLocation();
@@ -310,7 +346,7 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 bool UTDEnergyBladeComponent::AirSlam()
 {
 	ACharacter* Char = GetOwnerCharacter();
-	if (!Char || !Char->GetCharacterMovement() || !Char->GetCharacterMovement()->IsFalling() || IsAttacking() || State == ETDBladeState::GuardBroken)
+	if (bRetracted || !Char || !Char->GetCharacterMovement() || !Char->GetCharacterMovement()->IsFalling() || IsAttacking() || State == ETDBladeState::GuardBroken)
 	{
 		return false;
 	}
@@ -329,10 +365,7 @@ void UTDEnergyBladeComponent::NotifyOwnerLanded()
 	}
 	AActor* Owner = GetOwner();
 	const FVector Center = Owner->GetActorLocation();
-	if (BladeFX)
-	{
-		UTDStatics::PlayCue(this, BladeFX->AirSlam, Center, FRotator::ZeroRotator);
-	}
+	PlayBladeCue(TEXT("AirSlam"), BladeFX ? &BladeFX->AirSlam : nullptr, false, Center);
 	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 	{
 		TArray<AActor*> Hostiles;
@@ -355,17 +388,14 @@ bool UTDEnergyBladeComponent::DashStrike(FVector Direction, float Distance)
 {
 	AActor* Owner = GetOwner();
 	const FVector Dir = Direction.GetSafeNormal2D();
-	if (!Owner || Dir.IsNearlyZero() || State == ETDBladeState::GuardBroken || IsAttacking())
+	if (bRetracted || !Owner || Dir.IsNearlyZero() || State == ETDBladeState::GuardBroken || IsAttacking())
 	{
 		return false;
 	}
 	State = ETDBladeState::DashStrike;
 	SwingTimeLeft = 0.2f;
 	OnSwing.Broadcast(State);
-	if (BladeFX)
-	{
-		UTDStatics::PlayCueAttached(BladeFX->SwingLight, Owner->GetRootComponent());
-	}
+	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	const FVector Start = Owner->GetActorLocation();
 	const FVector End = Start + Dir * FMath::Max(Distance, 0.f);
 	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
@@ -462,10 +492,7 @@ bool UTDEnergyBladeComponent::HitActor(AActor* Victim, float Damage, const FVect
 	{
 		Bus->BroadcastHitConfirmed(Victim, bKill);
 	}
-	if (BladeFX)
-	{
-		UTDStatics::PlayCue(this, BladeFX->Hit, HitLocation, (-HitDir).Rotation());
-	}
+	PlayBladeCue(TEXT("Hit"), BladeFX ? &BladeFX->Hit : nullptr, false, HitLocation);
 	OnBladeHit.Broadcast(Victim, Dealt, bKill);
 	return true;
 }
@@ -543,9 +570,13 @@ bool UTDEnergyBladeComponent::TryDeflect(AActor* ProjectileActor)
 			}
 		}
 	}
-	if (BladeFX)
+	if (bPerfect)
 	{
-		UTDStatics::PlayCue(this, bPerfect ? BladeFX->PerfectDeflect : BladeFX->Deflect, ProjectileActor->GetActorLocation(), Dir.Rotation());
+		PlayBladeCue(TEXT("PerfectDeflect"), BladeFX ? &BladeFX->PerfectDeflect : nullptr, false, ProjectileActor->GetActorLocation());
+	}
+	else
+	{
+		PlayBladeCue(TEXT("Deflect"), BladeFX ? &BladeFX->Deflect : nullptr, false, ProjectileActor->GetActorLocation());
 	}
 	OnDeflect.Broadcast(ProjectileActor, bPerfect);
 	if (Stamina <= 0.f)
@@ -625,18 +656,12 @@ float UTDEnergyBladeComponent::FilterIncomingDamage(const FTDDamageInfo& Info)
 		}
 		bCritReady = true;
 		OnParry.Broadcast(Info.Instigator);
-		if (BladeFX)
-		{
-			UTDStatics::PlayCue(this, BladeFX->PerfectDeflect, Info.HitLocation, FRotator::ZeroRotator);
-		}
+		PlayBladeCue(TEXT("PerfectDeflect"), BladeFX ? &BladeFX->PerfectDeflect : nullptr, false, Info.HitLocation);
 		return 0.f;
 	}
 
 	Stamina = FMath::Max(0.f, Stamina - BlockHitStaminaCost);
-	if (BladeFX)
-	{
-		UTDStatics::PlayCue(this, BladeFX->Block, Info.HitLocation, FRotator::ZeroRotator);
-	}
+	PlayBladeCue(TEXT("Block"), BladeFX ? &BladeFX->Block : nullptr, false, Info.HitLocation);
 	if (Stamina <= 0.f)
 	{
 		BreakGuard();
@@ -650,10 +675,7 @@ void UTDEnergyBladeComponent::BreakGuard()
 	GuardBrokenLeft = GuardBreakSeconds;
 	Stamina = 0.f;
 	TimeSinceBlock = 0.f;
-	if (BladeFX && GetOwner())
-	{
-		UTDStatics::PlayCue(this, BladeFX->GuardBreak, GetOwner()->GetActorLocation(), FRotator::ZeroRotator);
-	}
+	PlayBladeCue(TEXT("GuardBreak"), BladeFX ? &BladeFX->GuardBreak : nullptr, false, GetOwner() ? GetOwner()->GetActorLocation() : FVector::ZeroVector);
 	OnGuardBroken.Broadcast();
 }
 

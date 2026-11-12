@@ -86,6 +86,56 @@ Dying calls CUT! and you respawn as the next take. F10 opens the debug menu and 
 | Encounter volumes spawn crew; clearing a room opens its doors | `Ground.EncounterSpawnsClearsOpensDoors` | |
 | Sandbox boots | `Ground.SandboxBoots` | |
 
+## Crew enemies (ENG-23)
+
+`Ground/Crew/`:
+- `ATDCrewCharacter`: an ACharacter with `ITDTeam` (Enemy) and `ITDStaggerable`.
+- `ATDCrewAIController`: a C++ state machine, Idle/Patrol → Alert → Engage → Stagger → Dead. It senses through the combat registry with line of sight, and steers with `AddMovementInput`, so no navmesh is needed.
+- `UTDCrewTokenSubsystem`: at most 2 melee attackers at once.
+- `FTDCrewLibrary`: the spec table.
+
+| Type | HP | Attacks | Behaviour |
+|---|---|---|---|
+| Grunt | 60 | Baton 15 after a 0.6 s telegraph | Flanks off-axis. Needs a token; without one it circles at 330 cm. |
+| Trooper | 50 | 3-round bursts of deflectable bolts (10) | Holds 900–1500 cm and strafes. |
+| Heavy | 200 | Shield bash 25; shotgun 6 × 5 | Its frontal 120° shield blocks blade slashes until a heavy lunge breaks it (3 s). |
+| Drone | 30 | Fast small bolts (5) | Flies about 320 cm up, at 600–950 cm. |
+| Warden | 600 | Charge slam 40 (AoE), 7-bolt fan, summons 2 grunts | Phase 2 at 50%: cooldowns × 0.7, an 11-bolt fan, 3 summons. |
+
+- **Projectiles:** bolts and pellets are T2's `ATDProjectile`, so the blade deflects them.
+- **Telegraphs:** every telegraph plays `Visuals->Telegraph`, and `IsTelegraphing()` / `GetCurrentAttack()` are exposed for animation.
+- **Death:** a placeholder ragdoll (the body block simulates), capsule collision off, cleaned up after 4 s. Kills reach the flow through the bus.
+- **Visuals:** `Visuals` (`UTDEnemyVisuals`), or `/Game/TriadDrift/Presentation/Crew/DA_Crew_<Grunt|Trooper|Heavy|Drone|Warden>_Visuals` when it exists. A skeletal or static mesh hides the red placeholder block.
+- **Encounters:** `ATDEncounterVolume` spawns `ATDCrewCharacter` with a `CrewMix` and alerts them to the player.
+
+Tests (`TriadDrift.Ground.Crew.*`, all through the real AI, projectiles and blade):
+
+| Behaviour | Test |
+|---|---|
+| Spec table | `SpecTable` |
+| Grunt telegraph and 15 hit | `GruntApproachesTelegraphsAndHits` (30, 60 and 120 fps) |
+| Attack tokens | `AtMostTwoGruntsAttackAtOnce` |
+| Trooper distance and bursts | `TrooperKeepsDistanceAndBursts` |
+| Real trooper bolt perfect-deflected back | `PerfectDeflectReturnsTrooperBolt` |
+| Heavy shield, guard break, bash, 6 pellets | `HeavyShieldBashAndShotgun` |
+| Drone hover and reach | `DroneHoversOutOfMeleeReach` |
+| Parry staggers a grunt | `ParryStaggersGrunt` |
+| Warden slam 40, fan 7/11, phase 2, summons 3 | `WardenPhasesSummonsFanAndSlam` |
+| Warden AI cycles fan, slam and summon | `WardenAICyclesItsAttacks` |
+| Blade kill → ragdoll → Kills stat | `BladeKillRagdollAndKillStat` |
+| Visuals asset replaces the placeholder | `VisualsReplacePlaceholder` |
+
+Gaps:
+- **Cover:** troopers use `UTDCrewCoverSubsystem`, with four points per registered block (encounter `CoverActors`). They move to a point the player can't see, hide for 1.2 s, peek out to the side with line of sight, burst, then duck back. They relocate when flanked, when the player comes within 5 m, or when the cover is destroyed. Test: `Crew.TrooperUsesCoverPeeksAndRelocates`.
+- The crew use C++ AI, not the template's StateTree.
+- No skeletal art yet, so the ragdoll is the placeholder block.
+- **Presentation:**
+  - Visuals load from `/Game/TriadDrift/Presentation/DA_Crew_<Id>_Visuals` (flat folder).
+  - `AnimBPClass` is applied together with `SkeletalMesh`.
+  - Cues: Telegraph, Stagger (on entering stagger), Death, ShieldHit, HullHit, SlamImpact. They're observable through `OnCueRequested`; test: `Crew.PresentationCuesAndAnimBP`.
+- **Blade:**
+  - The blade loads `/Game/TriadDrift/Presentation/DA_Blade_FX`. `BladeMesh` replaces the placeholder; without it, the placeholder is tinted with `BladeColor`.
+  - Retract plays on death (the blade is hidden and can't attack) and Ignite on respawn. Every cue goes through `OnCueRequested`; test: `Blade.PresentationCuesMeshAndRetract`.
 ## Planet arrival and hand-off (agreed with T1, ENG-20)
 
 | Moment | Who | What |

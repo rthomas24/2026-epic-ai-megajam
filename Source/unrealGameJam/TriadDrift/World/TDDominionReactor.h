@@ -30,7 +30,7 @@ public:
 
 	/** Shield up = no damage, not targetable. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Dominion")
-	void SetExposed(bool bInExposed);
+	void SetExposed(bool bInExposed, bool bPlayCue = true);
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	bool IsExposed() const { return bExposed; }

@@ -7,12 +7,14 @@
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
 #include "TriadDrift/Powers/TDPortalTransit.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 #include "TriadDrift/Powers/Tests/TDPowerTestHelpers.h"
+#include "TriadDrift/World/TDDominion.h"
 
 
 namespace TDPowerTest
@@ -278,6 +280,95 @@ bool FTDPortalBlink::RunTest(const FString& Parameters)
 		{
 			CVar->Set(0);
 		}
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalFreshShots, "TriadDrift.Powers.Portal.ShotsFiredAtTheExitAreNotSentBack", TD_TEST_FLAGS)
+bool FTDPortalFreshShots::RunTest(const FString& Parameters)
+{
+	for (const float Step : { 1.f / 30.f, 1.f / 120.f })
+	{
+		FTDTestWorld W;
+		AActor* Rift = nullptr;
+		UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
+		// B is at (0, 12000) facing -Y. A ship that just came out of B fires straight ahead (-Y).
+		AActor* Gunner = SpawnBody(W, ETDTeam::Player, FVector(0.f, 11700.f, 0.f), FVector(50.f));
+		Gunner->SetActorRotation(FRotator(0.f, -90.f, 0.f));
+		UTDWeaponComponent* G = NewObject<UTDWeaponComponent>(Gunner, TEXT("Weapons"));
+		G->RegisterComponent();
+		G->MuzzleOffsets = { FVector(150.f, 0.f, 0.f) };
+		G->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
+		AActor* Target = SpawnBody(W, ETDTeam::Enemy, FVector(0.f, 6000.f, 0.f), FVector(200.f));
+		W.Tick(Step);
+		G->FireOnce(ETDWeaponSlot::Primary);
+		W.Advance(0.5f, Step);
+		const FString Fps = FString::Printf(TEXT("%.0f fps: "), 1.f / Step);
+		TestEqual(*(Fps + TEXT("the fresh shot never went back through the portal")), PortalTestTotalTransits(Power), 0);
+		TestEqual(*(Fps + TEXT("it hit what it was aimed at")), Hull(Target), 92.f, 0.01f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalDynamicGeometry, "TriadDrift.Powers.Portal.DynamicGeometryAndOversizeTravellers", TD_TEST_FLAGS)
+bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
+{
+	auto DynamicWall = [](FTDTestWorld& W, const FVector& Loc, const FVector& Extent)
+	{
+		AActor* Wall = SpawnWall(W, Loc, Extent);
+		Cast<UPrimitiveComponent>(Wall->GetRootComponent())->SetCollisionObjectType(ECC_WorldDynamic);
+		return Wall;
+	};
+	// The real Dominion hull (WorldDynamic, BlockAllDynamic): the portal opens off its surface, outside it.
+	{
+		FTDTestWorld W;
+		ATDDominion* D = W.Spawn<ATDDominion>(FVector(40000.f, 0.f, 0.f));
+		D->WarpInSeconds = 0.f;
+		D->WarpIn();
+		W.Tick();
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);
+		Power->MaxRange = 30000.f; // reaches the hull face at x = 10 000
+		Power->HandleInputPressed();
+		ATDPortal* P = Power->GetPortals().Num() ? Power->GetPortals()[0].Get() : nullptr;
+		TestTrue(TEXT("portal placed"), P != nullptr);
+		TestTrue(TEXT("portal is in front of the hull, not inside it"), P && P->GetActorLocation().X < 40000.f - D->HullExtent.X);
+	}
+	// A dynamic blocker dropped on B's exit: no transit, the ship flies on.
+	{
+		FTDTestWorld W;
+		AActor* Rift = nullptr;
+		UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
+		DynamicWall(W, FVector(0.f, 11300.f, 0.f), FVector(600.f, 200.f, 600.f));
+		ATDSpacecraft* Ship = W.Spawn<ATDSpacecraft>(FVector(9000.f, 0.f, 0.f), FRotator::ZeroRotator);
+		Ship->SetTeam(ETDTeam::Player);
+		FTDFlightInput In;
+		In.Throttle = 1.f;
+		Ship->SetFlightInput(In);
+		W.Advance(2.f);
+		TestEqual(TEXT("dynamic blocker on the exit: no transit"), PortalTestTotalTransits(Power), 0);
+	}
+	// Blink into a dynamic box enclosure: refused, Rift stays put.
+	{
+		FTDTestWorld W;
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		DynamicWall(W, FVector(8000.f, 0.f, 0.f), FVector(6000.f, 3000.f, 3000.f)); // a hull spanning x 2000..14000
+		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);
+		Power->bUseBlinkFallback = true;
+		Power->MaxRange = 30000.f;
+		Power->TryActivate();
+		TestTrue(TEXT("blink lands short of the hull"), Rift->GetActorLocation().X < 2000.f);
+	}
+	// A carrier (radius ~1800 cm) can't squeeze through a 600 cm disc.
+	{
+		FTDTestWorld W;
+		AActor* Rift = nullptr;
+		UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
+		ATDEnemyShip* Carrier = SpawnEnemyShip(W, TDEnemyIds::HiveCarrier, FVector(11000.f, 0.f, 0.f));
+		W.Tick();
+		Carrier->SetActorLocation(FVector(13000.f, 0.f, 0.f)); // crosses A's plane at its centre
+		W.Tick();
+		TestEqual(TEXT("oversize traveller refused"), PortalTestTotalTransits(Power), 0);
 	}
 	return true;
 }

@@ -12,6 +12,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 #include "HAL/IConsoleManager.h"
 #include "NiagaraComponent.h"
 #include "DrawDebugHelpers.h"
@@ -21,6 +22,25 @@ static TAutoConsoleVariable<int32> CVarPortalBlink(
 	TEXT("TD.PortalBlink"), 0,
 	TEXT("1 = Rift's Q uses the Blink fallback (teleport + missile-reflect field) instead of portals."),
 	ECVF_Default);
+
+namespace
+{
+	/** What a portal or a blink can't go into. */
+	FCollisionObjectQueryParams TDPortalBlockers()
+	{
+		FCollisionObjectQueryParams Params;
+		Params.AddObjectTypesToQuery(ECC_WorldStatic);
+		Params.AddObjectTypesToQuery(ECC_WorldDynamic);
+		return Params;
+	}
+
+	float TDPortalTravellerRadius(const AActor* Actor)
+	{
+		FVector Origin, Extent;
+		Actor->GetActorBounds(true, Origin, Extent, false);
+		return Extent.IsNearlyZero() ? 100.f : (float)Extent.GetMax();
+	}
+}
 
 // ================================================================================== portal actor
 
@@ -39,8 +59,21 @@ bool ATDPortal::HasClearance(const UWorld* World, const FVector& Location, float
 	{
 		return true;
 	}
-	return !World->OverlapAnyTestByObjectType(Location, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic),
-		FCollisionShape::MakeSphere(ClearanceRadius), FCollisionQueryParams(SCENE_QUERY_STAT(TDPortalClearance), false));
+	// Static AND dynamic geometry: the Dominion hull, trench, pylons, gate frames and planets are WorldDynamic.
+	if (World->OverlapAnyTestByObjectType(Location, FQuat::Identity, TDPortalBlockers(), FCollisionShape::MakeSphere(ClearanceRadius),
+		FCollisionQueryParams(SCENE_QUERY_STAT(TDPortalClearance), false)))
+	{
+		return false;
+	}
+	// T4's obstacle registry (asteroid fields etc. that may have no collision yet).
+	if (const UTDWorldSubsystem* WorldSub = World->GetSubsystem<UTDWorldSubsystem>())
+	{
+		if (WorldSub->IsInsideObstacle(Location, ClearanceRadius))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransitParams& InParams, UTDTravelFX* InFX, float InExitClearance)
@@ -183,7 +216,7 @@ void ATDPortal::Tick(float DeltaSeconds)
 		for (ATDProjectile* P : Live)
 		{
 			const FVector Cur = P->GetActorLocation();
-			TryCross(P, Cur - P->GetVelocity() * DeltaSeconds, Cur);
+			TryCross(P, P->GetPreviousLocation(), Cur);
 		}
 	}
 
@@ -232,11 +265,16 @@ bool ATDPortal::TryCross(AActor* Traveller, const FVector& Prev, const FVector& 
 	const FTransform Entry(EntryRot, P);
 	const FTransform ExitXf(ExitRot, Exit->GetActorLocation());
 
-	// Never put a ship inside geometry: if the exit side is blocked, the portal just doesn't take it.
+	// Never put a ship inside geometry, and never squeeze something bigger than the disc through it.
 	if (Traveller->IsA<ATDSpacecraft>())
 	{
+		const float TravellerRadius = TDPortalTravellerRadius(Traveller);
+		if (TravellerRadius > Radius)
+		{
+			return false;
+		}
 		const FVector Out = UTDPortalTransit::MapLocation(Cur, Entry, ExitXf, Params.ExitForwardOffset);
-		if (!HasClearance(GetWorld(), Out, ExitClearance))
+		if (!HasClearance(GetWorld(), Out, FMath::Max(ExitClearance, TravellerRadius)))
 		{
 			return false;
 		}
@@ -304,7 +342,7 @@ FVector UTDPortalBlasterPower::ComputePlacement(FVector& OutFacing) const
 
 	FHitResult Hit;
 	FCollisionQueryParams QParams(SCENE_QUERY_STAT(TDPortalPlace), false, Owner);
-	if (GetWorld() && GetWorld()->SweepSingleByObjectType(Hit, Start, End, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic),
+	if (GetWorld() && GetWorld()->SweepSingleByObjectType(Hit, Start, End, FQuat::Identity, TDPortalBlockers(),
 		FCollisionShape::MakeSphere(100.f), QParams))
 	{
 		const float Dist = FMath::Max(0.f, (Hit.Location - Start).Size() - Offset);
@@ -426,7 +464,28 @@ bool UTDPortalBlasterPower::DoBlink()
 		return false;
 	}
 	FVector Facing;
-	const FVector Where = ComputePlacement(Facing);
+	FVector Where = ComputePlacement(Facing);
+	const float Clearance = FMath::Max(ExitClearanceRadius, TDPortalTravellerRadius(Owner));
+	bool bClear = false;
+	for (int32 Step = 0; Step <= PushOutSteps; ++Step)
+	{
+		const FVector Candidate = Where - Facing * (PushOutStep * Step);
+		if (ATDPortal::HasClearance(World, Candidate, Clearance))
+		{
+			Where = Candidate;
+			bClear = true;
+			break;
+		}
+	}
+	if (!bClear)
+	{
+		++RefusedPlacements;
+		if (TravelFX)
+		{
+			UTDStatics::PlayCue(this, TravelFX->PortalClose, Where, Facing.Rotation());
+		}
+		return false;
+	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Owner))
 	{
 		Craft->TeleportSpacecraft(Where, Owner->GetActorRotation(), true);

@@ -2,6 +2,9 @@
 
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Ground/Crew/TDCrewAIController.h"
+#include "TriadDrift/Ground/Crew/TDCrewCover.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -342,7 +345,7 @@ ATDEncounterVolume::ATDEncounterVolume()
 	Box->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Box->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	Box->SetGenerateOverlapEvents(true);
-	CrewClass = ATDCrewDummy::StaticClass();
+	CrewClass = ATDCrewCharacter::StaticClass();
 }
 
 void ATDEncounterVolume::BeginPlay()
@@ -386,13 +389,21 @@ void ATDEncounterVolume::Activate()
 	}
 	bActivated = true;
 	bCleared = false;
+	if (UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(this))
+	{
+		for (AActor* Block : CoverActors)
+		{
+			Cover->RegisterCoverActor(Block);
+		}
+	}
 	for (ATDDoor* Door : DoorsToLock)
 	{
 		if (Door) { Door->Close(); }
 	}
 
 	UWorld* World = GetWorld();
-	UClass* Class = CrewClass ? CrewClass.Get() : ATDCrewDummy::StaticClass();
+	UClass* Class = CrewClass ? CrewClass.Get() : ATDCrewCharacter::StaticClass();
+	APawn* Player = TDGroundShapes::PlayerPawn(World);
 	TArray<FVector> Points = SpawnPoints;
 	if (Points.Num() == 0)
 	{
@@ -405,14 +416,24 @@ void ATDEncounterVolume::Activate()
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	const FVector Center = GetActorLocation();
-	for (const FVector& Local : Points)
+	for (int32 i = 0; i < Points.Num(); ++i)
 	{
-		const FVector Loc = GetActorTransform().TransformPosition(Local);
-		const FRotator Face(0.f, (Center - Loc).Rotation().Yaw, 0.f);
-		AActor* Member = World->SpawnActor<AActor>(Class, Loc, Face, Params);
+		const FVector Loc = GetActorTransform().TransformPosition(Points[i]);
+		const FTransform Xf(FRotator(0.f, (Center - Loc).Rotation().Yaw, 0.f), Loc);
+		AActor* Member = World->SpawnActorDeferred<AActor>(Class, Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 		if (!Member)
 		{
 			continue;
+		}
+		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
+		{
+			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
+		}
+		Member->FinishSpawning(Xf);
+		// The fight starts now: everyone already knows where the player is.
+		if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Cast<APawn>(Member) ? Cast<APawn>(Member)->GetController() : nullptr))
+		{
+			AI->SetTarget(Player);
 		}
 		Spawned.Add(Member);
 		if (UTDHealthComponent* H = UTDStatics::GetHealth(Member))

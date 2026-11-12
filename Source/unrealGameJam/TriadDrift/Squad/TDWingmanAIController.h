@@ -85,6 +85,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
 	float TeleportFollowDistance = 30000.f;
 
+	/** After a portal/gate jump, wingmen arrive this far AHEAD of the leader's exit point (then ease back into the V). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
+	float PortalExitClearance = 1200.f;
+
 	/** Look for targets within this range of the leader. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
 	float EngageRange = 25000.f;
@@ -99,6 +103,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "deg"))
 	float FireConeDeg = 6.f;
+
+	/** The player's last attacker counts as a threat for this long after its last hit. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
+	float ThreatMemorySeconds = 4.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
 	float PrimaryRange = 20000.f;
@@ -226,7 +234,6 @@ protected:
 	ETDShipId ShipId = ETDShipId::Rift;
 	ETDWingmanState State = ETDWingmanState::Formation;
 	TWeakObjectPtr<AActor> CurrentTarget;
-	TWeakObjectPtr<AActor> FocusTarget;
 
 	double StateEnterTime = 0.0;
 	double NextTargetEvalTime = 0.0;

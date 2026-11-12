@@ -16,6 +16,8 @@ class UStaticMesh;
 class USkeletalMesh;
 class UMaterialInterface;
 class UTexture2D;
+class UAnimInstance;
+class UUserWidget;
 
 /** One presentation moment: an effect, a sound and a camera shake, each optional. */
 USTRUCT(BlueprintType)
@@ -289,6 +291,19 @@ public:
 	/** Attached, plays when the death tumble starts; Explosion plays at the end. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
 	FTDFXCue DeathTumble;
+
+	// ---- on-foot crew (all optional)
+	/** Animation Blueprint class for SkeletalMesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
+	TSoftClassPtr<UAnimInstance> AnimBPClass;
+
+	/** Played when the enemy is staggered (parry, guard break, heavy hit). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
+	FTDFXCue Stagger;
+
+	/** Played when an on-foot enemy dies. Gameplay owns the ragdoll; this is the presentation cue. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
+	FTDFXCue Death;
 };
 
 /** The Dominion mothership (features.md ENG-18). */
@@ -450,6 +465,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue AirSlam;
+
+	/** First-person blade mesh. Empty = engineering placeholder. Colour comes from BladeColor. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Blade")
+	TSoftObjectPtr<UStaticMesh> BladeMesh;
 };
 
 UCLASS(BlueprintType)
@@ -466,4 +485,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Icons")
 	TMap<ETDAbilityId, TSoftObjectPtr<UTexture2D>> AbilityIcons;
+
+	// ---- front end (optional). The menu / transition game modes use these when their own
+	// widget class is not set, so the UI is assigned from this asset with no Blueprint or config edit.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> MainMenuWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> LoadingWidgetClass;
 };

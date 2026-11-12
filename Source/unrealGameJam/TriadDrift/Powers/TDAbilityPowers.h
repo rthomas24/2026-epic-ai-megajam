@@ -7,10 +7,12 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Enemies/TDEnemyTypes.h"
 #include "TDAbilityPowers.generated.h"
 
 class UTDAbilityFX;
 class UNiagaraComponent;
+class ATDSpacecraft;
 
 /** The Gravity Well orb / vortex. Spawned by UTDGravityWellPower. */
 UCLASS(NotBlueprintable)
@@ -43,14 +45,31 @@ public:
 	float CoreRadius = 400.f;
 	/** How fast hostile projectiles' velocity bends toward the centre. */
 	float ProjectileBendDegPerSecond = 270.f;
+	/** Largest enemy ship class the vortex moves (bigger ones, and anything attached or not a ship, only take damage). */
+	ETDEnemySize MaxPulledSize = ETDEnemySize::Medium;
+	/** Caught ships' engines are held at this speed (and steering scale) while inside. */
+	float CapturedSpeed = 600.f;
+	/** Shots are dragged inward this fast on top of the bend (no stable orbits). */
+	float ProjectilePullSpeed = 6000.f;
+	float CapturedSteering = 0.25f;
+
+	/** Free-flying spacecraft no bigger than MaxPulledSize. */
+	bool CanBePulled(const AActor* Actor) const;
 
 	void Launch(AActor* InOwner, ETDTeam InTeam, const FVector& Direction, UTDAbilityFX* InFX);
 
 	virtual void Tick(float DeltaSeconds) override;
 
+protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 private:
 	void TickVortex(float DeltaSeconds);
 	void Implode();
+	void ReleaseEscaped(const FVector& Center, float RadiusSq);
+	void ReleaseAll();
+
+	TSet<TWeakObjectPtr<ATDSpacecraft>> Captured;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTDAbilityFX> FX;
@@ -60,6 +79,7 @@ private:
 
 	ETDTeam Team = ETDTeam::Player;
 	FVector Direction = FVector::ForwardVector;
+	TArray<AActor*> HostilesScratch;
 	float Age = 0.f;
 	float DamageAccumulator = 0.f;
 	bool bVortex = false;
@@ -127,6 +147,9 @@ private:
 
 	UFUNCTION()
 	void HandleOtherPower(UTDPowerComponent* Power);
+
+	/** The 3x shot itself broke the cloak (it consumed the multiplier). */
+	bool bEndedByShot = false;
 };
 
 /** Lancer (Cinder Obj 3): 6000 cm pulse; stun 3 s, gunship shields down 5 s, missiles fizzle. 14 s. */

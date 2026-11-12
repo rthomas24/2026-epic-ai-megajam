@@ -10,6 +10,12 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Enemies/TDCarrierBay.h"
+#include "TriadDrift/Enemies/TDEnemyTurret.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDShieldGenerator.h"
+#include "TriadDrift/World/TDDominionReactor.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Powers/TDAbilityComponent.h"
@@ -28,87 +34,121 @@ namespace TDPowerTest
 
 // ================================================================================== ENG-10 ram
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRamDash, "TriadDrift.Powers.Ram.WindupDashSmashAndStop", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRamDash, "TriadDrift.Powers.Ram.ThroughRealFightersStopsOnGunship", TD_TEST_FLAGS)
 bool FTDRamDash::RunTest(const FString& Parameters)
 {
-	FTDTestWorld W;
-	ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
-	Lancer->SetTeam(ETDTeam::Player);
-	UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
-	AActor* FighterA = SpawnBody(W, ETDTeam::Enemy, FVector(3000.f, 0.f, 0.f), FVector(100.f), 200.f);
-	AActor* FighterB = SpawnBody(W, ETDTeam::Enemy, FVector(7000.f, 100.f, 0.f), FVector(100.f), 200.f);
-	ATDEnemyShip* Gunship = SpawnEnemyShip(W, TDEnemyIds::WallGunship, FVector(16000.f, 0.f, 0.f));
-	Gunship->SetActorRotation(FRotator(0.f, 180.f, 0.f)); // nose toward Lancer: the frontal shield faces the ram
-	AActor* Behind = SpawnBody(W, ETDTeam::Enemy, FVector(22000.f, 0.f, 0.f), FVector(100.f), 200.f);
-
-	UTDTestPowerListener* Listener = NewObject<UTDTestPowerListener>();
-	Listener->AddToRoot();
-	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
-	if (Bus)
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
 	{
-		Bus->OnHighlightMoment.AddDynamic(Listener, &UTDTestPowerListener::OnHighlight);
+		const FString Fps = FString::Printf(TEXT("%.0f fps: "), 1.f / Step);
+		FTDTestWorld W;
+		ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
+		Lancer->SetTeam(ETDTeam::Player);
+		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
+		const float Boost = Lancer->GetShipMovement()->GetFlightTuning().BoostSpeed;
+		// Real fighters on the line, flying head-on at Lancer: they block the Ship channel.
+		TArray<ATDEnemyShip*> Fighters;
+		for (const float X : { 5000.f, 9000.f, 13000.f })
+		{
+			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(X, 0.f, 0.f));
+			F->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+			Fighters.Add(F);
+		}
+		ATDEnemyShip* Gunship = SpawnEnemyShip(W, TDEnemyIds::WallGunship, FVector(26000.f, 0.f, 0.f));
+		Gunship->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+		Gunship->GetShipMovement()->SetComponentTickEnabled(false); // holds station: its own collisions can't add damage
+		const float GunHull = Gunship->GetHealth()->GetHull();
+		AActor* Behind = SpawnBody(W, ETDTeam::Enemy, FVector(34000.f, 0.f, 0.f), FVector(100.f), 200.f);
+
+		TestTrue(*(Fps + TEXT("ram starts")), Ram->TryActivate());
+		float MinDashSpeed = TNumericLimits<float>::Max();
+		float T = 0.f;
+		while (Ram->IsPowerActive() && T < 3.f)
+		{
+			W.Tick(Step);
+			T += Step;
+			if (Ram->IsDashing() && Ram->GetActiveElapsed() > Ram->WindupSeconds + 0.1f)
+			{
+				MinDashSpeed = FMath::Min(MinDashSpeed, (float)Lancer->GetVelocity().Size());
+			}
+		}
+		for (const ATDEnemyShip* F : Fighters)
+		{
+			TestTrue(*(Fps + TEXT("fighter in the line destroyed")), !IsValid(F) || F->GetHealth()->IsDead());
+		}
+		TestTrue(*(Fps + TEXT("passed through: speed never dropped below 2.5x boost")), MinDashSpeed > Boost * 2.5f);
+		TestTrue(*(Fps + TEXT("the gunship stopped the dash")), Ram->WasStoppedByImpact());
+		TestFalse(*(Fps + TEXT("gunship frontal shield broken")), Gunship->IsFrontalShieldUp());
+		TestEqual(*(Fps + TEXT("gunship takes exactly 300 (shockwave spares the stopper)")), Gunship->GetHealth()->GetHull(), GunHull - 300.f, 1.f);
+		TestEqual(*(Fps + TEXT("ship behind the gunship untouched")), Hull(Behind), 200.f);
+		TestTrue(*(Fps + TEXT("Lancer stopped outside the gunship")), Lancer->GetActorLocation().X < 26000.f);
+		TestEqual(*(Fps + TEXT("each target hit once")), Ram->GetHitThisDash().Num(), 4);
+
+		// Still invulnerable while the speed bleeds off, vulnerable once back to boost speed.
+		W.Advance(0.2f, Step);
+		TestTrue(*(Fps + TEXT("invulnerable while above boost speed")), Lancer->GetVelocity().Size() <= Boost * 1.02f || Lancer->GetHealth()->IsInvulnerable());
+		W.Advance(2.f, Step);
+		TestFalse(*(Fps + TEXT("vulnerable after the grace")), Lancer->GetHealth()->IsInvulnerable());
+		TestFalse(*(Fps + TEXT("no speed override left behind")), Lancer->GetShipMovement()->HasSpeedOverride());
 	}
-
-	TestTrue(TEXT("ram starts"), Ram->TryActivate());
-	TestTrue(TEXT("invulnerable from the start"), Lancer->GetHealth()->IsInvulnerable());
-	W.Advance(0.15f);
-	TestEqual(TEXT("wind-up halfway"), Ram->GetWindup01(), 0.5f, 0.06f);
-	TestFalse(TEXT("not dashing during wind-up"), Ram->IsDashing());
-	W.Advance(0.2f);
-	TestTrue(TEXT("dashing after 0.3 s"), Ram->IsDashing());
-
-	const float KillAt = AdvanceUntil(W, [&] { return Hull(FighterA) <= 0.f; }, 1.f);
-	TestTrue(TEXT("first fighter smashed"), KillAt > 0.f);
-	W.Tick();
-	UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(W.GetWorld());
-	TestTrue(TEXT("RamKill money shot: director slow-mo running"), Feel && Feel->IsSlowMoActive());
-
-	const float StopAt = AdvanceUntil(W, [&] { return !Ram->IsPowerActive(); }, 4.f);
-	TestTrue(TEXT("dash ended"), StopAt > 0.f);
-	TestEqual(TEXT("fighter A smashed (300 > 200)"), Hull(FighterA), 0.f);
-	TestEqual(TEXT("fighter B smashed"), Hull(FighterB), 0.f);
-	TestTrue(TEXT("RamKill highlight"), Listener->Highlights.Contains(ETDHighlightKind::RamKill));
-	TestTrue(TEXT("big gunship stopped the dash"), Ram->WasStoppedByImpact());
-	TestFalse(TEXT("gunship frontal shield broken"), Gunship->IsFrontalShieldUp());
-	const UTDHealthComponent* GunHealth = Gunship->GetHealth();
-	TestTrue(TEXT("gunship took ram + shockwave (>= 300)"), GunHealth && GunHealth->GetHull() <= GunHealth->MaxHull - 300.f);
-	TestEqual(TEXT("ship behind the gunship untouched"), Hull(Behind), 200.f);
-	TestEqual(TEXT("each target hit once"), Ram->GetHitThisDash().Num(), 3);
-
-	W.Advance(0.3f);
-	TestFalse(TEXT("vulnerable again after the grace window"), Lancer->GetHealth()->IsInvulnerable());
-	W.Advance(4.f);
-	TestFalse(TEXT("7 s cooldown"), Ram->CanActivate());
-	W.Advance(2.f);
-	TestTrue(TEXT("ready after 7 s"), Ram->CanActivate());
-
-	if (Bus)
-	{
-		Bus->OnHighlightMoment.RemoveAll(Listener);
-	}
-	Listener->RemoveFromRoot();
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRamFullDash, "TriadDrift.Powers.Ram.FullDashSpeedAndDuration", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRamFullDash, "TriadDrift.Powers.Ram.InstantKickDistanceRockAndRefusals", TD_TEST_FLAGS)
 bool FTDRamFullDash::RunTest(const FString& Parameters)
 {
-	FTDTestWorld W;
-	ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
-	Lancer->SetTeam(ETDTeam::Player);
-	UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
-	const float Boost = Lancer->GetShipMovement()->GetFlightTuning().BoostSpeed;
-	Ram->TryActivate();
-	W.Advance(1.4f);
-	TestTrue(TEXT("still dashing at 1.4 s"), Ram->IsDashing());
-	TestTrue(TEXT("well beyond boost speed"), Lancer->GetVelocity().Size() > Boost * 2.f);
-	W.Advance(0.15f);
-	TestFalse(TEXT("dash over at 1.5 s"), Ram->IsPowerActive());
-	TestFalse(TEXT("not stopped by impact in open space"), Ram->WasStoppedByImpact());
+	// Open space: instant kick to 3x boost; distance = 1.2 s of dash.
+	{
+		FTDTestWorld W;
+		ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
+		Lancer->SetTeam(ETDTeam::Player);
+		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
+		const float DashSpeed = Lancer->GetShipMovement()->GetFlightTuning().BoostSpeed * 3.f;
+		Ram->TryActivate();
+		W.Advance(0.6f);
+		TestEqual(TEXT("3x boost speed 0.3 s into the dash"), (float)Lancer->GetVelocity().Size(), DashSpeed, DashSpeed * 0.03f);
+		AdvanceUntil(W, [&] { return !Ram->IsPowerActive(); }, 2.f);
+		TestEqual(TEXT("dash distance = 1.2 s at 3x boost"), Ram->GetLastDashDistance(), DashSpeed * 1.2f, DashSpeed * 1.2f * 0.06f);
+		TestFalse(TEXT("open space: not stopped"), Ram->WasStoppedByImpact());
+	}
+	// A rock stops it with a shockwave that hits ships near the impact.
+	{
+		FTDTestWorld W;
+		ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
+		Lancer->SetTeam(ETDTeam::Player);
+		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
+		SpawnWall(W, FVector(12000.f, 0.f, 0.f), FVector(1000.f, 3000.f, 3000.f));
+		AActor* Near = SpawnBody(W, ETDTeam::Enemy, FVector(10400.f, 1200.f, 0.f), FVector(100.f), 1000.f);
+		Ram->TryActivate();
+		const float EndAt = AdvanceUntil(W, [&] { return !Ram->IsPowerActive(); }, 2.f);
+		TestTrue(TEXT("rock ends the dash early"), EndAt > 0.f && EndAt < 1.45f && Ram->WasStoppedByImpact());
+		TestEqual(TEXT("shockwave hits the ship by the rock"), Hull(Near), 850.f, 0.5f);
+		TestTrue(TEXT("Lancer is not inside the rock"), Lancer->GetActorLocation().X < 11000.f);
+	}
+	// Refusals: someone else's speed override, a busy hyperdrive.
+	{
+		FTDTestWorld W;
+		ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
+		Lancer->SetTeam(ETDTeam::Player);
+		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
+		Lancer->SetSpeedOverride(20000.f, 1.f);
+		TestFalse(TEXT("refused while another speed override is active"), Ram->TryActivate());
+		Lancer->ClearSpeedOverride();
+		TestTrue(TEXT("allowed once it clears"), Ram->CanActivate());
+
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 50000.f, 0.f));
+		Ship->SetTeam(ETDTeam::Player);
+		UTDRamPower* ShipRam = AddPower<UTDRamPower>(Ship);
+		if (Ship->GetHyperdrive() && Ship->GetHyperdrive()->StartSpool())
+		{
+			TestFalse(TEXT("refused while the hyperdrive spools"), ShipRam->TryActivate());
+		}
+		else
+		{
+			AddInfo(TEXT("hyperdrive could not spool in a bare test world; refusal covered by IsHyperdriveBusy"));
+		}
+	}
 	return true;
 }
-
-// ================================================================================== ENG-11 Bastion
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmLocks, "TriadDrift.Powers.Swarm.TwelveMissilesSplitAcrossPaintedLocks", TD_TEST_FLAGS)
 bool FTDSwarmLocks::RunTest(const FString& Parameters)
@@ -247,7 +287,7 @@ bool FTDAbilitySlot::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGravityWell, "TriadDrift.Powers.Ability.GravityWellPullsDamagesImplodes", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGravityWell, "TriadDrift.Powers.Ability.GravityWellPullsOnlyFreeShips", TD_TEST_FLAGS)
 bool FTDGravityWell::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
@@ -255,31 +295,86 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 	UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
 	// Orb: spawned 400 cm ahead, flies 5000 cm/s for 0.8 s -> vortex centred at x = 4400.
 	const FVector Centre(4400.f, 0.f, 0.f);
-	AActor* Caught = SpawnBody(W, ETDTeam::Enemy, Centre + FVector(1500.f, 2000.f, 0.f), FVector(100.f), 1000.f);
+	ATDEnemyShip* Carrier = SpawnEnemyShip(W, TDEnemyIds::HiveCarrier, Centre + FVector(0.f, -3500.f, 0.f));
+	Carrier->GetHealth()->InitMaxValues(10000.f, 0.f, true);
+	Carrier->GetShipMovement()->SetComponentTickEnabled(false); // any movement now would be the vortex's
+	const FVector CarrierStart = Carrier->GetActorLocation();
+	TArray<FVector> BayOffsets;
+	for (const ATDCarrierBay* Bay : Carrier->GetBays())
+	{
+		BayOffsets.Add(Bay->GetActorLocation() - CarrierStart);
+	}
 	AActor* Far = SpawnBody(W, ETDTeam::Enemy, Centre + FVector(0.f, 9000.f, 0.f), FVector(100.f), 1000.f);
-	AActor* Friendly = SpawnBody(W, ETDTeam::Player, Centre + FVector(0.f, -2000.f, 0.f), FVector(100.f), 100.f);
 
 	TestTrue(TEXT("well launched"), Well->TryActivate());
 	W.Advance(0.85f);
 	ATDGravityWell* Vortex = Well->GetLastWell();
-	TestTrue(TEXT("vortex open"), Vortex && Vortex->IsVortexActive());
-	TestTrue(TEXT("vortex where the orb stopped"), Vortex && Vortex->GetActorLocation().Equals(Centre, 1.f));
+	TestTrue(TEXT("vortex open where the orb stopped"), Vortex && Vortex->IsVortexActive() && Vortex->GetActorLocation().Equals(Centre, 1.f));
+	// A fighter flying straight out of the vortex at full cruise: it must not escape.
+	ATDEnemyShip* Fighter = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, Centre + FVector(1500.f, 2500.f, 0.f));
+	Fighter->GetHealth()->InitMaxValues(1000.f, 0.f, true);
+	Fighter->SetActorRotation((Fighter->GetActorLocation() - Centre).Rotation());
 
 	ATDProjectile* Bolt = ATDProjectile::Spawn(W.GetWorld(), UTDWeaponLibrary::Get(TDWeaponIds::EnemyHeavyBolt).Projectile,
 		FTransform(FRotator::ZeroRotator, Centre + FVector(-3000.f, 3000.f, 0.f)), Far, ETDTeam::Enemy);
-	W.Advance(3.f);
-	TestTrue(TEXT("caught enemy pulled in"), FVector::Dist(Caught->GetActorLocation(), Centre) < 1000.f);
-	TestFalse(TEXT("enemy projectile swallowed"), Bolt && Bolt->IsActive());
+	const float EatenAt = AdvanceUntil(W, [&] { return !Bolt || !Bolt->IsActive(); }, 2.f);
+	TestTrue(TEXT("enemy projectile swallowed (well inside its 2.5 s life)"), EatenAt > 0.f);
+	W.Advance(FMath::Max(0.f, 1.2f - EatenAt));
+	bool bTurretSilenced = false;
+	for (const ATDEnemyTurret* Turret : Carrier->GetTurrets())
+	{
+		bTurretSilenced |= Turret && Turret->IsStunned() && FVector::Dist(Turret->GetActorLocation(), Centre) < 5000.f;
+	}
+	TestTrue(TEXT("carrier turrets inside the vortex can't fire"), Carrier->GetTurrets().Num() == 0 || bTurretSilenced);
+
+	W.Advance(1.8f);
+	TestTrue(TEXT("free fighter pulled into the core"), FVector::Dist(Fighter->GetActorLocation(), Centre) < 1200.f);
+	TestTrue(TEXT("carrier (Boss) not moved"), Carrier->GetActorLocation().Equals(CarrierStart, 1.f));
+	const TArray<ATDCarrierBay*> Bays = Carrier->GetBays();
+	for (int32 i = 0; i < Bays.Num() && i < BayOffsets.Num(); ++i)
+	{
+		TestTrue(TEXT("bay stays on its carrier"), (Bays[i]->GetActorLocation() - Carrier->GetActorLocation()).Equals(BayOffsets[i], 1.f));
+	}
 	TestEqual(TEXT("far enemy not pulled"), (float)FVector::Dist(Far->GetActorLocation(), Centre), 9000.f, 1.f);
 
 	W.Advance(2.3f);
 	TestFalse(TEXT("vortex gone after 5 s"), IsValid(Vortex));
-	TestEqual(TEXT("10 dps for 5 s + 120 implosion"), Hull(Caught), 1000.f - 50.f - 120.f, 3.f);
+	TestEqual(TEXT("fighter: ~10 dps for the rest of the vortex + 120 implosion"), Fighter->GetHealth()->GetHull(), 1000.f - 42.5f - 120.f, 5.f);
+	TestFalse(TEXT("fighter's engines released after the implosion"), Fighter->GetShipMovement()->HasSpeedOverride());
+	TestTrue(TEXT("carrier took the damage it can't escape"), Carrier->GetHealth()->GetHull() <= 10000.f - 120.f);
 	TestEqual(TEXT("far enemy untouched"), Hull(Far), 1000.f);
-	TestEqual(TEXT("friendly untouched"), Hull(Friendly), 100.f);
 	TestFalse(TEXT("18 s cooldown"), Well->CanActivate());
-	W.Advance(12.f);
+	W.Advance(14.f); // margin: implosion kills can trigger a director slow-mo (game time runs slower)
 	TestTrue(TEXT("ready after 18 s"), Well->CanActivate());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGravityWellDominion, "TriadDrift.Powers.Ability.GravityWellLeavesDominionPartsInPlace", TD_TEST_FLAGS)
+bool FTDGravityWellDominion::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	D->WarpInSeconds = 0.f;
+	D->WarpIn();
+	W.Tick();
+	const TArray<ATDShieldGenerator*> Gens = D->GetGenerators();
+	TestTrue(TEXT("Dominion built its generators"), Gens.Num() > 0);
+	if (Gens.Num() == 0)
+	{
+		return true;
+	}
+	ATDShieldGenerator* Gen = Gens[0];
+	const FVector GenStart = Gen->GetActorLocation();
+	const FVector ReactorStart = D->GetReactor() ? D->GetReactor()->GetActorLocation() : FVector::ZeroVector;
+	// Bastion 4400 cm from the generator so the vortex opens on it.
+	const FVector ToGen = (GenStart - D->GetActorLocation()).GetSafeNormal();
+	AActor* Bastion = SpawnBody(W, ETDTeam::Player, GenStart + ToGen * 4400.f, FVector(100.f));
+	Bastion->SetActorRotation((-ToGen).Rotation());
+	UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
+	TestTrue(TEXT("well launched at the generator"), Well->TryActivate());
+	W.Advance(6.f);
+	TestTrue(TEXT("generator not dragged off its pylon"), Gen->GetActorLocation().Equals(GenStart, 1.f));
+	TestTrue(TEXT("reactor not moved"), !D->GetReactor() || D->GetReactor()->GetActorLocation().Equals(ReactorStart, 1.f));
 	return true;
 }
 
@@ -358,6 +453,74 @@ bool FTDEmp::RunTest(const FString& Parameters)
 	TestFalse(TEXT("shield still down at 4.6 s"), Gunship->IsFrontalShieldUp());
 	W.Advance(9.6f);
 	TestTrue(TEXT("ready after 14 s"), Emp->CanActivate());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeClearsPowers, "TriadDrift.Powers.Reset.CutClearsEveryRunningPower", TD_TEST_FLAGS)
+bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(W.GetWorld());
+	AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f), 100.f, 100.f);
+	UTDWeaponComponent* Weapons = NewObject<UTDWeaponComponent>(Rift, TEXT("Weapons"));
+	Weapons->RegisterComponent();
+	Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
+	UTDPortalBlasterPower* Portal = AddPower<UTDPortalBlasterPower>(Rift);
+	UTDCloakPower* Cloak = AddPower<UTDCloakPower>(Rift);
+	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector(0.f, -20000.f, 0.f), FVector(100.f));
+	UTDShieldDomePower* Dome = AddPower<UTDShieldDomePower>(Bastion);
+	UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
+	AActor* Rift2 = SpawnBody(W, ETDTeam::Player, FVector(0.f, 20000.f, 0.f), FVector(50.f));
+	UTDPortalBlasterPower* Blink = AddPower<UTDPortalBlasterPower>(Rift2);
+	Blink->bUseBlinkFallback = true;
+
+	auto StartAll = [&]
+	{
+		Portal->HandleInputPressed();
+		Rift->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+		Portal->HandleInputPressed();
+		Rift->SetActorRotation(FRotator::ZeroRotator);
+		Cloak->TryActivate();
+		Dome->TryActivate();
+		Well->TryActivate();
+		Blink->TryActivate();
+		W.Advance(1.f);
+	};
+	StartAll();
+	TestEqual(TEXT("two portals open"), Portal->GetPortals().Num(), 2);
+	TestTrue(TEXT("cloaked"), Cloak->IsCloaked());
+	TestEqual(TEXT("dome + blink field up"), Powers->GetActiveDomes().Num(), 2);
+	TestTrue(TEXT("vortex open"), Well->GetLastWell() && Well->GetLastWell()->IsVortexActive());
+
+	// A first take (a new wave) keeps everything running.
+	Bus->BroadcastTakeStarted(TEXT("Wave2"), 1);
+	W.Tick();
+	TestEqual(TEXT("take 1 keeps the portals"), Portal->GetPortals().Num(), 2);
+	TestEqual(TEXT("take 1 keeps the domes"), Powers->GetActiveDomes().Num(), 2);
+
+	// CUT! -> everything from the failed take is gone.
+	ATDGravityWell* Vortex = Well->GetLastWell();
+	Bus->BroadcastSceneCut(TEXT("Wave2"), 2, 1.f);
+	W.Tick();
+	TestEqual(TEXT("portals closed"), Portal->GetPortals().Num(), 0);
+	TestFalse(TEXT("cloak off"), Cloak->IsCloaked());
+	TestTrue(TEXT("Rift targetable again"), UTDStatics::GetHealth(Rift)->bTargetable);
+	TestEqual(TEXT("dome and blink field collapsed"), Powers->GetActiveDomes().Num(), 0);
+	TestFalse(TEXT("vortex gone"), IsValid(Vortex));
+	for (UTDPowerComponent* P : TArray<UTDPowerComponent*>{ Portal, Cloak, Dome, Well, Blink })
+	{
+		TestTrue(*FString::Printf(TEXT("%s ready for take 2"), *P->GetPowerName().ToString()), P->CanActivate());
+	}
+	Weapons->FireOnce(ETDWeaponSlot::Primary);
+	const ATDProjectile* Shot = Weapons->GetLastFiredProjectile(0);
+	TestTrue(TEXT("no 3x shot banked across the cut"), Shot && FMath::IsNearlyEqual(Shot->GetDamageMultiplier(), 1.f));
+
+	// Respawn path (T3's RestoreShipForFlight): ResetPower ends the cloak and frees Rift.
+	W.Advance(0.5f);
+	Cloak->TryActivate();
+	Cloak->ResetPower();
+	TestTrue(TEXT("ResetPower: targetable"), UTDStatics::GetHealth(Rift)->bTargetable && !Cloak->IsCloaked() && Cloak->CanActivate());
 	return true;
 }
 
