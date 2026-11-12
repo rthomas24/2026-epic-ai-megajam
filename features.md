@@ -815,7 +815,7 @@ VFX, and the squad's launch from the hangar.
 | 6 | Land | Pad prompt → auto-land (gear and canopy state) | Gear and canopy animations, landing dust, thrusters |
 | 7 | Exit ship | Hand-off to first person | Exit sequence, arms montage |
 | 8 | Objectives | ENG-24–26 | ART-06/08/09, reward screen |
-| 9 | Board ship | Allowed once the planet's objectives are done | Enter sequence |
+| 9 | Board ship | Allowed at any time (the player may fly around the planet); the board point is marked as the objective, and the way back to space opens, only once the planet's objectives are done | Enter sequence |
 | 10 | Take-off and exit | Lift-off, ceiling → `TravelTo(Galaxy, "<Planet>_Orbit")` | Take-off shot, plasma burst |
 
 ## 8. Boarding: full sequence (STRETCH)
