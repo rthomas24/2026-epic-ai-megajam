@@ -373,6 +373,25 @@ void UTDShipMovementComponent::MeasureGroundClearance()
 	{
 		Context.GroundClearance = FMath::Max(0.f, Hit.Distance - Radius);
 	}
+
+	// Terrain ahead: sweep the hull along the current velocity (a straight-down trace can't see a rising slope or a
+	// cliff in front of the ship).
+	Context.TerrainAheadDistance = -1.f;
+	Context.TerrainAheadRange = 0.f;
+	const float Speed = State.Velocity.Size();
+	if (Tuning.GroundLookAheadSeconds > 0.f && Speed > 100.f)
+	{
+		const float Range = Speed * Tuning.GroundLookAheadSeconds;
+		const FVector Dir = State.Velocity / Speed;
+		FHitResult Ahead;
+		if (World->SweepSingleByObjectType(Ahead, Start, Start + Dir * Range, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic),
+			FCollisionShape::MakeSphere(Radius), Params) && !Ahead.bStartPenetrating)
+		{
+			Context.TerrainAheadDistance = Ahead.Distance;
+			Context.TerrainAheadRange = Range;
+			Context.TerrainAheadNormal = Ahead.ImpactNormal;
+		}
+	}
 }
 
 void UTDShipMovementComponent::ResolveMove(const FVector& Delta, float DeltaTime)
