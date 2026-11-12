@@ -54,7 +54,7 @@ Earlier task start times were not recorded precisely; they are not invented here
 | Lancer M02 refinement | Ships & Weapons Agent | in progress | Nov 12 12:50; claim 2d4831f | User-authorized production refinement; source preparation only until heavy slot; render approval before Unreal | production/** and review/M02/** inside exact Lancer lane |
 | Lancer M02 bounded Blender QA / renders | Ships & Weapons Agent | queued | Not started | After Environment releases its entire heavy sequence and Lead checks RAM; one 2-thread process | Same M02 lane, no original source/interface changes |
 | Three cinematic ship-switch candidates (Rift/Lancer/Bastion) | Audio & Music Agent | in progress | Nov 12 12:56; ownership transfer 13:01, direct dedicated-chat brief verified | Claim first; exactly three playable WAVs with provenance and measured metrics; manual approval before further audio work | ArtSource/Audio/StarterPlan/SwitchM02/** only |
-| Message-board adoption and R-001/002/003 technical replies | Lead Coordinator | in progress | Nov 12 13:09 | Read origin/main §6.10 and board; collect worker facts, publish replies separately; no human decisions assumed | MESSAGEBOARD.md; docs/visual/**; Nick claims only |
+| Message-board adoption and R-001/002/003 technical replies | Lead Coordinator | done | Nov 12 13:07 | Nov 12 13:10; main 52d5a83 replies published; R-002 activation and N-001 engineering decisions remain pending; technical plan in docs/visual/Presentation-Asset-Paths.md | MESSAGEBOARD.md; docs/visual/**; Nick claims only |
 
 The dedicated Audio & Music chat succeeds the stopped Audio & Polish worker for this three-candidate task; the predecessor is not resumed.
 Broader audio-library/music and future combat VFX production remain unassigned;
