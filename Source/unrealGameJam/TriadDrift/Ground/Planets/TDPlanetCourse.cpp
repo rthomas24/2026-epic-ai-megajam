@@ -485,7 +485,7 @@ void ATDPlanetCourse::BuildVerdance()
 {
 	using namespace TDCourseColors;
 	// Ground: one lit slab, 4 km, top at the pad (z = 0). The rig's grey slab is switched off.
-	Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(400000.f, 400000.f, 200.f), VerdanceGround);
+	Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), VerdanceGround);
 
 	// ---- Obj 1: the wreck core (-> Gravity Well on Bastion). North-east. ----
 	const FVector WreckHead(2600.f, 2600.f, 0.f);
@@ -630,7 +630,7 @@ void ATDPlanetCourse::BuildVerdance()
 void ATDPlanetCourse::BuildCinder()
 {
 	using namespace TDCourseColors;
-	Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(400000.f, 400000.f, 200.f), CinderGround);
+	Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), CinderGround);
 
 	auto Magma = [this](const FVector& Center, const FVector& Size)
 	{

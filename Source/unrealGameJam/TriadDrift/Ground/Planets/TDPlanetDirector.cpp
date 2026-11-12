@@ -208,7 +208,10 @@ FTransform ATDPlanetDirector::ExitTransformFor(ATDShip* Ship) const
 {
 	if (Ship && Ship->GetLanding())
 	{
-		return Ship->GetLanding()->GetExitTransform();
+		// Out of the hatch facing the course (the pad's nose, between the two trailheads), not the ship.
+		FTransform Exit = Ship->GetLanding()->GetExitTransform();
+		Exit.SetRotation(FRotator(0.f, PadTransform.Rotator().Yaw, 0.f).Quaternion());
+		return Exit;
 	}
 	return Rig ? Rig->GetActorTransform() : GetActorTransform();
 }
