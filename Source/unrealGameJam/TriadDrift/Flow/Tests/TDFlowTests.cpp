@@ -10,13 +10,20 @@
 #include "TriadDrift/Flow/TDSaveGame.h"
 #include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Flow/TDSpaceGameMode.h"
+#include "TriadDrift/Tests/TDTestWorld.h"
+#include "Engine/DirectionalLight.h"
+#include "Engine/SkyLight.h"
+#include "Engine/StaticMeshActor.h"
+#include "Engine/PostProcessVolume.h"
+#include "EngineUtils.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
 namespace TDFlowTest
 {
-	constexpr EAutomationTestFlags Flags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter;
+	constexpr EAutomationTestFlags TestFlags = TD_TEST_FLAGS;
 	static const TCHAR* TestSlot = TEXT("TriadDrift_AutomationTest");
 
 	/** A real, initialized UTDGameInstance (with its event bus) on a throwaway world and test-only save slot. */
@@ -57,10 +64,10 @@ namespace TDFlowTest
 	};
 }
 
-using namespace TDFlowTest;
+using TDFlowTest::FScopedGI;
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowProgressMutations, "TriadDrift.Flow.ProgressMutations", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowProgressMutations, "TriadDrift.Flow.ProgressMutations", TDFlowTest::TestFlags)
 bool FTDFlowProgressMutations::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -105,7 +112,7 @@ bool FTDFlowProgressMutations::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowAbilityUnlocks, "TriadDrift.Flow.AbilityUnlocks", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowAbilityUnlocks, "TriadDrift.Flow.AbilityUnlocks", TDFlowTest::TestFlags)
 bool FTDFlowAbilityUnlocks::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -139,7 +146,7 @@ bool FTDFlowAbilityUnlocks::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowCheckpointRestore, "TriadDrift.Flow.CheckpointRestore", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowCheckpointRestore, "TriadDrift.Flow.CheckpointRestore", TDFlowTest::TestFlags)
 bool FTDFlowCheckpointRestore::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -179,7 +186,7 @@ bool FTDFlowCheckpointRestore::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowSaveSlotRoundTrip, "TriadDrift.Flow.SaveSlotRoundTrip", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowSaveSlotRoundTrip, "TriadDrift.Flow.SaveSlotRoundTrip", TDFlowTest::TestFlags)
 bool FTDFlowSaveSlotRoundTrip::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -188,10 +195,10 @@ bool FTDFlowSaveSlotRoundTrip::RunTest(const FString& Parameters)
 	TestFalse(TEXT("no Continue on an empty slot"), GI->HasContinue());
 
 	GI->NotifyLevelEntered(ETDDestination::Verdance);
+	GI->BeginScene(TEXT("Obj_WreckCore"));
+	GI->RestartSceneNow(); // take 2 (restores the level-entry checkpoint, so progress is set after it)
 	GI->SetPhase(ETDGamePhase::Verdance);
 	GI->GetMutableProgress().WavesCleared = 2;
-	GI->BeginScene(TEXT("Obj_WreckCore"));
-	GI->RestartSceneNow(); // take 2
 	GI->CompleteObjective(TEXT("Obj_WreckCore"), ETDAbilityId::GravityWell, ETDShipId::Bastion);
 	GI->AddStat(TEXT("Kills"), 9);
 	GI->AddStat(TEXT("ShipSwitches"), 4);
@@ -239,7 +246,7 @@ bool FTDFlowSaveSlotRoundTrip::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowTakes, "TriadDrift.Flow.ScenesAndTakes", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowTakes, "TriadDrift.Flow.ScenesAndTakes", TDFlowTest::TestFlags)
 bool FTDFlowTakes::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -317,7 +324,7 @@ bool FTDFlowTakes::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowStats, "TriadDrift.Flow.StatsAndTimer", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowStats, "TriadDrift.Flow.StatsAndTimer", TDFlowTest::TestFlags)
 bool FTDFlowStats::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -358,7 +365,7 @@ bool FTDFlowStats::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowEvents, "TriadDrift.Flow.Events", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowEvents, "TriadDrift.Flow.Events", TDFlowTest::TestFlags)
 bool FTDFlowEvents::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -417,7 +424,7 @@ bool FTDFlowEvents::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowTravelMissingMap, "TriadDrift.Flow.TravelMissingMapFailsSafely", TDFlowTest::Flags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowTravelMissingMap, "TriadDrift.Flow.TravelMissingMapFailsSafely", TDFlowTest::TestFlags)
 bool FTDFlowTravelMissingMap::RunTest(const FString& Parameters)
 {
 	FScopedGI S;
@@ -442,6 +449,57 @@ bool FTDFlowTravelMissingMap::RunTest(const FString& Parameters)
 	TestTrue(TEXT("no package name returned"), Package.IsEmpty());
 
 	Settings->DestinationMaps = SavedMaps;
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowSandboxBoots, "TriadDrift.Flow.SandboxBootsOnEmptyWorld", TDFlowTest::TestFlags)
+bool FTDFlowSandboxBoots::RunTest(const FString& Parameters)
+{
+	// Never write the player's real save from a test.
+	UTDFlowSettings* Settings = GetMutableDefault<UTDFlowSettings>();
+	const bool bSavedWrite = Settings->bWriteSlotOnCheckpoint;
+	Settings->bWriteSlotOnCheckpoint = false;
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDSpaceGameMode::StaticClass());
+		TestTrue(TEXT("world created"), W.IsValid());
+		if (W.IsValid())
+		{
+			W.Advance(0.5f);
+			UWorld* World = W.GetWorld();
+			auto Count = [World](UClass* Class)
+			{
+				int32 N = 0;
+				for (TActorIterator<AActor> It(World, Class); It; ++It) { ++N; }
+				return N;
+			};
+			const ATDSpaceGameMode* GM = World->GetAuthGameMode<ATDSpaceGameMode>();
+			TestNotNull(TEXT("space game mode active"), GM);
+			TestEqual(TEXT("key + fill light"), Count(ADirectionalLight::StaticClass()), 2);
+			TestEqual(TEXT("sky light"), Count(ASkyLight::StaticClass()), 1);
+			TestEqual(TEXT("fixed-exposure post process"), Count(APostProcessVolume::StaticClass()), 1);
+			if (GM)
+			{
+				TestEqual(TEXT("asteroids"), Count(AStaticMeshActor::StaticClass()), GM->AsteroidCount);
+			}
+
+			UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+			TestNotNull(TEXT("TD game instance"), GI);
+			if (GI)
+			{
+				TestEqual(TEXT("entered the galaxy"), GI->GetCurrentDestination(), ETDDestination::Galaxy);
+				TestTrue(TEXT("level-entry checkpoint"), GI->GetLastCheckpoint().bValid);
+				TestEqual(TEXT("intro advances to waves 1-2"), GI->GetProgressRef().Phase, ETDGamePhase::Waves1to2);
+
+				// A forced retake with no squad/director merged must not crash.
+				GI->BeginScene(UTDGameInstance::WaveSceneId(1));
+				GI->RestartSceneNow();
+				W.Advance(0.1f);
+				TestEqual(TEXT("retake in the sandbox"), GI->GetTakeNumber(UTDGameInstance::WaveSceneId(1)), 2);
+			}
+		}
+	}
+	Settings->bWriteSlotOnCheckpoint = bSavedWrite;
 	return true;
 }
 

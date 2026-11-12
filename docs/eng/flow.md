@@ -80,6 +80,7 @@ Tests:
 - `StatsAndTimer`
 - `Events`
 - `TravelMissingMapFailsSafely`
+- `SandboxBootsOnEmptyWorld`
 
 The tests use the save slot `TriadDrift_AutomationTest` and never touch the real save.
 
@@ -92,4 +93,5 @@ The tests use the save slot `TriadDrift_AutomationTest` and never touch the real
   is `TravelTo(MainMenu)`. The ENG-19 F10 debug menu widget is Nick's UI, and it calls the `UTDCheatManager::Do*` functions.
 - **God mode:** it applies to actors alive when toggled. Ships respawned later aren't invulnerable until you toggle again.
 - **Late binding:** the sandbox reaches T3 and T4 by reflection. Their functions must stay `UFUNCTION`s with these names.
-- **Not yet built or run:** this code waits for Core to merge (see the report to the Lead for the current status).
+- **Not tested by hand:** the 9 `TriadDrift.Flow.*` tests pass headless, and the sandbox boots in a test world.
+  No one has played the windowed sandbox yet, and the stars use `EmissiveMeshMaterial`, which is still unverified.

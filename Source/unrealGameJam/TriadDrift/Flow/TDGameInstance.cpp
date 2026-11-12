@@ -137,7 +137,10 @@ bool UTDGameInstance::TravelTo(ETDDestination Destination, FName ReturnPoint)
 	{
 		PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, Fade, FLinearColor::Black, false, true);
 		FTimerHandle Handle;
-		GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateUObject(this, &UTDGameInstance::OpenDestination, Destination, PackageName), Fade, false);
+		GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(this, [this, Destination, PackageName]()
+		{
+			OpenDestination(Destination, PackageName);
+		}), Fade, false);
 	}
 	else
 	{
