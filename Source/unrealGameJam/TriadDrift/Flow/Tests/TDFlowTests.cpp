@@ -36,9 +36,48 @@ namespace TDFlowTest
 	constexpr EAutomationTestFlags TestFlags = TD_TEST_FLAGS;
 	static const TCHAR* TestSlot = TEXT("TriadDrift_AutomationTest");
 
+	/** Swaps flow settings for the duration of a test and restores them after. */
+	struct FScopedSettings
+	{
+		UTDFlowSettings* S = GetMutableDefault<UTDFlowSettings>();
+		TMap<ETDDestination, FSoftObjectPath> Maps = S->DestinationMaps;
+		FSoftObjectPath Transition = S->TransitionMap;
+		float Fade = S->TravelFadeSeconds;
+		float MinTransition = S->MinTransitionSeconds;
+		float Timeout = S->TravelTimeoutSeconds;
+
+		/**
+		 * Every test starts with NO destination map and no transition map resolvable, whether or not
+		 * the real maps are on disk; tests that need a successful travel point a destination at an
+		 * engine map and fake OpenLevel (UTDGameInstance::OpenLevelOverride).
+		 */
+		FScopedSettings()
+		{
+			if (const UEnum* E = StaticEnum<ETDDestination>())
+			{
+				for (int32 i = 0; i < E->NumEnums() - 1; ++i)
+				{
+					const FString Bogus = FString::Printf(TEXT("/Game/TriadDrift/Tests/NoSuchMap_%s.NoSuchMap_%s"), *E->GetNameStringByIndex(i), *E->GetNameStringByIndex(i));
+					S->DestinationMaps.Add(static_cast<ETDDestination>(E->GetValueByIndex(i)), FSoftObjectPath(Bogus));
+				}
+			}
+			S->TransitionMap = FSoftObjectPath(TEXT("/Game/TriadDrift/Tests/NoSuchTransition.NoSuchTransition"));
+		}
+
+		~FScopedSettings()
+		{
+			S->DestinationMaps = Maps;
+			S->TransitionMap = Transition;
+			S->TravelFadeSeconds = Fade;
+			S->MinTransitionSeconds = MinTransition;
+			S->TravelTimeoutSeconds = Timeout;
+		}
+	};
+
 	/** A real, initialized UTDGameInstance (with its event bus) on a throwaway world and test-only save slot. */
 	struct FScopedGI
 	{
+		FScopedSettings NoRealMaps; // first member: built before, restored after, the GI
 		UTDGameInstance* GI = nullptr;
 		UTDFlowTestListener* Listener = nullptr;
 
@@ -546,25 +585,6 @@ bool FTDFlowSandboxBoots::RunTest(const FString& Parameters)
 
 namespace TDFlowTest
 {
-	/** Swaps flow settings for the duration of a test and restores them after. */
-	struct FScopedSettings
-	{
-		UTDFlowSettings* S = GetMutableDefault<UTDFlowSettings>();
-		TMap<ETDDestination, FSoftObjectPath> Maps = S->DestinationMaps;
-		FSoftObjectPath Transition = S->TransitionMap;
-		float Fade = S->TravelFadeSeconds;
-		float MinTransition = S->MinTransitionSeconds;
-		float Timeout = S->TravelTimeoutSeconds;
-		~FScopedSettings()
-		{
-			S->DestinationMaps = Maps;
-			S->TransitionMap = Transition;
-			S->TravelFadeSeconds = Fade;
-			S->MinTransitionSeconds = MinTransition;
-			S->TravelTimeoutSeconds = Timeout;
-		}
-	};
-
 	static const TCHAR* ExistingMapA = TEXT("/Engine/Maps/Entry.Entry");
 	static const TCHAR* ExistingMapB = TEXT("/Engine/Maps/Templates/Template_Default.Template_Default");
 
@@ -863,9 +883,11 @@ bool FTDFlowStoryStateSurvivesRetake::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowCheats, "TriadDrift.Flow.Cheats", TDFlowTest::TestFlags)
 bool FTDFlowCheats::RunTest(const FString& Parameters)
 {
+	TDFlowTest::FScopedSettings NoRealMaps;
 	FTDTestWorld W(UTDGameInstance::StaticClass());
 	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
 	TestNotNull(TEXT("TD game instance"), GI);
+	GI->OpenLevelOverride = [](const FString&) {}; // belt and braces: never a real OpenLevel in a test world
 	if (!GI)
 	{
 		return false;
@@ -999,6 +1021,24 @@ bool FTDFlowDirectorSceneIds::RunTest(const FString& Parameters)
 		TestEqual(TEXT("still in the custom scene after the director rebuilt it"), GI->GetCurrentScene(), Custom);
 	}
 	Settings->bWriteSlotOnCheckpoint = bSavedWrite;
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowResolveMap, "TriadDrift.Flow.ResolveDestinationMap", TDFlowTest::TestFlags)
+bool FTDFlowResolveMap::RunTest(const FString& Parameters)
+{
+	TDFlowTest::FScopedSettings Scoped;
+	FString Package;
+	TestFalse(TEXT("bogus path does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
+	TestTrue(TEXT("no package for a bogus path"), Package.IsEmpty());
+	Scoped.S->DestinationMaps.Add(ETDDestination::Galaxy, FSoftObjectPath(TDFlowTest::ExistingMapA));
+	TestTrue(TEXT("existing map resolves"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
+	TestEqual(TEXT("long package name"), Package, FString(TEXT("/Engine/Maps/Entry")));
+	Scoped.S->DestinationMaps.Remove(ETDDestination::Galaxy);
+	TestFalse(TEXT("unconfigured destination does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
+	Scoped.S->DestinationMaps.Add(ETDDestination::Galaxy, FSoftObjectPath());
+	TestFalse(TEXT("null path does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
 	return true;
 }
 
