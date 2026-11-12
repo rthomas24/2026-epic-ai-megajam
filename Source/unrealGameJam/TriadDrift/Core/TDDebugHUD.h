@@ -26,6 +26,7 @@ private:
 	void DrawSquad(float& Y);
 	void DrawWave();
 	void DrawTargets();
+	void DrawObjective();
 	void DrawCrosshair();
 	void DrawFlight();
 	void DrawLine2D(const FVector2D& A, const FVector2D& B, const FLinearColor& Color, float Thickness = 1.f);
