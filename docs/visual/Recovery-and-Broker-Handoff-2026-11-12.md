@@ -1,7 +1,7 @@
 # Triad Drift — Recovery and ChatGPT Broker Handoff
 
-**Agent:** Lead Coordinator  
-**Role:** Visual-team coordination and integration  
+**Agent:** Lead Coordinator\
+**Role:** Visual-team coordination and integration\
 **Task:** One-time recovery audit, tonight's milestone proposal, complete stop
 
 **STOP STATE:** Nick ended the campaigns and requests an effort reset/broker review. All four specialist chats have acknowledged a safe stop; no Unreal/Blender/build job remains. This report is a snapshot and proposal, NOT a dispatch or `/goal`. Do not restart goals or production from it. Preserve every worktree, claim and uncommitted file. Nick must review/resume before execution.
