@@ -25,6 +25,8 @@ public:
 
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void StartPlay() override;
+	/** Keeps the star backdrop centred on the camera, like a skybox (the galaxy is bigger than the shell). */
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
@@ -81,6 +83,7 @@ public:
 
 	/** The placeholder star backdrop (null once a real sky has taken over, or if none was needed). */
 	AActor* GetStarBackdrop() const { return StarBackdrop; }
+	UMaterialInterface* GetStarMaterial() const { return StarGlowMaterial; }
 
 protected:
 	/** A sky tagged TD.Presentation.Sky that appears late (streamed / spawned) removes our stars too. */
@@ -114,6 +117,10 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> StarBackdrop;
+
+	/** Unlit glow material for the stars, referenced from the CDO so a packaged build cooks it. */
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> StarGlowMaterial;
 
 	FTimerHandle FirstWaveTimer;
 	FTimerHandle StarWatchTimer;
