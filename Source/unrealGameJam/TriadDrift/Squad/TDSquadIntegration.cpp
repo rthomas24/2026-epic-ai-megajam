@@ -671,7 +671,7 @@ namespace TDSquad
 		}
 	}
 
-	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility)
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2)
 	{
 		auto Cooldown = [Ship](ETDPowerInput Slot)
 		{
@@ -680,7 +680,27 @@ namespace TDSquad
 		};
 		OutPower1 = Cooldown(ETDPowerInput::Signature1);
 		OutPower2 = Cooldown(ETDPowerInput::Signature2);
-		OutAbility = Cooldown(ETDPowerInput::Ability);
+	}
+
+	void GetEarnedAbility(const ATDShip* Ship, ETDAbilityId& OutAbility, float& OutReadiness01)
+	{
+		OutAbility = ETDAbilityId::None;
+		OutReadiness01 = 0.f;
+		const UTDAbilityComponent* Abilities = Ship ? Ship->FindComponentByClass<UTDAbilityComponent>() : nullptr;
+		if (!Abilities)
+		{
+			return;
+		}
+		OutAbility = Abilities->GetAbility();
+		const UTDPowerComponent* Power = Abilities->GetAbilityPower();
+		if (OutAbility != ETDAbilityId::None && Power)
+		{
+			OutReadiness01 = Power->GetCooldown01();
+		}
+		else
+		{
+			OutAbility = ETDAbilityId::None; // nothing installed = not earned
+		}
 	}
 
 	// ------------------------------------------------------------------------------------- HUD

@@ -114,8 +114,11 @@ namespace TDSquad
 	/** Nearest active player shield dome (Bastion, ENG-11) within MaxDistance of Location. */
 	bool GetNearbyShieldDome(const UWorld* World, const FVector& Location, float MaxDistance, FVector& OutCenter, float& OutRadius);
 
-	/** HUD: T2 power cooldowns, 1 = ready (also 1 when the ship has no such power). */
-	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility);
+	/** HUD: T2 signature power cooldowns, 1 = ready (1 when the ship has no such power). */
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2);
+	/** HUD (N-004 contract): the ability the ship has EARNED (None while locked) and its readiness
+	 *  (0 while locked, never 1 for an absent power; else the ability power's cooldown, 1 = ready). */
+	void GetEarnedAbility(const ATDShip* Ship, ETDAbilityId& OutAbility, float& OutReadiness01);
 
 	/** T2 powers: install the spec's signature powers and ability slot once (no-op for slots already filled). */
 	void InstallPowers(ATDShip* Ship, const FTDShipSpec& Spec);

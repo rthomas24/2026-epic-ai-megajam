@@ -1065,10 +1065,11 @@ TArray<FTDShipHUD> ATDSquadManager::GetSquadHUD() const
 		Card.Boost01 = Ship ? TDSquad::GetBoost01(Ship) : 0.f;
 		Card.Heat01 = Ship ? TDSquad::GetHeat01(Ship, ETDWeaponSlot::Primary) : 0.f;
 		Card.SecondaryAmmo = Ship ? TDSquad::GetAmmo(Ship, ETDWeaponSlot::Secondary) : 0;
-		Card.Ability = GetSpec(Id).UnlockableAbility;
+		// N-004: only the ability the ship has EARNED, readiness 0 while locked.
+		TDSquad::GetEarnedAbility(Ship, Card.Ability, Card.AbilityCooldown01);
 		if (Ship)
 		{
-			TDSquad::GetPowerCooldowns(Ship, Card.PowerCooldown01, Card.Power2Cooldown01, Card.AbilityCooldown01);
+			TDSquad::GetPowerCooldowns(Ship, Card.PowerCooldown01, Card.Power2Cooldown01);
 		}
 		Out.Add(Card);
 	}

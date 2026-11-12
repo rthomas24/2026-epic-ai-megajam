@@ -57,10 +57,13 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   on all three). Never re-created; cooldowns reset on respawn and retake. AI-flown ships can't fire
   them (T2's player-control guard, tested). A power started on one ship keeps running after a switch
   (dome stays up, tested).
-- **Formation:** loose V. Left slot `(-1600, -1600, 150)`, right slot `(-1600, 1600, -150)` in a
-  frame of the leader's heading and WORLD up (never its roll, so a barrel roll doesn't swing the
-  slots), about 2300 cm from the leader, assigned by switch order so wingmen don't swap sides.
-  Squad ships never physically block each other. `GetFormationSlotLocation(Ship)`.
+- **Formation:** a forward-swept wedge so the player can SEE their wing (live playtest finding):
+  left slot `(600, -1500, 220)`, right slot `(1500, 1750, -160)` in a frame of the leader's heading
+  and WORLD up (never its roll), 1600-2300 cm from the leader, ahead of the chase camera at different
+  depths (they read as a V on screen), more than 30 degrees off the leader's nose and outside the
+  central aim area. Assigned by switch order so wingmen don't swap sides. Squad ships never
+  physically block each other. `GetFormationSlotLocation(Ship)`. Test
+  `Wingmen.VisibleFromTheChaseCamera` projects both wingmen through the real chase camera.
 - **Wingman AI:**
   - Formation: flies parallel to the leader, steers out the sideways error and fixes the
     along-track error with speed only (an overshoot eases off, never U-turns). A catch-up allowance
@@ -90,7 +93,8 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
     60 000 cm from the leader for any reason it warps back.
   - **Never** calls a power or ability (there is no code path to one).
 - **HUD** (`ITDHUDData`): `GetSquadHUD` (per ship hull/shield/boost/heat/secondary ammo/alive/
-  respawn seconds/player-controlled/ability), `GetCurrentTarget` / `GetLockedTargets` (active ship's
+  respawn seconds/player-controlled; `Ability` = the ability the ship has EARNED, `None` while locked,
+  with `AbilityCooldown01` 0 while locked: N-004 contract, test `HUD.AbilityShownOnlyWhenEarned`), `GetCurrentTarget` / `GetLockedTargets` (active ship's
   `UTDTargetingComponent`), power/ability cooldowns (`UTDPowerComponent::FindPower`), `GetWaveInfo` (T4 wave director), `GetSpeed01`, `IsOutOfBounds`.
 
 ## How to try it

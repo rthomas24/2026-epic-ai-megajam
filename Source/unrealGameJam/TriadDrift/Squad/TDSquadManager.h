@@ -309,12 +309,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Cut")
 	FTDSwitchCutTiming CutTiming;
 
-	/** Loose V (ENG-08: 1500-2500 cm). Leader-local space: X forward, Y right, Z up. */
+	/** Where the wingmen fly, in the leader's heading + world-up frame (X forward, Y right, Z up).
+	 *  A forward-swept wedge: both wingmen ahead and outboard of the leader at different depths, so
+	 *  the chase camera (1400 cm behind) always has them in frame as a V, well clear of the crosshair
+	 *  and the leader's line of fire (ENG-08: 1500-2500 cm from the leader). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
-	FVector FormationLeftOffset = FVector(-1600.f, -1600.f, 150.f);
+	FVector FormationLeftOffset = FVector(600.f, -1500.f, 220.f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
-	FVector FormationRightOffset = FVector(-1600.f, 1600.f, -150.f);
+	FVector FormationRightOffset = FVector(1500.f, 1750.f, -160.f);
 
 	/** ENG-03: hull points per second repaired on living squad ships between waves (after OnWaveCleared until OnWaveStarted). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
