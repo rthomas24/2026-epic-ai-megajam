@@ -9,7 +9,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "NiagaraComponent.h"
-#include "DrawDebugHelpers.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "Engine/World.h"
 
 ATDShieldDome::ATDShieldDome()
@@ -117,9 +117,15 @@ void ATDShieldDome::Tick(float DeltaSeconds)
 	}
 	InterceptProjectiles();
 
-	if (UTDStatics::ShouldDrawPlaceholders() && !LoopFX)
+	if (!bPlaceholderBuilt)
 	{
-		DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 24, FColor(255, 170, 30), false, -1.f, 0, 8.f);
+		// Built on the first tick, once the spawner has set the mode (dome vs Blink's reflect field).
+		bPlaceholderBuilt = true;
+		if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
+		{
+			const FLinearColor Color = bProtectSquad ? UTDStatics::ShipColor(ETDShipId::Bastion) : UTDStatics::ShipColor(ETDShipId::Rift);
+			FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 3, 48, 60.f, Color, 4.f);
+		}
 	}
 }
 

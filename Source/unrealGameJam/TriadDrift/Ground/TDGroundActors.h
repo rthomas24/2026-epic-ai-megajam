@@ -270,6 +270,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "cm"))
 	float RingRadius = 500.f;
 
+	/** Set-dressing blocks crew can hide behind (registered with UTDCrewCoverSubsystem on Activate). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	TArray<TObjectPtr<AActor>> CoverActors;
+
 	/** Doors opened when the room is clear. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TArray<TObjectPtr<ATDDoor>> DoorsToOpen;

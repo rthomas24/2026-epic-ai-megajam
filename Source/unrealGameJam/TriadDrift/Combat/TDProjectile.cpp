@@ -154,6 +154,7 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 	}
 
 	SetActorLocationAndRotation(Transform.GetLocation(), Dir.Rotation(), false, nullptr, ETeleportType::TeleportPhysics);
+	PreviousLocation = Transform.GetLocation();
 	bActive = true;
 	bTrackingAbandoned = false;
 	SetActorTickEnabled(true);
@@ -378,6 +379,7 @@ void ATDProjectile::TeleportProjectile(const FVector& NewLocation, const FVector
 		Velocity = NewDirection.GetSafeNormal() * Velocity.Size();
 	}
 	SetActorLocationAndRotation(NewLocation, Velocity.Rotation(), false, nullptr, ETeleportType::TeleportPhysics);
+	PreviousLocation = NewLocation; // a jump is not motion: nothing should see it as crossing a plane
 }
 
 // ------------------------------------------------------------------------------------------ simulation
@@ -401,6 +403,7 @@ void ATDProjectile::Step(float DeltaSeconds)
 	UpdateHoming(DeltaSeconds);
 
 	const FVector Start = GetActorLocation();
+	PreviousLocation = Start;
 	FVector End = Start + Velocity * DeltaSeconds;
 	const bool bExpiring = Age >= Lifetime;
 	if (bExpiring)

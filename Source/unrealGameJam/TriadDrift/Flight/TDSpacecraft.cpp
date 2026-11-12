@@ -239,6 +239,22 @@ void ATDSpacecraft::SetSpeedOverride(float SpeedCmPerSec, float SteeringScale)
 	}
 }
 
+void ATDSpacecraft::SetSpeedOverrideFor(FName OverrideOwner, float SpeedCmPerSec, float SteeringScale, float AccelerationCmPerSec2)
+{
+	if (ShipMovement)
+	{
+		ShipMovement->SetSpeedOverrideFor(OverrideOwner, SpeedCmPerSec, SteeringScale, AccelerationCmPerSec2);
+	}
+}
+
+void ATDSpacecraft::ClearSpeedOverrideFor(FName OverrideOwner)
+{
+	if (ShipMovement)
+	{
+		ShipMovement->ClearSpeedOverrideFor(OverrideOwner);
+	}
+}
+
 void ATDSpacecraft::ClearSpeedOverride()
 {
 	if (ShipMovement)

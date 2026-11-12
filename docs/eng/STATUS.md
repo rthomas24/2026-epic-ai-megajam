@@ -6,6 +6,11 @@ The short cross-team view (in progress / coming next / done) is the board in `/C
 
 Status values: `todo` / `in progress` / `in review` (merged, tests pass, review open) / `DONE` / `BUG`
 
+Mapping to the stages in `/AAA.md`: `in progress` on a branch with passing tests is *prototype complete*;
+`in review` is *technically verified* and *integrated*; `DONE` additionally needs every review BLOCKER and
+MAJOR closed and the item *gameplay validated* (played in a running game, noted in `DEVLOG.md`).
+*Presentation approved* is tracked on Nick's side in `docs/visual/STATUS.md`. **No item is `DONE` yet.**
+
 Nothing below has been hand-flown in a windowed session yet: every "tests pass" is headless automation.
 
 | Item | Owner | Status | On main | Tests (filter, count) | Notes |
@@ -69,3 +74,5 @@ Nothing below has been hand-flown in a windowed session yet: every "tests pass" 
 - This merge: T4 `7ae379c`, T1 `fb07787`, T5 `85af40b` (menu and transition game modes), dev HUD pawn fix. Build clean, 202/202 before T5's last merge: Combat 19, Core 8, Director 10, Enemies 27, Flight 22, Flow 18, Ground 19, Powers 16, Squad 31, Travel 9, Waves 7, World 16.
 - `8cd1561` T1 `0ca7b22` (squad-review items), T2 `461d296` (16 combat review fixes), T3 `26670f2` (squad review batch 1), T4 `a1a52b9` (review fixes, Travel hand-off). Core: modular ship parts, projectile mesh offset, director-only highlight broadcast. 242/242.
 - `d8f7dbb` T5 `0136518` ENG-23 crew enemies; Core slots requested by Nick's side on the message board (front-end widget classes, crew anim / stagger / death, blade mesh). Build clean, 254/254 headless (48 s).
+- `adb1912` Unreal 5.9 agent toolsets enabled (21 engine plugins, Editor only) and MCP play-test tools added; a live game was driven through the engine's MCP server on a private port (viewport capture, frame timings, console). T1 `1588fdb` (modular ship parts, flight cues), T2 `fdc205e` (Powers review batch 1), T3 `da65cb8` (Squad batch 2, real-actor director tests), T4 World review fixes. Build clean, 276/276 headless (55 s): Combat 35, Core 8, Director 17, Enemies 27, Flight 24, Flow 19, Ground 31, Powers 19, Squad 53, Travel 13, Waves 7, World 23. Shipping package: 750 MB including a 239 MB debug symbol file, about 510 MB without it.
+- First live look through MCP found: an on-screen engine warning about two competing directional lights (space game mode spawns a sun and a fill light), and the input toolset could not find its player target in a `-game` session (to investigate).

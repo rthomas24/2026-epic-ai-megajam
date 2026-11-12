@@ -26,6 +26,9 @@ agent commit to this same repo at the same time.**
 - **[features.md](features.md) is the source of truth** for what to build and who builds it: every
   feature, the role split, folder ownership and the contracts between gameplay and presentation.
   Read it before you start work.
+- **[AAA.md](AAA.md) is the quality standard** every human and agent works to: build, verify, refine,
+  verify again, integrate; and report honestly which stage a piece of work has reached. Read it before
+  your next task.
 
 ### Team
 
@@ -33,6 +36,12 @@ agent commit to this same repo at the same time.**
 |---|---|---|---|
 | Ryan T | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
 | Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | **Art, Visuals & Player Experience Lead**: art direction, models, environments, lighting, VFX, HUD/UI, audio, cinematics (`ART-xx`) | OpenAI Codex |
+
+**Delegation (Nov 12).** Both humans have told their Lead agent to decide routine things without asking:
+Ryan's Lead makes all engineering decisions and approvals on Ryan's behalf; Nicholas's Lead decides
+routine naming, paths, sequencing and integration order, while Nicholas keeps art, visual and audio
+direction, scope changes and final quality sign-off. A Lead that decides for its human says so and
+reports it (§6.10).
 
 Run `git config user.name` / `git config user.email` to know which human you're working for. Each
 human has their own agent session, and **you only ever act for your own human.** The other agent is
@@ -433,6 +442,8 @@ is for everything that needs an answer. It is a **log: never delete a message.**
   If the reply isn't enough, add a follow-up under it and set the status back to `OPEN`.
 - **Pushing:** commit it alone (`coordination: message board ...`) and push to `main` right away,
   after fetching and merging anything new. If both sides edited at once, keep both edits.
+- **Ids are never reused or changed once pushed.** Fetch first and take the next free number. If a
+  merge shows two messages with the same id, the one that was not yet on `origin/main` is renumbered.
 - Decisions reached on the board that change the plan are copied to where they belong
   (features.md, `CLAIMS.md`, the area docs); the board itself is not the source of truth.
 
@@ -490,6 +501,12 @@ git-ignored `.agents/skills/` after each pull:
 
 The research behind the skills is in `reports/Blender MCP game asset practices.md`.
 
+Unreal 5.9 also has its own skill loader: any agent connected to the editor's MCP server can list
+Markdown skills (`AgentSkillToolset`: `ListSkills`, `GetSkills`) found in `<Project>/Skills/`, in each
+enabled plugin's `Skills/` folder and in `Engine/Extras/AgentTools/Skills/`. To expose this repo's
+skills there, mirror them into the git-ignored `Skills/` folder the same way:
+`robocopy .claude\skills Skills /MIR`.
+
 | Skill | Path | Use it when |
 |---|---|---|
 | `blender-mcp` | `.claude/skills/blender-mcp/SKILL.md` | Anything in Blender: MCP connection, bpy code on 5.2, headless runs, and verification (review renders, mesh report, floating-part check). **Read first.** |
@@ -520,6 +537,40 @@ Check that a machine's Blender works with the skills:
   agents working in worktrees), and report honestly what was and wasn't tested. See "Playtests" below.
 - When you're unsure whether something conflicts with the teammate's work, **ask your human. Don't
   guess.**
+
+### Shared protocols (both sides keep these in step)
+When either side adopts a way of working that the other should follow too (a ledger, a review step, a
+tool convention, a naming rule), its Lead **posts it on `MESSAGEBOARD.md` and writes it here in the
+same push**, so the two sets of agents never drift apart. Current shared protocols:
+
+- **Boards:** `CLAIMS.md` at every task start and finish (§6.5); `MESSAGEBOARD.md` for questions and
+  decisions (§6.10).
+- **Quality standard and honest stages:** `AAA.md`. Every report says which of its stages the work
+  has reached: prototype complete, technically verified, presentation approved, integrated, gameplay
+  validated. Tests and screenshots alone never make something gameplay validated or final.
+- **Per-item ledger:** each side keeps one table of every features.md item it owns, with owner, state,
+  the `main` commit, how it was verified and open findings: `docs/eng/STATUS.md` and
+  `docs/visual/STATUS.md`. An item is done only when it is on `main`, verified, reviewed and played.
+- **Independent review:** after a lane lands, a fresh agent that did not write it reviews it against
+  features.md and reports findings as BLOCKER / MAJOR / MINOR with a concrete failure for each. The item
+  stays `in review` until every BLOCKER and MAJOR is closed and re-checked. Passing tests or hashes is
+  not a review.
+- **Never leave an agent idle:** every lane has a next queued row on the board before the current one
+  finishes.
+- **Unreal's built-in MCP server** (UE 5.9 "Unreal MCP", doc link in §9): the project enables the
+  engine toolsets (Editor targets only). The human's editor owns port 8000. Any editor or game an
+  agent launches itself passes `-ModelContextProtocolPort=<port>`: Ryan's side 8010-8019 and
+  21000-29000, Nick's side 8020-8029. One agent per editor; tool calls run one at a time.
+  `Tools/td-play-mcp.ps1` starts a session and `Tools/td_mcp.py` calls it from a shell.
+- **Epic's own agent tooling** ships with the engine in `Engine/Extras/AgentTools/`: skills for
+  headless runs, log triage, build diagnosis and trimming build size
+  (`Skills/<name>/SKILL.md`), and scripts such as `ue_log_digest.py` and `ue_crash_triage.py`. Read the
+  relevant one before inventing a workflow.
+- **What ships:** only the maps in the cook list, what they reference, and every data asset in
+  `/Game/TriadDrift/Presentation/` (always cooked, with everything it references). An asset that is
+  loaded only by a path string from anywhere else will be missing from the packaged game.
+- **Presentation asset names** are fixed in `docs/visual/Presentation-Asset-Paths.md`; gameplay looks
+  them up by those exact paths, optional and null-safe.
 
 ### Playtests (mandatory, both sides)
 Automation tests and screenshots prove that code runs. They do not prove the game is fun, readable
