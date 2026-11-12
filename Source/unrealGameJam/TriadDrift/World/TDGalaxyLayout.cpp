@@ -260,7 +260,7 @@ void ATDGalaxyLayout::Build()
 
 	if (!TravelFX)
 	{
-		TravelFX = LoadObject<UTDTravelFX>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Travel_FX.DA_Travel_FX"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		TravelFX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
 	}
 	BuildInstances(/*bRegisterObstacles*/ true);
 	BuildPlanets();

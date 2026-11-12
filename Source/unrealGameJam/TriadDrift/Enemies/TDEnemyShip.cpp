@@ -6,6 +6,7 @@
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -55,6 +56,16 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	Spec = InSpec;
 	bSpecApplied = true;
 
+	// ENG-27 difficulty: the applied spec is the scaled one (GetSpec() reports what's in play).
+	const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
+	Spec.Hull *= Difficulty.EnemyHull;
+	Spec.Shield *= Difficulty.EnemyHull;
+	Spec.FrontalShield *= Difficulty.EnemyHull;
+	Spec.BayHull *= Difficulty.EnemyHull;
+	Spec.TurretHull *= Difficulty.EnemyHull;
+	Spec.AimErrorDeg *= Difficulty.EnemyAimError;
+	DifficultyDamage = Difficulty.EnemyDamage;
+
 	SetTeam(ETDTeam::Enemy);
 	if (Spec.Role == ETDEnemyRole::Carrier) { Tags.AddUnique(TDDirectorTags::Carrier); }
 	else { Tags.Remove(TDDirectorTags::Carrier); }
@@ -80,6 +91,7 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 
 	if (EnsureWeapons())
 	{
+		Weapons->SetOutgoingDamageMultiplier(TEXT("Difficulty"), DifficultyDamage);
 		if (!Spec.Guns.WeaponId.IsNone())
 		{
 			Weapons->EquipWeapon(ETDWeaponSlot::Primary, Spec.Guns.WeaponId);
@@ -145,10 +157,10 @@ void ATDEnemyShip::PlayWarpIn()
 	}
 }
 
-FString ATDEnemyShip::VisualsAssetPath(FName EnemyId)
+FString ATDEnemyShip::VisualsAssetName(const FTDEnemySpec& InSpec)
 {
-	const FString Name = FString::Printf(TEXT("DA_Enemy_%s_Visuals"), *EnemyId.ToString());
-	return FString::Printf(TEXT("/Game/TriadDrift/Presentation/%s.%s"), *Name, *Name);	// flat folder (docs/visual/Presentation-Asset-Paths.md)
+	// Names agreed with Nick's side (MESSAGEBOARD R-005): DA_Enemy_<Fighter|Interceptor|Gunship|Bomber|Carrier>_Visuals.
+	return InSpec.VisualsAssetName.IsNone() ? FString() : InSpec.VisualsAssetName.ToString();
 }
 
 UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
@@ -157,21 +169,9 @@ UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
 	{
 		return InSpec.Visuals.LoadSynchronous();
 	}
-	// Convention asset, looked up once per type (a miss is remembered so spawns stay cheap).
-	static TMap<FName, TWeakObjectPtr<UTDEnemyVisuals>> Found;
-	static TSet<FName> Missing;
-	if (InSpec.Id.IsNone() || Missing.Contains(InSpec.Id))
-	{
-		return nullptr;
-	}
-	if (const TWeakObjectPtr<UTDEnemyVisuals>* Cached = Found.Find(InSpec.Id))
-	{
-		if (Cached->IsValid()) { return Cached->Get(); }
-	}
-	UTDEnemyVisuals* Asset = LoadObject<UTDEnemyVisuals>(nullptr, *VisualsAssetPath(InSpec.Id), nullptr, LOAD_NoWarn | LOAD_Quiet);
-	if (Asset) { Found.Add(InSpec.Id, Asset); }
-	else { Missing.Add(InSpec.Id); }
-	return Asset;
+	const FString Name = VisualsAssetName(InSpec);
+	// Core's loader: quiet when the asset doesn't exist yet, remembers misses, cooks with the Presentation folder.
+	return Name.IsEmpty() ? nullptr : UTDStatics::LoadPresentation<UTDEnemyVisuals>(Name);
 }
 
 void ATDEnemyShip::StartLoopCues()
@@ -733,6 +733,7 @@ void ATDEnemyShip::SpawnCarrierParts()
 		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f);
 		const float FirstDelay = Spec.Heavy.Interval * 0.5f + i * 2.f;
 		Bay->Init(this, Spec.BayHull, Spec.Heavy.Count, Spec.Heavy.Interval, Spec.Heavy.TelegraphSeconds, FirstDelay);
+		Bay->MaxLaunches = Spec.MaxLaunchesPerBay;
 		Bay->Visuals = Visuals;
 		Bays.Add(Bay);
 	}
@@ -745,6 +746,7 @@ void ATDEnemyShip::SpawnCarrierParts()
 		const float Angle = (PI * 0.5f) * i + PI * 0.25f;
 		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f);
 		Turret->Init(Spec.TurretGuns, Spec.TurretHull);
+		Turret->SetDamageMultiplier(DifficultyDamage);
 		Turret->Visuals = Visuals;
 		Turrets.Add(Turret);
 	}
@@ -870,7 +872,7 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 	{
 		Sphere->SetCollisionResponseToChannel(TDCollision::Ship, ECR_Ignore);
 	}
-	ClearSpeedOverride();
+	ClearSpeedOverrideFor(TEXT("EnemyAI"));
 	if (EngineTrailFX) { EngineTrailFX->Deactivate(); EngineTrailFX = nullptr; }
 	if (Visuals)
 	{

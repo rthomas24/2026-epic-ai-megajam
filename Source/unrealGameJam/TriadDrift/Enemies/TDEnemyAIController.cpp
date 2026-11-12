@@ -14,6 +14,9 @@
 namespace
 {
 	int32 GTDEnemyAIDebug = 0;
+	const FName TDEnemyAIOverride(TEXT("EnemyAI"));
+	float GTDEnemyCrossInFront = 5000.f;
+	FAutoConsoleVariableRef CVarTDEnemyCrossInFront(TEXT("TD.EnemyCrossInFront"), GTDEnemyCrossInFront, TEXT("Enemy attack runs on the player steer this far in front of its nose (cm, 0 = off). Applied when a pilot takes its ship."));	// T1 keyed speed overrides: ours never clears an EMP / gravity well
 	FAutoConsoleVariableRef CVarTDEnemyAIDebug(TEXT("TD.EnemyAIDebug"), GTDEnemyAIDebug, TEXT("Draw enemy AI state and target lines (1 = on)."));
 
 	FTDFlightInput TDEnemyAI_MakeInput(const FVector2D& Aim, float Throttle01, bool bBoost)
@@ -47,6 +50,7 @@ void ATDEnemyAIController::OnPossess(APawn* InPawn)
 		Rng.Initialize(static_cast<int32>(InPawn->GetUniqueID()));
 	}
 	bPrefersPlayer = Rng.FRand() < PreferPlayerShipChance;
+	CrossInFrontDistance = GTDEnemyCrossInFront;
 	SetState(ETDEnemyAIState::Approach);
 	RetargetTimer = 0.f;
 }
@@ -211,12 +215,12 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 	if (bWant && !bCatchingUp)
 	{
 		const float Mult = FormationLeader.IsValid() ? CatchUpSpeedMultiplier * 1.3f : CatchUpSpeedMultiplier;
-		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * Mult, 1.f);
+		Ship.SetSpeedOverrideFor(TDEnemyAIOverride, Ship.GetSpec().CruiseSpeed * Mult, 1.f);
 		bCatchingUp = true;
 	}
 	else if (!bWant && bCatchingUp)
 	{
-		Ship.ClearSpeedOverride();
+		Ship.ClearSpeedOverrideFor(TDEnemyAIOverride);
 		bCatchingUp = false;
 	}
 }
@@ -322,7 +326,16 @@ FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor
 {
 	const FVector To = InTarget.GetActorLocation() - Ship.GetActorLocation();
 	const float Lead = FMath::Clamp(To.Size() / 30000.f, 0.f, 1.5f);
-	return InTarget.GetActorLocation() + InTarget.GetVelocity() * Lead;
+	FVector Point = InTarget.GetActorLocation() + InTarget.GetVelocity() * Lead;
+	// Readable combat: runs on the player's own ship cut across its nose instead of sitting behind it,
+	// so the fight happens on screen (the guns still aim at the ship itself).
+	// Only when coming from the side or the front: a pilot chasing a fleeing player just chases.
+	const bool bBesideOrAhead = FVector::DotProduct(InTarget.GetActorForwardVector(), (Ship.GetActorLocation() - InTarget.GetActorLocation()).GetSafeNormal()) > -0.3f;
+	if (CrossInFrontDistance > 0.f && bBesideOrAhead && &InTarget == UGameplayStatics::GetPlayerPawn(this, 0) && To.Size() > CrossInFrontDistance * 0.5f)
+	{
+		Point += InTarget.GetActorForwardVector() * CrossInFrontDistance;
+	}
+	return Point;
 }
 
 FVector ATDEnemyAIController::GetBomberRoutePoint(const AActor& InTarget) const
@@ -446,8 +459,10 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 	// Guns: only when lined up and in range, so shots are readable and dodgeable.
 	if (Spec.Guns.IsValid())
 	{
-		const bool bInCone = FVector::DotProduct(To.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Spec.Guns.ConeHalfAngleDeg));
-		Ship.SetGunsFiring(bInCone && Dist <= Spec.Guns.Range, T);
+		// Cone against the ship itself (the steering point may be offset in front of it).
+		const FVector ToShip = T->GetActorLocation() - Ship.GetActorLocation();
+		const bool bInCone = FVector::DotProduct(ToShip.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Spec.Guns.ConeHalfAngleDeg));
+		Ship.SetGunsFiring(bInCone && ToShip.Size() <= Spec.Guns.Range, T);
 	}
 	TryHeavyAttacks(Ship, *T);
 

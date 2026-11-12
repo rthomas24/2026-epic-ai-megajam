@@ -8,6 +8,12 @@
 #include "TDWaveDirector.generated.h"
 
 class UDataTable;
+
+namespace TDHyperdriveLocks
+{
+	inline const FName Wave(TEXT("Wave"));
+	inline const FName Finale(TEXT("Finale"));
+}
 class UTDHealthComponent;
 class UTDTravelFX;
 
@@ -198,6 +204,7 @@ protected:
 	};
 
 	static TArray<TWeakObjectPtr<ATDWaveDirector>>& Instances();
+	void SetWaveHyperdriveLock(bool bLocked);
 	void LoadWaveTable();
 	void SetState(ETDWaveState NewState, float Duration = 0.f);
 	void BeginWave(int32 Index);
