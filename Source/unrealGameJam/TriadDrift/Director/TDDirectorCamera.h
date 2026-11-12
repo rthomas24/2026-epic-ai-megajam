@@ -232,6 +232,8 @@ private:
 	FVector TrackedLocation = FVector::ZeroVector;
 	FVector TrackedLocationFor(const FVector& Focus) const;
 	FVector LastFocus = FVector::ZeroVector;
+	/** The live subject died / vanished mid-shot: frame LastFocus until the hold ends. */
+	bool bSubjectGone = false;
 	float ShotFOV = 65.f;
 
 	ETDDirectorCameraCancel LastCancel = ETDDirectorCameraCancel::SceneCut;

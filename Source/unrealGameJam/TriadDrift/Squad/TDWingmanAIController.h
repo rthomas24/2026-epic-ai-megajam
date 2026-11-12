@@ -110,7 +110,7 @@ public:
 	/** Distance bands (2000 cm each) a target directly behind the leader costs vs one dead ahead, so
 	 *  with a choice wingmen fight in front of the player's camera. 0 = ignore. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0"))
-	float OnScreenTargetBias = 10.f;
+	float OnScreenTargetBias = 2.5f;
 
 	/** Targets inside this fraction of the player's half field of view count as "on screen": when any
 	 *  are in range, a wingman not defending the player picks only among them. */
