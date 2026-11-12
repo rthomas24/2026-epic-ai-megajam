@@ -65,7 +65,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 13:16 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 13:25 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -100,15 +100,16 @@ open) · `done` (on `main`, tests pass, review closed).
 | Independent code review of Squad + Director | Lead | done | Nov 12 12:43 | Nov 12 13:05; findings with T3, T1, T2, T4 | none |
 | Independent code review of Powers + World (ENG-09 to 12, 16, 17, 18) | Lead | done | Nov 12 12:46 | Nov 12 13:15; findings with T2 and T4 | none |
 | Core: `UTDShipVisuals.Parts` (modular ships), `UTDWeaponFX.ProjectileMeshOffset`, highlight broadcast restricted to the director | Lead | done | Nov 12 13:16 | Nov 12 13:16, this push (answers `MESSAGEBOARD.md` N-001) | none |
-| Second review pass on Flow fixes | Lead | queued | | | none |
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
-| ENG-28 Shipping package under 1 GB | Lead | queued | | | `/Config/DefaultGame.ini` (maps and `/Engine/BasicShapes` are in the cook list as of this push) |
-| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-003 complete, N-001 answered, R-004 and R-005 open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
+| ENG-28 Shipping package under 1 GB | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
+| Second-pass reviews: Ground + Flow (ENG-19, 21, 22, 24), Travel + Flight (ENG-01, 02, 15, 20) | Lead | in progress | Nov 12 13:21 | | none |
+| Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
+| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-004 complete, N-001 answered, R-005 open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
 | C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) | Lead | done | Nov 12 12:48 | Nov 12 13:02, this push | **Claim released.** `Content/TriadDrift/Maps/**` now exists: empty World Partition levels, streaming off, One File Per Actor. Both sides may place actors (they save as separate `__ExternalActors__` files): claim the map and what you add first. Do not re-save the `.umap` or change World Settings without a claim here; game modes are set by map name in `/Config/DefaultEngine.ini`. See `MESSAGEBOARD.md` R-001 |
 | ENG-27 balance + difficulty | Lead | queued | | | none |
 | ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | all 15 review fixes merged Nov 12 13:02, this push (`e046c82`); second review queued | none |
 | ENG-15 hyperdrive, ENG-20 atmosphere flight + landing (first pass) | T1 | in review | Nov 12 | Nov 12 13:02, this push (`2686272`); not reviewed yet | none |
-| ENG-20 end to end: planet arrival, landing, first-person hand-off, take-off (with T5) | T1 | in progress | Nov 12 13:02 | | none |
+| ENG-20 end to end: planet arrival, landing, first-person hand-off, take-off (with T5); modular ship parts from `UTDShipVisuals.Parts` | T1 | in progress | Nov 12 13:02 | | none |
 | Placeholder look: squad-coloured hulls, glowing engines, `UTDShipVisuals` slot | T1 | done | Nov 12 | Nov 12 13:02, this push (`ab8915b`) | none |
 | ENG-05 ship weapons, ENG-06 targeting | T2 | in review | Nov 12 | all 16 review fixes + gap tests merged Nov 12 13:15 (`461d296`); second review queued | none |
 | ENG-09 Rift portal blaster, ENG-10 Lancer ram, ENG-11 Bastion swarm + dome, ENG-12 unlockable abilities | T2 | in review | Nov 12 | `6455ee0`; review done Nov 12 13:15: 2 blockers (Gravity Well moves fixed parts; no art path, placeholders missing in Shipping), 6 majors; fixes in progress | reads `/Game/TriadDrift/Presentation/DA_*` by path |
@@ -123,8 +124,8 @@ open) · `done` (on `main`, tests pass, review closed).
 | ENG-19 game instance / saves / travel, C-03 #3 scenes and takes | T5 | in review | Nov 12 | `a2fdf3e`; all 12 review fixes merged Nov 12 12:45, this push (`125146f`); second review queued | none |
 | ENG-21 first-person character, ENG-22 energy blade, ENG-24 objective framework | T5 | in review | Nov 12 | Nov 12 13:02, this push (`fc329d0`); not reviewed yet | none |
 | Menu and transition game modes (`ATDMenuGameMode`, `ATDTransitionGameMode`) | T5 | done | Nov 12 | Nov 12 13:10, this push (`85af40b`) | `/Config/DefaultEngine.ini` map prefixes |
-| ENG-23 crew enemies | T5 | in progress | Nov 12 13:02 | | none |
-| ENG-25 Verdance gameplay, ENG-26 Cinder gameplay | T5 | queued | | | places gameplay in `L_Planet_*` from C++ only |
+| ENG-23 crew enemies | T5 | in review | Nov 12 13:10 | Nov 12 13:24 (`0136518`); review running | none |
+| ENG-25 Verdance gameplay, ENG-26 Cinder gameplay | T5 | in progress | Nov 12 13:24 | | places gameplay in `L_Planet_*` from C++ only; reads `/Game/TriadDrift/Presentation/DA_*` by path |
 | ENG-29 docking, ENG-30 interior + core fight, ENG-31 escape (stretch) | unassigned | queued | | | only after core is solid |
 
 ### Coming next that touches shared things (heads-up for Nick's side)
