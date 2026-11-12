@@ -1,0 +1,135 @@
+{
+  "biome": "Verdance",
+  "prompt": "a bioluminescent alien jungle, giant mushrooms and ferns, mist (features.md ART-06)",
+  "prompt_kind": "abstract",
+  "inquiry": {
+    "setting": "Fictional planet. Read as a dense, wet, lowland tropical forest: a few emergent giants above a closed canopy, a mid canopy of fast pioneers and palms, and a shaded understorey with tree ferns.",
+    "method": "structural analogue: the planet does not exist, so real species were chosen whose FORMS fit the described biome. They are Neotropical lowland rainforest species, one or two per forest layer. Their botanical structure is kept; only colour and glow are changed, through material parameters.",
+    "not_covered": "Giant mushrooms are not trees and are out of scope for this skill (make them with the blender-game-asset skill)."
+  },
+  "sources": {
+    "UTP": "Useful Tropical Plants Database, tropical.theferns.info (Ken Fern), species page, read 2026-11-12. Each fact below names the reference that page cites for it.",
+    "WP": "Wikipedia species article, read 2026-11-12. Used only for a sentence that carries a citation, which is named; uncited sentences are marked low confidence."
+  },
+  "rules": {
+    "range": "When a source gives a range, the midpoint is used and the range is kept in 'range'.",
+    "upper": "A value marked basis 'upper' is the largest size the source documents, chosen on purpose (stated in 'why').",
+    "qualitative": "A clear-bole fraction is never measured in these sources. It is set only from a stated habit, by the fixed table in references/botanical-data.md (high-branching 0.6, short bole 0.15), and marked 'derived'. Otherwise it is left out."
+  },
+  "content_root": "/Game/TriadDrift/Gameplay/Vegetation/Verdance",
+  "species": [
+    {
+      "id": "Kapok",
+      "common_name": "Kapok",
+      "latin_name": "Ceiba pentandra",
+      "layer": "emergent",
+      "data": {
+        "height_m": { "value": 60, "basis": "upper", "why": "the brief asks for emergent giants; typical trees are 10-30 m", "source": "WP: 'an up to 60 m tall tree with large plank buttresses' (Gribel et al. 1999). UTP gives 'capable of reaching a height of 70 metres, though it is more likely to be within the range 10 - 30 metres' (Jensen 1999, FAO; World Agroforestry Centre)." },
+        "crown_width_m": { "value": 60, "basis": "upper", "why": "paired with the upper height", "source": "WP: 'a crown of foliage as much as 60 m (200 ft) in width' (Carder 2005, p. 129)." },
+        "trunk_diameter_m": { "value": 2.0, "range": [1.0, 3.0], "source": "UTP: 'The straight, cylindrical bole can be 100 - 300cm in diameter' (Jensen 1999, FAO)." },
+        "crown_shape": { "value": "Spreading", "source": "UTP: 'pagoda-shaped, thin crown' (Jensen 1999; Gibbs & Semir 2003)." },
+        "branching": { "value": "Decurrent", "source": "WP: 'These major branches, usually 4 to 6 in number, can be up to 1.8 m thick' (Gamlin & de Rohan 1998)." },
+        "leaf_type": { "value": "CompoundBroadleaf", "source": "WP: 'The palmately divided leaves are composed of 5-9 (-15) leaflets' (PROTA4U)." },
+        "leaf_length_m": { "value": 0.13, "range": [0.05, 0.21], "source": "WP: 'the leaflets 5-21 cm long' (PROTA4U). Leaflet length, not whole-leaf span." },
+        "persistence": { "value": "Deciduous", "source": "UTP: 'Ceiba pentandra is a deciduous tree' (Jensen 1999)." }
+      },
+      "not_found": ["clear_bole_fraction"],
+      "not_modelled": ["plank buttresses (WP: extend 12-15 m up the trunk)", "trunk spines"],
+      "look": { "leaf_mesh": "Palmate", "foliage": [0.020, 0.260, 0.270], "foliage_tip": [0.160, 0.060, 0.420], "glow": [0.050, 0.900, 1.000], "glow_strength": 1.0, "bark": [0.040, 0.030, 0.050], "bark_glow": 0.05 },
+      "variants": [ { "stage": 1.0, "seed": 11 }, { "stage": 0.7, "seed": 12 }, { "stage": 0.3, "seed": 13 } ]
+    },
+    {
+      "id": "BrazilNut",
+      "common_name": "Brazil nut",
+      "latin_name": "Bertholletia excelsa",
+      "layer": "emergent",
+      "data": {
+        "height_m": { "value": 40, "range": [25, 56], "source": "UTP: 'a large evergreen tree with a globose crown, that can grow 25 - 56 metres tall' (Huxley 1992; Dodge 1897)." },
+        "trunk_diameter_m": { "value": 1.5, "range": [1.0, 2.0], "source": "UTP: 'The straight, cylindrical bole can be 1 - 2 metres in diameter' (Huxley 1992; Dodge 1897)." },
+        "crown_shape": { "value": "Round", "source": "UTP: 'globose crown' (Huxley 1992; Dodge 1897)." },
+        "branching": { "value": "Decurrent", "source": "WP: 'a large, emergent crown of long branches above the surrounding canopy' (uncited sentence, low confidence)." },
+        "clear_bole_fraction": { "value": 0.6, "derived": "qualitative rule: high-branching", "source": "UTP: the bole 'is unbranched until near the top' (Huxley 1992; Dodge 1897)." },
+        "leaf_type": { "value": "Broadleaf", "source": "WP: 'alternate, simple, entire or crenate, oblong' (uncited sentence, low confidence)." },
+        "leaf_length_m": { "value": 0.275, "range": [0.20, 0.35], "source": "WP: '20-35 centimetres long' (uncited sentence, low confidence)." },
+        "persistence": { "value": "Evergreen", "source": "UTP: 'a large evergreen tree' (Huxley 1992). WP says 'dry-season deciduous' without a citation; the cited source was kept." }
+      },
+      "not_found": ["crown_width_m"],
+      "look": { "leaf_mesh": "Broad", "foliage": [0.150, 0.045, 0.340], "foliage_tip": [0.020, 0.240, 0.300], "glow": [1.000, 0.100, 0.800], "glow_strength": 1.0, "bark": [0.035, 0.030, 0.050], "bark_glow": 0.05 },
+      "variants": [ { "stage": 1.0, "seed": 21 }, { "stage": 0.7, "seed": 22 }, { "stage": 0.3, "seed": 23 } ]
+    },
+    {
+      "id": "TrumpetTree",
+      "common_name": "Trumpet tree",
+      "latin_name": "Cecropia peltata",
+      "layer": "mid canopy",
+      "data": {
+        "height_m": { "value": 15, "source": "WP: 'normally reaching 15 metres, but occasionally growing up to 25 metres tall' (Coley 1986). UTP: 'can sometimes reach a height of 20 metres' (Burns & Honkala 1990, Silvics of North America)." },
+        "trunk_diameter_m": { "value": 0.2, "range": [0.1, 0.3], "source": "UTP: the bole is 'usually 10 - 30cm in diameter, occasionally to 50cm' (Standley & Steyermark; Burns & Honkala 1990; Little & Wadsworth 1964)." },
+        "crown_shape": { "value": "Spreading", "source": "UTP: 'large, umbrella-shaped crown' (Huxley 1992); 'a very open and thin crown comprised of a few stout branches arising high on the trunk and curving upward' (Little & Wadsworth 1964)." },
+        "branching": { "value": "Decurrent", "source": "UTP: 'a few stout branches arising high on the trunk and curving upward' (Little & Wadsworth 1964)." },
+        "clear_bole_fraction": { "value": 0.6, "derived": "qualitative rule: high-branching", "source": "UTP: branches 'arising high on the trunk' (Little & Wadsworth 1964)." },
+        "leaf_type": { "value": "Broadleaf", "source": "WP: leaves 'palmately divided into 7-11 lobed' (Berg et al. 2005): one large lobed leaf, not leaflets." },
+        "leaf_length_m": { "value": 0.2, "range": [0.1, 0.6], "source": "WP: '10-60 centimetres in length and width', 'more commonly about 20 x 20 centimetres' (Berg et al. 2005). The common size was used, not the midpoint." },
+        "persistence": { "value": "Evergreen", "source": "UTP: 'small or medium-sized evergreen tree' (Little & Wadsworth 1964)." }
+      },
+      "not_found": ["crown_width_m"],
+      "not_modelled": ["stilt roots at the base (UTP: 'can be 1 metre tall')"],
+      "look": { "leaf_mesh": "Palmate", "foliage": [0.030, 0.300, 0.200], "foliage_tip": [0.120, 0.080, 0.400], "glow": [0.550, 1.000, 0.100], "glow_strength": 1.0, "bark": [0.050, 0.045, 0.060], "bark_glow": 0.05 },
+      "variants": [ { "stage": 1.0, "seed": 31 }, { "stage": 0.7, "seed": 32 }, { "stage": 0.3, "seed": 33 } ]
+    },
+    {
+      "id": "StiltPalm",
+      "common_name": "Walking palm (cashapona)",
+      "latin_name": "Socratea exorrhiza",
+      "layer": "mid canopy",
+      "data": {
+        "height_m": { "value": 16.5, "range": [8, 25], "source": "UTP: 'single-stemmed, evergreen palm tree growing from 8 - 25 metres tall' (Henderson, Galeano & Bernal 1995). WP: 'more typically 15-20 m tall' (Balick 1985)." },
+        "trunk_diameter_m": { "value": 0.15, "range": [0.12, 0.18], "source": "UTP: 'The unbranched stem can be 12 - 18cm in diameter' (Henderson, Galeano & Bernal 1995)." },
+        "branching": { "value": "Unbranched", "source": "UTP: 'The unbranched stem' (Henderson, Galeano & Bernal 1995)." },
+        "leaf_type": { "value": "Frond", "source": "UTP: 'a crown of about 7 leaves' on an unbranched palm stem (Henderson, Galeano & Bernal 1995)." },
+        "leaf_length_m": { "value": 1.75, "range": [1.5, 2.0], "source": "UTP: leaves 'can be 1.5 - 2 metres long' (Henderson, Galeano & Bernal 1995)." },
+        "crown_leaf_count": { "value": 7, "source": "UTP: 'a crown of about 7 leaves' (Henderson, Galeano & Bernal 1995)." },
+        "persistence": { "value": "Evergreen", "source": "UTP: 'evergreen palm tree'." }
+      },
+      "not_found": ["crown_width_m", "crown_shape", "clear_bole_fraction"],
+      "not_modelled": ["stilt roots (UTP: 'up to 3 metres long')"],
+      "look": { "leaf_mesh": "Frond", "foliage": [0.020, 0.280, 0.300], "foliage_tip": [0.150, 0.060, 0.400], "glow": [0.050, 0.900, 1.000], "glow_strength": 1.0, "bark": [0.045, 0.040, 0.060], "bark_glow": 0.05 },
+      "variants": [ { "stage": 1.0, "seed": 41 }, { "stage": 0.7, "seed": 42 }, { "stage": 0.3, "seed": 43 } ]
+    },
+    {
+      "id": "TreeFern",
+      "common_name": "West Indian tree fern",
+      "latin_name": "Cyathea arborea",
+      "layer": "understorey",
+      "data": {
+        "height_m": { "value": 9, "source": "UTP: 'an evergreen tree fern; it can grow 9 metres or more tall' (Little & Wadsworth 1964, USDA Forest Service)." },
+        "trunk_diameter_m": { "value": 0.10, "range": [0.08, 0.12], "source": "UTP: 'The unbranched stem [is] 8 - 12cm in diameter' (Little & Wadsworth 1964)." },
+        "branching": { "value": "Unbranched", "source": "UTP: 'The unbranched stem' (Little & Wadsworth 1964)." },
+        "leaf_type": { "value": "Frond", "source": "UTP: 'topped by a crown of long leaves' on a tree fern (Little & Wadsworth 1964)." },
+        "leaf_length_m": { "value": 3.0, "basis": "upper", "why": "the only length the source gives", "source": "UTP: leaves 'up to 3 metres long' (Little & Wadsworth 1964)." },
+        "persistence": { "value": "Evergreen", "source": "UTP: 'an evergreen tree fern'." }
+      },
+      "not_found": ["crown_width_m", "crown_shape", "clear_bole_fraction", "crown_leaf_count (WP says '10 or more leaves' without a citation: not used)"],
+      "look": { "leaf_mesh": "FernFrond", "foliage": [0.090, 0.060, 0.380], "foliage_tip": [0.020, 0.300, 0.260], "glow": [0.550, 1.000, 0.100], "glow_strength": 1.0, "bark": [0.030, 0.025, 0.035], "bark_glow": 0.05 },
+      "variants": [ { "stage": 1.0, "seed": 51 }, { "stage": 0.7, "seed": 52 }, { "stage": 0.3, "seed": 53 } ]
+    },
+    {
+      "id": "Cacao",
+      "common_name": "Cacao",
+      "latin_name": "Theobroma cacao",
+      "layer": "understorey",
+      "data": {
+        "height_m": { "value": 8, "source": "UTP: 'usually growing about 8 metres tall, though exceptionally it can reach 20 metres' (Contributions from the United States National Herbarium 35, 1968)." },
+        "trunk_diameter_m": { "value": 0.25, "range": [0.2, 0.3], "source": "UTP: 'The short bole is 20 - 30cm in diameter' (Lorenzi 2002, Brazilian Trees)." },
+        "crown_shape": { "value": "Round", "source": "UTP: 'a globose crown' (Contributions from the United States National Herbarium 35, 1968)." },
+        "clear_bole_fraction": { "value": 0.15, "derived": "qualitative rule: short bole", "source": "UTP: 'The short bole' (Lorenzi 2002)." },
+        "leaf_type": { "value": "Broadleaf", "source": "WP: leaves 'alternate, entire, unlobed' (cited to a trade source, low confidence)." },
+        "leaf_length_m": { "value": 0.30, "range": [0.10, 0.50], "source": "WP: leaves '10-50 cm long' (cited to a trade source, low confidence)." },
+        "persistence": { "value": "Evergreen", "source": "UTP: 'a small, evergreen tree' (Contributions from the United States National Herbarium 35, 1968)." }
+      },
+      "not_found": ["crown_width_m", "branching"],
+      "look": { "leaf_mesh": "Broad", "foliage": [0.120, 0.050, 0.300], "foliage_tip": [0.030, 0.260, 0.240], "glow": [1.000, 0.100, 0.800], "glow_strength": 1.0, "bark": [0.045, 0.030, 0.045], "bark_glow": 0.05 },
+      "variants": [ { "stage": 1.0, "seed": 61 }, { "stage": 0.7, "seed": 62 }, { "stage": 0.3, "seed": 63 } ]
+    }
+  ]
+}
