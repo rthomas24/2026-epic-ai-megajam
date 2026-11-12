@@ -415,9 +415,25 @@ namespace TDSquad
 		}
 	}
 
-	FTDWaveInfo GetWaveInfo(const UObject* WorldContext)
+	FTDWaveInfo GetWaveInfo(const UObject* WorldContext, FWaveDirectorCache& Cache, double RetrySeconds)
 	{
-		const ATDWaveDirector* Director = ATDWaveDirector::Get(WorldContext);
+		const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+		if (!World)
+		{
+			return FTDWaveInfo();
+		}
+		const ATDWaveDirector* Director = Cast<ATDWaveDirector>(Cache.Director.Get());
+		if (!Director || Director->GetWorld() != World)
+		{
+			const double Now = World->GetRealTimeSeconds();
+			if (Now < Cache.NextLookupTime)
+			{
+				return FTDWaveInfo();
+			}
+			Cache.NextLookupTime = Now + RetrySeconds;
+			Director = ATDWaveDirector::Get(WorldContext);
+			Cache.Director = const_cast<ATDWaveDirector*>(Director);
+		}
 		return Director ? Director->GetWaveInfo() : FTDWaveInfo();
 	}
 

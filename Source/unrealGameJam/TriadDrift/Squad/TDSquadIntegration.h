@@ -77,7 +77,14 @@ namespace TDSquad
 	bool IsOutOfBounds(const ATDShip* Ship);
 	AActor* GetCurrentTarget(const ATDShip* Ship);
 	void GetLockedTargets(const ATDShip* Ship, TArray<AActor*>& Out);
-	FTDWaveInfo GetWaveInfo(const UObject* WorldContext);
+	/** Cached wave-director lookup: ATDWaveDirector::Get iterates actors, so the HUD path must not call it every frame. */
+	struct FWaveDirectorCache
+	{
+		TWeakObjectPtr<AActor> Director;
+		double NextLookupTime = -1.0;
+	};
+	/** Misses are retried at most every RetrySeconds (world real time). */
+	FTDWaveInfo GetWaveInfo(const UObject* WorldContext, FWaveDirectorCache& Cache, double RetrySeconds = 1.0);
 
 	// ---- Events & flow (Core event bus, T5 game flow) ----
 	void BroadcastShipSwitched(const UObject* WorldContext, ETDShipId NewShip, ETDShipId OldShip);

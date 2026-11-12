@@ -17,6 +17,7 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/Squad/Tests/TDSquadTestListener.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 
 namespace TDSquadTests
 {
@@ -634,6 +635,25 @@ bool FTDSquadPassive::RunTest(const FString& Parameters)
 	F.Squad->SetWingmenPassive(false);
 	F.W.Advance(1.5f);
 	TestNotNull(TEXT("fights again when active"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadHUDWaveInfo, "TriadDrift.Squad.HUD.WaveInfoCachedLookup", TD_TEST_FLAGS)
+bool FTDSquadHUDWaveInfo::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	TestEqual(TEXT("no director: default wave info"), F.Squad->GetWaveInfo().WaveNumber, 0);
+	ATDWaveDirector* Director = F.W.Spawn<ATDWaveDirector>();
+	if (!TestNotNull(TEXT("director"), Director))
+	{
+		return false;
+	}
+	F.W.Advance(1.1f); // a miss is retried after 1 s, not every frame
+	const FTDWaveInfo Expected = Director->GetWaveInfo();
+	const FTDWaveInfo Got = F.Squad->GetWaveInfo();
+	TestTrue(TEXT("HUD forwards the director's wave info"), Got.WaveNumber == Expected.WaveNumber && Got.WaveCount == Expected.WaveCount
+		&& Got.EnemiesAlive == Expected.EnemiesAlive && Got.bWaveActive == Expected.bWaveActive);
+	TestTrue(TEXT("wave table is known"), Got.WaveCount > 0);
 	return true;
 }
 

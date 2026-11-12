@@ -805,7 +805,7 @@ TArray<AActor*> ATDSquadManager::GetLockedTargets() const
 
 FTDWaveInfo ATDSquadManager::GetWaveInfo() const
 {
-	return TDSquad::GetWaveInfo(this);
+	return TDSquad::GetWaveInfo(this, WaveDirectorCache);
 }
 
 float ATDSquadManager::GetSpeed01() const

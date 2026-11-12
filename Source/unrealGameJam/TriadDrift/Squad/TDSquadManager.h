@@ -8,6 +8,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSwitchCut.h"
+#include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TDSquadManager.generated.h"
 
 class ATDShip;
@@ -304,6 +305,7 @@ protected:
 	TWeakObjectPtr<APlayerController> SquadPC;
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
+	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	int32 SwitchCount = 0;
 	FTDSwitchCut LastSwitchCut;
 	/** True when a game flow took the defeat; it owns the restart, so timers stop. */
