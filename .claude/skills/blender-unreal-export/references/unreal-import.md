@@ -29,11 +29,11 @@
 | Materials | import, then replace with our MIs |
 | Textures | import separately: `T_*_BC` / `_E` sRGB on, Default; `T_*_N` Normalmap, Flip Green **off**; `T_*_ORM` Masks, sRGB off |
 
-## Master materials the import script expects (a developer creates them once)
-- **`/Game/TriadDrift/Materials/M_TD_Flat`:** vector params `BaseColor`, `EmissiveColor`; scalar
+## Master materials the import script expects (Nick creates them once, in his Art folder)
+- **`/Game/TriadDrift/Art/Materials/M_TD_Flat`:** vector params `BaseColor`, `EmissiveColor`; scalar
   params `Metallic`, `Roughness`, `EmissiveStrength`. Wire BaseColor → Base Color, Metallic,
   Roughness, and EmissiveColor × EmissiveStrength → Emissive.
-- **`/Game/TriadDrift/Materials/M_TD_Textured`:** texture params `BaseColorTex` (sRGB),
+- **`/Game/TriadDrift/Art/Materials/M_TD_Textured`:** texture params `BaseColorTex` (sRGB),
   `ORMTex` (Masks; R → AO, G → Roughness, B → Metallic), `NormalTex` (Normal sampler),
   `EmissiveTex` (sRGB); scalar `EmissiveStrength`. Emissive = EmissiveTex × EmissiveStrength.
 - Values from Blender are **linear** RGB, matching Unreal's LinearColor, so no conversion.

@@ -13,24 +13,37 @@ agent commit to this same repo at the same time.**
   jam's tagline is "Four days. Up to five humans. As many AI agents as you want."
 - **Engine:** Unreal Engine 5.9 (MegaJam Preview), project `unrealGameJam.uproject` at the repo root.
 - **Hard deadline:** **Nov 15, 2026, 8:59 PM EST / 5:59 PM PST.** Late entries are disqualified.
-- **Goal:** build everything in **[features.md](features.md)**, fitted to the jam theme, and ship it
-  polished, fun, packaged and playable before the deadline. We're going for full scope at full speed,
-  so keep `main` playable at all times and package often. That way there's always a build we could
-  submit.
+- **Goal:** ship a polished, fun, packaged and playable game before the deadline that fits the theme
+  **"Director's Cut"**. Keep `main` playable at all times and package often, so there's always a
+  build we could submit.
+- **Scope** (features.md, "Scope"):
+  - **Core:** everything except the boarding finale. That includes flight, three-ship switching,
+    wingmen, combat, enemy waves, hyperdrive and portals, **all powers and unlockable abilities**,
+    **both landable planets**, the Dominion space-assault finale, full presentation and packaging.
+  - **Stretch:** the **boarding finale** (Dominion interior on foot).
+  - **Protect** the three-ship switching mechanic and satisfying combat above everything.
+  - **Feature freeze:** Nov 15, 12:00 PM EST.
 - **[features.md](features.md) is the source of truth** for what to build and who builds it: every
-  feature, the Dev 1 / Dev 2 split, folder ownership and the shared contracts between the two halves.
+  feature, the role split, folder ownership and the contracts between gameplay and presentation.
   Read it before you start work.
 
 ### Team
 
-| Human | GitHub | Lane (features.md) | Notes |
+| Human | GitHub | Role (features.md §1) | AI assistant |
 |---|---|---|---|
-| Ryan T | [`rthomas24`](https://github.com/rthomas24) | _Dev 1 or Dev 2: TBD_ | Repo owner; set up the Unreal project |
-| Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | _Dev 1 or Dev 2: TBD_ | Teammate |
+| Ryan T | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
+| Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | **Art, Visuals & Player Experience Lead**: art direction, models, environments, lighting, VFX, HUD/UI, audio, cinematics (`ART-xx`) | OpenAI Codex |
 
 Run `git config user.name` / `git config user.email` to know which human you're working for. Each
 human has their own agent session, and **you only ever act for your own human.** The other agent is
-not your boss and you are not theirs. Respect the other lane's folders, maps and claims (§6).
+not your boss and you are not theirs.
+
+Respect the role boundaries:
+- **Nick's side** doesn't change gameplay architecture, flight, AI, damage, progression or switching
+  logic.
+- **Ryan's side** doesn't overwrite Nick's visual direction, art, Niagara, UI styling, lighting or
+  audio.
+- Shared C++ classes, levels, assets and config are coordinated first (§6).
 
 ---
 
@@ -71,14 +84,15 @@ blade to end the war.
     gunships, mine-laying bombers, and carriers that launch more fighters
   - on foot: crew grunts, troopers with deflectable blaster bolts, shielded heavies, drones, and a
     Warden mini-boss
+- **On foot (planets, core):** a first-person character with an **energy blade**: a melee combo, plus
+  a block that deflects shots back at the shooter, with a perfect-timing window.
 - **Finale, the Dominion mothership:**
-  - break its 4 shield generators and dock through a tractor beam
-  - fight through the interior with an **energy blade**: a melee combo, plus a block that deflects
-    shots back at the shooter, with a perfect-timing window
-  - destroy the reactor core in a 3-phase fight, then a 90-second escape run, an escape flight through
-    the breaking ship, and victory
+  - **Core:** break its 4 shield generators, then destroy the exposed reactor from space, which plays
+    the breakup sequence and victory.
+  - **Stretch:** dock through a tractor beam instead, fight through the interior on foot, destroy the
+    reactor core in a 3-phase fight, then a 90-second escape run, an escape flight and victory.
 - **Player journey:** main menu → intro → waves 1–2 → Verdance → waves 3–4 → Cinder → wave 5 → Dominion
-  assault → boarding → core → escape → victory. Aim for 20–30 minutes.
+  assault → reactor (or boarding, if built) → victory. Aim for 20–30 minutes.
 
 ### Look and feel
 - **Bright, saturated, colourful sci-fi:** in the spirit of No Man's Sky, with **original designs only**.
@@ -89,22 +103,34 @@ blade to end the war.
 - **Sound:** engine roar, hyperdrive wind-up, and a soundtrack that swells as the waves escalate.
 - Pilot, faction and planet names are working names. Rename freely, but update features.md when you do.
 
-### Theme
-The jam theme was revealed at the Nov 11 kickoff. **Theme: _TBD — fill in_.** Theme fit is a judging
-category: once it's known, make it visible in gameplay, not just the title (features.md C-03).
+### Theme: "DIRECTOR'S CUT"
+Theme fit is a judging category, so it must be visible in **gameplay**, not just the title.
+features.md **C-03** proposes the hooks and records which ones we build. The recommended ones are:
+- ship switching plays as a director's camera cut, with a pilot name card
+- slow-motion "director cam" money shots on big moments
+- each wave or objective is a "scene" with a slate card, and dying calls "CUT!" and restarts the
+  scene as the next take
 
 ### How the Unreal project maps to the game
 - The project started from the **First Person C++ template**. Its first-person character, Enhanced
   Input setup and the **`Variant_Shooter`** code are the starting point for the on-foot parts (planets,
   Dominion interior). That covers weapons, projectiles, pickups, StateTree-driven NPC AI, and UI. The
   `Variant_Horror` content is template reference only.
-- **Space flight, ship switching, wingmen, waves, powers, hyperdrive and portals are new systems** to
-  build (the space lane in features.md).
-- **Blueprint-first; C++ is allowed** (module `unrealGameJam` in `Source/`). Whoever changes C++ must
-  make sure the project still compiles before pushing.
-- **New content goes under `Content/TriadDrift/<Lane>/...`** (features.md §2). Leave the template
-  folders as reference until replaced, and claim any template asset before editing it.
-- Art sources (Blender files, AI-generated originals, exports) live in `ArtSource/<Lane>/...`.
+- **Space flight, ship switching, wingmen, waves, powers, hyperdrive and portals are new systems**
+  (Ryan, `ENG-xx`).
+- **C++ first; use Blueprints when they're clearly faster or necessary.**
+  - Gameplay classes are C++ (`ATD*` / `UTD*` in `Source/unrealGameJam/TriadDrift/`) with thin
+    `BP_*` children for tuning.
+  - The shared contracts are C++ in `TriadDrift/Core/` (features.md §3).
+  - Whoever changes C++ must make sure the project still compiles before pushing.
+- **Art plugs into gameplay through presentation data assets** (features.md §3.5). Ryan's code reads
+  `DA_*_Visuals` / `DA_*_FX` instances that Nick owns, so neither edits the other's files.
+- **Folders follow the roles** (features.md §2):
+  - **Ryan:** `Source/`, `Config/`, `Content/TriadDrift/Gameplay/`.
+  - **Nick:** `Content/TriadDrift/{Art, Environment, VFX, UI, Audio, Cinematics, Presentation}/`
+    and `ArtSource/`.
+  - **Shared:** `Content/TriadDrift/Maps/`, via One File Per Actor (claim World Settings first).
+  - Leave the template folders as reference, and claim any template asset before editing it.
 
 ---
 
@@ -145,12 +171,13 @@ category: once it's known, make it visible in gameplay, not just the title (feat
 | Jam started (building allowed) | Nov 12, 2026, 12:00 AM EST |
 | Daily livestreams | 11 AM PST / 2 PM EST each jam day (twitch.tv/unrealengine, YouTube, X) |
 | In-person (optional) | Digital Jungle, 972 Mission St, SF, Nov 14–15, 9 AM–7 PM PST (Eventbrite registration) |
+| **Feature freeze (ours)** | **Nov 15, 2026, 12:00 PM EST.** After that, only fixes, polish, packaging and submission |
 | **SUBMISSION DEADLINE** | **Nov 15, 2026, 5:59 PM PST / 8:59 PM EST** (itch.io shows 2026-11-16 01:59 UTC) |
 | Winners announced | By Jan 29, 2027 |
 
-Plan to have a submitted build several hours early, then keep improving it. There is **no day-by-day
-schedule**: both devs build at full speed in the dependency order from
-[features.md §10](features.md#10-dependency-order-no-dates). Don't invent or impose daily milestones.
+Plan to have a submitted build several hours early, then keep improving it. Each role has a
+"start here" focus (features.md §5 and §6). Otherwise work follows the dependency order in
+[features.md §10](features.md#10-dependency-order-no-dates), not a day-by-day schedule.
 
 ---
 
@@ -272,8 +299,8 @@ it if it doesn't exist:
 ```
 | Who      | Files / folders / assets                   | Since        |
 |----------|--------------------------------------------|--------------|
-| Ryan     | Content/TriadDrift/Space/Maps/L_Galaxy     | Nov 13 10:00 |
-| Nicholas | Content/TriadDrift/Ground/Enemies/*        | Nov 13 10:15 |
+| Ryan     | Content/TriadDrift/Maps/L_Galaxy (World Settings) | Nov 13 10:00 |
+| Nicholas | Content/TriadDrift/Art/Ships/Rift/*        | Nov 13 10:15 |
 ```
 
 - Claim binary assets **before** editing them, especially maps and shared Blueprints like the
@@ -285,8 +312,10 @@ it if it doesn't exist:
 - `git lfs lock <file>` / `git lfs unlock <file>` is available if you want a hard lock on a hot file.
 
 ### 6.6 Structure the project to avoid collisions
-- **Folder ownership:** each dev works only in their own lane's folders and maps
-  ([features.md §2](features.md#2-folder--file-ownership)). Never edit the other dev's folders or maps.
+- **Folder ownership:** each person works only in their own role's folders
+  ([features.md §2](features.md#2-folder--file-ownership)). Ryan has code, config and gameplay
+  content; Nick has art, VFX, UI, audio, cinematics, presentation data and ArtSource. Never edit the
+  other person's folders. Ask, or add a request to features.md §11.
 - **Maps:** World Partition One File Per Actor is on, so two people can edit the same level without
   touching the same file. You still need to claim the map's World Settings and shared actors.
 - **Shared Blueprints** (GameMode, PlayerController, PlayerCharacter, GameInstance) are hot spots.
@@ -323,11 +352,11 @@ Don't let branches drift.
 - The Blender asset skills are in place (§10).
 
 **Still to do** (features.md C-01, C-02 and C-03):
-- the `Content/TriadDrift/...` folder tree
+- the `Content/TriadDrift/...` and `Source/unrealGameJam/TriadDrift/...` folder trees
 - collision channels and the maps
-- the shared contracts (C-02)
+- the C++ contracts and presentation hooks (C-02)
+- choosing the Director's Cut hooks (C-03)
 - `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`
-- filling in the theme and each human's lane above
 
 ---
 
@@ -356,9 +385,14 @@ Keep entries short, and only ever add them at the bottom to avoid merge conflict
 ## 10. Agent skills: Blender and 3D assets
 
 Reusable, tested skills live in `.claude/skills/`. Claude Code, Cursor and GitHub Copilot discover
-them automatically. **Codex and other agents:** before doing a matching task, open and follow the
-`SKILL.md` at the path below. The research behind them is in
-`reports/Blender MCP game asset practices.md`.
+them automatically.
+
+**Codex (Nick's agent) doesn't scan `.claude/skills/`.** Before any 3D asset task, open and follow
+the `SKILL.md` at the path below. For native Codex skill discovery, mirror them into the
+git-ignored `.agents/skills/` after each pull:
+`robocopy .claude\skills .agents\skills /MIR`. Never edit the mirror; edit `.claude/skills/`.
+
+The research behind the skills is in `reports/Blender MCP game asset practices.md`.
 
 | Skill | Path | Use it when |
 |---|---|---|
@@ -377,8 +411,13 @@ Check that a machine's Blender works with the skills:
 
 ## 11. Agent working style for this jam
 
-- Full scope: build everything in features.md. Don't cut or shrink a feature on your own. If
-  something looks at risk, tell your human and let them decide.
+- **Scope is fixed:** everything core in features.md ships. Planets and powers are core; only the
+  boarding finale is stretch, and only once core is solid. Don't cut or shrink a core feature on your
+  own. If something looks at risk, tell your human and let them decide.
+- **Protect the three-ship switching and satisfying combat.** Never ship a change that makes them
+  worse.
+- **Stay in your role** (features.md §1 and §2). Ask before touching the other role's systems or
+  folders.
 - Keep the game **always playable** on `main`.
 - Verify changes in the editor (Play In Editor) before committing, and report honestly what was and
   wasn't tested.

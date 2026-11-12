@@ -67,7 +67,7 @@ sockets rotated with the asset, materials preserved.
 ## Import into Unreal
 - **Scripted:** `scripts/ue_import_assets.py` (untested; run it on the calibration arrow first).
   Run it from the Unreal Output Log
-  (`py "<repo>/.claude/skills/blender-unreal-export/scripts/ue_import_assets.py" "<export dir>" "/Game/TriadDrift/<Lane>/<Category>"`)
+  (`py "<repo>/.claude/skills/blender-unreal-export/scripts/ue_import_assets.py" "<export dir>" "/Game/TriadDrift/Art/<Category>"`)
   or through the Unreal MCP's Python tool. It handles:
   - texture settings (BC/E sRGB; N as Normalmap with **no** green flip; ORM as Masks with sRGB off)
   - FBX via Interchange with a saved pipeline (UCX collision on, lightmap UVs off), with a legacy
@@ -79,8 +79,11 @@ sockets rotated with the asset, materials preserved.
   `references/unreal-import.md`.
 - **UE 5.9 MegaJam Preview** has an experimental built-in MCP with an `ImportFile` tool. Enable All
   Toolsets, pass `bReplaceExisting` / `bSave` = true, then run the post-fix part of the script.
-- Destination: `Content/TriadDrift/<Lane>/...`, matching the ownership in features.md §2. Import
-  only into your own lane's folders.
+- **Destination:** `Content/TriadDrift/Art/<Category>/`, which belongs to Nick (features.md §2).
+  The meshes reach gameplay through Nick's presentation data assets in
+  `Content/TriadDrift/Presentation/`; Ryan's code reads those, so nobody edits gameplay Blueprints
+  to swap art. Ryan's agent imports only placeholders, and only into
+  `Content/TriadDrift/Gameplay/Debug/`.
 
 ## When something is wrong in Unreal
 

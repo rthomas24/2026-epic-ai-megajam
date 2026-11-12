@@ -36,7 +36,7 @@ Write it into the asset folder as `brief.md`. It covers:
 - **Size in cm, tri budget, material plan:** take these from `references/art-direction.md`.
 - **Shape language:** three words, such as "swept, predatory, crescent".
 - **Signature feature, palette and functional parts list:** for example engines, intakes, cockpit, hardpoints.
-- **Sockets and collision needs, owner lane and folder.**
+- **Sockets and collision needs, owner (features.md §2) and folder.**
 - **References:** concept image or 3+ reference images, used for inspiration only. No copying of
   existing games' or films' designs.
 
@@ -113,7 +113,7 @@ Lessons from our own tests, so you don't repeat them:
 ## Files, names, ownership
 
 ```
-ArtSource/<Lane>/<Category>/<Asset>/
+ArtSource/<Category>/<Asset>/       e.g. ArtSource/Ships/Rift/, ArtSource/Environment/Asteroids/
   brief.md                  the brief (step 1)
   refs/                     concept + reference images
   source/                   AI or downloaded originals + SOURCE.md (tool/site, licence, date, prompt)
@@ -121,8 +121,11 @@ ArtSource/<Lane>/<Category>/<Asset>/
   review/                   scored contact sheets (keep them; small PNGs)
   export/                   SM_<Asset>.fbx, T_<Asset>_*.png, SM_<Asset>.manifest.json
 ```
-- **Lanes mirror features.md §2:** `Space/` belongs to Dev 1 (ships, enemies, Dominion exterior);
-  `Ground/` and `Environment/` to Dev 2; `Shared/` must be claimed first.
+- **Ownership (features.md §2):** `ArtSource/` and the Unreal art folders (`Content/TriadDrift/Art`,
+  `Environment`, `VFX`, `Presentation`) belong to **Nick**, the Art, Visuals & Player Experience lead.
+  Ryan's agent claims a file in `CLAIMS.md` before touching anything there, e.g. to add a collision
+  proxy or socket. Final art reaches gameplay through Nick's presentation data assets (features.md
+  §3.5), never by editing Ryan's Blueprints or C++.
 - **Names:** objects `SM_<Asset>` (root), parts `SM_<Asset>_<Part>`, materials `M_<Asset>_<Role>`,
   helpers `CUT_*`, `SRC_*`, `UCX_*`, `SOCKET_*`. No spaces, no `.001`.
 - Log every AI tool and downloaded asset in `CREDITS.md`, with tool or site, licence and what it was

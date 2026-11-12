@@ -19,7 +19,7 @@ For every *.manifest.json in the export folder:
                                   EmissiveColor, EmissiveStrength), assigned by slot name.
 
 Run inside the Unreal Editor:
-  Output Log, Python:  py "C:/path/ue_import_assets.py" "C:/path/to/export" "/Game/TriadDrift/Space/Ships"
+  Output Log, Python:  py "C:/path/ue_import_assets.py" "C:/path/to/export" "/Game/TriadDrift/Art/Ships"
   or through an Unreal MCP Python tool (e.g. flopperam `python_execution`):
       exec(open(r"C:/path/ue_import_assets.py").read()); main(r"C:/path/to/export", "/Game/TriadDrift/...")
 """
@@ -31,9 +31,9 @@ import sys
 
 import unreal
 
-MASTER_FLAT = "/Game/TriadDrift/Materials/M_TD_Flat"
-MASTER_TEXTURED = "/Game/TriadDrift/Materials/M_TD_Textured"
-PIPELINE = "/Game/TriadDrift/Pipelines/PL_TD_StaticMesh"
+MASTER_FLAT = "/Game/TriadDrift/Art/Materials/M_TD_Flat"
+MASTER_TEXTURED = "/Game/TriadDrift/Art/Materials/M_TD_Textured"
+PIPELINE = "/Game/TriadDrift/Art/Pipelines/PL_TD_StaticMesh"
 
 eas = unreal.get_editor_subsystem(unreal.EditorAssetSubsystem)
 asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -174,7 +174,7 @@ def apply_materials(sm, manifest, textures, dest, report):
     return made
 
 
-def main(export_dir, dest="/Game/TriadDrift/Imported"):
+def main(export_dir, dest="/Game/TriadDrift/Art/Imported"):
     results = []
     for man_path in sorted(glob.glob(os.path.join(export_dir, "*.manifest.json"))):
         with open(man_path, encoding="utf-8") as fh:
@@ -210,4 +210,4 @@ def main(export_dir, dest="/Game/TriadDrift/Imported"):
 
 
 if __name__ == "__main__" and len(sys.argv) >= 2:
-    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "/Game/TriadDrift/Imported")
+    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "/Game/TriadDrift/Art/Imported")

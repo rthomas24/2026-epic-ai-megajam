@@ -1,22 +1,42 @@
-# Triad Drift — Full Feature Spec & Work Split
+# Triad Drift: Feature Spec & Work Split (Ryan × Nick)
 
-> **Working title:** Triad Drift · **Jam:** 2026 Epic AI MegaJam · **Engine:** Unreal Engine (see AGENTS.md)
-> **Hard deadline:** Nov 15, 2026 — **8:59 PM EST / 5:59 PM PST**. Late = disqualified.
-> **Theme:** _TBD — fill in, then adjust anything marked 🎨 THEME._
+> **Working title:** Triad Drift · **Jam:** 2026 Epic AI MegaJam · **Engine:** UE 5.9 (MegaJam Preview), project `unrealGameJam`
+> **Theme:** **DIRECTOR'S CUT** (how the game expresses it: C-03)
+> **Hard deadline:** Nov 15, 2026, **8:59 PM EST / 5:59 PM PST**. Late entries are disqualified.
+> **Feature freeze:** Nov 15, 12:00 PM EST. After that, only fixes, polish, packaging and submission.
 
-**Scope: everything.** We build every feature in this file as fast as possible. Work isn't split by day. Each dev
-owns a **lane** and works down it continuously, in whatever order the dependencies allow (see §10).
+This file splits the game into features and assigns each one to **Ryan (Gameplay & Engineering)** or
+**Nick (Art, Visuals & Player Experience)**, following the team role briefs (Nov 12). Read §1–§3 first:
+the split, folder ownership, and the contracts that let the two of you work at the same time without
+editing the same files.
 
-All numbers are **starting tuning values** (Unreal units: cm, cm/s, seconds). Change them freely, but keep them in
-data assets or tables, not hard-coded in graphs.
+## Scope
+- **Core (must ship):** everything not tagged **STRETCH**. That includes:
+  - flight, instant three-ship switching, AI wingmen and combat
+  - enemies and waves, hyperdrive and portals
+  - **all signature powers and unlockable abilities**
+  - **both landable planets** with their on-foot objectives
+  - the Dominion space-assault finale
+  - full presentation (art, VFX, UI, audio) and packaging
+- **STRETCH (optional; only once core is solid):** the **boarding finale**: docking, the Dominion
+  interior on foot, the reactor-core fight, the escape run and the escape flight. Without it, the war
+  ends in space when the squad destroys the exposed reactor from outside (ENG-18).
+- **Protect above all:** the three-ship switching mechanic and satisfying combat.
+- **C++ first;** use Blueprints when they are clearly faster or necessary.
+- Keep a playable build at all times, coordinate shared-file edits before starting, verify licences
+  for third-party resources, and freeze major features before final submission.
 
-**Status key** (edit inline as you go): `⬜ todo` · `🟨 in progress` · `✅ done` · `🐞 has bugs`
+All numbers are **starting tuning values** (Unreal units: cm, cm/s, seconds). Keep them in data
+assets or tables, not hard-coded.
+
+**Status key** (edit inline): `⬜ todo` · `🟨 in progress` · `✅ done` · `🐞 has bugs`
 
 ### Contents
-0. [The game](#0-the-game) · 1. [The split](#1-the-split) · 2. [Folder ownership](#2-folder--file-ownership) ·
+0. [The game](#0-the-game) · 1. [The split](#1-the-split) · 2. [Folder & file ownership](#2-folder--file-ownership) ·
 3. [Shared contracts](#3-shared-contracts) · 4. [Shared setup](#4-shared-setup-c-xx) ·
-5. [🟦 Dev 1 — Space](#5--dev-1--space) · 6. [🟩 Dev 2 — Worlds & Presentation](#6--dev-2--worlds--presentation) ·
-7. [Landing — full sequence](#7-landing--full-sequence-both-devs) · 8. [Boarding — full sequence](#8-boarding--full-sequence-both-devs) ·
+5. [🟦 Ryan: Gameplay & Engineering](#5--ryan-gameplay--engineering) ·
+6. [🟩 Nick: Art, Visuals & Player Experience](#6--nick-art-visuals--player-experience) ·
+7. [Landing: full sequence](#7-landing-full-sequence-core) · 8. [Boarding: full sequence](#8-boarding-full-sequence-stretch) ·
 9. [Integration points](#9-integration-points) · 10. [Dependency order](#10-dependency-order-no-dates) ·
 11. [Bugs & requests](#11-bugs--requests-append-only)
 
@@ -24,839 +44,820 @@ data assets or tables, not hard-coded in graphs.
 
 ## 0. The game
 
-A fast, bright, arcade space-combat game. You lead a wing of three ships (**Rift**, **Lancer** and **Bastion**) and
-switch between them at any moment. The two ships you aren't flying fight on their own. You land on two worlds and
-complete ground objectives on foot to unlock new ship abilities. Then you break the enemy mothership's defenses, dock,
-and fight through it in first person with an **energy blade** to destroy its core. Last, you escape as it breaks apart.
+A fast, bright, arcade space-combat game. You lead a wing of three ships (**Rift**, **Lancer** and
+**Bastion**) and switch between them at any moment, while the two ships you aren't flying fight on
+their own. You land on two worlds and complete objectives on foot to unlock new ship abilities, then
+break the enemy mothership's defenses. As a stretch goal, you board it with an **energy blade** to
+destroy its core.
 
-### Fiction (original, kept light) 🎨 THEME
-- **The squad:** three pilots, one per ship.
-  - **Wren** flies **Rift**: playful and sly.
-  - **Kato** flies **Lancer**: cocky and fast-talking.
-  - **Moss** flies **Bastion**: calm, protective veteran.
-  - The player is the **wing lead**, who can take any cockpit. "Switching" means the lead takes over a ship by link.
-- **The enemy:** the **Null Armada**, a faction of red-and-black angular ships with hollow white "eye" lights.
-  Their mothership is the **Dominion**.
+### Fiction (working names: rename freely, but update this file)
+- **The squad:** three pilots, one per ship. **Wren** flies **Rift** (playful, sly). **Kato** flies
+  **Lancer** (cocky, fast-talking). **Moss** flies **Bastion** (calm, protective veteran). The player
+  is the **wing lead**, who can take any cockpit.
+- **The enemy:** the **Null Armada**, angular red-and-black ships with hollow white "eye" lights. Its
+  mothership is the **Dominion**.
 - **The worlds:**
-  - **Verdance:** a bioluminescent jungle planet with giant flora, waterfalls and a ringed moon in the sky.
-  - **Cinder:** a crystal and volcanic world with glowing magma rivers, crystal spires and ash storms.
+  - **Verdance:** a bioluminescent jungle with giant flora, waterfalls and a ringed moon.
+  - **Cinder:** black volcanic rock, glowing magma and huge cyan/amber crystal spires.
 
-### Full player journey
+### Player journey
 
 ```
-Main Menu ─► Intro cinematic (squad briefing over radio, Armada arrives)
-  └─► GALAXY · Waves 1–2  (fighters; teaches flight, shooting, switching, each signature power)      [Dev 1]
-        └─► Verdance marker → hyperdrive → atmospheric entry → fly down → land                       [Dev 1 → Dev 2]
-              └─► VERDANCE · Obj 1 "Recover the Wreck Core"  → unlock GRAVITY WELL (Bastion)          [Dev 2]
-              └─► VERDANCE · Obj 2 "Wake the Ancient Relay"  → unlock CLOAK (Rift)                    [Dev 2]
-              └─► Board ship → take off → back to orbit                                               [Dev 2 → Dev 1]
-  └─► GALAXY · Waves 3–4  (gunships, mixed fleets, portal gates matter)                               [Dev 1]
-        └─► Cinder marker → land                                                                      [Dev 1 → Dev 2]
-              └─► CINDER · Obj 3 "Clear the Armada Outpost" → unlock EMP PULSE (Lancer)               [Dev 2]
-              └─► CINDER · Obj 4 "Destroy the Signal Jammer" → REVEALS THE MOTHERSHIP                 [Dev 2]
-  └─► GALAXY · Wave 5 "Dominion's Guard" (carriers) → Dominion warps in (cinematic)                   [Dev 1]
-        └─► Destroy 4 shield generators + turrets → docking bay opens → assisted docking              [Dev 1]
-              └─► DOMINION INTERIOR · hangar → corridors → core chamber (energy blade)                [Dev 2]
-                    └─► Core boss → destroyed → 90 s escape run to hangar → launch                    [Dev 2]
-                          └─► ESCAPE FLIGHT through the breaking Dominion → breakup cinematic         [Dev 1]
-                                └─► Victory screen → stats → credits                                  [Dev 2]
+Main Menu ─► Intro (squad briefing, Armada arrives)
+  └─► GALAXY · Waves 1–2: learn flight, shooting, switching, each signature power
+        └─► Verdance: hyperdrive → atmospheric entry → fly down → land                (CORE)
+              ├─► Obj 1 "Recover the Wreck Core" → unlock GRAVITY WELL (Bastion)
+              └─► Obj 2 "Wake the Ancient Relay"  → unlock CLOAK (Rift) → take off
+  └─► GALAXY · Waves 3–4 (gunships, bombers; portal gates matter)
+        └─► Cinder: land                                                              (CORE)
+              ├─► Obj 3 "Clear the Armada Outpost" → unlock EMP PULSE (Lancer)
+              └─► Obj 4 "Destroy the Signal Jammer" → REVEALS THE DOMINION → take off
+  └─► GALAXY · Wave 5 "Dominion's Guard" (carriers) → Dominion warps in (cinematic)
+        └─► Destroy 4 shield generators + turrets → reactor exposed
+              ├─► CORE ENDING: destroy the exposed reactor from space → breakup cinematic → Victory
+              └─► STRETCH ENDING: dock → interior on foot (energy blade) → core fight → escape run
+                                  → escape flight → breakup cinematic → Victory
 ```
-
-Target length: **20–30 minutes** for a first playthrough.
+Target length: 20–30 minutes.
 
 ---
 
 ## 1. The split
 
-| | **🟦 Dev 1 — "Space"** | **🟩 Dev 2 — "Worlds & Presentation"** |
+| | 🟦 **Ryan: Gameplay & Engineering Lead** | 🟩 **Nick: Art, Visuals & Player Experience Lead** |
 |---|---|---|
-| **Who** | _fill in_ | _fill in_ |
-| **Owns** | Everything **in a ship**: flight (space and atmosphere), all ship weapons, signature powers, unlockable abilities, switching, wingman AI, enemy ships, waves, hyperdrive, portals, the galaxy map's gameplay, the Dominion's exterior, docking flight, the escape flight, ship animations, space VFX and SFX, and the space cinematics (Dominion reveal and breakup) | Everything **on foot or around the game**: game flow and progression, the first-person character and its animations, the energy blade, crew enemies and their animations, both planets and all objectives, landing-pad scenes, the Dominion interior and core, all UI, narrative and radio barks, music and mix, space environment art, the intro cinematic, packaging and submission |
-| **Feature IDs** | `S-xx` | `G-xx` |
-| **Lives in maps** | `L_Galaxy`, `L_Test_Space` | `L_MainMenu`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Dominion_Interior`, `L_Transition`, `L_Test_Ground` |
+| **AI assistant** | Claude Code | OpenAI Codex |
+| **Mission** | Own the playable game systems, engineering integration and technical reliability, so the game stays fun, responsive and shippable | Own the visual identity, presentation quality and player-facing feel, compatible with the gameplay foundation and the 4-day window |
+| **Owns** | Flight and controls; three-ship switching and wingman AI; weapons, damage, shields, enemy AI, waves, targeting, balance, signature and unlockable power *mechanics*; objectives, encounter pacing, hyperdrive and level transitions, mission flow, win/lose and restart; first-person gameplay on the planets (character, blade combat, crew AI, objectives); C++ architecture and interfaces; profiling, testing, packaging, critical bugs | Visual direction; ships, enemies, Dominion and prop *visuals*; space and planet environments, lighting, atmosphere, materials; all VFX (Niagara); HUD, UI/UX, menus, onboarding, ship-switch feedback, targeting clarity; all audio and music; character and ship animation polish; cinematics and the Director's Cut presentation; performance-minded art; trailer and store page |
+| **Feature IDs** | `ENG-xx` | `ART-xx` |
 
-**The golden rule:** a map's owner is the only person who edits that map. If a feature needs one dev's **class**
-inside the other dev's **map**, the class owner builds it in their own folder, and the map owner places it. For
-example, Dev 1 builds `BP_LandingPad` in `Space/Travel/` and Dev 2 drops it into `L_Planet_Verdance`.
+**How you avoid stepping on each other:**
+- **Ryan makes it work. Nick makes it look, sound and read great.** They meet only through the
+  contracts in §3, especially the **presentation hooks** (§3.5): gameplay code reads Nick's data
+  assets and fires events that Nick's UI, VFX and audio respond to.
+- **Nick** doesn't independently change gameplay architecture, flight, AI, damage, progression or
+  ship-switching logic. He coordinates interface needs with Ryan before modifying shared C++ classes,
+  levels, assets or config.
+- **Ryan** doesn't overwrite Nick's visual direction, art assets, Niagara systems, UI styling,
+  lighting or audio without coordination. He provides stable gameplay hooks and data for the
+  presentation work.
 
 ---
 
 ## 2. Folder & file ownership
 
 ```
+Source/unrealGameJam/              🟦 RYAN: all C++ (Nick requests changes via §11 or a claim + chat)
+├── TriadDrift/Core/               🔒 contracts (§3): frozen after C-02; changes agreed by both
+├── TriadDrift/Space/              ships, squad, weapons, powers, abilities, enemies, waves, travel, Dominion
+├── TriadDrift/Ground/             first-person character, energy blade, crew AI, objectives, hazards
+├── TriadDrift/Flow/               GameInstance, game modes, saves, level travel, debug menu
+└── Variant_Shooter/ Variant_Horror/ … template code: reference; Ryan owns
+Config/*.ini                       🟦 RYAN: claim before editing (input, collision, maps & modes, rendering)
 Content/TriadDrift/
-├── Core/                  🔒 SHARED — frozen after C-02. Claim in CLAIMS.md + both humans agree before ANY edit
-│   ├── Interfaces/        BPI_TD_GameFlow, BPI_TD_Team, BPI_TD_HUDData, BPI_TD_Deflectable, BPI_TD_Interactable
-│   ├── Data/              E_TD_* enums, S_TD_* structs
-│   └── Projectiles/       BP_TD_ProjectileBase (owner: Dev 1)
-├── Space/                 🟦 DEV 1 ONLY
-│   ├── Ships/             BP_ShipBase, BP_Ship_Rift/Lancer/Bastion, DA_ShipStats_*, ship meshes/materials/anims
-│   ├── Squad/             BP_SquadManager, BP_SpacePlayerController, BP_GM_Space
-│   ├── Weapons/           BP_Weapon_*, BP_Proj_*, DA_Weapon_*
-│   ├── Powers/            BP_Power_Portal, BP_Portal, BP_Power_Ram, BP_Power_MissileSwarm, BP_Power_ShieldDome
-│   ├── Abilities/         BP_Ability_Cloak, BP_Ability_EMP, BP_Ability_GravityWell
-│   ├── AI/                wingman + enemy AI controllers, behavior/state trees
-│   ├── Enemies/           BP_EnemyShipBase, BP_Enemy_Fighter/Interceptor/Gunship/Bomber/Carrier
-│   ├── Waves/             BP_WaveDirector, DT_Waves
-│   ├── Travel/            BP_Hyperdrive, BP_PortalGate, BP_PlanetAtmosphere, BP_LandingPad, BP_DockingBay, BP_AtmosphereFlightZone
-│   ├── Dominion/          BP_Dominion_Exterior, BP_DOM_Turret, BP_DOM_ShieldGenerator, BP_DOM_EscapeDebris
-│   ├── Cinematics/        LS_DominionReveal, LS_DominionBreakup, LS_ShipLaunch
-│   ├── VFX/  Audio/       all space VFX + ship/weapon/space SFX
-│   ├── Input/             IMC_Space, IMC_Atmosphere, IA_* (space)
-│   └── Maps/              L_Galaxy (World Partition + One File Per Actor), L_Test_Space
-├── Ground/                🟩 DEV 2 ONLY
-│   ├── Character/         BP_FPCharacter, BP_GroundPlayerController, BP_GM_Ground, arms mesh + ABP_FPArms + montages
-│   ├── Blade/             BP_EnergyBlade, DA_BladeCombo
-│   ├── Enemies/           BP_Crew_Base, BP_Crew_Grunt/Trooper/Heavy/Sentry/Warden, BP_Proj_Crew*, anims
-│   ├── Objectives/        BP_ObjectiveBase, BP_Obj_* , BP_Interactable_*
-│   ├── Landing/           BP_LandedShip, LS_ExitShip, LS_EnterShip, BP_PadScene
-│   ├── Planets/Verdance/  terrain, flora, props, materials
-│   ├── Planets/Cinder/    terrain, crystals, magma, props, materials
-│   ├── Dominion/          interior modular kit, BP_DOM_Core, BP_DOM_Door, BP_DOM_Hazard_*
-│   ├── Cinematics/        LS_Intro, LS_CoreDestroyed
-│   ├── Input/             IMC_Ground, IA_* (ground)
-│   └── Maps/              L_Planet_Verdance, L_Planet_Cinder, L_Dominion_Interior, L_Test_Ground
-├── Flow/                  🟩 DEV 2 — BP_TD_GameInstance, BP_TD_SaveGame, BP_GM_Menu, DT_Barks, DT_Tips
-├── UI/                    🟩 DEV 2 — every WBP_*, icons, fonts, IMC_UI
-├── Environment/           🟩 DEV 2 — BP_GalaxySkybox, BP_PlanetVisual, BP_NebulaVolume, BP_SpaceDust, BP_AsteroidField, BP_Sun
-├── Audio/Music/  Audio/VO/  Audio/Mix/   🟩 DEV 2 — music stems, BP_MusicDirector, voice lines, sound classes/mixes
-├── Maps/                  🟩 DEV 2 — L_MainMenu, L_Transition
-└── Developers/<name>/     personal scratch; never referenced by real content
+├── Gameplay/                      🟦 RYAN: Blueprint children of C++ classes, AI (StateTree/BT), gameplay data
+│                                         (DA_*_Stats, DT_Waves), input (IMC_*, IA_*), game modes
+├── Maps/                          🔀 SHARED via World Partition One File Per Actor:
+│                                         Ryan creates maps + places gameplay actors (spawns, triggers, objectives);
+│                                         Nick places art, lighting, VFX, audio volumes. World Settings: claim first
+├── Presentation/                  🟩 NICK: the presentation data-asset INSTANCES (DA_*_Visuals, DA_*_FX)
+│                                         that Ryan's code reads (§3.5)
+├── Art/                           🟩 NICK: Ships/ Enemies/ Dominion/ Props/ Weapons/ Characters/ (meshes,
+│                                         materials, textures, skeletons, AnimBPs), Materials/ (masters
+│                                         M_TD_Flat / M_TD_Textured), Pipelines/ (import pipeline asset)
+├── Environment/                   🟩 NICK: skybox, nebulae, planet visuals, asteroid/crystal sets, terrain
+│                                         materials, foliage, lighting & post-process presets
+├── VFX/                           🟩 NICK: all Niagara systems, camera-shake classes, post-process materials
+├── UI/                            🟩 NICK: all widgets (WBP_*), fonts, icons, DT_Tips
+├── Audio/                         🟩 NICK: SFX, MetaSounds, music, sound classes/mixes, VO, DT_Barks
+├── Cinematics/                    🟩 NICK: Level Sequences, director-cam rigs, slate cards
+└── Developers/<name>/             personal scratch; never referenced by shipped content
+ArtSource/                         🟩 NICK: Blender sources, AI originals, exports (blender-* skills)
+    <Category>/<Asset>/{brief.md, refs/, source/, <Asset>_vNN.blend, review/, export/}
+Template Content (Characters, FirstPerson, LevelPrototyping, Variant_*, Weapons): reference. Claim before editing.
 ```
-
-**Art sources (Blender files, AI originals, exports) live outside Unreal's Content/, with the same lanes:**
-
-```
-ArtSource/
-├── Space/         🟦 DEV 1: player ships, enemy ships, Dominion exterior, ship weapons/FX meshes
-├── Ground/        🟩 DEV 2: first-person arms/blade, crew, Dominion interior kit, objective props
-├── Environment/   🟩 DEV 2: asteroids, rocks, crystals, flora, planet set pieces, skybox meshes
-└── Shared/        🔒 claim first: palettes, trim sheets, decal atlases, calibration asset
-    per asset: <Category>/<Asset>/{brief.md, refs/, source/, <Asset>_vNN.blend, review/, export/}
-```
-How to make the assets: the `blender-*` skills in `.claude/skills/` (index in AGENTS.md §10).
 
 **Rules**
-- **Never edit the other dev's folders or maps.** Ask through your humans, or add a line to §11 "Requests".
-- **`Core/` is frozen** after C-02. To change it: claim it, get both humans' OK, and push the change on its own.
-  **Add new things; never rename or remove existing enum values, struct fields, or interface pins.**
-- **Project settings / `Config/*.ini`**: claim before editing (input, collision, maps & modes, GameInstance).
-- **Collision channels** (created in C-01, use only these): `Ship`, `Projectile`, `Character`, `Interactable`, `Portal`.
-- **Cross-lane assets are read-only references.** For example, Dev 2's `BP_LandedShip` references Dev 1's ship
-  meshes but never edits them.
+- Never edit the other person's folders. Ask through your humans, or add a line to §11.
+- `Source/.../Core/` is frozen after C-02. Changes need a claim, both humans' OK, and a commit of
+  their own. **Add new things; never rename or remove existing enums, fields or interface functions.**
+- Maps: claim the **World Settings** and any shared persistent actors before editing them. With One
+  File Per Actor, two people can edit different actors in the same level safely.
+- Collision channels (C-01): `Ship`, `Projectile`, `Character`, `Interactable`, `Portal`.
+- Placeholders: Ryan builds with template or primitive meshes. Nick's data assets swap in the final
+  art with no gameplay edits.
 
 ---
 
 ## 3. Shared contracts
 
-These are created once in C-02. Both sides build against them and **stub** the other side until it's real.
+**C++ first.** Contracts are C++ in `Source/unrealGameJam/TriadDrift/Core/` (all `BlueprintType`).
+Gameplay classes are C++ (`ATD*` / `UTD*`) with thin Blueprint children (`BP_*`) for tuning and
+asset references. Ryan writes them (C-02). Nick reviews §3.5 before it is frozen.
 
-### 3.1 Enums (`Core/Data/`)
-
-| Enum | Values (append new values at the **end** only) |
+### 3.1 Enums & structs
+| Type | Values / fields (append new enum values at the **end** only) |
 |---|---|
-| `E_TD_ShipId` | `Rift`, `Lancer`, `Bastion` |
-| `E_TD_Team` | `Player`, `Enemy`, `Neutral` |
-| `E_TD_AbilityId` | `None`, `GravityWell`, `Cloak`, `EMPPulse` |
-| `E_TD_Destination` | `MainMenu`, `Galaxy`, `Verdance`, `Cinder`, `DominionInterior`, `Victory` |
-| `E_TD_DamageKind` | `Energy`, `Kinetic`, `Explosive`, `Melee`, `Ram`, `Environmental` |
-| `E_TD_GamePhase` | `Intro`, `Waves1to2`, `Verdance`, `Waves3to4`, `Cinder`, `Wave5`, `DominionAssault`, `DominionInterior`, `Escape`, `Victory` |
+| `ETDShipId` | `Rift`, `Lancer`, `Bastion` |
+| `ETDTeam` | `Player`, `Enemy`, `Neutral` |
+| `ETDAbilityId` | `None`, `GravityWell`, `Cloak`, `EMPPulse` |
+| `ETDDestination` | `MainMenu`, `Galaxy`, `Verdance`, `Cinder`, `DominionInterior` (stretch), `Victory` |
+| `ETDDamageKind` | `Energy`, `Kinetic`, `Explosive`, `Melee`, `Ram`, `Environmental` |
+| `ETDGamePhase` | `Intro`, `Waves1to2`, `Verdance`, `Waves3to4`, `Cinder`, `Wave5`, `DominionAssault`, `DominionInterior`, `Escape`, `Victory` |
+| `FTDProgress` | `Phase`, `WavesCleared`, `CompletedObjectives (Set<Name>)`, `UnlockedAbilities (Map<ETDAbilityId,ETDShipId>)`, `bDominionRevealed`, `bDominionDefensesDown`, `ReturnPoint`, `LastShip`, `RunTimeSeconds`, `Stats (FTDRunStats)`, `Takes (Map<Name,int>)` (Director's Cut) |
+| `FTDRunStats` | `Kills`, `ShipSwitches`, `PortalsUsed`, `ShotsDeflected`, `Deaths`, `MissilesReturned`, `HighlightMoments` |
+| `FTDShipHUD` | `Ship`, `Health01`, `Shield01`, `Boost01`, `Heat01`, `SecondaryAmmo`, `PowerCooldown01`, `Power2Cooldown01`, `AbilityCooldown01`, `Ability`, `bPlayerControlled`, `bAlive`, `RespawnSeconds` |
 
-### 3.2 Structs
-
-| Struct | Fields |
-|---|---|
-| `S_TD_Progress` | `Phase:E_TD_GamePhase` · `WavesCleared:int` · `CompletedObjectives:Set<Name>` · `UnlockedAbilities:Map<E_TD_AbilityId,E_TD_ShipId>` · `DominionRevealed:bool` · `DominionDefensesDown:bool` · `ReturnPoint:Name` · `LastShip:E_TD_ShipId` · `RunTimeSeconds:float` · `Stats:S_TD_RunStats` |
-| `S_TD_RunStats` | `Kills:int` · `ShipSwitches:int` · `PortalsUsed:int` · `ShotsDeflected:int` · `Deaths:int` · `MissilesReturned:int` |
-| `S_TD_ShipHUD` | `Ship` · `Health01` · `Shield01` · `Boost01` · `Heat01` · `SecondaryAmmo:int` · `PowerCooldown01` · `Power2Cooldown01` · `AbilityCooldown01` · `Ability:E_TD_AbilityId` · `IsPlayerControlled:bool` · `IsAlive:bool` · `RespawnSeconds:float` |
-
-### 3.3 Interfaces
-
-| Interface | Implemented by | Called by | Functions |
+### 3.2 Interfaces (all implemented by Ryan)
+| Interface | Implemented by | Used by | Functions |
 |---|---|---|---|
-| `BPI_TD_GameFlow` | 🟩 `BP_TD_GameInstance` | Both | `TravelTo(Dest, ReturnPoint)` · `GetProgress()` · `SetPhase(Phase)` · `ReportWaveCleared(Index)` · `CompleteObjective(Id, Reward, ForShip)` · `SetDominionState(Revealed, DefensesDown)` · `ReportPlayerDefeated()` · `AddStat(Name, Amount)` · `RequestBark(BarkId:Name, Speaker:E_TD_ShipId)` · `ShowTip(TipId:Name)` · `SaveCheckpoint()` |
-| `BPI_TD_Team` | Everything damageable | Weapons, AI | `GetTeam()` |
-| `BPI_TD_HUDData` | 🟦 `BP_SquadManager` | 🟩 `WBP_SpaceHUD` | `GetSquadHUD()` · `GetCurrentTarget()` · `GetLockedTargets()` · `GetWaveInfo()` · `GetHyperdriveCharge01()` · `GetObjectiveMarkers()` · `GetSpeed01()` · `IsOutOfBounds()` · `GetAltitude()` (atmosphere only) |
-| `BPI_TD_Deflectable` | `BP_TD_ProjectileBase` | 🟩 blade · 🟦 portal, dome | `Deflect(NewInstigator, NewDirection, NewTeam, SpeedMultiplier)` |
-| `BPI_TD_Interactable` | Any interactable | 🟩 FP character | `GetPrompt() → Text` · `CanInteract(Instigator)` · `Interact(Instigator)` · `GetHoldTime() → float` |
+| `ITDGameFlow` | `UTDGameInstance` | both | `TravelTo(Dest, ReturnPoint)` · `GetProgress()` · `SetPhase()` · `ReportWaveCleared()` · `CompleteObjective(Id, Reward, ForShip)` · `SetDominionState(Revealed, DefensesDown)` · `ReportPlayerDefeated()` · `AddStat()` · `RequestBark(BarkId, Speaker)` · `ShowTip(TipId)` · `SaveCheckpoint()` |
+| `ITDTeam` | everything damageable | weapons, AI | `GetTeam()` |
+| `ITDHUDData` | `ATDSquadManager` (space), `ATDFirstPersonCharacter` (ground) | Nick's HUD widgets | `GetSquadHUD()` · `GetCurrentTarget()` · `GetLockedTargets()` · `GetWaveInfo()` · `GetHyperdriveCharge01()` · `GetObjectiveMarkers()` · `GetSpeed01()` · `IsOutOfBounds()` · `GetAltitude()` · ground: `GetHealth01()`, `GetBlockStamina01()`, `GetDashCharges()`, `GetInteractPrompt()` |
+| `ITDDeflectable` | `ATDProjectile` | blade, portals, dome | `Deflect(NewInstigator, NewDirection, NewTeam, SpeedMultiplier)` |
+| `ITDInteractable` | interactables | first-person character | `GetPrompt()` · `CanInteract()` · `Interact()` · `GetHoldTime()` |
 
-### 3.4 Damage
-- Use Unreal's **built-in `Apply Damage` / `Event AnyDamage`**. Pass `E_TD_DamageKind` through a custom
-  `DamageType` class per kind (`DT_TD_Energy` etc., in `Core/Data/`).
-- Friendly fire is **off**: always check `GetTeam()` before applying damage.
+### 3.3 Damage
+Use Unreal's built-in `ApplyDamage` / `TakeDamage`, with a `UDamageType` subclass per `ETDDamageKind`.
+Always check `GetTeam()` first: friendly fire is **off**.
 
-### 3.5 Event dispatchers both sides use
+### 3.4 Gameplay events (Ryan fires; Nick's UI/VFX/audio listen)
+Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for widgets:
+`OnWaveStarted(Index, Intensity01)` · `OnWaveCleared(Index)` · `OnShipSwitched(New, Old)` ·
+`OnShipDowned(Ship)` / `OnShipRespawned(Ship)` · `OnSquadWiped()` · `OnPowerUsed(Ship, PowerName)` ·
+`OnAbilityUnlocked(Ability, Ship)` · `OnPhaseChanged(Phase)` · `OnObjectiveUpdated(Id, Step, Text)` ·
+`OnHitConfirmed(Target, bKill)` · `OnHyperdriveState(State)` · `OnPortalState(Portal, State)` ·
+`OnTipRequested(TipId)` · `OnBarkRequested(BarkId, Speaker)` ·
+`OnHighlightMoment(Kind, Actor, Importance)` (Director's Cut, C-03) · `OnTakeStarted(SceneId, TakeNumber)`.
 
-| Dispatcher | Lives on | Fires when | Listeners |
-|---|---|---|---|
-| `OnWaveStarted(Index, Intensity01)` | 🟦 `BP_WaveDirector` | A wave begins | 🟩 Music, HUD, barks |
-| `OnWaveCleared(Index)` | 🟦 `BP_WaveDirector` | A wave ends | 🟩 Music, HUD, GameFlow |
-| `OnShipSwitched(NewShip, OldShip)` | 🟦 `BP_SquadManager` | The player swaps ships | 🟩 HUD, barks, music sting |
-| `OnShipDowned(Ship)` / `OnShipRespawned(Ship)` | 🟦 `BP_SquadManager` | A ship dies or respawns | 🟩 HUD, barks |
-| `OnSquadWiped()` | 🟦 `BP_SquadManager` | All 3 ships are down | 🟩 GameFlow → defeat |
-| `OnPowerUsed(Ship, PowerName)` | 🟦 `BP_ShipBase` | A signature power or ability fires | 🟩 barks, stats |
-| `OnAbilityUnlocked(Ability, Ship)` | 🟩 `BP_TD_GameInstance` | An objective is completed | 🟦 ships refresh their ability slot |
-| `OnPhaseChanged(Phase)` | 🟩 `BP_TD_GameInstance` | The story phase changes | 🟦 wave director, 🟩 music |
+### 3.5 Presentation hooks: how Nick's art plugs in without shared-file edits
+- Ryan's C++ defines **presentation data-asset classes** (`UPrimaryDataAsset`, soft references only):
+  - `UTDShipVisuals`: mesh/skeletal mesh, materials, squad colour, HUD icon, engine-trail / boost /
+    drift VFX, switch-in / switch-out VFX + SFX, power wind-up / active / end VFX + SFX, damage-state
+    VFX, explosion tier, engine sound, camera shakes.
+  - `UTDWeaponFX`: muzzle, tracer, impact on hull / shield / rock VFX, fire + impact sounds, shake,
+    hit-marker style.
+  - `UTDEnemyVisuals`, `UTDAbilityFX`, `UTDTravelFX` (hyperdrive spool / tunnel / drop-out, portal
+    open / idle / transit / close, atmospheric entry, landing dust), `UTDBladeFX`, `UTDUIStyle`.
+- **Gameplay actors hold one data-asset reference each and spawn from it at the event.** An empty
+  slot does nothing (no crash), so Ryan's code runs before any art exists.
+- **Nick owns the instances** in `Content/TriadDrift/Presentation/` and everything they point to.
+  Ryan never edits them, and Nick never edits gameplay Blueprints or C++. Need a new slot? Nick
+  requests it (§11); Ryan adds it to the class.
+- **Animation state:** gameplay exposes read-only state on the pawns (`Speed01`, `bBoosting`,
+  `bDrifting`, `PowerWindup01`, `bGearDown`, `bCanopyOpen`, `Damage01`, `BladeState`) for Nick's
+  AnimBPs and timelines.
+- **Cameras:** Ryan owns control-feel cameras (chase cam, FP cam). Nick owns cinematic cameras and
+  sequences, and the camera-shake *assets*.
 
-### 3.6 Stubs (so nobody is ever blocked)
-- 🟦 `BP_Stub_GameFlow` (in `Space/`): fakes the GameInstance and prints calls.
-- 🟩 `BP_Stub_HUDData` (in `UI/`): fakes squad data with sliders for testing widgets.
-- 🟩 Uses a static mesh stand-in for `BP_LandedShip` until Dev 1's ship meshes exist.
-- 🟦 Uses a placeholder sphere/cube skybox until Dev 2's environment actors exist.
+### 3.6 Stubs (nobody blocks)
+- **Ryan:** placeholder data-asset instances with empty slots (in `Gameplay/Debug/`), plus a
+  `BP_TD_StubGameFlow` until the real flow lands.
+- **Nick:** `WBP_` widgets built against a `BP_TD_FakeHUDData` (UI folder; implements `ITDHUDData`
+  with sliders). VFX and sounds are previewed in Nick's own test map
+  (`Developers/Nick/L_Test_Presentation`).
 
 ---
 
 ## 4. Shared setup (`C-xx`)
 
-### C-01 · Project bootstrap · 🟦 Dev 1 drives · `🟨`
-- [x] Create the UE project and record the exact engine version in AGENTS.md. **Both devs must be on the same version.** Done Nov 12: `unrealGameJam`, First Person C++ template, UE 5.9.0 MegaJam Preview, at the repo root.
-- [x] Add the Unreal `.gitignore` (+ `*.blend1`, `__pycache__/`) and `.gitattributes` with Git LFS (`*.uasset *.umap *.blend` + images, audio, meshes). Not marked `lockable`: we coordinate through CLAIMS.md instead, so files aren't read-only.
-- [ ] Create the full folder tree from §2.
-- [ ] Create the collision channels and object types (`Ship`, `Projectile`, `Character`, `Interactable`, `Portal`).
-- [ ] Create empty maps for every map in §1. `L_Galaxy` uses World Partition with **One File Per Actor**, and big interior maps should too.
-- [ ] Enable plugins: Enhanced Input, Niagara, (optional) State Tree, Common UI if used, Movie Render Queue for trailer capture.
-- [ ] Create `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`. Push.
-- [ ] Dev 2 clones, opens, and confirms there are no errors.
+### C-01 · Project bootstrap · 🟦 Ryan · `🟨`
+- [x] Create the UE project (`unrealGameJam`, First Person C++ template, UE 5.9.0) and record the engine version in AGENTS.md.
+- [x] `.gitignore` and Git LFS (`.uasset .umap .blend` + images, audio, meshes). Not `lockable`; we coordinate through `CLAIMS.md`.
+- [ ] Create the `Content/TriadDrift/...` and `Source/unrealGameJam/TriadDrift/...` trees from §2.
+- [ ] Collision channels (`Ship`, `Projectile`, `Character`, `Interactable`, `Portal`) and Maps & Modes.
+- [ ] Maps (World Partition + One File Per Actor): `L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`, plus stretch `L_Dominion_Interior`. Also `L_Test_Space` (Ryan) and `L_Test_Presentation` (Nick).
+- [ ] Create `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`, then push.
 
-### C-02 · Contracts · 🟩 Dev 2 drives, Dev 1 reviews · `⬜`
-- [ ] Create every enum, struct, interface and DamageType in §3 exactly as written.
-- [ ] 🟦 Dev 1 creates `BP_TD_ProjectileBase`: speed, damage, kind, team, lifetime, homing target (optional), impact VFX/SFX slots. It implements `BPI_TD_Deflectable` (flip team, new direction, re-target the original instigator if homing) and `BPI_TD_Team`.
+### C-02 · Contracts · 🟦 Ryan writes, 🟩 Nick reviews §3.5 · `⬜`
+- [ ] Write everything in §3 as C++ (`Core/`) and compile. Create empty presentation data-asset classes and placeholder instances.
+- [ ] Nick checks that the presentation slots cover what he needs for ships, weapons, enemies, travel, blade and UI.
 - [ ] Push. **`Core/` is now frozen.**
 
-### C-03 · Theme pass · both · `⬜` 🎨 THEME
-- [ ] Write the theme at the top of this file and in AGENTS.md. Decide how the squad, worlds and finale express it in **gameplay**.
+### C-03 · Theme: "Director's Cut" · both · `⬜` 🎬
+Theme fit is a judging category, so it must be **visible in gameplay**, not just the title. These
+are proposals, and the humans pick. The recommended set is cheap, presentation-heavy, and builds on
+the switching mechanic:
+1. **Switching is a cut** *(recommended)*. A ship switch plays as a director cutting between cameras:
+   a hard camera cut with a 1-frame flash, a quick letterbox snap and the pilot's name card
+   ("WREN · RIFT"). It stays instant, with no lost control. 🟦 switch event + timing · 🟩 cut
+   transition, card, sound.
+2. **Director cam "money shots"** *(recommended)*. Big moments fire `OnHighlightMoment`: ram kills,
+   portal missile returns, multi-kills, generator and reactor kills. Each triggers a 0.5–1 s
+   slow-motion beat from a cinematic angle, rate-limited. 🟦 events + time dilation · 🟩 camera rigs,
+   framing, grade.
+3. **Scenes and takes, not lives** *(recommended)*.
+   - Each wave or objective is a "scene" opened by a slate card ("SCENE 3 · CINDER · TAKE 1").
+   - Dying calls "CUT!" and the scene restarts as TAKE 2.
+   - The victory screen shows the takes needed per scene.
+
+   🟦 checkpoint/restart per scene · 🟩 slate cards, "CUT!" presentation.
+4. **Your Director's Cut** *(nice)*. The victory screen plays an auto-edited highlight reel built from
+   the recorded highlight moments. 🟦 event log with positions and times · 🟩 camera-cut playback.
+5. **Director's commentary** *(nice)*. A "Director" voice (the squad commander) opens scenes and
+   reacts to highlights; subtitles are styled as script pages. 🟩 VO + subtitles, driven by
+   `OnBarkRequested`.
+
+Decision: _fill in which ones we build._
 
 ---
 
-## 5. 🟦 DEV 1 — Space
+## 5. 🟦 Ryan: Gameplay & Engineering
 
-### S-01 · Space flight model · `⬜`
-Arcade 6DOF-lite flight. It's fast, readable, and has a signature **drift**.
+**Start here (role brief, Day 1 focus):** a playable prototype with flight, shooting, instant ship
+switching and baseline wingman AI. Expose the integration points (§3.4–3.5) so Nick's visual pass
+can start.
 
-| Control | Behavior | Start values |
+**Deliverables:**
+- a continuously playable build with flight, shooting and reliable three-ship switching
+- two autonomous wingmen that keep engaging after a switch
+- a complete, balanced combat loop with enemy waves and objectives
+- a tested, packaged submission build
+
+### Space core
+
+#### ENG-01 · Space flight model · `⬜`
+Arcade 6DOF-lite flight: fast, readable, with a signature **drift**. Gamepad and keyboard + mouse are
+both first-class.
+
+| Control | Behaviour | Start values |
 |---|---|---|
-| Throttle | Analog forward speed between min and cruise | min 1500, cruise 6000 cm/s (per-ship multipliers in S-04) |
-| Aim (mouse / right stick) | The ship turns toward an aim reticle (mouse = virtual joystick with a center deadzone) | max turn 110°/s pitch-yaw |
-| Roll | Manual roll. Auto-banks into turns when there's no roll input | 180°/s |
-| Strafe (optional) | Lateral/vertical thrusters | 2500 cm/s |
-| **Boost** | Hold for a big speed increase; drains the boost meter | +80% speed, 3 s full meter, regens 1.2 s after release |
-| **Drift** | Hold: velocity keeps its old direction while the nose rotates freely (slide sideways and shoot behind you). Release: snaps velocity to the nose with a burst | 1.5× turn rate while drifting; 20% speed burst on release |
-| Brake | Hard decel to min speed | |
+| Throttle | Analog forward speed, min → cruise | min 1500, cruise 6000 cm/s (per-ship multipliers in ENG-04) |
+| Aim (mouse / right stick) | The ship turns toward an aim reticle (mouse = virtual joystick with a deadzone) | 110°/s pitch and yaw |
+| Roll | Manual; auto-banks into turns | 180°/s |
+| Strafe (optional) | Lateral and vertical thrusters | 2500 cm/s |
+| **Boost** | Hold: big speed increase that drains the meter | +80% speed, 3 s meter, regen after 1.2 s |
+| **Drift** | Hold: velocity keeps its direction while the nose rotates freely. Release: snap to the nose plus a burst | 1.5× turn rate; +20% burst |
+| Brake | Hard deceleration to min speed | |
 
-- [ ] `BP_ShipBase` (Pawn + FloatingPawnMovement or custom velocity integration), with all values in `DA_ShipStats`.
-- [ ] **Camera:** spring-arm chase cam with rotation lag 8 and location lag 12. FOV 90 → 110 with speed. Camera roll follows bank at 30%. A subtle look-ahead offset toward the aim direction.
-- [ ] Optional cockpit/close camera toggle (`IA_CameraToggle`).
-- [ ] **Speed feel:** speed lines (Niagara screen-space), wind/engine audio pitch, motion blur on boost, and camera shake on boost start.
-- [ ] **Collision:** glancing hits on asteroids bounce and scrape (sparks + damage proportional to impact angle). Head-on hits deal heavy damage.
-- [ ] **Play-space boundary:** a soft sphere. Past it, a warning on the HUD (`IsOutOfBounds`), then you're gently steered back.
-- [ ] Gamepad and mouse + keyboard are both first-class.
+- `ATDShip` pawn with custom velocity integration; values in `UTDShipData` (`DA_ShipStats_*`).
+- Chase camera (rotation lag 8, location lag 12, FOV 90 → 110 with speed, 30% roll follow,
+  look-ahead), with an optional cockpit camera.
+- Collisions: glancing hits scrape and bounce (damage scales with impact angle); head-on hits deal
+  heavy damage.
+- Soft spherical play-space boundary: warn, then gently steer back (`IsOutOfBounds`).
+- Feel hooks for Nick: boost, drift and speed state exposed; camera-shake slots in `UTDShipVisuals`.
 
-**Done when:** flying through an asteroid field in `L_Test_Space` is fun by itself, and drifting around a rock while
+**Done when:** flying through an asteroid field is fun on its own, and drifting around a rock while
 shooting backwards feels great.
 
-### S-02 · Space input map · `⬜`
-`IMC_Space` (and `IMC_Atmosphere`, which adds Land/Gear and drops Hyperdrive):
+#### ENG-02 · Space input map · `⬜`
+`IMC_Space` (plus `IMC_Atmosphere`, which adds Land and removes Hyperdrive):
 
 | Action | KB/M | Gamepad |
 |---|---|---|
-| Throttle up/down | W / S | RT / LT (analog) |
+| Throttle | W / S | RT / LT |
 | Aim | Mouse | Right stick |
 | Roll | A / D | Left stick X |
-| Strafe vertical | Space / Ctrl | Left stick Y (optional mode) |
-| Fire primary | LMB | R1 / RB |
-| Fire secondary | RMB | L1 / LB |
-| Boost | Shift | Left stick click |
-| Drift | Alt or C | B / Circle (hold) |
-| Signature power 1 | Q | X / Square |
-| Signature power 2 (Bastion only) | Hold Q | Hold X / Square |
-| Unlocked ability | E | Y / Triangle |
-| Switch next / prev | Tab / Shift+Tab or Mouse wheel | D-pad right / left |
-| Switch direct | 1 / 2 / 3 | D-pad up (hold → radial) |
-| Target cycle | T / MMB | Right stick click |
-| Hyperdrive | H (hold) | D-pad down (hold) |
-| Squad command: focus my target | F | A / Cross (tap) |
-| Land (atmosphere) / Interact | F | A / Cross (hold) |
+| Fire primary / secondary | LMB / RMB | RB / LB |
+| Boost / Drift | Shift / Alt or C | L3 / B (hold) |
+| Signature power 1 / 2 (hold, Bastion) | Q / hold Q | X / hold X |
+| Unlocked ability | E | Y |
+| Switch next / prev / direct | Tab / Shift+Tab / 1-2-3 | D-pad right / left / hold up = radial |
+| Target cycle | T / MMB | R3 |
+| Hyperdrive (hold) | H | D-pad down (hold) |
+| Squad command / Land / Interact | F | A |
 | Pause / Galaxy map | Esc / M | Start / Select |
 
-### S-03 · Ship health, shields, death & respawn · `⬜`
-- [ ] **Shield** absorbs damage first and regenerates after 3 s without damage, at 25%/s. **Hull** doesn't regen in combat but slowly repairs between waves.
-- [ ] **Hit feedback:** shield-hit ripple shader on the hull, hull-hit sparks and smoke, a low-hull fire trail below 30%, and a cockpit alarm SFX for the controlled ship.
-- [ ] **Death:** the ship tumbles for 0.6 s, then a big explosion (Niagara + light flash + debris meshes + shockwave), and the camera pulls back. The player auto-switches to the healthiest living ship with a quick flash transition.
-- [ ] **Respawn:** a downed ship warps back in near the squad after 12 s (warp-in VFX). The HUD card shows a countdown.
-- [ ] **Squad wipe:** if all 3 ships are down at once, fire `OnSquadWiped`, then `ReportPlayerDefeated()`.
-- [ ] Brief invulnerability (2 s) after respawn and after switching into a ship.
+#### ENG-03 · Health, shields, death and respawn · `⬜`
+- **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s.
+- **Hull:** doesn't regenerate in combat, but slowly repairs between waves.
+- **Death:** a 0.6 s tumble, then an explosion (`UTDShipVisuals` tier), then **auto-switch** to the
+  healthiest living ship. A downed ship warps back in after 12 s. There are 2 s of invulnerability
+  after a respawn or switch-in.
+- **Squad wipe:** if all three ships are down at once, fire `OnSquadWiped`, then
+  `ReportPlayerDefeated()` (Director's Cut: "CUT!", then the next take).
 
-### S-04 · The three ships · `⬜`
-
+#### ENG-04 · The three ships (gameplay stats) · `⬜`
 | | **Rift** (Trickster) | **Lancer** (Interceptor) | **Bastion** (Heavy) |
 |---|---|---|---|
-| Pilot | Wren | Kato | Moss |
-| Color | Magenta / violet engines | Cyan / white engines | Amber / gold engines |
-| Silhouette | Crescent wing, ring-shaped portal emitter on the nose | Long needle fuselage, swept forward wings | Wide, chunky hull, two missile pods, dome emitter on top |
 | Hull / Shield | 100 / 100 | 70 / 80 | 180 / 160 |
-| Cruise / Boost speed | 6000 / 11000 | 7500 / 15000 | 4800 / 8500 |
-| Turn rate | 120°/s (best) | 100°/s | 75°/s |
+| Cruise / Boost | 6000 / 11000 | 7500 / 15000 | 4800 / 8500 |
+| Turn rate | 120°/s | 100°/s | 75°/s |
 | Boost meter | 3 s | 4 s, fast regen | 2.5 s |
-| Primary | Phase Pulse Lasers | Needle Cannons | Breaker Blaster |
-| Secondary | Splitter Bolt | Spike Rockets | Flak Burst |
-| Signature | **Portal Blaster** | **Afterburner Ram** | **Missile Swarm** + **Shield Dome** |
-| Unlockable ability | **Cloak** (Verdance Obj 2) | **EMP Pulse** (Cinder Obj 3) | **Gravity Well** (Verdance Obj 1) |
+| Primary / Secondary | Phase Pulse Lasers / Splitter Bolt | Needle Cannons / Spike Rockets | Breaker Blaster / Flak Burst |
+| Signature | Portal Blaster | Afterburner Ram | Missile Swarm + Shield Dome |
+| Unlockable | Cloak | EMP Pulse | Gravity Well |
 
-- [ ] Child BPs `BP_Ship_Rift/Lancer/Bastion` + `DA_ShipStats_*`.
-- [ ] Meshes: AI-generated (Rodin/Tripo/Meshy) or Fab, kitbashed to the silhouettes above. Every asset goes in `CREDITS.md`.
-- [ ] Emissive engine and trim materials driven by a squad color parameter, plus engine-glow intensity tied to throttle.
+`BP_Ship_Rift/Lancer/Bastion` (children of `ATDShip`) + `DA_ShipStats_*`. Each ship's look comes from
+its `DA_Ship_*_Visuals` (Nick, ART-03).
 
-### S-05 · Ship weapons (every weapon) · `⬜`
-All weapons are `BP_Weapon_Base` components configured by a `DA_Weapon_*`. All projectiles are children of
-`BP_TD_ProjectileBase`. Player projectiles use **squad colors**. Enemy projectiles are always **red/orange**.
-
-| Weapon | Ship | Type | Damage | Rate | Proj. speed | Range | Resource | Notes |
+#### ENG-05 · Ship weapons · `⬜`
+| Weapon | Ship | Type | Damage | Rate | Speed | Range | Resource | Notes |
 |---|---|---|---|---|---|---|---|---|
-| **Phase Pulse Lasers** | Rift | Twin alternating bolts | 8 each | 8/s | 40 000 | 40 000 | Heat: 4 s to overheat, 1.5 s cooldown lockout | Slight aim assist (3° cone) |
-| **Splitter Bolt** | Rift | Charge shot (hold 0.8 s) | 40 core + 5×12 shards | — | 25 000 | 35 000 | 6 ammo, 1 per 4 s regen | Splits into 5 shards on impact or at max range; great vs swarms |
-| **Needle Cannons** | Lancer | Rapid kinetic | 4 | 20/s | 55 000 | 30 000 | Heat: 5 s | Small spread (1.2°), fast tracers |
-| **Spike Rockets** | Lancer | Dumb-fire salvo of 4 | 25 each, 300 cm splash | 1 salvo/1.5 s | 30 000 | 40 000 | 8 salvos, regen 1 per 5 s | Straight-line, high burst |
-| **Breaker Blaster** | Bastion | Heavy plasma | 30, 250 cm splash | 2.5/s | 28 000 | 35 000 | Heat: 6 s | Knockback on fighters |
-| **Flak Burst** | Bastion | Proximity flak | 15 per fragment, 800 cm burst | 1/1.2 s | 22 000 | 20 000 | 10 shells, regen 1 per 3 s | Detonates near enemies or projectiles; **shoots down missiles** |
+| Phase Pulse Lasers | Rift | Twin alternating bolts | 8 each | 8/s | 40 000 | 40 000 | Heat: 4 s to overheat, 1.5 s lockout | 3° aim assist |
+| Splitter Bolt | Rift | Charge shot (0.8 s) | 40 + 5×12 shards | — | 25 000 | 35 000 | 6 ammo, +1 per 4 s | Splits on impact; great vs swarms |
+| Needle Cannons | Lancer | Rapid kinetic | 4 | 20/s | 55 000 | 30 000 | Heat: 5 s | 1.2° spread |
+| Spike Rockets | Lancer | Dumb-fire salvo of 4 | 25 each, 300 cm splash | 1 per 1.5 s | 30 000 | 40 000 | 8 salvos, +1 per 5 s | |
+| Breaker Blaster | Bastion | Heavy plasma | 30, 250 cm splash | 2.5/s | 28 000 | 35 000 | Heat: 6 s | Knocks back fighters |
+| Flak Burst | Bastion | Proximity flak | 15 per fragment, 800 cm | 1 per 1.2 s | 22 000 | 20 000 | 10 shells, +1 per 3 s | **Shoots down missiles** |
 
-- [ ] Each weapon has a muzzle flash, a tracer/trail, an impact VFX on hull vs shield vs rock, fire SFX (with variations), and an impact SFX.
-- [ ] Heat or ammo state is exposed to the HUD. Overheat shows a vent steam VFX and a hiss.
-- [ ] **Lead indicator** for the current target (HUD data: predicted intercept point).
-- [ ] **Hit-confirm:** hit-marker event, kill-confirm event (bigger marker + sound), and 40 ms hit-stop on kills.
+- `UTDWeaponComponent` + `UTDWeaponData`; all projectiles derive from `ATDProjectile` (C++,
+  implements `ITDDeflectable`).
+- Lead indicator data for the HUD; `OnHitConfirmed` for hit and kill markers; 40 ms hit-stop on
+  kills.
+- Visuals and audio come from `UTDWeaponFX` (Nick).
 
-### S-06 · Targeting & lock-on · `⬜`
-- [ ] Soft target = the enemy closest to screen center within 25°. `IA_TargetCycle` cycles by distance.
-- [ ] Missile lock (Bastion Missile Swarm): hold the power while sweeping the reticle over enemies to paint up to 6 locks (0.25 s per lock). Each lock plays a tone and draws a bracket. Release to fire.
-- [ ] Off-screen enemy, incoming-missile and objective direction data for HUD arrows.
-- [ ] **Incoming missile warning:** tracks enemy homing missiles targeting the controlled ship (beeping that speeds up).
+#### ENG-06 · Targeting & lock-on · `⬜`
+- Soft target = the enemy closest to screen centre within 25°, cycled by distance.
+- Bastion missile locks: hold the power and paint up to 6 targets at 0.25 s each.
+- Off-screen arrows, incoming-missile and objective direction data → `ITDHUDData`.
+- Incoming-missile warning state (Nick supplies the sound and UI).
 
-### S-07 · Squad manager & ship switching · `⬜`
-- [ ] `BP_SquadManager` spawns, tracks and respawns all 3 ships. It owns which ship the player controls and implements `BPI_TD_HUDData`.
-- [ ] **Switch:** `IA_SwitchNext/Prev/Direct` → possess the target ship instantly.
-  - **Camera:** 0.2 s blend with a chromatic streak along the line between the ships (Niagara beam from old to new ship) and a squad-color flash.
-  - **SFX:** a "link" whoosh, plus a short radio bark from the pilot you're taking over (via `RequestBark`).
-  - The old ship hands off to its AI controller on the same frame and keeps its velocity.
-  - 0.4 s switch cooldown. You can't switch to a downed ship (the HUD shows it greyed out).
-- [ ] **Switch Strike** (combo mechanic): switching within 1.5 s of using a signature power gives the new ship +25% damage for 4 s, with a glowing engine trail. This rewards chaining powers across ships.
-- [ ] **Power persistence:** a power started on one ship finishes even after you switch away (the portal stays open, the dome stays up).
-- [ ] Fires `OnShipSwitched`, `OnShipDowned`, `OnShipRespawned` and `OnSquadWiped`.
+#### ENG-07 · Squad manager & instant switching (PROTECT) · `⬜`
+- `ATDSquadManager` spawns, tracks and respawns all three ships, and owns who the player controls.
+  It implements `ITDHUDData`.
+- **Switching:** next, previous or direct; possesses the target instantly on the same frame; the ship
+  you left hands control to its AI and keeps its velocity; 0.4 s cooldown; downed ships can't be
+  selected.
+- **Switch Strike:** switching within 1.5 s of using a power gives +25% damage for 4 s.
+- A power started on one ship finishes after you switch away (portal stays open, dome stays up).
+- Fires `OnShipSwitched`, which drives Nick's "cut" presentation (C-03 #1).
 
-### S-08 · Wingman AI · `⬜`
-- [ ] **States:** Formation → Engage → Evade → Regroup → Downed.
-  - **Formation:** a loose V behind and to the side of the player (offsets 1500–2500 cm) with gentle drift so they look alive. They match the player's speed and use boost to catch up past 8000 cm.
-  - **Engage:** picks the enemy threatening the player or itself (priority: attacking the player > nearest > lowest health). Makes attack runs with **primary and secondary weapons only**, then breaks off.
-  - **Evade:** when its shield is broken or a missile is incoming, it barrel-rolls and boosts away for 2 s.
-  - **Regroup:** returns to formation when no enemy is within 20 000 cm.
-- [ ] **Never uses signature powers or unlocked abilities.** Those only fire when the player is in the cockpit.
-- [ ] Follows the player through portals and portal gates and **jumps with the player** on hyperdrive.
-- [ ] **Command** `IA_SquadCommand`: both wingmen focus the player's target for 8 s (bark: "On it, lead!").
-- [ ] Simple avoidance (sphere traces ahead) for asteroids, the player and each other.
-- [ ] **Shield Dome awareness:** wingmen move toward an active Bastion dome when they're damaged.
-- [ ] Wingmen are slightly less accurate than the player (aim error 2–4°) so the player stays the hero.
+#### ENG-08 · Wingman AI (PROTECT) · `⬜`
+- States: Formation → Engage → Evade → Regroup → Downed.
+  - Formation: a loose V at 1500–2500 cm offsets; boosts to catch up beyond 8000 cm.
+  - Engage: attacks whoever threatens the player first, then the nearest, then the lowest health;
+    primary and secondary weapons only.
+  - Evade: kicks in on shield break or an incoming missile.
+- **Never uses signature powers or abilities.** Those fire only when the player is in that cockpit.
+- Follows the player through portals and gates and jumps on hyperdrive. `IA_SquadCommand` = "focus my
+  target" for 8 s.
+- Avoids rocks and teammates; moves toward an active Bastion dome when hurt; 2–4° aim error.
 
-### S-09 · Signature: Rift — Portal Blaster · `⬜` ⚠️ highest-risk feature
-- [ ] **Fire 1** shoots a portal projectile that opens **Portal A** where it hits, or at max range (12 000 cm). **Fire 2** opens **Portal B**. A third shot recycles the oldest portal. A pair stays open for 12 s, and the power's cooldown is 8 s after the pair closes.
-- [ ] **Ship transit:** any squad ship flying into one portal exits the other, keeping its speed and adopting the exit portal's forward direction. 0.3 s invulnerability on exit.
-  - **Camera:** a quick white-violet flash and FOV punch, with no hard snap.
-  - **SFX:** "whomp-shhh".
-- [ ] **Missile return:** enemy projectiles (especially homing missiles) entering a portal exit the other, get `Deflect()`'d to the Player team, and **re-home on the enemy that fired them**. This counts toward `Stats.MissilesReturned`.
-- [ ] **Enemy transit (fun bonus):** enemy fighters that fly into a portal come out the other side and lose tracking for 2 s.
-- [ ] **Portal visuals:** a glowing magenta ring, a swirling interior shader showing a render-target view of the other portal (fallback: animated swirl), crackle particles, an open/close animation (scale 0 → 1 over 0.25 s with elastic overshoot), and a hum SFX with attenuation.
-- [ ] **Tactics enabled:** a portal behind an enemy fleet, a portal next to a gunship's unshielded back, or a portal in front of incoming missiles.
-- [ ] **Fallback if it's still buggy late:** "Blink": one shot teleports Rift to the impact point, and a separate 3 s missile-reflect field around the ship.
+#### ENG-09 · Rift: Portal Blaster · `⬜` ⚠️ highest risk
+- **Placement:** Fire 1 opens portal A where it hits or at max range (12 000 cm); Fire 2 opens B; a
+  third shot recycles the oldest. Open for 12 s, then an 8 s cooldown.
+- **Ships:** pass through keeping their speed, take the exit's facing, and get 0.3 s of
+  invulnerability.
+- **Enemy projectiles** that enter are `Deflect()`ed to the Player team and **re-home on whoever
+  fired them** (counts as `MissilesReturned`, and fires `OnHighlightMoment`).
+- **Enemy fighters** that pass through lose tracking for 2 s.
+- **Fallback if it's still unstable late:** "Blink" (teleport to the impact point) plus a 3 s
+  missile-reflect field.
+- Visuals: `UTDTravelFX` portal slots (Nick).
 
-### S-10 · Signature: Lancer — Afterburner Ram · `⬜`
-- [ ] Press: 0.3 s wind-up, during which the wings fold back (ship animation), the engines flare white, and you hear a rising whine.
-- [ ] Then a 1.2 s dash at 3× boost speed. The ship is invulnerable and its collision switches to ram mode.
-  - **Ram damage:** 300 to anything it hits. It **passes through** fighters (they explode) and **breaks gunship shields** and carrier bay doors.
-  - **VFX:** a cone shockwave in front, a long cyan streak trail, and a sonic-boom ring at the start.
-  - **Camera:** a heavy FOV punch and radial blur.
-- [ ] Hitting something big (a carrier hull, the Dominion, an asteroid) stops the dash with a shockwave of 150 damage in 1500 cm and a bounce-back.
-- [ ] Cooldown 7 s. Can be aimed mid-dash with 40% steering.
+#### ENG-10 · Lancer: Afterburner Ram · `⬜`
+- 0.3 s wind-up, then a 1.2 s dash at 3× boost speed. Lancer is invulnerable and steers at 40%.
+- Deals **300 to whatever it touches**: passes through fighters, **breaks gunship shields** and
+  carrier bay doors.
+- Hitting something big stops the dash with a 150-damage shockwave over 1500 cm.
+- 7 s cooldown. Exposes `PowerWindup01` for the wing-fold animation (Nick).
 
-### S-11 · Signature: Bastion — Missile Swarm & Shield Dome · `⬜`
-- [ ] **Missile Swarm (tap Q):** fires 12 micro-missiles split across painted locks, or the soft target if nothing is painted (lock painting is in S-06).
-  - Each missile does 18 damage with a 200 cm splash.
-  - **Flight:** missiles wobble out of the pods (the pods open as a ship animation) with spiral trails, then curve onto their targets.
-  - Cooldown 9 s.
-- [ ] **Shield Dome (hold Q 0.5 s):** a 3000 cm-radius hex-pattern amber bubble centered on Bastion, lasting 6 s. Cooldown 16 s.
-  - Squad ships inside take **no damage** and regenerate shield 2× faster.
-  - Enemy projectiles that hit the dome from outside are destroyed. **Missiles are deflected back.**
-  - The dome follows Bastion slowly, so Bastion should slow down while it's up.
-  - **Visuals:** a ripple VFX at each impact point, an expanding open animation and a shattering close animation.
+#### ENG-11 · Bastion: Missile Swarm & Shield Dome · `⬜`
+- **Missile Swarm (tap):** 12 micro-missiles split across painted locks (or the soft target),
+  18 damage each with a 200 cm splash; 9 s cooldown.
+- **Shield Dome (hold 0.5 s):** a 3000 cm radius for 6 s with a 16 s cooldown.
+  - Squad ships inside take no damage and regenerate shields twice as fast.
+  - Enemy shots are destroyed on the dome, and missiles are deflected back.
+  - The dome follows Bastion slowly.
 
-### S-12 · Unlockable ship abilities · `⬜`
-Each ship has one ability slot (`IA_Ability`), filled from `GetProgress().UnlockedAbilities` on spawn and on
-`OnAbilityUnlocked`. A locked slot shows a padlock on the HUD.
+#### ENG-12 · Unlockable abilities (CORE: powers aren't optional) · `⬜`
+One ability slot per ship (`IA_Ability`), filled from `GetProgress().UnlockedAbilities` on spawn
+and on `OnAbilityUnlocked`.
 
-| Ability | Ship | Unlocked by | Behavior | Cooldown | VFX / SFX |
-|---|---|---|---|---|---|
-| **Gravity Well** | Bastion | Verdance Obj 1 | Launches a slow orb (12 000 cm/s) that detonates on impact or after 1.5 s. It becomes a 5000 cm vortex for 5 s that **pulls enemies and enemy projectiles to its center**. Enemies inside take 10 dps and can't fire. It collapses in a 120-damage implosion. Combos with Missile Swarm and Flak. | 18 s | Dark purple swirling lens-distortion sphere, accretion-disc particles, deep bass hum, implosion boom |
-| **Cloak** | Rift | Verdance Obj 2 | 6 s of invisibility. Enemies lose lock, missiles lose tracking, and AI ignores Rift. The first shot out of cloak deals **3× damage**. Firing or ramming breaks it early. The wingmen get a 1 s shimmer when it activates. | 15 s | Refraction shimmer shader, engine glow dims, soft "fade" whoosh; heartbeat audio while cloaked |
-| **EMP Pulse** | Lancer | Cinder Obj 3 | An instant 6000 cm radial pulse. Enemies inside are **stunned for 3 s** (they drift and can't shoot), **gunship shields drop for 5 s**, and enemy missiles in range fizzle. Stunned enemies take +25% damage. | 14 s | Expanding cyan electric ring, arcs jumping between enemies, sparking stunned enemies, a crackling "ZZHHM" |
+| Ability | Ship | Unlocked by | Behaviour | Cooldown |
+|---|---|---|---|---|
+| **Gravity Well** | Bastion | Verdance Obj 1 | A slow orb that becomes a 5000 cm vortex for 5 s, pulling enemies and their projectiles in. Enemies inside take 10 dps and can't fire; it ends with a 120-damage implosion | 18 s |
+| **Cloak** | Rift | Verdance Obj 2 | 6 s invisible: AI loses lock and missiles lose tracking. The first shot out does **3× damage**; firing or ramming breaks it | 15 s |
+| **EMP Pulse** | Lancer | Cinder Obj 3 | A 6000 cm pulse: stuns enemies for 3 s, drops gunship shields for 5 s, fizzles missiles. Stunned enemies take +25% damage | 14 s |
 
-- [ ] Shared `BP_AbilityBase` (activate, cooldown, `OnPowerUsed` event, HUD data) with three children.
-- [ ] Abilities only fire when the player is in that cockpit. The slot is visible on every ship's HUD card.
-- [ ] On first unlock, the first time you're in that ship, a tip prompt fires (`ShowTip("Ability_GravityWell")`).
+`UTDAbilityBase` + three children. Visuals: `UTDAbilityFX` (Nick).
 
-### S-13 · Enemy ships · `⬜`
-`BP_EnemyShipBase`: team Enemy, health/shield, death explosion scaled by size, the Null Armada look (angular
-red/black, glowing white "eye" lights), and it targets **any** squad ship.
-
-| Enemy | Role | HP / Shield | Speed | Weapons | Behavior | Counter |
+#### ENG-13 · Enemy ships & AI · `⬜`
+| Enemy | Role | HP / Shield | Speed | Weapons | Behaviour | Counter |
 |---|---|---|---|---|---|---|
-| **Shard Fighter** | Swarm | 30 / 0 | 7000 | Red pulse guns (5 dmg, 4/s) | Packs of 4–8, strafing runs, scatters when hit | Needle Cannons, Splitter Bolt, Flak |
-| **Hook Interceptor** | Hunter | 50 / 20 | 9000 | Pulse guns + 1 homing missile (25 dmg) every 8 s | Chases the player's ship specifically | Portal missile return, Drift + shoot back |
-| **Wall Gunship** | Tank | 400 / **frontal shield 300** | 3000 | Heavy bolts (20 dmg, slow and dodgeable) + homing missile salvo (3×20) | Faces the nearest ship; the shield blocks frontal shots | Flank, portal behind it, Lancer Ram, EMP |
-| **Maul Bomber** | Area denial | 150 / 50 | 4000 | Drops slow plasma mines (60 dmg, 800 cm) | Flies through the squad's path laying mine trails | Flak shoots mines; Gravity Well pulls mines into enemies |
-| **Hive Carrier** | Spawner / mini-boss | 2000 hull, 3 bays × 300 | 1500 | 4 point-defense turrets (6 dmg) | Launches 3 fighters per bay every 12 s until that bay dies; bays open with an animation before launch | Destroy bays (Ram breaks bay doors), Missile Swarm on turrets |
+| Shard Fighter | Swarm | 30 / 0 | 7000 | Pulse guns (5, 4/s) | Packs of 4–8, strafing runs | Needles, Splitter, Flak |
+| Hook Interceptor | Hunter | 50 / 20 | 9000 | Pulse guns + homing missile (25) every 8 s | Chases the player's ship | Portal missile return, drift |
+| Wall Gunship | Tank | 400 / frontal shield 300 | 3000 | Slow heavy bolts (20) + missile salvo (3×20) | Faces its target; shield blocks frontal fire | Flank, portal behind it, Ram, EMP |
+| Maul Bomber | Area denial | 150 / 50 | 4000 | Plasma mines (60, 800 cm) | Lays mine trails | Flak, Gravity Well |
+| Hive Carrier | Spawner / mini-boss | 2000 hull + 3 bays × 300 | 1500 | 4 point-defense turrets (6) | Launches 3 fighters per bay every 12 s | Kill bays (Ram breaks doors), Missile Swarm |
 
-- [ ] Enemy AI: Approach → Attack Run → Break Off → Re-approach, plus formation flying for fighters (leader + followers).
-- [ ] Enemies warp in with a red-tear warp VFX + SFX (shared with the Dominion's arrival).
-- [ ] Every enemy has a visible **telegraph** before big attacks (a glow charge-up and a sound cue).
-- [ ] Death variety: fighters pop with a spinning wreck, gunships break in half, carriers chain-explode over 3 s.
+- `ATDEnemyShip` + AI: approach, attack run, break off, re-approach; fighters fly in formation.
+- Every big attack has a **telegraph** state for Nick's VFX and audio.
+- Visuals: `UTDEnemyVisuals` (Nick).
 
-### S-14 · Wave director · `⬜`
-- [ ] `BP_WaveDirector` + `DT_Waves` (rows: wave index, groups → enemy type, count, spawn zone, delay, intensity 0–1, bark on start).
-- [ ] Spawn zones sit around the combat area, often **behind** or **flanking** the player, so portals, hyperdrive and drift matter.
+#### ENG-14 · Wave director · `⬜`
+- `ATDWaveDirector` + `DT_Waves`. Waves spawn behind or flanking the player, with a 6 s breather
+  between them.
+- Reads `GetProgress()` on load and resumes the right phase.
+- Fires `OnWaveStarted` / `OnWaveCleared` and `OnTakeStarted` (C-03 #3).
 
-| Wave | Phase | Composition | Intensity |
+| Wave | Composition | Intensity | Then |
 |---|---|---|---|
-| 1 | Waves1to2 | 2 groups × 4 Shard Fighters | 0.2 |
-| 2 | Waves1to2 | 3 × 5 Fighters + 2 Hook Interceptors | 0.35 |
-| — | → Verdance | Verdance marker appears (bark: "Moss: Reading a wreck on Verdance. Could be useful.") | — |
-| 3 | Waves3to4 | 2 Wall Gunships + 3 × 5 Fighters | 0.55 |
-| 4 | Waves3to4 | 2 Gunships, 2 Maul Bombers, 4 Interceptors, fighters | 0.7 |
-| — | → Cinder | Cinder marker appears | — |
-| 5 | Wave5 | "Dominion's Guard": 2 Hive Carriers + escorts + bombers | 0.9 |
-| — | → DominionAssault | `LS_DominionReveal`, Dominion assault (S-18) | 1.0 |
+| 1 | 2 × 4 fighters | 0.2 | |
+| 2 | 3 × 5 fighters + 2 interceptors | 0.35 | Verdance marker appears |
+| 3 | 2 gunships + 3 × 5 fighters | 0.55 | |
+| 4 | 2 gunships, 2 bombers, 4 interceptors, fighters | 0.7 | Cinder marker appears |
+| 5 | "Dominion's Guard": 2 carriers + escorts + bombers | 0.9 | Dominion reveal (ENG-18) |
 
-- [ ] Reads `GetProgress()` on load, so the right phase and wave resume after coming back from a planet.
-- [ ] Between waves: a 6 s breather, hull repair, then a "WAVE X INCOMING" event. Fires `OnWaveStarted` / `OnWaveCleared` and implements `GetWaveInfo()`.
-- [ ] Early-wave tutorial beats: `ShowTip` for switching (wave 1), each signature power (first time in each ship), drift (wave 1) and hyperdrive (first marker).
+Tutorial beats fire `ShowTip`: switching (wave 1), each signature power (first time in each ship),
+drift, hyperdrive.
 
-### S-15 · Hyperdrive · `⬜`
-- [ ] **Hold H for 1.2 s:** an engine wind-up (rising SFX), stars stretching, the camera pulling back, and a hyperdrive bar on the HUD. It can't charge if the ship took damage in the last 2 s, and taking a hit cancels it.
-- [ ] **Jump:** 80 000 cm/s straight line with 10% steering. Tunnel VFX (streaking stars, a nebula-color tube) and a wind roar. Lasts until release, reaching the target or hitting the boundary.
-  - Auto-drops out near planet markers and the Dominion (a 15 000 cm "gravity well" radius).
-- [ ] **Drop-out:** a flash, an FOV slam back, a boom SFX, and a brief speed carry-over.
-- [ ] **Wingmen jump with you** and drop out in formation.
-- [ ] Implements `GetHyperdriveCharge01()`. Hyperdriving to a marker sets the bark/tip context.
+#### ENG-15 · Hyperdrive · `⬜`
+- Hold to spool for 1.2 s; can't spool within 2 s of taking damage, and a hit cancels it.
+- Jump at 80 000 cm/s with 10% steering. Auto-drops out near markers and the Dominion. Wingmen jump
+  too and arrive in formation.
+- Exposes state for `OnHyperdriveState` (spool, tunnel and drop-out VFX and audio are Nick's).
 
-### S-16 · Portal Gates (galaxy shortcuts) · `⬜`
-- [ ] 3 permanent `BP_PortalGate` pairs in `L_Galaxy`: Combat zone ↔ Verdance orbit, Combat zone ↔ Cinder orbit, and a "flank" pair used in waves 3–5 that opens behind the enemy spawn zone.
-- [ ] Each one is a huge, ancient ring structure (much bigger than Rift's portals) with an idle glow, and it activates as the squad approaches. It reuses S-09's transit logic. Wingmen follow.
+#### ENG-16 · Portal gates (galaxy shortcuts) · `⬜`
+Three permanent `ATDPortalGate` pairs: combat zone ↔ Verdance orbit, combat zone ↔ Cinder orbit, and
+a flank pair used in waves 3–5. They reuse ENG-09's transit logic, and wingmen follow.
 
-### S-17 · Galaxy map (`L_Galaxy`) layout · `⬜`
-- [ ] **Zones:**
-  - The central combat zone, with an asteroid field and the ruins of a station for cover.
-  - Verdance orbit (a giant planet with a ring), Cinder orbit, and the Dominion approach (deep space, nebula).
-  - All of it is reachable via hyperdrive in seconds.
-- [ ] Places Dev 2's `BP_GalaxySkybox`, `BP_PlanetVisual` ×2 (+ background planets), `BP_NebulaVolume`s, `BP_SpaceDust` and `BP_AsteroidField`s.
-- [ ] **`BP_PlanetAtmosphere`** (Dev 1 class) around each landable planet. Entering it while the marker is active triggers atmospheric entry (see §7).
-- [ ] **Return points** (named): `Verdance_Orbit`, `Cinder_Orbit`, `Dominion_Hangar_Exit` (escape start). The squad spawns there when returning.
-- [ ] Scale tricks: huge planets far away, a parallax skybox, and small ships against giant structures.
+#### ENG-17 · Galaxy level: gameplay layout · `⬜`
+- **Zones:** the combat zone (asteroids, station ruins as cover), Verdance and Cinder orbits, and
+  the Dominion approach.
+- **Gameplay actors:** `ATDPlanetAtmosphere` triggers, spawn zones, portal gates and return points
+  (`Verdance_Orbit`, `Cinder_Orbit`, `Dominion_Hangar_Exit` for the stretch).
+- **Shared map:** Nick dresses the same map with art, lighting and VFX (One File Per Actor).
 
-### S-18 · Dominion exterior, assault & docking · `⬜`
-- [ ] **`LS_DominionReveal` (cinematic, ~8 s, skippable):** space tears red, the colossal Dominion slides out of warp, its lights snap on, and a deep horn sounds. A bark follows ("Kato: …that's a lot of ship.").
-- [ ] **`BP_Dominion_Exterior`:** a massive layered silhouette (≥ 50× the size of Bastion) with glowing white "eye" lights, a red energy shield bubble and animated rotating rings.
-- [ ] **Assault:**
-  - 4 `BP_DOM_ShieldGenerator`s on the hull (glowing pylons, 800 HP each, protected by local turrets).
-  - 8–12 `BP_DOM_Turret`s (rotating barrels, telegraphed charge shots).
-  - Continuous fighter launches from hangars (reuses wave groups).
-  - Each generator destroyed gives a big explosion, a section of the shield bubble flickering out, and a bark.
-  - All 4 down: the shield collapses (cinematic VFX), `SetDominionState(DefensesDown=true)`, and the docking bay doors grind open (animation + SFX).
-- [ ] **Docking (see §8):** the `BP_DockingBay` approach.
+#### ENG-18 · Dominion assault & space finale (CORE) · `⬜`
+- **Arrival:** when `bDominionRevealed` is set after wave 5, the Dominion warps in (Nick's reveal
+  sequence plays).
+- **Assault:**
+  - 4 `ATDShieldGenerator`s (800 HP each, guarded by turrets) and 8–12 `ATDDominionTurret`s
+    (telegraphed charge shots); fighters keep launching.
+  - Each generator kill drops part of the shield and fires `OnHighlightMoment`.
+  - All four down sets `SetDominionState(DefensesDown)` and **exposes the reactor**.
+- **Core ending:** fly the exposed reactor trench and destroy the reactor (a 3-phase health bar with
+  escalating turret fire and launches), then `TravelTo(Victory)` after Nick's breakup sequence.
+- **Stretch ending:** the docking bay opens instead and leads to ENG-29.
 
-### S-19 · Atmosphere flight & landing (ship side) · `⬜`
-See §7 for the full sequence. Dev 1 builds the ship-side pieces:
-- [ ] **Atmosphere flight mode** on `BP_ShipBase` (`IMC_Atmosphere`): gravity pulls the ship down gently, top speed is capped (60% of space cruise), there's no hyperdrive, and the camera has more horizon. Wind buffeting, cloud particles and an altitude readout (`GetAltitude`).
-- [ ] **`BP_AtmosphereFlightZone`:** bounds for flying on a planet (soft walls) plus a ceiling. Flying above the ceiling with the objectives done means take-off.
-- [ ] **`BP_LandingPad`:** a glowing beacon column visible from far away. When the ship is within 3000 cm and below 40% speed, a "Hold F to land" prompt appears (via HUD data).
-- [ ] **Auto-landing:** control is taken. The ship aligns to the pad, the **landing gear deploys** (animation), the ship descends with thruster dust kicked up (Niagara reading the surface), it touches down with a suspension squash, the engines spool down and the **canopy opens** (animation). Then it calls the hand-off (`OnShipLanded` dispatcher → Dev 2's exit sequence).
-- [ ] **Take-off:** the reverse. Canopy closes, engines spool, gear retracts, a vertical lift-off, then control returns at 30 m altitude.
-- [ ] **Wingmen** auto-land on the pad's two side spots, or hover overhead if there's no room.
+### Game loop & progression
 
-### S-20 · Escape flight · `⬜`
-- [ ] Starts at `Dominion_Hangar_Exit` in `L_Galaxy`. `LS_ShipLaunch`: the squad blasts out of the hangar mouth with fire behind them.
-- [ ] **60 s timer.** Fly through the breaking Dominion:
-  - The hull splits, giant debris tumbles (`BP_DOM_EscapeDebris`, physics-lite: scripted spline tumbles), explosions chain along the hull, and electric arcs act as hazards.
-  - A few desperate fighters chase you.
-  - Boost and hyperdrive (re-enabled at the halfway point) matter.
-- [ ] **Reaching the safe radius:** `LS_DominionBreakup`. The reactor goes supernova-white, a shockwave ring expands, and the squad rides the shockwave out (a hero shot of all three ships in formation). Then `TravelTo(Victory)`.
-- [ ] **Failure:** caught by the explosion means restarting the escape from its checkpoint.
+#### ENG-19 · Game instance, progression, saves & travel · `⬜`
+- `UTDGameInstance` implements `ITDGameFlow` and holds `FTDProgress`.
+- **Travel:** `TravelTo` fades to `L_Transition` (Nick's loading screen widget), then the target
+  level.
+- **Checkpoints:** taken on level entry, wave clear and objective complete. The **scene/take restart**
+  (C-03 #3) reuses them. The save slot supports Continue.
+- **Defeat:** "Retry from checkpoint" or "Quit". Run stats feed the victory screen.
+- **Debug menu** (F10, dev builds only): jump to any phase, unlock abilities, god mode, kill all,
+  skip wave.
 
-### S-21 · Ship animations · `⬜`
-Every ship is rigged (skeletal mesh, or rigid parts animated with timelines/procedural transforms). Keep it fast:
+#### ENG-20 · Atmosphere flight, landing & take-off (gameplay) · `⬜`
+See §7.
+- **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
+  altitude data.
+- **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land"
+  within 3000 cm below 40% speed).
+- **Landing and take-off:** auto-land (gear and canopy state exposed), wingmen land beside you, the
+  exit hands off to first person, and boarding reverses it.
 
-| Animation | Rift | Lancer | Bastion |
+#### ENG-21 · First-person character (planets: CORE) · `⬜`
+Extends the template's first-person character.
+
+| Move | Input | Values |
+|---|---|---|
+| Run / sprint | WASD / Shift | 650 / 950 cm/s |
+| Jump / double jump | Space | Z 650 / 500 |
+| **Dash** | Ctrl or Q | 1200 cm in 0.18 s, 0.15 s i-frames, 2 charges, 1.2 s regen |
+| Slide | Ctrl while sprinting | 0.7 s |
+| Mantle | auto at ledges ≤ 180 cm | 0.35 s |
+| Attack / Block / Heavy | LMB / RMB / hold LMB | ENG-22 |
+| Interact / Objective ping | E / Tab | `ITDInteractable` |
+
+- 100 health, regenerating after 4 s at 15/s; death → checkpoint respawn.
+- Implements the ground side of `ITDHUDData`.
+
+#### ENG-22 · Energy blade combat (CORE, used on planets) · `⬜`
+| Move | Damage | Behaviour |
+|---|---|---|
+| Light combo ×3 | 25 / 25 / 45 | 180 cm, 100° arc sweeps; the third hit knocks back; 0.45 s combo window |
+| Heavy lunge | 70 | 600 cm dash-stab; breaks Heavy guards; 2 s cooldown |
+| Air slam | 50, 300 cm AoE | Downward plunge |
+| Dash strike | 35 | Attack during a dash |
+| Block | — | 120° front arc; move at 50% speed; 3 s stamina, then guard break |
+| **Perfect deflect** (≤ 0.2 s) | Shot damage × 2 | Auto-aims back at the shooter, with a 0.15 s slow-motion beat (`OnHighlightMoment`) |
+| Normal deflect | Shot damage × 1 | Reflects toward the crosshair |
+| Melee parry | — | Staggers the attacker for 1.2 s; the next hit crits |
+
+Hit-stop: 50 ms on hit, 120 ms on kill. Visuals and audio: `UTDBladeFX` (Nick).
+
+#### ENG-23 · Crew enemies: AI & combat (CORE, planets) · `⬜`
+| Enemy | HP | Attacks | Behaviour |
 |---|---|---|---|
-| Landing gear deploy/retract | ✔ | ✔ | ✔ |
-| Canopy open/close | ✔ | ✔ | ✔ |
-| Thruster gimbal (procedural, follows input) | ✔ | ✔ | ✔ |
-| Control surfaces / flaps bank with turns (procedural) | ✔ | ✔ | ✔ |
-| Boost: engine nozzles flare and wings spread/flex | ✔ | ✔ | ✔ |
-| Signature wind-up | Portal ring emitter spins up | **Wings fold back** for the ram | **Missile pods open**; dome emitter rises |
-| Ability cast | Hull shimmer pulse | Capacitor fins glow and snap | Gravity orb chamber opens |
-| Damaged state | Sparks, flicker, smoke | ✔ | ✔ |
-| Idle hover (landed, on pad) | Gentle bob + engine idle glow | ✔ | ✔ |
+| Grunt | 60 | Telegraphed baton (15) | Groups of 3–5; flanks |
+| Trooper | 50 | Slow, bright, **deflectable** bolts (10, 3-round bursts) | Keeps distance; uses cover |
+| Heavy | 200 | Shield bash (25); deflectable shotgun (5 × 6) | Frontal shield blocks slashes |
+| Sentry Drone | 30 | Fast small bolts (5) | Hovers out of melee range |
+| Warden (mini-boss) | 600 | Charge slam (40 AoE), bolt fan, summons grunts | Phase 2 at 50% |
 
-- [ ] Enemy ships: carrier bay doors open/close, gunship shield emitter rotation, turret aim/recoil, fighter wing flaps.
-- [ ] Dominion: rotating rings, opening hangar doors, shield generator pulse, breakup (scripted pieces).
+- Built on the template's `Variant_Shooter` NPC and StateTree AI: Idle/Patrol → Alert → Engage →
+  Stagger → Dead.
+- Attack tokens: at most 2 grunts attack at once.
+- Ragdoll on death. Models and animations are Nick's (ART-08).
 
-### S-22 · Space VFX · `⬜`
-- [ ] Explosions in 4 tiers (small/medium/large/capital), each with a flash light, debris, smoke and a shockwave.
-- [ ] Engine trails per ship color (ribbon), speed lines, warp-in tears (squad = white-blue, Armada = red).
-- [ ] Every weapon's muzzle, tracer and impact. Shield ripples. Portals, dome, ram cone, missile trails, flak bursts, Gravity Well, Cloak shimmer and EMP ring.
-- [ ] Hyperdrive tunnel, atmospheric entry plasma (with §7), landing dust.
-- [ ] **Readability rule:** player = squad colors, enemy = red/orange, and nothing important is hidden by bloom.
+#### ENG-24 · Objective framework · `⬜`
+`ATDObjective` (Id, steps, waypoint, reward ability and ship) and interactables (tap or hold;
+interrupted by damage). Fires `OnObjectiveUpdated` and calls `CompleteObjective`, which brings up
+Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its doors.
 
-### S-23 · Space SFX · `⬜`
-- [ ] Engine loops per ship that pitch and layer with throttle and boost, a drift screech and release burst.
-- [ ] Every weapon's fire/impact (3+ variations each), overheat vent, missile lock tones, incoming missile alarm.
-- [ ] Portal open/hum/transit/close, ram wind-up and sonic boom, dome up/hit/shatter, Gravity Well, Cloak, EMP.
-- [ ] Explosions per tier, shield hit vs hull hit, low-hull alarm, switch whoosh, hyperdrive wind-up/tunnel/drop-out.
-- [ ] Atmosphere wind and buffeting, landing gear clunk, thrusters, canopy hiss.
-- [ ] Dominion horn, turret charge, generator destruction, hull groans and breakup roar.
-- [ ] Use attenuation and concurrency limits so big fights don't clip. Route through Dev 2's sound classes.
+#### ENG-25 · Verdance: gameplay layout & objectives (CORE) · `⬜`
+- **Level:** a compact level (about 1 km²) with the landing pad and a descent start point. Nick
+  dresses the look.
+- **Obj 1, Wreck Core** (→ Gravity Well):
+  1. Follow the beacon past a trooper ambush.
+  2. Clear the wreck site.
+  3. Hold-interact for 4 s while 2 waves drop in.
+  4. Carry the core back (no sprint or block while carrying).
+- **Obj 2, Ancient Relay** (→ Cloak): light platforming (double jump, dash, mantle) with drones,
+  three resonance nodes, then the relay pulses.
 
-### S-24 · Space game feel & balance pass · `⬜`
-- [ ] Camera shake tiers, hit-stop, controller rumble (per weapon, damage, ram and explosion).
-- [ ] Play the full space path start → finish at least twice. Tune all the numbers in this section.
-- [ ] Difficulty: a single "Pilot / Ace" toggle that scales enemy damage and accuracy (read from settings).
+#### ENG-26 · Cinder: gameplay layout, hazards & objectives (CORE) · `⬜`
+- **Hazards:** magma (heavy damage + respawn at the last safe spot), timed geysers, crystals that
+  shatter when slashed.
+- **Obj 3, Outpost** (→ EMP): breach the gate (2 conduits), 3 escalating areas, the Warden, then
+  claim the EMP prototype.
+- **Obj 4, Jammer** (→ reveals the Dominion): collapsing crystal bridges, plant 3 charges under
+  attack, then run as the tower collapses.
+
+#### ENG-27 · Balance & tuning · `⬜`
+Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20–30 minutes. Add a
+"Pilot / Ace" difficulty setting that scales enemy damage and accuracy.
+
+#### ENG-28 · Integration, performance, packaging & submission build · `⬜`
+- **Integration and testing:** C++ architecture reviews, profiling (a steady 60 fps target on mid
+  hardware), a smoke test after every merge.
+- **Packaging:** Windows Shipping profile with all maps listed, startup map `L_MainMenu`, and the
+  debug menu stripped.
+- **Builds:** package whenever a major feature lands, into `Builds/` (git-ignored), and smoke-test
+  start → finish.
+- **Final zip:** `TeamName_GameName`, < 1 GB (otherwise use butler). Upload the build and fill in the
+  submission form with Nick (ART-14).
+
+### STRETCH: boarding finale
+
+#### ENG-29 · Docking & boarding transition · `⬜` STRETCH
+`ATDDockingBay` approach cone with a tractor-beam assist that reduces control, then
+`TravelTo(DominionInterior)`; the hangar landing hands off to first person (§8).
+
+#### ENG-30 · Dominion interior encounters & core fight · `⬜` STRETCH
+- **Interior:** 6 sections (hangar, a deflect-lesson corridor, barracks, a vertical shaft with
+  sweeper hazards, a security checkpoint, then the Warden) leading to the core chamber.
+- **Core fight, phase 1:** 4 conduits at 150 HP each; the core fires deflectable orbs.
+- **Core fight, phase 2:** a sweeping laser; the heart is vulnerable whenever the rings align, every
+  6 s.
+- **Core fight, phase 3:** at 25% health, everything speeds up.
+
+#### ENG-31 · Escape run & escape flight · `⬜` STRETCH
+- **Escape run:** a 90 s run back to the hangar on a changed route.
+- **Escape flight:** a 60 s flight out through the falling debris, then the breakup sequence and
+  victory. Failing either restarts it as the next take.
 
 ---
 
-## 6. 🟩 DEV 2 — Worlds & Presentation
+## 6. 🟩 Nick: Art, Visuals & Player Experience
 
-### G-01 · Game instance, progression, saves & level travel · `⬜`
-- [ ] `BP_TD_GameInstance` implements `BPI_TD_GameFlow` and holds `S_TD_Progress`. It fires `OnAbilityUnlocked` and `OnPhaseChanged`.
-- [ ] **`TravelTo()`:** fade to black (0.4 s) → `L_Transition`, a loading screen with a tip, a planet/ship art card and a spinning squad emblem → open the target → fade in. Optional per-destination stinger (e.g. atmospheric entry, see §7).
-- [ ] **Checkpoints:** `SaveCheckpoint()` snapshots progress on every level entry, wave clear and objective complete. `BP_TD_SaveGame` saves to slot (continue from the main menu).
-- [ ] **Defeat:** `WBP_Defeat` with **Retry from checkpoint** and **Quit to menu**. Track `Stats.Deaths`.
-- [ ] **Settings save** (volume, sensitivity, invert, difficulty, subtitles, graphics preset).
-- [ ] **Debug menu** (F10, dev builds only): jump to any destination or phase, unlock any ability, god mode, kill all enemies, skip wave. Both devs need this constantly.
-- [ ] Run timer + `AddStat` for the victory screen.
+**Start here (role brief, Day 1 focus):** establish the art direction and the visual asset inventory,
+make the ships readable, and do a minimal combat presentation pass alongside Ryan's playable
+foundation.
 
-### G-02 · First-person character · `⬜`
-`BP_FPCharacter` must be fast and agile, matching the arcade pace of the space game.
+**Deliverables:**
+- a coherent, attractive visual style across all three ships and the combat spaces
+- distinct visual and audio feedback for Rift, Lancer and Bastion
+- a readable, functional combat HUD and ship-switch presentation
+- polished effects and environment dressing that don't compromise the build
 
-| Move | Input (KB/M · Pad) | Behavior | Start values |
+**Tools:** the `blender-*` skills (`.claude/skills/`; Codex: see the index in AGENTS.md §10) for
+making, cleaning up and exporting 3D assets. The palettes and budgets are in
+`blender-game-asset/references/art-direction.md`.
+
+#### ART-01 · Art direction & style guide · `⬜`
+- **Content:** a one-page style guide with palettes, the faction shape language, readability rules
+  (player projectiles in squad colours, enemies in red and orange), lighting mood per level, and
+  the **Director's Cut visual language** (cuts, letterbox, slate cards, grade; C-03).
+- **Reference board:** inspiration only; no copying of existing IP.
+- **Gate:** both humans agree on the style before mass production.
+
+#### ART-02 · Visual asset inventory & sourcing plan · `⬜`
+- **The list:** every asset the game needs (ships, enemies, Dominion pieces, props, environment sets,
+  characters, VFX, UI and audio), each with its route: AI image-to-3D (Rodin first: credits expire
+  Nov 20, and using it enters the prize pool), Fab or other licensed library, code-built Blender, or
+  the template.
+- **Status and credits:** track each asset's status here or in `ArtSource/inventory.md`, and log
+  licences in `CREDITS.md`.
+
+#### ART-03 · Ship visuals: Rift, Lancer, Bastion · `⬜`
+| | Rift | Lancer | Bastion |
 |---|---|---|---|
-| Walk / run | WASD · Left stick | Default run (no slow walk) | 650 cm/s |
-| Sprint | Shift · L3 | Faster, can't block while sprinting | 950 cm/s, FOV +8 |
-| Jump | Space · A | Responsive, with air control 0.6 | Jump Z 650 |
-| Double jump | Space in air · A | A small jet-boot burst | Z 500, 1 per airtime |
-| **Dash** | Ctrl or Q · B | A short burst in the input direction with i-frames 0.15 s. Works in air | 1200 cm in 0.18 s, 2 charges, 1.2 s regen |
-| Slide | Ctrl while sprinting · B while sprinting | Low slide, keeps momentum, can attack out of it | 0.7 s |
-| Mantle | Auto when jumping at a ledge ≤ 180 cm | Quick vault-up | 0.35 s |
-| Look | Mouse · Right stick | | Sensitivity in settings |
-| Attack | LMB · RT | Blade combo (G-03) | |
-| Block / Deflect | RMB · LT (hold) | G-03 | |
-| Heavy / Lunge | Hold LMB · Hold RT | G-03 | |
-| Interact | E · X (hold where needed) | `BPI_TD_Interactable` | |
-| Objective ping | Tab · D-pad up | Highlights the objective waypoint | |
+| Silhouette | Crescent wing + ring-shaped portal emitter on the nose | Long needle fuselage, forward-swept wings | Wide, chunky hull, twin missile pods, dome emitter |
+| Colours | Violet `#6B2BD9` / magenta glow `#FF2BD6` | Ice white `#E8F4FF` / cyan `#12C8FF` | Amber gold `#F2A01E` / gunmetal |
+| Part animations | Portal ring spin-up, gear, canopy | **Wing fold for the ram**, gear, canopy | **Missile pods open**, dome emitter rises, gear, canopy |
 
-- [ ] **Health** 100. Regenerates after 4 s without damage at 15/s. Damage shows a red vignette, directional indicators and a camera kick.
-- [ ] **Death:** a slow-motion fall and fade, then a checkpoint respawn in the same level (G-01).
-- [ ] **Camera:** head bob (subtle, can be turned off), landing dip, dash FOV punch, slide camera lowering.
-- [ ] **Footsteps** by surface (jungle moss, crystal, metal deck, ash).
-- [ ] `IMC_Ground` with all of the above.
+- Models via route A (concept → Rodin → cleanup) or the kits, passing the AAA rubric (the
+  `blender-game-asset` skill). Sockets: muzzles, engines, cockpit camera.
+- Delivered as `DA_Ship_*_Visuals` (§3.5), with animations driven by the exposed state. **Readable as
+  black silhouettes at 64 px.**
 
-### G-03 · Energy blade · `⬜`
-A short bright plasma blade (squad-colored, the color of the last ship you piloted 🎨).
+#### ART-04 · Enemy & Dominion visuals · `⬜`
+- **Null Armada ships:** Shard Fighter, Hook Interceptor, Wall Gunship (shield emitter), Maul Bomber,
+  Hive Carrier (animated bay doors).
+- **Dominion exterior:** a modular Nanite hull with rotating rings, shield generators, turrets, the
+  reactor trench (core ending) and the hangar mouth (stretch).
+- **Look:** angular, red/black/white-eye shape language. Telegraph glows tied to the gameplay states.
 
-| Move | Input | Damage | Behavior |
-|---|---|---|---|
-| **Light combo** (3 hits) | Tap attack | 25 / 25 / 45 | Slash right → slash left → overhead. Each swing has a wide sweep trace (180 cm range, 100° arc) and a small forward step. The 3rd hit knocks back. Combo window 0.45 s. |
-| **Heavy lunge** | Hold attack 0.4 s, release | 70 | Dashes 600 cm forward, stabbing. Breaks Heavy guards. 2 s cooldown |
-| **Air slam** | Attack while airborne + looking down | 50, 300 cm AoE | Plunges down with a shockwave on landing |
-| **Dash strike** | Attack during dash | 35 | Slash through the enemy while dashing past |
-| **Block** | Hold block | — | Blocks melee and projectiles in a 120° front arc. Moves at 50% speed. Stamina: 3 s continuous, then the guard breaks (1 s stun) |
-| **Perfect deflect** | Press block ≤ 0.2 s before a projectile hits | Projectile's damage × 2 | The projectile is `Deflect()`'d **straight back at its shooter** (auto-aim), with a slow-mo flash (0.15 s at 30% time), a sharp *ting* and a big spark. It counts toward `Stats.ShotsDeflected` |
-| **Normal deflect** | Block while a projectile hits | Projectile's damage × 1 | The projectile reflects toward the crosshair direction |
-| **Melee parry** | Perfect block vs a melee attack | — | Staggers the attacker for 1.2 s; the next hit is a guaranteed critical |
+#### ART-05 · Space environment & galaxy dressing · `⬜`
+- **Space assets:**
+  - `BP_GalaxySkybox`: layered nebula, stars, sun with lens flare.
+  - `BP_PlanetVisual`: rings, atmosphere rim, Verdance and Cinder variants.
+  - Nebula volumes, a speed-dust field, asteroid-field kits (`procedural_rocks.py`), station ruins.
+- **Galaxy map:** dress `L_Galaxy` on your own actors (One File Per Actor): lighting, post-process
+  and scale cues.
 
-- [ ] `BP_EnergyBlade` actor attached to the FP arms. All values in `DA_BladeCombo`.
-- [ ] **Visuals:** an emissive core + bloom, a swing ribbon trail, a light that follows the blade, hit sparks, a glowing scorch decal on surfaces, and enemy hit flashes.
-- [ ] **Audio:** an idle hum that changes pitch with swing velocity, swing whooshes (light/heavy), flesh/armor hit, clash, deflect *ting*, perfect deflect bell-ring, and ignite/retract.
-- [ ] **Hit-stop:** 50 ms on hit, 120 ms on kill, and a slow-mo flash on perfect deflect.
+#### ART-06 · Planet environments: Verdance & Cinder (CORE) · `⬜`
+- **Verdance:** bioluminescent jungle, giant mushrooms and ferns, waterfalls, mist, ringed moon,
+  pollen, critters, wreck-site and relay-spire art.
+- **Cinder:** basalt, magma rivers, cyan and amber crystal spires (crystal kits), falling ash, an
+  outpost kit, the jammer tower and its destruction.
+- **Across both:** terrain materials, foliage instancing, sky and atmosphere, lighting, and the
+  atmospheric-descent vista (canyons and clouds the ship flies through).
 
-### G-04 · First-person animations · `⬜`
-FP arms mesh + `ABP_FPArms` + montages. Use a Fab or marketplace arms pack, or retarget mannequin arms. Credit it.
-- [ ] Locomotion: idle (blade held low, gentle sway), run bob, sprint (blade held back), jump/land, double-jump kick, slide, mantle (hands grab ledge), dash (arm swept back).
-- [ ] **Blade:** ignite (blade extends from the hilt), retract, light combo ×3, heavy wind-up + lunge, air slam, dash strike, block pose, block-hit flinch, perfect deflect flourish, guard break stagger, melee parry.
-- [ ] **Interaction:** hold-interact (hand reaching out to a console), pick up/carry the Wreck Core (G-11), place charge.
-- [ ] **Ship transitions** (see §7 and §8): climb out of the cockpit (a camera-driven montage: hands push the canopy frame, jump down), and climb into the cockpit.
-- [ ] **Hit-reacts:** small flinch, big knockback, death fall.
-- [ ] **Third-person body** for cinematics only (exit/enter ship shots): a simple pilot model with matching anims (or keep the camera first-person for all of them, which is acceptable).
+#### ART-07 · Combat & travel VFX (Niagara) · `⬜`
+- **Explosions** in 4 tiers; engine trails per squad colour; boost, drift and speed lines; warp-ins
+  (squad white-blue, Armada red tear).
+- **Every weapon's muzzle, tracer and impact** (hull, shield, rock); shield ripples; overheat vents;
+  missiles and flak.
+- **Powers:** portals (ring, swirl, transit flash), ram cone and sonic boom, missile swarm trails,
+  shield dome (hex, ripples, shatter).
+- **Abilities:** Gravity Well (lens distortion, accretion), Cloak (refraction shimmer), EMP (ring and
+  arcs).
+- **Travel:** hyperdrive (spool, tunnel, drop-out), atmospheric entry plasma, landing dust,
+  tractor beam (stretch).
+- **Readability rule:** nothing important hidden by bloom. Budgets: particle caps and significance
+  (ART-13).
 
-### G-05 · Crew enemies (on foot) · `⬜`
-Null Armada crew: armored humanoids or drones with glowing white visors. Original designs only.
+#### ART-08 · Ground visuals & animation · `⬜`
+- **First-person arms:** idle, run, sprint, jump, slide, mantle and dash; blade ignite and retract;
+  combo ×3, lunge, air slam, block, deflect flourish, guard break; interact and carry; climb into
+  and out of the cockpit.
+- **Energy blade:** emissive core and trail, scorch decals, the perfect-deflect flash.
+- **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
+  deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
 
-| Enemy | Role | HP | Attacks | Behavior | Counter |
-|---|---|---|---|---|---|
-| **Grunt** | Melee rusher | 60 | Shock baton swing (15), telegraphed by a 0.5 s visor glow | Charges in groups of 3–5, flanks | Combos, parry |
-| **Trooper** | Ranged | 50 | Blaster bolts (10 dmg, **slow bright red, deflectable**), 3-round bursts | Keeps distance, uses cover, strafes | Deflect bolts back, dash in |
-| **Heavy** | Shielded bruiser | 200 | Shield bash (25), shotgun spread (5 × 6, deflectable) | Advances behind a frontal shield that blocks slashes | Heavy lunge breaks the guard, deflected shotgun, flank with dash |
-| **Sentry Drone** | Flying harasser | 30 | Fast small bolts (5) | Hovers out of melee range, swoops | Deflect, air slam, jump + slash |
-| **Warden** | Mini-boss (Cinder outpost + Dominion core door) | 600 | Combo of the above: charge slam (40, AoE), bolt fan (deflectable), summons 2 grunts | Phase 2 at 50%: faster, red glow | Parry the charge, deflect the fan |
+#### ART-09 · HUD & UI/UX · `⬜`
+- **`WBP_SpaceHUD`** (via `ITDHUDData`):
+  - **Squad panel:** three cards showing hull, shield, cooldown rings, ability padlocks and respawn
+    timers; the **switch animation** ties into the "cut" (C-03 #1).
+  - **Combat:** crosshair, target bracket with health, lead indicator, lock brackets, hit and kill
+    markers; arrows for enemies, missiles and objectives.
+  - **Status:** boost, heat and ammo, hyperdrive charge; banners for "WAVE X", "ABILITY READY",
+    the boundary warning and Switch Strike.
+  - **Atmosphere variant:** altitude and the landing prompt.
+- **`WBP_GroundHUD`:** health, block stamina, perfect-deflect flash, dash charges, objective tracker,
+  interact ring, damage direction, escape timer (stretch).
+- **Menus and screens:**
+  - Main menu (animated galaxy background), Pause, Settings (audio, sensitivity, invert, difficulty,
+    subtitles, shake, graphics), Controls.
+  - Galaxy map; `WBP_AbilityUnlocked` (the big reward moment); Defeat, Victory (stats, rank, takes)
+    and Credits; Loading.
+- **Onboarding:** `WBP_Tip` toasts from `DT_Tips` (on `OnTipRequested`), with glyphs that switch
+  between keyboard/mouse and gamepad.
+- **Director's Cut UI:** slate cards, "CUT!", name cards, script-page subtitles (C-03).
 
-- [ ] `BP_Crew_Base` with AI (Behavior Tree or State Tree): Idle/Patrol → Alert (bark + visor turns red, alerts nearby crew) → Engage → Stagger → Dead.
-- [ ] **Animations** per enemy (Fab/Mixamo-style packs retargeted, credited):
-  - Idle, walk, run, strafe.
-  - Attack anims with clear telegraphs, hit-react light/heavy, stagger, death.
-  - **Ragdoll on death**, blown back if killed by a heavy or deflect.
-- [ ] Projectiles are children of `BP_TD_ProjectileBase`, so blade deflection just works.
-- [ ] Attack tokens: at most 2 grunts attack at once and the rest circle, so fights stay readable and fair.
-- [ ] Death: visor flickers out, body dissolve shader after 4 s (keeps performance in check).
+#### ART-10 · Audio & music · `⬜`
+- **Space SFX:** engine loops per ship that rise in pitch with throttle, drift screech, every
+  weapon's fire and impact (3+ variations each), overheat, lock tones, missile alarm, portals, ram,
+  dome, abilities, explosion tiers, shield vs hull hits, low-hull alarm, the switch "cut" whoosh,
+  the hyperdrive set, atmosphere wind, gear, canopy, the Dominion horn, turrets, generator kills,
+  the breakup roar.
+- **Ground SFX:** footsteps by surface, dash, slide, all blade sounds, crew barks, attacks and
+  deaths, drones, doors, hazards, magma, crystals, alarms.
+- **Music director:** stems that swell with `OnWaveStarted(Intensity01)` and calm on clear; planet
+  exploration and combat layers; the Dominion and finale track; stingers (ability unlocked, reveal,
+  generator down, reactor destroyed, "CUT!").
+- **Mix:** sound classes and submixes (Master, Music, SFX, VO, UI) wired to Settings; music ducks
+  under VO.
+- **Sources:** licensed only (e.g. the WeLoveIndies jam pack: non-commercial), logged in CREDITS.md.
 
-### G-06 · Interaction & objective framework · `⬜`
-- [ ] `BP_ObjectiveBase`: `ObjectiveId`, display name, ordered **steps** (each with text + waypoint actor), `RewardAbility`, `RewardShip`, and an `OnCompleted` event.
-- [ ] Waypoint system: a world-space marker + distance, clamped to the screen edge when off-screen, plus the objective ping highlight.
-- [ ] Interactables (implement `BPI_TD_Interactable`): tap or hold with a radial progress fill, interruptible by damage (hold only).
-- [ ] **On objective complete:** `CompleteObjective(...)` → `WBP_AbilityUnlocked` (G-12) → the next objective or the "Return to your ship" step.
-- [ ] Encounter triggers: a volume spawns crew groups (with spawn VFX: drop pods / teleport-in), and "room clear" opens doors.
+#### ART-11 · Narrative presentation: barks, VO, intro · `⬜`
+- `DT_Barks` (about 80–120 lines: Wren, Kato, Moss, the Armada, the "Director") played on
+  `OnBarkRequested` through a priority queue, with radio-filtered VO (AI-voiced, credited) and
+  subtitles.
+- **Intro sequence (30–45 s, skippable):** the squad over Verdance's ring, then the Armada warps in.
 
-### G-07 · Planet: Verdance · `⬜` 🎨 THEME
-**Look:** a bioluminescent jungle under a purple-teal sky. Giant glowing mushrooms and fern trees, waterfalls into
-mist, floating pollen, and a ringed moon dominating the sky. It's dim enough that glows pop.
+#### ART-12 · Cinematics & the Director's Cut presentation · `⬜`
+- **Sequences:** the Dominion reveal, the reactor breakup and victory hero shot, landing and
+  take-off shots, the planet descent breakthrough.
+- **Theme hooks (C-03):**
+  - the switch "cut" transition and name cards
+  - director-cam rigs and grade for highlight moments
+  - slate cards and the "CUT!" restart
+  - the victory highlight reel (#4, if chosen)
+- **Trailer capture:** Movie Render Queue shots for ART-14.
 
-- [ ] `L_Planet_Verdance`: a compact landscape (≈ 1 km²) with clear landmarks (a giant fallen tree, an ancient relay spire, the crash site smoke column), and one **landing pad** (place Dev 1's `BP_LandingPad`) next to an Armada scout camp.
-- [ ] Flight zone for the descent (place Dev 1's `BP_AtmosphereFlightZone`): canyons and a waterfall to fly past on the way down.
-- [ ] **Obj 1: "Recover the Wreck Core"** (→ **Gravity Well, Bastion**)
-  1. Follow the crash beacon through the jungle, with a Trooper patrol ambush on the way.
-  2. Reach a crashed squad-style ship (an old wreck) and fight Grunts + Troopers.
-  3. Hold-interact (4 s) to extract the glowing core. Two waves of crew drop in (drop-pod VFX).
-  4. **Carry the core** back toward the pad. You can't sprint or block while carrying, but you can drop it to fight and pick it up again. A shortcut gate opens.
-  5. Slot it into Bastion on the pad → unlock.
-- [ ] **Obj 2: "Wake the Ancient Relay"** (→ **Cloak, Rift**)
-  1. Climb the relay spire: light platforming using double jump, dash and mantle, with Sentry Drones harassing.
-  2. Activate 3 resonance nodes, each defended by crew. The nodes hum louder and the relay lights progressively.
-  3. At the top, the relay pulses with a sky-wide shimmer → unlock. You get a fast zipline/glide back down (fun bonus) or a shortcut path.
-- [ ] Ambient life: glowing insects, critters that scatter (simple), wind through foliage, distant creature calls.
-- [ ] Performance: use foliage instancing, plus Nanite where available and Lumen.
+#### ART-13 · Lighting, post-process & performance-minded art · `⬜`
+- Lumen and Nanite settings per level, scalability presets wired to Settings, Niagara budgets,
+  foliage culling.
+- Hold the art budgets in `art-direction.md` and keep VFX and environment complexity within a steady
+  60 fps on mid hardware. Profile with Ryan before the freeze.
 
-### G-08 · Planet: Cinder · `⬜` 🎨 THEME
-**Look:** black volcanic rock, huge cyan and amber crystal spires, glowing magma rivers, ash falling, and an
-orange-red sky with a massive ringed planet on the horizon. It's dangerous and dramatic.
+#### ART-14 · Submission presentation · `⬜`
+- **Gameplay video (30–60 s):** gameplay in the first 5 seconds. Dogfight → switch "cut" → portal
+  missile return → ram → planet landing → blade deflect → Dominion reactor.
+- **itch.io page:** cover art, 5+ screenshots and a GIF, the description, controls, credits and
+  "Tools you used". Compile the **dev log** (Glass Box prize) from `DEVLOG.md` with Ryan.
 
-- [ ] `L_Planet_Cinder`: a compact map with a landing pad on a crystal plateau, an **Armada outpost** in a caldera, and a **signal jammer** tower on a magma island.
-- [ ] Hazards: magma (instant heavy damage + respawn at the last safe spot), periodic geyser vents (telegraphed), crystal shards that shatter when slashed (cover that breaks).
-- [ ] **Obj 3: "Clear the Armada Outpost"** (→ **EMP Pulse, Lancer**)
-  1. Breach the outpost gate: slash 2 power conduits to open it.
-  2. Three areas of escalating crew (Grunts/Troopers → Heavies → Drones).
-  3. **Warden mini-boss** in the command yard.
-  4. Hold-interact the captured EMP prototype → unlock.
-- [ ] **Obj 4: "Destroy the Signal Jammer"** (→ **reveals the Dominion**, sets `DominionRevealed`)
-  1. Cross the magma island via collapsing crystal bridges (timed platforming).
-  2. Plant 3 charges on the jammer's legs (hold-interact) while crew attacks.
-  3. Run! The tower collapses behind you (scripted destruction sequence + camera shake).
-  4. A radio bark: "Wren: Jammer's down… oh. Oh, that's where they were hiding it." Then return to the ship.
-- [ ] Ambient: an ash particle system, crystal hum audio, magma bubbling, distant eruptions.
+### STRETCH: boarding finale visuals
 
-### G-09 · Landing-pad scenes (character side of landing) · `⬜`
-See §7. Dev 2 builds the on-foot half:
-- [ ] `BP_LandedShip`: the landed squad ships as interactable props (Dev 1's meshes, read-only), canopy open, idle engine glow. Interacting with the one you flew ("Board ship") is only allowed when the planet's objectives are complete (otherwise it's greyed out with "Objectives remaining").
-- [ ] `LS_ExitShip` (FP camera): the canopy opens → you push up out of the cockpit (FP arms montage) → hop down onto the pad → control.
-- [ ] `LS_EnterShip`: walk-up → climb-in montage → canopy closes → hand back to Dev 1's take-off.
-- [ ] Wingmen pilots stay with their landed ships (simple idle pilot models) and bark encouragement over radio during objectives.
-- [ ] Reward install moment: the carried Wreck Core slots into Bastion with a glow-up, and the EMP prototype is loaded into Lancer (short animated beats on the pad).
+#### ART-15 · Dominion interior kit & core visuals · `⬜` STRETCH
+- **Interior kit:** modular pieces on a 400 cm grid (corridor straight, corner, T, doorway, shaft,
+  catwalk, door) in gloss black with red strips; giant eye lenses that track the player.
+- **Core chamber:** the white-light reactor with rotating rings, plus the collapse and alarm states
+  for the escape run.
 
-### G-10 · Dominion interior · `⬜`
-**Look:** the Armada's style inside. Black glossy metal, red light strips, giant white "eye" lenses watching from
-the walls, ribbed corridors and vast vertical shafts. Brutal and imposing next to the bright galaxy.
-
-- [ ] Modular kit: corridor straight/corner/T, door (animated split open), shaft, catwalk, railings, consoles, pipes, light strips, eye lenses (they track the player, which is a cheap, creepy touch).
-- [ ] `L_Dominion_Interior` layout (linear, 6–10 minutes):
-  1. **Hangar** (arrival, see §8). The squad's 3 ships land. A crew squad charges as the hangar doors seal.
-  2. **Corridor A:** Troopers in a long hallway, teaching **deflect** (a tip prompt).
-  3. **Barracks hall:** a big mixed fight, with a door that opens on clear.
-  4. **Vertical shaft:** descend via catwalks and drop-downs, with Sentry Drones and moving hazard arms (timed sweeping energy beams, `BP_DOM_Hazard_Sweeper`).
-  5. **Security checkpoint:** Heavies + Troopers behind barriers. Slash 2 shield emitters to drop the barrier.
-  6. **Core antechamber:** **Warden** guarding the core door.
-  7. **Core chamber** (G-11).
-- [ ] Ambience: deep machine hum, distant announcements in an alien language (processed AI VO), alarms during the escape.
-
-### G-11 · Core encounter & escape run · `⬜`
-- [ ] **`BP_DOM_Core`:** a towering spherical reactor of white light inside rotating red rings.
-  - **Phase 1:** 4 exposed **conduits** around the base (slash to destroy, 150 HP each). The core fires **deflectable energy orbs** (perfect deflect damages the core directly), and grunts spawn.
-  - **Phase 2 (all conduits down):** the rings spin faster, the core opens and exposes its heart. A sweeping laser forces you to jump or dash. Troopers and drones join.
-    - Deflected orbs and blade hits on the heart (when the rings align, every 6 s) damage it.
-  - **Phase 3 (25%):** frantic, with everything faster. Kill shot = a final perfect deflect or blade strike → `LS_CoreDestroyed`.
-- [ ] **`LS_CoreDestroyed`:** slow motion, the core cracks white, a shockwave knocks the player back, alarms sound, red lighting turns to strobe, then control returns.
-- [ ] **Escape run (90 s timer):** the path back through the level is **changed**.
-  - Collapsing sections, fires, falling debris, the sweeper hazards gone haywire, and a few panicked crew.
-  - Shortcut doors open, making it a fast sprint/dash route.
-  - The timer is on the HUD.
-  - Reaching the hangar plays `LS_EnterShip`, then `TravelTo(Galaxy, "Dominion_Hangar_Exit")`, which starts Dev 1's escape flight (S-20).
-- [ ] **Timer runs out:** the screen goes white and you restart the escape run from its start.
-
-### G-12 · UI — all widgets · `⬜`
-Style: bold, clean sci-fi with big readable numbers, squad colors (magenta/cyan/amber) on dark translucent panels,
-and a distinctive display font (credited). Animate everything a little (slide/scale/pulse).
-
-- [ ] **`WBP_SpaceHUD`** (built on `BPI_TD_HUDData`, stub first):
-  - **Squad panel:** 3 ship cards (icon, hull, shield, power + ability cooldown rings, padlock if locked, respawn countdown). The active card is enlarged. Animates on switch.
-  - **Center:** crosshair, aim reticle (mouse virtual stick), target bracket + health + lead indicator, missile lock brackets, hit/kill markers.
-  - **Edges:** off-screen enemy arrows, incoming missile arrows (red, pulsing), objective arrow + distance.
-  - **Bars:** boost, heat/ammo, hyperdrive charge, speed.
-  - **Banners:** "WAVE X", enemies left, "ABILITY READY", boundary warning, Switch Strike active.
-  - **Atmosphere variant:** altitude, landing prompt.
-- [ ] **`WBP_GroundHUD`:** health, block stamina, perfect-deflect flash, dash charges, objective tracker + waypoint, interact prompt with hold ring, damage direction, escape timer.
-- [ ] **`WBP_MainMenu`:** title logo, Continue / New Game / Controls / Settings / Credits / Quit. The background is a slow camera fly-by in a galaxy scene (G-15 actors), with music.
-- [ ] **`WBP_Pause`**, **`WBP_Settings`** (audio sliders, sensitivity, invert Y, difficulty Pilot/Ace, subtitles on/off + size, head bob, screen shake intensity, graphics preset, key rebinding if time), **`WBP_Controls`** (KB/M + gamepad diagrams for space and ground).
-- [ ] **`WBP_GalaxyMap`** (M): a stylized map of the zones, planets, the Dominion and the current objective.
-- [ ] **`WBP_AbilityUnlocked`:** the big reward moment. The screen dims, the ability icon assembles, the name and ship portrait appear, a "how to use" line and the input glyph show, a sting plays, and you press to continue.
-- [ ] **`WBP_Tip`:** contextual toasts from `DT_Tips` (with the input glyph for KB/M vs pad, auto-detected).
-- [ ] **`WBP_Subtitles` / radio:** pilot portrait + name + subtitle line for each bark.
-- [ ] **`WBP_Defeat`, `WBP_Victory`** (run time, kills, switches, portals used, shots deflected, missiles returned, deaths, and a rank S/A/B/C), and **`WBP_Credits`** (team, tools, every third-party asset from `CREDITS.md`).
-- [ ] **`WBP_Loading`** (`L_Transition`): an art card + tip + spinner.
-- [ ] Input-device detection to swap all glyphs between KB/M and gamepad.
-
-### G-13 · Narrative, radio barks & VO · `⬜`
-- [ ] `DT_Barks`: Id, speaker (Wren/Kato/Moss/Armada), line text, audio asset, priority, cooldown.
-- [ ] `RequestBark()` plays the VO with radio filter processing + the subtitle widget. A priority queue, so nothing overlaps or spams.
-- [ ] **Bark categories** (write ~80–120 lines total, AI-voiced with distinct voices per pilot, credited):
-  - Taking over each ship (×3 pilots, several variants).
-  - Using each signature/ability, kills, multi-kills, ship downed / respawned, low hull, Switch Strike.
-  - Wave start/clear, marker reveals, landing/take-off, objective start/complete for all 4 objectives.
-  - Dominion reveal / generators / docking, core fight, escape, victory banter.
-  - Armada announcements (alien language plus subtitles that taunt).
-- [ ] **Intro briefing** (`LS_Intro`, ~30–45 s, skippable): the squad in formation over Verdance's ring, banter establishing each pilot's personality, then the Armada warps in → gameplay.
-- [ ] Ending: victory banter over the breakup hero shot, then credits.
-
-### G-14 · Music & audio mix · `⬜`
-- [ ] **`BP_MusicDirector`:** a layered stem soundtrack.
-  - **Space:** calm → combat layers swell with `Intensity01` from `OnWaveStarted`, dropping to calm on `OnWaveCleared`.
-  - **Planets:** an exploration track per planet (Verdance airy/organic, Cinder percussive/ominous), plus combat layers during encounters.
-  - **Dominion:** a dark industrial track, the core boss track (3 intensity phases) and an escape track (fast, heroic).
-  - **Menu theme, victory theme,** and a defeat sting.
-  - Stingers: ability unlocked, Dominion reveal, generator down, core destroyed.
-- [ ] Sound classes + submixes: Master / Music / SFX / VO / UI, hooked to the settings. Sidechain-duck music under VO.
-- [ ] **Ground SFX:** footsteps per surface, jump/land, dash whoosh, slide, mantle grunt, all blade sounds (G-03), crew barks/attacks/deaths, drone buzz, doors, consoles, hazards, magma, crystals, alarms, collapse rumble, carrying-the-core hum.
-- [ ] **UI SFX:** hover, click, back, tip pop, unlock sting.
-- [ ] Sources: WeLoveIndies jam pack, AI audio tools, licensed packs. **Log every one in `CREDITS.md`.**
-
-### G-15 · Space environment art (delivered as actors) · `⬜`
-Bright, saturated sci-fi, original in look (no copied assets or logos).
-- [ ] **`BP_GalaxySkybox`:** a layered nebula sky (pink/teal/violet, painted or AI-generated HDRI + cubemap), star field with twinkle, a distant galaxy band and a sun (`BP_Sun` with a lens flare and directional light).
-- [ ] **`BP_PlanetVisual`:** a sphere with a surface material (parameters for Verdance green-teal and Cinder black-orange), atmosphere rim glow, **rings** (a translucent banded mesh), slow rotation, and moons.
-- [ ] **`BP_NebulaVolume`:** colored volumetric fog clouds you can fly through (reduced visibility, a good spot to ambush).
-- [ ] **`BP_SpaceDust`:** a camera-relative particle field that sells speed.
-- [ ] **`BP_AsteroidField`:** an instanced asteroid scatter with size/density parameters and a few big hero rocks. Collision on medium and large rocks only.
-- [ ] **Station ruins** set dressing for the combat zone (a modular, broken ring station).
-- [ ] Handed to Dev 1 as ready-to-drop actors. **Dev 2 never edits `L_Galaxy`.**
-
-### G-16 · Intro cinematic & menu scene · `⬜`
-- [ ] `LS_Intro` (see G-13): camera work over the planet's rings, the squad in formation, and the Armada's red warp tears.
-- [ ] The main-menu background level/scene uses the G-15 actors (separate from `L_Galaxy`, so no conflict).
-- [ ] **Trailer capture:** Movie Render Queue shots for the gameplay video (G-18).
-
-### G-17 · Packaging, performance & build pipeline · `⬜`
-- [ ] Packaging profile: Windows, Shipping, with all maps in "Maps to Package". Startup map `L_MainMenu`, GameInstance set, debug menu stripped from Shipping.
-- [ ] **Package often** (any time a major feature lands) into `Builds/` (git-ignored) and smoke-test the packaged exe start → finish.
-- [ ] Performance: a 60 fps target on mid hardware.
-  - **Scalability presets** wired to settings.
-  - **Niagara:** particle budgets and significance.
-  - **Lumen/Nanite** settings, foliage culling distances, and the ragdoll/body cleanup timer.
-- [ ] **Final zip** named **`TeamName_GameName`**, < 1 GB (otherwise use butler).
-
-### G-18 · Submission package · `⬜`
-- [ ] **itch.io page:**
-  - Title art, 5+ screenshots and a GIF, and a description with the hook in the first line.
-  - Controls, team members, tools used (list **Rodin/Tripo/Meshy/fal/Claude/etc.** for partner prizes), every third-party asset, pre-jam declarations.
-- [ ] **30–60 s gameplay video:** gameplay in the first 5 seconds. Dogfight → switch → portal missile return → ram → landing → blade deflect → Dominion core → breakup.
-- [ ] **Dev log** (Glass Box prize) compiled from `DEVLOG.md`, with screenshots and the AI workflow story.
-- [ ] Submit with a **comfortable buffer before 8:59 PM EST**. Both humans verify the submission form fields.
+#### ART-16 · Boarding & escape cinematics/VFX · `⬜` STRETCH
+Tractor-beam docking shot, hangar landing, core-destroyed sequence, escape debris and explosion
+VFX, and the squad's launch from the hangar.
 
 ---
 
-## 7. Landing — full sequence (both devs)
+## 7. Landing: full sequence (CORE)
 
-| # | Step | Owner | Details |
+| # | Step | 🟦 Ryan (gameplay) | 🟩 Nick (presentation) |
 |---|---|---|---|
-| 1 | Marker appears | 🟦 | After waves 2 and 4, the wave director reveals the planet marker. A bark and tip follow ("Hyperdrive to Verdance") |
-| 2 | Approach | 🟦 | Hyperdrive auto-drops out in orbit. The squad flies toward `BP_PlanetAtmosphere` |
-| 3 | **Atmospheric entry** | 🟦 | Entering the atmosphere trigger: the ship nose glows with heat plasma (Niagara + hull heat shader), heavy shake, roar SFX, the screen whitens over 2.5 s. Calls `TravelTo(Verdance)` |
-| 4 | Transition | 🟩 | The fade/plasma white hides the load. `L_Transition` is skipped or very short (pre-stream if possible) |
-| 5 | Breakthrough | 🟦 class / 🟩 map | The ship spawns high in the planet sky (a `PlayerStart_Descent` placed by Dev 2) **in atmosphere flight mode**, bursting out of a cloud layer with leftover plasma VFX. Wingmen spawn in formation |
-| 6 | Descent flight | 🟦 | The player flies down through Dev 2's scenery (canyons, waterfalls) toward the pad's beacon column. Altitude is on the HUD |
-| 7 | Land | 🟦 | "Hold F to land" near the pad → auto-landing (gear, dust, touchdown, canopy). Wingmen land beside it. Fires `OnShipLanded` |
-| 8 | Exit ship | 🟩 | `LS_ExitShip` (FP), then the FP character spawns on the pad. The objective tracker appears |
-| 9 | Objectives | 🟩 | Objectives, unlocks and reward screens. Wingmen radio barks |
-| 10 | Board ship | 🟩 | Interact with the ship (allowed once all of the planet's objectives are done) → `LS_EnterShip` |
-| 11 | Take-off | 🟦 | Canopy closes, lift-off, control returns. Fly up past the zone ceiling |
-| 12 | Exit atmosphere | 🟦 / 🟩 | Reverse plasma burst → `TravelTo(Galaxy, "Verdance_Orbit")` → the squad spawns in orbit facing the combat zone. The next waves begin |
+| 1 | Marker appears (after waves 2 and 4) | Reveal marker; `ShowTip` / `RequestBark` | Marker visuals, bark VO, tip |
+| 2 | Approach | Hyperdrive drops out in orbit; `ATDPlanetAtmosphere` trigger | Planet visual, atmosphere glow |
+| 3 | Atmospheric entry | Trigger → `TravelTo(Verdance)` after 2.5 s | Heat plasma, shake, roar, white-out that hides the load |
+| 4 | Breakthrough | Spawn in atmosphere flight mode at `PlayerStart_Descent`; wingmen in formation | Cloud-burst VFX, leftover plasma |
+| 5 | Descent flight | Atmosphere flight, altitude data | Canyon and waterfall vista, wind audio |
+| 6 | Land | Pad prompt → auto-land (gear and canopy state) | Gear and canopy animations, landing dust, thrusters |
+| 7 | Exit ship | Hand-off to first person | Exit sequence, arms montage |
+| 8 | Objectives | ENG-24–26 | ART-06/08/09, reward screen |
+| 9 | Board ship | Allowed once the planet's objectives are done | Enter sequence |
+| 10 | Take-off and exit | Lift-off, ceiling → `TravelTo(Galaxy, "<Planet>_Orbit")` | Take-off shot, plasma burst |
 
----
+## 8. Boarding: full sequence (STRETCH)
 
-## 8. Boarding — full sequence (both devs)
-
-| # | Step | Owner | Details |
+| # | Step | 🟦 Ryan | 🟩 Nick |
 |---|---|---|---|
-| 1 | Reveal | 🟦 | Cinder Obj 4 sets `DominionRevealed` → after wave 5, `LS_DominionReveal` plays |
-| 2 | Assault | 🟦 | Destroy 4 shield generators and turrets while fighters keep launching |
-| 3 | Shields down | 🟦 | Shield collapse VFX → `SetDominionState(DefensesDown)` → the hangar doors open with a beacon light |
-| 4 | **Docking approach** | 🟦 | Fly into `BP_DockingBay`'s approach cone. Turret fire intensifies. Inside the cone, a **tractor beam** (blue light tunnel) catches the squad and pulls them in. Control is reduced and the camera goes cinematic |
-| 5 | Transition | 🟦 → 🟩 | Entering the hangar mouth fades → `TravelTo(DominionInterior)` |
-| 6 | Hangar landing | 🟩 | `L_Dominion_Interior` opens on a short shot: the 3 ships (`BP_LandedShip` + a simple landing animation or a matinee-style sequence) touch down in the hangar. Doors seal behind them with a red alarm |
-| 7 | Step out | 🟩 | `LS_ExitShip` → FP control. A bark: "Moss: We'll hold the hangar. Go end this, lead." |
-| 8 | Fight to the core | 🟩 | G-10 layout, then the G-11 core boss |
-| 9 | Escape run | 🟩 | 90 s run back to the hangar |
-| 10 | Launch | 🟩 → 🟦 | `LS_EnterShip` → `TravelTo(Galaxy, "Dominion_Hangar_Exit")` → `LS_ShipLaunch` → the S-20 escape flight → `LS_DominionBreakup` → `TravelTo(Victory)` |
+| 1 | Defenses down (ENG-18) | Docking bay opens instead of the space-only reactor ending | Bay-door animation, beacon light |
+| 2 | Docking approach | Approach cone, tractor-beam control reduction | Tractor-beam VFX, cinematic camera |
+| 3 | Hangar landing → step out | `TravelTo(DominionInterior)` → first-person hand-off | Hangar shot, doors seal, red alarm, bark |
+| 4 | Interior → core | ENG-30 | ART-15 |
+| 5 | Escape run → launch → escape flight | ENG-31 | ART-16 |
+| 6 | Breakup → Victory | `TravelTo(Victory)` | Breakup sequence (shared with the core ending) |
 
 ---
 
 ## 9. Integration points
 
-| # | Integration | 🟦 Dev 1 delivers | 🟩 Dev 2 delivers |
+| # | Integration | 🟦 Ryan delivers | 🟩 Nick delivers |
 |---|---|---|---|
-| I-1 | Level travel | Calls `TravelTo` from the atmosphere, docking bay and escape | `BP_TD_GameInstance` travel, fades and loading |
-| I-2 | Space HUD | `BPI_TD_HUDData` on `BP_SquadManager` | `WBP_SpaceHUD` |
-| I-3 | Environment art | Places the actors in `L_Galaxy` | Skybox, planets, nebulae, dust, asteroids, station ruins |
-| I-4 | Waves → music and barks | `OnWaveStarted/Cleared`, `OnShipSwitched`, `OnPowerUsed` | Music director + bark system bindings |
-| I-5 | Progress resume | Wave director reads `GetProgress()` and `OnPhaseChanged` | Progress persisted across levels + checkpoints |
-| I-6 | Ability unlocks | Ability slot reads `UnlockedAbilities` + `OnAbilityUnlocked` | `CompleteObjective` + reward screen |
-| I-7 | Landing | `BP_PlanetAtmosphere`, atmosphere flight, `BP_LandingPad`, `BP_AtmosphereFlightZone`, auto-land/take-off, `OnShipLanded` | Places the pads, flight zones and descent start in the planet maps. `BP_LandedShip`, exit/enter sequences |
-| I-8 | Boarding | Dominion exterior, docking tractor beam, escape flight, breakup | Interior, hangar landing shot, core, escape run |
-| I-9 | Ship meshes for landed ships | Ship meshes/materials (stable asset paths) | `BP_LandedShip` references them read-only |
-| I-10 | Tips and barks | Calls `ShowTip` / `RequestBark` at the right moments | `DT_Tips`, `DT_Barks`, widgets, VO |
-| I-11 | Sound mix | Space SFX routed to the shared sound classes | Sound classes, submixes and settings |
+| I-1 | Presentation hooks | Data-asset classes, spawn-at-event code, exposed animation state | Data-asset instances + VFX, SFX, meshes and animations |
+| I-2 | HUD and menus | `ITDHUDData`, `ITDGameFlow`, events | All widgets |
+| I-3 | Maps | Maps, gameplay actors, collision, spawns | Dressing, lighting, post-process, audio volumes (One File Per Actor) |
+| I-4 | Waves → music and barks | `OnWaveStarted` / `OnWaveCleared`, `OnBarkRequested` | Music director, bark queue, VO |
+| I-5 | Abilities | Unlock logic + `OnAbilityUnlocked` | Reward screen, ability VFX and SFX |
+| I-6 | Travel and landing | Travel, atmosphere flight, auto-land | Loading screen, entry, landing and take-off presentation |
+| I-7 | Director's Cut | Highlight events, slow-motion, take restarts, event log | Cut transitions, director cams, slate cards, highlight reel |
+| I-8 | Packaging | Build pipeline, performance profiling | Art budgets, scalability settings |
+| I-9 | Submission | Packaged build, upload, form | Video, page, screenshots, dev log |
 
-**Integration ritual** (whenever either dev lands something big): pull → play the full game from the main menu
+**Integration ritual** (whenever either of you lands something big): pull → play from the main menu
 → package → log bugs in §11 → each bug goes to the owner of the file it lives in.
 
 ---
 
 ## 10. Dependency order (no dates)
 
-You both run full speed in parallel. This is only **what unblocks what**, so you can pick the next item sensibly.
+Both of you run in parallel. This shows **what unblocks what**, not a schedule.
 
 ```
-C-01 Project ─► C-02 Contracts ─┬─► 🟦 S-01 Flight ─► S-04 Ships ─► S-05 Weapons ─► S-07 Switching ─► S-08 Wingmen
-                                │        └─► S-19 Atmosphere flight/landing (needs S-01)
-                                │   S-13 Enemies ─► S-14 Waves ─► S-18 Dominion ─► S-20 Escape
-                                │   S-09/S-10/S-11 Signatures (need S-04) ─► S-12 Abilities (needs G-01 unlock data)
-                                │
-                                └─► 🟩 G-01 GameFlow ─► G-06 Objectives ─► G-07 Verdance / G-08 Cinder
-                                         G-02 FP Character ─► G-03 Blade ─► G-04 FP anims ─► G-05 Crew
-                                         G-10 Dominion interior ─► G-11 Core + escape run
-                                         G-12 UI (stubs first) · G-15 Environment (early: Dev 1 needs it for S-17)
-                                         G-13 Barks / G-14 Music (anytime once events exist) · G-17/G-18 continuous
+C-01 Project ─► C-02 Contracts (+ presentation hooks) ─┬─► 🟦 ENG-01 Flight ─► ENG-04 Ships ─► ENG-05 Weapons
+                                                       │      ─► ENG-07 Switching ─► ENG-08 Wingmen      (Ryan's start-here)
+                                                       │   ENG-13 Enemies ─► ENG-14 Waves ─► ENG-18 Dominion finale
+                                                       │   ENG-09/10/11 Signature powers ─► ENG-12 Abilities
+                                                       │   ENG-19 Game flow ─► ENG-20 Landing ─► ENG-21/22/23/24 First person
+                                                       │      ─► ENG-25 Verdance / ENG-26 Cinder
+                                                       │   ENG-28 Packaging: early and continuous
+                                                       │
+                                                       └─► 🟩 ART-01 Style ─► ART-02 Inventory ─► ART-03 Ships (readability first)
+                                                              ─► ART-07 Combat VFX + ART-10 combat SFX    (Nick's start-here)
+                                                           ART-09 HUD (against the fake HUD data) · ART-05 Space environment
+                                                           ART-06 Planets · ART-08 Ground visuals · ART-11 Barks
+                                                           ART-12 Director's Cut presentation · ART-13 Performance art
+C-03 Theme decision ─► ENG event hooks + ART-12        STRETCH (after core is solid): ENG-29–31 + ART-15–16
 ```
 
-**Biggest risks (start early):** S-01 flight feel, S-09 portals, S-19 + G-09 landing hand-off, G-03 deflect,
-G-11 core boss, and G-17 packaging (package early and often so it doesn't surprise us at the end).
+**Biggest risks (start early):**
+- Ryan: ENG-01 flight feel, ENG-07 switching (protect it), ENG-09 portals.
+- Shared: ENG-20 + ART-07 landing hand-off, ENG-22 deflect.
+- Nick: ART-03 hero-ship quality.
+- Both: packaging (ENG-28). Package early and often.
+
+**Feature freeze: Nov 15, 12:00 PM EST.** Every major feature should be in by then; after that, only
+fixes, polish, packaging and submission.
 
 ---
 
 ## 11. Bugs & requests (append-only)
 
-Add new lines at the bottom only, to avoid merge conflicts. Format: `[for Dev X] description — reporter, timestamp`
+Add new lines at the bottom only, to avoid merge conflicts. Format:
+`[for Ryan|Nick] description — reporter, timestamp`
 
-### Requests between devs
-- _e.g. `[for Dev 1] Expose ship mesh soft refs on DA_ShipStats for BP_LandedShip — Dev 2, Nov 13 14:20`_
+### Requests between Ryan and Nick
+- _e.g. `[for Ryan] Add a "drift spark" VFX slot to UTDShipVisuals — Nick, Nov 13 14:20`_
 
 ### Bugs
-- _e.g. `[Dev 2] WBP_SpaceHUD: shield bar doesn't update after respawn — found by Dev 1, Nov 13 18:05`_
+- _e.g. `[for Nick] WBP_SpaceHUD: shield bar doesn't update after respawn — Ryan, Nov 13 18:05`_

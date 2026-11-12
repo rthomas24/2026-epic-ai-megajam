@@ -30,6 +30,9 @@ Builds/
 *.blend1
 *.blend2
 
+# ---- Optional mirror of .claude/skills for Codex (AGENTS.md §10) ----
+.agents/
+
 # ---- Python ----
 __pycache__/
 *.pyc
