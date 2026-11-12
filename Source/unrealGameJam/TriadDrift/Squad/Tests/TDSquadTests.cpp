@@ -2511,5 +2511,88 @@ bool FTDSquadEngageCallLive::RunTest(const FString& Parameters)
 	return Cam.IsValid();
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadDamageIndicators, "TriadDrift.Squad.HUD.DamageIndicatorsPointAtTheShooter", TD_TEST_FLAGS)
+bool FTDSquadDamageIndicators::RunTest(const FString& Parameters)
+{
+	// T1's feel pass: "nearly all damage comes from off screen and nothing says where from".
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		ATDShip* Rift = F.Ship(ETDShipId::Rift);
+		Rift->SetFlightParked(true);
+		F.W.Tick(Step);
+		const FVector P = Rift->GetActorLocation();
+		auto Enemy = [&](const FVector& Offset)
+		{
+			ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, P + Offset);
+			E->SetFlightParked(true);
+			return E;
+		};
+		ATDEnemyShip* Right = Enemy(FVector(0.f, 30000.f, 0.f));
+		ATDEnemyShip* Left = Enemy(FVector(0.f, -30000.f, 0.f));
+		ATDEnemyShip* Behind = Enemy(FVector(-30000.f, 0.f, 0.f));
+		ATDEnemyShip* Above = Enemy(FVector(0.f, 0.f, 30000.f));
+		auto Hit = [&](AActor* From, float Amount) { UTDStatics::ApplyTDDamage(Rift, Amount, ETDDamageKind::Energy, From, From); };
+		auto Ind = [&] { return F.Squad->GetDamageIndicators(); };
+		auto Points = [&](const FTDDamageIndicator& I, const FVector& Dir) { return FVector::DotProduct(I.WorldDirection, Dir) > 0.95f; };
+
+		TestEqual(TEXT("nothing before any hit") + Fps, Ind().Num(), 0);
+		Hit(Right, 5.f);
+		TestTrue(TEXT("a hit from the right points right") + Fps, Ind().Num() == 1 && Points(Ind()[0], FVector::RightVector));
+		TestTrue(TEXT("small hit: shield only") + Fps, Ind()[0].bShieldOnly && Ind()[0].Strength01 > 0.f && Ind()[0].Strength01 < 0.1f);
+		F.W.Advance(0.3f, Step);
+		Hit(Left, 5.f);
+		TestTrue(TEXT("two hits, newest (left) first") + Fps, Ind().Num() == 2 && Points(Ind()[0], FVector::LeftVector) && Points(Ind()[1], FVector::RightVector));
+		TestTrue(TEXT("ages in real seconds") + Fps, FMath::IsNearlyEqual(Ind()[1].AgeSeconds, 0.3f, Step + 0.02f));
+		F.W.Advance(0.2f, Step);
+		// A burst from behind: one indicator, stronger.
+		Hit(Behind, 5.f);
+		const float One = Ind()[0].Strength01;
+		F.W.Tick(Step);
+		Hit(Behind, 5.f);
+		F.W.Tick(Step);
+		Hit(Behind, 5.f);
+		TestTrue(TEXT("a burst from one attacker is one indicator") + Fps, Ind().Num() == 3 && Points(Ind()[0], FVector::BackwardVector));
+		TestTrue(TEXT("...that grows with the burst") + Fps, Ind()[0].Strength01 > One * 2.5f);
+		// Through the shield: hull damage.
+		F.W.Advance(0.2f, Step);
+		Hit(Above, F.Health(ETDShipId::Rift)->GetShield() + F.Health(ETDShipId::Rift)->MaxHull * 0.3f); // through the shield, not a kill
+		TestTrue(TEXT("from above, hull hit") + Fps, Points(Ind()[0], FVector::UpVector) && !Ind()[0].bShieldOnly);
+		// A wingman's damage is not the player's.
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 5.f, ETDDamageKind::Energy, Right, Right);
+		TestEqual(TEXT("a wingman being hit adds nothing") + Fps, Ind().Num(), 4);
+		// Old hits drop after 1.5 s of real time.
+		F.W.Advance(1.6f, Step);
+		TestEqual(TEXT("gone after 1.5 s") + Fps, Ind().Num(), 0);
+		// No attacker at all: back along the hit direction.
+		{
+			FTDDamageInfo Info;
+			Info.Amount = 5.f;
+			Info.Kind = ETDDamageKind::Energy;
+			Info.HitDirection = FVector::LeftVector; // travelling left, so it came from the right
+			F.Health(ETDShipId::Rift)->ApplyDamage(Info);
+			TestTrue(TEXT("no attacker: from the hit direction") + Fps, Ind().Num() == 1 && Points(Ind()[0], FVector::RightVector));
+		}
+		// The new ship starts clean, and its own hits register.
+		TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		TestEqual(TEXT("cleared on switch") + Fps, Ind().Num(), 0);
+		F.W.Advance(0.5f, Step); // past the switch-in grace
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 5.f, ETDDamageKind::Energy, Left, Left);
+		TestTrue(TEXT("the new ship's hits show") + Fps, Ind().Num() == 1);
+		F.Squad->SpawnSquad(FTransform::Identity);
+		TestEqual(TEXT("cleared on a retake") + Fps, Ind().Num(), 0);
+		// Slow motion (a money shot) must not stretch them: 1.6 real seconds at 0.2x is still gone.
+		F.W.Advance(0.5f, Step);
+		UTDStatics::ApplyTDDamage(F.Squad->GetActiveShip(), 5.f, ETDDamageKind::Energy, Left, Left);
+		TestEqual(TEXT("a hit before the slow-mo") + Fps, Ind().Num(), 1);
+		UTDFeelSubsystem::Get(F.W.GetWorld())->RequestSlowMo(5.f, 0.2f);
+		F.W.Advance(1.6f, Step);
+		TestTrue(TEXT("slow-mo running") + Fps, UTDFeelSubsystem::Get(F.W.GetWorld())->IsSlowMoActive());
+		TestEqual(TEXT("gone after 1.5 REAL seconds even in slow-mo") + Fps, Ind().Num(), 0);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
