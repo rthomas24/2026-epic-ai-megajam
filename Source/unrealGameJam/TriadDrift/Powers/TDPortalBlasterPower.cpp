@@ -334,7 +334,11 @@ void UTDPortalBlasterPower::HandleInputPressed()
 {
 	if (IsPowerActive() && !IsUsingBlink())
 	{
-		PlacePortal();
+		if (PlacePortal())
+		{
+			// Firing the blaster again is using the power: Cloak and other listeners see it.
+			OnPowerActivated.Broadcast(this);
+		}
 		return;
 	}
 	TryActivate();
@@ -377,6 +381,7 @@ bool UTDPortalBlasterPower::OnActivate()
 		return DoBlink();
 	}
 	bEndsManually = true;
+	bWindowRestarted = false;
 	Portals.Reset();
 	return PlacePortal() != nullptr;
 }
@@ -448,6 +453,12 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		{
 			A->SetPartner(B);
 			B->SetPartner(A);
+		}
+		// The pair gets its full window from the moment it is usable (once per activation; recycling doesn't extend it).
+		if (!bWindowRestarted)
+		{
+			bWindowRestarted = true;
+			ActiveElapsed = 0.f;
 		}
 	}
 	return Portal;
@@ -525,7 +536,7 @@ bool UTDPortalBlasterPower::DoBlink()
 	{
 		Field->bProtectSquad = false;
 		Field->bDestroyShots = false;
-		Field->FollowSpeed = 100000.f; // rides with Rift
+		Field->FollowLagRate = 60.f; // rides with Rift
 	}
 	return true;
 }

@@ -103,12 +103,11 @@ void ATDShieldDome::Tick(float DeltaSeconds)
 		return;
 	}
 
-	// Drift after the owner, capped: a fast Bastion can outrun its own dome.
+	// Follow the owner with a lag (frame-rate independent exponential approach).
 	if (const AActor* Target = FollowTarget.Get())
 	{
-		const FVector To = Target->GetActorLocation() - GetActorLocation();
-		const float MaxStep = FollowSpeed * DeltaSeconds;
-		SetActorLocation(GetActorLocation() + (To.SizeSquared() > MaxStep * MaxStep ? To.GetSafeNormal() * MaxStep : To));
+		const float Alpha = 1.f - FMath::Exp(-FollowLagRate * DeltaSeconds);
+		SetActorLocation(FMath::Lerp(GetActorLocation(), Target->GetActorLocation(), Alpha));
 	}
 
 	if (bProtectSquad)
@@ -138,7 +137,8 @@ void ATDShieldDome::ProtectSquad(float DeltaSeconds)
 	}
 	TArray<AActor*, TInlineAllocator<8>> Inside;
 	{
-		TArray<AActor*> Friendlies;
+		TArray<AActor*>& Friendlies = FriendlyScratch;
+		Friendlies.Reset();
 		Registry->GetActorsOfTeam(Team, Friendlies, true);
 		for (AActor* A : Friendlies)
 		{
@@ -171,28 +171,47 @@ void ATDShieldDome::InterceptProjectiles()
 	{
 		return;
 	}
+	// Projectiles stop themselves on the shell during their own swept step (ATDProjectile asks
+	// UTDPowerSubsystem); this catches the rest: shots that were already inside (fired from inside, or
+	// the dome just moved / opened over them).
 	TArray<ATDProjectile*, TInlineAllocator<32>> Hits;
 	for (ATDProjectile* P : Projectiles->GetLiveProjectiles())
 	{
-		if (P && P->IsActive() && UTDStatics::AreTeamsHostile(Team, P->GetTeam()) && Covers(P->GetActorLocation())
-			&& (bDestroyShots || P->IsMissile()))
+		if (P && P->IsActive() && Intercepts(P) && Covers(P->GetActorLocation()))
 		{
 			Hits.Add(P);
 		}
 	}
-	AActor* DomeOwner = GetOwner();
 	for (ATDProjectile* P : Hits)
 	{
-		if (P->IsMissile() && P->GetSpec().bHoming)
-		{
-			const FVector Out = (P->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-			P->Deflect(DomeOwner ? DomeOwner : this, Out.IsNearlyZero() ? -P->GetVelocity().GetSafeNormal() : Out, Team, 1.f);
-			// Put it back on the shell so it doesn't count as inside next tick.
-			P->TeleportProjectile(GetActorLocation() + Out * (Radius + 50.f), FVector::ZeroVector);
-		}
-		else if (bDestroyShots)
-		{
-			P->Kill(true);
-		}
+		const FVector Out = (P->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		ReceiveProjectile(P, GetActorLocation() + (Out.IsNearlyZero() ? FVector::UpVector : Out) * Radius);
+	}
+}
+
+bool ATDShieldDome::Intercepts(const ATDProjectile* P) const
+{
+	return bDomeActive && P && P->IsActive() && UTDStatics::AreTeamsHostile(Team, P->GetTeam())
+		&& (bDestroyShots || (P->IsMissile() && P->GetSpec().bHoming));
+}
+
+void ATDShieldDome::ReceiveProjectile(ATDProjectile* P, const FVector& ShellPoint)
+{
+	if (!Intercepts(P))
+	{
+		return;
+	}
+	if (P->IsMissile() && P->GetSpec().bHoming)
+	{
+		const FVector Out = (ShellPoint - GetActorLocation()).GetSafeNormal();
+		AActor* DomeOwner = GetOwner();
+		P->Deflect(DomeOwner ? DomeOwner : this, Out.IsNearlyZero() ? -P->GetVelocity().GetSafeNormal() : Out, Team, 1.f);
+		// Just outside the shell so it doesn't count as inside next tick.
+		P->TeleportProjectile(GetActorLocation() + Out * (Radius + 50.f), FVector::ZeroVector);
+	}
+	else if (bDestroyShots)
+	{
+		P->TeleportProjectile(ShellPoint, FVector::ZeroVector); // impact FX on the shell, not inside it
+		P->Kill(true);
 	}
 }

@@ -13,6 +13,8 @@
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Powers/TDPortalTransit.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -226,22 +228,35 @@ bool FTDDome::RunTest(const FString& Parameters)
 
 	TestEqual(TEXT("no damage inside"), UTDStatics::ApplyTDDamage(Wingman, 50.f, ETDDamageKind::Energy, Gunship, Gunship), 0.f);
 
+	// The bolt aims through empty dome space (no ship on its line): only the shell can stop it.
 	ATDProjectile* Bolt = ATDProjectile::Spawn(W.GetWorld(), UTDWeaponLibrary::Get(TDWeaponIds::EnemyHeavyBolt).Projectile,
-		FTransform(FRotator(0.f, 180.f, 0.f), FVector(8500.f, 0.f, 0.f)), Gunship, ETDTeam::Enemy);
+		FTransform(FRotator(0.f, 180.f, 0.f), FVector(8500.f, -1200.f, 0.f)), Gunship, ETDTeam::Enemy);
 	ATDProjectile* Missile = LaunchMissile(W, FVector(8000.f, 600.f, 0.f), -FVector::ForwardVector, Gunship, Wingman);
-	W.Advance(1.f);
-	TestFalse(TEXT("enemy bolt destroyed on the dome"), Bolt && Bolt->IsActive());
+	FVector BoltLast = FVector::ZeroVector;
+	const float BoltDiedAt = AdvanceUntil(W, [&] { if (Bolt && Bolt->IsActive()) { BoltLast = Bolt->GetActorLocation(); return false; } return true; }, 1.f);
+	TestTrue(TEXT("enemy bolt destroyed"), BoltDiedAt > 0.f);
+	const float DistFromCentre = (float)FVector::Dist(BoltLast, Dome->GetActorLocation());
+	TestTrue(TEXT("...on the shell, not a frame-step inside it"), DistFromCentre > 3000.f - 50.f && DistFromCentre < 3000.f + 12000.f / 60.f + 50.f);
+	W.Advance(0.5f);
 	TestTrue(TEXT("enemy missile deflected"), Missile && Missile->IsActive() && Missile->GetTeam() == ETDTeam::Player);
 
-	// Follows slowly: Bastion jumps 10 000 cm, the dome drifts after it.
+	// Follows Bastion with a lag: never left behind at cruise.
+	ATDSpacecraft* Pace = nullptr;
 	Bastion->SetActorLocation(FVector(0.f, 10000.f, 0.f));
-	const FVector DomeBefore = Dome->GetActorLocation();
-	W.Advance(1.f);
-	const float Drift = FVector::Dist(Dome->GetActorLocation(), DomeBefore);
-	TestTrue(TEXT("dome follows slowly (~2500 cm/s)"), Drift > 2000.f && Drift < 3000.f);
+	W.Advance(0.05f);
+	TestTrue(TEXT("dome lags a sudden jump"), FVector::Dist(Dome->GetActorLocation(), Bastion->GetActorLocation()) > 5000.f);
+	W.Advance(0.95f);
+	TestTrue(TEXT("...and catches up within a second"), FVector::Dist(Dome->GetActorLocation(), Bastion->GetActorLocation()) < 500.f);
+	for (int32 i = 0; i < 60; ++i) // Bastion cruising at 4800 cm/s for 1 s
+	{
+		Bastion->SetActorLocation(Bastion->GetActorLocation() + FVector(4800.f / 60.f, 0.f, 0.f));
+		W.Tick();
+	}
+	TestTrue(TEXT("a cruising Bastion stays inside its own dome"), Dome->Covers(Bastion->GetActorLocation()));
+	(void)Pace;
 
-	W.Advance(3.2f);
-	TestFalse(TEXT("dome gone after 6 s"), IsValid(Dome));
+	const float GoneAt = AdvanceUntil(W, [&] { return !IsValid(Dome); }, 3.f);
+	TestTrue(TEXT("dome gone after 6 s"), GoneAt > 0.f);
 	TestFalse(TEXT("power ended"), DomePower->IsPowerActive());
 	W.Advance(15.7f);
 	TestFalse(TEXT("16 s cooldown from collapse"), DomePower->CanActivate());
@@ -521,6 +536,54 @@ bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
 	Cloak->TryActivate();
 	Cloak->ResetPower();
 	TestTrue(TEXT("ResetPower: targetable"), UTDStatics::GetHealth(Rift)->bTargetable && !Cloak->IsCloaked() && Cloak->CanActivate());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalWindowRestart, "TriadDrift.Powers.Portal.WindowFromSecondPortalCloakBreaksStatsCount", TD_TEST_FLAGS)
+bool FTDPortalWindowRestart::RunTest(const FString& Parameters)
+{
+	// A late B still gets the full 12 s; recycling doesn't extend it.
+	{
+		FTDTestWorld W;
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDPortalBlasterPower* Portal = AddPower<UTDPortalBlasterPower>(Rift);
+		Portal->HandleInputPressed();
+		W.Advance(8.f);
+		Rift->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+		Portal->HandleInputPressed();
+		W.Advance(11.5f);
+		TestTrue(TEXT("pair still open 11.5 s after B"), Portal->IsPowerActive() && Portal->GetPortals().Num() == 2);
+		Rift->SetActorRotation(FRotator(0.f, -90.f, 0.f));
+		Portal->HandleInputPressed(); // recycle
+		W.Advance(0.7f);
+		TestFalse(TEXT("closed 12 s after B even though a third shot recycled one"), Portal->IsPowerActive());
+	}
+	// Cloak: firing the blaster again while it is active breaks the cloak too.
+	{
+		FTDTestWorld W;
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDPortalBlasterPower* Portal = AddPower<UTDPortalBlasterPower>(Rift);
+		UTDCloakPower* Cloak = AddPower<UTDCloakPower>(Rift);
+		Portal->HandleInputPressed();
+		Cloak->TryActivate();
+		TestTrue(TEXT("cloaked with a portal open"), Cloak->IsCloaked());
+		Rift->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+		Portal->HandleInputPressed();
+		TestFalse(TEXT("second portal press breaks cloak"), Cloak->IsCloaked());
+	}
+	// MissilesReturned really reaches the run stats (real game instance).
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		const int32 Before = GI ? GI->GetProgressRef().Stats.MissilesReturned : 0;
+		AActor* Hook = SpawnBody(W, ETDTeam::Enemy, FVector(20000.f, 0.f, 0.f), FVector(100.f));
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		ATDProjectile* M = LaunchMissile(W, FVector(5000.f, 0.f, 0.f), -FVector::ForwardVector, Hook, Rift);
+		const FTransform Entry(FRotator(0.f, 180.f, 0.f), FVector(5000.f, 0.f, 0.f));
+		const FTransform Exit(FRotator(0.f, 90.f, 0.f), FVector(0.f, 9000.f, 0.f));
+		TestTrue(TEXT("missile transits"), UTDPortalTransit::TransitActor(M, Entry, Exit, Rift, FTDPortalTransitParams()));
+		TestEqual(TEXT("MissilesReturned +1"), GI ? GI->GetProgressRef().Stats.MissilesReturned : -1, Before + 1);
+	}
 	return true;
 }
 
