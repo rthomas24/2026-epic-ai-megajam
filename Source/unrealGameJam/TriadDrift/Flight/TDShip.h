@@ -52,6 +52,18 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float LookAheadResponse = 5.f;
+
+	/** Max distance the location lag may trail the ship (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float LagMaxDistance = 1800.f;
+
+	/** Above this |forward.Z| the camera holds its reference "up" instead of tracking world up (loops). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float VerticalHoldLimit = 0.95f;
+
+	/** How fast the camera's reference "up" may swing back toward world up (deg/s): smooths loops and dives. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float ReferenceUpRate = 120.f;
 };
 
 /** A squad ship (Rift, Lancer, Bastion). Squad stats come from T3's UTDShipLibrary through ApplyFlightTuning. */
@@ -118,6 +130,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
 	void SnapCamera();
 
+	/** The chase arm's target rotation this frame (before the spring arm's own rotation lag). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	FQuat GetChaseTargetQuat() const { return ChaseTargetQuat; }
+
+	/** Camera roll relative to its reference up (deg): RollFollow x the ship's bank, folded past 90 deg. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	float GetCameraRoll() const { return CameraRoll; }
+
+	const FTDChaseCameraTuning& GetCameraTuning() const { return CameraTuning; }
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -168,5 +190,8 @@ private:
 	void ApplyCameraActivation();
 	float CurrentFOV = 90.f;
 	int32 SnapFramesRemaining = 0;
+	FVector CameraRefUp = FVector::ZeroVector;
+	FQuat ChaseTargetQuat = FQuat::Identity;
+	float CameraRoll = 0.f;
 	FVector2D LookAhead = FVector2D::ZeroVector;
 };

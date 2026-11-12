@@ -186,6 +186,37 @@ void ATDSpacecraft::ClearSpeedOverride()
 	}
 }
 
+void ATDSpacecraft::ResetFlightState(bool bKeepVelocity)
+{
+	if (ShipMovement)
+	{
+		ShipMovement->ResetFlightState(bKeepVelocity);
+	}
+}
+
+void ATDSpacecraft::SetFlightParked(bool bParked)
+{
+	if (!ShipMovement)
+	{
+		return;
+	}
+	if (bParked)
+	{
+		ShipMovement->SetFlightInput(FTDFlightInput());
+		ShipMovement->StopMovementImmediately();
+		ShipMovement->SetComponentTickEnabled(false);
+	}
+	else
+	{
+		ShipMovement->SetComponentTickEnabled(true);
+	}
+}
+
+bool ATDSpacecraft::IsFlightParked() const
+{
+	return ShipMovement && !ShipMovement->IsComponentTickEnabled();
+}
+
 void ATDSpacecraft::SetTeam(ETDTeam NewTeam)
 {
 	Team = NewTeam;

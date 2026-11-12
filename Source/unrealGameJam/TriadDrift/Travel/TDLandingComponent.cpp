@@ -226,20 +226,9 @@ void UTDLandingComponent::TakeOffWingmen()
 
 void UTDLandingComponent::PauseFlight(bool bPause)
 {
-	ATDShip* Ship = GetShip();
-	UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
-	if (!Move)
+	if (ATDShip* Ship = GetShip())
 	{
-		return;
-	}
-	if (bPause)
-	{
-		Move->StopMovementImmediately();
-		Move->SetComponentTickEnabled(false);
-	}
-	else
-	{
-		Move->SetComponentTickEnabled(true);
+		Ship->SetFlightParked(bPause);
 	}
 }
 

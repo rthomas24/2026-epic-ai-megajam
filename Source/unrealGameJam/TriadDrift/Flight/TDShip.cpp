@@ -10,6 +10,33 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
+namespace TDShipCamera
+{
+	/** Signed angle from A to B around Axis (deg), both assumed perpendicular to Axis. */
+	float SignedAngle(const FVector& A, const FVector& B, const FVector& Axis)
+	{
+		return FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(A, B), Axis), FVector::DotProduct(A, B)));
+	}
+
+	FVector Rotate(const FVector& V, const FVector& Axis, float Deg)
+	{
+		return FQuat(Axis, FMath::DegreesToRadians(Deg)).RotateVector(V);
+	}
+
+	/** Perpendicular part of V against unit Axis, normalised (zero if V is parallel). */
+	FVector Perp(const FVector& V, const FVector& Axis)
+	{
+		return (V - Axis * FVector::DotProduct(V, Axis)).GetSafeNormal();
+	}
+
+	/** Continuous through inverted flight: past 90 deg of bank the follow eases back to 0 at 180. */
+	float FoldBank(float Deg)
+	{
+		Deg = FRotator::NormalizeAxis(Deg);
+		return FMath::Abs(Deg) > 90.f ? FMath::Sign(Deg) * (180.f - FMath::Abs(Deg)) : Deg;
+	}
+}
+
 ATDShip::ATDShip()
 {
 	Team = ETDTeam::Player;
@@ -21,7 +48,7 @@ ATDShip::ATDShip()
 	SpringArm->bDoCollisionTest = false;       // open space; rocks are handled by the flight model
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->bEnableCameraRotationLag = true;
-	SpringArm->CameraLagMaxDistance = 1800.f;
+	SpringArm->CameraLagMaxDistance = CameraTuning.LagMaxDistance;
 
 	ChaseCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
 	ChaseCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
@@ -51,6 +78,7 @@ void ATDShip::BeginPlay()
 	SpringArm->SocketOffset = FVector(0.f, 0.f, CameraTuning.Height);
 	SpringArm->CameraLagSpeed = CameraTuning.LocationLag;
 	SpringArm->CameraRotationLagSpeed = CameraTuning.RotationLag;
+	SpringArm->CameraLagMaxDistance = CameraTuning.LagMaxDistance;
 	CurrentFOV = CameraTuning.MinFOV;
 	ChaseCamera->SetFieldOfView(CurrentFOV);
 
@@ -161,16 +189,28 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 		SpringArm->CameraRotationLagSpeed = CameraTuning.RotationLag;
 	}
 
-	// --- Arm rotation: ship frame with only RollFollow of its roll (and visual bank) ---------------
+	// --- Arm rotation: ship forward, with only RollFollow of its bank -------------------------------
+	// Bank is measured against a reference "up" that tracks world up (rate-limited, held while the
+	// nose is near vertical), so barrel rolls and loops never make the target jump.
+	using namespace TDShipCamera;
 	const FQuat ShipQuat = GetActorQuat();
 	const FVector Forward = ShipQuat.GetForwardVector();
-	// Near-vertical flight makes "bank relative to world up" meaningless: fade the correction out.
-	const float VerticalFade = 1.f - FMath::SmoothStep(0.8f, 0.95f, (float)FMath::Abs(Forward.Z));
-	const float Bank = ShipQuat.Rotator().Roll * VerticalFade;
-	const float VisualBank = ShipMovement->GetVisualBank();
-	const float DesiredRoll = CameraTuning.RollFollow * (Bank + VisualBank);
-	const FQuat ArmQuat = ShipQuat * FQuat(FRotator(0.f, 0.f, DesiredRoll - Bank));
-	SpringArm->SetWorldRotation(ArmQuat);
+	const FVector ShipUp = ShipQuat.GetUpVector();
+
+	FVector Current = Perp(CameraRefUp, Forward);
+	FVector Target = FMath::Abs(Forward.Z) < CameraTuning.VerticalHoldLimit ? Perp(FVector::UpVector, Forward) : Current;
+	if (Target.IsNearlyZero()) { Target = ShipUp; }
+	if (bSnap || Current.IsNearlyZero()) { Current = Target; }
+	const float ToTarget = SignedAngle(Current, Target, Forward);
+	const float MaxStep = CameraTuning.ReferenceUpRate * DeltaSeconds;
+	CameraRefUp = Rotate(Current, Forward, bSnap ? ToTarget : FMath::Clamp(ToTarget, -MaxStep, MaxStep));
+
+	const FVector VisualUp = (ShipQuat * FQuat(FRotator(0.f, 0.f, ShipMovement->GetVisualBank()))).GetUpVector();
+	const float Bank = SignedAngle(CameraRefUp, ShipUp, Forward) + SignedAngle(ShipUp, VisualUp, Forward);
+	CameraRoll = CameraTuning.RollFollow * FoldBank(Bank);
+	const FVector CameraUp = Rotate(CameraRefUp, Forward, CameraRoll);
+	ChaseTargetQuat = FRotationMatrix::MakeFromXZ(Forward, CameraUp).ToQuat();
+	SpringArm->SetWorldRotation(ChaseTargetQuat);
 
 	// --- Look-ahead: the camera leans into the turn --------------------------------------------------
 	const FTDFlightTuning& Tuning = ShipMovement->GetFlightTuning();

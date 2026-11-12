@@ -3,6 +3,7 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "EnhancedInputComponent.h"
@@ -46,8 +47,7 @@
 
 namespace
 {
-	/** Radial deadzone + response curve: |v| in [Deadzone, 1] remapped to [0, 1], then ^Exponent. */
-	FVector2D ShapeStick(const FVector2D& Raw, float Deadzone, float Exponent)
+	FVector2D ShapeStickImpl(const FVector2D& Raw, float Deadzone, float Exponent)
 	{
 		const float Len = Raw.Size();
 		if (Len <= Deadzone || Len <= KINDA_SMALL_NUMBER)
@@ -86,6 +86,11 @@ namespace
 		FEnhancedActionKeyMapping& Mapping = Context->MapKey(Action, Key);
 		AddModifier<UInputModifierNegate>(Mapping, Context);
 	}
+}
+
+FVector2D ATDSpacePlayerController::ShapeStick(const FVector2D& Raw, float Deadzone, float Exponent)
+{
+	return ShapeStickImpl(Raw, Deadzone, Exponent);
 }
 
 ATDSpacePlayerController::ATDSpacePlayerController()
@@ -148,6 +153,9 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IA_Pause = MakeAction(TEXT("IA_Pause"), V::Boolean);
 	IA_GalaxyMap = MakeAction(TEXT("IA_GalaxyMap"), V::Boolean);
 	IA_CameraToggle = MakeAction(TEXT("IA_CameraToggle"), V::Boolean);
+	// Menus must work while the game is paused (Esc / Start unpause).
+	IA_Pause->bTriggerWhenPaused = true;
+	IA_GalaxyMap->bTriggerWhenPaused = true;
 
 	IMC_SpaceCommon = NewObject<UInputMappingContext>(this, TEXT("IMC_SpaceCommon"));
 	IMC_Space = NewObject<UInputMappingContext>(this, TEXT("IMC_Space"));
@@ -190,7 +198,7 @@ void ATDSpacePlayerController::BuildInputObjects()
 	// Boost / Drift / Brake.
 	C->MapKey(IA_Boost, EKeys::LeftShift);
 	C->MapKey(IA_Boost, EKeys::Gamepad_LeftThumbstick);
-	C->MapKey(IA_Drift, EKeys::LeftAlt);
+	// No LeftAlt: Alt + Tab (switch) would alt-tab out of the game on Windows.
 	C->MapKey(IA_Drift, EKeys::C);
 	C->MapKey(IA_Drift, EKeys::Gamepad_FaceButton_Right);
 	C->MapKey(IA_Brake, EKeys::SpaceBar);
@@ -308,6 +316,7 @@ void ATDSpacePlayerController::SetupInputComponent()
 	EIC->BindAction(IA_Power, E::Started, this, &ThisClass::OnPowerPressed);
 	EIC->BindAction(IA_Power, E::Completed, this, &ThisClass::OnPowerReleased);
 	EIC->BindAction(IA_Ability, E::Started, this, &ThisClass::OnAbility);
+	EIC->BindAction(IA_Ability, E::Completed, this, &ThisClass::OnAbilityReleased);
 	EIC->BindAction(IA_SwitchNext, E::Started, this, &ThisClass::OnSwitchNext);
 	EIC->BindAction(IA_SwitchPrev, E::Started, this, &ThisClass::OnSwitchPrev);
 	EIC->BindAction(IA_Switch1, E::Started, this, &ThisClass::OnSwitch1);
@@ -364,6 +373,17 @@ void ATDSpacePlayerController::OnPossess(APawn* InPawn)
 
 void ATDSpacePlayerController::OnUnPossess()
 {
+	if (bThrottleUpApplied)
+	{
+		if (ATDSpacecraft* Craft = GetSpacecraft())
+		{
+			if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
+			{
+				Move->ClearThrottleTopSpeed();
+			}
+		}
+		bThrottleUpApplied = false;
+	}
 	// Release the old ship's triggers so its wingman AI starts clean. Never touch its velocity.
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, false); }
 	if (bFireSecondaryHeld) { RouteTrigger(ETDWeaponSlot::Secondary, false); }
@@ -412,8 +432,14 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	}
 	bMouseMovedThisFrame = false;
 
+	if (!bSpaceInputEnabled)
+	{
+		// Disabled (cutscene, autopilot, ground): don't touch the ship's latched input at all.
+		return;
+	}
+
 	// Hold-Q: Signature2 fires the moment the hold threshold is crossed.
-	if (PowerPressTime >= 0.0 && !bPowerHoldFired && Now - PowerPressTime >= PowerHoldSeconds)
+	if (PowerPressTime >= 0.0 && !bPowerImmediate && !bPowerHoldFired && Now - PowerPressTime >= PowerHoldSeconds)
 	{
 		bPowerHoldFired = true;
 		RoutePower(ETDPowerInput::Signature2);
@@ -443,6 +469,7 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	// Core contract: Throttle -1 = min speed, +1 = cruise. Neutral flies at cruise; back throttle slows.
 	In.Throttle = FMath::Clamp(1.f + FMath::Min(ThrottleAxis, 0.f) * 2.f, -1.f, 1.f);
 	In.bBrake = bBrakeKey || (ThrottleAxis <= -TriggerBrakeThreshold && bUsingGamepad);
+	ApplyThrottleUp();
 
 	FVector2D Aim;
 	if (bRadialOpen)
@@ -451,12 +478,12 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	}
 	else if (bUsingGamepad)
 	{
-		Aim = ShapeStick(StickAim, StickDeadzone, StickResponseExponent);
+		Aim = ShapeStickImpl(StickAim, StickDeadzone, StickResponseExponent);
 		if (bInvertStickPitch) { Aim.Y = -Aim.Y; }
 	}
 	else
 	{
-		Aim = ShapeStick(VirtualStick, MouseDeadzone, MouseResponseExponent);
+		Aim = ShapeStickImpl(VirtualStick, MouseDeadzone, MouseResponseExponent);
 	}
 	In.Aim = Aim;
 	In.Roll = CurrentFlightInput.Roll;
@@ -482,7 +509,9 @@ void ATDSpacePlayerController::PushFlightInput()
 {
 	if (ATDSpacecraft* Craft = GetSpacecraft())
 	{
-		Craft->SetFlightInput(bSpaceInputEnabled ? CurrentFlightInput : FTDFlightInput());
+		// When disabled, ResetHeldInputs has already neutralised this to "cruise, no buttons"; it's pushed
+		// once there, and PlayerTick then leaves the ship alone for cutscenes and autopilots.
+		Craft->SetFlightInput(CurrentFlightInput);
 	}
 }
 
@@ -504,7 +533,7 @@ FVector ATDSpacePlayerController::GetAimWorldDirection() const
 	}
 	const FVector2D Stick = bUsingGamepad ? FVector2D::ZeroVector : VirtualStick;
 	const float HalfMin = 0.5f * FMath::Min(SizeX, SizeY);
-	const FVector2D ScreenPos(0.5f * SizeX + Stick.X * HalfMin * 0.5f, 0.5f * SizeY - Stick.Y * HalfMin * 0.5f);
+	const FVector2D ScreenPos(0.5f * SizeX + Stick.X * HalfMin * ReticleScreenScale, 0.5f * SizeY - Stick.Y * HalfMin * ReticleScreenScale);
 
 	FVector WorldPos, WorldDir;
 	if (!DeprojectScreenPositionToWorld(ScreenPos.X, ScreenPos.Y, WorldPos, WorldDir))
@@ -512,7 +541,7 @@ FVector ATDSpacePlayerController::GetAimWorldDirection() const
 		return Fallback;
 	}
 	// Converge on a point far ahead so shots from the ship's muzzles meet the reticle line.
-	const FVector AimPoint = WorldPos + WorldDir * 30000.f;
+	const FVector AimPoint = WorldPos + WorldDir * AimConvergenceDistance;
 	return (AimPoint - Craft->GetActorLocation()).GetSafeNormal(UE_SMALL_NUMBER, Fallback);
 }
 
@@ -558,6 +587,10 @@ void ATDSpacePlayerController::OnMouseAim(const FInputActionValue& Value)
 	{
 		return;
 	}
+	if (bUsingGamepad && Delta.Size() < MouseTakeOverThreshold)
+	{
+		return; // a bumped desk doesn't steal aim from the gamepad
+	}
 	if (bInvertMousePitch)
 	{
 		Delta.Y = -Delta.Y;
@@ -574,9 +607,10 @@ void ATDSpacePlayerController::OnMouseAim(const FInputActionValue& Value)
 void ATDSpacePlayerController::OnStickAim(const FInputActionValue& Value)
 {
 	StickAim = Value.Get<FVector2D>();
-	if (StickAim.Size() > StickDeadzone)
+	if (StickAim.Size() > StickDeadzone && !bUsingGamepad)
 	{
 		bUsingGamepad = true;
+		VirtualStick = FVector2D::ZeroVector; // the mouse reticle doesn't linger off-centre under gamepad play
 	}
 }
 
@@ -621,23 +655,64 @@ void ATDSpacePlayerController::OnPowerPressed(const FInputActionValue&)
 {
 	PowerPressTime = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
 	bPowerHoldFired = false;
+	// Ships without a second signature power (Rift, Lancer) fire on press: no hold delay to wait out.
+	bool bHasSignature2 = false;
+#if TD_HAS_POWERS
+	bHasSignature2 = UTDPowerComponent::FindPower(GetPawn(), ETDPowerInput::Signature2) != nullptr;
+#endif
+	bPowerImmediate = !bHasSignature2;
+	if (bPowerImmediate)
+	{
+		RoutePower(ETDPowerInput::Signature1, true);
+	}
 }
 
 void ATDSpacePlayerController::OnPowerReleased(const FInputActionValue&)
 {
-	if (PowerPressTime >= 0.0 && !bPowerHoldFired)
+	if (PowerPressTime >= 0.0)
 	{
-		RoutePower(ETDPowerInput::Signature1);
-	}
-	else if (bPowerHoldFired)
-	{
-		RoutePower(ETDPowerInput::Signature2, false); // release edge after a hold (Bastion's dome)
+		if (bPowerImmediate)
+		{
+			RoutePower(ETDPowerInput::Signature1, false);
+		}
+		else if (!bPowerHoldFired)
+		{
+			// Tap on a two-power ship (Bastion): Signature1 press + release.
+			RoutePower(ETDPowerInput::Signature1, true);
+			RoutePower(ETDPowerInput::Signature1, false);
+		}
+		else
+		{
+			RoutePower(ETDPowerInput::Signature2, false); // release edge after a hold (Bastion's dome)
+		}
 	}
 	PowerPressTime = -1.0;
 	bPowerHoldFired = false;
+	bPowerImmediate = false;
 }
 
-void ATDSpacePlayerController::OnAbility(const FInputActionValue&) { RoutePower(ETDPowerInput::Ability); }
+void ATDSpacePlayerController::OnAbility(const FInputActionValue&) { RoutePower(ETDPowerInput::Ability, true); }
+void ATDSpacePlayerController::OnAbilityReleased(const FInputActionValue&) { RoutePower(ETDPowerInput::Ability, false); }
+
+void ATDSpacePlayerController::ApplyThrottleUp()
+{
+	ATDSpacecraft* Craft = GetSpacecraft();
+	UTDShipMovementComponent* Move = Craft ? Craft->GetShipMovement() : nullptr;
+	if (!Move)
+	{
+		return;
+	}
+	if (ThrottleAxis > 0.f && ThrottleUpBonus > 0.f)
+	{
+		Move->SetThrottleTopSpeed(Move->GetFlightTuning().CruiseSpeed * (1.f + ThrottleUpBonus * ThrottleAxis));
+		bThrottleUpApplied = true;
+	}
+	else if (bThrottleUpApplied)
+	{
+		Move->ClearThrottleTopSpeed();
+		bThrottleUpApplied = false;
+	}
+}
 
 void ATDSpacePlayerController::OnSwitchNext(const FInputActionValue&)
 {
@@ -720,13 +795,13 @@ void ATDSpacePlayerController::RouteTrigger(ETDWeaponSlot Slot, bool bHeld)
 
 void ATDSpacePlayerController::RoutePower(ETDPowerInput Power, bool bPressed)
 {
+	if (!bSpaceInputEnabled && bPressed)
+	{
+		return; // releases still go through so nothing stays held
+	}
 	if (bPressed)
 	{
 		OnPowerInput.Broadcast(Power);
-	}
-	if (!bSpaceInputEnabled && bPressed)
-	{
-		return;
 	}
 #if TD_HAS_POWERS
 	UTDPowerComponent::RoutePowerInput(GetPawn(), Power, bPressed);
