@@ -42,6 +42,16 @@ bool FTDCombatPlaceholderStreakSizes::RunTest(const FString& Parameters)
 	const FTDStreakLook Missile = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::EnemyHomingMissile).Projectile);
 	TestTrue(TEXT("homing missile has a glowing head bigger than its trail"), Missile.bHead && Missile.HeadDiameter > Missile.Thickness);
 	TestFalse(TEXT("lasers have no head"), Laser.bHead);
+
+	// Playtest 3: Bastion's heavy shell must outweigh a needle on screen, and no muzzle flash hides the hull.
+	const FTDStreakLook Shell = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::BreakerBlaster).Projectile);
+	const FTDStreakLook Needle = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::NeedleCannons).Projectile);
+	TestTrue(TEXT("heavy shell carries a hot head"), Shell.bHeavy && Shell.bHead);
+	TestTrue(TEXT("far away, a heavy shell is drawn bigger than a needle"),
+		Shell.Thickness * FTDCombatPlaceholders::DistanceGrowth(Shell, 20000.f) > Needle.Thickness * FTDCombatPlaceholders::DistanceGrowth(Needle, 20000.f) * 1.4f);
+	const float HullRadius = 400.f;
+	const float Capped = FTDCombatPlaceholders::CapMuzzleFlashRadius(FTDCombatPlaceholders::MuzzleFlashRadius(UTDWeaponLibrary::Get(TDWeaponIds::BreakerBlaster).Projectile), HullRadius);
+	TestTrue(TEXT("muzzle flash at its biggest is at most a third of the hull across"), 2.f * 1.2f * Capped <= 2.f * HullRadius / 3.f + 0.01f);
 	const FTDStreakLook Mine = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile);
 	TestFalse(TEXT("slow mines keep their sphere"), Mine.bStreak);
 

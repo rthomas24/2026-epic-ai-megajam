@@ -1,6 +1,6 @@
 // Triad Drift - World (Teammate 4). Dev console commands for playtests and captures (not shipped as cheats).
 //   TD.World.Goto <Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start>   teleport the player's ship to a viewing spot
-//   TD.World.SpawnEnemy <ShardFighter|HookInterceptor|WallGunship|MaulBomber|HiveCarrier> [dist] [pilot 0/1]
+//   TD.World.SpawnEnemy <ShardFighter|HookInterceptor|WallGunship|MaulBomber|HiveCarrier> [dist] [pilot 0/1] [side]
 //                                                                   an enemy in front of the player, facing it
 //   TD.World.Dominion <Reveal|DropShields>                          drive the finale for captures
 
@@ -83,12 +83,13 @@ namespace TDWorldDebug
 		const FName Id = Args.Num() > 0 ? FName(*Args[0]) : TDEnemyIds::ShardFighter;
 		if (!Pawn || !World || !UTDEnemyLibrary::HasEnemy(Id))
 		{
-			UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.SpawnEnemy <ShardFighter|HookInterceptor|WallGunship|MaulBomber|HiveCarrier> [distance cm] [pilot 0/1]"));
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.SpawnEnemy <ShardFighter|HookInterceptor|WallGunship|MaulBomber|HiveCarrier> [distance cm] [pilot 0/1] [side cm]"));
 			return;
 		}
 		const float Dist = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 3000.f;
 		const bool bPilot = Args.Num() > 2 ? FCString::Atoi(*Args[2]) != 0 : false;
-		const FVector Loc = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * FMath::Max(500.f, Dist);
+		const float Side = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 0.f;
+	const FVector Loc = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * FMath::Max(500.f, Dist) + Pawn->GetActorRightVector() * Side;
 		FActorSpawnParameters P;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ATDEnemyShip* E = World->SpawnActor<ATDEnemyShip>(ATDEnemyShip::StaticClass(), Loc, (Pawn->GetActorLocation() - Loc).Rotation() + FRotator(0.f, 35.f, 0.f), P);

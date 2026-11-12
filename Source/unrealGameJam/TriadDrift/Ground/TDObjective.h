@@ -73,6 +73,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Objective")
 	bool AdvanceStep();
 
+	/** Re-announces the current step with new text ("WAKE THE RESONANCE NODES 2 / 3"). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Objective")
+	void UpdateStepText(const FText& Text);
+
+	/** Already done in this run (loading a checkpoint): complete, inactive, never broadcasts or rewards again. */
+	void MarkAlreadyComplete() { bActive = false; bComplete = true; }
+
 	/** Back to not-started (retakes). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Objective")
 	void ResetObjective();

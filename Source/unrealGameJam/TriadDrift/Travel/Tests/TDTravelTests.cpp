@@ -824,6 +824,59 @@ bool FTDTravelPadMarker::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelLateWingman, "TriadDrift.Travel.Landing.ReboardLiftsAWingmanStillComingDown", TD_TEST_FLAGS)
+bool FTDTravelLateWingman::RunTest(const FString& Parameters)
+{
+	// Review minor 3: a wingman that lands after the player and is still coming down at re-board must not finish
+	// landing later and stay parked, invulnerable and holding its pad.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform PadXf = Rig->GetPlayerPad()->GetActorTransform();
+	ATDShip* Lead = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-1500.f, 0.f, 1500.f)));
+	ATDShip* Mate = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-50000.f, 3000.f, 8000.f))); // 500 m out: lands late
+	Mate->SetShipId(ETDShipId::Bastion);
+	Lead->SetPlayerControlled(true);
+	W.Tick();
+	Lead->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("player lands"), Lead->GetLanding()->RequestLand());
+	TestTrue(TEXT("the far wingman lands too"), Mate->GetLanding()->IsBusy());
+	for (int32 i = 0; i < 60 * 8 && !Lead->GetLanding()->IsLanded(); ++i) { W.Tick(); }
+	TestTrue(TEXT("player landed"), Lead->GetLanding()->IsLanded());
+	TestTrue(TEXT("wingman still coming down"), Mate->GetLanding()->IsLandingInProgress());
+	ATDLandingPad* MatePad = Mate->GetLanding()->GetPad();
+
+	TestTrue(TEXT("re-board: take off"), Lead->GetLanding()->RequestTakeOff());
+	W.Tick();
+	TestEqual(TEXT("late wingman straight back to flying"), Mate->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	W.Advance(6.f);
+	TestEqual(TEXT("and it stays flying"), Mate->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("not parked"), Mate->IsFlightParked());
+	TestFalse(TEXT("not invulnerable"), Mate->GetHealth()->IsInvulnerable());
+	TestTrue(TEXT("its pad is free"), !MatePad || !MatePad->IsOccupied());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelRigNoPlaceholder, "TriadDrift.Travel.Planet.PlaceholderGroundCanBeSwitchedOff", TD_TEST_FLAGS)
+bool FTDTravelRigNoPlaceholder::RunTest(const FString& Parameters)
+{
+	// Review minor 5: with real terrain the 4 km placeholder slab must be off from the first frame.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Off = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") }, false);
+	if (!TestNotNull(TEXT("rig"), Off)) { return false; }
+	W.Tick();
+	ATDShip* Probe = TDTravelTest::SpawnShip(W, FVector(3000.f, 3000.f, 1500.f));
+	W.Tick();
+	TestTrue(TEXT("no placeholder: nothing under a ship beside the pads"), Probe->GetAltitudeMeters() < 0.f);
+	Off->SetPlaceholderGround(true);
+	W.Tick();
+	TestTrue(TEXT("switched back on: ground under the ship"), Probe->GetAltitudeMeters() >= 0.f);
+	Off->SetPlaceholderGround(false);
+	W.Tick();
+	TestTrue(TEXT("switched off after BeginPlay too"), Probe->GetAltitudeMeters() < 0.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelCameraNow, "TriadDrift.Travel.Camera.ChaseTransformNowForAIShip", TD_TEST_FLAGS)
 bool FTDTravelCameraNow::RunTest(const FString& Parameters)
 {

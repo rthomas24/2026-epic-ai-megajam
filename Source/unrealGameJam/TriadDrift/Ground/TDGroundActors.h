@@ -51,6 +51,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	int32 LinkedStep = 0;
 
+	/** False: usable only during LinkedStep but doesn't complete it (a counter does: resonance nodes, charges). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	bool bCompleteLinkedStep = true;
+
+	/** A hold that taking damage doesn't break (the wreck-core extraction under fire). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	bool bHoldSurvivesDamage = false;
+
 	UPROPERTY(BlueprintAssignable, Category = "Interact")
 	FTDOnInteracted OnInteracted;
 

@@ -443,6 +443,12 @@ namespace TDSquad
 		}
 	}
 
+	float GetMaxHull(const AActor* Actor)
+	{
+		const UTDHealthComponent* H = Health(Actor);
+		return H ? H->MaxHull : 0.f;
+	}
+
 	void RepairHull(AActor* Actor, float Amount)
 	{
 		UTDHealthComponent* H = Health(Actor);
@@ -566,6 +572,17 @@ namespace TDSquad
 		return GI ? GI->GetCurrentObjective().Text : FText::GetEmpty();
 	}
 
+	FVector GetAimDirection(const ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return FVector::ForwardVector;
+		}
+		const UTDWeaponComponent* W = Ship->FindComponentByClass<UTDWeaponComponent>();
+		const FVector Dir = W ? W->GetAimDirection() : FVector::ZeroVector;
+		return Dir.IsNearlyZero() ? Ship->GetActorForwardVector() : Dir.GetSafeNormal();
+	}
+
 	FText GetLandPrompt(const ATDShip* Ship)
 	{
 		const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
@@ -585,10 +602,26 @@ namespace TDSquad
 		// From one step behind to LookAhead ahead: covers this frame's integration whichever ticks first.
 		const FVector From = Loc - Vel * 0.05f;
 		const FVector To = Loc + Vel * LookAheadSeconds;
-		for (TActorIterator<ATDPortalGate> It(World); It; ++It)
+		// Review minor 6: the gate list is cached per world (gates are level actors; refreshed every 2 s).
+		static TWeakObjectPtr<UWorld> CachedWorld;
+		static TArray<TWeakObjectPtr<ATDPortalGate>> Gates;
+		static double NextRefresh = 0.0;
+		const double T = World->GetTimeSeconds();
+		if (CachedWorld.Get() != World || T >= NextRefresh || NextRefresh - T > 2.0)
 		{
+			CachedWorld = World;
+			NextRefresh = T + 2.0;
+			Gates.Reset();
+			for (TActorIterator<ATDPortalGate> It(World); It; ++It)
+			{
+				Gates.Add(*It);
+			}
+		}
+		for (const TWeakObjectPtr<ATDPortalGate>& Weak : Gates)
+		{
+			const ATDPortalGate* G = Weak.Get();
 			bool bForward = true;
-			if (It->IsGateActive() && ATDPortalGate::SegmentCrossesGate(It->GetActorTransform(), It->Radius * 1.25f, From, To, bForward))
+			if (G && G->IsGateActive() && ATDPortalGate::SegmentCrossesGate(G->GetActorTransform(), G->Radius * 1.25f, From, To, bForward))
 			{
 				Powers->MarkTransited(Ship);
 				return true;
@@ -742,10 +775,11 @@ namespace TDSquad
 
 	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2)
 	{
+		// Review minor 8: a power the ship doesn't have reads 0, never "ready".
 		auto Cooldown = [Ship](ETDPowerInput Slot)
 		{
 			const UTDPowerComponent* Power = Ship ? UTDPowerComponent::FindPower(Ship, Slot) : nullptr;
-			return Power ? Power->GetCooldown01() : 1.f;
+			return Power ? Power->GetCooldown01() : 0.f;
 		};
 		OutPower1 = Cooldown(ETDPowerInput::Signature1);
 		OutPower2 = Cooldown(ETDPowerInput::Signature2);

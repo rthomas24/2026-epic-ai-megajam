@@ -214,6 +214,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
 	bool IsBusy() const { return State != ETDLandingState::Flying; }
 
+	/** In a landing step (Aligning .. CanopyOpening): coming down, not yet landed, not taking off. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool IsLandingInProgress() const
+	{
+		return State == ETDLandingState::Aligning || State == ETDLandingState::GearDown || State == ETDLandingState::Descending
+			|| State == ETDLandingState::Touchdown || State == ETDLandingState::EnginesOff || State == ETDLandingState::CanopyOpening;
+	}
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
 	ATDLandingPad* GetPad() const { return Pad.Get(); }
 
