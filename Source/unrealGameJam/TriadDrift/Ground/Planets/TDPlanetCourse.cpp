@@ -50,13 +50,12 @@ ATDPlanetCourse::ATDPlanetCourse()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cyl(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sph(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cone(TEXT("/Engine/BasicShapes/Cone.Cone"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Lit(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 	CubeMesh = Cube.Object;
 	CylinderMesh = Cyl.Object;
 	SphereMesh = Sph.Object;
 	ConeMesh = Cone.Object;
-	GlowMaterial = Glow.Object;
+	GlowMaterial = nullptr; // glow comes from UTDStatics::TintPlaceholder (Core's always-cooked glow material)
 	LitMaterial = Lit.Object;
 }
 

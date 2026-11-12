@@ -67,11 +67,6 @@ ATDSpaceGameMode::ATDSpaceGameMode()
 	SquadOrigin = FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostUpdateWork; // after the camera moved this frame
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
-	if (Glow.Succeeded())
-	{
-		StarGlowMaterial = Glow.Object;
-	}
 }
 
 void ATDSpaceGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -389,6 +384,7 @@ void ATDSpaceGameMode::SpawnStarBackdrop()
 		ISM->SetupAttachment(Root);
 		ISM->RegisterComponent();
 		Stars->AddInstanceComponent(ISM);
+		StarGlowMaterial = UTDStatics::GetPlaceholderGlowMaterial(); // instanced-mesh usage, always cooked (Core)
 		if (StarGlowMaterial)
 		{
 			if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(StarGlowMaterial, Stars))
