@@ -366,8 +366,14 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
 
 #### ENG-06 · Targeting & lock-on · `⬜`
 - Soft target = the enemy closest to screen centre within 25°, cycled by distance.
-- Bastion missile locks: hold the power and paint up to 6 targets at 0.25 s each.
-- Off-screen arrows, incoming-missile and objective direction data → `ITDHUDData`.
+- Bastion missile locks: targets inside the 25° cone are painted automatically, up to 6, at 0.25 s
+  each. A lock is dropped when its target dies, becomes invalid (cloaked, wrong team), goes beyond the
+  swarm's range, or stays outside the cone for more than 1.5 s; when all six are used, a new
+  candidate replaces the stalest lock.
+- Off-screen arrows, incoming-missile and objective direction data → `ITDHUDData`. Objective
+  markers are the live actors carrying the actor tag `TD.Objective.Marker`. The game flow owns the tag:
+  the destination planet's atmosphere, live shield generators, the reactor, on-foot waypoints and the
+  board-ship point; the landing pad while in atmosphere (flight). Nothing is tagged during a wave.
 - Incoming-missile warning state (Nick supplies the sound and UI).
 
 #### ENG-07 · Squad manager & instant switching (PROTECT) · `⬜`
@@ -517,7 +523,9 @@ See §7.
 - **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
   altitude data.
 - **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land"
-  within 3000 cm below 40% speed).
+  within 120 m of the pad at or below 60% of the atmosphere speed cap; between 120 m and 400 m
+  while too fast the prompt reads "SLOW DOWN TO LAND"). Near the ground the ship levels out by
+  itself, so a hands-off arrival never crashes.
 - **Landing and take-off:** auto-land (gear and canopy state exposed), wingmen land beside you, the
   exit hands off to first person, and boarding reverses it.
 

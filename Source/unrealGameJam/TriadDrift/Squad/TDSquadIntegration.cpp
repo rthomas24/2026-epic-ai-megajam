@@ -25,6 +25,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
 #include "EngineUtils.h"
@@ -559,6 +560,18 @@ namespace TDSquad
 		return true;
 	}
 
+	FText GetCurrentObjectiveText(const UObject* WorldContext)
+	{
+		const UTDGameInstance* GI = UTDGameInstance::Get(WorldContext);
+		return GI ? GI->GetCurrentObjective().Text : FText::GetEmpty();
+	}
+
+	FText GetLandPrompt(const ATDShip* Ship)
+	{
+		const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
+		return Landing ? Landing->GetLandPrompt() : FText::GetEmpty();
+	}
+
 	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds)
 	{
 		UWorld* World = Ship ? Ship->GetWorld() : nullptr;
@@ -893,6 +906,7 @@ namespace TDSquad
 		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
 		{
 			Bus->OnActorKilled.AddUniqueDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+			Bus->OnObjectiveUpdated.AddUniqueDynamic(Squad, &ATDSquadManager::HandleObjectiveUpdated);
 		}
 	}
 
@@ -901,6 +915,7 @@ namespace TDSquad
 		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
 		{
 			Bus->OnActorKilled.RemoveDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+			Bus->OnObjectiveUpdated.RemoveDynamic(Squad, &ATDSquadManager::HandleObjectiveUpdated);
 		}
 	}
 

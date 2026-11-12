@@ -2,6 +2,7 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.Powers.Presentation
 
 #include "Misc/AutomationTest.h"
+#include "UObject/StrongObjectPtr.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -104,6 +105,7 @@ bool FTDPresArtHidesPlaceholders::RunTest(const FString& Parameters)
 	AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 	UTDPortalBlasterPower* Portal = AddPower<UTDPortalBlasterPower>(Rift);
 	UTDTravelFX* Travel = NewObject<UTDTravelFX>();
+	const TStrongObjectPtr<UTDTravelFX> TravelRooted(Travel); // a test-made asset: nothing else holds it until it's assigned
 	Travel->PortalIdle.VFX = SomeArt;
 	Portal->TravelFX = Travel;
 	Portal->HandleInputPressed();
@@ -112,6 +114,7 @@ bool FTDPresArtHidesPlaceholders::RunTest(const FString& Parameters)
 
 	UTDCloakPower* Cloak = AddPower<UTDCloakPower>(Rift);
 	UTDAbilityFX* CloakFX = NewObject<UTDAbilityFX>();
+	const TStrongObjectPtr<UTDAbilityFX> CloakFXRooted(CloakFX); // a test-made asset: nothing else holds it until it's assigned
 	CloakFX->Loop.VFX = SomeArt;
 	Cloak->FX = CloakFX;
 	Cloak->TryActivate();
@@ -121,6 +124,7 @@ bool FTDPresArtHidesPlaceholders::RunTest(const FString& Parameters)
 	UTDWeaponComponent* Weapons = NewObject<UTDWeaponComponent>(Rift, TEXT("Weapons"));
 	Weapons->RegisterComponent();
 	UTDWeaponFX* Mine = NewObject<UTDWeaponFX>();
+	const TStrongObjectPtr<UTDWeaponFX> MineRooted(Mine); // a test-made asset: nothing else holds it until it's assigned
 	Weapons->PrimaryFX = Mine;
 	Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
 	TestTrue(TEXT("designer FX kept"), Weapons->PrimaryFX == Mine);
@@ -170,8 +174,11 @@ bool FTDPresCueRequests::RunTest(const FString& Parameters)
 	FTDPowerPresentation::ResetCueRequests();
 	auto N = [](const TCHAR* Moment) { return FTDPowerPresentation::GetCueRequests(FName(Moment)); };
 	UTDShipVisuals* Ship = NewObject<UTDShipVisuals>();
+	const TStrongObjectPtr<UTDShipVisuals> ShipRooted(Ship); // a test-made asset: nothing else holds it until it's assigned
 	UTDAbilityFX* Ability = NewObject<UTDAbilityFX>();
+	const TStrongObjectPtr<UTDAbilityFX> AbilityRooted(Ability); // a test-made asset: nothing else holds it until it's assigned
 	UTDTravelFX* Travel = NewObject<UTDTravelFX>();
+	const TStrongObjectPtr<UTDTravelFX> TravelRooted(Travel); // a test-made asset: nothing else holds it until it's assigned
 
 	// Ram: wind-up, then active at the dash, then end.
 	ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
@@ -191,6 +198,8 @@ bool FTDPresCueRequests::RunTest(const FString& Parameters)
 	Dome->ShipVisuals = Ship;
 	Dome->FX = Ability;
 	Dome->TryActivate();
+	// Repro probe: a full garbage collection mid-power (the suite crashed here once, GC dependent).
+	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 	TestEqual(TEXT("dome: Power2Active"), N(TEXT("Ship.Power2Active")), 1);
 	TestTrue(TEXT("dome: shell Loop"), N(TEXT("Ability.Loop")) >= 1);
 	W.Advance(6.5f);

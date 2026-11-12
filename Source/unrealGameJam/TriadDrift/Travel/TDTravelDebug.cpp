@@ -15,6 +15,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
@@ -165,19 +166,25 @@ namespace TDTravelDebug
 		ATDShip* Ship = GetPlayerShip(World);
 		if (!Ship)
 		{
-			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: map %s, no player ship (pawn: %s)"), World ? *World->GetMapName() : TEXT("?"),
-				(GetPC(World) && GetPC(World)->GetPawn()) ? *GetPC(World)->GetPawn()->GetName() : TEXT("none"));
+			APawn* Pawn = GetPC(World) ? GetPC(World)->GetPawn() : nullptr;
+			const ITDHUDData* Hud = Cast<ITDHUDData>(Pawn);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: map %s, no player ship (pawn: %s at %s, prompt '%s')"), World ? *World->GetMapName() : TEXT("?"),
+				Pawn ? *Pawn->GetName() : TEXT("none"), Pawn ? *Pawn->GetActorLocation().ToCompactString() : TEXT("-"),
+				Hud ? *Hud->GetInteractPrompt().ToString() : TEXT(""));
 			return;
 		}
 		const FTDFlightInput& In = Ship->GetFlightInput();
-		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: input throttle %.2f aim %.2f,%.2f roll %.2f boost %d drift %d brake %d | boost meter %.2f boosting %d drifting %d out-of-bounds %d near-boundary %d"),
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: input throttle %.2f aim %.2f,%.2f roll %.2f boost %d drift %d brake %d | boost meter %.2f boosting %d drifting %d out-of-bounds %d near-boundary %d | hull roll %.1f visual bank %.1f"),
 			In.Throttle, In.Aim.X, In.Aim.Y, In.Roll, In.bBoost, In.bDrift, In.bBrake, Ship->GetBoost01(), Ship->IsBoosting(), Ship->IsDrifting(),
-			Ship->IsOutOfBounds(), Ship->GetShipMovement()->IsNearBoundary());
+			Ship->IsOutOfBounds(), Ship->GetShipMovement()->IsNearBoundary(),
+			Ship->GetActorRotation().Roll, Ship->GetShipMovement()->GetVisualBank());
 		if (const UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
 		{
 			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: hyperdrive state %d charge %.2f block '%s' player-flown %d"),
 				(int32)Hyper->GetState(), Hyper->GetCharge01(), *Hyper->GetBlockReasonText().ToString(), Ship->IsPlayerFlown());
 		}
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: land prompt '%s' | rotation %s"),
+			Ship->GetLanding() ? *Ship->GetLanding()->GetLandPrompt().ToString() : TEXT(""), *Ship->GetActorRotation().ToCompactString());
 		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: map %s ship %s at %s speed %.0f atmosphere %d hyperdrive %d landing %d altitude %.0f m"),
 			*World->GetMapName(), *Ship->GetName(), *Ship->GetActorLocation().ToString(), (float)Ship->GetVelocity().Size(),
 			Ship->GetShipMovement()->IsInAtmosphere() ? 1 : 0,

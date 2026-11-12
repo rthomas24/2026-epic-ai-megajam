@@ -87,6 +87,77 @@ void UTDGameInstance::BindEventBus()
 	Bus->OnActorKilled.AddUniqueDynamic(this, &UTDGameInstance::HandleActorKilled);
 	Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDGameInstance::HandleWaveStarted);
 	Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDGameInstance::HandleWaveCleared);
+	Bus->OnObjectiveUpdated.AddUniqueDynamic(this, &UTDGameInstance::HandleObjectiveUpdated);
+}
+
+void UTDGameInstance::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
+{
+	LastObjective.Id = ObjectiveId;
+	LastObjective.Step = Step;
+	LastObjective.Text = Text;
+}
+
+TArray<AActor*> UTDGameInstance::GetFlowMarkers() const
+{
+	TArray<AActor*> Out;
+	for (const TWeakObjectPtr<AActor>& A : FlowMarkers)
+	{
+		if (A.IsValid())
+		{
+			Out.Add(A.Get());
+		}
+	}
+	return Out;
+}
+
+void UTDGameInstance::SyncMarkers(bool bClearAll)
+{
+	TArray<AActor*> Want;
+	if (!bClearAll)
+	{
+		FTDObjectiveText::ComputeMarkers(GetWorld(), Progress, CurrentDestination, Want);
+	}
+	for (const TWeakObjectPtr<AActor>& Old : FlowMarkers)
+	{
+		if (Old.IsValid() && !Want.Contains(Old.Get()))
+		{
+			Old->Tags.Remove(TDTags::ObjectiveMarker);
+		}
+	}
+	FlowMarkers.Reset();
+	for (AActor* A : Want)
+	{
+		A->Tags.AddUnique(TDTags::ObjectiveMarker);
+		FlowMarkers.Add(A);
+	}
+}
+
+void UTDGameInstance::RefreshObjective(bool bForce)
+{
+	UWorld* World = GetWorld();
+	UTDEventBus* Bus = GetBus();
+	if (!World || !Bus || IsTravelPending())
+	{
+		if (IsTravelPending())
+		{
+			SyncMarkers(true); // nothing is the objective mid-travel
+		}
+		return;
+	}
+	SyncMarkers(IsRetakePending() || IsMenuDestination(CurrentDestination));
+	FTDObjectiveLine Line;
+	if (FTDObjectiveText::Compute(World, Progress, CurrentDestination, Line))
+	{
+		if (bForce || Line != LastObjective)
+		{
+			Bus->BroadcastObjectiveUpdated(Line.Id, Line.Step, Line.Text); // HandleObjectiveUpdated stores it
+		}
+	}
+	else if (bForce && LastObjective.IsSet() && !IsMenuDestination(CurrentDestination))
+	{
+		// On foot with a planet objective running: repeat its current step for a new HUD.
+		Bus->BroadcastObjectiveUpdated(LastObjective.Id, LastObjective.Step, LastObjective.Text);
+	}
 }
 
 UTDEventBus* UTDGameInstance::GetBus() const
@@ -269,6 +340,20 @@ void UTDGameInstance::TickFlow(float RealDeltaSeconds)
 		{
 			ExecuteRetake();
 		}
+	}
+
+	// Objective line for flow-owned scenes (cheap; only broadcasts on change or when forced).
+	ObjectiveCheckLeft -= RealDeltaSeconds;
+	bool bForceObjective = false;
+	if (ObjectiveForceLeft >= 0.f)
+	{
+		ObjectiveForceLeft -= RealDeltaSeconds;
+		bForceObjective = ObjectiveForceLeft < 0.f;
+	}
+	if (ObjectiveCheckLeft <= 0.f || bForceObjective)
+	{
+		ObjectiveCheckLeft = 0.25f;
+		RefreshObjective(bForceObjective);
 	}
 
 	// Travel.
@@ -485,6 +570,7 @@ void UTDGameInstance::ExecuteRetake()
 	{
 		Bus->BroadcastTakeStarted(Scene, Take);
 	}
+	ObjectiveForceLeft = 0.3f; // after the rebuild: the objective line comes back with the new take
 	UE_LOG(LogTriadDrift, Log, TEXT("CUT! Scene %s restarts as take %d."), *Scene.ToString(), Take);
 }
 
@@ -546,6 +632,7 @@ void UTDGameInstance::ResetRunState()
 	Progress = FTDProgress();
 	LastCheckpoint = FTDCheckpoint();
 	SceneOrder.Reset();
+	LastObjective = FTDObjectiveLine();
 	CurrentSceneId = NAME_None;
 	LastAnnouncedScene = NAME_None;
 	LastAnnouncedTake = 0;
@@ -646,7 +733,14 @@ void UTDGameInstance::NotifyLevelEntered(ETDDestination Destination)
 		return;
 	}
 	SetRunTimerPaused(Progress.Phase == ETDGamePhase::Victory);
+	const ETDGamePhase PhaseBeforeEntry = Progress.Phase;
 	ApplyStoryTransitionsOnEntry(Destination);
+	if (Progress.Phase == PhaseBeforeEntry)
+	{
+		BroadcastPhase(); // the new level's listeners (HUD, music state) learn the phase on every level entry
+	}
+	LastObjective = FTDObjectiveLine(); // the old level's line is stale; on-foot objectives re-announce themselves
+	ObjectiveForceLeft = 0.5f; // once the new level's HUD exists
 	TakeCheckpoint(TDFlow::ReasonLevelEntry);
 }
 
@@ -758,6 +852,7 @@ bool UTDGameInstance::WriteSaveSlot(bool bForce)
 	Save->Checkpoint.Progress.RunTimeSeconds = Progress.RunTimeSeconds;
 	Save->SceneOrder = SceneOrder;
 	Save->SavedAtUtc = FDateTime::UtcNow();
+	Save->Difficulty = UTDDifficultySettings::GetCurrent();
 	const bool bOk = UGameplayStatics::SaveGameToSlot(Save, GetSaveSlotName(), UTDFlowSettings::Get()->SaveUserIndex);
 	if (!bOk)
 	{
@@ -814,7 +909,19 @@ bool UTDGameInstance::ApplySave(const UTDSaveGame& Save)
 	CurrentSceneId = Save.Checkpoint.SceneId;
 	LastAnnouncedScene = NAME_None;
 	LastAnnouncedTake = 0;
+	UTDDifficultySettings::SetCurrent(Save.Difficulty);
 	return true;
+}
+
+void UTDGameInstance::SetDifficulty(ETDDifficulty Difficulty)
+{
+	UTDDifficultySettings::SetCurrent(Difficulty);
+	WriteSaveSlot(); // a committed run keeps it; a fresh boot / menu writes nothing (save safety)
+}
+
+ETDDifficulty UTDGameInstance::GetDifficulty() const
+{
+	return UTDDifficultySettings::GetCurrent();
 }
 
 // ------------------------------------------------------------------------------------------------

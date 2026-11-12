@@ -122,6 +122,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsInAtmosphere() const { return Context.bAtmosphere; }
+	/** Plain top speed right now: cruise in space, cruise x the atmosphere cap fraction in atmosphere. */
+	float GetCruiseCapSpeed() const { return Context.bAtmosphere ? Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction : Tuning.CruiseSpeed; }
 
 	/** Centre of the current spherical play space. */
 	FVector GetBoundaryCenter() const { return Context.BoundaryCenter; }
@@ -225,6 +227,8 @@ protected:
 	float StartSpeedFraction = 1.f;
 
 private:
+	/** In atmosphere: trace the static ground below for the flight model's soft floor (Context.GroundClearance). */
+	void MeasureGroundClearance();
 	void ResolveMove(const FVector& Delta, float DeltaTime);
 	void HandleShipImpact(const FHitResult& Hit, float DeltaTime);
 	void SyncStateFromComponent();

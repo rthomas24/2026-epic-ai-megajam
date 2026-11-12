@@ -5,6 +5,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Components/StaticMeshComponent.h"
+#include "UObject/StrongObjectPtr.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
 
@@ -42,6 +44,12 @@ bool FTDCombatPlaceholderStreakSizes::RunTest(const FString& Parameters)
 	TestFalse(TEXT("lasers have no head"), Laser.bHead);
 	const FTDStreakLook Mine = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile);
 	TestFalse(TEXT("slow mines keep their sphere"), Mine.bStreak);
+
+	// End-on from the chase camera: thickness keeps ~11 px with distance, capped.
+	TestEqual(TEXT("close shots keep their base size"), FTDCombatPlaceholders::DistanceGrowth(Laser, 1000.f), 1.f);
+	const float Far = FTDCombatPlaceholders::DistanceGrowth(Laser, 20000.f);
+	TestTrue(TEXT("far shots grow to stay readable"), Far > 1.f && Laser.Thickness * Far * 1280.f / (2.f * 20000.f) >= FTDCombatPlaceholders::MinStreakPixels - 0.01f);
+	TestEqual(TEXT("growth is capped"), FTDCombatPlaceholders::DistanceGrowth(Laser, 1.0e6f), FTDCombatPlaceholders::MaxDistanceGrowth);
 	return true;
 }
 
@@ -124,23 +132,21 @@ bool FTDCombatPlaceholderFlashes::RunTest(const FString& Parameters)
 		W.Advance(0.5f, Step);
 		TestEqual(TEXT("impact flash is short and goes away") + Fps, Projectiles->GetPlayingFlashCount(), 0);
 
-		// Muzzle: a ship-less shooter with no weapon art.
+		// Muzzle: forced placeholder-only FX, so the check never skips itself once art exists.
 		AActor* Shooter = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector(0.f, 0.f, 5000.f), FVector(50.f));
 		UTDWeaponComponent* Weapons = TDCombatTest::AddWeapons(Shooter);
 		Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::NeedleCannons);
-		const UTDWeaponFX* FX = Weapons->PrimaryFX.Get();
-		if (!FX || FX->Muzzle.IsEmpty())
+		const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());
+		Weapons->PrimaryFX = NoArt.Get();
+		Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
+		bool bMuzzle = false;
+		for (float T = 0.f; T < 0.2f && !bMuzzle; T += Step)
 		{
-			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
-			bool bMuzzle = false;
-			for (float T = 0.f; T < 0.2f && !bMuzzle; T += Step)
-			{
-				W.Tick(Step);
-				bMuzzle = Projectiles->GetPlayingFlashCount() > 0;
-			}
-			TestTrue(TEXT("muzzle flash plays") + Fps, bMuzzle);
-			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, false);
+			W.Tick(Step);
+			bMuzzle = Projectiles->GetPlayingFlashCount() > 0;
 		}
+		TestTrue(TEXT("muzzle flash plays") + Fps, bMuzzle);
+		Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, false);
 	}
 
 	// The pool is capped: a storm of flashes reuses actors instead of spawning without bound.
@@ -151,6 +157,63 @@ bool FTDCombatPlaceholderFlashes::RunTest(const FString& Parameters)
 		Projectiles->PlayPlaceholderFlash(FVector(I * 10.f, 0.f, 0.f), 100.f, FLinearColor::Red, 1.f);
 	}
 	TestTrue(TEXT("flash pool capped"), Projectiles->GetPlayingFlashCount() <= Projectiles->MaxFlashes);
+	return true;
+}
+
+namespace TDCombatPlaceholderTest
+{
+	const TCHAR* const EngineSound = TEXT("/Engine/EngineSounds/1kSineTonePing.1kSineTonePing");
+	const TCHAR* const EngineVFX = TEXT("/Niagara/DefaultAssets/DefaultSystem.DefaultSystem");
+
+	/** Fires one needle burst into a wall with FX and returns the most flashes seen playing at once. */
+	int32 FireIntoWallAndCountFlashes(UTDWeaponFX* FX, float Step)
+	{
+		FTDTestWorld W;
+		UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
+		TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(3000.f, 0.f, 0.f), FVector(100.f, 800.f, 800.f), 100000.f, 0.f);
+		AActor* Shooter = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDWeaponComponent* Weapons = TDCombatTest::AddWeapons(Shooter);
+		Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::NeedleCannons);
+		Weapons->PrimaryFX = FX;
+		Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
+		int32 Most = 0;
+		for (float T = 0.f; T < 0.4f; T += Step)
+		{
+			W.Tick(Step);
+			Most = FMath::Max(Most, Projectiles ? Projectiles->GetPlayingFlashCount() : 0);
+		}
+		return Most;
+	}
+}
+
+/** Review MAJOR (ENG-05): a sound-only cue must not remove the placeholder flash; a VFX cue must. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderSoundOnlyCue, "TriadDrift.Combat.Placeholder.SoundOnlyCueKeepsFlash", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderSoundOnlyCue::RunTest(const FString& Parameters)
+{
+	FTDFXCue SoundOnly;
+	SoundOnly.Sound = TSoftObjectPtr<USoundBase>(FSoftObjectPath(TDCombatPlaceholderTest::EngineSound));
+	FTDFXCue WithVFX;
+	WithVFX.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TDCombatPlaceholderTest::EngineVFX));
+	TestFalse(TEXT("sound-only cue is not visual art"), FTDCombatPlaceholders::HasVisualArt(SoundOnly));
+	TestTrue(TEXT("VFX cue is visual art"), FTDCombatPlaceholders::HasVisualArt(WithVFX));
+
+	for (const float Step : TDCombatTest::kCombatFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		const TStrongObjectPtr<UTDWeaponFX> Audio(NewObject<UTDWeaponFX>());
+		Audio->Muzzle = SoundOnly;
+		Audio->ImpactWorld = SoundOnly;
+		Audio->ImpactHull = SoundOnly;
+		Audio->ImpactShield = SoundOnly;
+		TestTrue(TEXT("sound-only cues keep muzzle and impact flashes") + Fps, TDCombatPlaceholderTest::FireIntoWallAndCountFlashes(Audio.Get(), Step) > 0);
+
+		const TStrongObjectPtr<UTDWeaponFX> Visual(NewObject<UTDWeaponFX>());
+		Visual->Muzzle = WithVFX;
+		Visual->ImpactWorld = WithVFX;
+		Visual->ImpactHull = WithVFX;
+		Visual->ImpactShield = WithVFX;
+		TestEqual(TEXT("VFX cues replace every placeholder flash") + Fps, TDCombatPlaceholderTest::FireIntoWallAndCountFlashes(Visual.Get(), Step), 0);
+	}
 	return true;
 }
 

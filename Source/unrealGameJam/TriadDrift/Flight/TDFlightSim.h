@@ -78,6 +78,8 @@ struct UNREALGAMEJAM_API FTDFlightContext
 	float AtmosphereGravity = 1200.f;
 	/** Max speed in atmosphere as a fraction of the space CruiseSpeed. */
 	float AtmosphereSpeedCapFraction = 0.6f;
+	/** Ground below the hull (cm), measured by the movement component in atmosphere; < 0 = none in range. */
+	float GroundClearance = -1.f;
 
 	bool bSpeedOverride = false;
 	float OverrideSpeed = 0.f;

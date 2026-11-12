@@ -11,7 +11,7 @@ Owner: Teammate 1. Code: `Source/unrealGameJam/TriadDrift/Travel/`. Tests: `Tria
 | `UTDHyperdriveComponent` (on `ATDShip`) | ENG-15 hyperdrive; see below |
 | `UTDAtmosphereEntryComponent` (on `ATDShip`) | Atmospheric entry, called by T4's galaxy `ATDPlanetAtmosphere`: `BeginEntry(Destination, ReturnPoint, PlanetCenter)` |
 | `ATDAtmosphereFlightZone` (planet maps) | Every squad ship inside its box flies in atmosphere mode, with soft walls and a ceiling; the ceiling exit leads back to the galaxy |
-| `ATDLandingPad` | A pad: beacon, prompt range 3000 cm, "Hold F to land", wingman pads (`bWingmanPad`, `SidePads`), reservation |
+| `ATDLandingPad` | A pad: beacon, prompt range 12000 cm, "Hold F to land", wingman pads (`bWingmanPad`, `SidePads`), reservation |
 | `UTDLandingComponent` (on `ATDShip`) | Auto-landing and take-off state machine, with the state Nick animates from |
 
 ### Hyperdrive (ENG-15)
@@ -62,8 +62,27 @@ Owner: Teammate 1. Code: `Source/unrealGameJam/TriadDrift/Travel/`. Tests: `Tria
 ### Landing and take-off (ENG-20, §7 steps 6, 7, 9 and 10)
 
 **When landing is offered:**
-- The pad's beacon is within 3,000 cm, speed is below 40% of space cruise, and the hyperdrive is idle.
-- `GetLandPrompt()` returns "Hold F to land".
+Rule decided by the Lead on Nov 12, replacing 30 m / 40% of space cruise:
+- The pad's beacon is within 120 m (`ATDLandingPad::PromptRange`).
+- The speed is at or below 60% of the plain top speed (`MaxSpeedFraction`). On a planet that is the atmosphere
+  cap, 3,600 → 2,160 cm/s; in space it is cruise.
+- The hyperdrive is idle.
+- When all three hold, `GetLandPrompt()` returns "Hold F to land".
+- **Approach assist (hold F within 400 m, Lead decision Nov 12):** within `SlowDownPromptRange` of the player
+  pad, while flying, player-flown, not boosting and with the hyperdrive idle, holding F starts
+  `StartApproachAssist()`, and the prompt there already reads "Hold F to land".
+  - The assist owns the nose (keyed override `LandingAssist`, steering 0) and turns it onto the pad's hover point
+    at 150°/s.
+  - It flies at up to `AssistSpeed` (60 m/s, above the atmosphere cap), braking late along
+    `sqrt(End² + 2 × 3000 × distance)`, never below `AssistEndSpeed` (15 m/s).
+  - It hands over to the landing sequence 25 m from the hover point.
+  - Releasing F, a retake (`AbortToFlying`), death, a switch, boost or the hyperdrive ends it.
+  - Measured from the rig's descent start, holding F from the first prompt (399 m): the landing sequence starts
+    after 6.9 s, touchdown at 12.3 s, never below 18.8 m/s while assisting, never touching the ground.
+- "SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE" remains only for a player-flown ship that is too fast within
+  400 m but can't start the assist. In practice that means boosting, which never happens in atmosphere.
+- Aligning now lasts `max(AlignSeconds, 1.5 × distance / arrival speed)`, capped at 4 s, so a sequence started
+  far from the hover point never snaps.
 - Hold F / A for 0.5 s to call `RequestLand`.
 
 **Landing sequence:**
@@ -143,6 +162,9 @@ By hand in the sandbox:
 | `Atmosphere.ZoneModeAltitudeAndExit` | zone applies the mode and the input layer, altitude, hyperdrive blocked, ceiling shut until allowed, exit fires, the objectives gate |
 | `Atmosphere.EntryCommitsAndHandsBack` | 2.5 s entry, nose into the planet, speed held, hyperdrive off, hand-back without a flow |
 | `PlayBounds.AppliedToEveryShip` | existing and later-spawned ships pick up `SetPlayBounds` |
+| `Landing.PromptRuleAndAssistRange` | 60% of the atmosphere cap; "Hold F to land" at 300 m when fast (the assist can start) and at 100 m when slow; nothing at 500 m or for a ship the player isn't flying |
+| `Landing.HoldFFromArrivalLandsInOneMotion` | from the rig's descent start, hands-off until the prompt, then a real held F: the assist starts, the landing sequence begins in under 8 s, never below the end speed, never touches the ground, lands on the player pad |
+| `Landing.AssistStopsOnReleaseRetakeAndBoost` | releasing F, a retake and death each end the assist and clear its override |
 | `Landing.PromptSequenceWingmenTakeOff` | prompt range and speed, the full sequence and its states, pad reservation, a wingman on the side pad, input ignored while landed, take-off with the wingman |
 | `Camera.CockpitToggle` | chase / cockpit switching; V binding |
 

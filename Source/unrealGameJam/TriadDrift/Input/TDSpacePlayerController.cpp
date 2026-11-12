@@ -413,6 +413,10 @@ void ATDSpacePlayerController::OnPossess(APawn* InPawn)
 		ResetHeldInputs();
 		return;
 	}
+	// A switch is a cut: the new ship starts flying straight. The mouse reticle's offset was the old ship's
+	// turn command, so it doesn't carry over (T3 finding: the opening frame could start banked / turning).
+	VirtualStick = FVector2D::ZeroVector;
+	CurrentFlightInput.Aim = FVector2D::ZeroVector;
 	// Held buttons carry over a switch (keep firing / boosting into the new ship), but the trigger
 	// state must be re-sent to the new ship's weapons.
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, true); }
@@ -898,6 +902,14 @@ void ATDSpacePlayerController::OnLandReleased(const FInputActionValue&)
 {
 	LandPressTime = -1.0;
 	bLandFired = false;
+	// Letting go of F hands the approach back to the pilot (a started landing sequence carries on).
+	if (const ATDShip* Ship = Cast<ATDShip>(GetPawn()))
+	{
+		if (UTDLandingComponent* Landing = Ship->GetLanding())
+		{
+			Landing->StopApproachAssist();
+		}
+	}
 }
 
 void ATDSpacePlayerController::OnCameraToggle(const FInputActionValue&)
@@ -1019,7 +1031,8 @@ bool ATDSpacePlayerController::RouteLand()
 	{
 		return Landing->RequestTakeOff();
 	}
-	return Landing->RequestLand();
+	// Slow and close: land now. Otherwise, near a pad, the approach assist flies the ship in while F is held.
+	return Landing->RequestLand() || Landing->StartApproachAssist();
 }
 
 void ATDSpacePlayerController::RouteSquadCommand()

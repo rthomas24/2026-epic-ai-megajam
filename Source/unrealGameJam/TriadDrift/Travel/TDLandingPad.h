@@ -84,7 +84,7 @@ protected:
 
 	/** "Hold F to land" appears within this distance of the beacon (features.md: 3000 cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Landing", meta = (ClampMin = "0"))
-	float PromptRange = 3000.f;
+	float PromptRange = 12000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Landing")
 	FText PromptText;
