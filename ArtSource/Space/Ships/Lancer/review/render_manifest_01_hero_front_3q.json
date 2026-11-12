@@ -1,0 +1,30 @@
+{
+  "blender_version": "5.1.1",
+  "engine": "BLENDER_EEVEE",
+  "color_view": "Khronos PBR Neutral",
+  "cpu_thread_limit": 2,
+  "source_hashes_unchanged": true,
+  "geometry_modified_for_render": false,
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1386017,
+      "mean_rgb": [
+        0.17111535370349884,
+        0.24918751418590546,
+        0.3177754878997803
+      ],
+      "pixel_std": 0.19766946136951447,
+      "nonblack_fraction": 1.0,
+      "title": "Front three-quarter",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    }
+  ],
+  "elapsed_seconds": 23.665,
+  "silhouette_approval": "pending human review",
+  "unreal_import_performed": false
+}

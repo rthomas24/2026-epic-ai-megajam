@@ -1,0 +1,14 @@
+{
+  "technical_pass": true,
+  "triangles": 57788,
+  "images_crc_and_decoded": 14,
+  "final_images": 11,
+  "json_parsed": 22,
+  "html_references_checked": 29,
+  "new_owned_files": 53,
+  "original_sources_equal_HEAD": true,
+  "candidate_blend_bytes": 1713824,
+  "candidate_blend_sha256": "1b38807a54bbfae177794b6c3cfabc63e852c92ac36f690a4b67720c28e40a38",
+  "manual_visual_approval": "pending",
+  "unreal_imported": false
+}

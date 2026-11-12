@@ -69,6 +69,17 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	/** How fast the camera's reference "up" may swing back toward world up (deg/s): smooths loops and dives. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float ReferenceUpRate = 120.f;
+
+	/**
+	 * Camera motion blur in space (0..1, engine default 0.5). Low so small bright stars stay points
+	 * when the camera turns instead of smearing into streaks; speed still reads through FOV and trails.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float MotionBlurAmount = 0.1f;
+
+	/** Cap on motion-blur length as a percentage of screen width (engine default 5). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "100"))
+	float MotionBlurMax = 1.f;
 };
 
 /** A squad ship (Rift, Lancer, Bastion). Squad stats come from T3's UTDShipLibrary through ApplyFlightTuning. */

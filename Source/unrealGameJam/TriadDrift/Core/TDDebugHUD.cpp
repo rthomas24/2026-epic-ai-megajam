@@ -11,11 +11,35 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "UObject/ObjectKey.h"
 
 static TAutoConsoleVariable<int32> CVarTDDebugHUD(
 	TEXT("TD.DebugHUD"), 1,
 	TEXT("1 = draw the engineering placeholder HUD when no real HUD is set, 0 = off."),
 	ECVF_Default);
+
+static TSet<TObjectKey<UWorld>> GTDRealHUDWorlds;
+
+void ATDDebugHUD::SetRealHUDActive(const UWorld* World, bool bActive)
+{
+	if (!World)
+	{
+		return;
+	}
+	if (bActive)
+	{
+		GTDRealHUDWorlds.Add(World);
+	}
+	else
+	{
+		GTDRealHUDWorlds.Remove(World);
+	}
+}
+
+bool ATDDebugHUD::IsRealHUDActive(const UWorld* World)
+{
+	return World && GTDRealHUDWorlds.Contains(World);
+}
 
 namespace
 {
@@ -116,7 +140,7 @@ void ATDDebugHUD::DrawBracket(const FVector2D& C, float H, const FLinearColor& C
 void ATDDebugHUD::DrawHUD()
 {
 	Super::DrawHUD();
-	if (!Canvas || CVarTDDebugHUD.GetValueOnGameThread() == 0)
+	if (!Canvas || CVarTDDebugHUD.GetValueOnGameThread() == 0 || IsRealHUDActive(GetWorld()))
 	{
 		return;
 	}

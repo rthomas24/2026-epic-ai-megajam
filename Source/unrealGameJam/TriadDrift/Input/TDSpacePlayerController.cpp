@@ -268,9 +268,16 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IMC_Atmosphere->MapKey(IA_Land, EKeys::Gamepad_FaceButton_Bottom);
 }
 
+// Input/TDInputDebug.cpp: activates Unreal's InputToolset for agent playtests (no-op in Shipping).
+void TDActivateInputToolset(ULocalPlayer* LocalPlayer);
+
 void ATDSpacePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	if (IsLocalController())
+	{
+		TDActivateInputToolset(GetLocalPlayer());
+	}
 	BuildInputObjects();
 	ApplyMappingContexts();
 	if (IsLocalController())
