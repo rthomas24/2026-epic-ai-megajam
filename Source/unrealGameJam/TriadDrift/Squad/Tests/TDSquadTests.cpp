@@ -2105,5 +2105,119 @@ bool FTDSquadObjectiveTextLate::RunTest(const FString& Parameters)
 	return true;
 }
 
+// ------------------------------------------------------------------------------------------ second review
+
+namespace TDSquadTests
+{
+	/** The wingman flying Id engages and damages a real, moving enemy ship within Seconds. */
+	static bool WingmanFightsARealEnemy(FAutomationTestBase& T, FSquadFixture& F, ETDShipId Id, float Step, const FString& Label)
+	{
+		ATDShip* Ship = F.Ship(Id);
+		const ATDWingmanAIController* AI = F.Wing(Id);
+		T.TestTrue(TEXT("under AI: ") + Label, AI != nullptr && Ship->GetController() == AI);
+		T.TestTrue(TEXT("not Downed: ") + Label, AI && AI->GetWingmanState() != ETDWingmanState::Downed);
+		ATDEnemyShip* Enemy = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter,
+			Ship->GetActorLocation() + Ship->GetActorForwardVector() * 6000.f + FVector(0.f, 0.f, 600.f));
+		if (!Enemy)
+		{
+			return false;
+		}
+		UTDHealthComponent* EH = UTDStatics::GetHealth(Enemy);
+		const float Start = EH->GetHull01() + EH->GetShield01();
+		const FVector From = Ship->GetActorLocation();
+		bool bHurt = false;
+		for (int32 i = 0; i < FMath::CeilToInt(8.f / Step) && !bHurt; ++i)
+		{
+			F.W.Tick(Step);
+			bHurt = !IsValid(Enemy) || EH->IsDead() || EH->GetHull01() + EH->GetShield01() < Start;
+		}
+		T.TestTrue(TEXT("steers: ") + Label, !IsValid(Ship) || FVector::Dist(Ship->GetActorLocation(), From) > 500.f);
+		T.TestTrue(TEXT("fires and hits a real moving enemy within 8 s: ") + Label, bHurt);
+		return bHurt;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadRetakeOldShipFights, "TriadDrift.Squad.Death.RetakeThenSwitchAwayTheOldShipFights", TD_TEST_FLAGS)
+bool FTDSquadRetakeOldShipFights::RunTest(const FString& Parameters)
+{
+	// Review BLOCKER (ENG-08): after a wipe, the retake left the starting ship's controller Downed, so
+	// from take 2 on that ship never flew under AI once the player switched away.
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		for (const ETDShipId Id : UTDShipLibrary::AllShips())
+		{
+			F.Kill(Id);
+		}
+		F.W.Advance(1.f, Step);
+		F.Squad->SpawnSquad(FTransform::Identity); // the retake
+		F.W.Advance(0.5f, Step);
+		TestTrue(TEXT("Tab away from the starting ship") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+		F.W.Advance(0.3f, Step);
+		WingmanFightsARealEnemy(*this, F, ETDShipId::Rift, Step, TEXT("after a wipe and retake") + Fps);
+	}
+	// The same after an in-place respawn of the player's ship (no game flow took the wipe).
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		for (const ETDShipId Id : UTDShipLibrary::AllShips())
+		{
+			F.Kill(Id);
+		}
+		F.W.Advance(14.f, Step);
+		TestEqual(TEXT("all back") + Fps, F.Squad->GetLivingShips().Num(), 3);
+		const ETDShipId Active = F.Squad->GetActiveShipId();
+		const ETDShipId Other = Active == ETDShipId::Lancer ? ETDShipId::Bastion : ETDShipId::Lancer;
+		F.W.Advance(1.f, Step);
+		TestTrue(TEXT("Tab away") + Fps, F.Squad->RequestSwitchTo(Other));
+		F.W.Advance(0.3f, Step);
+		WingmanFightsARealEnemy(*this, F, Active, Step, TEXT("after an in-place respawn") + Fps);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadTabDuringTumble, "TriadDrift.Squad.Death.TabDuringTheTumbleGetsTheAutoGrace", TD_TEST_FLAGS)
+bool FTDSquadTabDuringTumble::RunTest(const FString& Parameters)
+{
+	// Review MAJOR (ENG-03): reacting (Tab while your ship tumbles) must not be punished vs waiting.
+	for (const float Step : GFrameSteps)
+	{
+		for (const bool bReact : { true, false })
+		{
+			const FString Case = FString::Printf(TEXT(" (%s @ %.0f fps)"), bReact ? TEXT("Tab during the tumble") : TEXT("wait for the auto-switch"), 1.f / Step);
+			FSquadFixture F;
+			AActor* Enemy = F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f);
+			// Burn Bastion's manual grace first, so a "manual" switch-in would get nothing at all.
+			TestTrue(TEXT("into Bastion") + Case, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+			F.W.Advance(0.5f, Step);
+			TestTrue(TEXT("back to Rift") + Case, F.Squad->RequestSwitchTo(ETDShipId::Rift));
+			F.W.Advance(0.5f, Step);
+			F.Kill(ETDShipId::Rift);
+			F.W.Advance(0.15f, Step);
+			ETDShipId Landed;
+			if (bReact)
+			{
+				TestTrue(TEXT("Tab accepted mid-tumble") + Case, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+				Landed = ETDShipId::Bastion;
+			}
+			else
+			{
+				F.W.Advance(0.6f, Step);
+				Landed = F.Squad->GetActiveShipId();
+				TestTrue(TEXT("auto-switched") + Case, Landed != ETDShipId::Rift);
+			}
+			F.W.Advance(1.5f, Step);
+			const float Before = F.Health(Landed)->GetShield01();
+			UTDStatics::ApplyTDDamage(F.Ship(Landed), 20.f, ETDDamageKind::Energy, Enemy, Enemy);
+			TestEqual(TEXT("still inside the 2 s grace") + Case, F.Health(Landed)->GetShield01(), Before);
+			F.W.Advance(1.f, Step);
+			TestTrue(TEXT("no second auto-switch after the tumble") + Case, F.Squad->GetActiveShipId() == Landed);
+		}
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 

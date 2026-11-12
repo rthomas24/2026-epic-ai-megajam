@@ -47,6 +47,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
 	AActor* GetCurrentTarget() const { return CurrentTarget.Get(); }
 
+	/** True while this wingman is off defending the player from a threat outside the view. */
+	bool IsDefendingPlayer() const { return bDefendingPlayer && CurrentTarget.IsValid(); }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
 	ETDShipId GetShipId() const { return ShipId; }
 
@@ -108,6 +111,23 @@ public:
 	 *  with a choice wingmen fight in front of the player's camera. 0 = ignore. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0"))
 	float OnScreenTargetBias = 10.f;
+
+	/** Targets inside this fraction of the player's half field of view count as "on screen": when any
+	 *  are in range, a wingman not defending the player picks only among them. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0.1", ClampMax = "1.5"))
+	float ViewConeScale = 0.9f;
+
+	/** Engaging (not defending): get at least this far in front of the player's chase camera (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
+	float InShotMinDepth = 2500.f;
+
+	/** How hard a wingman behind the camera turns to overtake into the shot (vs its pursuit direction). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0"))
+	float InShotOvertakeWeight = 0.8f;
+
+	/** Never fly inside this cone around the player's aim line (deg; plus 4 m). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "deg"))
+	float AimLineClearanceDeg = 8.f;
 
 	/** The player's last attacker counts as a threat for this long after its last hit. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
@@ -246,6 +266,7 @@ protected:
 
 	double StateEnterTime = 0.0;
 	double NextTargetEvalTime = 0.0;
+	mutable bool bDefendingPlayer = false;
 	double NextSecondaryTime = 0.0;
 	double SecondaryReleaseTime = 0.0;
 	double NextEvadeAllowedTime = 0.0;

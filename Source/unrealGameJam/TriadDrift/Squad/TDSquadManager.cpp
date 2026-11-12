@@ -247,9 +247,10 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 			{
 				Slot.Wingman->Possess(Slot.Ship);
 			}
-			// Always: a wingman left in Downed by the last take must fly again.
-			Slot.Wingman->NotifyShipRespawned();
 		}
+		// Every slot, the player's too (review BLOCKER): a wipe left all three controllers Downed, and
+		// the player's one takes its ship back on the first switch away.
+		Slot.Wingman->NotifyShipRespawned();
 		TDSquad::SetPlayerControlled(Slot.Ship, Slot.ShipId == ActiveShipId);
 	}
 
@@ -537,6 +538,9 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	// The camera we cut FROM is the old ship's chase camera, before it goes dark.
 	const FTransform FromCamera = OldShip ? TDSquad::GetChaseCameraTransform(OldShip) : NewShip->GetActorTransform();
 	const double PrevSwitchTime = LastSwitchTime;
+	// Review MAJOR (ENG-03): Tab during your own death tumble is a rescue, not a manual switch: it gets
+	// the auto-switch grace (and FinishDying then has nothing left to switch).
+	const bool bLeavingDowned = !IsShipAlive(OldId);
 
 	// Switch Strike ends on the next switch (no chaining); this switch may arm a fresh one.
 	const bool bArmSwitchStrike = (Now() - LastPowerTime) <= SwitchStrikeWindow;
@@ -590,7 +594,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 
 	// 4) Switch-in grace (ENG-03, M4): 2 s on an auto-switch; a manual switch gets a short grace, once
 	// per ship per lockout, so Tab-spamming can't keep the squad invulnerable.
-	if (bForced)
+	if (bForced || bLeavingDowned)
 	{
 		TDSquad::SetInvulnerable(NewShip, AutoSwitchInvulnerability);
 	}
@@ -962,16 +966,15 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	Slot.bLowHullBarkArmed = true;
 	RequestSquadBark(TDBarkIds::Respawn, Slot.ShipId);
 
-	if (Slot.ShipId != ActiveShipId)
+	if (ATDWingmanAIController* Wing = SpawnWingmanFor(Slot))
 	{
-		if (ATDWingmanAIController* Wing = SpawnWingmanFor(Slot))
+		if (Slot.ShipId != ActiveShipId && Wing->GetPawn() != Ship)
 		{
-			if (Wing->GetPawn() != Ship)
-			{
-				Wing->Possess(Ship);
-			}
-			Wing->NotifyShipRespawned();
+			Wing->Possess(Ship);
 		}
+		// Unconditionally (review BLOCKER): an in-place respawn of the player's ship must not leave its
+		// controller Downed for when the player switches away.
+		Wing->NotifyShipRespawned();
 	}
 	bSquadWiped = false;
 	// m4: no game flow took the wipe and the player sits in a downed ship: cut to the one that's back.

@@ -566,6 +566,17 @@ namespace TDSquad
 		return GI ? GI->GetCurrentObjective().Text : FText::GetEmpty();
 	}
 
+	FVector GetAimDirection(const ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return FVector::ForwardVector;
+		}
+		const UTDWeaponComponent* W = Ship->FindComponentByClass<UTDWeaponComponent>();
+		const FVector Dir = W ? W->GetAimDirection() : FVector::ZeroVector;
+		return Dir.IsNearlyZero() ? Ship->GetActorForwardVector() : Dir.GetSafeNormal();
+	}
+
 	FText GetLandPrompt(const ATDShip* Ship)
 	{
 		const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
