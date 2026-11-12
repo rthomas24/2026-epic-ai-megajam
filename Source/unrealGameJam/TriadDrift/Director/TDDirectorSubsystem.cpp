@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
+#include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -43,6 +44,7 @@ void UTDDirectorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	CameraRig = NewObject<UTDDirectorCameraRig>(this);
 	CameraRig->SetWorld(GetWorld());
+	CutPresentation = NewObject<UTDCutPresentation>(this);
 }
 
 TStatId UTDDirectorSubsystem::GetStatId() const
@@ -56,6 +58,19 @@ void UTDDirectorSubsystem::Tick(float DeltaTime)
 	const double Now = RealNow();
 	const float RealDelta = LastTickRealTime < 0.0 ? 0.f : static_cast<float>(Now - LastTickRealTime);
 	LastTickRealTime = Now;
+	if (CutPresentation)
+	{
+		CutPresentation->SetHandledExternally(bCutPresentationHandledExternally);
+		const UTDGameInstance* GI = GetWorld() ? Cast<UTDGameInstance>(GetWorld()->GetGameInstance()) : nullptr;
+		if (GI && GI->IsTravelPending())
+		{
+			CutPresentation->ClearAll(); // nothing of this level's presentation survives travel
+		}
+		else
+		{
+			CutPresentation->Tick(Now);
+		}
+	}
 	if (!CameraRig)
 	{
 		return;
@@ -71,11 +86,23 @@ void UTDDirectorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 	BindBus();
+	if (CutPresentation)
+	{
+		CutPresentation->Init(&InWorld);
+	}
 }
 
 void UTDDirectorSubsystem::Deinitialize()
 {
 	UnbindBus();
+	if (CutPresentation)
+	{
+		CutPresentation->Shutdown(); // world teardown (travel): the overlay goes with it
+	}
+	if (CameraRig)
+	{
+		CameraRig->Cancel(ETDDirectorCameraCancel::Travel);
+	}
 	Super::Deinitialize();
 }
 
@@ -213,6 +240,10 @@ bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subjec
 	if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(World))
 	{
 		Feel->RequestSlowMo(Shot.DurationSeconds, Shot.Dilation);
+	}
+	if (CutPresentation)
+	{
+		CutPresentation->HandleShotStarted(Shot.DurationSeconds + 0.2f); // thin bars for the shot (+ return)
 	}
 	// C-03 #2: the camera. Full = cut to the director camera; Reduced = FOV punch only; Off = none.
 	if (CameraRig)
@@ -376,6 +407,10 @@ void UTDDirectorSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, f
 	{
 		CameraRig->Cancel(ETDDirectorCameraCancel::SceneCut); // the retake starts on the player's own view
 	}
+	if (CutPresentation)
+	{
+		CutPresentation->HandleSceneCut(DelaySeconds);
+	}
 	if (IsShotActive())
 	{
 		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(GetWorld()))
@@ -389,5 +424,9 @@ void UTDDirectorSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, f
 
 void UTDDirectorSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 {
+	if (CutPresentation)
+	{
+		CutPresentation->HandleTakeStarted(SceneId, TakeNumber);
+	}
 	bSceneCutPending = false;
 }
