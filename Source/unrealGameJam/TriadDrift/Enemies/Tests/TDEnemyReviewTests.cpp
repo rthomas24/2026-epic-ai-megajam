@@ -178,4 +178,34 @@ bool FTDReviewNoCatchUpInWell::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Combat review: a gunship killed after missile 1 of its salvo launches nothing more from its wreck.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewWreckSalvo, "TriadDrift.Enemies.Review.WreckLaunchesNoSalvo", TD_TEST_FLAGS)
+bool FTDReviewWreckSalvo::RunTest(const FString& Parameters)
+{
+	using namespace TDEnemyReview;
+	for (const float Fps : Rates)
+	{
+		FTDTestWorld W;
+		ATDSpacecraft* Player = SpawnPlayer(W, FVector(15000.f, 0.f, 0.f), FRotator(0.f, 180.f, 0.f), 0.f);
+		ATDEnemyShip* G = SpawnEnemy(W, TDEnemyIds::WallGunship, FVector::ZeroVector, FRotator::ZeroRotator);
+		if (AController* C = G->GetController()) { C->UnPossess(); C->Destroy(); }
+		UTDProjectileSubsystem* Proj = UTDProjectileSubsystem::Get(W.GetWorld());
+		TSet<uint32> Seen;
+		auto CountMissiles = [&]()
+		{
+			for (ATDProjectile* P : Proj->GetLiveProjectiles())
+			{
+				if (P && P->IsMissile() && P->GetOriginalShooter() == G) { Seen.Add(P->GetLaunchSerial()); }
+			}
+		};
+		TestTrue(TEXT("salvo started"), G->TryStartAttack(ETDEnemyAttack::MissileSalvo, Player));
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 4.f) && Seen.Num() == 0; ++i) { W.Tick(1.f / Fps); CountMissiles(); }
+		TestEqual(*FString::Printf(TEXT("@%.0f fps: missile 1 launched"), Fps), Seen.Num(), 1);
+		G->GetHealth()->Kill();
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 3.f); ++i) { W.Tick(1.f / Fps); if (IsValid(G)) { CountMissiles(); } }
+		TestEqual(*FString::Printf(TEXT("@%.0f fps: the wreck launched nothing more"), Fps), Seen.Num(), 1);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

@@ -104,11 +104,31 @@ bool FTDWorldGateEnemy::RunTest(const FString& Parameters)
 	if (AController* C = E->GetController()) { C->UnPossess(); C->Destroy(); }
 	E->InitFromSpec(TDEnemyIds::ShardFighter);
 	E->SetSpeedOverride(6000.f, 1.f);
+	R.A->bTransitEnemyShips = true;	// the flank pair
+	R.B->bTransitEnemyShips = true;
 	R.W.Advance(0.6f);
-	TestEqual(TEXT("enemy transits"), R.A->GetTransitCount(), 1);
+	TestEqual(TEXT("enemy transits a gate that allows it"), R.A->GetTransitCount(), 1);
 	TestTrue(TEXT("enemy lost tracking (2 s)"), E->IsTrackingLost());
 	R.W.Advance(2.f);
 	TestFalse(TEXT("tracking returns"), E->IsTrackingLost());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateNoEnemies, "TriadDrift.World.Gate.PlanetGatesIgnoreEnemyShips", TD_TEST_FLAGS)
+bool FTDWorldGateNoEnemies::RunTest(const FString& Parameters)
+{
+	FTDGateTestRig R;	// default gates: bTransitEnemyShips off (planet gates)
+	ATDEnemyShip* E = R.W.Spawn<ATDEnemyShip>(FVector(-800.f, 0.f, 0.f));
+	if (AController* C = E->GetController()) { C->UnPossess(); C->Destroy(); }
+	E->InitFromSpec(TDEnemyIds::ShardFighter);
+	E->SetSpeedOverride(6000.f, 1.f);
+	R.W.Advance(0.6f);
+	TestEqual(TEXT("no transit"), R.A->GetTransitCount(), 0);
+	TestTrue(TEXT("flew through the frame and stayed in the zone"), E->GetActorLocation().X > 0.f && FVector::Dist(E->GetActorLocation(), R.A->GetActorLocation()) < 10000.f);
+	ATDSpacecraft* Squad = R.SpawnShip(FVector(-800.f, 0.f, 500.f), FRotator::ZeroRotator, ETDTeam::Player);
+	R.W.Advance(0.6f);
+	TestEqual(TEXT("squad ships still transit"), R.A->GetTransitCount(), 1);
+	(void)Squad;
 	return true;
 }
 
