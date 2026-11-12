@@ -1,0 +1,339 @@
+{
+  "asset": "SM_Asteroid_01",
+  "checks": {
+    "tris_in_budget": true,
+    "single_material_slot": true,
+    "closed_manifold": true,
+    "no_ngons_all_triangles": true,
+    "no_floating_parts": true,
+    "bounding_sphere_100cm": true,
+    "uv_inside_0_1": true,
+    "uv_no_overlap": true,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0
+  },
+  "geometry": {
+    "tris": 3000,
+    "verts": 1502,
+    "bounding_sphere_radius_m_from_pivot": 0.499999997069553,
+    "bounding_sphere_diameter_cm": 100.0,
+    "aabb_size_cm": [
+      95.04,
+      72.21,
+      74.24
+    ],
+    "uv_islands": 156,
+    "uv_faces_detached_to_fix_overlap": 5,
+    "uv": {
+      "uv_min": [
+        0.008,
+        0.008
+      ],
+      "uv_max": [
+        0.9882,
+        0.983
+      ],
+      "inside_0_1": true,
+      "coverage": 0.5044,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 2048
+    },
+    "triangle_quality": {
+      "aspect_median": 2.31,
+      "aspect_p95": 8.0,
+      "aspect_max": 598.4,
+      "slivers_over_25": 25,
+      "min_area_cm2": 0.01283,
+      "shortest_edge_cm": 0.3404
+    },
+    "source_tris": 129324,
+    "source_closed": {
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "closed": true
+    },
+    "normalisation": {
+      "centre_before": [
+        -0.00046303470490566343,
+        -0.014206296201000576,
+        -0.010975968327337722
+      ],
+      "radius_before": 0.5052285633378362
+    }
+  },
+  "bake": {
+    "status": "ok",
+    "asset": "Asteroid_01",
+    "files": {
+      "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.claude\\worktrees\\agent-ac042639111712983\\ArtSource\\EngProps\\SpaceRocks\\SM_Asteroid_01\\T_Asteroid_01_BC.png",
+      "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.claude\\worktrees\\agent-ac042639111712983\\ArtSource\\EngProps\\SpaceRocks\\SM_Asteroid_01\\T_Asteroid_01_N.png",
+      "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.claude\\worktrees\\agent-ac042639111712983\\ArtSource\\EngProps\\SpaceRocks\\SM_Asteroid_01\\T_Asteroid_01_ORM.png"
+    },
+    "size": 1024,
+    "normal_convention": "DirectX (green flipped)",
+    "emission_strength": 0.0,
+    "preview_material": "M_Asteroid_01_Baked",
+    "notes": [
+      "No emission in source materials"
+    ],
+    "warnings": [],
+    "seconds": 42.31
+  },
+  "bake_miss_fill": {
+    "status": "ok",
+    "texels_missed": 133688,
+    "texels_left": 40290
+  },
+  "cavity_tint": {
+    "status": "ok",
+    "share_of_texels_tinted": 0.1966
+  },
+  "bake_cage_m": 0.004,
+  "deviation_source_to_game_mesh_m": {
+    "max_m": 0.005391379818320274,
+    "mean_m": 0.00025248424637291255,
+    "p99_m": 0.0011810627707745881,
+    "p999_m": 0.0020974512570538107,
+    "game_to_source_p995_m": 0.0018318346858723058,
+    "game_to_source_max_m": 0.002908221911638975
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.3728,
+        0.4149,
+        0.5123
+      ],
+      "min": 0.0,
+      "max": 0.7922
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.496,
+        0.4963,
+        0.9818
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.074,
+        0.0749
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.8646,
+        0.8077,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "collision": [
+    "UCX_SM_Asteroid_01_00"
+  ],
+  "asset_report": {
+    "status": "ok",
+    "scene_units": {
+      "system": "METRIC",
+      "scale_length": 1.0,
+      "length_unit": "METERS"
+    },
+    "objects": [
+      {
+        "name": "SM_Asteroid_01",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "SpaceRocks"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          95.04,
+          72.21,
+          74.24
+        ],
+        "hide_render": false,
+        "modifiers": [],
+        "materials": [
+          "M_Asteroid_01_Rock"
+        ],
+        "verts": 1502,
+        "faces": 3000,
+        "tris": 3000,
+        "quads": 0,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 3000
+        },
+        "local_bbox_min": [
+          -0.46472,
+          -0.38573,
+          -0.34082
+        ],
+        "local_bbox_max": [
+          0.48564,
+          0.33635,
+          0.40158
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "UCX_SM_Asteroid_01_00",
+        "type": "MESH",
+        "parent": "SM_Asteroid_01",
+        "collections": [
+          "SpaceRocks"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          95.04,
+          72.21,
+          73.46
+        ],
+        "hide_render": false,
+        "modifiers": [],
+        "materials": [],
+        "verts": 32,
+        "faces": 60,
+        "tris": 60,
+        "quads": 0,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 0.0,
+        "has_custom_normals": false,
+        "uv_layers": [],
+        "faces_per_material_index": {
+          "0": 60
+        },
+        "local_bbox_min": [
+          -0.46472,
+          -0.38573,
+          -0.33565
+        ],
+        "local_bbox_max": [
+          0.48564,
+          0.33635,
+          0.39893
+        ],
+        "origin_placement": "custom"
+      }
+    ],
+    "totals": {
+      "objects": 2,
+      "tris": 3060,
+      "errors": 0,
+      "warnings": 0
+    },
+    "issues": []
+  },
+  "assembly_check": {
+    "status": "ok",
+    "ok": true,
+    "tolerance_m": 0.00211,
+    "objects": [
+      "SM_Asteroid_01"
+    ],
+    "islands": 1,
+    "groups": 1,
+    "main_body_tris": 3000,
+    "floating": [],
+    "hint": "All parts are connected."
+  },
+  "review_sheets": [
+    "SM_Asteroid_01_clay_sheet.png",
+    "SM_Asteroid_01_material_sheet.png",
+    "SM_Asteroid_01_wireframe_sheet.png"
+  ],
+  "export": {
+    "status": "ok",
+    "tris": 3000,
+    "size_cm": [
+      72.2,
+      95.0,
+      74.2
+    ],
+    "collision": [
+      "UCX_SM_Asteroid_01_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Asteroid_01_Rock"
+    ],
+    "textures": [
+      "T_Asteroid_01_BC.png",
+      "T_Asteroid_01_N.png",
+      "T_Asteroid_01_ORM.png"
+    ],
+    "warnings": [],
+    "errors": [],
+    "welded_verts": 0
+  },
+  "seconds": 99.4
+}
