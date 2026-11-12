@@ -36,7 +36,7 @@ $quit = ($shotList | Measure-Object -Maximum).Maximum + 1.5
 $url = if ($GameMode) { "$Map`?game=$GameMode" } else { $Map }
 
 $arguments = @(
-    "`"$project`"", $url, "-game", "-windowed", "-ResX=$ResX", "-ResY=$ResY", "-nosplash", "-nosound", "-unattended",
+    "`"$project`"", $url, "-game", "-windowed", "-ResX=$ResX", "-ResY=$ResY", "-nosplash", "-nosound", "-unattended", "-ModelContextProtocolPort=$(Get-Random -Minimum 21000 -Maximum 29000)",
     "-NoLiveCoding", "-TDShots=$(($shotList | ForEach-Object { $_.ToString([Globalization.CultureInfo]::InvariantCulture) }) -join ',')", "-TDShotDir=`"$shotDir`"", "-TDQuit=$quit", "-abslog=`"$logFile`""
 )
 if ($Exec) { $arguments += "-TDExec=`"$Exec`"" }
