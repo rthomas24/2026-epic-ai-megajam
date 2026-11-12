@@ -12,6 +12,7 @@ public class unrealGameJam : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"AssetRegistry",
 			"InputCore",
 			"EnhancedInput",
 			"AIModule",
