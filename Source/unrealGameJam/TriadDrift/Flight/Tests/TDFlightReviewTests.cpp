@@ -2,6 +2,8 @@
 // collisions and events, camera, input routing. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Flight
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "Misc/ScopeExit.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -199,14 +201,14 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewStrafe, "TriadDrift.Flight.Strafe.Late
 bool FTDReviewStrafe::RunTest(const FString& Parameters)
 {
 	const FTDFlightTuning T;
-	TestEqual(TEXT("features.md strafe 2500"), T.StrafeSpeed, 2500.f);
+	TestEqual(TEXT("strafe 4000 (Lead decision Nov 12; was 2500)"), T.StrafeSpeed, 4000.f);
 	FTDFlightState S = TDReviewTest::Cruising(T);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
 	In.Strafe = FVector2D(1.f, -1.f);
 	for (int32 i = 0; i < 120 * 2; ++i) { TDFlightSim::Advance(S, In, T, TDReviewTest::Open(), 1.f / 120.f); }
-	TestEqual(TEXT("right strafe 2500 cm/s"), (float)S.Velocity.Y, 2500.f, 30.f);
-	TestEqual(TEXT("down strafe 2500 cm/s"), (float)S.Velocity.Z, -2500.f, 30.f);
+	TestEqual(TEXT("right strafe at StrafeSpeed"), (float)S.Velocity.Y, T.StrafeSpeed, 30.f);
+	TestEqual(TEXT("down strafe at StrafeSpeed"), (float)S.Velocity.Z, -T.StrafeSpeed, 30.f);
 	TestEqual(TEXT("forward speed unchanged"), (float)S.Velocity.X, T.CruiseSpeed, 60.f);
 	return true;
 }
@@ -1066,6 +1068,82 @@ bool FTDReviewClimbFromCushion::RunTest(const FString& Parameters)
 	const float Z1 = Ship->GetActorLocation().Z;
 	TestTrue(*FString::Printf(TEXT("the nose comes up from the cushion (%.1f deg)"), Pitch), Pitch > 25.f);
 	TestTrue(*FString::Printf(TEXT("and the ship climbs away (Z %.0f -> %.0f)"), Z0, Z1), Z1 > Z0 + 5000.f);
+	return true;
+}
+
+static float Ship_DodgeSpeed() { return FTDFlightTuning().DodgeSpeed; }
+static float Ship_DodgeSeconds() { return FTDFlightTuning().DodgeSeconds; }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewDodge, "TriadDrift.Flight.Review.DodgeMovesTheHullAndRespectsGates", TD_TEST_FLAGS)
+bool FTDReviewDodge::RunTest(const FString& Parameters)
+{
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		const float Dt = 1.f / Fps;
+		const FString Tag = FString::Printf(TEXT("%.0f fps: "), Fps);
+		auto Measure = [&](bool bBoost, bool bDrift) -> float
+		{
+			FTDTestWorld W;
+			ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+			Ship->SetPlayerControlled(true);
+			FTDFlightInput In;
+			In.Throttle = 1.f;
+			In.bBoost = bBoost;
+			In.bDrift = bDrift;
+			In.Aim = bDrift ? FVector2D(0.6f, 0.f) : FVector2D::ZeroVector;
+			Ship->SetFlightInput(In);
+			W.Advance(0.5f, Dt);
+			const FVector Right = Ship->GetActorRightVector();
+			const FVector P0 = Ship->GetActorLocation();
+			const FVector V0 = Ship->GetVelocity();
+			if (!Ship->TryDodge(1.f)) { return -1.f; }
+			TestFalse(*(Tag + TEXT("no invulnerability while dodging")), Ship->GetHealth()->IsInvulnerable());
+			W.Advance(0.3f, Dt);
+			// Lateral displacement beyond what the ship's own velocity would have carried it.
+			return FVector::DotProduct(Ship->GetActorLocation() - P0 - V0 * 0.3f, Right);
+		};
+		const float Plain = Measure(false, false);
+		const float Boosting = Measure(true, false);
+		const float Drifting = Measure(false, true);
+		const float Expected = Ship_DodgeSpeed() * Ship_DodgeSeconds();
+		TestTrue(*(Tag + FString::Printf(TEXT("dodge moves the hull sideways by about speed x time (%.0f cm, expected ~%.0f)"), Plain, Expected)), Plain > Expected * 0.8f && Plain < Expected * 1.5f);
+		TestTrue(*(Tag + FString::Printf(TEXT("works while boosting (%.0f cm)"), Boosting)), Boosting > Expected * 0.8f);
+		TestTrue(*(Tag + FString::Printf(TEXT("works while drifting (%.0f cm)"), Drifting)), Drifting > Expected * 0.6f);
+	}
+
+	// Cooldown and gates.
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Ship->SetFlightInput(In);
+	W.Tick();
+	TestFalse(TEXT("wingman / not player-flown: no dodge"), Ship->TryDodge(1.f));
+	Ship->SetPlayerControlled(true);
+	TestTrue(TEXT("player: dodge"), Ship->TryDodge(-1.f));
+	TestTrue(TEXT("dodging"), Ship->GetShipMovement()->IsDodging());
+	TestFalse(TEXT("cooldown: refused right away"), Ship->TryDodge(1.f));
+	W.Advance(1.0f);
+	TestFalse(TEXT("cooldown: still refused at 1.0 s"), Ship->TryDodge(1.f));
+	W.Advance(0.6f);
+	TestTrue(TEXT("ready again after 1.5 s"), Ship->TryDodge(1.f));
+	W.Advance(1.6f);
+	Ship->SetSpeedOverrideFor(TEXT("Ram"), 33000.f, 0.f);
+	TestFalse(TEXT("refused during the ram (speed override)"), Ship->TryDodge(1.f));
+	Ship->ClearSpeedOverrideFor(TEXT("Ram"));
+	TestTrue(TEXT("hyperdrive spools"), Ship->GetHyperdrive()->RequestSpoolFromPilot());
+	TestFalse(TEXT("refused during hyperdrive spool"), Ship->TryDodge(1.f));
+	Ship->GetHyperdrive()->StopSpool();
+	W.Tick();
+	if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(W.GetWorld()))
+	{
+		Feel->RequestSlowMo(1.f, 0.3f);
+		W.Tick();
+		TestFalse(TEXT("refused during a director slow-motion shot"), Ship->TryDodge(1.f));
+		Feel->CancelAll();
+		W.Tick();
+	}
+	TestTrue(TEXT("allowed again afterwards"), Ship->TryDodge(1.f));
 	return true;
 }
 

@@ -30,7 +30,18 @@ Hyperdrive, atmosphere and landing are in [travel.md](travel.md).
 - **Aim-to-turn:** pitch and yaw rates follow the stick with response 12/s, hard-capped at 110°/s.
 - **Roll:** 180°/s. With no roll input the ship auto-levels toward world up (gain 2.5, max 40°/s). Auto-level pauses while the nose is near vertical (|fwd.Z| > 0.9). Set `AutoLevelRate = 0` for pure 6DOF.
 - **Auto-bank:** visual only. The hull mesh banks up to 40° into yaw.
-- **Strafe:** 2500 cm/s on the arrow keys and left stick Y.
+- **Strafe:** 4000 cm/s on the arrow keys and left stick Y. It's for fine positioning; the dodge is the evasive move.
+- **Dodge (player only, Lead decision Nov 12):** a lateral burst of `DodgeSpeed` 100 m/s for `DodgeSeconds` 0.25 s,
+  so the hull moves about 25 m sideways. `DodgeCooldown` is 1.5 s, and it works while boosting and drifting.
+  - No invulnerability: it dodges by moving the hull.
+  - Refused during the ram or any speed override, landing, atmosphere entry, hyperdrive spool and jump, a director
+    slow-motion shot, the cooldown, or when the ship isn't player-flown (wingmen and enemies never dodge).
+  - API: `ATDShip::TryDodge(±1)`, `UTDShipMovementComponent::RequestDodge` / `CanDodge` / `IsDodging` /
+    `GetDodgeReady01` (HUD pip), `OnDodge(Direction)`, and the cue request `"Dodge"`.
+  - Measured against three real fighters (`Flight.Feel.EvasiveFlyingReducesHits`, 6 seeds): weaving takes about
+    57–67% of straight-line damage, and weaving with well-timed dodges about 40–50%.
+  - At the 60 m/s first spec the dodge gave no measurable gain, so `DodgeSpeed` is 100 m/s; a sweep is in
+    `TDExplore.Flight.DodgeSweep`.
 - **Boost:**
   - speed is `BoostSpeed` (default 10800 = cruise +80%)
   - the meter lasts 3 s, starts regenerating 1.2 s after boost ends, and refills in 2.5 s
@@ -147,6 +158,7 @@ On the controller:
 | Aim | Mouse (virtual joystick, deadzone 0.06, exponent 1.3) | Right stick (deadzone 0.15, exponent 1.6) | flight; `SetAimDirection` |
 | Roll | A / D | Left stick X | flight |
 | Strafe | Arrow keys | Left stick Y (vertical) | flight |
+| Dodge | LeftAlt (toward the held roll A / D, else the steering side, else right), or double-tap A / D within 0.3 s | double flick of the left stick X (both flicks past 85%) | `ATDShip::TryDodge` |
 | Boost / Drift / Brake | Shift / C / Space | L3 / B / LT fully pressed | flight |
 | Fire primary / secondary | LMB / RMB | RB / LB | `UTDWeaponComponent::SetTriggerHeld` |
 | Power | Q | X | `UTDPowerComponent::RoutePowerInput` press + release |
@@ -196,7 +208,9 @@ To capture screenshots:
 | `Boost.SpeedDrainAndRegen` / `Boost.EmptyMeterLockout` | ×1.8 speed, 3 s meter, 1.2 s regen delay, 2.5 s refill; holding through empty boosts once, no stutter |
 | `Drift.KeepsVelocityAndBursts` / `Drift.TapSpamAndBurstCeiling` / `Drift.OverrideInteractions` | direction hold, 1.5× nose, +20% when earned; tap-spam can't pump speed; repeated bursts stay ≤ boost×1.2; drifting out of an 80k jump bleeds down; an override mid-drift gives no burst |
 | `Rotation.TurnAndRollRateCaps` | 110 / 110 / 180°/s, roll direction, auto-level, visual bank |
-| `Strafe.LateralAndVertical` | 2500 cm/s on both axes |
+| `Strafe.LateralAndVertical` | `StrafeSpeed` (4000 cm/s) on both axes |
+| `Review.DodgeMovesTheHullAndRespectsGates` | ~speed × time sideways at 30/60/120 fps, also boosting and drifting; no invulnerability; cooldown; refused for wingmen, the ram, hyperdrive spool and slow motion |
+| `Feel.EvasiveFlyingReducesHits` | three real fighters, 6 seeds: weaving clearly below straight, weave + timed dodge ≤ 62% (target 35%, reported), drift no worse than straight |
 | `Boundary.SteersBack` / `Boundary.CannotBeOutSteered` / `Boundary.SurvivesApplyFlightTuning` | warn band, steer and push; a pilot fighting it (aim out, boost, drift) is held within 400 m; bounds survive a later tuning |
 | `FrameRate.SameAt30And120` | the same scripted flight at 30, 60 and 120 fps is within 5 cm; 37 fps is within 0.5% |
 | `Robustness.BadInputAndTime` | zero, negative and NaN dt; NaN and infinite inputs; hitch clamp |

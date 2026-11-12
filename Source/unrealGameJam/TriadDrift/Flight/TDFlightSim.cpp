@@ -317,6 +317,17 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		S.Velocity = FMath::Lerp(S.Velocity, Desired, TDFlightSim_ExpAlpha(T.VelocityGrip, Dt));
 	}
 
+	// Dodge: a hard lateral velocity for DodgeSeconds, on top of any flight mode (boost, drift); afterwards the normal
+	// grip (or the drift lock) takes the lateral back, so the hull ends up ~15 m to the side.
+	S.TimeSinceDodge += Dt;
+	if (S.DodgeTimeLeft > 0.f)
+	{
+		const FVector Side = S.Rotation.GetRightVector();
+		const float Lateral = FVector::DotProduct(S.Velocity, Side);
+		S.Velocity += Side * (S.DodgeSign * T.DodgeSpeed - Lateral);
+		S.DodgeTimeLeft = FMath::Max(0.f, S.DodgeTimeLeft - Dt);
+	}
+
 	// Atmosphere: gravity pulls down (grip mostly counters it, so the ship sags rather than falls).
 	if (C.bAtmosphere && !C.bSpeedOverride)
 	{
