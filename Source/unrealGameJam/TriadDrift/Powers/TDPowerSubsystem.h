@@ -31,13 +31,34 @@ public:
 
 	const TArray<TObjectPtr<ATDShieldDome>>& GetActiveDomes() const { return Domes; }
 
+	// --- Scene cut / retake ---
+	/** Close portals, collapse domes, end gravity wells, end every running power and ready all cooldowns. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Power")
+	void ResetAllPowers();
+
+	/** Power components bind to this (native) and end themselves. */
+	FSimpleMulticastDelegate OnPowersReset;
+
+	void RegisterTransient(AActor* Actor) { if (Actor) { TransientActors.AddUnique(Actor); } }
+
 	// --- Portal transit re-entry ---
 	void MarkTransited(const AActor* Actor);
 	bool IsInTransitCooldown(const AActor* Actor, float CooldownSeconds) const;
 
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void Deinitialize() override;
 
 private:
+	UFUNCTION()
+	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
+
+	UFUNCTION()
+	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+
+	/** Portals and gravity wells (destroyed on reset). */
+	TArray<TWeakObjectPtr<AActor>> TransientActors;
+
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDShieldDome>> Domes;
 

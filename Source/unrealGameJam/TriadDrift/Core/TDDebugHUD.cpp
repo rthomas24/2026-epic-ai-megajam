@@ -61,25 +61,28 @@ namespace
 
 AActor* ATDDebugHUD::FindHUDDataActor()
 {
+	// The player's pawn wins when it serves HUD data itself (the first-person character). Checked
+	// every call and never cached: the pawn changes on every ship switch and on landing.
+	if (APawn* Pawn = GetOwningPawn())
+	{
+		if (Cast<ITDHUDData>(Pawn))
+		{
+			return Pawn;
+		}
+	}
 	if (AActor* Cached = CachedHUDDataActor.Get())
 	{
 		return Cached;
 	}
+
+	// Otherwise any non-pawn actor that serves HUD data (the squad manager). Searched at most twice
+	// a second; this function is called several times per frame.
 	const UWorld* World = GetWorld();
 	if (!World || World->GetTimeSeconds() < NextSearchTime)
 	{
 		return nullptr;
 	}
 	NextSearchTime = World->GetTimeSeconds() + 0.5f;
-
-	// Prefer the player's pawn (first-person character), then any actor that serves HUD data (squad manager).
-	if (APawn* Pawn = GetOwningPawn())
-	{
-		if (Cast<ITDHUDData>(Pawn))
-		{
-			return Pawn; // not cached: the pawn changes on every ship switch
-		}
-	}
 	for (TActorIterator<AActor> It(World); It; ++It)
 	{
 		if (Cast<ITDHUDData>(*It) && !It->IsA<APawn>())

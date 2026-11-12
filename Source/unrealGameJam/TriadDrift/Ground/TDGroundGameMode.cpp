@@ -22,6 +22,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
+#include "Misc/PackageName.h"
 
 namespace TDGroundSandbox
 {
@@ -42,6 +43,26 @@ namespace TDGroundSandbox
 ATDGroundGameMode::ATDGroundGameMode()
 {
 	DefaultPawnClass = ATDFirstPersonCharacter::StaticClass();
+}
+
+void ATDGroundGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	// One game mode for every on-foot map (DefaultEngine.ini GameModeMapPrefixes "L_Planet").
+	const FString Short = FPackageName::GetShortName(MapName);
+	if (Short.Contains(TEXT("Verdance")))
+	{
+		Destination = ETDDestination::Verdance;
+	}
+	else if (Short.Contains(TEXT("Cinder")))
+	{
+		Destination = ETDDestination::Cinder;
+	}
+	else if (Short.Contains(TEXT("Dominion")))
+	{
+		Destination = ETDDestination::DominionInterior;
+	}
+	// Until ENG-25/26 dress the planets, the training ground stands in so an empty planet map is playable.
+	Super::InitGame(MapName, Options, ErrorMessage);
 }
 
 AActor* ATDGroundGameMode::ChoosePlayerStart_Implementation(AController* Player)

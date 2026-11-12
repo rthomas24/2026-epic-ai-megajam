@@ -12,7 +12,7 @@
 
 namespace
 {
-	float BoundsRadiusOf(const AActor* Actor, FVector& OutCenter)
+	float TDRamBoundsRadius(const AActor* Actor, FVector& OutCenter)
 	{
 		FVector Extent;
 		Actor->GetActorBounds(true, OutCenter, Extent);
@@ -139,7 +139,7 @@ void UTDRamPower::SweepHits(const FVector& From, const FVector& To)
 		return;
 	}
 	FVector OwnerCenter;
-	const float Reach = BoundsRadiusOf(Owner, OwnerCenter) + HitPadding;
+	const float Reach = TDRamBoundsRadius(Owner, OwnerCenter) + HitPadding;
 
 	// Copy first: damage kills and unregisters actors.
 	TArray<AActor*, TInlineAllocator<16>> Touched;
@@ -153,7 +153,7 @@ void UTDRamPower::SweepHits(const FVector& From, const FVector& To)
 				continue;
 			}
 			FVector Center;
-			const float Radius = BoundsRadiusOf(Hostile, Center);
+			const float Radius = TDRamBoundsRadius(Hostile, Center);
 			if (FMath::PointDistToSegment(Center, From, To) <= Reach + Radius)
 			{
 				Touched.Add(Hostile);
@@ -210,7 +210,7 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 
 	if (bWasAlive && Health && Health->IsDead())
 	{
-		Highlight(ETDHighlightKind::RamKill, Victim, 0.7f);
+		// RamKill money shot: UTDDirectorSubsystem derives it from the Ram damage kind on OnActorKilled.
 		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
 		{
 			Feel->RequestHitStop();

@@ -31,6 +31,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Targeting")
 	AActor* GetCurrentTarget() const { return CurrentTarget.Get(); }
 
+	/** Lock onto Target as if the player had cycled to it (ship switch carries the pick across the cut). Null clears the manual pick. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Targeting")
+	void SetManualTarget(AActor* Target);
+
+	/** True when the current target was picked by CycleTarget / SetManualTarget rather than the soft-target cone. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Targeting")
+	bool IsManualTarget() const { return bManualTarget && CurrentTarget.IsValid(); }
+
 	/** Next hostile by distance (nearest first, wrapping). Holds that target until it dies or leaves range. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Targeting")
 	void CycleTarget();
@@ -45,7 +53,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Targeting")
 	bool GetLeadIndicator(FVector& OutWorldLocation) const;
 
-	/** Static helper: where to aim from ShooterLocation (moving at ShooterVelocity, inherited by the shot) to hit a target. Falls back to the target's location. */
+	/**
+	 * Where to aim from ShooterLocation to hit a constant-velocity target. ShooterVelocity is the shooter's velocity when
+	 * the shot inherits it (only its forward component along the aim adds to the shot's speed, as in ATDProjectile);
+	 * pass zero otherwise. Falls back to the target's location when no intercept exists.
+	 */
 	static FVector ComputeInterceptPoint(const FVector& ShooterLocation, const FVector& ShooterVelocity, const FVector& TargetLocation,
 		const FVector& TargetVelocity, float ProjectileSpeed);
 
@@ -174,11 +186,15 @@ private:
 	TWeakObjectPtr<AActor> CurrentTarget;
 	bool bManualTarget = false;
 
-	TArray<AActor*> Hostiles;          // refreshed per update, raw pointers valid for that update only
+	/** UPROPERTY so GC nulls destroyed actors between refreshes. */
+	UPROPERTY(Transient)
+	TArray<AActor*> Hostiles;
 	/** Mirror of LockedWeak, rebuilt every tick after pruning dead targets (safe to hand out by reference). */
+	UPROPERTY(Transient)
 	TArray<AActor*> LockedTargets;
 	TArray<TWeakObjectPtr<AActor>> LockedWeak;
 	TArray<FTDTargetMarker> Markers;
+	UPROPERTY(Transient)
 	TArray<ATDProjectile*> MissileScratch;
 
 	bool bPainting = false;

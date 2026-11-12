@@ -64,8 +64,20 @@ public:
 	/** Phase in which this planet is the destination (Verdance -> Verdance, Cinder -> Cinder). */
 	static ETDGamePhase PhaseFor(ETDDestination Destination);
 
+	/** Fallback when the entering ship has no ENG-20 entry component: travel directly. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet")
 	bool bAutoTravel = true;
+
+	/** Gravity well radius = AtmosphereRadius x this (orbit return points sit at ~1.3x). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "1"))
+	float GravityWellRadiusScale = 1.8f;
+
+	/** "Planet_Verdance" etc. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Planet")
+	FName GetWellId() const;
+
+	/** Hide the placeholder sphere (keeps its collision). */
+	void SetPlaceholderVisible(bool bVisible);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "0"))
 	float EntryDelaySeconds = 1.f;

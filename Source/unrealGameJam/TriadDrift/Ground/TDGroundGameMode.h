@@ -33,6 +33,7 @@ class UNREALGAMEJAM_API ATDGroundGameMode : public AGameModeBase
 public:
 	ATDGroundGameMode();
 
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void StartPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;

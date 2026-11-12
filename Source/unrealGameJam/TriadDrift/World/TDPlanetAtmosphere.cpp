@@ -3,6 +3,9 @@
 
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -72,7 +75,23 @@ void ATDPlanetAtmosphere::BeginPlay()
 	{
 		WorldSys->AddObstacle(GetActorLocation(), PlanetRadius);
 	}
+	// Hyperdrive drops out in orbit, outside the entry trigger (T1's gravity wells).
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		Travel->RegisterGravityWell(GetWellId(), GetActorLocation(), AtmosphereRadius * GravityWellRadiusScale, this);
+	}
 	SyncWithProgress();
+}
+
+FName ATDPlanetAtmosphere::GetWellId() const
+{
+	const UEnum* E = StaticEnum<ETDDestination>();
+	return FName(*FString::Printf(TEXT("Planet_%s"), E ? *E->GetNameStringByValue(static_cast<int64>(Destination)) : TEXT("Unknown")));
+}
+
+void ATDPlanetAtmosphere::SetPlaceholderVisible(bool bVisible)
+{
+	if (PlanetMesh) { PlanetMesh->SetVisibility(bVisible); }
 }
 
 void ATDPlanetAtmosphere::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -80,6 +99,10 @@ void ATDPlanetAtmosphere::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnMarkerRevealed.RemoveDynamic(this, &ATDPlanetAtmosphere::HandleMarkerRevealed);
+	}
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		Travel->UnregisterGravityWell(GetWellId());
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -148,6 +171,19 @@ void ATDPlanetAtmosphere::TryEnter(ATDSpacecraft* Ship)
 	}
 	bEntered = true;
 	OnShipEnteredAtmosphere.Broadcast(this, Ship);
+
+	// T1's ENG-20 entry sequence takes the squad down and travels itself.
+	if (ATDShip* SquadShip = Cast<ATDShip>(Ship))
+	{
+		if (UTDAtmosphereEntryComponent* Entry = SquadShip->GetAtmosphereEntry())
+		{
+			if (Entry->BeginEntry(Destination, ReturnPoint, GetActorLocation()))
+			{
+				return;
+			}
+		}
+	}
+	// Fallback (non-squad pawns, tests): travel directly after a beat.
 	if (bAutoTravel)
 	{
 		PendingTravel = EntryDelaySeconds;

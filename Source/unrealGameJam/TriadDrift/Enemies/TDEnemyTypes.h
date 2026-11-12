@@ -4,6 +4,8 @@
 #include "CoreMinimal.h"
 #include "TDEnemyTypes.generated.h"
 
+class UTDEnemyVisuals;
+
 /** What an enemy is for. Drives the AI's behaviour profile. */
 UENUM(BlueprintType)
 enum class ETDEnemyRole : uint8
@@ -128,6 +130,10 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "0"))
 	float TurnRateDeg = 100.f;
 
+	/** Minimum speed as a fraction of cruise (throttle -1). 0 = can hold position (gunships, carriers). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "0", ClampMax = "1"))
+	float MinSpeedFraction = 0.3f;
+
 	/** Placeholder collision / visual radius (cm) until Nick's meshes arrive. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "10"))
 	float Radius = 250.f;
@@ -204,6 +210,13 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 	/** Importance passed to OnHighlightMoment when this enemy dies (0 = never a highlight). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Death", meta = (ClampMin = "0", ClampMax = "1"))
 	float KillImportance = 0.f;
+
+	/**
+	 * Nick's visuals for this type. Empty = the convention asset
+	 * /Game/TriadDrift/Presentation/Enemies/DA_Enemy_<Id>_Visuals if it exists, else placeholders.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
+	TSoftObjectPtr<UTDEnemyVisuals> Visuals;
 
 	/** Placeholder tint used until UTDEnemyVisuals is assigned. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")

@@ -15,7 +15,7 @@
 namespace
 {
 	/** Spawns stand-in enemies so the director runs without flight / weapons code. */
-	void UseStandIns(ATDWaveDirector* Director)
+	void TDWaveTest_UseStandIns(ATDWaveDirector* Director)
 	{
 		Director->SetSpawnFactory([](UWorld* World, FName, const FTransform& Transform) -> AActor*
 		{
@@ -26,7 +26,7 @@ namespace
 	}
 
 	/** A player-team actor to anchor spawns and receive hull repair. */
-	AActor* SpawnPlayer(FTDTestWorld& W, float MaxHull = 100.f)
+	AActor* TDWaveTest_SpawnPlayer(FTDTestWorld& W, float MaxHull = 100.f)
 	{
 		AActor* Actor = W.Spawn<AActor>();
 		USceneComponent* Root = NewObject<USceneComponent>(Actor, TEXT("Root"));
@@ -40,15 +40,15 @@ namespace
 		return Actor;
 	}
 
-	ATDWaveDirector* SpawnDirector(FTDTestWorld& W, AActor* Anchor)
+	ATDWaveDirector* TDWaveTest_SpawnDirector(FTDTestWorld& W, AActor* Anchor)
 	{
 		ATDWaveDirector* Director = W.Spawn<ATDWaveDirector>();
 		Director->SpawnAnchorOverride = Anchor;
-		UseStandIns(Director);
+		TDWaveTest_UseStandIns(Director);
 		return Director;
 	}
 
-	void KillAll(ATDWaveDirector* Director, int32 Leave = 0)
+	void TDWaveTest_KillAll(ATDWaveDirector* Director, int32 Leave = 0)
 	{
 		TArray<AActor*> Living = Director->GetLivingEnemies();
 		for (int32 i = 0; i < Living.Num() - Leave; ++i)
@@ -61,7 +61,7 @@ namespace
 	}
 
 	/** Run the current wave until every group has warped in. */
-	void SpawnEverything(FTDTestWorld& W, ATDWaveDirector* Director, float MaxSeconds = 30.f)
+	void TDWaveTest_SpawnEverything(FTDTestWorld& W, ATDWaveDirector* Director, float MaxSeconds = 30.f)
 	{
 		float T = 0.f;
 		while (Director->GetPendingGroupCount() > 0 && T < MaxSeconds)
@@ -71,15 +71,15 @@ namespace
 		}
 	}
 
-	struct FScopedListener
+	struct FTDWaveTestScopedListener
 	{
 		UTDWaveTestListener* L;
-		explicit FScopedListener(UObject* Ctx) : L(NewObject<UTDWaveTestListener>()) { L->AddToRoot(); L->Bind(Ctx); }
-		~FScopedListener() { L->RemoveFromRoot(); }
+		explicit FTDWaveTestScopedListener(UObject* Ctx) : L(NewObject<UTDWaveTestListener>()) { L->AddToRoot(); L->Bind(Ctx); }
+		~FTDWaveTestScopedListener() { L->RemoveFromRoot(); }
 		UTDWaveTestListener* operator->() const { return L; }
 	};
 
-	int32 Count(const FTDWaveDef& W, FName Id)
+	int32 TDWaveTest_Count(const FTDWaveDef& W, FName Id)
 	{
 		int32 N = 0;
 		for (const FTDWaveGroup& G : W.Groups) { if (G.EnemyId == Id) { N += G.Total(); } }
@@ -96,29 +96,29 @@ bool FTDWavesTable::RunTest(const FString& Parameters)
 	const TArray<FTDWaveDef> T = ATDWaveDirector::MakeDefaultWaves();
 	if (!TestEqual(TEXT("five waves"), T.Num(), 5)) { return false; }
 
-	TestEqual(TEXT("W1 = 2 x 4 fighters"), Count(T[0], ShardFighter), 8);
+	TestEqual(TEXT("W1 = 2 x 4 fighters"), TDWaveTest_Count(T[0], ShardFighter), 8);
 	TestEqual(TEXT("W1 total"), T[0].TotalEnemies(), 8);
 	TestEqual(TEXT("W1 intensity"), T[0].Intensity01, 0.2f);
 
-	TestEqual(TEXT("W2 = 3 x 5 fighters"), Count(T[1], ShardFighter), 15);
-	TestEqual(TEXT("W2 + 2 interceptors"), Count(T[1], HookInterceptor), 2);
+	TestEqual(TEXT("W2 = 3 x 5 fighters"), TDWaveTest_Count(T[1], ShardFighter), 15);
+	TestEqual(TEXT("W2 + 2 interceptors"), TDWaveTest_Count(T[1], HookInterceptor), 2);
 	TestEqual(TEXT("W2 intensity"), T[1].Intensity01, 0.35f);
 	TestTrue(TEXT("W2 reveals Verdance"), T[1].bRevealsMarker && T[1].MarkerRevealed == ETDDestination::Verdance);
 
-	TestEqual(TEXT("W3 = 2 gunships"), Count(T[2], WallGunship), 2);
-	TestEqual(TEXT("W3 + 3 x 5 fighters"), Count(T[2], ShardFighter), 15);
+	TestEqual(TEXT("W3 = 2 gunships"), TDWaveTest_Count(T[2], WallGunship), 2);
+	TestEqual(TEXT("W3 + 3 x 5 fighters"), TDWaveTest_Count(T[2], ShardFighter), 15);
 	TestEqual(TEXT("W3 intensity"), T[2].Intensity01, 0.55f);
 
-	TestEqual(TEXT("W4 gunships"), Count(T[3], WallGunship), 2);
-	TestEqual(TEXT("W4 bombers"), Count(T[3], MaulBomber), 2);
-	TestEqual(TEXT("W4 interceptors"), Count(T[3], HookInterceptor), 4);
-	TestTrue(TEXT("W4 fighters"), Count(T[3], ShardFighter) > 0);
+	TestEqual(TEXT("W4 gunships"), TDWaveTest_Count(T[3], WallGunship), 2);
+	TestEqual(TEXT("W4 bombers"), TDWaveTest_Count(T[3], MaulBomber), 2);
+	TestEqual(TEXT("W4 interceptors"), TDWaveTest_Count(T[3], HookInterceptor), 4);
+	TestTrue(TEXT("W4 fighters"), TDWaveTest_Count(T[3], ShardFighter) > 0);
 	TestEqual(TEXT("W4 intensity"), T[3].Intensity01, 0.7f);
 	TestTrue(TEXT("W4 reveals Cinder"), T[3].bRevealsMarker && T[3].MarkerRevealed == ETDDestination::Cinder);
 
-	TestEqual(TEXT("W5 carriers"), Count(T[4], HiveCarrier), 2);
-	TestTrue(TEXT("W5 escorts"), Count(T[4], ShardFighter) + Count(T[4], HookInterceptor) > 0);
-	TestTrue(TEXT("W5 bombers"), Count(T[4], MaulBomber) > 0);
+	TestEqual(TEXT("W5 carriers"), TDWaveTest_Count(T[4], HiveCarrier), 2);
+	TestTrue(TEXT("W5 escorts"), TDWaveTest_Count(T[4], ShardFighter) + TDWaveTest_Count(T[4], HookInterceptor) > 0);
+	TestTrue(TEXT("W5 bombers"), TDWaveTest_Count(T[4], MaulBomber) > 0);
 	TestEqual(TEXT("W5 intensity"), T[4].Intensity01, 0.9f);
 	TestTrue(TEXT("W5 reveals Dominion"), T[4].bRevealsDominion);
 
@@ -142,9 +142,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesWarpIn, "TriadDrift.Waves.Spawn.WarpInB
 bool FTDWavesWarpIn::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	AActor* Player = SpawnPlayer(W);
-	ATDWaveDirector* D = SpawnDirector(W, Player);
-	FScopedListener L(W.GetWorld());
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	FTDWaveTestScopedListener L(W.GetWorld());
 
 	D->StartWave(0);
 	TestTrue(TEXT("state warping in"), D->GetState() == ETDWaveState::WarpingIn);
@@ -181,14 +181,14 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesClear, "TriadDrift.Waves.Clear.OnlyWhen
 bool FTDWavesClear::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDWaveDirector* D = SpawnDirector(W, SpawnPlayer(W));
-	FScopedListener L(W.GetWorld());
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, TDWaveTest_SpawnPlayer(W));
+	FTDWaveTestScopedListener L(W.GetWorld());
 
 	D->StartWave(0);
-	SpawnEverything(W, D);
+	TDWaveTest_SpawnEverything(W, D);
 	TestEqual(TEXT("all 8 alive"), D->GetEnemiesAlive(), 8);
 
-	KillAll(D, 1);
+	TDWaveTest_KillAll(D, 1);
 	W.Tick();
 	TestEqual(TEXT("one left"), D->GetEnemiesAlive(), 1);
 	TestTrue(TEXT("not cleared with one alive"), D->GetState() == ETDWaveState::Active);
@@ -200,7 +200,7 @@ bool FTDWavesClear::RunTest(const FString& Parameters)
 	D->RegisterEnemy(Launched);	// twice is harmless
 	TestEqual(TEXT("launch counted once"), D->GetEnemiesTotal(), 9);
 
-	KillAll(D, 1);	// kills the original straggler, leaves the launched fighter
+	TDWaveTest_KillAll(D, 1);	// kills the original straggler, leaves the launched fighter
 	W.Tick();
 	TestTrue(TEXT("launched fighter holds the wave open"), D->GetState() == ETDWaveState::Active);
 
@@ -211,7 +211,7 @@ bool FTDWavesClear::RunTest(const FString& Parameters)
 
 	// Destroying instead of killing also counts.
 	D->StartWave(0);
-	SpawnEverything(W, D);
+	TDWaveTest_SpawnEverything(W, D);
 	for (AActor* E : D->GetLivingEnemies()) { E->Destroy(); }
 	W.Tick();
 	TestEqual(TEXT("destroyed enemies clear the wave"), L->Cleared.Num(), 2);
@@ -224,16 +224,16 @@ bool FTDWavesBreather::RunTest(const FString& Parameters)
 	for (const float Step : { 1.f / 30.f, 1.f / 120.f })
 	{
 		FTDTestWorld W;
-		AActor* Player = SpawnPlayer(W, 100.f);
-		ATDWaveDirector* D = SpawnDirector(W, Player);
-		FScopedListener L(W.GetWorld());
+		AActor* Player = TDWaveTest_SpawnPlayer(W, 100.f);
+		ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+		FTDWaveTestScopedListener L(W.GetWorld());
 		UTDHealthComponent* PH = UTDStatics::GetHealth(Player);
 
 		D->StartWave(0);
-		SpawnEverything(W, D);
+		TDWaveTest_SpawnEverything(W, D);
 		UTDStatics::ApplyTDDamage(Player, 60.f, ETDDamageKind::Energy, nullptr, nullptr);
 		const float HullBefore = PH->GetHull();
-		KillAll(D);
+		TDWaveTest_KillAll(D);
 		W.Tick(Step);
 
 		TestTrue(TEXT("breather"), D->GetState() == ETDWaveState::Breather);
@@ -261,13 +261,13 @@ bool FTDWavesPhase::RunTest(const FString& Parameters)
 	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
 	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
 	if (!TestNotNull(TEXT("fake flow"), GI)) { return false; }
-	ATDWaveDirector* D = SpawnDirector(W, SpawnPlayer(W));
-	FScopedListener L(W.GetWorld());
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, TDWaveTest_SpawnPlayer(W));
+	FTDWaveTestScopedListener L(W.GetWorld());
 
 	GI->Progress.Phase = ETDGamePhase::Waves1to2;
 	D->StartWave(1);
-	SpawnEverything(W, D);
-	KillAll(D);
+	TDWaveTest_SpawnEverything(W, D);
+	TDWaveTest_KillAll(D);
 	W.Tick();
 	TestTrue(TEXT("wave 2 ends its phase"), D->GetState() == ETDWaveState::PhaseComplete);
 	TestTrue(TEXT("Verdance marker revealed"), L->Markers.Num() == 1 && L->Markers[0] == ETDDestination::Verdance);
@@ -277,14 +277,14 @@ bool FTDWavesPhase::RunTest(const FString& Parameters)
 	TestTrue(TEXT("no auto-start of wave 3 while on the planet"), D->GetState() == ETDWaveState::PhaseComplete);
 
 	D->StartWave(3);
-	SpawnEverything(W, D);
-	KillAll(D);
+	TDWaveTest_SpawnEverything(W, D);
+	TDWaveTest_KillAll(D);
 	W.Tick();
 	TestTrue(TEXT("Cinder marker revealed"), L->Markers.Contains(ETDDestination::Cinder));
 
 	D->StartWave(4);
-	SpawnEverything(W, D);
-	KillAll(D);
+	TDWaveTest_SpawnEverything(W, D);
+	TDWaveTest_KillAll(D);
 	W.Tick();
 	TestTrue(TEXT("Dominion revealed after wave 5"), GI->Progress.bDominionRevealed && !GI->Progress.bDominionDefensesDown);
 	TestTrue(TEXT("all waves complete"), D->GetState() == ETDWaveState::AllComplete);
@@ -297,7 +297,7 @@ bool FTDWavesResume::RunTest(const FString& Parameters)
 	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
 	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
 	if (!TestNotNull(TEXT("fake flow"), GI)) { return false; }
-	ATDWaveDirector* D = SpawnDirector(W, SpawnPlayer(W));
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, TDWaveTest_SpawnPlayer(W));
 
 	// Fresh run: Intro phase starts wave 1.
 	GI->Progress = FTDProgress();
@@ -335,21 +335,21 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesEvents, "TriadDrift.Waves.Events.TakesT
 bool FTDWavesEvents::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;	// no game flow: the director announces takes and tips itself
-	ATDWaveDirector* D = SpawnDirector(W, SpawnPlayer(W));
-	FScopedListener L(W.GetWorld());
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, TDWaveTest_SpawnPlayer(W));
+	FTDWaveTestScopedListener L(W.GetWorld());
 
 	D->StartWave(0);
 	TestTrue(TEXT("OnTakeStarted(Wave1, 1)"), L->Takes.Num() == 1 && L->Takes[0] == TEXT("Wave1:1"));
 	TestTrue(TEXT("switching tip on wave 1"), L->Tips.Contains(TDTipIds::Switching));
-	SpawnEverything(W, D);
+	TDWaveTest_SpawnEverything(W, D);
 
 	// "CUT!": the flow announces take 2 of this scene -> the wave rebuilds.
-	KillAll(D, 3);
+	TDWaveTest_KillAll(D, 3);
 	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
 	Bus->BroadcastTakeStarted(TEXT("Wave1"), 2);
 	TestEqual(TEXT("retake despawned the old enemies"), D->GetEnemiesAlive(), 0);
 	TestTrue(TEXT("retake warps in again"), D->GetState() == ETDWaveState::WarpingIn);
-	SpawnEverything(W, D);
+	TDWaveTest_SpawnEverything(W, D);
 	TestEqual(TEXT("retake has the full wave"), D->GetEnemiesAlive(), 8);
 	TestEqual(TEXT("still wave 1"), D->GetWaveInfo().WaveNumber, 1);
 
