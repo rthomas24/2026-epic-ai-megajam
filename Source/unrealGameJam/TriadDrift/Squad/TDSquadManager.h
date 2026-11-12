@@ -33,6 +33,18 @@ enum class ETDSwitchRefusal : uint8
 	Locked
 };
 
+/** Why the active ship changed (logged on every switch: "TDSQUAD switch A -> B cause=..."). */
+UENUM(BlueprintType)
+enum class ETDSwitchCause : uint8
+{
+	None,			// a path that didn't say: a bug if it ever shows up in the log
+	Manual,			// the player's own press (Tab / 1-2-3 / cheats / bots calling RequestSwitch*)
+	Buffered,		// a press made during the cooldown, run when it ended (at most one cooldown later)
+	AutoOnDeath,	// the player's ship finished dying: cut to the healthiest survivor
+	RespawnRescue,	// no flow took the wipe; a ship came back while the player sat in a downed one
+	Retake			// SpawnSquad: the take restarts in StartingShip
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnSwitchRefused, ETDSwitchRefusal, Reason, ETDShipId, RequestedShip);
 
 /** Life state of one squad slot. */
@@ -261,6 +273,8 @@ public:
 	/** HUD-ready text for the last lock refusal (from T1's IsSwitchLocked). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
 	FText GetLastRefusalText() const { return LastRefusalText; }
+	/** Why the active ship last changed (tests, logs). */
+	ETDSwitchCause GetLastSwitchCause() const { return LastSwitchCause; }
 	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------
@@ -390,6 +404,11 @@ protected:
 
 	/** Core of switching; bForced bypasses the cooldown (auto-switch on death). */
 	bool SwitchToInternal(ETDShipId Ship, bool bForced);
+	/** SwitchToInternal with the cause recorded for the log and GetLastSwitchCause. */
+	bool SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCause Cause);
+	ETDSwitchCause CurrentSwitchCause = ETDSwitchCause::None;
+	ETDSwitchCause LastSwitchCause = ETDSwitchCause::None;
+	void LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const;
 	bool CycleSwitch(int32 Direction);
 	void BufferIfCoolingDown(int32 Kind, ETDShipId Ship);
 	void RunPendingSwitch();

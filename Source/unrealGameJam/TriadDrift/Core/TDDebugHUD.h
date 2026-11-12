@@ -30,6 +30,7 @@ private:
 	void DrawTargets();
 	void DrawObjective();
 	void DrawWingmen();
+	void DrawDamageIndicators();
 
 	UFUNCTION()
 	void HandleHitConfirmed(AActor* Target, bool bKill);
