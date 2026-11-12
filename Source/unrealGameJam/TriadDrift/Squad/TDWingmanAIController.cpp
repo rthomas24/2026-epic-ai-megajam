@@ -41,11 +41,13 @@ void ATDWingmanAIController::BeginPlay()
 {
 	Super::BeginPlay();
 	TDSquad::BindTeleported(this);
+	TDSquad::BindHyperdriveState(this);
 }
 
 void ATDWingmanAIController::EndPlay(const EEndPlayReason::Type Reason)
 {
 	TDSquad::UnbindTeleported(this);
+	TDSquad::UnbindHyperdriveState(this);
 	Super::EndPlay(Reason);
 }
 
@@ -97,6 +99,53 @@ void ATDWingmanAIController::SetFocusTarget(AActor* Target)
 	{
 		CurrentTarget = Target;
 		SetState(ETDWingmanState::Engage);
+	}
+}
+
+void ATDWingmanAIController::SetPassive(bool bInPassive)
+{
+	if (bPassive == bInPassive)
+	{
+		return;
+	}
+	bPassive = bInPassive;
+	if (bPassive)
+	{
+		SetTriggers(false, false);
+		CurrentTarget.Reset();
+		TDSquad::SetCatchUpTopSpeed(GetShip(), 0.f);
+	}
+	else if (State != ETDWingmanState::Downed)
+	{
+		State = ETDWingmanState::Formation; // force the transition
+		SetState(ETDWingmanState::Regroup);
+		NextTargetEvalTime = Now();
+	}
+}
+
+void ATDWingmanAIController::HandleHyperdriveState(ETDHyperdriveState NewState)
+{
+	switch (NewState)
+	{
+	case ETDHyperdriveState::Spooling:
+		// Break off and form up during the 1.2 s spool so we're in the slot when the jump starts.
+		bHyperdriveFormUp = true;
+		CurrentTarget.Reset();
+		if (State != ETDWingmanState::Downed)
+		{
+			SetState(ETDWingmanState::Regroup);
+		}
+		break;
+	case ETDHyperdriveState::Jumping:
+	case ETDHyperdriveState::DropOut:
+		bHyperdriveFormUp = true;
+		break;
+	case ETDHyperdriveState::Idle:
+	default:
+		// Arrived, or the spool was cancelled (hit / H released): back to normal, fights allowed.
+		bHyperdriveFormUp = false;
+		NextTargetEvalTime = Now();
+		break;
 	}
 }
 
@@ -153,7 +202,7 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 
 	ATDShip* Ship = GetShip();
 	ATDSquadManager* S = Squad.Get();
-	if (!Ship || !S || State == ETDWingmanState::Downed || DeltaSeconds <= 0.f)
+	if (!Ship || !S || bPassive || State == ETDWingmanState::Downed || DeltaSeconds <= 0.f)
 	{
 		return;
 	}
@@ -238,10 +287,12 @@ FVector ATDWingmanAIController::GetHomeLocation(ATDShip* Ship, ATDShip* Leader, 
 	{
 		FVector DomeCenter;
 		float DomeRadius = 0.f;
-		if (TDSquad::GetActiveShieldDome(GetWorld(), DomeCenter, DomeRadius))
+		if (TDSquad::GetNearbyShieldDome(GetWorld(), Ship->GetActorLocation(), DomeSeekDistance, DomeCenter, DomeRadius))
 		{
 			bOutIsDome = true;
-			return DomeCenter;
+			// Aim for a point well inside the dome, on our side of it, rather than its exact centre.
+			const FVector FromCenter = (Ship->GetActorLocation() - DomeCenter).GetSafeNormal();
+			return DomeCenter + FromCenter * DomeRadius * 0.4f;
 		}
 	}
 	const ATDSquadManager* S = Squad.Get();
@@ -256,8 +307,8 @@ void ATDWingmanAIController::UpdateFormation(float DeltaSeconds, ATDShip* Ship, 
 {
 	const double T = Now();
 
-	// Look for a fight (formation picks fights; regroup only takes a focus order or a threat to the player).
-	if (T >= NextTargetEvalTime)
+	// Look for a fight, unless we're forming up for a hyperdrive jump.
+	if (T >= NextTargetEvalTime && !bHyperdriveFormUp)
 	{
 		NextTargetEvalTime = T + TargetReevaluateInterval;
 		if (AActor* Target = PickTarget(Ship, Leader))

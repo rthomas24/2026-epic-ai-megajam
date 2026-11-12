@@ -96,6 +96,12 @@ bool FTDFlightCruise::RunTest(const FString& Parameters)
 | `use_nodes` / `GENERATED_BODY` in a `.cpp`-only class | UHT only reads headers. Put `UCLASS`, `USTRUCT`, `UENUM`, `UINTERFACE` in `.h` files |
 | Unresolved external for a new engine type | Add the module to `unrealGameJam.Build.cs` (Lead-owned: ask the Lead). Already there: Core, CoreUObject, Engine, InputCore, EnhancedInput, AIModule, StateTreeModule, GameplayStateTreeModule, UMG, Slate, SlateCore, Niagara, DeveloperSettings, PhysicsCore, NavigationSystem |
 | Enhanced Input without assets | `NewObject<UInputAction>(this)` and `NewObject<UInputMappingContext>(this)`, then `MapKey(Action, Key)`; add modifiers and triggers with `NewObject` too |
+| A trigger / sensor volume acts as an invisible wall for ships | `OverlapAllDynamic` still BLOCKS our custom channels (`TDCollision::Ship`, `Projectile`, ...), because their default response in `DefaultEngine.ini` is Block. Call `SetCollisionResponseToAllChannels(ECR_Overlap)` first, then set the specific responses |
+| Parts attached to a ship cannot be shot or rammed | A child actor mounted inside the parent's blocking sphere is never reached by a projectile sweep. Mount it outside the sphere and `IgnoreActorWhenMoving` both ways. Prove it with a test that fires a real projectile, not `ApplyTDDamage` |
+| Pooled actor reused while something still points at it | Projectiles are pooled LIFO: never key a cooldown or a highlight on the actor pointer alone, use the launch serial as well |
+| FX component held after `UTDStatics::PlayCue` | One-shot cues come from the Niagara pool (auto-release). Use the return value this frame only. For loops use `PlayCueAttachedLoop` and stop both halves yourself |
+| Engine `LoadGameFromSlot` asserts on a corrupt `.sav` | Read the bytes, check the header, then `LoadGameFromMemory` (see `Flow/TDGameInstance.cpp`) |
+| A test passes but the feature is broken in play | The test called an internal directly (`Kill()`, `ApplyTDDamage`, a counter of attempts). Drive the real path: real projectile, real possession, real input, at 30 / 60 / 120 fps |
 | Build fails only in another agent's file | You merged `main` mid-change or touched a folder you do not own. Message the owner; do not "fix" their file |
 
 ## Try it by hand (human or agent with a screen)

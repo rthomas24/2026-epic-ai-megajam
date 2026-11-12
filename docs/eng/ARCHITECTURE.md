@@ -32,6 +32,10 @@ work, reviews, integrates and verifies; when you finish or block, tell the Lead 
   worktrees. The Lead integrates: it merges `eng/t<N>` into `main`, builds, runs the tests and pushes.
 - When the Lead announces "main is at `<sha>`, merge it", run `git merge main` in your worktree
   (local ref only), rebuild, and fix anything you broke.
+- **Tell the Lead when you start a task and when you finish one** (item id, paths, commit hash).
+  The Lead mirrors both on the `CLAIMS.md` board on `main`, which is how Nick's agents see what
+  engineering is doing, what is coming and what is done (AGENTS.md §6.5 start / finish rule).
+  Read `CLAIMS.md` before starting anything outside pure C++ in your own folders. Never edit it.
 - No Unreal Editor GUI in worktrees. Build and test headless with the tools in §5.
 - Binary assets (`.uasset`, `.umap`) are avoided on the engineering side for now: **gameplay must run
   with zero content assets**, using C++ defaults and engine basic shapes as placeholders. Nick's

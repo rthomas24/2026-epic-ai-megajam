@@ -5,6 +5,7 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 
 #include "DrawDebugHelpers.h"
 #include "HAL/IConsoleManager.h"
@@ -191,7 +192,29 @@ FVector2D ATDEnemyAIController::ComputeSteer(const FTransform& Ship, const FVect
 
 void ATDEnemyAIController::SteerToward(ATDEnemyShip& Ship, const FVector& WorldPoint, float Throttle01, bool bBoost)
 {
-	Ship.SetFlightInput(MakeInput(ComputeSteer(Ship.GetActorTransform(), WorldPoint, SteerFullDeflectionDeg), Throttle01, bBoost));
+	FVector Goal = WorldPoint;
+
+	// Obstacle avoidance: probe ahead along the velocity (or nose) and slide around asteroids,
+	// ruins, planets and the Dominion hull. Targets beyond the obstacle stay the goal once clear.
+	bAvoiding = false;
+	if (const UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
+	{
+		if (WorldSys->GetObstacleCount() > 0)
+		{
+			const FVector Vel = Ship.GetVelocity();
+			const FVector Dir = Vel.SizeSquared() > 1.f ? Vel.GetSafeNormal() : Ship.GetActorForwardVector();
+			const float Probe = Vel.Size() * AvoidLookAheadSeconds + Ship.GetSpec().Radius * 4.f;
+			const float ToGoal = FVector::Dist(WorldPoint, Ship.GetActorLocation());
+			FVector Avoid;
+			if (WorldSys->FindAvoidance(Ship.GetActorLocation(), Dir, FMath::Min(Probe, ToGoal), Ship.GetSpec().Radius * 1.5f, Avoid))
+			{
+				Goal = Ship.GetActorLocation() + Avoid * 10000.f;
+				bAvoiding = true;
+			}
+		}
+	}
+
+	Ship.SetFlightInput(MakeInput(ComputeSteer(Ship.GetActorTransform(), Goal, SteerFullDeflectionDeg), Throttle01, bBoost && !bAvoiding));
 }
 
 FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor& InTarget) const

@@ -111,7 +111,10 @@ void ATDShieldDome::Tick(float DeltaSeconds)
 		SetActorLocation(GetActorLocation() + (To.SizeSquared() > MaxStep * MaxStep ? To.GetSafeNormal() * MaxStep : To));
 	}
 
-	ProtectSquad(DeltaSeconds);
+	if (bProtectSquad)
+	{
+		ProtectSquad(DeltaSeconds);
+	}
 	InterceptProjectiles();
 
 	if (UTDStatics::ShouldDrawPlaceholders() && !LoopFX)
@@ -165,7 +168,8 @@ void ATDShieldDome::InterceptProjectiles()
 	TArray<ATDProjectile*, TInlineAllocator<32>> Hits;
 	for (ATDProjectile* P : Projectiles->GetLiveProjectiles())
 	{
-		if (P && P->IsActive() && UTDStatics::AreTeamsHostile(Team, P->GetTeam()) && Covers(P->GetActorLocation()))
+		if (P && P->IsActive() && UTDStatics::AreTeamsHostile(Team, P->GetTeam()) && Covers(P->GetActorLocation())
+			&& (bDestroyShots || P->IsMissile()))
 		{
 			Hits.Add(P);
 		}
@@ -180,7 +184,7 @@ void ATDShieldDome::InterceptProjectiles()
 			// Put it back on the shell so it doesn't count as inside next tick.
 			P->TeleportProjectile(GetActorLocation() + Out * (Radius + 50.f), FVector::ZeroVector);
 		}
-		else
+		else if (bDestroyShots)
 		{
 			P->Kill(true);
 		}

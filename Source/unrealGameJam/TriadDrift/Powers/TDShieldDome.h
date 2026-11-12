@@ -43,6 +43,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Dome")
 	void Collapse();
 
+	/** Squad inside take no damage and regen 2x (off for Blink's reflect field). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dome")
+	bool bProtectSquad = true;
+
+	/** Hostile non-missile shots crossing the dome are destroyed (off for Blink's reflect field). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dome")
+	bool bDestroyShots = true;
+
 	/** Max speed the dome drifts after its owner (it "follows Bastion slowly"). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dome", meta = (Units = "CentimetersPerSecond"))
 	float FollowSpeed = 2500.f;

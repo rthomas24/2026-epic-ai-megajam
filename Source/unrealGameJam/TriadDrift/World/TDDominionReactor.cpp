@@ -100,6 +100,12 @@ float ATDDominionReactor::FilterDamage(const FTDDamageInfo& Info)
 	// The Dominion's main shield: nothing gets through until the generators are down.
 	if (!bExposed || bDestroyed || !Health)
 	{
+		const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+		if (!bExposed && !bDestroyed && Visuals && Now - LastShieldHitCueTime > 0.1)
+		{
+			LastShieldHitCueTime = Now;
+			UTDStatics::PlayCue(this, Visuals->ShieldHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
+		}
 		return 0.f;
 	}
 	// One phase per hit: damage stops at the phase boundary so every phase change reads.

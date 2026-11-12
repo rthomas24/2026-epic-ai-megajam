@@ -1,4 +1,4 @@
-﻿// Triad Drift - zero-asset playable space sandbox (ENG-19). Owner: Teammate 5.
+// Triad Drift - zero-asset playable space sandbox (ENG-19). Owner: Teammate 5.
 //
 // UnrealEditor.exe <uproject> /Engine/Maps/Entry?game=/Script/unrealGameJam.TDSpaceGameMode -game -windowed
 
@@ -16,7 +16,7 @@
  * the squad). Also rebuilds the scene when the game instance calls for a new take (C-03 #3).
  */
 UCLASS(Config = Game)
-class ATDSpaceGameMode : public AGameModeBase
+class UNREALGAMEJAM_API ATDSpaceGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
@@ -27,6 +27,7 @@ public:
 	virtual void StartPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 	/** Where the squad spawns and where retakes put it back. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
@@ -82,6 +83,8 @@ protected:
 	void SpawnWaveDirector();
 	void StartWaves();
 	void PossessActiveShip(APlayerController* PC);
+	/** Install cheats, give every player the squad's active ship, destroy stray login pawns. */
+	void HandOverPlayers();
 	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 
 	UPROPERTY(Transient)
@@ -92,6 +95,9 @@ protected:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AActor>> SpawnedEnvironment;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> FallbackStart;
 
 	FTimerHandle FirstWaveTimer;
 	FDelegateHandle SceneRestartHandle;
