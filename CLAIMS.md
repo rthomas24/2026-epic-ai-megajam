@@ -96,7 +96,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 17:05 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 17:18 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -177,6 +177,8 @@ open) · `done` (on `main`, tests pass, review closed).
 | On `main` at `fd56a4c` (422 tests): travel review minors and Squad questions answered in code (T1: wingmen lifted on re-board, held F spent, voided travel retried, block-text cached, placeholder ground switch, slow-motion landing and jump tests, neutral input on unpossess); Core `GetBoundaryWarningText`, dev HUD tidy on foot; engineering playtest 4 logged in `DEVLOG.md`; engineering section in `CREDITS.md` | T1, T4, T5, Lead | in review | Nov 12 16:22 | Nov 12 16:35 (`fd56a4c`) | `/DEVLOG.md`, `/CREDITS.md` (append only) |
 | Second independent review of World (ENG-16, 17, 18) | Lead | done | Nov 12 16:30 | Nov 12 16:45; ENG-16 and ENG-17 acceptable, ENG-18 not: findings with T4 and T5. Every lane has now had two reviews; re-checks of closed BLOCKERs and MAJORs are next | none |
 | On `main` at `aed2b77` (439 tests): head-on passes land hits at every closing speed, lock owners, glow material on enemies (T4 `87515f9`); ships never stay pinned against a body, terrain look-ahead in atmosphere, landing alignment arcs over props, standing hyperdrive reasons shown only after a refused press (T1); stars on the Core glow material, soft-lock test enabled (T5); two test fixes made by the Lead at integration (wreck-salvo test held a dying gunship by raw pointer and crashed the suite; ground input test count) | T1, T2, T4, T5, Lead | in review | Nov 12 16:45 | Nov 12 17:05 (`aed2b77`) | none |
+| On `main` at `c5a7bd2` (443 tests): the Dominion assault is a scene ("Dominion"), a wipe respawns the squad on the approach or at the trench, a won save has no Continue, victory cancels a pending retake (T5 `d3db9b3`); wingman targeting measured over five seeds and capped, with a cvar fallback (T3 `55abdff`); gravity-well test hardened (T2); `GetBoundaryWarningText` on the squad manager (T3) | T2, T3, T5 | in review | Nov 12 17:05 | Nov 12 17:18 (`c5a7bd2`) | none |
+| Fresh re-checks of closed BLOCKERs and MAJORs: Combat / Powers / Enemies done Nov 12 17:18 (all closed in code except the gunship volley test, which proves nothing; NEW MAJOR: the no-point-blank gate stops gunships firing at any approaching ship; test gaps listed); Squad / Travel / Ground running | Lead | in progress | Nov 12 17:07 | | none |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
