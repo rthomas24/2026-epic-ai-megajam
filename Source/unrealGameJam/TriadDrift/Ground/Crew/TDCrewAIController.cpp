@@ -114,10 +114,29 @@ void ATDCrewAIController::Sense()
 
 void ATDCrewAIController::Steer(ATDCrewCharacter* Crew, const FVector& WorldDir, float Scale)
 {
-	if (!WorldDir.IsNearlyZero() && Scale > 0.f)
+	if (WorldDir.IsNearlyZero() || Scale <= 0.f)
 	{
-		Crew->AddMovementInput(WorldDir.GetSafeNormal(), FMath::Clamp(Scale, 0.f, 1.f));
+		return;
 	}
+	FVector Dir = WorldDir.GetSafeNormal();
+	// Never walk off a ledge: try the way we want, then sideways, else hold still.
+	if (!Crew->HasGroundAhead(Dir, 80.f))
+	{
+		const FVector Side = FVector::CrossProduct(FVector::UpVector, Dir) * StrafeSign;
+		if (Crew->HasGroundAhead(Side, 80.f))
+		{
+			Dir = Side;
+		}
+		else if (Crew->HasGroundAhead(-Side, 80.f))
+		{
+			Dir = -Side;
+		}
+		else
+		{
+			return;
+		}
+	}
+	Crew->AddMovementInput(Dir, FMath::Clamp(Scale, 0.f, 1.f));
 }
 
 void ATDCrewAIController::TickPatrol(ATDCrewCharacter* Crew, float DeltaSeconds)

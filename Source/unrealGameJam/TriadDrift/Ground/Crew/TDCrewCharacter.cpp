@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
+#include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -101,8 +102,38 @@ void ATDCrewCharacter::BeginPlay()
 	Health->DamageFilter.BindUObject(this, &ATDCrewCharacter::FilterDamage);
 }
 
+void ATDCrewCharacter::FellOutOfWorld(const UDamageType& DmgType)
+{
+	// Knocked or walked off the map: that's a death (encounters must see it), then clean up.
+	if (Health && Health->IsAlive())
+	{
+		Health->Kill(nullptr, ETDDamageKind::Environmental);
+	}
+	Destroy();
+}
+
+bool ATDCrewCharacter::HasGroundAhead(const FVector& Direction, float Reach) const
+{
+	if (Spec.bFlying || Direction.IsNearlyZero())
+	{
+		return true;
+	}
+	const FVector Ahead = GetActorLocation() + Direction.GetSafeNormal2D() * (Spec.CapsuleRadius + Reach);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDCrewLedge), false, this);
+	FHitResult Hit;
+	// Floor within a step-down of 1.5 m counts; anything deeper is a ledge.
+	return GetWorld()->LineTraceSingleByChannel(Hit, Ahead + FVector(0.f, 0.f, 50.f), Ahead - FVector(0.f, 0.f, Spec.CapsuleHalfHeight + 150.f), ECC_Visibility, Params);
+}
+
 void ATDCrewCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	for (const TWeakObjectPtr<ATDCrewCharacter>& S : Summons)
+	{
+		if (ATDCrewCharacter* Grunt = S.Get(); Grunt && !Grunt->IsActorBeingDestroyed())
+		{
+			Grunt->Destroy(); // no orphaned summons after the Warden is gone
+		}
+	}
 	if (UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this))
 	{
 		Tokens->Release(this);
@@ -420,6 +451,10 @@ void ATDCrewCharacter::DoSummon()
 			Grunt->CrewType = ETDCrewType::Grunt;
 			Grunt->FinishSpawning(Xf);
 			Summons.Add(Grunt);
+			if (ATDEncounterVolume* OwnerRoom = OwningEncounter.Get())
+			{
+				OwnerRoom->AdoptMember(Grunt); // counts toward the clear, removed by a reset
+			}
 		}
 	}
 	Summons.RemoveAll([](const TWeakObjectPtr<ATDCrewCharacter>& S) { return !S.IsValid(); });
@@ -432,6 +467,11 @@ void ATDCrewCharacter::TickCharge(float DeltaSeconds)
 		return;
 	}
 	const float Step = FMath::Min(ChargeTimeLeft, DeltaSeconds);
+	if (!HasGroundAhead(ChargeVelocity.GetSafeNormal2D(), ChargeVelocity.Size2D() * Step + Spec.CapsuleRadius))
+	{
+		EndCharge(); // slam at the edge rather than charging off it
+		return;
+	}
 	FHitResult Hit;
 	GetCharacterMovement()->SafeMoveUpdatedComponent(ChargeVelocity * Step, GetActorQuat(), true, Hit);
 	ChargeTimeLeft -= DeltaSeconds;
@@ -533,6 +573,14 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		Tokens->Release(this);
 	}
 	OnCrewDied.Broadcast(this);
+	// The Warden's summons fall with it.
+	for (const TWeakObjectPtr<ATDCrewCharacter>& S : Summons)
+	{
+		if (ATDCrewCharacter* Grunt = S.Get(); Grunt && !Grunt->IsDead() && Grunt->GetHealth())
+		{
+			Grunt->GetHealth()->Kill(KillingBlow.Instigator, ETDDamageKind::Environmental);
+		}
+	}
 	PlayCrewCue(TEXT("Death"), Visuals ? Visuals->Death : FTDFXCue(), false, GetActorLocation());
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

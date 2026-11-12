@@ -7,6 +7,11 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "Engine/World.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
@@ -61,7 +66,15 @@ void ATDGroundGameMode::InitGame(const FString& MapName, const FString& Options,
 	{
 		Destination = ETDDestination::DominionInterior;
 	}
-	// Until ENG-25/26 dress the planets, the training ground stands in so an empty planet map is playable.
+	// A real planet map (L_Planet_*) is a full visit: the squad flies in, lands, and the pilot gets out
+	// (ATDPlanetDirector). Anything else (Entry, test maps) stays the on-foot training ground.
+	bPlanetMode = Short.StartsWith(TEXT("L_Planet")) && (Destination == ETDDestination::Verdance || Destination == ETDDestination::Cinder);
+	if (bPlanetMode)
+	{
+		DefaultPawnClass = nullptr; // the squad possesses its lead ship; the pilot appears on landing
+		PlayerControllerClass = ATDSpacePlayerController::StaticClass();
+		bSpawnTrainingGround = false;
+	}
 	Super::InitGame(MapName, Options, ErrorMessage);
 }
 
@@ -69,6 +82,8 @@ AActor* ATDGroundGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	if (AActor* Found = Super::ChoosePlayerStart_Implementation(Player))
 	{
+		RespawnTransform = Found->GetActorTransform(); // retakes come back to the start actually used
+		bHasRespawnTransform = true;
 		return Found;
 	}
 	// Empty map: make a start where the training ground expects the player.
@@ -77,6 +92,11 @@ AActor* ATDGroundGameMode::ChoosePlayerStart_Implementation(AController* Player)
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnPoint = GetWorld()->SpawnActor<APlayerStart>(APlayerStart::StaticClass(), PlayerSpawn, Params);
+	}
+	if (SpawnPoint && !bHasRespawnTransform)
+	{
+		RespawnTransform = SpawnPoint->GetActorTransform();
+		bHasRespawnTransform = true;
 	}
 	return SpawnPoint;
 }
@@ -90,6 +110,10 @@ void ATDGroundGameMode::StartPlay()
 	if (bSpawnTrainingGround)
 	{
 		SpawnTrainingGround();
+	}
+	if (bPlanetMode)
+	{
+		SpawnPlanetVisit();
 	}
 	Super::StartPlay();
 
@@ -107,7 +131,14 @@ void ATDGroundGameMode::StartPlay()
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
 		GI->NotifyLevelEntered(Destination);
-		SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDGroundGameMode::HandleSceneRestart);
+		if (!bPlanetMode) // on a planet the director owns retakes (on foot at the pad, or a fresh descent)
+		{
+			SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDGroundGameMode::HandleSceneRestart);
+			if (UTDEventBus* Bus = UTDEventBus::Get(this))
+			{
+				Bus->OnObjectiveUpdated.AddUniqueDynamic(this, &ATDGroundGameMode::HandleObjectiveUpdated);
+			}
+		}
 	}
 }
 
@@ -118,6 +149,23 @@ void ATDGroundGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		GI->OnSceneRestart.Remove(SceneRestartHandle);
 	}
 	Super::EndPlay(EndPlayReason);
+}
+
+void ATDGroundGameMode::SpawnPlanetVisit()
+{
+	const UTDFlowSettings* Settings = UTDFlowSettings::Get();
+	const FName Planet = Destination == ETDDestination::Cinder ? FName(TEXT("Cinder")) : FName(TEXT("Verdance"));
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	const FTransform Xf = PlanetPadTransform;
+	PlanetDirector = GetWorld()->SpawnActorDeferred<ATDPlanetDirector>(ATDPlanetDirector::StaticClass(), Xf);
+	if (PlanetDirector)
+	{
+		PlanetDirector->PlanetId = Planet;
+		PlanetDirector->PadTransform = Xf;
+		PlanetDirector->RequiredObjectives = Destination == ETDDestination::Cinder ? Settings->CinderObjectives : Settings->VerdanceObjectives;
+		PlanetDirector->FinishSpawning(Xf);
+	}
 }
 
 void ATDGroundGameMode::HandleConsoleUsed(AActor* Interactable, AActor* Interactor)
@@ -133,9 +181,28 @@ void ATDGroundGameMode::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 	RespawnPlayer();
 }
 
+void ATDGroundGameMode::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
+{
+	// Progress checkpoint: a completed step moves the retake spot to where the player stands, if that is
+	// solid ground (never mid-jump, never mid-mantle).
+	if (Step <= 0)
+	{
+		return;
+	}
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		const ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr);
+		if (Char && !Char->IsDead() && Char->GetCharacterMovement()->IsMovingOnGround())
+		{
+			RespawnTransform = FTransform(FRotator(0.f, Char->GetControlRotation().Yaw, 0.f), Char->GetActorLocation());
+			bHasRespawnTransform = true;
+		}
+	}
+}
+
 void ATDGroundGameMode::RespawnPlayer()
 {
-	const FTransform Where = SpawnPoint ? SpawnPoint->GetActorTransform() : PlayerSpawn;
+	const FTransform Where = bHasRespawnTransform ? RespawnTransform : (SpawnPoint ? SpawnPoint->GetActorTransform() : PlayerSpawn);
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
@@ -195,6 +262,7 @@ void ATDGroundGameMode::SpawnEnvironment()
 			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Sun->GetLightComponent()))
 			{
 				L->SetIntensity(10.f);
+				L->SetForwardShadingPriority(1);
 				L->SetLightColor(FLinearColor(1.f, 0.95f, 0.85f));
 				L->SetAtmosphereSunLight(true);
 			}
