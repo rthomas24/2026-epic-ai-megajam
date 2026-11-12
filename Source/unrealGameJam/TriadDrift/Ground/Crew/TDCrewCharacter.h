@@ -98,6 +98,13 @@ public:
 	virtual void BreakGuard(AActor* Source) override;
 
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
+
+	/** The encounter that owns this member (summons are adopted into it). */
+	TWeakObjectPtr<class ATDEncounterVolume> OwningEncounter;
+
+	/** Is there floor ahead in Direction within Reach (no walking or charging off ledges)? */
+	bool HasGroundAhead(const FVector& Direction, float Reach) const;
 
 protected:
 	virtual void BeginPlay() override;

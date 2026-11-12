@@ -16,6 +16,12 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Travel/Tests/TDTravelTestHelpers.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 
@@ -379,6 +385,242 @@ bool FTDTravelSafetyFrameRates::RunTest(const FString& Parameters)
 			TestEqual(*FString::Printf(TEXT("entry 2.5 s @ %.0f fps"), Fps), T, 2.5f, Dt + 0.01f);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyHoldF, "TriadDrift.Travel.Safety.HoldFLandsAndTakesOffThroughTheController", TD_TEST_FLAGS)
+bool FTDTravelSafetyHoldF::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(-1500.f, 0.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("pad"), Pad) || !TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	PC->SetFlightContext(ETDFlightContext::Atmosphere); // F / A = Land
+	W.Tick();
+	W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, true); // the pilot brakes to land, as a player would
+	W.Tick();
+	TestTrue(TEXT("Space brake reaches the ship"), PC->GetCurrentFlightInput().bBrake);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	UTDLandingComponent* Land = Ship->GetLanding();
+
+	auto HoldF = [&W, PC](float Seconds)
+	{
+		FTDTestWorld::InjectKey(PC, EKeys::F, true);
+		W.Advance(Seconds);
+		FTDTestWorld::InjectKey(PC, EKeys::F, false);
+		W.Tick();
+	};
+
+	// A tap does nothing (hold to land).
+	HoldF(0.1f);
+	TestFalse(TEXT("a tap of F doesn't land"), Land->IsBusy());
+
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(0.6f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Tick();
+	TestTrue(TEXT("hold F lands (real key through Enhanced Input)"), Land->IsBusy());
+	W.Advance(5.5f);
+	TestTrue(TEXT("landed"), Land->IsLanded());
+
+	// No on-foot hand-off took the pilot out: hold F again takes off (no soft-lock in any build).
+	HoldF(0.7f);
+	TestTrue(TEXT("hold F in a landed ship takes off"), Land->IsBusy() && !Land->IsLanded());
+	W.Advance(4.f);
+	TestEqual(TEXT("flying again"), Land->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("pad released"), Pad->IsOccupied());
+	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, false);
+
+	// Holding F where landing isn't possible keeps retrying while held: it lands once the ship slows down in range.
+	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(5000.f); // too fast
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(0.6f);
+	TestFalse(TEXT("too fast: no landing yet"), Land->IsBusy());
+	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, true);
+	W.Advance(0.6f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	TestTrue(TEXT("still holding F: lands once it's possible (no release needed)"), Land->IsBusy());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
+bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(-1500.f, 0.f, 1500.f));
+	ATDShip* Other = W.Spawn<ATDShip>(FVector(0.f, 5000.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+
+	auto Held = [&W, PC](const FKey& Key, TFunctionRef<bool()> Check)
+	{
+		FTDTestWorld::InjectKey(PC, Key, true);
+		W.Tick();
+		W.Tick();
+		const bool bOk = Check();
+		FTDTestWorld::InjectKey(PC, Key, false);
+		W.Tick();
+		return bOk;
+	};
+	TestTrue(TEXT("Space brakes"), Held(EKeys::SpaceBar, [PC] { return PC->GetCurrentFlightInput().bBrake; }));
+	TestTrue(TEXT("Shift boosts"), Held(EKeys::LeftShift, [PC] { return PC->GetCurrentFlightInput().bBoost; }));
+	TestTrue(TEXT("C drifts"), Held(EKeys::C, [PC] { return PC->GetCurrentFlightInput().bDrift; }));
+	TestTrue(TEXT("S throttles back"), Held(EKeys::S, [PC] { return PC->GetCurrentFlightInput().Throttle < -0.9f; }));
+	TestTrue(TEXT("D rolls"), Held(EKeys::D, [PC] { return PC->GetCurrentFlightInput().Roll > 0.9f; }));
+	TestTrue(TEXT("H spools the hyperdrive"), Held(EKeys::H, [Ship] { return Ship->GetHyperdrive()->GetState() == ETDHyperdriveState::Spooling; }));
+	W.Tick();
+
+	// Held boost carries straight through a ship switch (no "ignore until released" on re-possess).
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, true);
+	W.Tick();
+	Ship->SetPlayerControlled(false);
+	PC->Possess(Other);
+	Other->SetPlayerControlled(true);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("boost still held on the new ship"), PC->GetCurrentFlightInput().bBoost && Other->GetFlightInput().bBoost);
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, false);
+	W.Tick();
+	TestFalse(TEXT("release reaches the new ship"), Other->GetFlightInput().bBoost);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelReviewImpactCap, "TriadDrift.Travel.Safety.NoImpactOneShotsAShip", TD_TEST_FLAGS)
+bool FTDTravelReviewImpactCap::RunTest(const FString& Parameters)
+{
+	for (const float Speed : { 15000.f, 80000.f })
+	{
+		FTDTestWorld W;
+		TDTravelSafetyTest::SpawnBlocker(W, FVector(6000.f, 0.f, 0.f), &TDTravelSafetyTest::MakeWall);
+		ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+		W.Tick();
+		Ship->SetSpeedOverrideFor(TEXT("Test"), Speed, 1.f, 1000000.f); // slam into the wall at jump / burst speed
+		Ship->GetShipMovement()->SetForwardSpeedImmediate(Speed);
+		const float HP0 = Ship->GetHealth()->GetHull() + Ship->GetHealth()->GetShield();
+		W.Advance(1.f);
+		const float Lost = HP0 - (Ship->GetHealth()->GetHull() + Ship->GetHealth()->GetShield());
+		TestTrue(FString::Printf(TEXT("head-on at %.0f cm/s: alive, at most 60 per impact (lost %.1f)"), Speed, Lost), Ship->GetHealth()->IsAlive() && Lost > 0.f && Lost <= 60.f * 2.f + 0.01f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelReviewLandingDeath, "TriadDrift.Travel.Safety.LandingInvulnerableAndDeathAborts", TD_TEST_FLAGS)
+bool FTDTravelReviewLandingDeath::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W, FVector(-1500.f, 0.f, 1500.f));
+	AActor* Shooter = W.Spawn<AActor>(FVector(5000.f, 0.f, 0.f));
+	W.Tick();
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("land"), Ship->GetLanding()->RequestLand());
+	W.Advance(1.f);
+	TestEqual(TEXT("invulnerable while landing"), UTDStatics::ApplyTDDamage(Ship, 50.f, ETDDamageKind::Energy, Shooter, Shooter), 0.f);
+	W.Advance(4.5f);
+	TestTrue(TEXT("landed"), Ship->GetLanding()->IsLanded());
+	TestEqual(TEXT("invulnerable while landed"), UTDStatics::ApplyTDDamage(Ship, 50.f, ETDDamageKind::Energy, Shooter, Shooter), 0.f);
+
+	Ship->GetHealth()->Kill(); // scripted / cheat kill bypasses invulnerability
+	TestEqual(TEXT("death aborts the landing"), Ship->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("pad released for others"), Pad->IsOccupied());
+	TestFalse(TEXT("gear up, canopy shut"), Ship->GetLanding()->IsGearDown() || Ship->GetLanding()->IsCanopyOpen());
+	Ship->GetHealth()->Revive();
+	TestFalse(TEXT("revived ship isn't still invulnerable from the landing"), Ship->GetHealth()->IsInvulnerable());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelReviewLocks, "TriadDrift.Travel.Safety.LockReasonRefusedEventAndRetakeRelease", TD_TEST_FLAGS)
+bool FTDTravelReviewLocks::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetWorld()->GetGameInstance());
+	UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(W.GetWorld());
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	if (!TestNotNull(TEXT("flow"), GI) || !TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Tick();
+	UTDHyperdriveStateRecorder* Rec = NewObject<UTDHyperdriveStateRecorder>();
+	Rec->AddToRoot();
+	Ship->GetHyperdrive()->OnSpoolRefused.AddDynamic(Rec, &UTDHyperdriveStateRecorder::HandleRefused);
+
+	const FText LockText = FText::FromString(TEXT("HYPERDRIVE LOCKED - ENEMIES IN RANGE"));
+	Travel->AddHyperdriveLock(TEXT("Wave"), LockText);
+	TestTrue(TEXT("player-facing reason"), Ship->GetHyperdrive()->GetBlockReasonText().EqualTo(LockText));
+	TestTrue(TEXT("HUD line"), Travel->GetHyperdriveLockText().EqualTo(LockText));
+	TestFalse(TEXT("pilot press refused"), Ship->GetHyperdrive()->RequestSpoolFromPilot());
+	TestTrue(TEXT("refused event carries the reason"), Rec->RefusedTexts.Num() == 1 && Rec->RefusedTexts[0].EqualTo(LockText));
+
+	// A CUT retake drops every lock (the wave re-adds its own when the retake starts).
+	GI->OnSceneRestart.Broadcast(TEXT("Wave1"), 2);
+	FText Any;
+	TestFalse(TEXT("retake releases the lock"), Travel->IsHyperdriveLocked(Any));
+	TestTrue(TEXT("pilot press spools again"), Ship->GetHyperdrive()->RequestSpoolFromPilot());
+
+	// Level travel: locks live per world, so a new level starts unlocked.
+	Travel->AddHyperdriveLock(TEXT("Finale"), LockText);
+	FTDTestWorld Next;
+	TestFalse(TEXT("new level: no locks"), UTDTravelSubsystem::Get(Next.GetWorld())->IsHyperdriveLocked(Any));
+	Rec->RemoveFromRoot();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelReviewLoops, "TriadDrift.Travel.Safety.CueLoopsStopOnParkDeathAndLanding", TD_TEST_FLAGS)
+bool FTDTravelReviewLoops::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	Ship->SetShipVisuals(NewObject<UTDShipVisuals>());
+	W.Tick();
+	TestTrue(TEXT("engine trail + hum while flying"), Ship->IsCueLoopActive(TEXT("EngineTrail")) && Ship->IsCueLoopActive(TEXT("EngineLoop")));
+
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	In.bBoost = true;
+	Ship->SetFlightInput(In);
+	W.Advance(0.3f);
+	TestTrue(TEXT("boost loop running"), Ship->IsCueLoopActive(TEXT("BoostLoop")));
+	Ship->SetFlightParked(true);
+	W.Tick();
+	TestFalse(TEXT("park ends the boost loop"), Ship->IsCueLoopActive(TEXT("BoostLoop")));
+	TestFalse(TEXT("park stops the engine trail"), Ship->IsCueLoopActive(TEXT("EngineTrail")));
+	TestFalse(TEXT("park stops the engine hum"), Ship->IsCueLoopActive(TEXT("EngineLoop")));
+	Ship->SetFlightParked(false);
+	W.Tick();
+	TestTrue(TEXT("unpark relights the engine"), Ship->IsCueLoopActive(TEXT("EngineTrail")));
+
+	In.bBoost = false;
+	In.bDrift = true;
+	Ship->SetFlightInput(In);
+	W.Advance(0.3f);
+	TestTrue(TEXT("drift loop running"), Ship->IsCueLoopActive(TEXT("DriftLoop")));
+	Ship->GetHealth()->Kill();
+	Ship->SetFlightParked(true); // what the squad does at the start of the tumble
+	W.Tick();
+	TestFalse(TEXT("death ends the drift loop"), Ship->IsCueLoopActive(TEXT("DriftLoop")));
+	TestFalse(TEXT("dead: no engine trail"), Ship->IsCueLoopActive(TEXT("EngineTrail")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelReviewBoundaryInward, "TriadDrift.Travel.Safety.JumpInwardFromTheEdgeDoesNotFizzle", TD_TEST_FLAGS)
+bool FTDTravelReviewBoundaryInward::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	UTDTravelSubsystem::Get(W.GetWorld())->SetPlayBounds(FVector::ZeroVector, 400000.f);
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(380000.f, 0.f, 0.f), FRotator(0.f, 180.f, 0.f)); // in the warning band, nose home
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	TestTrue(TEXT("in the warning band"), Ship->GetShipMovement()->IsNearBoundary());
+	TestTrue(TEXT("spool"), Ship->GetHyperdrive()->StartSpool());
+	W.Advance(2.f);
+	TestEqual(TEXT("jumping inward from the edge keeps going"), Ship->GetHyperdrive()->GetState(), ETDHyperdriveState::Jumping);
 	return true;
 }
 

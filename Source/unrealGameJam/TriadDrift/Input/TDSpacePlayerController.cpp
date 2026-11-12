@@ -289,15 +289,32 @@ void ATDSpacePlayerController::ApplyMappingContexts()
 	{
 		return;
 	}
-	Subsystem->RemoveMappingContext(IMC_SpaceCommon);
-	Subsystem->RemoveMappingContext(IMC_Space);
-	Subsystem->RemoveMappingContext(IMC_Atmosphere);
-	if (!bSpaceInputEnabled || !GetSpacecraft())
+	// Only add / remove what actually changes, applied immediately, and never "ignore keys held until
+	// released": a ship switch re-possesses, and the player's held fire / boost must carry straight over.
+	// (Immediate also matters where no core ticker runs the deferred rebuild, e.g. automation worlds.)
+	const bool bFlying = bSpaceInputEnabled && GetSpacecraft() != nullptr; // on foot: T5's character brings IMC_Ground
+	FModifyContextOptions Options;
+	Options.bIgnoreAllPressedKeysUntilRelease = false;
+	Options.bForceImmediately = true;
+	auto Want = [Subsystem, &Options](const UInputMappingContext* Context, int32 Priority, bool bWanted)
 	{
-		return; // on foot (T5's character brings IMC_Ground) or disabled: no space mappings at all
-	}
-	Subsystem->AddMappingContext(IMC_SpaceCommon, 0);
-	Subsystem->AddMappingContext(FlightContext == ETDFlightContext::Space ? IMC_Space.Get() : IMC_Atmosphere.Get(), 1);
+		if (!Context)
+		{
+			return;
+		}
+		const bool bHas = Subsystem->HasMappingContext(Context);
+		if (bWanted && !bHas)
+		{
+			Subsystem->AddMappingContext(Context, Priority, Options);
+		}
+		else if (!bWanted && bHas)
+		{
+			Subsystem->RemoveMappingContext(Context, Options);
+		}
+	};
+	Want(IMC_SpaceCommon, 0, bFlying);
+	Want(IMC_Space, 1, bFlying && FlightContext == ETDFlightContext::Space);
+	Want(IMC_Atmosphere, 1, bFlying && FlightContext == ETDFlightContext::Atmosphere);
 }
 
 void ATDSpacePlayerController::SetupInputComponent()
@@ -488,8 +505,14 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 		const float Hold = (Ship && Ship->GetLanding()) ? Ship->GetLanding()->Tuning.HoldToLandSeconds : 0.5f;
 		if (Now - LandPressTime >= Hold)
 		{
-			bLandFired = true;
-			RouteLand();
+			if (RouteLand())
+			{
+				bLandFired = true; // one action per hold
+			}
+			else
+			{
+				LandPressTime = Now; // not possible yet (too fast / too far): keep holding to retry
+			}
 		}
 	}
 
@@ -966,7 +989,7 @@ void ATDSpacePlayerController::RouteHyperdrive(bool bPressed)
 		}
 		else
 		{
-			Hyper->StartSpool();
+			Hyper->RequestSpoolFromPilot(); // refused: HUD reason + refused cue
 		}
 	}
 	else
@@ -975,13 +998,21 @@ void ATDSpacePlayerController::RouteHyperdrive(bool bPressed)
 	}
 }
 
-void ATDSpacePlayerController::RouteLand()
+bool ATDSpacePlayerController::RouteLand()
 {
 	const ATDShip* Ship = Cast<ATDShip>(GetPawn());
-	if (Ship && Ship->GetLanding() && bSpaceInputEnabled)
+	UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
+	if (!Landing || !bSpaceInputEnabled)
 	{
-		Ship->GetLanding()->RequestLand();
+		return false;
 	}
+	// Still sitting in a landed ship (no on-foot hand-off took the pilot out): hold F takes off again.
+	// This keeps landing from ever being a dead end, in every build.
+	if (Landing->IsLanded())
+	{
+		return Landing->RequestTakeOff();
+	}
+	return Landing->RequestLand();
 }
 
 void ATDSpacePlayerController::RouteSquadCommand()

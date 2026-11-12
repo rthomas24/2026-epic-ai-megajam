@@ -32,14 +32,14 @@ presentation/readability, measured cost, integration and subjective approval.
 |---|---|---|
 | ART-01 Direction | Lead coordination; foundation palette/layout approved, AAA target raised | Preserve cyan/violet environment and ship identity; benchmark approval next |
 | ART-02 Inventory/sourcing | Lead + specialists; initial source inventory | Source package957b45e; every acquisition needs license/provenance before use |
-| ART-03 Ships | Ships & Weapons; Lancer M02 in refinement, Rift/Bastion backlog | M01 draftPR3/43dc320; M02 round02 57,372tri,33locators/12rays pass,16UVzeroarea/coplanar failures; repair then multi-angle Nick review, no native import |
+| ART-03 Ships | Ships & Weapons; Lancer M02 in refinement, Rift/Bastion backlog | M01 draftPR3/43dc320; M02 branch4b7ef12:57,788tri,33locators/12rays/geometry pass,9views+clay; major subjective presentation findings, Nick review before import/main |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
 | ART-05 Space | Environment & VFX; native foundation integrated, new Hero benchmark active | Main9c629e8,12native/5captures; isolated UE reload9assets0errors/warnings; no real-map playtest; HeroM02 before-after and zenith fix need Nick review |
 | ART-06 Planets | Environment & VFX planning; queued, not dispatched | Geometry/dressing absent; supplied ground dimensions unchanged; no shared map editing |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
 | ART-08 Ground visuals | Lead coordinates production owner; queued | No approved crew/arms/blade art; engineering supplies optional mesh/animation/cue contracts |
-| ART-09 HUD | UI/UX & HUD; focused readability/centering pass in native validation | DraftPR4/6d9739e baseline; health/shield icons/labels, signature/key/readiness, controlled ship, hit-text centering; Nick screenshots then engineering-approved R007 integration/host/cook gates |
-| ART-10 Audio/music | Audio & Music; all concepts rejected; licensed-library research only | M02 5979cff/draftPR5 rejected; M03 frozen/superseded; RiftConcept01 also rejected; all media archived on branch8cd30fb, read-only professional licensed-library shortlist only |
+| ART-09 HUD | UI/UX & HUD; readability milestone integrated, runtime acceptance gated | PR4 head2f55512 merged8963477; human functional readability approved; real-project build/326tests pass; N004actual-unlock fix plus engineering host/fullsuite/Shipping/cook/liveHUD remain; finalLancer styling separate |
+| ART-10 Audio/music | Audio & Music; all concepts rejected; licensed-library research only | M02 5979cff/draftPR5 rejected; M03 frozen/superseded; RiftConcept01 also rejected; all media archived on branch8cd30fb, existing Epic/Fab library audit: published exclusive paths d2a594e, five private playable candidates, no unapproved import/licensed raw media in Git |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
 | ART-12 Cinematics | Lead coordinates UI/Environment; queued implementation | Engineering switch-cut/director/scene/take hooks exist; runtime presentation not complete |
 | ART-13 Performance/look | Environment/Lead coordinate; measurements pending | Sky compiler counts are not GPU timings; real-map exposure/cost and integrated playtest pending |
@@ -49,11 +49,11 @@ presentation/readability, measured cost, integration and subjective approval.
 
 ## Immediate production sequence
 
-One global heavy-app slot on this approximately 16 GB PC. Lightweight source/audio
-work continues in separate worktrees. Ships bounded round03 repair/QA/render → HUD DPI-centering recheck → Lead current-main
-playtest window → HeroM02 native benchmark window. The prior HUD build/three tests/
-seven captures passed; a measured 3 px offset at 720p is being corrected. Recheck processes/RAM and claims
-at every dispatch; never overlap heavy apps or grant a slot from a stale snapshot.
+One global heavy-app slot on this approximately16GB PC. Ships04 passed and released;
+HUD M02 recheck/publishing complete; Lead build/suite/Galaxy scripted smoke complete.
+HeroM02 native benchmark next, then Lancer-only HUD styling native verification.
+Source-only UI and existing-library audition work may continue in exclusive roots.
+Fresh RAM/process guard at each dispatch; no concurrent heavy applications.
 
 Hero benchmark: identical camera/exposure before-after, natural multiscale structure,
 realistic angular stars without pole stretching, native reload/compile/stability and
@@ -67,14 +67,13 @@ failures, then show cohesion/materials from multiple angles before final approva
 
 ## Integration/playtest boundary
 
-Only the native sky foundation is integrated from these new native milestones.
+Native sky foundation9c629e8 and HUD source milestone8963477 are integrated; HUD host/default-on is engineering-owned and remains gated.
 It is reusable content, not proof that it appears in the real Galaxy or meets final
 AAA quality. Shared placement still needs explicit scope/claims and map-owner
 coordination. No code/config/shared map/plugin activation was changed by its merge.
 AGENTS11 now requires current-main playtests after integration batches and at least
 every 2 hours while work lands; queued live MCP input/log/viewport review is preferred,
-with scripted captures disclosed as the minimum fallback. Current sky batch has not
-been gameplay-playtested. Record results in DEVLOG; do not label assets done on tests.
+with scripted captures disclosed as the minimum fallback. Lead minimum default-Galaxy scripted capture ran at8963477:3images inspected, exit0/reasonok/noerrors; no input/sky-placement/HUD-host/fullgameplay validation. Record results in DEVLOG; do not label assets done on tests.
 
 Use existing engineering Tools read-only; shared tooling/skill changes require owner
 coordination. No unrequested tool consolidation or new production assignment here.

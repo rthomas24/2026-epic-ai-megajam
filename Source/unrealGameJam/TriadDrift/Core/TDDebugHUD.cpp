@@ -297,6 +297,11 @@ void ATDDebugHUD::DrawFlight()
 		{
 			Line += FString::Printf(TEXT("   HYPERDRIVE %s"), *Bar(Charge, 8));
 		}
+		const FText Block = Data->GetHyperdriveBlockText();
+		if (!Block.IsEmpty())
+		{
+			Line += FString::Printf(TEXT("   %s"), *Block.ToString());
+		}
 		const float Altitude = Data->GetAltitude();
 		if (Altitude >= 0.f)
 		{

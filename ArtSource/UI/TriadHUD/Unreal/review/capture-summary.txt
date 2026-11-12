@@ -1,0 +1,6 @@
+[2026.11.12-17.36.30:918][  0]LogTemp: Display: TDHUD_PREVIEW_CLASS /Game/TriadDrift/UI/TriadHUD/WBP_SpaceHUD.WBP_SpaceHUD_C
+[2026.11.12-17.36.34:768][744]LogCore: Display: Tracing Screenshot "01-squad" taken with size: 1920 x 1080
+[2026.11.12-17.36.35:585][962]LogCore: Display: Tracing Screenshot "02-warning" taken with size: 1920 x 1080
+[2026.11.12-17.36.37:426][414]LogCore: Display: Tracing Screenshot "03-720p-respawn" taken with size: 1280 x 720
+[2026.11.12-17.36.39:450][945]LogCore: Display: Tracing Screenshot "04-ultrawide" taken with size: 2560 x 1080
+[2026.11.12-17.36.41:470][430]LogCore: Display: Tracing Screenshot "05-unavailable" taken with size: 2560 x 1080
