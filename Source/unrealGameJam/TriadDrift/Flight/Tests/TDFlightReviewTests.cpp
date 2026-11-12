@@ -239,6 +239,43 @@ bool FTDReviewBoundaryOutsteer::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewTuningClampsSpeed, "TriadDrift.Flight.Speed.ApplyFlightTuningClampsCruise", TD_TEST_FLAGS)
+bool FTDReviewTuningClampsSpeed::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	TestEqual(TEXT("spawns at the default cruise"), (float)Ship->GetVelocity().Size(), 6000.f, 1.f);
+
+	// A slow spec (carrier: cruise 1500) applied right after spawn: no lurch.
+	FTDFlightTuning Slow;
+	Slow.MinSpeed = 600.f;
+	Slow.CruiseSpeed = 1500.f;
+	Slow.BoostSpeed = 2000.f;
+	Ship->ApplyFlightTuning(Slow);
+	TestEqual(TEXT("clamped to the new cruise at once"), (float)Ship->GetVelocity().Size(), 1500.f, 1.f);
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Ship->SetFlightInput(In);
+	float MaxSpeed = 0.f;
+	for (int32 i = 0; i < 60; ++i) { W.Tick(); MaxSpeed = FMath::Max(MaxSpeed, (float)Ship->GetVelocity().Size()); }
+	TestTrue(FString::Printf(TEXT("never above the new cruise (max %.0f)"), MaxSpeed), MaxSpeed <= 1501.f);
+
+	// Intentional extra speed survives a re-applied spec.
+	Ship->ApplyFlightTuning(FTDFlightTuning());
+	Ship->SetSpeedOverride(30000.f, 0.5f);
+	W.Advance(1.f);
+	Ship->ApplyFlightTuning(FTDFlightTuning());
+	TestTrue(TEXT("a speed override isn't clamped"), Ship->GetVelocity().Size() > 25000.f);
+	Ship->ClearSpeedOverride();
+
+	// Slower than the new cruise: never pushed up.
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(800.f);
+	Ship->ApplyFlightTuning(FTDFlightTuning());
+	TestEqual(TEXT("only clamps down"), (float)Ship->GetVelocity().Size(), 800.f, 1.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewBoundarySurvivesTuning, "TriadDrift.Flight.Boundary.SurvivesApplyFlightTuning", TD_TEST_FLAGS)
 bool FTDReviewBoundarySurvivesTuning::RunTest(const FString& Parameters)
 {
