@@ -125,15 +125,15 @@ bool FTDFlightCruise::RunTest(const FString& Parameters)
 game through Unreal 5.9's built-in MCP server, on its own port, without a human at the screen:
 
 ```powershell
-powershell -File Tools	d-play-mcp.ps1                 # game on L_Galaxy; port from the worktree (int 8010, t1 8011 ... t5 8015)
-powershell -File Tools	d-play-mcp.ps1 -Map /Game/TriadDrift/Maps/L_Planet_Verdance
-python Tools	d_mcp.py --port 8011 toolsets            # what can be called
-python Tools	d_mcp.py --port 8011 describe SceneCaptureToolset.SceneCaptureToolset
-python Tools	d_mcp.py --port 8011 call SceneCaptureToolset.SceneCaptureToolset ListWorlds
-python Tools	d_mcp.py --port 8011 --save-images Saved\TDShots\mcp call SceneCaptureToolset.SceneCaptureToolset CaptureGameViewport "{\"world\": {\"refPath\": \"/Game/TriadDrift/Maps/L_Galaxy.L_Galaxy\"}, \"maxResolution\": 1280}"
-python Tools	d_mcp.py --port 8011 call ConsoleToolset.ConsoleToolset RunConsoleCommand "{\"command\": \"TDSkipWave\"}"
-python Tools	d_mcp.py --port 8011 call PerfToolset.StatsToolset GetFrameTimings
-powershell -File Tools	d-play-mcp.ps1 -Stop
+powershell -File Tools\td-play-mcp.ps1                 # game on L_Galaxy; port from the worktree (int 8010, t1 8011 ... t5 8015)
+powershell -File Tools\td-play-mcp.ps1 -Map /Game/TriadDrift/Maps/L_Planet_Verdance
+python Tools\td_mcp.py --port 8011 toolsets            # what can be called
+python Tools\td_mcp.py --port 8011 describe SceneCaptureToolset.SceneCaptureToolset
+python Tools\td_mcp.py --port 8011 call SceneCaptureToolset.SceneCaptureToolset ListWorlds
+python Tools\td_mcp.py --port 8011 --save-images Saved\TDShots\mcp call SceneCaptureToolset.SceneCaptureToolset CaptureGameViewport "{\"world\": {\"refPath\": \"/Game/TriadDrift/Maps/L_Galaxy.L_Galaxy\"}, \"maxResolution\": 1280}"
+python Tools\td_mcp.py --port 8011 call ConsoleToolset.ConsoleToolset RunConsoleCommand "{\"command\": \"TDSkipWave\"}"
+python Tools\td_mcp.py --port 8011 call PerfToolset.StatsToolset GetFrameTimings
+powershell -File Tools\td-play-mcp.ps1 -Stop
 ```
 
 - Open the saved PNG with the Read tool and actually look at it: is the thing you built on screen,
@@ -147,7 +147,7 @@ powershell -File Tools	d-play-mcp.ps1 -Stop
   (Blueprint, Niagara, MetaSound, automation tests, cheats in PIE, asset import).
 - From Git Bash, `export MSYS_NO_PATHCONV=1` before passing `/Game/...` arguments, and pass JSON
   arguments from a file with `@args.json` when quoting gets in the way.
-- Also run a packaged build now and then (`Tools	d-package.ps1 -Configuration Development`): the
+- Also run a packaged build now and then (`Tools\td-package.ps1 -Configuration Development`): the
   Development game target compiles the tests differently from the editor and has caught errors
   the editor build missed.
 - Record what you played, how, what worked and what did not in your report, and say plainly which
