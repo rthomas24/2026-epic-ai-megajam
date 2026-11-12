@@ -89,6 +89,13 @@ private:
 	TObjectPtr<UTDAbilityFX> FX;
 
 	bool bPlaceholderBuilt = false;
+	bool bCoveredByArt = false;
+public:
+	/** The spawning power has art for this moment: build no placeholder lattice. */
+	void SetCoveredByArt(bool bCovered) { bCoveredByArt = bCovered; }
+	/** True once the placeholder lattice was built (tests). */
+	bool IsShowingPlaceholder() const;
+private:
 	/** Reused every tick (no per-frame allocation). */
 	TArray<AActor*> FriendlyScratch;
 	TWeakObjectPtr<AActor> FollowTarget;

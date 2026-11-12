@@ -19,6 +19,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/World.h"
+#include "Engine/OverlapResult.h"
 
 static TAutoConsoleVariable<int32> CVarPortalBlink(
 	TEXT("TD.PortalBlink"), 0,
@@ -34,6 +35,15 @@ namespace
 		Params.AddObjectTypesToQuery(ECC_WorldStatic);
 		Params.AddObjectTypesToQuery(ECC_WorldDynamic);
 		return Params;
+	}
+
+	/**
+	 * Solid for a ship: blocks the Ship channel. Object-type queries also return overlap-only volumes (a planet's
+	 * 66 000+ cm atmosphere sphere), which must never refuse a portal (second Powers review).
+	 */
+	bool TDPortalIsSolid(const UPrimitiveComponent* Comp)
+	{
+		return Comp && Comp->GetCollisionResponseToChannel(TDCollision::Ship) == ECR_Block;
 	}
 
 	float TDPortalTravellerRadius(const AActor* Actor)
@@ -62,10 +72,15 @@ bool ATDPortal::HasClearance(const UWorld* World, const FVector& Location, float
 		return true;
 	}
 	// Static AND dynamic geometry: the Dominion hull, trench, pylons, gate frames and planets are WorldDynamic.
-	if (World->OverlapAnyTestByObjectType(Location, FQuat::Identity, TDPortalBlockers(), FCollisionShape::MakeSphere(ClearanceRadius),
-		FCollisionQueryParams(SCENE_QUERY_STAT(TDPortalClearance), false)))
+	TArray<FOverlapResult> Overlaps;
+	World->OverlapMultiByObjectType(Overlaps, Location, FQuat::Identity, TDPortalBlockers(), FCollisionShape::MakeSphere(ClearanceRadius),
+		FCollisionQueryParams(SCENE_QUERY_STAT(TDPortalClearance), false));
+	for (const FOverlapResult& O : Overlaps)
 	{
-		return false;
+		if (TDPortalIsSolid(O.GetComponent()))
+		{
+			return false;
+		}
 	}
 	// T4's obstacle registry (asteroid fields etc. that may have no collision yet).
 	if (const UTDWorldSubsystem* WorldSub = World->GetSubsystem<UTDWorldSubsystem>())
@@ -397,13 +412,20 @@ FVector UTDPortalBlasterPower::ComputePlacement(FVector& OutFacing) const
 	const FVector End = Start + Aim * MaxRange;
 	const float Offset = IsUsingBlink() ? BlinkSurfaceOffset : SurfaceOffset;
 
-	FHitResult Hit;
+	TArray<FHitResult> Hits;
 	FCollisionQueryParams QParams(SCENE_QUERY_STAT(TDPortalPlace), false, Owner);
-	if (GetWorld() && GetWorld()->SweepSingleByObjectType(Hit, Start, End, FQuat::Identity, TDPortalBlockers(),
-		FCollisionShape::MakeSphere(100.f), QParams))
+	if (GetWorld())
 	{
-		const float Dist = FMath::Max(0.f, (Hit.Location - Start).Size() - Offset);
-		return Start + Aim * Dist;
+		GetWorld()->SweepMultiByObjectType(Hits, Start, End, FQuat::Identity, TDPortalBlockers(), FCollisionShape::MakeSphere(100.f), QParams);
+	}
+	// Hits come nearest first: the first solid one stops the aim (atmosphere shells are skipped).
+	for (const FHitResult& Hit : Hits)
+	{
+		if (TDPortalIsSolid(Hit.GetComponent()))
+		{
+			const float Dist = FMath::Max(0.f, (Hit.Location - Start).Size() - Offset);
+			return Start + Aim * Dist;
+		}
 	}
 	return End;
 }
@@ -572,6 +594,7 @@ bool UTDPortalBlasterPower::DoBlink()
 		Field->bProtectSquad = false;
 		Field->bDestroyShots = false;
 		Field->FollowLagRate = 60.f; // rides with Rift
+		Field->SetCoveredByArt(HasActiveArt());
 	}
 	return true;
 }

@@ -160,6 +160,8 @@ protected:
 	/** Ship cue for this slot at activation (wind-up powers override to play PowerWindup first). */
 	virtual void PlayActivationCues();
 	void PlayShipCue(int32 Which); // 0 wind-up, 1 active (slot-aware), 2 end
+	/** Where the active cue attaches (the ship by default; the dome power uses its dome, which lags behind Bastion). */
+	virtual USceneComponent* GetActiveCueRoot() const;
 	/** Placeholder art is used only when no art is assigned for this moment. */
 	bool HasActiveArt() const;
 

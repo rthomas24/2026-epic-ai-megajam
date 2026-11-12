@@ -9,6 +9,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 #include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
 
 FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec)
 {
@@ -87,15 +88,10 @@ ATDCombatFlash::ATDCombatFlash()
 	Mesh->SetVisibility(false);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
 	if (Sphere.Succeeded())
 	{
 		SphereMesh = Sphere.Object;
 		Mesh->SetStaticMesh(Sphere.Object);
-	}
-	if (Glow.Succeeded())
-	{
-		GlowMaterial = Glow.Object;
 	}
 }
 
@@ -106,6 +102,10 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 	if (AttachTo)
 	{
 		AttachToComponent(AttachTo, FAttachmentTransformRules::KeepWorldTransform);
+	}
+	if (!GlowMaterial)
+	{
+		GlowMaterial = UTDStatics::GetPlaceholderGlowMaterial(); // project M_TD_PlaceholderGlow, always cooked
 	}
 	if (!MID && GlowMaterial)
 	{
