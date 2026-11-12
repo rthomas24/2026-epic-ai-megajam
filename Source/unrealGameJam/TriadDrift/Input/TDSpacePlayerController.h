@@ -154,6 +154,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Pause")
 	bool IsGamePausedByPlayer() const { return bPausedByPlayer; }
 
+	/** Two presses of A / D (or two flicks of the left stick) within this window dodge to that side (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input")
+	float DodgeDoubleTapWindow = 0.3f;
+
 	/** Whether a pause is allowed right now, and why not. */
 	bool CanPauseNow(FText* OutReason = nullptr) const;
 
@@ -246,6 +250,11 @@ private:
 	void OnStickAim(const FInputActionValue& Value);
 	void OnStickAimReleased(const FInputActionValue& Value);
 	void OnRoll(const FInputActionValue& Value);
+	void OnDodgePressed(const FInputActionValue& Value);
+	void OnDodgeTap(const FInputActionValue& Value);
+	/** Routes a dodge to the flown ship (-1 left / +1 right). */
+	bool RouteDodge(float Direction);
+	double LastDodgeTapTime[2] = { -1.0, -1.0 };
 	void OnRollReleased(const FInputActionValue& Value);
 	void OnStrafe(const FInputActionValue& Value);
 	void OnStrafeReleased(const FInputActionValue& Value);
@@ -324,6 +333,9 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_SquadCommand;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Land;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Pause;
+	/** Dodge: LeftAlt (dedicated) and a double-tap of A / D or a double flick of the left stick. */
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Dodge;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_DodgeTap;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_GalaxyMap;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_CameraToggle;
 
