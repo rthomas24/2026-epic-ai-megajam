@@ -158,7 +158,7 @@ private:
 
 	/** Shimmer shell around the cloaked ship until UTDAbilityFX::Loop has art. */
 	UPROPERTY(Transient)
-	TObjectPtr<UPrimitiveComponent> Shimmer;
+	TObjectPtr<USceneComponent> Shimmer;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> LoopFX;

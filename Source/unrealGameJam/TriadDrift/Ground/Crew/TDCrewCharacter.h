@@ -113,6 +113,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Crew")
 	TObjectPtr<UStaticMeshComponent> Body;
 
+	/** Placeholder glowing white eye slit (Armada look: black-red armour, white eyes). Hidden with art. */
+	UPROPERTY(VisibleAnywhere, Category = "Crew")
+	TObjectPtr<UStaticMeshComponent> Eyes;
+
 	UPROPERTY(VisibleAnywhere, Category = "Crew")
 	TObjectPtr<UTDHealthComponent> Health;
 

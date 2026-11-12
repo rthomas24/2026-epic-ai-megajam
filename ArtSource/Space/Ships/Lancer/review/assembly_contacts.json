@@ -1,0 +1,101 @@
+{
+  "status": "ok",
+  "ok": false,
+  "tolerance_m": 0.002,
+  "objects": [
+    "SM_Lancer_M01_Hull",
+    "SM_Lancer_M01_MountPrimary_L",
+    "SM_Lancer_M01_Primary_L",
+    "SM_Lancer_M01_Rotor_L",
+    "SM_Lancer_M01_MountSecondary_L",
+    "SM_Lancer_M01_Secondary_L",
+    "SM_Lancer_M01_MountPrimary_R",
+    "SM_Lancer_M01_Primary_R",
+    "SM_Lancer_M01_Rotor_R",
+    "SM_Lancer_M01_MountSecondary_R",
+    "SM_Lancer_M01_Secondary_R"
+  ],
+  "islands": 98,
+  "groups": 8,
+  "main_body_tris": 9888,
+  "floating": [
+    {
+      "object": "SM_Lancer_M01_Rotor_L",
+      "island": 7,
+      "tris": 240,
+      "center": [
+        -1.0,
+        -1.76,
+        -0.57
+      ],
+      "gap_m": 0.029
+    },
+    {
+      "object": "SM_Lancer_M01_Rotor_R",
+      "island": 7,
+      "tris": 240,
+      "center": [
+        1.0,
+        -1.76,
+        -0.57
+      ],
+      "gap_m": 0.029
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island": 18,
+      "tris": 32,
+      "center": [
+        -0.78,
+        1.55,
+        0.24
+      ],
+      "gap_m": 0.0589
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island": 19,
+      "tris": 32,
+      "center": [
+        -0.78,
+        1.37,
+        0.24
+      ],
+      "gap_m": 0.0533
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island": 31,
+      "tris": 32,
+      "center": [
+        0.78,
+        1.73,
+        0.24
+      ],
+      "gap_m": 0.0313
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island": 32,
+      "tris": 32,
+      "center": [
+        0.78,
+        1.55,
+        0.24
+      ],
+      "gap_m": 0.0607
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island": 33,
+      "tris": 32,
+      "center": [
+        0.78,
+        1.37,
+        0.24
+      ],
+      "gap_m": 0.0903
+    }
+  ],
+  "hint": "Connect each floating island to the body (strut, pylon, overlap it slightly) or delete it."
+}

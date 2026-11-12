@@ -56,10 +56,7 @@ void ATDPlanetAtmosphere::Configure(ETDDestination InDestination, FName InReturn
 	Color = InColor;
 	Atmosphere->SetSphereRadius(AtmosphereRadius);
 	PlanetMesh->SetRelativeScale3D(FVector(PlanetRadius * 2.f / 100.f));
-	if (UMaterialInstanceDynamic* MID = PlanetMesh->CreateDynamicMaterialInstance(0))
-	{
-		MID->SetVectorParameterValue(TEXT("Color"), Color);
-	}
+	UTDStatics::TintPlaceholder(PlanetMesh, Color, 0.f);
 }
 
 void ATDPlanetAtmosphere::BeginPlay()
@@ -177,7 +174,7 @@ void ATDPlanetAtmosphere::TryEnter(ATDSpacecraft* Ship)
 	{
 		if (UTDAtmosphereEntryComponent* Entry = SquadShip->GetAtmosphereEntry())
 		{
-			if (Entry->BeginEntry(Destination, ReturnPoint, GetActorLocation()))
+			if (Entry->BeginEntry(Destination, ReturnPoint, GetActorLocation(), PlanetRadius))	// radius: the dive stops above the surface
 			{
 				return;
 			}

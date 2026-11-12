@@ -1,0 +1,11 @@
+{
+  "asset": "Triad Drift native space HUD prototype",
+  "author": "Nicholas Tosti with OpenAI Codex",
+  "date": "2026-11-12",
+  "tools_used": ["OpenAI Codex", "Unreal Engine 5.9 MegaJam Preview CL60351404", "MSVC 14.50"],
+  "sources": ["Original HUD Study 01: nick/hud 85907f0 / nick/visual-assets e2d4139, read-only palette and ship SVG paths", "Original C++ UMG and Slate implementation in Plugins/TriadDriftHUD"],
+  "third_party_assets_added": [],
+  "engine_resources": ["Engine default font", "Slate WhiteBrush"],
+  "rights": "Original project UI/code for Nicholas; existing engine resource terms apply.",
+  "integration": "Lead should append this entry to shared CREDITS.md and DEVLOG.md during authorized integration. Those shared files were not edited by this agent."
+}

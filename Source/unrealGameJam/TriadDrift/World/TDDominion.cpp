@@ -10,6 +10,9 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
@@ -119,11 +122,11 @@ void ATDDominion::BeginPlay()
 	// Nick's asset by convention when none is set (no gameplay BP edit needed).
 	if (!Visuals)
 	{
-		Visuals = LoadObject<UTDDominionVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Dominion_Visuals.DA_Dominion_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		Visuals = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
 	}
 	if (!TurretVisuals)
 	{
-		TurretVisuals = LoadObject<UTDEnemyVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_DominionTurret_Visuals.DA_DominionTurret_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		TurretVisuals = UTDStatics::LoadPresentation<UTDEnemyVisuals>(TEXT("DA_DominionTurret_Visuals"));
 	}
 
 	LayoutParts();
@@ -161,14 +164,14 @@ void ATDDominion::LayoutParts()
 	}
 	HangarPoint->SetRelativeLocation(FVector(E.X + 3000.f, 0.f, -E.Z * 0.4f));
 
-	UMaterialInstanceDynamic* HullMID = HullMesh->CreateDynamicMaterialInstance(0);
-	if (HullMID) { HullMID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.04f, 0.03f, 0.03f)); }
+	// Black armour with red trim, glowing shield emitters (Null Armada colour code).
+	UTDStatics::TintPlaceholder(HullMesh, FLinearColor(0.05f, 0.04f, 0.045f), 0.f);
+	UTDStatics::TintPlaceholder(BridgeMesh, FLinearColor(0.35f, 0.04f, 0.03f), 0.f);
+	UTDStatics::TintPlaceholder(TrenchWallLeft, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
+	UTDStatics::TintPlaceholder(TrenchWallRight, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
 	for (UStaticMeshComponent* S : ShieldSections)
 	{
-		if (UMaterialInstanceDynamic* MID = S->CreateDynamicMaterialInstance(0))
-		{
-			MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.2f, 0.7f, 1.f));
-		}
+		UTDStatics::TintPlaceholder(S, FLinearColor(0.2f, 0.7f, 1.f), 6.f);
 	}
 	if (Visuals && !Visuals->HullMesh.IsNull())
 	{
@@ -195,6 +198,10 @@ void ATDDominion::LayoutParts()
 
 void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale);
+	}
 	for (ATDShieldGenerator* G : Generators)
 	{
 		if (IsValid(G)) { G->OnGeneratorDestroyed.RemoveDynamic(this, &ATDDominion::HandleGeneratorDestroyed); }
@@ -213,6 +220,14 @@ void ATDDominion::SetState(ETDDominionState NewState)
 	if (State != NewState)
 	{
 		State = NewState;
+		// The assault (warp-in to victory) locks the hyperdrive: the finale is fought, not skipped.
+		if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+		{
+			const bool bLocked = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
+				|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+			if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT")); }
+			else { Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale); }
+		}
 		OnStateChanged.Broadcast(this, NewState);
 	}
 }
@@ -296,7 +311,9 @@ void ATDDominion::BuildParts()
 		if (!T) { return; }
 		T->AttachToActor(this, Attach);
 		T->SetActorRelativeLocation(Local);
-		T->Init(TurretGuns, TurretHull);
+		const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
+		T->Init(TurretGuns, TurretHull * Difficulty.EnemyHull);
+		T->SetDamageMultiplier(Difficulty.EnemyDamage);
 		T->Visuals = TurretVisuals;
 		T->SetActorScale3D(FVector(4.f));
 		Into.Add(T);
@@ -314,7 +331,7 @@ void ATDDominion::BuildParts()
 		G->FinishSpawning(FTransform::Identity);
 		G->AttachToActor(this, Attach);
 		G->SetActorRelativeLocation(Local);
-		G->Init(GeneratorHull, i);
+		G->Init(GeneratorHull * UTDDifficultySettings::GetScale().EnemyHull, i);
 		G->OnGeneratorDestroyed.AddUniqueDynamic(this, &ATDDominion::HandleGeneratorDestroyed);
 		Generators.Add(G);
 

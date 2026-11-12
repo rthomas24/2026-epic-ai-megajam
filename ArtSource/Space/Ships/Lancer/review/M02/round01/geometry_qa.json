@@ -1,0 +1,483 @@
+{
+  "ok": true,
+  "pass": false,
+  "errors": [
+    "SM_Lancer_M02_Hull: 4 zero-area UV faces",
+    "SM_Lancer_M02_Hull: degenerate faces=2 zero-len edges=2",
+    "z-fighting: SM_Lancer_M02_Rotor_L (192 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M02_Rotor_R (192 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M02_Hull (99 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M02_Hull<->SM_Lancer_M02_Primary_R (21 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M02_Hull<->SM_Lancer_M02_Primary_L (21 overlapping coplanar tri pairs)"
+  ],
+  "warnings": [
+    "SM_Lancer_M02_Hull: duplicate verts=3 loose verts=0",
+    "hidden back-to-back faces: SM_Lancer_M02_Secondary_L (384 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M02_Secondary_R (384 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M02_MountPrimary_L<->SM_Lancer_M02_Rotor_L (66 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M02_MountPrimary_R<->SM_Lancer_M02_Rotor_R (66 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M02_Primary_L (27 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M02_Primary_R (27 pairs) - delete to save tris",
+    "12 parts fully enclosed, not touching (eyes/internals?): ['SM_Lancer_M02_Hull', 'SM_Lancer_M02_Hull', 'SM_Lancer_M02_Hull', 'SM_Lancer_M02_Hull', 'SM_Lancer_M02_Hull']",
+    "asset lowest point z=-0.971 (not resting on ground plane z=0)"
+  ],
+  "ground_z": -0.971,
+  "zfighting": [
+    {
+      "where": "SM_Lancer_M02_Rotor_L",
+      "tri_pairs": 192
+    },
+    {
+      "where": "SM_Lancer_M02_Rotor_R",
+      "tri_pairs": 192
+    },
+    {
+      "where": "SM_Lancer_M02_Hull",
+      "tri_pairs": 99
+    },
+    {
+      "where": "SM_Lancer_M02_Hull<->SM_Lancer_M02_Primary_R",
+      "tri_pairs": 21
+    },
+    {
+      "where": "SM_Lancer_M02_Hull<->SM_Lancer_M02_Primary_L",
+      "tri_pairs": 21
+    }
+  ],
+  "floating": [],
+  "back_to_back": [
+    {
+      "where": "SM_Lancer_M02_Secondary_L",
+      "tri_pairs": 384
+    },
+    {
+      "where": "SM_Lancer_M02_Secondary_R",
+      "tri_pairs": 384
+    },
+    {
+      "where": "SM_Lancer_M02_MountPrimary_L<->SM_Lancer_M02_Rotor_L",
+      "tri_pairs": 66
+    },
+    {
+      "where": "SM_Lancer_M02_MountPrimary_R<->SM_Lancer_M02_Rotor_R",
+      "tri_pairs": 66
+    },
+    {
+      "where": "SM_Lancer_M02_Primary_L",
+      "tri_pairs": 27
+    },
+    {
+      "where": "SM_Lancer_M02_Primary_R",
+      "tri_pairs": 27
+    }
+  ],
+  "enclosed": [
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        -1.26,
+        3.03,
+        0.425
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        -0.96,
+        3.03,
+        0.425
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        -1.26,
+        2.69,
+        0.46
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        -0.96,
+        2.69,
+        0.46
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        -1.26,
+        2.3,
+        0.435
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        -0.96,
+        2.3,
+        0.435
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        0.96,
+        3.03,
+        0.425
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        1.26,
+        3.03,
+        0.425
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        0.96,
+        2.69,
+        0.46
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        1.26,
+        2.69,
+        0.46
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        0.96,
+        2.3,
+        0.435
+      ]
+    },
+    {
+      "object": "SM_Lancer_M02_Hull",
+      "island_verts": 84,
+      "center": [
+        1.26,
+        2.3,
+        0.435
+      ]
+    }
+  ],
+  "objects": {
+    "SM_Lancer_M02_Hull": {
+      "verts": 16346,
+      "faces": 32292,
+      "tris": 32292,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 2,
+      "zero_length_edges": 2,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 3,
+      "islands": 106,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 4,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 13.5
+    },
+    "SM_Lancer_M02_MountPrimary_L": {
+      "verts": 376,
+      "faces": 744,
+      "tris": 744,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 2,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 60.5
+    },
+    "SM_Lancer_M02_Primary_L": {
+      "verts": 1584,
+      "faces": 3128,
+      "tris": 3128,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 11,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 3,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 60.1
+    },
+    "SM_Lancer_M02_Rotor_L": {
+      "verts": 3552,
+      "faces": 7100,
+      "tris": 7100,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 15,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 2,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 31.8
+    },
+    "SM_Lancer_M02_MountSecondary_L": {
+      "verts": 376,
+      "faces": 744,
+      "tris": 744,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 2,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 60.5
+    },
+    "SM_Lancer_M02_Secondary_L": {
+      "verts": 6128,
+      "faces": 12184,
+      "tris": 12184,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 30,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 4,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 33.6
+    },
+    "SM_Lancer_M02_MountPrimary_R": {
+      "verts": 376,
+      "faces": 744,
+      "tris": 744,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 2,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 60.5
+    },
+    "SM_Lancer_M02_Primary_R": {
+      "verts": 1584,
+      "faces": 3128,
+      "tris": 3128,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 11,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 3,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 60.1
+    },
+    "SM_Lancer_M02_Rotor_R": {
+      "verts": 3552,
+      "faces": 7100,
+      "tris": 7100,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 15,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 2,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 31.8
+    },
+    "SM_Lancer_M02_MountSecondary_R": {
+      "verts": 376,
+      "faces": 744,
+      "tris": 744,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 2,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 60.5
+    },
+    "SM_Lancer_M02_Secondary_R": {
+      "verts": 6128,
+      "faces": 12184,
+      "tris": 12184,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 30,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 4,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 33.6
+    }
+  }
+}

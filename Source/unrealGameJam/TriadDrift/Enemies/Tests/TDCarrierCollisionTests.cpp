@@ -79,7 +79,7 @@ bool FTDCarrierRealShot::RunTest(const FString& Parameters)
 	TDCarrierTest_FireAt(W, Bay->GetActorLocation() + Out * 6000.f, Bay, 200.f);
 	W.Advance(0.5f);
 	TestEqual(TEXT("first bolt hit the bay, not the hull"), Bay->GetHealth()->GetHull(), 100.f);
-	TestEqual(TEXT("carrier hull untouched"), C->GetHealth()->GetHull(), 2000.f);
+	TestEqual(TEXT("carrier hull untouched"), C->GetHealth()->GetHull(), C->GetHealth()->MaxHull);
 	TDCarrierTest_FireAt(W, Bay->GetActorLocation() + Out * 6000.f, Bay, 200.f);
 	W.Advance(0.5f);
 	TestFalse(TEXT("real shots destroyed the bay"), Bay->IsAlive());

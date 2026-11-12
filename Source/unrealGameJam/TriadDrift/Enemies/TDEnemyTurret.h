@@ -30,6 +30,9 @@ public:
 
 	void Init(const FTDEnemyAttackSpec& InGuns, float Hull);
 
+	/** Difficulty / power multiplier on the turret's outgoing damage. */
+	void SetDamageMultiplier(float Multiplier);
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Turret")
 	bool IsAlive() const;
 
@@ -59,11 +62,11 @@ public:
 
 	/** Seconds the guns stay on per burst. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
-	float BurstSeconds = 1.5f;
+	float BurstSeconds = 1.0f;	// ENG-27: carrier PD was the top damage source in wave 5 at 1.5 s
 
 	/** Pause between bursts. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
-	float BurstCooldownSeconds = 1.0f;
+	float BurstCooldownSeconds = 2.0f;	// ENG-27: 1.0 made carrier point defense a death zone
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
 	float StartHull = 60.f;

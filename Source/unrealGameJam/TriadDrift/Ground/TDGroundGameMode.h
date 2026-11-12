@@ -38,6 +38,7 @@ public:
 	virtual void StartPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual bool PlayerCanRestart_Implementation(APlayerController* Player) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
 	FTransform PlayerSpawn = FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 100.f));
@@ -91,6 +92,7 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<ATDDoor> RoomDoor;
 	UPROPERTY(Transient) TObjectPtr<class ATDPlanetDirector> PlanetDirector;
 	bool bPlanetMode = false;
+	bool bWorldBuilt = false;
 	FTransform RespawnTransform;
 	bool bHasRespawnTransform = false;
 

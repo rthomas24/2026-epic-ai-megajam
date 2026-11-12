@@ -6,8 +6,10 @@
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
+#include "TriadDrift/Flow/TDPlaceholderSky.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
@@ -78,6 +80,12 @@ void ATDGroundGameMode::InitGame(const FString& MapName, const FString& Options,
 	Super::InitGame(MapName, Options, ErrorMessage);
 }
 
+bool ATDGroundGameMode::PlayerCanRestart_Implementation(APlayerController* Player)
+{
+	// Never spawn the pilot before the ground it stands on exists (it would fall, die and start on take 2).
+	return bWorldBuilt && Super::PlayerCanRestart_Implementation(Player);
+}
+
 AActor* ATDGroundGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	if (AActor* Found = Super::ChoosePlayerStart_Implementation(Player))
@@ -115,12 +123,18 @@ void ATDGroundGameMode::StartPlay()
 	{
 		SpawnPlanetVisit();
 	}
+	bWorldBuilt = true;
 	Super::StartPlay();
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		APlayerController* PC = It->Get();
 		UTDCheatManager::InstallOn(PC);
+		if (PC && PC->IsLocalController())
+		{
+			PC->SetInputMode(FInputModeGameOnly()); // never inherit the menu's UI-only input
+			PC->SetShowMouseCursor(false);
+		}
 
 		if (PC && !PC->GetPawn())
 		{
@@ -233,14 +247,7 @@ AActor* ATDGroundGameMode::SpawnBlock(const FVector& Center, const FVector& Size
 	SMC->SetStaticMesh(Cube);
 	SMC->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 	Block->FinishSpawning(Xf);
-	if (Mat)
-	{
-		if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Mat, Block))
-		{
-			MID->SetVectorParameterValue(TEXT("Color"), Color);
-			SMC->SetMaterial(0, MID);
-		}
-	}
+	UTDStatics::TintPlaceholder(SMC, Color, 0.f);
 #if WITH_EDITOR
 	Block->SetActorLabel(Label);
 #endif
@@ -249,47 +256,8 @@ AActor* ATDGroundGameMode::SpawnBlock(const FVector& Center, const FVector& Size
 
 void ATDGroundGameMode::SpawnEnvironment()
 {
-	UWorld* World = GetWorld();
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	if (!TDGroundSandbox::WorldHas<ADirectionalLight>(World))
-	{
-		const FTransform Xf(FRotator(-50.f, 30.f, 0.f));
-		if (ADirectionalLight* Sun = World->SpawnActorDeferred<ADirectionalLight>(ADirectionalLight::StaticClass(), Xf))
-		{
-			Sun->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-			Sun->FinishSpawning(Xf);
-			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Sun->GetLightComponent()))
-			{
-				L->SetIntensity(10.f);
-				L->SetForwardShadingPriority(1);
-				L->SetLightColor(FLinearColor(1.f, 0.95f, 0.85f));
-				L->SetAtmosphereSunLight(true);
-			}
-		}
-	}
-	if (!TDGroundSandbox::WorldHas<ASkyLight>(World))
-	{
-		if (ASkyLight* Sky = World->SpawnActorDeferred<ASkyLight>(ASkyLight::StaticClass(), FTransform::Identity))
-		{
-			Sky->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-			Sky->FinishSpawning(FTransform::Identity);
-			if (USkyLightComponent* L = Sky->GetLightComponent())
-			{
-				L->bRealTimeCapture = true;
-				L->SetIntensity(1.f);
-				L->RecaptureSky();
-			}
-		}
-	}
-	// A sky so the horizon isn't black.
-	AActor* SkyActor = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, Params);
-	if (SkyActor)
-	{
-		USkyAtmosphereComponent* Atmos = NewObject<USkyAtmosphereComponent>(SkyActor, TEXT("SkyAtmosphere"));
-		SkyActor->SetRootComponent(Atmos);
-		Atmos->RegisterComponent();
-	}
+	// Daylight placeholder only where the planet map has no sky of its own (N-004 contract).
+	ATDPlaceholderSky::SpawnIfNeeded(GetWorld(), ETDPlaceholderSkyStyle::Planet);
 }
 
 void ATDGroundGameMode::SpawnTrainingGround()
@@ -320,6 +288,12 @@ void ATDGroundGameMode::SpawnTrainingGround()
 
 	// Turret straight ahead behind a low wall: block (RMB) its bolts, time it for a perfect deflect.
 	Turret = World->SpawnActor<ATDDummyTurret>(ATDDummyTurret::StaticClass(), FVector(2600.f, 0.f, 60.f), FRotator(0.f, 180.f, 0.f), Params);
+	if (Turret)
+	{
+		Turret->BoltDamage = 4.f;      // deflect practice, not a threat
+		Turret->BurstInterval = 3.5f;
+		Turret->MaxRange = 3000.f;     // only engages once you walk toward it
+	}
 
 	// Two melee dummies that swing every 2.5 s with a 0.5 s telegraph: parry practice.
 	for (int32 i = 0; i < 2; ++i)
@@ -327,7 +301,8 @@ void ATDGroundGameMode::SpawnTrainingGround()
 		if (ATDCrewDummy* Dummy = World->SpawnActor<ATDCrewDummy>(ATDCrewDummy::StaticClass(), FVector(900.f, -250.f + i * 500.f, 100.f), FRotator(0.f, 180.f, 0.f), Params))
 		{
 			Dummy->MaxHealth = 200.f;
-			Dummy->MeleeInterval = 2.5f;
+			Dummy->MeleeInterval = 3.f;
+			Dummy->MeleeDamage = 6.f; // practice partner: telegraphed, light, parryable
 			if (Dummy->GetHealth())
 			{
 				Dummy->GetHealth()->InitMaxValues(200.f, 0.f, true);

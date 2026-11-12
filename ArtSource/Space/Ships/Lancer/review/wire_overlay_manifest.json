@@ -1,0 +1,152 @@
+{
+  "engine": "BLENDER_WORKBENCH",
+  "overlay": "temporary independent edge curves, no geometry miter",
+  "edge_count": 15792,
+  "wire_radius_m": 0.0025,
+  "source_hashes_unchanged": true,
+  "source_geometry_comparison": [
+    {
+      "source": "SM_Lancer_MinigunBody.mesh.json",
+      "vertices": 156,
+      "triangles": 304,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_MinigunRotor.mesh.json",
+      "vertices": 626,
+      "triangles": 1248,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_RocketPod.mesh.json",
+      "vertices": 960,
+      "triangles": 1888,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_SpikeRocket.mesh.json",
+      "vertices": 162,
+      "triangles": 312,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_UniversalMount.mesh.json",
+      "vertices": 52,
+      "triangles": 96,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Ship_Lancer_Proxy.mesh.json",
+      "vertices": 1688,
+      "triangles": 3264,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    }
+  ],
+  "images": [
+    {
+      "file": "wire_front_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1701068,
+      "mean_rgb": [
+        0.15723027288913727,
+        0.19282114505767822,
+        0.2224520593881607
+      ],
+      "pixel_std": 0.09632600098848343,
+      "nonblack_fraction": 0.9959744318181818
+    },
+    {
+      "file": "wire_front.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1522838,
+      "mean_rgb": [
+        0.12689602375030518,
+        0.16756415367126465,
+        0.19798269867897034
+      ],
+      "pixel_std": 0.06272434443235397,
+      "nonblack_fraction": 0.9866875
+    },
+    {
+      "file": "wire_right.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1496000,
+      "mean_rgb": [
+        0.15126195549964905,
+        0.18996071815490723,
+        0.22005432844161987
+      ],
+      "pixel_std": 0.1032765582203865,
+      "nonblack_fraction": 0.992625
+    },
+    {
+      "file": "wire_top.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1593105,
+      "mean_rgb": [
+        0.16178375482559204,
+        0.20013998448848724,
+        0.23049598932266235
+      ],
+      "pixel_std": 0.10321858525276184,
+      "nonblack_fraction": 0.9994301136363636
+    },
+    {
+      "file": "wire_back_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1667585,
+      "mean_rgb": [
+        0.14090798795223236,
+        0.17717908322811127,
+        0.2059214562177658
+      ],
+      "pixel_std": 0.07618182897567749,
+      "nonblack_fraction": 0.9927630681818181
+    },
+    {
+      "file": "wire_low_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1593364,
+      "mean_rgb": [
+        0.12668059766292572,
+        0.165236234664917,
+        0.19319407641887665
+      ],
+      "pixel_std": 0.07155632227659225,
+      "nonblack_fraction": 0.9675551136363636
+    }
+  ],
+  "layout": [
+    "front_3q",
+    "front",
+    "right",
+    "top",
+    "back_3q",
+    "low_3q"
+  ],
+  "overlay_excluded_from_asset_counts": true
+}

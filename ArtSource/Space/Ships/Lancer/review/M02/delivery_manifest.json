@@ -1,0 +1,61 @@
+{
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "bytes": 1930876,
+      "sha256": "e298ed97985bd50e87377768898886b19793449cdcc8e76ca965db52d8a228ce"
+    },
+    {
+      "file": "02_front.png",
+      "bytes": 1861204,
+      "sha256": "c1475c4c6bba0837ce3875aa3af53c1de44936311355f625757f2aa6a7c7ad49"
+    },
+    {
+      "file": "03_rear.png",
+      "bytes": 1875601,
+      "sha256": "9e2f8c697de50c0c79b1a2e9e6c74bc17afe8892cf00aab4e161dd94d9d3b0d5"
+    },
+    {
+      "file": "04_side.png",
+      "bytes": 1811107,
+      "sha256": "aca3f344efff7428a06b4942b32472dbafc3de68600ccc285fc2b13431da70b2"
+    },
+    {
+      "file": "05_top.png",
+      "bytes": 1864685,
+      "sha256": "934c60e2f6dc31517f5198b39dcedfd9e8480e00609eb134c64e6f79e6c43284"
+    },
+    {
+      "file": "06_rear_3q.png",
+      "bytes": 1980313,
+      "sha256": "39b5148babc885900e74972b24ce457119d5ec7fd6201be3682c443f08c9ef2b"
+    },
+    {
+      "file": "07_underside.png",
+      "bytes": 1954695,
+      "sha256": "91806be039ea31b51a81965d0f70e7d6eb8a7849249da27ebcfd021e0a250093"
+    },
+    {
+      "file": "08_weapon_detail.png",
+      "bytes": 1935281,
+      "sha256": "26a0002bc2f14327fe749a733d96e7a16e8766615b6fe9acf978cd1079b9b01b"
+    },
+    {
+      "file": "09_rocket_visual.png",
+      "bytes": 1687009,
+      "sha256": "6439555c41bc7a3f729f1eb123d51642a2f336a6e5572a6c44b8c4ef945c5c69"
+    },
+    {
+      "file": "Lancer_M02_clay_sheet.png",
+      "bytes": 772207,
+      "sha256": "9752bdf296d65713ae7d5d24ef5a6ea372ca24037153a505b6232b80109ee5a1"
+    },
+    {
+      "file": "Lancer_M02_overview.png",
+      "bytes": 2239084,
+      "sha256": "891d9e75ca8fcded8234e6eb12ed39ff62f621ff82500e02214270aa647096b7"
+    }
+  ],
+  "technical_pass": true,
+  "visual_approval": "pending human review"
+}

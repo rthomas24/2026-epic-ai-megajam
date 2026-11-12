@@ -62,6 +62,8 @@ namespace TDSquad
 	/** T1: landing instantly back to flying (no-op when already flying). */
 	void AbortLanding(ATDShip* Ship);
 	float GetHyperdriveCharge01(const ATDShip* Ship);
+	/** Why the hyperdrive can't spool right now (ship block reason, else a world travel lock), or empty. */
+	FText GetHyperdriveBlockText(const ATDShip* Ship);
 	float GetAltitudeMeters(const ATDShip* Ship);
 	/** T2: carry a manually cycled target from one ship to the next on a switch. */
 	void CarryManualTarget(const ATDShip* From, ATDShip* To);
@@ -108,14 +110,24 @@ namespace TDSquad
 	 * T4 obstacle registry (asteroids, ruins, planets, Dominion hull): if something registered lies
 	 * within ProbeDistance along Direction, returns true and a unit direction that slides around it.
 	 */
+	/** Wingmen never transit a permanent gate on their own (they lead the player in the forward wedge
+	 *  and would arrive alone): if Ship's next LookAheadSeconds of flight crosses an active gate disc,
+	 *  hold it in the transit cooldown so it flies through the frame; the leader's transit follow-warps
+	 *  it across. Returns true while held. */
+	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds);
+	/** Where the director's money-shot camera is, while one is running. */
+	bool GetDirectorShotCamera(const AActor* WorldContext, FVector& OutLocation);
 	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection);
 	/** True if a hostile homing projectile is tracking Ship. */
 	bool IsMissileIncoming(const ATDShip* Ship);
 	/** Nearest active player shield dome (Bastion, ENG-11) within MaxDistance of Location. */
 	bool GetNearbyShieldDome(const UWorld* World, const FVector& Location, float MaxDistance, FVector& OutCenter, float& OutRadius);
 
-	/** HUD: T2 power cooldowns, 1 = ready (also 1 when the ship has no such power). */
-	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility);
+	/** HUD: T2 signature power cooldowns, 1 = ready (1 when the ship has no such power). */
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2);
+	/** HUD (N-004 contract): the ability the ship has EARNED (None while locked) and its readiness
+	 *  (0 while locked, never 1 for an absent power; else the ability power's cooldown, 1 = ready). */
+	void GetEarnedAbility(const ATDShip* Ship, ETDAbilityId& OutAbility, float& OutReadiness01);
 
 	/** T2 powers: install the spec's signature powers and ability slot once (no-op for slots already filled). */
 	void InstallPowers(ATDShip* Ship, const FTDShipSpec& Spec);
@@ -152,6 +164,11 @@ namespace TDSquad
 	/** True if a game flow received the defeat (it then owns the restart). */
 	bool ReportPlayerDefeated(const UObject* WorldContext);
 	void AddShipSwitchStat(const UObject* WorldContext);
+	/** A voice line: ITDGameFlow::RequestBark, or straight to UTDEventBus::OnBarkRequested with no flow. */
+	void RequestBark(const UObject* WorldContext, FName BarkId, FName Speaker);
+	/** Subscribe / unsubscribe Squad->HandleActorKilled to UTDEventBus::OnActorKilled (wingman kill barks). */
+	void BindActorKilled(ATDSquadManager* Squad);
+	void UnbindActorKilled(ATDSquadManager* Squad);
 
 	/** Subscribe / unsubscribe Squad->HandlePowerUsed to UTDEventBus::OnPowerUsed (T2 broadcasts it). */
 	void BindPowerUsed(ATDSquadManager* Squad);

@@ -52,9 +52,9 @@ void UTDEnergyBladeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	Stamina = BlockStaminaSeconds;
-	if (!BladeFX && FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Presentation/DA_Blade_FX")))
+	if (!BladeFX)
 	{
-		BladeFX = LoadObject<UTDBladeFX>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Blade_FX.DA_Blade_FX"));
+		BladeFX = UTDStatics::LoadPresentation<UTDBladeFX>(TEXT("DA_Blade_FX"));
 	}
 	OwnerHealth = UTDStatics::GetHealth(GetOwner());
 	if (OwnerHealth)
@@ -177,40 +177,40 @@ bool UTDEnergyBladeComponent::IsInFrontArc(const FVector& WorldLocation) const
 
 void UTDEnergyBladeComponent::PressAttack()
 {
+	// The attack lands on the PRESS (no click-length delay). What it is depends on what the body is doing.
 	bAttackHeld = true;
 	AttackHeldTime = 0.f;
 	bHeavyFiredThisPress = false;
-}
-
-void UTDEnergyBladeComponent::ReleaseAttack()
-{
-	if (!bAttackHeld)
-	{
-		return;
-	}
-	bAttackHeld = false;
-	if (bHeavyFiredThisPress)
-	{
-		return;
-	}
-	// Quick press: what it does depends on what the body is doing.
+	bPressSwingLanded = false;
+	const int32 HitsBefore = HitCounter;
 	if (const ATDFirstPersonCharacter* FPC = Cast<ATDFirstPersonCharacter>(GetOwner()))
 	{
 		if (FPC->IsDashing())
 		{
 			DashStrike(FPC->GetDashDirection(), FPC->GetDashRemainingDistance() + 150.f);
+			bPressSwingLanded = HitCounter > HitsBefore;
 			return;
 		}
 	}
 	const ACharacter* Char = GetOwnerCharacter();
-	if (Char && Char->GetCharacterMovement() && Char->GetCharacterMovement()->IsFalling())
+	if (Char && Char->GetCharacterMovement() && Char->GetCharacterMovement()->IsFalling() && AirSlam())
 	{
-		AirSlam();
+		bHeavyFiredThisPress = true; // a slam never turns into a lunge
 		return;
 	}
+	if (IsBlocking())
+	{
+		SetBlockHeld(false); // attacking out of a block (after a parry) is allowed
+		bBlockHeld = true;   // still held: the guard comes back up after the swing
+	}
 	LightAttack();
+	bPressSwingLanded = HitCounter > HitsBefore;
 }
 
+void UTDEnergyBladeComponent::ReleaseAttack()
+{
+	bAttackHeld = false;
+}
 void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 {
 	bBlockHeld = bHeld;
@@ -223,7 +223,6 @@ void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 			ComboIndex = 0;
 			ComboTimeLeft = 0.f;
 			bLightQueued = false;
-			RecentlyDeflected.Reset();
 		}
 	}
 	else if (State == ETDBladeState::Blocking)
@@ -265,6 +264,7 @@ void UTDEnergyBladeComponent::StartSwing(int32 Index)
 	ComboIndex = Index + 1;
 	State = static_cast<ETDBladeState>(static_cast<uint8>(ETDBladeState::Light1) + FMath::Min(Index, 2));
 	SwingTimeLeft = Swing.Duration;
+	MoveDuration = Swing.Duration;
 	ComboTimeLeft = 0.f;
 	bLightQueued = false;
 	OnSwing.Broadcast(State);
@@ -293,6 +293,7 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	State = ETDBladeState::HeavyLunge;
 	HeavyCooldownLeft = HeavyCooldown;
 	SwingTimeLeft = HeavyLungeDuration;
+	MoveDuration = HeavyLungeDuration;
 	ComboIndex = 0;
 	ComboTimeLeft = 0.f;
 	OnSwing.Broadcast(State);
@@ -351,7 +352,7 @@ bool UTDEnergyBladeComponent::AirSlam()
 		return false;
 	}
 	State = ETDBladeState::AirSlam;
-	SwingTimeLeft = 5.f; // ends on landing
+	SwingTimeLeft = AirSlamTimeout; // ends on landing (or times out)
 	OnSwing.Broadcast(State);
 	Char->LaunchCharacter(FVector(0.f, 0.f, -AirSlamSpeed), true, true);
 	return true;
@@ -394,6 +395,7 @@ bool UTDEnergyBladeComponent::DashStrike(FVector Direction, float Distance)
 	}
 	State = ETDBladeState::DashStrike;
 	SwingTimeLeft = 0.2f;
+	MoveDuration = 0.2f;
 	OnSwing.Broadcast(State);
 	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	const FVector Start = Owner->GetActorLocation();
@@ -493,6 +495,7 @@ bool UTDEnergyBladeComponent::HitActor(AActor* Victim, float Damage, const FVect
 		Bus->BroadcastHitConfirmed(Victim, bKill);
 	}
 	PlayBladeCue(TEXT("Hit"), BladeFX ? &BladeFX->Hit : nullptr, false, HitLocation);
+	++HitCounter;
 	OnBladeHit.Broadcast(Victim, Dealt, bKill);
 	return true;
 }
@@ -512,9 +515,11 @@ bool UTDEnergyBladeComponent::TryDeflect(AActor* ProjectileActor)
 	{
 		return false;
 	}
-	for (const TWeakObjectPtr<AActor>& Done : RecentlyDeflected)
+	// No per-actor memory: projectiles are pooled (the next burst reuses these actors), and a shot we
+	// already returned is on our team now, so the hostile check never catches it twice.
+	if (const ATDProjectile* AsProj = Cast<ATDProjectile>(ProjectileActor))
 	{
-		if (Done.Get() == ProjectileActor)
+		if (!AsProj->IsActive() || !UTDStatics::AreTeamsHostile(AsProj->GetTeam(), GetOwnerTeam()))
 		{
 			return false;
 		}
@@ -524,7 +529,26 @@ bool UTDEnergyBladeComponent::TryDeflect(AActor* ProjectileActor)
 
 	FVector Eye, Forward;
 	GetView(Eye, Forward);
-	FVector Dir = Forward;
+	// Normal deflect: toward the point under the crosshair (not merely parallel to the view).
+	FVector AimPoint = Eye + Forward * 10000.f;
+	{
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDBladeAim), false, Owner);
+		Params.AddIgnoredActor(ProjectileActor);
+		FHitResult Hit;
+		if (GetWorld()->LineTraceSingleByChannel(Hit, Eye, AimPoint, ECC_Visibility, Params))
+		{
+			AimPoint = Hit.ImpactPoint;
+		}
+		// Characters often ignore Visibility: a thin sweep for pawns along the same line finds the one
+		// under the crosshair if it is nearer than the wall behind it.
+		FHitResult PawnHit;
+		FCollisionObjectQueryParams Pawns(ECC_Pawn);
+		if (GetWorld()->SweepSingleByObjectType(PawnHit, Eye, AimPoint, FQuat::Identity, Pawns, FCollisionShape::MakeSphere(25.f), Params))
+		{
+			AimPoint = PawnHit.GetActor() ? PawnHit.GetActor()->GetActorLocation() : PawnHit.ImpactPoint;
+		}
+	}
+	FVector Dir = (AimPoint - ProjectileActor->GetActorLocation()).GetSafeNormal();
 	ATDProjectile* Proj = Cast<ATDProjectile>(ProjectileActor);
 	if (bPerfect && Proj)
 	{
@@ -544,7 +568,6 @@ bool UTDEnergyBladeComponent::TryDeflect(AActor* ProjectileActor)
 			Proj->ClearHoming(); // Deflect re-homes on the shooter; a normal deflect flies along the crosshair
 		}
 	}
-	RecentlyDeflected.Add(ProjectileActor);
 	Stamina = FMath::Max(0.f, Stamina - BlockHitStaminaCost);
 
 	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
@@ -559,16 +582,8 @@ bool UTDEnergyBladeComponent::TryDeflect(AActor* ProjectileActor)
 		{
 			bDirected = Director->ReportHighlight(ETDHighlightKind::PerfectDeflect, Owner, PerfectDeflectImportance, Proj ? Proj->GetOriginalShooter() : nullptr);
 		}
-		// Refused (rate limit, no director): still give the deflect its 0.15 s beat, except mid-CUT or travel.
-		const UTDGameInstance* GI = UTDGameInstance::Get(this);
-		const bool bFlowBusy = GI && (GI->IsRetakePending() || GI->IsTravelPending());
-		if (!bDirected && !bFlowBusy)
-		{
-			if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
-			{
-				Feel->RequestSlowMo(PerfectDeflectSlowMoSeconds, PerfectDeflectSlowMoDilation);
-			}
-		}
+		// The director owns the beat (0.15 s for PerfectDeflect, rate-limited, never during a CUT or travel).
+		(void)bDirected;
 	}
 	if (bPerfect)
 	{
@@ -679,6 +694,17 @@ void UTDEnergyBladeComponent::BreakGuard()
 	OnGuardBroken.Broadcast();
 }
 
+void UTDEnergyBladeComponent::ResetState()
+{
+	CancelAll();
+	Stamina = BlockStaminaSeconds;
+	TimeSinceBlock = 100.f;
+	GuardBrokenLeft = 0.f;
+	HeavyCooldownLeft = 0.f;
+	bCritReady = false;
+	LungeTimeLeft = 0.f;
+}
+
 void UTDEnergyBladeComponent::CancelAll()
 {
 	State = ETDBladeState::Idle;
@@ -710,7 +736,36 @@ void UTDEnergyBladeComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		AttackHeldTime += DeltaTime;
 		if (AttackHeldTime >= HeavyHoldSeconds)
 		{
-			bHeavyFiredThisPress = HeavyLunge() || true; // a held press never turns into a light swing
+			// Held: charge into a heavy lunge, unless the press already connected (keep that combo going).
+			bHeavyFiredThisPress = true;
+			if (!bPressSwingLanded)
+			{
+				bLightQueued = false;
+				if (IsAttacking() && State != ETDBladeState::AirSlam && State != ETDBladeState::HeavyLunge)
+				{
+					SwingTimeLeft = 0.f; // cut the whiffed swing short so the lunge comes out now
+					State = ETDBladeState::Idle;
+				}
+				HeavyLunge();
+			}
+		}
+	}
+
+	// Air slam: resolves on touching ground (also when Landed() never fires, e.g. a mantle put us down),
+	// and can never outlast its timeout.
+	if (State == ETDBladeState::AirSlam)
+	{
+		SwingTimeLeft -= DeltaTime;
+		const ACharacter* Char = GetOwnerCharacter();
+		const bool bGrounded = Char && Char->GetCharacterMovement() && Char->GetCharacterMovement()->IsMovingOnGround();
+		if (bGrounded)
+		{
+			NotifyOwnerLanded();
+		}
+		else if (SwingTimeLeft <= 0.f)
+		{
+			State = ETDBladeState::Idle;
+			SwingTimeLeft = 0.f;
 		}
 	}
 
@@ -757,6 +812,10 @@ void UTDEnergyBladeComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	else if (State == ETDBladeState::Idle && bBlockHeld)
 	{
 		SetBlockHeld(true); // re-raise after an attack or guard break ends while still holding
+		if (State == ETDBladeState::Blocking)
+		{
+			BlockTime = PerfectWindow + 0.01f; // a perfect window needs a fresh press, not an auto re-raise
+		}
 	}
 
 	if (State == ETDBladeState::Blocking)

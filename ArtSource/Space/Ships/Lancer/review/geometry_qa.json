@@ -1,0 +1,432 @@
+{
+  "ok": true,
+  "pass": false,
+  "errors": [
+    "z-fighting: SM_Lancer_M01_MountPrimary_R<->SM_Lancer_M01_Primary_R (3 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M01_MountSecondary_R<->SM_Lancer_M01_Secondary_R (3 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M01_MountSecondary_L<->SM_Lancer_M01_Secondary_L (3 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M01_MountPrimary_L<->SM_Lancer_M01_Primary_L (3 overlapping coplanar tri pairs)",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [-0.78, 1.55, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [-0.78, 1.37, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.73, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.55, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.37, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Rotor_L (120 verts at [-1.0, -1.76, -0.57])",
+    "floating/detached part in SM_Lancer_M01_Rotor_R (120 verts at [1.0, -1.76, -0.57])"
+  ],
+  "warnings": [
+    "SM_Lancer_M01_Hull: duplicate verts=48 loose verts=0",
+    "SM_Lancer_M01_MountPrimary_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Primary_L: unused material slot(s) ['M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Rotor_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_MountSecondary_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Secondary_L: unused material slot(s) ['M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_MountPrimary_R: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Primary_R: unused material slot(s) ['M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Rotor_R: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_MountSecondary_R: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Secondary_R: unused material slot(s) ['M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "hidden back-to-back faces: SM_Lancer_M01_Hull (192 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M01_Secondary_R (8 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M01_Secondary_L (8 pairs) - delete to save tris",
+    "asset lowest point z=-0.97 (not resting on ground plane z=0)"
+  ],
+  "ground_z": -0.97,
+  "zfighting": [
+    {
+      "where": "SM_Lancer_M01_MountPrimary_R<->SM_Lancer_M01_Primary_R",
+      "tri_pairs": 3
+    },
+    {
+      "where": "SM_Lancer_M01_MountSecondary_R<->SM_Lancer_M01_Secondary_R",
+      "tri_pairs": 3
+    },
+    {
+      "where": "SM_Lancer_M01_MountSecondary_L<->SM_Lancer_M01_Secondary_L",
+      "tri_pairs": 3
+    },
+    {
+      "where": "SM_Lancer_M01_MountPrimary_L<->SM_Lancer_M01_Primary_L",
+      "tri_pairs": 3
+    }
+  ],
+  "floating": [
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island_verts": 18,
+      "center": [
+        -0.78,
+        1.55,
+        0.24
+      ]
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island_verts": 18,
+      "center": [
+        -0.78,
+        1.37,
+        0.24
+      ]
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island_verts": 18,
+      "center": [
+        0.78,
+        1.73,
+        0.24
+      ]
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island_verts": 18,
+      "center": [
+        0.78,
+        1.55,
+        0.24
+      ]
+    },
+    {
+      "object": "SM_Lancer_M01_Hull",
+      "island_verts": 18,
+      "center": [
+        0.78,
+        1.37,
+        0.24
+      ]
+    },
+    {
+      "object": "SM_Lancer_M01_Rotor_L",
+      "island_verts": 120,
+      "center": [
+        -1.0,
+        -1.76,
+        -0.57
+      ]
+    },
+    {
+      "object": "SM_Lancer_M01_Rotor_R",
+      "island_verts": 120,
+      "center": [
+        1.0,
+        -1.76,
+        -0.57
+      ]
+    }
+  ],
+  "back_to_back": [
+    {
+      "where": "SM_Lancer_M01_Hull",
+      "tri_pairs": 192
+    },
+    {
+      "where": "SM_Lancer_M01_Secondary_R",
+      "tri_pairs": 8
+    },
+    {
+      "where": "SM_Lancer_M01_Secondary_L",
+      "tri_pairs": 8
+    }
+  ],
+  "enclosed": [],
+  "objects": {
+    "SM_Lancer_M01_Hull": {
+      "verts": 1688,
+      "faces": 3264,
+      "tris": 3264,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 48,
+      "islands": 34,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 22.9
+    },
+    "SM_Lancer_M01_MountPrimary_L": {
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 68.1
+    },
+    "SM_Lancer_M01_Primary_L": {
+      "verts": 156,
+      "faces": 304,
+      "tris": 304,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 3,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 59.4
+    },
+    "SM_Lancer_M01_Rotor_L": {
+      "verts": 626,
+      "faces": 1248,
+      "tris": 1248,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 9,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 33.2
+    },
+    "SM_Lancer_M01_MountSecondary_L": {
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 68.1
+    },
+    "SM_Lancer_M01_Secondary_L": {
+      "verts": 960,
+      "faces": 1888,
+      "tris": 1888,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 16,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 35.0
+    },
+    "SM_Lancer_M01_MountPrimary_R": {
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 68.1
+    },
+    "SM_Lancer_M01_Primary_R": {
+      "verts": 156,
+      "faces": 304,
+      "tris": 304,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 3,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 59.4
+    },
+    "SM_Lancer_M01_Rotor_R": {
+      "verts": 626,
+      "faces": 1248,
+      "tris": 1248,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 9,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 33.2
+    },
+    "SM_Lancer_M01_MountSecondary_R": {
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 2,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 68.1
+    },
+    "SM_Lancer_M01_Secondary_R": {
+      "verts": 960,
+      "faces": 1888,
+      "tris": 1888,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "wire_edges": 0,
+      "loose_verts": 0,
+      "degenerate_faces": 0,
+      "zero_length_edges": 0,
+      "inconsistent_normals_edges": 0,
+      "duplicate_verts": 0,
+      "islands": 16,
+      "inside_out_islands": 0,
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "materials": 6,
+      "uv_maps": 1,
+      "uv_oob_pct": 0.0,
+      "uv_zero_area_faces": 0,
+      "uv_overlap_pct": 0.0,
+      "uv_coverage_pct": 35.0
+    }
+  }
+}

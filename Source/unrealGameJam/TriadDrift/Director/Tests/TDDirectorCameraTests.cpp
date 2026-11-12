@@ -128,6 +128,15 @@ bool FTDDirectorCamRam::RunTest(const FString& Parameters)
 		TestTrue(TEXT("camera away from the player's ship") + Fps, FVector::Dist(Cam->GetActorLocation(), F.Player()->GetActorLocation()) > 900.f);
 		TestTrue(TEXT("camera is not the chase camera") + Fps,
 			FVector::Dist(Cam->GetActorLocation(), F.Player()->GetChaseCameraTransformNow().GetLocation()) > 500.f);
+		// A tracking shot: the camera keeps its distance to the (fast) subject instead of being left behind.
+		const AActor* Subject = F.Director->GetCurrentShot().Subject.Get();
+		const float D0 = Subject ? FVector::Dist(Cam->GetActorLocation(), Subject->GetActorLocation()) : 0.f;
+		for (int32 i = 0; i < FMath::CeilToInt(0.3f / Step); ++i)
+		{
+			F.W.Tick(Step);
+		}
+		const float D1 = Subject ? FVector::Dist(Cam->GetActorLocation(), Subject->GetActorLocation()) : 0.f;
+		TestTrue(FString::Printf(TEXT("camera tracks the subject (%.0f -> %.0f cm)"), D0, D1) + Fps, Subject && D1 < D0 * 1.5f + 500.f && D1 > D0 * 0.5f);
 		// The player is still flying: the movement keeps integrating under the shot.
 		const FVector Before = F.Player()->GetActorLocation();
 		F.W.Tick(Step);
@@ -138,6 +147,47 @@ bool FTDDirectorCamRam::RunTest(const FString& Parameters)
 		TestTrue(TEXT("view back on the ship") + Fps, F.ViewIsPawn());
 		TestTrue(TEXT("returned onto the live chase camera (no pop)") + Fps,
 			FVector::Dist(Cam->GetActorLocation(), F.Player()->GetChaseCameraTransformNow().GetLocation()) < 400.f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamWingmen, "TriadDrift.Director.Camera.WingmenStayOutOfTheShot", TD_TEST_FLAGS)
+bool FTDDirectorCamWingmen::RunTest(const FString& Parameters)
+{
+	// Live capture: in a ram-kill shot the two wingmen filled the foreground, because the tracking
+	// camera pulled in in front of whichever wingman crossed its line. Now the camera keeps its
+	// distance and the wingmen keep clear of the lens.
+	for (const float Step : GSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FCamFixture F;
+		F.W.Advance(6.f, Step); // wingmen settled in the forward wedge
+		F.RamKill(Step);
+		if (!TestTrue(TEXT("shot running") + Fps, F.Rig()->IsActive()))
+		{
+			continue;
+		}
+		const ATDDirectorCameraActor* Cam = F.Rig()->GetCameraActor();
+		const float D0 = FVector::Dist(Cam->GetActorLocation(), F.Rig()->GetLastFocus());
+		float MinWing = BIG_NUMBER, MinFocus = BIG_NUMBER;
+		int32 Frames = 0;
+		for (int32 i = 0; i < FMath::CeilToInt(2.f / Step) && F.Rig()->IsActive(); ++i)
+		{
+			F.W.Tick(Step);
+			if (F.Rig()->GetPhase() != ETDDirectorCameraPhase::Hold)
+			{
+				continue;
+			}
+			++Frames;
+			MinFocus = FMath::Min(MinFocus, (float)FVector::Dist(Cam->GetActorLocation(), F.Rig()->GetLastFocus()));
+			for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Bastion })
+			{
+				MinWing = FMath::Min(MinWing, (float)FVector::Dist(Cam->GetActorLocation(), F.Squad->GetShip(Id)->GetActorLocation()));
+			}
+		}
+		TestTrue(TEXT("held the shot") + Fps, Frames > 0);
+		TestTrue(FString::Printf(TEXT("no wingman in the lens (closest %.0f cm)"), MinWing) + Fps, MinWing > 1200.f);
+		TestTrue(FString::Printf(TEXT("camera never yanked in toward the subject (%.0f of %.0f cm)"), MinFocus, D0) + Fps, MinFocus > D0 * 0.6f);
 	}
 	return true;
 }

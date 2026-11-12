@@ -20,6 +20,13 @@ namespace TDDirectorCameraPrivate
 		TEXT("Director's Cut camera: -1 = project setting, 0 = off, 1 = reduced (slow-mo + FOV punch), 2 = full cut."),
 		ECVF_Default);
 
+#if !UE_BUILD_SHIPPING
+	static TAutoConsoleVariable<float> CVarDebugHold(
+		TEXT("td.Director.DebugHoldSeconds"), 0.f,
+		TEXT("Dev only: extra real seconds added to director shots and cut cards, for screenshot capture."),
+		ECVF_Cheat);
+#endif
+
 	static float Ease(float A)
 	{
 		A = FMath::Clamp(A, 0.f, 1.f);
@@ -54,6 +61,15 @@ ETDDirectorCameraMode UTDDirectorSettings::GetEffectiveMode()
 		return static_cast<ETDDirectorCameraMode>(Override);
 	}
 	return Get()->CameraMode;
+}
+
+float UTDDirectorSettings::GetDebugHoldSeconds()
+{
+#if !UE_BUILD_SHIPPING
+	return FMath::Max(0.f, CVarDebugHold.GetValueOnGameThread());
+#else
+	return 0.f;
+#endif
 }
 
 const FTDDirectorBlend& UTDDirectorSettings::GetBlend(ETDHighlightKind Kind) const
@@ -225,11 +241,55 @@ bool UTDDirectorCameraRig::ResolveCameraLocation(const UWorld* World, const FVec
 	return false;
 }
 
+FVector UTDDirectorCameraRig::TrackedLocationFor(const FVector& Focus) const
+{
+	// Keep the placement offset relative to the moving focus; if something has come between them
+	// this frame, pull in (never through geometry or ships).
+	const FVector Desired = Focus + ShotOffset;
+	const UWorld* World = OwnerWorld.Get();
+	if (!World)
+	{
+		return Desired;
+	}
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDDirectorCamTrack), false);
+	Params.AddIgnoredActor(Subject.Get());
+	Params.AddIgnoredActor(Secondary.Get());
+	Params.AddIgnoredActor(PawnAtStart.Get());
+	// Squad wingmen are moving and steer clear of the shot camera themselves: pulling in for one put
+	// the camera right in front of it, filling the frame (live capture, ram kill).
+	if (const ATDSquadManager* Squad = ATDSquadManager::Get(World))
+	{
+		for (const ATDShip* Mate : Squad->GetLivingShips())
+		{
+			Params.AddIgnoredActor(Mate);
+		}
+	}
+	FCollisionObjectQueryParams Objects;
+	Objects.AddObjectTypesToQuery(ECC_WorldStatic);
+	Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
+	Objects.AddObjectTypesToQuery(ECC_Pawn);
+	Objects.AddObjectTypesToQuery(TDCollision::Ship);
+	FHitResult Hit;
+	const float R = UTDDirectorSettings::Get()->CameraProbeRadius;
+	if (World->SweepSingleByObjectType(Hit, Focus, Desired, FQuat::Identity, Objects, FCollisionShape::MakeSphere(R), Params))
+	{
+		return Focus + (Desired - Focus).GetSafeNormal() * FMath::Max(0.f, Hit.Distance - R);
+	}
+	return Desired;
+}
+
 FVector UTDDirectorCameraRig::CurrentFocus() const
 {
 	const AActor* A = Subject.Get();
 	const AActor* B = Secondary.Get();
-	if (A && B)
+	// A dead secondary (the fighter that was just rammed) is left behind: frame the subject alone.
+	if (const UTDHealthComponent* BH = UTDStatics::GetHealth(B); BH && BH->IsDead() && A)
+	{
+		B = nullptr;
+	}
+	const UTDDirectorSubsystem* Director = OwnerWorld.IsValid() ? UTDDirectorSubsystem::Get(OwnerWorld.Get()) : nullptr;
+	const float MaxTwoShot = Director ? Director->Tuning.MaxTwoShotDistance : 8000.f;
+	if (A && B && FVector::Dist(A->GetActorLocation(), B->GetActorLocation()) <= MaxTwoShot)
 	{
 		return FMath::Lerp(A->GetActorLocation(), B->GetActorLocation(), 0.35f);
 	}
@@ -336,11 +396,13 @@ bool UTDDirectorCameraRig::BeginShot(const FTDDirectorShot& Shot, double ShotEnd
 	bSubjectAliveAtStart = Shot.Subject.IsValid() && (!SubjectHealth || SubjectHealth->IsAlive());
 	LastFocus = Shot.FocusLocation;
 	ShotLocation = Location;
+	ShotOffset = Location - Shot.FocusLocation;
+	TrackedLocation = Location;
 	ShotFOV = S->ShotFOV;
 	const FTDDirectorBlend& Blend = S->GetBlend(Shot.Kind);
 	BlendIn = Blend.BlendIn;
 	BlendOut = Blend.BlendOut;
-	HoldEnd = FMath::Max(ShotEndRealTime, Now + BlendIn);
+	HoldEnd = FMath::Max(ShotEndRealTime, Now + BlendIn) + UTDDirectorSettings::GetDebugHoldSeconds();
 	Phase = ETDDirectorCameraPhase::BlendIn;
 	PhaseStart = Now;
 
@@ -423,14 +485,15 @@ void UTDDirectorCameraRig::Tick(double RealNow, float RealDelta)
 	// ---- pose
 	const FVector Focus = CurrentFocus();
 	LastFocus = Focus;
-	const FRotator ShotRotation = (Focus - ShotLocation).Rotation();
+	TrackedLocation = TrackedLocationFor(Focus);
+	const FRotator ShotRotation = (Focus - TrackedLocation).Rotation();
 
 	switch (Phase)
 	{
 	case ETDDirectorCameraPhase::BlendIn:
 	{
 		const float A = BlendIn > 0.f ? Ease(static_cast<float>((RealNow - PhaseStart) / BlendIn)) : 1.f;
-		ApplyPose(FMath::Lerp(FromLocation, ShotLocation, A),
+		ApplyPose(FMath::Lerp(FromLocation, TrackedLocation, A),
 			FQuat::Slerp(FromRotation.Quaternion(), ShotRotation.Quaternion(), A).Rotator(),
 			FMath::Lerp(FromFOV, ShotFOV, A));
 		if (A >= 1.f)
@@ -441,12 +504,12 @@ void UTDDirectorCameraRig::Tick(double RealNow, float RealDelta)
 		break;
 	}
 	case ETDDirectorCameraPhase::Hold:
-		ApplyPose(ShotLocation, ShotRotation, ShotFOV);
+		ApplyPose(TrackedLocation, ShotRotation, ShotFOV);
 		if (RealNow >= HoldEnd)
 		{
 			Phase = ETDDirectorCameraPhase::BlendOut;
 			PhaseStart = RealNow;
-			FromLocation = ShotLocation;
+			FromLocation = TrackedLocation;
 			FromRotation = ShotRotation;
 			FromFOV = ShotFOV;
 		}

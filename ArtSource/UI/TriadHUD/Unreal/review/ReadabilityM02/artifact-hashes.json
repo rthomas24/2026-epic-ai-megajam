@@ -1,0 +1,58 @@
+[
+  {
+    "file": "01-lancer-ready-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 181166,
+    "sha256": "1fb11ae8b67a0db0b6dea813f7a91006d02bffc91a5b799d77660005e600bc25",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "02-rift-ready-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 184612,
+    "sha256": "56889f428ceef53dfc0d7a54af0a693ef8a1ada93642d802d64979c979cf9b0c",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "03-bastion-ready-pad-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 181803,
+    "sha256": "a17686255f57444bb3f833af7f443c61c9b531fd09e462adb3862967997168f0",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "04-bastion-cooldown-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 184465,
+    "sha256": "711f50060539b2a304762b74b13fab2d6d896c773816ca11cd71a5cd7b64b295",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "05-rift-low-health-720p.png",
+    "width": 1280,
+    "height": 720,
+    "bytes": 117802,
+    "sha256": "d7bda981e28a4b5a2d94e60453f54afedb32eec670c284209987d539aa2bf8c9",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "06-rift-cooldown-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 203397,
+    "sha256": "f6c3994cae69d512237d35e887ad8f38a1cb4cdf20e77252ad487ca181337840",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "07-unavailable.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 102070,
+    "sha256": "6967e976f940e9132b5587dffa913c53beb236c50178ad2d7d6d628731b0f41f",
+    "png_crc_and_end_valid": true
+  }
+]

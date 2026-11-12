@@ -24,8 +24,13 @@
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDDirectorCamera.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 
 #include "TriadDrift/Input/TDSpacePlayerController.h" // ETDPowerInput
 #include "TriadDrift/Powers/TDPowerComponent.h"
@@ -282,6 +287,20 @@ namespace TDSquad
 		return H ? H->GetCharge01() : 0.f;
 	}
 
+	FText GetHyperdriveBlockText(const ATDShip* Ship)
+	{
+		if (const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
+		{
+			const FText Reason = H->GetBlockReasonText();
+			if (!Reason.IsEmpty())
+			{
+				return Reason;
+			}
+		}
+		const UTDTravelSubsystem* Travel = Ship ? UTDTravelSubsystem::Get(Ship) : nullptr;
+		return Travel ? Travel->GetHyperdriveLockText() : FText::GetEmpty();
+	}
+
 	float GetAltitudeMeters(const ATDShip* Ship)
 	{
 		return Ship ? Ship->GetAltitudeMeters() : -1.f;
@@ -528,6 +547,43 @@ namespace TDSquad
 		}
 	}
 
+	bool GetDirectorShotCamera(const AActor* WorldContext, FVector& OutLocation)
+	{
+		const UTDDirectorSubsystem* Director = WorldContext ? UTDDirectorSubsystem::Get(WorldContext) : nullptr;
+		const UTDDirectorCameraRig* Rig = Director ? Director->GetCameraRig() : nullptr;
+		if (!Rig || !Rig->IsActive())
+		{
+			return false;
+		}
+		OutLocation = Rig->GetTrackedLocation();
+		return true;
+	}
+
+	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds)
+	{
+		UWorld* World = Ship ? Ship->GetWorld() : nullptr;
+		UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(Ship);
+		if (!World || !Powers)
+		{
+			return false;
+		}
+		const FVector Loc = Ship->GetActorLocation();
+		const FVector Vel = Ship->GetVelocity();
+		// From one step behind to LookAhead ahead: covers this frame's integration whichever ticks first.
+		const FVector From = Loc - Vel * 0.05f;
+		const FVector To = Loc + Vel * LookAheadSeconds;
+		for (TActorIterator<ATDPortalGate> It(World); It; ++It)
+		{
+			bool bForward = true;
+			if (It->IsGateActive() && ATDPortalGate::SegmentCrossesGate(It->GetActorTransform(), It->Radius * 1.25f, From, To, bForward))
+			{
+				Powers->MarkTransited(Ship);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection)
 	{
 		const UTDWorldSubsystem* WorldSub = World ? World->GetSubsystem<UTDWorldSubsystem>() : nullptr;
@@ -671,7 +727,7 @@ namespace TDSquad
 		}
 	}
 
-	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility)
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2)
 	{
 		auto Cooldown = [Ship](ETDPowerInput Slot)
 		{
@@ -680,7 +736,20 @@ namespace TDSquad
 		};
 		OutPower1 = Cooldown(ETDPowerInput::Signature1);
 		OutPower2 = Cooldown(ETDPowerInput::Signature2);
-		OutAbility = Cooldown(ETDPowerInput::Ability);
+	}
+
+	void GetEarnedAbility(const ATDShip* Ship, ETDAbilityId& OutAbility, float& OutReadiness01)
+	{
+		OutAbility = ETDAbilityId::None;
+		OutReadiness01 = 0.f;
+		const UTDAbilityComponent* Abilities = Ship ? Ship->FindComponentByClass<UTDAbilityComponent>() : nullptr;
+		if (!Abilities)
+		{
+			return;
+		}
+		// T2's accessors: None / 0 while locked, never "ready" for an absent power.
+		OutAbility = Abilities->HasAbility() ? Abilities->GetAbility() : ETDAbilityId::None;
+		OutReadiness01 = Abilities->GetReadiness01();
 	}
 
 	// ------------------------------------------------------------------------------------- HUD
@@ -805,6 +874,34 @@ namespace TDSquad
 			return true;
 		}
 		return false;
+	}
+
+	void RequestBark(const UObject* WorldContext, FName BarkId, FName Speaker)
+	{
+		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(WorldContext))
+		{
+			Flow->RequestBark(BarkId, Speaker);
+		}
+		else if (UTDEventBus* Bus = UTDEventBus::Get(WorldContext))
+		{
+			Bus->BroadcastBarkRequested(BarkId, Speaker);
+		}
+	}
+
+	void BindActorKilled(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnActorKilled.AddUniqueDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+		}
+	}
+
+	void UnbindActorKilled(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnActorKilled.RemoveDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+		}
 	}
 
 	void AddShipSwitchStat(const UObject* WorldContext)

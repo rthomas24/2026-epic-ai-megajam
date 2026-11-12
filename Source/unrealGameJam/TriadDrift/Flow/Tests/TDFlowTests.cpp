@@ -28,6 +28,9 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
+#include "TriadDrift/Flow/TDPlaceholderSky.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/PostProcessComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -550,9 +553,12 @@ bool FTDFlowSandboxBoots::RunTest(const FString& Parameters)
 			};
 			const ATDSpaceGameMode* GM = World->GetAuthGameMode<ATDSpaceGameMode>();
 			TestNotNull(TEXT("space game mode active"), GM);
-			TestEqual(TEXT("key + fill light"), Count(ADirectionalLight::StaticClass()), 2);
-			TestEqual(TEXT("sky light"), Count(ASkyLight::StaticClass()), 1);
-			TestEqual(TEXT("fixed-exposure post process"), Count(APostProcessVolume::StaticClass()), 1);
+			TestEqual(TEXT("one placeholder sky (empty map)"), Count(ATDPlaceholderSky::StaticClass()), 1);
+			for (TActorIterator<ATDPlaceholderSky> It(World); It; ++It)
+			{
+				TestTrue(TEXT("placeholder lights on an empty map"), It->HasLights());
+				TestTrue(TEXT("placeholder exposure on an empty map"), It->HasExposure());
+			}
 			if (GM)
 			{
 				// T4's galaxy layout replaces the placeholder asteroids (and spawns the Dominion).
@@ -1057,6 +1063,63 @@ bool FTDFlowMenuMode::RunTest(const FString& Parameters)
 	int32 Pawns = 0;
 	for (TActorIterator<APawn> It(W.GetWorld()); It; ++It) { ++Pawns; }
 	TestEqual(TEXT("no pawn on the menu"), Pawns, 0);
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowPlaceholderSky, "TriadDrift.Flow.PlaceholderSkyYieldsToTheMapsSky", TDFlowTest::TestFlags)
+bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
+{
+	auto AddComponent = [](AActor* A, UActorComponent* C)
+	{
+		if (USceneComponent* S = Cast<USceneComponent>(C))
+		{
+			if (!A->GetRootComponent()) { A->SetRootComponent(S); }
+			else { S->SetupAttachment(A->GetRootComponent()); }
+		}
+		C->RegisterComponent();
+		A->AddInstanceComponent(C);
+	};
+	{
+		FTDTestWorld W;
+		ATDPlaceholderSky* P = ATDPlaceholderSky::SpawnIfNeeded(W.GetWorld(), ETDPlaceholderSkyStyle::Space);
+		TestTrue(TEXT("empty map: full placeholder"), P && P->HasLights() && P->HasExposure());
+	}
+	{
+		// (b) Nick's tag switches everything off.
+		FTDTestWorld W;
+		AActor* Sky = W.Spawn<AActor>();
+		Sky->Tags.Add(ATDPlaceholderSky::PresentationSkyTag);
+		TestNull(TEXT("tagged sky: no placeholder at all"), ATDPlaceholderSky::SpawnIfNeeded(W.GetWorld(), ETDPlaceholderSkyStyle::Space));
+	}
+	{
+		// (a) A generic actor carrying a directional light COMPONENT (like BP_GalaxySkybox) owns lighting.
+		FTDTestWorld W;
+		AActor* Rig = W.Spawn<AActor>();
+		AddComponent(Rig, NewObject<UDirectionalLightComponent>(Rig, TEXT("Sun")));
+		ATDPlaceholderSky* P = ATDPlaceholderSky::SpawnIfNeeded(W.GetWorld(), ETDPlaceholderSkyStyle::Space);
+		TestTrue(TEXT("light component: placeholder keeps only exposure"), P && !P->HasLights() && P->HasExposure());
+	}
+	{
+		// (a) An unbound post-process COMPONENT owns exposure and bloom.
+		FTDTestWorld W;
+		AActor* Rig = W.Spawn<AActor>();
+		UPostProcessComponent* PP = NewObject<UPostProcessComponent>(Rig, TEXT("PP"));
+		PP->bUnbound = true;
+		AddComponent(Rig, PP);
+		ATDPlaceholderSky* P = ATDPlaceholderSky::SpawnIfNeeded(W.GetWorld(), ETDPlaceholderSkyStyle::Space);
+		TestTrue(TEXT("post-process component: placeholder keeps only lights"), P && P->HasLights() && !P->HasExposure());
+	}
+	{
+		// Late sky: streamed in / spawned after BeginPlay -> the placeholder removes itself.
+		FTDTestWorld W;
+		TWeakObjectPtr<ATDPlaceholderSky> P = ATDPlaceholderSky::SpawnIfNeeded(W.GetWorld(), ETDPlaceholderSkyStyle::Planet);
+		TestTrue(TEXT("placeholder up"), P.IsValid());
+		AActor* Sky = W.Spawn<AActor>();
+		Sky->Tags.Add(ATDPlaceholderSky::PresentationSkyTag);
+		W.Advance(1.f);
+		TestFalse(TEXT("late tagged sky removes the placeholder"), P.IsValid() && !P->IsActorBeingDestroyed());
+	}
 	return true;
 }
 

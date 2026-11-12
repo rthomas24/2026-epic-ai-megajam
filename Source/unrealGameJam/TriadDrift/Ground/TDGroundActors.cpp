@@ -39,16 +39,10 @@ namespace TDGroundShapes
 		return Mesh.Object;
 	}
 
-	/** Tint an engine basic-shape mesh at runtime (BasicShapeMaterial has a "Color" parameter). */
-	static void Tint(UStaticMeshComponent* Mesh, const FLinearColor& Color)
+	/** Tint a placeholder mesh (Core's helper: works on any engine shape, with an optional glow). */
+	static void Tint(UStaticMeshComponent* Mesh, const FLinearColor& Color, float Glow = 0.f)
 	{
-		if (Mesh && Mesh->GetMaterial(0))
-		{
-			if (UMaterialInstanceDynamic* MID = Mesh->CreateAndSetMaterialInstanceDynamic(0))
-			{
-				MID->SetVectorParameterValue(TEXT("Color"), Color);
-			}
-		}
+		UTDStatics::TintPlaceholder(Mesh, Color, Glow);
 	}
 
 	static APawn* PlayerPawn(const UWorld* World)
@@ -76,6 +70,7 @@ ATDInteractableActor::ATDInteractableActor()
 void ATDInteractableActor::BeginPlay()
 {
 	Super::BeginPlay();
+	TDGroundShapes::Tint(Mesh, FLinearColor(0.1f, 0.7f, 0.9f)); // readable cyan console, solid
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
 		Scene->RegisterInteractable(this); // a retake makes it usable again while its objective is unfinished
@@ -190,7 +185,7 @@ void ATDCrewDummy::BeginPlay()
 	Super::BeginPlay();
 	Health->InitMaxValues(MaxHealth, 0.f, true);
 	Health->OnDeath.AddUniqueDynamic(this, &ATDCrewDummy::HandleDeath);
-	TDGroundShapes::Tint(Body, FLinearColor(0.8f, 0.08f, 0.05f)); // Armada red
+	TDGroundShapes::Tint(Body, FLinearColor(0.6f, 0.06f, 0.04f)); // Armada red, solid (the glow material is translucent)
 }
 
 void ATDCrewDummy::ApplyStagger(float Seconds, AActor* Source)
@@ -284,6 +279,13 @@ ATDDummyTurret::ATDDummyTurret()
 	Health->MaxShield = 0.f;
 	Health->ShieldRegenFractionPerSecond = 0.f;
 	Health->DefaultTeam = ETDTeam::Enemy;
+}
+
+void ATDDummyTurret::BeginPlay()
+{
+	Super::BeginPlay();
+	TDGroundShapes::Tint(Base, FLinearColor(0.12f, 0.1f, 0.1f));
+	TDGroundShapes::Tint(Head, FLinearColor(1.f, 0.25f, 0.05f), 1.5f); // red-orange glowing eye
 }
 
 AActor* ATDDummyTurret::FindTarget() const

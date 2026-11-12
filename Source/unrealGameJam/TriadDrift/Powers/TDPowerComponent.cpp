@@ -112,7 +112,7 @@ void UTDPowerComponent::EndPower(bool bInterrupted)
 	{
 		if (const AActor* Owner = GetOwner())
 		{
-			UTDStatics::PlayCue(this, FX->End, Owner->GetActorLocation(), Owner->GetActorRotation());
+			FTDPowerPresentation::RequestCue(this, TEXT("Ability.End"), FX->End, Owner->GetActorLocation(), Owner->GetActorRotation());
 		}
 	}
 	PlayShipCue(2);
@@ -125,7 +125,7 @@ void UTDPowerComponent::PlayActivationCues()
 	{
 		if (const AActor* Owner = GetOwner())
 		{
-			UTDStatics::PlayCue(this, FX->Activate, Owner->GetActorLocation(), Owner->GetActorRotation());
+			FTDPowerPresentation::RequestCue(this, TEXT("Ability.Activate"), FX->Activate, Owner->GetActorLocation(), Owner->GetActorRotation());
 		}
 	}
 	PlayShipCue(1);
@@ -138,9 +138,12 @@ void UTDPowerComponent::PlayShipCue(int32 Which)
 	{
 		return;
 	}
+	const bool bSecond = Slot == ETDPowerInput::Signature2;
 	const FTDFXCue& Cue = Which == 0 ? ShipVisuals->PowerWindup
-		: (Which == 2 ? ShipVisuals->PowerEnd : (Slot == ETDPowerInput::Signature2 ? ShipVisuals->Power2Active : ShipVisuals->PowerActive));
-	UTDStatics::PlayCueAttached(Cue, Owner->GetRootComponent());
+		: (Which == 2 ? ShipVisuals->PowerEnd : (bSecond ? ShipVisuals->Power2Active : ShipVisuals->PowerActive));
+	const FName Moment = Which == 0 ? FName(TEXT("Ship.PowerWindup")) : (Which == 2 ? FName(TEXT("Ship.PowerEnd"))
+		: (bSecond ? FName(TEXT("Ship.Power2Active")) : FName(TEXT("Ship.PowerActive"))));
+	FTDPowerPresentation::RequestCueAttached(Moment, Cue, Owner->GetRootComponent());
 }
 
 bool UTDPowerComponent::HasActiveArt() const

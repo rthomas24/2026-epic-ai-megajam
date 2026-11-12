@@ -1,7 +1,10 @@
 // Triad Drift - Combat (Teammate 2). Swept, pooled projectile.
 
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -96,8 +99,26 @@ ATDProjectile::ATDProjectile()
 	{
 		DefaultMaterial = ShapeMaterial.Object;
 	}
-	// The actor stays visible (so a finishing tracer ribbon isn't cut off); the mesh is what hides.
+	PlaceholderHead = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlaceholderHead"));
+	PlaceholderHead->SetupAttachment(Root);
+	PlaceholderHead->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PlaceholderHead->SetGenerateOverlapEvents(false);
+	PlaceholderHead->SetCastShadow(false);
+	PlaceholderHead->SetCanEverAffectNavigation(false);
+	PlaceholderHead->bReceivesDecals = false;
+	if (SphereMesh.Succeeded())
+	{
+		PlaceholderHead->SetStaticMesh(SphereMesh.Object);
+	}
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> GlowFinder(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
+	if (GlowFinder.Succeeded())
+	{
+		GlowMaterial = GlowFinder.Object;
+	}
+
+	// The actor stays visible (so a finishing tracer ribbon isn't cut off); the meshes are what hide.
 	PlaceholderMesh->SetVisibility(false);
+	PlaceholderHead->SetVisibility(false);
 }
 
 // ------------------------------------------------------------------------------------------ spawning
@@ -185,12 +206,21 @@ void ATDProjectile::UpdatePlaceholderLook()
 	{
 		PlaceholderMesh->EmptyOverrideMaterials();
 		PlaceholderMesh->SetRelativeScale3D(FVector::OneVector);
+		// Visual-only offset (centre-pivoted meshes, e.g. a rocket whose tail would clip into the pod).
+		// Collision is a sweep from the actor origin, so gameplay never moves.
+		PlaceholderMesh->SetRelativeLocation(Spec.FX->ProjectileMeshOffset);
 	}
 	else
 	{
-		if (!PlaceholderMID && DefaultMaterial)
+		// A glowing streak trailing the shot (its head at the actor origin, where the sweep is), sized from
+		// the speed so it reads at gameplay distance. One material instance per pooled actor, re-coloured.
+		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
+		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
+		UMaterialInterface* Base = GlowMaterial ? GlowMaterial.Get() : DefaultMaterial.Get();
+		const FLinearColor Final = GlowMaterial ? Color * FTDCombatPlaceholders::StreakGlow : Color;
+		if (!PlaceholderMID && Base)
 		{
-			PlaceholderMID = UMaterialInstanceDynamic::Create(DefaultMaterial, this);
+			PlaceholderMID = UMaterialInstanceDynamic::Create(Base, this);
 		}
 		if (PlaceholderMID)
 		{
@@ -198,10 +228,35 @@ void ATDProjectile::UpdatePlaceholderLook()
 			{
 				PlaceholderMesh->SetMaterial(0, PlaceholderMID);
 			}
-			const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
-			PlaceholderMID->SetVectorParameterValue(TEXT("Color"), Color);
+			PlaceholderMID->SetVectorParameterValue(TEXT("Color"), Final);
+			PlaceholderMID->SetVectorParameterValue(TEXT("EmissiveColor"), Final);
 		}
-		PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
+		if (Look.bStreak)
+		{
+			PlaceholderMesh->SetRelativeScale3D(FVector(Look.Length, Look.Thickness, Look.Thickness) / 100.f);
+			PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * Look.Length + 0.5f * Look.Thickness, 0.f, 0.f));
+		}
+		else
+		{
+			PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
+			PlaceholderMesh->SetRelativeLocation(FVector::ZeroVector);
+		}
+		if (Look.bHead)
+		{
+			if (!HeadMID && Base)
+			{
+				HeadMID = UMaterialInstanceDynamic::Create(Base, this);
+				PlaceholderHead->SetMaterial(0, HeadMID);
+			}
+			if (HeadMID)
+			{
+				// Hot core: the team colour pushed towards white and brighter than the trail.
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.45f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * 1.6f : 1.f);
+				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
+				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
+			}
+			PlaceholderHead->SetRelativeScale3D(FVector(Look.HeadDiameter / 100.f));
+		}
 	}
 
 	// Tracer: one persistent Niagara component per pooled actor.
@@ -226,8 +281,9 @@ void ATDProjectile::UpdatePlaceholderLook()
 		TracerComp->DeactivateImmediate();
 	}
 
-	// With a tracer and no art mesh, the trail is the look; otherwise show the mesh.
+	// With a tracer and no art mesh, the trail is the look; otherwise show the mesh. The head is placeholder-only.
 	PlaceholderMesh->SetVisibility(ArtMesh != nullptr || Tracer == nullptr);
+	PlaceholderHead->SetVisibility(!ArtMesh && !Tracer && FTDCombatPlaceholders::ComputeStreak(Spec).bHead);
 }
 
 void ATDProjectile::Deactivate()
@@ -239,6 +295,7 @@ void ATDProjectile::Deactivate()
 	bActive = false;
 	SetActorTickEnabled(false);
 	PlaceholderMesh->SetVisibility(false);
+	PlaceholderHead->SetVisibility(false);
 	Velocity = FVector::ZeroVector;
 	HomingTarget = nullptr;
 	Shooter = nullptr;
@@ -325,6 +382,10 @@ void ATDProjectile::Kill(bool bExplodeFX)
 	{
 		UTDStatics::PlayCue(this, Spec.FX->Detonation, GetActorLocation(), GetActorRotation());
 	}
+	if (bExplodeFX)
+	{
+		PlayPlaceholderImpact(GetActorLocation(), Spec.FX && !Spec.FX->Detonation.IsEmpty());
+	}
 	Deactivate();
 }
 
@@ -347,6 +408,7 @@ void ATDProjectile::Detonate()
 	{
 		UTDStatics::PlayCue(this, Spec.FX->Detonation, Here, GetActorRotation());
 	}
+	PlayPlaceholderImpact(Here, Spec.FX && !Spec.FX->Detonation.IsEmpty());
 	OnDetonated.Broadcast(this, nullptr);
 	Deactivate();
 }
@@ -411,6 +473,57 @@ void ATDProjectile::Step(float DeltaSeconds)
 		// Only fly the part of this step that was still inside the lifetime.
 		const float Over = Age - Lifetime;
 		End = Start + Velocity * FMath::Max(0.f, DeltaSeconds - Over);
+	}
+
+	// Hostile shield domes: stop exactly on the shell if this step enters one (a fast shot can't skip
+	// through the shell and hit a ship inside in the same frame).
+	if (UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(this))
+	{
+		float BestT = 2.f;
+		ATDShieldDome* HitDome = nullptr;
+		for (ATDShieldDome* Dome : Powers->GetActiveDomes())
+		{
+			if (!IsValid(Dome) || !Dome->Intercepts(this))
+			{
+				continue;
+			}
+			const FVector C = Dome->GetActorLocation();
+			const float R = Dome->GetRadius();
+			if (FVector::DistSquared(Start, C) <= R * R)
+			{
+				continue; // already inside: the dome's own tick handles it
+			}
+			// First entry of the segment into the sphere.
+			const FVector D = End - Start;
+			const double A = FVector::DotProduct(D, D);
+			const double B = 2.0 * FVector::DotProduct(Start - C, D);
+			const double Cc = FVector::DotProduct(Start - C, Start - C) - (double)R * R;
+			const double Disc = B * B - 4.0 * A * Cc;
+			if (A > KINDA_SMALL_NUMBER && Disc >= 0.0)
+			{
+				const double T = (-B - FMath::Sqrt(Disc)) / (2.0 * A);
+				if (T >= 0.0 && T <= 1.0 && T < BestT)
+				{
+					BestT = (float)T;
+					HitDome = Dome;
+				}
+			}
+		}
+		if (HitDome)
+		{
+			const FVector ShellPoint = Start + (End - Start) * BestT;
+			// A ship (or rock) before the shell still takes the hit first.
+			FHitResult Hit;
+			if (SweepPath(Start, ShellPoint, Hit))
+			{
+				SetActorLocation(Hit.Location);
+				HandleImpact(Hit);
+				return;
+			}
+			SetActorLocation(ShellPoint);
+			HitDome->ReceiveProjectile(this, ShellPoint);
+			return;
+		}
 	}
 
 	// Point defense style: knock hostile missiles out of the air along the path.
@@ -687,11 +800,14 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	const FVector Dir = Velocity.GetSafeNormal();
 
 	const UTDHealthComponent* VictimHealth = Victim ? UTDStatics::GetHealth(Victim) : nullptr;
+	bool bImpactArt = false;
 	if (Spec.FX)
 	{
 		const FTDFXCue& Cue = !VictimHealth ? Spec.FX->ImpactWorld : (VictimHealth->IsShieldUp() ? Spec.FX->ImpactShield : Spec.FX->ImpactHull);
 		UTDStatics::PlayCue(this, Cue, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+		bImpactArt = !Cue.IsEmpty() || (Spec.SplashRadius > 0.f && !Spec.FX->Detonation.IsEmpty());
 	}
+	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt);
 
 	if (Victim && CanDamage(Victim))
 	{
@@ -712,6 +828,20 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	}
 	OnDetonated.Broadcast(this, Victim);
 	Deactivate();
+}
+
+void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt) const
+{
+	if (bCueHasArt)
+	{
+		return;
+	}
+	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
+	{
+		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
+		const float Seconds = Spec.SplashRadius > 0.f ? 0.3f : 0.14f;
+		Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), Seconds);
+	}
 }
 
 void ATDProjectile::DealDamage(AActor* Victim, float Amount, const FVector& FromLocation, const FVector& Direction)

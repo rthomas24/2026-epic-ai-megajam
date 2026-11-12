@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "sheet": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer\\ArtSource\\Space\\Ships\\Lancer\\review\\M02\\Lancer_M02_clay_sheet.png",
+  "mode": "clay",
+  "engine": "BLENDER_WORKBENCH",
+  "layout": {
+    "columns": 3,
+    "order": [
+      "front_3q",
+      "front",
+      "right",
+      "top",
+      "back_3q",
+      "low_3q"
+    ]
+  },
+  "ortho_cm_per_px": 1.28,
+  "views": [
+    {
+      "view": "front_3q",
+      "coverage": 0.183,
+      "touches_edge": false
+    },
+    {
+      "view": "front",
+      "coverage": 0.066,
+      "touches_edge": false
+    },
+    {
+      "view": "right",
+      "coverage": 0.107,
+      "touches_edge": false
+    },
+    {
+      "view": "top",
+      "coverage": 0.316,
+      "touches_edge": false
+    },
+    {
+      "view": "back_3q",
+      "coverage": 0.17,
+      "touches_edge": false
+    },
+    {
+      "view": "low_3q",
+      "coverage": 0.162,
+      "touches_edge": false
+    }
+  ],
+  "bbox_min_m": [
+    -3.34,
+    -4.01,
+    -0.971
+  ],
+  "bbox_max_m": [
+    3.34,
+    3.99,
+    0.8866
+  ],
+  "size_cm": [
+    668.0,
+    800.0,
+    185.76
+  ],
+  "objects": [
+    "SM_Lancer_M02_Hull",
+    "SM_Lancer_M02_MountPrimary_L",
+    "SM_Lancer_M02_Primary_L",
+    "SM_Lancer_M02_Rotor_L",
+    "SM_Lancer_M02_MountSecondary_L",
+    "SM_Lancer_M02_Secondary_L",
+    "SM_Lancer_M02_MountPrimary_R",
+    "SM_Lancer_M02_Primary_R",
+    "SM_Lancer_M02_Rotor_R",
+    "SM_Lancer_M02_MountSecondary_R",
+    "SM_Lancer_M02_Secondary_R"
+  ],
+  "warnings": [],
+  "seconds": 1.08
+}

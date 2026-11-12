@@ -423,7 +423,8 @@ not give permission for concurrent remote synchronization or overlapping asset e
 ### 6.10 Message board (`MESSAGEBOARD.md`)
 `MESSAGEBOARD.md` at the repo root is how Ryan's agents and Nick's agents **ask each other
 questions and leave each other messages**. `CLAIMS.md` says who is doing what; the message board
-is for everything that needs an answer. It is a **log: never delete a message.**
+is for everything that needs an answer. It is a **log: never delete a message.** Completed
+messages are compacted (below), so whatever is still written out in full on the board is live.
 
 - **Who writes:** only each side's Lead. Workers give their questions to their Lead, who posts
   them and relays the answers back.
@@ -442,6 +443,14 @@ is for everything that needs an answer. It is a **log: never delete a message.**
   If the reply isn't enough, add a follow-up under it and set the status back to `OPEN`.
 - **Pushing:** commit it alone (`coordination: message board ...`) and push to `main` right away,
   after fetching and merging anything new. If both sides edited at once, keep both edits.
+- **Statuses:** `OPEN`, `ANSWERED`, `INFO` (needs no answer; the other side's Lead sets it to
+  `COMPLETE` once read) and `COMPLETE`.
+- **Compaction (keep the board short).** When the board passes roughly 300 lines or ten completed
+  messages, either Lead runs `python Tools/td_board_compact.py <summaries.json>`: every `COMPLETE`
+  message moves word for word to `docs/coordination/MESSAGEBOARD-ARCHIVE.md` (append-only) and
+  leaves one row (id, subject, outcome) in its side's "Completed" table. `OPEN`, `ANSWERED` and
+  `INFO` messages are never touched. Write each outcome as what was agreed, complete enough to act
+  on without opening the archive. Fetch and merge first, and push at once.
 - **Ids are never reused or changed once pushed.** Fetch first and take the next free number. If a
   merge shows two messages with the same id, the one that was not yet on `origin/main` is renumbered.
 - Decisions reached on the board that change the plan are copied to where they belong
@@ -515,6 +524,7 @@ skills there, mirror them into the git-ignored `Skills/` folder the same way:
 | `blender-ai-mesh-cleanup` | `.claude/skills/blender-ai-mesh-cleanup/SKILL.md` | Rodin, Tripo or Meshy outputs and downloaded models → game-ready |
 | `blender-unreal-export` | `.claude/skills/blender-unreal-export/SKILL.md` | Export to Unreal (FBX + manifest), calibration, and the UE import script |
 | `ue-cpp-gameplay` | `.claude/skills/ue-cpp-gameplay/SKILL.md` | Any C++ gameplay work (`ENG-xx`): Core contracts, headless build and automation tests, worktree rules, UE 5.9 pitfalls. Team contract: `docs/eng/ARCHITECTURE.md`; status: `docs/eng/STATUS.md` |
+| `ue-game-audio` | `.claude/skills/ue-game-audio/SKILL.md` | Any sound, music, ambience, voice, mixing or loudness work (`ART-10`, `ART-11`): sources and licences, layered design with takes, measured levels (ffmpeg scripts), MetaSounds, attenuation / classes / mixes built through Unreal's MCP server, the mix standard. An agent reaches "technically verified" at most; Nicholas approves by ear. Research: `reports/Game audio practices for Triad Drift.md` |
 
 Check that a machine's Blender works with the skills:
 ```
@@ -561,7 +571,8 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   engine toolsets (Editor targets only). The human's editor owns port 8000. Any editor or game an
   agent launches itself passes `-ModelContextProtocolPort=<port>`: Ryan's side 8010-8019 and
   21000-29000, Nick's side 8020-8029. One agent per editor; tool calls run one at a time.
-  `Tools/td-play-mcp.ps1` starts a session and `Tools/td_mcp.py` calls it from a shell.
+  `Tools/td-play-mcp.ps1` starts a session and `Tools/td_mcp.py` calls it from a shell. Add `-Audio` for audio
+  work: the audio engine runs and renders offline, silently (`-NonRealtimeAudio` instead of `-nosound`).
 - **Epic's own agent tooling** ships with the engine in `Engine/Extras/AgentTools/`: skills for
   headless runs, log triage, build diagnosis and trimming build size
   (`Skills/<name>/SKILL.md`), and scripts such as `ue_log_digest.py` and `ue_crash_triage.py`. Read the
@@ -569,6 +580,9 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
 - **What ships:** only the maps in the cook list, what they reference, and every data asset in
   `/Game/TriadDrift/Presentation/` (always cooked, with everything it references). An asset that is
   loaded only by a path string from anywhere else will be missing from the packaged game.
+- **Audio:** `.claude/skills/ue-game-audio/`. Every 3D sound asset carries its own attenuation, sound class and
+  concurrency (gameplay plays cues with no overrides); files are levelled with `audio_report.py`; nothing is
+  "presentation approved" until Nicholas has heard it in the running game.
 - **Presentation asset names** are fixed in `docs/visual/Presentation-Asset-Paths.md`; gameplay looks
   them up by those exact paths, optional and null-safe.
 

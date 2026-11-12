@@ -38,7 +38,7 @@ void ATDGravityWell::Launch(AActor* InOwner, ETDTeam InTeam, const FVector& InDi
 	Age = 0.f;
 	if (FX)
 	{
-		LoopFX = UTDStatics::PlayCueAttached(FX->Loop, GetRootComponent());
+		LoopFX = FTDPowerPresentation::RequestCueAttached(TEXT("Ability.Loop"), FX->Loop, GetRootComponent());
 	}
 	if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
 	{
@@ -121,13 +121,13 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 				{
 					// Caught: engines held at a crawl (unless something else owns the override), then dragged in
 					// with a swept move, so a fighter can't out-fly the vortex or be pulled through a hull.
-					if (!Captured.Contains(Craft) && !Move->HasSpeedOverride())
+					if (!Captured.Contains(Craft))
 					{
-						Move->SetSpeedOverride(CapturedSpeed, CapturedSteering);
+						Move->SetSpeedOverrideFor(TEXT("GravityWell"), CapturedSpeed, CapturedSteering);
 						Captured.Add(Craft);
 						if (FX)
 						{
-							UTDStatics::PlayCueAttached(FX->AffectedTarget, Craft->GetRootComponent());
+							FTDPowerPresentation::RequestCueAttached(TEXT("Ability.AffectedTarget"), FX->AffectedTarget, Craft->GetRootComponent());
 						}
 					}
 					FHitResult Hit;
@@ -229,7 +229,7 @@ void ATDGravityWell::ReleaseEscaped(const FVector& Center, float RadiusSq)
 		{
 			if (Craft && Craft->GetShipMovement())
 			{
-				Craft->GetShipMovement()->ClearSpeedOverride();
+				Craft->GetShipMovement()->ClearSpeedOverrideFor(TEXT("GravityWell"));
 			}
 			It.RemoveCurrent();
 		}
@@ -244,7 +244,7 @@ void ATDGravityWell::ReleaseAll()
 		{
 			if (Craft->GetShipMovement())
 			{
-				Craft->GetShipMovement()->ClearSpeedOverride();
+				Craft->GetShipMovement()->ClearSpeedOverrideFor(TEXT("GravityWell"));
 			}
 		}
 	}
@@ -263,7 +263,7 @@ void ATDGravityWell::Implode()
 	UTDStatics::ApplyTDRadialDamage(this, GetActorLocation(), Radius, ImplosionDamage, ETDDamageKind::Explosive, Team, GetOwner(), this, false, nullptr);
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->End, GetActorLocation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Ability.End"), FX->End, GetActorLocation());
 	}
 	if (LoopFX)
 	{
@@ -356,7 +356,7 @@ bool UTDCloakPower::OnActivate()
 	}
 	if (FX)
 	{
-		LoopFX = UTDStatics::PlayCueAttached(FX->Loop, Owner->GetRootComponent());
+		LoopFX = FTDPowerPresentation::RequestCueAttached(TEXT("Ability.Loop"), FX->Loop, Owner->GetRootComponent());
 	}
 	if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
 	{
@@ -391,7 +391,7 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 	}
 	if (Shimmer)
 	{
-		Shimmer->DestroyComponent();
+		FTDPowerPresentation::DestroyPlaceholder(Shimmer);
 		Shimmer = nullptr;
 	}
 	if (LoopFX)
@@ -461,7 +461,7 @@ bool UTDEMPPower::OnActivate()
 			}
 			if (FX)
 			{
-				UTDStatics::PlayCueAttached(FX->AffectedTarget, Hostile->GetRootComponent());
+				FTDPowerPresentation::RequestCueAttached(TEXT("Ability.AffectedTarget"), FX->AffectedTarget, Hostile->GetRootComponent());
 			}
 			if (ATDEnemyShip* Enemy = Cast<ATDEnemyShip>(Hostile))
 			{

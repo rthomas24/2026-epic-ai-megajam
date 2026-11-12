@@ -81,6 +81,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|AirSlam", meta = (Units = "cm/s"))
 	float AirSlamSpeed = 3000.f;
 
+	/** An air slam that never touches down ends after this long. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|AirSlam", meta = (Units = "s"))
+	float AirSlamTimeout = 3.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|DashStrike")
 	float DashStrikeDamage = 35.f;
 
@@ -158,7 +162,7 @@ public:
 	TObjectPtr<UTDBladeFX> BladeFX;
 
 	// ------------------------------------------------------------------ input (the character routes these)
-	/** Attack button down. A quick release is a light/air/dash attack; holding becomes a heavy lunge. */
+	/** Attack button down: the light / air-slam / dash-strike lands on the press; holding 0.35 s with no hit becomes a heavy lunge. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Blade")
 	void PressAttack();
 
@@ -213,6 +217,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	int32 GetComboIndex() const { return ComboIndex; }
 
+	/** 0..1 through the current swing / lunge (0 when idle): drives the blade pose and Nick's AnimBP. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
+	float GetMoveProgress01() const { return (IsAttacking() && MoveDuration > 0.f) ? FMath::Clamp(1.f - SwingTimeLeft / MoveDuration, 0.f, 1.f) : 0.f; }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool HasCritReady() const { return bCritReady; }
 
@@ -235,6 +243,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsRetracted() const { return bRetracted; }
+
+	/** Fresh blade: full stamina, no cooldowns, no crit, no guard break (respawn / new take). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Blade")
+	void ResetState();
 
 	/** Interrupts everything (death, carrying an objective). */
 	void CancelAll();
@@ -284,10 +296,11 @@ private:
 	FVector LungeVelocity = FVector::ZeroVector;
 	bool bCritReady = false;
 	bool bRetracted = false;
+	float MoveDuration = 0.f;
+	bool bPressSwingLanded = false;
+	int32 HitCounter = 0;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTDHealthComponent> OwnerHealth;
 
-	/** Projectiles already deflected this block, so one shot isn't caught twice. */
-	TArray<TWeakObjectPtr<AActor>> RecentlyDeflected;
 };
