@@ -37,6 +37,8 @@ namespace
 
 // ====================================================================== UTDAtmosphereEntryComponent
 
+const FName UTDAtmosphereEntryComponent::OverrideOwner(TEXT("AtmosphereEntry"));
+
 UTDAtmosphereEntryComponent::UTDAtmosphereEntryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -45,6 +47,13 @@ UTDAtmosphereEntryComponent::UTDAtmosphereEntryComponent()
 void UTDAtmosphereEntryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
+	{
+		if (UTDHealthComponent* Health = Craft->GetHealth())
+		{
+			Health->OnDeath.AddDynamic(this, &UTDAtmosphereEntryComponent::HandleOwnerDeath);
+		}
+	}
 	if (!TravelFX)
 	{
 		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX();
@@ -66,6 +75,26 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	if (!Craft || EntryState != ETDAtmosphereEntryState::Idle)
 	{
 		return false;
+	}
+	// Only the ship the player flies takes the squad down; never twice, never over a pending travel / retake.
+	const ATDShip* AsShip = Cast<ATDShip>(Craft);
+	if (!AsShip || !AsShip->IsPlayerFlown())
+	{
+		return false;
+	}
+	if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		if (!Travel->CanRequestLevelTravel())
+		{
+			return false;
+		}
+	}
+	if (const UTDHealthComponent* Health = Craft->GetHealth())
+	{
+		if (Health->IsDead())
+		{
+			return false;
+		}
 	}
 	EntryState = ETDAtmosphereEntryState::Entering;
 	EntryTime = 0.f;
@@ -93,7 +122,10 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		const float ToSurface = FVector::Dist(PlanetCenter, Craft->GetActorLocation()) - PlanetSurfaceRadius - EntrySurfaceClearance;
 		Speed = FMath::Clamp(ToSurface / EntrySeconds, EntryMinSpeed, EntrySpeed);
 	}
-	Craft->SetSpeedOverride(Speed, EntrySteeringScale);
+	if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
+	{
+		Move->SetSpeedOverrideFor(OverrideOwner, Speed, EntrySteeringScale);
+	}
 	if (UTDHealthComponent* Health = Craft->GetHealth())
 	{
 		Health->SetInvulnerable(true); // committed: nothing should kill the ship during the white-out
@@ -117,32 +149,55 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 	OnEntryCompleted.Broadcast(this);
 
 	bool bTravelled = false;
-	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
-		bTravelled = Flow->TravelTo(Destination, ReturnPoint);
+		bTravelled = Travel->RequestLevelTravel(Destination, ReturnPoint); // once per level, never over a retake
 	}
 	if (!bTravelled)
 	{
 		// No flow (tests, sandbox) or the planet map is missing: hand the ship back.
 		UE_LOG(LogTriadDrift, Warning, TEXT("Atmosphere entry: TravelTo(%s) did not happen; returning control."),
 			*StaticEnum<ETDDestination>()->GetNameStringByValue((int64)Destination));
-		if (ATDSpacecraft* Craft = EnteringCraft)
-		{
-			Craft->ClearSpeedOverride();
-			if (UTDHealthComponent* Health = Craft->GetHealth())
-			{
-				Health->SetInvulnerable(false);
-			}
-			if (ATDShip* Ship = Cast<ATDShip>(Craft))
-			{
-				if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
-				{
-					Hyper->SetHyperdriveEnabled(true);
-				}
-			}
-		}
+		RestoreFlight();
 		EntryState = ETDAtmosphereEntryState::Idle;
 	}
+}
+
+void UTDAtmosphereEntryComponent::RestoreFlight()
+{
+	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
+	{
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
+		{
+			Move->ClearSpeedOverrideFor(OverrideOwner);
+		}
+		if (UTDHealthComponent* Health = Craft->GetHealth())
+		{
+			Health->SetInvulnerable(false);
+		}
+		if (ATDShip* Ship = Cast<ATDShip>(Craft))
+		{
+			if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
+			{
+				Hyper->SetHyperdriveEnabled(true);
+			}
+		}
+	}
+}
+
+void UTDAtmosphereEntryComponent::AbortEntry()
+{
+	if (EntryState == ETDAtmosphereEntryState::Entering)
+	{
+		RestoreFlight();
+		EntryState = ETDAtmosphereEntryState::Idle;
+		EntryTime = 0.f;
+	}
+}
+
+void UTDAtmosphereEntryComponent::HandleOwnerDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow)
+{
+	AbortEntry(); // a kill that bypasses invulnerability (cheat, script) must not travel or leave a stuck state
 }
 
 void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -269,9 +324,9 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		{
 			bExitTriggered = true;
 			OnExitTriggered.Broadcast(Ship);
-			if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+			if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 			{
-				Flow->TravelTo(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
+				Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
 			}
 		}
 		else if (!bExitOpen && Z >= Box.Max.Z - 500.f)

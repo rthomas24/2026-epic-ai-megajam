@@ -290,6 +290,7 @@ bool FTDTravelAtmosphereEntry::RunTest(const FString& Parameters)
 	FTDTestWorld W; // plain game instance: no ITDGameFlow, so travel can't happen
 	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector::ZeroVector);
 	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("entry component"), Ship->GetAtmosphereEntry())) { return false; }
+	Ship->SetPlayerControlled(true); // only the player's ship takes the squad down
 	UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry();
 	W.Advance(0.5f);
 

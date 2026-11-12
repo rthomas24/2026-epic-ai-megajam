@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TDTravelSubsystem.generated.h"
 
 class ATDShip;
@@ -85,6 +86,32 @@ public:
 	/** Bumped on every Set/Clear so movement components re-apply cheaply. */
 	int32 GetPlayBoundsVersion() const { return PlayBoundsVersion; }
 
+	// ---- Hyperdrive locks ------------------------------------------------------------------------
+	/**
+	 * Gameplay that must not be left by hyperdrive (an active wave, the finale, a cutscene) adds a lock.
+	 * While any lock exists no ship can spool, and a jump in progress drops out. Owner keys the lock.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Travel")
+	void AddHyperdriveLock(FName Owner, FText Reason);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Travel")
+	void RemoveHyperdriveLock(FName Owner);
+
+	/** True if any lock is active; OutReason is the most recent lock's reason. */
+	bool IsHyperdriveLocked(FText& OutReason) const;
+
+	// ---- Level travel guard --------------------------------------------------------------------
+	/**
+	 * Whether travel code in this world may call ITDGameFlow::TravelTo now: false once travel was
+	 * requested from this world, or while the game instance has a travel or a retake pending.
+	 */
+	bool CanRequestLevelTravel(FText* OutReason = nullptr) const;
+
+	/** Calls Flow->TravelTo once per world (guarded by CanRequestLevelTravel). Returns true if travel started. */
+	bool RequestLevelTravel(ETDDestination Destination, FName ReturnPoint);
+
+	bool HasRequestedLevelTravel() const { return bLevelTravelRequested; }
+
 	// ---- Landing pads ---------------------------------------------------------------------------
 	void RegisterPad(ATDLandingPad* Pad);
 	void UnregisterPad(ATDLandingPad* Pad);
@@ -111,6 +138,9 @@ private:
 	TArray<FTDTravelGravityWell> Wells;
 
 	TArray<TWeakObjectPtr<ATDLandingPad>> Pads;
+
+	TArray<TPair<FName, FText>> HyperdriveLocks;
+	bool bLevelTravelRequested = false;
 
 	bool bHasPlayBounds = false;
 	FVector PlayBoundsCenter = FVector::ZeroVector;
