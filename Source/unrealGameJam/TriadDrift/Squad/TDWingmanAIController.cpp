@@ -64,8 +64,9 @@ void ATDWingmanAIController::OnPossess(APawn* InPawn)
 
 void ATDWingmanAIController::OnUnPossess()
 {
-	// Hand the ship over with its triggers released; the player's input takes it from here.
+	// Hand the ship over with its triggers released and its own speeds; the player flies it now.
 	SetTriggers(false, false);
+	TDSquad::SetCatchUpTopSpeed(GetShip(), 0.f);
 	CurrentTarget.Reset();
 	Super::OnUnPossess();
 }
@@ -82,6 +83,10 @@ void ATDWingmanAIController::SetState(ETDWingmanState NewState)
 	if (NewState != ETDWingmanState::Engage)
 	{
 		SetTriggers(false, false);
+	}
+	if (NewState != ETDWingmanState::Formation && NewState != ETDWingmanState::Regroup)
+	{
+		TDSquad::SetCatchUpTopSpeed(GetShip(), 0.f); // fight and evade on the ship's own speeds
 	}
 }
 
@@ -295,23 +300,37 @@ void ATDWingmanAIController::FlyToPoint(ATDShip* Ship, const FVector& Point, con
 	const float Dist = ToPoint.Size();
 	const float RefSpeed = RefVelocity.Size();
 
+	// Catch-up allowance: a slow ship (Bastion) must still keep up with a faster leader, so the
+	// throttle may reach a little above the leader's speed (normal acceleration, no boost meter).
+	TDSquad::SetCatchUpTopSpeed(Ship, FMath::Max(CruiseS, RefSpeed * CatchUpSpeedRatio));
+
+	// Split the slot error into along-track (+ = the slot is ahead, we are behind) and lateral.
+	const float Along = FVector::DotProduct(ToPoint, RefForward);
+	const FVector Lateral = ToPoint - RefForward * Along;
+	const bool bAligned = FVector::DotProduct(Ship->GetActorForwardVector(), RefForward) > 0.2f;
+	const bool bLeaderMoving = RefSpeed > MinS * 0.5f;
+
 	FVector Dir;
 	float TargetSpeed;
 	bool bBoost = false;
 
-	if (Dist <= FormationHoldRadius * 3.f)
+	if (bLeaderMoving && (bAligned || Dist < FormationHoldRadius * 3.f))
 	{
-		// In the slot: fly parallel to the leader and correct gently toward the slot.
-		Dir = (RefForward * 2500.f + ToPoint).GetSafeNormal();
-		const float AlongError = FVector::DotProduct(ToPoint, RefForward); // + = we're behind the slot
-		TargetSpeed = RefSpeed + FMath::Clamp(AlongError * 1.5f, -2000.f, 3000.f);
+		// Formation flight: fly parallel to the leader, steer out the lateral error and fix the
+		// along-track error with SPEED only. Overshooting the slot means easing off, never a U-turn.
+		const float LookAhead = FMath::Max(2500.f, RefSpeed * 0.6f);
+		Dir = (RefForward * LookAhead + Lateral).GetSafeNormal();
+		TargetSpeed = RefSpeed + FMath::Clamp(Along * FormationSpeedGain, -RefSpeed, 6000.f);
+		bBoost = Along > CatchUpBoostDistance; // short gap-closing burst when well behind
 	}
 	else
 	{
-		// Out of the slot: chase where the slot will be, boosting when far behind.
+		// Pointing the wrong way (after a fight or a respawn) or the leader is parked: fly to where
+		// the slot will be; the branch above takes over once we head the same way.
 		const FVector Lead = Point + RefVelocity * FMath::Clamp(Dist / FMath::Max(BoostS, 1.f), 0.2f, 1.5f);
 		Dir = (Lead - Loc).GetSafeNormal();
-		TargetSpeed = FMath::Max(RefSpeed, CruiseS) + FMath::Min(Dist, 8000.f);
+		TargetSpeed = bLeaderMoving ? FMath::Max(RefSpeed, CruiseS) + FMath::Min(Dist, 8000.f)
+			: FMath::Clamp(Dist, MinS, CruiseS);
 		bBoost = Dist > CatchUpBoostDistance;
 	}
 
@@ -319,7 +338,7 @@ void ATDWingmanAIController::FlyToPoint(ATDShip* Ship, const FVector& Point, con
 	{
 		Dir = Ship->GetActorForwardVector();
 	}
-	SteerToward(Ship, ApplyAvoidance(Ship, Dir), FMath::Clamp(TargetSpeed, MinS, BoostS), bBoost);
+	SteerToward(Ship, ApplyAvoidance(Ship, Dir), FMath::Max(TargetSpeed, MinS), bBoost);
 }
 
 void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATDShip* Leader)

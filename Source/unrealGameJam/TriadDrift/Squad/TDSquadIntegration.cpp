@@ -20,8 +20,7 @@
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 
-// TODO(T4): re-enable when Waves/ lands on main:
-// #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 
 namespace TDSquadIntegrationPrivate
 {
@@ -38,6 +37,31 @@ namespace TDSquadIntegrationPrivate
 	static UTDShipMovementComponent* Movement(const ATDShip* Ship)
 	{
 		return Ship ? Ship->GetShipMovement() : nullptr;
+	}
+
+	// T1's throttle top-speed hook (eng/t1 adb6959). Detected at compile time so Squad builds both
+	// before and after it reaches main; once it is on main this can become a direct call.
+	template <typename M>
+	concept HasThrottleTopSpeed = requires(M* Move, float V) { Move->SetThrottleTopSpeed(V); Move->ClearThrottleTopSpeed(); Move->GetThrottleTopSpeed(); };
+
+	template <typename M>
+	void SetTopSpeed(M* Move, float TopSpeed, float Cruise)
+	{
+		if constexpr (HasThrottleTopSpeed<M>)
+		{
+			if (TopSpeed > Cruise) { Move->SetThrottleTopSpeed(TopSpeed); }
+			else { Move->ClearThrottleTopSpeed(); }
+		}
+	}
+
+	template <typename M>
+	float GetTopSpeed(M* Move, float Cruise)
+	{
+		if constexpr (HasThrottleTopSpeed<M>)
+		{
+			return FMath::Max(Cruise, Move->GetThrottleTopSpeed());
+		}
+		return Cruise;
 	}
 }
 
@@ -147,6 +171,14 @@ namespace TDSquad
 		OutBoost = 11000.f;
 	}
 
+	void SetCatchUpTopSpeed(ATDShip* Ship, float TopSpeed)
+	{
+		if (UTDShipMovementComponent* Move = Movement(Ship))
+		{
+			SetTopSpeed(Move, TopSpeed, Move->GetFlightTuning().CruiseSpeed);
+		}
+	}
+
 	void SendFlightInput(ATDShip* Ship, float Pitch, float Yaw, float Roll, float TargetSpeed, bool bForceBoost)
 	{
 		if (!Ship)
@@ -155,16 +187,19 @@ namespace TDSquad
 		}
 		float MinS, CruiseS, BoostS;
 		GetSpeedRange(Ship, MinS, CruiseS, BoostS);
+		// Throttle +1 flies at the top speed (cruise, or the catch-up allowance when one is set).
+		UTDShipMovementComponent* Move = Movement(Ship);
+		const float TopS = Move ? GetTopSpeed(Move, CruiseS) : CruiseS;
 
 		FTDFlightInput In;
 		In.Aim = FVector2D(FMath::Clamp(Yaw, -1.f, 1.f), FMath::Clamp(Pitch, -1.f, 1.f));
 		In.Roll = FMath::Clamp(Roll, -1.f, 1.f);
 
-		// Throttle -1..+1 maps linearly to MinSpeed..CruiseSpeed (T1). Above cruise we need boost.
-		const float Range = FMath::Max(1.f, CruiseS - MinS);
+		// Throttle -1..+1 maps linearly to MinSpeed..TopSpeed (T1). Beyond that only boost helps.
+		const float Range = FMath::Max(1.f, TopS - MinS);
 		const float Throttle01 = FMath::Clamp((TargetSpeed - MinS) / Range, 0.f, 1.f);
 		In.Throttle = Throttle01 * 2.f - 1.f;
-		In.bBoost = bForceBoost || TargetSpeed > CruiseS + 0.15f * (BoostS - CruiseS);
+		In.bBoost = bForceBoost || TargetSpeed > TopS + 0.15f * FMath::Max(0.f, BoostS - TopS);
 		In.bBrake = TargetSpeed < MinS * 0.9f;
 		Ship->SetFlightInput(In);
 	}
@@ -374,8 +409,8 @@ namespace TDSquad
 
 	FTDWaveInfo GetWaveInfo(const UObject* WorldContext)
 	{
-		// TODO(T4): return ATDWaveDirector::Get(WorldContext)->GetWaveInfo() once Waves/ is on main.
-		return FTDWaveInfo();
+		const ATDWaveDirector* Director = ATDWaveDirector::Get(WorldContext);
+		return Director ? Director->GetWaveInfo() : FTDWaveInfo();
 	}
 
 	// --------------------------------------------------------------------------- events & flow

@@ -32,6 +32,8 @@ namespace TDSquad
 	 */
 	void SendFlightInput(ATDShip* Ship, float Pitch, float Yaw, float Roll, float TargetSpeed, bool bForceBoost);
 	void GetSpeedRange(const ATDShip* Ship, float& OutMin, float& OutCruise, float& OutBoost);
+	/** T1 throttle top speed above cruise (formation catch-up). <= cruise (or 0) clears it. */
+	void SetCatchUpTopSpeed(ATDShip* Ship, float TopSpeed);
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed);
 
 	// ---- Health (Core UTDHealthComponent) ----

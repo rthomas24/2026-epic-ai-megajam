@@ -73,6 +73,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
 	float CatchUpBoostDistance = 8000.f;
 
+	/** Formation throttle may reach the leader's speed x this (T1 SetThrottleTopSpeed), so slow ships keep up. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (ClampMin = "1"))
+	float CatchUpSpeedRatio = 1.25f;
+
+	/** cm/s of extra speed per cm the wingman is behind its slot (negative when ahead). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (ClampMin = "0"))
+	float FormationSpeedGain = 1.2f;
+
 	/** Beyond this distance after a leader teleport, warp-follow instead of flying. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
 	float TeleportFollowDistance = 30000.f;
