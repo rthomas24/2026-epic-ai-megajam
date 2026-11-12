@@ -178,6 +178,8 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 		if (UStaticMesh* Mesh = Visuals->Mesh.LoadSynchronous())
 		{
 			Hull->SetStaticMesh(Mesh);
+			Hull->SetRelativeRotation(FRotator::ZeroRotator);	// art is authored +X forward
+			Hull->SetRelativeScale3D(FVector::OneVector);
 			for (int32 i = 0; i < Visuals->MaterialOverrides.Num(); ++i)
 			{
 				if (UMaterialInterface* Mat = Visuals->MaterialOverrides[i].LoadSynchronous())
@@ -185,16 +187,24 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 					Hull->SetMaterial(i, Mat);
 				}
 			}
+			if (PlaceholderWings) { PlaceholderWings->SetVisibility(false); }
+			if (HullPivot) { HullPivot->SetRelativeScale3D(FVector::OneVector); }
 			return;
 		}
 	}
 
-	// Placeholder: engine basic shapes are 100 cm across; size the hull to the gameplay radius and tint it.
-	const float Scale = FMath::Max(0.1f, (Spec.Radius * 2.f) / 100.f);
-	Hull->SetRelativeScale3D(FVector(Scale * 1.4f, Scale, Scale * 0.5f));
-	if (UMaterialInstanceDynamic* MID = Hull->CreateDynamicMaterialInstance(0))
+	// Placeholder: T1's cone + wings, scaled as one by the gameplay radius (220 cm = default) and tinted.
+	if (PlaceholderWings) { PlaceholderWings->SetVisibility(true); }
+	if (HullPivot)
 	{
-		MID->SetVectorParameterValue(TEXT("Color"), Spec.PlaceholderColor);
+		HullPivot->SetRelativeScale3D(FVector(FMath::Max(0.2f, Spec.Radius / 220.f)));
+	}
+	for (UStaticMeshComponent* Part : { Hull, PlaceholderWings.Get() })
+	{
+		if (UMaterialInstanceDynamic* MID = Part ? Part->CreateDynamicMaterialInstance(0) : nullptr)
+		{
+			MID->SetVectorParameterValue(TEXT("Color"), Spec.PlaceholderColor);
+		}
 	}
 }
 
@@ -597,6 +607,30 @@ float ATDEnemyShip::FilterIncomingDamage(const FTDDamageInfo& Info)
 
 // ------------------------------------------------------------------------------------------ carrier
 
+void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up)
+{
+	if (!Part)
+	{
+		return;
+	}
+	// Snap (not KeepRelative) so a freshly spawned part doesn't inherit our world rotation twice.
+	Part->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true));
+	// Outside our own blocking sphere, so shots and rams reach the part instead of the hull.
+	const float Distance = Spec.Radius + PartHalfExtent + CarrierPartClearance;
+	Part->SetActorRelativeLocation(LocalDirection.GetSafeNormal() * Distance + FVector(0.f, 0.f, Up));
+	Part->SetActorRelativeRotation(LocalDirection.Rotation());	// part's +X faces outward
+
+	// The carrier sweeps when it moves: never let it collide with its own parts (both ways).
+	if (USphereComponent* Sphere = GetCollisionSphere())
+	{
+		Sphere->IgnoreActorWhenMoving(Part, true);
+	}
+	if (UPrimitiveComponent* PartRoot = Cast<UPrimitiveComponent>(Part->GetRootComponent()))
+	{
+		PartRoot->IgnoreActorWhenMoving(this, true);
+	}
+}
+
 void ATDEnemyShip::SpawnCarrierParts()
 {
 	UWorld* World = GetWorld();
@@ -610,31 +644,29 @@ void ATDEnemyShip::SpawnCarrierParts()
 	Params.Instigator = this;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	const float R = Spec.Radius;
-	const FAttachmentTransformRules Attach(EAttachmentRule::KeepRelative, true);
-
-	// Bays: port, starboard and dorsal-rear. First launches are staggered so they don't all pop at once.
-	const FVector BayOffsets[] = { FVector(0.f, -R * 0.75f, 0.f), FVector(0.f, R * 0.75f, 0.f), FVector(-R * 0.5f, 0.f, R * 0.45f) };
+	// Bays: port, starboard and dorsal. First launches are staggered so they don't all pop at once.
+	const FVector BayDirs[] = { FVector(0.f, -1.f, 0.f), FVector(0.f, 1.f, 0.f), FVector(-0.3f, 0.f, 1.f) };
 	for (int32 i = 0; i < Spec.BayCount; ++i)
 	{
-		ATDCarrierBay* Bay = World->SpawnActor<ATDCarrierBay>(ATDCarrierBay::StaticClass(), GetActorTransform(), Params);
+		ATDCarrierBay* Bay = World->SpawnActor<ATDCarrierBay>(ATDCarrierBay::StaticClass(), FTransform::Identity, Params);
 		if (!Bay) { continue; }
-		Bay->AttachToActor(this, Attach);
-		Bay->SetActorRelativeLocation(BayOffsets[i % UE_ARRAY_COUNT(BayOffsets)] * (1.f + 0.1f * (i / 3)));
+		const FVector Dir = BayDirs[i % UE_ARRAY_COUNT(BayDirs)].RotateAngleAxis(25.f * (i / 3), FVector::UpVector);
+		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f);
 		const float FirstDelay = Spec.Heavy.Interval * 0.5f + i * 2.f;
 		Bay->Init(this, Spec.BayHull, Spec.Heavy.Count, Spec.Heavy.Interval, Spec.Heavy.TelegraphSeconds, FirstDelay);
+		Bay->Visuals = Visuals;
 		Bays.Add(Bay);
 	}
 
-	// Point-defense turrets on the four quarters.
+	// Point-defense turrets on the four upper quarters.
 	for (int32 i = 0; i < Spec.TurretCount; ++i)
 	{
-		ATDEnemyTurret* Turret = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), GetActorTransform(), Params);
+		ATDEnemyTurret* Turret = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!Turret) { continue; }
-		Turret->AttachToActor(this, Attach);
 		const float Angle = (PI * 0.5f) * i + PI * 0.25f;
-		Turret->SetActorRelativeLocation(FVector(FMath::Cos(Angle) * R * 0.6f, FMath::Sin(Angle) * R * 0.6f, R * 0.35f));
+		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f);
 		Turret->Init(Spec.TurretGuns, Spec.TurretHull);
+		Turret->Visuals = Visuals;
 		Turrets.Add(Turret);
 	}
 }
