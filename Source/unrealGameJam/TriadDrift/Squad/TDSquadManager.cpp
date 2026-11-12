@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "HAL/IConsoleManager.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -213,6 +214,13 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		Slot->bLowHullBarkArmed = true;
 		SpawnWingmanFor(*Slot);
 	}
+
+	// Damage indicators listen to every squad ship and keep only the player's (cheap, no rebinding on switch).
+	for (FTDSquadSlot& Slot : Slots)
+	{
+		TDSquad::BindShipDamaged(this, Slot.Ship);
+	}
+	ClearDamageIndicators(); // a retake starts clean
 
 	// M7: squad ships never physically block each other (the AI keeps them apart instead).
 	for (FTDSquadSlot& A : Slots)
@@ -588,6 +596,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	{
 		PC->Possess(NewShip);
 	}
+	ClearDamageIndicators(); // the new ship starts clean
 	LogSwitch(OldId, Ship, CurrentSwitchCause);
 	LastSwitchCause = CurrentSwitchCause;
 	ActiveShipId = Ship;
@@ -1043,6 +1052,10 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	Slot.RespawnAtTime = 0.0;
 	Slot.bLowHullBarkArmed = true;
 	RequestSquadBark(TDBarkIds::Respawn, Slot.ShipId);
+	if (Slot.ShipId == ActiveShipId)
+	{
+		ClearDamageIndicators(); // respawned in place: start clean
+	}
 
 	if (ATDWingmanAIController* Wing = SpawnWingmanFor(Slot))
 	{
@@ -1253,6 +1266,82 @@ void ATDSquadManager::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FTex
 FText ATDSquadManager::GetBoundaryWarningText() const
 {
 	return TDSquad::GetBoundaryWarningText(GetActiveShip());
+}
+
+void ATDSquadManager::HandleShipDamaged(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
+{
+	ATDShip* Player = GetActiveShip();
+	if (!Health || !Player || Health->GetOwner() != Player || ShieldDamage + HullDamage <= 0.f)
+	{
+		return;
+	}
+	// Where it came from: the attacker (instigator, else causer), else back along the hit direction.
+	AActor* Attacker = Info.Instigator ? Info.Instigator.Get() : Info.Causer.Get();
+	FVector Source;
+	if (Attacker && Attacker != Player)
+	{
+		Source = Attacker->GetActorLocation();
+	}
+	else if (!Info.HitDirection.IsNearlyZero())
+	{
+		Source = Player->GetActorLocation() - Info.HitDirection.GetSafeNormal() * 10000.f;
+	}
+	else
+	{
+		return; // nothing says where from
+	}
+	const double Now = RealNow();
+	const float MaxPool = FMath::Max(1.f, TDSquad::GetMaxHullAndShield(Player));
+	const float Strength = (ShieldDamage + HullDamage) / MaxPool;
+	const bool bShieldOnly = HullDamage <= 0.f;
+	// A burst from the same attacker is one indicator.
+	if (Attacker && DamageHits.Num() > 0 && DamageHits[0].Attacker.Get() == Attacker && Now - DamageHits[0].RealTime <= DamageIndicatorMergeSeconds)
+	{
+		FDamageHit& Last = DamageHits[0];
+		Last.Source = Source;
+		Last.RealTime = Now;
+		Last.Strength01 = FMath::Min(1.f, Last.Strength01 + Strength);
+		Last.bShieldOnly = Last.bShieldOnly && bShieldOnly;
+		return;
+	}
+	FDamageHit Hit;
+	Hit.Attacker = Attacker;
+	Hit.Source = Source;
+	Hit.RealTime = Now;
+	Hit.Strength01 = FMath::Clamp(Strength, 0.f, 1.f);
+	Hit.bShieldOnly = bShieldOnly;
+	DamageHits.Insert(Hit, 0);
+	if (DamageHits.Num() > MaxDamageIndicators)
+	{
+		DamageHits.SetNum(MaxDamageIndicators);
+	}
+}
+
+TArray<FTDDamageIndicator> ATDSquadManager::GetDamageIndicators() const
+{
+	TArray<FTDDamageIndicator> Out;
+	const ATDShip* Player = GetActiveShip();
+	if (!Player)
+	{
+		return Out;
+	}
+	const double Now = RealNow();
+	for (const FDamageHit& Hit : DamageHits)
+	{
+		const float Age = static_cast<float>(Now - Hit.RealTime);
+		if (Age > DamageIndicatorSeconds)
+		{
+			break; // newest first: everything after is older
+		}
+		FTDDamageIndicator I;
+		const FVector To = Hit.Source - Player->GetActorLocation();
+		I.WorldDirection = To.IsNearlyZero() ? Player->GetActorForwardVector() : To.GetSafeNormal();
+		I.AgeSeconds = FMath::Max(0.f, Age);
+		I.Strength01 = Hit.Strength01;
+		I.bShieldOnly = Hit.bShieldOnly;
+		Out.Add(I);
+	}
+	return Out;
 }
 
 TArray<FTDSquadMarker> ATDSquadManager::GetSquadMarkers() const

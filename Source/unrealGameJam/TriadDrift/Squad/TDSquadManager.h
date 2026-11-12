@@ -258,6 +258,19 @@ public:
 	virtual FText GetInteractPrompt() const override;
 	/** One entry per squad ship for the HUD's wing markers; bEngaging while its wingman has a live target. */
 	virtual TArray<FTDSquadMarker> GetSquadMarkers() const override;
+	/** T1's feel pass: where the hits on the player's ship come from (newest first, real time). */
+	virtual TArray<FTDDamageIndicator> GetDamageIndicators() const override;
+
+	/** Damage indicators: how long a hit stays (real s), how many are kept, burst merge window. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|HUD", meta = (Units = "s"))
+	float DamageIndicatorSeconds = 1.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|HUD", meta = (ClampMin = "1"))
+	int32 MaxDamageIndicators = 6;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|HUD", meta = (Units = "s"))
+	float DamageIndicatorMergeSeconds = 0.15f;
+
+	UFUNCTION()
+	void HandleShipDamaged(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
 	virtual FText GetBoundaryWarningText() const override;
 	/** Nick's HUD objective line: the Text of the last OnObjectiveUpdated (empty before the first). */
 	virtual FText GetObjectiveText() const override { return ObjectiveText; }
@@ -461,6 +474,17 @@ protected:
 	double LastLockRefusalRealTime = -1000.0;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	mutable TArray<TWeakObjectPtr<AActor>> ObjectiveCache;
+
+	struct FDamageHit
+	{
+		TWeakObjectPtr<AActor> Attacker;
+		FVector Source = FVector::ZeroVector;	// where the hit came from (world), fixed at hit time
+		double RealTime = 0.0;
+		float Strength01 = 0.f;
+		bool bShieldOnly = true;
+	};
+	TArray<FDamageHit> DamageHits;		// newest first
+	void ClearDamageIndicators() { DamageHits.Reset(); }
 	FText ObjectiveText;
 	mutable double ObjectiveRefreshAt = -1.0;
 	int32 SwitchCount = 0;
