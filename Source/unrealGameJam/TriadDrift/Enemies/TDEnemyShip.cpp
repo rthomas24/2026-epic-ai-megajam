@@ -63,7 +63,7 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 
 	FTDFlightTuning Tuning;
 	Tuning.CruiseSpeed = Spec.CruiseSpeed;
-	Tuning.MinSpeed = Spec.CruiseSpeed * 0.3f;
+	Tuning.MinSpeed = Spec.CruiseSpeed * Spec.MinSpeedFraction;
 	Tuning.BoostSpeed = Spec.CruiseSpeed * 1.6f;
 	Tuning.TurnRate = Spec.TurnRateDeg;
 	Tuning.RollRate = FMath::Max(60.f, Spec.TurnRateDeg * 1.5f);
@@ -365,10 +365,12 @@ void ATDEnemyShip::FireSecondaryShot(FName WeaponId, AActor* Target)
 	const FVector AimDir = Target ? (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal() : Forward;
 	Weapons->SetAimDirection(AimDir.IsNearlyZero() ? Forward : AimDir);
 	Weapons->SetAimTarget(Target);
-	Weapons->FireOnce(ETDWeaponSlot::Secondary);
+	const bool bFired = Weapons->FireOnce(ETDWeaponSlot::Secondary);
 	Weapons->SetAimTarget(nullptr);
-
-	// Counted per attempt, so tests don't depend on weapon internals.
+	if (!bFired)
+	{
+		return;	// only shots that really left the barrel count
+	}
 	for (const FTDEnemyAttackSpec* A : { &Spec.Heavy, &Spec.Heavy2 })
 	{
 		if (A->WeaponId == WeaponId)

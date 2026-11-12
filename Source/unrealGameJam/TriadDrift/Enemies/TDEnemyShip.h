@@ -110,7 +110,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	float GetAttackCooldownRemaining(ETDEnemyAttack Attack) const;
 
-	/** How many shots each attack has actually fired (tests, stats). */
+	/** How many shots each attack has actually fired (UTDWeaponComponent::FireOnce succeeded). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	int32 GetFireCount(ETDEnemyAttack Attack) const;
 

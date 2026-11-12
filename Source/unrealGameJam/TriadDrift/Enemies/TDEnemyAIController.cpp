@@ -181,8 +181,10 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 	{
 		if (ATDEnemyShip* Leader = FormationLeader.Get())
 		{
+			// Followers must out-run a boosting / catching-up leader to hold the slot.
 			const FVector Slot = Leader->GetActorTransform().TransformPositionNoScale(FormationOffset);
-			bWant = FVector::Dist(Slot, Ship.GetActorLocation()) > 4000.f && Leader->GetVelocity().Size() > Ship.GetSpec().CruiseSpeed * 0.9f;
+			const float Off = FVector::Dist(Slot, Ship.GetActorLocation());
+			bWant = bCatchingUp ? Off > 800.f : Off > 2000.f;
 		}
 		else if (const AActor* T = Target.Get())
 		{
@@ -196,7 +198,8 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 	}
 	if (bWant && !bCatchingUp)
 	{
-		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * CatchUpSpeedMultiplier, 1.f);
+		const float Mult = FormationLeader.IsValid() ? CatchUpSpeedMultiplier * 1.3f : CatchUpSpeedMultiplier;
+		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * Mult, 1.f);
 		bCatchingUp = true;
 	}
 	else if (!bWant && bCatchingUp)

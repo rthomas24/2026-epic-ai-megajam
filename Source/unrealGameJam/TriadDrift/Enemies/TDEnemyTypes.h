@@ -128,6 +128,10 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "0"))
 	float TurnRateDeg = 100.f;
 
+	/** Minimum speed as a fraction of cruise (throttle -1). 0 = can hold position (gunships, carriers). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "0", ClampMax = "1"))
+	float MinSpeedFraction = 0.3f;
+
 	/** Placeholder collision / visual radius (cm) until Nick's meshes arrive. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "10"))
 	float Radius = 250.f;
