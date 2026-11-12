@@ -7,6 +7,7 @@
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
 #include "TriadDrift/Powers/TDPortalTransit.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
@@ -279,6 +280,32 @@ bool FTDPortalBlink::RunTest(const FString& Parameters)
 		{
 			CVar->Set(0);
 		}
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalFreshShots, "TriadDrift.Powers.Portal.ShotsFiredAtTheExitAreNotSentBack", TD_TEST_FLAGS)
+bool FTDPortalFreshShots::RunTest(const FString& Parameters)
+{
+	for (const float Step : { 1.f / 30.f, 1.f / 120.f })
+	{
+		FTDTestWorld W;
+		AActor* Rift = nullptr;
+		UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
+		// B is at (0, 12000) facing -Y. A ship that just came out of B fires straight ahead (-Y).
+		AActor* Gunner = SpawnBody(W, ETDTeam::Player, FVector(0.f, 11700.f, 0.f), FVector(50.f));
+		Gunner->SetActorRotation(FRotator(0.f, -90.f, 0.f));
+		UTDWeaponComponent* G = NewObject<UTDWeaponComponent>(Gunner, TEXT("Weapons"));
+		G->RegisterComponent();
+		G->MuzzleOffsets = { FVector(150.f, 0.f, 0.f) };
+		G->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
+		AActor* Target = SpawnBody(W, ETDTeam::Enemy, FVector(0.f, 6000.f, 0.f), FVector(200.f));
+		W.Tick(Step);
+		G->FireOnce(ETDWeaponSlot::Primary);
+		W.Advance(0.5f, Step);
+		const FString Fps = FString::Printf(TEXT("%.0f fps: "), 1.f / Step);
+		TestEqual(*(Fps + TEXT("the fresh shot never went back through the portal")), PortalTestTotalTransits(Power), 0);
+		TestEqual(*(Fps + TEXT("it hit what it was aimed at")), Hull(Target), 92.f, 0.01f);
 	}
 	return true;
 }

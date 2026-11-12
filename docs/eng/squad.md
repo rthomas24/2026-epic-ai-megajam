@@ -124,6 +124,7 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 | `Death.RespawnResetsWeapons` | ammo and heat restored on respawn |
 | `HUD.TargetingForwardsActiveShip` / `HUD.WaveInfoCachedLookup` | targeting HUD follows the active ship; cached wave-director lookup |
 | `Wingmen.TargetPriorityThreatToPlayerFirst` / `...LowestHealthBreaksTies` | threat to the player beats nearest; equal distance → lower health |
+| `Wingmen.EvadeOnIncomingMissile` | a real enemy homing missile on a wingman → Evade, 30/60/120 |
 | `Wingmen.EvadeOnShieldBreak` | real hit breaks the shield → Evade (boost) for 1.8 s, 30/60/120 fps |
 | `Wingmen.FollowLeaderThroughPortal` | leader teleport → wingmen arrive in their slots |
 | `Wingmen.AvoidRegisteredObstacle` | wingman steers round a registry asteroid on its line, then rejoins |
