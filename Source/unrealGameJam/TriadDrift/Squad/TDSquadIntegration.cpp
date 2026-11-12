@@ -39,30 +39,6 @@ namespace TDSquadIntegrationPrivate
 		return Ship ? Ship->GetShipMovement() : nullptr;
 	}
 
-	// T1's throttle top-speed hook (eng/t1 adb6959). Detected at compile time so Squad builds both
-	// before and after it reaches main; once it is on main this can become a direct call.
-	template <typename M>
-	concept HasThrottleTopSpeed = requires(M* Move, float V) { Move->SetThrottleTopSpeed(V); Move->ClearThrottleTopSpeed(); Move->GetThrottleTopSpeed(); };
-
-	template <typename M>
-	void SetTopSpeed(M* Move, float TopSpeed, float Cruise)
-	{
-		if constexpr (HasThrottleTopSpeed<M>)
-		{
-			if (TopSpeed > Cruise) { Move->SetThrottleTopSpeed(TopSpeed); }
-			else { Move->ClearThrottleTopSpeed(); }
-		}
-	}
-
-	template <typename M>
-	float GetTopSpeed(M* Move, float Cruise)
-	{
-		if constexpr (HasThrottleTopSpeed<M>)
-		{
-			return FMath::Max(Cruise, Move->GetThrottleTopSpeed());
-		}
-		return Cruise;
-	}
 }
 
 using namespace TDSquadIntegrationPrivate;
@@ -175,7 +151,14 @@ namespace TDSquad
 	{
 		if (UTDShipMovementComponent* Move = Movement(Ship))
 		{
-			SetTopSpeed(Move, TopSpeed, Move->GetFlightTuning().CruiseSpeed);
+			if (TopSpeed > Move->GetFlightTuning().CruiseSpeed)
+			{
+				Move->SetThrottleTopSpeed(TopSpeed);
+			}
+			else
+			{
+				Move->ClearThrottleTopSpeed();
+			}
 		}
 	}
 
@@ -189,7 +172,7 @@ namespace TDSquad
 		GetSpeedRange(Ship, MinS, CruiseS, BoostS);
 		// Throttle +1 flies at the top speed (cruise, or the catch-up allowance when one is set).
 		UTDShipMovementComponent* Move = Movement(Ship);
-		const float TopS = Move ? GetTopSpeed(Move, CruiseS) : CruiseS;
+		const float TopS = Move ? FMath::Max(CruiseS, Move->GetThrottleTopSpeed()) : CruiseS;
 
 		FTDFlightInput In;
 		In.Aim = FVector2D(FMath::Clamp(Yaw, -1.f, 1.f), FMath::Clamp(Pitch, -1.f, 1.f));
