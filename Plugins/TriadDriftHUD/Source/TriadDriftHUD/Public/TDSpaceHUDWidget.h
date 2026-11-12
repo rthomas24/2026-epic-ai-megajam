@@ -46,8 +46,8 @@ struct TRIADDRIFTHUD_API FTDHUDStyle
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="1",ClampMax="30")) float MeterResponse = 9.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="0.05",ClampMax="2")) float SwitchSeconds = .65f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style") bool bReducedMotion = false;
-    /** Isolated visual-review experiment. Only affects the controlled Lancer; opt-in until approved. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Review") bool bLancerVisualBenchmark = false;
+    /** Nick-approved M03 prototype styling. Only affects the controlled Lancer; false restores M02. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Review") bool bLancerVisualBenchmark = true;
     FLinearColor ShipColor(int32 Index) const { return Index == 0 ? Rift : Index == 1 ? Lancer : Bastion; }
 };
 

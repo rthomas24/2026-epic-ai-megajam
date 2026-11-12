@@ -57,11 +57,14 @@ ultrawide, unavailable. M01 review files remain unchanged; M02 evidence goes
 under review/ReadabilityM02/. Screenshots need Nicholas's manual readability
 review before further polish; numerical size changes alone do not prove UX quality.
 
-LANCER VISUAL BENCHMARK M03 (human review pending)
+LANCER VISUAL BENCHMARK M03 (prototype presentation approved)
 Nicholas approved the M02 layout/readability. Lead published d2a594e and isolated
 this new branch at 1ca5a5a, preserving PR4 and the old staged legacy claim.
-Style.bLancerVisualBenchmark defaults FALSE: no unapproved styling activates in
-normal gameplay. In the explicit preview, -TDHUDLancerBenchmark opts in. The
+Nicholas subsequently approved aca9334 as the current prototype UI. The native
+Style.bLancerVisualBenchmark now defaults TRUE for controlled Lancer; explicit
+FALSE restores M02 for comparisons. The shared engineering host switch remains
+off by default, independently of widget styling. In the explicit preview,
+-TDHUDLancerBenchmark selects M03 (capture fixtures still set the flag explicitly). The
 treatment is gated to the controlled Lancer only; Rift/Bastion active states and
 their inactive cards retain M02. No layout, controls, reflection/provider or
 shared gameplay/config changes; no director fallback takeover.
@@ -85,7 +88,8 @@ values. Remaining views exercise switching, damage, cooldown, reduced motion,
 isolated draw-list construction only, not GPU/frame-time/gameplay performance.
 Without -Capture the launcher starts a bounded windowed preview/privateMCP8023
 for actual input-driven feature checks using the existing Tools/td_mcp.py.
-Stop for Nicholas's manual visual approval before extending styling to other ships.
+Do not extend styling to other ships or redesign the approved M03 presentation.
+Live-game integration checklist and test instructions: review/M03Gameplay/README.md.
 
 NATIVE WBP GENERATION
 After building, run create_widgets.py using UE 5.9's PythonScript commandlet

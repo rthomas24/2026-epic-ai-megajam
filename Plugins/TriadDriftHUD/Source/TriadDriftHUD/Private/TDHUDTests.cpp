@@ -68,7 +68,9 @@ bool FTDHUDLancerIsolationTest::RunTest(const FString& Parameters)
 {
     UTDSpaceHUDWidget* HUD=NewObject<UTDSpaceHUDWidget>();
     HUD->SetPreviewMode(true);
-    TestFalse(TEXT("experiment cannot silently activate on normal Lancer"),HUD->IsLancerBenchmarkActive());
+    TestTrue(TEXT("approved M03 is the default for controlled Lancer"),HUD->IsLancerBenchmarkActive());
+    HUD->Style.bLancerVisualBenchmark=false;
+    TestFalse(TEXT("explicit opt-out restores the M02 baseline"),HUD->IsLancerBenchmarkActive());
     HUD->Style.bLancerVisualBenchmark=true;
     TestTrue(TEXT("explicit opt-in applies to controlled Lancer"),HUD->IsLancerBenchmarkActive());
     HUD->PreviewSelectShip(0);

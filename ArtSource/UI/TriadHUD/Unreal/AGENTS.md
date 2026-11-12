@@ -51,3 +51,14 @@ not gameplay or environment changes. Matched before/after resolution and fixture
 No Rift/Bastion active-state propagation before Nicholas's manual visual approval.
 No R011 director takeover or N004 producer workaround. Heavy build/capture needs
 the Lead's explicit current window; source preparation alone is cleared initially.
+
+Current task: Nicholas approved aca9334 M03 as the prototype UI and authorized live
+gameplay integration. Lead published eade758, clean-synced this branch at db3472e,
+and cleared only the native default flag, explicit opt-out test, docs and public-data
+audit. Preserve approved appearance/layout and historical evidence. Existing Ryan
+UTDUIHostSubsystem / TD.UI.NativeHUD switch is the only gameplay host; no duplicates,
+Source/Config/map edits or shared-default activation. Use the existing 0.1s sampler
+and event bus. Mission-state getter/markers gap must go to Ryan through Lead, with
+no fabricated mission state or new reflection contract before agreement. Heavy
+build/all8UItests/actual Galaxy captures on8023 require a fresh grant after Lead's
+baseline session releases. Send source checkpoint before functional API changes.
