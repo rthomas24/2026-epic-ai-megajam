@@ -16,6 +16,8 @@ namespace
 	int32 GTDEnemyAIDebug = 0;
 	const FName TDEnemyAIOverride(TEXT("EnemyAI"));
 	float GTDEnemyCrossInFront = 5000.f;
+	int32 GTDEnemyOpeningPass = 1;
+	FAutoConsoleVariableRef CVarTDEnemyOpeningPass(TEXT("TD.EnemyOpeningPass"), GTDEnemyOpeningPass, TEXT("1 = fast enemies open each wave by crossing in front of the player (readability). Applied when a pilot takes its ship."));
 	FAutoConsoleVariableRef CVarTDEnemyCrossInFront(TEXT("TD.EnemyCrossInFront"), GTDEnemyCrossInFront, TEXT("Enemy attack runs on the player steer this far in front of its nose (cm, 0 = off). Applied when a pilot takes its ship."));	// T1 keyed speed overrides: ours never clears an EMP / gravity well
 	FAutoConsoleVariableRef CVarTDEnemyAIDebug(TEXT("TD.EnemyAIDebug"), GTDEnemyAIDebug, TEXT("Draw enemy AI state and target lines (1 = on)."));
 
@@ -51,6 +53,10 @@ void ATDEnemyAIController::OnPossess(APawn* InPawn)
 	}
 	bPrefersPlayer = Rng.FRand() < PreferPlayerShipChance;
 	CrossInFrontDistance = GTDEnemyCrossInFront;
+	bOpeningPass = false;
+	bOpeningPassChecked = GTDEnemyOpeningPass == 0;
+	OpeningPassTime = 0.f;
+	OpeningPassSideSign = Rng.FRand() < 0.5f ? -1.f : 1.f;
 	SetState(ETDEnemyAIState::Approach);
 	RetargetTimer = 0.f;
 }
@@ -190,10 +196,62 @@ float ATDEnemyAIController::TimeToImpact(const AActor& A, const AActor& B)
 	return Closing > KINDA_SMALL_NUMBER ? Dist / Closing : TNumericLimits<float>::Max();
 }
 
+void ATDEnemyAIController::UpdateOpeningPass(ATDEnemyShip& Ship, float DeltaSeconds)
+{
+	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!bOpeningPassChecked)
+	{
+		// Decided once, on the first tick (InitFromSpec runs after possession). Followers ride their leader's pass.
+		bOpeningPassChecked = true;
+		const FTDEnemySpec& Spec = Ship.GetSpec();
+		bOpeningPass = Player && !FormationLeader.IsValid() && Spec.CruiseSpeed * CatchUpSpeedMultiplier >= OpeningPassMinSpeed
+			&& Ship.GetRole() != ETDEnemyRole::Carrier;
+		OpeningPassTime = 0.f;
+	}
+	if (!bOpeningPass)
+	{
+		return;
+	}
+	OpeningPassTime += DeltaSeconds;
+	bool bDone = !Player || OpeningPassTime >= OpeningPassMaxSeconds || Ship.IsStunned();
+	if (!bDone)
+	{
+		// Done once the pilot is in front of the player and close to the crossing point: it's on screen.
+		const FVector Rel = Ship.GetActorLocation() - Player->GetActorLocation();
+		const float Ahead = FVector::DotProduct(Rel, Player->GetActorForwardVector());
+		bDone = Ahead > OpeningPassAhead * 0.5f && FVector::Dist(Ship.GetActorLocation(), GetOpeningPassPoint()) < OpeningPassAhead * 0.6f;
+	}
+	if (bDone)
+	{
+		bOpeningPass = false;
+		if (State == ETDEnemyAIState::Approach && Target.IsValid())
+		{
+			const float Dist = FVector::Dist(Target->GetActorLocation(), Ship.GetActorLocation());
+			if (Dist <= Ship.GetSpec().EngageRange) { SetState(ETDEnemyAIState::AttackRun); }
+		}
+	}
+}
+
+FVector ATDEnemyAIController::GetOpeningPassPoint() const
+{
+	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!Player)
+	{
+		return FVector::ZeroVector;
+	}
+	const FVector Fwd = Player->GetActorForwardVector();
+	return Player->GetActorLocation() + Player->GetVelocity() * 0.5f + Fwd * OpeningPassAhead
+		+ Player->GetActorRightVector() * (OpeningPassSide * OpeningPassSideSign);
+}
+
 void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 {
 	bool bWant = false;
-	if (Ship.GetRole() != ETDEnemyRole::Carrier && !Ship.IsStunned())
+	if (bOpeningPass && !Ship.IsStunned())
+	{
+		bWant = true;	// overtake the player at catch-up speed
+	}
+	else if (Ship.GetRole() != ETDEnemyRole::Carrier && !Ship.IsStunned())
 	{
 		if (ATDEnemyShip* Leader = FormationLeader.Get())
 		{
@@ -433,6 +491,11 @@ void ATDEnemyAIController::TickApproach(ATDEnemyShip& Ship, float DeltaSeconds)
 	const float Dist = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation());
 
 	Ship.SetGunsFiring(false, nullptr);
+	if (bOpeningPass)
+	{
+		SteerToward(Ship, GetOpeningPassPoint(), 1.f, false);
+		return;
+	}
 	SteerToward(Ship, GetAimPoint(Ship, *T), 1.f, Dist > Spec.EngageRange * 2.f);
 
 	if (Dist <= Spec.EngageRange)
@@ -480,7 +543,12 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 		// Peel away: mostly sideways/up, away from the target, so the run reads as a pass.
 		const FVector Away = (Ship.GetActorLocation() - T->GetActorLocation()).GetSafeNormal();
 		const FVector Side = Rng.FRand() < 0.5f ? Ship.GetActorRightVector() : -Ship.GetActorRightVector();
-		BreakOffDirection = (Side + Away * 0.6f + Ship.GetActorUpVector() * (Rng.FRand() - 0.5f)).GetSafeNormal();
+		FVector Peel = Side + Away * 0.6f + Ship.GetActorUpVector() * (Rng.FRand() - 0.5f);
+		if (CrossInFrontDistance > 0.f && T == UGameplayStatics::GetPlayerPawn(this, 0))
+		{
+			Peel += T->GetActorForwardVector() * 0.8f;	// peel out ahead of the player, so the re-approach starts on screen
+		}
+		BreakOffDirection = Peel.GetSafeNormal();
 		Ship.SetGunsFiring(false, nullptr);
 		SetState(ETDEnemyAIState::BreakOff);
 	}
@@ -581,6 +649,7 @@ void ATDEnemyAIController::Tick(float DeltaSeconds)
 	}
 
 	UpdateTarget(DeltaSeconds);
+	UpdateOpeningPass(*Ship, DeltaSeconds);
 	UpdateCatchUp(*Ship);
 
 	AActor* T = Target.Get();

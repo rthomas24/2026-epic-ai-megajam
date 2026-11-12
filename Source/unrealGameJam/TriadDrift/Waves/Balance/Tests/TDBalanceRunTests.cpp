@@ -111,7 +111,7 @@ namespace TDBalanceRun
 		auto Kind = [](const FTDBalanceWaveStats& S, ETDDamageKind K) { return S.KillsByKind.FindRef(K); };
 
 		FString Csv = TEXT("difficulty,wave,cleared,seconds,takes,enemies,kills,damage_taken,ship_downs,kills_rift,kills_lancer,kills_bastion,kills_energy,kills_kinetic,kills_explosive,kills_ram\n");
-		FString Md = FString::Printf(TEXT("# Balance run: %s, %s pilot (%.0f fps, scripted player + AI wingmen)\n\n| Wave | Cleared | Time (s) | Takes | Kills / enemies | Damage taken | Ship downs | Rift / Lancer / Bastion kills | Bays / carriers killed | Pilot time on bays / ships (s) | Enemy on screen | Damage by source |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n"),
+		FString Md = FString::Printf(TEXT("# Balance run: %s, %s pilot (%.0f fps, scripted player + AI wingmen)\n\n| Wave | Cleared | Time (s) | Takes | Kills / enemies | Damage taken | Ship downs | Rift / Lancer / Bastion kills | Bays / carriers killed | Pilot time on bays / ships (s) | Enemy on screen (time / avg count / longest empty / first contact) | Damage by source |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n"),
 			DifficultyName(Difficulty), *Skill.Name.ToString(), 1.f / Step);
 		for (const FTDBalanceWaveStats& S : R.Waves)
 		{
@@ -127,19 +127,20 @@ namespace TDBalanceRun
 				Sources += FString::Printf(TEXT("%s%s %.0f"), i ? TEXT(", ") : TEXT(""), *Sorted[i].Key.ToString(), Sorted[i].Value);
 			}
 			const float OnScreen = S.SecondsTotal > 0.f ? 100.f * S.SecondsEnemyOnScreen / S.SecondsTotal : 0.f;
-			Md += FString::Printf(TEXT("| %d | %s | %.0f | %d | %d / %d | %.0f | %d | %d / %d / %d | %d / %d | %.0f / %.0f | %.0f%% | %s |\n"), S.WaveNumber, S.bCleared ? TEXT("yes") : TEXT("**no**"), S.Seconds, S.Takes,
+			Md += FString::Printf(TEXT("| %d | %s | %.0f | %d | %d / %d | %.0f | %d | %d / %d / %d | %d / %d | %.0f / %.0f | %.0f%% / %.1f / %.0f s / %.0f s | %s |\n"), S.WaveNumber, S.bCleared ? TEXT("yes") : TEXT("**no**"), S.Seconds, S.Takes,
 				S.Kills, S.Enemies, S.DamageTaken, S.ShipDowns, Ship(S, ETDShipId::Rift), Ship(S, ETDShipId::Lancer), Ship(S, ETDShipId::Bastion),
-				S.BaysKilled, S.CarriersKilled, S.SecondsOnBays, S.SecondsOnShips, OnScreen, *Sources);
+				S.BaysKilled, S.CarriersKilled, S.SecondsOnBays, S.SecondsOnShips, OnScreen,
+				S.SecondsTotal > 0.f ? S.EnemyOnScreenCountSeconds / S.SecondsTotal : 0.f, S.LongestEmptySeconds, S.FirstContactSeconds, *Sources);
 		}
 		Md += FString::Printf(TEXT("\n**Space combat total: %.1f min** (waves only; the 20-30 min target also covers both planets, travel and the Dominion).\n"), R.TotalSeconds / 60.f);
 		FFileHelper::SaveStringToFile(Csv, *(Base + TEXT(".csv")), FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
 		FFileHelper::SaveStringToFile(Md, *(Base + TEXT(".md")), FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
 	}
 
-	bool RunOne(FAutomationTestBase& Test, ETDDifficulty Difficulty, const FTDPilotSkill& Skill)
+	bool RunOne(FAutomationTestBase& Test, ETDDifficulty Difficulty, const FTDPilotSkill& Skill, float MaxSecondsPerWave = 300.f)
 	{
 		const float Step = 1.f / 30.f;
-		const FRunResult R = Play(Test, Difficulty, Skill, Step, /*MaxSecondsPerWave*/ 300.f);
+		const FRunResult R = Play(Test, Difficulty, Skill, Step, MaxSecondsPerWave);
 		Write(Difficulty, Skill, R, Step);
 		Test.TestEqual(TEXT("played all five waves"), R.Waves.Num(), 5);
 		for (const FTDBalanceWaveStats& S : R.Waves)
@@ -184,6 +185,14 @@ bool FTDBalanceAceAverage::RunTest(const FString& Parameters) { return TDBalance
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceAceStrong, "TDBalance.Ace.Strong", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
 bool FTDBalanceAceStrong::RunTest(const FString& Parameters) { return TDBalanceRun::RunOne(*this, ETDDifficulty::Ace, FTDPilotSkill::Strong()); }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceStandardPassive, "TDBalance.Standard.Passive", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceStandardPassive::RunTest(const FString& Parameters)
+{
+	// Readability worst case: the player doesn't steer. Waves won't clear (the wingmen fight alone); the
+	// numbers that matter are the on-screen columns.
+	return TDBalanceRun::RunOne(*this, ETDDifficulty::Standard, FTDPilotSkill::Passive(), /*MaxSecondsPerWave*/ 90.f);
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceStandardAverageNoCross, "TDBalance.Baseline.StandardAverageNoCrossInFront", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
 bool FTDBalanceStandardAverageNoCross::RunTest(const FString& Parameters)

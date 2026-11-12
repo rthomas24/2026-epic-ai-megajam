@@ -103,6 +103,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float CrossInFrontDistance = 5000.f;
 
+	/**
+	 * Opening pass (readability): waves warp in behind or beside the player, out of view. A fast pilot's
+	 * first move is to overtake and cross the player's nose OpeningPassAhead in front (OpeningPassSide to one
+	 * side) at catch-up speed, before its first attack run. Only for pilots whose catch-up speed is at
+	 * least OpeningPassMinSpeed (fighters, interceptors); heavies keep their normal approach.
+	 * CVar TD.EnemyOpeningPass 0 turns it off.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float OpeningPassAhead = 9000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float OpeningPassSide = 3000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float OpeningPassMaxSeconds = 10.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float OpeningPassMinSpeed = 9000.f;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
+	bool IsOnOpeningPass() const { return bOpeningPass; }
+
 	/** Keep at least this far from other Armada ships (cm). 0 = off. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float SeparationRadius = 1400.f;
@@ -166,6 +188,13 @@ protected:
 	bool bPrefersPlayer = false;
 	bool bCatchingUp = false;
 	bool bRunReachedGunRange = false;
+	bool bOpeningPass = false;
+	bool bOpeningPassChecked = false;
+	float OpeningPassTime = 0.f;
+	float OpeningPassSideSign = 1.f;
+	/** Starts (first tick after possession, once the spec is known) and ends the opening pass. */
+	void UpdateOpeningPass(ATDEnemyShip& Ship, float DeltaSeconds);
+	FVector GetOpeningPassPoint() const;
 	void UpdateCatchUp(ATDEnemyShip& Ship);
 	static float TimeToImpact(const AActor& A, const AActor& B);
 	float StateTime = 0.f;
