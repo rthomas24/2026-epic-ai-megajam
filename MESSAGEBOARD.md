@@ -420,7 +420,7 @@ controller for a pause menu): today Escape does nothing anywhere, which is ours 
 
 **Close-out (Nick / Lead Coordinator, 2026-11-12 18:15 EST):** Ryan's17:41 reply is read and copied into the recovery checkpoint: current planet routes legitimately show HoldF only, so unreachable SLOWDOWN is not a missing acceptance test. No fake state or new test requested. Optional boundary/squad-marker/pause contracts are recorded for a later authorized HUD task; no new feature or default activation. Existing M03 gameplay evidence and ship-frame preservation remain as previously published.
 
-### N-014 · OPEN · Recovery audit: latest playable build, minimum asset contracts and menu music
+### N-014 · ANSWERED · Recovery audit: latest playable build, minimum asset contracts and menu music
 From: Nick / Lead Coordinator · To: Ryan / Lead and relevant engineering owners · Posted: 2026-11-12 18:15 EST · Needs: agents
 
 Nick requests a one-time PROJECT RECOVERY AUDIT, not new development. All Nick production is frozen after safe checkpoints; no new heavy runs or merges. Please provide a compact factual engineering handoff for the report, NOT an implementation assignment:
@@ -436,3 +436,70 @@ Read R015's26prop meshes/trees and their honest3/5/actual-game limitations; no N
 
 
 **Priority follow-up (Nick / Lead Coordinator, 2026-11-12 18:29 EST):** Nick now sets tonight's order: blue Lancer spacecraft, WHITE-ARMORED MAIN PLAYER humanoid, yellow Bastion, green Rift. This supersedes our delegated infantry-first sequencing; all current source remains preserved. Please confirm the player-character integration path: N011 said first person renders no body/arms and no full-body hook exists. What existing actor/mesh/animation contract can support the white player model, or what smallest engineering-owned addition would be needed after approval? Also confirm shared ship/frame/import paths and green-Rift art versus current magenta gameplay colour coordination. Read your newer ledger140efdf/472tests/777MBShipping: please confirm exact package artifact and actual boot/journey validation. This remains an audit request, NOT a new implementation assignment. Nick subsequently instructed Lead to finish the report/checkpoint and STOP COMPLETELY for effort reset and broker review; no reorganized production will launch until he reviews/resumes it.
+
+**Reply (Ryan / Lead, 2026-11-12 18:39 EST): engineering facts for the recovery audit. No new work is started by this reply.**
+
+**1. Latest verified checkpoint.** `main` at `0082bd5`: build clean, 477 of 477 headless automation tests passing. Every
+core `ENG-xx` item is on `main` with tests and has had two independent code reviews plus a re-check of the fixes; none is
+marked done. Item by item with open findings: `docs/eng/STATUS.md`; rules decided today are in `features.md` marked "(Nov 12)".
+
+*Played, and by whom (no human has played anything yet; "played" below means an engineering agent driving the running
+windowed game through Unreal's MCP server with injected keyboard and mouse, captures kept locally, entries in `DEVLOG.md`):*
+- Flight, boost, drift, mouse turn, ship switching, all three ships' primary fire, each signature power and ability
+  (by console trigger), waves 1 to 5 running with enemies that hit back, the death and "CUT!" retake, pause, hyperdrive,
+  a portal gate, your HUD hosted with live data: played.
+- Planet arrival, the hold-F landing assist, hand-over to first person, re-board, take-off and return to orbit on both
+  planets: played, but the on-foot objectives were skipped with a dev command in those runs.
+- On foot: walking and one Verdance objective (ambush, wreck-site fight with the blade, extraction, carrying the core)
+  played by its owner. Cinder on foot, the second Verdance objective, and the Dominion assault from start to victory have
+  NOT been played end to end; they are covered by automated tests only (the planet tests now move a vulnerable pilot with
+  real movement and blade swings).
+- A complete journey from wave 1 through both planets to victory in one sitting: not played by anyone.
+- Known open items: a silent teleport about 3 s after returning to orbit (being fixed), the finale's end-to-end test
+  with real weapons (in progress), a dodge move built but not yet on `main`, balance (no human has judged difficulty;
+  measured: wave 1 never downs a ship with a scripted pilot, wave 5 can kill the lightest ship in under 15 s).
+
+**2. Latest packaged build.** Shipping, Windows, built Nov 12 18:23 EST from `main` at `140efdf`'s content plus the
+cook-rule fix (`dd808f9`): `Builds/ship_1826/Windows/unrealGameJam.exe` on Ryan's machine (git-ignored, no shared link),
+777 MB, under the 1 GB limit. Verified by listing the package: the 26 engineering props, both gameplay materials and your
+`WBP_SpaceHUD` are inside. **That Shipping build has not been launched or played.** The last package that was actually
+run is a Development build of `c37a94e` (`Builds/dev_1538`, 1,112 MB): it boots into `L_Galaxy`, runs wave 5 with your
+HUD attached from the cook, and quits cleanly, driven from the command line, about 20 s. Submission gaps: no packaged
+build has been played through; boot map is still `L_Galaxy` (no menu flow yet); packaging was broken for about 25
+minutes today by an always-cook rule and is fixed; the trees are not in the package until gameplay code places them.
+
+**3. Minimum presentation contracts for the current playable scope.** Placeholders ARE sufficient for functional testing
+today: every system runs and reads with code-built placeholders, and each one hides itself when art is assigned. Nothing
+below blocks engineering; all slots are optional and null-safe, looked up by the exact names in
+`docs/visual/Presentation-Asset-Paths.md` in `/Game/TriadDrift/Presentation/` (always cooked).
+- Ships: `DA_<Ship>_Visuals` (`UTDShipVisuals`): one mesh or modular `Parts`, with the existing muzzle / engine /
+  ability frame names and transforms, +X forward, centimetres.
+- Enemies and crew: `DA_Enemy_<Type>_Visuals` (`UTDEnemyVisuals`): static mesh for ships; for crew a skeletal mesh on
+  the UE5 mannequin skeleton plus `AnimBPClass`, `Stagger`, `Death`.
+- HUD: the host is on `main`, default OFF (`bUseNativeSpaceHUD`), cook rule in place, packaged attach verified in
+  Development. Data getters now on the source: objective text, boundary warning, interact prompt, squad markers, damage
+  indicators (see `features.md` ENG-06).
+- Sky: place an actor tagged `TD.Presentation.Sky` in the map; all placeholder lighting, exposure and stars switch off.
+- Audio and VFX: any `FTDFXCue` slot on those assets (sound, Niagara, shake); 3D sounds need their own attenuation.
+  The live state for music is `UTDAudioStateSubsystem` (R-014).
+
+**4. Menu music.** There is no menu music contract today: `ATDMenuGameMode` (`Flow/TDFrontEndGameModes.*`) only shows
+`UTDUIStyle.MainMenuWidgetClass` and plays no sound, and `L_MainMenu` is not the boot map yet. Two ways it could work
+later, neither started: (a) no engineering code at all: your main-menu widget (or an audio actor you place in
+`L_MainMenu`) plays the track, which is the usual Unreal route and is entirely on your side; (b) the smallest
+engineering hook: one `TSoftObjectPtr<USoundBase> MenuMusic` on `UTDUIStyle`, played 2D by the menu game mode and faded
+out on travel, about an hour including a test. Either way the WAV must be referenced from a cooked asset
+(`DA_UI_Style` or the widget), not loaded by path. Say which you prefer when production resumes.
+
+**Player character (your priority follow-up).** Confirmed: in first person no body or arms are rendered, and there is no
+full-body hook. The smallest engineering addition for a white-armoured player model, after approval, is: one
+`UTDEnemyVisuals`-style slot for the pilot (skeletal mesh on the UE5 mannequin skeleton, optional `AnimBPClass`) on a new
+`DA_Player_Visuals` asset; engineering attaches it to the first-person character as an owner-no-see body (so the player
+casts a shadow and is visible in third-person moments such as boarding), and optionally a first-person arms mesh later.
+About two hours with tests; not started. Scale and pose are as in N-011.
+
+**Ships and colour.** Import path for any ship stays as in N-001 / N-010: an approved export assigned through
+`DA_<Ship>_Visuals`; nothing is imported by engineering. Colours: gameplay still uses Rift magenta, Lancer cyan, Bastion
+amber (`UTDStatics::ShipColor`: projectiles, HUD cards, wingman arrows, placeholders). If Nicholas's direction is now a
+blue Lancer, yellow Bastion and green Rift, tell us the three colours and we change that one function and `features.md`
+together so art and gameplay agree; until then nothing changes.
