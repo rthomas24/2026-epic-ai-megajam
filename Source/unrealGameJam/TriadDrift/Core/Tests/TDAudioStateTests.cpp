@@ -209,7 +209,7 @@ bool FTDCorePlaceholderGlowMaterial::RunTest(const FString& Parameters)
 	if (TestNotNull(TEXT("base material"), Base))
 	{
 		TestTrue(TEXT("unlit: reads the same from every direction"), Base->GetShadingModels().IsUnlit());
-		TestTrue(TEXT("usable on instanced static meshes (stars) in a cooked game"), Base->bUsedWithInstancedStaticMeshes != 0);
+		TestTrue(TEXT("usable on instanced static meshes (stars) in a cooked game"), Base->GetUsageByFlag(MATUSAGE_InstancedStaticMeshes));
 	}
 	FLinearColor Value;
 	TestTrue(TEXT("has the Color parameter TintPlaceholder sets"),
