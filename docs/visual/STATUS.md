@@ -180,3 +180,9 @@ Current Hero Unreal job retains the only heavy slot. Character owner may prepare
 ## Hero native build checkpoint — November12,17:32EST
 
 Hero03 completed OS/script0,reasonok,481.1s,0errors/warnings/dialogs. Six new native assets exist only in Content/TriadDrift/Environment/SpaceFoundation/HeroM02. Shader stats148pixel/155vertex instructions,3samplers,6pixel texture samples; protected35baseline hashes independently rechecked PASS. Prior failed attempts remain archived. This is a native build checkpoint, not visual/gameplay/main acceptance. Fresh process18576 is performing already-authorized matched captures/reload/stability/actual built texture measurements. Environment retains the one heavy slot; corrected Lancer structural pass follows actual terminal release, then character base export/modeling requires its own resource grant.
+
+## Audio direction superseded; infantry checkpoint published — November12
+
+Verified direct Audio-chat user01a1d1e7: Nick dislikes both PrimaryRealismM02 and originalV1 and requests assets directly from his Epic Games library. Technical QA never implied ear approval. Both remain preserved references; no further custom design, native adoption or Main merge. Dedicated Audio agent is checking existing local pack identities/licences and preparing original unprocessed playable clips in ignored storage; no new acquisition/download/AI/spend. Unresolved Untitled cache names do not establish product rights or field-recording provenance.
+
+Infantry source-only9-file checkpoint372a9ca is pushed on its isolated branch; approved reference SHA/PNG integrity, all JSON and manifest hashes independently pass. No humanoid .blend/FBX or geometry exists. Necessary owned exporter/guard script may be prepared offline; execution waits for an explicit fresh resource grant after Hero capture and short Lancer structural confirmation. Frozen compiled HUD project is the read-only source host; no HUD/template/config writes or new game build.
