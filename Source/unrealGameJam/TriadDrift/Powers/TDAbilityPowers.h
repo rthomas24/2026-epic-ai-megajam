@@ -12,6 +12,7 @@
 
 class UTDAbilityFX;
 class UNiagaraComponent;
+class ATDSpacecraft;
 
 /** The Gravity Well orb / vortex. Spawned by UTDGravityWellPower. */
 UCLASS(NotBlueprintable)
@@ -46,6 +47,11 @@ public:
 	float ProjectileBendDegPerSecond = 270.f;
 	/** Largest enemy ship class the vortex moves (bigger ones, and anything attached or not a ship, only take damage). */
 	ETDEnemySize MaxPulledSize = ETDEnemySize::Medium;
+	/** Caught ships' engines are held at this speed (and steering scale) while inside. */
+	float CapturedSpeed = 600.f;
+	/** Shots are dragged inward this fast on top of the bend (no stable orbits). */
+	float ProjectilePullSpeed = 6000.f;
+	float CapturedSteering = 0.25f;
 
 	/** Free-flying spacecraft no bigger than MaxPulledSize. */
 	bool CanBePulled(const AActor* Actor) const;
@@ -54,9 +60,16 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 private:
 	void TickVortex(float DeltaSeconds);
 	void Implode();
+	void ReleaseEscaped(const FVector& Center, float RadiusSq);
+	void ReleaseAll();
+
+	TSet<TWeakObjectPtr<ATDSpacecraft>> Captured;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTDAbilityFX> FX;

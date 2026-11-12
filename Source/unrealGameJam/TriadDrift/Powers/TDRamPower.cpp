@@ -155,8 +155,11 @@ void UTDRamPower::BeginDash()
 	{
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
-			Move->SetOverrideAcceleration(DashAcceleration);
+			// Order matters: SetSpeedOverride resets the override acceleration to its default.
 			Move->SetSpeedOverride(GetDashSpeed(), SteeringScale);
+			Move->SetOverrideAcceleration(DashAcceleration);
+			// The flight model's velocity grip eases speed changes in over ~0.2 s; the ram is a kick.
+			Move->Velocity = Owner->GetActorForwardVector() * GetDashSpeed();
 			bOwnsOverride = true;
 		}
 	}

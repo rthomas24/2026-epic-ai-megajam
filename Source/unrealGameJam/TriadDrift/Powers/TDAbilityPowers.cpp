@@ -107,9 +107,18 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 				const float Alpha = 1.f - FMath::Clamp(Dist / Radius, 0.f, 1.f);
 				const float Speed = FMath::Lerp(EdgePullSpeed, CorePullSpeed, Alpha);
 				const float Step = FMath::Min(Speed * DeltaSeconds, Dist - CoreRadius);
-				// A swept move through the ship's own movement component: never through rocks or hulls.
-				if (UTDShipMovementComponent* Move = CastChecked<ATDSpacecraft>(Hostile)->GetShipMovement())
+				// Through the ship's own movement component: a swept move (never through rocks or hulls) plus
+				// damping of its own velocity toward the pull, so a fighter can't simply out-fly the vortex.
+				ATDSpacecraft* Craft = CastChecked<ATDSpacecraft>(Hostile);
+				if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 				{
+					// Caught: engines held at a crawl (unless something else owns the override), then dragged in
+					// with a swept move, so a fighter can't out-fly the vortex or be pulled through a hull.
+					if (!Captured.Contains(Craft) && !Move->HasSpeedOverride())
+					{
+						Move->SetSpeedOverride(CapturedSpeed, CapturedSteering);
+						Captured.Add(Craft);
+					}
 					FHitResult Hit;
 					Move->SafeMoveUpdatedComponent(To / Dist * Step, Hostile->GetActorQuat(), true, Hit);
 				}
@@ -131,7 +140,9 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 		}
 	}
 
-	// Hostile projectiles: bend toward the centre and die in the core.
+	ReleaseEscaped(Center, RadiusSq);
+
+	// Hostile projectiles: bend toward the centre, get dragged in (no stable orbits), die in the core.
 	if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))
 	{
 		TArray<ATDProjectile*, TInlineAllocator<32>> Eaten;
@@ -164,6 +175,8 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 					: FQuat::Slerp(FQuat::Identity, FQuat::FindBetweenNormals(Cur, Want), MaxStep / Angle).RotateVector(Cur);
 				P->SetVelocity(NewDir.GetSafeNormal() * Speed);
 				P->BreakTracking(0.2f, false);
+				const float Dist = FMath::Sqrt(DistSq);
+				P->TeleportProjectile(P->GetActorLocation() + To / Dist * FMath::Min(ProjectilePullSpeed * DeltaSeconds, Dist), FVector::ZeroVector);
 			}
 		}
 		for (ATDProjectile* P : Eaten)
@@ -194,8 +207,47 @@ bool ATDGravityWell::CanBePulled(const AActor* Actor) const
 	return true;
 }
 
+void ATDGravityWell::ReleaseEscaped(const FVector& Center, float RadiusSq)
+{
+	for (auto It = Captured.CreateIterator(); It; ++It)
+	{
+		ATDSpacecraft* Craft = It->Get();
+		const UTDHealthComponent* Health = Craft ? UTDStatics::GetHealth(Craft) : nullptr;
+		if (!Craft || (Health && Health->IsDead()) || FVector::DistSquared(Craft->GetActorLocation(), Center) > RadiusSq)
+		{
+			if (Craft && Craft->GetShipMovement())
+			{
+				Craft->GetShipMovement()->ClearSpeedOverride();
+			}
+			It.RemoveCurrent();
+		}
+	}
+}
+
+void ATDGravityWell::ReleaseAll()
+{
+	for (const TWeakObjectPtr<ATDSpacecraft>& W : Captured)
+	{
+		if (ATDSpacecraft* Craft = W.Get())
+		{
+			if (Craft->GetShipMovement())
+			{
+				Craft->GetShipMovement()->ClearSpeedOverride();
+			}
+		}
+	}
+	Captured.Reset();
+}
+
+void ATDGravityWell::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	ReleaseAll(); // a retake / reset destroys the well mid-vortex: never leave ships crawling
+	Super::EndPlay(EndPlayReason);
+}
+
 void ATDGravityWell::Implode()
 {
+	ReleaseAll();
 	UTDStatics::ApplyTDRadialDamage(this, GetActorLocation(), Radius, ImplosionDamage, ETDDamageKind::Explosive, Team, GetOwner(), this, false, nullptr);
 	if (FX)
 	{
