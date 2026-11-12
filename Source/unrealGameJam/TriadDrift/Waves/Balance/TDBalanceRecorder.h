@@ -37,8 +37,16 @@ struct UNREALGAMEJAM_API FTDBalanceWaveStats
 	float SecondsOnShips = 0.f;
 	float SecondsNoTarget = 0.f;
 	int32 PowersUsed = 0;
-	/** Seconds with at least one enemy ship inside the player's view (45 deg of the nose, within 25 000 cm). */
+	/** Seconds with at least one enemy ship inside the player's view (chase-camera frustum: 45 deg either side,
+	 *  28 deg up/down, within 30 000 cm). */
 	float SecondsEnemyOnScreen = 0.f;
+	/** Integral of (enemies on screen) over time: / SecondsTotal = average count on screen. */
+	float EnemyOnScreenCountSeconds = 0.f;
+	/** Longest stretch with no enemy on screen while enemies were alive (s), and the current one. */
+	float LongestEmptySeconds = 0.f;
+	float CurrentEmptySeconds = 0.f;
+	/** Seconds from the wave start to the first enemy on screen (-1 = never). */
+	float FirstContactSeconds = -1.f;
 	float SecondsTotal = 0.f;
 	int32 Switches = 0;
 };
@@ -62,10 +70,13 @@ struct UNREALGAMEJAM_API FTDPilotSkill
 	float PowerEverySeconds = 12.f;
 	/** Whether the pilot goes for carrier bays from stand-off range (a player who has learned the carrier). */
 	bool bHuntsBays = true;
+	/** Passive: never steers or fires (the worst case for readability: a player who isn't turning). */
+	bool bPassive = false;
 
 	static FTDPilotSkill Weak();
 	static FTDPilotSkill Average() { return FTDPilotSkill(); }
 	static FTDPilotSkill Strong();
+	static FTDPilotSkill Passive();
 };
 
 /**

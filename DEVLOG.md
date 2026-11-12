@@ -136,3 +136,53 @@ was visible to the automation suite.
 **Captures:** `Saved/TDShots/playtest2/` (local, not in git).
 **Stage, in AAA.md terms:** flight, switching, the ram, waves, the journey jumps and the planet
 hand-over are gameplay validated by an agent. Nothing is validated by a human yet.
+
+## 2026-11-12 15:33 EST — Engineering playtest 3 and second reviews (Ryan / Lead, Claude Code)
+
+**Build played:** integration head `8a6da52` (now on `main` at `f2db3ce`, 369 headless tests passing).
+**How:** an agent flying the running game through Unreal's MCP server (port 8010, 1280x720) with real
+injected input, the real HUD switched on (`TD.UI.NativeHUD 1`), and the `TD.Stage` journey jumps.
+Not a human at the controls.
+
+**Worked:**
+- Nick's HUD, hosted by engineering, live in the real game for the first time: squad cards, heat,
+  ammo, signature power, wave and hostile count, target bracket with distance and LOCKED, the
+  incoming-missile warning, edge arrows. All three abilities read LOCKED on a fresh run (the fix for
+  his reviewers' finding).
+- Weapon fire is now visible: Lancer's cyan stream and the enemies' orange bolts read clearly
+  (playtest 2's top problem).
+- A Tab switch cuts instantly and the turn settles wings-level. No star smear.
+- `TD.Stage DominionAssault` now starts facing the Dominion. Frame time 3.8 ms in wave 5.
+
+**Broken or wrong (each sent to its owner):**
+- Half the sky has no stars at all: the placeholder stars are lit spheres, dark on their far side.
+- Enemy ships are specks: a locked hostile at 111 m is about 10 pixels and dark.
+- Bastion's muzzle flash is a white ball the size of the ship; its shells are a single small dot.
+- Rift's portal placeholder is a solid pink disc that hides everything ahead.
+- With the real HUD on: two name cards on a switch, the scene slate behind the objective block, the
+  objective reads "AWAITING MISSION DATA", and the wave block reads "WAVE 05 / 00" during the assault.
+
+**What the tests could not see, again:** a full suite run crashed once in a Powers test. Cause: the
+test made data assets with nothing holding them, so a garbage collection in the middle freed them.
+The owner reproduced it by forcing a collection, fixed it, and left the forced collection in the
+test. The game itself holds those assets properly.
+
+**Second independent reviews (fresh agents, code only):**
+- Combat: muzzle and impact placeholders would vanish the moment a sound-only cue is assigned;
+  Bastion's missile locks never expire, so a later swarm flies at old targets; the space HUD had no
+  objective direction. Fixes in progress; the missile-lock rule is now written into features.md.
+- Enemies and waves: fighters do not fire at a player who faces them, interceptors launch at
+  point-blank range on a head-on pass, gunships face a point ahead of the player and never start
+  their volley against a flanking ship, and pack followers escape the Gravity Well. One order of
+  events (last enemy dies during the "CUT!" delay) can leave a wave empty. All with the owner.
+  None of this failed a test: the tests never asserted that the fighter actually fired.
+
+**New on `main` today for presentation:** a live game-state object for music and mixes
+(`UTDAudioStateSubsystem`: scene, phase, speed, hull, wave numbers, slow motion, and smoothed
+`MusicIntensity01`, `Combat01`, `Danger01`), the audio skill (`.claude/skills/ue-game-audio/`), and
+the objective-marker tag (`TD.Objective.Marker`).
+
+**Captures:** `Saved/TDShots/mcp/pt3_*` (local, not in git).
+**Stage, in AAA.md terms:** the HUD host and the visible projectiles are technically verified,
+integrated and played by an agent. ENG-05, ENG-06 and ENG-13 are back to "in review" with open
+MAJOR findings. Nothing is validated by a human yet.

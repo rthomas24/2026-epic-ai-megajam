@@ -170,9 +170,10 @@ namespace TDTravelDebug
 			return;
 		}
 		const FTDFlightInput& In = Ship->GetFlightInput();
-		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: input throttle %.2f aim %.2f,%.2f roll %.2f boost %d drift %d brake %d | boost meter %.2f boosting %d drifting %d out-of-bounds %d near-boundary %d"),
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: input throttle %.2f aim %.2f,%.2f roll %.2f boost %d drift %d brake %d | boost meter %.2f boosting %d drifting %d out-of-bounds %d near-boundary %d | hull roll %.1f visual bank %.1f"),
 			In.Throttle, In.Aim.X, In.Aim.Y, In.Roll, In.bBoost, In.bDrift, In.bBrake, Ship->GetBoost01(), Ship->IsBoosting(), Ship->IsDrifting(),
-			Ship->IsOutOfBounds(), Ship->GetShipMovement()->IsNearBoundary());
+			Ship->IsOutOfBounds(), Ship->GetShipMovement()->IsNearBoundary(),
+			Ship->GetActorRotation().Roll, Ship->GetShipMovement()->GetVisualBank());
 		if (const UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
 		{
 			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: hyperdrive state %d charge %.2f block '%s' player-flown %d"),

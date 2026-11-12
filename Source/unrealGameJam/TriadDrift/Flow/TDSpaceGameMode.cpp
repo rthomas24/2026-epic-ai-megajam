@@ -1,6 +1,7 @@
 // Triad Drift - zero-asset playable space sandbox (ENG-19). Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
+#include "TriadDrift/Flow/TDJourney.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDFlowReflection.h"
@@ -95,7 +96,8 @@ void ATDSpaceGameMode::StartPlay()
 		{
 			const UTDGameInstance* GI = UTDGameInstance::Get(this);
 			FTransform Where;
-			SquadOrigin = (GI && GalaxyLayout->FindReturnPoint(GI->GetProgressRef().ReturnPoint, Where)) ? Where : GalaxyLayout->GetPlayerStart();
+			// Layout return points, or the Dominion stage points framed from the Dominion itself.
+			SquadOrigin = (GI && FTDJourney::FindStageStart(GetWorld(), GI->GetProgressRef().ReturnPoint, Where)) ? Where : GalaxyLayout->GetPlayerStart();
 		}
 	}
 	if (bSpawnEnvironment)
@@ -382,7 +384,25 @@ void ATDSpaceGameMode::SpawnStarBackdrop()
 		Instances.Emplace(FRotator::ZeroRotator, SquadOrigin.GetLocation() + Dir * Dist, FVector(Size));
 	}
 	ISM->AddInstances(Instances, false, true);
+	Stars->Tags.Add(TEXT("TD.Placeholder.Stars"));
 	SpawnedEnvironment.Add(Stars);
+	StarBackdrop = Stars;
+	GetWorldTimerManager().SetTimer(StarWatchTimer, this, &ATDSpaceGameMode::CheckStarBackdrop, 0.5f, true);
+}
+
+void ATDSpaceGameMode::CheckStarBackdrop()
+{
+	if (!StarBackdrop || StarBackdrop->IsActorBeingDestroyed())
+	{
+		GetWorldTimerManager().ClearTimer(StarWatchTimer);
+		return;
+	}
+	if (ATDPlaceholderSky::Scan(GetWorld()).bTaggedSky)
+	{
+		StarBackdrop->Destroy();
+		StarBackdrop = nullptr;
+		GetWorldTimerManager().ClearTimer(StarWatchTimer);
+	}
 }
 
 void ATDSpaceGameMode::SpawnAsteroids()

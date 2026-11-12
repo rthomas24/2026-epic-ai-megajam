@@ -120,6 +120,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual TArray<AActor*> GetObjectiveMarkers() const { return TArray<AActor*>(); }
 
+	/**
+	 * The current objective line ("WAVE 3 · CLEAR THE NULL ARMADA"), for a HUD that is created after
+	 * the last OnObjectiveUpdated broadcast or that samples instead of listening. Empty when none.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual FText GetObjectiveText() const { return FText::GetEmpty(); }
+
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual float GetSpeed01() const { return 0.f; }
 

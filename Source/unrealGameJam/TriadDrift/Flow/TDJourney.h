@@ -38,6 +38,16 @@ struct UNREALGAMEJAM_API FTDJourney
 	static ETDDestination DestinationOf(ETDJourneyStage Stage);
 	static FName ReturnPointOf(ETDJourneyStage Stage);
 
+	/** Stage start points computed from the Dominion itself (not layout return points). */
+	static const FName DominionApproach;	// front-right-above, outside the shield, the whole hull in frame
+	static const FName DominionTrench;		// lined up with the trench, the reactor dead ahead
+
+	/**
+	 * Where the squad starts for a return point: the two Dominion points above are framed from the live
+	 * Dominion; anything else is the galaxy layout's return point. False if neither resolves.
+	 */
+	static bool FindStageStart(UWorld* World, FName ReturnPoint, FTransform& Out);
+
 	/** False if there is no TD game instance, or the travel could not start (missing map). */
 	static bool Go(UWorld* World, ETDJourneyStage Stage);
 

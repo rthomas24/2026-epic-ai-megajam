@@ -42,7 +42,9 @@ Other facts **[source]**:
 - The chase camera, and so the listener, is 1400 cm behind the player's ship (`ATDShip`
   `CameraTuning.ArmLength`). Weapon range is 30 000 cm, enemy engage range 12 000 cm.
 
-Requests to post for Ryan (through Nicholas's Lead, on `MESSAGEBOARD.md`):
+Requests for Ryan's side and where they stand (2026-11-12 15:33 EST): (1) is in progress with the flight
+owner (`Speed01`, `Boost01`, `Drift01`; `EngineLoop` is read by `ATDShip` since `1588fdb`); a live-state object
+for music and mixes is on `main` (section 8). The original list:
 1. Set float parameters on the ship's loop audio components each tick: `Speed01`, and `Boost01` if
    wanted (`UAudioComponent::SetFloatParameter`).
 2. Decide what `EngineLoop` is for, or remove it.
@@ -321,6 +323,35 @@ Actor actor (claim it on `CLAIMS.md` first; maps are shared). It holds one persi
 | `OnAbilityUnlocked`, `OnMarkerRevealed`, `OnShipDowned`, `OnSquadWiped` | Stingers |
 | `OnBarkRequested(BarkId, Speaker)` | VO queue (ART-11) |
 | `ATDSquadManager::OnSwitchCut` | Nothing: engineering already plays `SwitchIn` |
+
+### Live state: one object to read instead of many (on `main`, engineering-owned, tested)
+
+`UTDAudioStateSubsystem` (`Source/unrealGameJam/TriadDrift/Core/TDAudioState.h`) is a world subsystem
+that exists in every game world. Blueprint: **Get TD Audio State Subsystem → Get State**. It returns
+one `FTDAudioState` snapshot, refreshed every frame, built only from gameplay contracts:
+
+| Field | Meaning |
+|---|---|
+| `Scene` | `FrontEnd` (menu, transition), `Space`, `Ground` |
+| `Phase` | Story phase (`Intro` ... `DominionAssault` ... `Victory`) |
+| `ActiveShip`, `Speed01`, `Boost01`, `Heat01`, `Health01`, `Shield01` | The ship the player flies (health of the character on foot) |
+| `Danger01` | 0 above 35% hull, 1 at 0%: low-health filter or heartbeat. Smoothed |
+| `SquadAlive`, `bOutOfBounds` | 0..3; outside the play area |
+| `WaveNumber`, `WaveIntensity01`, `EnemiesAlive`, `EnemiesTotal`, `bWaveActive`, `bInBreather` | The wave director's numbers |
+| `MissileWarning` | `None`, `Tracking`, `Imminent` |
+| `SecondsSinceHit`, `SecondsSinceKill`, `SecondsSinceHighlight`, `LastHighlight` | Real seconds (1000 = never) |
+| `Combat01` | How hot the fight is now (enemies present, recent hits and kills, missiles). Smoothed |
+| `Hyperdrive`, `HyperdriveCharge01` | `Idle`, `Spooling`, `Jumping`, `DropOut` |
+| `TimeDilation`, `bSlowMotion` | `bSlowMotion` is a director beat, not a 40 ms hit-stop: push `MIX_TD_SlowMo` while it is true |
+| `bSceneCut` | Between "CUT!" and the next take |
+| `MusicIntensity01` | A ready-made music drive: front end 0, cruising 0.15, breather 0.25, wave 0.4 to 0.9, on foot 0.3 to 0.7, Dominion assault 0.8 or more, "CUT!" 0.1, victory 0.3. Rises 0.5 per second, falls 0.2 per second |
+
+- Smoothed values move in **real** time, so slow motion does not slow the music's reaction.
+- `MusicIntensity01` is a suggestion. The raw fields stay available for a different mapping, and
+  `GetMusicIntensityTarget()` returns the unsmoothed value.
+- Simplest music wiring: each tick, `SetFloatParameter("Intensity", GetMusicIntensity01())` on the
+  music component; switch the music MetaSound when `Phase` or `Scene` changes.
+- Tests: `TriadDrift.Core.AudioState.*` (three, at 30 / 60 / 120 fps). Not yet used by any audio.
 
 Rules:
 - **Slow motion slows game-time timers.** A Blueprint `Delay` of 0.6 s under a dilation of 0.3

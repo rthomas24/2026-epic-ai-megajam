@@ -145,6 +145,19 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "0"))
 	float HighOverspeedDeceleration = 30000.f;
 
+	// ---- Atmosphere ground floor ----------------------------------------------------------------
+	/**
+	 * In atmosphere, ground below the hull closer than this (cm) starts a soft floor: the sink is cancelled and
+	 * the nose is pulled toward level, so a hands-off or diving ship skims the ground instead of grinding into it.
+	 * 0 = off.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
+	float GroundAvoidHeight = 3000.f;
+
+	/** Nose pull-up toward level at the ground (deg/s), scaled by how deep into GroundAvoidHeight the ship is. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
+	float GroundPullUpRate = 120.f;
+
 	// ---- Collision -----------------------------------------------------------------------------
 
 	/** Impact "head-on-ness" (0 = parallel graze, 1 = straight into the surface) above which a hit counts as head-on. */

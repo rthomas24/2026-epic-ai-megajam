@@ -6,6 +6,7 @@
 
 #include "GameFramework/PlayerController.h"
 #include "Misc/ScopeExit.h"
+#include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
@@ -63,6 +64,62 @@ bool FTDCutPresSwitch::RunTest(const FString& Parameters)
 		TestTrue(TEXT("letterbox eases out") + Fps, F.S().Letterbox < 0.11f);
 		F.W.Advance(1.f, Step);
 		TestTrue(TEXT("everything gone after the card") + Fps, F.S().IsEmpty());
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresRealHUD, "TriadDrift.Director.CutPresentation.RealHUDOwnsTheNameCard", TD_TEST_FLAGS)
+bool FTDCutPresRealHUD::RunTest(const FString& Parameters)
+{
+	// N-007: Nick's real HUD draws its own "CUT TO" card. While it is up, ours never shows; the
+	// flash and letterbox still play. With it off, nothing changes.
+	for (const bool bRealHUD : { true, false })
+	{
+		const FString Case = bRealHUD ? TEXT(" (real HUD on)") : TEXT(" (real HUD off)");
+		FFixture F;
+		ATDDebugHUD::SetRealHUDActive(F.W.GetWorld(), bRealHUD);
+		ON_SCOPE_EXIT { ATDDebugHUD::SetRealHUDActive(F.W.GetWorld(), false); };
+		TestTrue(TEXT("switch") + Case, F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+		F.W.Tick();
+		TestEqual(TEXT("flash still plays") + Case, F.S().FlashAlpha, 1.f);
+		float MaxCard = 0.f, MaxBars = 0.f;
+		for (int32 i = 0; i < 90; ++i)
+		{
+			F.W.Tick();
+			MaxCard = FMath::Max(MaxCard, F.S().NameCardAlpha);
+			MaxBars = FMath::Max(MaxBars, F.S().Letterbox);
+		}
+		TestTrue(TEXT("letterbox still plays") + Case, MaxBars > 0.1f);
+		if (bRealHUD)
+		{
+			TestEqual(TEXT("our name card never shows") + Case, MaxCard, 0.f);
+		}
+		else
+		{
+			TestTrue(TEXT("our name card shows") + Case, MaxCard > 0.5f);
+		}
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlateLayout, "TriadDrift.Director.CutPresentation.SlateClearOfBothHUDs", TD_TEST_FLAGS)
+bool FTDCutPresSlateLayout::RunTest(const FString& Parameters)
+{
+	// Lead playtest 3: the slate faded in behind Nick's OBJECTIVE block (top 12-15%); the dev HUD's
+	// squad rows sit at 12-21% on the left. The slate must clear both, at any size and bar height.
+	for (const FVector2D Size : { FVector2D(1280.f, 720.f), FVector2D(1920.f, 1080.f), FVector2D(2560.f, 1440.f), FVector2D(1024.f, 768.f) })
+	{
+		for (const float Bars : { 0.f, 0.06f, 0.12f })
+		{
+			const FBox2D R = UTDCutPresentation::SlateRect(Size, Bars);
+			const FString Case = FString::Printf(TEXT(" (%.0fx%.0f, bars %.2f)"), Size.X, Size.Y, Bars);
+			TestTrue(TEXT("below the real HUD's top 15%") + Case, R.Min.Y >= Size.Y * 0.15f);
+			const FBox2D DevRows(FVector2D(0.f, Size.Y * 0.12f), FVector2D(600.f, Size.Y * 0.12f + 3.f * 22.f));
+			TestFalse(TEXT("clear of the dev HUD squad rows") + Case, R.Intersect(DevRows));
+			TestTrue(TEXT("below the letterbox bar") + Case, R.Min.Y >= Size.Y * Bars);
+			TestTrue(TEXT("in the upper third") + Case, R.Max.Y <= Size.Y * 0.36f);
+			TestTrue(TEXT("on screen, centred") + Case, R.Min.X >= 0.f && R.Max.X <= Size.X && FMath::IsNearlyEqual(R.GetCenter().X, Size.X * 0.5f));
+		}
 	}
 	return true;
 }
