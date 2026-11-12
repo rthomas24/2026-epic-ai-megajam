@@ -21,14 +21,15 @@ FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec
 	if (Look.bHeavy)
 	{
 		Look.Length = FMath::Clamp(Spec.Speed * 0.015f, 250.f, 500.f);
-		Look.Thickness = FMath::Clamp(Width * 1.4f, 70.f, 140.f);
+		// Slim missiles (the 12-missile swarm) stay slimmer than shells: packed at launch, fat heads merged into a blob.
+		Look.Thickness = FMath::Clamp(Width * 1.4f, Spec.bIsMissile ? 40.f : 70.f, 140.f);
 	}
 	else
 	{
 		Look.Length = FMath::Clamp(Spec.Speed * 0.015f, 300.f, 800.f);
 		Look.Thickness = FMath::Clamp(Width * 2.5f, 35.f, 60.f);
 	}
-	Look.HeadDiameter = Look.bHead ? Look.Thickness * 1.8f : 0.f;
+	Look.HeadDiameter = Look.bHead ? Look.Thickness * (Spec.bIsMissile ? 1.4f : 1.8f) : 0.f;
 	return Look;
 }
 

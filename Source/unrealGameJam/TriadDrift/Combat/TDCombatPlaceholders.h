@@ -36,7 +36,7 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 
 	/**
 	 * Lasers and needles: 300-800 cm long (0.015 s of flight), 35-60 cm thick. Rockets, missiles and shells:
-	 * 250-500 cm, 70-140 cm thick. Homing missiles and missiles also get a head 1.8x the thickness.
+	 * 250-500 cm, 70-140 cm thick (slim missiles from 40). Heavy shells get a head 1.8x the thickness, missiles 1.4x.
 	 */
 	static FTDStreakLook ComputeStreak(const FTDProjectileSpec& Spec);
 
