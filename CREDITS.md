@@ -42,3 +42,15 @@ Unreal license, not copied. No third-party downloads. Source/provenance:
 `ArtSource/Environment/SpaceFoundation/UnrealNative/`. Main integration9c629e8;
 known zenith star stretching documented, gameplay placement/PIE/package/GPU timing
 not verified. Native stage supersedes the earlier source-batch-only tool note.
+
+## Lancer M02 approved source foundation
+
+Original Lancer hull, modular weapons, materials and review work by Nicholas Tosti
+with OpenAI Codex Ships & Weapons Agent, November12,2026. Node.js source generation
+and Blender5.1.1 refinement/QA/EEVEE renders; repository hard-surface helper
+`.claude/skills/blender-game-asset/scripts/hardsurface.py` (MIT, existing license
+retained), no external models/textures downloaded. Source/provenance and all
+historical review evidence: ArtSource/Space/Ships/Lancer/. Approved refined model
+FOUNDATION, integrated from PR3 as100f21c; finalAAA polish and Unreal export/import,
+material/collision/LOD/runtime wiring/gameplay validation remain pending. Earlier
+separate-branch/M01-only notes above describe historical checkpoints.
