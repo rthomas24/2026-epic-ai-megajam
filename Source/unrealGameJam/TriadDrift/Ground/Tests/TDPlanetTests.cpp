@@ -26,6 +26,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Camera/CameraComponent.h"
 #include "EngineUtils.h"
+#include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 namespace TDPlanetTest
@@ -121,6 +122,7 @@ bool FTDPlanetLandHandOff::RunTest(const FString& Parameters)
 	TestFalse(TEXT("ship no longer player-controlled"), Ship->IsPlayerFlown());
 	const FTransform Exit = Ship->GetLanding()->GetExitTransform();
 	TestTrue(TEXT("pilot stands at the ship's exit point"), FVector::Dist(FP->GetActorLocation(), Exit.GetLocation()) < 120.f);
+	TestTrue(FString::Printf(TEXT("pilot faces the course, not the ship (yaw %.0f)"), V.PC->GetControlRotation().Yaw), FMath::Abs(FRotator::NormalizeAxis(V.PC->GetControlRotation().Yaw - V.Director->PadTransform.Rotator().Yaw)) < 10.f);
 	TestEqual(TEXT("ReturnPoint is the pad"), V.GI->GetProgressRef().ReturnPoint, FName(TEXT("Verdance_Pad")));
 	TestEqual(TEXT("checkpoint taken on foot"), V.GI->GetLastCheckpoint().Progress.ReturnPoint, FName(TEXT("Verdance_Pad")));
 	TestNotNull(TEXT("board-ship prompt"), V.Director->GetBoardPoint());
@@ -716,6 +718,8 @@ namespace TDPlayedTest
 		bool bBlock = false;
 		int32 HeavyCount = 0;
 		float DodgeCooldown = 0.f;
+		float Retreat = 0.f;
+		int32 DodgeCount = 0;
 		void HoldBlock(bool bDown) { if (bBlock != bDown) { Key(EKeys::RightMouseButton, bDown); bBlock = bDown; } }
 		void Release() { HoldW(false); HoldShift(false); }
 		FVector Eye() const { return FP->GetPawnViewLocation(); }
@@ -778,14 +782,32 @@ namespace TDPlayedTest
 				const bool bTelegraph = Foe && Foe->IsTelegraphing() && BestD < 500.f;
 				// Like a player: a hovering drone is beaten by turning its bolts back (block while looking at it);
 				// a telegraphed blow is blocked, not swung into; otherwise guard up while closing in, down to swing.
+				// Low on health: back off out of the fight until the regen has done its work, like a player.
+				if (false && FP->GetHealth()->GetHull01() < 0.35f && Retreat <= 0.f) // retreating made the bot worse (it bled out at range)
+				{
+					Retreat = 7.f;
+				}
+				if (Retreat > 0.f)
+				{
+					Retreat -= 1.f / Fps;
+					HoldBlock(true);
+					// Back toward where we came in (the room's entry side), never into a corner.
+					const FVector Box = E->Box ? E->Box->GetScaledBoxExtent() : FVector(1000.f);
+					Face(E->GetActorLocation() - FVector(Box.X - 200.f, 0.f, 0.f));
+					HoldW(true);
+					Tick(1.f / Fps);
+					if (Retreat <= 0.f || FP->GetHealth()->GetHull01() > 0.8f) { Retreat = 0.f; HoldBlock(false); }
+					continue;
+				}
 				// The Warden's telegraphed charge / fan: sidestep with a dash (i-frames), like a player.
 				if (Foe && Foe->CrewType == ETDCrewType::Warden && Foe->IsTelegraphing() && BestD < 1400.f && (DodgeCooldown -= 1.f / Fps) <= 0.f)
 				{
 					HoldW(false);
-					Key(EKeys::D, true);
+					const FKey Side = (++DodgeCount % 2) ? EKeys::D : EKeys::A;
+					Key(Side, true);
 					Tap(EKeys::Q);
 					Tick(0.25f);
-					Key(EKeys::D, false);
+					Key(Side, false);
 					DodgeCooldown = 1.f;
 					continue;
 				}

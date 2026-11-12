@@ -71,7 +71,7 @@ bool FTDCrewSpecTable::RunTest(const FString& Parameters)
 	TestEqual(TEXT("drone 30 HP"), D.MaxHealth, 30.f);
 	TestEqual(TEXT("drone bolt 5"), D.BoltDamage, 5.f);
 	TestTrue(TEXT("drone flies"), D.bFlying);
-	TestEqual(TEXT("warden 400 HP (tuned by the machine playtest)"), W.MaxHealth, 400.f);
+	TestEqual(TEXT("warden 320 HP (tuned by the machine playtest)"), W.MaxHealth, 320.f);
 	TestEqual(TEXT("warden charge slam 30"), W.ChargeSlamDamage, 30.f);
 	TestEqual(TEXT("warden phase 2 at 50%"), W.Phase2HealthFraction, 0.5f);
 	TestTrue(TEXT("warden summons"), W.SummonCount > 0);
