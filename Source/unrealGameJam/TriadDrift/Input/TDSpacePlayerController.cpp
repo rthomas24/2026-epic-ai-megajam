@@ -459,6 +459,10 @@ void ATDSpacePlayerController::ResetHeldInputs()
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, false); }
 	if (bFireSecondaryHeld) { RouteTrigger(ETDWeaponSlot::Secondary, false); }
 	bFirePrimaryHeld = bFireSecondaryHeld = false;
+	// A held F must not stay armed through a hand-over (review minor 7): after re-boarding it would start the
+	// approach assist and land the ship again by itself.
+	LandPressTime = -1.0;
+	bLandFired = false;
 	CurrentFlightInput = FTDFlightInput();
 	CurrentFlightInput.Throttle = 1.f;
 	ThrottleAxis = 0.f;
@@ -520,9 +524,13 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 			{
 				bLandFired = true; // one action per hold
 			}
+			else if (Ship && Ship->GetLanding() && !Ship->GetLanding()->IsBusy())
+			{
+				LandPressTime = Now; // flying, not possible yet (too far): keep holding to retry
+			}
 			else
 			{
-				LandPressTime = Now; // not possible yet (too fast / too far): keep holding to retry
+				bLandFired = true; // mid landing / take-off sequence: this hold is spent (never takes off at touchdown)
 			}
 		}
 	}

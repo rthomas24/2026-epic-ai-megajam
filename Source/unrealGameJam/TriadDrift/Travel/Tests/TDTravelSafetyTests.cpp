@@ -463,6 +463,52 @@ bool FTDTravelSafetyHoldF::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelStaleLandHold, "TriadDrift.Travel.Safety.HeldFNeverCarriesThroughAHandOver", TD_TEST_FLAGS)
+bool FTDTravelStaleLandHold::RunTest(const FString& Parameters)
+{
+	// Review minor 7: F pressed again during the landing sequence and held through the on-foot hand-over must not
+	// take off at touchdown, nor start the approach assist after re-boarding and taking off.
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(-1500.f, 0.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC) || !Pad) { return false; }
+	Ship->SetPlayerControlled(true);
+	PC->SetFlightContext(ETDFlightContext::Atmosphere); // F / A = Land
+	W.Tick();
+	W.Tick();
+	UTDLandingComponent* Land = Ship->GetLanding();
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(0.6f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Tick();
+	TestTrue(TEXT("landing"), Land->IsBusy());
+	W.Advance(0.5f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, true); // pressed again mid-sequence and held
+	W.Advance(6.f);
+	TestTrue(TEXT("held F through touchdown: still landed (no instant take-off)"), Land->IsLanded());
+
+	// On-foot hand-over while F is still held: the controller leaves the ship, then re-boards it.
+	APawn* Pilot = W.Spawn<APawn>(FVector(0.f, 500.f, 200.f));
+	Ship->SetPlayerControlled(false);
+	PC->Possess(Pilot);
+	W.Advance(0.5f);
+	PC->Possess(Ship);
+	Ship->SetPlayerControlled(true);
+	PC->SetFlightContext(ETDFlightContext::Atmosphere);
+	TestTrue(TEXT("re-board: take off"), Land->RequestTakeOff());
+	W.Advance(5.f);
+	TestEqual(TEXT("flying after take-off"), Land->GetLandingState(), ETDLandingState::Flying);
+	W.Advance(2.f);
+	TestFalse(TEXT("the stale hold doesn't start the assist"), Land->IsApproachAssisting());
+	TestFalse(TEXT("the stale hold doesn't land the ship again"), Land->IsBusy());
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Tick();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
 bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
 {
