@@ -32,14 +32,14 @@ presentation/readability, measured cost, integration and subjective approval.
 |---|---|---|
 | ART-01 Direction | Lead coordination; foundation palette/layout approved, AAA target raised | Preserve cyan/violet environment and ship identity; benchmark approval next |
 | ART-02 Inventory/sourcing | Lead + specialists; initial source inventory | Source package957b45e; every acquisition needs license/provenance before use |
-| ART-03 Ships | Ships & Weapons; Lancer refined source foundation integrated, Rift Phase1 active | PR3 merged100f21c, manual foundation approval recorded;57,788tris/33locators/12rays/9views+clay technical pass, fresh source review clear; finalAAA/native/export/collision/LOD/runtime gates remain; Bastion waits Rift approval |
+| ART-03 Ships | Ships & Weapons; redesign HOLD, references/plan approval pending | Nick direct Nov12 16:04 instruction supersedes final-design direction for all three ships. Preserve Lancer4b7ef12/main100f21c and Rift a7c0463/draftPR7 as technical references; no further modeling, polish, native import or superseded-design merge. Three new references plus approved plan required; attachment/scale/pivot contracts remain unchanged |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
 | ART-05 Space | Environment & VFX; native foundation integrated, new Hero benchmark active | Main9c629e8,12native/5captures; isolated UE reload9assets0errors/warnings; no real-map playtest; HeroM02 before-after and zenith fix need Nick review |
 | ART-06 Planets | Environment & VFX planning; queued, not dispatched | Geometry/dressing absent; supplied ground dimensions unchanged; no shared map editing |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
 | ART-08 Ground visuals | Lead coordinates production owner; queued | No approved crew/arms/blade art; engineering supplies optional mesh/animation/cue contracts |
-| ART-09 HUD | UI/UX & HUD; readability milestone integrated, runtime acceptance gated | PR4 head2f55512 merged8963477; human functional readability approved; real-project build/326tests pass; N004actual-unlock fix plus engineering host/fullsuite/Shipping/cook/liveHUD remain; finalLancer styling separate |
-| ART-10 Audio/music | Audio & Music; all concepts rejected; licensed-library research only | M02 5979cff/draftPR5 rejected; M03 frozen/superseded; RiftConcept01 also rejected; all media archived on branch8cd30fb, existing Epic/Fab library audit: published exclusive paths d2a594e, five private playable candidates, no unapproved import/licensed raw media in Git |
+| ART-09 HUD | UI/UX & HUD; M03 approved prototype, published b21a98f, fresh review clear | Prior PR4 integrated8963477; Root pinned0543dbd build+7tests and10actual captures pass. M03 worker build+8tests/16actual captures pass, same real host/provider. Optional current objective getter integration queued; default-on/Shipping/human gameplay/finalAAA gates retained |
+| ART-10 Audio/music | Audio & Music; owned-library PrototypeV1 authorized, isolated native verification active | Rejected PR5/archive retained. Nick direct01a1d162 approves existing audition for prototype only; clean nick/audio-prototype-v1,26prepared WAV/14events source QA pass, Editor/Game builds pass. Licensed/native media ignored; no shared integration or final listening acceptance. Skill4096f47 adopted; no acquisitions/AI/paid sources |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
 | ART-12 Cinematics | Lead coordinates UI/Environment; queued implementation | Engineering switch-cut/director/scene/take hooks exist; runtime presentation not complete |
 | ART-13 Performance/look | Environment/Lead coordinate; measurements pending | Sky compiler counts are not GPU timings; real-map exposure/cost and integrated playtest pending |
@@ -49,18 +49,21 @@ presentation/readability, measured cost, integration and subjective approval.
 
 ## Immediate production sequence
 
-One global heavy-app slot on this approximately16GB PC. Ships04 passed and released;
-HUD M02 recheck/publishing complete; Lead build/suite/Galaxy scripted smoke complete.
-HeroM02 native benchmark next, then Lancer-only HUD styling native verification.
-Source-only UI and existing-library audition work may continue in exclusive roots.
+One global heavy-app slot on this approximately16GB PC. Audio PrototypeV1 has the
+next bounded NullRHI author/check window after both targets compiled, with fresh
+4.0 GiB/no-heavy-process guard and measured resource limits; rendered demo is a
+separate grant. HUD objective source work can proceed in parallel, then focused
+native verification. HeroM02 follows after correcting cold shader-worker setup;
+no automatic timeout retries. Ships are held for new references/approved plan.
 Fresh RAM/process guard at each dispatch; no concurrent heavy applications.
 
 Hero benchmark: identical camera/exposure before-after, natural multiscale structure,
 realistic angular stars without pole stretching, native reload/compile/stability and
 measured cost where practical. Stop before Combat/Verdance propagation.
-Audio: no further synthetic or sample-led switch production; compare 3–5 professional
-licensed options with previews/prices/license/AI-use limits. No spending/download
-pack/import until approved. Existing rejected work is preserved on its branch.
+Audio: use only the directly approved existing owned/free source selections for
+PrototypeV1 in its private isolated host. No spending, downloads, AI services,
+shared integration or media publication without the required license/approval
+gates. Existing rejected work stays preserved. Final quality requires Nick's ears.
 HUD: readable health vs shields/signature/control state and centered hit feedback at
 1080p/720p, no new provider/menu/shared activation. Ships: clear remaining geometry/UV
 failures, then show cohesion/materials from multiple angles before final approval.
@@ -78,7 +81,7 @@ with scripted captures disclosed as the minimum fallback. Lead minimum default-G
 Use existing engineering Tools read-only; shared tooling/skill changes require owner
 coordination. No unrequested tool consolidation or new production assignment here.
 
-## Full PR audit — November12
+## Historical full PR audit — November12,14:57EST
 
 | PR | Verified disposition | Remaining gate |
 |---|---|---|
@@ -92,10 +95,10 @@ coordination. No unrequested tool consolidation or new production assignment her
 Lancer current foundation approval supersedes approval-pending wording in frozen
 historical source reports; it does not grant finalAAA or native approval. No runtime
 file changed in PR3 integration. New own-source branches stay isolated/unapproved.
-Sky component/PP MAJOR closed at fresh code review726909f; late-star-backdrop MINOR
-remains engineering-owned. Hero01cold-start watchdog125 before asset script;
-private SM6/longer-bound retry follows queued UI clean capture. Audio skill remains
-unpublished, Ryan actively authors/tests it, N006confirmed no action until notice.
+At that historical checkpoint, sky component/PP MAJOR closed at fresh code review
+726909f; late-star-backdrop MINOR remained engineering-owned. Later fix a872bce
+and published audio skill4096f47 supersede those pending statuses. Hero01/02
+cold-start failures remain preserved; no third attempt without a new resource grant.
 
 ## Coordination checkpoint — November12,15:04EST
 
@@ -116,3 +119,17 @@ MESSAGEBOARD now uses INFO and verified verbatim archive; all five prior Nick
 messages checked byte-for-byte as text against precompaction blocks. Do not alter
 archived message history or reuse IDs. Current summaries coexist with newer N008
 source-foundation approval; earlier held-PR decisions remain historical.
+
+## Current checkpoint — November12,16:07EST
+
+Current ART table and production sequence above supersede older checkpoint notes.
+HUD b21a98f is published and independently reviewed (no BLOCKER/MAJOR); optional
+objective getter followup stays in its same exclusive plugin/source roots. Root's
+actual-game pinned0543dbd evidence and limits are recorded in DEVLOG.md. Engineering
+reports Development-cook Blueprint attachment passed; Shipping/human review remain.
+Audio skill is published/read/adopted, all8scripts compile in memory and its target
+CLI runs; private PrototypeV1 builds passed but native author/playback is pending.
+Ships are frozen for the directly requested redesign, not awaiting approval of the
+superseded Rift design. Keep PR7 draft/history; do not merge/import it. Character
+campaign remains queued after HUD safe handoff and published exclusive claims,
+with base-mesh/skeleton proposal coordinated before any native rigging work.
