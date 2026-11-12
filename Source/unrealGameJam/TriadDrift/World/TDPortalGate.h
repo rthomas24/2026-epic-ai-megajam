@@ -118,6 +118,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> Surface;
 
 	int32 TransitCount = 0;
+	double LastTransitTime = -1000.0;
 	TArray<AActor*> Scratch;
 	TMap<TWeakObjectPtr<AActor>, double> ArrivalBlockedUntil;
 };

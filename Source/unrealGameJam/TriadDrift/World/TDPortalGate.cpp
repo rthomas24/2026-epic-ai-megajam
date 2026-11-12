@@ -122,7 +122,10 @@ void ATDPortalGate::HandleSpacecraftTeleported(AActor* Spacecraft, FVector /*Fro
 {
 	// Anything that arrives right by this gate (a transit out of our partner, or a wingman follow-warp
 	// placed behind its leader) must not be bounced straight back through us.
-	if (!Spacecraft)
+	// Only arrivals caused by a transit through our partner (the traveller itself, or wingmen
+	// follow-warping after their leader). A ship merely spawned near a gate is not guarded.
+	const UWorld* World = GetWorld();
+	if (!Spacecraft || !World || !Partner || World->GetTimeSeconds() - Partner->LastTransitTime > ArrivalGuardSeconds)
 	{
 		return;
 	}
@@ -131,8 +134,7 @@ void ATDPortalGate::HandleSpacecraftTeleported(AActor* Spacecraft, FVector /*Fro
 	const float Lateral = (Rel - GetActorForwardVector() * Along).Size();
 	if (FMath::Abs(Along) <= ArrivalGuardDepth && Lateral <= Radius * 1.5f)
 	{
-		const UWorld* World = GetWorld();
-		ArrivalBlockedUntil.Add(Spacecraft, (World ? World->GetTimeSeconds() : 0.0) + ArrivalGuardSeconds);
+		ArrivalBlockedUntil.Add(Spacecraft, World->GetTimeSeconds() + ArrivalGuardSeconds);
 	}
 }
 
@@ -222,8 +224,13 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 		Exit.SetRotation(Exit.GetRotation() * Flip);
 	}
 
+	// Mark the transit BEFORE moving: the teleport broadcast makes wingmen follow-warp right away
+	// (inside this call), and the partner gate must already know a transit is happening to guard them.
+	const double PrevTransitTime = LastTransitTime;
+	LastTransitTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
 	if (!UTDPortalTransit::TransitActor(Traveller, Entry, Exit, this, TransitParams))
 	{
+		LastTransitTime = PrevTransitTime;
 		return false;
 	}
 

@@ -142,7 +142,10 @@ bool FTDWorldGateSquad::RunTest(const FString& Parameters)
 	Lead->SetActorLocation(FVector(-3000.f, 0.f, 0.f));
 	Lead->SetSpeedOverride(6000.f, 0.f);	// straight through gate A
 
-	R.W.Advance(1.5f);
+	for (int32 i = 0; i < 90; ++i)
+	{
+		R.W.Tick();
+	}
 	TestEqual(TEXT("the leader transited once"), R.A->GetTransitCount(), 1);
 	R.W.Advance(4.f);
 	TestEqual(TEXT("nobody bounced back through B"), R.B->GetTransitCount(), 0);
