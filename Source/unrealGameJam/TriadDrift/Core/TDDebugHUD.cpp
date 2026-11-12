@@ -120,7 +120,8 @@ void ATDDebugHUD::DrawHUD()
 	{
 		return;
 	}
-	float Y = 24.f;
+	// Start below the tallest letterbox bar (12% of the height) so the cut presentation never covers these rows.
+	float Y = FMath::Max(24.f, Canvas->SizeY * 0.12f);
 	DrawSquad(Y);
 	DrawWave();
 	DrawTargets();
@@ -189,7 +190,7 @@ void ATDDebugHUD::DrawWave()
 	{
 		float W = 0.f, H = 0.f;
 		GetTextSize(Text, W, H, nullptr, 1.4f);
-		DrawText(Text, FLinearColor::White, Canvas->SizeX - W - 24.f, 22.f, nullptr, 1.4f);
+		DrawText(Text, FLinearColor::White, Canvas->SizeX - W - 24.f, FMath::Max(22.f, Canvas->SizeY * 0.12f), nullptr, 1.4f);
 	}
 	if (Data->IsOutOfBounds())
 	{

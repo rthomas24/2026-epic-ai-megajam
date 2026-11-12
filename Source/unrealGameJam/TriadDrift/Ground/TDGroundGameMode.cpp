@@ -6,6 +6,7 @@
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
+#include "TriadDrift/Flow/TDPlaceholderSky.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -121,6 +122,11 @@ void ATDGroundGameMode::StartPlay()
 	{
 		APlayerController* PC = It->Get();
 		UTDCheatManager::InstallOn(PC);
+		if (PC && PC->IsLocalController())
+		{
+			PC->SetInputMode(FInputModeGameOnly()); // never inherit the menu's UI-only input
+			PC->SetShowMouseCursor(false);
+		}
 
 		if (PC && !PC->GetPawn())
 		{
@@ -249,47 +255,8 @@ AActor* ATDGroundGameMode::SpawnBlock(const FVector& Center, const FVector& Size
 
 void ATDGroundGameMode::SpawnEnvironment()
 {
-	UWorld* World = GetWorld();
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	if (!TDGroundSandbox::WorldHas<ADirectionalLight>(World))
-	{
-		const FTransform Xf(FRotator(-50.f, 30.f, 0.f));
-		if (ADirectionalLight* Sun = World->SpawnActorDeferred<ADirectionalLight>(ADirectionalLight::StaticClass(), Xf))
-		{
-			Sun->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-			Sun->FinishSpawning(Xf);
-			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Sun->GetLightComponent()))
-			{
-				L->SetIntensity(10.f);
-				L->SetForwardShadingPriority(1);
-				L->SetLightColor(FLinearColor(1.f, 0.95f, 0.85f));
-				L->SetAtmosphereSunLight(true);
-			}
-		}
-	}
-	if (!TDGroundSandbox::WorldHas<ASkyLight>(World))
-	{
-		if (ASkyLight* Sky = World->SpawnActorDeferred<ASkyLight>(ASkyLight::StaticClass(), FTransform::Identity))
-		{
-			Sky->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-			Sky->FinishSpawning(FTransform::Identity);
-			if (USkyLightComponent* L = Sky->GetLightComponent())
-			{
-				L->bRealTimeCapture = true;
-				L->SetIntensity(1.f);
-				L->RecaptureSky();
-			}
-		}
-	}
-	// A sky so the horizon isn't black.
-	AActor* SkyActor = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, Params);
-	if (SkyActor)
-	{
-		USkyAtmosphereComponent* Atmos = NewObject<USkyAtmosphereComponent>(SkyActor, TEXT("SkyAtmosphere"));
-		SkyActor->SetRootComponent(Atmos);
-		Atmos->RegisterComponent();
-	}
+	// Daylight placeholder only where the planet map has no sky of its own (N-004 contract).
+	ATDPlaceholderSky::SpawnIfNeeded(GetWorld(), ETDPlaceholderSkyStyle::Planet);
 }
 
 void ATDGroundGameMode::SpawnTrainingGround()

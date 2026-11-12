@@ -156,12 +156,8 @@ bool ATDCrewCharacter::IsDead() const
 
 void ATDCrewCharacter::LoadDefaultVisuals()
 {
-	const FString Id = Spec.VisualsId.ToString();
-	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Presentation/DA_Crew_%s_Visuals"), *Id);
-	if (FPackageName::DoesPackageExist(Package))
-	{
-		Visuals = LoadObject<UTDEnemyVisuals>(nullptr, *FString::Printf(TEXT("%s.DA_Crew_%s_Visuals"), *Package, *Id));
-	}
+	// Core's one loader: quiet when Nick hasn't made the asset yet, cooked in packaged builds.
+	Visuals = UTDStatics::LoadPresentation<UTDEnemyVisuals>(FString::Printf(TEXT("DA_Crew_%s_Visuals"), *Spec.VisualsId.ToString()));
 }
 
 void ATDCrewCharacter::ApplyVisuals()

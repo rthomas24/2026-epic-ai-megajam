@@ -177,7 +177,7 @@ void ATDPlanetAtmosphere::TryEnter(ATDSpacecraft* Ship)
 	{
 		if (UTDAtmosphereEntryComponent* Entry = SquadShip->GetAtmosphereEntry())
 		{
-			if (Entry->BeginEntry(Destination, ReturnPoint, GetActorLocation()))
+			if (Entry->BeginEntry(Destination, ReturnPoint, GetActorLocation(), PlanetRadius))	// radius: the dive stops above the surface
 			{
 				return;
 			}

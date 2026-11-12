@@ -149,6 +149,7 @@ public:
 	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void NotifyControllerChanged() override;
+	virtual void UnPossessed() override;
 
 protected:
 	virtual void BeginPlay() override;

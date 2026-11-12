@@ -195,6 +195,10 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier", meta = (ClampMin = "0"))
 	int32 TurretCount = 0;
 
+	/** Launches per bay before it is spent (0 = unlimited). Finite so a carrier wave always ends (ENG-27). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier", meta = (ClampMin = "0"))
+	int32 MaxLaunchesPerBay = 0;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
 	FTDEnemyAttackSpec TurretGuns;
 
@@ -217,6 +221,10 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
 	TSoftObjectPtr<UTDEnemyVisuals> Visuals;
+
+	/** Presentation asset loaded by name when Visuals is empty (DA_Enemy_<Name>_Visuals, MESSAGEBOARD R-005). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
+	FName VisualsAssetName = NAME_None;
 
 	/** Placeholder tint used until UTDEnemyVisuals is assigned. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")

@@ -60,6 +60,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Carrier", meta = (ClampMin = "1"))
 	float DoorsBrokenDamageMultiplier = 2.f;
 
+	/** Launches before the bay is spent (0 = unlimited). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Carrier", meta = (ClampMin = "0"))
+	int32 MaxLaunches = 0;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Carrier")
+	bool IsSpent() const { return MaxLaunches > 0 && LaunchCount >= MaxLaunches; }
+
 	/** Half depth along the bay's outward (+X) axis, for mounting outside the hull (cm). */
 	float GetHalfExtent() const;
 

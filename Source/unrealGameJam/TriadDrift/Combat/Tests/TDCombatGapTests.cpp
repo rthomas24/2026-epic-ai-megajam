@@ -20,6 +20,8 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 
 #include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "Engine/StaticMesh.h"
 
 namespace TDCombatTest
 {
@@ -499,6 +501,28 @@ bool FTDGapKnockbackReal::RunTest(const FString& Parameters)
 	W.Tick();
 	const float PushX = Hit->GetVelocity().X - Control->GetVelocity().X;
 	TestTrue(TEXT("fighter pushed along the shot by the real flight model"), PushX > 600.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGapMeshOffset, "TriadDrift.Combat.Projectile.ProjectileMeshOffsetIsVisualOnly", TD_TEST_FLAGS)
+bool FTDGapMeshOffset::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	AActor* Lancer = Body(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+	UTDWeaponFX* FX = NewObject<UTDWeaponFX>();
+	FX->ProjectileMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cone.Cone")));
+	FX->ProjectileMeshOffset = FVector(54.f, 0.f, 0.f);
+	FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::SpikeRockets).Projectile;
+	Spec.FX = FX;
+	const FTransform At(FRotator::ZeroRotator, FVector(0.f, 0.f, 500.f));
+	ATDProjectile* P = ATDProjectile::Spawn(W.GetWorld(), Spec, At, Lancer, ETDTeam::Player);
+	const UStaticMeshComponent* Mesh = P ? P->FindComponentByClass<UStaticMeshComponent>() : nullptr;
+	TestTrue(TEXT("art mesh offset forward by 54 cm"), Mesh && Mesh->GetRelativeLocation().Equals(FVector(54.f, 0.f, 0.f), 0.01f));
+	TestTrue(TEXT("collision centre (the actor) unchanged"), P && P->GetActorLocation().Equals(At.GetLocation(), 0.01f));
+	P->Kill(false);
+	ATDProjectile* Reused = ATDProjectile::Spawn(W.GetWorld(), UTDWeaponLibrary::Get(TDWeaponIds::NeedleCannons).Projectile, At, Lancer, ETDTeam::Player);
+	const UStaticMeshComponent* Mesh2 = Reused ? Reused->FindComponentByClass<UStaticMeshComponent>() : nullptr;
+	TestTrue(TEXT("pooled reuse resets the offset"), Reused == P && Mesh2 && Mesh2->GetRelativeLocation().IsNearlyZero(0.01f));
 	return true;
 }
 
