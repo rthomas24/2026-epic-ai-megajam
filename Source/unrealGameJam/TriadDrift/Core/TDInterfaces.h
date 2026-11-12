@@ -126,6 +126,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual bool IsOutOfBounds() const { return false; }
 
+	/** Why the hyperdrive cannot be used right now ("HYPERDRIVE LOCKED - ENEMIES IN RANGE"); empty when it can. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual FText GetHyperdriveBlockText() const { return FText::GetEmpty(); }
+
 	/** Metres above ground in atmosphere flight; negative when not applicable. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual float GetAltitude() const { return -1.f; }
