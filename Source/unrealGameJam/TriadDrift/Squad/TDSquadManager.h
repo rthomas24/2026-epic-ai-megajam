@@ -240,8 +240,10 @@ public:
 	virtual TArray<AActor*> GetObjectiveMarkers() const override;
 	/** The player's ship's landing prompt ("Hold F to land", "SLOW DOWN TO LAND - ..."); empty otherwise. */
 	virtual FText GetInteractPrompt() const override;
+	/** Nick's HUD objective line: the Text of the last OnObjectiveUpdated (empty before the first). */
+	virtual FText GetObjectiveText() const override { return ObjectiveText; }
 
-	/** The actor tag that marks "the place to go now" (contract with T4 / T5; Core constant pending). */
+	/** The actor tag that marks "the place to go now": Core's TDTags::ObjectiveMarker. */
 	static const FName ObjectiveMarkerTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|HUD", meta = (ClampMin = "0", Units = "s"))
@@ -346,6 +348,10 @@ public:
 	UFUNCTION()
 	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
 
+	/** Caches the flow's current objective line for GetObjectiveText (overwritten, never cleared). */
+	UFUNCTION()
+	void HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text);
+
 	UFUNCTION()
 	void HandleWaveCleared(int32 WaveNumber);
 
@@ -413,6 +419,7 @@ protected:
 	FText LastRefusalText;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	mutable TArray<TWeakObjectPtr<AActor>> ObjectiveCache;
+	FText ObjectiveText;
 	mutable double ObjectiveRefreshAt = -1.0;
 	int32 SwitchCount = 0;
 
