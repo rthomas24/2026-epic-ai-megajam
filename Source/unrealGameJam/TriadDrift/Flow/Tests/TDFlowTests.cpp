@@ -27,6 +27,7 @@
 #include "Misc/Paths.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -1039,6 +1040,23 @@ bool FTDFlowResolveMap::RunTest(const FString& Parameters)
 	TestFalse(TEXT("unconfigured destination does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
 	Scoped.S->DestinationMaps.Add(ETDDestination::Galaxy, FSoftObjectPath());
 	TestFalse(TEXT("null path does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowMenuMode, "TriadDrift.Flow.MenuModeNeverCheckpoints", TDFlowTest::TestFlags)
+bool FTDFlowMenuMode::RunTest(const FString& Parameters)
+{
+	TDFlowTest::FScopedSettings NoRealMaps;
+	FTDTestWorld W(UTDGameInstance::StaticClass(), ATDMenuGameMode::StaticClass());
+	W.Advance(0.2f);
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("GI"), GI)) { return false; }
+	TestEqual(TEXT("menu destination"), GI->GetCurrentDestination(), ETDDestination::MainMenu);
+	TestFalse(TEXT("no checkpoint on the menu"), GI->GetLastCheckpoint().bValid);
+	int32 Pawns = 0;
+	for (TActorIterator<APawn> It(W.GetWorld()); It; ++It) { ++Pawns; }
+	TestEqual(TEXT("no pawn on the menu"), Pawns, 0);
 	return true;
 }
 
