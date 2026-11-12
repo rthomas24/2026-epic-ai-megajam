@@ -1,5 +1,6 @@
 #include "TriadDrift/Core/TDDebugHUD.h"
 
+#include "Camera/PlayerCameraManager.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -161,6 +162,7 @@ void ATDDebugHUD::DrawHUD()
 	DrawWave();
 	DrawTargets();
 	DrawWingmen();
+	DrawDamageIndicators();
 	DrawObjective();
 	DrawCrosshair();
 	DrawFlight();
@@ -207,6 +209,51 @@ void ATDDebugHUD::HandleHitConfirmed(AActor* Target, bool bKill)
 		bLastHitWasKill = bKill;
 	}
 	HitMarkerUntil = FMath::Max(HitMarkerUntil, Until);
+}
+
+// Where fire is coming from: a red arc segment around the crosshair for each recent hit, on the side
+// the hit came from (up on screen = ahead, down = behind), fading over about 1.5 s.
+void ATDDebugHUD::DrawDamageIndicators()
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
+	const APlayerController* PC = GetOwningPlayerController();
+	if (!Data || !PC || !PC->PlayerCameraManager)
+	{
+		return;
+	}
+	const FRotator View = PC->PlayerCameraManager->GetCameraRotation();
+	const FVector Forward = View.Vector();
+	const FVector Right = FRotationMatrix(View).GetUnitAxis(EAxis::Y);
+	const FVector Up = FRotationMatrix(View).GetUnitAxis(EAxis::Z);
+	const FVector2D C(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+	const float Radius = FMath::Min(Canvas->SizeX, Canvas->SizeY) * 0.16f;
+
+	for (const FTDDamageIndicator& Hit : Data->GetDamageIndicators())
+	{
+		const float Life = 1.f - FMath::Clamp(Hit.AgeSeconds / 1.5f, 0.f, 1.f);
+		if (Life <= 0.f)
+		{
+			continue;
+		}
+		// Flatten the direction onto the screen: sideways and up / down keep their sense, and a hit
+		// from straight ahead or straight behind lands at the top or bottom of the ring.
+		const float X = FVector::DotProduct(Hit.WorldDirection, Right);
+		const float Y = FVector::DotProduct(Hit.WorldDirection, Up);
+		const float Z = FVector::DotProduct(Hit.WorldDirection, Forward);
+		FVector2D Dir(X, -Y);
+		if (Dir.SizeSquared() < 0.01f)
+		{
+			Dir = FVector2D(0.f, Z >= 0.f ? -1.f : 1.f);
+		}
+		Dir.Normalize();
+		const FVector2D Side(-Dir.Y, Dir.X);
+		const FLinearColor Color = Hit.bShieldOnly ? FLinearColor(0.4f, 0.8f, 1.f, Life) : FLinearColor(1.f, 0.15f, 0.1f, Life);
+		const float Half = 26.f + 34.f * FMath::Clamp(Hit.Strength01 * 4.f, 0.f, 1.f);
+		const FVector2D Mid = C + Dir * Radius;
+		// A shallow chevron pointing outward, wider for a harder hit.
+		DrawLine2D(Mid - Side * Half - Dir * 8.f, Mid, Color, 4.f);
+		DrawLine2D(Mid + Side * Half - Dir * 8.f, Mid, Color, 4.f);
+	}
 }
 
 // The wing: each AI-flown squad ship in its own colour. In view: the pilot's name beside it. Out of
