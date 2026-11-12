@@ -151,3 +151,28 @@ By hand in the sandbox:
 - **The first-person hand-off** on `OnShipLanded`, and re-boarding → `RequestTakeOff`, are T5's.
 - **No obstacle avoidance:** the landing path is a straight move, so pads need clear air above them.
 - **Uncapped jump distance:** the hyperdrive has no fuel or charge limit; it relies on wells, boundary and timeout.
+
+## Safety: what is proven and what isn't
+
+### Proven by tests (`TriadDrift.Travel.Safety.*`)
+- **Speed-override ownership:**
+  - Hyperdrive (`"Hyperdrive"`), entry (`"AtmosphereEntry"`), T2's ram (`"Ram"`) and unkeyed legacy callers each own one request. The most recent request is the one flown.
+  - Clearing an owner restores the request underneath: hyperdrive under a ram, entry under a jump, ram under a drop-out.
+  - `ResetFlightState` clears every owner.
+- **Hyperdrive never ends inside geometry** at 30, 60 and 120 fps. This holds for an asteroid wall, a planet body with no gravity well, and another ship.
+  - The look-ahead sweep (300 m plus one frame of travel) ends the jump at cruise speed without a burst. There's no contact and no damage.
+  - A spool is refused with anything solid within 200 m along the nose (`ObstacleAhead`).
+- **Wells and boundary:** gravity wells stop the jump at the well's edge, and the play boundary stops it inside the play space, at all three frame rates. The spool takes 1.2 s at every frame rate.
+- **Hyperdrive locks:** while `UTDTravelSubsystem::AddHyperdriveLock(Owner, Reason)` is active, no ship can spool. A lock added mid-jump drops the ship out, with end cause `Locked`.
+- **Atmospheric entry:**
+  - It's refused for wingmen, dead ships, while an entry is already running, and while a retake or level travel is pending.
+  - A death during entry aborts it cleanly: override and invulnerability released, no travel.
+  - The dive stays above the planet surface.
+- **Level travel** goes through `UTDTravelSubsystem::RequestLevelTravel`: at most once per level, never over a pending travel or retake.
+- **Timing:** landing (4.9 s), take-off (3.5 s) and entry (2.5 s) are the same at 30, 60 and 120 fps.
+
+### Not proven yet
+- **Whether a wave or the finale should lock the hyperdrive is a policy call** for the Lead. The lock mechanism exists, but nothing adds a lock yet.
+- **The look-ahead only checks straight along the nose.** A jump steered at 10% around a large body is caught by the per-frame look-ahead, not by a full path prediction.
+- **Real level travel firing exactly once is only partly tested.** Headless tests can't perform a real `TravelTo`; the guard is tested with the flow's pending flags.
+- **The full planet round trip** (descent, landing, hand-off, re-board, take-off, return) still waits on T5's ground mode.

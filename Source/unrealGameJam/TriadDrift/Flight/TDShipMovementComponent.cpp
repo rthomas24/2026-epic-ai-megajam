@@ -56,21 +56,74 @@ void UTDShipMovementComponent::ApplyFlightTuning(const FTDFlightTuning& NewTunin
 	}
 }
 
+void UTDShipMovementComponent::ApplyOverrideStack()
+{
+	Context.bSpeedOverride = OverrideStack.Num() > 0;
+	if (Context.bSpeedOverride)
+	{
+		const FSpeedOverrideRequest& Top = OverrideStack.Last();
+		Context.OverrideSpeed = Top.Speed;
+		Context.OverrideSteeringScale = Top.Steering;
+		Context.OverrideAcceleration = Top.Acceleration >= 0.f ? Top.Acceleration : FTDFlightContext().OverrideAcceleration;
+	}
+	else
+	{
+		Context.OverrideSteeringScale = 1.f;
+		Context.OverrideAcceleration = FTDFlightContext().OverrideAcceleration;
+	}
+}
+
+void UTDShipMovementComponent::SetSpeedOverrideFor(FName Owner, float SpeedCmPerSec, float SteeringScale, float AccelerationCmPerSec2)
+{
+	OverrideStack.RemoveAll([Owner](const FSpeedOverrideRequest& R) { return R.Owner == Owner; });
+	FSpeedOverrideRequest Request;
+	Request.Owner = Owner;
+	Request.Speed = FMath::Max(0.f, SpeedCmPerSec);
+	Request.Steering = FMath::Max(0.f, SteeringScale);
+	Request.Acceleration = AccelerationCmPerSec2;
+	OverrideStack.Add(Request);
+	ApplyOverrideStack();
+}
+
+void UTDShipMovementComponent::ClearSpeedOverrideFor(FName Owner)
+{
+	OverrideStack.RemoveAll([Owner](const FSpeedOverrideRequest& R) { return R.Owner == Owner; });
+	ApplyOverrideStack();
+}
+
+bool UTDShipMovementComponent::HasSpeedOverrideFor(FName Owner) const
+{
+	return OverrideStack.ContainsByPredicate([Owner](const FSpeedOverrideRequest& R) { return R.Owner == Owner; });
+}
+
+void UTDShipMovementComponent::ClearAllSpeedOverrides()
+{
+	OverrideStack.Reset();
+	LegacyOverrideAcceleration = -1.f;
+	ApplyOverrideStack();
+}
+
 void UTDShipMovementComponent::SetSpeedOverride(float SpeedCmPerSec, float SteeringScale)
 {
-	Context.bSpeedOverride = true;
-	Context.OverrideSpeed = FMath::Max(0.f, SpeedCmPerSec);
-	Context.OverrideSteeringScale = FMath::Max(0.f, SteeringScale);
+	SetSpeedOverrideFor(NAME_None, SpeedCmPerSec, SteeringScale, LegacyOverrideAcceleration);
 }
 
 void UTDShipMovementComponent::ClearSpeedOverride()
 {
-	Context.bSpeedOverride = false;
+	ClearSpeedOverrideFor(NAME_None);
 }
 
 void UTDShipMovementComponent::SetOverrideAcceleration(float AccelerationCmPerSec2)
 {
-	Context.OverrideAcceleration = AccelerationCmPerSec2 >= 0.f ? AccelerationCmPerSec2 : FTDFlightContext().OverrideAcceleration;
+	LegacyOverrideAcceleration = AccelerationCmPerSec2;
+	for (FSpeedOverrideRequest& R : OverrideStack)
+	{
+		if (R.Owner == NAME_None)
+		{
+			R.Acceleration = AccelerationCmPerSec2;
+		}
+	}
+	ApplyOverrideStack();
 }
 
 void UTDShipMovementComponent::SetBoundary(const FVector& Center, float Radius, bool bEnabled)
@@ -172,9 +225,7 @@ void UTDShipMovementComponent::ResetFlightState(bool bKeepVelocity)
 	State.AngularRate = FVector::ZeroVector;
 	State.StrafeVelocity = FVector2D::ZeroVector;
 	State.VisualBank = 0.f;
-	Context.bSpeedOverride = false;
-	Context.OverrideSteeringScale = 1.f;
-	Context.OverrideAcceleration = FTDFlightContext().OverrideAcceleration;
+	ClearAllSpeedOverrides();
 	Context.ThrottleTopSpeed = 0.f;
 
 	if (bKeepVelocity)

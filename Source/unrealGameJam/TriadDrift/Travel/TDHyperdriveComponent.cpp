@@ -10,6 +10,10 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "NiagaraComponent.h"
 #include "Engine/World.h"
+#include "Components/SphereComponent.h"
+#include "TriadDrift/Core/TDCombatRegistry.h"
+
+const FName UTDHyperdriveComponent::OverrideOwner(TEXT("Hyperdrive"));
 
 UTDHyperdriveComponent::UTDHyperdriveComponent()
 {
@@ -88,13 +92,57 @@ ETDHyperdriveBlock UTDHyperdriveComponent::GetBlockReason() const
 	}
 	if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
+		FText LockReason;
+		if (Travel->IsHyperdriveLocked(LockReason))
+		{
+			return ETDHyperdriveBlock::Locked;
+		}
 		FTDTravelGravityWell Well;
 		if (Travel->FindWellContaining(Craft->GetActorLocation(), Well))
 		{
 			return ETDHyperdriveBlock::NearGravityWell;
 		}
 	}
+	if (Tuning.ObstacleClearanceToSpool > 0.f && SweepAhead(Tuning.ObstacleClearanceToSpool) >= 0.f)
+	{
+		return ETDHyperdriveBlock::ObstacleAhead;
+	}
 	return ETDHyperdriveBlock::None;
+}
+
+float UTDHyperdriveComponent::SweepAhead(float MaxDistance) const
+{
+	const ATDSpacecraft* Craft = GetCraft();
+	const UWorld* World = GetWorld();
+	if (!Craft || !World || MaxDistance <= 0.f)
+	{
+		return -1.f;
+	}
+	const USphereComponent* Sphere = Craft->GetCollisionSphere();
+	const float Radius = (Sphere ? Sphere->GetScaledSphereRadius() : 220.f) * Tuning.LookAheadRadiusScale;
+	const FVector Start = Craft->GetActorLocation();
+	const FVector End = Start + Craft->GetActorForwardVector() * MaxDistance;
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDHyperdriveLookAhead), false, Craft);
+	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+	{
+		// Squadmates fly in formation around the leader: they never block the jump.
+		TArray<AActor*> Squad;
+		Registry->GetActorsOfTeam(Craft->GetTeam(), Squad, true);
+		Params.AddIgnoredActors(Squad);
+	}
+	FCollisionResponseParams Response;
+	if (Sphere)
+	{
+		Response.CollisionResponse = Sphere->GetCollisionResponseToChannels();
+	}
+	FHitResult Hit;
+	if (World->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, Sphere ? Sphere->GetCollisionObjectType() : ECC_Pawn,
+		FCollisionShape::MakeSphere(Radius), Params, Response) && Hit.bBlockingHit)
+	{
+		return Hit.Distance;
+	}
+	return -1.f;
 }
 
 bool UTDHyperdriveComponent::StartSpool()
@@ -137,7 +185,7 @@ bool UTDHyperdriveComponent::RequestDropOut()
 {
 	if (State == ETDHyperdriveState::Jumping && StateTime >= Tuning.MinJumpSeconds)
 	{
-		BeginDropOut(NAME_None);
+		BeginDropOut(NAME_None, ETDHyperdriveEndCause::Manual);
 		return true;
 	}
 	return false;
@@ -151,7 +199,7 @@ void UTDHyperdriveComponent::SetHyperdriveEnabled(bool bInEnabled)
 		CancelSpool();
 		if (State == ETDHyperdriveState::Jumping)
 		{
-			BeginDropOut(NAME_None);
+			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Manual);
 		}
 	}
 }
@@ -198,10 +246,10 @@ void UTDHyperdriveComponent::BeginJump()
 	StopLoopFX();
 	LastDropOutWell = NAME_None;
 	LastLocation = Craft->GetActorLocation();
-	Craft->SetSpeedOverride(Tuning.JumpSpeed, Tuning.JumpSteeringScale);
+	LastEndCause = ETDHyperdriveEndCause::None;
 	if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 	{
-		Move->SetOverrideAcceleration(Tuning.JumpAcceleration);
+		Move->SetSpeedOverrideFor(OverrideOwner, Tuning.JumpSpeed, Tuning.JumpSteeringScale, Tuning.JumpAcceleration);
 	}
 	SetState(ETDHyperdriveState::Jumping);
 	if (TravelFX)
@@ -210,18 +258,20 @@ void UTDHyperdriveComponent::BeginJump()
 	}
 }
 
-void UTDHyperdriveComponent::BeginDropOut(FName WellId)
+void UTDHyperdriveComponent::BeginDropOut(FName WellId, ETDHyperdriveEndCause Cause, bool bBurst)
 {
 	ATDSpacecraft* Craft = GetCraft();
 	StopLoopFX();
 	LastDropOutWell = WellId;
 	LastDropOutTime = Now();
+	LastEndCause = Cause;
 	if (Craft)
 	{
-		Craft->SetSpeedOverride(Tuning.DropOutSpeed, 1.f);
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
-			Move->SetOverrideAcceleration(Tuning.DropOutDeceleration);
+			// Short of an obstacle there's no burst: snap straight down to cruise.
+			const float Speed = bBurst ? Tuning.DropOutSpeed : Move->GetFlightTuning().CruiseSpeed;
+			Move->SetSpeedOverrideFor(OverrideOwner, Speed, 1.f, Tuning.DropOutDeceleration);
 		}
 		if (TravelFX)
 		{
@@ -239,10 +289,9 @@ void UTDHyperdriveComponent::FinishDropOut()
 {
 	if (ATDSpacecraft* Craft = GetCraft())
 	{
-		Craft->ClearSpeedOverride();
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
-			Move->SetOverrideAcceleration(-1.f); // back to the default
+			Move->ClearSpeedOverrideFor(OverrideOwner); // only ours: a ram / entry underneath is restored
 		}
 	}
 	SetState(ETDHyperdriveState::Idle);
@@ -274,6 +323,7 @@ void UTDHyperdriveComponent::EndForPilotLoss()
 	case ETDHyperdriveState::DropOut:
 		StopLoopFX();
 		LastDropOutTime = Now();
+		LastEndCause = ETDHyperdriveEndCause::PilotLoss;
 		FinishDropOut(); // clears the override (the flight model bleeds 80k off at HighOverspeedDeceleration) -> Idle
 		break;
 	default:
@@ -288,10 +338,9 @@ void UTDHyperdriveComponent::ResetHyperdrive()
 	{
 		if (ATDSpacecraft* Craft = GetCraft())
 		{
-			Craft->ClearSpeedOverride();
 			if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 			{
-				Move->SetOverrideAcceleration(-1.f);
+				Move->ClearSpeedOverrideFor(OverrideOwner);
 			}
 		}
 	}
@@ -312,7 +361,7 @@ void UTDHyperdriveComponent::HandleImpact(const FTDFlightImpact& Impact)
 {
 	if (State == ETDHyperdriveState::Jumping)
 	{
-		BeginDropOut(NAME_None); // slammed into something mid-jump
+		BeginDropOut(NAME_None, ETDHyperdriveEndCause::Impact, false); // slammed into something mid-jump
 	}
 }
 
@@ -356,18 +405,29 @@ void UTDHyperdriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		// Check the path flown this frame plus the next frame, so 80,000 cm/s can't skip a well.
 		const FVector Ahead = Loc + Craft->GetVelocity() * DeltaTime;
 		FTDTravelGravityWell Well;
+		FText LockReason;
 		const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+		// Look far enough ahead to brake from jump speed to cruise before reaching it.
+		const float LookAhead = Tuning.LookAheadDistance + Craft->GetVelocity().Size() * DeltaTime;
 		if (Travel && Travel->FindWellOnSegment(LastLocation, Ahead, Well))
 		{
-			BeginDropOut(Well.Id);
+			BeginDropOut(Well.Id, ETDHyperdriveEndCause::GravityWell);
+		}
+		else if (SweepAhead(LookAhead) >= 0.f)
+		{
+			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Obstacle, false);
+		}
+		else if (Travel && Travel->IsHyperdriveLocked(LockReason))
+		{
+			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Locked);
 		}
 		else if (Tuning.bDropOutAtBoundary && Craft->GetShipMovement() && Craft->GetShipMovement()->IsNearBoundary())
 		{
-			BeginDropOut(NAME_None);
+			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Boundary);
 		}
 		else if (StateTime >= Tuning.MaxJumpSeconds)
 		{
-			BeginDropOut(NAME_None);
+			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Timeout);
 		}
 		LastLocation = Loc;
 		break;

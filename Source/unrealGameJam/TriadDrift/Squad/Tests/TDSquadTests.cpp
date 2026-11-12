@@ -726,6 +726,15 @@ bool FTDSquadHyperdriveFollow::RunTest(const FString& Parameters)
 			const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
 			TestTrue(FString::Printf(TEXT("%s jumps in formation (%.0f cm from slot)%s"), *UEnum::GetValueAsString(Id), Dist, *Fps), Dist < 2000.f);
 		}
+		// Drop-out brakes the leader hard: the wingmen stay pinned through it and arrive in the V.
+		TestTrue(TEXT("drop out") + Fps, Hyper->RequestDropOut());
+		F.W.Advance(1.2f, Step);
+		TestTrue(TEXT("jump over") + Fps, Hyper->GetState() == ETDHyperdriveState::Idle);
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
+			TestTrue(FString::Printf(TEXT("%s arrives in formation, no overshoot (%.0f cm)%s"), *UEnum::GetValueAsString(Id), Dist, *Fps), Dist < 4000.f);
+		}
 	}
 	return true;
 }
