@@ -122,11 +122,11 @@ void ATDDominion::BeginPlay()
 	// Nick's asset by convention when none is set (no gameplay BP edit needed).
 	if (!Visuals)
 	{
-		Visuals = LoadObject<UTDDominionVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Dominion_Visuals.DA_Dominion_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		Visuals = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
 	}
 	if (!TurretVisuals)
 	{
-		TurretVisuals = LoadObject<UTDEnemyVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_DominionTurret_Visuals.DA_DominionTurret_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		TurretVisuals = UTDStatics::LoadPresentation<UTDEnemyVisuals>(TEXT("DA_DominionTurret_Visuals"));
 	}
 
 	LayoutParts();

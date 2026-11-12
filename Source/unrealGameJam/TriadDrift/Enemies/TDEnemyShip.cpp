@@ -157,10 +157,10 @@ void ATDEnemyShip::PlayWarpIn()
 	}
 }
 
-FString ATDEnemyShip::VisualsAssetPath(FName EnemyId)
+FString ATDEnemyShip::VisualsAssetName(const FTDEnemySpec& InSpec)
 {
-	const FString Name = FString::Printf(TEXT("DA_Enemy_%s_Visuals"), *EnemyId.ToString());
-	return FString::Printf(TEXT("/Game/TriadDrift/Presentation/%s.%s"), *Name, *Name);	// flat folder (docs/visual/Presentation-Asset-Paths.md)
+	// Names agreed with Nick's side (MESSAGEBOARD R-005): DA_Enemy_<Fighter|Interceptor|Gunship|Bomber|Carrier>_Visuals.
+	return InSpec.VisualsAssetName.IsNone() ? FString() : InSpec.VisualsAssetName.ToString();
 }
 
 UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
@@ -169,21 +169,9 @@ UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
 	{
 		return InSpec.Visuals.LoadSynchronous();
 	}
-	// Convention asset, looked up once per type (a miss is remembered so spawns stay cheap).
-	static TMap<FName, TWeakObjectPtr<UTDEnemyVisuals>> Found;
-	static TSet<FName> Missing;
-	if (InSpec.Id.IsNone() || Missing.Contains(InSpec.Id))
-	{
-		return nullptr;
-	}
-	if (const TWeakObjectPtr<UTDEnemyVisuals>* Cached = Found.Find(InSpec.Id))
-	{
-		if (Cached->IsValid()) { return Cached->Get(); }
-	}
-	UTDEnemyVisuals* Asset = LoadObject<UTDEnemyVisuals>(nullptr, *VisualsAssetPath(InSpec.Id), nullptr, LOAD_NoWarn | LOAD_Quiet);
-	if (Asset) { Found.Add(InSpec.Id, Asset); }
-	else { Missing.Add(InSpec.Id); }
-	return Asset;
+	const FString Name = VisualsAssetName(InSpec);
+	// Core's loader: quiet when the asset doesn't exist yet, remembers misses, cooks with the Presentation folder.
+	return Name.IsEmpty() ? nullptr : UTDStatics::LoadPresentation<UTDEnemyVisuals>(Name);
 }
 
 void ATDEnemyShip::StartLoopCues()

@@ -241,8 +241,8 @@ public:
 
 	// --- Presentation -------------------------------------------------------------------------
 
-	/** Convention path for a type's visuals asset (Nick fills these; no code or BP edits needed). */
-	static FString VisualsAssetPath(FName EnemyId);
+	/** Presentation asset name for a type (Nick fills these; no code or BP edits needed). */
+	static FString VisualsAssetName(const FTDEnemySpec& InSpec);
 
 	/** The visuals asset for a type: spec soft pointer, else the convention asset, else null. Cached. */
 	static UTDEnemyVisuals* ResolveVisuals(const FTDEnemySpec& InSpec);

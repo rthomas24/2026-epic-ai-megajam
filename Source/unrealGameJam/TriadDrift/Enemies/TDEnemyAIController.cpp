@@ -14,7 +14,9 @@
 namespace
 {
 	int32 GTDEnemyAIDebug = 0;
-	const FName TDEnemyAIOverride(TEXT("EnemyAI"));	// T1 keyed speed overrides: ours never clears an EMP / gravity well
+	const FName TDEnemyAIOverride(TEXT("EnemyAI"));
+	float GTDEnemyCrossInFront = 5000.f;
+	FAutoConsoleVariableRef CVarTDEnemyCrossInFront(TEXT("TD.EnemyCrossInFront"), GTDEnemyCrossInFront, TEXT("Enemy attack runs on the player steer this far in front of its nose (cm, 0 = off). Applied when a pilot takes its ship."));	// T1 keyed speed overrides: ours never clears an EMP / gravity well
 	FAutoConsoleVariableRef CVarTDEnemyAIDebug(TEXT("TD.EnemyAIDebug"), GTDEnemyAIDebug, TEXT("Draw enemy AI state and target lines (1 = on)."));
 
 	FTDFlightInput TDEnemyAI_MakeInput(const FVector2D& Aim, float Throttle01, bool bBoost)
@@ -48,6 +50,7 @@ void ATDEnemyAIController::OnPossess(APawn* InPawn)
 		Rng.Initialize(static_cast<int32>(InPawn->GetUniqueID()));
 	}
 	bPrefersPlayer = Rng.FRand() < PreferPlayerShipChance;
+	CrossInFrontDistance = GTDEnemyCrossInFront;
 	SetState(ETDEnemyAIState::Approach);
 	RetargetTimer = 0.f;
 }
@@ -323,7 +326,14 @@ FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor
 {
 	const FVector To = InTarget.GetActorLocation() - Ship.GetActorLocation();
 	const float Lead = FMath::Clamp(To.Size() / 30000.f, 0.f, 1.5f);
-	return InTarget.GetActorLocation() + InTarget.GetVelocity() * Lead;
+	FVector Point = InTarget.GetActorLocation() + InTarget.GetVelocity() * Lead;
+	// Readable combat: runs on the player's own ship cut across its nose instead of sitting behind it,
+	// so the fight happens on screen (the guns still aim at the ship itself).
+	if (CrossInFrontDistance > 0.f && &InTarget == UGameplayStatics::GetPlayerPawn(this, 0) && To.Size() > CrossInFrontDistance * 0.5f)
+	{
+		Point += InTarget.GetActorForwardVector() * CrossInFrontDistance;
+	}
+	return Point;
 }
 
 FVector ATDEnemyAIController::GetBomberRoutePoint(const AActor& InTarget) const

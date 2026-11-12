@@ -99,6 +99,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	bool IsCatchingUp() const { return bCatchingUp; }
 
+	/** Attack runs on the player's ship steer for a point this far in front of its nose (readability). 0 = off. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float CrossInFrontDistance = 5000.f;
+
 	/** Keep at least this far from other Armada ships (cm). 0 = off. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float SeparationRadius = 1400.f;

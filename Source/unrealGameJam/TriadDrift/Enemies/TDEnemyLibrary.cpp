@@ -41,6 +41,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::ShardFighter;
+		S.VisualsAssetName = TEXT("DA_Enemy_Fighter_Visuals");
 		S.DisplayName = LOCTEXT("ShardFighter", "Shard Fighter");
 		S.Role = ETDEnemyRole::Fighter;
 		S.Size = ETDEnemySize::Small;
@@ -66,6 +67,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::HookInterceptor;
+		S.VisualsAssetName = TEXT("DA_Enemy_Interceptor_Visuals");
 		S.DisplayName = LOCTEXT("HookInterceptor", "Hook Interceptor");
 		S.Role = ETDEnemyRole::Interceptor;
 		S.Size = ETDEnemySize::Small;
@@ -92,6 +94,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::WallGunship;
+		S.VisualsAssetName = TEXT("DA_Enemy_Gunship_Visuals");
 		S.DisplayName = LOCTEXT("WallGunship", "Wall Gunship");
 		S.Role = ETDEnemyRole::Gunship;
 		S.Size = ETDEnemySize::Large;
@@ -121,6 +124,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::MaulBomber;
+		S.VisualsAssetName = TEXT("DA_Enemy_Bomber_Visuals");
 		S.DisplayName = LOCTEXT("MaulBomber", "Maul Bomber");
 		S.Role = ETDEnemyRole::Bomber;
 		S.Size = ETDEnemySize::Medium;
@@ -146,6 +150,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 	{
 		FTDEnemySpec S;
 		S.Id = TDEnemyIds::HiveCarrier;
+		S.VisualsAssetName = TEXT("DA_Enemy_Carrier_Visuals");
 		S.DisplayName = LOCTEXT("HiveCarrier", "Hive Carrier");
 		S.Role = ETDEnemyRole::Carrier;
 		S.Size = ETDEnemySize::Boss;

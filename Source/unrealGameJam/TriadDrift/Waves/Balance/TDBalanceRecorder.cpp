@@ -174,6 +174,27 @@ void FTDBalancePilot::Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSec
 		if (!Ship) { return; }
 	}
 
+	// Readability: is the fight in front of the player? (a chase camera sees roughly the nose cone)
+	Stats.SecondsTotal += DeltaSeconds;
+	if (const UTDCombatRegistry* Reg = UTDCombatRegistry::Get(World))
+	{
+		const FVector Me = Ship->GetActorLocation();
+		const FVector Fwd = Ship->GetActorForwardVector();
+		const float CosView = FMath::Cos(FMath::DegreesToRadians(45.f));
+		for (const TWeakObjectPtr<AActor>& Weak : Reg->GetAll())
+		{
+			const ATDEnemyShip* E = Cast<ATDEnemyShip>(Weak.Get());
+			if (!E || E->IsDying()) { continue; }
+			const FVector To = E->GetActorLocation() - Me;
+			const float D = To.Size();
+			if (D < 25000.f && D > KINDA_SMALL_NUMBER && FVector::DotProduct(To / D, Fwd) >= CosView)
+			{
+				Stats.SecondsEnemyOnScreen += DeltaSeconds;
+				break;
+			}
+		}
+	}
+
 	// Reaction time: the pilot only re-picks its target every ReactionSeconds.
 	ReactionTimer -= DeltaSeconds;
 	if (ReactionTimer <= 0.f || !Target.IsValid() || !UTDStatics::GetHealth(Target.Get()) || !UTDStatics::GetHealth(Target.Get())->IsAlive())

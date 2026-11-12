@@ -37,6 +37,9 @@ struct UNREALGAMEJAM_API FTDBalanceWaveStats
 	float SecondsOnShips = 0.f;
 	float SecondsNoTarget = 0.f;
 	int32 PowersUsed = 0;
+	/** Seconds with at least one enemy ship inside the player's view (45 deg of the nose, within 25 000 cm). */
+	float SecondsEnemyOnScreen = 0.f;
+	float SecondsTotal = 0.f;
 	int32 Switches = 0;
 };
 

@@ -222,6 +222,10 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
 	TSoftObjectPtr<UTDEnemyVisuals> Visuals;
 
+	/** Presentation asset loaded by name when Visuals is empty (DA_Enemy_<Name>_Visuals, MESSAGEBOARD R-005). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
+	FName VisualsAssetName = NAME_None;
+
 	/** Placeholder tint used until UTDEnemyVisuals is assigned. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
 	FLinearColor PlaceholderColor = FLinearColor(1.f, 0.15f, 0.05f);
