@@ -1,5 +1,6 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -204,7 +205,9 @@ void ATDEnemyAIController::UpdateOpeningPass(ATDEnemyShip& Ship, float DeltaSeco
 		// Decided once, on the first tick (InitFromSpec runs after possession). Followers ride their leader's pass.
 		bOpeningPassChecked = true;
 		const FTDEnemySpec& Spec = Ship.GetSpec();
-		bOpeningPass = Player && !FormationLeader.IsValid() && Spec.CruiseSpeed * CatchUpSpeedMultiplier >= OpeningPassMinSpeed
+		// Only for pilots that start behind the player's shoulder line: one already in front will be seen anyway.
+		const bool bBehindPlayer = Player && FVector::DotProduct(Ship.GetActorLocation() - Player->GetActorLocation(), Player->GetActorForwardVector()) < 0.f;
+		bOpeningPass = Player && bBehindPlayer && !FormationLeader.IsValid() && Spec.CruiseSpeed * CatchUpSpeedMultiplier >= OpeningPassMinSpeed
 			&& Ship.GetRole() != ETDEnemyRole::Carrier;
 		OpeningPassTime = 0.f;
 	}
@@ -269,6 +272,14 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 			const float Dist = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation());
 			bWant = bCatchingUp ? Dist > GunRange * 0.8f : Dist > CatchUpDistance;
 		}
+	}
+	// Never fight a control effect (Gravity Well, EMP...): no catch-up while weapons are blocked or while
+	// another owner's speed override is active, and drop ours if one arrives on top of it.
+	const UTDShipMovementComponent* Move = Ship.GetShipMovement();
+	const bool bExternal = Move && Move->HasSpeedOverride() && Move->GetActiveSpeedOverrideOwner() != TDEnemyAIOverride;
+	if (bExternal || !Ship.CanFire())
+	{
+		bWant = false;
 	}
 	if (bWant && !bCatchingUp)
 	{
@@ -389,7 +400,10 @@ FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor
 	// so the fight happens on screen (the guns still aim at the ship itself).
 	// Only when coming from the side or the front: a pilot chasing a fleeing player just chases.
 	const bool bBesideOrAhead = FVector::DotProduct(InTarget.GetActorForwardVector(), (Ship.GetActorLocation() - InTarget.GetActorLocation()).GetSafeNormal()) > -0.3f;
-	if (CrossInFrontDistance > 0.f && bBesideOrAhead && &InTarget == UGameplayStatics::GetPlayerPawn(this, 0) && To.Size() > CrossInFrontDistance * 0.5f)
+	// Inside gun range the nose goes onto the ship itself, so the gun cone (measured to the ship) can line up.
+	const FTDEnemySpec& Spec = Ship.GetSpec();
+	const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
+	if (CrossInFrontDistance > 0.f && bBesideOrAhead && &InTarget == UGameplayStatics::GetPlayerPawn(this, 0) && To.Size() > GunRange)
 	{
 		Point += InTarget.GetActorForwardVector() * CrossInFrontDistance;
 	}
@@ -415,6 +429,13 @@ void ATDEnemyAIController::TryHeavyAttacks(ATDEnemyShip& Ship, AActor& InTarget)
 	for (const FTDEnemyAttackSpec* A : { &Spec.Heavy, &Spec.Heavy2 })
 	{
 		if (!A->IsValid() || A->Kind == ETDEnemyAttack::MineTrail || A->Kind == ETDEnemyAttack::LaunchFighters)
+		{
+			continue;
+		}
+		// A telegraphed attack must leave time to wind up AND peel away: never launch on the target's flight line.
+		// Not inside TelegraphMinDistance either: a pilot still turning shows a long time-to-impact while sitting
+		// right on top of its target.
+		if (A->IsTelegraphed() && (Dist < TelegraphMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds + BreakOffTimeToImpact + 0.5f))
 		{
 			continue;
 		}
@@ -464,14 +485,15 @@ void ATDEnemyAIController::TickFormation(ATDEnemyShip& Ship, float DeltaSeconds)
 	const bool bBoost = Along > 4000.f;
 	SteerToward(Ship, Dist > 3000.f ? Slot : Ahead, Throttle, bBoost);
 
-	// Fire with the leader, at our own target (packs strafe together).
+	// Fire at our own target whenever it is lined up and in range (packs strafe together, but a follower
+	// whose leader is busy elsewhere still shoots what is in front of it).
 	AActor* T = Target.Get();
-	const bool bFire = Leader->AreGunsFiring() && T;
-	if (bFire)
+	if (T && Ship.GetSpec().Guns.IsValid())
 	{
-		const FVector To = (T->GetActorLocation() - Ship.GetActorLocation()).GetSafeNormal();
-		const bool bLinedUp = FVector::DotProduct(To, Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Ship.GetSpec().Guns.ConeHalfAngleDeg * 1.5f));
-		Ship.SetGunsFiring(bLinedUp, T);
+		const FVector ToT = T->GetActorLocation() - Ship.GetActorLocation();
+		const float Cone = Ship.GetSpec().Guns.ConeHalfAngleDeg * (Leader->AreGunsFiring() ? 1.5f : 1.f);
+		const bool bLinedUp = FVector::DotProduct(ToT.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Cone));
+		Ship.SetGunsFiring(bLinedUp && ToT.Size() <= Ship.GetSpec().Guns.Range, T);
 	}
 	else
 	{
@@ -490,12 +512,17 @@ void ATDEnemyAIController::TickApproach(ATDEnemyShip& Ship, float DeltaSeconds)
 	const FTDEnemySpec& Spec = Ship.GetSpec();
 	const float Dist = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation());
 
-	Ship.SetGunsFiring(false, nullptr);
 	if (bOpeningPass)
 	{
 		SteerToward(Ship, GetOpeningPassPoint(), 1.f, false);
+		// Take the shot if the target happens to be lined up on the way.
+		const FVector ToT = T->GetActorLocation() - Ship.GetActorLocation();
+		const bool bInCone = Spec.Guns.IsValid() && ToT.Size() <= Spec.Guns.Range
+			&& FVector::DotProduct(ToT.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Spec.Guns.ConeHalfAngleDeg));
+		Ship.SetGunsFiring(bInCone, T);
 		return;
 	}
+	Ship.SetGunsFiring(false, nullptr);
 	SteerToward(Ship, GetAimPoint(Ship, *T), 1.f, Dist > Spec.EngageRange * 2.f);
 
 	if (Dist <= Spec.EngageRange)
@@ -517,7 +544,12 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 	const FVector To = Aim - Ship.GetActorLocation();
 	const float Dist = To.Size();
 
-	SteerToward(Ship, Aim, 0.85f, false);
+	// Full throttle until well inside gun range: at cruise a fighter only matches a crossing player's speed
+	// and flies alongside it without ever lining up.
+	const float GunRangeForThrottle = Spec.Guns.IsValid() ? Spec.Guns.Range : Spec.EngageRange;
+	// Not on a head-on pass (closing fast), where the extra speed would only shorten the firing window.
+	const bool bNeedsSpeed = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation()) > GunRangeForThrottle * 0.7f && TimeToImpact(Ship, *T) > 2.f;
+	SteerToward(Ship, Aim, bNeedsSpeed ? 1.f : 0.85f, false);
 
 	// Guns: only when lined up and in range, so shots are readable and dodgeable.
 	if (Spec.Guns.IsValid())
@@ -530,13 +562,16 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 	TryHeavyAttacks(Ship, *T);
 
 	const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
-	if (!bRunReachedGunRange && Dist <= GunRange)
+	if (!bRunReachedGunRange && FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation()) <= GunRange)
 	{
 		bRunReachedGunRange = true;
 		StateTime = 0.f;	// the run's clock starts once we're actually shooting
 	}
 	// Peel away before a collision: time-to-impact, not a fixed distance (head-on closing is ~13000 cm/s).
-	const bool bTooClose = Dist < Spec.BreakOffRange || TimeToImpact(Ship, *T) < BreakOffTimeToImpact;
+	// Time-to-impact only counts once the run is inside gun range: head-on closing is 12 000+ cm/s, and a
+	// rule that fires outside gun range ends the run before a single shot.
+	const float ShipDist = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation());
+	const bool bTooClose = ShipDist < Spec.BreakOffRange || (bRunReachedGunRange && TimeToImpact(Ship, *T) < BreakOffTimeToImpact);
 	const bool bTooLong = bRunReachedGunRange && Spec.AttackRunMaxSeconds > 0.f && StateTime > Spec.AttackRunMaxSeconds;
 	if ((bTooClose || bTooLong) && !Ship.IsTelegraphing())
 	{
@@ -544,7 +579,9 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 		const FVector Away = (Ship.GetActorLocation() - T->GetActorLocation()).GetSafeNormal();
 		const FVector Side = Rng.FRand() < 0.5f ? Ship.GetActorRightVector() : -Ship.GetActorRightVector();
 		FVector Peel = Side + Away * 0.6f + Ship.GetActorUpVector() * (Rng.FRand() - 0.5f);
-		if (CrossInFrontDistance > 0.f && T == UGameplayStatics::GetPlayerPawn(this, 0))
+		// Only from beside or in front: a pursuer that peeled forward would fly through the player.
+		const bool bFromBesideOrAhead = FVector::DotProduct(T->GetActorForwardVector(), -Away) < 0.3f;
+		if (CrossInFrontDistance > 0.f && bFromBesideOrAhead && T == UGameplayStatics::GetPlayerPawn(this, 0))
 		{
 			Peel += T->GetActorForwardVector() * 0.8f;	// peel out ahead of the player, so the re-approach starts on screen
 		}
@@ -571,7 +608,9 @@ void ATDEnemyAIController::TickGunship(ATDEnemyShip& Ship, AActor& InTarget, flo
 	const float Dist = FVector::Dist(InTarget.GetActorLocation(), Ship.GetActorLocation());
 	const float Hold = Spec.EngageRange * GunshipHoldRangeFraction;
 	const float Throttle = Dist > Spec.EngageRange ? 1.f : (Dist > Hold ? 0.5f : 0.f);
-	SteerToward(Ship, GetAimPoint(Ship, InTarget), Throttle, false);
+	// Face the target itself (no cross-in-front offset), with a small lead for the hull's turning lag so the
+	// nose stays inside the volley cone against a strafing player.
+	SteerToward(Ship, InTarget.GetActorLocation() + InTarget.GetVelocity() * GunshipTurnLeadSeconds, Throttle, false);
 	SetState(Dist <= Spec.EngageRange ? ETDEnemyAIState::AttackRun : ETDEnemyAIState::Approach);
 	if (State == ETDEnemyAIState::AttackRun)
 	{
