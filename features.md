@@ -522,10 +522,16 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
 See §7.
 - **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
   altitude data.
-- **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land"
-  within 120 m of the pad at or below 60% of the atmosphere speed cap; between 120 m and 400 m
-  while too fast the prompt reads "SLOW DOWN TO LAND"). Near the ground the ship levels out by
-  itself, so a hands-off arrival never crashes.
+- **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land").
+  - Within 120 m of the pad at or below 60% of the atmosphere speed cap, F lands directly
+    (aligning takes 1.5 to 4 s by distance).
+  - Within 400 m, holding F is an approach assist: it turns the nose onto the pad (150°/s), flies in
+    at up to 60 m/s, brakes at 30 m/s² but never below 15 m/s, and hands over to the landing 25 m
+    from the hover point. Releasing F, boost, hyperdrive, a switch, death or a retake ends it.
+    From 400 m the landing starts about 7 s after F and touchdown is at about 12 s.
+  - A ship that cannot assist and is too fast within 400 m gets "SLOW DOWN TO LAND".
+  - Near the ground the ship levels out by itself, so a hands-off arrival never crashes.
+  - The player pad carries the objective marker while in atmosphere and not yet landed.
 - **Landing and take-off:** auto-land (gear and canopy state exposed), wingmen land beside you, the
   exit hands off to first person, and boarding reverses it.
 
