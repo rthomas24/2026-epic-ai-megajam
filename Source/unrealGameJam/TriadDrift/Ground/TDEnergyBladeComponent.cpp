@@ -19,6 +19,22 @@
 
 namespace TDBlade
 {
+	/** Props the blade can break although they're on no team (crystals, conduits): tagged by the prop. */
+	static const FName BreakableTag(TEXT("TD.BladeBreakable"));
+
+	/** Hostiles plus anything tagged blade-breakable (never a friendly: the tag is only on neutral props). */
+	static void GatherTargets(UTDCombatRegistry* Registry, ETDTeam Team, TArray<AActor*>& Out, bool bIncludeProjectiles = false)
+	{
+		Registry->GetHostilesOf(Team, Out, bIncludeProjectiles);
+		for (const TWeakObjectPtr<AActor>& A : Registry->GetAll())
+		{
+			if (A.IsValid() && A->ActorHasTag(BreakableTag) && UTDStatics::GetTeam(A.Get()) == ETDTeam::Neutral)
+			{
+				Out.AddUnique(A.Get());
+			}
+		}
+	}
+
 	/** Distance from P to the segment AB. */
 	static float PointSegmentDistance(const FVector& P, const FVector& A, const FVector& B)
 	{
@@ -307,7 +323,7 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 	{
 		TArray<AActor*> Hostiles;
-		Registry->GetHostilesOf(GetOwnerTeam(), Hostiles);
+		TDBlade::GatherTargets(Registry, GetOwnerTeam(), Hostiles);
 		for (AActor* H : Hostiles)
 		{
 			if (!H || H == Owner)
@@ -370,7 +386,7 @@ void UTDEnergyBladeComponent::NotifyOwnerLanded()
 	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 	{
 		TArray<AActor*> Hostiles;
-		Registry->GetHostilesOf(GetOwnerTeam(), Hostiles, true);
+		TDBlade::GatherTargets(Registry, GetOwnerTeam(), Hostiles, true);
 		const TArray<AActor*> Victims = Hostiles; // damage can unregister actors
 		for (AActor* H : Victims)
 		{
@@ -403,7 +419,7 @@ bool UTDEnergyBladeComponent::DashStrike(FVector Direction, float Distance)
 	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 	{
 		TArray<AActor*> Hostiles;
-		Registry->GetHostilesOf(GetOwnerTeam(), Hostiles);
+		TDBlade::GatherTargets(Registry, GetOwnerTeam(), Hostiles);
 		const TArray<AActor*> Victims = Hostiles;
 		for (AActor* H : Victims)
 		{
@@ -431,7 +447,7 @@ int32 UTDEnergyBladeComponent::HitArc(float Range, float ArcDegrees, float Damag
 	const float CosHalf = FMath::Cos(FMath::DegreesToRadians(ArcDegrees * 0.5f));
 
 	TArray<AActor*> Hostiles;
-	Registry->GetHostilesOf(GetOwnerTeam(), Hostiles);
+	TDBlade::GatherTargets(Registry, GetOwnerTeam(), Hostiles);
 	const TArray<AActor*> Candidates = Hostiles;
 	int32 Hits = 0;
 	for (AActor* H : Candidates)
