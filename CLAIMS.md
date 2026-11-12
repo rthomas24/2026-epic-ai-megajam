@@ -18,7 +18,7 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 ## Current Nick-owned reservations — November 12, 2026
 
-**NICK PAUSE / VERIFIED SCOPED RESUMES — November12.** The17:51EST pause remains the baseline; later direct Nick instructions resume ONLY Hero matched capture/verification, the selected107s Suno main-menu theme, Lancer Structural A02, and the existing approval-gated character campaign (native goal paused-to-active event18:02EST verified). No global resume or unrelated work. Existing claims remain reserved; HUD development/activation, Combat/Verdance propagation, other craft/characters and unapproved integration retain their gates. Lead processes the queue serially and grants each heavy operation separately; fresh>=4GiB is still required for Unreal. Ryan engineering is unaffected.
+**RECOVERY AUDIT HOLD — November12,18:11EST.** Nick explicitly authorizes ONE-TIME investigation, status collection, lightweight coordination, non-destructive verification and a proposed recovery report only (NOT /goal). Finish only an already-running operation safely, freeze/save its checkpoint, then stop. No new modeling/redesign/asset production, heavy Unreal/Blender run, gameplay implementation, merge, or restart of ended goals. Prior scoped-resume instructions below are history, not current execution grants. Keep all claims/branches/worktrees/uncommitted files. Await Nick review of the recovery report before reorganized production. Hero Capture04 already finished0; verification/publication of that existing checkpoint may finish, no retry. Ryan engineering is unaffected.
 
 Lead-maintained current ownership; the historical Lead claim above is marked released.
 All Ryan claims below are preserved unchanged. Worktree paths are on Nick's PC
@@ -44,7 +44,7 @@ activated by these rows. Audio PrototypeV1 uses the approved existing-library so
 
 ## Nick task board — checkpoint November 12, 2026, 12:52 EST
 
-**Current Lead sequence (Nov12):** finish Hero capture checkpoint first; then menu-music hook/native preflight; then the prepared character base export and Lancer A02 according to actual readiness. Do not silently drop or substitute any deliverable. Every native launch requires a fresh unchanged RAM/zero-heavy guard and explicit Lead grant. All native steps remain one-at-a-time.
+**Current Lead sequence:** RECOVERY AUDIT ONLY. Collect saved checkpoints, inspect actual assets/PRs/engineering status, publish the proposed recovery report, then wait for Nick. All prior execution queues remain preserved but held. No new native launch or feature integration.
 
 Only Lead updates these task states. `done` requires verified main integration;
 branch-verified work awaiting shared integration stays in progress or queued.
