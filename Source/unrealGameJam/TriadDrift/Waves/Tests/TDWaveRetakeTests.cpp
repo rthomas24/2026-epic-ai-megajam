@@ -6,6 +6,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Waves/TDWarpInMarker.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -105,6 +107,26 @@ bool FTDRetakeLocksFollowState::RunTest(const FString& Parameters)
 		W.Advance(0.3f);
 		TestTrue(TEXT("and re-asserted within 0.3 s whatever the order"), LockReason(W).Contains(TEXT("DOMINION")));
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWarpInTelegraphShows, "TriadDrift.Waves.WarpInTelegraphIsVisible", TD_TEST_FLAGS)
+bool FTDWarpInTelegraphShows::RunTest(const FString& Parameters)
+{
+	using namespace TDWaveRetakeTest;
+	// Review minor 8: with no EnemyWarpIn VFX authored, each warp-in point still shows a placeholder ring.
+	FTDTestWorld W;
+	ATDWaveDirector* D = Director(W);
+	D->TravelFX = nullptr;
+	D->StartWave(0);
+	W.Advance(0.1f);
+	TArray<TWeakObjectPtr<ATDWarpInMarker>> First;
+	for (TActorIterator<ATDWarpInMarker> It(W.GetWorld()); It; ++It) { First.Add(*It); }
+	TestTrue(*FString::Printf(TEXT("a ring at each announced warp-in point (%d)"), First.Num()), First.Num() >= 1);
+	W.Advance(D->WarpInSeconds + 0.5f);
+	int32 Left = 0;
+	for (const TWeakObjectPtr<ATDWarpInMarker>& M : First) { Left += (M.IsValid() && !M->IsActorBeingDestroyed()) ? 1 : 0; }
+	TestEqual(TEXT("those rings are gone once their ships arrived"), Left, 0);
 	return true;
 }
 

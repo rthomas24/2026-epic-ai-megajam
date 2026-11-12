@@ -2,6 +2,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
 #include "TriadDrift/Waves/TDWaveEnemy.h"
+#include "TriadDrift/Waves/TDWarpInMarker.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -221,6 +222,10 @@ void ATDWaveDirector::BeginPlay()
 	Instances().AddUnique(this);
 	Rng.Initialize(RandomSeed);
 	LoadWaveTable();
+	if (!TravelFX)
+	{
+		TravelFX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));	// Nick's EnemyWarpIn cue
+	}
 
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
@@ -468,6 +473,22 @@ void ATDWaveDirector::FireTips(const FTDWaveDef& Wave)
 }
 
 // ----------------------------------------------------------------------------------------- spawning
+
+void ATDWaveDirector::SpawnWarpInMarker(const FVector& Location, float EnemyRadius)
+{
+	UWorld* World = GetWorld();
+	if (!World || !bWarpInPlaceholder)
+	{
+		return;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	if (ATDWarpInMarker* M = World->SpawnActor<ATDWarpInMarker>(ATDWarpInMarker::StaticClass(), Location, FRotator::ZeroRotator, Params))
+	{
+		const AActor* Anchor = GetSpawnAnchor();
+		M->Begin(WarpInSeconds, FMath::Max(2500.f, EnemyRadius * 6.f), Anchor ? Anchor->GetActorLocation() : Location + FVector::ForwardVector);
+	}
+}
 
 AActor* ATDWaveDirector::GetSpawnAnchor() const
 {
@@ -888,6 +909,11 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 				if (TravelFX)
 				{
 					UTDStatics::PlayCue(this, TravelFX->EnemyWarpIn, P.Location, P.Facing);
+				}
+				if (!TravelFX || TravelFX->EnemyWarpIn.VFX.IsNull())
+				{
+					// Placeholder telegraph until Nick's VFX lands: the player must see where a wave arrives.
+					SpawnWarpInMarker(P.Location, Spec.IsValid() ? Spec.Radius : 300.f);
 				}
 			}
 			if (P.Remaining <= 0.f)
