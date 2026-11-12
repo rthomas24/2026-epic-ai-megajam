@@ -1,0 +1,30 @@
+[
+  {
+    "Path": "Content\\TriadDrift\\UI\\TriadHUD\\WBP_ShipCard.uasset",
+    "Hash": "500D0FA7D8666131FA8AF887DE6A5B4AAE9A95DA5A2DB91D66842C47FFC5DBAE"
+  },
+  {
+    "Path": "Content\\TriadDrift\\UI\\TriadHUD\\WBP_SpaceHUD.uasset",
+    "Hash": "15DE66AE6E8DCF03C603A0CC488F587356BFEE088650CC6159AD083DA98274DC"
+  },
+  {
+    "Path": "ArtSource\\UI\\TriadHUD\\Unreal\\review\\01-squad.png",
+    "Hash": "FBCB3A17ADAF4B5D02C8040559742519E1A977A2F045DF33921D30789D5CFEEA"
+  },
+  {
+    "Path": "ArtSource\\UI\\TriadHUD\\Unreal\\review\\02-warning.png",
+    "Hash": "9700853089070227BD0B61035BC9F6FB21F8F94D28C3D1D27BA769ED04CEC360"
+  },
+  {
+    "Path": "ArtSource\\UI\\TriadHUD\\Unreal\\review\\03-720p-respawn.png",
+    "Hash": "D40C0865DDC8FC211A6B03814CF257B52888E57A7C1CD9D40C83DD9D2BA01EB4"
+  },
+  {
+    "Path": "ArtSource\\UI\\TriadHUD\\Unreal\\review\\04-ultrawide.png",
+    "Hash": "C3A321B3D65822E14E7CA09C44F71D78232714E05C55831B86267166FEBE267E"
+  },
+  {
+    "Path": "ArtSource\\UI\\TriadHUD\\Unreal\\review\\05-unavailable.png",
+    "Hash": "CC584F9C69A60F0E45ECB1D342BBA144C2E7F708E256447A6D5F7793352C83CC"
+  }
+]

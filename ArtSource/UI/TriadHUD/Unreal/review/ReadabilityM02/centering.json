@@ -1,0 +1,24 @@
+[
+  {
+    "File": "04-bastion-cooldown-1080p.png",
+    "Width": 1920,
+    "Height": 1080,
+    "CaptionMinX": 867,
+    "CaptionMaxX": 1052,
+    "CaptionInkCenterX": 959.5,
+    "ReticleAnchorX": 960,
+    "ErrorPixels": -0.5,
+    "Pixels": 1048
+  },
+  {
+    "File": "05-rift-low-health-720p.png",
+    "Width": 1280,
+    "Height": 720,
+    "CaptionMinX": 579,
+    "CaptionMaxX": 699,
+    "CaptionInkCenterX": 639,
+    "ReticleAnchorX": 640,
+    "ErrorPixels": -1,
+    "Pixels": 388
+  }
+]
