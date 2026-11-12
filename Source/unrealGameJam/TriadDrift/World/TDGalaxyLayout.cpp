@@ -12,6 +12,8 @@
 #include "TriadDrift/Core/TDStatics.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
+#include "DrawDebugHelpers.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -256,8 +258,11 @@ void ATDGalaxyLayout::Build()
 		WorldSys->SetPlayBounds(BoundsCenter, Layout.BoundaryRadius);
 	}
 
-	BuildAsteroids();
-	BuildRuins();
+	if (!TravelFX)
+	{
+		TravelFX = LoadObject<UTDTravelFX>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Travel_FX.DA_Travel_FX"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
+	BuildInstances(/*bRegisterObstacles*/ true);
 	BuildPlanets();
 	BuildGates();
 
@@ -265,7 +270,8 @@ void ATDGalaxyLayout::Build()
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		Dominion = GetWorld()->SpawnActor<ATDDominion>(ATDDominion::StaticClass(), Layout.Dominion * GetActorTransform(), Params);
+		UClass* Cls = DominionClass ? DominionClass.Get() : ATDDominion::StaticClass();
+		Dominion = GetWorld()->SpawnActor<ATDDominion>(Cls, Layout.Dominion * GetActorTransform(), Params);
 	}
 	else
 	{
@@ -322,15 +328,38 @@ void ATDGalaxyLayout::SetHidePlaceholderDressing(bool bHide)
 	}
 }
 
-void ATDGalaxyLayout::BuildAsteroids()
+bool ATDGalaxyLayout::IsInKeepOut(const FVector& LocalPoint, float Margin) const
 {
-	UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this);
+	const float R = AsteroidKeepOut + Margin;
+	auto Near = [&](const FVector& P) { return FVector::DistSquared(P, LocalPoint) <= FMath::Square(R); };
+	if (Near(Layout.PlayerStart.GetLocation())) { return true; }
+	for (const TPair<FName, FTransform>& RP : Layout.ReturnPoints)
+	{
+		if (Near(RP.Value.GetLocation())) { return true; }
+	}
+	for (const FTDGatePairSpec& G : Layout.Gates)
+	{
+		if (Near(G.A.GetLocation()) || Near(G.B.GetLocation())) { return true; }
+	}
+	return false;
+}
+
+void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
+{
+	// Idempotent: the editor preview and BeginPlay both build; never stack instances.
+	Asteroids->ClearInstances();
+	RuinBlocks->ClearInstances();
+	if (!AsteroidMesh.IsNull()) { if (UStaticMesh* Art = AsteroidMesh.LoadSynchronous()) { Asteroids->SetStaticMesh(Art); } }
+	if (!RuinMesh.IsNull()) { if (UStaticMesh* Art = RuinMesh.LoadSynchronous()) { RuinBlocks->SetStaticMesh(Art); } }
+
+	UTDWorldSubsystem* WorldSys = bRegisterObstacles ? UTDWorldSubsystem::Get(this) : nullptr;
 	const FTransform Xf = GetActorTransform();
+	TArray<FSphere> Placed;
 	for (const FTDAsteroidFieldSpec& F : Layout.AsteroidFields)
 	{
 		FRandomStream Rng(F.Seed);
-		int32 Placed = 0;
-		for (int32 Attempt = 0; Placed < F.Count && Attempt < F.Count * 6; ++Attempt)
+		int32 Count = 0;
+		for (int32 Attempt = 0; Count < F.Count && Attempt < F.Count * 8; ++Attempt)
 		{
 			FVector Offset = Rng.GetUnitVector() * F.Radius * FMath::Pow(Rng.FRand(), 0.6f);
 			Offset.Z *= F.Flatten;
@@ -339,35 +368,87 @@ void ATDGalaxyLayout::BuildAsteroids()
 				continue;
 			}
 			const float Size = FMath::Lerp(F.MinSize, F.MaxSize, FMath::Square(Rng.FRand()));	// mostly small, a few big
-			const FVector World = Xf.TransformPosition(F.Center + Offset);
-			if (WorldSys && WorldSys->IsInsideObstacle(World, Size))
+			const float Radius = Size * 0.5f;
+			const FVector Local = F.Center + Offset;
+			if (IsInKeepOut(Local, Radius))
 			{
-				continue;	// no overlaps
+				continue;	// gates, return points and the player start stay clear
 			}
-			const FVector Scale = FVector(Size / 100.f) * FVector(1.f + Rng.FRand() * 0.6f, 1.f, 0.7f + Rng.FRand() * 0.4f);
-			Asteroids->AddInstance(FTransform(FRotator(Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180)), F.Center + Offset, Scale));
-			if (WorldSys) { WorldSys->AddObstacle(World, 50.f * Scale.GetMax()); }	// basic sphere = 100 cm across
-			++Placed;
+			bool bOverlap = false;
+			for (const FSphere& S : Placed) { if (FVector::DistSquared(S.Center, Local) < FMath::Square(S.W + Radius)) { bOverlap = true; break; } }
+			if (bOverlap) { continue; }
+			// Uniform scale: the visible rock matches its sphere collision exactly.
+			Asteroids->AddInstance(FTransform(FRotator(Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180)), Local, FVector(Size / 100.f)));
+			Placed.Add(FSphere(Local, Radius));
+			if (WorldSys) { WorldSys->AddObstacle(Xf.TransformPosition(Local), Radius); }
+			++Count;
 		}
 	}
-	if (UMaterialInstanceDynamic* MID = Asteroids->CreateDynamicMaterialInstance(0))
+	if (AsteroidMesh.IsNull())
 	{
-		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.25f, 0.2f, 0.3f));
+		UTDStatics::TintPlaceholder(Asteroids, FLinearColor(0.25f, 0.2f, 0.3f), 0.f);
 	}
-}
 
-void ATDGalaxyLayout::BuildRuins()
-{
-	UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this);
 	for (const FTDRuinSpec& R : Layout.Ruins)
 	{
 		RuinBlocks->AddInstance(FTransform(R.Rotation, R.Location, R.Extent * 2.f / 100.f));
-		if (WorldSys) { WorldSys->AddObstacle(GetActorTransform().TransformPosition(R.Location), R.Extent.GetMax()); }
+		if (WorldSys) { WorldSys->AddObstacle(Xf.TransformPosition(R.Location), R.Extent.GetMax()); }
 	}
-	if (UMaterialInstanceDynamic* MID = RuinBlocks->CreateDynamicMaterialInstance(0))
+	if (RuinMesh.IsNull())
 	{
-		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.35f, 0.35f, 0.4f));
+		UTDStatics::TintPlaceholder(RuinBlocks, FLinearColor(0.35f, 0.35f, 0.4f), 0.f);
 	}
+}
+
+void ATDGalaxyLayout::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	UWorld* World = GetWorld();
+	if (!World || World->IsGameWorld())
+	{
+		return;	// at runtime BeginPlay builds everything (with obstacles and actors)
+	}
+	// Editor: show the belt and ruins for real, and sketch the rest, so the map can be dressed around it.
+	BuildInstances(/*bRegisterObstacles*/ false);
+	DrawEditorPreview();
+}
+
+void ATDGalaxyLayout::DrawEditorPreview() const
+{
+#if WITH_EDITOR && ENABLE_DRAW_DEBUG
+	UWorld* World = GetWorld();
+	if (!World || World->IsGameWorld() || !bEditorPreview)
+	{
+		return;
+	}
+	FlushPersistentDebugLines(World);
+	const FTransform Xf = GetActorTransform();
+	for (const FTDPlanetSpec& P : Layout.Planets)
+	{
+		const FVector C = Xf.TransformPosition(P.Location);
+		DrawDebugSphere(World, C, P.PlanetRadius, 24, P.Color.ToFColor(true), true, -1.f, 0, 200.f);
+		DrawDebugSphere(World, C, P.AtmosphereRadius, 24, FColor::Cyan, true, -1.f, 0, 60.f);
+	}
+	for (const FTDGatePairSpec& G : Layout.Gates)
+	{
+		const FTransform A = G.A * Xf;
+		const FTransform B = G.B * Xf;
+		DrawDebugCircle(World, A.GetLocation(), G.Radius, 32, FColor::Magenta, true, -1.f, 0, 120.f, A.GetUnitAxis(EAxis::Y), A.GetUnitAxis(EAxis::Z), false);
+		DrawDebugCircle(World, B.GetLocation(), G.Radius, 32, FColor::Magenta, true, -1.f, 0, 120.f, B.GetUnitAxis(EAxis::Y), B.GetUnitAxis(EAxis::Z), false);
+		DrawDebugLine(World, A.GetLocation(), B.GetLocation(), FColor(255, 0, 255, 60), true, -1.f, 0, 20.f);
+	}
+	const FTransform D = Layout.Dominion * Xf;
+	DrawDebugBox(World, D.GetLocation(), FVector(30000.f, 8000.f, 5000.f), D.GetRotation(), FColor::Red, true, -1.f, 0, 300.f);
+	for (const TPair<FName, FTransform>& RP : Layout.ReturnPoints)
+	{
+		const FTransform T = RP.Value * Xf;
+		DrawDebugDirectionalArrow(World, T.GetLocation(), T.GetLocation() + T.GetUnitAxis(EAxis::X) * 8000.f, 2000.f, FColor::Green, true, -1.f, 0, 150.f);
+		DrawDebugString(World, T.GetLocation() + FVector(0, 0, 2000.f), RP.Key.ToString(), nullptr, FColor::Green, -1.f);
+	}
+	const FTransform PS = Layout.PlayerStart * Xf;
+	DrawDebugDirectionalArrow(World, PS.GetLocation(), PS.GetLocation() + PS.GetUnitAxis(EAxis::X) * 8000.f, 2000.f, FColor::White, true, -1.f, 0, 150.f);
+	DrawDebugSphere(World, Xf.TransformPosition(Layout.BoundaryCenter), Layout.BoundaryRadius, 48, FColor(255, 255, 255, 40), true, -1.f, 0, 400.f);
+#endif
 }
 
 void ATDGalaxyLayout::BuildPlanets()
@@ -377,7 +458,8 @@ void ATDGalaxyLayout::BuildPlanets()
 	for (const FTDPlanetSpec& P : Layout.Planets)
 	{
 		const FTransform T(FRotator::ZeroRotator, GetActorTransform().TransformPosition(P.Location));
-		ATDPlanetAtmosphere* Planet = GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(ATDPlanetAtmosphere::StaticClass(), T, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		UClass* Cls = PlanetClass ? PlanetClass.Get() : ATDPlanetAtmosphere::StaticClass();
+		ATDPlanetAtmosphere* Planet = GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(Cls, T, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (!Planet) { continue; }
 		Planet->Configure(P.Destination, P.ReturnPoint, P.PlanetRadius, P.AtmosphereRadius, P.Color);
 		Planet->FinishSpawning(T);
@@ -392,9 +474,15 @@ void ATDGalaxyLayout::BuildGates()
 		const FTDGatePairSpec& G = Layout.Gates[i];
 		const FTransform TA = G.A * GetActorTransform();
 		const FTransform TB = G.B * GetActorTransform();
-		ATDPortalGate* A = GetWorld()->SpawnActorDeferred<ATDPortalGate>(ATDPortalGate::StaticClass(), TA, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-		ATDPortalGate* B = GetWorld()->SpawnActorDeferred<ATDPortalGate>(ATDPortalGate::StaticClass(), TB, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		UClass* Cls = GateClass ? GateClass.Get() : ATDPortalGate::StaticClass();
+		ATDPortalGate* A = GetWorld()->SpawnActorDeferred<ATDPortalGate>(Cls, TA, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		ATDPortalGate* B = GetWorld()->SpawnActorDeferred<ATDPortalGate>(Cls, TB, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (!A || !B) { continue; }
+		for (ATDPortalGate* Gate : { A, B })
+		{
+			if (TravelFX) { Gate->TravelFX = TravelFX; }
+			if (!GateFrameMesh.IsNull()) { Gate->FrameMeshOverride = GateFrameMesh; }
+		}
 		A->GateId = G.IdA;
 		B->GateId = G.IdB;
 		A->Radius = B->Radius = G.Radius;

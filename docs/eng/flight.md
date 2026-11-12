@@ -102,6 +102,21 @@ On the controller:
 - `ATDShip::SetShipVisuals(UTDShipVisuals*)` with a mesh replaces the hull and hides the placeholder parts. The mesh should be exported +X forward.
 - `ATDSpacecraft::SetPlaceholderPartsVisible(false)` hides them for other art paths (T4's enemies).
 
+**Presentation (`UTDShipVisuals`, Nick's `/Game/TriadDrift/Presentation/DA_<Ship>_Visuals`; T3 assigns it through `ATDShip::SetShipVisuals`):**
+- **Assembly:** `Mesh` alone, `Mesh` + `Parts`, or `Parts` only.
+  - Each part is a visual-only `UStaticMeshComponent`: no collision, no tick.
+  - A part attaches to `ParentSocket` on the primary mesh (the hull mesh, or the first part when there are only parts), or to the ship root.
+  - `FindVisualPart(Name)` returns a part for gameplay hooks.
+- **Placeholders** (hull cone, wings, engine block) hide as soon as any mesh or part is set.
+- **Teardown:** `SetShipVisuals(nullptr)` or a new asset tears the parts down and restores the placeholder. Projectiles still only hit the hull sphere.
+- **Cues:**
+  - `EngineTrail` runs as a loop while visuals are assigned.
+  - `BoostStart` plays at boost start, with `BoostLoop` looping while boosting.
+  - `DriftLoop` loops while drifting; `DriftRelease` plays on an earned burst.
+  - `CollisionScrape` plays on glancing impacts.
+  - Engine cues attach to a part named `Engine`, else the hull's `Engine` socket, else the hull.
+  - `GetCueRequestCount(Slot)` exposes the requests for tests.
+
 ### Input map (ENG-02)
 
 | Action | KB/M | Gamepad | Routed to |
@@ -132,6 +147,7 @@ Other controller behaviour:
 - LeftAlt isn't bound, because Alt+Tab would leave the game.
 - **Aim device:** moving the gamepad stick takes over aim and recentres the mouse reticle. The mouse takes aim back only after a real movement (3 or more counts).
 - **Contexts:** `SetFlightContext(Space | Atmosphere)` swaps the IMC_Space and IMC_Atmosphere layers.
+- **On foot:** while the possessed pawn isn't a spacecraft (T5's first-person character), all three space mapping contexts are removed, and they come back on re-boarding.
 - **Disabling:** `SetSpaceInputEnabled(false)` releases held buttons and pushes a neutral cruise input once, then leaves the ship's input alone for cutscenes and autopilots.
 - **Ship switches:** held fire buttons carry across. The triggers are released on the old ship and re-pressed on the new one. The W top-speed bonus is cleared from the old ship.
 

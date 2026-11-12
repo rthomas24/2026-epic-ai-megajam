@@ -96,7 +96,6 @@ void ATDWingmanAIController::SetState(ETDWingmanState NewState)
 
 void ATDWingmanAIController::SetFocusTarget(AActor* Target)
 {
-	FocusTarget = Target;
 	if (Target && State != ETDWingmanState::Downed)
 	{
 		CurrentTarget = Target;
@@ -156,7 +155,12 @@ void ATDWingmanAIController::NotifyLeaderTeleported()
 	const FVector Slot = S->GetFormationSlotLocation(ShipId);
 	if (FVector::Dist(Ship->GetActorLocation(), Slot) > TeleportFollowDistance * 0.5f)
 	{
-		TDSquad::TeleportShip(Ship, Slot, Leader->GetActorRotation(), /*bKeepSpeed*/ true);
+		// Arrive IN FRONT of the leader's exit point (a portal or gate plane is behind it): a slot
+		// 1600 cm behind would sit inside the disc and send us straight back through (T4 W2).
+		const FVector Fwd = Leader->GetActorForwardVector();
+		const float Behind = FMath::Max(0.f, FVector::DotProduct(Leader->GetActorLocation() - Slot, Fwd));
+		const FVector Arrival = Slot + Fwd * (Behind + PortalExitClearance);
+		TDSquad::TeleportShip(Ship, TDSquad::FindSafeLocation(this, Arrival, Ship), Leader->GetActorRotation(), /*bKeepSpeed*/ true);
 		TDSquad::SetVelocity(Ship, TDSquad::GetVelocity(Leader));
 		CurrentTarget.Reset();
 		SetState(ETDWingmanState::Formation);
@@ -437,7 +441,9 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 	float TargetSpeed;
 	bool bBoost = false;
 	const bool bInFront = FVector::DotProduct(Fwd, AimDir) > 0.f;
-	if (Dist < BreakOffDistance && bInFront)
+	// M7: break off at a distance that accounts for the target's size (a carrier is ~1800 cm across).
+	const float BreakOff = BreakOffDistance + TDSquad::GetBoundsRadius(Target);
+	if (Dist < BreakOff && bInFront)
 	{
 		const FVector Side = FVector::CrossProduct(AimDir, Ship->GetActorUpVector()).GetSafeNormal();
 		SteerDir = (Fwd + Side * 0.8f + Ship->GetActorUpVector() * 0.4f).GetSafeNormal();
@@ -471,7 +477,8 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 	const float Err = FMath::DegreesToRadians(AimError.Pitch);
 	const FVector Perp = U * FMath::Cos(Phi) + V * FMath::Sin(Phi);
 	const FVector ShotDir = (AimDir * FMath::Cos(Err) + Perp * FMath::Sin(Err)).GetSafeNormal();
-	TDSquad::SetAim(Ship, Target, ShotDir);
+	// m7: direction only (no explicit aim target), so the weapon's aim assist can't cancel the 2-4 deg error.
+	TDSquad::SetAim(Ship, nullptr, ShotDir);
 
 	// Triggers: only with the nose on target, in range, not overheated, and not through the player.
 	const float NoseAngle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Fwd, AimDir), -1.f, 1.f)));
@@ -491,7 +498,13 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 	bool bSecondary = false;
 	if (T < SecondaryReleaseTime)
 	{
-		bSecondary = true; // finish the hold we started (charge weapons fire on release)
+		// Finish the hold we started (charge weapons fire on release), unless the shot is no longer
+		// clear (m8: e.g. the player flew into the line): then release early and let it go.
+		bSecondary = bClearShot;
+		if (!bClearShot)
+		{
+			SecondaryReleaseTime = 0.0;
+		}
 	}
 	else if (bClearShot && T >= NextSecondaryTime && TDSquad::GetAmmo(Ship, ETDWeaponSlot::Secondary) > 0)
 	{
@@ -558,7 +571,11 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 	{
 		if (AActor* Focus = S->GetFocusTarget())
 		{
-			return Focus;
+			// m9: a focus target beyond the leash would flip Engage/Regroup; ignore it until it's in reach.
+			if (!Leader || FVector::Dist(Focus->GetActorLocation(), Leader->GetActorLocation()) <= LeashDistance)
+			{
+				return Focus;
+			}
 		}
 	}
 
@@ -570,7 +587,9 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 
 	const FVector SelfLoc = Ship->GetActorLocation();
 	const FVector Anchor = Leader ? Leader->GetActorLocation() : SelfLoc;
-	const AActor* PlayerAttacker = Leader ? TDSquad::GetLastAttacker(Leader) : nullptr;
+	// m6: only a RECENT attacker counts as threatening the player.
+	const AActor* PlayerAttacker = (Leader && TDSquad::GetTimeSinceLastDamage(Leader) <= ThreatMemorySeconds)
+		? TDSquad::GetLastAttacker(Leader) : nullptr;
 
 	// What the other wingman is shooting (spread out unless the player is threatened).
 	const AActor* OtherWingTarget = nullptr;
@@ -613,7 +632,8 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 			const bool bAttacker = (H == PlayerAttacker);
 			const bool bCloseAndFacing = DistToAnchorSq < FMath::Square(ThreatRadius)
 				&& FVector::DotProduct(H->GetActorForwardVector(), (Anchor - HLoc).GetSafeNormal()) > 0.7f;
-			if ((bAttacker || bCloseAndFacing) && DistToAnchorSq < BestThreatDistSq)
+			// m6: one wingman is enough on a threat; the other keeps its own priorities.
+			if ((bAttacker || bCloseAndFacing) && H != OtherWingTarget && DistToAnchorSq < BestThreatDistSq)
 			{
 				BestThreatDistSq = DistToAnchorSq;
 				BestThreat = H;

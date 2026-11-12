@@ -13,6 +13,10 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Enemies/TDEnemyTurret.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
@@ -150,14 +154,15 @@ bool FTDWorldReactorPhases::RunTest(const FString& Parameters)
 	TestFalse(TEXT("reactor destroyed"), Reactor->IsAlive());
 	TestTrue(TEXT("ReactorKill highlight"), R.L->Highlights.Contains(ETDHighlightKind::ReactorKill));
 	TestTrue(TEXT("breakup started"), R.D->GetState() == ETDDominionState::Breakup);
-	TestEqual(TEXT("no Victory before the breakup plays"), R.GI->Travels.Num(), 0);
+	TestFalse(TEXT("no Victory before the breakup plays"), R.GI->Phases.Contains(ETDGamePhase::Victory));
 
 	R.W.Advance(R.D->BreakupSeconds - 0.2f);
-	TestEqual(TEXT("still breaking up"), R.GI->Travels.Num(), 0);
+	TestFalse(TEXT("still breaking up"), R.GI->Phases.Contains(ETDGamePhase::Victory));
 	R.W.Advance(2.5f);	// + the Director's ReactorKill slow-mo beat (game time runs slow for ~1 s)
-	TestTrue(TEXT("TravelTo(Victory)"), R.GI->Travels.Num() == 1 && R.GI->Travels[0] == ETDDestination::Victory);
+	TestTrue(TEXT("SetPhase(Victory)"), R.GI->Progress.Phase == ETDGamePhase::Victory);
 	R.W.Advance(2.f);
-	TestEqual(TEXT("Victory requested once"), R.GI->Travels.Num(), 1);
+	TestEqual(TEXT("Victory set once"), R.GI->Phases.FilterByPredicate([](ETDGamePhase P) { return P == ETDGamePhase::Victory; }).Num(), 1);
+	TestEqual(TEXT("no level travel (Victory is a phase on L_Galaxy)"), R.GI->Travels.Num(), 0);
 	return true;
 }
 
@@ -230,6 +235,60 @@ bool FTDWorldDirectorTags::RunTest(const FString& Parameters)
 	}
 	TestFalse(TEXT("reactor dead"), Reactor->IsAlive());
 	TestTrue(TEXT("player reactor kill -> ReactorKill"), R.L->Highlights.Contains(ETDHighlightKind::ReactorKill));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDominionVisuals, "TriadDrift.World.Dominion.VisualsReachReactorAndTurrets", TD_TEST_FLAGS)
+bool FTDWorldDominionVisuals::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.bDominionRevealed = true;
+	UTDDominionVisuals* DV = NewObject<UTDDominionVisuals>();
+	DV->ReactorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cone.Cone")));
+	DV->GeneratorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cone.Cone")));
+	UTDEnemyVisuals* TV = NewObject<UTDEnemyVisuals>();
+
+	ATDDominion* D = W.GetWorld()->SpawnActorDeferred<ATDDominion>(ATDDominion::StaticClass(), FTransform::Identity);
+	D->Visuals = DV;
+	D->TurretVisuals = TV;
+	D->MaxLaunchedAlive = 0;
+	D->FinishSpawning(FTransform::Identity);
+	W.Advance(D->WarpInSeconds + 0.2f);
+
+	const UStaticMeshComponent* RM = D->GetReactor() ? D->GetReactor()->FindComponentByClass<UStaticMeshComponent>() : nullptr;
+	TestTrue(TEXT("reactor uses the asset's ReactorMesh"), RM && RM->GetStaticMesh() && RM->GetStaticMesh()->GetName() == TEXT("Cone"));
+	const UStaticMeshComponent* GM = D->GetGenerators().Num() ? D->GetGenerators()[0]->FindComponentByClass<UStaticMeshComponent>() : nullptr;
+	TestTrue(TEXT("generator uses the asset's GeneratorMesh"), GM && GM->GetStaticMesh() && GM->GetStaticMesh()->GetName() == TEXT("Cone"));
+	TestTrue(TEXT("turrets get the turret visuals"), D->GetTurrets().Num() > 0 && D->GetTurrets()[0]->Visuals == TV);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldVictorySafe, "TriadDrift.World.Dominion.VictoryIsSafeAndSetOnce", TD_TEST_FLAGS)
+bool FTDWorldVictorySafe::RunTest(const FString& Parameters)
+{
+	FTDDominionTestRig R(true);
+	R.ArriveAndRaiseShields();
+	R.D->MaxLaunchedAlive = 10;
+	R.W.Advance(R.D->Stages[0].LaunchInterval);	// some fighters are out
+	const int32 FightersBefore = R.D->GetLaunchedAlive();
+	TestTrue(TEXT("fighters in the air before the kill"), FightersBefore > 0);
+
+	R.D->DebugDropShields();
+	ATDDominionReactor* Reactor = R.D->GetReactor();
+	for (int32 i = 0; i < 3; ++i)
+	{
+		R.W.Advance(Reactor->PhaseChangeInvulnerableSeconds + 0.1f);
+		R.Hit(Reactor, 99999.f);
+	}
+	TestFalse(TEXT("reactor dead"), Reactor->IsAlive());
+	R.W.Tick();
+	TestEqual(TEXT("every enemy fighter dies with the reactor"), R.D->GetLaunchedAlive(), 0);
+	TestTrue(TEXT("the squad can't be hurt during the breakup"), UTDStatics::GetHealth(R.Player)->IsInvulnerable());
+	TestEqual(TEXT("damage on the squad is ignored"), UTDStatics::ApplyTDDamage(R.Player, 50.f, ETDDamageKind::Energy, nullptr, nullptr), 0.f);
+
+	R.W.Advance(R.D->BreakupSeconds + 2.5f);
+	TestTrue(TEXT("phase set to Victory"), R.GI->Progress.Phase == ETDGamePhase::Victory && R.D->IsVictoryAccepted());
+	TestTrue(TEXT("squad still protected at the victory screen"), UTDStatics::GetHealth(R.Player)->IsInvulnerable());
 	return true;
 }
 

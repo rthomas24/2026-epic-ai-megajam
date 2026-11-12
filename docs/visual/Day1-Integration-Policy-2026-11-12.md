@@ -26,9 +26,15 @@ and safety rules; it is not a permanent replacement for Ryan's workflow.
 - From November 13, return to explicit approval-based, end-of-day integration;
   no extension or scheduled automatic merge is authorized by this document.
 
-For this review, the consolidated visual-assets source package is eligible as
+Initial pre-native checkpoint (historical): the consolidated visual-assets source package was eligible as
 source/prototype work only. Lancer/PR #3 is withheld (unapproved silhouette and
 assembly QA failures; user also explicitly prohibited its merge). Native HUD and
 Environment/VFX work remain active/unverified and are withheld. The legacy
 Environment/VFX/HUD/Audio source branches are already represented in the consolidated
 package and must not be merged a second time. Existing shared AGENTS.md is unchanged.
+
+Checkpoint after the initial review above: isolated native SpaceFoundation was
+completed, captured and audited (ec3e47f/c9beebc), making those37owned additions
+eligible; integrated as9c629e8. This does not activate shared-map placement or claim
+full-game/PIE/package/performance validation. HUD activation, rejected M02audio and
+unapproved/QA-failing Lancer remain withheld. Original dated authority unchanged.

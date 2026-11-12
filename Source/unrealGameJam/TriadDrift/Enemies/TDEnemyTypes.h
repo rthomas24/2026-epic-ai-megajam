@@ -213,7 +213,7 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 
 	/**
 	 * Nick's visuals for this type. Empty = the convention asset
-	 * /Game/TriadDrift/Presentation/Enemies/DA_Enemy_<Id>_Visuals if it exists, else placeholders.
+	 * /Game/TriadDrift/Presentation/DA_Enemy_<Id>_Visuals if it exists, else placeholders.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
 	TSoftObjectPtr<UTDEnemyVisuals> Visuals;

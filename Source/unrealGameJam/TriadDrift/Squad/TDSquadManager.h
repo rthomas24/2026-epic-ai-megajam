@@ -27,7 +27,9 @@ enum class ETDSwitchRefusal : uint8
 	AlreadyActive,
 	TargetDown,
 	HyperdriveActive,
-	Landing
+	Landing,
+	/** Any other T1 switch lock (atmospheric entry); see GetLastRefusalText. */
+	Locked
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnSwitchRefused, ETDSwitchRefusal, Reason, ETDShipId, RequestedShip);
@@ -71,6 +73,9 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 
 	/** Death tumble motion (Squad drives it while the flight model is parked). */
 	FVector TumbleVelocity = FVector::ZeroVector;
+
+	/** Real time this ship last received the manual switch-in grace (M4 lockout). */
+	double LastManualGraceTime = -1000.0;
 };
 
 /**
@@ -222,6 +227,12 @@ public:
 	virtual TArray<FTDTargetMarker> GetTargetMarkers() const override;
 	virtual ETDMissileWarning GetMissileWarning() const override;
 	virtual bool GetLeadIndicator(FVector& OutWorldLocation) const override;
+	virtual float GetHyperdriveCharge01() const override;
+	virtual float GetAltitude() const override;
+
+	/** HUD-ready text for the last lock refusal (from T1's IsSwitchLocked). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	FText GetLastRefusalText() const { return LastRefusalText; }
 	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------
@@ -245,9 +256,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float SwitchCooldown = 0.4f;
 
-	/** Invulnerability given to the ship you switch into (ENG-03). */
+	/** Invulnerability for the ship an AUTO-switch (death) puts you in (ENG-03). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
-	float SwitchInInvulnerability = 2.f;
+	float AutoSwitchInvulnerability = 2.f;
+
+	/** A short grace on a MANUAL switch-in (Lead decision: 0.35 s, not farmable)... */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float ManualSwitchInvulnerability = 0.35f;
+
+	/** ...granted to the same ship at most once per this many seconds. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float ManualSwitchGraceLockout = 6.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float DeathTumbleSeconds = 0.6f;
@@ -297,10 +316,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
 	float BetweenWaveHullRepairPerSecond = 8.f;
 
-	/** Nick's per-ship presentation data (optional). Squad plays SwitchIn/SwitchOut, Explosion and RespawnWarpIn from it. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Presentation")
-	TMap<ETDShipId, TObjectPtr<UTDShipVisuals>> ShipVisuals;
-
 	UFUNCTION()
 	void HandleWaveCleared(int32 WaveNumber);
 
@@ -327,6 +342,8 @@ protected:
 	/** Core of switching; bForced bypasses the cooldown (auto-switch on death). */
 	bool SwitchToInternal(ETDShipId Ship, bool bForced);
 	bool CycleSwitch(int32 Direction);
+	void BufferIfCoolingDown(int32 Kind, ETDShipId Ship);
+	void RunPendingSwitch();
 
 	void HandleShipDeath(ETDShipId Ship);
 	void FinishDying(FTDSquadSlot& Slot);
@@ -362,9 +379,17 @@ protected:
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
 	bool bBetweenWaves = false;
+	FText LastRefusalText;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	int32 SwitchCount = 0;
+
+	UPROPERTY(Transient)
 	FTDSwitchCut LastSwitchCut;
+
+	/** m14: one buffered switch request while the cooldown runs (0 = none, +/-1 = cycle, 2 = direct). */
+	int32 PendingSwitchKind = 0;
+	ETDShipId PendingSwitchShip = ETDShipId::Rift;
+	double PendingSwitchExpire = -1000.0;
 	/** True when a game flow took the defeat; it owns the restart, so timers stop. */
 	bool bWipeHandledByFlow = false;
 };

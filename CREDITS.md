@@ -31,3 +31,14 @@ Sources/provenance/hashes: `nick/audio-music` at `5979cff`,
 `ArtSource/Audio/StarterPlan/SwitchM02/`; draft PR #5. Manual audition and Unreal
 integration are pending; candidate media are not integrated into main. The older
 Audio Starter Plan tones above were rejected stylistically and remain preserved.
+
+## Native SpaceFoundation milestone
+
+Original procedural SpaceFoundation native package by Nicholas Tosti with OpenAI
+Codex Environment & VFX Agent; Unreal Engine5.9 CL60351404 Python API and Python
+standard library, November12. Two original textures, master/instances, sky Actors
+and isolated review maps; Engine BasicShapes/Sphere referenced under the team's
+Unreal license, not copied. No third-party downloads. Source/provenance:
+`ArtSource/Environment/SpaceFoundation/UnrealNative/`. Main integration9c629e8;
+known zenith star stretching documented, gameplay placement/PIE/package/GPU timing
+not verified. Native stage supersedes the earlier source-batch-only tool note.

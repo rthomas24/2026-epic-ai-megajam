@@ -76,11 +76,13 @@ and above, 2500–7000 cm by importance, alternating sides shot to shot), durati
 | `Director.SwitchStrikeKill` | kill during Switch Strike |
 | `Director.SuppressedDuringTravel` | no highlights while `IsTravelPending()` (real TravelTo) |
 | `Director.PerfectDeflectIsAShortBeat` | ENG-22's 0.15 s deflect beat |
+| `Director.Real.GeneratorAndReactorKills` | T4's real Dominion: each of 4 generators and the reactor = one highlight + one shot + slow-mo |
+| `Director.Real.CarrierKill` / `PortalMissileReturn` / `RamKill` | real carrier, real portal return through Rift's portals, real Lancer ram: one each |
+| `Director.MultiKillSustainedAndCapped` / `WingmanKillsDontCountForMultiKill` | multi-kill re-triggers, stays below story tier, real-time window, active ship only |
 | `Squad.Switch.CutPayload` | same-frame payload, name card, quick cut, auto-switch cut |
 
-## Known gaps / needs from others
+## Known gaps
 
-- T4 / ENG-18: tag the generator, reactor and carrier actors with `TDDirectorTags::*` (or call
-  `ReportHighlight`).
-- T2: call `ReportHighlight(MissileReturn, ...)` on a portal missile return. T5: `PerfectDeflect` on a
-  perfect blade deflect.
+- None open. Producers: T4 tags generators/reactor/carriers, T2's portals and powers and T5's blade
+  call `ReportHighlight`; `UTDEventBus::BroadcastHighlightMoment` is private to the Director, so a
+  producer can't bypass it.

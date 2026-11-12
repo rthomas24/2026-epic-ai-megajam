@@ -112,6 +112,9 @@ namespace TDSquad
 		}
 
 		InstallPowers(Ship, Spec);
+
+		// M2: Nick's visuals (hides the placeholder and tints from the asset); null = placeholder look.
+		Ship->SetShipVisuals(UTDShipLibrary::LoadVisuals(Spec));
 	}
 
 	void SetPlayerControlled(ATDShip* Ship, bool bPlayerControlled)
@@ -244,6 +247,48 @@ namespace TDSquad
 		return L && L->IsBusy();
 	}
 
+	bool IsSwitchLocked(const ATDShip* Ship, FText& OutReason)
+	{
+		return Ship && Ship->IsSwitchLocked(OutReason);
+	}
+
+	void ResetTravelForRetake(ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		if (UTDHyperdriveComponent* H = Ship->GetHyperdrive())
+		{
+			H->ResetHyperdrive();
+		}
+		if (UTDLandingComponent* L = Ship->GetLanding())
+		{
+			L->AbortToFlying(); // un-parks; RestoreShipForFlight follows
+		}
+	}
+
+	float GetHyperdriveCharge01(const ATDShip* Ship)
+	{
+		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;
+		return H ? H->GetCharge01() : 0.f;
+	}
+
+	float GetAltitudeMeters(const ATDShip* Ship)
+	{
+		return Ship ? Ship->GetAltitudeMeters() : -1.f;
+	}
+
+	void CarryManualTarget(const ATDShip* From, ATDShip* To)
+	{
+		const UTDTargetingComponent* Old = From ? From->GetTargeting() : nullptr;
+		UTDTargetingComponent* New = To ? To->GetTargeting() : nullptr;
+		if (Old && New && Old->IsManualTarget())
+		{
+			New->SetManualTarget(Old->GetCurrentTarget());
+		}
+	}
+
 	void StopHyperdrive(ATDShip* Ship)
 	{
 		if (UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
@@ -258,6 +303,62 @@ namespace TDSquad
 		{
 			H->SetHyperdriveEnabled(true);
 		}
+	}
+
+	void IgnoreEachOther(ATDShip* A, ATDShip* B)
+	{
+		if (!A || !B)
+		{
+			return;
+		}
+		if (UPrimitiveComponent* RootA = Cast<UPrimitiveComponent>(A->GetRootComponent()))
+		{
+			RootA->IgnoreActorWhenMoving(B, true);
+		}
+		if (UPrimitiveComponent* RootB = Cast<UPrimitiveComponent>(B->GetRootComponent()))
+		{
+			RootB->IgnoreActorWhenMoving(A, true);
+		}
+	}
+
+	FVector FindSafeLocation(const UObject* WorldContext, const FVector& Desired, const AActor* Ignore)
+	{
+		const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+		if (!World)
+		{
+			return Desired;
+		}
+		const UTDWorldSubsystem* WorldSub = World->GetSubsystem<UTDWorldSubsystem>();
+		constexpr float ShipRadius = 500.f;
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDSquadSafeSpot), false, Ignore);
+		FCollisionObjectQueryParams Objects;
+		Objects.AddObjectTypesToQuery(ECC_WorldStatic);
+		Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
+		const FVector Steps[] = { FVector::ZeroVector, FVector(0, 0, 3000), FVector(0, 0, -3000), FVector(-4000, 0, 0),
+			FVector(0, 4000, 0), FVector(0, -4000, 0), FVector(0, 0, 8000), FVector(-10000, 0, 4000) };
+		for (const FVector& Step : Steps)
+		{
+			const FVector P = Desired + Step;
+			const bool bInObstacle = WorldSub && WorldSub->IsInsideObstacle(P, ShipRadius);
+			const bool bOverlaps = World->OverlapAnyTestByObjectType(P, FQuat::Identity, Objects, FCollisionShape::MakeSphere(ShipRadius), Params);
+			if (!bInObstacle && !bOverlaps)
+			{
+				return P;
+			}
+		}
+		return Desired;
+	}
+
+	float GetBoundsRadius(const AActor* Actor)
+	{
+		if (!Actor)
+		{
+			return 0.f;
+		}
+		// The collision cylinder includes attached parts (carrier bays); actor bounds don't (T4).
+		float Radius = 0.f, HalfHeight = 0.f;
+		Actor->GetSimpleCollisionCylinder(Radius, HalfHeight);
+		return FMath::Max(Radius, HalfHeight);
 	}
 
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
@@ -431,6 +532,12 @@ namespace TDSquad
 		return H ? H->GetLastAttacker() : nullptr;
 	}
 
+	float GetTimeSinceLastDamage(const AActor* Actor)
+	{
+		const UTDHealthComponent* H = Health(Actor);
+		return H ? H->GetTimeSinceLastDamage() : 1000.f;
+	}
+
 	bool IsMissileIncoming(const ATDShip* Ship)
 	{
 		if (!Ship)
@@ -522,8 +629,29 @@ namespace TDSquad
 		{
 			if (Power)
 			{
-				Power->ResetCooldown();
+				Power->ResetPower(); // ends any active phase safely and readies it (T2)
 			}
+		}
+	}
+
+	void ReleasePlayerHolds(ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		for (const ETDPowerInput Slot : { ETDPowerInput::Signature1, ETDPowerInput::Signature2, ETDPowerInput::Ability })
+		{
+			if (UTDPowerComponent::FindPower(Ship, Slot))
+			{
+				UTDPowerComponent::RoutePowerInput(Ship, Slot, false);
+			}
+		}
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->SetTriggerHeld(ETDWeaponSlot::Primary, false);
+			W->SetTriggerHeld(ETDWeaponSlot::Secondary, false);
+			W->CancelCharge(ETDWeaponSlot::Secondary);
 		}
 	}
 
@@ -729,6 +857,11 @@ namespace TDSquad
 		}
 	}
 
+	const UTDShipVisuals* GetShipVisuals(const ATDShip* Ship)
+	{
+		return Ship ? Ship->GetShipVisuals() : nullptr;
+	}
+
 	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached)
 	{
 		if (!Ship)
@@ -751,7 +884,7 @@ namespace TDSquad
 		{
 			return FTransform::Identity;
 		}
-		const UCameraComponent* Cam = Ship->GetChaseCamera();
-		return Cam ? Cam->GetComponentTransform() : Ship->GetActorTransform();
+		// T1: lag-free, valid even for an AI-flown ship whose spring arm doesn't tick (m10).
+		return Ship->GetChaseCameraTransformNow();
 	}
 }

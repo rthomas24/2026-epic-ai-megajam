@@ -43,6 +43,16 @@ same code.
   `Flow->TravelTo(Destination, ReturnPoint)`. This becomes T1's `BeginEntry` when ENG-20 lands; see
   gaps.
 
+### Art hooks on the layout (for Nick)
+- `GateClass`, `PlanetClass`, `DominionClass`: BP subclasses to spawn instead of the C++ classes.
+- `TravelFX` for every gate; empty = the convention asset `/Game/TriadDrift/Presentation/DA_Travel_FX`.
+- `AsteroidMesh`, `RuinMesh`, `GateFrameMesh`: art meshes that replace the placeholders (collision kept).
+- **Editor preview:** a placed ATDGalaxyLayout builds its asteroid belt and ruins in the editor and
+  draws planets (solid + atmosphere), gate pairs, the Dominion box, return points (arrows) and the
+  play bounds, so the shared map can be dressed around the real gameplay positions.
+- **Keep-out:** no asteroid within `AsteroidKeepOut` (7000 cm) of a gate, return point or the player
+  start. Asteroids are uniformly scaled, so the rock you see is the sphere you hit.
+
 ## ENG-16: `ATDPortalGate`
 - **Transit:** a permanent two-way pair built on T2's shared `UTDPortalTransit::TransitActor`, so
   ships, enemies and projectiles follow the same rules as Rift's portals:
@@ -55,12 +65,20 @@ same code.
   exits out of the partner's back. Re-entry cooldown is 0.5 s.
 - **Placeholder look:** a square frame of 4 bars (with collision) and a disc that's hidden when the
   gate is closed. `SetGateActive` broadcasts `OnPortalState(Open/Closed)`.
-- **Presentation:** `TravelFX->PortalIdle` (attached loop) and `PortalTransit` (at both ends).
+- **Presentation:** `TravelFX->PortalIdle` (attached loop; when its VFX is set the placeholder disc
+  hides) and `PortalTransit` (at both ends). `FrameMeshOverride` replaces the four bars (collision kept).
+- **Not a reflector:** permanent gates pass shots through unchanged (no return, no stat, no highlight).
+- **Arrival guard:** ships teleported to within 6000 cm of a gate's plane (follow-warps, transits out of
+  the partner) ignore that gate for 1.5 s, so wingmen don't bounce back.
 
 ## ENG-18: `ATDDominion` (core space finale)
 - **Arrival:** hidden until progress has `bDominionRevealed` (set after wave 5; it polls twice a
   second), then a 6 s warp-in.
-- **Hull:** a 600 m placeholder hull with a bridge and a trench, built from engine cubes.
+- **Hull:** a 600 m placeholder hull with a bridge and a trench, built from engine cubes. The hull
+  actor is Neutral, so it blocks every team's shots (the trench is real cover). With a HullMesh in
+  the visuals, the placeholder bridge and trench-wall visuals hide (their collision stays); with a
+  ShieldIdle VFX, the emitter towers hide. Parts are laid out in OnConstruction, so a placed Dominion
+  looks right in the editor.
 - **Shield phase:**
   - 4 `ATDShieldGenerator`s (800 HP) sit on pylons outside the 360 m main shield. Each has 2
     turrets, plus 2 more on the hull: 10 telegraphed charge-shot turrets (Enemy_HeavyBolt).
@@ -79,13 +97,15 @@ same code.
     - telegraph 1.2 → 0.8 s
 - **Victory:** the reactor kill (ReactorKill via the Director tag) quiets the turrets and fires
   `OnBreakupStarted` with the BreakupSequence cue. Then, after `BreakupSeconds` (8 s of game time,
-  stretched by the slow-mo beat), `Flow->TravelTo(Victory)` runs exactly once.
+  stretched by the slow-mo beat), `Flow->SetPhase(Victory)` runs exactly once. Victory is a phase
+  on L_Galaxy with no map (T5). From the reactor kill on, the squad is invulnerable and every enemy
+  ship and live shot is removed.
 - **Resume:** with `bDominionDefensesDown`, the Dominion goes straight to the exposed reactor. That
   path triggers no kills, highlights or duplicate `SetDominionState`.
 - **Stretch ENG-29:** `bDockingFinale` plus the virtual `BeginDockingFinale()`. The base version
   logs and falls back to the reactor ending.
 - **Presentation:** one `UTDDominionVisuals` asset at the convention path
-  `/Game/TriadDrift/Presentation/Dominion/DA_Dominion_Visuals` (or set `Visuals`). Slots used:
+  `/Game/TriadDrift/Presentation/DA_Dominion_Visuals` (or set `Visuals`). Slots used:
   HullMesh, GeneratorMesh, ReactorMesh, WarpIn, ShieldIdle (loop while shields are up), ShieldHit
   (blocked reactor hits), ShieldSectionDown, ShieldCollapse, GeneratorHit, GeneratorExplosion,
   ReactorExposed, ReactorHit, ReactorPhaseChange, ReactorDestroyed and BreakupSequence.
