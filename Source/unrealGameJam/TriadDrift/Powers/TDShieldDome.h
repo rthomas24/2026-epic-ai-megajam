@@ -78,6 +78,7 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTDAbilityFX> FX;
 
+	bool bPlaceholderBuilt = false;
 	TWeakObjectPtr<AActor> FollowTarget;
 	ETDTeam Team = ETDTeam::Player;
 	float Radius = 3000.f;

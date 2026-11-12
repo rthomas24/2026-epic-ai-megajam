@@ -11,6 +11,8 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "Components/StaticMeshComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
 
@@ -151,6 +153,17 @@ void UTDRamPower::BeginDash()
 	LastLocation = Owner->GetActorLocation();
 	DashDirection = Owner->GetActorForwardVector();
 	SetShipCollisionIgnored(true);
+	PlayShipCue(1);
+	if (!HasActiveArt() && !PlaceholderCone)
+	{
+		// Lancer's afterburner spear: a cyan cone ahead of the nose (engine cone axis is +Z: pitch -90 points it forward).
+		PlaceholderCone = FTDPowerPresentation::AddShape(Owner, nullptr, FTDPowerPresentation::EShape::Cone, FVector(3.f, 3.f, 5.f),
+			FRotator(-90.f, 0.f, 0.f), UTDStatics::ShipColor(ETDShipId::Lancer), 5.f);
+		if (PlaceholderCone)
+		{
+			PlaceholderCone->SetRelativeLocation(FVector(450.f, 0.f, 0.f));
+		}
+	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Owner))
 	{
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
@@ -348,6 +361,11 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 	if (bIgnoringShips)
 	{
 		SetShipCollisionIgnored(false);
+	}
+	if (PlaceholderCone)
+	{
+		PlaceholderCone->DestroyComponent();
+		PlaceholderCone = nullptr;
 	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Owner))
 	{
