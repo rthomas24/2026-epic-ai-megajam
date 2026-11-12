@@ -282,9 +282,8 @@ bool ATDAtmosphereFlightZone::IsExitAllowed() const
 	{
 		return true;
 	}
-	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	auto AllDone = [this](const FTDProgress& Progress)
 	{
-		const FTDProgress Progress = Flow->GetProgress();
 		for (const FName& Id : RequiredObjectives)
 		{
 			if (!Progress.CompletedObjectives.Contains(Id))
@@ -293,6 +292,16 @@ bool ATDAtmosphereFlightZone::IsExitAllowed() const
 			}
 		}
 		return true;
+	};
+	// Every frame: read the game instance's progress in place instead of copying it (review minor 8).
+	const UWorld* World = GetWorld();
+	if (const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr)
+	{
+		return AllDone(GI->GetProgressRef());
+	}
+	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	{
+		return AllDone(Flow->GetProgress());
 	}
 	return false;
 }

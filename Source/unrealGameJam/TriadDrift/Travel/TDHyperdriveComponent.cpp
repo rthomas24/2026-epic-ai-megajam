@@ -82,6 +82,11 @@ double UTDHyperdriveComponent::Now() const
 
 ETDHyperdriveBlock UTDHyperdriveComponent::GetBlockReason() const
 {
+	return ComputeBlockReason(false);
+}
+
+ETDHyperdriveBlock UTDHyperdriveComponent::ComputeBlockReason(bool bCachedSweep) const
+{
 	const ATDSpacecraft* Craft = GetCraft();
 	if (!bEnabled || !Craft)
 	{
@@ -121,9 +126,23 @@ ETDHyperdriveBlock UTDHyperdriveComponent::GetBlockReason() const
 			return ETDHyperdriveBlock::NearGravityWell;
 		}
 	}
-	if (Tuning.ObstacleClearanceToSpool > 0.f && SweepAhead(Tuning.ObstacleClearanceToSpool) >= 0.f)
+	if (Tuning.ObstacleClearanceToSpool > 0.f)
 	{
-		return ETDHyperdriveBlock::ObstacleAhead;
+		bool bBlocked;
+		if (bCachedSweep && SweepCacheTime >= 0.0 && T - SweepCacheTime < HUDSweepInterval)
+		{
+			bBlocked = bSweepCacheBlocked; // HUD polling: a 200 m sphere sweep a few times a second, not every frame
+		}
+		else
+		{
+			bBlocked = SweepAhead(Tuning.ObstacleClearanceToSpool) >= 0.f;
+			SweepCacheTime = T;
+			bSweepCacheBlocked = bBlocked;
+		}
+		if (bBlocked)
+		{
+			return ETDHyperdriveBlock::ObstacleAhead;
+		}
 	}
 	return ETDHyperdriveBlock::None;
 }
@@ -165,7 +184,12 @@ float UTDHyperdriveComponent::SweepAhead(float MaxDistance) const
 
 FText UTDHyperdriveComponent::GetBlockReasonText() const
 {
-	switch (GetBlockReason())
+	return TextForBlock(ComputeBlockReason(true));
+}
+
+FText UTDHyperdriveComponent::TextForBlock(ETDHyperdriveBlock Block) const
+{
+	switch (Block)
 	{
 	case ETDHyperdriveBlock::Locked:
 	{
@@ -196,8 +220,9 @@ bool UTDHyperdriveComponent::RequestSpoolFromPilot()
 	const ETDHyperdriveBlock Block = GetBlockReason();
 	if (Block != ETDHyperdriveBlock::None)
 	{
-		UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive refused: %s"), *GetBlockReasonText().ToString());
-		OnSpoolRefused.Broadcast(this, Block, GetBlockReasonText());
+		const FText Reason = TextForBlock(Block);
+		UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive refused: %s"), *Reason.ToString());
+		OnSpoolRefused.Broadcast(this, Block, Reason);
 		TDHyperdrive_PlayRefusedCue(TravelFX.Get(), GetCraft());
 		return false;
 	}

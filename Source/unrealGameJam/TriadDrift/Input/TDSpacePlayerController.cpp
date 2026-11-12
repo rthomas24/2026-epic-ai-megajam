@@ -451,6 +451,14 @@ void ATDSpacePlayerController::OnUnPossess()
 #endif
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, false); }
 	if (bFireSecondaryHeld) { RouteTrigger(ETDWeaponSlot::Secondary, false); }
+	// The old ship keeps whatever input was latched last until its wingman AI writes its own: hand it back
+	// neutral (cruise, no turn / roll / boost / drift / brake) so a held stick or boost doesn't fly the wingman.
+	if (ATDSpacecraft* Craft = GetSpacecraft())
+	{
+		FTDFlightInput Neutral;
+		Neutral.Throttle = 1.f;
+		Craft->SetFlightInput(Neutral);
+	}
 	Super::OnUnPossess();
 }
 
