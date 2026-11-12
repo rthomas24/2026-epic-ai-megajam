@@ -243,6 +243,7 @@ protected:
 	ETDWaveState State = ETDWaveState::Idle;
 	float StateRemaining = 0.f;
 	int32 CurrentWave = INDEX_NONE;
+	float LockSyncTimer = 0.f;
 	int32 EnemiesTotal = 0;
 	int32 CurrentTake = 1;
 	bool bTakeAnnouncedByFlow = false;
