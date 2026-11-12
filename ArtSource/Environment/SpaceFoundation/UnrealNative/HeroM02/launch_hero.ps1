@@ -44,6 +44,22 @@ $project=Join-Path $hostRoot 'HeroM02Host.uproject'
   Plugins=@(@{Name='PythonScriptPlugin';Enabled=$true},@{Name='EditorScriptingUtilities';Enabled=$true})
 } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $project -Encoding utf8
 $script=if($Stage -eq 'Build'){'build_hero.py'}else{'capture_hero.py'}
+# Preserve the exact prior diagnostic files before Unreal or redirection reuses them.
+$priorDiagnostics=@(Get-ChildItem -LiteralPath (Join-Path $heroRoot 'Saved') -Filter "$Stage.*" -File)
+if($priorDiagnostics.Count){
+    $archive=Join-Path $heroRoot ("Saved/Attempts/Before_"+$Stage+'_'+[DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ'))
+    New-Item -ItemType Directory -Path $archive | Out-Null
+    $archived=@()
+    foreach($prior in $priorDiagnostics){
+        $destination=Join-Path $archive $prior.Name
+        Copy-Item -LiteralPath $prior.FullName -Destination $destination
+        $digest=(Get-FileHash -LiteralPath $prior.FullName -Algorithm SHA256).Hash
+        if((Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash -ne $digest){throw 'Diagnostic archive hash mismatch'}
+        $archived+=@{file=$prior.Name;bytes=$prior.Length;sha256=$digest}
+    }
+    @{stage=$Stage;files=$archived} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $archive 'archive.json') -Encoding utf8
+    Write-Output "Prior $Stage diagnostics archived: $archive"
+}
 $ueArgs=@($project,'-AgentMode','-run=pythonscript',"-script=$(Join-Path $heroRoot $script)",
   '-AllowCommandletRendering','-ExitTimeout=900','-NoProgressTimeout=600','-ModelContextProtocolPort=8024',
   '-d3d12','-sm6','-nosound','-NoSourceControl','-NoLiveCoding','-UTF8Output',

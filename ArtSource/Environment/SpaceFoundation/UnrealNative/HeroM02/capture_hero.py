@@ -14,21 +14,74 @@ HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE))
 from build_hero import DEST,BASE,helpers
 ED=ue.EditorAssetLibrary;ML=ue.MaterialEditingLibrary
+PNG_CONTAINER_EVIDENCE=[]
 
 
 def image_integrity(path):
-    data=path.read_bytes();assert data[:8]==b'\x89PNG\r\n\x1a\n'
-    offset=8
+    # Same validated-prefix method as frozen M01 finalize_evidence.py; preserve
+    # raw bytes first and never decode/re-encode or modify IHDR/IDAT/pixels.
+    assert path.resolve().parent==(HERE/'review').resolve(),'Unowned PNG path'
+    data=path.read_bytes();original_sha=hashlib.sha256(data).hexdigest()
+    raw_dir=HERE/'Saved'/'RawPNGExports';raw_dir.mkdir(parents=True,exist_ok=True)
+    raw_path=raw_dir/(str(time.time_ns())+'_'+path.name)
+    with raw_path.open('xb') as raw:raw.write(data)
+    assert hashlib.sha256(raw_path.read_bytes()).hexdigest()==original_sha
+    assert data[:8]==b'\x89PNG\r\n\x1a\n'
+    offset=8;count=0;has_idat=False
     while offset+12<=len(data):
         length=struct.unpack_from('>I',data,offset)[0];end=offset+12+length
         assert end<=len(data)
         kind=data[offset+4:offset+8]
+        assert all(65<=c<=90 or 97<=c<=122 for c in kind) and not kind[2]&32,'Invalid PNG chunk type'
         assert zlib.crc32(data[offset+4:end-4])&0xffffffff==struct.unpack_from('>I',data,end-4)[0]
+        if count==0:
+            assert kind==b'IHDR' and length==13
+            assert struct.unpack_from('>II',data,offset+8)==(1920,1080)
+        has_idat=has_idat or kind==b'IDAT';count+=1
         if kind==b'IEND':
-            assert length==0 and end==len(data),'PNG has trailing bytes'
-            return hashlib.sha256(data).hexdigest()
+            assert length==0 and has_idat
+            prefix=data[:end];prefix_sha=hashlib.sha256(prefix).hexdigest()
+            if end!=len(data):
+                temporary=path.with_name(path.name+'.tailfix.'+str(time.time_ns()))
+                with temporary.open('xb') as output:output.write(prefix)
+                assert temporary.read_bytes()==prefix
+                temporary.replace(path)
+            assert path.read_bytes()==prefix,'PNG payload changed'
+            final_sha=hashlib.sha256(path.read_bytes()).hexdigest();assert final_sha==prefix_sha
+            evidence={'image':path.name,'raw_archive':str(raw_path),'original_bytes':len(data),
+                'valid_png_bytes':end,'removed_tail_bytes':len(data)-end,'chunks_crc_valid':count,
+                'original_sha256':original_sha,'prefix_sha256':prefix_sha,'final_sha256':final_sha,
+                'pixel_payload_unchanged':True}
+            PNG_CONTAINER_EVIDENCE.append(evidence)
+            with (HERE/'Saved/png_container_checks.jsonl').open('a',encoding='utf-8') as log:
+                log.write(json.dumps(evidence)+'\n')
+            return final_sha
         offset=end
     raise RuntimeError('Missing IEND')
+
+
+def texture_evidence(path,faces=1):
+    tex=ED.load_asset(path)
+    assert isinstance(tex,ue.TextureCube if faces==6 else ue.Texture2D)
+    size=tex.blueprint_get_built_texture_size()
+    dimensions=[int(round(getattr(size,axis))) for axis in ('x','y','z')]
+    w,h=dimensions[:2];assert w>0 and h>0,(path,dimensions)
+    compression=tex.get_editor_property('compression_settings')
+    assert compression==(ue.TextureCompressionSettings.TC_HDR_COMPRESSED if faces==6 else ue.TextureCompressionSettings.TC_BC7)
+    # BC7 and BC6H both use 16-byte 4x4 blocks. This is a full-chain upper
+    # bound from actual built dimensions, not a claim about RHI allocation/residency.
+    mip_bytes=0;levels=0
+    while True:
+        mip_bytes+=max(1,(w+3)//4)*max(1,(h+3)//4)*16*faces;levels+=1
+        if w==1 and h==1:break
+        w=max(1,w//2);h=max(1,h//2)
+    return {'asset':path,'class':tex.get_class().get_name(),'built_size_xyz':dimensions,
+        'faces':faces,'lod_bias':tex.get_editor_property('lod_bias'),
+        'max_texture_size':tex.get_editor_property('max_texture_size'),
+        'mip_gen_settings':str(tex.get_editor_property('mip_gen_settings')),
+        'lod_group':str(tex.get_editor_property('lod_group')),
+        'compression_settings':str(compression),'never_stream':tex.get_editor_property('never_stream'),
+        'full_chain_mip_levels_upper_bound':levels,'compressed_full_chain_upper_bound_bytes':mip_bytes}
 
 
 def main():
@@ -44,9 +97,17 @@ def main():
     actors=ue.get_editor_subsystem(ue.EditorActorSubsystem)
     map_path=DEST+'/Review/L_HeroM02_Benchmark'
     if ED.does_asset_exist(map_path):
+        map_file=HERE.parents[4]/'Content/TriadDrift/Environment/SpaceFoundation/HeroM02/Review/L_HeroM02_Benchmark.umap'
+        assert map_file.is_file(),'Missing owned review-map package'
+        map_bytes=map_file.read_bytes()
+        map_archive=HERE/'Saved/ReviewMapArchives';map_archive.mkdir(parents=True,exist_ok=True)
+        archived_map=map_archive/(str(time.time_ns())+'_'+map_file.name)
+        with archived_map.open('xb') as backup:backup.write(map_bytes)
+        assert hashlib.sha256(archived_map.read_bytes()).digest()==hashlib.sha256(map_bytes).digest()
         assert levels.load_level(map_path)
         bp=ED.load_asset(DEST+'/BP_GalaxySkybox_HeroM02')
-        rig=next(a for a in actors.get_all_level_actors() if a.get_class()==bp.generated_class())
+        rig=next((a for a in actors.get_all_level_actors() if a.get_class()==bp.generated_class()),None)
+        if rig is None:rig=actors.spawn_actor_from_class(bp.generated_class(),ue.Vector())
     else:
         assert levels.new_level(map_path)
         bp=ED.load_asset(DEST+'/BP_GalaxySkybox_HeroM02')
@@ -71,10 +132,13 @@ def main():
     target.set_editor_property('target_gamma',2.2);capture.set_editor_property('texture_target',target)
     ue.SystemLibrary.execute_console_command(world,'Editor.AsyncTextureCompilationFinishAll')
     ue.SystemLibrary.execute_console_command(world,'Editor.AsyncStaticMeshCompilationFinishAll')
-    for name,size in (('T_HeroM02_Back',(8192,4096)),('T_HeroM02_Front',(4096,2048))):
-        tex=ED.load_asset(DEST+'/'+name)
-        assert (tex.blueprint_get_size_x(),tex.blueprint_get_size_y())==size,(name,tex.blueprint_get_size_x(),tex.blueprint_get_size_y())
-    assert isinstance(ED.load_asset(DEST+'/T_HeroM02_Stars'),ue.TextureCube)
+    native_textures={'Before':[texture_evidence(BASE+'/'+name) for name in ('T_TD_Nebula_BC','T_TD_Stars_BC')],
+        'After':[texture_evidence(DEST+'/T_HeroM02_Back'),texture_evidence(DEST+'/T_HeroM02_Front'),
+                 texture_evidence(DEST+'/T_HeroM02_Stars',6)]}
+    assert native_textures['After'][0]['built_size_xyz'][:2]==[8192,4096]
+    assert native_textures['After'][1]['built_size_xyz'][:2]==[4096,2048]
+    cube=native_textures['After'][2]
+    assert cube['built_size_xyz'][0]==cube['built_size_xyz'][1] and cube['built_size_xyz'][0]<=1024,cube
     shots=[('Hero',10.,125.,90.),('Detail',10.,125.,50.),('Zenith',89.,0.,90.),('Wrap',0.,0.,90.)]
     evidence=[];timings={}
     for label,mat in (('Before',original),('After',candidate)):
@@ -116,15 +180,21 @@ def main():
         capture.capture_scene();ue.RenderingLibrary.export_render_target(world,target,str(path.parent),path.name)
         stable.append(image_integrity(path))
     mesh.set_material(0,candidate)
+    # Native resource dimensions, pixel format, memory and mip count are also
+    # collected in the engine log, independently of the configured upper bound.
+    ue.SystemLibrary.execute_console_command(world,'ListTextures -CSV')
     actors.destroy_actor(capture_actor);ue.RenderingLibrary.release_render_target2d(target)
     assert levels.save_current_level()
     report={'engine':ue.SystemLibrary.get_engine_version(),'fresh_process_reload':len(loaded),
         'shader_errors':None,'external_engine_diagnostics':'pending finalize_diagnostics.py',
         'map':map_path,'material_statistics':stats,'captures':evidence,
+        'png_container_evidence':PNG_CONTAINER_EVIDENCE,
         'stability_sha256':stable,'identical_static_captures':stable[0]==stable[1],
         'timing_method':'Synchronized scene-capture wall time including one-pixel GPU readback; not isolated GPU time or gameplay FPS.',
         'timings':timings,'median_wall_delta_ms':timings['After']['median_ms']-timings['Before']['median_ms'],
-        'configured_compressed_mip_budget_mib':{'Before':10/3,'After':(8192*4096+4096*2048+6*1024*1024)*4/3/1024**2},
+        'native_texture_evidence':native_textures,
+        'compressed_full_chain_upper_bound_mib':{label:sum(t['compressed_full_chain_upper_bound_bytes'] for t in textures)/1024**2 for label,textures in native_textures.items()},
+        'texture_memory_method':'BC7/BC6H full-chain upper bound from actual built dimensions; native ListTextures CSV in Capture.log records resource sizes and mip counts; not total VRAM residency.',
         'hardware_gpu_time':'not measured','gameplay_validated':False,'manual_approval':'pending','integrated':False,
         'sun_lux':sun.get_editor_property('intensity'),'sky_actor_tag':'TD.Presentation.Sky',
         'baseline_settings_preserved':True}

@@ -1,0 +1,32 @@
+{
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "assets": [
+    "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Back",
+    "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Front",
+    "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Stars",
+    "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/M_HeroM02_Nebula",
+    "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/MI_HeroM02_Benchmark",
+    "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/BP_GalaxySkybox_HeroM02"
+  ],
+  "shader_errors": [],
+  "lighting": {
+    "directional_lux": 8,
+    "directional_temperature_kelvin": 6500,
+    "sun_pitch_deg": -25,
+    "sun_yaw_deg": -35,
+    "sky_light_intensity": 0.35,
+    "fixed_ev100": 0,
+    "bloom_intensity": 0.2
+  },
+  "material_statistics": {
+    "num_pixel_shader_instructions": 148,
+    "num_vertex_shader_instructions": 155,
+    "num_samplers": 3,
+    "num_pixel_texture_samples": 6
+  },
+  "sky_actor_tag": "TD.Presentation.Sky",
+  "baseline_untouched": true,
+  "manual_approval": "pending",
+  "integrated": false,
+  "gameplay_validated": false
+}

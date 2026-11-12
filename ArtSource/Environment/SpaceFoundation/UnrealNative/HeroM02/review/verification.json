@@ -1,0 +1,504 @@
+{
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "fresh_process_reload": 6,
+  "shader_errors": [],
+  "external_engine_diagnostics": "engine_diagnostics.json: process exits, engine result files and complete log digest",
+  "map": "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/Review/L_HeroM02_Benchmark",
+  "material_statistics": {
+    "before": {
+      "num_pixel_shader_instructions": 143,
+      "num_vertex_shader_instructions": 155,
+      "num_samplers": 2,
+      "num_pixel_texture_samples": 5
+    },
+    "after": {
+      "num_pixel_shader_instructions": 148,
+      "num_vertex_shader_instructions": 155,
+      "num_samplers": 3,
+      "num_pixel_texture_samples": 6
+    }
+  },
+  "captures": [
+    {
+      "variant": "Before",
+      "image": "Before_Hero.png",
+      "sha256": "d4862ff3334e8aaec4cdadb1dd3316fa59efd21111a17e6f802de9f7d958a1c2",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 10.0,
+        "yaw": 124.99999999999999,
+        "roll": -0.0
+      },
+      "fov_deg": 90.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    },
+    {
+      "variant": "Before",
+      "image": "Before_Detail.png",
+      "sha256": "65d822ebb54948f67348657659db543c75bd0f43846401ea8bb1805f2f251bc1",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 10.0,
+        "yaw": 124.99999999999999,
+        "roll": -0.0
+      },
+      "fov_deg": 50.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    },
+    {
+      "variant": "Before",
+      "image": "Before_Zenith.png",
+      "sha256": "fd35e5f1e53e5555b1970841d23d3c1bea31d0af6be7b37f4b0cee1568f78711",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 89.00000000000082,
+        "yaw": 0.0,
+        "roll": -0.0
+      },
+      "fov_deg": 90.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    },
+    {
+      "variant": "Before",
+      "image": "Before_Wrap.png",
+      "sha256": "b492e1866383272f2731baf57aece2c00f9060292c1b755debb3a009595eab22",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 0.0,
+        "yaw": 0.0,
+        "roll": -0.0
+      },
+      "fov_deg": 90.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    },
+    {
+      "variant": "After",
+      "image": "After_Hero.png",
+      "sha256": "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 10.0,
+        "yaw": 124.99999999999999,
+        "roll": -0.0
+      },
+      "fov_deg": 90.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    },
+    {
+      "variant": "After",
+      "image": "After_Detail.png",
+      "sha256": "35e7368a79d0670f5d0beee7cbd5750145f64dab66f2a4b1d779bd3bda0d7f2e",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 10.0,
+        "yaw": 124.99999999999999,
+        "roll": -0.0
+      },
+      "fov_deg": 50.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    },
+    {
+      "variant": "After",
+      "image": "After_Zenith.png",
+      "sha256": "017618a8bce9aeda0b0780932f7509a360961594990c07f5a9da0a416bf5a4ce",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 89.00000000000082,
+        "yaw": 0.0,
+        "roll": -0.0
+      },
+      "fov_deg": 90.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    },
+    {
+      "variant": "After",
+      "image": "After_Wrap.png",
+      "sha256": "b8404c9045da9bf6744ae63eb3332458b3fa64a521feca7cc5592b5b6905a1de",
+      "camera_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "rotation_deg": {
+        "pitch": 0.0,
+        "yaw": 0.0,
+        "roll": -0.0
+      },
+      "fov_deg": 90.0,
+      "resolution": [
+        1920,
+        1080
+      ],
+      "manual_exposure_bias": 0,
+      "physical_camera_exposure": false,
+      "bloom_intensity": 0.2,
+      "target_gamma": 2.2
+    }
+  ],
+  "png_container_evidence": [
+    {
+      "image": "Before_Hero.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525018059140700_Before_Hero.png",
+      "original_bytes": 2244875,
+      "valid_png_bytes": 1982276,
+      "removed_tail_bytes": 262599,
+      "chunks_crc_valid": 244,
+      "original_sha256": "a9319ddd6692548b9d2a78ced4e2d16b584590d450271ee461c5870d6ace04b3",
+      "prefix_sha256": "d4862ff3334e8aaec4cdadb1dd3316fa59efd21111a17e6f802de9f7d958a1c2",
+      "final_sha256": "d4862ff3334e8aaec4cdadb1dd3316fa59efd21111a17e6f802de9f7d958a1c2",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "Before_Detail.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525018474773900_Before_Detail.png",
+      "original_bytes": 2244875,
+      "valid_png_bytes": 1917617,
+      "removed_tail_bytes": 327258,
+      "chunks_crc_valid": 236,
+      "original_sha256": "66292c694daaf064ad0c55c92291d75fa8dd247c50aa1725a99b847323e77c4b",
+      "prefix_sha256": "65d822ebb54948f67348657659db543c75bd0f43846401ea8bb1805f2f251bc1",
+      "final_sha256": "65d822ebb54948f67348657659db543c75bd0f43846401ea8bb1805f2f251bc1",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "Before_Zenith.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525018888897300_Before_Zenith.png",
+      "original_bytes": 2244875,
+      "valid_png_bytes": 1805747,
+      "removed_tail_bytes": 439128,
+      "chunks_crc_valid": 223,
+      "original_sha256": "f0adaad7646c830fea7ba342438cb267a3ff2c6d4596a1924fbda138e2b9d844",
+      "prefix_sha256": "fd35e5f1e53e5555b1970841d23d3c1bea31d0af6be7b37f4b0cee1568f78711",
+      "final_sha256": "fd35e5f1e53e5555b1970841d23d3c1bea31d0af6be7b37f4b0cee1568f78711",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "Before_Wrap.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525019334015400_Before_Wrap.png",
+      "original_bytes": 2244875,
+      "valid_png_bytes": 1940725,
+      "removed_tail_bytes": 304150,
+      "chunks_crc_valid": 239,
+      "original_sha256": "6a12e71c5714f5e50e42efd27fabacc30e5bad29495b2fae42b1635fca6ad884",
+      "prefix_sha256": "b492e1866383272f2731baf57aece2c00f9060292c1b755debb3a009595eab22",
+      "final_sha256": "b492e1866383272f2731baf57aece2c00f9060292c1b755debb3a009595eab22",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "After_Hero.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525020175805600_After_Hero.png",
+      "original_bytes": 3090912,
+      "valid_png_bytes": 2532192,
+      "removed_tail_bytes": 558720,
+      "chunks_crc_valid": 311,
+      "original_sha256": "2babe81b661d9f39c5f26c2e0ccde17fb57e9e1899a1fcac94ff977e04f68adb",
+      "prefix_sha256": "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+      "final_sha256": "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "After_Detail.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525020570417300_After_Detail.png",
+      "original_bytes": 3090912,
+      "valid_png_bytes": 2323686,
+      "removed_tail_bytes": 767226,
+      "chunks_crc_valid": 286,
+      "original_sha256": "ddd41095c6f204da98748cd58c0d5a463f3d2ed95cca0fe9cfd14d198d3b3a28",
+      "prefix_sha256": "35e7368a79d0670f5d0beee7cbd5750145f64dab66f2a4b1d779bd3bda0d7f2e",
+      "final_sha256": "35e7368a79d0670f5d0beee7cbd5750145f64dab66f2a4b1d779bd3bda0d7f2e",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "After_Zenith.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525020950558500_After_Zenith.png",
+      "original_bytes": 2244875,
+      "valid_png_bytes": 2109224,
+      "removed_tail_bytes": 135651,
+      "chunks_crc_valid": 260,
+      "original_sha256": "3f25a61344ad15f2454fdf86aa5dadc920a69d93df198b5360ef319a7e6480aa",
+      "prefix_sha256": "017618a8bce9aeda0b0780932f7509a360961594990c07f5a9da0a416bf5a4ce",
+      "final_sha256": "017618a8bce9aeda0b0780932f7509a360961594990c07f5a9da0a416bf5a4ce",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "After_Wrap.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525021242107400_After_Wrap.png",
+      "original_bytes": 3090912,
+      "valid_png_bytes": 2447666,
+      "removed_tail_bytes": 643246,
+      "chunks_crc_valid": 301,
+      "original_sha256": "4c5aa38cfde6a87f70e18659c3578e736a29572250362d919581714ee8d5bc97",
+      "prefix_sha256": "b8404c9045da9bf6744ae63eb3332458b3fa64a521feca7cc5592b5b6905a1de",
+      "final_sha256": "b8404c9045da9bf6744ae63eb3332458b3fa64a521feca7cc5592b5b6905a1de",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "After_Stability_0.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525021611169700_After_Stability_0.png",
+      "original_bytes": 3090912,
+      "valid_png_bytes": 2532192,
+      "removed_tail_bytes": 558720,
+      "chunks_crc_valid": 311,
+      "original_sha256": "69f0622de01ae4aab06daa865ec5467829b3ba525cf9a87b79e73f7fbe2c8696",
+      "prefix_sha256": "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+      "final_sha256": "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+      "pixel_payload_unchanged": true
+    },
+    {
+      "image": "After_Stability_1.png",
+      "raw_archive": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\environment-vfx\\ArtSource\\Environment\\SpaceFoundation\\UnrealNative\\HeroM02\\Saved\\RawPNGExports\\1794525021872199400_After_Stability_1.png",
+      "original_bytes": 3090912,
+      "valid_png_bytes": 2532192,
+      "removed_tail_bytes": 558720,
+      "chunks_crc_valid": 311,
+      "original_sha256": "4afd60bbda6cdeb614c822e0ec02fd9364522ec981f4c4bed52e0dcaaaee2c90",
+      "prefix_sha256": "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+      "final_sha256": "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+      "pixel_payload_unchanged": true
+    }
+  ],
+  "stability_sha256": [
+    "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467",
+    "55d7628bcf53bc65c9dcd8a7276fcb3983717a93554b9d37819334c4eff6f467"
+  ],
+  "identical_static_captures": true,
+  "timing_method": "Synchronized scene-capture wall time including one-pixel GPU readback; not isolated GPU time or gameplay FPS.",
+  "timings": {
+    "Before": {
+      "samples_ms": [
+        10.867500001040753,
+        12.073900001269067,
+        10.494800000742543,
+        10.573999999905936,
+        9.846600001765182,
+        16.473200001200894,
+        9.800100000575185,
+        9.954900000593625,
+        8.275000000139698,
+        11.40569999915897,
+        17.726000001857756,
+        9.76509999964037,
+        9.669999999459833,
+        13.325699997949414,
+        9.798699997190852,
+        10.837200003152248
+      ],
+      "median_ms": 10.53440000032424,
+      "p95_ms": 17.726000001857756,
+      "minimum_ms": 8.275000000139698
+    },
+    "After": {
+      "samples_ms": [
+        4.643700001906836,
+        5.086799999844516,
+        4.793899999640416,
+        4.461900000023888,
+        5.948599999101134,
+        4.583499998261686,
+        4.727399998955661,
+        4.775999997946201,
+        4.693000002589542,
+        4.610599997249665,
+        4.569200002151774,
+        4.471600001124898,
+        4.483699998672819,
+        4.568799999105977,
+        5.08349999654456,
+        4.590500000631437
+      ],
+      "median_ms": 4.627149999578251,
+      "p95_ms": 5.948599999101134,
+      "minimum_ms": 4.461900000023888
+    }
+  },
+  "median_wall_delta_ms": -5.907250000745989,
+  "native_texture_evidence": {
+    "Before": [
+      {
+        "asset": "/Game/TriadDrift/Environment/SpaceFoundation/T_TD_Nebula_BC",
+        "class": "Texture2D",
+        "built_size_xyz": [
+          1024,
+          512,
+          1
+        ],
+        "faces": 1,
+        "lod_bias": 0,
+        "max_texture_size": 0,
+        "mip_gen_settings": "<TextureMipGenSettings.TMGS_FROM_TEXTURE_GROUP: 0>",
+        "lod_group": "<TextureGroup.TEXTUREGROUP_SKYBOX: 15>",
+        "compression_settings": "<TextureCompressionSettings.TC_BC7: 11>",
+        "never_stream": true,
+        "full_chain_mip_levels_upper_bound": 11,
+        "compressed_full_chain_upper_bound_bytes": 699088
+      },
+      {
+        "asset": "/Game/TriadDrift/Environment/SpaceFoundation/T_TD_Stars_BC",
+        "class": "Texture2D",
+        "built_size_xyz": [
+          2048,
+          1024,
+          1
+        ],
+        "faces": 1,
+        "lod_bias": 0,
+        "max_texture_size": 0,
+        "mip_gen_settings": "<TextureMipGenSettings.TMGS_FROM_TEXTURE_GROUP: 0>",
+        "lod_group": "<TextureGroup.TEXTUREGROUP_SKYBOX: 15>",
+        "compression_settings": "<TextureCompressionSettings.TC_BC7: 11>",
+        "never_stream": true,
+        "full_chain_mip_levels_upper_bound": 12,
+        "compressed_full_chain_upper_bound_bytes": 2796240
+      }
+    ],
+    "After": [
+      {
+        "asset": "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Back",
+        "class": "Texture2D",
+        "built_size_xyz": [
+          8192,
+          4096,
+          1
+        ],
+        "faces": 1,
+        "lod_bias": 0,
+        "max_texture_size": 8192,
+        "mip_gen_settings": "<TextureMipGenSettings.TMGS_FROM_TEXTURE_GROUP: 0>",
+        "lod_group": "<TextureGroup.TEXTUREGROUP_SKYBOX: 15>",
+        "compression_settings": "<TextureCompressionSettings.TC_BC7: 11>",
+        "never_stream": true,
+        "full_chain_mip_levels_upper_bound": 14,
+        "compressed_full_chain_upper_bound_bytes": 44739280
+      },
+      {
+        "asset": "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Front",
+        "class": "Texture2D",
+        "built_size_xyz": [
+          4096,
+          2048,
+          1
+        ],
+        "faces": 1,
+        "lod_bias": 0,
+        "max_texture_size": 4096,
+        "mip_gen_settings": "<TextureMipGenSettings.TMGS_FROM_TEXTURE_GROUP: 0>",
+        "lod_group": "<TextureGroup.TEXTUREGROUP_SKYBOX: 15>",
+        "compression_settings": "<TextureCompressionSettings.TC_BC7: 11>",
+        "never_stream": true,
+        "full_chain_mip_levels_upper_bound": 13,
+        "compressed_full_chain_upper_bound_bytes": 11184848
+      },
+      {
+        "asset": "/Game/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Stars",
+        "class": "TextureCube",
+        "built_size_xyz": [
+          1024,
+          1024,
+          6
+        ],
+        "faces": 6,
+        "lod_bias": 0,
+        "max_texture_size": 1024,
+        "mip_gen_settings": "<TextureMipGenSettings.TMGS_FROM_TEXTURE_GROUP: 0>",
+        "lod_group": "<TextureGroup.TEXTUREGROUP_SKYBOX: 15>",
+        "compression_settings": "<TextureCompressionSettings.TC_HDR_COMPRESSED: 10>",
+        "never_stream": true,
+        "full_chain_mip_levels_upper_bound": 11,
+        "compressed_full_chain_upper_bound_bytes": 8388768
+      }
+    ]
+  },
+  "compressed_full_chain_upper_bound_mib": {
+    "Before": 3.333404541015625,
+    "After": 61.33355712890625
+  },
+  "texture_memory_method": "BC7/BC6H full-chain upper bound from actual built dimensions; native ListTextures CSV in Capture.log records resource sizes and mip counts; not total VRAM residency.",
+  "hardware_gpu_time": "not measured",
+  "gameplay_validated": false,
+  "manual_approval": "pending",
+  "integrated": false,
+  "sun_lux": 8.0,
+  "sky_actor_tag": "TD.Presentation.Sky",
+  "baseline_settings_preserved": true,
+  "engine_errors": [],
+  "engine_warnings": [],
+  "diagnostics_verified": true,
+  "renderer": "DirectX 12 / Shader Model 6 (verified in both engine logs)"
+}
