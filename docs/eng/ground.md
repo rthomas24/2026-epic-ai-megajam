@@ -86,6 +86,20 @@ Dying calls CUT! and you respawn as the next take. F10 opens the debug menu and 
 | Encounter volumes spawn crew; clearing a room opens its doors | `Ground.EncounterSpawnsClearsOpensDoors` | |
 | Sandbox boots | `Ground.SandboxBoots` | |
 
+## Planet arrival and hand-off (agreed with T1, ENG-20)
+
+| Moment | Who | What |
+|---|---|---|
+| Galaxy → planet | T1 | After the 2.5 s entry, `UTDAtmosphereEntryComponent` calls `TravelTo(Verdance or Cinder, ReturnPoint)`. T4's planet atmosphere supplies the return point. |
+| Fresh arrival on a planet map | T5 | The ground mode spawns the squad **in the air, flying**, at `PlayerStart_Descent`, so T1's `ATDAtmosphereFlightZone` takes over the descent. |
+| Checkpoint or retake on a planet, after landing | T5 | The player respawns on foot at the last pad, and the ship is snapped down with `GetLanding()->SnapLanded(Pad)`. |
+| Landed | T1 → T5 | `UTDTravelSubsystem::OnShipLanded(Ship, Pad)`. For the player-flown ship only (`Ship->IsPlayerFlown()`), T5 spawns the first-person character at the ship's side and possesses it. The ship stays parked. |
+| Re-board | T5 → T1 | A board interactable on the parked ship possesses the ship again, then calls `Ship->GetLanding()->RequestTakeOff()`. T1 fires `OnShipTookOff`, and the squadmates lift with the player. |
+| Planet → galaxy | T1 | Once `RequiredObjectives` are done and the player climbs out, the zone calls `TravelTo(Galaxy, "<Planet>_Orbit")`. |
+| Galaxy arrival | T4 + T5 | T5's space mode places the squad at `ATDGalaxyLayout::FindReturnPoint(ReturnPoint)`. T4 positions that point outside the atmosphere trigger and inside T1's gravity well. |
+
+Status: the agreement is recorded, but the arrival and hand-off code on T5's side isn't built yet. It comes with ENG-25/26, once T1's ENG-20 is on main.
+
 ## Known gaps
 - **Input:** real key injection can't run headless. The harness's PlayerController has no local player, so the tests
   possess the character with an AIController and drive the same public move API that the input handlers call.
