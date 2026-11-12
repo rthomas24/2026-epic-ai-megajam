@@ -102,6 +102,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	bool IsPlayerFlown() const { return bPlayerControlled; }
 
+	/**
+	 * True while the player must not switch away from this ship: hyperdrive spooling / jumping /
+	 * dropping out, a landing or take-off in progress, landed (on foot), or atmospheric entry.
+	 * T3's squad manager refuses manual switches while this is true. OutReason is HUD-ready.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	bool IsSwitchLocked(FText& OutReason) const;
+
 	/** T2's target selection / lock-on for this ship. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	UTDTargetingComponent* GetTargeting() const { return Targeting; }
@@ -141,6 +149,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
 	void SnapCamera();
 
+	/**
+	 * Where the chase camera would be this frame with no lag: valid for AI-flown ships whose arm
+	 * doesn't tick (T3's switch-cut "to" camera). For the player-flown ship it's the live camera.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	FTransform GetChaseCameraTransformNow() const;
+
+	/** The chase camera FOV this ship would use at its current speed (no smoothing). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	float GetChaseCameraFOVNow() const;
+
 	/** The chase arm's target rotation this frame (before the spring arm's own rotation lag). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	FQuat GetChaseTargetQuat() const { return ChaseTargetQuat; }
@@ -157,6 +176,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	void UpdateChaseCamera(float DeltaSeconds, bool bSnap);
+
+	/** Arm rotation for the current ship pose. RefUp is the camera's reference up (updated in place). */
+	FQuat ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeconds, float& OutRoll) const;
 
 	UFUNCTION()
 	void HandleTeleported(ATDSpacecraft* Spacecraft, FVector FromLocation, FVector ToLocation, FRotator NewFacing);

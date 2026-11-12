@@ -125,6 +125,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
 	bool RequestTakeOff();
 
+	/**
+	 * Hard reset for a retake: instantly Flying (gear up, canopy closed, engines on), pad released, flight
+	 * model un-parked, wingman AI un-passived. No events other than the state change. Safe when already flying.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	void AbortToFlying();
+
 	/** Puts the ship straight into the Landed state on a pad (loading a checkpoint on a planet). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
 	bool SnapLanded(ATDLandingPad* Pad);

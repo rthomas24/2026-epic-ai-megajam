@@ -24,6 +24,24 @@
 #define TD_HAS_WEAPONS 0
 #endif
 
+#if TD_HAS_WEAPONS
+template <typename TWeapons>
+concept TDSpacePC_HasCancelCharge = requires(TWeapons* W) { W->CancelCharge(ETDWeaponSlot::Secondary); };
+
+/** Calls T2's UTDWeaponComponent::CancelCharge once it exists (compiles to nothing before). */
+template <typename TWeapons>
+void TDSpacePC_CallCancelCharge(TWeapons* Weapons, ETDWeaponSlot Slot)
+{
+	if constexpr (TDSpacePC_HasCancelCharge<TWeapons>)
+	{
+		if (Weapons)
+		{
+			Weapons->CancelCharge(Slot);
+		}
+	}
+}
+#endif
+
 #if __has_include("TriadDrift/Combat/TDTargetingComponent.h")
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #define TD_HAS_TARGETING 1
@@ -47,7 +65,7 @@
 
 namespace
 {
-	FVector2D ShapeStickImpl(const FVector2D& Raw, float Deadzone, float Exponent)
+	FVector2D TDSpacePC_ShapeStickImpl(const FVector2D& Raw, float Deadzone, float Exponent)
 	{
 		const float Len = Raw.Size();
 		if (Len <= Deadzone || Len <= KINDA_SMALL_NUMBER)
@@ -60,7 +78,7 @@ namespace
 	}
 
 	template <typename T>
-	T* AddModifier(FEnhancedActionKeyMapping& Mapping, UObject* Outer)
+	T* TDSpacePC_AddModifier(FEnhancedActionKeyMapping& Mapping, UObject* Outer)
 	{
 		T* Modifier = NewObject<T>(Outer);
 		Mapping.Modifiers.Add(Modifier);
@@ -68,29 +86,29 @@ namespace
 	}
 
 	/** Maps a key onto the Y axis of a 2D action (optionally negated). */
-	void MapAxis2D(UInputMappingContext* Context, const UInputAction* Action, const FKey& Key, bool bYAxis, bool bNegate)
+	void TDSpacePC_MapAxis2D(UInputMappingContext* Context, const UInputAction* Action, const FKey& Key, bool bYAxis, bool bNegate)
 	{
 		FEnhancedActionKeyMapping& Mapping = Context->MapKey(Action, Key);
 		if (bYAxis)
 		{
-			AddModifier<UInputModifierSwizzleAxis>(Mapping, Context)->Order = EInputAxisSwizzle::YXZ;
+			TDSpacePC_AddModifier<UInputModifierSwizzleAxis>(Mapping, Context)->Order = EInputAxisSwizzle::YXZ;
 		}
 		if (bNegate)
 		{
-			AddModifier<UInputModifierNegate>(Mapping, Context);
+			TDSpacePC_AddModifier<UInputModifierNegate>(Mapping, Context);
 		}
 	}
 
-	void MapNegated(UInputMappingContext* Context, const UInputAction* Action, const FKey& Key)
+	void TDSpacePC_MapNegated(UInputMappingContext* Context, const UInputAction* Action, const FKey& Key)
 	{
 		FEnhancedActionKeyMapping& Mapping = Context->MapKey(Action, Key);
-		AddModifier<UInputModifierNegate>(Mapping, Context);
+		TDSpacePC_AddModifier<UInputModifierNegate>(Mapping, Context);
 	}
 }
 
 FVector2D ATDSpacePlayerController::ShapeStick(const FVector2D& Raw, float Deadzone, float Exponent)
 {
-	return ShapeStickImpl(Raw, Deadzone, Exponent);
+	return TDSpacePC_ShapeStickImpl(Raw, Deadzone, Exponent);
 }
 
 ATDSpacePlayerController::ATDSpacePlayerController()
@@ -164,9 +182,9 @@ void ATDSpacePlayerController::BuildInputObjects()
 
 	// Throttle: W / S, RT / LT.
 	C->MapKey(IA_Throttle, EKeys::W);
-	MapNegated(C, IA_Throttle, EKeys::S);
+	TDSpacePC_MapNegated(C, IA_Throttle, EKeys::S);
 	C->MapKey(IA_Throttle, EKeys::Gamepad_RightTriggerAxis);
-	MapNegated(C, IA_Throttle, EKeys::Gamepad_LeftTriggerAxis);
+	TDSpacePC_MapNegated(C, IA_Throttle, EKeys::Gamepad_LeftTriggerAxis);
 
 	// Aim: mouse delta (virtual joystick, shaped in code) and right stick (shaped in code).
 	C->MapKey(IA_AimMouse, EKeys::Mouse2D);
@@ -174,25 +192,25 @@ void ATDSpacePlayerController::BuildInputObjects()
 
 	// Roll: A / D, left stick X.
 	C->MapKey(IA_Roll, EKeys::D);
-	MapNegated(C, IA_Roll, EKeys::A);
+	TDSpacePC_MapNegated(C, IA_Roll, EKeys::A);
 	{
 		FEnhancedActionKeyMapping& M = C->MapKey(IA_Roll, EKeys::Gamepad_LeftX);
-		UInputModifierDeadZone* DZ = AddModifier<UInputModifierDeadZone>(M, C);
+		UInputModifierDeadZone* DZ = TDSpacePC_AddModifier<UInputModifierDeadZone>(M, C);
 		DZ->LowerThreshold = 0.2f;
 		DZ->Type = EDeadZoneType::Axial;
 	}
 
 	// Strafe (optional thrusters): arrow keys, left stick Y = vertical.
-	MapAxis2D(C, IA_Strafe, EKeys::Right, false, false);
-	MapAxis2D(C, IA_Strafe, EKeys::Left, false, true);
-	MapAxis2D(C, IA_Strafe, EKeys::Up, true, false);
-	MapAxis2D(C, IA_Strafe, EKeys::Down, true, true);
+	TDSpacePC_MapAxis2D(C, IA_Strafe, EKeys::Right, false, false);
+	TDSpacePC_MapAxis2D(C, IA_Strafe, EKeys::Left, false, true);
+	TDSpacePC_MapAxis2D(C, IA_Strafe, EKeys::Up, true, false);
+	TDSpacePC_MapAxis2D(C, IA_Strafe, EKeys::Down, true, true);
 	{
 		FEnhancedActionKeyMapping& M = C->MapKey(IA_Strafe, EKeys::Gamepad_LeftY);
-		UInputModifierDeadZone* DZ = AddModifier<UInputModifierDeadZone>(M, C);
+		UInputModifierDeadZone* DZ = TDSpacePC_AddModifier<UInputModifierDeadZone>(M, C);
 		DZ->LowerThreshold = 0.35f;
 		DZ->Type = EDeadZoneType::Axial;
-		AddModifier<UInputModifierSwizzleAxis>(M, C)->Order = EInputAxisSwizzle::YXZ;
+		TDSpacePC_AddModifier<UInputModifierSwizzleAxis>(M, C)->Order = EInputAxisSwizzle::YXZ;
 	}
 
 	// Boost / Drift / Brake.
@@ -373,6 +391,7 @@ void ATDSpacePlayerController::OnPossess(APawn* InPawn)
 
 void ATDSpacePlayerController::OnUnPossess()
 {
+	ReleaseHeldPowers();
 	if (bThrottleUpApplied)
 	{
 		if (ATDSpacecraft* Craft = GetSpacecraft())
@@ -385,6 +404,16 @@ void ATDSpacePlayerController::OnUnPossess()
 		bThrottleUpApplied = false;
 	}
 	// Release the old ship's triggers so its wingman AI starts clean. Never touch its velocity.
+	// A charged secondary (Splitter) is cancelled first so the release doesn't fire it.
+#if TD_HAS_WEAPONS
+	if (bFireSecondaryHeld)
+	{
+		if (ATDSpacecraft* Craft = GetSpacecraft())
+		{
+			TDSpacePC_CallCancelCharge(Craft->GetWeapons(), ETDWeaponSlot::Secondary);
+		}
+	}
+#endif
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, false); }
 	if (bFireSecondaryHeld) { RouteTrigger(ETDWeaponSlot::Secondary, false); }
 	Super::OnUnPossess();
@@ -478,12 +507,12 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	}
 	else if (bUsingGamepad)
 	{
-		Aim = ShapeStickImpl(StickAim, StickDeadzone, StickResponseExponent);
+		Aim = TDSpacePC_ShapeStickImpl(StickAim, StickDeadzone, StickResponseExponent);
 		if (bInvertStickPitch) { Aim.Y = -Aim.Y; }
 	}
 	else
 	{
-		Aim = ShapeStickImpl(VirtualStick, MouseDeadzone, MouseResponseExponent);
+		Aim = TDSpacePC_ShapeStickImpl(VirtualStick, MouseDeadzone, MouseResponseExponent);
 	}
 	In.Aim = Aim;
 	In.Roll = CurrentFlightInput.Roll;
@@ -691,8 +720,39 @@ void ATDSpacePlayerController::OnPowerReleased(const FInputActionValue&)
 	bPowerImmediate = false;
 }
 
-void ATDSpacePlayerController::OnAbility(const FInputActionValue&) { RoutePower(ETDPowerInput::Ability, true); }
-void ATDSpacePlayerController::OnAbilityReleased(const FInputActionValue&) { RoutePower(ETDPowerInput::Ability, false); }
+void ATDSpacePlayerController::OnAbility(const FInputActionValue&) { bAbilityHeld = true; RoutePower(ETDPowerInput::Ability, true); }
+void ATDSpacePlayerController::OnAbilityReleased(const FInputActionValue&)
+{
+	if (bAbilityHeld) // a key-up arriving after a ship switch was already released on the old ship
+	{
+		bAbilityHeld = false;
+		RoutePower(ETDPowerInput::Ability, false);
+	}
+}
+
+void ATDSpacePlayerController::ReleaseHeldPowers()
+{
+	// The ship being left must see the release edge of anything still held (Bastion's dome hold).
+	if (PowerPressTime >= 0.0)
+	{
+		if (bPowerImmediate)
+		{
+			RoutePower(ETDPowerInput::Signature1, false);
+		}
+		else if (bPowerHoldFired)
+		{
+			RoutePower(ETDPowerInput::Signature2, false);
+		}
+	}
+	if (bAbilityHeld)
+	{
+		RoutePower(ETDPowerInput::Ability, false);
+	}
+	PowerPressTime = -1.0;
+	bPowerHoldFired = false;
+	bPowerImmediate = false;
+	bAbilityHeld = false;
+}
 
 void ATDSpacePlayerController::ApplyThrottleUp()
 {
