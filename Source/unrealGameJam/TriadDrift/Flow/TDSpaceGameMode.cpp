@@ -164,6 +164,11 @@ void ATDSpaceGameMode::HandOverPlayers()
 	for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
 	{
 		UTDCheatManager::InstallOn(It->Get());
+		if (APlayerController* PC = It->Get(); PC && PC->IsLocalController())
+		{
+			PC->SetInputMode(FInputModeGameOnly()); // never inherit the menu's UI-only input
+			PC->SetShowMouseCursor(false);
+		}
 		PossessActiveShip(It->Get());
 	}
 	if (!SquadManager)

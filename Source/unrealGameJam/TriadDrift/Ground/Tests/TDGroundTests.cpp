@@ -297,13 +297,28 @@ bool FTDGroundHeavy::RunTest(const FString& Parameters)
 	W.Advance(1.8f);
 	TestTrue(TEXT("ready after 2 s"), B->HeavyLunge());
 
-	// Hold-to-heavy through the input path.
+	// Hold-to-heavy through the input path: the press whiffs (target 5 m away), holding 0.35 s lunges.
 	W.Advance(2.1f);
+	C->SetActorLocation(FVector(0.f, 0.f, C->GetActorLocation().Z));
+	Target->SetActorLocation(FVector(500.f, 0.f, Target->GetActorLocation().Z));
+	W.Advance(0.1f);
 	const float Before = TDGroundTest::Hull(Target);
 	B->PressAttack();
+	TestEqual(TEXT("the press itself whiffs"), TDGroundTest::Hull(Target), Before, 0.1f);
 	W.Advance(0.4f);
 	B->ReleaseAttack();
-	TestEqual(TEXT("holding attack 0.35 s = heavy (70)"), Before - TDGroundTest::Hull(Target), 70.f, 0.1f);
+	TestEqual(TEXT("holding a whiffed press 0.35 s = heavy (70)"), Before - TDGroundTest::Hull(Target), 70.f, 0.1f);
+
+	// A press that connects stays a light hit even if held (no lunge out of a landed swing).
+	W.Advance(2.2f);
+	C->SetActorLocation(FVector(Target->GetActorLocation().X - 130.f, 0.f, C->GetActorLocation().Z));
+	W.Advance(0.1f);
+	const float Before2 = TDGroundTest::Hull(Target);
+	B->PressAttack();
+	TestEqual(TEXT("press lands the light hit at once (25)"), Before2 - TDGroundTest::Hull(Target), 25.f, 0.1f);
+	W.Advance(0.5f);
+	B->ReleaseAttack();
+	TestEqual(TEXT("holding after a hit does not lunge"), Before2 - TDGroundTest::Hull(Target), 25.f, 0.1f);
 	return true;
 }
 

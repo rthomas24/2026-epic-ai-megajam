@@ -11,6 +11,7 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
@@ -27,7 +28,9 @@ ATDBoardShipInteractable::ATDBoardShipInteractable()
 
 bool ATDBoardShipInteractable::CanInteract(AActor* Interactor) const
 {
-	return Director && Director->IsOnFoot() && bEnabled;
+	const ATDShip* Ship = Director ? Director->GetPlayerShip() : nullptr;
+	const UTDHealthComponent* H = Ship ? UTDStatics::GetHealth(Ship) : nullptr;
+	return Director && Director->IsOnFoot() && bEnabled && Ship && (!H || H->IsAlive()) && Ship->GetLanding() && Ship->GetLanding()->IsLanded();
 }
 
 void ATDBoardShipInteractable::Interact(AActor* Interactor)
@@ -295,7 +298,26 @@ void ATDPlanetDirector::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 {
 	if (bOnFoot && FirstPerson)
 	{
-		// CUT on foot: back at the pad, the ship still parked beside it.
+		// CUT on foot: back at the pad, the ship parked beside it. If it was destroyed or knocked out of
+		// Landed meanwhile, the squad is rebuilt and snapped down onto the pads again.
+		ATDShip* Ship = PlayerShip.Get();
+		const UTDHealthComponent* H = Ship ? UTDStatics::GetHealth(Ship) : nullptr;
+		const bool bShipOk = Ship && (!H || H->IsAlive()) && Ship->GetLanding() && Ship->GetLanding()->IsLanded();
+		if (!bShipOk)
+		{
+			if (ATDSquadManager* Squad = ATDSquadManager::Get(this))
+			{
+				APlayerController* PC = GetPlayerController();
+				Squad->SpawnSquad(Rig ? Rig->GetDescentStart() : GetActorTransform()); // possesses the lead ship...
+				PlayerShip = Squad->GetActiveShip();
+				SnapSquadLanded();
+				if (PC && FirstPerson)
+				{
+					if (PlayerShip.IsValid()) { PlayerShip->SetPlayerControlled(false); }
+					PC->Possess(FirstPerson); // ...so hand the player straight back to the pilot
+				}
+			}
+		}
 		FirstPerson->RespawnAt(ExitTransformFor(PlayerShip.Get()));
 		return;
 	}

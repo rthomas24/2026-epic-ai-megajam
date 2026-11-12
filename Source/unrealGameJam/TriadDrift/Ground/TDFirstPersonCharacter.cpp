@@ -340,9 +340,9 @@ bool ATDFirstPersonCharacter::FindMantleTarget(FVector& OutTarget) const
 
 bool ATDFirstPersonCharacter::TryMantle()
 {
-	if (IsDead() || bMantling || bForcedMove || MantleCooldown > 0.f)
+	if (IsDead() || bMantling || bForcedMove || MantleCooldown > 0.f || (Blade && Blade->GetBladeState() == ETDBladeState::AirSlam))
 	{
-		return false;
+		return false; // a slam commits you downward
 	}
 	FVector Target;
 	if (!FindMantleTarget(Target))
@@ -391,8 +391,10 @@ void ATDFirstPersonCharacter::RespawnAt(const FTransform& Where)
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	Health->Revive(1.f, 1.f);
+	bCarrying = false;
 	if (Blade)
 	{
+		Blade->ResetState(); // a new take starts with a fresh blade (stamina, cooldowns, crit)
 		Blade->Ignite();
 	}
 	DashCharges = Tuning.DashCharges;
@@ -801,9 +803,40 @@ void ATDFirstPersonCharacter::NotifyControllerChanged()
 	const ULocalPlayer* LP = PC ? PC->GetLocalPlayer() : nullptr;
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr)
 	{
-		Subsystem->RemoveMappingContext(InputContext);
-		Subsystem->AddMappingContext(InputContext, 0);
+		// Rebuild now, not on the next deferred tick: keys work on the very first frame after a hand-over.
+		FModifyContextOptions Now;
+		Now.bForceImmediately = true;
+		Subsystem->RemoveMappingContext(InputContext, Now);
+		Subsystem->AddMappingContext(InputContext, 1, Now);
 	}
+	if (APlayerController* MyPC = Cast<APlayerController>(Controller); MyPC && MyPC->IsLocalController())
+	{
+		// Coming from a menu (UI-only input sticks to the viewport across level loads): back to gameplay input.
+		MyPC->SetInputMode(FInputModeGameOnly());
+		MyPC->SetShowMouseCursor(false);
+	}
+}
+
+void ATDFirstPersonCharacter::UnPossessed()
+{
+	// Hand the keys back: the ship's controller must not see IMC_Ground (WASD / LMB / Space) any more.
+	const APlayerController* PC = Cast<APlayerController>(Controller);
+	const ULocalPlayer* LP = PC ? PC->GetLocalPlayer() : nullptr;
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr)
+	{
+		FModifyContextOptions Now;
+		Now.bForceImmediately = true;
+		Subsystem->RemoveMappingContext(InputContext, Now);
+	}
+	MoveInput = FVector2D::ZeroVector;
+	bSprintHeld = false;
+	if (Blade)
+	{
+		Blade->SetBlockHeld(false);
+		Blade->ReleaseAttack();
+	}
+	CancelInteract();
+	Super::UnPossessed();
 }
 
 void ATDFirstPersonCharacter::OnMove(const FInputActionValue& Value)

@@ -121,6 +121,11 @@ void ATDGroundGameMode::StartPlay()
 	{
 		APlayerController* PC = It->Get();
 		UTDCheatManager::InstallOn(PC);
+		if (PC && PC->IsLocalController())
+		{
+			PC->SetInputMode(FInputModeGameOnly()); // never inherit the menu's UI-only input
+			PC->SetShowMouseCursor(false);
+		}
 
 		if (PC && !PC->GetPawn())
 		{
