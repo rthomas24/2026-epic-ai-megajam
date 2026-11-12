@@ -29,12 +29,35 @@ See docs/visual/Day1-Integration-Policy-2026-11-12.md for the dated integration 
 |---|---|---|---|---|
 | Lead Coordinator | docs/visual/**; CREDITS.md; DEVLOG.md; coordinated CLAIMS.md updates | nick/visual-assets; nick/day1-integration | visual-assets; day1-integration | Active coordination only; no asset implementation; serial claim publication/integration |
 | Environment & VFX Agent | ArtSource/Environment/SpaceFoundation/UnrealNative/**; Content/TriadDrift/Environment/SpaceFoundation/** | nick/environment-vfx | environment-vfx | Active first native environment milestone; original source outside UnrealNative read-only; future VFX/Audio not assigned |
-| UI/UX & HUD Agent | Plugins/TriadDriftHUD/**; ArtSource/UI/TriadHUD/Unreal/**; Content/TriadDrift/UI/TriadHUD/** | nick/hud-native | hud-native | Active publication/verification handoff; frozen prototype read-only; plugin/shared activation withheld pending Ryan approval |
-| Ships & Weapons Agent | ArtSource/Space/Ships/Lancer/** | nick/ships-lancer | ships-lancer | Frozen review at pushed 43dc320; no active edits; reservation retained, not released; silhouette/assembly QA unresolved, no main integration |
+| UI/UX & HUD Agent | Plugins/TriadDriftHUD/**; ArtSource/UI/TriadHUD/Unreal/**; Content/TriadDrift/UI/TriadHUD/** | nick/hud-native | hud-native | Frozen standalone milestone at pushed 6d9739e; PR #4 draft; reservation retained; Ryan activation/packaging approval required; legacy staged claim excluded |
+| Ships & Weapons Agent | ArtSource/Space/Ships/Lancer/production/**; ArtSource/Space/Ships/Lancer/review/M02/** | nick/ships-lancer | ships-lancer | Active user-authorized M02 refinement; M01 sources/reviews and attachments read-only; preserve 33 names/transforms/pivots; no Unreal import/final production approval |
+| Audio & Music Agent (dedicated chat 01a1d0e9-aaa8-7f61-85c7-86b6fd3f1db7) | ArtSource/Audio/StarterPlan/SwitchM02/** | nick/audio-music | audio-music | Active three cinematic switch WAVs only; predecessor /root/audio stopped, old nick/audio preserved read-only; licensing/provenance and manual audition approval required; no library/music/shared config |
 
 Completed Environment/VFX/HUD/Audio source snapshots are read-only shared references.
-Future combat VFX output paths and Audio/music production are not activated or
-assigned by these rows. No existing claim is released merely by publishing this table.
+Future combat VFX output paths and broader Audio/music production are not
+activated by these rows; only the explicitly claimed three-candidate audio task is active. No existing claim is released merely by publishing this table.
+
+## Nick task board — checkpoint November 12, 2026, 12:52 EST
+
+Only Lead updates these task states. `done` requires verified main integration;
+branch-verified work awaiting shared integration stays in progress or queued.
+Earlier task start times were not recorded precisely; they are not invented here.
+
+| Task | Owner | State | Start / checkpoint (EST) | Main finish / boundary | Paths |
+|---|---|---|---|---|---|
+| Completed four-lane source milestone | Lead / former source workers | done | Earlier Nov 12 | Nov 12 12:35; main 957b45e; source prototypes only | Published ArtSource source kits; CREDITS.md; DEVLOG.md; source handoff |
+| Resume production / claim and publication coordination | Lead Coordinator | done | Nov 12 12:49 | Nov 12 this status push; main claims 2d4831f and b8e8b46, verified HUD branch publication / PR #4; no unverified asset integrated | Lead coordination paths only; heavy queue preserved |
+| SpaceFoundation first native sky | Environment & VFX Agent | in progress | Earlier Nov 12; checkpoint 12:52 | Build/reload reported passing; capture exposure rejected, diagnostics ongoing; not ready to integrate | Exact environment lane above; no shared maps/config |
+| Native HUD milestone / shared integration handoff | UI/UX & HUD Agent | in progress | Earlier Nov 12; standalone verified, branch published 12:53 | Branch 6d9739e / draft PR #4; no main acceptance; shared activation/packaging requires Ryan; local claim preserved/excluded | Exact HUD lane above; no shared-file edit |
+| HUD gameplay activation / packaging integration | UI/UX & HUD Agent + Lead, coordinate Ryan | queued | Not started | Requires Ryan approval before .uproject/module or shared gameplay changes; no such edit authorized here | No additional writable paths granted |
+| Lancer M01 silhouette review | Ships & Weapons Agent | queued | Review branch published Nov 12 12:42 | Branch 43dc320; general direction approved, polish/assembly issues unresolved; no main acceptance | M01 sources/reviews read-only |
+| Lancer M02 refinement | Ships & Weapons Agent | in progress | Nov 12 12:50; claim 2d4831f | User-authorized production refinement; source preparation only until heavy slot; render approval before Unreal | production/** and review/M02/** inside exact Lancer lane |
+| Lancer M02 bounded Blender QA / renders | Ships & Weapons Agent | queued | Not started | After Environment releases its entire heavy sequence and Lead checks RAM; one 2-thread process | Same M02 lane, no original source/interface changes |
+| Three cinematic ship-switch candidates (Rift/Lancer/Bastion) | Audio & Music Agent | in progress | Nov 12 12:56; ownership transfer 13:01, direct dedicated-chat brief verified | Claim first; exactly three playable WAVs with provenance and measured metrics; manual approval before further audio work | ArtSource/Audio/StarterPlan/SwitchM02/** only |
+
+The dedicated Audio & Music chat succeeds the stopped Audio & Polish worker for this three-candidate task; the predecessor is not resumed.
+Broader audio-library/music and future combat VFX production remain unassigned;
+no inactive source worker is being restarted. New task/path transfers must be published here before edits.
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
