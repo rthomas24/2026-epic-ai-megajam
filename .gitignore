@@ -1,0 +1,40 @@
+# ---- Unreal Engine: local caches and generated files (rebuilt on each machine) ----
+.vs/
+.vscode/
+.idea/
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/*
+!Build/**/*.ico
+Plugins/**/Binaries/
+Plugins/**/Intermediate/
+# Generated IDE project files (right-click the .uproject > Generate Visual Studio project files)
+*.sln
+*.slnx
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+*.xcodeproj
+*.xcworkspace
+# Built lighting data is regenerated per machine
+*_BuiltData.uasset
+
+# ---- Packaged game builds: never commit (AGENTS.md) ----
+Builds/
+
+# ---- Blender backups ----
+*.blend1
+*.blend2
+
+# ---- Python ----
+__pycache__/
+*.pyc
+
+# ---- OS junk ----
+Thumbs.db
+desktop.ini
+.DS_Store
