@@ -917,6 +917,7 @@ void ATDSquadManager::RestoreShipForFlight(ATDShip* Ship, const FVector& Locatio
 	}
 	Ship->SetActorHiddenInGame(false);
 	Ship->SetActorEnableCollision(true);
+	TDSquad::AbortLanding(Ship); // a ship that died mid-landing comes back flying (T1)
 	TDSquad::SetFlightParked(Ship, false);
 	TDSquad::TeleportShip(Ship, Location, Facing, false);
 	TDSquad::ResetFlightState(Ship, /*bKeepVelocity*/ false);
