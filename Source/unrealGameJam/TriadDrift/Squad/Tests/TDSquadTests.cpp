@@ -107,9 +107,9 @@ bool FTDSquadShipSpecs::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Rift hull"), R.MaxHull, 100.f);      TestEqual(TEXT("Rift shield"), R.MaxShield, 100.f);
 	TestEqual(TEXT("Lancer hull"), L.MaxHull, 70.f);     TestEqual(TEXT("Lancer shield"), L.MaxShield, 80.f);
 	TestEqual(TEXT("Bastion hull"), B.MaxHull, 180.f);   TestEqual(TEXT("Bastion shield"), B.MaxShield, 160.f);
-	TestEqual(TEXT("Rift cruise/boost"), FVector2D(R.CruiseSpeed, R.BoostSpeed), FVector2D(6000.f, 11000.f));
-	TestEqual(TEXT("Lancer cruise/boost"), FVector2D(L.CruiseSpeed, L.BoostSpeed), FVector2D(7500.f, 15000.f));
-	TestEqual(TEXT("Bastion cruise/boost"), FVector2D(B.CruiseSpeed, B.BoostSpeed), FVector2D(4800.f, 8500.f));
+	TestEqual(TEXT("Rift cruise"), R.CruiseSpeed, 6000.f);     TestEqual(TEXT("Rift boost"), R.BoostSpeed, 11000.f);
+	TestEqual(TEXT("Lancer cruise"), L.CruiseSpeed, 7500.f);   TestEqual(TEXT("Lancer boost"), L.BoostSpeed, 15000.f);
+	TestEqual(TEXT("Bastion cruise"), B.CruiseSpeed, 4800.f);  TestEqual(TEXT("Bastion boost"), B.BoostSpeed, 8500.f);
 	TestEqual(TEXT("turn rates"), FVector(R.TurnRateDeg, L.TurnRateDeg, B.TurnRateDeg), FVector(120.f, 100.f, 75.f));
 	TestEqual(TEXT("boost meters"), FVector(R.BoostMeterSeconds, L.BoostMeterSeconds, B.BoostMeterSeconds), FVector(3.f, 4.f, 2.5f));
 	TestTrue(TEXT("Lancer regenerates boost fastest"), L.BoostRegenSeconds < R.BoostRegenSeconds && L.BoostRegenSeconds < B.BoostRegenSeconds);
@@ -145,8 +145,8 @@ bool FTDSquadSpecApplied::RunTest(const FString& Parameters)
 		TestEqual(TEXT("boost meter applied"), T.BoostDuration, Spec.BoostMeterSeconds);
 		if (const UTDWeaponComponent* Weapons = Ship->FindComponentByClass<UTDWeaponComponent>())
 		{
-			TestEqual(TEXT("primary equipped"), Weapons->GetWeaponId(ETDWeaponSlot::Primary), Spec.PrimaryWeapon);
-			TestEqual(TEXT("secondary equipped"), Weapons->GetWeaponId(ETDWeaponSlot::Secondary), Spec.SecondaryWeapon);
+			TestTrue(TEXT("primary equipped"), Weapons->GetWeaponId(ETDWeaponSlot::Primary) == Spec.PrimaryWeapon);
+			TestTrue(TEXT("secondary equipped"), Weapons->GetWeaponId(ETDWeaponSlot::Secondary) == Spec.SecondaryWeapon);
 		}
 		else
 		{

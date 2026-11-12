@@ -618,7 +618,7 @@ void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 	// The tumble is over: if the player was in this ship, cut to the healthiest survivor.
 	if (Slot.ShipId == ActiveShipId)
 	{
-		ETDShipId Best;
+		ETDShipId Best = ETDShipId::Rift;
 		if (FindHealthiestLivingShip(Slot.ShipId, Best))
 		{
 			SwitchToInternal(Best, /*bForced*/ true);
