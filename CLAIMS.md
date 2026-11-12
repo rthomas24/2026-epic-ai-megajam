@@ -36,6 +36,27 @@ Completed Environment/VFX/HUD/Audio source snapshots are read-only shared refere
 Future combat VFX output paths and Audio/music production are not activated or
 assigned by these rows. No existing claim is released merely by publishing this table.
 
+## Nick task board — checkpoint November 12, 2026, 12:52 EST
+
+Only Lead updates these task states. `done` requires verified main integration;
+branch-verified work awaiting shared integration stays in progress or queued.
+Earlier task start times were not recorded precisely; they are not invented here.
+
+| Task | Owner | State | Start / checkpoint (EST) | Main finish / boundary | Paths |
+|---|---|---|---|---|---|
+| Completed four-lane source milestone | Lead / former source workers | done | Earlier Nov 12 | Nov 12 12:35; main 957b45e; source prototypes only | Published ArtSource source kits; CREDITS.md; DEVLOG.md; source handoff |
+| Resume production / claim and publication coordination | Lead Coordinator | in progress | Nov 12 12:49 | Serialized claims, native branch audit and integration eligibility review | Lead's reserved coordination paths only |
+| SpaceFoundation first native sky | Environment & VFX Agent | in progress | Earlier Nov 12; checkpoint 12:52 | Build/reload reported passing; capture exposure rejected, diagnostics ongoing; not ready to integrate | Exact environment lane above; no shared maps/config |
+| Standalone native HUD verification and own-branch publication | UI/UX & HUD Agent | in progress | Earlier Nov 12; publication unblocked 12:52 | Standalone build, 3 tests and 5 captures verified; own-branch publication cleared; shared activation not approved | Exact HUD lane above; preserve/exclude legacy local CLAIMS edit |
+| HUD gameplay activation / packaging integration | UI/UX & HUD Agent + Lead, coordinate Ryan | queued | Not started | Requires Ryan approval before .uproject/module or shared gameplay changes; no such edit authorized here | No additional writable paths granted |
+| Lancer M01 silhouette review | Ships & Weapons Agent | queued | Review branch published Nov 12 12:42 | Branch 43dc320; general direction approved, polish/assembly issues unresolved; no main acceptance | M01 sources/reviews read-only |
+| Lancer M02 refinement | Ships & Weapons Agent | in progress | Nov 12 12:50; claim 2d4831f | User-authorized production refinement; source preparation only until heavy slot; render approval before Unreal | production/** and review/M02/** inside exact Lancer lane |
+| Lancer M02 bounded Blender QA / renders | Ships & Weapons Agent | queued | Not started | After Environment releases its entire heavy sequence and Lead checks RAM; one 2-thread process | Same M02 lane, no original source/interface changes |
+
+Audio/music production and future combat VFX production are not assigned by this
+board. No inactive source worker is being restarted, and no extra feature task is
+being dispatched. New task/path transfers must be published here before edits.
+
 ## Ryan-side engineering board (Lead: Claude Code)
 
 **Last updated: 2026-11-12 12:48 EST** by Ryan's Lead. Updated on every task start and finish
