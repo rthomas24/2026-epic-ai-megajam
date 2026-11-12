@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Weapon slots: fire rate, heat, ammo, charge, salvos, spread, aim assist.
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "GameFramework/MovementComponent.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
@@ -48,6 +49,14 @@ void UTDWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	Random.GenerateNewSeed();
+	// Fire after the ship has moved this frame, so the muzzle is where the ship is (not a frame behind while boosting).
+	if (AActor* Owner = GetOwner())
+	{
+		if (UMovementComponent* Move = Owner->FindComponentByClass<UMovementComponent>())
+		{
+			AddTickPrerequisiteComponent(Move);
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------------------ slots
@@ -84,6 +93,12 @@ void UTDWeaponComponent::EquipWeapon(ETDWeaponSlot Slot, FName WeaponId)
 	{
 		SlotFX = Spec.IsValid() ? FTDPowerPresentation::LoadWeaponFX(WeaponId) : nullptr;
 		bAuto = true;
+	}
+	// Load the projectile art now, not on the first shot (a synchronous load mid-fight is a hitch).
+	if (UTDWeaponFX* FX = SlotFX.Get())
+	{
+		FX->ProjectileMesh.LoadSynchronous();
+		FX->Tracer.LoadSynchronous();
 	}
 
 	FTDWeaponSlotState& S = State(Slot);

@@ -173,6 +173,8 @@ private:
 
 	/** The streak in use (bStreak false when art replaces it). */
 	FTDStreakLook StreakLook;
+	/** Distance growth last applied (re-scaling is skipped while it changes by under 3%). */
+	float AppliedGrowth = 1.f;
 
 	/** Engine glow material, hard-referenced so it cooks. Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)
