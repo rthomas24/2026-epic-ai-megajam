@@ -448,7 +448,7 @@ void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const F
 {
 	// A glowing totem: a dark plinth, a tall light column and a floating crown.
 	Platform(At, 40.f, FVector(500.f, 500.f, 40.f), FLinearColor(0.05f, 0.05f, 0.06f));
-	Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(60.f, 60.f, 440.f), Color, 2.5f, FRotator::ZeroRotator, false);
+	Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(22.f, 22.f, 440.f), Color, 2.f, FRotator::ZeroRotator, false); // thin: readable without filling the view up close
 	Block(EShape::Cone, At + FVector(0.f, 0.f, 600.f), FVector(160.f, 160.f, 200.f), Color, 3.f, FRotator(180.f, 0.f, 0.f), false);
 	AActor* Marker = SpawnProp<AActor>(At + FVector(0.f, 0.f, 300.f));
 	if (Marker)
@@ -1083,9 +1083,11 @@ void ATDPlanetCourse::BuildCinder()
 	const bool bProps = ScatterMeshes({
 		// Colour tells the way: amber crystals toward the outpost (north-east), cyan toward the jammer (south-east).
 		{ TEXT("SM_Cind_Crystal_04"), 10, FVector2D(0.8f, 1.2f), false, 900.f, FVector(8000.f, 5500.f, 0.f), FVector2D(1500.f, 6000.f), 20.f },
-		{ TEXT("SM_Cind_Crystal_02"), 30, FVector2D(0.7f, 1.3f), false, 500.f, FVector(7000.f, 5000.f, 0.f), FVector2D(800.f, 7000.f), 10.f },
+		{ TEXT("SM_Cind_Crystal_02"), 70, FVector2D(0.8f, 1.6f), false, 450.f, FVector(5500.f, 4000.f, 0.f), FVector2D(500.f, 5000.f), 10.f },
+		{ TEXT("SM_Cind_Crystal_04"), 8, FVector2D(0.9f, 1.3f), false, 700.f, FVector(3500.f, 3000.f, 0.f), FVector2D(800.f, 2500.f), 20.f }, // at the outpost trailhead
 		{ TEXT("SM_Cind_Crystal_03"), 10, FVector2D(0.8f, 1.2f), false, 900.f, FVector(8000.f, -5500.f, 0.f), FVector2D(1500.f, 6000.f), 20.f },
-		{ TEXT("SM_Cind_Crystal_01"), 30, FVector2D(0.7f, 1.3f), false, 500.f, FVector(7000.f, -5000.f, 0.f), FVector2D(800.f, 7000.f), 10.f },
+		{ TEXT("SM_Cind_Crystal_01"), 70, FVector2D(0.8f, 1.6f), false, 450.f, FVector(5500.f, -4000.f, 0.f), FVector2D(500.f, 5000.f), 10.f },
+		{ TEXT("SM_Cind_Crystal_03"), 8, FVector2D(0.9f, 1.3f), false, 700.f, FVector(3500.f, -3000.f, 0.f), FVector2D(800.f, 2500.f), 20.f }, // at the jammer trailhead
 		// Basalt columns as canyon walls beside the routes, and a tall outer ring.
 		{ TEXT("SM_Cind_BasaltColumn_02"), 40, FVector2D(0.9f, 1.6f), true, 1300.f, Mid, FVector2D(3800.f, 12000.f), 30.f },
 		{ TEXT("SM_Cind_BasaltColumn_01"), 60, FVector2D(0.8f, 1.5f), true, 1100.f, Mid, FVector2D(3800.f, 12000.f), 20.f },
