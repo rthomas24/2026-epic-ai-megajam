@@ -332,8 +332,10 @@ private:
 	UFUNCTION()
 	void HandleMemberDestroyed(AActor* Member);
 
-	UFUNCTION()
+public:
+	/** The scene registry calls this when an objective step begins (the player may already be inside). */
 	void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
+private:
 
 	void CheckCleared();
 	bool IsPlayerPawn(const AActor* Actor) const;
@@ -341,5 +343,4 @@ private:
 	TArray<TWeakObjectPtr<AActor>> Spawned;
 	bool bActivated = false;
 	bool bCleared = false;
-	bool bStepBound = false;
 };

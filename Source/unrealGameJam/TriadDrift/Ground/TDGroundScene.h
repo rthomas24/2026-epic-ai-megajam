@@ -34,6 +34,9 @@ public:
 	void RegisterInteractable(ATDInteractableActor* Interactable);
 	void Unregister(AActor* Actor);
 
+	/** An objective step began: encounters linked to it check for a player already inside. */
+	void NotifyStepStarted(ATDObjective* Objective, int32 StepIndex);
+
 	/** Reset everything unfinished (called on a retake; public for tests and cheats). */
 	void ResetUnfinished(FName CurrentScene);
 

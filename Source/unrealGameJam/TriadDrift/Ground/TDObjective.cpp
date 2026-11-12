@@ -77,6 +77,10 @@ void ATDObjective::StartObjective()
 	}
 	Broadcast(0, Steps[0].Text);
 	OnStepStarted.Broadcast(this, 0);
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->NotifyStepStarted(this, 0);
+	}
 }
 
 bool ATDObjective::CompleteStep(int32 StepIndex)
@@ -93,6 +97,10 @@ bool ATDObjective::CompleteStep(int32 StepIndex)
 	}
 	Broadcast(CurrentStep, Steps[CurrentStep].Text);
 	OnStepStarted.Broadcast(this, CurrentStep);
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->NotifyStepStarted(this, CurrentStep);
+	}
 	return true;
 }
 

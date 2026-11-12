@@ -385,11 +385,7 @@ void ATDEncounterVolume::BeginPlay()
 	{
 		Scene->RegisterEncounter(this); // the one reset path on a retake
 	}
-	if (LinkedObjective && !bStepBound)
-	{
-		LinkedObjective->OnStepStarted.AddUniqueDynamic(this, &ATDEncounterVolume::HandleStepStarted);
-		bStepBound = true;
-	}
+
 	ActivateIfPlayerInside();
 }
 
@@ -464,7 +460,12 @@ void ATDEncounterVolume::AdoptMember(AActor* Member)
 
 void ATDEncounterVolume::HandleMemberDestroyed(AActor* Member)
 {
-	CheckCleared();
+	Spawned.RemoveAll([Member](const TWeakObjectPtr<AActor>& M) { return !M.IsValid() || M.Get() == Member; });
+	// Still "alive" by its health component while it is being destroyed: it counts as gone.
+	if (bActivated && !bCleared && GetAliveCount() == 0)
+	{
+		CheckCleared();
+	}
 }
 
 void ATDEncounterVolume::Activate()
@@ -537,7 +538,8 @@ int32 ATDEncounterVolume::GetAliveCount() const
 	int32 Alive = 0;
 	for (const TWeakObjectPtr<AActor>& M : Spawned)
 	{
-		const UTDHealthComponent* H = M.IsValid() ? UTDStatics::GetHealth(M.Get()) : nullptr;
+		const AActor* A = M.Get();
+		const UTDHealthComponent* H = (A && !A->IsActorBeingDestroyed()) ? UTDStatics::GetHealth(A) : nullptr;
 		if (H && H->IsAlive())
 		{
 			++Alive;

@@ -46,6 +46,18 @@ void UTDGroundSceneSubsystem::Unregister(AActor* Actor)
 	Interactables.RemoveAll([Actor](const TWeakObjectPtr<ATDInteractableActor>& I) { return !I.IsValid() || I.Get() == Actor; });
 }
 
+void UTDGroundSceneSubsystem::NotifyStepStarted(ATDObjective* Objective, int32 StepIndex)
+{
+	for (const TWeakObjectPtr<ATDEncounterVolume>& E : Encounters)
+	{
+		ATDEncounterVolume* Enc = E.Get();
+		if (Enc && Enc->LinkedObjective == Objective)
+		{
+			Enc->HandleStepStarted(Objective, StepIndex);
+		}
+	}
+}
+
 void UTDGroundSceneSubsystem::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 {
 	ResetUnfinished(SceneId);
