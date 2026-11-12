@@ -9,6 +9,9 @@
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TriadDrift/Combat/TDWeaponTypes.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
 namespace
@@ -104,6 +107,21 @@ bool FTDWorldGateEnemy::RunTest(const FString& Parameters)
 	TestTrue(TEXT("enemy lost tracking (2 s)"), E->IsTrackingLost());
 	R.W.Advance(2.f);
 	TestFalse(TEXT("tracking returns"), E->IsTrackingLost());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateProjectile, "TriadDrift.World.Gate.EnemyShotsAreReturned", TD_TEST_FLAGS)
+bool FTDWorldGateProjectile::RunTest(const FString& Parameters)
+{
+	FGateRig R;
+	ATDSpacecraft* Shooter = R.SpawnShip(FVector(-30000.f, 0.f, 0.f), FRotator::ZeroRotator, ETDTeam::Enemy);
+	Shooter->SetSpeedOverride(0.f, 0.f);
+	const FTDWeaponSpec& Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPulseGuns);
+	ATDProjectile* Shot = ATDProjectile::Spawn(R.W.GetWorld(), Spec.Projectile, FTransform(FRotator::ZeroRotator, FVector(-1500.f, 0.f, 0.f)), Shooter, ETDTeam::Enemy);
+	if (!TestNotNull(TEXT("projectile spawned"), Shot)) { return false; }
+	R.W.Advance(0.2f);
+	TestEqual(TEXT("projectile transited"), R.A->GetTransitCount(), 1);
+	TestTrue(TEXT("enemy shot returned to the Player team"), Shot->GetTeam() == ETDTeam::Player);
 	return true;
 }
 
