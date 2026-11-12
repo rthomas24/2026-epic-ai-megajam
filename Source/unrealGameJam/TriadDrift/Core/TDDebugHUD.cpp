@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
