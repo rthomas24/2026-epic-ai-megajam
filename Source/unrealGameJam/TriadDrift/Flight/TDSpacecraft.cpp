@@ -279,6 +279,7 @@ void ATDSpacecraft::SetFlightParked(bool bParked)
 	}
 	if (bParked)
 	{
+		ShipMovement->EndBoostAndDrift(); // balanced end events: no boost / drift loop survives a park
 		ShipMovement->SetFlightInput(FTDFlightInput());
 		ShipMovement->StopMovementImmediately();
 		ShipMovement->SetComponentTickEnabled(false);
