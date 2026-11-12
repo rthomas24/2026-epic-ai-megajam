@@ -1,6 +1,7 @@
 // Triad Drift - objective framework (ENG-24). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/TDGroundScene.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -17,9 +18,12 @@ ATDObjective::ATDObjective()
 void ATDObjective::BeginPlay()
 {
 	Super::BeginPlay();
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->RegisterObjective(this); // retakes reset us through the scene registry
+	}
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
-		RestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDObjective::HandleSceneRestart);
 		// Already done in this run (Continue / retake after completion): stay complete.
 		if (!ObjectiveId.IsNone() && GI->GetProgressRef().CompletedObjectives.Contains(ObjectiveId))
 		{
@@ -35,9 +39,9 @@ void ATDObjective::BeginPlay()
 
 void ATDObjective::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
-		GI->OnSceneRestart.Remove(RestartHandle);
+		Scene->Unregister(this);
 	}
 	if (UTDObjectiveSubsystem* Sub = UTDObjectiveSubsystem::Get(this))
 	{
@@ -73,6 +77,10 @@ void ATDObjective::StartObjective()
 	}
 	Broadcast(0, Steps[0].Text);
 	OnStepStarted.Broadcast(this, 0);
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->NotifyStepStarted(this, 0);
+	}
 }
 
 bool ATDObjective::CompleteStep(int32 StepIndex)
@@ -89,6 +97,10 @@ bool ATDObjective::CompleteStep(int32 StepIndex)
 	}
 	Broadcast(CurrentStep, Steps[CurrentStep].Text);
 	OnStepStarted.Broadcast(this, CurrentStep);
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->NotifyStepStarted(this, CurrentStep);
+	}
 	return true;
 }
 
@@ -123,17 +135,6 @@ void ATDObjective::ResetObjective()
 		Sub->Unregister(this);
 	}
 	OnReset.Broadcast(this);
-}
-
-void ATDObjective::HandleSceneRestart(FName SceneId, int32 TakeNumber)
-{
-	if (SceneId != ObjectiveId || ObjectiveId.IsNone())
-	{
-		return;
-	}
-	// New take: everything about this objective starts over.
-	ResetObjective();
-	StartObjective();
 }
 
 FText ATDObjective::GetCurrentStepText() const

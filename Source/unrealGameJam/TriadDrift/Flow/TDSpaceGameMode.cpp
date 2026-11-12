@@ -326,6 +326,7 @@ void ATDSpaceGameMode::SpawnEnvironment()
 			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Sun->GetLightComponent()))
 			{
 				L->SetIntensity(8.f);
+				L->SetForwardShadingPriority(1); // the sun owns forward shading
 				L->SetLightColor(FLinearColor(1.f, 0.93f, 0.82f));
 			}
 			SpawnedEnvironment.Add(Sun);
@@ -339,6 +340,7 @@ void ATDSpaceGameMode::SpawnEnvironment()
 			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Fill->GetLightComponent()))
 			{
 				L->SetIntensity(1.5f);
+				L->SetForwardShadingPriority(0); // fill never competes with the sun for forward shading
 				L->SetLightColor(FLinearColor(0.55f, 0.35f, 1.f));
 				L->SetCastShadows(false);
 				L->SetAtmosphereSunLight(false);
