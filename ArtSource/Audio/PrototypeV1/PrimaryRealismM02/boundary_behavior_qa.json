@@ -1,0 +1,41 @@
+{
+  "takes": [
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\export\\Primary_Realism_M02_01.wav",
+      "sha256": "41b3ccee2c36529e9c976913dadf87549071def221035361bde03b3a2932d997",
+      "strong_attack_ms": 7,
+      "peak_time_ms": 15.17,
+      "first_sample_dbfs": -240.0,
+      "last_sample_dbfs": -240.0,
+      "last5ms_rms_dbfs": -72.29
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\export\\Primary_Realism_M02_02.wav",
+      "sha256": "e5952aa18d87c9cc6d792eb7a4a48c37ed5e46969337fd0ec5afcd4a61685899",
+      "strong_attack_ms": 5,
+      "peak_time_ms": 6.0,
+      "first_sample_dbfs": -240.0,
+      "last_sample_dbfs": -90.31,
+      "last5ms_rms_dbfs": -60.94
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\export\\Primary_Realism_M02_03.wav",
+      "sha256": "7b8f4df255958576edaa540fb39938f1addcc92ab791695b77cf7adaf54301df",
+      "strong_attack_ms": 1,
+      "peak_time_ms": 15.08,
+      "first_sample_dbfs": -240.0,
+      "last_sample_dbfs": -240.0,
+      "last5ms_rms_dbfs": -72.2
+    }
+  ],
+  "fixed_400ms_post_trigger_window_rms_dbfs": {
+    "V1": -27.5,
+    "M02": -28.22,
+    "delta": -0.72
+  },
+  "full_file_ungated_match_delta_lu": 0.0,
+  "preserved_v1_files": 54,
+  "original_cache_packages_unchanged": 6,
+  "technical_pass": true,
+  "human_listening_approval": false
+}

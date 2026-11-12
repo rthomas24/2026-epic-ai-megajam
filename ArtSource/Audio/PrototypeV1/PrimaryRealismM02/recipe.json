@@ -1,0 +1,74 @@
+{
+  "name": "Primary_Realism_M02",
+  "category": "sfx",
+  "takes": 3,
+  "seed": 26711,
+  "channels": 1,
+  "layers": [
+    {
+      "role": "recorded hardware attack",
+      "files": [
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\prepared\\MACHAppl_VCRButton_HA_TerminalUI_04_Wav\\MACHAppl_VCRButton_HA_TerminalUI_04_Wav_01.wav",
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\prepared\\MACHAppl_VCRButton_HA_TerminalUI_08_Wav\\MACHAppl_VCRButton_HA_TerminalUI_08_Wav_01.wav",
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\prepared\\MACHAppl_VCRButton_HA_TerminalUI_13_Wav\\MACHAppl_VCRButton_HA_TerminalUI_13_Wav_01.wav"
+      ],
+      "start_ms": 0,
+      "gain_db": -10,
+      "pitch_semitones": -1,
+      "duration_ms": 45,
+      "highpass_hz": 1100,
+      "lowpass_hz": 7200,
+      "fade_in_ms": 1,
+      "fade_out_ms": 12,
+      "vary": {
+        "gain_db": 0.3,
+        "pitch_semitones": 0.15
+      }
+    },
+    {
+      "role": "gunshot discharge body",
+      "files": [
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\prepared\\Gunshot_1-1\\Gunshot_1-1_aligned.wav",
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\prepared\\Gunshot_7-1\\Gunshot_7-1_aligned.wav"
+      ],
+      "start_ms": 4,
+      "gain_db": 0,
+      "pitch_semitones": -1.5,
+      "duration_ms": 200,
+      "highpass_hz": 65,
+      "lowpass_hz": 6200,
+      "fade_in_ms": 1,
+      "fade_out_ms": 65,
+      "vary": {
+        "gain_db": 0.2,
+        "pitch_semitones": 0.25
+      }
+    },
+    {
+      "role": "short filtered alternate gunshot decay",
+      "files": [
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\prepared\\Gunshot_1-1\\Gunshot_1-1_aligned.wav",
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\prepared\\Gunshot_7-1\\Gunshot_7-1_aligned.wav"
+      ],
+      "start_ms": 24,
+      "gain_db": -12,
+      "pitch_semitones": -2,
+      "trim_start_ms": 30,
+      "duration_ms": 110,
+      "highpass_hz": 80,
+      "lowpass_hz": 1300,
+      "fade_in_ms": 8,
+      "fade_out_ms": 80,
+      "vary": {
+        "gain_db": 0.3,
+        "pitch_semitones": 0.2
+      }
+    }
+  ],
+  "master": {
+    "highpass_hz": 45,
+    "lowpass_hz": 8500,
+    "max_duration_ms": 240,
+    "fade_out_ms": 20
+  }
+}

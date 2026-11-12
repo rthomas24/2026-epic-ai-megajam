@@ -1,0 +1,12 @@
+[
+  {
+    "asset": "Gunshot_1-1",
+    "trim_seconds": 0,
+    "rule": "First 1ms RMS bin within18dB of maximum, retain2ms preroll,1ms fade"
+  },
+  {
+    "asset": "Gunshot_7-1",
+    "trim_seconds": 0.024,
+    "rule": "First 1ms RMS bin within18dB of maximum, retain2ms preroll,1ms fade"
+  }
+]

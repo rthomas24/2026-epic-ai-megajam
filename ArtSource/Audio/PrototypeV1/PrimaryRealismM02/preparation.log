@@ -1,0 +1,59 @@
+source                       -> output                                dur s  gain dB      TP    LUFS    tail  result
+Gunshot_1-1.wav              -> Gunshot_1-1_01.wav                 1.78>0.50     +3.1    -1.0   -20.4      7ms  PASS
+
+1 take(s) written to C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\Gunshot_1-1, 0 failure(s) against 'sfx'. Log: C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\Gunshot_1-1\Gunshot_1-1.prep.json
+
+
+source                       -> output                                dur s  gain dB      TP    LUFS    tail  result
+Gunshot_7-1.wav              -> Gunshot_7-1_01.wav                 1.25>0.38     +2.5    -1.0   -20.7     22ms  PASS
+
+1 take(s) written to C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\Gunshot_7-1, 0 failure(s) against 'sfx'. Log: C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\Gunshot_7-1\Gunshot_7-1.prep.json
+
+
+source                       -> output                                dur s  gain dB      TP    LUFS    tail  result
+MACHAppl_VCRButton_HA_Termin -> MACHAppl_VCRButton_HA_TerminalUI_0 0.45>0.15     +6.3    -1.0   -23.6      5ms  PASS
+
+1 take(s) written to C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\MACHAppl_VCRButton_HA_TerminalUI_04_Wav, 0 failure(s) against 'sfx'. Log: C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\MACHAppl_VCRButton_HA_TerminalUI_04_Wav\MACHAppl_VCRButton_HA_TerminalUI_04_Wav.prep.json
+
+
+source                       -> output                                dur s  gain dB      TP    LUFS    tail  result
+MACHAppl_VCRButton_HA_Termin -> MACHAppl_VCRButton_HA_TerminalUI_0 0.65>0.15     +6.2    -1.0   -22.2      0ms  PASS
+
+1 take(s) written to C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\MACHAppl_VCRButton_HA_TerminalUI_08_Wav, 0 failure(s) against 'sfx'. Log: C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\MACHAppl_VCRButton_HA_TerminalUI_08_Wav\MACHAppl_VCRButton_HA_TerminalUI_08_Wav.prep.json
+
+
+source                       -> output                                dur s  gain dB      TP    LUFS    tail  result
+MACHAppl_VCRButton_HA_Termin -> MACHAppl_VCRButton_HA_TerminalUI_1 0.59>0.15    +15.8    -1.0   -22.6     24ms  PASS
+
+1 take(s) written to C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\MACHAppl_VCRButton_HA_TerminalUI_13_Wav, 0 failure(s) against 'sfx'. Log: C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\prepared\MACHAppl_VCRButton_HA_TerminalUI_13_Wav\MACHAppl_VCRButton_HA_TerminalUI_13_Wav.prep.json
+
+
+
+
+
+
+Primary_Realism_M02_01.wav  0.214 s  TP -1.0  -18.2 LUFS  gain +0.9 dB  PASS
+    recorded h MACHAppl_VCRButton_HA_Termin start    0.0 ms  -10.2 dB  -0.85 st
+    gunshot di Gunshot_7-1_aligned.wav      start    4.0 ms   -0.2 dB  -1.42 st
+    short filt Gunshot_1-1_aligned.wav      start   24.0 ms  -12.1 dB  -2.07 st
+Primary_Realism_M02_02.wav  0.221 s  TP -1.0  -18.0 LUFS  gain -0.6 dB  PASS
+    recorded h MACHAppl_VCRButton_HA_Termin start    0.0 ms  -10.1 dB  -1.14 st
+    gunshot di Gunshot_1-1_aligned.wav      start    4.0 ms   -0.2 dB  -1.57 st
+    short filt Gunshot_7-1_aligned.wav      start   24.0 ms  -12.3 dB  -1.83 st
+Primary_Realism_M02_03.wav  0.212 s  TP -1.0  -18.1 LUFS  gain +0.8 dB  PASS
+    recorded h MACHAppl_VCRButton_HA_Termin start    0.0 ms  -10.2 dB  -1.12 st
+    gunshot di Gunshot_7-1_aligned.wav      start    4.0 ms   +0.0 dB  -1.30 st
+    short filt Gunshot_1-1_aligned.wav      start   24.0 ms  -11.7 dB  -1.89 st
+
+3 take(s) written to C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\export, 0 failure(s) against 'sfx'. Log: C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\Saved\AudioMusic\PrototypeV1\PrimaryRealismM02\export\Primary_Realism_M02.layers.json
+
+
+file                                 dur s   rate ch    LUFS       LRA     TP   peak   lead   tail       DC   seam   ends  result
+---------------------------------------------------------------------------------------------------------------------------------
+Primary_Realism_M02_01.wav           0.214  48000  1   -18.2 ung     -   -1.0   -1.0    0ms    0ms -0.00000      -      -  PASS
+Primary_Realism_M02_02.wav           0.221  48000  1   -18.0 ung     -   -1.0   -1.0    0ms    0ms  0.00000      -      -  PASS
+Primary_Realism_M02_03.wav           0.212  48000  1   -18.1 ung     -   -1.0   -1.1    0ms    0ms -0.00000      -      -  PASS
+
+3 file(s), 0 failure(s) against category 'sfx'
+LUFS: int = gated integrated (files of 3 s or more), ung = K-weighted ungated (short files). TP = true peak dBTP.
+JSON written to C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\audio-prototype-v1\ArtSource\Audio\PrototypeV1\PrimaryRealismM02\takes_qa.json

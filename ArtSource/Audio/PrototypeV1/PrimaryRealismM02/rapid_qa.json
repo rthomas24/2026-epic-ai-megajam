@@ -1,0 +1,31 @@
+{
+  "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\Primary_Realism_M02_Rapid.wav",
+  "shots": 11,
+  "interval_s": 0.09,
+  "linear_gain_db": -6.000000000000001,
+  "metrics": {
+    "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\PrimaryRealismM02\\Primary_Realism_M02_Rapid.wav",
+    "codec": "pcm_s16le",
+    "sample_rate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "duration": 2.2,
+    "loudness_lufs": -20.79,
+    "loudness_kind": "ungated",
+    "integrated_lufs": null,
+    "ungated_lufs": -20.79,
+    "lra_lu": null,
+    "true_peak_dbtp": -6.3,
+    "sample_peak_dbfs": -6.283523,
+    "rms_dbfs": -23.962784,
+    "lead_silence_s": 0.0511,
+    "tail_silence_s": 1.032,
+    "dc_offset": -0.0,
+    "flat_factor": 0.0,
+    "peak_count": 6,
+    "clipped": false,
+    "silent": false,
+    "seam_jump_db": null,
+    "seam_level_db": null
+  }
+}
