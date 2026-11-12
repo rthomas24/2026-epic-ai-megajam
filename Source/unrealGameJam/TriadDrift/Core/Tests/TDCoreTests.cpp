@@ -10,6 +10,12 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerInput.h"
+#include "InputCoreTypes.h"
 
 namespace
 {
@@ -230,6 +236,43 @@ bool FTDCoreHitStop::RunTest(const FString& Parameters)
 	TestEqual(TEXT("falls back to slow-mo"), Feel->GetCurrentDilation(), 0.3f, 0.001f);
 	W.Advance(0.6f);
 	TestEqual(TEXT("fully restored"), Feel->GetCurrentDilation(), 1.f, 0.001f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCoreHarnessLocalPlayer, "TriadDrift.Core.Harness.LocalPlayerAndKeyInjection", TD_TEST_FLAGS)
+bool FTDCoreHarnessLocalPlayer::RunTest(const FString& Parameters)
+{
+	// Two worlds in a row: the local player must be created and removed cleanly each time.
+	for (int32 Pass = 0; Pass < 2; ++Pass)
+	{
+		FTDTestWorld W;
+		APawn* Pawn = W.Spawn<APawn>();
+		APlayerController* PC = W.SpawnLocalPlayerController(Pawn);
+		TestNotNull(TEXT("local controller spawned"), PC);
+		if (!PC)
+		{
+			return false;
+		}
+		TestTrue(TEXT("controller is local"), PC->IsLocalController());
+		TestTrue(TEXT("pawn possessed"), PC->GetPawn() == Pawn);
+		TestNotNull(TEXT("player input exists"), PC->PlayerInput.Get());
+
+		const ULocalPlayer* LocalPlayer = PC->GetLocalPlayer();
+		TestNotNull(TEXT("local player attached"), LocalPlayer);
+		TestNotNull(TEXT("Enhanced Input local-player subsystem exists"),
+			LocalPlayer ? LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr);
+
+		TestFalse(TEXT("W starts up"), PC->IsInputKeyDown(EKeys::W));
+		FTDTestWorld::InjectKey(PC, EKeys::W, true);
+		W.Tick();
+		TestTrue(TEXT("W held after a real key press"), PC->IsInputKeyDown(EKeys::W));
+		FTDTestWorld::InjectKey(PC, EKeys::W, false);
+		W.Tick();
+		TestFalse(TEXT("W released"), PC->IsInputKeyDown(EKeys::W));
+
+		// A second request returns the same controller instead of adding a second local player.
+		TestTrue(TEXT("one local player per world"), W.SpawnLocalPlayerController() == PC);
+	}
 	return true;
 }
 

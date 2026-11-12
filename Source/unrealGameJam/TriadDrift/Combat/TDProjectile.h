@@ -95,6 +95,13 @@ public:
 
 	virtual FVector GetVelocity() const override { return Velocity; }
 
+	/**
+	 * Where this projectile was at the start of its last step (its launch point before the first step, the
+	 * arrival point right after a teleport). Portals and gates test Prev -> Cur against their plane with
+	 * this, never Cur - Velocity * dt (a shot fired this frame hasn't flown a full step yet).
+	 */
+	FVector GetPreviousLocation() const { return PreviousLocation; }
+
 	/** Unique per launch: pooled actors are reused, so anything keyed by actor must compare this too. */
 	uint32 GetLaunchSerial() const { return LaunchSerial; }
 
@@ -167,6 +174,7 @@ private:
 
 	ETDTeam Team = ETDTeam::Neutral;
 	uint32 LaunchSerial = 0;
+	FVector PreviousLocation = FVector::ZeroVector;
 	double LastTransitTime = -1.0;
 	FVector Velocity = FVector::ZeroVector;
 	float Age = 0.f;

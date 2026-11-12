@@ -68,6 +68,13 @@ struct FTDCrewSpec
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Engage", meta = (Units = "cm")) float PreferredRangeMax = 140.f;
 	/** Grunts approach off-axis to flank. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Engage", meta = (Units = "deg")) float FlankAngle = 0.f;
+	/** Troopers: hide behind registered cover, peek out to fire, relocate when flanked/approached/cover lost. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cover") bool bUsesCover = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cover", meta = (Units = "s")) float CoverHideSeconds = 1.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cover", meta = (Units = "cm")) float CoverMaxTravel = 1600.f;
+	/** Leave cover when the player gets this close. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cover", meta = (Units = "cm")) float CoverAbandonDistance = 500.f;
+
 	/** Ranged crew sidestep while firing. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Engage") float StrafeScale = 0.f;
 

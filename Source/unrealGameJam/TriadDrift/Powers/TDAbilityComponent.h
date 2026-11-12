@@ -14,7 +14,7 @@ class UTDPowerComponent;
  * (Slot = Ability). Filled from ITDGameFlow::GetProgress().UnlockedAbilities on BeginPlay and from
  * UTDEventBus::OnAbilityUnlocked. HUD: GetAbility(), GetAbilityPower()->GetCooldown01().
  */
-UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
 class UNREALGAMEJAM_API UTDAbilityComponent : public UActorComponent
 {
 	GENERATED_BODY()

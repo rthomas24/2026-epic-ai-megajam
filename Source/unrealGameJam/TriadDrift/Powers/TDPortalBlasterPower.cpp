@@ -15,7 +15,9 @@
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "HAL/IConsoleManager.h"
 #include "NiagaraComponent.h"
-#include "DrawDebugHelpers.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/World.h"
 
 static TAutoConsoleVariable<int32> CVarPortalBlink(
@@ -93,6 +95,18 @@ void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransi
 		UTDStatics::PlayCue(this, FX->PortalOpen, GetActorLocation(), GetActorRotation());
 		IdleFX = UTDStatics::PlayCueAttached(FX->PortalIdle, GetRootComponent());
 	}
+	if (!FX || !FTDPowerPresentation::HasArt(FX->PortalIdle))
+	{
+		// Shipping-safe placeholder: a thin magenta disc (cylinder axis along the portal normal) with a bright rim.
+		const FLinearColor Magenta = UTDStatics::ShipColor(ETDShipId::Rift);
+		const float D = Radius * 2.f / 100.f;
+		PlaceholderDisc = FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Cylinder, FVector(D, D, 0.04f),
+			FRotator(90.f, 0.f, 0.f), Magenta * 0.5f, 2.f);
+		if (UInstancedStaticMeshComponent* Rim = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 32, 50.f, Magenta, 8.f))
+		{
+			Rim->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+		}
+	}
 	BroadcastState(ETDPortalState::Open);
 }
 
@@ -162,11 +176,6 @@ void ATDPortal::Tick(float DeltaSeconds)
 	{
 		return;
 	}
-	if (UTDStatics::ShouldDrawPlaceholders() && !IdleFX)
-	{
-		DrawDebugCircle(GetWorld(), GetActorLocation(), Radius, 32, Partner.IsValid() ? FColor(255, 40, 220) : FColor(120, 40, 110), false, -1.f, 0, 12.f,
-			GetActorRightVector(), GetActorUpVector(), false);
-	}
 	if (!Partner.IsValid() || DeltaSeconds <= 0.f)
 	{
 		return;
@@ -216,7 +225,7 @@ void ATDPortal::Tick(float DeltaSeconds)
 		for (ATDProjectile* P : Live)
 		{
 			const FVector Cur = P->GetActorLocation();
-			TryCross(P, Cur - P->GetVelocity() * DeltaSeconds, Cur);
+			TryCross(P, P->GetPreviousLocation(), Cur);
 		}
 	}
 
@@ -305,6 +314,15 @@ UTDPortalBlasterPower::UTDPortalBlasterPower()
 	bCooldownStartsWhenPowerEnds = true;
 	bEndsManually = true;
 	bEndOnOwnerDeath = false; // open portals stay usable by the wingmen
+}
+
+void UTDPortalBlasterPower::BeginPlay()
+{
+	Super::BeginPlay();
+	if (!TravelFX)
+	{
+		TravelFX = FTDPowerPresentation::LoadTravelFX();
+	}
 }
 
 bool UTDPortalBlasterPower::IsUsingBlink() const

@@ -77,6 +77,7 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> LoopFX;
 
+	bool bRingBuilt = false;
 	ETDTeam Team = ETDTeam::Player;
 	FVector Direction = FVector::ForwardVector;
 	TArray<AActor*> HostilesScratch;
@@ -87,7 +88,7 @@ private:
 };
 
 /** Bastion (Verdance Obj 1): slow orb -> 5000 cm vortex for 5 s, 10 dps + no firing inside, 120 implosion. 18 s. */
-UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
 class UNREALGAMEJAM_API UTDGravityWellPower : public UTDPowerComponent
 {
 	GENERATED_BODY()
@@ -115,6 +116,8 @@ public:
 
 	ATDGravityWell* GetLastWell() const { return LastWell.Get(); }
 
+	virtual ETDAbilityId GetAbilityId() const override { return ETDAbilityId::GravityWell; }
+
 protected:
 	virtual bool OnActivate() override;
 
@@ -123,7 +126,7 @@ private:
 };
 
 /** Rift (Verdance Obj 2): 6 s untargetable; first shot out does 3x; firing or using another power breaks it. 15 s. */
-UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
 class UNREALGAMEJAM_API UTDCloakPower : public UTDPowerComponent
 {
 	GENERATED_BODY()
@@ -133,6 +136,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Cloak")
 	bool IsCloaked() const { return IsPowerActive(); }
+
+	virtual ETDAbilityId GetAbilityId() const override { return ETDAbilityId::Cloak; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cloak")
 	float FirstShotMultiplier = 3.f;
@@ -147,10 +152,20 @@ private:
 
 	UFUNCTION()
 	void HandleOtherPower(UTDPowerComponent* Power);
+
+	/** The 3x shot itself broke the cloak (it consumed the multiplier). */
+	bool bEndedByShot = false;
+
+	/** Shimmer shell around the cloaked ship until UTDAbilityFX::Loop has art. */
+	UPROPERTY(Transient)
+	TObjectPtr<UPrimitiveComponent> Shimmer;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UNiagaraComponent> LoopFX;
 };
 
 /** Lancer (Cinder Obj 3): 6000 cm pulse; stun 3 s, gunship shields down 5 s, missiles fizzle. 14 s. */
-UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
 class UNREALGAMEJAM_API UTDEMPPower : public UTDPowerComponent
 {
 	GENERATED_BODY()
@@ -169,6 +184,8 @@ public:
 
 	/** Enemies affected by the last pulse (tests). */
 	int32 GetLastAffectedCount() const { return LastAffected; }
+
+	virtual ETDAbilityId GetAbilityId() const override { return ETDAbilityId::EMPPulse; }
 
 protected:
 	virtual bool OnActivate() override;

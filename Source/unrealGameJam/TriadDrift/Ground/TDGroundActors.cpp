@@ -4,6 +4,7 @@
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
+#include "TriadDrift/Ground/Crew/TDCrewCover.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -388,6 +389,13 @@ void ATDEncounterVolume::Activate()
 	}
 	bActivated = true;
 	bCleared = false;
+	if (UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(this))
+	{
+		for (AActor* Block : CoverActors)
+		{
+			Cover->RegisterCoverActor(Block);
+		}
+	}
 	for (ATDDoor* Door : DoorsToLock)
 	{
 		if (Door) { Door->Close(); }

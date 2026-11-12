@@ -126,7 +126,7 @@ bool ATDCrewCharacter::IsDead() const
 void ATDCrewCharacter::LoadDefaultVisuals()
 {
 	const FString Id = Spec.VisualsId.ToString();
-	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Presentation/Crew/DA_Crew_%s_Visuals"), *Id);
+	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Presentation/DA_Crew_%s_Visuals"), *Id);
 	if (FPackageName::DoesPackageExist(Package))
 	{
 		Visuals = LoadObject<UTDEnemyVisuals>(nullptr, *FString::Printf(TEXT("%s.DA_Crew_%s_Visuals"), *Package, *Id));
@@ -140,6 +140,13 @@ void ATDCrewCharacter::ApplyVisuals()
 		if (USkeletalMesh* SK = Visuals->SkeletalMesh.LoadSynchronous())
 		{
 			GetMesh()->SetSkeletalMesh(SK);
+			if (!Visuals->AnimBPClass.IsNull())
+			{
+				if (UClass* AnimClass = Visuals->AnimBPClass.LoadSynchronous())
+				{
+					GetMesh()->SetAnimInstanceClass(AnimClass);
+				}
+			}
 			GetMesh()->SetVisibility(true);
 			GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -Spec.CapsuleHalfHeight));
 			Body->SetVisibility(false);
@@ -166,6 +173,23 @@ void ATDCrewCharacter::ApplyVisuals()
 	// Placeholder: an Armada-red block with a glow, until Nick's crew art exists.
 	Body->SetVisibility(true);
 	UTDStatics::TintPlaceholder(Body, Spec.TeamColor, 0.4f);
+}
+
+void ATDCrewCharacter::PlayCrewCue(FName Name, const FTDFXCue& Cue, bool bAttached, const FVector& Location)
+{
+	OnCueRequested.Broadcast(this, Name);
+	if (Cue.IsEmpty())
+	{
+		return;
+	}
+	if (bAttached)
+	{
+		UTDStatics::PlayCueAttached(Cue, GetRootComponent());
+	}
+	else
+	{
+		UTDStatics::PlayCue(this, Cue, Location, GetActorRotation());
+	}
 }
 
 bool ATDCrewCharacter::IsPlaceholderVisible() const
@@ -235,10 +259,7 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	WindupLeft = FMath::Max(0.01f, Windup);
 	RecoverLeft = 0.f;
 	ShotsLeft = 0;
-	if (Visuals)
-	{
-		UTDStatics::PlayCueAttached(Visuals->Telegraph, GetRootComponent());
-	}
+	PlayCrewCue(TEXT("Telegraph"), Visuals ? Visuals->Telegraph : FTDFXCue(), true, GetActorLocation());
 	OnAttackStarted.Broadcast(this, Attack);
 	return true;
 }
@@ -423,10 +444,7 @@ void ATDCrewCharacter::TickCharge(float DeltaSeconds)
 void ATDCrewCharacter::EndCharge()
 {
 	ChargeTimeLeft = 0.f;
-	if (Visuals)
-	{
-		UTDStatics::PlayCue(this, Visuals->Explosion, GetActorLocation(), FRotator::ZeroRotator);
-	}
+	PlayCrewCue(TEXT("SlamImpact"), Visuals ? Visuals->Explosion : FTDFXCue(), false, GetActorLocation());
 	UTDStatics::ApplyTDRadialDamage(this, GetActorLocation(), Spec.ChargeSlamRadius, Spec.ChargeSlamDamage, ETDDamageKind::Explosive,
 		ETDTeam::Enemy, this, this);
 	RecoverLeft = 0.6f;
@@ -459,18 +477,15 @@ float ATDCrewCharacter::FilterDamage(const FTDDamageInfo& Info)
 	{
 		return Info.Amount;
 	}
-	if (Visuals)
-	{
-		UTDStatics::PlayCue(this, Visuals->ShieldHit, Info.HitLocation, FRotator::ZeroRotator);
-	}
+	PlayCrewCue(TEXT("ShieldHit"), Visuals ? Visuals->ShieldHit : FTDFXCue(), false, Info.HitLocation);
 	return 0.f; // the shield takes the slash
 }
 
 void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
 {
-	if (Visuals && HullDamage > 0.f)
+	if (HullDamage > 0.f)
 	{
-		UTDStatics::PlayCue(this, Visuals->HullHit, Info.HitLocation, FRotator::ZeroRotator);
+		PlayCrewCue(TEXT("HullHit"), Visuals ? Visuals->HullHit : FTDFXCue(), false, Info.HitLocation);
 	}
 	if (Spec.Type == ETDCrewType::Warden && BossPhase == 1 && !IsDead() && Health->GetHull01() <= Spec.Phase2HealthFraction)
 	{
@@ -491,10 +506,13 @@ void ATDCrewCharacter::ApplyStagger(float Seconds, AActor* Source)
 		return;
 	}
 	CancelAttack();
+	const bool bWasStaggered = IsStaggered();
 	StaggerLeft = FMath::Max(StaggerLeft, Seconds);
-	if (Visuals)
+	if (!bWasStaggered)
 	{
-		UTDStatics::PlayCueAttached(Visuals->Stunned, GetRootComponent());
+		// Entering the stagger state: Nick's Stagger cue (falls back to the older Stunned slot).
+		const FTDFXCue* Cue = Visuals ? (Visuals->Stagger.IsEmpty() ? &Visuals->Stunned : &Visuals->Stagger) : nullptr;
+		PlayCrewCue(TEXT("Stagger"), Cue ? *Cue : FTDFXCue(), true, GetActorLocation());
 	}
 }
 
@@ -515,6 +533,7 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		Tokens->Release(this);
 	}
 	OnCrewDied.Broadcast(this);
+	PlayCrewCue(TEXT("Death"), Visuals ? Visuals->Death : FTDFXCue(), false, GetActorLocation());
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCharacterMovement()->StopMovementImmediately();

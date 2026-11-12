@@ -456,6 +456,74 @@ bool FTDEmp::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeClearsPowers, "TriadDrift.Powers.Reset.CutClearsEveryRunningPower", TD_TEST_FLAGS)
+bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(W.GetWorld());
+	AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f), 100.f, 100.f);
+	UTDWeaponComponent* Weapons = NewObject<UTDWeaponComponent>(Rift, TEXT("Weapons"));
+	Weapons->RegisterComponent();
+	Weapons->EquipWeapon(ETDWeaponSlot::Primary, TDWeaponIds::PhasePulseLasers);
+	UTDPortalBlasterPower* Portal = AddPower<UTDPortalBlasterPower>(Rift);
+	UTDCloakPower* Cloak = AddPower<UTDCloakPower>(Rift);
+	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector(0.f, -20000.f, 0.f), FVector(100.f));
+	UTDShieldDomePower* Dome = AddPower<UTDShieldDomePower>(Bastion);
+	UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
+	AActor* Rift2 = SpawnBody(W, ETDTeam::Player, FVector(0.f, 20000.f, 0.f), FVector(50.f));
+	UTDPortalBlasterPower* Blink = AddPower<UTDPortalBlasterPower>(Rift2);
+	Blink->bUseBlinkFallback = true;
+
+	auto StartAll = [&]
+	{
+		Portal->HandleInputPressed();
+		Rift->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+		Portal->HandleInputPressed();
+		Rift->SetActorRotation(FRotator::ZeroRotator);
+		Cloak->TryActivate();
+		Dome->TryActivate();
+		Well->TryActivate();
+		Blink->TryActivate();
+		W.Advance(1.f);
+	};
+	StartAll();
+	TestEqual(TEXT("two portals open"), Portal->GetPortals().Num(), 2);
+	TestTrue(TEXT("cloaked"), Cloak->IsCloaked());
+	TestEqual(TEXT("dome + blink field up"), Powers->GetActiveDomes().Num(), 2);
+	TestTrue(TEXT("vortex open"), Well->GetLastWell() && Well->GetLastWell()->IsVortexActive());
+
+	// A first take (a new wave) keeps everything running.
+	Bus->BroadcastTakeStarted(TEXT("Wave2"), 1);
+	W.Tick();
+	TestEqual(TEXT("take 1 keeps the portals"), Portal->GetPortals().Num(), 2);
+	TestEqual(TEXT("take 1 keeps the domes"), Powers->GetActiveDomes().Num(), 2);
+
+	// CUT! -> everything from the failed take is gone.
+	ATDGravityWell* Vortex = Well->GetLastWell();
+	Bus->BroadcastSceneCut(TEXT("Wave2"), 2, 1.f);
+	W.Tick();
+	TestEqual(TEXT("portals closed"), Portal->GetPortals().Num(), 0);
+	TestFalse(TEXT("cloak off"), Cloak->IsCloaked());
+	TestTrue(TEXT("Rift targetable again"), UTDStatics::GetHealth(Rift)->bTargetable);
+	TestEqual(TEXT("dome and blink field collapsed"), Powers->GetActiveDomes().Num(), 0);
+	TestFalse(TEXT("vortex gone"), IsValid(Vortex));
+	for (UTDPowerComponent* P : TArray<UTDPowerComponent*>{ Portal, Cloak, Dome, Well, Blink })
+	{
+		TestTrue(*FString::Printf(TEXT("%s ready for take 2"), *P->GetPowerName().ToString()), P->CanActivate());
+	}
+	Weapons->FireOnce(ETDWeaponSlot::Primary);
+	const ATDProjectile* Shot = Weapons->GetLastFiredProjectile(0);
+	TestTrue(TEXT("no 3x shot banked across the cut"), Shot && FMath::IsNearlyEqual(Shot->GetDamageMultiplier(), 1.f));
+
+	// Respawn path (T3's RestoreShipForFlight): ResetPower ends the cloak and frees Rift.
+	W.Advance(0.5f);
+	Cloak->TryActivate();
+	Cloak->ResetPower();
+	TestTrue(TEXT("ResetPower: targetable"), UTDStatics::GetHealth(Rift)->bTargetable && !Cloak->IsCloaked() && Cloak->CanActivate());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInstallPowers, "TriadDrift.Powers.Library.InstallShipPowersIdempotent", TD_TEST_FLAGS)
 bool FTDInstallPowers::RunTest(const FString& Parameters)
 {

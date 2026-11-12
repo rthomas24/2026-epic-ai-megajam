@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Ground/Crew/TDCrewCover.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -38,6 +39,7 @@ void ATDCrewAIController::OnPossess(APawn* InPawn)
 
 void ATDCrewAIController::OnUnPossess()
 {
+	LeaveCover(false);
 	if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(GetPawn()))
 	{
 		Crew->OnAttackFinished.Remove(FinishedHandle);
@@ -208,6 +210,134 @@ void ATDCrewAIController::ChooseAttack(ATDCrewCharacter* Crew, float Distance)
 	}
 }
 
+void ATDCrewAIController::LeaveCover(bool bRelocation)
+{
+	if (UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(this))
+	{
+		Cover->Release(GetPawn());
+	}
+	if (bRelocation && CoverIndex != INDEX_NONE)
+	{
+		++CoverRelocations;
+	}
+	CoverIndex = INDEX_NONE;
+	CoverPhase = ECoverPhase::None;
+	CoverSearchTimer = 0.f;
+}
+
+bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, float Distance)
+{
+	UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(this);
+	AActor* T = Target.Get();
+	if (!Cover || !T || Cover->Num() == 0)
+	{
+		return false; // no cover in this arena: plain distance-keeping
+	}
+	const FTDCrewSpec& S = Crew->Spec;
+
+	// Give the spot up when it no longer protects us: cover destroyed, flanked, or the player is on top of us.
+	if (CoverIndex != INDEX_NONE)
+	{
+		const FTDCoverPoint* P = Cover->GetPoint(CoverIndex);
+		const bool bGone = !P || !P->IsValid();
+		const bool bFlanked = !bGone && CoverPhase != ECoverPhase::Moving && !Cover->IsProtected(CoverIndex, T, Crew);
+		const bool bApproached = Distance < S.CoverAbandonDistance;
+		if ((bGone || bFlanked || bApproached) && !Crew->IsAttacking())
+		{
+			LeaveCover(true);
+			CoverSearchTimer = bApproached ? 0.8f : 0.f; // when rushed, back off for a moment first
+		}
+	}
+
+	// Find a spot.
+	if (CoverIndex == INDEX_NONE)
+	{
+		CoverSearchTimer -= DeltaSeconds;
+		if (CoverSearchTimer > 0.f)
+		{
+			return false;
+		}
+		CoverSearchTimer = 0.5f;
+		const int32 Found = Cover->FindCover(Crew, T, S.CoverMaxTravel, FMath::Max(S.CoverAbandonDistance + 100.f, S.PreferredRangeMin * 0.6f), S.PreferredRangeMax * 1.5f);
+		if (Found == INDEX_NONE || !Cover->Claim(Found, Crew))
+		{
+			return false;
+		}
+		CoverIndex = Found;
+		CoverPhase = ECoverPhase::Moving;
+	}
+
+	const FTDCoverPoint* P = Cover->GetPoint(CoverIndex);
+	if (!P)
+	{
+		LeaveCover(false);
+		return false;
+	}
+	const FVector Here = Crew->GetActorLocation();
+	switch (CoverPhase)
+	{
+	case ECoverPhase::Moving:
+	{
+		const FVector ToPoint = FVector(P->Location.X - Here.X, P->Location.Y - Here.Y, 0.f);
+		if (ToPoint.Size() < 45.f)
+		{
+			CoverPhase = ECoverPhase::Hidden;
+			CoverTimer = S.CoverHideSeconds;
+		}
+		else
+		{
+			Steer(Crew, ToPoint, 1.f);
+		}
+		return true;
+	}
+	case ECoverPhase::Hidden:
+	{
+		const FVector ToPoint = FVector(P->Location.X - Here.X, P->Location.Y - Here.Y, 0.f);
+		if (ToPoint.Size() > 30.f)
+		{
+			Steer(Crew, ToPoint, 0.6f);
+		}
+		CoverTimer -= DeltaSeconds;
+		if (CoverTimer <= 0.f && Crew->GetCooldownLeft(ETDCrewAttack::Burst) <= 0.f)
+		{
+			if (Cover->FindPeekLocation(CoverIndex, T, Crew, PeekLocation))
+			{
+				CoverPhase = ECoverPhase::Peeking;
+			}
+			else
+			{
+				CoverTimer = 0.5f;
+			}
+		}
+		return true;
+	}
+	case ECoverPhase::Peeking:
+	{
+		const FVector ToPeek = FVector(PeekLocation.X - Here.X, PeekLocation.Y - Here.Y, 0.f);
+		if (Crew->IsAttacking())
+		{
+			return true; // stand and shoot
+		}
+		if (ToPeek.Size() > 35.f && !bHasLOS)
+		{
+			Steer(Crew, ToPeek, 1.f);
+			return true;
+		}
+		if (bHasLOS && Crew->StartAttack(ETDCrewAttack::Burst, T))
+		{
+			return true;
+		}
+		if (Crew->GetCooldownLeft(ETDCrewAttack::Burst) > 0.f)
+		{
+			CoverPhase = ECoverPhase::Moving; // fired: duck back
+		}
+		return true;
+	}
+	default:
+		return false;
+	}
+}
+
 void ATDCrewAIController::TickEngage(ATDCrewCharacter* Crew, float DeltaSeconds)
 {
 	AActor* T = Target.Get();
@@ -222,6 +352,11 @@ void ATDCrewAIController::TickEngage(ATDCrewCharacter* Crew, float DeltaSeconds)
 	const float Distance = To.Size();
 	const FVector Dir = To.GetSafeNormal();
 	SetControlRotation(FRotator(0.f, To.Rotation().Yaw, 0.f));
+
+	if (S.bUsesCover && TickCover(Crew, DeltaSeconds, Distance))
+	{
+		return;
+	}
 
 	// Drones hold their hover height above whatever is below them.
 	if (S.bFlying)
