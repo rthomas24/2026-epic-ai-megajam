@@ -335,3 +335,53 @@ struct FTDDamageInfo
 	UPROPERTY(BlueprintReadWrite, Category = "TriadDrift|Damage")
 	bool bIgnoreShield = false;
 };
+
+// ---- ENG-06 HUD data (appended by T2 with the Lead's one-off permission) ----
+
+UENUM(BlueprintType)
+enum class ETDMissileWarning : uint8
+{
+	None,
+	/** A hostile missile is homing on the owner. */
+	Tracking,
+	/** ...and will hit within ImminentSeconds. */
+	Imminent,
+};
+
+/** One hostile for the HUD: on-screen bracket or off-screen edge arrow. */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDTargetMarker
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	TWeakObjectPtr<AActor> Actor;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	FVector WorldLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	float Distance = 0.f;
+
+	/** In front of the view and inside the viewport. */
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	bool bOnScreen = false;
+
+	/** Normalised screen position (0..1) when on screen. */
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	FVector2D ScreenPosition01 = FVector2D::ZeroVector;
+
+	/** Unit 2D direction from screen centre toward the target (x right, y down): place the edge arrow along it. */
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	FVector2D ScreenDirection = FVector2D::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	bool bIsCurrentTarget = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	bool bLocked = false;
+
+	/** This marker is an incoming missile, not a ship. */
+	UPROPERTY(BlueprintReadOnly, Category = "Targeting")
+	bool bIncomingMissile = false;
+};
