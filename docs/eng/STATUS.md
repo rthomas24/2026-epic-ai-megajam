@@ -59,7 +59,8 @@ Updated 2026-11-12 15:36 EST.
 - Combat (T2), second review: Bastion locks never expire (MAJOR); frame-rate dependent head start on the press frame; salvo continues after death; hit confirmed on rocks; markers cut off at 24; portal plane clipped late at 30 fps; lifetime ignores inherited speed; test gaps.
 - Enemies (T4), second review: fighters do not fire at a facing player; interceptor launches at point-blank on a head-on pass; gunship faces the lead point; pack followers escape the Gravity Well (all MAJOR). Wave soft-lock when the last enemy dies during the "CUT!" delay; enemies leave through planet gates; warp-in telegraph shows nothing; signature-power tips never fired; difficulty not selectable or saved; spawn points ignore obstacles; `docs/eng/enemies.md` asset names stale.
 - Playtest 3 (Lead): stars black from half the sky (T5); enemy ships too small and dark (T4); Bastion muzzle flash and shell presence, Rift portal placeholder (T2); slate behind the objective block (T3); HUD wave block during the Dominion assault (T4 + T5).
-- Second reviews still owed: Powers, World, Squad / Director, Travel, Ground.
+- Squad / Director (T3), second review: wingman controller stays Downed after a retake or an in-place respawn (BLOCKER); a manual switch during the death tumble gets 0.35 s instead of 2 s (MAJOR); breather repair is 8 hull points per second, not 8%; director shot snaps back when its subject dies; test gaps.
+- Second reviews still owed: Powers, World, Ground. Travel is running.
 - Nothing has been played by a human.
 
 ## Integration log
@@ -83,3 +84,4 @@ Updated 2026-11-12 15:36 EST.
 - `850a557` (Nov 12 15:38 EST): T1 `eeaeaa1` + `f2653f8`, T2 `e37cd81` (+ `1421acb` test rooting), T3 `7c9c17d`, `35eed19`, `d78e783`, `88f5b3a`, T4 `1a372d2`, T5 `7ca95fe` + `a872bce`; Core `TDTags`, `GetObjectiveText`, dev HUD landing prompt. Build clean, 378/378 headless. Ledger table rewritten with review and play columns.
 - `707d15e` (Nov 12 15:46 EST): T2 `53f2994` (lock expiry), T3 `5d8ff1b` + `7c158cd` (objective text getter), T5 `7ed01a0` (unlit stars), `cdfa8dd`, `04e5b7e` (soft-lock test, disabled until T4's fix); Core capture tool `-TDShotUI`. Build clean, 383/383 headless. Development package of `c37a94e` boots and hosts the cooked `WBP_SpaceHUD_C`.
 - `4b29787` (Nov 12 15:50 EST): T5 `9b29fc2` (the flow owns the objective-marker tag; first-person `GetObjectiveText`) and `52c94e7` (difficulty in the save, `TD.Difficulty`). Build clean, 383/383 headless.
+- `590bd14` (Nov 12 15:55 EST): T1 `405a458` + `7c04fe3` (approach assist, pad marker), T2 `ec0ef8b` (Combat review minors). Build clean, 389/389 headless. Second review of Squad / Director: BLOCKER in ENG-08 (wingman controller left Downed after a retake or in-place respawn), MAJOR in ENG-03 (manual switch during the death tumble gets the short grace); with T3.
