@@ -7,6 +7,7 @@
 #include "TDPortalGate.generated.h"
 
 class UStaticMeshComponent;
+class UStaticMesh;
 class UTDTravelFX;
 class ATDPortalGate;
 
@@ -74,9 +75,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
 	FTDPortalTransitParams TransitParams;
 
-	/** Nick's travel FX: PortalIdle (attached loop), PortalTransit at both ends. */
+	/** Optional art for the frame (replaces the placeholder bars, keeps collision). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSoftObjectPtr<UStaticMesh> FrameMeshOverride;
+
+	/** Nick's travel FX: PortalIdle (attached loop; hides the placeholder disc), PortalTransit at both ends. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDTravelFX> TravelFX;
+
+	/** Ships teleported to within this depth of the gate plane (and inside 1.5x the radius) ignore it for ArrivalGuardSeconds. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "0"))
+	float ArrivalGuardDepth = 6000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "0"))
+	float ArrivalGuardSeconds = 1.5f;
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Gate")
 	FTDGateTransitSignature OnTransit;
@@ -85,6 +97,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void OnConstruction(const FTransform& Transform) override;
+	void LayoutParts();
+
+	UFUNCTION()
+	void HandleSpacecraftTeleported(AActor* Spacecraft, FVector From, FVector To);
 
 	bool TryTransit(AActor* Traveller, float DeltaSeconds);
 	void UpdateLook();
@@ -99,5 +118,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> Surface;
 
 	int32 TransitCount = 0;
+	double LastTransitTime = -1000.0;
 	TArray<AActor*> Scratch;
+	TMap<TWeakObjectPtr<AActor>, double> ArrivalBlockedUntil;
 };

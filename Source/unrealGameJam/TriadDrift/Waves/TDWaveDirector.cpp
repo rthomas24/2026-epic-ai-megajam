@@ -9,6 +9,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
 #include "Engine/DataTable.h"
 #include "Engine/World.h"
@@ -773,6 +774,11 @@ void ATDWaveDirector::ClearEnemies()
 void ATDWaveDirector::StopAndClear()
 {
 	ClearEnemies();
+	// Leftover enemy mines and shots go too (T2's pool).
+	if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))
+	{
+		Projectiles->KillAll(false);
+	}
 	SetState(ETDWaveState::Idle);
 }
 
