@@ -161,6 +161,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	bool IsSwitchLocked(FText& OutReason) const;
 
+	/**
+	 * The player's dodge (Direction -1 left / +1 right). Player-flown only (wingmen and enemies never dodge); refused
+	 * during hyperdrive spool / jump, landing, atmosphere entry, a director slow-motion shot, the ram (speed override)
+	 * and the cooldown. Requests the "Dodge" cue.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	bool TryDodge(float Direction);
+
 	/** T2's target selection / lock-on for this ship. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	UTDTargetingComponent* GetTargeting() const { return Targeting; }

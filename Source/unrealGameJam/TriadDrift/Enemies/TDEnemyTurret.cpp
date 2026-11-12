@@ -199,7 +199,9 @@ void ATDEnemyTurret::Tick(float DeltaSeconds)
 			TelegraphRemaining = Guns.TelegraphSeconds;
 			if (Visuals)
 			{
-				UTDStatics::PlayCueAttached(Visuals->TurretTelegraph.IsEmpty() ? Visuals->Telegraph : Visuals->TurretTelegraph, Mesh);
+				const bool bTurretVFX = !Visuals->TurretTelegraph.VFX.IsNull();	// sound-only must not hide the generic flash
+				UTDStatics::PlayCueAttached(bTurretVFX ? Visuals->TurretTelegraph : Visuals->Telegraph, Mesh);
+				if (!bTurretVFX && !Visuals->TurretTelegraph.IsEmpty()) { UTDStatics::PlayCueAttached(Visuals->TurretTelegraph, Mesh); }
 			}
 			OnTelegraphStarted.Broadcast(this);
 		}

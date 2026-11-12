@@ -21,6 +21,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Misc/ScopeExit.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Flight/Tests/TDFlightTestHelpers.h"
 #include "TriadDrift/Travel/Tests/TDTravelTestHelpers.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -725,6 +726,62 @@ bool FTDTravelDominionWell::RunTest(const FString& Parameters)
 		TestTrue(*(Tag + FString::Printf(TEXT("stopped near the well edge, clear of the hull (closest %.0f m, well %.0f m, hull %.0f m)"),
 			Closest / 100.f, WellRadius / 100.f, Dominion->HullExtent.GetMax() / 100.f)), Closest > Dominion->HullExtent.GetMax() * 1.2f && Closest < WellRadius * 1.6f);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelDodgeKeys, "TriadDrift.Travel.Safety.DodgeKeysDoubleTapAltAndStickFlick", TD_TEST_FLAGS)
+bool FTDTravelDodgeKeys::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	W.Tick();
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	int32 Dodges = 0;
+	float LastDir = 0.f;
+	UTDFlightEventCounter* Rec = NewObject<UTDFlightEventCounter>();
+	Rec->AddToRoot();
+	ON_SCOPE_EXIT { Rec->RemoveFromRoot(); };
+	Move->OnDodge.AddDynamic(Rec, &UTDFlightEventCounter::HandleDodge);
+	auto Tap = [&](const FKey& Key)
+	{
+		FTDTestWorld::InjectKey(PC, Key, true);
+		W.Tick();
+		FTDTestWorld::InjectKey(PC, Key, false);
+		W.Tick();
+	};
+
+	Tap(EKeys::D);
+	W.Advance(0.5f);
+	TestEqual(TEXT("a single tap of D doesn't dodge"), Rec->Dodges, 0);
+	Tap(EKeys::D);
+	Tap(EKeys::D);
+	TestEqual(TEXT("double-tap D dodges"), Rec->Dodges, 1);
+	TestEqual(TEXT("to the right"), Rec->LastDodgeDir, 1.f);
+	W.Advance(1.7f);
+
+	FTDTestWorld::InjectKey(PC, EKeys::A, true); // holding roll left
+	W.Tick();
+	Tap(EKeys::LeftAlt);
+	FTDTestWorld::InjectKey(PC, EKeys::A, false);
+	W.Tick();
+	TestEqual(TEXT("LeftAlt dodges"), Rec->Dodges, 2);
+	TestEqual(TEXT("toward the held roll (left)"), Rec->LastDodgeDir, -1.f);
+	W.Advance(1.7f);
+
+	// Gamepad: two full flicks of the left stick to the left.
+	for (int32 k = 0; k < 2; ++k)
+	{
+		FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_LeftX, -1.f);
+		W.Tick();
+		FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_LeftX, 0.f);
+		W.Tick();
+	}
+	TestEqual(TEXT("left stick double flick dodges"), Rec->Dodges, 3);
+	TestEqual(TEXT("to the left"), Rec->LastDodgeDir, -1.f);
 	return true;
 }
 

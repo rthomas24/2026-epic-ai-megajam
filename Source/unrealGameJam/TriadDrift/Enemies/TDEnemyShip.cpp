@@ -431,7 +431,10 @@ bool ATDEnemyShip::TryStartAttack(ETDEnemyAttack Attack, AActor* Target)
 			case ETDEnemyAttack::MineTrail:    Specific = &Visuals->TelegraphMineTrail; break;
 			default: break;
 			}
-			UTDStatics::PlayCueAttached((Specific && !Specific->IsEmpty()) ? *Specific : Visuals->Telegraph, GetHullMesh());
+			// The specific cue wins only if it has VFX: a sound-only specific cue must not hide the generic flash.
+			const bool bSpecificVFX = Specific && !Specific->VFX.IsNull();
+			UTDStatics::PlayCueAttached(bSpecificVFX ? *Specific : Visuals->Telegraph, GetHullMesh());
+			if (!bSpecificVFX && Specific && !Specific->IsEmpty()) { UTDStatics::PlayCueAttached(*Specific, GetHullMesh()); }
 		}
 	}
 	else

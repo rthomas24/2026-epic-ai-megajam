@@ -12,6 +12,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnFlightImpact, const FTDFlightImpact&, Impact);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTDOnFlightEvent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDriftEnded, bool, bBurst);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDodge, float, Direction);
 
 /** Where the ship is relative to the play space (sphere in space, box in an atmosphere zone). */
 UENUM(BlueprintType)
@@ -222,6 +223,27 @@ public:
 	 */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
 	FTDOnDriftEnded OnDriftReleased;
+
+	/** A dodge started (Direction -1 left / +1 right): thruster burst cue, camera kick. */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
+	FTDOnDodge OnDodge;
+
+	/**
+	 * Lateral dodge burst (-1 left / +1 right, the ship's own right). Refused while on cooldown, parked, or under a
+	 * speed override (ram, landing assist, atmosphere entry, hyperdrive jump). ATDShip::TryDodge adds the ship gates.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	bool RequestDodge(float Direction);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool CanDodge() const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsDodging() const { return State.DodgeTimeLeft > 0.f; }
+
+	/** 0 right after a dodge, 1 when the next one is ready (HUD pip). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	float GetDodgeReady01() const { return Tuning.DodgeCooldown > 0.f ? FMath::Clamp(State.TimeSinceDodge / Tuning.DodgeCooldown, 0.f, 1.f) : 1.f; }
 
 	/** Fires once per change of GetBoundaryState (presentation: warning sting, HUD flash). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")

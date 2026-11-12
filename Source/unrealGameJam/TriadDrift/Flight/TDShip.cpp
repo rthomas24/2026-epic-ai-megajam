@@ -449,6 +449,35 @@ void ATDShip::SetPlayerControlled(bool bInPlayerControlled)
 	}
 }
 
+bool ATDShip::TryDodge(float Direction)
+{
+	if (!bPlayerControlled || !GetShipMovement() || FMath::IsNearlyZero(Direction))
+	{
+		return false;
+	}
+	if (Hyperdrive && Hyperdrive->GetState() != ETDHyperdriveState::Idle)
+	{
+		return false;
+	}
+	if ((Landing && Landing->IsBusy()) || (AtmosphereEntry && AtmosphereEntry->IsEntering()))
+	{
+		return false;
+	}
+	if (const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
+	{
+		if (Feel->IsSlowMoActive())
+		{
+			return false; // a director money shot is playing
+		}
+	}
+	if (!GetShipMovement()->RequestDodge(Direction))
+	{
+		return false;
+	}
+	NoteCue(TEXT("Dodge"));
+	return true;
+}
+
 bool ATDShip::IsSwitchLocked(FText& OutReason) const
 {
 	if (Hyperdrive && Hyperdrive->GetState() != ETDHyperdriveState::Idle)

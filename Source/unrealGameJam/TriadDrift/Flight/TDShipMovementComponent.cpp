@@ -603,6 +603,25 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 	}
 }
 
+bool UTDShipMovementComponent::CanDodge() const
+{
+	return Tuning.DodgeSpeed > 0.f && !Context.bSpeedOverride && IsComponentTickEnabled() && State.DodgeTimeLeft <= 0.f
+		&& State.TimeSinceDodge >= Tuning.DodgeCooldown;
+}
+
+bool UTDShipMovementComponent::RequestDodge(float Direction)
+{
+	if (FMath::IsNearlyZero(Direction) || !CanDodge())
+	{
+		return false;
+	}
+	State.DodgeSign = FMath::Sign(Direction);
+	State.DodgeTimeLeft = Tuning.DodgeSeconds;
+	State.TimeSinceDodge = 0.f;
+	OnDodge.Broadcast(State.DodgeSign);
+	return true;
+}
+
 FText UTDShipMovementComponent::GetBoundaryWarningText() const
 {
 	const bool bZone = Context.bBoxBoundary;

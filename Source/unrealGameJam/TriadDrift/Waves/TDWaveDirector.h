@@ -130,7 +130,7 @@ public:
 	TObjectPtr<UDataTable> WaveTableOverride;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
-	float BreatherSeconds = 6.f;
+	float BreatherSeconds = 6.f;	// clamped to >= 2 s at runtime (longer than the 1.75 s CUT delay)
 
 	/** Red warp-in telegraph before a group appears. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
@@ -243,6 +243,9 @@ protected:
 	float StateRemaining = 0.f;
 	int32 CurrentWave = INDEX_NONE;
 	float LockSyncTimer = 0.f;
+	bool bCutPending = false;
+	UFUNCTION()
+	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
 	void SpawnWarpInMarker(const FVector& Location, float EnemyRadius);
 	int32 EnemiesTotal = 0;
 	int32 CurrentTake = 1;
