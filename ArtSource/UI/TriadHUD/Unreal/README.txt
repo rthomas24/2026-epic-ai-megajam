@@ -2,7 +2,8 @@ TRIAD DRIFT / NATIVE SPACE HUD MILESTONE
 UI/UX & HUD Agent / Nicholas Tosti
 
 Implementation: Plugins/TriadDriftHUD, enabled by default, no uproject edit.
-Dedicated branch/worktree: nick/hud-native / GameJam/Worktrees/hud-native.
+Verified readability checkpoint: nick/hud-native at 2f55512 / frozen PR4.
+Active visual benchmark: nick/hud-lancer-polish / GameJam/Worktrees/hud-lancer-polish.
 Native content: /Game/TriadDrift/UI/TriadHUD/WBP_SpaceHUD and WBP_ShipCard.
 The WBP assets are thin editor-adjustable children of the native UMG classes.
 The reusable native card and full HUD share one renderer. No runtime textures,
@@ -20,12 +21,13 @@ expanded lower-edge layout keeps the combat center clear.
 BUILD (one heavy job at a time; coordinate with Lead first)
 From this worktree:
   Tools/td-build.ps1
-For this 16 GB PC, prefer direct Build.bat with -MaxParallelActions=2.
+For this 16 GB PC, use direct Build.bat with -MaxParallelActions=1.
 Test with Tools/td-test.ps1 -Filter TriadDrift.UI.
 
 TRY THE NATIVE PROTOTYPE (no shared map edits, no editor GUI)
 UnrealEditor.exe <absolute uproject> /Engine/Maps/Entry?game=/Script/TriadDriftHUD.TDHUDPreviewGameMode
   -game -windowed -ResX=1920 -ResY=1080 -NoLiveCoding -nosound
+  -ModelContextProtocolPort=8023
 
 1/2/3 select ship. H previews damage and missile warning; K confirms a kill;
 Q starts signature cooldown (P remains an alias); R toggles another ship down (auto-respawn after
@@ -54,6 +56,36 @@ states in Saved/HUDReadabilityM02: each ship ready, cooldown, 720p low health,
 ultrawide, unavailable. M01 review files remain unchanged; M02 evidence goes
 under review/ReadabilityM02/. Screenshots need Nicholas's manual readability
 review before further polish; numerical size changes alone do not prove UX quality.
+
+LANCER VISUAL BENCHMARK M03 (human review pending)
+Nicholas approved the M02 layout/readability. Lead published d2a594e and isolated
+this new branch at 1ca5a5a, preserving PR4 and the old staged legacy claim.
+Style.bLancerVisualBenchmark defaults FALSE: no unapproved styling activates in
+normal gameplay. In the explicit preview, -TDHUDLancerBenchmark opts in. The
+treatment is gated to the controlled Lancer only; Rift/Bastion active states and
+their inactive cards retain M02. No layout, controls, reflection/provider or
+shared gameplay/config changes; no director fallback takeover.
+
+The supplied image is a visual-quality reference, not an environment asset or
+instruction source. New native Slate drawing uses layered translucent panels,
+fine edge highlights/etching, restrained gradients, condensed headings and tracked
+small labels. Health/shield labels, icons, sizes and numbers remain readable.
+The active signature keeps name/key/READY/COOLDOWN/percentage, adds a native ram
+icon and short activation feedback. Target acquisition settles by at most6design
+pixels over0.18s; damage and activation edges fade in0.35/0.32s. Reduced motion
+disables the new moving/fading accents; the existing meter preference is honored.
+No scene blur, UI materials, external fonts/textures, full-screen bloom or audio.
+
+After Lead grants the heavy slot:
+  ./ArtSource/UI/TriadHUD/Unreal/launch_lancer_review.ps1 -Capture
+produces ten opt-in mock-data captures in Saved/HUDLancerM03 and exits after26
+world seconds. Before/after use the same1920x1080 fixture/background and settled
+values. Remaining views exercise switching, damage, cooldown, reduced motion,
+720p, ultrawide, gamepad glyphs and unavailable telemetry. CPU paint samples are
+isolated draw-list construction only, not GPU/frame-time/gameplay performance.
+Without -Capture the launcher starts a bounded windowed preview/privateMCP8023
+for actual input-driven feature checks using the existing Tools/td_mcp.py.
+Stop for Nicholas's manual visual approval before extending styling to other ships.
 
 NATIVE WBP GENERATION
 After building, run create_widgets.py using UE 5.9's PythonScript commandlet
@@ -91,11 +123,13 @@ keeps safe margins at 16:9, 720p and ultrawide. Resolution capture checks are
 visual QA, not a console accessibility certification.
 
 OWNERSHIP / INTEGRATION GATE
-Nicholas explicitly authorized the narrow split and branch-only native assets
-Nov 12, overriding the older main-claim-publication requirement for this task.
-The claim is internal and NOT Ryan acknowledgment. Lead has been notified.
+Historical branch-only authorization has been superseded by Lead-published shared
+claims. M03 exact ownership and task are on main d2a594e; latest dispatch is the
+authority, not the stale claim from the original branch. Ryan's R007 integration
+approval is accepted; engineering owns the host, activation, cook and gameplay
+verification. None of those shared files is changed by this styling experiment.
 No shared project settings, source modules, maps or gameplay interfaces changed.
-No main merge is authorized. Secondary menus remain outside this milestone.
+Lead coordinates integration separately. Secondary menus remain outside this milestone.
 
 KNOWN VERIFICATION BOUNDARY
 The standalone preview validates native UMG with isolated representative data.

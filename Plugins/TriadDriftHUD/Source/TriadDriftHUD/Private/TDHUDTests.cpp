@@ -62,4 +62,23 @@ bool FTDHUDSnapshotTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("leaving preview never leaks mock telemetry"),HUD->GetSnapshot()[2].bAvailable);
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHUDLancerIsolationTest,"TriadDrift.UI.LancerBenchmarkIsolation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
+bool FTDHUDLancerIsolationTest::RunTest(const FString& Parameters)
+{
+    UTDSpaceHUDWidget* HUD=NewObject<UTDSpaceHUDWidget>();
+    HUD->SetPreviewMode(true);
+    TestFalse(TEXT("experiment cannot silently activate on normal Lancer"),HUD->IsLancerBenchmarkActive());
+    HUD->Style.bLancerVisualBenchmark=true;
+    TestTrue(TEXT("explicit opt-in applies to controlled Lancer"),HUD->IsLancerBenchmarkActive());
+    HUD->PreviewSelectShip(0);
+    TestFalse(TEXT("Rift keeps approved baseline"),HUD->IsLancerBenchmarkActive());
+    HUD->PreviewSelectShip(2);
+    TestFalse(TEXT("Bastion keeps approved baseline"),HUD->IsLancerBenchmarkActive());
+    HUD->PreviewSelectShip(1);
+    TestTrue(TEXT("switching back restores Lancer benchmark"),HUD->IsLancerBenchmarkActive());
+    HUD->SetPreviewMode(false);
+    TestFalse(TEXT("unavailable telemetry never leaves the benchmark active"),HUD->IsLancerBenchmarkActive());
+    return true;
+}
 #endif

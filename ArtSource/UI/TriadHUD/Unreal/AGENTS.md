@@ -2,8 +2,10 @@
 
 Owner: Nicholas Tosti. Dedicated chat identity: **UI/UX & HUD Agent**.
 Role: native space-combat HUD, UI readability and presentation integration.
-Worktree: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/hud-native`.
-Branch: `nick/hud-native`. Work here only; never commit, push or merge to main.
+Active worktree: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/hud-lancer-polish`.
+Active branch: `nick/hud-lancer-polish`. Work here only; never commit, push or merge to main.
+The original hud-native worktree / PR4 is frozen at 2f55512. Its staged legacy
+CLAIMS.md remains untouched there; this new worktree has no legacy claim edit.
 
 Every completion, partial-completion, blocker or failure report begins with:
 
@@ -40,3 +42,12 @@ readiness, active-ship clarity and desktop contrast/text. Preserve M01 evidence.
 No provider rewrite, shared activation, menus, audio or other feature work.
 Unreal builds/captures require explicit current heavy-slot clearance from Lead.
 Present native screenshots for manual review before further visual polish.
+
+Lancer visual M03: Lead dispatched Nov12 after publishing d2a594e, new worktree
+base 1ca5a5a (verified M02 plus reviewed main). Same three exclusive HUD roots.
+Only controlled-Lancer opt-in styling; preserve layout, readability, controls and
+data contracts. Reference image guides glass, layered edges and restrained depth,
+not gameplay or environment changes. Matched before/after resolution and fixture.
+No Rift/Bastion active-state propagation before Nicholas's manual visual approval.
+No R011 director takeover or N004 producer workaround. Heavy build/capture needs
+the Lead's explicit current window; source preparation alone is cleared initially.

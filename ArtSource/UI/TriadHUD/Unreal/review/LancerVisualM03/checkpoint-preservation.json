@@ -1,0 +1,61 @@
+{
+  "nine_files_preserved": true,
+  "unchanged_files": 8,
+  "authorized_launcher_only_change": "Lead approved per-process -ExecCmds=\"TD.DebugHUD 0\" for clean capture; no C++ or shared config edits during verification.",
+  "files": [
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/AGENTS.md",
+      "checkpoint_sha256": "5CEF140E2E5E7C33BBFD1B18CD7A043E910A817642820BCC32A2FF1F524C752E",
+      "current_sha256": "5CEF140E2E5E7C33BBFD1B18CD7A043E910A817642820BCC32A2FF1F524C752E",
+      "byte_identical": true
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/README.txt",
+      "checkpoint_sha256": "93F1618967F243A79230AB2817BF823D40BAAACAD65D35608ADCD5FF0CB63C4C",
+      "current_sha256": "93F1618967F243A79230AB2817BF823D40BAAACAD65D35608ADCD5FF0CB63C4C",
+      "byte_identical": true
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/credits.json",
+      "checkpoint_sha256": "290EF129E3FDB51F073C688A72671BD041773A3C50333921EEE6992D4CABF3B1",
+      "current_sha256": "290EF129E3FDB51F073C688A72671BD041773A3C50333921EEE6992D4CABF3B1",
+      "byte_identical": true
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDPreview.cpp",
+      "checkpoint_sha256": "836771CB55A12DF31101FFC03224086E111551025E61F09C9F24FF797BE918DE",
+      "current_sha256": "836771CB55A12DF31101FFC03224086E111551025E61F09C9F24FF797BE918DE",
+      "byte_identical": true
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDTests.cpp",
+      "checkpoint_sha256": "BDF0F807DC146001AA83C60F448CC03F36E389B2DEBADB1F42CD903EAFF3C09C",
+      "current_sha256": "BDF0F807DC146001AA83C60F448CC03F36E389B2DEBADB1F42CD903EAFF3C09C",
+      "byte_identical": true
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDSpaceHUDWidget.cpp",
+      "checkpoint_sha256": "AAC14AAD92CB0334D81AEF73D2D932EA38FE9A9C044E640D84C2D4F309C74E7C",
+      "current_sha256": "AAC14AAD92CB0334D81AEF73D2D932EA38FE9A9C044E640D84C2D4F309C74E7C",
+      "byte_identical": true
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDSpaceHUDWidget.h",
+      "checkpoint_sha256": "55092B11EF5B402DC9AF41E1D753D6F8853362147522DAEBC616F1FA72F53DDA",
+      "current_sha256": "55092B11EF5B402DC9AF41E1D753D6F8853362147522DAEBC616F1FA72F53DDA",
+      "byte_identical": true
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/launch_lancer_review.ps1",
+      "checkpoint_sha256": "C9E35C00CDF0A18B744A94F28656026819A4AD2EC4A9C7015049AE3602AF0188",
+      "current_sha256": "F89C2EC08EDCD6986820572B7D76B68B2B2B01D2362469B519D9AF698FFB1ED6",
+      "byte_identical": false
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/review/LancerVisualM03/preview.html",
+      "checkpoint_sha256": "33A6615173604F5BA5697CAF4768CD3B00D7C42457E287549F99E1AB43FABECB",
+      "current_sha256": "33A6615173604F5BA5697CAF4768CD3B00D7C42457E287549F99E1AB43FABECB",
+      "byte_identical": true
+    }
+  ]
+}

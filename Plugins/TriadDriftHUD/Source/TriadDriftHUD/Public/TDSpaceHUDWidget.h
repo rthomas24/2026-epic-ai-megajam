@@ -46,6 +46,8 @@ struct TRIADDRIFTHUD_API FTDHUDStyle
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="1",ClampMax="30")) float MeterResponse = 9.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="0.05",ClampMax="2")) float SwitchSeconds = .65f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style") bool bReducedMotion = false;
+    /** Isolated visual-review experiment. Only affects the controlled Lancer; opt-in until approved. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Review") bool bLancerVisualBenchmark = false;
     FLinearColor ShipColor(int32 Index) const { return Index == 0 ? Rift : Index == 1 ? Lancer : Bastion; }
 };
 
@@ -97,6 +99,10 @@ public:
     UFUNCTION(BlueprintCallable, Category="HUD|Preview") void PreviewPower();
     const TArray<FTDUIShip>& GetSnapshot() const { return Ships; }
     bool HasValidSource() const { return DataSource.IsValid(); }
+    bool IsLancerBenchmarkActive() const { return Style.bLancerVisualBenchmark && ActiveIndex==1; }
+    /** Preview-only CPU paint sampling. No production telemetry or gameplay writes. */
+    void ResetBenchmarkPaintMetrics() const;
+    FString GetBenchmarkPaintMetrics() const;
     static bool SolveIntercept(const FVector& RelativePosition, const FVector& TargetVelocity, float Speed, FVector& OutAim);
 protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -117,6 +123,11 @@ private:
     float Elapsed = 0, SwitchLeft = 0, HitLeft = 0, WarningLeft = 0;
     float Speed01 = 0, Hyperdrive01 = 0;
     float TargetHull = 0, TargetShield = 0, ReadyLeft = 0;
+    float AcquisitionLeft = 0, ActivationLeft = 0, DamageLeft = 0;
+    TWeakObjectPtr<AActor> VisualTarget;
+    bool bVisualPreviewTarget = false;
+    mutable double PaintTotalMicros = 0, PaintMaxMicros = 0;
+    mutable int32 PaintSamples = 0;
     FVector LeadWorld = FVector::ZeroVector;
     bool bHasTargetHealth = false, bHasGameplayLead = false;
     int32 IncomingMissiles = 0;
