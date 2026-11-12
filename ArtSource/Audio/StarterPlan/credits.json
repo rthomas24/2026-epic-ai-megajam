@@ -1,0 +1,37 @@
+{
+  "created_by": "Nicholas / OpenAI Codex Audio & Polish Agent",
+  "created_on": "2026-11-12",
+  "tools_used": [
+    "OpenAI Codex",
+    "Web Audio API (original oscillator audition source)"
+  ],
+  "original_files": [
+    "audition.html",
+    "cues.json",
+    "README.md"
+  ],
+  "original_status": "Original source authored for Triad Drift; no third-party audio incorporated; repository licensing policy remains with team.",
+  "references_only": [
+    {
+      "name": "Kenney Sci-fi Sounds",
+      "url": "https://kenney.nl/assets/sci-fi-sounds",
+      "license_url": "https://kenney.nl/support",
+      "license_summary": "Primary search evidence states CC0; direct fetch blocked; confirm included pack license before acquisition",
+      "acquired": false
+    },
+    {
+      "name": "Sonniss #GameAudioGDC",
+      "url": "https://sonniss.com/gameaudiogdc/",
+      "license_url": "https://sonniss.com/gdc-bundle-license/",
+      "license_summary": "v2.0 effective 2026-08-27, commercial synchronized use; no raw redistribution; no AI training/development",
+      "acquired": false
+    },
+    {
+      "name": "WeLoveIndies MegaJam offer",
+      "url": "https://www.weloveindies.com/en/epicmegajam",
+      "license_url": "https://www.weloveindies.com/en/agb",
+      "license_summary": "Project-specific jam rights; contact provider for commercial use; exact grant not acquired",
+      "acquired": false
+    }
+  ]
+}

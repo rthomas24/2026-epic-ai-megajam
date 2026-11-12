@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Triad Drift — signal audition</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;background:#070c17;color:#dcecf5}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(ellipse at 18% 0%,#16253e,transparent 65%),#070c17}main{width:min(1000px,92vw);padding:48px 0}small{letter-spacing:.22em;color:#7e9aaf}h1{font-size:clamp(32px,5vw,60px);font-weight:500;margin:20px 0 12px;letter-spacing:-.05em}p{color:#9cb1c4;line-height:1.6;max-width:720px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:32px 0}.card{border:1px solid #28394d;padding:24px;background:#0d1624;border-top:3px solid var(--c);border-radius:8px}h2{color:var(--c);margin:0 0 4px;letter-spacing:.06em}button{cursor:pointer;background:#16273a;border:1px solid #40556a;border-radius:5px;padding:12px 18px;color:inherit;font:inherit;margin-top:14px}button:hover,button:focus-visible{background:#243c53;outline:2px solid var(--c,#6fcde6);outline-offset:3px}.tools{display:flex;gap:12px;flex-wrap:wrap;align-items:center}label{display:flex;align-items:center;gap:12px}output{font-variant-numeric:tabular-nums;color:#62dced}#status{min-height:30px;font-size:14px;color:#a8c3ce}.note{font-size:13px;border-left:2px solid #496079;padding-left:14px} @media(max-width:680px){.grid{grid-template-columns:1fr}main{padding:32px 0}.card{padding:20px}}
+</style>
+<main><small>TRIAD DRIFT / AUDIO LAB / 01</small><h1>Every cut has a signature.</h1>
+<p>Original synthetic sketches for ship switching and UI feedback. Listen at a comfortable level. These are placeholder art-direction tones, not final game sounds.</p>
+<div class="grid">
+<section class="card" style="--c:#ff46c3"><h2>RIFT</h2><small>WREN · AIR / LIFT / GLASS</small><p>Ascending fifth, soft sine body and a bright transient.</p><button data-cue="Rift">Audition Rift</button></section>
+<section class="card" style="--c:#40ddff"><h2>LANCER</h2><small>KATO · SPEED / SNAP / PRECISION</small><p>Two crisp high notes with a tight rising tail.</p><button data-cue="Lancer">Audition Lancer</button></section>
+<section class="card" style="--c:#ffc45c"><h2>BASTION</h2><small>MOSS · MASS / WARMTH / ANCHOR</small><p>Low triangle body, restrained descending answer.</p><button data-cue="Bastion">Audition Bastion</button></section>
+</div><div class="tools"><label>Preview volume <input id="volume" type="range" min="0" max="0.35" value="0.12" step="0.01"><output id="level">12%</output></label><button data-cue="Confirm">UI confirm</button><button data-cue="Target">Target acquired</button><button id="stop">Stop all</button></div>
+<p id="status" role="status">Audio is off until you press an audition button.</p>
+<p class="note">No samples, recordings, external libraries, or network requests. Web Audio oscillators are created locally. This browser audition does not establish Unreal rendering or final mix parity.</p>
+</main><script>
+'use strict';
+let context=null, master=null; const active=new Set();
+const signatures={Rift:[[440,0,.15,'sine',660],[880,.055,.11,'sine',990]],Lancer:[[740,0,.065,'triangle',880],[1109,.078,.095,'sine',1320]],Bastion:[[165,0,.23,'triangle',123.47],[330,.10,.13,'sine',247]],Confirm:[[660,0,.07,'sine',880],[990,.07,.09,'sine',990]],Target:[[520,0,.08,'sine',520],[780,.10,.10,'sine',1040]]};
+const slider=document.querySelector('#volume'), level=document.querySelector('#level'), status=document.querySelector('#status');
+async function play(name){
+ try{
+  if(!context){context=new (window.AudioContext||window.webkitAudioContext)();master=context.createGain();master.gain.value=Number(slider.value);master.connect(context.destination)}
+  await context.resume(); const now=context.currentTime+.015;
+  for(const [frequency,offset,duration,type,end] of signatures[name]){
+   const oscillator=context.createOscillator(), envelope=context.createGain(); oscillator.type=type;
+   oscillator.frequency.setValueAtTime(frequency,now+offset);oscillator.frequency.exponentialRampToValueAtTime(end,now+offset+duration);
+   envelope.gain.setValueAtTime(.0001,now+offset);envelope.gain.exponentialRampToValueAtTime(.38,now+offset+.008);envelope.gain.exponentialRampToValueAtTime(.0001,now+offset+duration);
+   oscillator.connect(envelope);envelope.connect(master);active.add(oscillator);oscillator.onended=()=>{active.delete(oscillator);oscillator.disconnect();envelope.disconnect()};oscillator.start(now+offset);oscillator.stop(now+offset+duration+.02);
+  }status.textContent='Playing '+name+' · synthesized locally';
+ }catch(error){status.textContent='Audio unavailable: '+error.message}
+}
+document.querySelectorAll('[data-cue]').forEach(button=>button.addEventListener('click',()=>play(button.dataset.cue)));
+slider.addEventListener('input',()=>{level.value=Math.round(Number(slider.value)*100)+'%';if(master)master.gain.setTargetAtTime(Number(slider.value),context.currentTime,.02)});
+document.querySelector('#stop').addEventListener('click',()=>{for(const oscillator of active){try{oscillator.stop()}catch{}}active.clear();status.textContent='Stopped'});
+</script></html>

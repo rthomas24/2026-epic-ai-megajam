@@ -1,0 +1,12 @@
+float elapsed = max(Clock - StartTime, 0.0);
+float age = saturate(elapsed / max(Lifetime,0.01));
+if (PreviewLoop > 0.5) age = frac(Clock / max(Lifetime*2.5,0.025));
+float2 p = (UV - 0.5) / max(Width,0.05);
+float r = length(p);
+float a = atan2(p.y,p.x);
+float ring = exp(-pow((r-age*0.7)/max(0.015,0.05*(1.0-age)),2.0));
+float sparks = pow(saturate(cos(a*7.0 + 0.8)),35.0)
+    * exp(-pow((r-age*1.05)/0.11,2.0));
+float core = exp(-r*30.0) * pow(saturate(1.0-age*3.0),2.0);
+float mask = saturate((ring*0.4+sparks+core) * pow(1.0-age,1.7));
+return float4(Tint*max(Intensity,0.0),mask);
