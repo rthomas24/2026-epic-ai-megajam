@@ -50,7 +50,8 @@ float TDFlightSim::ComputeTargetSpeed(const FTDFlightState& State, const FTDFlig
 		return Tuning.MinSpeed;
 	}
 	const float Throttle01 = (SafeAxis(In.Throttle) + 1.f) * 0.5f;
-	return FMath::Lerp(Tuning.MinSpeed, Tuning.CruiseSpeed, Throttle01);
+	const float Top = FMath::Max(Tuning.CruiseSpeed, Context.ThrottleTopSpeed);
+	return FMath::Lerp(Tuning.MinSpeed, Top, Throttle01);
 }
 
 void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFlightTuning& T, const FTDFlightContext& C, float Dt)
