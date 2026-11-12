@@ -50,6 +50,12 @@ public:
 	UFUNCTION()
 	void OnDirectorShot(const FTDDirectorShot& Shot) { ++Shots; }
 
+	UFUNCTION()
+	void OnBark(FName BarkId, FName Speaker) { Barks.Add(TPair<FName, FName>(BarkId, Speaker)); }
+
+	TArray<TPair<FName, FName>> Barks;
+	int32 CountBarks(FName Id) const { int32 N = 0; for (const TPair<FName, FName>& B : Barks) { N += B.Key == Id ? 1 : 0; } return N; }
+
 	int32 Shots = 0;
 	int32 Refusals = 0;
 	ETDSwitchRefusal LastRefusal = ETDSwitchRefusal::Cooldown;

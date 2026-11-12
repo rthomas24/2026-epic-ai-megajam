@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDSquad, Log, All);
 
@@ -76,12 +77,14 @@ void ATDSquadManager::BeginPlay()
 	TDSquadManagerPrivate::GInstances.AddUnique(this);
 	TDSquad::BindPowerUsed(this);
 	TDSquad::BindWaveEvents(this);
+	TDSquad::BindActorKilled(this);
 }
 
 void ATDSquadManager::EndPlay(const EEndPlayReason::Type Reason)
 {
 	TDSquad::UnbindPowerUsed(this);
 	TDSquad::UnbindWaveEvents(this);
+	TDSquad::UnbindActorKilled(this);
 	EndSwitchStrike();
 	TDSquadManagerPrivate::GInstances.Remove(this);
 	Super::EndPlay(Reason);
@@ -141,6 +144,7 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 	EndSwitchStrike();
 	SwitchCount = 0;
 	LastSwitchCut = FTDSwitchCut();
+	BarkLimiter.Reset();
 
 	if (SwitchOrder.Num() == 0)
 	{
@@ -202,6 +206,7 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		}
 		Slot->State = ETDSquadSlotState::Alive;
 		Slot->RespawnAtTime = 0.0;
+		Slot->bLowHullBarkArmed = true;
 		SpawnWingmanFor(*Slot);
 	}
 
@@ -622,12 +627,40 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	Cut.Timing = CutTiming;
 	LastSwitchCut = Cut;
 	OnSwitchCut.Broadcast(LastSwitchCut);
+	if (!bForced)
+	{
+		RequestSquadBark(TDBarkIds::SwitchIn, Ship); // the new pilot answers the cut
+	}
 	return true;
 }
 
 // ---------------------------------------------------------------------------------------------
 // Powers & Switch Strike
 // ---------------------------------------------------------------------------------------------
+
+bool ATDSquadManager::RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkPriority Priority)
+{
+	if (!BarkLimiter.TryConsume(BarkTuning, BarkId, Priority, RealNow()))
+	{
+		return false;
+	}
+	TDSquad::RequestBark(this, BarkId, TDBarkIds::SpeakerFor(Speaker));
+	return true;
+}
+
+void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
+{
+	// A wingman scored: that pilot crows about it.
+	for (const FTDSquadSlot& Slot : Slots)
+	{
+		if (Slot.Ship && Killer == Slot.Ship && Slot.ShipId != ActiveShipId && Slot.State == ETDSquadSlotState::Alive
+			&& UTDStatics::AreHostile(Killer, Victim))
+		{
+			RequestSquadBark(TDBarkIds::WingmanKill, Slot.ShipId);
+			return;
+		}
+	}
+}
 
 void ATDSquadManager::HandleWaveCleared(int32 WaveNumber)
 {
@@ -711,6 +744,14 @@ void ATDSquadManager::IssueFocusCommand(AActor* Target)
 	}
 	FocusTarget = Target;
 	FocusEndTime = Now() + FocusCommandSeconds;
+	for (const ETDShipId Id : SwitchOrder)
+	{
+		if (Id != ActiveShipId && IsShipAlive(Id))
+		{
+			RequestSquadBark(TDBarkIds::FocusAck, Id);
+			break;
+		}
+	}
 	for (FTDSquadSlot& Slot : Slots)
 	{
 		if (Slot.Wingman && Slot.ShipId != ActiveShipId)
@@ -736,6 +777,27 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 	}
 
 	RunPendingSwitch();
+
+	// Low hull line, once per dip (re-armed after a repair or respawn).
+	for (FTDSquadSlot& Slot : Slots)
+	{
+		if (Slot.State != ETDSquadSlotState::Alive || !Slot.Ship)
+		{
+			continue;
+		}
+		const float Hull = TDSquad::GetHull01(Slot.Ship);
+		if (Slot.bLowHullBarkArmed && Hull > 0.f && Hull < BarkTuning.LowHullFraction)
+		{
+			if (RequestSquadBark(TDBarkIds::LowHull, Slot.ShipId))
+			{
+				Slot.bLowHullBarkArmed = false;
+			}
+		}
+		else if (!Slot.bLowHullBarkArmed && Hull > BarkTuning.LowHullRearmFraction)
+		{
+			Slot.bLowHullBarkArmed = true;
+		}
+	}
 
 	// ENG-03: the hull doesn't regenerate in combat but slowly repairs between waves.
 	if (bBetweenWaves && BetweenWaveHullRepairPerSecond > 0.f)
@@ -831,6 +893,16 @@ void ATDSquadManager::HandleShipDeath(ETDShipId Ship)
 	{
 		HandleSquadWiped();
 	}
+	else
+	{
+		// The healthiest survivor calls it ("Kato's down!") - unless everyone is going down this same
+		// frame, when the squad-wipe line says it all.
+		ETDShipId Caller = ETDShipId::Rift;
+		if (FindHealthiestLivingShip(Ship, Caller) && !TDSquad::IsDead(GetShip(Caller)))
+		{
+			RequestSquadBark(TDBarkIds::ShipDownFor(Ship), Caller, ETDBarkPriority::High);
+		}
+	}
 }
 
 void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
@@ -884,6 +956,8 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	TDSquad::SetInvulnerable(Ship, RespawnInvulnerability);
 	Slot.State = ETDSquadSlotState::Alive;
 	Slot.RespawnAtTime = 0.0;
+	Slot.bLowHullBarkArmed = true;
+	RequestSquadBark(TDBarkIds::Respawn, Slot.ShipId);
 
 	if (Slot.ShipId != ActiveShipId)
 	{
@@ -938,6 +1012,7 @@ void ATDSquadManager::HandleSquadWiped()
 	}
 	bSquadWiped = true;
 	TDSquad::BroadcastSquadWiped(this);
+	RequestSquadBark(TDBarkIds::SquadWipe, ActiveShipId, ETDBarkPriority::Critical);
 	// With a game flow, it owns the restart (C-03 #3 "CUT!" -> next take) and calls SpawnSquad again.
 	// Without one (sandbox), downed ships simply keep their respawn timers.
 	// m1: decide before the call (a flow with no retake delay respawns the squad inside it).
