@@ -9,6 +9,8 @@
 class ATDShip;
 class ATDLandingPad;
 class UTDTravelFX;
+class UTDHealthComponent;
+struct FTDDamageInfo;
 
 /** Each step of the landing and take-off sequences (Nick drives gear / canopy / thruster animation from these). */
 UENUM(BlueprintType)
@@ -185,6 +187,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void HandleOwnerDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow);
 
 private:
 	ATDShip* GetShip() const;
