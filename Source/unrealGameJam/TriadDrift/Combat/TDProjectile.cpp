@@ -2,6 +2,8 @@
 
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
@@ -204,6 +206,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 	}
 	if (ArtMesh)
 	{
+		StreakLook = FTDStreakLook();
 		PlaceholderMesh->EmptyOverrideMaterials();
 		PlaceholderMesh->SetRelativeScale3D(FVector::OneVector);
 		// Visual-only offset (centre-pivoted meshes, e.g. a rocket whose tail would clip into the pod).
@@ -216,6 +219,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 		// the speed so it reads at gameplay distance. One material instance per pooled actor, re-coloured.
 		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
 		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
+		StreakLook = Look;
 		UMaterialInterface* Base = GlowMaterial ? GlowMaterial.Get() : DefaultMaterial.Get();
 		const FLinearColor Final = GlowMaterial ? Color * FTDCombatPlaceholders::StreakGlow : Color;
 		if (!PlaceholderMID && Base)
@@ -450,6 +454,30 @@ void ATDProjectile::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	Step(DeltaSeconds);
+	UpdatePlaceholderDistanceScale();
+}
+
+void ATDProjectile::UpdatePlaceholderDistanceScale()
+{
+	if (!bActive || !StreakLook.bStreak || !PlaceholderMesh->IsVisible())
+	{
+		return;
+	}
+	const UWorld* World = GetWorld();
+	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	if (!PC || !PC->PlayerCameraManager)
+	{
+		return;
+	}
+	const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
+	const float Grow = FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
+	const float Thickness = StreakLook.Thickness * Grow;
+	PlaceholderMesh->SetRelativeScale3D(FVector(StreakLook.Length, Thickness, Thickness) / 100.f);
+	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * StreakLook.Length + 0.5f * Thickness, 0.f, 0.f));
+	if (StreakLook.bHead)
+	{
+		PlaceholderHead->SetRelativeScale3D(FVector(StreakLook.HeadDiameter * Grow / 100.f));
+	}
 }
 
 void ATDProjectile::Step(float DeltaSeconds)
