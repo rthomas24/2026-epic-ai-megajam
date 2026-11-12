@@ -14,12 +14,11 @@
 #include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 #include "TriadDrift/Powers/Tests/TDPowerTestHelpers.h"
 
-using namespace TDPowerTest;
 
-namespace
+namespace TDPowerTest
 {
 	/** Rift at the origin opens A straight ahead (+X, 12 000 cm) and B to its left (+Y, 12 000 cm). */
-	UTDPortalBlasterPower* OpenPair(FTDTestWorld& W, AActor*& OutRift)
+	UTDPortalBlasterPower* PortalTestOpenPair(FTDTestWorld& W, AActor*& OutRift)
 	{
 		OutRift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f), 100.f, 100.f);
 		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(OutRift);
@@ -30,7 +29,7 @@ namespace
 		return Power;
 	}
 
-	int32 TotalTransits(const UTDPortalBlasterPower* Power)
+	int32 PortalTestTotalTransits(const UTDPortalBlasterPower* Power)
 	{
 		int32 N = 0;
 		for (const TWeakObjectPtr<ATDPortal>& P : Power->GetPortals())
@@ -39,14 +38,13 @@ namespace
 		}
 		return N;
 	}
-}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalPlacement, "TriadDrift.Powers.Portal.PlacementPairingAndRecycle", TD_TEST_FLAGS)
 bool FTDPortalPlacement::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
-	UTDPortalBlasterPower* Power = OpenPair(W, Rift);
+	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 	TestTrue(TEXT("power active"), Power->IsPowerActive());
 	TestEqual(TEXT("two portals"), Power->GetPortals().Num(), 2);
 	ATDPortal* A = Power->GetPortals()[0].Get();
@@ -82,7 +80,7 @@ bool FTDPortalShipTransit::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
-	UTDPortalBlasterPower* Power = OpenPair(W, Rift);
+	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 
 	ATDSpacecraft* Ship = W.Spawn<ATDSpacecraft>(FVector(9000.f, 150.f, 0.f), FRotator::ZeroRotator);
 	Ship->SetTeam(ETDTeam::Player);
@@ -93,7 +91,7 @@ bool FTDPortalShipTransit::RunTest(const FString& Parameters)
 	float SpeedBefore = 0.f;
 	const float At = AdvanceUntil(W, [&]
 	{
-		if (TotalTransits(Power) == 0)
+		if (PortalTestTotalTransits(Power) == 0)
 		{
 			SpeedBefore = Ship->GetVelocity().Size();
 			return false;
@@ -111,7 +109,7 @@ bool FTDPortalShipTransit::RunTest(const FString& Parameters)
 	TestFalse(TEXT("invulnerability over"), Ship->GetHealth() && Ship->GetHealth()->IsInvulnerable());
 
 	W.Advance(2.f);
-	TestEqual(TEXT("exactly one transit (no bounce back)"), TotalTransits(Power), 1);
+	TestEqual(TEXT("exactly one transit (no bounce back)"), PortalTestTotalTransits(Power), 1);
 	return true;
 }
 
@@ -120,7 +118,7 @@ bool FTDPortalMissileReturn::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
-	UTDPortalBlasterPower* Power = OpenPair(W, Rift);
+	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 	AActor* Interceptor = SpawnBody(W, ETDTeam::Enemy, FVector(20000.f, 0.f, 0.f), FVector(150.f), 100.f, 100.f);
 
 	UTDTestPowerListener* Listener = NewObject<UTDTestPowerListener>();
@@ -133,7 +131,7 @@ bool FTDPortalMissileReturn::RunTest(const FString& Parameters)
 
 	// Fired at Rift from behind portal A: it flies into A on the way.
 	ATDProjectile* Missile = LaunchMissile(W, FVector(15000.f, 0.f, 0.f), -FVector::ForwardVector, Interceptor, Rift);
-	const float At = AdvanceUntil(W, [&] { return TotalTransits(Power) > 0; }, 2.f);
+	const float At = AdvanceUntil(W, [&] { return PortalTestTotalTransits(Power) > 0; }, 2.f);
 	TestTrue(TEXT("missile entered the portal"), At > 0.f);
 	TestTrue(TEXT("now on the Player team"), Missile && Missile->GetTeam() == ETDTeam::Player);
 	TestTrue(TEXT("re-homing on the interceptor"), Missile && Missile->GetHomingTarget() == Interceptor);
@@ -186,7 +184,7 @@ bool FTDPortalWindow::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	AActor* Rift = nullptr;
-	UTDPortalBlasterPower* Power = OpenPair(W, Rift);
+	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 	W.Advance(11.8f);
 	TestTrue(TEXT("still open at 11.8 s"), Power->IsPowerActive() && Power->GetPortals().Num() == 2);
 	TestEqual(TEXT("cooldown frozen while open"), Power->GetCooldown01(), 0.f);
@@ -220,7 +218,7 @@ bool FTDPortalClearance::RunTest(const FString& Parameters)
 	{
 		FTDTestWorld W;
 		AActor* Rift = nullptr;
-		UTDPortalBlasterPower* Power = OpenPair(W, Rift);
+		UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 		SpawnWall(W, FVector(0.f, 11300.f, 0.f), FVector(600.f, 200.f, 600.f));
 		ATDSpacecraft* Ship = W.Spawn<ATDSpacecraft>(FVector(9000.f, 0.f, 0.f), FRotator::ZeroRotator);
 		Ship->SetTeam(ETDTeam::Player);
@@ -228,7 +226,7 @@ bool FTDPortalClearance::RunTest(const FString& Parameters)
 		In.Throttle = 1.f;
 		Ship->SetFlightInput(In);
 		W.Advance(2.f);
-		TestEqual(TEXT("blocked exit: no transit"), TotalTransits(Power), 0);
+		TestEqual(TEXT("blocked exit: no transit"), PortalTestTotalTransits(Power), 0);
 		TestTrue(TEXT("ship flew straight on past A"), Ship->GetActorLocation().X > 12000.f);
 	}
 	return true;
@@ -281,5 +279,7 @@ bool FTDPortalBlink::RunTest(const FString& Parameters)
 	}
 	return true;
 }
+
+} // namespace TDPowerTest
 
 #endif // WITH_DEV_AUTOMATION_TESTS

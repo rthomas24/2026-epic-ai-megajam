@@ -116,7 +116,7 @@ float UTDTargetingComponent::GetLeadSpeed() const
 namespace
 {
 	/** Smallest positive t with |D + V t| = S t (constant-velocity target, straight shot at ground speed S). */
-	bool SolveIntercept(const FVector& D, const FVector& V, double S, double& OutT)
+	bool TDTargetSolveIntercept(const FVector& D, const FVector& V, double S, double& OutT)
 	{
 		const double A = FVector::DotProduct(V, V) - S * S;
 		const double B = 2.0 * FVector::DotProduct(D, V);
@@ -168,7 +168,7 @@ FVector UTDTargetingComponent::ComputeInterceptPoint(const FVector& ShooterLocat
 	{
 		const double GroundSpeed = ProjectileSpeed + FMath::Max(0.0, FVector::DotProduct(ShooterVelocity, Dir));
 		double T;
-		if (!SolveIntercept(D, TargetVelocity, GroundSpeed, T))
+		if (!TDTargetSolveIntercept(D, TargetVelocity, GroundSpeed, T))
 		{
 			return TargetLocation;
 		}

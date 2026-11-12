@@ -23,7 +23,8 @@
 #include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 #include "TriadDrift/Powers/Tests/TDPowerTestHelpers.h"
 
-using namespace TDPowerTest;
+namespace TDPowerTest
+{
 
 // ================================================================================== ENG-10 ram
 
@@ -380,5 +381,7 @@ bool FTDInstallPowers::RunTest(const FString& Parameters)
 	}
 	return true;
 }
+
+} // namespace TDPowerTest
 
 #endif // WITH_DEV_AUTOMATION_TESTS

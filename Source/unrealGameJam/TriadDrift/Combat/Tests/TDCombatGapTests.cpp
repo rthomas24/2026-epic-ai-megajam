@@ -19,81 +19,11 @@
 #include "TriadDrift/Powers/TDPortalTransit.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
-namespace TDGap
+#include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
+
+namespace TDCombatTest
 {
-	AActor* Body(FTDTestWorld& W, ETDTeam Team, const FVector& Loc, const FVector& Extent = FVector(100.f), float Hull = 100.f, float Shield = 0.f)
-	{
-		AActor* A = W.Spawn<AActor>(Loc);
-		UBoxComponent* Box = NewObject<UBoxComponent>(A, TEXT("Body"));
-		Box->SetBoxExtent(Extent);
-		Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		Box->SetCollisionResponseToAllChannels(ECR_Ignore);
-		Box->SetCollisionResponseToChannel(TDCollision::Projectile, ECR_Block);
-		A->SetRootComponent(Box);
-		Box->RegisterComponent();
-		A->SetActorLocation(Loc);
-		UTDHealthComponent* H = NewObject<UTDHealthComponent>(A, TEXT("Health"));
-		H->DefaultTeam = Team;
-		H->RegisterComponent();
-		H->InitMaxValues(Hull, Shield, true);
-		return A;
-	}
 
-	UTDWeaponComponent* Guns(AActor* A, FName Primary, FName Secondary = NAME_None)
-	{
-		UTDWeaponComponent* W = NewObject<UTDWeaponComponent>(A, TEXT("Weapons"));
-		W->RegisterComponent();
-		W->SetRandomSeed(77);
-		W->EquipWeapon(ETDWeaponSlot::Primary, Primary);
-		if (!Secondary.IsNone())
-		{
-			W->EquipWeapon(ETDWeaponSlot::Secondary, Secondary);
-		}
-		return W;
-	}
-
-	float Hull(const AActor* A) { const UTDHealthComponent* H = UTDStatics::GetHealth(A); return H ? H->GetHull() : -1.f; }
-	float Total(const AActor* A) { const UTDHealthComponent* H = UTDStatics::GetHealth(A); return H ? H->GetHull() + H->GetShield() : -1.f; }
-
-	ATDProjectile* Shoot(FTDTestWorld& W, FName Weapon, const FVector& From, const FVector& Dir, AActor* Shooter, ETDTeam Team, AActor* Target = nullptr)
-	{
-		return ATDProjectile::Spawn(W.GetWorld(), UTDWeaponLibrary::Get(Weapon).Projectile, FTransform(Dir.Rotation(), From), Shooter, Team, Target);
-	}
-
-	int32 CountLive(UWorld* World, TFunctionRef<bool(const ATDProjectile&)> Pred)
-	{
-		int32 N = 0;
-		for (const ATDProjectile* P : UTDProjectileSubsystem::Get(World)->GetLiveProjectiles())
-		{
-			N += (P && P->IsActive() && Pred(*P)) ? 1 : 0;
-		}
-		return N;
-	}
-
-	float AdvanceUntil(FTDTestWorld& W, TFunctionRef<bool()> Pred, float MaxSeconds, float Step = 1.f / 60.f)
-	{
-		float T = 0.f;
-		while (T < MaxSeconds)
-		{
-			W.Tick(Step);
-			T += Step;
-			if (Pred())
-			{
-				return T;
-			}
-		}
-		return -1.f;
-	}
-
-	FVector AtAngle(float YawDeg, float Dist)
-	{
-		return FVector(FMath::Cos(FMath::DegreesToRadians(YawDeg)), FMath::Sin(FMath::DegreesToRadians(YawDeg)), 0.f) * Dist;
-	}
-
-	const float Steps[] = { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f };
-}
-
-using namespace TDGap;
 
 // ------------------------------------------------------------------------------------------ aiming
 
@@ -186,7 +116,7 @@ bool FTDGapDriftLead::RunTest(const FString& Parameters)
 		TestEqual(TEXT("drift shot hits"), Hull(Target), 92.f, 0.01f);
 	}
 	// 2) Drifting 60 deg off the nose, target crossing at 3000 cm/s: aim at the lead point = hit.
-	for (const float Step : Steps)
+	for (const float Step : kCombatFrameSteps)
 	{
 		FTDTestWorld W;
 		AActor* Rift = Body(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
@@ -391,7 +321,7 @@ bool FTDGapHitStop::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGapMultiFps, "TriadDrift.Combat.Weapon.OverheatChargeLocksHomingAt30_60_120", TD_TEST_FLAGS)
 bool FTDGapMultiFps::RunTest(const FString& Parameters)
 {
-	for (const float Step : Steps)
+	for (const float Step : kCombatFrameSteps)
 	{
 		const FString Fps = FString::Printf(TEXT("%.0f fps"), 1.f / Step);
 		// Overheat at 4 s, strict lockout (no shot while overheated), 1.5 s.
@@ -571,5 +501,7 @@ bool FTDGapKnockbackReal::RunTest(const FString& Parameters)
 	TestTrue(TEXT("fighter pushed along the shot by the real flight model"), PushX > 600.f);
 	return true;
 }
+
+} // namespace TDCombatTest
 
 #endif // WITH_DEV_AUTOMATION_TESTS

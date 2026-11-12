@@ -21,19 +21,19 @@
 namespace
 {
 	// Scratch arrays reused across projectiles (game thread only) so hot paths never allocate.
-	TArray<AActor*>& HostileScratch()
+	TArray<AActor*>& TDProjHostileScratch()
 	{
 		static TArray<AActor*> Scratch;
 		return Scratch;
 	}
-	TArray<ATDProjectile*>& MissileScratch()
+	TArray<ATDProjectile*>& TDProjMissileScratch()
 	{
 		static TArray<ATDProjectile*> Scratch;
 		return Scratch;
 	}
 
 	/** Conservative radius of an actor's bounds (largest half-extent). */
-	float BoundsRadius(const AActor* Actor, FVector& OutCenter)
+	float TDProjBoundsRadius(const AActor* Actor, FVector& OutCenter)
 	{
 		FVector Extent;
 		Actor->GetActorBounds(true, OutCenter, Extent);
@@ -45,7 +45,7 @@ namespace
 		return Extent.GetMax();
 	}
 
-	float DistanceToBounds(const AActor* Actor, const FVector& Point)
+	float TDProjDistanceToBounds(const AActor* Actor, const FVector& Point)
 	{
 		FVector Origin, Extent;
 		Actor->GetActorBounds(true, Origin, Extent);
@@ -56,7 +56,7 @@ namespace
 		return FMath::Sqrt(FBox(Origin - Extent, Origin + Extent).ComputeSquaredDistanceToPoint(Point));
 	}
 
-	bool IsLiveTarget(const AActor* Actor)
+	bool TDProjIsLiveTarget(const AActor* Actor)
 	{
 		if (!IsValid(Actor))
 		{
@@ -289,7 +289,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 
 	// Re-home on whoever fired it: a returned shot should come back to bite them.
 	AActor* Original = OriginalShooter.Get();
-	if (IsLiveTarget(Original) && UTDStatics::AreTeamsHostile(NewTeam, UTDStatics::GetTeam(Original)))
+	if (TDProjIsLiveTarget(Original) && UTDStatics::AreTeamsHostile(NewTeam, UTDStatics::GetTeam(Original)))
 	{
 		HomingTarget = Original;
 		Spec.bHoming = true;
@@ -416,7 +416,7 @@ void ATDProjectile::Step(float DeltaSeconds)
 		UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this);
 		if (Subsystem)
 		{
-			TArray<ATDProjectile*>& Missiles = MissileScratch();
+			TArray<ATDProjectile*>& Missiles = TDProjMissileScratch();
 			Missiles.Reset();
 			const float SegLen = FVector::Dist(Start, End);
 			Subsystem->FindHostileMissiles(Team, (Start + End) * 0.5f, SegLen * 0.5f + Spec.CollisionRadius + 150.f, Missiles);
@@ -452,7 +452,7 @@ void ATDProjectile::Step(float DeltaSeconds)
 
 		if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 		{
-			TArray<AActor*>& Hostiles = HostileScratch();
+			TArray<AActor*>& Hostiles = TDProjHostileScratch();
 			Hostiles.Reset();
 			Registry->GetHostilesOf(Team, Hostiles, true);
 			for (AActor* Hostile : Hostiles)
@@ -482,7 +482,7 @@ void ATDProjectile::Step(float DeltaSeconds)
 		{
 			if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 			{
-				TArray<ATDProjectile*>& Missiles = MissileScratch();
+				TArray<ATDProjectile*>& Missiles = TDProjMissileScratch();
 				Missiles.Reset();
 				Subsystem->FindHostileMissiles(Team, (Start + End) * 0.5f, FVector::Dist(Start, End) * 0.5f + Spec.ProximityFuseRadius + 200.f, Missiles);
 				for (ATDProjectile* M : Missiles)
@@ -542,7 +542,7 @@ void ATDProjectile::UpdateHoming(float DeltaSeconds)
 	}
 
 	AActor* Target = HomingTarget.Get();
-	if (!IsLiveTarget(Target))
+	if (!TDProjIsLiveTarget(Target))
 	{
 		HomingTarget = nullptr;
 		if (!bTrackingAbandoned && (DeflectCount == 0 || bReacquireAfterBlock))
@@ -602,7 +602,7 @@ void ATDProjectile::AcquireHomingTarget()
 	{
 		return;
 	}
-	TArray<AActor*>& Hostiles = HostileScratch();
+	TArray<AActor*>& Hostiles = TDProjHostileScratch();
 	Hostiles.Reset();
 	Registry->GetHostilesOf(Team, Hostiles, false);
 
@@ -662,7 +662,7 @@ bool ATDProjectile::SweepPath(const FVector& Start, const FVector& End, FHitResu
 		}
 		const bool bFriendly = Team != ETDTeam::Neutral && UTDStatics::GetTeam(HitActor) == Team;
 		const bool bOtherProjectile = HitActor->IsA<ATDProjectile>();
-		const bool bDeadShip = !IsLiveTarget(HitActor);
+		const bool bDeadShip = !TDProjIsLiveTarget(HitActor);
 		if (!bFriendly && !bOtherProjectile && !bDeadShip)
 		{
 			return true;
@@ -745,12 +745,12 @@ void ATDProjectile::ApplySplash(const FVector& Center, AActor* Exclude)
 			// Copy: damage can kill and unregister actors while we iterate.
 			TArray<AActor*, TInlineAllocator<32>> Victims;
 			{
-				TArray<AActor*>& Hostiles = HostileScratch();
+				TArray<AActor*>& Hostiles = TDProjHostileScratch();
 				Hostiles.Reset();
 				Registry->GetHostilesOf(Team, Hostiles, true);
 				for (AActor* Hostile : Hostiles)
 				{
-					if (Hostile && Hostile != Exclude && DistanceToBounds(Hostile, Center) <= Spec.SplashRadius)
+					if (Hostile && Hostile != Exclude && TDProjDistanceToBounds(Hostile, Center) <= Spec.SplashRadius)
 					{
 						Victims.Add(Hostile);
 					}
@@ -781,7 +781,7 @@ bool ATDProjectile::ShootDownNearbyMissiles(float Radius)
 	{
 		return false;
 	}
-	TArray<ATDProjectile*>& Missiles = MissileScratch();
+	TArray<ATDProjectile*>& Missiles = TDProjMissileScratch();
 	Missiles.Reset();
 	Subsystem->FindHostileMissiles(Team, GetActorLocation(), Radius, Missiles);
 	// Kill() releases into the pool and edits the live list, so work from a copy.
@@ -842,7 +842,7 @@ void ATDProjectile::ApplyKnockback(AActor* Victim) const
 		return;
 	}
 	FVector Center;
-	if (BoundsRadius(Victim, Center) > Spec.KnockbackMaxTargetRadius)
+	if (TDProjBoundsRadius(Victim, Center) > Spec.KnockbackMaxTargetRadius)
 	{
 		return;
 	}

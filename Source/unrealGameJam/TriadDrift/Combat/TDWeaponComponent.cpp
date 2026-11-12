@@ -14,13 +14,13 @@
 
 namespace
 {
-	const FTDWeaponSpec& InvalidSpec()
+	const FTDWeaponSpec& TDWeapInvalidSpec()
 	{
 		static const FTDWeaponSpec Invalid;
 		return Invalid;
 	}
 
-	const FName& MuzzleSocketName(int32 Index)
+	const FName& TDWeapMuzzleSocketName(int32 Index)
 	{
 		static const FName Names[] = {
 			FName(TEXT("Muzzle_0")), FName(TEXT("Muzzle_1")), FName(TEXT("Muzzle_2")), FName(TEXT("Muzzle_3")),
@@ -28,9 +28,9 @@ namespace
 		return Names[FMath::Clamp(Index, 0, 7)];
 	}
 
-	constexpr int32 MaxMuzzleSockets = 8;
+	constexpr int32 TDWeapMaxMuzzleSockets = 8;
 	/** Safety cap on shots per slot per frame (a 20/s gun at a 0.25 s hitch fires 5). */
-	constexpr int32 MaxShotsPerFrame = 12;
+	constexpr int32 TDWeapMaxShotsPerFrame = 12;
 }
 
 UTDWeaponComponent::UTDWeaponComponent()
@@ -87,7 +87,7 @@ void UTDWeaponComponent::EquipWeapon(ETDWeaponSlot Slot, FName WeaponId)
 const FTDWeaponSpec& UTDWeaponComponent::GetSpec(ETDWeaponSlot Slot) const
 {
 	const FTDWeaponSpec* Spec = SpecPtr(Slot);
-	return Spec ? *Spec : InvalidSpec();
+	return Spec ? *Spec : TDWeapInvalidSpec();
 }
 
 const FTDWeaponSlotState& UTDWeaponComponent::GetSlotState(ETDWeaponSlot Slot) const
@@ -382,7 +382,7 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 	{
 		S.SalvoTimer -= DeltaTime;
 		int32 Guard = 0;
-		while (S.SalvoRemaining > 0 && S.SalvoTimer <= 0.f && Guard++ < MaxShotsPerFrame)
+		while (S.SalvoRemaining > 0 && S.SalvoTimer <= 0.f && Guard++ < TDWeapMaxShotsPerFrame)
 		{
 			SpawnProjectile(Slot, -S.SalvoTimer);
 			--S.SalvoRemaining;
@@ -396,7 +396,7 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 	if (Spec->FireMode == ETDFireMode::Automatic)
 	{
 		int32 Guard = 0;
-		while (S.bTriggerHeld && bCanShoot && !S.bOverheated && S.RefireTimer <= 0.f && HasResourceToFire(*Spec, S) && Guard++ < MaxShotsPerFrame)
+		while (S.bTriggerHeld && bCanShoot && !S.bOverheated && S.RefireTimer <= 0.f && HasResourceToFire(*Spec, S) && Guard++ < TDWeapMaxShotsPerFrame)
 		{
 			// -RefireTimer = how late this shot is inside the frame; the projectile is advanced by that much.
 			BeginShot(Slot, FMath::Min(-S.RefireTimer, DeltaTime));
@@ -638,11 +638,11 @@ void UTDWeaponComponent::GetMuzzleTransforms(TArray<FTransform>& Out) const
 	TInlineComponentArray<UStaticMeshComponent*> Meshes(Owner);
 	for (const UStaticMeshComponent* Mesh : Meshes)
 	{
-		if (Mesh && Mesh->DoesSocketExist(MuzzleSocketName(0)))
+		if (Mesh && Mesh->DoesSocketExist(TDWeapMuzzleSocketName(0)))
 		{
-			for (int32 i = 0; i < MaxMuzzleSockets && Mesh->DoesSocketExist(MuzzleSocketName(i)); ++i)
+			for (int32 i = 0; i < TDWeapMaxMuzzleSockets && Mesh->DoesSocketExist(TDWeapMuzzleSocketName(i)); ++i)
 			{
-				Out.Add(Mesh->GetSocketTransform(MuzzleSocketName(i)));
+				Out.Add(Mesh->GetSocketTransform(TDWeapMuzzleSocketName(i)));
 			}
 			return;
 		}
