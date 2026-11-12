@@ -41,13 +41,11 @@ void ATDWingmanAIController::BeginPlay()
 {
 	Super::BeginPlay();
 	TDSquad::BindTeleported(this);
-	TDSquad::BindHyperdriveState(this);
 }
 
 void ATDWingmanAIController::EndPlay(const EEndPlayReason::Type Reason)
 {
 	TDSquad::UnbindTeleported(this);
-	TDSquad::UnbindHyperdriveState(this);
 	Super::EndPlay(Reason);
 }
 
@@ -66,9 +64,12 @@ void ATDWingmanAIController::OnPossess(APawn* InPawn)
 
 void ATDWingmanAIController::OnUnPossess()
 {
-	// Hand the ship over with its triggers released and its own speeds; the player flies it now.
+	// Hand the ship over with its triggers released, its own speeds and no AI aim target (M1): the
+	// player's aim assist must snap to what THEY aim at, not what the wingman was shooting.
 	SetTriggers(false, false);
 	TDSquad::SetCatchUpTopSpeed(GetShip(), 0.f);
+	TDSquad::ClearAim(GetShip());
+	bHyperdriveFormUp = false;
 	CurrentTarget.Reset();
 	Super::OnUnPossess();
 }
@@ -85,6 +86,7 @@ void ATDWingmanAIController::SetState(ETDWingmanState NewState)
 	if (NewState != ETDWingmanState::Engage)
 	{
 		SetTriggers(false, false);
+		TDSquad::ClearAim(GetShip());
 	}
 	if (NewState != ETDWingmanState::Formation && NewState != ETDWingmanState::Regroup)
 	{
@@ -114,6 +116,8 @@ void ATDWingmanAIController::SetPassive(bool bInPassive)
 		SetTriggers(false, false);
 		CurrentTarget.Reset();
 		TDSquad::SetCatchUpTopSpeed(GetShip(), 0.f);
+		TDSquad::ClearAim(GetShip());
+		TDSquad::SendNeutralInput(GetShip()); // don't leave the last stick latched
 	}
 	else if (State != ETDWingmanState::Downed)
 	{
@@ -123,41 +127,17 @@ void ATDWingmanAIController::SetPassive(bool bInPassive)
 	}
 }
 
-void ATDWingmanAIController::HandleHyperdriveState(ETDHyperdriveState NewState)
-{
-	switch (NewState)
-	{
-	case ETDHyperdriveState::Spooling:
-		// Break off and form up during the 1.2 s spool so we're in the slot when the jump starts.
-		bHyperdriveFormUp = true;
-		CurrentTarget.Reset();
-		if (State != ETDWingmanState::Downed)
-		{
-			SetState(ETDWingmanState::Regroup);
-		}
-		break;
-	case ETDHyperdriveState::Jumping:
-	case ETDHyperdriveState::DropOut:
-		bHyperdriveFormUp = true;
-		break;
-	case ETDHyperdriveState::Idle:
-	default:
-		// Arrived, or the spool was cancelled (hit / H released): back to normal, fights allowed.
-		bHyperdriveFormUp = false;
-		NextTargetEvalTime = Now();
-		break;
-	}
-}
-
 void ATDWingmanAIController::NotifyShipDowned()
 {
 	SetTriggers(false, false);
+	TDSquad::ClearAim(GetShip());
 	CurrentTarget.Reset();
 	SetState(ETDWingmanState::Downed);
 }
 
 void ATDWingmanAIController::NotifyShipRespawned()
 {
+	bHyperdriveFormUp = false;
 	State = ETDWingmanState::Formation; // force the transition below even from Formation
 	SetState(ETDWingmanState::Regroup);
 	PrevShield01 = 1.f;
@@ -213,6 +193,20 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 	}
 	const bool bHaveLeader = Leader && S->IsShipAlive(S->GetActiveShipId());
 	const double T = Now();
+
+	// B2: form up for the CURRENT leader's jump, read fresh every tick (never latched), so a switch,
+	// a death or a retake can never leave wingmen stuck in formation.
+	const bool bWasFormingUp = bHyperdriveFormUp;
+	bHyperdriveFormUp = bHaveLeader && TDSquad::GetHyperdriveState(Leader) != ETDHyperdriveState::Idle;
+	if (bHyperdriveFormUp && !bWasFormingUp)
+	{
+		CurrentTarget.Reset();
+		SetState(ETDWingmanState::Regroup);
+	}
+	else if (!bHyperdriveFormUp && bWasFormingUp)
+	{
+		NextTargetEvalTime = T; // jump over or cancelled: pick a fight right away
+	}
 
 	// Aim error: a fresh 2-4 degree offset a few times a second, like a real hand on the stick.
 	if (T >= NextAimErrorTime)

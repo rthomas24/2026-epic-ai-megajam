@@ -181,13 +181,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
 	bool IsPassive() const { return bPassive; }
 
-	/** True while forming up for the player's hyperdrive jump (Spooling .. DropOut). */
+	/** True while forming up for the leader's hyperdrive jump (its hyperdrive is not Idle). Re-read every tick. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
 	bool IsFormingUpForJump() const { return bHyperdriveFormUp; }
-
-	/** Bus handler: the player's hyperdrive state (T1 fires it only for the player's ship). */
-	UFUNCTION()
-	void HandleHyperdriveState(ETDHyperdriveState NewState);
 
 	/** Bus handler: a spacecraft was moved discontinuously (portal, gate, hyperdrive drop-out). */
 	UFUNCTION()

@@ -19,6 +19,19 @@ class UTDShipVisuals;
 /** C-03 #1: a switch, as a director's cut. Same frame as the switch; presentation only. */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnSwitchCut, const FTDSwitchCut&, Cut);
 
+/** Why a switch request was refused (HUD feedback, M6). */
+UENUM(BlueprintType)
+enum class ETDSwitchRefusal : uint8
+{
+	Cooldown,
+	AlreadyActive,
+	TargetDown,
+	HyperdriveActive,
+	Landing
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnSwitchRefused, ETDSwitchRefusal, Reason, ETDShipId, RequestedShip);
+
 /** Life state of one squad slot. */
 UENUM(BlueprintType)
 enum class ETDSquadSlotState : uint8
@@ -55,6 +68,9 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 
 	/** World time at which this ship was downed (Dying started). */
 	double DownedAtTime = 0.0;
+
+	/** Death tumble motion (Squad drives it while the flight model is parked). */
+	FVector TumbleVelocity = FVector::ZeroVector;
 };
 
 /**
@@ -156,6 +172,10 @@ public:
 	UFUNCTION()
 	void HandlePowerUsed(ETDShipId Ship, FName PowerName);
 
+	/** A manual switch was refused (cooldown, downed target, mid-hyperdrive, landing). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Squad")
+	FTDOnSwitchRefused OnSwitchRefused;
+
 	/** C-03 #1: fired in the same frame as every successful switch, after OnShipSwitched. */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Squad")
 	FTDOnSwitchCut OnSwitchCut;
@@ -232,6 +252,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float DeathTumbleSeconds = 0.6f;
 
+	/** Death tumble spin (deg/s, pitch / yaw / roll) and how fast its drift bleeds off (1/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning")
+	FRotator DeathTumbleSpin = FRotator(260.f, 40.f, 620.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
+	float DeathTumbleDrag = 1.5f;
+
 	/** Measured from the moment the ship is downed. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float RespawnDelay = 12.f;
@@ -286,6 +313,9 @@ public:
 	/** Weapon-component multiplier key for Switch Strike (agreed with T2). */
 	static const FName SwitchStrikeKey;
 
+	/** Weapon-block key while a squad ship is down. */
+	static const FName DownedWeaponsKey;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
@@ -310,6 +340,11 @@ protected:
 	void EndSwitchStrike();
 	ATDWingmanAIController* SpawnWingmanFor(FTDSquadSlot& Slot);
 	double Now() const;
+	/** Real (undilated) time: switch input must never be slowed by a money shot (M5). */
+	double RealNow() const;
+	void Refuse(ETDSwitchRefusal Reason, ETDShipId Ship);
+	/** Everything a ship needs to fly again (respawn, retake): unpark, reset flight, weapons, powers, travel. */
+	void RestoreShipForFlight(ATDShip* Ship, const FVector& Location, const FRotator& Facing, const FVector& Velocity);
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad|State")
 	TArray<FTDSquadSlot> Slots;
