@@ -371,8 +371,9 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   swarm's range, or stays outside the cone for more than 1.5 s; when all six are used, a new
   candidate replaces the stalest lock.
 - Off-screen arrows, incoming-missile and objective direction data → `ITDHUDData`. Objective
-  markers are the live actors carrying the actor tag `TD.Objective.Marker` (world and flow actors add
-  and remove it as the scene changes).
+  markers are the live actors carrying the actor tag `TD.Objective.Marker`. The game flow owns the tag:
+  the destination planet's atmosphere, live shield generators, the reactor, on-foot waypoints and the
+  board-ship point; the landing pad while in atmosphere (flight). Nothing is tagged during a wave.
 - Incoming-missile warning state (Nick supplies the sound and UI).
 
 #### ENG-07 · Squad manager & instant switching (PROTECT) · `⬜`
@@ -521,10 +522,16 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
 See §7.
 - **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
   altitude data.
-- **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land"
-  within 120 m of the pad at or below 60% of the atmosphere speed cap; between 120 m and 400 m
-  while too fast the prompt reads "SLOW DOWN TO LAND"). Near the ground the ship levels out by
-  itself, so a hands-off arrival never crashes.
+- **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land").
+  - Within 120 m of the pad at or below 60% of the atmosphere speed cap, F lands directly
+    (aligning takes 1.5 to 4 s by distance).
+  - Within 400 m, holding F is an approach assist: it turns the nose onto the pad (150°/s), flies in
+    at up to 60 m/s, brakes at 30 m/s² but never below 15 m/s, and hands over to the landing 25 m
+    from the hover point. Releasing F, boost, hyperdrive, a switch, death or a retake ends it.
+    From 400 m the landing starts about 7 s after F and touchdown is at about 12 s.
+  - A ship that cannot assist and is too fast within 400 m gets "SLOW DOWN TO LAND".
+  - Near the ground the ship levels out by itself, so a hands-off arrival never crashes.
+  - The player pad carries the objective marker while in atmosphere and not yet landed.
 - **Landing and take-off:** auto-land (gear and canopy state exposed), wingmen land beside you, the
   exit hands off to first person, and boarding reverses it.
 
@@ -808,7 +815,7 @@ VFX, and the squad's launch from the hangar.
 | 6 | Land | Pad prompt → auto-land (gear and canopy state) | Gear and canopy animations, landing dust, thrusters |
 | 7 | Exit ship | Hand-off to first person | Exit sequence, arms montage |
 | 8 | Objectives | ENG-24–26 | ART-06/08/09, reward screen |
-| 9 | Board ship | Allowed once the planet's objectives are done | Enter sequence |
+| 9 | Board ship | Allowed at any time (the player may fly around the planet); the board point is marked as the objective, and the way back to space opens, only once the planet's objectives are done | Enter sequence |
 | 10 | Take-off and exit | Lift-off, ceiling → `TravelTo(Galaxy, "<Planet>_Orbit")` | Take-off shot, plasma burst |
 
 ## 8. Boarding: full sequence (STRETCH)

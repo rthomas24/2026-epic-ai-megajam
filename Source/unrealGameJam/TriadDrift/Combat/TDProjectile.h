@@ -173,6 +173,8 @@ private:
 
 	/** The streak in use (bStreak false when art replaces it). */
 	FTDStreakLook StreakLook;
+	/** Distance growth last applied (re-scaling is skipped while it changes by under 3%). */
+	float AppliedGrowth = 1.f;
 
 	/** Engine glow material, hard-referenced so it cooks. Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)
@@ -199,6 +201,9 @@ private:
 	uint32 LaunchSerial = 0;
 	FVector PreviousLocation = FVector::ZeroVector;
 	double LastTransitTime = -1.0;
+
+	/** World time of the launch: the projectile's own Tick skips that frame (the weapon already stepped it). */
+	double LaunchWorldTime = -1.0;
 	FVector Velocity = FVector::ZeroVector;
 	float Age = 0.f;
 	float Lifetime = 1.f;

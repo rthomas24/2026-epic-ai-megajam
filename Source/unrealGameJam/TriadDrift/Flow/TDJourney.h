@@ -49,9 +49,11 @@ struct UNREALGAMEJAM_API FTDJourney
 	static bool FindStageStart(UWorld* World, FName ReturnPoint, FTransform& Out);
 
 	/** False if there is no TD game instance, or the travel could not start (missing map). */
-	static bool Go(UWorld* World, ETDJourneyStage Stage);
+	/** Wave > 0 starts that wave instead of the stage's first (Wave4 = Waves3to4 at wave 4). */
+	static bool Go(UWorld* World, ETDJourneyStage Stage, int32 Wave = 0);
 
-	static bool Parse(const FString& Name, ETDJourneyStage& Out);
+	/** Stage names (any case), plus the aliases Wave1..Wave5 (OutWave = that wave). */
+	static bool Parse(const FString& Name, ETDJourneyStage& Out, int32* OutWave = nullptr);
 	static FString ListStages();
 
 private:

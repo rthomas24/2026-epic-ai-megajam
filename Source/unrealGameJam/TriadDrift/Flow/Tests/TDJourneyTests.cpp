@@ -20,6 +20,8 @@
 #include "Misc/ScopeExit.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "EngineUtils.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -218,6 +220,21 @@ bool FTDJourneyCheats::RunTest(const FString& Parameters)
 	TestTrue(TEXT("TD.Stage DominionAssault"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("DominionAssault")));
 	TestEqual(TEXT("phase set"), G.GI->GetProgressRef().Phase, ETDGamePhase::DominionAssault);
 	TestFalse(TEXT("bogus stage refused"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Narnia")));
+	TestFalse(TEXT("Wave6 refused"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Wave6")));
+	// Aliases: Wave4 = the Waves3to4 stage, running wave 4.
+	TestTrue(TEXT("TD.Stage Wave4"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("wave4")));
+	G.W.Advance(6.f, 1.f / 30.f);
+	TestEqual(TEXT("Wave4 alias: phase"), G.GI->GetProgressRef().Phase, ETDGamePhase::Waves3to4);
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld()))
+	{
+		TestEqual(TEXT("Wave4 alias: wave 4 running"), Director->GetWaveInfo().WaveNumber, 4);
+	}
+	TestTrue(TEXT("TD.Stage Wave2"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Wave2")));
+	G.W.Advance(6.f, 1.f / 30.f);
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld()))
+	{
+		TestEqual(TEXT("Wave2 alias: wave 2 running"), Director->GetWaveInfo().WaveNumber, 2);
+	}
 	return true;
 }
 
@@ -258,6 +275,13 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Waves1to2"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Waves1to2));
 	TDJourneyTest::Run(G, 2.f);
 	Expect(TEXT("wave 1"), TEXT("WAVE 1"));
+	auto Tagged = [&]()
+	{
+		int32 N = 0;
+		for (TActorIterator<AActor> It(G.W.GetWorld()); It; ++It) { if (It->ActorHasTag(TDTags::ObjectiveMarker)) { ++N; } }
+		return N;
+	};
+	TestEqual(TEXT("markers: nothing tagged during a wave"), Tagged(), 0);
 	TestTrue(TEXT("wave line names the enemy"), LastText().Contains(TEXT("NULL ARMADA")));
 
 	// The line is broadcast on change, not every tick.
@@ -287,32 +311,46 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 	G.GI->GetMutableProgress().Phase = ETDGamePhase::Verdance;
 	TDJourneyTest::Run(G, 0.5f);
 	Expect(TEXT("travel"), TEXT("JUMP TO VERDANCE"));
+	{
+		const TArray<AActor*> M = G.GI->GetFlowMarkers();
+		const ATDPlanetAtmosphere* Atmo = M.Num() == 1 ? Cast<ATDPlanetAtmosphere>(M[0]) : nullptr;
+		TestTrue(TEXT("markers: the Verdance atmosphere is the objective"), Atmo && Atmo->GetDestination() == ETDDestination::Verdance && Atmo->ActorHasTag(TDTags::ObjectiveMarker));
+		TestEqual(TEXT("markers: only it"), Tagged(), 1);
+	}
 
 	TestTrue(TEXT("Waves3to4"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Waves3to4));
 	TDJourneyTest::Run(G, 2.f);
 	Expect(TEXT("wave 3"), TEXT("WAVE 3"));
+	TestEqual(TEXT("markers: the planet loses its tag when the wave starts"), Tagged(), 0);
 
 	TestTrue(TEXT("DominionAssault"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::DominionAssault));
 	TDJourneyTest::Run(G, 9.f); // past the warp-in
 	Expect(TEXT("assault"), TEXT("SHIELD GENERATORS  0 / 4"));
 	ATDDominion* Dominion = ATDDominion::Get(G.W.GetWorld());
 	if (!TestNotNull(TEXT("Dominion"), Dominion) || !TestTrue(TEXT("generators"), Dominion->GetGenerators().Num() > 0)) { return false; }
+	TestEqual(TEXT("markers: every generator"), Tagged(), Dominion->GetGenerators().Num());
+	TestTrue(TEXT("markers: a generator carries the tag"), Dominion->GetGenerators()[0]->ActorHasTag(TDTags::ObjectiveMarker));
 	UTDHealthComponent* GenHealth = Dominion->GetGenerators()[0]->FindComponentByClass<UTDHealthComponent>();
 	if (TestNotNull(TEXT("generator health"), GenHealth))
 	{
 		GenHealth->Kill(G.PC->GetPawn(), ETDDamageKind::Explosive);
 		TDJourneyTest::Run(G, 1.f);
 		Expect(TEXT("one generator down"), TEXT("1 / 4"));
+		TestFalse(TEXT("markers: the dead generator loses its tag"), Dominion->GetGenerators()[0]->ActorHasTag(TDTags::ObjectiveMarker));
+		TestEqual(TEXT("markers: the live ones keep it"), Tagged(), Dominion->GetGenerators().Num() - 1);
 		TestEqual(TEXT("step = generators down"), Log->ObjectiveSteps.Last().Value, 1);
 	}
 
 	TestTrue(TEXT("ReactorExposed"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::ReactorExposed));
 	TDJourneyTest::Run(G, 2.f);
 	Expect(TEXT("reactor"), TEXT("DESTROY THE REACTOR"));
+	TestTrue(TEXT("markers: the reactor"), Dominion->GetReactor() && ((AActor*)Dominion->GetReactor())->ActorHasTag(TDTags::ObjectiveMarker));
+	TestEqual(TEXT("markers: only the reactor"), Tagged(), 1);
 
 	TestTrue(TEXT("Victory"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Victory));
 	TDJourneyTest::Run(G, 0.5f);
 	Expect(TEXT("victory"), TEXT("VICTORY"));
+	TestEqual(TEXT("markers: none at victory"), Tagged(), 0);
 
 	// Planets (computed for the planet destination; on foot the objective actors own the line).
 	FTDObjectiveLine L;
@@ -323,6 +361,42 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 	TestTrue(TEXT("objectives done on the planet"), FTDObjectiveText::Compute(G.W.GetWorld(), P, ETDDestination::Verdance, L));
 	TestTrue(TEXT("take off"), L.Text.ToString().Contains(TEXT("TAKE OFF")));
 	TestFalse(TEXT("main menu stays silent"), FTDObjectiveText::Compute(G.W.GetWorld(), P, ETDDestination::MainMenu, L));
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Enemies review: the last enemy dies inside the 1.75 s CUT delay. The flow voids that clear (the scene is
+// about to restart); the retake must then rebuild the wave, so the run can never be left with no enemies
+// and no phase change. Real GI, real wave director, real kills, in exactly that order.
+// DISABLED until T4's director rebuilds the wave on the retake (fails today: wave 2 is left empty, no phase change).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyClearDuringCut, "TriadDrift.Flow.Journey.LastKillDuringCutNeverSoftLocks", TD_TEST_FLAGS | EAutomationTestFlags::Disabled)
+bool FTDJourneyClearDuringCut::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), G.GI) || !TestNotNull(TEXT("director"), Director)) { return false; }
+	for (const int32 Wave : { 2, 4, 5 })
+	{
+		const FString W = FString::Printf(TEXT("Wave%d"), Wave);
+		TestTrue(*(TEXT("stage ") + W), UTDCheatManager::DoStage(G.W.GetWorld(), W));
+		TDJourneyTest::Run(G, 6.f);
+		const ETDGamePhase PhaseBefore = G.GI->GetProgressRef().Phase;
+		if (!TestTrue(*(W + TEXT(" running with enemies")), Director->GetWaveInfo().bWaveActive && Director->GetWaveInfo().EnemiesAlive > 0)) { continue; }
+
+		G.GI->ReportPlayerDefeated();                 // CUT!
+		TDJourneyTest::Run(G, 0.3f);
+		UTDCheatManager::DoKillAll(G.W.GetWorld());    // the last enemies die inside the delay
+		TDJourneyTest::Run(G, 0.3f);
+		TestTrue(*(W + TEXT(": CUT still pending")), G.GI->IsRetakePending());
+		TDJourneyTest::Run(G, 6.f);                    // retake, rebuild, breather
+
+		const FTDWaveInfo Info = Director->GetWaveInfo();
+		const bool bRebuilt = Info.bWaveActive && Info.WaveNumber == Wave && Info.EnemiesAlive > 0;
+		const bool bAdvanced = G.GI->GetProgressRef().WavesCleared >= Wave && G.GI->GetProgressRef().Phase != PhaseBefore;
+		TestTrue(FString::Printf(TEXT("%s: retake rebuilds the wave or the clear stands (active %d, wave %d, alive %d, cleared %d)"),
+			*W, Info.bWaveActive, Info.WaveNumber, Info.EnemiesAlive, G.GI->GetProgressRef().WavesCleared), bRebuilt || bAdvanced);
+	}
 	return true;
 }
 

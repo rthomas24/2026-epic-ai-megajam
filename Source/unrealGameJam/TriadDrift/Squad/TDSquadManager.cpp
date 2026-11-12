@@ -79,6 +79,8 @@ void ATDSquadManager::BeginPlay()
 	TDSquad::BindPowerUsed(this);
 	TDSquad::BindWaveEvents(this);
 	TDSquad::BindActorKilled(this);
+	// Arriving after the flow's last broadcast (level travel): start from its current line.
+	ObjectiveText = TDSquad::GetCurrentObjectiveText(this);
 }
 
 void ATDSquadManager::EndPlay(const EEndPlayReason::Type Reason)
@@ -245,9 +247,10 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 			{
 				Slot.Wingman->Possess(Slot.Ship);
 			}
-			// Always: a wingman left in Downed by the last take must fly again.
-			Slot.Wingman->NotifyShipRespawned();
 		}
+		// Every slot, the player's too (review BLOCKER): a wipe left all three controllers Downed, and
+		// the player's one takes its ship back on the first switch away.
+		Slot.Wingman->NotifyShipRespawned();
 		TDSquad::SetPlayerControlled(Slot.Ship, Slot.ShipId == ActiveShipId);
 	}
 
@@ -317,7 +320,8 @@ ETDSquadSlotState ATDSquadManager::GetShipState(ETDShipId Ship) const
 float ATDSquadManager::GetRespawnSeconds(ETDShipId Ship) const
 {
 	const FTDSquadSlot* Slot = FindSlot(Ship);
-	if (!Slot || Slot->State == ETDSquadSlotState::Alive || Slot->State == ETDSquadSlotState::NotSpawned)
+	// Review minor 8: a wipe the flow took restarts the scene; nothing respawns on this take's timers.
+	if (!Slot || Slot->State == ETDSquadSlotState::Alive || Slot->State == ETDSquadSlotState::NotSpawned || (bSquadWiped && bWipeHandledByFlow))
 	{
 		return 0.f;
 	}
@@ -517,6 +521,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 		if (Current && IsShipAlive(ActiveShipId) && TDSquad::IsSwitchLocked(Current, LockReason))
 		{
 			LastRefusalText = LockReason;
+			LastLockRefusalRealTime = RealNow();
 			const ETDSwitchRefusal Why = TDSquad::GetHyperdriveState(Current) != ETDHyperdriveState::Idle ? ETDSwitchRefusal::HyperdriveActive
 				: TDSquad::IsLandingBusy(Current) ? ETDSwitchRefusal::Landing : ETDSwitchRefusal::Locked;
 			Refuse(Why, Ship);
@@ -535,6 +540,9 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	// The camera we cut FROM is the old ship's chase camera, before it goes dark.
 	const FTransform FromCamera = OldShip ? TDSquad::GetChaseCameraTransform(OldShip) : NewShip->GetActorTransform();
 	const double PrevSwitchTime = LastSwitchTime;
+	// Review MAJOR (ENG-03): Tab during your own death tumble is a rescue, not a manual switch: it gets
+	// the auto-switch grace (and FinishDying then has nothing left to switch).
+	const bool bLeavingDowned = !IsShipAlive(OldId);
 
 	// Switch Strike ends on the next switch (no chaining); this switch may arm a fresh one.
 	const bool bArmSwitchStrike = (Now() - LastPowerTime) <= SwitchStrikeWindow;
@@ -588,7 +596,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 
 	// 4) Switch-in grace (ENG-03, M4): 2 s on an auto-switch; a manual switch gets a short grace, once
 	// per ship per lockout, so Tab-spamming can't keep the squad invulnerable.
-	if (bForced)
+	if (bForced || bLeavingDowned)
 	{
 		TDSquad::SetInvulnerable(NewShip, AutoSwitchInvulnerability);
 	}
@@ -801,13 +809,14 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 	}
 
 	// ENG-03: the hull doesn't regenerate in combat but slowly repairs between waves.
-	if (bBetweenWaves && BetweenWaveHullRepairPerSecond > 0.f)
+	if (bBetweenWaves && BetweenWaveHullRepairPercentPerSecond > 0.f)
 	{
 		for (FTDSquadSlot& Slot : Slots)
 		{
 			if (Slot.State == ETDSquadSlotState::Alive)
 			{
-				TDSquad::RepairHull(Slot.Ship, BetweenWaveHullRepairPerSecond * DeltaSeconds);
+				// features.md ENG-03: a percentage of the ship's own hull (Bastion and Lancer alike).
+				TDSquad::RepairHull(Slot.Ship, TDSquad::GetMaxHull(Slot.Ship) * BetweenWaveHullRepairPercentPerSecond * 0.01f * DeltaSeconds);
 			}
 		}
 	}
@@ -960,16 +969,15 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	Slot.bLowHullBarkArmed = true;
 	RequestSquadBark(TDBarkIds::Respawn, Slot.ShipId);
 
-	if (Slot.ShipId != ActiveShipId)
+	if (ATDWingmanAIController* Wing = SpawnWingmanFor(Slot))
 	{
-		if (ATDWingmanAIController* Wing = SpawnWingmanFor(Slot))
+		if (Slot.ShipId != ActiveShipId && Wing->GetPawn() != Ship)
 		{
-			if (Wing->GetPawn() != Ship)
-			{
-				Wing->Possess(Ship);
-			}
-			Wing->NotifyShipRespawned();
+			Wing->Possess(Ship);
 		}
+		// Unconditionally (review BLOCKER): an in-place respawn of the player's ship must not leave its
+		// controller Downed for when the player switches away.
+		Wing->NotifyShipRespawned();
 	}
 	bSquadWiped = false;
 	// m4: no game flow took the wipe and the player sits in a downed ship: cut to the one that's back.
@@ -1018,7 +1026,10 @@ void ATDSquadManager::HandleSquadWiped()
 	// Without one (sandbox), downed ships simply keep their respawn timers.
 	// m1: decide before the call (a flow with no retake delay respawns the squad inside it).
 	bWipeHandledByFlow = true;
-	bWipeHandledByFlow = TDSquad::ReportPlayerDefeated(this);
+	const bool bHandled = TDSquad::ReportPlayerDefeated(this);
+	// Review minor 3: with no retake delay the flow's SpawnSquad already ran inside that call and
+	// started a clean take; don't mark the new take's deaths as "the flow handles it".
+	bWipeHandledByFlow = bSquadWiped && bHandled;
 }
 
 bool ATDSquadManager::FindHealthiestLivingShip(ETDShipId Except, ETDShipId& OutShip) const
@@ -1089,7 +1100,7 @@ TArray<AActor*> ATDSquadManager::GetLockedTargets() const
 	return Out;
 }
 
-const FName ATDSquadManager::ObjectiveMarkerTag(TEXT("TD.Objective.Marker"));
+const FName ATDSquadManager::ObjectiveMarkerTag = TDTags::ObjectiveMarker;
 
 TArray<AActor*> ATDSquadManager::GetObjectiveMarkers() const
 {
@@ -1159,9 +1170,25 @@ TArray<AActor*> ATDSquadManager::GetObjectiveMarkers() const
 	return Out;
 }
 
+void ATDSquadManager::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
+{
+	ObjectiveText = Text;
+}
+
 FText ATDSquadManager::GetInteractPrompt() const
 {
-	return TDSquad::GetLandPrompt(GetActiveShip());
+	const FText Land = TDSquad::GetLandPrompt(GetActiveShip());
+	if (!Land.IsEmpty())
+	{
+		return Land;
+	}
+	// A refused switch (mid-jump, landing, atmospheric entry) says why for a moment instead of failing
+	// silently. Cooldown refusals stay silent: that press is buffered and goes through.
+	if (!LastRefusalText.IsEmpty() && RealNow() - LastLockRefusalRealTime < RefusalPromptSeconds)
+	{
+		return LastRefusalText;
+	}
+	return FText::GetEmpty();
 }
 
 FTDWaveInfo ATDSquadManager::GetWaveInfo() const

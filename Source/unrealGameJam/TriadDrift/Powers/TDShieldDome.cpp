@@ -123,7 +123,7 @@ void ATDShieldDome::Tick(float DeltaSeconds)
 		if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
 		{
 			const FLinearColor Color = bProtectSquad ? UTDStatics::ShipColor(ETDShipId::Bastion) : UTDStatics::ShipColor(ETDShipId::Rift);
-			FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 3, 48, 60.f, Color, 4.f);
+			FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 3, 48, 22.f, Color, 3.f); // thin: seen from inside it must not bar the screen (live play)
 		}
 	}
 }

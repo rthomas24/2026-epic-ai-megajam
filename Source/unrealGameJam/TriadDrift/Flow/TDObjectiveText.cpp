@@ -5,6 +5,12 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
+#include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "TriadDrift/World/TDShieldGenerator.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/World/TDDominionReactor.h"
 #include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "TDObjectiveText"
@@ -123,7 +129,15 @@ bool FTDObjectiveText::Compute(UWorld* World, const FTDProgress& Progress, ETDDe
 				Out = Line(Destination == ETDDestination::Verdance ? TEXT("Return_Verdance") : TEXT("Return_Cinder"), 0, LOCTEXT("ReturnToShip", "RETURN TO YOUR SHIP"));
 				return true;
 			}
-			return false; // the planet's objective actors own the line
+			// Between objectives: "HEAD TO A SIGNAL · THE WRECK OR THE RELAY".
+			TArray<AActor*> Unused;
+			if (const ATDPlanetCourse* Course = Planet->GetCourse(); Course && Course->GetIdleLine(Out.Text, Unused))
+			{
+				Out.Id = Destination == ETDDestination::Verdance ? FName(TEXT("Choose_Verdance")) : FName(TEXT("Choose_Cinder"));
+				Out.Step = 0;
+				return true;
+			}
+			return false; // the running objective owns the line
 		}
 		if (bDone)
 		{
@@ -137,6 +151,80 @@ bool FTDObjectiveText::Compute(UWorld* World, const FTDProgress& Progress, ETDDe
 	}
 	default:
 		return false;
+	}
+}
+
+void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress, ETDDestination Destination, TArray<AActor*>& Out)
+{
+	Out.Reset();
+	if (!World)
+	{
+		return;
+	}
+	if (Destination == ETDDestination::Galaxy && (Progress.Phase == ETDGamePhase::Verdance || Progress.Phase == ETDGamePhase::Cinder))
+	{
+		// "JUMP TO VERDANCE": the planet's atmosphere (its centre) is where to go.
+		const ETDDestination Planet = Progress.Phase == ETDGamePhase::Verdance ? ETDDestination::Verdance : ETDDestination::Cinder;
+		if (const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(World))
+		{
+			for (ATDPlanetAtmosphere* A : Layout->GetPlanets())
+			{
+				if (A && A->GetDestination() == Planet)
+				{
+					Out.Add(A);
+				}
+			}
+		}
+		return;
+	}
+	if (Destination == ETDDestination::Galaxy && Progress.Phase == ETDGamePhase::DominionAssault)
+	{
+		if (const ATDDominion* D = ATDDominion::Get(World))
+		{
+			if (D->GetState() == ETDDominionState::ShieldsUp)
+			{
+				for (ATDShieldGenerator* G : D->GetGenerators())
+				{
+					if (G && G->IsAlive())
+					{
+						Out.Add(G);
+					}
+				}
+			}
+			else if (D->GetState() == ETDDominionState::ReactorExposed)
+			{
+				ATDDominionReactor* R = D->GetReactor();
+				if (R && R->IsAlive())
+				{
+					Out.Add(R);
+				}
+			}
+		}
+		return;
+	}
+	if (Destination == ETDDestination::Verdance || Destination == ETDDestination::Cinder)
+	{
+		const ATDPlanetDirector* Planet = ATDPlanetDirector::Get(World);
+		if (!Planet || !Planet->IsOnFoot())
+		{
+			return; // flying: T1 tags the pad
+		}
+		if (TDObjectiveTextImpl::PlanetDone(Progress, Destination))
+		{
+			if (ATDBoardShipInteractable* Board = Planet->GetBoardPoint())
+			{
+				Out.Add(Board);
+			}
+		}
+		else if (const UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(World))
+		{
+			Objectives->GetActiveWaypoints(Out);
+			if (Out.Num() == 0 && Planet->GetCourse())
+			{
+				FText Unused;
+				Planet->GetCourse()->GetIdleLine(Unused, Out); // the trailheads still open
+			}
+		}
 	}
 }
 

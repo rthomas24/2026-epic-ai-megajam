@@ -136,7 +136,7 @@ FName FTDJourney::ReturnPointOf(ETDJourneyStage Stage)
 	}
 }
 
-bool FTDJourney::Go(UWorld* World, ETDJourneyStage Stage)
+bool FTDJourney::Go(UWorld* World, ETDJourneyStage Stage, int32 Wave)
 {
 	UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
 	if (!GI)
@@ -147,6 +147,10 @@ bool FTDJourney::Go(UWorld* World, ETDJourneyStage Stage)
 	const FTDProgress Keep = GI->GetProgressRef();
 	GI->StartNewRun(); // a cheat-built run may write the slot like any run
 	GI->GetMutableProgress() = MakeProgress(Stage, Keep);
+	if (Wave > 0)
+	{
+		GI->GetMutableProgress().WavesCleared = Wave - 1; // the director starts the next uncleared wave
+	}
 	if (UTDEventBus* Bus = UTDEventBus::Get(World))
 	{
 		Bus->BroadcastPhaseChanged(GI->GetProgressRef().Phase);
@@ -209,8 +213,26 @@ void FTDJourney::ApplyGalaxyInPlace(UWorld* World, ETDJourneyStage Stage)
 	}
 }
 
-bool FTDJourney::Parse(const FString& Name, ETDJourneyStage& Out)
+bool FTDJourney::Parse(const FString& Name, ETDJourneyStage& Out, int32* OutWave)
 {
+	if (OutWave)
+	{
+		*OutWave = 0;
+	}
+	if (Name.StartsWith(TEXT("Wave"), ESearchCase::IgnoreCase) && Name.Len() == 5 && FChar::IsDigit(Name[4]))
+	{
+		const int32 N = Name[4] - TEXT('0');
+		if (N < 1 || N > 5)
+		{
+			return false;
+		}
+		Out = N <= 2 ? ETDJourneyStage::Waves1to2 : (N <= 4 ? ETDJourneyStage::Waves3to4 : ETDJourneyStage::Wave5);
+		if (OutWave)
+		{
+			*OutWave = N;
+		}
+		return true;
+	}
 	const UEnum* E = StaticEnum<ETDJourneyStage>();
 	for (int32 i = 0; E && i < E->NumEnums() - 1; ++i)
 	{

@@ -225,6 +225,10 @@ protected:
 	virtual void BeginDockingFinale();
 
 	void SetState(ETDDominionState NewState);
+	/** Hyperdrive "Finale" lock from the current state (assault = locked). Idempotent. */
+	void SyncHyperdriveLock();
+	UFUNCTION()
+	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
 	void BuildParts();
 	void ShowHull(bool bVisible);
 	void ApplyStage(int32 NewStage);
@@ -288,6 +292,7 @@ protected:
 	ETDDominionState State = ETDDominionState::Hidden;
 	float StateTime = 0.f;
 	float PollTimer = 0.f;
+	float LockSyncTimer = 0.f;
 	float LaunchTimer = 0.f;
 	int32 LaunchCursor = 0;
 	int32 LaunchCount = 0;

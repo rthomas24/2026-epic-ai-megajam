@@ -8,6 +8,7 @@
 #include "TDPowerSubsystem.generated.h"
 
 class ATDShieldDome;
+class ATDPortal;
 
 UCLASS()
 class UNREALGAMEJAM_API UTDPowerSubsystem : public UWorldSubsystem
@@ -30,6 +31,11 @@ public:
 	ATDShieldDome* GetNearestDome(const FVector& Location, ETDTeam Team = ETDTeam::Player) const;
 
 	const TArray<TObjectPtr<ATDShieldDome>>& GetActiveDomes() const { return Domes; }
+
+	/** Open Rift portals, so projectiles can stop on a portal plane inside their own step (no tunnelling at 30 fps). */
+	void RegisterPortal(ATDPortal* Portal);
+	void UnregisterPortal(ATDPortal* Portal);
+	const TArray<TWeakObjectPtr<ATDPortal>>& GetActivePortals() const { return Portals; }
 
 	// --- Scene cut / retake ---
 	/** Close portals, collapse domes, end gravity wells, end every running power and ready all cooldowns. */
@@ -63,4 +69,6 @@ private:
 	TArray<TObjectPtr<ATDShieldDome>> Domes;
 
 	TMap<TWeakObjectPtr<const AActor>, double> LastTransit;
+
+	TArray<TWeakObjectPtr<ATDPortal>> Portals;
 };

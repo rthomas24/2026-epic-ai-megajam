@@ -7,6 +7,7 @@
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -154,6 +155,7 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 	static uint32 NextLaunchSerial = 1;
 	LaunchSerial = NextLaunchSerial++;
 	LastTransitTime = -1.0;
+	LaunchWorldTime = GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0;
 	Spec = InSpec;
 	Team = InTeam;
 	Shooter = InInstigator;
@@ -167,14 +169,15 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 	TrackingBlockedFor = 0.f;
 	bReacquireAfterBlock = false;
 	Age = 0.f;
-	Lifetime = FMath::Max(Spec.GetLifetime(), 0.05f);
-
 	const FVector Dir = Transform.GetRotation().GetForwardVector();
 	Velocity = Dir * Spec.Speed;
 	if (Spec.bInheritShooterVelocity)
 	{
 		Velocity += Dir * FMath::Max(0.f, FVector::DotProduct(InheritedVelocity, Dir));
 	}
+	// Range is measured in the shooter's frame (Range / Speed): inherited speed carries the shot further in the
+	// world, which keeps chasing enemies able to hit a fleeing player (TriadDrift.Enemies.Play.WaveEngagesAFleeingPlayer).
+	Lifetime = FMath::Max(Spec.GetLifetime(), 0.05f);
 
 	SetActorLocationAndRotation(Transform.GetLocation(), Dir.Rotation(), false, nullptr, ETeleportType::TeleportPhysics);
 	PreviousLocation = Transform.GetLocation();
@@ -220,6 +223,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
 		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
 		StreakLook = Look;
+		AppliedGrowth = 1.f;
 		UMaterialInterface* Base = GlowMaterial ? GlowMaterial.Get() : DefaultMaterial.Get();
 		const FLinearColor Final = GlowMaterial ? Color * FTDCombatPlaceholders::StreakGlow : Color;
 		if (!PlaceholderMID && Base)
@@ -255,7 +259,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 			if (HeadMID)
 			{
 				// Hot core: the team colour pushed towards white and brighter than the trail.
-				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.45f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * 1.6f : 1.f);
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * 0.8f : 1.f); // stays in squad colour (playtest: 0.45 white read as a white ball)
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
 			}
@@ -453,7 +457,12 @@ void ATDProjectile::TeleportProjectile(const FVector& NewLocation, const FVector
 void ATDProjectile::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	Step(DeltaSeconds);
+	// Launched earlier in this same frame: the weapon placed it (and stepped its sub-frame age) already.
+	const UWorld* World = GetWorld();
+	if (!(World && World->GetTimeSeconds() == LaunchWorldTime))
+	{
+		Step(DeltaSeconds);
+	}
 	UpdatePlaceholderDistanceScale();
 }
 
@@ -471,6 +480,11 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	}
 	const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
 	const float Grow = FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
+	if (FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
+	{
+		return; // cheap at 150+ live shots: no transform update for a change nobody can see
+	}
+	AppliedGrowth = Grow;
 	const float Thickness = StreakLook.Thickness * Grow;
 	PlaceholderMesh->SetRelativeScale3D(FVector(StreakLook.Length, Thickness, Thickness) / 100.f);
 	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * StreakLook.Length + 0.5f * Thickness, 0.f, 0.f));
@@ -501,6 +515,40 @@ void ATDProjectile::Step(float DeltaSeconds)
 		// Only fly the part of this step that was still inside the lifetime.
 		const float Over = Age - Lifetime;
 		End = Start + Velocity * FMath::Max(0.f, DeltaSeconds - Over);
+	}
+
+	// Open portals: if this step crosses a portal disc, fly only to the plane and transit there (a 30 fps
+	// laser step is 1300+ cm and must not hit a ship behind the portal instead).
+	if (UTDPowerSubsystem* PortalPowers = UTDPowerSubsystem::Get(this))
+	{
+		float BestT = 2.f;
+		ATDPortal* Crossed = nullptr;
+		for (const TWeakObjectPtr<ATDPortal>& Weak : PortalPowers->GetActivePortals())
+		{
+			float T = 0.f;
+			ATDPortal* Portal = Weak.Get();
+			if (Portal && Portal->FindDiscCrossing(Start, End, T) && T < BestT)
+			{
+				BestT = T;
+				Crossed = Portal;
+			}
+		}
+		if (Crossed)
+		{
+			const FVector Dir = (End - Start).GetSafeNormal();
+			const FVector OnPlane = Start + (End - Start) * BestT;
+			FHitResult Hit;
+			if (SweepPath(Start, OnPlane, Hit))
+			{
+				SetActorLocation(Hit.Location);
+				HandleImpact(Hit);
+				return;
+			}
+			const FVector JustPast = OnPlane + Dir * 1.f;
+			SetActorLocation(JustPast);
+			Crossed->TransitAlong(this, Start, JustPast);
+			return;
+		}
 	}
 
 	// Hostile shield domes: stop exactly on the shell if this step enters one (a fast shot can't skip
@@ -879,9 +927,10 @@ void ATDProjectile::DealDamage(AActor* Victim, float Amount, const FVector& From
 	const float Dealt = UTDStatics::ApplyTDDamage(Victim, Amount * DamageMultiplier, Spec.DamageKind, Shooter.Get(), this, FromLocation,
 		Direction);
 
-	if (bReportHits && Dealt > 0.f)
+	// Only things with health confirm a hit: a rock or a neutral prop never lights the hit marker.
+	if (bReportHits && Health && Dealt > 0.f)
 	{
-		const bool bKill = bWasAlive && Health && Health->IsDead();
+		const bool bKill = bWasAlive && Health->IsDead();
 		if (UTDEventBus* Bus = UTDEventBus::Get(this))
 		{
 			Bus->BroadcastHitConfirmed(Victim, bKill);
