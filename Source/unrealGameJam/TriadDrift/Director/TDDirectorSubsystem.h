@@ -146,8 +146,10 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDirectorShot, const FTDDirectorShot&, Shot);
 
+class UTDDirectorCameraRig;
+
 UCLASS()
-class UNREALGAMEJAM_API UTDDirectorSubsystem : public UWorldSubsystem
+class UNREALGAMEJAM_API UTDDirectorSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -184,10 +186,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director")
 	FTDDirectorTuning Tuning;
 
+	/** The director camera (C-03 #2): view takeover, blends, cancels. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
+	UTDDirectorCameraRig* GetCameraRig() const { return CameraRig; }
+
 	// ---- UWorldSubsystem
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
 
 	// ---- bus handlers
 	UFUNCTION()
@@ -206,6 +215,11 @@ private:
 	double GameNow() const;
 	float GetBaseImportance(ETDHighlightKind Kind) const;
 	void BuildCameraHint(FTDDirectorShot& Shot);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTDDirectorCameraRig> CameraRig;
+
+	double LastTickRealTime = -1.0;
 
 	FTDDirectorShot CurrentShot;
 	double ShotEndRealTime = -1000.0;

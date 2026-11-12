@@ -59,6 +59,8 @@ namespace TDSquad
 	bool IsSwitchLocked(const ATDShip* Ship, FText& OutReason);
 	/** T1: retake: hyperdrive instantly Idle, landing instantly back to flying. */
 	void ResetTravelForRetake(ATDShip* Ship);
+	/** T1: landing instantly back to flying (no-op when already flying). */
+	void AbortLanding(ATDShip* Ship);
 	float GetHyperdriveCharge01(const ATDShip* Ship);
 	float GetAltitudeMeters(const ATDShip* Ship);
 	/** T2: carry a manually cycled target from one ship to the next on a switch. */

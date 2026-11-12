@@ -226,7 +226,12 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 		float MinS, CruiseS, BoostS;
 		TDSquad::GetSpeedRange(Ship, MinS, CruiseS, BoostS);
 		const float LeaderSpeed = TDSquad::GetSpeed(Leader);
-		if (LeaderSpeed > FMath::Max(HyperdriveFollowMinSpeed, BoostS * 2.f))
+		// Ride in the slot for the whole jump and its drop-out (T1: the drop-out brakes the leader far
+		// harder than a released wingman could, so a speed threshold alone leaves us 35-70k cm ahead),
+		// plus any unannounced super-fast move.
+		const ETDHyperdriveState LeaderJump = TDSquad::GetHyperdriveState(Leader);
+		const bool bJumping = LeaderJump == ETDHyperdriveState::Jumping || LeaderJump == ETDHyperdriveState::DropOut;
+		if (bJumping || LeaderSpeed > FMath::Max(HyperdriveFollowMinSpeed, BoostS * 2.f))
 		{
 			SetTriggers(false, false);
 			const FVector Slot = S->GetFormationSlotLocation(ShipId);

@@ -268,6 +268,14 @@ namespace TDSquad
 		}
 	}
 
+	void AbortLanding(ATDShip* Ship)
+	{
+		if (UTDLandingComponent* L = Ship ? Ship->GetLanding() : nullptr)
+		{
+			L->AbortToFlying();
+		}
+	}
+
 	float GetHyperdriveCharge01(const ATDShip* Ship)
 	{
 		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;

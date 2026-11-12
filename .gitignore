@@ -45,3 +45,6 @@ __pycache__/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Mirror of .claude/skills for Unreal's own skill loader (AGENTS.md section 10)
+/Skills/

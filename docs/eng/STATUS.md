@@ -6,6 +6,11 @@ The short cross-team view (in progress / coming next / done) is the board in `/C
 
 Status values: `todo` / `in progress` / `in review` (merged, tests pass, review open) / `DONE` / `BUG`
 
+Mapping to the stages in `/AAA.md`: `in progress` on a branch with passing tests is *prototype complete*;
+`in review` is *technically verified* and *integrated*; `DONE` additionally needs every review BLOCKER and
+MAJOR closed and the item *gameplay validated* (played in a running game, noted in `DEVLOG.md`).
+*Presentation approved* is tracked on Nick's side in `docs/visual/STATUS.md`. **No item is `DONE` yet.**
+
 Nothing below has been hand-flown in a windowed session yet: every "tests pass" is headless automation.
 
 | Item | Owner | Status | On main | Tests (filter, count) | Notes |
