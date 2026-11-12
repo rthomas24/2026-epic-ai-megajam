@@ -1,0 +1,139 @@
+{
+  "blender": "5.1.1",
+  "engine": "BLENDER_EEVEE",
+  "color_view": "Khronos PBR Neutral",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1930876,
+      "mean_rgb": [
+        0.18533292412757874,
+        0.27317264676094055,
+        0.3438466489315033
+      ],
+      "pixel_std": 0.25252386927604675,
+      "nonblack_fraction": 1.0,
+      "title": "Front three-quarter"
+    },
+    {
+      "file": "02_front.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1861204,
+      "mean_rgb": [
+        0.12584452331066132,
+        0.1994917094707489,
+        0.2723444402217865
+      ],
+      "pixel_std": 0.15101772546768188,
+      "nonblack_fraction": 1.0,
+      "title": "Front"
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1875601,
+      "mean_rgb": [
+        0.12300214171409607,
+        0.1991250216960907,
+        0.27254608273506165
+      ],
+      "pixel_std": 0.14884355664253235,
+      "nonblack_fraction": 1.0,
+      "title": "Rear"
+    },
+    {
+      "file": "04_side.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1811107,
+      "mean_rgb": [
+        0.13930383324623108,
+        0.21417821943759918,
+        0.28785404562950134
+      ],
+      "pixel_std": 0.17861692607402802,
+      "nonblack_fraction": 1.0,
+      "title": "Starboard"
+    },
+    {
+      "file": "05_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1864685,
+      "mean_rgb": [
+        0.20033177733421326,
+        0.2840665876865387,
+        0.3530813455581665
+      ],
+      "pixel_std": 0.26516276597976685,
+      "nonblack_fraction": 1.0,
+      "title": "Top"
+    },
+    {
+      "file": "06_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1980313,
+      "mean_rgb": [
+        0.21140365302562714,
+        0.2968811094760895,
+        0.3645126521587372
+      ],
+      "pixel_std": 0.27052754163742065,
+      "nonblack_fraction": 1.0,
+      "title": "Rear three-quarter"
+    },
+    {
+      "file": "07_underside.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1954695,
+      "mean_rgb": [
+        0.1221727728843689,
+        0.199783056974411,
+        0.2756953239440918
+      ],
+      "pixel_std": 0.14505566656589508,
+      "nonblack_fraction": 0.9999981481481481,
+      "title": "Underside and mounts"
+    },
+    {
+      "file": "08_weapon_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1935281,
+      "mean_rgb": [
+        0.13178332149982452,
+        0.21457187831401825,
+        0.2875208556652069
+      ],
+      "pixel_std": 0.17532029747962952,
+      "nonblack_fraction": 1.0,
+      "title": "Port weapon modules"
+    },
+    {
+      "file": "09_rocket_visual.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1687009,
+      "mean_rgb": [
+        0.20025911927223206,
+        0.29000845551490784,
+        0.3599162995815277
+      ],
+      "pixel_std": 0.25994816422462463,
+      "nonblack_fraction": 1.0,
+      "title": "Spike rocket visual"
+    }
+  ],
+  "elapsed_seconds": 10.404595300000437,
+  "render_threads": 2,
+  "source_revision": "M02",
+  "geometry_modified_for_render": false,
+  "final_visual_approval": false,
+  "unreal_imported": false
+}

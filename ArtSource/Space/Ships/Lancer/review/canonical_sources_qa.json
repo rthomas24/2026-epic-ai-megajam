@@ -1,0 +1,431 @@
+[
+  {
+    "source_mesh": "M01_SM_Ship_Lancer_Proxy",
+    "object": "SM_Lancer_M01_Hull",
+    "result": {
+      "ok": true,
+      "pass": false,
+      "errors": [
+        "floating/detached part in SM_Lancer_M01_Hull (18 verts at [-0.78, 1.55, 0.24])",
+        "floating/detached part in SM_Lancer_M01_Hull (18 verts at [-0.78, 1.37, 0.24])",
+        "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.73, 0.24])",
+        "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.55, 0.24])",
+        "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.37, 0.24])"
+      ],
+      "warnings": [
+        "SM_Lancer_M01_Hull: duplicate verts=48 loose verts=0",
+        "hidden back-to-back faces: SM_Lancer_M01_Hull (192 pairs) - delete to save tris",
+        "asset lowest point z=-0.5 (not resting on ground plane z=0)"
+      ],
+      "ground_z": -0.5,
+      "zfighting": [],
+      "floating": [
+        {
+          "object": "SM_Lancer_M01_Hull",
+          "island_verts": 18,
+          "center": [
+            -0.78,
+            1.55,
+            0.24
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Hull",
+          "island_verts": 18,
+          "center": [
+            -0.78,
+            1.37,
+            0.24
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Hull",
+          "island_verts": 18,
+          "center": [
+            0.78,
+            1.73,
+            0.24
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Hull",
+          "island_verts": 18,
+          "center": [
+            0.78,
+            1.55,
+            0.24
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Hull",
+          "island_verts": 18,
+          "center": [
+            0.78,
+            1.37,
+            0.24
+          ]
+        }
+      ],
+      "back_to_back": [
+        {
+          "where": "SM_Lancer_M01_Hull",
+          "tri_pairs": 192
+        }
+      ],
+      "enclosed": [],
+      "objects": {
+        "SM_Lancer_M01_Hull": {
+          "verts": 1688,
+          "faces": 3264,
+          "tris": 3264,
+          "ngons": 0,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "degenerate_faces": 0,
+          "zero_length_edges": 0,
+          "inconsistent_normals_edges": 0,
+          "duplicate_verts": 48,
+          "islands": 34,
+          "inside_out_islands": 0,
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "materials": 6,
+          "uv_maps": 1,
+          "uv_oob_pct": 0.0,
+          "uv_zero_area_faces": 0,
+          "uv_overlap_pct": 0.0,
+          "uv_coverage_pct": 22.9
+        }
+      }
+    }
+  },
+  {
+    "source_mesh": "M01_SM_Lancer_UniversalMount",
+    "object": "SM_Lancer_M01_MountPrimary_L",
+    "result": {
+      "ok": true,
+      "pass": true,
+      "errors": [],
+      "warnings": [
+        "SM_Lancer_M01_MountPrimary_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+        "asset lowest point z=-0.57 (not resting on ground plane z=0)"
+      ],
+      "ground_z": -0.57,
+      "zfighting": [],
+      "floating": [],
+      "back_to_back": [],
+      "enclosed": [],
+      "objects": {
+        "SM_Lancer_M01_MountPrimary_L": {
+          "verts": 52,
+          "faces": 96,
+          "tris": 96,
+          "ngons": 0,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "degenerate_faces": 0,
+          "zero_length_edges": 0,
+          "inconsistent_normals_edges": 0,
+          "duplicate_verts": 0,
+          "islands": 2,
+          "inside_out_islands": 0,
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "materials": 6,
+          "uv_maps": 1,
+          "uv_oob_pct": 0.0,
+          "uv_zero_area_faces": 0,
+          "uv_overlap_pct": 0.0,
+          "uv_coverage_pct": 68.1
+        }
+      }
+    }
+  },
+  {
+    "source_mesh": "M01_SM_Lancer_MinigunBody",
+    "object": "SM_Lancer_M01_Primary_L",
+    "result": {
+      "ok": true,
+      "pass": true,
+      "errors": [],
+      "warnings": [
+        "SM_Lancer_M01_Primary_L: unused material slot(s) ['M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+        "asset lowest point z=-0.79 (not resting on ground plane z=0)"
+      ],
+      "ground_z": -0.79,
+      "zfighting": [],
+      "floating": [],
+      "back_to_back": [],
+      "enclosed": [],
+      "objects": {
+        "SM_Lancer_M01_Primary_L": {
+          "verts": 156,
+          "faces": 304,
+          "tris": 304,
+          "ngons": 0,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "degenerate_faces": 0,
+          "zero_length_edges": 0,
+          "inconsistent_normals_edges": 0,
+          "duplicate_verts": 0,
+          "islands": 3,
+          "inside_out_islands": 0,
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "materials": 6,
+          "uv_maps": 1,
+          "uv_oob_pct": 0.0,
+          "uv_zero_area_faces": 0,
+          "uv_overlap_pct": 0.0,
+          "uv_coverage_pct": 59.4
+        }
+      }
+    }
+  },
+  {
+    "source_mesh": "M01_SM_Lancer_MinigunRotor",
+    "object": "SM_Lancer_M01_Rotor_L",
+    "result": {
+      "ok": true,
+      "pass": false,
+      "errors": [
+        "floating/detached part in SM_Lancer_M01_Rotor_L (60 verts at [-0.94, -1.3, -0.466])",
+        "floating/detached part in SM_Lancer_M01_Rotor_L (60 verts at [-1.06, -1.3, -0.466])",
+        "floating/detached part in SM_Lancer_M01_Rotor_L (60 verts at [-1.12, -1.3, -0.57])",
+        "floating/detached part in SM_Lancer_M01_Rotor_L (60 verts at [-1.06, -1.3, -0.674])",
+        "floating/detached part in SM_Lancer_M01_Rotor_L (60 verts at [-0.94, -1.3, -0.674])",
+        "floating/detached part in SM_Lancer_M01_Rotor_L (120 verts at [-1.0, -1.76, -0.57])",
+        "floating/detached part in SM_Lancer_M01_Rotor_L (26 verts at [-1.0, -1.135, -0.57])"
+      ],
+      "warnings": [
+        "SM_Lancer_M01_Rotor_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+        "1 parts fully enclosed, not touching (eyes/internals?): ['SM_Lancer_M01_Rotor_L']",
+        "asset lowest point z=-0.77 (not resting on ground plane z=0)"
+      ],
+      "ground_z": -0.77,
+      "zfighting": [],
+      "floating": [
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 60,
+          "center": [
+            -0.94,
+            -1.3,
+            -0.466
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 60,
+          "center": [
+            -1.06,
+            -1.3,
+            -0.466
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 60,
+          "center": [
+            -1.12,
+            -1.3,
+            -0.57
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 60,
+          "center": [
+            -1.06,
+            -1.3,
+            -0.674
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 60,
+          "center": [
+            -0.94,
+            -1.3,
+            -0.674
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 120,
+          "center": [
+            -1.0,
+            -1.76,
+            -0.57
+          ]
+        },
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 26,
+          "center": [
+            -1.0,
+            -1.135,
+            -0.57
+          ]
+        }
+      ],
+      "back_to_back": [],
+      "enclosed": [
+        {
+          "object": "SM_Lancer_M01_Rotor_L",
+          "island_verts": 120,
+          "center": [
+            -1.0,
+            -0.665,
+            -0.57
+          ]
+        }
+      ],
+      "objects": {
+        "SM_Lancer_M01_Rotor_L": {
+          "verts": 626,
+          "faces": 1248,
+          "tris": 1248,
+          "ngons": 0,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "degenerate_faces": 0,
+          "zero_length_edges": 0,
+          "inconsistent_normals_edges": 0,
+          "duplicate_verts": 0,
+          "islands": 9,
+          "inside_out_islands": 0,
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "materials": 6,
+          "uv_maps": 1,
+          "uv_oob_pct": 0.0,
+          "uv_zero_area_faces": 0,
+          "uv_overlap_pct": 0.0,
+          "uv_coverage_pct": 33.2
+        }
+      }
+    }
+  },
+  {
+    "source_mesh": "M01_SM_Lancer_RocketPod",
+    "object": "SM_Lancer_M01_Secondary_L",
+    "result": {
+      "ok": true,
+      "pass": true,
+      "errors": [],
+      "warnings": [
+        "SM_Lancer_M01_Secondary_L: unused material slot(s) ['M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+        "hidden back-to-back faces: SM_Lancer_M01_Secondary_L (8 pairs) - delete to save tris",
+        "asset lowest point z=-0.97 (not resting on ground plane z=0)"
+      ],
+      "ground_z": -0.97,
+      "zfighting": [],
+      "floating": [],
+      "back_to_back": [
+        {
+          "where": "SM_Lancer_M01_Secondary_L",
+          "tri_pairs": 8
+        }
+      ],
+      "enclosed": [],
+      "objects": {
+        "SM_Lancer_M01_Secondary_L": {
+          "verts": 960,
+          "faces": 1888,
+          "tris": 1888,
+          "ngons": 0,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "degenerate_faces": 0,
+          "zero_length_edges": 0,
+          "inconsistent_normals_edges": 0,
+          "duplicate_verts": 0,
+          "islands": 16,
+          "inside_out_islands": 0,
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "materials": 6,
+          "uv_maps": 1,
+          "uv_oob_pct": 0.0,
+          "uv_zero_area_faces": 0,
+          "uv_overlap_pct": 0.0,
+          "uv_coverage_pct": 35.0
+        }
+      }
+    }
+  },
+  {
+    "source_mesh": "M01_SM_Lancer_SpikeRocket",
+    "object": "SM_Lancer_M01_ProjectileSource",
+    "result": {
+      "ok": true,
+      "pass": true,
+      "errors": [],
+      "warnings": [
+        "SM_Lancer_M01_ProjectileSource: unused material slot(s) ['M01_M_Lancer_BareMetal', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+        "asset lowest point z=-0.078 (not resting on ground plane z=0)"
+      ],
+      "ground_z": -0.078,
+      "zfighting": [],
+      "floating": [],
+      "back_to_back": [],
+      "enclosed": [],
+      "objects": {
+        "SM_Lancer_M01_ProjectileSource": {
+          "verts": 162,
+          "faces": 312,
+          "tris": 312,
+          "ngons": 0,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "wire_edges": 0,
+          "loose_verts": 0,
+          "degenerate_faces": 0,
+          "zero_length_edges": 0,
+          "inconsistent_normals_edges": 0,
+          "duplicate_verts": 0,
+          "islands": 4,
+          "inside_out_islands": 0,
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "materials": 6,
+          "uv_maps": 1,
+          "uv_oob_pct": 0.0,
+          "uv_zero_area_faces": 0,
+          "uv_overlap_pct": 0.0,
+          "uv_coverage_pct": 56.5
+        }
+      }
+    }
+  }
+]

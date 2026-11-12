@@ -1,0 +1,32 @@
+00:02.797  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+Info: Saved as "Lancer_M02_work.blend"
+M02_BUILD {"revision": "M02", "blender": "5.1.1", "m01_hashes_before": {"SM_Lancer_MinigunBody.mesh.json": "a5769f841b71b00f4e0c73bc2ea70e28faea65adf692d4321bd40b47ede66d8d", "SM_Lancer_MinigunRotor.mesh.json": "814f45eb0d358077094c51a2571a3508f86ef72db0bb20d167f39704c4df0be9", "SM_Lancer_RocketPod.mesh.json": "18320a4913837fd93a678499ef79bdcd9dd2c4ebc786db40ee276dd924589038", "SM_Lancer_SpikeRocket.mesh.json": "697ce123eaf3d8295e7216decee4f8820f0889a0a9d10b309e7b986cc5c8e29e", "SM_Lancer_UniversalMount.mesh.json": "cfe3c71c6f0a44b2f66e045eaba2b27593441003dcd7fd6cefd9a1e149801752", "SM_Ship_Lancer_Proxy.mesh.json": "50649eee95016bcc423da06e5a91e2c35ee778133e206b38decd17a764623e98", "attachments.json": "2aabc5fa3df1a46a3732f5c2405d0a3508ce8d056d8672a40b4b9840de6ee8ca"}, "m01_hashes_after": {"SM_Lancer_MinigunBody.mesh.json": "a5769f841b71b00f4e0c73bc2ea70e28faea65adf692d4321bd40b47ede66d8d", "SM_Lancer_MinigunRotor.mesh.json": "814f45eb0d358077094c51a2571a3508f86ef72db0bb20d167f39704c4df0be9", "SM_Lancer_RocketPod.mesh.json": "18320a4913837fd93a678499ef79bdcd9dd2c4ebc786db40ee276dd924589038", "SM_Lancer_SpikeRocket.mesh.json": "697ce123eaf3d8295e7216decee4f8820f0889a0a9d10b309e7b986cc5c8e29e", "SM_Lancer_UniversalMount.mesh.json": "cfe3c71c6f0a44b2f66e045eaba2b27593441003dcd7fd6cefd9a1e149801752", "SM_Ship_Lancer_Proxy.mesh.json": "50649eee95016bcc423da06e5a91e2c35ee778133e206b38decd17a764623e98", "attachments.json": "2aabc5fa3df1a46a3732f5c2405d0a3508ce8d056d8672a40b4b9840de6ee8ca"}, "m01_unchanged": true, "assembly_objects": 11, "triangles": 57788, "materials": 6, "elapsed_seconds": 3.562929499999882, "final_visual_approval": false, "unreal_imported": false}
+M02_QA {"assembly_triangles": 57788, "technical_pass": true, "geometry_errors": [], "contact_pass": true, "attachment_pass": true, "ray_clearance_pass": true}
+Info: Saved as "Lancer_M02_v03.blend"
+M02_RENDER 01_hero_front_3q
+00:13.687  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\01_hero_front_3q.png'
+M02_RENDER 02_front
+00:14.562  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\02_front.png'
+M02_RENDER 03_rear
+00:15.422  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\03_rear.png'
+M02_RENDER 04_side
+00:16.281  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\04_side.png'
+M02_RENDER 05_top
+00:17.141  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\05_top.png'
+M02_RENDER 06_rear_3q
+00:18.031  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\06_rear_3q.png'
+M02_RENDER 07_underside
+00:18.906  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\07_underside.png'
+M02_RENDER 08_weapon_detail
+00:19.750  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\08_weapon_detail.png'
+M02_RENDER 09_rocket_visual
+00:20.500  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\09_rocket_visual.png'
+00:21.312  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\Lancer_M02_clay_front_3q.png'
+00:21.484  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\Lancer_M02_clay_front.png'
+00:21.547  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\Lancer_M02_clay_right.png'
+00:21.609  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\Lancer_M02_clay_top.png'
+00:21.719  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\Lancer_M02_clay_back_3q.png'
+00:21.906  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\M02\Lancer_M02_clay_low_3q.png'
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

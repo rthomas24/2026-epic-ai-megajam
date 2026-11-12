@@ -1,0 +1,406 @@
+{
+  "blender": "5.1.1",
+  "assembly_triangles": 57792,
+  "assembly_instances": 11,
+  "materials": 6,
+  "dimensions_cm": [
+    800.0000238418579,
+    667.9999828338623,
+    185.76236963272095
+  ],
+  "geometry_qa_pass": false,
+  "geometry_errors": [
+    "SM_Lancer_M02_Hull: degenerate faces=2 zero-len edges=0"
+  ],
+  "geometry_warnings": [
+    "SM_Lancer_M02_Hull: duplicate verts=2 loose verts=0",
+    "hidden back-to-back faces: SM_Lancer_M02_Hull (63 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M02_MountPrimary_L<->SM_Lancer_M02_Rotor_L (7 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M02_MountPrimary_R<->SM_Lancer_M02_Rotor_R (7 pairs) - delete to save tris",
+    "asset lowest point z=-0.971 (not resting on ground plane z=0)"
+  ],
+  "contact_pass": true,
+  "floating_islands": [],
+  "attachment_checks": [
+    {
+      "name": "Mount_Primary_L",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Mount_Secondary_L",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Rotor_Pivot",
+      "parent": "Primary_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Primary_L",
+      "parent": "Primary_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_01",
+      "parent": "Rotor_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_02",
+      "parent": "Rotor_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_03",
+      "parent": "Rotor_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_04",
+      "parent": "Rotor_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_05",
+      "parent": "Rotor_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_06",
+      "parent": "Rotor_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_L_01",
+      "parent": "Secondary_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_L_02",
+      "parent": "Secondary_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_L_03",
+      "parent": "Secondary_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_L_04",
+      "parent": "Secondary_L",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Thruster_L",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Mount_Primary_R",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Mount_Secondary_R",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Rotor_Pivot",
+      "parent": "Primary_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Primary_R",
+      "parent": "Primary_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_01",
+      "parent": "Rotor_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_02",
+      "parent": "Rotor_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_03",
+      "parent": "Rotor_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_04",
+      "parent": "Rotor_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_05",
+      "parent": "Rotor_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Barrel_06",
+      "parent": "Rotor_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_R_01",
+      "parent": "Secondary_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_R_02",
+      "parent": "Secondary_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_R_03",
+      "parent": "Secondary_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Muzzle_Secondary_R_04",
+      "parent": "Secondary_R",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Thruster_R",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Ability_Overdrive",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Ability_EMP",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    },
+    {
+      "name": "Ram_Visual",
+      "parent": "Hull",
+      "position_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "pass_check": true
+    }
+  ],
+  "attachment_pass": true,
+  "ray_clearance": [
+    {
+      "name": "Muzzle_Primary_L",
+      "parent": "Primary_L",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_L_01",
+      "parent": "Secondary_L",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_L_02",
+      "parent": "Secondary_L",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_L_03",
+      "parent": "Secondary_L",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_L_04",
+      "parent": "Secondary_L",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Thruster_L",
+      "parent": "Hull",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Primary_R",
+      "parent": "Primary_R",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_R_01",
+      "parent": "Secondary_R",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_R_02",
+      "parent": "Secondary_R",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_R_03",
+      "parent": "Secondary_R",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary_R_04",
+      "parent": "Secondary_R",
+      "clear": true,
+      "hit_distance_cm": null
+    },
+    {
+      "name": "Thruster_R",
+      "parent": "Hull",
+      "clear": true,
+      "hit_distance_cm": null
+    }
+  ],
+  "ray_clearance_pass": true,
+  "original_sources_unchanged": true,
+  "unit_positive_scale": true,
+  "all_meshes_have_panel_tint": true,
+  "final_visual_approval": false,
+  "unreal_imported": false,
+  "elapsed_seconds": 3.418188999999984,
+  "technical_pass": false
+}

@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "ok": true,
+  "tolerance_m": 0.002,
+  "objects": [
+    "SM_Lancer_M02_Hull",
+    "SM_Lancer_M02_MountPrimary_L",
+    "SM_Lancer_M02_Primary_L",
+    "SM_Lancer_M02_Rotor_L",
+    "SM_Lancer_M02_MountSecondary_L",
+    "SM_Lancer_M02_Secondary_L",
+    "SM_Lancer_M02_MountPrimary_R",
+    "SM_Lancer_M02_Primary_R",
+    "SM_Lancer_M02_Rotor_R",
+    "SM_Lancer_M02_MountSecondary_R",
+    "SM_Lancer_M02_Secondary_R"
+  ],
+  "islands": 220,
+  "groups": 1,
+  "main_body_tris": 57788,
+  "floating": [],
+  "hint": "All parts are connected."
+}

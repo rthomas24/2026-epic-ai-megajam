@@ -1,0 +1,797 @@
+{
+  "purpose": "silhouette_approval_review_not_production_certification",
+  "blender_version": "5.1.1",
+  "background": true,
+  "source_geometry_preserved": true,
+  "source_hashes_before": {
+    "SM_Lancer_MinigunBody.mesh.json": "a5769f841b71b00f4e0c73bc2ea70e28faea65adf692d4321bd40b47ede66d8d",
+    "SM_Lancer_MinigunRotor.mesh.json": "814f45eb0d358077094c51a2571a3508f86ef72db0bb20d167f39704c4df0be9",
+    "SM_Lancer_RocketPod.mesh.json": "18320a4913837fd93a678499ef79bdcd9dd2c4ebc786db40ee276dd924589038",
+    "SM_Lancer_SpikeRocket.mesh.json": "697ce123eaf3d8295e7216decee4f8820f0889a0a9d10b309e7b986cc5c8e29e",
+    "SM_Lancer_UniversalMount.mesh.json": "cfe3c71c6f0a44b2f66e045eaba2b27593441003dcd7fd6cefd9a1e149801752",
+    "SM_Ship_Lancer_Proxy.mesh.json": "50649eee95016bcc423da06e5a91e2c35ee778133e206b38decd17a764623e98",
+    "attachments.json": "2aabc5fa3df1a46a3732f5c2405d0a3508ce8d056d8672a40b4b9840de6ee8ca"
+  },
+  "source_hashes_after": {
+    "SM_Lancer_MinigunBody.mesh.json": "a5769f841b71b00f4e0c73bc2ea70e28faea65adf692d4321bd40b47ede66d8d",
+    "SM_Lancer_MinigunRotor.mesh.json": "814f45eb0d358077094c51a2571a3508f86ef72db0bb20d167f39704c4df0be9",
+    "SM_Lancer_RocketPod.mesh.json": "18320a4913837fd93a678499ef79bdcd9dd2c4ebc786db40ee276dd924589038",
+    "SM_Lancer_SpikeRocket.mesh.json": "697ce123eaf3d8295e7216decee4f8820f0889a0a9d10b309e7b986cc5c8e29e",
+    "SM_Lancer_UniversalMount.mesh.json": "cfe3c71c6f0a44b2f66e045eaba2b27593441003dcd7fd6cefd9a1e149801752",
+    "SM_Ship_Lancer_Proxy.mesh.json": "50649eee95016bcc423da06e5a91e2c35ee778133e206b38decd17a764623e98",
+    "attachments.json": "2aabc5fa3df1a46a3732f5c2405d0a3508ce8d056d8672a40b4b9840de6ee8ca"
+  },
+  "source_hashes_unchanged": true,
+  "canonical_source_count": 6,
+  "assembly_mesh_instances": 11,
+  "assembly_triangles": 10528,
+  "assembly_dimensions_cm_XYZ": [
+    798.0,
+    680.0,
+    213.0
+  ],
+  "assembly_hull_pivot_cm": [
+    -0.0,
+    0.0,
+    0.0
+  ],
+  "unit_scale_all_instances": true,
+  "rotor_pivots_cm": {
+    "SM_Lancer_M01_Rotor_L": [
+      64.99999761581421,
+      -100.0,
+      -56.99999928474426
+    ],
+    "SM_Lancer_M01_Rotor_R": [
+      64.99999761581421,
+      100.0,
+      -56.99999928474426
+    ]
+  },
+  "topology_asset_report_errors": [],
+  "geometry_qa_pass": false,
+  "geometry_qa_errors": [
+    "z-fighting: SM_Lancer_M01_MountPrimary_R<->SM_Lancer_M01_Primary_R (3 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M01_MountSecondary_R<->SM_Lancer_M01_Secondary_R (3 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M01_MountSecondary_L<->SM_Lancer_M01_Secondary_L (3 overlapping coplanar tri pairs)",
+    "z-fighting: SM_Lancer_M01_MountPrimary_L<->SM_Lancer_M01_Primary_L (3 overlapping coplanar tri pairs)",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [-0.78, 1.55, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [-0.78, 1.37, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.73, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.55, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Hull (18 verts at [0.78, 1.37, 0.24])",
+    "floating/detached part in SM_Lancer_M01_Rotor_L (120 verts at [-1.0, -1.76, -0.57])",
+    "floating/detached part in SM_Lancer_M01_Rotor_R (120 verts at [1.0, -1.76, -0.57])"
+  ],
+  "geometry_qa_warnings": [
+    "SM_Lancer_M01_Hull: duplicate verts=48 loose verts=0",
+    "SM_Lancer_M01_MountPrimary_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Primary_L: unused material slot(s) ['M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Rotor_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_MountSecondary_L: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Secondary_L: unused material slot(s) ['M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_MountPrimary_R: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Primary_R: unused material slot(s) ['M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Rotor_R: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_MountSecondary_R: unused material slot(s) ['M01_M_Lancer_Ceramic', 'M01_M_Lancer_CyanPaint', 'M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "SM_Lancer_M01_Secondary_R: unused material slot(s) ['M01_M_Lancer_Canopy', 'M01_M_Lancer_Emission'] (extra draw calls in some exporters)",
+    "hidden back-to-back faces: SM_Lancer_M01_Hull (192 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M01_Secondary_R (8 pairs) - delete to save tris",
+    "hidden back-to-back faces: SM_Lancer_M01_Secondary_L (8 pairs) - delete to save tris",
+    "asset lowest point z=-0.97 (not resting on ground plane z=0)"
+  ],
+  "assembly_contact_pass": false,
+  "assembly_floating_count": 7,
+  "geometry_source_comparison": [
+    {
+      "source": "SM_Lancer_MinigunBody.mesh.json",
+      "vertices": 156,
+      "triangles": 304,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_MinigunRotor.mesh.json",
+      "vertices": 626,
+      "triangles": 1248,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_RocketPod.mesh.json",
+      "vertices": 960,
+      "triangles": 1888,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_SpikeRocket.mesh.json",
+      "vertices": 162,
+      "triangles": 312,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Lancer_UniversalMount.mesh.json",
+      "vertices": 52,
+      "triangles": 96,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    },
+    {
+      "source": "SM_Ship_Lancer_Proxy.mesh.json",
+      "vertices": 1688,
+      "triangles": 3264,
+      "max_coordinate_error_m": 0.0,
+      "source_vertex_count_matches": true,
+      "triangle_indices_unchanged": true,
+      "pass": true
+    }
+  ],
+  "attachments": {
+    "sockets": [
+      {
+        "name": "Mount_Primary_L",
+        "parent": "Hull",
+        "world_position_cm": [
+          30.0,
+          -100.0,
+          -42.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Mount_Secondary_L",
+        "parent": "Hull",
+        "world_position_cm": [
+          -90.0,
+          -220.0,
+          -44.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Rotor_Pivot",
+        "parent": "Primary_L",
+        "world_position_cm": [
+          65.0,
+          -100.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Primary_L",
+        "parent": "Primary_L",
+        "world_position_cm": [
+          204.0,
+          -100.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_01",
+        "parent": "Rotor_L",
+        "world_position_cm": [
+          203.0,
+          -88.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_02",
+        "parent": "Rotor_L",
+        "world_position_cm": [
+          203.0,
+          -94.0,
+          -46.60769
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_03",
+        "parent": "Rotor_L",
+        "world_position_cm": [
+          203.0,
+          -105.99999,
+          -46.60769
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_04",
+        "parent": "Rotor_L",
+        "world_position_cm": [
+          203.0,
+          -112.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_05",
+        "parent": "Rotor_L",
+        "world_position_cm": [
+          203.0,
+          -105.99999,
+          -67.3923
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_06",
+        "parent": "Rotor_L",
+        "world_position_cm": [
+          203.0,
+          -94.0,
+          -67.3923
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_L_01",
+        "parent": "Secondary_L",
+        "world_position_cm": [
+          22.0,
+          -236.00001,
+          -53.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_L_02",
+        "parent": "Secondary_L",
+        "world_position_cm": [
+          22.0,
+          -236.00001,
+          -83.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_L_03",
+        "parent": "Secondary_L",
+        "world_position_cm": [
+          22.0,
+          -204.0,
+          -53.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_L_04",
+        "parent": "Secondary_L",
+        "world_position_cm": [
+          22.0,
+          -204.0,
+          -83.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Thruster_L",
+        "parent": "Hull",
+        "world_position_cm": [
+          -402.0,
+          -111.0,
+          -3.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Mount_Primary_R",
+        "parent": "Hull",
+        "world_position_cm": [
+          30.0,
+          100.0,
+          -42.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Mount_Secondary_R",
+        "parent": "Hull",
+        "world_position_cm": [
+          -90.0,
+          220.0,
+          -44.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Rotor_Pivot",
+        "parent": "Primary_R",
+        "world_position_cm": [
+          65.0,
+          100.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Primary_R",
+        "parent": "Primary_R",
+        "world_position_cm": [
+          204.0,
+          100.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_01",
+        "parent": "Rotor_R",
+        "world_position_cm": [
+          203.0,
+          112.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_02",
+        "parent": "Rotor_R",
+        "world_position_cm": [
+          203.0,
+          105.99999,
+          -46.60769
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_03",
+        "parent": "Rotor_R",
+        "world_position_cm": [
+          203.0,
+          94.0,
+          -46.60769
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_04",
+        "parent": "Rotor_R",
+        "world_position_cm": [
+          203.0,
+          88.0,
+          -57.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_05",
+        "parent": "Rotor_R",
+        "world_position_cm": [
+          203.0,
+          94.0,
+          -67.3923
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Barrel_06",
+        "parent": "Rotor_R",
+        "world_position_cm": [
+          203.0,
+          105.99999,
+          -67.3923
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_R_01",
+        "parent": "Secondary_R",
+        "world_position_cm": [
+          22.0,
+          204.0,
+          -53.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_R_02",
+        "parent": "Secondary_R",
+        "world_position_cm": [
+          22.0,
+          204.0,
+          -83.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_R_03",
+        "parent": "Secondary_R",
+        "world_position_cm": [
+          22.0,
+          236.00001,
+          -53.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Muzzle_Secondary_R_04",
+        "parent": "Secondary_R",
+        "world_position_cm": [
+          22.0,
+          236.00001,
+          -83.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Thruster_R",
+        "parent": "Hull",
+        "world_position_cm": [
+          -402.0,
+          111.0,
+          -3.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Ability_Overdrive",
+        "parent": "Hull",
+        "world_position_cm": [
+          -205.0,
+          0.0,
+          61.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Ability_EMP",
+        "parent": "Hull",
+        "world_position_cm": [
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      },
+      {
+        "name": "Ram_Visual",
+        "parent": "Hull",
+        "world_position_cm": [
+          404.0,
+          0.0,
+          0.0
+        ],
+        "position_error_cm": 0.0,
+        "forward_alignment_dot": 1.0,
+        "unit_scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass": true
+      }
+    ],
+    "ray_clearance": [
+      {
+        "socket": "Muzzle_Primary_L",
+        "parent": "Primary_L",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_L_01",
+        "parent": "Secondary_L",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_L_02",
+        "parent": "Secondary_L",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_L_03",
+        "parent": "Secondary_L",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_L_04",
+        "parent": "Secondary_L",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Thruster_L",
+        "parent": "Hull",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Primary_R",
+        "parent": "Primary_R",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_R_01",
+        "parent": "Secondary_R",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_R_02",
+        "parent": "Secondary_R",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_R_03",
+        "parent": "Secondary_R",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Muzzle_Secondary_R_04",
+        "parent": "Secondary_R",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      },
+      {
+        "socket": "Thruster_R",
+        "parent": "Hull",
+        "ray_distance_test_m": 100,
+        "unobstructed": true,
+        "first_hit_distance_cm": null
+      }
+    ],
+    "pass": true
+  },
+  "elapsed_seconds": 1.078,
+  "production_approved": false,
+  "silhouette_approved": false,
+  "unreal_import_performed": false
+}
