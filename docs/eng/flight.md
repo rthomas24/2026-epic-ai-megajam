@@ -67,6 +67,11 @@ Hyperdrive, atmosphere and landing are in [travel.md](travel.md).
   - `ResetFlightState(bKeepVelocity)` clears input, the meter (and its lockout), drift, boost, overrides, the allowance and the rates. It fires the matching end events.
   - `SetFlightParked(true)` stops simulation at zero velocity. Use it for downed ships and landing.
 
+- **Atmosphere ground floor:** in atmosphere the movement component traces the static ground below the hull.
+  Inside `GroundAvoidHeight` (30 m) the sink is cancelled and the nose eases toward level
+  (`GroundPullUpRate` 120°/s, scaled by depth). A hands-off or diving ship skims the ground and never grinds
+  into it.
+
 ### Chase camera (`FTDChaseCameraTuning` on `ATDShip`)
 - arm 1400 cm, height 280 cm
 - rotation lag 8, location lag 12 (max lag distance 1800 cm)
@@ -78,6 +83,8 @@ Hyperdrive, atmosphere and landing are in [travel.md](travel.md).
 - leans up to 7° into turns (look-ahead)
 - `SnapCamera()` makes a hard cut. It runs automatically on switch-in and teleport.
 - Cockpit camera: V toggles `SetCockpitView`. The placeholder hull is hidden from the pilot's own view.
+- Motion blur is off in space by default (`MotionBlurAmount` / `MotionBlurMax` = 0), because any
+  camera-rotation blur turns stars into dashes.
 
 ### State for presentation and the HUD
 On the spacecraft and its movement component:
@@ -91,7 +98,8 @@ Movement-component delegates:
 - `OnFlightImpact`
 
 On the controller:
-- `GetVirtualStick()`: where the HUD draws the mouse reticle
+- `GetVirtualStick()`: where the HUD draws the mouse reticle. It recentres at `MouseRecenterRate` (3/s) when
+  the mouse is still, and resets to centre on a ship switch, so the new ship starts straight.
 - `IsUsingGamepad()`
 - `IsSwitchRadialOpen()` / `GetRadialSelection()`
 - `GetAimWorldDirection()`
@@ -116,6 +124,20 @@ On the controller:
   - `CollisionScrape` plays on glancing impacts.
   - Engine cues attach to a part named `Engine`, else the hull's `Engine` socket, else the hull.
   - `GetCueRequestCount(Slot)` exposes the requests for tests.
+- **Engine audio parameters (frozen contract, Nov 12).** Every frame, both engine loops (the
+  `UTDShipVisuals::EngineLoop` sound and the `EngineTrail` cue's sound) receive three float parameters. Player
+  ship and wingmen alike, surviving switches and respawns:
+
+  | Parameter | Range | Meaning |
+  |---|---|---|
+  | `Speed01` | 0..1 | `GetSpeed01()`: min speed → boost speed |
+  | `Boost01` | 0..1 | 1 while boosting, eased over 0.2 s |
+  | `Drift01` | 0..1 | 1 while drifting, eased over 0.2 s |
+
+  A MetaSound source reads these as float inputs with exactly these names. Any other sound (a plain
+  `USoundWave` / cue) is also pitched by speed: `0.8 + 0.6 × Speed01`. A MetaSound is not, so it is never
+  pitched twice. Names are constants on `ATDShip` (`AudioParamSpeed01` / `Boost01` / `Drift01`). Test:
+  `TriadDrift.Flight.Visuals.EngineLoopAudioParameters`.
 
 ### Input map (ENG-02)
 

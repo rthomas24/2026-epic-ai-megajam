@@ -413,6 +413,10 @@ void ATDSpacePlayerController::OnPossess(APawn* InPawn)
 		ResetHeldInputs();
 		return;
 	}
+	// A switch is a cut: the new ship starts flying straight. The mouse reticle's offset was the old ship's
+	// turn command, so it doesn't carry over (T3 finding: the opening frame could start banked / turning).
+	VirtualStick = FVector2D::ZeroVector;
+	CurrentFlightInput.Aim = FVector2D::ZeroVector;
 	// Held buttons carry over a switch (keep firing / boosting into the new ship), but the trigger
 	// state must be re-sent to the new ship's weapons.
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, true); }

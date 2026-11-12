@@ -122,6 +122,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsInAtmosphere() const { return Context.bAtmosphere; }
+	/** Plain top speed right now: cruise in space, cruise x the atmosphere cap fraction in atmosphere. */
+	float GetCruiseCapSpeed() const { return Context.bAtmosphere ? Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction : Tuning.CruiseSpeed; }
 
 	/** Centre of the current spherical play space. */
 	FVector GetBoundaryCenter() const { return Context.BoundaryCenter; }

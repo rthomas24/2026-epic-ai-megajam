@@ -816,4 +816,29 @@ bool FTDReviewGroundFloorWorld::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewSwitchResetsMouseStick, "TriadDrift.Flight.Review.SwitchStartsStraight", TD_TEST_FLAGS)
+bool FTDReviewSwitchResetsMouseStick::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f));
+	ATDShip* Other = W.Spawn<ATDShip>(FVector(0.f, 5000.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	FTDSpaceControllerTestAccess Access{ PC };
+	Access.Mouse(FVector2D(150.f, 0.f));
+	W.Tick();
+	TestTrue(TEXT("mouse offset steers the first ship"), PC->GetCurrentFlightInput().Aim.X > 0.3f);
+
+	Ship->SetPlayerControlled(false);
+	PC->Possess(Other);
+	Other->SetPlayerControlled(true);
+	TestTrue(TEXT("stick recentred on the switch"), Access.VirtualStick().IsNearlyZero());
+	TestTrue(TEXT("the new ship gets no turn on its first frame"), Other->GetFlightInput().Aim.IsNearlyZero());
+	W.Tick();
+	TestTrue(TEXT("still straight after a frame"), PC->GetCurrentFlightInput().Aim.IsNearlyZero());
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

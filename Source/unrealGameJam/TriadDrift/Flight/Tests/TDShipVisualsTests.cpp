@@ -2,6 +2,9 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.Flight.Visuals
 
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
+#include "Sound/SoundWave.h"
+#include "Components/AudioComponent.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -225,6 +228,104 @@ bool FTDShipVisualCues::RunTest(const FString& Parameters)
 	Ship->SetFlightInput(Straight);
 	W.Advance(1.f);
 	TestTrue(TEXT("CollisionScrape on a glancing hit"), Ship->GetCueRequestCount(TEXT("CollisionScrape")) >= 1);
+	return true;
+}
+
+namespace TDShipAudioTest
+{
+	float Param(UAudioComponent* Audio, FName Name)
+	{
+		if (Audio)
+		{
+			for (const FAudioParameter& P : Audio->GetInstanceParameters())
+			{
+				if (P.ParamName == Name)
+				{
+					return P.FloatParam;
+				}
+			}
+		}
+		return -1.f;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDShipEngineAudioParams, "TriadDrift.Flight.Visuals.EngineLoopAudioParameters", TD_TEST_FLAGS)
+bool FTDShipEngineAudioParams::RunTest(const FString& Parameters)
+{
+	// Headless runs have no audio device: build a real (silent) audio component where the ship would spawn one.
+	ATDShip::TestSpawnEngineLoop = [](USoundBase* Sound, USceneComponent* Attach, FName Socket) -> UAudioComponent*
+	{
+		UAudioComponent* A = NewObject<UAudioComponent>(Attach->GetOwner());
+		A->SetSound(Sound);
+		A->SetupAttachment(Attach, Socket);
+		A->RegisterComponent();
+		return A;
+	};
+	ON_SCOPE_EXIT { ATDShip::TestSpawnEngineLoop = nullptr; };
+
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	ATDShip* Wingman = W.Spawn<ATDShip>(FVector(0.f, 4000.f, 0.f));
+	USoundWave* Loop = NewObject<USoundWave>(GetTransientPackage(), TEXT("TestEngineLoop"));
+	Loop->bLooping = true;
+	UTDShipVisuals* Visuals = NewObject<UTDShipVisuals>();
+	Visuals->EngineLoop = Loop;
+	Ship->SetShipVisuals(Visuals);
+	Wingman->SetShipVisuals(Visuals);
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UAudioComponent* Audio = Ship->GetEngineLoopAudio();
+	if (!TestNotNull(TEXT("engine loop component"), Audio)) { return false; }
+	TestTrue(TEXT("Speed01 sent at start"), TDShipAudioTest::Param(Audio, ATDShip::AudioParamSpeed01) >= 0.f);
+	TestEqual(TEXT("Boost01 0 at cruise"), TDShipAudioTest::Param(Audio, ATDShip::AudioParamBoost01), 0.f, 0.01f);
+	TestEqual(TEXT("Drift01 0 at cruise"), TDShipAudioTest::Param(Audio, ATDShip::AudioParamDrift01), 0.f, 0.01f);
+	TestTrue(TEXT("wingman gets the parameters too"), TDShipAudioTest::Param(Wingman->GetEngineLoopAudio(), ATDShip::AudioParamSpeed01) >= 0.f);
+
+	// Boost: Boost01 eases to 1, Speed01 follows GetSpeed01, a SoundWave is pitched by speed.
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	In.bBoost = true;
+	Ship->SetFlightInput(In);
+	W.Advance(0.1f);
+	const float Partial = TDShipAudioTest::Param(Audio, ATDShip::AudioParamBoost01);
+	TestTrue(*FString::Printf(TEXT("Boost01 eases, not snaps (%.2f)"), Partial), Partial > 0.f && Partial < 0.95f);
+	W.Advance(0.4f);
+	TestEqual(TEXT("Boost01 1 while boosting"), TDShipAudioTest::Param(Audio, ATDShip::AudioParamBoost01), 1.f, 0.01f);
+	TestEqual(TEXT("Speed01 matches GetSpeed01"), TDShipAudioTest::Param(Audio, ATDShip::AudioParamSpeed01), Ship->GetSpeed01(), 0.02f);
+	TestEqual(TEXT("SoundWave pitched by speed"), Audio->PitchMultiplier, 0.8f + 0.6f * Ship->GetSpeed01(), 0.02f);
+
+	// Drift: Drift01 eases to 1, Boost01 back to 0.
+	In.bBoost = false;
+	In.bDrift = true;
+	In.Aim = FVector2D(1.f, 0.f);
+	Ship->SetFlightInput(In);
+	W.Advance(0.5f);
+	TestEqual(TEXT("Drift01 1 while drifting"), TDShipAudioTest::Param(Audio, ATDShip::AudioParamDrift01), 1.f, 0.01f);
+	TestEqual(TEXT("Boost01 eased back to 0"), TDShipAudioTest::Param(Audio, ATDShip::AudioParamBoost01), 0.f, 0.01f);
+	In.bDrift = false;
+	Ship->SetFlightInput(In);
+	W.Advance(0.5f);
+
+	// Ship switch: the old player ship and the new one both keep updating.
+	Ship->SetPlayerControlled(false);
+	Wingman->SetPlayerControlled(true);
+	FTDFlightInput WingIn;
+	WingIn.Throttle = 1.f;
+	WingIn.bBoost = true;
+	Wingman->SetFlightInput(WingIn);
+	W.Advance(0.5f);
+	TestEqual(TEXT("after the switch: new player ship's Boost01"), TDShipAudioTest::Param(Wingman->GetEngineLoopAudio(), ATDShip::AudioParamBoost01), 1.f, 0.01f);
+	TestEqual(TEXT("after the switch: old ship's Drift01 back to 0"), TDShipAudioTest::Param(Ship->GetEngineLoopAudio(), ATDShip::AudioParamDrift01), 0.f, 0.01f);
+
+	// Respawn: death stops the loop, revive starts a new one that receives the parameters.
+	Ship->GetHealth()->Kill();
+	W.Tick();
+	TestNull(TEXT("dead: engine loop stopped"), Ship->GetEngineLoopAudio());
+	Ship->GetHealth()->Revive();
+	W.Advance(0.2f);
+	UAudioComponent* Reborn = Ship->GetEngineLoopAudio();
+	TestNotNull(TEXT("revived: engine loop back"), Reborn);
+	TestEqual(TEXT("revived: Speed01 sent"), TDShipAudioTest::Param(Reborn, ATDShip::AudioParamSpeed01), Ship->GetSpeed01(), 0.02f);
 	return true;
 }
 
