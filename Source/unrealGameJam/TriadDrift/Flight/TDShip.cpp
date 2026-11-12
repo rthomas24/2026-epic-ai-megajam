@@ -6,6 +6,10 @@
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -89,6 +93,48 @@ void ATDShip::BeginPlay()
 void ATDShip::SetShipId(ETDShipId NewId)
 {
 	ShipId = NewId;
+	if (HasActorBegunPlay())
+	{
+		ApplyPlaceholderLook();
+	}
+}
+
+void ATDShip::SetShipVisuals(UTDShipVisuals* InVisuals)
+{
+	Visuals = InVisuals;
+	if (HasActorBegunPlay())
+	{
+		ApplyPlaceholderLook();
+	}
+}
+
+FLinearColor ATDShip::GetPlaceholderColor() const
+{
+	return Team == ETDTeam::Player ? UTDStatics::ShipColor(ShipId) : UTDStatics::TeamColor(Team);
+}
+
+void ATDShip::ApplyPlaceholderLook()
+{
+	// Real art wins: put the presentation mesh on the hull and drop the placeholder-only parts.
+	if (Visuals && !Visuals->Mesh.IsNull() && HullMesh)
+	{
+		if (UStaticMesh* Mesh = Visuals->Mesh.LoadSynchronous())
+		{
+			HullMesh->SetStaticMesh(Mesh);
+			HullMesh->SetRelativeRotation(FRotator::ZeroRotator); // exported +X forward (blender-unreal-export)
+			HullMesh->SetRelativeScale3D(FVector::OneVector);
+			for (int32 i = 0; i < Visuals->MaterialOverrides.Num(); ++i)
+			{
+				if (UMaterialInterface* Mat = Visuals->MaterialOverrides[i].LoadSynchronous())
+				{
+					HullMesh->SetMaterial(i, Mat);
+				}
+			}
+			SetPlaceholderPartsVisible(false);
+			return;
+		}
+	}
+	Super::ApplyPlaceholderLook();
 }
 
 void ATDShip::SetPlayerControlled(bool bInPlayerControlled)

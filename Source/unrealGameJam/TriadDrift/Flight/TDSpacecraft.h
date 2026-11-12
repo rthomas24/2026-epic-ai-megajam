@@ -114,6 +114,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift")
 	void SetTeam(ETDTeam NewTeam);
 
+	/**
+	 * Show / hide the placeholder-only parts (cube wings, engine glow block). Call with false once a
+	 * real presentation mesh is on the hull (ATDShip does this itself from its UTDShipVisuals).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift")
+	void SetPlaceholderPartsVisible(bool bVisible);
+
+	/** Re-applies the placeholder colours (team colour here; squad colour on ATDShip). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift")
+	virtual void ApplyPlaceholderLook();
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift")
+	UStaticMeshComponent* GetEngineGlow() const { return EngineGlow; }
+
 	virtual ETDTeam GetTeam() const override { return Team; }
 
 	// ---- AActor / APawn ------------------------------------------------------------------------------
@@ -161,10 +175,28 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
 	TObjectPtr<UStaticMeshComponent> PlaceholderWings;
 
+	/** Placeholder engine block at the tail: glows in the ship colour and stretches with boost. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	TObjectPtr<UStaticMeshComponent> EngineGlow;
+
+	/** Emissive strength of the placeholder engine glow. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	float EngineGlowBoost = 8.f;
+
+	/** Engine glow length at cruise and at full boost (relative X scale). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	FVector2D EngineGlowLength = FVector2D(0.35f, 1.4f);
+
+	/** Colour used for the placeholder look (resolved by ApplyPlaceholderLook). */
+	virtual FLinearColor GetPlaceholderColor() const;
+
+	bool bPlaceholderParts = true;
+
 	/** Pitch added on top of the visual bank so the nose dips into hard turns (deg at full pitch rate). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Flight")
 	float VisualPitchLean = 6.f;
 
 private:
 	float VisualPitch = 0.f;
+	float GlowLength01 = 0.f;
 };

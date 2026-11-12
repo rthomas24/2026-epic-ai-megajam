@@ -66,6 +66,19 @@ ATDSpacecraft::ATDSpacecraft()
 		PlaceholderWings->SetRelativeScale3D(FVector(1.2f, 4.4f, 0.14f));
 	}
 
+	EngineGlow = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EngineGlow"));
+	EngineGlow->SetupAttachment(HullPivot);
+	EngineGlow->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	EngineGlow->SetGenerateOverlapEvents(false);
+	EngineGlow->CanCharacterStepUpOn = ECB_No;
+	EngineGlow->SetCastShadow(false);
+	if (CubeMesh.Succeeded())
+	{
+		EngineGlow->SetStaticMesh(CubeMesh.Object);
+		EngineGlow->SetRelativeLocation(FVector(-215.f, 0.f, 0.f));
+		EngineGlow->SetRelativeScale3D(FVector(0.35f, 0.9f, 0.35f));
+	}
+
 	ShipMovement = CreateDefaultSubobject<UTDShipMovementComponent>(TEXT("ShipMovement"));
 	ShipMovement->UpdatedComponent = CollisionSphere;
 
@@ -86,6 +99,35 @@ void ATDSpacecraft::BeginPlay()
 	{
 		ShipMovement->OnFlightImpact.AddDynamic(this, &ATDSpacecraft::HandleFlightImpact);
 		AddTickPrerequisiteComponent(ShipMovement);
+	}
+	ApplyPlaceholderLook();
+}
+
+FLinearColor ATDSpacecraft::GetPlaceholderColor() const
+{
+	return UTDStatics::TeamColor(Team);
+}
+
+void ATDSpacecraft::ApplyPlaceholderLook()
+{
+	if (!bPlaceholderParts)
+	{
+		return;
+	}
+	const FLinearColor Color = GetPlaceholderColor();
+	UTDStatics::TintPlaceholder(HullMesh, Color);
+	UTDStatics::TintPlaceholder(PlaceholderWings, Color * 0.45f);
+	UTDStatics::TintPlaceholder(EngineGlow, Color, EngineGlowBoost);
+}
+
+void ATDSpacecraft::SetPlaceholderPartsVisible(bool bVisible)
+{
+	bPlaceholderParts = bVisible;
+	if (PlaceholderWings) { PlaceholderWings->SetVisibility(bVisible); }
+	if (EngineGlow) { EngineGlow->SetVisibility(bVisible); }
+	if (bVisible)
+	{
+		ApplyPlaceholderLook();
 	}
 }
 
@@ -220,6 +262,10 @@ bool ATDSpacecraft::IsFlightParked() const
 void ATDSpacecraft::SetTeam(ETDTeam NewTeam)
 {
 	Team = NewTeam;
+	if (HasActorBegunPlay())
+	{
+		ApplyPlaceholderLook();
+	}
 }
 
 void ATDSpacecraft::HandleFlightImpact(const FTDFlightImpact& Impact)
@@ -256,4 +302,15 @@ void ATDSpacecraft::UpdateHullPresentation(float DeltaSeconds)
 	const float Pitch01 = Tuning.TurnRate > 0.f ? FMath::Clamp(Rates.Y / Tuning.TurnRate, -1.f, 1.f) : 0.f;
 	VisualPitch = FMath::FInterpTo(VisualPitch, Pitch01 * VisualPitchLean, DeltaSeconds, 6.f);
 	HullPivot->SetRelativeRotation(FRotator(VisualPitch, 0.f, ShipMovement->GetVisualBank()));
+
+	// Engine glow stretches with speed above cruise, so boost reads at a glance.
+	if (EngineGlow && bPlaceholderParts)
+	{
+		const float Range = FMath::Max(Tuning.BoostSpeed - Tuning.CruiseSpeed, 1.f);
+		const float Target01 = FMath::Clamp(((float)GetVelocity().Size() - Tuning.CruiseSpeed) / Range, 0.f, 1.f);
+		GlowLength01 = FMath::FInterpTo(GlowLength01, IsBoosting() ? FMath::Max(Target01, 0.6f) : Target01, DeltaSeconds, 8.f);
+		const float LengthX = FMath::Lerp(EngineGlowLength.X, EngineGlowLength.Y, GlowLength01);
+		EngineGlow->SetRelativeScale3D(FVector(LengthX, 0.9f, 0.35f));
+		EngineGlow->SetRelativeLocation(FVector(-200.f - 50.f * LengthX, 0.f, 0.f));
+	}
 }
