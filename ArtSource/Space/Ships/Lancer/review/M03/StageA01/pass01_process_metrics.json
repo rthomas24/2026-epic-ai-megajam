@@ -1,0 +1,12 @@
+{
+  "pid": 4076,
+  "started_utc": "2026-11-12T22:21:23.5313312Z",
+  "exit_code": 0,
+  "hard_timeout": false,
+  "elapsed_seconds": 11.21,
+  "peak_working_set_mib": 798.77,
+  "minimum_free_gib": 4.468,
+  "threads": 2,
+  "phase": "structural",
+  "grant_seconds": 120
+}

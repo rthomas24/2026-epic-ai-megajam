@@ -4,6 +4,16 @@ Nick's approved blue military-spacecraft turnaround in `refs/Lancer_M03_authorit
 is the visual authority for this redesign. The rounded white/cyan M02 remains
 unchanged for history, technical reference and rollback. No old files are replaced.
 
+Current checkpoint: structural A01 exists as `Lancer_M03_structure_v01.blend`.
+It has clean mesh-health checks,36 passing frames and12 clear muzzle/exhaust rays,
+but **fails the assembly gate** on one hidden nose insert. See the preserved
+[A01 diagnostic browser page](../../review/M03/StageA01/index.html) and
+[measured review](../../review/M03/StageA01/review.md). Targeted corrections are
+prepared in source and await another Lead-cleared Blender pass. They are not yet
+verified. Subsequent structural saves increment their version and preserve A01.
+The final Production Review01 links below are planned deliverables, not present
+or approved at this checkpoint.
+
 Stage and actual measurements are in
 [the review report](../../review/M03/Review01/report.md) and measured JSON files.
 Open [the browser review](../../review/M03/Review01/index.html) for the actual

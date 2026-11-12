@@ -13,3 +13,5 @@ if qa['technical_pass'] and not structural:
     bpy.data.orphans_purge(do_recursive=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(P/'Lancer_M03_v01.blend'))
 runpy.run_path(str(OUT/'render_m03.py'))['run'](full=qa['technical_pass'],structural=structural)
+if not qa['technical_pass']:
+    raise RuntimeError('Lancer M03 technical gate failed; source and diagnostic renders retained')

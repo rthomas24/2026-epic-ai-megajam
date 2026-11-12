@@ -9,8 +9,8 @@ MATS=[];GROUPS={}
 PARTS={'Hull':(0,0,0),'Wing_L':(0,-70,0),'Wing_R':(0,70,0),'Canopy':(-112,0,63),
        'Primary_L':(30,-100,-42),'Primary_R':(30,100,-42),'Rotor_L':(65,-100,-57),'Rotor_R':(65,100,-57),
        'Secondary_L':(-90,-220,-44),'Secondary_R':(-90,220,-44),'Engine_L':(-402,-111,-3),'Engine_R':(-402,111,-3)}
-HULL=[(-385,42,21,0),(-300,62,29,1),(-180,74,33,3),(-60,76,34,5),(60,66,30,7),
-      (160,53,26,6),(280,36,21,3),(370,24,17,0),(400,18,12,0)]
+HULL=[(-385,42,21,0),(-300,62,29,1),(-180,74,33,3),(-60,76,34,5),(60,76,30,7),
+      (160,68,26,6),(280,52,21,3),(370,31,17,0),(400,25,12,0)]
 WING=[(70,100,-260,54,-4),(145,70,-250,40,-8),(270,-70,-245,25,-15),(360,-155,-228,12,-19)]
 AIR=[(0,0),(.06,.34),(.2,.5),(.8,.5),(.96,.24),(1,0),(.96,-.24),(.75,-.44),(.2,-.44),(.05,-.27)]
 
@@ -103,10 +103,18 @@ def upper(x,u=0):
     w,h,z=hull_profile(x);return z+h-max(0,abs(u)-.66)/.34*h*.5
 
 def primary_structure():
-    loft('Hull','StructuralKeel',[(x,w,h,0,z) for x,w,h,z in HULL],3,.92,.55)
-    # Chamfered front muzzle-like prow opening, recessed rather than capped flush.
-    tube('Hull','ProwRim',[(395,19),(402,19),(402,14),(395,14)],1,0,0,n=8)
-    loft('Hull','NoseRecess',[(389,14,9),(394,14,9)],3,bevel=.15)
+    keel=loft('Hull','StructuralKeel',[(x,w,h,0,z) for x,w,h,z in HULL],3,.92,.55)
+    # A broad, flattened armored mouth replaces the near-round first-pass tip.
+    # Cut the real keel; the old invisible enclosed insert is deliberately absent.
+    cutter=loft('TEMP','ProwCut',[(387,19.4,7.9),(406,19.4,7.9)],3,bevel=0)
+    HS['apply_modifiers'](keel);HS['boolean'](keel,cutter,operation='DIFFERENCE',solver='EXACT');HS['apply_modifiers'](keel)
+    GROUPS['TEMP'].remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+    vv=[];ff=[]
+    for x,w,h in [(395,27,14),(402,26,14),(402,19,7.5),(395,19,7.5)]:
+        vv.extend((x,y,z) for y,z in cross(w,h))
+    for j in range(4):
+        for i in range(8):ff.append((j*8+i,j*8+(i+1)%8,((j+1)%4)*8+(i+1)%8,((j+1)%4)*8+i))
+    solid('Hull','ProwArmorRim',vv,ff,1,.85,.18)
     loft('Hull','CanopySeat',[(-132,40,8,0,40),(-80,59,12,0,40),(55,54,11,0,39),(150,24,8,0,39)],0,.85,.4)
     for side,label in [(-1,'L'),(1,'R')]:
         g='Wing_'+label;vv=[];ff=[]
@@ -121,8 +129,11 @@ def primary_structure():
         cutter=loft('TEMP','IntakeCut'+label,[(43,30,18,side*110,39),(79,30,18,side*110,39)],3,bevel=0)
         HS['apply_modifiers'](shoulder);HS['boolean'](shoulder,cutter,operation='DIFFERENCE',solver='EXACT');HS['apply_modifiers'](shoulder)
         GROUPS['TEMP'].remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+        # One load-bearing backbone joins the intake shoulder to the engine case.
+        loft(g,'ShoulderBackbone'+label,[(-274,27,20,side*110,17),(-215,36,27,side*110,20),(-155,38,29,side*110,23),(-100,37,30,side*110,28)],0,.86,.45,.65)
+        loft(g,'RootTransition'+label,[(-222,32,15,side*92,-1),(-140,48,21,side*100,3),(-40,43,18,side*100,7),(60,25,14,side*100,12)],1,.77,.4,.7)
         # Cannons are held by a shaped saddle, not floating below the wing.
-        loft('Hull','PrimarySaddle'+label,[(-16,20,21,side*100,-30),(28,26,25,side*100,-31),(66,21,21,side*100,-32)],1,.8,.4)
+        loft('Hull','PrimarySaddle'+label,[(-16,20,21,side*100,-30),(28,26,25,side*100,-31),(68,21,21,side*100,-32)],1,.8,.4)
     # Armored cockpit glass with distinct framing, low roof and sloped windshield.
     secs=[(-112,40,47,84),(-50,53,49,104),(65,45,45,95),(143,23,40,54)]
     vv=[];ff=[]
@@ -154,11 +165,15 @@ def machinery():
     tube('Rotor','BarrelBase',[(1,22),(11,23),(25,21),(25,16),(1,16)],1,n=40,rough=.7)
     tube('Rotor','MuzzleBlue',[(121,18.3),(126,18.3),(126,17),(121,17)],5,n=48,tint=1)
     for i,x in enumerate([49,83]):tube('Rotor','BarrelCollar'+str(i),[(x,18.5),(x+4,18.5),(x+4,16),(x,16)],1,n=40,rough=.7)
-    # Four discreet launch ports per side preserve every legacy rocket frame.
-    loft('Secondary','FlushBay',[(-66,29,23,0,-25),(-44,34,27,0,-25),(83,34,27,0,-25),(100,29,23,0,-25)],3,.9,.4)
-    loft('Secondary','BayMount',[(-56,23,13,0,10),(23,23,14,0,10),(60,18,12,0,9)],1,.8,.35)
+    # A raised, tapered belly fairing replaces the hanging box and exposed tubes.
+    # The four real recessed bores surround unchanged local legacy exit frames.
+    bay=loft('Secondary','IntegratedLaunchFairing',[(-83,21,20,0,9),(-55,30,35,0,-4),(65,31,38,0,-6),(114,30,39,0,-6)],0,.71,.35,.7)
+    HS['apply_modifiers'](bay)
     for i,(y,z) in enumerate([(-16,-9),(-16,-39),(16,-9),(16,-39)]):
-        tube('Secondary','LaunchLiner'+str(i),[(86,12),(105,12),(109,11),(109,9),(86,9)],1,y,z,n=24,rough=.8)
+        cutter=HS['cylinder']('CUT_LaunchBore'+str(i),radius=.055,depth=.70,segments=24,axis='Y',location=co((106,y,z)),collection='Construction')
+        cutter.data.materials.append(MATS[0]);HS['boolean'](bay,cutter,operation='DIFFERENCE',solver='EXACT');HS['apply_modifiers'](bay)
+        bpy.data.objects.remove(cutter,do_unlink=True)
+    HS['add_bevel'](bay,width=.0012,segments=2,angle_deg=38)
     # Both drives share a local mesh but remain independently swappable assemblies.
     block=loft('Engine','EngineBlock',[(3,38,37,0,0),(31,46,46,0,1),(118,46,46,0,3),(191,38,37,0,6),(215,27,26,0,8)],1,.82,.6,rough=.7)
     cutter=HS['cylinder']('CUT_Exhaust',radius=.325,depth=.70,segments=64,axis='Y',location=co((22,0,0)),collection='Construction')
@@ -246,6 +261,12 @@ def combine():
         bm=bmesh.new();bm.from_mesh(ob.data);bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=1e-5)
         bmesh.ops.dissolve_degenerate(bm,edges=list(bm.edges),dist=1e-5);bmesh.ops.triangulate(bm,faces=list(bm.faces));bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces))
         bm.to_mesh(ob.data);bm.free();ob.data.update();HS['smooth_by_angle'](ob,angle_deg=38);HS['add_weighted_normal'](ob);HS['apply_modifiers'](ob)
+        # Boolean cutters can leave unused slots; compact and preserve assignments.
+        used=sorted({f.material_index for f in ob.data.polygons});slots=[ob.data.materials[i] for i in used]
+        remap={old:new for new,old in enumerate(used)}
+        for f in ob.data.polygons:f.material_index=remap[f.material_index]
+        ob.data.materials.clear()
+        for mat in slots:ob.data.materials.append(mat)
         HS['smart_uv'](ob,angle_deg=60,island_margin=.012)
         uv=ob.data.uv_layers.active.data;tiny=[]
         for f in ob.data.polygons:
@@ -295,7 +316,12 @@ def build(refined=True):
     meshes=combine();obs=assemble(meshes)
     assert before==hashlib.sha256((ROOT/'attachments.json').read_bytes()).hexdigest()
     write('build_manifest.json',dict(blender=bpy.app.version_string,phase='refined' if refined else 'structural',assembly_triangles=sum(len(o.data.polygons) for o in obs.values()),parts=len(obs),mesh_roles=len(meshes),materials=len(MATS),legacy_sha256=before,legacy_unchanged=True,elapsed_seconds=time.perf_counter()-start,native_imported=False,visual_approved=False))
-    bpy.ops.wm.save_as_mainfile(filepath=str(P/('Lancer_M03_work.blend' if refined else 'Lancer_M03_structure_v01.blend')))
+    if refined:destination=P/'Lancer_M03_work.blend'
+    else:
+        version=1
+        while (P/f'Lancer_M03_structure_v{version:02}.blend').exists():version+=1
+        destination=P/f'Lancer_M03_structure_v{version:02}.blend'
+    bpy.ops.wm.save_as_mainfile(filepath=str(destination))
     return obs
 
 if __name__=='__main__':build()

@@ -3,6 +3,7 @@ from pathlib import Path
 import json, math, runpy, time
 import bpy, numpy as np
 from mathutils import Vector
+from bpy_extras.object_utils import world_to_camera_view
 OUT=Path(__file__).resolve().parent;ROOT=OUT.parents[2];REPO=ROOT.parents[3]
 
 def look(o,p):o.rotation_euler=(Vector(p)-o.location).to_track_quat('-Z','Y').to_euler()
@@ -13,6 +14,7 @@ def bounds(obs):
 
 def frame(camera,obs,az,el,perspective=True):
     lo,hi=bounds(obs);centre=(lo+hi)*.5
+    camera.data.shift_x=0;camera.data.shift_y=0
     a,e=math.radians(az),math.radians(el);d=Vector((math.sin(a)*math.cos(e),-math.cos(a)*math.cos(e),math.sin(e)))
     camera.location=centre+d*max((hi-lo).length*2.7,3);look(camera,centre)
     camera.data.type='PERSP' if perspective else 'ORTHO';camera.data.lens=78
@@ -23,16 +25,18 @@ def frame(camera,obs,az,el,perspective=True):
         sc=bpy.context.scene;aspect=sc.render.resolution_x/sc.render.resolution_y
         camera.data.ortho_scale=max(width,height*aspect)*1.16
     else:
-        # Fit corners in both dimensions, adjusting distance rather than distorting geometry.
+        # Fit actual geometry, avoiding empty bounding-box corners around swept wings.
         rot=camera.rotation_euler.to_matrix();r=rot@Vector((1,0,0));u=rot@Vector((0,1,0));sc=bpy.context.scene
         aspect=sc.render.resolution_x/sc.render.resolution_y;tanx=math.tan(camera.data.angle_x/2);tany=tanx/aspect
-        distance=0
-        for x in (lo.x,hi.x):
-            for y in (lo.y,hi.y):
-                for z in (lo.z,hi.z):
-                    p=Vector((x,y,z))-centre
-                    distance=max(distance,abs(p.dot(r))*1.16/tanx+p.dot(d),abs(p.dot(u))*1.16/tany+p.dot(d))
+        points=[o.matrix_world@v.co for o in obs for v in o.data.vertices];distance=0
+        for point in points:
+            p=point-centre
+            distance=max(distance,abs(p.dot(r))*1.16/tanx+p.dot(d),abs(p.dot(u))*1.16/tany+p.dot(d))
         camera.location=centre+d*distance
+        bpy.context.view_layer.update()
+        projected=[world_to_camera_view(sc,camera,p) for p in points]
+        camera.data.shift_x=(min(p.x for p in projected)+max(p.x for p in projected))*.5-.5
+        camera.data.shift_y=((min(p.y for p in projected)+max(p.y for p in projected))*.5-.5)/aspect
 
 def studio():
     sc=bpy.context.scene;sc.render.engine='BLENDER_EEVEE'
