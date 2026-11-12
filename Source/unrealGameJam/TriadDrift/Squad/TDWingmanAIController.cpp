@@ -195,6 +195,8 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 	{
 		return; // the player flies this one (we should already be unpossessed)
 	}
+	// Gates are the leader's call: never transit one ahead of the player (T4's gate test).
+	TDSquad::HoldOutOfGates(Ship, 0.4f);
 	const bool bHaveLeader = Leader && S->IsShipAlive(S->GetActiveShipId());
 	const double T = Now();
 
