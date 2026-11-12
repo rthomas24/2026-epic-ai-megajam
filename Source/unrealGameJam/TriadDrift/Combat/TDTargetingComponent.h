@@ -147,12 +147,16 @@ public:
 	float LockMaxRange = 0.f;
 
 	/**
-	 * A lock is dropped once its target has been outside CycleConeDeg this long (auto-paint: turning to a new
+	 * A lock is dropped once its target has been outside LockConeDeg (+ LockStaleMarginDeg) this long (auto-paint: turning to a new
 	 * group lets the old locks go). When all MaxLocks are used, a new candidate in the lock cone replaces the
 	 * lock that has been out of view the longest.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "s"))
 	float LockStaleSeconds = 1.5f;
+
+	/** A lock counts as out of view beyond LockConeDeg plus this margin. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "Degrees"))
+	float LockStaleMarginDeg = 5.f;
 
 	/** Cone the paint candidate must stay inside. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "Degrees"))
