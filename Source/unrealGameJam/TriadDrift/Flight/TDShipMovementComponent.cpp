@@ -36,6 +36,24 @@ void UTDShipMovementComponent::ApplyFlightTuning(const FTDFlightTuning& NewTunin
 	Tuning.MinSpeed = FMath::Max(0.f, Tuning.MinSpeed);
 	Tuning.CruiseSpeed = FMath::Max(Tuning.MinSpeed, Tuning.CruiseSpeed);
 	Tuning.BoostSpeed = FMath::Max(Tuning.CruiseSpeed, Tuning.BoostSpeed);
+
+	// Clamp a plain cruise down to the new top speed (only ever down; intentional extra speed is kept).
+	const bool bExtraSpeedIntended = State.bBoosting || State.bDrifting || State.bBurstOverspeed
+		|| Context.bSpeedOverride || Context.ThrottleTopSpeed > Tuning.CruiseSpeed;
+	const float Top = Context.bAtmosphere ? Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction : Tuning.CruiseSpeed;
+	if (!bExtraSpeedIntended && State.ForwardSpeed > Top)
+	{
+		const float Speed = State.Velocity.Size();
+		State.ForwardSpeed = Top;
+		if (Speed > Top && Speed > KINDA_SMALL_NUMBER)
+		{
+			State.Velocity *= Top / Speed;
+			State.StrafeVelocity = FVector2D::ZeroVector;
+			Velocity = State.Velocity;
+			LastWrittenVelocity = Velocity;
+			UpdateComponentVelocity();
+		}
+	}
 }
 
 void UTDShipMovementComponent::SetSpeedOverride(float SpeedCmPerSec, float SteeringScale)

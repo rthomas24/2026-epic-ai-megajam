@@ -76,7 +76,6 @@ namespace TDReviewTest
 	}
 }
 
-using namespace TDReviewTest;
 
 // ------------------------------------------------------------------------------------------ drift
 
@@ -87,7 +86,7 @@ bool FTDReviewDriftSpam::RunTest(const FString& Parameters)
 	const float Cap = T.BoostSpeed * (1.f + T.DriftReleaseBurst);
 
 	// Tap drift ~6x per second for 3 s while turning: no burst is earned, speed never climbs.
-	FTDFlightState S = Cruising(T);
+	FTDFlightState S = TDReviewTest::Cruising(T);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
 	In.Aim = FVector2D(0.4f, 0.f);
@@ -96,7 +95,7 @@ bool FTDReviewDriftSpam::RunTest(const FString& Parameters)
 	for (int32 Frame = 0; Frame < 360; ++Frame) // 3 s at 120 fps
 	{
 		In.bDrift = (Frame % 20) < 6; // 50 ms drift taps, 6 per second
-		TDFlightSim::Advance(S, In, T, Open(), 1.f / 120.f);
+		TDFlightSim::Advance(S, In, T, TDReviewTest::Open(), 1.f / 120.f);
 		MaxSpeed = FMath::Max(MaxSpeed, (float)S.Velocity.Size());
 		Bursts += S.bDriftBurstThisStep ? 1 : 0;
 	}
@@ -104,7 +103,7 @@ bool FTDReviewDriftSpam::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("tap-spam can't pump speed (max %.0f)"), MaxSpeed), MaxSpeed <= T.CruiseSpeed * 1.02f);
 
 	// Long drifts released back-to-back: each burst is earned, but speed stays under the ceiling.
-	FTDFlightState L = Cruising(T);
+	FTDFlightState L = TDReviewTest::Cruising(T);
 	float MaxLong = 0.f;
 	FTDFlightInput Long;
 	Long.Throttle = 1.f;
@@ -112,20 +111,20 @@ bool FTDReviewDriftSpam::RunTest(const FString& Parameters)
 	for (int32 Frame = 0; Frame < 1200; ++Frame) // 10 s
 	{
 		Long.bDrift = (Frame % 48) < 40; // 0.33 s drifts, released every 0.4 s
-		TDFlightSim::Advance(L, Long, T, Open(), 1.f / 120.f);
+		TDFlightSim::Advance(L, Long, T, TDReviewTest::Open(), 1.f / 120.f);
 		MaxLong = FMath::Max(MaxLong, (float)L.Velocity.Size());
 	}
 	TestTrue(FString::Printf(TEXT("repeated earned bursts never exceed boost x1.2 (max %.0f, cap %.0f)"), MaxLong, Cap), MaxLong <= Cap + 1.f);
 
 	// A real drift still pays out the full +20%.
-	FTDFlightState R = Cruising(T);
+	FTDFlightState R = TDReviewTest::Cruising(T);
 	FTDFlightInput Held;
 	Held.Throttle = 1.f;
 	Held.bDrift = true;
-	for (int32 i = 0; i < 48; ++i) { TDFlightSim::Advance(R, Held, T, Open(), 1.f / 120.f); }
+	for (int32 i = 0; i < 48; ++i) { TDFlightSim::Advance(R, Held, T, TDReviewTest::Open(), 1.f / 120.f); }
 	const float Before = R.Velocity.Size();
 	Held.bDrift = false;
-	TDFlightSim::Advance(R, Held, T, Open(), 1.f / 120.f);
+	TDFlightSim::Advance(R, Held, T, TDReviewTest::Open(), 1.f / 120.f);
 	TestTrue(TEXT("0.4 s drift earns the burst"), R.bDriftBurstThisStep);
 	TestEqual(TEXT("+20%"), (float)R.Velocity.Size(), Before * 1.2f, Before * 0.01f);
 	return true;
@@ -138,8 +137,8 @@ bool FTDReviewDriftOverride::RunTest(const FString& Parameters)
 	const float Cap = T.BoostSpeed * (1.f + T.DriftReleaseBurst);
 
 	// Holding drift as a hyperdrive jump ends: the drift starts at 80,000 and must not keep it.
-	FTDFlightState S = Cruising(T);
-	FTDFlightContext Jump = Open();
+	FTDFlightState S = TDReviewTest::Cruising(T);
+	FTDFlightContext Jump = TDReviewTest::Open();
 	Jump.bSpeedOverride = true;
 	Jump.OverrideSpeed = 80000.f;
 	FTDFlightInput In;
@@ -148,13 +147,13 @@ bool FTDReviewDriftOverride::RunTest(const FString& Parameters)
 	for (int32 i = 0; i < 240; ++i) { TDFlightSim::Advance(S, In, T, Jump, 1.f / 120.f); }
 	TestTrue(TEXT("no drift during an override"), !S.bDrifting);
 	TestEqual(TEXT("at jump speed"), (float)S.Velocity.Size(), 80000.f, 800.f);
-	for (int32 i = 0; i < 120 * 3; ++i) { TDFlightSim::Advance(S, In, T, Open(), 1.f / 120.f); }
+	for (int32 i = 0; i < 120 * 3; ++i) { TDFlightSim::Advance(S, In, T, TDReviewTest::Open(), 1.f / 120.f); }
 	TestTrue(TEXT("drift engages once the override clears"), S.bDrifting);
 	TestTrue(FString::Printf(TEXT("drift bleeds the jump speed down to the ceiling (%.0f)"), (float)S.Velocity.Size()), S.Velocity.Size() <= Cap + 1.f);
 
 	// An override starting mid-drift ends the drift without a burst.
-	FTDFlightState D = Cruising(T);
-	for (int32 i = 0; i < 60; ++i) { TDFlightSim::Advance(D, In, T, Open(), 1.f / 120.f); }
+	FTDFlightState D = TDReviewTest::Cruising(T);
+	for (int32 i = 0; i < 60; ++i) { TDFlightSim::Advance(D, In, T, TDReviewTest::Open(), 1.f / 120.f); }
 	TestTrue(TEXT("drifting"), D.bDrifting);
 	TDFlightSim::Advance(D, In, T, Jump, 1.f / 120.f);
 	TestTrue(TEXT("drift ended by the override"), !D.bDrifting && D.bDriftEndedThisStep);
@@ -168,7 +167,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewBoostLockout, "TriadDrift.Flight.Boost
 bool FTDReviewBoostLockout::RunTest(const FString& Parameters)
 {
 	const FTDFlightTuning T;
-	FTDFlightState S = Cruising(T);
+	FTDFlightState S = TDReviewTest::Cruising(T);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
 	In.bBoost = true;
@@ -176,7 +175,7 @@ bool FTDReviewBoostLockout::RunTest(const FString& Parameters)
 	bool bWas = false;
 	for (int32 i = 0; i < 120 * 10; ++i) // hold boost for 10 s straight
 	{
-		TDFlightSim::Advance(S, In, T, Open(), 1.f / 120.f);
+		TDFlightSim::Advance(S, In, T, TDReviewTest::Open(), 1.f / 120.f);
 		Starts += (S.bBoosting && !bWas) ? 1 : 0;
 		bWas = S.bBoosting;
 	}
@@ -185,9 +184,9 @@ bool FTDReviewBoostLockout::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the meter refills meanwhile"), S.Boost01 > 0.9f);
 
 	In.bBoost = false;
-	TDFlightSim::Advance(S, In, T, Open(), 1.f / 120.f);
+	TDFlightSim::Advance(S, In, T, TDReviewTest::Open(), 1.f / 120.f);
 	In.bBoost = true;
-	TDFlightSim::Advance(S, In, T, Open(), 1.f / 120.f);
+	TDFlightSim::Advance(S, In, T, TDReviewTest::Open(), 1.f / 120.f);
 	TestTrue(TEXT("release and press boosts again"), S.bBoosting);
 	return true;
 }
@@ -199,11 +198,11 @@ bool FTDReviewStrafe::RunTest(const FString& Parameters)
 {
 	const FTDFlightTuning T;
 	TestEqual(TEXT("features.md strafe 2500"), T.StrafeSpeed, 2500.f);
-	FTDFlightState S = Cruising(T);
+	FTDFlightState S = TDReviewTest::Cruising(T);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
 	In.Strafe = FVector2D(1.f, -1.f);
-	for (int32 i = 0; i < 120 * 2; ++i) { TDFlightSim::Advance(S, In, T, Open(), 1.f / 120.f); }
+	for (int32 i = 0; i < 120 * 2; ++i) { TDFlightSim::Advance(S, In, T, TDReviewTest::Open(), 1.f / 120.f); }
 	TestEqual(TEXT("right strafe 2500 cm/s"), (float)S.Velocity.Y, 2500.f, 30.f);
 	TestEqual(TEXT("down strafe 2500 cm/s"), (float)S.Velocity.Z, -2500.f, 30.f);
 	TestEqual(TEXT("forward speed unchanged"), (float)S.Velocity.X, T.CruiseSpeed, 60.f);
@@ -219,7 +218,7 @@ bool FTDReviewBoundaryOutsteer::RunTest(const FString& Parameters)
 
 	// A pilot fighting the boundary: always aiming to turn away from the centre, boosting, and drifting
 	// in bursts. They must still end up heading home.
-	FTDFlightState S = Cruising(T);
+	FTDFlightState S = TDReviewTest::Cruising(T);
 	S.Location = FVector(T.BoundaryRadius + 1000.f, 0.f, 0.f);
 	float MaxDepth = 0.f;
 	for (int32 i = 0; i < 120 * 20; ++i)
@@ -236,6 +235,43 @@ bool FTDReviewBoundaryOutsteer::RunTest(const FString& Parameters)
 	}
 	TestTrue(FString::Printf(TEXT("held near the edge despite the pilot (max %.0f cm out)"), MaxDepth), MaxDepth < 40000.f);
 	TestTrue(TEXT("never escapes"), S.Location.Size() < T.BoundaryRadius + 40000.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewTuningClampsSpeed, "TriadDrift.Flight.Speed.ApplyFlightTuningClampsCruise", TD_TEST_FLAGS)
+bool FTDReviewTuningClampsSpeed::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	TestEqual(TEXT("spawns at the default cruise"), (float)Ship->GetVelocity().Size(), 6000.f, 1.f);
+
+	// A slow spec (carrier: cruise 1500) applied right after spawn: no lurch.
+	FTDFlightTuning Slow;
+	Slow.MinSpeed = 600.f;
+	Slow.CruiseSpeed = 1500.f;
+	Slow.BoostSpeed = 2000.f;
+	Ship->ApplyFlightTuning(Slow);
+	TestEqual(TEXT("clamped to the new cruise at once"), (float)Ship->GetVelocity().Size(), 1500.f, 1.f);
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Ship->SetFlightInput(In);
+	float MaxSpeed = 0.f;
+	for (int32 i = 0; i < 60; ++i) { W.Tick(); MaxSpeed = FMath::Max(MaxSpeed, (float)Ship->GetVelocity().Size()); }
+	TestTrue(FString::Printf(TEXT("never above the new cruise (max %.0f)"), MaxSpeed), MaxSpeed <= 1501.f);
+
+	// Intentional extra speed survives a re-applied spec.
+	Ship->ApplyFlightTuning(FTDFlightTuning());
+	Ship->SetSpeedOverride(30000.f, 0.5f);
+	W.Advance(1.f);
+	Ship->ApplyFlightTuning(FTDFlightTuning());
+	TestTrue(TEXT("a speed override isn't clamped"), Ship->GetVelocity().Size() > 25000.f);
+	Ship->ClearSpeedOverride();
+
+	// Slower than the new cruise: never pushed up.
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(800.f);
+	Ship->ApplyFlightTuning(FTDFlightTuning());
+	TestEqual(TEXT("only clamps down"), (float)Ship->GetVelocity().Size(), 800.f, 1.f);
 	return true;
 }
 
@@ -260,7 +296,7 @@ bool FTDReviewCollisionEvents::RunTest(const FString& Parameters)
 	auto Hit = [this](float YawIntoWall, float& OutDamage, bool& bOutHeadOn) -> bool
 	{
 		FTDTestWorld W;
-		SpawnWall(W, FVector(3000.f, 0.f, 0.f));
+		TDReviewTest::SpawnWall(W, FVector(3000.f, 0.f, 0.f));
 		ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
 		UTDFlightEventCounter* Counter = NewObject<UTDFlightEventCounter>();
 		Counter->AddToRoot();
@@ -293,7 +329,7 @@ bool FTDReviewCollisionEvents::RunTest(const FString& Parameters)
 	// Cooldown + pinned contact: fly into the wall and keep pushing.
 	{
 		FTDTestWorld W;
-		SpawnWall(W, FVector(3000.f, 0.f, 0.f));
+		TDReviewTest::SpawnWall(W, FVector(3000.f, 0.f, 0.f));
 		ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
 		UTDFlightEventCounter* Counter = NewObject<UTDFlightEventCounter>();
 		Counter->AddToRoot();
@@ -525,14 +561,14 @@ bool FTDReviewInputRouting::RunTest(const FString& Parameters)
 	TestFalse(TEXT("real mouse movement takes over"), Access.UsingGamepad());
 
 	// Powers: one-power ship fires on press; two-power ship splits tap / hold.
-	UTDPowerComponent* Sig1 = AddPower(Ship, ETDPowerInput::Signature1, TEXT("TestSig1"));
+	UTDPowerComponent* Sig1 = TDReviewTest::AddPower(Ship, ETDPowerInput::Signature1, TEXT("TestSig1"));
 	TestEqual(TEXT("dome hold is 0.5 s"), Access.HoldSeconds(), 0.5f);
 	Access.PowerDown();
 	TestTrue(TEXT("no Signature2: Signature1 fires on press"), Sig1->GetCooldown01() < 1.f);
 	Access.PowerUp();
 	Sig1->ResetCooldown();
 
-	UTDPowerComponent* Sig2 = AddPower(Ship, ETDPowerInput::Signature2, TEXT("TestSig2"));
+	UTDPowerComponent* Sig2 = TDReviewTest::AddPower(Ship, ETDPowerInput::Signature2, TEXT("TestSig2"));
 	Access.PowerDown();
 	TestEqual(TEXT("two powers: nothing on press"), Sig1->GetCooldown01(), 1.f);
 	W.Advance(0.1f);
@@ -546,7 +582,25 @@ bool FTDReviewInputRouting::RunTest(const FString& Parameters)
 	Access.PowerUp();
 	TestEqual(TEXT("hold doesn't also fire Signature1"), Sig1->GetCooldown01(), 1.f);
 
-	UTDPowerComponent* Ability = AddPower(Ship, ETDPowerInput::Ability, TEXT("TestAbility"));
+	// Hold Q on Bastion, then switch away: the old ship gets the Signature2 release, and the key-up
+	// that arrives after the switch is swallowed (it must not fire the new ship's Signature1).
+	Sig1->ResetCooldown();
+	Sig2->ResetCooldown();
+	UTDTestPowerComponent* Sig1Counter = Cast<UTDTestPowerComponent>(Sig1);
+	UTDTestPowerComponent* Sig2Counter = Cast<UTDTestPowerComponent>(Sig2);
+	const int32 ReleasesBefore = Sig2Counter ? Sig2Counter->Releases : 0;
+	Access.PowerDown();
+	W.Advance(0.6f);
+	PC->UnPossess();
+	TestEqual(TEXT("switching away mid-hold sends the Signature2 release"), Sig2Counter ? Sig2Counter->Releases : -1, ReleasesBefore + 1);
+	PC->Possess(Ship);
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	const int32 Sig1PressesBefore = Sig1Counter ? Sig1Counter->Presses : 0;
+	Access.PowerUp(); // the Q key-up after the switch
+	TestEqual(TEXT("late key-up after a switch is swallowed"), Sig1Counter ? Sig1Counter->Presses : -1, Sig1PressesBefore);
+
+	UTDPowerComponent* Ability = TDReviewTest::AddPower(Ship, ETDPowerInput::Ability, TEXT("TestAbility"));
 	EPI->InjectInputForAction(PC->FindActionByName(TEXT("IA_Ability")), FInputActionValue(true));
 	W.Tick();
 	TestTrue(TEXT("injected E fires the ability"), Ability->GetCooldown01() < 1.f);

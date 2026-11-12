@@ -6,7 +6,7 @@
 #include "TriadDrift/World/TDPortalGate.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
-#include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -20,12 +20,12 @@
 
 namespace
 {
-	FTransform Facing(const FVector& Location, const FVector& LookAt)
+	FTransform TDGalaxy_Facing(const FVector& Location, const FVector& LookAt)
 	{
 		return FTransform((LookAt - Location).Rotation(), Location);
 	}
 
-	FTDAsteroidFieldSpec Field(const FVector& Center, float Radius, int32 Count, int32 Seed, float Clear = 0.f, float MinSize = 600.f, float MaxSize = 3500.f)
+	FTDAsteroidFieldSpec TDGalaxy_Field(const FVector& Center, float Radius, int32 Count, int32 Seed, float Clear = 0.f, float MinSize = 600.f, float MaxSize = 3500.f)
 	{
 		FTDAsteroidFieldSpec F;
 		F.Center = Center;
@@ -38,13 +38,13 @@ namespace
 		return F;
 	}
 
-	FTDGatePairSpec GatePair(FName IdA, const FVector& A, FName IdB, const FVector& B, const FVector& BHeadsToward, TArray<ETDGamePhase> Open = {})
+	FTDGatePairSpec TDGalaxy_GatePair(FName IdA, const FVector& A, FName IdB, const FVector& B, const FVector& BHeadsToward, TArray<ETDGamePhase> Open = {})
 	{
 		FTDGatePairSpec G;
 		G.IdA = IdA;
 		G.IdB = IdB;
-		G.A = Facing(A, B);					// fly into A heading toward B's side of the galaxy
-		G.B = Facing(B, BHeadsToward);		// come out of B heading somewhere useful
+		G.A = TDGalaxy_Facing(A, B);					// fly into A heading toward B's side of the galaxy
+		G.B = TDGalaxy_Facing(B, BHeadsToward);		// come out of B heading somewhere useful
 		G.OpenPhases = MoveTemp(Open);
 		return G;
 	}
@@ -86,10 +86,10 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 	L.PlayerStart = FTransform(FRotator::ZeroRotator, FVector(-25000.f, 0.f, 0.f));
 
 	// Combat zone: a belt with a clear dogfighting pocket, plus a denser flank field for cover.
-	L.AsteroidFields.Add(Field(FVector::ZeroVector, 42000.f, 60, 11, /*Clear*/ 14000.f));
-	L.AsteroidFields.Add(Field(FVector(30000.f, -60000.f, 5000.f), 22000.f, 35, 23, 0.f, 800.f, 4500.f));
-	L.AsteroidFields.Add(Field(FVector(220000.f, 130000.f, 0.f), 30000.f, 30, 37));	// Verdance approach
-	L.AsteroidFields.Add(Field(FVector(-210000.f, 170000.f, 20000.f), 30000.f, 30, 41, 0.f, 1000.f, 5000.f));	// Cinder approach
+	L.AsteroidFields.Add(TDGalaxy_Field(FVector::ZeroVector, 42000.f, 60, 11, /*Clear*/ 14000.f));
+	L.AsteroidFields.Add(TDGalaxy_Field(FVector(30000.f, -60000.f, 5000.f), 22000.f, 35, 23, 0.f, 800.f, 4500.f));
+	L.AsteroidFields.Add(TDGalaxy_Field(FVector(220000.f, 130000.f, 0.f), 30000.f, 30, 37));	// Verdance approach
+	L.AsteroidFields.Add(TDGalaxy_Field(FVector(-210000.f, 170000.f, 20000.f), 30000.f, 30, 41, 0.f, 1000.f, 5000.f));	// Cinder approach
 
 	// Station ruins around the pocket: long girders and broken modules as cover.
 	const float RuinRing = 22000.f;
@@ -126,21 +126,21 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 	{
 		const FVector ToZone = (L.CombatZoneCenter - P.Location).GetSafeNormal();
 		const FVector Orbit = P.Location + ToZone * (P.AtmosphereRadius + 20000.f);
-		L.ReturnPoints.Add(P.ReturnPoint, Facing(Orbit, L.CombatZoneCenter));	// face home after take-off
+		L.ReturnPoints.Add(P.ReturnPoint, TDGalaxy_Facing(Orbit, L.CombatZoneCenter));	// face home after take-off
 	}
 
 	// Dominion approach, far "south" of the combat zone, nose toward it.
 	const FVector DominionLoc(0.f, -520000.f, 20000.f);
-	L.Dominion = Facing(DominionLoc, L.CombatZoneCenter);
+	L.Dominion = TDGalaxy_Facing(DominionLoc, L.CombatZoneCenter);
 	const FVector DominionFwd = (L.CombatZoneCenter - DominionLoc).GetSafeNormal();
 	L.ReturnPoints.Add(TDReturnPoints::DominionHangarExit, FTransform(DominionFwd.Rotation(), DominionLoc + DominionFwd * 45000.f));
 
 	// Gates: combat zone <-> each orbit, and a flank pair that opens for waves 3-5.
 	const FVector VerdanceOrbit = L.ReturnPoints[TDReturnPoints::VerdanceOrbit].GetLocation();
 	const FVector CinderOrbit = L.ReturnPoints[TDReturnPoints::CinderOrbit].GetLocation();
-	L.Gates.Add(GatePair(TEXT("Gate_Verdance_Zone"), FVector(30000.f, 18000.f, 0.f), TEXT("Gate_Verdance_Orbit"), VerdanceOrbit - (VerdanceOrbit - L.CombatZoneCenter).GetSafeNormal() * 15000.f, Verdance.Location));
-	L.Gates.Add(GatePair(TEXT("Gate_Cinder_Zone"), FVector(-30000.f, 18000.f, 0.f), TEXT("Gate_Cinder_Orbit"), CinderOrbit - (CinderOrbit - L.CombatZoneCenter).GetSafeNormal() * 15000.f, Cinder.Location));
-	L.Gates.Add(GatePair(TEXT("Gate_Flank_West"), FVector(-35000.f, -38000.f, 0.f), TEXT("Gate_Flank_East"), FVector(38000.f, 36000.f, 3000.f), L.CombatZoneCenter,
+	L.Gates.Add(TDGalaxy_GatePair(TEXT("Gate_Verdance_Zone"), FVector(30000.f, 18000.f, 0.f), TEXT("Gate_Verdance_Orbit"), VerdanceOrbit - (VerdanceOrbit - L.CombatZoneCenter).GetSafeNormal() * 15000.f, Verdance.Location));
+	L.Gates.Add(TDGalaxy_GatePair(TEXT("Gate_Cinder_Zone"), FVector(-30000.f, 18000.f, 0.f), TEXT("Gate_Cinder_Orbit"), CinderOrbit - (CinderOrbit - L.CombatZoneCenter).GetSafeNormal() * 15000.f, Cinder.Location));
+	L.Gates.Add(TDGalaxy_GatePair(TEXT("Gate_Flank_West"), FVector(-35000.f, -38000.f, 0.f), TEXT("Gate_Flank_East"), FVector(38000.f, 36000.f, 3000.f), L.CombatZoneCenter,
 		{ ETDGamePhase::Waves3to4, ETDGamePhase::Wave5, ETDGamePhase::DominionAssault }));
 
 	return L;
@@ -244,9 +244,16 @@ void ATDGalaxyLayout::Build()
 	}
 	bBuilt = true;
 
+	// One call: T1's travel subsystem hands the bounds to every ship movement component (new spawns
+	// and respawns included). The world subsystem keeps a copy for AI and queries.
+	const FVector BoundsCenter = GetActorTransform().TransformPosition(Layout.BoundaryCenter);
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		Travel->SetPlayBounds(BoundsCenter, Layout.BoundaryRadius);
+	}
 	if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
 	{
-		WorldSys->SetPlayBounds(GetActorTransform().TransformPosition(Layout.BoundaryCenter), Layout.BoundaryRadius);
+		WorldSys->SetPlayBounds(BoundsCenter, Layout.BoundaryRadius);
 	}
 
 	BuildAsteroids();
@@ -277,8 +284,42 @@ void ATDGalaxyLayout::Build()
 		}
 	}
 
-	ApplyBoundsToShips();
+	// Hyperdrive drop-out at the Dominion approach (planets register their own wells).
+	if (Dominion)
+	{
+		if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+		{
+			Travel->RegisterGravityWell(TDGalaxyWells::Dominion, Dominion->GetActorLocation(), DominionWellRadius, Dominion);
+		}
+	}
+
+	SetHidePlaceholderDressing(bHidePlaceholderDressing);
 	UpdateGatePhases();
+}
+
+void ATDGalaxyLayout::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (bBuilt)
+	{
+		if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+		{
+			Travel->ClearPlayBounds();
+			Travel->UnregisterGravityWell(TDGalaxyWells::Dominion);
+		}
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void ATDGalaxyLayout::SetHidePlaceholderDressing(bool bHide)
+{
+	bHidePlaceholderDressing = bHide;
+	// Visibility only: collision, obstacles and gameplay stay exactly the same.
+	if (Asteroids) { Asteroids->SetVisibility(!bHide); }
+	if (RuinBlocks) { RuinBlocks->SetVisibility(!bHide); }
+	for (ATDPlanetAtmosphere* P : Planets)
+	{
+		if (P) { P->SetPlaceholderVisible(!bHide); }
+	}
 }
 
 void ATDGalaxyLayout::BuildAsteroids()
@@ -367,26 +408,6 @@ void ATDGalaxyLayout::BuildGates()
 
 // ------------------------------------------------------------------------------------------ tick
 
-void ATDGalaxyLayout::ApplyBoundsToShips()
-{
-	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
-	if (!Registry)
-	{
-		return;
-	}
-	const FVector Center = GetActorTransform().TransformPosition(Layout.BoundaryCenter);
-	for (const TWeakObjectPtr<AActor>& Weak : Registry->GetAll())
-	{
-		if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Weak.Get()))
-		{
-			if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
-			{
-				Move->SetBoundary(Center, Layout.BoundaryRadius, true);
-			}
-		}
-	}
-}
-
 void ATDGalaxyLayout::UpdateGatePhases()
 {
 	ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
@@ -410,12 +431,6 @@ void ATDGalaxyLayout::Tick(float DeltaSeconds)
 	if (!bBuilt)
 	{
 		return;
-	}
-	BoundsTimer -= DeltaSeconds;
-	if (BoundsTimer <= 0.f)
-	{
-		BoundsTimer = BoundsRefreshSeconds;
-		ApplyBoundsToShips();
 	}
 	PhaseTimer -= DeltaSeconds;
 	if (PhaseTimer <= 0.f)

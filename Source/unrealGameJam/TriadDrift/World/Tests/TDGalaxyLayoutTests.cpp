@@ -13,6 +13,8 @@
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
+#include "Components/InstancedStaticMeshComponent.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldLayoutData, "TriadDrift.World.Layout.DefaultData", TD_TEST_FLAGS)
 bool FTDWorldLayoutData::RunTest(const FString& Parameters)
@@ -140,6 +142,43 @@ bool FTDWorldAvoidance::RunTest(const FString& Parameters)
 
 	WS->AddObstacle(FVector(5000.f, 0.f, 0.f), 1000.f);	// dead centre: still picks a direction
 	TestTrue(TEXT("dead-centre obstacle"), WS->FindAvoidance(FVector::ZeroVector, FVector::ForwardVector, 8000.f, 200.f, Avoid) && !Avoid.ContainsNaN() && FMath::Abs(Avoid.X) < 0.99f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldLayoutTravel, "TriadDrift.World.Layout.TravelHandOffAndDressing", TD_TEST_FLAGS)
+bool FTDWorldLayoutTravel::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDGalaxyLayout* G = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("travel subsystem"), Travel)) { return false; }
+
+	FVector C; float R = 0.f;
+	TestTrue(TEXT("play bounds handed to flight (T1)"), Travel->GetPlayBounds(C, R) && FMath::IsNearlyEqual(R, G->GetLayout().BoundaryRadius));
+
+	for (ATDPlanetAtmosphere* P : G->GetPlanets())
+	{
+		FTransform Orbit;
+		TestTrue(TEXT("orbit return point exists"), G->FindReturnPoint(P->GetReturnPoint(), Orbit));
+		const float D = FVector::Dist(Orbit.GetLocation(), P->GetPlanetCenter());
+		TestTrue(*FString::Printf(TEXT("%s orbit outside the entry trigger (%.0f > %.0f)"), *P->GetWellId().ToString(), D, P->GetAtmosphereRadius()), D > P->GetAtmosphereRadius());
+		FTDTravelGravityWell Well;
+		TestTrue(*FString::Printf(TEXT("%s orbit inside its gravity well"), *P->GetWellId().ToString()), Travel->FindWellContaining(Orbit.GetLocation(), Well));
+		TestTrue(TEXT("orbit faces away from the planet"), FVector::DotProduct(Orbit.GetRotation().GetForwardVector(), (Orbit.GetLocation() - P->GetPlanetCenter()).GetSafeNormal()) > 0.5f);
+	}
+	FTDTravelGravityWell DWell;
+	TestTrue(TEXT("Dominion approach well"), G->GetDominion() && Travel->FindWellContaining(G->GetDominion()->GetActorLocation(), DWell));
+
+	// Placeholder dressing can hide for Nick's art without touching gameplay.
+	UTDWorldSubsystem* WS = UTDWorldSubsystem::Get(W.GetWorld());
+	const int32 Obstacles = WS->GetObstacleCount();
+	G->SetHidePlaceholderDressing(true);
+	const UInstancedStaticMeshComponent* Ast = G->FindComponentByClass<UInstancedStaticMeshComponent>();
+	TestTrue(TEXT("asteroid meshes hidden"), Ast && !Ast->IsVisible());
+	TestTrue(TEXT("collision kept"), Ast && Ast->IsCollisionEnabled());
+	TestEqual(TEXT("obstacles unchanged"), WS->GetObstacleCount(), Obstacles);
+	G->SetHidePlaceholderDressing(false);
+	TestTrue(TEXT("visible again"), Ast && Ast->IsVisible());
 	return true;
 }
 

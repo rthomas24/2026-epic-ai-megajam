@@ -36,6 +36,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	const FTDFlightInput& GetFlightInput() const { return Input; }
 
+	/**
+	 * New tuning (per-ship spec). If the ship is cruising faster than the new cruise speed (e.g. a fresh
+	 * spawn at the default 6000 handed a slow carrier spec) its speed is clamped down at once, so it doesn't
+	 * lurch. Boost, drift bursts, speed overrides and the catch-up allowance are left alone.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ApplyFlightTuning(const FTDFlightTuning& NewTuning);
 

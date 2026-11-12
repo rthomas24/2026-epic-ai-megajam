@@ -18,91 +18,11 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
+#include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
+
 namespace TDCombatTest
 {
-	/** A box that blocks projectiles, with health on Team. */
-	AActor* SpawnBody(FTDTestWorld& W, ETDTeam Team, const FVector& Location, const FVector& Extent = FVector(100.f),
-		float Hull = 100.f, float Shield = 100.f, const FRotator& Rotation = FRotator::ZeroRotator)
-	{
-		AActor* Actor = W.Spawn<AActor>(Location, Rotation);
-		if (!Actor)
-		{
-			return nullptr;
-		}
-		UBoxComponent* Box = NewObject<UBoxComponent>(Actor, TEXT("Body"));
-		Box->SetBoxExtent(Extent);
-		Box->SetCollisionProfileName(TEXT("BlockAll"));
-		Actor->SetRootComponent(Box);
-		Box->RegisterComponent();
-		Actor->SetActorLocationAndRotation(Location, Rotation);
 
-		UTDHealthComponent* Health = NewObject<UTDHealthComponent>(Actor, TEXT("Health"));
-		Health->MaxHull = Hull;
-		Health->MaxShield = Shield;
-		Health->DefaultTeam = Team;
-		Health->RegisterComponent();
-		Health->InitMaxValues(Hull, Shield, true);
-		return Actor;
-	}
-
-	UTDWeaponComponent* AddWeapons(AActor* Actor)
-	{
-		UTDWeaponComponent* Weapons = NewObject<UTDWeaponComponent>(Actor, TEXT("Weapons"));
-		Weapons->RegisterComponent();
-		Weapons->SetRandomSeed(1234);
-		return Weapons;
-	}
-
-	UTDTargetingComponent* AddTargeting(AActor* Actor)
-	{
-		UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Actor, TEXT("Targeting"));
-		Targeting->RegisterComponent();
-		return Targeting;
-	}
-
-	float Shield(AActor* A) { const UTDHealthComponent* H = UTDStatics::GetHealth(A); return H ? H->GetShield() : -1.f; }
-	float Hull(AActor* A) { const UTDHealthComponent* H = UTDStatics::GetHealth(A); return H ? H->GetHull() : -1.f; }
-	float Total(AActor* A) { return Shield(A) + Hull(A); }
-
-	int32 CountLive(UWorld* World, TFunctionRef<bool(const ATDProjectile&)> Pred)
-	{
-		int32 N = 0;
-		if (UTDProjectileSubsystem* S = UTDProjectileSubsystem::Get(World))
-		{
-			for (const ATDProjectile* P : S->GetLiveProjectiles())
-			{
-				if (P && P->IsActive() && Pred(*P))
-				{
-					++N;
-				}
-			}
-		}
-		return N;
-	}
-
-	FTransform Facing(const FVector& Location, const FVector& Dir)
-	{
-		return FTransform(Dir.Rotation(), Location);
-	}
-
-	/** Ticks until Pred is true or MaxSeconds pass. Returns elapsed seconds (or -1 on timeout). */
-	float AdvanceUntil(FTDTestWorld& W, TFunctionRef<bool()> Pred, float MaxSeconds, float Step = 1.f / 60.f)
-	{
-		float T = 0.f;
-		while (T < MaxSeconds)
-		{
-			W.Tick(Step);
-			T += Step;
-			if (Pred())
-			{
-				return T;
-			}
-		}
-		return -1.f;
-	}
-}
-
-using namespace TDCombatTest;
 
 // ------------------------------------------------------------------------------------------ library data
 
@@ -347,11 +267,11 @@ bool FTDCombatBlocked::RunTest(const FString& Parameters)
 
 	Weapons->SetNextShotDamageMultiplier(3.f);
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
-	const ATDProjectile* First = Weapons->GetLastFired().Num() ? Weapons->GetLastFired()[0].Get() : nullptr;
+	const ATDProjectile* First = Weapons->GetLastFiredProjectile(0);
 	TestTrue(TEXT("next-shot multiplier applied"), First && FMath::IsNearlyEqual(First->GetDamageMultiplier(), 3.75f, 0.001f));
 	W.Advance(0.2f);
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
-	const ATDProjectile* Second = Weapons->GetLastFired().Num() ? Weapons->GetLastFired()[0].Get() : nullptr;
+	const ATDProjectile* Second = Weapons->GetLastFiredProjectile(0);
 	TestTrue(TEXT("next-shot multiplier used once"), Second && FMath::IsNearlyEqual(Second->GetDamageMultiplier(), 1.25f, 0.001f));
 
 	TestFalse(TEXT("empty slot cannot fire"), Weapons->FireOnce(ETDWeaponSlot::Secondary));
@@ -707,5 +627,7 @@ bool FTDCombatLead::RunTest(const FString& Parameters)
 	TestTrue(TEXT("becomes imminent before impact"), ImminentAt > 0.f && UTDStatics::GetHealth(Ship)->GetShield() == 100.f);
 	return true;
 }
+
+} // namespace TDCombatTest
 
 #endif // WITH_DEV_AUTOMATION_TESTS

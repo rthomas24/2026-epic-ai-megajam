@@ -49,13 +49,13 @@ namespace TDLandingSquad
 
 namespace
 {
-	constexpr ETDLandingState LandingSteps[] = {
+	constexpr ETDLandingState TDLanding_LandingSteps[] = {
 		ETDLandingState::Aligning, ETDLandingState::GearDown, ETDLandingState::Descending,
 		ETDLandingState::Touchdown, ETDLandingState::EnginesOff, ETDLandingState::CanopyOpening };
-	constexpr ETDLandingState TakeOffSteps[] = {
+	constexpr ETDLandingState TDLanding_TakeOffSteps[] = {
 		ETDLandingState::CanopyClosing, ETDLandingState::EnginesOn, ETDLandingState::Ascending, ETDLandingState::GearUp };
 
-	float Smooth(float A)
+	float TDLanding_Smooth(float A)
 	{
 		return FMath::SmoothStep(0.f, 1.f, FMath::Clamp(A, 0.f, 1.f));
 	}
@@ -154,6 +154,26 @@ bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
 	bCanopyOpen = true;
 	SetState(ETDLandingState::Landed);
 	return true;
+}
+
+void UTDLandingComponent::AbortToFlying()
+{
+	if (State == ETDLandingState::Flying)
+	{
+		return;
+	}
+	ATDShip* Ship = GetShip();
+	if (ATDLandingPad* OldPad = Pad.Get())
+	{
+		OldPad->Release(Ship);
+	}
+	Pad.Reset();
+	bGearDown = false;
+	bCanopyOpen = false;
+	bEnginesOn = true;
+	PauseFlight(false);
+	SetState(ETDLandingState::Flying);
+	TDLandingSquad::SetWingmenPassive(this, false);
 }
 
 bool UTDLandingComponent::RequestTakeOff()
@@ -297,18 +317,18 @@ float UTDLandingComponent::GetLanding01() const
 		return 1.f;
 	}
 	const float StepAlpha = FMath::Clamp(StateTime / FMath::Max(StateDuration(State), KINDA_SMALL_NUMBER), 0.f, 1.f);
-	for (int32 i = 0; i < UE_ARRAY_COUNT(LandingSteps); ++i)
+	for (int32 i = 0; i < UE_ARRAY_COUNT(TDLanding_LandingSteps); ++i)
 	{
-		if (LandingSteps[i] == State)
+		if (TDLanding_LandingSteps[i] == State)
 		{
-			return (i + StepAlpha) / UE_ARRAY_COUNT(LandingSteps);
+			return (i + StepAlpha) / UE_ARRAY_COUNT(TDLanding_LandingSteps);
 		}
 	}
-	for (int32 i = 0; i < UE_ARRAY_COUNT(TakeOffSteps); ++i)
+	for (int32 i = 0; i < UE_ARRAY_COUNT(TDLanding_TakeOffSteps); ++i)
 	{
-		if (TakeOffSteps[i] == State)
+		if (TDLanding_TakeOffSteps[i] == State)
 		{
-			return 1.f - (i + StepAlpha) / UE_ARRAY_COUNT(TakeOffSteps);
+			return 1.f - (i + StepAlpha) / UE_ARRAY_COUNT(TDLanding_TakeOffSteps);
 		}
 	}
 	return 0.f;
@@ -377,10 +397,8 @@ void UTDLandingComponent::FinishTakeOff()
 		Move->SetForwardSpeedImmediate(Move->GetFlightTuning().CruiseSpeed * Tuning.TakeOffSpeedFraction);
 	}
 	SetState(ETDLandingState::Flying);
-	if (Ship && Ship->IsPlayerFlown())
-	{
-		TDLandingSquad::SetWingmenPassive(this, false); // movement ticks again: AI resumes in Regroup
-	}
+	// Unconditional: whichever ship lifts off last, the wingman AI must not stay parked.
+	TDLandingSquad::SetWingmenPassive(this, false); // movement ticks again: AI resumes in Regroup
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		Travel->OnShipTookOff.Broadcast(Ship, OldPad);
@@ -411,7 +429,7 @@ void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 	StateTime += DeltaTime;
 	const float Duration = FMath::Max(StateDuration(State), KINDA_SMALL_NUMBER);
-	const float A = Smooth(StateTime / Duration);
+	const float A = TDLanding_Smooth(StateTime / Duration);
 
 	FVector Target = Ship->GetActorLocation();
 	FQuat TargetRot = Ship->GetActorQuat();
