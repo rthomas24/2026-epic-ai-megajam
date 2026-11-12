@@ -97,7 +97,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 17:39 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 17:53 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -181,6 +181,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | On `main` at `c5a7bd2` (443 tests): the Dominion assault is a scene ("Dominion"), a wipe respawns the squad on the approach or at the trench, a won save has no Continue, victory cancels a pending retake (T5 `d3db9b3`); wingman targeting measured over five seeds and capped, with a cvar fallback (T3 `55abdff`); gravity-well test hardened (T2); `GetBoundaryWarningText` on the squad manager (T3) | T2, T3, T5 | in review | Nov 12 17:05 | Nov 12 17:18 (`c5a7bd2`) | none |
 | Fresh re-checks of closed BLOCKERs and MAJORs (Combat / Powers / Enemies, Squad / Travel / Ground) | Lead | done | Nov 12 17:07 | Nov 12 17:39; most closed in code. NEW: Cinder cannot be finished with the blade (BLOCKER, T5); pause does nothing anywhere (T1); gunships cannot fire at a charging ship (MAJOR, T4); magma zone taller than its stepping stones (MAJOR, T5); breather repair doubled (T4). Details in `docs/eng/STATUS.md` | none |
 | On `main` at `cddae2e` (444 tests): the finale locks the hyperdrive only inside the Dominion's well, so the first approach can jump (T4 `7d855e5`); planet playtest fixes (T5 `ca727e1`); dev HUD objective line and objective markers in space and on foot (Lead) | T4, T5, Lead | in review | Nov 12 17:20 | Nov 12 17:39 (`cddae2e`). One full-suite run of this merge failed on `Enemies.Review.HeadOnPassLandsHitsAtEveryClosingSpeed` (1 of 2 shots hit) and passed on the rerun: the test is flaky, with T4 | none |
+| On `main` at `9055c2e`: Core squad markers (`FTDSquadMarker`, `GetSquadMarkers`), dev HUD wingman arrows, hit marker and paused line; a switch mid-ram or with one portal placed ends that power (T2 `fdc55e1`); director overlay under the real HUD, wingmen-in-frame regression test (T3); T1 follow-ups. Held back: T4 `b3616a6` (finale fixes) removes the Dominion's generators in test worlds and breaks three Director / Squad tests | T1, T2, T3, Lead | in review | Nov 12 17:40 | Nov 12 17:53 (`9055c2e`) | none |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
