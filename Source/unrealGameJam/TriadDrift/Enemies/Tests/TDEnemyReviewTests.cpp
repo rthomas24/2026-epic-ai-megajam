@@ -107,7 +107,9 @@ bool FTDReviewNoPointBlankMissile::RunTest(const FString& Parameters)
 		}
 		(void)Proj;
 		TestTrue(*FString::Printf(TEXT("@%.0f fps: no missile launched inside 5000 cm (closest launch %.0f)"), Fps, MinLaunchDist), MinLaunchDist > 5000.f);
-		TestTrue(*FString::Printf(TEXT("@%.0f fps: no ram (closest %.0f at %.1f s in state %d)"), Fps, MinDist, MinT, MinState), MinDist > 1000.f);
+		// No ram: the hulls never touch (collision radii plus a margin for a visible gap).
+		const float Contact = Player->GetSimpleCollisionRadius() + I->GetSpec().Radius + 200.f;
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: no ram (closest %.0f, contact %.0f, at %.1f s in state %d)"), Fps, MinDist, Contact, MinT, MinState), MinDist > Contact);
 	}
 	return true;
 }
