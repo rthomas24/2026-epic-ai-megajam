@@ -70,7 +70,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 14:00 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 14:03 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -111,6 +111,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | Shared protocols in AGENTS.md section 11 + `MESSAGEBOARD.md` R-009; presentation assets always cooked (asset manager scan) | Lead | done | Nov 12 13:57 | Nov 12 13:57, this push | `/AGENTS.md`, `/Config/DefaultGame.ini`, `/.gitignore` |
 | Test harness: local player controller + real key injection (`FTDTestWorld`) | Lead | done | Nov 12 13:48 | Nov 12 13:56 (`c911fa3`) | none |
 | Second-pass reviews: Ground + Flow, Travel + Flight | Lead | done | Nov 12 13:21 | Nov 12 13:58; findings with T1 and T5 | none |
+| Audio skill for Nick's agents (`.claude/skills/ue-game-audio/`: sourcing, layering, Unreal setup, level table, tested loudness scripts) + `MESSAGEBOARD.md` R-010 | Lead | in progress | Nov 12 14:03 | | `/.claude/skills/ue-game-audio/**`, `/reports/**` (new files only) |
 | ENG-28 Shipping package under 1 GB | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
