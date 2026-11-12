@@ -1,0 +1,5 @@
+{
+  "Hero": {"NebulaIntensity": 3.0, "StarIntensity": 3.0, "SkyIntensity": 1.2},
+  "Combat": {"NebulaIntensity": 1.1, "StarIntensity": 2.0, "SkyIntensity": 1.0},
+  "Verdance": {"YawTurns": 0.65, "NebulaIntensity": 2.7, "StarIntensity": 2.6, "SkyIntensity": 1.1}
+}
