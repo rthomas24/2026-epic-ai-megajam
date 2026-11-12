@@ -3,11 +3,30 @@
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
 #include "Engine/World.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "Misc/PackageName.h"
 
 UTDTravelSubsystem* UTDTravelSubsystem::Get(const UObject* WorldContextObject)
 {
 	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
 	return World ? World->GetSubsystem<UTDTravelSubsystem>() : nullptr;
+}
+
+UTDTravelFX* UTDTravelSubsystem::GetDefaultTravelFX()
+{
+	static TWeakObjectPtr<UTDTravelFX> Cached;
+	static bool bLooked = false;
+	if (!Cached.IsValid() && !bLooked)
+	{
+		bLooked = true;
+		static const TCHAR* Package = TEXT("/Game/TriadDrift/Presentation/DA_Travel_FX");
+		if (FPackageName::DoesPackageExist(Package))
+		{
+			Cached = Cast<UTDTravelFX>(StaticLoadObject(UTDTravelFX::StaticClass(), nullptr,
+				TEXT("/Game/TriadDrift/Presentation/DA_Travel_FX.DA_Travel_FX"), nullptr, LOAD_NoWarn | LOAD_Quiet));
+		}
+	}
+	return Cached.Get();
 }
 
 void UTDTravelSubsystem::RegisterGravityWell(FName Id, FVector Location, float Radius, AActor* Owner)

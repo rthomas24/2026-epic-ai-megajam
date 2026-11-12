@@ -18,9 +18,9 @@ class UNREALGAMEJAM_API UTDWaveTestGameInstance : public UGameInstance, public I
 	GENERATED_BODY()
 
 public:
-	virtual bool TravelTo(ETDDestination Destination, FName ReturnPoint) override { Travels.Add(Destination); return true; }
+	virtual bool TravelTo(ETDDestination Destination, FName ReturnPoint) override { if (RefuseTravels > 0) { --RefuseTravels; ++RefusedTravels; return false; } Travels.Add(Destination); return true; }
 	virtual FTDProgress GetProgress() const override { return Progress; }
-	virtual void SetPhase(ETDGamePhase Phase) override { Progress.Phase = Phase; }
+	virtual void SetPhase(ETDGamePhase Phase) override { Progress.Phase = Phase; Phases.Add(Phase); }
 	virtual void ReportWaveCleared(int32 WaveNumber) override { ReportedWaves.Add(WaveNumber); Progress.WavesCleared = FMath::Max(Progress.WavesCleared, WaveNumber); }
 	virtual void CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, ETDShipId ForShip) override {}
 	virtual void SetDominionState(bool bRevealed, bool bDefensesDown) override { ++DominionStateCalls; Progress.bDominionRevealed = bRevealed; Progress.bDominionDefensesDown = bDefensesDown; }
@@ -33,6 +33,9 @@ public:
 	FTDProgress Progress;
 	TArray<int32> ReportedWaves;
 	TArray<ETDDestination> Travels;
+	TArray<ETDGamePhase> Phases;
+	int32 RefuseTravels = 0;	// the next N TravelTo calls return false
+	int32 RefusedTravels = 0;
 	int32 DominionStateCalls = 0;
 	TArray<FName> Tips;
 	TArray<ETDHighlightKind> Highlights;

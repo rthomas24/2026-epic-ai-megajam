@@ -29,6 +29,7 @@ $arguments = @(
     "`"$project`"",
     "-ExecutePythonScript=`"$scriptPath`"",
     "-unattended", "-nopause", "-nosplash", "-nullrhi", "-nosound", "-NoLiveCoding",
+    "-ModelContextProtocolPort=$(Get-Random -Minimum 21000 -Maximum 29000)",
     "-abslog=`"$logFile`""
 )
 

@@ -20,6 +20,10 @@ UTDHyperdriveComponent::UTDHyperdriveComponent()
 void UTDHyperdriveComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!TravelFX)
+	{
+		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX();
+	}
 	if (ATDSpacecraft* Craft = GetCraft())
 	{
 		if (UTDHealthComponent* Health = Craft->GetHealth())

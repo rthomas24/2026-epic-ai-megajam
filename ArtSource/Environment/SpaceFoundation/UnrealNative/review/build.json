@@ -1,0 +1,49 @@
+{
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "assets": [
+    "/Game/TriadDrift/Environment/SpaceFoundation/T_TD_Nebula_BC",
+    "/Game/TriadDrift/Environment/SpaceFoundation/T_TD_Stars_BC",
+    "/Game/TriadDrift/Environment/SpaceFoundation/M_TD_SpaceFoundation",
+    "/Game/TriadDrift/Environment/SpaceFoundation/MI_TD_Space_Hero",
+    "/Game/TriadDrift/Environment/SpaceFoundation/MI_TD_Space_Combat",
+    "/Game/TriadDrift/Environment/SpaceFoundation/MI_TD_Space_Verdance",
+    "/Game/TriadDrift/Environment/SpaceFoundation/BP_GalaxySkybox_Hero",
+    "/Game/TriadDrift/Environment/SpaceFoundation/BP_GalaxySkybox_Combat",
+    "/Game/TriadDrift/Environment/SpaceFoundation/BP_GalaxySkybox_Verdance"
+  ],
+  "shader_errors": [],
+  "lighting_presets": {
+    "note": "Starting art values only; no project settings or maps are modified. Validate in target exposure/tonemapper.",
+    "hero": {
+      "directional_lux": 8,
+      "directional_temperature_kelvin": 6500,
+      "sun_pitch_deg": -25,
+      "sun_yaw_deg": -35,
+      "sky_light_intensity": 0.35,
+      "fixed_ev100": 0,
+      "bloom_intensity": 0.2
+    },
+    "combat": {
+      "directional_lux": 6,
+      "directional_temperature_kelvin": 6800,
+      "sun_pitch_deg": -30,
+      "sun_yaw_deg": -35,
+      "sky_light_intensity": 0.25,
+      "fixed_ev100": 0,
+      "bloom_intensity": 0.12
+    },
+    "verdance": {
+      "directional_lux": 7,
+      "directional_temperature_kelvin": 7300,
+      "sun_pitch_deg": -18,
+      "sun_yaw_deg": 28,
+      "sky_light_intensity": 0.35,
+      "fixed_ev100": 0,
+      "bloom_intensity": 0.16
+    }
+  },
+  "texture_samples": 2,
+  "sky_draws": 1,
+  "runtime_particles": 0,
+  "note": "Budget counts, not measured GPU timing. Isolated content host; gameplay integration pending."
+}

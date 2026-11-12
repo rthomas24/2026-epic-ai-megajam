@@ -13,6 +13,10 @@ class UTDHyperdriveComponent;
 class UTDLandingComponent;
 class UTDAtmosphereEntryComponent;
 class UTDShipVisuals;
+class UNiagaraComponent;
+class UAudioComponent;
+struct FTDFXCue;
+struct FTDFlightImpact;
 
 /** Chase-camera feel. Defaults are features.md ENG-01. */
 USTRUCT(BlueprintType)
@@ -89,6 +93,24 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	UTDShipVisuals* GetShipVisuals() const { return Visuals; }
+
+	/** A modular part built from UTDShipVisuals::Parts, by PartName (engine flares, pods...). Null if absent. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	UStaticMeshComponent* FindVisualPart(FName PartName) const;
+
+	/** Every part component currently built (visual only: no collision, no tick). */
+	const TArray<TObjectPtr<UStaticMeshComponent>>& GetVisualParts() const { return VisualParts; }
+
+	/**
+	 * How many times this ship requested a presentation cue by slot name ("EngineTrail", "BoostStart",
+	 * "BoostLoop", "DriftLoop", "DriftRelease", "CollisionScrape"). Requests happen whenever a visuals
+	 * asset is assigned, even if the slot is empty (then nothing plays). For tests and debugging.
+	 */
+	int32 GetCueRequestCount(FName Slot) const { const int32* N = CueRequests.Find(Slot); return N ? *N : 0; }
+
+	/** True while real art (a Mesh or any Part) replaces the placeholder. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	bool HasRealArt() const { return bHasRealArt; }
 
 	virtual void ApplyPlaceholderLook() override;
 
@@ -190,6 +212,33 @@ protected:
 	TObjectPtr<UTDShipVisuals> Visuals;
 
 	virtual FLinearColor GetPlaceholderColor() const override;
+
+	UFUNCTION() void HandleBoostStarted();
+	UFUNCTION() void HandleBoostEnded();
+	UFUNCTION() void HandleDriftStarted();
+	UFUNCTION() void HandleDriftEnded(bool bBurst);
+	UFUNCTION() void HandleFlightImpactCue(const FTDFlightImpact& Impact);
+
+	/** Where engine cues attach: a part named "Engine", else the primary mesh's "Engine" socket, else the hull. */
+	USceneComponent* GetEngineAttach(FName& OutSocket) const;
+	void StartEngineTrail();
+	void StartLoop(FName Slot, const FTDFXCue& Cue, TWeakObjectPtr<UNiagaraComponent>& OutFX, TWeakObjectPtr<UAudioComponent>& OutAudio);
+	static void StopLoop(TWeakObjectPtr<UNiagaraComponent>& FX, TWeakObjectPtr<UAudioComponent>& Audio);
+	void NoteCue(FName Slot) { CueRequests.FindOrAdd(Slot)++; }
+
+	TMap<FName, int32> CueRequests;
+	TWeakObjectPtr<UNiagaraComponent> EngineTrailFX, BoostLoopFX, DriftLoopFX;
+	TWeakObjectPtr<UAudioComponent> EngineTrailAudio, BoostLoopAudio, DriftLoopAudio;
+
+	/** Tears down parts, restores placeholders, then builds Mesh / Parts from Visuals. */
+	void RebuildVisuals();
+	void ClearVisualParts();
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UStaticMeshComponent>> VisualParts;
+
+	TArray<FName> VisualPartNames;
+	bool bHasRealArt = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Camera")
 	FTDChaseCameraTuning CameraTuning;

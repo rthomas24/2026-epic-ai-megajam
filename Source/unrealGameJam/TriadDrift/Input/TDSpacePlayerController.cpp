@@ -291,9 +291,9 @@ void ATDSpacePlayerController::ApplyMappingContexts()
 	Subsystem->RemoveMappingContext(IMC_SpaceCommon);
 	Subsystem->RemoveMappingContext(IMC_Space);
 	Subsystem->RemoveMappingContext(IMC_Atmosphere);
-	if (!bSpaceInputEnabled)
+	if (!bSpaceInputEnabled || !GetSpacecraft())
 	{
-		return;
+		return; // on foot (T5's character brings IMC_Ground) or disabled: no space mappings at all
 	}
 	Subsystem->AddMappingContext(IMC_SpaceCommon, 0);
 	Subsystem->AddMappingContext(FlightContext == ETDFlightContext::Space ? IMC_Space.Get() : IMC_Atmosphere.Get(), 1);
@@ -382,6 +382,12 @@ void ATDSpacePlayerController::SetSpaceInputEnabled(bool bEnabled)
 void ATDSpacePlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+	ApplyMappingContexts(); // space contexts only while flying a spacecraft
+	if (!GetSpacecraft())
+	{
+		ResetHeldInputs();
+		return;
+	}
 	// Held buttons carry over a switch (keep firing / boosting into the new ship), but the trigger
 	// state must be re-sent to the new ship's weapons.
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, true); }
@@ -461,9 +467,9 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	}
 	bMouseMovedThisFrame = false;
 
-	if (!bSpaceInputEnabled)
+	if (!bSpaceInputEnabled || !GetSpacecraft())
 	{
-		// Disabled (cutscene, autopilot, ground): don't touch the ship's latched input at all.
+		// Disabled (cutscene, autopilot) or on foot: don't touch any ship's latched input at all.
 		return;
 	}
 
