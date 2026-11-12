@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "method": "Node VM with mocked Web Audio nodes; syntax, six exact WAV payload hashes, local links, individual/A-B/rapid scheduling and start-before-stop API order. Not browser decoding, device playback or auditory quality approval.",
+  "embedded": [
+    {
+      "ship": "Rift",
+      "rev": "M02",
+      "sha256": "1db4b41aeed8798ed594797debe24d4d975730026266883eb00c1a9bb93445e5"
+    },
+    {
+      "ship": "Rift",
+      "rev": "M03",
+      "sha256": "4375bc0ddcce4a911b19854e664e8cbd475de6a27f882205811294c3b275d393"
+    },
+    {
+      "ship": "Lancer",
+      "rev": "M02",
+      "sha256": "e19782adeab22c6d79d33d186491bd7d7059945b65617ae98ad0fd40fc5f97a5"
+    },
+    {
+      "ship": "Lancer",
+      "rev": "M03",
+      "sha256": "97a030a0e5d496edbbdb440534d68979bfe97ca5728220fe80fb81018dbb2d1a"
+    },
+    {
+      "ship": "Bastion",
+      "rev": "M02",
+      "sha256": "8270b46ac035f3778ea05db4b0c8d767ddf08e942d47ed0c42fc43d18cfd50b0"
+    },
+    {
+      "ship": "Bastion",
+      "rev": "M03",
+      "sha256": "127de5b7b38c3d9cae5ee022a96ca5822aca1d6842a14b287fce2ccb79c49454"
+    }
+  ],
+  "sequences": {
+    "M02": {
+      "events": 12,
+      "interval_s": 0.4,
+      "older_tail_fade_s": 0.06
+    },
+    "M03": {
+      "events": 12,
+      "interval_s": 0.4,
+      "older_tail_fade_s": 0.06
+    }
+  },
+  "local_links": 8
+}

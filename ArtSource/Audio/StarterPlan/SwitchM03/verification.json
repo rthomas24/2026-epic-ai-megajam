@@ -1,0 +1,276 @@
+{
+  "revision": "M03",
+  "seed": 261113,
+  "python": "3.13.9",
+  "numpy": "2.3.4",
+  "target_short_sfx_lufs": -21.643970119002823,
+  "processing": "New original layered design; all-layer C2 envelopes, reduced modal/noise levels, no saturation, causal finishing EQ",
+  "listening_status": "Objective individual/sequence QA performed; subjective hearing and user acceptance pending",
+  "meter_limit": "Short SFX K-weighted gate reference and 4x FFT peak estimate; not certified meters",
+  "m02": {
+    "Rift": {
+      "file": "../SwitchM02/audition/SW_TD_Rift_Switch_M02.wav",
+      "format": {
+        "rate": 48000,
+        "channels": 2,
+        "width": 3,
+        "frames": 77760
+      },
+      "duration_s": 1.62,
+      "peak_dbfs": -3.027459240217208,
+      "peak_4x_fft_estimate_dbfs": -2.999999537680607,
+      "short_sfx_lufs": -19.955852202090295,
+      "onset_minus50_ms": 0.8541666666666667,
+      "dc_offset_dbfs": -190.2683231305161,
+      "clipped_samples": 0,
+      "first_last_samples_zero": true,
+      "first20ms_max_sample_step_dbfs": -22.496753790883336,
+      "last50ms_rms_dbfs": -73.62277486378007,
+      "final20ms_all_zero": false,
+      "stereo_correlation": 0.9319933599809724,
+      "above2khz_power_percent": 18.732297337622686,
+      "sha256": "1db4b41aeed8798ed594797debe24d4d975730026266883eb00c1a9bb93445e5"
+    },
+    "Lancer": {
+      "file": "../SwitchM02/audition/SW_TD_Lancer_Switch_M02.wav",
+      "format": {
+        "rate": 48000,
+        "channels": 2,
+        "width": 3,
+        "frames": 61440
+      },
+      "duration_s": 1.28,
+      "peak_dbfs": -4.028362460157662,
+      "peak_4x_fft_estimate_dbfs": -3.913345429199314,
+      "short_sfx_lufs": -19.955852286377187,
+      "onset_minus50_ms": 1.0833333333333333,
+      "dc_offset_dbfs": -197.0961722172751,
+      "clipped_samples": 0,
+      "first_last_samples_zero": true,
+      "first20ms_max_sample_step_dbfs": -16.64455308775662,
+      "last50ms_rms_dbfs": -82.43745163628022,
+      "final20ms_all_zero": false,
+      "stereo_correlation": 0.9641833507396358,
+      "above2khz_power_percent": 9.17337416676779,
+      "sha256": "e19782adeab22c6d79d33d186491bd7d7059945b65617ae98ad0fd40fc5f97a5"
+    },
+    "Bastion": {
+      "file": "../SwitchM02/audition/SW_TD_Bastion_Switch_M02.wav",
+      "format": {
+        "rate": 48000,
+        "channels": 2,
+        "width": 3,
+        "frames": 85440
+      },
+      "duration_s": 1.78,
+      "peak_dbfs": -3.2524196073483487,
+      "peak_4x_fft_estimate_dbfs": -3.2524196073483487,
+      "short_sfx_lufs": -19.95585226379502,
+      "onset_minus50_ms": 0.3125,
+      "dc_offset_dbfs": -204.85134566472627,
+      "clipped_samples": 0,
+      "first_last_samples_zero": true,
+      "first20ms_max_sample_step_dbfs": -25.108242093570603,
+      "last50ms_rms_dbfs": -62.8710693261509,
+      "final20ms_all_zero": false,
+      "stereo_correlation": 0.9838812383132047,
+      "above2khz_power_percent": 1.3050648614309734,
+      "sha256": "8270b46ac035f3778ea05db4b0c8d767ddf08e942d47ed0c42fc43d18cfd50b0"
+    }
+  },
+  "m03": {
+    "Rift": {
+      "file": "audition\\SW_TD_Rift_Switch_M03.wav",
+      "format": {
+        "rate": 48000,
+        "channels": 2,
+        "width": 3,
+        "frames": 82560
+      },
+      "duration_s": 1.72,
+      "peak_dbfs": -4.000001358084259,
+      "peak_4x_fft_estimate_dbfs": -4.000001358084262,
+      "short_sfx_lufs": -21.64397010372379,
+      "onset_minus50_ms": 2.416666666666667,
+      "dc_offset_dbfs": -105.13642591446185,
+      "clipped_samples": 0,
+      "first_last_samples_zero": true,
+      "first20ms_max_sample_step_dbfs": -27.12012234004635,
+      "last50ms_rms_dbfs": -146.54719440054262,
+      "final20ms_all_zero": true,
+      "stereo_correlation": 0.9839358507801323,
+      "above2khz_power_percent": 0.5174987296664445,
+      "sha256": "4375bc0ddcce4a911b19854e664e8cbd475de6a27f882205811294c3b275d393"
+    },
+    "Lancer": {
+      "file": "audition\\SW_TD_Lancer_Switch_M03.wav",
+      "format": {
+        "rate": 48000,
+        "channels": 2,
+        "width": 3,
+        "frames": 70080
+      },
+      "duration_s": 1.46,
+      "peak_dbfs": -4.355378255358876,
+      "peak_4x_fft_estimate_dbfs": -4.355378255358875,
+      "short_sfx_lufs": -21.64397016417096,
+      "onset_minus50_ms": 2.5,
+      "dc_offset_dbfs": -110.51637618182797,
+      "clipped_samples": 0,
+      "first_last_samples_zero": true,
+      "first20ms_max_sample_step_dbfs": -35.46917228470665,
+      "last50ms_rms_dbfs": -146.84143862173042,
+      "final20ms_all_zero": true,
+      "stereo_correlation": 0.9945482564809607,
+      "above2khz_power_percent": 0.3736790338100239,
+      "sha256": "97a030a0e5d496edbbdb440534d68979bfe97ca5728220fe80fb81018dbb2d1a"
+    },
+    "Bastion": {
+      "file": "audition\\SW_TD_Bastion_Switch_M03.wav",
+      "format": {
+        "rate": 48000,
+        "channels": 2,
+        "width": 3,
+        "frames": 90240
+      },
+      "duration_s": 1.88,
+      "peak_dbfs": -5.916772035534914,
+      "peak_4x_fft_estimate_dbfs": -5.915599672313002,
+      "short_sfx_lufs": -21.6439700928342,
+      "onset_minus50_ms": 2.875,
+      "dc_offset_dbfs": -100.85624456689318,
+      "clipped_samples": 0,
+      "first_last_samples_zero": true,
+      "first20ms_max_sample_step_dbfs": -31.968001261280325,
+      "last50ms_rms_dbfs": -146.95473926005937,
+      "final20ms_all_zero": true,
+      "stereo_correlation": 0.9975949530045725,
+      "above2khz_power_percent": 0.0473222785266734,
+      "sha256": "127de5b7b38c3d9cae5ee022a96ca5822aca1d6842a14b287fce2ccb79c49454"
+    }
+  },
+  "rapid_tests": [
+    {
+      "order": "Rift/Lancer/Bastion",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "unrestricted natural tails",
+      "unity_peak_dbfs": -3.649637408986601,
+      "preview_minus6_peak_dbfs": -9.649637409459247,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Rift/Lancer/Bastion",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "two voices + 60ms replacement fade",
+      "unity_peak_dbfs": -3.6511347441082753,
+      "preview_minus6_peak_dbfs": -9.651134744580922,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Rift/Bastion/Lancer",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "unrestricted natural tails",
+      "unity_peak_dbfs": -3.6672549083183243,
+      "preview_minus6_peak_dbfs": -9.667254908790973,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Rift/Bastion/Lancer",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "two voices + 60ms replacement fade",
+      "unity_peak_dbfs": -3.663850797808413,
+      "preview_minus6_peak_dbfs": -9.663850798281059,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Lancer/Rift/Bastion",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "unrestricted natural tails",
+      "unity_peak_dbfs": -3.637406972956981,
+      "preview_minus6_peak_dbfs": -9.637406973429627,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Lancer/Rift/Bastion",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "two voices + 60ms replacement fade",
+      "unity_peak_dbfs": -3.637406972956981,
+      "preview_minus6_peak_dbfs": -9.637406973429627,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Lancer/Bastion/Rift",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "unrestricted natural tails",
+      "unity_peak_dbfs": -3.649637408986601,
+      "preview_minus6_peak_dbfs": -9.649637409459247,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Lancer/Bastion/Rift",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "two voices + 60ms replacement fade",
+      "unity_peak_dbfs": -3.6511347441082753,
+      "preview_minus6_peak_dbfs": -9.651134744580922,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Bastion/Rift/Lancer",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "unrestricted natural tails",
+      "unity_peak_dbfs": -3.649637408986601,
+      "preview_minus6_peak_dbfs": -9.649637409459247,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Bastion/Rift/Lancer",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "two voices + 60ms replacement fade",
+      "unity_peak_dbfs": -3.6511347441082753,
+      "preview_minus6_peak_dbfs": -9.651134744580922,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Bastion/Lancer/Rift",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "unrestricted natural tails",
+      "unity_peak_dbfs": -3.6672549083183243,
+      "preview_minus6_peak_dbfs": -9.667254908790973,
+      "unity_clipped_samples": 0
+    },
+    {
+      "order": "Bastion/Lancer/Rift",
+      "events": 12,
+      "interval_s": 0.4,
+      "mode": "two voices + 60ms replacement fade",
+      "unity_peak_dbfs": -3.663850797808413,
+      "preview_minus6_peak_dbfs": -9.663850798281059,
+      "unity_clipped_samples": 0
+    }
+  ],
+  "checks": {
+    "three_pcm24_stereo_48k": true,
+    "zero_clipping": true,
+    "four_db_estimated_headroom": true,
+    "responsive_under20ms": true,
+    "clean_edges_and_silent_guard": true,
+    "tails_below_minus90_rms": true,
+    "smoother_first20ms_steps": true,
+    "lower_above2k_power_share": true,
+    "matched_short_sfx_loudness_within_point1": true,
+    "rapid_unity_zero_clipping": true,
+    "m02_bytes_unchanged": true
+  },
+  "passed": true
+}

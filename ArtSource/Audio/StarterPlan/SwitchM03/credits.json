@@ -1,0 +1,16 @@
+{
+  "title": "Triad Drift ship-switch SFX M03",
+  "created": "2026-11-12",
+  "author": "Nicholas Tosti / OpenAI Codex Audio & Music Agent",
+  "origin": "Original layered procedural sound design, revised from M02 direction; no external audio content",
+  "source": "render_m03.py; original helper functions imported read-only from ../SwitchM02/render_switches.py; seed 261113",
+  "tools": ["OpenAI Codex", "Python 3.13.9", "NumPy 2.3.4", "Node.js", "Google Chrome (visual preview only)"],
+  "audio_files": ["audition/SW_TD_Rift_Switch_M03.wav", "audition/SW_TD_Lancer_Switch_M03.wav", "audition/SW_TD_Bastion_Switch_M03.wav"],
+  "comparison_content": "audition/index.html embeds exact byte copies of the three immutable original M02 WAVs and three new M03 WAVs; hashes are in verification.json/player-qa.json. No additional WAV originals exported.",
+  "third_party_audio": [],
+  "paid_credits_spent": 0,
+  "downloads": [],
+  "license": "Original project-created assets; team's repository/project licensing policy applies. Python/NumPy/Node runtimes are used locally and not redistributed.",
+  "approval": "Nicholas manual listening approval pending; no auditory quality or Unreal verification claimed",
+  "lead_credits_handoff": "Append M03 revision of three original procedural ship-switch SFX; rounded layer envelopes, reduced resonance/grit, no saturation, PCM24/48k exports and immutable M02 A/B references. No shared root credit files edited by worker."
+}
