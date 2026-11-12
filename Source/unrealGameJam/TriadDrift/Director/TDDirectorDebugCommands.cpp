@@ -193,7 +193,8 @@ namespace TDDirectorDebug
 				FVector2D TP;
 				const AActor* T = AI->GetCurrentTarget();
 				Why = UEnum::GetDisplayValueAsText(AI->GetWingmanState()).ToString()
-					+ (T ? (ScreenPos(PC, T->GetActorLocation(), TP) ? TEXT("/tgtON") : TEXT("/tgtOff")) : TEXT(""));
+					+ (T ? (ScreenPos(PC, T->GetActorLocation(), TP) ? TEXT("/tgtON") : TEXT("/tgtOff")) : TEXT(""))
+					+ (AI->IsDefendingPlayer() ? TEXT("/def") : TEXT(""));
 			}
 			Wing += FString::Printf(TEXT(" %s=%s(%.2f,%.2f)[%s]"), *UEnum::GetDisplayValueAsText(Mate->GetShipId()).ToString(), bOn ? TEXT("ON") : TEXT("off"), P.X, P.Y, *Why);
 		}
