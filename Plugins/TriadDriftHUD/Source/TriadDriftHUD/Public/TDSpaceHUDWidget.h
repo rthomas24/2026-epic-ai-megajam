@@ -111,6 +111,8 @@ protected:
     virtual void NativeTick(const FGeometry&, float) override;
     virtual int32 NativePaint(const FPaintArgs&, const FGeometry&, const FSlateRect&, FSlateWindowElementList&, int32, const FWidgetStyle&, bool) const override;
 private:
+    friend class FTDHUDObjectiveTextTest;
+    friend class FTDHUDInteractionTest;
     UPROPERTY(Transient) TArray<FTDUIShip> Ships;
     UPROPERTY(Transient) TArray<FTDUIShip> Display;
     TWeakObjectPtr<UObject> DataSource;
@@ -135,7 +137,7 @@ private:
     TArray<TWeakObjectPtr<AActor>> Hostiles;
     int32 Wave = 0, Enemies = 0, ActiveIndex = INDEX_NONE, ReadyShip = 0;
     bool bPreview = false, bKillConfirmed = false, bOutOfBounds = false;
-    FText Warning, ObjectivePrompt;
+    FText Warning, ObjectivePrompt, InteractPrompt;
     void BindEvents(bool bBind);
     UFUNCTION() void HandleHit(AActor* Actor, bool bKill);
     UFUNCTION() void HandleObjective(FName Id, int32 Step, FText Text);

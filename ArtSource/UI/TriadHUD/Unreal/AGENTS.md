@@ -62,3 +62,30 @@ and event bus. Mission-state getter/markers gap must go to Ryan through Lead, wi
 no fabricated mission state or new reflection contract before agreement. Heavy
 build/all8UItests/actual Galaxy captures on8023 require a fresh grant after Lead's
 baseline session releases. Send source checkpoint before functional API changes.
+
+Objective follow-up dispatch: Lead verified/pushed b21a98f, then clean-synced current
+main2310d19 at a4b91fb. Same HUD role/three roots only. Consume the agreed optional
+zero-input FText GetObjectiveText on the existing data source; retain event fallback,
+guard absent/incompatible functions, clear on valid empty text. Add a real late-attach
+regression using public bus/provider APIs without a game-module dependency. Inspect
+markers/interact prompt; no layout/provider rewrite/shared changes. Source preparation
+only until a fresh heavy grant; report before building. Character role/branch/claims
+remain undispatched. Do not duplicate Lead's completion sound.
+
+Lead's bounded functional follow-up also clears the existing landing-guidance MAJOR:
+consume optional public GetInteractPrompt at the same10Hz, clear empty/unavailable/
+provider changes, keep mission text separate. Actual-text line uses existing footer
+gap below cards/above controls; no new panel, target/player-ship overlap or critical
+warning takeover. Add real-pad lifecycle regression; expected10UItests now. Real pad
+entry/exit/braking/switch/source-removal and resolution captures remain mandatory
+after fresh resource clearance. No private gameplay state/API/host/config changes.
+
+Verified follow-up checkpoint Nov12: tested pinned2133997 after Lead's reviewed
+main29e091b merge. Final Editor build03 passes; all10UItests pass in tests02.
+Real windowed F landing reaches TDFirstPersonCharacter_0, native host shown0, then
+Galaxy return shown1.26actual captures archived in review/M03ObjectiveFollowup/.
+Build01 int-overload and tests01 abstract-fixture failures preserved/corrected only
+in owned tests. SLOWDOWN not reproduced (atmosphere blocks actual boost); report
+diagnostic captures honestly. No shared default-on/main merge authorization.
+Heavy slot released, no more heavy launches. Freeze for Lead review/commit/push;
+character production remains queued and requires explicit claim/branch activation.

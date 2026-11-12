@@ -86,6 +86,16 @@ bool Bool(UObject* O,FName Name)
     FResult R(O,Name); const FBoolProperty* P=CastField<FBoolProperty>(R.Return);
     return P && R.Value() && P->GetPropertyValue(R.Value());
 }
+bool Text(UObject* O,FName Name,FText& Out)
+{
+    UFunction* Function=IsValid(O)?O->FindFunction(Name):nullptr;
+    const FTextProperty* Return=Function?CastField<FTextProperty>(Function->GetReturnProperty()):nullptr;
+    if(!Return) return false;
+    FResult R(O,Name); // Also refuses any input/output parameter besides the return value.
+    if(!R.Value()) return false;
+    Out=Return->GetPropertyValue(R.Value());
+    return true;
+}
 UActorComponent* Component(AActor* Actor,const TCHAR* ClassPath)
 {
     UClass* Class=FindObject<UClass>(nullptr,ClassPath);
@@ -385,7 +395,7 @@ void UTDSpaceHUDWidget::BindEvents(bool bBind)
 void UTDSpaceHUDWidget::SetDataSource(UObject* Source)
 {
     bPreview=false; DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset();
-    ObjectivePrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
+    ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
     UClass* Contract=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDHUDData"));
     if(IsValid(Source) && Contract && Source->GetClass()->ImplementsInterface(Contract)) DataSource=Source;
     RefreshData();
@@ -395,6 +405,13 @@ void UTDSpaceHUDWidget::RefreshData()
     if(bPreview) return;
     TArray<FTDUIShip> Next; Next.SetNum(3);
     UObject* O=DataSource.Get();
+    // Seed late-created widgets from the authoritative current line, including an explicit clear.
+    // Older sources without a compatible getter retain the existing OnObjectiveUpdated fallback.
+    FText CurrentObjective;
+    if(TDHUD::Text(O,TEXT("GetObjectiveText"),CurrentObjective)) ObjectivePrompt=MoveTemp(CurrentObjective);
+    // Interaction has no event fallback: unavailable/empty data must never leave a stale landing hint.
+    InteractPrompt=FText::GetEmpty();
+    TDHUD::Text(O,TEXT("GetInteractPrompt"),InteractPrompt);
     TDHUD::FResult R(O,TEXT("GetSquadHUD"));
     const FArrayProperty* Array=CastField<FArrayProperty>(R.Return);
     const FStructProperty* Item=Array?CastField<FStructProperty>(Array->Inner):nullptr;
@@ -481,7 +498,7 @@ void UTDSpaceHUDWidget::HandleObjective(FName Id,int32 Step,FText Text) { if(!bP
 void UTDSpaceHUDWidget::SetPreviewMode(bool bEnabled)
 {
     bPreview=bEnabled;
-    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
+    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
     AcquisitionLeft=ActivationLeft=DamageLeft=0;
     if(!bEnabled) { RefreshData(); return; }
     DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset(); Hostiles.Reset(); bHasTargetHealth=bHasGameplayLead=false; IncomingMissiles=0;
@@ -753,6 +770,8 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
             else P.Text(398+I*374,777,TEXT("PLAYER CONTROLLED"),14,Style.ShipColor(I),true);
         }
     }
+    // Existing footer gap: cards end at1000, controls start at1031. Keep guidance out of combat sightlines.
+    if(Active && DataSource.IsValid() && !InteractPrompt.IsEmpty()) P.Text(66,1004,InteractPrompt.ToString(),14,Ink,true);
     if(HitLeft>0)
     {
         const FLinearColor C=bKillConfirmed?Style.Bastion:Ink;
