@@ -5,6 +5,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDFlowReflection.h"
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
+#include "TriadDrift/Flow/TDJourney.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -167,6 +168,15 @@ bool UTDCheatManager::DoUnlock(UWorld* World, const FString& AbilityName, const 
 {
 #if !UE_BUILD_SHIPPING
 	UTDGameInstance* GI = TDCheats::GetGI(World);
+	if (GI && AbilityName.Equals(TEXT("All"), ESearchCase::IgnoreCase))
+	{
+		for (const TPair<ETDAbilityId, ETDShipId>& Owner : UTDFlowSettings::Get()->AbilityOwners)
+		{
+			GI->UnlockAbility(Owner.Key, Owner.Value);
+		}
+		TDCheats::Log(TEXT("Unlocked every ability on its owner ship"));
+		return true;
+	}
 	ETDAbilityId Ability;
 	if (!GI || !TDCheats::ParseEnum(AbilityName, Ability) || Ability == ETDAbilityId::None)
 	{
@@ -278,6 +288,23 @@ bool UTDCheatManager::DoTake(UWorld* World)
 #endif
 }
 
+bool UTDCheatManager::DoStage(UWorld* World, const FString& StageName)
+{
+#if !UE_BUILD_SHIPPING
+	ETDJourneyStage Stage;
+	if (!FTDJourney::Parse(StageName, Stage))
+	{
+		TDCheats::Log(FString::Printf(TEXT("TD.Stage <%s>"), *FTDJourney::ListStages()));
+		return false;
+	}
+	const bool bOk = FTDJourney::Go(World, Stage);
+	TDCheats::Log(FString::Printf(TEXT("Stage %s %s"), *StageName, bOk ? TEXT("started") : TEXT("FAILED (map missing?)")));
+	return bOk;
+#else
+	return false;
+#endif
+}
+
 // ------------------------------------------------------------------------------------------------
 // Exec functions (cheat manager on the player controller)
 // ------------------------------------------------------------------------------------------------
@@ -289,6 +316,7 @@ void UTDCheatManager::TDKillAll() { DoKillAll(GetWorld()); }
 void UTDCheatManager::TDSkipWave() { DoSkipWave(GetWorld()); }
 void UTDCheatManager::TDTravel(const FString& DestinationName) { DoTravel(GetWorld(), DestinationName); }
 void UTDCheatManager::TDTake() { DoTake(GetWorld()); }
+void UTDCheatManager::TDStage(const FString& StageName) { DoStage(GetWorld(), StageName); }
 
 // ------------------------------------------------------------------------------------------------
 // "TD.*" console commands (work with any controller)
@@ -319,6 +347,9 @@ namespace TDCheats
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdTravel(TEXT("TD.Travel"), TEXT("TD.Travel <destination>: travel to a destination."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) { UTDCheatManager::DoTravel(World, Arg(Args, 0)); }));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdStage(TEXT("TD.Stage"), TEXT("TD.Stage <Waves1to2|VerdanceArrival|VerdanceOnFoot|Waves3to4|CinderArrival|CinderOnFoot|Wave5|DominionAssault|ReactorExposed|Victory>: progress and world jump to that journey stage."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) { UTDCheatManager::DoStage(World, Arg(Args, 0)); }));
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdTake(TEXT("TD.Take"), TEXT("TD.Take: force CUT! and restart the current scene as the next take."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World) { UTDCheatManager::DoTake(World); }));

@@ -1,4 +1,4 @@
-﻿// Triad Drift - debug cheats (ENG-19 debug menu). Owner: Teammate 5. Not compiled into Shipping.
+// Triad Drift - debug cheats (ENG-19 debug menu). Owner: Teammate 5. Not compiled into Shipping.
 
 #pragma once
 
@@ -17,6 +17,8 @@
  *   TD.SkipWave                    skip the current wave
  *   TD.Travel <ETDDestination>     travel to a destination
  *   TD.Take                        force "CUT!" and a retake of the current scene
+ *   TD.Stage <ETDJourneyStage>     jump to a journey stage (Waves1to2 ... Victory): progress and world
+ *   TD.Unlock All                  every ability on its owner ship
  * The static Do* functions hold the logic so tests and the F10 debug menu can call them directly.
  */
 UCLASS()
@@ -32,6 +34,7 @@ public:
 	UFUNCTION(Exec) void TDSkipWave();
 	UFUNCTION(Exec) void TDTravel(const FString& DestinationName);
 	UFUNCTION(Exec) void TDTake();
+	UFUNCTION(Exec) void TDStage(const FString& StageName);
 
 	static bool DoPhase(UWorld* World, const FString& PhaseName);
 	static bool DoUnlock(UWorld* World, const FString& AbilityName, const FString& ShipName);
@@ -40,6 +43,8 @@ public:
 	static bool DoSkipWave(UWorld* World);
 	static bool DoTravel(UWorld* World, const FString& DestinationName);
 	static bool DoTake(UWorld* World);
+	/** Jump to a journey stage: progress AND world (FTDJourney). */
+	static bool DoStage(UWorld* World, const FString& StageName);
 
 	/**
 	 * Makes UTDCheatManager the controller's cheat manager (replacing the stock one the engine creates
