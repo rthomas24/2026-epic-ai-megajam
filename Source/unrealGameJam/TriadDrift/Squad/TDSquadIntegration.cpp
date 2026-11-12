@@ -61,7 +61,10 @@ namespace TDSquadIntegrationPrivate
 		{
 			return FMath::Max(Cruise, Move->GetThrottleTopSpeed());
 		}
-		return Cruise;
+		else
+		{
+			return Cruise;
+		}
 	}
 }
 
