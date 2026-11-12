@@ -85,7 +85,7 @@ same code.
 - **Stretch ENG-29:** `bDockingFinale` plus the virtual `BeginDockingFinale()`. The base version
   logs and falls back to the reactor ending.
 - **Presentation:** one `UTDDominionVisuals` asset at the convention path
-  `/Game/TriadDrift/Presentation/Dominion/DA_Dominion_Visuals` (or set `Visuals`). Slots used:
+  `/Game/TriadDrift/Presentation/DA_Dominion_Visuals` (or set `Visuals`). Slots used:
   HullMesh, GeneratorMesh, ReactorMesh, WarpIn, ShieldIdle (loop while shields are up), ShieldHit
   (blocked reactor hits), ShieldSectionDown, ShieldCollapse, GeneratorHit, GeneratorExplosion,
   ReactorExposed, ReactorHit, ReactorPhaseChange, ReactorDestroyed and BreakupSequence.

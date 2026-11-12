@@ -148,7 +148,7 @@ void ATDEnemyShip::PlayWarpIn()
 FString ATDEnemyShip::VisualsAssetPath(FName EnemyId)
 {
 	const FString Name = FString::Printf(TEXT("DA_Enemy_%s_Visuals"), *EnemyId.ToString());
-	return FString::Printf(TEXT("/Game/TriadDrift/Presentation/Enemies/%s.%s"), *Name, *Name);
+	return FString::Printf(TEXT("/Game/TriadDrift/Presentation/%s.%s"), *Name, *Name);	// flat folder (docs/visual/Presentation-Asset-Paths.md)
 }
 
 UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)

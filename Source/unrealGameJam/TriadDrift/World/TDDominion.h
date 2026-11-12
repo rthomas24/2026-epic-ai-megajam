@@ -11,6 +11,7 @@
 class UStaticMeshComponent;
 class USceneComponent;
 class UTDDominionVisuals;
+class UTDEnemyVisuals;
 class ATDShieldGenerator;
 class ATDDominionReactor;
 class ATDEnemyTurret;
@@ -178,6 +179,19 @@ public:
 
 	// --- Presentation (all optional) ------------------------------------------------------------
 
+	/** Turret cues (TurretTelegraph, TurretDestroyed). Empty = convention asset DA_DominionTurret_Visuals. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TObjectPtr<UTDEnemyVisuals> TurretVisuals;
+
+	/** Seconds between TravelTo(Victory) attempts until the flow accepts one. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0.1"))
+	float VictoryRetrySeconds = 1.f;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
+	bool IsVictoryAccepted() const { return bVictoryAccepted; }
+
+	int32 GetVictoryAttempts() const { return VictoryAttempts; }
+
 	/** Nick's single presentation asset for the whole mothership (hull, generators, reactor). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDDominionVisuals> Visuals;
@@ -282,4 +296,7 @@ protected:
 	int32 LaunchCount = 0;
 	int32 Stage = 0;
 	bool bPartsBuilt = false;
+	bool bVictoryAccepted = false;
+	float VictoryRetryTimer = 0.f;
+	int32 VictoryAttempts = 0;
 };

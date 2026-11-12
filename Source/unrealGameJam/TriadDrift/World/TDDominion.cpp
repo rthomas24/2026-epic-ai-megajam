@@ -10,6 +10,8 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
@@ -117,7 +119,11 @@ void ATDDominion::BeginPlay()
 	// Nick's asset by convention when none is set (no gameplay BP edit needed).
 	if (!Visuals)
 	{
-		Visuals = LoadObject<UTDDominionVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/Dominion/DA_Dominion_Visuals.DA_Dominion_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		Visuals = LoadObject<UTDDominionVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Dominion_Visuals.DA_Dominion_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
+	if (!TurretVisuals)
+	{
+		TurretVisuals = LoadObject<UTDEnemyVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_DominionTurret_Visuals.DA_DominionTurret_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
 	}
 
 	// Lay the placeholder out from HullExtent so tuning the size keeps everything consistent.
@@ -267,6 +273,7 @@ void ATDDominion::BuildParts()
 		T->AttachToActor(this, Attach);
 		T->SetActorRelativeLocation(Local);
 		T->Init(TurretGuns, TurretHull);
+		T->Visuals = TurretVisuals;
 		T->SetActorScale3D(FVector(4.f));
 		Into.Add(T);
 	};
@@ -277,9 +284,10 @@ void ATDDominion::BuildParts()
 	{
 		const float Angle = PI * 0.25f + PI * 0.5f * i;
 		const FVector Local(FMath::Cos(Angle) * Ring, FMath::Sin(Angle) * Ring, 0.f);
-		ATDShieldGenerator* G = World->SpawnActor<ATDShieldGenerator>(ATDShieldGenerator::StaticClass(), FTransform::Identity, Params);
+		ATDShieldGenerator* G = World->SpawnActorDeferred<ATDShieldGenerator>(ATDShieldGenerator::StaticClass(), FTransform::Identity, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (!G) { continue; }
-		G->Visuals = Visuals;
+		G->Visuals = Visuals;	// before BeginPlay
+		G->FinishSpawning(FTransform::Identity);
 		G->AttachToActor(this, Attach);
 		G->SetActorRelativeLocation(Local);
 		G->Init(GeneratorHull, i);
@@ -303,10 +311,11 @@ void ATDDominion::BuildParts()
 
 	// Reactor at the bottom of the trench, plus dormant trench turrets.
 	const float TrenchZ = E.Z + 1500.f;
-	Reactor = World->SpawnActor<ATDDominionReactor>(ATDDominionReactor::StaticClass(), FTransform::Identity, Params);
+	Reactor = World->SpawnActorDeferred<ATDDominionReactor>(ATDDominionReactor::StaticClass(), FTransform::Identity, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 	if (Reactor)
 	{
-		Reactor->Visuals = Visuals;
+		Reactor->Visuals = Visuals;	// read in the reactor's BeginPlay, so set it before FinishSpawning
+		Reactor->FinishSpawning(FTransform::Identity);
 		Reactor->AttachToActor(this, Attach);
 		Reactor->SetActorRelativeLocation(FVector(E.X * 0.55f, 0.f, TrenchZ));	// sits clear of the hull top and the trench walls
 		Reactor->SetExposed(false);
@@ -564,6 +573,30 @@ void ATDDominion::HandleReactorDestroyed(ATDDominionReactor* InReactor, AActor* 
 		return;
 	}
 	// ReactorKill money shot: UTDDirectorSubsystem (the reactor actor is tagged).
+	// The war is won: nothing may take it away during the breakup. Protect the squad, end every enemy.
+	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+	{
+		TArray<AActor*> Actors;
+		Registry->GetActorsOfTeam(ETDTeam::Player, Actors, true);
+		for (AActor* A : Actors)
+		{
+			if (UTDHealthComponent* H = UTDStatics::GetHealth(A)) { H->SetInvulnerable(true); }
+		}
+		Actors.Reset();
+		Registry->GetActorsOfTeam(ETDTeam::Enemy, Actors, true);
+		for (AActor* A : Actors)
+		{
+			if (ATDEnemyShip* Ship = Cast<ATDEnemyShip>(A))
+			{
+				if (UTDHealthComponent* H = Ship->GetHealth()) { H->Kill(nullptr, ETDDamageKind::Environmental); }
+			}
+		}
+	}
+	if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))
+	{
+		Projectiles->KillAll(true);
+	}
+
 	// Defenses go quiet while the ship breaks apart.
 	for (ATDEnemyTurret* T : Turrets) { if (T) { T->ApplyStun(BreakupSeconds + 60.f); } }
 	for (ATDEnemyTurret* T : TrenchTurretActors) { if (T) { T->ApplyStun(BreakupSeconds + 60.f); } }
@@ -616,7 +649,23 @@ void ATDDominion::Tick(float DeltaSeconds)
 			SetState(ETDDominionState::Finished);
 			if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
 			{
-				Flow->TravelTo(ETDDestination::Victory, NAME_None);
+				Flow->SetPhase(ETDGamePhase::Victory);
+			}
+			VictoryRetryTimer = 0.f;
+		}
+		break;
+
+	case ETDDominionState::Finished:
+		// TravelTo can refuse (another travel pending, map not ready): keep asking until it's accepted.
+		if (!bVictoryAccepted)
+		{
+			VictoryRetryTimer -= DeltaSeconds;
+			if (VictoryRetryTimer <= 0.f)
+			{
+				VictoryRetryTimer = VictoryRetrySeconds;
+				ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
+				bVictoryAccepted = !Flow || Flow->TravelTo(ETDDestination::Victory, NAME_None);
+				++VictoryAttempts;
 			}
 		}
 		break;
