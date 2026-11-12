@@ -84,7 +84,7 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 | `Wingmen.HoldFormation` | wingmen within 1500 cm of their slots after 8 s |
 | `Wingmen.EngageWithoutPowers` | both engage, deal damage, zero `OnPowerUsed` |
 | `Wingmen.KeepFightingAfterSwitch` | the ship you left keeps fighting under AI |
-| `Wingmen.HoldFormationBehindFasterLeader` | Rift and Bastion hold their slots behind a full-throttle Lancer (30/120 fps); reports PENDING until T1's top-speed hook is on main |
+| `Wingmen.HoldFormationBehindFasterLeader` | Rift and Bastion hold their slots behind a full-throttle Lancer (30/120 fps) |
 | `Wingmen.FocusCommand` | focus overrides priority, expires at 8 s |
 | `Wingmen.FollowHyperdriveNotRam` | a 45 000 cm/s dash does not break engagement; an 80 000 cm/s jump carries wingmen in formation |
 | `Death.SpawnSquadIsARetake` | `SpawnSquad` again revives, repositions and resets everything (T5 retake) |
