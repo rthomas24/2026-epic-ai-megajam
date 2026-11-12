@@ -559,6 +559,12 @@ namespace TDSquad
 		return true;
 	}
 
+	FText GetLandPrompt(const ATDShip* Ship)
+	{
+		const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
+		return Landing ? Landing->GetLandPrompt() : FText::GetEmpty();
+	}
+
 	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds)
 	{
 		UWorld* World = Ship ? Ship->GetWorld() : nullptr;

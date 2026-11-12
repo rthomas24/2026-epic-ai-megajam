@@ -388,7 +388,7 @@ void ATDProjectile::Kill(bool bExplodeFX)
 	}
 	if (bExplodeFX)
 	{
-		PlayPlaceholderImpact(GetActorLocation(), Spec.FX && !Spec.FX->Detonation.IsEmpty());
+		PlayPlaceholderImpact(GetActorLocation(), Spec.FX && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	}
 	Deactivate();
 }
@@ -412,7 +412,7 @@ void ATDProjectile::Detonate()
 	{
 		UTDStatics::PlayCue(this, Spec.FX->Detonation, Here, GetActorRotation());
 	}
-	PlayPlaceholderImpact(Here, Spec.FX && !Spec.FX->Detonation.IsEmpty());
+	PlayPlaceholderImpact(Here, Spec.FX && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	OnDetonated.Broadcast(this, nullptr);
 	Deactivate();
 }
@@ -833,7 +833,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	{
 		const FTDFXCue& Cue = !VictimHealth ? Spec.FX->ImpactWorld : (VictimHealth->IsShieldUp() ? Spec.FX->ImpactShield : Spec.FX->ImpactHull);
 		UTDStatics::PlayCue(this, Cue, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
-		bImpactArt = !Cue.IsEmpty() || (Spec.SplashRadius > 0.f && !Spec.FX->Detonation.IsEmpty());
+		bImpactArt = FTDCombatPlaceholders::HasVisualArt(Cue) || (Spec.SplashRadius > 0.f && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	}
 	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt);
 

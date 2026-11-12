@@ -223,6 +223,19 @@ void ATDDebugHUD::DrawWave()
 		GetTextSize(Warn, W, H, nullptr, 1.6f);
 		DrawText(Warn, ColorEnemy, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.22f, nullptr, 1.6f);
 	}
+
+	// Flying: the interact prompt (landing: "Hold F to land" / "SLOW DOWN TO LAND"), centred under the
+	// reticle. On foot it is part of the health row instead.
+	if (Data->GetSquadHUD().Num() > 0)
+	{
+		const FString Prompt = Data->GetInteractPrompt().ToString();
+		if (!Prompt.IsEmpty())
+		{
+			float W = 0.f, H = 0.f;
+			GetTextSize(Prompt, W, H, nullptr, 1.5f);
+			DrawText(Prompt, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.66f, nullptr, 1.5f);
+		}
+	}
 }
 
 void ATDDebugHUD::DrawTargets()

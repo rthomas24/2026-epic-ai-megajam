@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -328,6 +329,31 @@ bool ATDShip::ShouldEnginesRun() const
 	return !IsFlightParked();
 }
 
+const FName ATDShip::AudioParamSpeed01(TEXT("Speed01"));
+const FName ATDShip::AudioParamBoost01(TEXT("Boost01"));
+const FName ATDShip::AudioParamDrift01(TEXT("Drift01"));
+TFunction<UAudioComponent*(USoundBase*, USceneComponent*, FName)> ATDShip::TestSpawnEngineLoop;
+
+void ATDShip::ApplyEngineAudioParams(UAudioComponent* Audio) const
+{
+	if (!Audio)
+	{
+		return;
+	}
+	const float Speed01 = GetSpeed01();
+	Audio->SetFloatParameter(AudioParamSpeed01, Speed01);
+	Audio->SetFloatParameter(AudioParamBoost01, AudioBoost01);
+	Audio->SetFloatParameter(AudioParamDrift01, AudioDrift01);
+	// A MetaSound reads Speed01 itself; pitching it here as well would pitch it twice. Found by name so the
+	// module needs no MetasoundEngine dependency.
+	static const UClass* MetaSoundClass = FindObject<UClass>(nullptr, TEXT("/Script/MetasoundEngine.MetaSoundSource"));
+	const USoundBase* Sound = Audio->GetSound();
+	if (!(MetaSoundClass && Sound && Sound->IsA(MetaSoundClass)))
+	{
+		Audio->SetPitchMultiplier(0.8f + 0.6f * Speed01);
+	}
+}
+
 void ATDShip::StopEngine()
 {
 	StopLoop(TEXT("EngineTrail"), EngineTrailFX, EngineTrailAudio);
@@ -352,7 +378,9 @@ void ATDShip::StartEngineTrail()
 		if (USoundBase* Sound = Visuals->EngineLoop.LoadSynchronous())
 		{
 			FName Socket;
-			EngineLoopAudio = UGameplayStatics::SpawnSoundAttached(Sound, GetEngineAttach(Socket), Socket);
+			USceneComponent* Attach = GetEngineAttach(Socket);
+			EngineLoopAudio = TestSpawnEngineLoop ? TestSpawnEngineLoop(Sound, Attach, Socket) : UGameplayStatics::SpawnSoundAttached(Sound, Attach, Socket);
+			ApplyEngineAudioParams(EngineLoopAudio.Get());
 		}
 	}
 }
@@ -516,10 +544,11 @@ void ATDShip::Tick(float DeltaSeconds)
 	{
 		StopEngine();
 	}
-	if (UAudioComponent* A = EngineLoopAudio.Get())
-	{
-		A->SetPitchMultiplier(0.8f + 0.6f * GetSpeed01());
-	}
+	constexpr float AudioEaseRate = 5.f; // 0 -> 1 in 0.2 s
+	AudioBoost01 = FMath::FInterpConstantTo(AudioBoost01, IsBoosting() ? 1.f : 0.f, DeltaSeconds, AudioEaseRate);
+	AudioDrift01 = FMath::FInterpConstantTo(AudioDrift01, IsDrifting() ? 1.f : 0.f, DeltaSeconds, AudioEaseRate);
+	ApplyEngineAudioParams(EngineLoopAudio.Get());
+	ApplyEngineAudioParams(EngineTrailAudio.Get());
 }
 
 FQuat ATDShip::ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeconds, float& OutRoll) const
