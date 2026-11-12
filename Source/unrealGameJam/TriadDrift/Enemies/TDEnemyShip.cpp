@@ -786,6 +786,17 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 	DestroyCarrierParts();
 	DeathTimer = Spec.DeathTumbleSeconds;
 
+	// The tumbling wreck is scenery: ships fly through it (no 60-hull ram from a dead fighter).
+	if (USphereComponent* Sphere = GetCollisionSphere())
+	{
+		Sphere->SetCollisionResponseToChannel(TDCollision::Ship, ECR_Ignore);
+	}
+	ClearSpeedOverride();
+	if (Visuals)
+	{
+		UTDStatics::PlayCueAttached(Visuals->DeathTumble, GetHullMesh());
+	}
+
 	OnEnemyDied.Broadcast(this, Killer);
 
 	if (Spec.Role == ETDEnemyRole::Carrier && Spec.KillImportance > 0.f)
