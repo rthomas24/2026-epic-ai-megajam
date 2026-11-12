@@ -7,7 +7,7 @@ and gameplay validated are separate stages. AAA is a quality direction, not a
 verified label or authority to expand scope. All current new benchmarks require
 Nicholas's subjective review before propagation/integration.
 
-**Current checkpoint:** [Recovery and broker handoff](Recovery-and-Broker-Handoff-2026-11-12.md). Nick production is STOPPED pending his review; no ended goal may restart. Older timestamped notes below are historical.
+**Current checkpoint:** [Recovery and broker handoff](Recovery-and-Broker-Handoff-2026-11-12.md). Nick subsequently authorized NEW scoped continuous coordination; old goals stay cleared. See current CLAIMS for dispatch, with WHITE player priority and all quality/native gates retained. Older timestamped notes below are historical.
 
 ## Nicholas's Lead delegation
 

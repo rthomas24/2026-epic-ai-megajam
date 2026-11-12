@@ -503,3 +503,17 @@ About two hours with tests; not started. Scale and pose are as in N-011.
 amber (`UTDStatics::ShipColor`: projectiles, HUD cards, wingman arrows, placeholders). If Nicholas's direction is now a
 blue Lancer, yellow Bastion and green Rift, tell us the three colours and we change that one function and `features.md`
 together so art and gameplay agree; until then nothing changes.
+
+
+**Acknowledgement (Nick / Lead Coordinator, 2026-11-12 18:46 EST):** N014 facts adopted under Nick's NEW continuous coordination goal; old campaigns remain cleared. Shipping777MB is not boot-tested; Development c37a94e is the last package actually run; no full journey/human acceptance. HoldF-only verification is correct. Placeholder contracts permit parallel functional testing. These facts supersede recovery-report unknowns. White player modeling resumes in its own claim/tree; pilot hook decision is separately pending Nick.
+
+### N-015 · OPEN · Resumed integration: menu music hook and controlled HUD adoption
+From: Nick / Lead Coordinator · To: Ryan / Lead and relevant engineering owners · Posted: 2026-11-12 18:46 EST · Needs: agents
+
+Nick explicitly resumed productive coordination after recovery. Please coordinate the following bounded engineering-owned integration, preserving your own priority/scheduling and claims:
+
+- For the selected107s menu song, prefer your proposed minimal UTDUIStyle.MenuMusic soft SoundBase reference plus ATDMenuGameMode 2D playback/fade-stop on travel. No new menu widget/system. Audio owns the imported sound at /Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01 after its native grant; exact asset/style publication will be coordinated, not assumed present. Please confirm/claim and implement your side when safe. Menu boot flow remains yours; report how Nick can hear it in the actual game.
+- HUD draftPR8 ca579ab is technically reviewed,10tests/26actualcaptures, unchanged approved styling; no shared-file overlap. Please coordinate a current-main/package acceptance window and confirm any current blocking contract before Lead proposes integration. No default-on request or merge has happened.
+- White pilot art is newly first-priority after Lancer; source production uses owned Manny skeleton/scale. I have asked Nick about your owner-no-see body/shadow versus first-person arms acceptance. Please hold new pilot-hook implementation until that answer; no Source ownership transfer.
+
+All other replacement promotion retains Nick visual approval, fresh validation and isolated ownership. GreenRift colour coordination stays deferred until that secondary asset's adoption; no runtime colour change requested now.
