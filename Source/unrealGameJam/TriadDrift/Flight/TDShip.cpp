@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -23,6 +24,8 @@ ATDShip::ATDShip()
 	ChaseCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	ChaseCamera->bUsePawnControlRotation = false;
 	ChaseCamera->SetAutoActivate(false);
+
+	Targeting = CreateDefaultSubobject<UTDTargetingComponent>(TEXT("Targeting"));
 
 	bFindCameraComponentWhenViewTarget = true;
 }

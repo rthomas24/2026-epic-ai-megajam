@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class UTDTargetingComponent;
 
 /** Chase-camera feel. Defaults are features.md ENG-01. */
 USTRUCT(BlueprintType)
@@ -75,6 +76,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	bool IsPlayerFlown() const { return bPlayerControlled; }
 
+	/** T2's target selection / lock-on for this ship. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	UTDTargetingComponent* GetTargeting() const { return Targeting; }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	USpringArmComponent* GetSpringArm() const { return SpringArm; }
 
@@ -106,6 +111,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Camera")
 	TObjectPtr<UCameraComponent> ChaseCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
+	TObjectPtr<UTDTargetingComponent> Targeting;
 
 private:
 	bool bPlayerControlled = false;
