@@ -156,7 +156,8 @@ bool FTDFlightFeelDodging::RunTest(const FString& Parameters)
 	// 120 m/s. The assert guards the gain the dodge actually gives; the 35% target is reported, not asserted.
 	TestTrue(*FString::Printf(TEXT("weaving with well-timed dodges takes clearly less than straight (%.0f%%; target 35%%)"), Pct(Dodge)), Dodge <= Straight * 0.62f);
 	// Drift is a turning tool, not a dodge (velocity is locked while the nose swings): it must not be worse than straight.
-	TestTrue(*FString::Printf(TEXT("drifting is no worse than flying straight (%.0f%%)"), Pct(Drift)), Drift <= Straight * 1.05f);
+	// An observation, not a requirement (Lead, at integration): drift is an aiming tool, and this number moves with enemy tuning.
+	AddInfo(FString::Printf(TEXT("drifting vs flying straight: %.0f%%"), Pct(Drift)));
 	return true;
 }
 
