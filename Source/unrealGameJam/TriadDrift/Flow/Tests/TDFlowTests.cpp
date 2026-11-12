@@ -11,6 +11,8 @@
 #include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Materials/MaterialInterface.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
@@ -22,6 +24,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "GameFramework/DefaultPawn.h"
 #include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "GameFramework/SaveGame.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -1126,6 +1129,37 @@ bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
 		ATDSpaceGameMode* GM = W.GetWorld()->GetAuthGameMode<ATDSpaceGameMode>();
 		TWeakObjectPtr<AActor> Stars = GM ? GM->GetStarBackdrop() : nullptr;
 		TestTrue(TEXT("space mode spawned the star backdrop"), Stars.IsValid());
+		// Stars read from every direction: unlit glow material, and instances all around the sky.
+		TestNotNull(TEXT("glow material referenced on the mode (cooks)"), GM ? GM->GetStarMaterial() : nullptr);
+		TInlineComponentArray<UInstancedStaticMeshComponent*> Layers(Stars.Get());
+		TestTrue(TEXT("tinted star layers"), Layers.Num() >= 3);
+		const FVector Axes[] = { FVector::ForwardVector, -FVector::ForwardVector, FVector::RightVector, -FVector::RightVector, FVector::UpVector, -FVector::UpVector };
+		int32 PerAxis[6] = { 0, 0, 0, 0, 0, 0 };
+		for (UInstancedStaticMeshComponent* ISM : Layers)
+		{
+			UMaterialInterface* M = ISM->GetMaterial(0);
+			TestTrue(FString::Printf(TEXT("%s is unlit"), *ISM->GetName()), M && M->GetShadingModels().HasShadingModel(MSM_Unlit));
+			for (int32 i = 0; i < ISM->GetInstanceCount(); ++i)
+			{
+				FTransform X;
+				ISM->GetInstanceTransform(i, X, true);
+				const FVector Dir = (X.GetLocation() - Stars->GetActorLocation()).GetSafeNormal();
+				for (int32 a = 0; a < 6; ++a) { if (FVector::DotProduct(Dir, Axes[a]) > 0.8) { ++PerAxis[a]; } }
+			}
+		}
+		for (int32 a = 0; a < 6; ++a)
+		{
+			TestTrue(FString::Printf(TEXT("stars toward axis %d (%d)"), a, PerAxis[a]), PerAxis[a] > 20);
+		}
+		// The shell follows the camera, so the sky is full wherever the player flies (the Dominion is outside it).
+		if (APlayerController* PC = W.SpawnLocalPlayerController())
+		{
+			W.Advance(0.2f);
+			if (PC->PlayerCameraManager)
+			{
+				TestTrue(TEXT("star shell centred on the camera"), FVector::Dist(Stars->GetActorLocation(), PC->PlayerCameraManager->GetCameraLocation()) < 100.f);
+			}
+		}
 		W.Advance(1.f);
 		TestTrue(TEXT("stars stay while there is no real sky"), Stars.IsValid() && !Stars->IsActorBeingDestroyed());
 		AActor* Sky = W.Spawn<AActor>();
