@@ -335,7 +335,9 @@ bool FTDGapMultiFps::RunTest(const FString& Parameters)
 			UTDWeaponComponent* G = Guns(Rift, TDWeaponIds::PhasePulseLasers);
 			G->SetTriggerHeld(ETDWeaponSlot::Primary, true);
 			const float At = AdvanceUntil(W, [&] { return G->IsOverheated(ETDWeaponSlot::Primary); }, 6.f, Step);
-			TestEqual(*(Fps + TEXT(": overheats at 4 s")), At, 4.f, Step + 0.01f);
+			// The press-frame shot fires at the end of the first frame (no sub-frame head start), so every shot,
+			// and the overheat, lands one frame after "4 s from the press".
+			TestEqual(*(Fps + TEXT(": overheats at 4 s")), At, 4.f + Step, Step + 0.01f);
 			const int32 Shots = G->GetSlotState(ETDWeaponSlot::Primary).ShotsFired;
 			float Locked = 0.f;
 			bool bShotDuringLockout = false;

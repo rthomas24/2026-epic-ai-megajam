@@ -635,10 +635,33 @@ void UTDTargetingComponent::UpdateMarkers()
 		}
 	};
 
+	// The current and locked targets always get a marker, whatever their distance rank; then the nearest.
 	const int32 ShipBudget = FMath::Max(0, MaxMarkers - MissileScratch.Num());
-	for (int32 i = 0; i < Hostiles.Num() && i < ShipBudget; ++i)
+	TArray<AActor*, TInlineAllocator<8>> Priority;
+	if (AActor* Current = CurrentTarget.Get(); IsValidTarget(Current))
 	{
-		AddMarker(Hostiles[i], Hostiles[i]->GetActorLocation(), false);
+		Priority.Add(Current);
+	}
+	for (AActor* Locked : LockedTargets)
+	{
+		if (IsValidTarget(Locked))
+		{
+			Priority.AddUnique(Locked);
+		}
+	}
+	for (AActor* A : Priority)
+	{
+		if (Markers.Num() < FMath::Max(ShipBudget, Priority.Num()))
+		{
+			AddMarker(A, A->GetActorLocation(), false);
+		}
+	}
+	for (int32 i = 0; i < Hostiles.Num() && Markers.Num() < ShipBudget; ++i)
+	{
+		if (!Priority.Contains(Hostiles[i]))
+		{
+			AddMarker(Hostiles[i], Hostiles[i]->GetActorLocation(), false);
+		}
 	}
 	for (ATDProjectile* P : MissileScratch)
 	{
