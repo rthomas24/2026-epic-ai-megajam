@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "asset": "Lancer_Player_M01",
+  "claim": "d351af1d3cdffcc75fcabd3a5436c3c8d18f5310",
+  "stage": "export preparation only; not executed",
+  "read_only_packages": [
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SKM_Manny_Simple.uasset",
+      "character_tree": "Lancer tree has LFS pointers; frozen HUD package used read-only",
+      "read_only_actual_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Content\\Characters\\Mannequins\\Meshes\\SKM_Manny_Simple.uasset",
+      "actual_bytes": 15825101,
+      "sha256": "be9f011191ee1887b97cd13bce09886a6066c2fd62c619991070ec142184e1bf",
+      "lfs_oid_matches_actual": true,
+      "exported": false
+    },
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SK_Mannequin.uasset",
+      "character_tree": "Lancer tree has LFS pointers; frozen HUD package used read-only",
+      "read_only_actual_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Content\\Characters\\Mannequins\\Meshes\\SK_Mannequin.uasset",
+      "actual_bytes": 191198,
+      "sha256": "22029d47455f24471195b26a0e04a1e1389f27d6a924e88c9f46a0f600c9a530",
+      "lfs_oid_matches_actual": true,
+      "exported": false
+    }
+  ],
+  "reference": {
+    "path": "C:\\Users\\nicho\\AppData\\Local\\Temp\\codex-clipboard-2fa970f1-75d9-4c62-b697-7db5bdaabc3d.png",
+    "sha256": "aaf84960c089695af21af6b4d165aea0640ba03889092068056b1a356f2a6194",
+    "bytes": 2340524,
+    "direction": "White segmented armor, graphite undersuit, restrained cyan visor and accents"
+  },
+  "native_execution_granted": false,
+  "blender_execution_granted": false
+}
