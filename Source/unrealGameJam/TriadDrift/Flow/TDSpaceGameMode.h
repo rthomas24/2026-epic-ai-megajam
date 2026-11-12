@@ -79,7 +79,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Sandbox")
 	void RestartScene();
 
+	/** The placeholder star backdrop (null once a real sky has taken over, or if none was needed). */
+	AActor* GetStarBackdrop() const { return StarBackdrop; }
+
 protected:
+	/** A sky tagged TD.Presentation.Sky that appears late (streamed / spawned) removes our stars too. */
+	void CheckStarBackdrop();
 	void SpawnEnvironment();
 	void SpawnStarBackdrop();
 	void SpawnAsteroids();
@@ -107,6 +112,10 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<class ATDGalaxyLayout> GalaxyLayout;
 
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> StarBackdrop;
+
 	FTimerHandle FirstWaveTimer;
+	FTimerHandle StarWatchTimer;
 	FDelegateHandle SceneRestartHandle;
 };

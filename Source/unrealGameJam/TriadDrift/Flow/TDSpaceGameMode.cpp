@@ -384,7 +384,25 @@ void ATDSpaceGameMode::SpawnStarBackdrop()
 		Instances.Emplace(FRotator::ZeroRotator, SquadOrigin.GetLocation() + Dir * Dist, FVector(Size));
 	}
 	ISM->AddInstances(Instances, false, true);
+	Stars->Tags.Add(TEXT("TD.Placeholder.Stars"));
 	SpawnedEnvironment.Add(Stars);
+	StarBackdrop = Stars;
+	GetWorldTimerManager().SetTimer(StarWatchTimer, this, &ATDSpaceGameMode::CheckStarBackdrop, 0.5f, true);
+}
+
+void ATDSpaceGameMode::CheckStarBackdrop()
+{
+	if (!StarBackdrop || StarBackdrop->IsActorBeingDestroyed())
+	{
+		GetWorldTimerManager().ClearTimer(StarWatchTimer);
+		return;
+	}
+	if (ATDPlaceholderSky::Scan(GetWorld()).bTaggedSky)
+	{
+		StarBackdrop->Destroy();
+		StarBackdrop = nullptr;
+		GetWorldTimerManager().ClearTimer(StarWatchTimer);
+	}
 }
 
 void ATDSpaceGameMode::SpawnAsteroids()
