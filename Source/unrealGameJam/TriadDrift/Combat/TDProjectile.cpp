@@ -546,6 +546,18 @@ void ATDProjectile::Step(float DeltaSeconds)
 			const FVector JustPast = OnPlane + Dir * 1.f;
 			SetActorLocation(JustPast);
 			Crossed->TransitAlong(this, Start, JustPast);
+			// Carry the rest of this step on from wherever the shot now is (the exit, or just past the plane if the
+			// transit was refused): a 30 fps shot doesn't lose up to 1333 cm of travel at a portal (review).
+			const float SegmentSpeed = Velocity.Size();
+			const float Remaining = SegmentSpeed > KINDA_SMALL_NUMBER
+				? FMath::Max(0.f, (float)FVector::Dist(JustPast, End) / SegmentSpeed) : 0.f;
+			if (bActive && Remaining > KINDA_SMALL_NUMBER && PortalCarryDepth < 2)
+			{
+				++PortalCarryDepth;
+				Age -= Remaining; // Step adds it back: no extra ageing
+				Step(Remaining);
+				--PortalCarryDepth;
+			}
 			return;
 		}
 	}
