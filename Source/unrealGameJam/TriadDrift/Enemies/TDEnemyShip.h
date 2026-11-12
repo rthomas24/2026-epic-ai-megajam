@@ -57,9 +57,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	ETDEnemySize GetSize() const { return Spec.Size; }
 
-	/** The weapon component (found on the pawn, or created on first use). */
-	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
-	UTDWeaponComponent* GetWeapons() const { return Weapons; }
+	// Weapons: ATDSpacecraft::GetWeapons() (T1's "Weapons" subobject).
 
 	// ITDWaveEnemy
 	virtual void InitWaveEnemy(FName EnemyId) override { InitFromSpec(EnemyId); }
@@ -274,9 +272,6 @@ protected:
 	void UpdatePlaceholderLook();
 	void SetBaysPaused(bool bPaused);
 	UTDWeaponComponent* EnsureWeapons();
-
-	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "TriadDrift|Enemy")
-	TObjectPtr<UTDWeaponComponent> Weapons;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "TriadDrift|Enemy")
 	FTDEnemySpec Spec;

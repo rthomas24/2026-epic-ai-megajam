@@ -23,8 +23,7 @@ ATDEnemyShip::ATDEnemyShip()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Weapons: ATDSpacecraft is gaining its own "Weapons" subobject (T1); EnsureWeapons() uses
-	// that one when present and creates one otherwise, so no subobject name can clash.
+	// Weapons come from ATDSpacecraft's "Weapons" subobject; EnsureWeapons() is a null-safe fallback.
 
 	AIControllerClass = ATDEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
