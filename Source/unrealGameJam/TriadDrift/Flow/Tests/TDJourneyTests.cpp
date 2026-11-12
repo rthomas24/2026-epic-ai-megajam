@@ -218,6 +218,21 @@ bool FTDJourneyCheats::RunTest(const FString& Parameters)
 	TestTrue(TEXT("TD.Stage DominionAssault"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("DominionAssault")));
 	TestEqual(TEXT("phase set"), G.GI->GetProgressRef().Phase, ETDGamePhase::DominionAssault);
 	TestFalse(TEXT("bogus stage refused"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Narnia")));
+	TestFalse(TEXT("Wave6 refused"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Wave6")));
+	// Aliases: Wave4 = the Waves3to4 stage, running wave 4.
+	TestTrue(TEXT("TD.Stage Wave4"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("wave4")));
+	G.W.Advance(6.f, 1.f / 30.f);
+	TestEqual(TEXT("Wave4 alias: phase"), G.GI->GetProgressRef().Phase, ETDGamePhase::Waves3to4);
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld()))
+	{
+		TestEqual(TEXT("Wave4 alias: wave 4 running"), Director->GetWaveInfo().WaveNumber, 4);
+	}
+	TestTrue(TEXT("TD.Stage Wave2"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Wave2")));
+	G.W.Advance(6.f, 1.f / 30.f);
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld()))
+	{
+		TestEqual(TEXT("Wave2 alias: wave 2 running"), Director->GetWaveInfo().WaveNumber, 2);
+	}
 	return true;
 }
 
