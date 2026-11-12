@@ -10,6 +10,9 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Enemies/TDEnemyTurret.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "NiagaraComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
@@ -83,7 +86,8 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 	}
 	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 	{
-		TArray<AActor*> Hostiles;
+		TArray<AActor*>& Hostiles = HostilesScratch;
+		Hostiles.Reset();
 		Registry->GetHostilesOf(Team, Hostiles, true);
 		for (AActor* Hostile : Hostiles)
 		{
@@ -98,16 +102,26 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 				continue;
 			}
 			const float Dist = FMath::Sqrt(DistSq);
-			if (Dist > CoreRadius)
+			if (Dist > CoreRadius && CanBePulled(Hostile))
 			{
 				const float Alpha = 1.f - FMath::Clamp(Dist / Radius, 0.f, 1.f);
 				const float Speed = FMath::Lerp(EdgePullSpeed, CorePullSpeed, Alpha);
 				const float Step = FMath::Min(Speed * DeltaSeconds, Dist - CoreRadius);
-				Hostile->SetActorLocation(Hostile->GetActorLocation() + To / Dist * Step);
+				// A swept move through the ship's own movement component: never through rocks or hulls.
+				if (UTDShipMovementComponent* Move = CastChecked<ATDSpacecraft>(Hostile)->GetShipMovement())
+				{
+					FHitResult Hit;
+					Move->SafeMoveUpdatedComponent(To / Dist * Step, Hostile->GetActorQuat(), true, Hit);
+				}
 			}
+			// Can't fire inside: ships suppress, turrets (carrier, Dominion) are held stunned.
 			if (ATDEnemyShip* Enemy = Cast<ATDEnemyShip>(Hostile))
 			{
 				Enemy->SuppressFire(DamageTickSeconds + 0.1f);
+			}
+			else if (ATDEnemyTurret* Turret = Cast<ATDEnemyTurret>(Hostile))
+			{
+				Turret->ApplyStun(DamageTickSeconds + 0.1f);
 			}
 			if (bDamageTick)
 			{
@@ -162,6 +176,22 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 	{
 		DrawDebugSphere(GetWorld(), Center, Radius, 20, FColor(160, 60, 255), false, -1.f, 0, 6.f);
 	}
+}
+
+bool ATDGravityWell::CanBePulled(const AActor* Actor) const
+{
+	// Only free-flying ships, and only the small ones: generators, turrets, the reactor, carrier bays (all
+	// attached or not spacecraft) and Large/Boss hulls stay where the level put them. They still take the damage.
+	const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Actor);
+	if (!Craft || Craft->GetAttachParentActor() || !Craft->GetShipMovement())
+	{
+		return false;
+	}
+	if (const ATDEnemyShip* Enemy = Cast<ATDEnemyShip>(Craft))
+	{
+		return static_cast<uint8>(Enemy->GetSize()) <= static_cast<uint8>(MaxPulledSize);
+	}
+	return true;
 }
 
 void ATDGravityWell::Implode()
@@ -348,6 +378,11 @@ bool UTDEMPPower::OnActivate()
 				{
 					Enemy->DropFrontalShield(ShieldDropSeconds);
 				}
+				++LastAffected;
+			}
+			else if (ATDEnemyTurret* Turret = Cast<ATDEnemyTurret>(Hostile))
+			{
+				Turret->ApplyStun(StunSeconds); // carrier point defense, Dominion guard turrets
 				++LastAffected;
 			}
 		}

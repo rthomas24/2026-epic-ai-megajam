@@ -7,6 +7,7 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Enemies/TDEnemyTypes.h"
 #include "TDAbilityPowers.generated.h"
 
 class UTDAbilityFX;
@@ -43,6 +44,11 @@ public:
 	float CoreRadius = 400.f;
 	/** How fast hostile projectiles' velocity bends toward the centre. */
 	float ProjectileBendDegPerSecond = 270.f;
+	/** Largest enemy ship class the vortex moves (bigger ones, and anything attached or not a ship, only take damage). */
+	ETDEnemySize MaxPulledSize = ETDEnemySize::Medium;
+
+	/** Free-flying spacecraft no bigger than MaxPulledSize. */
+	bool CanBePulled(const AActor* Actor) const;
 
 	void Launch(AActor* InOwner, ETDTeam InTeam, const FVector& Direction, UTDAbilityFX* InFX);
 
@@ -60,6 +66,7 @@ private:
 
 	ETDTeam Team = ETDTeam::Player;
 	FVector Direction = FVector::ForwardVector;
+	TArray<AActor*> HostilesScratch;
 	float Age = 0.f;
 	float DamageAccumulator = 0.f;
 	bool bVortex = false;
