@@ -10,6 +10,7 @@ class UTDHealthComponent;
 class UStaticMeshComponent;
 class ATDEnemyShip;
 class ATDCarrierBay;
+class UTDEnemyVisuals;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDCarrierBaySignature, ATDCarrierBay*, Bay);
 
@@ -58,6 +59,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Carrier", meta = (ClampMin = "1"))
 	float DoorsBrokenDamageMultiplier = 2.f;
+
+	/** Half depth along the bay's outward (+X) axis, for mounting outside the hull (cm). */
+	float GetHalfExtent() const;
+
+	/** Carrier's visuals (BayLaunchTelegraph, BayLaunch, BayDestroyed). Set by the carrier. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TObjectPtr<UTDEnemyVisuals> Visuals;
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Carrier")
 	FTDCarrierBaySignature OnLaunchTelegraph;

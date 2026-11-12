@@ -5,6 +5,8 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
@@ -112,6 +114,7 @@ void ATDEnemyTurret::HandleDeath(UTDHealthComponent* /*InHealth*/, const FTDDama
 		Mesh->SetVisibility(false);
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	if (Visuals) { UTDStatics::PlayCue(this, Visuals->TurretDestroyed, GetActorLocation(), GetActorRotation()); }
 	OnTurretDestroyed.Broadcast(this);
 }
 
@@ -133,7 +136,7 @@ void ATDEnemyTurret::Tick(float DeltaSeconds)
 	CooldownRemaining = FMath::Max(0.f, CooldownRemaining - DeltaSeconds);
 
 	RetargetTimer -= DeltaSeconds;
-	if (RetargetTimer <= 0.f || !Target.IsValid())
+	if (RetargetTimer <= 0.f)	// keep the timer even when nothing was found: no per-frame scans
 	{
 		RetargetTimer = 0.5f;
 		UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
@@ -192,6 +195,10 @@ void ATDEnemyTurret::Tick(float DeltaSeconds)
 		{
 			bTelegraphing = true;
 			TelegraphRemaining = Guns.TelegraphSeconds;
+			if (Visuals)
+			{
+				UTDStatics::PlayCueAttached(Visuals->TurretTelegraph.IsEmpty() ? Visuals->Telegraph : Visuals->TurretTelegraph, Mesh);
+			}
 			OnTelegraphStarted.Broadcast(this);
 		}
 		else

@@ -683,33 +683,44 @@ FVector ATDWingmanAIController::ApplyAvoidance(ATDShip* Ship, const FVector& Des
 			Vel = Ship->GetActorForwardVector() * 1500.f;
 		}
 		const FVector End = Loc + Vel * AvoidanceLookAhead;
+		const FVector VelDir = Vel.GetSafeNormal();
 
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDWingmanAvoid), false, Ship);
-		if (S)
+		// 1) T4's obstacle registry (asteroids, ruins, planets, Dominion hull): cheap and exact.
+		FVector RegisteredAvoid;
+		const float Probe = Vel.Size() * AvoidanceLookAhead + 4.f * AvoidanceShipRadius;
+		if (TDSquad::FindRegisteredAvoidance(World, Loc, VelDir, Probe, AvoidanceShipRadius, RegisteredAvoid))
 		{
-			for (const FTDSquadSlot& Slot : S->GetSlots())
-			{
-				Params.AddIgnoredActor(Slot.Ship);
-			}
+			CachedAvoidance = RegisteredAvoid.GetSafeNormal() * 3.f;
 		}
-		FCollisionObjectQueryParams Objects;
-		Objects.AddObjectTypesToQuery(ECC_WorldStatic);
-		Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
-
-		FHitResult Hit;
-		if (World->SweepSingleByObjectType(Hit, Loc, End, FQuat::Identity, Objects, FCollisionShape::MakeSphere(500.f), Params))
+		else
 		{
-			// Push out along the surface normal, harder the sooner we'd hit.
-			const float Urgency = 1.f - Hit.Time;
-			FVector Away = Hit.ImpactNormal;
-			// Prefer going around rather than straight back.
-			const FVector VelDir = Vel.GetSafeNormal();
-			Away = (Away - VelDir * FVector::DotProduct(Away, VelDir)).GetSafeNormal();
-			if (Away.IsNearlyZero())
+			// 2) Fallback sweep for unregistered geometry (portal gate frames, pylons, moving ships).
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(TDWingmanAvoid), false, Ship);
+			if (S)
 			{
-				Away = Ship->GetActorUpVector();
+				for (const FTDSquadSlot& Slot : S->GetSlots())
+				{
+					Params.AddIgnoredActor(Slot.Ship);
+				}
 			}
-			CachedAvoidance = Away * (1.5f + 2.5f * Urgency);
+			FCollisionObjectQueryParams Objects;
+			Objects.AddObjectTypesToQuery(ECC_WorldStatic);
+			Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
+
+			FHitResult Hit;
+			if (World->SweepSingleByObjectType(Hit, Loc, End, FQuat::Identity, Objects, FCollisionShape::MakeSphere(AvoidanceShipRadius), Params))
+			{
+				// Push out along the surface normal, harder the sooner we'd hit.
+				const float Urgency = 1.f - Hit.Time;
+				FVector Away = Hit.ImpactNormal;
+				// Prefer going around rather than straight back.
+				Away = (Away - VelDir * FVector::DotProduct(Away, VelDir)).GetSafeNormal();
+				if (Away.IsNearlyZero())
+				{
+					Away = Ship->GetActorUpVector();
+				}
+				CachedAvoidance = Away * (1.5f + 2.5f * Urgency);
+			}
 		}
 	}
 

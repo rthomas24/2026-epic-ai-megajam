@@ -33,6 +33,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
 	FTransform SquadOrigin;
 
+	/** Build the galaxy with T4's ATDGalaxyLayout (asteroids, planets, gates, Dominion, return points). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
+	bool bUseGalaxyLayout = true;
+
 	/** Spawn lights / post process / stars if the map has none. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
 	bool bSpawnEnvironment = true;
@@ -85,6 +89,7 @@ protected:
 	void PossessActiveShip(APlayerController* PC);
 	/** Install cheats, give every player the squad's active ship, destroy stray login pawns. */
 	void HandOverPlayers();
+	void ApplyStartingShip();
 	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 
 	UPROPERTY(Transient)
@@ -98,6 +103,9 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> FallbackStart;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class ATDGalaxyLayout> GalaxyLayout;
 
 	FTimerHandle FirstWaveTimer;
 	FDelegateHandle SceneRestartHandle;

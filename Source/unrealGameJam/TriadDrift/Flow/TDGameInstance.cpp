@@ -5,6 +5,7 @@
 #include "TriadDrift/Flow/TDDebugMenu.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
@@ -117,7 +118,17 @@ void UTDGameInstance::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamag
 
 void UTDGameInstance::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 {
-	BeginScene(WaveSceneId(WaveNumber));
+	// The wave director owns scene ids (its wave table can rename them); "WaveN" is only the fallback.
+	FName Scene = NAME_None;
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(this))
+	{
+		const FTDWaveInfo Info = Director->GetWaveInfo();
+		if (Info.WaveNumber == WaveNumber)
+		{
+			Scene = Info.SceneId;
+		}
+	}
+	BeginScene(Scene.IsNone() ? WaveSceneId(WaveNumber) : Scene);
 }
 
 void UTDGameInstance::HandleWaveCleared(int32 WaveNumber)

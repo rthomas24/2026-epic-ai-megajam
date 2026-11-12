@@ -109,11 +109,10 @@ bool UTDDirectorSubsystem::CanTriggerHighlights() const
 	const UWorld* World = GetWorld();
 	if (const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr)
 	{
-		if (GI->IsRetakePending())
+		if (GI->IsRetakePending() || GI->IsTravelPending())
 		{
 			return false;
 		}
-		// TODO(T5): also `if (GI->IsTravelPending()) return false;` once that accessor is on main.
 	}
 	return true;
 }

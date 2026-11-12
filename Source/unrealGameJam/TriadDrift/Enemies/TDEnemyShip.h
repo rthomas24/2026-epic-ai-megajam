@@ -185,6 +185,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy")
 	TSubclassOf<ATDEnemyShip> LaunchedShipClass;
 
+	/** Gap between the carrier's collision sphere and its mounted bays / turrets (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
+	float CarrierPartClearance = 150.f;
+
 	/** Cap on living fighters a single carrier keeps in the air (perf + fairness). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
 	int32 MaxLaunchedAlive = 12;
@@ -263,6 +267,7 @@ protected:
 	void Explode();
 	const FTDEnemyAttackSpec* FindAttack(ETDEnemyAttack Attack) const;
 	void SpawnCarrierParts();
+	void MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up);
 	void DestroyCarrierParts();
 	void FireSecondaryShot(FName WeaponId, AActor* Target);
 	void TickTimers(float DeltaSeconds);
