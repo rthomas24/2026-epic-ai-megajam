@@ -100,6 +100,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "deg"))
 	float FireConeDeg = 6.f;
 
+	/** The player's last attacker counts as a threat for this long after its last hit. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
+	float ThreatMemorySeconds = 4.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
 	float PrimaryRange = 20000.f;
 
@@ -226,7 +230,6 @@ protected:
 	ETDShipId ShipId = ETDShipId::Rift;
 	ETDWingmanState State = ETDWingmanState::Formation;
 	TWeakObjectPtr<AActor> CurrentTarget;
-	TWeakObjectPtr<AActor> FocusTarget;
 
 	double StateEnterTime = 0.0;
 	double NextTargetEvalTime = 0.0;

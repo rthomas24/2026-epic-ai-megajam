@@ -16,6 +16,7 @@ class ATDWingmanAIController;
 class UWorld;
 struct FTDShipSpec;
 struct FTDFXCue;
+class UTDShipVisuals;
 
 namespace TDSquad
 {
@@ -36,6 +37,13 @@ namespace TDSquad
 	/** T1 throttle top speed above cruise (formation catch-up). <= cruise (or 0) clears it. */
 	void SetCatchUpTopSpeed(ATDShip* Ship, float TopSpeed);
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed);
+	/** M7: these two ships never block each other when moving. */
+	void IgnoreEachOther(ATDShip* A, ATDShip* B);
+	/** M7: Desired if it's clear of registered obstacles and blocking geometry, else the nearest clear
+	 *  point found by stepping up and back (respawns, warps). */
+	FVector FindSafeLocation(const UObject* WorldContext, const FVector& Desired, const AActor* Ignore);
+	/** Radius of an actor's collision bounds (break-off distance against big targets). */
+	float GetBoundsRadius(const AActor* Actor);
 	/** T1: stop / resume the flight simulation (downed ships, landing). Parked = zero velocity, no sim. */
 	void SetFlightParked(ATDShip* Ship, bool bParked);
 	bool IsFlightParked(const ATDShip* Ship);
@@ -84,6 +92,7 @@ namespace TDSquad
 	void GetPlayerHostiles(const UWorld* World, TArray<AActor*>& OutHostiles);
 	/** The last actor that damaged Actor (Core UTDHealthComponent::GetLastAttacker). */
 	AActor* GetLastAttacker(const AActor* Actor);
+	float GetTimeSinceLastDamage(const AActor* Actor);
 	/**
 	 * T4 obstacle registry (asteroids, ruins, planets, Dominion hull): if something registered lies
 	 * within ProbeDistance along Direction, returns true and a unit direction that slides around it.
@@ -145,6 +154,8 @@ namespace TDSquad
 
 	/** Presentation (Nick's UTDShipVisuals): null-safe; an empty cue does nothing. */
 	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached);
+	/** The ship's own visuals asset (T1 ATDShip::GetShipVisuals), or null. */
+	const UTDShipVisuals* GetShipVisuals(const ATDShip* Ship);
 
 
 	/** World transform of a ship's chase camera (actor transform if it has none). */

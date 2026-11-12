@@ -205,6 +205,18 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		SpawnWingmanFor(*Slot);
 	}
 
+	// M7: squad ships never physically block each other (the AI keeps them apart instead).
+	for (FTDSquadSlot& A : Slots)
+	{
+		for (FTDSquadSlot& B : Slots)
+		{
+			if (A.Ship && B.Ship && A.Ship != B.Ship)
+			{
+				TDSquad::IgnoreEachOther(A.Ship, B.Ship);
+			}
+		}
+	}
+
 	// Hand out control: wingmen first, then the player takes the starting ship. A new take is active.
 	ActiveShipId = StartingShip;
 	SetWingmenPassive(false);
@@ -360,7 +372,12 @@ FVector ATDSquadManager::GetFormationSlotLocation(ETDShipId Ship) const
 		++WingIndex;
 	}
 	const FVector Offset = (WingIndex == 0) ? FormationLeftOffset : FormationRightOffset;
-	return Leader->GetActorTransform().TransformPositionNoScale(Offset);
+	// M7: the V hangs off the leader's heading and WORLD up, never its roll, so a barrel roll doesn't
+	// swing the two slots through each other (or through the player).
+	const FVector Fwd = Leader->GetActorForwardVector();
+	const FVector Up = FMath::Abs(FVector::DotProduct(Fwd, FVector::UpVector)) > 0.95f ? Leader->GetActorUpVector() : FVector::UpVector;
+	const FMatrix Frame = FRotationMatrix::MakeFromXZ(Fwd, Up);
+	return Leader->GetActorLocation() + Frame.TransformVector(Offset);
 }
 
 AActor* ATDSquadManager::GetFocusTarget() const
@@ -379,17 +396,66 @@ AActor* ATDSquadManager::GetFocusTarget() const
 
 bool ATDSquadManager::RequestSwitchTo(ETDShipId Ship)
 {
-	return SwitchToInternal(Ship, false);
+	if (SwitchToInternal(Ship, false))
+	{
+		return true;
+	}
+	BufferIfCoolingDown(2, Ship);
+	return false;
 }
 
 bool ATDSquadManager::RequestSwitchNext()
 {
-	return CycleSwitch(+1);
+	if (CycleSwitch(+1))
+	{
+		return true;
+	}
+	BufferIfCoolingDown(+1, ETDShipId::Rift);
+	return false;
 }
 
 bool ATDSquadManager::RequestSwitchPrev()
 {
-	return CycleSwitch(-1);
+	if (CycleSwitch(-1))
+	{
+		return true;
+	}
+	BufferIfCoolingDown(-1, ETDShipId::Rift);
+	return false;
+}
+
+void ATDSquadManager::BufferIfCoolingDown(int32 Kind, ETDShipId Ship)
+{
+	// m14: a press during the cooldown isn't lost: it runs once the cooldown ends (double-tap Tab
+	// reaches the third ship). Only the latest press is kept, and only for one cooldown length.
+	if (RealNow() < LastSwitchTime + SwitchCooldown)
+	{
+		PendingSwitchKind = Kind;
+		PendingSwitchShip = Ship;
+		PendingSwitchExpire = LastSwitchTime + 2.0 * SwitchCooldown;
+	}
+}
+
+void ATDSquadManager::RunPendingSwitch()
+{
+	if (PendingSwitchKind == 0 || RealNow() < LastSwitchTime + SwitchCooldown)
+	{
+		return;
+	}
+	const int32 Kind = PendingSwitchKind;
+	PendingSwitchKind = 0;
+	if (RealNow() > PendingSwitchExpire)
+	{
+		return;
+	}
+	if (Kind == 2)
+	{
+		SwitchToInternal(PendingSwitchShip, false);
+	}
+	else
+	{
+		CycleSwitch(Kind);
+	}
 }
 
 bool ATDSquadManager::CycleSwitch(int32 Direction)
@@ -501,17 +567,26 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	}
 	TDSquad::SetVelocity(NewShip, NewVel);
 
-	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(Ship); V && *V)
+	if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(NewShip))
 	{
-		TDSquad::PlayShipCue(NewShip, (*V)->SwitchIn, true);
+		TDSquad::PlayShipCue(NewShip, V->SwitchIn, true);
 	}
-	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(OldId); V && *V && OldShip)
+	if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(OldShip))
 	{
-		TDSquad::PlayShipCue(OldShip, (*V)->SwitchOut, true);
+		TDSquad::PlayShipCue(OldShip, V->SwitchOut, true);
 	}
 
-	// 4) Switch-in grace (ENG-03) and Switch Strike (ENG-07).
-	TDSquad::SetInvulnerable(NewShip, SwitchInInvulnerability);
+	// 4) Switch-in grace (ENG-03, M4): 2 s on an auto-switch; a manual switch gets a short grace, once
+	// per ship per lockout, so Tab-spamming can't keep the squad invulnerable.
+	if (bForced)
+	{
+		TDSquad::SetInvulnerable(NewShip, AutoSwitchInvulnerability);
+	}
+	else if (RealNow() - NewSlot->LastManualGraceTime >= ManualSwitchGraceLockout)
+	{
+		TDSquad::SetInvulnerable(NewShip, ManualSwitchInvulnerability);
+		NewSlot->LastManualGraceTime = RealNow();
+	}
 	if (bArmSwitchStrike)
 	{
 		StartSwitchStrike(NewShip);
@@ -532,7 +607,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	Cut.ShipName = Spec.ShipName;
 	Cut.RoleName = Spec.RoleName;
 	Cut.NameCardText = FText::Format(NSLOCTEXT("TDSquad", "NameCard", "{0} \u00B7 {1}"), Spec.PilotName, Spec.ShipName);
-	Cut.SquadColor = Spec.SquadColor;
+	Cut.SquadColor = UTDShipLibrary::GetSquadColor(Spec);
 	Cut.bAutoSwitch = bForced;
 	Cut.bSwitchStrike = bArmSwitchStrike;
 	Cut.bQuickCut = (LastSwitchTime - PrevSwitchTime) < CutTiming.QuickCutWindowSeconds;
@@ -656,6 +731,8 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 		EndSwitchStrike();
 	}
 
+	RunPendingSwitch();
+
 	// ENG-03: the hull doesn't regenerate in combat but slowly repairs between waves.
 	if (bBetweenWaves && BetweenWaveHullRepairPerSecond > 0.f)
 	{
@@ -730,9 +807,9 @@ void ATDSquadManager::HandleShipDeath(ETDShipId Ship)
 		TDSquad::ClearAim(Dead);
 		TDSquad::StopHyperdrive(Dead);
 		TDSquad::SetFlightParked(Dead, true);
-		if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(Ship); V && *V)
+		if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(Dead))
 		{
-			TDSquad::PlayShipCue(Dead, (*V)->HullHit, true);
+			TDSquad::PlayShipCue(Dead, V->HullHit, true);
 		}
 	}
 
@@ -755,9 +832,9 @@ void ATDSquadManager::HandleShipDeath(ETDShipId Ship)
 void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 {
 	Slot.State = ETDSquadSlotState::Downed;
-	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(Slot.ShipId); V && *V)
+	if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(Slot.Ship))
 	{
-		TDSquad::PlayShipCue(Slot.Ship, (*V)->Explosion, false);
+		TDSquad::PlayShipCue(Slot.Ship, V->Explosion, false);
 	}
 	if (ATDShip* Ship = Slot.Ship)
 	{
@@ -795,7 +872,7 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	if (Leader && Leader != Ship && IsShipAlive(ActiveShipId))
 	{
 		Facing = Leader->GetActorRotation();
-		Loc = GetFormationSlotLocation(Slot.ShipId) - Leader->GetActorForwardVector() * RespawnBehindDistance;
+		Loc = TDSquad::FindSafeLocation(this, GetFormationSlotLocation(Slot.ShipId) - Leader->GetActorForwardVector() * RespawnBehindDistance, Ship);
 		Vel = TDSquad::GetVelocity(Leader);
 	}
 
@@ -816,9 +893,14 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 		}
 	}
 	bSquadWiped = false;
-	if (const TObjectPtr<UTDShipVisuals>* V = ShipVisuals.Find(Slot.ShipId); V && *V)
+	// m4: no game flow took the wipe and the player sits in a downed ship: cut to the one that's back.
+	if (Slot.ShipId != ActiveShipId && !IsShipAlive(ActiveShipId))
 	{
-		TDSquad::PlayShipCue(Ship, (*V)->RespawnWarpIn, false);
+		SwitchToInternal(Slot.ShipId, /*bForced*/ true);
+	}
+	if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(Ship))
+	{
+		TDSquad::PlayShipCue(Ship, V->RespawnWarpIn, false);
 	}
 	TDSquad::BroadcastShipRespawned(this, Slot.ShipId);
 }
@@ -853,6 +935,8 @@ void ATDSquadManager::HandleSquadWiped()
 	TDSquad::BroadcastSquadWiped(this);
 	// With a game flow, it owns the restart (C-03 #3 "CUT!" -> next take) and calls SpawnSquad again.
 	// Without one (sandbox), downed ships simply keep their respawn timers.
+	// m1: decide before the call (a flow with no retake delay respawns the squad inside it).
+	bWipeHandledByFlow = true;
 	bWipeHandledByFlow = TDSquad::ReportPlayerDefeated(this);
 }
 

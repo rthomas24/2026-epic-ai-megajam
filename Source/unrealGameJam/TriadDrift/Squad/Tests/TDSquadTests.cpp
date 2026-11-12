@@ -234,20 +234,26 @@ bool FTDSquadSwitchCooldown::RunTest(const FString& Parameters)
 	{
 		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
 		FSquadFixture F;
+		F.Squad->OnSwitchRefused.AddDynamic(F.Events, &UTDSquadTestListener::OnSwitchRefused);
 		TestTrue(TEXT("first switch") + Fps, F.Squad->RequestSwitchNext());
 		TestTrue(TEXT("next = Lancer") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Lancer);
+		// m14: a second Tab during the cooldown is refused NOW but buffered: it lands when the cooldown ends.
 		TestFalse(TEXT("blocked immediately") + Fps, F.Squad->RequestSwitchNext());
+		TestTrue(TEXT("refusal: cooldown") + Fps, F.Events->LastRefusal == ETDSwitchRefusal::Cooldown);
 		TestTrue(TEXT("cooldown reported") + Fps, F.Squad->GetSwitchCooldown01() > 0.9f);
 		F.W.Advance(0.34f, Step);
-		TestFalse(TEXT("blocked at 0.34 s") + Fps, F.Squad->RequestSwitchPrev());
-		TestTrue(TEXT("cooldown still running") + Fps, F.Squad->GetSwitchCooldown01() > 0.f);
+		TestTrue(TEXT("still Lancer at 0.34 s") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Lancer);
 		F.W.Advance(0.1f, Step);
-		TestTrue(TEXT("allowed after 0.4 s") + Fps, F.Squad->RequestSwitchPrev());
-		TestTrue(TEXT("prev = Rift") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Rift);
+		TestTrue(TEXT("double-tap reached the third ship after 0.4 s") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Bastion);
+		TestEqual(TEXT("two switch events") + Fps, F.Events->Switches, 2);
+		// Nothing buffered: a fresh press after the cooldown switches at once, wrapping.
 		F.W.Advance(0.45f, Step);
-		TestTrue(TEXT("prev wraps to Bastion") + Fps, F.Squad->RequestSwitchPrev() && F.Squad->GetActiveShipId() == ETDShipId::Bastion);
+		TestTrue(TEXT("next wraps to Rift") + Fps, F.Squad->RequestSwitchNext() && F.Squad->GetActiveShipId() == ETDShipId::Rift);
 		F.W.Advance(0.45f, Step);
-		TestFalse(TEXT("switching to the active ship is a no-op") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		TestFalse(TEXT("switching to the active ship is a no-op") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Rift));
+		TestTrue(TEXT("refusal: already active") + Fps, F.Events->LastRefusal == ETDSwitchRefusal::AlreadyActive);
+		F.W.Advance(1.f, Step);
+		TestTrue(TEXT("a no-op press is not buffered") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Rift);
 		TestEqual(TEXT("exactly three switch events") + Fps, F.Events->Switches, 3);
 	}
 	return true;
@@ -328,19 +334,43 @@ bool FTDSquadRespawn::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchInGrace, "TriadDrift.Squad.Switch.SwitchInInvulnerability", TD_TEST_FLAGS)
 bool FTDSquadSwitchInGrace::RunTest(const FString& Parameters)
 {
+	// M4: manual switch = 0.35 s grace, once per ship per 6 s; auto-switch (death) = 2 s.
 	for (const float Step : GFrameSteps)
 	{
 		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
 		FSquadFixture F;
 		AActor* Enemy = F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f);
-		TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
-		const UTDHealthComponent* H = F.Health(ETDShipId::Bastion);
-		F.W.Advance(1.8f, Step);
-		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 50.f, ETDDamageKind::Energy, Enemy, Enemy);
-		TestTrue(TEXT("hit ignored during the 2 s switch-in grace") + Fps, H && H->GetShield01() == 1.f);
-		F.W.Advance(0.4f, Step);
-		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 50.f, ETDDamageKind::Energy, Enemy, Enemy);
-		TestTrue(TEXT("hit lands after the grace") + Fps, H && H->GetShield01() < 1.f);
+		auto Hit = [&](ETDShipId Id) { UTDStatics::ApplyTDDamage(F.Ship(Id), 20.f, ETDDamageKind::Energy, Enemy, Enemy); };
+		auto Shield = [&](ETDShipId Id) { return F.Health(Id)->GetShield01(); };
+
+		TestTrue(TEXT("manual switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		F.W.Advance(0.2f, Step);
+		Hit(ETDShipId::Bastion);
+		TestEqual(TEXT("0.35 s grace on a manual switch-in") + Fps, Shield(ETDShipId::Bastion), 1.f);
+		F.W.Advance(0.3f, Step);
+		Hit(ETDShipId::Bastion);
+		TestTrue(TEXT("grace over after 0.35 s") + Fps, Shield(ETDShipId::Bastion) < 1.f);
+
+		// Spam: back into Bastion within 6 s gets NO grace.
+		TestTrue(TEXT("out") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Rift));
+		F.W.Advance(0.45f, Step);
+		TestTrue(TEXT("back in") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		const float Before = Shield(ETDShipId::Bastion);
+		Hit(ETDShipId::Bastion);
+		TestTrue(TEXT("no re-armed grace within 6 s (Tab spam can't farm invulnerability)") + Fps, Shield(ETDShipId::Bastion) < Before);
+
+		// Auto-switch on death: the ship you land in gets the full 2 s.
+		F.W.Advance(0.5f, Step);
+		TestTrue(TEXT("player into Lancer") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+		F.W.Advance(0.5f, Step);
+		F.Kill(ETDShipId::Lancer);
+		F.W.Advance(0.7f, Step);
+		const ETDShipId Landed = F.Squad->GetActiveShipId();
+		TestTrue(TEXT("auto-switched") + Fps, Landed != ETDShipId::Lancer);
+		F.W.Advance(1.5f, Step);
+		const float LandedBefore = Shield(Landed);
+		Hit(Landed);
+		TestEqual(TEXT("2 s grace after an auto-switch") + Fps, Shield(Landed), LandedBefore);
 	}
 	return true;
 }
@@ -1182,8 +1212,8 @@ bool FTDSquadSeparation::RunTest(const FString& Parameters)
 			Closest = FMath::Min(Closest, D);
 		}
 	}
-	// Collision spheres are 220 cm, so contact is at 440 cm: demand a clear gap.
-	TestTrue(FString::Printf(TEXT("wingmen sharing a slot keep apart (closest %.0f cm)"), Closest), Closest > 600.f);
+	// Collision spheres are 220 cm (contact at 440 cm; squad ships don't block each other, M7): demand a clear gap.
+	TestTrue(FString::Printf(TEXT("wingmen sharing a slot keep apart (closest %.0f cm)"), Closest), Closest > 500.f);
 	return true;
 }
 
@@ -1324,14 +1354,17 @@ bool FTDSquadRamEndsAfterSwitch::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadAimClearedOnHandover, "TriadDrift.Squad.Switch.WingmanAimTargetClearedOnHandover", TD_TEST_FLAGS)
 bool FTDSquadAimClearedOnHandover::RunTest(const FString& Parameters)
 {
-	// M1: the wingman's explicit aim target must not follow the ship into the player's hands.
+	// M1: nothing of the wingman's aim may follow the ship into the player's hands.
 	FSquadFixture F;
-	AActor* A = F.SpawnEnemy(FVector(9000.f, -1600.f, 0.f), 100000.f);
+	AActor* A = F.SpawnEnemy(FVector(9000.f, -9000.f, 0.f), 100000.f);
 	F.W.Advance(2.f);
-	UTDWeaponComponent* W = F.Ship(ETDShipId::Lancer)->GetWeapons();
-	TestTrue(TEXT("wingman aims at A"), W && W->GetAimTarget() == A);
+	ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+	UTDWeaponComponent* W = Lancer->GetWeapons();
+	TestTrue(TEXT("wingman engaging A"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == A);
+	TestNull(TEXT("AI never sets an explicit aim target (m7: keeps its aim error)"), W->GetAimTarget());
 	TestTrue(TEXT("real switch into Lancer"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
-	TestNull(TEXT("aim target cleared for the player"), W ? W->GetAimTarget() : nullptr);
+	TestNull(TEXT("no aim target for the player"), W->GetAimTarget());
+	TestTrue(TEXT("AI aim direction cleared (falls back to the nose)"), W->GetAimDirection().Equals(Lancer->GetActorForwardVector(), 0.001f));
 	return true;
 }
 

@@ -2,6 +2,9 @@
 
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "Misc/PackageName.h"
 #include "TriadDrift/Powers/TDAbilityComponent.h"
 #include "TriadDrift/Powers/TDBastionPowers.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
@@ -31,7 +34,8 @@ namespace TDShipLibraryPrivate
 		S.Signature1PowerClass = UTDPortalBlasterPower::StaticClass();
 		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::Cloak;
-		S.SquadColor = FLinearColor(1.0f, 0.10f, 0.85f); // magenta
+		S.SquadColor = UTDStatics::ShipColor(ETDShipId::Rift); // magenta
+		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/Ships/DA_Ship_Rift_Visuals.DA_Ship_Rift_Visuals")));
 		return S;
 	}
 
@@ -55,7 +59,8 @@ namespace TDShipLibraryPrivate
 		S.Signature1PowerClass = UTDRamPower::StaticClass();
 		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::EMPPulse;
-		S.SquadColor = FLinearColor(0.05f, 0.90f, 1.0f); // cyan
+		S.SquadColor = UTDStatics::ShipColor(ETDShipId::Lancer); // cyan
+		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/Ships/DA_Ship_Lancer_Visuals.DA_Ship_Lancer_Visuals")));
 		return S;
 	}
 
@@ -80,7 +85,8 @@ namespace TDShipLibraryPrivate
 		S.Signature2PowerClass = UTDShieldDomePower::StaticClass();
 		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::GravityWell;
-		S.SquadColor = FLinearColor(1.0f, 0.62f, 0.05f); // amber
+		S.SquadColor = UTDStatics::ShipColor(ETDShipId::Bastion); // amber
+		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/Ships/DA_Ship_Bastion_Visuals.DA_Ship_Bastion_Visuals")));
 		return S;
 	}
 }
@@ -118,6 +124,37 @@ void UTDShipLibrary::ApplySpecToShip(ATDShip* Ship, const FTDShipSpec& Spec)
 		return;
 	}
 	TDSquad::ApplySpec(Ship, Spec);
+}
+
+UTDShipVisuals* UTDShipLibrary::LoadVisuals(const FTDShipSpec& Spec)
+{
+	if (Spec.Visuals.IsNull())
+	{
+		return nullptr;
+	}
+	if (UTDShipVisuals* Loaded = Spec.Visuals.Get())
+	{
+		return Loaded;
+	}
+	// Only touch the disk if the package is there: an asset Nick hasn't made yet is not an error.
+	const FString Package = Spec.Visuals.ToSoftObjectPath().GetLongPackageName();
+	if (Package.IsEmpty() || !FPackageName::DoesPackageExist(Package))
+	{
+		return nullptr;
+	}
+	return Spec.Visuals.LoadSynchronous();
+}
+
+FLinearColor UTDShipLibrary::GetSquadColor(const FTDShipSpec& Spec)
+{
+	if (const UTDShipVisuals* V = LoadVisuals(Spec))
+	{
+		if (!V->SquadColor.Equals(FLinearColor::White))
+		{
+			return V->SquadColor;
+		}
+	}
+	return Spec.SquadColor;
 }
 
 void UTDShipLibrary::ApplyDefaultSpecToShip(ATDShip* Ship, ETDShipId ShipId)

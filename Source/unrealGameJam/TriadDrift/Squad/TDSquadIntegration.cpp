@@ -112,6 +112,9 @@ namespace TDSquad
 		}
 
 		InstallPowers(Ship, Spec);
+
+		// M2: Nick's visuals (hides the placeholder and tints from the asset); null = placeholder look.
+		Ship->SetShipVisuals(UTDShipLibrary::LoadVisuals(Spec));
 	}
 
 	void SetPlayerControlled(ATDShip* Ship, bool bPlayerControlled)
@@ -258,6 +261,61 @@ namespace TDSquad
 		{
 			H->SetHyperdriveEnabled(true);
 		}
+	}
+
+	void IgnoreEachOther(ATDShip* A, ATDShip* B)
+	{
+		if (!A || !B)
+		{
+			return;
+		}
+		if (UPrimitiveComponent* RootA = Cast<UPrimitiveComponent>(A->GetRootComponent()))
+		{
+			RootA->IgnoreActorWhenMoving(B, true);
+		}
+		if (UPrimitiveComponent* RootB = Cast<UPrimitiveComponent>(B->GetRootComponent()))
+		{
+			RootB->IgnoreActorWhenMoving(A, true);
+		}
+	}
+
+	FVector FindSafeLocation(const UObject* WorldContext, const FVector& Desired, const AActor* Ignore)
+	{
+		const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+		if (!World)
+		{
+			return Desired;
+		}
+		const UTDWorldSubsystem* WorldSub = World->GetSubsystem<UTDWorldSubsystem>();
+		constexpr float ShipRadius = 500.f;
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDSquadSafeSpot), false, Ignore);
+		FCollisionObjectQueryParams Objects;
+		Objects.AddObjectTypesToQuery(ECC_WorldStatic);
+		Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
+		const FVector Steps[] = { FVector::ZeroVector, FVector(0, 0, 3000), FVector(0, 0, -3000), FVector(-4000, 0, 0),
+			FVector(0, 4000, 0), FVector(0, -4000, 0), FVector(0, 0, 8000), FVector(-10000, 0, 4000) };
+		for (const FVector& Step : Steps)
+		{
+			const FVector P = Desired + Step;
+			const bool bInObstacle = WorldSub && WorldSub->IsInsideObstacle(P, ShipRadius);
+			const bool bOverlaps = World->OverlapAnyTestByObjectType(P, FQuat::Identity, Objects, FCollisionShape::MakeSphere(ShipRadius), Params);
+			if (!bInObstacle && !bOverlaps)
+			{
+				return P;
+			}
+		}
+		return Desired;
+	}
+
+	float GetBoundsRadius(const AActor* Actor)
+	{
+		if (!Actor)
+		{
+			return 0.f;
+		}
+		FVector Origin, Extent;
+		Actor->GetActorBounds(true, Origin, Extent);
+		return Extent.Size();
 	}
 
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
@@ -429,6 +487,12 @@ namespace TDSquad
 	{
 		const UTDHealthComponent* H = Health(Actor);
 		return H ? H->GetLastAttacker() : nullptr;
+	}
+
+	float GetTimeSinceLastDamage(const AActor* Actor)
+	{
+		const UTDHealthComponent* H = Health(Actor);
+		return H ? H->GetTimeSinceLastDamage() : 1000.f;
 	}
 
 	bool IsMissileIncoming(const ATDShip* Ship)
@@ -727,6 +791,11 @@ namespace TDSquad
 			Bus->OnWaveCleared.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
 			Bus->OnWaveStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
 		}
+	}
+
+	const UTDShipVisuals* GetShipVisuals(const ATDShip* Ship)
+	{
+		return Ship ? Ship->GetShipVisuals() : nullptr;
 	}
 
 	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached)
