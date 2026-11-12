@@ -249,6 +249,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|HUD", meta = (ClampMin = "0", Units = "s"))
 	float ObjectiveRefreshSeconds = 0.5f;
 
+	/** How long a refused switch's reason shows through GetInteractPrompt (real seconds). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|HUD", meta = (ClampMin = "0", Units = "s"))
+	float RefusalPromptSeconds = 1.5f;
+
 	/** HUD-ready text for the last lock refusal (from T1's IsSwitchLocked). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
 	FText GetLastRefusalText() const { return LastRefusalText; }
@@ -417,6 +421,7 @@ protected:
 	bool bBetweenWaves = false;
 	FTDBarkLimiter BarkLimiter;
 	FText LastRefusalText;
+	double LastLockRefusalRealTime = -1000.0;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	mutable TArray<TWeakObjectPtr<AActor>> ObjectiveCache;
 	FText ObjectiveText;

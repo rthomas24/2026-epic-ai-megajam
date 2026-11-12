@@ -37,6 +37,8 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Misc/ScopeExit.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 
@@ -1500,7 +1502,11 @@ bool FTDSquadSwitchGuards::RunTest(const FString& Parameters)
 	TestTrue(TEXT("spool"), Hyper && Hyper->StartSpool());
 	TestFalse(TEXT("no manual switch while spooling"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
 	TestTrue(TEXT("refusal reason: hyperdrive"), F.Events->LastRefusal == ETDSwitchRefusal::HyperdriveActive);
+	TestFalse(TEXT("the HUD says why (reviewer: not silent)"), F.Squad->GetInteractPrompt().IsEmpty());
+	TestEqual(TEXT("it is the lock reason"), F.Squad->GetInteractPrompt().ToString(), F.Squad->GetLastRefusalText().ToString());
 	Hyper->CancelSpool();
+	F.W.Advance(1.6f);
+	TestTrue(TEXT("the reason clears after 1.5 s"), F.Squad->GetInteractPrompt().IsEmpty());
 	TestTrue(TEXT("switch allowed once idle"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
 	F.W.Advance(0.5f);
 	TestTrue(TEXT("back to Rift"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
@@ -2284,6 +2290,50 @@ bool FTDSquadHUDNoSecondPower::RunTest(const FString& Parameters)
 		}
 	}
 	TestEqual(TEXT("Rift has none"), Cards[static_cast<int32>(ETDShipId::Rift)].Power2Cooldown01, 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadWingmenHitGenerators, "TriadDrift.Squad.Wingmen.DamageDominionGenerators", TD_TEST_FLAGS)
+bool FTDSquadWingmenHitGenerators::RunTest(const FString& Parameters)
+{
+	// Reviewer question: can wingmen attack the generators on the Dominion hull, given the obstacle
+	// push-away? The player sits parked and never fires; only the wing can do the damage.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	Cast<UTDGameInstance>(W.GetGameInstance())->SetDominionState(true, false);
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(150000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.3f);
+	if (!TestTrue(TEXT("real generators"), D->GetGenerators().Num() > 0))
+	{
+		return false;
+	}
+	ATDShieldGenerator* G = D->GetGenerators()[0];
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	const FVector ToG = (G->GetActorLocation() - D->GetActorLocation()).GetSafeNormal();
+	const FVector Start = G->GetActorLocation() + ToG * 12000.f;
+	Squad->SpawnSquad(FTransform((G->GetActorLocation() - Start).Rotation(), Start));
+	W.Tick();
+	for (const ETDShipId Id : UTDShipLibrary::AllShips())
+	{
+		UTDStatics::GetHealth(Squad->GetShip(Id))->SetInvulnerable(true);
+	}
+	Squad->GetActiveShip()->SetFlightParked(true);
+	TArray<float> Before;
+	for (ATDShieldGenerator* X : D->GetGenerators())
+	{
+		const UTDHealthComponent* H = UTDStatics::GetHealth(X);
+		Before.Add(H ? H->GetHull() + H->GetShield() : 0.f);
+	}
+	W.Advance(30.f);
+	float Dealt = 0.f;
+	for (int32 i = 0; i < D->GetGenerators().Num(); ++i)
+	{
+		const UTDHealthComponent* H = UTDStatics::GetHealth(D->GetGenerators()[i]);
+		Dealt += Before[i] - (H ? H->GetHull() + H->GetShield() : 0.f);
+	}
+	AddInfo(FString::Printf(TEXT("wing damage to generators in 30 s: %.0f"), Dealt));
+	TestTrue(TEXT("the wing damages the Dominion's generators on its own"), Dealt > 0.f);
 	return true;
 }
 

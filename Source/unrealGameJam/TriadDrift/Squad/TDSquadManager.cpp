@@ -521,6 +521,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 		if (Current && IsShipAlive(ActiveShipId) && TDSquad::IsSwitchLocked(Current, LockReason))
 		{
 			LastRefusalText = LockReason;
+			LastLockRefusalRealTime = RealNow();
 			const ETDSwitchRefusal Why = TDSquad::GetHyperdriveState(Current) != ETDHyperdriveState::Idle ? ETDSwitchRefusal::HyperdriveActive
 				: TDSquad::IsLandingBusy(Current) ? ETDSwitchRefusal::Landing : ETDSwitchRefusal::Locked;
 			Refuse(Why, Ship);
@@ -1176,7 +1177,18 @@ void ATDSquadManager::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FTex
 
 FText ATDSquadManager::GetInteractPrompt() const
 {
-	return TDSquad::GetLandPrompt(GetActiveShip());
+	const FText Land = TDSquad::GetLandPrompt(GetActiveShip());
+	if (!Land.IsEmpty())
+	{
+		return Land;
+	}
+	// A refused switch (mid-jump, landing, atmospheric entry) says why for a moment instead of failing
+	// silently. Cooldown refusals stay silent: that press is buffered and goes through.
+	if (!LastRefusalText.IsEmpty() && RealNow() - LastLockRefusalRealTime < RefusalPromptSeconds)
+	{
+		return LastRefusalText;
+	}
+	return FText::GetEmpty();
 }
 
 FTDWaveInfo ATDSquadManager::GetWaveInfo() const
