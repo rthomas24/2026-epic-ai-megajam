@@ -31,8 +31,7 @@ See docs/visual/Day1-Integration-Policy-2026-11-12.md for the dated integration 
 | Environment & VFX Agent | ArtSource/Environment/SpaceFoundation/UnrealNative/**; Content/TriadDrift/Environment/SpaceFoundation/** | nick/environment-vfx | environment-vfx | Active first native environment milestone; original source outside UnrealNative read-only; future VFX/Audio not assigned |
 | UI/UX & HUD Agent | Plugins/TriadDriftHUD/**; ArtSource/UI/TriadHUD/Unreal/**; Content/TriadDrift/UI/TriadHUD/** | nick/hud-native | hud-native | Frozen standalone milestone at pushed 6d9739e; PR #4 draft; reservation retained; Ryan activation/packaging approval required; legacy staged claim excluded |
 | Ships & Weapons Agent | ArtSource/Space/Ships/Lancer/production/**; ArtSource/Space/Ships/Lancer/review/M02/** | nick/ships-lancer | ships-lancer | Active user-authorized M02 refinement; M01 sources/reviews and attachments read-only; preserve 33 names/transforms/pivots; no Unreal import/final production approval |
-
-| Audio & Polish Agent (existing worker) | ArtSource/Audio/StarterPlan/SwitchM02/** | nick/audio | audio | Active three cinematic ship-switch WAV candidates only; original audition rejected/read-only; licensing/provenance and manual approval required; no full library or shared audio config |
+| Audio & Music Agent (dedicated chat 01a1d0e9-aaa8-7f61-85c7-86b6fd3f1db7) | ArtSource/Audio/StarterPlan/SwitchM02/** | nick/audio-music | audio-music | Active three cinematic switch WAVs only; predecessor /root/audio stopped, old nick/audio preserved read-only; licensing/provenance and manual audition approval required; no library/music/shared config |
 
 Completed Environment/VFX/HUD/Audio source snapshots are read-only shared references.
 Future combat VFX output paths and broader Audio/music production are not
@@ -54,11 +53,11 @@ Earlier task start times were not recorded precisely; they are not invented here
 | Lancer M01 silhouette review | Ships & Weapons Agent | queued | Review branch published Nov 12 12:42 | Branch 43dc320; general direction approved, polish/assembly issues unresolved; no main acceptance | M01 sources/reviews read-only |
 | Lancer M02 refinement | Ships & Weapons Agent | in progress | Nov 12 12:50; claim 2d4831f | User-authorized production refinement; source preparation only until heavy slot; render approval before Unreal | production/** and review/M02/** inside exact Lancer lane |
 | Lancer M02 bounded Blender QA / renders | Ships & Weapons Agent | queued | Not started | After Environment releases its entire heavy sequence and Lead checks RAM; one 2-thread process | Same M02 lane, no original source/interface changes |
-| Three cinematic ship-switch candidates (Rift/Lancer/Bastion) | Audio & Polish Agent | in progress | Nov 12 12:56, direct Nicholas audio-direction correction | Claim first; exactly three playable WAVs with provenance and measured metrics; manual approval before further audio work | ArtSource/Audio/StarterPlan/SwitchM02/** only |
+| Three cinematic ship-switch candidates (Rift/Lancer/Bastion) | Audio & Music Agent | in progress | Nov 12 12:56; ownership transfer 13:01, direct dedicated-chat brief verified | Claim first; exactly three playable WAVs with provenance and measured metrics; manual approval before further audio work | ArtSource/Audio/StarterPlan/SwitchM02/** only |
 
-Only the existing Audio & Polish worker is resumed for the three-candidate task.
+The dedicated Audio & Music chat succeeds the stopped Audio & Polish worker for this three-candidate task; the predecessor is not resumed.
 Broader audio-library/music and future combat VFX production remain unassigned;
-no other inactive source worker is being restarted. New task/path transfers must be published here before edits.
+no inactive source worker is being restarted. New task/path transfers must be published here before edits.
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
