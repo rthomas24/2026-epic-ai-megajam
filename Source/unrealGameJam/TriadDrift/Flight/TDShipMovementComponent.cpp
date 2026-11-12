@@ -373,6 +373,25 @@ void UTDShipMovementComponent::MeasureGroundClearance()
 	{
 		Context.GroundClearance = FMath::Max(0.f, Hit.Distance - Radius);
 	}
+
+	// Terrain ahead: sweep the hull along the current velocity (a straight-down trace can't see a rising slope or a
+	// cliff in front of the ship).
+	Context.TerrainAheadDistance = -1.f;
+	Context.TerrainAheadRange = 0.f;
+	const float Speed = State.Velocity.Size();
+	if (Tuning.GroundLookAheadSeconds > 0.f && Speed > 100.f)
+	{
+		const float Range = Speed * Tuning.GroundLookAheadSeconds;
+		const FVector Dir = State.Velocity / Speed;
+		FHitResult Ahead;
+		if (World->SweepSingleByObjectType(Ahead, Start, Start + Dir * Range, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic),
+			FCollisionShape::MakeSphere(Radius), Params) && !Ahead.bStartPenetrating)
+		{
+			Context.TerrainAheadDistance = Ahead.Distance;
+			Context.TerrainAheadRange = Range;
+			Context.TerrainAheadNormal = Ahead.ImpactNormal;
+		}
+	}
 }
 
 void UTDShipMovementComponent::ResolveMove(const FVector& Delta, float DeltaTime)
@@ -400,6 +419,41 @@ void UTDShipMovementComponent::ResolveMove(const FVector& Delta, float DeltaTime
 	}
 }
 
+void UTDShipMovementComponent::SlideOffSurface(const FVector& Normal, float DeltaTime)
+{
+	// Never stuck: turn the nose along the surface and keep moving along it (review / playtest, Nov 12: a ship
+	// sat pinned at 0 m/s against a closed planet shell with no message).
+	const FVector Nose = State.Rotation.GetForwardVector();
+	if (FVector::DotProduct(Nose, Normal) < -0.05f && Tuning.PinnedTurnRate > 0.f && DeltaTime > 0.f && !State.bDrifting)
+	{
+		FVector Along = FVector::VectorPlaneProject(Nose, Normal);
+		if (Along.SizeSquared() < 0.01f)
+		{
+			Along = FVector::VectorPlaneProject(State.Rotation.GetUpVector(), Normal); // dead head-on: pull up
+		}
+		Along = Along.GetSafeNormal();
+		if (!Along.IsNearlyZero())
+		{
+			const FQuat Want = FQuat::FindBetweenNormals(Nose, Along) * State.Rotation;
+			State.Rotation = FMath::QInterpConstantTo(State.Rotation, Want, DeltaTime, FMath::DegreesToRadians(Tuning.PinnedTurnRate)).GetNormalized();
+			if (UpdatedComponent)
+			{
+				UpdatedComponent->SetWorldRotation(State.Rotation);
+			}
+		}
+	}
+	const FVector Tangent = FVector::VectorPlaneProject(State.Velocity, Normal);
+	const float MinSlide = FMath::Max(Tuning.MinSpeed, 500.f);
+	if (Tangent.Size() < MinSlide)
+	{
+		const FVector Dir = FVector::VectorPlaneProject(State.Rotation.GetForwardVector(), Normal).GetSafeNormal();
+		if (!Dir.IsNearlyZero())
+		{
+			State.Velocity = Dir * MinSlide;
+		}
+	}
+}
+
 void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float DeltaTime)
 {
 	const FVector Normal = Hit.Normal.GetSafeNormal();
@@ -412,8 +466,9 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 	}
 	if (Into < Tuning.MinImpactSpeed)
 	{
-		// Resting / pinned contact: just stop pushing into the surface. No event, no damage, no shield-regen reset.
+		// Resting / pinned contact: stop pushing into the surface and slide off it. No event, no damage.
 		State.Velocity = V + Normal * Into;
+		if (!Cast<APawn>(Hit.GetActor())) { SlideOffSurface(Normal, DeltaTime); } // bodies and walls, not other ships
 		return;
 	}
 
@@ -427,6 +482,7 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 		// Pinned against the same thing (holding throttle into a wall): slide, hold the engine down, no damage.
 		State.Velocity = V + Normal * Into;
 		State.ForwardSpeed = FMath::Min(State.ForwardSpeed, Tuning.MinSpeed);
+		if (!Cast<APawn>(Hit.GetActor())) { SlideOffSurface(Normal, DeltaTime); } // bodies and walls, not other ships
 		return;
 	}
 

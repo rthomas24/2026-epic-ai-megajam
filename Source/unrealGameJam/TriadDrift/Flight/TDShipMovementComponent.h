@@ -261,6 +261,8 @@ private:
 	void MeasureGroundClearance();
 	void ResolveMove(const FVector& Delta, float DeltaTime);
 	void HandleShipImpact(const FHitResult& Hit, float DeltaTime);
+	/** Resting contact: swing the nose along the surface and keep a minimum slide speed (never stuck at 0 m/s). */
+	void SlideOffSurface(const FVector& Normal, float DeltaTime);
 	void SyncStateFromComponent();
 	void BroadcastStateChanges(const FTDFlightState& Before);
 

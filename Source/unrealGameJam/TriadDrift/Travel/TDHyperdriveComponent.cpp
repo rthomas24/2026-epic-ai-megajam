@@ -184,7 +184,20 @@ float UTDHyperdriveComponent::SweepAhead(float MaxDistance) const
 
 FText UTDHyperdriveComponent::GetBlockReasonText() const
 {
-	return TextForBlock(ComputeBlockReason(true));
+	const ETDHyperdriveBlock Block = ComputeBlockReason(true);
+	// Standing reasons the player can do nothing about (on a planet, landing, not flying this ship) only show
+	// briefly after a refused press, not permanently on the HUD (Lead, Nov 12). Reasons that tell the player
+	// something useful right now (enemies in range, the finale, taking fire, a well, an obstacle, recharging) stay.
+	if (IsStandingBlock(Block) && (LastRefusedTime < 0.0 || Now() - LastRefusedTime > StandingReasonShowSeconds))
+	{
+		return FText::GetEmpty();
+	}
+	return TextForBlock(Block);
+}
+
+bool UTDHyperdriveComponent::IsStandingBlock(ETDHyperdriveBlock Block)
+{
+	return Block == ETDHyperdriveBlock::InAtmosphere || Block == ETDHyperdriveBlock::Disabled || Block == ETDHyperdriveBlock::NotPlayerFlown;
 }
 
 FText UTDHyperdriveComponent::TextForBlock(ETDHyperdriveBlock Block) const
@@ -221,6 +234,7 @@ bool UTDHyperdriveComponent::RequestSpoolFromPilot()
 	if (Block != ETDHyperdriveBlock::None)
 	{
 		const FText Reason = TextForBlock(Block);
+		LastRefusedTime = Now();
 		UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive refused: %s"), *Reason.ToString());
 		OnSpoolRefused.Broadcast(this, Block, Reason);
 		TDHyperdrive_PlayRefusedCue(TravelFX.Get(), GetCraft());

@@ -248,4 +248,26 @@ bool FTDPresCueRequests::RunTest(const FString& Parameters)
 
 } // namespace TDPowerTest
 
+/** Review minor 6: a dome / EMP lattice must be cheap to spawn (it used to be 72 components + 72 materials). */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPresLatticeCost, "TriadDrift.Powers.Presentation.LatticeSpawnIsCheap", TD_TEST_FLAGS)
+bool FTDPresLatticeCost::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	AActor* Holder = W.Spawn<AActor>(FVector::ZeroVector);
+	USceneComponent* Root = NewObject<USceneComponent>(Holder, TEXT("Root"));
+	Holder->SetRootComponent(Root);
+	Root->RegisterComponent();
+	const int32 ComponentsBefore = Holder->GetComponents().Num();
+	const double T0 = FPlatformTime::Seconds();
+	for (int32 I = 0; I < 10; ++I)
+	{
+		FTDPowerPresentation::AddRingLattice(Holder, nullptr, 3000.f, 3, 48, 22.f, FLinearColor::Yellow, 3.f);
+	}
+	const double Ms = (FPlatformTime::Seconds() - T0) * 1000.0 / 10.0;
+	const int32 PerLattice = (Holder->GetComponents().Num() - ComponentsBefore) / 10;
+	AddInfo(FString::Printf(TEXT("one 3-ring lattice: %.3f ms, %d components"), Ms, PerLattice));
+	TestTrue(TEXT("a lattice is a handful of components, not 72"), PerLattice <= 4);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

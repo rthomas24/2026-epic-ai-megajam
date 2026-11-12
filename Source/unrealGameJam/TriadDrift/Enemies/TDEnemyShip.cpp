@@ -33,12 +33,10 @@ ATDEnemyShip::ATDEnemyShip()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	Team = ETDTeam::Enemy;
 
-	// Placeholder presentation (hidden once Nick's mesh is set). The glow material is held here so the cook
-	// ships it: TintPlaceholder only finds it by path.
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> GlowMat(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
+	// Placeholder presentation (hidden once Nick's mesh is set). Glow comes from Core's always-cooked
+	// M_TD_PlaceholderGlow through TintPlaceholder.
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMesh(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-	if (GlowMat.Succeeded()) { PlaceholderGlowMaterial = GlowMat.Object; }
 	auto MakePart = [this](const TCHAR* Name, UStaticMesh* Mesh, const FVector& Loc, const FRotator& Rot, const FVector& Scale)
 	{
 		UStaticMeshComponent* C = CreateDefaultSubobject<UStaticMeshComponent>(Name);
@@ -92,6 +90,7 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	Spec.BayHull *= Difficulty.EnemyHull;
 	Spec.TurretHull *= Difficulty.EnemyHull;
 	Spec.AimErrorDeg *= Difficulty.EnemyAimError;
+	AimMaxMissCm = GunAimMaxMissCm * Difficulty.EnemyAimError;
 	DifficultyDamage = Difficulty.EnemyDamage;
 
 	SetTeam(ETDTeam::Enemy);
@@ -979,6 +978,23 @@ void ATDEnemyShip::Explode()
 	Destroy();
 }
 
+float ATDEnemyShip::GetGunFireRange(const AActor* Target) const
+{
+	if (!Spec.Guns.IsValid())
+	{
+		return 0.f;
+	}
+	float Closing = 0.f;
+	if (Target)
+	{
+		const FVector Dir = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		Closing = FMath::Max(0.f, -FVector::DotProduct(Target->GetVelocity(), Dir));	// target flying at us
+	}
+	// A target closing at V meets the bolts (about 30 000 cm/s, 20 000 cm range) well before gun range, and a
+	// head-on pass at 12 000-16 000 cm/s otherwise leaves room for one shot: open fire earlier the faster it closes.
+	return FMath::Min(Spec.Guns.Range * (1.f + 2.f * Closing / 30000.f), Spec.Guns.Range * 1.9f);
+}
+
 void ATDEnemyShip::GetSimpleCollisionCylinder(float& CollisionRadius, float& CollisionHalfHeight) const
 {
 	CollisionRadius = Spec.Radius;
@@ -1115,7 +1131,15 @@ void ATDEnemyShip::Tick(float DeltaSeconds)
 		}
 		if (Spec.AimErrorDeg > 0.f)
 		{
-			Dir = AimRng.VRandCone(Dir, FMath::DegreesToRadians(Spec.AimErrorDeg));
+			// The error is an angle, capped as a miss distance: far shots spread, a pass at close range
+			// still lands some bolts (head-on passes were a coin flip between 1 hit and none).
+			float ErrorDeg = Spec.AimErrorDeg;
+			if (const AActor* Target = GunTarget.Get())
+			{
+				const float Dist = FMath::Max(100.f, FVector::Dist(Target->GetActorLocation(), GetActorLocation()));
+				ErrorDeg = FMath::Min(ErrorDeg, FMath::RadiansToDegrees(FMath::Atan(AimMaxMissCm / Dist)));
+			}
+			Dir = AimRng.VRandCone(Dir, FMath::DegreesToRadians(ErrorDeg));
 		}
 		Weapons->SetAimDirection(Dir);
 	}

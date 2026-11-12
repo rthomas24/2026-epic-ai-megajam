@@ -11,14 +11,12 @@ ATDWarpInMarker::ATDWarpInMarker()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
 	Ring = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ring"));
 	SetRootComponent(Ring);
 	Ring->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Ring->SetGenerateOverlapEvents(false);
 	Ring->SetCastShadow(false);
 	if (Cylinder.Succeeded()) { Ring->SetStaticMesh(Cylinder.Object); }
-	if (Glow.Succeeded()) { GlowMaterial = Glow.Object; }
 	SetActorEnableCollision(false);
 }
 

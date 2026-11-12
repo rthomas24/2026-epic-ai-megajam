@@ -282,4 +282,8 @@ private:
 	bool bLandedThisVisit = false;
 	/** Aligning time for this landing: longer when the sequence starts far from the hover point. */
 	float AlignSecondsNow = 1.5f;
+	/** Peak height of the arc added to the aligning path to clear a prop between the ship and the pad (cm). */
+	float AlignArc = 0.f;
+	/** Sweeps the straight aligning path; if static geometry blocks it, sets AlignArc to clear its top. */
+	void PlanAlignArc();
 };

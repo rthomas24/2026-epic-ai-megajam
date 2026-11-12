@@ -72,6 +72,7 @@ public:
 protected:
 	virtual bool OnActivate() override;
 	virtual void OnEnd(bool bInterrupted) override;
+	virtual USceneComponent* GetActiveCueRoot() const override;
 
 private:
 	TWeakObjectPtr<ATDShieldDome> Dome;

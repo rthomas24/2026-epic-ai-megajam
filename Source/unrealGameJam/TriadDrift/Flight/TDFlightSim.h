@@ -80,6 +80,10 @@ struct UNREALGAMEJAM_API FTDFlightContext
 	float AtmosphereSpeedCapFraction = 0.6f;
 	/** Ground below the hull (cm), measured by the movement component in atmosphere; < 0 = none in range. */
 	float GroundClearance = -1.f;
+	/** Static terrain ahead along the flight path (cm, < 0 = none within the look-ahead) and its surface normal. */
+	float TerrainAheadDistance = -1.f;
+	float TerrainAheadRange = 0.f;
+	FVector TerrainAheadNormal = FVector::UpVector;
 
 	bool bSpeedOverride = false;
 	float OverrideSpeed = 0.f;
