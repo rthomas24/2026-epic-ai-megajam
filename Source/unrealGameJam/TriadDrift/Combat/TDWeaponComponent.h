@@ -27,6 +27,10 @@ struct UNREALGAMEJAM_API FTDWeaponSlotState
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bTriggerHeld = false;
 
+	/** Shots (or salvos) begun since equip. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	int32 ShotsFired = 0;
+
 	/** 0..1 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	float Heat = 0.f;

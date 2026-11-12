@@ -121,6 +121,10 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
 	float OverspeedDeceleration = 2500.f;
 
+	/** Deceleration when far above boost speed (dropping out of hyperdrive, end of a ram). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "0"))
+	float HighOverspeedDeceleration = 30000.f;
+
 	// ---- Collision -----------------------------------------------------------------------------
 
 	/** Impact "head-on-ness" (0 = parallel graze, 1 = straight into the surface) above which a hit counts as head-on. */

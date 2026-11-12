@@ -100,6 +100,14 @@ UPawnMovementComponent* ATDSpacecraft::GetMovementComponent() const
 	return ShipMovement;
 }
 
+void ATDSpacecraft::Restart()
+{
+	// Deliberately not calling Super: APawn::Restart calls StopMovementImmediately, which would
+	// zero velocity on every possess and break instant ship switching (ENG-07).
+	ConsumeMovementInputVector();
+	RecalculateBaseEyeHeight();
+}
+
 void ATDSpacecraft::SetFlightInput(const FTDFlightInput& In)
 {
 	if (ShipMovement)
