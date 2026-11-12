@@ -4,6 +4,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Ground/TDGroundScene.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
@@ -441,7 +442,15 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 		if (O && GI->GetProgressRef().CompletedObjectives.Contains(O->ObjectiveId))
 		{
 			O->MarkAlreadyComplete(); // loaded mid-planet: done stays done
+			for (const FTDStepDoor& D : StepDoors)
+			{
+				if (D.Objective == O && D.Door) { D.Door->Open(); } // the breached gate stays breached
+			}
 		}
+	}
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->ApplyCompletedState(); // rooms cleared, doors open, crystals gone
 	}
 }
 

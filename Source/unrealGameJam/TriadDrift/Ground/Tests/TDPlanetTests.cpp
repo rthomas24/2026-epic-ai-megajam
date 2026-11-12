@@ -37,7 +37,7 @@ namespace TDPlanetTest
 		APlayerController* PC = nullptr;
 		ATDPlanetDirector* Director = nullptr;
 
-		explicit FVisit(FName PresetReturnPoint = NAME_None, FName Planet = TEXT("Verdance"), bool bCourse = true)
+		explicit FVisit(FName PresetReturnPoint = NAME_None, FName Planet = TEXT("Verdance"), bool bCourse = true, const TArray<FName>& AlreadyDone = TArray<FName>())
 			: W(UTDGameInstance::StaticClass())
 		{
 			const bool bCinder = Planet == TEXT("Cinder");
@@ -48,6 +48,7 @@ namespace TDPlanetTest
 				GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationTest"));
 				GI->NotifyLevelEntered(bCinder ? ETDDestination::Cinder : ETDDestination::Verdance);
 				GI->GetMutableProgress().ReturnPoint = PresetReturnPoint;
+				for (const FName& Id : AlreadyDone) { GI->GetMutableProgress().CompletedObjectives.Add(Id); } // a reload mid-planet
 			}
 			const FTransform Pad(FRotator::ZeroRotator, FVector(0.f, 0.f, 0.f));
 			Director = W.GetWorld()->SpawnActorDeferred<ATDPlanetDirector>(ATDPlanetDirector::StaticClass(), Pad);
@@ -587,4 +588,42 @@ bool FTDPlanetBoardUnderAttack::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+// Review MAJOR 4: a reload with one objective already done keeps its rooms cleared, doors and gate open,
+// conduits gone; the other objective still plays.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseReloadDone, "TriadDrift.Ground.Course.ReloadKeepsACompletedObjectiveOpen", TD_TEST_FLAGS)
+bool FTDCourseReloadDone::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"), true, { TEXT("Obj_Outpost") });
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	R.Tick(0.5f);
+	ATDObjective* Outpost = R.Course->FindObjective(TEXT("Obj_Outpost"));
+	ATDObjective* Jammer = R.Course->FindObjective(TEXT("Obj_Jammer"));
+	if (!TestNotNull(TEXT("outpost"), Outpost) || !TestNotNull(TEXT("jammer"), Jammer)) { return false; }
+	TestTrue(TEXT("outpost complete on load"), Outpost->IsComplete());
+	int32 Rooms = 0, OpenDoors = 0, Doors = 0;
+	for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective != Outpost) { continue; }
+		++Rooms;
+		TestTrue(*FString::Printf(TEXT("%s cleared"), *It->GetName()), It->IsCleared());
+		for (ATDDoor* D : It->DoorsToOpen) { ++Doors; OpenDoors += D && D->IsOpen() ? 1 : 0; }
+	}
+	TestTrue(TEXT("outpost rooms found"), Rooms >= 4);
+	TestEqual(TEXT("every room door open"), OpenDoors, Doors);
+	int32 GateOpen = 0;
+	for (TActorIterator<ATDDoor> It(V.W.GetWorld()); It; ++It) { GateOpen += It->IsOpen() ? 1 : 0; }
+	TestEqual(TEXT("gate and all room doors open (4)"), GateOpen, 4);
+	for (ATDShatterCrystal* C : R.Props<ATDShatterCrystal>(Outpost)) { TestTrue(TEXT("conduit gone"), C->IsShattered()); }
+	// Walking into a cleared room spawns nobody.
+	R.TeleportTo(R.StepFight(Outpost, 2), -150.f);
+	R.Tick(1.f);
+	TestEqual(TEXT("no crew in a cleared room"), R.StepFight(Outpost, 2)->GetAliveCount(), 0);
+	// The jammer still plays.
+	TestTrue(TEXT("jammer still starts"), R.StartAt(TEXT("Obj_Jammer")));
+	R.Tick(0.5f);
+	TestTrue(*FString::Printf(TEXT("idle/next line is sane ('%s')"), *R.Line()), !R.Line().IsEmpty());
+	return true;
+}
 #endif // WITH_DEV_AUTOMATION_TESTS
