@@ -276,7 +276,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 	{
 		HomingTarget = Original;
 		Spec.bHoming = true;
-		Spec.HomingTurnRateDeg = FMath::Max(Spec.HomingTurnRateDeg, 240.f);
+		Spec.HomingTurnRateDeg = FMath::Max(Spec.HomingTurnRateDeg, DeflectHomingTurnRateDeg);
 		Spec.HomingDelay = 0.f;
 	}
 	else

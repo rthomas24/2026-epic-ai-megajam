@@ -420,6 +420,7 @@ void UTDWeaponComponent::BeginShot(ETDWeaponSlot Slot, float SubFrameAge)
 		S.Ammo = FMath::Max(0, S.Ammo - 1);
 	}
 	S.TimeSinceShot = SubFrameAge;
+	++S.ShotsFired;
 	S.ShotMultiplier = NextShotMultiplier;
 	NextShotMultiplier = 1.f;
 	LastFired.Reset();

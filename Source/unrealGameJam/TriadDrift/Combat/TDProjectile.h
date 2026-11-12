@@ -136,6 +136,9 @@ private:
 	UPROPERTY(Transient)
 	FTDProjectileSpec Spec;
 
+	/** Turn rate a deflected shot gets while re-homing on its original shooter (returns must land). */
+	static constexpr float DeflectHomingTurnRateDeg = 360.f;
+
 	ETDTeam Team = ETDTeam::Neutral;
 	FVector Velocity = FVector::ZeroVector;
 	float Age = 0.f;

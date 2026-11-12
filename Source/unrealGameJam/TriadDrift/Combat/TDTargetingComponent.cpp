@@ -388,20 +388,26 @@ void UTDTargetingComponent::UpdatePainting(float DeltaTime)
 		}
 	}
 
+	// Switching to a different candidate restarts its paint; moving on after a lock keeps the carry-over
+	// so the cadence stays exactly SecondsPerLock per target at any frame rate.
 	if (Candidate != PaintCandidate.Get())
 	{
+		if (PaintCandidate.IsValid())
+		{
+			PaintProgress = 0.f;
+		}
 		PaintCandidate = Candidate;
-		PaintProgress = 0.f;
 	}
 	if (!Candidate)
 	{
+		PaintProgress = 0.f;
 		return;
 	}
 
 	PaintProgress += DeltaTime;
-	if (PaintProgress >= SecondsPerLock)
+	if (PaintProgress + 1e-4f >= SecondsPerLock)
 	{
-		PaintProgress -= SecondsPerLock;
+		PaintProgress = FMath::Max(0.f, PaintProgress - SecondsPerLock);
 		LockedWeak.Add(Candidate);
 		LockedTargets.Add(Candidate);
 		PaintCandidate = nullptr;
