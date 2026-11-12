@@ -45,6 +45,10 @@ public:
 
 	int32 GetResetCount() const { return ResetCount; }
 
+	/** After every ResetUnfinished: planet props (counters, bridges, hazards, carried items) reset themselves. */
+	DECLARE_MULTICAST_DELEGATE(FTDOnGroundReset);
+	FTDOnGroundReset OnResetUnfinished;
+
 private:
 	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 

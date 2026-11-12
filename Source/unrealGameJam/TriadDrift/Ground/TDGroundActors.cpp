@@ -107,7 +107,7 @@ void ATDInteractableActor::Interact(AActor* Interactor)
 	}
 	bUsed = true;
 	OnInteracted.Broadcast(this, Interactor);
-	if (LinkedObjective)
+	if (LinkedObjective && bCompleteLinkedStep)
 	{
 		LinkedObjective->CompleteStep(LinkedStep);
 	}

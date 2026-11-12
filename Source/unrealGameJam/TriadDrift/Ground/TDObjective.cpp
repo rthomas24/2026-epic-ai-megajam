@@ -147,6 +147,14 @@ AActor* ATDObjective::GetCurrentWaypoint() const
 	return (bActive && Steps.IsValidIndex(CurrentStep)) ? Steps[CurrentStep].Waypoint.Get() : nullptr;
 }
 
+void ATDObjective::UpdateStepText(const FText& Text)
+{
+	if (bActive)
+	{
+		Broadcast(CurrentStep, Text);
+	}
+}
+
 void ATDObjective::Broadcast(int32 Step, const FText& Text) const
 {
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))

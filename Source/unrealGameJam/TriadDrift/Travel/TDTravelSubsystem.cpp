@@ -35,22 +35,12 @@ UTDTravelFX* UTDTravelSubsystem::GetDefaultTravelFX(const UObject* WorldContextO
 void UTDTravelSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
-	// A CUT retake rebuilds the scene: no hyperdrive lock may survive it (the wave re-adds its own).
-	if (UTDGameInstance* GI = Cast<UTDGameInstance>(InWorld.GetGameInstance()))
-	{
-		SceneRestartHandle = GI->OnSceneRestart.AddWeakLambda(this, [this](FName, int32) { ClearAllHyperdriveLocks(); });
-	}
+	// Hyperdrive locks are owned by their owners (review MAJOR, Nov 12): a CUT retake must not clear them, or the
+	// next take could jump away from the finale. Nothing to bind here.
 }
 
 void UTDTravelSubsystem::Deinitialize()
 {
-	if (UWorld* World = GetWorld())
-	{
-		if (UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance()))
-		{
-			GI->OnSceneRestart.Remove(SceneRestartHandle);
-		}
-	}
 	Super::Deinitialize();
 }
 
@@ -59,9 +49,22 @@ void UTDTravelSubsystem::ClearAllHyperdriveLocks()
 	HyperdriveLocks.Reset();
 }
 
+const UTDTravelSubsystem::FHyperdriveLock* UTDTravelSubsystem::ActiveHyperdriveLock() const
+{
+	for (int32 i = HyperdriveLocks.Num() - 1; i >= 0; --i)
+	{
+		if (!HyperdriveLocks[i].IsOrphaned())
+		{
+			return &HyperdriveLocks[i];
+		}
+	}
+	return nullptr;
+}
+
 FText UTDTravelSubsystem::GetHyperdriveLockText() const
 {
-	return HyperdriveLocks.Num() > 0 ? HyperdriveLocks.Last().Value : FText::GetEmpty();
+	const FHyperdriveLock* Lock = ActiveHyperdriveLock();
+	return Lock ? Lock->Reason : FText::GetEmpty();
 }
 
 void UTDTravelSubsystem::RegisterGravityWell(FName Id, FVector Location, float Radius, AActor* Owner)
@@ -155,24 +158,29 @@ bool UTDTravelSubsystem::GetPlayBounds(FVector& OutCenter, float& OutRadius) con
 	return bHasPlayBounds;
 }
 
-void UTDTravelSubsystem::AddHyperdriveLock(FName Owner, FText Reason)
+void UTDTravelSubsystem::AddHyperdriveLock(FName Owner, FText Reason, const UObject* OwnerObject)
 {
-	HyperdriveLocks.RemoveAll([Owner](const TPair<FName, FText>& L) { return L.Key == Owner; });
-	HyperdriveLocks.Emplace(Owner, Reason);
+	HyperdriveLocks.RemoveAll([Owner](const FHyperdriveLock& L) { return L.Owner == Owner || L.IsOrphaned(); });
+	FHyperdriveLock& Lock = HyperdriveLocks.AddDefaulted_GetRef();
+	Lock.Owner = Owner;
+	Lock.Reason = Reason;
+	Lock.OwnerObject = OwnerObject;
+	Lock.bHasOwnerObject = OwnerObject != nullptr;
 }
 
 void UTDTravelSubsystem::RemoveHyperdriveLock(FName Owner)
 {
-	HyperdriveLocks.RemoveAll([Owner](const TPair<FName, FText>& L) { return L.Key == Owner; });
+	HyperdriveLocks.RemoveAll([Owner](const FHyperdriveLock& L) { return L.Owner == Owner || L.IsOrphaned(); });
 }
 
 bool UTDTravelSubsystem::IsHyperdriveLocked(FText& OutReason) const
 {
-	if (HyperdriveLocks.Num() == 0)
+	const FHyperdriveLock* Lock = ActiveHyperdriveLock();
+	if (!Lock)
 	{
 		return false;
 	}
-	OutReason = HyperdriveLocks.Last().Value;
+	OutReason = Lock->Reason;
 	return true;
 }
 
@@ -183,7 +191,7 @@ bool UTDTravelSubsystem::CanRequestLevelTravel(FText* OutReason) const
 		if (OutReason) { *OutReason = FText::AsCultureInvariant(Text); }
 		return false;
 	};
-	if (bLevelTravelRequested)
+	if (HasRequestedLevelTravel())
 	{
 		return Fail(TEXT("Requested"), TEXT("Travel already requested from this level"));
 	}
@@ -200,6 +208,19 @@ bool UTDTravelSubsystem::CanRequestLevelTravel(FText* OutReason) const
 		}
 	}
 	return true;
+}
+
+bool UTDTravelSubsystem::HasRequestedLevelTravel() const
+{
+	if (!bLevelTravelRequested)
+	{
+		return false;
+	}
+	// Still in this world after a request: it is under way while the flow says so; a voided or timed-out travel
+	// (UTDGameInstance::FinishTravel(false)) frees it for another attempt.
+	const UWorld* World = GetWorld();
+	const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
+	return !GI || GI->IsTravelPending();
 }
 
 bool UTDTravelSubsystem::RequestLevelTravel(ETDDestination Destination, FName ReturnPoint)

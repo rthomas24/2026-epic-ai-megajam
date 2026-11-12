@@ -168,6 +168,7 @@ bool FTDUIHostFrozenNames::RunTest(const FString& Parameters)
 	FindGetter<FNumericProperty>(*this, Source, TEXT("GetSpeed01"));
 	FindGetter<FNumericProperty>(*this, Source, TEXT("GetHyperdriveCharge01"));
 	FindGetter<FBoolProperty>(*this, Source, TEXT("IsOutOfBounds"));
+	FindGetter<FTextProperty>(*this, Source, TEXT("GetObjectiveText"));
 	if (const FStructProperty* Wave = FindGetter<FStructProperty>(*this, Source, TEXT("GetWaveInfo")))
 	{
 		ExpectNumber(*this, Wave->Struct, TEXT("WaveNumber"));

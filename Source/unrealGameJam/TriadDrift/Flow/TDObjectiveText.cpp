@@ -6,6 +6,7 @@
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
@@ -128,7 +129,15 @@ bool FTDObjectiveText::Compute(UWorld* World, const FTDProgress& Progress, ETDDe
 				Out = Line(Destination == ETDDestination::Verdance ? TEXT("Return_Verdance") : TEXT("Return_Cinder"), 0, LOCTEXT("ReturnToShip", "RETURN TO YOUR SHIP"));
 				return true;
 			}
-			return false; // the planet's objective actors own the line
+			// Between objectives: "HEAD TO A SIGNAL · THE WRECK OR THE RELAY".
+			TArray<AActor*> Unused;
+			if (const ATDPlanetCourse* Course = Planet->GetCourse(); Course && Course->GetIdleLine(Out.Text, Unused))
+			{
+				Out.Id = Destination == ETDDestination::Verdance ? FName(TEXT("Choose_Verdance")) : FName(TEXT("Choose_Cinder"));
+				Out.Step = 0;
+				return true;
+			}
+			return false; // the running objective owns the line
 		}
 		if (bDone)
 		{
@@ -210,6 +219,11 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 		else if (const UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(World))
 		{
 			Objectives->GetActiveWaypoints(Out);
+			if (Out.Num() == 0 && Planet->GetCourse())
+			{
+				FText Unused;
+				Planet->GetCourse()->GetIdleLine(Unused, Out); // the trailheads still open
+			}
 		}
 	}
 }

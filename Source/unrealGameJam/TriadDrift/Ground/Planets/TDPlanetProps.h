@@ -1,0 +1,334 @@
+// Triad Drift - planet objective props and hazards (ENG-25 Verdance, ENG-26 Cinder). Owner: Teammate 5.
+//
+// Zero-asset gameplay pieces the planet courses are built from. Each one resets itself on a "CUT!"
+// (UTDGroundSceneSubsystem::OnResetUnfinished) unless its objective is already complete.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Ground/TDGroundActors.h"
+#include "TDPlanetProps.generated.h"
+
+class UBoxComponent;
+class UStaticMeshComponent;
+class UTDHealthComponent;
+class UMaterialInstanceDynamic;
+class ATDObjective;
+class ATDFirstPersonCharacter;
+class ATDEncounterVolume;
+
+/** Base: registers for the ground reset and knows whether its objective is done. */
+UCLASS(Abstract)
+class UNREALGAMEJAM_API ATDPlanetProp : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	ATDPlanetProp();
+
+	/** The objective this prop belongs to (resets are skipped once it is complete). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	TObjectPtr<ATDObjective> LinkedObjective;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	int32 LinkedStep = INDEX_NONE;
+
+	/** Back to the starting state (called on a retake while the objective is incomplete). */
+	virtual void ResetProp() {}
+
+	bool IsLinkedStepCurrent() const;
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	static ATDFirstPersonCharacter* AsPlayer(AActor* Actor);
+
+private:
+	void HandleGroundReset();
+	FDelegateHandle ResetHandle;
+};
+
+// ================================================================================================
+/** Walk into it during LinkedStep and the step completes ("follow the beacon", "bring the core back"). */
+UCLASS()
+class UNREALGAMEJAM_API ATDStepTrigger : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	ATDStepTrigger();
+
+	/** Only counts while the player carries the objective item; it is delivered (dropped) here. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	bool bRequireCarrying = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Planet")
+	TObjectPtr<UBoxComponent> Box;
+
+	/** A tall glowing column so the destination reads from far away (hidden when not the current step). */
+	UPROPERTY(VisibleAnywhere, Category = "Planet")
+	TObjectPtr<UStaticMeshComponent> Beacon;
+
+	virtual void Tick(float DeltaSeconds) override;
+
+protected:
+	virtual void BeginPlay() override;
+	bool TryComplete(AActor* Other);
+
+private:
+	UFUNCTION()
+	void HandleOverlap(UPrimitiveComponent* Overlapped, AActor* Other, UPrimitiveComponent* OtherComp, int32 BodyIndex, bool bFromSweep, const FHitResult& Sweep);
+};
+
+// ================================================================================================
+/**
+ * Counts things toward one objective step: interactables used, actors destroyed. Shows "TEXT n / N" on the
+ * objective line and completes the step at Required.
+ */
+UCLASS()
+class UNREALGAMEJAM_API ATDStepCounter : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	int32 Required = 3;
+
+	/** "WAKE THE RESONANCE NODES" (the count is appended). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	FText BaseText;
+
+	/** Count this interactable's use (it must not complete the step itself). */
+	void WatchInteractable(ATDInteractableActor* Interactable);
+
+	/** Count this actor's death (its UTDHealthComponent). */
+	void WatchDestructible(AActor* Actor);
+
+	int32 GetCount() const { return Count; }
+	void Add();
+
+	virtual void ResetProp() override;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION() void HandleInteracted(AActor* Interactable, AActor* Interactor);
+	UFUNCTION() void HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
+	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
+	void Announce() const;
+
+	int32 Count = 0;
+};
+
+// ================================================================================================
+/**
+ * The wreck core: hold to extract (survives damage), during which two waves drop in; then the player
+ * carries it (no sprint, block or attacks) until a bRequireCarrying trigger takes it. Dropped on death.
+ */
+UCLASS()
+class UNREALGAMEJAM_API ATDExtractionSite : public ATDInteractableActor
+{
+	GENERATED_BODY()
+
+public:
+	ATDExtractionSite();
+
+	/** Drops in when the extraction step starts. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	TObjectPtr<ATDEncounterVolume> WaveA;
+
+	/** Drops in once the player starts holding (or WaveBDelay after the step starts). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	TObjectPtr<ATDEncounterVolume> WaveB;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s"))
+	float WaveBDelay = 8.f;
+
+	/** The core the player carries (attached in front of the camera while carrying). */
+	UPROPERTY(VisibleAnywhere, Category = "Planet")
+	TObjectPtr<UStaticMeshComponent> Core;
+
+	virtual void Interact(AActor* Interactor) override;
+	virtual void Tick(float DeltaSeconds) override;
+
+	/** Delivered at the trigger: the core is gone, the carrier is free. */
+	void Deliver();
+	void ResetSite();
+	bool IsCarried() const { return Carrier.IsValid(); }
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
+	void DropCore();
+
+	TWeakObjectPtr<ATDFirstPersonCharacter> Carrier;
+	FTransform CoreHome;
+	float StepElapsed = -1.f;
+	bool bWaveBDropped = false;
+	FDelegateHandle ResetHandle;
+};
+
+// ================================================================================================
+/** Magma: heavy damage, then the player is put back on the last safe ground. Enemies just burn. */
+UCLASS()
+class UNREALGAMEJAM_API ATDMagmaVolume : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	ATDMagmaVolume();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hazard")
+	float Damage = 35.f;
+
+	UPROPERTY(VisibleAnywhere, Category = "Hazard")
+	TObjectPtr<UStaticMeshComponent> Surface;
+
+	UPROPERTY(VisibleAnywhere, Category = "Hazard")
+	TObjectPtr<UBoxComponent> Box;
+
+	/** Size in cm (the surface sits at the top of the box). */
+	void SetSize(const FVector& Size);
+
+	virtual void Tick(float DeltaSeconds) override;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION()
+	void HandleOverlap(UPrimitiveComponent* Overlapped, AActor* Other, UPrimitiveComponent* OtherComp, int32 BodyIndex, bool bFromSweep, const FHitResult& Sweep);
+	float Pulse = 0.f;
+};
+
+// ================================================================================================
+/** A geyser: dormant, then a 1 s rumble (glow), then a 1.5 s eruption that launches and burns. */
+UCLASS()
+class UNREALGAMEJAM_API ATDGeyser : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	ATDGeyser();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hazard", meta = (Units = "s")) float DormantSeconds = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hazard", meta = (Units = "s")) float WarnSeconds = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hazard", meta = (Units = "s")) float EruptSeconds = 1.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hazard") float Damage = 20.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hazard") float LaunchSpeed = 1400.f;
+	/** Start offset into the cycle, so a row of geysers ripples. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hazard", meta = (Units = "s")) float Phase = 0.f;
+
+	UPROPERTY(VisibleAnywhere, Category = "Hazard") TObjectPtr<UStaticMeshComponent> Vent;
+	UPROPERTY(VisibleAnywhere, Category = "Hazard") TObjectPtr<UStaticMeshComponent> Plume;
+	UPROPERTY(VisibleAnywhere, Category = "Hazard") TObjectPtr<UBoxComponent> Box;
+
+	bool IsErupting() const;
+	virtual void Tick(float DeltaSeconds) override;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY(Transient) TObjectPtr<UMaterialInstanceDynamic> VentMID;
+	float Clock = 0.f;
+	TSet<TWeakObjectPtr<AActor>> HitThisEruption;
+};
+
+// ================================================================================================
+/** A crystal that shatters when slashed (Neutral team, any damage). Can block a path or be a target. */
+UCLASS()
+class UNREALGAMEJAM_API ATDShatterCrystal : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	ATDShatterCrystal();
+
+	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UStaticMeshComponent> Mesh;
+	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UTDHealthComponent> Health;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FLinearColor Color = FLinearColor(1.f, 0.45f, 0.1f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") float MaxHealth = 30.f;
+
+	bool IsShattered() const { return bShattered; }
+	virtual void ResetProp() override;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION() void HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
+	bool bShattered = false;
+};
+
+// ================================================================================================
+/** A crystal bridge segment: stand on it and it cracks, then falls after FallDelay. Back on a retake. */
+UCLASS()
+class UNREALGAMEJAM_API ATDCollapsingPlatform : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	ATDCollapsingPlatform();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float FallDelay = 1.1f;
+	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UStaticMeshComponent> Slab;
+
+	void SetSize(const FVector& Size);
+	bool HasFallen() const { return bFallen; }
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void ResetProp() override;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	FVector HomeRelative = FVector::ZeroVector;
+	float StandTime = -1.f;
+	float FallSpeed = 0.f;
+	bool bFallen = false;
+};
+
+// ================================================================================================
+/**
+ * The jammer tower coming down: when LinkedStep starts, a countdown runs and debris falls around the route;
+ * reaching the exit trigger in time completes the step; running out of time kills the player (CUT!).
+ */
+UCLASS()
+class UNREALGAMEJAM_API ATDCollapseRun : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	ATDCollapseRun();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float Seconds = 25.f;
+	/** Debris lands at random points inside this box (relative to the actor). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FVector DebrisExtent = FVector(4000.f, 1500.f, 0.f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TObjectPtr<AActor> Tower;
+
+	bool IsRunning() const { return TimeLeft >= 0.f; }
+	float GetTimeLeft() const { return TimeLeft; }
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void ResetProp() override;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
+	void DropDebris();
+
+	float TimeLeft = -1.f;
+	float DebrisTimer = 0.f;
+	int32 LastShownSecond = -1;
+	FVector TowerHome = FVector::ZeroVector;
+	TArray<TWeakObjectPtr<AActor>> Debris;
+};

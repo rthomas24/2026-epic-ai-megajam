@@ -223,6 +223,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
 		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
 		StreakLook = Look;
+		AppliedGrowth = 1.f;
 		UMaterialInterface* Base = GlowMaterial ? GlowMaterial.Get() : DefaultMaterial.Get();
 		const FLinearColor Final = GlowMaterial ? Color * FTDCombatPlaceholders::StreakGlow : Color;
 		if (!PlaceholderMID && Base)
@@ -258,7 +259,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 			if (HeadMID)
 			{
 				// Hot core: the team colour pushed towards white and brighter than the trail.
-				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.45f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * 1.6f : 1.f);
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * 0.8f : 1.f); // stays in squad colour (playtest: 0.45 white read as a white ball)
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
 			}
@@ -479,6 +480,11 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	}
 	const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
 	const float Grow = FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
+	if (FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
+	{
+		return; // cheap at 150+ live shots: no transform update for a change nobody can see
+	}
+	AppliedGrowth = Grow;
 	const float Thickness = StreakLook.Thickness * Grow;
 	PlaceholderMesh->SetRelativeScale3D(FVector(StreakLook.Length, Thickness, Thickness) / 100.f);
 	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * StreakLook.Length + 0.5f * Thickness, 0.f, 0.f));
