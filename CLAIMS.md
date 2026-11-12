@@ -10,3 +10,4 @@ an unpublished claim. The Lead preserves all other active claims when updating t
 | Nicholas / VFX Agent | ArtSource/VFX/StarterKit/**; Content/TriadDrift/VFX/StarterKit/** | 2026-11-12 EST | nick/vfx | Pending claims-only approval; source text only until published to main |
 | Nicholas / UI-UX Agent | ArtSource/UI/TriadHUD/**; Content/TriadDrift/UI/TriadHUD/** | 2026-11-12 EST | nick/hud | Pending claims-only approval; source text only until published to main |
 | Nicholas / Audio-Polish Agent | ArtSource/Audio/StarterPlan/** | 2026-11-12 EST | nick/audio | Audio inventory and license review only; no downloads or imports |
+| Nicholas / Dedicated Ship-Weapons chat | ArtSource/Space/Ships/Lancer/**; Content/TriadDrift/Art/Ships/Lancer/** | 2026-11-12 EST | nick/ships-lancer | Pending approval; text source only; separate chat |
