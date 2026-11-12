@@ -216,9 +216,16 @@ void ATDDebugHUD::DrawWave()
 		GetTextSize(Text, W, H, nullptr, 1.4f);
 		DrawText(Text, FLinearColor::White, Canvas->SizeX - W - 24.f, FMath::Max(22.f, Canvas->SizeY * 0.12f), nullptr, 1.4f);
 	}
-	if (Data->IsOutOfBounds())
+	// The data source's own text wins (it also covers the warning band before the edge); the plain
+	// out-of-bounds flag is the fallback for a source that does not provide one.
+	FString BoundaryText = Data->GetBoundaryWarningText().ToString();
+	if (BoundaryText.IsEmpty() && Data->IsOutOfBounds())
 	{
-		const FString Warn(TEXT("LEAVING THE COMBAT ZONE - TURN BACK"));
+		BoundaryText = TEXT("LEAVING THE COMBAT ZONE - TURN BACK");
+	}
+	if (!BoundaryText.IsEmpty())
+	{
+		const FString Warn = BoundaryText;
 		float W = 0.f, H = 0.f;
 		GetTextSize(Warn, W, H, nullptr, 1.6f);
 		DrawText(Warn, ColorEnemy, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.22f, nullptr, 1.6f);
@@ -323,7 +330,8 @@ void ATDDebugHUD::DrawFlight()
 {
 	const APawn* Pawn = GetOwningPawn();
 	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
-	if (!Pawn)
+	// Flight read-outs only while flying: on foot the health row is the whole HUD.
+	if (!Pawn || !Data || Data->GetSquadHUD().Num() == 0)
 	{
 		return;
 	}
