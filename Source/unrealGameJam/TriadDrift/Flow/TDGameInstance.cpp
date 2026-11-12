@@ -852,6 +852,7 @@ bool UTDGameInstance::WriteSaveSlot(bool bForce)
 	Save->Checkpoint.Progress.RunTimeSeconds = Progress.RunTimeSeconds;
 	Save->SceneOrder = SceneOrder;
 	Save->SavedAtUtc = FDateTime::UtcNow();
+	Save->Difficulty = UTDDifficultySettings::GetCurrent();
 	const bool bOk = UGameplayStatics::SaveGameToSlot(Save, GetSaveSlotName(), UTDFlowSettings::Get()->SaveUserIndex);
 	if (!bOk)
 	{
@@ -908,7 +909,19 @@ bool UTDGameInstance::ApplySave(const UTDSaveGame& Save)
 	CurrentSceneId = Save.Checkpoint.SceneId;
 	LastAnnouncedScene = NAME_None;
 	LastAnnouncedTake = 0;
+	UTDDifficultySettings::SetCurrent(Save.Difficulty);
 	return true;
+}
+
+void UTDGameInstance::SetDifficulty(ETDDifficulty Difficulty)
+{
+	UTDDifficultySettings::SetCurrent(Difficulty);
+	WriteSaveSlot(); // a committed run keeps it; a fresh boot / menu writes nothing (save safety)
+}
+
+ETDDifficulty UTDGameInstance::GetDifficulty() const
+{
+	return UTDDifficultySettings::GetCurrent();
 }
 
 // ------------------------------------------------------------------------------------------------

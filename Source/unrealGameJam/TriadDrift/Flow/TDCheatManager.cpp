@@ -316,6 +316,25 @@ bool UTDCheatManager::DoStage(UWorld* World, const FString& StageName)
 #endif
 }
 
+bool UTDCheatManager::DoDifficulty(UWorld* World, const FString& DifficultyName)
+{
+#if !UE_BUILD_SHIPPING
+	const UEnum* E = StaticEnum<ETDDifficulty>();
+	const int64 Value = E ? E->GetValueByNameString(DifficultyName) : INDEX_NONE;
+	UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
+	if (Value == INDEX_NONE || !GI)
+	{
+		TDCheats::LogError(FString::Printf(TEXT("TD.Difficulty <Story|Standard|Ace> (now %s)"), *UEnum::GetValueAsString(UTDDifficultySettings::GetCurrent())));
+		return false;
+	}
+	GI->SetDifficulty(static_cast<ETDDifficulty>(Value));
+	TDCheats::Log(FString::Printf(TEXT("Difficulty -> %s (applies to enemies spawned from now on)"), *DifficultyName));
+	return true;
+#else
+	return false;
+#endif
+}
+
 // ------------------------------------------------------------------------------------------------
 // Exec functions (cheat manager on the player controller)
 // ------------------------------------------------------------------------------------------------
@@ -328,6 +347,7 @@ void UTDCheatManager::TDSkipWave() { DoSkipWave(GetWorld()); }
 void UTDCheatManager::TDTravel(const FString& DestinationName) { DoTravel(GetWorld(), DestinationName); }
 void UTDCheatManager::TDTake() { DoTake(GetWorld()); }
 void UTDCheatManager::TDStage(const FString& StageName) { DoStage(GetWorld(), StageName); }
+void UTDCheatManager::TDDifficulty(const FString& DifficultyName) { DoDifficulty(GetWorld(), DifficultyName); }
 
 // ------------------------------------------------------------------------------------------------
 // "TD.*" console commands (work with any controller)
@@ -358,6 +378,9 @@ namespace TDCheats
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdTravel(TEXT("TD.Travel"), TEXT("TD.Travel <destination>: travel to a destination."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) { UTDCheatManager::DoTravel(World, Arg(Args, 0)); }));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdDifficulty(TEXT("TD.Difficulty"), TEXT("TD.Difficulty <Story|Standard|Ace>: set the run's difficulty (kept in the save)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) { UTDCheatManager::DoDifficulty(World, Arg(Args, 0)); }));
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdStage(TEXT("TD.Stage"), TEXT("TD.Stage <Waves1to2|VerdanceArrival|VerdanceOnFoot|Waves3to4|CinderArrival|CinderOnFoot|Wave5|DominionAssault|ReactorExposed|Victory>: progress and world jump to that journey stage."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) { UTDCheatManager::DoStage(World, Arg(Args, 0)); }));

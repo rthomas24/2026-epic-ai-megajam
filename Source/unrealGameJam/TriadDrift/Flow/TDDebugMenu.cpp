@@ -122,6 +122,11 @@ TSharedRef<SWidget> FTDDebugMenu::Build()
 		}
 	}
 	Actions->AddSlot()[MakeButton(TEXT("Unlock all"), [World]() { UTDCheatManager::DoUnlock(World(), TEXT("All"), FString()); })];
+	for (const TCHAR* D : { TEXT("Story"), TEXT("Standard"), TEXT("Ace") })
+	{
+		const FString Name(D);
+		Actions->AddSlot()[MakeButton(FString::Printf(TEXT("Difficulty: %s"), D), [World, Name]() { UTDCheatManager::DoDifficulty(World(), Name); })];
+	}
 
 	TSharedRef<SWrapBox> Phases = SNew(SWrapBox).UseAllottedSize(true);
 	if (const UEnum* E = StaticEnum<ETDGamePhase>())

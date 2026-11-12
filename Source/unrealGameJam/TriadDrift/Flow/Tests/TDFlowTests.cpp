@@ -278,6 +278,19 @@ bool FTDFlowSaveSlotRoundTrip::RunTest(const FString& Parameters)
 		return false;
 	}
 	TestEqual(TEXT("version field"), Save->Version, UTDSaveGame::CurrentVersion);
+	{
+		// Difficulty lives in the slot and comes back with Continue (ApplySave).
+		const ETDDifficulty Was = UTDDifficultySettings::GetCurrent();
+		GI->SetDifficulty(ETDDifficulty::Ace);
+		UTDSaveGame* WithAce = nullptr;
+		TestTrue(TEXT("re-read slot"), GI->ReadSaveSlot(WithAce));
+		TestEqual(TEXT("difficulty saved"), WithAce ? WithAce->Difficulty : ETDDifficulty::Standard, ETDDifficulty::Ace);
+		UTDDifficultySettings::SetCurrent(ETDDifficulty::Story);
+		TestTrue(TEXT("apply"), WithAce && GI->ApplySave(*WithAce));
+		TestEqual(TEXT("difficulty restored by the save"), GI->GetDifficulty(), ETDDifficulty::Ace);
+		TestTrue(TEXT("cheat refuses nonsense"), !UTDCheatManager::DoDifficulty(GI->GetWorld(), TEXT("Nightmare")));
+		UTDDifficultySettings::SetCurrent(Was);
+	}
 	TestEqual(TEXT("saved destination"), Save->Checkpoint.Destination, ETDDestination::Verdance);
 	TestEqual(TEXT("saved phase"), Save->Checkpoint.Progress.Phase, ETDGamePhase::Verdance);
 	TestEqual(TEXT("saved waves"), Save->Checkpoint.Progress.WavesCleared, 2);

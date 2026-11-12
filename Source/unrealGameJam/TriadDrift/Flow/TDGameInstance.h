@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Flow/TDObjectiveText.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Flow/TDSaveGame.h"
 #include "TDGameInstance.generated.h"
 
@@ -77,6 +78,13 @@ public:
 	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	bool ContinueRun();
+
+	/** The run's difficulty: applied to the balance tables now and kept in the save slot (Continue restores it). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
+	void SetDifficulty(ETDDifficulty Difficulty);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
+	ETDDifficulty GetDifficulty() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	void DeleteSave();
