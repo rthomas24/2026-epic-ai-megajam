@@ -216,7 +216,7 @@ void ATDPortal::Tick(float DeltaSeconds)
 		for (ATDProjectile* P : Live)
 		{
 			const FVector Cur = P->GetActorLocation();
-			TryCross(P, Cur - P->GetVelocity() * DeltaSeconds, Cur);
+			TryCross(P, P->GetPreviousLocation(), Cur);
 		}
 	}
 

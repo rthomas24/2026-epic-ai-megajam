@@ -147,6 +147,9 @@ private:
 
 	UFUNCTION()
 	void HandleOtherPower(UTDPowerComponent* Power);
+
+	/** The 3x shot itself broke the cloak (it consumed the multiplier). */
+	bool bEndedByShot = false;
 };
 
 /** Lancer (Cinder Obj 3): 6000 cm pulse; stun 3 s, gunship shields down 5 s, missiles fizzle. 14 s. */

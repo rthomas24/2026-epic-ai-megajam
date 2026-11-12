@@ -324,6 +324,7 @@ bool UTDCloakPower::OnActivate()
 	{
 		return false;
 	}
+	bEndedByShot = false;
 	if (UTDHealthComponent* Health = UTDStatics::GetHealth(Owner))
 	{
 		Health->SetTargetable(false);
@@ -368,9 +369,10 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 	if (UTDWeaponComponent* Weapons = Owner->FindComponentByClass<UTDWeaponComponent>())
 	{
 		Weapons->OnWeaponFired.RemoveAll(this);
-		if (!bInterrupted)
+		if (!bEndedByShot)
 		{
-			Weapons->SetNextShotDamageMultiplier(1.f); // expired without firing: no banked 3x shot
+			// Expired, broken by another power, death, retake...: no banked 3x shot for later.
+			Weapons->SetNextShotDamageMultiplier(1.f);
 		}
 	}
 	TInlineComponentArray<UTDPowerComponent*> Powers(Owner);
@@ -385,6 +387,7 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 
 void UTDCloakPower::HandleWeaponFired(ETDWeaponSlot WeaponSlot, FName WeaponId)
 {
+	bEndedByShot = true;
 	EndPower(true);
 }
 
