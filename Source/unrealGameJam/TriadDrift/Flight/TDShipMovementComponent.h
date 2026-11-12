@@ -11,6 +11,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnFlightImpact, const FTDFlightImpact&, Impact);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTDOnFlightEvent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDriftEnded, bool, bBurst);
 
 /**
  * Arcade 6DOF-lite flight: custom velocity integration (TDFlightSim), swept movement with glancing /
@@ -50,6 +51,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ClearSpeedOverride();
 
+	/** Acceleration used to reach the override speed; negative restores the default (60000 cm/s^2). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetOverrideAcceleration(float AccelerationCmPerSec2);
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool HasSpeedOverride() const { return Context.bSpeedOverride; }
 
@@ -71,6 +76,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void SetBoundary(const FVector& Center, float Radius, bool bEnabled = true);
 
+	/** Box play space (atmosphere zones): soft walls and ceiling. Clear returns to the sphere. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetBoxBoundary(const FBox& Box);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ClearBoxBoundary();
+
+	/** Atmosphere flight (ENG-20): gravity, speed capped at a fraction of space cruise, no boost. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetAtmosphereMode(bool bEnabled, float Gravity = 1200.f, float SpeedCapFraction = 0.6f);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsInAtmosphere() const { return Context.bAtmosphere; }
+
 	/** Re-orients the flight state after a teleport. bKeepSpeed keeps the speed along the new facing. */
 	void NotifyTeleported(const FQuat& NewFacing, bool bKeepSpeed);
 
@@ -81,6 +100,14 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void AddImpulseVelocity(const FVector& DeltaVelocity);
+
+	/**
+	 * Back to a clean flight state: input cleared, boost meter full, no drift / boost / override / catch-up
+	 * allowance, angular rates zeroed. Velocity is kept or reset to StartSpeedFraction * cruise along the nose.
+	 * Call on ship down and respawn (T3). Fires the matching end events if boost or drift were active.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ResetFlightState(bool bKeepVelocity = false);
 
 	/** Sets the full velocity instantly (switch hand-offs, scripted moves). Engine speed follows its length. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
@@ -138,9 +165,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
 	FTDOnFlightEvent OnDriftStarted;
 
-	/** Drift released: velocity snapped to the nose with the burst. */
+	/**
+	 * Every drift end, so it always pairs with OnDriftStarted. bBurst = the pilot earned the +20% release
+	 * burst (false for tap-drifts, or when a speed override cut the drift short).
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
-	FTDOnFlightEvent OnDriftReleased;
+	FTDOnDriftEnded OnDriftReleased;
 
 	// ---- UMovementComponent --------------------------------------------------------------------------
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -170,5 +200,8 @@ private:
 	/** Velocity we wrote last tick; a mismatch means someone outside changed Velocity (knockback). */
 	FVector LastWrittenVelocity = FVector::ZeroVector;
 	double LastCollisionDamageTime = -1000.0;
+	int32 AppliedPlayBoundsVersion = -1;
+	bool bWorldBoundsApplied = false;
+	void ApplyWorldPlayBounds();
 	bool bStateInitialised = false;
 };

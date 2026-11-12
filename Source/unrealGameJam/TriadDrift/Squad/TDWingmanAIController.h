@@ -132,6 +132,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "s"))
 	float AvoidanceLookAhead = 1.2f;
 
+	/** Ship radius used for obstacle probes. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
+	float AvoidanceShipRadius = 500.f;
+
 	/** Keep at least this far from squadmates. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
 	float TeammateSeparation = 900.f;

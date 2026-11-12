@@ -35,6 +35,12 @@ struct UNREALGAMEJAM_API FTDFlightState
 	bool bDrifting = false;
 	/** Direction of travel locked when the drift started. */
 	FVector DriftDirection = FVector::ForwardVector;
+	/** Nose direction when the drift started, and how long it has lasted (release-burst gating). */
+	FVector DriftStartForward = FVector::ForwardVector;
+	float DriftTime = 0.f;
+
+	/** Meter ran dry while boost was held: no boost until the button is released. */
+	bool bBoostLockout = false;
 
 	bool bOutOfBounds = false;
 	bool bNearBoundary = false;
@@ -47,6 +53,8 @@ struct UNREALGAMEJAM_API FTDFlightState
 
 	/** Set for one step when a drift is released (presentation burst hook). */
 	bool bDriftBurstThisStep = false;
+	/** Set for one step whenever a drift ends, with or without the burst (balanced Started/Released events). */
+	bool bDriftEndedThisStep = false;
 };
 
 /** External modifiers set by gameplay (hyperdrive, ram, levels). */
@@ -54,6 +62,19 @@ struct UNREALGAMEJAM_API FTDFlightContext
 {
 	FVector BoundaryCenter = FVector::ZeroVector;
 	bool bBoundaryEnabled = true;
+	/** World play-space radius; <= 0 uses FTDFlightTuning::BoundaryRadius. Lives here so ApplyFlightTuning can't wipe it. */
+	float BoundaryRadius = -1.f;
+
+	/** Box play space instead of the sphere (atmosphere zones: soft walls + ceiling). */
+	bool bBoxBoundary = false;
+	FBox BoundaryBox = FBox(ForceInit);
+
+	/** Atmosphere flight (ENG-20): gravity, capped speed, no boost. */
+	bool bAtmosphere = false;
+	/** Downward pull in atmosphere (cm/s^2). Grip counters most of it, so the nose sags gently. */
+	float AtmosphereGravity = 1200.f;
+	/** Max speed in atmosphere as a fraction of the space CruiseSpeed. */
+	float AtmosphereSpeedCapFraction = 0.6f;
 
 	bool bSpeedOverride = false;
 	float OverrideSpeed = 0.f;

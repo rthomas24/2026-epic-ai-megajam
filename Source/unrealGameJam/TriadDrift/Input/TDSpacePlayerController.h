@@ -93,6 +93,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
 	const FTDFlightInput& GetCurrentFlightInput() const { return CurrentFlightInput; }
 
+	/** Radial deadzone + response curve: |v| in [Deadzone, 1] remapped to [0, 1], then ^Exponent. */
+	static FVector2D ShapeStick(const FVector2D& Raw, float Deadzone, float Exponent);
+
 	/** The runtime-built objects (for tests, debug UI and rebinding later). */
 	UInputMappingContext* GetCommonContext() const { return IMC_SpaceCommon; }
 	UInputMappingContext* GetSpaceContext() const { return IMC_Space; }
@@ -172,13 +175,29 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Gamepad")
 	bool bInvertStickPitch = false;
 
+	/** W / RT above neutral raise the ship's top speed by up to this fraction of cruise (0 = W does nothing). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "0", ClampMax = "1"))
+	float ThrottleUpBonus = 0.2f;
+
+	/** A mouse movement must be at least this many counts to take aim back from the gamepad. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0"))
+	float MouseTakeOverThreshold = 3.f;
+
+	/** The reticle reaches this fraction of half the short screen side at full virtual-stick deflection. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0", ClampMax = "1"))
+	float ReticleScreenScale = 0.5f;
+
+	/** Shots converge on the reticle ray this far ahead (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "100"))
+	float AimConvergenceDistance = 30000.f;
+
 	/** Left trigger past this (throttle <= -value) also brakes. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Gamepad", meta = (ClampMin = "0", ClampMax = "1"))
 	float TriggerBrakeThreshold = 0.92f;
 
 	/** Holding the power key longer than this triggers Signature2 instead of Signature1. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "0.05"))
-	float PowerHoldSeconds = 0.35f;
+	float PowerHoldSeconds = 0.5f;
 
 	/** Holding D-pad up longer than this opens the switch radial. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "0.05"))
@@ -215,6 +234,8 @@ private:
 	void OnPowerPressed(const FInputActionValue& Value);
 	void OnPowerReleased(const FInputActionValue& Value);
 	void OnAbility(const FInputActionValue& Value);
+	void OnAbilityReleased(const FInputActionValue& Value);
+	void ApplyThrottleUp();
 	void OnSwitchNext(const FInputActionValue& Value);
 	void OnSwitchPrev(const FInputActionValue& Value);
 	void OnSwitch1(const FInputActionValue& Value);
@@ -227,12 +248,16 @@ private:
 	void OnHyperdriveReleased(const FInputActionValue& Value);
 	void OnSquadCommand(const FInputActionValue& Value);
 	void OnLand(const FInputActionValue& Value);
+	void OnLandReleased(const FInputActionValue& Value);
+	void OnCameraToggle(const FInputActionValue& Value);
+	void RouteHyperdrive(bool bPressed);
+	void RouteLand();
 	void OnPause(const FInputActionValue& Value);
 	void OnGalaxyMap(const FInputActionValue& Value);
 
 	// Routing to other areas (no-ops until their classes are merged)
 	void RouteTrigger(ETDWeaponSlot Slot, bool bHeld);
-	void RoutePower(ETDPowerInput Power);
+	void RoutePower(ETDPowerInput Power, bool bPressed = true);
 	void RouteSwitchStep(int32 Direction);
 	void RouteSwitchDirect(ETDShipId Ship);
 	void RouteTargetCycle();
@@ -267,6 +292,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Land;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Pause;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_GalaxyMap;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_CameraToggle;
 
 	ETDFlightContext FlightContext = ETDFlightContext::Space;
 	bool bSpaceInputEnabled = true;
@@ -281,7 +307,14 @@ private:
 
 	double PowerPressTime = -1.0;
 	bool bPowerHoldFired = false;
+	/** This press went straight to Signature1 (the ship has no Signature2 power). */
+	bool bPowerImmediate = false;
+	bool bThrottleUpApplied = false;
+
+	friend struct FTDSpaceControllerTestAccess;
 	double RadialPressTime = -1.0;
+	double LandPressTime = -1.0;
+	bool bLandFired = false;
 	bool bRadialOpen = false;
 	bool bFirePrimaryHeld = false;
 	bool bFireSecondaryHeld = false;

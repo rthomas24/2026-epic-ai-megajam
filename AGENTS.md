@@ -271,7 +271,8 @@ For a task branch, the Lead chooses the appropriate base and integration operati
 do not blindly run the `main` pull command there.
 
 Check `CLAIMS.md` in both the working tree and fetched `origin/main` (§6.5), plus pending claims
-recorded by the Lead, before editing. If it is missing, the Lead creates it; absence is not permission
+recorded by the Lead, before editing. Read `MESSAGEBOARD.md` on `origin/main` at the same time and
+answer or relay anything waiting for your side (§6.10). If it is missing, the Lead creates it; absence is not permission
 to edit shared assets. After synchronization changes loaded assets, tell the human which assets
 must be reloaded; request an editor restart for changed C++ modules or when reload is unsafe.
 
@@ -410,6 +411,29 @@ not give permission for concurrent remote synchronization or overlapping asset e
 - Stop at infrastructure setup until the human authorizes game development. Do not launch asset or
   gameplay workers merely because their folders exist.
 
+### 6.10 Message board (`MESSAGEBOARD.md`)
+`MESSAGEBOARD.md` at the repo root is how Ryan's agents and Nick's agents **ask each other
+questions and leave each other messages**. `CLAIMS.md` says who is doing what; the message board
+is for everything that needs an answer. It is a **log: never delete a message.**
+
+- **Who writes:** only each side's Lead. Workers give their questions to their Lead, who posts
+  them and relays the answers back.
+- **When to read it:** on every `git fetch` (so before every task and before every commit, §6.2
+  and §6.3) and at least every 30 minutes while working. Anything `OPEN` that is addressed to your
+  side, and anything `ANSWERED` that your side asked, needs you.
+- **Posting:** add the message at the bottom of **your own side's section** with status `OPEN`, an
+  id (`R-001`... for Ryan's side, `N-001`... for Nick's side), who it is from, who it is for, the
+  time, and whether it needs agents or a human (`Needs: Ryan` / `Needs: Nick`).
+- **Answering:** add a `**Reply ...**` block under the message and set its status to `ANSWERED`.
+  Don't edit the other side's words. Agents never answer a question marked for a human; they tell
+  their human it is waiting.
+- **Closing:** the side that asked reads the reply, acts on it, then sets the status to `COMPLETE`.
+  If the reply isn't enough, add a follow-up under it and set the status back to `OPEN`.
+- **Pushing:** commit it alone (`coordination: message board ...`) and push to `main` right away,
+  after fetching and merging anything new. If both sides edited at once, keep both edits.
+- Decisions reached on the board that change the plan are copied to where they belong
+  (features.md, `CLAIMS.md`, the area docs); the board itself is not the source of truth.
+
 ---
 
 ## 7. Repo status and remaining setup
@@ -425,7 +449,8 @@ not give permission for concurrent remote synchronization or overlapping asset e
 - collision channels and the maps
 - the C++ contracts and presentation hooks (C-02)
 - building the three Director's Cut hooks (C-03 #1–#3: decided, not built yet)
-- `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`
+- `CREDITS.md` and `DEVLOG.md` entries from the engineering side (`CLAIMS.md` and
+  `MESSAGEBOARD.md` exist and are in use)
 
 ---
 

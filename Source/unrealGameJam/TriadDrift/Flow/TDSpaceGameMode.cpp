@@ -5,6 +5,8 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDFlowReflection.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "Engine/World.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
@@ -83,6 +85,18 @@ void ATDSpaceGameMode::InitGame(const FString& MapName, const FString& Options, 
 
 void ATDSpaceGameMode::StartPlay()
 {
+	if (bUseGalaxyLayout)
+	{
+		// T4's ENG-17 layout: reuses a placed one (L_Galaxy) or spawns the default galaxy. It replaces
+		// our placeholder asteroids and spawns the Dominion; return points are valid right away.
+		GalaxyLayout = ATDGalaxyLayout::SpawnDefaultGalaxy(this);
+		if (GalaxyLayout)
+		{
+			const UTDGameInstance* GI = UTDGameInstance::Get(this);
+			FTransform Where;
+			SquadOrigin = (GI && GalaxyLayout->FindReturnPoint(GI->GetProgressRef().ReturnPoint, Where)) ? Where : GalaxyLayout->GetPlayerStart();
+		}
+	}
 	if (bSpawnEnvironment)
 	{
 		SpawnEnvironment();
@@ -127,6 +141,17 @@ void ATDSpaceGameMode::PostLogin(APlayerController* NewPlayer)
 	Super::PostLogin(NewPlayer);
 	UTDCheatManager::InstallOn(NewPlayer);
 	HandOverPlayers();
+}
+
+void ATDSpaceGameMode::ApplyStartingShip()
+{
+	// Resume (Continue / retake) in the ship the player was last flying.
+	ATDSquadManager* Squad = Cast<ATDSquadManager>(SquadManager);
+	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	if (Squad && GI)
+	{
+		Squad->StartingShip = GI->GetProgressRef().LastShip;
+	}
 }
 
 void ATDSpaceGameMode::HandOverPlayers()
@@ -220,6 +245,7 @@ void ATDSpaceGameMode::SpawnSquadManager()
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SquadManager = GetWorld()->SpawnActor<AActor>(Class, SquadOrigin, Params);
 	}
+	ApplyStartingShip();
 	if (SquadManager && !TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin))
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("Sandbox: squad manager has no UFUNCTION SpawnSquad(FTransform)."));
@@ -272,6 +298,7 @@ void ATDSpaceGameMode::RestartScene()
 	// don't touch waves here.
 	if (SquadManager)
 	{
+		ApplyStartingShip();
 		TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin);
 	}
 	HandOverPlayers();
@@ -359,7 +386,10 @@ void ATDSpaceGameMode::SpawnEnvironment()
 	}
 
 	SpawnStarBackdrop();
-	SpawnAsteroids();
+	if (!GalaxyLayout)
+	{
+		SpawnAsteroids();
+	}
 }
 
 void ATDSpaceGameMode::SpawnStarBackdrop()
