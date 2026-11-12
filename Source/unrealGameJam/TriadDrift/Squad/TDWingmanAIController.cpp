@@ -89,8 +89,17 @@ void ATDWingmanAIController::SetState(ETDWingmanState NewState)
 	{
 		return;
 	}
+	const ETDWingmanState Previous = State;
 	State = NewState;
 	StateEnterTime = Now();
+	// Entering a fight from formation: call where we are ("Kato, engaging high left").
+	if (NewState == ETDWingmanState::Engage && (Previous == ETDWingmanState::Formation || Previous == ETDWingmanState::Regroup))
+	{
+		if (ATDSquadManager* S = Squad.Get())
+		{
+			S->NotifyWingmanEngaged(ShipId);
+		}
+	}
 	bRegroupCommitted = false;
 	if (NewState != ETDWingmanState::Engage)
 	{

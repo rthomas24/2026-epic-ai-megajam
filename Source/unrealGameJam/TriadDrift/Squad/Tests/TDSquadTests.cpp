@@ -2455,5 +2455,61 @@ bool FTDSquadNoSilentSwitch::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEngageCallDirections, "TriadDrift.Squad.Barks.EngageCallDirection", TD_TEST_FLAGS)
+bool FTDSquadEngageCallDirections::RunTest(const FString& Parameters)
+{
+	// Lead decision: the wing says where it is when it enters a fight, seen from the player's camera.
+	const FTransform Cam(FRotator(0.f, 90.f, 0.f), FVector(100.f, 200.f, 300.f)); // looking along +Y
+	auto Call = [&](const FVector& Local) { return TDBarkIds::EngageCallFor(Cam, Cam.TransformPositionNoScale(Local)).ToString(); };
+	TestEqual(TEXT("ahead"), Call(FVector(5000.f, 0.f, 0.f)), FString(TEXT("Bark_SquadEngageAhead")));
+	TestEqual(TEXT("high left"), Call(FVector(2000.f, -3000.f, 3000.f)), FString(TEXT("Bark_SquadEngageHighLeft")));
+	TestEqual(TEXT("low right"), Call(FVector(1000.f, 4000.f, -3000.f)), FString(TEXT("Bark_SquadEngageLowRight")));
+	TestEqual(TEXT("behind"), Call(FVector(-5000.f, 500.f, 0.f)), FString(TEXT("Bark_SquadEngageBehind")));
+	TestEqual(TEXT("high ahead"), Call(FVector(3000.f, 0.f, 2500.f)), FString(TEXT("Bark_SquadEngageHighAhead")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEngageCallLive, "TriadDrift.Squad.Barks.WingmanCallsWhereItEngages", TD_TEST_FLAGS)
+bool FTDSquadEngageCallLive::RunTest(const FString& Parameters)
+{
+	// Real wing, real engagement: a wingman leaving formation for a fight calls its position, once.
+	FSquadFixture F;
+	F.W.Advance(3.f); // settled in formation
+	const FTransform Cam = F.Ship(ETDShipId::Rift)->GetChaseCameraTransformNow();
+	F.SpawnEnemy(FVector(12000.f, -6000.f, 4000.f), 100000.f);
+	FName Line;
+	FName Speaker;
+	FVector WingAtCall = FVector::ZeroVector;
+	for (int32 i = 0; i < 180 && Line.IsNone(); ++i)
+	{
+		const int32 Before = F.Events->Barks.Num();
+		F.W.Tick();
+		for (int32 b = Before; b < F.Events->Barks.Num(); ++b)
+		{
+			if (F.Events->Barks[b].Key.ToString().StartsWith(TEXT("Bark_SquadEngage")))
+			{
+				Line = F.Events->Barks[b].Key;
+				Speaker = F.Events->Barks[b].Value;
+				const ETDShipId Who = Speaker == FName(TEXT("Kato")) ? ETDShipId::Lancer : ETDShipId::Bastion;
+				WingAtCall = F.Ship(Who)->GetActorLocation();
+			}
+		}
+	}
+	if (!TestFalse(TEXT("a wingman called its engagement"), Line.IsNone()))
+	{
+		return false;
+	}
+	TestTrue(TEXT("by a wingman, not the player's pilot"), Speaker == FName(TEXT("Kato")) || Speaker == FName(TEXT("Moss")));
+	TestEqual(TEXT("the direction is where that wingman is"), Line, TDBarkIds::EngageCallFor(F.Ship(ETDShipId::Rift)->GetChaseCameraTransformNow(), WingAtCall));
+	F.W.Advance(5.f);
+	int32 Calls = 0;
+	for (const TPair<FName, FName>& B : F.Events->Barks)
+	{
+		Calls += (B.Key.ToString().StartsWith(TEXT("Bark_SquadEngage")) && B.Value == Speaker) ? 1 : 0;
+	}
+	TestEqual(TEXT("one call per wingman per fight (10 s cooldown)"), Calls, 1);
+	return Cam.IsValid();
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 

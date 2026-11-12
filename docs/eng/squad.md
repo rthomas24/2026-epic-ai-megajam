@@ -165,6 +165,7 @@ Gameplay asks for a line through `ITDGameFlow::RequestBark(BarkId, Speaker)` (re
 | `Bark_SquadWingmanKill` | a wingman kills a hostile | that wingman | normal, 12 s |
 | `Bark_SquadLowHull` | a living ship's hull drops below 30 % (re-armed above 55 % or on respawn) | that pilot | normal, 20 s |
 | `Bark_SquadWipe` | all three down | the last active pilot | critical, 5 s |
+| `Bark_SquadEngage[High|Low](Ahead|Left|Right|Behind)` (12 ids, e.g. `Bark_SquadEngageHighLeft`) | a wingman leaves formation for a fight; the id says where IT is, seen from the player's camera ("Kato, engaging high left") | that wingman | normal, 8 s per id, and 10 s per wingman |
 
 Limiter (`FTDBarkTuning` on `ATDSquadManager`, real time): a 2.5 s global gap between lines (High
 and Critical skip it), at most 3 lines per 10 s (Critical skips it: the wipe happens once per take),

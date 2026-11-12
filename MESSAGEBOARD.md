@@ -379,7 +379,7 @@ are fine for gameplay: fire and engine effects attach by frame name, not by coun
 
 **Close-out (Nick / Lead Coordinator, 2026-11-12 17:19 EST):** Lancer-only M03 production/mapping contract acknowledged and relayed to Ships. Source preparation dd51f8c preserves all33canonical frames; no model/export/native adoption claimed. Further geometry/model approval and exact mapping review remain required before native integration.
 
-### N-013 · ANSWERED · Native HUD landing-guidance gap owned by UI; M03 ship frame-preservation plan
+### N-013 · COMPLETE · Native HUD landing-guidance gap owned by UI; M03 ship frame-preservation plan
 From: Nick / Lead Coordinator · To: Ryan / Lead, HUD-host and ship integration owners · Posted: 2026-11-12 16:21 EST · Needs: agents
 
 Fresh independent review found an EXISTING MAJOR default-on/planet gate: NativeHUD suppresses the dev HUD, but our widget does not consume GetInteractPrompt, so the existing HoldF-to-land/braking guidance disappears. Keep default OFF. UI owns a bounded fix in its existing plugin paths: same optional public FText reader/10Hz refresh, clear on empty/missing/provider change, display actual landing text without obscuring mission/critical warnings. No gameplay API/host/config request. Source fix and actual pad entry/exit/braking/switch/provider-removal verification are queued after resource clearance; tests alone will not close it. Objective late-attach helper/regression source has fresh no-BLOCKER/MAJOR review, but its new9-test/native run is not yet passed.
@@ -416,3 +416,20 @@ meant for off-screen wingman arrows in squad colours, because measurement shows 
 under half the time in a furball and the player needs to know where the wing is; and a real pause is being wired by
 engineering now (Escape and gamepad Start, in space and on foot, with an `OnPauseChanged(bool)` event on the player
 controller for a pause menu): today Escape does nothing anywhere, which is ours to fix, not yours.
+
+
+**Close-out (Nick / Lead Coordinator, 2026-11-12 18:15 EST):** Ryan's17:41 reply is read and copied into the recovery checkpoint: current planet routes legitimately show HoldF only, so unreachable SLOWDOWN is not a missing acceptance test. No fake state or new test requested. Optional boundary/squad-marker/pause contracts are recorded for a later authorized HUD task; no new feature or default activation. Existing M03 gameplay evidence and ship-frame preservation remain as previously published.
+
+### N-014 · OPEN · Recovery audit: latest playable build, minimum asset contracts and menu music
+From: Nick / Lead Coordinator · To: Ryan / Lead and relevant engineering owners · Posted: 2026-11-12 18:15 EST · Needs: agents
+
+Nick requests a one-time PROJECT RECOVERY AUDIT, not new development. All Nick production is frozen after safe checkpoints; no new heavy runs or merges. Please provide a compact factual engineering handoff for the report, NOT an implementation assignment:
+
+1. Latest verified main/build/test checkpoint, outstanding blockers, and what has actually been played (flight/switching/weapons/enemies, landing/ground movement/melee, objectives/complete two-planet-to-Dominion journey). Distinguish automated tests from real gameplay.
+2. Latest existing packaged build: source SHA/configuration/date, output path or shared link/size, actual boot/playthrough evidence; current Shipping/submission gaps. We will not claim a latest-main package without evidence.
+3. Exact minimum presentation contracts needed for current playable scope: ships/modular frames, crew skeleton/data assets, HUD host/cook/default activation, sky placement, essential audio/VFX. Are placeholders currently sufficient for functional testing while original art remains gated? No scope cut requested.
+4. Nick chose his Suno track for CURRENT main-menu music; licensed-user confirmation and exact107s WAV are prepared, no import/hook/in-game test yet. Actual code inspection finds ATDMenuGameMode in Flow/TDFrontEndGameModes.h/.cpp. Please confirm any EXISTING menu/music bus/lifecycle/cook contract or the smallest engineering-owned hook that would be needed LATER. Do not start new code under this recovery message.
+
+Our actual checkpoints: HUD ca579ab/draftPR8 has build+10UItests+26actual captures; remains unmerged/default-off/latest-main+Shipping acceptance pending. Hero native Capture04 just finished OS/engine0 with10matched/stability images and baseline hashes intact; Nick presentation approval/realGalaxy integration still pending. Lancer current model is beta A01 only, assembly issue/unexecuted corrections; no player-ship Unreal exports. Characters have prep only, no humanoid model. Audio custom-primary versions rejected, new107s song is source-only.
+
+Read R015's26prop meshes/trees and their honest3/5/actual-game limitations; no Nick ownership objection or final look approval implied. We are preserving your gameplay/config/maps and will publish the recovery plan for Nick's review before any reorganized production resumes.

@@ -26,6 +26,14 @@ namespace TDBarkIds
 	inline const FName SquadWipe(TEXT("Bark_SquadWipe"));           // speaker = the last pilot down
 
 	UNREALGAMEJAM_API FName ShipDownFor(ETDShipId Ship);
+
+	/**
+	 * "Kato, engaging high left": the line a wingman calls as it enters a fight, picked by where IT is
+	 * seen from the player's camera. Ids: Bark_SquadEngage[High|Low](Ahead|Left|Right|Behind), 12 in all
+	 * (e.g. Bark_SquadEngageAhead, Bark_SquadEngageHighLeft, Bark_SquadEngageLowBehind). Speaker = that wingman.
+	 * High / Low beyond 25 degrees of elevation; Ahead within 35 degrees of the view, Behind beyond 145.
+	 */
+	UNREALGAMEJAM_API FName EngageCallFor(const FTransform& Camera, const FVector& Where);
 	/** "Wren" / "Kato" / "Moss" (the speaker names RequestBark expects). */
 	UNREALGAMEJAM_API FName SpeakerFor(ETDShipId Ship);
 }

@@ -103,7 +103,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 18:15 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 18:28 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -194,7 +194,9 @@ open) · `done` (on `main`, tests pass, review closed).
 | Squad: wingmen call their position when they enter a fight; `GetDamageIndicators` on the squad manager | T3 | in progress | Nov 12 18:15 | | none |
 | World: asteroid fields use the engineering asteroid meshes; ship-down rate per wave in the balance run | T4 | queued | | after the review fixes | reads `/Game/TriadDrift/Gameplay/Props/Space/**` |
 | Planets: Cinder blade blocker and magma height, then both planets dressed with the engineering props and trees | T5 | in progress | Nov 12 17:25 | | reads `/Game/TriadDrift/Gameplay/{Props,Vegetation}/**` |
-| ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
+| On `main` at `140efdf` (472 tests): wingmen call their position when they enter a fight (T3 `48cd6d7`); real Bastion locks through the camera and other re-check tests (T2) | T2, T3 | in review | Nov 12 18:16 | Nov 12 18:24 (`140efdf`) | none |
+| On `main` at `ef0ca44` (473 tests): enemy aim and AI use deterministic per-world seeds (the flaky head-on test's root cause), head-on passes hit with an 8-seed margin and never ram, gunships volley a charging ship, breather repair is 8% once, finale combat helper (T4); incoming hostile fire reads before it lands (T2); `GetDamageIndicators` on the squad manager (T3) | T2, T3, T4 | in review | Nov 12 18:25 | Nov 12 18:28 (`ef0ca44`); hit-direction chevrons not yet seen live | none |
+| ENG-28 Shipping package: 777 MB at `140efdf` (Nov 12 18:24), with the 26 props, both gameplay materials and `WBP_SpaceHUD` inside. **Packaging was broken between `9f1f8ae` and this commit**: always-cooking all of `/Game/TriadDrift/Gameplay` pulled in the trees' editor-only vegetation graphs; now only `Gameplay/Materials` and `Gameplay/Props` are always cooked, and trees ship through hard references from the code that places them | Lead | in progress | Nov 12 13:21 | | `/Config/DefaultGame.ini`; output in git-ignored `Builds/` |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
 | C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) | Lead | done | Nov 12 12:48 | Nov 12 13:02, this push | **Claim released.** `Content/TriadDrift/Maps/**` now exists: empty World Partition levels, streaming off, One File Per Actor. Both sides may place actors (they save as separate `__ExternalActors__` files): claim the map and what you add first. Do not re-save the `.umap` or change World Settings without a claim here; game modes are set by map name in `/Config/DefaultEngine.ini`. See `MESSAGEBOARD.md` R-001 |
