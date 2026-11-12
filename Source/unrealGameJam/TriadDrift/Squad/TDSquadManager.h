@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Core/TDTypes.h"
-#define TD_OBJECTIVE_TEXT_OVERRIDE
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSwitchCut.h"
@@ -242,7 +241,7 @@ public:
 	/** The player's ship's landing prompt ("Hold F to land", "SLOW DOWN TO LAND - ..."); empty otherwise. */
 	virtual FText GetInteractPrompt() const override;
 	/** Nick's HUD objective line: the Text of the last OnObjectiveUpdated (empty before the first). */
-	virtual FText GetObjectiveText() const TD_OBJECTIVE_TEXT_OVERRIDE { return ObjectiveText; }
+	virtual FText GetObjectiveText() const override { return ObjectiveText; }
 
 	/** The actor tag that marks "the place to go now": Core's TDTags::ObjectiveMarker. */
 	static const FName ObjectiveMarkerTag;

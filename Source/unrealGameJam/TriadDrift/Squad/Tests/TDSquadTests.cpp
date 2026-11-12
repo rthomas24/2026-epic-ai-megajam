@@ -2087,5 +2087,23 @@ bool FTDSquadObjectiveText::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveTextLate, "TriadDrift.Squad.HUD.ObjectiveTextForALateSquad", TD_TEST_FLAGS)
+bool FTDSquadObjectiveTextLate::RunTest(const FString& Parameters)
+{
+	// Level travel: the squad manager is created after the line was broadcast; it shows it at once.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
+	Bus->BroadcastObjectiveUpdated(TEXT("Travel"), 1, FText::FromString(TEXT("Land on Cinder")));
+	W.Tick();
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	TestEqual(TEXT("current line straight away"), Squad->GetObjectiveText().ToString(), FString(TEXT("Land on Cinder")));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 

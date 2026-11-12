@@ -79,6 +79,8 @@ void ATDSquadManager::BeginPlay()
 	TDSquad::BindPowerUsed(this);
 	TDSquad::BindWaveEvents(this);
 	TDSquad::BindActorKilled(this);
+	// Arriving after the flow's last broadcast (level travel): start from its current line.
+	ObjectiveText = TDSquad::GetCurrentObjectiveText(this);
 }
 
 void ATDSquadManager::EndPlay(const EEndPlayReason::Type Reason)

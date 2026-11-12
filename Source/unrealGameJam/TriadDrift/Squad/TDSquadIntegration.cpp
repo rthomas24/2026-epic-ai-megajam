@@ -25,6 +25,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
 #include "EngineUtils.h"
@@ -557,6 +558,12 @@ namespace TDSquad
 		}
 		OutLocation = Rig->GetTrackedLocation();
 		return true;
+	}
+
+	FText GetCurrentObjectiveText(const UObject* WorldContext)
+	{
+		const UTDGameInstance* GI = UTDGameInstance::Get(WorldContext);
+		return GI ? GI->GetCurrentObjective().Text : FText::GetEmpty();
 	}
 
 	FText GetLandPrompt(const ATDShip* Ship)
