@@ -227,6 +227,11 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 	}
 
 	// Hand out control: wingmen first, then the player takes the starting ship. A new take is active.
+	if (ActiveShipId != StartingShip && GetShip(ActiveShipId) != nullptr)
+	{
+		LogSwitch(ActiveShipId, StartingShip, ETDSwitchCause::Retake);
+		LastSwitchCause = ETDSwitchCause::Retake;
+	}
 	ActiveShipId = StartingShip;
 	SetWingmenPassive(false);
 	for (FTDSquadSlot& Slot : Slots)
@@ -407,7 +412,7 @@ AActor* ATDSquadManager::GetFocusTarget() const
 
 bool ATDSquadManager::RequestSwitchTo(ETDShipId Ship)
 {
-	if (SwitchToInternal(Ship, false))
+	if (SwitchWithCause(Ship, false, ETDSwitchCause::Manual))
 	{
 		return true;
 	}
@@ -417,6 +422,7 @@ bool ATDSquadManager::RequestSwitchTo(ETDShipId Ship)
 
 bool ATDSquadManager::RequestSwitchNext()
 {
+	TGuardValue<ETDSwitchCause> Cause(CurrentSwitchCause, ETDSwitchCause::Manual);
 	if (CycleSwitch(+1))
 	{
 		return true;
@@ -427,6 +433,7 @@ bool ATDSquadManager::RequestSwitchNext()
 
 bool ATDSquadManager::RequestSwitchPrev()
 {
+	TGuardValue<ETDSwitchCause> Cause(CurrentSwitchCause, ETDSwitchCause::Manual);
 	if (CycleSwitch(-1))
 	{
 		return true;
@@ -459,6 +466,7 @@ void ATDSquadManager::RunPendingSwitch()
 	{
 		return;
 	}
+	TGuardValue<ETDSwitchCause> Cause(CurrentSwitchCause, ETDSwitchCause::Buffered);
 	if (Kind == 2)
 	{
 		SwitchToInternal(PendingSwitchShip, false);
@@ -487,6 +495,19 @@ bool ATDSquadManager::CycleSwitch(int32 Direction)
 		}
 	}
 	return false;
+}
+
+bool ATDSquadManager::SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCause Cause)
+{
+	TGuardValue<ETDSwitchCause> Guard(CurrentSwitchCause, Cause);
+	return SwitchToInternal(Ship, bForced);
+}
+
+void ATDSquadManager::LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const
+{
+	// Every change of the player's ship, with why (T2's wave-5 run: "Rift became Lancer, nothing in the log").
+	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch %s -> %s cause=%s"), *UEnum::GetDisplayValueAsText(From).ToString(),
+		*UEnum::GetDisplayValueAsText(To).ToString(), *UEnum::GetDisplayValueAsText(Cause).ToString());
 }
 
 bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
@@ -567,6 +588,8 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	{
 		PC->Possess(NewShip);
 	}
+	LogSwitch(OldId, Ship, CurrentSwitchCause);
+	LastSwitchCause = CurrentSwitchCause;
 	ActiveShipId = Ship;
 	TDSquad::SetPlayerControlled(NewShip, true);
 
@@ -969,7 +992,7 @@ void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 		ETDShipId Best = ETDShipId::Rift;
 		if (FindHealthiestLivingShip(Slot.ShipId, Best))
 		{
-			SwitchToInternal(Best, /*bForced*/ true);
+			SwitchWithCause(Best, /*bForced*/ true, ETDSwitchCause::AutoOnDeath);
 		}
 	}
 }
@@ -1016,7 +1039,7 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	// m4: no game flow took the wipe and the player sits in a downed ship: cut to the one that's back.
 	if (Slot.ShipId != ActiveShipId && !IsShipAlive(ActiveShipId))
 	{
-		SwitchToInternal(Slot.ShipId, /*bForced*/ true);
+		SwitchWithCause(Slot.ShipId, /*bForced*/ true, ETDSwitchCause::RespawnRescue);
 	}
 	if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(Ship))
 	{

@@ -2401,5 +2401,59 @@ bool FTDSquadMarkersHUD::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadNoSilentSwitch, "TriadDrift.Squad.Switch.NeverChangesWithoutACause", TD_TEST_FLAGS)
+bool FTDSquadNoSilentSwitch::RunTest(const FString& Parameters)
+{
+	// T2's scripted wave-5 run: the active ship changed with Rift alive and nothing in the log. Over a
+	// 60 s fight against real enemy ships with no player input, the active ship may only change
+	// because the player's ship died (or a rescue after a wipe), never silently; invulnerable, never.
+	for (const bool bInvulnerable : { true, false })
+	{
+		const FString Case = bInvulnerable ? TEXT(" (squad invulnerable)") : TEXT(" (real damage)");
+		FSquadFixture F;
+		if (bInvulnerable)
+		{
+			for (const ETDShipId Id : UTDShipLibrary::AllShips())
+			{
+				F.Health(Id)->SetInvulnerable(true);
+			}
+		}
+		for (int32 i = 0; i < 6; ++i)
+		{
+			TDPowerTest::SpawnEnemyShip(F.W, i % 2 ? TDEnemyIds::ShardFighter : TDEnemyIds::HookInterceptor,
+				FVector(8000.f + 1500.f * i, (i - 3) * 2500.f, 600.f * (i % 3)));
+		}
+		ETDShipId Active = F.Squad->GetActiveShipId();
+		int32 Changes = 0, Unexplained = 0;
+		for (int32 i = 0; i < 60 * 30; ++i)
+		{
+			F.W.Tick(1.f / 30.f);
+			const ETDShipId Now = F.Squad->GetActiveShipId();
+			if (Now != Active)
+			{
+				++Changes;
+				const ETDSwitchCause C = F.Squad->GetLastSwitchCause();
+				const bool bExplained = (C == ETDSwitchCause::AutoOnDeath || C == ETDSwitchCause::RespawnRescue)
+					&& !F.Squad->IsShipAlive(Active);
+				if (!bExplained)
+				{
+					++Unexplained;
+					AddError(FString::Printf(TEXT("switch %s -> %s at %.1f s, cause %s, old ship alive %d%s"),
+						*UEnum::GetValueAsString(Active), *UEnum::GetValueAsString(Now), i / 30.f,
+						*UEnum::GetValueAsString(C), F.Squad->IsShipAlive(Active), *Case));
+				}
+				Active = Now;
+			}
+		}
+		AddInfo(FString::Printf(TEXT("%d active-ship changes in 60 s%s"), Changes, *Case));
+		TestEqual(TEXT("no change without a death") + Case, Unexplained, 0);
+		if (bInvulnerable)
+		{
+			TestEqual(TEXT("invulnerable and no input: the player stays in Rift") + Case, Changes, 0);
+		}
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
