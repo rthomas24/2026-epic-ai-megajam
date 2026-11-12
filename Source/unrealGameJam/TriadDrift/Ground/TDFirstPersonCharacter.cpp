@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -238,6 +239,14 @@ TArray<AActor*> ATDFirstPersonCharacter::GetObjectiveMarkers() const
 		Objectives->GetActiveWaypoints(Out);
 	}
 	return Out;
+}
+
+void ATDFirstPersonCharacter::OnPausePressed()
+{
+	if (ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(GetController()))
+	{
+		PC->OnPauseInput.Broadcast(); // the same pause the ships use (T1's controller owns what it opens)
+	}
 }
 
 FText ATDFirstPersonCharacter::GetObjectiveText() const
@@ -840,6 +849,8 @@ void ATDFirstPersonCharacter::BuildInput()
 	IA_Attack = MakeAction(this, TEXT("IA_Ground_Attack"), V::Boolean);
 	IA_Block = MakeAction(this, TEXT("IA_Ground_Block"), V::Boolean);
 	IA_Interact = MakeAction(this, TEXT("IA_Ground_Interact"), V::Boolean);
+	IA_Pause = MakeAction(this, TEXT("IA_Ground_Pause"), V::Boolean);
+	IA_Pause->bTriggerWhenPaused = true;
 	IA_Ping = MakeAction(this, TEXT("IA_Ground_Ping"), V::Boolean);
 
 	UInputMappingContext* C = NewObject<UInputMappingContext>(this, TEXT("IMC_Ground"));
@@ -878,6 +889,8 @@ void ATDFirstPersonCharacter::BuildInput()
 	C->MapKey(IA_Block, EKeys::Gamepad_LeftTrigger);
 	C->MapKey(IA_Interact, EKeys::E);
 	C->MapKey(IA_Interact, EKeys::Gamepad_FaceButton_Left);
+	C->MapKey(IA_Pause, EKeys::Escape);
+	C->MapKey(IA_Pause, EKeys::Gamepad_Special_Right);
 	C->MapKey(IA_Ping, EKeys::Tab);
 	C->MapKey(IA_Ping, EKeys::Gamepad_DPad_Up);
 }
@@ -906,6 +919,7 @@ void ATDFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIC->BindAction(IA_Block, ETriggerEvent::Completed, this, &ATDFirstPersonCharacter::OnBlockReleased);
 	EIC->BindAction(IA_Interact, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnInteractPressed);
 	EIC->BindAction(IA_Interact, ETriggerEvent::Completed, this, &ATDFirstPersonCharacter::OnInteractReleased);
+	EIC->BindAction(IA_Pause, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnPausePressed);
 	EIC->BindAction(IA_Ping, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnPingPressed);
 }
 

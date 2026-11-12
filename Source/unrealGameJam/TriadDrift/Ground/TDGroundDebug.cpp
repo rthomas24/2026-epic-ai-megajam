@@ -5,6 +5,8 @@
 //   TD.Look <YawDegrees> [PitchDegrees] set the first player's view
 //   TD.Ground.Teleport <X> <Y> <Z>      move the player pawn
 //   TD.Ground.Spawn <Grunt|Trooper|Heavy|Drone|Warden> [Distance]   spawn crew in front of the player
+//   TD.Ground.Where                    log the player position, the objective line and the nearest live enemy
+//   TD.Ground.FaceNearest              aim at the nearest live enemy (agent playtests over MCP)
 
 #include "CoreMinimal.h"
 
@@ -12,6 +14,11 @@
 
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "Engine/Engine.h"
+#include "EngineUtils.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
@@ -99,6 +106,54 @@ namespace TDGroundDebug
 		}
 	}
 
+	static APawn* NearestEnemy(UWorld* World, const FVector& From, float& OutDist)
+	{
+		APawn* Best = nullptr;
+		OutDist = 1e12f;
+		for (TActorIterator<APawn> It(World); It; ++It)
+		{
+			const UTDHealthComponent* H = UTDStatics::GetHealth(*It);
+			if (!H || !H->IsAlive() || UTDStatics::GetTeam(*It) != ETDTeam::Enemy)
+			{
+				continue;
+			}
+			const float D = (float)FVector::Dist(It->GetActorLocation(), From);
+			if (D < OutDist) { OutDist = D; Best = *It; }
+		}
+		return Best;
+	}
+
+	static void Where(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = LocalPC(World);
+		APawn* P = PC ? PC->GetPawn() : nullptr;
+		if (!P) { return; }
+		float D = 0.f;
+		APawn* E = NearestEnemy(World, P->GetActorLocation(), D);
+		const UTDGameInstance* GI = UTDGameInstance::Get(World);
+		const FString Msg = FString::Printf(TEXT("TD.Where pos=(%.0f %.0f %.0f) yaw=%.0f obj='%s' nearest=%s at (%s) %.0fcm"),
+			P->GetActorLocation().X, P->GetActorLocation().Y, P->GetActorLocation().Z, PC->GetControlRotation().Yaw,
+			GI ? *GI->GetCurrentObjectiveText().ToString() : TEXT(""), *GetNameSafe(E), E ? *E->GetActorLocation().ToCompactString() : TEXT("-"), D);
+		UE_LOG(LogTriadDrift, Display, TEXT("%s"), *Msg);
+		if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Green, Msg); }
+	}
+
+	static void FaceNearest(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = LocalPC(World);
+		APawn* P = PC ? PC->GetPawn() : nullptr;
+		float D = 0.f;
+		APawn* E = P ? NearestEnemy(World, P->GetActorLocation(), D) : nullptr;
+		if (E)
+		{
+			PC->SetControlRotation((E->GetActorLocation() - P->GetPawnViewLocation()).Rotation());
+		}
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdWhere(TEXT("TD.Ground.Where"), TEXT("Log the player position, objective line and nearest enemy."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Where));
+	static FAutoConsoleCommandWithWorldAndArgs CmdFace(TEXT("TD.Ground.FaceNearest"), TEXT("Aim at the nearest live enemy."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&FaceNearest));
 	static FAutoConsoleCommandWithWorldAndArgs CmdKey(TEXT("TD.Key"), TEXT("TD.Key <KeyName> [Seconds] [Value]: press a real key on the local player."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Key));
 	static FAutoConsoleCommandWithWorldAndArgs CmdLook(TEXT("TD.Look"), TEXT("TD.Look <Yaw> [Pitch]: set the player's view."),

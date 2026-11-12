@@ -143,7 +143,13 @@ void UTDPowerComponent::PlayShipCue(int32 Which)
 		: (Which == 2 ? ShipVisuals->PowerEnd : (bSecond ? ShipVisuals->Power2Active : ShipVisuals->PowerActive));
 	const FName Moment = Which == 0 ? FName(TEXT("Ship.PowerWindup")) : (Which == 2 ? FName(TEXT("Ship.PowerEnd"))
 		: (bSecond ? FName(TEXT("Ship.Power2Active")) : FName(TEXT("Ship.PowerActive"))));
-	FTDPowerPresentation::RequestCueAttached(Moment, Cue, Owner->GetRootComponent());
+	FTDPowerPresentation::RequestCueAttached(Moment, Cue, Which == 1 ? GetActiveCueRoot() : Owner->GetRootComponent());
+}
+
+USceneComponent* UTDPowerComponent::GetActiveCueRoot() const
+{
+	const AActor* Owner = GetOwner();
+	return Owner ? Owner->GetRootComponent() : nullptr;
 }
 
 bool UTDPowerComponent::HasActiveArt() const

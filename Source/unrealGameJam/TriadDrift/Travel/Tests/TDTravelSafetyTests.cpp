@@ -3,6 +3,7 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.Travel.Safety
 
 #include "Misc/AutomationTest.h"
+#include "GameFramework/WorldSettings.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -615,6 +616,62 @@ bool FTDTravelSwitchLatches::RunTest(const FString& Parameters)
 	FTDTestWorld::InjectKey(PC, EKeys::H, false);
 	W.Tick();
 	TestEqual(TEXT("release: still idle"), A->GetHyperdrive()->GetState(), ETDHyperdriveState::Idle);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelJumpSlowMo, "TriadDrift.Travel.Safety.JumpUnderSlowMotion", TD_TEST_FLAGS)
+bool FTDTravelJumpSlowMo::RunTest(const FString& Parameters)
+{
+	// Review minor 9: a jump while the director's slow motion runs spools, jumps and drops out on game time.
+	FTDTestWorld W;
+	W.GetWorld()->GetWorldSettings()->SetTimeDilation(0.25f);
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	W.Tick();
+	UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
+	TestTrue(TEXT("spool starts"), Hyper->RequestSpoolFromPilot());
+	const float Spool = Hyper->Tuning.SpoolSeconds;
+	W.Advance(Spool * 0.5f / 0.25f);
+	TestEqual(TEXT("half the spool in game time: still spooling"), Hyper->GetState(), ETDHyperdriveState::Spooling);
+	W.Advance(Spool * 0.7f / 0.25f);
+	TestEqual(TEXT("spool finished on game time: jumping"), Hyper->GetState(), ETDHyperdriveState::Jumping);
+	const FVector Before = Ship->GetActorLocation();
+	W.Advance(0.6f / 0.25f); // past MinJumpSeconds in game time
+	const float Moved = FVector::Dist(Before, Ship->GetActorLocation());
+	TestTrue(*FString::Printf(TEXT("jump speed scales with game time (%.0f cm in 0.6 game s)"), Moved), Moved > Hyper->Tuning.JumpSpeed * 0.6f * 0.5f && Moved < Hyper->Tuning.JumpSpeed * 0.6f * 1.5f);
+	TestTrue(TEXT("drop out on request"), Hyper->RequestDropOut());
+	W.Advance(3.f / 0.25f);
+	TestEqual(TEXT("idle again"), Hyper->GetState(), ETDHyperdriveState::Idle);
+	TestTrue(*FString::Printf(TEXT("back to flight speed (%.0f)"), Ship->GetVelocity().Size()), Ship->GetVelocity().Size() < Ship->GetShipMovement()->GetFlightTuning().BoostSpeed * 1.05f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelStandingReasons, "TriadDrift.Travel.Safety.StandingHyperdriveReasonsOnlyAfterAPress", TD_TEST_FLAGS)
+bool FTDTravelStandingReasons::RunTest(const FString& Parameters)
+{
+	// Lead (Nov 12): "NO HYPERDRIVE IN ATMOSPHERE" sat on the HUD for a whole planet visit. Standing reasons show for
+	// 2 s after a refused press; useful-right-now reasons (a lock) stay up.
+	FTDTestWorld W;
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	W.Tick();
+	UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
+	Ship->GetShipMovement()->SetAtmosphereMode(true);
+	W.Tick();
+	TestEqual(TEXT("in atmosphere: blocked"), Hyper->GetBlockReason(), ETDHyperdriveBlock::InAtmosphere);
+	TestTrue(TEXT("no press: no standing text on the HUD"), Hyper->GetBlockReasonText().IsEmpty());
+	TestFalse(TEXT("press refused"), Hyper->RequestSpoolFromPilot());
+	TestEqual(TEXT("after the press: the reason shows"), Hyper->GetBlockReasonText().ToString(), FString(TEXT("NO HYPERDRIVE IN ATMOSPHERE")));
+	W.Advance(1.5f);
+	TestFalse(TEXT("1.5 s later: still shown"), Hyper->GetBlockReasonText().IsEmpty());
+	W.Advance(1.f);
+	TestTrue(TEXT("2.5 s later: gone"), Hyper->GetBlockReasonText().IsEmpty());
+
+	// A lock is useful right now: always shown, no press needed.
+	Ship->GetShipMovement()->SetAtmosphereMode(false);
+	UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(W.GetWorld());
+	const FText Lock = FText::FromString(TEXT("HYPERDRIVE LOCKED - ENEMIES IN RANGE"));
+	Travel->AddHyperdriveLock(TEXT("Wave"), Lock);
+	W.Tick();
+	TestTrue(TEXT("lock text without a press"), Hyper->GetBlockReasonText().EqualTo(Lock));
 	return true;
 }
 

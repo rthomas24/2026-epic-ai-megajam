@@ -126,6 +126,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<class ATDPlanetCourse> Course;
 	TWeakObjectPtr<ATDShip> PlayerShip;
 	bool bOnFoot = false;
+	bool bPilotStowed = false;
 	bool bStarted = false;
 	FDelegateHandle RestartHandle;
 };

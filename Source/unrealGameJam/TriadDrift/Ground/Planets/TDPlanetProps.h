@@ -38,6 +38,9 @@ public:
 	/** Back to the starting state (called on a retake while the objective is incomplete). */
 	virtual void ResetProp() {}
 
+	/** The objective was done before this level loaded: show the done state (crystals gone, ...). */
+	virtual void ApplyCompleted() {}
+
 	bool IsLinkedStepCurrent() const;
 
 protected:
@@ -47,7 +50,9 @@ protected:
 
 private:
 	void HandleGroundReset();
+	void HandleCompletedOnLoad();
 	FDelegateHandle ResetHandle;
+	FDelegateHandle CompletedHandle;
 };
 
 // ================================================================================================
@@ -259,6 +264,7 @@ public:
 
 	bool IsShattered() const { return bShattered; }
 	virtual void ResetProp() override;
+	virtual void ApplyCompleted() override;
 
 protected:
 	virtual void BeginPlay() override;

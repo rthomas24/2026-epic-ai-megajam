@@ -14,6 +14,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDCombatRegistry.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
@@ -288,6 +289,16 @@ bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 	FirstPerson->SetActorHiddenInGame(false);
 	FirstPerson->SetActorEnableCollision(true);
 	FirstPerson->SetActorTickEnabled(true);
+	if (bPilotStowed)
+	{
+		// Back from the ship: hittable and targetable again.
+		bPilotStowed = false;
+		FirstPerson->GetHealth()->SetInvulnerable(false);
+		if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+		{
+			Registry->Register(FirstPerson);
+		}
+	}
 	FirstPerson->RespawnAt(Exit);
 
 	Ship->SetPlayerControlled(false);
@@ -345,6 +356,14 @@ bool ATDPlanetDirector::Reboard()
 		FirstPerson->SetActorHiddenInGame(true);
 		FirstPerson->SetActorEnableCollision(false);
 		FirstPerson->SetActorTickEnabled(false);
+		// Stowed in the ship: nothing on the ground may hurt or target the pilot (distance-based melee and
+		// the Warden's slam ignore collision), or a CUT would fire in flight.
+		FirstPerson->GetHealth()->SetInvulnerable(true);
+		if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+		{
+			Registry->Unregister(FirstPerson);
+		}
+		bPilotStowed = true;
 	}
 	if (BoardPoint)
 	{

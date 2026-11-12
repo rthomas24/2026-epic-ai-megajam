@@ -118,7 +118,7 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> StarBackdrop;
 
-	/** Unlit glow material for the stars, referenced from the CDO so a packaged build cooks it. */
+	/** Unlit glow material for the stars (Core's placeholder glow: instanced-mesh usage, always cooked). */
 	UPROPERTY()
 	TObjectPtr<UMaterialInterface> StarGlowMaterial;
 

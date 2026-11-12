@@ -338,6 +338,27 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		}
 	}
 
+	// Terrain ahead (slope, cliff, tall rock): climb along it before contact. Not under a speed override (the landing
+	// assist and atmosphere entry fly their own path down to the ground).
+	if (C.bAtmosphere && !C.bSpeedOverride && C.TerrainAheadDistance >= 0.f && C.TerrainAheadRange > 0.f && T.TerrainAheadTurnRate > 0.f)
+	{
+		const FVector Nose = S.Rotation.GetForwardVector();
+		const FVector N = C.TerrainAheadNormal.GetSafeNormal(UE_SMALL_NUMBER, FVector::UpVector);
+		if (FVector::DotProduct(Nose, N) < 0.f)
+		{
+			const float Near01 = FMath::Clamp(1.f - C.TerrainAheadDistance / C.TerrainAheadRange, 0.f, 1.f);
+			// Along the surface, biased upward so a cliff face is climbed, not skimmed sideways.
+			FVector Want = FVector::VectorPlaneProject(Nose, N).GetSafeNormal() + FVector::UpVector * 0.5f + N * 0.25f;
+			Want = Want.GetSafeNormal();
+			if (!Want.IsNearlyZero())
+			{
+				const FQuat Target = FQuat::FindBetweenNormals(Nose, Want) * S.Rotation;
+				S.Rotation = FMath::QInterpConstantTo(S.Rotation, Target, Dt, FMath::DegreesToRadians(T.TerrainAheadTurnRate * Near01)).GetNormalized();
+				S.Velocity.Z = FMath::Max(S.Velocity.Z, 0.f); // never keep sinking toward terrain ahead
+			}
+		}
+	}
+
 	// Boundary push-back on top of whatever the pilot is doing.
 	if (BoundaryStrength > 0.f)
 	{

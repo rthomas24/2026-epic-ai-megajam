@@ -176,6 +176,14 @@ By hand in the sandbox:
 | `PlayBounds.AppliedToEveryShip` | existing and later-spawned ships pick up `SetPlayBounds` |
 | `Landing.PromptRuleAndAssistRange` | 60% of the atmosphere cap; "Hold F to land" at 300 m when fast (the assist can start) and at 100 m when slow; nothing at 500 m or for a ship the player isn't flying |
 | `Landing.HoldFFromArrivalLandsInOneMotion` | from the rig's descent start, hands-off until the prompt, then a real held F: the assist starts, the landing sequence begins in under 8 s, never below the end speed, never touches the ground, lands on the player pad |
+| `Landing.HoldFLandsAtAnyFrameRateAndInSlowMotion` | the descent-start arrival with a held F lands without touching the ground at 30 / 60 / 120 fps and at 0.25 time dilation |
+| `Landing.ReboardLiftsAWingmanStillComingDown` | re-board while a far wingman is still landing: it goes straight back to flying, unparked, vulnerable, pad free |
+| `Planet.PlaceholderGroundCanBeSwitchedOff` | `SpawnForPlanet(..., false)` and `SetPlaceholderGround` switch the slab and its collision |
+| `Safety.HeldFNeverCarriesThroughAHandOver` | F pressed mid-landing and held through hand-over, re-board and take-off: no take-off at touchdown, no self-landing after |
+| `Safety.VoidedOrTimedOutTravelHandsBackAndRetries` | a superseded load and a timeout each hand the entering ship back and allow a new request |
+| `Safety.SwitchLeavesNoLatchedInputOrHeldHyperdrive` | the ship the player leaves gets neutral input; a held H ends the old spool and never spools the new ship |
+| `Safety.JumpUnderSlowMotion` | spool, jump distance and drop-out follow game time at 0.25 dilation |
+| `Safety.LockReasonRefusedEventOwnedLocks` | lock reasons, the refused event, locks holding through a retake, a destroyed owner's lock gone, a new level unlocked |
 | `Landing.PadIsTheObjectiveUntilTouchdown` | rig pad tagged while flying in; survives a switch; off outside the atmosphere, on death, at touchdown, after take-off, on destroy; back after a retake and on a new visit |
 | `Landing.AssistStopsOnReleaseRetakeAndBoost` | releasing F, a retake and death each end the assist and clear its override |
 | `Landing.PromptSequenceWingmenTakeOff` | prompt range and speed, the full sequence and its states, pad reservation, a wingman on the side pad, input ignored while landed, take-off with the wingman |

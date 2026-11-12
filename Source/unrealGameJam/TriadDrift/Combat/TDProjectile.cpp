@@ -113,11 +113,6 @@ ATDProjectile::ATDProjectile()
 	{
 		PlaceholderHead->SetStaticMesh(SphereMesh.Object);
 	}
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> GlowFinder(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
-	if (GlowFinder.Succeeded())
-	{
-		GlowMaterial = GlowFinder.Object;
-	}
 
 	// The actor stays visible (so a finishing tracer ribbon isn't cut off); the meshes are what hide.
 	PlaceholderMesh->SetVisibility(false);
@@ -224,6 +219,10 @@ void ATDProjectile::UpdatePlaceholderLook()
 		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
 		StreakLook = Look;
 		AppliedGrowth = 1.f;
+		if (!GlowMaterial)
+		{
+			GlowMaterial = UTDStatics::GetPlaceholderGlowMaterial(); // project M_TD_PlaceholderGlow, always cooked
+		}
 		UMaterialInterface* Base = GlowMaterial ? GlowMaterial.Get() : DefaultMaterial.Get();
 		const FLinearColor Final = GlowMaterial ? Color * FTDCombatPlaceholders::StreakGlow : Color;
 		if (!PlaceholderMID && Base)

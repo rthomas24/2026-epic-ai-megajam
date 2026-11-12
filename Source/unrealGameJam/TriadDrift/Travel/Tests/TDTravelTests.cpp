@@ -1,6 +1,8 @@
 // Automation tests for travel (ENG-15 hyperdrive, ENG-20 atmosphere + landing). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Travel
 
 #include "Misc/AutomationTest.h"
+#include "Components/BoxComponent.h"
+#include "GameFramework/WorldSettings.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -874,6 +876,91 @@ bool FTDTravelRigNoPlaceholder::RunTest(const FString& Parameters)
 	Off->SetPlaceholderGround(false);
 	W.Tick();
 	TestTrue(TEXT("switched off after BeginPlay too"), Probe->GetAltitudeMeters() < 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAssistRates, "TriadDrift.Travel.Landing.HoldFLandsAtAnyFrameRateAndInSlowMotion", TD_TEST_FLAGS)
+bool FTDTravelAssistRates::RunTest(const FString& Parameters)
+{
+	// Review minor 9: the arrival, ground floor and approach assist at 30 / 60 / 120 fps and under slow motion
+	// (a director money shot can be running while the player lands).
+	struct FCase { float Fps; float Dilation; };
+	const FCase Cases[] = { { 30.f, 1.f }, { 60.f, 1.f }, { 120.f, 1.f }, { 60.f, 0.25f } };
+	for (const FCase& C : Cases)
+	{
+		const FString Tag = FString::Printf(TEXT("%.0f fps x%.2f: "), C.Fps, C.Dilation);
+		FTDTestWorld W;
+		W.GetWorld()->GetWorldSettings()->SetTimeDilation(C.Dilation);
+		ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+		if (!TestNotNull(*(Tag + TEXT("rig")), Rig) || !Rig->GetPlayerPad()) { return false; }
+		const FTransform Start = Rig->GetDescentStart();
+		ATDShip* Ship = TDTravelTest::SpawnShip(W, Start.GetLocation(), Start.Rotator());
+		ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+		if (!TestNotNull(*(Tag + TEXT("controller")), PC)) { return false; }
+		Ship->SetPlayerControlled(true);
+		const float Dt = 1.f / C.Fps;
+		W.Tick(Dt);
+		UTDLandingComponent* Land = Ship->GetLanding();
+		ATDLandingPad* Pad = Rig->GetPlayerPad();
+		const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
+		const float GroundZ = Pad->GetActorLocation().Z - 200.f;
+		float MinGap = TNumericLimits<float>::Max();
+		const int32 MaxFrames = FMath::CeilToInt(40.f / (Dt * C.Dilation)); // 40 s of game time
+		int32 i = 0;
+		for (; i < MaxFrames && Land->GetLandPrompt().IsEmpty(); ++i)
+		{
+			W.Tick(Dt);
+			MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		}
+		TestFalse(*(Tag + TEXT("prompt appears")), Land->GetLandPrompt().IsEmpty());
+		FTDTestWorld::InjectKey(PC, EKeys::F, true);
+		for (; i < MaxFrames && !Land->IsLanded(); ++i)
+		{
+			W.Tick(Dt);
+			MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		}
+		FTDTestWorld::InjectKey(PC, EKeys::F, false);
+		W.Tick(Dt);
+		TestTrue(*(Tag + TEXT("landed on the player pad")), Land->IsLanded() && Land->GetPad() == Pad);
+		TestTrue(*(Tag + FString::Printf(TEXT("never touched the ground (min gap %.0f cm)"), MinGap)), MinGap > 0.f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAlignOverProps, "TriadDrift.Travel.Landing.AligningArcsOverATallProp", TD_TEST_FLAGS)
+bool FTDTravelAlignOverProps::RunTest(const FString& Parameters)
+{
+	// Review (Nov 12): the aligning move is direct (no flight model), so a tower between the ship and the pad was
+	// flown through. Land from 100 m out, low, with a 40 m pillar in the way: the ship never overlaps it.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform PadXf = Rig->GetPlayerPad()->GetActorTransform();
+	AActor* Pillar = W.Spawn<AActor>(PadXf.TransformPosition(FVector(-5000.f, 0.f, 2000.f)));
+	UBoxComponent* Box = NewObject<UBoxComponent>(Pillar, TEXT("Box"));
+	Box->SetBoxExtent(FVector(600.f, 600.f, 2000.f)); // 40 m tall, 12 m wide
+	Box->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Box->SetCollisionObjectType(ECC_WorldStatic);
+	Box->SetCollisionResponseToAllChannels(ECR_Block);
+	Pillar->SetRootComponent(Box);
+	Box->RegisterComponent();
+	Pillar->SetActorLocation(PadXf.TransformPosition(FVector(-5000.f, 0.f, 2000.f)));
+
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-10000.f, 0.f, 1500.f)));
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("landing starts 100 m out"), Ship->GetLanding()->RequestLand());
+	const FBox PillarBox = Box->Bounds.GetBox();
+	const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
+	float MinDist = TNumericLimits<float>::Max();
+	for (int32 i = 0; i < 60 * 12 && !Ship->GetLanding()->IsLanded(); ++i)
+	{
+		W.Tick();
+		MinDist = FMath::Min(MinDist, FMath::Sqrt(PillarBox.ComputeSquaredDistanceToPoint(Ship->GetActorLocation())));
+	}
+	TestTrue(TEXT("landed"), Ship->GetLanding()->IsLanded());
+	TestTrue(*FString::Printf(TEXT("never inside the pillar (closest %.0f cm, hull radius %.0f)"), MinDist, Radius), MinDist > Radius);
 	return true;
 }
 

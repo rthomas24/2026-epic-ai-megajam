@@ -156,6 +156,11 @@ USceneComponent* FTDPowerPresentation::AddRingLattice(AActor* Owner, USceneCompo
 	// Ring planes: horizontal, then the two vertical great circles.
 	const FQuat Planes[3] = { FQuat::Identity, FQuat(FVector::ForwardVector, HALF_PI), FQuat(FVector::RightVector, HALF_PI) };
 	const float SegmentLength = 2.f * PI * Radius / Segments * 1.05f;
+	// One instanced mesh and one material instance for the whole lattice (was 72 components + 72 materials in one
+	// frame: second Powers review). Core's placeholder glow material supports instancing.
+	UInstancedStaticMeshComponent* Segs = TDPresNewComponent<UInstancedStaticMeshComponent>(Owner, Holder);
+	Segs->ComponentTags.Remove(PlaceholderTag); // the holder is the placeholder; segments are its parts
+	Segs->SetStaticMesh(TDPresShapeMesh(EShape::Cube));
 	for (int32 R = 0; R < FMath::Clamp(Rings, 1, 3); ++R)
 	{
 		for (int32 i = 0; i < Segments; ++i)
@@ -164,13 +169,10 @@ USceneComponent* FTDPowerPresentation::AddRingLattice(AActor* Owner, USceneCompo
 			const FVector Local(FMath::Cos(A) * Radius, FMath::Sin(A) * Radius, 0.f);
 			const FVector Tangent(-FMath::Sin(A), FMath::Cos(A), 0.f);
 			const FQuat Rot = Planes[R] * FRotationMatrix::MakeFromX(Tangent).ToQuat();
-			UStaticMeshComponent* Seg = TDPresNewComponent<UStaticMeshComponent>(Owner, Holder);
-			Seg->ComponentTags.Remove(PlaceholderTag); // the holder is the placeholder; segments are its parts
-			Seg->SetStaticMesh(TDPresShapeMesh(EShape::Cube));
-			Seg->SetRelativeTransform(FTransform(Rot, Planes[R].RotateVector(Local), FVector(SegmentLength / 100.f, Thickness / 100.f, Thickness / 100.f)));
-			UTDStatics::TintPlaceholder(Seg, Color, EmissiveBoost);
+			Segs->AddInstance(FTransform(Rot, Planes[R].RotateVector(Local), FVector(SegmentLength / 100.f, Thickness / 100.f, Thickness / 100.f)));
 		}
 	}
+	UTDStatics::TintPlaceholder(Segs, Color, EmissiveBoost);
 	return Holder;
 }
 

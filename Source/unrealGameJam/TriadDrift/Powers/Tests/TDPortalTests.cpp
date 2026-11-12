@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). ENG-09 portal blaster + Blink. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Powers
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -64,6 +65,42 @@ bool FTDPortalNoTunnel::RunTest(const FString& Parameters)
 		W.Advance(0.2f, PowerFrameStep());
 		TestEqual(TEXT("ship behind the portal untouched") + Fps, Hull(Behind), 100.f);
 		TestTrue(TEXT("the shot transited") + Fps, PortalTestTotalTransits(Power) >= 1);
+	}
+	return true;
+}
+
+/** Review minor 4: a planet's overlap-only atmosphere shell never refuses or catches a portal. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalAtmosphere, "TriadDrift.Powers.Portal.AtmosphereShellIsNotABlocker", TD_TEST_FLAGS)
+bool FTDPortalAtmosphere::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	// Deferred, as TDGalaxyLayout spawns planets: configured before BeginPlay registers its obstacle.
+	ATDPlanetAtmosphere* Planet = W.GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(ATDPlanetAtmosphere::StaticClass(), FTransform::Identity,
+		nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	Planet->Configure(ETDDestination::Verdance, NAME_None, 30000.f, 66000.f, FLinearColor::Green);
+	Planet->FinishSpawning(FTransform::Identity);
+	W.Tick(PowerFrameStep());
+
+	// Inside the atmosphere, facing away from the planet: both portals open.
+	{
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector(45000.f, 0.f, 0.f), FVector(50.f), 100.f, 100.f);
+		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);
+		Power->HandleInputPressed();
+		Rift->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+		Power->HandleInputPressed();
+		W.Tick(PowerFrameStep());
+		TestEqual(TEXT("inside the atmosphere: both portals open"), Power->GetPortals().Num(), 2);
+	}
+	// Outside, aiming at the planet from 9000 cm beyond the shell: the portal goes past the invisible shell.
+	{
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector(75000.f, 0.f, 0.f), FVector(50.f), 100.f, 100.f);
+		Rift->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);
+		Power->HandleInputPressed();
+		W.Tick(PowerFrameStep());
+		const ATDPortal* A = Power->GetPortals().Num() > 0 ? Power->GetPortals()[0].Get() : nullptr;
+		TestTrue(TEXT("portal opened"), A != nullptr);
+		TestTrue(TEXT("not stuck on the atmosphere shell (66 000 cm)"), A && FVector::Dist(A->GetActorLocation(), FVector::ZeroVector) < 64000.f);
 	}
 	return true;
 }

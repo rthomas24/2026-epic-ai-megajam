@@ -59,8 +59,8 @@ struct UNREALGAMEJAM_API FTDPowerPresentation
 
 	/**
 	 * A wire-like sphere: Rings great circles (1 = horizontal ring, 3 = XY/XZ/YZ) of thin cube segments under one
-	 * holder component (returned; rotate or destroy it as a unit). Plain static meshes, not instanced: the engine's
-	 * glow material isn't flagged for instancing and an ISM falls back to the grey default material (seen in play).
+	 * holder component (returned; rotate or destroy it as a unit). One instanced mesh with one material instance:
+	 * Core's M_TD_PlaceholderGlow supports instancing (the old engine glow material fell back to grey on an ISM).
 	 * Segments per ring are capped at 24.
 	 */
 	static USceneComponent* AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,

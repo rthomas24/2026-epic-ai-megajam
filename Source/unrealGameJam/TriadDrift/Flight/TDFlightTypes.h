@@ -158,6 +158,25 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
 	float GroundPullUpRate = 120.f;
 
+	/**
+	 * Terrain ahead (rising slope, cliff, tall rock): in atmosphere the movement component sweeps this many seconds
+	 * of flight ahead; static ground found there turns the nose up along the surface before contact. 0 = off.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
+	float GroundLookAheadSeconds = 1.5f;
+
+	/** How fast the nose climbs away from terrain ahead (deg/s at contact, scaled by closeness). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
+	float TerrainAheadTurnRate = 180.f;
+
+	/**
+	 * Pinned against something (holding into a wall, a planet shell, the Dominion hull): the nose swings toward the
+	 * surface at this rate (deg/s) and the ship keeps at least MinSpeed along it, so it slides off instead of
+	 * sitting at 0 m/s. Exactly head-on, it pulls up (the ship's own up, projected on the surface).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
+	float PinnedTurnRate = 120.f;
+
 	// ---- Collision -----------------------------------------------------------------------------
 
 	/** Impact "head-on-ness" (0 = parallel graze, 1 = straight into the surface) above which a hit counts as head-on. */

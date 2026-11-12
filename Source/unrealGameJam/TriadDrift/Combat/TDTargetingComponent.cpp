@@ -367,7 +367,9 @@ void UTDTargetingComponent::PruneLocks(float DeltaTime)
 		bool bDrop = !IsValidTarget(A) || (Owner && FVector::DistSquared(A->GetActorLocation(), Owner->GetActorLocation()) > FMath::Square(Range));
 		if (!bDrop)
 		{
-			LockAwaySeconds[Index] = GetAngleFromView(A->GetActorLocation()) > CycleConeDeg ? LockAwaySeconds[Index] + DeltaTime : 0.f;
+			// "Out of view" = outside the lock cone (plus a small margin), as features.md says: a lock 30-89 degrees off
+			// the nose must age too, or a new group in the crosshair can never replace it (second Powers review).
+			LockAwaySeconds[Index] = GetAngleFromView(A->GetActorLocation()) > LockConeDeg + LockStaleMarginDeg ? LockAwaySeconds[Index] + DeltaTime : 0.f;
 			bDrop = LockAwaySeconds[Index] > LockStaleSeconds;
 		}
 		if (bDrop)
