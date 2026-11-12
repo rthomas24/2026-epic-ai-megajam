@@ -160,7 +160,7 @@ public:
 	void StopApproachAssist();
 
 	/** The pad the assist would fly to right now, or null (flying, player-flown, not boosting, hyperdrive idle, in range). */
-	ATDLandingPad* GetAssistPad() const;
+	ATDLandingPad* GetAssistPad(float RangeScale = 1.f) const;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
 	bool IsApproachAssisting() const { return AssistPad.IsValid(); }

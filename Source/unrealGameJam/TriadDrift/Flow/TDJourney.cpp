@@ -211,6 +211,10 @@ void FTDJourney::ApplyGalaxyInPlace(UWorld* World, ETDJourneyStage Stage)
 	{
 		Director->StartFromProgress(); // the stage's own wave (or idle for the assault)
 	}
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance()))
+	{
+		GI->BeginDominionSceneIfAssault(); // the assault stages play as the "Dominion" scene
+	}
 }
 
 bool FTDJourney::Parse(const FString& Name, ETDJourneyStage& Out, int32* OutWave)

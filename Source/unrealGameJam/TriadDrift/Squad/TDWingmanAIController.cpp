@@ -9,6 +9,15 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "Engine/World.h"
 #include "CollisionQueryParams.h"
+#include "HAL/IConsoleManager.h"
+
+// Wingmen in frame (Lead-approved plan): one off-screen defender at a time; the other prefers targets
+// in the player's view (if within InViewMaxExtraBands of its best) and keeps out of the aim line.
+// T4's Weak balance run, 5 seeds each, kills/min per wingman vs the old targeting: w1 L +28% B -24%,
+// w3 L -2% B +18%, w5 L +42% B -10% (guard rail: no drop over a third). 0 = the old targeting, at once.
+static TAutoConsoleVariable<int32> CVarTDWingmenInView(TEXT("td.Wingmen.InViewTargeting"), 1,
+	TEXT("1: wingmen prefer targets in the player's view (default). 0: classic nearest-first targeting."),
+	ECVF_Default);
 
 ATDWingmanAIController::ATDWingmanAIController()
 {
@@ -477,12 +486,12 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 
 	// Stay in the shot (live-measured: wingmen fought behind the camera): unless off defending the
 	// player, get in front of the chase camera, and keep out of the player's aim line.
-	if (Leader && !bDefendingPlayer)
+	if (Leader && !bDefendingPlayer && CVarTDWingmenInView.GetValueOnGameThread() != 0)
 	{
 		const FTransform Cam = Leader->GetChaseCameraTransformNow();
 		const FVector CamFwd = Cam.GetRotation().GetForwardVector();
 		const float Depth = FVector::DotProduct(Loc - Cam.GetLocation(), CamFwd);
-		if (Depth < InShotMinDepth)
+		if (InShotOvertakeWeight > 0.f && Depth < InShotMinDepth)
 		{
 			SteerDir = (SteerDir + CamFwd * InShotOvertakeWeight).GetSafeNormal();
 			TargetSpeed = BoostS;
@@ -724,6 +733,11 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		}
 	}
 
+	if (CVarTDWingmenInView.GetValueOnGameThread() == 0)
+	{
+		bDefendingPlayer = false;
+		return BestThreat ? BestThreat : Best; // classic: threats to the player first, then nearest
+	}
 	// Defending the player comes first, but one wingman off-screen on defence is enough: the other
 	// keeps the fight in front of the camera (a threat already on screen is fine for either).
 	if (BestThreat && (!bOtherDefending || bBestThreatInView))
@@ -732,7 +746,9 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		return BestThreat;
 	}
 	bDefendingPlayer = false;
-	return BestInView ? BestInView : Best;
+	// In view wins only when it isn't much worse than the best overall (balance guard rail: wingmen
+	// must keep killing at their old rate, so no long flights to a far target just because it's on screen).
+	return (BestInView && BestInViewScore <= BestScore + InViewMaxExtraBands) ? BestInView : Best;
 }
 
 // ---------------------------------------------------------------------------------------------

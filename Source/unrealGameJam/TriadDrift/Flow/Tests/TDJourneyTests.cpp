@@ -400,4 +400,71 @@ bool FTDJourneyClearDuringCut::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+// ------------------------------------------------------------------------------------------------
+// World review MAJOR 1 / 3, MINOR 4 / 5: the finale resumes sensibly. Real GI, space game mode, galaxy
+// layout, squad and Dominion.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyFinaleResumes, "TriadDrift.Flow.Journey.FinaleWipesRespawnOnTheApproachAndVictoryWins", TD_TEST_FLAGS)
+bool FTDJourneyFinaleResumes::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	UTDEventBus* Bus = UTDEventBus::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), G.GI) || !TestNotNull(TEXT("bus"), Bus)) { return false; }
+	G.GI->NotifyLevelEntered(ETDDestination::Galaxy);
+	UTDFlowTestListener* Log = NewObject<UTDFlowTestListener>();
+	Log->AddToRoot();
+	Log->Bind(Bus);
+	ON_SCOPE_EXIT { Log->RemoveFromRoot(); };
+
+	TestTrue(TEXT("DominionAssault"), G.Stage(ETDJourneyStage::DominionAssault, 1.f));
+	TestEqual(TEXT("the assault is a scene"), G.GI->GetCurrentScene(), UTDGameInstance::DominionScene);
+	TestEqual(TEXT("take 1"), G.GI->GetProgressRef().Takes.FindRef(UTDGameInstance::DominionScene), 1);
+	const ATDDominion* Dominion = ATDDominion::Get(G.W.GetWorld());
+	ATDSquadManager* Squad = ATDSquadManager::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("Dominion"), Dominion) || !TestNotNull(TEXT("squad"), Squad)) { return false; }
+	FTransform Approach, Trench;
+	TestTrue(TEXT("approach resolves"), FTDJourney::FindStageStart(G.W.GetWorld(), FTDJourney::DominionApproach, Approach));
+	TestTrue(TEXT("trench resolves"), FTDJourney::FindStageStart(G.W.GetWorld(), FTDJourney::DominionTrench, Trench));
+
+	// Wipe far from the Dominion: the retake brings the squad back to the approach, as take 2 of "Dominion".
+	if (APawn* Ship = Squad->GetActiveShip()) { Ship->SetActorLocation(Ship->GetActorLocation() + FVector(600000.f, 0.f, 0.f)); }
+	const int32 TakesBefore = Log->Takes.Num();
+	G.GI->ReportPlayerDefeated();
+	// MINOR 4: a Dominion-state report inside the CUT delay is void.
+	G.GI->SetDominionState(true, true);
+	TestFalse(TEXT("Dominion state ignored while a CUT is pending"), G.GI->GetProgressRef().bDominionDefensesDown);
+	TDJourneyTest::Run(G, UTDFlowSettings::Get()->RetakeDelaySeconds + 1.f);
+	TestEqual(TEXT("take 2 of the Dominion"), G.GI->GetProgressRef().Takes.FindRef(UTDGameInstance::DominionScene), 2);
+	TestTrue(TEXT("OnTakeStarted(Dominion, 2) for T4's reset"), Log->Takes.Num() > TakesBefore && Log->Takes.Last().Key == UTDGameInstance::DominionScene && Log->Takes.Last().Value == 2);
+	const float FromApproach = Squad->GetActiveShip() ? (float)FVector::Dist(Squad->GetActiveShip()->GetActorLocation(), Approach.GetLocation()) : -1.f;
+	TestTrue(FString::Printf(TEXT("respawned on the approach (%.0f cm)"), FromApproach), FromApproach >= 0.f && FromApproach < 6000.f);
+
+	// Defences down: a wipe respawns lined up with the trench.
+	G.GI->SetDominionState(true, true);
+	G.GI->ReportPlayerDefeated();
+	TDJourneyTest::Run(G, UTDFlowSettings::Get()->RetakeDelaySeconds + 1.f);
+	const float FromTrench = Squad->GetActiveShip() ? (float)FVector::Dist(Squad->GetActiveShip()->GetActorLocation(), Trench.GetLocation()) : -1.f;
+	TestTrue(FString::Printf(TEXT("defences down -> respawned at the trench (%.0f cm)"), FromTrench), FromTrench >= 0.f && FromTrench < 6000.f);
+	TestEqual(TEXT("take 3"), G.GI->GetProgressRef().Takes.FindRef(UTDGameInstance::DominionScene), 3);
+
+	// MINOR 5: the reactor dies from a shot in flight after the wipe: victory wins over the pending CUT.
+	G.GI->ReportPlayerDefeated();
+	TestTrue(TEXT("CUT pending"), G.GI->IsRetakePending());
+	G.GI->SetPhase(ETDGamePhase::Victory);
+	TestFalse(TEXT("victory cancels the CUT"), G.GI->IsRetakePending());
+	TDJourneyTest::Run(G, UTDFlowSettings::Get()->RetakeDelaySeconds + 1.f);
+	TestEqual(TEXT("still victory, no restart"), G.GI->GetProgressRef().Phase, ETDGamePhase::Victory);
+	TestEqual(TEXT("no take 4"), G.GI->GetProgressRef().Takes.FindRef(UTDGameInstance::DominionScene), 3);
+
+	// MAJOR 3: a won save never continues into the fight.
+	G.GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationFinale"));
+	G.GI->TakeCheckpoint(TEXT("Manual"));
+	TestTrue(TEXT("won run saved"), G.GI->WriteSaveSlot(true));
+	TestFalse(TEXT("no Continue for a won save"), G.GI->HasContinue());
+	TestFalse(TEXT("ContinueRun refuses it"), G.GI->ContinueRun());
+	G.GI->DeleteSave();
+	G.GI->SetSaveSlotOverride(FString());
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

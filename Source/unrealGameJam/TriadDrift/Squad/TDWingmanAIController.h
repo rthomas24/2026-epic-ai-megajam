@@ -117,13 +117,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0.1", ClampMax = "1.5"))
 	float ViewConeScale = 0.9f;
 
+	/** An on-screen target is preferred only if it scores within this many 2000 cm bands of the best. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0"))
+	float InViewMaxExtraBands = 4.f;
+
 	/** Engaging (not defending): get at least this far in front of the player's chase camera (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
 	float InShotMinDepth = 2500.f;
 
 	/** How hard a wingman behind the camera turns to overtake into the shot (vs its pursuit direction). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0"))
-	float InShotOvertakeWeight = 0.8f;
+	float InShotOvertakeWeight = 0.f;
 
 	/** Never fly inside this cone around the player's aim line (deg; plus 4 m). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "deg"))

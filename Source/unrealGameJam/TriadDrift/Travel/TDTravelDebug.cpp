@@ -15,6 +15,8 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -143,6 +145,47 @@ namespace TDTravelDebug
 		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Exit: exit opened, climbing out"));
 	}
 
+	void CompleteObjectives(const TArray<FString>& Args, UWorld* World)
+	{
+		// Dev shortcut for travel playtests: mark this planet's required objectives done through the game flow (the
+		// on-foot course itself is T5's to play), so the board point and the ceiling exit open the normal way.
+		ATDAtmosphereFlightZone* Zone = FindFirst<ATDAtmosphereFlightZone>(World);
+		ITDGameFlow* Flow = UTDStatics::GetGameFlow(World);
+		if (!Zone || !Flow)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.CompleteObjectives: need a planet flight zone and a game flow"));
+			return;
+		}
+		for (const FName& Id : Zone->RequiredObjectives)
+		{
+			Flow->CompleteObjective(Id, ETDAbilityId::None, ETDShipId::Rift);
+		}
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.CompleteObjectives: %d objective(s) marked done; exit allowed %d"),
+			Zone->RequiredObjectives.Num(), Zone->IsExitAllowed() ? 1 : 0);
+	}
+
+	void ToBoardPoint(const TArray<FString>& Args, UWorld* World)
+	{
+		// Dev shortcut: stand the on-foot pilot 1.5 m in front of the board point, facing it (then press E for real).
+		const ATDPlanetDirector* Director = World ? ATDPlanetDirector::Get(World) : nullptr;
+		AActor* Board = Director ? Director->GetBoardPoint() : nullptr;
+		APlayerController* PC = GetPC(World);
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Board || !Pawn)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToBoardPoint: need a planet director with a board point and an on-foot pawn"));
+			return;
+		}
+		const FVector Target = Board->GetActorLocation();
+		FVector From = Pawn->GetActorLocation();
+		FVector Dir = FVector(Target.X - From.X, Target.Y - From.Y, 0.f).GetSafeNormal(UE_SMALL_NUMBER, FVector::ForwardVector);
+		const FVector Stand(Target.X - Dir.X * 150.f, Target.Y - Dir.Y * 150.f, From.Z);
+		Pawn->SetActorLocation(Stand, false, nullptr, ETeleportType::TeleportPhysics);
+		const FRotator Look = (Target - (Stand + FVector(0.f, 0.f, 60.f))).Rotation();
+		PC->SetControlRotation(Look);
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToBoardPoint: pilot at %s facing the board point at %s"), *Stand.ToCompactString(), *Target.ToCompactString());
+	}
+
 	void ToBoundary(const TArray<FString>& Args, UWorld* World)
 	{
 		ATDShip* Ship = GetPlayerShip(World);
@@ -209,6 +252,12 @@ static FAutoConsoleCommandWithWorldAndArgs GTDTravelExitCmd(TEXT("TD.Travel.Exit
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelToBoundaryCmd(TEXT("TD.Travel.ToBoundary"),
 	TEXT("Put the player ship at the play-bounds edge, nose out (boundary turn-back check)"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::ToBoundary));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelCompleteObjectivesCmd(TEXT("TD.Travel.CompleteObjectives"),
+	TEXT("On a planet map: mark the zone's required objectives done (opens re-board and the ceiling exit normally)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::CompleteObjectives));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelToBoardPointCmd(TEXT("TD.Travel.ToBoardPoint"),
+	TEXT("On foot on a planet: stand in front of the board point, facing it (then press E)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::ToBoardPoint));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelStatusCmd(TEXT("TD.Travel.Status"),
 	TEXT("Log the player ship's travel state"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::Status));
