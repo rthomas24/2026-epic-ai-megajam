@@ -13,6 +13,7 @@ class USphereComponent;
 class UStaticMeshComponent;
 class UTDShipMovementComponent;
 class UTDHealthComponent;
+class UTDWeaponComponent;
 class UDamageType;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FTDOnTeleported, ATDSpacecraft*, Spacecraft, FVector, FromLocation, FVector, ToLocation, FRotator, NewFacing);
@@ -80,6 +81,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift")
 	UTDHealthComponent* GetHealth() const { return Health; }
 
+	/** T2's weapons (squad and enemy ships both fire through it). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift")
+	UTDWeaponComponent* GetWeapons() const { return Weapons; }
+
 	/** Placeholder hull (engine basic shape). Presentation swaps the mesh later. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift")
 	UStaticMeshComponent* GetHullMesh() const { return HullMesh; }
@@ -120,6 +125,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
 	TObjectPtr<UTDHealthComponent> Health;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	TObjectPtr<UTDWeaponComponent> Weapons;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift")
 	ETDTeam Team = ETDTeam::Neutral;

@@ -443,7 +443,7 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 #if TD_HAS_WEAPONS
 	if (ATDSpacecraft* Craft = GetSpacecraft())
 	{
-		if (UTDWeaponComponent* Weapons = Craft->FindComponentByClass<UTDWeaponComponent>())
+		if (UTDWeaponComponent* Weapons = Craft->GetWeapons())
 		{
 			Weapons->SetAimDirection(GetAimWorldDirection());
 		}
@@ -660,7 +660,7 @@ void ATDSpacePlayerController::RouteTrigger(ETDWeaponSlot Slot, bool bHeld)
 #if TD_HAS_WEAPONS
 	if (ATDSpacecraft* Craft = GetSpacecraft())
 	{
-		if (UTDWeaponComponent* Weapons = Craft->FindComponentByClass<UTDWeaponComponent>())
+		if (UTDWeaponComponent* Weapons = Craft->GetWeapons())
 		{
 			Weapons->SetTriggerHeld(Slot, bHeld && bSpaceInputEnabled);
 		}
@@ -701,7 +701,9 @@ void ATDSpacePlayerController::RouteTargetCycle()
 #if TD_HAS_TARGETING
 	if (APawn* P = GetPawn())
 	{
-		if (UTDTargetingComponent* Targeting = P->FindComponentByClass<UTDTargetingComponent>())
+		const ATDShip* Ship = Cast<ATDShip>(P);
+		UTDTargetingComponent* Targeting = Ship ? Ship->GetTargeting() : P->FindComponentByClass<UTDTargetingComponent>();
+		if (Targeting)
 		{
 			Targeting->CycleTarget();
 		}
