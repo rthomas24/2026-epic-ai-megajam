@@ -42,6 +42,12 @@ bool FTDCombatPlaceholderStreakSizes::RunTest(const FString& Parameters)
 	TestFalse(TEXT("lasers have no head"), Laser.bHead);
 	const FTDStreakLook Mine = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile);
 	TestFalse(TEXT("slow mines keep their sphere"), Mine.bStreak);
+
+	// End-on from the chase camera: thickness keeps ~11 px with distance, capped.
+	TestEqual(TEXT("close shots keep their base size"), FTDCombatPlaceholders::DistanceGrowth(Laser, 1000.f), 1.f);
+	const float Far = FTDCombatPlaceholders::DistanceGrowth(Laser, 20000.f);
+	TestTrue(TEXT("far shots grow to stay readable"), Far > 1.f && Laser.Thickness * Far * 1280.f / (2.f * 20000.f) >= FTDCombatPlaceholders::MinStreakPixels - 0.01f);
+	TestEqual(TEXT("growth is capped"), FTDCombatPlaceholders::DistanceGrowth(Laser, 1.0e6f), FTDCombatPlaceholders::MaxDistanceGrowth);
 	return true;
 }
 
