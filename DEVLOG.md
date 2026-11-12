@@ -19,3 +19,16 @@ and LFS pointers; published exact11files on nick/audio-music5979cff / draft PR5.
 No third-party audio/spend/shared gameplay/config/native import. Manual listening
 and Unreal validation remain pending; no media merged to main or quality acceptance
 asserted. Broader audio/music work waits for Nicholas's audition approval.
+
+## 2026-11-12 — Day1 isolated native sky integration
+
+Lead audited/published Environment ec3e47f/c9beebc, then integrated its37owned
+additions as9c629e8 under the temporary Day1 authorization. Source6files unchanged;
+worker isolated UE build/reload9assets reports0errors/warnings; Lead checked12native
+headers/hashes,5capture hashes/images,7PNG CRCs,JSON/AST/launcher syntax and19LFS
+pointers. Detected stale bytes after PNG IEND, fixed only trailing container data,
+pixel payload unchanged. Source/Config/sharedmaps/Plugins/uproject exactly preserved.
+Sky remains an independently reusable foundation; no gameplay placement/PIE/package
+or GPU frame-time claim. Pole star stretching remains a documented review limitation.
+HUD activation and unapproved Lancer/M02audio remain withheld. M03audio claim
+published before edits; legacy dirty project association and HUD stagedclaims preserved.

@@ -10,6 +10,7 @@
 class ATDShip;
 class UTDPowerComponent;
 class UTDAbilityComponent;
+class UTDShipVisuals;
 
 /**
  * Gameplay spec for one squad ship (features.md ENG-04). Every number defaults to the features.md
@@ -98,9 +99,16 @@ struct UNREALGAMEJAM_API FTDShipSpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Powers")
 	ETDAbilityId UnlockableAbility = ETDAbilityId::None;
 
-	/** Squad colour: projectiles, HUD, placeholder hull tint. */
+	/** Squad colour: projectiles, HUD, placeholder hull tint. Defaults to UTDStatics::ShipColor; a
+	 *  visuals asset with its own SquadColor overrides it (see GetSquadColor). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
 	FLinearColor SquadColor = FLinearColor::White;
+
+	/** Nick's per-ship presentation asset. Convention:
+	 *  /Game/TriadDrift/Presentation/DA_<Ship>_Visuals (flat folder, agreed with Nick); loaded if it
+	 *  exists, else placeholder. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
+	TSoftObjectPtr<UTDShipVisuals> Visuals;
 };
 
 /**
@@ -132,4 +140,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
 	static void ApplyDefaultSpecToShip(ATDShip* Ship, ETDShipId ShipId);
+
+	/** The visuals asset for a spec if it exists on disk (null otherwise; never logs an error). */
+	static UTDShipVisuals* LoadVisuals(const FTDShipSpec& Spec);
+
+	/** The one squad colour: the visuals asset's, if assigned and not white; else the spec's. */
+	static FLinearColor GetSquadColor(const FTDShipSpec& Spec);
 };

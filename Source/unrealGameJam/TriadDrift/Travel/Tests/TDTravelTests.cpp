@@ -10,6 +10,7 @@
 #include "TriadDrift/Travel/TDLandingPad.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Travel/TDGravityWellMarker.h"
+#include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Flight/TDFlightSim.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -550,6 +551,45 @@ bool FTDTravelSwitchLock::RunTest(const FString& Parameters)
 	TestFalse(TEXT("flight un-parked"), Ship->IsFlightParked());
 	TestFalse(TEXT("switch unlocked"), Ship->IsSwitchLocked(Reason));
 	Ship->GetLanding()->AbortToFlying(); // safe twice
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelPlanetRig, "TriadDrift.Travel.Planet.RigSpawnsZonePadsAndLands", TD_TEST_FLAGS)
+bool FTDTravelPlanetRig::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Cinder"), FTransform(FRotator(0.f, 90.f, 0.f), FVector(5000.f, 0.f, 200.f)), { TEXT("Obj_Outpost") });
+	if (!TestNotNull(TEXT("rig"), Rig)) { return false; }
+	W.Tick();
+	TestNotNull(TEXT("zone"), Rig->GetZone());
+	TestNotNull(TEXT("player pad"), Rig->GetPlayerPad());
+	TestEqual(TEXT("two wingman pads"), Rig->GetWingmanPads().Num(), 2);
+	if (!Rig->GetZone() || !Rig->GetPlayerPad()) { return false; }
+	TestEqual(TEXT("zone knows its planet"), Rig->GetZone()->PlanetId, FName(TEXT("Cinder")));
+	TestFalse(TEXT("zone exit gated by the planet's objectives"), Rig->GetZone()->IsExitAllowed());
+	TestFalse(TEXT("player pad isn't a wingman pad"), Rig->GetPlayerPad()->IsWingmanPad());
+	TestEqual(TEXT("side pads linked"), Rig->GetPlayerPad()->GetSidePads().Num(), 2);
+	TestTrue(TEXT("pads inside the zone"), Rig->GetZone()->GetZoneBox().IsInside(Rig->GetPlayerPad()->GetActorLocation()));
+
+	const FTransform Descent = Rig->GetDescentStart();
+	TestTrue(TEXT("descent start is high above the pad"), Descent.GetLocation().Z > Rig->GetPlayerPad()->GetActorLocation().Z + 20000.f);
+	TestTrue(TEXT("descent start inside the zone"), Rig->GetZone()->GetZoneBox().IsInside(Descent.GetLocation()));
+	const FVector ToPad = (Rig->GetPlayerPad()->GetActorLocation() - Descent.GetLocation()).GetSafeNormal();
+	TestTrue(TEXT("descent start faces the pad"), FVector::DotProduct(Descent.GetRotation().GetForwardVector(), ToPad) > 0.95f);
+
+	// A squad arriving at the descent start lands player + wingman on the rig's pads.
+	ATDShip* Lead = TDTravelTest::SpawnShip(W, Rig->GetPlayerPad()->GetActorTransform().TransformPosition(FVector(-1500.f, 0.f, 1500.f)), FRotator(0.f, 90.f, 0.f));
+	ATDShip* Mate = TDTravelTest::SpawnShip(W, Rig->GetPlayerPad()->GetActorTransform().TransformPosition(FVector(-3000.f, 2000.f, 2500.f)), FRotator(0.f, 90.f, 0.f));
+	Lead->SetPlayerControlled(true);
+	W.Tick();
+	TestTrue(TEXT("in atmosphere inside the rig's zone"), Lead->GetShipMovement()->IsInAtmosphere());
+	Lead->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("lands on the rig pad"), Lead->GetLanding()->RequestLand());
+	W.Advance(5.5f);
+	TestTrue(TEXT("player landed on the player pad"), Lead->GetLanding()->IsLanded() && Lead->GetLanding()->GetPad() == Rig->GetPlayerPad());
+	TestTrue(TEXT("wingman landed on a wingman pad"), Mate->GetLanding()->IsLanded() && Mate->GetLanding()->GetPad() && Mate->GetLanding()->GetPad()->IsWingmanPad());
+	const float Alt = Lead->GetAltitudeMeters();
+	TestTrue(FString::Printf(TEXT("placeholder ground under the pad (altitude %.1f m)"), Alt), Alt >= 0.f && Alt < 5.f);
 	return true;
 }
 

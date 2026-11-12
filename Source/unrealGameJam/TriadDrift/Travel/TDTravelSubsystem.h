@@ -9,6 +9,7 @@
 
 class ATDShip;
 class ATDLandingPad;
+class UTDTravelFX;
 
 /** A point that pulls ships out of hyperdrive: planet markers, the Dominion, portal gates... */
 USTRUCT(BlueprintType)
@@ -47,6 +48,12 @@ class UNREALGAMEJAM_API UTDTravelSubsystem : public UWorldSubsystem
 
 public:
 	static UTDTravelSubsystem* Get(const UObject* WorldContextObject);
+
+	/**
+	 * Nick's shared travel cues (/Game/TriadDrift/Presentation/DA_Travel_FX), loaded once if the asset
+	 * exists; null otherwise. Hyperdrive, entry and landing components use it when their own slot is empty.
+	 */
+	static UTDTravelFX* GetDefaultTravelFX();
 
 	// ---- Gravity wells --------------------------------------------------------------------------
 	/** Adds or replaces (same Id) a well. Owner may be null for a static point. */
