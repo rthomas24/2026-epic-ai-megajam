@@ -124,6 +124,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade")
 	float HurtThreshold01 = 0.4f;
 
+	/** A hurt wingman only seeks an active shield dome within this distance. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (Units = "cm"))
+	float DomeSeekDistance = 15000.f;
+
 	/** Look-ahead time for obstacle avoidance sweeps. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "s"))
 	float AvoidanceLookAhead = 1.2f;
@@ -158,6 +162,20 @@ public:
 	/** After a leash break or an evade, wait this long before picking a new fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
 	float RegroupCommitSeconds = 2.f;
+
+	/** Passive: no input, no triggers, no targets (landing, cinematics). Leaving passive regroups. */
+	void SetPassive(bool bInPassive);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
+	bool IsPassive() const { return bPassive; }
+
+	/** True while forming up for the player's hyperdrive jump (Spooling .. DropOut). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
+	bool IsFormingUpForJump() const { return bHyperdriveFormUp; }
+
+	/** Bus handler: the player's hyperdrive state (T1 fires it only for the player's ship). */
+	UFUNCTION()
+	void HandleHyperdriveState(ETDHyperdriveState NewState);
 
 	/** Bus handler: a spacecraft was moved discontinuously (portal, gate, hyperdrive drop-out). */
 	UFUNCTION()
@@ -212,6 +230,8 @@ protected:
 	float PrevShield01 = 1.f;
 	/** Regroup was forced (leash/evade): don't re-engage for RegroupCommitSeconds. */
 	bool bRegroupCommitted = false;
+	bool bPassive = false;
+	bool bHyperdriveFormUp = false;
 	bool bPrimaryHeld = false;
 	bool bSecondaryHeld = false;
 	FRandomStream Random;

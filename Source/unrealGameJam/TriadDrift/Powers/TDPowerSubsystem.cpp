@@ -32,7 +32,7 @@ ATDShieldDome* UTDPowerSubsystem::FindDomeCovering(const FVector& Location, ETDT
 {
 	for (ATDShieldDome* Dome : Domes)
 	{
-		if (IsValid(Dome) && Dome->IsDomeActive() && Dome->GetTeam() == Team && Dome->Covers(Location))
+		if (IsValid(Dome) && Dome->IsDomeActive() && Dome->bProtectSquad && Dome->GetTeam() == Team && Dome->Covers(Location))
 		{
 			return Dome;
 		}
@@ -46,7 +46,7 @@ ATDShieldDome* UTDPowerSubsystem::GetNearestDome(const FVector& Location, ETDTea
 	double BestSq = TNumericLimits<double>::Max();
 	for (ATDShieldDome* Dome : Domes)
 	{
-		if (IsValid(Dome) && Dome->IsDomeActive() && Dome->GetTeam() == Team)
+		if (IsValid(Dome) && Dome->IsDomeActive() && Dome->bProtectSquad && Dome->GetTeam() == Team)
 		{
 			const double DistSq = FVector::DistSquared(Dome->GetActorLocation(), Location);
 			if (DistSq < BestSq)

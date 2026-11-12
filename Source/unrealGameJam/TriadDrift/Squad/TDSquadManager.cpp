@@ -124,6 +124,8 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 	FocusTarget.Reset();
 	FocusEndTime = -1000.0;
 	EndSwitchStrike();
+	SwitchCount = 0;
+	LastSwitchCut = FTDSwitchCut();
 
 	if (SwitchOrder.Num() == 0)
 	{
@@ -190,8 +192,9 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		SpawnWingmanFor(*Slot);
 	}
 
-	// Hand out control: wingmen first, then the player takes the starting ship.
+	// Hand out control: wingmen first, then the player takes the starting ship. A new take is active.
 	ActiveShipId = StartingShip;
+	SetWingmenPassive(false);
 	for (FTDSquadSlot& Slot : Slots)
 	{
 		if (!Slot.Ship || !Slot.Wingman)
@@ -420,6 +423,9 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	// Capture velocities: possession must never change how either ship is moving.
 	const FVector NewVel = TDSquad::GetVelocity(NewShip);
 	const FVector OldVel = OldShip ? TDSquad::GetVelocity(OldShip) : FVector::ZeroVector;
+	// The camera we cut FROM is the old ship's chase camera, before it goes dark.
+	const FTransform FromCamera = OldShip ? TDSquad::GetChaseCameraTransform(OldShip) : NewShip->GetActorTransform();
+	const double PrevSwitchTime = LastSwitchTime;
 
 	// Switch Strike state lives on the ship that has it; move it to the new active ship.
 	const bool bArmSwitchStrike = (Now() - LastPowerTime) <= SwitchStrikeWindow;
@@ -448,6 +454,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 			if (ATDWingmanAIController* Wing = SpawnWingmanFor(*OldSlot))
 			{
 				Wing->Possess(OldShip);
+				Wing->SetPassive(bWingmenPassive);
 			}
 		}
 		TDSquad::SetVelocity(OldShip, OldVel);
@@ -464,6 +471,29 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	LastSwitchTime = Now();
 	TDSquad::AddShipSwitchStat(this);
 	TDSquad::BroadcastShipSwitched(this, Ship, OldId);
+
+	// C-03 #1: the cut payload, same frame.
+	const FTDShipSpec& Spec = GetSpec(Ship);
+	FTDSwitchCut Cut;
+	Cut.NewShip = Ship;
+	Cut.OldShip = OldId;
+	Cut.NewShipActor = NewShip;
+	Cut.OldShipActor = OldShip;
+	Cut.PilotName = Spec.PilotName;
+	Cut.ShipName = Spec.ShipName;
+	Cut.RoleName = Spec.RoleName;
+	Cut.NameCardText = FText::Format(NSLOCTEXT("TDSquad", "NameCard", "{0} \u00B7 {1}"), Spec.PilotName, Spec.ShipName);
+	Cut.SquadColor = Spec.SquadColor;
+	Cut.bAutoSwitch = bForced;
+	Cut.bSwitchStrike = bArmSwitchStrike;
+	Cut.bQuickCut = (LastSwitchTime - PrevSwitchTime) < CutTiming.QuickCutWindowSeconds;
+	Cut.SwitchIndex = ++SwitchCount;
+	Cut.WorldTimeSeconds = static_cast<float>(LastSwitchTime);
+	Cut.FromCamera = FromCamera;
+	Cut.ToCamera = TDSquad::GetChaseCameraTransform(NewShip);
+	Cut.Timing = CutTiming;
+	LastSwitchCut = Cut;
+	OnSwitchCut.Broadcast(LastSwitchCut);
 	return true;
 }
 
@@ -520,6 +550,18 @@ float ATDSquadManager::GetDamageMultiplier(const AActor* SourceShip) const
 // ---------------------------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------------------------
+
+void ATDSquadManager::SetWingmenPassive(bool bPassive)
+{
+	bWingmenPassive = bPassive;
+	for (FTDSquadSlot& Slot : Slots)
+	{
+		if (Slot.Wingman)
+		{
+			Slot.Wingman->SetPassive(bPassive);
+		}
+	}
+}
 
 void ATDSquadManager::IssueFocusCommand(AActor* Target)
 {
@@ -740,7 +782,10 @@ TArray<FTDShipHUD> ATDSquadManager::GetSquadHUD() const
 		Card.Heat01 = Ship ? TDSquad::GetHeat01(Ship, ETDWeaponSlot::Primary) : 0.f;
 		Card.SecondaryAmmo = Ship ? TDSquad::GetAmmo(Ship, ETDWeaponSlot::Secondary) : 0;
 		Card.Ability = GetSpec(Id).UnlockableAbility;
-		// Power / ability cooldowns come from T2's power components (ENG-09..12); ready until they land.
+		if (Ship)
+		{
+			TDSquad::GetPowerCooldowns(Ship, Card.PowerCooldown01, Card.Power2Cooldown01, Card.AbilityCooldown01);
+		}
 		Out.Add(Card);
 	}
 	return Out;

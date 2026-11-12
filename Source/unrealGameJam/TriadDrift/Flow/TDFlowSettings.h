@@ -41,6 +41,18 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Travel", meta = (ClampMin = "0.0", Units = "s"))
 	float MinTransitionSeconds = 1.0f;
 
+	/** Travel that hasn't arrived after this long is abandoned (bad map, someone else changed level). */
+	UPROPERTY(Config, EditAnywhere, Category = "Travel", meta = (ClampMin = "1.0", Units = "s"))
+	float TravelTimeoutSeconds = 30.f;
+
+	/** Objectives that finish Verdance. Back in the galaxy with all of them done: phase Waves3to4. */
+	UPROPERTY(Config, EditAnywhere, Category = "Progression")
+	TArray<FName> VerdanceObjectives;
+
+	/** Objectives that finish Cinder. Back in the galaxy with all of them done: phase Wave5. */
+	UPROPERTY(Config, EditAnywhere, Category = "Progression")
+	TArray<FName> CinderObjectives;
+
 	UPROPERTY(Config, EditAnywhere, Category = "Save")
 	FString SaveSlotName = TEXT("TriadDrift_Run");
 

@@ -562,5 +562,80 @@ bool FTDSquadFormationFastLeader::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchCut, "TriadDrift.Squad.Switch.CutPayload", TD_TEST_FLAGS)
+bool FTDSquadSwitchCut::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.Squad->OnSwitchCut.AddDynamic(F.Events, &UTDSquadTestListener::OnSwitchCut);
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	// Same call, no tick: the cut payload is already out and control already moved.
+	TestEqual(TEXT("one cut"), F.Events->Cuts, 1);
+	const FTDSwitchCut& Cut = F.Events->LastCut;
+	TestTrue(TEXT("new/old"), Cut.NewShip == ETDShipId::Lancer && Cut.OldShip == ETDShipId::Rift);
+	TestTrue(TEXT("actors"), Cut.NewShipActor == F.Ship(ETDShipId::Lancer) && Cut.OldShipActor == F.Ship(ETDShipId::Rift));
+	TestEqual(TEXT("pilot"), Cut.PilotName.ToString(), FString(TEXT("KATO")));
+	TestEqual(TEXT("ship"), Cut.ShipName.ToString(), FString(TEXT("LANCER")));
+	TestTrue(TEXT("name card 'KATO · LANCER'"), Cut.NameCardText.ToString().StartsWith(TEXT("KATO")) && Cut.NameCardText.ToString().EndsWith(TEXT("LANCER")));
+	TestTrue(TEXT("squad colour"), Cut.SquadColor.Equals(UTDShipLibrary::Get(ETDShipId::Lancer).SquadColor));
+	TestFalse(TEXT("player switch, not auto"), Cut.bAutoSwitch);
+	TestEqual(TEXT("1-frame flash by default"), Cut.Timing.FlashFrames, 1);
+	TestEqual(TEXT("switch index"), Cut.SwitchIndex, 1);
+	TestTrue(TEXT("player already in Lancer"), F.PC->GetPawn() == F.Ship(ETDShipId::Lancer));
+	TestFalse(TEXT("cameras differ (a real cut)"), Cut.FromCamera.GetLocation().Equals(Cut.ToCamera.GetLocation(), 10.f));
+	TestTrue(TEXT("GetLastSwitchCut matches"), F.Squad->GetLastSwitchCut().SwitchIndex == 1);
+
+	F.W.Advance(0.5f);
+	TestTrue(TEXT("quick second switch"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	TestTrue(TEXT("flagged as a quick cut"), F.Events->LastCut.bQuickCut && F.Events->LastCut.SwitchIndex == 2);
+
+	F.Kill(ETDShipId::Bastion);
+	F.W.Advance(0.7f);
+	TestEqual(TEXT("auto-switch cuts too"), F.Events->Cuts, 3);
+	TestTrue(TEXT("flagged as auto-switch"), F.Events->LastCut.bAutoSwitch);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSpool, "TriadDrift.Squad.Wingmen.FormUpOnHyperdriveSpool", TD_TEST_FLAGS)
+bool FTDSquadSpool::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+	F.W.Advance(3.f);
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	TestTrue(TEXT("engaged before the spool"), F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Engage);
+	Bus->BroadcastHyperdriveState(ETDHyperdriveState::Spooling);
+	F.W.Advance(0.6f);
+	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const ATDWingmanAIController* Wing = F.Wing(Id);
+		TestTrue(TEXT("forming up for the jump"), Wing && Wing->IsFormingUpForJump() && Wing->GetWingmanState() != ETDWingmanState::Engage);
+		TestNull(TEXT("dropped its target"), Wing ? Wing->GetCurrentTarget() : nullptr);
+	}
+	// Cancelled spool (hit / H released): back to the fight.
+	Bus->BroadcastHyperdriveState(ETDHyperdriveState::Idle);
+	F.W.Advance(1.5f);
+	TestTrue(TEXT("re-engages after a cancelled spool"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Enemy);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadPassive, "TriadDrift.Squad.Wingmen.PassiveForLanding", TD_TEST_FLAGS)
+bool FTDSquadPassive::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+	F.W.Advance(3.f);
+	F.Squad->SetWingmenPassive(true);
+	ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+	const FTDFlightInput Before = Lancer->GetFlightInput();
+	F.W.Advance(1.f);
+	TestTrue(TEXT("passive flag"), F.Squad->AreWingmenPassive() && F.Wing(ETDShipId::Lancer)->IsPassive());
+	TestNull(TEXT("no target while passive"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget());
+	TestTrue(TEXT("no new flight input while passive"), Lancer->GetFlightInput().Aim == Before.Aim && Lancer->GetFlightInput().Throttle == Before.Throttle);
+	F.Squad->SetWingmenPassive(false);
+	F.W.Advance(1.5f);
+	TestNotNull(TEXT("fights again when active"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget());
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
