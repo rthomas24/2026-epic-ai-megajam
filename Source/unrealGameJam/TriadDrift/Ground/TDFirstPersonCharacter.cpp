@@ -1,6 +1,7 @@
 // Triad Drift - first-person character (ENG-21). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -236,6 +237,12 @@ TArray<AActor*> ATDFirstPersonCharacter::GetObjectiveMarkers() const
 		Objectives->GetActiveWaypoints(Out);
 	}
 	return Out;
+}
+
+FText ATDFirstPersonCharacter::GetObjectiveText() const
+{
+	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	return GI ? GI->GetCurrentObjectiveText() : FText::GetEmpty();
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -35,6 +35,7 @@ public:
 	UFUNCTION(Exec) void TDTravel(const FString& DestinationName);
 	UFUNCTION(Exec) void TDTake();
 	UFUNCTION(Exec) void TDStage(const FString& StageName);
+	UFUNCTION(Exec) void TDDifficulty(const FString& DifficultyName);
 
 	static bool DoPhase(UWorld* World, const FString& PhaseName);
 	static bool DoUnlock(UWorld* World, const FString& AbilityName, const FString& ShipName);
@@ -45,6 +46,7 @@ public:
 	static bool DoTake(UWorld* World);
 	/** Jump to a journey stage: progress AND world (FTDJourney). */
 	static bool DoStage(UWorld* World, const FString& StageName);
+	static bool DoDifficulty(UWorld* World, const FString& DifficultyName);
 
 	/**
 	 * Makes UTDCheatManager the controller's cheat manager (replacing the stock one the engine creates

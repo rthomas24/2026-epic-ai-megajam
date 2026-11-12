@@ -97,14 +97,54 @@ void UTDGameInstance::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FTex
 	LastObjective.Text = Text;
 }
 
+TArray<AActor*> UTDGameInstance::GetFlowMarkers() const
+{
+	TArray<AActor*> Out;
+	for (const TWeakObjectPtr<AActor>& A : FlowMarkers)
+	{
+		if (A.IsValid())
+		{
+			Out.Add(A.Get());
+		}
+	}
+	return Out;
+}
+
+void UTDGameInstance::SyncMarkers(bool bClearAll)
+{
+	TArray<AActor*> Want;
+	if (!bClearAll)
+	{
+		FTDObjectiveText::ComputeMarkers(GetWorld(), Progress, CurrentDestination, Want);
+	}
+	for (const TWeakObjectPtr<AActor>& Old : FlowMarkers)
+	{
+		if (Old.IsValid() && !Want.Contains(Old.Get()))
+		{
+			Old->Tags.Remove(TDTags::ObjectiveMarker);
+		}
+	}
+	FlowMarkers.Reset();
+	for (AActor* A : Want)
+	{
+		A->Tags.AddUnique(TDTags::ObjectiveMarker);
+		FlowMarkers.Add(A);
+	}
+}
+
 void UTDGameInstance::RefreshObjective(bool bForce)
 {
 	UWorld* World = GetWorld();
 	UTDEventBus* Bus = GetBus();
 	if (!World || !Bus || IsTravelPending())
 	{
+		if (IsTravelPending())
+		{
+			SyncMarkers(true); // nothing is the objective mid-travel
+		}
 		return;
 	}
+	SyncMarkers(IsRetakePending() || IsMenuDestination(CurrentDestination));
 	FTDObjectiveLine Line;
 	if (FTDObjectiveText::Compute(World, Progress, CurrentDestination, Line))
 	{
@@ -812,6 +852,7 @@ bool UTDGameInstance::WriteSaveSlot(bool bForce)
 	Save->Checkpoint.Progress.RunTimeSeconds = Progress.RunTimeSeconds;
 	Save->SceneOrder = SceneOrder;
 	Save->SavedAtUtc = FDateTime::UtcNow();
+	Save->Difficulty = UTDDifficultySettings::GetCurrent();
 	const bool bOk = UGameplayStatics::SaveGameToSlot(Save, GetSaveSlotName(), UTDFlowSettings::Get()->SaveUserIndex);
 	if (!bOk)
 	{
@@ -868,7 +909,19 @@ bool UTDGameInstance::ApplySave(const UTDSaveGame& Save)
 	CurrentSceneId = Save.Checkpoint.SceneId;
 	LastAnnouncedScene = NAME_None;
 	LastAnnouncedTake = 0;
+	UTDDifficultySettings::SetCurrent(Save.Difficulty);
 	return true;
+}
+
+void UTDGameInstance::SetDifficulty(ETDDifficulty Difficulty)
+{
+	UTDDifficultySettings::SetCurrent(Difficulty);
+	WriteSaveSlot(); // a committed run keeps it; a fresh boot / menu writes nothing (save safety)
+}
+
+ETDDifficulty UTDGameInstance::GetDifficulty() const
+{
+	return UTDDifficultySettings::GetCurrent();
 }
 
 // ------------------------------------------------------------------------------------------------

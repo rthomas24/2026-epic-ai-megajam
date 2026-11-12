@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TDSaveGame.generated.h"
 
 /** One checkpoint: everything needed to resume or to restart the current scene as a new take. */
@@ -72,6 +73,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "Save")
 	FDateTime SavedAtUtc;
+
+	/** The run's difficulty (Story / Standard / Ace). Older slots without it load as Standard. */
+	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "Save")
+	ETDDifficulty Difficulty = ETDDifficulty::Standard;
 
 	bool IsCompatible() const { return Version == CurrentVersion && Checkpoint.bValid; }
 };
