@@ -10,6 +10,7 @@
 
 class UTDPowerComponent;
 class UTDAbilityFX;
+class UTDShipVisuals;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnPowerActivated, UTDPowerComponent*, Power);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnPowerEnded, UTDPowerComponent*, Power, bool, bInterrupted);
@@ -23,7 +24,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnPowerEnded, UTDPowerComponent*
  * T3's HUD: FindPower(Ship, Slot)->GetCooldown01() / GetPowerName(); Switch Strike listens to
  * UTDEventBus::OnPowerUsed, which every successful activation broadcasts.
  */
-UCLASS(Abstract, ClassGroup = (TriadDrift))
+UCLASS(Abstract, Blueprintable, ClassGroup = (TriadDrift))
 class UNREALGAMEJAM_API UTDPowerComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -115,9 +116,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Power")
 	bool bRequirePlayerControl = true;
 
-	/** Presentation (Activate / Loop / End cues). Null = silent. */
+	/**
+	 * Presentation. Abilities: UTDAbilityFX (Activate / Loop / End / AffectedTarget), auto-loaded from
+	 * DA_Ability_<Id>_FX when left empty. Signature powers play the ship's UTDShipVisuals cues
+	 * (PowerWindup / PowerActive / Power2Active / PowerEnd) from DA_<Ship>_Visuals. All optional.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Power")
 	TObjectPtr<UTDAbilityFX> FX = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Power")
+	TObjectPtr<UTDShipVisuals> ShipVisuals = nullptr;
+
+	/** Which ability this power is (None for signature powers): picks DA_Ability_<Id>_FX. */
+	virtual ETDAbilityId GetAbilityId() const { return ETDAbilityId::None; }
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Power")
 	FTDOnPowerActivated OnPowerActivated;
@@ -145,6 +156,12 @@ protected:
 	ETDTeam GetOwnerTeam() const;
 	void Highlight(ETDHighlightKind Kind, AActor* Subject, float Importance01) const;
 	void AddStat(FName StatName, int32 Amount = 1) const;
+
+	/** Ship cue for this slot at activation (wind-up powers override to play PowerWindup first). */
+	virtual void PlayActivationCues();
+	void PlayShipCue(int32 Which); // 0 wind-up, 1 active (slot-aware), 2 end
+	/** Placeholder art is used only when no art is assigned for this moment. */
+	bool HasActiveArt() const;
 
 	bool bPowerActive = false;
 	float ActiveElapsed = 0.f;

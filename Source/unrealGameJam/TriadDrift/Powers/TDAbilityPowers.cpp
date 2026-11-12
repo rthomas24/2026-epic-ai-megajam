@@ -14,7 +14,8 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "NiagaraComponent.h"
-#include "DrawDebugHelpers.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/World.h"
 
 // ================================================================================== Gravity Well actor
@@ -38,6 +39,12 @@ void ATDGravityWell::Launch(AActor* InOwner, ETDTeam InTeam, const FVector& InDi
 	if (FX)
 	{
 		LoopFX = UTDStatics::PlayCueAttached(FX->Loop, GetRootComponent());
+	}
+	if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
+	{
+		// Shipping-safe placeholder: a glowing violet core (the ring appears when the vortex opens).
+		FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Sphere, FVector(6.f), FRotator::ZeroRotator,
+			FLinearColor(0.55f, 0.2f, 1.f), 6.f);
 	}
 	if (OrbSeconds <= 0.f)
 	{
@@ -118,6 +125,10 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 					{
 						Move->SetSpeedOverride(CapturedSpeed, CapturedSteering);
 						Captured.Add(Craft);
+						if (FX)
+						{
+							UTDStatics::PlayCueAttached(FX->AffectedTarget, Craft->GetRootComponent());
+						}
 					}
 					FHitResult Hit;
 					Move->SafeMoveUpdatedComponent(To / Dist * Step, Hostile->GetActorQuat(), true, Hit);
@@ -185,9 +196,10 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 		}
 	}
 
-	if (UTDStatics::ShouldDrawPlaceholders() && !LoopFX)
+	if (!bRingBuilt && (!FX || !FTDPowerPresentation::HasArt(FX->Loop)))
 	{
-		DrawDebugSphere(GetWorld(), Center, Radius, 20, FColor(160, 60, 255), false, -1.f, 0, 6.f);
+		bRingBuilt = true;
+		FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 48, 70.f, FLinearColor(0.55f, 0.2f, 1.f), 4.f);
 	}
 }
 
@@ -342,6 +354,17 @@ bool UTDCloakPower::OnActivate()
 			Other->OnPowerActivated.AddDynamic(this, &UTDCloakPower::HandleOtherPower);
 		}
 	}
+	if (FX)
+	{
+		LoopFX = UTDStatics::PlayCueAttached(FX->Loop, Owner->GetRootComponent());
+	}
+	if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
+	{
+		FVector Origin, Extent;
+		Owner->GetActorBounds(true, Origin, Extent, false);
+		Shimmer = FTDPowerPresentation::AddRingLattice(Owner, nullptr, FMath::Max(150.f, (float)Extent.GetMax() * 1.4f), 2, 24, 15.f,
+			UTDStatics::ShipColor(ETDShipId::Rift) * 0.6f, 1.5f);
+	}
 	// Missiles already in the air lose their lock.
 	if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))
 	{
@@ -365,6 +388,16 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 	if (UTDHealthComponent* Health = UTDStatics::GetHealth(Owner))
 	{
 		Health->SetTargetable(true);
+	}
+	if (Shimmer)
+	{
+		Shimmer->DestroyComponent();
+		Shimmer = nullptr;
+	}
+	if (LoopFX)
+	{
+		LoopFX->Deactivate();
+		LoopFX = nullptr;
 	}
 	if (UTDWeaponComponent* Weapons = Owner->FindComponentByClass<UTDWeaponComponent>())
 	{
@@ -426,6 +459,10 @@ bool UTDEMPPower::OnActivate()
 			{
 				continue;
 			}
+			if (FX)
+			{
+				UTDStatics::PlayCueAttached(FX->AffectedTarget, Hostile->GetRootComponent());
+			}
 			if (ATDEnemyShip* Enemy = Cast<ATDEnemyShip>(Hostile))
 			{
 				Enemy->ApplyStun(StunSeconds); // T4: stunned enemies take +25% (StunnedDamageMultiplier)
@@ -451,9 +488,9 @@ bool UTDEMPPower::OnActivate()
 			M->Kill(true);
 		}
 	}
-	if (UTDStatics::ShouldDrawPlaceholders())
+	if (!FX || !FTDPowerPresentation::HasArt(FX->Activate))
 	{
-		DrawDebugSphere(GetWorld(), Center, Radius, 24, FColor(80, 220, 255), false, 0.4f, 0, 10.f);
+		ATDPlaceholderFlash::SpawnRingFlash(GetWorld(), Center, Radius, UTDStatics::ShipColor(ETDShipId::Lancer), 0.4f);
 	}
 	return true;
 }
