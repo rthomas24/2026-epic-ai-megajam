@@ -117,24 +117,41 @@ bool FTDReviewNoHitOnRocks::RunTest(const FString& Parameters)
 	return true;
 }
 
-/** Minor 7: the current and locked targets always get a marker, even ranked beyond MaxMarkers by distance. */
+/**
+ * Minor 7 (re-check C3): the current target AND every lock get a marker, even ranked beyond MaxMarkers by distance.
+ * 34 near hostiles sit off the nose (outside the lock cone); 6 far ones dead ahead are painted and locked.
+ */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewMarkersKeepTargets, "TriadDrift.Combat.Review.MarkersAlwaysIncludeTheTarget", TD_TEST_FLAGS)
 bool FTDReviewMarkersKeepTargets::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	AActor* Ship = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 	UTDTargetingComponent* Targeting = TDCombatTest::AddTargeting(Ship);
-	AActor* Farthest = nullptr;
-	for (int32 I = 0; I < 40; ++I)
+	for (int32 I = 0; I < 34; ++I)
 	{
-		Farthest = TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(3000.f + I * 500.f, (I % 5 - 2) * 400.f, 0.f), FVector(50.f));
+		const float Side = (I % 2 == 0) ? 1.f : -1.f;
+		TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(2000.f + I * 150.f, Side * 6000.f, 0.f), FVector(50.f));
+	}
+	TArray<AActor*> Far;
+	for (int32 I = 0; I < 6; ++I)
+	{
+		Far.Add(TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(30000.f + I * 400.f, (I - 2.5f) * 300.f, 0.f), FVector(50.f)));
 	}
 	W.Tick();
-	Targeting->SetManualTarget(Farthest);
-	W.Tick();
+	Targeting->SetManualTarget(Far[5]);
+	Targeting->BeginLockPainting();
+	W.Advance(2.5f);
 	TestTrue(TEXT("more hostiles than markers"), Targeting->MaxMarkers < 40);
-	TestTrue(TEXT("the (farthest) current target has a marker"),
-		Targeting->K2_GetMarkers().ContainsByPredicate([Farthest](const FTDTargetMarker& M) { return M.Actor.Get() == Farthest; }));
+	auto HasMarker = [Targeting](const AActor* A)
+	{
+		return Targeting->K2_GetMarkers().ContainsByPredicate([A](const FTDTargetMarker& M) { return M.Actor.Get() == A; });
+	};
+	TestTrue(TEXT("the (farthest) current target has a marker"), HasMarker(Far[5]));
+	TestTrue(TEXT("the far group is locked"), Targeting->GetLockedTargets().Num() >= 5);
+	for (AActor* Locked : Targeting->GetLockedTargets())
+	{
+		TestTrue(TEXT("every lock has a marker"), HasMarker(Locked));
+	}
 	TestTrue(TEXT("never more markers than MaxMarkers"), Targeting->K2_GetMarkers().Num() <= Targeting->MaxMarkers);
 	return true;
 }
