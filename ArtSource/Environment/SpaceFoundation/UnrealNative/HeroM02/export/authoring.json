@@ -1,0 +1,43 @@
+{
+  "gas_resolution": [
+    8192,
+    4096
+  ],
+  "stars": {
+    "star_count": 10500,
+    "seed": 8314117,
+    "hdr_size": [
+      8192,
+      4096
+    ],
+    "angular_sigma_deg": [
+      0.025,
+      0.11
+    ],
+    "temperature_kelvin": [
+      3400,
+      10500
+    ]
+  },
+  "generation_seconds": 410.39162209999995,
+  "author": "Nicholas Tosti / OpenAI Codex Environment & VFX Agent",
+  "downloaded_texture_inputs": [],
+  "reference_only": [
+    "https://science.nasa.gov/asset/webb/cosmic-cliffs-in-the-carina-nebula-nircam-image/",
+    "https://science.nasa.gov/missions/hubble/ghostly-cats-head-nebula-lurks-within-sight-of-nasas-hubble-webb/"
+  ],
+  "files": {
+    "T_HeroM02_Back.png": {
+      "bytes": 25148114,
+      "sha256": "ddbe35fb00bbafff755c815b74e53e3cf93eed399e57e58293d09353eca1aebf"
+    },
+    "T_HeroM02_Front.png": {
+      "bytes": 5546692,
+      "sha256": "f0c4dd4c718a4f008c5e6e2b6518f778fe13f6ad53f4f43d556e23f776d56e4d"
+    },
+    "T_HeroM02_Stars.hdr": {
+      "bytes": 6498881,
+      "sha256": "b11c139cbcd7568a77e4de90ba680d42b5a60bcffef464f17cbed02304ce0e5e"
+    }
+  }
+}

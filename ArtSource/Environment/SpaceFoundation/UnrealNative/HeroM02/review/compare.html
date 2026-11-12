@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Triad Drift — Hero M02 review</title>
+<style>
+body{margin:0;background:#080b11;color:#e3e8ef;font:16px/1.5 system-ui}main{max-width:1700px;margin:auto;padding:28px}h1{font-size:26px;margin:0}p{color:#aeb9c9;max-width:1000px}section{margin:30px 0}h2{font-size:20px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}figure{margin:0}img{width:100%;display:block;background:#111925}figcaption{padding:8px 0;color:#b6c4d7}a{color:#85cef0}@media(max-width:800px){.pair{grid-template-columns:1fr}}
+</style>
+<main><h1>Hero M02 — manual visual review</h1>
+<p>Baseline and candidate captured in Unreal 5.9 at the same position, view, exposure and bloom. Candidate remains isolated. Combat and Verdance await approval. Open either image for its full 1920 × 1080 resolution.</p>
+<div id="views"></div>
+<p><a href="verification.json">Camera, stability and performance evidence</a> · <a href="build.json">Native build evidence</a></p>
+<p>These are a sky-only benchmark. Shared-map gameplay readability, runtime GPU timing and packaged validation remain separate checks.</p>
+</main><script>
+for(const [view,label] of [['Hero','Gameplay field of view — 90°'],['Detail','Structure detail — 50°'],['Zenith','Near zenith — 89° pitch'],['Wrap','Longitude seam']]){
+ const section=document.createElement('section');const title=document.createElement('h2');title.textContent=label;section.append(title);
+ const pair=document.createElement('div');pair.className='pair';for(const variant of ['Before','After']){const file=`${variant}_${view}.png`;const fig=document.createElement('figure');const a=document.createElement('a');a.href=file;const img=document.createElement('img');img.src=file;img.alt=`${variant}: ${label}`;a.append(img);const caption=document.createElement('figcaption');caption.textContent=variant==='Before'?'Before — preserved Hero':'After — Hero M02 candidate';fig.append(a,caption);pair.append(fig)}section.append(pair);document.querySelector('#views').append(section);
+}
+</script></html>
