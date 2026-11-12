@@ -161,7 +161,11 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	{
 		const FVector Closest = C.BoundaryBox.GetClosestPointTo(S.Location);
 		const float Outside = FVector::Dist(Closest, S.Location);
-		S.bNearBoundary = Outside > 0.f || !C.BoundaryBox.ExpandBy(-T.BoundaryWarnDistance).IsInsideOrOn(S.Location);
+		// The warning band covers the walls and the ceiling only: an atmosphere zone's floor is the ground, and flying
+		// low over it is the whole point (it still pushes back if the ship goes under it).
+		const FBox WarnBox(C.BoundaryBox.Min + FVector(T.BoundaryWarnDistance, T.BoundaryWarnDistance, -1.f),
+			C.BoundaryBox.Max - FVector(T.BoundaryWarnDistance, T.BoundaryWarnDistance, T.BoundaryWarnDistance));
+		S.bNearBoundary = Outside > 0.f || !WarnBox.IsInsideOrOn(S.Location);
 		if (Outside > KINDA_SMALL_NUMBER)
 		{
 			S.bOutOfBounds = true;
@@ -325,6 +329,12 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		const float Near01 = 1.f - C.GroundClearance / T.GroundAvoidHeight;
 		const float MaxSink = T.CruiseSpeed * 0.5f * (1.f - Near01);
 		S.Velocity.Z = FMath::Max(S.Velocity.Z, -MaxSink);
+		// Cushion: below GroundCushionHeight push back up, so hands-off flight settles there instead of skimming the
+		// ground at ~1 m (live playtest, Nov 12) under gravity.
+		if (C.GroundClearance < T.GroundCushionHeight && !C.bSpeedOverride)
+		{
+			S.Velocity.Z = FMath::Max(S.Velocity.Z, (T.GroundCushionHeight - C.GroundClearance) * 2.f);
+		}
 		const FVector Nose = S.Rotation.GetForwardVector();
 		if (Nose.Z < 0.f)
 		{
@@ -334,6 +344,27 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 			if (!Axis.IsNearlyZero() && StepDeg > 0.f)
 			{
 				S.Rotation = (FQuat(Axis, FMath::DegreesToRadians(StepDeg)) * S.Rotation).GetNormalized();
+			}
+		}
+	}
+
+	// Terrain ahead (slope, cliff, tall rock): climb along it before contact. Not under a speed override (the landing
+	// assist and atmosphere entry fly their own path down to the ground).
+	if (C.bAtmosphere && !C.bSpeedOverride && C.TerrainAheadDistance >= 0.f && C.TerrainAheadRange > 0.f && T.TerrainAheadTurnRate > 0.f)
+	{
+		const FVector Nose = S.Rotation.GetForwardVector();
+		const FVector N = C.TerrainAheadNormal.GetSafeNormal(UE_SMALL_NUMBER, FVector::UpVector);
+		if (FVector::DotProduct(Nose, N) < 0.f)
+		{
+			const float Near01 = FMath::Clamp(1.f - C.TerrainAheadDistance / C.TerrainAheadRange, 0.f, 1.f);
+			// Along the surface, biased upward so a cliff face is climbed, not skimmed sideways.
+			FVector Want = FVector::VectorPlaneProject(Nose, N).GetSafeNormal() + FVector::UpVector * 0.5f + N * 0.25f;
+			Want = Want.GetSafeNormal();
+			if (!Want.IsNearlyZero())
+			{
+				const FQuat Target = FQuat::FindBetweenNormals(Nose, Want) * S.Rotation;
+				S.Rotation = FMath::QInterpConstantTo(S.Rotation, Target, Dt, FMath::DegreesToRadians(T.TerrainAheadTurnRate * Near01)).GetNormalized();
+				S.Velocity.Z = FMath::Max(S.Velocity.Z, 0.f); // never keep sinking toward terrain ahead
 			}
 		}
 	}

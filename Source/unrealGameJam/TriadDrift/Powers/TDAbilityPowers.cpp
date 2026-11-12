@@ -130,6 +130,11 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 							FTDPowerPresentation::RequestCueAttached(TEXT("Ability.AffectedTarget"), FX->AffectedTarget, Craft->GetRootComponent());
 						}
 					}
+					else if (Move->GetActiveSpeedOverrideOwner() != FName(TEXT("GravityWell")))
+					{
+						// Re-assert every vortex tick: no later override (catch-up, boost...) may sit on top of the capture.
+						Move->SetSpeedOverrideFor(TEXT("GravityWell"), CapturedSpeed, CapturedSteering);
+					}
 					FHitResult Hit;
 					Move->SafeMoveUpdatedComponent(To / Dist * Step, Hostile->GetActorQuat(), true, Hit);
 				}

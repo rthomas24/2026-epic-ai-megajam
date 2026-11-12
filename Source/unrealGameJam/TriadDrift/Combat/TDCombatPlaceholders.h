@@ -72,8 +72,8 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 
 /**
  * A short glowing sphere that swells and fades: the muzzle / impact flash placeholder. Pooled by
- * UTDProjectileSubsystem::PlayPlaceholderFlash; never spawn it directly. Engine sphere and glow material are
- * hard-referenced by the class default object so they always cook.
+ * UTDProjectileSubsystem::PlayPlaceholderFlash; never spawn it directly. The engine sphere is hard-referenced by the
+ * class default object; the glow is Core's always-cooked M_TD_PlaceholderGlow.
  */
 UCLASS(NotBlueprintable)
 class UNREALGAMEJAM_API ATDCombatFlash : public AActor

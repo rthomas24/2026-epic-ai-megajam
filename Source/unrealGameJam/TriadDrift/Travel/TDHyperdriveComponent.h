@@ -182,6 +182,12 @@ public:
 	/** How often the HUD text refreshes the obstacle sweep (s). */
 	static constexpr double HUDSweepInterval = 0.2;
 
+	/** Standing reasons (in atmosphere, landing / offline) appear in GetBlockReasonText this long after a refused press. */
+	static constexpr double StandingReasonShowSeconds = 2.0;
+
+	/** In atmosphere / disabled / not player-flown: true for reasons the player can't act on right now. */
+	static bool IsStandingBlock(ETDHyperdriveBlock Block);
+
 	/** The pilot pressed hyperdrive but it couldn't spool: HUD message + refused sound (Nick). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Hyperdrive")
 	FTDOnHyperdriveRefused OnSpoolRefused;
@@ -259,5 +265,6 @@ private:
 	ETDHyperdriveBlock ComputeBlockReason(bool bCachedSweep) const;
 	FText TextForBlock(ETDHyperdriveBlock Block) const;
 	mutable double SweepCacheTime = -1.0;
+	double LastRefusedTime = -1.0;
 	mutable bool bSweepCacheBlocked = false;
 };

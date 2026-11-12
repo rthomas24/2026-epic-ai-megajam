@@ -219,10 +219,13 @@ static void TDSwarmTestHoldStill(ATDEnemyShip* Ship)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmStaleLocks, "TriadDrift.Powers.Swarm.StaleLocksReplacedByNewGroup", TD_TEST_FLAGS)
 bool FTDSwarmStaleLocks::RunTest(const FString& Parameters)
 {
+	// 45 and 80 degrees: inside the old 90 degree cycle cone (where locks never aged); 180: behind.
+	for (const float TurnDeg : { 45.f, 80.f, 180.f })
+	{
 	for (const float TDFrameStep : kPowerFrameSteps)
 	{
 		FScopedPowerFrameStep TDStepScope(TDFrameStep);
-		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / TDFrameStep);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps, turn %.0f deg"), 1.f / TDFrameStep, TurnDeg);
 		FTDTestWorld W;
 		AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 		UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Bastion, TEXT("Targeting"));
@@ -232,14 +235,17 @@ bool FTDSwarmStaleLocks::RunTest(const FString& Parameters)
 		TArray<TWeakObjectPtr<ATDEnemyShip>> OldGroup;
 		for (int32 I = 0; I < 6; ++I)
 		{
-			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(9000.f, (I - 2.5f) * 900.f, 0.f));
+			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(9000.f, (I - 2.5f) * 700.f, 0.f));
 			TDSwarmTestHoldStill(F);
 			OldGroup.Add(F);
 		}
+		const FRotator Facing(0.f, TurnDeg, 0.f);
+		const FVector NewDir = Facing.Vector();
+		const FVector Side = FRotator(0.f, TurnDeg + 90.f, 0.f).Vector();
 		TArray<TWeakObjectPtr<ATDEnemyShip>> NewGroup;
 		for (int32 I = 0; I < 3; ++I)
 		{
-			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(-9000.f, (I - 1.f) * 1200.f, 0.f));
+			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, NewDir * 9000.f + Side * ((I - 1.f) * 700.f));
 			TDSwarmTestHoldStill(F);
 			NewGroup.Add(F);
 		}
@@ -247,8 +253,8 @@ bool FTDSwarmStaleLocks::RunTest(const FString& Parameters)
 		W.Advance(2.f, PowerFrameStep());
 		TestEqual(TEXT("six painted on the first group") + Fps, Targeting->GetLockedTargets().Num(), 6);
 
-		// Turn to the new group for 2 s: the old locks are behind (out of view) and drop after 1.5 s.
-		Bastion->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+		// Turn to the new group for 2 s: the old locks are now outside the lock cone and drop after 1.5 s.
+		Bastion->SetActorRotation(Facing);
 		W.Advance(2.f, PowerFrameStep());
 		for (const TWeakObjectPtr<ATDEnemyShip>& Old : OldGroup)
 		{
@@ -262,6 +268,7 @@ bool FTDSwarmStaleLocks::RunTest(const FString& Parameters)
 			TestTrue(TEXT("every missile goes to the new group") + Fps,
 				NewGroup.ContainsByPredicate([&T](const TWeakObjectPtr<ATDEnemyShip>& N) { return N.Get() == T.Get(); }));
 		}
+	}
 	}
 	return true;
 }
@@ -446,13 +453,16 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 	FScopedPowerFrameStep TDStepScope(TDFrameStep);
 	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
-	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f));
+	// Squad-sized hull: this test is about the pull and the cooldown, not about surviving the carrier's fighters
+	// (T4's AI now lands head-on hits; a 100-hull stand-in died before the "ready" check).
+	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f), 100000.f, 0.f);
 	UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
 	// Orb: spawned 400 cm ahead, flies 5000 cm/s for 0.8 s -> vortex centred at x = 4400.
 	const FVector Centre(4400.f, 0.f, 0.f);
 	ATDEnemyShip* Carrier = SpawnEnemyShip(W, TDEnemyIds::HiveCarrier, Centre + FVector(0.f, -3500.f, 0.f));
 	Carrier->GetHealth()->InitMaxValues(10000.f, 0.f, true);
 	Carrier->GetShipMovement()->SetComponentTickEnabled(false); // any movement now would be the vortex's
+	Carrier->MaxLaunchedAlive = 0; // no fighters from the bays: only the ships placed here are in the test
 	const FVector CarrierStart = Carrier->GetActorLocation();
 	TArray<FVector> BayOffsets;
 	for (const ATDCarrierBay* Bay : Carrier->GetBays())

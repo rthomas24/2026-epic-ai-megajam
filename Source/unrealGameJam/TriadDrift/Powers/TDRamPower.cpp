@@ -330,6 +330,17 @@ void UTDRamPower::HandleFlightImpact(const FTDFlightImpact& Impact)
 	{
 		return;
 	}
+	// A hostile part the flight model hits first (carrier bay, turret, shield generator: BlockAllDynamic) takes the
+	// full ram before the dash stops: otherwise the shockwave spares it as the stopper and it gets nothing (review).
+	if (Other && !HitThisDash.Contains(Other) && UTDStatics::GetHealth(Other)
+		&& UTDStatics::AreTeamsHostile(GetOwnerTeam(), UTDStatics::GetTeam(Other)))
+	{
+		HitActor(Other, DashDirection);
+		if (!IsDashing())
+		{
+			return; // HitActor already stopped the dash
+		}
+	}
 	StopDash(Impact.ImpactPoint, Other);
 }
 

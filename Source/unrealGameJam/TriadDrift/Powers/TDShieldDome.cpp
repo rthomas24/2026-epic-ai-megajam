@@ -120,12 +120,17 @@ void ATDShieldDome::Tick(float DeltaSeconds)
 	{
 		// Built on the first tick, once the spawner has set the mode (dome vs Blink's reflect field).
 		bPlaceholderBuilt = true;
-		if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
+		if (!bCoveredByArt && (!FX || !FTDPowerPresentation::HasArt(FX->Loop)))
 		{
 			const FLinearColor Color = bProtectSquad ? UTDStatics::ShipColor(ETDShipId::Bastion) : UTDStatics::ShipColor(ETDShipId::Rift);
 			FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 3, 48, 22.f, Color, 3.f); // thin: seen from inside it must not bar the screen (live play)
 		}
 	}
+}
+
+bool ATDShieldDome::IsShowingPlaceholder() const
+{
+	return bPlaceholderBuilt && !bCoveredByArt && (!FX || !FTDPowerPresentation::HasArt(FX->Loop));
 }
 
 void ATDShieldDome::ProtectSquad(float DeltaSeconds)

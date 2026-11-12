@@ -914,4 +914,129 @@ bool FTDReviewBoundaryExperience::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewNeverPinned, "TriadDrift.Flight.Review.NeverStuckPinnedAgainstABigBody", TD_TEST_FLAGS)
+bool FTDReviewNeverPinned::RunTest(const FString& Parameters)
+{
+	// Playtest (Nov 12): a ship flying dead head-on into a closed planet shell sat at 0 m/s forever, hands-off.
+	for (const bool bHoldIntoIt : { false, true })
+	{
+		const FString Tag = bHoldIntoIt ? TEXT("throttle held: ") : TEXT("hands-off: ");
+		FTDTestWorld W;
+		AActor* Wall = TDReviewTest::SpawnWall(W, FVector(4000.f, 0.f, 0.f));
+		Cast<UBoxComponent>(Wall->GetRootComponent())->SetBoxExtent(FVector(200.f, 400000.f, 400000.f));
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 0.f)); // nose dead into the wall (+X)
+		UTDShipMovementComponent* Move = Ship->GetShipMovement();
+		FTDFlightInput In;
+		In.Throttle = 1.f;
+		Ship->SetFlightInput(In);
+		W.Advance(3.f);
+		const FVector P0 = Ship->GetActorLocation();
+		W.Advance(1.f);
+		const float Moved = FVector::Dist(P0, Ship->GetActorLocation());
+		const float NoseInto = FVector::DotProduct(Ship->GetActorForwardVector(), FVector(-1.f, 0.f, 0.f));
+		TestTrue(*(Tag + FString::Printf(TEXT("still moving after 3 s (%.0f cm in the last second)"), Moved)), Moved > Move->GetFlightTuning().MinSpeed * 0.5f);
+		TestTrue(*(Tag + FString::Printf(TEXT("nose turned off the wall (into-wall component %.2f)"), -NoseInto)), -NoseInto < 0.3f);
+		TestTrue(*(Tag + TEXT("not through the wall")), Ship->GetActorLocation().X < 4000.f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewTerrainAhead, "TriadDrift.Flight.Review.AtmosphereClimbsSlopesAndCliffs", TD_TEST_FLAGS)
+bool FTDReviewTerrainAhead::RunTest(const FString& Parameters)
+{
+	// Review (Nov 12): the ground floor traced straight down only, so rising ground and cliffs ahead were untested.
+	// Hands-off, low and level in atmosphere, toward a 30 deg slope and a 150 m cliff: no contact with either.
+	struct FCase { const TCHAR* Name; float PitchDeg; };
+	const FCase Cases[] = { { TEXT("30 deg slope"), 30.f }, { TEXT("cliff"), 90.f } };
+	for (const FCase& C : Cases)
+	{
+		for (const float Fps : { 30.f, 60.f, 120.f })
+		{
+			const FString Tag = FString::Printf(TEXT("%s @%.0f fps: "), C.Name, Fps);
+			FTDTestWorld W;
+			AActor* Ground = TDReviewTest::SpawnWall(W, FVector(0.f, 0.f, -200.f));
+			Cast<UBoxComponent>(Ground->GetRootComponent())->SetBoxExtent(FVector(400000.f, 400000.f, 200.f));
+			// The obstacle: a box face rising from the ground 150 m ahead (tilted for the slope).
+			AActor* Rise = TDReviewTest::SpawnWall(W, FVector(15000.f, 0.f, 0.f));
+			UBoxComponent* Box = Cast<UBoxComponent>(Rise->GetRootComponent());
+			Box->SetBoxExtent(FVector(200.f, 40000.f, 15000.f));
+			Rise->SetActorRotation(FRotator(C.PitchDeg - 90.f, 0.f, 0.f)); // 90 = vertical face, 30 = gentle ramp
+			Rise->SetActorLocation(C.PitchDeg >= 89.f ? FVector(15000.f, 0.f, 15000.f) : FVector(15000.f + 15000.f * FMath::Cos(FMath::DegreesToRadians(C.PitchDeg)), 0.f, 0.f));
+			ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f)); // 15 m up, level, toward +X
+			UTDShipMovementComponent* Move = Ship->GetShipMovement();
+			Move->SetAtmosphereMode(true, 1200.f, 0.6f);
+			UTDFlightEventCounter* Counter = NewObject<UTDFlightEventCounter>();
+			Counter->AddToRoot();
+			ON_SCOPE_EXIT { Counter->RemoveFromRoot(); };
+			Counter->Bind(Move);
+			FTDFlightInput In;
+			In.Throttle = 1.f;
+			for (int32 i = 0; i < FMath::RoundToInt(Fps * 10.f); ++i)
+			{
+				Ship->SetFlightInput(In);
+				W.Tick(1.f / Fps);
+			}
+			TestEqual(*(Tag + TEXT("no contact with the terrain")), Counter->Impacts, 0);
+			TestTrue(*(Tag + FString::Printf(TEXT("still flying (%.0f cm/s)"), Ship->GetVelocity().Size())), Ship->GetVelocity().Size() > 1000.f);
+		}
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewMovableGround, "TriadDrift.Flight.Review.GroundFloorSeesMovableCourseGround", TD_TEST_FLAGS)
+bool FTDReviewMovableGround::RunTest(const FString& Parameters)
+{
+	// Live playtest (Nov 12): T5's planet course builds its ground from movable BlockAll meshes (WorldDynamic); the
+	// floor only traced WorldStatic, so a hands-off arrival skimmed it at 0 m. Same check as the static-ground test.
+	FTDTestWorld W;
+	AActor* Ground = W.Spawn<AActor>(FVector(0.f, 0.f, -200.f));
+	UBoxComponent* Box = NewObject<UBoxComponent>(Ground, TEXT("Box"));
+	Box->SetMobility(EComponentMobility::Movable);
+	Box->SetBoxExtent(FVector(400000.f, 400000.f, 200.f));
+	Box->SetCollisionProfileName(TEXT("BlockAll")); // movable BlockAll, as the planet course builds its ground
+	Ground->SetRootComponent(Box);
+	Box->RegisterComponent();
+	Ground->SetActorLocation(FVector(0.f, 0.f, -200.f));
+
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 4000.f), FRotator(-30.f, 0.f, 0.f));
+	Ship->GetShipMovement()->SetAtmosphereMode(true, 1200.f, 0.6f);
+	W.Tick();
+	const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
+	float MinGap = TNumericLimits<float>::Max();
+	for (int32 i = 0; i < 360; ++i)
+	{
+		W.Tick();
+		MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius);
+	}
+	TestTrue(*FString::Printf(TEXT("hull stays clear of the movable ground (min gap %.0f cm)"), MinGap), MinGap > 50.f);
+	// Hands-off it settles on the cushion, not skimming the ground (live: it sat at ~1 m).
+	W.Advance(6.f);
+	const float Settled = Ship->GetActorLocation().Z - Radius;
+	TestTrue(*FString::Printf(TEXT("settles near the cushion height (%.0f cm)"), Settled), Settled > 1000.f && Settled < 3500.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewBoxFloorNoWarning, "TriadDrift.Flight.Review.ZoneFloorIsNotABoundaryWarning", TD_TEST_FLAGS)
+bool FTDReviewBoxFloorNoWarning::RunTest(const FString& Parameters)
+{
+	// Every ship below 500 m over a planet read "near the boundary", so the new HUD text would say
+	// "EDGE OF THE FLIGHT AREA" through every approach. Walls and the ceiling still warn.
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 2000.f));
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	Move->SetAtmosphereMode(true, 0.f, 0.6f);
+	Move->SetBoxBoundary(FBox(FVector(-300000.f, -300000.f, -500.f), FVector(300000.f, 300000.f, 120000.f)));
+	W.Tick();
+	TestEqual(TEXT("20 m over the zone floor: inside, no warning"), Move->GetBoundaryState(), ETDBoundaryState::Inside);
+	TestTrue(TEXT("no text"), Move->GetBoundaryWarningText().IsEmpty());
+	Ship->TeleportSpacecraft(FVector(280000.f, 0.f, 2000.f), FRotator::ZeroRotator, false);
+	W.Tick();
+	TestEqual(TEXT("near a wall: warning"), Move->GetBoundaryState(), ETDBoundaryState::Warning);
+	TestEqual(TEXT("wall text"), Move->GetBoundaryWarningText().ToString(), FString(TEXT("EDGE OF THE FLIGHT AREA")));
+	Ship->TeleportSpacecraft(FVector(0.f, 0.f, 100000.f), FRotator::ZeroRotator, false);
+	W.Tick();
+	TestEqual(TEXT("near the ceiling: warning"), Move->GetBoundaryState(), ETDBoundaryState::Warning);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

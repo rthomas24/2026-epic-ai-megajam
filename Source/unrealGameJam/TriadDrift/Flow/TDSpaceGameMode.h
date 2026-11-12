@@ -98,6 +98,8 @@ protected:
 	/** Install cheats, give every player the squad's active ship, destroy stray login pawns. */
 	void HandOverPlayers();
 	void ApplyStartingShip();
+	/** Where the squad starts: the Dominion approach / trench during the assault, else the progress return point. */
+	FTransform ResolveSquadOrigin() const;
 	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 
 	UPROPERTY(Transient)
@@ -118,7 +120,7 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> StarBackdrop;
 
-	/** Unlit glow material for the stars, referenced from the CDO so a packaged build cooks it. */
+	/** Unlit glow material for the stars (Core's placeholder glow: instanced-mesh usage, always cooked). */
 	UPROPERTY()
 	TObjectPtr<UMaterialInterface> StarGlowMaterial;
 

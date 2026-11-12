@@ -315,6 +315,9 @@ public:
 	/** Starts the fight if the player is already inside (walked in early, respawned inside, step just began). */
 	UFUNCTION(BlueprintCallable, Category = "Encounter") bool ActivateIfPlayerInside();
 
+	/** Its objective was already done when the level loaded (Continue): cleared, doors open, never arms. */
+	void MarkClearedOnLoad();
+
 	/** Add an actor spawned mid-fight (a Warden's summons) so it counts toward the clear and is reset with the room. */
 	void AdoptMember(AActor* Member);
 	UFUNCTION(BlueprintPure, Category = "Encounter") bool IsActive() const { return bActivated && !bCleared; }

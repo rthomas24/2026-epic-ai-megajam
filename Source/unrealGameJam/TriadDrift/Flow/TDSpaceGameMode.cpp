@@ -67,11 +67,6 @@ ATDSpaceGameMode::ATDSpaceGameMode()
 	SquadOrigin = FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostUpdateWork; // after the camera moved this frame
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
-	if (Glow.Succeeded())
-	{
-		StarGlowMaterial = Glow.Object;
-	}
 }
 
 void ATDSpaceGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -104,10 +99,7 @@ void ATDSpaceGameMode::StartPlay()
 		GalaxyLayout = ATDGalaxyLayout::SpawnDefaultGalaxy(this);
 		if (GalaxyLayout)
 		{
-			const UTDGameInstance* GI = UTDGameInstance::Get(this);
-			FTransform Where;
-			// Layout return points, or the Dominion stage points framed from the Dominion itself.
-			SquadOrigin = (GI && FTDJourney::FindStageStart(GetWorld(), GI->GetProgressRef().ReturnPoint, Where)) ? Where : GalaxyLayout->GetPlayerStart();
+			SquadOrigin = ResolveSquadOrigin();
 		}
 	}
 	if (bSpawnEnvironment)
@@ -118,6 +110,17 @@ void ATDSpaceGameMode::StartPlay()
 	SpawnWaveDirector();
 
 	Super::StartPlay(); // BeginPlay on actors
+
+	// The layout spawns the Dominion in its BeginPlay: the Dominion stage points resolve only now.
+	if (GalaxyLayout)
+	{
+		const FTransform Resolved = ResolveSquadOrigin();
+		if (!Resolved.GetLocation().Equals(SquadOrigin.GetLocation(), 1.f) && SquadManager)
+		{
+			SquadOrigin = Resolved;
+			TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin);
+		}
+	}
 
 	// Local players logged in before StartPlay: hand them the active ship, clear any login pawn.
 	HandOverPlayers();
@@ -309,6 +312,22 @@ void ATDSpaceGameMode::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 	RestartScene();
 }
 
+FTransform ATDSpaceGameMode::ResolveSquadOrigin() const
+{
+	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	FName Point = GI ? GI->GetProgressRef().ReturnPoint : NAME_None;
+	if (GI && GI->GetProgressRef().Phase == ETDGamePhase::DominionAssault)
+	{
+		Point = GI->GetProgressRef().bDominionDefensesDown ? FTDJourney::DominionTrench : FTDJourney::DominionApproach;
+	}
+	FTransform Where;
+	if (FTDJourney::FindStageStart(GetWorld(), Point, Where))
+	{
+		return Where;
+	}
+	return GalaxyLayout ? GalaxyLayout->GetPlayerStart() : SquadOrigin;
+}
+
 void ATDSpaceGameMode::RestartScene()
 {
 	// New take: SpawnSquad is T3's retake call (revive all three, reposition, give the player the lead
@@ -316,6 +335,10 @@ void ATDSpaceGameMode::RestartScene()
 	// don't touch waves here.
 	if (SquadManager)
 	{
+		if (GalaxyLayout)
+		{
+			SquadOrigin = ResolveSquadOrigin(); // the phase may have moved on since level entry (the assault)
+		}
 		ApplyStartingShip();
 		TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin);
 	}
@@ -389,6 +412,7 @@ void ATDSpaceGameMode::SpawnStarBackdrop()
 		ISM->SetupAttachment(Root);
 		ISM->RegisterComponent();
 		Stars->AddInstanceComponent(ISM);
+		StarGlowMaterial = UTDStatics::GetPlaceholderGlowMaterial(); // instanced-mesh usage, always cooked (Core)
 		if (StarGlowMaterial)
 		{
 			if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(StarGlowMaterial, Stars))

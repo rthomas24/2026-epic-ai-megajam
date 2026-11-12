@@ -143,7 +143,7 @@ float UTDLandingComponent::GetLandingSpeedLimit() const
 	return Move ? Move->GetCruiseCapSpeed() * Tuning.MaxSpeedFraction + 1.f : 0.f; // +1: "at or below"
 }
 
-ATDLandingPad* UTDLandingComponent::GetAssistPad() const
+ATDLandingPad* UTDLandingComponent::GetAssistPad(float RangeScale) const
 {
 	const ATDShip* Ship = GetShip();
 	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
@@ -166,7 +166,7 @@ ATDLandingPad* UTDLandingComponent::GetAssistPad() const
 		}
 	}
 	ATDLandingPad* Near = Travel->FindPlayerPad(Ship->GetActorLocation(), TNumericLimits<float>::Max());
-	if (Near && !Near->IsOccupied() && FVector::Dist(Near->GetBeaconLocation(), Ship->GetActorLocation()) <= Tuning.SlowDownPromptRange)
+	if (Near && !Near->IsOccupied() && FVector::Dist(Near->GetBeaconLocation(), Ship->GetActorLocation()) <= Tuning.SlowDownPromptRange * RangeScale)
 	{
 		return Near;
 	}
@@ -207,7 +207,8 @@ void UTDLandingComponent::TickApproachAssist(float DeltaTime)
 	ATDShip* Ship = GetShip();
 	ATDLandingPad* Target = AssistPad.Get();
 	// Anything that would refuse a new assist (death, a switch, hyperdrive, boost, out of range) ends this one.
-	if (!Ship || !Target || GetAssistPad() != Target)
+	// Twice the start range: an assist begun near the edge (or past the pad) has room to turn the ship around.
+	if (!Ship || !Target || GetAssistPad(2.f) != Target)
 	{
 		StopApproachAssist();
 		return;
@@ -352,7 +353,48 @@ bool UTDLandingComponent::BeginLanding(ATDLandingPad* InPad)
 	}
 	PauseFlight(true);
 	SetState(ETDLandingState::Aligning);
+	PlanAlignArc();
 	return true;
+}
+
+void UTDLandingComponent::PlanAlignArc()
+{
+	AlignArc = 0.f;
+	ATDShip* Ship = GetShip();
+	const UWorld* World = GetWorld();
+	if (!Ship || !World)
+	{
+		return;
+	}
+	// The sequence moves the ship directly (no flight model): a tall rock or tower between it and the pad would be
+	// flown through. Sweep the straight line; if it is blocked, arc over the obstacle's top (review, Nov 12).
+	const float Radius = Ship->GetCollisionSphere() ? Ship->GetCollisionSphere()->GetScaledSphereRadius() : 200.f;
+	const FVector From = SegmentStart;
+	const FVector To = HoverPoint();
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDLandingAlign), false, Ship);
+	if (Pad.IsValid())
+	{
+		Params.AddIgnoredActor(Pad.Get());
+	}
+	FHitResult Hit;
+	if (!UTDShipMovementComponent::SweepTerrain(World, Hit, From, To, Radius, Params))
+	{
+		return;
+	}
+	// Find the obstacle's top above the hit point.
+	FHitResult Top;
+	const FVector Probe(Hit.ImpactPoint.X, Hit.ImpactPoint.Y, FMath::Max(From.Z, To.Z) + 100000.f);
+	float TopZ = Hit.ImpactPoint.Z;
+	if (UTDShipMovementComponent::SweepTerrain(World, Top, Probe, FVector(Probe.X, Probe.Y, Hit.ImpactPoint.Z), 0.f, Params))
+	{
+		TopZ = Top.ImpactPoint.Z;
+	}
+	const float F = FMath::Clamp(Hit.Time, 0.1f, 0.9f);
+	const float LineZ = FMath::Lerp(From.Z, To.Z, F);
+	const float Need = TopZ + Radius * 2.5f - LineZ;
+	AlignArc = FMath::Clamp(Need / (4.f * F * (1.f - F)), 0.f, 30000.f);
+	// Give the longer path a little more time so it doesn't rush.
+	AlignSecondsNow = FMath::Min(AlignSecondsNow + AlignArc / 3000.f, 6.f);
 }
 
 bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
@@ -674,7 +716,7 @@ void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	switch (State)
 	{
 	case ETDLandingState::Aligning:
-		Target = FMath::Lerp(SegmentStart, HoverPoint(), A);
+		Target = FMath::Lerp(SegmentStart, HoverPoint(), A) + FVector(0.f, 0.f, AlignArc * 4.f * A * (1.f - A));
 		TargetRot = FQuat::Slerp(SegmentStartRot, PadFacing(), A);
 		break;
 	case ETDLandingState::Descending:

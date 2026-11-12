@@ -176,7 +176,7 @@ private:
 	/** Distance growth last applied (re-scaling is skipped while it changes by under 3%). */
 	float AppliedGrowth = 1.f;
 
-	/** Engine glow material, hard-referenced so it cooks. Streaks fall back to the lit material without it. */
+	/** Project glow material (UTDStatics::GetPlaceholderGlowMaterial, always cooked). Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInterface> GlowMaterial;
 

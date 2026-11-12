@@ -242,7 +242,7 @@ void ATDDominion::SyncHyperdriveLock()
 	{
 		const bool bLocked = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
 			|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
-		if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT")); }
+		if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT"), this); }
 		else { Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale); }
 	}
 }
