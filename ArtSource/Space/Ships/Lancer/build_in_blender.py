@@ -1,7 +1,10 @@
-"""Lancer M01 source adapter. Prepared only; NOT executed or Blender-verified.
+"""Lancer M01 source adapter. See review/ for the latest validation status.
 
 Run only after human silhouette review and Lead binary-claim publication:
   blender --background --factory-startup --python build_in_blender.py -- --production-authorized
+
+For explicitly authorized silhouette validation only, use --review-authorized.
+Review authorization does not approve final production or Unreal import.
 
 Creates an isolated collection without clearing or saving the current scene.
 No FBX, image, .blend or Unreal writes. Inspect/QA before exporting with the
@@ -14,9 +17,9 @@ import runpy
 import sys
 
 
-def build(production_authorized=False):
-    if not production_authorized:
-        raise RuntimeError("Source-only milestone: obtain silhouette approval and Lead binary claim first")
+def build(production_authorized=False, review_authorized=False):
+    if not (production_authorized or review_authorized):
+        raise RuntimeError("Obtain review authorization or production approval before running this adapter")
     import bpy
     from mathutils import Matrix, Vector
 
@@ -43,7 +46,7 @@ def build(production_authorized=False):
         mat = bpy.data.materials.new(name)
         mat.use_nodes = True
         bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-        rgb = hs["hex_color"](spec["hex"])
+        rgb = (*hs["hex_color"](spec["hex"]), 1.0)
         bsdf.inputs["Base Color"].default_value = rgb
         bsdf.inputs["Metallic"].default_value = spec["metallic"]
         bsdf.inputs["Roughness"].default_value = spec["roughness"]
@@ -103,7 +106,9 @@ def build(production_authorized=False):
         # Exporter socket visual convention: local -Y forward, +Z up.
         forward = Vector(co([v * 100 for v in sock["forward"]])).normalized()
         up = Vector(co([v * 100 for v in sock["up"]])).normalized()
-        right = forward.cross(up).normalized()
+        # Local -Y is forward; +X must be up cross forward. The opposite
+        # cross product creates a reflection and reverses Euler socket direction.
+        right = up.cross(forward).normalized()
         obj.rotation_euler = Matrix((right, -forward, up)).transposed().to_euler()
         obj.empty_display_type = "ARROWS"
         obj.empty_display_size = 0.18
@@ -118,5 +123,6 @@ def build(production_authorized=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--production-authorized", action="store_true")
+    parser.add_argument("--review-authorized", action="store_true")
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-    print(json.dumps(build(args.production_authorized)))
+    print(json.dumps(build(args.production_authorized, args.review_authorized)))

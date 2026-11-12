@@ -38,6 +38,15 @@ Attachment names are unique per parent, not globally. Full transforms are in
 `attachments.json`. Engine VFX must align their emission axis to the supplied
 outward basis; do not assume every effect points along the ship's +X.
 
+**Blender review caveat (2026-11-12):** the rocket source pivot is at its centre
+and its rear extends 54 cm. Direct centre placement at a secondary socket leaves
+50 cm of the rocket envelope behind the pod lip; fins are wider than the bore.
+For an immediately fully clear visual, a proposed +54 cm local-forward offset
+preserves 4 cm of rear clearance. Ryan must agree that offset or deliberate tube
+egress handling before integration. The muzzle sockets remain valid VFX/ray
+origins; they are not a certified full-volume launch placement. See
+`review/projectile_envelope.json`. No manifest, mesh or gameplay change is made.
+
 ## Ryan's implementation needs
 
 - Confirm whether `UTDShipVisuals` can describe an array of attached modular mesh

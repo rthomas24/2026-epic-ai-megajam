@@ -1,0 +1,1966 @@
+{
+  "status": "ok",
+  "scene_units": {
+    "system": "METRIC",
+    "scale_length": 1.0,
+    "length_unit": "METERS"
+  },
+  "objects": [
+    {
+      "name": "SM_Lancer_M01_Hull",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        680.0,
+        798.0,
+        166.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 1688,
+      "faces": 3264,
+      "tris": 3264,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 48,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "0": 776,
+        "1": 264,
+        "2": 1152,
+        "3": 576,
+        "4": 64,
+        "5": 432
+      },
+      "local_bbox_min": [
+        -3.4,
+        -4.0,
+        -0.5
+      ],
+      "local_bbox_max": [
+        3.4,
+        3.98,
+        1.16
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SOCKET_Hull_Ability_EMP",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Ability_Overdrive",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        2.05,
+        0.61
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Mount_Primary_L",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -1.0,
+        -0.3,
+        -0.42
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Mount_Primary_R",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        1.0,
+        -0.3,
+        -0.42
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Mount_Secondary_L",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -2.2,
+        0.9,
+        -0.44
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Mount_Secondary_R",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        2.2,
+        0.9,
+        -0.44
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Ram_Visual",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        -4.04,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Thruster_L",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -1.11,
+        4.02,
+        -0.03
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        -0.0,
+        180.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Hull_Thruster_R",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Hull",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        1.11,
+        4.02,
+        -0.03
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        -0.0,
+        180.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SM_Lancer_M01_MountPrimary_L",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -1.0,
+        -0.3,
+        -0.42
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        54.0,
+        72.0,
+        24.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "2": 32,
+        "3": 64
+      },
+      "local_bbox_min": [
+        -0.27,
+        -0.36,
+        -0.15
+      ],
+      "local_bbox_max": [
+        0.27,
+        0.36,
+        0.09
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SM_Lancer_M01_Primary_L",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -1.0,
+        -0.3,
+        -0.42
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        48.0,
+        78.0,
+        46.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 156,
+      "faces": 304,
+      "tris": 304,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 33.778,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "0": 48,
+        "2": 64,
+        "3": 192
+      },
+      "local_bbox_min": [
+        -0.24,
+        -0.35,
+        -0.37
+      ],
+      "local_bbox_max": [
+        0.24,
+        0.43,
+        0.09
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SOCKET_Primary_L_Muzzle_Primary_L",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Primary_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        -1.74,
+        -0.15
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Primary_L_Rotor_Pivot",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Primary_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        -0.35,
+        -0.15
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SM_Lancer_M01_Rotor_L",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -1.0,
+        -0.65,
+        -0.57
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        40.0,
+        144.0,
+        40.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 626,
+      "faces": 1248,
+      "tris": 1248,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "2": 480,
+        "3": 768
+      },
+      "local_bbox_min": [
+        -0.2,
+        -1.36,
+        -0.2
+      ],
+      "local_bbox_max": [
+        0.2,
+        0.08,
+        0.2
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SOCKET_Rotor_L_Barrel_01",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.12,
+        -1.38,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_L_Barrel_02",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.06,
+        -1.38,
+        0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_L_Barrel_03",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.06,
+        -1.38,
+        0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_L_Barrel_04",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.12,
+        -1.38,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_L_Barrel_05",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.06,
+        -1.38,
+        -0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_L_Barrel_06",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.06,
+        -1.38,
+        -0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SM_Lancer_M01_MountSecondary_L",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -2.2,
+        0.9,
+        -0.44
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        54.0,
+        72.0,
+        24.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "2": 32,
+        "3": 64
+      },
+      "local_bbox_min": [
+        -0.27,
+        -0.36,
+        -0.15
+      ],
+      "local_bbox_max": [
+        0.27,
+        0.36,
+        0.09
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SM_Lancer_M01_Secondary_L",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -2.2,
+        0.9,
+        -0.44
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        74.0,
+        173.0,
+        65.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 960,
+      "faces": 1888,
+      "tris": 1888,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "0": 64,
+        "1": 480,
+        "2": 576,
+        "3": 768
+      },
+      "local_bbox_min": [
+        -0.37,
+        -1.08,
+        -0.53
+      ],
+      "local_bbox_max": [
+        0.37,
+        0.65,
+        0.12
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SOCKET_Secondary_L_Muzzle_Secondary_L_01",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.16,
+        -1.12,
+        -0.09
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Secondary_L_Muzzle_Secondary_L_02",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.16,
+        -1.12,
+        -0.39
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Secondary_L_Muzzle_Secondary_L_03",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.16,
+        -1.12,
+        -0.09
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Secondary_L_Muzzle_Secondary_L_04",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_L",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.16,
+        -1.12,
+        -0.39
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SM_Lancer_M01_MountPrimary_R",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        1.0,
+        -0.3,
+        -0.42
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        54.0,
+        72.0,
+        24.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "2": 32,
+        "3": 64
+      },
+      "local_bbox_min": [
+        -0.27,
+        -0.36,
+        -0.15
+      ],
+      "local_bbox_max": [
+        0.27,
+        0.36,
+        0.09
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SM_Lancer_M01_Primary_R",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        1.0,
+        -0.3,
+        -0.42
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        48.0,
+        78.0,
+        46.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 156,
+      "faces": 304,
+      "tris": 304,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 33.778,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "0": 48,
+        "2": 64,
+        "3": 192
+      },
+      "local_bbox_min": [
+        -0.24,
+        -0.35,
+        -0.37
+      ],
+      "local_bbox_max": [
+        0.24,
+        0.43,
+        0.09
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SOCKET_Primary_R_Muzzle_Primary_R",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Primary_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        -1.74,
+        -0.15
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Primary_R_Rotor_Pivot",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Primary_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        -0.35,
+        -0.15
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SM_Lancer_M01_Rotor_R",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        1.0,
+        -0.65,
+        -0.57
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        40.0,
+        144.0,
+        40.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 626,
+      "faces": 1248,
+      "tris": 1248,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "2": 480,
+        "3": 768
+      },
+      "local_bbox_min": [
+        -0.2,
+        -1.36,
+        -0.2
+      ],
+      "local_bbox_max": [
+        0.2,
+        0.08,
+        0.2
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SOCKET_Rotor_R_Barrel_01",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.12,
+        -1.38,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_R_Barrel_02",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.06,
+        -1.38,
+        0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_R_Barrel_03",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.06,
+        -1.38,
+        0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_R_Barrel_04",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.12,
+        -1.38,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_R_Barrel_05",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.06,
+        -1.38,
+        -0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Rotor_R_Barrel_06",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Rotor_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.06,
+        -1.38,
+        -0.10392
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SM_Lancer_M01_MountSecondary_R",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        2.2,
+        0.9,
+        -0.44
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        54.0,
+        72.0,
+        24.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 52,
+      "faces": 96,
+      "tris": 96,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "2": 32,
+        "3": 64
+      },
+      "local_bbox_min": [
+        -0.27,
+        -0.36,
+        -0.15
+      ],
+      "local_bbox_max": [
+        0.27,
+        0.36,
+        0.09
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SM_Lancer_M01_Secondary_R",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        2.2,
+        0.9,
+        -0.44
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        74.0,
+        173.0,
+        65.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 960,
+      "faces": 1888,
+      "tris": 1888,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 1.0,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "0": 64,
+        "1": 480,
+        "2": 576,
+        "3": 768
+      },
+      "local_bbox_min": [
+        -0.37,
+        -1.08,
+        -0.53
+      ],
+      "local_bbox_max": [
+        0.37,
+        0.65,
+        0.12
+      ],
+      "origin_placement": "custom"
+    },
+    {
+      "name": "SOCKET_Secondary_R_Muzzle_Secondary_R_01",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.16,
+        -1.12,
+        -0.09
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Secondary_R_Muzzle_Secondary_R_02",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        -0.16,
+        -1.12,
+        -0.39
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Secondary_R_Muzzle_Secondary_R_03",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.16,
+        -1.12,
+        -0.09
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SOCKET_Secondary_R_Muzzle_Secondary_R_04",
+      "type": "EMPTY",
+      "parent": "SM_Lancer_M01_Secondary_R",
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.16,
+        -1.12,
+        -0.39
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hide_render": false,
+      "modifiers": [],
+      "materials": []
+    },
+    {
+      "name": "SM_Lancer_M01_ProjectileSource",
+      "type": "MESH",
+      "parent": null,
+      "collections": [
+        "SRC_Lancer_M01"
+      ],
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_mode": "XYZ",
+      "rotation_euler_deg": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "dimensions_cm": [
+        34.0,
+        104.0,
+        15.6
+      ],
+      "hide_render": true,
+      "modifiers": [],
+      "materials": [
+        "M01_M_Lancer_Ceramic",
+        "M01_M_Lancer_CyanPaint",
+        "M01_M_Lancer_Composite",
+        "M01_M_Lancer_BareMetal",
+        "M01_M_Lancer_Canopy",
+        "M01_M_Lancer_Emission"
+      ],
+      "verts": 162,
+      "faces": 312,
+      "tris": 312,
+      "quads": 0,
+      "ngons": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "wire_edges": 0,
+      "flipped_winding_edges": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "duplicate_verts": 0,
+      "closed": true,
+      "inside_out": false,
+      "smooth_face_ratio": 34.667,
+      "has_custom_normals": false,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "faces_per_material_index": {
+        "0": 160,
+        "1": 56,
+        "2": 96
+      },
+      "local_bbox_min": [
+        -0.17,
+        -0.5,
+        -0.078
+      ],
+      "local_bbox_max": [
+        0.17,
+        0.54,
+        0.078
+      ],
+      "origin_placement": "center"
+    }
+  ],
+  "totals": {
+    "objects": 45,
+    "tris": 10840,
+    "errors": 0,
+    "warnings": 1
+  },
+  "issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Lancer_M01_Hull",
+      "message": "48 duplicate vertices within 0.0001 m; merge by distance"
+    }
+  ]
+}

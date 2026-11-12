@@ -1,5 +1,12 @@
 # Lancer M01 — source prototype
 
+**Latest review:** [Blender multi-angle silhouette review](review/index.html),
+[nine-view image](review/Lancer_overview.png) and
+[validation notes](review/validation_notes.md). Blender 5.1.1 verified the original
+source geometry, scale and corrected attachment conversion. Assembly contact
+and mount-overlap failures remain documented; manual silhouette approval is pending.
+The historical source-only checks below predate this explicitly authorized review.
+
 Open `Lancer_preview.html` locally for orbit/zoom, module inspection, optional
 weapons, attachment markers, exploded assembly and an illustrative emissive slider.
 `Lancer_review.svg` has six assembly views plus weapon-module views. These previews

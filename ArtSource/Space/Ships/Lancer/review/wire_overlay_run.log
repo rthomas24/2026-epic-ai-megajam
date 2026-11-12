@@ -1,0 +1,11 @@
+C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review_lancer.py:237: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  sc.world.use_nodes = True
+00:05.500  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\wire_front_3q.png'
+00:05.844  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\wire_front.png'
+00:06.250  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\wire_right.png'
+00:06.625  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\wire_top.png'
+00:06.954  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\wire_back_3q.png'
+00:07.266  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\wire_low_3q.png'
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit
