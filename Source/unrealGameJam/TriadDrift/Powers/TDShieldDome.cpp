@@ -46,7 +46,7 @@ ATDShieldDome* ATDShieldDome::SpawnDome(UWorld* World, AActor* InOwner, ETDTeam 
 	}
 	if (InFX)
 	{
-		Dome->LoopFX = UTDStatics::PlayCueAttached(InFX->Loop, Dome->GetRootComponent());
+		Dome->LoopFX = FTDPowerPresentation::RequestCueAttached(TEXT("Ability.Loop"), InFX->Loop, Dome->GetRootComponent());
 	}
 	return Dome;
 }
@@ -74,7 +74,7 @@ void ATDShieldDome::Collapse()
 	}
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->End, GetActorLocation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Ability.End"), FX->End, GetActorLocation());
 	}
 	Destroy();
 }

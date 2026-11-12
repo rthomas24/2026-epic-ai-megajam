@@ -7,6 +7,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
+#include "UObject/ConstructorHelpers.h"
 
 const FName FTDPowerPresentation::PlaceholderTag(TEXT("TDPowerPlaceholder"));
 
@@ -44,15 +45,15 @@ namespace
 
 	UStaticMesh* TDPresShapeMesh(FTDPowerPresentation::EShape Shape)
 	{
-		const TCHAR* Path = TEXT("/Engine/BasicShapes/Sphere.Sphere");
+		// From the flash actor's CDO: hard references, so the cook includes them (path-only loads don't ship).
+		const ATDPlaceholderFlash* CDO = GetDefault<ATDPlaceholderFlash>();
 		switch (Shape)
 		{
-		case FTDPowerPresentation::EShape::Cylinder: Path = TEXT("/Engine/BasicShapes/Cylinder.Cylinder"); break;
-		case FTDPowerPresentation::EShape::Cone: Path = TEXT("/Engine/BasicShapes/Cone.Cone"); break;
-		case FTDPowerPresentation::EShape::Cube: Path = TEXT("/Engine/BasicShapes/Cube.Cube"); break;
-		default: break;
+		case FTDPowerPresentation::EShape::Cylinder: return CDO->CylinderMesh;
+		case FTDPowerPresentation::EShape::Cone: return CDO->ConeMesh;
+		case FTDPowerPresentation::EShape::Cube: return CDO->CubeMesh;
+		default: return CDO->SphereMesh;
 		}
-		return LoadObject<UStaticMesh>(nullptr, Path);
 	}
 
 	template <typename TComp>
@@ -99,6 +100,39 @@ UTDTravelFX* FTDPowerPresentation::LoadTravelFX()
 UTDWeaponFX* FTDPowerPresentation::LoadWeaponFX(FName WeaponId)
 {
 	return WeaponId.IsNone() ? nullptr : TDPresLoadCached<UTDWeaponFX>(FString::Printf(TEXT("DA_%s_FX"), *WeaponId.ToString()));
+}
+
+namespace
+{
+	TMap<FName, int32>& TDPresCueRequests()
+	{
+		static TMap<FName, int32> Requests;
+		return Requests;
+	}
+}
+
+UNiagaraComponent* FTDPowerPresentation::RequestCue(const UObject* WorldContext, FName Moment, const FTDFXCue& Cue, const FVector& Location,
+	const FRotator& Rotation)
+{
+	++TDPresCueRequests().FindOrAdd(Moment);
+	return UTDStatics::PlayCue(WorldContext, Cue, Location, Rotation);
+}
+
+UNiagaraComponent* FTDPowerPresentation::RequestCueAttached(FName Moment, const FTDFXCue& Cue, USceneComponent* AttachTo)
+{
+	++TDPresCueRequests().FindOrAdd(Moment);
+	return UTDStatics::PlayCueAttached(Cue, AttachTo);
+}
+
+int32 FTDPowerPresentation::GetCueRequests(FName Moment)
+{
+	const int32* N = TDPresCueRequests().Find(Moment);
+	return N ? *N : 0;
+}
+
+void FTDPowerPresentation::ResetCueRequests()
+{
+	TDPresCueRequests().Reset();
 }
 
 bool FTDPowerPresentation::HasArt(const FTDFXCue& Cue)
@@ -168,6 +202,14 @@ int32 FTDPowerPresentation::CountPlaceholders(const AActor* Owner)
 
 ATDPlaceholderFlash::ATDPlaceholderFlash()
 {
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cone(TEXT("/Engine/BasicShapes/Cone.Cone"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	SphereMesh = Sphere.Object;
+	CylinderMesh = Cylinder.Object;
+	ConeMesh = Cone.Object;
+	CubeMesh = Cube.Object;
 	PrimaryActorTick.bCanEverTick = true;
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
 	SetCanBeDamaged(false);

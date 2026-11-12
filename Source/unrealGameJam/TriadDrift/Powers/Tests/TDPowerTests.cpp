@@ -98,6 +98,10 @@ bool FTDRamDash::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRamFullDash, "TriadDrift.Powers.Ram.InstantKickDistanceRockAndRefusals", TD_TEST_FLAGS)
 bool FTDRamFullDash::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	// Open space: instant kick to 3x boost; distance = 1.2 s of dash.
 	{
 		FTDTestWorld W;
@@ -106,7 +110,7 @@ bool FTDRamFullDash::RunTest(const FString& Parameters)
 		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
 		const float DashSpeed = Lancer->GetShipMovement()->GetFlightTuning().BoostSpeed * 3.f;
 		Ram->TryActivate();
-		W.Advance(0.6f);
+		W.Advance(0.6f, PowerFrameStep());
 		TestEqual(TEXT("3x boost speed 0.3 s into the dash"), (float)Lancer->GetVelocity().Size(), DashSpeed, DashSpeed * 0.03f);
 		AdvanceUntil(W, [&] { return !Ram->IsPowerActive(); }, 2.f);
 		TestEqual(TEXT("dash distance = 1.2 s at 3x boost"), Ram->GetLastDashDistance(), DashSpeed * 1.2f, DashSpeed * 1.2f * 0.06f);
@@ -149,12 +153,18 @@ bool FTDRamFullDash::RunTest(const FString& Parameters)
 			AddInfo(TEXT("hyperdrive could not spool in a bare test world; refusal covered by IsHyperdriveBusy"));
 		}
 	}
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmLocks, "TriadDrift.Powers.Swarm.TwelveMissilesSplitAcrossPaintedLocks", TD_TEST_FLAGS)
 bool FTDSwarmLocks::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 	UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Bastion, TEXT("Targeting"));
@@ -164,7 +174,7 @@ bool FTDSwarmLocks::RunTest(const FString& Parameters)
 	AActor* Mid = SpawnBody(W, ETDTeam::Enemy, FVector(8000.f, 0.f, 0.f), FVector(150.f), 1000.f);
 	AActor* Right = SpawnBody(W, ETDTeam::Enemy, FVector(8000.f, 1500.f, 0.f), FVector(150.f), 1000.f);
 
-	W.Advance(1.f);
+	W.Advance(1.f, PowerFrameStep());
 	TestTrue(TEXT("auto-painting while ready"), Targeting->IsPainting());
 	TestEqual(TEXT("3 painted locks for the HUD"), Targeting->GetLockedTargets().Num(), 3);
 
@@ -173,19 +183,25 @@ bool FTDSwarmLocks::RunTest(const FString& Parameters)
 	TestFalse(TEXT("painting stops on cooldown"), Targeting->IsPainting());
 	TestEqual(TEXT("locks consumed"), Targeting->GetLockedTargets().Num(), 0);
 
-	W.Advance(3.f);
+	W.Advance(3.f, PowerFrameStep());
 	TestEqual(TEXT("left: 4 x 18"), Hull(Left), 1000.f - 72.f, 0.01f);
 	TestEqual(TEXT("mid: 4 x 18"), Hull(Mid), 1000.f - 72.f, 0.01f);
 	TestEqual(TEXT("right: 4 x 18"), Hull(Right), 1000.f - 72.f, 0.01f);
 	TestFalse(TEXT("9 s cooldown"), Swarm->CanActivate());
-	W.Advance(6.1f);
+	W.Advance(6.1f, PowerFrameStep());
 	TestTrue(TEXT("ready after 9 s"), Swarm->CanActivate());
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmSoftTarget, "TriadDrift.Powers.Swarm.FallsBackToSoftTarget", TD_TEST_FLAGS)
 bool FTDSwarmSoftTarget::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 	UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Bastion, TEXT("Targeting"));
@@ -197,14 +213,20 @@ bool FTDSwarmSoftTarget::RunTest(const FString& Parameters)
 	Targeting->RefreshNow();
 	TestTrue(TEXT("soft target picked"), Targeting->GetCurrentTarget() == Target);
 	Swarm->TryActivate();
-	W.Advance(3.f);
+	W.Advance(3.f, PowerFrameStep());
 	TestEqual(TEXT("all 12 on the soft target"), Hull(Target), 1000.f - 12.f * 18.f, 0.01f);
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDome, "TriadDrift.Powers.Dome.ProtectsRegensBlocksAndExpires", TD_TEST_FLAGS)
 bool FTDDome::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f), 180.f, 160.f);
 	AActor* Wingman = SpawnBody(W, ETDTeam::Player, FVector(1500.f, 0.f, 0.f), FVector(100.f), 100.f, 100.f);
@@ -214,7 +236,7 @@ bool FTDDome::RunTest(const FString& Parameters)
 
 	// Wingman's shield knocked down; its own regen starts 3 s later at 25 %/s.
 	UTDStatics::ApplyTDDamage(Wingman, 60.f, ETDDamageKind::Energy, Gunship, Gunship);
-	W.Advance(3.05f);
+	W.Advance(3.05f, PowerFrameStep());
 	const float ShieldBefore = Shield(Wingman);
 
 	TestTrue(TEXT("dome up"), DomePower->TryActivate());
@@ -223,7 +245,7 @@ bool FTDDome::RunTest(const FString& Parameters)
 	TestTrue(TEXT("wingmen can find the dome"), Powers && Powers->FindDomeCovering(Wingman->GetActorLocation()) == Dome);
 	TestNull(TEXT("outside the 3000 cm radius isn't covered"), Powers ? Powers->FindDomeCovering(FVector(3500.f, 0.f, 0.f)) : nullptr);
 
-	W.Advance(1.f);
+	W.Advance(1.f, PowerFrameStep());
 	TestEqual(TEXT("shield regen doubled inside (50 %/s)"), Shield(Wingman) - ShieldBefore, 50.f, 4.f);
 
 	TestEqual(TEXT("no damage inside"), UTDStatics::ApplyTDDamage(Wingman, 50.f, ETDDamageKind::Energy, Gunship, Gunship), 0.f);
@@ -237,20 +259,20 @@ bool FTDDome::RunTest(const FString& Parameters)
 	TestTrue(TEXT("enemy bolt destroyed"), BoltDiedAt > 0.f);
 	const float DistFromCentre = (float)FVector::Dist(BoltLast, Dome->GetActorLocation());
 	TestTrue(TEXT("...on the shell, not a frame-step inside it"), DistFromCentre > 3000.f - 50.f && DistFromCentre < 3000.f + 12000.f / 60.f + 50.f);
-	W.Advance(0.5f);
+	W.Advance(0.5f, PowerFrameStep());
 	TestTrue(TEXT("enemy missile deflected"), Missile && Missile->IsActive() && Missile->GetTeam() == ETDTeam::Player);
 
 	// Follows Bastion with a lag: never left behind at cruise.
 	ATDSpacecraft* Pace = nullptr;
 	Bastion->SetActorLocation(FVector(0.f, 10000.f, 0.f));
-	W.Advance(0.05f);
+	W.Advance(0.05f, PowerFrameStep());
 	TestTrue(TEXT("dome lags a sudden jump"), FVector::Dist(Dome->GetActorLocation(), Bastion->GetActorLocation()) > 5000.f);
-	W.Advance(0.95f);
+	W.Advance(0.95f, PowerFrameStep());
 	TestTrue(TEXT("...and catches up within a second"), FVector::Dist(Dome->GetActorLocation(), Bastion->GetActorLocation()) < 500.f);
 	for (int32 i = 0; i < 60; ++i) // Bastion cruising at 4800 cm/s for 1 s
 	{
 		Bastion->SetActorLocation(Bastion->GetActorLocation() + FVector(4800.f / 60.f, 0.f, 0.f));
-		W.Tick();
+		W.Tick(PowerFrameStep());
 	}
 	TestTrue(TEXT("a cruising Bastion stays inside its own dome"), Dome->Covers(Bastion->GetActorLocation()));
 	(void)Pace;
@@ -258,10 +280,12 @@ bool FTDDome::RunTest(const FString& Parameters)
 	const float GoneAt = AdvanceUntil(W, [&] { return !IsValid(Dome); }, 3.f);
 	TestTrue(TEXT("dome gone after 6 s"), GoneAt > 0.f);
 	TestFalse(TEXT("power ended"), DomePower->IsPowerActive());
-	W.Advance(15.7f);
+	W.Advance(15.7f, PowerFrameStep());
 	TestFalse(TEXT("16 s cooldown from collapse"), DomePower->CanActivate());
-	W.Advance(0.5f);
+	W.Advance(0.5f, PowerFrameStep());
 	TestTrue(TEXT("ready after 16 s"), DomePower->CanActivate());
+	continue;
+	}
 	return true;
 }
 
@@ -270,6 +294,10 @@ bool FTDDome::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDAbilitySlot, "TriadDrift.Powers.Ability.SlotFilledOnUnlock", TD_TEST_FLAGS)
 bool FTDAbilitySlot::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	ATDShip* Bastion = W.Spawn<ATDShip>(FVector::ZeroVector);
 	Bastion->SetShipId(ETDShipId::Bastion);
@@ -299,12 +327,18 @@ bool FTDAbilitySlot::RunTest(const FString& Parameters)
 	// Wingmen never use powers: not player-flown -> refused.
 	UTDPowerComponent* Emp = UTDPowerComponent::FindPower(Bastion, ETDPowerInput::Ability);
 	TestFalse(TEXT("AI-flown ship can't fire its ability"), Emp && Emp->TryActivate());
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGravityWell, "TriadDrift.Powers.Ability.GravityWellPullsOnlyFreeShips", TD_TEST_FLAGS)
 bool FTDGravityWell::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f));
 	UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
@@ -322,7 +356,7 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 	AActor* Far = SpawnBody(W, ETDTeam::Enemy, Centre + FVector(0.f, 9000.f, 0.f), FVector(100.f), 1000.f);
 
 	TestTrue(TEXT("well launched"), Well->TryActivate());
-	W.Advance(0.85f);
+	W.Advance(0.85f, PowerFrameStep());
 	ATDGravityWell* Vortex = Well->GetLastWell();
 	TestTrue(TEXT("vortex open where the orb stopped"), Vortex && Vortex->IsVortexActive() && Vortex->GetActorLocation().Equals(Centre, 1.f));
 	// A fighter flying straight out of the vortex at full cruise: it must not escape.
@@ -334,7 +368,7 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 		FTransform(FRotator::ZeroRotator, Centre + FVector(-3000.f, 3000.f, 0.f)), Far, ETDTeam::Enemy);
 	const float EatenAt = AdvanceUntil(W, [&] { return !Bolt || !Bolt->IsActive(); }, 2.f);
 	TestTrue(TEXT("enemy projectile swallowed (well inside its 2.5 s life)"), EatenAt > 0.f);
-	W.Advance(FMath::Max(0.f, 1.2f - EatenAt));
+	W.Advance(FMath::Max(0.f, 1.2f - EatenAt), PowerFrameStep());
 	bool bTurretSilenced = false;
 	for (const ATDEnemyTurret* Turret : Carrier->GetTurrets())
 	{
@@ -342,7 +376,7 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("carrier turrets inside the vortex can't fire"), Carrier->GetTurrets().Num() == 0 || bTurretSilenced);
 
-	W.Advance(1.8f);
+	W.Advance(1.8f, PowerFrameStep());
 	TestTrue(TEXT("free fighter pulled into the core"), FVector::Dist(Fighter->GetActorLocation(), Centre) < 1200.f);
 	TestTrue(TEXT("carrier (Boss) not moved"), Carrier->GetActorLocation().Equals(CarrierStart, 1.f));
 	const TArray<ATDCarrierBay*> Bays = Carrier->GetBays();
@@ -352,31 +386,38 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("far enemy not pulled"), (float)FVector::Dist(Far->GetActorLocation(), Centre), 9000.f, 1.f);
 
-	W.Advance(2.3f);
+	W.Advance(2.3f, PowerFrameStep());
 	TestFalse(TEXT("vortex gone after 5 s"), IsValid(Vortex));
-	TestEqual(TEXT("fighter: ~10 dps for the rest of the vortex + 120 implosion"), Fighter->GetHealth()->GetHull(), 1000.f - 42.5f - 120.f, 5.f);
+	const float Taken = 1000.f - Fighter->GetHealth()->GetHull();
+	TestTrue(TEXT("fighter: 10 dps while caught (3.5-5 s) + 120 implosion"), Taken >= 120.f + 35.f && Taken <= 120.f + 50.f);
 	TestFalse(TEXT("fighter's engines released after the implosion"), Fighter->GetShipMovement()->HasSpeedOverride());
 	TestTrue(TEXT("carrier took the damage it can't escape"), Carrier->GetHealth()->GetHull() <= 10000.f - 120.f);
 	TestEqual(TEXT("far enemy untouched"), Hull(Far), 1000.f);
 	TestFalse(TEXT("18 s cooldown"), Well->CanActivate());
-	W.Advance(14.f); // margin: implosion kills can trigger a director slow-mo (game time runs slower)
+	W.Advance(14.f, PowerFrameStep()); // margin: implosion kills can trigger a director slow-mo (game time runs slower)
 	TestTrue(TEXT("ready after 18 s"), Well->CanActivate());
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGravityWellDominion, "TriadDrift.Powers.Ability.GravityWellLeavesDominionPartsInPlace", TD_TEST_FLAGS)
 bool FTDGravityWellDominion::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
 	D->WarpInSeconds = 0.f;
 	D->WarpIn();
-	W.Tick();
+	W.Tick(PowerFrameStep());
 	const TArray<ATDShieldGenerator*> Gens = D->GetGenerators();
 	TestTrue(TEXT("Dominion built its generators"), Gens.Num() > 0);
 	if (Gens.Num() == 0)
 	{
-		return true;
+		continue;
 	}
 	ATDShieldGenerator* Gen = Gens[0];
 	const FVector GenStart = Gen->GetActorLocation();
@@ -387,15 +428,21 @@ bool FTDGravityWellDominion::RunTest(const FString& Parameters)
 	Bastion->SetActorRotation((-ToGen).Rotation());
 	UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
 	TestTrue(TEXT("well launched at the generator"), Well->TryActivate());
-	W.Advance(6.f);
+	W.Advance(6.f, PowerFrameStep());
 	TestTrue(TEXT("generator not dragged off its pylon"), Gen->GetActorLocation().Equals(GenStart, 1.f));
 	TestTrue(TEXT("reactor not moved"), !D->GetReactor() || D->GetReactor()->GetActorLocation().Equals(ReactorStart, 1.f));
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCloak, "TriadDrift.Powers.Ability.CloakUntargetableFirstShotTriple", TD_TEST_FLAGS)
 bool FTDCloak::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f), 100.f, 100.f);
 	UTDWeaponComponent* Weapons = NewObject<UTDWeaponComponent>(Rift, TEXT("Weapons"));
@@ -412,7 +459,7 @@ bool FTDCloak::RunTest(const FString& Parameters)
 	TArray<AActor*> Hostiles;
 	Registry->GetHostilesOf(ETDTeam::Enemy, Hostiles);
 	TestFalse(TEXT("AI can't find Rift"), Hostiles.Contains(Rift));
-	W.Advance(0.5f);
+	W.Advance(0.5f, PowerFrameStep());
 	TestTrue(TEXT("missile lost its lock"), Missile && Missile->GetHomingTarget() == nullptr);
 
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
@@ -422,9 +469,9 @@ bool FTDCloak::RunTest(const FString& Parameters)
 	Hostiles.Reset();
 	Registry->GetHostilesOf(ETDTeam::Enemy, Hostiles);
 	TestTrue(TEXT("targetable again"), Hostiles.Contains(Rift));
-	W.Advance(14.8f);
+	W.Advance(14.8f, PowerFrameStep());
 	TestFalse(TEXT("15 s cooldown"), Cloak->CanActivate());
-	W.Advance(0.4f);
+	W.Advance(0.4f, PowerFrameStep());
 	TestTrue(TEXT("ready after 15 s"), Cloak->CanActivate());
 
 	// Another power breaks it too; expiring without a shot leaves no banked 3x.
@@ -433,18 +480,24 @@ bool FTDCloak::RunTest(const FString& Parameters)
 	TestFalse(TEXT("using another power breaks cloak"), Cloak->IsCloaked());
 	Cloak->ResetCooldown();
 	Cloak->TryActivate();
-	W.Advance(6.1f);
+	W.Advance(6.1f, PowerFrameStep());
 	TestFalse(TEXT("cloak lasts 6 s"), Cloak->IsCloaked());
-	W.Advance(0.2f);
+	W.Advance(0.2f, PowerFrameStep());
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
 	const ATDProjectile* Later = Weapons->GetLastFiredProjectile(0);
 	TestTrue(TEXT("no 3x after an unused cloak"), Later && FMath::IsNearlyEqual(Later->GetDamageMultiplier(), 1.f));
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEmp, "TriadDrift.Powers.Ability.EMPStunsDropsShieldsFizzlesMissiles", TD_TEST_FLAGS)
 bool FTDEmp::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	AActor* Lancer = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f), 70.f, 80.f);
 	UTDEMPPower* Emp = AddPower<UTDEMPPower>(Lancer);
@@ -462,18 +515,24 @@ bool FTDEmp::RunTest(const FString& Parameters)
 	TestFalse(TEXT("gunship frontal shield down"), Gunship->IsFrontalShieldUp());
 	TestFalse(TEXT("missile fizzled"), Missile && Missile->IsActive());
 
-	W.Advance(3.1f);
+	W.Advance(3.1f, PowerFrameStep());
 	TestFalse(TEXT("stun lasts 3 s"), Gunship->IsStunned());
-	W.Advance(1.5f);
+	W.Advance(1.5f, PowerFrameStep());
 	TestFalse(TEXT("shield still down at 4.6 s"), Gunship->IsFrontalShieldUp());
-	W.Advance(9.6f);
+	W.Advance(9.6f, PowerFrameStep());
 	TestTrue(TEXT("ready after 14 s"), Emp->CanActivate());
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeClearsPowers, "TriadDrift.Powers.Reset.CutClearsEveryRunningPower", TD_TEST_FLAGS)
 bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
 	UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(W.GetWorld());
@@ -500,7 +559,7 @@ bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
 		Dome->TryActivate();
 		Well->TryActivate();
 		Blink->TryActivate();
-		W.Advance(1.f);
+		W.Advance(1.f, PowerFrameStep());
 	};
 	StartAll();
 	TestEqual(TEXT("two portals open"), Portal->GetPortals().Num(), 2);
@@ -510,14 +569,14 @@ bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
 
 	// A first take (a new wave) keeps everything running.
 	Bus->BroadcastTakeStarted(TEXT("Wave2"), 1);
-	W.Tick();
+	W.Tick(PowerFrameStep());
 	TestEqual(TEXT("take 1 keeps the portals"), Portal->GetPortals().Num(), 2);
 	TestEqual(TEXT("take 1 keeps the domes"), Powers->GetActiveDomes().Num(), 2);
 
 	// CUT! -> everything from the failed take is gone.
 	ATDGravityWell* Vortex = Well->GetLastWell();
 	Bus->BroadcastSceneCut(TEXT("Wave2"), 2, 1.f);
-	W.Tick();
+	W.Tick(PowerFrameStep());
 	TestEqual(TEXT("portals closed"), Portal->GetPortals().Num(), 0);
 	TestFalse(TEXT("cloak off"), Cloak->IsCloaked());
 	TestTrue(TEXT("Rift targetable again"), UTDStatics::GetHealth(Rift)->bTargetable);
@@ -532,30 +591,36 @@ bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
 	TestTrue(TEXT("no 3x shot banked across the cut"), Shot && FMath::IsNearlyEqual(Shot->GetDamageMultiplier(), 1.f));
 
 	// Respawn path (T3's RestoreShipForFlight): ResetPower ends the cloak and frees Rift.
-	W.Advance(0.5f);
+	W.Advance(0.5f, PowerFrameStep());
 	Cloak->TryActivate();
 	Cloak->ResetPower();
 	TestTrue(TEXT("ResetPower: targetable"), UTDStatics::GetHealth(Rift)->bTargetable && !Cloak->IsCloaked() && Cloak->CanActivate());
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalWindowRestart, "TriadDrift.Powers.Portal.WindowFromSecondPortalCloakBreaksStatsCount", TD_TEST_FLAGS)
 bool FTDPortalWindowRestart::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	// A late B still gets the full 12 s; recycling doesn't extend it.
 	{
 		FTDTestWorld W;
 		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 		UTDPortalBlasterPower* Portal = AddPower<UTDPortalBlasterPower>(Rift);
 		Portal->HandleInputPressed();
-		W.Advance(8.f);
+		W.Advance(8.f, PowerFrameStep());
 		Rift->SetActorRotation(FRotator(0.f, 90.f, 0.f));
 		Portal->HandleInputPressed();
-		W.Advance(11.5f);
+		W.Advance(11.5f, PowerFrameStep());
 		TestTrue(TEXT("pair still open 11.5 s after B"), Portal->IsPowerActive() && Portal->GetPortals().Num() == 2);
 		Rift->SetActorRotation(FRotator(0.f, -90.f, 0.f));
 		Portal->HandleInputPressed(); // recycle
-		W.Advance(0.7f);
+		W.Advance(0.7f, PowerFrameStep());
 		TestFalse(TEXT("closed 12 s after B even though a third shot recycled one"), Portal->IsPowerActive());
 	}
 	// Cloak: firing the blaster again while it is active breaks the cloak too.
@@ -584,12 +649,18 @@ bool FTDPortalWindowRestart::RunTest(const FString& Parameters)
 		TestTrue(TEXT("missile transits"), UTDPortalTransit::TransitActor(M, Entry, Exit, Rift, FTDPortalTransitParams()));
 		TestEqual(TEXT("MissilesReturned +1"), GI ? GI->GetProgressRef().Stats.MissilesReturned : -1, Before + 1);
 	}
+	continue;
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInstallPowers, "TriadDrift.Powers.Library.InstallShipPowersIdempotent", TD_TEST_FLAGS)
 bool FTDInstallPowers::RunTest(const FString& Parameters)
 {
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+	FScopedPowerFrameStep TDStepScope(TDFrameStep);
+	AddInfo(FString::Printf(TEXT("frame step %.0f fps"), 1.f / TDFrameStep));
 	FTDTestWorld W;
 	struct FCase { ETDShipId Id; UClass* Sig1; UClass* Sig2; };
 	const FCase Cases[] = {
@@ -610,6 +681,8 @@ bool FTDInstallPowers::RunTest(const FString& Parameters)
 		TestEqual(TEXT("no duplicates"), Powers.Num(), C.Sig2 ? 2 : 1);
 		TInlineComponentArray<UTDAbilityComponent*> Slots(Ship);
 		TestEqual(TEXT("one ability slot"), Slots.Num(), 1);
+	}
+	continue;
 	}
 	return true;
 }

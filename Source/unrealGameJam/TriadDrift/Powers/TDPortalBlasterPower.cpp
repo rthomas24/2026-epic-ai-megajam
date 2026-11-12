@@ -92,8 +92,8 @@ void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransi
 	BroadcastState(ETDPortalState::Opening);
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->PortalOpen, GetActorLocation(), GetActorRotation());
-		IdleFX = UTDStatics::PlayCueAttached(FX->PortalIdle, GetRootComponent());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalOpen"), FX->PortalOpen, GetActorLocation(), GetActorRotation());
+		IdleFX = FTDPowerPresentation::RequestCueAttached(TEXT("Travel.PortalIdle"), FX->PortalIdle, GetRootComponent());
 	}
 	if (!FX || !FTDPowerPresentation::HasArt(FX->PortalIdle))
 	{
@@ -128,7 +128,7 @@ void ATDPortal::Close()
 	BroadcastState(ETDPortalState::Closing);
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->PortalClose, GetActorLocation(), GetActorRotation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalClose"), FX->PortalClose, GetActorLocation(), GetActorRotation());
 	}
 	if (IdleFX)
 	{
@@ -298,8 +298,8 @@ bool ATDPortal::TryCross(AActor* Traveller, const FVector& Prev, const FVector& 
 	BroadcastState(ETDPortalState::Transit);
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->PortalTransit, Hit, GetActorRotation());
-		UTDStatics::PlayCue(this, FX->PortalTransit, Traveller->GetActorLocation(), Exit->GetActorRotation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalTransit"), FX->PortalTransit, Hit, GetActorRotation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalTransit"), FX->PortalTransit, Traveller->GetActorLocation(), Exit->GetActorRotation());
 	}
 	return true;
 }
@@ -417,7 +417,7 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		++RefusedPlacements;
 		if (TravelFX)
 		{
-			UTDStatics::PlayCue(this, TravelFX->PortalClose, Where, Normal.Rotation()); // "can't place" until a dedicated cue exists
+			FTDPowerPresentation::RequestCue(this, TEXT("Travel.CantPlace"), TravelFX->PortalClose, Where, Normal.Rotation()); // "can't place" until a dedicated cue exists
 		}
 		return nullptr;
 	}
@@ -511,7 +511,7 @@ bool UTDPortalBlasterPower::DoBlink()
 		++RefusedPlacements;
 		if (TravelFX)
 		{
-			UTDStatics::PlayCue(this, TravelFX->PortalClose, Where, Facing.Rotation());
+			FTDPowerPresentation::RequestCue(this, TEXT("Travel.CantPlace"), TravelFX->PortalClose, Where, Facing.Rotation());
 		}
 		return false;
 	}

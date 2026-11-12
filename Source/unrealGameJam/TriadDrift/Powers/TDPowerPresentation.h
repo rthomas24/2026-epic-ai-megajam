@@ -13,7 +13,10 @@ class UTDAbilityFX;
 class UTDTravelFX;
 class UTDWeaponFX;
 class UStaticMeshComponent;
+class UStaticMesh;
 class UInstancedStaticMeshComponent;
+class UNiagaraComponent;
+class USceneComponent;
 struct FTDFXCue;
 
 /**
@@ -30,6 +33,17 @@ struct UNREALGAMEJAM_API FTDPowerPresentation
 	static UTDAbilityFX* LoadAbilityFX(ETDAbilityId Ability);
 	static UTDTravelFX* LoadTravelFX();
 	static UTDWeaponFX* LoadWeaponFX(FName WeaponId);
+
+	/**
+	 * Play a cue through a named request (e.g. "Ship.PowerActive", "Travel.PortalOpen", "Ability.Loop").
+	 * Every request is counted, art or not, so tests can assert each moment asks for its cue before art
+	 * exists. A map increment per request: cheap enough for all builds.
+	 */
+	static UNiagaraComponent* RequestCue(const UObject* WorldContext, FName Moment, const FTDFXCue& Cue, const FVector& Location,
+		const FRotator& Rotation = FRotator::ZeroRotator);
+	static UNiagaraComponent* RequestCueAttached(FName Moment, const FTDFXCue& Cue, USceneComponent* AttachTo);
+	static int32 GetCueRequests(FName Moment);
+	static void ResetCueRequests();
 
 	/** True when the cue has art (so the placeholder should stay hidden). */
 	static bool HasArt(const FTDFXCue& Cue);
@@ -65,6 +79,16 @@ public:
 	static ATDPlaceholderFlash* SpawnRingFlash(UWorld* World, const FVector& Location, float Radius, FLinearColor Color, float Seconds);
 
 	virtual void Tick(float DeltaSeconds) override;
+
+	/** Engine basic shapes, hard-referenced by this class's default object so they are always cooked. */
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> SphereMesh;
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> CylinderMesh;
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> ConeMesh;
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> CubeMesh;
 
 private:
 	float Life = 0.4f;
