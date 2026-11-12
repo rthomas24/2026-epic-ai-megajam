@@ -242,6 +242,29 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
 	TObjectPtr<UInstancedStaticMeshComponent> RuinBlocks;
 
+	/** The rocks' look: one no-collision instanced component per engineering asteroid mesh (SM_Asteroid_01..04),
+	 *  each asteroid picks one from the layout seed. Gameplay collision stays on Asteroids (spheres, hidden). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> AsteroidLooks;
+
+	/** Sparse debris between the asteroids (SM_SpaceDebris_01..03): visual only, no collision. */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> DebrisLooks;
+
+public:
+	/** Debris pieces per asteroid field, as a fraction of its asteroid count. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
+	float DebrisPerAsteroid = 0.8f;
+
+	/** Instanced components carrying the asteroid look (tests: valid mesh and material on each). */
+	const TArray<TObjectPtr<UInstancedStaticMeshComponent>>& GetAsteroidLooks() const { return AsteroidLooks; }
+	const TArray<TObjectPtr<UInstancedStaticMeshComponent>>& GetDebrisLooks() const { return DebrisLooks; }
+	/** Total visual asteroid instances (equals GetAsteroidCount when the engineering meshes are in use). */
+	int32 GetAsteroidLookCount() const;
+	/** The collision spheres (hidden when the rocks carry the look). */
+	const UInstancedStaticMeshComponent* GetAsteroidCollision() const { return Asteroids; }
+protected:
+
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDPlanetAtmosphere>> Planets;
 

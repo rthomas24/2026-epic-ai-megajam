@@ -67,6 +67,37 @@ ATDGalaxyLayout::ATDGalaxyLayout()
 	Asteroids->SetMobility(EComponentMobility::Movable);
 	if (Sphere.Succeeded()) { Asteroids->SetStaticMesh(Sphere.Object); }
 
+	// Engineering asteroid and debris meshes (Gameplay/Props/Space, always cooked), hard-referenced here.
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock1(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_01.SM_Asteroid_01"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock2(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_02.SM_Asteroid_02"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock3(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_03.SM_Asteroid_03"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock4(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_04.SM_Asteroid_04"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris1(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_01.SM_SpaceDebris_01"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris2(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_02.SM_SpaceDebris_02"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris3(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_03.SM_SpaceDebris_03"));
+	auto MakeLook = [this](const FName Name, UStaticMesh* Mesh) -> UInstancedStaticMeshComponent*
+	{
+		UInstancedStaticMeshComponent* Look = CreateDefaultSubobject<UInstancedStaticMeshComponent>(Name);
+		Look->SetupAttachment(GetRootComponent());
+		Look->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Look->SetGenerateOverlapEvents(false);
+		Look->SetMobility(EComponentMobility::Movable);
+		Look->SetStaticMesh(Mesh);
+		return Look;
+	};
+	{
+		UStaticMesh* Rocks[] = { Rock1.Object, Rock2.Object, Rock3.Object, Rock4.Object };
+		for (UStaticMesh* M : Rocks)
+		{
+			if (M) { AsteroidLooks.Add(MakeLook(*FString::Printf(TEXT("AsteroidLook%d"), AsteroidLooks.Num() + 1), M)); }
+		}
+		UStaticMesh* Bits[] = { Debris1.Object, Debris2.Object, Debris3.Object };
+		for (UStaticMesh* M : Bits)
+		{
+			if (M) { DebrisLooks.Add(MakeLook(*FString::Printf(TEXT("DebrisLook%d"), DebrisLooks.Num() + 1), M)); }
+		}
+	}
+
 	RuinBlocks = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Ruins"));
 	RuinBlocks->SetupAttachment(GetRootComponent());
 	RuinBlocks->SetCollisionProfileName(TEXT("BlockAll"));
@@ -222,6 +253,13 @@ ATDPortalGate* ATDGalaxyLayout::FindGate(FName GateId) const
 	return nullptr;
 }
 
+int32 ATDGalaxyLayout::GetAsteroidLookCount() const
+{
+	int32 N = 0;
+	for (const UInstancedStaticMeshComponent* Look : AsteroidLooks) { N += Look ? Look->GetInstanceCount() : 0; }
+	return N;
+}
+
 int32 ATDGalaxyLayout::GetAsteroidCount() const
 {
 	return Asteroids ? Asteroids->GetInstanceCount() : 0;
@@ -323,7 +361,10 @@ void ATDGalaxyLayout::SetHidePlaceholderDressing(bool bHide)
 {
 	bHidePlaceholderDressing = bHide;
 	// Visibility only: collision, obstacles and gameplay stay exactly the same.
-	if (Asteroids) { Asteroids->SetVisibility(!bHide); }
+	const bool bRockLooks = AsteroidMesh.IsNull() && GetAsteroidLookCount() > 0;
+	if (Asteroids) { Asteroids->SetVisibility(!bHide && !bRockLooks); }
+	for (UInstancedStaticMeshComponent* Look : AsteroidLooks) { if (Look) { Look->SetVisibility(!bHide); } }
+	for (UInstancedStaticMeshComponent* Look : DebrisLooks) { if (Look) { Look->SetVisibility(!bHide); } }
 	if (RuinBlocks) { RuinBlocks->SetVisibility(!bHide); }
 	for (ATDPlanetAtmosphere* P : Planets)
 	{
@@ -352,7 +393,12 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 	// Idempotent: the editor preview and BeginPlay both build; never stack instances.
 	Asteroids->ClearInstances();
 	RuinBlocks->ClearInstances();
-	if (!AsteroidMesh.IsNull()) { if (UStaticMesh* Art = AsteroidMesh.LoadSynchronous()) { Asteroids->SetStaticMesh(Art); } }
+	for (UInstancedStaticMeshComponent* Look : AsteroidLooks) { if (Look) { Look->ClearInstances(); } }
+	for (UInstancedStaticMeshComponent* Look : DebrisLooks) { if (Look) { Look->ClearInstances(); } }
+	bool bNickRock = false;
+	if (!AsteroidMesh.IsNull()) { if (UStaticMesh* Art = AsteroidMesh.LoadSynchronous()) { Asteroids->SetStaticMesh(Art); bNickRock = true; } }
+	// Nick's presentation mesh wins; otherwise the engineering rocks carry the look and the spheres only collide.
+	const bool bRockLooks = !bNickRock && AsteroidLooks.Num() > 0;
 	if (!RuinMesh.IsNull()) { if (UStaticMesh* Art = RuinMesh.LoadSynchronous()) { RuinBlocks->SetStaticMesh(Art); } }
 
 	UTDWorldSubsystem* WorldSys = bRegisterObstacles ? UTDWorldSubsystem::Get(this) : nullptr;
@@ -361,6 +407,7 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 	for (const FTDAsteroidFieldSpec& F : Layout.AsteroidFields)
 	{
 		FRandomStream Rng(F.Seed);
+		FRandomStream LookRng(F.Seed * 31 + 7);	// separate stream: placement (and the count) never change
 		int32 Count = 0;
 		for (int32 Attempt = 0; Count < F.Count && Attempt < F.Count * 8; ++Attempt)
 		{
@@ -381,13 +428,49 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 			for (const FSphere& S : Placed) { if (FVector::DistSquared(S.Center, Local) < FMath::Square(S.W + Radius)) { bOverlap = true; break; } }
 			if (bOverlap) { continue; }
 			// Uniform scale: the visible rock matches its sphere collision exactly.
-			Asteroids->AddInstance(FTransform(FRotator(Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180)), Local, FVector(Size / 100.f)));
+			const FTransform RockXf(FRotator(Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180), Rng.FRandRange(-180, 180)), Local, FVector(Size / 100.f));
+			Asteroids->AddInstance(RockXf);
+			if (bRockLooks)
+			{
+				// Same 100 cm bounding sphere as the collision sphere: the rock never pokes out of its collision.
+				AsteroidLooks[LookRng.RandHelper(AsteroidLooks.Num())]->AddInstance(
+					FTransform(FRotator(LookRng.FRandRange(-180, 180), LookRng.FRandRange(-180, 180), LookRng.FRandRange(-180, 180)), Local, RockXf.GetScale3D()));
+			}
 			Placed.Add(FSphere(Local, Radius));
 			if (WorldSys) { WorldSys->AddObstacle(Xf.TransformPosition(Local), Radius); }
 			++Count;
 		}
 	}
-	if (AsteroidMesh.IsNull())
+	// Debris: sparse, small, between the rocks; visual only.
+	if (bRockLooks && DebrisLooks.Num() > 0)
+	{
+		for (const FTDAsteroidFieldSpec& F : Layout.AsteroidFields)
+		{
+			FRandomStream DRng(F.Seed * 131 + 3);
+			const int32 Want = FMath::RoundToInt(F.Count * DebrisPerAsteroid);
+			int32 Count = 0;
+			for (int32 Attempt = 0; Count < Want && Attempt < Want * 6; ++Attempt)
+			{
+				FVector Offset = DRng.GetUnitVector() * F.Radius * FMath::Pow(DRng.FRand(), 0.5f);
+				Offset.Z *= F.Flatten;
+				const FVector Local = F.Center + Offset;
+				const float Size = DRng.FRandRange(150.f, 600.f);
+				bool bInside = IsInKeepOut(Local, Size);
+				for (const FSphere& S : Placed)
+				{
+					if (bInside) { break; }
+					bInside = FVector::DistSquared(S.Center, Local) < FMath::Square(S.W + Size);
+				}
+				if (bInside) { continue; }
+				DebrisLooks[DRng.RandHelper(DebrisLooks.Num())]->AddInstance(
+					FTransform(FRotator(DRng.FRandRange(-180, 180), DRng.FRandRange(-180, 180), DRng.FRandRange(-180, 180)), Local, FVector(Size / 100.f)));
+				++Count;
+			}
+		}
+	}
+	// The spheres are pure collision when the rocks carry the look.
+	Asteroids->SetVisibility(!bRockLooks && !bHidePlaceholderDressing);
+	if (AsteroidMesh.IsNull() && !bRockLooks)
 	{
 		UTDStatics::TintPlaceholder(Asteroids, FLinearColor(0.25f, 0.2f, 0.3f), 0.f);
 	}
