@@ -1,0 +1,237 @@
+{
+ "mannequin_height_cm": 180.5,
+ "lineup": [
+  {
+   "species": "Kapok",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S100_11",
+   "stage": 1.0,
+   "location_cm": [
+    0.0,
+    3228.5,
+    0.0
+   ],
+   "height_m": 60.02,
+   "crown_width_m": 58.57
+  },
+  {
+   "species": "Kapok",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S070_12",
+   "stage": 0.7,
+   "location_cm": [
+    -5508.299999999999,
+    3228.5,
+    0.0
+   ],
+   "height_m": 48.61,
+   "crown_width_m": 36.33
+  },
+  {
+   "species": "Kapok",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S030_13",
+   "stage": 0.3,
+   "location_cm": [
+    -7300.299999999999,
+    3228.5,
+    0.0
+   ],
+   "height_m": 29.82,
+   "crown_width_m": 23.2
+  },
+  {
+   "species": "BrazilNut",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/SM_TDVeg_BrazilNut_S100_21",
+   "stage": 1.0,
+   "location_cm": [
+    0.0,
+    7713.5,
+    0.0
+   ],
+   "height_m": 39.12,
+   "crown_width_m": 25.13
+  },
+  {
+   "species": "BrazilNut",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/SM_TDVeg_BrazilNut_S070_22",
+   "stage": 0.7,
+   "location_cm": [
+    -2618.3,
+    7713.5,
+    0.0
+   ],
+   "height_m": 30.44,
+   "crown_width_m": 16.03
+  },
+  {
+   "species": "BrazilNut",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/SM_TDVeg_BrazilNut_S030_23",
+   "stage": 0.3,
+   "location_cm": [
+    -3606.8999999999996,
+    7713.5,
+    0.0
+   ],
+   "height_m": 18.44,
+   "crown_width_m": 9.81
+  },
+  {
+   "species": "TrumpetTree",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/SM_TDVeg_TrumpetTree_S100_31",
+   "stage": 1.0,
+   "location_cm": [
+    0.0,
+    9986.0,
+    0.0
+   ],
+   "height_m": 15.55,
+   "crown_width_m": 14.32
+  },
+  {
+   "species": "TrumpetTree",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/SM_TDVeg_TrumpetTree_S070_32",
+   "stage": 0.7,
+   "location_cm": [
+    -1699.8,
+    9986.0,
+    0.0
+   ],
+   "height_m": 12.14,
+   "crown_width_m": 9.73
+  },
+  {
+   "species": "TrumpetTree",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/SM_TDVeg_TrumpetTree_S030_33",
+   "stage": 0.3,
+   "location_cm": [
+    -2454.4,
+    9986.0,
+    0.0
+   ],
+   "height_m": 7.42,
+   "crown_width_m": 5.91
+  },
+  {
+   "species": "StiltPalm",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/SM_TDVeg_StiltPalm_S100_41",
+   "stage": 1.0,
+   "location_cm": [
+    0.0,
+    11180.5,
+    0.0
+   ],
+   "height_m": 15.71,
+   "crown_width_m": 3.57
+  },
+  {
+   "species": "StiltPalm",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/SM_TDVeg_StiltPalm_S070_42",
+   "stage": 0.7,
+   "location_cm": [
+    -763.3,
+    11180.5,
+    0.0
+   ],
+   "height_m": 12.56,
+   "crown_width_m": 3.08
+  },
+  {
+   "species": "StiltPalm",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/SM_TDVeg_StiltPalm_S030_43",
+   "stage": 0.3,
+   "location_cm": [
+    -1318.1,
+    11180.5,
+    0.0
+   ],
+   "height_m": 7.65,
+   "crown_width_m": 2.58
+  },
+  {
+   "species": "TreeFern",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/SM_TDVeg_TreeFern_S100_51",
+   "stage": 1.0,
+   "location_cm": [
+    0.0,
+    11972.0,
+    0.0
+   ],
+   "height_m": 9.14,
+   "crown_width_m": 6.26
+  },
+  {
+   "species": "TreeFern",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/SM_TDVeg_TreeFern_S070_52",
+   "stage": 0.7,
+   "location_cm": [
+    -1048.4,
+    11972.0,
+    0.0
+   ],
+   "height_m": 7.37,
+   "crown_width_m": 5.59
+  },
+  {
+   "species": "TreeFern",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/SM_TDVeg_TreeFern_S030_53",
+   "stage": 0.3,
+   "location_cm": [
+    -1732.1999999999998,
+    11972.0,
+    0.0
+   ],
+   "height_m": 4.47,
+   "crown_width_m": 4.73
+  },
+  {
+   "species": "Cacao",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/SM_TDVeg_Cacao_S100_61",
+   "stage": 1.0,
+   "location_cm": [
+    0.0,
+    12886.0,
+    0.0
+   ],
+   "height_m": 8.59,
+   "crown_width_m": 6.02
+  },
+  {
+   "species": "Cacao",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/SM_TDVeg_Cacao_S070_62",
+   "stage": 0.7,
+   "location_cm": [
+    -941.6,
+    12886.0,
+    0.0
+   ],
+   "height_m": 6.03,
+   "crown_width_m": 4.01
+  },
+  {
+   "species": "Cacao",
+   "mesh": "/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/SM_TDVeg_Cacao_S030_63",
+   "stage": 0.3,
+   "location_cm": [
+    -1481.4,
+    12886.0,
+    0.0
+   ],
+   "height_m": 3.64,
+   "crown_width_m": 2.33
+  }
+ ],
+ "forest": {
+  "Kapok": 6,
+  "BrazilNut": 12,
+  "TrumpetTree": 60,
+  "StiltPalm": 80,
+  "TreeFern": 200,
+  "Cacao": 160
+ },
+ "lineup_length_cm": 13187,
+ "forest_centre_cm": [
+  30000.0,
+  6593.5
+ ],
+ "forest_radius_cm": 14000.0,
+ "forest_instances": 518,
+ "map": "/Game/TriadDrift/Gameplay/Vegetation/Maps/L_VegetationDemo"
+}
