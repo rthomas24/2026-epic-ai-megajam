@@ -45,7 +45,8 @@ replaces it only if 0.25 more important, but story beats (≥ 0.8) replace any s
 important (so all four generator kills get their beat); after a shot, 3 s global cooldown and 6 s
 per kind, both bypassed by story beats.
 
-**On accept:** `UTDFeelSubsystem::RequestSlowMo(0.5–1.0 s by importance, dilation 0.4 → 0.2)`,
+**On accept:** `UTDFeelSubsystem::RequestSlowMo(0.5–1.0 s by importance, dilation 0.4 → 0.2;
+per-kind overrides in `Tuning.DurationOverrideSeconds`, default PerfectDeflect = 0.15 s per ENG-22)`,
 `UTDEventBus::OnHighlightMoment(Kind, Subject, Importance01)`, `AddStat("HighlightMoments")`, and
 `OnDirectorShot(const FTDDirectorShot&)` on the subsystem.
 
@@ -54,7 +55,8 @@ per kind, both bypassed by story beats.
 and above, 2500–7000 cm by importance, alternating sides shot to shot), duration, dilation, start.
 
 **Never during a retake or travel:** suppressed from `OnSceneCut` until the next `OnTakeStarted`
-(and a running slow-mo is cancelled on "CUT!"), and while `UTDGameInstance::IsRetakePending()`.
+(and a running slow-mo is cancelled on "CUT!"), and while `UTDGameInstance::IsRetakePending()` or
+`IsTravelPending()`.
 
 ## How to try it
 
@@ -72,6 +74,8 @@ and above, 2500–7000 cm by importance, alternating sides shot to shot), durati
 | `Director.CameraHint` | focus, distance, look-at, alternating sides |
 | `Director.ReportHighlightApi` | direct reports, default importance, minimum, null subject |
 | `Director.SwitchStrikeKill` | kill during Switch Strike |
+| `Director.SuppressedDuringTravel` | no highlights while `IsTravelPending()` (real TravelTo) |
+| `Director.PerfectDeflectIsAShortBeat` | ENG-22's 0.15 s deflect beat |
 | `Squad.Switch.CutPayload` | same-frame payload, name card, quick cut, auto-switch cut |
 
 ## Known gaps / needs from others
@@ -80,5 +84,3 @@ and above, 2500–7000 cm by importance, alternating sides shot to shot), durati
   `ReportHighlight`).
 - T2: call `ReportHighlight(MissileReturn, ...)` on a portal missile return. T5: `PerfectDeflect` on a
   perfect blade deflect.
-- `UTDGameInstance::IsTravelPending()` (T5, eng/t5 125146f) gets added to `CanTriggerHighlights`
-  once it's on main (TODO in the code).

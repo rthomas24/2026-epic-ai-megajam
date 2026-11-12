@@ -15,6 +15,7 @@ class ATDSquadManager;
 class ATDWingmanAIController;
 class UWorld;
 struct FTDShipSpec;
+struct FTDFXCue;
 
 namespace TDSquad
 {
@@ -35,6 +36,21 @@ namespace TDSquad
 	/** T1 throttle top speed above cruise (formation catch-up). <= cruise (or 0) clears it. */
 	void SetCatchUpTopSpeed(ATDShip* Ship, float TopSpeed);
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed);
+	/** T1: stop / resume the flight simulation (downed ships, landing). Parked = zero velocity, no sim. */
+	void SetFlightParked(ATDShip* Ship, bool bParked);
+	bool IsFlightParked(const ATDShip* Ship);
+	/** T1: clear latched input, boost, drift, overrides, angular rates (respawn, retake). */
+	void ResetFlightState(ATDShip* Ship, bool bKeepVelocity);
+	/** Neutral stick, no boost (latched until replaced). */
+	void SendNeutralInput(ATDShip* Ship);
+
+	// ---- Travel (T1 hyperdrive, landing) ----
+	ETDHyperdriveState GetHyperdriveState(const ATDShip* Ship);
+	bool IsLandingBusy(const ATDShip* Ship);
+	/** The ship is going down: no spool, and a jump in progress drops out. */
+	void StopHyperdrive(ATDShip* Ship);
+	/** Back in the fight (respawn, retake): hyperdrive usable again. */
+	void EnableHyperdrive(ATDShip* Ship);
 
 	// ---- Health (Core UTDHealthComponent) ----
 	bool IsDead(const AActor* Actor);
@@ -43,12 +59,17 @@ namespace TDSquad
 	float GetHull01(const AActor* Actor);
 	float GetShield01(const AActor* Actor);
 	void SetInvulnerable(AActor* Actor, float Seconds);
+	void RepairHull(AActor* Actor, float Amount);
 	/** Full hull and shield, alive again. */
 	void RestoreFullHealth(AActor* Actor);
 
 	// ---- Weapons (T2 UTDWeaponComponent) ----
 	void SetTriggerHeld(ATDShip* Ship, ETDWeaponSlot Slot, bool bHeld);
 	void SetAim(ATDShip* Ship, AActor* Target, const FVector& WorldDir);
+	/** Drop any explicit aim target / direction (hand-over to the player, downed, passive). */
+	void ClearAim(ATDShip* Ship);
+	/** T2: keyed weapon block (a downed ship can't fire). */
+	void SetWeaponsBlocked(ATDShip* Ship, FName SourceKey, bool bBlocked);
 	bool IsOverheated(const ATDShip* Ship, ETDWeaponSlot Slot);
 	float GetHeat01(const ATDShip* Ship, ETDWeaponSlot Slot);
 	int32 GetAmmo(const ATDShip* Ship, ETDWeaponSlot Slot);
@@ -118,9 +139,13 @@ namespace TDSquad
 	void BindTeleported(ATDWingmanAIController* Wingman);
 	void UnbindTeleported(ATDWingmanAIController* Wingman);
 
-	/** Subscribe / unsubscribe Wingman->HandleHyperdriveState to UTDEventBus::OnHyperdriveState. */
-	void BindHyperdriveState(ATDWingmanAIController* Wingman);
-	void UnbindHyperdriveState(ATDWingmanAIController* Wingman);
+	/** Subscribe / unsubscribe Squad->HandleWaveCleared / HandleWaveStarted (between-wave hull repair). */
+	void BindWaveEvents(ATDSquadManager* Squad);
+	void UnbindWaveEvents(ATDSquadManager* Squad);
+
+	/** Presentation (Nick's UTDShipVisuals): null-safe; an empty cue does nothing. */
+	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached);
+
 
 	/** World transform of a ship's chase camera (actor transform if it has none). */
 	FTransform GetChaseCameraTransform(const ATDShip* Ship);

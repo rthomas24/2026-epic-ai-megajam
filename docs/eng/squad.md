@@ -26,6 +26,10 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   switch to the **healthiest** living ship (hull+shield fraction). `OnShipDowned` fires at death.
 - **Respawn:** `RespawnDelay` 12 s from death; warps in behind its formation slot at the leader's
   velocity, full health, `RespawnInvulnerability` 2 s, back to its wingman. `OnShipRespawned`.
+- **Between waves (ENG-03):** hull repairs at 8/s on living ships from `OnWaveCleared` until the
+  next `OnWaveStarted`; never during a wave.
+- **Presentation:** `ShipVisuals` (per-ship `UTDShipVisuals`, Nick's) plays SwitchIn / SwitchOut on
+  switch, Explosion at the end of the tumble and RespawnWarpIn on respawn; empty slots do nothing.
 - **Squad wipe:** all three down → `OnSquadWiped` once → `ITDGameFlow::ReportPlayerDefeated()`. If a
   game flow took it, respawn timers stop and the flow restarts the scene by calling `SpawnSquad`
   again (that call fully resets the squad). With no game flow (sandbox) timers keep running.
@@ -64,7 +68,8 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
     (`UTDWorldSubsystem::FindAvoidance`: asteroids, station ruins, planets, Dominion hull), and only
     if it reports nothing, a **fallback sphere sweep** against WorldStatic / WorldDynamic for what the
     registry doesn't hold (portal gate frames, Dominion pylons, moving ships). Plus 900 cm
-    separation from squadmates.
+    separation from squadmates (1500 cm, which also adjusts speed so an along-track stack opens up;
+    collision spheres are 220 cm).
   - Follows the leader: `UTDEventBus::OnSpacecraftTeleported` (portals, gates) warps it to its slot;
     during hyperdrive (leader above 60 000 cm/s, well over ram speed) it rides in its slot; if more than
     60 000 cm from the leader for any reason it warps back.
@@ -103,6 +108,15 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 | `Switch.PowersThroughPlayerInput` | real 1/2/3, Q and E keys fire each ship's power and ability (**red until T1's controller routes power input to `RoutePowerInput`**) |
 | `Death.RespawnResetsWeapons` | ammo and heat restored on respawn |
 | `HUD.TargetingForwardsActiveShip` / `HUD.WaveInfoCachedLookup` | targeting HUD follows the active ship; cached wave-director lookup |
+| `Wingmen.TargetPriorityThreatToPlayerFirst` / `...LowestHealthBreaksTies` | threat to the player beats nearest; equal distance → lower health |
+| `Wingmen.EvadeOnShieldBreak` | real hit breaks the shield → Evade (boost) for 1.8 s, 30/60/120 fps |
+| `Wingmen.FollowLeaderThroughPortal` | leader teleport → wingmen arrive in their slots |
+| `Wingmen.AvoidRegisteredObstacle` | wingman steers round a registry asteroid on its line, then rejoins |
+| `Wingmen.KeepApartFromSquadmates` | two wingmen forced onto one slot never come within 600 cm |
+| `Wingmen.HurtWingmanSeeksShieldDome` | a hurt wingman flies into a player dome; a healthy one doesn't |
+| `Wingmen.AimErrorTwoToFourDegrees` | measured shot direction error stays 2-4°, re-rolled |
+| `Wingmen.BoostToCatchUpBeyond8000` | boost when > 8000 cm behind, none once back in the slot |
+| `Death.HullRepairsBetweenWavesOnly` | no hull regen in a wave; ~8/s between waves |
 | `Wingmen.FocusCommand` | focus overrides priority, expires at 8 s |
 | `Wingmen.FollowHyperdriveNotRam` | a 45 000 cm/s dash does not break engagement; an 80 000 cm/s jump carries wingmen in formation |
 | `Death.SpawnSquadIsARetake` | `SpawnSquad` again revives, repositions and resets everything (T5 retake) |

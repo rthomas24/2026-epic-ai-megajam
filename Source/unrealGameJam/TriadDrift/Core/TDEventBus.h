@@ -167,11 +167,14 @@ public:
 	void BroadcastBarkRequested(FName BarkId, FName Speaker) { OnBarkRequested.Broadcast(BarkId, Speaker); }
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
-	void BroadcastHighlightMoment(ETDHighlightKind Kind, AActor* Subject, float Importance01) { OnHighlightMoment.Broadcast(Kind, Subject, Importance01); }
-
-	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
 	void BroadcastTakeStarted(FName SceneId, int32 TakeNumber) { OnTakeStarted.Broadcast(SceneId, TakeNumber); }
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
 	void BroadcastSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds) { OnSceneCut.Broadcast(SceneId, NextTakeNumber, DelaySeconds); }
+
+private:
+	// Money shots go through UTDDirectorSubsystem::ReportHighlight (rate limit, slow-mo, camera hint,
+	// blocked during CUT and travel). Only the director may put one on the bus.
+	friend class UTDDirectorSubsystem;
+	void BroadcastHighlightMoment(ETDHighlightKind Kind, AActor* Subject, float Importance01) { OnHighlightMoment.Broadcast(Kind, Subject, Importance01); }
 };

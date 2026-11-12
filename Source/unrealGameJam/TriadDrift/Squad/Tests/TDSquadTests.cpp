@@ -27,6 +27,11 @@
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/Squad/Tests/TDSquadTestListener.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Travel/TDLandingPad.h"
+#include "TriadDrift/Powers/TDShieldDome.h"
 
 namespace TDSquadTests
 {
@@ -650,27 +655,32 @@ bool FTDSquadInputPath::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadHyperdriveFollow, "TriadDrift.Squad.Wingmen.FollowHyperdriveNotRam", TD_TEST_FLAGS)
 bool FTDSquadHyperdriveFollow::RunTest(const FString& Parameters)
 {
-	FSquadFixture F;
-	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
-	F.W.Advance(2.f);
-	ATDShip* Leader = F.Ship(ETDShipId::Rift);
-
-	// A ram-speed dash (3x Lancer boost) is not a hyperdrive jump: wingmen keep fighting on their own.
-	Leader->SetSpeedOverride(45000.f, 0.4f);
-	F.W.Advance(0.5f);
-	Leader->ClearSpeedOverride();
-	const ATDWingmanAIController* Wing = F.Wing(ETDShipId::Bastion);
-	TestTrue(TEXT("still engaged after a ram-speed dash"), Wing && Wing->GetWingmanState() == ETDWingmanState::Engage && Wing->GetCurrentTarget() == Enemy);
-
-	// Hyperdrive (80 000 cm/s): wingmen ride along in their slots.
-	Leader->SetSpeedOverride(80000.f, 0.1f);
-	F.W.Advance(2.f);
-	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+	for (const float Step : GFrameSteps)
 	{
-		const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
-		TestTrue(FString::Printf(TEXT("%s jumps in formation (%.0f cm from slot)"), *UEnum::GetValueAsString(Id), Dist), Dist < 2000.f);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+		F.W.Advance(2.f, Step);
+		ATDShip* Leader = F.Ship(ETDShipId::Rift);
+
+		// A ram-speed dash (3x Lancer boost) is not a hyperdrive jump: wingmen keep fighting on their own.
+		Leader->SetSpeedOverride(45000.f, 0.4f);
+		F.W.Advance(0.5f, Step);
+		Leader->ClearSpeedOverride();
+		const ATDWingmanAIController* Wing = F.Wing(ETDShipId::Bastion);
+		TestTrue(TEXT("still engaged after a ram-speed dash") + Fps, Wing && Wing->GetWingmanState() == ETDWingmanState::Engage && Wing->GetCurrentTarget() == Enemy);
+
+		// The real hyperdrive: spool 1.2 s, then the jump at 80 000 cm/s. Wingmen ride in their slots.
+		UTDHyperdriveComponent* Hyper = Leader->GetHyperdrive();
+		TestTrue(TEXT("spool") + Fps, Hyper && Hyper->StartSpool());
+		F.W.Advance(3.f, Step);
+		TestTrue(TEXT("jumping") + Fps, Hyper && Hyper->IsJumping() && Leader->GetShipMovement()->GetSpeed() > 60000.f);
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
+			TestTrue(FString::Printf(TEXT("%s jumps in formation (%.0f cm from slot)%s"), *UEnum::GetValueAsString(Id), Dist, *Fps), Dist < 2000.f);
+		}
 	}
-	Leader->ClearSpeedOverride();
 	return true;
 }
 
@@ -737,23 +747,53 @@ bool FTDSquadSwitchCut::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSpool, "TriadDrift.Squad.Wingmen.FormUpOnHyperdriveSpool", TD_TEST_FLAGS)
 bool FTDSquadSpool::RunTest(const FString& Parameters)
 {
+	// Real T1 hyperdrive on the player's ship (no bus broadcasts).
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+		F.W.Advance(3.f, Step);
+		TestTrue(TEXT("engaged before the spool") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Engage);
+		UTDHyperdriveComponent* Hyper = F.Ship(ETDShipId::Rift)->GetHyperdrive();
+		if (!TestNotNull(TEXT("hyperdrive") + Fps, Hyper) || !TestTrue(TEXT("spool starts") + Fps, Hyper->StartSpool()))
+		{
+			return false;
+		}
+		F.W.Advance(0.5f, Step);
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			const ATDWingmanAIController* Wing = F.Wing(Id);
+			TestTrue(TEXT("forming up for the jump") + Fps, Wing && Wing->IsFormingUpForJump() && Wing->GetWingmanState() != ETDWingmanState::Engage);
+			TestNull(TEXT("dropped its target") + Fps, Wing ? Wing->GetCurrentTarget() : nullptr);
+		}
+		// Cancel the spool (hit / H released): back to the fight, with nothing latched.
+		Hyper->CancelSpool();
+		F.W.Advance(1.5f, Step);
+		TestFalse(TEXT("no longer forming up") + Fps, F.Wing(ETDShipId::Lancer)->IsFormingUpForJump());
+		TestTrue(TEXT("re-engages after a cancelled spool") + Fps, F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Enemy);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSpoolDeath, "TriadDrift.Squad.Wingmen.KeepFightingAfterLeaderDiesMidSpool", TD_TEST_FLAGS)
+bool FTDSquadSpoolDeath::RunTest(const FString& Parameters)
+{
+	// B2: the player's ship dies mid-spool; the new leader isn't jumping, so the wingmen must fight.
 	FSquadFixture F;
 	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
-	F.W.Advance(3.f);
-	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
-	TestTrue(TEXT("engaged before the spool"), F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Engage);
-	Bus->BroadcastHyperdriveState(ETDHyperdriveState::Spooling);
-	F.W.Advance(0.6f);
-	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
-	{
-		const ATDWingmanAIController* Wing = F.Wing(Id);
-		TestTrue(TEXT("forming up for the jump"), Wing && Wing->IsFormingUpForJump() && Wing->GetWingmanState() != ETDWingmanState::Engage);
-		TestNull(TEXT("dropped its target"), Wing ? Wing->GetCurrentTarget() : nullptr);
-	}
-	// Cancelled spool (hit / H released): back to the fight.
-	Bus->BroadcastHyperdriveState(ETDHyperdriveState::Idle);
+	F.W.Advance(2.f);
+	UTDHyperdriveComponent* Hyper = F.Ship(ETDShipId::Rift)->GetHyperdrive();
+	TestTrue(TEXT("spool starts"), Hyper && Hyper->StartSpool());
+	F.W.Advance(0.4f);
+	TestTrue(TEXT("Rift killed mid-spool"), F.KillWithDamage(ETDShipId::Rift));
+	F.W.Advance(0.8f);
+	TestTrue(TEXT("auto-switched off the dead ship"), F.Squad->GetActiveShipId() != ETDShipId::Rift);
+	TestTrue(TEXT("the dead ship's hyperdrive stopped"), Hyper->GetState() == ETDHyperdriveState::Idle);
 	F.W.Advance(1.5f);
-	TestTrue(TEXT("re-engages after a cancelled spool"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Enemy);
+	const ETDShipId Wingman = F.Squad->GetActiveShipId() == ETDShipId::Lancer ? ETDShipId::Bastion : ETDShipId::Lancer;
+	TestFalse(TEXT("remaining wingman isn't stuck forming up"), F.Wing(Wingman)->IsFormingUpForJump());
+	TestTrue(TEXT("and fights"), F.Wing(Wingman)->GetCurrentTarget() == Enemy);
 	return true;
 }
 
@@ -1014,6 +1054,400 @@ bool FTDSquadPowersThroughInput::RunTest(const FString& Parameters)
 			}
 		}
 	}
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------ ENG-08 behaviours
+
+namespace TDSquadTests
+{
+	/** Angle in degrees between two directions. */
+	static float AngleDeg(const FVector& A, const FVector& B)
+	{
+		return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(A.GetSafeNormal(), B.GetSafeNormal()), -1.f, 1.f)));
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadThreatFirst, "TriadDrift.Squad.Wingmen.TargetPriorityThreatToPlayerFirst", TD_TEST_FLAGS)
+bool FTDSquadThreatFirst::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	// Near: closest to the Lancer wingman, but harmless. Threat: further away, but it just shot the player.
+	AActor* Near = F.SpawnEnemy(FVector(4000.f, -3000.f, 0.f), 100000.f);
+	AActor* Threat = F.SpawnEnemy(FVector(16000.f, 6000.f, 0.f), 100000.f);
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Rift), 1.f, ETDDamageKind::Energy, Threat, Threat);
+	F.W.Advance(0.6f);
+	TestTrue(TEXT("the player's attacker is engaged first by a wingman"),
+		F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Threat || F.Wing(ETDShipId::Bastion)->GetCurrentTarget() == Threat);
+	TestTrue(TEXT("Lancer, nearest to the harmless one, still goes for the threat"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Threat);
+	TestNotNull(TEXT("(near enemy exists)"), Near);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadLowestHealth, "TriadDrift.Squad.Wingmen.TargetPriorityLowestHealthBreaksTies", TD_TEST_FLAGS)
+bool FTDSquadLowestHealth::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.Kill(ETDShipId::Bastion); // one wingman, so the "spread targets" rule can't interfere
+	F.W.Tick();
+	const FVector LancerLoc = F.Ship(ETDShipId::Lancer)->GetActorLocation();
+	// Two enemies at the same distance from the Lancer wingman; one is hurt.
+	AActor* Healthy = F.SpawnEnemy(LancerLoc + FVector(9000.f, 2500.f, 0.f), 1000.f);
+	AActor* Hurt = F.SpawnEnemy(LancerLoc + FVector(9000.f, -2500.f, 0.f), 1000.f);
+	UTDStatics::ApplyTDDamage(Hurt, 600.f, ETDDamageKind::Energy, F.Ship(ETDShipId::Rift), F.Ship(ETDShipId::Rift));
+	F.W.Advance(0.6f);
+	TestTrue(TEXT("same distance band: the hurt enemy is picked"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Hurt);
+	TestNotNull(TEXT("(healthy enemy exists)"), Healthy);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEvadeOnShieldBreak, "TriadDrift.Squad.Wingmen.EvadeOnShieldBreak", TD_TEST_FLAGS)
+bool FTDSquadEvadeOnShieldBreak::RunTest(const FString& Parameters)
+{
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+		F.W.Advance(2.f, Step);
+		TestTrue(TEXT("engaged") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Engage);
+		// Break Lancer's 80-point shield with a real hit.
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 85.f, ETDDamageKind::Energy, Enemy, Enemy);
+		F.W.Tick(Step);
+		F.W.Tick(Step);
+		TestTrue(TEXT("evades when the shield breaks") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Evade);
+		TestTrue(TEXT("boosting away") + Fps, F.Ship(ETDShipId::Lancer)->GetFlightInput().bBoost);
+		F.W.Advance(2.f, Step);
+		TestTrue(TEXT("evade ends after 1.8 s") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() != ETDWingmanState::Evade);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadFollowPortal, "TriadDrift.Squad.Wingmen.FollowLeaderThroughPortal", TD_TEST_FLAGS)
+bool FTDSquadFollowPortal::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.W.Advance(1.f);
+	ATDShip* Leader = F.Ship(ETDShipId::Rift);
+	// A portal / gate jump: T1's TeleportSpacecraft broadcasts OnSpacecraftTeleported on the bus.
+	Leader->TeleportSpacecraft(FVector(250000.f, 40000.f, 0.f), FRotator(0.f, 90.f, 0.f), true);
+	F.W.Tick();
+	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
+		TestTrue(FString::Printf(TEXT("%s followed through the portal (%.0f cm from slot)"), *UEnum::GetValueAsString(Id), Dist), Dist < 3000.f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadAvoidObstacle, "TriadDrift.Squad.Wingmen.AvoidRegisteredObstacle", TD_TEST_FLAGS)
+bool FTDSquadAvoidObstacle::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	UTDWorldSubsystem* WorldSub = F.W.GetWorld()->GetSubsystem<UTDWorldSubsystem>();
+	if (!TestNotNull(TEXT("world subsystem"), WorldSub))
+	{
+		return false;
+	}
+	// An asteroid right on the Lancer wingman's line (its slot is at y = -1600), clear of the leader's.
+	const FVector Rock(9000.f, -1600.f, 150.f);
+	const float RockRadius = 1100.f;
+	WorldSub->AddObstacle(Rock, RockRadius);
+	float Closest = TNumericLimits<float>::Max();
+	for (int32 i = 0; i < 240; ++i)
+	{
+		F.W.Tick();
+		Closest = FMath::Min(Closest, FVector::Dist(F.Ship(ETDShipId::Lancer)->GetActorLocation(), Rock));
+	}
+	TestTrue(FString::Printf(TEXT("Lancer steered around the asteroid (closest %.0f cm, radius %.0f)"), Closest, RockRadius), Closest > RockRadius);
+	const float SlotDist = FVector::Dist(F.Ship(ETDShipId::Lancer)->GetActorLocation(), F.Squad->GetFormationSlotLocation(ETDShipId::Lancer));
+	TestTrue(TEXT("and rejoined formation afterwards"), SlotDist < 3000.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSeparation, "TriadDrift.Squad.Wingmen.KeepApartFromSquadmates", TD_TEST_FLAGS)
+bool FTDSquadSeparation::RunTest(const FString& Parameters)
+{
+	FSquadFixture F(/*bSpawnSquad*/ false);
+	// Force both wingmen to want the SAME slot: only teammate avoidance keeps them apart.
+	F.Squad->FormationRightOffset = F.Squad->FormationLeftOffset;
+	F.Squad->SpawnSquad(FTransform::Identity);
+	float Closest = TNumericLimits<float>::Max();
+	for (int32 i = 0; i < 480; ++i)
+	{
+		F.W.Tick();
+		const float D = FVector::Dist(F.Ship(ETDShipId::Lancer)->GetActorLocation(), F.Ship(ETDShipId::Bastion)->GetActorLocation());
+		if (i > 60)
+		{
+			Closest = FMath::Min(Closest, D);
+		}
+	}
+	// Collision spheres are 220 cm, so contact is at 440 cm: demand a clear gap.
+	TestTrue(FString::Printf(TEXT("wingmen sharing a slot keep apart (closest %.0f cm)"), Closest), Closest > 600.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadDomeDrift, "TriadDrift.Squad.Wingmen.HurtWingmanSeeksShieldDome", TD_TEST_FLAGS)
+bool FTDSquadDomeDrift::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.W.Advance(0.5f);
+	// Hurt Lancer below 40% with a real hit, then raise a player dome off to the side.
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 110.f, ETDDamageKind::Energy, F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f), nullptr);
+	TestTrue(TEXT("Lancer hurt"), UTDStatics::GetHealth(F.Ship(ETDShipId::Lancer))->GetHull01() < 0.6f);
+	AActor* DomeAnchor = F.W.Spawn<AActor>(F.Ship(ETDShipId::Rift)->GetActorLocation() + FVector(9000.f, -9000.f, 0.f));
+	USceneComponent* Root = NewObject<USceneComponent>(DomeAnchor, TEXT("Root"));
+	DomeAnchor->SetRootComponent(Root);
+	Root->RegisterComponent();
+	DomeAnchor->SetActorLocation(F.Ship(ETDShipId::Rift)->GetActorLocation() + FVector(9000.f, -9000.f, 0.f));
+	ATDShieldDome* Dome = ATDShieldDome::SpawnDome(F.W.GetWorld(), DomeAnchor, ETDTeam::Player, 3000.f, 20.f);
+	if (!TestNotNull(TEXT("dome"), Dome))
+	{
+		return false;
+	}
+	F.W.Advance(1.f);
+	bool bInside = false;
+	for (int32 i = 0; i < 600 && !bInside; ++i)
+	{
+		F.W.Tick();
+		bInside = FVector::Dist(F.Ship(ETDShipId::Lancer)->GetActorLocation(), Dome->GetActorLocation()) < Dome->GetRadius();
+	}
+	TestTrue(TEXT("hurt wingman flew into the dome"), bInside);
+	const float BastionToDome = FVector::Dist(F.Ship(ETDShipId::Bastion)->GetActorLocation(), Dome->GetActorLocation());
+	TestTrue(TEXT("healthy Bastion stays in formation instead"), BastionToDome > Dome->GetRadius());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadAimError, "TriadDrift.Squad.Wingmen.AimErrorTwoToFourDegrees", TD_TEST_FLAGS)
+bool FTDSquadAimError::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	AActor* Enemy = F.SpawnEnemy(FVector(14000.f, 0.f, 0.f), 1000000.f); // stationary: lead = position
+	F.W.Advance(1.5f);
+	const UTDWeaponComponent* W = F.Ship(ETDShipId::Lancer)->GetWeapons();
+	float MinErr = 180.f, MaxErr = 0.f;
+	int32 Samples = 0;
+	for (int32 i = 0; i < 180; ++i)
+	{
+		// The wingman aims during its tick from where it was BEFORE this frame's movement.
+		const FVector AimedFrom = F.Ship(ETDShipId::Lancer)->GetActorLocation();
+		F.W.Tick();
+		if (F.Wing(ETDShipId::Lancer)->GetWingmanState() != ETDWingmanState::Engage)
+		{
+			continue;
+		}
+		const FVector Exact = Enemy->GetActorLocation() - AimedFrom;
+		if (Exact.Size() < 3000.f)
+		{
+			continue; // at pass-by range the line of sight swings more in one frame than the error itself
+		}
+		const float Err = AngleDeg(W->GetAimDirection(), Exact);
+		MinErr = FMath::Min(MinErr, Err);
+		MaxErr = FMath::Max(MaxErr, Err);
+		++Samples;
+	}
+	TestTrue(TEXT("sampled while engaging"), Samples > 60);
+	TestTrue(FString::Printf(TEXT("aim error within 2-4 degrees (%.2f .. %.2f)"), MinErr, MaxErr), MinErr >= 1.9f && MaxErr <= 4.1f);
+	TestTrue(TEXT("the error varies (re-rolled, not a fixed offset)"), MaxErr - MinErr > 0.3f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadCatchUpBoost, "TriadDrift.Squad.Wingmen.BoostToCatchUpBeyond8000", TD_TEST_FLAGS)
+bool FTDSquadCatchUpBoost::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.W.Advance(2.f);
+	ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+	const FVector Slot = F.Squad->GetFormationSlotLocation(ETDShipId::Lancer);
+	const FVector Back = -F.Ship(ETDShipId::Rift)->GetActorForwardVector();
+	Lancer->SetActorLocation(Slot + Back * 12000.f);
+	F.W.Advance(0.3f);
+	TestTrue(TEXT("boosts when more than 8000 cm behind"), Lancer->GetFlightInput().bBoost);
+	F.W.Advance(10.f);
+	const float Dist = FVector::Dist(Lancer->GetActorLocation(), F.Squad->GetFormationSlotLocation(ETDShipId::Lancer));
+	TestTrue(FString::Printf(TEXT("caught up (%.0f cm)"), Dist), Dist < 1500.f);
+	TestFalse(TEXT("no boost once back in the slot"), Lancer->GetFlightInput().bBoost);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadHullRepair, "TriadDrift.Squad.Death.HullRepairsBetweenWavesOnly", TD_TEST_FLAGS)
+bool FTDSquadHullRepair::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	AActor* Enemy = F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f);
+	UTDHealthComponent* H = F.Health(ETDShipId::Bastion);
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 260.f, ETDDamageKind::Energy, Enemy, Enemy); // shield 160 + 100 hull
+	const float HullAfterHit = H->GetHull();
+	Bus->BroadcastWaveStarted(1, 0.2f);
+	F.W.Advance(5.f);
+	TestEqual(TEXT("no hull regeneration in combat"), H->GetHull(), HullAfterHit, 0.01f);
+	Bus->BroadcastWaveCleared(1);
+	F.W.Advance(5.f);
+	TestTrue(TEXT("hull repairs between waves (~8/s)"), H->GetHull() > HullAfterHit + 30.f && H->GetHull() < HullAfterHit + 50.f);
+	Bus->BroadcastWaveStarted(2, 0.35f);
+	const float HullAtWave2 = H->GetHull();
+	F.W.Advance(3.f);
+	TestEqual(TEXT("repair stops when the next wave starts"), H->GetHull(), HullAtWave2, 0.01f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadRamEndsAfterSwitch, "TriadDrift.Squad.Switch.RamEndsCleanlyAfterSwitch", TD_TEST_FLAGS)
+bool FTDSquadRamEndsAfterSwitch::RunTest(const FString& Parameters)
+{
+	// T2: the ram finishes its 1.2 s dash under the AI, then the speed override must be gone.
+	FSquadFixture F;
+	TestTrue(TEXT("player into Lancer"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+	UTDPowerComponent* Ram = UTDPowerComponent::FindPower(Lancer, ETDPowerInput::Signature1);
+	if (!TestNotNull(TEXT("ram installed"), Ram))
+	{
+		return false;
+	}
+	UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, true);
+	F.W.Tick();
+	UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
+	F.W.Advance(0.5f); // past the 0.3 s wind-up, mid-dash
+	TestTrue(TEXT("ram dashing"), Ram->IsPowerActive() && Lancer->GetShipMovement()->HasSpeedOverride());
+	TestTrue(TEXT("switch away mid-dash"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
+	TestNotNull(TEXT("Lancer under AI during the rest of the dash"), F.Wing(ETDShipId::Lancer));
+	F.W.Advance(1.5f);
+	TestFalse(TEXT("ram over"), Ram->IsPowerActive());
+	TestFalse(TEXT("speed override cleared"), Lancer->GetShipMovement()->HasSpeedOverride());
+	// Speed after the dash is T1/T2's call (overspeed bleed); logged for them, not asserted here.
+	AddInfo(FString::Printf(TEXT("Lancer speed 1.5 s after a ram + switch: %.0f cm/s"), Lancer->GetShipMovement()->GetSpeed()));
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------ review fixes
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadAimClearedOnHandover, "TriadDrift.Squad.Switch.WingmanAimTargetClearedOnHandover", TD_TEST_FLAGS)
+bool FTDSquadAimClearedOnHandover::RunTest(const FString& Parameters)
+{
+	// M1: the wingman's explicit aim target must not follow the ship into the player's hands.
+	FSquadFixture F;
+	AActor* A = F.SpawnEnemy(FVector(9000.f, -1600.f, 0.f), 100000.f);
+	F.W.Advance(2.f);
+	UTDWeaponComponent* W = F.Ship(ETDShipId::Lancer)->GetWeapons();
+	TestTrue(TEXT("wingman aims at A"), W && W->GetAimTarget() == A);
+	TestTrue(TEXT("real switch into Lancer"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestNull(TEXT("aim target cleared for the player"), W ? W->GetAimTarget() : nullptr);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadDeathTumble, "TriadDrift.Squad.Death.TumbleParksAndRespawnResetsFlight", TD_TEST_FLAGS)
+bool FTDSquadDeathTumble::RunTest(const FString& Parameters)
+{
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		F.W.Advance(1.f, Step);
+		ATDShip* Rift = F.Ship(ETDShipId::Rift);
+		// The player is holding full stick and boost when the ship dies.
+		FTDFlightInput Held;
+		Held.Aim = FVector2D(1.f, 1.f);
+		Held.bBoost = true;
+		Rift->SetFlightInput(Held);
+		F.W.Tick(Step);
+		const FRotator RotAtDeath = Rift->GetActorRotation();
+		const FVector LocAtDeath = Rift->GetActorLocation();
+		TestTrue(TEXT("killed") + Fps, F.KillWithDamage(ETDShipId::Rift));
+		F.W.Tick(Step);
+		TestTrue(TEXT("flight parked during the tumble (stick and boost do nothing)") + Fps, Rift->IsFlightParked());
+		TestTrue(TEXT("weapons blocked") + Fps, Rift->GetWeapons()->AreWeaponsBlocked());
+		F.W.Advance(0.3f, Step);
+		TestTrue(TEXT("visibly tumbling") + Fps, !Rift->GetActorRotation().Equals(RotAtDeath, 20.f));
+		TestTrue(TEXT("drifting on") + Fps, FVector::Dist(Rift->GetActorLocation(), LocAtDeath) > 300.f);
+		TestFalse(TEXT("still visible during the tumble") + Fps, Rift->IsHidden());
+		F.W.Advance(0.4f, Step);
+		TestTrue(TEXT("hidden and still parked once down") + Fps, Rift->IsHidden() && Rift->IsFlightParked());
+		// Check the reset in the frame the ship comes back (its wingman may legitimately boost after).
+		for (int32 i = 0; i < 2000 && !F.Squad->IsShipAlive(ETDShipId::Rift); ++i)
+		{
+			F.W.Tick(Step);
+		}
+		TestTrue(TEXT("respawned") + Fps, F.Squad->IsShipAlive(ETDShipId::Rift));
+		TestFalse(TEXT("flight running again") + Fps, Rift->IsFlightParked());
+		TestFalse(TEXT("weapons unblocked") + Fps, Rift->GetWeapons()->AreWeaponsBlocked());
+		TestTrue(TEXT("latched input cleared") + Fps, !Rift->GetFlightInput().bBoost || F.Wing(ETDShipId::Rift) != nullptr);
+		TestEqual(TEXT("boost meter full") + Fps, Rift->GetBoost01(), 1.f, 0.01f);
+		TestFalse(TEXT("no speed override") + Fps, Rift->GetShipMovement()->HasSpeedOverride());
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadRetakeMidJump, "TriadDrift.Squad.Death.RetakeMidJumpStartsClean", TD_TEST_FLAGS)
+bool FTDSquadRetakeMidJump::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.W.Advance(0.5f);
+	ATDShip* Rift = F.Ship(ETDShipId::Rift);
+	UTDHyperdriveComponent* Hyper = Rift->GetHyperdrive();
+	TestTrue(TEXT("spool"), Hyper && Hyper->StartSpool());
+	F.W.Advance(2.5f);
+	TestTrue(TEXT("jumping"), Hyper->IsJumping());
+	F.Kill(ETDShipId::Lancer);
+	F.Kill(ETDShipId::Bastion);
+	F.Kill(ETDShipId::Rift);
+	F.W.Tick();
+	F.Squad->SpawnSquad(FTransform::Identity);
+	F.W.Advance(0.1f);
+	TestTrue(TEXT("take 2 does not start at jump speed"), Rift->GetShipMovement()->GetSpeed() < 20000.f);
+	F.W.Advance(1.f);
+	TestTrue(TEXT("hyperdrive idle in the new take"), Hyper->GetState() == ETDHyperdriveState::Idle);
+	TestTrue(TEXT("flying at cruise"), Rift->GetShipMovement()->GetSpeed() < 8000.f && !Rift->IsFlightParked());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchUnderSlowMo, "TriadDrift.Squad.Switch.CooldownIsRealTimeUnderSlowMo", TD_TEST_FLAGS)
+bool FTDSquadSwitchUnderSlowMo::RunTest(const FString& Parameters)
+{
+	// M5: a money shot must not swallow Tab presses.
+	FSquadFixture F;
+	TestTrue(TEXT("first switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	UTDFeelSubsystem::Get(F.W.GetWorld())->RequestSlowMo(3.f, 0.2f);
+	F.W.Advance(0.45f); // real seconds: only ~0.09 s of game time pass
+	TestTrue(TEXT("slow-mo running"), UTDFeelSubsystem::Get(F.W.GetWorld())->IsSlowMoActive());
+	TestTrue(TEXT("switch allowed after 0.4 s of real time"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchGuards, "TriadDrift.Squad.Switch.RefusedMidJumpAndLanding", TD_TEST_FLAGS)
+bool FTDSquadSwitchGuards::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.Squad->OnSwitchRefused.AddDynamic(F.Events, &UTDSquadTestListener::OnSwitchRefused);
+	F.W.Advance(0.5f);
+	ATDShip* Rift = F.Ship(ETDShipId::Rift);
+
+	// Mid-spool.
+	UTDHyperdriveComponent* Hyper = Rift->GetHyperdrive();
+	TestTrue(TEXT("spool"), Hyper && Hyper->StartSpool());
+	TestFalse(TEXT("no manual switch while spooling"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestTrue(TEXT("refusal reason: hyperdrive"), F.Events->LastRefusal == ETDSwitchRefusal::HyperdriveActive);
+	Hyper->CancelSpool();
+	TestTrue(TEXT("switch allowed once idle"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	F.W.Advance(0.5f);
+	TestTrue(TEXT("back to Rift"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
+	F.W.Advance(0.5f);
+
+	// Landing.
+	ATDLandingPad* Pad = F.W.Spawn<ATDLandingPad>(Rift->GetActorLocation() + FVector(3000.f, 0.f, -500.f));
+	UTDLandingComponent* Landing = Rift->GetLanding();
+	if (!TestNotNull(TEXT("landing component"), Landing) || !TestNotNull(TEXT("pad"), Pad))
+	{
+		return false;
+	}
+	TestTrue(TEXT("landing starts"), Landing->LandOnPad(Pad));
+	F.W.Tick();
+	TestFalse(TEXT("no manual switch while landing"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	TestTrue(TEXT("refusal reason: landing"), F.Events->LastRefusal == ETDSwitchRefusal::Landing);
+
+	// Death still auto-switches, landing or not (landing makes the ship invulnerable, so a direct kill).
+	F.Kill(ETDShipId::Rift);
+	F.W.Advance(0.8f);
+	TestTrue(TEXT("auto-switch still works"), F.Squad->GetActiveShipId() != ETDShipId::Rift);
 	return true;
 }
 
