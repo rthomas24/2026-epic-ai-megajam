@@ -87,6 +87,37 @@ void UTDGameInstance::BindEventBus()
 	Bus->OnActorKilled.AddUniqueDynamic(this, &UTDGameInstance::HandleActorKilled);
 	Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDGameInstance::HandleWaveStarted);
 	Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDGameInstance::HandleWaveCleared);
+	Bus->OnObjectiveUpdated.AddUniqueDynamic(this, &UTDGameInstance::HandleObjectiveUpdated);
+}
+
+void UTDGameInstance::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
+{
+	LastObjective.Id = ObjectiveId;
+	LastObjective.Step = Step;
+	LastObjective.Text = Text;
+}
+
+void UTDGameInstance::RefreshObjective(bool bForce)
+{
+	UWorld* World = GetWorld();
+	UTDEventBus* Bus = GetBus();
+	if (!World || !Bus || IsTravelPending())
+	{
+		return;
+	}
+	FTDObjectiveLine Line;
+	if (FTDObjectiveText::Compute(World, Progress, CurrentDestination, Line))
+	{
+		if (bForce || Line != LastObjective)
+		{
+			Bus->BroadcastObjectiveUpdated(Line.Id, Line.Step, Line.Text); // HandleObjectiveUpdated stores it
+		}
+	}
+	else if (bForce && LastObjective.IsSet() && !IsMenuDestination(CurrentDestination))
+	{
+		// On foot with a planet objective running: repeat its current step for a new HUD.
+		Bus->BroadcastObjectiveUpdated(LastObjective.Id, LastObjective.Step, LastObjective.Text);
+	}
 }
 
 UTDEventBus* UTDGameInstance::GetBus() const
@@ -269,6 +300,20 @@ void UTDGameInstance::TickFlow(float RealDeltaSeconds)
 		{
 			ExecuteRetake();
 		}
+	}
+
+	// Objective line for flow-owned scenes (cheap; only broadcasts on change or when forced).
+	ObjectiveCheckLeft -= RealDeltaSeconds;
+	bool bForceObjective = false;
+	if (ObjectiveForceLeft >= 0.f)
+	{
+		ObjectiveForceLeft -= RealDeltaSeconds;
+		bForceObjective = ObjectiveForceLeft < 0.f;
+	}
+	if (ObjectiveCheckLeft <= 0.f || bForceObjective)
+	{
+		ObjectiveCheckLeft = 0.25f;
+		RefreshObjective(bForceObjective);
 	}
 
 	// Travel.
@@ -485,6 +530,7 @@ void UTDGameInstance::ExecuteRetake()
 	{
 		Bus->BroadcastTakeStarted(Scene, Take);
 	}
+	ObjectiveForceLeft = 0.3f; // after the rebuild: the objective line comes back with the new take
 	UE_LOG(LogTriadDrift, Log, TEXT("CUT! Scene %s restarts as take %d."), *Scene.ToString(), Take);
 }
 
@@ -546,6 +592,7 @@ void UTDGameInstance::ResetRunState()
 	Progress = FTDProgress();
 	LastCheckpoint = FTDCheckpoint();
 	SceneOrder.Reset();
+	LastObjective = FTDObjectiveLine();
 	CurrentSceneId = NAME_None;
 	LastAnnouncedScene = NAME_None;
 	LastAnnouncedTake = 0;
@@ -646,7 +693,14 @@ void UTDGameInstance::NotifyLevelEntered(ETDDestination Destination)
 		return;
 	}
 	SetRunTimerPaused(Progress.Phase == ETDGamePhase::Victory);
+	const ETDGamePhase PhaseBeforeEntry = Progress.Phase;
 	ApplyStoryTransitionsOnEntry(Destination);
+	if (Progress.Phase == PhaseBeforeEntry)
+	{
+		BroadcastPhase(); // the new level's listeners (HUD, music state) learn the phase on every level entry
+	}
+	LastObjective = FTDObjectiveLine(); // the old level's line is stale; on-foot objectives re-announce themselves
+	ObjectiveForceLeft = 0.5f; // once the new level's HUD exists
 	TakeCheckpoint(TDFlow::ReasonLevelEntry);
 }
 
