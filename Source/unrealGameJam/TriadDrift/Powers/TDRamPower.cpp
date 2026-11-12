@@ -31,6 +31,8 @@ namespace
 	}
 }
 
+const FName UTDRamPower::RamOverrideKey(TEXT("Ram"));
+
 UTDRamPower::UTDRamPower()
 {
 	Slot = ETDPowerInput::Signature1;
@@ -81,22 +83,9 @@ bool UTDRamPower::IsHyperdriveBusy() const
 
 bool UTDRamPower::CanActivate() const
 {
-	if (!Super::CanActivate() || IsHyperdriveBusy())
-	{
-		return false;
-	}
-	// Someone else (hyperdrive, atmosphere entry) owns the speed override: don't fight it.
-	if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
-	{
-		if (const UTDShipMovementComponent* Move = Craft->GetShipMovement())
-		{
-			if (Move->HasSpeedOverride())
-			{
-				return false;
-			}
-		}
-	}
-	return true;
+	// Never mid-jump. Other overrides (atmosphere entry...) are fine: keyed overrides stack and ours is
+	// removed alone at the end, restoring whatever was underneath.
+	return Super::CanActivate() && !IsHyperdriveBusy();
 }
 
 void UTDRamPower::RefreshInvulnerability(float Seconds)
@@ -168,9 +157,7 @@ void UTDRamPower::BeginDash()
 	{
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
-			// Order matters: SetSpeedOverride resets the override acceleration to its default.
-			Move->SetSpeedOverride(GetDashSpeed(), SteeringScale);
-			Move->SetOverrideAcceleration(DashAcceleration);
+			Move->SetSpeedOverrideFor(RamOverrideKey, GetDashSpeed(), SteeringScale, DashAcceleration);
 			// The flight model's velocity grip eases speed changes in over ~0.2 s; the ram is a kick.
 			Move->Velocity = Owner->GetActorForwardVector() * GetDashSpeed();
 			bOwnsOverride = true;
@@ -374,8 +361,7 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 			Move->OnFlightImpact.RemoveAll(this);
 			if (bOwnsOverride)
 			{
-				Move->ClearSpeedOverride();
-				Move->SetOverrideAcceleration(-1.f);
+				Move->ClearSpeedOverrideFor(RamOverrideKey); // only ours: anything underneath is restored
 			}
 		}
 	}

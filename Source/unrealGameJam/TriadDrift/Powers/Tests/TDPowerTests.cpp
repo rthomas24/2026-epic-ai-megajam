@@ -90,7 +90,7 @@ bool FTDRamDash::RunTest(const FString& Parameters)
 		TestTrue(*(Fps + TEXT("invulnerable while above boost speed")), Lancer->GetVelocity().Size() <= Boost * 1.02f || Lancer->GetHealth()->IsInvulnerable());
 		W.Advance(2.f, Step);
 		TestFalse(*(Fps + TEXT("vulnerable after the grace")), Lancer->GetHealth()->IsInvulnerable());
-		TestFalse(*(Fps + TEXT("no speed override left behind")), Lancer->GetShipMovement()->HasSpeedOverride());
+		TestFalse(*(Fps + TEXT("no ram override left behind")), Lancer->GetShipMovement()->HasSpeedOverrideFor(UTDRamPower::RamOverrideKey));
 	}
 	return true;
 }
@@ -136,10 +136,14 @@ bool FTDRamFullDash::RunTest(const FString& Parameters)
 		ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
 		Lancer->SetTeam(ETDTeam::Player);
 		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
-		Lancer->SetSpeedOverride(20000.f, 1.f);
-		TestFalse(TEXT("refused while another speed override is active"), Ram->TryActivate());
-		Lancer->ClearSpeedOverride();
-		TestTrue(TEXT("allowed once it clears"), Ram->CanActivate());
+		// Another owner's override (atmosphere entry, say) underneath: the ram stacks on top and restores it.
+		Lancer->SetSpeedOverrideFor(TEXT("Atmosphere"), 5000.f, 1.f);
+		TestTrue(TEXT("ram stacks on another override"), Ram->TryActivate());
+		W.Advance(0.5f, PowerFrameStep());
+		TestTrue(TEXT("ram's own key is flown"), Lancer->GetShipMovement()->GetActiveSpeedOverrideOwner() == UTDRamPower::RamOverrideKey);
+		AdvanceUntil(W, [&] { return !Ram->IsPowerActive(); }, 2.f);
+		TestTrue(TEXT("the override underneath is restored, not wiped"), Lancer->GetShipMovement()->GetActiveSpeedOverrideOwner() == FName(TEXT("Atmosphere")));
+		Lancer->ClearSpeedOverrideFor(TEXT("Atmosphere"));
 
 		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 50000.f, 0.f));
 		Ship->SetTeam(ETDTeam::Player);

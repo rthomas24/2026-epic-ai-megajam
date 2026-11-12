@@ -121,9 +121,9 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 				{
 					// Caught: engines held at a crawl (unless something else owns the override), then dragged in
 					// with a swept move, so a fighter can't out-fly the vortex or be pulled through a hull.
-					if (!Captured.Contains(Craft) && !Move->HasSpeedOverride())
+					if (!Captured.Contains(Craft))
 					{
-						Move->SetSpeedOverride(CapturedSpeed, CapturedSteering);
+						Move->SetSpeedOverrideFor(TEXT("GravityWell"), CapturedSpeed, CapturedSteering);
 						Captured.Add(Craft);
 						if (FX)
 						{
@@ -229,7 +229,7 @@ void ATDGravityWell::ReleaseEscaped(const FVector& Center, float RadiusSq)
 		{
 			if (Craft && Craft->GetShipMovement())
 			{
-				Craft->GetShipMovement()->ClearSpeedOverride();
+				Craft->GetShipMovement()->ClearSpeedOverrideFor(TEXT("GravityWell"));
 			}
 			It.RemoveCurrent();
 		}
@@ -244,7 +244,7 @@ void ATDGravityWell::ReleaseAll()
 		{
 			if (Craft->GetShipMovement())
 			{
-				Craft->GetShipMovement()->ClearSpeedOverride();
+				Craft->GetShipMovement()->ClearSpeedOverrideFor(TEXT("GravityWell"));
 			}
 		}
 	}
