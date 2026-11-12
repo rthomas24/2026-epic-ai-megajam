@@ -104,7 +104,6 @@ Status: the agreement is recorded, but the arrival and hand-off code on T5's sid
 - **Input:** real key injection can't run headless. The harness's PlayerController has no local player, so the tests
   possess the character with an AIController and drive the same public move API that the input handlers call.
   Nobody has played the character windowed yet.
-- **Perfect-deflect slow-mo:** features.md says 0.15 s, but T3's director plays 0.5–1.0 s for an accepted
-  highlight. The blade falls back to its own 0.15 s only when the director refuses. T3 has been told.
+- **Perfect-deflect slow-mo:** settled with T3. The director plays a 0.15 s beat for PerfectDeflect (`TriadDrift.Director.PerfectDeflectIsAShortBeat`, on eng/t3). The blade plays its own 0.15 s only when the director refuses the highlight; neither plays during a CUT or travel.
 - **Crew AI:** the crew are stand-ins (ENG-23 replaces them). They have no ragdoll, and the guard break is only a flag.
 - **Carrying:** `SetCarrying` (no sprint/block while carrying) exists but isn't wired to an objective yet (ENG-25).
