@@ -24,7 +24,24 @@ enum class ETDHyperdriveBlock : uint8
 	NearGravityWell,
 	Cooldown,
 	Disabled,
-	NotPlayerFlown // wingmen / AI never jump on their own (T3 follows the leader instead)
+	NotPlayerFlown, // wingmen / AI never jump on their own (T3 follows the leader instead)
+	ObstacleAhead,  // something solid within ObstacleClearanceToSpool along the nose
+	Locked          // an active wave / finale / cutscene holds a UTDTravelSubsystem hyperdrive lock
+};
+
+/** Why the last jump ended. */
+UENUM(BlueprintType)
+enum class ETDHyperdriveEndCause : uint8
+{
+	None,
+	GravityWell,
+	Boundary,
+	Obstacle,  // look-ahead saw something solid: dropped to cruise short of it
+	Impact,
+	Timeout,
+	Manual,
+	Locked,
+	PilotLoss
 };
 
 /** Defaults are features.md ENG-15. */
@@ -74,6 +91,18 @@ struct UNREALGAMEJAM_API FTDHyperdriveTuning
 	/** Can't spool again for this long after a drop-out. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive", meta = (ClampMin = "0"))
 	float CooldownSeconds = 1.f;
+
+	/** During a jump, the path this far ahead is swept every tick; anything solid ends the jump short of it (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive", meta = (ClampMin = "0"))
+	float LookAheadDistance = 30000.f;
+
+	/** A spool is refused when something solid is closer than this along the nose (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive", meta = (ClampMin = "0"))
+	float ObstacleClearanceToSpool = 20000.f;
+
+	/** Look-ahead sweep radius as a multiple of the ship's collision radius. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive", meta = (ClampMin = "1"))
+	float LookAheadRadiusScale = 1.5f;
 
 	/** Drop out automatically on reaching the play-space boundary's warning band. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive")
@@ -148,6 +177,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
 	FName GetLastDropOutWell() const { return LastDropOutWell; }
 
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
+	ETDHyperdriveEndCause GetLastEndCause() const { return LastEndCause; }
+
+	/** Speed-override owner key used on the movement component. */
+	static const FName OverrideOwner;
+
+	/** Distance to the first solid thing along the nose within MaxDistance (squadmates ignored); -1 if clear. */
+	float SweepAhead(float MaxDistance) const;
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Hyperdrive")
 	FTDOnHyperdriveStateChanged OnStateChanged;
 
@@ -177,7 +215,7 @@ private:
 	ATDSpacecraft* GetCraft() const;
 	void SetState(ETDHyperdriveState NewState);
 	void BeginJump();
-	void BeginDropOut(FName WellId);
+	void BeginDropOut(FName WellId, ETDHyperdriveEndCause Cause, bool bBurst = true);
 	void FinishDropOut();
 	void StopLoopFX();
 	double Now() const;
@@ -189,6 +227,7 @@ private:
 	double LastDropOutTime = -1000.0;
 	bool bEnabled = true;
 	FName LastDropOutWell = NAME_None;
+	ETDHyperdriveEndCause LastEndCause = ETDHyperdriveEndCause::None;
 	FVector LastLocation = FVector::ZeroVector;
 	TWeakObjectPtr<UNiagaraComponent> LoopFX;
 };

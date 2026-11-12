@@ -13,6 +13,8 @@ class USphereComponent;
 class ATDShip;
 class UTDTravelFX;
 class UTDAtmosphereEntryComponent;
+class UTDHealthComponent;
+struct FTDDamageInfo;
 
 UENUM(BlueprintType)
 enum class ETDAtmosphereEntryState : uint8
@@ -90,11 +92,22 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	/** Speed-override owner key used on the movement component. */
+	static const FName OverrideOwner;
+
+	/** Abandon an entry in progress (death, retake): back to normal flight, no travel. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Atmosphere")
+	void AbortEntry();
+
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void HandleOwnerDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow);
+
 private:
 	void FinishEntry();
+	void RestoreFlight();
 
 	ETDAtmosphereEntryState EntryState = ETDAtmosphereEntryState::Idle;
 	ETDDestination Destination = ETDDestination::Verdance;
