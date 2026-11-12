@@ -13,6 +13,9 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Powers/TDPowerComponent.h"
+#include "EnhancedPlayerInput.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -22,6 +25,9 @@
 namespace TDSquadTests
 {
 	/** A spawned squad with a player controller and an event listener. */
+	/** Frame steps every time-based test runs at (30 / 60 / 120 fps). */
+	static const float GFrameSteps[] = { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f };
+
 	struct FSquadFixture
 	{
 		FTDTestWorld W;
@@ -65,6 +71,7 @@ namespace TDSquadTests
 			return S ? Cast<ATDWingmanAIController>(S->GetController()) : nullptr;
 		}
 
+		/** Direct kill (ignores invulnerability). For tests about what happens AFTER a death. */
 		void Kill(ETDShipId Id) const
 		{
 			if (UTDHealthComponent* H = Health(Id))
@@ -72,6 +79,20 @@ namespace TDSquadTests
 				H->Kill();
 			}
 		}
+
+		/** Kill through the real damage path: an enemy's hit via UTDStatics::ApplyTDDamage. */
+		bool KillWithDamage(ETDShipId Id)
+		{
+			if (!DamageSource)
+			{
+				DamageSource = SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f); // far outside any engage range
+			}
+			UTDStatics::ApplyTDDamage(Ship(Id), 100000.f, ETDDamageKind::Energy, DamageSource, DamageSource);
+			const UTDHealthComponent* H = Health(Id);
+			return H && H->IsDead();
+		}
+
+		AActor* DamageSource = nullptr;
 
 		/** A stationary Enemy-team target with a health component (no enemy-ship code needed). */
 		AActor* SpawnEnemy(const FVector& Location, float Hull = 400.f)
@@ -198,20 +219,26 @@ bool FTDSquadSwitchSameFrame::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchCooldown, "TriadDrift.Squad.Switch.Cooldown", TD_TEST_FLAGS)
 bool FTDSquadSwitchCooldown::RunTest(const FString& Parameters)
 {
-	FSquadFixture F;
-	TestTrue(TEXT("first switch"), F.Squad->RequestSwitchNext());
-	TestTrue(TEXT("next = Lancer"), F.Squad->GetActiveShipId() == ETDShipId::Lancer);
-	TestFalse(TEXT("blocked immediately"), F.Squad->RequestSwitchNext());
-	TestTrue(TEXT("cooldown reported"), F.Squad->GetSwitchCooldown01() > 0.9f);
-	F.W.Advance(0.3f);
-	TestFalse(TEXT("blocked at 0.3 s"), F.Squad->RequestSwitchPrev());
-	F.W.Advance(0.12f);
-	TestTrue(TEXT("allowed after 0.4 s"), F.Squad->RequestSwitchPrev());
-	TestTrue(TEXT("prev = Rift"), F.Squad->GetActiveShipId() == ETDShipId::Rift);
-	F.W.Advance(0.45f);
-	TestTrue(TEXT("prev wraps to Bastion"), F.Squad->RequestSwitchPrev() && F.Squad->GetActiveShipId() == ETDShipId::Bastion);
-	F.W.Advance(0.45f);
-	TestFalse(TEXT("switching to the active ship is a no-op"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		TestTrue(TEXT("first switch") + Fps, F.Squad->RequestSwitchNext());
+		TestTrue(TEXT("next = Lancer") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Lancer);
+		TestFalse(TEXT("blocked immediately") + Fps, F.Squad->RequestSwitchNext());
+		TestTrue(TEXT("cooldown reported") + Fps, F.Squad->GetSwitchCooldown01() > 0.9f);
+		F.W.Advance(0.34f, Step);
+		TestFalse(TEXT("blocked at 0.34 s") + Fps, F.Squad->RequestSwitchPrev());
+		TestTrue(TEXT("cooldown still running") + Fps, F.Squad->GetSwitchCooldown01() > 0.f);
+		F.W.Advance(0.1f, Step);
+		TestTrue(TEXT("allowed after 0.4 s") + Fps, F.Squad->RequestSwitchPrev());
+		TestTrue(TEXT("prev = Rift") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Rift);
+		F.W.Advance(0.45f, Step);
+		TestTrue(TEXT("prev wraps to Bastion") + Fps, F.Squad->RequestSwitchPrev() && F.Squad->GetActiveShipId() == ETDShipId::Bastion);
+		F.W.Advance(0.45f, Step);
+		TestFalse(TEXT("switching to the active ship is a no-op") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		TestEqual(TEXT("exactly three switch events") + Fps, F.Events->Switches, 3);
+	}
 	return true;
 }
 
@@ -233,55 +260,77 @@ bool FTDSquadDownedUnselectable::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadAutoSwitch, "TriadDrift.Squad.Death.AutoSwitchToHealthiest", TD_TEST_FLAGS)
 bool FTDSquadAutoSwitch::RunTest(const FString& Parameters)
 {
-	FSquadFixture F;
-	// Bastion hurt (0.7 of its total), Lancer untouched (1.0): Lancer is the healthiest.
-	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 100.f, ETDDamageKind::Energy, nullptr, nullptr);
-	F.Kill(ETDShipId::Rift);
-	F.W.Tick();
-	TestTrue(TEXT("still in Rift during the 0.6 s tumble"), F.Squad->GetActiveShipId() == ETDShipId::Rift);
-	TestTrue(TEXT("Rift is dying"), F.Squad->GetShipState(ETDShipId::Rift) == ETDSquadSlotState::Dying);
-	F.W.Advance(0.7f);
-	TestTrue(TEXT("auto-switched to Lancer (healthiest)"), F.Squad->GetActiveShipId() == ETDShipId::Lancer);
-	TestTrue(TEXT("player possesses Lancer"), F.PC->GetPawn() == F.Ship(ETDShipId::Lancer));
-	TestTrue(TEXT("Rift hidden while downed"), F.Ship(ETDShipId::Rift)->IsHidden());
-	TestTrue(TEXT("respawn countdown visible"), F.Squad->GetRespawnSeconds(ETDShipId::Rift) > 10.f);
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		// Bastion hurt (0.7 of its total), Lancer untouched (1.0): Lancer is the healthiest.
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 100.f, ETDDamageKind::Energy, F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f), nullptr);
+		TestTrue(TEXT("Rift killed by real damage") + Fps, F.KillWithDamage(ETDShipId::Rift));
+		F.W.Tick(Step);
+		TestTrue(TEXT("still in Rift during the 0.6 s tumble") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Rift);
+		TestTrue(TEXT("Rift is dying") + Fps, F.Squad->GetShipState(ETDShipId::Rift) == ETDSquadSlotState::Dying);
+		F.W.Advance(0.5f, Step);
+		TestTrue(TEXT("still tumbling at 0.5 s") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Rift);
+		F.W.Advance(0.2f, Step);
+		TestTrue(TEXT("auto-switched to Lancer (healthiest) after 0.6 s") + Fps, F.Squad->GetActiveShipId() == ETDShipId::Lancer);
+		TestTrue(TEXT("player possesses Lancer") + Fps, F.PC->GetPawn() == F.Ship(ETDShipId::Lancer));
+		TestTrue(TEXT("Rift hidden while downed") + Fps, F.Ship(ETDShipId::Rift)->IsHidden());
+		TestTrue(TEXT("respawn countdown visible") + Fps, F.Squad->GetRespawnSeconds(ETDShipId::Rift) > 10.f);
+		TestTrue(TEXT("auto-switch cut flagged") + Fps, F.Squad->GetLastSwitchCut().bAutoSwitch);
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadRespawn, "TriadDrift.Squad.Death.RespawnAfter12sWith2sInvulnerability", TD_TEST_FLAGS)
 bool FTDSquadRespawn::RunTest(const FString& Parameters)
 {
-	FSquadFixture F;
-	F.Kill(ETDShipId::Bastion);
-	F.W.Tick();
-	F.W.Advance(11.8f);
-	TestTrue(TEXT("still down at ~11.8 s"), !F.Squad->IsShipAlive(ETDShipId::Bastion));
-	TestEqual(TEXT("no respawn yet"), F.Events->Respawned, 0);
-	F.W.Advance(0.3f);
-	TestTrue(TEXT("back at 12 s"), F.Squad->IsShipAlive(ETDShipId::Bastion));
-	TestEqual(TEXT("OnShipRespawned"), F.Events->Respawned, 1);
-	const UTDHealthComponent* H = F.Health(ETDShipId::Bastion);
-	TestTrue(TEXT("full health"), H && H->IsAlive() && H->GetHull01() == 1.f && H->GetShield01() == 1.f);
-	TestTrue(TEXT("invulnerable right after respawn"), H && H->IsInvulnerable());
-	TestFalse(TEXT("visible again"), F.Ship(ETDShipId::Bastion)->IsHidden());
-	TestTrue(TEXT("wingman flies it again"), F.Wing(ETDShipId::Bastion) != nullptr);
-	F.W.Advance(1.8f);
-	TestTrue(TEXT("still invulnerable at 1.8 s"), H && H->IsInvulnerable());
-	F.W.Advance(0.4f);
-	TestFalse(TEXT("vulnerable after 2 s"), H && H->IsInvulnerable());
-	TestTrue(TEXT("selectable again"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		TestTrue(TEXT("Bastion killed by real damage") + Fps, F.KillWithDamage(ETDShipId::Bastion));
+		F.W.Advance(11.8f, Step);
+		TestTrue(TEXT("still down at 11.8 s") + Fps, !F.Squad->IsShipAlive(ETDShipId::Bastion));
+		TestEqual(TEXT("no respawn yet") + Fps, F.Events->Respawned, 0);
+		F.W.Advance(0.3f, Step);
+		TestTrue(TEXT("back at 12 s") + Fps, F.Squad->IsShipAlive(ETDShipId::Bastion));
+		TestEqual(TEXT("OnShipRespawned") + Fps, F.Events->Respawned, 1);
+		const UTDHealthComponent* H = F.Health(ETDShipId::Bastion);
+		TestTrue(TEXT("full health") + Fps, H && H->IsAlive() && H->GetHull01() == 1.f && H->GetShield01() == 1.f);
+		TestFalse(TEXT("visible again") + Fps, F.Ship(ETDShipId::Bastion)->IsHidden());
+		TestTrue(TEXT("wingman flies it again") + Fps, F.Wing(ETDShipId::Bastion) != nullptr);
+
+		// Invulnerability proven by real damage, not just a flag: 1.8 s in, a hit does nothing...
+		F.W.Advance(1.8f, Step);
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 50.f, ETDDamageKind::Energy, F.DamageSource, F.DamageSource);
+		TestTrue(TEXT("no damage taken at 1.8 s") + Fps, H && H->GetShield01() == 1.f && H->GetHull01() == 1.f);
+		// ...2.2 s in, the same hit lands.
+		F.W.Advance(0.4f, Step);
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 50.f, ETDDamageKind::Energy, F.DamageSource, F.DamageSource);
+		TestTrue(TEXT("damage lands after 2 s") + Fps, H && H->GetShield01() < 1.f);
+		TestTrue(TEXT("selectable again") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	}
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchInGrace, "TriadDrift.Squad.Switch.SwitchInInvulnerability", TD_TEST_FLAGS)
 bool FTDSquadSwitchInGrace::RunTest(const FString& Parameters)
 {
-	FSquadFixture F;
-	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
-	const UTDHealthComponent* H = F.Health(ETDShipId::Bastion);
-	TestTrue(TEXT("2 s grace on switch-in"), H && H->IsInvulnerable());
-	F.W.Advance(2.2f);
-	TestFalse(TEXT("grace over"), H && H->IsInvulnerable());
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		AActor* Enemy = F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f);
+		TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		const UTDHealthComponent* H = F.Health(ETDShipId::Bastion);
+		F.W.Advance(1.8f, Step);
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 50.f, ETDDamageKind::Energy, Enemy, Enemy);
+		TestTrue(TEXT("hit ignored during the 2 s switch-in grace") + Fps, H && H->GetShield01() == 1.f);
+		F.W.Advance(0.4f, Step);
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 50.f, ETDDamageKind::Energy, Enemy, Enemy);
+		TestTrue(TEXT("hit lands after the grace") + Fps, H && H->GetShield01() < 1.f);
+	}
 	return true;
 }
 
@@ -356,47 +405,82 @@ bool FTDSquadRetake::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchStrike, "TriadDrift.Squad.SwitchStrike.WindowAndMultiplier", TD_TEST_FLAGS)
 bool FTDSquadSwitchStrike::RunTest(const FString& Parameters)
 {
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+		if (!TestNotNull(TEXT("bus"), Bus))
+		{
+			return false;
+		}
+
+		// Too late: 1.6 s after the power.
+		Bus->BroadcastPowerUsed(ETDShipId::Rift, TEXT("PortalBlaster"));
+		F.W.Advance(1.6f, Step);
+		TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+		TestFalse(TEXT("no Switch Strike outside 1.5 s") + Fps, F.Squad->IsSwitchStrikeActive());
+
+		// In time: 1.4 s after the power.
+		F.W.Advance(0.5f, Step);
+		Bus->BroadcastPowerUsed(ETDShipId::Lancer, TEXT("AfterburnerRam"));
+		F.W.Advance(1.4f, Step);
+		TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		ATDShip* Bastion = F.Ship(ETDShipId::Bastion);
+		TestTrue(TEXT("Switch Strike active") + Fps, F.Squad->IsSwitchStrikeActive());
+		TestEqual(TEXT("+25% on the new ship") + Fps, F.Squad->GetDamageMultiplier(Bastion), 1.25f);
+		TestEqual(TEXT("not on the old ship") + Fps, F.Squad->GetDamageMultiplier(F.Ship(ETDShipId::Lancer)), 1.f);
+		const UTDWeaponComponent* Weapons = Bastion ? Bastion->FindComponentByClass<UTDWeaponComponent>() : nullptr;
+		if (!TestNotNull(TEXT("weapons") + Fps, Weapons))
+		{
+			return false;
+		}
+		TestEqual(TEXT("weapon multiplier set (projectiles use it)") + Fps, Weapons->GetOutgoingDamageMultiplier(), 1.25f, 0.001f);
+		F.W.Advance(3.8f, Step);
+		TestTrue(TEXT("still active at 3.8 s") + Fps, F.Squad->IsSwitchStrikeActive());
+		F.W.Advance(0.3f, Step);
+		TestFalse(TEXT("over after 4 s") + Fps, F.Squad->IsSwitchStrikeActive());
+		TestEqual(TEXT("weapon multiplier cleared") + Fps, Weapons->GetOutgoingDamageMultiplier(), 1.f, 0.001f);
+
+		// One power arms one switch only.
+		Bus->BroadcastPowerUsed(ETDShipId::Bastion, TEXT("MissileSwarm"));
+		F.W.Advance(0.5f, Step);
+		TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Rift));
+		TestTrue(TEXT("armed") + Fps, F.Squad->IsSwitchStrikeActive());
+		F.W.Advance(0.45f, Step);
+		TestTrue(TEXT("switch again") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+		TestFalse(TEXT("second switch doesn't re-arm from the same power") + Fps, F.Squad->IsSwitchStrikeActive());
+		TestEqual(TEXT("old ship's multiplier cleared on the next switch") + Fps,
+			F.Ship(ETDShipId::Rift)->FindComponentByClass<UTDWeaponComponent>()->GetOutgoingDamageMultiplier(), 1.f, 0.001f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchStrikeRealPower, "TriadDrift.Squad.SwitchStrike.ArmedByRealPower", TD_TEST_FLAGS)
+bool FTDSquadSwitchStrikeRealPower::RunTest(const FString& Parameters)
+{
+	// The real path: T2's power component on the player's ship fires, broadcasts OnPowerUsed, and the
+	// switch that follows gets Switch Strike. No direct calls into the squad manager.
 	FSquadFixture F;
-	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
-
-	// Too late: 1.6 s after the power.
-	if (Bus) { Bus->BroadcastPowerUsed(ETDShipId::Rift, TEXT("PortalBlaster")); }
-	F.W.Advance(1.6f);
-	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
-	TestFalse(TEXT("no Switch Strike outside 1.5 s"), F.Squad->IsSwitchStrikeActive());
-
-	// In time: 1.0 s after the power (from the event bus, as T2 broadcasts it).
 	F.W.Advance(0.5f);
-	if (Bus) { Bus->BroadcastPowerUsed(ETDShipId::Lancer, TEXT("AfterburnerRam")); }
-	F.W.Advance(1.0f);
-	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
-	ATDShip* Bastion = F.Ship(ETDShipId::Bastion);
-	TestTrue(TEXT("Switch Strike active"), F.Squad->IsSwitchStrikeActive());
-	TestEqual(TEXT("+25% on the new ship"), F.Squad->GetDamageMultiplier(Bastion), 1.25f);
-	TestEqual(TEXT("not on the old ship"), F.Squad->GetDamageMultiplier(F.Ship(ETDShipId::Lancer)), 1.f);
-	const UTDWeaponComponent* Weapons = Bastion ? Bastion->FindComponentByClass<UTDWeaponComponent>() : nullptr;
-	if (Weapons)
+	ATDShip* Rift = F.Ship(ETDShipId::Rift);
+	UTDPowerComponent* Power = UTDPowerComponent::FindPower(Rift, ETDPowerInput::Signature1);
+	if (!Power)
 	{
-		TestEqual(TEXT("weapon multiplier set"), Weapons->GetOutgoingDamageMultiplier(), 1.25f, 0.001f);
+		AddWarning(TEXT("PENDING: squad ships carry no UTDPowerComponent yet (T2 ENG-09..11 signature powers not on main); the real-power path is unverified"));
+		return true;
 	}
-	F.W.Advance(3.8f);
-	TestTrue(TEXT("still active at 3.8 s"), F.Squad->IsSwitchStrikeActive());
+	UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Signature1, true);
+	F.W.Tick();
+	UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Signature1, false);
 	F.W.Advance(0.3f);
-	TestFalse(TEXT("over after 4 s"), F.Squad->IsSwitchStrikeActive());
-	TestEqual(TEXT("multiplier back to 1"), F.Squad->GetDamageMultiplier(Bastion), 1.f);
-	if (Weapons)
-	{
-		TestEqual(TEXT("weapon multiplier cleared"), Weapons->GetOutgoingDamageMultiplier(), 1.f, 0.001f);
-	}
-
-	// One power arms one switch only.
-	if (Bus) { Bus->BroadcastPowerUsed(ETDShipId::Bastion, TEXT("MissileSwarm")); }
+	TestTrue(TEXT("the power really fired (OnPowerUsed broadcast)"), F.Events->PowersUsed >= 1);
+	TestTrue(TEXT("power is on cooldown"), Power->GetCooldown01() < 1.f || Power->IsPowerActive());
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestTrue(TEXT("Switch Strike armed by the real power"), F.Squad->IsSwitchStrikeActive());
+	// ENG-07: a power started on one ship keeps running after you switch away.
 	F.W.Advance(0.5f);
-	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
-	TestTrue(TEXT("armed"), F.Squad->IsSwitchStrikeActive());
-	F.W.Advance(0.45f);
-	TestTrue(TEXT("switch again"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
-	TestFalse(TEXT("second switch doesn't re-arm from the same power"), F.Squad->IsSwitchStrikeActive());
+	TestTrue(TEXT("Rift's power kept running or cooling down after the switch"), Power->IsPowerActive() || Power->GetCooldown01() < 1.f);
 	return true;
 }
 
@@ -467,11 +551,24 @@ bool FTDSquadEngage::RunTest(const FString& Parameters)
 	TestEqual(TEXT("both wingmen engage the only enemy"), Engaged, 2);
 	F.W.Advance(6.f);
 	const UTDHealthComponent* H = UTDStatics::GetHealth(Enemy);
-	if (F.Ship(ETDShipId::Lancer)->FindComponentByClass<UTDWeaponComponent>())
+	TestNotNull(TEXT("wingman ships have weapons"), F.Ship(ETDShipId::Lancer)->FindComponentByClass<UTDWeaponComponent>());
+	TestTrue(TEXT("wingmen hit the enemy with real projectiles"), H && H->GetHull01() < 1.f);
+	TestEqual(TEXT("no OnPowerUsed while only wingmen fought"), F.Events->PowersUsed, 0);
+	// Prove it on T2's real components: every power and ability on the wingman ships is untouched.
+	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
 	{
-		TestTrue(TEXT("wingmen hit the enemy"), H && H->GetHull01() < 1.f);
+		for (const ETDPowerInput Slot : { ETDPowerInput::Signature1, ETDPowerInput::Signature2, ETDPowerInput::Ability })
+		{
+			if (const UTDPowerComponent* Power = UTDPowerComponent::FindPower(F.Ship(Id), Slot))
+			{
+				TestTrue(TEXT("wingman power never activated"), !Power->IsPowerActive() && Power->GetCooldown01() == 1.f);
+			}
+		}
 	}
-	TestEqual(TEXT("wingmen never fired a power"), F.Events->PowersUsed, 0);
+	if (!UTDPowerComponent::FindPower(F.Ship(ETDShipId::Lancer), ETDPowerInput::Signature1))
+	{
+		AddWarning(TEXT("PENDING: wingman ships carry no power components yet (T2 ENG-09..11), so 'never activated' is only checked through OnPowerUsed"));
+	}
 	TestFalse(TEXT("no Switch Strike from wingmen"), F.Squad->IsSwitchStrikeActive());
 	return true;
 }
@@ -495,17 +592,55 @@ bool FTDSquadFightAfterSwitch::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadFocus, "TriadDrift.Squad.Wingmen.FocusCommand", TD_TEST_FLAGS)
 bool FTDSquadFocus::RunTest(const FString& Parameters)
 {
-	FSquadFixture F;
-	F.SpawnEnemy(FVector(6000.f, 0.f, 0.f), 100000.f);
-	AActor* Far = F.SpawnEnemy(FVector(14000.f, -4000.f, 0.f), 100000.f);
-	F.W.Advance(1.f);
-	F.Squad->IssueFocusCommand(Far);
-	F.W.Advance(0.6f);
-	TestTrue(TEXT("Lancer focuses"), F.Wing(ETDShipId::Lancer) && F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Far);
-	TestTrue(TEXT("Bastion focuses"), F.Wing(ETDShipId::Bastion) && F.Wing(ETDShipId::Bastion)->GetCurrentTarget() == Far);
-	TestTrue(TEXT("focus active"), F.Squad->GetFocusTarget() == Far);
-	F.W.Advance(7.6f);
-	TestNull(TEXT("focus expires after 8 s"), F.Squad->GetFocusTarget());
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		AActor* Near = F.SpawnEnemy(FVector(6000.f, 0.f, 0.f), 100000.f);
+		AActor* Far = F.SpawnEnemy(FVector(14000.f, -4000.f, 0.f), 100000.f);
+		F.W.Advance(1.f, Step);
+		TestTrue(TEXT("without orders the wingmen take the near enemy first") + Fps,
+			F.Wing(ETDShipId::Lancer) && F.Wing(ETDShipId::Bastion)
+			&& (F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Near || F.Wing(ETDShipId::Bastion)->GetCurrentTarget() == Near));
+		F.Squad->IssueFocusCommand(Far);
+		F.W.Advance(0.6f, Step);
+		TestTrue(TEXT("Lancer focuses") + Fps, F.Wing(ETDShipId::Lancer) && F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Far);
+		TestTrue(TEXT("Bastion focuses") + Fps, F.Wing(ETDShipId::Bastion) && F.Wing(ETDShipId::Bastion)->GetCurrentTarget() == Far);
+		F.W.Advance(7.f, Step);
+		TestTrue(TEXT("focus still active at 7.6 s") + Fps, F.Squad->GetFocusTarget() == Far);
+		F.W.Advance(0.6f, Step);
+		TestNull(TEXT("focus expires after 8 s") + Fps, F.Squad->GetFocusTarget());
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadInputPath, "TriadDrift.Squad.Switch.ThroughPlayerInput", TD_TEST_FLAGS)
+bool FTDSquadInputPath::RunTest(const FString& Parameters)
+{
+	// The real path: Tab on T1's ATDSpacePlayerController -> ATDSquadManager::RequestSwitchNext.
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("space player controller"), PC) || !Squad)
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	UEnhancedPlayerInput* Input = Cast<UEnhancedPlayerInput>(PC->PlayerInput);
+	const UInputAction* Next = PC->FindActionByName(TEXT("IA_SwitchNext"));
+	if (!Input || !Next)
+	{
+		AddWarning(FString::Printf(TEXT("SKIPPED: no Enhanced Input in the headless test world (PlayerInput=%s, IA_SwitchNext=%s); switching via input is covered by T1's routing tests only"),
+			Input ? TEXT("ok") : TEXT("null"), Next ? TEXT("ok") : TEXT("null")));
+		return true;
+	}
+	Input->InjectInputForAction(Next, FInputActionValue(true));
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("Tab switched to the next ship"), Squad->GetActiveShipId() == ETDShipId::Lancer);
+	TestTrue(TEXT("and the player controller possesses it"), PC->GetPawn() == Squad->GetShip(ETDShipId::Lancer));
 	return true;
 }
 
