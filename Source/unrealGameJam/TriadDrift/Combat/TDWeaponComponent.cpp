@@ -4,6 +4,7 @@
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -74,6 +75,14 @@ void UTDWeaponComponent::EquipWeapon(ETDWeaponSlot Slot, FName WeaponId)
 	StopChargeFX(Slot);
 	const FTDWeaponSpec& Spec = UTDWeaponLibrary::Get(WeaponId);
 	SpecPtr(Slot) = Spec.IsValid() ? &Spec : nullptr;
+
+	TObjectPtr<UTDWeaponFX>& SlotFX = Slot == ETDWeaponSlot::Primary ? PrimaryFX : SecondaryFX;
+	bool& bAuto = Slot == ETDWeaponSlot::Primary ? bPrimaryFXAuto : bSecondaryFXAuto;
+	if (!SlotFX || bAuto)
+	{
+		SlotFX = Spec.IsValid() ? FTDPowerPresentation::LoadWeaponFX(WeaponId) : nullptr;
+		bAuto = true;
+	}
 
 	FTDWeaponSlotState& S = State(Slot);
 	const bool bWasRequested = S.bTriggerRequested;

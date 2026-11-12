@@ -11,6 +11,7 @@
 
 class UTDTravelFX;
 class UNiagaraComponent;
+class UStaticMeshComponent;
 
 /**
  * One end of a Rift portal pair: a two-sided disc whose forward (normal) faces back toward the shooter,
@@ -63,6 +64,10 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> IdleFX;
 
+	/** Engine-shape disc + rim, shown until UTDTravelFX::PortalIdle has art. */
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMeshComponent> PlaceholderDisc;
+
 	TWeakObjectPtr<ATDPortal> Partner;
 	TWeakObjectPtr<AActor> PortalInstigator;
 	TMap<TWeakObjectPtr<const AActor>, FVector> LastPositions;
@@ -79,7 +84,7 @@ private:
  * cooldown starts. bUseBlinkFallback (or console "TD.PortalBlink 1") swaps in Blink: teleport to the
  * impact point and drop a 3 s missile-reflect field.
  */
-UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
 class UNREALGAMEJAM_API UTDPortalBlasterPower : public UTDPowerComponent
 {
 	GENERATED_BODY()
@@ -88,6 +93,7 @@ public:
 	UTDPortalBlasterPower();
 
 	virtual void HandleInputPressed() override;
+	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Portal")
 	bool IsUsingBlink() const;
