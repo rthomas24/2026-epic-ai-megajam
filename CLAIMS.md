@@ -84,7 +84,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 15:00 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 15:14 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -121,11 +121,11 @@ open) · `done` (on `main`, tests pass, review closed).
 | Core: `UTDShipVisuals.Parts` (modular ships), `UTDWeaponFX.ProjectileMeshOffset`, highlight broadcast restricted to the director | Lead | done | Nov 12 13:16 | Nov 12 13:16, this push (answers `MESSAGEBOARD.md` N-001) | none |
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
 | Enable Unreal 5.9 agent toolsets for the built-in MCP server; MCP play-test tools (`Tools/td-play-mcp.ps1`, `Tools/td_mcp.py`) | Lead | done | Nov 12 13:33 | Nov 12 13:38 (`adb1912`); **`/unrealGameJam.uproject` claim released**; see `MESSAGEBOARD.md` R-008 | `/unrealGameJam.uproject` (21 engine toolset plugins, Editor targets only) |
-| Engineering host for Nick's HUD plugin: `AHUD` host, config switch, hand-over from the dev HUD, frozen-name regression test, build + full suite + Shipping + live capture | T2 | in progress | Nov 12 14:38 | | new `Source/unrealGameJam/TriadDrift/UI/**`; `/Source/unrealGameJam/unrealGameJam.Build.cs` (plugin module dependency, Lead applies); `/Config/DefaultGame.ini` (switch, Lead applies). `Plugins/TriadDriftHUD/**` stays Nick's, read-only |
+| Engineering host for Nick's HUD plugin (`UTDUIHostSubsystem`, switch `bUseNativeSpaceHUD` / `TD.UI.NativeHUD`, frozen-name and N-004 sequence tests) | T2 | in review | Nov 12 14:38 | Nov 12 15:08 (`2f53f4d`); hand-over posted under `MESSAGEBOARD.md` N-007; default OFF until played with the name-card and objective fixes; Shipping cook check open | new `Source/unrealGameJam/TriadDrift/UI/**`; `/Config/DefaultGame.ini` (cook line for `/Game/TriadDrift/UI/TriadHUD`). No module dependency on the plugin; `Plugins/TriadDriftHUD/**` stays read-only for engineering |
 | Shared protocols in AGENTS.md section 11 + `MESSAGEBOARD.md` R-009; presentation assets always cooked (asset manager scan) | Lead | done | Nov 12 13:57 | Nov 12 13:57, this push | `/AGENTS.md`, `/Config/DefaultGame.ini`, `/.gitignore` |
 | Test harness: local player controller + real key injection (`FTDTestWorld`) | Lead | done | Nov 12 13:48 | Nov 12 13:56 (`c911fa3`) | none |
 | Second-pass reviews: Ground + Flow, Travel + Flight | Lead | done | Nov 12 13:21 | Nov 12 13:58; findings with T1 and T5 | none |
-| Audio skill for Nick's agents (`.claude/skills/ue-game-audio/`: sourcing, layering, Unreal setup, level table, tested loudness scripts) + `MESSAGEBOARD.md` R-010 | Lead | in progress | Nov 12 14:03 | | `/.claude/skills/ue-game-audio/**`, `/reports/**` (new files only) |
+| Audio skill for Nick's agents (`.claude/skills/ue-game-audio/`: sourcing, layering, Unreal setup, level table, tested loudness scripts) + `Tools/td-play-mcp.ps1 -Audio` | Lead | done | Nov 12 14:03 | Nov 12 15:14 (`f31a1f1`); announced in `MESSAGEBOARD.md` R-013; technically verified, not heard by a person | `/.claude/skills/ue-game-audio/**`, `/reports/**`, `/Tools/td-play-mcp.ps1`, `/AGENTS.md` section 10 |
 | Engineering playtest 1 through MCP + first packaged-build smoke test (logged in `DEVLOG.md`) | Lead | done | Nov 12 14:06 | Nov 12 14:15; five problems sent to owners | `/DEVLOG.md` (append only) |
 | Core: one quiet loader for presentation assets (`UTDStatics::LoadPresentation<T>`), Python name clash fix | Lead | done | Nov 12 14:10 | Nov 12 14:15, this push | `/Source/unrealGameJam/unrealGameJam.Build.cs` (adds AssetRegistry) |
 | C-03 #2 director camera that really cuts, #1 fallback cut presentation (flash, letterbox, name card, CUT!, slate), squad barks | T3 | in review | Nov 12 13:40 | Nov 12 14:15, this push (`ebe00a5`); live captures in progress | none |
@@ -136,10 +136,19 @@ open) · `done` (on `main`, tests pass, review closed).
 | Engineering playtest 2: real injected input and journey jumps through MCP (logged in `DEVLOG.md`) | Lead | done | Nov 12 14:52 | Nov 12 14:54; six problems sent to owners | `/DEVLOG.md` (append only) |
 | Agent input injection (`TD.Input.*`) and journey cheats (`TD.Stage`) | T1, T5 | done | Nov 12 14:20 | Nov 12 14:47 (`8c5aa47`); played live | none |
 | `features.md` engineering numbers updated to the tuned game | Lead | done | Nov 12 14:50 | Nov 12 14:52 (`b8027b7`) | `/features.md` (ENG sections only) |
-| Visible placeholder projectiles, muzzle and impact flashes | T2 | queued | | after the HUD host | none |
+| Visible placeholder projectiles (glowing streaks sized by speed, missile heads), pooled muzzle and impact flashes; each hides when the weapon FX has art | T2 | in review | Nov 12 15:05 | Nov 12 15:14 (`f31a1f1`); to be judged in the Lead's playtest 3 | none |
 | Message board compaction (`Tools/td_board_compact.py`, archive in `docs/coordination/`), rule in AGENTS.md 6.10 | Lead | done | Nov 12 15:00 | Nov 12 15:00, this push; repeat when the board passes about 300 lines | `/MESSAGEBOARD.md`, `/AGENTS.md`, `/docs/coordination/**` |
 | `MESSAGEBOARD.md` N-004 fix 1 (earned ability, None while locked) | T3 | done | Nov 12 14:16 | Nov 12 14:59 (`f96a4d6`); posted for Nick's reviewers | none |
-| Blueprint-readable live-state object for audio (speed, boost, drift, hull / shield, wave intensity, enemies, slow motion, phase) | Lead | queued | | | none |
+| Core: Blueprint-readable live-state object for audio and music (speed, boost, drift, hull / shield, wave intensity, enemies, slow motion, phase) | Lead | in progress | Nov 12 15:14 | | none |
+| Mouse virtual stick recentres so a turn settles wings-level; motion blur off in space (playtest 2 findings) | T1 | in review | Nov 12 15:00 | Nov 12 15:14 (`f31a1f1`); to be judged in playtest 3 | none |
+| On foot: held placeholder blade with per-move poses, solid crew with white eyes, no tick-cycle warnings (playtest 2 findings) | T5 | in review | Nov 12 15:00 | Nov 12 15:14 (`f31a1f1`); to be judged in playtest 3 | none |
+| Engine loop audio parameters (`Speed01`, `Boost01`, `Drift01`) on the ship's loop audio components; own MCP playtest of flight, hyperdrive, gate, landing; play-area boundary experience | T1 | in progress | Nov 12 15:14 | | none |
+| Second-review fixes for Combat when the review lands; weapon feel pass from playtest 3 | T2 | queued | | | none |
+| Fallback name card not drawn while the real HUD is up; wingmen stay in frame during combat (live check with injected input) | T3 | in progress | Nov 12 15:14 | | none |
+| Wave-5 readability with injected input; wave spawn points never inside an asteroid, planet, the Dominion or a gate; strict gate assertion restored | T4 | in progress | Nov 12 15:14 | | none |
+| Objective text for wave and finale scenes (`OnObjectiveUpdated`); `TD.Stage DominionAssault` / `ReactorExposed` place the squad on the approach; star backdrop removed when a tagged sky appears late | T5 | in progress | Nov 12 15:14 | | none |
+| Second independent reviews: Combat (ENG-05, 06), Enemies / Waves (ENG-13, 14) | Lead | in progress | Nov 12 15:14 | | none |
+| Engineering playtest 3 on `main` with the real HUD on, visible projectiles and the flight fixes | Lead | in progress | Nov 12 15:14 | | `/DEVLOG.md` (append only) |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
@@ -157,10 +166,10 @@ open) · `done` (on `main`, tests pass, review closed).
 | Squad follow-ups: travel guard in director, powers installed on the three ships, weapon reset on respawn, targeting HUD forwarders | T3 | done | Nov 12 12:43 | Nov 12 13:02, this push (`9c93bd1`) | none |
 | Squad / Director review fixes batch 1 (wingmen stuck after switch during hyperdrive, stale aim, death tumble + flight reset, real-time cooldown, switch guard) | T3 | done | Nov 12 13:05 | Nov 12 13:16, this push (`26670f2`) | none |
 | Squad / Director review fixes batch 2 (per-ship art by path, switch invulnerability rule, wingman collisions, multi-kill rules, 15 minors) and real-actor director tests | T3 | done | Nov 12 13:19 | Nov 12 13:38 (`da65cb8`); second review queued | reads `/Game/TriadDrift/Presentation/DA_<Ship>_Visuals` by path |
-| Squad: missile-evade test; bark triggers (switch-in, ship down, focus acknowledged) | T3 | in progress | Nov 12 13:38 | | none |
+| Squad: missile-evade test; bark triggers; forward wedge; hyperdrive block text; director shots keep wingmen out of frame (`c77d246`) | T3 | done | Nov 12 13:38 | Nov 12 15:14 (`f31a1f1`); five theme captures retaken | none |
 | ENG-13 enemy ships + AI, ENG-14 wave director | T4 | in review | Nov 12 | all review BLOCKER and MAJOR fixes merged Nov 12 13:10, this push (`7ae379c`: reachable carrier parts, leash, break-off, 11 real-path tests, per-type visuals by path convention); minors in progress; second review queued | none |
 | ENG-27: headless balance run (scripted pilots, three skill levels), difficulty presets Story / Standard / Ace, first tuning pass (waves 1-5 in 8.4 min on Standard) | T4 | in review | Nov 12 13:36 | Nov 12 14:38 (`8c03f82`); numbers in `docs/eng/balance.md`; human play still needed | none |
-| ENG-28: 40-ship performance stress test; live captures of every enemy type, gates, belt, Dominion | T4 | in progress | Nov 12 14:38 | | none |
+| ENG-28: performance stress test `TDPerf.Stress.Wave5PlusDominion` (81 spacecraft + 120 projectiles: world tick 4.2-6.4 ms; live wave 5 frame 2.6-4.2 ms, Dominion 4.0-6.7 ms) | T4 | done | Nov 12 14:38 | Nov 12 15:14 (`f31a1f1`); within budget, no fixes needed; recheck in the packaged build | none |
 | ENG-16 portal gates, ENG-17 galaxy layout, ENG-18 Dominion | T4 | in review | Nov 12 | all four review majors + minors merged Nov 12 13:38 (reactor mesh applied, victory is a phase change with the squad protected, no gate bounce-back, art path + editor preview, asteroid keep-out); second review queued | reads `/Game/TriadDrift/Presentation/DA_*` by path |
 | ENG-19 game instance / saves / travel, C-03 #3 scenes and takes | T5 | in review | Nov 12 | `a2fdf3e`; all 12 review fixes merged Nov 12 12:45, this push (`125146f`); second review queued | none |
 | ENG-21 first-person character, ENG-22 energy blade, ENG-24 objective framework | T5 | in review | Nov 12 | Nov 12 13:02, this push (`fc329d0`); not reviewed yet | none |
