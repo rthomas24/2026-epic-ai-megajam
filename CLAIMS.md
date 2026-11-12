@@ -70,7 +70,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 13:37 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 13:57 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -108,10 +108,12 @@ open) · `done` (on `main`, tests pass, review closed).
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
 | Enable Unreal 5.9 agent toolsets for the built-in MCP server; MCP play-test tools (`Tools/td-play-mcp.ps1`, `Tools/td_mcp.py`) | Lead | done | Nov 12 13:33 | Nov 12 13:38 (`adb1912`); **`/unrealGameJam.uproject` claim released**; see `MESSAGEBOARD.md` R-008 | `/unrealGameJam.uproject` (21 engine toolset plugins, Editor targets only) |
 | HUD plugin decision: approved for integration (`MESSAGEBOARD.md` R-007); engineering host + switch + frozen-name test | Lead | queued | | starts when Nick's side merges PR #4 | `/Plugins/TriadDriftHUD/**` stays Nick's; engineering adds a host in `Source/` and a `Build.cs` dependency |
+| Shared protocols in AGENTS.md section 11 + `MESSAGEBOARD.md` R-009; presentation assets always cooked (asset manager scan) | Lead | done | Nov 12 13:57 | Nov 12 13:57, this push | `/AGENTS.md`, `/Config/DefaultGame.ini`, `/.gitignore` |
+| Test harness: local player controller + real key injection (`FTDTestWorld`) | Lead | done | Nov 12 13:48 | Nov 12 13:56 (`c911fa3`) | none |
+| Second-pass reviews: Ground + Flow, Travel + Flight | Lead | done | Nov 12 13:21 | Nov 12 13:58; findings with T1 and T5 | none |
 | ENG-28 Shipping package under 1 GB | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
-| Second-pass reviews: Ground + Flow (ENG-19, 21, 22, 24), Travel + Flight (ENG-01, 02, 15, 20) | Lead | in progress | Nov 12 13:21 | | none |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
-| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-006 (working practices), R-007 (HUD approval) and R-008 (toolsets) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
+| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
 | C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) | Lead | done | Nov 12 12:48 | Nov 12 13:02, this push | **Claim released.** `Content/TriadDrift/Maps/**` now exists: empty World Partition levels, streaming off, One File Per Actor. Both sides may place actors (they save as separate `__ExternalActors__` files): claim the map and what you add first. Do not re-save the `.umap` or change World Settings without a claim here; game modes are set by map name in `/Config/DefaultEngine.ini`. See `MESSAGEBOARD.md` R-001 |
 | ENG-27 balance + difficulty | Lead | queued | | | none |
 | ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | all 15 review fixes merged Nov 12 13:02, this push (`e046c82`); second review queued | none |
