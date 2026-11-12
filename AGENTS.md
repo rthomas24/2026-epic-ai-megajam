@@ -583,6 +583,11 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
 - **Audio:** `.claude/skills/ue-game-audio/`. Every 3D sound asset carries its own attenuation, sound class and
   concurrency (gameplay plays cues with no overrides); files are levelled with `audio_report.py`; nothing is
   "presentation approved" until Nicholas has heard it in the running game.
+- **Small environment props may be made by engineering** (Ryan, Nov 12): asteroids, rocks, crystals, small flora and
+  procedural trees, only where Nick's side has not started them, announced on `MESSAGEBOARD.md` first so they come off
+  Nick's list. Sources go in `ArtSource/EngProps/**`, Unreal assets in `Content/TriadDrift/Gameplay/{Props,Vegetation}/**`.
+  Nothing hero, no ships, characters, sky, terrain, VFX, UI or audio. Nicholas keeps art direction: he approves, restyles or
+  replaces any of it, and a mesh assigned through his presentation data assets always wins.
 - **Presentation asset names** are fixed in `docs/visual/Presentation-Asset-Paths.md`; gameplay looks
   them up by those exact paths, optional and null-safe.
 

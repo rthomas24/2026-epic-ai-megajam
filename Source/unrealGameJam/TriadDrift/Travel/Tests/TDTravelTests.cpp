@@ -16,6 +16,7 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Travel/Tests/TDTravelTestHelpers.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -594,11 +595,11 @@ bool FTDTravelPlanetRig::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelLandingSlowDown, "TriadDrift.Travel.Landing.SlowDownPromptAndAtmosphereRule", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelLandingSlowDown, "TriadDrift.Travel.Landing.PromptRuleAndAssistRange", TD_TEST_FLAGS)
 bool FTDTravelLandingSlowDown::RunTest(const FString& Parameters)
 {
-	// Lead decision (Nov 12): prompt within 120 m, land at or below 60% of the ATMOSPHERE cap, and between
-	// 120 m and 400 m a ship that is too fast is told to slow down.
+	// Lead decisions (Nov 12): prompt within 120 m, land at or below 60% of the ATMOSPHERE cap; within 400 m holding F
+	// starts the approach assist, so the prompt there is "Hold F to land" as well.
 	FTDTestWorld W;
 	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
 	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
@@ -611,7 +612,7 @@ bool FTDTravelLandingSlowDown::RunTest(const FString& Parameters)
 	TestTrue(TEXT("in atmosphere"), Move->IsInAtmosphere());
 	const float Cap = Move->GetCruiseCapSpeed();
 	TestEqual(TEXT("limit is 60% of the atmosphere cap"), Land->GetLandingSpeedLimit(), Cap * 0.6f, 2.f);
-	const FString SlowDown = TEXT("SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE");
+	const FString HoldF = TEXT("Hold F to land");
 
 	auto At = [&](float Back, float Speed)
 	{
@@ -619,66 +620,260 @@ bool FTDTravelLandingSlowDown::RunTest(const FString& Parameters)
 		Move->SetForwardSpeedImmediate(Speed);
 	};
 	At(30000.f, Cap);
-	TestEqual(TEXT("300 m, cruising: slow-down text"), Land->GetLandPrompt().ToString(), SlowDown);
-	TestFalse(TEXT("300 m, cruising: can't land"), Land->CanLandNow());
+	TestFalse(TEXT("300 m, cruising: can't land directly"), Land->CanLandNow());
+	TestNotNull(TEXT("300 m, cruising: the assist can start"), Land->GetAssistPad());
+	TestEqual(TEXT("300 m, cruising: prompt says hold F"), Land->GetLandPrompt().ToString(), HoldF);
 	At(10000.f, Cap * 0.5f);
-	TestEqual(TEXT("100 m, slow: landing prompt"), Land->GetLandPrompt().ToString(), FString(TEXT("Hold F to land")));
-	TestTrue(TEXT("100 m, slow: can land"), Land->CanLandNow());
-	At(10000.f, Cap);
-	TestEqual(TEXT("100 m, cruising: slow-down text"), Land->GetLandPrompt().ToString(), SlowDown);
-	At(30000.f, Cap * 0.5f);
-	TestTrue(TEXT("300 m, slow: nothing yet (out of prompt range)"), Land->GetLandPrompt().IsEmpty());
+	TestTrue(TEXT("100 m, slow: can land directly"), Land->CanLandNow());
+	TestEqual(TEXT("100 m, slow: landing prompt"), Land->GetLandPrompt().ToString(), HoldF);
 	At(50000.f, Cap);
 	TestTrue(TEXT("500 m: nothing"), Land->GetLandPrompt().IsEmpty());
+	TestNull(TEXT("500 m: no assist"), Land->GetAssistPad());
+	At(30000.f, Cap);
+	Ship->SetPlayerControlled(false);
+	TestNull(TEXT("not player-flown: no assist"), Land->GetAssistPad());
+	TestTrue(TEXT("not player-flown: no prompt"), Land->GetLandPrompt().IsEmpty());
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelHandsOffArrival, "TriadDrift.Travel.Landing.HandsOffArrivalNeverSoftLocks", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelHandsOffArrival, "TriadDrift.Travel.Landing.HoldFFromArrivalLandsInOneMotion", TD_TEST_FLAGS)
 bool FTDTravelHandsOffArrival::RunTest(const FString& Parameters)
 {
-	// Live playtest (Nov 12): from the descent start a hands-off ship flew into the ground past the pad.
+	// From the rig's descent start, hands-off until the prompt shows, then hold F (real key) until landed.
 	FTDTestWorld W;
 	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
 	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
 	const FTransform Start = Rig->GetDescentStart();
 	ATDShip* Ship = TDTravelTest::SpawnShip(W, Start.GetLocation(), Start.Rotator());
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
 	Ship->SetPlayerControlled(true);
 	W.Tick();
 	UTDLandingComponent* Land = Ship->GetLanding();
+	ATDLandingPad* Pad = Rig->GetPlayerPad();
 	const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
-	const float GroundZ = Rig->GetPlayerPad()->GetActorLocation().Z - 200.f;
-
-	// Hands-off until the HUD would say "slow down" (the player is told why there is no prompt).
+	const float GroundZ = Pad->GetActorLocation().Z - 200.f;
 	float MinGap = TNumericLimits<float>::Max();
-	bool bToldToSlow = false;
-	for (int32 i = 0; i < 60 * 25 && !bToldToSlow; ++i)
-	{
-		W.Tick();
-		MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
-		bToldToSlow = Land->GetLandPrompt().ToString().StartsWith(TEXT("SLOW DOWN"));
-	}
-	TestTrue(TEXT("hands-off arrival is told to slow down near the pad"), bToldToSlow);
+	auto Track = [&]() { MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ); };
 
-	// Brake and hold to land (the controller retries while F is held).
-	FTDFlightInput Brake;
-	Brake.Throttle = -1.f;
-	Brake.bBrake = true;
-	bool bLanding = false;
-	int32 BrakeFrames = 0;
-	for (int32 i = 0; i < 60 * 40 && !bLanding; ++i, ++BrakeFrames)
+	// Hands-off until the HUD prompt appears.
+	bool bPrompt = false;
+	for (int32 i = 0; i < 60 * 25 && !bPrompt; ++i)
 	{
-		Ship->SetFlightInput(Brake);
 		W.Tick();
-		MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
-		bLanding = Land->RequestLand();
+		Track();
+		bPrompt = !Land->GetLandPrompt().IsEmpty();
 	}
-	AddInfo(FString::Printf(TEXT("braking from the first slow-down prompt to the landing took %.1f s"), BrakeFrames / 60.f));
-	const float PadDist = FVector::Dist(Ship->GetActorLocation(), Rig->GetPlayerPad()->GetBeaconLocation());
-	TestTrue(*FString::Printf(TEXT("braking gets the landing (%.0f cm from the beacon, speed %.0f, limit %.0f)"), PadDist,
-		Ship->GetVelocity().Size(), Land->GetLandingSpeedLimit()), bLanding);
-	W.Advance(6.f);
-	TestTrue(TEXT("landed on the player pad"), Land->IsLanded() && Land->GetPad() == Rig->GetPlayerPad());
+	if (!TestTrue(TEXT("the prompt appears on a hands-off arrival"), bPrompt)) { return false; }
+	const float PromptDist = FVector::Dist(Ship->GetActorLocation(), Pad->GetBeaconLocation());
+	TestTrue(*FString::Printf(TEXT("prompt appears near the assist range (%.0f m)"), PromptDist / 100.f), PromptDist <= Land->Tuning.SlowDownPromptRange + 100.f);
+
+	// Hold F from here (the pilot keeps pointing the mouse elsewhere: the assist owns the nose).
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	int32 Frames = 0;
+	int32 LandStartFrame = -1;
+	float MinAssistSpeed = TNumericLimits<float>::Max();
+	bool bSawAssist = false;
+	for (; Frames < 60 * 25 && !Land->IsLanded(); ++Frames)
+	{
+		W.Tick();
+		Track();
+		if (Land->IsApproachAssisting())
+		{
+			bSawAssist = true;
+			if (Frames > 30) { MinAssistSpeed = FMath::Min(MinAssistSpeed, (float)Ship->GetVelocity().Size()); }
+		}
+		if (LandStartFrame < 0 && Land->IsBusy())
+		{
+			LandStartFrame = Frames;
+		}
+	}
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Tick();
+	const float ToLandingStart = LandStartFrame / 60.f;
+	const float ToTouchdown = Frames / 60.f;
+	AddInfo(FString::Printf(TEXT("hold F from %.0f m: landing sequence starts after %.1f s, landed after %.1f s; min assist speed %.0f cm/s"),
+		PromptDist / 100.f, ToLandingStart, ToTouchdown, MinAssistSpeed));
+	TestTrue(TEXT("holding F started the approach assist"), bSawAssist);
+	TestTrue(TEXT("landed on the player pad"), Land->IsLanded() && Land->GetPad() == Pad);
+	TestTrue(*FString::Printf(TEXT("landing sequence starts within 8 s of holding F (%.1f s)"), ToLandingStart), LandStartFrame >= 0 && ToLandingStart < 8.f);
+	TestTrue(*FString::Printf(TEXT("never slower than the assist end speed while assisting (%.0f)"), MinAssistSpeed),
+		MinAssistSpeed >= Land->Tuning.AssistEndSpeed - 50.f);
 	TestTrue(*FString::Printf(TEXT("never touched the ground on the way (min gap %.0f cm)"), MinGap), MinGap > 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAssistStops, "TriadDrift.Travel.Landing.AssistStopsOnReleaseRetakeAndBoost", TD_TEST_FLAGS)
+bool FTDTravelAssistStops::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform PadXf = Rig->GetPlayerPad()->GetActorTransform();
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-30000.f, 0.f, 5000.f)));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UTDLandingComponent* Land = Ship->GetLanding();
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	const FName Assist(TEXT("LandingAssist"));
+
+	// Release F: the assist ends and the override is gone.
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(0.7f);
+	TestTrue(TEXT("hold F: assisting"), Land->IsApproachAssisting() && Move->HasSpeedOverrideFor(Assist));
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Tick();
+	TestFalse(TEXT("release F: assist off"), Land->IsApproachAssisting());
+	TestFalse(TEXT("release F: override cleared"), Move->HasSpeedOverrideFor(Assist));
+	TestFalse(TEXT("release F: still flying"), Land->IsBusy());
+
+	// Retake mid-approach: AbortToFlying ends it, and it doesn't come back on the next tick.
+	TestTrue(TEXT("assist restarts"), Land->StartApproachAssist());
+	W.Tick();
+	Land->AbortToFlying();
+	Ship->ResetFlightState(false);
+	W.Tick();
+	TestFalse(TEXT("retake: assist off"), Land->IsApproachAssisting());
+	TestFalse(TEXT("retake: no override comes back"), Move->HasSpeedOverrideFor(Assist));
+
+	// Death ends it.
+	TestTrue(TEXT("assist restarts again"), Land->StartApproachAssist());
+	W.Tick();
+	Ship->GetHealth()->Kill();
+	W.Tick();
+	TestFalse(TEXT("death: assist off"), Land->IsApproachAssisting());
+	TestFalse(TEXT("death: override cleared"), Move->HasSpeedOverrideFor(Assist));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelPadMarker, "TriadDrift.Travel.Landing.PadIsTheObjectiveUntilTouchdown", TD_TEST_FLAGS)
+bool FTDTravelPadMarker::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	ATDLandingPad* Pad = Rig->GetPlayerPad();
+	const FTransform PadXf = Pad->GetActorTransform();
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-30000.f, 0.f, 5000.f)));
+	ATDShip* Mate = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-30000.f, 3000.f, 5000.f)));
+	W.Tick();
+	auto Marked = [Pad]() { return Pad->ActorHasTag(TDTags::ObjectiveMarker); };
+	auto AnyWingPadMarked = [Rig]() { for (ATDLandingPad* P : Rig->GetWingmanPads()) { if (P && P->ActorHasTag(TDTags::ObjectiveMarker)) { return true; } } return false; };
+	TestFalse(TEXT("no player ship: pad unmarked"), Marked());
+
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	TestTrue(TEXT("player flying in the atmosphere: pad marked"), Marked());
+	TestFalse(TEXT("wingman pads never marked"), AnyWingPadMarked());
+
+	// A switch keeps it marked (no flicker frame).
+	Ship->SetPlayerControlled(false);
+	Mate->SetPlayerControlled(true);
+	W.Tick();
+	TestTrue(TEXT("after a switch: still marked"), Marked());
+	Mate->SetPlayerControlled(false);
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+
+	// Leaving the atmosphere clears it (in game that is the exit climb and a level change; here, out of the zone).
+	Ship->TeleportSpacecraft(FVector(0.f, 0.f, 5000000.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetAtmosphereMode(false);
+	W.Tick();
+	W.Tick();
+	TestFalse(TEXT("outside the atmosphere: unmarked"), Marked());
+	Ship->TeleportSpacecraft(PadXf.TransformPosition(FVector(-1500.f, 0.f, 1500.f)), FRotator::ZeroRotator, false);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("back in: marked again"), Marked());
+
+	// Death clears it.
+	Ship->GetHealth()->Kill();
+	W.Tick();
+	TestFalse(TEXT("dead: unmarked"), Marked());
+	Ship->GetHealth()->Revive();
+	Ship->GetLanding()->AbortToFlying();
+	W.Tick();
+	TestTrue(TEXT("retake, flying in the atmosphere: marked again"), Marked());
+
+	// Marked through the descent, cleared at touchdown, not re-marked after take-off.
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("lands"), Ship->GetLanding()->RequestLand());
+	W.Advance(1.f);
+	TestTrue(TEXT("coming down: still marked"), Marked());
+	W.Advance(6.f);
+	TestTrue(TEXT("landed"), Ship->GetLanding()->IsLanded());
+	TestFalse(TEXT("touchdown: unmarked"), Marked());
+	TestTrue(TEXT("takes off"), Ship->GetLanding()->RequestTakeOff());
+	W.Advance(5.f);
+	TestEqual(TEXT("flying"), Ship->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("after take-off: the pad is no longer the objective"), Marked());
+
+	// A destroyed ship drops its mark.
+	Ship->TeleportSpacecraft(FVector(0.f, 0.f, 5000000.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetAtmosphereMode(false);
+	W.Tick();
+	Ship->TeleportSpacecraft(PadXf.TransformPosition(FVector(-20000.f, 0.f, 3000.f)), FRotator::ZeroRotator, false);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("new visit: marked"), Marked());
+	Ship->Destroy();
+	W.Tick();
+	TestFalse(TEXT("ship destroyed: unmarked"), Marked());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelLateWingman, "TriadDrift.Travel.Landing.ReboardLiftsAWingmanStillComingDown", TD_TEST_FLAGS)
+bool FTDTravelLateWingman::RunTest(const FString& Parameters)
+{
+	// Review minor 3: a wingman that lands after the player and is still coming down at re-board must not finish
+	// landing later and stay parked, invulnerable and holding its pad.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform PadXf = Rig->GetPlayerPad()->GetActorTransform();
+	ATDShip* Lead = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-1500.f, 0.f, 1500.f)));
+	ATDShip* Mate = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-50000.f, 3000.f, 8000.f))); // 500 m out: lands late
+	Mate->SetShipId(ETDShipId::Bastion);
+	Lead->SetPlayerControlled(true);
+	W.Tick();
+	Lead->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("player lands"), Lead->GetLanding()->RequestLand());
+	TestTrue(TEXT("the far wingman lands too"), Mate->GetLanding()->IsBusy());
+	for (int32 i = 0; i < 60 * 8 && !Lead->GetLanding()->IsLanded(); ++i) { W.Tick(); }
+	TestTrue(TEXT("player landed"), Lead->GetLanding()->IsLanded());
+	TestTrue(TEXT("wingman still coming down"), Mate->GetLanding()->IsLandingInProgress());
+	ATDLandingPad* MatePad = Mate->GetLanding()->GetPad();
+
+	TestTrue(TEXT("re-board: take off"), Lead->GetLanding()->RequestTakeOff());
+	W.Tick();
+	TestEqual(TEXT("late wingman straight back to flying"), Mate->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	W.Advance(6.f);
+	TestEqual(TEXT("and it stays flying"), Mate->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("not parked"), Mate->IsFlightParked());
+	TestFalse(TEXT("not invulnerable"), Mate->GetHealth()->IsInvulnerable());
+	TestTrue(TEXT("its pad is free"), !MatePad || !MatePad->IsOccupied());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelRigNoPlaceholder, "TriadDrift.Travel.Planet.PlaceholderGroundCanBeSwitchedOff", TD_TEST_FLAGS)
+bool FTDTravelRigNoPlaceholder::RunTest(const FString& Parameters)
+{
+	// Review minor 5: with real terrain the 4 km placeholder slab must be off from the first frame.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Off = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") }, false);
+	if (!TestNotNull(TEXT("rig"), Off)) { return false; }
+	W.Tick();
+	ATDShip* Probe = TDTravelTest::SpawnShip(W, FVector(3000.f, 3000.f, 1500.f));
+	W.Tick();
+	TestTrue(TEXT("no placeholder: nothing under a ship beside the pads"), Probe->GetAltitudeMeters() < 0.f);
+	Off->SetPlaceholderGround(true);
+	W.Tick();
+	TestTrue(TEXT("switched back on: ground under the ship"), Probe->GetAltitudeMeters() >= 0.f);
+	Off->SetPlaceholderGround(false);
+	W.Tick();
+	TestTrue(TEXT("switched off after BeginPlay too"), Probe->GetAltitudeMeters() < 0.f);
 	return true;
 }
 

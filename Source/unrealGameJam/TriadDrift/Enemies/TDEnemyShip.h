@@ -247,9 +247,39 @@ public:
 	/** The visuals asset for a type: spec soft pointer, else the convention asset, else null. Cached. */
 	static UTDEnemyVisuals* ResolveVisuals(const FTDEnemySpec& InSpec);
 
-	/** Placeholder glow ("white eyes") when no visuals asset supplies a mesh. */
+	/** Placeholder glow ("white eyes", engine) when no visuals asset supplies a mesh. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
 	float PlaceholderEmissiveBoost = 8.f;
+
+	/** Placeholder body glow: red-orange, strong enough to bloom on black space (playtest: dark specks). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float PlaceholderBodyGlow = 2.5f;
+
+	/** Placeholder-only visual scale by role (collision unchanged): readable at 100-400 m before the art lands. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0.1"))
+	float PlaceholderSmallShipScale = 2.2f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0.1"))
+	float PlaceholderMediumShipScale = 1.6f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0.1"))
+	float PlaceholderLargeShipScale = 1.4f;
+
+	/** Placeholder "eyes" (two white glowing spheres at the nose) and the gunship's frontal-shield plate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Presentation")
+	TObjectPtr<UStaticMeshComponent> PlaceholderEyeLeft;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Presentation")
+	TObjectPtr<UStaticMeshComponent> PlaceholderEyeRight;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Presentation")
+	TObjectPtr<UStaticMeshComponent> PlaceholderShieldPlate;
+
+	/** Hard reference so the cook ships the engine glow material that TintPlaceholder loads by path. */
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> PlaceholderGlowMaterial;
+
+	bool bPlaceholderLook = false;
 
 	/**
 	 * Nick's presentation data asset (features.md 3.5). Set explicitly to override; otherwise filled

@@ -90,9 +90,12 @@ public:
 	/**
 	 * Gameplay that must not be left by hyperdrive (an active wave, the finale, a cutscene) adds a lock.
 	 * While any lock exists no ship can spool, and a jump in progress drops out. Owner keys the lock.
+	 * Locks belong to their owners: nothing clears them wholesale (not even a CUT retake). Pass OwnerObject (the
+	 * wave director, the Dominion) and the lock is dropped automatically if that object is destroyed. Locks never
+	 * survive level travel (they live per world).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Travel")
-	void AddHyperdriveLock(FName Owner, FText Reason);
+	void AddHyperdriveLock(FName Owner, FText Reason, const UObject* OwnerObject = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Travel")
 	void RemoveHyperdriveLock(FName Owner);
@@ -100,7 +103,7 @@ public:
 	/** True if any lock is active; OutReason is the most recent lock's reason (player-facing). */
 	bool IsHyperdriveLocked(FText& OutReason) const;
 
-	/** Drops every lock (CUT retake; also implicit on level travel since locks live per world). */
+	/** Drops every lock. Debug / tests only: gameplay removes its own lock (a retake does NOT clear locks). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Travel")
 	void ClearAllHyperdriveLocks();
 
@@ -118,7 +121,11 @@ public:
 	/** Calls Flow->TravelTo once per world (guarded by CanRequestLevelTravel). Returns true if travel started. */
 	bool RequestLevelTravel(ETDDestination Destination, FName ReturnPoint);
 
-	bool HasRequestedLevelTravel() const { return bLevelTravelRequested; }
+	/**
+	 * A level travel requested from this level is still under way. False again if the flow voided it or it timed
+	 * out (the world is still here), so the entry / exit that asked can hand control back and try again.
+	 */
+	bool HasRequestedLevelTravel() const;
 
 	// ---- Landing pads ---------------------------------------------------------------------------
 	void RegisterPad(ATDLandingPad* Pad);
@@ -131,6 +138,14 @@ public:
 	void FindWingmanPads(const ATDLandingPad* PlayerPad, int32 Count, TArray<ATDLandingPad*>& OutPads) const;
 
 	const TArray<TWeakObjectPtr<ATDLandingPad>>& GetPads() const { return Pads; }
+
+	/**
+	 * HUD objective marker on the player pad (TDTags::ObjectiveMarker). The player ship's landing component calls this
+	 * every frame with the pad it wants marked (or null); any other caller only clears a mark it made itself, so a
+	 * ship switch never flickers it. One pad at most carries the tag.
+	 */
+	void UpdatePadMarker(const UObject* Requester, ATDLandingPad* Wanted, bool bIsPlayerShip);
+	ATDLandingPad* GetMarkedPad() const { return MarkedPad.Get(); }
 
 	// ---- Events (T5's first-person hand-off binds these) ------------------------------------------------
 	/** A ship finished its landing sequence (canopy open). Fired for wingmen too: check Ship->IsPlayerFlown(). */
@@ -146,8 +161,20 @@ private:
 	TArray<FTDTravelGravityWell> Wells;
 
 	TArray<TWeakObjectPtr<ATDLandingPad>> Pads;
+	TWeakObjectPtr<ATDLandingPad> MarkedPad;
+	TWeakObjectPtr<const UObject> MarkOwner;
 
-	TArray<TPair<FName, FText>> HyperdriveLocks;
+	struct FHyperdriveLock
+	{
+		FName Owner;
+		FText Reason;
+		TWeakObjectPtr<const UObject> OwnerObject;
+		bool bHasOwnerObject = false;
+		bool IsOrphaned() const { return bHasOwnerObject && !OwnerObject.IsValid(); }
+	};
+	TArray<FHyperdriveLock> HyperdriveLocks;
+	/** The most recent lock whose owner (if it named one) still exists, or null. */
+	const FHyperdriveLock* ActiveHyperdriveLock() const;
 
 	/** Strong per-world reference: survives garbage collection after a level change, reloaded with each world. */
 	UPROPERTY(Transient)

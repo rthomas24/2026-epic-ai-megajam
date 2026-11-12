@@ -250,6 +250,65 @@ bool FTDDirectorCamPortal::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamSubjectGone, "TriadDrift.Director.Camera.SubjectDiesMidShotHoldsThenBlends", TD_TEST_FLAGS)
+bool FTDDirectorCamSubjectGone::RunTest(const FString& Parameters)
+{
+	// Review minor 7: a missile return frames the enemy shooter; its death is the payoff, so the view
+	// holds where it died and blends out at the end of the shot, never snapping back.
+	FCamFixture F(nullptr, ETDShipId::Rift);
+	ATDShip* Rift = F.Player();
+	Rift->SetFlightParked(true);
+	UTDPortalBlasterPower* Portal = Cast<UTDPortalBlasterPower>(UTDPowerComponent::FindPower(Rift, ETDPowerInput::Signature1));
+	if (!TestNotNull(TEXT("portal blaster"), Portal))
+	{
+		return false;
+	}
+	Portal->HandleInputPressed();
+	Rift->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+	Portal->HandleInputPressed();
+	Rift->SetActorRotation(FRotator::ZeroRotator);
+	F.W.Tick();
+	AActor* Interceptor = TDPowerTest::SpawnBody(F.W, ETDTeam::Enemy, FVector(20000.f, 0.f, 0.f), FVector(150.f), 100.f, 100.f);
+	TDPowerTest::LaunchMissile(F.W, FVector(15000.f, 0.f, 0.f), -FVector::ForwardVector, Interceptor, Rift);
+	TDPowerTest::AdvanceUntil(F.W, [&] { return F.Rig()->IsActive(); }, 3.f);
+	if (!TestTrue(TEXT("shot running on the shooter"), F.Rig()->IsActive() && F.Director->GetCurrentShot().Subject.Get() == Interceptor))
+	{
+		return false;
+	}
+	const FVector Cam0 = F.Rig()->GetCameraActor()->GetActorLocation();
+	UTDStatics::GetHealth(Interceptor)->Kill();
+	F.W.Tick();
+	TestTrue(TEXT("still in the shot after the subject died"), F.ViewIsDirector() && F.Rig()->IsActive());
+	TestTrue(TEXT("no jump on the death frame"), FVector::Dist(F.Rig()->GetCameraActor()->GetActorLocation(), Cam0) < 1500.f);
+	bool bSawBlendOut = false;
+	for (int32 i = 0; i < 300 && F.Rig()->IsActive(); ++i)
+	{
+		F.W.Tick();
+		bSawBlendOut |= F.Rig()->GetPhase() == ETDDirectorCameraPhase::BlendOut;
+	}
+	TestTrue(TEXT("ended with a blend out, not a snap"), bSawBlendOut);
+	TestTrue(TEXT("view back on the ship"), F.ViewIsPawn());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamViewTaken, "TriadDrift.Director.Camera.ViewTakenOverLetsGo", TD_TEST_FLAGS)
+bool FTDDirectorCamViewTaken::RunTest(const FString& Parameters)
+{
+	// Someone else (a cinematic, travel, a menu) takes the view mid-shot: the rig lets go and never
+	// pulls the view back to the pawn.
+	FCamFixture F;
+	F.RamKill();
+	TestTrue(TEXT("shot running"), F.ViewIsDirector() && F.Rig()->IsActive());
+	AActor* Other = F.W.Spawn<AActor>(FVector(0.f, 50000.f, 0.f));
+	F.PC->SetViewTarget(Other);
+	F.W.Tick();
+	TestFalse(TEXT("rig idle"), F.Rig()->IsActive());
+	TestTrue(TEXT("right reason"), F.Rig()->GetLastCancel() == ETDDirectorCameraCancel::ViewTakenOver);
+	F.W.Advance(1.5f);
+	TestTrue(TEXT("the other view is left alone"), F.PC->GetViewTarget() == Other);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamCancels, "TriadDrift.Director.Camera.EveryCancelPathReturnsTheView", TD_TEST_FLAGS)
 bool FTDDirectorCamCancels::RunTest(const FString& Parameters)
 {
@@ -277,13 +336,11 @@ bool FTDDirectorCamCancels::RunTest(const FString& Parameters)
 			FCamFixture F;
 			F.RamKill(Step);
 			F.W.Advance(0.5f, Step);
-			TestTrue(TEXT("still in the shot before the switch") + Fps, F.ViewIsDirector() || !F.Rig()->IsActive());
-			if (F.Rig()->IsActive())
-			{
-				TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Rift));
-				Check(F, ETDDirectorCameraCancel::ShipSwitch, TEXT("switch"));
-				TestTrue(TEXT("view on the NEW ship") + Fps, F.PC->GetViewTarget() == F.Squad->GetShip(ETDShipId::Rift));
-			}
+			// Review minor 9: assert the shot is still running, so the switch path can't be skipped silently.
+			TestTrue(TEXT("still in the shot before the switch") + Fps, F.ViewIsDirector() && F.Rig()->IsActive());
+			TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Rift));
+			Check(F, ETDDirectorCameraCancel::ShipSwitch, TEXT("switch"));
+			TestTrue(TEXT("view on the NEW ship") + Fps, F.PC->GetViewTarget() == F.Squad->GetShip(ETDShipId::Rift));
 		}
 		{	// player's ship dies mid-shot
 			FCamFixture F;

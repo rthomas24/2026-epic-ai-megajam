@@ -280,6 +280,10 @@ FVector UTDDirectorCameraRig::TrackedLocationFor(const FVector& Focus) const
 
 FVector UTDDirectorCameraRig::CurrentFocus() const
 {
+	if (bSubjectGone)
+	{
+		return LastFocus;
+	}
 	const AActor* A = Subject.Get();
 	const AActor* B = Secondary.Get();
 	// A dead secondary (the fighter that was just rammed) is left behind: frame the subject alone.
@@ -389,6 +393,7 @@ bool UTDDirectorCameraRig::BeginShot(const FTDDirectorShot& Shot, double ShotEnd
 	}
 
 	PC = Controller;
+	bSubjectGone = false;
 	PawnAtStart = Ship;
 	Subject = Shot.Subject;
 	Secondary = Shot.Secondary;
@@ -471,14 +476,16 @@ void UTDDirectorCameraRig::Tick(double RealNow, float RealDelta)
 		Cancel(ETDDirectorCameraCancel::PlayerDown);
 		return;
 	}
-	if (bSubjectAliveAtStart)
+	if (bSubjectAliveAtStart && !bSubjectGone)
 	{
 		const AActor* S = Subject.Get();
 		const UTDHealthComponent* SH = UTDStatics::GetHealth(S);
 		if (!IsValid(S) || (SH && SH->IsDead() && S != Ship))
 		{
-			Cancel(ETDDirectorCameraCancel::SubjectGone);
-			return;
+			// Review minor 7: the subject dying IS the payoff (a missile return kills its shooter). Hold the
+			// frame on where it died until the shot ends, then blend out normally: no snap.
+			bSubjectGone = true;
+			LastCancel = ETDDirectorCameraCancel::SubjectGone;
 		}
 	}
 

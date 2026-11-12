@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Weapon slots: fire rate, heat, ammo, charge, salvos, spread, aim assist.
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "GameFramework/MovementComponent.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
@@ -48,6 +49,14 @@ void UTDWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	Random.GenerateNewSeed();
+	// Fire after the ship has moved this frame, so the muzzle is where the ship is (not a frame behind while boosting).
+	if (AActor* Owner = GetOwner())
+	{
+		if (UMovementComponent* Move = Owner->FindComponentByClass<UMovementComponent>())
+		{
+			AddTickPrerequisiteComponent(Move);
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------------------ slots
@@ -84,6 +93,12 @@ void UTDWeaponComponent::EquipWeapon(ETDWeaponSlot Slot, FName WeaponId)
 	{
 		SlotFX = Spec.IsValid() ? FTDPowerPresentation::LoadWeaponFX(WeaponId) : nullptr;
 		bAuto = true;
+	}
+	// Load the projectile art now, not on the first shot (a synchronous load mid-fight is a hitch).
+	if (UTDWeaponFX* FX = SlotFX.Get())
+	{
+		FX->ProjectileMesh.LoadSynchronous();
+		FX->Tracer.LoadSynchronous();
 	}
 
 	FTDWeaponSlotState& S = State(Slot);
@@ -388,7 +403,11 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 		}
 	}
 
-	// Remaining projectiles of a rippled salvo.
+	// Remaining projectiles of a rippled salvo. A dead or blocked shooter launches nothing more from its wreck.
+	if (S.SalvoRemaining > 0 && AreWeaponsBlocked())
+	{
+		S.SalvoRemaining = 0;
+	}
 	if (S.SalvoRemaining > 0)
 	{
 		S.SalvoTimer -= DeltaTime;
@@ -401,7 +420,14 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 		}
 	}
 
+	// A weapon that was ready at the start of the frame fires "now" on the press: no sub-frame head start.
+	// (Otherwise the press-frame shot is stepped a whole frame: 1333+ cm ahead at 30 fps, 50 at 120.)
+	const bool bReadyAtFrameStart = S.RefireTimer <= 0.f;
 	S.RefireTimer -= DeltaTime;
+	if (bReadyAtFrameStart)
+	{
+		S.RefireTimer = 0.f;
+	}
 	const bool bCanShoot = !AreWeaponsBlocked() && !S.bOverheated;
 
 	if (Spec->FireMode == ETDFireMode::Automatic)
@@ -578,9 +604,10 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 		// Placeholder muzzle flash, riding on the ship so it stays at the barrel.
 		if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))
 		{
+			// Squad-coloured, and never bigger than about a third of the hull (playtest 3: Bastion's white flash hid the ship).
 			const FLinearColor Color = (ProjSpec.FX && !ProjSpec.FX->Color.Equals(FLinearColor::White)) ? ProjSpec.FX->Color : ProjSpec.PlaceholderColor;
-			Projectiles->PlayPlaceholderFlash(MuzzleLocation, FTDCombatPlaceholders::MuzzleFlashRadius(ProjSpec),
-				FMath::Lerp(Color, FLinearColor::White, 0.35f), 0.06f, Owner->GetRootComponent());
+			const float Radius = FTDCombatPlaceholders::CapMuzzleFlashRadius(FTDCombatPlaceholders::MuzzleFlashRadius(ProjSpec), Owner->GetSimpleCollisionRadius());
+			Projectiles->PlayPlaceholderFlash(MuzzleLocation, Radius, FMath::Lerp(Color, FLinearColor::White, 0.12f), 0.06f, Owner->GetRootComponent());
 		}
 	}
 }

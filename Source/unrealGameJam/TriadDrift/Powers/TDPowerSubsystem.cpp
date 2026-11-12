@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). World-level power bookkeeping.
 
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -72,6 +73,19 @@ void UTDPowerSubsystem::ResetAllPowers()
 	}
 	TransientActors.Reset();
 	LastTransit.Reset();
+}
+
+void UTDPowerSubsystem::RegisterPortal(ATDPortal* Portal)
+{
+	if (Portal)
+	{
+		Portals.AddUnique(Portal);
+	}
+}
+
+void UTDPowerSubsystem::UnregisterPortal(ATDPortal* Portal)
+{
+	Portals.Remove(Portal);
 }
 
 void UTDPowerSubsystem::RegisterDome(ATDShieldDome* Dome)
