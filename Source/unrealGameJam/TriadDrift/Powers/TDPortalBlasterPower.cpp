@@ -102,7 +102,7 @@ void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransi
 		const float D = Radius * 2.f / 100.f;
 		PlaceholderDisc = FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Cylinder, FVector(D, D, 0.04f),
 			FRotator(90.f, 0.f, 0.f), Magenta * 0.5f, 2.f);
-		if (UInstancedStaticMeshComponent* Rim = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 32, 50.f, Magenta, 8.f))
+		if (USceneComponent* Rim = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 24, 60.f, Magenta, 8.f))
 		{
 			Rim->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
 		}

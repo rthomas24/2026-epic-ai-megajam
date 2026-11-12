@@ -55,11 +55,16 @@ struct UNREALGAMEJAM_API FTDPowerPresentation
 		const FRotator& RelativeRotation, FLinearColor Color, float EmissiveBoost);
 
 	/**
-	 * A wire-like sphere: Rings great circles (1 = horizontal ring, 3 = XY/XZ/YZ) of thin cube segments in ONE
-	 * instanced component. Reads as a shield shell without a translucent material.
+	 * A wire-like sphere: Rings great circles (1 = horizontal ring, 3 = XY/XZ/YZ) of thin cube segments under one
+	 * holder component (returned; rotate or destroy it as a unit). Plain static meshes, not instanced: the engine's
+	 * glow material isn't flagged for instancing and an ISM falls back to the grey default material (seen in play).
+	 * Segments per ring are capped at 24.
 	 */
-	static UInstancedStaticMeshComponent* AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,
+	static USceneComponent* AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,
 		int32 SegmentsPerRing, float Thickness, FLinearColor Color, float EmissiveBoost);
+
+	/** Destroy a placeholder made by AddShape / AddRingLattice, including its segments. */
+	static void DestroyPlaceholder(USceneComponent* Placeholder);
 
 	/** Debug/inspection: placeholder components this module created on Owner. */
 	static int32 CountPlaceholders(const AActor* Owner);

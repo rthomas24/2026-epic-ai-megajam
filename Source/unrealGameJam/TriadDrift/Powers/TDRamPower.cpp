@@ -146,11 +146,23 @@ void UTDRamPower::BeginDash()
 	if (!HasActiveArt() && !PlaceholderCone)
 	{
 		// Lancer's afterburner spear: a cyan cone ahead of the nose (engine cone axis is +Z: pitch -90 points it forward).
-		PlaceholderCone = FTDPowerPresentation::AddShape(Owner, nullptr, FTDPowerPresentation::EShape::Cone, FVector(3.f, 3.f, 5.f),
+		PlaceholderCone = FTDPowerPresentation::AddShape(Owner, nullptr, FTDPowerPresentation::EShape::Cone, FVector(5.f, 5.f, 9.f),
 			FRotator(-90.f, 0.f, 0.f), UTDStatics::ShipColor(ETDShipId::Lancer), 5.f);
 		if (PlaceholderCone)
 		{
-			PlaceholderCone->SetRelativeLocation(FVector(450.f, 0.f, 0.f));
+			PlaceholderCone->SetRelativeLocation(FVector(700.f, 0.f, 0.f));
+			// The chase camera sits behind Lancer, so the cone alone hides behind the hull: two long afterburner
+			// streaks trailing off the wingtips read from behind (cylinder axis is +Z: pitch 90 lays it along X).
+			for (const float Side : { -1.f, 1.f })
+			{
+				if (UStaticMeshComponent* Streak = FTDPowerPresentation::AddShape(Owner, PlaceholderCone, FTDPowerPresentation::EShape::Cylinder,
+					FVector(0.35f, 0.35f, 14.f), FRotator(0.f, 0.f, 0.f), UTDStatics::ShipColor(ETDShipId::Lancer), 8.f))
+				{
+					Streak->SetUsingAbsoluteScale(true);
+					Streak->SetWorldScale3D(FVector(0.35f, 0.35f, 14.f));
+					Streak->SetRelativeLocation(FVector(0.f, Side * 380.f / 5.f, -1400.f / 9.f)); // cone space: Z is backwards along the hull
+				}
+			}
 		}
 	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Owner))

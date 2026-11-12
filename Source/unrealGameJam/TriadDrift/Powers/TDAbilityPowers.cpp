@@ -391,7 +391,7 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 	}
 	if (Shimmer)
 	{
-		Shimmer->DestroyComponent();
+		FTDPowerPresentation::DestroyPlaceholder(Shimmer);
 		Shimmer = nullptr;
 	}
 	if (LoopFX)

@@ -155,32 +155,59 @@ UStaticMeshComponent* FTDPowerPresentation::AddShape(AActor* Owner, USceneCompon
 	return Mesh;
 }
 
-UInstancedStaticMeshComponent* FTDPowerPresentation::AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,
+USceneComponent* FTDPowerPresentation::AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,
 	int32 SegmentsPerRing, float Thickness, FLinearColor Color, float EmissiveBoost)
 {
 	if (!Owner || Radius <= 0.f || SegmentsPerRing < 3)
 	{
 		return nullptr;
 	}
-	UInstancedStaticMeshComponent* ISM = TDPresNewComponent<UInstancedStaticMeshComponent>(Owner, Parent);
-	ISM->SetStaticMesh(TDPresShapeMesh(EShape::Cube));
-	UTDStatics::TintPlaceholder(ISM, Color, EmissiveBoost);
+	USceneComponent* Holder = NewObject<USceneComponent>(Owner);
+	Holder->ComponentTags.Add(PlaceholderTag);
+	if (USceneComponent* AttachTo = Parent ? Parent : Owner->GetRootComponent())
+	{
+		Holder->SetupAttachment(AttachTo);
+	}
+	Holder->RegisterComponent();
 
+	const int32 Segments = FMath::Clamp(SegmentsPerRing, 3, 24);
 	// Ring planes: horizontal, then the two vertical great circles.
 	const FQuat Planes[3] = { FQuat::Identity, FQuat(FVector::ForwardVector, HALF_PI), FQuat(FVector::RightVector, HALF_PI) };
-	const float SegmentLength = 2.f * PI * Radius / SegmentsPerRing * 1.05f;
+	const float SegmentLength = 2.f * PI * Radius / Segments * 1.05f;
 	for (int32 R = 0; R < FMath::Clamp(Rings, 1, 3); ++R)
 	{
-		for (int32 i = 0; i < SegmentsPerRing; ++i)
+		for (int32 i = 0; i < Segments; ++i)
 		{
-			const float A = 2.f * PI * (i + 0.5f) / SegmentsPerRing;
+			const float A = 2.f * PI * (i + 0.5f) / Segments;
 			const FVector Local(FMath::Cos(A) * Radius, FMath::Sin(A) * Radius, 0.f);
 			const FVector Tangent(-FMath::Sin(A), FMath::Cos(A), 0.f);
 			const FQuat Rot = Planes[R] * FRotationMatrix::MakeFromX(Tangent).ToQuat();
-			ISM->AddInstance(FTransform(Rot, Planes[R].RotateVector(Local), FVector(SegmentLength / 100.f, Thickness / 100.f, Thickness / 100.f)));
+			UStaticMeshComponent* Seg = TDPresNewComponent<UStaticMeshComponent>(Owner, Holder);
+			Seg->ComponentTags.Remove(PlaceholderTag); // the holder is the placeholder; segments are its parts
+			Seg->SetStaticMesh(TDPresShapeMesh(EShape::Cube));
+			Seg->SetRelativeTransform(FTransform(Rot, Planes[R].RotateVector(Local), FVector(SegmentLength / 100.f, Thickness / 100.f, Thickness / 100.f)));
+			UTDStatics::TintPlaceholder(Seg, Color, EmissiveBoost);
 		}
 	}
-	return ISM;
+	return Holder;
+}
+
+void FTDPowerPresentation::DestroyPlaceholder(USceneComponent* Placeholder)
+{
+	if (!IsValid(Placeholder))
+	{
+		return;
+	}
+	TArray<USceneComponent*> Children;
+	Placeholder->GetChildrenComponents(true, Children);
+	for (USceneComponent* C : Children)
+	{
+		if (IsValid(C))
+		{
+			C->DestroyComponent();
+		}
+	}
+	Placeholder->DestroyComponent();
 }
 
 int32 FTDPowerPresentation::CountPlaceholders(const AActor* Owner)
@@ -190,10 +217,10 @@ int32 FTDPowerPresentation::CountPlaceholders(const AActor* Owner)
 		return 0;
 	}
 	int32 N = 0;
-	TInlineComponentArray<UPrimitiveComponent*> Prims(Owner);
-	for (const UPrimitiveComponent* P : Prims)
+	TInlineComponentArray<USceneComponent*> Comps(Owner);
+	for (const USceneComponent* C : Comps)
 	{
-		N += (P && P->ComponentHasTag(PlaceholderTag) && P->IsVisible()) ? 1 : 0;
+		N += (IsValid(C) && C->ComponentHasTag(PlaceholderTag) && C->IsVisible()) ? 1 : 0;
 	}
 	return N;
 }
