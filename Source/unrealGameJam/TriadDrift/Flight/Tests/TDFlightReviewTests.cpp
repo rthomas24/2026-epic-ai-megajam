@@ -2,6 +2,7 @@
 // collisions and events, camera, input routing. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Flight
 
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -856,6 +857,8 @@ bool FTDReviewBoundaryExperience::RunTest(const FString& Parameters)
 		Move->SetBoundary(FVector::ZeroVector, Radius, true);
 		Ship->TeleportSpacecraft(FVector(Radius - 60000.f, 0.f, 0.f), FRotator::ZeroRotator, false); // nose out, 600 m inside
 		UTDFlightEventCounter* Counter = NewObject<UTDFlightEventCounter>();
+		Counter->AddToRoot(); // a GC during a long full run must not unbind it
+		ON_SCOPE_EXIT { Counter->RemoveFromRoot(); };
 		Move->OnBoundaryStateChanged.AddDynamic(Counter, &UTDFlightEventCounter::HandleBoundary);
 		W.Tick();
 		TestEqual(*(Tag + TEXT("starts inside")), Move->GetBoundaryState(), ETDBoundaryState::Inside);
