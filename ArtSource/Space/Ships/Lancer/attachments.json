@@ -1,0 +1,1015 @@
+{
+  "schema_version": 1,
+  "ship": "Lancer",
+  "status": "source_only_not_imported",
+  "units": "centimetres",
+  "axes": {
+    "forward": "+X",
+    "right": "+Y",
+    "up": "+Z"
+  },
+  "rotation_convention": "forward/up basis vectors, parent-relative; no Euler ambiguity",
+  "assets": [
+    {
+      "name": "SM_Ship_Lancer_Proxy",
+      "status": "silhouette_review_proxy"
+    },
+    {
+      "name": "SM_Lancer_UniversalMount",
+      "status": "modular_source_prototype"
+    },
+    {
+      "name": "SM_Lancer_MinigunBody",
+      "status": "modular_source_prototype"
+    },
+    {
+      "name": "SM_Lancer_MinigunRotor",
+      "status": "modular_source_prototype"
+    },
+    {
+      "name": "SM_Lancer_RocketPod",
+      "status": "modular_source_prototype"
+    },
+    {
+      "name": "SM_Lancer_SpikeRocket",
+      "status": "projectile_visual_source"
+    }
+  ],
+  "instances": [
+    {
+      "name": "Hull",
+      "asset": "SM_Ship_Lancer_Proxy",
+      "position_cm": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "MountPrimary_L",
+      "asset": "SM_Lancer_UniversalMount",
+      "position_cm": [
+        30,
+        -100,
+        -42
+      ]
+    },
+    {
+      "name": "Primary_L",
+      "asset": "SM_Lancer_MinigunBody",
+      "position_cm": [
+        30,
+        -100,
+        -42
+      ]
+    },
+    {
+      "name": "Rotor_L",
+      "asset": "SM_Lancer_MinigunRotor",
+      "position_cm": [
+        65,
+        -100,
+        -57
+      ]
+    },
+    {
+      "name": "MountSecondary_L",
+      "asset": "SM_Lancer_UniversalMount",
+      "position_cm": [
+        -90,
+        -220,
+        -44
+      ]
+    },
+    {
+      "name": "Secondary_L",
+      "asset": "SM_Lancer_RocketPod",
+      "position_cm": [
+        -90,
+        -220,
+        -44
+      ]
+    },
+    {
+      "name": "MountPrimary_R",
+      "asset": "SM_Lancer_UniversalMount",
+      "position_cm": [
+        30,
+        100,
+        -42
+      ]
+    },
+    {
+      "name": "Primary_R",
+      "asset": "SM_Lancer_MinigunBody",
+      "position_cm": [
+        30,
+        100,
+        -42
+      ]
+    },
+    {
+      "name": "Rotor_R",
+      "asset": "SM_Lancer_MinigunRotor",
+      "position_cm": [
+        65,
+        100,
+        -57
+      ]
+    },
+    {
+      "name": "MountSecondary_R",
+      "asset": "SM_Lancer_UniversalMount",
+      "position_cm": [
+        -90,
+        220,
+        -44
+      ]
+    },
+    {
+      "name": "Secondary_R",
+      "asset": "SM_Lancer_RocketPod",
+      "position_cm": [
+        -90,
+        220,
+        -44
+      ]
+    }
+  ],
+  "sockets": [
+    {
+      "name": "Mount_Primary_L",
+      "parent": "Hull",
+      "position_cm": [
+        30,
+        -100,
+        -42
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "swappable_weapon_mount"
+    },
+    {
+      "name": "Mount_Secondary_L",
+      "parent": "Hull",
+      "position_cm": [
+        -90,
+        -220,
+        -44
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "swappable_weapon_mount"
+    },
+    {
+      "name": "Rotor_Pivot",
+      "parent": "Primary_L",
+      "position_cm": [
+        35,
+        0,
+        -15
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "spin_visual_only"
+    },
+    {
+      "name": "Muzzle_Primary_L",
+      "parent": "Primary_L",
+      "position_cm": [
+        174,
+        0,
+        -15
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "group_muzzle_outside_barrel_plane"
+    },
+    {
+      "name": "Barrel_01",
+      "parent": "Rotor_L",
+      "position_cm": [
+        138,
+        12,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_02",
+      "parent": "Rotor_L",
+      "position_cm": [
+        138,
+        6.000000000000002,
+        10.392304845413264
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_03",
+      "parent": "Rotor_L",
+      "position_cm": [
+        138,
+        -5.999999999999997,
+        10.392304845413264
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_04",
+      "parent": "Rotor_L",
+      "position_cm": [
+        138,
+        -12,
+        1.4695761589768238e-15
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_05",
+      "parent": "Rotor_L",
+      "position_cm": [
+        138,
+        -6.000000000000005,
+        -10.392304845413262
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_06",
+      "parent": "Rotor_L",
+      "position_cm": [
+        138,
+        6.000000000000002,
+        -10.392304845413264
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Muzzle_Secondary_L_01",
+      "parent": "Secondary_L",
+      "position_cm": [
+        112,
+        -16,
+        -9
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Muzzle_Secondary_L_02",
+      "parent": "Secondary_L",
+      "position_cm": [
+        112,
+        -16,
+        -39
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Muzzle_Secondary_L_03",
+      "parent": "Secondary_L",
+      "position_cm": [
+        112,
+        16,
+        -9
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Muzzle_Secondary_L_04",
+      "parent": "Secondary_L",
+      "position_cm": [
+        112,
+        16,
+        -39
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Thruster_L",
+      "parent": "Hull",
+      "position_cm": [
+        -402,
+        -111,
+        -3
+      ],
+      "forward": [
+        -1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "VFX_exhaust_outward"
+    },
+    {
+      "name": "Mount_Primary_R",
+      "parent": "Hull",
+      "position_cm": [
+        30,
+        100,
+        -42
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "swappable_weapon_mount"
+    },
+    {
+      "name": "Mount_Secondary_R",
+      "parent": "Hull",
+      "position_cm": [
+        -90,
+        220,
+        -44
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "swappable_weapon_mount"
+    },
+    {
+      "name": "Rotor_Pivot",
+      "parent": "Primary_R",
+      "position_cm": [
+        35,
+        0,
+        -15
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "spin_visual_only"
+    },
+    {
+      "name": "Muzzle_Primary_R",
+      "parent": "Primary_R",
+      "position_cm": [
+        174,
+        0,
+        -15
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "group_muzzle_outside_barrel_plane"
+    },
+    {
+      "name": "Barrel_01",
+      "parent": "Rotor_R",
+      "position_cm": [
+        138,
+        12,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_02",
+      "parent": "Rotor_R",
+      "position_cm": [
+        138,
+        6.000000000000002,
+        10.392304845413264
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_03",
+      "parent": "Rotor_R",
+      "position_cm": [
+        138,
+        -5.999999999999997,
+        10.392304845413264
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_04",
+      "parent": "Rotor_R",
+      "position_cm": [
+        138,
+        -12,
+        1.4695761589768238e-15
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_05",
+      "parent": "Rotor_R",
+      "position_cm": [
+        138,
+        -6.000000000000005,
+        -10.392304845413262
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Barrel_06",
+      "parent": "Rotor_R",
+      "position_cm": [
+        138,
+        6.000000000000002,
+        -10.392304845413264
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "optional_rotating_barrel_origin"
+    },
+    {
+      "name": "Muzzle_Secondary_R_01",
+      "parent": "Secondary_R",
+      "position_cm": [
+        112,
+        -16,
+        -9
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Muzzle_Secondary_R_02",
+      "parent": "Secondary_R",
+      "position_cm": [
+        112,
+        -16,
+        -39
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Muzzle_Secondary_R_03",
+      "parent": "Secondary_R",
+      "position_cm": [
+        112,
+        16,
+        -9
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Muzzle_Secondary_R_04",
+      "parent": "Secondary_R",
+      "position_cm": [
+        112,
+        16,
+        -39
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "rocket_origin_outside_tube"
+    },
+    {
+      "name": "Thruster_R",
+      "parent": "Hull",
+      "position_cm": [
+        -402,
+        111,
+        -3
+      ],
+      "forward": [
+        -1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "VFX_exhaust_outward"
+    },
+    {
+      "name": "Ability_Overdrive",
+      "parent": "Hull",
+      "position_cm": [
+        -205,
+        0,
+        61
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "VFX_attachment_no_effect"
+    },
+    {
+      "name": "Ability_EMP",
+      "parent": "Hull",
+      "position_cm": [
+        0,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "VFX_attachment_no_effect"
+    },
+    {
+      "name": "Ram_Visual",
+      "parent": "Hull",
+      "position_cm": [
+        404,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "purpose": "VFX_attachment_no_gameplay_collision"
+    }
+  ],
+  "materials": [
+    {
+      "name": "M_Lancer_Ceramic",
+      "hex": "#E8F4FF",
+      "metallic": 0.15,
+      "roughness": 0.4
+    },
+    {
+      "name": "M_Lancer_CyanPaint",
+      "hex": "#12C8FF",
+      "metallic": 0.2,
+      "roughness": 0.37
+    },
+    {
+      "name": "M_Lancer_Composite",
+      "hex": "#22262C",
+      "metallic": 0,
+      "roughness": 0.72
+    },
+    {
+      "name": "M_Lancer_BareMetal",
+      "hex": "#8A939E",
+      "metallic": 1,
+      "roughness": 0.28
+    },
+    {
+      "name": "M_Lancer_Canopy",
+      "hex": "#123E54",
+      "metallic": 0.45,
+      "roughness": 0.16
+    },
+    {
+      "name": "M_Lancer_Emission",
+      "hex": "#3FE9FF",
+      "metallic": 0,
+      "roughness": 0.35,
+      "emissive_strength": 2
+    }
+  ],
+  "production_gates": [
+    "human silhouette review",
+    "final hero hull route A/B",
+    "published binary claims and production authorization",
+    "Blender geometry/material/UV QA",
+    "FBX calibration and round trip",
+    "UE 5.9 preview and performance check"
+  ],
+  "gameplay_owner": "Ryan",
+  "vfx_owner": "Existing VFX Agent"
+}

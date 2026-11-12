@@ -1,0 +1,27 @@
+{
+  "blender": "5.1.1",
+  "engine": "BLENDER_EEVEE",
+  "color_view": "Khronos PBR Neutral",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1928932,
+      "mean_rgb": [
+        0.1853943169116974,
+        0.27327853441238403,
+        0.3439391553401947
+      ],
+      "pixel_std": 0.25267764925956726,
+      "nonblack_fraction": 1.0,
+      "title": "Front three-quarter"
+    }
+  ],
+  "elapsed_seconds": 1.4940331000016158,
+  "render_threads": 2,
+  "source_revision": "M02",
+  "geometry_modified_for_render": false,
+  "final_visual_approval": false,
+  "unreal_imported": false
+}

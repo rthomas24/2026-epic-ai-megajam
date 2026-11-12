@@ -1,0 +1,44 @@
+{
+  "pass": true,
+  "method": "Node VM with stub DOM/Canvas; source rendering math only, not browser visual verification",
+  "states": [
+    {
+      "label": "assembled",
+      "visible_faces": 5353
+    },
+    {
+      "label": "exploded_wire_sockets",
+      "visible_faces": 5353
+    },
+    {
+      "label": "unarmed",
+      "visible_faces": 1641
+    },
+    {
+      "label": "SM_Lancer_MinigunBody",
+      "visible_faces": 148
+    },
+    {
+      "label": "SM_Lancer_MinigunRotor",
+      "visible_faces": 638
+    },
+    {
+      "label": "SM_Lancer_RocketPod",
+      "visible_faces": 980
+    },
+    {
+      "label": "SM_Lancer_SpikeRocket",
+      "visible_faces": 158
+    },
+    {
+      "label": "SM_Lancer_UniversalMount",
+      "visible_faces": 45
+    },
+    {
+      "label": "SM_Ship_Lancer_Proxy",
+      "visible_faces": 1641
+    }
+  ],
+  "finite_coordinate_errors": 0,
+  "filled_triangles": 15985
+}

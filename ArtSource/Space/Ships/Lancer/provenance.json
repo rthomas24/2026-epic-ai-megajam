@@ -1,0 +1,15 @@
+{
+  "created_date": "2026-11-12",
+  "human": "Nicholas Tosti",
+  "agent": "Dedicated Ship & Weapons chat",
+  "tool": "OpenAI Codex + deterministic Node.js source generation",
+  "scope": "Lancer design proxy, modular minigun, rotor, mount, rocket pod, spike rocket, source previews and interface manifest",
+  "third_party_assets": [],
+  "third_party_runtime_dependencies": [],
+  "design_source": "Original agent-authored geometry following project art direction; no external model or image input",
+  "blender_helper_dependency": "Future adapter calls existing repository hardsurface.py (MIT); adapter not executed",
+  "license_note": "No external asset license required for these original sources; retain the existing helper's MIT attribution if redistributed",
+  "credits_entry_for_lead": "Lancer M01 source prototype and modular weapon sources — original geometry, OpenAI Codex; Node.js procedural source and offline SVG/Canvas previews; no downloaded assets.",
+  "devlog_entry_for_lead": "2026-11-12 EST: Created Lancer M01 source prototype on nick/ships-lancer: 10,528 assembled source triangles, six materials, 33 attachment transforms; topology and muzzle-clearance checks pass. Source-only; no Blender/UE run. Browser preview verification blocked by computer-use URL policy. Review: ArtSource/Space/Ships/Lancer/Lancer_review.svg.",
+  "model_metrics": "Exact serving model, reasoning effort, token counts and cost not exposed by this chat's tools; no estimates reported"
+}
