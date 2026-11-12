@@ -268,6 +268,14 @@ namespace TDSquad
 		}
 	}
 
+	void AbortLanding(ATDShip* Ship)
+	{
+		if (UTDLandingComponent* L = Ship ? Ship->GetLanding() : nullptr)
+		{
+			L->AbortToFlying();
+		}
+	}
+
 	float GetHyperdriveCharge01(const ATDShip* Ship)
 	{
 		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;
@@ -797,6 +805,34 @@ namespace TDSquad
 			return true;
 		}
 		return false;
+	}
+
+	void RequestBark(const UObject* WorldContext, FName BarkId, FName Speaker)
+	{
+		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(WorldContext))
+		{
+			Flow->RequestBark(BarkId, Speaker);
+		}
+		else if (UTDEventBus* Bus = UTDEventBus::Get(WorldContext))
+		{
+			Bus->BroadcastBarkRequested(BarkId, Speaker);
+		}
+	}
+
+	void BindActorKilled(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnActorKilled.AddUniqueDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+		}
+	}
+
+	void UnbindActorKilled(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnActorKilled.RemoveDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+		}
 	}
 
 	void AddShipSwitchStat(const UObject* WorldContext)

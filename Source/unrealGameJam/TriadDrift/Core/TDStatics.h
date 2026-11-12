@@ -99,6 +99,25 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")
 	static FLinearColor TeamColor(ETDTeam Team);
 
+	/**
+	 * The one way gameplay loads a presentation data asset by its agreed name
+	 * (docs/visual/Presentation-Asset-Paths.md), e.g. "DA_Rift_Visuals" from
+	 * /Game/TriadDrift/Presentation/. Returns null quietly when the asset has not been authored yet
+	 * (no log warning in packaged builds) or is not of ExpectedClass. Misses are remembered: for the
+	 * whole session in packaged builds, for 10 s in the editor so new assets are picked up.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|FX")
+	static UObject* LoadPresentationAsset(const FString& AssetName, TSubclassOf<UObject> ExpectedClass);
+
+	template <typename T>
+	static T* LoadPresentation(const FString& AssetName)
+	{
+		return Cast<T>(LoadPresentationAsset(AssetName, T::StaticClass()));
+	}
+
+	/** "/Game/TriadDrift/Presentation": the flat folder that is always cooked. */
+	static FString GetPresentationFolder();
+
 	/** True in the editor / dev builds when placeholder debug drawing should stand in for missing art. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")
 	static bool ShouldDrawPlaceholders();

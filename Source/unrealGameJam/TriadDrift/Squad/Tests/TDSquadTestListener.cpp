@@ -17,6 +17,7 @@ void UTDSquadTestListener::Listen(UTDEventBus* Bus)
 	Bus->OnSquadWiped.AddDynamic(this, &UTDSquadTestListener::OnWiped);
 	Bus->OnPowerUsed.AddDynamic(this, &UTDSquadTestListener::OnPowerUsed);
 	Bus->OnHighlightMoment.AddDynamic(this, &UTDSquadTestListener::OnHighlight);
+	Bus->OnBarkRequested.AddDynamic(this, &UTDSquadTestListener::OnBark);
 }
 
 void UTDSquadTestListener::StopListening()
@@ -29,6 +30,7 @@ void UTDSquadTestListener::StopListening()
 		Bus->OnSquadWiped.RemoveAll(this);
 		Bus->OnPowerUsed.RemoveAll(this);
 		Bus->OnHighlightMoment.RemoveAll(this);
+		Bus->OnBarkRequested.RemoveAll(this);
 	}
 	BoundBus.Reset();
 }

@@ -27,7 +27,7 @@ enum class ETDShipId : uint8
 	Bastion
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta = (ScriptName = "TDTeamId"))
 enum class ETDTeam : uint8
 {
 	Player,

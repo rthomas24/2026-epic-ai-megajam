@@ -86,3 +86,62 @@ and above, 2500–7000 cm by importance, alternating sides shot to shot), durati
 - None open. Producers: T4 tags generators/reactor/carriers, T2's portals and powers and T5's blade
   call `ReportHighlight`; `UTDEventBus::BroadcastHighlightMoment` is private to the Director, so a
   producer can't bypass it.
+
+## The director camera (C-03 #2, `TDDirectorCamera.h`)
+
+The money shot now really cuts:
+- On an accepted shot (mode **Full**), `UTDDirectorCameraRig` makes `ATDDirectorCameraActor` the
+  player's view target **starting exactly on the live chase camera** (T1's
+  `GetChaseCameraTransformNow` / `GetChaseCameraFOVNow`), blends in (0.12 s; story beats 0.18 s),
+  holds framed on subject + secondary (tracks them live, FOV 65) for the shot, then blends back onto
+  the live chase camera (0.2 s / 0.3 s) and hands the view back. All in real time, so slow-mo
+  doesn't stretch it. Input is never touched: the player keeps flying and aiming (T1 da82e13 made
+  aim independent of the view target).
+- **Placement** (`UTDDirectorCameraRig::ResolveCameraLocation`): the hint spot if a camera-sized
+  sweep from the focus is clear of WorldStatic / WorldDynamic / Pawn / Ship and T4's obstacle
+  registry; else the other side, the quarter turns, then above; pulled in when blocked; never
+  within 900 cm of the focus or of the player's ship. No safe spot → no takeover (FOV punch instead).
+- **Cancelled instantly** (view straight back to the pawn) on "CUT!", travel, a ship switch, the
+  player's ship dying, a subject destroyed mid-shot, the mode being switched off, or anything else
+  taking the view. A bigger shot mid-shot re-places the camera and blends from where it is.
+- **Modes** (accessibility): Project Settings > Game > Triad Drift Director `CameraMode`
+  (Full / Reduced / Off), overridden by `td.DirectorCam` (-1 setting, 0 off, 1 reduced, 2 full).
+  Reduced = slow-mo + a 9° FOV punch for 0.35 s real time on the player's own camera
+  (`UTDDirectorFOVPunch` camera modifier). Off = slow-mo and events only.
+
+| Test | Proves |
+|---|---|
+| `Director.Camera.RamKillCutsAndReturns` | real ram kill → view taken, hold away from the ship, player still flying, back onto the live chase camera (30/60/120) |
+| `Director.Camera.CarrierAndGeneratorKills` | real carrier and real Dominion generator kills cut and return |
+| `Director.Camera.PortalMissileReturn` | real portal missile return cuts and returns |
+| `Director.Camera.EveryCancelPathReturnsTheView` | CUT, switch (view on the new ship), player down, disabled mid-shot (30/60/120), travel, bigger shot takeover; nothing stuck afterwards |
+| `Director.Camera.NeverInsideGeometry` | wall on the preferred side → other side at full distance; registry asteroid avoided; ≥ 900 cm from the player's ship |
+| `Director.Camera.ReducedAndOffModes` | reduced: no takeover, FOV punch in real time; off: neither, slow-mo still |
+
+## Fallback cut presentation (C-03 #1 / #2 / #3, `TDCutPresentation.h`)
+
+So the theme reads in every build even before Nick's HUD exists, the Director draws a minimal
+gameplay-side presentation **only when no real HUD claims it**. Nick's HUD (or any host) sets
+`UTDDirectorSubsystem::bCutPresentationHandledExternally = true` and the fallback draws nothing.
+
+- **Ship switch** (`ATDSquadManager::OnSwitchCut`): a 1-frame white flash; letterbox bars easing
+  with `FTDSwitchCutTiming` (in 0.08 s / hold 0.45 s / out 0.25 s; none on a quick re-switch); the
+  pilot name card ("KATO · LANCER") with a tab in the squad colour, 1.4 s.
+- **"CUT!"** (`OnSceneCut`): a big CUT! card with full bars for the retake delay (min 1.2 s).
+- **New take** (`OnTakeStarted`): a slate "SCENE Wave 3 · TAKE 2" for 2.2 s (CamelCase scene ids
+  are spaced; an unnamed take shows none).
+- **Money shot**: thin letterbox bars (6 %) for the shot and its return.
+- Implementation: `UTDCutPresentation` (the model, real-time, tested) + a hit-test-invisible Slate
+  leaf widget added to the game viewport at z 900 (under T5's F10 menu) that paints it with engine
+  fonts and the white brush. Never blocks input; cleared while travel is pending; removed with the
+  world. Headless worlds have no viewport: model only.
+
+| Test | Proves |
+|---|---|
+| `Director.CutPresentation.SwitchFlashLetterboxNameCard` | 1-frame flash, bars in/out, name card text and colour, all gone after (30/60/120) |
+| `Director.CutPresentation.RealTimeUnderSlowMoAndQuickCut` | slow-mo doesn't stretch it; quick re-switch = flash + card, no bars |
+| `Director.CutPresentation.ExternalHUDSuppressesIt` | external flag suppresses everything; clearing it restores the fallback |
+| `Director.CutPresentation.CutCardThenSlate` | CUT! held for the delay, replaced by "SCENE Wave 3 · TAKE 2"; no slate for an unnamed take |
+| `Director.CutPresentation.MoneyShotThinBars` | thin bars during an accepted shot |
+| `Director.CutPresentation.NothingSurvivesTravelOrShutdown` | travel clears it; shutdown clears and removes the widget |
+

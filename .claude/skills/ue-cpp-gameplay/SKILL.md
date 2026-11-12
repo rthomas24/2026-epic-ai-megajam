@@ -105,6 +105,9 @@ bool FTDFlightCruise::RunTest(const FString& Parameters)
 | Build breaks only after a merge: `ambiguous call to overloaded function`, or C4459 `hides global declaration` in someone else's file | Unity builds glue several `.cpp` files together, and the grouping changes when other branches land. In any `.cpp`: no generic names at namespace scope (`Steps`, `Spawn`, `Advance`), no file-scope `using namespace`, and helpers used by two files live in ONE header as `inline` functions in an area namespace. Before reporting done, merge `main` and build |
 | `/Game/...` argument turns into `C:/Program Files/Git/Game/...` | Git Bash rewrites leading-slash arguments. `export MSYS_NO_PATHCONV=1` before calling `Tools/td-shot.ps1 -Map /Game/...`, or run it from PowerShell |
 | A test depends on whether a real map exists on disk | Point the settings at a bogus path (or `/Engine/Maps/Entry`) for the test and restore them; never `OpenLevel` a real map inside an automation world |
+| "Package does not exist" warnings for art that is not authored yet, or art missing from a packaged build | Load presentation assets only with `UTDStatics::LoadPresentation<T>(TEXT("DA_Name"))`: quiet, remembers misses, and the folder is always cooked. Do not write your own path loader or cache |
+| Compiles in the editor, fails when packaging (`C4756 overflow in constant arithmetic`) | The `INFINITY` / `NAN` macros in constant expressions fail the Development game target. Use `std::numeric_limits<float>::infinity()` / `quiet_NaN()` |
+| Held fire / boost goes dead after a ship switch | Re-adding an Enhanced Input mapping context ignores keys that are already down until they are released. Only add or remove contexts when they actually change |
 | Build fails only in another agent's file | You merged `main` mid-change or touched a folder you do not own. Message the owner; do not "fix" their file |
 
 ## Try it by hand (human or agent with a screen)
@@ -115,3 +118,37 @@ bool FTDFlightCruise::RunTest(const FString& Parameters)
 
 `TD.*` console commands (`TD.God`, `TD.SkipWave`, `TD.KillAll`, `TD.Phase <name>`, ...) come from
 `UTDCheatManager`.
+
+## Play it (required before calling anything gameplay validated)
+
+`/AAA.md` and AGENTS.md section 11 require work to be played, not only tested. An agent plays the
+game through Unreal 5.9's built-in MCP server, on its own port, without a human at the screen:
+
+```powershell
+powershell -File Tools\td-play-mcp.ps1                 # game on L_Galaxy; port from the worktree (int 8010, t1 8011 ... t5 8015)
+powershell -File Tools\td-play-mcp.ps1 -Map /Game/TriadDrift/Maps/L_Planet_Verdance
+python Tools\td_mcp.py --port 8011 toolsets            # what can be called
+python Tools\td_mcp.py --port 8011 describe SceneCaptureToolset.SceneCaptureToolset
+python Tools\td_mcp.py --port 8011 call SceneCaptureToolset.SceneCaptureToolset ListWorlds
+python Tools\td_mcp.py --port 8011 --save-images Saved\TDShots\mcp call SceneCaptureToolset.SceneCaptureToolset CaptureGameViewport "{\"world\": {\"refPath\": \"/Game/TriadDrift/Maps/L_Galaxy.L_Galaxy\"}, \"maxResolution\": 1280}"
+python Tools\td_mcp.py --port 8011 call ConsoleToolset.ConsoleToolset RunConsoleCommand "{\"command\": \"TDSkipWave\"}"
+python Tools\td_mcp.py --port 8011 call PerfToolset.StatsToolset GetFrameTimings
+powershell -File Tools\td-play-mcp.ps1 -Stop
+```
+
+- Open the saved PNG with the Read tool and actually look at it: is the thing you built on screen,
+  readable, the right colour, not clipping?
+- Cheats are exec functions on `UTDCheatManager` (`TDGod`, `TDSkipWave`, `TDKillAll`, `TDTake`,
+  `TDPhase <name>`, `TDTravel <dest>`, `TDUnlock <ability> <ship>`) plus each area's own `TD.*`
+  debug commands. Add a debug command when you need to trigger your feature without input.
+- The server runs one call at a time on the game thread: never send calls in parallel. Never use
+  port 8000 (the human's editor). A game session ends itself after 15 minutes.
+- `-Editor` starts a hidden full editor instead, which also exposes the editor toolsets
+  (Blueprint, Niagara, MetaSound, automation tests, cheats in PIE, asset import).
+- From Git Bash, `export MSYS_NO_PATHCONV=1` before passing `/Game/...` arguments, and pass JSON
+  arguments from a file with `@args.json` when quoting gets in the way.
+- Also run a packaged build now and then (`Tools\td-package.ps1 -Configuration Development`): the
+  Development game target compiles the tests differently from the editor and has caught errors
+  the editor build missed.
+- Record what you played, how, what worked and what did not in your report, and say plainly which
+  AAA.md stage the work has reached.

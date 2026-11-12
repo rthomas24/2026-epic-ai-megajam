@@ -254,7 +254,8 @@ private:
 	void OnLandReleased(const FInputActionValue& Value);
 	void OnCameraToggle(const FInputActionValue& Value);
 	void RouteHyperdrive(bool bPressed);
-	void RouteLand();
+	/** Hold F / A: land on a pad in reach, or take off again from a landed ship. True if it acted. */
+	bool RouteLand();
 	void OnPause(const FInputActionValue& Value);
 	void OnGalaxyMap(const FInputActionValue& Value);
 

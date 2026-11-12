@@ -1,6 +1,8 @@
 // Triad Drift - Director (Teammate 3). C-03 #2 "Director cam money shots".
 
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDDirectorCamera.h"
+#include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -37,15 +39,70 @@ bool UTDDirectorSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType
 	return WorldType == EWorldType::Game || WorldType == EWorldType::PIE;
 }
 
+void UTDDirectorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	CameraRig = NewObject<UTDDirectorCameraRig>(this);
+	CameraRig->SetWorld(GetWorld());
+	CutPresentation = NewObject<UTDCutPresentation>(this);
+}
+
+TStatId UTDDirectorSubsystem::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UTDDirectorSubsystem, STATGROUP_Tickables);
+}
+
+void UTDDirectorSubsystem::Tick(float DeltaTime)
+{
+	// Real (undilated) time: slow-mo must never stretch the camera blends.
+	const double Now = RealNow();
+	const float RealDelta = LastTickRealTime < 0.0 ? 0.f : static_cast<float>(Now - LastTickRealTime);
+	LastTickRealTime = Now;
+	if (CutPresentation)
+	{
+		CutPresentation->SetHandledExternally(bCutPresentationHandledExternally);
+		const UTDGameInstance* GI = GetWorld() ? Cast<UTDGameInstance>(GetWorld()->GetGameInstance()) : nullptr;
+		if (GI && GI->IsTravelPending())
+		{
+			CutPresentation->ClearAll(); // nothing of this level's presentation survives travel
+		}
+		else
+		{
+			CutPresentation->Tick(Now);
+		}
+	}
+	if (!CameraRig)
+	{
+		return;
+	}
+	if (CameraRig->IsActive() && !CanTriggerHighlights())
+	{
+		CameraRig->Cancel(bSceneCutPending ? ETDDirectorCameraCancel::SceneCut : ETDDirectorCameraCancel::Travel);
+	}
+	CameraRig->Tick(Now, RealDelta);
+}
+
 void UTDDirectorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 	BindBus();
+	if (CutPresentation)
+	{
+		CutPresentation->Init(&InWorld);
+	}
 }
 
 void UTDDirectorSubsystem::Deinitialize()
 {
 	UnbindBus();
+	if (CutPresentation)
+	{
+		CutPresentation->Shutdown(); // world teardown (travel): the overlay goes with it
+	}
+	if (CameraRig)
+	{
+		CameraRig->Cancel(ETDDirectorCameraCancel::Travel);
+	}
 	Super::Deinitialize();
 }
 
@@ -183,6 +240,25 @@ bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subjec
 	if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(World))
 	{
 		Feel->RequestSlowMo(Shot.DurationSeconds, Shot.Dilation);
+	}
+	if (CutPresentation)
+	{
+		CutPresentation->HandleShotStarted(Shot.DurationSeconds + 0.2f); // thin bars for the shot (+ return)
+	}
+	// C-03 #2: the camera. Full = cut to the director camera; Reduced = FOV punch only; Off = none.
+	if (CameraRig)
+	{
+		switch (UTDDirectorSettings::GetEffectiveMode())
+		{
+		case ETDDirectorCameraMode::Full:
+			CameraRig->BeginShot(Shot, ShotEndRealTime);
+			break;
+		case ETDDirectorCameraMode::Reduced:
+			CameraRig->PunchFOV();
+			break;
+		default:
+			break;
+		}
 	}
 	if (UTDEventBus* Bus = UTDEventBus::Get(World))
 	{
@@ -327,6 +403,14 @@ void UTDDirectorSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, f
 {
 	// "CUT!": no money shots until the next take starts, and stop any running one.
 	bSceneCutPending = true;
+	if (CameraRig)
+	{
+		CameraRig->Cancel(ETDDirectorCameraCancel::SceneCut); // the retake starts on the player's own view
+	}
+	if (CutPresentation)
+	{
+		CutPresentation->HandleSceneCut(DelaySeconds);
+	}
 	if (IsShotActive())
 	{
 		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(GetWorld()))
@@ -340,5 +424,9 @@ void UTDDirectorSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, f
 
 void UTDDirectorSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 {
+	if (CutPresentation)
+	{
+		CutPresentation->HandleTakeStarted(SceneId, TakeNumber);
+	}
 	bSceneCutPending = false;
 }

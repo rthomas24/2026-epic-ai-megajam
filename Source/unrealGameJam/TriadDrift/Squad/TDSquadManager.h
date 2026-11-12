@@ -9,6 +9,7 @@
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSwitchCut.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
+#include "TriadDrift/Squad/TDSquadBarks.h"
 #include "TDSquadManager.generated.h"
 
 class ATDShip;
@@ -76,6 +77,9 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 
 	/** Real time this ship last received the manual switch-in grace (M4 lockout). */
 	double LastManualGraceTime = -1000.0;
+
+	/** The low-hull line is armed (re-armed once the hull is repaired). */
+	bool bLowHullBarkArmed = true;
 };
 
 /**
@@ -316,6 +320,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
 	float BetweenWaveHullRepairPerSecond = 8.f;
 
+	/** Voice lines (ART-11): per-bark cooldowns, a global gap, a window cap. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks")
+	FTDBarkTuning BarkTuning;
+
+	/** Ask for a squad line; false if the limiter held it back. */
+	bool RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkPriority Priority = ETDBarkPriority::Normal);
+
+	UFUNCTION()
+	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
+
 	UFUNCTION()
 	void HandleWaveCleared(int32 WaveNumber);
 
@@ -379,6 +393,7 @@ protected:
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
 	bool bBetweenWaves = false;
+	FTDBarkLimiter BarkLimiter;
 	FText LastRefusalText;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	int32 SwitchCount = 0;

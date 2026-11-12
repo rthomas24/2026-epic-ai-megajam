@@ -25,6 +25,7 @@
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
+#include "TriadDrift/Squad/TDSquadBarks.h"
 #include "TriadDrift/Squad/Tests/TDSquadTestListener.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
@@ -725,6 +726,15 @@ bool FTDSquadHyperdriveFollow::RunTest(const FString& Parameters)
 		{
 			const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
 			TestTrue(FString::Printf(TEXT("%s jumps in formation (%.0f cm from slot)%s"), *UEnum::GetValueAsString(Id), Dist, *Fps), Dist < 2000.f);
+		}
+		// Drop-out brakes the leader hard: the wingmen stay pinned through it and arrive in the V.
+		TestTrue(TEXT("drop out") + Fps, Hyper->RequestDropOut());
+		F.W.Advance(1.2f, Step);
+		TestTrue(TEXT("jump over") + Fps, Hyper->GetState() == ETDHyperdriveState::Idle);
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
+			TestTrue(FString::Printf(TEXT("%s arrives in formation, no overshoot (%.0f cm)%s"), *UEnum::GetValueAsString(Id), Dist, *Fps), Dist < 4000.f);
 		}
 	}
 	return true;
@@ -1714,6 +1724,100 @@ bool FTDSquadEvadeOnMissile::RunTest(const FString& Parameters)
 		TestTrue(TEXT("breaks off when a missile homes on it") + Fps, bEvaded);
 		TestFalse(TEXT("Bastion (not targeted) doesn't") + Fps, F.Wing(ETDShipId::Bastion)->GetWingmanState() == ETDWingmanState::Evade);
 	}
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------ barks (ART-11)
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadBarkLimiter, "TriadDrift.Squad.Barks.LimiterRules", TD_TEST_FLAGS)
+bool FTDSquadBarkLimiter::RunTest(const FString& Parameters)
+{
+	FTDBarkTuning T;
+	FTDBarkLimiter L;
+	const FName A(TEXT("Bark_A")), B(TEXT("Bark_B")), C(TEXT("Bark_C")), D(TEXT("Bark_D"));
+	const ETDBarkPriority N = ETDBarkPriority::Normal, H = ETDBarkPriority::High, X = ETDBarkPriority::Critical;
+	TestTrue(TEXT("first line plays"), L.TryConsume(T, A, N, 0.0));
+	TestFalse(TEXT("another line inside the 2.5 s global gap is held"), L.TryConsume(T, B, N, 1.0));
+	TestTrue(TEXT("high priority skips the gap"), L.TryConsume(T, B, H, 1.0));
+	TestFalse(TEXT("same id inside its cooldown is held, even high priority"), L.TryConsume(T, B, H, 4.0));
+	TestTrue(TEXT("after the gap, a new id plays"), L.TryConsume(T, C, N, 4.0));
+	TestFalse(TEXT("window cap: 3 per 10 s, even high priority"), L.TryConsume(T, D, H, 7.0));
+	TestTrue(TEXT("critical (squad wipe) passes the window cap"), L.TryConsume(T, FName(TEXT("Bark_Wipe")), X, 7.0));
+	TestFalse(TEXT("but not its own cooldown"), L.TryConsume(T, FName(TEXT("Bark_Wipe")), X, 8.0));
+	TestTrue(TEXT("window slides"), L.TryConsume(T, D, N, 14.5));
+	TestTrue(TEXT("cooldown expires (8 s default)"), L.TryConsume(T, A, N, 17.5));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadBarkTriggers, "TriadDrift.Squad.Barks.TriggersAndSpeakers", TD_TEST_FLAGS)
+bool FTDSquadBarkTriggers::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	auto Last = [&]() { return F.Events->Barks.Num() ? F.Events->Barks.Last() : TPair<FName, FName>(NAME_None, NAME_None); };
+	auto Space = [&]() { F.W.Advance(F.Squad->BarkTuning.GlobalMinGapSeconds + 0.1f); };
+
+	// Switch-in: the new pilot speaks.
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestTrue(TEXT("switch-in bark by Kato"), Last().Key == TDBarkIds::SwitchIn && Last().Value == FName(TEXT("Kato")));
+	Space();
+
+	// Focus acknowledged by a wingman.
+	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+	F.Squad->IssueFocusCommand(Enemy);
+	TestTrue(TEXT("focus ack by a wingman, not the player's pilot"), Last().Key == TDBarkIds::FocusAck && Last().Value != FName(TEXT("Kato")));
+	Space();
+
+	// A wingman kill.
+	AActor* Victim = F.SpawnEnemy(FVector(9000.f, 3000.f, 0.f), 10.f);
+	UTDStatics::GetHealth(Victim)->Kill(F.Ship(ETDShipId::Bastion), ETDDamageKind::Kinetic);
+	TestTrue(TEXT("wingman kill bark by Moss"), Last().Key == TDBarkIds::WingmanKill && Last().Value == FName(TEXT("Moss")));
+	Space();
+	// The player's own kill is not a wingman kill.
+	const int32 Before = F.Events->Barks.Num();
+	AActor* Victim2 = F.SpawnEnemy(FVector(9000.f, -3000.f, 0.f), 10.f);
+	UTDStatics::GetHealth(Victim2)->Kill(F.Ship(ETDShipId::Lancer), ETDDamageKind::Kinetic);
+	TestEqual(TEXT("no wingman-kill line for the player's kill"), F.Events->Barks.Num(), Before);
+	Space();
+
+	// Low hull, once per dip.
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Rift), 175.f, ETDDamageKind::Energy, Enemy, Enemy); // 100 shield + 75 hull
+	F.W.Tick();
+	TestTrue(TEXT("low hull line by Wren"), Last().Key == TDBarkIds::LowHull && Last().Value == FName(TEXT("Wren")));
+	F.W.Advance(3.f);
+	TestEqual(TEXT("not repeated while still low"), F.Events->CountBarks(TDBarkIds::LowHull), 1);
+
+	// Ship down: high priority, a survivor calls it.
+	F.Kill(ETDShipId::Bastion);
+	F.W.Tick();
+	TestTrue(TEXT("Moss is down, called by a survivor"), Last().Key == TDBarkIds::ShipDownBastion && Last().Value != FName(TEXT("Moss")));
+
+	// Respawn line by the pilot coming back.
+	F.W.Advance(12.5f);
+	TestTrue(TEXT("respawn line by Moss"), F.Events->CountBarks(TDBarkIds::Respawn) == 1);
+
+	// Squad wipe.
+	F.Kill(ETDShipId::Rift);
+	F.Kill(ETDShipId::Lancer);
+	F.Kill(ETDShipId::Bastion);
+	F.W.Tick();
+	TestEqual(TEXT("one squad-wipe line"), F.Events->CountBarks(TDBarkIds::SquadWipe), 1);
+	TestEqual(TEXT("no ship-down lines for a simultaneous wipe"), F.Events->CountBarks(TDBarkIds::ShipDownRift) + F.Events->CountBarks(TDBarkIds::ShipDownLancer), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadBarkSpam, "TriadDrift.Squad.Barks.NeverSpam", TD_TEST_FLAGS)
+bool FTDSquadBarkSpam::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	// Tab-spam for 20 s: a switch every 0.45 s.
+	for (int32 i = 0; i < 44; ++i)
+	{
+		F.Squad->RequestSwitchNext();
+		F.W.Advance(0.45f);
+	}
+	const int32 SwitchLines = F.Events->CountBarks(TDBarkIds::SwitchIn);
+	TestTrue(FString::Printf(TEXT("switch-in lines throttled by their 6 s cooldown (%d in 20 s)"), SwitchLines), SwitchLines >= 3 && SwitchLines <= 4);
+	TestTrue(FString::Printf(TEXT("never more than 3 lines in any 10 s (%d total)"), F.Events->Barks.Num()), F.Events->Barks.Num() <= 6);
 	return true;
 }
 

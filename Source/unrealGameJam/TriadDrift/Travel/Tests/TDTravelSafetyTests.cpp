@@ -16,6 +16,9 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 
@@ -379,6 +382,112 @@ bool FTDTravelSafetyFrameRates::RunTest(const FString& Parameters)
 			TestEqual(*FString::Printf(TEXT("entry 2.5 s @ %.0f fps"), Fps), T, 2.5f, Dt + 0.01f);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyHoldF, "TriadDrift.Travel.Safety.HoldFLandsAndTakesOffThroughTheController", TD_TEST_FLAGS)
+bool FTDTravelSafetyHoldF::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(-1500.f, 0.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("pad"), Pad) || !TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	PC->SetFlightContext(ETDFlightContext::Atmosphere); // F / A = Land
+	W.Tick();
+	W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, true); // the pilot brakes to land, as a player would
+	W.Tick();
+	TestTrue(TEXT("Space brake reaches the ship"), PC->GetCurrentFlightInput().bBrake);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	UTDLandingComponent* Land = Ship->GetLanding();
+
+	auto HoldF = [&W, PC](float Seconds)
+	{
+		FTDTestWorld::InjectKey(PC, EKeys::F, true);
+		W.Advance(Seconds);
+		FTDTestWorld::InjectKey(PC, EKeys::F, false);
+		W.Tick();
+	};
+
+	// A tap does nothing (hold to land).
+	HoldF(0.1f);
+	TestFalse(TEXT("a tap of F doesn't land"), Land->IsBusy());
+
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(0.6f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Tick();
+	TestTrue(TEXT("hold F lands (real key through Enhanced Input)"), Land->IsBusy());
+	W.Advance(5.5f);
+	TestTrue(TEXT("landed"), Land->IsLanded());
+
+	// No on-foot hand-off took the pilot out: hold F again takes off (no soft-lock in any build).
+	HoldF(0.7f);
+	TestTrue(TEXT("hold F in a landed ship takes off"), Land->IsBusy() && !Land->IsLanded());
+	W.Advance(4.f);
+	TestEqual(TEXT("flying again"), Land->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("pad released"), Pad->IsOccupied());
+	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, false);
+
+	// Holding F where landing isn't possible keeps retrying while held: it lands once the ship slows down in range.
+	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(5000.f); // too fast
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(0.6f);
+	TestFalse(TEXT("too fast: no landing yet"), Land->IsBusy());
+	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, true);
+	W.Advance(0.6f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	TestTrue(TEXT("still holding F: lands once it's possible (no release needed)"), Land->IsBusy());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
+bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(-1500.f, 0.f, 1500.f));
+	ATDShip* Other = W.Spawn<ATDShip>(FVector(0.f, 5000.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+
+	auto Held = [&W, PC](const FKey& Key, TFunctionRef<bool()> Check)
+	{
+		FTDTestWorld::InjectKey(PC, Key, true);
+		W.Tick();
+		W.Tick();
+		const bool bOk = Check();
+		FTDTestWorld::InjectKey(PC, Key, false);
+		W.Tick();
+		return bOk;
+	};
+	TestTrue(TEXT("Space brakes"), Held(EKeys::SpaceBar, [PC] { return PC->GetCurrentFlightInput().bBrake; }));
+	TestTrue(TEXT("Shift boosts"), Held(EKeys::LeftShift, [PC] { return PC->GetCurrentFlightInput().bBoost; }));
+	TestTrue(TEXT("C drifts"), Held(EKeys::C, [PC] { return PC->GetCurrentFlightInput().bDrift; }));
+	TestTrue(TEXT("S throttles back"), Held(EKeys::S, [PC] { return PC->GetCurrentFlightInput().Throttle < -0.9f; }));
+	TestTrue(TEXT("D rolls"), Held(EKeys::D, [PC] { return PC->GetCurrentFlightInput().Roll > 0.9f; }));
+	TestTrue(TEXT("H spools the hyperdrive"), Held(EKeys::H, [Ship] { return Ship->GetHyperdrive()->GetState() == ETDHyperdriveState::Spooling; }));
+	W.Tick();
+
+	// Held boost carries straight through a ship switch (no "ignore until released" on re-possess).
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, true);
+	W.Tick();
+	Ship->SetPlayerControlled(false);
+	PC->Possess(Other);
+	Other->SetPlayerControlled(true);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("boost still held on the new ship"), PC->GetCurrentFlightInput().bBoost && Other->GetFlightInput().bBoost);
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, false);
+	W.Tick();
+	TestFalse(TEXT("release reaches the new ship"), Other->GetFlightInput().bBoost);
 	return true;
 }
 

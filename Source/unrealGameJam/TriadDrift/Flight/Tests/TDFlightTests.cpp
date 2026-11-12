@@ -1,6 +1,7 @@
 // Automation tests for flight & input (ENG-01, ENG-02). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Flight
 
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -349,7 +350,7 @@ bool FTDFlightRobustness::RunTest(const FString& Parameters)
 	FTDFlightInput Bad;
 	Bad.Throttle = NAN;
 	Bad.Aim = FVector2D(50.f, -NAN);
-	Bad.Roll = INFINITY;
+	Bad.Roll = std::numeric_limits<float>::infinity(); // not the INFINITY macro: C4756 in the Development game target
 	Bad.Strafe = FVector2D(-7.f, 3.f);
 	TDFlightTest::Run(S, Bad, T, TDFlightTest::NoBoundary(), 1.f, 60.f);
 	TestFalse(TEXT("no NaN in location"), S.Location.ContainsNaN());

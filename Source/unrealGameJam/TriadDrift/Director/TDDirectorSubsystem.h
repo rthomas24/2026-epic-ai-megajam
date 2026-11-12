@@ -146,8 +146,11 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDirectorShot, const FTDDirectorShot&, Shot);
 
+class UTDDirectorCameraRig;
+class UTDCutPresentation;
+
 UCLASS()
-class UNREALGAMEJAM_API UTDDirectorSubsystem : public UWorldSubsystem
+class UNREALGAMEJAM_API UTDDirectorSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -184,10 +187,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director")
 	FTDDirectorTuning Tuning;
 
+	/**
+	 * Set true when a real HUD (Nick's) draws the cut flash, letterbox, name card, CUT! and slate;
+	 * the gameplay-side fallback overlay then draws nothing. Synced every tick.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director")
+	bool bCutPresentationHandledExternally = false;
+
+	/** The fallback cut / CUT! / slate presentation (C-03 #1, #3) and its state for tests. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
+	UTDCutPresentation* GetCutPresentation() const { return CutPresentation; }
+
+	/** The director camera (C-03 #2): view takeover, blends, cancels. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
+	UTDDirectorCameraRig* GetCameraRig() const { return CameraRig; }
+
 	// ---- UWorldSubsystem
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
 
 	// ---- bus handlers
 	UFUNCTION()
@@ -206,6 +227,14 @@ private:
 	double GameNow() const;
 	float GetBaseImportance(ETDHighlightKind Kind) const;
 	void BuildCameraHint(FTDDirectorShot& Shot);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTDDirectorCameraRig> CameraRig;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTDCutPresentation> CutPresentation;
+
+	double LastTickRealTime = -1.0;
 
 	FTDDirectorShot CurrentShot;
 	double ShotEndRealTime = -1000.0;
