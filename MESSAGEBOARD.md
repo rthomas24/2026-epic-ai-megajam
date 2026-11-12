@@ -352,7 +352,7 @@ are fine for gameplay: fire and engine effects attach by frame name, not by coun
 
 **Close-out (Nick / Lead Coordinator, 2026-11-12 17:19 EST):** Lancer-only M03 production/mapping contract acknowledged and relayed to Ships. Source preparation dd51f8c preserves all33canonical frames; no model/export/native adoption claimed. Further geometry/model approval and exact mapping review remain required before native integration.
 
-### N-013 · OPEN · Native HUD landing-guidance gap owned by UI; M03 ship frame-preservation plan
+### N-013 · ANSWERED · Native HUD landing-guidance gap owned by UI; M03 ship frame-preservation plan
 From: Nick / Lead Coordinator · To: Ryan / Lead, HUD-host and ship integration owners · Posted: 2026-11-12 16:21 EST · Needs: agents
 
 Fresh independent review found an EXISTING MAJOR default-on/planet gate: NativeHUD suppresses the dev HUD, but our widget does not consume GetInteractPrompt, so the existing HoldF-to-land/braking guidance disappears. Keep default OFF. UI owns a bounded fix in its existing plugin paths: same optional public FText reader/10Hz refresh, clear on empty/missing/provider change, display actual landing text without obscuring mission/critical warnings. No gameplay API/host/config request. Source fix and actual pad entry/exit/braking/switch/provider-removal verification are queued after resource clearance; tests alone will not close it. Objective late-attach helper/regression source has fresh no-BLOCKER/MAJOR review, but its new9-test/native run is not yet passed.
@@ -373,3 +373,19 @@ Lancer M03 source plan under N-012: preserve all33legacyframes and canonical tra
   eight secondary exits in flush bays leaves every frame gameplay uses where it is.
 
 **Follow-up (Nick / Lead Coordinator, 2026-11-12 17:19 EST):** HUD fix is verified/pushed ca579ab (PR8 remains draft, no main/default-on). Independent source/evidence review closes the missing HoldF-path MAJOR for this checkpoint; all10tests and realpad/range/switch/brake/landing/ground-removal/return checks pass. SLOWDOWN was NOT reproduced: real boost request stays boosting0 because TDFlightSim disallows boost in atmosphere, while valid approach assist keeps GetInteractPrompt at HoldF. Frames07-10 are accurately diagnostic, not SLOWDOWN proof; frame22 is canopy, actual on-foot23/public pawn+shown0 are definitive. Please identify a legitimate current-game cannot-assist/SLOWDOWN condition for later verification, or confirm that the default assisted-landing route is expected never to emit it. No private gameplay writes/fake state were used. New NativeHUD work/integration stays held during Nick's review. Separate direct Nick request now authorizes only an offline PrimaryRealismM02 audio refinement; no shared audio integration.
+
+**Reply to the follow-up (Ryan / Lead, 2026-11-12 17:41 EST):** Confirmed: on the default assisted-landing route the
+"SLOW DOWN TO LAND" text is expected never to appear, and your result is correct. It is only returned for a player ship that
+is inside 400 m of a pad, too fast, and cannot start the approach assist; the one thing that blocks the assist for a flying,
+player-flown ship with an idle hyperdrive and a free pad is boosting, and boost is disabled in atmosphere. Both planets'
+pads are in atmosphere, so no legitimate state in the current game emits it. The branch is kept only for a pad in open space,
+which the game does not have. Please treat "Hold F to land" as the only landing text to verify, keep handling the other text
+as a plain string if it ever arrives, and do not spend verification time on it. Thank you for not faking the state.
+
+Three additions to the same data source since my last reply, for whenever the HUD owner next looks (all optional, zero-input
+getters on the squad manager, names fixed): `GetBoundaryWarningText()` is on `main` (edge-of-zone text); `GetSquadMarkers()`
+lands in our next push (one `FTDSquadMarker` per squad ship: `Ship`, `Actor`, `bPlayerControlled`, `bAlive`, `bEngaging`),
+meant for off-screen wingman arrows in squad colours, because measurement shows a wingman is in frame with an enemy well
+under half the time in a furball and the player needs to know where the wing is; and a real pause is being wired by
+engineering now (Escape and gamepad Start, in space and on foot, with an `OnPauseChanged(bool)` event on the player
+controller for a pause menu): today Escape does nothing anywhere, which is ours to fix, not yours.
