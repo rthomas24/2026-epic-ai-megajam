@@ -55,14 +55,21 @@ ATDWaveDirector* ATDWaveDirector::Get(const UObject* WorldContext)
 	{
 		return nullptr;
 	}
-	for (TActorIterator<ATDWaveDirector> It(World); It; ++It)
+	// Cheap: directors register themselves (the HUD calls this every frame).
+	for (const TWeakObjectPtr<ATDWaveDirector>& Weak : Instances())
 	{
-		if (IsValid(*It))
+		if (ATDWaveDirector* D = Weak.Get())
 		{
-			return *It;
+			if (D->GetWorld() == World && !D->IsActorBeingDestroyed()) { return D; }
 		}
 	}
 	return nullptr;
+}
+
+TArray<TWeakObjectPtr<ATDWaveDirector>>& ATDWaveDirector::Instances()
+{
+	static TArray<TWeakObjectPtr<ATDWaveDirector>> List;
+	return List;
 }
 
 // ------------------------------------------------------------------------------------- wave table
@@ -179,6 +186,12 @@ void ATDWaveDirector::LoadWaveTable()
 	{
 		Waves = MakeDefaultWaves();
 	}
+	else if (Waves.Num() != MakeDefaultWaves().Num())
+	{
+		// The flow maps "phase after wave N" for waves 2, 4 and 5 (UTDFlowSettings::PhaseAfterWaveCleared).
+		UE_LOG(LogTriadDrift, Warning, TEXT("ATDWaveDirector: WaveTableOverride has %d waves, the flow expects %d; check PhaseAfterWaveCleared."),
+			Waves.Num(), MakeDefaultWaves().Num());
+	}
 }
 
 const FTDWaveDef* ATDWaveDirector::GetWaveDef(int32 Index) const
@@ -201,6 +214,8 @@ FName ATDWaveDirector::GetSceneId(int32 Index) const
 void ATDWaveDirector::BeginPlay()
 {
 	Super::BeginPlay();
+	Instances().RemoveAll([](const TWeakObjectPtr<ATDWaveDirector>& W) { return !W.IsValid(); });
+	Instances().AddUnique(this);
 	Rng.Initialize(RandomSeed);
 	LoadWaveTable();
 
@@ -234,6 +249,7 @@ void ATDWaveDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 	Living.Reset();
 	Pending.Reset();
+	Instances().Remove(this);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -269,6 +285,15 @@ void ATDWaveDirector::StartFromProgress()
 	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
 	{
 		Progress = Flow->GetProgress();
+	}
+
+	// After a Continue in a planet phase, re-announce that planet's marker (the HUD lost it).
+	if (Progress.Phase == ETDGamePhase::Verdance || Progress.Phase == ETDGamePhase::Cinder)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(this))
+		{
+			Bus->BroadcastMarkerRevealed(Progress.Phase == ETDGamePhase::Verdance ? ETDDestination::Verdance : ETDDestination::Cinder);
+		}
 	}
 
 	const int32 Next = FMath::Max(0, Progress.WavesCleared);	// WavesCleared waves done -> next 0-based index
@@ -335,6 +360,13 @@ void ATDWaveDirector::BeginWave(int32 Index)
 	}
 
 	SetState(ETDWaveState::WarpingIn);
+
+	// Sync the take with the flow BEFORE broadcasting: the flow answers OnWaveStarted with
+	// OnTakeStarted, and a take number above ours would otherwise restart this wave re-entrantly.
+	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	{
+		CurrentTake = FMath::Max(CurrentTake, Flow->GetProgress().Takes.FindRef(GetSceneId(Index)));
+	}
 
 	const int32 WaveNumber = Index + 1;
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))

@@ -102,6 +102,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.FrontalShieldRecoverSeconds = 15.f;
 		S.CruiseSpeed = 3000.f;
 		S.TurnRateDeg = 45.f;
+		S.MinSpeedFraction = 0.f;	// holds range, nose to the threat
 		S.Radius = 700.f;
 		S.Heavy = MakeAttack(ETDEnemyAttack::HeavyBolt, TDEnemyWeaponIds::HeavyBolt, 20.f, 3, 3.5f, 0.6f, 18000.f, 15.f);
 		// One FireOnce of Enemy_SalvoMissile = T2's 3-missile ripple.
@@ -152,6 +153,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.Shield = 0.f;
 		S.CruiseSpeed = 1500.f;
 		S.TurnRateDeg = 15.f;
+		S.MinSpeedFraction = 0.f;
 		S.Radius = 1800.f;
 		S.Heavy = MakeAttack(ETDEnemyAttack::LaunchFighters, NAME_None, 0.f, 3, 12.f, 1.5f, 60000.f, 180.f);
 		S.BayCount = 3;

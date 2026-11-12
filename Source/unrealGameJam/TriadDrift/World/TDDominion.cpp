@@ -114,6 +114,12 @@ void ATDDominion::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Nick's asset by convention when none is set (no gameplay BP edit needed).
+	if (!Visuals)
+	{
+		Visuals = LoadObject<UTDDominionVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/Dominion/DA_Dominion_Visuals.DA_Dominion_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
+
 	// Lay the placeholder out from HullExtent so tuning the size keeps everything consistent.
 	const FVector E = HullExtent;
 	HullMesh->SetRelativeScale3D(E * 2.f / 100.f);
@@ -476,10 +482,7 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	{
 		UTDStatics::PlayCue(this, Visuals->ShieldSectionDown, Generator->GetActorLocation());
 	}
-	if (UTDEventBus* Bus = UTDEventBus::Get(this))
-	{
-		Bus->BroadcastHighlightMoment(ETDHighlightKind::GeneratorKill, Generator, 0.8f);
-	}
+	// The GeneratorKill money shot comes from T3's UTDDirectorSubsystem (generator actors are tagged).
 
 	const int32 Remaining = GetGeneratorsRemaining();
 	OnShieldSectionDown.Broadcast(this, Remaining);
@@ -560,10 +563,7 @@ void ATDDominion::HandleReactorDestroyed(ATDDominionReactor* InReactor, AActor* 
 	{
 		return;
 	}
-	if (UTDEventBus* Bus = UTDEventBus::Get(this))
-	{
-		Bus->BroadcastHighlightMoment(ETDHighlightKind::ReactorKill, InReactor, 1.f);
-	}
+	// ReactorKill money shot: UTDDirectorSubsystem (the reactor actor is tagged).
 	// Defenses go quiet while the ship breaks apart.
 	for (ATDEnemyTurret* T : Turrets) { if (T) { T->ApplyStun(BreakupSeconds + 60.f); } }
 	for (ATDEnemyTurret* T : TrenchTurretActors) { if (T) { T->ApplyStun(BreakupSeconds + 60.f); } }

@@ -13,6 +13,9 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
 
 namespace
 {
@@ -22,6 +25,7 @@ namespace
 		UTDWaveTestGameInstance* GI = nullptr;
 		ATDDominion* D = nullptr;
 		UTDWaveTestListener* L = nullptr;
+		AActor* Player = nullptr;	// the killer: the Director only stages player kills
 
 		explicit FDominionRig(bool bRevealed, bool bDefensesDown = false)
 		{
@@ -31,6 +35,13 @@ namespace
 			L = NewObject<UTDWaveTestListener>();
 			L->AddToRoot();
 			L->Bind(W.GetWorld());
+			Player = W.Spawn<AActor>(FVector(150000.f, 0.f, 0.f));
+			USceneComponent* Root = NewObject<USceneComponent>(Player, TEXT("Root"));
+			Player->SetRootComponent(Root);
+			Root->RegisterComponent();
+			UTDHealthComponent* PH = NewObject<UTDHealthComponent>(Player, TEXT("Health"));
+			PH->DefaultTeam = ETDTeam::Player;
+			PH->RegisterComponent();
 			D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
 			D->MaxLaunchedAlive = 0;	// unlimited, deterministic counting
 		}
@@ -43,7 +54,7 @@ namespace
 
 		float Hit(AActor* Target, float Amount)
 		{
-			return UTDStatics::ApplyTDDamage(Target, Amount, ETDDamageKind::Explosive, nullptr, nullptr);
+			return UTDStatics::ApplyTDDamage(Target, Amount, ETDDamageKind::Explosive, Player, Player);
 		}
 	};
 }
@@ -143,7 +154,7 @@ bool FTDWorldReactorPhases::RunTest(const FString& Parameters)
 
 	R.W.Advance(R.D->BreakupSeconds - 0.2f);
 	TestEqual(TEXT("still breaking up"), R.GI->Travels.Num(), 0);
-	R.W.Advance(0.4f);
+	R.W.Advance(2.5f);	// + the Director's ReactorKill slow-mo beat (game time runs slow for ~1 s)
 	TestTrue(TEXT("TravelTo(Victory)"), R.GI->Travels.Num() == 1 && R.GI->Travels[0] == ETDDestination::Victory);
 	R.W.Advance(2.f);
 	TestEqual(TEXT("Victory requested once"), R.GI->Travels.Num(), 1);
@@ -185,6 +196,40 @@ bool FTDWorldDominionResume::RunTest(const FString& Parameters)
 	TestTrue(TEXT("reactor exposed"), R.D->GetReactor() && R.D->GetReactor()->IsExposed());
 	TestEqual(TEXT("no duplicate SetDominionState on resume"), R.GI->DominionStateCalls, 0);
 	TestEqual(TEXT("no generator highlights on resume"), R.L->Highlights.Num(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDirectorTags, "TriadDrift.World.Dominion.DirectorTagsProduceHighlights", TD_TEST_FLAGS)
+bool FTDWorldDirectorTags::RunTest(const FString& Parameters)
+{
+	FDominionRig R(true);
+	R.ArriveAndRaiseShields();
+	ATDShieldGenerator* G = R.D->GetGenerators()[0];
+	TestTrue(TEXT("generator tagged"), G->ActorHasTag(TDDirectorTags::Generator));
+	TestTrue(TEXT("reactor tagged"), R.D->GetReactor()->ActorHasTag(TDDirectorTags::Reactor));
+
+	R.Hit(G, 800.f);
+	TestTrue(TEXT("player generator kill -> GeneratorKill"), R.L->Highlights.Contains(ETDHighlightKind::GeneratorKill));
+
+	ATDEnemyShip* C = R.W.Spawn<ATDEnemyShip>(FVector(0.f, 80000.f, 0.f));
+	C->InitFromSpec(TDEnemyIds::HiveCarrier);
+	TestTrue(TEXT("carrier tagged"), C->ActorHasTag(TDDirectorTags::Carrier));
+	ATDEnemyShip* F = R.W.Spawn<ATDEnemyShip>(FVector(0.f, 90000.f, 0.f));
+	F->InitFromSpec(TDEnemyIds::ShardFighter);
+	TestFalse(TEXT("fighters aren't"), F->ActorHasTag(TDDirectorTags::Carrier));
+	R.W.Advance(1.5f);
+	R.Hit(C, 5000.f);
+	TestTrue(TEXT("player carrier kill -> CarrierKill"), R.L->Highlights.Contains(ETDHighlightKind::CarrierKill));
+
+	R.D->DebugDropShields();
+	ATDDominionReactor* Reactor = R.D->GetReactor();
+	for (int32 i = 0; i < 3; ++i)
+	{
+		R.W.Advance(Reactor->PhaseChangeInvulnerableSeconds + 0.1f);
+		R.Hit(Reactor, 99999.f);
+	}
+	TestFalse(TEXT("reactor dead"), Reactor->IsAlive());
+	TestTrue(TEXT("player reactor kill -> ReactorKill"), R.L->Highlights.Contains(ETDHighlightKind::ReactorKill));
 	return true;
 }
 

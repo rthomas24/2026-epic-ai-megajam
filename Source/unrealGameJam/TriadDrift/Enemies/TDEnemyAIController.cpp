@@ -46,6 +46,7 @@ void ATDEnemyAIController::OnPossess(APawn* InPawn)
 	{
 		Rng.Initialize(static_cast<int32>(InPawn->GetUniqueID()));
 	}
+	bPrefersPlayer = Rng.FRand() < PreferPlayerShipChance;
 	SetState(ETDEnemyAIState::Approach);
 	RetargetTimer = 0.f;
 }
@@ -139,6 +140,17 @@ AActor* ATDEnemyAIController::ChooseTarget() const
 		}
 	}
 
+	// Spread the pressure: about half the pilots prefer the ship the player is flying (when it's in
+	// range), the rest take the nearest squad ship, so wingmen get attacked too.
+	if (bPrefersPlayer)
+	{
+		APawn* PlayerShip = UGameplayStatics::GetPlayerPawn(this, 0);
+		if (IsValidTarget(PlayerShip) && FVector::DistSquared(PlayerShip->GetActorLocation(), Ship->GetActorLocation()) <= FMath::Square(AcquireRange))
+		{
+			return PlayerShip;
+		}
+	}
+
 	// Stick with the current target unless it's gone or drifted far out.
 	if (IsValidTarget(Target.Get()) && FVector::DistSquared(Target->GetActorLocation(), Ship->GetActorLocation()) <= FMath::Square(AcquireRange * 1.2f))
 	{
@@ -181,8 +193,10 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 	{
 		if (ATDEnemyShip* Leader = FormationLeader.Get())
 		{
+			// Followers must out-run a boosting / catching-up leader to hold the slot.
 			const FVector Slot = Leader->GetActorTransform().TransformPositionNoScale(FormationOffset);
-			bWant = FVector::Dist(Slot, Ship.GetActorLocation()) > 4000.f && Leader->GetVelocity().Size() > Ship.GetSpec().CruiseSpeed * 0.9f;
+			const float Off = FVector::Dist(Slot, Ship.GetActorLocation());
+			bWant = bCatchingUp ? Off > 800.f : Off > 2000.f;
 		}
 		else if (const AActor* T = Target.Get())
 		{
@@ -196,7 +210,8 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 	}
 	if (bWant && !bCatchingUp)
 	{
-		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * CatchUpSpeedMultiplier, 1.f);
+		const float Mult = FormationLeader.IsValid() ? CatchUpSpeedMultiplier * 1.3f : CatchUpSpeedMultiplier;
+		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * Mult, 1.f);
 		bCatchingUp = true;
 	}
 	else if (!bWant && bCatchingUp)
@@ -267,6 +282,35 @@ void ATDEnemyAIController::SteerToward(ATDEnemyShip& Ship, const FVector& WorldP
 			{
 				Goal = Ship.GetActorLocation() + Avoid * 10000.f;
 				bAvoiding = true;
+			}
+		}
+	}
+
+	// Separation: don't stack on other Armada ships (packs spread, no bumping).
+	if (!bAvoiding && SeparationRadius > 0.f && !FormationLeader.IsValid())	// packs keep their own spacing
+	{
+		if (const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+		{
+			FVector Push = FVector::ZeroVector;
+			const FVector Me = Ship.GetActorLocation();
+			for (const TWeakObjectPtr<AActor>& Weak : Registry->GetAll())
+			{
+				const AActor* Other = Weak.Get();
+				const ATDEnemyShip* OtherShip = Cast<ATDEnemyShip>(Other);
+				if (!OtherShip || OtherShip == &Ship) { continue; }
+				const ATDEnemyAIController* OtherAI = Cast<ATDEnemyAIController>(OtherShip->GetController());
+				if (OtherAI && OtherAI->GetFormationLeader() == &Ship) { continue; }	// my own wingmen
+				const FVector Away = Me - Other->GetActorLocation();
+				const float D = Away.Size();
+				if (D > KINDA_SMALL_NUMBER && D < SeparationRadius)
+				{
+					Push += Away / D * (1.f - D / SeparationRadius);
+				}
+			}
+			if (!Push.IsNearlyZero())
+			{
+				const float ToGoal = FMath::Max(1000.f, FVector::Dist(Goal, Me));
+				Goal += Push.GetClampedToMaxSize(1.f) * ToGoal * 0.5f;
 			}
 		}
 	}

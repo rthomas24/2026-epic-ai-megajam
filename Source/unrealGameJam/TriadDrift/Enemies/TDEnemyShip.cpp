@@ -6,6 +6,7 @@
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -18,6 +19,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NiagaraComponent.h"
 
 ATDEnemyShip::ATDEnemyShip()
 {
@@ -54,6 +56,8 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	bSpecApplied = true;
 
 	SetTeam(ETDTeam::Enemy);
+	if (Spec.Role == ETDEnemyRole::Carrier) { Tags.AddUnique(TDDirectorTags::Carrier); }
+	else { Tags.Remove(TDDirectorTags::Carrier); }
 
 	if (UTDHealthComponent* H = GetHealth())
 	{
@@ -63,7 +67,7 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 
 	FTDFlightTuning Tuning;
 	Tuning.CruiseSpeed = Spec.CruiseSpeed;
-	Tuning.MinSpeed = Spec.CruiseSpeed * 0.3f;
+	Tuning.MinSpeed = Spec.CruiseSpeed * Spec.MinSpeedFraction;
 	Tuning.BoostSpeed = Spec.CruiseSpeed * 1.6f;
 	Tuning.TurnRate = Spec.TurnRateDeg;
 	Tuning.RollRate = FMath::Max(60.f, Spec.TurnRateDeg * 1.5f);
@@ -95,10 +99,14 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	FireCounts.Reset();
 	CancelTelegraph();
 
+	if (!bVisualsExplicit)
+	{
+		Visuals = ResolveVisuals(Spec);
+	}
 	UpdatePlaceholderLook();
-
 	if (HasActorBegunPlay())
 	{
+		StartLoopCues();
 		SpawnCarrierParts();
 	}
 }
@@ -137,10 +145,72 @@ void ATDEnemyShip::PlayWarpIn()
 	}
 }
 
+FString ATDEnemyShip::VisualsAssetPath(FName EnemyId)
+{
+	const FString Name = FString::Printf(TEXT("DA_Enemy_%s_Visuals"), *EnemyId.ToString());
+	return FString::Printf(TEXT("/Game/TriadDrift/Presentation/Enemies/%s.%s"), *Name, *Name);
+}
+
+UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
+{
+	if (!InSpec.Visuals.IsNull())
+	{
+		return InSpec.Visuals.LoadSynchronous();
+	}
+	// Convention asset, looked up once per type (a miss is remembered so spawns stay cheap).
+	static TMap<FName, TWeakObjectPtr<UTDEnemyVisuals>> Found;
+	static TSet<FName> Missing;
+	if (InSpec.Id.IsNone() || Missing.Contains(InSpec.Id))
+	{
+		return nullptr;
+	}
+	if (const TWeakObjectPtr<UTDEnemyVisuals>* Cached = Found.Find(InSpec.Id))
+	{
+		if (Cached->IsValid()) { return Cached->Get(); }
+	}
+	UTDEnemyVisuals* Asset = LoadObject<UTDEnemyVisuals>(nullptr, *VisualsAssetPath(InSpec.Id), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	if (Asset) { Found.Add(InSpec.Id, Asset); }
+	else { Missing.Add(InSpec.Id); }
+	return Asset;
+}
+
+void ATDEnemyShip::StartLoopCues()
+{
+	if (Visuals && !EngineTrailFX)
+	{
+		EngineTrailFX = UTDStatics::PlayCueAttached(Visuals->EngineTrail, GetHullMesh());
+	}
+}
+
+void ATDEnemyShip::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float /*ShieldDamage*/, float HullDamage)
+{
+	if (!Visuals || bDying || HullDamage <= 0.f)
+	{
+		return;
+	}
+	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (Now - LastHullHitCueTime > 0.08)
+	{
+		LastHullHitCueTime = Now;
+		UTDStatics::PlayCue(this, Visuals->HullHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
+	}
+	if (!DamagedSmokeFX && InHealth && InHealth->GetHull01() < 0.5f)
+	{
+		DamagedSmokeFX = UTDStatics::PlayCueAttached(Visuals->DamagedSmoke, GetHullMesh());
+	}
+}
+
 void ATDEnemyShip::BeginPlay()
 {
 	Super::BeginPlay();
+	AimRng.Initialize(static_cast<int32>(GetUniqueID()));	// every pilot misses differently
 	EnsureWeapons();
+	bVisualsExplicit = Visuals != nullptr && !bSpecApplied;	// set on a BP child / placed instance
+	if (bSpecApplied) { StartLoopCues(); }
+	if (UTDHealthComponent* H = GetHealth())
+	{
+		H->OnDamaged.AddUniqueDynamic(this, &ATDEnemyShip::HandleDamaged);
+	}
 
 	if (UTDHealthComponent* H = GetHealth())
 	{
@@ -160,6 +230,7 @@ void ATDEnemyShip::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		H->DamageFilter.Unbind();
 		H->OnDeath.RemoveDynamic(this, &ATDEnemyShip::HandleHealthDeath);
+		H->OnDamaged.RemoveDynamic(this, &ATDEnemyShip::HandleDamaged);
 	}
 	DestroyCarrierParts();
 	Super::EndPlay(EndPlayReason);
@@ -199,13 +270,9 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 	{
 		HullPivot->SetRelativeScale3D(FVector(FMath::Max(0.2f, Spec.Radius / 220.f)));
 	}
-	for (UStaticMeshComponent* Part : { Hull, PlaceholderWings.Get() })
-	{
-		if (UMaterialInstanceDynamic* MID = Part ? Part->CreateDynamicMaterialInstance(0) : nullptr)
-		{
-			MID->SetVectorParameterValue(TEXT("Color"), Spec.PlaceholderColor);
-		}
-	}
+	// Red-orange hull with glowing white "eyes" (Core helper), per the art direction.
+	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, PlaceholderEmissiveBoost);
+	UTDStatics::TintPlaceholder(PlaceholderWings, UTDStatics::TeamColor(ETDTeam::Enemy) * 0.35f, 0.f);
 }
 
 // ---------------------------------------------------------------------------------------- attacks
@@ -264,7 +331,16 @@ bool ATDEnemyShip::TryStartAttack(ETDEnemyAttack Attack, AActor* Target)
 		OnTelegraphStarted.Broadcast(this, Attack, TelegraphDuration);
 		if (Visuals)
 		{
-			UTDStatics::PlayCueAttached(Visuals->Telegraph, GetHullMesh());
+			const FTDFXCue* Specific = nullptr;
+			switch (Attack)
+			{
+			case ETDEnemyAttack::Missile:      Specific = &Visuals->TelegraphMissile; break;
+			case ETDEnemyAttack::HeavyBolt:    Specific = &Visuals->TelegraphHeavyBolt; break;
+			case ETDEnemyAttack::MissileSalvo: Specific = &Visuals->TelegraphSalvo; break;
+			case ETDEnemyAttack::MineTrail:    Specific = &Visuals->TelegraphMineTrail; break;
+			default: break;
+			}
+			UTDStatics::PlayCueAttached((Specific && !Specific->IsEmpty()) ? *Specific : Visuals->Telegraph, GetHullMesh());
 		}
 	}
 	else
@@ -365,10 +441,12 @@ void ATDEnemyShip::FireSecondaryShot(FName WeaponId, AActor* Target)
 	const FVector AimDir = Target ? (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal() : Forward;
 	Weapons->SetAimDirection(AimDir.IsNearlyZero() ? Forward : AimDir);
 	Weapons->SetAimTarget(Target);
-	Weapons->FireOnce(ETDWeaponSlot::Secondary);
+	const bool bFired = Weapons->FireOnce(ETDWeaponSlot::Secondary);
 	Weapons->SetAimTarget(nullptr);
-
-	// Counted per attempt, so tests don't depend on weapon internals.
+	if (!bFired)
+	{
+		return;	// only shots that really left the barrel count
+	}
 	for (const FTDEnemyAttackSpec* A : { &Spec.Heavy, &Spec.Heavy2 })
 	{
 		if (A->WeaponId == WeaponId)
@@ -542,6 +620,7 @@ void ATDEnemyShip::BreakFrontalShield()
 	}
 	FrontalShieldHP = 0.f;
 	FrontalShieldRecoverRemaining = Spec.FrontalShieldRecoverSeconds;
+	if (Visuals) { UTDStatics::PlayCueAttached(Visuals->FrontalShieldBreak, GetHullMesh()); }
 	OnFrontalShieldBroken.Broadcast(this);
 }
 
@@ -792,6 +871,7 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 		Sphere->SetCollisionResponseToChannel(TDCollision::Ship, ECR_Ignore);
 	}
 	ClearSpeedOverride();
+	if (EngineTrailFX) { EngineTrailFX->Deactivate(); EngineTrailFX = nullptr; }
 	if (Visuals)
 	{
 		UTDStatics::PlayCueAttached(Visuals->DeathTumble, GetHullMesh());
@@ -799,13 +879,7 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 
 	OnEnemyDied.Broadcast(this, Killer);
 
-	if (Spec.Role == ETDEnemyRole::Carrier && Spec.KillImportance > 0.f)
-	{
-		if (UTDEventBus* Bus = UTDEventBus::Get(this))
-		{
-			Bus->BroadcastHighlightMoment(ETDHighlightKind::CarrierKill, this, Spec.KillImportance);
-		}
-	}
+	// CarrierKill money shot: UTDDirectorSubsystem picks it up from the carrier tag.
 
 	if (DeathTimer <= 0.f)
 	{
@@ -874,7 +948,11 @@ void ATDEnemyShip::TickTimers(float DeltaSeconds)
 		if (FrontalShieldDownRemaining <= 0.f)
 		{
 			FrontalShieldDownRemaining = 0.f;
-			if (IsFrontalShieldUp()) { OnFrontalShieldRestored.Broadcast(this); }
+			if (IsFrontalShieldUp())
+			{
+				if (Visuals) { UTDStatics::PlayCueAttached(Visuals->FrontalShieldRestore, GetHullMesh()); }
+				OnFrontalShieldRestored.Broadcast(this);
+			}
 		}
 	}
 	if (FrontalShieldRecoverRemaining > 0.f)
@@ -884,7 +962,11 @@ void ATDEnemyShip::TickTimers(float DeltaSeconds)
 		{
 			FrontalShieldRecoverRemaining = 0.f;
 			FrontalShieldHP = Spec.FrontalShield;
-			if (IsFrontalShieldUp()) { OnFrontalShieldRestored.Broadcast(this); }
+			if (IsFrontalShieldUp())
+			{
+				if (Visuals) { UTDStatics::PlayCueAttached(Visuals->FrontalShieldRestore, GetHullMesh()); }
+				OnFrontalShieldRestored.Broadcast(this);
+			}
 		}
 	}
 }

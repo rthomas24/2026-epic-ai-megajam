@@ -110,7 +110,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	float GetAttackCooldownRemaining(ETDEnemyAttack Attack) const;
 
-	/** How many shots each attack has actually fired (tests, stats). */
+	/** How many shots each attack has actually fired (UTDWeaponComponent::FireOnce succeeded). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	int32 GetFireCount(ETDEnemyAttack Attack) const;
 
@@ -241,7 +241,20 @@ public:
 
 	// --- Presentation -------------------------------------------------------------------------
 
-	/** Nick's presentation data asset (features.md 3.5). Empty = placeholder shapes only. */
+	/** Convention path for a type's visuals asset (Nick fills these; no code or BP edits needed). */
+	static FString VisualsAssetPath(FName EnemyId);
+
+	/** The visuals asset for a type: spec soft pointer, else the convention asset, else null. Cached. */
+	static UTDEnemyVisuals* ResolveVisuals(const FTDEnemySpec& InSpec);
+
+	/** Placeholder glow ("white eyes") when no visuals asset supplies a mesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float PlaceholderEmissiveBoost = 8.f;
+
+	/**
+	 * Nick's presentation data asset (features.md 3.5). Set explicitly to override; otherwise filled
+	 * from ResolveVisuals in InitFromSpec. Empty = placeholder shapes only.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDEnemyVisuals> Visuals;
 
@@ -262,6 +275,20 @@ protected:
 
 	UFUNCTION()
 	void HandleLaunchedDied(ATDEnemyShip* Ship, AActor* Killer);
+
+	UFUNCTION()
+	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
+
+	void StartLoopCues();
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> EngineTrailFX;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> DamagedSmokeFX;
+
+	bool bVisualsExplicit = false;
+	double LastHullHitCueTime = -1.0;
 
 	void BeginDeath(AActor* Killer);
 	void Explode();
