@@ -109,7 +109,6 @@ private:
 
 	void UpdateHoming(float DeltaSeconds);
 	void AcquireHomingTarget();
-	bool CheckProximityFuse() const;
 	bool ShootDownNearbyMissiles(float Radius);
 	/** Sweep from Start to End; returns true and fills OutHit on the first valid hit (skipping friendlies). */
 	bool SweepPath(const FVector& Start, const FVector& End, FHitResult& OutHit) const;

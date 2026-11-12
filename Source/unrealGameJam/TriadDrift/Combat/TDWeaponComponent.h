@@ -10,6 +10,7 @@
 
 class ATDProjectile;
 class UTDWeaponFX;
+class UNiagaraComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponFired, ETDWeaponSlot, Slot, FName, WeaponId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponOverheat, ETDWeaponSlot, Slot, bool, bOverheated);
@@ -53,6 +54,8 @@ struct UNREALGAMEJAM_API FTDWeaponSlotState
 	int32 SalvoRemaining = 0;
 	float SalvoTimer = 0.f;
 	bool bChargeReady = false;
+	/** One-shot multiplier captured when this shot/salvo began (Cloak's first shot). */
+	float ShotMultiplier = 1.f;
 };
 
 /**
@@ -217,9 +220,16 @@ private:
 
 	TMap<FName, float> DamageMultipliers;
 	float NextShotMultiplier = 1.f;
-	/** NextShotMultiplier stays applied for the rest of the current salvo. */
-	float SalvoShotMultiplier = 1.f;
 	TSet<FName> BlockSources;
+
+	void StopChargeFX(ETDWeaponSlot Slot);
+	UTDWeaponFX* GetFX(ETDWeaponSlot Slot) const { return Slot == ETDWeaponSlot::Primary ? PrimaryFX.Get() : SecondaryFX.Get(); }
+
+	UPROPERTY(Transient)
+	TObjectPtr<UNiagaraComponent> PrimaryChargeFX;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UNiagaraComponent> SecondaryChargeFX;
 
 	TArray<TWeakObjectPtr<ATDProjectile>> LastFired;
 	TArray<FTransform> MuzzleScratch;

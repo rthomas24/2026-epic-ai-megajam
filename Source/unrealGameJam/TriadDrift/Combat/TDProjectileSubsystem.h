@@ -1,4 +1,4 @@
-// Triad Drift - Combat (Teammate 2). Projectile pool + live-projectile index + kill hit-stop.
+// Triad Drift - Combat (Teammate 2). Projectile pool + live-projectile index.
 
 #pragma once
 
@@ -12,10 +12,10 @@ class ATDProjectile;
 /**
  * Owns the projectile pool and the list of live projectiles, so flak, point defense, the shield dome,
  * portals and incoming-missile warnings can query them without GetAllActorsOfClass.
- * Also runs the 40 ms kill hit-stop.
+ * (Kill hit-stop lives in Core: UTDFeelSubsystem.)
  */
 UCLASS()
-class UNREALGAMEJAM_API UTDProjectileSubsystem : public UTickableWorldSubsystem
+class UNREALGAMEJAM_API UTDProjectileSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -41,44 +41,19 @@ public:
 	int32 GetLiveCount() const { return Live.Num(); }
 	int32 GetPooledCount() const { return Pool.Num(); }
 
-	/** Freeze the game for Seconds of real time (kill confirm). Ignored while another time dilation is active. */
-	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Combat")
-	void RequestHitStop(float Seconds = 0.04f);
-
-	UFUNCTION(BlueprintPure, Category = "TriadDrift|Combat")
-	bool IsHitStopActive() const { return bHitStopActive; }
-
-	/** Count of hit-stops requested (tests). */
-	int32 GetHitStopRequests() const { return HitStopRequests; }
-
-	/** Global switch (tests and accessibility). */
-	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat")
-	bool bHitStopEnabled = true;
-
-	/** Time dilation used while hit-stopped (not 0: keeps tick deltas sane). */
-	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat")
-	float HitStopDilation = 0.02f;
-
 	/** Pool size cap; beyond it, released projectiles are destroyed. */
 	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat")
 	int32 MaxPooled = 256;
 
-	// UTickableWorldSubsystem
-	virtual void Tick(float DeltaTime) override;
-	virtual TStatId GetStatId() const override;
+	// UWorldSubsystem
 	virtual void Deinitialize() override;
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 
 private:
-	void EndHitStop();
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDProjectile>> Pool;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDProjectile>> Live;
-
-	bool bHitStopActive = false;
-	double HitStopEndRealTime = 0.0;
-	int32 HitStopRequests = 0;
 };

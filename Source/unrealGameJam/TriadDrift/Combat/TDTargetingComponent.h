@@ -210,6 +210,8 @@ private:
 	void UpdateMissileWarning();
 	void UpdateMarkers();
 	void SetCurrentTarget(AActor* NewTarget);
+	void PruneLocks();
+	void Refresh();
 	bool IsValidTarget(const AActor* Actor) const;
 	void GetView(FVector& OutLocation, FRotator& OutRotation) const;
 	float GetLeadSpeed() const;
@@ -219,7 +221,9 @@ private:
 	bool bManualTarget = false;
 
 	TArray<AActor*> Hostiles;          // refreshed per update, raw pointers valid for that update only
+	/** Mirror of LockedWeak, rebuilt every tick after pruning dead targets (safe to hand out by reference). */
 	TArray<AActor*> LockedTargets;
+	TArray<TWeakObjectPtr<AActor>> LockedWeak;
 	TArray<FTDTargetMarker> Markers;
 	TArray<ATDProjectile*> MissileScratch;
 
