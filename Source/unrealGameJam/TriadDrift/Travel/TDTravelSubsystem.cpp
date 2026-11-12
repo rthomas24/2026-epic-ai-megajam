@@ -12,12 +12,12 @@ UTDTravelSubsystem* UTDTravelSubsystem::Get(const UObject* WorldContextObject)
 
 void UTDTravelSubsystem::RegisterGravityWell(FName Id, FVector Location, float Radius, AActor* Owner)
 {
-	FTDGravityWell Well;
+	FTDTravelGravityWell Well;
 	Well.Id = Id;
 	Well.Location = Location;
 	Well.Radius = FMath::Max(0.f, Radius);
 	Well.Owner = Owner;
-	for (FTDGravityWell& Existing : Wells)
+	for (FTDTravelGravityWell& Existing : Wells)
 	{
 		if (Id != NAME_None && Existing.Id == Id)
 		{
@@ -30,14 +30,14 @@ void UTDTravelSubsystem::RegisterGravityWell(FName Id, FVector Location, float R
 
 void UTDTravelSubsystem::UnregisterGravityWell(FName Id)
 {
-	Wells.RemoveAll([Id](const FTDGravityWell& W) { return W.Id == Id; });
+	Wells.RemoveAll([Id](const FTDTravelGravityWell& W) { return W.Id == Id; });
 }
 
-bool UTDTravelSubsystem::FindWellContaining(const FVector& Location, FTDGravityWell& OutWell) const
+bool UTDTravelSubsystem::FindWellContaining(const FVector& Location, FTDTravelGravityWell& OutWell) const
 {
 	float Best = TNumericLimits<float>::Max();
 	bool bFound = false;
-	for (const FTDGravityWell& Well : Wells)
+	for (const FTDTravelGravityWell& Well : Wells)
 	{
 		if (Well.Owner.IsStale())
 		{
@@ -54,11 +54,11 @@ bool UTDTravelSubsystem::FindWellContaining(const FVector& Location, FTDGravityW
 	return bFound;
 }
 
-bool UTDTravelSubsystem::FindWellOnSegment(const FVector& From, const FVector& To, FTDGravityWell& OutWell) const
+bool UTDTravelSubsystem::FindWellOnSegment(const FVector& From, const FVector& To, FTDTravelGravityWell& OutWell) const
 {
 	float BestAlong = TNumericLimits<float>::Max();
 	bool bFound = false;
-	for (const FTDGravityWell& Well : Wells)
+	for (const FTDTravelGravityWell& Well : Wells)
 	{
 		if (Well.Owner.IsStale())
 		{

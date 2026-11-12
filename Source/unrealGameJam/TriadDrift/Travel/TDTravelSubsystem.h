@@ -12,7 +12,7 @@ class ATDLandingPad;
 
 /** A point that pulls ships out of hyperdrive: planet markers, the Dominion, portal gates... */
 USTRUCT(BlueprintType)
-struct UNREALGAMEJAM_API FTDGravityWell
+struct UNREALGAMEJAM_API FTDTravelGravityWell
 {
 	GENERATED_BODY()
 
@@ -57,12 +57,12 @@ public:
 	void UnregisterGravityWell(FName Id);
 
 	/** The nearest well whose radius contains Location. */
-	bool FindWellContaining(const FVector& Location, FTDGravityWell& OutWell) const;
+	bool FindWellContaining(const FVector& Location, FTDTravelGravityWell& OutWell) const;
 
 	/** The first well the segment From->To passes within radius of (for fast jumps that could skip a well in one frame). */
-	bool FindWellOnSegment(const FVector& From, const FVector& To, FTDGravityWell& OutWell) const;
+	bool FindWellOnSegment(const FVector& From, const FVector& To, FTDTravelGravityWell& OutWell) const;
 
-	const TArray<FTDGravityWell>& GetGravityWells() const { return Wells; }
+	const TArray<FTDTravelGravityWell>& GetGravityWells() const { return Wells; }
 
 	// ---- Play space ----------------------------------------------------------------------------
 	/** The galaxy's soft spherical play space (T4's layout sets it). Every spacecraft picks it up automatically. */
@@ -101,7 +101,7 @@ public:
 
 private:
 	UPROPERTY()
-	TArray<FTDGravityWell> Wells;
+	TArray<FTDTravelGravityWell> Wells;
 
 	TArray<TWeakObjectPtr<ATDLandingPad>> Pads;
 

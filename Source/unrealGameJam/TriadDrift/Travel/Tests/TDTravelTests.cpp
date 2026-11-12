@@ -173,12 +173,12 @@ bool FTDTravelHyperWell::RunTest(const FString& Parameters)
 
 	// A well that follows an actor (marker).
 	ATDGravityWellMarker* Marker = W.Spawn<ATDGravityWellMarker>(FVector(0.f, 400000.f, 0.f));
-	TestTrue(TEXT("marker registered itself"), Travel->GetGravityWells().ContainsByPredicate([Marker](const FTDGravityWell& Well) { return Well.Owner.Get() == Marker; }));
+	TestTrue(TEXT("marker registered itself"), Travel->GetGravityWells().ContainsByPredicate([Marker](const FTDTravelGravityWell& Well) { return Well.Owner.Get() == Marker; }));
 	Marker->SetWellEnabled(false);
-	TestFalse(TEXT("disabled marker unregistered"), Travel->GetGravityWells().ContainsByPredicate([Marker](const FTDGravityWell& Well) { return Well.Owner.Get() == Marker; }));
+	TestFalse(TEXT("disabled marker unregistered"), Travel->GetGravityWells().ContainsByPredicate([Marker](const FTDTravelGravityWell& Well) { return Well.Owner.Get() == Marker; }));
 
 	// The segment check catches a well the jump would skip in a single frame.
-	FTDGravityWell Found;
+	FTDTravelGravityWell Found;
 	TestTrue(TEXT("segment through a well"), Travel->FindWellOnSegment(FVector(500000.f, 0.f, 0.f), FVector(700000.f, 0.f, 0.f), Found));
 	TestFalse(TEXT("segment far from any well"), Travel->FindWellOnSegment(FVector(0.f, -100000.f, 0.f), FVector(10000.f, -100000.f, 0.f), Found));
 	return true;

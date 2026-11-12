@@ -78,7 +78,7 @@ ETDHyperdriveBlock UTDHyperdriveComponent::GetBlockReason() const
 	}
 	if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
-		FTDGravityWell Well;
+		FTDTravelGravityWell Well;
 		if (Travel->FindWellContaining(Craft->GetActorLocation(), Well))
 		{
 			return ETDHyperdriveBlock::NearGravityWell;
@@ -300,7 +300,7 @@ void UTDHyperdriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		const FVector Loc = Craft->GetActorLocation();
 		// Check the path flown this frame plus the next frame, so 80,000 cm/s can't skip a well.
 		const FVector Ahead = Loc + Craft->GetVelocity() * DeltaTime;
-		FTDGravityWell Well;
+		FTDTravelGravityWell Well;
 		const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
 		if (Travel && Travel->FindWellOnSegment(LastLocation, Ahead, Well))
 		{
