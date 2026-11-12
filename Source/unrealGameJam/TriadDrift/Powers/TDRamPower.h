@@ -30,6 +30,9 @@ public:
 	virtual float GetWindup01() const override;
 	virtual bool CanActivate() const override;
 
+	/** Owner key of the ram's speed override on UTDShipMovementComponent. */
+	static const FName RamOverrideKey;
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ram")
 	bool IsDashing() const { return IsPowerActive() && bDashStarted; }
 

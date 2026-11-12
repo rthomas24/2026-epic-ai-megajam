@@ -7,52 +7,30 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
+#include "UObject/ConstructorHelpers.h"
 
 const FName FTDPowerPresentation::PlaceholderTag(TEXT("TDPowerPlaceholder"));
 
 namespace
 {
-	/** Path -> loaded asset, or a remembered miss. Assets are long-lived; weak pointers survive editor reloads. */
+	/** Core's single presentation loader: quiet on missing assets, remembers misses, works in packaged builds. */
 	template <typename T>
 	T* TDPresLoadCached(const FString& Name)
 	{
-		static TMap<FString, TWeakObjectPtr<UObject>> Found;
-		static TSet<FString> Missing;
-		if (Missing.Contains(Name))
-		{
-			return nullptr;
-		}
-		if (const TWeakObjectPtr<UObject>* Hit = Found.Find(Name))
-		{
-			if (UObject* Obj = Hit->Get())
-			{
-				return Cast<T>(Obj);
-			}
-		}
-		const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Presentation/%s.%s"), *Name, *Name);
-		T* Asset = LoadObject<T>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
-		if (Asset)
-		{
-			Found.Add(Name, Asset);
-		}
-		else
-		{
-			Missing.Add(Name);
-		}
-		return Asset;
+		return UTDStatics::LoadPresentation<T>(Name);
 	}
 
 	UStaticMesh* TDPresShapeMesh(FTDPowerPresentation::EShape Shape)
 	{
-		const TCHAR* Path = TEXT("/Engine/BasicShapes/Sphere.Sphere");
+		// From the flash actor's CDO: hard references, so the cook includes them (path-only loads don't ship).
+		const ATDPlaceholderFlash* CDO = GetDefault<ATDPlaceholderFlash>();
 		switch (Shape)
 		{
-		case FTDPowerPresentation::EShape::Cylinder: Path = TEXT("/Engine/BasicShapes/Cylinder.Cylinder"); break;
-		case FTDPowerPresentation::EShape::Cone: Path = TEXT("/Engine/BasicShapes/Cone.Cone"); break;
-		case FTDPowerPresentation::EShape::Cube: Path = TEXT("/Engine/BasicShapes/Cube.Cube"); break;
-		default: break;
+		case FTDPowerPresentation::EShape::Cylinder: return CDO->CylinderMesh;
+		case FTDPowerPresentation::EShape::Cone: return CDO->ConeMesh;
+		case FTDPowerPresentation::EShape::Cube: return CDO->CubeMesh;
+		default: return CDO->SphereMesh;
 		}
-		return LoadObject<UStaticMesh>(nullptr, Path);
 	}
 
 	template <typename TComp>
@@ -101,6 +79,44 @@ UTDWeaponFX* FTDPowerPresentation::LoadWeaponFX(FName WeaponId)
 	return WeaponId.IsNone() ? nullptr : TDPresLoadCached<UTDWeaponFX>(FString::Printf(TEXT("DA_%s_FX"), *WeaponId.ToString()));
 }
 
+namespace
+{
+	TMap<FName, int32>& TDPresCueRequests()
+	{
+		static TMap<FName, int32> Requests;
+		return Requests;
+	}
+}
+
+UNiagaraComponent* FTDPowerPresentation::RequestCue(const UObject* WorldContext, FName Moment, const FTDFXCue& Cue, const FVector& Location,
+	const FRotator& Rotation)
+{
+	++TDPresCueRequests().FindOrAdd(Moment);
+	return UTDStatics::PlayCue(WorldContext, Cue, Location, Rotation);
+}
+
+UNiagaraComponent* FTDPowerPresentation::RequestCueAttached(FName Moment, const FTDFXCue& Cue, USceneComponent* AttachTo)
+{
+	++TDPresCueRequests().FindOrAdd(Moment);
+	return UTDStatics::PlayCueAttached(Cue, AttachTo);
+}
+
+int32 FTDPowerPresentation::GetCueRequests(FName Moment)
+{
+	const int32* N = TDPresCueRequests().Find(Moment);
+	return N ? *N : 0;
+}
+
+void FTDPowerPresentation::ResetCueRequests()
+{
+	TDPresCueRequests().Reset();
+}
+
+UTDWeaponFX* FTDPowerPresentation::LoadMissileSwarmFX()
+{
+	return TDPresLoadCached<UTDWeaponFX>(TEXT("DA_MissileSwarm_FX"));
+}
+
 bool FTDPowerPresentation::HasArt(const FTDFXCue& Cue)
 {
 	return !Cue.VFX.IsNull();
@@ -121,32 +137,59 @@ UStaticMeshComponent* FTDPowerPresentation::AddShape(AActor* Owner, USceneCompon
 	return Mesh;
 }
 
-UInstancedStaticMeshComponent* FTDPowerPresentation::AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,
+USceneComponent* FTDPowerPresentation::AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,
 	int32 SegmentsPerRing, float Thickness, FLinearColor Color, float EmissiveBoost)
 {
 	if (!Owner || Radius <= 0.f || SegmentsPerRing < 3)
 	{
 		return nullptr;
 	}
-	UInstancedStaticMeshComponent* ISM = TDPresNewComponent<UInstancedStaticMeshComponent>(Owner, Parent);
-	ISM->SetStaticMesh(TDPresShapeMesh(EShape::Cube));
-	UTDStatics::TintPlaceholder(ISM, Color, EmissiveBoost);
+	USceneComponent* Holder = NewObject<USceneComponent>(Owner);
+	Holder->ComponentTags.Add(PlaceholderTag);
+	if (USceneComponent* AttachTo = Parent ? Parent : Owner->GetRootComponent())
+	{
+		Holder->SetupAttachment(AttachTo);
+	}
+	Holder->RegisterComponent();
 
+	const int32 Segments = FMath::Clamp(SegmentsPerRing, 3, 24);
 	// Ring planes: horizontal, then the two vertical great circles.
 	const FQuat Planes[3] = { FQuat::Identity, FQuat(FVector::ForwardVector, HALF_PI), FQuat(FVector::RightVector, HALF_PI) };
-	const float SegmentLength = 2.f * PI * Radius / SegmentsPerRing * 1.05f;
+	const float SegmentLength = 2.f * PI * Radius / Segments * 1.05f;
 	for (int32 R = 0; R < FMath::Clamp(Rings, 1, 3); ++R)
 	{
-		for (int32 i = 0; i < SegmentsPerRing; ++i)
+		for (int32 i = 0; i < Segments; ++i)
 		{
-			const float A = 2.f * PI * (i + 0.5f) / SegmentsPerRing;
+			const float A = 2.f * PI * (i + 0.5f) / Segments;
 			const FVector Local(FMath::Cos(A) * Radius, FMath::Sin(A) * Radius, 0.f);
 			const FVector Tangent(-FMath::Sin(A), FMath::Cos(A), 0.f);
 			const FQuat Rot = Planes[R] * FRotationMatrix::MakeFromX(Tangent).ToQuat();
-			ISM->AddInstance(FTransform(Rot, Planes[R].RotateVector(Local), FVector(SegmentLength / 100.f, Thickness / 100.f, Thickness / 100.f)));
+			UStaticMeshComponent* Seg = TDPresNewComponent<UStaticMeshComponent>(Owner, Holder);
+			Seg->ComponentTags.Remove(PlaceholderTag); // the holder is the placeholder; segments are its parts
+			Seg->SetStaticMesh(TDPresShapeMesh(EShape::Cube));
+			Seg->SetRelativeTransform(FTransform(Rot, Planes[R].RotateVector(Local), FVector(SegmentLength / 100.f, Thickness / 100.f, Thickness / 100.f)));
+			UTDStatics::TintPlaceholder(Seg, Color, EmissiveBoost);
 		}
 	}
-	return ISM;
+	return Holder;
+}
+
+void FTDPowerPresentation::DestroyPlaceholder(USceneComponent* Placeholder)
+{
+	if (!IsValid(Placeholder))
+	{
+		return;
+	}
+	TArray<USceneComponent*> Children;
+	Placeholder->GetChildrenComponents(true, Children);
+	for (USceneComponent* C : Children)
+	{
+		if (IsValid(C))
+		{
+			C->DestroyComponent();
+		}
+	}
+	Placeholder->DestroyComponent();
 }
 
 int32 FTDPowerPresentation::CountPlaceholders(const AActor* Owner)
@@ -156,10 +199,10 @@ int32 FTDPowerPresentation::CountPlaceholders(const AActor* Owner)
 		return 0;
 	}
 	int32 N = 0;
-	TInlineComponentArray<UPrimitiveComponent*> Prims(Owner);
-	for (const UPrimitiveComponent* P : Prims)
+	TInlineComponentArray<USceneComponent*> Comps(Owner);
+	for (const USceneComponent* C : Comps)
 	{
-		N += (P && P->ComponentHasTag(PlaceholderTag) && P->IsVisible()) ? 1 : 0;
+		N += (IsValid(C) && C->ComponentHasTag(PlaceholderTag) && C->IsVisible()) ? 1 : 0;
 	}
 	return N;
 }
@@ -168,6 +211,14 @@ int32 FTDPowerPresentation::CountPlaceholders(const AActor* Owner)
 
 ATDPlaceholderFlash::ATDPlaceholderFlash()
 {
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cone(TEXT("/Engine/BasicShapes/Cone.Cone"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	SphereMesh = Sphere.Object;
+	CylinderMesh = Cylinder.Object;
+	ConeMesh = Cone.Object;
+	CubeMesh = Cube.Object;
 	PrimaryActorTick.bCanEverTick = true;
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
 	SetCanBeDamaged(false);

@@ -9,6 +9,7 @@
 #include "TDShieldDome.generated.h"
 
 class UTDAbilityFX;
+class ATDProjectile;
 class UNiagaraComponent;
 
 /**
@@ -51,9 +52,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dome")
 	bool bDestroyShots = true;
 
-	/** Max speed the dome drifts after its owner (it "follows Bastion slowly"). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dome", meta = (Units = "CentimetersPerSecond"))
-	float FollowSpeed = 2500.f;
+	/**
+	 * Follows its owner with an exponential lag (1/s): it trails a cruising Bastion (4800 cm/s) by ~1200 cm and a
+	 * boosting one by ~2100 cm, so Bastion never leaves its own 3000 cm dome. Higher = tighter.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dome")
+	float FollowLagRate = 4.f;
+
+	/** Shield shell hit by a hostile projectile at ShellPoint: destroy it there, or deflect a homing missile. */
+	void ReceiveProjectile(ATDProjectile* Projectile, const FVector& ShellPoint);
+
+	/** This dome stops (or reflects) Projectile: hostile, and a shot it destroys or a missile it deflects. */
+	bool Intercepts(const ATDProjectile* Projectile) const;
 
 	/** Extra shield regeneration inside, as a multiple of the ship's own rate (2x total = 1 extra). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dome")
@@ -79,6 +89,8 @@ private:
 	TObjectPtr<UTDAbilityFX> FX;
 
 	bool bPlaceholderBuilt = false;
+	/** Reused every tick (no per-frame allocation). */
+	TArray<AActor*> FriendlyScratch;
 	TWeakObjectPtr<AActor> FollowTarget;
 	ETDTeam Team = ETDTeam::Player;
 	float Radius = 3000.f;

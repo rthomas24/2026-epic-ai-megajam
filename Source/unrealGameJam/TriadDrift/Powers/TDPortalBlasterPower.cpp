@@ -92,8 +92,8 @@ void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransi
 	BroadcastState(ETDPortalState::Opening);
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->PortalOpen, GetActorLocation(), GetActorRotation());
-		IdleFX = UTDStatics::PlayCueAttached(FX->PortalIdle, GetRootComponent());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalOpen"), FX->PortalOpen, GetActorLocation(), GetActorRotation());
+		IdleFX = FTDPowerPresentation::RequestCueAttached(TEXT("Travel.PortalIdle"), FX->PortalIdle, GetRootComponent());
 	}
 	if (!FX || !FTDPowerPresentation::HasArt(FX->PortalIdle))
 	{
@@ -102,7 +102,7 @@ void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransi
 		const float D = Radius * 2.f / 100.f;
 		PlaceholderDisc = FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Cylinder, FVector(D, D, 0.04f),
 			FRotator(90.f, 0.f, 0.f), Magenta * 0.5f, 2.f);
-		if (UInstancedStaticMeshComponent* Rim = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 32, 50.f, Magenta, 8.f))
+		if (USceneComponent* Rim = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 24, 60.f, Magenta, 8.f))
 		{
 			Rim->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
 		}
@@ -128,7 +128,7 @@ void ATDPortal::Close()
 	BroadcastState(ETDPortalState::Closing);
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->PortalClose, GetActorLocation(), GetActorRotation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalClose"), FX->PortalClose, GetActorLocation(), GetActorRotation());
 	}
 	if (IdleFX)
 	{
@@ -298,8 +298,8 @@ bool ATDPortal::TryCross(AActor* Traveller, const FVector& Prev, const FVector& 
 	BroadcastState(ETDPortalState::Transit);
 	if (FX)
 	{
-		UTDStatics::PlayCue(this, FX->PortalTransit, Hit, GetActorRotation());
-		UTDStatics::PlayCue(this, FX->PortalTransit, Traveller->GetActorLocation(), Exit->GetActorRotation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalTransit"), FX->PortalTransit, Hit, GetActorRotation());
+		FTDPowerPresentation::RequestCue(this, TEXT("Travel.PortalTransit"), FX->PortalTransit, Traveller->GetActorLocation(), Exit->GetActorRotation());
 	}
 	return true;
 }
@@ -334,7 +334,11 @@ void UTDPortalBlasterPower::HandleInputPressed()
 {
 	if (IsPowerActive() && !IsUsingBlink())
 	{
-		PlacePortal();
+		if (PlacePortal())
+		{
+			// Firing the blaster again is using the power: Cloak and other listeners see it.
+			OnPowerActivated.Broadcast(this);
+		}
 		return;
 	}
 	TryActivate();
@@ -377,6 +381,7 @@ bool UTDPortalBlasterPower::OnActivate()
 		return DoBlink();
 	}
 	bEndsManually = true;
+	bWindowRestarted = false;
 	Portals.Reset();
 	return PlacePortal() != nullptr;
 }
@@ -412,7 +417,7 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		++RefusedPlacements;
 		if (TravelFX)
 		{
-			UTDStatics::PlayCue(this, TravelFX->PortalClose, Where, Normal.Rotation()); // "can't place" until a dedicated cue exists
+			FTDPowerPresentation::RequestCue(this, TEXT("Travel.CantPlace"), TravelFX->PortalClose, Where, Normal.Rotation()); // "can't place" until a dedicated cue exists
 		}
 		return nullptr;
 	}
@@ -448,6 +453,12 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		{
 			A->SetPartner(B);
 			B->SetPartner(A);
+		}
+		// The pair gets its full window from the moment it is usable (once per activation; recycling doesn't extend it).
+		if (!bWindowRestarted)
+		{
+			bWindowRestarted = true;
+			ActiveElapsed = 0.f;
 		}
 	}
 	return Portal;
@@ -500,7 +511,7 @@ bool UTDPortalBlasterPower::DoBlink()
 		++RefusedPlacements;
 		if (TravelFX)
 		{
-			UTDStatics::PlayCue(this, TravelFX->PortalClose, Where, Facing.Rotation());
+			FTDPowerPresentation::RequestCue(this, TEXT("Travel.CantPlace"), TravelFX->PortalClose, Where, Facing.Rotation());
 		}
 		return false;
 	}
@@ -525,7 +536,7 @@ bool UTDPortalBlasterPower::DoBlink()
 	{
 		Field->bProtectSquad = false;
 		Field->bDestroyShots = false;
-		Field->FollowSpeed = 100000.f; // rides with Rift
+		Field->FollowLagRate = 60.f; // rides with Rift
 	}
 	return true;
 }
