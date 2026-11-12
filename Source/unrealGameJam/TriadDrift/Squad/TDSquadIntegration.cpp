@@ -13,6 +13,7 @@
 
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "Camera/CameraComponent.h"
 
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -478,5 +479,31 @@ namespace TDSquad
 		{
 			Bus->OnSpacecraftTeleported.RemoveDynamic(Wingman, &ATDWingmanAIController::HandleSpacecraftTeleported);
 		}
+	}
+
+	void BindHyperdriveState(ATDWingmanAIController* Wingman)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Wingman))
+		{
+			Bus->OnHyperdriveState.AddUniqueDynamic(Wingman, &ATDWingmanAIController::HandleHyperdriveState);
+		}
+	}
+
+	void UnbindHyperdriveState(ATDWingmanAIController* Wingman)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Wingman))
+		{
+			Bus->OnHyperdriveState.RemoveDynamic(Wingman, &ATDWingmanAIController::HandleHyperdriveState);
+		}
+	}
+
+	FTransform GetChaseCameraTransform(const ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return FTransform::Identity;
+		}
+		const UCameraComponent* Cam = Ship->GetChaseCamera();
+		return Cam ? Cam->GetComponentTransform() : Ship->GetActorTransform();
 	}
 }

@@ -159,6 +159,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
 	float RegroupCommitSeconds = 2.f;
 
+	/** Passive: no input, no triggers, no targets (landing, cinematics). Leaving passive regroups. */
+	void SetPassive(bool bInPassive);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
+	bool IsPassive() const { return bPassive; }
+
+	/** True while forming up for the player's hyperdrive jump (Spooling .. DropOut). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
+	bool IsFormingUpForJump() const { return bHyperdriveFormUp; }
+
+	/** Bus handler: the player's hyperdrive state (T1 fires it only for the player's ship). */
+	UFUNCTION()
+	void HandleHyperdriveState(ETDHyperdriveState NewState);
+
 	/** Bus handler: a spacecraft was moved discontinuously (portal, gate, hyperdrive drop-out). */
 	UFUNCTION()
 	void HandleSpacecraftTeleported(AActor* Spacecraft, FVector From, FVector To);
@@ -212,6 +226,8 @@ protected:
 	float PrevShield01 = 1.f;
 	/** Regroup was forced (leash/evade): don't re-engage for RegroupCommitSeconds. */
 	bool bRegroupCommitted = false;
+	bool bPassive = false;
+	bool bHyperdriveFormUp = false;
 	bool bPrimaryHeld = false;
 	bool bSecondaryHeld = false;
 	FRandomStream Random;

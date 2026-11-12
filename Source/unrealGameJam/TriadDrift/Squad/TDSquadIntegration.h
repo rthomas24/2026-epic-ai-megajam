@@ -92,4 +92,11 @@ namespace TDSquad
 	/** Subscribe / unsubscribe Wingman->HandleSpacecraftTeleported to UTDEventBus::OnSpacecraftTeleported. */
 	void BindTeleported(ATDWingmanAIController* Wingman);
 	void UnbindTeleported(ATDWingmanAIController* Wingman);
+
+	/** Subscribe / unsubscribe Wingman->HandleHyperdriveState to UTDEventBus::OnHyperdriveState. */
+	void BindHyperdriveState(ATDWingmanAIController* Wingman);
+	void UnbindHyperdriveState(ATDWingmanAIController* Wingman);
+
+	/** World transform of a ship's chase camera (actor transform if it has none). */
+	FTransform GetChaseCameraTransform(const ATDShip* Ship);
 }
