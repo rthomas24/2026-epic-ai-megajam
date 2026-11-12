@@ -286,6 +286,29 @@ ATDEncounterVolume* ATDPlanetCourse::Encounter(ATDObjective* Obj, int32 LinkedSt
 	return E;
 }
 
+AActor* ATDPlanetCourse::Marker(const FVector& At, float Yaw)
+{
+	AActor* M = SpawnProp<AActor>(At, FRotator(0.f, Yaw, 0.f));
+	if (M)
+	{
+		USceneComponent* Root = NewObject<USceneComponent>(M, TEXT("Root"));
+		M->SetRootComponent(Root);
+		M->FinishSpawning(M->GetActorTransform());
+		Root->RegisterComponent();
+		M->SetActorTransform(FTransform(GetActorRotation() + FRotator(0.f, Yaw, 0.f), W(At)));
+	}
+	return M;
+}
+
+void ATDPlanetCourse::Checkpoint(ATDObjective* Obj, int32 Step, const FVector& At, float Yaw)
+{
+	if (Obj && Obj->Steps.IsValidIndex(Step))
+	{
+		Obj->Steps[Step].bCheckpoint = true;
+		Obj->Steps[Step].RespawnAt = Marker(At + FVector(0.f, 0.f, 100.f), Yaw);
+	}
+}
+
 void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const FLinearColor& Color, const FText& Name)
 {
 	// A glowing totem: a dark plinth, a tall light column and a floating crown.
@@ -498,13 +521,15 @@ void ATDPlanetCourse::BuildVerdance()
 	Beacon->LinkedStep = 0;
 	Beacon->FinishSpawning(Beacon->GetActorTransform());
 
+	// Explicit spawn points clear of the hull (a ring point landed inside it: an unreachable, unkillable grunt).
 	ATDEncounterVolume* SiteFight = Encounter(Wreck, 1, WreckSite + FVector(0.f, 0.f, 200.f), FVector(2600.f, 2600.f, 700.f),
-		{ ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy, ETDCrewType::Grunt }, false, 1000.f);
+		{ ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy, ETDCrewType::Grunt }, false, 1000.f,
+		{ FVector(1300.f, 200.f, 0.f), FVector(-200.f, -1300.f, 0.f), FVector(1100.f, 1100.f, 0.f), FVector(-1500.f, -300.f, 0.f) });
 	StepEncounters.Add({ Wreck, 1, SiteFight });
 
 	// Two waves drop in on the extraction (spawned high: they fall in).
-	ATDEncounterVolume* WaveA = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1100.f);
-	ATDEncounterVolume* WaveB = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Trooper, ETDCrewType::Drone, ETDCrewType::Trooper }, false, 1300.f);
+	ATDEncounterVolume* WaveA = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1100.f); // (machine playtest: 3+3 during a 4 s hold killed the pilot 20 times)
+	ATDEncounterVolume* WaveB = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Trooper, ETDCrewType::Drone }, false, 1300.f);
 	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(WreckSite + FVector(0.f, 0.f, 70.f));
 	Core->LinkedObjective = Wreck;
 	Core->LinkedStep = 2;
@@ -519,6 +544,7 @@ void ATDPlanetCourse::BuildVerdance()
 	Ship->FinishSpawning(Ship->GetActorTransform());
 	Ship->Box->SetBoxExtent(FVector(1400.f, 1400.f, 400.f));
 
+	Checkpoint(Wreck, 2, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // dying in the extraction: back at the wreck
 	FinishObjective(Wreck,
 		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE WRECK"), LOCTEXT("W1", "CLEAR THE WRECK SITE"),
 		  LOCTEXT("W2", "EXTRACT THE CORE · HOLD [E]"), LOCTEXT("W3", "CARRY THE CORE TO YOUR SHIP") },
@@ -589,6 +615,7 @@ void ATDPlanetCourse::BuildVerdance()
 	UTDStatics::TintPlaceholder(RelayCore->Mesh, RelayStone, 2.5f);
 	Block(EShape::Cylinder, Plateau + FVector(0.f, 0.f, PlateauTop + 1400.f), FVector(80.f, 80.f, 1800.f), RelayStone, 2.f, FRotator::ZeroRotator, false);
 
+	Checkpoint(Relay, 1, Plateau + FVector(0.f, 0.f, PlateauTop), 0.f); // no re-climb for a death on the plateau
 	FinishObjective(Relay,
 		{ LOCTEXT("R0", "CLIMB TO THE ANCIENT RELAY"), LOCTEXT("R1", "WAKE THE RESONANCE NODES  0 / 3"), LOCTEXT("R2", "AWAKEN THE RELAY · HOLD [E]") },
 		{ Climb, Nodes, RelayCore });
@@ -700,6 +727,7 @@ void ATDPlanetCourse::BuildCinder()
 	{
 		ATDShatterCrystal* C = SpawnProp<ATDShatterCrystal>(FVector(XGate - 300.f, Y0 + S * 650.f, 0.f));
 		C->LinkedObjective = Outpost;
+		C->LinkedStep = 0;
 		C->Color = FLinearColor(1.f, 0.1f, 0.05f);
 		C->MaxHealth = 60.f;
 		C->FinishSpawning(C->GetActorTransform());
@@ -735,9 +763,11 @@ void ATDPlanetCourse::BuildCinder()
 		}
 		return E;
 	};
-	ATDEncounterVolume* Yard = RoomFight(XGate, XBarracks, 1, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, DoorB);
-	ATDEncounterVolume* Barracks = RoomFight(XBarracks, XCommand, 2, { ETDCrewType::Trooper, ETDCrewType::Heavy, ETDCrewType::Trooper, ETDCrewType::Grunt }, DoorC);
-	ATDEncounterVolume* Command = RoomFight(XCommand, XArena, 3, { ETDCrewType::Heavy, ETDCrewType::Trooper, ETDCrewType::Drone, ETDCrewType::Drone, ETDCrewType::Trooper }, DoorD);
+	// Escalating, one new threat per room (machine playtest: two troopers plus a heavy beat the pilot five times):
+	// grunts + a shooter, then the heavy, then shooters with a drone, then the Warden.
+	ATDEncounterVolume* Yard = RoomFight(XGate, XBarracks, 1, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Trooper }, DoorB);
+	ATDEncounterVolume* Barracks = RoomFight(XBarracks, XCommand, 2, { ETDCrewType::Heavy, ETDCrewType::Grunt, ETDCrewType::Grunt }, DoorC);
+	ATDEncounterVolume* Command = RoomFight(XCommand, XArena, 3, { ETDCrewType::Trooper, ETDCrewType::Drone, ETDCrewType::Trooper }, DoorD);
 	ATDEncounterVolume* Arena = RoomFight(XArena, XEnd, 4, { ETDCrewType::Warden }, nullptr);
 
 	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0, 80.f));
@@ -749,6 +779,12 @@ void ATDPlanetCourse::BuildCinder()
 	Prototype->SetActorScale3D(FVector(1.6f, 1.6f, 1.4f));
 	UTDStatics::TintPlaceholder(Prototype->Mesh, FLinearColor(0.3f, 0.8f, 1.f), 2.5f);
 
+	// Every room is a checkpoint: a death costs that room, not the whole compound (machine playtest: the
+	// barracks death sent the pilot back to the gate conduits every time). The Warden too (review N6).
+	Checkpoint(Outpost, 1, FVector(XGate - 500.f, Y0, 0.f), 0.f);
+	Checkpoint(Outpost, 2, FVector(XBarracks - 500.f, Y0, 0.f), 0.f);
+	Checkpoint(Outpost, 3, FVector(XCommand - 500.f, Y0, 0.f), 0.f);
+	Checkpoint(Outpost, 4, FVector(XArena - 600.f, Y0, 0.f), 0.f);
 	FinishObjective(Outpost,
 		{ LOCTEXT("O0", "BREACH THE GATE · DESTROY THE CONDUITS  0 / 2"), LOCTEXT("O1", "CLEAR THE YARD"), LOCTEXT("O2", "CLEAR THE BARRACKS"),
 		  LOCTEXT("O3", "CLEAR THE COMMAND DECK"), LOCTEXT("O4", "DEFEAT THE WARDEN"), LOCTEXT("O5", "CLAIM THE EMP PROTOTYPE · HOLD [E]") },
@@ -766,6 +802,7 @@ void ATDPlanetCourse::BuildCinder()
 	{
 		ATDShatterCrystal* C = SpawnProp<ATDShatterCrystal>(FVector(4700.f + i * 120.f, -4100.f - i * 300.f, 0.f));
 		C->LinkedObjective = Jammer;
+		C->LinkedStep = 0;
 		C->Color = Crystal;
 		C->FinishSpawning(C->GetActorTransform());
 	}
@@ -773,17 +810,18 @@ void ATDPlanetCourse::BuildCinder()
 	Block(EShape::Cube, FVector(4600.f, -3200.f, 300.f), FVector(400.f, 1200.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f));
 	Block(EShape::Cube, FVector(5100.f, -5400.f, 300.f), FVector(400.f, 1400.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f));
 
-	// The magma lake and the collapsing crystal bridge (keep moving: each slab falls 1.1 s after you land on it).
+	// The magma lake and the collapsing crystal bridge: one continuous walkway of slabs (no jumps), each
+	// falling 1.1 s after you step on it: keep running.
 	const float LakeX0 = 7000.f, LakeX1 = 10400.f, LakeY = -5000.f;
 	Magma(FVector((LakeX0 + LakeX1) * 0.5f, LakeY, 0.f), FVector(LakeX1 - LakeX0, 5000.f, 300.f));
 	const int32 Segments = 6;
 	for (int32 i = 0; i < Segments; ++i)
 	{
 		const float X = LakeX0 + 250.f + i * ((LakeX1 - LakeX0 - 500.f) / (Segments - 1));
-		ATDCollapsingPlatform* P = SpawnProp<ATDCollapsingPlatform>(FVector(X, LakeY + (i % 2 ? 120.f : -120.f), 80.f));
+		ATDCollapsingPlatform* P = SpawnProp<ATDCollapsingPlatform>(FVector(X, LakeY + (i % 2 ? 60.f : -60.f), 80.f));
 		P->LinkedObjective = Jammer;
 		P->FinishSpawning(P->GetActorTransform());
-		P->SetSize(FVector(380.f, 320.f, 60.f));
+		P->SetSize(FVector((LakeX1 - LakeX0 - 500.f) / (Segments - 1) + 30.f, 320.f, 60.f)); // overlapping: no gaps
 	}
 	ATDStepTrigger* FarBank = SpawnProp<ATDStepTrigger>(FVector(LakeX1 + 600.f, LakeY, 0.f));
 	FarBank->LinkedObjective = Jammer;
@@ -859,6 +897,7 @@ void ATDPlanetCourse::BuildCinder()
 	Run->FinishSpawning(Run->GetActorTransform());
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 
+	Checkpoint(Jammer, 1, FVector(LakeX1 + 600.f, LakeY, 0.f), 0.f); // the charges: from the far bank, not the bridge again
 	FinishObjective(Jammer,
 		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "GET CLEAR OF THE TOWER") },
 		{ FarBank, Charges, Clear });

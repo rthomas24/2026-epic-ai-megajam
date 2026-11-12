@@ -74,8 +74,13 @@ void ATDGroundGameMode::InitGame(const FString& MapName, const FString& Options,
 	if (bPlanetMode)
 	{
 		DefaultPawnClass = nullptr; // the squad possesses its lead ship; the pilot appears on landing
-		PlayerControllerClass = ATDSpacePlayerController::StaticClass();
 		bSpawnTrainingGround = false;
+	}
+	// Every ground map gets T1's controller (pause, the same input stack as the ships), unless a Blueprint
+	// game mode chose a controller of its own.
+	if (!PlayerControllerClass || PlayerControllerClass == APlayerController::StaticClass())
+	{
+		PlayerControllerClass = ATDSpacePlayerController::StaticClass();
 	}
 	Super::InitGame(MapName, Options, ErrorMessage);
 }

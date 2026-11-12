@@ -120,6 +120,9 @@ private:
 	ATDEncounterVolume* Encounter(ATDObjective* Obj, int32 LinkedStep, const FVector& Center, const FVector& Extent, const TArray<ETDCrewType>& Mix, bool bOnOverlap, float RingRadius = 600.f, const TArray<FVector>& Points = TArray<FVector>());
 	template <class T> T* SpawnProp(const FVector& Location, const FRotator& Rotation = FRotator::ZeroRotator);
 	void AddTrailhead(ATDObjective* Obj, const FVector& At, const FLinearColor& Color, const FText& Name);
+	/** Mark a step as a checkpoint: a retake restarts the scene there and the pilot comes back at At. */
+	void Checkpoint(ATDObjective* Obj, int32 Step, const FVector& At, float Yaw = 0.f);
+	AActor* Marker(const FVector& At, float Yaw = 0.f);
 	FVector W(const FVector& Local) const { return GetActorTransform().TransformPosition(Local); }
 
 	bool IsOnRoute(const FVector& Local, float Clearance) const;

@@ -71,8 +71,8 @@ bool FTDCrewSpecTable::RunTest(const FString& Parameters)
 	TestEqual(TEXT("drone 30 HP"), D.MaxHealth, 30.f);
 	TestEqual(TEXT("drone bolt 5"), D.BoltDamage, 5.f);
 	TestTrue(TEXT("drone flies"), D.bFlying);
-	TestEqual(TEXT("warden 600 HP"), W.MaxHealth, 600.f);
-	TestEqual(TEXT("warden charge slam 40"), W.ChargeSlamDamage, 40.f);
+	TestEqual(TEXT("warden 400 HP (tuned by the machine playtest)"), W.MaxHealth, 400.f);
+	TestEqual(TEXT("warden charge slam 30"), W.ChargeSlamDamage, 30.f);
 	TestEqual(TEXT("warden phase 2 at 50%"), W.Phase2HealthFraction, 0.5f);
 	TestTrue(TEXT("warden summons"), W.SummonCount > 0);
 	TestTrue(TEXT("warden bolt fan"), W.FanBolts > 0);
@@ -258,7 +258,7 @@ bool FTDCrewHeavy::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewDrone, "TriadDrift.Ground.Crew.DroneHoversOutOfMeleeReach", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewDrone, "TriadDrift.Ground.Crew.DroneHoversInJumpSlashReach", TD_TEST_FLAGS)
 bool FTDCrewDrone::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
@@ -271,11 +271,12 @@ bool FTDCrewDrone::RunTest(const FString& Parameters)
 	D->OnAttackReleased.AddLambda([&](ATDCrewCharacter*, ETDCrewAttack A) { bFired |= (A == ETDCrewAttack::Burst); });
 	W.Advance(4.f);
 	TestEqual(TEXT("flying"), (int32)D->GetCharacterMovement()->MovementMode.GetValue(), (int32)MOVE_Flying);
-	TestTrue(FString::Printf(TEXT("hovers ~320 cm up (%.0f)"), D->GetActorLocation().Z), D->GetActorLocation().Z >= 260.f);
-	TestTrue(TEXT("keeps 600+ cm away"), FVector::Dist2D(D->GetActorLocation(), P->GetActorLocation()) >= 550.f);
+	// Above a standing swing, within a jump-slash (the machine playtest could never reach one at 320 cm).
+	TestTrue(FString::Printf(TEXT("hovers ~220 cm up (%.0f)"), D->GetActorLocation().Z), D->GetActorLocation().Z >= 180.f && D->GetActorLocation().Z <= 280.f);
+	TestTrue(TEXT("keeps 350+ cm away"), FVector::Dist2D(D->GetActorLocation(), P->GetActorLocation()) >= 300.f);
 	TestTrue(TEXT("fires small fast bolts"), bFired);
 	P->GetBlade()->LightAttack();
-	TestEqual(TEXT("out of the blade's reach"), TDGroundTest::Hull(D), 30.f, 0.1f);
+	TestEqual(TEXT("out of a standing swing at range"), TDGroundTest::Hull(D), 30.f, 0.1f);
 	return true;
 }
 
@@ -329,7 +330,7 @@ bool FTDCrewWarden::RunTest(const FString& Parameters)
 	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
 	ATDCrewCharacter* Wd = TDCrewTest::SpawnCrew(W, ETDCrewType::Warden, FVector(380.f, 0.f, 140.f), FRotator(0.f, 180.f, 0.f));
 	if (!TestNotNull(TEXT("warden"), Wd)) { return false; }
-	TestEqual(TEXT("600 HP"), TDGroundTest::Hull(Wd), 600.f);
+	TestEqual(TEXT("400 HP"), TDGroundTest::Hull(Wd), Wd->Spec.MaxHealth);
 	// Attack mechanics, driven directly: take the AI out so it doesn't spend the cooldowns first.
 	if (AController* AI = Wd->GetController())
 	{
@@ -341,7 +342,7 @@ bool FTDCrewWarden::RunTest(const FString& Parameters)
 	TestTrue(TEXT("charge slam starts"), Wd->StartAttack(ETDCrewAttack::ChargeSlam, P));
 	TestTrue(TEXT("telegraphed"), Wd->IsTelegraphing());
 	W.Advance(Wd->Spec.ChargeWindup + Wd->Spec.ChargeDuration + 0.3f);
-	TestEqual(TEXT("slam 40"), 100.f - TDGroundTest::Hull(P), 40.f, 0.1f);
+	TestEqual(TEXT("slam 30"), 100.f - TDGroundTest::Hull(P), Wd->Spec.ChargeSlamDamage, 0.1f);
 	P->GetHealth()->SetInvulnerable(true);
 	W.Advance(1.f);
 
@@ -356,7 +357,7 @@ bool FTDCrewWarden::RunTest(const FString& Parameters)
 	// Phase 2 at 50%.
 	bool bPhase2 = false;
 	Wd->OnBossPhase2.AddLambda([&](ATDCrewCharacter*) { bPhase2 = true; });
-	UTDStatics::ApplyTDDamage(Wd, 290.f, ETDDamageKind::Energy, P, P);
+	UTDStatics::ApplyTDDamage(Wd, Wd->Spec.MaxHealth * Wd->Spec.Phase2HealthFraction - 10.f, ETDDamageKind::Energy, P, P);
 	TestFalse(TEXT("still phase 1 above 50%"), bPhase2);
 	UTDStatics::ApplyTDDamage(Wd, 20.f, ETDDamageKind::Energy, P, P);
 	TestTrue(TEXT("phase 2 at 50%"), bPhase2 && Wd->GetBossPhase() == 2);
@@ -364,10 +365,10 @@ bool FTDCrewWarden::RunTest(const FString& Parameters)
 	W.Advance(0.6f);
 	Wd->CancelAttack();
 
-	// Phase 2: summons 3 grunts, fan of 11.
+	// Phase 2: summons (Phase2SummonCount) grunts, fan of 11.
 	TestTrue(TEXT("summon starts"), Wd->StartAttack(ETDCrewAttack::Summon, P));
 	W.Advance(Wd->Spec.BurstWindup + 0.1f);
-	TestEqual(TEXT("phase 2 summons 3 grunts"), Wd->GetAliveSummons(), 3);
+	TestEqual(TEXT("phase 2 summons its grunts"), Wd->GetAliveSummons(), Wd->Spec.Phase2SummonCount);
 	W.Advance(1.f);
 	Wd->CancelAttack();
 	Wd->SetActorLocation(FVector(1200.f, 0.f, 140.f));
