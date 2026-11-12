@@ -93,6 +93,11 @@ void ATDCrewAIController::Sense()
 	}
 	AActor* Current = Target.Get();
 	const UTDHealthComponent* TH = Current ? UTDStatics::GetHealth(Current) : nullptr;
+	if (Current && Current->IsHidden())
+	{
+		Current = nullptr; // the pilot boarded (stowed, hidden): find someone else or stand down
+		Target = nullptr;
+	}
 	if (!Current || !TH || TH->IsDead())
 	{
 		Current = Registry->FindNearestHostile(ETDTeam::Enemy, Crew->GetActorLocation(), Crew->Spec.SightRange, Crew);
