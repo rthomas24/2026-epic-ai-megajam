@@ -55,6 +55,9 @@ protected:
 	UFUNCTION()
 	void HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
 
+	UFUNCTION()
+	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
+
 	void ShowDestroyed();
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")

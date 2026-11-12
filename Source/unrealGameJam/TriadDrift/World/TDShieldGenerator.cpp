@@ -63,6 +63,15 @@ void ATDShieldGenerator::BeginPlay()
 	if (Health)
 	{
 		Health->OnDeath.AddUniqueDynamic(this, &ATDShieldGenerator::HandleDeath);
+		Health->OnDamaged.AddUniqueDynamic(this, &ATDShieldGenerator::HandleDamaged);
+	}
+}
+
+void ATDShieldGenerator::HandleDamaged(UTDHealthComponent* /*InHealth*/, const FTDDamageInfo& Info, float /*ShieldDamage*/, float HullDamage)
+{
+	if (Visuals && HullDamage > 0.f && !bDestroyed)
+	{
+		UTDStatics::PlayCue(this, Visuals->GeneratorHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
 	}
 }
 
@@ -71,6 +80,7 @@ void ATDShieldGenerator::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (Health)
 	{
 		Health->OnDeath.RemoveDynamic(this, &ATDShieldGenerator::HandleDeath);
+		Health->OnDamaged.RemoveDynamic(this, &ATDShieldGenerator::HandleDamaged);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -100,11 +110,14 @@ void ATDShieldGenerator::SetDestroyedSilently()
 	{
 		return;
 	}
-	if (Health && Health->IsAlive())
+	// No Kill(): a resume must not count as kills or fire death events. The health stays "alive"
+	// but untargetable and invulnerable, and IsAlive() reports false via bDestroyed.
+	if (Health)
 	{
-		Health->OnDeath.RemoveDynamic(this, &ATDShieldGenerator::HandleDeath);
-		Health->Kill();
+		Health->SetTargetable(false);
+		Health->SetInvulnerable(true);
 	}
+	if (Mesh) { Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); }
 	ShowDestroyed();
 }
 
