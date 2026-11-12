@@ -32,10 +32,25 @@ ATDPortal::ATDPortal()
 	SetCanBeDamaged(false);
 }
 
-void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransitParams& InParams, UTDTravelFX* InFX)
+bool ATDPortal::HasClearance(const UWorld* World, const FVector& Location, float ClearanceRadius)
+{
+	if (!World || ClearanceRadius <= 0.f)
+	{
+		return true;
+	}
+	return !World->OverlapAnyTestByObjectType(Location, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic),
+		FCollisionShape::MakeSphere(ClearanceRadius), FCollisionQueryParams(SCENE_QUERY_STAT(TDPortalClearance), false));
+}
+
+void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransitParams& InParams, UTDTravelFX* InFX, float InExitClearance)
 {
 	PortalInstigator = InInstigator;
 	Radius = InRadius;
+	ExitClearance = InExitClearance;
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnSpacecraftTeleported.AddDynamic(this, &ATDPortal::HandleSpacecraftTeleported);
+	}
 	Params = InParams;
 	FX = InFX;
 	BroadcastState(ETDPortalState::Opening);
@@ -83,8 +98,20 @@ void ATDPortal::Close()
 	Destroy();
 }
 
+void ATDPortal::HandleSpacecraftTeleported(AActor* Spacecraft, FVector From, FVector To)
+{
+	if (Spacecraft)
+	{
+		LastPositions.Add(Spacecraft, To);
+	}
+}
+
 void ATDPortal::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnSpacecraftTeleported.RemoveAll(this);
+	}
 	bClosed = true;
 	Super::EndPlay(EndPlayReason);
 }
@@ -194,12 +221,25 @@ bool ATDPortal::TryCross(AActor* Traveller, const FVector& Prev, const FVector& 
 		return false; // crossed the plane outside the disc
 	}
 
-	// Two-sided: entering along the facing exits along the partner's facing, and vice versa.
-	const bool bFront = D1 > D0;
-	const FQuat EntryRot = bFront ? GetActorQuat() : FQuat(GetActorUpVector(), PI) * GetActorQuat();
-	const FQuat ExitRot = bFront ? Exit->GetActorQuat() : FQuat(Exit->GetActorUpVector(), PI) * Exit->GetActorQuat();
+	// Door semantics: the normal faces the viewer. In through the front (against the normal) -> out of the
+	// partner's front (along its normal); in through the back -> out of the partner's back.
+	const bool bFrontEntry = D1 < D0;
+	const FQuat Flip(GetActorUpVector(), PI);
+	const FQuat ExitFlip(Exit->GetActorUpVector(), PI);
+	const FQuat EntryRot = bFrontEntry ? Flip * GetActorQuat() : GetActorQuat();
+	const FQuat ExitRot = bFrontEntry ? Exit->GetActorQuat() : ExitFlip * Exit->GetActorQuat();
 	const FTransform Entry(EntryRot, P);
 	const FTransform ExitXf(ExitRot, Exit->GetActorLocation());
+
+	// Never put a ship inside geometry: if the exit side is blocked, the portal just doesn't take it.
+	if (Traveller->IsA<ATDSpacecraft>())
+	{
+		const FVector Out = UTDPortalTransit::MapLocation(Cur, Entry, ExitXf, Params.ExitForwardOffset);
+		if (!HasClearance(GetWorld(), Out, ExitClearance))
+		{
+			return false;
+		}
+	}
 
 	if (!UTDPortalTransit::TransitActor(Traveller, Entry, ExitXf, PortalInstigator.Get(), Params))
 	{
@@ -292,25 +332,50 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		return nullptr;
 	}
 	Portals.RemoveAll([](const TWeakObjectPtr<ATDPortal>& P) { return !P.IsValid(); });
+
+	FVector Aim;
+	FVector Where = ComputePlacement(Aim);
+	const FVector Normal = -Aim; // faces back toward Rift, like a door
+
+	// Bounded push-out: the front exit must have room for a ship, else refuse this placement.
+	bool bClear = false;
+	for (int32 Step = 0; Step <= PushOutSteps; ++Step)
+	{
+		const FVector Candidate = Where + Normal * (PushOutStep * Step);
+		if (ATDPortal::HasClearance(World, Candidate + Normal * TransitParams.ExitForwardOffset, ExitClearanceRadius))
+		{
+			Where = Candidate;
+			bClear = true;
+			break;
+		}
+	}
+	if (!bClear)
+	{
+		++RefusedPlacements;
+		if (TravelFX)
+		{
+			UTDStatics::PlayCue(this, TravelFX->PortalClose, Where, Normal.Rotation()); // "can't place" until a dedicated cue exists
+		}
+		return nullptr;
+	}
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATDPortal* Portal = World->SpawnActor<ATDPortal>(ATDPortal::StaticClass(), Where, Normal.Rotation(), Params);
+	if (!Portal)
+	{
+		return nullptr;
+	}
+	Portal->Init(Owner, PortalRadius, TransitParams, TravelFX, ExitClearanceRadius);
 	if (Portals.Num() >= 2)
 	{
+		// A third shot recycles the oldest.
 		if (ATDPortal* Oldest = Portals[0].Get())
 		{
 			Oldest->Close();
 		}
 		Portals.RemoveAt(0);
 	}
-
-	FVector Facing;
-	const FVector Where = ComputePlacement(Facing);
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	ATDPortal* Portal = World->SpawnActor<ATDPortal>(ATDPortal::StaticClass(), Where, Facing.Rotation(), Params);
-	if (!Portal)
-	{
-		return nullptr;
-	}
-	Portal->Init(Owner, PortalRadius, TransitParams, TravelFX);
 	Portals.Add(Portal);
 
 	if (Portals.Num() == 2)

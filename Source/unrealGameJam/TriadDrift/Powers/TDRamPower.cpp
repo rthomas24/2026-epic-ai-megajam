@@ -114,6 +114,13 @@ void UTDRamPower::OnTickActive(float DeltaTime)
 	}
 
 	const FVector Now = Owner->GetActorLocation();
+	// A portal / gate moved us this frame: restart the sweep at the new spot (and keep dashing).
+	if (FVector::DistSquared(Now, LastLocation) > FMath::Square(GetDashSpeed() * DeltaTime * 3.f + 500.f))
+	{
+		LastLocation = Now;
+		DashDirection = Owner->GetActorForwardVector();
+		return;
+	}
 	DashDirection = (Now - LastLocation).GetSafeNormal();
 	if (DashDirection.IsNearlyZero())
 	{

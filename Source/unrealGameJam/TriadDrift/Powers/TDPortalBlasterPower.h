@@ -13,7 +13,8 @@ class UTDTravelFX;
 class UNiagaraComponent;
 
 /**
- * One end of a Rift portal pair: a two-sided disc. Every tick it tests the swept motion of every
+ * One end of a Rift portal pair: a two-sided disc whose forward (normal) faces back toward the shooter,
+ * like a door. Entering through the front comes out of the partner's front; through the back, its back. Every tick it tests the swept motion of every
  * spacecraft in the combat registry and every live projectile against its plane (no trigger volume,
  * nothing tunnels). A crossing within Radius sends the traveller to the partner via UTDPortalTransit.
  */
@@ -25,7 +26,10 @@ class UNREALGAMEJAM_API ATDPortal : public AActor
 public:
 	ATDPortal();
 
-	void Init(AActor* InInstigator, float InRadius, const FTDPortalTransitParams& InParams, UTDTravelFX* InFX);
+	void Init(AActor* InInstigator, float InRadius, const FTDPortalTransitParams& InParams, UTDTravelFX* InFX, float InExitClearance = 400.f);
+
+	/** True if a ship of ClearanceRadius fits at Location (no world-static geometry). */
+	static bool HasClearance(const UWorld* World, const FVector& Location, float ClearanceRadius);
 	void SetPartner(ATDPortal* InPartner) { Partner = InPartner; }
 	void Close();
 
@@ -48,6 +52,9 @@ protected:
 
 private:
 	bool TryCross(AActor* Traveller, const FVector& Prev, const FVector& Cur);
+	/** Something else (gate, hyperdrive, the partner portal) moved a ship: don't treat that jump as motion. */
+	UFUNCTION()
+	void HandleSpacecraftTeleported(AActor* Spacecraft, FVector From, FVector To);
 	void BroadcastState(ETDPortalState State);
 
 	UPROPERTY(Transient)
@@ -61,6 +68,7 @@ private:
 	TMap<TWeakObjectPtr<const AActor>, FVector> LastPositions;
 	FTDPortalTransitParams Params;
 	float Radius = 600.f;
+	float ExitClearance = 400.f;
 	int32 TransitCount = 0;
 	bool bClosed = false;
 };
@@ -93,6 +101,20 @@ public:
 	// --- Tuning (ENG-09) ---
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Portal", meta = (Units = "cm"))
 	float MaxRange = 12000.f;
+
+	/** Clearance a ship needs at a portal exit (sphere tested against world geometry). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Portal", meta = (Units = "cm"))
+	float ExitClearanceRadius = 400.f;
+
+	/** Placement push-out: up to this many steps of PushOutStep along the portal normal, else refuse. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Portal")
+	int32 PushOutSteps = 4;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Portal", meta = (Units = "cm"))
+	float PushOutStep = 300.f;
+
+	/** Number of placements refused for lack of clearance (tests, HUD "can't place"). */
+	int32 GetRefusedPlacements() const { return RefusedPlacements; }
 
 	/** Portals open this far off the surface the shot hit. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Portal", meta = (Units = "cm"))
@@ -134,4 +156,5 @@ private:
 	bool DoBlink();
 
 	TArray<TWeakObjectPtr<ATDPortal>> Portals;
+	int32 RefusedPlacements = 0;
 };

@@ -51,11 +51,13 @@ void ATDGravityWell::Tick(float DeltaSeconds)
 	Age += DeltaSeconds;
 	if (!bVortex)
 	{
-		SetActorLocation(GetActorLocation() + Direction * OrbSpeed * DeltaSeconds);
+		// Fly exactly OrbSpeed x OrbSeconds, whatever the frame rate, then open; carry the leftover time into the vortex.
+		const float Flown = FMath::Min(DeltaSeconds, FMath::Max(0.f, OrbSeconds - (Age - DeltaSeconds)));
+		SetActorLocation(GetActorLocation() + Direction * OrbSpeed * Flown);
 		if (Age >= OrbSeconds)
 		{
 			bVortex = true;
-			Age = 0.f;
+			Age -= OrbSeconds;
 		}
 		return;
 	}
