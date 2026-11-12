@@ -1,0 +1,233 @@
+{
+  "status": "source_geometry_checks_only",
+  "tool": "Node.js deterministic mesh validation; no Blender or Unreal run",
+  "assets": [
+    {
+      "asset": "SM_Ship_Lancer_Proxy",
+      "parts": 34,
+      "vertices": 1688,
+      "triangles": 3264,
+      "material_slots": 6,
+      "bounds_cm": [
+        [
+          -398,
+          400
+        ],
+        [
+          -340,
+          340
+        ],
+        [
+          -50,
+          116
+        ]
+      ],
+      "volume_cm3": 12350318.18,
+      "errors": []
+    },
+    {
+      "asset": "SM_Lancer_UniversalMount",
+      "parts": 2,
+      "vertices": 52,
+      "triangles": 96,
+      "material_slots": 2,
+      "bounds_cm": [
+        [
+          -36,
+          36
+        ],
+        [
+          -27,
+          27
+        ],
+        [
+          -15,
+          9
+        ]
+      ],
+      "volume_cm3": 71611.32,
+      "errors": []
+    },
+    {
+      "asset": "SM_Lancer_MinigunBody",
+      "parts": 3,
+      "vertices": 156,
+      "triangles": 304,
+      "material_slots": 3,
+      "bounds_cm": [
+        [
+          -43,
+          35
+        ],
+        [
+          -24,
+          24
+        ],
+        [
+          -37,
+          9
+        ]
+      ],
+      "volume_cm3": 197934.65,
+      "errors": []
+    },
+    {
+      "asset": "SM_Lancer_MinigunRotor",
+      "parts": 9,
+      "vertices": 626,
+      "triangles": 1248,
+      "material_slots": 2,
+      "bounds_cm": [
+        [
+          -8,
+          136
+        ],
+        [
+          -20,
+          20
+        ],
+        [
+          -20,
+          20
+        ]
+      ],
+      "volume_cm3": 41438.02,
+      "errors": []
+    },
+    {
+      "asset": "SM_Lancer_RocketPod",
+      "parts": 16,
+      "vertices": 960,
+      "triangles": 1888,
+      "material_slots": 4,
+      "bounds_cm": [
+        [
+          -65,
+          108
+        ],
+        [
+          -37,
+          37
+        ],
+        [
+          -53,
+          12
+        ]
+      ],
+      "volume_cm3": 656318.52,
+      "errors": []
+    },
+    {
+      "asset": "SM_Lancer_SpikeRocket",
+      "parts": 4,
+      "vertices": 162,
+      "triangles": 312,
+      "material_slots": 3,
+      "bounds_cm": [
+        [
+          -54,
+          50
+        ],
+        [
+          -17,
+          17
+        ],
+        [
+          -7.8,
+          7.8
+        ]
+      ],
+      "volume_cm3": 17554.03,
+      "errors": []
+    }
+  ],
+  "assembled": {
+    "instances": 11,
+    "parts": 98,
+    "triangles": 10528,
+    "material_count": 6,
+    "bounds_cm": [
+      [
+        -398,
+        400
+      ],
+      [
+        -340,
+        340
+      ],
+      [
+        -97,
+        116
+      ]
+    ],
+    "dimensions_cm": [
+      798,
+      680,
+      213
+    ],
+    "socket_count": 33,
+    "texture_memory_bytes": 0
+  },
+  "muzzle_clearance": [
+    {
+      "socket": "Muzzle_Primary_L",
+      "parent": "Primary_L",
+      "clearance_cm": 3
+    },
+    {
+      "socket": "Muzzle_Secondary_L_01",
+      "parent": "Secondary_L",
+      "clearance_cm": 4
+    },
+    {
+      "socket": "Muzzle_Secondary_L_02",
+      "parent": "Secondary_L",
+      "clearance_cm": 4
+    },
+    {
+      "socket": "Muzzle_Secondary_L_03",
+      "parent": "Secondary_L",
+      "clearance_cm": 4
+    },
+    {
+      "socket": "Muzzle_Secondary_L_04",
+      "parent": "Secondary_L",
+      "clearance_cm": 4
+    },
+    {
+      "socket": "Muzzle_Primary_R",
+      "parent": "Primary_R",
+      "clearance_cm": 3
+    },
+    {
+      "socket": "Muzzle_Secondary_R_01",
+      "parent": "Secondary_R",
+      "clearance_cm": 4
+    },
+    {
+      "socket": "Muzzle_Secondary_R_02",
+      "parent": "Secondary_R",
+      "clearance_cm": 4
+    },
+    {
+      "socket": "Muzzle_Secondary_R_03",
+      "parent": "Secondary_R",
+      "clearance_cm": 4
+    },
+    {
+      "socket": "Muzzle_Secondary_R_04",
+      "parent": "Secondary_R",
+      "clearance_cm": 4
+    }
+  ],
+  "pass": true,
+  "not_checked": [
+    "Blender evaluated topology and shading",
+    "UVs (source flat-MI prototype has none)",
+    "triangle intersection/z-fighting",
+    "exact contact/floating islands",
+    "Unreal collision and imported sockets",
+    "draw calls/GPU memory/performance",
+    "hero art approval"
+  ]
+}
