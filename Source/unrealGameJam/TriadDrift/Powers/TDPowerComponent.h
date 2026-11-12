@@ -120,6 +120,12 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	/** Scene cut / new take: end now and be ready. */
+	void HandlePowersReset();
+	FDelegateHandle ResetHandle;
+
 	/** Do the power. Return false to abort (no cooldown, no event). */
 	virtual bool OnActivate() { return true; }
 	virtual void OnTickActive(float DeltaTime) {}

@@ -75,11 +75,12 @@ void UTDWeaponComponent::EquipWeapon(ETDWeaponSlot Slot, FName WeaponId)
 	SpecPtr(Slot) = Spec.IsValid() ? &Spec : nullptr;
 
 	FTDWeaponSlotState& S = State(Slot);
-	const bool bWasHeld = S.bTriggerHeld;
+	const bool bWasRequested = S.bTriggerRequested;
 	S = FTDWeaponSlotState();
 	S.WeaponId = Spec.IsValid() ? WeaponId : NAME_None;
 	S.Ammo = Spec.IsValid() ? Spec.MaxAmmo : 0;
-	S.bTriggerHeld = bWasHeld && Spec.IsValid() && !AreWeaponsBlocked();
+	S.bTriggerRequested = bWasRequested;
+	S.bTriggerHeld = bWasRequested && Spec.IsValid() && !AreWeaponsBlocked();
 }
 
 const FTDWeaponSpec& UTDWeaponComponent::GetSpec(ETDWeaponSlot Slot) const
@@ -103,18 +104,28 @@ FName UTDWeaponComponent::GetWeaponId(ETDWeaponSlot Slot) const
 void UTDWeaponComponent::SetTriggerHeld(ETDWeaponSlot Slot, bool bHeld)
 {
 	FTDWeaponSlotState& S = State(Slot);
+	const bool bWasRequested = S.bTriggerRequested;
+	S.bTriggerRequested = bHeld;
+	UpdateEffectiveTrigger(Slot, bWasRequested && !bHeld);
+}
+
+void UTDWeaponComponent::UpdateEffectiveTrigger(ETDWeaponSlot Slot, bool bPilotRelease)
+{
+	FTDWeaponSlotState& S = State(Slot);
 	const FTDWeaponSpec* Spec = SpecPtr(Slot);
-	const bool bNewHeld = bHeld && Spec && !AreWeaponsBlocked();
-	if (S.bTriggerHeld == bNewHeld)
+	const bool bBlocked = AreWeaponsBlocked();
+	const bool bNewHeld = S.bTriggerRequested && Spec && !bBlocked;
+	if (S.bTriggerHeld == bNewHeld && !bPilotRelease)
 	{
 		return;
 	}
+	const bool bWasHeld = S.bTriggerHeld;
 	S.bTriggerHeld = bNewHeld;
 
-	if (!bNewHeld && Spec && Spec->FireMode == ETDFireMode::Charge)
+	if (bWasHeld && !bNewHeld && Spec && Spec->FireMode == ETDFireMode::Charge)
 	{
-		// Charge weapons fire on release, only when fully charged.
-		const bool bFire = S.bChargeReady && HasResourceToFire(*Spec, S) && !S.bOverheated && !AreWeaponsBlocked();
+		// Charge weapons fire when the PILOT releases a full charge; a block or death just drops it.
+		const bool bFire = bPilotRelease && !bBlocked && S.bChargeReady && HasResourceToFire(*Spec, S) && !S.bOverheated;
 		S.ChargeHeld = 0.f;
 		S.bChargeReady = false;
 		StopChargeFX(Slot);
@@ -124,6 +135,26 @@ void UTDWeaponComponent::SetTriggerHeld(ETDWeaponSlot Slot, bool bHeld)
 			S.RefireTimer = Spec->GetRefireSeconds();
 		}
 	}
+}
+
+void UTDWeaponComponent::CancelCharge(ETDWeaponSlot Slot)
+{
+	FTDWeaponSlotState& S = State(Slot);
+	S.ChargeHeld = 0.f;
+	S.bChargeReady = false;
+	S.bTriggerRequested = false;
+	S.bTriggerHeld = false;
+	StopChargeFX(Slot);
+}
+
+bool UTDWeaponComponent::AreWeaponsBlocked() const
+{
+	if (BlockSources.Num() > 0)
+	{
+		return true;
+	}
+	const UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner());
+	return Health && Health->IsDead();
 }
 
 void UTDWeaponComponent::SetAimTarget(AActor* Target)
@@ -243,16 +274,18 @@ void UTDWeaponComponent::SetWeaponsBlocked(FName SourceKey, bool bBlocked)
 		for (ETDWeaponSlot Slot : { ETDWeaponSlot::Primary, ETDWeaponSlot::Secondary })
 		{
 			FTDWeaponSlotState& S = State(Slot);
-			S.bTriggerHeld = false;
+			S.SalvoRemaining = 0;
+			UpdateEffectiveTrigger(Slot, false); // drops a charge, keeps the request
 			S.ChargeHeld = 0.f;
 			S.bChargeReady = false;
-			S.SalvoRemaining = 0;
 			StopChargeFX(Slot);
 		}
 	}
 	else
 	{
 		BlockSources.Remove(SourceKey);
+		UpdateEffectiveTrigger(ETDWeaponSlot::Primary, false);
+		UpdateEffectiveTrigger(ETDWeaponSlot::Secondary, false);
 	}
 }
 
@@ -299,6 +332,9 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 	FTDWeaponSlotState& S = State(Slot);
 	S.TimeSinceShot += DeltaTime;
 
+	// Death, blocks ending, etc. (never fires a charge: only a pilot release does).
+	UpdateEffectiveTrigger(Slot, false);
+
 	// Ammo regeneration.
 	if (Spec->Resource == ETDWeaponResource::Ammo && Spec->AmmoRegenSeconds > 0.f)
 	{
@@ -333,7 +369,8 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 				OnOverheatChanged.Broadcast(Slot, false);
 			}
 		}
-		else if (!S.bTriggerHeld && S.TimeSinceShot >= Spec->HeatCoolDelay && S.Heat > 0.f)
+		// Cooling waits at least 1.5 refire intervals, so tap-firing at the max rate can't dodge heat.
+		else if (!S.bTriggerHeld && S.TimeSinceShot >= FMath::Max(Spec->HeatCoolDelay, 1.5f * Spec->GetRefireSeconds()) && S.Heat > 0.f)
 		{
 			S.Heat = FMath::Max(0.f, S.Heat - DeltaTime / FMath::Max(Spec->HeatSecondsToCool, KINDA_SMALL_NUMBER));
 		}
@@ -423,6 +460,7 @@ void UTDWeaponComponent::BeginShot(ETDWeaponSlot Slot, float SubFrameAge)
 	++S.ShotsFired;
 	S.ShotMultiplier = NextShotMultiplier;
 	NextShotMultiplier = 1.f;
+	S.SalvoTarget = ResolveAimTarget();
 	LastFired.Reset();
 
 	const int32 Count = FMath::Max(1, Spec->ProjectilesPerShot);
@@ -501,7 +539,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	FTDProjectileSpec ProjSpec = Spec->Projectile;
 	ProjSpec.FX = GetFX(Slot);
 
-	AActor* HomingTarget = ProjSpec.bHoming ? ResolveAimTarget() : nullptr;
+	AActor* HomingTarget = ProjSpec.bHoming ? (S.SalvoTarget.IsValid() ? S.SalvoTarget.Get() : ResolveAimTarget()) : nullptr;
 	const float Multiplier = GetOutgoingDamageMultiplier() * S.ShotMultiplier;
 
 	ATDProjectile* P = ATDProjectile::Launch(World, ProjSpec, FTransform(Dir.Rotation(), MuzzleLocation), Owner, GetOwnerTeam(), HomingTarget,
@@ -510,7 +548,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	{
 		return;
 	}
-	LastFired.Add(P);
+	LastFired.Add({ P, P->GetLaunchSerial() });
 	if (SubFrameAge > 0.f)
 	{
 		P->Step(SubFrameAge);
@@ -611,6 +649,16 @@ void UTDWeaponComponent::GetMuzzleTransforms(TArray<FTransform>& Out) const
 	{
 		Out.Add(FTransform(OwnerXf.GetRotation(), OwnerXf.TransformPosition(Offset)));
 	}
+}
+
+ATDProjectile* UTDWeaponComponent::GetLastFiredProjectile(int32 Index) const
+{
+	if (!LastFired.IsValidIndex(Index))
+	{
+		return nullptr;
+	}
+	ATDProjectile* P = LastFired[Index].Projectile.Get();
+	return (P && P->IsActive() && P->GetLaunchSerial() == LastFired[Index].Serial) ? P : nullptr;
 }
 
 void UTDWeaponComponent::StopChargeFX(ETDWeaponSlot Slot)

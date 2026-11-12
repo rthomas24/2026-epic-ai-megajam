@@ -15,6 +15,8 @@
 #include "TriadDrift/Powers/TDAbilityComponent.h"
 #include "TriadDrift/Powers/TDAbilityPowers.h"
 #include "TriadDrift/Powers/TDBastionPowers.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "TriadDrift/Powers/TDPowerLibrary.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Powers/TDRamPower.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
@@ -297,7 +299,7 @@ bool FTDCloak::RunTest(const FString& Parameters)
 	TestTrue(TEXT("missile lost its lock"), Missile && Missile->GetHomingTarget() == nullptr);
 
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
-	const ATDProjectile* Shot = Weapons->GetLastFired().Num() ? Weapons->GetLastFired()[0].Get() : nullptr;
+	const ATDProjectile* Shot = Weapons->GetLastFiredProjectile(0);
 	TestTrue(TEXT("first shot out does 3x"), Shot && FMath::IsNearlyEqual(Shot->GetDamageMultiplier(), 3.f));
 	TestFalse(TEXT("firing breaks cloak"), Cloak->IsCloaked());
 	Hostiles.Reset();
@@ -318,7 +320,7 @@ bool FTDCloak::RunTest(const FString& Parameters)
 	TestFalse(TEXT("cloak lasts 6 s"), Cloak->IsCloaked());
 	W.Advance(0.2f);
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
-	const ATDProjectile* Later = Weapons->GetLastFired().Num() ? Weapons->GetLastFired()[0].Get() : nullptr;
+	const ATDProjectile* Later = Weapons->GetLastFiredProjectile(0);
 	TestTrue(TEXT("no 3x after an unused cloak"), Later && FMath::IsNearlyEqual(Later->GetDamageMultiplier(), 1.f));
 	return true;
 }
@@ -349,6 +351,33 @@ bool FTDEmp::RunTest(const FString& Parameters)
 	TestFalse(TEXT("shield still down at 4.6 s"), Gunship->IsFrontalShieldUp());
 	W.Advance(9.6f);
 	TestTrue(TEXT("ready after 14 s"), Emp->CanActivate());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInstallPowers, "TriadDrift.Powers.Library.InstallShipPowersIdempotent", TD_TEST_FLAGS)
+bool FTDInstallPowers::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	struct FCase { ETDShipId Id; UClass* Sig1; UClass* Sig2; };
+	const FCase Cases[] = {
+		{ ETDShipId::Rift, UTDPortalBlasterPower::StaticClass(), nullptr },
+		{ ETDShipId::Lancer, UTDRamPower::StaticClass(), nullptr },
+		{ ETDShipId::Bastion, UTDMissileSwarmPower::StaticClass(), UTDShieldDomePower::StaticClass() } };
+	for (const FCase& C : Cases)
+	{
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+		Ship->SetShipId(C.Id);
+		UTDPowerLibrary::InstallShipPowers(Ship, C.Id);
+		UTDPowerLibrary::InstallShipPowers(Ship, C.Id); // second call (respawn) must not double up
+		UTDPowerComponent* S1 = UTDPowerComponent::FindPower(Ship, ETDPowerInput::Signature1);
+		UTDPowerComponent* S2 = UTDPowerComponent::FindPower(Ship, ETDPowerInput::Signature2);
+		TestTrue(TEXT("signature 1 class"), S1 && S1->GetClass() == C.Sig1);
+		TestTrue(TEXT("signature 2 class"), C.Sig2 ? (S2 && S2->GetClass() == C.Sig2) : S2 == nullptr);
+		TInlineComponentArray<UTDPowerComponent*> Powers(Ship);
+		TestEqual(TEXT("no duplicates"), Powers.Num(), C.Sig2 ? 2 : 1);
+		TInlineComponentArray<UTDAbilityComponent*> Slots(Ship);
+		TestEqual(TEXT("one ability slot"), Slots.Num(), 1);
+	}
 	return true;
 }
 

@@ -13,6 +13,7 @@
 #include "GameFramework/Pawn.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
@@ -88,14 +89,15 @@ ATDProjectile::ATDProjectile()
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ShapeMaterial(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 	if (SphereMesh.Succeeded())
 	{
+		DefaultMesh = SphereMesh.Object;
 		PlaceholderMesh->SetStaticMesh(SphereMesh.Object);
 	}
 	if (ShapeMaterial.Succeeded())
 	{
-		PlaceholderMesh->SetMaterial(0, ShapeMaterial.Object);
+		DefaultMaterial = ShapeMaterial.Object;
 	}
-
-	SetActorHiddenInGame(true);
+	// The actor stays visible (so a finishing tracer ribbon isn't cut off); the mesh is what hides.
+	PlaceholderMesh->SetVisibility(false);
 }
 
 // ------------------------------------------------------------------------------------------ spawning
@@ -126,6 +128,9 @@ ATDProjectile* ATDProjectile::Launch(UWorld* World, const FTDProjectileSpec& InS
 void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& Transform, AActor* InInstigator, ETDTeam InTeam,
 	AActor* InHomingTarget, const FVector& InheritedVelocity, float InDamageMultiplier, bool bInReportHits)
 {
+	static uint32 NextLaunchSerial = 1;
+	LaunchSerial = NextLaunchSerial++;
+	LastTransitTime = -1.0;
 	Spec = InSpec;
 	Team = InTeam;
 	Shooter = InInstigator;
@@ -150,7 +155,7 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 
 	SetActorLocationAndRotation(Transform.GetLocation(), Dir.Rotation(), false, nullptr, ETeleportType::TeleportPhysics);
 	bActive = true;
-	SetActorHiddenInGame(false);
+	bTrackingAbandoned = false;
 	SetActorTickEnabled(true);
 
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
@@ -168,47 +173,60 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 
 void ATDProjectile::UpdatePlaceholderLook()
 {
-	bool bShowPlaceholder = true;
-
-	if (TracerFX)
+	// Mesh: Nick's projectile mesh with its own materials, else the engine sphere tinted in squad / enemy colour.
+	UStaticMesh* ArtMesh = (Spec.FX && !Spec.FX->ProjectileMesh.IsNull()) ? Spec.FX->ProjectileMesh.LoadSynchronous() : nullptr;
+	UStaticMesh* WantMesh = ArtMesh ? ArtMesh : DefaultMesh.Get();
+	if (WantMesh && PlaceholderMesh->GetStaticMesh() != WantMesh)
 	{
-		TracerFX->DestroyComponent();
-		TracerFX = nullptr;
+		PlaceholderMesh->SetStaticMesh(WantMesh);
 	}
-
-	if (Spec.FX)
+	if (ArtMesh)
 	{
-		if (!Spec.FX->Tracer.IsNull())
-		{
-			FTDFXCue TracerCue;
-			TracerCue.VFX = Spec.FX->Tracer;
-			TracerFX = UTDStatics::PlayCueAttached(TracerCue, Root);
-			bShowPlaceholder = TracerFX == nullptr;
-		}
-		if (!Spec.FX->ProjectileMesh.IsNull())
-		{
-			if (UStaticMesh* Mesh = Spec.FX->ProjectileMesh.LoadSynchronous())
-			{
-				PlaceholderMesh->SetStaticMesh(Mesh);
-				bShowPlaceholder = true;
-			}
-		}
+		PlaceholderMesh->EmptyOverrideMaterials();
+		PlaceholderMesh->SetRelativeScale3D(FVector::OneVector);
 	}
-
-	PlaceholderMesh->SetVisibility(bShowPlaceholder);
-	if (bShowPlaceholder)
+	else
 	{
-		PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
-		if (!PlaceholderMID)
+		if (!PlaceholderMID && DefaultMaterial)
 		{
-			PlaceholderMID = PlaceholderMesh->CreateDynamicMaterialInstance(0);
+			PlaceholderMID = UMaterialInstanceDynamic::Create(DefaultMaterial, this);
 		}
 		if (PlaceholderMID)
 		{
+			if (PlaceholderMesh->GetMaterial(0) != PlaceholderMID)
+			{
+				PlaceholderMesh->SetMaterial(0, PlaceholderMID);
+			}
 			const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
 			PlaceholderMID->SetVectorParameterValue(TEXT("Color"), Color);
 		}
+		PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
 	}
+
+	// Tracer: one persistent Niagara component per pooled actor.
+	UNiagaraSystem* Tracer = (Spec.FX && !Spec.FX->Tracer.IsNull()) ? Spec.FX->Tracer.LoadSynchronous() : nullptr;
+	if (Tracer)
+	{
+		if (!TracerComp)
+		{
+			TracerComp = NewObject<UNiagaraComponent>(this, TEXT("Tracer"));
+			TracerComp->SetAutoActivate(false);
+			TracerComp->SetupAttachment(Root);
+			TracerComp->RegisterComponent();
+		}
+		if (TracerComp->GetAsset() != Tracer)
+		{
+			TracerComp->SetAsset(Tracer);
+		}
+		TracerComp->Activate(true);
+	}
+	else if (TracerComp)
+	{
+		TracerComp->DeactivateImmediate();
+	}
+
+	// With a tracer and no art mesh, the trail is the look; otherwise show the mesh.
+	PlaceholderMesh->SetVisibility(ArtMesh != nullptr || Tracer == nullptr);
 }
 
 void ATDProjectile::Deactivate()
@@ -219,17 +237,16 @@ void ATDProjectile::Deactivate()
 	}
 	bActive = false;
 	SetActorTickEnabled(false);
-	SetActorHiddenInGame(true);
+	PlaceholderMesh->SetVisibility(false);
 	Velocity = FVector::ZeroVector;
 	HomingTarget = nullptr;
 	Shooter = nullptr;
 	OriginalShooter = nullptr;
 	IgnoreActor = nullptr;
 	OnDetonated.Clear();
-	if (TracerFX)
+	if (TracerComp)
 	{
-		TracerFX->DestroyComponent();
-		TracerFX = nullptr;
+		TracerComp->Deactivate(); // let the ribbon finish
 	}
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 	{
@@ -284,6 +301,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 		HomingTarget = nullptr;
 	}
 	TrackingBlockedFor = 0.f;
+	bTrackingAbandoned = false;
 
 	// A returned shot gets a fresh lifetime so it can make it home.
 	Age = 0.f;
@@ -335,6 +353,7 @@ void ATDProjectile::Detonate()
 void ATDProjectile::SetHomingTarget(AActor* NewTarget)
 {
 	HomingTarget = NewTarget;
+	bTrackingAbandoned = false;
 	if (NewTarget)
 	{
 		Spec.bHoming = true;
@@ -348,6 +367,7 @@ void ATDProjectile::BreakTracking(float Seconds, bool bReacquire)
 	if (!bReacquire)
 	{
 		HomingTarget = nullptr;
+		bTrackingAbandoned = true;
 	}
 }
 
@@ -439,9 +459,22 @@ void ATDProjectile::Step(float DeltaSeconds)
 			{
 				if (Hostile && Hostile != IgnoreActor.Get())
 				{
-					FVector Center;
-					const float Radius = BoundsRadius(Hostile, Center);
-					ConsiderPoint(Center, Radius);
+					// Distance to the actor's own colliding box (not a bounding sphere, not child actors): a carrier's
+					// bays and turrets fuse where they are, not 2000 cm out on the carrier's bounding sphere.
+					FVector Origin, Extent;
+					Hostile->GetActorBounds(true, Origin, Extent, false);
+					if (Extent.IsNearlyZero())
+					{
+						ConsiderPoint(Hostile->GetActorLocation(), 50.f);
+						continue;
+					}
+					const FBox Box(Origin - Extent, Origin + Extent);
+					// Closest approach of the segment to the box: sample the segment's closest point to the centre,
+					// then refine once against the box surface.
+					FVector OnSeg = FMath::ClosestPointOnSegment(Origin, Start, End);
+					const FVector OnBox = Box.GetClosestPointTo(OnSeg);
+					OnSeg = FMath::ClosestPointOnSegment(OnBox, Start, End);
+					ConsiderPoint(Box.GetClosestPointTo(OnSeg), 0.f);
 				}
 			}
 		}
@@ -512,7 +545,7 @@ void ATDProjectile::UpdateHoming(float DeltaSeconds)
 	if (!IsLiveTarget(Target))
 	{
 		HomingTarget = nullptr;
-		if (DeflectCount == 0 || bReacquireAfterBlock)
+		if (!bTrackingAbandoned && (DeflectCount == 0 || bReacquireAfterBlock))
 		{
 			AcquireHomingTarget();
 		}
@@ -659,7 +692,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 
 	if (Victim && CanDamage(Victim))
 	{
-		DealDamage(Victim, Spec.Damage, Hit.ImpactPoint);
+		DealDamage(Victim, Spec.Damage, Hit.ImpactPoint, Dir);
 		ApplyKnockback(Victim);
 	}
 	if (Spec.SplashRadius > 0.f)
@@ -678,12 +711,12 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	Deactivate();
 }
 
-void ATDProjectile::DealDamage(AActor* Victim, float Amount, const FVector& FromLocation)
+void ATDProjectile::DealDamage(AActor* Victim, float Amount, const FVector& FromLocation, const FVector& Direction)
 {
 	UTDHealthComponent* Health = UTDStatics::GetHealth(Victim);
 	const bool bWasAlive = Health && Health->IsAlive();
 	const float Dealt = UTDStatics::ApplyTDDamage(Victim, Amount * DamageMultiplier, Spec.DamageKind, Shooter.Get(), this, FromLocation,
-		Velocity.GetSafeNormal());
+		Direction);
 
 	if (bReportHits && Dealt > 0.f)
 	{
@@ -727,7 +760,9 @@ void ATDProjectile::ApplySplash(const FVector& Center, AActor* Exclude)
 			{
 				if (IsValid(V))
 				{
-					DealDamage(V, SplashAmount, Center);
+					// Blast pushes outward from its centre: the gunship's frontal shield judges by this, not by the shell's heading.
+					const FVector Out = (V->GetActorLocation() - Center).GetSafeNormal();
+					DealDamage(V, SplashAmount, Center, Out.IsNearlyZero() ? Velocity.GetSafeNormal() : Out);
 				}
 			}
 		}

@@ -3,6 +3,7 @@
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDEventBus.h"
 #include "Engine/World.h"
 
 UTDProjectileSubsystem* UTDProjectileSubsystem::Get(const UObject* WorldContext)
@@ -20,7 +21,9 @@ ATDProjectile* UTDProjectileSubsystem::Acquire()
 {
 	while (Pool.Num() > 0)
 	{
-		ATDProjectile* P = Pool.Pop(EAllowShrinking::No);
+		// FIFO: the oldest released projectile is reused first, so fading tracers finish.
+		ATDProjectile* P = Pool[0];
+		Pool.RemoveAt(0, 1, EAllowShrinking::No);
 		if (IsValid(P))
 		{
 			return P;
@@ -96,8 +99,55 @@ void UTDProjectileSubsystem::FindMissilesHomingOn(const AActor* Target, TArray<A
 	}
 }
 
+void UTDProjectileSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+	Super::OnWorldBeginPlay(InWorld);
+	if (UTDEventBus* Bus = UTDEventBus::Get(&InWorld))
+	{
+		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleSceneCut);
+		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleTakeStarted);
+	}
+}
+
+void UTDProjectileSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds)
+{
+	KillAll(false);
+}
+
+void UTDProjectileSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)
+{
+	// Retakes only: a first take (new wave) keeps whatever the player has running.
+	if (TakeNumber > 1)
+	{
+		KillAll(false);
+	}
+}
+
+int32 UTDProjectileSubsystem::KillAll(bool bPlayFX)
+{
+	TArray<ATDProjectile*> ToKill;
+	for (ATDProjectile* P : Live)
+	{
+		if (IsValid(P) && P->IsActive())
+		{
+			ToKill.Add(P);
+		}
+	}
+	for (ATDProjectile* P : ToKill)
+	{
+		P->Kill(bPlayFX);
+	}
+	Live.RemoveAll([](const TObjectPtr<ATDProjectile>& P) { return !IsValid(P) || !P->IsActive(); });
+	return ToKill.Num();
+}
+
 void UTDProjectileSubsystem::Deinitialize()
 {
+	if (UTDEventBus* Bus = UTDEventBus::Get(GetWorld()))
+	{
+		Bus->OnSceneCut.RemoveAll(this);
+		Bus->OnTakeStarted.RemoveAll(this);
+	}
 	Pool.Reset();
 	Live.Reset();
 	Super::Deinitialize();

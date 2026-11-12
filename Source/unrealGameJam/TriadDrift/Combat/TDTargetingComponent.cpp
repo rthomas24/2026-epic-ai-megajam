@@ -113,6 +113,44 @@ float UTDTargetingComponent::GetLeadSpeed() const
 	return 0.f;
 }
 
+namespace
+{
+	/** Smallest positive t with |D + V t| = S t (constant-velocity target, straight shot at ground speed S). */
+	bool SolveIntercept(const FVector& D, const FVector& V, double S, double& OutT)
+	{
+		const double A = FVector::DotProduct(V, V) - S * S;
+		const double B = 2.0 * FVector::DotProduct(D, V);
+		const double C = FVector::DotProduct(D, D);
+		double T = -1.0;
+		if (FMath::Abs(A) < 1e-6)
+		{
+			if (FMath::Abs(B) > 1e-6)
+			{
+				T = -C / B;
+			}
+		}
+		else
+		{
+			const double Disc = B * B - 4.0 * A * C;
+			if (Disc >= 0.0)
+			{
+				const double Sqrt = FMath::Sqrt(Disc);
+				const double T1 = (-B - Sqrt) / (2.0 * A);
+				const double T2 = (-B + Sqrt) / (2.0 * A);
+				const double Lo = FMath::Min(T1, T2);
+				const double Hi = FMath::Max(T1, T2);
+				T = Lo > 0.0 ? Lo : Hi;
+			}
+		}
+		if (T <= 0.0 || !FMath::IsFinite(T))
+		{
+			return false;
+		}
+		OutT = T;
+		return true;
+	}
+}
+
 FVector UTDTargetingComponent::ComputeInterceptPoint(const FVector& ShooterLocation, const FVector& ShooterVelocity, const FVector& TargetLocation,
 	const FVector& TargetVelocity, float ProjectileSpeed)
 {
@@ -120,39 +158,29 @@ FVector UTDTargetingComponent::ComputeInterceptPoint(const FVector& ShooterLocat
 	{
 		return TargetLocation;
 	}
-	// The shot inherits the shooter's motion, so solve in the shooter's frame: |D + V t| = s t.
+	// Matches ATDProjectile: a shot fired along Dir flies at Speed + max(0, ShooterVel . Dir) along Dir (only the
+	// forward part of the shooter's velocity is inherited; lateral drift velocity is not). Solve in the world frame
+	// with that ground speed, re-evaluating the speed for the new aim direction (two refinement passes).
 	const FVector D = TargetLocation - ShooterLocation;
-	const FVector V = TargetVelocity - ShooterVelocity;
-	const float A = FVector::DotProduct(V, V) - ProjectileSpeed * ProjectileSpeed;
-	const float B = 2.f * FVector::DotProduct(D, V);
-	const float C = FVector::DotProduct(D, D);
-
-	float T = -1.f;
-	if (FMath::Abs(A) < KINDA_SMALL_NUMBER)
+	FVector Dir = D.GetSafeNormal();
+	FVector Aim = TargetLocation;
+	for (int32 Pass = 0; Pass < 3; ++Pass)
 	{
-		if (FMath::Abs(B) > KINDA_SMALL_NUMBER)
+		const double GroundSpeed = ProjectileSpeed + FMath::Max(0.0, FVector::DotProduct(ShooterVelocity, Dir));
+		double T;
+		if (!SolveIntercept(D, TargetVelocity, GroundSpeed, T))
 		{
-			T = -C / B;
+			return TargetLocation;
 		}
-	}
-	else
-	{
-		const float Disc = B * B - 4.f * A * C;
-		if (Disc >= 0.f)
+		Aim = TargetLocation + TargetVelocity * T;
+		const FVector NewDir = (Aim - ShooterLocation).GetSafeNormal();
+		if (NewDir.Equals(Dir, 1e-5))
 		{
-			const float Sqrt = FMath::Sqrt(Disc);
-			const float T1 = (-B - Sqrt) / (2.f * A);
-			const float T2 = (-B + Sqrt) / (2.f * A);
-			const float Lo = FMath::Min(T1, T2);
-			const float Hi = FMath::Max(T1, T2);
-			T = Lo > 0.f ? Lo : Hi;
+			break;
 		}
+		Dir = NewDir;
 	}
-	if (T <= 0.f || !FMath::IsFinite(T))
-	{
-		return TargetLocation;
-	}
-	return TargetLocation + V * T;
+	return Aim;
 }
 
 bool UTDTargetingComponent::GetLeadIndicator(FVector& OutWorldLocation) const
@@ -164,7 +192,14 @@ bool UTDTargetingComponent::GetLeadIndicator(FVector& OutWorldLocation) const
 	{
 		return false;
 	}
-	OutWorldLocation = ComputeInterceptPoint(Owner->GetActorLocation(), Owner->GetVelocity(), Target->GetActorLocation(), Target->GetVelocity(), Speed);
+	bool bInherit = true;
+	if (const UTDWeaponComponent* Weapons = Owner->FindComponentByClass<UTDWeaponComponent>())
+	{
+		const FTDWeaponSpec& Spec = Weapons->GetSpec(ETDWeaponSlot::Primary);
+		bInherit = !Spec.IsValid() || Spec.Projectile.bInheritShooterVelocity;
+	}
+	OutWorldLocation = ComputeInterceptPoint(Owner->GetActorLocation(), bInherit ? Owner->GetVelocity() : FVector::ZeroVector,
+		Target->GetActorLocation(), Target->GetVelocity(), Speed);
 	return true;
 }
 
@@ -186,6 +221,13 @@ void UTDTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	if (bPainting)
 	{
 		UpdatePainting(DeltaTime);
+	}
+	else
+	{
+		// Selection runs at UpdateHz; brackets are re-projected every frame so they never lag the camera.
+		Hostiles.RemoveAll([](const AActor* A) { return !IsValid(A); });
+		MissileScratch.RemoveAll([](const ATDProjectile* P) { return !IsValid(P) || !P->IsActive(); });
+		UpdateMarkers();
 	}
 }
 
@@ -271,6 +313,20 @@ void UTDTargetingComponent::UpdateSoftTarget()
 	SetCurrentTarget(Best);
 }
 
+void UTDTargetingComponent::SetManualTarget(AActor* Target)
+{
+	if (Target && IsValidTarget(Target))
+	{
+		SetCurrentTarget(Target);
+		bManualTarget = true;
+	}
+	else
+	{
+		bManualTarget = false;
+		UpdateSoftTarget();
+	}
+}
+
 void UTDTargetingComponent::CycleTarget()
 {
 	PruneLocks();
@@ -293,6 +349,7 @@ void UTDTargetingComponent::CycleTarget()
 	const int32 NextIndex = (CurrentIndex == INDEX_NONE) ? 0 : (CurrentIndex + 1) % Candidates.Num();
 	SetCurrentTarget(Candidates[NextIndex]);
 	bManualTarget = true;
+	UpdateMissileWarning();
 	UpdateMarkers();
 }
 

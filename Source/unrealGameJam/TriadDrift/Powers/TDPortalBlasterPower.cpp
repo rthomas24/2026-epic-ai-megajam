@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
@@ -367,6 +368,10 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		return nullptr;
 	}
 	Portal->Init(Owner, PortalRadius, TransitParams, TravelFX, ExitClearanceRadius);
+	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
+	{
+		Subsystem->RegisterTransient(Portal);
+	}
 	if (Portals.Num() >= 2)
 	{
 		// A third shot recycles the oldest.

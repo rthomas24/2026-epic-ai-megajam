@@ -71,7 +71,8 @@ bool UTDPortalTransit::TransitActor(AActor* Actor, const FTransform& Entry, cons
 				}
 				if (Bus)
 				{
-					Bus->BroadcastHighlightMoment(ETDHighlightKind::MissileReturn, P, 0.8f);
+					AActor* Subject = P->GetOriginalShooter() ? P->GetOriginalShooter() : P;
+					Bus->BroadcastHighlightMoment(ETDHighlightKind::MissileReturn, Subject, 0.8f);
 				}
 			}
 		}

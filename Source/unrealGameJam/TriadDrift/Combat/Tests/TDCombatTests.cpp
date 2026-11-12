@@ -347,11 +347,11 @@ bool FTDCombatBlocked::RunTest(const FString& Parameters)
 
 	Weapons->SetNextShotDamageMultiplier(3.f);
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
-	const ATDProjectile* First = Weapons->GetLastFired().Num() ? Weapons->GetLastFired()[0].Get() : nullptr;
+	const ATDProjectile* First = Weapons->GetLastFiredProjectile(0);
 	TestTrue(TEXT("next-shot multiplier applied"), First && FMath::IsNearlyEqual(First->GetDamageMultiplier(), 3.75f, 0.001f));
 	W.Advance(0.2f);
 	Weapons->FireOnce(ETDWeaponSlot::Primary);
-	const ATDProjectile* Second = Weapons->GetLastFired().Num() ? Weapons->GetLastFired()[0].Get() : nullptr;
+	const ATDProjectile* Second = Weapons->GetLastFiredProjectile(0);
 	TestTrue(TEXT("next-shot multiplier used once"), Second && FMath::IsNearlyEqual(Second->GetDamageMultiplier(), 1.25f, 0.001f));
 
 	TestFalse(TEXT("empty slot cannot fire"), Weapons->FireOnce(ETDWeaponSlot::Secondary));

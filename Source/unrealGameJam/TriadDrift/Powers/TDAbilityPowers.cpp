@@ -4,6 +4,7 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -215,6 +216,10 @@ bool UTDGravityWellPower::OnActivate()
 	Well->DamagePerSecond = DamagePerSecond;
 	Well->ImplosionDamage = ImplosionDamage;
 	Well->Launch(Owner, GetOwnerTeam(), Aim, FX);
+	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
+	{
+		Subsystem->RegisterTransient(Well);
+	}
 	LastWell = Well;
 	return true;
 }

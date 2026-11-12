@@ -7,11 +7,36 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
 
 UTDPowerComponent::UTDPowerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.TickGroup = TG_PrePhysics;
+}
+
+void UTDPowerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
+	{
+		ResetHandle = Subsystem->OnPowersReset.AddUObject(this, &UTDPowerComponent::HandlePowersReset);
+	}
+}
+
+void UTDPowerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
+	{
+		Subsystem->OnPowersReset.Remove(ResetHandle);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void UTDPowerComponent::HandlePowersReset()
+{
+	EndPower(true);
+	CooldownRemaining = 0.f;
 }
 
 bool UTDPowerComponent::CanActivate() const
