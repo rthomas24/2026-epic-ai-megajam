@@ -302,6 +302,7 @@ bool FTDGroundBindings::RunTest(const FString& Parameters)
 		{ TEXT("IA_Ground_Dash"), EKeys::Q }, { TEXT("IA_Ground_Crouch"), EKeys::LeftControl }, { TEXT("IA_Ground_Attack"), EKeys::LeftMouseButton },
 		{ TEXT("IA_Ground_Block"), EKeys::RightMouseButton }, { TEXT("IA_Ground_Interact"), EKeys::E }, { TEXT("IA_Ground_Ping"), EKeys::Tab },
 		{ TEXT("IA_Ground_Jump"), EKeys::Gamepad_FaceButton_Bottom }, { TEXT("IA_Ground_Attack"), EKeys::Gamepad_RightTrigger },
+		{ TEXT("IA_Ground_Pause"), EKeys::Escape }, { TEXT("IA_Ground_Pause"), EKeys::Gamepad_Special_Right },
 	};
 	for (const FExpect& E : Expected)
 	{
@@ -322,7 +323,7 @@ bool FTDGroundBindings::RunTest(const FString& Parameters)
 	{
 		Mapped.Add(M.Action);
 	}
-	TestEqual(TEXT("10 ground actions"), Mapped.Num(), 10);
+	TestEqual(TEXT("11 ground actions (pause added)"), Mapped.Num(), 11);
 	for (const UInputAction* A : Mapped)
 	{
 		TestTrue(FString::Printf(TEXT("%s is bound to a handler"), *GetNameSafe(A)), Bound.Contains(A));
