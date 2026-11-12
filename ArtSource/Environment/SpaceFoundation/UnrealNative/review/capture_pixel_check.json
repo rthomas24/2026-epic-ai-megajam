@@ -1,0 +1,37 @@
+[
+  {
+    "sampled_mean_max_channel": 57.88563368055556,
+    "width": 1280,
+    "height": 720,
+    "image": "Hero_Panorama.png",
+    "sampled_max": 213
+  },
+  {
+    "sampled_mean_max_channel": 21.905924479166668,
+    "width": 1280,
+    "height": 720,
+    "image": "Combat_Panorama.png",
+    "sampled_max": 184
+  },
+  {
+    "sampled_mean_max_channel": 34.93153211805556,
+    "width": 1280,
+    "height": 720,
+    "image": "Verdance_Panorama.png",
+    "sampled_max": 240
+  },
+  {
+    "sampled_mean_max_channel": 42.761935763888886,
+    "width": 1280,
+    "height": 720,
+    "image": "Hero_LongitudeSeam.png",
+    "sampled_max": 205
+  },
+  {
+    "sampled_mean_max_channel": 6.233072916666667,
+    "width": 1280,
+    "height": 720,
+    "image": "Hero_NorthPole.png",
+    "sampled_max": 205
+  }
+]

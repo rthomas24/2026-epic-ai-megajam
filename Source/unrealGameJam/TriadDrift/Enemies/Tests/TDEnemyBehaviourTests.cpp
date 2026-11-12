@@ -128,14 +128,17 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBehTargets, "TriadDrift.Enemies.Behaviour.In
 bool FTDBehTargets::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDSpacecraft* Wingman = TDEnemyBeh_SquadShip(W, FVector(5000.f, 0.f, 0.f));
-	ATDSpacecraft* PlayerShip = TDEnemyBeh_SquadShip(W, FVector(-30000.f, 0.f, 0.f), /*bPossess*/ true);
+	ATDSpacecraft* Wingman = TDEnemyBeh_SquadShip(W, FVector(20000.f, 0.f, 0.f));
+	ATDSpacecraft* PlayerShip = TDEnemyBeh_SquadShip(W, FVector(-40000.f, 0.f, 0.f), /*bPossess*/ true);
 	ATDEnemyShip* I = TDEnemyBeh_Enemy(W, TDEnemyIds::HookInterceptor, FVector::ZeroVector, true);
-	ATDEnemyShip* F = TDEnemyBeh_Enemy(W, TDEnemyIds::ShardFighter, FVector(0.f, 500.f, 0.f), true);
+	ATDEnemyShip* F = TDEnemyBeh_Enemy(W, TDEnemyIds::ShardFighter, FVector(0.f, 2000.f, 0.f), true);
+	if (!TestNotNull(TEXT("fighter AI"), TDEnemyBeh_AIOf(F)) || !TestNotNull(TEXT("interceptor AI"), TDEnemyBeh_AIOf(I))) { return false; }
 	TDEnemyBeh_AIOf(F)->SetPrefersPlayerShip(false);
 	W.Advance(1.5f);
-	TestTrue(TEXT("interceptor targets the possessed ship"), TDEnemyBeh_AIOf(I)->GetTarget() == PlayerShip);
-	TestTrue(TEXT("fighter targets the nearest squad ship (any ship, wingmen too)"), TDEnemyBeh_AIOf(F)->GetTarget() == Wingman);
+	const ATDEnemyAIController* IAI = TDEnemyBeh_AIOf(I);
+	const ATDEnemyAIController* FAI = TDEnemyBeh_AIOf(F);
+	TestTrue(TEXT("interceptor targets the possessed ship"), IAI && IAI->GetTarget() == PlayerShip);
+	TestTrue(TEXT("fighter targets the nearest squad ship (any ship, wingmen too)"), FAI && FAI->GetTarget() == Wingman);
 	return true;
 }
 

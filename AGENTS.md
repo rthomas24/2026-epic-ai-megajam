@@ -516,7 +516,33 @@ Check that a machine's Blender works with the skills:
 - **Stay in your role** (features.md §1 and §2). Ask before touching the other role's systems or
   folders.
 - Keep the game **always playable** on `main`.
-- Verify changes in the editor (Play In Editor) before committing, and report honestly what was and
-  wasn't tested.
+- Verify changes in the running game before committing (Play In Editor, or the headless tools for
+  agents working in worktrees), and report honestly what was and wasn't tested. See "Playtests" below.
 - When you're unsure whether something conflicts with the teammate's work, **ask your human. Don't
   guess.**
+
+### Playtests (mandatory, both sides)
+Automation tests and screenshots prove that code runs. They do not prove the game is fun, readable
+or even finishable. So `main` is **played** regularly, not only tested:
+
+- **Who and when:** each side's Lead playtests the current `main` after every integration batch,
+  and at least every two hours while work is landing. Workers playtest their own feature in their
+  own worktree before reporting it done.
+- **How:** a real windowed session, not a headless test. A human at the controls is best. An agent
+  does it by driving a running game: launch it on a private port with the engine's built-in MCP
+  server (`-ModelContextProtocolPort=<port>`), inject inputs, capture the viewport, read the log.
+  Scripted captures with `Tools/td-shot.ps1` are the minimum when neither is possible; say which of
+  the three it was.
+- **What to cover (engineering checklist):** boot from the default map; fly, boost and drift; switch
+  between all three ships; clear a wave; use each ship's signature power and any unlocked ability;
+  die and see the "CUT!" retake; hyperdrive; fly through a portal gate; enter a planet, land, walk,
+  use the blade, finish an objective, take off and return; the Dominion assault through to victory.
+  Play whatever part of that exists today, in the packaged build at least once a day.
+- **What to cover (presentation checklist):** every new asset or effect is seen in the running game
+  on the real map at gameplay distance and speed: readable silhouette, the squad / enemy colour
+  code, no clipping, sound heard in context, frame rate acceptable.
+- **Record it:** add a short dated entry to `DEVLOG.md`: build or commit played, how it was played,
+  what worked, what was broken or felt wrong, screenshots. Send each problem to the owner as a
+  task; anything that breaks the three-ship switching or combat feel is fixed before new features.
+- **Never report a feature as done on tests alone.** State plainly whether it has been played, and
+  by whom or what.

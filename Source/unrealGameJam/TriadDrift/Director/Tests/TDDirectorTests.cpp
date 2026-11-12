@@ -94,73 +94,144 @@ using namespace TDDirectorTests;
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorRamKill, "TriadDrift.Director.RamKillIsAMoneyShot", TD_TEST_FLAGS)
 bool FTDDirectorRamKill::RunTest(const FString& Parameters)
 {
-	FDirectorFixture F;
-	if (!TestNotNull(TEXT("director subsystem exists in game worlds"), F.Director))
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
 	{
-		return false;
+		FDirectorFixture F;
+		if (!TestNotNull(TEXT("director subsystem exists in game worlds"), F.Director))
+		{
+			return false;
+		}
+		F.KillEnemy(ETDDamageKind::Ram);
+		TestEqual(TEXT("one OnHighlightMoment"), F.Events->Highlights, 1);
+		TestTrue(TEXT("kind = RamKill"), F.Events->LastHighlight == ETDHighlightKind::RamKill);
+		TestTrue(TEXT("importance in (0,1]"), F.Events->LastImportance > 0.f && F.Events->LastImportance <= 1.f);
+		TestTrue(TEXT("shot active"), F.Director->IsShotActive());
+		TestTrue(TEXT("slow-mo requested"), F.SlowMo());
+		const FTDDirectorShot& Shot = F.Director->GetCurrentShot();
+		TestTrue(TEXT("0.5-1 s of slow-mo"), Shot.DurationSeconds >= 0.5f && Shot.DurationSeconds <= 1.f);
+		TestTrue(TEXT("dilation is a slow-down"), Shot.Dilation > 0.f && Shot.Dilation < 1.f);
+		TestTrue(TEXT("ram shot frames the rammer"), Shot.Subject.Get() == F.Player);
+		F.W.Advance(1.2f, Step);
+		TestFalse(TEXT("shot over"), F.Director->IsShotActive());
+		TestFalse(TEXT("slow-mo over"), F.SlowMo());
+		TestEqual(TEXT("shot counted"), F.Director->GetShotCount(), 1);
 	}
-	F.KillEnemy(ETDDamageKind::Ram);
-	TestEqual(TEXT("one OnHighlightMoment"), F.Events->Highlights, 1);
-	TestTrue(TEXT("kind = RamKill"), F.Events->LastHighlight == ETDHighlightKind::RamKill);
-	TestTrue(TEXT("importance in (0,1]"), F.Events->LastImportance > 0.f && F.Events->LastImportance <= 1.f);
-	TestTrue(TEXT("shot active"), F.Director->IsShotActive());
-	TestTrue(TEXT("slow-mo requested"), F.SlowMo());
-	const FTDDirectorShot& Shot = F.Director->GetCurrentShot();
-	TestTrue(TEXT("0.5-1 s of slow-mo"), Shot.DurationSeconds >= 0.5f && Shot.DurationSeconds <= 1.f);
-	TestTrue(TEXT("dilation is a slow-down"), Shot.Dilation > 0.f && Shot.Dilation < 1.f);
-	TestTrue(TEXT("ram shot frames the rammer"), Shot.Subject.Get() == F.Player);
-	F.W.Advance(1.2f);
-	TestFalse(TEXT("shot over"), F.Director->IsShotActive());
-	TestFalse(TEXT("slow-mo over"), F.SlowMo());
-	TestEqual(TEXT("shot counted"), F.Director->GetShotCount(), 1);
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorMultiKill, "TriadDrift.Director.MultiKillWindow", TD_TEST_FLAGS)
 bool FTDDirectorMultiKill::RunTest(const FString& Parameters)
 {
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
 	{
-		FDirectorFixture F;
-		F.KillEnemy();
-		F.W.Advance(0.5f);
-		F.KillEnemy();
-		TestEqual(TEXT("two kills are not a multi-kill"), F.Events->Highlights, 0);
-		F.W.Advance(0.5f);
-		F.KillEnemy();
-		TestEqual(TEXT("three kills in 1 s = multi-kill"), F.Events->Highlights, 1);
-		TestTrue(TEXT("kind = MultiKill"), F.Events->LastHighlight == ETDHighlightKind::MultiKill);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		{
+			FDirectorFixture F;
+			F.KillEnemy();
+			F.W.Advance(0.5f, Step);
+			F.KillEnemy();
+			TestEqual(TEXT("two kills are not a multi-kill") + Fps, F.Events->Highlights, 0);
+			F.W.Advance(0.5f, Step);
+			F.KillEnemy();
+			TestEqual(TEXT("three kills in 1 s = multi-kill") + Fps, F.Events->Highlights, 1);
+			TestTrue(TEXT("kind = MultiKill") + Fps, F.Events->LastHighlight == ETDHighlightKind::MultiKill);
+			TestTrue(TEXT("below the story tier") + Fps, F.Events->LastImportance < 0.8f);
+		}
+		{
+			FDirectorFixture F;
+			F.KillEnemy();
+			F.W.Advance(0.8f, Step);
+			F.KillEnemy();
+			F.W.Advance(0.8f, Step);
+			F.KillEnemy();
+			TestEqual(TEXT("three kills over 1.6 s are not a multi-kill") + Fps, F.Events->Highlights, 0);
+		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorMultiKillSustained, "TriadDrift.Director.MultiKillSustainedAndCapped", TD_TEST_FLAGS)
+bool FTDDirectorMultiKillSustained::RunTest(const FString& Parameters)
+{
+	FDirectorFixture F;
+	// Six kills in a burst: one multi-kill at three, then a fresh streak (no escalation into story beats).
+	for (int32 i = 0; i < 6; ++i)
 	{
-		FDirectorFixture F;
 		F.KillEnemy();
-		F.W.Advance(0.8f);
-		F.KillEnemy();
-		F.W.Advance(0.8f);
-		F.KillEnemy();
-		TestEqual(TEXT("three kills over 1.6 s are not a multi-kill"), F.Events->Highlights, 0);
+		F.W.Advance(0.2f);
 	}
+	TestEqual(TEXT("one multi-kill for the burst (the second is rate-limited)"), F.Events->Highlights, 1);
+	TestTrue(TEXT("never story-tier"), F.Events->LastImportance < 0.8f);
+	// A sustained fight keeps producing multi-kills once the cooldowns allow.
+	F.W.Advance(7.f);
+	for (int32 i = 0; i < 3; ++i)
+	{
+		F.KillEnemy();
+		F.W.Advance(0.2f);
+	}
+	TestEqual(TEXT("multi-kills re-trigger in a sustained fight"), F.Events->Highlights, 2);
+	// Slow-mo must not stretch the window: 3 kills spread over 1.6 s of REAL time during slow-mo.
+	F.W.Advance(7.f);
+	UTDFeelSubsystem::Get(F.W.GetWorld())->RequestSlowMo(5.f, 0.2f);
+	F.KillEnemy();
+	F.W.Advance(0.8f);
+	F.KillEnemy();
+	F.W.Advance(0.8f);
+	F.KillEnemy();
+	TestEqual(TEXT("window is real time (slow-mo doesn't stretch it)"), F.Events->Highlights, 2);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorWingmanKills, "TriadDrift.Director.WingmanKillsDontCountForMultiKill", TD_TEST_FLAGS)
+bool FTDDirectorWingmanKills::RunTest(const FString& Parameters)
+{
+	FDirectorFixture F;
+	APlayerController* PC = F.W.SpawnPlayerController();
+	ATDSquadManager* Squad = F.W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	F.W.Tick();
+	ATDShip* Wingman = Squad->GetShip(ETDShipId::Lancer);
+	for (int32 i = 0; i < 4; ++i)
+	{
+		F.KillEnemy(ETDDamageKind::Kinetic, NAME_None, Wingman);
+		F.W.Advance(0.2f);
+	}
+	TestEqual(TEXT("wingman kills never make a multi-kill"), F.Events->Highlights, 0);
+	for (int32 i = 0; i < 3; ++i)
+	{
+		F.KillEnemy(ETDDamageKind::Kinetic, NAME_None, Squad->GetActiveShip());
+		F.W.Advance(0.2f);
+	}
+	TestTrue(TEXT("the player's own three do"), F.Events->Highlights == 1 && F.Events->LastHighlight == ETDHighlightKind::MultiKill);
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorRateLimit, "TriadDrift.Director.RateLimitedButBigMomentsPreempt", TD_TEST_FLAGS)
 bool FTDDirectorRateLimit::RunTest(const FString& Parameters)
 {
-	FDirectorFixture F;
-	F.KillEnemy(ETDDamageKind::Ram);
-	TestEqual(TEXT("first ram kill"), F.Events->Highlights, 1);
-	F.W.Advance(0.3f);
-	F.KillEnemy(ETDDamageKind::Ram);
-	TestEqual(TEXT("second ram kill during the shot is suppressed"), F.Events->Highlights, 1);
-	F.W.Advance(0.1f);
-	F.KillEnemy(ETDDamageKind::Energy, TDDirectorTags::Generator);
-	TestEqual(TEXT("a generator kill takes over the shot"), F.Events->Highlights, 2);
-	TestTrue(TEXT("kind = GeneratorKill"), F.Events->LastHighlight == ETDHighlightKind::GeneratorKill);
-	F.W.Advance(1.5f);
-	F.KillEnemy(ETDDamageKind::Ram);
-	TestEqual(TEXT("ram kill inside the global cooldown is suppressed"), F.Events->Highlights, 2);
-	F.W.Advance(6.f);
-	F.KillEnemy(ETDDamageKind::Ram);
-	TestEqual(TEXT("allowed again after the cooldowns"), F.Events->Highlights, 3);
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FDirectorFixture F;
+		F.KillEnemy(ETDDamageKind::Ram); // t = 0, a 0.8 s shot -> global cooldown ends ~3.8 s, ram cooldown 6 s
+		TestEqual(TEXT("first ram kill") + Fps, F.Events->Highlights, 1);
+		F.W.Advance(0.3f, Step);
+		F.KillEnemy(ETDDamageKind::Ram);
+		TestEqual(TEXT("second ram kill during the shot is suppressed") + Fps, F.Events->Highlights, 1);
+		F.W.Advance(2.f, Step); // t = 2.3: inside the 3 s global cooldown
+		TestFalse(TEXT("another kind inside the global cooldown is suppressed") + Fps, F.Director->ReportHighlight(ETDHighlightKind::MissileReturn, F.Player));
+		F.W.Advance(2.f, Step); // t = 4.3: global over, ram's 6 s still running
+		TestFalse(TEXT("same kind still on its 6 s cooldown") + Fps, F.KillEnemy(ETDDamageKind::Ram) && F.Events->LastHighlight == ETDHighlightKind::RamKill && F.Events->Highlights == 2);
+		TestTrue(TEXT("a different kind is allowed after the global cooldown") + Fps, F.Director->ReportHighlight(ETDHighlightKind::MissileReturn, F.Player));
+		F.W.Advance(0.1f, Step);
+		F.KillEnemy(ETDDamageKind::Energy, TDDirectorTags::Generator);
+		TestTrue(TEXT("a story beat takes over any smaller shot") + Fps, F.Events->LastHighlight == ETDHighlightKind::GeneratorKill);
+		const int32 Before = F.Events->Highlights;
+		F.W.Advance(7.f, Step);
+		F.KillEnemy(ETDDamageKind::Ram);
+		TestEqual(TEXT("ram allowed again after both cooldowns") + Fps, F.Events->Highlights, Before + 1);
+	}
 	return true;
 }
 
@@ -204,25 +275,28 @@ bool FTDDirectorEnemyKills::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorSceneCut, "TriadDrift.Director.SuppressedDuringRetake", TD_TEST_FLAGS)
 bool FTDDirectorSceneCut::RunTest(const FString& Parameters)
 {
-	FDirectorFixture F;
-	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
-	if (!TestNotNull(TEXT("bus"), Bus))
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
 	{
-		return false;
+		FDirectorFixture F;
+		UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+		if (!TestNotNull(TEXT("bus"), Bus))
+		{
+			return false;
+		}
+		F.KillEnemy(ETDDamageKind::Ram);
+		TestTrue(TEXT("slow-mo running"), F.SlowMo());
+		Bus->BroadcastSceneCut(TEXT("Wave1"), 2, 1.5f);
+		TestFalse(TEXT("CUT! cancels the running slow-mo"), F.SlowMo());
+		TestFalse(TEXT("no highlights while the retake is pending"), F.Director->CanTriggerHighlights());
+		F.W.Advance(10.f, Step);
+		F.KillEnemy(ETDDamageKind::Explosive, TDDirectorTags::Reactor);
+		TestEqual(TEXT("even a reactor kill is ignored"), F.Events->Highlights, 1);
+		TestFalse(TEXT("and no slow-mo"), F.SlowMo());
+		Bus->BroadcastTakeStarted(TEXT("Wave1"), 2);
+		TestTrue(TEXT("new take: highlights allowed"), F.Director->CanTriggerHighlights());
+		F.KillEnemy(ETDDamageKind::Explosive, TDDirectorTags::Reactor);
+		TestEqual(TEXT("reactor kill in the new take"), F.Events->Highlights, 2);
 	}
-	F.KillEnemy(ETDDamageKind::Ram);
-	TestTrue(TEXT("slow-mo running"), F.SlowMo());
-	Bus->BroadcastSceneCut(TEXT("Wave1"), 2, 1.5f);
-	TestFalse(TEXT("CUT! cancels the running slow-mo"), F.SlowMo());
-	TestFalse(TEXT("no highlights while the retake is pending"), F.Director->CanTriggerHighlights());
-	F.W.Advance(10.f);
-	F.KillEnemy(ETDDamageKind::Explosive, TDDirectorTags::Reactor);
-	TestEqual(TEXT("even a reactor kill is ignored"), F.Events->Highlights, 1);
-	TestFalse(TEXT("and no slow-mo"), F.SlowMo());
-	Bus->BroadcastTakeStarted(TEXT("Wave1"), 2);
-	TestTrue(TEXT("new take: highlights allowed"), F.Director->CanTriggerHighlights());
-	F.KillEnemy(ETDDamageKind::Explosive, TDDirectorTags::Reactor);
-	TestEqual(TEXT("reactor kill in the new take"), F.Events->Highlights, 2);
 	return true;
 }
 
@@ -257,7 +331,9 @@ bool FTDDirectorReport::RunTest(const FString& Parameters)
 	TestTrue(TEXT("portal missile return reported by T2"), F.Director->ReportHighlight(ETDHighlightKind::MissileReturn, F.Player));
 	TestTrue(TEXT("event fired"), F.Events->Highlights == 1 && F.Events->LastHighlight == ETDHighlightKind::MissileReturn);
 	TestEqual(TEXT("default importance for the kind"), F.Events->LastImportance, 0.55f);
-	TestFalse(TEXT("null-safe: no subject still rate-limited, not a crash"), F.Director->ReportHighlight(ETDHighlightKind::PerfectDeflect, nullptr));
+	FDirectorFixture Fresh;
+	TestFalse(TEXT("no subject is refused even when nothing is rate-limited (no camera at the origin)"), Fresh.Director->ReportHighlight(ETDHighlightKind::ReactorKill, nullptr, 1.f));
+	TestEqual(TEXT("and nothing fired"), Fresh.Events->Highlights, 0);
 	return true;
 }
 
@@ -321,12 +397,15 @@ bool FTDDirectorTravel::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorDeflectBeat, "TriadDrift.Director.PerfectDeflectIsAShortBeat", TD_TEST_FLAGS)
 bool FTDDirectorDeflectBeat::RunTest(const FString& Parameters)
 {
-	FDirectorFixture F;
-	TestTrue(TEXT("perfect deflect accepted"), F.Director->ReportHighlight(ETDHighlightKind::PerfectDeflect, F.Player, 0.6f));
-	TestEqual(TEXT("ENG-22: 0.15 s beat, not a 0.5-1 s money shot"), F.Director->GetCurrentShot().DurationSeconds, 0.15f, 0.001f);
-	TestTrue(TEXT("slow-mo on"), F.SlowMo());
-	F.W.Advance(0.25f);
-	TestFalse(TEXT("over after 0.15 s"), F.SlowMo() || F.Director->IsShotActive());
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
+	{
+		FDirectorFixture F;
+		TestTrue(TEXT("perfect deflect accepted"), F.Director->ReportHighlight(ETDHighlightKind::PerfectDeflect, F.Player, 0.6f));
+		TestEqual(TEXT("ENG-22: 0.15 s beat, not a 0.5-1 s money shot"), F.Director->GetCurrentShot().DurationSeconds, 0.15f, 0.001f);
+		TestTrue(TEXT("slow-mo on"), F.SlowMo());
+		F.W.Advance(0.25f, Step);
+		TestFalse(TEXT("over after 0.15 s"), F.SlowMo() || F.Director->IsShotActive());
+	}
 	return true;
 }
 

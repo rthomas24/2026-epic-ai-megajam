@@ -9,6 +9,7 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Squad/TDSwitchCut.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TDSquadTestListener.generated.h"
 
 class UTDEventBus;
@@ -46,6 +47,10 @@ public:
 	UFUNCTION()
 	void OnSwitchRefused(ETDSwitchRefusal Reason, ETDShipId Ship) { ++Refusals; LastRefusal = Reason; }
 
+	UFUNCTION()
+	void OnDirectorShot(const FTDDirectorShot& Shot) { ++Shots; }
+
+	int32 Shots = 0;
 	int32 Refusals = 0;
 	ETDSwitchRefusal LastRefusal = ETDSwitchRefusal::Cooldown;
 

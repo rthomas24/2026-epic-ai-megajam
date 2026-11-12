@@ -11,6 +11,7 @@
 class UStaticMeshComponent;
 class USceneComponent;
 class UTDDominionVisuals;
+class UTDEnemyVisuals;
 class ATDShieldGenerator;
 class ATDDominionReactor;
 class ATDEnemyTurret;
@@ -59,7 +60,7 @@ struct UNREALGAMEJAM_API FTDDominionStage
  * a GeneratorKill highlight. All four down -> SetDominionState(true, true) and the reactor trench
  * opens. The reactor has a 3-phase health bar with escalating turret fire and fighter launches.
  * Reactor kill -> ReactorKill highlight, OnBreakupStarted (Nick's sequence), then after
- * BreakupSeconds Flow->TravelTo(Victory).
+ * BreakupSeconds Flow->SetPhase(Victory) (a phase on L_Galaxy; there is no victory map).
  *
  * Stretch (ENG-29): set bDockingFinale and override BeginDockingFinale() in a subclass; the core
  * reactor path is then skipped. Not built.
@@ -178,6 +179,13 @@ public:
 
 	// --- Presentation (all optional) ------------------------------------------------------------
 
+	/** Turret cues (TurretTelegraph, TurretDestroyed). Empty = convention asset DA_DominionTurret_Visuals. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TObjectPtr<UTDEnemyVisuals> TurretVisuals;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
+	bool IsVictoryAccepted() const { return bVictoryAccepted; }
+
 	/** Nick's single presentation asset for the whole mothership (hull, generators, reactor). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDDominionVisuals> Visuals;
@@ -198,7 +206,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Dominion")
 	FTDDominionStateSignature OnBreakupStarted;
 
-	virtual ETDTeam GetTeam() const override { return ETDTeam::Enemy; }
+	/** The hull itself is Neutral so it blocks EVERY team's projectiles (trench cover works both ways). Its parts are Enemy. */
+	virtual ETDTeam GetTeam() const override { return ETDTeam::Neutral; }
 	virtual void Tick(float DeltaSeconds) override;
 
 	/** The hull's true size (the root is a bare scene component). */
@@ -222,7 +231,9 @@ protected:
 	void TickLaunches(float DeltaSeconds);
 	void LaunchGroup();
 	void OnDefensesDown(bool bFromSave);
-	void ExposeReactor();
+	void ExposeReactor(bool bPlayCues = true);
+	void LayoutParts();
+	virtual void OnConstruction(const FTransform& Transform) override;
 	void StartShieldIdle();
 	void StopShieldIdle();
 
@@ -282,4 +293,6 @@ protected:
 	int32 LaunchCount = 0;
 	int32 Stage = 0;
 	bool bPartsBuilt = false;
+	bool bVictoryAccepted = false;
+
 };

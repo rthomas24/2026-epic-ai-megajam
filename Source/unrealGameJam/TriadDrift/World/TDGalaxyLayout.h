@@ -7,6 +7,8 @@
 #include "TDGalaxyLayout.generated.h"
 
 class UInstancedStaticMeshComponent;
+class UTDTravelFX;
+class UStaticMesh;
 class ATDPortalGate;
 class ATDPlanetAtmosphere;
 class ATDDominion;
@@ -170,6 +172,43 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
 	bool bSpawnDominion = true;
 
+	// --- Art hooks: BP subclasses / data assets Nick can fill without touching this code ----------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSubclassOf<ATDPortalGate> GateClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSubclassOf<ATDPlanetAtmosphere> PlanetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSubclassOf<ATDDominion> DominionClass;
+
+	/** Portal FX for every gate. Empty = convention asset /Game/TriadDrift/Presentation/DA_Travel_FX. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TObjectPtr<UTDTravelFX> TravelFX;
+
+	/** Optional art meshes for asteroids / ruins (replace the placeholder sphere / cube, keep collision). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSoftObjectPtr<UStaticMesh> AsteroidMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSoftObjectPtr<UStaticMesh> RuinMesh;
+
+	/** Optional art mesh for each gate frame. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSoftObjectPtr<UStaticMesh> GateFrameMesh;
+
+	/** No asteroid within this distance of a gate, return point or the player start (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
+	float AsteroidKeepOut = 7000.f;
+
+	/** True if any keep-out zone (gates, return points, player start) contains Point within Margin. */
+	bool IsInKeepOut(const FVector& LocalPoint, float Margin) const;
+
+	/** Editor-only: draw the gameplay layout (planets, gates, Dominion, return points) in the viewport. */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Galaxy")
+	bool bEditorPreview = true;
+
 	/** Hyperdrive drop-out radius around the Dominion (T1's gravity wells). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
 	float DominionWellRadius = 60000.f;
@@ -189,9 +228,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void OnConstruction(const FTransform& Transform) override;
+	void BuildInstances(bool bRegisterObstacles);
+	void DrawEditorPreview() const;
 
-	void BuildAsteroids();
-	void BuildRuins();
 	void BuildPlanets();
 	void BuildGates();
 	void UpdateGatePhases();

@@ -190,6 +190,18 @@ protected:
 	/** Colour used for the placeholder look (resolved by ApplyPlaceholderLook). */
 	virtual FLinearColor GetPlaceholderColor() const;
 
+	/** Tints the placeholder hull, wings and engine block (no-op once real art replaced them). */
+	void TintPlaceholderParts();
+
+	/** Puts the engine cone back on the hull component (after real art is removed). */
+	void RestorePlaceholderHull();
+
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMesh> PlaceholderHullMesh;
+
+	FRotator PlaceholderHullRotation = FRotator(-90.f, 0.f, 0.f);
+	FVector PlaceholderHullScale = FVector(1.6f, 1.6f, 4.2f);
+
 	bool bPlaceholderParts = true;
 
 	/** Pitch added on top of the visual bank so the nose dips into hard turns (deg at full pitch rate). */

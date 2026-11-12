@@ -31,6 +31,7 @@ $arguments = @(
     "-ExecCmds=`"Automation RunTests $Filter; Quit`"",
     "-TestExit=`"Automation Test Queue Empty`"",
     "-unattended", "-nopause", "-nosplash", "-nullrhi", "-nosound", "-NoLiveCoding",
+    "-ModelContextProtocolPort=$(Get-Random -Minimum 21000 -Maximum 29000)",
     "-abslog=`"$logFile`""
 )
 

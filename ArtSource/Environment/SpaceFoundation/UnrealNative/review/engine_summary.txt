@@ -1,0 +1,3 @@
+LogCsvProfiler: Display: Metadata set : engineversion="5.9.0-60351404+++UE5+Release-5.9"
+[2026.11.12-18.03.08:364][  0]LogInit: Display: Success - 0 error(s), 0 warning(s)
+Execution of commandlet took:  2.73 seconds, PeakPhysMemoryMB=3256 MB, PeakVirtMemoryMB=3844 MB
