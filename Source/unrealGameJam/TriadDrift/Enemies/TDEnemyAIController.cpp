@@ -438,9 +438,21 @@ void ATDEnemyAIController::TryHeavyAttacks(ATDEnemyShip& Ship, AActor& InTarget)
 		// time to wind up AND peel away, so it never launches on the player's flight line. A gunship is a
 		// turret on engines: its bolts fire at a ship charging it (down to a short minimum), and its salvo keeps
 		// its own smaller margin so the missiles have room to arm.
-		if (A->Kind == ETDEnemyAttack::Missile && (Dist < TelegraphMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds + BreakOffTimeToImpact + 0.5f))
+		// The missile is judged where it LAUNCHES (after the wind-up), not where the wind-up starts: at launch it
+		// must be at least TelegraphMinDistance out with time left to peel away. Head-on (closing ~15 000 cm/s)
+		// that means starting the wind-up beyond the missile's nominal range, which is allowed by that much.
+		float EffRange = A->Range;
+		if (A->Kind == ETDEnemyAttack::Missile)
 		{
-			continue;
+			const float Tti = TimeToImpact(Ship, InTarget);
+			const float Closing = (Tti < TNumericLimits<float>::Max() && Tti > KINDA_SMALL_NUMBER) ? Dist / Tti : 0.f;
+			const float LaunchDist = Dist - Closing * A->TelegraphSeconds;
+			const float TtiAtLaunch = Tti - A->TelegraphSeconds;
+			if (LaunchDist < TelegraphMinDistance || TtiAtLaunch < BreakOffTimeToImpact + 0.2f)
+			{
+				continue;
+			}
+			EffRange = A->Range + Closing * A->TelegraphSeconds;
 		}
 		if (A->Kind == ETDEnemyAttack::HeavyBolt && Dist < GunshipBoltMinDistance)
 		{
@@ -450,7 +462,7 @@ void ATDEnemyAIController::TryHeavyAttacks(ATDEnemyShip& Ship, AActor& InTarget)
 		{
 			continue;
 		}
-		if (Dist <= A->Range && Dot >= FMath::Cos(FMath::DegreesToRadians(A->ConeHalfAngleDeg)) && Ship.CanStartAttack(A->Kind))
+		if (Dist <= EffRange && Dot >= FMath::Cos(FMath::DegreesToRadians(A->ConeHalfAngleDeg)) && Ship.CanStartAttack(A->Kind))
 		{
 			if (Ship.TryStartAttack(A->Kind, &InTarget))
 			{
@@ -535,6 +547,10 @@ void ATDEnemyAIController::TickApproach(ATDEnemyShip& Ship, float DeltaSeconds)
 	}
 	Ship.SetGunsFiring(false, nullptr);
 	SteerToward(Ship, GetAimPoint(Ship, *T), 1.f, Dist > Spec.EngageRange * 2.f);
+	if (Spec.Heavy.Kind == ETDEnemyAttack::Missile)
+	{
+		TryHeavyAttacks(Ship, *T);	// the interceptor's missile is a long-range opener, fired on the way in
+	}
 
 	// Start the run where the guns can already land: a target closing head-on meets the bolts further out.
 	if (Dist <= FMath::Max(Spec.EngageRange, Ship.GetGunFireRange(T)))

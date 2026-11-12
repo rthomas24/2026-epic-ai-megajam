@@ -116,6 +116,33 @@ bool FTDRetakeLocksFollowState::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDNoClearDuringCut, "TriadDrift.Waves.Retake.NoClearWhileACutIsPending", TD_TEST_FLAGS)
+bool FTDNoClearDuringCut::RunTest(const FString& Parameters)
+{
+	using namespace TDWaveRetakeTest;
+	// Re-check minor: the last kill during the CUT delay must not run FinishWave's broadcasts or checkpoint.
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	ATDWaveDirector* D = Director(W);
+	GI->Progress.WavesCleared = 1;
+	D->StartWave(1);
+	W.Advance(D->WarpInSeconds + 6.f);
+	const FName Scene = D->GetWaveInfo().SceneId;
+	const int32 ReportsBefore = GI->ReportedWaves.Num();
+	UTDEventBus::Get(W.GetWorld())->BroadcastSceneCut(Scene, 2, 1.75f);	// the squad wiped
+	KillAll(D);
+	W.Advance(1.f);
+	TestTrue(TEXT("still the running wave (not cleared)"), D->GetWaveInfo().bWaveActive);
+	TestEqual(TEXT("no wave-cleared report to the flow"), GI->ReportedWaves.Num(), ReportsBefore);
+	UTDEventBus::Get(W.GetWorld())->BroadcastTakeStarted(Scene, 2);
+	W.Advance(D->WarpInSeconds + 6.f);
+	TestTrue(*FString::Printf(TEXT("the retake runs wave 2 with enemies (%d)"), D->GetLivingEnemies().Num()), D->GetLivingEnemies().Num() > 0 && D->GetWaveInfo().WaveNumber == 2);
+	KillAll(D);
+	W.Tick();
+	TestEqual(TEXT("after the retake a clear counts again"), GI->ReportedWaves.Num(), ReportsBefore + 1);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBreatherRepairOnce, "TriadDrift.Waves.BreatherRepairIsEightPercentOnce", TD_TEST_FLAGS)
 bool FTDBreatherRepairOnce::RunTest(const FString& Parameters)
 {

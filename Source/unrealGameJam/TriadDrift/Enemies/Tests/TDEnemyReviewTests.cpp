@@ -16,6 +16,8 @@
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Powers/TDAbilityPowers.h"
+#include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "HAL/IConsoleManager.h"
 
@@ -155,6 +157,40 @@ bool FTDReviewHeadOnSweep::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Re-check E1: followers fire on their own. A pack of three whose leader holds fire (no pilot) still shoots
+// the player in front of it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewPackFollowersFire, "TriadDrift.Enemies.Review.PackFollowersFireWithoutTheLeader", TD_TEST_FLAGS)
+bool FTDReviewPackFollowersFire::RunTest(const FString& Parameters)
+{
+	using namespace TDEnemyReview;
+	FDefaults Guard(*this);
+	for (const float Fps : Rates)
+	{
+		FTDTestWorld W;
+		ATDSpacecraft* Player = SpawnPlayer(W, FVector(16000.f, 0.f, 0.f), FRotator(0.f, 180.f, 0.f), 3000.f);
+		ATDEnemyShip* Leader = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector::ZeroVector, FRotator::ZeroRotator);
+		if (AController* C = Leader->GetController()) { C->UnPossess(); C->Destroy(); }	// flies straight, never fires
+		Leader->SetSpeedOverrideFor(TEXT("Test"), 3000.f, 0.f);
+		TArray<ATDEnemyShip*> Followers;
+		for (int32 k = 0; k < 2; ++k)
+		{
+			ATDEnemyShip* F = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector(-1200.f, k ? 1500.f : -1500.f, 0.f), FRotator::ZeroRotator);
+			F->SetSpawnSeed(77 + k);
+			if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(F->GetController()))
+			{
+				AI->SetFormationLeader(Leader, FVector(-1200.f, k ? 1500.f : -1500.f, 0.f));
+			}
+			Followers.Add(F);
+		}
+		const float Hull0 = Player->GetHealth()->GetHull();
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 2.5f); ++i) { W.Tick(1.f / Fps); }
+		TestEqual(*FString::Printf(TEXT("@%.0f fps: the leader never fired"), Fps), Shots(Leader), 0);
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: both followers fired (%d, %d)"), Fps, Shots(Followers[0]), Shots(Followers[1])), Shots(Followers[0]) > 0 && Shots(Followers[1]) > 0);
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: and hit (%.0f damage)"), Fps, Hull0 - Player->GetHealth()->GetHull()), Player->GetHealth()->GetHull() < Hull0);
+	}
+	return true;
+}
+
 // MAJOR 2: an interceptor never launches its telegraphed missile on the player's flight line.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewNoPointBlankMissile, "TriadDrift.Enemies.Review.NoPointBlankTelegraphedMissile", TD_TEST_FLAGS)
 bool FTDReviewNoPointBlankMissile::RunTest(const FString& Parameters)
@@ -185,6 +221,7 @@ bool FTDReviewNoPointBlankMissile::RunTest(const FString& Parameters)
 			bWasTelegraphing = bTele;
 		}
 		(void)Proj;
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: a missile was launched at all (not a vacuous pass)"), Fps), MinLaunchDist < TNumericLimits<float>::Max());
 		TestTrue(*FString::Printf(TEXT("@%.0f fps: no missile launched inside 5000 cm (closest launch %.0f)"), Fps, MinLaunchDist), MinLaunchDist > 5000.f);
 		// No ram: the hulls never touch (collision radii plus a margin for a visible gap).
 		const float Contact = Player->GetSimpleCollisionRadius() + I->GetSpec().Radius + 200.f;
@@ -284,6 +321,96 @@ bool FTDReviewGunshipVsCharge::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("@%.0f fps, %.0f cm/s: the gunship volleyed the charging ship"), Fps, V), bVolley);
 			TestTrue(*FString::Printf(TEXT("@%.0f fps, %.0f cm/s: and a straight charge got hit (%.0f damage)"), Fps, V, Taken), Taken > 0.f);
 		}
+	}
+	return true;
+}
+
+// Re-check E3: a SUSTAINED strafe at 12 000 cm. The player flies a long line across the gunship's front;
+// while it is within 45 degrees of the gunship, the hull keeps the player inside its 15 degree volley cone
+// (the old cross-in-front steering sat ~19 degrees ahead of it the whole time).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewGunshipStrafe, "TriadDrift.Enemies.Review.GunshipTracksASustainedStrafe", TD_TEST_FLAGS)
+bool FTDReviewGunshipStrafe::RunTest(const FString& Parameters)
+{
+	using namespace TDEnemyReview;
+	FDefaults Guard(*this);
+	for (const float Fps : Rates)
+	{
+		FTDTestWorld W;
+		ATDSpacecraft* Player = SpawnPlayer(W, FVector(12000.f, -30000.f, 0.f), FRotator(0.f, 90.f, 0.f), 6000.f);
+		ATDEnemyShip* G = SpawnEnemy(W, TDEnemyIds::WallGunship, FVector::ZeroVector, FRotator(0.f, -60.f, 0.f));
+		G->SetSpawnSeed(4242);
+		const float Cone = FMath::Cos(FMath::DegreesToRadians(UTDEnemyLibrary::Get(TDEnemyIds::WallGunship).Heavy.ConeHalfAngleDeg));
+		int32 InCone = 0, Counted = 0, Volleys = 0;
+		bool bWasCooling = false;
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 10.f); ++i)
+		{
+			W.Tick(1.f / Fps);
+			const FVector To = Player->GetActorLocation() - G->GetActorLocation();
+			const float Bearing = FMath::RadiansToDegrees(FMath::Atan2(FMath::Abs(To.Y), FMath::Max(1.f, To.X)));
+			if (Bearing <= 45.f && i > Fps * 1.5f)	// the strafe across its front, after it has turned onto it
+			{
+				++Counted;
+				InCone += FVector::DotProduct(To.GetSafeNormal(), G->GetActorForwardVector()) >= Cone ? 1 : 0;
+			}
+			const bool bCooling = G->GetAttackCooldownRemaining(ETDEnemyAttack::HeavyBolt) > 0.f;
+			Volleys += (bCooling && !bWasCooling) ? 1 : 0;
+			bWasCooling = bCooling;
+		}
+		const float Frac = Counted > 0 ? float(InCone) / Counted : 0.f;
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: the player stays in the volley cone during the strafe (%.0f%% of %d frames)"), Fps, Frac * 100.f, Counted), Frac >= 0.6f);
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: volleys during the strafe (%d)"), Fps, Volleys), Volleys >= 1);
+	}
+	return true;
+}
+
+// Re-check E4: the REAL Gravity Well catches a pack follower whose leader is outside the well; the follower's
+// catch-up (which wants to rejoin its leader) never overrides the well's pull.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewWellHoldsAFollower, "TriadDrift.Enemies.Review.RealGravityWellHoldsAPackFollower", TD_TEST_FLAGS)
+bool FTDReviewWellHoldsAFollower::RunTest(const FString& Parameters)
+{
+	using namespace TDEnemyReview;
+	FDefaults Guard(*this);
+	for (const float Fps : Rates)
+	{
+		FTDTestWorld W;
+		AActor* Bastion = TDPowerTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f), 100000.f);
+		UTDGravityWellPower* Well = TDPowerTest::AddPower<UTDGravityWellPower>(Bastion);
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: the well fires"), Fps), Well->TryActivate());
+		W.Advance(0.9f, 1.f / Fps);	// orb: 400 cm ahead, 5000 cm/s for 0.8 s -> vortex around x = 4400 (T2's own test)
+		// A pack whose leader is outside the well, flying away: the follower, in the vortex, wants to catch up.
+		ATDEnemyShip* Leader = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector(30000.f, 0.f, 0.f), FRotator::ZeroRotator);
+		if (AController* C = Leader->GetController()) { C->UnPossess(); C->Destroy(); }
+		Leader->SetSpeedOverrideFor(TEXT("Test"), 7000.f, 0.f);
+		ATDEnemyShip* F = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector(4400.f, 600.f, 0.f), FRotator::ZeroRotator);
+		F->SetSpawnSeed(9);
+		ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(F->GetController());
+		if (!TestNotNull(TEXT("follower AI"), AI)) { return false; }
+		AI->SetFormationLeader(Leader, FVector(-1200.f, 1500.f, 0.f));
+		bool bCaught = false, bOverridden = false;
+		int32 CaughtFrames = 0;
+		float MaxSpeedCaught = 0.f;
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 3.5f); ++i)
+		{
+			W.Tick(1.f / Fps);
+			const UTDShipMovementComponent* Move = F->GetShipMovement();
+			if (Move && Move->HasSpeedOverrideFor(TEXT("GravityWell")))
+			{
+				bCaught = true;
+				++CaughtFrames;
+				// The pilot ticks before the well each frame, so on the capture frame itself its catch-up flag
+				// is still set; from its next tick on, the well must own the speed and catch-up must be off.
+				const bool bBad = CaughtFrames >= 2 && (Move->GetActiveSpeedOverrideOwner() != FName(TEXT("GravityWell")) || AI->IsCatchingUp());
+				if (bBad && !bOverridden)
+				{
+					AddInfo(FString::Printf(TEXT("@%.0f fps: on top '%s', catching up %d"), Fps, *Move->GetActiveSpeedOverrideOwner().ToString(), AI->IsCatchingUp() ? 1 : 0));
+				}
+				bOverridden |= bBad;
+				if (CaughtFrames > FMath::RoundToInt(Fps * 0.3f)) { MaxSpeedCaught = FMath::Max(MaxSpeedCaught, (float)F->GetVelocity().Size()); }
+			}
+		}
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: the follower was caught by the real well"), Fps), bCaught);
+		TestFalse(*FString::Printf(TEXT("@%.0f fps: catch-up never took over while caught"), Fps), bOverridden);
+		TestTrue(*FString::Printf(TEXT("@%.0f fps: it crawls in the vortex (max %.0f cm/s)"), Fps, MaxSpeedCaught), MaxSpeedCaught < 6000.f);
 	}
 	return true;
 }

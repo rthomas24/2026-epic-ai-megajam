@@ -230,6 +230,7 @@ void ATDWaveDirector::BeginPlay()
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDWaveDirector::HandleTakeStarted);
+		Bus->OnSceneCut.AddUniqueDynamic(this, &ATDWaveDirector::HandleSceneCut);
 	}
 
 	if (bAutoStartFromProgress)
@@ -243,6 +244,7 @@ void ATDWaveDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDWaveDirector::HandleTakeStarted);
+		Bus->OnSceneCut.RemoveDynamic(this, &ATDWaveDirector::HandleSceneCut);
 	}
 	for (const TWeakObjectPtr<AActor>& Weak : Living)
 	{
@@ -422,8 +424,15 @@ void ATDWaveDirector::AnnounceScene(const FTDWaveDef& Wave)
 	}
 }
 
+void ATDWaveDirector::HandleSceneCut(FName SceneId, int32 /*NextTakeNumber*/, float /*DelaySeconds*/)
+{
+	bCutPending = CurrentWave != INDEX_NONE && SceneId == GetSceneId(CurrentWave)
+		&& (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active);
+}
+
 void ATDWaveDirector::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 {
+	bCutPending = false;
 	if (SceneId != GetSceneId(CurrentWave))
 	{
 		return;
@@ -704,7 +713,10 @@ void ATDWaveDirector::CheckWaveCleared()
 		return;
 	}
 	Living.RemoveAll([](const TWeakObjectPtr<AActor>& W) { return !TDWaveDir_IsActorAlive(W.Get()); });
-	if (Living.Num() == 0)
+	// A "CUT!" is pending for this wave (the squad wiped): the last kill during the delay doesn't clear it. No
+	// broadcasts, no checkpoint, no marker: the retake rebuilds the wave (review: a voided clear still ran
+	// FinishWave's side effects).
+	if (Living.Num() == 0 && !bCutPending)
 	{
 		FinishWave();
 	}
@@ -728,7 +740,7 @@ void ATDWaveDirector::FinishWave()
 	}
 	else if (Waves[NextIndex].Phase == Wave.Phase)
 	{
-		SetState(ETDWaveState::Breather, BreatherSeconds);
+		SetState(ETDWaveState::Breather, FMath::Max(BreatherSeconds, 2.f));	// never shorter than the CUT delay
 	}
 	else
 	{
