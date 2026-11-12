@@ -145,3 +145,24 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 - Bastion's flak isn't yet aimed at incoming missiles specifically.
 - Director's Cut switch-cut payload and money shots: see `docs/eng/director.md`.
 - HUD `GetHyperdriveCharge01` returns 0 until T1's hyperdrive component is on main.
+
+## Squad barks (ART-11 voice lines, `TDSquadBarks.h`)
+
+Gameplay asks for a line through `ITDGameFlow::RequestBark(BarkId, Speaker)` (re-broadcast as
+`UTDEventBus::OnBarkRequested`; with no game flow, straight to the bus). Speakers: `Wren` (Rift),
+`Kato` (Lancer), `Moss` (Bastion). Nick's `DT_Barks` rows key on these ids:
+
+| Bark id | When | Speaker | Priority / cooldown |
+|---|---|---|---|
+| `Bark_SquadSwitchIn` | a manual switch lands | the pilot you switched to | normal, 6 s |
+| `Bark_SquadShipDownRift` / `...Lancer` / `...Bastion` | a ship goes down (not in a full wipe) | the healthiest survivor | high, 8 s |
+| `Bark_SquadRespawn` | a downed ship warps back | that pilot | normal, 8 s |
+| `Bark_SquadFocusAck` | "focus my target" | the first living wingman | normal, 5 s |
+| `Bark_SquadWingmanKill` | a wingman kills a hostile | that wingman | normal, 12 s |
+| `Bark_SquadLowHull` | a living ship's hull drops below 30 % (re-armed above 55 % or on respawn) | that pilot | normal, 20 s |
+| `Bark_SquadWipe` | all three down | the last active pilot | critical, 5 s |
+
+Limiter (`FTDBarkTuning` on `ATDSquadManager`, real time): a 2.5 s global gap between lines (High
+and Critical skip it), at most 3 lines per 10 s (Critical skips it: the wipe happens once per take),
+and every line respects its own cooldown. Tests: `Barks.LimiterRules`, `Barks.TriggersAndSpeakers`,
+`Barks.NeverSpam` (20 s of Tab spam: 3-4 switch lines, ≤ 6 lines total).
