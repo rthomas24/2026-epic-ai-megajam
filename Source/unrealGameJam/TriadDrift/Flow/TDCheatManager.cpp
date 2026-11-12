@@ -122,6 +122,16 @@ namespace TDCheats
 			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Cyan, Msg);
 		}
 	}
+
+	/** A refused cheat: a warning in the log and the console, and red on screen for long enough to read. */
+	void LogError(const FString& Msg)
+	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("[TD cheat] %s"), *Msg);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, Msg);
+		}
+	}
 }
 
 void UTDCheatManager::InstallOn(APlayerController* PC)
@@ -292,12 +302,13 @@ bool UTDCheatManager::DoStage(UWorld* World, const FString& StageName)
 {
 #if !UE_BUILD_SHIPPING
 	ETDJourneyStage Stage;
-	if (!FTDJourney::Parse(StageName, Stage))
+	int32 Wave = 0;
+	if (!FTDJourney::Parse(StageName, Stage, &Wave))
 	{
-		TDCheats::Log(FString::Printf(TEXT("TD.Stage <%s>"), *FTDJourney::ListStages()));
+		TDCheats::LogError(FString::Printf(TEXT("TD.Stage: unknown stage '%s'. Stages: %s, or Wave1..Wave5"), *StageName, *FTDJourney::ListStages()));
 		return false;
 	}
-	const bool bOk = FTDJourney::Go(World, Stage);
+	const bool bOk = FTDJourney::Go(World, Stage, Wave);
 	TDCheats::Log(FString::Printf(TEXT("Stage %s %s"), *StageName, bOk ? TEXT("started") : TEXT("FAILED (map missing?)")));
 	return bOk;
 #else

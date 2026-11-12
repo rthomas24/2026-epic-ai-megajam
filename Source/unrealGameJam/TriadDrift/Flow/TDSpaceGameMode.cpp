@@ -2,6 +2,8 @@
 
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
 #include "TriadDrift/Flow/TDJourney.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "UObject/ConstructorHelpers.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDFlowReflection.h"
@@ -24,6 +26,7 @@
 #include "GameFramework/DefaultPawn.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "EngineUtils.h"
 #include "TimerManager.h"
 
@@ -62,6 +65,13 @@ ATDSpaceGameMode::ATDSpaceGameMode()
 	// InitGame clears it when the squad exists (the squad possesses the lead ship itself).
 	DefaultPawnClass = ADefaultPawn::StaticClass();
 	SquadOrigin = FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickGroup = TG_PostUpdateWork; // after the camera moved this frame
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
+	if (Glow.Succeeded())
+	{
+		StarGlowMaterial = Glow.Object;
+	}
 }
 
 void ATDSpaceGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -354,40 +364,75 @@ void ATDSpaceGameMode::SpawnStarBackdrop()
 #if WITH_EDITOR
 	Stars->SetActorLabel(TEXT("TD_Sandbox_Stars"));
 #endif
-	UInstancedStaticMeshComponent* ISM = NewObject<UInstancedStaticMeshComponent>(Stars, TEXT("Stars"));
-	ISM->SetMobility(EComponentMobility::Movable);
-	ISM->SetStaticMesh(Sphere);
-	ISM->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ISM->SetCastShadow(false);
-	ISM->SetCanEverAffectNavigation(false);
-	// BasicShapeMaterial (cooked with /Engine/BasicShapes), tinted near-white and very bright.
-	if (UMaterialInterface* Mat = TDSandbox::LoadEngineObject<UMaterialInterface>(TDSandbox::LitMaterial))
-	{
-		if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Mat, Stars))
-		{
-			MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(4.f, 4.f, 5.f));
-			ISM->SetMaterial(0, MID);
-		}
-	}
-	Stars->SetRootComponent(ISM);
-	ISM->RegisterComponent();
+	USceneComponent* Root = NewObject<USceneComponent>(Stars, TEXT("Root"));
+	Root->SetMobility(EComponentMobility::Movable);
+	Stars->SetRootComponent(Root);
+	Root->RegisterComponent();
 
+	// Unlit glow, so every star reads from every direction (a lit sphere is dark on its far side from the sun).
+	// Three tints, blue-white / white / warm, each its own instanced layer.
+	struct FLayer { const TCHAR* Name; FLinearColor Color; float Share; };
+	const FLayer StarLayers[] = {
+		{ TEXT("StarsCool"), FLinearColor(0.7f, 0.82f, 1.f), 0.4f },
+		{ TEXT("StarsWhite"), FLinearColor(1.f, 1.f, 1.f), 0.4f },
+		{ TEXT("StarsWarm"), FLinearColor(1.f, 0.82f, 0.6f), 0.2f },
+	};
 	FRandomStream Rng(LayoutSeed ^ 0x5EED);
-	TArray<FTransform> Instances;
-	Instances.Reserve(StarCount);
-	for (int32 i = 0; i < StarCount; ++i)
+	for (const FLayer& L : StarLayers)
 	{
-		const FVector Dir = Rng.GetUnitVector();
-		const float Dist = StarSphereRadius * Rng.FRandRange(0.85f, 1.f);
-		// Most stars are pinpricks; a few are big bright ones.
-		const float Size = (Rng.FRand() < 0.06f) ? Rng.FRandRange(14.f, 26.f) : Rng.FRandRange(3.f, 9.f);
-		Instances.Emplace(FRotator::ZeroRotator, SquadOrigin.GetLocation() + Dir * Dist, FVector(Size));
+		UInstancedStaticMeshComponent* ISM = NewObject<UInstancedStaticMeshComponent>(Stars, L.Name);
+		ISM->SetMobility(EComponentMobility::Movable);
+		ISM->SetStaticMesh(Sphere);
+		ISM->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ISM->SetCastShadow(false);
+		ISM->SetCanEverAffectNavigation(false);
+		ISM->SetupAttachment(Root);
+		ISM->RegisterComponent();
+		Stars->AddInstanceComponent(ISM);
+		if (StarGlowMaterial)
+		{
+			if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(StarGlowMaterial, Stars))
+			{
+				MID->SetVectorParameterValue(TEXT("Color"), L.Color * 6.f);
+				MID->SetVectorParameterValue(TEXT("EmissiveColor"), L.Color * 6.f);
+				ISM->SetMaterial(0, MID);
+			}
+		}
+		else
+		{
+			UTDStatics::TintPlaceholder(ISM, L.Color, 6.f); // path load fallback (editor / tests)
+		}
+		const int32 Count = FMath::Max(1, FMath::RoundToInt(StarCount * L.Share));
+		TArray<FTransform> Instances;
+		Instances.Reserve(Count);
+		for (int32 i = 0; i < Count; ++i)
+		{
+			const FVector Dir = Rng.GetUnitVector();
+			const float Dist = StarSphereRadius * Rng.FRandRange(0.85f, 1.f);
+			// Mostly pinpricks; a few big bright ones.
+			const float Size = (Rng.FRand() < 0.06f) ? Rng.FRandRange(14.f, 26.f) : Rng.FRandRange(3.f, 9.f);
+			Instances.Emplace(FRotator::ZeroRotator, Dir * Dist, FVector(Size)); // relative: the actor follows the camera
+		}
+		ISM->AddInstances(Instances, false, false);
 	}
-	ISM->AddInstances(Instances, false, true);
+	Stars->SetActorLocation(SquadOrigin.GetLocation());
 	Stars->Tags.Add(TEXT("TD.Placeholder.Stars"));
 	SpawnedEnvironment.Add(Stars);
 	StarBackdrop = Stars;
 	GetWorldTimerManager().SetTimer(StarWatchTimer, this, &ATDSpaceGameMode::CheckStarBackdrop, 0.5f, true);
+}
+
+void ATDSpaceGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (StarBackdrop)
+	{
+		const APlayerController* PC = GetWorld()->GetFirstPlayerController();
+		if (PC && PC->PlayerCameraManager)
+		{
+			StarBackdrop->SetActorLocation(PC->PlayerCameraManager->GetCameraLocation());
+		}
+	}
 }
 
 void ATDSpaceGameMode::CheckStarBackdrop()

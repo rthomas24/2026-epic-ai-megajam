@@ -218,6 +218,21 @@ bool FTDJourneyCheats::RunTest(const FString& Parameters)
 	TestTrue(TEXT("TD.Stage DominionAssault"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("DominionAssault")));
 	TestEqual(TEXT("phase set"), G.GI->GetProgressRef().Phase, ETDGamePhase::DominionAssault);
 	TestFalse(TEXT("bogus stage refused"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Narnia")));
+	TestFalse(TEXT("Wave6 refused"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Wave6")));
+	// Aliases: Wave4 = the Waves3to4 stage, running wave 4.
+	TestTrue(TEXT("TD.Stage Wave4"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("wave4")));
+	G.W.Advance(6.f, 1.f / 30.f);
+	TestEqual(TEXT("Wave4 alias: phase"), G.GI->GetProgressRef().Phase, ETDGamePhase::Waves3to4);
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld()))
+	{
+		TestEqual(TEXT("Wave4 alias: wave 4 running"), Director->GetWaveInfo().WaveNumber, 4);
+	}
+	TestTrue(TEXT("TD.Stage Wave2"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Wave2")));
+	G.W.Advance(6.f, 1.f / 30.f);
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld()))
+	{
+		TestEqual(TEXT("Wave2 alias: wave 2 running"), Director->GetWaveInfo().WaveNumber, 2);
+	}
 	return true;
 }
 
@@ -323,6 +338,42 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 	TestTrue(TEXT("objectives done on the planet"), FTDObjectiveText::Compute(G.W.GetWorld(), P, ETDDestination::Verdance, L));
 	TestTrue(TEXT("take off"), L.Text.ToString().Contains(TEXT("TAKE OFF")));
 	TestFalse(TEXT("main menu stays silent"), FTDObjectiveText::Compute(G.W.GetWorld(), P, ETDDestination::MainMenu, L));
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Enemies review: the last enemy dies inside the 1.75 s CUT delay. The flow voids that clear (the scene is
+// about to restart); the retake must then rebuild the wave, so the run can never be left with no enemies
+// and no phase change. Real GI, real wave director, real kills, in exactly that order.
+// DISABLED until T4's director rebuilds the wave on the retake (fails today: wave 2 is left empty, no phase change).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyClearDuringCut, "TriadDrift.Flow.Journey.LastKillDuringCutNeverSoftLocks", TD_TEST_FLAGS | EAutomationTestFlags::Disabled)
+bool FTDJourneyClearDuringCut::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), G.GI) || !TestNotNull(TEXT("director"), Director)) { return false; }
+	for (const int32 Wave : { 2, 4, 5 })
+	{
+		const FString W = FString::Printf(TEXT("Wave%d"), Wave);
+		TestTrue(*(TEXT("stage ") + W), UTDCheatManager::DoStage(G.W.GetWorld(), W));
+		TDJourneyTest::Run(G, 6.f);
+		const ETDGamePhase PhaseBefore = G.GI->GetProgressRef().Phase;
+		if (!TestTrue(*(W + TEXT(" running with enemies")), Director->GetWaveInfo().bWaveActive && Director->GetWaveInfo().EnemiesAlive > 0)) { continue; }
+
+		G.GI->ReportPlayerDefeated();                 // CUT!
+		TDJourneyTest::Run(G, 0.3f);
+		UTDCheatManager::DoKillAll(G.W.GetWorld());    // the last enemies die inside the delay
+		TDJourneyTest::Run(G, 0.3f);
+		TestTrue(*(W + TEXT(": CUT still pending")), G.GI->IsRetakePending());
+		TDJourneyTest::Run(G, 6.f);                    // retake, rebuild, breather
+
+		const FTDWaveInfo Info = Director->GetWaveInfo();
+		const bool bRebuilt = Info.bWaveActive && Info.WaveNumber == Wave && Info.EnemiesAlive > 0;
+		const bool bAdvanced = G.GI->GetProgressRef().WavesCleared >= Wave && G.GI->GetProgressRef().Phase != PhaseBefore;
+		TestTrue(FString::Printf(TEXT("%s: retake rebuilds the wave or the clear stands (active %d, wave %d, alive %d, cleared %d)"),
+			*W, Info.bWaveActive, Info.WaveNumber, Info.EnemiesAlive, G.GI->GetProgressRef().WavesCleared), bRebuilt || bAdvanced);
+	}
 	return true;
 }
 

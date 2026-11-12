@@ -2060,5 +2060,50 @@ bool FTDSquadLandPrompt::RunTest(const FString& Parameters)
 	return Pad != nullptr;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveText, "TriadDrift.Squad.HUD.ObjectiveTextFollowsTheFlow", TD_TEST_FLAGS)
+bool FTDSquadObjectiveText::RunTest(const FString& Parameters)
+{
+	// Nick's HUD objective line, through the real bus: empty before the first objective, then always
+	// the latest line; a switch or a retake keeps it.
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
+	TestTrue(TEXT("empty before any objective"), Squad->GetObjectiveText().IsEmpty());
+	Bus->BroadcastObjectiveUpdated(TEXT("Wave"), 1, FText::FromString(TEXT("Clear the ambush")));
+	TestEqual(TEXT("the line"), Squad->GetObjectiveText().ToString(), FString(TEXT("Clear the ambush")));
+	Bus->BroadcastObjectiveUpdated(TEXT("Travel"), 2, FText::FromString(TEXT("Fly to Verdance")));
+	TestEqual(TEXT("overwritten by the next"), Squad->GetObjectiveText().ToString(), FString(TEXT("Fly to Verdance")));
+	TestTrue(TEXT("switch"), Squad->RequestSwitchTo(ETDShipId::Lancer));
+	W.Advance(0.5f);
+	TestEqual(TEXT("survives a switch"), Squad->GetObjectiveText().ToString(), FString(TEXT("Fly to Verdance")));
+	Squad->SpawnSquad(FTransform::Identity); // a CUT retake
+	W.Tick();
+	TestEqual(TEXT("survives a retake"), Squad->GetObjectiveText().ToString(), FString(TEXT("Fly to Verdance")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveTextLate, "TriadDrift.Squad.HUD.ObjectiveTextForALateSquad", TD_TEST_FLAGS)
+bool FTDSquadObjectiveTextLate::RunTest(const FString& Parameters)
+{
+	// Level travel: the squad manager is created after the line was broadcast; it shows it at once.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
+	Bus->BroadcastObjectiveUpdated(TEXT("Travel"), 1, FText::FromString(TEXT("Land on Cinder")));
+	W.Tick();
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	TestEqual(TEXT("current line straight away"), Squad->GetObjectiveText().ToString(), FString(TEXT("Land on Cinder")));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 

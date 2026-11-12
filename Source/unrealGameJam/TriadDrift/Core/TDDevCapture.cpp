@@ -75,7 +75,8 @@ void UTDDevCapture::Initialize(FSubsystemCollectionBase& Collection)
 		static const FString Prefix(TEXT("-TDExecAt="));
 		if (Token.StartsWith(Prefix, ESearchCase::IgnoreCase))
 		{
-			FString Rest = Token.Mid(Prefix.Len());
+			// Shells quote this differently: -TDExecAt=4:"cmd" and -TDExecAt="4:cmd" must both work.
+			FString Rest = Token.Mid(Prefix.Len()).TrimQuotes();
 			FString TimeText, CommandText;
 			if (Rest.Split(TEXT(":"), &TimeText, &CommandText))
 			{
@@ -129,7 +130,10 @@ bool UTDDevCapture::Tick(float DeltaSeconds)
 	while (NextShot < ShotTimes.Num() && Elapsed >= ShotTimes[NextShot])
 	{
 		const FString File = FPaths::Combine(ShotDir, FString::Printf(TEXT("shot_%02d_%04.1fs.png"), NextShot + 1, ShotTimes[NextShot]));
-		FScreenshotRequest::RequestScreenshot(File, false, false);
+		// -TDShotUI includes Slate / UMG (a real HUD widget); the default captures the scene and Canvas only,
+		// which also works when the window is not visible.
+		static const bool bShowUI = FParse::Param(FCommandLine::Get(), TEXT("TDShotUI"));
+		FScreenshotRequest::RequestScreenshot(File, bShowUI, false);
 		UE_LOG(LogTriadDrift, Display, TEXT("TDDevCapture: screenshot %s"), *File);
 		++NextShot;
 	}
