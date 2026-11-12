@@ -102,6 +102,28 @@ bool FTDCutPresRealHUD::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlateLayout, "TriadDrift.Director.CutPresentation.SlateClearOfBothHUDs", TD_TEST_FLAGS)
+bool FTDCutPresSlateLayout::RunTest(const FString& Parameters)
+{
+	// Lead playtest 3: the slate faded in behind Nick's OBJECTIVE block (top 12-15%); the dev HUD's
+	// squad rows sit at 12-21% on the left. The slate must clear both, at any size and bar height.
+	for (const FVector2D Size : { FVector2D(1280.f, 720.f), FVector2D(1920.f, 1080.f), FVector2D(2560.f, 1440.f), FVector2D(1024.f, 768.f) })
+	{
+		for (const float Bars : { 0.f, 0.06f, 0.12f })
+		{
+			const FBox2D R = UTDCutPresentation::SlateRect(Size, Bars);
+			const FString Case = FString::Printf(TEXT(" (%.0fx%.0f, bars %.2f)"), Size.X, Size.Y, Bars);
+			TestTrue(TEXT("below the real HUD's top 15%") + Case, R.Min.Y >= Size.Y * 0.15f);
+			const FBox2D DevRows(FVector2D(0.f, Size.Y * 0.12f), FVector2D(600.f, Size.Y * 0.12f + 3.f * 22.f));
+			TestFalse(TEXT("clear of the dev HUD squad rows") + Case, R.Intersect(DevRows));
+			TestTrue(TEXT("below the letterbox bar") + Case, R.Min.Y >= Size.Y * Bars);
+			TestTrue(TEXT("in the upper third") + Case, R.Max.Y <= Size.Y * 0.36f);
+			TestTrue(TEXT("on screen, centred") + Case, R.Min.X >= 0.f && R.Max.X <= Size.X && FMath::IsNearlyEqual(R.GetCenter().X, Size.X * 0.5f));
+		}
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlowMo, "TriadDrift.Director.CutPresentation.RealTimeUnderSlowMoAndQuickCut", TD_TEST_FLAGS)
 bool FTDCutPresSlowMo::RunTest(const FString& Parameters)
 {

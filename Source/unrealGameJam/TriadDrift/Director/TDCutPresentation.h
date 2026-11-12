@@ -125,6 +125,11 @@ public:
 	/** "Wave3" -> "Wave 3" (scene ids are CamelCase + number). */
 	static FText MakeSlateText(FName SceneId, int32 TakeNumber);
 
+	/** Where the scene slate is drawn on a viewport of Size (px). Centred, in the upper third, below
+	 *  the top 15% (Nick's OBJECTIVE block, the real HUD's top row) and below the dev HUD's squad rows
+	 *  (12-21% on the left); never under a letterbox bar. */
+	static FBox2D SlateRect(const FVector2D& Size, float Letterbox);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cut")
 	FTDCutPresentationTuning Tuning;
 

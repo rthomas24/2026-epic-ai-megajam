@@ -1971,5 +1971,57 @@ bool FTDSquadFightOnScreen::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveMarkers, "TriadDrift.Squad.HUD.ObjectiveMarkersFromTags", TD_TEST_FLAGS)
+bool FTDSquadObjectiveMarkers::RunTest(const FString& Parameters)
+{
+	// ENG-06 (Combat review MAJOR): the space HUD points at whatever the world / flow tagged as the
+	// place to go. Real actors: a landing pad and a portal gate (no wave running, so no fallback).
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	auto Markers = [&] { return Squad->GetObjectiveMarkers(); };
+
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector(50000.f, 0.f, 0.f));
+	ATDPortalGate* Gate = W.Spawn<ATDPortalGate>(FVector(0.f, 60000.f, 0.f));
+	ATDPortalGate* Other = W.Spawn<ATDPortalGate>(FVector(0.f, -60000.f, 0.f));
+	W.Advance(0.6f);
+	TestEqual(TEXT("nothing tagged: empty"), Markers().Num(), 0);
+
+	Pad->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	Gate->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	W.Advance(0.6f);
+	TArray<AActor*> M = Markers();
+	TestTrue(TEXT("exactly the tagged ones"), M.Num() == 2 && M.Contains(Pad) && M.Contains(Gate) && !M.Contains(Other));
+
+	Gate->Tags.Remove(ATDSquadManager::ObjectiveMarkerTag);
+	TestTrue(TEXT("untagging drops it at once"), Markers().Num() == 1 && Markers()[0] == Pad);
+	Gate->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	W.Advance(0.6f);
+	Gate->Destroy();
+	W.Tick();
+	TestTrue(TEXT("destroyed: dropped at once"), Markers().Num() == 1 && Markers()[0] == Pad);
+
+	// A dead marker (a generator just killed) drops too: a tagged enemy ship stands in for it.
+	ATDEnemyShip* Dying = TDPowerTest::SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(0.f, 0.f, 90000.f));
+	Dying->SetFlightParked(true);
+	Dying->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	W.Advance(0.6f);
+	TestTrue(TEXT("live tagged enemy listed"), Markers().Contains(Dying));
+	UTDStatics::GetHealth(Dying)->Kill();
+	W.Tick();
+	TestFalse(TEXT("dead: dropped"), Markers().Contains(Dying));
+
+	TestTrue(TEXT("switch"), Squad->RequestSwitchTo(ETDShipId::Bastion));
+	W.Advance(0.6f);
+	TestTrue(TEXT("survives a ship switch"), Markers().Contains(Pad));
+	Squad->SpawnSquad(FTransform::Identity); // a CUT retake
+	W.Advance(0.6f);
+	TestTrue(TEXT("survives a retake"), Markers().Contains(Pad));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 

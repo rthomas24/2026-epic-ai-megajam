@@ -1,6 +1,7 @@
 // Triad Drift - Squad (Teammate 3). ENG-07: squad manager & instant switching (PROTECT), ENG-03 respawn.
 
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -1085,6 +1086,76 @@ TArray<AActor*> ATDSquadManager::GetLockedTargets() const
 {
 	TArray<AActor*> Out;
 	TDSquad::GetLockedTargets(GetActiveShip(), Out);
+	return Out;
+}
+
+const FName ATDSquadManager::ObjectiveMarkerTag(TEXT("TD.Objective.Marker"));
+
+TArray<AActor*> ATDSquadManager::GetObjectiveMarkers() const
+{
+	UWorld* World = GetWorld();
+	TArray<AActor*> Out;
+	if (!World)
+	{
+		return Out;
+	}
+	const double Now = World->GetTimeSeconds();
+	if (Now >= ObjectiveRefreshAt || ObjectiveRefreshAt - Now > ObjectiveRefreshSeconds)
+	{
+		ObjectiveRefreshAt = Now + ObjectiveRefreshSeconds;
+		ObjectiveCache.Reset();
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			if (It->ActorHasTag(ObjectiveMarkerTag))
+			{
+				ObjectiveCache.Add(*It);
+			}
+		}
+	}
+	// Filtered on every read: a destroyed or dead marker (a generator just killed) disappears at once.
+	for (const TWeakObjectPtr<AActor>& Weak : ObjectiveCache)
+	{
+		AActor* A = Weak.Get();
+		if (IsValid(A) && !TDSquad::IsDead(A) && A->ActorHasTag(ObjectiveMarkerTag))
+		{
+			Out.Add(A);
+		}
+	}
+	if (Out.Num() > 0)
+	{
+		return Out;
+	}
+
+	// Fallback: a wave is on and the whole fight is off the player's screen -> point at the nearest enemy.
+	const ATDShip* Player = GetActiveShip();
+	if (!Player || !GetWaveInfo().bWaveActive)
+	{
+		return Out;
+	}
+	static TArray<AActor*> Hostiles; // game thread only
+	TDSquad::GetPlayerHostiles(World, Hostiles);
+	const FTransform Cam = Player->GetChaseCameraTransformNow();
+	const float CosHalfView = FMath::Cos(FMath::DegreesToRadians(Player->GetChaseCameraFOVNow() * 0.5f));
+	AActor* Nearest = nullptr;
+	float Best = TNumericLimits<float>::Max();
+	for (AActor* H : Hostiles)
+	{
+		const FVector To = H->GetActorLocation() - Cam.GetLocation();
+		if (FVector::DotProduct(To.GetSafeNormal(), Cam.GetRotation().GetForwardVector()) > CosHalfView)
+		{
+			return Out; // something to fight is already in view: no marker needed
+		}
+		const float D = To.SizeSquared();
+		if (D < Best)
+		{
+			Best = D;
+			Nearest = H;
+		}
+	}
+	if (Nearest)
+	{
+		Out.Add(Nearest);
+	}
 	return Out;
 }
 

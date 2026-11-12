@@ -234,6 +234,16 @@ public:
 	virtual float GetHyperdriveCharge01() const override;
 	virtual float GetAltitude() const override;
 	virtual FText GetHyperdriveBlockText() const override;
+	/** ENG-06: where to fly. Every live actor tagged ObjectiveMarkerTag (set by the world / flow actors
+	 *  as scenes change); with none tagged, during a wave whose fighters are all off the player's
+	 *  screen, the nearest enemy ("the fight is this way"). Cached, refreshed every ObjectiveRefreshSeconds. */
+	virtual TArray<AActor*> GetObjectiveMarkers() const override;
+
+	/** The actor tag that marks "the place to go now" (contract with T4 / T5; Core constant pending). */
+	static const FName ObjectiveMarkerTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|HUD", meta = (ClampMin = "0", Units = "s"))
+	float ObjectiveRefreshSeconds = 0.5f;
 
 	/** HUD-ready text for the last lock refusal (from T1's IsSwitchLocked). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
@@ -400,6 +410,8 @@ protected:
 	FTDBarkLimiter BarkLimiter;
 	FText LastRefusalText;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
+	mutable TArray<TWeakObjectPtr<AActor>> ObjectiveCache;
+	mutable double ObjectiveRefreshAt = -1.0;
 	int32 SwitchCount = 0;
 
 	UPROPERTY(Transient)
