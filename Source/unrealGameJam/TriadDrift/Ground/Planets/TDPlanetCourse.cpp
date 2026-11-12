@@ -479,11 +479,15 @@ void ATDPlanetCourse::BuildVerdance()
 		Block(EShape::Cube, L + FVector(0.f, 0.f, 70.f), FVector(500.f, 110.f, 140.f), Trunk, 0.f, FRotator(0.f, 35.f, 0.f));
 	}
 	Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
-		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 900.f);
+		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight: one shooter (playtest: 4 crew killed a non-blocker in ~4 s)
 
 	// The wreck: a broken hull nose-down in the ground, glowing breaks, debris to fight around.
-	Block(EShape::Cube, WreckSite + FVector(-600.f, 900.f, 350.f), FVector(2600.f, 900.f, 700.f), WreckMetal, 0.f, FRotator(-12.f, 25.f, 8.f));
-	Block(EShape::Cylinder, WreckSite + FVector(900.f, -700.f, 300.f), FVector(700.f, 700.f, 1600.f), WreckMetal, 0.f, FRotator(70.f, -30.f, 0.f));
+	// Collidable pieces turn in yaw only (a tilted box left an overhang the pilot got wedged under in playtest);
+	// the broken, tilted look comes from the non-colliding glow pieces.
+	Block(EShape::Cube, WreckSite + FVector(-600.f, 900.f, 350.f), FVector(2600.f, 900.f, 700.f), WreckMetal, 0.f, FRotator(0.f, 25.f, 0.f));
+	Block(EShape::Cube, WreckSite + FVector(-700.f, 900.f, 780.f), FVector(1800.f, 700.f, 160.f), WreckMetal, 0.f, FRotator(-12.f, 25.f, 8.f), false);
+	Block(EShape::Cylinder, WreckSite + FVector(900.f, -700.f, 350.f), FVector(700.f, 700.f, 700.f), WreckMetal, 0.f, FRotator(0.f, -30.f, 0.f));
+	Block(EShape::Cylinder, WreckSite + FVector(1100.f, -900.f, 700.f), FVector(500.f, 500.f, 900.f), WreckMetal, 0.f, FRotator(70.f, -30.f, 0.f), false);
 	Block(EShape::Cube, WreckSite + FVector(-900.f, -500.f, 120.f), FVector(600.f, 160.f, 240.f), WreckMetal, 0.f, FRotator(0.f, 70.f, 0.f));
 	Block(EShape::Cube, WreckSite + FVector(500.f, 800.f, 110.f), FVector(500.f, 160.f, 220.f), WreckMetal, 0.f, FRotator(0.f, -20.f, 0.f));
 	Block(EShape::Sphere, WreckSite + FVector(-500.f, 700.f, 500.f), FVector(500.f, 260.f, 200.f), Ember, 3.f, FRotator(0.f, 25.f, 0.f), false);
@@ -526,13 +530,14 @@ void ATDPlanetCourse::BuildVerdance()
 	AddTrailhead(Relay, RelayHead, Magenta, LOCTEXT("TheRelay", "THE RELAY"));
 	Route({ FVector(900.f, -900.f, 0.f), RelayHead, FVector(5000.f, -5000.f, 0.f) }, Magenta);
 
-	// The climb (jump 134 cm, double jump ~214, mantle 180 above the feet, dash 12 m):
-	// A +110 jump -> B +180 double jump -> C dash/jump over a 9 m gap -> D +160 mantle -> plateau +150 mantle.
-	Platform(FVector(5700.f, -5500.f, 0.f), 110.f, FVector(500.f, 500.f, 110.f), RelayStone, 0.4f);
-	Platform(FVector(6300.f, -6000.f, 0.f), 290.f, FVector(450.f, 450.f, 290.f), RelayStone, 0.4f);
-	Platform(FVector(7250.f, -6700.f, 0.f), 290.f, FVector(450.f, 450.f, 290.f), RelayStone, 0.4f);
-	Block(EShape::Cube, FVector(6780.f, -6350.f, -40.f), FVector(500.f, 300.f, 20.f), Magenta, 2.f, FRotator(0.f, 36.f, 0.f), false); // glowing hint under the gap
-	Platform(FVector(7800.f, -7150.f, 0.f), 450.f, FVector(450.f, 450.f, 450.f), RelayStone, 0.4f);
+	// The climb (jump 134 cm, double jump ~214, mantle 180 above the feet, dash 12 m), sized from playtest:
+	// A +110 jump -> B +180 double jump / mantle -> a 7 m gap: jump + dash onto C, a deep 10 m landing (a 12 m
+	// dash must not overshoot it) -> plateau +270 jump + mantle. C (330) can't be climbed from the ground, so a
+	// miss means back to A: platforming, not a wall walk.
+	Platform(FVector(5700.f, -5500.f, 0.f), 110.f, FVector(600.f, 600.f, 110.f), RelayStone, 0.4f);
+	Platform(FVector(6400.f, -6050.f, 0.f), 290.f, FVector(600.f, 600.f, 290.f), RelayStone, 0.4f);
+	Platform(FVector(7550.f, -7000.f, 0.f), 330.f, FVector(1000.f, 1000.f, 330.f), RelayStone, 0.4f);
+	Block(EShape::Cube, FVector(6950.f, -6500.f, -40.f), FVector(700.f, 300.f, 20.f), Magenta, 2.f, FRotator(0.f, -40.f, 0.f), false); // glowing hint under the gap
 	const FVector Plateau(9200.f, -8200.f, 0.f);
 	const float PlateauTop = 600.f;
 	Platform(Plateau, PlateauTop, FVector(2600.f, 2600.f, PlateauTop), VerdanceRock);

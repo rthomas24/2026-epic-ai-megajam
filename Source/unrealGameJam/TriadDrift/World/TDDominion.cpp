@@ -14,6 +14,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
 #include "Components/StaticMeshComponent.h"
@@ -238,10 +239,34 @@ void ATDDominion::SyncHyperdriveLock()
 	// The assault (warp-in to victory) locks the hyperdrive: the finale is fought, not skipped. The lock
 	// follows the STATE, not its transitions: it is re-asserted on every state change, on every retake and a
 	// few times a second, so nothing that clears locks (a retake, a level arrival, a resume) can open it.
+	// World review MAJOR 2: only once the squad has arrived (a ship inside HyperdriveLockRadius, the gravity
+	// well where a jump drops out). Locking at the warp-in, 500 000 cm away, made the approach a sublight crawl.
+	// Sticky for the assault: flying back out of the well doesn't unlock the fight.
+	const bool bAssault = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
+		|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+	if (!bAssault)
+	{
+		bSquadArrived = false;
+	}
+	else if (!bSquadArrived)
+	{
+		if (const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+		{
+			TArray<AActor*> Squad;
+			Registry->GetActorsOfTeam(ETDTeam::Player, Squad, true);
+			for (const AActor* A : Squad)
+			{
+				if (A && A->IsA<ATDSpacecraft>() && FVector::DistSquared(A->GetActorLocation(), GetActorLocation()) <= FMath::Square(HyperdriveLockRadius))
+				{
+					bSquadArrived = true;
+					break;
+				}
+			}
+		}
+	}
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
-		const bool bLocked = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
-			|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+		const bool bLocked = bAssault && bSquadArrived;
 		if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT"), this); }
 		else { Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale); }
 	}

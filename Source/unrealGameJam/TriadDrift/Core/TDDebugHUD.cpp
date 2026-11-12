@@ -149,6 +149,7 @@ void ATDDebugHUD::DrawHUD()
 	DrawSquad(Y);
 	DrawWave();
 	DrawTargets();
+	DrawObjective();
 	DrawCrosshair();
 	DrawFlight();
 }
@@ -312,6 +313,69 @@ void ATDDebugHUD::DrawTargets()
 			const FVector2D Side(-Dir.Y, Dir.X);
 			DrawLine2D(Tip, Tip - Dir * 18.f + Side * 9.f, Color, 2.f);
 			DrawLine2D(Tip, Tip - Dir * 18.f - Side * 9.f, Color, 2.f);
+		}
+	}
+}
+
+// The objective line (top centre) and where to go: a diamond with the distance on each objective
+// marker in view, an edge arrow toward each one out of view. Works in space and on foot.
+void ATDDebugHUD::DrawObjective()
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
+	const APawn* Pawn = GetOwningPawn();
+	if (!Data || !Pawn)
+	{
+		return;
+	}
+	const FLinearColor ColorObjective(1.f, 0.78f, 0.2f);
+
+	const FString Objective = Data->GetObjectiveText().ToString();
+	if (!Objective.IsEmpty())
+	{
+		float W = 0.f, H = 0.f;
+		GetTextSize(Objective, W, H, nullptr, 1.3f);
+		DrawText(Objective, ColorObjective, (Canvas->SizeX - W) * 0.5f, FMath::Max(22.f, Canvas->SizeY * 0.12f), nullptr, 1.3f);
+	}
+
+	const FVector Eye = Pawn->GetActorLocation();
+	const FVector2D ScreenCenter(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+	for (const AActor* Marker : Data->GetObjectiveMarkers())
+	{
+		if (!IsValid(Marker) || Marker == Pawn)
+		{
+			continue;
+		}
+		const FVector Screen = Project(Marker->GetActorLocation());
+		const bool bOnScreen = Screen.Z > 0.f && Screen.X >= 0.f && Screen.X <= Canvas->SizeX && Screen.Y >= 0.f && Screen.Y <= Canvas->SizeY;
+		const float DistanceM = static_cast<float>(FVector::Dist(Eye, Marker->GetActorLocation())) / 100.f;
+		if (bOnScreen)
+		{
+			const FVector2D C(Screen.X, Screen.Y);
+			const float R = 11.f;
+			DrawLine2D(C + FVector2D(0.f, -R), C + FVector2D(R, 0.f), ColorObjective, 2.f);
+			DrawLine2D(C + FVector2D(R, 0.f), C + FVector2D(0.f, R), ColorObjective, 2.f);
+			DrawLine2D(C + FVector2D(0.f, R), C + FVector2D(-R, 0.f), ColorObjective, 2.f);
+			DrawLine2D(C + FVector2D(-R, 0.f), C + FVector2D(0.f, -R), ColorObjective, 2.f);
+			DrawText(FString::Printf(TEXT("%.0f m"), DistanceM), ColorObjective, C.X + R + 5.f, C.Y - 8.f, nullptr, 1.f);
+		}
+		else
+		{
+			// Behind the camera the projection is mirrored: flip it so the arrow points the way to turn.
+			FVector2D Dir(Screen.X - ScreenCenter.X, Screen.Y - ScreenCenter.Y);
+			if (Screen.Z <= 0.f)
+			{
+				Dir *= -1.f;
+			}
+			if (!Dir.Normalize())
+			{
+				Dir = FVector2D(0.f, 1.f);
+			}
+			const float Radius = FMath::Min(Canvas->SizeX, Canvas->SizeY) * 0.40f;
+			const FVector2D Tip = ScreenCenter + Dir * Radius;
+			const FVector2D Side(-Dir.Y, Dir.X);
+			DrawLine2D(Tip, Tip - Dir * 22.f + Side * 11.f, ColorObjective, 3.f);
+			DrawLine2D(Tip, Tip - Dir * 22.f - Side * 11.f, ColorObjective, 3.f);
+			DrawText(FString::Printf(TEXT("%.0f m"), DistanceM), ColorObjective, Tip.X - Dir.X * 40.f - 14.f, Tip.Y - Dir.Y * 40.f - 8.f, nullptr, 0.9f);
 		}
 	}
 }
