@@ -39,9 +39,13 @@ class UNREALGAMEJAM_API UTDAtmosphereEntryComponent : public UActorComponent
 public:
 	UTDAtmosphereEntryComponent();
 
-	/** Start the entry. Returns false if one is already running or the owner isn't a spacecraft. */
+	/**
+	 * Start the entry. Returns false if one is already running or the owner isn't a spacecraft.
+	 * PlanetSurfaceRadius (the solid planet body, 0 = unknown) keeps the committed dive from reaching
+	 * the surface before the level change; the ship is also invulnerable while committed.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Atmosphere")
-	bool BeginEntry(ETDDestination InDestination, FName InReturnPoint, FVector PlanetCenter);
+	bool BeginEntry(ETDDestination InDestination, FName InReturnPoint, FVector PlanetCenter, float PlanetSurfaceRadius = 0.f);
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	ETDAtmosphereEntryState GetEntryState() const { return EntryState; }
@@ -65,6 +69,14 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
 	float EntrySteeringScale = 0.35f;
+
+	/** The dive stops this far above the planet surface at most (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
+	float EntrySurfaceClearance = 3000.f;
+
+	/** Slowest the committed dive goes, even when very close to the surface (cm/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
+	float EntryMinSpeed = 1500.f;
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Atmosphere")
 	FTDOnAtmosphereEntry OnEntryStarted;
@@ -135,6 +147,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	FBox GetZoneBox() const;
+
+	/** Half-size of the zone box (cm). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Atmosphere")
+	void SetZoneExtent(const FVector& Extent);
 
 	/** The ceiling exit fired (TravelTo(Galaxy, "<PlanetId>_Orbit") was requested). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")

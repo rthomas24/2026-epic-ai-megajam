@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/BoxComponent.h"
 
 namespace
@@ -50,7 +51,7 @@ float UTDAtmosphereEntryComponent::GetEntry01() const
 	return EntrySeconds > 0.f ? FMath::Clamp(EntryTime / EntrySeconds, 0.f, 1.f) : 1.f;
 }
 
-bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName InReturnPoint, FVector PlanetCenter)
+bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName InReturnPoint, FVector PlanetCenter, float PlanetSurfaceRadius)
 {
 	ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner());
 	if (!Craft || EntryState != ETDAtmosphereEntryState::Idle)
@@ -75,7 +76,19 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	{
 		Craft->TeleportSpacecraft(Craft->GetActorLocation(), ToPlanet.Rotation(), true);
 	}
-	Craft->SetSpeedOverride(EntrySpeed, EntrySteeringScale);
+	// Don't dive into the planet body before the level change: the speed is limited so the committed
+	// path ends EntrySurfaceClearance above the surface.
+	float Speed = EntrySpeed;
+	if (PlanetSurfaceRadius > 0.f && EntrySeconds > 0.f)
+	{
+		const float ToSurface = FVector::Dist(PlanetCenter, Craft->GetActorLocation()) - PlanetSurfaceRadius - EntrySurfaceClearance;
+		Speed = FMath::Clamp(ToSurface / EntrySeconds, EntryMinSpeed, EntrySpeed);
+	}
+	Craft->SetSpeedOverride(Speed, EntrySteeringScale);
+	if (UTDHealthComponent* Health = Craft->GetHealth())
+	{
+		Health->SetInvulnerable(true); // committed: nothing should kill the ship during the white-out
+	}
 	if (TravelFX)
 	{
 		UTDStatics::PlayCueAttached(TravelFX->AtmosphericEntry, Craft->GetRootComponent());
@@ -91,6 +104,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 void UTDAtmosphereEntryComponent::FinishEntry()
 {
 	EntryState = ETDAtmosphereEntryState::Travelling;
+	ATDSpacecraft* EnteringCraft = Cast<ATDSpacecraft>(GetOwner());
 	OnEntryCompleted.Broadcast(this);
 
 	bool bTravelled = false;
@@ -103,9 +117,13 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 		// No flow (tests, sandbox) or the planet map is missing: hand the ship back.
 		UE_LOG(LogTriadDrift, Warning, TEXT("Atmosphere entry: TravelTo(%s) did not happen; returning control."),
 			*StaticEnum<ETDDestination>()->GetNameStringByValue((int64)Destination));
-		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
+		if (ATDSpacecraft* Craft = EnteringCraft)
 		{
 			Craft->ClearSpeedOverride();
+			if (UTDHealthComponent* Health = Craft->GetHealth())
+			{
+				Health->SetInvulnerable(false);
+			}
 			if (ATDShip* Ship = Cast<ATDShip>(Craft))
 			{
 				if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
@@ -148,6 +166,14 @@ FBox ATDAtmosphereFlightZone::GetZoneBox() const
 	const FVector Extent = ZoneBox ? ZoneBox->GetScaledBoxExtent() : FVector::ZeroVector;
 	const FVector Center = GetActorLocation();
 	return FBox(Center - Extent, Center + Extent);
+}
+
+void ATDAtmosphereFlightZone::SetZoneExtent(const FVector& Extent)
+{
+	if (ZoneBox)
+	{
+		ZoneBox->SetBoxExtent(Extent.ComponentMax(FVector(100.f)));
+	}
 }
 
 bool ATDAtmosphereFlightZone::IsShipInZone(const ATDShip* Ship) const
