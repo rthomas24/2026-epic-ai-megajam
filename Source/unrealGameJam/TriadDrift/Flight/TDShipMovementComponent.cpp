@@ -355,6 +355,50 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	BroadcastStateChanges(Before);
 }
 
+FCollisionObjectQueryParams UTDShipMovementComponent::TerrainObjectTypes()
+{
+	FCollisionObjectQueryParams Types;
+	Types.AddObjectTypesToQuery(ECC_WorldStatic);
+	Types.AddObjectTypesToQuery(ECC_WorldDynamic);
+	return Types;
+}
+
+bool UTDShipMovementComponent::IsTerrainHit(const FHitResult& Hit)
+{
+	const UPrimitiveComponent* C = Hit.GetComponent();
+	if (!C || Cast<APawn>(Hit.GetActor()))
+	{
+		return false;
+	}
+	return C->GetCollisionObjectType() == ECC_WorldStatic || C->Mobility != EComponentMobility::Movable || C->Bounds.SphereRadius >= 1500.f;
+}
+
+bool UTDShipMovementComponent::SweepTerrain(const UWorld* World, FHitResult& OutHit, const FVector& Start, const FVector& End, float Radius, const FCollisionQueryParams& Params)
+{
+	if (!World)
+	{
+		return false;
+	}
+	TArray<FHitResult> Hits;
+	if (Radius > 0.f)
+	{
+		World->SweepMultiByObjectType(Hits, Start, End, FQuat::Identity, TerrainObjectTypes(), FCollisionShape::MakeSphere(Radius), Params);
+	}
+	else
+	{
+		World->LineTraceMultiByObjectType(Hits, Start, End, TerrainObjectTypes(), Params);
+	}
+	for (const FHitResult& H : Hits) // sorted by distance
+	{
+		if (H.bBlockingHit && !H.bStartPenetrating && IsTerrainHit(H))
+		{
+			OutHit = H;
+			return true;
+		}
+	}
+	return false;
+}
+
 void UTDShipMovementComponent::MeasureGroundClearance()
 {
 	Context.GroundClearance = -1.f;
@@ -368,8 +412,8 @@ void UTDShipMovementComponent::MeasureGroundClearance()
 	const FVector End = Start - FVector(0.f, 0.f, Radius + Tuning.GroundAvoidHeight);
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDGroundFloor), false, GetOwner());
 	FHitResult Hit;
-	// Static world only: ships, projectiles and pads' own dynamic parts never count as ground.
-	if (World->LineTraceSingleByObjectType(Hit, Start, End, FCollisionObjectQueryParams(ECC_WorldStatic), Params))
+	// Terrain only (static or large movable geometry): ships and projectiles never count as ground.
+	if (SweepTerrain(World, Hit, Start, End, 0.f, Params))
 	{
 		Context.GroundClearance = FMath::Max(0.f, Hit.Distance - Radius);
 	}
@@ -384,8 +428,7 @@ void UTDShipMovementComponent::MeasureGroundClearance()
 		const float Range = Speed * Tuning.GroundLookAheadSeconds;
 		const FVector Dir = State.Velocity / Speed;
 		FHitResult Ahead;
-		if (World->SweepSingleByObjectType(Ahead, Start, Start + Dir * Range, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic),
-			FCollisionShape::MakeSphere(Radius), Params) && !Ahead.bStartPenetrating)
+		if (SweepTerrain(World, Ahead, Start, Start + Dir * Range, Radius, Params))
 		{
 			Context.TerrainAheadDistance = Ahead.Distance;
 			Context.TerrainAheadRange = Range;
