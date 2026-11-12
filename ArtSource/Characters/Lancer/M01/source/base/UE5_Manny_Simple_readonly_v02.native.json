@@ -1,0 +1,18 @@
+{
+  "failure": null,
+  "engine_exit_code": 0,
+  "os_exit_code": 0,
+  "character_head": "a9c3f3df1c55354398eb6d6b2d25fb08cdfaab97",
+  "fbx": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\base\\UE5_Manny_Simple_readonly_v02.fbx",
+  "host_head": "ca579ab7380f830647aa3d49e4f442f5cf3714a2",
+  "pass": true,
+  "engine_reason": "ok",
+  "result_file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\Saved\\Characters\\Lancer\\M01\\MannequinExport02\\native.result.json",
+  "duration_s": 10.64,
+  "pid": 23360,
+  "protected_file_count": 369,
+  "guard_free_gib": 4.941,
+  "protected_changed": [],
+  "engine_log_warnings": 0,
+  "engine_log_errors": 0
+}

@@ -1,0 +1,535 @@
+{
+  "schema": 1,
+  "stage": "Reference export script succeeded; native exit verification pending",
+  "prepared_utc": "2026-11-12T23:55:18.434455+00:00",
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "host_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish",
+  "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+  "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+  "packages": [
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SKM_Manny_Simple.uasset",
+      "character_tree": "Lancer tree has LFS pointers; frozen HUD package used read-only",
+      "read_only_actual_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Content\\Characters\\Mannequins\\Meshes\\SKM_Manny_Simple.uasset",
+      "actual_bytes": 15825101,
+      "sha256": "be9f011191ee1887b97cd13bce09886a6066c2fd62c619991070ec142184e1bf",
+      "lfs_oid_matches_actual": true,
+      "exported": false
+    },
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SK_Mannequin.uasset",
+      "character_tree": "Lancer tree has LFS pointers; frozen HUD package used read-only",
+      "read_only_actual_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Content\\Characters\\Mannequins\\Meshes\\SK_Mannequin.uasset",
+      "actual_bytes": 191198,
+      "sha256": "22029d47455f24471195b26a0e04a1e1389f27d6a924e88c9f46a0f600c9a530",
+      "lfs_oid_matches_actual": true,
+      "exported": false
+    }
+  ],
+  "scripts": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\run_manny_export.ps1",
+      "sha256": "efa6d0f373ced883774011acc1214c28b9263b77b95a1278363cd7f8c27e59ab"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\export_manny_readonly.py",
+      "sha256": "ff74eb65f0488a107ba58f06dbab6e85ce5a6ffd206f88a43638f85ec5246a24"
+    }
+  ],
+  "export_options": {
+    "ascii": "False",
+    "force_front_x_axis": "False",
+    "level_of_detail": "False",
+    "collision": "False",
+    "export_source_mesh": "False",
+    "export_morph_targets": "False",
+    "export_cloth_geometry": "False",
+    "export_preview_mesh": "False",
+    "map_skeletal_motion_to_root": "False",
+    "vertex_color": "True",
+    "fbx_export_compatibility": "<FbxExportCompatibility.FBX_2018: 5>",
+    "bake_material_inputs": "<FbxMaterialBakeMode.DISABLED: 0>"
+  },
+  "fbx": {
+    "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\base\\UE5_Manny_Simple_readonly_v02.fbx",
+    "bytes": 3524336,
+    "sha256": "2ceccfca8b62d7a2824048bc485e5f998790270722fc00dfda117b40cc6b03c3"
+  },
+  "bones": [
+    {
+      "index": 0,
+      "name": "root",
+      "parent": "None"
+    },
+    {
+      "index": 1,
+      "name": "pelvis",
+      "parent": "root"
+    },
+    {
+      "index": 2,
+      "name": "spine_01",
+      "parent": "pelvis"
+    },
+    {
+      "index": 3,
+      "name": "spine_02",
+      "parent": "spine_01"
+    },
+    {
+      "index": 4,
+      "name": "spine_03",
+      "parent": "spine_02"
+    },
+    {
+      "index": 5,
+      "name": "spine_04",
+      "parent": "spine_03"
+    },
+    {
+      "index": 6,
+      "name": "spine_05",
+      "parent": "spine_04"
+    },
+    {
+      "index": 7,
+      "name": "neck_01",
+      "parent": "spine_05"
+    },
+    {
+      "index": 8,
+      "name": "neck_02",
+      "parent": "neck_01"
+    },
+    {
+      "index": 9,
+      "name": "head",
+      "parent": "neck_02"
+    },
+    {
+      "index": 10,
+      "name": "clavicle_l",
+      "parent": "spine_05"
+    },
+    {
+      "index": 11,
+      "name": "upperarm_l",
+      "parent": "clavicle_l"
+    },
+    {
+      "index": 12,
+      "name": "lowerarm_l",
+      "parent": "upperarm_l"
+    },
+    {
+      "index": 13,
+      "name": "lowerarm_twist_02_l",
+      "parent": "lowerarm_l"
+    },
+    {
+      "index": 14,
+      "name": "lowerarm_twist_01_l",
+      "parent": "lowerarm_l"
+    },
+    {
+      "index": 15,
+      "name": "hand_l",
+      "parent": "lowerarm_l"
+    },
+    {
+      "index": 16,
+      "name": "index_metacarpal_l",
+      "parent": "hand_l"
+    },
+    {
+      "index": 17,
+      "name": "index_01_l",
+      "parent": "index_metacarpal_l"
+    },
+    {
+      "index": 18,
+      "name": "index_02_l",
+      "parent": "index_01_l"
+    },
+    {
+      "index": 19,
+      "name": "index_03_l",
+      "parent": "index_02_l"
+    },
+    {
+      "index": 20,
+      "name": "middle_metacarpal_l",
+      "parent": "hand_l"
+    },
+    {
+      "index": 21,
+      "name": "middle_01_l",
+      "parent": "middle_metacarpal_l"
+    },
+    {
+      "index": 22,
+      "name": "middle_02_l",
+      "parent": "middle_01_l"
+    },
+    {
+      "index": 23,
+      "name": "middle_03_l",
+      "parent": "middle_02_l"
+    },
+    {
+      "index": 24,
+      "name": "thumb_01_l",
+      "parent": "hand_l"
+    },
+    {
+      "index": 25,
+      "name": "thumb_02_l",
+      "parent": "thumb_01_l"
+    },
+    {
+      "index": 26,
+      "name": "thumb_03_l",
+      "parent": "thumb_02_l"
+    },
+    {
+      "index": 27,
+      "name": "pinky_metacarpal_l",
+      "parent": "hand_l"
+    },
+    {
+      "index": 28,
+      "name": "pinky_01_l",
+      "parent": "pinky_metacarpal_l"
+    },
+    {
+      "index": 29,
+      "name": "pinky_02_l",
+      "parent": "pinky_01_l"
+    },
+    {
+      "index": 30,
+      "name": "pinky_03_l",
+      "parent": "pinky_02_l"
+    },
+    {
+      "index": 31,
+      "name": "ring_metacarpal_l",
+      "parent": "hand_l"
+    },
+    {
+      "index": 32,
+      "name": "ring_01_l",
+      "parent": "ring_metacarpal_l"
+    },
+    {
+      "index": 33,
+      "name": "ring_02_l",
+      "parent": "ring_01_l"
+    },
+    {
+      "index": 34,
+      "name": "ring_03_l",
+      "parent": "ring_02_l"
+    },
+    {
+      "index": 35,
+      "name": "upperarm_twist_01_l",
+      "parent": "upperarm_l"
+    },
+    {
+      "index": 36,
+      "name": "upperarm_twist_02_l",
+      "parent": "upperarm_l"
+    },
+    {
+      "index": 37,
+      "name": "clavicle_r",
+      "parent": "spine_05"
+    },
+    {
+      "index": 38,
+      "name": "upperarm_r",
+      "parent": "clavicle_r"
+    },
+    {
+      "index": 39,
+      "name": "lowerarm_r",
+      "parent": "upperarm_r"
+    },
+    {
+      "index": 40,
+      "name": "lowerarm_twist_02_r",
+      "parent": "lowerarm_r"
+    },
+    {
+      "index": 41,
+      "name": "lowerarm_twist_01_r",
+      "parent": "lowerarm_r"
+    },
+    {
+      "index": 42,
+      "name": "hand_r",
+      "parent": "lowerarm_r"
+    },
+    {
+      "index": 43,
+      "name": "pinky_metacarpal_r",
+      "parent": "hand_r"
+    },
+    {
+      "index": 44,
+      "name": "pinky_01_r",
+      "parent": "pinky_metacarpal_r"
+    },
+    {
+      "index": 45,
+      "name": "pinky_02_r",
+      "parent": "pinky_01_r"
+    },
+    {
+      "index": 46,
+      "name": "pinky_03_r",
+      "parent": "pinky_02_r"
+    },
+    {
+      "index": 47,
+      "name": "ring_metacarpal_r",
+      "parent": "hand_r"
+    },
+    {
+      "index": 48,
+      "name": "ring_01_r",
+      "parent": "ring_metacarpal_r"
+    },
+    {
+      "index": 49,
+      "name": "ring_02_r",
+      "parent": "ring_01_r"
+    },
+    {
+      "index": 50,
+      "name": "ring_03_r",
+      "parent": "ring_02_r"
+    },
+    {
+      "index": 51,
+      "name": "middle_metacarpal_r",
+      "parent": "hand_r"
+    },
+    {
+      "index": 52,
+      "name": "middle_01_r",
+      "parent": "middle_metacarpal_r"
+    },
+    {
+      "index": 53,
+      "name": "middle_02_r",
+      "parent": "middle_01_r"
+    },
+    {
+      "index": 54,
+      "name": "middle_03_r",
+      "parent": "middle_02_r"
+    },
+    {
+      "index": 55,
+      "name": "index_metacarpal_r",
+      "parent": "hand_r"
+    },
+    {
+      "index": 56,
+      "name": "index_01_r",
+      "parent": "index_metacarpal_r"
+    },
+    {
+      "index": 57,
+      "name": "index_02_r",
+      "parent": "index_01_r"
+    },
+    {
+      "index": 58,
+      "name": "index_03_r",
+      "parent": "index_02_r"
+    },
+    {
+      "index": 59,
+      "name": "thumb_01_r",
+      "parent": "hand_r"
+    },
+    {
+      "index": 60,
+      "name": "thumb_02_r",
+      "parent": "thumb_01_r"
+    },
+    {
+      "index": 61,
+      "name": "thumb_03_r",
+      "parent": "thumb_02_r"
+    },
+    {
+      "index": 62,
+      "name": "upperarm_twist_01_r",
+      "parent": "upperarm_r"
+    },
+    {
+      "index": 63,
+      "name": "upperarm_twist_02_r",
+      "parent": "upperarm_r"
+    },
+    {
+      "index": 64,
+      "name": "thigh_r",
+      "parent": "pelvis"
+    },
+    {
+      "index": 65,
+      "name": "calf_r",
+      "parent": "thigh_r"
+    },
+    {
+      "index": 66,
+      "name": "foot_r",
+      "parent": "calf_r"
+    },
+    {
+      "index": 67,
+      "name": "ball_r",
+      "parent": "foot_r"
+    },
+    {
+      "index": 68,
+      "name": "calf_twist_02_r",
+      "parent": "calf_r"
+    },
+    {
+      "index": 69,
+      "name": "calf_twist_01_r",
+      "parent": "calf_r"
+    },
+    {
+      "index": 70,
+      "name": "thigh_twist_01_r",
+      "parent": "thigh_r"
+    },
+    {
+      "index": 71,
+      "name": "thigh_twist_02_r",
+      "parent": "thigh_r"
+    },
+    {
+      "index": 72,
+      "name": "thigh_l",
+      "parent": "pelvis"
+    },
+    {
+      "index": 73,
+      "name": "calf_l",
+      "parent": "thigh_l"
+    },
+    {
+      "index": 74,
+      "name": "foot_l",
+      "parent": "calf_l"
+    },
+    {
+      "index": 75,
+      "name": "ball_l",
+      "parent": "foot_l"
+    },
+    {
+      "index": 76,
+      "name": "calf_twist_02_l",
+      "parent": "calf_l"
+    },
+    {
+      "index": 77,
+      "name": "calf_twist_01_l",
+      "parent": "calf_l"
+    },
+    {
+      "index": 78,
+      "name": "thigh_twist_01_l",
+      "parent": "thigh_l"
+    },
+    {
+      "index": 79,
+      "name": "thigh_twist_02_l",
+      "parent": "thigh_l"
+    },
+    {
+      "index": 80,
+      "name": "ik_foot_root",
+      "parent": "root"
+    },
+    {
+      "index": 81,
+      "name": "ik_foot_l",
+      "parent": "ik_foot_root"
+    },
+    {
+      "index": 82,
+      "name": "ik_foot_r",
+      "parent": "ik_foot_root"
+    },
+    {
+      "index": 83,
+      "name": "ik_hand_root",
+      "parent": "root"
+    },
+    {
+      "index": 84,
+      "name": "ik_hand_gun",
+      "parent": "ik_hand_root"
+    },
+    {
+      "index": 85,
+      "name": "ik_hand_l",
+      "parent": "ik_hand_gun"
+    },
+    {
+      "index": 86,
+      "name": "ik_hand_r",
+      "parent": "ik_hand_gun"
+    },
+    {
+      "index": 87,
+      "name": "interaction",
+      "parent": "root"
+    },
+    {
+      "index": 88,
+      "name": "center_of_mass",
+      "parent": "root"
+    }
+  ],
+  "bone_count": 89,
+  "materials": [
+    {
+      "slot": "M_HeadLegs",
+      "material": "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_01_New.MI_Manny_01_New"
+    },
+    {
+      "slot": "M_Torso",
+      "material": "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_02_New.MI_Manny_02_New"
+    }
+  ],
+  "material_count": 2,
+  "imported_bounds_cm": {
+    "size": [
+      110.87406158447266,
+      42.4918098449707,
+      180.54390167817473
+    ],
+    "origin": [
+      0.0,
+      6.853570938110352,
+      90.25166976638138
+    ]
+  },
+  "scale_limit": "Imported bounds only; actual vertex dimensions/pose/axes need Blender inspection.",
+  "fbx_units": "cm per UE5.9 FbxMainExport.cpp; Z-up RH default front-axis convention retained",
+  "new_rig_or_weights_or_animation": false,
+  "package_saves": false,
+  "native_process_exit_verified": false,
+  "dirty_packages_added": []
+}
