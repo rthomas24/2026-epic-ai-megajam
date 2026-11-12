@@ -5,16 +5,13 @@
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "Blueprint/UserWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
-#include "Misc/PackageName.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 
 UTDUIStyle* FTDFrontEndWidgets::LoadDefaultStyle()
 {
-	static const TCHAR* Package = TEXT("/Game/TriadDrift/Presentation/DA_UI_Style");
-	return FPackageName::DoesPackageExist(Package)
-		? LoadObject<UTDUIStyle>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_UI_Style.DA_UI_Style"))
-		: nullptr;
+	return UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
 }
 
 UClass* FTDFrontEndWidgets::Resolve(UClass* Override, const UTDUIStyle* Style, EKind Kind)

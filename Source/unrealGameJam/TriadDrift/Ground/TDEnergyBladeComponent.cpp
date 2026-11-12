@@ -52,9 +52,9 @@ void UTDEnergyBladeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	Stamina = BlockStaminaSeconds;
-	if (!BladeFX && FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Presentation/DA_Blade_FX")))
+	if (!BladeFX)
 	{
-		BladeFX = LoadObject<UTDBladeFX>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_Blade_FX.DA_Blade_FX"));
+		BladeFX = UTDStatics::LoadPresentation<UTDBladeFX>(TEXT("DA_Blade_FX"));
 	}
 	OwnerHealth = UTDStatics::GetHealth(GetOwner());
 	if (OwnerHealth)
