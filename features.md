@@ -124,6 +124,18 @@ Content/TriadDrift/
 └── Developers/<name>/     personal scratch; never referenced by real content
 ```
 
+**Art sources (Blender files, AI originals, exports) live outside Unreal's Content/, with the same lanes:**
+
+```
+ArtSource/
+├── Space/         🟦 DEV 1: player ships, enemy ships, Dominion exterior, ship weapons/FX meshes
+├── Ground/        🟩 DEV 2: first-person arms/blade, crew, Dominion interior kit, objective props
+├── Environment/   🟩 DEV 2: asteroids, rocks, crystals, flora, planet set pieces, skybox meshes
+└── Shared/        🔒 claim first: palettes, trim sheets, decal atlases, calibration asset
+    per asset: <Category>/<Asset>/{brief.md, refs/, source/, <Asset>_vNN.blend, review/, export/}
+```
+How to make the assets: the `blender-*` skills in `.claude/skills/` (index in AGENTS.md §10).
+
 **Rules**
 - **Never edit the other dev's folders or maps.** Ask through your humans, or add a line to §11 "Requests".
 - **`Core/` is frozen** after C-02. To change it: claim it, get both humans' OK, and push the change on its own.
@@ -196,9 +208,9 @@ These are created once in C-02. Both sides build against them and **stub** the o
 
 ## 4. Shared setup (`C-xx`)
 
-### C-01 · Project bootstrap · 🟦 Dev 1 drives · `⬜`
-- [ ] Create the UE project and record the exact engine version in AGENTS.md. **Both devs must be on the same version.**
-- [ ] Add the Unreal `.gitignore` and `.gitattributes` with Git LFS (`*.uasset *.umap *.png *.jpg *.tga *.psd *.exr *.hdr *.wav *.mp3 *.ogg *.fbx *.obj *.glb`, marked `lockable`).
+### C-01 · Project bootstrap · 🟦 Dev 1 drives · `🟨`
+- [x] Create the UE project and record the exact engine version in AGENTS.md. **Both devs must be on the same version.** Done Nov 12: `unrealGameJam`, First Person C++ template, UE 5.9.0 MegaJam Preview, at the repo root.
+- [x] Add the Unreal `.gitignore` (+ `*.blend1`, `__pycache__/`) and `.gitattributes` with Git LFS (`*.uasset *.umap *.blend` + images, audio, meshes). Not marked `lockable`: we coordinate through CLAIMS.md instead, so files aren't read-only.
 - [ ] Create the full folder tree from §2.
 - [ ] Create the collision channels and object types (`Ship`, `Projectile`, `Character`, `Interactable`, `Portal`).
 - [ ] Create empty maps for every map in §1. `L_Galaxy` uses World Partition with **One File Per Actor**, and big interior maps should too.

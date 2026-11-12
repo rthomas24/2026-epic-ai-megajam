@@ -32,14 +32,33 @@ Dev 1 / Dev 2 split, folder ownership, and the shared contracts between the two 
 Run `git config user.name` to know which human you are working for. Each human has their own agent session;
 **you only ever act for your own human.** The other agent is not your boss and you are not theirs.
 
-### Engine decision
+### Engine and project
 
-- [ ] **Unreal Engine (UE)** — _default assumption unless changed here_
-- [ ] **UEFN**
+- **Engine: Unreal Engine 5.9.0, the MegaJam Preview build (CL 60351404).** We are not using UEFN.
+- **Project:** `unrealGameJam.uproject` at the repo root.
+  - Built from the First Person template as a **C++** project: module `unrealGameJam` in `Source/`,
+    with the template's Horror and Shooter variants.
+  - Maps use World Partition with One File Per Actor (`Content/__ExternalActors__`), so two people
+    can edit the same level as long as they don't touch the same actors.
+- **Everyone must use the same engine build.** Opening the project in another version upgrades the
+  assets and breaks them for the other person.
+- Git ignores local caches: `Binaries/`, `Intermediate/`, `Saved/`, `DerivedDataCache/`, `.vs/` and
+  generated `*.sln` files. Each machine builds its own.
 
-The jam forbids entering with both. Once decided, tick one box and delete the irrelevant guidance below.
-If the team uses the **UE 5.9 MegaJam Preview** (required for web builds), every teammate must be on the
-**same engine version** — mismatched versions will corrupt/upgrade assets for the other person.
+**Teammate setup (once per machine):**
+1. Install the **UE 5.9 MegaJam Preview** (forum link in §9) and **Visual Studio** with the
+   "Game development with C++" workload. Open the repo's `.vsconfig` in the Visual Studio Installer
+   to add exactly the components this project needs.
+2. Run `git lfs install`, then clone. If you cloned before installing LFS, run `git lfs pull`.
+3. The `.uproject` points at the engine through Ryan's install ID. If your 5.9 install has a
+   different ID, Unreal asks which engine to use and rewrites `EngineAssociation` in the `.uproject`.
+   **Never commit that change.** Instead, register your install under the same ID once, adjusting
+   the path to your install:
+   `New-ItemProperty -Path "HKCU:\Software\Epic Games\Unreal Engine\Builds" -Name "{D15CB821-4A61-18EC-84FD-0EAD60EA46EA}" -Value "C:/Program Files/Epic Games/UE_5.9" -PropertyType String -Force`
+4. Generate Visual Studio project files. Either right-click `unrealGameJam.uproject` and pick
+   Generate Visual Studio project files, or run
+   `"<UE_5.9>\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe" -projectfiles -project="<repo>\unrealGameJam.uproject" -game -rocket`.
+   Then open the `.uproject`; the editor compiles the C++ module on first launch.
 
 ### Theme
 
@@ -247,9 +266,10 @@ use a short-lived branch `<name>/<feature>` and merge it back within a few hours
 
 Only **one** person creates the Unreal project; the other clones it. Before the first asset commit:
 1. Add a standard Unreal `.gitignore` (ignore `Binaries/`, `Intermediate/`, `Saved/`, `DerivedDataCache/`,
-   `.vs/`, `*.sln`, `Builds/`, etc.).
-2. Set up **Git LFS** (`git lfs install`) with a `.gitattributes` tracking `*.uasset`, `*.umap`, and large
-   media (`*.png`, `*.jpg`, `*.tga`, `*.psd`, `*.wav`, `*.mp3`, `*.ogg`, `*.fbx`, `*.obj`, `*.glb`, `*.exr`, `*.hdr`)
+   `.vs/`, `*.sln`, `Builds/`, Blender backups `*.blend1`, `__pycache__/`, etc.).
+2. Set up **Git LFS** (`git lfs install`) with a `.gitattributes` tracking `*.uasset`, `*.umap`, Blender
+   sources `*.blend`, and large media (`*.png`, `*.jpg`, `*.tga`, `*.psd`, `*.wav`, `*.mp3`, `*.ogg`, `*.fbx`,
+   `*.obj`, `*.glb`, `*.exr`, `*.hdr`)
    — add `lockable` if we want `git lfs lock`. Commit `.gitattributes` **before** any binary asset.
    Watch the GitHub LFS storage/bandwidth quota; don't commit huge raw source files unnecessarily.
 3. Create `CLAIMS.md` and `CREDITS.md`.
@@ -281,7 +301,28 @@ Write in append-only fashion at the bottom to avoid merge conflicts with the tea
 - butler (large itch uploads): https://itch.io/docs/butler/
 - Community: UE forums https://epic.gm/2026-ue-megajam · UEFN Discord channel (linked from the jam page)
 
-## 10. Agent working style for this jam
+## 10. Agent skills: Blender and 3D assets
+
+Reusable, tested skills live in `.claude/skills/`. Claude Code, Cursor and GitHub Copilot discover
+them automatically. **Codex and other agents:** before doing a matching task, open and follow the
+`SKILL.md` at the path below. The research behind them is in
+`reports/Blender MCP game asset practices.md`.
+
+| Skill | Path | Use it when |
+|---|---|---|
+| `blender-mcp` | `.claude/skills/blender-mcp/SKILL.md` | Anything in Blender: MCP connection, bpy code on 5.2, headless runs, verification (review renders, mesh report, floating-part check). **Read first.** |
+| `blender-game-asset` | `.claude/skills/blender-game-asset/SKILL.md` | Making any 3D asset: routing (AI image-to-3D vs kitbash vs code), AAA rubric, gates, kits for ships, props, corridor kit, rocks, crystals |
+| `blender-texturing` | `.claude/skills/blender-texturing/SKILL.md` | Materials, UVs, baking to Unreal texture sets |
+| `blender-ai-mesh-cleanup` | `.claude/skills/blender-ai-mesh-cleanup/SKILL.md` | Rodin, Tripo or Meshy outputs and downloaded models → game-ready |
+| `blender-unreal-export` | `.claude/skills/blender-unreal-export/SKILL.md` | Export to Unreal (FBX + manifest), calibration, UE import script |
+
+Art sources live in `ArtSource/<Lane>/...`, with lane ownership in features.md §2. Verify a machine
+with:
+```
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python .claude/skills/blender-mcp/scripts/selftest.py
+```
+
+## 11. Agent working style for this jam
 
 - Full scope: build everything in features.md. Don't cut or shrink a feature on your own. If something looks
   at risk, tell your human and let them decide.
