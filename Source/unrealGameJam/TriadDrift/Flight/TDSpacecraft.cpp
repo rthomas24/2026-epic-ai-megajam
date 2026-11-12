@@ -3,6 +3,7 @@
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "Components/SphereComponent.h"
@@ -69,6 +70,7 @@ ATDSpacecraft::ATDSpacecraft()
 	ShipMovement->UpdatedComponent = CollisionSphere;
 
 	Health = CreateDefaultSubobject<UTDHealthComponent>(TEXT("Health"));
+	Weapons = CreateDefaultSubobject<UTDWeaponComponent>(TEXT("Weapons"));
 
 	// Ships are flown through SetFlightInput only; no control-rotation coupling.
 	bUseControllerRotationPitch = false;
