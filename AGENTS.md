@@ -105,11 +105,16 @@ blade to end the war.
 
 ### Theme: "DIRECTOR'S CUT"
 Theme fit is a judging category, so it must be visible in **gameplay**, not just the title.
-features.md **C-03** proposes the hooks and records which ones we build. The recommended ones are:
-- ship switching plays as a director's camera cut, with a pilot name card
-- slow-motion "director cam" money shots on big moments
-- each wave or objective is a "scene" with a slate card, and dying calls "CUT!" and restarts the
-  scene as the next take
+**Decided (Nov 12): we build these three hooks, all core** (details and owners in features.md
+**C-03**):
+1. **Switching is a cut:** ship switching plays as a director's camera cut, with a pilot name card.
+   It stays instant.
+2. **Director cam money shots:** slow-motion cinematic beats on big moments (ram kills, portal
+   missile returns, multi-kills, generator and reactor kills, perfect deflects).
+3. **Scenes and takes, not lives:** each wave or objective is a "scene" with a slate card, and dying
+   calls "CUT!" and restarts the scene as the next take.
+
+The victory highlight reel and director's commentary are not planned.
 
 ### How the Unreal project maps to the game
 - The project started from the **First Person C++ template**. Its first-person character, Enhanced
@@ -355,7 +360,7 @@ Don't let branches drift.
 - the `Content/TriadDrift/...` and `Source/unrealGameJam/TriadDrift/...` folder trees
 - collision channels and the maps
 - the C++ contracts and presentation hooks (C-02)
-- choosing the Director's Cut hooks (C-03)
+- building the three Director's Cut hooks (C-03 #1–#3: decided, not built yet)
 - `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`
 
 ---

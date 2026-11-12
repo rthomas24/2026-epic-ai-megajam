@@ -235,30 +235,35 @@ Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for 
 - [ ] Push. **`Core/` is now frozen.**
 
 ### C-03 · Theme: "Director's Cut" · both · `⬜` 🎬
-Theme fit is a judging category, so it must be **visible in gameplay**, not just the title. These
-are proposals, and the humans pick. The recommended set is cheap, presentation-heavy, and builds on
-the switching mechanic:
-1. **Switching is a cut** *(recommended)*. A ship switch plays as a director cutting between cameras:
+Theme fit is a judging category, so it must be **visible in gameplay**, not just the title.
+
+**Decision (Nov 12): we build #1, #2 and #3.** All three are core. They're cheap,
+presentation-heavy, and build on the switching mechanic. #4 and #5 are not planned.
+
+1. **Switching is a cut** *(BUILD)*. A ship switch plays as a director cutting between cameras:
    a hard camera cut with a 1-frame flash, a quick letterbox snap and the pilot's name card
    ("WREN · RIFT"). It stays instant, with no lost control. 🟦 switch event + timing · 🟩 cut
    transition, card, sound.
-2. **Director cam "money shots"** *(recommended)*. Big moments fire `OnHighlightMoment`: ram kills,
+2. **Director cam "money shots"** *(BUILD)*. Big moments fire `OnHighlightMoment`: ram kills,
    portal missile returns, multi-kills, generator and reactor kills. Each triggers a 0.5–1 s
    slow-motion beat from a cinematic angle, rate-limited. 🟦 events + time dilation · 🟩 camera rigs,
    framing, grade.
-3. **Scenes and takes, not lives** *(recommended)*.
+3. **Scenes and takes, not lives** *(BUILD)*.
    - Each wave or objective is a "scene" opened by a slate card ("SCENE 3 · CINDER · TAKE 1").
    - Dying calls "CUT!" and the scene restarts as TAKE 2.
    - The victory screen shows the takes needed per scene.
 
    🟦 checkpoint/restart per scene · 🟩 slate cards, "CUT!" presentation.
-4. **Your Director's Cut** *(nice)*. The victory screen plays an auto-edited highlight reel built from
+4. ~~**Your Director's Cut**~~ *(not planned)*. The victory screen plays an auto-edited highlight reel built from
    the recorded highlight moments. 🟦 event log with positions and times · 🟩 camera-cut playback.
-5. **Director's commentary** *(nice)*. A "Director" voice (the squad commander) opens scenes and
+5. ~~**Director's commentary**~~ *(not planned)*. A "Director" voice (the squad commander) opens scenes and
    reacts to highlights; subtitles are styled as script pages. 🟩 VO + subtitles, driven by
    `OnBarkRequested`.
 
-Decision: _fill in which ones we build._
+**Owners:**
+- **#1:** ENG-07 + ART-09/12.
+- **#2:** `OnHighlightMoment` + time dilation (ENG-07/09/10/18/22) + ART-12.
+- **#3:** ENG-14/19 checkpoints and takes + ART-09/12 slate cards and "CUT!".
 
 ---
 
@@ -713,7 +718,8 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
     and Credits; Loading.
 - **Onboarding:** `WBP_Tip` toasts from `DT_Tips` (on `OnTipRequested`), with glyphs that switch
   between keyboard/mouse and gamepad.
-- **Director's Cut UI:** slate cards, "CUT!", name cards, script-page subtitles (C-03).
+- **Director's Cut UI:** pilot name cards on switch (C-03 #1); scene slate cards and the "CUT!" /
+  next-take restart (C-03 #3); takes per scene on the victory screen.
 
 #### ART-10 · Audio & music · `⬜`
 - **Space SFX:** engine loops per ship that rise in pitch with throttle, drift screech, every
@@ -731,7 +737,7 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Sources:** licensed only (e.g. the WeLoveIndies jam pack: non-commercial), logged in CREDITS.md.
 
 #### ART-11 · Narrative presentation: barks, VO, intro · `⬜`
-- `DT_Barks` (about 80–120 lines: Wren, Kato, Moss, the Armada, the "Director") played on
+- `DT_Barks` (about 80–120 lines: Wren, Kato, Moss and the Armada) played on
   `OnBarkRequested` through a priority queue, with radio-filtered VO (AI-voiced, credited) and
   subtitles.
 - **Intro sequence (30–45 s, skippable):** the squad over Verdance's ring, then the Armada warps in.
@@ -739,11 +745,10 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 #### ART-12 · Cinematics & the Director's Cut presentation · `⬜`
 - **Sequences:** the Dominion reveal, the reactor breakup and victory hero shot, landing and
   take-off shots, the planet descent breakthrough.
-- **Theme hooks (C-03):**
+- **Theme hooks (C-03 #1–#3):**
   - the switch "cut" transition and name cards
-  - director-cam rigs and grade for highlight moments
-  - slate cards and the "CUT!" restart
-  - the victory highlight reel (#4, if chosen)
+  - director-cam rigs, framing and grade for the slow-motion highlight moments
+  - scene slate cards and the "CUT!" restart
 - **Trailer capture:** Movie Render Queue shots for ART-14.
 
 #### ART-13 · Lighting, post-process & performance-minded art · `⬜`
@@ -810,7 +815,7 @@ VFX, and the squad's launch from the hangar.
 | I-4 | Waves → music and barks | `OnWaveStarted` / `OnWaveCleared`, `OnBarkRequested` | Music director, bark queue, VO |
 | I-5 | Abilities | Unlock logic + `OnAbilityUnlocked` | Reward screen, ability VFX and SFX |
 | I-6 | Travel and landing | Travel, atmosphere flight, auto-land | Loading screen, entry, landing and take-off presentation |
-| I-7 | Director's Cut | Highlight events, slow-motion, take restarts, event log | Cut transitions, director cams, slate cards, highlight reel |
+| I-7 | Director's Cut (C-03 #1–#3) | Switch-cut timing, highlight events + slow motion, scene/take restarts | Cut transitions and name cards, director cams, slate cards and "CUT!" |
 | I-8 | Packaging | Build pipeline, performance profiling | Art budgets, scalability settings |
 | I-9 | Submission | Packaged build, upload, form | Video, page, screenshots, dev log |
 
