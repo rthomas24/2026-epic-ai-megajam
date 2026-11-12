@@ -5,6 +5,8 @@
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Ground/Crew/TDCrewCover.h"
+#include "TriadDrift/Ground/TDGroundScene.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -69,6 +71,24 @@ ATDInteractableActor::ATDInteractableActor()
 	Mesh->SetRelativeScale3D(FVector(0.6f, 0.6f, 1.2f));
 	Mesh->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 	Mesh->SetCollisionResponseToChannel(TDCollision::Interactable, ECR_Block);
+}
+
+void ATDInteractableActor::BeginPlay()
+{
+	Super::BeginPlay();
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->RegisterInteractable(this); // a retake makes it usable again while its objective is unfinished
+	}
+}
+
+void ATDInteractableActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->Unregister(this);
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 bool ATDInteractableActor::CanInteract(AActor* Interactor) const
@@ -187,6 +207,15 @@ float ATDCrewDummy::MeleeAttack(AActor* Target)
 	}
 	const FVector Dir = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 	return UTDStatics::ApplyTDDamage(Target, MeleeDamage, ETDDamageKind::Melee, this, this, Target->GetActorLocation() - Dir * 40.f, Dir);
+}
+
+void ATDCrewDummy::FellOutOfWorld(const UDamageType& DmgType)
+{
+	if (Health && Health->IsAlive())
+	{
+		Health->Kill(nullptr, ETDDamageKind::Environmental);
+	}
+	Destroy();
 }
 
 void ATDCrewDummy::HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow)
@@ -352,28 +381,90 @@ void ATDEncounterVolume::BeginPlay()
 {
 	Super::BeginPlay();
 	Box->OnComponentBeginOverlap.AddUniqueDynamic(this, &ATDEncounterVolume::HandleOverlap);
-	if (LinkedObjective)
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
-		ResetHandle = LinkedObjective->OnReset.AddUObject(this, &ATDEncounterVolume::HandleObjectiveReset);
+		Scene->RegisterEncounter(this); // the one reset path on a retake
 	}
+	if (LinkedObjective && !bStepBound)
+	{
+		LinkedObjective->OnStepStarted.AddUniqueDynamic(this, &ATDEncounterVolume::HandleStepStarted);
+		bStepBound = true;
+	}
+	ActivateIfPlayerInside();
 }
 
 void ATDEncounterVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (LinkedObjective)
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
-		LinkedObjective->OnReset.Remove(ResetHandle);
+		Scene->Unregister(this);
 	}
 	Super::EndPlay(EndPlayReason);
 }
 
 void ATDEncounterVolume::HandleOverlap(UPrimitiveComponent* Overlapped, AActor* Other, UPrimitiveComponent* OtherComp, int32 BodyIndex, bool bFromSweep, const FHitResult& Sweep)
 {
-	const APawn* Pawn = Cast<APawn>(Other);
-	if (bTriggerOnOverlap && Pawn && Pawn->IsPlayerControlled() && UTDStatics::GetTeam(Pawn) == ETDTeam::Player)
+	if (bTriggerOnOverlap && IsPlayerPawn(Other))
 	{
 		Activate();
 	}
+}
+
+bool ATDEncounterVolume::IsPlayerPawn(const AActor* Actor) const
+{
+	// The on-foot player: the first-person character (whoever drives it), or any player-controlled pawn.
+	const APawn* Pawn = Cast<APawn>(Actor);
+	return Pawn && UTDStatics::GetTeam(Pawn) == ETDTeam::Player && (Pawn->IsPlayerControlled() || Pawn->IsA<ATDFirstPersonCharacter>());
+}
+
+bool ATDEncounterVolume::ActivateIfPlayerInside()
+{
+	if (!bTriggerOnOverlap || bActivated || !Box)
+	{
+		return false;
+	}
+	TArray<AActor*> Inside;
+	Box->GetOverlappingActors(Inside, APawn::StaticClass());
+	for (AActor* A : Inside)
+	{
+		if (IsPlayerPawn(A))
+		{
+			Activate();
+			return bActivated;
+		}
+	}
+	return false;
+}
+
+void ATDEncounterVolume::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
+{
+	if (StepIndex == LinkedStep)
+	{
+		ActivateIfPlayerInside(); // the player may already be standing in the room
+	}
+}
+
+void ATDEncounterVolume::AdoptMember(AActor* Member)
+{
+	if (!Member || Spawned.Contains(Member))
+	{
+		return;
+	}
+	Spawned.Add(Member);
+	if (UTDHealthComponent* H = UTDStatics::GetHealth(Member))
+	{
+		H->OnDeath.AddUniqueDynamic(this, &ATDEncounterVolume::HandleMemberDeath);
+	}
+	Member->OnDestroyed.AddUniqueDynamic(this, &ATDEncounterVolume::HandleMemberDestroyed);
+	if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
+	{
+		Crew->OwningEncounter = this;
+	}
+}
+
+void ATDEncounterVolume::HandleMemberDestroyed(AActor* Member)
+{
+	CheckCleared();
 }
 
 void ATDEncounterVolume::Activate()
@@ -435,11 +526,8 @@ void ATDEncounterVolume::Activate()
 		{
 			AI->SetTarget(Player);
 		}
-		Spawned.Add(Member);
-		if (UTDHealthComponent* H = UTDStatics::GetHealth(Member))
-		{
-			H->OnDeath.AddUniqueDynamic(this, &ATDEncounterVolume::HandleMemberDeath);
-		}
+		AdoptMember(Member);
+
 	}
 	CheckCleared(); // nothing spawned (bad class) still opens the way rather than soft-locking
 }
@@ -487,16 +575,19 @@ void ATDEncounterVolume::CheckCleared()
 
 void ATDEncounterVolume::ResetEncounter()
 {
-	for (const TWeakObjectPtr<AActor>& M : Spawned)
+	// Disarm first: destroying members fires OnDestroyed, which must not read as "room cleared".
+	bActivated = false;
+	bCleared = false;
+	const TArray<TWeakObjectPtr<AActor>> Members = MoveTemp(Spawned);
+	Spawned.Reset();
+	for (const TWeakObjectPtr<AActor>& M : Members)
 	{
 		if (AActor* A = M.Get())
 		{
+			A->OnDestroyed.RemoveDynamic(this, &ATDEncounterVolume::HandleMemberDestroyed);
 			A->Destroy();
 		}
 	}
-	Spawned.Reset();
-	bActivated = false;
-	bCleared = false;
 	for (ATDDoor* Door : DoorsToOpen)
 	{
 		if (Door) { Door->Close(); }
@@ -507,7 +598,4 @@ void ATDEncounterVolume::ResetEncounter()
 	}
 }
 
-void ATDEncounterVolume::HandleObjectiveReset(ATDObjective* Objective)
-{
-	ResetEncounter();
-}
+

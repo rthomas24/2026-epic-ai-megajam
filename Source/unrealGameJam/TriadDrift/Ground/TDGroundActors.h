@@ -69,6 +69,10 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Interact")
 	TObjectPtr<UStaticMeshComponent> Mesh;
 
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 private:
 	bool bUsed = false;
 };
@@ -157,6 +161,7 @@ public:
 	// ITDStaggerable
 	virtual void ApplyStagger(float Seconds, AActor* Source) override;
 	virtual void BreakGuard(AActor* Source) override { bGuardBroken = true; }
+	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -297,6 +302,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Encounter") void Activate();
 	UFUNCTION(BlueprintCallable, Category = "Encounter") void ResetEncounter();
+
+	/** Starts the fight if the player is already inside (walked in early, respawned inside, step just began). */
+	UFUNCTION(BlueprintCallable, Category = "Encounter") bool ActivateIfPlayerInside();
+
+	/** Add an actor spawned mid-fight (a Warden's summons) so it counts toward the clear and is reset with the room. */
+	void AdoptMember(AActor* Member);
 	UFUNCTION(BlueprintPure, Category = "Encounter") bool IsActive() const { return bActivated && !bCleared; }
 	UFUNCTION(BlueprintPure, Category = "Encounter") bool IsCleared() const { return bCleared; }
 	UFUNCTION(BlueprintPure, Category = "Encounter") int32 GetAliveCount() const;
@@ -317,11 +328,18 @@ private:
 	UFUNCTION()
 	void HandleMemberDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
 
-	void HandleObjectiveReset(ATDObjective* Objective);
+	/** A member that vanished without dying (fell out of the world, destroyed) still counts as gone. */
+	UFUNCTION()
+	void HandleMemberDestroyed(AActor* Member);
+
+	UFUNCTION()
+	void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
+
 	void CheckCleared();
+	bool IsPlayerPawn(const AActor* Actor) const;
 
 	TArray<TWeakObjectPtr<AActor>> Spawned;
 	bool bActivated = false;
 	bool bCleared = false;
-	FDelegateHandle ResetHandle;
+	bool bStepBound = false;
 };

@@ -7,6 +7,8 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
@@ -80,6 +82,8 @@ AActor* ATDGroundGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	if (AActor* Found = Super::ChoosePlayerStart_Implementation(Player))
 	{
+		RespawnTransform = Found->GetActorTransform(); // retakes come back to the start actually used
+		bHasRespawnTransform = true;
 		return Found;
 	}
 	// Empty map: make a start where the training ground expects the player.
@@ -88,6 +92,11 @@ AActor* ATDGroundGameMode::ChoosePlayerStart_Implementation(AController* Player)
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnPoint = GetWorld()->SpawnActor<APlayerStart>(APlayerStart::StaticClass(), PlayerSpawn, Params);
+	}
+	if (SpawnPoint && !bHasRespawnTransform)
+	{
+		RespawnTransform = SpawnPoint->GetActorTransform();
+		bHasRespawnTransform = true;
 	}
 	return SpawnPoint;
 }
@@ -125,6 +134,10 @@ void ATDGroundGameMode::StartPlay()
 		if (!bPlanetMode) // on a planet the director owns retakes (on foot at the pad, or a fresh descent)
 		{
 			SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDGroundGameMode::HandleSceneRestart);
+			if (UTDEventBus* Bus = UTDEventBus::Get(this))
+			{
+				Bus->OnObjectiveUpdated.AddUniqueDynamic(this, &ATDGroundGameMode::HandleObjectiveUpdated);
+			}
 		}
 	}
 }
@@ -168,9 +181,28 @@ void ATDGroundGameMode::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 	RespawnPlayer();
 }
 
+void ATDGroundGameMode::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
+{
+	// Progress checkpoint: a completed step moves the retake spot to where the player stands, if that is
+	// solid ground (never mid-jump, never mid-mantle).
+	if (Step <= 0)
+	{
+		return;
+	}
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		const ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr);
+		if (Char && !Char->IsDead() && Char->GetCharacterMovement()->IsMovingOnGround())
+		{
+			RespawnTransform = FTransform(FRotator(0.f, Char->GetControlRotation().Yaw, 0.f), Char->GetActorLocation());
+			bHasRespawnTransform = true;
+		}
+	}
+}
+
 void ATDGroundGameMode::RespawnPlayer()
 {
-	const FTransform Where = SpawnPoint ? SpawnPoint->GetActorTransform() : PlayerSpawn;
+	const FTransform Where = bHasRespawnTransform ? RespawnTransform : (SpawnPoint ? SpawnPoint->GetActorTransform() : PlayerSpawn);
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
