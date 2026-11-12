@@ -61,7 +61,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 12:48 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 13:02 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -97,31 +97,34 @@ open) · `done` (on `main`, tests pass, review closed).
 | Independent code review of Powers + World (ENG-09 to 12, 16, 17, 18) | Lead | in progress | Nov 12 12:46 | | none |
 | Second review pass on Flow fixes | Lead | queued | | | none |
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
-| ENG-28 Shipping package under 1 GB, MapsToCook | Lead | queued | | | `/Config/DefaultGame.ini` (one line added now: always cook `/Engine/BasicShapes`) |
-| C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) and `Content/TriadDrift` tree | Lead | in progress | Nov 12 12:48 | | **CLAIMED by Ryan / Lead: `Content/TriadDrift/Maps/L_MainMenu.umap`, `L_Galaxy.umap`, `L_Planet_Verdance.umap`, `L_Planet_Cinder.umap`, `L_Transition.umap` and their World Settings (binary, shared). Created empty, World Partition + One File Per Actor; gameplay actors are spawned from C++. Nick's side: do not create or save these five files until this row says done; after that, add actors freely (they save as separate `__ExternalActors__` files), and claim World Settings before changing them.** |
+| ENG-28 Shipping package under 1 GB | Lead | queued | | | `/Config/DefaultGame.ini` (maps and `/Engine/BasicShapes` are in the cook list as of this push) |
+| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, this push; R-001 to R-003 open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
+| C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) | Lead | done | Nov 12 12:48 | Nov 12 13:02, this push | **Claim released.** `Content/TriadDrift/Maps/**` now exists: empty World Partition levels, streaming off, One File Per Actor. Both sides may place actors (they save as separate `__ExternalActors__` files): claim the map and what you add first. Do not re-save the `.umap` or change World Settings without a claim here; game modes are set by map name in `/Config/DefaultEngine.ini`. See `MESSAGEBOARD.md` R-001 |
 | ENG-27 balance + difficulty | Lead | queued | | | none |
-| ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | `ef345ca`; review fixes in progress (drift burst cap, camera roll, power routing) | none |
-| ENG-15 hyperdrive, ENG-20 atmosphere flight + landing (first pass) | T1 | in progress | Nov 12 | finished on `eng/t1` `19b4ac3` at 12:48; integrating | none |
+| ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | all 15 review fixes merged Nov 12 13:02, this push (`e046c82`); second review queued | none |
+| ENG-15 hyperdrive, ENG-20 atmosphere flight + landing (first pass) | T1 | in review | Nov 12 | Nov 12 13:02, this push (`2686272`); not reviewed yet | none |
+| ENG-20 end to end: planet arrival, landing, first-person hand-off, take-off (with T5) | T1 | in progress | Nov 12 13:02 | | none |
+| Placeholder look: squad-coloured hulls, glowing engines, `UTDShipVisuals` slot | T1 | done | Nov 12 | Nov 12 13:02, this push (`ab8915b`) | none |
 | ENG-05 ship weapons, ENG-06 targeting | T2 | in review | Nov 12 | `6bd14ec`; review fixes in progress (lead under drift, pool identity, retake cleanup, HUD data) | one-off Core edit for targeting HUD data: merged `0734b8c`, permission closed |
 | ENG-09 Rift portal blaster, ENG-10 Lancer ram, ENG-11 Bastion swarm + dome, ENG-12 unlockable abilities | T2 | in review | Nov 12 | Nov 12 12:46, this push (`6455ee0`); independent review running | none |
 | ENG-03 respawn rules, ENG-04 three ships, ENG-07 switching, ENG-08 wingman AI | T3 | in review | Nov 12 | `448f658`; independent review queued | none |
 | C-03 #1 switch-as-cut, #2 director-cam money shots | T3 | in review | Nov 12 | Nov 12 12:45, this push (`1309c5b`); review running | none |
-| Squad follow-ups: travel guard in director, flight / weapon reset on respawn, target carry-over, targeting HUD forwarders | T3 | in progress | Nov 12 12:43 | | none |
-| ENG-13 enemy ships + AI, ENG-14 wave director | T4 | in review | Nov 12 | `d484243`; review fixes in progress (carrier bays unreachable, leash, ramming) | none |
+| Squad follow-ups: travel guard in director, powers installed on the three ships, weapon reset on respawn, targeting HUD forwarders | T3 | done | Nov 12 12:43 | Nov 12 13:02, this push (`9c93bd1`) | none |
+| Squad follow-ups: flight reset on respawn, manual target carry-over, bullet-by-bullet spec table | T3 | in progress | Nov 12 13:02 | | none |
+| ENG-13 enemy ships + AI, ENG-14 wave director | T4 | in review | Nov 12 | blocker + playability fixes merged Nov 12 13:02, this push (`caabffe`: carrier parts reachable, leash, time-to-impact break-off); real-path tests and per-type visuals in progress | none |
 | ENG-18 Dominion assault + reactor finale | T4 | in review | Nov 12 | `571d85f` | none |
 | ENG-16 portal gates, ENG-17 galaxy layout | T4 | in review | Nov 12 | Nov 12 12:45, this push (`ea32ff5`); not reviewed yet | none |
 | ENG-19 game instance / saves / travel, C-03 #3 scenes and takes | T5 | in review | Nov 12 | `a2fdf3e`; all 12 review fixes merged Nov 12 12:45, this push (`125146f`); second review queued | none |
-| ENG-21 first-person character, ENG-22 energy blade, ENG-24 objective framework | T5 | in progress | Nov 12 | | none |
-| ENG-23 crew enemies, ENG-25 Verdance gameplay, ENG-26 Cinder gameplay | T5 | queued | | | none |
+| ENG-21 first-person character, ENG-22 energy blade, ENG-24 objective framework | T5 | in review | Nov 12 | Nov 12 13:02, this push (`fc329d0`); not reviewed yet | none |
+| ENG-23 crew enemies | T5 | in progress | Nov 12 13:02 | | none |
+| ENG-25 Verdance gameplay, ENG-26 Cinder gameplay | T5 | queued | | | places gameplay in `L_Planet_*` from C++ only |
 | ENG-29 docking, ENG-30 interior + core fight, ENG-31 escape (stretch) | unassigned | queued | | | only after core is solid |
 
 ### Coming next that touches shared things (heads-up for Nick's side)
 
-- `Content/TriadDrift/Maps/**`: Ryan's Lead is creating the five maps now (see the claimed row
-  above). They land on `main` in one commit; the row then moves to `done` and the files are open
-  for actor placement by both sides.
-- `/Config/DefaultGame.ini` (`MapsToCook`, packaging) and `/Config/DefaultEngine.ini` (default maps)
-  change when the maps land.
+- `/Config/DefaultEngine.ini` now boots into `L_Galaxy` and assigns game modes by map name
+  (`L_Galaxy` space, `L_Planet*` and `L_Dominion*` ground). A menu game mode for `L_MainMenu`
+  and the boot-map switch to it follow when the menu exists.
 - `unrealGameJam.uproject` is unclaimed. Nick's `Plugins/TriadDriftHUD/**` row implies a plugin
   entry there and a module dependency. A plugin cannot include the game module's headers
   (`ITDHUDData`, `UTDEventBus`), so how the HUD reads gameplay data needs to be agreed between
