@@ -116,6 +116,7 @@ UTDShieldDomePower::UTDShieldDomePower()
 	CooldownSeconds = 16.f;
 	ActiveSeconds = 6.f;
 	bCooldownStartsWhenPowerEnds = true;
+	bEndOnOwnerDeath = false; // the dome keeps protecting the squad
 }
 
 bool UTDShieldDomePower::OnActivate()

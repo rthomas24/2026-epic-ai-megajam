@@ -13,6 +13,7 @@
 #include "GameFramework/Pawn.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
@@ -20,19 +21,19 @@
 namespace
 {
 	// Scratch arrays reused across projectiles (game thread only) so hot paths never allocate.
-	TArray<AActor*>& HostileScratch()
+	TArray<AActor*>& TDProjHostileScratch()
 	{
 		static TArray<AActor*> Scratch;
 		return Scratch;
 	}
-	TArray<ATDProjectile*>& MissileScratch()
+	TArray<ATDProjectile*>& TDProjMissileScratch()
 	{
 		static TArray<ATDProjectile*> Scratch;
 		return Scratch;
 	}
 
 	/** Conservative radius of an actor's bounds (largest half-extent). */
-	float BoundsRadius(const AActor* Actor, FVector& OutCenter)
+	float TDProjBoundsRadius(const AActor* Actor, FVector& OutCenter)
 	{
 		FVector Extent;
 		Actor->GetActorBounds(true, OutCenter, Extent);
@@ -44,7 +45,7 @@ namespace
 		return Extent.GetMax();
 	}
 
-	float DistanceToBounds(const AActor* Actor, const FVector& Point)
+	float TDProjDistanceToBounds(const AActor* Actor, const FVector& Point)
 	{
 		FVector Origin, Extent;
 		Actor->GetActorBounds(true, Origin, Extent);
@@ -55,7 +56,7 @@ namespace
 		return FMath::Sqrt(FBox(Origin - Extent, Origin + Extent).ComputeSquaredDistanceToPoint(Point));
 	}
 
-	bool IsLiveTarget(const AActor* Actor)
+	bool TDProjIsLiveTarget(const AActor* Actor)
 	{
 		if (!IsValid(Actor))
 		{
@@ -88,14 +89,15 @@ ATDProjectile::ATDProjectile()
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ShapeMaterial(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 	if (SphereMesh.Succeeded())
 	{
+		DefaultMesh = SphereMesh.Object;
 		PlaceholderMesh->SetStaticMesh(SphereMesh.Object);
 	}
 	if (ShapeMaterial.Succeeded())
 	{
-		PlaceholderMesh->SetMaterial(0, ShapeMaterial.Object);
+		DefaultMaterial = ShapeMaterial.Object;
 	}
-
-	SetActorHiddenInGame(true);
+	// The actor stays visible (so a finishing tracer ribbon isn't cut off); the mesh is what hides.
+	PlaceholderMesh->SetVisibility(false);
 }
 
 // ------------------------------------------------------------------------------------------ spawning
@@ -126,6 +128,9 @@ ATDProjectile* ATDProjectile::Launch(UWorld* World, const FTDProjectileSpec& InS
 void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& Transform, AActor* InInstigator, ETDTeam InTeam,
 	AActor* InHomingTarget, const FVector& InheritedVelocity, float InDamageMultiplier, bool bInReportHits)
 {
+	static uint32 NextLaunchSerial = 1;
+	LaunchSerial = NextLaunchSerial++;
+	LastTransitTime = -1.0;
 	Spec = InSpec;
 	Team = InTeam;
 	Shooter = InInstigator;
@@ -150,7 +155,7 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 
 	SetActorLocationAndRotation(Transform.GetLocation(), Dir.Rotation(), false, nullptr, ETeleportType::TeleportPhysics);
 	bActive = true;
-	SetActorHiddenInGame(false);
+	bTrackingAbandoned = false;
 	SetActorTickEnabled(true);
 
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
@@ -168,47 +173,60 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 
 void ATDProjectile::UpdatePlaceholderLook()
 {
-	bool bShowPlaceholder = true;
-
-	if (TracerFX)
+	// Mesh: Nick's projectile mesh with its own materials, else the engine sphere tinted in squad / enemy colour.
+	UStaticMesh* ArtMesh = (Spec.FX && !Spec.FX->ProjectileMesh.IsNull()) ? Spec.FX->ProjectileMesh.LoadSynchronous() : nullptr;
+	UStaticMesh* WantMesh = ArtMesh ? ArtMesh : DefaultMesh.Get();
+	if (WantMesh && PlaceholderMesh->GetStaticMesh() != WantMesh)
 	{
-		TracerFX->DestroyComponent();
-		TracerFX = nullptr;
+		PlaceholderMesh->SetStaticMesh(WantMesh);
 	}
-
-	if (Spec.FX)
+	if (ArtMesh)
 	{
-		if (!Spec.FX->Tracer.IsNull())
-		{
-			FTDFXCue TracerCue;
-			TracerCue.VFX = Spec.FX->Tracer;
-			TracerFX = UTDStatics::PlayCueAttached(TracerCue, Root);
-			bShowPlaceholder = TracerFX == nullptr;
-		}
-		if (!Spec.FX->ProjectileMesh.IsNull())
-		{
-			if (UStaticMesh* Mesh = Spec.FX->ProjectileMesh.LoadSynchronous())
-			{
-				PlaceholderMesh->SetStaticMesh(Mesh);
-				bShowPlaceholder = true;
-			}
-		}
+		PlaceholderMesh->EmptyOverrideMaterials();
+		PlaceholderMesh->SetRelativeScale3D(FVector::OneVector);
 	}
-
-	PlaceholderMesh->SetVisibility(bShowPlaceholder);
-	if (bShowPlaceholder)
+	else
 	{
-		PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
-		if (!PlaceholderMID)
+		if (!PlaceholderMID && DefaultMaterial)
 		{
-			PlaceholderMID = PlaceholderMesh->CreateDynamicMaterialInstance(0);
+			PlaceholderMID = UMaterialInstanceDynamic::Create(DefaultMaterial, this);
 		}
 		if (PlaceholderMID)
 		{
+			if (PlaceholderMesh->GetMaterial(0) != PlaceholderMID)
+			{
+				PlaceholderMesh->SetMaterial(0, PlaceholderMID);
+			}
 			const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
 			PlaceholderMID->SetVectorParameterValue(TEXT("Color"), Color);
 		}
+		PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
 	}
+
+	// Tracer: one persistent Niagara component per pooled actor.
+	UNiagaraSystem* Tracer = (Spec.FX && !Spec.FX->Tracer.IsNull()) ? Spec.FX->Tracer.LoadSynchronous() : nullptr;
+	if (Tracer)
+	{
+		if (!TracerComp)
+		{
+			TracerComp = NewObject<UNiagaraComponent>(this, TEXT("Tracer"));
+			TracerComp->SetAutoActivate(false);
+			TracerComp->SetupAttachment(Root);
+			TracerComp->RegisterComponent();
+		}
+		if (TracerComp->GetAsset() != Tracer)
+		{
+			TracerComp->SetAsset(Tracer);
+		}
+		TracerComp->Activate(true);
+	}
+	else if (TracerComp)
+	{
+		TracerComp->DeactivateImmediate();
+	}
+
+	// With a tracer and no art mesh, the trail is the look; otherwise show the mesh.
+	PlaceholderMesh->SetVisibility(ArtMesh != nullptr || Tracer == nullptr);
 }
 
 void ATDProjectile::Deactivate()
@@ -219,17 +237,16 @@ void ATDProjectile::Deactivate()
 	}
 	bActive = false;
 	SetActorTickEnabled(false);
-	SetActorHiddenInGame(true);
+	PlaceholderMesh->SetVisibility(false);
 	Velocity = FVector::ZeroVector;
 	HomingTarget = nullptr;
 	Shooter = nullptr;
 	OriginalShooter = nullptr;
 	IgnoreActor = nullptr;
 	OnDetonated.Clear();
-	if (TracerFX)
+	if (TracerComp)
 	{
-		TracerFX->DestroyComponent();
-		TracerFX = nullptr;
+		TracerComp->Deactivate(); // let the ribbon finish
 	}
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 	{
@@ -272,7 +289,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 
 	// Re-home on whoever fired it: a returned shot should come back to bite them.
 	AActor* Original = OriginalShooter.Get();
-	if (IsLiveTarget(Original) && UTDStatics::AreTeamsHostile(NewTeam, UTDStatics::GetTeam(Original)))
+	if (TDProjIsLiveTarget(Original) && UTDStatics::AreTeamsHostile(NewTeam, UTDStatics::GetTeam(Original)))
 	{
 		HomingTarget = Original;
 		Spec.bHoming = true;
@@ -284,6 +301,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 		HomingTarget = nullptr;
 	}
 	TrackingBlockedFor = 0.f;
+	bTrackingAbandoned = false;
 
 	// A returned shot gets a fresh lifetime so it can make it home.
 	Age = 0.f;
@@ -335,6 +353,7 @@ void ATDProjectile::Detonate()
 void ATDProjectile::SetHomingTarget(AActor* NewTarget)
 {
 	HomingTarget = NewTarget;
+	bTrackingAbandoned = false;
 	if (NewTarget)
 	{
 		Spec.bHoming = true;
@@ -348,6 +367,7 @@ void ATDProjectile::BreakTracking(float Seconds, bool bReacquire)
 	if (!bReacquire)
 	{
 		HomingTarget = nullptr;
+		bTrackingAbandoned = true;
 	}
 }
 
@@ -396,7 +416,7 @@ void ATDProjectile::Step(float DeltaSeconds)
 		UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this);
 		if (Subsystem)
 		{
-			TArray<ATDProjectile*>& Missiles = MissileScratch();
+			TArray<ATDProjectile*>& Missiles = TDProjMissileScratch();
 			Missiles.Reset();
 			const float SegLen = FVector::Dist(Start, End);
 			Subsystem->FindHostileMissiles(Team, (Start + End) * 0.5f, SegLen * 0.5f + Spec.CollisionRadius + 150.f, Missiles);
@@ -432,16 +452,29 @@ void ATDProjectile::Step(float DeltaSeconds)
 
 		if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 		{
-			TArray<AActor*>& Hostiles = HostileScratch();
+			TArray<AActor*>& Hostiles = TDProjHostileScratch();
 			Hostiles.Reset();
 			Registry->GetHostilesOf(Team, Hostiles, true);
 			for (AActor* Hostile : Hostiles)
 			{
 				if (Hostile && Hostile != IgnoreActor.Get())
 				{
-					FVector Center;
-					const float Radius = BoundsRadius(Hostile, Center);
-					ConsiderPoint(Center, Radius);
+					// Distance to the actor's own colliding box (not a bounding sphere, not child actors): a carrier's
+					// bays and turrets fuse where they are, not 2000 cm out on the carrier's bounding sphere.
+					FVector Origin, Extent;
+					Hostile->GetActorBounds(true, Origin, Extent, false);
+					if (Extent.IsNearlyZero())
+					{
+						ConsiderPoint(Hostile->GetActorLocation(), 50.f);
+						continue;
+					}
+					const FBox Box(Origin - Extent, Origin + Extent);
+					// Closest approach of the segment to the box: sample the segment's closest point to the centre,
+					// then refine once against the box surface.
+					FVector OnSeg = FMath::ClosestPointOnSegment(Origin, Start, End);
+					const FVector OnBox = Box.GetClosestPointTo(OnSeg);
+					OnSeg = FMath::ClosestPointOnSegment(OnBox, Start, End);
+					ConsiderPoint(Box.GetClosestPointTo(OnSeg), 0.f);
 				}
 			}
 		}
@@ -449,7 +482,7 @@ void ATDProjectile::Step(float DeltaSeconds)
 		{
 			if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 			{
-				TArray<ATDProjectile*>& Missiles = MissileScratch();
+				TArray<ATDProjectile*>& Missiles = TDProjMissileScratch();
 				Missiles.Reset();
 				Subsystem->FindHostileMissiles(Team, (Start + End) * 0.5f, FVector::Dist(Start, End) * 0.5f + Spec.ProximityFuseRadius + 200.f, Missiles);
 				for (ATDProjectile* M : Missiles)
@@ -509,10 +542,10 @@ void ATDProjectile::UpdateHoming(float DeltaSeconds)
 	}
 
 	AActor* Target = HomingTarget.Get();
-	if (!IsLiveTarget(Target))
+	if (!TDProjIsLiveTarget(Target))
 	{
 		HomingTarget = nullptr;
-		if (DeflectCount == 0 || bReacquireAfterBlock)
+		if (!bTrackingAbandoned && (DeflectCount == 0 || bReacquireAfterBlock))
 		{
 			AcquireHomingTarget();
 		}
@@ -569,7 +602,7 @@ void ATDProjectile::AcquireHomingTarget()
 	{
 		return;
 	}
-	TArray<AActor*>& Hostiles = HostileScratch();
+	TArray<AActor*>& Hostiles = TDProjHostileScratch();
 	Hostiles.Reset();
 	Registry->GetHostilesOf(Team, Hostiles, false);
 
@@ -629,7 +662,7 @@ bool ATDProjectile::SweepPath(const FVector& Start, const FVector& End, FHitResu
 		}
 		const bool bFriendly = Team != ETDTeam::Neutral && UTDStatics::GetTeam(HitActor) == Team;
 		const bool bOtherProjectile = HitActor->IsA<ATDProjectile>();
-		const bool bDeadShip = !IsLiveTarget(HitActor);
+		const bool bDeadShip = !TDProjIsLiveTarget(HitActor);
 		if (!bFriendly && !bOtherProjectile && !bDeadShip)
 		{
 			return true;
@@ -659,7 +692,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 
 	if (Victim && CanDamage(Victim))
 	{
-		DealDamage(Victim, Spec.Damage, Hit.ImpactPoint);
+		DealDamage(Victim, Spec.Damage, Hit.ImpactPoint, Dir);
 		ApplyKnockback(Victim);
 	}
 	if (Spec.SplashRadius > 0.f)
@@ -678,12 +711,12 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	Deactivate();
 }
 
-void ATDProjectile::DealDamage(AActor* Victim, float Amount, const FVector& FromLocation)
+void ATDProjectile::DealDamage(AActor* Victim, float Amount, const FVector& FromLocation, const FVector& Direction)
 {
 	UTDHealthComponent* Health = UTDStatics::GetHealth(Victim);
 	const bool bWasAlive = Health && Health->IsAlive();
 	const float Dealt = UTDStatics::ApplyTDDamage(Victim, Amount * DamageMultiplier, Spec.DamageKind, Shooter.Get(), this, FromLocation,
-		Velocity.GetSafeNormal());
+		Direction);
 
 	if (bReportHits && Dealt > 0.f)
 	{
@@ -712,12 +745,12 @@ void ATDProjectile::ApplySplash(const FVector& Center, AActor* Exclude)
 			// Copy: damage can kill and unregister actors while we iterate.
 			TArray<AActor*, TInlineAllocator<32>> Victims;
 			{
-				TArray<AActor*>& Hostiles = HostileScratch();
+				TArray<AActor*>& Hostiles = TDProjHostileScratch();
 				Hostiles.Reset();
 				Registry->GetHostilesOf(Team, Hostiles, true);
 				for (AActor* Hostile : Hostiles)
 				{
-					if (Hostile && Hostile != Exclude && DistanceToBounds(Hostile, Center) <= Spec.SplashRadius)
+					if (Hostile && Hostile != Exclude && TDProjDistanceToBounds(Hostile, Center) <= Spec.SplashRadius)
 					{
 						Victims.Add(Hostile);
 					}
@@ -727,7 +760,9 @@ void ATDProjectile::ApplySplash(const FVector& Center, AActor* Exclude)
 			{
 				if (IsValid(V))
 				{
-					DealDamage(V, SplashAmount, Center);
+					// Blast pushes outward from its centre: the gunship's frontal shield judges by this, not by the shell's heading.
+					const FVector Out = (V->GetActorLocation() - Center).GetSafeNormal();
+					DealDamage(V, SplashAmount, Center, Out.IsNearlyZero() ? Velocity.GetSafeNormal() : Out);
 				}
 			}
 		}
@@ -746,7 +781,7 @@ bool ATDProjectile::ShootDownNearbyMissiles(float Radius)
 	{
 		return false;
 	}
-	TArray<ATDProjectile*>& Missiles = MissileScratch();
+	TArray<ATDProjectile*>& Missiles = TDProjMissileScratch();
 	Missiles.Reset();
 	Subsystem->FindHostileMissiles(Team, GetActorLocation(), Radius, Missiles);
 	// Kill() releases into the pool and edits the live list, so work from a copy.
@@ -807,7 +842,7 @@ void ATDProjectile::ApplyKnockback(AActor* Victim) const
 		return;
 	}
 	FVector Center;
-	if (BoundsRadius(Victim, Center) > Spec.KnockbackMaxTargetRadius)
+	if (TDProjBoundsRadius(Victim, Center) > Spec.KnockbackMaxTargetRadius)
 	{
 		return;
 	}

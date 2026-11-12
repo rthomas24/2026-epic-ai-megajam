@@ -11,6 +11,7 @@
 class ATDProjectile;
 class UTDWeaponFX;
 class UNiagaraComponent;
+class UAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponFired, ETDWeaponSlot, Slot, FName, WeaponId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponOverheat, ETDWeaponSlot, Slot, bool, bOverheated);
@@ -24,8 +25,13 @@ struct UNREALGAMEJAM_API FTDWeaponSlotState
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponId = NAME_None;
 
+	/** Effective trigger: requested && not blocked && owner alive. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bTriggerHeld = false;
+
+	/** What the pilot asked for; survives blocks (EMP, Gravity Well) so fire resumes when they end. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bTriggerRequested = false;
 
 	/** Shots (or salvos) begun since equip. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
@@ -60,6 +66,8 @@ struct UNREALGAMEJAM_API FTDWeaponSlotState
 	bool bChargeReady = false;
 	/** One-shot multiplier captured when this shot/salvo began (Cloak's first shot). */
 	float ShotMultiplier = 1.f;
+	/** Aim target captured when the shot/salvo began: rippled salvos keep it even if the AI clears its target. */
+	TWeakObjectPtr<AActor> SalvoTarget;
 };
 
 /**
@@ -150,8 +158,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Weapon")
 	void SetWeaponsBlocked(FName SourceKey, bool bBlocked);
 
+	/** Blocked by any source, or the owner is dead (death tumble, downed). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Weapon")
-	bool AreWeaponsBlocked() const { return BlockSources.Num() > 0; }
+	bool AreWeaponsBlocked() const;
+
+	/** Drop a charge without firing (ship switched away, unpossessed, cutscene). Also releases the request. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Weapon")
+	void CancelCharge(ETDWeaponSlot Slot);
 
 	/** World transforms of the muzzles (sockets "Muzzle_N" on the first static mesh with them, else MuzzleOffsets). */
 	void GetMuzzleTransforms(TArray<FTransform>& Out) const;
@@ -160,8 +173,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Weapon")
 	bool FireOnce(ETDWeaponSlot Slot);
 
-	/** The last projectiles this component spawned (tests, powers). */
-	const TArray<TWeakObjectPtr<ATDProjectile>>& GetLastFired() const { return LastFired; }
+	/** Number of projectiles the last shot / salvo spawned so far. */
+	int32 GetLastFiredCount() const { return LastFired.Num(); }
+
+	/** Projectile Index of the last shot, or null once it has expired (pooled actors are reused, so this checks the launch serial). */
+	ATDProjectile* GetLastFiredProjectile(int32 Index = 0) const;
 
 	// --- Tuning ---
 	/** Local-space muzzle offsets used when the owner has no "Muzzle_N" sockets. */
@@ -204,6 +220,8 @@ private:
 	const FTDWeaponSpec* SpecPtr(ETDWeaponSlot Slot) const;
 
 	void TickSlot(ETDWeaponSlot Slot, float DeltaTime);
+	/** Recompute the effective trigger. A pilot release (not a block) fires a full charge. */
+	void UpdateEffectiveTrigger(ETDWeaponSlot Slot, bool bPilotRelease);
 	bool HasResourceToFire(const FTDWeaponSpec& Spec, const FTDWeaponSlotState& S) const;
 	/** Consumes resource and starts the shot/salvo. SubFrameAge = seconds this shot is "late" within the frame. */
 	void BeginShot(ETDWeaponSlot Slot, float SubFrameAge);
@@ -235,7 +253,18 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> SecondaryChargeFX;
 
-	TArray<TWeakObjectPtr<ATDProjectile>> LastFired;
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> PrimaryChargeAudio;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> SecondaryChargeAudio;
+
+	struct FFiredShot
+	{
+		TWeakObjectPtr<ATDProjectile> Projectile;
+		uint32 Serial = 0;
+	};
+	TArray<FFiredShot> LastFired;
 	TArray<FTransform> MuzzleScratch;
 	FRandomStream Random;
 };

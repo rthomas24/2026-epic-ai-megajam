@@ -38,6 +38,10 @@ public:
 	/** Live missiles currently homing on Target. Appends to Out. */
 	void FindMissilesHomingOn(const AActor* Target, TArray<ATDProjectile*>& Out) const;
 
+	/** Return every live projectile to the pool (scene cut / new take, TD.KillAll). Returns how many died. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Combat")
+	int32 KillAll(bool bPlayFX = false);
+
 	int32 GetLiveCount() const { return Live.Num(); }
 	int32 GetPooledCount() const { return Pool.Num(); }
 
@@ -46,10 +50,16 @@ public:
 	int32 MaxPooled = 256;
 
 	// UWorldSubsystem
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 
 private:
+	UFUNCTION()
+	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
+
+	UFUNCTION()
+	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDProjectile>> Pool;

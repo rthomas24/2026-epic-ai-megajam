@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
@@ -265,6 +266,7 @@ UTDPortalBlasterPower::UTDPortalBlasterPower()
 	CooldownSeconds = 8.f;
 	bCooldownStartsWhenPowerEnds = true;
 	bEndsManually = true;
+	bEndOnOwnerDeath = false; // open portals stay usable by the wingmen
 }
 
 bool UTDPortalBlasterPower::IsUsingBlink() const
@@ -367,6 +369,10 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		return nullptr;
 	}
 	Portal->Init(Owner, PortalRadius, TransitParams, TravelFX, ExitClearanceRadius);
+	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
+	{
+		Subsystem->RegisterTransient(Portal);
+	}
 	if (Portals.Num() >= 2)
 	{
 		// A third shot recycles the oldest.
