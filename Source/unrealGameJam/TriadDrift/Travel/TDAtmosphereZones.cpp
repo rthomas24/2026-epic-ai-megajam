@@ -16,7 +16,7 @@
 namespace
 {
 	/** Every live squad ship (player team), without GetAllActorsOfClass. */
-	void GetSquadShips(const UObject* Context, TArray<ATDShip*>& Out)
+	void TDAtmosphere_GetSquadShips(const UObject* Context, TArray<ATDShip*>& Out)
 	{
 		Out.Reset();
 		if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(Context))
@@ -215,7 +215,7 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 	const FBox Box = GetZoneBox();
 
 	TArray<ATDShip*> Ships;
-	GetSquadShips(this, Ships);
+	TDAtmosphere_GetSquadShips(this, Ships);
 	for (ATDShip* Ship : Ships)
 	{
 		if (!IsShipInZone(Ship))
