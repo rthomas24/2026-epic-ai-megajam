@@ -27,6 +27,8 @@
 #include "Camera/CameraComponent.h"
 #include "EngineUtils.h"
 #include "Components/BoxComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 namespace TDPlanetTest
@@ -1107,6 +1109,42 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 	P.Tick(1.f);
 	TestFalse(TEXT("played: re-boarded"), V.Director->IsOnFoot());
 	AddInfo(FString::Printf(TEXT("Cinder played in %.0f s of game time with %d deaths (hull at start %.2f)"), V.W.GetWorld()->GetTimeSeconds() - Start, P.Deaths, HullAtStart));
+	return true;
+}
+
+
+// Dressing: both planets use engineering's real props and trees (instanced), and nothing that collides
+// stands on a route.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseDressing, "TriadDrift.Ground.Course.DressedWithRealPropsRoutesClear", TD_TEST_FLAGS)
+bool FTDCourseDressing::RunTest(const FString& Parameters)
+{
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		ATDPlanetCourse* Course = V.Director->GetCourse();
+		if (!TestNotNull(TEXT("course"), Course)) { return false; }
+		int32 Kinds = 0, Instances = 0, Blocking = 0;
+		for (const TObjectPtr<AActor>& A : Course->GetSpawned())
+		{
+			if (!A) { continue; }
+			TInlineComponentArray<UInstancedStaticMeshComponent*> ISMs(A.Get());
+			for (UInstancedStaticMeshComponent* ISM : ISMs)
+			{
+				if (!ISM->GetStaticMesh() || !ISM->GetStaticMesh()->GetPathName().StartsWith(TEXT("/Game/TriadDrift/Gameplay/"))) { continue; }
+				++Kinds;
+				Instances += ISM->GetInstanceCount();
+				if (ISM->GetCollisionEnabled() == ECollisionEnabled::NoCollision) { continue; }
+				for (int32 i = 0; i < ISM->GetInstanceCount(); ++i)
+				{
+					FTransform X;
+					ISM->GetInstanceTransform(i, X, false);
+					Blocking += Course->IsRouteBlockedAt(X.GetLocation(), 800.f) ? 1 : 0;
+				}
+			}
+		}
+		TestTrue(FString::Printf(TEXT("%s: real props in use (%d kinds, %d instances)"), Planet, Kinds, Instances), Kinds >= 9 && Instances > 300);
+		TestEqual(FString::Printf(TEXT("%s: nothing that collides within 8 m of a route"), Planet), Blocking, 0);
+	}
 	return true;
 }
 

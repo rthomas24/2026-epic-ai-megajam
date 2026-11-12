@@ -18,6 +18,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Misc/PackageName.h"
 
 #define LOCTEXT_NAMESPACE "TDPlanetCourse"
 
@@ -52,6 +54,40 @@ ATDPlanetCourse::ATDPlanetCourse()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sph(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cone(TEXT("/Engine/BasicShapes/Cone.Cone"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Lit(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	// Engineering's dressing meshes (always cooked: hard-referenced from this CDO).
+	static const TCHAR* const PropPaths[] = {
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Mushroom_01"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Mushroom_02"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Mushroom_03"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Fern_01"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Fern_02"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_GlowPlant_01"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_GlowPlant_02"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Rock_01"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Rock_02"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Rock_03"),
+		TEXT("/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S100_11"),
+		TEXT("/Game/TriadDrift/Gameplay/Vegetation/Verdance/Kapok/SM_TDVeg_Kapok_S070_12"),
+		TEXT("/Game/TriadDrift/Gameplay/Vegetation/Verdance/BrazilNut/SM_TDVeg_BrazilNut_S100_21"),
+		TEXT("/Game/TriadDrift/Gameplay/Vegetation/Verdance/TrumpetTree/SM_TDVeg_TrumpetTree_S100_31"),
+		TEXT("/Game/TriadDrift/Gameplay/Vegetation/Verdance/StiltPalm/SM_TDVeg_StiltPalm_S100_41"),
+		TEXT("/Game/TriadDrift/Gameplay/Vegetation/Verdance/TreeFern/SM_TDVeg_TreeFern_S100_51"),
+		TEXT("/Game/TriadDrift/Gameplay/Vegetation/Verdance/Cacao/SM_TDVeg_Cacao_S100_61"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Crystal_01"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Crystal_02"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Crystal_03"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Crystal_04"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Basalt_01"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Basalt_02"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Basalt_03"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_BasaltColumn_01"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_BasaltColumn_02")
+	};
+	for (const TCHAR* Path : PropPaths)
+	{
+		const FString Short = FPackageName::GetShortName(Path);
+		PropRefs.Add(FName(*Short), TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("%s.%s"), Path, *Short))));
+	}
 	CubeMesh = Cube.Object;
 	CylinderMesh = Cyl.Object;
 	SphereMesh = Sph.Object;
@@ -83,6 +119,13 @@ void ATDPlanetCourse::BeginPlay()
 		Root->RegisterComponent();
 		Dressing->SetActorTransform(GetActorTransform());
 		Spawned.Add(Dressing);
+	}
+	for (const TPair<FName, TSoftObjectPtr<UStaticMesh>>& Ref : PropRefs)
+	{
+		if (UStaticMesh* M = Ref.Value.LoadSynchronous())
+		{
+			PropMeshes.Add(Ref.Key, M);
+		}
 	}
 	if (PlanetId == TEXT("Cinder"))
 	{
@@ -217,6 +260,98 @@ void ATDPlanetCourse::ScatterFlora(int32 Count, float Radius, uint32 Seed)
 	}
 }
 
+bool ATDPlanetCourse::IsKeptClear(const FVector& Local, float Clearance) const
+{
+	if (IsOnRoute(Local, Clearance))
+	{
+		return true;
+	}
+	for (const FKeepOut& K : KeepOuts)
+	{
+		if (FMath::Abs(Local.X - K.Center.X) < K.Extent.X && FMath::Abs(Local.Y - K.Center.Y) < K.Extent.Y)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ATDPlanetCourse::ScatterMeshes(const TArray<FScatter>& Kinds, uint32 Seed)
+{
+	if (!Dressing)
+	{
+		return false;
+	}
+	bool bAll = true;
+	FRandomStream Rng(Seed);
+	for (const FScatter& K : Kinds)
+	{
+		UStaticMesh* Mesh = Prop(K.Mesh);
+		if (!Mesh)
+		{
+			bAll = false;
+			continue;
+		}
+		UInstancedStaticMeshComponent* ISM = NewObject<UInstancedStaticMeshComponent>(Dressing);
+		ISM->SetMobility(EComponentMobility::Movable);
+		ISM->SetStaticMesh(Mesh);
+		ISM->SetupAttachment(Dressing->GetRootComponent());
+		ISM->SetCollisionProfileName(K.bCollide ? TEXT("BlockAll") : TEXT("NoCollision"));
+		ISM->SetCanEverAffectNavigation(false);
+		ISM->RegisterComponent();
+		Dressing->AddInstanceComponent(ISM);
+		TArray<FTransform> Xfs;
+		for (int32 Tries = 0; Tries < K.Count * 8 && Xfs.Num() < K.Count; ++Tries)
+		{
+			const float A = Rng.FRandRange(0.f, 2.f * PI);
+			const float R = FMath::Sqrt(Rng.FRandRange(FMath::Square(K.Radius.X), FMath::Square(K.Radius.Y)));
+			const FVector P = K.Center + FVector(FMath::Cos(A) * R, FMath::Sin(A) * R, 0.f);
+			if (P.Size2D() < 3500.f || IsKeptClear(P, K.Clearance))
+			{
+				continue; // the pad, the routes and every objective area stay clear
+			}
+			const float S = Rng.FRandRange(K.Scale.X, K.Scale.Y);
+			Xfs.Emplace(FRotator(0.f, Rng.FRandRange(0.f, 360.f), 0.f), P - FVector(0.f, 0.f, K.Sink * S), FVector(S));
+		}
+		ISM->AddInstances(Xfs, false, false);
+	}
+	return bAll;
+}
+
+void ATDPlanetCourse::MarkRoutes(FName MeshName, float Spacing, float Offset, const FVector2D& Scale)
+{
+	UStaticMesh* Mesh = Prop(MeshName);
+	if (!Mesh || !Dressing)
+	{
+		return;
+	}
+	UInstancedStaticMeshComponent* ISM = NewObject<UInstancedStaticMeshComponent>(Dressing);
+	ISM->SetMobility(EComponentMobility::Movable);
+	ISM->SetStaticMesh(Mesh);
+	ISM->SetupAttachment(Dressing->GetRootComponent());
+	ISM->SetCollisionProfileName(TEXT("NoCollision")); // never something to get stuck on beside a route
+	ISM->RegisterComponent();
+	Dressing->AddInstanceComponent(ISM);
+	TArray<FTransform> Xfs;
+	FRandomStream Rng(0x7EA1);
+	int32 Side = 0;
+	for (const TArray<FVector>& R : Routes)
+	{
+		for (int32 i = 0; i + 1 < R.Num(); ++i)
+		{
+			const FVector Dir = (R[i + 1] - R[i]).GetSafeNormal2D();
+			const FVector Perp(-Dir.Y, Dir.X, 0.f);
+			const int32 N = FMath::Max(1, FMath::RoundToInt((R[i + 1] - R[i]).Size2D() / Spacing));
+			for (int32 k = 0; k < N; ++k)
+			{
+				const FVector P = FMath::Lerp(R[i], R[i + 1], (k + 0.5f) / N) + Perp * Offset * ((++Side % 2) ? 1.f : -1.f);
+				Xfs.Emplace(FRotator(0.f, Rng.FRandRange(0.f, 360.f), 0.f), FVector(P.X, P.Y, 0.f), FVector(Rng.FRandRange(Scale.X, Scale.Y)));
+			}
+		}
+	}
+	ISM->AddInstances(Xfs, false, false);
+}
+
 template <class T>
 T* ATDPlanetCourse::SpawnProp(const FVector& Location, const FRotator& Rotation)
 {
@@ -313,7 +448,7 @@ void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const F
 {
 	// A glowing totem: a dark plinth, a tall light column and a floating crown.
 	Platform(At, 40.f, FVector(500.f, 500.f, 40.f), FLinearColor(0.05f, 0.05f, 0.06f));
-	Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(60.f, 60.f, 440.f), Color, 2.5f, FRotator::ZeroRotator, false);
+	Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(22.f, 22.f, 440.f), Color, 2.f, FRotator::ZeroRotator, false); // thin: readable without filling the view up close
 	Block(EShape::Cone, At + FVector(0.f, 0.f, 600.f), FVector(160.f, 160.f, 200.f), Color, 3.f, FRotator(180.f, 0.f, 0.f), false);
 	AActor* Marker = SpawnProp<AActor>(At + FVector(0.f, 0.f, 300.f));
 	if (Marker)
@@ -620,7 +755,40 @@ void ATDPlanetCourse::BuildVerdance()
 		{ LOCTEXT("R0", "CLIMB TO THE ANCIENT RELAY"), LOCTEXT("R1", "WAKE THE RESONANCE NODES  0 / 3"), LOCTEXT("R2", "AWAKEN THE RELAY · HOLD [E]") },
 		{ Climb, Nodes, RelayCore });
 
-	ScatterFlora(140, 16000.f, 0x5EED25);
+	// Dressing: engineering's props and trees (the placeholder flora only if they are missing).
+	KeepOuts = {
+		{ WreckSite, FVector(2800.f, 2800.f, 0.f) },
+		{ FVector(7400.f, -6700.f, 0.f), FVector(2400.f, 1600.f, 0.f) },  // the climb: jump and dash lines
+		{ FVector(9200.f, -8200.f, 0.f), FVector(2000.f, 2000.f, 0.f) },  // the plateau
+		{ Ambush, FVector(1700.f, 1700.f, 0.f) },
+	};
+	MarkRoutes(TEXT("SM_Verd_Mushroom_03"), 1600.f, 700.f, FVector2D(0.8f, 1.1f)); // tall glowing trail markers
+	const FVector Mid(5000.f, 0.f, 0.f);
+	const bool bProps = ScatterMeshes({
+		// A canopy ring around the play space; a few giants as landmarks.
+		{ TEXT("SM_TDVeg_Kapok_S100_11"), 10, FVector2D(0.9f, 1.1f), false, 1500.f, Mid, FVector2D(17000.f, 24000.f), 20.f },
+		{ TEXT("SM_TDVeg_BrazilNut_S100_21"), 18, FVector2D(0.9f, 1.15f), false, 1500.f, Mid, FVector2D(15000.f, 24000.f), 20.f },
+		{ TEXT("SM_TDVeg_TrumpetTree_S100_31"), 30, FVector2D(0.85f, 1.2f), false, 1200.f, Mid, FVector2D(12000.f, 22000.f), 10.f },
+		{ TEXT("SM_TDVeg_StiltPalm_S100_41"), 30, FVector2D(0.8f, 1.2f), false, 1000.f, Mid, FVector2D(9000.f, 20000.f), 10.f },
+		{ TEXT("SM_TDVeg_Kapok_S070_12"), 3, FVector2D(1.f, 1.f), false, 2500.f, FVector(6000.f, 0.f, 0.f), FVector2D(5000.f, 9000.f), 20.f },
+		// The mid layer inside the play space.
+		{ TEXT("SM_TDVeg_TreeFern_S100_51"), 40, FVector2D(0.8f, 1.3f), false, 900.f, Mid, FVector2D(3800.f, 12000.f), 5.f },
+		{ TEXT("SM_TDVeg_Cacao_S100_61"), 30, FVector2D(0.8f, 1.2f), false, 900.f, Mid, FVector2D(3800.f, 13000.f), 5.f },
+		{ TEXT("SM_Verd_Mushroom_02"), 40, FVector2D(0.7f, 1.3f), false, 500.f, Mid, FVector2D(3800.f, 12000.f), 5.f },
+		{ TEXT("SM_Verd_Mushroom_01"), 70, FVector2D(0.7f, 1.4f), false, 350.f, Mid, FVector2D(3800.f, 12000.f), 3.f },
+		{ TEXT("SM_Verd_Fern_02"), 120, FVector2D(0.8f, 1.4f), false, 300.f, Mid, FVector2D(3800.f, 13000.f), 3.f },
+		{ TEXT("SM_Verd_Fern_01"), 140, FVector2D(0.8f, 1.5f), false, 250.f, Mid, FVector2D(3800.f, 13000.f), 3.f },
+		{ TEXT("SM_Verd_GlowPlant_01"), 160, FVector2D(0.8f, 1.6f), false, 200.f, Mid, FVector2D(3800.f, 12000.f), 2.f },
+		{ TEXT("SM_Verd_GlowPlant_02"), 160, FVector2D(0.8f, 1.6f), false, 200.f, Mid, FVector2D(3800.f, 12000.f), 2.f },
+		// Rock clusters: the big ones collide, well off the routes.
+		{ TEXT("SM_Verd_Rock_03"), 18, FVector2D(0.8f, 1.4f), true, 1400.f, Mid, FVector2D(4000.f, 15000.f), 30.f },
+		{ TEXT("SM_Verd_Rock_02"), 30, FVector2D(0.8f, 1.3f), true, 1100.f, Mid, FVector2D(4000.f, 15000.f), 20.f },
+		{ TEXT("SM_Verd_Rock_01"), 60, FVector2D(0.8f, 1.5f), false, 400.f, Mid, FVector2D(3800.f, 14000.f), 10.f },
+	}, 0x5EED25);
+	if (!bProps)
+	{
+		ScatterFlora(140, 16000.f, 0x5EED25);
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -902,7 +1070,36 @@ void ATDPlanetCourse::BuildCinder()
 		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "GET CLEAR OF THE TOWER") },
 		{ FarBank, Charges, Clear });
 
-	ScatterFlora(120, 16000.f, 0xC1DE26);
+	KeepOuts = {
+		{ FVector(5600.f, 4800.f, 0.f), FVector(1100.f, 3700.f, 0.f) },   // the magma river and stones
+		{ FVector(7400.f, 5800.f, 0.f), FVector(900.f, 800.f, 0.f) },     // the geysers
+		{ FVector(13900.f, 6000.f, 0.f), FVector(4800.f, 2300.f, 0.f) },  // the outpost compound and its approach
+		{ FVector(8700.f, -5000.f, 0.f), FVector(2600.f, 3000.f, 0.f) },  // the magma lake and bridge
+		{ FVector(12600.f, -5000.f, 0.f), FVector(2400.f, 2400.f, 0.f) }, // the jammer tower fight
+		{ FVector(9000.f, -8300.f, 0.f), FVector(4500.f, 900.f, 0.f) },   // the escape run
+		{ FVector(4900.f, -4300.f, 0.f), FVector(900.f, 1500.f, 0.f) },   // the crystal wall
+	};
+	const FVector Mid(6000.f, 0.f, 0.f);
+	const bool bProps = ScatterMeshes({
+		// Colour tells the way: amber crystals toward the outpost (north-east), cyan toward the jammer (south-east).
+		{ TEXT("SM_Cind_Crystal_04"), 10, FVector2D(0.8f, 1.2f), false, 900.f, FVector(8000.f, 5500.f, 0.f), FVector2D(1500.f, 6000.f), 20.f },
+		{ TEXT("SM_Cind_Crystal_02"), 70, FVector2D(0.8f, 1.6f), false, 450.f, FVector(5500.f, 4000.f, 0.f), FVector2D(500.f, 5000.f), 10.f },
+		{ TEXT("SM_Cind_Crystal_04"), 8, FVector2D(0.9f, 1.3f), false, 700.f, FVector(3500.f, 3000.f, 0.f), FVector2D(800.f, 2500.f), 20.f }, // at the outpost trailhead
+		{ TEXT("SM_Cind_Crystal_03"), 10, FVector2D(0.8f, 1.2f), false, 900.f, FVector(8000.f, -5500.f, 0.f), FVector2D(1500.f, 6000.f), 20.f },
+		{ TEXT("SM_Cind_Crystal_01"), 70, FVector2D(0.8f, 1.6f), false, 450.f, FVector(5500.f, -4000.f, 0.f), FVector2D(500.f, 5000.f), 10.f },
+		{ TEXT("SM_Cind_Crystal_03"), 8, FVector2D(0.9f, 1.3f), false, 700.f, FVector(3500.f, -3000.f, 0.f), FVector2D(800.f, 2500.f), 20.f }, // at the jammer trailhead
+		// Basalt columns as canyon walls beside the routes, and a tall outer ring.
+		{ TEXT("SM_Cind_BasaltColumn_02"), 40, FVector2D(0.9f, 1.6f), true, 1300.f, Mid, FVector2D(3800.f, 12000.f), 30.f },
+		{ TEXT("SM_Cind_BasaltColumn_01"), 60, FVector2D(0.8f, 1.5f), true, 1100.f, Mid, FVector2D(3800.f, 12000.f), 20.f },
+		{ TEXT("SM_Cind_BasaltColumn_02"), 60, FVector2D(1.5f, 3.f), true, 1500.f, Mid, FVector2D(14000.f, 24000.f), 30.f },
+		{ TEXT("SM_Cind_Basalt_03"), 30, FVector2D(0.8f, 1.4f), true, 1100.f, Mid, FVector2D(3800.f, 14000.f), 30.f },
+		{ TEXT("SM_Cind_Basalt_02"), 50, FVector2D(0.8f, 1.3f), false, 700.f, Mid, FVector2D(3800.f, 14000.f), 20.f },
+		{ TEXT("SM_Cind_Basalt_01"), 120, FVector2D(0.8f, 1.6f), false, 300.f, Mid, FVector2D(3800.f, 14000.f), 10.f },
+	}, 0xC1DE26);
+	if (!bProps)
+	{
+		ScatterFlora(120, 16000.f, 0xC1DE26);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE
