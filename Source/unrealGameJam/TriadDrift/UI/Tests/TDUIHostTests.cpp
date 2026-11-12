@@ -169,6 +169,11 @@ bool FTDUIHostFrozenNames::RunTest(const FString& Parameters)
 	FindGetter<FNumericProperty>(*this, Source, TEXT("GetHyperdriveCharge01"));
 	FindGetter<FBoolProperty>(*this, Source, TEXT("IsOutOfBounds"));
 	FindGetter<FTextProperty>(*this, Source, TEXT("GetObjectiveText"));
+	{
+		// Hit-direction indicators ("who is shooting me"): an array of structs Nick's widget may read by reflection.
+		const FArrayProperty* Damage = FindGetter<FArrayProperty>(*this, Source, TEXT("GetDamageIndicators"));
+		TestTrue(TEXT("GetDamageIndicators returns an array of structs"), Damage && CastField<FStructProperty>(Damage->Inner));
+	}
 	if (const FStructProperty* Wave = FindGetter<FStructProperty>(*this, Source, TEXT("GetWaveInfo")))
 	{
 		ExpectNumber(*this, Wave->Struct, TEXT("WaveNumber"));

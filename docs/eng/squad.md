@@ -165,8 +165,39 @@ Gameplay asks for a line through `ITDGameFlow::RequestBark(BarkId, Speaker)` (re
 | `Bark_SquadWingmanKill` | a wingman kills a hostile | that wingman | normal, 12 s |
 | `Bark_SquadLowHull` | a living ship's hull drops below 30 % (re-armed above 55 % or on respawn) | that pilot | normal, 20 s |
 | `Bark_SquadWipe` | all three down | the last active pilot | critical, 5 s |
+| `Bark_SquadEngage[High|Low](Ahead|Left|Right|Behind)` (12 ids, e.g. `Bark_SquadEngageHighLeft`) | a wingman leaves formation for a fight; the id says where IT is, seen from the player's camera ("Kato, engaging high left") | that wingman | normal, 8 s per id, and 10 s per wingman |
 
 Limiter (`FTDBarkTuning` on `ATDSquadManager`, real time): a 2.5 s global gap between lines (High
 and Critical skip it), at most 3 lines per 10 s (Critical skips it: the wipe happens once per take),
 and every line respects its own cooldown. Tests: `Barks.LimiterRules`, `Barks.TriggersAndSpeakers`,
 `Barks.NeverSpam` (20 s of Tab spam: 3-4 switch lines, ≤ 6 lines total).
+
+## Wingmen in frame: regression number (`TDSquadFrame.Standard.Weak`)
+
+`.\Tools\td-test.ps1 -Filter TDSquadFrame` (not in the default suite, about 2-5 min). It flies waves 1-5 with
+T4's seeded `FTDBalancePilot` (Weak: the player is always Rift; Lancer and Bastion are AI) and, every
+0.25 s, projects from the player's real chase camera (no window involved). It plays both
+`td.Wingmen.InViewTargeting` modes. Per wave: **engaging** = samples with an enemy inside the frame;
+**wing seen** = of those, at least one wingman inside the frame too; **aim line** = samples with a wingman
+within about 8 degrees of the screen centre (must stay near 0).
+
+Recorded 2026-11-12 on eng/t3 475a680 (main 29e091b + squad), three runs, wing seen % (engaging samples):
+
+| Wave | Mode 0 (old targeting) | Mode 1 (default since 55abdff) |
+|---|---|---|
+| 1 | 48% (181), 50% (222), 49% (169) | 56% (223), 59% (140), 50% (213) |
+| 2 | 35% (310), 19% (243), 37% (549) | 29% (491), 36% (355), 41% (386) |
+| 3 | 36% (550), 36% (404), 30% (398) | 26% (398), 22% (527), 21% (495) |
+| 4 | 12% (549), 19% (522), 14% (545) | 18% (516), 19% (513), 15% (544) |
+| 5 | 19% (600), 31% (150), 7% (183) | 15% (292), 26% (320), 17% (430) |
+
+Aim line: 0-3% of samples in every wave and mode.
+
+Reading (Lead decision, 2026-11-12): in a 360-degree dogfight the chase camera sees roughly 90 degrees, and
+target choice alone cannot hold the wing in frame (the "overtake into the shot" steering cost kills in the
+balance run, so `InShotOvertakeWeight` is 0). The goal "I can tell where my wing is and that it fights
+with me" is the HUD's job: `ITDHUDData::GetSquadMarkers()` drives named brackets in view and edge arrows
+out of view. Mode 1 stays the default. Its balance check (T4's `TDBalance.Standard.Weak`, 5 seeds, kills
+per minute per wingman vs mode 0 with bias 10): w1 L +28% B -24%, w3 L -2% B +18%, w5 L +42% B -10%
+(guard rail: no wingman down by more than a third).
+

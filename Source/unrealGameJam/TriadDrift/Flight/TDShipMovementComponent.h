@@ -240,6 +240,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	FText GetBoundaryWarningText() const;
 
+	/**
+	 * Terrain for the ground floor, terrain look-ahead and landing paths: anything static, plus large movable
+	 * geometry (a planet course built from movable BlockAll meshes is WorldDynamic). Small movers (projectiles,
+	 * debris) and pawns never count.
+	 */
+	static FCollisionObjectQueryParams TerrainObjectTypes();
+	static bool IsTerrainHit(const FHitResult& Hit);
+	/** First terrain hit of a sphere sweep (Radius 0 = line), or false. */
+	static bool SweepTerrain(const UWorld* World, FHitResult& OutHit, const FVector& Start, const FVector& End, float Radius, const FCollisionQueryParams& Params);
+
 	// ---- UMovementComponent --------------------------------------------------------------------------
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual float GetMaxSpeed() const override;
@@ -257,7 +267,7 @@ protected:
 	float StartSpeedFraction = 1.f;
 
 private:
-	/** In atmosphere: trace the static ground below for the flight model's soft floor (Context.GroundClearance). */
+	/** In atmosphere: trace the ground below / ahead for the flight model's soft floor and terrain look-ahead. */
 	void MeasureGroundClearance();
 	void ResolveMove(const FVector& Delta, float DeltaTime);
 	void HandleShipImpact(const FHitResult& Hit, float DeltaTime);

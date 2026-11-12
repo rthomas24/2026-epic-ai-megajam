@@ -14,6 +14,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
 #include "Components/StaticMeshComponent.h"
@@ -238,18 +239,129 @@ void ATDDominion::SyncHyperdriveLock()
 	// The assault (warp-in to victory) locks the hyperdrive: the finale is fought, not skipped. The lock
 	// follows the STATE, not its transitions: it is re-asserted on every state change, on every retake and a
 	// few times a second, so nothing that clears locks (a retake, a level arrival, a resume) can open it.
+	// World review MAJOR 2: only once the squad has arrived (a ship inside HyperdriveLockRadius, the gravity
+	// well where a jump drops out). Locking at the warp-in, 500 000 cm away, made the approach a sublight crawl.
+	// Sticky for the assault: flying back out of the well doesn't unlock the fight.
+	const bool bAssault = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
+		|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+	if (!bAssault)
+	{
+		bSquadArrived = false;
+	}
+	else if (!bSquadArrived)
+	{
+		if (const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+		{
+			TArray<AActor*> Squad;
+			Registry->GetActorsOfTeam(ETDTeam::Player, Squad, true);
+			for (const AActor* A : Squad)
+			{
+				if (A && A->IsA<ATDSpacecraft>() && FVector::DistSquared(A->GetActorLocation(), GetActorLocation()) <= FMath::Square(HyperdriveLockRadius))
+				{
+					bSquadArrived = true;
+					break;
+				}
+			}
+		}
+	}
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
-		const bool bLocked = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
-			|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+		const bool bLocked = bAssault && bSquadArrived;
 		if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT"), this); }
 		else { Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale); }
 	}
 }
 
-void ATDDominion::HandleTakeStarted(FName /*SceneId*/, int32 /*TakeNumber*/)
+void ATDDominion::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 {
 	SyncHyperdriveLock();
+	if (SceneId != DominionSceneId || TakeNumber <= 1)
+	{
+		return;
+	}
+	if (State == ETDDominionState::Breakup || State == ETDDominionState::Finished)
+	{
+		// Victory wins over a pending CUT: keep the squad protected through the breakup.
+		if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+		{
+			TArray<AActor*> Squad;
+			Registry->GetActorsOfTeam(ETDTeam::Player, Squad, true);
+			for (AActor* A : Squad)
+			{
+				if (UTDHealthComponent* H = UTDStatics::GetHealth(A)) { H->SetInvulnerable(true); }
+			}
+		}
+		return;
+	}
+	if (State == ETDDominionState::ShieldsUp || State == ETDDominionState::ReactorExposed)
+	{
+		ResetForNewTake();
+	}
+}
+
+void ATDDominion::ResetForNewTake()
+{
+	// World review MAJOR 1 (decided): destroyed generators stay destroyed, a reactor phase already passed stays
+	// passed, the current reactor phase restarts at full, turrets re-arm and launched fighters are cleared.
+	for (const TWeakObjectPtr<ATDEnemyShip>& S : Launched)
+	{
+		if (S.IsValid()) { S->Destroy(); }
+	}
+	Launched.Reset();
+	// Re-arm: the first launch of the new take comes after one full interval, not on the first frame.
+	LaunchTimer = Stages.IsValidIndex(Stage) ? Stages[Stage].LaunchInterval : 0.f;
+	for (ATDShieldGenerator* G : Generators)
+	{
+		if (G && G->IsAlive())
+		{
+			if (UTDHealthComponent* H = G->FindComponentByClass<UTDHealthComponent>()) { H->RepairHull(1e9f); H->RestoreShield(1e9f); }
+		}
+	}
+	auto Rearm = [](ATDEnemyTurret* T)
+	{
+		if (!T) { return; }
+		if (UTDHealthComponent* H = T->GetHealth())
+		{
+			if (H->IsAlive()) { H->RepairHull(1e9f); H->RestoreShield(1e9f); }
+		}
+		T->ClearStun();
+	};
+	for (ATDEnemyTurret* T : Turrets) { Rearm(T); }
+	if (State == ETDDominionState::ReactorExposed)
+	{
+		for (ATDEnemyTurret* T : TrenchTurretActors) { Rearm(T); }
+	}
+	if (Reactor) { Reactor->RestartCurrentPhase(); }
+}
+
+void ATDDominion::FinishAfterVictory()
+{
+	if (State == ETDDominionState::Finished)
+	{
+		return;
+	}
+	// The war is won: no hull, no weapons, no launches, no lock. (Reached by loading a won save or TD.Stage
+	// Victory; the real kill goes through Breakup.)
+	bVictoryAccepted = true;
+	for (const TWeakObjectPtr<ATDEnemyShip>& S : Launched)
+	{
+		if (S.IsValid()) { S->Destroy(); }
+	}
+	Launched.Reset();
+	auto Retire = [](AActor* A)
+	{
+		if (!A) { return; }
+		A->SetActorTickEnabled(false);
+		A->SetActorHiddenInGame(true);
+		A->SetActorEnableCollision(false);
+		if (UTDHealthComponent* H = UTDStatics::GetHealth(A)) { H->SetTargetable(false); H->SetInvulnerable(true); }
+	};
+	for (ATDEnemyTurret* T : Turrets) { Retire(T); }
+	for (ATDEnemyTurret* T : TrenchTurretActors) { Retire(T); }
+	for (ATDShieldGenerator* G : Generators) { Retire(G); }
+	Retire(Reactor);
+	ShowHull(false);
+	SetState(ETDDominionState::Finished);
 }
 
 void ATDDominion::ShowHull(bool bVisible)
@@ -268,6 +380,12 @@ void ATDDominion::SyncWithProgress()
 		return;
 	}
 	const FTDProgress P = Flow->GetProgress();
+	if (P.Phase == ETDGamePhase::Victory)
+	{
+		FinishAfterVictory();	// a won run: the Dominion is gone, nothing fights
+		return;
+	}
+	// A voided wave-5 clear never sets the flag: the flow ignores SetDominionState while a retake is pending.
 	if (!P.bDominionRevealed)
 	{
 		return;
@@ -392,6 +510,7 @@ void ATDDominion::BuildParts()
 	{
 		T->SetActorTickEnabled(false);
 		T->SetActorHiddenInGame(true);
+		T->SetActorEnableCollision(false);	// no invisible cylinders in the trench before exposure
 		if (UTDHealthComponent* H = T->GetHealth()) { H->SetTargetable(false); H->SetInvulnerable(true); }
 	}
 }
@@ -613,6 +732,7 @@ void ATDDominion::ExposeReactor(bool bPlayCues)
 		if (!T) { continue; }
 		T->SetActorTickEnabled(true);
 		T->SetActorHiddenInGame(false);
+		T->SetActorEnableCollision(true);
 		if (UTDHealthComponent* H = T->GetHealth()) { H->SetInvulnerable(false); H->SetTargetable(true); }
 	}
 	SetState(ETDDominionState::ReactorExposed);
@@ -707,6 +827,17 @@ void ATDDominion::Tick(float DeltaSeconds)
 
 	case ETDDominionState::ShieldsUp:
 	case ETDDominionState::ReactorExposed:
+		PollTimer -= DeltaSeconds;
+		if (PollTimer <= 0.f)
+		{
+			PollTimer = ProgressPollSeconds;
+			const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
+			if (Flow && Flow->GetProgress().Phase == ETDGamePhase::Victory)
+			{
+				FinishAfterVictory();	// TD.Stage Victory / a victory save: no fight under the victory phase
+				break;
+			}
+		}
 		Launched.RemoveAll([](const TWeakObjectPtr<ATDEnemyShip>& S) { return !S.IsValid(); });
 		TickLaunches(DeltaSeconds);
 		break;

@@ -964,6 +964,28 @@ bool FTDTravelAlignOverProps::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAssistTurnsAround, "TriadDrift.Travel.Landing.AssistStartedPastThePadTurnsAround", TD_TEST_FLAGS)
+bool FTDTravelAssistTurnsAround::RunTest(const FString& Parameters)
+{
+	// Live playtest (Nov 12): F held 380 m past the pad, flying away: the assist started, crossed 400 m while turning
+	// around and gave up. It now keeps a 2x leash once started.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform PadXf = Rig->GetPlayerPad()->GetActorTransform();
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(38000.f, 0.f, 3000.f)), FRotator(0.f, 0.f, 0.f)); // flying away
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UTDLandingComponent* Land = Ship->GetLanding();
+	TestTrue(TEXT("assist starts 380 m past the pad"), Land->StartApproachAssist());
+	for (int32 i = 0; i < 60 * 30 && !Land->IsLanded(); ++i)
+	{
+		W.Tick();
+	}
+	TestTrue(TEXT("turned around and landed"), Land->IsLanded() && Land->GetPad() == Rig->GetPlayerPad());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelCameraNow, "TriadDrift.Travel.Camera.ChaseTransformNowForAIShip", TD_TEST_FLAGS)
 bool FTDTravelCameraNow::RunTest(const FString& Parameters)
 {

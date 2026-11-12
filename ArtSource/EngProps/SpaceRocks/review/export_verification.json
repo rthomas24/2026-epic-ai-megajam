@@ -1,0 +1,563 @@
+{
+  "blender": "5.2.2 LTS",
+  "assets": [
+    {
+      "asset": "SM_Asteroid_01",
+      "fbx_bytes": 284140,
+      "objects": [
+        "SM_Asteroid_01",
+        "UCX_SM_Asteroid_01_00"
+      ],
+      "mesh_name": "SM_Asteroid_01",
+      "tris": 3000,
+      "tris_in_budget": true,
+      "all_triangles": true,
+      "closed_manifold": true,
+      "flipped_winding_edges": 0,
+      "outward_normals": true,
+      "loose_verts": 0,
+      "connected_pieces": 1,
+      "bounding_sphere_diameter_cm": 100.0,
+      "pivot_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "object_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_size_cm": [
+        72.21,
+        95.04,
+        74.24
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "uv_range": [
+        0.008,
+        0.9882
+      ],
+      "material_slots": [
+        "M_Asteroid_01_Rock"
+      ],
+      "hard_edges": 511,
+      "has_custom_normals": true,
+      "textures": {
+        "BC": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 735771
+        },
+        "N": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 959348
+        },
+        "ORM": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 693391
+        }
+      },
+      "manifest_present": true,
+      "blend_present": true,
+      "collision": [
+        {
+          "name": "UCX_SM_Asteroid_01_00",
+          "verts": 32,
+          "closed": true,
+          "convex": true,
+          "max_vertex_outside_a_face_plane_cm": 0.0,
+          "render_mesh_pokes_out_by_cm": 5.18
+        }
+      ],
+      "collision_ok": true,
+      "pass": true
+    },
+    {
+      "asset": "SM_Asteroid_02",
+      "fbx_bytes": 262908,
+      "objects": [
+        "SM_Asteroid_02",
+        "UCX_SM_Asteroid_02_00"
+      ],
+      "mesh_name": "SM_Asteroid_02",
+      "tris": 2908,
+      "tris_in_budget": true,
+      "all_triangles": true,
+      "closed_manifold": true,
+      "flipped_winding_edges": 0,
+      "outward_normals": true,
+      "loose_verts": 0,
+      "connected_pieces": 1,
+      "bounding_sphere_diameter_cm": 100.0,
+      "pivot_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "object_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_size_cm": [
+        47.72,
+        99.65,
+        40.48
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "uv_range": [
+        0.008,
+        0.9701
+      ],
+      "material_slots": [
+        "M_Asteroid_02_Rock"
+      ],
+      "hard_edges": 417,
+      "has_custom_normals": true,
+      "textures": {
+        "BC": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 667986
+        },
+        "N": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 785647
+        },
+        "ORM": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 592070
+        },
+        "E": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 162963
+        }
+      },
+      "manifest_present": true,
+      "blend_present": true,
+      "collision": [
+        {
+          "name": "UCX_SM_Asteroid_02_00",
+          "verts": 30,
+          "closed": true,
+          "convex": true,
+          "max_vertex_outside_a_face_plane_cm": 0.0,
+          "render_mesh_pokes_out_by_cm": 6.75
+        }
+      ],
+      "collision_ok": true,
+      "pass": true
+    },
+    {
+      "asset": "SM_Asteroid_03",
+      "fbx_bytes": 279692,
+      "objects": [
+        "SM_Asteroid_03",
+        "UCX_SM_Asteroid_03_00"
+      ],
+      "mesh_name": "SM_Asteroid_03",
+      "tris": 3200,
+      "tris_in_budget": true,
+      "all_triangles": true,
+      "closed_manifold": true,
+      "flipped_winding_edges": 0,
+      "outward_normals": true,
+      "loose_verts": 0,
+      "connected_pieces": 1,
+      "bounding_sphere_diameter_cm": 100.0,
+      "pivot_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "object_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_size_cm": [
+        97.3,
+        88.93,
+        89.13
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "uv_range": [
+        0.008,
+        0.992
+      ],
+      "material_slots": [
+        "M_Asteroid_03_Rock"
+      ],
+      "hard_edges": 244,
+      "has_custom_normals": true,
+      "textures": {
+        "BC": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 610344
+        },
+        "N": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 801523
+        },
+        "ORM": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 489980
+        }
+      },
+      "manifest_present": true,
+      "blend_present": true,
+      "collision": [
+        {
+          "name": "UCX_SM_Asteroid_03_00",
+          "verts": 31,
+          "closed": true,
+          "convex": true,
+          "max_vertex_outside_a_face_plane_cm": 0.0,
+          "render_mesh_pokes_out_by_cm": 6.57
+        }
+      ],
+      "collision_ok": true,
+      "pass": true
+    },
+    {
+      "asset": "SM_Asteroid_04",
+      "fbx_bytes": 300828,
+      "objects": [
+        "SM_Asteroid_04",
+        "UCX_SM_Asteroid_04_00"
+      ],
+      "mesh_name": "SM_Asteroid_04",
+      "tris": 3078,
+      "tris_in_budget": true,
+      "all_triangles": true,
+      "closed_manifold": true,
+      "flipped_winding_edges": 0,
+      "outward_normals": true,
+      "loose_verts": 0,
+      "connected_pieces": 1,
+      "bounding_sphere_diameter_cm": 100.0,
+      "pivot_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "object_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_size_cm": [
+        82.46,
+        95.96,
+        73.48
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "uv_range": [
+        0.008,
+        0.9843
+      ],
+      "material_slots": [
+        "M_Asteroid_04_Rock"
+      ],
+      "hard_edges": 898,
+      "has_custom_normals": true,
+      "textures": {
+        "BC": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 811704
+        },
+        "N": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 1005641
+        },
+        "ORM": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 755086
+        },
+        "E": {
+          "size": [
+            1024,
+            1024
+          ],
+          "bytes": 208599
+        }
+      },
+      "manifest_present": true,
+      "blend_present": true,
+      "collision": [
+        {
+          "name": "UCX_SM_Asteroid_04_00",
+          "verts": 30,
+          "closed": true,
+          "convex": true,
+          "max_vertex_outside_a_face_plane_cm": 0.0,
+          "render_mesh_pokes_out_by_cm": 4.88
+        }
+      ],
+      "collision_ok": true,
+      "pass": true
+    },
+    {
+      "asset": "SM_SpaceDebris_01",
+      "fbx_bytes": 50652,
+      "objects": [
+        "SM_SpaceDebris_01"
+      ],
+      "mesh_name": "SM_SpaceDebris_01",
+      "tris": 420,
+      "tris_in_budget": true,
+      "all_triangles": true,
+      "closed_manifold": true,
+      "flipped_winding_edges": 0,
+      "outward_normals": true,
+      "loose_verts": 0,
+      "connected_pieces": 1,
+      "bounding_sphere_diameter_cm": 100.0,
+      "pivot_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "object_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_size_cm": [
+        59.78,
+        90.37,
+        30.25
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "uv_range": [
+        0.012,
+        0.9702
+      ],
+      "material_slots": [
+        "M_SpaceDebris_01_Rock"
+      ],
+      "hard_edges": 106,
+      "has_custom_normals": true,
+      "textures": {
+        "BC": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 169045
+        },
+        "N": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 243060
+        },
+        "ORM": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 130837
+        }
+      },
+      "manifest_present": true,
+      "blend_present": true,
+      "collision": [],
+      "collision_ok": true,
+      "pass": true
+    },
+    {
+      "asset": "SM_SpaceDebris_02",
+      "fbx_bytes": 49724,
+      "objects": [
+        "SM_SpaceDebris_02"
+      ],
+      "mesh_name": "SM_SpaceDebris_02",
+      "tris": 380,
+      "tris_in_budget": true,
+      "all_triangles": true,
+      "closed_manifold": true,
+      "flipped_winding_edges": 0,
+      "outward_normals": true,
+      "loose_verts": 0,
+      "connected_pieces": 1,
+      "bounding_sphere_diameter_cm": 100.0,
+      "pivot_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "object_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_size_cm": [
+        32.15,
+        99.71,
+        23.98
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "uv_range": [
+        0.012,
+        0.9766
+      ],
+      "material_slots": [
+        "M_SpaceDebris_02_Rock"
+      ],
+      "hard_edges": 101,
+      "has_custom_normals": true,
+      "textures": {
+        "BC": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 162045
+        },
+        "N": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 220955
+        },
+        "ORM": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 107530
+        }
+      },
+      "manifest_present": true,
+      "blend_present": true,
+      "collision": [],
+      "collision_ok": true,
+      "pass": true
+    },
+    {
+      "asset": "SM_SpaceDebris_03",
+      "fbx_bytes": 53276,
+      "objects": [
+        "SM_SpaceDebris_03"
+      ],
+      "mesh_name": "SM_SpaceDebris_03",
+      "tris": 440,
+      "tris_in_budget": true,
+      "all_triangles": true,
+      "closed_manifold": true,
+      "flipped_winding_edges": 0,
+      "outward_normals": true,
+      "loose_verts": 0,
+      "connected_pieces": 1,
+      "bounding_sphere_diameter_cm": 100.0,
+      "pivot_world_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "object_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_size_cm": [
+        76.1,
+        87.24,
+        65.45
+      ],
+      "uv_layers": [
+        "UVMap"
+      ],
+      "uv_range": [
+        0.012,
+        0.9861
+      ],
+      "material_slots": [
+        "M_SpaceDebris_03_Rock"
+      ],
+      "hard_edges": 114,
+      "has_custom_normals": true,
+      "textures": {
+        "BC": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 192584
+        },
+        "N": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 274438
+        },
+        "ORM": {
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 142382
+        }
+      },
+      "manifest_present": true,
+      "blend_present": true,
+      "collision": [],
+      "collision_ok": true,
+      "pass": true
+    }
+  ]
+}

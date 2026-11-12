@@ -154,6 +154,13 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
 	float GroundAvoidHeight = 3000.f;
 
+	/**
+	 * Hands-off, a level ship settles at this clearance (cm) instead of sinking onto the ground: below it the floor
+	 * lifts the ship back up (at most 2 m/s per metre short). The pilot can still dive below it on purpose briefly.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
+	float GroundCushionHeight = 1500.f;
+
 	/** Nose pull-up toward level at the ground (deg/s), scaled by how deep into GroundAvoidHeight the ship is. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
 	float GroundPullUpRate = 120.f;

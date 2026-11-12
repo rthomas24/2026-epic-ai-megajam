@@ -59,6 +59,9 @@ public:
 	/** Override the per-pilot "prefers the player's ship" roll (tests, scripted pilots). */
 	void SetPrefersPlayerShip(bool bPrefer) { bPrefersPlayer = bPrefer; }
 
+	/** Re-seed this pilot's random choices (ATDEnemyShip::SetSpawnSeed). */
+	void ReseedRandom(int32 Seed) { Rng.Initialize(Seed); }
+
 	/** Forget the target immediately (called by the ship's LoseTracking). */
 	void ForgetTarget();
 
@@ -100,9 +103,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float BreakOffTimeToImpact = 0.6f;
 
-	/** Telegraphed attacks (interceptor missiles, gunship volleys) never start closer than this (cm). */
+	/** The interceptor's telegraphed homing missile never starts closer than this (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float TelegraphMinDistance = 6000.f;
+
+	/** A gunship's heavy-bolt volley fires at a ship charging it down to this distance (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float GunshipBoltMinDistance = 1500.f;
+
+	/** A gunship's missile salvo needs this much room (cm) and a time-to-impact longer than its wind-up. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float GunshipSalvoMinDistance = 4000.f;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	bool IsCatchingUp() const { return bCatchingUp; }

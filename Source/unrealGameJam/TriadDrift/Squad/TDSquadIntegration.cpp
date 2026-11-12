@@ -583,6 +583,20 @@ namespace TDSquad
 		return Dir.IsNearlyZero() ? Ship->GetActorForwardVector() : Dir.GetSafeNormal();
 	}
 
+	void BindShipDamaged(ATDSquadManager* Squad, ATDShip* Ship)
+	{
+		if (UTDHealthComponent* H = Health(Ship))
+		{
+			H->OnDamaged.AddUniqueDynamic(Squad, &ATDSquadManager::HandleShipDamaged);
+		}
+	}
+
+	float GetMaxHullAndShield(const AActor* Actor)
+	{
+		const UTDHealthComponent* H = Health(Actor);
+		return H ? H->MaxHull + H->MaxShield : 0.f;
+	}
+
 	FText GetLandPrompt(const ATDShip* Ship)
 	{
 		const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
@@ -814,6 +828,12 @@ namespace TDSquad
 	bool IsOutOfBounds(const ATDShip* Ship)
 	{
 		return Ship ? Ship->IsOutOfBounds() : false;
+	}
+
+	FText GetBoundaryWarningText(const ATDShip* Ship)
+	{
+		const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+		return Move ? Move->GetBoundaryWarningText() : FText::GetEmpty();
 	}
 
 	AActor* GetCurrentTarget(const ATDShip* Ship)

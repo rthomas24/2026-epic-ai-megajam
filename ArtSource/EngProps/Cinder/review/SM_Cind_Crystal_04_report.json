@@ -1,0 +1,194 @@
+{
+ "asset": "SM_Cind_Crystal_04",
+ "tris": 2138,
+ "budget": [
+  600,
+  2500
+ ],
+ "in_budget": true,
+ "height_cm": 501.3,
+ "below_ground_cm": 51.9,
+ "width_cm": [
+  254.8,
+  215.1
+ ],
+ "base_center_offset_cm": [
+  0.0,
+  0.0
+ ],
+ "material_slots": [
+  "M_Cind_Crystals"
+ ],
+ "uv_layers": [
+  "UVMap"
+ ],
+ "errors": 0,
+ "warnings": 0,
+ "issues": [
+  {
+   "severity": "info",
+   "object": "SM_Cind_Crystal_04",
+   "message": "9 n-gons; fine if planar, they get triangulated on export"
+  }
+ ],
+ "assembly_ok": true,
+ "assembly": {
+  "islands": 13,
+  "groups": 1,
+  "floating": [],
+  "tolerance_m": 0.00969
+ },
+ "asset_report": {
+  "status": "ok",
+  "scene_units": {
+   "system": "METRIC",
+   "scale_length": 1.0,
+   "length_unit": "METERS"
+  },
+  "objects": [
+   {
+    "name": "SM_Cind_Crystal_04",
+    "type": "MESH",
+    "parent": null,
+    "collections": [
+     "Cinder"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     254.82,
+     215.06,
+     553.21
+    ],
+    "hide_render": false,
+    "modifiers": [],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "verts": 1095,
+    "faces": 1645,
+    "tris": 2138,
+    "quads": 420,
+    "ngons": 9,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 0.0,
+    "has_custom_normals": false,
+    "uv_layers": [
+     "UVMap"
+    ],
+    "faces_per_material_index": {
+     "0": 1645
+    },
+    "local_bbox_min": [
+     -1.25853,
+     -1.05361,
+     -0.51897
+    ],
+    "local_bbox_max": [
+     1.28963,
+     1.09694,
+     5.01318
+    ],
+    "origin_placement": "custom"
+   },
+   {
+    "name": "UCX_SM_Cind_Crystal_04",
+    "type": "MESH",
+    "parent": "SM_Cind_Crystal_04",
+    "collections": [
+     "Cinder"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     251.58,
+     215.06,
+     503.32
+    ],
+    "hide_render": true,
+    "modifiers": [],
+    "materials": [],
+    "verts": 14,
+    "faces": 24,
+    "tris": 24,
+    "quads": 0,
+    "ngons": 0,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 0.0,
+    "has_custom_normals": false,
+    "uv_layers": [],
+    "faces_per_material_index": {
+     "0": 24
+    },
+    "local_bbox_min": [
+     -1.25782,
+     -1.05361,
+     -0.02
+    ],
+    "local_bbox_max": [
+     1.25796,
+     1.09694,
+     5.01318
+    ],
+    "origin_placement": "bottom_center"
+   }
+  ],
+  "totals": {
+   "objects": 2,
+   "tris": 2162,
+   "errors": 0,
+   "warnings": 0
+  },
+  "issues": [
+   {
+    "severity": "info",
+    "object": "SM_Cind_Crystal_04",
+    "message": "9 n-gons; fine if planar, they get triangulated on export"
+   }
+  ]
+ }
+}

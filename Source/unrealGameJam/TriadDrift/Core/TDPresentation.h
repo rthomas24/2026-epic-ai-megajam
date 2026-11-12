@@ -106,6 +106,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue EngineTrail;
 
+	/** Dodge: a short side-thruster burst, attached at the engine (player ship only). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
+	FTDFXCue Dodge;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue BoostStart;
 
@@ -497,4 +501,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
 	TSoftClassPtr<UUserWidget> LoadingWidgetClass;
+
+	/**
+	 * Pause menu (optional). Shown while the player has paused the game: open it on the player
+	 * controller's OnPauseChanged(true) and close it on false. Without one the dev HUD draws a plain
+	 * "PAUSED" line.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> PauseWidgetClass;
 };

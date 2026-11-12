@@ -1,0 +1,182 @@
+{
+ "asset": "SM_Verd_Rock_03",
+ "tris": 1388,
+ "budget": [
+  500,
+  2000
+ ],
+ "in_budget": true,
+ "height_cm": 239.7,
+ "below_ground_cm": 31.9,
+ "width_cm": [
+  308.4,
+  185.8
+ ],
+ "base_center_offset_cm": [
+  0.0,
+  0.0
+ ],
+ "material_slots": [
+  "M_Verd_Rocks"
+ ],
+ "uv_layers": [
+  "UVMap"
+ ],
+ "errors": 0,
+ "warnings": 0,
+ "issues": [],
+ "assembly_ok": true,
+ "assembly": {
+  "islands": 4,
+  "groups": 1,
+  "floating": [],
+  "tolerance_m": 0.00676
+ },
+ "asset_report": {
+  "status": "ok",
+  "scene_units": {
+   "system": "METRIC",
+   "scale_length": 1.0,
+   "length_unit": "METERS"
+  },
+  "objects": [
+   {
+    "name": "SM_Verd_Rock_03",
+    "type": "MESH",
+    "parent": null,
+    "collections": [
+     "Verdance"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     308.38,
+     185.81,
+     271.61
+    ],
+    "hide_render": false,
+    "modifiers": [],
+    "materials": [
+     "M_Verd_Rocks"
+    ],
+    "verts": 702,
+    "faces": 1388,
+    "tris": 1388,
+    "quads": 0,
+    "ngons": 0,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 1.0,
+    "has_custom_normals": false,
+    "uv_layers": [
+     "UVMap"
+    ],
+    "faces_per_material_index": {
+     "0": 1388
+    },
+    "local_bbox_min": [
+     -1.50012,
+     -0.87617,
+     -0.31888
+    ],
+    "local_bbox_max": [
+     1.58364,
+     0.9819,
+     2.39721
+    ],
+    "origin_placement": "custom"
+   },
+   {
+    "name": "UCX_SM_Verd_Rock_03",
+    "type": "MESH",
+    "parent": "SM_Verd_Rock_03",
+    "collections": [
+     "Verdance"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     305.25,
+     185.81,
+     240.65
+    ],
+    "hide_render": true,
+    "modifiers": [],
+    "materials": [],
+    "verts": 21,
+    "faces": 38,
+    "tris": 38,
+    "quads": 0,
+    "ngons": 0,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 0.0,
+    "has_custom_normals": false,
+    "uv_layers": [],
+    "faces_per_material_index": {
+     "0": 38
+    },
+    "local_bbox_min": [
+     -1.46887,
+     -0.87617,
+     -0.00928
+    ],
+    "local_bbox_max": [
+     1.58364,
+     0.9819,
+     2.39721
+    ],
+    "origin_placement": "bottom_center"
+   }
+  ],
+  "totals": {
+   "objects": 2,
+   "tris": 1426,
+   "errors": 0,
+   "warnings": 0
+  },
+  "issues": []
+ }
+}

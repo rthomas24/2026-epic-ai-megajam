@@ -7,6 +7,8 @@ and gameplay validated are separate stages. AAA is a quality direction, not a
 verified label or authority to expand scope. All current new benchmarks require
 Nicholas's subjective review before propagation/integration.
 
+**Current checkpoint:** [Recovery and broker handoff](Recovery-and-Broker-Handoff-2026-11-12.md). Nick production is STOPPED pending his review; no ended goal may restart. Older timestamped notes below are historical.
+
 ## Nicholas's Lead delegation
 
 Nicholas explicitly authorizes Lead routine low-risk naming, paths, task sequencing
@@ -32,41 +34,25 @@ presentation/readability, measured cost, integration and subjective approval.
 |---|---|---|
 | ART-01 Direction | Lead coordination; foundation palette/layout approved, AAA target raised | Preserve cyan/violet environment and ship identity; benchmark approval next |
 | ART-02 Inventory/sourcing | Lead + specialists; initial source inventory | Source package957b45e; every acquisition needs license/provenance before use |
-| ART-03 Ships | Ships & Weapons; Lancer M03 source production authorized, Rift/Bastion held | Nick subsequent brief207f9e02 and blue reference approve Lancer-only Production Review01 in isolated nick/ships-lancer-m03. Preserve M02/main100f21c and Rift a7c0463/draftPR7. No native/main/other ships before approval; preserve or explicitly propose attachment mapping, no unilateral canonical-transform changes |
+| ART-03 Ships | Ships; Lancer A01 beta only, A02 stopped before execution |58d80e5 clean/pushed; assembly FAIL, no Unreal export. Tonight order Lancer→white player→Bastion→green Rift; only after recovery review/resume and visual gates |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
-| ART-05 Space | Environment & VFX; foundation integrated, HeroM02 source checkpoint published | Main9c629e8 foundation; new fc4db83/15files and35baselinehashes/source checks pass, independent source review no BLOCKER/MAJOR. HeroM02 native build/captures0, next one-SCW corrected startup resource-gated; actual cube resolution/archive checks required before acceptance |
+| ART-05 Space | Environment; Hero M02 native technical checkpoint FINISHED, frozen | Build03/Capture04 exit0,10matched/stability images,35baseline hashes PASS.22local WIP paths uncommitted; Nick appearance, branch publication and realGalaxy/Shipping gates remain. MainM01foundation9c629e8 is separate |
 | ART-06 Planets | Environment & VFX future terrain/look; engineering small props R015 | Nick terrain/hero dressing not dispatched. Ryan now owns separate unstarted small rocks/crystals/flora/tree kits in EngProps and Gameplay/Props/Vegetation; no existing Nick claim transferred, final look approval remains Nick's; no Nick shared-map edits |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
-| ART-08 Ground visuals | Characters & Enemies FUTURE role explicitly queued/ACK in GameJam UI, UX & HUD | No humanoid model/branch exists. After HUD safe handoff, Nick delegated priority: crew INFANTRY first using existing SkeletalMesh/AnimBP hook, unhooked Lancer pilot deferred/preserved. Future nick/characters-infantry and exact source claims activate before writes; Manny A-pose180cm target confirmed; model QA+Nick approval then real integration before optional variants |
-| ART-09 HUD | UI/UX & HUD; approved M03 prototype draftPR8, new functional fix in progress | b21a98f worker build+8tests/16actual captures and fresh review pass. Optional objective late-attach source reviewed, native tests pending. EXISTING MAJOR default-on/planet gate: native widget misses landing/braking prompt while devHUD suppressed; owned public-getter display/clearing fix dispatched, actual pad checks required. Shipping/human/finalAAA retained |
-| ART-10 Audio/music | Audio & Music; source checkpoint0717d9f published, native authoring blocked | Nick approves existing owned/free audition for prototype only;26prepared WAV/14events sourceQA and both private-host builds pass. Nativeauthor01 stopped on2missingCascadecvar errors, no assets imported. Source correction/loopvirtualization ready; next NullRHI grant conditional on>=4GiB/zeroheavy. Licensed/native media ignored; no shared integration/final ears approval; skill4096f47 adopted |
+| ART-08 Ground visuals | Same UI chat; NO humanoid geometry, stopped |372a9ca prep published; TWO frozen untracked export scripts, never run. Latest Nick priority WHITE player overrides delegated infantry-first; exact owner/player-body hook needs recovery decision. Existing claims retained, no transfer or new dispatch |
+| ART-09 HUD | UI; ca579ab M03 technically verified/gameplay-tested ON BRANCH | Build+10tests+26actual captures/fresh review pass; HoldF gap fixed. N013 confirms SLOWDOWN unreachable and is closed. PR8 draft; current-main/package/default-on/human acceptance not passed |
+| ART-10 Audio/music | Audio;107s menu song source-ready, NO native implementation, stopped | Nick selected Suno Etherial Pulse and confirmed paid generation; exact107s WAV/hash/format/no-clipping QA pass. Needs claimed import/menu hook/cook/runtime test. BOTH custom primary versions and old switch cues rejected; preserve archives, no TII download |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
 | ART-12 Cinematics | Lead coordinates UI/Environment; queued implementation | Engineering switch-cut/director/scene/take hooks exist; runtime presentation not complete |
-| ART-13 Performance/look | Environment/Lead coordinate; measurements pending | Sky compiler counts are not GPU timings; real-map exposure/cost and integrated playtest pending |
-| ART-14 Submission | Lead coordinates; queued | Protect Nov15 packaging/video/store-page time; gameplay packaging remains Ryan-owned |
+| ART-13 Performance/look | Native Hero compiler/resource and synchronized capture evidence exists | Native textures~61.44MiB, not gameplay VRAM budget; capture timings not isolated GPU/FPS. Real-map readability/performance and human quality acceptance remain |
+| ART-14 Submission | Ryan packaging/Lead coordination; unaccepted | Engineering reports473tests,777MBShipping at separate snapshots. Latest package/fulljourney/human/submission evidence pending N014; deadlineNov15 20:59EST, noon feature freeze |
 | ART-15 Interior | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 | ART-16 Escape cinematics | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 
-## Immediate production sequence
+## Immediate production sequence — RECOVERY HOLD
 
-One global heavy-app slot on this approximately16GB PC. Audio PrototypeV1 has the
-next bounded NullRHI author/check window after both targets compiled, with fresh
-4.0 GiB/no-heavy-process guard and measured resource limits; rendered demo is a
-separate grant. HUD objective source work can proceed in parallel, then focused
-native verification. HeroM02 follows after correcting cold shader-worker setup;
-no automatic timeout retries. Ships are held for new references/approved plan.
-Fresh RAM/process guard at each dispatch; no concurrent heavy applications.
+No new production or heavy operation is authorized. Nick requests the completed recovery report and a full stop for effort/broker review. All prior execution queues in historical notes are superseded by that hold. After his review, tonight's requested order is Lancer, WHITE main humanoid, Bastion, green Rift; this is not an automatic resume. The report gives owners, actual stages, evidence and gates. Keep Ryan's gameplay/config/maps protected and the one-heavy-process resource rule.
 
-Hero benchmark: identical camera/exposure before-after, natural multiscale structure,
-realistic angular stars without pole stretching, native reload/compile/stability and
-measured cost where practical. Stop before Combat/Verdance propagation.
-Audio: use only the directly approved existing owned/free source selections for
-PrototypeV1 in its private isolated host. No spending, downloads, AI services,
-shared integration or media publication without the required license/approval
-gates. Existing rejected work stays preserved. Final quality requires Nick's ears.
-HUD: readable health vs shields/signature/control state and centered hit feedback at
-1080p/720p, no new provider/menu/shared activation. Ships: clear remaining geometry/UV
-failures, then show cohesion/materials from multiple angles before final approval.
 
 ## Integration/playtest boundary
 
@@ -168,3 +154,31 @@ nick/characters-infantry/worktree are not created. Activate after HUD handoff.
 Technical verification and Nick visual approval precede rigging/native integration;
 integrate the approved crew base before spending time on optional cosmetic variants.
 No core gameplay class, character reference or artistic direction is removed.
+
+## HUD safe handoff and infantry source activation — November12,17:33EST
+
+HUD ca579ab is published/clean on nick/hud-lancer-polish (draftPR8): build,10UItests,26actual-game captures, real landing/on-foot host removal and return verified. Independent review clears branch publication; SLOWDOWN not reproduced, N013 remains open. Latest-main compatibility, default-on, Shipping, human gameplay/final presentation and main integration remain separate gates. HUD scope stays frozen.
+
+The same GameJam | UI, UX & HUD chat now owns Characters & Enemies source preparation in isolated nick/characters-infantry / C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/characters-infantry, base2d2b559. This supersedes the earlier undispatched/reserved state only for Infantry/M01. Nick delegated infantry-first priority and resumed the character campaign; the HUD prerequisite is complete. Published exact source claim is required before edits. Use existing approved reference86c032e1 and read-only owned UE5 Manny base; no new acquisition, template changes, shared gameplay/config, rigging, native integration, or another character. Pilot remains preserved/deferred.
+
+Current Hero Unreal job retains the only heavy slot. Character owner may prepare source/specifications offline; mannequin export and Blender need a later explicit fresh resource grant. No humanoid model exists at activation. Stop for technical verification and Nick visual approval before dependent milestones.
+
+## Hero native build checkpoint — November12,17:32EST
+
+Hero03 completed OS/script0,reasonok,481.1s,0errors/warnings/dialogs. Six new native assets exist only in Content/TriadDrift/Environment/SpaceFoundation/HeroM02. Shader stats148pixel/155vertex instructions,3samplers,6pixel texture samples; protected35baseline hashes independently rechecked PASS. Prior failed attempts remain archived. This is a native build checkpoint, not visual/gameplay/main acceptance. Fresh process18576 is performing already-authorized matched captures/reload/stability/actual built texture measurements. Environment retains the one heavy slot; corrected Lancer structural pass follows actual terminal release, then character base export/modeling requires its own resource grant.
+
+## Audio direction superseded; infantry checkpoint published — November12
+
+Verified direct Audio-chat user01a1d1e7: Nick dislikes both PrimaryRealismM02 and originalV1 and requests assets directly from his Epic Games library. Technical QA never implied ear approval. Both remain preserved references; no further custom design, native adoption or Main merge. Dedicated Audio agent is checking existing local pack identities/licences and preparing original unprocessed playable clips in ignored storage; no new acquisition/download/AI/spend. Unresolved Untitled cache names do not establish product rights or field-recording provenance.
+
+Infantry source-only9-file checkpoint372a9ca is pushed on its isolated branch; approved reference SHA/PNG integrity, all JSON and manifest hashes independently pass. No humanoid .blend/FBX or geometry exists. Necessary owned exporter/guard script may be prepared offline; execution waits for an explicit fresh resource grant after Hero capture and short Lancer structural confirmation. Frozen compiled HUD project is the read-only source host; no HUD/template/config writes or new game build.
+
+## Lancer M03 presentation failure — direct Nick feedback, November12
+
+Nick reviewed the actual StageA01 ship render shown in Lead's progress report and states it does not look AAA polished. This is not model/presentation approval. Preserve the structural A01 and prepared v02 source at published58d80e5 as honest failed/incomplete checkpoints. No corrected run has been granted. Ships must reassess the approved blue reference and modeling route before the next scheduled pass: cohesive hull proportions and mechanical construction, convincing canopy/intakes and integrated weapons, deliberate bevels/surface detail, material separation and finish. Technical geometry/frame checks and the three planned structural fixes do not establish presentation quality. Avoid using extra panel noise, polygon count or flattering lighting to disguise weak forms. Existing Lancer-only source authorization continues; native/Main/another-ship gates remain closed.
+
+## Verified scoped resumes and serial coordination — November12
+
+Actual typed user messages authorize Hero-only capture completion, the selected107s Suno CURRENT-main-menu implementation with no purchase (Pro/Premier-at-generation answer supplied), and Lancer Structural A02 with final/art/detail/native gates retained. The character campaign native event changed paused to active at23:02:19UTC/18:02EST, with unchanged usage counters; its existing infantry-first dispatch and human gates remain. None is a global resume. Source files/worktrees/history remain preserved; no heavy job has been granted under the current low-RAM condition. First native task is Hero's already-reviewed capture repair; menu hook coordination follows, then the prepared character export/Lancer A02 per readiness. Keep all original objectives queued rather than substituting previews for in-game implementation.
+
+Reviewed latest AGENTS addition for engineering procedural-trees (read-only to Nick; no new tree assignment), unchanged AAA, updated engineering claims and features power-switch exceptions (ram and lone portal end at switch). Ryan R015 now publishes26native prop meshes and procedural trees; not seen in actual game or Nick-approved. No Nick ownership overlap or approved presentation transfer. Ryan N013 confirms SLOWDOWN is unreachable on current planet landing routes; HoldF is the legitimate landing verification. Optional future HUD getters/real pause remain queued, no HUD source/activation change during this checkpoint.

@@ -16,6 +16,8 @@
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "HAL/IConsoleManager.h"
 
 namespace TDEnemyReview
 {
@@ -42,6 +44,31 @@ namespace TDEnemyReview
 		return E;
 	}
 
+	/** Review tests run at the defaults: Standard difficulty and the shipped enemy cvars (restored on exit). */
+	struct FDefaults
+	{
+		ETDDifficulty PrevDifficulty;
+		TArray<TPair<IConsoleVariable*, FString>> PrevCVars;
+		explicit FDefaults(FAutomationTestBase& Test) : PrevDifficulty(UTDDifficultySettings::GetCurrent())
+		{
+			Test.TestEqual(TEXT("tests start at Standard (no leaked difficulty)"), (int32)PrevDifficulty, (int32)ETDDifficulty::Standard);
+			UTDDifficultySettings::SetCurrent(ETDDifficulty::Standard);
+			for (const TPair<const TCHAR*, const TCHAR*>& CV : { TPair<const TCHAR*, const TCHAR*>(TEXT("TD.EnemyCrossInFront"), TEXT("5000")), TPair<const TCHAR*, const TCHAR*>(TEXT("TD.EnemyOpeningPass"), TEXT("1")) })
+			{
+				if (IConsoleVariable* V = IConsoleManager::Get().FindConsoleVariable(CV.Key))
+				{
+					PrevCVars.Emplace(V, V->GetString());
+					V->Set(CV.Value);
+				}
+			}
+		}
+		~FDefaults()
+		{
+			UTDDifficultySettings::SetCurrent(PrevDifficulty);
+			for (const TPair<IConsoleVariable*, FString>& P : PrevCVars) { P.Key->Set(*P.Value); }
+		}
+	};
+
 	int32 Shots(const ATDEnemyShip* E)
 	{
 		const UTDWeaponComponent* Wp = E ? E->GetWeapons() : nullptr;
@@ -54,6 +81,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewFighterFires, "TriadDrift.Enemies.Revi
 bool FTDReviewFighterFires::RunTest(const FString& Parameters)
 {
 	using namespace TDEnemyReview;
+	FDefaults Guard(*this);
 	for (const float Fps : Rates)
 	{
 		for (int32 Case = 0; Case < 2; ++Case)
@@ -79,34 +107,49 @@ bool FTDReviewFighterFires::RunTest(const FString& Parameters)
 	return true;
 }
 
-// Lead finding: head-on hits sat on a knife edge. Sweep closing speeds 8000-16 000 cm/s at 30/60/120 fps:
-// the first head-on pass must land hits at every one (logged per case so the margin is visible).
+// Lead finding: head-on hits sat on a knife edge. Sweep closing speeds 8000-21 000 cm/s at 30/60/120 fps,
+// 8 seeded passes each: at least 6 of 8 first passes land two or more hits (a margin, not one lucky bolt).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewHeadOnSweep, "TriadDrift.Enemies.Review.HeadOnPassLandsHitsAtEveryClosingSpeed", TD_TEST_FLAGS)
 bool FTDReviewHeadOnSweep::RunTest(const FString& Parameters)
 {
 	using namespace TDEnemyReview;
-	const float PlayerSpeeds[] = { 2000.f, 4000.f, 6000.f, 8000.f, 10000.f };	// + fighter ~6000 = 8000..16 000 closing
+	FDefaults Guard(*this);
+	const float PlayerSpeeds[] = { 2000.f, 4000.f, 6000.f, 8000.f, 10000.f, 15000.f };	// + fighter ~6000 = 8000..21 000 closing
 	for (const float Fps : Rates)
 	{
 		for (const float V : PlayerSpeeds)
 		{
-			FTDTestWorld W;
-			ATDSpacecraft* Player = SpawnPlayer(W, FVector(22000.f, 0.f, 0.f), FRotator(0.f, 180.f, 0.f), V);
-			ATDEnemyShip* F = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector::ZeroVector, FRotator::ZeroRotator);
-			const ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(F->GetController());
-			const float Hull0 = Player->GetHealth()->GetHull();
-			// Until the first break-off (one head-on pass).
-			bool bRan = false;
-			for (int32 i = 0; i < FMath::RoundToInt(Fps * 6.f); ++i)
+			int32 GoodPasses = 0;
+			FString Detail;
+			for (int32 Seed = 1; Seed <= 8; ++Seed)
 			{
-				W.Tick(1.f / Fps);
-				bRan |= AI && AI->GetAIState() == ETDEnemyAIState::AttackRun;
-				if (bRan && AI && AI->GetAIState() == ETDEnemyAIState::BreakOff) { break; }
+				FTDTestWorld W;
+				ATDSpacecraft* Player = SpawnPlayer(W, FVector(26000.f, 0.f, 0.f), FRotator(0.f, 180.f, 0.f), V);
+				ATDEnemyShip* F = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector::ZeroVector, FRotator::ZeroRotator);
+				F->SetSpawnSeed(1000 * Seed + 17);
+				const ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(F->GetController());
+				const float Hull0 = Player->GetHealth()->GetHull();
+				bool bRan = false;
+				for (int32 i = 0; i < FMath::RoundToInt(Fps * 6.f); ++i)
+				{
+					W.Tick(1.f / Fps);
+					bRan |= AI && AI->GetAIState() == ETDEnemyAIState::AttackRun;
+					if (bRan && AI && AI->GetAIState() == ETDEnemyAIState::BreakOff) { break; }
+				}
+				W.Advance(0.4f, 1.f / Fps);	// bolts in flight land
+				const float Taken = Hull0 - Player->GetHealth()->GetHull();
+				const int32 Hits = FMath::RoundToInt(Taken / 5.f);
+				// Bolts only: more damage than the shots fired can deal is a collision (a ram), never a good pass.
+				const bool bRammed = Taken > Shots(F) * 5.f + 0.5f;
+				TestFalse(*FString::Printf(TEXT("@%.0f fps, player %.0f cm/s, seed %d: no ram (%.0f damage from %d shots)"), Fps, V, Seed, Taken, Shots(F)), bRammed);
+				// Cruise against cruise (closing up to ~14 000 cm/s): two or more hits. A boosting ship head-on
+				// (16 000-21 000) leaves a ~0.3 s window, one 4/s bolt: at least one hit.
+				const int32 Needed = V <= 8000.f ? 2 : 1;
+				GoodPasses += (Hits >= Needed && !bRammed) ? 1 : 0;
+				Detail += FString::Printf(TEXT(" %d/%d"), Hits, Shots(F));
 			}
-			W.Advance(0.4f, 1.f / Fps);	// bolts in flight land
-			const int32 Hits = FMath::RoundToInt((Hull0 - Player->GetHealth()->GetHull()) / 5.f);
-			AddInfo(FString::Printf(TEXT("head-on pass @%.0f fps, player %.0f cm/s: %d shots, %d hits"), Fps, V, Shots(F), Hits));
-			TestTrue(*FString::Printf(TEXT("@%.0f fps, player %.0f cm/s: the pass landed hits (%d of %d shots)"), Fps, V, Hits, Shots(F)), Hits >= (V <= 6000.f ? 2 : 1));
+			AddInfo(FString::Printf(TEXT("head-on @%.0f fps, player %.0f cm/s: hits/shots per seed%s"), Fps, V, *Detail));
+			TestTrue(*FString::Printf(TEXT("@%.0f fps, player %.0f cm/s: %d of 8 passes landed enough hits (%s)"), Fps, V, GoodPasses, *Detail), GoodPasses >= 6);
 		}
 	}
 	return true;
@@ -210,6 +253,37 @@ bool FTDReviewNoCatchUpInWell::RunTest(const FString& Parameters)
 		Move->SetSpeedOverrideFor(TEXT("GravityWell"), 300.f, 0.2f);
 		for (int32 i = 0; i < 3; ++i) { W.Tick(1.f / Fps); }
 		TestFalse(*FString::Printf(TEXT("@%.0f fps: catch-up dropped once caught"), Fps), Move->HasSpeedOverrideFor(TEXT("EnemyAI")));
+	}
+	return true;
+}
+
+// Re-check MAJOR: a ship charging a gunship (each ship's cruise and boost) is volleyed, not ignored.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewGunshipVsCharge, "TriadDrift.Enemies.Review.GunshipVolleysAShipChargingIt", TD_TEST_FLAGS)
+bool FTDReviewGunshipVsCharge::RunTest(const FString& Parameters)
+{
+	using namespace TDEnemyReview;
+	// Bastion / Rift / Lancer cruise, then boost (cm/s).
+	const float Speeds[] = { 5000.f, 6000.f, 7500.f, 10800.f, 13500.f };
+	for (const float Fps : Rates)
+	{
+		for (const float V : Speeds)
+		{
+			FTDTestWorld W;
+			ATDSpacecraft* Player = SpawnPlayer(W, FVector(22000.f, 400.f, 0.f), FRotator(0.f, 180.f, 0.f), V);
+			ATDEnemyShip* G = SpawnEnemy(W, TDEnemyIds::WallGunship, FVector::ZeroVector, FRotator::ZeroRotator);
+			const float Hull0 = Player->GetHealth()->GetHull();
+			bool bVolley = false;
+			const int32 Frames = FMath::RoundToInt(Fps * (20000.f / V));	// until it reaches the gunship
+			for (int32 i = 0; i < Frames; ++i)
+			{
+				W.Tick(1.f / Fps);
+				bVolley |= G->GetTelegraphAttack() == ETDEnemyAttack::HeavyBolt || G->GetAttackCooldownRemaining(ETDEnemyAttack::HeavyBolt) > 0.f;
+			}
+			W.Advance(0.5f, 1.f / Fps);
+			const float Taken = Hull0 - Player->GetHealth()->GetHull();
+			TestTrue(*FString::Printf(TEXT("@%.0f fps, %.0f cm/s: the gunship volleyed the charging ship"), Fps, V), bVolley);
+			TestTrue(*FString::Printf(TEXT("@%.0f fps, %.0f cm/s: and a straight charge got hit (%.0f damage)"), Fps, V, Taken), Taken > 0.f);
+		}
 	}
 	return true;
 }

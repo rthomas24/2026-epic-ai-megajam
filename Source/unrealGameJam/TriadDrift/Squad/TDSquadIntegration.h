@@ -120,6 +120,12 @@ namespace TDSquad
 	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds);
 	/** HUD: T1's landing prompt for this ship, empty when none. */
 	FText GetLandPrompt(const ATDShip* Ship);
+	/** Subscribe Squad->HandleShipDamaged to Ship's health OnDamaged (idempotent). */
+	void BindShipDamaged(ATDSquadManager* Squad, ATDShip* Ship);
+	/** Max hull + max shield (the scale for a damage indicator's strength). */
+	float GetMaxHullAndShield(const AActor* Actor);
+	/** HUD: T1's boundary warning for this ship ("EDGE OF THE COMBAT ZONE"...), empty inside. */
+	FText GetBoundaryWarningText(const ATDShip* Ship);
 	/** The flow's current objective line (T5's game instance), empty without one. */
 	FText GetCurrentObjectiveText(const UObject* WorldContext);
 	/** Where the director's money-shot camera is, while one is running. */

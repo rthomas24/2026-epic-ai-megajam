@@ -143,7 +143,7 @@ float UTDLandingComponent::GetLandingSpeedLimit() const
 	return Move ? Move->GetCruiseCapSpeed() * Tuning.MaxSpeedFraction + 1.f : 0.f; // +1: "at or below"
 }
 
-ATDLandingPad* UTDLandingComponent::GetAssistPad() const
+ATDLandingPad* UTDLandingComponent::GetAssistPad(float RangeScale) const
 {
 	const ATDShip* Ship = GetShip();
 	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
@@ -166,7 +166,7 @@ ATDLandingPad* UTDLandingComponent::GetAssistPad() const
 		}
 	}
 	ATDLandingPad* Near = Travel->FindPlayerPad(Ship->GetActorLocation(), TNumericLimits<float>::Max());
-	if (Near && !Near->IsOccupied() && FVector::Dist(Near->GetBeaconLocation(), Ship->GetActorLocation()) <= Tuning.SlowDownPromptRange)
+	if (Near && !Near->IsOccupied() && FVector::Dist(Near->GetBeaconLocation(), Ship->GetActorLocation()) <= Tuning.SlowDownPromptRange * RangeScale)
 	{
 		return Near;
 	}
@@ -207,7 +207,8 @@ void UTDLandingComponent::TickApproachAssist(float DeltaTime)
 	ATDShip* Ship = GetShip();
 	ATDLandingPad* Target = AssistPad.Get();
 	// Anything that would refuse a new assist (death, a switch, hyperdrive, boost, out of range) ends this one.
-	if (!Ship || !Target || GetAssistPad() != Target)
+	// Twice the start range: an assist begun near the edge (or past the pad) has room to turn the ship around.
+	if (!Ship || !Target || GetAssistPad(2.f) != Target)
 	{
 		StopApproachAssist();
 		return;
@@ -376,8 +377,7 @@ void UTDLandingComponent::PlanAlignArc()
 		Params.AddIgnoredActor(Pad.Get());
 	}
 	FHitResult Hit;
-	if (!World->SweepSingleByObjectType(Hit, From, To, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic),
-		FCollisionShape::MakeSphere(Radius), Params))
+	if (!UTDShipMovementComponent::SweepTerrain(World, Hit, From, To, Radius, Params))
 	{
 		return;
 	}
@@ -385,7 +385,7 @@ void UTDLandingComponent::PlanAlignArc()
 	FHitResult Top;
 	const FVector Probe(Hit.ImpactPoint.X, Hit.ImpactPoint.Y, FMath::Max(From.Z, To.Z) + 100000.f);
 	float TopZ = Hit.ImpactPoint.Z;
-	if (World->LineTraceSingleByObjectType(Top, Probe, FVector(Probe.X, Probe.Y, Hit.ImpactPoint.Z), FCollisionObjectQueryParams(ECC_WorldStatic), Params))
+	if (UTDShipMovementComponent::SweepTerrain(World, Top, Probe, FVector(Probe.X, Probe.Y, Hit.ImpactPoint.Z), 0.f, Params))
 	{
 		TopZ = Top.ImpactPoint.Z;
 	}

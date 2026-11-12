@@ -529,6 +529,19 @@ void UTDPortalBlasterPower::OnTickActive(float DeltaTime)
 	}
 }
 
+void UTDPortalBlasterPower::OnLostPlayerControl()
+{
+	int32 Open = 0;
+	for (const TWeakObjectPtr<ATDPortal>& P : Portals)
+	{
+		Open += P.IsValid() ? 1 : 0;
+	}
+	if (Open < 2)
+	{
+		EndPower(true);
+	}
+}
+
 void UTDPortalBlasterPower::OnEnd(bool bInterrupted)
 {
 	for (const TWeakObjectPtr<ATDPortal>& P : Portals)

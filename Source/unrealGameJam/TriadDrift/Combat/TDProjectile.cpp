@@ -219,6 +219,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
 		StreakLook = Look;
 		AppliedGrowth = 1.f;
+		bAppliedIncoming = false;
 		if (!GlowMaterial)
 		{
 			GlowMaterial = UTDStatics::GetPlaceholderGlowMaterial(); // project M_TD_PlaceholderGlow, always cooked
@@ -248,7 +249,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 			PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
 			PlaceholderMesh->SetRelativeLocation(FVector::ZeroVector);
 		}
-		if (Look.bHead)
+		if (Look.bHead || Team == ETDTeam::Enemy)
 		{
 			if (!HeadMID && Base)
 			{
@@ -258,7 +259,9 @@ void ATDProjectile::UpdatePlaceholderLook()
 			if (HeadMID)
 			{
 				// Hot core: the team colour pushed towards white and brighter than the trail.
-				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * 0.8f : 1.f); // stays in squad colour (playtest: 0.45 white read as a white ball)
+				// Stays in squad / enemy colour (playtest: 0.45 white read as a white ball); incoming enemy fire burns hotter.
+				const float HeadGlow = Team == ETDTeam::Enemy ? 1.3f : 0.8f;
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * HeadGlow : 1.f);
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
 			}
@@ -477,19 +480,27 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	{
 		return;
 	}
-	const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
-	const float Grow = FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
-	if (FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
+	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+	const float Distance = FVector::Dist(Camera, GetActorLocation());
+	const bool bIncoming = Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
+	const float Grow = bIncoming
+		? FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance, FTDCombatPlaceholders::MinIncomingStreakPixels)
+		: FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
+	if (bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
 	{
 		return; // cheap at 150+ live shots: no transform update for a change nobody can see
 	}
 	AppliedGrowth = Grow;
+	bAppliedIncoming = bIncoming;
 	const float Thickness = StreakLook.Thickness * Grow;
 	PlaceholderMesh->SetRelativeScale3D(FVector(StreakLook.Length, Thickness, Thickness) / 100.f);
 	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * StreakLook.Length + 0.5f * Thickness, 0.f, 0.f));
-	if (StreakLook.bHead)
+	const bool bShowHead = StreakLook.bHead || bIncoming;
+	PlaceholderHead->SetVisibility(bShowHead && HeadMID != nullptr);
+	if (bShowHead)
 	{
-		PlaceholderHead->SetRelativeScale3D(FVector(StreakLook.HeadDiameter * Grow / 100.f));
+		const float Head = FMath::Max(StreakLook.HeadDiameter, StreakLook.Thickness * (bIncoming ? FTDCombatPlaceholders::IncomingHeadScale : 0.f));
+		PlaceholderHead->SetRelativeScale3D(FVector(Head * Grow / 100.f));
 	}
 }
 
@@ -546,6 +557,18 @@ void ATDProjectile::Step(float DeltaSeconds)
 			const FVector JustPast = OnPlane + Dir * 1.f;
 			SetActorLocation(JustPast);
 			Crossed->TransitAlong(this, Start, JustPast);
+			// Carry the rest of this step on from wherever the shot now is (the exit, or just past the plane if the
+			// transit was refused): a 30 fps shot doesn't lose up to 1333 cm of travel at a portal (review).
+			const float SegmentSpeed = Velocity.Size();
+			const float Remaining = SegmentSpeed > KINDA_SMALL_NUMBER
+				? FMath::Max(0.f, (float)FVector::Dist(JustPast, End) / SegmentSpeed) : 0.f;
+			if (bActive && Remaining > KINDA_SMALL_NUMBER && PortalCarryDepth < 2)
+			{
+				++PortalCarryDepth;
+				Age -= Remaining; // Step adds it back: no extra ageing
+				Step(Remaining);
+				--PortalCarryDepth;
+			}
 			return;
 		}
 	}

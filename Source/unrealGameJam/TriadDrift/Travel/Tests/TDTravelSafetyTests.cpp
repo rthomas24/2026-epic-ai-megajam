@@ -8,6 +8,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
@@ -672,6 +674,57 @@ bool FTDTravelStandingReasons::RunTest(const FString& Parameters)
 	Travel->AddHyperdriveLock(TEXT("Wave"), Lock);
 	W.Tick();
 	TestTrue(TEXT("lock text without a press"), Hyper->GetBlockReasonText().EqualTo(Lock));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelDominionWell, "TriadDrift.Travel.Safety.JumpAtTheDominionDropsOutAtItsWell", TD_TEST_FLAGS)
+bool FTDTravelDominionWell::RunTest(const FString& Parameters)
+{
+	// Lead / T4 (Nov 12): the finale lock starts only inside the Dominion's well, so a jump from 5 km must drop out at
+	// the well (T4's real galaxy layout registers it) and never reach the hull. 30 / 60 / 120 fps.
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		const FString Tag = FString::Printf(TEXT("%.0f fps: "), Fps);
+		FTDTestWorld W;
+		ATDGalaxyLayout* Layout = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+		W.Tick(1.f / Fps);
+		ATDDominion* Dominion = ATDDominion::Get(W.GetWorld());
+		UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(W.GetWorld());
+		if (!TestNotNull(*(Tag + TEXT("layout")), Layout) || !TestNotNull(*(Tag + TEXT("Dominion")), Dominion)) { return false; }
+		FTDTravelGravityWell Well;
+		TestTrue(*(Tag + TEXT("Dominion well registered")), Travel->FindWellContaining(Dominion->GetActorLocation(), Well));
+		const float WellRadius = Well.Radius;
+
+		// 5 km out along the approach, nose on the Dominion.
+		const FVector D = Dominion->GetActorLocation();
+		const FVector Approach = (Layout->GetPlayerStart().GetLocation() - D).GetSafeNormal(UE_SMALL_NUMBER, FVector::ForwardVector);
+		const FVector Start = D + Approach * 500000.f;
+		ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+		Ship->TeleportSpacecraft(Start, (-Approach).Rotation(), false);
+		W.Tick(1.f / Fps);
+		UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
+		UTDHyperdriveStateRecorder* Rec = NewObject<UTDHyperdriveStateRecorder>();
+		Rec->AddToRoot();
+		ON_SCOPE_EXIT { Rec->RemoveFromRoot(); };
+		TestTrue(*(Tag + TEXT("spool")), Hyper->RequestSpoolFromPilot());
+		float Closest = TNumericLimits<float>::Max();
+		bool bJumped = false;
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 20.f); ++i)
+		{
+			W.Tick(1.f / Fps);
+			bJumped |= Hyper->IsJumping();
+			Closest = FMath::Min(Closest, (float)FVector::Dist(Ship->GetActorLocation(), D));
+			if (bJumped && Hyper->GetState() == ETDHyperdriveState::Idle)
+			{
+				break;
+			}
+		}
+		TestTrue(*(Tag + TEXT("jumped")), bJumped);
+		TestEqual(*(Tag + TEXT("back to idle")), Hyper->GetState(), ETDHyperdriveState::Idle);
+		TestEqual(*(Tag + TEXT("dropped out because of the Dominion's well")), Hyper->GetLastEndCause(), ETDHyperdriveEndCause::GravityWell);
+		TestTrue(*(Tag + FString::Printf(TEXT("stopped near the well edge, clear of the hull (closest %.0f m, well %.0f m, hull %.0f m)"),
+			Closest / 100.f, WellRadius / 100.f, Dominion->HullExtent.GetMax() / 100.f)), Closest > Dominion->HullExtent.GetMax() * 1.2f && Closest < WellRadius * 1.6f);
+	}
 	return true;
 }
 

@@ -1,0 +1,75 @@
+{
+  "asset": "SM_Verd_Rock_02",
+  "fbx": "ArtSource/EngProps/Verdance/SM_Verd_Rock_02/SM_Verd_Rock_02.fbx",
+  "tris": 1614,
+  "size_cm": [
+    119.8,
+    171.9,
+    121.6
+  ],
+  "pivot": "root object origin (SM_Verd_Rock_02): the base centre, on the ground plane",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Verd_Rocks"
+  ],
+  "material_params": [
+    {
+      "name": "M_Verd_Rocks",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Verd_Rocks_BC.png",
+    "T_Verd_Rocks_N.png",
+    "T_Verd_Rocks_ORM.png",
+    "T_Verd_Rocks_E.png"
+  ],
+  "collision": [
+    "UCX_SM_Verd_Rock_02_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "status": "ok",
+  "fbx_path_is": "relative to the repository root",
+  "texture_set": {
+    "name": "Verd_Rocks",
+    "shared_atlas": true,
+    "dir": "ArtSource/EngProps/Verdance/textures",
+    "files": {
+      "BC": "T_Verd_Rocks_BC.png",
+      "N": "T_Verd_Rocks_N.png",
+      "ORM": "T_Verd_Rocks_ORM.png",
+      "E": "T_Verd_Rocks_E.png"
+    },
+    "size": 1024,
+    "emission_strength": 2.0,
+    "normal_convention": "DirectX (green flipped)",
+    "material": "M_Verd_Rocks",
+    "px_per_m": 171.7
+  },
+  "collision_note": "one convex hull of the whole piece"
+}
