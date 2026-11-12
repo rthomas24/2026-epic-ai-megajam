@@ -158,6 +158,14 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Atmosphere", meta = (ClampMin = "0"))
 	float GroundPullUpRate = 120.f;
 
+	/**
+	 * Pinned against something (holding into a wall, a planet shell, the Dominion hull): the nose swings toward the
+	 * surface at this rate (deg/s) and the ship keeps at least MinSpeed along it, so it slides off instead of
+	 * sitting at 0 m/s. Exactly head-on, it pulls up (the ship's own up, projected on the surface).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
+	float PinnedTurnRate = 120.f;
+
 	// ---- Collision -----------------------------------------------------------------------------
 
 	/** Impact "head-on-ness" (0 = parallel graze, 1 = straight into the surface) above which a hit counts as head-on. */

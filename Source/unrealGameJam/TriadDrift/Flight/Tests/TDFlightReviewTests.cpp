@@ -914,4 +914,31 @@ bool FTDReviewBoundaryExperience::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewNeverPinned, "TriadDrift.Flight.Review.NeverStuckPinnedAgainstABigBody", TD_TEST_FLAGS)
+bool FTDReviewNeverPinned::RunTest(const FString& Parameters)
+{
+	// Playtest (Nov 12): a ship flying dead head-on into a closed planet shell sat at 0 m/s forever, hands-off.
+	for (const bool bHoldIntoIt : { false, true })
+	{
+		const FString Tag = bHoldIntoIt ? TEXT("throttle held: ") : TEXT("hands-off: ");
+		FTDTestWorld W;
+		AActor* Wall = TDReviewTest::SpawnWall(W, FVector(4000.f, 0.f, 0.f));
+		Cast<UBoxComponent>(Wall->GetRootComponent())->SetBoxExtent(FVector(200.f, 400000.f, 400000.f));
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 0.f)); // nose dead into the wall (+X)
+		UTDShipMovementComponent* Move = Ship->GetShipMovement();
+		FTDFlightInput In;
+		In.Throttle = 1.f;
+		Ship->SetFlightInput(In);
+		W.Advance(3.f);
+		const FVector P0 = Ship->GetActorLocation();
+		W.Advance(1.f);
+		const float Moved = FVector::Dist(P0, Ship->GetActorLocation());
+		const float NoseInto = FVector::DotProduct(Ship->GetActorForwardVector(), FVector(-1.f, 0.f, 0.f));
+		TestTrue(*(Tag + FString::Printf(TEXT("still moving after 3 s (%.0f cm in the last second)"), Moved)), Moved > Move->GetFlightTuning().MinSpeed * 0.5f);
+		TestTrue(*(Tag + FString::Printf(TEXT("nose turned off the wall (into-wall component %.2f)"), -NoseInto)), -NoseInto < 0.3f);
+		TestTrue(*(Tag + TEXT("not through the wall")), Ship->GetActorLocation().X < 4000.f);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
