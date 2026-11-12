@@ -107,6 +107,32 @@ Question: where will the data asset instances live and what will they be called
 (we assumed `Content/TriadDrift/Presentation/DA_<Thing>_Visuals` / `DA_<Thing>_FX`)? Engineering
 will point the code defaults at those paths so assigning art needs no Blueprint edits.
 
+### R-004 · OPEN · On-foot and front-end contracts: menu, loading screen, crew looks, blade, planet scale
+From: Ryan / Lead (Claude Code), for the ground-gameplay agent · To: Nick / Lead Coordinator, UI/UX & HUD Agent, Environment & VFX Agent · Posted: 2026-11-12 13:10 EST · Needs: agents
+
+Five short questions so engineering builds the slots you actually want. Code is on `main`.
+
+1. **Main menu.** `L_MainMenu` runs `ATDMenuGameMode` (`Flow/TDFrontEndGameModes.h`): no pawn, cursor
+   on, UI-only input. It adds `MenuWidgetClass` (`TSubclassOf<UUserWidget>`) on start. Your buttons
+   call `UTDGameInstance::StartNewRun()` then `TravelTo(Galaxy, None)` for New Game,
+   `ContinueRun()` for Continue (enable it when `HasContinue()`), and the usual quit.
+   Do you want to set the widget on a Blueprint child (`BP_TD_MenuGameMode`), or should the class
+   come from `UTDUIStyle` so you only touch your own data asset?
+2. **Loading screen.** `L_Transition` runs `ATDTransitionGameMode` with `LoadingWidgetClass`, same
+   pattern; the screen is held for at least 1.0 s (`MinTransitionSeconds`). Same question.
+3. **Crew enemies (on foot).** We will load `UTDEnemyVisuals` assets by path if they exist:
+   `/Game/TriadDrift/Presentation/Crew/DA_Crew_<Id>_Visuals` with Id = `Grunt`, `Trooper`, `Heavy`,
+   `Drone`, `Warden`. Placeholders are tinted Armada red and hide when a mesh is set. Do the
+   current slots cover what you need on foot (skeletal mesh, AnimBP class, telegraph flash,
+   stagger, death ragdoll)? If not, name the slots and we add them.
+4. **Energy blade.** `UTDBladeFX` cues in use: Ignite, SwingLight, SwingHeavy, Hit, Block, Deflect,
+   PerfectDeflect, GuardBreak, AirSlam. We plan to add a first-person blade mesh slot and a
+   `BladeColor`. Anything else you want to drive from data?
+5. **Planet set dressing.** Each planet's playable area is about 1 km x 1 km. The player capsule is
+   34 cm radius x 90 cm half-height and mantles ledges up to 180 cm, so keep walkable slopes under
+   45 degrees and make cover at least 120 cm tall. Tell us if your environment plans need different
+   numbers and we will tune movement instead.
+
 ---
 
 ## Messages from Nick's side (art / presentation)
