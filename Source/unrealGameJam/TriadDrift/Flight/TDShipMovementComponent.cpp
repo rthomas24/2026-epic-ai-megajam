@@ -340,6 +340,7 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	const FTDFlightState Before = State;
 	const FVector StartLocation = State.Location;
 
+	MeasureGroundClearance();
 	TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
 
 	const FVector Delta = State.Location - StartLocation;
@@ -352,6 +353,26 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	UpdateComponentVelocity();
 
 	BroadcastStateChanges(Before);
+}
+
+void UTDShipMovementComponent::MeasureGroundClearance()
+{
+	Context.GroundClearance = -1.f;
+	const UWorld* World = GetWorld();
+	if (!Context.bAtmosphere || Tuning.GroundAvoidHeight <= 0.f || !World || !UpdatedComponent)
+	{
+		return;
+	}
+	const float Radius = UpdatedComponent->Bounds.SphereRadius;
+	const FVector Start = UpdatedComponent->GetComponentLocation();
+	const FVector End = Start - FVector(0.f, 0.f, Radius + Tuning.GroundAvoidHeight);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDGroundFloor), false, GetOwner());
+	FHitResult Hit;
+	// Static world only: ships, projectiles and pads' own dynamic parts never count as ground.
+	if (World->LineTraceSingleByObjectType(Hit, Start, End, FCollisionObjectQueryParams(ECC_WorldStatic), Params))
+	{
+		Context.GroundClearance = FMath::Max(0.f, Hit.Distance - Radius);
+	}
 }
 
 void UTDShipMovementComponent::ResolveMove(const FVector& Delta, float DeltaTime)
