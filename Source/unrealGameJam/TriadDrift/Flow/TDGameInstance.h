@@ -208,6 +208,9 @@ public:
 	 */
 	void RefreshObjective(bool bForce);
 
+	/** Actors the flow currently tags TDTags::ObjectiveMarker (see FTDObjectiveText::ComputeMarkers). */
+	TArray<AActor*> GetFlowMarkers() const;
+
 	/** Fallback scene id for a wave ("Wave3") when the wave director gives none. The director owns the real id. */
 	static FName WaveSceneId(int32 WaveNumber);
 
@@ -245,6 +248,8 @@ private:
 	TArray<FName> SceneOrder;
 
 	FTDObjectiveLine LastObjective;
+	TArray<TWeakObjectPtr<AActor>> FlowMarkers;
+	void SyncMarkers(bool bClearAll);
 	float ObjectiveCheckLeft = 0.f;
 	float ObjectiveForceLeft = -1.f; // >= 0: force a re-broadcast when it runs out (a HUD made on BeginPlay misses the first)
 

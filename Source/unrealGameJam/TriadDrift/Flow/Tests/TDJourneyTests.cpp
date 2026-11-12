@@ -20,6 +20,8 @@
 #include "Misc/ScopeExit.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "EngineUtils.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -273,6 +275,13 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Waves1to2"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Waves1to2));
 	TDJourneyTest::Run(G, 2.f);
 	Expect(TEXT("wave 1"), TEXT("WAVE 1"));
+	auto Tagged = [&]()
+	{
+		int32 N = 0;
+		for (TActorIterator<AActor> It(G.W.GetWorld()); It; ++It) { if (It->ActorHasTag(TDTags::ObjectiveMarker)) { ++N; } }
+		return N;
+	};
+	TestEqual(TEXT("markers: nothing tagged during a wave"), Tagged(), 0);
 	TestTrue(TEXT("wave line names the enemy"), LastText().Contains(TEXT("NULL ARMADA")));
 
 	// The line is broadcast on change, not every tick.
@@ -302,32 +311,46 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 	G.GI->GetMutableProgress().Phase = ETDGamePhase::Verdance;
 	TDJourneyTest::Run(G, 0.5f);
 	Expect(TEXT("travel"), TEXT("JUMP TO VERDANCE"));
+	{
+		const TArray<AActor*> M = G.GI->GetFlowMarkers();
+		const ATDPlanetAtmosphere* Atmo = M.Num() == 1 ? Cast<ATDPlanetAtmosphere>(M[0]) : nullptr;
+		TestTrue(TEXT("markers: the Verdance atmosphere is the objective"), Atmo && Atmo->GetDestination() == ETDDestination::Verdance && Atmo->ActorHasTag(TDTags::ObjectiveMarker));
+		TestEqual(TEXT("markers: only it"), Tagged(), 1);
+	}
 
 	TestTrue(TEXT("Waves3to4"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Waves3to4));
 	TDJourneyTest::Run(G, 2.f);
 	Expect(TEXT("wave 3"), TEXT("WAVE 3"));
+	TestEqual(TEXT("markers: the planet loses its tag when the wave starts"), Tagged(), 0);
 
 	TestTrue(TEXT("DominionAssault"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::DominionAssault));
 	TDJourneyTest::Run(G, 9.f); // past the warp-in
 	Expect(TEXT("assault"), TEXT("SHIELD GENERATORS  0 / 4"));
 	ATDDominion* Dominion = ATDDominion::Get(G.W.GetWorld());
 	if (!TestNotNull(TEXT("Dominion"), Dominion) || !TestTrue(TEXT("generators"), Dominion->GetGenerators().Num() > 0)) { return false; }
+	TestEqual(TEXT("markers: every generator"), Tagged(), Dominion->GetGenerators().Num());
+	TestTrue(TEXT("markers: a generator carries the tag"), Dominion->GetGenerators()[0]->ActorHasTag(TDTags::ObjectiveMarker));
 	UTDHealthComponent* GenHealth = Dominion->GetGenerators()[0]->FindComponentByClass<UTDHealthComponent>();
 	if (TestNotNull(TEXT("generator health"), GenHealth))
 	{
 		GenHealth->Kill(G.PC->GetPawn(), ETDDamageKind::Explosive);
 		TDJourneyTest::Run(G, 1.f);
 		Expect(TEXT("one generator down"), TEXT("1 / 4"));
+		TestFalse(TEXT("markers: the dead generator loses its tag"), Dominion->GetGenerators()[0]->ActorHasTag(TDTags::ObjectiveMarker));
+		TestEqual(TEXT("markers: the live ones keep it"), Tagged(), Dominion->GetGenerators().Num() - 1);
 		TestEqual(TEXT("step = generators down"), Log->ObjectiveSteps.Last().Value, 1);
 	}
 
 	TestTrue(TEXT("ReactorExposed"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::ReactorExposed));
 	TDJourneyTest::Run(G, 2.f);
 	Expect(TEXT("reactor"), TEXT("DESTROY THE REACTOR"));
+	TestTrue(TEXT("markers: the reactor"), Dominion->GetReactor() && ((AActor*)Dominion->GetReactor())->ActorHasTag(TDTags::ObjectiveMarker));
+	TestEqual(TEXT("markers: only the reactor"), Tagged(), 1);
 
 	TestTrue(TEXT("Victory"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Victory));
 	TDJourneyTest::Run(G, 0.5f);
 	Expect(TEXT("victory"), TEXT("VICTORY"));
+	TestEqual(TEXT("markers: none at victory"), Tagged(), 0);
 
 	// Planets (computed for the planet destination; on foot the objective actors own the line).
 	FTDObjectiveLine L;

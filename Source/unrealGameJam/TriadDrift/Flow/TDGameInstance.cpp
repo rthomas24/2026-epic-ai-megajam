@@ -97,14 +97,54 @@ void UTDGameInstance::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FTex
 	LastObjective.Text = Text;
 }
 
+TArray<AActor*> UTDGameInstance::GetFlowMarkers() const
+{
+	TArray<AActor*> Out;
+	for (const TWeakObjectPtr<AActor>& A : FlowMarkers)
+	{
+		if (A.IsValid())
+		{
+			Out.Add(A.Get());
+		}
+	}
+	return Out;
+}
+
+void UTDGameInstance::SyncMarkers(bool bClearAll)
+{
+	TArray<AActor*> Want;
+	if (!bClearAll)
+	{
+		FTDObjectiveText::ComputeMarkers(GetWorld(), Progress, CurrentDestination, Want);
+	}
+	for (const TWeakObjectPtr<AActor>& Old : FlowMarkers)
+	{
+		if (Old.IsValid() && !Want.Contains(Old.Get()))
+		{
+			Old->Tags.Remove(TDTags::ObjectiveMarker);
+		}
+	}
+	FlowMarkers.Reset();
+	for (AActor* A : Want)
+	{
+		A->Tags.AddUnique(TDTags::ObjectiveMarker);
+		FlowMarkers.Add(A);
+	}
+}
+
 void UTDGameInstance::RefreshObjective(bool bForce)
 {
 	UWorld* World = GetWorld();
 	UTDEventBus* Bus = GetBus();
 	if (!World || !Bus || IsTravelPending())
 	{
+		if (IsTravelPending())
+		{
+			SyncMarkers(true); // nothing is the objective mid-travel
+		}
 		return;
 	}
+	SyncMarkers(IsRetakePending() || IsMenuDestination(CurrentDestination));
 	FTDObjectiveLine Line;
 	if (FTDObjectiveText::Compute(World, Progress, CurrentDestination, Line))
 	{
