@@ -1,0 +1,42 @@
+[
+  {
+    "image": "Hero_Panorama.png",
+    "chunks_crc_valid": 114,
+    "valid_png_bytes": 915124,
+    "removed_trailing_bytes": 258103,
+    "pixel_payload_unchanged": true,
+    "valid_prefix_sha256": "48297055055261e94463d6ab2f7eeae33b1ab8df43c437554d46945c194abdf3"
+  },
+  {
+    "image": "Combat_Panorama.png",
+    "chunks_crc_valid": 97,
+    "valid_png_bytes": 773361,
+    "removed_trailing_bytes": 72732,
+    "pixel_payload_unchanged": true,
+    "valid_prefix_sha256": "20e32ac77dc97bba8d34e58982b13071105c676d4914ddb231360842a350ed49"
+  },
+  {
+    "image": "Verdance_Panorama.png",
+    "chunks_crc_valid": 104,
+    "valid_png_bytes": 831360,
+    "removed_trailing_bytes": 14733,
+    "pixel_payload_unchanged": true,
+    "valid_prefix_sha256": "45e072a8064542dec5ed64385a4c4fcc2a3658aa23658a8250894be1c6ce3a78"
+  },
+  {
+    "image": "Hero_LongitudeSeam.png",
+    "chunks_crc_valid": 110,
+    "valid_png_bytes": 882737,
+    "removed_trailing_bytes": 290490,
+    "pixel_payload_unchanged": true,
+    "valid_prefix_sha256": "49376b437e5b2e11aab2288b15e6e310a745c78e8f99376401afecdcca3add56"
+  },
+  {
+    "image": "Hero_NorthPole.png",
+    "chunks_crc_valid": 100,
+    "valid_png_bytes": 799198,
+    "removed_trailing_bytes": 46895,
+    "pixel_payload_unchanged": true,
+    "valid_prefix_sha256": "c6bc0eb2605e73a3a5e2aec9968404b60404720c6b26d05226a8769ba4371939"
+  }
+]

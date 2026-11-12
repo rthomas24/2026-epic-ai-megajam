@@ -11,11 +11,11 @@ code or Blueprint edit is needed:
 
 | Enemy | Asset path |
 |---|---|
-| Shard Fighter | `/Game/TriadDrift/Presentation/Enemies/DA_Enemy_ShardFighter_Visuals` |
-| Hook Interceptor | `/Game/TriadDrift/Presentation/Enemies/DA_Enemy_HookInterceptor_Visuals` |
-| Wall Gunship | `/Game/TriadDrift/Presentation/Enemies/DA_Enemy_WallGunship_Visuals` |
-| Maul Bomber | `/Game/TriadDrift/Presentation/Enemies/DA_Enemy_MaulBomber_Visuals` |
-| Hive Carrier (also its bays and turrets) | `/Game/TriadDrift/Presentation/Enemies/DA_Enemy_HiveCarrier_Visuals` |
+| Shard Fighter | `/Game/TriadDrift/Presentation/DA_Enemy_ShardFighter_Visuals` |
+| Hook Interceptor | `/Game/TriadDrift/Presentation/DA_Enemy_HookInterceptor_Visuals` |
+| Wall Gunship | `/Game/TriadDrift/Presentation/DA_Enemy_WallGunship_Visuals` |
+| Maul Bomber | `/Game/TriadDrift/Presentation/DA_Enemy_MaulBomber_Visuals` |
+| Hive Carrier (also its bays and turrets) | `/Game/TriadDrift/Presentation/DA_Enemy_HiveCarrier_Visuals` |
 
 Which slot plays when:
 - **`Mesh` / `MaterialOverrides`:** replaces the placeholder cone and wings. Author it +X forward,

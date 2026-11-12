@@ -19,17 +19,31 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   player controller possesses it, the old ship goes to its wingman. Both ships' velocities are
   captured and re-applied (`SetVelocityImmediate`), so nothing stalls. `SwitchCooldown` 0.4 s;
   downed ships are skipped; next/prev wrap. The new ship gets `SwitchInInvulnerability` 2 s
-  (ENG-03). Fires `OnShipSwitched(New, Old)` and `AddStat("ShipSwitches")`. The chase camera snaps
+  (ENG-03, M4): an auto-switch (death) grants 2 s; a manual switch 0.35 s, re-armed per ship at most
+  every 6 s, so Tab spam can't farm invulnerability. Cooldown runs on real time (a money shot never
+  eats Tab presses); a press during the cooldown is buffered and runs when it ends (double-tap
+  reaches the third ship). A manual switch is refused (with `OnSwitchRefused(Reason)` and
+  `GetLastRefusalText()` for the HUD) while T1's `ATDShip::IsSwitchLocked` says so (hyperdrive not
+  Idle, landing, atmospheric entry). The ship you leave gets its held power / trigger inputs
+  released and any charge cancelled; a manually cycled target carries over. Fires
+  `OnShipSwitched(New, Old)` and `AddStat("ShipSwitches")`. The chase camera snaps
   (`SnapCamera`) so the switch reads as a hard cut (C-03 #1).
 - **Death:** the squad manager polls `UTDHealthComponent::IsDead` each tick (no delegate coupling).
-  Dying 0.6 s (`DeathTumbleSeconds`) → hidden, collision off → if it was the player's ship, a forced
-  switch to the **healthiest** living ship (hull+shield fraction). `OnShipDowned` fires at death.
+  At death: neutral input, triggers released, guns blocked, aim cleared, hyperdrive stopped, flight
+  parked, and Squad drives a 0.6 s tumble (spin + drift, HullHit cue). Then Explosion cue, hidden,
+  collision off, and if it was the player's ship a forced switch to the **healthiest** living ship.
+  `OnShipDowned` fires at death. Respawn and retake share one restore path: unpark, teleport to a
+  safe spot, `ResetFlightState`, full health, weapons unblocked + reset, powers `ResetPower`,
+  hyperdrive back on; a retake also `ResetHyperdrive` + `AbortToFlying`.
 - **Respawn:** `RespawnDelay` 12 s from death; warps in behind its formation slot at the leader's
   velocity, full health, `RespawnInvulnerability` 2 s, back to its wingman. `OnShipRespawned`.
 - **Between waves (ENG-03):** hull repairs at 8/s on living ships from `OnWaveCleared` until the
   next `OnWaveStarted`; never during a wave.
-- **Presentation:** `ShipVisuals` (per-ship `UTDShipVisuals`, Nick's) plays SwitchIn / SwitchOut on
-  switch, Explosion at the end of the tumble and RespawnWarpIn on respawn; empty slots do nothing.
+- **Presentation:** `FTDShipSpec::Visuals` (default `/Game/TriadDrift/Presentation/DA_<Ship>_Visuals`,
+  loaded only if the asset exists, misses cached) is handed to T1's `ATDShip::SetShipVisuals`. Squad
+  plays SwitchIn / SwitchOut exactly once per switch (gameplay side only), HullHit at death,
+  Explosion at the end of the tumble, RespawnWarpIn on respawn. Squad colour comes from
+  `UTDStatics::ShipColor` unless the visuals asset sets one.
 - **Squad wipe:** all three down → `OnSquadWiped` once → `ITDGameFlow::ReportPlayerDefeated()`. If a
   game flow took it, respawn timers stop and the flow restarts the scene by calling `SpawnSquad`
   again (that call fully resets the squad). With no game flow (sandbox) timers keep running.
@@ -43,9 +57,10 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   on all three). Never re-created; cooldowns reset on respawn and retake. AI-flown ships can't fire
   them (T2's player-control guard, tested). A power started on one ship keeps running after a switch
   (dome stays up, tested).
-- **Formation:** loose V. Left slot `(-1600, -1600, 150)`, right slot `(-1600, 1600, -150)` in
-  leader space (about 2300 cm from the leader), assigned by switch order so wingmen don't
-  swap sides. `GetFormationSlotLocation(Ship)`.
+- **Formation:** loose V. Left slot `(-1600, -1600, 150)`, right slot `(-1600, 1600, -150)` in a
+  frame of the leader's heading and WORLD up (never its roll, so a barrel roll doesn't swing the
+  slots), about 2300 cm from the leader, assigned by switch order so wingmen don't swap sides.
+  Squad ships never physically block each other. `GetFormationSlotLocation(Ship)`.
 - **Wingman AI:**
   - Formation: flies parallel to the leader, steers out the sideways error and fixes the
     along-track error with speed only (an overshoot eases off, never U-turns). A catch-up allowance
@@ -123,7 +138,8 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 
 ## Known gaps
 
-- **Portal following** is a warp to the slot when the leader teleports, not a fly-through.
+- **Portal following** is a warp to a point AHEAD of the leader's exit (never inside the gate disc),
+  not a fly-through. Tested with T4's real gate pair.
 - Wingmen don't roll to match the leader; they rely on T1's auto-level.
 - Bastion's flak isn't yet aimed at incoming missiles specifically.
 - Director's Cut switch-cut payload and money shots: see `docs/eng/director.md`.

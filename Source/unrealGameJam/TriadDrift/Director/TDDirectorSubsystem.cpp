@@ -126,9 +126,9 @@ bool UTDDirectorSubsystem::CanTriggerHighlights() const
 bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subject, float Importance01, AActor* Secondary)
 {
 	UWorld* World = GetWorld();
-	if (!World || !CanTriggerHighlights())
+	if (!World || !Subject || !CanTriggerHighlights())
 	{
-		return false;
+		return false; // m12: no subject = nothing to frame
 	}
 	const float Importance = FMath::Clamp(Importance01 < 0.f ? GetBaseImportance(Kind) : Importance01, 0.f, 1.f);
 	if (Importance < Tuning.MinImportance)
@@ -247,10 +247,16 @@ void UTDDirectorSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETD
 	{
 		return;
 	}
+	// M8: kills by the ship the player flies (with a squad present); wingman kills don't count.
+	const ATDSquadManager* SquadForKills = ATDSquadManager::Get(this);
+	const bool bPlayerKill = !SquadForKills || !SquadForKills->GetActiveShip() || Killer == SquadForKills->GetActiveShip();
 
-	// Multi-kill bookkeeping (game time: kills during slow-mo still count fairly).
-	const double Now = GameNow();
-	RecentKillTimes.Add(Now);
+	// Multi-kill bookkeeping, on REAL time (M8: slow-mo must not stretch the window).
+	const double Now = RealNow();
+	if (bPlayerKill)
+	{
+		RecentKillTimes.Add(Now);
+	}
 	while (RecentKillTimes.Num() > 0 && Now - RecentKillTimes[0] > Tuning.MultiKillWindowSeconds)
 	{
 		RecentKillTimes.RemoveAt(0, EAllowShrinking::No);
@@ -258,10 +264,6 @@ void UTDDirectorSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETD
 	if (RecentKillTimes.Num() > 32)
 	{
 		RecentKillTimes.RemoveAt(0, RecentKillTimes.Num() - 32, EAllowShrinking::No);
-	}
-	if (RecentKillTimes.Num() <= 1)
-	{
-		MultiKillStreakReported = 0; // a fresh streak
 	}
 
 	// Pick the single best reading of this kill.
@@ -297,10 +299,12 @@ void UTDDirectorSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETD
 		Consider(ETDHighlightKind::RamKill, GetBaseImportance(ETDHighlightKind::RamKill), Killer, Victim);
 	}
 	const int32 Streak = RecentKillTimes.Num();
-	if (Streak >= Tuning.MultiKillCount && Streak > MultiKillStreakReported)
+	if (bPlayerKill && Streak >= Tuning.MultiKillCount)
 	{
+		// M8: never into the story tier (cap below the cooldown-bypass level).
 		const float Extra = Tuning.MultiKillImportancePerExtraKill * static_cast<float>(Streak - Tuning.MultiKillCount);
-		Consider(ETDHighlightKind::MultiKill, FMath::Min(0.95f, GetBaseImportance(ETDHighlightKind::MultiKill) + Extra), Killer, Victim);
+		const float Cap = FMath::Min(Tuning.MultiKillMaxImportance, Tuning.CooldownBypassImportance - 0.05f);
+		Consider(ETDHighlightKind::MultiKill, FMath::Min(Cap, GetBaseImportance(ETDHighlightKind::MultiKill) + Extra), Killer, Victim);
 	}
 	if (const ATDSquadManager* Squad = ATDSquadManager::Get(this))
 	{
@@ -314,7 +318,7 @@ void UTDDirectorSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETD
 	{
 		if (BestKind == ETDHighlightKind::MultiKill)
 		{
-			MultiKillStreakReported = Streak;
+			RecentKillTimes.Reset(); // M8: the next multi-kill needs a fresh run of kills
 		}
 	}
 }
@@ -332,7 +336,6 @@ void UTDDirectorSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, f
 	}
 	ShotEndRealTime = -1000.0;
 	RecentKillTimes.Reset();
-	MultiKillStreakReported = 0;
 }
 
 void UTDDirectorSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)

@@ -40,6 +40,9 @@ ATDPortalGate::ATDPortalGate()
 	Surface->SetCollisionProfileName(TEXT("NoCollision"));
 	Surface->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));	// cylinder axis along X: the disc faces forward
 	if (Cylinder.Succeeded()) { Surface->SetStaticMesh(Cylinder.Object); }
+
+	// Permanent gates are shortcuts, not reflectors: shots pass through unchanged (no return, no stat).
+	TransitParams.bReturnEnemyProjectiles = false;
 }
 
 void ATDPortalGate::LinkGates(ATDPortalGate* A, ATDPortalGate* B)
@@ -54,10 +57,14 @@ void ATDPortalGate::LinkGates(ATDPortalGate* A, ATDPortalGate* B)
 	B->UpdateLook();
 }
 
-void ATDPortalGate::BeginPlay()
+void ATDPortalGate::OnConstruction(const FTransform& Transform)
 {
-	Super::BeginPlay();
+	Super::OnConstruction(Transform);
+	LayoutParts();	// placed gates look right in the editor
+}
 
+void ATDPortalGate::LayoutParts()
+{
 	const float Bar = 300.f;
 	const float Span = Radius * 2.f + Bar * 2.f;
 	Frame[0]->SetRelativeLocation(FVector(0.f, 0.f, Radius + Bar * 0.5f));
@@ -70,10 +77,64 @@ void ATDPortalGate::BeginPlay()
 	Frame[3]->SetRelativeScale3D(FVector(Bar, Bar, Span) / 100.f);
 	Surface->SetRelativeScale3D(FVector(Radius * 2.f / 100.f, Radius * 2.f / 100.f, 0.05f));
 
+	// Art: a frame mesh replaces the four placeholder bars (bar 0 carries it, keeping collision).
+	if (!FrameMeshOverride.IsNull())
+	{
+		if (UStaticMesh* Art = FrameMeshOverride.LoadSynchronous())
+		{
+			Frame[0]->SetStaticMesh(Art);
+			Frame[0]->SetRelativeLocation(FVector::ZeroVector);
+			Frame[0]->SetRelativeScale3D(FVector::OneVector);
+			for (int32 i = 1; i < Frame.Num(); ++i)
+			{
+				Frame[i]->SetVisibility(false);
+				Frame[i]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+		}
+	}
+}
+
+void ATDPortalGate::BeginPlay()
+{
+	Super::BeginPlay();
+	LayoutParts();
 	UpdateLook();
 	if (TravelFX)
 	{
 		UTDStatics::PlayCueAttached(TravelFX->PortalIdle, Surface);
+	}
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnSpacecraftTeleported.AddUniqueDynamic(this, &ATDPortalGate::HandleSpacecraftTeleported);
+	}
+}
+
+void ATDPortalGate::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnSpacecraftTeleported.RemoveDynamic(this, &ATDPortalGate::HandleSpacecraftTeleported);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void ATDPortalGate::HandleSpacecraftTeleported(AActor* Spacecraft, FVector /*From*/, FVector To)
+{
+	// Anything that arrives right by this gate (a transit out of our partner, or a wingman follow-warp
+	// placed behind its leader) must not be bounced straight back through us.
+	// Only arrivals caused by a transit through our partner (the traveller itself, or wingmen
+	// follow-warping after their leader). A ship merely spawned near a gate is not guarded.
+	const UWorld* World = GetWorld();
+	if (!Spacecraft || !World || !Partner || World->GetTimeSeconds() - Partner->LastTransitTime > ArrivalGuardSeconds)
+	{
+		return;
+	}
+	const FVector Rel = To - GetActorLocation();
+	const float Along = FVector::DotProduct(Rel, GetActorForwardVector());
+	const float Lateral = (Rel - GetActorForwardVector() * Along).Size();
+	if (FMath::Abs(Along) <= ArrivalGuardDepth && Lateral <= Radius * 1.5f)
+	{
+		ArrivalBlockedUntil.Add(Spacecraft, World->GetTimeSeconds() + ArrivalGuardSeconds);
 	}
 }
 
@@ -93,10 +154,12 @@ void ATDPortalGate::UpdateLook()
 	{
 		return;
 	}
-	Surface->SetVisibility(IsGateActive());
+	const bool bArtSurface = TravelFX && !TravelFX->PortalIdle.VFX.IsNull();
+	Surface->SetVisibility(IsGateActive() && !bArtSurface);
 	const FLinearColor Col = IsGateActive() ? FLinearColor(0.75f, 0.2f, 1.f) : FLinearColor(0.15f, 0.15f, 0.2f);
 	for (UStaticMeshComponent* Bar : Frame)
 	{
+		if (!FrameMeshOverride.IsNull()) { break; }	// art keeps its own materials
 		if (UMaterialInstanceDynamic* MID = Bar ? Bar->CreateDynamicMaterialInstance(0) : nullptr)
 		{
 			MID->SetVectorParameterValue(TEXT("Color"), Col);
@@ -136,6 +199,11 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 	{
 		return false;
 	}
+	if (const double* Until = ArrivalBlockedUntil.Find(Traveller))
+	{
+		if (GetWorld() && GetWorld()->GetTimeSeconds() < *Until) { return false; }
+		ArrivalBlockedUntil.Remove(Traveller);
+	}
 	const FVector Now = Traveller->GetActorLocation();
 	const FVector Before = Now - Traveller->GetVelocity() * DeltaSeconds;
 	bool bForward = true;
@@ -156,8 +224,13 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 		Exit.SetRotation(Exit.GetRotation() * Flip);
 	}
 
+	// Mark the transit BEFORE moving: the teleport broadcast makes wingmen follow-warp right away
+	// (inside this call), and the partner gate must already know a transit is happening to guard them.
+	const double PrevTransitTime = LastTransitTime;
+	LastTransitTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
 	if (!UTDPortalTransit::TransitActor(Traveller, Entry, Exit, this, TransitParams))
 	{
+		LastTransitTime = PrevTransitTime;
 		return false;
 	}
 

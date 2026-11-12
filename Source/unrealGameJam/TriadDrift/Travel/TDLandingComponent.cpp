@@ -67,6 +67,15 @@ UTDLandingComponent::UTDLandingComponent()
 	PrimaryComponentTick.TickGroup = TG_PrePhysics;
 }
 
+void UTDLandingComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if (!TravelFX)
+	{
+		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX();
+	}
+}
+
 ATDShip* UTDLandingComponent::GetShip() const
 {
 	return Cast<ATDShip>(GetOwner());

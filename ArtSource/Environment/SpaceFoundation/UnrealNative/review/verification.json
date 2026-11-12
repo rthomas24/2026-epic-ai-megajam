@@ -1,0 +1,113 @@
+{
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "fresh_process_reload": 9,
+  "native_tuning": {
+    "Hero": {
+      "NebulaIntensity": 3.0,
+      "StarIntensity": 3.0,
+      "SkyIntensity": 1.2
+    },
+    "Combat": {
+      "NebulaIntensity": 1.1,
+      "StarIntensity": 2.0,
+      "SkyIntensity": 1.0
+    },
+    "Verdance": {
+      "YawTurns": 0.65,
+      "NebulaIntensity": 2.7,
+      "StarIntensity": 2.6,
+      "SkyIntensity": 1.1
+    }
+  },
+  "shader_errors": [],
+  "material_statistics": {
+    "num_vertex_shader_instructions": 146,
+    "num_pixel_shader_instructions": 142,
+    "num_samplers": 2,
+    "num_vertex_texture_samples": 0,
+    "num_pixel_texture_samples": 5
+  },
+  "presets": [
+    {
+      "preset": "Hero",
+      "map": "/Game/TriadDrift/Environment/SpaceFoundation/Review/L_SpaceFoundation_Hero",
+      "screenshots": [
+        "Hero_Panorama.png",
+        "Hero_LongitudeSeam.png",
+        "Hero_NorthPole.png"
+      ],
+      "capture_rotations_deg": {
+        "Panorama": {
+          "pitch": 10.0,
+          "yaw": 124.99999999999999,
+          "roll": -0.0
+        },
+        "LongitudeSeam": {
+          "pitch": 0.0,
+          "yaw": 0.0,
+          "roll": -0.0
+        },
+        "NorthPole": {
+          "pitch": 89.00000000000082,
+          "yaw": 0.0,
+          "roll": -0.0
+        }
+      },
+      "sun_rotation_deg": {
+        "pitch": -25.0,
+        "yaw": -35.0,
+        "roll": 0.0
+      },
+      "collision": "disabled",
+      "cast_shadow": false,
+      "sun_lux": 8.0
+    },
+    {
+      "preset": "Combat",
+      "map": "/Game/TriadDrift/Environment/SpaceFoundation/Review/L_SpaceFoundation_Combat",
+      "screenshots": [
+        "Combat_Panorama.png"
+      ],
+      "capture_rotations_deg": {
+        "Panorama": {
+          "pitch": 10.0,
+          "yaw": 124.99999999999999,
+          "roll": -0.0
+        }
+      },
+      "sun_rotation_deg": {
+        "pitch": -30.0,
+        "yaw": -35.0,
+        "roll": 0.0
+      },
+      "collision": "disabled",
+      "cast_shadow": false,
+      "sun_lux": 6.0
+    },
+    {
+      "preset": "Verdance",
+      "map": "/Game/TriadDrift/Environment/SpaceFoundation/Review/L_SpaceFoundation_Verdance",
+      "screenshots": [
+        "Verdance_Panorama.png"
+      ],
+      "capture_rotations_deg": {
+        "Panorama": {
+          "pitch": 10.0,
+          "yaw": 124.99999999999999,
+          "roll": -0.0
+        }
+      },
+      "sun_rotation_deg": {
+        "pitch": -18.0,
+        "yaw": 28.0,
+        "roll": 0.0
+      },
+      "collision": "disabled",
+      "cast_shadow": false,
+      "sun_lux": 7.0
+    }
+  ],
+  "gameplay_PIE": "not run; isolated content-only host",
+  "packaged_build": "not tested",
+  "combat_gpu_timing": "not measured"
+}

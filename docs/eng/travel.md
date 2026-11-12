@@ -101,6 +101,28 @@ The flight model is parked throughout, so controller and AI input is ignored.
 - **On `OnShipLanded`** for the player-flown ship: T5 spawns and possesses the first-person character at `GetExitTransform()`.
 - **Re-board:** T5 possesses the ship and calls `RequestTakeOff`.
 
+### Planet travel rig and debug commands
+**Rig:** `ATDPlanetTravelRig::SpawnForPlanet(World, PlanetId, PadTransform, RequiredObjectives)` (or a placed rig) sets up a planet map in one call. It spawns:
+- the flight zone
+- the player pad with two linked wingman pads
+- a placeholder ground slab, until the environment has ground
+
+`GetDescentStart()` gives a fresh-arrival transform: high and behind the pad, facing it.
+
+**Entry safety:** `BeginEntry(..., PlanetSurfaceRadius)` limits the committed dive so it stays `EntrySurfaceClearance` (3,000 cm) above the planet body, and the ship is invulnerable while committed.
+
+**Dev console commands** (not in shipping builds; `Travel/TDTravelDebug.cpp`):
+
+| Command | Does |
+|---|---|
+| `TD.Travel.ToPlanet [Verdance]` | opens that planet and puts the player ship at its atmosphere edge, nose in |
+| `TD.Travel.Land` | hops next to the rig's player pad and auto-lands |
+| `TD.Travel.TakeOff` | re-possesses the landed player ship and takes off |
+| `TD.Travel.Exit` | opens the ceiling and climbs out |
+| `TD.Travel.Status` | logs the player ship's travel state |
+
+Scripted run: `td-shot.ps1 -Map /Game/TriadDrift/Maps/L_Galaxy -ExecAt '4:TD.Travel.ToPlanet','7:TD.Travel.Status'`. Use command names without spaces or quotes; quoted `-ExecAt` arguments currently fire at 0 s.
+
 ## How to try it
 
 ```powershell
