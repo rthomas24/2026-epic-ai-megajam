@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	int32 GetPhase() const { return Phase; }
 
+	/** A retake: the current phase restarts at full; phases already passed stay passed. */
+	void RestartCurrentPhase();
+
 	/** Health within the current phase, 1 -> 0, for the 3-segment boss bar. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	float GetPhaseHealth01() const;

@@ -100,9 +100,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float BreakOffTimeToImpact = 0.6f;
 
-	/** Telegraphed attacks (interceptor missiles, gunship volleys) never start closer than this (cm). */
+	/** The interceptor's telegraphed homing missile never starts closer than this (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float TelegraphMinDistance = 6000.f;
+
+	/** A gunship's heavy-bolt volley fires at a ship charging it down to this distance (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float GunshipBoltMinDistance = 1500.f;
+
+	/** A gunship's missile salvo needs this much room (cm) and a time-to-impact longer than its wind-up. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float GunshipSalvoMinDistance = 4000.f;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	bool IsCatchingUp() const { return bCatchingUp; }

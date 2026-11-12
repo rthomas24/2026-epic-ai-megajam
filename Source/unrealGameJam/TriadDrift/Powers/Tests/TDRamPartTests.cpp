@@ -90,6 +90,8 @@ namespace TDRamPartTest
 		{
 			return false;
 		}
+		const UTDHealthComponent* PartHealth = UTDStatics::GetHealth(Part);
+		const float HullBefore = PartHealth ? PartHealth->GetHull() : 0.f;
 		Test.TestTrue(Label + TEXT(": ram pressed through the input path"), UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, true));
 		W.Tick(Step);
 		UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
@@ -100,6 +102,8 @@ namespace TDRamPartTest
 			bHit = Ram->GetHitThisDash().ContainsByPredicate([Part](const TWeakObjectPtr<AActor>& A) { return A.Get() == Part; });
 		}
 		Test.TestTrue(Label + TEXT(": the ram hit the part"), bHit);
+		Test.TestTrue(Label + FString::Printf(TEXT(": the part's hull dropped (%.0f -> %.0f)"), HullBefore, PartHealth ? PartHealth->GetHull() : 0.f),
+			PartHealth && PartHealth->GetHull() < HullBefore);
 		if (const ATDCarrierBay* Bay = Cast<ATDCarrierBay>(Part))
 		{
 			Test.TestTrue(Label + TEXT(": bay doors broken"), Bay->AreDoorsBroken());

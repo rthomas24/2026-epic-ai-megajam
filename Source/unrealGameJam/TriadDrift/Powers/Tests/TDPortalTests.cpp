@@ -61,7 +61,17 @@ bool FTDPortalNoTunnel::RunTest(const FString& Parameters)
 		AActor* Behind = SpawnBody(W, ETDTeam::Enemy, FVector(12600.f, 0.f, 0.f), FVector(100.f), 100.f, 0.f);
 		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
 		Spec.FX = nullptr;
-		ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(FVector(11400.f, 0.f, 0.f)), Rift, ETDTeam::Player, nullptr, FVector::ZeroVector, 1.f, false);
+		ATDProjectile* Shot = ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(FVector(11400.f, 0.f, 0.f)), Rift, ETDTeam::Player, nullptr, FVector::ZeroVector, 1.f, false);
+		const ATDPortal* ExitB = Power->GetPortals()[1].Get();
+		if (Shot && ExitB && PowerFrameStep() > 1.f / 40.f)
+		{
+			// 30 fps: one 1333 cm step reaches the plane after 600 cm; the other ~733 cm must carry on out of B.
+			W.Tick(PowerFrameStep());
+			const float Remainder = Spec.Speed * PowerFrameStep() - 600.f;
+			const float OutOfB = (float)FVector::Dist(Shot->GetActorLocation(), ExitB->GetActorLocation());
+			AddInfo(FString::Printf(TEXT("30 fps: %.0f cm out of B after the transit step (remainder %.0f)"), OutOfB, Remainder));
+			TestTrue(TEXT("the rest of the step carries on after the portal") + Fps, OutOfB >= Remainder * 0.8f);
+		}
 		W.Advance(0.2f, PowerFrameStep());
 		TestEqual(TEXT("ship behind the portal untouched") + Fps, Hull(Behind), 100.f);
 		TestTrue(TEXT("the shot transited") + Fps, PortalTestTotalTransits(Power) >= 1);

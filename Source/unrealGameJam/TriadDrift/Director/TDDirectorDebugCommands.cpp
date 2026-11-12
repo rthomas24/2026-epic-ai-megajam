@@ -309,7 +309,9 @@ namespace TDDirectorDebug
 			const bool bOn = ScreenPos(PC, Nearest->GetActorLocation(), P);
 			Enemy = FString::Printf(TEXT("%s(%.2f,%.2f) score=%.0fm local=(%.2f,%.2f,%.2f)"), bOn ? TEXT("ON") : TEXT("off"), P.X, P.Y, Best / 100.f, L.X, L.Y, L.Z);
 		}
-		UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.Frame: wingOn=%d%s | enemiesOn=%d/%d nearest=%s"), WingOn, *Wing, EnemiesOn, Enemies, *Enemy);
+		const FRotator R = Player->GetActorRotation();
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.Frame: wingOn=%d%s | enemiesOn=%d/%d nearest=%s | player=%s rot=(P %.1f Y %.1f R %.1f)"), WingOn, *Wing, EnemiesOn, Enemies, *Enemy,
+			*UEnum::GetDisplayValueAsText(Player->GetShipId()).ToString(), R.Pitch, R.Yaw, R.Roll);
 	}
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdMulti(TEXT("TD.Director.MultiKill"), TEXT("TD.Director.MultiKill: three kills in one beat"),

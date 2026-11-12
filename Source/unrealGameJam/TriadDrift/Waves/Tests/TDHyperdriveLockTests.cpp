@@ -95,7 +95,7 @@ bool FTDHyperLockFinale::RunTest(const FString& Parameters)
 	Arrived->SetTeam(ETDTeam::Player);
 	if (UTDHealthComponent* H = Arrived->GetHealth()) { H->DefaultTeam = ETDTeam::Player; H->InitMaxValues(1e6f, 0.f, true); H->SetInvulnerable(true); }
 	TestFalse(TEXT("free while the Dominion is hidden"), Locked(W));
-	GI->Progress.bDominionRevealed = true;
+	GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
 	W.Advance(Dom->ProgressPollSeconds + 0.1f);
 	TestTrue(TEXT("locked from the warp-in"), Locked(W));
 	W.Advance(Dom->WarpInSeconds + 0.2f);

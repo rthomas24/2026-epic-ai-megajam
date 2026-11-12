@@ -218,7 +218,7 @@ bool FTDWavesClear::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesBreather, "TriadDrift.Waves.Breather.SixSecondsAndRepair", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesBreather, "TriadDrift.Waves.Breather.SixSeconds", TD_TEST_FLAGS)
 bool FTDWavesBreather::RunTest(const FString& Parameters)
 {
 	for (const float Step : { 1.f / 30.f, 1.f / 120.f })
@@ -242,8 +242,9 @@ bool FTDWavesBreather::RunTest(const FString& Parameters)
 
 		W.Advance(5.8f, Step);
 		TestTrue(TEXT("still in breather at 5.8 s"), D->GetState() == ETDWaveState::Breather);
-		TestTrue(TEXT("hull repairs between waves"), PH->GetHull() > HullBefore + 20.f);
-		TestTrue(TEXT("repair never exceeds max"), PH->GetHull() <= PH->MaxHull);
+		// The squad manager owns breather repair (ENG-03): the director itself repairs nothing (no 16%/s double).
+		// TriadDrift.Waves.BreatherRepairIsEightPercentOnce covers the real pair.
+		TestEqual(TEXT("the director repairs nothing itself"), PH->GetHull(), HullBefore, 0.01f);
 
 		W.Advance(0.4f, Step);
 		TestEqual(TEXT("wave 2 starts after 6 s"), D->GetCurrentWaveIndex(), 1);
