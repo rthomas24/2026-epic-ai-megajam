@@ -679,6 +679,25 @@ namespace TDSquadManagerPrivate
 		TEXT("1: log squad kills, steals of the player's target and barks (TDSQUAD lines)."), ECVF_Default);
 }
 
+void ATDSquadManager::NotifyWingmanEngaged(ETDShipId Ship)
+{
+	FTDSquadSlot* Slot = FindSlot(Ship);
+	const ATDShip* Player = GetActiveShip();
+	if (!Slot || !Slot->Ship || !Player || Ship == ActiveShipId || Slot->State != ETDSquadSlotState::Alive)
+	{
+		return;
+	}
+	if (RealNow() - Slot->LastEngageCallTime < EngageCallCooldownSeconds)
+	{
+		return;
+	}
+	const FName Line = TDBarkIds::EngageCallFor(Player->GetChaseCameraTransformNow(), Slot->Ship->GetActorLocation());
+	if (RequestSquadBark(Line, Ship))
+	{
+		Slot->LastEngageCallTime = RealNow();
+	}
+}
+
 bool ATDSquadManager::RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkPriority Priority)
 {
 	const bool bPlayed = BarkLimiter.TryConsume(BarkTuning, BarkId, Priority, RealNow());
