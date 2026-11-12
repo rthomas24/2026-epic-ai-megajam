@@ -155,7 +155,12 @@ void ATDWingmanAIController::NotifyLeaderTeleported()
 	const FVector Slot = S->GetFormationSlotLocation(ShipId);
 	if (FVector::Dist(Ship->GetActorLocation(), Slot) > TeleportFollowDistance * 0.5f)
 	{
-		TDSquad::TeleportShip(Ship, TDSquad::FindSafeLocation(this, Slot, Ship), Leader->GetActorRotation(), /*bKeepSpeed*/ true);
+		// Arrive IN FRONT of the leader's exit point (a portal or gate plane is behind it): a slot
+		// 1600 cm behind would sit inside the disc and send us straight back through (T4 W2).
+		const FVector Fwd = Leader->GetActorForwardVector();
+		const float Behind = FMath::Max(0.f, FVector::DotProduct(Leader->GetActorLocation() - Slot, Fwd));
+		const FVector Arrival = Slot + Fwd * (Behind + PortalExitClearance);
+		TDSquad::TeleportShip(Ship, TDSquad::FindSafeLocation(this, Arrival, Ship), Leader->GetActorRotation(), /*bKeepSpeed*/ true);
 		TDSquad::SetVelocity(Ship, TDSquad::GetVelocity(Leader));
 		CurrentTarget.Reset();
 		SetState(ETDWingmanState::Formation);

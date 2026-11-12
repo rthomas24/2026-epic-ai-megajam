@@ -85,6 +85,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
 	float TeleportFollowDistance = 30000.f;
 
+	/** After a portal/gate jump, wingmen arrive this far AHEAD of the leader's exit point (then ease back into the V). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
+	float PortalExitClearance = 1200.f;
+
 	/** Look for targets within this range of the leader. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
 	float EngageRange = 25000.f;

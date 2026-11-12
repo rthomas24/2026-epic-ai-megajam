@@ -247,6 +247,48 @@ namespace TDSquad
 		return L && L->IsBusy();
 	}
 
+	bool IsSwitchLocked(const ATDShip* Ship, FText& OutReason)
+	{
+		return Ship && Ship->IsSwitchLocked(OutReason);
+	}
+
+	void ResetTravelForRetake(ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		if (UTDHyperdriveComponent* H = Ship->GetHyperdrive())
+		{
+			H->ResetHyperdrive();
+		}
+		if (UTDLandingComponent* L = Ship->GetLanding())
+		{
+			L->AbortToFlying(); // un-parks; RestoreShipForFlight follows
+		}
+	}
+
+	float GetHyperdriveCharge01(const ATDShip* Ship)
+	{
+		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;
+		return H ? H->GetCharge01() : 0.f;
+	}
+
+	float GetAltitudeMeters(const ATDShip* Ship)
+	{
+		return Ship ? Ship->GetAltitudeMeters() : -1.f;
+	}
+
+	void CarryManualTarget(const ATDShip* From, ATDShip* To)
+	{
+		const UTDTargetingComponent* Old = From ? From->GetTargeting() : nullptr;
+		UTDTargetingComponent* New = To ? To->GetTargeting() : nullptr;
+		if (Old && New && Old->IsManualTarget())
+		{
+			New->SetManualTarget(Old->GetCurrentTarget());
+		}
+	}
+
 	void StopHyperdrive(ATDShip* Ship)
 	{
 		if (UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
@@ -313,9 +355,10 @@ namespace TDSquad
 		{
 			return 0.f;
 		}
-		FVector Origin, Extent;
-		Actor->GetActorBounds(true, Origin, Extent);
-		return Extent.Size();
+		// The collision cylinder includes attached parts (carrier bays); actor bounds don't (T4).
+		float Radius = 0.f, HalfHeight = 0.f;
+		Actor->GetSimpleCollisionCylinder(Radius, HalfHeight);
+		return FMath::Max(Radius, HalfHeight);
 	}
 
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
@@ -586,8 +629,29 @@ namespace TDSquad
 		{
 			if (Power)
 			{
-				Power->ResetCooldown();
+				Power->ResetPower(); // ends any active phase safely and readies it (T2)
 			}
+		}
+	}
+
+	void ReleasePlayerHolds(ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		for (const ETDPowerInput Slot : { ETDPowerInput::Signature1, ETDPowerInput::Signature2, ETDPowerInput::Ability })
+		{
+			if (UTDPowerComponent::FindPower(Ship, Slot))
+			{
+				UTDPowerComponent::RoutePowerInput(Ship, Slot, false);
+			}
+		}
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->SetTriggerHeld(ETDWeaponSlot::Primary, false);
+			W->SetTriggerHeld(ETDWeaponSlot::Secondary, false);
+			W->CancelCharge(ETDWeaponSlot::Secondary);
 		}
 	}
 
@@ -820,7 +884,7 @@ namespace TDSquad
 		{
 			return FTransform::Identity;
 		}
-		const UCameraComponent* Cam = Ship->GetChaseCamera();
-		return Cam ? Cam->GetComponentTransform() : Ship->GetActorTransform();
+		// T1: lag-free, valid even for an AI-flown ship whose spring arm doesn't tick (m10).
+		return Ship->GetChaseCameraTransformNow();
 	}
 }

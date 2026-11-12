@@ -55,6 +55,15 @@ namespace TDSquad
 	// ---- Travel (T1 hyperdrive, landing) ----
 	ETDHyperdriveState GetHyperdriveState(const ATDShip* Ship);
 	bool IsLandingBusy(const ATDShip* Ship);
+	/** T1: is a manual switch away from this ship locked (hyperdrive, landing, atmospheric entry)? */
+	bool IsSwitchLocked(const ATDShip* Ship, FText& OutReason);
+	/** T1: retake: hyperdrive instantly Idle, landing instantly back to flying. */
+	void ResetTravelForRetake(ATDShip* Ship);
+	float GetHyperdriveCharge01(const ATDShip* Ship);
+	float GetAltitudeMeters(const ATDShip* Ship);
+	/** T2: carry a manually cycled target from one ship to the next on a switch. */
+	void CarryManualTarget(const ATDShip* From, ATDShip* To);
+
 	/** The ship is going down: no spool, and a jump in progress drops out. */
 	void StopHyperdrive(ATDShip* Ship);
 	/** Back in the fight (respawn, retake): hyperdrive usable again. */
@@ -112,6 +121,8 @@ namespace TDSquad
 	void ResetPowers(ATDShip* Ship);
 	/** T2: refill ammo, clear heat and charge (respawn, retake). */
 	void ResetWeapons(ATDShip* Ship);
+	/** A ship leaves the player's hands: release any held power input and drop a charging shot (m15). */
+	void ReleasePlayerHolds(ATDShip* Ship);
 
 	// ---- HUD (T1 flight state, T2 targeting, T4 waves) ----
 	float GetBoost01(const ATDShip* Ship);

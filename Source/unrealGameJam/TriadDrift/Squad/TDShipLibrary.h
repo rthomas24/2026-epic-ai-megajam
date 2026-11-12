@@ -105,7 +105,8 @@ struct UNREALGAMEJAM_API FTDShipSpec
 	FLinearColor SquadColor = FLinearColor::White;
 
 	/** Nick's per-ship presentation asset. Convention:
-	 *  /Game/TriadDrift/Presentation/Ships/DA_Ship_<Ship>_Visuals; loaded if it exists, else placeholder. */
+	 *  /Game/TriadDrift/Presentation/DA_<Ship>_Visuals (flat folder, agreed with Nick); loaded if it
+	 *  exists, else placeholder. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
 	TSoftObjectPtr<UTDShipVisuals> Visuals;
 };

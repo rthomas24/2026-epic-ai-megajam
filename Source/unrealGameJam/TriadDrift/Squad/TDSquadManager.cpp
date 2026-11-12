@@ -189,8 +189,8 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		}
 		else
 		{
-			// A retake: whatever the ship was doing (downed, mid-jump, parked), stop it first.
-			TDSquad::StopHyperdrive(Slot->Ship);
+			// A retake: whatever the ship was doing (downed, mid-jump, landing), stop it at once.
+			TDSquad::ResetTravelForRetake(Slot->Ship);
 		}
 
 		TDSquad::ApplySpec(Slot->Ship, GetSpec(Id));
@@ -504,20 +504,17 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 			Refuse(ETDSwitchRefusal::Cooldown, Ship);
 			return false;
 		}
-		// M6: no manual switch mid-jump or mid-landing (an auto-switch on death still goes through).
+		// M6: no manual switch mid-jump, mid-landing or during atmospheric entry (T1's IsSwitchLocked);
+		// an auto-switch on death still goes through.
 		const ATDShip* Current = GetActiveShip();
-		if (Current && IsShipAlive(ActiveShipId))
+		FText LockReason;
+		if (Current && IsShipAlive(ActiveShipId) && TDSquad::IsSwitchLocked(Current, LockReason))
 		{
-			if (TDSquad::GetHyperdriveState(Current) != ETDHyperdriveState::Idle)
-			{
-				Refuse(ETDSwitchRefusal::HyperdriveActive, Ship);
-				return false;
-			}
-			if (TDSquad::IsLandingBusy(Current))
-			{
-				Refuse(ETDSwitchRefusal::Landing, Ship);
-				return false;
-			}
+			LastRefusalText = LockReason;
+			const ETDSwitchRefusal Why = TDSquad::GetHyperdriveState(Current) != ETDHyperdriveState::Idle ? ETDSwitchRefusal::HyperdriveActive
+				: TDSquad::IsLandingBusy(Current) ? ETDSwitchRefusal::Landing : ETDSwitchRefusal::Locked;
+			Refuse(Why, Ship);
+			return false;
 		}
 	}
 
@@ -537,11 +534,18 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	const bool bArmSwitchStrike = (Now() - LastPowerTime) <= SwitchStrikeWindow;
 	EndSwitchStrike();
 
+	// 0) The ship we're leaving: release the player's held power/trigger inputs first (m15), so a
+	// half-held dome or a charged Splitter doesn't fire under the AI.
+	TDSquad::ReleasePlayerHolds(OldShip);
+
 	// 1) Release the target from its wingman AI.
 	if (NewSlot->Wingman && NewSlot->Wingman->GetPawn() == NewShip)
 	{
 		NewSlot->Wingman->UnPossess();
 	}
+
+	// A target the player picked by hand carries over the cut (T2).
+	TDSquad::CarryManualTarget(OldShip, NewShip);
 
 	// 2) Player takes the new ship this frame (APlayerController::Possess unpossesses the old one).
 	if (APlayerController* PC = GetSquadPlayerController())
@@ -1032,6 +1036,16 @@ ETDMissileWarning ATDSquadManager::GetMissileWarning() const
 bool ATDSquadManager::GetLeadIndicator(FVector& OutWorldLocation) const
 {
 	return TDSquad::GetLeadIndicator(GetActiveShip(), OutWorldLocation);
+}
+
+float ATDSquadManager::GetHyperdriveCharge01() const
+{
+	return TDSquad::GetHyperdriveCharge01(GetActiveShip());
+}
+
+float ATDSquadManager::GetAltitude() const
+{
+	return TDSquad::GetAltitudeMeters(GetActiveShip());
 }
 
 bool ATDSquadManager::IsOutOfBounds() const

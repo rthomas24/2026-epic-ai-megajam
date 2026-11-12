@@ -35,7 +35,7 @@ namespace TDShipLibraryPrivate
 		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::Cloak;
 		S.SquadColor = UTDStatics::ShipColor(ETDShipId::Rift); // magenta
-		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/Ships/DA_Ship_Rift_Visuals.DA_Ship_Rift_Visuals")));
+		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/DA_Rift_Visuals.DA_Rift_Visuals")));
 		return S;
 	}
 
@@ -60,7 +60,7 @@ namespace TDShipLibraryPrivate
 		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::EMPPulse;
 		S.SquadColor = UTDStatics::ShipColor(ETDShipId::Lancer); // cyan
-		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/Ships/DA_Ship_Lancer_Visuals.DA_Ship_Lancer_Visuals")));
+		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/DA_Lancer_Visuals.DA_Lancer_Visuals")));
 		return S;
 	}
 
@@ -86,7 +86,7 @@ namespace TDShipLibraryPrivate
 		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::GravityWell;
 		S.SquadColor = UTDStatics::ShipColor(ETDShipId::Bastion); // amber
-		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/Ships/DA_Ship_Bastion_Visuals.DA_Ship_Bastion_Visuals")));
+		S.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(TEXT("/Game/TriadDrift/Presentation/DA_Bastion_Visuals.DA_Bastion_Visuals")));
 		return S;
 	}
 }
@@ -137,12 +137,26 @@ UTDShipVisuals* UTDShipLibrary::LoadVisuals(const FTDShipSpec& Spec)
 		return Loaded;
 	}
 	// Only touch the disk if the package is there: an asset Nick hasn't made yet is not an error.
-	const FString Package = Spec.Visuals.ToSoftObjectPath().GetLongPackageName();
-	if (Package.IsEmpty() || !FPackageName::DoesPackageExist(Package))
+	// Misses are cached (this runs on every switch for the cut colour), retried at most every 10 s.
+	static TMap<FSoftObjectPath, double> MissUntil;
+	const FSoftObjectPath Path = Spec.Visuals.ToSoftObjectPath();
+	const double Now = FPlatformTime::Seconds();
+	if (const double* Until = MissUntil.Find(Path); Until && Now < *Until)
 	{
 		return nullptr;
 	}
-	return Spec.Visuals.LoadSynchronous();
+	const FString Package = Path.GetLongPackageName();
+	if (Package.IsEmpty() || !FPackageName::DoesPackageExist(Package))
+	{
+		MissUntil.Add(Path, Now + 10.0);
+		return nullptr;
+	}
+	UTDShipVisuals* Loaded = Spec.Visuals.LoadSynchronous();
+	if (!Loaded)
+	{
+		MissUntil.Add(Path, Now + 10.0);
+	}
+	return Loaded;
 }
 
 FLinearColor UTDShipLibrary::GetSquadColor(const FTDShipSpec& Spec)

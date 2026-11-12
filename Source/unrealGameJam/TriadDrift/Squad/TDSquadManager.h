@@ -27,7 +27,9 @@ enum class ETDSwitchRefusal : uint8
 	AlreadyActive,
 	TargetDown,
 	HyperdriveActive,
-	Landing
+	Landing,
+	/** Any other T1 switch lock (atmospheric entry); see GetLastRefusalText. */
+	Locked
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnSwitchRefused, ETDSwitchRefusal, Reason, ETDShipId, RequestedShip);
@@ -225,6 +227,12 @@ public:
 	virtual TArray<FTDTargetMarker> GetTargetMarkers() const override;
 	virtual ETDMissileWarning GetMissileWarning() const override;
 	virtual bool GetLeadIndicator(FVector& OutWorldLocation) const override;
+	virtual float GetHyperdriveCharge01() const override;
+	virtual float GetAltitude() const override;
+
+	/** HUD-ready text for the last lock refusal (from T1's IsSwitchLocked). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	FText GetLastRefusalText() const { return LastRefusalText; }
 	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------
@@ -371,6 +379,7 @@ protected:
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
 	bool bBetweenWaves = false;
+	FText LastRefusalText;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	int32 SwitchCount = 0;
 

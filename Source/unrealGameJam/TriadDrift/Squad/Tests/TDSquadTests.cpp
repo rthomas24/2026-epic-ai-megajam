@@ -35,6 +35,7 @@
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Misc/ScopeExit.h"
+#include "TriadDrift/World/TDPortalGate.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 
 namespace TDSquadTests
@@ -1493,6 +1494,7 @@ bool FTDSquadSwitchGuards::RunTest(const FString& Parameters)
 	F.W.Tick();
 	TestFalse(TEXT("no manual switch while landing"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
 	TestTrue(TEXT("refusal reason: landing"), F.Events->LastRefusal == ETDSwitchRefusal::Landing);
+	TestFalse(TEXT("HUD-ready reason text from T1"), F.Squad->GetLastRefusalText().IsEmpty());
 
 	// Death still auto-switches, landing or not (landing makes the ship invulnerable, so a direct kill).
 	F.Kill(ETDShipId::Rift);
@@ -1546,26 +1548,49 @@ bool FTDSquadRollingLeader::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadHoldPowerThroughSwitch, "TriadDrift.Squad.Switch.HoldingPowerThenSwitchIsSafe", TD_TEST_FLAGS)
 bool FTDSquadHoldPowerThroughSwitch::RunTest(const FString& Parameters)
 {
-	// m15: hold Q on Bastion (dome is a hold power), switch away before releasing.
-	FSquadFixture F;
-	TestTrue(TEXT("into Bastion"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
-	F.W.Advance(0.5f); // past the switch cooldown, so the switch below is a real one
-	ATDShip* Bastion = F.Ship(ETDShipId::Bastion);
-	UTDPowerComponent::RoutePowerInput(Bastion, ETDPowerInput::Signature2, true);
-	F.W.Advance(0.2f);
-	TestTrue(TEXT("switch away mid-hold"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
-	F.W.Advance(3.f);
-	const UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(F.W.GetWorld());
-	TestTrue(TEXT("no dome fired by a hold the AI inherited"), Powers && Powers->GetActiveDomes().Num() == 0);
-	TestEqual(TEXT("no power used"), F.Events->PowersUsed, 0);
-	// The next time the player takes Bastion, its powers work normally.
-	F.W.Advance(6.5f);
-	TestTrue(TEXT("back into Bastion"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
-	UTDPowerComponent::RoutePowerInput(Bastion, ETDPowerInput::Signature1, true);
-	F.W.Tick();
-	UTDPowerComponent::RoutePowerInput(Bastion, ETDPowerInput::Signature1, false);
-	F.W.Advance(0.2f);
-	TestTrue(TEXT("powers still usable afterwards"), F.Events->PowersUsed >= 1);
+	// m15 through the real controller: hold Q on Bastion (hold = shield dome), Tab away before the
+	// 0.35 s hold threshold, keep Q held, release. Nothing may fire on the ship you left, and the
+	// held key must not trigger anything strange on the new one.
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("space player controller"), PC) || !Squad)
+	{
+		return false;
+	}
+	UTDSquadTestListener* Events = NewObject<UTDSquadTestListener>();
+	Events->AddToRoot();
+	Events->Listen(UTDEventBus::Get(W.GetWorld()));
+	ON_SCOPE_EXIT { Events->StopListening(); Events->RemoveFromRoot(); };
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	UEnhancedPlayerInput* Input = Cast<UEnhancedPlayerInput>(PC->PlayerInput);
+	if (!TestNotNull(TEXT("enhanced input"), Input))
+	{
+		return false;
+	}
+	TestTrue(TEXT("into Bastion"), Squad->RequestSwitchTo(ETDShipId::Bastion));
+	W.Advance(0.5f);
+	const UInputAction* Q = PC->FindActionByName(TEXT("IA_Power"));
+	auto HoldQ = [&](float Seconds)
+	{
+		for (int32 i = 0, N = FMath::CeilToInt(Seconds * 60.f); i < N; ++i)
+		{
+			Input->InjectInputForAction(Q, FInputActionValue(true));
+			W.Tick();
+		}
+	};
+	HoldQ(0.2f);
+	Input->InjectInputForAction(PC->FindActionByName(TEXT("IA_Switch1")), FInputActionValue(true));
+	W.Tick();
+	TestTrue(TEXT("switched to Rift mid-hold"), Squad->GetActiveShipId() == ETDShipId::Rift);
+	HoldQ(0.5f); // keep holding past the 0.35 s threshold
+	W.Advance(0.5f); // release
+	const UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(W.GetWorld());
+	TestTrue(TEXT("no dome on the ship we left"), Powers && Powers->GetActiveDomes().Num() == 0);
+	TestFalse(TEXT("Bastion's dome power never started"), UTDPowerComponent::FindPower(Squad->GetShip(ETDShipId::Bastion), ETDPowerInput::Signature2)->IsPowerActive());
+	TestTrue(TEXT("at most the new ship's own power fired"), Events->PowersUsed <= 1);
 	return true;
 }
 
@@ -1611,6 +1636,53 @@ bool FTDSquadRealFlowWipe::RunTest(const FString& Parameters)
 	TestFalse(TEXT("retake done"), GI && GI->IsRetakePending());
 	W.Advance(13.f);
 	TestEqual(TEXT("no stale respawn events from take 1"), Events->Respawned, 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadThroughGate, "TriadDrift.Squad.Wingmen.SquadThroughRealPortalGate", TD_TEST_FLAGS)
+bool FTDSquadThroughGate::RunTest(const FString& Parameters)
+{
+	// T4's real gate pair: in through A (facing +X at the origin), out of B (far away, facing +Y).
+	FSquadFixture F(/*bSpawnSquad*/ false);
+	ATDPortalGate* A = F.W.Spawn<ATDPortalGate>(FVector::ZeroVector, FRotator::ZeroRotator);
+	ATDPortalGate* B = F.W.Spawn<ATDPortalGate>(FVector(100000.f, 0.f, 0.f), FRotator(0.f, 90.f, 0.f));
+	if (!TestNotNull(TEXT("gates"), A) || !TestNotNull(TEXT("gates"), B))
+	{
+		return false;
+	}
+	ATDPortalGate::LinkGates(A, B);
+	F.Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(-6000.f, 0.f, 0.f)));
+	F.W.Advance(3.f);
+	ATDShip* Leader = F.Ship(ETDShipId::Rift);
+	TestTrue(TEXT("leader came out of B"), FVector::Dist(Leader->GetActorLocation(), B->GetActorLocation()) < 30000.f);
+	const int32 TransitsAfterJump = A->GetTransitCount() + B->GetTransitCount();
+	F.W.Advance(3.f);
+	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const FVector P = F.Ship(Id)->GetActorLocation();
+		TestTrue(FString::Printf(TEXT("%s followed out of B"), *UEnum::GetValueAsString(Id)), FVector::Dist(P, B->GetActorLocation()) < 30000.f);
+		TestTrue(FString::Printf(TEXT("%s is on the exit side of B's plane"), *UEnum::GetValueAsString(Id)),
+			FVector::DotProduct(P - B->GetActorLocation(), B->GetActorForwardVector()) > 0.f);
+	}
+	TestEqual(TEXT("nobody bounced back through the gates"), A->GetTransitCount() + B->GetTransitCount(), TransitsAfterJump);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadManualTargetCarry, "TriadDrift.Squad.Switch.ManualTargetCarriesOver", TD_TEST_FLAGS)
+bool FTDSquadManualTargetCarry::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	AActor* Picked = F.SpawnEnemy(FVector(12000.f, 3000.f, 0.f), 100000.f);
+	F.W.Advance(0.5f);
+	UTDTargetingComponent* RiftTargeting = F.Ship(ETDShipId::Rift)->GetTargeting();
+	RiftTargeting->SetManualTarget(Picked);
+	TestTrue(TEXT("player picked a target by hand"), RiftTargeting->IsManualTarget());
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	const UTDTargetingComponent* LancerTargeting = F.Ship(ETDShipId::Lancer)->GetTargeting();
+	TestTrue(TEXT("the manual target survives the cut"), LancerTargeting->GetCurrentTarget() == Picked && LancerTargeting->IsManualTarget());
+	TestTrue(TEXT("HUD shows it"), F.Squad->GetCurrentTarget() == Picked);
+	TestTrue(TEXT("HUD hyperdrive charge forwarded"), F.Squad->GetHyperdriveCharge01() == F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetCharge01());
+	TestEqual(TEXT("HUD altitude forwarded"), F.Squad->GetAltitude(), F.Ship(ETDShipId::Lancer)->GetAltitudeMeters());
 	return true;
 }
 
