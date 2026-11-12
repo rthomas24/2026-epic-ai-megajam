@@ -68,6 +68,16 @@ UTDLandingComponent::UTDLandingComponent()
 	PrimaryComponentTick.TickGroup = TG_PrePhysics;
 }
 
+void UTDLandingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// A destroyed ship never ticks again: drop any pad marker it set.
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		Travel->UpdatePadMarker(this, nullptr, false);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
 void UTDLandingComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -226,6 +236,47 @@ void UTDLandingComponent::TickApproachAssist(float DeltaTime)
 		const FQuat Turned = FMath::QInterpConstantTo(Ship->GetActorQuat(), Want, DeltaTime, FMath::DegreesToRadians(Tuning.AssistTurnRate));
 		Ship->SetActorRotation(Turned);
 	}
+}
+
+void UTDLandingComponent::UpdatePadMarker()
+{
+	UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+	const ATDShip* Ship = GetShip();
+	if (!Travel || !Ship)
+	{
+		return;
+	}
+	const UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	const bool bInAtmosphere = Move && Move->IsInAtmosphere();
+	if (State == ETDLandingState::Landed)
+	{
+		bLandedThisVisit = true;
+	}
+	else if (!bInAtmosphere && State == ETDLandingState::Flying)
+	{
+		bLandedThisVisit = false;
+	}
+	const UTDHealthComponent* Health = Ship->GetHealth();
+	const bool bAlive = !Health || !Health->IsDead();
+	const bool bPlayer = Ship->IsPlayerFlown();
+	ATDLandingPad* Wanted = nullptr;
+	if (bPlayer && bAlive && bInAtmosphere && !bLandedThisVisit)
+	{
+		switch (State)
+		{
+		case ETDLandingState::Flying:
+			Wanted = AssistPad.IsValid() ? AssistPad.Get() : Travel->FindPlayerPad(Ship->GetActorLocation(), TNumericLimits<float>::Max());
+			break;
+		case ETDLandingState::Aligning:
+		case ETDLandingState::GearDown:
+		case ETDLandingState::Descending:
+			Wanted = Pad.Get(); // still coming down: the pad stays marked until touchdown
+			break;
+		default:
+			break; // touchdown onward, take-off: not the objective
+		}
+	}
+	Travel->UpdatePadMarker(this, Wanted, bPlayer);
 }
 
 FText UTDLandingComponent::GetLandPrompt() const
@@ -579,6 +630,7 @@ void UTDLandingComponent::FinishTakeOff()
 void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	UpdatePadMarker();
 	if (State == ETDLandingState::Flying && (AssistPad.IsValid() || AssistPad.IsStale()) && DeltaTime > 0.f)
 	{
 		TickApproachAssist(DeltaTime);

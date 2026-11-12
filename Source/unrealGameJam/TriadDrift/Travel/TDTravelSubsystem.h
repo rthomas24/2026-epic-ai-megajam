@@ -132,6 +132,14 @@ public:
 
 	const TArray<TWeakObjectPtr<ATDLandingPad>>& GetPads() const { return Pads; }
 
+	/**
+	 * HUD objective marker on the player pad (TDTags::ObjectiveMarker). The player ship's landing component calls this
+	 * every frame with the pad it wants marked (or null); any other caller only clears a mark it made itself, so a
+	 * ship switch never flickers it. One pad at most carries the tag.
+	 */
+	void UpdatePadMarker(const UObject* Requester, ATDLandingPad* Wanted, bool bIsPlayerShip);
+	ATDLandingPad* GetMarkedPad() const { return MarkedPad.Get(); }
+
 	// ---- Events (T5's first-person hand-off binds these) ------------------------------------------------
 	/** A ship finished its landing sequence (canopy open). Fired for wingmen too: check Ship->IsPlayerFlown(). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Travel")
@@ -146,6 +154,8 @@ private:
 	TArray<FTDTravelGravityWell> Wells;
 
 	TArray<TWeakObjectPtr<ATDLandingPad>> Pads;
+	TWeakObjectPtr<ATDLandingPad> MarkedPad;
+	TWeakObjectPtr<const UObject> MarkOwner;
 
 	TArray<TPair<FName, FText>> HyperdriveLocks;
 
