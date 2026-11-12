@@ -196,6 +196,7 @@ bool UTDHyperdriveComponent::RequestSpoolFromPilot()
 	const ETDHyperdriveBlock Block = GetBlockReason();
 	if (Block != ETDHyperdriveBlock::None)
 	{
+		UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive refused: %s"), *GetBlockReasonText().ToString());
 		OnSpoolRefused.Broadcast(this, Block, GetBlockReasonText());
 		TDHyperdrive_PlayRefusedCue(TravelFX.Get(), GetCraft());
 		return false;
