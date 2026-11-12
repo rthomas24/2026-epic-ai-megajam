@@ -48,4 +48,3 @@ class TDAUDIOV1_API ATDAudioV1HUD : public AHUD {
  GENERATED_BODY()
  public: virtual void DrawHUD() override;
 };
-

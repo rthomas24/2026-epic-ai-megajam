@@ -76,6 +76,7 @@ def main():
    asset_import.append(dict(file=str(f),path=dest,properties=dict(loadingBehavior='RetainOnLoad' if cat!='music' else 'PrimeOnLoad',bLooping=cat in ('music','loop'),virtualizationMode='PlayWhenSilent' if cat in ('music','loop') else 'Restart')))
   cls='Music' if cat=='music' else 'UI' if cat=='ui' else 'Cine' if cat=='sting' else 'SFX'
   sound=dict(soundClassObject=VROOT+'/Mix/SC_V1_'+cls)
+  if cat in ('music','loop'):sound['virtualizationMode']='PlayWhenSilent'
   if cat in ('sfx','loop'):
    sound['attenuationSettings']=VROOT+'/Mix/ATT_V1_'+('Near' if cat=='loop' else 'Medium')
    sound['concurrencySet']=[VROOT+'/Mix/SCON_V1_'+('Loop' if cat=='loop' else 'Weapon' if name in ('Primary','Missile','Acceleration') else 'Explosion' if name=='Explosion' else 'Impact')]
@@ -104,4 +105,3 @@ def main():
  (HERE/'check.spec.json').write_text(json.dumps(checks,indent=2))
  print('Prepared',len(asset_import),'waves and',len(shots)+len(loops),'MetaSound definitions; originals unchanged.')
 if __name__=='__main__':main()
-

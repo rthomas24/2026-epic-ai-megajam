@@ -7,4 +7,3 @@ unreal.get_editor_subsystem(unreal.EditorActorSubsystem).spawn_actor_from_class(
 unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).save_current_level()
 unreal.EditorAssetLibrary.save_directory('/Game/TriadDrift/Audio/PrototypeV1',only_if_is_dirty=True,recursive=True)
 {'map':path,'game_mode':str(world.get_world_settings().get_editor_property('default_game_mode')),'errors':[]}
-

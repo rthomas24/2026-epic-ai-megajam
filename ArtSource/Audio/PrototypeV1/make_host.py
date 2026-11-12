@@ -8,4 +8,3 @@ assert HOST.resolve().is_relative_to((ROOT/'Saved/AudioMusic/PrototypeV1').resol
 shutil.copytree(HERE/'HostTemplate',HOST,dirs_exist_ok=True)
 (HOST/'Content').mkdir(exist_ok=True)
 print(HOST/'TDAudioV1.uproject')
-

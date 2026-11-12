@@ -562,7 +562,8 @@
         "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Near",
         "concurrencySet": [
           "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Loop"
-        ]
+        ],
+        "virtualizationMode": "PlayWhenSilent"
       },
       "wave": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Engine_01",
       "param": "Speed01",
@@ -580,7 +581,8 @@
       "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Explore",
       "format": "Stereo",
       "sound": {
-        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Music"
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Music",
+        "virtualizationMode": "PlayWhenSilent"
       },
       "wave": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explore_01",
       "param": "Intensity",
@@ -598,7 +600,8 @@
       "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Combat",
       "format": "Stereo",
       "sound": {
-        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Music"
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Music",
+        "virtualizationMode": "PlayWhenSilent"
       },
       "wave": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Combat_01",
       "param": "Intensity",

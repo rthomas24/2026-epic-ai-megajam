@@ -195,4 +195,3 @@ void ATDAudioV1HUD::DrawHUD() {
  Line(TEXT("Listen for smooth fades, repeat fatigue, clear impacts and music balance."));
  Line(TEXT("Isolated demo only. Shared gameplay, maps and settings are unchanged."));
 }
-
