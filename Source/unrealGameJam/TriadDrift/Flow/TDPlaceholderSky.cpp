@@ -139,10 +139,16 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		Sun->SetIntensity(10.f);
 		Sun->SetLightColor(FLinearColor(1.f, 0.95f, 0.85f));
 		Sun->SetAtmosphereSunLight(true);
-		Fill->DestroyComponent();
-		Fill = nullptr;
+		// Soft shadowless fill from the opposite side: shadows read as shade, never pure black, even if the
+		// sky light's real-time capture contributes little (it does in a packaged / -game run).
+		Fill->SetWorldRotation(FRotator(-25.f, 210.f, 0.f));
+		Fill->SetIntensity(2.f);
+		Fill->SetLightColor(FLinearColor(0.55f, 0.7f, 1.f));
+		Fill->SetCastShadows(false);
+		Fill->SetAtmosphereSunLight(false);
 		SkyLight->bRealTimeCapture = true;
-		SkyLight->SetIntensity(1.f);
+		SkyLight->bLowerHemisphereIsBlack = false;
+		SkyLight->SetIntensity(1.5f);
 		// Daylight: auto exposure is fine; the post-process only exists so a map without one is consistent.
 	}
 	SkyLight->RecaptureSky();
