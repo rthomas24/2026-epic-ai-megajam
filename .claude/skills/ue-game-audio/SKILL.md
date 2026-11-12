@@ -120,8 +120,10 @@ else. That is Nicholas, in the running game, on headphones and speakers
 
 - Nothing has been heard by a person, and nothing was run inside the Triad Drift project: the
   Unreal steps were exercised on a scratch project with the same engine and toolsets.
-- Gameplay sets no audio parameters yet (`Speed01` needs one line from Ryan), and
-  `UTDShipVisuals::EngineLoop` is not read by any code.
+- The ship loop parameters `Speed01`, `Boost01` and `Drift01` are in progress on the engineering side (not on
+  `main` yet); until then the engine loop only gets a pitch multiplier. The live state for music and mixes
+  (`UTDAudioStateSubsystem`, `references/unreal-implementation.md` §8) is on `main` and tested.
 - The audio director Blueprint, the master limiter at runtime, Quartz and capturing the whole
   game mix are described but not built or tested.
-- Whether the repo is private (which decides if library clips may be committed) was not checked.
+- The GitHub repo is private (checked 2026-11-12). Each library's licence still decides whether its clips may be
+  committed; "no third-party raw files in a public place" stands.

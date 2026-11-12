@@ -8,6 +8,8 @@
 //   TD.Director.RevealDominion    reveal the Dominion through the game flow (it warps in)
 //   TD.Director.GeneratorKill     the player's ship destroys the first live shield generator
 //   TD.Director.Status            log the camera rig / presentation state
+//   TD.Squad.Frame                log where the wingmen and the nearest enemy are on screen (-1..1),
+//                                 for a scripted live pilot and for measuring "wingmen in frame"
 
 #include "CoreMinimal.h"
 
@@ -27,6 +29,7 @@
 #include "TriadDrift/Powers/TDPowerComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 
 namespace TDDirectorDebug
@@ -148,6 +151,89 @@ namespace TDDirectorDebug
 			Rig ? *UEnum::GetValueAsString(Rig->GetPhase()) : TEXT("-"), P && P->HasViewportWidget(), P ? P->GetState().IsEmpty() : 1);
 	}
 
+	/** Normalised screen position (-1..1, +Y down) of P from the player's view, false if off screen. */
+	static bool ScreenPos(APlayerController* PC, const FVector& P, FVector2D& Out)
+	{
+		int32 W = 0, H = 0;
+		PC->GetViewportSize(W, H);
+		FVector2D Px;
+		if (W <= 0 || H <= 0 || !PC->ProjectWorldLocationToScreen(P, Px, false))
+		{
+			Out = FVector2D(9.f, 9.f);
+			return false;
+		}
+		Out = FVector2D(Px.X / W * 2.f - 1.f, Px.Y / H * 2.f - 1.f);
+		return FMath::Abs(Out.X) <= 1.f && FMath::Abs(Out.Y) <= 1.f;
+	}
+
+	static void Frame(const TArray<FString>&, UWorld* World)
+	{
+		ATDSquadManager* S = Squad(World);
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		ATDShip* Player = S ? S->GetActiveShip() : nullptr;
+		if (!S || !PC || !Player)
+		{
+			return;
+		}
+		FString Wing;
+		int32 WingOn = 0;
+		for (ATDShip* Mate : S->GetLivingShips())
+		{
+			if (Mate == Player)
+			{
+				continue;
+			}
+			FVector2D P;
+			const bool bOn = ScreenPos(PC, Mate->GetActorLocation(), P);
+			WingOn += bOn ? 1 : 0;
+			// Why it is where it is: its state, and whether its target is itself on screen.
+			FString Why = TEXT("-");
+			if (const ATDWingmanAIController* AI = Cast<ATDWingmanAIController>(Mate->GetController()))
+			{
+				FVector2D TP;
+				const AActor* T = AI->GetCurrentTarget();
+				Why = UEnum::GetDisplayValueAsText(AI->GetWingmanState()).ToString()
+					+ (T ? (ScreenPos(PC, T->GetActorLocation(), TP) ? TEXT("/tgtON") : TEXT("/tgtOff")) : TEXT(""));
+			}
+			Wing += FString::Printf(TEXT(" %s=%s(%.2f,%.2f)[%s]"), *UEnum::GetDisplayValueAsText(Mate->GetShipId()).ToString(), bOn ? TEXT("ON") : TEXT("off"), P.X, P.Y, *Why);
+		}
+		const ATDEnemyShip* Nearest = nullptr;
+		float Best = BIG_NUMBER;
+		int32 EnemiesOn = 0, Enemies = 0;
+		for (TActorIterator<ATDEnemyShip> It(World); It; ++It)
+		{
+			const UTDHealthComponent* H = UTDStatics::GetHealth(*It);
+			if (H && H->IsDead())
+			{
+				continue;
+			}
+			++Enemies;
+			FVector2D P;
+			EnemiesOn += ScreenPos(PC, It->GetActorLocation(), P) ? 1 : 0;
+			// "Nearest" the way a pilot picks: close AND ahead of the nose (a target behind costs 3x).
+			const FVector To = It->GetActorLocation() - Player->GetActorLocation();
+			const float Ahead = FVector::DotProduct(To.GetSafeNormal(), Player->GetActorForwardVector());
+			const float D = To.Size() * (2.f - Ahead) * 0.5f;
+			if (D < Best)
+			{
+				Best = D;
+				Nearest = *It;
+			}
+		}
+		FString Enemy = TEXT("none");
+		if (Nearest)
+		{
+			// Direction to it in the player's frame (for steering even when it is behind the camera).
+			const FVector L = Player->GetActorTransform().InverseTransformVectorNoScale(Nearest->GetActorLocation() - Player->GetActorLocation()).GetSafeNormal();
+			FVector2D P;
+			const bool bOn = ScreenPos(PC, Nearest->GetActorLocation(), P);
+			Enemy = FString::Printf(TEXT("%s(%.2f,%.2f) score=%.0fm local=(%.2f,%.2f,%.2f)"), bOn ? TEXT("ON") : TEXT("off"), P.X, P.Y, Best / 100.f, L.X, L.Y, L.Z);
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.Frame: wingOn=%d%s | enemiesOn=%d/%d nearest=%s"), WingOn, *Wing, EnemiesOn, Enemies, *Enemy);
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdFrame(TEXT("TD.Squad.Frame"), TEXT("TD.Squad.Frame: log wingmen / nearest enemy screen positions"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Frame));
 	static FAutoConsoleCommandWithWorldAndArgs CmdSwitch(TEXT("TD.Squad.Switch"), TEXT("TD.Squad.Switch <Rift|Lancer|Bastion|Next|Prev>"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Switch));
 	static FAutoConsoleCommandWithWorldAndArgs CmdWipe(TEXT("TD.Squad.Wipe"), TEXT("TD.Squad.Wipe: kill all three squad ships (CUT! + retake)"),

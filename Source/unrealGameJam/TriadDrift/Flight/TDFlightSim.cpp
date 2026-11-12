@@ -319,6 +319,25 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		S.Velocity.Z -= C.AtmosphereGravity * Dt;
 	}
 
+	// Atmosphere ground floor: near the ground, cancel the sink and pull the nose toward level.
+	if (C.bAtmosphere && C.GroundClearance >= 0.f && T.GroundAvoidHeight > 0.f && C.GroundClearance < T.GroundAvoidHeight)
+	{
+		const float Near01 = 1.f - C.GroundClearance / T.GroundAvoidHeight;
+		const float MaxSink = T.CruiseSpeed * 0.5f * (1.f - Near01);
+		S.Velocity.Z = FMath::Max(S.Velocity.Z, -MaxSink);
+		const FVector Nose = S.Rotation.GetForwardVector();
+		if (Nose.Z < 0.f)
+		{
+			const float DiveDeg = FMath::RadiansToDegrees(FMath::Asin(FMath::Min(-Nose.Z, 1.f)));
+			const float StepDeg = FMath::Min(DiveDeg, T.GroundPullUpRate * Near01 * Dt);
+			const FVector Axis = FVector::CrossProduct(Nose, FVector::UpVector).GetSafeNormal();
+			if (!Axis.IsNearlyZero() && StepDeg > 0.f)
+			{
+				S.Rotation = (FQuat(Axis, FMath::DegreesToRadians(StepDeg)) * S.Rotation).GetNormalized();
+			}
+		}
+	}
+
 	// Boundary push-back on top of whatever the pilot is doing.
 	if (BoundaryStrength > 0.f)
 	{

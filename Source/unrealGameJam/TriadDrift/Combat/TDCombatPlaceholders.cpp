@@ -30,6 +30,17 @@ FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec
 	return Look;
 }
 
+float FTDCombatPlaceholders::DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera)
+{
+	if (Look.Thickness <= 0.f)
+	{
+		return 1.f;
+	}
+	// Pixels across = Thickness * 1280 / (2 * Distance * tan(45 deg)).
+	const float Needed = MinStreakPixels * 2.f * DistanceToCamera / 1280.f;
+	return FMath::Clamp(Needed / Look.Thickness, 1.f, MaxDistanceGrowth);
+}
+
 float FTDCombatPlaceholders::MuzzleFlashRadius(const FTDProjectileSpec& Spec)
 {
 	const FTDStreakLook Look = ComputeStreak(Spec);

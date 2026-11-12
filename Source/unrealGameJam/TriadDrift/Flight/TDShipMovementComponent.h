@@ -225,6 +225,8 @@ protected:
 	float StartSpeedFraction = 1.f;
 
 private:
+	/** In atmosphere: trace the static ground below for the flight model's soft floor (Context.GroundClearance). */
+	void MeasureGroundClearance();
 	void ResolveMove(const FVector& Delta, float DeltaTime);
 	void HandleShipImpact(const FHitResult& Hit, float DeltaTime);
 	void SyncStateFromComponent();
