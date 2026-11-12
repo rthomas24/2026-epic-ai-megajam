@@ -448,6 +448,7 @@ The research behind the skills is in `reports/Blender MCP game asset practices.m
 | `blender-texturing` | `.claude/skills/blender-texturing/SKILL.md` | Materials, UVs, and baking to Unreal texture sets |
 | `blender-ai-mesh-cleanup` | `.claude/skills/blender-ai-mesh-cleanup/SKILL.md` | Rodin, Tripo or Meshy outputs and downloaded models → game-ready |
 | `blender-unreal-export` | `.claude/skills/blender-unreal-export/SKILL.md` | Export to Unreal (FBX + manifest), calibration, and the UE import script |
+| `ue-cpp-gameplay` | `.claude/skills/ue-cpp-gameplay/SKILL.md` | Any C++ gameplay work (`ENG-xx`): Core contracts, headless build and automation tests, worktree rules, UE 5.9 pitfalls. Team contract: `docs/eng/ARCHITECTURE.md`; status: `docs/eng/STATUS.md` |
 
 Check that a machine's Blender works with the skills:
 ```
