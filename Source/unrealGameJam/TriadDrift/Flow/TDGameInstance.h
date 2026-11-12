@@ -9,6 +9,7 @@
 #include "Templates/Function.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
+#include "TriadDrift/Flow/TDObjectiveText.h"
 #include "TriadDrift/Flow/TDSaveGame.h"
 #include "TDGameInstance.generated.h"
 
@@ -193,6 +194,20 @@ public:
 	UFUNCTION()
 	void HandleWaveCleared(int32 WaveNumber);
 
+	UFUNCTION()
+	void HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text);
+
+	/** The last objective line anyone broadcast (a HUD created late can read it). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
+	FText GetCurrentObjectiveText() const { return LastObjective.Text; }
+	const FTDObjectiveLine& GetCurrentObjective() const { return LastObjective; }
+
+	/**
+	 * Broadcasts the flow's objective line (FTDObjectiveText) if it changed, or always when bForce (level entry,
+	 * a new take) so a freshly created HUD is never empty. Called every 0.25 s from TickFlow.
+	 */
+	void RefreshObjective(bool bForce);
+
 	/** Fallback scene id for a wave ("Wave3") when the wave director gives none. The director owns the real id. */
 	static FName WaveSceneId(int32 WaveNumber);
 
@@ -228,6 +243,10 @@ private:
 	/** Scene ids in first-played order. */
 	UPROPERTY(Transient)
 	TArray<FName> SceneOrder;
+
+	FTDObjectiveLine LastObjective;
+	float ObjectiveCheckLeft = 0.f;
+	float ObjectiveForceLeft = -1.f; // >= 0: force a re-broadcast when it runs out (a HUD made on BeginPlay misses the first)
 
 	FName CurrentSceneId;
 	FName LastAnnouncedScene;

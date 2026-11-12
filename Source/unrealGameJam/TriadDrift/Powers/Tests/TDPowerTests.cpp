@@ -47,7 +47,8 @@ bool FTDRamDash::RunTest(const FString& Parameters)
 		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
 		const float Boost = Lancer->GetShipMovement()->GetFlightTuning().BoostSpeed;
 		// Real fighters on the line, flying head-on at Lancer: they block the Ship channel.
-		TArray<ATDEnemyShip*> Fighters;
+		// Weak: a destroyed fighter can be garbage-collected while the world ticks.
+		TArray<TWeakObjectPtr<ATDEnemyShip>> Fighters;
 		for (const float X : { 5000.f, 9000.f, 13000.f })
 		{
 			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(X, 0.f, 0.f));
@@ -72,9 +73,11 @@ bool FTDRamDash::RunTest(const FString& Parameters)
 				MinDashSpeed = FMath::Min(MinDashSpeed, (float)Lancer->GetVelocity().Size());
 			}
 		}
-		for (const ATDEnemyShip* F : Fighters)
+		// Regression probe: destroyed fighters may be collected mid-test; the weak pointers must cope.
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+		for (const TWeakObjectPtr<ATDEnemyShip>& F : Fighters)
 		{
-			TestTrue(*(Fps + TEXT("fighter in the line destroyed")), !IsValid(F) || F->GetHealth()->IsDead());
+			TestTrue(*(Fps + TEXT("fighter in the line destroyed")), !F.IsValid() || F->GetHealth()->IsDead());
 		}
 		TestTrue(*(Fps + TEXT("passed through: speed never dropped below 2.5x boost")), MinDashSpeed > Boost * 2.5f);
 		TestTrue(*(Fps + TEXT("the gunship stopped the dash")), Ram->WasStoppedByImpact());
@@ -280,7 +283,8 @@ bool FTDDome::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a cruising Bastion stays inside its own dome"), Dome->Covers(Bastion->GetActorLocation()));
 	(void)Pace;
 
-	const float GoneAt = AdvanceUntil(W, [&] { return !IsValid(Dome); }, 3.f);
+	const TWeakObjectPtr<ATDShieldDome> DomeWeak = Dome; // the dome is destroyed and may be collected
+	const float GoneAt = AdvanceUntil(W, [&] { return !DomeWeak.IsValid(); }, 3.f);
 	TestTrue(TEXT("dome gone after 6 s"), GoneAt > 0.f);
 	TestFalse(TEXT("power ended"), DomePower->IsPowerActive());
 	W.Advance(15.7f, PowerFrameStep());
@@ -363,8 +367,8 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 
 	TestTrue(TEXT("well launched"), Well->TryActivate());
 	W.Advance(0.85f, PowerFrameStep());
-	ATDGravityWell* Vortex = Well->GetLastWell();
-	TestTrue(TEXT("vortex open where the orb stopped"), Vortex && Vortex->IsVortexActive() && Vortex->GetActorLocation().Equals(Centre, 1.f));
+	const TWeakObjectPtr<ATDGravityWell> Vortex = Well->GetLastWell();
+	TestTrue(TEXT("vortex open where the orb stopped"), Vortex.IsValid() && Vortex->IsVortexActive() && Vortex->GetActorLocation().Equals(Centre, 1.f));
 	// A fighter flying straight out of the vortex at full cruise: it must not escape.
 	ATDEnemyShip* Fighter = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, Centre + FVector(1500.f, 2500.f, 0.f));
 	Fighter->GetHealth()->InitMaxValues(1000.f, 0.f, true);
@@ -393,7 +397,7 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 	TestEqual(TEXT("far enemy not pulled"), (float)FVector::Dist(Far->GetActorLocation(), Centre), 9000.f, 1.f);
 
 	W.Advance(2.3f, PowerFrameStep());
-	TestFalse(TEXT("vortex gone after 5 s"), IsValid(Vortex));
+	TestFalse(TEXT("vortex gone after 5 s"), Vortex.IsValid());
 	const float Taken = 1000.f - Fighter->GetHealth()->GetHull();
 	TestTrue(TEXT("fighter: 10 dps while caught (3.5-5 s) + 120 implosion"), Taken >= 120.f + 35.f && Taken <= 120.f + 50.f);
 	TestFalse(TEXT("fighter's engines released after the implosion"), Fighter->GetShipMovement()->HasSpeedOverride());
@@ -580,14 +584,14 @@ bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
 	TestEqual(TEXT("take 1 keeps the domes"), Powers->GetActiveDomes().Num(), 2);
 
 	// CUT! -> everything from the failed take is gone.
-	ATDGravityWell* Vortex = Well->GetLastWell();
+	const TWeakObjectPtr<ATDGravityWell> Vortex = Well->GetLastWell();
 	Bus->BroadcastSceneCut(TEXT("Wave2"), 2, 1.f);
 	W.Tick(PowerFrameStep());
 	TestEqual(TEXT("portals closed"), Portal->GetPortals().Num(), 0);
 	TestFalse(TEXT("cloak off"), Cloak->IsCloaked());
 	TestTrue(TEXT("Rift targetable again"), UTDStatics::GetHealth(Rift)->bTargetable);
 	TestEqual(TEXT("dome and blink field collapsed"), Powers->GetActiveDomes().Num(), 0);
-	TestFalse(TEXT("vortex gone"), IsValid(Vortex));
+	TestFalse(TEXT("vortex gone"), Vortex.IsValid());
 	for (UTDPowerComponent* P : TArray<UTDPowerComponent*>{ Portal, Cloak, Dome, Well, Blink })
 	{
 		TestTrue(*FString::Printf(TEXT("%s ready for take 2"), *P->GetPowerName().ToString()), P->CanActivate());

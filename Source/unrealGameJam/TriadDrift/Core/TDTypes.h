@@ -10,6 +10,22 @@ class AActor;
 
 UNREALGAMEJAM_API DECLARE_LOG_CATEGORY_EXTERN(LogTriadDrift, Log, All);
 
+/**
+ * Actor tags that carry a contract between lanes (and with presentation). The strings never change.
+ */
+namespace TDTags
+{
+	/**
+	 * "This actor is where the player should go right now." World and flow actors add it while they
+	 * are the objective and remove it when they stop being one. The squad manager returns the tagged,
+	 * live actors from ITDHUDData::GetObjectiveMarkers(); the HUD draws direction markers from that.
+	 */
+	inline const FName ObjectiveMarker(TEXT("TD.Objective.Marker"));
+
+	/** A map-placed sky: switches all placeholder lighting, exposure and stars off (ATDPlaceholderSky). */
+	inline const FName PresentationSky(TEXT("TD.Presentation.Sky"));
+}
+
 /** Collision channels (Config/DefaultEngine.ini). Characters use the engine's Pawn channel. */
 namespace TDCollision
 {

@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Tests closing the review's gaps. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Combat
 
 #include "Misc/AutomationTest.h"
+#include "UObject/StrongObjectPtr.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -511,6 +512,7 @@ bool FTDGapMeshOffset::RunTest(const FString& Parameters)
 	FTDTestWorld W;
 	AActor* Lancer = Body(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 	UTDWeaponFX* FX = NewObject<UTDWeaponFX>();
+	const TStrongObjectPtr<UTDWeaponFX> FXRooted(FX); // a test-made asset: nothing else holds it until it's assigned
 	FX->ProjectileMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cone.Cone")));
 	FX->ProjectileMeshOffset = FVector(54.f, 0.f, 0.f);
 	FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::SpikeRockets).Projectile;
