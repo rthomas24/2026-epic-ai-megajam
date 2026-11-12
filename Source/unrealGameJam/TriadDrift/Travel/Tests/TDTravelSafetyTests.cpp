@@ -15,6 +15,8 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
+#include "Misc/ScopeExit.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Travel/Tests/TDTravelTestHelpers.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -506,6 +508,63 @@ bool FTDTravelStaleLandHold::RunTest(const FString& Parameters)
 	TestFalse(TEXT("the stale hold doesn't land the ship again"), Land->IsBusy());
 	FTDTestWorld::InjectKey(PC, EKeys::F, false);
 	W.Tick();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelVoidedTravel, "TriadDrift.Travel.Safety.VoidedOrTimedOutTravelHandsBackAndRetries", TD_TEST_FLAGS)
+bool FTDTravelVoidedTravel::RunTest(const FString& Parameters)
+{
+	// Review minor 6: a load voided by another level, or a travel that timed out, must hand the entering ship back
+	// (no override, no invulnerability, hyperdrive on) and allow a second attempt.
+	UTDFlowSettings* Settings = GetMutableDefault<UTDFlowSettings>();
+	const TMap<ETDDestination, FSoftObjectPath> SavedMaps = Settings->DestinationMaps;
+	const FSoftObjectPath SavedTransition = Settings->TransitionMap;
+	const float SavedTimeout = Settings->TravelTimeoutSeconds;
+	ON_SCOPE_EXIT
+	{
+		Settings->DestinationMaps = SavedMaps;
+		Settings->TransitionMap = SavedTransition;
+		Settings->TravelTimeoutSeconds = SavedTimeout;
+	};
+	Settings->DestinationMaps.Add(ETDDestination::Verdance, FSoftObjectPath(TEXT("/Engine/Maps/Entry.Entry")));
+	Settings->TransitionMap = FSoftObjectPath();
+	Settings->TravelTimeoutSeconds = 2.f;
+
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetWorld()->GetGameInstance());
+	if (!TestNotNull(TEXT("flow"), GI)) { return false; }
+	GI->OpenLevelOverride = [](const FString&) {}; // never actually leave the test world
+	UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(W.GetWorld());
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	W.Tick();
+	UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry();
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	const FVector Planet(400000.f, 0.f, 0.f);
+
+	auto Enter = [&]()
+	{
+		const bool bBegan = Entry->BeginEntry(ETDDestination::Verdance, TEXT("Descent"), Planet, 60000.f);
+		W.Advance(Entry->EntrySeconds + 0.1f);
+		return bBegan && Entry->GetEntryState() == ETDAtmosphereEntryState::Travelling;
+	};
+	auto HandedBack = [&](const TCHAR* Why)
+	{
+		W.Tick();
+		TestEqual(*FString::Printf(TEXT("%s: entry idle"), Why), Entry->GetEntryState(), ETDAtmosphereEntryState::Idle);
+		TestFalse(*FString::Printf(TEXT("%s: entry override released"), Why), Move->HasSpeedOverrideFor(UTDAtmosphereEntryComponent::OverrideOwner));
+		TestFalse(*FString::Printf(TEXT("%s: not invulnerable"), Why), Ship->GetHealth()->IsInvulnerable());
+		TestTrue(*FString::Printf(TEXT("%s: a new travel may be requested"), Why), Travel->CanRequestLevelTravel());
+	};
+
+	TestTrue(TEXT("first entry travels"), Enter());
+	TestTrue(TEXT("travel under way"), Travel->HasRequestedLevelTravel() && GI->IsTravelPending());
+	TestFalse(TEXT("while under way: no second request"), Travel->CanRequestLevelTravel());
+	GI->NotifyMapLoaded(TEXT("/Game/Somewhere/Else")); // another system loaded a level: our travel is void
+	HandedBack(TEXT("voided"));
+
+	TestTrue(TEXT("second attempt travels"), Enter());
+	GI->TickFlow(3.f); // past TravelTimeoutSeconds
+	HandedBack(TEXT("timed out"));
 	return true;
 }
 

@@ -191,7 +191,7 @@ bool UTDTravelSubsystem::CanRequestLevelTravel(FText* OutReason) const
 		if (OutReason) { *OutReason = FText::AsCultureInvariant(Text); }
 		return false;
 	};
-	if (bLevelTravelRequested)
+	if (HasRequestedLevelTravel())
 	{
 		return Fail(TEXT("Requested"), TEXT("Travel already requested from this level"));
 	}
@@ -208,6 +208,19 @@ bool UTDTravelSubsystem::CanRequestLevelTravel(FText* OutReason) const
 		}
 	}
 	return true;
+}
+
+bool UTDTravelSubsystem::HasRequestedLevelTravel() const
+{
+	if (!bLevelTravelRequested)
+	{
+		return false;
+	}
+	// Still in this world after a request: it is under way while the flow says so; a voided or timed-out travel
+	// (UTDGameInstance::FinishTravel(false)) frees it for another attempt.
+	const UWorld* World = GetWorld();
+	const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
+	return !GI || GI->IsTravelPending();
 }
 
 bool UTDTravelSubsystem::RequestLevelTravel(ETDDestination Destination, FName ReturnPoint)
