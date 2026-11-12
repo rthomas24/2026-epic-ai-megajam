@@ -36,6 +36,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Misc/ScopeExit.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 
 namespace TDSquadTests
@@ -1683,6 +1684,36 @@ bool FTDSquadManualTargetCarry::RunTest(const FString& Parameters)
 	TestTrue(TEXT("HUD shows it"), F.Squad->GetCurrentTarget() == Picked);
 	TestTrue(TEXT("HUD hyperdrive charge forwarded"), F.Squad->GetHyperdriveCharge01() == F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetCharge01());
 	TestEqual(TEXT("HUD altitude forwarded"), F.Squad->GetAltitude(), F.Ship(ETDShipId::Lancer)->GetAltitudeMeters());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEvadeOnMissile, "TriadDrift.Squad.Wingmen.EvadeOnIncomingMissile", TD_TEST_FLAGS)
+bool FTDSquadEvadeOnMissile::RunTest(const FString& Parameters)
+{
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		F.W.Advance(1.f, Step);
+		ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+		TestTrue(TEXT("in formation, not evading") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() != ETDWingmanState::Evade);
+		// A real enemy homing missile, launched at the Lancer wingman from ahead.
+		AActor* Shooter = F.SpawnEnemy(Lancer->GetActorLocation() + Lancer->GetActorForwardVector() * 30000.f, 1000.f);
+		ATDProjectile* Missile = TDPowerTest::LaunchMissile(F.W, Lancer->GetActorLocation() + Lancer->GetActorForwardVector() * 12000.f,
+			-Lancer->GetActorForwardVector(), Shooter, Lancer);
+		if (!TestNotNull(TEXT("missile") + Fps, Missile))
+		{
+			return false;
+		}
+		bool bEvaded = false;
+		for (int32 i = 0; i < FMath::CeilToInt(0.5f / Step) && !bEvaded; ++i)
+		{
+			F.W.Tick(Step);
+			bEvaded = F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Evade;
+		}
+		TestTrue(TEXT("breaks off when a missile homes on it") + Fps, bEvaded);
+		TestFalse(TEXT("Bastion (not targeted) doesn't") + Fps, F.Wing(ETDShipId::Bastion)->GetWingmanState() == ETDWingmanState::Evade);
+	}
 	return true;
 }
 
