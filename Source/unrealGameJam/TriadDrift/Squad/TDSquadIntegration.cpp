@@ -24,6 +24,8 @@
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/World/TDPortalGate.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -541,6 +543,31 @@ namespace TDSquad
 		{
 			Registry->GetHostilesOf(ETDTeam::Player, OutHostiles, /*bIncludeUntargetable*/ false);
 		}
+	}
+
+	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds)
+	{
+		UWorld* World = Ship ? Ship->GetWorld() : nullptr;
+		UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(Ship);
+		if (!World || !Powers)
+		{
+			return false;
+		}
+		const FVector Loc = Ship->GetActorLocation();
+		const FVector Vel = Ship->GetVelocity();
+		// From one step behind to LookAhead ahead: covers this frame's integration whichever ticks first.
+		const FVector From = Loc - Vel * 0.05f;
+		const FVector To = Loc + Vel * LookAheadSeconds;
+		for (TActorIterator<ATDPortalGate> It(World); It; ++It)
+		{
+			bool bForward = true;
+			if (It->IsGateActive() && ATDPortalGate::SegmentCrossesGate(It->GetActorTransform(), It->Radius * 1.25f, From, To, bForward))
+			{
+				Powers->MarkTransited(Ship);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection)
