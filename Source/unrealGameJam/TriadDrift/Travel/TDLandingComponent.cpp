@@ -107,8 +107,7 @@ ATDLandingPad* UTDLandingComponent::GetAvailablePad() const
 	{
 		return nullptr;
 	}
-	const float SpeedLimit = Move->GetFlightTuning().CruiseSpeed * Tuning.MaxSpeedFraction;
-	if (Ship->GetVelocity().Size() > SpeedLimit)
+	if (Ship->GetVelocity().Size() > GetLandingSpeedLimit())
 	{
 		return nullptr;
 	}
@@ -127,10 +126,39 @@ ATDLandingPad* UTDLandingComponent::GetAvailablePad() const
 	return nullptr;
 }
 
+float UTDLandingComponent::GetLandingSpeedLimit() const
+{
+	const ATDShip* Ship = GetShip();
+	const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+	return Move ? Move->GetCruiseCapSpeed() * Tuning.MaxSpeedFraction + 1.f : 0.f; // +1: "at or below"
+}
+
 FText UTDLandingComponent::GetLandPrompt() const
 {
-	const ATDLandingPad* Available = GetAvailablePad();
-	return Available ? Available->GetPromptText() : FText::GetEmpty();
+	if (const ATDLandingPad* Available = GetAvailablePad())
+	{
+		return Available->GetPromptText();
+	}
+	// Near a pad but too fast: say why there is no prompt (a player who never brakes would otherwise never know).
+	const ATDShip* Ship = GetShip();
+	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+	if (!Ship || !Travel || State != ETDLandingState::Flying || Ship->GetVelocity().Size() <= GetLandingSpeedLimit())
+	{
+		return FText::GetEmpty();
+	}
+	if (const UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
+	{
+		if (Hyper->GetState() != ETDHyperdriveState::Idle)
+		{
+			return FText::GetEmpty();
+		}
+	}
+	const ATDLandingPad* Near = Travel->FindPlayerPad(Ship->GetActorLocation(), TNumericLimits<float>::Max());
+	if (Near && FVector::Dist(Near->GetBeaconLocation(), Ship->GetActorLocation()) <= Tuning.SlowDownPromptRange)
+	{
+		return NSLOCTEXT("TDLanding", "SlowDownToLand", "SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE");
+	}
+	return FText::GetEmpty();
 }
 
 bool UTDLandingComponent::RequestLand()

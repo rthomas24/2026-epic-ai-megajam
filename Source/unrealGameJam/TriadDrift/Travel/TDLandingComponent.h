@@ -30,15 +30,23 @@ enum class ETDLandingState : uint8
 	GearUp
 };
 
-/** Defaults: features.md ENG-20 / §7 (3000 cm prompt, below 40% speed). */
+/**
+ * Defaults: features.md ENG-20, as changed by the Lead on Nov 12. The prompt comes within 120 m of the pad
+ * (ATDLandingPad::PromptRange). Landing is allowed at or below 60% of the plain top speed (the atmosphere cap on
+ * a planet, cruise in space). Within SlowDownPromptRange but too fast, the prompt says why.
+ */
 USTRUCT(BlueprintType)
 struct UNREALGAMEJAM_API FTDLandingTuning
 {
 	GENERATED_BODY()
 
-	/** Landing is offered below this fraction of the ship's (space) cruise speed. */
+	/** Landing is offered at or below this fraction of the ship's plain top speed (atmosphere cap / space cruise). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0", ClampMax = "1"))
-	float MaxSpeedFraction = 0.4f;
+	float MaxSpeedFraction = 0.6f;
+
+	/** Within this distance of a pad, a ship too fast to land is told to slow down (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float SlowDownPromptRange = 40000.f;
 
 	/** Seconds the land button must be held (the controller applies it). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
@@ -113,7 +121,13 @@ public:
 
 	/** "Hold F to land" when landing is available, empty otherwise (HUD). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	/**
+	 * What the HUD shows for landing (feeds ITDHUDData::GetInteractPrompt in flight): the pad's "Hold F to land"
+	 * when landing is possible, "SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE" near a pad while too fast, else empty.
+	 */
 	FText GetLandPrompt() const;
+	/** Landing speed limit right now (cm/s). */
+	float GetLandingSpeedLimit() const;
 
 	/** Player: land on the available pad; nearby squadmates land on its side pads. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")

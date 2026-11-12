@@ -1120,6 +1120,20 @@ bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
 		W.Advance(1.f);
 		TestFalse(TEXT("late tagged sky removes the placeholder"), P.IsValid() && !P->IsActorBeingDestroyed());
 	}
+	{
+		// Late sky in the space mode: the already-spawned star backdrop goes too (N-004 review MINOR).
+		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDSpaceGameMode::StaticClass());
+		ATDSpaceGameMode* GM = W.GetWorld()->GetAuthGameMode<ATDSpaceGameMode>();
+		TWeakObjectPtr<AActor> Stars = GM ? GM->GetStarBackdrop() : nullptr;
+		TestTrue(TEXT("space mode spawned the star backdrop"), Stars.IsValid());
+		W.Advance(1.f);
+		TestTrue(TEXT("stars stay while there is no real sky"), Stars.IsValid() && !Stars->IsActorBeingDestroyed());
+		AActor* Sky = W.Spawn<AActor>();
+		Sky->Tags.Add(ATDPlaceholderSky::PresentationSkyTag);
+		W.Advance(1.f);
+		TestFalse(TEXT("late tagged sky removes the star backdrop"), Stars.IsValid() && !Stars->IsActorBeingDestroyed());
+		TestNull(TEXT("mode forgets it"), GM ? GM->GetStarBackdrop() : nullptr);
+	}
 	return true;
 }
 

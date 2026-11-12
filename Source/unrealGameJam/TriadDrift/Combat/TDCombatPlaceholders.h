@@ -8,6 +8,7 @@
 #include "TDCombatPlaceholders.generated.h"
 
 struct FTDProjectileSpec;
+struct FTDFXCue;
 class UStaticMeshComponent;
 class UStaticMesh;
 class UMaterialInterface;
@@ -47,6 +48,12 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	static float DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
 	static constexpr float MinStreakPixels = 11.f;
 	static constexpr float MaxDistanceGrowth = 8.f;
+
+	/**
+	 * True when Cue draws something (a VFX). A sound- or shake-only cue does not replace a placeholder
+	 * flash: hiding on FTDFXCue::IsEmpty would make every flash vanish the moment audio lands.
+	 */
+	static bool HasVisualArt(const FTDFXCue& Cue);
 
 	/** Muzzle flash radius for a shot of Spec. */
 	static float MuzzleFlashRadius(const FTDProjectileSpec& Spec);

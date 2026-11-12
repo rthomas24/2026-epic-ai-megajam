@@ -573,7 +573,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	{
 		UTDStatics::PlayCue(this, ProjSpec.FX->Muzzle, MuzzleLocation, Dir.Rotation());
 	}
-	if (!ProjSpec.FX || ProjSpec.FX->Muzzle.IsEmpty())
+	if (!ProjSpec.FX || !FTDCombatPlaceholders::HasVisualArt(ProjSpec.FX->Muzzle))
 	{
 		// Placeholder muzzle flash, riding on the ship so it stays at the barrel.
 		if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))

@@ -103,6 +103,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ship")
 	void SetShipVisuals(UTDShipVisuals* InVisuals);
 
+	/**
+	 * Frozen audio-parameter contract (docs/eng/flight.md): every frame, both engine loops (UTDShipVisuals::EngineLoop
+	 * and the EngineTrail cue's sound) receive these float parameters, for the player's ship and wingmen alike.
+	 */
+	static const FName AudioParamSpeed01; // 0..1 of top speed (GetSpeed01)
+	static const FName AudioParamBoost01; // eased to 1 while boosting
+	static const FName AudioParamDrift01; // eased to 1 while drifting
+
+	UAudioComponent* GetEngineLoopAudio() const { return EngineLoopAudio.Get(); }
+	UAudioComponent* GetEngineTrailAudio() const { return EngineTrailAudio.Get(); }
+
+	/** Tests only (null otherwise): replaces UGameplayStatics::SpawnSoundAttached for the engine loop (headless runs have no audio device). */
+	static TFunction<UAudioComponent*(USoundBase*, USceneComponent*, FName)> TestSpawnEngineLoop;
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	UTDShipVisuals* GetShipVisuals() const { return Visuals; }
 
@@ -246,6 +260,11 @@ protected:
 	FTDFXCue ForThisShip(const FTDFXCue& Cue) const;
 	TSet<FName> ActiveLoops;
 	TWeakObjectPtr<UAudioComponent> EngineLoopAudio;
+	/** Eased 0..1 boost / drift for the engine audio parameters. */
+	float AudioBoost01 = 0.f;
+	float AudioDrift01 = 0.f;
+	/** Sends Speed01 / Boost01 / Drift01 (and, for non-MetaSound sounds, the pitch) to one engine loop. */
+	void ApplyEngineAudioParams(UAudioComponent* Audio) const;
 	double LastScrapeCueTime = -1000.0;
 
 	/** Minimum time between two scrape cues (a long scrape is one sound, not a machine gun). */

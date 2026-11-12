@@ -89,7 +89,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 15:33 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 15:38 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -158,6 +158,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | Atmosphere soft ground floor (hands-off planet arrival levels out, never crashes); landing rule changed in `features.md` ENG-20 (120 m, 60% of the atmosphere cap, slow-down prompt) | T1 | in review | Nov 12 15:10 | Nov 12 15:33 (`f2db3ce`); prompt texts in progress | `/features.md` (ENG-20) |
 | Powers test crash under garbage collection (test-made data assets unrooted; the game holds them properly): rooted, forced-collection probes kept as regression guards (`1421acb`) | T2 | done | Nov 12 15:19 | Nov 12 15:33 (`f2db3ce`); suite green three runs in a row on T2's side | none |
 | Core: `TDTags` (`TD.Objective.Marker`, `TD.Presentation.Sky`); `features.md` ENG-06 lock and marker rules; dev HUD draws the landing prompt while flying (next integration) | Lead | done | Nov 12 15:32 | Nov 12 15:33 (`f2db3ce`) | `/features.md` (ENG-06, ENG-20) |
+| On `main` at `850a557` (378 tests): engine loop parameters `Speed01` / `Boost01` / `Drift01`, stick reset on switch, landing prompts (T1); placeholder flashes hide only for a VFX cue (T2); objective markers by tag, landing prompt and slate position (T3); opening pass that crosses in front (T4); objective line for waves, travel, the Dominion and victory, late sky removes the star backdrop (T5); `ITDHUDData::GetObjectiveText`, dev HUD landing prompt (Lead) | all | in review | Nov 12 15:33 | Nov 12 15:38 (`850a557`); none of it replayed by the Lead yet | none |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |

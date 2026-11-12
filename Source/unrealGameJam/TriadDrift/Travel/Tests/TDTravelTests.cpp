@@ -354,15 +354,15 @@ bool FTDTravelLanding::RunTest(const FString& Parameters)
 	UTDLandingComponent* Land = Ship->GetLanding();
 	W.Tick();
 
-	// Prompt: within 3000 cm and below 40% of cruise.
+	// Prompt: within 120 m and at or below 60% of the plain top speed (space: cruise 6000 -> 3600).
 	Ship->GetShipMovement()->SetForwardSpeedImmediate(5000.f);
-	TestFalse(TEXT("too fast to land (5000 > 40% of 6000)"), Land->CanLandNow());
+	TestFalse(TEXT("too fast to land (5000 > 60% of 6000)"), Land->CanLandNow());
 	Ship->GetShipMovement()->SetForwardSpeedImmediate(2000.f);
 	TestTrue(TEXT("slow and close: landing offered"), Land->CanLandNow());
 	TestEqual(TEXT("prompt text"), Land->GetLandPrompt().ToString(), FString(TEXT("Hold F to land")));
-	Ship->TeleportSpacecraft(FVector(-4000.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+	Ship->TeleportSpacecraft(FVector(-14000.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
 	Ship->GetShipMovement()->SetForwardSpeedImmediate(2000.f);
-	TestFalse(TEXT("out of range: no prompt"), Land->CanLandNow());
+	TestFalse(TEXT("out of range (140 m): no prompt"), Land->CanLandNow());
 	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
 	Ship->GetShipMovement()->SetForwardSpeedImmediate(2000.f);
 
@@ -591,6 +591,94 @@ bool FTDTravelPlanetRig::RunTest(const FString& Parameters)
 	TestTrue(TEXT("wingman landed on a wingman pad"), Mate->GetLanding()->IsLanded() && Mate->GetLanding()->GetPad() && Mate->GetLanding()->GetPad()->IsWingmanPad());
 	const float Alt = Lead->GetAltitudeMeters();
 	TestTrue(FString::Printf(TEXT("placeholder ground under the pad (altitude %.1f m)"), Alt), Alt >= 0.f && Alt < 5.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelLandingSlowDown, "TriadDrift.Travel.Landing.SlowDownPromptAndAtmosphereRule", TD_TEST_FLAGS)
+bool FTDTravelLandingSlowDown::RunTest(const FString& Parameters)
+{
+	// Lead decision (Nov 12): prompt within 120 m, land at or below 60% of the ATMOSPHERE cap, and between
+	// 120 m and 400 m a ship that is too fast is told to slow down.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform PadXf = Rig->GetPlayerPad()->GetActorTransform();
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-30000.f, 0.f, 3000.f)));
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	UTDLandingComponent* Land = Ship->GetLanding();
+	TestTrue(TEXT("in atmosphere"), Move->IsInAtmosphere());
+	const float Cap = Move->GetCruiseCapSpeed();
+	TestEqual(TEXT("limit is 60% of the atmosphere cap"), Land->GetLandingSpeedLimit(), Cap * 0.6f, 2.f);
+	const FString SlowDown = TEXT("SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE");
+
+	auto At = [&](float Back, float Speed)
+	{
+		Ship->TeleportSpacecraft(PadXf.TransformPosition(FVector(-Back, 0.f, 3000.f)), FRotator::ZeroRotator, false);
+		Move->SetForwardSpeedImmediate(Speed);
+	};
+	At(30000.f, Cap);
+	TestEqual(TEXT("300 m, cruising: slow-down text"), Land->GetLandPrompt().ToString(), SlowDown);
+	TestFalse(TEXT("300 m, cruising: can't land"), Land->CanLandNow());
+	At(10000.f, Cap * 0.5f);
+	TestEqual(TEXT("100 m, slow: landing prompt"), Land->GetLandPrompt().ToString(), FString(TEXT("Hold F to land")));
+	TestTrue(TEXT("100 m, slow: can land"), Land->CanLandNow());
+	At(10000.f, Cap);
+	TestEqual(TEXT("100 m, cruising: slow-down text"), Land->GetLandPrompt().ToString(), SlowDown);
+	At(30000.f, Cap * 0.5f);
+	TestTrue(TEXT("300 m, slow: nothing yet (out of prompt range)"), Land->GetLandPrompt().IsEmpty());
+	At(50000.f, Cap);
+	TestTrue(TEXT("500 m: nothing"), Land->GetLandPrompt().IsEmpty());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelHandsOffArrival, "TriadDrift.Travel.Landing.HandsOffArrivalNeverSoftLocks", TD_TEST_FLAGS)
+bool FTDTravelHandsOffArrival::RunTest(const FString& Parameters)
+{
+	// Live playtest (Nov 12): from the descent start a hands-off ship flew into the ground past the pad.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform Start = Rig->GetDescentStart();
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, Start.GetLocation(), Start.Rotator());
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UTDLandingComponent* Land = Ship->GetLanding();
+	const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
+	const float GroundZ = Rig->GetPlayerPad()->GetActorLocation().Z - 200.f;
+
+	// Hands-off until the HUD would say "slow down" (the player is told why there is no prompt).
+	float MinGap = TNumericLimits<float>::Max();
+	bool bToldToSlow = false;
+	for (int32 i = 0; i < 60 * 25 && !bToldToSlow; ++i)
+	{
+		W.Tick();
+		MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		bToldToSlow = Land->GetLandPrompt().ToString().StartsWith(TEXT("SLOW DOWN"));
+	}
+	TestTrue(TEXT("hands-off arrival is told to slow down near the pad"), bToldToSlow);
+
+	// Brake and hold to land (the controller retries while F is held).
+	FTDFlightInput Brake;
+	Brake.Throttle = -1.f;
+	Brake.bBrake = true;
+	bool bLanding = false;
+	int32 BrakeFrames = 0;
+	for (int32 i = 0; i < 60 * 40 && !bLanding; ++i, ++BrakeFrames)
+	{
+		Ship->SetFlightInput(Brake);
+		W.Tick();
+		MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		bLanding = Land->RequestLand();
+	}
+	AddInfo(FString::Printf(TEXT("braking from the first slow-down prompt to the landing took %.1f s"), BrakeFrames / 60.f));
+	const float PadDist = FVector::Dist(Ship->GetActorLocation(), Rig->GetPlayerPad()->GetBeaconLocation());
+	TestTrue(*FString::Printf(TEXT("braking gets the landing (%.0f cm from the beacon, speed %.0f, limit %.0f)"), PadDist,
+		Ship->GetVelocity().Size(), Land->GetLandingSpeedLimit()), bLanding);
+	W.Advance(6.f);
+	TestTrue(TEXT("landed on the player pad"), Land->IsLanded() && Land->GetPad() == Rig->GetPlayerPad());
+	TestTrue(*FString::Printf(TEXT("never touched the ground on the way (min gap %.0f cm)"), MinGap), MinGap > 0.f);
 	return true;
 }
 
