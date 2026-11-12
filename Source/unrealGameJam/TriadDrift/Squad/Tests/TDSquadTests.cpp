@@ -2053,6 +2053,18 @@ bool FTDSquadLandPrompt::RunTest(const FString& Parameters)
 	Squad->SpawnSquad(FTransform(FVector(-300000.f, 0.f, 0.f)));
 	W.Tick();
 	TestTrue(TEXT("far from any pad: empty"), Squad->GetInteractPrompt().IsEmpty());
+	// Boundary warning (T1's text through the squad's HUD data): inside -> empty; well past the edge -> T1's text.
+	TestTrue(TEXT("inside the zone: no boundary warning"), Squad->GetBoundaryWarningText().IsEmpty());
+	{
+		UTDShipMovementComponent* Move = Squad->GetActiveShip()->GetShipMovement();
+		Move->SetBoundary(FVector(-300000.f, 0.f, 0.f), 1000.f, true);
+		W.Tick();
+		W.Tick();
+		TestFalse(TEXT("past the edge: the boundary warning reaches the HUD"), Squad->GetBoundaryWarningText().IsEmpty());
+		TestEqual(TEXT("it is the ship's own text"), Squad->GetBoundaryWarningText().ToString(), Move->GetBoundaryWarningText().ToString());
+		Move->SetBoundary(FVector::ZeroVector, 0.f, false);
+		W.Tick();
+	}
 
 	auto BringToPad = [&](ATDShip* Ship)
 	{
