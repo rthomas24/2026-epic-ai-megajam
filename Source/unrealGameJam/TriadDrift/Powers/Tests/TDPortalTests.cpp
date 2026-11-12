@@ -53,7 +53,8 @@ bool FTDPortalPlacement::RunTest(const FString& Parameters)
 	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 	TestTrue(TEXT("power active"), Power->IsPowerActive());
 	TestEqual(TEXT("two portals"), Power->GetPortals().Num(), 2);
-	ATDPortal* A = Power->GetPortals()[0].Get();
+	const TWeakObjectPtr<ATDPortal> AWeak = Power->GetPortals()[0];
+	ATDPortal* A = AWeak.Get();
 	ATDPortal* B = Power->GetPortals()[1].Get();
 	TestTrue(TEXT("A at max range ahead"), A && A->GetActorLocation().Equals(FVector(12000.f, 0.f, 0.f), 1.f));
 	TestTrue(TEXT("B at max range left"), B && B->GetActorLocation().Equals(FVector(0.f, 12000.f, 0.f), 1.f));
@@ -65,7 +66,7 @@ bool FTDPortalPlacement::RunTest(const FString& Parameters)
 	Power->HandleInputPressed();
 	W.Tick(PowerFrameStep());
 	TestEqual(TEXT("still two portals"), Power->GetPortals().Num(), 2);
-	TestFalse(TEXT("A closed"), IsValid(A));
+	TestFalse(TEXT("A closed"), AWeak.IsValid()); // A may already be garbage-collected: never touch the raw pointer
 	ATDPortal* C = Power->GetPortals()[1].Get();
 	TestTrue(TEXT("B now pairs with C"), B && C && B->GetPartner() == C && C->GetPartner() == B);
 
