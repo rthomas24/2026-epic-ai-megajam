@@ -90,6 +90,9 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 	void FinishEntry();
 

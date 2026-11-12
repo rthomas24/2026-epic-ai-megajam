@@ -42,6 +42,15 @@ UTDAtmosphereEntryComponent::UTDAtmosphereEntryComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+void UTDAtmosphereEntryComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if (!TravelFX)
+	{
+		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX();
+	}
+}
+
 float UTDAtmosphereEntryComponent::GetEntry01() const
 {
 	if (EntryState == ETDAtmosphereEntryState::Idle)

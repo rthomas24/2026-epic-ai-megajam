@@ -48,10 +48,11 @@ ATDSpacecraft::ATDSpacecraft()
 	HullMesh->CanCharacterStepUpOn = ECB_No;
 	if (ConeMesh.Succeeded())
 	{
+		PlaceholderHullMesh = ConeMesh.Object;
 		HullMesh->SetStaticMesh(ConeMesh.Object);
 		// Cone points +Z; pitch it so the tip points along +X (forward). 100 cm base mesh.
-		HullMesh->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
-		HullMesh->SetRelativeScale3D(FVector(1.6f, 1.6f, 4.2f));
+		HullMesh->SetRelativeRotation(PlaceholderHullRotation);
+		HullMesh->SetRelativeScale3D(PlaceholderHullScale);
 	}
 
 	PlaceholderWings = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlaceholderWings"));
@@ -110,6 +111,11 @@ FLinearColor ATDSpacecraft::GetPlaceholderColor() const
 
 void ATDSpacecraft::ApplyPlaceholderLook()
 {
+	TintPlaceholderParts();
+}
+
+void ATDSpacecraft::TintPlaceholderParts()
+{
 	if (!bPlaceholderParts)
 	{
 		return;
@@ -120,6 +126,19 @@ void ATDSpacecraft::ApplyPlaceholderLook()
 	UTDStatics::TintPlaceholder(EngineGlow, Color, EngineGlowBoost);
 }
 
+void ATDSpacecraft::RestorePlaceholderHull()
+{
+	if (!HullMesh)
+	{
+		return;
+	}
+	HullMesh->SetStaticMesh(PlaceholderHullMesh);
+	HullMesh->SetRelativeRotation(PlaceholderHullRotation);
+	HullMesh->SetRelativeScale3D(PlaceholderHullScale);
+	HullMesh->EmptyOverrideMaterials();
+	HullMesh->SetVisibility(true);
+}
+
 void ATDSpacecraft::SetPlaceholderPartsVisible(bool bVisible)
 {
 	bPlaceholderParts = bVisible;
@@ -127,7 +146,7 @@ void ATDSpacecraft::SetPlaceholderPartsVisible(bool bVisible)
 	if (EngineGlow) { EngineGlow->SetVisibility(bVisible); }
 	if (bVisible)
 	{
-		ApplyPlaceholderLook();
+		TintPlaceholderParts();
 	}
 }
 
