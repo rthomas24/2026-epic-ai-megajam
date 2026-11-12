@@ -8,6 +8,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSwitchCut.h"
+#include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TDSquadManager.generated.h"
 
 class ATDShip;
@@ -197,6 +198,9 @@ public:
 	virtual TArray<AActor*> GetLockedTargets() const override;
 	virtual FTDWaveInfo GetWaveInfo() const override;
 	virtual float GetSpeed01() const override;
+	virtual TArray<FTDTargetMarker> GetTargetMarkers() const override;
+	virtual ETDMissileWarning GetMissileWarning() const override;
+	virtual bool GetLeadIndicator(FVector& OutWorldLocation) const override;
 	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------
@@ -304,6 +308,7 @@ protected:
 	TWeakObjectPtr<APlayerController> SquadPC;
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
+	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
 	int32 SwitchCount = 0;
 	FTDSwitchCut LastSwitchCut;
 	/** True when a game flow took the defeat; it owns the restart, so timers stop. */

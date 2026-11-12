@@ -15,12 +15,6 @@ namespace
 		return FMath::IsFinite(V) ? FMath::Clamp(V, -1.f, 1.f) : 0.f;
 	}
 
-	/** Proportional gain of the auto-level (deg/s of roll per degree of bank). */
-	constexpr float AutoLevelGain = 2.5f;
-
-	/** Above this |forward.Z| the "world up" bank is meaningless (nose straight up/down). */
-	constexpr float VerticalNoseLimit = 0.9f;
-
 	/** Longest frame we integrate; longer hitches are clamped so the ship can't tunnel or explode. */
 	constexpr float MaxFrameSeconds = 0.25f;
 }
@@ -41,17 +35,27 @@ float TDFlightSim::ComputeTargetSpeed(const FTDFlightState& State, const FTDFlig
 	{
 		return FMath::Max(0.f, Context.OverrideSpeed);
 	}
+	float Target;
 	if (State.bBoosting)
 	{
-		return Tuning.BoostSpeed;
+		Target = Tuning.BoostSpeed;
 	}
-	if (In.bBrake)
+	else if (In.bBrake)
 	{
-		return Tuning.MinSpeed;
+		Target = Tuning.MinSpeed;
 	}
-	const float Throttle01 = (SafeAxis(In.Throttle) + 1.f) * 0.5f;
-	const float Top = FMath::Max(Tuning.CruiseSpeed, Context.ThrottleTopSpeed);
-	return FMath::Lerp(Tuning.MinSpeed, Top, Throttle01);
+	else
+	{
+		const float Throttle01 = (SafeAxis(In.Throttle) + 1.f) * 0.5f;
+		const float Top = FMath::Max(Tuning.CruiseSpeed, Context.ThrottleTopSpeed);
+		Target = FMath::Lerp(Tuning.MinSpeed, Top, Throttle01);
+	}
+	if (Context.bAtmosphere)
+	{
+		const float Cap = Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction;
+		Target = FMath::Min(Target, Cap);
+	}
+	return Target;
 }
 
 void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFlightTuning& T, const FTDFlightContext& C, float Dt)
@@ -62,6 +66,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	}
 
 	S.bDriftBurstThisStep = false;
+	S.bDriftEndedThisStep = false;
 	const float SteerScale = C.bSpeedOverride ? FMath::Max(0.f, C.OverrideSteeringScale) : 1.f;
 
 	// ---- Drift start (before rotation so the locked direction is the pre-turn travel direction) ---
@@ -70,11 +75,21 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	{
 		S.bDrifting = true;
 		S.DriftDirection = S.Velocity.SizeSquared() > 1.f ? S.Velocity.GetSafeNormal() : S.Rotation.GetForwardVector();
+		S.DriftStartForward = S.Rotation.GetForwardVector();
+		S.DriftTime = 0.f;
+	}
+	if (S.bDrifting)
+	{
+		S.DriftTime += Dt;
 	}
 
 	// ---- Boost meter ---------------------------------------------------------------------------------
-	const bool bWantBoost = In.bBoost && !S.bDrifting && !C.bSpeedOverride;
-	const bool bCanBoost = S.Boost01 > 0.f && (S.bBoosting || S.Boost01 >= T.BoostMinToStart);
+	if (!In.bBoost)
+	{
+		S.bBoostLockout = false; // released: an empty meter may start again once it refills
+	}
+	const bool bWantBoost = In.bBoost && !S.bDrifting && !C.bSpeedOverride && !C.bAtmosphere;
+	const bool bCanBoost = !S.bBoostLockout && S.Boost01 > 0.f && (S.bBoosting || S.Boost01 >= T.BoostMinToStart);
 	S.bBoosting = bWantBoost && bCanBoost;
 	if (S.bBoosting)
 	{
@@ -83,6 +98,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		if (S.Boost01 <= 0.f)
 		{
 			S.bBoosting = false; // meter empty: must release and wait for BoostMinToStart
+			S.bBoostLockout = In.bBoost;
 		}
 	}
 	else
@@ -99,13 +115,13 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	const float RollCap = T.RollRate * SteerScale;
 
 	FVector Forward = S.Rotation.GetForwardVector();
-	const bool bNoseVertical = FMath::Abs(Forward.Z) > VerticalNoseLimit;
+	const bool bNoseVertical = FMath::Abs(Forward.Z) > T.VerticalNoseLimit;
 
 	float TargetRoll = In.Roll * RollCap;
 	if (FMath::Abs(In.Roll) < 0.05f && T.AutoLevelRate > 0.f && !bNoseVertical)
 	{
 		const float Bank = S.Rotation.Rotator().Roll; // + = rolled right
-		TargetRoll = FMath::Clamp(-Bank * AutoLevelGain, -T.AutoLevelRate, T.AutoLevelRate);
+		TargetRoll = FMath::Clamp(-Bank * T.AutoLevelGain, -T.AutoLevelRate, T.AutoLevelRate);
 	}
 
 	const FVector TargetRates(TargetRoll, In.Aim.Y * TurnCap, In.Aim.X * TurnCap);
@@ -124,31 +140,47 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	FVector ToCenter = FVector::ZeroVector;
 	S.bOutOfBounds = false;
 	S.bNearBoundary = false;
-	if (C.bBoundaryEnabled && T.BoundaryRadius > 0.f)
+	if (C.bBoundaryEnabled && C.bBoxBoundary && C.BoundaryBox.IsValid)
 	{
+		const FVector Closest = C.BoundaryBox.GetClosestPointTo(S.Location);
+		const float Outside = FVector::Dist(Closest, S.Location);
+		S.bNearBoundary = Outside > 0.f || !C.BoundaryBox.ExpandBy(-T.BoundaryWarnDistance).IsInsideOrOn(S.Location);
+		if (Outside > KINDA_SMALL_NUMBER)
+		{
+			S.bOutOfBounds = true;
+			ToCenter = (Closest - S.Location) / Outside;
+			const float Depth01 = FMath::Clamp(Outside / T.BoundaryFullStrengthDepth, 0.f, 1.f);
+			BoundaryStrength = 0.25f + 0.75f * Depth01;
+		}
+	}
+	else if (C.bBoundaryEnabled && (C.BoundaryRadius > 0.f ? C.BoundaryRadius : T.BoundaryRadius) > 0.f)
+	{
+		const float Radius = C.BoundaryRadius > 0.f ? C.BoundaryRadius : T.BoundaryRadius;
 		const FVector Offset = S.Location - C.BoundaryCenter;
 		const float Dist = Offset.Size();
-		S.bNearBoundary = Dist > T.BoundaryRadius - T.BoundaryWarnDistance;
-		if (Dist > T.BoundaryRadius)
+		S.bNearBoundary = Dist > Radius - T.BoundaryWarnDistance;
+		if (Dist > Radius)
 		{
 			S.bOutOfBounds = true;
 			ToCenter = -Offset / Dist;
-			const float Depth01 = FMath::Clamp((Dist - T.BoundaryRadius) / T.BoundaryFullStrengthDepth, 0.f, 1.f);
+			const float Depth01 = FMath::Clamp((Dist - Radius) / T.BoundaryFullStrengthDepth, 0.f, 1.f);
 			BoundaryStrength = 0.25f + 0.75f * Depth01; // gentle at the edge, firm deeper out
-
-			Forward = S.Rotation.GetForwardVector();
-			const float CosAngle = FMath::Clamp(FVector::DotProduct(Forward, ToCenter), -1.f, 1.f);
-			const float Angle = FMath::Acos(CosAngle);
-			if (Angle > KINDA_SMALL_NUMBER)
+		}
+	}
+	if (BoundaryStrength > 0.f)
+	{
+		Forward = S.Rotation.GetForwardVector();
+		const float CosAngle = FMath::Clamp(FVector::DotProduct(Forward, ToCenter), -1.f, 1.f);
+		const float Angle = FMath::Acos(CosAngle);
+		if (Angle > KINDA_SMALL_NUMBER)
+		{
+			FVector Axis = FVector::CrossProduct(Forward, ToCenter);
+			if (!Axis.Normalize())
 			{
-				FVector Axis = FVector::CrossProduct(Forward, ToCenter);
-				if (!Axis.Normalize())
-				{
-					Axis = S.Rotation.GetUpVector(); // pointing straight out: turn around the up axis
-				}
-				const float MaxStep = FMath::DegreesToRadians(T.BoundarySteerRate * BoundaryStrength) * Dt;
-				S.Rotation = (FQuat(Axis, FMath::Min(Angle, MaxStep)) * S.Rotation).GetNormalized();
+				Axis = S.Rotation.GetUpVector(); // pointing straight out: turn around the up axis
 			}
+			const float MaxStep = FMath::DegreesToRadians(T.BoundarySteerRate * BoundaryStrength) * Dt;
+			S.Rotation = (FQuat(Axis, FMath::Min(Angle, MaxStep)) * S.Rotation).GetNormalized();
 		}
 	}
 
@@ -157,15 +189,31 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	const FVector Up = S.Rotation.GetUpVector();
 
 	// ---- Drift release: snap travel to the nose with a burst ------------------------------------------
+	// The burst never takes the ship past boost speed + burst, and needs a real drift (time or swing).
+	const float BurstCap = T.BoostSpeed * (1.f + T.DriftReleaseBurst);
 	if (!bWantDrift && S.bDrifting)
 	{
 		S.bDrifting = false;
-		S.bDriftBurstThisStep = true;
-		const float BurstSpeed = S.Velocity.Size() * (1.f + T.DriftReleaseBurst);
-		S.ForwardSpeed = BurstSpeed;
-		S.bBurstOverspeed = true;
+		S.bDriftEndedThisStep = true;
+		const float Swing = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(S.DriftStartForward, Forward), -1.f, 1.f)));
+		const bool bPilotReleased = !In.bDrift; // an override starting mid-drift ends it without a burst
+		const bool bEarned = S.DriftTime >= T.DriftBurstMinSeconds || Swing >= T.DriftBurstMinAngle;
+		const float DriftSpeed = S.Velocity.Size();
 		S.StrafeVelocity = FVector2D::ZeroVector;
-		S.Velocity = Forward * BurstSpeed;
+		if (bPilotReleased && bEarned)
+		{
+			S.bDriftBurstThisStep = true;
+			const float BurstSpeed = FMath::Min(DriftSpeed * (1.f + T.DriftReleaseBurst), FMath::Max(BurstCap, DriftSpeed));
+			S.ForwardSpeed = BurstSpeed;
+			S.bBurstOverspeed = true;
+			S.Velocity = Forward * BurstSpeed;
+		}
+		else
+		{
+			// No burst: travel still snaps to the nose (that's the drift's exit), at the same speed.
+			S.ForwardSpeed = DriftSpeed;
+			S.Velocity = Forward * DriftSpeed;
+		}
 	}
 
 	// ---- Speed and velocity -------------------------------------------------------------------------
@@ -173,7 +221,15 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	{
 		// Velocity keeps its direction; only drag and the brake change its length.
 		float DriftSpeed = S.Velocity.Size();
-		DriftSpeed = FMath::Max(0.f, DriftSpeed - T.DriftDrag * Dt);
+		if (DriftSpeed > BurstCap)
+		{
+			// Drifting out of a hyperdrive jump or ram: bleed the excess hard, like any other overspeed.
+			DriftSpeed = FMath::FInterpConstantTo(DriftSpeed, BurstCap, Dt, T.HighOverspeedDeceleration);
+		}
+		else
+		{
+			DriftSpeed = FMath::Max(0.f, DriftSpeed - T.DriftDrag * Dt);
+		}
 		if (In.bBrake)
 		{
 			DriftSpeed = FMath::FInterpConstantTo(DriftSpeed, T.MinSpeed, Dt, T.BrakeDeceleration);
@@ -200,8 +256,13 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		}
 		else
 		{
-			// After a drift burst the extra speed bleeds off slowly so the burst is felt.
-			if (S.bBurstOverspeed)
+			// After a drift burst the extra speed bleeds off slowly so the burst is felt; anything above
+			// the burst cap (or above boost speed otherwise) drops fast.
+			if (S.ForwardSpeed > BurstCap)
+			{
+				Rate = T.HighOverspeedDeceleration;
+			}
+			else if (S.bBurstOverspeed)
 			{
 				Rate = T.OverspeedDeceleration;
 			}
@@ -221,6 +282,12 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 
 		const FVector Desired = Forward * S.ForwardSpeed + Right * S.StrafeVelocity.X + Up * S.StrafeVelocity.Y;
 		S.Velocity = FMath::Lerp(S.Velocity, Desired, ExpAlpha(T.VelocityGrip, Dt));
+	}
+
+	// Atmosphere: gravity pulls down (grip mostly counters it, so the ship sags rather than falls).
+	if (C.bAtmosphere && !C.bSpeedOverride)
+	{
+		S.Velocity.Z -= C.AtmosphereGravity * Dt;
 	}
 
 	// Boundary push-back on top of whatever the pilot is doing.
@@ -254,11 +321,14 @@ int32 TDFlightSim::Advance(FTDFlightState& State, const FTDFlightInput& Input, c
 
 	const FTDFlightInput Clean = Sanitize(Input);
 	bool bBurst = false;
+	bool bEnded = false;
 	for (int32 i = 0; i < Steps; ++i)
 	{
 		Step(State, Clean, Tuning, Context, StepSeconds);
 		bBurst |= State.bDriftBurstThisStep;
+		bEnded |= State.bDriftEndedThisStep;
 	}
 	State.bDriftBurstThisStep = bBurst;
+	State.bDriftEndedThisStep = bEnded;
 	return Steps;
 }

@@ -2,6 +2,10 @@
 
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
+#include "TriadDrift/Powers/TDAbilityComponent.h"
+#include "TriadDrift/Powers/TDBastionPowers.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "TriadDrift/Powers/TDRamPower.h"
 
 #define LOCTEXT_NAMESPACE "TDShipLibrary"
 
@@ -24,6 +28,8 @@ namespace TDShipLibraryPrivate
 		S.PrimaryWeapon = TEXT("PhasePulseLasers");
 		S.SecondaryWeapon = TEXT("SplitterBolt");
 		S.SignaturePower = TEXT("PortalBlaster");
+		S.Signature1PowerClass = UTDPortalBlasterPower::StaticClass();
+		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::Cloak;
 		S.SquadColor = FLinearColor(1.0f, 0.10f, 0.85f); // magenta
 		return S;
@@ -46,6 +52,8 @@ namespace TDShipLibraryPrivate
 		S.PrimaryWeapon = TEXT("NeedleCannons");
 		S.SecondaryWeapon = TEXT("SpikeRockets");
 		S.SignaturePower = TEXT("AfterburnerRam");
+		S.Signature1PowerClass = UTDRamPower::StaticClass();
+		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::EMPPulse;
 		S.SquadColor = FLinearColor(0.05f, 0.90f, 1.0f); // cyan
 		return S;
@@ -68,6 +76,9 @@ namespace TDShipLibraryPrivate
 		S.PrimaryWeapon = TEXT("BreakerBlaster");
 		S.SecondaryWeapon = TEXT("FlakBurst");
 		S.SignaturePower = TEXT("MissileSwarm");
+		S.Signature1PowerClass = UTDMissileSwarmPower::StaticClass();
+		S.Signature2PowerClass = UTDShieldDomePower::StaticClass();
+		S.AbilityComponentClass = UTDAbilityComponent::StaticClass();
 		S.UnlockableAbility = ETDAbilityId::GravityWell;
 		S.SquadColor = FLinearColor(1.0f, 0.62f, 0.05f); // amber
 		return S;

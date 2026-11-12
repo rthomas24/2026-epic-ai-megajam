@@ -1,0 +1,199 @@
+// Triad Drift - auto-landing and take-off (ENG-20). Owner: Teammate 1.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "TDLandingComponent.generated.h"
+
+class ATDShip;
+class ATDLandingPad;
+class UTDTravelFX;
+
+/** Each step of the landing and take-off sequences (Nick drives gear / canopy / thruster animation from these). */
+UENUM(BlueprintType)
+enum class ETDLandingState : uint8
+{
+	Flying,
+	Aligning,      // fly to the hover point above the pad and turn to the pad's facing
+	GearDown,
+	Descending,
+	Touchdown,
+	EnginesOff,
+	CanopyOpening,
+	Landed,        // canopy open: OnShipLanded fired, first person takes over
+	CanopyClosing, // take-off starts here
+	EnginesOn,
+	Ascending,
+	GearUp
+};
+
+/** Defaults: features.md ENG-20 / §7 (3000 cm prompt, below 40% speed). */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDLandingTuning
+{
+	GENERATED_BODY()
+
+	/** Landing is offered below this fraction of the ship's (space) cruise speed. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0", ClampMax = "1"))
+	float MaxSpeedFraction = 0.4f;
+
+	/** Seconds the land button must be held (the controller applies it). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float HoldToLandSeconds = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float HoverHeight = 900.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
+	float AlignSeconds = 1.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
+	float GearSeconds = 0.6f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
+	float DescendSeconds = 1.2f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
+	float TouchdownSeconds = 0.3f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
+	float EnginesSeconds = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
+	float CanopySeconds = 0.8f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
+	float AscendSeconds = 1.6f;
+
+	/** Climb above the hover height during take-off (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float TakeOffClimb = 1500.f;
+
+	/** Forward speed handed back to the flight model after take-off, as a fraction of cruise. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float TakeOffSpeedFraction = 0.4f;
+
+	/** Pilot exit point: this far to the ship's right of its centre (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing")
+	float ExitSideOffset = 320.f;
+
+	/** Height of the exit point above the pad deck (cm): a character capsule's half height. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float ExitHeightAboveDeck = 96.f;
+
+	/** Squadmates within this distance land on side pads with the player. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float WingmanLandRadius = 60000.f;
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnLandingStateChanged, UTDLandingComponent*, Landing, ETDLandingState, NewState);
+
+/**
+ * Auto-landing and take-off for a squad ship. While busy or landed the ship is moved by the sequence
+ * (its flight model is paused, so controller / AI input is ignored); flying resumes at the end of
+ * take-off. Fires UTDTravelSubsystem::OnShipLanded / OnShipTookOff for T5's first-person hand-off.
+ */
+UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+class UNREALGAMEJAM_API UTDLandingComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	UTDLandingComponent();
+
+	/** The pad the player could land on right now (in range, slow enough, flying), or null. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	ATDLandingPad* GetAvailablePad() const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool CanLandNow() const { return GetAvailablePad() != nullptr; }
+
+	/** "Hold F to land" when landing is available, empty otherwise (HUD). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	FText GetLandPrompt() const;
+
+	/** Player: land on the available pad; nearby squadmates land on its side pads. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	bool RequestLand();
+
+	/** Land on a specific pad (wingmen, scripted arrivals). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	bool LandOnPad(ATDLandingPad* Pad);
+
+	/** Reverse the sequence; the player's take-off lifts the landed squadmates too. T5 calls this on re-board. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	bool RequestTakeOff();
+
+	/** Puts the ship straight into the Landed state on a pad (loading a checkpoint on a planet). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	bool SnapLanded(ATDLandingPad* Pad);
+
+	// ---- State for presentation and gameplay ------------------------------------------------------
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	ETDLandingState GetLandingState() const { return State; }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool IsGearDown() const { return bGearDown; }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool IsCanopyOpen() const { return bCanopyOpen; }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool AreEnginesOn() const { return bEnginesOn; }
+
+	/** 0 = flying, 1 = landed with the canopy open; runs back down during take-off. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	float GetLanding01() const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool IsLanded() const { return State == ETDLandingState::Landed; }
+
+	/** In any landing / take-off step or landed (the flight model is paused). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	bool IsBusy() const { return State != ETDLandingState::Flying; }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	ATDLandingPad* GetPad() const { return Pad.Get(); }
+
+	/**
+	 * Where the pilot steps out on foot (T5's first-person spawn) and where re-boarding should be offered:
+	 * beside the ship on its right, at capsule height above the deck, facing the ship's forward.
+	 * Valid whenever the ship is on or above a pad; otherwise beside the ship at its current height.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Landing")
+	FTransform GetExitTransform() const;
+
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Landing")
+	FTDOnLandingStateChanged OnLandingStateChanged;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Landing")
+	FTDLandingTuning Tuning;
+
+	/** Landing dust / take-off cues (Nick). Empty slots do nothing. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Landing")
+	TObjectPtr<UTDTravelFX> TravelFX;
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+private:
+	ATDShip* GetShip() const;
+	void SetState(ETDLandingState NewState);
+	float StateDuration(ETDLandingState S) const;
+	void PauseFlight(bool bPause);
+	FVector TouchPoint() const;
+	FVector HoverPoint() const;
+	FQuat PadFacing() const;
+	void LandWingmen(ATDLandingPad* PlayerPad);
+	void TakeOffWingmen();
+	void FinishTakeOff();
+
+	ETDLandingState State = ETDLandingState::Flying;
+	float StateTime = 0.f;
+	TWeakObjectPtr<ATDLandingPad> Pad;
+	FVector SegmentStart = FVector::ZeroVector;
+	FQuat SegmentStartRot = FQuat::Identity;
+	bool bGearDown = false;
+	bool bCanopyOpen = false;
+	bool bEnginesOn = true;
+};

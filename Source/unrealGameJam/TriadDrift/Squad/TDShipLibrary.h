@@ -8,6 +8,8 @@
 #include "TDShipLibrary.generated.h"
 
 class ATDShip;
+class UTDPowerComponent;
+class UTDAbilityComponent;
 
 /**
  * Gameplay spec for one squad ship (features.md ENG-04). Every number defaults to the features.md
@@ -79,6 +81,18 @@ struct UNREALGAMEJAM_API FTDShipSpec
 	/** Display/HUD name of the signature power (player-only). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Powers")
 	FName SignaturePower;
+
+	/** Signature power on Q (T2 component class; the squad installs it once per ship). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Powers")
+	TSubclassOf<UTDPowerComponent> Signature1PowerClass;
+
+	/** Second signature power on hold-Q (Bastion's shield dome). None for the others. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Powers")
+	TSubclassOf<UTDPowerComponent> Signature2PowerClass;
+
+	/** The unlockable-ability slot component (installs whatever progress has unlocked, ENG-12). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Powers")
+	TSubclassOf<UTDAbilityComponent> AbilityComponentClass;
 
 	/** Ability this ship can unlock (ENG-12). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Powers")

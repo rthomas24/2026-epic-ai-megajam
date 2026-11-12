@@ -250,12 +250,13 @@ void ATDDominion::BuildParts()
 	FActorSpawnParameters Params;
 	Params.Owner = this;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	const FAttachmentTransformRules Attach(EAttachmentRule::KeepRelative, true);
+	// Snap, then set relative offsets: KeepRelative on a freshly spawned actor would apply our rotation twice.
+	const FAttachmentTransformRules Attach(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true);
 	const FVector E = HullExtent;
 
 	auto SpawnTurret = [&](const FVector& Local, TArray<TObjectPtr<ATDEnemyTurret>>& Into)
 	{
-		ATDEnemyTurret* T = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), GetActorTransform(), Params);
+		ATDEnemyTurret* T = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!T) { return; }
 		T->AttachToActor(this, Attach);
 		T->SetActorRelativeLocation(Local);
@@ -270,7 +271,7 @@ void ATDDominion::BuildParts()
 	{
 		const float Angle = PI * 0.25f + PI * 0.5f * i;
 		const FVector Local(FMath::Cos(Angle) * Ring, FMath::Sin(Angle) * Ring, 0.f);
-		ATDShieldGenerator* G = World->SpawnActor<ATDShieldGenerator>(ATDShieldGenerator::StaticClass(), GetActorTransform(), Params);
+		ATDShieldGenerator* G = World->SpawnActor<ATDShieldGenerator>(ATDShieldGenerator::StaticClass(), FTransform::Identity, Params);
 		if (!G) { continue; }
 		G->Visuals = Visuals;
 		G->AttachToActor(this, Attach);
@@ -296,12 +297,12 @@ void ATDDominion::BuildParts()
 
 	// Reactor at the bottom of the trench, plus dormant trench turrets.
 	const float TrenchZ = E.Z + 1500.f;
-	Reactor = World->SpawnActor<ATDDominionReactor>(ATDDominionReactor::StaticClass(), GetActorTransform(), Params);
+	Reactor = World->SpawnActor<ATDDominionReactor>(ATDDominionReactor::StaticClass(), FTransform::Identity, Params);
 	if (Reactor)
 	{
 		Reactor->Visuals = Visuals;
 		Reactor->AttachToActor(this, Attach);
-		Reactor->SetActorRelativeLocation(FVector(E.X * 0.55f, 0.f, TrenchZ - 500.f));
+		Reactor->SetActorRelativeLocation(FVector(E.X * 0.55f, 0.f, TrenchZ));	// sits clear of the hull top and the trench walls
 		Reactor->SetExposed(false);
 		Reactor->OnPhaseChanged.AddUniqueDynamic(this, &ATDDominion::HandleReactorPhase);
 		Reactor->OnReactorDestroyed.AddUniqueDynamic(this, &ATDDominion::HandleReactorDestroyed);
@@ -309,7 +310,7 @@ void ATDDominion::BuildParts()
 	for (int32 i = 0; i < TrenchTurrets; ++i)
 	{
 		const float X = FMath::Lerp(-0.5f, 0.4f, TrenchTurrets > 1 ? float(i) / (TrenchTurrets - 1) : 0.5f) * E.X;
-		SpawnTurret(FVector(X, (i % 2 ? 1.f : -1.f) * 2100.f, TrenchZ + 1200.f), TrenchTurretActors);
+		SpawnTurret(FVector(X, (i % 2 ? 1.f : -1.f) * 1700.f, TrenchZ + 1200.f), TrenchTurretActors);	// inside the walls (|y| < 2300)
 	}
 	for (ATDEnemyTurret* T : TrenchTurretActors)
 	{

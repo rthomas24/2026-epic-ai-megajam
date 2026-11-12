@@ -106,7 +106,7 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.55f;
 		W.Phase = ETDGamePhase::Waves3to4;
 		W.StartTip = TDTipIds::Gunships;
-		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::Ahead));
+		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::FlankRight));
 		W.Groups.Add(Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank, 2.f));
 		Out.Add(W);
 	}
@@ -117,7 +117,7 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Title = LOCTEXT("Wave4", "Minefield");
 		W.Intensity01 = 0.7f;
 		W.Phase = ETDGamePhase::Waves3to4;
-		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::Ahead));
+		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::FlankLeft));
 		W.Groups.Add(Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 1.f));
 		W.Groups.Add(Group(HookInterceptor, 4, 1, ETDSpawnZone::Behind, 5.f));
 		W.Groups.Add(Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 3.f));
@@ -133,7 +133,7 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.9f;
 		W.Phase = ETDGamePhase::Wave5;
 		W.StartTip = TDTipIds::Carriers;
-		W.Groups.Add(Group(HiveCarrier, 2, 1, ETDSpawnZone::Ahead));
+		W.Groups.Add(Group(HiveCarrier, 2, 1, ETDSpawnZone::Behind));
 		W.Groups.Add(Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 1.f));
 		W.Groups.Add(Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 3.f));
 		W.Groups.Add(Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 6.f));
@@ -329,9 +329,8 @@ void ATDWaveDirector::BeginWave(int32 Index)
 		FPendingGroup P;
 		P.Group = G;
 		P.Remaining = G.Delay + WarpInSeconds;
-		const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(G.EnemyId);
-		const bool bLarge = Spec.IsValid() && Spec.Size >= ETDEnemySize::Large;
-		PickSpawnPoint(G.Zone, bLarge, P.Location, P.Facing);
+		// The spawn point is picked when the warp-in is announced (relative to where the player is
+		// THEN), not now: delayed groups must not appear where the player was seconds ago.
 		Pending.Add(P);
 	}
 
@@ -423,7 +422,8 @@ AActor* ATDWaveDirector::GetSpawnAnchor() const
 void ATDWaveDirector::PickSpawnPoint(ETDSpawnZone Zone, bool bLarge, FVector& OutLocation, FRotator& OutFacing)
 {
 	const AActor* Anchor = GetSpawnAnchor();
-	const FVector Origin = Anchor->GetActorLocation();
+	// Lead the anchor by the warp-in time: the group appears around where the player WILL be.
+	const FVector Origin = Anchor->GetActorLocation() + Anchor->GetVelocity() * WarpInSeconds;
 	const FVector Fwd = Anchor->GetActorForwardVector();
 	const FVector Right = Anchor->GetActorRightVector();
 	const FVector Up = Anchor->GetActorUpVector();
@@ -783,6 +783,8 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 			if (!P.bWarpAnnounced && P.Remaining <= WarpInSeconds)
 			{
 				P.bWarpAnnounced = true;
+				const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
+				PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
 				OnWarpInStarted.Broadcast(P.Location, P.Group.EnemyId);
 				if (TravelFX)
 				{
@@ -791,6 +793,11 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 			}
 			if (P.Remaining <= 0.f)
 			{
+				if (!P.bWarpAnnounced)
+				{
+					const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
+					PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
+				}
 				const FPendingGroup Ready = P;
 				Pending.RemoveAt(i);
 				SpawnGroup(Ready);
