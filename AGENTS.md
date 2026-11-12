@@ -257,12 +257,23 @@ afternoon of work or a corrupted map can sink the entry. **Follow this protocol 
 ### 6.2 Before you start any task
 ```bash
 git fetch origin
-git status                      # must be clean or only contain your own known changes
-git pull --rebase origin main   # get the teammate's latest work first
+git status                      # identify every uncommitted change
+git branch --show-current
+git log --oneline HEAD..origin/main
+git diff --name-only HEAD...origin/main
 ```
-Then check `CLAIMS.md` (§6.5) to make sure the files you're about to edit aren't claimed by the
-teammate. If the Unreal Editor is open, the human may need to restart it or reload assets after
-pulling; tell them.
+Review incoming changes against the assigned files and local changes before integrating anything.
+The Lead Agent for your human (§6.9) runs `git pull --rebase origin main` only in the designated
+`main` checkout, with a clean working tree and no unresolved ownership or binary overlap. Never
+auto-stash, discard changes, or pull/rebase a shared checkout to make this check pass. If it is
+dirty, preserve it and prepare work in an isolated worktree from the reviewed remote commit.
+For a task branch, the Lead chooses the appropriate base and integration operation (§6.8–§6.9);
+do not blindly run the `main` pull command there.
+
+Check `CLAIMS.md` in both the working tree and fetched `origin/main` (§6.5), plus pending claims
+recorded by the Lead, before editing. If it is missing, the Lead creates it; absence is not permission
+to edit shared assets. After synchronization changes loaded assets, tell the human which assets
+must be reloaded; request an editor restart for changed C++ modules or when reload is unsafe.
 
 ### 6.3 Before EVERY commit: poll the remote first
 ```bash
@@ -271,11 +282,12 @@ git log --oneline HEAD..origin/main          # what has the teammate pushed sinc
 git diff --name-only HEAD...origin/main      # files THEY changed
 git status --porcelain                       # files YOU changed
 ```
-Compare the two file lists:
-- **No overlap:** commit, then `git pull --rebase origin main`, then push immediately (§6.4).
-- **Overlap on text files:** commit, then `git pull --rebase origin main`, and resolve conflicts
-  carefully, keeping **both** people's intent. If the resolution isn't obvious, **stop and ask your
-  human.**
+Compare the incoming paths with both local changes and the agent's entire assigned file set.
+Recheck claims and resolve ownership before committing or integrating overlapping changes:
+- **No overlap:** commit only owned files, then the Lead synchronizes and pushes (§6.4).
+- **Overlap on text files:** coordinate ownership first. Once agreed, commit the owned change and
+  let the Lead integrate carefully, keeping **both** people's intent. If ownership or the resolution
+  isn't obvious, **stop and ask your human.**
 - **Overlap on ANY binary file** (`.uasset`, `.umap`, `.blend`, images, audio): **STOP.** Don't commit,
   don't rebase, don't pick a side. Tell your human exactly which files overlap and who changed them.
   The humans decide whose version wins, and the other person redoes their change on top.
@@ -287,13 +299,16 @@ Compare the two file lists:
   `git add -A` / `git add .` without reviewing `git status` first. Unreal touches lots of files
   incidentally, so don't commit incidental re-saves of assets you didn't mean to change.
 - Commit message format: `<area>: <what changed>`, e.g. `player: add dash ability`.
-- Push right after committing:
+- For the designated `main` checkout, the Lead pushes right after committing, subject to §6.2–§6.3:
   ```bash
   git pull --rebase origin main
   git push origin main
   ```
   If the push is rejected, the teammate just pushed: go back to §6.3 and repeat. Never "fix" it with
   force.
+- Task branches are handed to the Lead for review and integration (§6.9). Never push a worker
+  branch to `main` directly or rebase commits already shared with others. Publish task branches
+  by their own names without force; preserve them until integration is verified.
 - Make sure the project **still opens and compiles** before pushing. Never push a broken `main`; the
   teammate will pull it immediately.
 
@@ -311,7 +326,9 @@ it if it doesn't exist:
 - Claim binary assets **before** editing them, especially maps and shared Blueprints like the
   GameMode, PlayerController, PlayerCharacter and GameInstance. Commit and push the claim right away
   so the other agent sees it.
-- Remove your claim as soon as your change is pushed.
+- Release only your own claim, through the Lead, once the change is integrated and pushed to
+  `main`. A worker-branch push alone does not release a claim. Never remove or rewrite another
+  agent's or teammate's active claim, including during merges; uncertainty means keep it and ask.
 - If something you need is claimed by the teammate, **don't edit it.** Tell your human so the two of
   them can coordinate.
 - `git lfs lock <file>` / `git lfs unlock <file>` is available if you want a hard lock on a hot file.
@@ -329,7 +346,7 @@ it if it doesn't exist:
 - Prefer C++ or other text-based logic where it makes sense: text merges, Blueprints don't.
 
 ### 6.7 Hard rules: never do these
-- ❌ `git push --force` / `--force-with-lease` on `main`
+- ❌ `git push --force` / `--force-with-lease` on any branch
 - ❌ `git reset --hard`, `git checkout -- <file>`, `git restore` or `git clean -fd` on anything that
   might contain the teammate's or your human's uncommitted work, without your human's explicit OK
 - ❌ Rewriting pushed history (`rebase -i`, `commit --amend` on pushed commits)
@@ -345,6 +362,31 @@ it if it doesn't exist:
 By default everyone works on `main` with the protocol above, which is fastest in a 4-day jam. For a
 risky experiment, use a short-lived branch `<name>/<feature>` and merge it back within a few hours.
 Don't let branches drift.
+
+For concurrent agents on one human's side, use separate short-lived branches and worktrees where
+supported. This extends the workflow above; it does not change Ryan's default `main` workflow or
+the role ownership in features.md. Git worktrees share refs and configuration, so isolation does
+not give permission for concurrent remote synchronization or overlapping asset edits.
+
+### 6.9 Lead Agent and worker assignments
+- Each human has their own Lead Agent. Nick's Lead coordinates Nick's workers only; it does not
+  direct Ryan's agent or assume ownership of Ryan's files. Cross-role changes go through the humans.
+- Before dispatch, record the worker ID, human, task, exact writable paths, read-only references,
+  branch, absolute worktree path, base commit and claims. An unspecified path is read-only. Shared
+  maps/actors and dependency changes still require the existing claims and coordination (§6.5–§6.6).
+- The Lead owns worktree/branch creation, remote synchronization, claim publication and integration.
+  Workers request a serialized preflight from the Lead before each task and commit; the Lead runs
+  the fetch and checks in §6.2–§6.3 for that worktree. Workers never independently pull, rebase,
+  merge, push, switch branches or create/remove worktrees. Do not run Git mutations concurrently
+  in a shared working tree. If worktree isolation is unavailable, allow only one writer at a time.
+- Before binary editing begins, the Lead publishes the claim to `main` and verifies it on the
+  remote. A local claim or one present only on a task branch is not team-visible authorization.
+- Workers report changed paths, commit IDs (if any), validation and outstanding problems. The Lead
+  repeats §6.3, checks ownership and binary overlap, integrates reviewed work in a clean designated
+  checkout, validates it and pushes under §6.4. Serialize integrations. Never discard or overwrite
+  human or teammate changes to unblock this process.
+- Stop at infrastructure setup until the human authorizes game development. Do not launch asset or
+  gameplay workers merely because their folders exist.
 
 ---
 
