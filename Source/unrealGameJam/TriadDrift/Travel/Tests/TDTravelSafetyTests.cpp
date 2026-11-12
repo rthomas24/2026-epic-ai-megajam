@@ -645,6 +645,36 @@ bool FTDTravelJumpSlowMo::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelStandingReasons, "TriadDrift.Travel.Safety.StandingHyperdriveReasonsOnlyAfterAPress", TD_TEST_FLAGS)
+bool FTDTravelStandingReasons::RunTest(const FString& Parameters)
+{
+	// Lead (Nov 12): "NO HYPERDRIVE IN ATMOSPHERE" sat on the HUD for a whole planet visit. Standing reasons show for
+	// 2 s after a refused press; useful-right-now reasons (a lock) stay up.
+	FTDTestWorld W;
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	W.Tick();
+	UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
+	Ship->GetShipMovement()->SetAtmosphereMode(true);
+	W.Tick();
+	TestEqual(TEXT("in atmosphere: blocked"), Hyper->GetBlockReason(), ETDHyperdriveBlock::InAtmosphere);
+	TestTrue(TEXT("no press: no standing text on the HUD"), Hyper->GetBlockReasonText().IsEmpty());
+	TestFalse(TEXT("press refused"), Hyper->RequestSpoolFromPilot());
+	TestEqual(TEXT("after the press: the reason shows"), Hyper->GetBlockReasonText().ToString(), FString(TEXT("NO HYPERDRIVE IN ATMOSPHERE")));
+	W.Advance(1.5f);
+	TestFalse(TEXT("1.5 s later: still shown"), Hyper->GetBlockReasonText().IsEmpty());
+	W.Advance(1.f);
+	TestTrue(TEXT("2.5 s later: gone"), Hyper->GetBlockReasonText().IsEmpty());
+
+	// A lock is useful right now: always shown, no press needed.
+	Ship->GetShipMovement()->SetAtmosphereMode(false);
+	UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(W.GetWorld());
+	const FText Lock = FText::FromString(TEXT("HYPERDRIVE LOCKED - ENEMIES IN RANGE"));
+	Travel->AddHyperdriveLock(TEXT("Wave"), Lock);
+	W.Tick();
+	TestTrue(TEXT("lock text without a press"), Hyper->GetBlockReasonText().EqualTo(Lock));
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
 bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
 {
