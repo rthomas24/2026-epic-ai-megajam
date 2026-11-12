@@ -22,6 +22,8 @@ FTDDirectorTuning::FTDDirectorTuning()
 	BaseImportance.Add(ETDHighlightKind::MultiKill, 0.5f);
 	BaseImportance.Add(ETDHighlightKind::SwitchStrikeKill, 0.5f);
 	BaseImportance.Add(ETDHighlightKind::AbilityCombo, 0.5f);
+
+	DurationOverrideSeconds.Add(ETDHighlightKind::PerfectDeflect, 0.15f);
 }
 
 UTDDirectorSubsystem* UTDDirectorSubsystem::Get(const UObject* WorldContext)
@@ -166,7 +168,8 @@ bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subjec
 	Shot.Subject = Subject;
 	Shot.Secondary = Secondary;
 	Shot.Importance01 = Importance;
-	Shot.DurationSeconds = FMath::Lerp(Tuning.MinSlowMoSeconds, Tuning.MaxSlowMoSeconds, Importance);
+	const float* Override = Tuning.DurationOverrideSeconds.Find(Kind);
+	Shot.DurationSeconds = Override ? *Override : FMath::Lerp(Tuning.MinSlowMoSeconds, Tuning.MaxSlowMoSeconds, Importance);
 	Shot.Dilation = FMath::Lerp(Tuning.DilationAtMinImportance, Tuning.DilationAtMaxImportance, Importance);
 	Shot.StartRealTime = static_cast<float>(Now);
 	BuildCameraHint(Shot);

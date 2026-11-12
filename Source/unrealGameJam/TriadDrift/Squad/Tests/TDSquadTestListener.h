@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Squad/TDSwitchCut.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TDSquadTestListener.generated.h"
 
 class UTDEventBus;
@@ -41,6 +42,12 @@ public:
 
 	UFUNCTION()
 	void OnSwitchCut(const FTDSwitchCut& Cut) { ++Cuts; LastCut = Cut; }
+
+	UFUNCTION()
+	void OnSwitchRefused(ETDSwitchRefusal Reason, ETDShipId Ship) { ++Refusals; LastRefusal = Reason; }
+
+	int32 Refusals = 0;
+	ETDSwitchRefusal LastRefusal = ETDSwitchRefusal::Cooldown;
 
 	int32 Switches = 0;
 	int32 Downed = 0;

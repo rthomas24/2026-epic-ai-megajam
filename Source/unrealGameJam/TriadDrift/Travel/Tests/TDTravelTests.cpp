@@ -16,6 +16,9 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Travel/Tests/TDTravelTestHelpers.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "Camera/CameraComponent.h"
 #include "InputMappingContext.h"
 
@@ -49,7 +52,6 @@ namespace TDTravelTest
 	}
 }
 
-using namespace TDTravelTest;
 
 // =================================================================================== hyperdrive
 
@@ -57,8 +59,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelHyperSpool, "TriadDrift.Travel.Hyperdr
 bool FTDTravelHyperSpool::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDShip* Ship = SpawnShip(W, FVector::ZeroVector);
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector::ZeroVector);
 	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("hyperdrive"), Ship->GetHyperdrive())) { return false; }
+	Ship->SetPlayerControlled(true);
 	UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
 	W.Advance(0.5f);
 
@@ -113,9 +116,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelHyperDamage, "TriadDrift.Travel.Hyperd
 bool FTDTravelHyperDamage::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDShip* Ship = SpawnShip(W, FVector::ZeroVector);
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector::ZeroVector);
 	AActor* Shooter = W.Spawn<AActor>(FVector(5000.f, 0.f, 0.f));
 	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	Ship->SetPlayerControlled(true);
 	UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
 	W.Advance(0.5f);
 
@@ -154,13 +158,14 @@ bool FTDTravelHyperWell::RunTest(const FString& Parameters)
 	const FVector WellAt(600000.f, 0.f, 0.f);
 	Travel->RegisterGravityWell(TEXT("Planet_Test"), WellAt, 15000.f);
 
-	ATDShip* Ship = SpawnShip(W, FVector::ZeroVector);
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector::ZeroVector);
 	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	Ship->SetPlayerControlled(true);
 	UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
 	W.Advance(0.2f);
 	TestTrue(TEXT("spool"), Hyper->StartSpool());
 
-	const float Took = TickUntil(W, 15.f, [Hyper]() { return Hyper->GetState() == ETDHyperdriveState::DropOut; });
+	const float Took = TDTravelTest::TickUntil(W, 15.f, [Hyper]() { return Hyper->GetState() == ETDHyperdriveState::DropOut; });
 	TestTrue(TEXT("dropped out"), Took > 0.f);
 	TestEqual(TEXT("dropped out at the registered well"), Hyper->GetLastDropOutWell(), FName(TEXT("Planet_Test")));
 	const float Dist = FVector::Dist(Ship->GetActorLocation(), WellAt);
@@ -239,7 +244,7 @@ bool FTDTravelAtmosphereZone::RunTest(const FString& Parameters)
 	ATDLandingPad* Ground = W.Spawn<ATDLandingPad>(FVector(0.f, 0.f, -2000.f));
 	TestNotNull(TEXT("ground"), Ground);
 
-	ATDShip* Ship = SpawnShip(W, FVector(0.f, 0.f, 3000.f));
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector(0.f, 0.f, 3000.f));
 	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
 	APlayerController* PC = W.SpawnPlayerController(Ship, ATDSpacePlayerController::StaticClass());
 	Ship->SetPlayerControlled(true);
@@ -268,7 +273,7 @@ bool FTDTravelAtmosphereZone::RunTest(const FString& Parameters)
 	// Exit open: climb through.
 	Zone->SetExitAllowed(true);
 	Ship->TeleportSpacecraft(FVector(0.f, 0.f, Box.Max.Z + 1000.f), FRotator(80.f, 0.f, 0.f), true);
-	const float Took = TickUntil(W, 6.f, [Zone]() { return Zone->IsExitTriggered(); });
+	const float Took = TDTravelTest::TickUntil(W, 6.f, [Zone]() { return Zone->IsExitTriggered(); });
 	TestTrue(TEXT("take-off exit through the ceiling once allowed"), Took >= 0.f);
 
 	// Objectives gate: without a game flow the required list keeps the exit shut.
@@ -282,7 +287,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAtmosphereEntry, "TriadDrift.Travel.At
 bool FTDTravelAtmosphereEntry::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W; // plain game instance: no ITDGameFlow, so travel can't happen
-	ATDShip* Ship = SpawnShip(W, FVector::ZeroVector);
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector::ZeroVector);
 	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("entry component"), Ship->GetAtmosphereEntry())) { return false; }
 	UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry();
 	W.Advance(0.5f);
@@ -307,7 +312,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelPlayBounds, "TriadDrift.Travel.PlayBou
 bool FTDTravelPlayBounds::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDShip* A = SpawnShip(W, FVector(60000.f, 0.f, 0.f));
+	ATDShip* A = TDTravelTest::SpawnShip(W, FVector(60000.f, 0.f, 0.f));
 	W.Advance(0.2f);
 	TestFalse(TEXT("default 15 km bounds: not out yet"), A->IsOutOfBounds());
 
@@ -316,7 +321,7 @@ bool FTDTravelPlayBounds::RunTest(const FString& Parameters)
 	W.Tick();
 	TestTrue(TEXT("existing ship picks up the layout's bounds"), A->IsOutOfBounds());
 
-	ATDShip* B = SpawnShip(W, FVector(-70000.f, 0.f, 0.f));
+	ATDShip* B = TDTravelTest::SpawnShip(W, FVector(-70000.f, 0.f, 0.f));
 	W.Tick();
 	W.Tick();
 	TestTrue(TEXT("ships spawned later pick them up too"), B->IsOutOfBounds());
@@ -339,8 +344,8 @@ bool FTDTravelLanding::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("side pad is a wingman pad"), SidePad->IsWingmanPad());
 
-	ATDShip* Ship = SpawnShip(W, FVector(-1500.f, 0.f, 1500.f));
-	ATDShip* Mate = SpawnShip(W, FVector(-2000.f, 5000.f, 2500.f));
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector(-1500.f, 0.f, 1500.f));
+	ATDShip* Mate = TDTravelTest::SpawnShip(W, FVector(-2000.f, 5000.f, 2500.f));
 	if (!TestNotNull(TEXT("ships"), Ship) || !Mate) { return false; }
 	Mate->SetShipId(ETDShipId::Bastion);
 	Ship->SetPlayerControlled(true);
@@ -421,7 +426,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelCockpit, "TriadDrift.Travel.Camera.Coc
 bool FTDTravelCockpit::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDShip* Ship = SpawnShip(W, FVector::ZeroVector);
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector::ZeroVector);
 	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
 	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("controller"), PC)) { return false; }
 	Ship->SetPlayerControlled(true);
@@ -441,6 +446,130 @@ bool FTDTravelCockpit::RunTest(const FString& Parameters)
 		bV |= (M.Action == PC->FindActionByName(TEXT("IA_CameraToggle")) && M.Key == EKeys::V);
 	}
 	TestTrue(TEXT("V toggles the camera"), bV);
+	return true;
+}
+
+// ============================================================================ pilot loss / retakes
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelHyperPilotLoss, "TriadDrift.Travel.Hyperdrive.PilotLossDeathAndReset", TD_TEST_FLAGS)
+bool FTDTravelHyperPilotLoss::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector::ZeroVector);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
+	UTDHyperdriveStateRecorder* Rec = NewObject<UTDHyperdriveStateRecorder>();
+	Rec->AddToRoot();
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("event bus"), Bus)) { Rec->RemoveFromRoot(); return false; }
+	Bus->OnHyperdriveState.AddDynamic(Rec, &UTDHyperdriveStateRecorder::HandleState);
+	W.Advance(0.3f);
+
+	// AI / wingmen can't start a jump.
+	TestFalse(TEXT("AI-flown ship can't spool"), Hyper->StartSpool());
+	TestEqual(TEXT("blocked: not player flown"), Hyper->GetBlockReason(), ETDHyperdriveBlock::NotPlayerFlown);
+
+	// Switch away mid-spool: Idle broadcast while still player-flown.
+	Ship->SetPlayerControlled(true);
+	TestTrue(TEXT("spool"), Hyper->StartSpool());
+	W.Advance(0.5f);
+	Ship->SetPlayerControlled(false);
+	TestEqual(TEXT("spool cancelled by the switch"), Hyper->GetState(), ETDHyperdriveState::Idle);
+	TestTrue(TEXT("Idle broadcast on the bus"), Rec->LastIs(ETDHyperdriveState::Idle));
+	TestFalse(TEXT("no override left on the old ship"), Ship->GetShipMovement()->HasSpeedOverride());
+
+	// Switch away mid-jump: the jump ends, no 80k AI ship.
+	Ship->SetPlayerControlled(true);
+	W.Advance(1.2f); // past the cooldown
+	TestTrue(TEXT("spool again"), Hyper->StartSpool());
+	W.Advance(1.6f);
+	TestEqual(TEXT("jumping"), Hyper->GetState(), ETDHyperdriveState::Jumping);
+	Rec->States.Reset();
+	Ship->SetPlayerControlled(false);
+	TestEqual(TEXT("jump ended by the switch"), Hyper->GetState(), ETDHyperdriveState::Idle);
+	TestTrue(TEXT("Idle broadcast for the jump end"), Rec->LastIs(ETDHyperdriveState::Idle));
+	TestFalse(TEXT("override cleared"), Ship->GetShipMovement()->HasSpeedOverride());
+	W.Advance(3.f);
+	TestTrue(FString::Printf(TEXT("the ex-jumper slows down (%.0f)"), (float)Ship->GetVelocity().Size()), Ship->GetVelocity().Size() < 15000.f);
+
+	// Death mid-jump ends it too.
+	Ship->SetPlayerControlled(true);
+	W.Advance(1.2f);
+	TestTrue(TEXT("spool for the death case"), Hyper->StartSpool());
+	W.Advance(1.6f);
+	TestEqual(TEXT("jumping again"), Hyper->GetState(), ETDHyperdriveState::Jumping);
+	Ship->GetHealth()->Kill();
+	TestEqual(TEXT("death ends the jump"), Hyper->GetState(), ETDHyperdriveState::Idle);
+	TestFalse(TEXT("no override after death"), Ship->GetShipMovement()->HasSpeedOverride());
+
+	// Retake reset: instant Idle, no drop-out, ready to spool at once.
+	Ship->GetHealth()->Revive();
+	W.Advance(0.2f);
+	Hyper->ResetHyperdrive();
+	TestTrue(TEXT("spool after reset"), Hyper->StartSpool());
+	W.Advance(1.6f);
+	Hyper->ResetHyperdrive();
+	TestEqual(TEXT("reset mid-jump = Idle immediately"), Hyper->GetState(), ETDHyperdriveState::Idle);
+	TestEqual(TEXT("charge 0"), Hyper->GetCharge01(), 0.f);
+	TestFalse(TEXT("no override after reset"), Ship->GetShipMovement()->HasSpeedOverride());
+	TestTrue(TEXT("no cooldown after reset"), Hyper->CanSpool());
+	Rec->RemoveFromRoot();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSwitchLock, "TriadDrift.Travel.Landing.SwitchLockAndAbort", TD_TEST_FLAGS)
+bool FTDTravelSwitchLock::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector(-1500.f, 0.f, 1500.f));
+	if (!TestNotNull(TEXT("ship"), Ship) || !Pad) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	FText Reason;
+	TestFalse(TEXT("free to switch while flying"), Ship->IsSwitchLocked(Reason));
+
+	TestTrue(TEXT("spool"), Ship->GetHyperdrive()->StartSpool());
+	TestTrue(TEXT("locked while the hyperdrive is busy"), Ship->IsSwitchLocked(Reason) && !Reason.IsEmpty());
+	Ship->GetHyperdrive()->CancelSpool();
+	TestFalse(TEXT("unlocked after cancel"), Ship->IsSwitchLocked(Reason));
+
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(2000.f);
+	TestTrue(TEXT("land"), Ship->GetLanding()->RequestLand());
+	TestTrue(TEXT("locked while landing"), Ship->IsSwitchLocked(Reason));
+	W.Advance(5.2f);
+	TestTrue(TEXT("landed"), Ship->GetLanding()->IsLanded());
+	TestTrue(TEXT("locked while landed"), Ship->IsSwitchLocked(Reason));
+
+	// Retake abort: instantly flying, pad free, flight live.
+	Ship->GetLanding()->AbortToFlying();
+	TestEqual(TEXT("flying"), Ship->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("gear up"), Ship->GetLanding()->IsGearDown());
+	TestFalse(TEXT("canopy closed"), Ship->GetLanding()->IsCanopyOpen());
+	TestFalse(TEXT("pad released"), Pad->IsOccupied());
+	TestFalse(TEXT("flight un-parked"), Ship->IsFlightParked());
+	TestFalse(TEXT("switch unlocked"), Ship->IsSwitchLocked(Reason));
+	Ship->GetLanding()->AbortToFlying(); // safe twice
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelCameraNow, "TriadDrift.Travel.Camera.ChaseTransformNowForAIShip", TD_TEST_FLAGS)
+bool FTDTravelCameraNow::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector(1000.f, 2000.f, 3000.f), FRotator(0.f, 90.f, 0.f));
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Tick();
+	const FTransform Cam = Ship->GetChaseCameraTransformNow();
+	const FVector Expected = Ship->GetActorLocation() - Ship->GetActorForwardVector() * 1400.f + FVector(0.f, 0.f, 280.f);
+	TestTrue(FString::Printf(TEXT("behind and above an AI-flown ship (%s vs %s)"), *Cam.GetLocation().ToString(), *Expected.ToString()), Cam.GetLocation().Equals(Expected, 5.f));
+	TestTrue(TEXT("looking along the ship's nose"), FVector::DotProduct(Cam.GetRotation().GetForwardVector(), Ship->GetActorForwardVector()) > 0.98f);
+	TestEqual(TEXT("FOV for its speed"), Ship->GetChaseCameraFOVNow(), FMath::Lerp(90.f, 110.f, Ship->GetSpeed01()), 0.01f);
+
+	// For the player-flown ship it's the live camera.
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	TestTrue(TEXT("player ship: live camera transform"), Ship->GetChaseCameraTransformNow().Equals(Ship->GetChaseCamera()->GetComponentTransform(), 0.01f));
 	return true;
 }
 

@@ -23,7 +23,8 @@ enum class ETDHyperdriveBlock : uint8
 	InAtmosphere,
 	NearGravityWell,
 	Cooldown,
-	Disabled
+	Disabled,
+	NotPlayerFlown // wingmen / AI never jump on their own (T3 follows the leader instead)
 };
 
 /** Defaults are features.md ENG-15. */
@@ -113,6 +114,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Hyperdrive")
 	void SetHyperdriveEnabled(bool bEnabled);
 
+	/**
+	 * The pilot is leaving this ship (switch, death): cancel a spool, or end a jump / drop-out at once
+	 * (override cleared, flight model bleeds the speed off), and broadcast Idle while the ship still
+	 * counts as player-flown so wingmen, HUD and FX listeners see the end. ATDShip calls this.
+	 */
+	void EndForPilotLoss();
+
+	/**
+	 * Hard reset for a retake (Director's Cut "CUT!"): instantly Idle, charge 0, speed override cleared,
+	 * no drop-out burst or FX, damage lockout and cooldown cleared, enabled. Broadcasts Idle if it changed.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Hyperdrive")
+	void ResetHyperdrive();
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hyperdrive")
 	ETDHyperdriveState GetState() const { return State; }
 
@@ -154,6 +169,9 @@ protected:
 
 	UFUNCTION()
 	void HandleImpact(const FTDFlightImpact& Impact);
+
+	UFUNCTION()
+	void HandleDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow);
 
 private:
 	ATDSpacecraft* GetCraft() const;
