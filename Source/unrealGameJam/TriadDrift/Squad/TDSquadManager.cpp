@@ -320,7 +320,8 @@ ETDSquadSlotState ATDSquadManager::GetShipState(ETDShipId Ship) const
 float ATDSquadManager::GetRespawnSeconds(ETDShipId Ship) const
 {
 	const FTDSquadSlot* Slot = FindSlot(Ship);
-	if (!Slot || Slot->State == ETDSquadSlotState::Alive || Slot->State == ETDSquadSlotState::NotSpawned)
+	// Review minor 8: a wipe the flow took restarts the scene; nothing respawns on this take's timers.
+	if (!Slot || Slot->State == ETDSquadSlotState::Alive || Slot->State == ETDSquadSlotState::NotSpawned || (bSquadWiped && bWipeHandledByFlow))
 	{
 		return 0.f;
 	}
@@ -807,13 +808,14 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 	}
 
 	// ENG-03: the hull doesn't regenerate in combat but slowly repairs between waves.
-	if (bBetweenWaves && BetweenWaveHullRepairPerSecond > 0.f)
+	if (bBetweenWaves && BetweenWaveHullRepairPercentPerSecond > 0.f)
 	{
 		for (FTDSquadSlot& Slot : Slots)
 		{
 			if (Slot.State == ETDSquadSlotState::Alive)
 			{
-				TDSquad::RepairHull(Slot.Ship, BetweenWaveHullRepairPerSecond * DeltaSeconds);
+				// features.md ENG-03: a percentage of the ship's own hull (Bastion and Lancer alike).
+				TDSquad::RepairHull(Slot.Ship, TDSquad::GetMaxHull(Slot.Ship) * BetweenWaveHullRepairPercentPerSecond * 0.01f * DeltaSeconds);
 			}
 		}
 	}
@@ -1023,7 +1025,10 @@ void ATDSquadManager::HandleSquadWiped()
 	// Without one (sandbox), downed ships simply keep their respawn timers.
 	// m1: decide before the call (a flow with no retake delay respawns the squad inside it).
 	bWipeHandledByFlow = true;
-	bWipeHandledByFlow = TDSquad::ReportPlayerDefeated(this);
+	const bool bHandled = TDSquad::ReportPlayerDefeated(this);
+	// Review minor 3: with no retake delay the flow's SpawnSquad already ran inside that call and
+	// started a clean take; don't mark the new take's deaths as "the flow handles it".
+	bWipeHandledByFlow = bSquadWiped && bHandled;
 }
 
 bool ATDSquadManager::FindHealthiestLivingShip(ETDShipId Except, ETDShipId& OutShip) const

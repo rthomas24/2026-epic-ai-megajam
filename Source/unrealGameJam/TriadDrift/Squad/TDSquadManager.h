@@ -334,9 +334,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
 	FVector FormationRightOffset = FVector(1500.f, 1750.f, -160.f);
 
-	/** ENG-03: hull points per second repaired on living squad ships between waves (after OnWaveCleared until OnWaveStarted). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
-	float BetweenWaveHullRepairPerSecond = 8.f;
+	/** ENG-03: percent of max hull per second repaired on living squad ships between waves (after OnWaveCleared until OnWaveStarted). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0", Units = "Percent"))
+	float BetweenWaveHullRepairPercentPerSecond = 8.f;
 
 	/** Voice lines (ART-11): per-bark cooldowns, a global gap, a window cap. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks")

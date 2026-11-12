@@ -1336,14 +1336,23 @@ bool FTDSquadHullRepair::RunTest(const FString& Parameters)
 	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
 	AActor* Enemy = F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f);
 	UTDHealthComponent* H = F.Health(ETDShipId::Bastion);
-	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 260.f, ETDDamageKind::Energy, Enemy, Enemy); // shield 160 + 100 hull
+	UTDHealthComponent* L = F.Health(ETDShipId::Lancer);
+	// Down to ~30% hull on two ships with different max hulls.
+	for (const ETDShipId Id : { ETDShipId::Bastion, ETDShipId::Lancer })
+	{
+		UTDHealthComponent* X = F.Health(Id);
+		UTDStatics::ApplyTDDamage(F.Ship(Id), X->MaxShield + X->MaxHull * 0.7f, ETDDamageKind::Energy, Enemy, Enemy);
+	}
 	const float HullAfterHit = H->GetHull();
 	Bus->BroadcastWaveStarted(1, 0.2f);
 	F.W.Advance(5.f);
 	TestEqual(TEXT("no hull regeneration in combat"), H->GetHull(), HullAfterHit, 0.01f);
+	const float B0 = H->GetHull01(), L0 = L->GetHull01();
 	Bus->BroadcastWaveCleared(1);
-	F.W.Advance(5.f);
-	TestTrue(TEXT("hull repairs between waves (~8/s)"), H->GetHull() > HullAfterHit + 30.f && H->GetHull() < HullAfterHit + 50.f);
+	F.W.Advance(2.f);
+	// features.md ENG-03 (review minor 4): 8% of the ship's own max hull per second, for every ship.
+	TestEqual(TEXT("Bastion repairs 8% of its hull per second"), H->GetHull01() - B0, 0.16f, 0.02f);
+	TestEqual(TEXT("Lancer repairs 8% of its hull per second"), L->GetHull01() - L0, 0.16f, 0.02f);
 	Bus->BroadcastWaveStarted(2, 0.35f);
 	const float HullAtWave2 = H->GetHull();
 	F.W.Advance(3.f);
@@ -1410,6 +1419,8 @@ bool FTDSquadDeathTumble::RunTest(const FString& Parameters)
 		FTDFlightInput Held;
 		Held.Aim = FVector2D(1.f, 1.f);
 		Held.bBoost = true;
+		Held.Roll = 1.f;   // the AI never rolls or strafes: only a stale player latch could carry these
+		Held.Strafe = FVector2D(1.f, 1.f);
 		Rift->SetFlightInput(Held);
 		F.W.Tick(Step);
 		const FRotator RotAtDeath = Rift->GetActorRotation();
@@ -1432,7 +1443,8 @@ bool FTDSquadDeathTumble::RunTest(const FString& Parameters)
 		TestTrue(TEXT("respawned") + Fps, F.Squad->IsShipAlive(ETDShipId::Rift));
 		TestFalse(TEXT("flight running again") + Fps, Rift->IsFlightParked());
 		TestFalse(TEXT("weapons unblocked") + Fps, Rift->GetWeapons()->AreWeaponsBlocked());
-		TestTrue(TEXT("latched input cleared") + Fps, !Rift->GetFlightInput().bBoost || F.Wing(ETDShipId::Rift) != nullptr);
+		// Boost may be the respawned wingman's own (it regroups at speed); roll / strafe can't be.
+		TestTrue(TEXT("latched player input cleared") + Fps, Rift->GetFlightInput().Roll == 0.f && Rift->GetFlightInput().Strafe.IsZero());
 		TestEqual(TEXT("boost meter full") + Fps, Rift->GetBoost01(), 1.f, 0.01f);
 		TestFalse(TEXT("no speed override") + Fps, Rift->GetShipMovement()->HasSpeedOverride());
 	}
@@ -2216,6 +2228,62 @@ bool FTDSquadTabDuringTumble::RunTest(const FString& Parameters)
 			TestTrue(TEXT("no second auto-switch after the tumble") + Case, F.Squad->GetActiveShipId() == Landed);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadWingmanKillsRealEnemy, "TriadDrift.Squad.Wingmen.KillARealMovingEnemyShip", TD_TEST_FLAGS)
+bool FTDSquadWingmanKillsRealEnemy::RunTest(const FString& Parameters)
+{
+	// Review minor 9: wingman combat was only tested against a stationary, collision-less actor.
+	// Here the wing kills a real Shard Fighter flying its own AI.
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		for (const ETDShipId Id : UTDShipLibrary::AllShips())
+		{
+			F.Health(Id)->SetInvulnerable(true); // the fight is about the wing's damage, not survival
+		}
+		F.W.Advance(2.f, Step);
+		ATDEnemyShip* Enemy = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, FVector(9000.f, 3000.f, 800.f));
+		if (!TestNotNull(TEXT("enemy") + Fps, Enemy))
+		{
+			return false;
+		}
+		const FVector Start = Enemy->GetActorLocation();
+		bool bMoved = false, bDead = false;
+		for (int32 i = 0; i < FMath::CeilToInt(30.f / Step) && !bDead; ++i)
+		{
+			F.W.Tick(Step);
+			bMoved |= IsValid(Enemy) && FVector::Dist(Enemy->GetActorLocation(), Start) > 1000.f;
+			bDead = !IsValid(Enemy) || UTDStatics::GetHealth(Enemy)->IsDead();
+		}
+		TestTrue(TEXT("the enemy really flew") + Fps, bMoved);
+		TestTrue(TEXT("the wing killed it within 30 s") + Fps, bDead);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadHUDNoSecondPower, "TriadDrift.Squad.HUD.AbsentPowerIsNeverReady", TD_TEST_FLAGS)
+bool FTDSquadHUDNoSecondPower::RunTest(const FString& Parameters)
+{
+	// Review minor 8: Rift and Lancer have no second power; the HUD must not show it as "ready".
+	FSquadFixture F;
+	const TArray<FTDShipHUD> Cards = F.Squad->GetSquadHUD();
+	for (const FTDShipHUD& Card : Cards)
+	{
+		const bool bHasSecond = UTDPowerComponent::FindPower(F.Ship(Card.Ship), ETDPowerInput::Signature2) != nullptr;
+		const FString Name = UEnum::GetValueAsString(Card.Ship);
+		if (bHasSecond)
+		{
+			TestEqual(TEXT("second power ready: ") + Name, Card.Power2Cooldown01, 1.f);
+		}
+		else
+		{
+			TestEqual(TEXT("no second power reads 0: ") + Name, Card.Power2Cooldown01, 0.f);
+		}
+	}
+	TestEqual(TEXT("Rift has none"), Cards[static_cast<int32>(ETDShipId::Rift)].Power2Cooldown01, 0.f);
 	return true;
 }
 

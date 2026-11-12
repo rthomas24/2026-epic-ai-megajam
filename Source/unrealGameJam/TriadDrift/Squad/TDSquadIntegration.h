@@ -87,6 +87,7 @@ namespace TDSquad
 	// ---- Weapons (T2 UTDWeaponComponent) ----
 	void SetTriggerHeld(ATDShip* Ship, ETDWeaponSlot Slot, bool bHeld);
 	void SetAim(ATDShip* Ship, AActor* Target, const FVector& WorldDir);
+	float GetMaxHull(const AActor* Actor);
 	/** Where Ship's guns point (the player's reticle direction); its forward without weapons. */
 	FVector GetAimDirection(const ATDShip* Ship);
 	/** Drop any explicit aim target / direction (hand-over to the player, downed, passive). */
