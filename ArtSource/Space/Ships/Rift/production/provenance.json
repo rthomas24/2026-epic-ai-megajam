@@ -1,0 +1,25 @@
+{
+  "asset": "Rift M01 refined foundation",
+  "authoring_human": "Nicholas Tosti",
+  "agent": "Ships & Weapons Agent",
+  "task_started_utc": "2026-11-12T19:38:59Z",
+  "claim_commit": "e4b5715",
+  "route": "features.md ART-03 kit route, Lead reconciliation",
+  "tools": [
+    "OpenAI Codex",
+    "Blender 5.1.1",
+    "repository MIT hardsurface.py"
+  ],
+  "exact_codex_model_effort_usage": "unavailable",
+  "third_party_models_or_textures": [],
+  "helper": {
+    "path": ".claude/skills/blender-game-asset/scripts/hardsurface.py",
+    "sha256": "ee9dc0d7dca3a399e951d1f33042a90e0e2cbea2d387ee8cb1adcc04a49b2eec",
+    "license": "MIT, repository skill kit"
+  },
+  "lancer_reference_commit": "4b7ef12",
+  "lancer_reference_modified": false,
+  "bastion_production_started": false,
+  "unreal_imported": false,
+  "final_quality_approved": false
+}

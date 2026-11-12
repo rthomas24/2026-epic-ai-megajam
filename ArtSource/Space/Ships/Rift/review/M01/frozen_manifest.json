@@ -1,0 +1,286 @@
+{
+  "files": [
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/attachments.json",
+      "bytes": 7364,
+      "sha256": "983a85b044ed09d2042dec2dedd9930e16b39ce174e8e7b67a0e60d51ae68f15"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/brief.md",
+      "bytes": 3911,
+      "sha256": "dc6da861b98fa017790b574e2368b31a2e47a25b0d95ca33f122c7346e936124"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/build_rift.py",
+      "bytes": 20250,
+      "sha256": "9abed424263fc91d2b12f840f809124f67dbfb5d1a8b203b146c8431e117e0d9"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/material_parameters.json",
+      "bytes": 2270,
+      "sha256": "1f4a465d4c93c64ebb75929a9dedab92c7cbd9c05777143f914e0e8b0c49bd7a"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/provenance.json",
+      "bytes": 866,
+      "sha256": "1fdf13283db1cc8da2ffd571baf2ec799b05a47bfd1ca236d06f7b040d6930d8"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/publish_review.py",
+      "bytes": 7259,
+      "sha256": "c6933c397c18b6f20ee463e795e0820c6f3f4c12d66b18cb74a4c6b417243b14"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/qa_rift.py",
+      "bytes": 5737,
+      "sha256": "ac781bd689e30b1e7724225b79bc40f3f4d717f22ecb4be3d244a254ea30ed75"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/README.md",
+      "bytes": 6986,
+      "sha256": "b267ea4b7a2aa04d83ee16df8a4a69465ac4082edccf243f89543444d53a3bc5"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/Rift_M01_v01.blend",
+      "bytes": 1515773,
+      "sha256": "c70be19838507aa06af5a66e11b81069955af282cce90013f4471c9ec32d155f"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/run_pass.py",
+      "bytes": 808,
+      "sha256": "fbc54253b9b07ae2652811b860429941880ab386442ad8dc200bf14b76a5a6d3"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/production/unreal_visual_parts.json",
+      "bytes": 2794,
+      "sha256": "0f7e2ce529a56734f51706fe5bc841b63291f7bbcf732583b0256a098db3308f"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/01_hero_front_3q.png",
+      "bytes": 1866150,
+      "sha256": "46bfc1d5180cacc2ac2d92e4aecda0c7e69f690b911ecd11b6630f8dd3f59e73"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/02_front.png",
+      "bytes": 1797036,
+      "sha256": "731adca68d08fff0be635984f70e7da2d8ef9837cd6bc5269cc54189c85dcf5b"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/03_rear.png",
+      "bytes": 1780771,
+      "sha256": "9063bf132b4efaaf77bc154af7e6dba1d6b31a44c32943f62b01c71bf84911cf"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/04_side.png",
+      "bytes": 1816778,
+      "sha256": "7579f0f5485c58e9e1705966f54a6152b974a5e197fd9b86a191301671030910"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/05_top.png",
+      "bytes": 1935000,
+      "sha256": "20c2863de7a2fa9513249a13213eb75eb5408dd914bd12b402a5f2a33d22809f"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/06_rear_3q.png",
+      "bytes": 1830241,
+      "sha256": "38f4285f4fe1f5de98163425f5c50f8a0989158a92f0df4f68bb9bb20f3e2b02"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/07_underside.png",
+      "bytes": 1818268,
+      "sha256": "b407270d8402a3a45912a8fe8a801edd5824d1241cf7daa2945582d7f07ce112"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/08_weapon_detail.png",
+      "bytes": 1733728,
+      "sha256": "d6ab9939e85dffaf8aa8504f09a0eb346eb73ac8b0dae183625d17477868e50a"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/09_portal_detail.png",
+      "bytes": 1832463,
+      "sha256": "1bf59b5307e24482f36dde2278c9d799b7a76170117a4508f8e4c3105a1e77c5"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/art_review.md",
+      "bytes": 2266,
+      "sha256": "6b1745e8df3a8569f71e23c859bc5d2778c52c9b197c07420da7361f54abe72d"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/assembly_contacts.json",
+      "bytes": 379,
+      "sha256": "b37a65a2da198e3cf794e84e398d68f8f8a0ea1e39a8ce13e78f5abdb933376a"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/asset_report.json",
+      "bytes": 21737,
+      "sha256": "32bc9438057a764585a07fae88b70008ae3992f6fc6d2374c97a650b9afbedbe"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/build_manifest.json",
+      "bytes": 298,
+      "sha256": "552418c6371bf188bf5463f5c797c12eeeb05320cdfa2a30e78f870265826b40"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/clay_manifest.json",
+      "bytes": 1412,
+      "sha256": "0b3ee8c7ef2fc350a498aee5165b57b7d015def6f4c98b0b6fd50f2b398cb858"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/delivery_manifest.json",
+      "bytes": 3335,
+      "sha256": "80a75a20ad1948c73b68df8ed23363d6e16c79cfcb2c55f1dcf615eca939ee25"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/environment.json",
+      "bytes": 980,
+      "sha256": "35da21132f7fdf363fa245520306aa52ee21ef1082f7892a2bd352320ce140ad"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/fleet_reference.json",
+      "bytes": 284,
+      "sha256": "a23c0cc314eaa471a8989a6da03764ff46de1b34d83b1211f4ff04800aa0e587"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/geometry_qa.json",
+      "bytes": 4765,
+      "sha256": "2c3abea82454ccc79b9505b143587cd0ff2f5e03296094cfa1e21559fccb537d"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/index.html",
+      "bytes": 7111,
+      "sha256": "ae05f41e93a093d37a961d940114c5eaa272fccb3a3ce3459c36120adcb30275"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/Lancer_reference_4b7ef12.png",
+      "bytes": 1930876,
+      "sha256": "e298ed97985bd50e87377768898886b19793449cdcc8e76ca965db52d8a228ce"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/offline_verification.json",
+      "bytes": 710,
+      "sha256": "d8f1c2f4197b8801a8dfe8ad183efa96ce103c0c917440d833ab2554abeb62ab"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/overlap_locations.json",
+      "bytes": 4,
+      "sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/pass01.log",
+      "bytes": 2363,
+      "sha256": "d70c97a80047416fb0c50f953a3c4e1a49f688e857dfa3043040380b2974481b"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/pass02.log",
+      "bytes": 4422,
+      "sha256": "3ce8e59e91fc0746c4ce7779a9a5cd00bb4744b3e7067e41a7b9544d56827165"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/render_manifest.json",
+      "bytes": 2781,
+      "sha256": "ca64f4d97894e90a961f72695041fdf845e1710d0cf4871d92d607b247b9a574"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/render_rift.py",
+      "bytes": 9055,
+      "sha256": "f6baa4f8c1ddd27a67bfa5abfd4ed26fc53b877cec574af6498c6cbd43579269"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/report.md",
+      "bytes": 6240,
+      "sha256": "39095c0ba688badf03b36c3122411f9a294be330999c678049a39af621f607a1"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/Rift_M01_clay_sheet.png",
+      "bytes": 682516,
+      "sha256": "ab9341ff9f5b364b730ba2be68b9601e45c126f8c90f544d78cd1e7a7def4c91"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/Rift_M01_overview.png",
+      "bytes": 2088579,
+      "sha256": "1c882686954af2cf5d1ac81de4e7fd4647f45af37165bfa70f9fbe73ac3c9fdf"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/Rift_M01_silhouette_sheet.png",
+      "bytes": 56199,
+      "sha256": "38245fab959c587c100a542a8355375b3d9b3d223c9abce7b3bd7c398b4affeb"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/Rift_M01_wire_sheet.png",
+      "bytes": 881028,
+      "sha256": "4149924c19c28b67b6b6f9de5581be34094c08d5d070e143f55e958de65ac822"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/round01/01_hero_front_3q.png",
+      "bytes": 1868217,
+      "sha256": "273ea3dfa8134adfbcdd4e5379b116096fcaac602143eb6ac15cee4db80ad74f"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/round01/art_review.md",
+      "bytes": 1138,
+      "sha256": "21845d4ca89135b3fb7b171646af42892f9a2ff45188bbfa29e23afb83b75a52"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/round01/build_manifest.json",
+      "bytes": 299,
+      "sha256": "977dcd94bf5f96921e8bb076f98949607d31cd79f8cd2ad9a1f9798af72d5afc"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/round01/geometry_qa.json",
+      "bytes": 5497,
+      "sha256": "a421d058226cad7c8d399da0d0b032ae3d33808ceb3af3df385ccc86a7b09597"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/round01/overlap_locations.json",
+      "bytes": 24774,
+      "sha256": "75c56c8e5ceb651a14dd4e8f295e56dcade80e9ba66d202d2a7324f982bf0b7a"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/round01/Rift_M01_clay_sheet.png",
+      "bytes": 678860,
+      "sha256": "d7980658e31d7b60f7ff5675c4762b19f3818629baae5658745720c82e99a02f"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/round01/validation_summary.json",
+      "bytes": 6317,
+      "sha256": "bd6981731527046228727d16c17db6381a44de126674f6551bfe92be30ac811a"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/silhouette_128_front_3q.png",
+      "bytes": 9270,
+      "sha256": "f8c8fd31ae38c23cff2313b777e8053944293e771147ffc804a2ea834c839021"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/silhouette_128_side.png",
+      "bytes": 8783,
+      "sha256": "a77c5d0c07ccf6578739946de95c0337657eb0e62ba41faf4783c93118dbaaec"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/silhouette_128_top.png",
+      "bytes": 10006,
+      "sha256": "5e5434a0584e484f372e143964be45733ea516e0754ef6d232ba85aa0254971e"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/validation_summary.json",
+      "bytes": 5954,
+      "sha256": "835526f21279f822d32aaed04b5faf3d4bd6331bed79c3cbaeb4657dd31c9380"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/wire_front_3q.png",
+      "bytes": 1304596,
+      "sha256": "7dc6ceb3b625983a041594b7ebf0c4bba209b42e36a4cb2999a0640572e33584"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/wire_top.png",
+      "bytes": 1460671,
+      "sha256": "62db9ef60542ff96d0b56808ed23172ab1f7ca5e471abf27a20115dab0f98906"
+    },
+    {
+      "path": "ArtSource/Space/Ships/Rift/review/M01/wire_underside.png",
+      "bytes": 1256214,
+      "sha256": "55d1c2a75ac334a46bf131ca8f34efd49ee2e35ff80a26d1df039ce3b62f30c8"
+    }
+  ],
+  "file_count_including_this_manifest": 57,
+  "manual_review": "pending"
+}

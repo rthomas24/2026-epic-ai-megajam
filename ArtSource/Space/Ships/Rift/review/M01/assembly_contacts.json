@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "ok": true,
+  "tolerance_m": 0.002,
+  "objects": [
+    "SM_Rift_Hull",
+    "SM_Rift_Pulse_L",
+    "SM_Rift_Pulse_R",
+    "SM_Rift_Splitter",
+    "SM_Rift_PortalGuard",
+    "SM_Rift_PortalRotor",
+    "SM_Rift_Engine"
+  ],
+  "islands": 116,
+  "groups": 1,
+  "main_body_tris": 38624,
+  "floating": [],
+  "hint": "All parts are connected."
+}

@@ -1,0 +1,37 @@
+00:01.297  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+Info: Saved as "Rift_M01_work.blend"
+RIFT_QA {"technical_pass": true, "assembly_triangles": 38624, "geometry_errors": [], "contact_pass": true, "attachment_pass": true, "ray_clearance": [{"name": "Muzzle_Primary_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Primary_R", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_R", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary", "clear": true, "hit": null, "distance_cm": null}, {"name": "Portal_Exit", "clear": true, "hit": null, "distance_cm": null}]}
+Info: Saved as "Rift_M01_v01.blend"
+RIFT_RENDER 01_hero_front_3q
+00:06.234  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\01_hero_front_3q.png'
+RIFT_RENDER 02_front
+00:06.812  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\02_front.png'
+RIFT_RENDER 03_rear
+00:07.344  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\03_rear.png'
+RIFT_RENDER 04_side
+00:07.969  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\04_side.png'
+RIFT_RENDER 05_top
+00:08.719  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\05_top.png'
+RIFT_RENDER 06_rear_3q
+00:09.312  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\06_rear_3q.png'
+RIFT_RENDER 07_underside
+00:09.890  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\07_underside.png'
+RIFT_RENDER 08_weapon_detail
+00:10.422  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\08_weapon_detail.png'
+RIFT_RENDER 09_portal_detail
+00:10.969  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\09_portal_detail.png'
+00:11.703  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_front_3q.png'
+00:11.828  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_front.png'
+00:11.890  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_right.png'
+00:11.953  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_top.png'
+00:12.062  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_back_3q.png'
+00:12.234  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_low_3q.png'
+00:13.390  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\wire_front_3q.png'
+00:13.953  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\wire_top.png'
+00:14.406  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\wire_underside.png'
+00:14.594  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\silhouette_128_top.png'
+00:14.609  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\silhouette_128_side.png'
+00:14.625  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\silhouette_128_front_3q.png'
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

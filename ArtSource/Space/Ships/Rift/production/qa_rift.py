@@ -1,0 +1,77 @@
+"""Measured QA of all delivered Rift meshes, plus proposed component-local frames."""
+from pathlib import Path
+import json, runpy, time
+import bpy
+from mathutils import Vector
+from mathutils.bvhtree import BVHTree
+P=Path(__file__).resolve().parent;ROOT=P.parent;REPO=ROOT.parents[3];OUT=ROOT/'review/M01'
+
+def write(name,data):
+    (OUT/name).write_text(json.dumps(data,indent=2)+'\n')
+
+def co(p):
+    x,y,z=p;return Vector((y/100,-x/100,z/100))
+
+def run():
+    started=time.perf_counter();obs=[o for o in bpy.context.scene.objects if o.type=='MESH' and o.get('part_name')]
+    names=[o.name for o in obs]
+    asset=runpy.run_path(str(REPO/'.claude/skills/blender-mcp/scripts/asset_report.py'))['main'](targets=names,tri_budget=60000)
+    write('asset_report.json',asset)
+    checker=runpy.run_path(r'C:/Users/nicho/.agents/skills/blender-asset-qa/scripts/qa_check.py')['run']
+    geo=checker(objects=names,profile='game',eps=.001,tol=.002);write('geometry_qa.json',geo)
+    contact=runpy.run_path(str(REPO/'.claude/skills/blender-mcp/scripts/assembly_check.py'))['main'](targets=names,tolerance=.002)
+    write('assembly_contacts.json',contact)
+    vertices=[];faces=[];owners=[];em_area=0;area=0
+    for o in obs:
+        n=len(vertices);vertices.extend(o.matrix_world@v.co for v in o.data.vertices)
+        for f in o.data.polygons:
+            faces.append(tuple(n+i for i in f.vertices));owners.append(o.name);area+=f.area
+            if o.data.materials[f.material_index].name=='M_Rift_Magenta':em_area+=f.area
+    bvh=BVHTree.FromPolygons(vertices,faces,all_triangles=True)
+    manifest=json.loads((P/'attachments.json').read_text());checks=[];rays=[]
+    for s in manifest['sockets']:
+        o=bpy.data.objects['SOCKET_'+s['parent']+'_'+s['name']];m=o.matrix_world.to_3x3()
+        f=co([v*100 for v in s['forward']]).normalized();up=Vector((0,0,1))
+        pe=(o.location-co(s['position_cm'])).length;we=(o.matrix_world.translation-co(s['root_position_cm'])).length
+        fd=(m@Vector((0,-1,0))).normalized().dot(f);ud=(m@up).normalized().dot(up)
+        checks.append(dict(parent=s['parent'],name=s['name'],local_error_m=pe,root_error_m=we,
+                           forward_dot=fd,up_dot=ud,determinant=m.determinant(),
+                           passed=pe<1e-6 and we<1e-6 and fd>.99999 and ud>.99999 and abs(m.determinant()-1)<1e-6))
+        if s['purpose'] in ['muzzle','thruster'] or s['name']=='Portal_Exit':
+            point,normal,face,distance=bvh.ray_cast(o.matrix_world.translation+f*.0001,f,100)
+            rays.append(dict(name=s['name'],clear=point is None,hit=None if face is None else owners[face],distance_cm=None if point is None else distance*100))
+    # Preserve actual contact positions for targeted fixes, not blind render-driven tweaks.
+    overlaps=[]
+    if geo['zfighting']:
+        inside=checker.__globals__['_point_in_tri'];pairs=set()
+        normals=[(vertices[t[1]]-vertices[t[0]]).cross(vertices[t[2]]-vertices[t[0]]).normalized() for t in faces]
+        membership=[set(t) for t in faces]
+        for i,t in enumerate(faces):
+            a,b,c=[vertices[k] for k in t];n=normals[i];centre=(a+b+c)/3
+            for p in [centre,centre.lerp(a,.6),centre.lerp(b,.6),centre.lerp(c,.6)]:
+                for _,_,j,_ in bvh.find_nearest_range(p,.001):
+                    if j is None or i==j or membership[i]&membership[j] or n.dot(normals[j])<.999:continue
+                    aa,bb,cc=[vertices[k] for k in faces[j]];projected=p-normals[j]*normals[j].dot(p-aa);key=tuple(sorted([i,j]))
+                    if key not in pairs and inside(projected,aa,bb,cc,normals[j]):
+                        pairs.add(key);overlaps.append(dict(objects=[owners[i],owners[j]],position_cm=[-p.y*100,p.x*100,p.z*100],normal=list(n)))
+    write('overlap_locations.json',overlaps)
+    lo=[min(p[i] for p in vertices) for i in range(3)];hi=[max(p[i] for p in vertices) for i in range(3)]
+    materials={m.name for o in obs for m in o.data.materials}
+    params=json.loads((P/'material_parameters.json').read_text())
+    report=dict(blender=bpy.app.version_string,assembly_triangles=len(faces),assembly_instances=len(obs),
+                unique_meshes=len({o.data.name for o in obs}),materials=len(materials),textures=0,
+                dimensions_cm=[(hi[1]-lo[1])*100,(hi[0]-lo[0])*100,(hi[2]-lo[2])*100],
+                geometry_pass=geo['pass'],geometry_errors=geo['errors'],geometry_warnings=geo['warnings'],
+                contact_pass=contact['ok'],floating=contact['floating'],attachment_checks=checks,
+                attachment_pass=all(c['passed'] for c in checks),ray_clearance=rays,ray_pass=all(r['clear'] for r in rays),
+                unit_positive_scale=all(tuple(o.scale)==(1.,1.,1.) for o in obs),
+                panel_tint_present=all(o.data.color_attributes.get('PanelTint') is not None for o in obs),
+                emissive_surface_fraction=em_area/area,emissive_area_pass=em_area/area<=.05,
+                material_parameters_pass=len(params)==6 and all(0<=p['metallic']<=1 and .2<=p['roughness']<=.85 and p['emissive_strength']<=2 for p in params),
+                native_imported=False,presentation_approved=False,gameplay_validated=False,elapsed_seconds=time.perf_counter()-started)
+    report['technical_pass']=all(report[k] for k in ['geometry_pass','contact_pass','attachment_pass','ray_pass','unit_positive_scale','panel_tint_present','emissive_area_pass','material_parameters_pass']) and len(faces)<=60000
+    write('validation_summary.json',report)
+    print('RIFT_QA '+json.dumps({k:report[k] for k in ['technical_pass','assembly_triangles','geometry_errors','contact_pass','attachment_pass','ray_clearance']}),flush=True)
+    return report
+
+if __name__=='__main__':run()

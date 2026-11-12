@@ -1,0 +1,80 @@
+[
+  {
+    "name": "M_Rift_Paint",
+    "base_color_srgb": "#FFFFFF",
+    "metallic": 0,
+    "roughness": 0.52,
+    "coat_weight": 0.1,
+    "coat_roughness": 0.3,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "base_color_rule": "BaseColor * VertexColor.RGB",
+    "roughness_rule": "Roughness * (0.8 + 0.4 * VertexColor.A)",
+    "textures": 0
+  },
+  {
+    "name": "M_Rift_Composite",
+    "base_color_srgb": "#35313D",
+    "metallic": 0,
+    "roughness": 0.73,
+    "coat_weight": 0.02,
+    "coat_roughness": 0.3,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "base_color_rule": "BaseColor * VertexColor.RGB",
+    "roughness_rule": "Roughness * (0.8 + 0.4 * VertexColor.A)",
+    "textures": 0
+  },
+  {
+    "name": "M_Rift_Titanium",
+    "base_color_srgb": "#ADB7C2",
+    "metallic": 1,
+    "roughness": 0.39,
+    "coat_weight": 0.05,
+    "coat_roughness": 0.3,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "base_color_rule": "BaseColor * VertexColor.RGB",
+    "roughness_rule": "Roughness * (0.8 + 0.4 * VertexColor.A)",
+    "textures": 0
+  },
+  {
+    "name": "M_Rift_Canopy",
+    "base_color_srgb": "#253049",
+    "metallic": 0,
+    "roughness": 0.28,
+    "coat_weight": 0.25,
+    "coat_roughness": 0.3,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "base_color_rule": "BaseColor * VertexColor.RGB",
+    "roughness_rule": "Roughness * (0.8 + 0.4 * VertexColor.A)",
+    "textures": 0
+  },
+  {
+    "name": "M_Rift_Magenta",
+    "base_color_srgb": "#FF2BD6",
+    "metallic": 0,
+    "roughness": 0.4,
+    "coat_weight": 0,
+    "coat_roughness": 0.3,
+    "emissive_strength": 1.7,
+    "vertex_color": "PanelTint",
+    "base_color_rule": "BaseColor * VertexColor.RGB",
+    "roughness_rule": "Roughness * (0.8 + 0.4 * VertexColor.A)",
+    "textures": 0
+  },
+  {
+    "name": "M_Rift_Ceramic",
+    "base_color_srgb": "#C6CDD3",
+    "metallic": 0,
+    "roughness": 0.51,
+    "coat_weight": 0.08,
+    "coat_roughness": 0.3,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "base_color_rule": "BaseColor * VertexColor.RGB",
+    "roughness_rule": "Roughness * (0.8 + 0.4 * VertexColor.A)",
+    "textures": 0
+  }
+]

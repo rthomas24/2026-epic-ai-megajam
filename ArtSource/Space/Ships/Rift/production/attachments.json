@@ -1,0 +1,484 @@
+{
+  "units": "cm",
+  "forward": "+X",
+  "right": "+Y",
+  "up": "+Z",
+  "status": "proposed_art_contract_engineering_review_pending",
+  "sockets": [
+    {
+      "parent": "Hull",
+      "name": "Mount_Primary_L",
+      "position_cm": [
+        20,
+        -235,
+        -32
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "attachment",
+      "root_position_cm": [
+        20,
+        -235,
+        -32
+      ]
+    },
+    {
+      "parent": "Pulse_L",
+      "name": "Muzzle_Primary_L",
+      "position_cm": [
+        157,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "muzzle",
+      "root_position_cm": [
+        177,
+        -235,
+        -32
+      ]
+    },
+    {
+      "parent": "Engine",
+      "name": "Thruster_L",
+      "position_cm": [
+        -3,
+        -112,
+        0
+      ],
+      "forward": [
+        -1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "thruster",
+      "root_position_cm": [
+        -357,
+        -112,
+        0
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Mount_Primary_R",
+      "position_cm": [
+        20,
+        235,
+        -32
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "attachment",
+      "root_position_cm": [
+        20,
+        235,
+        -32
+      ]
+    },
+    {
+      "parent": "Pulse_R",
+      "name": "Muzzle_Primary_R",
+      "position_cm": [
+        157,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "muzzle",
+      "root_position_cm": [
+        177,
+        235,
+        -32
+      ]
+    },
+    {
+      "parent": "Engine",
+      "name": "Thruster_R",
+      "position_cm": [
+        -3,
+        112,
+        0
+      ],
+      "forward": [
+        -1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "thruster",
+      "root_position_cm": [
+        -357,
+        112,
+        0
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Mount_Secondary",
+      "position_cm": [
+        70,
+        0,
+        -34
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "attachment",
+      "root_position_cm": [
+        70,
+        0,
+        -34
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Mount_Portal",
+      "position_cm": [
+        292,
+        0,
+        5
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "attachment",
+      "root_position_cm": [
+        292,
+        0,
+        5
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Engine",
+      "position_cm": [
+        -354,
+        0,
+        0
+      ],
+      "forward": [
+        -1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "engine_alias",
+      "root_position_cm": [
+        -354,
+        0,
+        0
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "CockpitCamera",
+      "position_cm": [
+        70,
+        0,
+        108
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "camera",
+      "root_position_cm": [
+        70,
+        0,
+        108
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Ability_Cloak",
+      "position_cm": [
+        0,
+        0,
+        20
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "ability",
+      "root_position_cm": [
+        0,
+        0,
+        20
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Shield_Origin",
+      "position_cm": [
+        0,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "ability",
+      "root_position_cm": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Camera_Chase",
+      "position_cm": [
+        -480,
+        0,
+        175
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "camera_reference_only",
+      "root_position_cm": [
+        -480,
+        0,
+        175
+      ]
+    },
+    {
+      "parent": "Splitter",
+      "name": "Muzzle_Secondary",
+      "position_cm": [
+        253,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "muzzle",
+      "root_position_cm": [
+        323,
+        0,
+        -34
+      ]
+    },
+    {
+      "parent": "Splitter",
+      "name": "Charge_Focus",
+      "position_cm": [
+        252,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "ability",
+      "root_position_cm": [
+        322,
+        0,
+        -34
+      ]
+    },
+    {
+      "parent": "PortalRotor",
+      "name": "Portal_Pivot",
+      "position_cm": [
+        0,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "pivot",
+      "root_position_cm": [
+        292,
+        0,
+        5
+      ]
+    },
+    {
+      "parent": "PortalRotor",
+      "name": "Portal_Exit",
+      "position_cm": [
+        31,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "ability",
+      "root_position_cm": [
+        323,
+        0,
+        5
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Muzzle_0",
+      "position_cm": [
+        177,
+        -235,
+        -32
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "primary_runtime_alias",
+      "root_position_cm": [
+        177,
+        -235,
+        -32
+      ]
+    },
+    {
+      "parent": "Hull",
+      "name": "Muzzle_1",
+      "position_cm": [
+        177,
+        235,
+        -32
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "purpose": "primary_runtime_alias",
+      "root_position_cm": [
+        177,
+        235,
+        -32
+      ]
+    }
+  ]
+}

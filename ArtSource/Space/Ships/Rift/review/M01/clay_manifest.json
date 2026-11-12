@@ -1,0 +1,76 @@
+{
+  "status": "ok",
+  "sheet": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-rift\\ArtSource\\Space\\Ships\\Rift\\review\\M01\\Rift_M01_clay_sheet.png",
+  "mode": "clay",
+  "engine": "BLENDER_WORKBENCH",
+  "layout": {
+    "columns": 3,
+    "order": [
+      "front_3q",
+      "front",
+      "right",
+      "top",
+      "back_3q",
+      "low_3q"
+    ]
+  },
+  "ortho_cm_per_px": 1.36,
+  "views": [
+    {
+      "view": "front_3q",
+      "coverage": 0.155,
+      "touches_edge": false
+    },
+    {
+      "view": "front",
+      "coverage": 0.072,
+      "touches_edge": false
+    },
+    {
+      "view": "right",
+      "coverage": 0.09,
+      "touches_edge": false
+    },
+    {
+      "view": "top",
+      "coverage": 0.283,
+      "touches_edge": false
+    },
+    {
+      "view": "back_3q",
+      "coverage": 0.14,
+      "touches_edge": false
+    },
+    {
+      "view": "low_3q",
+      "coverage": 0.138,
+      "touches_edge": false
+    }
+  ],
+  "bbox_min_m": [
+    -4.25,
+    -3.2909,
+    -0.82
+  ],
+  "bbox_max_m": [
+    4.25,
+    3.53,
+    1.12
+  ],
+  "size_cm": [
+    850.0,
+    682.09,
+    194.0
+  ],
+  "objects": [
+    "SM_Rift_Hull",
+    "SM_Rift_Pulse_L",
+    "SM_Rift_Pulse_R",
+    "SM_Rift_Splitter",
+    "SM_Rift_PortalGuard",
+    "SM_Rift_PortalRotor",
+    "SM_Rift_Engine"
+  ],
+  "warnings": [],
+  "seconds": 0.98
+}

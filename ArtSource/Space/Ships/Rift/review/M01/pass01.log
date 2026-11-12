@@ -1,0 +1,15 @@
+00:03.625  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+Warning: No mesh data to join
+Info: Saved as "Rift_M01_work.blend"
+RIFT_QA {"technical_pass": false, "assembly_triangles": 38624, "geometry_errors": ["z-fighting: SM_Rift_Pulse_L (35 overlapping coplanar tri pairs)", "z-fighting: SM_Rift_Pulse_R (35 overlapping coplanar tri pairs)", "z-fighting: SM_Rift_Splitter (12 overlapping coplanar tri pairs)", "z-fighting: SM_Rift_Hull (6 overlapping coplanar tri pairs)", "z-fighting: SM_Rift_PortalGuard (4 overlapping coplanar tri pairs)"], "contact_pass": true, "attachment_pass": true, "ray_clearance": [{"name": "Muzzle_Primary_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Primary_R", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_R", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary", "clear": true, "hit": null, "distance_cm": null}, {"name": "Portal_Exit", "clear": true, "hit": null, "distance_cm": null}]}
+RIFT_RENDER 01_hero_front_3q
+00:09.344  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\01_hero_front_3q.png'
+00:09.625  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_front_3q.png'
+00:09.750  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_front.png'
+00:09.797  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_right.png'
+00:09.860  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_top.png'
+00:09.969  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_back_3q.png'
+00:10.125  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-rift\ArtSource\Space\Ships\Rift\review\M01\Rift_M01_clay_low_3q.png'
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

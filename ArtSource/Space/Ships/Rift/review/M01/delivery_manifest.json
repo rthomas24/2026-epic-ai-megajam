@@ -1,0 +1,107 @@
+{
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "bytes": 1866150,
+      "sha256": "46bfc1d5180cacc2ac2d92e4aecda0c7e69f690b911ecd11b6630f8dd3f59e73"
+    },
+    {
+      "file": "02_front.png",
+      "bytes": 1797036,
+      "sha256": "731adca68d08fff0be635984f70e7da2d8ef9837cd6bc5269cc54189c85dcf5b"
+    },
+    {
+      "file": "03_rear.png",
+      "bytes": 1780771,
+      "sha256": "9063bf132b4efaaf77bc154af7e6dba1d6b31a44c32943f62b01c71bf84911cf"
+    },
+    {
+      "file": "04_side.png",
+      "bytes": 1816778,
+      "sha256": "7579f0f5485c58e9e1705966f54a6152b974a5e197fd9b86a191301671030910"
+    },
+    {
+      "file": "05_top.png",
+      "bytes": 1935000,
+      "sha256": "20c2863de7a2fa9513249a13213eb75eb5408dd914bd12b402a5f2a33d22809f"
+    },
+    {
+      "file": "06_rear_3q.png",
+      "bytes": 1830241,
+      "sha256": "38f4285f4fe1f5de98163425f5c50f8a0989158a92f0df4f68bb9bb20f3e2b02"
+    },
+    {
+      "file": "07_underside.png",
+      "bytes": 1818268,
+      "sha256": "b407270d8402a3a45912a8fe8a801edd5824d1241cf7daa2945582d7f07ce112"
+    },
+    {
+      "file": "08_weapon_detail.png",
+      "bytes": 1733728,
+      "sha256": "d6ab9939e85dffaf8aa8504f09a0eb346eb73ac8b0dae183625d17477868e50a"
+    },
+    {
+      "file": "09_portal_detail.png",
+      "bytes": 1832463,
+      "sha256": "1bf59b5307e24482f36dde2278c9d799b7a76170117a4508f8e4c3105a1e77c5"
+    },
+    {
+      "file": "Lancer_reference_4b7ef12.png",
+      "bytes": 1930876,
+      "sha256": "e298ed97985bd50e87377768898886b19793449cdcc8e76ca965db52d8a228ce"
+    },
+    {
+      "file": "Rift_M01_clay_sheet.png",
+      "bytes": 682516,
+      "sha256": "ab9341ff9f5b364b730ba2be68b9601e45c126f8c90f544d78cd1e7a7def4c91"
+    },
+    {
+      "file": "Rift_M01_overview.png",
+      "bytes": 2088579,
+      "sha256": "1c882686954af2cf5d1ac81de4e7fd4647f45af37165bfa70f9fbe73ac3c9fdf"
+    },
+    {
+      "file": "Rift_M01_silhouette_sheet.png",
+      "bytes": 56199,
+      "sha256": "38245fab959c587c100a542a8355375b3d9b3d223c9abce7b3bd7c398b4affeb"
+    },
+    {
+      "file": "Rift_M01_wire_sheet.png",
+      "bytes": 881028,
+      "sha256": "4149924c19c28b67b6b6f9de5581be34094c08d5d070e143f55e958de65ac822"
+    },
+    {
+      "file": "silhouette_128_front_3q.png",
+      "bytes": 9270,
+      "sha256": "f8c8fd31ae38c23cff2313b777e8053944293e771147ffc804a2ea834c839021"
+    },
+    {
+      "file": "silhouette_128_side.png",
+      "bytes": 8783,
+      "sha256": "a77c5d0c07ccf6578739946de95c0337657eb0e62ba41faf4783c93118dbaaec"
+    },
+    {
+      "file": "silhouette_128_top.png",
+      "bytes": 10006,
+      "sha256": "5e5434a0584e484f372e143964be45733ea516e0754ef6d232ba85aa0254971e"
+    },
+    {
+      "file": "wire_front_3q.png",
+      "bytes": 1304596,
+      "sha256": "7dc6ceb3b625983a041594b7ebf0c4bba209b42e36a4cb2999a0640572e33584"
+    },
+    {
+      "file": "wire_top.png",
+      "bytes": 1460671,
+      "sha256": "62db9ef60542ff96d0b56808ed23172ab1f7ca5e471abf27a20115dab0f98906"
+    },
+    {
+      "file": "wire_underside.png",
+      "bytes": 1256214,
+      "sha256": "55d1c2a75ac334a46bf131ca8f34efd49ee2e35ff80a26d1df039ce3b62f30c8"
+    }
+  ],
+  "technical_pass": true,
+  "manual_approval": false,
+  "native_imported": false
+}

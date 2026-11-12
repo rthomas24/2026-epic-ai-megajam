@@ -1,0 +1,11 @@
+{
+  "blender": "5.1.1",
+  "triangles": 38624,
+  "instances": 7,
+  "materials": 6,
+  "mesh_roles": 6,
+  "elapsed_seconds": 0.9606543000008969,
+  "source_route": "repository_MIT_hardsurface_kit_features_ART03_Lead_dispatch_e4b5715",
+  "native_imported": false,
+  "manual_approval": false
+}

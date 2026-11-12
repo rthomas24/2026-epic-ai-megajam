@@ -1,0 +1,111 @@
+{
+  "blender": "5.1.1",
+  "beauty_engine": "BLENDER_EEVEE",
+  "beauty_color_view": "Khronos PBR Neutral",
+  "diagnostic_engines": "BLENDER_WORKBENCH",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1866150,
+      "pixel_std": 0.1787564605474472,
+      "title": "Front three-quarter",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    },
+    {
+      "file": "02_front.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1797036,
+      "pixel_std": 0.15200607478618622,
+      "title": "Front",
+      "azimuth_deg": 0,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1780771,
+      "pixel_std": 0.13584797084331512,
+      "title": "Rear",
+      "azimuth_deg": 180,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "04_side.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1816778,
+      "pixel_std": 0.17733487486839294,
+      "title": "Starboard",
+      "azimuth_deg": 90,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "05_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1935000,
+      "pixel_std": 0.2578716576099396,
+      "title": "Top",
+      "azimuth_deg": 0,
+      "elevation_deg": 90,
+      "perspective": false
+    },
+    {
+      "file": "06_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1830241,
+      "pixel_std": 0.1749412566423416,
+      "title": "Rear three-quarter",
+      "azimuth_deg": 215,
+      "elevation_deg": 22,
+      "perspective": true
+    },
+    {
+      "file": "07_underside.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1818268,
+      "pixel_std": 0.1304623931646347,
+      "title": "Underside",
+      "azimuth_deg": 35,
+      "elevation_deg": -28,
+      "perspective": true
+    },
+    {
+      "file": "08_weapon_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1733728,
+      "pixel_std": 0.12671509385108948,
+      "title": "Pulse and Splitter modules",
+      "azimuth_deg": 35,
+      "elevation_deg": -10,
+      "perspective": true
+    },
+    {
+      "file": "09_portal_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1832463,
+      "pixel_std": 0.17209354043006897,
+      "title": "Portal guard and rotor",
+      "azimuth_deg": 25,
+      "elevation_deg": 15,
+      "perspective": true
+    }
+  ],
+  "full_review": true,
+  "render_threads": 2,
+  "source_mesh_geometry_unchanged_for_render": true,
+  "elapsed_seconds": 9.718215999999302
+}

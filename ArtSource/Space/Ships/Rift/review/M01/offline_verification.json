@@ -1,0 +1,22 @@
+{
+  "technical_pass": true,
+  "triangles": 38624,
+  "images_crc_and_decompressed": 22,
+  "final_root_images": 20,
+  "json_parsed": 19,
+  "python_syntax_checked": 5,
+  "html_references_checked": 39,
+  "candidate_blend_bytes": 1515773,
+  "candidate_blend_sha256": "c70be19838507aa06af5a66e11b81069955af282cce90013f4471c9ec32d155f",
+  "blend_container_verified": {
+    "decoded_bytes": 5671805,
+    "header": "BLENDER17-01",
+    "zstd": true
+  },
+  "lancer_original_clean_unchanged": true,
+  "identical_19_attachment_and_6_ray_identities": true,
+  "new_owned_files_before_verification_manifest": 55,
+  "presentation_approved": false,
+  "native_imported": false,
+  "bastion_started": false
+}

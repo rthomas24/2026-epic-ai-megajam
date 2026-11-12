@@ -1,0 +1,262 @@
+{
+  "blender": "5.1.1",
+  "assembly_triangles": 38624,
+  "assembly_instances": 7,
+  "unique_meshes": 6,
+  "materials": 6,
+  "textures": 0,
+  "dimensions_cm": [
+    682.0887804031372,
+    850.0,
+    193.99999976158142
+  ],
+  "geometry_pass": true,
+  "geometry_errors": [],
+  "geometry_warnings": [
+    "asset lowest point z=-0.82 (not resting on ground plane z=0)"
+  ],
+  "contact_pass": true,
+  "floating": [],
+  "attachment_checks": [
+    {
+      "parent": "Hull",
+      "name": "Mount_Primary_L",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Pulse_L",
+      "name": "Muzzle_Primary_L",
+      "local_error_m": 0.0,
+      "root_error_m": 1.1920928955078125e-07,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Engine",
+      "name": "Thruster_L",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Mount_Primary_R",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Pulse_R",
+      "name": "Muzzle_Primary_R",
+      "local_error_m": 0.0,
+      "root_error_m": 1.1920928955078125e-07,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Engine",
+      "name": "Thruster_R",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Mount_Secondary",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Mount_Portal",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Engine",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "CockpitCamera",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Ability_Cloak",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Shield_Origin",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Camera_Chase",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Splitter",
+      "name": "Muzzle_Secondary",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Splitter",
+      "name": "Charge_Focus",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "PortalRotor",
+      "name": "Portal_Pivot",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "PortalRotor",
+      "name": "Portal_Exit",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Muzzle_0",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    },
+    {
+      "parent": "Hull",
+      "name": "Muzzle_1",
+      "local_error_m": 0.0,
+      "root_error_m": 0.0,
+      "forward_dot": 1.0,
+      "up_dot": 1.0,
+      "determinant": 1.0,
+      "passed": true
+    }
+  ],
+  "attachment_pass": true,
+  "ray_clearance": [
+    {
+      "name": "Muzzle_Primary_L",
+      "clear": true,
+      "hit": null,
+      "distance_cm": null
+    },
+    {
+      "name": "Thruster_L",
+      "clear": true,
+      "hit": null,
+      "distance_cm": null
+    },
+    {
+      "name": "Muzzle_Primary_R",
+      "clear": true,
+      "hit": null,
+      "distance_cm": null
+    },
+    {
+      "name": "Thruster_R",
+      "clear": true,
+      "hit": null,
+      "distance_cm": null
+    },
+    {
+      "name": "Muzzle_Secondary",
+      "clear": true,
+      "hit": null,
+      "distance_cm": null
+    },
+    {
+      "name": "Portal_Exit",
+      "clear": true,
+      "hit": null,
+      "distance_cm": null
+    }
+  ],
+  "ray_pass": true,
+  "unit_positive_scale": true,
+  "panel_tint_present": true,
+  "emissive_surface_fraction": 0.017648187713895102,
+  "emissive_area_pass": true,
+  "material_parameters_pass": true,
+  "native_imported": false,
+  "presentation_approved": false,
+  "gameplay_validated": false,
+  "elapsed_seconds": 2.705488699999478,
+  "technical_pass": true
+}

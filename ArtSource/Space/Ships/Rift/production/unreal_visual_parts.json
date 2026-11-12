@@ -1,0 +1,147 @@
+{
+  "primary_mesh": "SM_Rift_Hull",
+  "native_asset": null,
+  "engineering_base": "e4b5715",
+  "parts": [
+    {
+      "PartName": "Pulse_L",
+      "MeshSource": "SM_Rift_Pulse",
+      "ParentSocket": null,
+      "RelativeTransform": {
+        "translation_cm": [
+          20,
+          -235,
+          -32
+        ],
+        "rotation_degrees": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "UnrealAssetPath": null
+    },
+    {
+      "PartName": "Pulse_R",
+      "MeshSource": "SM_Rift_Pulse",
+      "ParentSocket": null,
+      "RelativeTransform": {
+        "translation_cm": [
+          20,
+          235,
+          -32
+        ],
+        "rotation_degrees": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "UnrealAssetPath": null
+    },
+    {
+      "PartName": "Splitter",
+      "MeshSource": "SM_Rift_Splitter",
+      "ParentSocket": null,
+      "RelativeTransform": {
+        "translation_cm": [
+          70,
+          0,
+          -34
+        ],
+        "rotation_degrees": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "UnrealAssetPath": null
+    },
+    {
+      "PartName": "PortalGuard",
+      "MeshSource": "SM_Rift_PortalGuard",
+      "ParentSocket": null,
+      "RelativeTransform": {
+        "translation_cm": [
+          292,
+          0,
+          5
+        ],
+        "rotation_degrees": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "UnrealAssetPath": null
+    },
+    {
+      "PartName": "PortalRotor",
+      "MeshSource": "SM_Rift_PortalRotor",
+      "ParentSocket": null,
+      "RelativeTransform": {
+        "translation_cm": [
+          292,
+          0,
+          5
+        ],
+        "rotation_degrees": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "UnrealAssetPath": null
+    },
+    {
+      "PartName": "Engine",
+      "MeshSource": "SM_Rift_Engine",
+      "ParentSocket": null,
+      "RelativeTransform": {
+        "translation_cm": [
+          -354,
+          0,
+          0
+        ],
+        "rotation_degrees": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "UnrealAssetPath": null
+    }
+  ],
+  "dynamic_ring_animation_implemented": false,
+  "weapon_specific_runtime_binding_implemented": false
+}
