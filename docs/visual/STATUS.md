@@ -168,3 +168,11 @@ nick/characters-infantry/worktree are not created. Activate after HUD handoff.
 Technical verification and Nick visual approval precede rigging/native integration;
 integrate the approved crew base before spending time on optional cosmetic variants.
 No core gameplay class, character reference or artistic direction is removed.
+
+## HUD safe handoff and infantry source activation — November12,17:34EST
+
+HUD ca579ab is published/clean on nick/hud-lancer-polish (draftPR8): build,10UItests,26actual-game captures, real landing/on-foot host removal and return verified. Independent review clears branch publication; SLOWDOWN not reproduced, N013 remains open. Latest-main compatibility, default-on, Shipping, human gameplay/final presentation and main integration remain separate gates. HUD scope stays frozen.
+
+The same GameJam | UI, UX & HUD chat now owns Characters & Enemies source preparation in isolated nick/characters-infantry / C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/characters-infantry, base2d2b559. This supersedes the earlier undispatched/reserved state only for Infantry/M01. Nick delegated infantry-first priority and resumed the character campaign; the HUD prerequisite is complete. Published exact source claim is required before edits. Use existing approved reference86c032e1 and read-only owned UE5 Manny base; no new acquisition, template changes, shared gameplay/config, rigging, native integration, or another character. Pilot remains preserved/deferred.
+
+Current Hero Unreal job retains the only heavy slot. Character owner may prepare source/specifications offline; mannequin export and Blender need a later explicit fresh resource grant. No humanoid model exists at activation. Stop for technical verification and Nick visual approval before dependent milestones.
