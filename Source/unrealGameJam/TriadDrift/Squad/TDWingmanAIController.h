@@ -128,7 +128,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Steering", meta = (Units = "deg"))
 	float FullStickAngleDeg = 25.f;
 
+	/** Seconds before a wingman may evade again (no endless evading under fire). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (Units = "s"))
+	float EvadeCooldown = 3.f;
+
+	/** Seconds the secondary trigger is held per shot (Splitter Bolt needs >= 0.8 s charge). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
+	float SecondaryHoldSeconds = 1.f;
+
+	/** Closer than this to the target, break off and overshoot instead of ramming it. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
+	float BreakOffDistance = 1800.f;
+
+	/** Leader faster than this multiple of our boost speed = hyperdrive: jump with it, in formation. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation")
+	float HyperdriveFollowSpeedRatio = 1.6f;
+
+	/** Bus handler: a spacecraft was moved discontinuously (portal, gate, hyperdrive drop-out). */
+	UFUNCTION()
+	void HandleSpacecraftTeleported(AActor* Spacecraft, FVector From, FVector To);
+
 protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -138,18 +160,23 @@ protected:
 	void UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATDShip* Leader);
 	void UpdateEvade(float DeltaSeconds, ATDShip* Ship, ATDShip* Leader);
 
+	/** Fly to a moving point (formation slot or dome), matching the reference velocity when close. */
+	void FlyToPoint(ATDShip* Ship, const FVector& Point, const FVector& RefVelocity, const FVector& RefForward);
+
 	AActor* PickTarget(ATDShip* Ship, ATDShip* Leader) const;
 
-	/** Turn the desired world direction + throttle into FTDFlightInput and send it to the ship. */
-	void SteerToward(ATDShip* Ship, const FVector& DesiredDir, float Throttle01, bool bBoost);
+	/** Formation slot, or the shield dome when hurt and a dome is up. */
+	FVector GetHomeLocation(ATDShip* Ship, ATDShip* Leader, bool& bOutIsDome) const;
+
+	/** Turn the desired world direction + speed into FTDFlightInput and send it to the ship. */
+	void SteerToward(ATDShip* Ship, const FVector& DesiredDir, float TargetSpeed, bool bBoost);
 
 	/** Bend DesiredDir away from obstacles and squadmates. */
-	FVector ApplyAvoidance(ATDShip* Ship, const FVector& DesiredDir) const;
+	FVector ApplyAvoidance(ATDShip* Ship, const FVector& DesiredDir);
 
 	void SetTriggers(bool bPrimary, bool bSecondary);
-
-	UFUNCTION()
-	void HandleShieldBroken();
+	void BeginEvade(ATDShip* Ship);
+	double Now() const;
 
 	TWeakObjectPtr<ATDSquadManager> Squad;
 	ETDShipId ShipId = ETDShipId::Rift;
@@ -160,9 +187,18 @@ protected:
 	double StateEnterTime = 0.0;
 	double NextTargetEvalTime = 0.0;
 	double NextSecondaryTime = 0.0;
-	FVector EvadeDirection = FVector::ZeroVector;
-	FRotator AimError = FRotator::ZeroRotator;
+	double SecondaryReleaseTime = 0.0;
+	double NextEvadeAllowedTime = 0.0;
+	double NextAvoidanceSweepTime = 0.0;
 	double NextAimErrorTime = 0.0;
+	FVector EvadeDirection = FVector::ZeroVector;
+	FVector CachedAvoidance = FVector::ZeroVector;
+	FRotator AimError = FRotator::ZeroRotator;
+	float PrevShield01 = 1.f;
 	bool bPrimaryHeld = false;
 	bool bSecondaryHeld = false;
+	FRandomStream Random;
+
+	/** Reused every target evaluation (no per-frame allocation). */
+	mutable TArray<AActor*> ScratchHostiles;
 };

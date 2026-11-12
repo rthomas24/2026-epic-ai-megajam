@@ -65,9 +65,9 @@ struct UNREALGAMEJAM_API FTDShipSpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (Units = "s"))
 	float BoostRegenDelay = 1.2f;
 
-	/** Meter seconds regained per second (1 = a full 3 s meter refills in 3 s). Lancer: fast regen. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
-	float BoostRegenRate = 1.f;
+	/** Seconds to refill an empty meter once regen starts. Lancer: fast regen. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (Units = "s"))
+	float BoostRegenSeconds = 2.5f;
 
 	// --- Weapons (ids resolve through T2's UTDWeaponLibrary) ---
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
@@ -87,11 +87,6 @@ struct UNREALGAMEJAM_API FTDShipSpec
 	/** Squad colour: projectiles, HUD, placeholder hull tint. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Presentation")
 	FLinearColor SquadColor = FLinearColor::White;
-
-	// --- Wingman behaviour (ENG-08) ---
-	/** Slot in the loose V relative to the leader, in the leader's local space (X fwd, Y right, Z up). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman")
-	FVector FormationOffset = FVector(-1800.f, 1800.f, 0.f);
 };
 
 /**

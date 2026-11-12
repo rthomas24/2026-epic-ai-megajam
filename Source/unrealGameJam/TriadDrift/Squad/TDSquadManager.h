@@ -49,9 +49,6 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 
 	/** World time at which this ship was downed (Dying started). */
 	double DownedAtTime = 0.0;
-
-	/** World time this ship last used a signature power / ability (for Switch Strike). */
-	double LastPowerTime = -1000.0;
 };
 
 /**
@@ -106,6 +103,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
 	bool RequestSwitchPrev();
 
+	/** All slots (no allocation; check State == Alive). For per-frame use by wingmen and tests. */
+	const TArray<FTDSquadSlot>& GetSlots() const { return Slots; }
+
 	/** Living (Alive) ships, in SwitchOrder. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
 	TArray<ATDShip*> GetLivingShips() const;
@@ -136,9 +136,23 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
 	float GetDamageMultiplier(const AActor* SourceShip) const;
 
-	/** T2's power/ability components call this when a power or ability fires (arms Switch Strike). */
+	/**
+	 * A signature power or ability fired (arms Switch Strike). Called automatically from
+	 * UTDEventBus::OnPowerUsed, which T2 broadcasts; callable directly for tests and Blueprints.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
 	void NotifyPowerUsed(ETDShipId Ship);
+
+	/** UTDEventBus::OnPowerUsed handler. */
+	UFUNCTION()
+	void HandlePowerUsed(ETDShipId Ship, FName PowerName);
+
+	/** Override the controller the squad drives (default: first local player controller). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void SetSquadPlayerController(APlayerController* InController);
+
+	/** Effective spec for a ship (override if set, else UTDShipLibrary). */
+	const FTDShipSpec& GetSpec(ETDShipId Ship) const;
 
 	/** Wingman controllers ask for their formation anchor (the player's ship). */
 	ATDShip* GetFormationLeader() const { return GetActiveShip(); }
@@ -151,6 +165,14 @@ public:
 
 	/** The player controller the squad drives (first local player by default). */
 	APlayerController* GetSquadPlayerController() const;
+
+	// ---------------- ITDHUDData (space half) ----------------
+	virtual TArray<FTDShipHUD> GetSquadHUD() const override;
+	virtual AActor* GetCurrentTarget() const override;
+	virtual TArray<AActor*> GetLockedTargets() const override;
+	virtual FTDWaveInfo GetWaveInfo() const override;
+	virtual float GetSpeed01() const override;
+	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------
 
@@ -203,6 +225,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float FocusCommandSeconds = 8.f;
 
+	/** Loose V (ENG-08: 1500-2500 cm). Leader-local space: X forward, Y right, Z up. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
+	FVector FormationLeftOffset = FVector(-1600.f, -1600.f, 150.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
+	FVector FormationRightOffset = FVector(-1600.f, 1600.f, -150.f);
+
+	/** Weapon-component multiplier key for Switch Strike (agreed with T2). */
+	static const FName SwitchStrikeKey;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
@@ -210,7 +242,6 @@ protected:
 
 	FTDSquadSlot* FindSlot(ETDShipId Ship);
 	const FTDSquadSlot* FindSlot(ETDShipId Ship) const;
-	const FTDShipSpec& GetSpec(ETDShipId Ship) const;
 
 	/** Core of switching; bForced bypasses the cooldown (auto-switch on death). */
 	bool SwitchToInternal(ETDShipId Ship, bool bForced);
@@ -224,6 +255,11 @@ protected:
 	/** Healthiest living ship (hull + shield fraction), excluding Except. False if none. */
 	bool FindHealthiestLivingShip(ETDShipId Except, ETDShipId& OutShip) const;
 
+	void StartSwitchStrike(ATDShip* OnShip);
+	void EndSwitchStrike();
+	ATDWingmanAIController* SpawnWingmanFor(FTDSquadSlot& Slot);
+	double Now() const;
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad|State")
 	TArray<FTDSquadSlot> Slots;
 
@@ -231,8 +267,13 @@ protected:
 	ETDShipId ActiveShipId = ETDShipId::Rift;
 
 	double LastSwitchTime = -1000.0;
+	double LastPowerTime = -1000.0;
 	double SwitchStrikeEndTime = -1000.0;
 	double FocusEndTime = -1000.0;
 	TWeakObjectPtr<AActor> FocusTarget;
+	TWeakObjectPtr<ATDShip> SwitchStrikeShip;
+	TWeakObjectPtr<APlayerController> SquadPC;
 	bool bSquadWiped = false;
+	/** True when a game flow took the defeat; it owns the restart, so timers stop. */
+	bool bWipeHandledByFlow = false;
 };
