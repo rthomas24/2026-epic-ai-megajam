@@ -15,6 +15,10 @@ authorization remains active; the Lead owns claim publication and integration.
 - Six `SM_*.mesh.json` files: closed triangle mesh sources, parts and material IDs.
 - `attachments.json`: module instances, socket transforms and adjustable material values.
 - `verification.json`: source topology, counts, dimensions and muzzle clearances.
+- `preview_source_validation.json`: nine rendering/control states exercised in a
+  Node VM with a stub DOM/Canvas; finite-coordinate/runtime checks, not browser QA.
+- `source_checksums.json`: SHA-256 fingerprints of the generated mesh/interface
+  and preview outputs; deterministic regeneration matched every fingerprint.
 - `Lancer_preview.html` / `Lancer_review.svg`: generated text previews.
 - `preview_template.html`: editable preview shell (data is embedded during generation).
 - `build_in_blender.py`: future Blender source adapter; intentionally not run.
@@ -46,7 +50,8 @@ reduction and instancing need Unreal validation.
 
 Browser visual verification could not complete: Windows computer-use stopped
 because it could not determine the current browser URL with enough confidence.
-The HTML and embedded script were checked with Node; no browser screenshot,
+The HTML and embedded script were checked with Node, including nine preview
+rendering states and Python adapter syntax; no browser screenshot,
 Blender render or visual sign-off is claimed.
 
 No .blend, FBX, OBJ, images, uassets, C++, maps or shared configuration were
