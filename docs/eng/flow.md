@@ -139,6 +139,12 @@ only when it changes.
   created on BeginPlay is never empty. On foot it repeats the last objective step.
 - `UTDGameInstance::GetCurrentObjectiveText()` returns the last line anyone broadcast.
 - Every level entry also re-broadcasts `OnPhaseChanged`, so music state and HUDs in the new level learn the phase.
+- **Objective markers (`TDTags::ObjectiveMarker`).** The flow is the single owner of the tag (agreed with T4 and T3). From the
+  same 0.25 s refresh, `FTDObjectiveText::ComputeMarkers` picks the actors and the GI tags them and untags the previous ones:
+  the planet's `ATDPlanetAtmosphere` for "JUMP TO …", every live generator, then the reactor, the running on-foot objective's
+  waypoints, and the board-ship point once both planet objectives are done. Nothing is tagged during a wave (T3 falls back to the
+  nearest enemy), during a CUT, mid-travel or on menus. T1 tags the landing pad in atmosphere. `GetFlowMarkers()` lists them.
+- `ATDFirstPersonCharacter::GetObjectiveText()` (ITDHUDData) returns the GI's current line.
 - Test: `Flow.Journey.ObjectiveTextForEverySpaceScene` (real stages, one generator killed, a retake, a level entry, and the CUT and new take on the bus).
 
 ## Placeholder sky (N-004, agreed with Nick's side)

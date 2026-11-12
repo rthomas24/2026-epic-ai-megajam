@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Flow/TDObjectiveText.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Flow/TDSaveGame.h"
 #include "TDGameInstance.generated.h"
 
@@ -77,6 +78,13 @@ public:
 	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	bool ContinueRun();
+
+	/** The run's difficulty: applied to the balance tables now and kept in the save slot (Continue restores it). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
+	void SetDifficulty(ETDDifficulty Difficulty);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
+	ETDDifficulty GetDifficulty() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	void DeleteSave();
@@ -208,6 +216,9 @@ public:
 	 */
 	void RefreshObjective(bool bForce);
 
+	/** Actors the flow currently tags TDTags::ObjectiveMarker (see FTDObjectiveText::ComputeMarkers). */
+	TArray<AActor*> GetFlowMarkers() const;
+
 	/** Fallback scene id for a wave ("Wave3") when the wave director gives none. The director owns the real id. */
 	static FName WaveSceneId(int32 WaveNumber);
 
@@ -245,6 +256,8 @@ private:
 	TArray<FName> SceneOrder;
 
 	FTDObjectiveLine LastObjective;
+	TArray<TWeakObjectPtr<AActor>> FlowMarkers;
+	void SyncMarkers(bool bClearAll);
 	float ObjectiveCheckLeft = 0.f;
 	float ObjectiveForceLeft = -1.f; // >= 0: force a re-broadcast when it runs out (a HUD made on BeginPlay misses the first)
 

@@ -142,6 +142,8 @@ public:
 	virtual int32 GetDashCharges() const override { return DashCharges; }
 	virtual FText GetInteractPrompt() const override;
 	virtual TArray<AActor*> GetObjectiveMarkers() const override;
+	/** The current objective line (the flow keeps the last one anyone broadcast). */
+	virtual FText GetObjectiveText() const override;
 	virtual float GetSpeed01() const override { return Speed01; }
 
 	// ACharacter

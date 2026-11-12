@@ -80,6 +80,10 @@ bool ATDPortal::HasClearance(const UWorld* World, const FVector& Location, float
 
 void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransitParams& InParams, UTDTravelFX* InFX, float InExitClearance)
 {
+	if (UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(this))
+	{
+		Powers->RegisterPortal(this);
+	}
 	PortalInstigator = InInstigator;
 	Radius = InRadius;
 	ExitClearance = InExitClearance;
@@ -161,6 +165,10 @@ void ATDPortal::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		Bus->OnSpacecraftTeleported.RemoveAll(this);
 	}
 	bClosed = true;
+	if (UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(this))
+	{
+		Powers->UnregisterPortal(this);
+	}
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -240,6 +248,29 @@ void ATDPortal::Tick(float DeltaSeconds)
 			}
 		}
 	}
+}
+
+bool ATDPortal::FindDiscCrossing(const FVector& Prev, const FVector& Cur, float& OutT) const
+{
+	if (bClosed || !Partner.IsValid())
+	{
+		return false;
+	}
+	const FVector P = GetActorLocation();
+	const FVector N = GetActorForwardVector();
+	const double D0 = FVector::DotProduct(Prev - P, N);
+	const double D1 = FVector::DotProduct(Cur - P, N);
+	if (D0 * D1 > 0.0 || FMath::IsNearlyEqual(D0, D1))
+	{
+		return false;
+	}
+	const double T = D0 / (D0 - D1);
+	if (FVector::DistSquared(Prev + (Cur - Prev) * T, P) > FMath::Square(Radius))
+	{
+		return false;
+	}
+	OutT = (float)T;
+	return true;
 }
 
 bool ATDPortal::TryCross(AActor* Traveller, const FVector& Prev, const FVector& Cur)

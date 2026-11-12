@@ -68,12 +68,34 @@ Rule decided by the Lead on Nov 12, replacing 30 m / 40% of space cruise:
   cap, 3,600 → 2,160 cm/s; in space it is cruise.
 - The hyperdrive is idle.
 - When all three hold, `GetLandPrompt()` returns "Hold F to land".
-- Within `SlowDownPromptRange` (400 m) of a pad but too fast, it returns "SLOW DOWN TO LAND - HOLD SPACE / LT TO
-  BRAKE", so a player who never brakes is told why.
-- This is the text `ITDHUDData::GetInteractPrompt` should carry in flight.
-- Measured: a hands-off arrival from the descent start is told to slow down. Braking from that first prompt,
-  touchdown follows 17.8 s later, most of it crawling at brake speed.
+- **Approach assist (hold F within 400 m, Lead decision Nov 12):** within `SlowDownPromptRange` of the player
+  pad, while flying, player-flown, not boosting and with the hyperdrive idle, holding F starts
+  `StartApproachAssist()`, and the prompt there already reads "Hold F to land".
+  - The assist owns the nose (keyed override `LandingAssist`, steering 0) and turns it onto the pad's hover point
+    at 150°/s.
+  - It flies at up to `AssistSpeed` (60 m/s, above the atmosphere cap), braking late along
+    `sqrt(End² + 2 × 3000 × distance)`, never below `AssistEndSpeed` (15 m/s).
+  - It hands over to the landing sequence 25 m from the hover point.
+  - Releasing F, a retake (`AbortToFlying`), death, a switch, boost or the hyperdrive ends it.
+  - Measured from the rig's descent start, holding F from the first prompt (399 m): the landing sequence starts
+    after 6.9 s, touchdown at 12.3 s, never below 18.8 m/s while assisting, never touching the ground.
+- "SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE" remains only for a player-flown ship that is too fast within
+  400 m but can't start the assist. In practice that means boosting, which never happens in atmosphere.
+- Aligning now lasts `max(AlignSeconds, 1.5 × distance / arrival speed)`, capped at 4 s, so a sequence started
+  far from the hover point never snaps.
 - Hold F / A for 0.5 s to call `RequestLand`.
+
+**HUD objective marker (TDTags::ObjectiveMarker on the player pad):**
+- The player pad carries the tag while the player's ship flies in that atmosphere and hasn't landed this visit, and
+  through the descent. It is removed at touchdown, on death, when the ship is destroyed and when leaving the
+  atmosphere.
+- After a retake it comes back if the ship is flying in the atmosphere again. After take-off it stays off until
+  the next visit.
+- The travel subsystem owns the mark (`UpdatePadMarker` / `GetMarkedPad`): one pad at most, and no flicker on a
+  ship switch.
+- Wingman pads are never marked.
+- On the ground, the take-off point is T5's to tag. It is the board point (`ATDBoardShipInteractable`) beside
+  the parked ship.
 
 **Landing sequence:**
 1. Aligning, 1.5 s: fly to the hover point 900 cm above the pad and turn to the pad's facing.
@@ -152,8 +174,10 @@ By hand in the sandbox:
 | `Atmosphere.ZoneModeAltitudeAndExit` | zone applies the mode and the input layer, altitude, hyperdrive blocked, ceiling shut until allowed, exit fires, the objectives gate |
 | `Atmosphere.EntryCommitsAndHandsBack` | 2.5 s entry, nose into the planet, speed held, hyperdrive off, hand-back without a flow |
 | `PlayBounds.AppliedToEveryShip` | existing and later-spawned ships pick up `SetPlayBounds` |
-| `Landing.SlowDownPromptAndAtmosphereRule` | 60% of the atmosphere cap; slow-down text at 300 m and at 100 m when too fast; landing prompt at 100 m when slow; nothing at 500 m |
-| `Landing.HandsOffArrivalNeverSoftLocks` | from the rig's descent start, hands-off: told to slow down, never touches the ground; braking then lands on the player pad |
+| `Landing.PromptRuleAndAssistRange` | 60% of the atmosphere cap; "Hold F to land" at 300 m when fast (the assist can start) and at 100 m when slow; nothing at 500 m or for a ship the player isn't flying |
+| `Landing.HoldFFromArrivalLandsInOneMotion` | from the rig's descent start, hands-off until the prompt, then a real held F: the assist starts, the landing sequence begins in under 8 s, never below the end speed, never touches the ground, lands on the player pad |
+| `Landing.PadIsTheObjectiveUntilTouchdown` | rig pad tagged while flying in; survives a switch; off outside the atmosphere, on death, at touchdown, after take-off, on destroy; back after a retake and on a new visit |
+| `Landing.AssistStopsOnReleaseRetakeAndBoost` | releasing F, a retake and death each end the assist and clear its override |
 | `Landing.PromptSequenceWingmenTakeOff` | prompt range and speed, the full sequence and its states, pad reservation, a wingman on the side pad, input ignored while landed, take-off with the wingman |
 | `Camera.CockpitToggle` | chase / cockpit switching; V binding |
 

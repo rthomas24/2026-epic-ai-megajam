@@ -31,4 +31,13 @@ struct UNREALGAMEJAM_API FTDObjectiveLine
 struct UNREALGAMEJAM_API FTDObjectiveText
 {
 	static bool Compute(UWorld* World, const FTDProgress& Progress, ETDDestination Destination, FTDObjectiveLine& Out);
+
+	/**
+	 * The actors the flow tags TDTags::ObjectiveMarker right now (HUD direction markers):
+	 *  - shields up: every live generator; reactor exposed: the reactor
+	 *  - on foot: the running objective's waypoints; both objectives done: the board-ship point (take-off)
+	 *  - waves: none (T3 falls back to the nearest enemy). Planet entries / gates are tagged by T4's hook and
+	 *    the landing pad by T1, not here.
+	 */
+	static void ComputeMarkers(UWorld* World, const FTDProgress& Progress, ETDDestination Destination, TArray<AActor*>& Out);
 };

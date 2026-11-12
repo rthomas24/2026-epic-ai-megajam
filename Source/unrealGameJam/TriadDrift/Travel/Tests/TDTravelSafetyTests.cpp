@@ -435,17 +435,30 @@ bool FTDTravelSafetyHoldF::RunTest(const FString& Parameters)
 	TestFalse(TEXT("pad released"), Pad->IsOccupied());
 	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, false);
 
-	// Holding F where landing isn't possible keeps retrying while held: it lands once the ship slows down in range.
+	// Too fast near a pad: holding F engages the approach assist (Lead decision, Nov 12), which flies in and lands.
 	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
-	Ship->GetShipMovement()->SetForwardSpeedImmediate(5000.f); // too fast
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(5000.f); // too fast for a direct landing
+	TestFalse(TEXT("too fast: no direct landing"), Land->CanLandNow());
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(1.5f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	TestTrue(TEXT("too fast but holding F: the assist brings it in to land"), Land->IsBusy());
+
+	// Out of the assist range, holding F keeps retrying while held: it lands once the ship is in range and slow.
+	W.Advance(6.f);
+	HoldF(0.7f); // take off again
+	W.Advance(4.f);
+	Ship->TeleportSpacecraft(FVector(-60000.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
 	FTDTestWorld::InjectKey(PC, EKeys::F, true);
 	W.Advance(0.6f);
-	TestFalse(TEXT("too fast: no landing yet"), Land->IsBusy());
+	TestFalse(TEXT("600 m out: nothing to land on yet"), Land->IsBusy() || Land->IsApproachAssisting());
 	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
 	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
 	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, true);
 	W.Advance(0.6f);
 	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, false);
 	TestTrue(TEXT("still holding F: lands once it's possible (no release needed)"), Land->IsBusy());
 	return true;
 }
