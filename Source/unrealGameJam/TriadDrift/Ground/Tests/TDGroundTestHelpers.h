@@ -85,8 +85,24 @@ namespace TDGroundTest
 		FNoSaveWrites() { S->bWriteSlotOnCheckpoint = false; }
 		~FNoSaveWrites() { S->bWriteSlotOnCheckpoint = bWas; }
 	};
+	/** Galaxy resolves to an engine map (travel can start) and there is no transition map; restored after. */
+	struct FScopedFakeGalaxyMap
+	{
+		UTDFlowSettings* S = GetMutableDefault<UTDFlowSettings>();
+		TMap<ETDDestination, FSoftObjectPath> Maps = S->DestinationMaps;
+		FSoftObjectPath Transition = S->TransitionMap;
+		FScopedFakeGalaxyMap()
+		{
+			S->DestinationMaps.Add(ETDDestination::Galaxy, FSoftObjectPath(TEXT("/Engine/Maps/Entry.Entry")));
+			S->TransitionMap.Reset();
+		}
+		~FScopedFakeGalaxyMap()
+		{
+			S->DestinationMaps = Maps;
+			S->TransitionMap = Transition;
+		}
+	};
 }
-
 
 
 #endif // WITH_DEV_AUTOMATION_TESTS

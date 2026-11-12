@@ -7,6 +7,9 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "Engine/World.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
@@ -61,7 +64,15 @@ void ATDGroundGameMode::InitGame(const FString& MapName, const FString& Options,
 	{
 		Destination = ETDDestination::DominionInterior;
 	}
-	// Until ENG-25/26 dress the planets, the training ground stands in so an empty planet map is playable.
+	// A real planet map (L_Planet_*) is a full visit: the squad flies in, lands, and the pilot gets out
+	// (ATDPlanetDirector). Anything else (Entry, test maps) stays the on-foot training ground.
+	bPlanetMode = Short.StartsWith(TEXT("L_Planet")) && (Destination == ETDDestination::Verdance || Destination == ETDDestination::Cinder);
+	if (bPlanetMode)
+	{
+		DefaultPawnClass = nullptr; // the squad possesses its lead ship; the pilot appears on landing
+		PlayerControllerClass = ATDSpacePlayerController::StaticClass();
+		bSpawnTrainingGround = false;
+	}
 	Super::InitGame(MapName, Options, ErrorMessage);
 }
 
@@ -91,6 +102,10 @@ void ATDGroundGameMode::StartPlay()
 	{
 		SpawnTrainingGround();
 	}
+	if (bPlanetMode)
+	{
+		SpawnPlanetVisit();
+	}
 	Super::StartPlay();
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -107,7 +122,10 @@ void ATDGroundGameMode::StartPlay()
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
 		GI->NotifyLevelEntered(Destination);
-		SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDGroundGameMode::HandleSceneRestart);
+		if (!bPlanetMode) // on a planet the director owns retakes (on foot at the pad, or a fresh descent)
+		{
+			SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDGroundGameMode::HandleSceneRestart);
+		}
 	}
 }
 
@@ -118,6 +136,23 @@ void ATDGroundGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		GI->OnSceneRestart.Remove(SceneRestartHandle);
 	}
 	Super::EndPlay(EndPlayReason);
+}
+
+void ATDGroundGameMode::SpawnPlanetVisit()
+{
+	const UTDFlowSettings* Settings = UTDFlowSettings::Get();
+	const FName Planet = Destination == ETDDestination::Cinder ? FName(TEXT("Cinder")) : FName(TEXT("Verdance"));
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	const FTransform Xf = PlanetPadTransform;
+	PlanetDirector = GetWorld()->SpawnActorDeferred<ATDPlanetDirector>(ATDPlanetDirector::StaticClass(), Xf);
+	if (PlanetDirector)
+	{
+		PlanetDirector->PlanetId = Planet;
+		PlanetDirector->PadTransform = Xf;
+		PlanetDirector->RequiredObjectives = Destination == ETDDestination::Cinder ? Settings->CinderObjectives : Settings->VerdanceObjectives;
+		PlanetDirector->FinishSpawning(Xf);
+	}
 }
 
 void ATDGroundGameMode::HandleConsoleUsed(AActor* Interactable, AActor* Interactor)
@@ -195,6 +230,7 @@ void ATDGroundGameMode::SpawnEnvironment()
 			if (UDirectionalLightComponent* L = Cast<UDirectionalLightComponent>(Sun->GetLightComponent()))
 			{
 				L->SetIntensity(10.f);
+				L->SetForwardShadingPriority(1);
 				L->SetLightColor(FLinearColor(1.f, 0.95f, 0.85f));
 				L->SetAtmosphereSunLight(true);
 			}

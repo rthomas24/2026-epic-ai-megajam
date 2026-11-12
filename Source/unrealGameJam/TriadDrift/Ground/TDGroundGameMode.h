@@ -14,6 +14,7 @@ class ATDDummyTurret;
 class ATDEncounterVolume;
 class ATDInteractableActor;
 class ATDDoor;
+class ATDPlanetDirector;
 
 /**
  * On any map (an empty one is fine) builds a lit training ground from engine basic shapes:
@@ -51,6 +52,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
 	ETDDestination Destination = ETDDestination::Verdance;
 
+	/** Where the planet's landing pad goes on a real planet map (the layout of ENG-25/26 sets it). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
+	FTransform PlanetPadTransform = FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 0.f));
+
+	UFUNCTION(BlueprintPure, Category = "Planet") bool IsPlanetMode() const { return bPlanetMode; }
+	UFUNCTION(BlueprintPure, Category = "Planet") ATDPlanetDirector* GetPlanetDirector() const { return PlanetDirector; }
+
 	UFUNCTION(BlueprintPure, Category = "Sandbox") ATDDummyTurret* GetTurret() const { return Turret; }
 	UFUNCTION(BlueprintPure, Category = "Sandbox") ATDObjective* GetSampleObjective() const { return SampleObjective; }
 	UFUNCTION(BlueprintPure, Category = "Sandbox") ATDEncounterVolume* GetEncounter() const { return Encounter; }
@@ -62,6 +70,7 @@ public:
 protected:
 	void SpawnEnvironment();
 	void SpawnTrainingGround();
+	void SpawnPlanetVisit();
 	AActor* SpawnBlock(const FVector& Center, const FVector& SizeCm, const FLinearColor& Color, const TCHAR* Label);
 	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 
@@ -74,6 +83,8 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<ATDEncounterVolume> Encounter;
 	UPROPERTY(Transient) TObjectPtr<ATDInteractableActor> Console;
 	UPROPERTY(Transient) TObjectPtr<ATDDoor> RoomDoor;
+	UPROPERTY(Transient) TObjectPtr<class ATDPlanetDirector> PlanetDirector;
+	bool bPlanetMode = false;
 
 	FDelegateHandle SceneRestartHandle;
 };
