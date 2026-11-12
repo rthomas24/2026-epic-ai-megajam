@@ -12,6 +12,9 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "Animation/AnimSingleNodeInstance.h"
+#include "Camera/CameraComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
@@ -117,6 +120,60 @@ bool FTDBladeCues::RunTest(const FString& Parameters)
 	P->RespawnAt(FTransform(FVector(0.f, 0.f, 95.f)));
 	TestTrue(TEXT("Ignite cue on respawn"), Cues.Contains(TEXT("Ignite")));
 	TestTrue(TEXT("blade mesh visible again"), P->GetBladeMesh()->IsVisible());
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+namespace TDGroundTest
+{
+	/** Camera-space corners of a mesh component's local box. */
+	inline TArray<FVector> CornersInCamera(const UStaticMeshComponent* C, const UCameraComponent* Cam)
+	{
+		TArray<FVector> Out;
+		const FBox B = C->GetStaticMesh()->GetBoundingBox();
+		for (int32 i = 0; i < 8; ++i)
+		{
+			const FVector L((i & 1) ? B.Max.X : B.Min.X, (i & 2) ? B.Max.Y : B.Min.Y, (i & 4) ? B.Max.Z : B.Min.Z);
+			Out.Add(Cam->GetComponentTransform().InverseTransformPosition(C->GetComponentTransform().TransformPosition(L)));
+		}
+		return Out;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBladeHeldPose, "TriadDrift.Ground.Blade.PlaceholderHeldClearOfCrosshairAndSwings", TD_TEST_FLAGS)
+bool FTDBladeHeldPose::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+	UCameraComponent* Cam = P ? P->FindComponentByClass<UCameraComponent>() : nullptr;
+	if (!TestNotNull(TEXT("camera"), Cam)) { return false; }
+	W.Advance(1.f);
+	float MinX = 1e9f, MinAngle = 180.f, MaxAngle = 0.f;
+	for (const FVector& V : TDGroundTest::CornersInCamera(P->GetBladeMesh(), Cam))
+	{
+		MinX = FMath::Min(MinX, (float)V.X);
+		const float Ang = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(V.GetSafeNormal().X, -1.0, 1.0)));
+		MinAngle = FMath::Min(MinAngle, Ang);
+		MaxAngle = FMath::Max(MaxAngle, Ang);
+	}
+	TestTrue(FString::Printf(TEXT("blade in front of the near plane at rest (%.1f cm)"), MinX), MinX > 15.f);
+	TestTrue(FString::Printf(TEXT("blade clear of the crosshair at rest (%.1f deg)"), MinAngle), MinAngle > 12.f);
+	TestTrue(FString::Printf(TEXT("blade inside the view at rest (%.1f deg)"), MaxAngle), MaxAngle < Cam->FieldOfView * 0.5f + 5.f);
+	const FVector BladeY = Cam->GetComponentTransform().InverseTransformPosition(P->GetBladeMesh()->GetComponentLocation());
+	TestTrue(TEXT("held to the right"), BladeY.Y > 0.f);
+	// It must look thin: the projected width is well under the length.
+	const FVector Extent = P->GetBladeMesh()->GetStaticMesh()->GetBoundingBox().GetExtent() * P->GetBladeMesh()->GetComponentScale();
+	TestTrue(TEXT("thin blade"), Extent.Z > 15.f * FMath::Max(Extent.X, Extent.Y));
+
+	// A light swing visibly sweeps the grip across the view (right to left), then it comes back to rest.
+	const FVector Rest = P->GetBladeGrip()->GetRelativeLocation();
+	P->GetBlade()->LightAttack();
+	float MinY = Rest.Y;
+	for (int32 i = 0; i < 20; ++i) { W.Tick(1.f / 60.f); MinY = FMath::Min(MinY, (float)P->GetBladeGrip()->GetRelativeLocation().Y); }
+	TestTrue(FString::Printf(TEXT("swing moves the blade across (%.1f -> %.1f)"), Rest.Y, MinY), Rest.Y - MinY > 20.f);
+	W.Advance(1.5f);
+	TestTrue(TEXT("back to rest"), FVector::Dist(P->GetBladeGrip()->GetRelativeLocation(), Rest) < 2.f);
 	return true;
 }
 

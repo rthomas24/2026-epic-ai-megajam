@@ -45,6 +45,15 @@ ATDCrewCharacter::ATDCrewCharacter(const FObjectInitializer& ObjectInitializer)
 	{
 		Body->SetStaticMesh(Cube.Object);
 	}
+	Eyes = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Eyes"));
+	Eyes->SetupAttachment(GetCapsuleComponent());
+	Eyes->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	Eyes->SetCanEverAffectNavigation(false);
+	Eyes->SetCastShadow(false);
+	if (Cube.Succeeded())
+	{
+		Eyes->SetStaticMesh(Cube.Object);
+	}
 	GetMesh()->SetVisibility(false);
 
 	Health = CreateDefaultSubobject<UTDHealthComponent>(TEXT("Health"));
@@ -82,6 +91,9 @@ void ATDCrewCharacter::InitFromType(ETDCrewType Type)
 	}
 	// Placeholder body sized from the capsule (engine cube = 100 cm).
 	Body->SetRelativeScale3D(Spec.BodyScale);
+	// Eye slit on the front face, near the top of the body.
+	Eyes->SetRelativeLocation(FVector(Spec.BodyScale.X * 50.f + 1.f, 0.f, Spec.BodyScale.Z * 50.f * 0.6f));
+	Eyes->SetRelativeScale3D(FVector(0.02f, FMath::Max(Spec.BodyScale.Y * 0.6f, 0.12f), 0.06f));
 
 	if (!Visuals)
 	{
@@ -177,6 +189,7 @@ void ATDCrewCharacter::ApplyVisuals()
 			GetMesh()->SetVisibility(true);
 			GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -Spec.CapsuleHalfHeight));
 			Body->SetVisibility(false);
+			Eyes->SetVisibility(false);
 			return;
 		}
 	}
@@ -194,12 +207,16 @@ void ATDCrewCharacter::ApplyVisuals()
 				}
 			}
 			Body->SetVisibility(true);
+			Eyes->SetVisibility(false);
 			return;
 		}
 	}
-	// Placeholder: an Armada-red block with a glow, until Nick's crew art exists.
+	// Placeholder: a solid (lit) Armada-coloured block with glowing white eyes, until Nick's crew art exists.
+	// The engine's glow material is translucent, so it is only used for the eyes.
 	Body->SetVisibility(true);
-	UTDStatics::TintPlaceholder(Body, Spec.TeamColor, 0.4f);
+	Eyes->SetVisibility(true);
+	UTDStatics::TintPlaceholder(Body, Spec.TeamColor, 0.f);
+	UTDStatics::TintPlaceholder(Eyes, FLinearColor(1.f, 0.95f, 0.9f), 4.f);
 }
 
 void ATDCrewCharacter::PlayCrewCue(FName Name, const FTDFXCue& Cue, bool bAttached, const FVector& Location)
@@ -596,6 +613,7 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		Body->SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
 		Body->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		Body->SetSimulatePhysics(true);
+		Eyes->SetVisibility(false); // the eyes go dark when it dies
 		Body->AddImpulse(Push, NAME_None, true);
 	}
 	DetachFromControllerPendingDestroy();
