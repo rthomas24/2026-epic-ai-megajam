@@ -10,9 +10,11 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDPresentation.h"
 
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "Camera/CameraComponent.h"
 
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -21,6 +23,18 @@
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Travel/TDLandingComponent.h"
+
+#include "TriadDrift/Input/TDSpacePlayerController.h" // ETDPowerInput
+#include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Powers/TDAbilityComponent.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "TriadDrift/Powers/TDRamPower.h"
+#include "TriadDrift/Powers/TDBastionPowers.h"
 
 namespace TDSquadIntegrationPrivate
 {
@@ -39,33 +53,6 @@ namespace TDSquadIntegrationPrivate
 		return Ship ? Ship->GetShipMovement() : nullptr;
 	}
 
-	// T1's throttle top-speed hook (eng/t1 adb6959). Detected at compile time so Squad builds both
-	// before and after it reaches main; once it is on main this can become a direct call.
-	template <typename M>
-	concept HasThrottleTopSpeed = requires(M* Move, float V) { Move->SetThrottleTopSpeed(V); Move->ClearThrottleTopSpeed(); Move->GetThrottleTopSpeed(); };
-
-	template <typename M>
-	void SetTopSpeed(M* Move, float TopSpeed, float Cruise)
-	{
-		if constexpr (HasThrottleTopSpeed<M>)
-		{
-			if (TopSpeed > Cruise) { Move->SetThrottleTopSpeed(TopSpeed); }
-			else { Move->ClearThrottleTopSpeed(); }
-		}
-	}
-
-	template <typename M>
-	float GetTopSpeed(M* Move, float Cruise)
-	{
-		if constexpr (HasThrottleTopSpeed<M>)
-		{
-			return FMath::Max(Cruise, Move->GetThrottleTopSpeed());
-		}
-		else
-		{
-			return Cruise;
-		}
-	}
 }
 
 using namespace TDSquadIntegrationPrivate;
@@ -123,6 +110,8 @@ namespace TDSquad
 		{
 			UE_LOG(LogTriadDrift, Warning, TEXT("Squad: %s has no UTDWeaponComponent; weapons not equipped"), *GetNameSafe(Ship));
 		}
+
+		InstallPowers(Ship, Spec);
 	}
 
 	void SetPlayerControlled(ATDShip* Ship, bool bPlayerControlled)
@@ -178,7 +167,14 @@ namespace TDSquad
 	{
 		if (UTDShipMovementComponent* Move = Movement(Ship))
 		{
-			SetTopSpeed(Move, TopSpeed, Move->GetFlightTuning().CruiseSpeed);
+			if (TopSpeed > Move->GetFlightTuning().CruiseSpeed)
+			{
+				Move->SetThrottleTopSpeed(TopSpeed);
+			}
+			else
+			{
+				Move->ClearThrottleTopSpeed();
+			}
 		}
 	}
 
@@ -192,7 +188,7 @@ namespace TDSquad
 		GetSpeedRange(Ship, MinS, CruiseS, BoostS);
 		// Throttle +1 flies at the top speed (cruise, or the catch-up allowance when one is set).
 		UTDShipMovementComponent* Move = Movement(Ship);
-		const float TopS = Move ? GetTopSpeed(Move, CruiseS) : CruiseS;
+		const float TopS = Move ? FMath::Max(CruiseS, Move->GetThrottleTopSpeed()) : CruiseS;
 
 		FTDFlightInput In;
 		In.Aim = FVector2D(FMath::Clamp(Yaw, -1.f, 1.f), FMath::Clamp(Pitch, -1.f, 1.f));
@@ -205,6 +201,63 @@ namespace TDSquad
 		In.bBoost = bForceBoost || TargetSpeed > TopS + 0.15f * FMath::Max(0.f, BoostS - TopS);
 		In.bBrake = TargetSpeed < MinS * 0.9f;
 		Ship->SetFlightInput(In);
+	}
+
+	void SetFlightParked(ATDShip* Ship, bool bParked)
+	{
+		if (Ship)
+		{
+			Ship->SetFlightParked(bParked);
+		}
+	}
+
+	bool IsFlightParked(const ATDShip* Ship)
+	{
+		return Ship && Ship->IsFlightParked();
+	}
+
+	void ResetFlightState(ATDShip* Ship, bool bKeepVelocity)
+	{
+		if (Ship)
+		{
+			Ship->ResetFlightState(bKeepVelocity);
+		}
+	}
+
+	void SendNeutralInput(ATDShip* Ship)
+	{
+		if (Ship)
+		{
+			Ship->SetFlightInput(FTDFlightInput());
+		}
+	}
+
+	ETDHyperdriveState GetHyperdriveState(const ATDShip* Ship)
+	{
+		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;
+		return H ? H->GetState() : ETDHyperdriveState::Idle;
+	}
+
+	bool IsLandingBusy(const ATDShip* Ship)
+	{
+		const UTDLandingComponent* L = Ship ? Ship->GetLanding() : nullptr;
+		return L && L->IsBusy();
+	}
+
+	void StopHyperdrive(ATDShip* Ship)
+	{
+		if (UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
+		{
+			H->SetHyperdriveEnabled(false); // cancels a spool; a jump drops out
+		}
+	}
+
+	void EnableHyperdrive(ATDShip* Ship)
+	{
+		if (UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
+		{
+			H->SetHyperdriveEnabled(true);
+		}
 	}
 
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
@@ -261,6 +314,15 @@ namespace TDSquad
 		}
 	}
 
+	void RepairHull(AActor* Actor, float Amount)
+	{
+		UTDHealthComponent* H = Health(Actor);
+		if (H && H->IsAlive() && Amount > 0.f && H->GetHull01() < 1.f)
+		{
+			H->RepairHull(Amount);
+		}
+	}
+
 	void RestoreFullHealth(AActor* Actor)
 	{
 		if (UTDHealthComponent* H = Health(Actor))
@@ -285,6 +347,23 @@ namespace TDSquad
 		{
 			W->SetAimTarget(Target);
 			W->SetAimDirection(WorldDir);
+		}
+	}
+
+	void ClearAim(ATDShip* Ship)
+	{
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->SetAimTarget(nullptr);
+			W->SetAimDirection(FVector::ZeroVector);
+		}
+	}
+
+	void SetWeaponsBlocked(ATDShip* Ship, FName SourceKey, bool bBlocked)
+	{
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->SetWeaponsBlocked(SourceKey, bBlocked);
 		}
 	}
 
@@ -340,6 +419,12 @@ namespace TDSquad
 		}
 	}
 
+	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection)
+	{
+		const UTDWorldSubsystem* WorldSub = World ? World->GetSubsystem<UTDWorldSubsystem>() : nullptr;
+		return WorldSub && WorldSub->FindAvoidance(Origin, Direction, ProbeDistance, ShipRadius, OutAvoidDirection);
+	}
+
 	AActor* GetLastAttacker(const AActor* Actor)
 	{
 		const UTDHealthComponent* H = Health(Actor);
@@ -372,10 +457,94 @@ namespace TDSquad
 		return false;
 	}
 
-	bool GetActiveShieldDome(const UWorld* World, FVector& OutCenter, float& OutRadius)
+	bool GetNearbyShieldDome(const UWorld* World, const FVector& Location, float MaxDistance, FVector& OutCenter, float& OutRadius)
 	{
-		// T2's shield dome (ENG-11) isn't published yet. Wire it here when it lands.
-		return false;
+		const UTDPowerSubsystem* Powers = World ? UTDPowerSubsystem::Get(World) : nullptr;
+		const ATDShieldDome* Dome = Powers ? Powers->GetNearestDome(Location, ETDTeam::Player) : nullptr;
+		if (!Dome || FVector::DistSquared(Dome->GetActorLocation(), Location) > FMath::Square(MaxDistance))
+		{
+			return false;
+		}
+		OutCenter = Dome->GetActorLocation();
+		OutRadius = Dome->GetRadius();
+		return true;
+	}
+
+	static void AddPower(ATDShip* Ship, UClass* PowerClass, ETDPowerInput Slot)
+	{
+		if (!Ship || !PowerClass || UTDPowerComponent::FindPower(Ship, Slot))
+		{
+			return; // never a second component for a slot: powers keep running across switches
+		}
+		UTDPowerComponent* Power = NewObject<UTDPowerComponent>(Ship, PowerClass);
+		if (Power)
+		{
+			Power->Slot = Slot;
+			Ship->AddInstanceComponent(Power);
+			Power->RegisterComponent();
+		}
+	}
+
+	void InstallPowers(ATDShip* Ship, const FTDShipSpec& Spec)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		AddPower(Ship, Spec.Signature1PowerClass.Get(), ETDPowerInput::Signature1);
+		AddPower(Ship, Spec.Signature2PowerClass.Get(), ETDPowerInput::Signature2);
+
+		// Unlockable ability slot (ENG-12): the component installs whatever progress has unlocked.
+		UTDAbilityComponent* Abilities = Ship->FindComponentByClass<UTDAbilityComponent>();
+		if (!Abilities && Spec.AbilityComponentClass)
+		{
+			Abilities = NewObject<UTDAbilityComponent>(Ship, Spec.AbilityComponentClass.Get(), TEXT("Abilities"));
+			if (Abilities)
+			{
+				Ship->AddInstanceComponent(Abilities);
+				Abilities->RegisterComponent();
+			}
+		}
+		if (Abilities)
+		{
+			Abilities->RefreshFromProgress();
+		}
+	}
+
+	void ResetPowers(ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		TInlineComponentArray<UTDPowerComponent*> Powers(Ship);
+		for (UTDPowerComponent* Power : Powers)
+		{
+			if (Power)
+			{
+				Power->ResetCooldown();
+			}
+		}
+	}
+
+	void ResetWeapons(ATDShip* Ship)
+	{
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->ResetWeapons();
+		}
+	}
+
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility)
+	{
+		auto Cooldown = [Ship](ETDPowerInput Slot)
+		{
+			const UTDPowerComponent* Power = Ship ? UTDPowerComponent::FindPower(Ship, Slot) : nullptr;
+			return Power ? Power->GetCooldown01() : 1.f;
+		};
+		OutPower1 = Cooldown(ETDPowerInput::Signature1);
+		OutPower2 = Cooldown(ETDPowerInput::Signature2);
+		OutAbility = Cooldown(ETDPowerInput::Ability);
 	}
 
 	// ------------------------------------------------------------------------------------- HUD
@@ -410,9 +579,51 @@ namespace TDSquad
 		}
 	}
 
-	FTDWaveInfo GetWaveInfo(const UObject* WorldContext)
+	static const UTDTargetingComponent* Targeting(const ATDShip* Ship)
 	{
-		const ATDWaveDirector* Director = ATDWaveDirector::Get(WorldContext);
+		return Ship ? Ship->GetTargeting() : nullptr;
+	}
+
+	void GetTargetMarkers(const ATDShip* Ship, TArray<FTDTargetMarker>& Out)
+	{
+		Out.Reset();
+		if (const UTDTargetingComponent* T = Targeting(Ship))
+		{
+			Out = T->GetMarkers();
+		}
+	}
+
+	ETDMissileWarning GetMissileWarning(const ATDShip* Ship)
+	{
+		const UTDTargetingComponent* T = Targeting(Ship);
+		return T ? T->GetMissileWarning() : ETDMissileWarning::None;
+	}
+
+	bool GetLeadIndicator(const ATDShip* Ship, FVector& OutWorldLocation)
+	{
+		const UTDTargetingComponent* T = Targeting(Ship);
+		return T ? T->GetLeadIndicator(OutWorldLocation) : false;
+	}
+
+	FTDWaveInfo GetWaveInfo(const UObject* WorldContext, FWaveDirectorCache& Cache, double RetrySeconds)
+	{
+		const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+		if (!World)
+		{
+			return FTDWaveInfo();
+		}
+		const ATDWaveDirector* Director = Cast<ATDWaveDirector>(Cache.Director.Get());
+		if (!Director || Director->GetWorld() != World)
+		{
+			const double Now = World->GetRealTimeSeconds();
+			if (Now < Cache.NextLookupTime)
+			{
+				return FTDWaveInfo();
+			}
+			Cache.NextLookupTime = Now + RetrySeconds;
+			Director = ATDWaveDirector::Get(WorldContext);
+			Cache.Director = const_cast<ATDWaveDirector*>(Director);
+		}
 		return Director ? Director->GetWaveInfo() : FTDWaveInfo();
 	}
 
@@ -498,5 +709,49 @@ namespace TDSquad
 		{
 			Bus->OnSpacecraftTeleported.RemoveDynamic(Wingman, &ATDWingmanAIController::HandleSpacecraftTeleported);
 		}
+	}
+
+	void BindWaveEvents(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnWaveCleared.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
+			Bus->OnWaveStarted.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
+		}
+	}
+
+	void UnbindWaveEvents(ATDSquadManager* Squad)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
+		{
+			Bus->OnWaveCleared.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
+			Bus->OnWaveStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
+		}
+	}
+
+	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		if (bAttached)
+		{
+			UTDStatics::PlayCueAttached(Cue, Ship->GetRootComponent());
+		}
+		else
+		{
+			UTDStatics::PlayCue(Ship, Cue, Ship->GetActorLocation(), Ship->GetActorRotation());
+		}
+	}
+
+	FTransform GetChaseCameraTransform(const ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return FTransform::Identity;
+		}
+		const UCameraComponent* Cam = Ship->GetChaseCamera();
+		return Cam ? Cam->GetComponentTransform() : Ship->GetActorTransform();
 	}
 }

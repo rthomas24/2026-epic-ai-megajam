@@ -19,7 +19,7 @@
 
 namespace
 {
-	FTDWaveGroup Group(FName EnemyId, int32 Packs, int32 PerPack, ETDSpawnZone Zone, float Delay = 0.f)
+	FTDWaveGroup TDWaveDir_Group(FName EnemyId, int32 Packs, int32 PerPack, ETDSpawnZone Zone, float Delay = 0.f)
 	{
 		FTDWaveGroup G;
 		G.EnemyId = EnemyId;
@@ -30,7 +30,7 @@ namespace
 		return G;
 	}
 
-	bool IsActorAlive(const AActor* Actor)
+	bool TDWaveDir_IsActorAlive(const AActor* Actor)
 	{
 		if (!IsValid(Actor))
 		{
@@ -55,14 +55,21 @@ ATDWaveDirector* ATDWaveDirector::Get(const UObject* WorldContext)
 	{
 		return nullptr;
 	}
-	for (TActorIterator<ATDWaveDirector> It(World); It; ++It)
+	// Cheap: directors register themselves (the HUD calls this every frame).
+	for (const TWeakObjectPtr<ATDWaveDirector>& Weak : Instances())
 	{
-		if (IsValid(*It))
+		if (ATDWaveDirector* D = Weak.Get())
 		{
-			return *It;
+			if (D->GetWorld() == World && !D->IsActorBeingDestroyed()) { return D; }
 		}
 	}
 	return nullptr;
+}
+
+TArray<TWeakObjectPtr<ATDWaveDirector>>& ATDWaveDirector::Instances()
+{
+	static TArray<TWeakObjectPtr<ATDWaveDirector>> List;
+	return List;
 }
 
 // ------------------------------------------------------------------------------------- wave table
@@ -80,8 +87,8 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.2f;
 		W.Phase = ETDGamePhase::Waves1to2;
 		W.StartTip = TDTipIds::Switching;
-		W.Groups.Add(Group(ShardFighter, 1, 4, ETDSpawnZone::FlankLeft));
-		W.Groups.Add(Group(ShardFighter, 1, 4, ETDSpawnZone::FlankRight, 2.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 4, ETDSpawnZone::FlankLeft));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 4, ETDSpawnZone::FlankRight, 2.f));
 		Out.Add(W);
 	}
 	// 2: 3 x 5 fighters + 2 interceptors, 0.35. Verdance marker appears.
@@ -92,8 +99,8 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.35f;
 		W.Phase = ETDGamePhase::Waves1to2;
 		W.StartTip = TDTipIds::Drift;
-		W.Groups.Add(Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank));
-		W.Groups.Add(Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 4.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 4.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Verdance;
 		Out.Add(W);
@@ -106,8 +113,8 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.55f;
 		W.Phase = ETDGamePhase::Waves3to4;
 		W.StartTip = TDTipIds::Gunships;
-		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::Ahead));
-		W.Groups.Add(Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank, 2.f));
+		W.Groups.Add(TDWaveDir_Group(WallGunship, 2, 1, ETDSpawnZone::FlankRight));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank, 2.f));
 		Out.Add(W);
 	}
 	// 4: 2 gunships, 2 bombers, 4 interceptors, fighters, 0.7. Cinder marker appears.
@@ -117,10 +124,10 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Title = LOCTEXT("Wave4", "Minefield");
 		W.Intensity01 = 0.7f;
 		W.Phase = ETDGamePhase::Waves3to4;
-		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::Ahead));
-		W.Groups.Add(Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 1.f));
-		W.Groups.Add(Group(HookInterceptor, 4, 1, ETDSpawnZone::Behind, 5.f));
-		W.Groups.Add(Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 3.f));
+		W.Groups.Add(TDWaveDir_Group(WallGunship, 2, 1, ETDSpawnZone::FlankLeft));
+		W.Groups.Add(TDWaveDir_Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 1.f));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 4, 1, ETDSpawnZone::Behind, 5.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 3.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Cinder;
 		Out.Add(W);
@@ -133,10 +140,10 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.9f;
 		W.Phase = ETDGamePhase::Wave5;
 		W.StartTip = TDTipIds::Carriers;
-		W.Groups.Add(Group(HiveCarrier, 2, 1, ETDSpawnZone::Ahead));
-		W.Groups.Add(Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 1.f));
-		W.Groups.Add(Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 3.f));
-		W.Groups.Add(Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 6.f));
+		W.Groups.Add(TDWaveDir_Group(HiveCarrier, 2, 1, ETDSpawnZone::Behind));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 1.f));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 3.f));
+		W.Groups.Add(TDWaveDir_Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 6.f));
 		W.bRevealsDominion = true;
 		Out.Add(W);
 	}
@@ -179,6 +186,12 @@ void ATDWaveDirector::LoadWaveTable()
 	{
 		Waves = MakeDefaultWaves();
 	}
+	else if (Waves.Num() != MakeDefaultWaves().Num())
+	{
+		// The flow maps "phase after wave N" for waves 2, 4 and 5 (UTDFlowSettings::PhaseAfterWaveCleared).
+		UE_LOG(LogTriadDrift, Warning, TEXT("ATDWaveDirector: WaveTableOverride has %d waves, the flow expects %d; check PhaseAfterWaveCleared."),
+			Waves.Num(), MakeDefaultWaves().Num());
+	}
 }
 
 const FTDWaveDef* ATDWaveDirector::GetWaveDef(int32 Index) const
@@ -201,6 +214,8 @@ FName ATDWaveDirector::GetSceneId(int32 Index) const
 void ATDWaveDirector::BeginPlay()
 {
 	Super::BeginPlay();
+	Instances().RemoveAll([](const TWeakObjectPtr<ATDWaveDirector>& W) { return !W.IsValid(); });
+	Instances().AddUnique(this);
 	Rng.Initialize(RandomSeed);
 	LoadWaveTable();
 
@@ -234,6 +249,7 @@ void ATDWaveDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 	Living.Reset();
 	Pending.Reset();
+	Instances().Remove(this);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -269,6 +285,15 @@ void ATDWaveDirector::StartFromProgress()
 	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
 	{
 		Progress = Flow->GetProgress();
+	}
+
+	// After a Continue in a planet phase, re-announce that planet's marker (the HUD lost it).
+	if (Progress.Phase == ETDGamePhase::Verdance || Progress.Phase == ETDGamePhase::Cinder)
+	{
+		if (UTDEventBus* Bus = UTDEventBus::Get(this))
+		{
+			Bus->BroadcastMarkerRevealed(Progress.Phase == ETDGamePhase::Verdance ? ETDDestination::Verdance : ETDDestination::Cinder);
+		}
 	}
 
 	const int32 Next = FMath::Max(0, Progress.WavesCleared);	// WavesCleared waves done -> next 0-based index
@@ -329,13 +354,19 @@ void ATDWaveDirector::BeginWave(int32 Index)
 		FPendingGroup P;
 		P.Group = G;
 		P.Remaining = G.Delay + WarpInSeconds;
-		const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(G.EnemyId);
-		const bool bLarge = Spec.IsValid() && Spec.Size >= ETDEnemySize::Large;
-		PickSpawnPoint(G.Zone, bLarge, P.Location, P.Facing);
+		// The spawn point is picked when the warp-in is announced (relative to where the player is
+		// THEN), not now: delayed groups must not appear where the player was seconds ago.
 		Pending.Add(P);
 	}
 
 	SetState(ETDWaveState::WarpingIn);
+
+	// Sync the take with the flow BEFORE broadcasting: the flow answers OnWaveStarted with
+	// OnTakeStarted, and a take number above ours would otherwise restart this wave re-entrantly.
+	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	{
+		CurrentTake = FMath::Max(CurrentTake, Flow->GetProgress().Takes.FindRef(GetSceneId(Index)));
+	}
 
 	const int32 WaveNumber = Index + 1;
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
@@ -423,7 +454,8 @@ AActor* ATDWaveDirector::GetSpawnAnchor() const
 void ATDWaveDirector::PickSpawnPoint(ETDSpawnZone Zone, bool bLarge, FVector& OutLocation, FRotator& OutFacing)
 {
 	const AActor* Anchor = GetSpawnAnchor();
-	const FVector Origin = Anchor->GetActorLocation();
+	// Lead the anchor by the warp-in time: the group appears around where the player WILL be.
+	const FVector Origin = Anchor->GetActorLocation() + Anchor->GetVelocity() * WarpInSeconds;
 	const FVector Fwd = Anchor->GetActorForwardVector();
 	const FVector Right = Anchor->GetActorRightVector();
 	const FVector Up = Anchor->GetActorUpVector();
@@ -589,7 +621,7 @@ int32 ATDWaveDirector::GetEnemiesAlive() const
 	int32 N = 0;
 	for (const TWeakObjectPtr<AActor>& Weak : Living)
 	{
-		if (IsActorAlive(Weak.Get())) { ++N; }
+		if (TDWaveDir_IsActorAlive(Weak.Get())) { ++N; }
 	}
 	return N;
 }
@@ -601,7 +633,7 @@ TArray<AActor*> ATDWaveDirector::GetLivingEnemies() const
 	{
 		if (AActor* A = Weak.Get())
 		{
-			if (IsActorAlive(A)) { Out.Add(A); }
+			if (TDWaveDir_IsActorAlive(A)) { Out.Add(A); }
 		}
 	}
 	return Out;
@@ -617,7 +649,7 @@ void ATDWaveDirector::CheckWaveCleared()
 	{
 		return;
 	}
-	Living.RemoveAll([](const TWeakObjectPtr<AActor>& W) { return !IsActorAlive(W.Get()); });
+	Living.RemoveAll([](const TWeakObjectPtr<AActor>& W) { return !TDWaveDir_IsActorAlive(W.Get()); });
 	if (Living.Num() == 0)
 	{
 		FinishWave();
@@ -783,6 +815,8 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 			if (!P.bWarpAnnounced && P.Remaining <= WarpInSeconds)
 			{
 				P.bWarpAnnounced = true;
+				const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
+				PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
 				OnWarpInStarted.Broadcast(P.Location, P.Group.EnemyId);
 				if (TravelFX)
 				{
@@ -791,6 +825,11 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 			}
 			if (P.Remaining <= 0.f)
 			{
+				if (!P.bWarpAnnounced)
+				{
+					const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
+					PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
+				}
 				const FPendingGroup Ready = P;
 				Pending.RemoveAt(i);
 				SpawnGroup(Ready);

@@ -5,6 +5,8 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDFlowReflection.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "Engine/World.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
@@ -18,6 +20,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "GameFramework/DefaultPawn.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
 #include "TimerManager.h"
@@ -28,7 +31,6 @@ namespace TDSandbox
 	static const TCHAR* CubeMesh = TEXT("/Engine/BasicShapes/Cube.Cube");
 	static const TCHAR* ConeMesh = TEXT("/Engine/BasicShapes/Cone.Cone");
 	static const TCHAR* LitMaterial = TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial");
-	static const TCHAR* EmissiveMaterial = TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial");
 
 	static const FName FnSpawnSquad(TEXT("SpawnSquad"));
 	static const FName FnGetActiveShip(TEXT("GetActiveShip"));
@@ -55,6 +57,7 @@ namespace TDSandbox
 ATDSpaceGameMode::ATDSpaceGameMode()
 {
 	// Fallback pawn if the squad manager isn't merged yet: a free-fly camera so the sandbox is usable.
+	// InitGame clears it when the squad exists (the squad possesses the lead ship itself).
 	DefaultPawnClass = ADefaultPawn::StaticClass();
 	SquadOrigin = FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 }
@@ -73,11 +76,27 @@ void ATDSpaceGameMode::InitGame(const FString& MapName, const FString& Options, 
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("Sandbox: ATDSpacePlayerController not found; using the engine PlayerController."));
 	}
+	if (TDFlowReflection::ResolveClass(UTDFlowSettings::Get()->SquadManagerClass))
+	{
+		DefaultPawnClass = nullptr; // no login pawn: the player flies the squad's lead ship
+	}
 	Super::InitGame(MapName, Options, ErrorMessage);
 }
 
 void ATDSpaceGameMode::StartPlay()
 {
+	if (bUseGalaxyLayout)
+	{
+		// T4's ENG-17 layout: reuses a placed one (L_Galaxy) or spawns the default galaxy. It replaces
+		// our placeholder asteroids and spawns the Dominion; return points are valid right away.
+		GalaxyLayout = ATDGalaxyLayout::SpawnDefaultGalaxy(this);
+		if (GalaxyLayout)
+		{
+			const UTDGameInstance* GI = UTDGameInstance::Get(this);
+			FTransform Where;
+			SquadOrigin = (GI && GalaxyLayout->FindReturnPoint(GI->GetProgressRef().ReturnPoint, Where)) ? Where : GalaxyLayout->GetPlayerStart();
+		}
+	}
 	if (bSpawnEnvironment)
 	{
 		SpawnEnvironment();
@@ -87,11 +106,8 @@ void ATDSpaceGameMode::StartPlay()
 
 	Super::StartPlay(); // BeginPlay on actors
 
-	// Local players logged in (with a fallback free-fly pawn) before StartPlay; hand them the active ship.
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		PossessActiveShip(It->Get());
-	}
+	// Local players logged in before StartPlay: hand them the active ship, clear any login pawn.
+	HandOverPlayers();
 
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
@@ -123,14 +139,68 @@ void ATDSpaceGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ATDSpaceGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-#if !UE_BUILD_SHIPPING
-	if (NewPlayer && !NewPlayer->CheatManager)
+	UTDCheatManager::InstallOn(NewPlayer);
+	HandOverPlayers();
+}
+
+void ATDSpaceGameMode::ApplyStartingShip()
+{
+	// Resume (Continue / retake) in the ship the player was last flying.
+	ATDSquadManager* Squad = Cast<ATDSquadManager>(SquadManager);
+	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	if (Squad && GI)
 	{
-		NewPlayer->CheatClass = UTDCheatManager::StaticClass();
-		NewPlayer->AddCheats(true);
+		Squad->StartingShip = GI->GetProgressRef().LastShip;
 	}
-#endif
-	PossessActiveShip(NewPlayer);
+}
+
+void ATDSpaceGameMode::HandOverPlayers()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+	{
+		UTDCheatManager::InstallOn(It->Get());
+		PossessActiveShip(It->Get());
+	}
+	if (!SquadManager)
+	{
+		return; // the free-fly pawn is the fallback: keep it
+	}
+	// The squad possesses the lead ship itself; any login/default pawn left over is a stray that the
+	// lead ship would spawn inside on every take.
+	TArray<ADefaultPawn*, TInlineAllocator<4>> Strays;
+	for (TActorIterator<ADefaultPawn> It(World); It; ++It)
+	{
+		if (!It->GetController())
+		{
+			Strays.Add(*It);
+		}
+	}
+	for (ADefaultPawn* Stray : Strays)
+	{
+		Stray->Destroy();
+	}
+}
+
+AActor* ATDSpaceGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	if (AActor* Found = Super::ChoosePlayerStart_Implementation(Player))
+	{
+		return Found;
+	}
+	// Empty map (/Engine/Maps/Entry has no PlayerStart): make one behind the squad origin.
+	if (!FallbackStart)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const FVector Loc = SquadOrigin.GetLocation() - SquadOrigin.GetRotation().GetForwardVector() * 1500.f;
+		FallbackStart = GetWorld()->SpawnActor<APlayerStart>(APlayerStart::StaticClass(), Loc, SquadOrigin.Rotator(), Params);
+	}
+	return FallbackStart;
 }
 
 void ATDSpaceGameMode::PossessActiveShip(APlayerController* PC)
@@ -175,6 +245,7 @@ void ATDSpaceGameMode::SpawnSquadManager()
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SquadManager = GetWorld()->SpawnActor<AActor>(Class, SquadOrigin, Params);
 	}
+	ApplyStartingShip();
 	if (SquadManager && !TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin))
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("Sandbox: squad manager has no UFUNCTION SpawnSquad(FTransform)."));
@@ -222,16 +293,15 @@ void ATDSpaceGameMode::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 
 void ATDSpaceGameMode::RestartScene()
 {
-	// New take: the squad goes back to the origin at full health. The wave director binds
-	// OnSceneRestart itself and restarts its own wave (despawn + warp-in), so we don't touch waves here.
+	// New take: SpawnSquad is T3's retake call (revive all three, reposition, give the player the lead
+	// ship). The wave director hears the bus OnTakeStarted for its scene and rebuilds its own wave, so we
+	// don't touch waves here.
 	if (SquadManager)
 	{
+		ApplyStartingShip();
 		TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin);
-		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-		{
-			PossessActiveShip(It->Get());
-		}
 	}
+	HandOverPlayers();
 	// If the retake landed before the first wave ever started, keep the pending first-wave timer.
 }
 
@@ -316,7 +386,10 @@ void ATDSpaceGameMode::SpawnEnvironment()
 	}
 
 	SpawnStarBackdrop();
-	SpawnAsteroids();
+	if (!GalaxyLayout)
+	{
+		SpawnAsteroids();
+	}
 }
 
 void ATDSpaceGameMode::SpawnStarBackdrop()
@@ -343,9 +416,14 @@ void ATDSpaceGameMode::SpawnStarBackdrop()
 	ISM->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ISM->SetCastShadow(false);
 	ISM->SetCanEverAffectNavigation(false);
-	if (UMaterialInterface* Emissive = TDSandbox::LoadEngineObject<UMaterialInterface>(TDSandbox::EmissiveMaterial))
+	// BasicShapeMaterial (cooked with /Engine/BasicShapes), tinted near-white and very bright.
+	if (UMaterialInterface* Mat = TDSandbox::LoadEngineObject<UMaterialInterface>(TDSandbox::LitMaterial))
 	{
-		ISM->SetMaterial(0, Emissive);
+		if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Mat, Stars))
+		{
+			MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(4.f, 4.f, 5.f));
+			ISM->SetMaterial(0, MID);
+		}
 	}
 	Stars->SetRootComponent(ISM);
 	ISM->RegisterComponent();

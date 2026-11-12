@@ -64,9 +64,12 @@ void ATDWingmanAIController::OnPossess(APawn* InPawn)
 
 void ATDWingmanAIController::OnUnPossess()
 {
-	// Hand the ship over with its triggers released and its own speeds; the player flies it now.
+	// Hand the ship over with its triggers released, its own speeds and no AI aim target (M1): the
+	// player's aim assist must snap to what THEY aim at, not what the wingman was shooting.
 	SetTriggers(false, false);
 	TDSquad::SetCatchUpTopSpeed(GetShip(), 0.f);
+	TDSquad::ClearAim(GetShip());
+	bHyperdriveFormUp = false;
 	CurrentTarget.Reset();
 	Super::OnUnPossess();
 }
@@ -83,6 +86,7 @@ void ATDWingmanAIController::SetState(ETDWingmanState NewState)
 	if (NewState != ETDWingmanState::Engage)
 	{
 		SetTriggers(false, false);
+		TDSquad::ClearAim(GetShip());
 	}
 	if (NewState != ETDWingmanState::Formation && NewState != ETDWingmanState::Regroup)
 	{
@@ -100,15 +104,40 @@ void ATDWingmanAIController::SetFocusTarget(AActor* Target)
 	}
 }
 
+void ATDWingmanAIController::SetPassive(bool bInPassive)
+{
+	if (bPassive == bInPassive)
+	{
+		return;
+	}
+	bPassive = bInPassive;
+	if (bPassive)
+	{
+		SetTriggers(false, false);
+		CurrentTarget.Reset();
+		TDSquad::SetCatchUpTopSpeed(GetShip(), 0.f);
+		TDSquad::ClearAim(GetShip());
+		TDSquad::SendNeutralInput(GetShip()); // don't leave the last stick latched
+	}
+	else if (State != ETDWingmanState::Downed)
+	{
+		State = ETDWingmanState::Formation; // force the transition
+		SetState(ETDWingmanState::Regroup);
+		NextTargetEvalTime = Now();
+	}
+}
+
 void ATDWingmanAIController::NotifyShipDowned()
 {
 	SetTriggers(false, false);
+	TDSquad::ClearAim(GetShip());
 	CurrentTarget.Reset();
 	SetState(ETDWingmanState::Downed);
 }
 
 void ATDWingmanAIController::NotifyShipRespawned()
 {
+	bHyperdriveFormUp = false;
 	State = ETDWingmanState::Formation; // force the transition below even from Formation
 	SetState(ETDWingmanState::Regroup);
 	PrevShield01 = 1.f;
@@ -153,7 +182,7 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 
 	ATDShip* Ship = GetShip();
 	ATDSquadManager* S = Squad.Get();
-	if (!Ship || !S || State == ETDWingmanState::Downed || DeltaSeconds <= 0.f)
+	if (!Ship || !S || bPassive || State == ETDWingmanState::Downed || DeltaSeconds <= 0.f)
 	{
 		return;
 	}
@@ -164,6 +193,20 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 	}
 	const bool bHaveLeader = Leader && S->IsShipAlive(S->GetActiveShipId());
 	const double T = Now();
+
+	// B2: form up for the CURRENT leader's jump, read fresh every tick (never latched), so a switch,
+	// a death or a retake can never leave wingmen stuck in formation.
+	const bool bWasFormingUp = bHyperdriveFormUp;
+	bHyperdriveFormUp = bHaveLeader && TDSquad::GetHyperdriveState(Leader) != ETDHyperdriveState::Idle;
+	if (bHyperdriveFormUp && !bWasFormingUp)
+	{
+		CurrentTarget.Reset();
+		SetState(ETDWingmanState::Regroup);
+	}
+	else if (!bHyperdriveFormUp && bWasFormingUp)
+	{
+		NextTargetEvalTime = T; // jump over or cancelled: pick a fight right away
+	}
 
 	// Aim error: a fresh 2-4 degree offset a few times a second, like a real hand on the stick.
 	if (T >= NextAimErrorTime)
@@ -238,10 +281,12 @@ FVector ATDWingmanAIController::GetHomeLocation(ATDShip* Ship, ATDShip* Leader, 
 	{
 		FVector DomeCenter;
 		float DomeRadius = 0.f;
-		if (TDSquad::GetActiveShieldDome(GetWorld(), DomeCenter, DomeRadius))
+		if (TDSquad::GetNearbyShieldDome(GetWorld(), Ship->GetActorLocation(), DomeSeekDistance, DomeCenter, DomeRadius))
 		{
 			bOutIsDome = true;
-			return DomeCenter;
+			// Aim for a point well inside the dome, on our side of it, rather than its exact centre.
+			const FVector FromCenter = (Ship->GetActorLocation() - DomeCenter).GetSafeNormal();
+			return DomeCenter + FromCenter * DomeRadius * 0.4f;
 		}
 	}
 	const ATDSquadManager* S = Squad.Get();
@@ -256,8 +301,8 @@ void ATDWingmanAIController::UpdateFormation(float DeltaSeconds, ATDShip* Ship, 
 {
 	const double T = Now();
 
-	// Look for a fight (formation picks fights; regroup only takes a focus order or a threat to the player).
-	if (T >= NextTargetEvalTime)
+	// Look for a fight, unless we're forming up for a hyperdrive jump.
+	if (T >= NextTargetEvalTime && !bHyperdriveFormUp)
 	{
 		NextTargetEvalTime = T + TargetReevaluateInterval;
 		if (AActor* Target = PickTarget(Ship, Leader))
@@ -321,6 +366,9 @@ void ATDWingmanAIController::FlyToPoint(ATDShip* Ship, const FVector& Point, con
 		const float LookAhead = FMath::Max(2500.f, RefSpeed * 0.6f);
 		Dir = (RefForward * LookAhead + Lateral).GetSafeNormal();
 		TargetSpeed = RefSpeed + FMath::Clamp(Along * FormationSpeedGain, -RefSpeed, 6000.f);
+		// A squadmate right ahead or behind can't be steered around at matched speed: open the gap
+		// along the track too (ahead of us -> ease off, behind us -> speed up).
+		TargetSpeed += FVector::DotProduct(ComputeSeparation(Ship), RefForward) * SeparationSpeedGain;
 		bBoost = Along > CatchUpBoostDistance; // short gap-closing burst when well behind
 	}
 	else
@@ -632,58 +680,78 @@ FVector ATDWingmanAIController::ApplyAvoidance(ATDShip* Ship, const FVector& Des
 			Vel = Ship->GetActorForwardVector() * 1500.f;
 		}
 		const FVector End = Loc + Vel * AvoidanceLookAhead;
+		const FVector VelDir = Vel.GetSafeNormal();
 
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDWingmanAvoid), false, Ship);
-		if (S)
+		// 1) T4's obstacle registry (asteroids, ruins, planets, Dominion hull): cheap and exact.
+		FVector RegisteredAvoid;
+		const float Probe = Vel.Size() * AvoidanceLookAhead + 4.f * AvoidanceShipRadius;
+		if (TDSquad::FindRegisteredAvoidance(World, Loc, VelDir, Probe, AvoidanceShipRadius, RegisteredAvoid))
 		{
-			for (const FTDSquadSlot& Slot : S->GetSlots())
-			{
-				Params.AddIgnoredActor(Slot.Ship);
-			}
+			CachedAvoidance = RegisteredAvoid.GetSafeNormal() * 3.f;
 		}
-		FCollisionObjectQueryParams Objects;
-		Objects.AddObjectTypesToQuery(ECC_WorldStatic);
-		Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
-
-		FHitResult Hit;
-		if (World->SweepSingleByObjectType(Hit, Loc, End, FQuat::Identity, Objects, FCollisionShape::MakeSphere(500.f), Params))
+		else
 		{
-			// Push out along the surface normal, harder the sooner we'd hit.
-			const float Urgency = 1.f - Hit.Time;
-			FVector Away = Hit.ImpactNormal;
-			// Prefer going around rather than straight back.
-			const FVector VelDir = Vel.GetSafeNormal();
-			Away = (Away - VelDir * FVector::DotProduct(Away, VelDir)).GetSafeNormal();
-			if (Away.IsNearlyZero())
+			// 2) Fallback sweep for unregistered geometry (portal gate frames, pylons, moving ships).
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(TDWingmanAvoid), false, Ship);
+			if (S)
 			{
-				Away = Ship->GetActorUpVector();
+				for (const FTDSquadSlot& Slot : S->GetSlots())
+				{
+					Params.AddIgnoredActor(Slot.Ship);
+				}
 			}
-			CachedAvoidance = Away * (1.5f + 2.5f * Urgency);
+			FCollisionObjectQueryParams Objects;
+			Objects.AddObjectTypesToQuery(ECC_WorldStatic);
+			Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
+
+			FHitResult Hit;
+			if (World->SweepSingleByObjectType(Hit, Loc, End, FQuat::Identity, Objects, FCollisionShape::MakeSphere(AvoidanceShipRadius), Params))
+			{
+				// Push out along the surface normal, harder the sooner we'd hit.
+				const float Urgency = 1.f - Hit.Time;
+				FVector Away = Hit.ImpactNormal;
+				// Prefer going around rather than straight back.
+				Away = (Away - VelDir * FVector::DotProduct(Away, VelDir)).GetSafeNormal();
+				if (Away.IsNearlyZero())
+				{
+					Away = Ship->GetActorUpVector();
+				}
+				CachedAvoidance = Away * (1.5f + 2.5f * Urgency);
+			}
 		}
 	}
 
 	// Squadmates (and the player): keep TeammateSeparation.
-	FVector Separation = FVector::ZeroVector;
-	if (S)
-	{
-		for (const FTDSquadSlot& Slot : S->GetSlots())
-		{
-			const ATDShip* Mate = Slot.Ship;
-			if (Slot.State != ETDSquadSlotState::Alive || !Mate || Mate == Ship)
-			{
-				continue;
-			}
-			const FVector Delta = Loc - Mate->GetActorLocation();
-			const float D = Delta.Size();
-			if (D > KINDA_SMALL_NUMBER && D < TeammateSeparation)
-			{
-				Separation += (Delta / D) * (1.f - D / TeammateSeparation) * 2.f;
-			}
-		}
-	}
+	const FVector Separation = ComputeSeparation(Ship);
 
 	const FVector Result = (DesiredDir + CachedAvoidance + Separation).GetSafeNormal();
 	return Result.IsNearlyZero() ? DesiredDir : Result;
+}
+
+FVector ATDWingmanAIController::ComputeSeparation(const ATDShip* Ship) const
+{
+	FVector Separation = FVector::ZeroVector;
+	const ATDSquadManager* S = Squad.Get();
+	if (!S || !Ship)
+	{
+		return Separation;
+	}
+	const FVector Loc = Ship->GetActorLocation();
+	for (const FTDSquadSlot& Slot : S->GetSlots())
+	{
+		const ATDShip* Mate = Slot.Ship;
+		if (Slot.State != ETDSquadSlotState::Alive || !Mate || Mate == Ship)
+		{
+			continue;
+		}
+		const FVector Delta = Loc - Mate->GetActorLocation();
+		const float D = Delta.Size();
+		if (D > KINDA_SMALL_NUMBER && D < TeammateSeparation)
+		{
+			Separation += (Delta / D) * (1.f - D / TeammateSeparation) * TeammateSeparationStrength;
+		}
+	}
+	return Separation;
 }
 
 void ATDWingmanAIController::SetTriggers(bool bPrimary, bool bSecondary)

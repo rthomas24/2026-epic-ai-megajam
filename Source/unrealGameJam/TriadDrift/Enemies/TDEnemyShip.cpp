@@ -6,6 +6,7 @@
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -18,6 +19,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NiagaraComponent.h"
 
 ATDEnemyShip::ATDEnemyShip()
 {
@@ -54,6 +56,8 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	bSpecApplied = true;
 
 	SetTeam(ETDTeam::Enemy);
+	if (Spec.Role == ETDEnemyRole::Carrier) { Tags.AddUnique(TDDirectorTags::Carrier); }
+	else { Tags.Remove(TDDirectorTags::Carrier); }
 
 	if (UTDHealthComponent* H = GetHealth())
 	{
@@ -63,7 +67,7 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 
 	FTDFlightTuning Tuning;
 	Tuning.CruiseSpeed = Spec.CruiseSpeed;
-	Tuning.MinSpeed = Spec.CruiseSpeed * 0.3f;
+	Tuning.MinSpeed = Spec.CruiseSpeed * Spec.MinSpeedFraction;
 	Tuning.BoostSpeed = Spec.CruiseSpeed * 1.6f;
 	Tuning.TurnRate = Spec.TurnRateDeg;
 	Tuning.RollRate = FMath::Max(60.f, Spec.TurnRateDeg * 1.5f);
@@ -95,10 +99,14 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	FireCounts.Reset();
 	CancelTelegraph();
 
+	if (!bVisualsExplicit)
+	{
+		Visuals = ResolveVisuals(Spec);
+	}
 	UpdatePlaceholderLook();
-
 	if (HasActorBegunPlay())
 	{
+		StartLoopCues();
 		SpawnCarrierParts();
 	}
 }
@@ -137,10 +145,72 @@ void ATDEnemyShip::PlayWarpIn()
 	}
 }
 
+FString ATDEnemyShip::VisualsAssetPath(FName EnemyId)
+{
+	const FString Name = FString::Printf(TEXT("DA_Enemy_%s_Visuals"), *EnemyId.ToString());
+	return FString::Printf(TEXT("/Game/TriadDrift/Presentation/Enemies/%s.%s"), *Name, *Name);
+}
+
+UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
+{
+	if (!InSpec.Visuals.IsNull())
+	{
+		return InSpec.Visuals.LoadSynchronous();
+	}
+	// Convention asset, looked up once per type (a miss is remembered so spawns stay cheap).
+	static TMap<FName, TWeakObjectPtr<UTDEnemyVisuals>> Found;
+	static TSet<FName> Missing;
+	if (InSpec.Id.IsNone() || Missing.Contains(InSpec.Id))
+	{
+		return nullptr;
+	}
+	if (const TWeakObjectPtr<UTDEnemyVisuals>* Cached = Found.Find(InSpec.Id))
+	{
+		if (Cached->IsValid()) { return Cached->Get(); }
+	}
+	UTDEnemyVisuals* Asset = LoadObject<UTDEnemyVisuals>(nullptr, *VisualsAssetPath(InSpec.Id), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	if (Asset) { Found.Add(InSpec.Id, Asset); }
+	else { Missing.Add(InSpec.Id); }
+	return Asset;
+}
+
+void ATDEnemyShip::StartLoopCues()
+{
+	if (Visuals && !EngineTrailFX)
+	{
+		EngineTrailFX = UTDStatics::PlayCueAttached(Visuals->EngineTrail, GetHullMesh());
+	}
+}
+
+void ATDEnemyShip::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float /*ShieldDamage*/, float HullDamage)
+{
+	if (!Visuals || bDying || HullDamage <= 0.f)
+	{
+		return;
+	}
+	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (Now - LastHullHitCueTime > 0.08)
+	{
+		LastHullHitCueTime = Now;
+		UTDStatics::PlayCue(this, Visuals->HullHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
+	}
+	if (!DamagedSmokeFX && InHealth && InHealth->GetHull01() < 0.5f)
+	{
+		DamagedSmokeFX = UTDStatics::PlayCueAttached(Visuals->DamagedSmoke, GetHullMesh());
+	}
+}
+
 void ATDEnemyShip::BeginPlay()
 {
 	Super::BeginPlay();
+	AimRng.Initialize(static_cast<int32>(GetUniqueID()));	// every pilot misses differently
 	EnsureWeapons();
+	bVisualsExplicit = Visuals != nullptr && !bSpecApplied;	// set on a BP child / placed instance
+	if (bSpecApplied) { StartLoopCues(); }
+	if (UTDHealthComponent* H = GetHealth())
+	{
+		H->OnDamaged.AddUniqueDynamic(this, &ATDEnemyShip::HandleDamaged);
+	}
 
 	if (UTDHealthComponent* H = GetHealth())
 	{
@@ -160,6 +230,7 @@ void ATDEnemyShip::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		H->DamageFilter.Unbind();
 		H->OnDeath.RemoveDynamic(this, &ATDEnemyShip::HandleHealthDeath);
+		H->OnDamaged.RemoveDynamic(this, &ATDEnemyShip::HandleDamaged);
 	}
 	DestroyCarrierParts();
 	Super::EndPlay(EndPlayReason);
@@ -178,6 +249,8 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 		if (UStaticMesh* Mesh = Visuals->Mesh.LoadSynchronous())
 		{
 			Hull->SetStaticMesh(Mesh);
+			Hull->SetRelativeRotation(FRotator::ZeroRotator);	// art is authored +X forward
+			Hull->SetRelativeScale3D(FVector::OneVector);
 			for (int32 i = 0; i < Visuals->MaterialOverrides.Num(); ++i)
 			{
 				if (UMaterialInterface* Mat = Visuals->MaterialOverrides[i].LoadSynchronous())
@@ -185,17 +258,21 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 					Hull->SetMaterial(i, Mat);
 				}
 			}
+			if (PlaceholderWings) { PlaceholderWings->SetVisibility(false); }
+			if (HullPivot) { HullPivot->SetRelativeScale3D(FVector::OneVector); }
 			return;
 		}
 	}
 
-	// Placeholder: engine basic shapes are 100 cm across; size the hull to the gameplay radius and tint it.
-	const float Scale = FMath::Max(0.1f, (Spec.Radius * 2.f) / 100.f);
-	Hull->SetRelativeScale3D(FVector(Scale * 1.4f, Scale, Scale * 0.5f));
-	if (UMaterialInstanceDynamic* MID = Hull->CreateDynamicMaterialInstance(0))
+	// Placeholder: T1's cone + wings, scaled as one by the gameplay radius (220 cm = default) and tinted.
+	if (PlaceholderWings) { PlaceholderWings->SetVisibility(true); }
+	if (HullPivot)
 	{
-		MID->SetVectorParameterValue(TEXT("Color"), Spec.PlaceholderColor);
+		HullPivot->SetRelativeScale3D(FVector(FMath::Max(0.2f, Spec.Radius / 220.f)));
 	}
+	// Red-orange hull with glowing white "eyes" (Core helper), per the art direction.
+	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, PlaceholderEmissiveBoost);
+	UTDStatics::TintPlaceholder(PlaceholderWings, UTDStatics::TeamColor(ETDTeam::Enemy) * 0.35f, 0.f);
 }
 
 // ---------------------------------------------------------------------------------------- attacks
@@ -254,7 +331,16 @@ bool ATDEnemyShip::TryStartAttack(ETDEnemyAttack Attack, AActor* Target)
 		OnTelegraphStarted.Broadcast(this, Attack, TelegraphDuration);
 		if (Visuals)
 		{
-			UTDStatics::PlayCueAttached(Visuals->Telegraph, GetHullMesh());
+			const FTDFXCue* Specific = nullptr;
+			switch (Attack)
+			{
+			case ETDEnemyAttack::Missile:      Specific = &Visuals->TelegraphMissile; break;
+			case ETDEnemyAttack::HeavyBolt:    Specific = &Visuals->TelegraphHeavyBolt; break;
+			case ETDEnemyAttack::MissileSalvo: Specific = &Visuals->TelegraphSalvo; break;
+			case ETDEnemyAttack::MineTrail:    Specific = &Visuals->TelegraphMineTrail; break;
+			default: break;
+			}
+			UTDStatics::PlayCueAttached((Specific && !Specific->IsEmpty()) ? *Specific : Visuals->Telegraph, GetHullMesh());
 		}
 	}
 	else
@@ -355,10 +441,12 @@ void ATDEnemyShip::FireSecondaryShot(FName WeaponId, AActor* Target)
 	const FVector AimDir = Target ? (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal() : Forward;
 	Weapons->SetAimDirection(AimDir.IsNearlyZero() ? Forward : AimDir);
 	Weapons->SetAimTarget(Target);
-	Weapons->FireOnce(ETDWeaponSlot::Secondary);
+	const bool bFired = Weapons->FireOnce(ETDWeaponSlot::Secondary);
 	Weapons->SetAimTarget(nullptr);
-
-	// Counted per attempt, so tests don't depend on weapon internals.
+	if (!bFired)
+	{
+		return;	// only shots that really left the barrel count
+	}
 	for (const FTDEnemyAttackSpec* A : { &Spec.Heavy, &Spec.Heavy2 })
 	{
 		if (A->WeaponId == WeaponId)
@@ -532,6 +620,7 @@ void ATDEnemyShip::BreakFrontalShield()
 	}
 	FrontalShieldHP = 0.f;
 	FrontalShieldRecoverRemaining = Spec.FrontalShieldRecoverSeconds;
+	if (Visuals) { UTDStatics::PlayCueAttached(Visuals->FrontalShieldBreak, GetHullMesh()); }
 	OnFrontalShieldBroken.Broadcast(this);
 }
 
@@ -597,6 +686,30 @@ float ATDEnemyShip::FilterIncomingDamage(const FTDDamageInfo& Info)
 
 // ------------------------------------------------------------------------------------------ carrier
 
+void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up)
+{
+	if (!Part)
+	{
+		return;
+	}
+	// Snap (not KeepRelative) so a freshly spawned part doesn't inherit our world rotation twice.
+	Part->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true));
+	// Outside our own blocking sphere, so shots and rams reach the part instead of the hull.
+	const float Distance = Spec.Radius + PartHalfExtent + CarrierPartClearance;
+	Part->SetActorRelativeLocation(LocalDirection.GetSafeNormal() * Distance + FVector(0.f, 0.f, Up));
+	Part->SetActorRelativeRotation(LocalDirection.Rotation());	// part's +X faces outward
+
+	// The carrier sweeps when it moves: never let it collide with its own parts (both ways).
+	if (USphereComponent* Sphere = GetCollisionSphere())
+	{
+		Sphere->IgnoreActorWhenMoving(Part, true);
+	}
+	if (UPrimitiveComponent* PartRoot = Cast<UPrimitiveComponent>(Part->GetRootComponent()))
+	{
+		PartRoot->IgnoreActorWhenMoving(this, true);
+	}
+}
+
 void ATDEnemyShip::SpawnCarrierParts()
 {
 	UWorld* World = GetWorld();
@@ -610,31 +723,29 @@ void ATDEnemyShip::SpawnCarrierParts()
 	Params.Instigator = this;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	const float R = Spec.Radius;
-	const FAttachmentTransformRules Attach(EAttachmentRule::KeepRelative, true);
-
-	// Bays: port, starboard and dorsal-rear. First launches are staggered so they don't all pop at once.
-	const FVector BayOffsets[] = { FVector(0.f, -R * 0.75f, 0.f), FVector(0.f, R * 0.75f, 0.f), FVector(-R * 0.5f, 0.f, R * 0.45f) };
+	// Bays: port, starboard and dorsal. First launches are staggered so they don't all pop at once.
+	const FVector BayDirs[] = { FVector(0.f, -1.f, 0.f), FVector(0.f, 1.f, 0.f), FVector(-0.3f, 0.f, 1.f) };
 	for (int32 i = 0; i < Spec.BayCount; ++i)
 	{
-		ATDCarrierBay* Bay = World->SpawnActor<ATDCarrierBay>(ATDCarrierBay::StaticClass(), GetActorTransform(), Params);
+		ATDCarrierBay* Bay = World->SpawnActor<ATDCarrierBay>(ATDCarrierBay::StaticClass(), FTransform::Identity, Params);
 		if (!Bay) { continue; }
-		Bay->AttachToActor(this, Attach);
-		Bay->SetActorRelativeLocation(BayOffsets[i % UE_ARRAY_COUNT(BayOffsets)] * (1.f + 0.1f * (i / 3)));
+		const FVector Dir = BayDirs[i % UE_ARRAY_COUNT(BayDirs)].RotateAngleAxis(25.f * (i / 3), FVector::UpVector);
+		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f);
 		const float FirstDelay = Spec.Heavy.Interval * 0.5f + i * 2.f;
 		Bay->Init(this, Spec.BayHull, Spec.Heavy.Count, Spec.Heavy.Interval, Spec.Heavy.TelegraphSeconds, FirstDelay);
+		Bay->Visuals = Visuals;
 		Bays.Add(Bay);
 	}
 
-	// Point-defense turrets on the four quarters.
+	// Point-defense turrets on the four upper quarters.
 	for (int32 i = 0; i < Spec.TurretCount; ++i)
 	{
-		ATDEnemyTurret* Turret = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), GetActorTransform(), Params);
+		ATDEnemyTurret* Turret = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!Turret) { continue; }
-		Turret->AttachToActor(this, Attach);
 		const float Angle = (PI * 0.5f) * i + PI * 0.25f;
-		Turret->SetActorRelativeLocation(FVector(FMath::Cos(Angle) * R * 0.6f, FMath::Sin(Angle) * R * 0.6f, R * 0.35f));
+		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f);
 		Turret->Init(Spec.TurretGuns, Spec.TurretHull);
+		Turret->Visuals = Visuals;
 		Turrets.Add(Turret);
 	}
 }
@@ -754,15 +865,21 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 	DestroyCarrierParts();
 	DeathTimer = Spec.DeathTumbleSeconds;
 
+	// The tumbling wreck is scenery: ships fly through it (no 60-hull ram from a dead fighter).
+	if (USphereComponent* Sphere = GetCollisionSphere())
+	{
+		Sphere->SetCollisionResponseToChannel(TDCollision::Ship, ECR_Ignore);
+	}
+	ClearSpeedOverride();
+	if (EngineTrailFX) { EngineTrailFX->Deactivate(); EngineTrailFX = nullptr; }
+	if (Visuals)
+	{
+		UTDStatics::PlayCueAttached(Visuals->DeathTumble, GetHullMesh());
+	}
+
 	OnEnemyDied.Broadcast(this, Killer);
 
-	if (Spec.Role == ETDEnemyRole::Carrier && Spec.KillImportance > 0.f)
-	{
-		if (UTDEventBus* Bus = UTDEventBus::Get(this))
-		{
-			Bus->BroadcastHighlightMoment(ETDHighlightKind::CarrierKill, this, Spec.KillImportance);
-		}
-	}
+	// CarrierKill money shot: UTDDirectorSubsystem picks it up from the carrier tag.
 
 	if (DeathTimer <= 0.f)
 	{
@@ -798,6 +915,16 @@ void ATDEnemyShip::Explode()
 	Destroy();
 }
 
+void ATDEnemyShip::GetSimpleCollisionCylinder(float& CollisionRadius, float& CollisionHalfHeight) const
+{
+	CollisionRadius = Spec.Radius;
+	if (Spec.Role == ETDEnemyRole::Carrier && (Bays.Num() > 0 || Turrets.Num() > 0))
+	{
+		CollisionRadius = Spec.Radius + CarrierPartClearance + 2.f * 300.f;	// parts + their extent
+	}
+	CollisionHalfHeight = CollisionRadius;
+}
+
 float ATDEnemyShip::GetDamage01() const
 {
 	const UTDHealthComponent* H = GetHealth();
@@ -831,7 +958,11 @@ void ATDEnemyShip::TickTimers(float DeltaSeconds)
 		if (FrontalShieldDownRemaining <= 0.f)
 		{
 			FrontalShieldDownRemaining = 0.f;
-			if (IsFrontalShieldUp()) { OnFrontalShieldRestored.Broadcast(this); }
+			if (IsFrontalShieldUp())
+			{
+				if (Visuals) { UTDStatics::PlayCueAttached(Visuals->FrontalShieldRestore, GetHullMesh()); }
+				OnFrontalShieldRestored.Broadcast(this);
+			}
 		}
 	}
 	if (FrontalShieldRecoverRemaining > 0.f)
@@ -841,7 +972,11 @@ void ATDEnemyShip::TickTimers(float DeltaSeconds)
 		{
 			FrontalShieldRecoverRemaining = 0.f;
 			FrontalShieldHP = Spec.FrontalShield;
-			if (IsFrontalShieldUp()) { OnFrontalShieldRestored.Broadcast(this); }
+			if (IsFrontalShieldUp())
+			{
+				if (Visuals) { UTDStatics::PlayCueAttached(Visuals->FrontalShieldRestore, GetHullMesh()); }
+				OnFrontalShieldRestored.Broadcast(this);
+			}
 		}
 	}
 }

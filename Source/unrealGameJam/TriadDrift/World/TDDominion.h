@@ -201,6 +201,13 @@ public:
 	virtual ETDTeam GetTeam() const override { return ETDTeam::Enemy; }
 	virtual void Tick(float DeltaSeconds) override;
 
+	/** The hull's true size (the root is a bare scene component). */
+	virtual void GetSimpleCollisionCylinder(float& CollisionRadius, float& CollisionHalfHeight) const override
+	{
+		CollisionRadius = HullExtent.GetMax();
+		CollisionHalfHeight = HullExtent.Z;
+	}
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -216,6 +223,8 @@ protected:
 	void LaunchGroup();
 	void OnDefensesDown(bool bFromSave);
 	void ExposeReactor();
+	void StartShieldIdle();
+	void StopShieldIdle();
 
 	UFUNCTION()
 	void HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor* Killer);
@@ -261,6 +270,9 @@ protected:
 	TObjectPtr<ATDDominionReactor> Reactor;
 
 	TArray<TWeakObjectPtr<ATDEnemyShip>> Launched;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> ShieldIdleFX;
 
 	ETDDominionState State = ETDDominionState::Hidden;
 	float StateTime = 0.f;

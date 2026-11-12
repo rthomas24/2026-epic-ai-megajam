@@ -94,5 +94,6 @@ protected:
 
 	int32 Phase = 1;
 	bool bExposed = false;
+	double LastShieldHitCueTime = -1.0;
 	bool bDestroyed = false;
 };

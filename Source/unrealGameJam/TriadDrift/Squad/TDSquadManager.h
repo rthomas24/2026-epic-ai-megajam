@@ -7,11 +7,30 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TriadDrift/Squad/TDSwitchCut.h"
+#include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TDSquadManager.generated.h"
 
 class ATDShip;
 class ATDWingmanAIController;
 class APlayerController;
+class UTDShipVisuals;
+
+/** C-03 #1: a switch, as a director's cut. Same frame as the switch; presentation only. */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnSwitchCut, const FTDSwitchCut&, Cut);
+
+/** Why a switch request was refused (HUD feedback, M6). */
+UENUM(BlueprintType)
+enum class ETDSwitchRefusal : uint8
+{
+	Cooldown,
+	AlreadyActive,
+	TargetDown,
+	HyperdriveActive,
+	Landing
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnSwitchRefused, ETDSwitchRefusal, Reason, ETDShipId, RequestedShip);
 
 /** Life state of one squad slot. */
 UENUM(BlueprintType)
@@ -49,6 +68,9 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 
 	/** World time at which this ship was downed (Dying started). */
 	double DownedAtTime = 0.0;
+
+	/** Death tumble motion (Squad drives it while the flight model is parked). */
+	FVector TumbleVelocity = FVector::ZeroVector;
 };
 
 /**
@@ -150,6 +172,28 @@ public:
 	UFUNCTION()
 	void HandlePowerUsed(ETDShipId Ship, FName PowerName);
 
+	/** A manual switch was refused (cooldown, downed target, mid-hyperdrive, landing). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Squad")
+	FTDOnSwitchRefused OnSwitchRefused;
+
+	/** C-03 #1: fired in the same frame as every successful switch, after OnShipSwitched. */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Squad")
+	FTDOnSwitchCut OnSwitchCut;
+
+	/** The most recent cut (SwitchIndex 0 = none yet this take). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	const FTDSwitchCut& GetLastSwitchCut() const { return LastSwitchCut; }
+
+	/**
+	 * Landing (ENG-20) and cinematics: passive wingmen release triggers, drop targets and stop
+	 * sending flight input until made active again (they then regroup).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void SetWingmenPassive(bool bPassive);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	bool AreWingmenPassive() const { return bWingmenPassive; }
+
 	/** Override the controller the squad drives (default: first local player controller). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
 	void SetSquadPlayerController(APlayerController* InController);
@@ -175,6 +219,9 @@ public:
 	virtual TArray<AActor*> GetLockedTargets() const override;
 	virtual FTDWaveInfo GetWaveInfo() const override;
 	virtual float GetSpeed01() const override;
+	virtual TArray<FTDTargetMarker> GetTargetMarkers() const override;
+	virtual ETDMissileWarning GetMissileWarning() const override;
+	virtual bool GetLeadIndicator(FVector& OutWorldLocation) const override;
 	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------
@@ -205,6 +252,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float DeathTumbleSeconds = 0.6f;
 
+	/** Death tumble spin (deg/s, pitch / yaw / roll) and how fast its drift bleeds off (1/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning")
+	FRotator DeathTumbleSpin = FRotator(260.f, 40.f, 620.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
+	float DeathTumbleDrag = 1.5f;
+
 	/** Measured from the moment the ship is downed. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float RespawnDelay = 12.f;
@@ -228,6 +282,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float FocusCommandSeconds = 8.f;
 
+	/** Suggested presentation timing copied into every FTDSwitchCut (C-03 #1). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Cut")
+	FTDSwitchCutTiming CutTiming;
+
 	/** Loose V (ENG-08: 1500-2500 cm). Leader-local space: X forward, Y right, Z up. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
 	FVector FormationLeftOffset = FVector(-1600.f, -1600.f, 150.f);
@@ -235,8 +293,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
 	FVector FormationRightOffset = FVector(-1600.f, 1600.f, -150.f);
 
+	/** ENG-03: hull points per second repaired on living squad ships between waves (after OnWaveCleared until OnWaveStarted). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
+	float BetweenWaveHullRepairPerSecond = 8.f;
+
+	/** Nick's per-ship presentation data (optional). Squad plays SwitchIn/SwitchOut, Explosion and RespawnWarpIn from it. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Presentation")
+	TMap<ETDShipId, TObjectPtr<UTDShipVisuals>> ShipVisuals;
+
+	UFUNCTION()
+	void HandleWaveCleared(int32 WaveNumber);
+
+	UFUNCTION()
+	void HandleWaveStarted(int32 WaveNumber, float Intensity01);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	bool IsBetweenWaves() const { return bBetweenWaves; }
+
 	/** Weapon-component multiplier key for Switch Strike (agreed with T2). */
 	static const FName SwitchStrikeKey;
+
+	/** Weapon-block key while a squad ship is down. */
+	static const FName DownedWeaponsKey;
 
 protected:
 	virtual void BeginPlay() override;
@@ -262,6 +340,11 @@ protected:
 	void EndSwitchStrike();
 	ATDWingmanAIController* SpawnWingmanFor(FTDSquadSlot& Slot);
 	double Now() const;
+	/** Real (undilated) time: switch input must never be slowed by a money shot (M5). */
+	double RealNow() const;
+	void Refuse(ETDSwitchRefusal Reason, ETDShipId Ship);
+	/** Everything a ship needs to fly again (respawn, retake): unpark, reset flight, weapons, powers, travel. */
+	void RestoreShipForFlight(ATDShip* Ship, const FVector& Location, const FRotator& Facing, const FVector& Velocity);
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad|State")
 	TArray<FTDSquadSlot> Slots;
@@ -277,6 +360,11 @@ protected:
 	TWeakObjectPtr<ATDShip> SwitchStrikeShip;
 	TWeakObjectPtr<APlayerController> SquadPC;
 	bool bSquadWiped = false;
+	bool bWingmenPassive = false;
+	bool bBetweenWaves = false;
+	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;
+	int32 SwitchCount = 0;
+	FTDSwitchCut LastSwitchCut;
 	/** True when a game flow took the defeat; it owns the restart, so timers stop. */
 	bool bWipeHandledByFlow = false;
 };

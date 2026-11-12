@@ -7,11 +7,37 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 
 UTDPowerComponent::UTDPowerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.TickGroup = TG_PrePhysics;
+}
+
+void UTDPowerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
+	{
+		ResetHandle = Subsystem->OnPowersReset.AddUObject(this, &UTDPowerComponent::HandlePowersReset);
+	}
+}
+
+void UTDPowerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
+	{
+		Subsystem->OnPowersReset.Remove(ResetHandle);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void UTDPowerComponent::HandlePowersReset()
+{
+	EndPower(true);
+	CooldownRemaining = 0.f;
 }
 
 bool UTDPowerComponent::CanActivate() const
@@ -110,6 +136,14 @@ void UTDPowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	{
 		CooldownRemaining = FMath::Max(0.f, CooldownRemaining - DeltaTime);
 	}
+	if (bPowerActive && bEndOnOwnerDeath)
+	{
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner());
+		if (Health && Health->IsDead())
+		{
+			EndPower(true);
+		}
+	}
 	if (bPowerActive)
 	{
 		ActiveElapsed += DeltaTime;
@@ -179,9 +213,10 @@ ETDTeam UTDPowerComponent::GetOwnerTeam() const
 
 void UTDPowerComponent::Highlight(ETDHighlightKind Kind, AActor* Subject, float Importance01) const
 {
-	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	// Only through the director (slow-mo, rate limits, camera hints, CUT / travel gating).
+	if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this))
 	{
-		Bus->BroadcastHighlightMoment(Kind, Subject, Importance01);
+		Director->ReportHighlight(Kind, Subject, Importance01, GetOwner());
 	}
 }
 

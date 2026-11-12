@@ -5,6 +5,7 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 
 #include "DrawDebugHelpers.h"
 #include "HAL/IConsoleManager.h"
@@ -15,7 +16,7 @@ namespace
 	int32 GTDEnemyAIDebug = 0;
 	FAutoConsoleVariableRef CVarTDEnemyAIDebug(TEXT("TD.EnemyAIDebug"), GTDEnemyAIDebug, TEXT("Draw enemy AI state and target lines (1 = on)."));
 
-	FTDFlightInput MakeInput(const FVector2D& Aim, float Throttle01, bool bBoost)
+	FTDFlightInput TDEnemyAI_MakeInput(const FVector2D& Aim, float Throttle01, bool bBoost)
 	{
 		FTDFlightInput In;
 		In.Aim = Aim;
@@ -45,6 +46,7 @@ void ATDEnemyAIController::OnPossess(APawn* InPawn)
 	{
 		Rng.Initialize(static_cast<int32>(InPawn->GetUniqueID()));
 	}
+	bPrefersPlayer = Rng.FRand() < PreferPlayerShipChance;
 	SetState(ETDEnemyAIState::Approach);
 	RetargetTimer = 0.f;
 }
@@ -64,6 +66,7 @@ void ATDEnemyAIController::SetState(ETDEnemyAIState NewState)
 	{
 		State = NewState;
 		StateTime = 0.f;
+		bRunReachedGunRange = false;
 	}
 }
 
@@ -137,6 +140,17 @@ AActor* ATDEnemyAIController::ChooseTarget() const
 		}
 	}
 
+	// Spread the pressure: about half the pilots prefer the ship the player is flying (when it's in
+	// range), the rest take the nearest squad ship, so wingmen get attacked too.
+	if (bPrefersPlayer)
+	{
+		APawn* PlayerShip = UGameplayStatics::GetPlayerPawn(this, 0);
+		if (IsValidTarget(PlayerShip) && FVector::DistSquared(PlayerShip->GetActorLocation(), Ship->GetActorLocation()) <= FMath::Square(AcquireRange))
+		{
+			return PlayerShip;
+		}
+	}
+
 	// Stick with the current target unless it's gone or drifted far out.
 	if (IsValidTarget(Target.Get()) && FVector::DistSquared(Target->GetActorLocation(), Ship->GetActorLocation()) <= FMath::Square(AcquireRange * 1.2f))
 	{
@@ -145,7 +159,66 @@ AActor* ATDEnemyAIController::ChooseTarget() const
 
 	// Any squad ship (wingmen too), nearest first.
 	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
-	return Registry ? Registry->FindNearestHostile(ETDTeam::Enemy, Ship->GetActorLocation(), AcquireRange, Ship) : nullptr;
+	if (AActor* Near = Registry ? Registry->FindNearestHostile(ETDTeam::Enemy, Ship->GetActorLocation(), AcquireRange, Ship) : nullptr)
+	{
+		return Near;
+	}
+
+	// Leash: nothing in range -> go after the player's ship wherever it is, so no wave stalls.
+	APawn* PlayerShip = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (IsValidTarget(PlayerShip))
+	{
+		return PlayerShip;
+	}
+	return Registry ? Registry->FindNearestHostile(ETDTeam::Enemy, Ship->GetActorLocation(), 0.f, Ship) : nullptr;
+}
+
+float ATDEnemyAIController::TimeToImpact(const AActor& A, const AActor& B)
+{
+	const FVector RelPos = B.GetActorLocation() - A.GetActorLocation();
+	const FVector RelVel = B.GetVelocity() - A.GetVelocity();
+	const float Dist = RelPos.Size();
+	if (Dist < KINDA_SMALL_NUMBER)
+	{
+		return 0.f;
+	}
+	const float Closing = -FVector::DotProduct(RelPos / Dist, RelVel);
+	return Closing > KINDA_SMALL_NUMBER ? Dist / Closing : TNumericLimits<float>::Max();
+}
+
+void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
+{
+	bool bWant = false;
+	if (Ship.GetRole() != ETDEnemyRole::Carrier && !Ship.IsStunned())
+	{
+		if (ATDEnemyShip* Leader = FormationLeader.Get())
+		{
+			// Followers must out-run a boosting / catching-up leader to hold the slot.
+			const FVector Slot = Leader->GetActorTransform().TransformPositionNoScale(FormationOffset);
+			const float Off = FVector::Dist(Slot, Ship.GetActorLocation());
+			bWant = bCatchingUp ? Off > 800.f : Off > 2000.f;
+		}
+		else if (const AActor* T = Target.Get())
+		{
+			// Hysteresis: start beyond CatchUpDistance, keep going until inside gun range, otherwise a
+			// pilot slower than its target hovers at the leash edge forever.
+			const FTDEnemySpec& Spec = Ship.GetSpec();
+			const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
+			const float Dist = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation());
+			bWant = bCatchingUp ? Dist > GunRange * 0.8f : Dist > CatchUpDistance;
+		}
+	}
+	if (bWant && !bCatchingUp)
+	{
+		const float Mult = FormationLeader.IsValid() ? CatchUpSpeedMultiplier * 1.3f : CatchUpSpeedMultiplier;
+		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * Mult, 1.f);
+		bCatchingUp = true;
+	}
+	else if (!bWant && bCatchingUp)
+	{
+		Ship.ClearSpeedOverride();
+		bCatchingUp = false;
+	}
 }
 
 void ATDEnemyAIController::UpdateTarget(float DeltaSeconds)
@@ -156,10 +229,10 @@ void ATDEnemyAIController::UpdateTarget(float DeltaSeconds)
 		Target.Reset();
 		return;
 	}
-	if (!IsValidTarget(Target.Get()))
+	if (Target.IsValid() && !IsValidTarget(Target.Get()))
 	{
 		Target.Reset();
-		RetargetTimer = 0.f;
+		RetargetTimer = 0.f;	// lost a real target: look again now (once)
 	}
 	RetargetTimer -= DeltaSeconds;
 	if (RetargetTimer <= 0.f)
@@ -191,7 +264,58 @@ FVector2D ATDEnemyAIController::ComputeSteer(const FTransform& Ship, const FVect
 
 void ATDEnemyAIController::SteerToward(ATDEnemyShip& Ship, const FVector& WorldPoint, float Throttle01, bool bBoost)
 {
-	Ship.SetFlightInput(MakeInput(ComputeSteer(Ship.GetActorTransform(), WorldPoint, SteerFullDeflectionDeg), Throttle01, bBoost));
+	FVector Goal = WorldPoint;
+
+	// Obstacle avoidance: probe ahead along the velocity (or nose) and slide around asteroids,
+	// ruins, planets and the Dominion hull. Targets beyond the obstacle stay the goal once clear.
+	bAvoiding = false;
+	if (const UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
+	{
+		if (WorldSys->GetObstacleCount() > 0)
+		{
+			const FVector Vel = Ship.GetVelocity();
+			const FVector Dir = Vel.SizeSquared() > 1.f ? Vel.GetSafeNormal() : Ship.GetActorForwardVector();
+			const float Probe = Vel.Size() * AvoidLookAheadSeconds + Ship.GetSpec().Radius * 4.f;
+			const float ToGoal = FVector::Dist(WorldPoint, Ship.GetActorLocation());
+			FVector Avoid;
+			if (WorldSys->FindAvoidance(Ship.GetActorLocation(), Dir, FMath::Min(Probe, ToGoal), Ship.GetSpec().Radius * 1.5f, Avoid))
+			{
+				Goal = Ship.GetActorLocation() + Avoid * 10000.f;
+				bAvoiding = true;
+			}
+		}
+	}
+
+	// Separation: don't stack on other Armada ships (packs spread, no bumping).
+	if (!bAvoiding && SeparationRadius > 0.f && !FormationLeader.IsValid())	// packs keep their own spacing
+	{
+		if (const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+		{
+			FVector Push = FVector::ZeroVector;
+			const FVector Me = Ship.GetActorLocation();
+			for (const TWeakObjectPtr<AActor>& Weak : Registry->GetAll())
+			{
+				const AActor* Other = Weak.Get();
+				const ATDEnemyShip* OtherShip = Cast<ATDEnemyShip>(Other);
+				if (!OtherShip || OtherShip == &Ship) { continue; }
+				const ATDEnemyAIController* OtherAI = Cast<ATDEnemyAIController>(OtherShip->GetController());
+				if (OtherAI && OtherAI->GetFormationLeader() == &Ship) { continue; }	// my own wingmen
+				const FVector Away = Me - Other->GetActorLocation();
+				const float D = Away.Size();
+				if (D > KINDA_SMALL_NUMBER && D < SeparationRadius)
+				{
+					Push += Away / D * (1.f - D / SeparationRadius);
+				}
+			}
+			if (!Push.IsNearlyZero())
+			{
+				const float ToGoal = FMath::Max(1000.f, FVector::Dist(Goal, Me));
+				Goal += Push.GetClampedToMaxSize(1.f) * ToGoal * 0.5f;
+			}
+		}
+	}
+
+	Ship.SetFlightInput(TDEnemyAI_MakeInput(ComputeSteer(Ship.GetActorTransform(), Goal, SteerFullDeflectionDeg), Throttle01, bBoost && !bAvoiding));
 }
 
 FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor& InTarget) const
@@ -239,7 +363,7 @@ void ATDEnemyAIController::TickIdle(ATDEnemyShip& Ship, float DeltaSeconds)
 {
 	Ship.SetGunsFiring(false, nullptr);
 	// Cruise in a lazy arc so idle ships don't fly off forever.
-	FTDFlightInput In = MakeInput(FVector2D(0.15f, 0.f), 0.4f, false);
+	FTDFlightInput In = TDEnemyAI_MakeInput(FVector2D(0.15f, 0.f), 0.4f, false);
 	Ship.SetFlightInput(In);
 	if (Target.IsValid())
 	{
@@ -327,8 +451,15 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 	}
 	TryHeavyAttacks(Ship, *T);
 
-	const bool bTooClose = Dist < Spec.BreakOffRange;
-	const bool bTooLong = Spec.AttackRunMaxSeconds > 0.f && StateTime > Spec.AttackRunMaxSeconds;
+	const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
+	if (!bRunReachedGunRange && Dist <= GunRange)
+	{
+		bRunReachedGunRange = true;
+		StateTime = 0.f;	// the run's clock starts once we're actually shooting
+	}
+	// Peel away before a collision: time-to-impact, not a fixed distance (head-on closing is ~13000 cm/s).
+	const bool bTooClose = Dist < Spec.BreakOffRange || TimeToImpact(Ship, *T) < BreakOffTimeToImpact;
+	const bool bTooLong = bRunReachedGunRange && Spec.AttackRunMaxSeconds > 0.f && StateTime > Spec.AttackRunMaxSeconds;
 	if ((bTooClose || bTooLong) && !Ship.IsTelegraphing())
 	{
 		// Peel away: mostly sideways/up, away from the target, so the run reads as a pass.
@@ -426,6 +557,7 @@ void ATDEnemyAIController::Tick(float DeltaSeconds)
 	{
 		SetState(ETDEnemyAIState::Stunned);
 		Ship->SetGunsFiring(false, nullptr);
+		UpdateCatchUp(*Ship);	// drops any catch-up override
 		return;	// the ship holds a dead stick itself
 	}
 	if (State == ETDEnemyAIState::Stunned)
@@ -434,6 +566,7 @@ void ATDEnemyAIController::Tick(float DeltaSeconds)
 	}
 
 	UpdateTarget(DeltaSeconds);
+	UpdateCatchUp(*Ship);
 
 	AActor* T = Target.Get();
 	const ETDEnemyRole ShipRole = Ship->GetRole();

@@ -110,7 +110,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	float GetAttackCooldownRemaining(ETDEnemyAttack Attack) const;
 
-	/** How many shots each attack has actually fired (tests, stats). */
+	/** How many shots each attack has actually fired (UTDWeaponComponent::FireOnce succeeded). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	int32 GetFireCount(ETDEnemyAttack Attack) const;
 
@@ -185,6 +185,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy")
 	TSubclassOf<ATDEnemyShip> LaunchedShipClass;
 
+	/** Gap between the carrier's collision sphere and its mounted bays / turrets (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
+	float CarrierPartClearance = 150.f;
+
 	/** Cap on living fighters a single carrier keeps in the air (perf + fairness). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
 	int32 MaxLaunchedAlive = 12;
@@ -237,11 +241,27 @@ public:
 
 	// --- Presentation -------------------------------------------------------------------------
 
-	/** Nick's presentation data asset (features.md 3.5). Empty = placeholder shapes only. */
+	/** Convention path for a type's visuals asset (Nick fills these; no code or BP edits needed). */
+	static FString VisualsAssetPath(FName EnemyId);
+
+	/** The visuals asset for a type: spec soft pointer, else the convention asset, else null. Cached. */
+	static UTDEnemyVisuals* ResolveVisuals(const FTDEnemySpec& InSpec);
+
+	/** Placeholder glow ("white eyes") when no visuals asset supplies a mesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float PlaceholderEmissiveBoost = 8.f;
+
+	/**
+	 * Nick's presentation data asset (features.md 3.5). Set explicitly to override; otherwise filled
+	 * from ResolveVisuals in InitFromSpec. Empty = placeholder shapes only.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDEnemyVisuals> Visuals;
 
 	virtual void Tick(float DeltaSeconds) override;
+
+	/** True hull size including carrier parts mounted outside the sphere (break-off and avoidance). */
+	virtual void GetSimpleCollisionCylinder(float& CollisionRadius, float& CollisionHalfHeight) const override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -259,10 +279,25 @@ protected:
 	UFUNCTION()
 	void HandleLaunchedDied(ATDEnemyShip* Ship, AActor* Killer);
 
+	UFUNCTION()
+	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
+
+	void StartLoopCues();
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> EngineTrailFX;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> DamagedSmokeFX;
+
+	bool bVisualsExplicit = false;
+	double LastHullHitCueTime = -1.0;
+
 	void BeginDeath(AActor* Killer);
 	void Explode();
 	const FTDEnemyAttackSpec* FindAttack(ETDEnemyAttack Attack) const;
 	void SpawnCarrierParts();
+	void MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up);
 	void DestroyCarrierParts();
 	void FireSecondaryShot(FName WeaponId, AActor* Target);
 	void TickTimers(float DeltaSeconds);

@@ -20,7 +20,7 @@
 namespace
 {
 	/** Enemy ship with no pilot, so its facing stays put while we test it. */
-	ATDEnemyShip* SpawnEnemy(FTDTestWorld& W, FName Id, const FVector& Loc = FVector::ZeroVector, bool bKeepAI = false)
+	ATDEnemyShip* TDEnemyShipTest_SpawnEnemy(FTDTestWorld& W, FName Id, const FVector& Loc = FVector::ZeroVector, bool bKeepAI = false)
 	{
 		ATDEnemyShip* Ship = W.Spawn<ATDEnemyShip>(Loc);
 		if (!Ship)
@@ -39,7 +39,7 @@ namespace
 		return Ship;
 	}
 
-	AActor* SpawnSquadDummy(FTDTestWorld& W, const FVector& Loc)
+	AActor* TDEnemyShipTest_SpawnSquadDummy(FTDTestWorld& W, const FVector& Loc)
 	{
 		AActor* Actor = W.Spawn<AActor>(Loc);
 		USceneComponent* Root = NewObject<USceneComponent>(Actor, TEXT("Root"));
@@ -54,12 +54,12 @@ namespace
 		return Actor;
 	}
 
-	float Hit(AActor* Target, float Amount, const FVector& TravelDir, ETDDamageKind Kind = ETDDamageKind::Energy)
+	float TDEnemyShipTest_Hit(AActor* Target, float Amount, const FVector& TravelDir, ETDDamageKind Kind = ETDDamageKind::Energy)
 	{
 		return UTDStatics::ApplyTDDamage(Target, Amount, Kind, nullptr, nullptr, Target->GetActorLocation(), TravelDir);
 	}
 
-	int32 CountShips(FTDTestWorld& W, const AActor* Except)
+	int32 TDEnemyShipTest_CountShips(FTDTestWorld& W, const AActor* Except)
 	{
 		int32 N = 0;
 		for (TActorIterator<ATDEnemyShip> It(W.GetWorld()); It; ++It)
@@ -76,7 +76,7 @@ bool FTDEnemiesInit::RunTest(const FString& Parameters)
 	FTDTestWorld W;
 	for (const FName Id : UTDEnemyLibrary::GetAllEnemyIds())
 	{
-		ATDEnemyShip* Ship = SpawnEnemy(W, Id);
+		ATDEnemyShip* Ship = TDEnemyShipTest_SpawnEnemy(W, Id);
 		if (!TestNotNull(*FString::Printf(TEXT("%s spawns"), *Id.ToString()), Ship)) { continue; }
 		const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(Id);
 		UTDHealthComponent* H = Ship->GetHealth();
@@ -93,23 +93,23 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemiesFrontal, "TriadDrift.Enemies.Gunship.
 bool FTDEnemiesFrontal::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDEnemyShip* G = SpawnEnemy(W, TDEnemyIds::WallGunship);	// faces +X
+	ATDEnemyShip* G = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::WallGunship);	// faces +X
 	UTDHealthComponent* H = G->GetHealth();
 
 	// From the front a shot travels along -X.
-	Hit(G, 100.f, FVector(-1, 0, 0));
+	TDEnemyShipTest_Hit(G, 100.f, FVector(-1, 0, 0));
 	TestEqual(TEXT("front hit: hull untouched"), H->GetHull(), 400.f);
 	TestEqual(TEXT("front hit: frontal shield 300 -> 200"), G->GetFrontalShield01(), 200.f / 300.f, 0.001f);
 
-	Hit(G, 100.f, FVector(1, 0, 0));
+	TDEnemyShipTest_Hit(G, 100.f, FVector(1, 0, 0));
 	TestEqual(TEXT("rear hit goes to the hull"), H->GetHull(), 300.f);
-	Hit(G, 50.f, FVector(0, 1, 0));
+	TDEnemyShipTest_Hit(G, 50.f, FVector(0, 1, 0));
 	TestEqual(TEXT("flank (90 deg) hit goes to the hull"), H->GetHull(), 250.f);
 
-	Hit(G, 250.f, FVector(-1, 0, 0));
+	TDEnemyShipTest_Hit(G, 250.f, FVector(-1, 0, 0));
 	TestFalse(TEXT("shield broken by 250 more"), G->IsFrontalShieldUp());
 	TestEqual(TEXT("overflow 50 reaches the hull"), H->GetHull(), 200.f);
-	Hit(G, 20.f, FVector(-1, 0, 0));
+	TDEnemyShipTest_Hit(G, 20.f, FVector(-1, 0, 0));
 	TestEqual(TEXT("broken shield lets frontal fire through"), H->GetHull(), 180.f);
 
 	W.Advance(UTDEnemyLibrary::Get(TDEnemyIds::WallGunship).FrontalShieldRecoverSeconds + 0.1f);
@@ -117,19 +117,19 @@ bool FTDEnemiesFrontal::RunTest(const FString& Parameters)
 
 	// EMP drops it for 5 s without draining it.
 	G->DropFrontalShield(5.f);
-	Hit(G, 10.f, FVector(-1, 0, 0));
+	TDEnemyShipTest_Hit(G, 10.f, FVector(-1, 0, 0));
 	TestEqual(TEXT("EMP'd shield doesn't block"), H->GetHull(), 170.f);
 	W.Advance(5.1f);
 	TestEqual(TEXT("back at full after EMP"), G->GetFrontalShield01(), 1.f, 0.001f);
 
 	// Lancer's ram breaks it and lands in full.
-	Hit(G, 100.f, FVector(-1, 0, 0), ETDDamageKind::Ram);
+	TDEnemyShipTest_Hit(G, 100.f, FVector(-1, 0, 0), ETDDamageKind::Ram);
 	TestFalse(TEXT("ram breaks the frontal shield"), G->IsFrontalShieldUp());
 	TestEqual(TEXT("ram damage lands"), H->GetHull(), 70.f);
 
 	// Non-gunships have no frontal shield.
-	ATDEnemyShip* F = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector(0, 5000, 0));
-	Hit(F, 10.f, FVector(-1, 0, 0));
+	ATDEnemyShip* F = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector(0, 5000, 0));
+	TDEnemyShipTest_Hit(F, 10.f, FVector(-1, 0, 0));
 	TestEqual(TEXT("fighter frontal hit lands"), F->GetHealth()->GetHull(), 20.f);
 	return true;
 }
@@ -138,8 +138,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemiesTelegraph, "TriadDrift.Enemies.Attack
 bool FTDEnemiesTelegraph::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	AActor* Target = SpawnSquadDummy(W, FVector(8000, 0, 0));
-	ATDEnemyShip* I = SpawnEnemy(W, TDEnemyIds::HookInterceptor);
+	AActor* Target = TDEnemyShipTest_SpawnSquadDummy(W, FVector(8000, 0, 0));
+	ATDEnemyShip* I = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::HookInterceptor);
 	const float Telegraph = I->GetSpec().Heavy.TelegraphSeconds;
 
 	TestTrue(TEXT("missile starts"), I->TryStartAttack(ETDEnemyAttack::Missile, Target));
@@ -162,7 +162,7 @@ bool FTDEnemiesTelegraph::RunTest(const FString& Parameters)
 	TestTrue(TEXT("ready again 8 s after the first started"), I->CanStartAttack(ETDEnemyAttack::Missile));
 
 	// Gunship volley: telegraph, then Count heavy bolts.
-	ATDEnemyShip* G = SpawnEnemy(W, TDEnemyIds::WallGunship, FVector(0, 6000, 0));
+	ATDEnemyShip* G = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::WallGunship, FVector(0, 6000, 0));
 	TestTrue(TEXT("volley starts"), G->TryStartAttack(ETDEnemyAttack::HeavyBolt, Target));
 	TestFalse(TEXT("only one big attack at a time"), G->TryStartAttack(ETDEnemyAttack::MissileSalvo, Target));
 	W.Advance(G->GetSpec().Heavy.TelegraphSeconds + 1.f);
@@ -175,8 +175,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemiesStun, "TriadDrift.Enemies.Status.Stun
 bool FTDEnemiesStun::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	AActor* Target = SpawnSquadDummy(W, FVector(6000, 0, 0));
-	ATDEnemyShip* F = SpawnEnemy(W, TDEnemyIds::ShardFighter);
+	AActor* Target = TDEnemyShipTest_SpawnSquadDummy(W, FVector(6000, 0, 0));
+	ATDEnemyShip* F = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::ShardFighter);
 
 	F->SetGunsFiring(true, Target);
 	TestTrue(TEXT("guns on"), F->IsPrimaryTriggerHeld());
@@ -196,7 +196,7 @@ bool FTDEnemiesStun::RunTest(const FString& Parameters)
 	TestTrue(TEXT("guns resume"), F->IsPrimaryTriggerHeld());
 
 	// Stun cancels a telegraph.
-	ATDEnemyShip* I = SpawnEnemy(W, TDEnemyIds::HookInterceptor, FVector(0, 3000, 0));
+	ATDEnemyShip* I = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::HookInterceptor, FVector(0, 3000, 0));
 	I->TryStartAttack(ETDEnemyAttack::Missile, Target);
 	I->ApplyStun(1.f);
 	TestFalse(TEXT("stun cancels the telegraph"), I->IsTelegraphing());
@@ -210,7 +210,7 @@ bool FTDEnemiesStun::RunTest(const FString& Parameters)
 	TestTrue(TEXT("suppression ends"), F->CanFire());
 
 	// Tracking lost: the AI drops its target and can't re-acquire it.
-	ATDEnemyShip* Hunter = SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector(0, -3000, 0), /*bKeepAI*/ true);
+	ATDEnemyShip* Hunter = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::ShardFighter, FVector(0, -3000, 0), /*bKeepAI*/ true);
 	ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(Hunter->GetController());
 	if (!TestNotNull(TEXT("enemy AI possesses spawned ships"), AI)) { return false; }
 	W.Advance(1.5f);
@@ -228,7 +228,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemiesCarrier, "TriadDrift.Enemies.Carrier.
 bool FTDEnemiesCarrier::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDEnemyShip* C = SpawnEnemy(W, TDEnemyIds::HiveCarrier);
+	ATDEnemyShip* C = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::HiveCarrier);
 	C->MaxLaunchedAlive = 0;	// unlimited for counting
 	TArray<ATDCarrierBay*> Bays = C->GetBays();
 	if (!TestEqual(TEXT("3 bays"), Bays.Num(), 3)) { return false; }
@@ -243,7 +243,7 @@ bool FTDEnemiesCarrier::RunTest(const FString& Parameters)
 	TestEqual(TEXT("nothing launched during the telegraph"), Bay->GetLaunchCount(), 0);
 	W.Advance(Telegraph);
 	TestEqual(TEXT("first launch"), Bay->GetLaunchCount(), 1);
-	TestEqual(TEXT("3 fighters launched"), CountShips(W, C), 3);
+	TestEqual(TEXT("3 fighters launched"), TDEnemyShipTest_CountShips(W, C), 3);
 
 	W.Advance(11.8f);
 	TestEqual(TEXT("not before 12 s"), Bay->GetLaunchCount(), 1);
@@ -284,7 +284,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemiesDeath, "TriadDrift.Enemies.Ship.Death
 bool FTDEnemiesDeath::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDEnemyShip* G = SpawnEnemy(W, TDEnemyIds::WallGunship);
+	ATDEnemyShip* G = TDEnemyShipTest_SpawnEnemy(W, TDEnemyIds::WallGunship);
 	TWeakObjectPtr<ATDEnemyShip> Weak = G;
 	const float Tumble = G->GetSpec().DeathTumbleSeconds;
 	G->GetHealth()->Kill();
@@ -301,7 +301,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemiesWaveIntegration, "TriadDrift.Enemies.
 bool FTDEnemiesWaveIntegration::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	AActor* Anchor = SpawnSquadDummy(W, FVector::ZeroVector);
+	AActor* Anchor = TDEnemyShipTest_SpawnSquadDummy(W, FVector::ZeroVector);
 	ATDWaveDirector* D = W.Spawn<ATDWaveDirector>();
 	D->SpawnAnchorOverride = Anchor;
 	D->StartWave(0);

@@ -6,12 +6,14 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Containers/Ticker.h"
+#include "Templates/Function.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Flow/TDSaveGame.h"
 #include "TDGameInstance.generated.h"
 
 class UTDEventBus;
+class FTDDebugMenu;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnSceneRestart, FName /*SceneId*/, int32 /*TakeNumber*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnCheckpointRestored, const FTDCheckpoint& /*Checkpoint*/);
@@ -20,20 +22,29 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnCheckpointRestored, const FTDCheckpoint
  * The run's single source of truth.
  *
  * Scenes and takes (C-03 #3): a scene is one wave or one objective. Whoever starts one calls
- * BeginScene(Id) (wave director, objective). ReportPlayerDefeated() is "CUT!": deaths++, the take
- * counter for the current scene goes up, and after RetakeDelaySeconds the last checkpoint is restored
- * and OnTakeStarted(SceneId, Take) fires on the event bus. C++ listeners that rebuild the scene
- * (game mode, wave director, objectives) bind OnSceneRestart.
+ * BeginScene(Id) (the wave director, objectives). ReportPlayerDefeated() is "CUT!":
+ * - it fires OnSceneCut(Scene, NextTake, Delay) at once
+ * - after RetakeDelaySeconds of REAL time (slow motion and pause don't stretch it), it restores the
+ *   last checkpoint, bumps the scene's take and fires OnTakeStarted(Scene, Take)
+ * - C++ listeners that rebuild the scene (game modes, the wave director, objectives) bind OnSceneRestart
+ * A death outside any scene still cuts and restarts, with SceneId None and take 0.
  *
- * Takes and run stats survive a restore (they are the record of what happened); everything else
- * rolls back to the checkpoint.
+ * Takes, run stats and run time survive a restore: they are the record of what happened. Everything
+ * else rolls back to the checkpoint.
+ *
+ * Save safety:
+ * - The main menu and victory never checkpoint.
+ * - A pristine run (nothing done yet) is never written.
+ * - A fresh boot doesn't overwrite an existing save until the player starts a new run, continues,
+ *   or makes real progress (a wave cleared or an objective completed).
  */
 UCLASS(Config = Game)
-class UTDGameInstance : public UGameInstance, public ITDGameFlow
+class UNREALGAMEJAM_API UTDGameInstance : public UGameInstance, public ITDGameFlow
 {
 	GENERATED_BODY()
 
 public:
+	UTDGameInstance();
 	static UTDGameInstance* Get(const UObject* WorldContext);
 
 	// UGameInstance
@@ -54,27 +65,33 @@ public:
 	virtual void SaveCheckpoint() override;
 
 	// ---------------------------------------------------------------- Run lifecycle
-	/** Wipes progress and the in-memory checkpoint (does not touch the save slot). */
+	/** Main menu "New Game": fresh progress; the run may now overwrite the save slot. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	void StartNewRun();
 
-	/** True when the save slot holds a compatible run. Drives the main menu's Continue button. */
+	/** True when the save slot holds a compatible run (cached; refreshed on every write/delete). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
 	bool HasContinue() const;
 
-	/** Loads the save slot and travels to the saved destination. False if there is nothing valid. */
+	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	bool ContinueRun();
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	void DeleteSave();
 
-	/** Called by game modes from BeginPlay: records the destination and takes the level-entry checkpoint. */
+	/** Called by game modes from StartPlay: records the destination, applies story transitions, checkpoints. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	void NotifyLevelEntered(ETDDestination Destination);
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
 	ETDDestination GetCurrentDestination() const { return CurrentDestination; }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
+	bool IsTravelPending() const { return TravelStage != ETravelStage::None; }
+
+	/** May this run write the save slot yet? (see the class comment) */
+	bool IsRunCommitted() const { return bRunCommitted; }
 
 	// ---------------------------------------------------------------- Scenes and takes (C-03 #3)
 	/** Opens a scene. First time: take 1. Re-opening the current scene after a retake keeps its take. */
@@ -102,7 +119,7 @@ public:
 
 	/** True between "CUT!" and the restart. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Scenes")
-	bool IsRetakePending() const { return bRetakePending; }
+	bool IsRetakePending() const { return RetakeTimeLeft >= 0.f; }
 
 	/** Restore the checkpoint and start the next take immediately (skips RetakeDelaySeconds). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Scenes")
@@ -115,20 +132,20 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
 	const FTDCheckpoint& GetLastCheckpoint() const { return LastCheckpoint; }
 
-	/** Takes a checkpoint with a reason tag; writes the slot if configured. */
+	/** Takes a checkpoint with a reason tag; writes the slot when allowed. */
 	void TakeCheckpoint(FName Reason);
 
-	/** Writes the current checkpoint to the slot. */
-	bool WriteSaveSlot() const;
+	/** Writes the current checkpoint to the slot (respects the save-safety rules unless bForce). */
+	bool WriteSaveSlot(bool bForce = false);
 
-	/** Reads the slot into OutSave. False if missing or a different version. */
+	/** Reads the slot into OutSave. False if missing, foreign, corrupt or a different version. */
 	bool ReadSaveSlot(UTDSaveGame*& OutSave) const;
 
 	/** Applies a save to this instance (used by ContinueRun and tests). */
 	bool ApplySave(const UTDSaveGame& Save);
 
 	/** Slot override for tests so they never touch the player's real save. */
-	void SetSaveSlotOverride(const FString& SlotName) { SaveSlotOverride = SlotName; }
+	void SetSaveSlotOverride(const FString& SlotName) { SaveSlotOverride = SlotName; bContinueCacheValid = false; }
 	FString GetSaveSlotName() const;
 
 	// ---------------------------------------------------------------- Progress helpers
@@ -154,6 +171,18 @@ public:
 	/** Mutable access for cheats and tests only. */
 	FTDProgress& GetMutableProgress() { return Progress; }
 
+	/**
+	 * Advances the real-time flow clock: CUT delay, travel fade, transition hold, travel watchdog.
+	 * Driven by the core ticker (ignores pause and time dilation); tests call it directly.
+	 */
+	void TickFlow(float RealDeltaSeconds);
+
+	/** Travel arrival hook (PostLoadMapWithWorld calls this with the loaded package name). */
+	void NotifyMapLoaded(const FString& LoadedPackageName);
+
+	/** Test hook: replaces UGameplayStatics::OpenLevel so travel can be exercised without loading maps. */
+	TFunction<void(const FString& /*PackageName*/)> OpenLevelOverride;
+
 	// Event bus listeners (public so tests can drive them directly).
 	UFUNCTION()
 	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
@@ -164,16 +193,31 @@ public:
 	UFUNCTION()
 	void HandleWaveCleared(int32 WaveNumber);
 
-	/** Scene id used for a wave (matches FTDWaveInfo::SceneId: "Wave3"). */
+	/** Fallback scene id for a wave ("Wave3") when the wave director gives none. The director owns the real id. */
 	static FName WaveSceneId(int32 WaveNumber);
 
+	/** Main menu and victory are not gameplay: no checkpoints, clock stopped. */
+	static bool IsMenuDestination(ETDDestination Destination)
+	{
+		return Destination == ETDDestination::MainMenu || Destination == ETDDestination::Victory;
+	}
+
 private:
+	enum class ETravelStage : uint8 { None, FadingOut, OnTransitionMap, Loading };
+
+	void ResetRunState();
 	void BindEventBus();
 	bool TickRunTimer(float DeltaSeconds);
 	void ExecuteRetake();
-	void OpenDestination(ETDDestination Destination, const FString& PackageName);
+	void BeginLoad(const FString& PackageName);
+	void OpenLevelByName(const FString& PackageName);
+	void FinishTravel(bool bArrived);
 	void HandlePostLoadMap(UWorld* LoadedWorld);
+	void ApplyStoryTransitionsOnEntry(ETDDestination Destination);
+	bool IsPristine() const;
+	void BroadcastPhase();
 	UTDEventBus* GetBus() const;
+	void TickDebugMenu();
 
 	UPROPERTY(Transient)
 	FTDProgress Progress;
@@ -189,13 +233,24 @@ private:
 	FName LastAnnouncedScene;
 	int32 LastAnnouncedTake = 0;
 	ETDDestination CurrentDestination = ETDDestination::MainMenu;
-	ETDDestination PendingDestination = ETDDestination::MainMenu;
-	bool bTravelPending = false;
-	bool bRetakePending = false;
 	bool bRunTimerPaused = false;
+	bool bRunCommitted = false;
 	FString SaveSlotOverride;
 
-	FTimerHandle RetakeTimer;
+	// Real-time scheduling (FTSTicker).
+	float RetakeTimeLeft = -1.f;
+	FName RetakeScene;
+	ETravelStage TravelStage = ETravelStage::None;
+	float TravelStageTimeLeft = 0.f;
+	float TravelElapsed = 0.f;
+	ETDDestination PendingDestination = ETDDestination::MainMenu;
+	FString PendingPackage;
+
+	mutable bool bContinueCacheValid = false;
+	mutable bool bContinueCache = false;
+
 	FTSTicker::FDelegateHandle RunTimerHandle;
 	FDelegateHandle PostLoadMapHandle;
+
+	TSharedPtr<FTDDebugMenu> DebugMenu;
 };

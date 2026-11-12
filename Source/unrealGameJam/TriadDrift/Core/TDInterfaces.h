@@ -99,6 +99,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual TArray<AActor*> GetLockedTargets() const { return TArray<AActor*>(); }
 
+	/** Every hostile (and incoming missile) for brackets / edge arrows. ENG-06; forwarded from UTDTargetingComponent. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual TArray<FTDTargetMarker> GetTargetMarkers() const { return TArray<FTDTargetMarker>(); }
+
+	/** Incoming-missile warning state (Nick supplies the sound and UI). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual ETDMissileWarning GetMissileWarning() const { return ETDMissileWarning::None; }
+
+	/** Lead-indicator intercept point for the current target; false when there is none. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual bool GetLeadIndicator(FVector& OutWorldLocation) const { return false; }
+
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual FTDWaveInfo GetWaveInfo() const { return FTDWaveInfo(); }
 

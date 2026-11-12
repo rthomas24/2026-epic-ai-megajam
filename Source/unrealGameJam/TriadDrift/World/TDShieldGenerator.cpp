@@ -4,6 +4,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -12,6 +13,7 @@
 ATDShieldGenerator::ATDShieldGenerator()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	Tags.AddUnique(TDDirectorTags::Generator);	// GeneratorKill money shot (C-03 #2)
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
@@ -63,6 +65,15 @@ void ATDShieldGenerator::BeginPlay()
 	if (Health)
 	{
 		Health->OnDeath.AddUniqueDynamic(this, &ATDShieldGenerator::HandleDeath);
+		Health->OnDamaged.AddUniqueDynamic(this, &ATDShieldGenerator::HandleDamaged);
+	}
+}
+
+void ATDShieldGenerator::HandleDamaged(UTDHealthComponent* /*InHealth*/, const FTDDamageInfo& Info, float /*ShieldDamage*/, float HullDamage)
+{
+	if (Visuals && HullDamage > 0.f && !bDestroyed)
+	{
+		UTDStatics::PlayCue(this, Visuals->GeneratorHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
 	}
 }
 
@@ -71,6 +82,7 @@ void ATDShieldGenerator::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (Health)
 	{
 		Health->OnDeath.RemoveDynamic(this, &ATDShieldGenerator::HandleDeath);
+		Health->OnDamaged.RemoveDynamic(this, &ATDShieldGenerator::HandleDamaged);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -100,11 +112,14 @@ void ATDShieldGenerator::SetDestroyedSilently()
 	{
 		return;
 	}
-	if (Health && Health->IsAlive())
+	// No Kill(): a resume must not count as kills or fire death events. The health stays "alive"
+	// but untargetable and invulnerable, and IsAlive() reports false via bDestroyed.
+	if (Health)
 	{
-		Health->OnDeath.RemoveDynamic(this, &ATDShieldGenerator::HandleDeath);
-		Health->Kill();
+		Health->SetTargetable(false);
+		Health->SetInvulnerable(true);
 	}
+	if (Mesh) { Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); }
 	ShowDestroyed();
 }
 

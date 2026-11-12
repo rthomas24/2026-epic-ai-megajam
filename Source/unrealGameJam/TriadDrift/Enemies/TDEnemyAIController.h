@@ -56,6 +56,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	ATDEnemyShip* GetEnemyShip() const;
 
+	/** Override the per-pilot "prefers the player's ship" roll (tests, scripted pilots). */
+	void SetPrefersPlayerShip(bool bPrefer) { bPrefersPlayer = bPrefer; }
+
 	/** Forget the target immediately (called by the ship's LoseTracking). */
 	void ForgetTarget();
 
@@ -78,6 +81,39 @@ public:
 	/** Gunships hold this fraction of their engage range instead of breaking off. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0", ClampMax = "1"))
 	float GunshipHoldRangeFraction = 0.6f;
+
+	/**
+	 * Leash: beyond this distance from its target (or with no target in range) a pilot flies at
+	 * CatchUpSpeedMultiplier x its cruise so a wave can always be finished, even vs a fleeing Lancer.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float CatchUpDistance = 22000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "1"))
+	float CatchUpSpeedMultiplier = 1.7f;
+
+	/** Break off when time-to-impact with the target drops below this (seconds). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float BreakOffTimeToImpact = 0.8f;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
+	bool IsCatchingUp() const { return bCatchingUp; }
+
+	/** Keep at least this far from other Armada ships (cm). 0 = off. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float SeparationRadius = 1400.f;
+
+	/** Chance a non-interceptor pilot prefers the player's ship over the nearest squad ship. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0", ClampMax = "1"))
+	float PreferPlayerShipChance = 0.5f;
+
+	/** Obstacle look-ahead (seconds of travel). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float AvoidLookAheadSeconds = 1.2f;
+
+	/** True while steering around an obstacle this frame. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
+	bool IsAvoiding() const { return bAvoiding; }
 
 	/** Enable on-screen debug draws (state, target line). Console: TD.EnemyAIDebug 1 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI")
@@ -122,6 +158,12 @@ protected:
 	FVector GetBomberRoutePoint(const AActor& InTarget) const;
 
 	ETDEnemyAIState State = ETDEnemyAIState::Idle;
+	bool bAvoiding = false;
+	bool bPrefersPlayer = false;
+	bool bCatchingUp = false;
+	bool bRunReachedGunRange = false;
+	void UpdateCatchUp(ATDEnemyShip& Ship);
+	static float TimeToImpact(const AActor& A, const AActor& B);
 	float StateTime = 0.f;
 	float RetargetTimer = 0.f;
 	FVector BreakOffDirection = FVector::ForwardVector;

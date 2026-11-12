@@ -26,6 +26,10 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   switch to the **healthiest** living ship (hull+shield fraction). `OnShipDowned` fires at death.
 - **Respawn:** `RespawnDelay` 12 s from death; warps in behind its formation slot at the leader's
   velocity, full health, `RespawnInvulnerability` 2 s, back to its wingman. `OnShipRespawned`.
+- **Between waves (ENG-03):** hull repairs at 8/s on living ships from `OnWaveCleared` until the
+  next `OnWaveStarted`; never during a wave.
+- **Presentation:** `ShipVisuals` (per-ship `UTDShipVisuals`, Nick's) plays SwitchIn / SwitchOut on
+  switch, Explosion at the end of the tumble and RespawnWarpIn on respawn; empty slots do nothing.
 - **Squad wipe:** all three down → `OnSquadWiped` once → `ITDGameFlow::ReportPlayerDefeated()`. If a
   game flow took it, respawn timers stop and the flow restarts the scene by calling `SpawnSquad`
   again (that call fully resets the squad). With no game flow (sandbox) timers keep running.
@@ -33,8 +37,12 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   `SwitchStrikeWindow` 1.5 s before a switch gives the new ship `+25%` for 4 s through
   `UTDWeaponComponent::SetOutgoingDamageMultiplier("SwitchStrike", 1.25)`; cleared on expiry, on
   the next switch, on death and on EndPlay. One power arms one switch.
-- **Powers keep running after a switch:** Squad never cancels anything on the ship you leave.
-  Powers are T2's components and keep ticking on their ship.
+- **Powers:** the squad installs T2's power components on each ship once, from the spec
+  (`FTDShipSpec::Signature1PowerClass` / `Signature2PowerClass` / `AbilityComponentClass`; defaults:
+  Rift portal blaster, Lancer ram, Bastion missile swarm + shield dome on hold-Q, and an ability slot
+  on all three). Never re-created; cooldowns reset on respawn and retake. AI-flown ships can't fire
+  them (T2's player-control guard, tested). A power started on one ship keeps running after a switch
+  (dome stays up, tested).
 - **Formation:** loose V. Left slot `(-1600, -1600, 150)`, right slot `(-1600, 1600, -150)` in
   leader space (about 2300 cm from the leader), assigned by switch order so wingmen don't
   swap sides. `GetFormationSlotLocation(Ship)`.
@@ -51,16 +59,24 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
     shoots through the player, 2-4° aim error re-rolled every 0.3-0.6 s, 35 000 cm leash.
   - Evade: shield break or a homing missile on it (`UTDProjectileSubsystem::FindMissilesHomingOn`)
     → 1.8 s break-and-jink at boost, 3 s cooldown; then Regroup.
-  - Hurt (< 40%) + an active shield dome → drifts toward the dome (hook ready; see gaps).
-  - Avoidance: sphere sweep along velocity (1.2 s look-ahead, 0.15 s cadence) against WorldStatic /
-    WorldDynamic, plus 900 cm separation from squadmates.
+  - Hurt (< 40%) and a player shield dome within 15 000 cm (`UTDPowerSubsystem::GetNearestDome`) →
+    heads into it.
+  - Hyperdrive spool (`OnHyperdriveState` Spooling): break off and form up; Idle (cancel or
+    arrival) resumes fighting.
+  - `ATDSquadManager::SetWingmenPassive(bool)`: landing/cinematics; no input, triggers or targets.
+  - Avoidance, every 0.15 s along the velocity (1.2 s look-ahead): **T4's obstacle registry first**
+    (`UTDWorldSubsystem::FindAvoidance`: asteroids, station ruins, planets, Dominion hull), and only
+    if it reports nothing, a **fallback sphere sweep** against WorldStatic / WorldDynamic for what the
+    registry doesn't hold (portal gate frames, Dominion pylons, moving ships). Plus 900 cm
+    separation from squadmates (1500 cm, which also adjusts speed so an along-track stack opens up;
+    collision spheres are 220 cm).
   - Follows the leader: `UTDEventBus::OnSpacecraftTeleported` (portals, gates) warps it to its slot;
     during hyperdrive (leader above 60 000 cm/s, well over ram speed) it rides in its slot; if more than
     60 000 cm from the leader for any reason it warps back.
   - **Never** calls a power or ability (there is no code path to one).
 - **HUD** (`ITDHUDData`): `GetSquadHUD` (per ship hull/shield/boost/heat/secondary ammo/alive/
   respawn seconds/player-controlled/ability), `GetCurrentTarget` / `GetLockedTargets` (active ship's
-  `UTDTargetingComponent`), `GetWaveInfo` (T4 wave director), `GetSpeed01`, `IsOutOfBounds`.
+  `UTDTargetingComponent`), power/ability cooldowns (`UTDPowerComponent::FindPower`), `GetWaveInfo` (T4 wave director), `GetSpeed01`, `IsOutOfBounds`.
 
 ## How to try it
 
@@ -84,17 +100,31 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 | `Wingmen.HoldFormation` | wingmen within 1500 cm of their slots after 8 s |
 | `Wingmen.EngageWithoutPowers` | both engage, deal damage, zero `OnPowerUsed` |
 | `Wingmen.KeepFightingAfterSwitch` | the ship you left keeps fighting under AI |
-| `Wingmen.HoldFormationBehindFasterLeader` | Rift and Bastion hold their slots behind a full-throttle Lancer (30/120 fps); reports PENDING until T1's top-speed hook is on main |
+| `Wingmen.HoldFormationBehindFasterLeader` | Rift and Bastion hold their slots behind a full-throttle Lancer (30/120 fps) |
+| `ShipLibrary.PowersInstalledOnce` / `PowersComeFromTheSpec` | right power classes per ship, no duplicates after respawn + retake, overrides swap them, HUD cooldowns are real |
+| `Wingmen.CannotFirePowersEvenIfAsked` | power input pushed at AI ships is refused |
+| `Switch.PowerKeepsRunningAfterSwitch` | Bastion's dome stays up after switching away and ends on its own timer |
+| `Switch.ThroughPlayerInput` | real Tab key through `ATDSpacePlayerController` switches ships |
+| `Switch.PowersThroughPlayerInput` | real 1/2/3, Q and E keys fire each ship's power and ability (**red until T1's controller routes power input to `RoutePowerInput`**) |
+| `Death.RespawnResetsWeapons` | ammo and heat restored on respawn |
+| `HUD.TargetingForwardsActiveShip` / `HUD.WaveInfoCachedLookup` | targeting HUD follows the active ship; cached wave-director lookup |
+| `Wingmen.TargetPriorityThreatToPlayerFirst` / `...LowestHealthBreaksTies` | threat to the player beats nearest; equal distance → lower health |
+| `Wingmen.EvadeOnShieldBreak` | real hit breaks the shield → Evade (boost) for 1.8 s, 30/60/120 fps |
+| `Wingmen.FollowLeaderThroughPortal` | leader teleport → wingmen arrive in their slots |
+| `Wingmen.AvoidRegisteredObstacle` | wingman steers round a registry asteroid on its line, then rejoins |
+| `Wingmen.KeepApartFromSquadmates` | two wingmen forced onto one slot never come within 600 cm |
+| `Wingmen.HurtWingmanSeeksShieldDome` | a hurt wingman flies into a player dome; a healthy one doesn't |
+| `Wingmen.AimErrorTwoToFourDegrees` | measured shot direction error stays 2-4°, re-rolled |
+| `Wingmen.BoostToCatchUpBeyond8000` | boost when > 8000 cm behind, none once back in the slot |
+| `Death.HullRepairsBetweenWavesOnly` | no hull regen in a wave; ~8/s between waves |
 | `Wingmen.FocusCommand` | focus overrides priority, expires at 8 s |
 | `Wingmen.FollowHyperdriveNotRam` | a 45 000 cm/s dash does not break engagement; an 80 000 cm/s jump carries wingmen in formation |
 | `Death.SpawnSquadIsARetake` | `SpawnSquad` again revives, repositions and resets everything (T5 retake) |
 
 ## Known gaps
 
-- **Shield dome drift**: `TDSquad::GetActiveShieldDome` returns false until T2 publishes the dome
-  (ENG-11). One function to fill in.
-- **Power cooldowns on the HUD cards** stay at "ready" until T2's `UTDPowerComponent` exists.
 - **Portal following** is a warp to the slot when the leader teleports, not a fly-through.
 - Wingmen don't roll to match the leader; they rely on T1's auto-level.
 - Bastion's flak isn't yet aimed at incoming missiles specifically.
-- C-03 #1 timing data and #2 (`OnHighlightMoment` + slow-mo) are the next task.
+- Director's Cut switch-cut payload and money shots: see `docs/eng/director.md`.
+- HUD `GetHyperdriveCharge01` returns 0 until T1's hyperdrive component is on main.

@@ -123,6 +123,24 @@ namespace TDCheats
 	}
 }
 
+void UTDCheatManager::InstallOn(APlayerController* PC)
+{
+#if !UE_BUILD_SHIPPING
+	if (!PC || PC->GetNetMode() == NM_Client || (PC->CheatManager && PC->CheatManager->IsA<UTDCheatManager>()))
+	{
+		return;
+	}
+	PC->CheatClass = UTDCheatManager::StaticClass();
+	if (PC->CheatManager)
+	{
+		// The engine already made the stock one (standalone allows cheats): swap it out.
+		PC->CheatManager->ReceiveEndPlay();
+		PC->CheatManager = nullptr;
+	}
+	PC->AddCheats(true);
+#endif
+}
+
 // ------------------------------------------------------------------------------------------------
 // Logic
 // ------------------------------------------------------------------------------------------------

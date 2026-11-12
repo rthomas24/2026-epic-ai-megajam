@@ -2,15 +2,16 @@
 
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
+#include "TriadDrift/Flow/TDDebugMenu.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/PlayerController.h"
-#include "Camera/PlayerCameraManager.h"
-#include "TimerManager.h"
 #include "Misc/PackageName.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/UnrealType.h"
@@ -22,6 +23,29 @@ namespace TDFlow
 	static const FName ReasonObjective(TEXT("ObjectiveComplete"));
 	static const FName ReasonManual(TEXT("Manual"));
 	static const FName StatDeaths(TEXT("Deaths"));
+	static const FName StatKills(TEXT("Kills"));
+
+	/** An engine save file starts with the 'GVAS' tag; anything else (truncated, garbage) is rejected. */
+	static bool LooksLikeSaveGame(const TArray<uint8>& Bytes)
+	{
+		return Bytes.Num() > 64 && Bytes[0] == 'G' && Bytes[1] == 'V' && Bytes[2] == 'A' && Bytes[3] == 'S';
+	}
+
+	static bool SamePackage(const FString& A, const FString& B)
+	{
+		if (A.IsEmpty() || B.IsEmpty())
+		{
+			return false;
+		}
+		// PIE prefixes loaded packages ("UEDPIE_0_L_Galaxy"); compare short names, suffix-tolerant.
+		const FString SA = FPackageName::GetShortName(A);
+		const FString SB = FPackageName::GetShortName(B);
+		return A == B || SA == SB || SA.EndsWith(TEXT("_") + SB);
+	}
+}
+
+UTDGameInstance::UTDGameInstance()
+{
 }
 
 UTDGameInstance* UTDGameInstance::Get(const UObject* WorldContext)
@@ -36,7 +60,20 @@ void UTDGameInstance::Init()
 	RunTimerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &UTDGameInstance::TickRunTimer));
 	PostLoadMapHandle = FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTDGameInstance::HandlePostLoadMap);
 	BindEventBus(); // subsystems are initialized by Super::Init()
-	StartNewRun();
+	ResetRunState();
+	bRunCommitted = false; // a fresh boot must not overwrite an existing save
+}
+
+void UTDGameInstance::Shutdown()
+{
+	FTSTicker::GetCoreTicker().RemoveTicker(RunTimerHandle);
+	FCoreUObjectDelegates::PostLoadMapWithWorld.Remove(PostLoadMapHandle);
+	if (DebugMenu)
+	{
+		DebugMenu->Hide();
+		DebugMenu.Reset();
+	}
+	Super::Shutdown();
 }
 
 void UTDGameInstance::BindEventBus()
@@ -52,6 +89,11 @@ void UTDGameInstance::BindEventBus()
 	Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDGameInstance::HandleWaveCleared);
 }
 
+UTDEventBus* UTDGameInstance::GetBus() const
+{
+	return GetSubsystem<UTDEventBus>();
+}
+
 void UTDGameInstance::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
 {
 	if (!Victim)
@@ -61,7 +103,7 @@ void UTDGameInstance::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamag
 	const ETDTeam VictimTeam = UTDStatics::GetTeam(Victim);
 	if (VictimTeam == ETDTeam::Enemy && Killer && UTDStatics::GetTeam(Killer) == ETDTeam::Player)
 	{
-		AddStat(TEXT("Kills"), 1);
+		AddStat(TDFlow::StatKills, 1);
 	}
 	else if (VictimTeam == ETDTeam::Player)
 	{
@@ -76,7 +118,17 @@ void UTDGameInstance::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamag
 
 void UTDGameInstance::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 {
-	BeginScene(WaveSceneId(WaveNumber));
+	// The wave director owns scene ids (its wave table can rename them); "WaveN" is only the fallback.
+	FName Scene = NAME_None;
+	if (const ATDWaveDirector* Director = ATDWaveDirector::Get(this))
+	{
+		const FTDWaveInfo Info = Director->GetWaveInfo();
+		if (Info.WaveNumber == WaveNumber)
+		{
+			Scene = Info.SceneId;
+		}
+	}
+	BeginScene(Scene.IsNone() ? WaveSceneId(WaveNumber) : Scene);
 }
 
 void UTDGameInstance::HandleWaveCleared(int32 WaveNumber)
@@ -89,21 +141,8 @@ FName UTDGameInstance::WaveSceneId(int32 WaveNumber)
 	return WaveNumber > 0 ? FName(*FString::Printf(TEXT("Wave%d"), WaveNumber)) : NAME_None;
 }
 
-void UTDGameInstance::Shutdown()
-{
-	FTSTicker::GetCoreTicker().RemoveTicker(RunTimerHandle);
-	FCoreUObjectDelegates::PostLoadMapWithWorld.Remove(PostLoadMapHandle);
-	GetTimerManager().ClearTimer(RetakeTimer);
-	Super::Shutdown();
-}
-
-UTDEventBus* UTDGameInstance::GetBus() const
-{
-	return GetSubsystem<UTDEventBus>();
-}
-
 // ------------------------------------------------------------------------------------------------
-// ITDGameFlow
+// Travel
 // ------------------------------------------------------------------------------------------------
 
 bool UTDGameInstance::TravelTo(ETDDestination Destination, FName ReturnPoint)
@@ -116,93 +155,191 @@ bool UTDGameInstance::TravelTo(ETDDestination Destination, FName ReturnPoint)
 			*UEnum::GetValueAsString(Destination));
 		return false;
 	}
-	if (bTravelPending)
+	if (IsTravelPending())
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("TravelTo(%s): travel already in progress; ignored."), *UEnum::GetValueAsString(Destination));
 		return false;
 	}
 
 	Progress.ReturnPoint = ReturnPoint;
-	bTravelPending = true;
 	PendingDestination = Destination;
+	PendingPackage = PackageName;
+	TravelElapsed = 0.f;
+	RetakeTimeLeft = -1.f; // leaving: no retake
 	SetRunTimerPaused(true);
-	GetTimerManager().ClearTimer(RetakeTimer);
-	bRetakePending = false;
 
-	// Fade out on the local player, then change level.
+	// Quitting from the pause menu: unpause so the level change and camera fade run.
 	UWorld* World = GetWorld();
+	if (World && World->IsGameWorld())
+	{
+		UGameplayStatics::SetGamePaused(World, false);
+	}
 	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
 	const float Fade = Settings->TravelFadeSeconds;
 	if (PC && PC->PlayerCameraManager && Fade > 0.f)
 	{
 		PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, Fade, FLinearColor::Black, false, true);
-		FTimerHandle Handle;
-		GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(this, [this, Destination, PackageName]()
-		{
-			OpenDestination(Destination, PackageName);
-		}), Fade, false);
+		TravelStage = ETravelStage::FadingOut;
+		TravelStageTimeLeft = Fade;
 	}
 	else
 	{
-		OpenDestination(Destination, PackageName);
+		TravelStage = ETravelStage::FadingOut;
+		TravelStageTimeLeft = 0.f; // next flow tick opens the level
 	}
 	return true;
 }
 
-void UTDGameInstance::OpenDestination(ETDDestination Destination, const FString& PackageName)
+void UTDGameInstance::OpenLevelByName(const FString& PackageName)
 {
-	UWorld* World = GetWorld();
-	if (!World)
+	if (OpenLevelOverride)
 	{
-		bTravelPending = false;
+		OpenLevelOverride(PackageName);
 		return;
 	}
-	const UTDFlowSettings* Settings = UTDFlowSettings::Get();
-	const FString TransitionPackage = Settings->TransitionMap.GetLongPackageName();
-	if (!TransitionPackage.IsEmpty() && TransitionPackage != PackageName && FPackageName::DoesPackageExist(TransitionPackage))
+	if (UWorld* World = GetWorld())
 	{
-		UGameplayStatics::OpenLevel(World, FName(*TransitionPackage));
-		return; // HandlePostLoadMap continues to the destination.
+		UGameplayStatics::OpenLevel(World, FName(*PackageName));
 	}
-	UGameplayStatics::OpenLevel(World, FName(*PackageName));
+}
+
+void UTDGameInstance::BeginLoad(const FString& PackageName)
+{
+	TravelStage = ETravelStage::Loading;
+	OpenLevelByName(PackageName);
 }
 
 void UTDGameInstance::HandlePostLoadMap(UWorld* LoadedWorld)
 {
-	if (!bTravelPending || !LoadedWorld || LoadedWorld->GetGameInstance() != this)
+	if (LoadedWorld && LoadedWorld->GetGameInstance() == this)
 	{
-		return;
+		NotifyMapLoaded(LoadedWorld->GetOutermost()->GetName());
 	}
-	const UTDFlowSettings* Settings = UTDFlowSettings::Get();
-	const FString LoadedPackage = LoadedWorld->GetOutermost()->GetName();
-	FString TargetPackage;
-	if (!Settings->ResolveDestinationMap(PendingDestination, TargetPackage))
-	{
-		bTravelPending = false;
-		return;
-	}
-	if (LoadedPackage == TargetPackage || LoadedPackage.EndsWith(FPackageName::GetShortName(TargetPackage)))
-	{
-		bTravelPending = false;
-		CurrentDestination = PendingDestination;
-		SetRunTimerPaused(false);
-		return;
-	}
-	// We're on the transition map: hold for MinTransitionSeconds, then go on.
-	const ETDDestination Dest = PendingDestination;
-	FTimerHandle Handle;
-	GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(this, [this, Dest, TargetPackage]()
-	{
-		if (UWorld* World = GetWorld())
-		{
-			UGameplayStatics::OpenLevel(World, FName(*TargetPackage));
-		}
-	}), FMath::Max(0.01f, Settings->MinTransitionSeconds), false);
 }
+
+void UTDGameInstance::NotifyMapLoaded(const FString& LoadedPackageName)
+{
+	if (!IsTravelPending())
+	{
+		return;
+	}
+	if (TDFlow::SamePackage(LoadedPackageName, PendingPackage))
+	{
+		FinishTravel(true);
+		return;
+	}
+	const FString Transition = UTDFlowSettings::Get()->TransitionMap.GetLongPackageName();
+	if (TravelStage == ETravelStage::Loading && TDFlow::SamePackage(LoadedPackageName, Transition))
+	{
+		// On the loading screen: hold MinTransitionSeconds (real time), then load the target once.
+		TravelStage = ETravelStage::OnTransitionMap;
+		TravelStageTimeLeft = FMath::Max(0.f, UTDFlowSettings::Get()->MinTransitionSeconds);
+		return;
+	}
+	// Some other level loaded (another system travelled): our travel is void.
+	UE_LOG(LogTriadDrift, Warning, TEXT("Travel to %s superseded by %s."), *PendingPackage, *LoadedPackageName);
+	FinishTravel(false);
+}
+
+void UTDGameInstance::FinishTravel(bool bArrived)
+{
+	if (bArrived)
+	{
+		CurrentDestination = PendingDestination;
+	}
+	TravelStage = ETravelStage::None;
+	TravelStageTimeLeft = 0.f;
+	TravelElapsed = 0.f;
+	PendingPackage.Reset();
+	SetRunTimerPaused(IsMenuDestination(CurrentDestination));
+}
+
+void UTDGameInstance::TickFlow(float RealDeltaSeconds)
+{
+	if (RealDeltaSeconds <= 0.f)
+	{
+		return;
+	}
+
+	// CUT! -> retake.
+	if (RetakeTimeLeft >= 0.f)
+	{
+		RetakeTimeLeft -= RealDeltaSeconds;
+		if (RetakeTimeLeft < 0.f)
+		{
+			ExecuteRetake();
+		}
+	}
+
+	// Travel.
+	if (TravelStage != ETravelStage::None)
+	{
+		TravelElapsed += RealDeltaSeconds;
+		if (TravelElapsed > UTDFlowSettings::Get()->TravelTimeoutSeconds)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("Travel to %s timed out; giving control back."), *PendingPackage);
+			FinishTravel(false);
+			return;
+		}
+		if (TravelStage == ETravelStage::FadingOut || TravelStage == ETravelStage::OnTransitionMap)
+		{
+			TravelStageTimeLeft -= RealDeltaSeconds;
+			if (TravelStageTimeLeft <= 0.f)
+			{
+				const FString Transition = UTDFlowSettings::Get()->TransitionMap.GetLongPackageName();
+				const bool bUseTransition = TravelStage == ETravelStage::FadingOut && !Transition.IsEmpty()
+					&& !TDFlow::SamePackage(Transition, PendingPackage) && FPackageName::DoesPackageExist(Transition);
+				BeginLoad(bUseTransition ? Transition : PendingPackage);
+			}
+		}
+	}
+}
+
+bool UTDGameInstance::TickRunTimer(float DeltaSeconds)
+{
+	TickFlow(DeltaSeconds); // real time: not paused, not dilated
+	const UWorld* World = GetWorld();
+	if (World && World->IsGameWorld() && !World->IsPaused())
+	{
+		// Real time, not dilated: director-cam slow motion shouldn't stretch the run clock.
+		AdvanceRunTime(DeltaSeconds);
+	}
+#if !UE_BUILD_SHIPPING
+	TickDebugMenu();
+#endif
+	return true;
+}
+
+void UTDGameInstance::TickDebugMenu()
+{
+	UWorld* World = GetWorld();
+	APlayerController* PC = (World && World->IsGameWorld()) ? World->GetFirstPlayerController() : nullptr;
+	if (!PC || !PC->IsLocalController() || !PC->WasInputKeyJustPressed(EKeys::F10))
+	{
+		return;
+	}
+	if (!DebugMenu)
+	{
+		DebugMenu = MakeShared<FTDDebugMenu>();
+	}
+	DebugMenu->Toggle(World);
+}
+
+// ------------------------------------------------------------------------------------------------
+// ITDGameFlow
+// ------------------------------------------------------------------------------------------------
 
 FTDProgress UTDGameInstance::GetProgress() const
 {
 	return Progress;
+}
+
+void UTDGameInstance::BroadcastPhase()
+{
+	if (UTDEventBus* Bus = GetBus())
+	{
+		Bus->BroadcastPhaseChanged(Progress.Phase);
+	}
 }
 
 void UTDGameInstance::SetPhase(ETDGamePhase NewPhase)
@@ -212,32 +349,37 @@ void UTDGameInstance::SetPhase(ETDGamePhase NewPhase)
 		return;
 	}
 	Progress.Phase = NewPhase;
-	SetRunTimerPaused(NewPhase == ETDGamePhase::Victory);
-	if (UTDEventBus* Bus = GetBus())
+	SetRunTimerPaused(NewPhase == ETDGamePhase::Victory || IsMenuDestination(CurrentDestination));
+	// Story state is never rolled back by a retake: patch the checkpoint and the slot.
+	if (LastCheckpoint.bValid)
 	{
-		Bus->BroadcastPhaseChanged(NewPhase);
+		LastCheckpoint.Progress.Phase = NewPhase;
+		WriteSaveSlot();
 	}
+	BroadcastPhase();
 }
 
 void UTDGameInstance::ReportWaveCleared(int32 WaveNumber)
 {
 	// 1-based wave numbers. Idempotent: the wave director may both call this and broadcast OnWaveCleared.
-	if (WaveNumber <= 0 || WaveNumber <= Progress.WavesCleared)
+	// A clear that lands during the CUT delay is void: the scene is about to restart.
+	if (WaveNumber <= 0 || WaveNumber <= Progress.WavesCleared || IsRetakePending())
 	{
 		return;
 	}
 	Progress.WavesCleared = WaveNumber;
 	EndScene();
+	bRunCommitted = true; // real progress
+	TakeCheckpoint(TDFlow::ReasonWaveCleared);
 	if (const ETDGamePhase* Next = UTDFlowSettings::Get()->PhaseAfterWaveCleared.Find(WaveNumber))
 	{
-		SetPhase(*Next);
+		SetPhase(*Next); // patches the checkpoint just taken
 	}
-	TakeCheckpoint(TDFlow::ReasonWaveCleared);
 }
 
 void UTDGameInstance::CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, ETDShipId ForShip)
 {
-	if (ObjectiveId.IsNone())
+	if (ObjectiveId.IsNone() || IsRetakePending())
 	{
 		return;
 	}
@@ -248,46 +390,62 @@ void UTDGameInstance::CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, 
 		UnlockAbility(Reward, ForShip);
 	}
 	EndScene();
+	bRunCommitted = true;
 	TakeCheckpoint(TDFlow::ReasonObjective);
 }
 
 void UTDGameInstance::SetDominionState(bool bRevealed, bool bDefensesDown)
 {
+	if (Progress.bDominionRevealed == bRevealed && Progress.bDominionDefensesDown == bDefensesDown)
+	{
+		return;
+	}
 	Progress.bDominionRevealed = bRevealed;
 	Progress.bDominionDefensesDown = bDefensesDown;
+	if (LastCheckpoint.bValid)
+	{
+		LastCheckpoint.Progress.bDominionRevealed = bRevealed;
+		LastCheckpoint.Progress.bDominionDefensesDown = bDefensesDown;
+		WriteSaveSlot();
+	}
 }
 
 void UTDGameInstance::ReportPlayerDefeated()
 {
-	if (bRetakePending || bTravelPending)
+	if (IsRetakePending() || IsTravelPending())
 	{
-		return; // already cutting
+		return; // already cutting / leaving
 	}
-	// Deaths are counted from OnActorKilled (player-piloted pawn deaths); defeat is the scene failing.
-	bRetakePending = true;
-
-	const float Delay = UTDFlowSettings::Get()->RetakeDelaySeconds;
+	// Deaths are counted from OnActorKilled; this is the scene failing.
+	RetakeScene = CurrentSceneId;
+	const int32 NextTake = RetakeScene.IsNone() ? 0 : FMath::Max(1, GetTakeNumber(RetakeScene)) + 1;
+	const float Delay = FMath::Max(0.f, UTDFlowSettings::Get()->RetakeDelaySeconds);
+	if (UTDEventBus* Bus = GetBus())
+	{
+		Bus->BroadcastSceneCut(RetakeScene, NextTake, Delay); // Nick's "CUT!" card
+	}
 	if (Delay <= 0.f)
 	{
 		ExecuteRetake();
 	}
 	else
 	{
-		GetTimerManager().SetTimer(RetakeTimer, FTimerDelegate::CreateUObject(this, &UTDGameInstance::ExecuteRetake), Delay, false);
+		RetakeTimeLeft = Delay;
 	}
 }
 
 void UTDGameInstance::RestartSceneNow()
 {
-	GetTimerManager().ClearTimer(RetakeTimer);
-	bRetakePending = true;
+	RetakeScene = CurrentSceneId;
 	ExecuteRetake();
 }
 
 void UTDGameInstance::ExecuteRetake()
 {
-	bRetakePending = false;
-	const FName Scene = CurrentSceneId;
+	RetakeTimeLeft = -1.f;
+	const FName Scene = RetakeScene.IsNone() ? CurrentSceneId : RetakeScene;
+	RetakeScene = NAME_None;
+	const ETDGamePhase PhaseBefore = Progress.Phase;
 
 	// Takes, stats and run time are the record of the run: they survive the restore.
 	const TMap<FName, int32> KeptTakes = Progress.Takes;
@@ -302,7 +460,7 @@ void UTDGameInstance::ExecuteRetake()
 	Progress.Stats = KeptStats;
 	Progress.RunTimeSeconds = KeptRunTime;
 
-	int32 Take = 1;
+	int32 Take = 0;
 	if (!Scene.IsNone())
 	{
 		int32& Count = Progress.Takes.FindOrAdd(Scene);
@@ -310,17 +468,22 @@ void UTDGameInstance::ExecuteRetake()
 		Take = Count;
 		SceneOrder.AddUnique(Scene);
 	}
+	CurrentSceneId = Scene;
 	LastAnnouncedScene = Scene;
 	LastAnnouncedTake = Take;
 
+	WriteSaveSlot(); // keep takes/stats if the player quits now
+
+	if (Progress.Phase != PhaseBefore)
+	{
+		BroadcastPhase();
+	}
 	OnCheckpointRestored.Broadcast(LastCheckpoint);
 	OnSceneRestart.Broadcast(Scene, Take);
-	if (!Scene.IsNone())
+	// Always emitted, even with no open scene (SceneId None, take 0), so a CUT card always clears.
+	if (UTDEventBus* Bus = GetBus())
 	{
-		if (UTDEventBus* Bus = GetBus())
-		{
-			Bus->BroadcastTakeStarted(Scene, Take);
-		}
+		Bus->BroadcastTakeStarted(Scene, Take);
 	}
 	UE_LOG(LogTriadDrift, Log, TEXT("CUT! Scene %s restarts as take %d."), *Scene.ToString(), Take);
 }
@@ -332,8 +495,7 @@ void UTDGameInstance::AddStat(FName StatName, int32 Amount)
 		return;
 	}
 	// Resolve the field by name so new FTDRunStats fields work without touching Flow.
-	const UScriptStruct* Struct = FTDRunStats::StaticStruct();
-	const FProperty* Prop = Struct->FindPropertyByName(StatName);
+	const FProperty* Prop = FTDRunStats::StaticStruct()->FindPropertyByName(StatName);
 	if (!Prop)
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("AddStat: FTDRunStats has no field '%s'."), *StatName.ToString());
@@ -379,7 +541,7 @@ void UTDGameInstance::SaveCheckpoint()
 // Run lifecycle
 // ------------------------------------------------------------------------------------------------
 
-void UTDGameInstance::StartNewRun()
+void UTDGameInstance::ResetRunState()
 {
 	Progress = FTDProgress();
 	LastCheckpoint = FTDCheckpoint();
@@ -387,15 +549,32 @@ void UTDGameInstance::StartNewRun()
 	CurrentSceneId = NAME_None;
 	LastAnnouncedScene = NAME_None;
 	LastAnnouncedTake = 0;
-	bRetakePending = false;
+	RetakeTimeLeft = -1.f;
+	RetakeScene = NAME_None;
 	bRunTimerPaused = false;
-	GetTimerManager().ClearTimer(RetakeTimer);
+}
+
+void UTDGameInstance::StartNewRun()
+{
+	ResetRunState();
+	bRunCommitted = true;
+}
+
+bool UTDGameInstance::IsPristine() const
+{
+	return Progress.Phase == ETDGamePhase::Intro && Progress.WavesCleared == 0 && Progress.CompletedObjectives.Num() == 0
+		&& Progress.UnlockedAbilities.Num() == 0 && Progress.Takes.Num() == 0 && !Progress.bDominionRevealed;
 }
 
 bool UTDGameInstance::HasContinue() const
 {
-	UTDSaveGame* Save = nullptr;
-	return ReadSaveSlot(Save);
+	if (!bContinueCacheValid)
+	{
+		UTDSaveGame* Save = nullptr;
+		bContinueCache = ReadSaveSlot(Save);
+		bContinueCacheValid = true;
+	}
+	return bContinueCache;
 }
 
 bool UTDGameInstance::ContinueRun()
@@ -405,9 +584,12 @@ bool UTDGameInstance::ContinueRun()
 	{
 		return false;
 	}
+	bRunCommitted = true;
+	BroadcastPhase();
 	if (!TravelTo(LastCheckpoint.Destination, Progress.ReturnPoint))
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("ContinueRun: progress restored, but travel to the saved destination failed."));
+		return false;
 	}
 	return true;
 }
@@ -419,12 +601,52 @@ void UTDGameInstance::DeleteSave()
 	{
 		UGameplayStatics::DeleteGameInSlot(Slot, UTDFlowSettings::Get()->SaveUserIndex);
 	}
+	bContinueCacheValid = false;
+}
+
+void UTDGameInstance::ApplyStoryTransitionsOnEntry(ETDDestination Destination)
+{
+	if (Destination != ETDDestination::Galaxy)
+	{
+		return;
+	}
+	const UTDFlowSettings* Settings = UTDFlowSettings::Get();
+	auto AllDone = [this](const TArray<FName>& Ids)
+	{
+		if (Ids.Num() == 0)
+		{
+			return false;
+		}
+		for (const FName& Id : Ids)
+		{
+			if (!Progress.CompletedObjectives.Contains(Id))
+			{
+				return false;
+			}
+		}
+		return true;
+	};
+	// Back from a planet with its objectives done: the next wave block starts.
+	if (Progress.Phase == ETDGamePhase::Verdance && AllDone(Settings->VerdanceObjectives))
+	{
+		SetPhase(ETDGamePhase::Waves3to4);
+	}
+	else if (Progress.Phase == ETDGamePhase::Cinder && AllDone(Settings->CinderObjectives))
+	{
+		SetPhase(ETDGamePhase::Wave5);
+	}
 }
 
 void UTDGameInstance::NotifyLevelEntered(ETDDestination Destination)
 {
 	CurrentDestination = Destination;
-	SetRunTimerPaused(Destination == ETDDestination::MainMenu || Destination == ETDDestination::Victory);
+	if (IsMenuDestination(Destination))
+	{
+		SetRunTimerPaused(true); // menus never checkpoint and never touch the save
+		return;
+	}
+	SetRunTimerPaused(Progress.Phase == ETDGamePhase::Victory);
+	ApplyStoryTransitionsOnEntry(Destination);
 	TakeCheckpoint(TDFlow::ReasonLevelEntry);
 }
 
@@ -496,15 +718,16 @@ TArray<FTDSceneTakes> UTDGameInstance::GetSceneTakes() const
 
 void UTDGameInstance::TakeCheckpoint(FName Reason)
 {
+	if (IsMenuDestination(CurrentDestination))
+	{
+		return;
+	}
 	LastCheckpoint.Progress = Progress;
 	LastCheckpoint.Destination = CurrentDestination;
 	LastCheckpoint.SceneId = CurrentSceneId;
 	LastCheckpoint.Reason = Reason;
 	LastCheckpoint.bValid = true;
-	if (UTDFlowSettings::Get()->bWriteSlotOnCheckpoint)
-	{
-		WriteSaveSlot();
-	}
+	WriteSaveSlot();
 }
 
 FString UTDGameInstance::GetSaveSlotName() const
@@ -512,9 +735,13 @@ FString UTDGameInstance::GetSaveSlotName() const
 	return SaveSlotOverride.IsEmpty() ? UTDFlowSettings::Get()->SaveSlotName : SaveSlotOverride;
 }
 
-bool UTDGameInstance::WriteSaveSlot() const
+bool UTDGameInstance::WriteSaveSlot(bool bForce)
 {
-	if (!LastCheckpoint.bValid)
+	if (!LastCheckpoint.bValid || IsMenuDestination(LastCheckpoint.Destination))
+	{
+		return false;
+	}
+	if (!bForce && (!UTDFlowSettings::Get()->bWriteSlotOnCheckpoint || !bRunCommitted || IsPristine()))
 	{
 		return false;
 	}
@@ -536,6 +763,7 @@ bool UTDGameInstance::WriteSaveSlot() const
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("Failed to write save slot '%s'."), *GetSaveSlotName());
 	}
+	bContinueCacheValid = false;
 	return bOk;
 }
 
@@ -548,15 +776,23 @@ bool UTDGameInstance::ReadSaveSlot(UTDSaveGame*& OutSave) const
 	{
 		return false;
 	}
-	UTDSaveGame* Save = Cast<UTDSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, User));
-	if (!Save)
+	// Read the bytes first: the engine's loader asserts on garbage, so a corrupt file must never reach it.
+	TArray<uint8> Bytes;
+	if (!UGameplayStatics::LoadDataFromSlot(Bytes, Slot, User) || !TDFlow::LooksLikeSaveGame(Bytes))
 	{
-		UE_LOG(LogTriadDrift, Warning, TEXT("Save slot '%s' is not a Triad Drift save; ignoring it."), *Slot);
+		UE_LOG(LogTriadDrift, Warning, TEXT("Save slot '%s' is corrupt or not a Triad Drift save; ignoring it."), *Slot);
 		return false;
 	}
-	if (!Save->IsCompatible())
+	UTDSaveGame* Save = Cast<UTDSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+	if (!Save)
 	{
-		UE_LOG(LogTriadDrift, Warning, TEXT("Save slot '%s' has version %d (expected %d); ignoring it."), *Slot, Save->Version, UTDSaveGame::CurrentVersion);
+		UE_LOG(LogTriadDrift, Warning, TEXT("Save slot '%s' is corrupt or not a Triad Drift save; ignoring it."), *Slot);
+		return false;
+	}
+	if (!Save->IsCompatible() || IsMenuDestination(Save->Checkpoint.Destination))
+	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("Save slot '%s' has version %d (expected %d) or no gameplay checkpoint; ignoring it."),
+			*Slot, Save->Version, UTDSaveGame::CurrentVersion);
 		return false;
 	}
 	OutSave = Save;
@@ -569,8 +805,8 @@ bool UTDGameInstance::ApplySave(const UTDSaveGame& Save)
 	{
 		return false;
 	}
-	GetTimerManager().ClearTimer(RetakeTimer);
-	bRetakePending = false;
+	RetakeTimeLeft = -1.f;
+	RetakeScene = NAME_None;
 	LastCheckpoint = Save.Checkpoint;
 	Progress = Save.Checkpoint.Progress;
 	SceneOrder = Save.SceneOrder;
@@ -602,6 +838,11 @@ void UTDGameInstance::UnlockAbility(ETDAbilityId Ability, ETDShipId ForShip)
 		return;
 	}
 	Progress.UnlockedAbilities.Add(Ability, ForShip);
+	if (LastCheckpoint.bValid)
+	{
+		LastCheckpoint.Progress.UnlockedAbilities.Add(Ability, ForShip);
+		WriteSaveSlot();
+	}
 	if (UTDEventBus* Bus = GetBus())
 	{
 		Bus->BroadcastAbilityUnlocked(Ability, ForShip);
@@ -615,19 +856,8 @@ void UTDGameInstance::SetLastShip(ETDShipId Ship)
 
 void UTDGameInstance::AdvanceRunTime(float DeltaSeconds)
 {
-	if (!bRunTimerPaused && !bTravelPending && DeltaSeconds > 0.f)
+	if (!bRunTimerPaused && !IsTravelPending() && DeltaSeconds > 0.f)
 	{
 		Progress.RunTimeSeconds += DeltaSeconds;
 	}
-}
-
-bool UTDGameInstance::TickRunTimer(float DeltaSeconds)
-{
-	const UWorld* World = GetWorld();
-	if (World && World->IsGameWorld() && !World->IsPaused())
-	{
-		// Real time, not dilated: director-cam slow motion shouldn't stretch the run clock.
-		AdvanceRunTime(DeltaSeconds);
-	}
-	return true;
 }

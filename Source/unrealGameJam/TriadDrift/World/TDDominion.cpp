@@ -12,6 +12,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "NiagaraComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -20,7 +21,7 @@
 
 namespace
 {
-	UStaticMeshComponent* MakePart(AActor* Owner, USceneComponent* Parent, const TCHAR* Name, UStaticMesh* Mesh, bool bCollide)
+	UStaticMeshComponent* TDDominion_MakePart(AActor* Owner, USceneComponent* Parent, const TCHAR* Name, UStaticMesh* Mesh, bool bCollide)
 	{
 		UStaticMeshComponent* C = Owner->CreateDefaultSubobject<UStaticMeshComponent>(Name);
 		C->SetupAttachment(Parent);
@@ -29,7 +30,7 @@ namespace
 		return C;
 	}
 
-	FTDDominionStage MakeStage(float Launch, float Cooldown, float Telegraph)
+	FTDDominionStage TDDominion_MakeStage(float Launch, float Cooldown, float Telegraph)
 	{
 		FTDDominionStage S;
 		S.LaunchInterval = Launch;
@@ -38,7 +39,7 @@ namespace
 		return S;
 	}
 
-	FTDWaveGroup MakeGroup(FName Id, int32 PerPack)
+	FTDWaveGroup TDDominion_MakeGroup(FName Id, int32 PerPack)
 	{
 		FTDWaveGroup G;
 		G.EnemyId = Id;
@@ -61,16 +62,16 @@ ATDDominion::ATDDominion()
 	SetRootComponent(Root);
 
 	// Placeholder hull: one long slab, a bridge tower and two trench walls (engine cubes are 100 cm).
-	HullMesh = MakePart(this, Root, TEXT("Hull"), CubeMesh, true);
-	BridgeMesh = MakePart(this, Root, TEXT("Bridge"), CubeMesh, true);
-	TrenchWallLeft = MakePart(this, Root, TEXT("TrenchWallL"), CubeMesh, true);
-	TrenchWallRight = MakePart(this, Root, TEXT("TrenchWallR"), CubeMesh, true);
+	HullMesh = TDDominion_MakePart(this, Root, TEXT("Hull"), CubeMesh, true);
+	BridgeMesh = TDDominion_MakePart(this, Root, TEXT("Bridge"), CubeMesh, true);
+	TrenchWallLeft = TDDominion_MakePart(this, Root, TEXT("TrenchWallL"), CubeMesh, true);
+	TrenchWallRight = TDDominion_MakePart(this, Root, TEXT("TrenchWallR"), CubeMesh, true);
 
 	// Shield-section emitters: four glowing towers on the hull, one goes dark per generator kill.
 	// (A real shield bubble is Nick's ShieldIdle cue; an opaque placeholder sphere would hide the fight.)
 	for (int32 i = 0; i < 4; ++i)
 	{
-		ShieldSections.Add(MakePart(this, Root, *FString::Printf(TEXT("ShieldEmitter%d"), i), CylMesh, false));
+		ShieldSections.Add(TDDominion_MakePart(this, Root, *FString::Printf(TEXT("ShieldEmitter%d"), i), CylMesh, false));
 	}
 
 	HangarPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Hangar"));
@@ -83,14 +84,14 @@ ATDDominion::ATDDominion()
 	TurretGuns.ConeHalfAngleDeg = 5.f;
 	TurretGuns.TelegraphSeconds = 1.2f;
 
-	Stages.Add(MakeStage(15.f, 2.5f, 1.2f));	// shields up
-	Stages.Add(MakeStage(12.f, 2.0f, 1.0f));	// reactor phase 1
-	Stages.Add(MakeStage(9.f, 1.5f, 0.9f));		// phase 2
-	Stages.Add(MakeStage(6.f, 1.0f, 0.8f));		// phase 3
+	Stages.Add(TDDominion_MakeStage(15.f, 2.5f, 1.2f));	// shields up
+	Stages.Add(TDDominion_MakeStage(12.f, 2.0f, 1.0f));	// reactor phase 1
+	Stages.Add(TDDominion_MakeStage(9.f, 1.5f, 0.9f));		// phase 2
+	Stages.Add(TDDominion_MakeStage(6.f, 1.0f, 0.8f));		// phase 3
 
-	LaunchGroups.Add(MakeGroup(TDEnemyIds::ShardFighter, 4));
-	LaunchGroups.Add(MakeGroup(TDEnemyIds::HookInterceptor, 2));
-	LaunchGroups.Add(MakeGroup(TDEnemyIds::ShardFighter, 5));
+	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::ShardFighter, 4));
+	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::HookInterceptor, 2));
+	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::ShardFighter, 5));
 }
 
 ATDDominion* ATDDominion::Get(const UObject* WorldContext)
@@ -112,6 +113,12 @@ ATDDominion* ATDDominion::Get(const UObject* WorldContext)
 void ATDDominion::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Nick's asset by convention when none is set (no gameplay BP edit needed).
+	if (!Visuals)
+	{
+		Visuals = LoadObject<UTDDominionVisuals>(nullptr, TEXT("/Game/TriadDrift/Presentation/Dominion/DA_Dominion_Visuals.DA_Dominion_Visuals"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
 
 	// Lay the placeholder out from HullExtent so tuning the size keeps everything consistent.
 	const FVector E = HullExtent;
@@ -232,6 +239,7 @@ void ATDDominion::WarpIn()
 	{
 		BuildParts();
 		SetState(ETDDominionState::ShieldsUp);
+		StartShieldIdle();
 		ApplyStage(0);
 	}
 }
@@ -248,12 +256,13 @@ void ATDDominion::BuildParts()
 	FActorSpawnParameters Params;
 	Params.Owner = this;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	const FAttachmentTransformRules Attach(EAttachmentRule::KeepRelative, true);
+	// Snap, then set relative offsets: KeepRelative on a freshly spawned actor would apply our rotation twice.
+	const FAttachmentTransformRules Attach(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true);
 	const FVector E = HullExtent;
 
 	auto SpawnTurret = [&](const FVector& Local, TArray<TObjectPtr<ATDEnemyTurret>>& Into)
 	{
-		ATDEnemyTurret* T = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), GetActorTransform(), Params);
+		ATDEnemyTurret* T = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!T) { return; }
 		T->AttachToActor(this, Attach);
 		T->SetActorRelativeLocation(Local);
@@ -268,7 +277,7 @@ void ATDDominion::BuildParts()
 	{
 		const float Angle = PI * 0.25f + PI * 0.5f * i;
 		const FVector Local(FMath::Cos(Angle) * Ring, FMath::Sin(Angle) * Ring, 0.f);
-		ATDShieldGenerator* G = World->SpawnActor<ATDShieldGenerator>(ATDShieldGenerator::StaticClass(), GetActorTransform(), Params);
+		ATDShieldGenerator* G = World->SpawnActor<ATDShieldGenerator>(ATDShieldGenerator::StaticClass(), FTransform::Identity, Params);
 		if (!G) { continue; }
 		G->Visuals = Visuals;
 		G->AttachToActor(this, Attach);
@@ -294,12 +303,12 @@ void ATDDominion::BuildParts()
 
 	// Reactor at the bottom of the trench, plus dormant trench turrets.
 	const float TrenchZ = E.Z + 1500.f;
-	Reactor = World->SpawnActor<ATDDominionReactor>(ATDDominionReactor::StaticClass(), GetActorTransform(), Params);
+	Reactor = World->SpawnActor<ATDDominionReactor>(ATDDominionReactor::StaticClass(), FTransform::Identity, Params);
 	if (Reactor)
 	{
 		Reactor->Visuals = Visuals;
 		Reactor->AttachToActor(this, Attach);
-		Reactor->SetActorRelativeLocation(FVector(E.X * 0.55f, 0.f, TrenchZ - 500.f));
+		Reactor->SetActorRelativeLocation(FVector(E.X * 0.55f, 0.f, TrenchZ));	// sits clear of the hull top and the trench walls
 		Reactor->SetExposed(false);
 		Reactor->OnPhaseChanged.AddUniqueDynamic(this, &ATDDominion::HandleReactorPhase);
 		Reactor->OnReactorDestroyed.AddUniqueDynamic(this, &ATDDominion::HandleReactorDestroyed);
@@ -307,7 +316,7 @@ void ATDDominion::BuildParts()
 	for (int32 i = 0; i < TrenchTurrets; ++i)
 	{
 		const float X = FMath::Lerp(-0.5f, 0.4f, TrenchTurrets > 1 ? float(i) / (TrenchTurrets - 1) : 0.5f) * E.X;
-		SpawnTurret(FVector(X, (i % 2 ? 1.f : -1.f) * 2100.f, TrenchZ + 1200.f), TrenchTurretActors);
+		SpawnTurret(FVector(X, (i % 2 ? 1.f : -1.f) * 1700.f, TrenchZ + 1200.f), TrenchTurretActors);	// inside the walls (|y| < 2300)
 	}
 	for (ATDEnemyTurret* T : TrenchTurretActors)
 	{
@@ -318,6 +327,23 @@ void ATDDominion::BuildParts()
 }
 
 // ------------------------------------------------------------------------------------------- stages
+
+void ATDDominion::StartShieldIdle()
+{
+	if (Visuals && !ShieldIdleFX)
+	{
+		ShieldIdleFX = UTDStatics::PlayCueAttached(Visuals->ShieldIdle, Root);
+	}
+}
+
+void ATDDominion::StopShieldIdle()
+{
+	if (ShieldIdleFX)
+	{
+		ShieldIdleFX->Deactivate();
+		ShieldIdleFX = nullptr;
+	}
+}
 
 void ATDDominion::ApplyStage(int32 NewStage)
 {
@@ -456,10 +482,7 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	{
 		UTDStatics::PlayCue(this, Visuals->ShieldSectionDown, Generator->GetActorLocation());
 	}
-	if (UTDEventBus* Bus = UTDEventBus::Get(this))
-	{
-		Bus->BroadcastHighlightMoment(ETDHighlightKind::GeneratorKill, Generator, 0.8f);
-	}
+	// The GeneratorKill money shot comes from T3's UTDDirectorSubsystem (generator actors are tagged).
 
 	const int32 Remaining = GetGeneratorsRemaining();
 	OnShieldSectionDown.Broadcast(this, Remaining);
@@ -489,6 +512,7 @@ void ATDDominion::OnDefensesDown(bool bFromSave)
 			Flow->SetDominionState(true, true);
 		}
 	}
+	StopShieldIdle();
 	if (Visuals)
 	{
 		UTDStatics::PlayCue(this, Visuals->ShieldCollapse, GetActorLocation(), GetActorRotation());
@@ -539,10 +563,7 @@ void ATDDominion::HandleReactorDestroyed(ATDDominionReactor* InReactor, AActor* 
 	{
 		return;
 	}
-	if (UTDEventBus* Bus = UTDEventBus::Get(this))
-	{
-		Bus->BroadcastHighlightMoment(ETDHighlightKind::ReactorKill, InReactor, 1.f);
-	}
+	// ReactorKill money shot: UTDDirectorSubsystem (the reactor actor is tagged).
 	// Defenses go quiet while the ship breaks apart.
 	for (ATDEnemyTurret* T : Turrets) { if (T) { T->ApplyStun(BreakupSeconds + 60.f); } }
 	for (ATDEnemyTurret* T : TrenchTurretActors) { if (T) { T->ApplyStun(BreakupSeconds + 60.f); } }
@@ -578,6 +599,7 @@ void ATDDominion::Tick(float DeltaSeconds)
 		{
 			BuildParts();
 			SetState(ETDDominionState::ShieldsUp);
+			StartShieldIdle();
 			ApplyStage(0);
 		}
 		break;

@@ -72,7 +72,6 @@ namespace TDFlightTest
 	}
 }
 
-using namespace TDFlightTest;
 
 // --------------------------------------------------------------------------------------------- speed
 
@@ -86,39 +85,39 @@ bool FTDFlightCruiseSpeed::RunTest(const FString& Parameters)
 	FTDFlightState S;
 	FTDFlightInput In;
 	In.Throttle = 1.f;
-	Run(S, In, T, NoBoundary(), 3.f, 60.f);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 3.f, 60.f);
 	TestEqual(TEXT("throttle +1 reaches cruise 6000 cm/s"), (float)S.Velocity.Size(), 6000.f, 60.f);
 	TestTrue(TEXT("travelling along the nose"), FVector::DotProduct(S.Velocity.GetSafeNormal(), S.Rotation.GetForwardVector()) > 0.999f);
 
 	In.Throttle = -1.f;
-	Run(S, In, T, NoBoundary(), 3.f, 60.f);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 3.f, 60.f);
 	TestEqual(TEXT("throttle -1 settles at min 1500 cm/s"), (float)S.Velocity.Size(), 1500.f, 15.f);
 
 	In.Throttle = 0.f;
-	Run(S, In, T, NoBoundary(), 3.f, 60.f);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 3.f, 60.f);
 	TestEqual(TEXT("throttle 0 is halfway (3750 cm/s)"), (float)S.Velocity.Size(), 3750.f, 40.f);
 
 	// AI catch-up allowance: throttle +1 flies at the allowance instead of cruise.
-	FTDFlightState Catch = CruisingState(T);
-	FTDFlightContext CatchCtx = NoBoundary();
+	FTDFlightState Catch = TDFlightTest::CruisingState(T);
+	FTDFlightContext CatchCtx = TDFlightTest::NoBoundary();
 	CatchCtx.ThrottleTopSpeed = 7500.f;
 	FTDFlightInput Full;
 	Full.Throttle = 1.f;
-	Run(Catch, Full, T, CatchCtx, 2.f, 60.f);
+	TDFlightTest::Run(Catch, Full, T, CatchCtx, 2.f, 60.f);
 	TestEqual(TEXT("catch-up allowance raises throttle +1 to 7500"), (float)Catch.Velocity.Size(), 7500.f, 75.f);
 	TestEqual(TEXT("no boost meter used"), Catch.Boost01, 1.f, 0.001f);
 	CatchCtx.ThrottleTopSpeed = 0.f;
-	Run(Catch, Full, T, CatchCtx, 2.f, 60.f);
+	TDFlightTest::Run(Catch, Full, T, CatchCtx, 2.f, 60.f);
 	TestEqual(TEXT("cleared allowance returns to cruise"), (float)Catch.Velocity.Size(), T.CruiseSpeed, 60.f);
 
 	// Brake from cruise is a hard stop to min speed.
-	FTDFlightState B = CruisingState(T);
+	FTDFlightState B = TDFlightTest::CruisingState(T);
 	FTDFlightInput Brake;
 	Brake.Throttle = 1.f;
 	Brake.bBrake = true;
-	Run(B, Brake, T, NoBoundary(), 0.4f, 60.f);
+	TDFlightTest::Run(B, Brake, T, TDFlightTest::NoBoundary(), 0.4f, 60.f);
 	TestTrue(TEXT("brake sheds most speed within 0.4 s"), B.Velocity.Size() < 2200.f);
-	Run(B, Brake, T, NoBoundary(), 0.35f, 60.f);
+	TDFlightTest::Run(B, Brake, T, TDFlightTest::NoBoundary(), 0.35f, 60.f);
 	TestEqual(TEXT("brake settles at min speed by 0.75 s"), (float)B.Velocity.Size(), 1500.f, 30.f);
 	return true;
 }
@@ -132,40 +131,39 @@ bool FTDFlightBoost::RunTest(const FString& Parameters)
 	TestEqual(TEXT("1.2 s regen delay"), T.BoostRegenDelay, 1.2f);
 
 	const float Fps = 120.f;
-	FTDFlightState S = CruisingState(T);
+	FTDFlightState S = TDFlightTest::CruisingState(T);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
 	In.bBoost = true;
 
-	Run(S, In, T, NoBoundary(), 1.f, Fps);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 1.f, Fps);
 	TestTrue(TEXT("boosting"), S.bBoosting);
 	TestEqual(TEXT("boost speed = cruise x1.8"), (float)S.Velocity.Size(), T.CruiseSpeed * 1.8f, 0.01f * T.CruiseSpeed * 1.8f);
 	TestEqual(TEXT("meter after 1 s of 3"), S.Boost01, 2.f / 3.f, 0.01f);
 
-	Run(S, In, T, NoBoundary(), 1.95f, Fps);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 1.95f, Fps);
 	TestTrue(TEXT("still boosting at 2.95 s"), S.bBoosting);
-	Run(S, In, T, NoBoundary(), 0.1f, Fps);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 0.1f, Fps);
 	TestFalse(TEXT("boost ends when the 3 s meter is empty"), S.bBoosting);
 	TestEqual(TEXT("meter empty"), S.Boost01, 0.f, 0.001f);
 
-	// Still holding boost on an empty meter: no re-boost, no regen (boost is still held but the meter
-	// can't start); release and measure the regen delay.
+	// Release and measure the regen delay (holding through empty is covered by Boost.EmptyMeterLockout).
 	In.bBoost = false;
-	Run(S, In, T, NoBoundary(), 1.1f, Fps);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 1.1f, Fps);
 	TestEqual(TEXT("no regen before 1.2 s"), S.Boost01, 0.f, 0.001f);
-	Run(S, In, T, NoBoundary(), 0.2f, Fps);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 0.2f, Fps);
 	TestTrue(TEXT("regen started after 1.2 s"), S.Boost01 > 0.f);
-	Run(S, In, T, NoBoundary(), T.BoostRegenTime, Fps);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), T.BoostRegenTime, Fps);
 	TestEqual(TEXT("full again 1.2 + 2.5 s after release"), S.Boost01, 1.f, 0.001f);
 
-	Run(S, In, T, NoBoundary(), 2.f, Fps);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 2.f, Fps);
 	TestEqual(TEXT("back to cruise after boost"), (float)S.Velocity.Size(), T.CruiseSpeed, 60.f);
 
 	// A nearly empty meter can't start a boost.
 	S.Boost01 = T.BoostMinToStart * 0.5f;
 	S.TimeSinceBoost = 0.f;
 	In.bBoost = true;
-	TDFlightSim::Advance(S, In, T, NoBoundary(), 1.f / Fps);
+	TDFlightSim::Advance(S, In, T, TDFlightTest::NoBoundary(), 1.f / Fps);
 	TestFalse(TEXT("needs BoostMinToStart to begin"), S.bBoosting);
 	return true;
 }
@@ -176,31 +174,31 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightDrift, "TriadDrift.Flight.Drift.KeepsV
 bool FTDFlightDrift::RunTest(const FString& Parameters)
 {
 	const FTDFlightTuning T;
-	FTDFlightState S = CruisingState(T);
+	FTDFlightState S = TDFlightTest::CruisingState(T);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
 	In.bDrift = true;
 	In.Aim = FVector2D(1.f, 0.f); // full yaw right
 
-	Run(S, In, T, NoBoundary(), 1.f, 120.f);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 1.f, 120.f);
 	TestTrue(TEXT("drifting"), S.bDrifting);
 	TestTrue(TEXT("velocity keeps its +X direction"), FVector::DotProduct(S.Velocity.GetSafeNormal(), FVector::ForwardVector) > 0.9999f);
-	const float Turned = HeadingDeg(S.Rotation.GetForwardVector());
+	const float Turned = TDFlightTest::HeadingDeg(S.Rotation.GetForwardVector());
 	TestTrue(FString::Printf(TEXT("nose swings at the 1.5x drift rate (turned %.1f deg in 1 s, normal cap is 110)"), Turned), Turned > 140.f && Turned <= 165.5f);
 	TestTrue(TEXT("drift yaw rate is capped at 1.5 x 110"), S.AngularRate.Z <= 165.f + 0.01f);
 
 	const float SpeedBefore = S.Velocity.Size();
 	In.bDrift = false;
 	In.Aim = FVector2D::ZeroVector;
-	TDFlightSim::Advance(S, In, T, NoBoundary(), 1.f / 120.f);
+	TDFlightSim::Advance(S, In, T, TDFlightTest::NoBoundary(), 1.f / 120.f);
 	TestTrue(TEXT("drift released"), !S.bDrifting && S.bDriftBurstThisStep);
 	TestTrue(TEXT("velocity snaps to the nose"), FVector::DotProduct(S.Velocity.GetSafeNormal(), S.Rotation.GetForwardVector()) > 0.999f);
 	TestEqual(TEXT("release burst is +20%"), (float)S.Velocity.Size(), SpeedBefore * 1.2f, SpeedBefore * 0.01f);
 
 	// The burst bleeds off back to cruise rather than vanishing instantly.
-	Run(S, In, T, NoBoundary(), 0.25f, 120.f);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 0.25f, 120.f);
 	TestTrue(TEXT("burst still felt after 0.25 s"), S.Velocity.Size() > T.CruiseSpeed * 1.05f);
-	Run(S, In, T, NoBoundary(), 4.f, 120.f);
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 4.f, 120.f);
 	TestEqual(TEXT("settles back to cruise"), (float)S.Velocity.Size(), T.CruiseSpeed, 60.f);
 	return true;
 }
@@ -211,44 +209,44 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightTurnRate, "TriadDrift.Flight.Rotation.
 bool FTDFlightTurnRate::RunTest(const FString& Parameters)
 {
 	const FTDFlightTuning T;
-	FTDFlightState S = CruisingState(T);
+	FTDFlightState S = TDFlightTest::CruisingState(T);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
 	In.Aim = FVector2D(1.f, 0.f);
 
-	Run(S, In, T, NoBoundary(), 1.f, 120.f); // settle on the cap
-	const float H0 = HeadingDeg(S.Rotation.GetForwardVector());
+	TDFlightTest::Run(S, In, T, TDFlightTest::NoBoundary(), 1.f, 120.f); // settle on the cap
+	const float H0 = TDFlightTest::HeadingDeg(S.Rotation.GetForwardVector());
 	float MaxRate = 0.f;
 	for (int32 i = 0; i < 60; ++i) // 0.5 s
 	{
-		TDFlightSim::Advance(S, In, T, NoBoundary(), 1.f / 120.f);
+		TDFlightSim::Advance(S, In, T, TDFlightTest::NoBoundary(), 1.f / 120.f);
 		MaxRate = FMath::Max(MaxRate, (float)S.AngularRate.Z);
 	}
-	const float H1 = HeadingDeg(S.Rotation.GetForwardVector());
+	const float H1 = TDFlightTest::HeadingDeg(S.Rotation.GetForwardVector());
 	const float Rate = FMath::FindDeltaAngleDegrees(H0, H1) / 0.5f;
 	TestEqual(TEXT("yaw rate at full aim = 110 deg/s"), Rate, 110.f, 1.5f);
 	TestTrue(TEXT("yaw rate never exceeds the cap"), MaxRate <= 110.f + 0.01f);
 
 	// Pitch: same cap.
-	FTDFlightState P = CruisingState(T);
+	FTDFlightState P = TDFlightTest::CruisingState(T);
 	FTDFlightInput Up;
 	Up.Aim = FVector2D(0.f, 1.f);
-	Run(P, Up, T, NoBoundary(), 1.f, 120.f);
+	TDFlightTest::Run(P, Up, T, TDFlightTest::NoBoundary(), 1.f, 120.f);
 	TestEqual(TEXT("pitch rate at full aim = 110 deg/s"), (float)P.AngularRate.Y, 110.f, 0.5f);
 	TestTrue(TEXT("pitch up raises the nose"), P.Rotation.GetForwardVector().Z > 0.5f);
 
 	// Roll: 180 deg/s, positive roll input rolls right (right wing down).
-	FTDFlightState R = CruisingState(T);
+	FTDFlightState R = TDFlightTest::CruisingState(T);
 	FTDFlightInput RollIn;
 	RollIn.Roll = 1.f;
-	Run(R, RollIn, T, NoBoundary(), 0.5f, 120.f);
+	TDFlightTest::Run(R, RollIn, T, TDFlightTest::NoBoundary(), 0.5f, 120.f);
 	TestEqual(TEXT("roll rate = 180 deg/s"), (float)R.AngularRate.X, 180.f, 1.f);
 	TestTrue(TEXT("roll right dips the right wing"), R.Rotation.GetRightVector().Z < -0.3f);
 
 	// Auto-level: with no roll input the ship rolls back toward world up.
 	FTDFlightInput None;
 	None.Throttle = 1.f;
-	Run(R, None, T, NoBoundary(), 6.f, 120.f);
+	TDFlightTest::Run(R, None, T, TDFlightTest::NoBoundary(), 6.f, 120.f);
 	TestTrue(TEXT("auto-levels when roll is released"), FMath::Abs(R.Rotation.Rotator().Roll) < 3.f);
 
 	// Visual bank leans into yaw without touching the flight frame.
@@ -267,7 +265,7 @@ bool FTDFlightBoundary::RunTest(const FString& Parameters)
 	FTDFlightContext C; // boundary on, centre at origin
 
 	// Inside, but in the warning band.
-	FTDFlightState Warn = CruisingState(T);
+	FTDFlightState Warn = TDFlightTest::CruisingState(T);
 	Warn.Location = FVector(T.BoundaryRadius - T.BoundaryWarnDistance * 0.5f, 0.f, 0.f);
 	Warn.Velocity = FVector::ZeroVector; Warn.ForwardSpeed = 0.f;
 	TDFlightSim::Advance(Warn, FTDFlightInput(), T, C, 1.f / 60.f);
@@ -275,7 +273,7 @@ bool FTDFlightBoundary::RunTest(const FString& Parameters)
 	TestFalse(TEXT("but not out of bounds"), Warn.bOutOfBounds);
 
 	// Outside, flying straight out with no input.
-	FTDFlightState S = CruisingState(T);
+	FTDFlightState S = TDFlightTest::CruisingState(T);
 	S.Location = FVector(T.BoundaryRadius + 2000.f, 0.f, 0.f);
 	FTDFlightInput In;
 	In.Throttle = 1.f;
@@ -295,9 +293,9 @@ bool FTDFlightBoundary::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("overshoot stays bounded (max %.0f cm past the edge)"), MaxDist - T.BoundaryRadius), MaxDist - T.BoundaryRadius < 60000.f);
 
 	// Disabled boundary does nothing.
-	FTDFlightState Off = CruisingState(T);
+	FTDFlightState Off = TDFlightTest::CruisingState(T);
 	Off.Location = FVector(T.BoundaryRadius * 2.f, 0.f, 0.f);
-	Run(Off, In, T, NoBoundary(), 2.f, 60.f);
+	TDFlightTest::Run(Off, In, T, TDFlightTest::NoBoundary(), 2.f, 60.f);
 	TestFalse(TEXT("no boundary when disabled"), Off.bOutOfBounds);
 	TestTrue(TEXT("keeps flying out when disabled"), FVector::DotProduct(Off.Rotation.GetForwardVector(), FVector::ForwardVector) > 0.999f);
 	return true;
@@ -308,9 +306,9 @@ bool FTDFlightBoundary::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightFrameRate, "TriadDrift.Flight.FrameRate.SameAt30And120", TD_TEST_FLAGS)
 bool FTDFlightFrameRate::RunTest(const FString& Parameters)
 {
-	const FTDFlightState A = ScriptedFlight(30.f);
-	const FTDFlightState B = ScriptedFlight(120.f);
-	const FTDFlightState C = ScriptedFlight(60.f);
+	const FTDFlightState A = TDFlightTest::ScriptedFlight(30.f);
+	const FTDFlightState B = TDFlightTest::ScriptedFlight(120.f);
+	const FTDFlightState C = TDFlightTest::ScriptedFlight(60.f);
 
 	const float PosErr = (A.Location - B.Location).Size();
 	const float VelErr = (A.Velocity - B.Velocity).Size();
@@ -340,12 +338,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightRobustness, "TriadDrift.Flight.Robustn
 bool FTDFlightRobustness::RunTest(const FString& Parameters)
 {
 	const FTDFlightTuning T;
-	FTDFlightState S = CruisingState(T);
+	FTDFlightState S = TDFlightTest::CruisingState(T);
 	const FTDFlightState Before = S;
 
-	TestEqual(TEXT("zero dt does nothing"), TDFlightSim::Advance(S, FTDFlightInput(), T, NoBoundary(), 0.f), 0);
-	TestEqual(TEXT("negative dt does nothing"), TDFlightSim::Advance(S, FTDFlightInput(), T, NoBoundary(), -1.f), 0);
-	TestEqual(TEXT("NaN dt does nothing"), TDFlightSim::Advance(S, FTDFlightInput(), T, NoBoundary(), NAN), 0);
+	TestEqual(TEXT("zero dt does nothing"), TDFlightSim::Advance(S, FTDFlightInput(), T, TDFlightTest::NoBoundary(), 0.f), 0);
+	TestEqual(TEXT("negative dt does nothing"), TDFlightSim::Advance(S, FTDFlightInput(), T, TDFlightTest::NoBoundary(), -1.f), 0);
+	TestEqual(TEXT("NaN dt does nothing"), TDFlightSim::Advance(S, FTDFlightInput(), T, TDFlightTest::NoBoundary(), NAN), 0);
 	TestTrue(TEXT("state untouched"), S.Location.Equals(Before.Location) && S.Velocity.Equals(Before.Velocity));
 
 	FTDFlightInput Bad;
@@ -353,14 +351,14 @@ bool FTDFlightRobustness::RunTest(const FString& Parameters)
 	Bad.Aim = FVector2D(50.f, -NAN);
 	Bad.Roll = INFINITY;
 	Bad.Strafe = FVector2D(-7.f, 3.f);
-	Run(S, Bad, T, NoBoundary(), 1.f, 60.f);
+	TDFlightTest::Run(S, Bad, T, TDFlightTest::NoBoundary(), 1.f, 60.f);
 	TestFalse(TEXT("no NaN in location"), S.Location.ContainsNaN());
 	TestFalse(TEXT("no NaN in rotation"), S.Rotation.ContainsNaN());
 	TestTrue(TEXT("aim clamped to the turn cap"), FMath::Abs(S.AngularRate.Z) <= T.TurnRate + 0.01f);
 
 	// A huge hitch is clamped (no tunnelling across the map in one frame).
-	FTDFlightState H = CruisingState(T);
-	TDFlightSim::Advance(H, FTDFlightInput(), T, NoBoundary(), 5.f);
+	FTDFlightState H = TDFlightTest::CruisingState(T);
+	TDFlightSim::Advance(H, FTDFlightInput(), T, TDFlightTest::NoBoundary(), 5.f);
 	TestTrue(TEXT("hitch clamped to 0.25 s of travel"), H.Location.Size() < T.CruiseSpeed * 0.26f);
 	return true;
 }
@@ -473,7 +471,6 @@ bool FTDFlightCollision::RunTest(const FString& Parameters)
 		Fly(W, Ship, 0.f);
 		const float HP0 = Ship->GetHealth()->GetHull() + Ship->GetHealth()->GetShield();
 		bool bHit = false;
-		FTDFlightImpact Impact;
 		for (int32 i = 0; i < 60 && !bHit; ++i)
 		{
 			W.Tick();
@@ -539,7 +536,7 @@ bool FTDFlightInputMap::RunTest(const FString& Parameters)
 		{ TEXT("IA_FirePrimary"), EKeys::LeftMouseButton }, { TEXT("IA_FirePrimary"), EKeys::Gamepad_RightShoulder },
 		{ TEXT("IA_FireSecondary"), EKeys::RightMouseButton }, { TEXT("IA_FireSecondary"), EKeys::Gamepad_LeftShoulder },
 		{ TEXT("IA_Boost"), EKeys::LeftShift }, { TEXT("IA_Boost"), EKeys::Gamepad_LeftThumbstick },
-		{ TEXT("IA_Drift"), EKeys::LeftAlt }, { TEXT("IA_Drift"), EKeys::C }, { TEXT("IA_Drift"), EKeys::Gamepad_FaceButton_Right },
+		{ TEXT("IA_Drift"), EKeys::C }, { TEXT("IA_Drift"), EKeys::Gamepad_FaceButton_Right },
 		{ TEXT("IA_Power"), EKeys::Q }, { TEXT("IA_Power"), EKeys::Gamepad_FaceButton_Left },
 		{ TEXT("IA_Ability"), EKeys::E }, { TEXT("IA_Ability"), EKeys::Gamepad_FaceButton_Top },
 		{ TEXT("IA_SwitchNext"), EKeys::Tab }, { TEXT("IA_SwitchNext"), EKeys::Gamepad_DPad_Right },
@@ -563,8 +560,6 @@ bool FTDFlightInputMap::RunTest(const FString& Parameters)
 	TestTrue(TEXT("IMC_Atmosphere: Land on A"), Has(Atmo, A(TEXT("IA_Land")), EKeys::Gamepad_FaceButton_Bottom));
 	TestFalse(TEXT("IMC_Atmosphere has no Hyperdrive"), Has(Atmo, A(TEXT("IA_Hyperdrive")), EKeys::H));
 
-	PC->SetFlightContext(ETDFlightContext::Atmosphere);
-	TestEqual(TEXT("context switch"), PC->GetFlightContext(), ETDFlightContext::Atmosphere);
 
 	// With no throttle pressed the controller flies the ship at cruise.
 	W.Advance(3.f);

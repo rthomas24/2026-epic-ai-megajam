@@ -108,7 +108,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Health")
 	void RestoreShield(float Amount);
 
-	/** Zero the shield and hold it down for Seconds (EMP on gunships). */
+	/**
+	 * Zero this component's shield and hold it down for Seconds. A gunship's FRONTAL shield is not
+	 * this shield: EMP must also call ATDEnemyShip::DropFrontalShield / ApplyStun.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Health")
 	void SuppressShield(float Seconds);
 

@@ -14,4 +14,6 @@ void UTDFlowTestListener::Bind(UTDEventBus* Bus)
 	Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDFlowTestListener::OnTake);
 	Bus->OnTipRequested.AddUniqueDynamic(this, &UTDFlowTestListener::OnTip);
 	Bus->OnBarkRequested.AddUniqueDynamic(this, &UTDFlowTestListener::OnBark);
+	Bus->OnSceneCut.AddUniqueDynamic(this, &UTDFlowTestListener::OnCut);
+	Bus->OnObjectiveUpdated.AddUniqueDynamic(this, &UTDFlowTestListener::OnObjective);
 }
