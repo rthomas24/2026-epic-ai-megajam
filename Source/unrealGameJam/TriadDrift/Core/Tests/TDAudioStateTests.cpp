@@ -11,6 +11,10 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestActors.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 namespace TDAudioStateTest
 {
@@ -185,6 +189,45 @@ bool FTDAudioStateMusicFollowsTheFight::RunTest(const FString& Parameters)
 		Bus->BroadcastPhaseChanged(ETDGamePhase::Victory);
 		W.Advance(4.f, Step);
 		TestEqual(*(Tag + TEXT("victory settles at 0.3")), Audio->GetMusicIntensity01(), 0.3f, 0.01f);
+	}
+	return true;
+}
+
+// The placeholder glow material is a contract with every lane (and with the cook): it must exist,
+// be unlit, carry a "Color" parameter, and be usable on instanced static meshes.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCorePlaceholderGlowMaterial, "TriadDrift.Core.Placeholder.GlowMaterialContract", TD_TEST_FLAGS)
+bool FTDCorePlaceholderGlowMaterial::RunTest(const FString& Parameters)
+{
+	UMaterialInterface* Glow = UTDStatics::GetPlaceholderGlowMaterial();
+	if (!TestNotNull(TEXT("M_TD_PlaceholderGlow is loaded through the class default object"), Glow))
+	{
+		return false;
+	}
+	TestTrue(TEXT("it lives in the always-cooked gameplay folder"),
+		Glow->GetPathName().StartsWith(TEXT("/Game/TriadDrift/Gameplay/")));
+	const UMaterial* Base = Glow->GetMaterial();
+	if (TestNotNull(TEXT("base material"), Base))
+	{
+		TestTrue(TEXT("unlit: reads the same from every direction"), Base->GetShadingModels().IsUnlit());
+		TestTrue(TEXT("usable on instanced static meshes (stars) in a cooked game"), Base->bUsedWithInstancedStaticMeshes != 0);
+	}
+	FLinearColor Value;
+	TestTrue(TEXT("has the Color parameter TintPlaceholder sets"),
+		Glow->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Value));
+
+	// TintPlaceholder with a boost must end up on this material, not on the engine's.
+	FTDTestWorld W;
+	AActor* Actor = W.Spawn<AActor>();
+	UStaticMeshComponent* Mesh = Actor ? NewObject<UStaticMeshComponent>(Actor) : nullptr;
+	if (TestNotNull(TEXT("mesh component"), Mesh))
+	{
+		Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere")));
+		Mesh->RegisterComponent();
+		UMaterialInstanceDynamic* Instance = UTDStatics::TintPlaceholder(Mesh, FLinearColor::Red, 6.f);
+		if (TestNotNull(TEXT("glow instance"), Instance))
+		{
+			TestTrue(TEXT("glow tint uses the project glow material"), Instance->GetBaseMaterial() == Glow->GetMaterial());
+		}
 	}
 	return true;
 }
