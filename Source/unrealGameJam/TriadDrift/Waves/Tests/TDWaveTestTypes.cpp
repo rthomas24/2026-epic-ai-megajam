@@ -12,6 +12,7 @@ void UTDWaveTestListener::Bind(UObject* WorldContext)
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDWaveTestListener::OnTakeStarted);
 		Bus->OnMarkerRevealed.AddUniqueDynamic(this, &UTDWaveTestListener::OnMarkerRevealed);
 		Bus->OnTipRequested.AddUniqueDynamic(this, &UTDWaveTestListener::OnTipRequested);
+		Bus->OnHighlightMoment.AddUniqueDynamic(this, &UTDWaveTestListener::OnHighlight);
 	}
 }
 

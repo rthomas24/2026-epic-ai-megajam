@@ -59,6 +59,12 @@ struct UNREALGAMEJAM_API FTDFlightContext
 	float OverrideSpeed = 0.f;
 	/** Multiplier on turn and roll rates while the override is active. */
 	float OverrideSteeringScale = 1.f;
+	/**
+	 * AI catch-up allowance: when > CruiseSpeed, Throttle +1 maps to this speed instead of cruise
+	 * (normal acceleration, no boost meter). 0 = off. Wingmen use it to hold formation on a faster leader.
+	 */
+	float ThrottleTopSpeed = 0.f;
+
 	/** Acceleration used to reach the override speed (cm/s^2). */
 	float OverrideAcceleration = 60000.f;
 };

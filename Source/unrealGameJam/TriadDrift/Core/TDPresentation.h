@@ -201,6 +201,110 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue Explosion;
+
+	// ---- per-attack wind-ups; an empty slot falls back to Telegraph
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphMissile;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphHeavyBolt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphSalvo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TelegraphMineTrail;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Telegraph")
+	FTDFXCue TurretTelegraph;
+
+	// ---- carrier
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue BayLaunchTelegraph;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue BayLaunch;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue BayDestroyed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
+	FTDFXCue TurretDestroyed;
+
+	// ---- gunship frontal shield (hits use ShieldHit)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Frontal Shield")
+	FTDFXCue FrontalShieldBreak;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Frontal Shield")
+	FTDFXCue FrontalShieldRestore;
+
+	// ---- damage states
+	/** Attached loop once the hull is below 50%. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	FTDFXCue DamagedSmoke;
+
+	/** Attached, plays when the death tumble starts; Explosion plays at the end. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	FTDFXCue DeathTumble;
+};
+
+/** The Dominion mothership (features.md ENG-18). */
+UCLASS(BlueprintType)
+class UNREALGAMEJAM_API UTDDominionVisuals : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> HullMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> GeneratorMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> ReactorMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arrival")
+	FTDFXCue WarpIn;
+
+	/** Attached loop while the main shield is up. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldIdle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldHit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldSectionDown;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
+	FTDFXCue ShieldCollapse;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Generators")
+	FTDFXCue GeneratorHit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Generators")
+	FTDFXCue GeneratorExplosion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorExposed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorHit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorPhaseChange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reactor")
+	FTDFXCue ReactorDestroyed;
+
+	/** Plays when the breakup begins; Nick's Level Sequence can also listen for the same event. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue BreakupSequence;
+
+	/** Stretch: the docking bay opening (ENG-29). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue DockingBayOpen;
 };
 
 UCLASS(BlueprintType)
