@@ -114,6 +114,8 @@ void UTDGroundSceneSubsystem::ResetUnfinished(FName CurrentScene)
 			}
 		}
 	}
+	// Planet props reset before the objectives start again (a step-start may re-arm them).
+	OnResetUnfinished.Broadcast();
 	for (ATDObjective* Obj : Restart)
 	{
 		Obj->StartObjective();
