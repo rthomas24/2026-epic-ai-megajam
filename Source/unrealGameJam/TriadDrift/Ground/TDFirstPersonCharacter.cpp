@@ -222,7 +222,8 @@ void ATDFirstPersonCharacter::StartForcedMove(const FVector& Velocity, float Dur
 	ForcedTimeLeft = Duration;
 	ForcedExitSpeed = ExitSpeed;
 	bDashing = false; // TryDash sets it after; a lunge is not a dash
-	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	// MOVE_None: the movement component stands aside while TickForcedMove places the capsule.
+	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	GetCharacterMovement()->Velocity = Velocity;
 }
 
@@ -514,9 +515,20 @@ void ATDFirstPersonCharacter::TickForcedMove(float DeltaSeconds)
 		Move->SetMovementMode(MOVE_Falling); // resolves to walking next frame if grounded
 		return;
 	}
-	// Scale the last partial frame so the distance is exact at any frame rate.
-	const float Fraction = FMath::Min(1.f, ForcedTimeLeft / DeltaSeconds);
-	Move->Velocity = ForcedVelocity * Fraction;
+	// Move the capsule ourselves (sweeping, sliding along walls) so the distance is exact at any frame
+	// rate and doesn't depend on whether movement ticks before or after us. The last frame is partial.
+	const float StepTime = FMath::Min(ForcedTimeLeft, DeltaSeconds);
+	const FVector Delta = ForcedVelocity * StepTime;
+	FHitResult Hit;
+	Move->SafeMoveUpdatedComponent(Delta, GetActorQuat(), true, Hit);
+	if (Hit.IsValidBlockingHit())
+	{
+		// Slide the rest of the step along the wall.
+		const FVector Rest = FVector::VectorPlaneProject(Delta * (1.f - Hit.Time), Hit.Normal);
+		FHitResult SlideHit;
+		Move->SafeMoveUpdatedComponent(Rest, GetActorQuat(), true, SlideHit);
+	}
+	Move->Velocity = ForcedVelocity; // for HUD / anim readers
 	ForcedTimeLeft -= DeltaSeconds;
 }
 
