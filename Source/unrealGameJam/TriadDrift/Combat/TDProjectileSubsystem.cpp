@@ -175,6 +175,16 @@ int32 UTDProjectileSubsystem::GetPlayingFlashCount() const
 	return Count;
 }
 
+int32 UTDProjectileSubsystem::CountPlayingFlashesNear(const FVector& Location, float Radius) const
+{
+	int32 Count = 0;
+	for (const ATDCombatFlash* Flash : Flashes)
+	{
+		Count += (IsValid(Flash) && Flash->IsPlaying() && FVector::DistSquared(Flash->GetActorLocation(), Location) <= Radius * Radius) ? 1 : 0;
+	}
+	return Count;
+}
+
 int32 UTDProjectileSubsystem::KillAll(bool bPlayFX)
 {
 	TArray<ATDProjectile*> ToKill;

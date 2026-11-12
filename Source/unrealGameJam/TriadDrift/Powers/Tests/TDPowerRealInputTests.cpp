@@ -154,7 +154,10 @@ bool FTDPowerRealInputAll::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPowerRealInputSlowMo, "TriadDrift.Powers.RealInput.EveryPowerInSlowMotion", TD_TEST_FLAGS)
 bool FTDPowerRealInputSlowMo::RunTest(const FString& Parameters)
 {
-	TDPowerRealInputTest::PressEveryPower(*this, 1.f / 60.f, 0.25f);
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
+	{
+		TDPowerRealInputTest::PressEveryPower(*this, Step, 0.25f);
+	}
 	return true;
 }
 

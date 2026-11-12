@@ -365,6 +365,29 @@ enum class ETDMissileWarning : uint8
 };
 
 /** One hostile for the HUD: on-screen bracket or off-screen edge arrow. */
+/** "Who is shooting me": one recent hit on the player's ship or character (ITDHUDData::GetDamageIndicators). */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDDamageIndicator
+{
+	GENERATED_BODY()
+
+	/** World-space unit direction from the player toward where the hit came from. */
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	FVector WorldDirection = FVector::ForwardVector;
+
+	/** Real seconds since the hit. Producers drop entries older than about 1.5 s. */
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	float AgeSeconds = 0.f;
+
+	/** 0..1: how hard the hit was relative to the ship's maximum hull plus shield (clamped). */
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	float Strength01 = 0.f;
+
+	/** The shield absorbed all of it. */
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	bool bShieldOnly = false;
+};
+
 /** Where one squad ship is, for a HUD that shows the player their wing (ITDHUDData::GetSquadMarkers). */
 USTRUCT(BlueprintType)
 struct UNREALGAMEJAM_API FTDSquadMarker
