@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 
 #include "Engine/DataTable.h"
 #include "Engine/World.h"
@@ -343,11 +344,26 @@ void ATDWaveDirector::BeginWave(int32 Index)
 {
 	const FTDWaveDef& Wave = Waves[Index];
 	CurrentWave = Index;
-	EnemiesTotal = Wave.TotalEnemies();
 
+	// ENG-27 difficulty scales pack sizes (and small-ship pack counts); big ships stay as designed.
+	const float SizeScale = UTDDifficultySettings::GetScale().WaveSize;
+	EnemiesTotal = 0;
 	Pending.Reset();
-	for (const FTDWaveGroup& G : Wave.Groups)
+	for (FTDWaveGroup G : Wave.Groups)
 	{
+		if (!FMath::IsNearlyEqual(SizeScale, 1.f))
+		{
+			const FTDEnemySpec& GroupSpec = UTDEnemyLibrary::Get(G.EnemyId);
+			if (G.PerPack > 1)
+			{
+				G.PerPack = UTDDifficultySettings::ScaleCount(G.PerPack, SizeScale);
+			}
+			else if (GroupSpec.IsValid() && GroupSpec.Size == ETDEnemySize::Small)
+			{
+				G.Packs = UTDDifficultySettings::ScaleCount(G.Packs, SizeScale);
+			}
+		}
+		EnemiesTotal += G.Total();
 		if (G.EnemyId.IsNone() || G.Total() <= 0)
 		{
 			continue;

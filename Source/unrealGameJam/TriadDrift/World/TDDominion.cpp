@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
@@ -296,7 +297,9 @@ void ATDDominion::BuildParts()
 		if (!T) { return; }
 		T->AttachToActor(this, Attach);
 		T->SetActorRelativeLocation(Local);
-		T->Init(TurretGuns, TurretHull);
+		const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
+		T->Init(TurretGuns, TurretHull * Difficulty.EnemyHull);
+		T->SetDamageMultiplier(Difficulty.EnemyDamage);
 		T->Visuals = TurretVisuals;
 		T->SetActorScale3D(FVector(4.f));
 		Into.Add(T);
@@ -314,7 +317,7 @@ void ATDDominion::BuildParts()
 		G->FinishSpawning(FTransform::Identity);
 		G->AttachToActor(this, Attach);
 		G->SetActorRelativeLocation(Local);
-		G->Init(GeneratorHull, i);
+		G->Init(GeneratorHull * UTDDifficultySettings::GetScale().EnemyHull, i);
 		G->OnGeneratorDestroyed.AddUniqueDynamic(this, &ATDDominion::HandleGeneratorDestroyed);
 		Generators.Add(G);
 

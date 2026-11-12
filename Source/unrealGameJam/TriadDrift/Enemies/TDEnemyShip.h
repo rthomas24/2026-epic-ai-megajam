@@ -291,6 +291,7 @@ protected:
 	TObjectPtr<class UNiagaraComponent> DamagedSmokeFX;
 
 	bool bVisualsExplicit = false;
+	float DifficultyDamage = 1.f;
 	double LastHullHitCueTime = -1.0;
 
 	void BeginDeath(AActor* Killer);

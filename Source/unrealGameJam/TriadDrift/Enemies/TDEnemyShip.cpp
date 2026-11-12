@@ -6,6 +6,7 @@
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -55,6 +56,16 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 	Spec = InSpec;
 	bSpecApplied = true;
 
+	// ENG-27 difficulty: the applied spec is the scaled one (GetSpec() reports what's in play).
+	const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
+	Spec.Hull *= Difficulty.EnemyHull;
+	Spec.Shield *= Difficulty.EnemyHull;
+	Spec.FrontalShield *= Difficulty.EnemyHull;
+	Spec.BayHull *= Difficulty.EnemyHull;
+	Spec.TurretHull *= Difficulty.EnemyHull;
+	Spec.AimErrorDeg *= Difficulty.EnemyAimError;
+	DifficultyDamage = Difficulty.EnemyDamage;
+
 	SetTeam(ETDTeam::Enemy);
 	if (Spec.Role == ETDEnemyRole::Carrier) { Tags.AddUnique(TDDirectorTags::Carrier); }
 	else { Tags.Remove(TDDirectorTags::Carrier); }
@@ -80,6 +91,7 @@ void ATDEnemyShip::InitFromSpecData(const FTDEnemySpec& InSpec)
 
 	if (EnsureWeapons())
 	{
+		Weapons->SetOutgoingDamageMultiplier(TEXT("Difficulty"), DifficultyDamage);
 		if (!Spec.Guns.WeaponId.IsNone())
 		{
 			Weapons->EquipWeapon(ETDWeaponSlot::Primary, Spec.Guns.WeaponId);
@@ -745,6 +757,7 @@ void ATDEnemyShip::SpawnCarrierParts()
 		const float Angle = (PI * 0.5f) * i + PI * 0.25f;
 		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f);
 		Turret->Init(Spec.TurretGuns, Spec.TurretHull);
+		Turret->SetDamageMultiplier(DifficultyDamage);
 		Turret->Visuals = Visuals;
 		Turrets.Add(Turret);
 	}

@@ -30,6 +30,9 @@ public:
 
 	void Init(const FTDEnemyAttackSpec& InGuns, float Hull);
 
+	/** Difficulty / power multiplier on the turret's outgoing damage. */
+	void SetDamageMultiplier(float Multiplier);
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Turret")
 	bool IsAlive() const;
 
