@@ -23,10 +23,13 @@ SKILL_SCRIPT = os.path.join(REPO, ".claude", "skills", "blender-unreal-export", 
 MASTER_TEXTURED = "/Game/TriadDrift/Gameplay/Materials/M_TD_PropTextured"
 PIPELINE = "/Game/TriadDrift/Gameplay/Pipelines/PL_TD_StaticMesh"
 
+# (source folder, destination, emissive multiplier). The Blender bake strengths (1.5 to 2) are far too weak
+# against the game's exposure: seen in the running game, glowing parts rendered dark. The multiplier is what
+# makes the bioluminescence and the crystals actually glow and bloom.
 KITS = [
-    ("ArtSource/EngProps/SpaceRocks", "/Game/TriadDrift/Gameplay/Props/Space"),
-    ("ArtSource/EngProps/Verdance", "/Game/TriadDrift/Gameplay/Props/Verdance"),
-    ("ArtSource/EngProps/Cinder", "/Game/TriadDrift/Gameplay/Props/Cinder"),
+    ("ArtSource/EngProps/SpaceRocks", "/Game/TriadDrift/Gameplay/Props/Space", 6.0),
+    ("ArtSource/EngProps/Verdance", "/Game/TriadDrift/Gameplay/Props/Verdance", 12.0),
+    ("ArtSource/EngProps/Cinder", "/Game/TriadDrift/Gameplay/Props/Cinder", 10.0),
 ]
 
 
@@ -105,7 +108,7 @@ def load_skill():
     return scope
 
 
-def import_kit(skill, source_rel, dest):
+def import_kit(skill, source_rel, dest, emissive_scale):
     source = os.path.join(REPO, *source_rel.split("/"))
     if not os.path.isdir(source):
         log("skipped %s (not in this checkout yet)" % source_rel)
@@ -154,6 +157,12 @@ def import_kit(skill, source_rel, dest):
         # Shared atlases are named after the kit, not the asset: map them by suffix.
         by_suffix = dict(textures)
         materials = skill["apply_materials"](mesh, patched, by_suffix, dest, report)
+        base_strength = max([p.get("emission_strength") or 0.0 for p in patched.get("material_params", [])] or [0.0])
+        for mi_name in materials:
+            mi = skill["eas"].load_asset("%s/%s" % (dest, mi_name))
+            if mi is not None and "E" in textures:
+                unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(mi, "EmissiveStrength", base_strength * emissive_scale)
+                skill["eas"].save_loaded_asset(mi)
         skill["eas"].save_loaded_asset(mesh)
         bounds = mesh.get_bounds()
         log("%s: %s, textures %s, materials %s, collision hulls %d, sphere radius %.1f cm%s" % (
@@ -169,8 +178,8 @@ def main():
         return
     skill = load_skill()
     total_good = total_bad = 0
-    for source_rel, dest in KITS:
-        good, bad = import_kit(skill, source_rel, dest)
+    for source_rel, dest, emissive_scale in KITS:
+        good, bad = import_kit(skill, source_rel, dest, emissive_scale)
         total_good += good
         total_bad += bad
     log("imported %d asset(s), %d failed" % (total_good, total_bad))
