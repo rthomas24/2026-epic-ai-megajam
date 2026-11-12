@@ -4,12 +4,36 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "Blueprint/UserWidget.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "Misc/PackageName.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 
+UTDUIStyle* FTDFrontEndWidgets::LoadDefaultStyle()
+{
+	static const TCHAR* Package = TEXT("/Game/TriadDrift/Presentation/DA_UI_Style");
+	return FPackageName::DoesPackageExist(Package)
+		? LoadObject<UTDUIStyle>(nullptr, TEXT("/Game/TriadDrift/Presentation/DA_UI_Style.DA_UI_Style"))
+		: nullptr;
+}
+
+UClass* FTDFrontEndWidgets::Resolve(UClass* Override, const UTDUIStyle* Style, EKind Kind)
+{
+	if (Override)
+	{
+		return Override;
+	}
+	if (!Style)
+	{
+		return nullptr;
+	}
+	const TSoftClassPtr<UUserWidget>& Soft = Kind == EKind::MainMenu ? Style->MainMenuWidgetClass : Style->LoadingWidgetClass;
+	return Soft.IsNull() ? nullptr : Soft.LoadSynchronous();
+}
+
 namespace TDFrontEnd
 {
-	static void ShowWidget(UWorld* World, TSubclassOf<UUserWidget> Class, bool bCursor)
+	static void ShowWidget(UWorld* World, UClass* Class, bool bCursor)
 	{
 		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
 		if (!PC)
@@ -23,7 +47,7 @@ namespace TDFrontEnd
 		}
 		if (Class)
 		{
-			if (UUserWidget* W = CreateWidget<UUserWidget>(PC, Class))
+			if (UUserWidget* W = CreateWidget<UUserWidget>(PC, TSubclassOf<UUserWidget>(Class)))
 			{
 				W->AddToViewport();
 			}
@@ -43,7 +67,7 @@ void ATDMenuGameMode::StartPlay()
 	{
 		GI->NotifyLevelEntered(ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
-	TDFrontEnd::ShowWidget(GetWorld(), MenuWidgetClass, true);
+	TDFrontEnd::ShowWidget(GetWorld(), FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::MainMenu), true);
 }
 
 void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
@@ -60,5 +84,5 @@ ATDTransitionGameMode::ATDTransitionGameMode()
 void ATDTransitionGameMode::StartPlay()
 {
 	Super::StartPlay();
-	TDFrontEnd::ShowWidget(GetWorld(), LoadingWidgetClass, false);
+	TDFrontEnd::ShowWidget(GetWorld(), FTDFrontEndWidgets::Resolve(LoadingWidgetClass.Get(), LoadingWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::Loading), false);
 }

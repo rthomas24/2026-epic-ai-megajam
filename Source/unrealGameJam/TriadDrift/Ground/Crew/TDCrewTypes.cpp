@@ -23,6 +23,7 @@ namespace TDCrewSpecs
 		Tr.PreferredRangeMin = 900.f; Tr.PreferredRangeMax = 1500.f; Tr.StrafeScale = 0.5f;
 		Tr.BoltDamage = 10.f; Tr.BoltSpeed = 2200.f; Tr.BurstCount = 3; Tr.BurstSpacing = 0.18f; Tr.BurstWindup = 0.4f; Tr.BurstCooldown = 2.2f;
 		Tr.TeamColor = FLinearColor(0.95f, 0.35f, 0.05f);
+		Tr.bUsesCover = true;
 
 		// Heavy: 200 HP, shield bash (25), deflectable shotgun (5 x 6), frontal shield blocks slashes.
 		FTDCrewSpec& H = T[(int32)ETDCrewType::Heavy];

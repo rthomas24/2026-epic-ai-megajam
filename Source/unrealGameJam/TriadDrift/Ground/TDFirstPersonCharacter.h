@@ -112,8 +112,16 @@ public:
 	UCameraComponent* GetCamera() const { return Camera; }
 	UTDHealthComponent* GetHealth() const { return Health; }
 	UTDEnergyBladeComponent* GetBlade() const { return Blade; }
+	UStaticMeshComponent* GetBladeMesh() const { return BladePlaceholder; }
+
+	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
+	void ApplyBladeVisuals();
+	bool IsBladeMeshFromArt() const { return bBladeMeshFromArt; }
 
 	FTDOnInteractCompleted OnInteractCompleted;
+
+	/** The C++-built ground mapping context (tests check every action has its keys). */
+	UInputMappingContext* GetGroundInputContext() const { return InputContext; }
 
 	// Animation state for Nick's AnimBP (features.md §3.5), mirrored every tick.
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "TriadDrift|Anim") ETDBladeState BladeState = ETDBladeState::Idle;
@@ -169,6 +177,8 @@ private:
 	AActor* TraceInteractable() const;
 	void CancelInteract();
 	void BuildInput();
+	void HandleBladeRetract(bool bRetracted);
+	bool bBladeMeshFromArt = false;
 
 	UFUNCTION()
 	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);

@@ -6,6 +6,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDInterfaces.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -89,8 +90,34 @@ void ATDFirstPersonCharacter::BeginPlay()
 	GetCharacterMovement()->JumpZVelocity = Tuning.JumpZ;
 	DashCharges = Tuning.DashCharges;
 
+	ApplyBladeVisuals();
+	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
+
 	// Movement integrates after our Tick, so forced moves and slides set velocity deterministically.
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(this, PrimaryActorTick);
+}
+
+void ATDFirstPersonCharacter::ApplyBladeVisuals()
+{
+	const UTDBladeFX* FX = Blade ? Blade->BladeFX.Get() : nullptr;
+	if (FX && !FX->BladeMesh.IsNull())
+	{
+		if (UStaticMesh* ArtMesh = FX->BladeMesh.LoadSynchronous())
+		{
+			// Nick's first-person blade replaces the placeholder (authored at final scale).
+			BladePlaceholder->SetStaticMesh(ArtMesh);
+			BladePlaceholder->SetRelativeScale3D(FVector::OneVector);
+			bBladeMeshFromArt = true;
+			return;
+		}
+	}
+	bBladeMeshFromArt = false;
+	UTDStatics::TintPlaceholder(BladePlaceholder, FX ? FX->BladeColor : FLinearColor(0.6f, 0.9f, 1.f), 4.f);
+}
+
+void ATDFirstPersonCharacter::HandleBladeRetract(bool bRetracted)
+{
+	BladePlaceholder->SetVisibility(!bRetracted);
 }
 
 bool ATDFirstPersonCharacter::IsDead() const
@@ -364,6 +391,10 @@ void ATDFirstPersonCharacter::RespawnAt(const FTransform& Where)
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	Health->Revive(1.f, 1.f);
+	if (Blade)
+	{
+		Blade->Ignite();
+	}
 	DashCharges = Tuning.DashCharges;
 	DashRechargeTime = 0.f;
 	JumpsUsed = 0;
@@ -459,6 +490,10 @@ void ATDFirstPersonCharacter::HandleDeath(UTDHealthComponent* InHealth, const FT
 		Blade->CancelAll();
 	}
 	bForcedMove = bDashing = bSliding = bMantling = false;
+	if (Blade)
+	{
+		Blade->Retract();
+	}
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
 	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
