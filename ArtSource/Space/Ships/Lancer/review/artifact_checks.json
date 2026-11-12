@@ -1,0 +1,138 @@
+{
+  "html_local_targets_exist": true,
+  "html_script_syntax_pass": true,
+  "six_mesh_sources_and_attachments_unchanged": true,
+  "corrected_wire_overlay_visually_inspected": true,
+  "png_count": 18,
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1497300,
+      "sha256": "54d2f83757ec188a3271f2d6696e0108504dc2a397a0a9af637d4257c2be2bb9"
+    },
+    {
+      "file": "02_front.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1374677,
+      "sha256": "7d9076e1cfca90cc324ab25908cedb03b1126917f8ce9081699b63e027273eea"
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1388705,
+      "sha256": "37f4d7907808105a8a95aae5c90e150f2ef749328352d08d42654ba8e0ba3e88"
+    },
+    {
+      "file": "04_side.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1332149,
+      "sha256": "32bd80035a316161123de76f8fe8317d1b630f5c25a04ae10dc4611a35295f8d"
+    },
+    {
+      "file": "05_top.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1424773,
+      "sha256": "957c8c21f7913c094fd487cab4e31cd1fa4942b866aac40c5656f50354b9be16"
+    },
+    {
+      "file": "06_rear_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1471199,
+      "sha256": "0dd6b1196a66d149ed879ad25fa2fbb791982e5a339430bf3c1b698a31ebe5a9"
+    },
+    {
+      "file": "07_mounts_underside.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1510365,
+      "sha256": "4d790ded2718ff1aa8d343b0c056a5d97d891072c28179c7924fbacdab552ff9"
+    },
+    {
+      "file": "08_weapon_detail.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1497099,
+      "sha256": "21dcb7e37f30701e15bcc9b71c94b7552c6e7f93fcb4efd982f60d1107bbee85"
+    },
+    {
+      "file": "09_rocket_visual.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1297497,
+      "sha256": "bec6f6b7690cc5fd0df8b7e21640d1f39dfe9334784d84c0e7faf4990427c918"
+    },
+    {
+      "file": "Lancer_diagnostic_clay_sheet.png",
+      "width": 2124,
+      "height": 1418,
+      "bytes": 754552,
+      "sha256": "8244221acbef277d8bd674cc72d286af4913124f88a6522bdf75893ea12c668d"
+    },
+    {
+      "file": "Lancer_diagnostic_wireframe_sheet.png",
+      "width": 2472,
+      "height": 1154,
+      "bytes": 1620918,
+      "sha256": "caac7506bd1e2a10ea8f243d9192e97720cde3780ff3d5ee21c66771d412cecc"
+    },
+    {
+      "file": "Lancer_overview.png",
+      "width": 2472,
+      "height": 1722,
+      "bytes": 3021116,
+      "sha256": "389ee3cb76baadb5d1d7f8d40036a9fed66dbb7df2ad4739bc9d9275df3abe6f"
+    },
+    {
+      "file": "wire_back_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1667585,
+      "sha256": "87248f318a1c4cee8259b4505ea086cb6d7c1be4d43d2cee41d04f28025b789d"
+    },
+    {
+      "file": "wire_front.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1522838,
+      "sha256": "d8d454727531e0aacf6de71812859ee841dd08e98bdb04db7f8c9adde3df3b61"
+    },
+    {
+      "file": "wire_front_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1701068,
+      "sha256": "347178a416ecefb9b72a15b1794de124ec687cafe11b8d8e28c53ee8938dde10"
+    },
+    {
+      "file": "wire_low_3q.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1593364,
+      "sha256": "2af7a674aa3399b1685e57d04ea01c4ec039abb92161e731c8c7640ac3d97f69"
+    },
+    {
+      "file": "wire_right.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1496000,
+      "sha256": "17692a88289ddef026c02cc2f71330b8c886f1c93ae44ad4b615a5447c30e207"
+    },
+    {
+      "file": "wire_top.png",
+      "width": 1600,
+      "height": 1100,
+      "bytes": 1593105,
+      "sha256": "8cad23f604c537e8ee34bd180345537ed8031c8935ff0d22f5707c9b48f50a1e"
+    }
+  ],
+  "source_geometry_qa_pass": false,
+  "source_failure_documentation_present": true,
+  "silhouette_approval": "pending human review"
+}

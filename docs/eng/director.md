@@ -145,3 +145,14 @@ gameplay-side presentation **only when no real HUD claims it**. Nick's HUD (or a
 | `Director.CutPresentation.MoneyShotThinBars` | thin bars during an accepted shot |
 | `Director.CutPresentation.NothingSurvivesTravelOrShutdown` | travel clears it; shutdown clears and removes the widget |
 
+## Playtesting the Director's Cut live (agents)
+
+`Tools	d-play-mcp.ps1` (port 8013 for t3) + `Tools	d_mcp.py`. Dev-build console commands
+(`Director/TDDirectorDebugCommands.cpp`) drive the real paths, so no input injection is needed:
+`TD.Squad.Switch <Rift|Lancer|Bastion|Next|Prev>`, `TD.Squad.Wipe` (real wipe → CUT! → retake +
+slate), `TD.Director.RamKill` (Lancer's real ram into a parked fighter), `TD.Director.RevealDominion`
+then `TD.Director.GeneratorKill`, and `TD.Director.Status` (logs mode, shot count, camera phase,
+overlay state). One MCP round trip plus a capture takes 2-3 s, longer than a shot, so set the
+dev-only cheat `td.Director.DebugHoldSeconds 3` first: it lengthens camera holds and every card
+(0 by default, compiled out of Shipping). Captures land in `Saved/TDShots/mcp/<name>/`.
+

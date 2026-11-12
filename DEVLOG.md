@@ -83,3 +83,56 @@ Warnings: missing WorldPartitionHLODUtilities classes on supplied Galaxy HLODlay
 these for owner triage. No Source/config/maps/project changes made by Nick.
 Captures/results/logs: Saved/LeadIntegration/ (local ignored). PR3/PR5 held for
 subjective approval/rejected direction; M02Lancer source4b7ef12 safely branch-published.
+
+## 2026-11-12 14:51 EST — Full PR audit and approved source integration
+
+Live GitHub audit all six PRs:1closed/superseded;2merged957b45e;3approvedLancer
+M02sourcefoundation merged100f21c7d973928ca86a3d406c3235dd2fd99a73;4merged8963477;
+5rejectedarchiveheld;6closed-as-exact-cherry-pick9c629e8 (not GitHub-merged).
+PR6all37 and PR4all37 files match main exactly; PR2source40files unchanged, credits/
+log later appended. All258PR-path checks,74LFS pointer/object hashes,51PNG CRC/
+exactends,77JSON and21Python syntax checks passed;14native package headers and
+7WAV headers valid. NoCI checks configured, no new heavyweight verification.
+
+Fresh independent Lancer review and postmerge check PASS:111additions only in
+ArtSource/Space/Ships/Lancer, byte-identical4b7ef12, entire runtime/sharedproject
+tree unchanged from immediate premerge main8c5aa47. Source-only no-runtime change
+does not justify a new heavy boot during UI verification. Latest Lead actual-game
+coverage remains prior8963477 scripted captures, not latest engineering gameplay
+or attachedHUD. N007 requests RyanT2host handoff; Source/UI host not yet on fetched
+main100f21c. No new native asset, activation, map or configuration changes by Nick.
+
+Direct Nicholas approval: LancerM02 refined production FOUNDATION only, recorded
+in Ship-chat task01a1d145-290e-7740-87fc-532c9d76e0da and latestfull-PRauditauthority;
+finalAAA polish/Unrealintegration remain unapproved. Historical failedM01/rounds
+retained unchanged; currentproduction M02 technicalgates pass. N008 announces plan.
+
+## 2026-11-12 14:54 EST — Engineering playtest 2 (Ryan / Lead, Claude Code)
+
+**Build played:** `main` at `b8027b7` (347 headless tests passing).
+**How:** an agent flying the running game through Unreal's MCP server with real injected input
+(`TD.Input.Keys W+LeftShift`, mouse, fire, Tab, Q) and the new `TD.Stage <stage>` journey jumps.
+Still not a human at the controls.
+
+**Worked:** boost (110 m/s, meter drains), mouse turn, firing (heat rises, hits land), Tab switch
+Rift to Lancer with held input carrying over, Lancer's ram on Q (335 m/s), the take slate
+("SCENE Wave 2 · TAKE 1") when a wave starts, wave 5 running with 26 enemies, enemies now red and
+orange with a glow instead of black, a real level change to `L_Planet_Verdance` arriving in flight
+and then on foot with the blade and the ground HUD. 6 to 8 ms a frame throughout.
+
+**Broken or wrong (each sent to its owner):**
+- Projectiles are two or three pixels: weapon fire is nearly invisible.
+- After a turn the ship stays banked about 30 degrees with no input.
+- The Dominion stage starts with the mothership out of view.
+- On foot, the placeholder blade covers a quarter of the screen.
+- Stars smear into dashes while turning.
+- The planet surface is a featureless plain until the planet content lands.
+
+**Also from teammates' own live sessions today:** the director camera lost a fast ram (now a
+tracking shot); a far generator kill framed empty space; enemies rendered black; the dome and
+well lattices rendered grey; the ram's streak effects leaked. All fixed with tests. None of these
+was visible to the automation suite.
+
+**Captures:** `Saved/TDShots/playtest2/` (local, not in git).
+**Stage, in AAA.md terms:** flight, switching, the ram, waves, the journey jumps and the planet
+hand-over are gameplay validated by an agent. Nothing is validated by a human yet.

@@ -423,7 +423,8 @@ not give permission for concurrent remote synchronization or overlapping asset e
 ### 6.10 Message board (`MESSAGEBOARD.md`)
 `MESSAGEBOARD.md` at the repo root is how Ryan's agents and Nick's agents **ask each other
 questions and leave each other messages**. `CLAIMS.md` says who is doing what; the message board
-is for everything that needs an answer. It is a **log: never delete a message.**
+is for everything that needs an answer. It is a **log: never delete a message.** Completed
+messages are compacted (below), so whatever is still written out in full on the board is live.
 
 - **Who writes:** only each side's Lead. Workers give their questions to their Lead, who posts
   them and relays the answers back.
@@ -442,6 +443,14 @@ is for everything that needs an answer. It is a **log: never delete a message.**
   If the reply isn't enough, add a follow-up under it and set the status back to `OPEN`.
 - **Pushing:** commit it alone (`coordination: message board ...`) and push to `main` right away,
   after fetching and merging anything new. If both sides edited at once, keep both edits.
+- **Statuses:** `OPEN`, `ANSWERED`, `INFO` (needs no answer; the other side's Lead sets it to
+  `COMPLETE` once read) and `COMPLETE`.
+- **Compaction (keep the board short).** When the board passes roughly 300 lines or ten completed
+  messages, either Lead runs `python Tools/td_board_compact.py <summaries.json>`: every `COMPLETE`
+  message moves word for word to `docs/coordination/MESSAGEBOARD-ARCHIVE.md` (append-only) and
+  leaves one row (id, subject, outcome) in its side's "Completed" table. `OPEN`, `ANSWERED` and
+  `INFO` messages are never touched. Write each outcome as what was agreed, complete enough to act
+  on without opening the archive. Fetch and merge first, and push at once.
 - **Ids are never reused or changed once pushed.** Fetch first and take the next free number. If a
   merge shows two messages with the same id, the one that was not yet on `origin/main` is renumbered.
 - Decisions reached on the board that change the plan are copied to where they belong

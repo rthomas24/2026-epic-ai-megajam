@@ -652,6 +652,14 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		{
 			Score += 1.5f; // prefer a different target from the other wingman
 		}
+		// Fight where the player can see it: targets behind or beside the leader cost extra bands, so
+		// with a choice the wing's dogfights happen in front of the chase camera (threats to the player
+		// above still always win).
+		if (Leader)
+		{
+			const float Facing = FVector::DotProduct(Leader->GetActorForwardVector(), (HLoc - Anchor).GetSafeNormal());
+			Score += (1.f - Facing) * 0.5f * OnScreenTargetBias;
+		}
 		if (H == CurrentTarget.Get())
 		{
 			Score -= 0.75f; // stickiness: don't flicker between equal targets

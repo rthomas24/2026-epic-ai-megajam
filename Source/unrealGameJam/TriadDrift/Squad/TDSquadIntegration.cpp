@@ -26,6 +26,7 @@
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 
 #include "TriadDrift/Input/TDSpacePlayerController.h" // ETDPowerInput
 #include "TriadDrift/Powers/TDPowerComponent.h"
@@ -280,6 +281,20 @@ namespace TDSquad
 	{
 		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;
 		return H ? H->GetCharge01() : 0.f;
+	}
+
+	FText GetHyperdriveBlockText(const ATDShip* Ship)
+	{
+		if (const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
+		{
+			const FText Reason = H->GetBlockReasonText();
+			if (!Reason.IsEmpty())
+			{
+				return Reason;
+			}
+		}
+		const UTDTravelSubsystem* Travel = Ship ? UTDTravelSubsystem::Get(Ship) : nullptr;
+		return Travel ? Travel->GetHyperdriveLockText() : FText::GetEmpty();
 	}
 
 	float GetAltitudeMeters(const ATDShip* Ship)
@@ -671,7 +686,7 @@ namespace TDSquad
 		}
 	}
 
-	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility)
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2)
 	{
 		auto Cooldown = [Ship](ETDPowerInput Slot)
 		{
@@ -680,7 +695,20 @@ namespace TDSquad
 		};
 		OutPower1 = Cooldown(ETDPowerInput::Signature1);
 		OutPower2 = Cooldown(ETDPowerInput::Signature2);
-		OutAbility = Cooldown(ETDPowerInput::Ability);
+	}
+
+	void GetEarnedAbility(const ATDShip* Ship, ETDAbilityId& OutAbility, float& OutReadiness01)
+	{
+		OutAbility = ETDAbilityId::None;
+		OutReadiness01 = 0.f;
+		const UTDAbilityComponent* Abilities = Ship ? Ship->FindComponentByClass<UTDAbilityComponent>() : nullptr;
+		if (!Abilities)
+		{
+			return;
+		}
+		// T2's accessors: None / 0 while locked, never "ready" for an absent power.
+		OutAbility = Abilities->HasAbility() ? Abilities->GetAbility() : ETDAbilityId::None;
+		OutReadiness01 = Abilities->GetReadiness01();
 	}
 
 	// ------------------------------------------------------------------------------------- HUD
