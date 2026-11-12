@@ -14,6 +14,9 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/Tests/TDSquadTestListener.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
+#include "Misc/ScopeExit.h"
 
 namespace TDDirectorTests
 {
@@ -273,6 +276,45 @@ bool FTDDirectorSwitchStrikeKill::RunTest(const FString& Parameters)
 	F.KillEnemy(ETDDamageKind::Kinetic, NAME_None, Squad->GetActiveShip());
 	TestTrue(TEXT("kill during Switch Strike = SwitchStrikeKill"), F.Events->Highlights == 1 && F.Events->LastHighlight == ETDHighlightKind::SwitchStrikeKill);
 	TestTrue(TEXT("frames the player's ship"), F.Director->GetCurrentShot().Subject.Get() == Squad->GetActiveShip());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorTravel, "TriadDrift.Director.SuppressedDuringTravel", TD_TEST_FLAGS)
+bool FTDDirectorTravel::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("game instance"), GI) || !TestNotNull(TEXT("director"), Director))
+	{
+		return false;
+	}
+	W.Tick();
+	TestTrue(TEXT("highlights allowed before travel"), Director->CanTriggerHighlights());
+
+	// Point Verdance at an engine map and stub the level open, as T5's flow tests do; restore after.
+	UTDFlowSettings* Settings = GetMutableDefault<UTDFlowSettings>();
+	const TMap<ETDDestination, FSoftObjectPath> SavedMaps = Settings->DestinationMaps;
+	const FSoftObjectPath SavedTransition = Settings->TransitionMap;
+	ON_SCOPE_EXIT
+	{
+		Settings->DestinationMaps = SavedMaps;
+		Settings->TransitionMap = SavedTransition;
+	};
+	Settings->DestinationMaps.Add(ETDDestination::Verdance, FSoftObjectPath(TEXT("/Engine/Maps/Entry.Entry")));
+	Settings->TransitionMap = FSoftObjectPath(TEXT("/Engine/Maps/Entry.Entry"));
+	GI->OpenLevelOverride = [](const FString&) {};
+
+	TestTrue(TEXT("travel starts"), GI->TravelTo(ETDDestination::Verdance, NAME_None));
+	if (!GI->IsTravelPending())
+	{
+		AddError(TEXT("TravelTo did not leave a pending travel in the test world; the travel gate could not be exercised"));
+		return false;
+	}
+	TestFalse(TEXT("no highlights while travel is pending"), Director->CanTriggerHighlights());
+	TestFalse(TEXT("ReportHighlight refused during travel"), Director->ReportHighlight(ETDHighlightKind::ReactorKill, nullptr, 1.f));
+	const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(W.GetWorld());
+	TestFalse(TEXT("and no slow-mo"), Feel && Feel->IsSlowMoActive());
 	return true;
 }
 

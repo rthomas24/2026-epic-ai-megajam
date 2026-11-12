@@ -22,11 +22,16 @@
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 
 #include "TriadDrift/Input/TDSpacePlayerController.h" // ETDPowerInput
 #include "TriadDrift/Powers/TDPowerComponent.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Powers/TDAbilityComponent.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "TriadDrift/Powers/TDRamPower.h"
+#include "TriadDrift/Powers/TDBastionPowers.h"
 
 namespace TDSquadIntegrationPrivate
 {
@@ -102,6 +107,8 @@ namespace TDSquad
 		{
 			UE_LOG(LogTriadDrift, Warning, TEXT("Squad: %s has no UTDWeaponComponent; weapons not equipped"), *GetNameSafe(Ship));
 		}
+
+		InstallPowers(Ship, Spec);
 	}
 
 	void SetPlayerControlled(ATDShip* Ship, bool bPlayerControlled)
@@ -326,6 +333,12 @@ namespace TDSquad
 		}
 	}
 
+	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection)
+	{
+		const UTDWorldSubsystem* WorldSub = World ? World->GetSubsystem<UTDWorldSubsystem>() : nullptr;
+		return WorldSub && WorldSub->FindAvoidance(Origin, Direction, ProbeDistance, ShipRadius, OutAvoidDirection);
+	}
+
 	AActor* GetLastAttacker(const AActor* Actor)
 	{
 		const UTDHealthComponent* H = Health(Actor);
@@ -369,6 +382,71 @@ namespace TDSquad
 		OutCenter = Dome->GetActorLocation();
 		OutRadius = Dome->GetRadius();
 		return true;
+	}
+
+	static void AddPower(ATDShip* Ship, UClass* PowerClass, ETDPowerInput Slot)
+	{
+		if (!Ship || !PowerClass || UTDPowerComponent::FindPower(Ship, Slot))
+		{
+			return; // never a second component for a slot: powers keep running across switches
+		}
+		UTDPowerComponent* Power = NewObject<UTDPowerComponent>(Ship, PowerClass);
+		if (Power)
+		{
+			Power->Slot = Slot;
+			Ship->AddInstanceComponent(Power);
+			Power->RegisterComponent();
+		}
+	}
+
+	void InstallPowers(ATDShip* Ship, const FTDShipSpec& Spec)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		AddPower(Ship, Spec.Signature1PowerClass.Get(), ETDPowerInput::Signature1);
+		AddPower(Ship, Spec.Signature2PowerClass.Get(), ETDPowerInput::Signature2);
+
+		// Unlockable ability slot (ENG-12): the component installs whatever progress has unlocked.
+		UTDAbilityComponent* Abilities = Ship->FindComponentByClass<UTDAbilityComponent>();
+		if (!Abilities && Spec.AbilityComponentClass)
+		{
+			Abilities = NewObject<UTDAbilityComponent>(Ship, Spec.AbilityComponentClass.Get(), TEXT("Abilities"));
+			if (Abilities)
+			{
+				Ship->AddInstanceComponent(Abilities);
+				Abilities->RegisterComponent();
+			}
+		}
+		if (Abilities)
+		{
+			Abilities->RefreshFromProgress();
+		}
+	}
+
+	void ResetPowers(ATDShip* Ship)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		TInlineComponentArray<UTDPowerComponent*> Powers(Ship);
+		for (UTDPowerComponent* Power : Powers)
+		{
+			if (Power)
+			{
+				Power->ResetCooldown();
+			}
+		}
+	}
+
+	void ResetWeapons(ATDShip* Ship)
+	{
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->ResetWeapons();
+		}
 	}
 
 	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility)
@@ -415,9 +493,51 @@ namespace TDSquad
 		}
 	}
 
-	FTDWaveInfo GetWaveInfo(const UObject* WorldContext)
+	static const UTDTargetingComponent* Targeting(const ATDShip* Ship)
 	{
-		const ATDWaveDirector* Director = ATDWaveDirector::Get(WorldContext);
+		return Ship ? Ship->GetTargeting() : nullptr;
+	}
+
+	void GetTargetMarkers(const ATDShip* Ship, TArray<FTDTargetMarker>& Out)
+	{
+		Out.Reset();
+		if (const UTDTargetingComponent* T = Targeting(Ship))
+		{
+			Out = T->GetMarkers();
+		}
+	}
+
+	ETDMissileWarning GetMissileWarning(const ATDShip* Ship)
+	{
+		const UTDTargetingComponent* T = Targeting(Ship);
+		return T ? T->GetMissileWarning() : ETDMissileWarning::None;
+	}
+
+	bool GetLeadIndicator(const ATDShip* Ship, FVector& OutWorldLocation)
+	{
+		const UTDTargetingComponent* T = Targeting(Ship);
+		return T ? T->GetLeadIndicator(OutWorldLocation) : false;
+	}
+
+	FTDWaveInfo GetWaveInfo(const UObject* WorldContext, FWaveDirectorCache& Cache, double RetrySeconds)
+	{
+		const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+		if (!World)
+		{
+			return FTDWaveInfo();
+		}
+		const ATDWaveDirector* Director = Cast<ATDWaveDirector>(Cache.Director.Get());
+		if (!Director || Director->GetWorld() != World)
+		{
+			const double Now = World->GetRealTimeSeconds();
+			if (Now < Cache.NextLookupTime)
+			{
+				return FTDWaveInfo();
+			}
+			Cache.NextLookupTime = Now + RetrySeconds;
+			Director = ATDWaveDirector::Get(WorldContext);
+			Cache.Director = const_cast<ATDWaveDirector*>(Director);
+		}
 		return Director ? Director->GetWaveInfo() : FTDWaveInfo();
 	}
 
