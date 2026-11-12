@@ -1944,5 +1944,23 @@ bool FTDSquadOpeningFrame::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadFightOnScreen, "TriadDrift.Squad.Wingmen.PreferFightsInFrontOfThePlayer", TD_TEST_FLAGS)
+bool FTDSquadFightOnScreen::RunTest(const FString& Parameters)
+{
+	// With a choice, wingmen take the enemy ahead of the leader (on screen) over one behind it,
+	// even when the one behind is a little closer to them.
+	FSquadFixture F;
+	F.Kill(ETDShipId::Bastion); // one wingman: no target spreading
+	F.W.Tick();
+	const FVector L = F.Ship(ETDShipId::Rift)->GetActorLocation();
+	AActor* Ahead = F.SpawnEnemy(L + FVector(9000.f, -1500.f, 0.f), 100000.f);
+	AActor* Behind = F.SpawnEnemy(L + FVector(-6500.f, -1500.f, 0.f), 100000.f);
+	Behind->SetActorRotation(FRotator(0.f, 180.f, 0.f)); // facing away: not a threat, just a target
+	F.W.Advance(0.6f);
+	TestTrue(TEXT("Lancer takes the on-screen enemy"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Ahead);
+	TestNotNull(TEXT("(enemy behind exists)"), Behind);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
