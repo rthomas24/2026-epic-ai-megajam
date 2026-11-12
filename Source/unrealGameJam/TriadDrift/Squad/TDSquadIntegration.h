@@ -62,6 +62,8 @@ namespace TDSquad
 	/** T1: landing instantly back to flying (no-op when already flying). */
 	void AbortLanding(ATDShip* Ship);
 	float GetHyperdriveCharge01(const ATDShip* Ship);
+	/** Why the hyperdrive can't spool right now (ship block reason, else a world travel lock), or empty. */
+	FText GetHyperdriveBlockText(const ATDShip* Ship);
 	float GetAltitudeMeters(const ATDShip* Ship);
 	/** T2: carry a manually cycled target from one ship to the next on a switch. */
 	void CarryManualTarget(const ATDShip* From, ATDShip* To);

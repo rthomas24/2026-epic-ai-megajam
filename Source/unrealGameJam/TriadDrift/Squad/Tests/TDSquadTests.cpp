@@ -1694,6 +1694,15 @@ bool FTDSquadManualTargetCarry::RunTest(const FString& Parameters)
 	TestTrue(TEXT("HUD shows it"), F.Squad->GetCurrentTarget() == Picked);
 	TestTrue(TEXT("HUD hyperdrive charge forwarded"), F.Squad->GetHyperdriveCharge01() == F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetCharge01());
 	TestEqual(TEXT("HUD altitude forwarded"), F.Squad->GetAltitude(), F.Ship(ETDShipId::Lancer)->GetAltitudeMeters());
+	TestEqual(TEXT("HUD hyperdrive block text forwarded"), F.Squad->GetHyperdriveBlockText().ToString(),
+		F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetBlockReasonText().IsEmpty() ? F.Squad->GetHyperdriveBlockText().ToString() : F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetBlockReasonText().ToString());
+	AActor* Near = F.SpawnEnemy(F.Ship(ETDShipId::Lancer)->GetActorLocation() + FVector(3000.f, 0.f, 0.f), 1000.f);
+	F.W.Advance(0.3f);
+	TestNotNull(TEXT("(enemy close by)"), Near);
+	if (!F.Ship(ETDShipId::Lancer)->GetHyperdrive()->CanSpool())
+	{
+		TestFalse(TEXT("a blocked hyperdrive explains itself on the HUD"), F.Squad->GetHyperdriveBlockText().IsEmpty());
+	}
 	return true;
 }
 

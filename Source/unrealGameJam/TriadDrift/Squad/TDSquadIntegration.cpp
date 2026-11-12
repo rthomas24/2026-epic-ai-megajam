@@ -26,6 +26,7 @@
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 
 #include "TriadDrift/Input/TDSpacePlayerController.h" // ETDPowerInput
 #include "TriadDrift/Powers/TDPowerComponent.h"
@@ -280,6 +281,20 @@ namespace TDSquad
 	{
 		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;
 		return H ? H->GetCharge01() : 0.f;
+	}
+
+	FText GetHyperdriveBlockText(const ATDShip* Ship)
+	{
+		if (const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
+		{
+			const FText Reason = H->GetBlockReasonText();
+			if (!Reason.IsEmpty())
+			{
+				return Reason;
+			}
+		}
+		const UTDTravelSubsystem* Travel = Ship ? UTDTravelSubsystem::Get(Ship) : nullptr;
+		return Travel ? Travel->GetHyperdriveLockText() : FText::GetEmpty();
 	}
 
 	float GetAltitudeMeters(const ATDShip* Ship)
@@ -691,16 +706,9 @@ namespace TDSquad
 		{
 			return;
 		}
-		OutAbility = Abilities->GetAbility();
-		const UTDPowerComponent* Power = Abilities->GetAbilityPower();
-		if (OutAbility != ETDAbilityId::None && Power)
-		{
-			OutReadiness01 = Power->GetCooldown01();
-		}
-		else
-		{
-			OutAbility = ETDAbilityId::None; // nothing installed = not earned
-		}
+		// T2's accessors: None / 0 while locked, never "ready" for an absent power.
+		OutAbility = Abilities->HasAbility() ? Abilities->GetAbility() : ETDAbilityId::None;
+		OutReadiness01 = Abilities->GetReadiness01();
 	}
 
 	// ------------------------------------------------------------------------------------- HUD

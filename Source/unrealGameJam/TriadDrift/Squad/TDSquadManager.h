@@ -233,6 +233,7 @@ public:
 	virtual bool GetLeadIndicator(FVector& OutWorldLocation) const override;
 	virtual float GetHyperdriveCharge01() const override;
 	virtual float GetAltitude() const override;
+	virtual FText GetHyperdriveBlockText() const override;
 
 	/** HUD-ready text for the last lock refusal (from T1's IsSwitchLocked). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")

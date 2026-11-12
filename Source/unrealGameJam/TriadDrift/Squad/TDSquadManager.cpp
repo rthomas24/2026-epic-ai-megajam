@@ -1120,6 +1120,11 @@ float ATDSquadManager::GetHyperdriveCharge01() const
 	return TDSquad::GetHyperdriveCharge01(GetActiveShip());
 }
 
+FText ATDSquadManager::GetHyperdriveBlockText() const
+{
+	return TDSquad::GetHyperdriveBlockText(GetActiveShip());
+}
+
 float ATDSquadManager::GetAltitude() const
 {
 	return TDSquad::GetAltitudeMeters(GetActiveShip());
