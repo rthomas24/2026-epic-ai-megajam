@@ -56,6 +56,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	ATDEnemyShip* GetEnemyShip() const;
 
+	/** Override the per-pilot "prefers the player's ship" roll (tests, scripted pilots). */
+	void SetPrefersPlayerShip(bool bPrefer) { bPrefersPlayer = bPrefer; }
+
 	/** Forget the target immediately (called by the ship's LoseTracking). */
 	void ForgetTarget();
 
@@ -95,6 +98,14 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	bool IsCatchingUp() const { return bCatchingUp; }
+
+	/** Keep at least this far from other Armada ships (cm). 0 = off. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float SeparationRadius = 1400.f;
+
+	/** Chance a non-interceptor pilot prefers the player's ship over the nearest squad ship. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0", ClampMax = "1"))
+	float PreferPlayerShipChance = 0.5f;
 
 	/** Obstacle look-ahead (seconds of travel). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
@@ -148,6 +159,7 @@ protected:
 
 	ETDEnemyAIState State = ETDEnemyAIState::Idle;
 	bool bAvoiding = false;
+	bool bPrefersPlayer = false;
 	bool bCatchingUp = false;
 	bool bRunReachedGunRange = false;
 	void UpdateCatchUp(ATDEnemyShip& Ship);

@@ -132,6 +132,7 @@ bool FTDBehTargets::RunTest(const FString& Parameters)
 	ATDSpacecraft* PlayerShip = SquadShip(W, FVector(-30000.f, 0.f, 0.f), /*bPossess*/ true);
 	ATDEnemyShip* I = Enemy(W, TDEnemyIds::HookInterceptor, FVector::ZeroVector, true);
 	ATDEnemyShip* F = Enemy(W, TDEnemyIds::ShardFighter, FVector(0.f, 500.f, 0.f), true);
+	AIOf(F)->SetPrefersPlayerShip(false);
 	W.Advance(1.5f);
 	TestTrue(TEXT("interceptor targets the possessed ship"), AIOf(I)->GetTarget() == PlayerShip);
 	TestTrue(TEXT("fighter targets the nearest squad ship (any ship, wingmen too)"), AIOf(F)->GetTarget() == Wingman);

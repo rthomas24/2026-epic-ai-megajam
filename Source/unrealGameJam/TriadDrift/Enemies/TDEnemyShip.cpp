@@ -203,6 +203,7 @@ void ATDEnemyShip::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageIn
 void ATDEnemyShip::BeginPlay()
 {
 	Super::BeginPlay();
+	AimRng.Initialize(static_cast<int32>(GetUniqueID()));	// every pilot misses differently
 	EnsureWeapons();
 	bVisualsExplicit = Visuals != nullptr && !bSpecApplied;	// set on a BP child / placed instance
 	if (bSpecApplied) { StartLoopCues(); }
