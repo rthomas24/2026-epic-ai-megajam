@@ -782,7 +782,10 @@ TArray<FTDShipHUD> ATDSquadManager::GetSquadHUD() const
 		Card.Heat01 = Ship ? TDSquad::GetHeat01(Ship, ETDWeaponSlot::Primary) : 0.f;
 		Card.SecondaryAmmo = Ship ? TDSquad::GetAmmo(Ship, ETDWeaponSlot::Secondary) : 0;
 		Card.Ability = GetSpec(Id).UnlockableAbility;
-		// Power / ability cooldowns come from T2's power components (ENG-09..12); ready until they land.
+		if (Ship)
+		{
+			TDSquad::GetPowerCooldowns(Ship, Card.PowerCooldown01, Card.Power2Cooldown01, Card.AbilityCooldown01);
+		}
 		Out.Add(Card);
 	}
 	return Out;

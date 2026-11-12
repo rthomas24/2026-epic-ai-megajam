@@ -65,8 +65,11 @@ namespace TDSquad
 	AActor* GetLastAttacker(const AActor* Actor);
 	/** True if a hostile homing projectile is tracking Ship. */
 	bool IsMissileIncoming(const ATDShip* Ship);
-	/** Location of an active Bastion shield dome, if one is up. */
-	bool GetActiveShieldDome(const UWorld* World, FVector& OutCenter, float& OutRadius);
+	/** Nearest active player shield dome (Bastion, ENG-11) within MaxDistance of Location. */
+	bool GetNearbyShieldDome(const UWorld* World, const FVector& Location, float MaxDistance, FVector& OutCenter, float& OutRadius);
+
+	/** HUD: T2 power cooldowns, 1 = ready (also 1 when the ship has no such power). */
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility);
 
 	// ---- HUD (T1 flight state, T2 targeting, T4 waves) ----
 	float GetBoost01(const ATDShip* Ship);

@@ -23,6 +23,11 @@
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
+#include "TriadDrift/Input/TDSpacePlayerController.h" // ETDPowerInput
+#include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Powers/TDShieldDome.h"
+
 namespace TDSquadIntegrationPrivate
 {
 	static UTDWeaponComponent* Weapons(const ATDShip* Ship)
@@ -353,10 +358,29 @@ namespace TDSquad
 		return false;
 	}
 
-	bool GetActiveShieldDome(const UWorld* World, FVector& OutCenter, float& OutRadius)
+	bool GetNearbyShieldDome(const UWorld* World, const FVector& Location, float MaxDistance, FVector& OutCenter, float& OutRadius)
 	{
-		// T2's shield dome (ENG-11) isn't published yet. Wire it here when it lands.
-		return false;
+		const UTDPowerSubsystem* Powers = World ? UTDPowerSubsystem::Get(World) : nullptr;
+		const ATDShieldDome* Dome = Powers ? Powers->GetNearestDome(Location, ETDTeam::Player) : nullptr;
+		if (!Dome || FVector::DistSquared(Dome->GetActorLocation(), Location) > FMath::Square(MaxDistance))
+		{
+			return false;
+		}
+		OutCenter = Dome->GetActorLocation();
+		OutRadius = Dome->GetRadius();
+		return true;
+	}
+
+	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility)
+	{
+		auto Cooldown = [Ship](ETDPowerInput Slot)
+		{
+			const UTDPowerComponent* Power = Ship ? UTDPowerComponent::FindPower(Ship, Slot) : nullptr;
+			return Power ? Power->GetCooldown01() : 1.f;
+		};
+		OutPower1 = Cooldown(ETDPowerInput::Signature1);
+		OutPower2 = Cooldown(ETDPowerInput::Signature2);
+		OutAbility = Cooldown(ETDPowerInput::Ability);
 	}
 
 	// ------------------------------------------------------------------------------------- HUD

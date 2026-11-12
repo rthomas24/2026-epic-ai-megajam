@@ -51,7 +51,11 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
     shoots through the player, 2-4° aim error re-rolled every 0.3-0.6 s, 35 000 cm leash.
   - Evade: shield break or a homing missile on it (`UTDProjectileSubsystem::FindMissilesHomingOn`)
     → 1.8 s break-and-jink at boost, 3 s cooldown; then Regroup.
-  - Hurt (< 40%) + an active shield dome → drifts toward the dome (hook ready; see gaps).
+  - Hurt (< 40%) and a player shield dome within 15 000 cm (`UTDPowerSubsystem::GetNearestDome`) →
+    heads into it.
+  - Hyperdrive spool (`OnHyperdriveState` Spooling): break off and form up; Idle (cancel or
+    arrival) resumes fighting.
+  - `ATDSquadManager::SetWingmenPassive(bool)`: landing/cinematics; no input, triggers or targets.
   - Avoidance: sphere sweep along velocity (1.2 s look-ahead, 0.15 s cadence) against WorldStatic /
     WorldDynamic, plus 900 cm separation from squadmates.
   - Follows the leader: `UTDEventBus::OnSpacecraftTeleported` (portals, gates) warps it to its slot;
@@ -60,7 +64,7 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   - **Never** calls a power or ability (there is no code path to one).
 - **HUD** (`ITDHUDData`): `GetSquadHUD` (per ship hull/shield/boost/heat/secondary ammo/alive/
   respawn seconds/player-controlled/ability), `GetCurrentTarget` / `GetLockedTargets` (active ship's
-  `UTDTargetingComponent`), `GetWaveInfo` (T4 wave director), `GetSpeed01`, `IsOutOfBounds`.
+  `UTDTargetingComponent`), power/ability cooldowns (`UTDPowerComponent::FindPower`), `GetWaveInfo` (T4 wave director), `GetSpeed01`, `IsOutOfBounds`.
 
 ## How to try it
 
@@ -91,10 +95,8 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 
 ## Known gaps
 
-- **Shield dome drift**: `TDSquad::GetActiveShieldDome` returns false until T2 publishes the dome
-  (ENG-11). One function to fill in.
-- **Power cooldowns on the HUD cards** stay at "ready" until T2's `UTDPowerComponent` exists.
 - **Portal following** is a warp to the slot when the leader teleports, not a fly-through.
 - Wingmen don't roll to match the leader; they rely on T1's auto-level.
 - Bastion's flak isn't yet aimed at incoming missiles specifically.
-- C-03 #1 timing data and #2 (`OnHighlightMoment` + slow-mo) are the next task.
+- Director's Cut switch-cut payload and money shots: see `docs/eng/director.md`.
+- HUD `GetHyperdriveCharge01` returns 0 until T1's hyperdrive component is on main.

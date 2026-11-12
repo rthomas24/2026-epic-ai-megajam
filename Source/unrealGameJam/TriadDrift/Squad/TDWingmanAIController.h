@@ -124,6 +124,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade")
 	float HurtThreshold01 = 0.4f;
 
+	/** A hurt wingman only seeks an active shield dome within this distance. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (Units = "cm"))
+	float DomeSeekDistance = 15000.f;
+
 	/** Look-ahead time for obstacle avoidance sweeps. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "s"))
 	float AvoidanceLookAhead = 1.2f;

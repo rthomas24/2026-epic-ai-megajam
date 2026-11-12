@@ -287,10 +287,12 @@ FVector ATDWingmanAIController::GetHomeLocation(ATDShip* Ship, ATDShip* Leader, 
 	{
 		FVector DomeCenter;
 		float DomeRadius = 0.f;
-		if (TDSquad::GetActiveShieldDome(GetWorld(), DomeCenter, DomeRadius))
+		if (TDSquad::GetNearbyShieldDome(GetWorld(), Ship->GetActorLocation(), DomeSeekDistance, DomeCenter, DomeRadius))
 		{
 			bOutIsDome = true;
-			return DomeCenter;
+			// Aim for a point well inside the dome, on our side of it, rather than its exact centre.
+			const FVector FromCenter = (Ship->GetActorLocation() - DomeCenter).GetSafeNormal();
+			return DomeCenter + FromCenter * DomeRadius * 0.4f;
 		}
 	}
 	const ATDSquadManager* S = Squad.Get();
