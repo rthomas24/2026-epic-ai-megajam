@@ -44,7 +44,7 @@ namespace TDGroundTest
 
 	static void SpawnFloor(FTDTestWorld& W)
 	{
-		SpawnBox(W, FVector(0.f, 0.f, -50.f), FVector(20000.f, 20000.f, 100.f));
+		TDGroundTest::SpawnBox(W, FVector(0.f, 0.f, -50.f), FVector(20000.f, 20000.f, 100.f));
 	}
 
 	/** Player character standing on the floor at X, possessed by a player controller, settled. */
@@ -94,7 +94,6 @@ namespace TDGroundTest
 	};
 }
 
-using namespace TDGroundTest;
 
 // ================================================================================================
 // ENG-21 movement
@@ -106,8 +105,8 @@ bool FTDGroundRunSprint::RunTest(const FString& Parameters)
 	for (const float Step : { 1.f / 30.f, 1.f / 120.f })
 	{
 		FTDTestWorld W;
-		SpawnFloor(W);
-		ATDFirstPersonCharacter* C = SpawnPlayer(W);
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 		if (!TestNotNull(TEXT("character"), C)) { return false; }
 		C->SetMoveInput(FVector2D(0.f, 1.f));
 		W.Advance(1.f, Step);
@@ -127,8 +126,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundJumps, "TriadDrift.Ground.Move.JumpAnd
 bool FTDGroundJumps::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 	if (!TestNotNull(TEXT("character"), C)) { return false; }
 	TestTrue(TEXT("jump"), C->TryJump());
 	W.Tick();
@@ -150,8 +149,8 @@ bool FTDGroundDash::RunTest(const FString& Parameters)
 	for (const float Step : { 1.f / 30.f, 1.f / 120.f })
 	{
 		FTDTestWorld W;
-		SpawnFloor(W);
-		ATDFirstPersonCharacter* C = SpawnPlayer(W);
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 		if (!TestNotNull(TEXT("character"), C)) { return false; }
 		const FVector Start = C->GetActorLocation();
 		TestEqual(TEXT("2 charges"), C->GetDashCharges(), 2);
@@ -188,8 +187,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundSlide, "TriadDrift.Ground.Move.Slide",
 bool FTDGroundSlide::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 	if (!TestNotNull(TEXT("character"), C)) { return false; }
 	TestFalse(TEXT("no slide from standing"), C->TrySlide());
 	C->SetMoveInput(FVector2D(0.f, 1.f));
@@ -210,9 +209,9 @@ bool FTDGroundMantle::RunTest(const FString& Parameters)
 {
 	{
 		FTDTestWorld W;
-		SpawnFloor(W);
-		SpawnBox(W, FVector(200.f, 0.f, 75.f), FVector(200.f, 400.f, 150.f)); // 150 cm ledge
-		ATDFirstPersonCharacter* C = SpawnPlayer(W);
+		TDGroundTest::SpawnFloor(W);
+		TDGroundTest::SpawnBox(W, FVector(200.f, 0.f, 75.f), FVector(200.f, 400.f, 150.f)); // 150 cm ledge
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 		if (!TestNotNull(TEXT("character"), C)) { return false; }
 		C->SetMoveInput(FVector2D(0.f, 1.f));
 		bool bSawMantle = false;
@@ -231,9 +230,9 @@ bool FTDGroundMantle::RunTest(const FString& Parameters)
 	}
 	{
 		FTDTestWorld W;
-		SpawnFloor(W);
-		SpawnBox(W, FVector(200.f, 0.f, 125.f), FVector(200.f, 400.f, 250.f)); // 250 cm: too tall
-		ATDFirstPersonCharacter* C = SpawnPlayer(W);
+		TDGroundTest::SpawnFloor(W);
+		TDGroundTest::SpawnBox(W, FVector(200.f, 0.f, 125.f), FVector(200.f, 400.f, 250.f)); // 250 cm: too tall
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 		if (!TestNotNull(TEXT("character"), C)) { return false; }
 		C->SetMoveInput(FVector2D(0.f, 1.f));
 		bool bSawMantle = false;
@@ -251,20 +250,20 @@ bool FTDGroundMantle::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundHealth, "TriadDrift.Ground.HealthRegenAndDeathIsATake", TD_TEST_FLAGS)
 bool FTDGroundHealth::RunTest(const FString& Parameters)
 {
-	FNoSaveWrites NoWrites;
+	TDGroundTest::FNoSaveWrites NoWrites;
 	FTDTestWorld W(UTDGameInstance::StaticClass());
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
-	ATDCrewDummy* Enemy = SpawnDummy(W, FVector(300.f, 0.f, 95.f));
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Enemy = TDGroundTest::SpawnDummy(W, FVector(300.f, 0.f, 95.f));
 	if (!TestNotNull(TEXT("character"), C) || !TestNotNull(TEXT("enemy"), Enemy)) { return false; }
-	TestEqual(TEXT("100 health"), Hull(C), 100.f);
+	TestEqual(TEXT("100 health"), TDGroundTest::Hull(C), 100.f);
 	TestEqual(TEXT("no shield"), C->GetHealth()->MaxShield, 0.f);
 	UTDStatics::ApplyTDDamage(C, 50.f, ETDDamageKind::Energy, Enemy, Enemy);
-	TestEqual(TEXT("took 50"), Hull(C), 50.f, 0.1f);
+	TestEqual(TEXT("took 50"), TDGroundTest::Hull(C), 50.f, 0.1f);
 	W.Advance(3.9f);
-	TestEqual(TEXT("no regen before 4 s"), Hull(C), 50.f, 0.5f);
+	TestEqual(TEXT("no regen before 4 s"), TDGroundTest::Hull(C), 50.f, 0.5f);
 	W.Advance(2.1f); // 4 s delay + 2 s at 15/s
-	TestEqual(TEXT("regen 15/s after 4 s"), Hull(C), 80.f, 4.f);
+	TestEqual(TEXT("regen 15/s after 4 s"), TDGroundTest::Hull(C), 80.f, 4.f);
 
 	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
 	UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Energy, Enemy, Enemy);
@@ -272,7 +271,7 @@ bool FTDGroundHealth::RunTest(const FString& Parameters)
 	TestTrue(TEXT("death calls CUT (retake pending)"), GI && GI->IsRetakePending());
 	C->RespawnAt(FTransform(FVector(0.f, 0.f, 95.f)));
 	TestFalse(TEXT("respawned alive"), C->IsDead());
-	TestEqual(TEXT("respawned at full health"), Hull(C), 100.f);
+	TestEqual(TEXT("respawned at full health"), TDGroundTest::Hull(C), 100.f);
 	return true;
 }
 
@@ -280,8 +279,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundInteract, "TriadDrift.Ground.InteractT
 bool FTDGroundInteract::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 	if (!TestNotNull(TEXT("character"), C)) { return false; }
 	const float EyeZ = C->GetActorLocation().Z + C->BaseEyeHeight;
 	ATDInteractableActor* Tap = W.Spawn<ATDInteractableActor>(FVector(150.f, 0.f, EyeZ));
@@ -300,7 +299,7 @@ bool FTDGroundInteract::RunTest(const FString& Parameters)
 	C->BeginInteract();
 	W.Advance(1.f);
 	TestEqual(TEXT("half way"), C->GetInteractProgress01(), 0.5f, 0.05f);
-	ATDCrewDummy* Enemy = SpawnDummy(W, FVector(-300.f, 0.f, 95.f));
+	ATDCrewDummy* Enemy = TDGroundTest::SpawnDummy(W, FVector(-300.f, 0.f, 95.f));
 	UTDStatics::ApplyTDDamage(C, 5.f, ETDDamageKind::Energy, Enemy, Enemy);
 	TestEqual(TEXT("damage interrupts the hold"), C->GetInteractProgress01(), 0.f);
 	TestFalse(TEXT("not used"), Hold->WasUsed());
@@ -318,31 +317,31 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundLightCombo, "TriadDrift.Ground.Blade.L
 bool FTDGroundLightCombo::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
-	ATDCrewDummy* Front = SpawnDummy(W, FVector(130.f, 0.f, 95.f));
-	ATDCrewDummy* Behind = SpawnDummy(W, FVector(-130.f, 0.f, 95.f));
-	ATDCrewDummy* Far = SpawnDummy(W, FVector(0.f, 400.f, 95.f));
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Front = TDGroundTest::SpawnDummy(W, FVector(130.f, 0.f, 95.f));
+	ATDCrewDummy* Behind = TDGroundTest::SpawnDummy(W, FVector(-130.f, 0.f, 95.f));
+	ATDCrewDummy* Far = TDGroundTest::SpawnDummy(W, FVector(0.f, 400.f, 95.f));
 	W.Advance(0.2f);
 	UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
 	if (!TestNotNull(TEXT("blade"), B)) { return false; }
 
 	TestTrue(TEXT("swing 1"), B->LightAttack());
-	TestEqual(TEXT("hit 1 = 25"), 1000.f - Hull(Front), 25.f, 0.1f);
-	TestEqual(TEXT("100° arc: nothing behind"), Hull(Behind), 1000.f);
-	TestEqual(TEXT("180 cm reach: nothing far away"), Hull(Far), 1000.f);
+	TestEqual(TEXT("hit 1 = 25"), 1000.f - TDGroundTest::Hull(Front), 25.f, 0.1f);
+	TestEqual(TEXT("100° arc: nothing behind"), TDGroundTest::Hull(Behind), 1000.f);
+	TestEqual(TEXT("180 cm reach: nothing far away"), TDGroundTest::Hull(Far), 1000.f);
 	TestTrue(TEXT("swing 2 buffered"), B->LightAttack());
 	W.Advance(0.75f); // swing 1 (0.28) + buffered swing 2 (0.28) + hit-stops, still inside the 0.45 s window
-	TestEqual(TEXT("hit 2 = 25"), 1000.f - Hull(Front), 50.f, 0.1f);
+	TestEqual(TEXT("hit 2 = 25"), 1000.f - TDGroundTest::Hull(Front), 50.f, 0.1f);
 	TestTrue(TEXT("swing 3 within the window"), B->LightAttack());
-	TestEqual(TEXT("hit 3 = 45"), 1000.f - Hull(Front), 95.f, 0.1f);
+	TestEqual(TEXT("hit 3 = 45"), 1000.f - TDGroundTest::Hull(Front), 95.f, 0.1f);
 	TestEqual(TEXT("combo index 3"), B->GetComboIndex(), 3);
 	W.Advance(0.5f);
 	TestTrue(TEXT("third hit knocks back"), Front->GetActorLocation().X > 230.f);
 	Front->SetActorLocation(FVector(130.f, 0.f, 95.f));
 	W.Advance(1.0f); // swing ends + 0.45 s window expires
 	TestTrue(TEXT("new combo"), B->LightAttack());
-	TestEqual(TEXT("back to 25 after the window"), 1000.f - Hull(Front), 120.f, 0.1f);
+	TestEqual(TEXT("back to 25 after the window"), 1000.f - TDGroundTest::Hull(Front), 120.f, 0.1f);
 	return true;
 }
 
@@ -350,15 +349,15 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundHeavy, "TriadDrift.Ground.Blade.HeavyL
 bool FTDGroundHeavy::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
-	ATDCrewDummy* Target = SpawnDummy(W, FVector(500.f, 0.f, 95.f));
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Target = TDGroundTest::SpawnDummy(W, FVector(500.f, 0.f, 95.f));
 	W.Advance(0.2f);
 	UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
 	if (!TestNotNull(TEXT("blade"), B)) { return false; }
 	const float StartX = C->GetActorLocation().X;
 	TestTrue(TEXT("lunge"), B->HeavyLunge());
-	TestEqual(TEXT("lunge damage 70"), 1000.f - Hull(Target), 70.f, 0.1f);
+	TestEqual(TEXT("lunge damage 70"), 1000.f - TDGroundTest::Hull(Target), 70.f, 0.1f);
 	TestTrue(TEXT("breaks guards"), Target->IsGuardBroken());
 	W.Advance(0.3f);
 	TestTrue(TEXT("lunged forward"), C->GetActorLocation().X - StartX > 250.f);
@@ -368,11 +367,11 @@ bool FTDGroundHeavy::RunTest(const FString& Parameters)
 
 	// Hold-to-heavy through the input path.
 	W.Advance(2.1f);
-	const float Before = Hull(Target);
+	const float Before = TDGroundTest::Hull(Target);
 	B->PressAttack();
 	W.Advance(0.4f);
 	B->ReleaseAttack();
-	TestEqual(TEXT("holding attack 0.35 s = heavy (70)"), Before - Hull(Target), 70.f, 0.1f);
+	TestEqual(TEXT("holding attack 0.35 s = heavy (70)"), Before - TDGroundTest::Hull(Target), 70.f, 0.1f);
 	return true;
 }
 
@@ -380,10 +379,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundAirSlam, "TriadDrift.Ground.Blade.AirS
 bool FTDGroundAirSlam::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
-	ATDCrewDummy* Near = SpawnDummy(W, FVector(200.f, 100.f, 95.f));
-	ATDCrewDummy* Out = SpawnDummy(W, FVector(700.f, 0.f, 95.f));
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Near = TDGroundTest::SpawnDummy(W, FVector(200.f, 100.f, 95.f));
+	ATDCrewDummy* Out = TDGroundTest::SpawnDummy(W, FVector(700.f, 0.f, 95.f));
 	W.Advance(0.2f);
 	UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
 	if (!TestNotNull(TEXT("blade"), B)) { return false; }
@@ -392,8 +391,8 @@ bool FTDGroundAirSlam::RunTest(const FString& Parameters)
 	W.Advance(0.2f);
 	TestTrue(TEXT("slam in the air"), B->AirSlam());
 	W.Advance(1.f);
-	TestEqual(TEXT("slam 50 within 300 cm"), 1000.f - Hull(Near), 50.f, 0.1f);
-	TestEqual(TEXT("nothing beyond 300 cm"), Hull(Out), 1000.f);
+	TestEqual(TEXT("slam 50 within 300 cm"), 1000.f - TDGroundTest::Hull(Near), 50.f, 0.1f);
+	TestEqual(TEXT("nothing beyond 300 cm"), TDGroundTest::Hull(Out), 1000.f);
 	TestEqual(TEXT("back to idle"), B->GetBladeState(), ETDBladeState::Idle);
 	return true;
 }
@@ -402,9 +401,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundDashStrike, "TriadDrift.Ground.Blade.D
 bool FTDGroundDashStrike::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
-	ATDCrewDummy* InPath = SpawnDummy(W, FVector(700.f, 0.f, 95.f));
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* InPath = TDGroundTest::SpawnDummy(W, FVector(700.f, 0.f, 95.f));
 	W.Advance(0.2f);
 	UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
 	if (!TestNotNull(TEXT("blade"), B)) { return false; }
@@ -413,7 +412,7 @@ bool FTDGroundDashStrike::RunTest(const FString& Parameters)
 	TestTrue(TEXT("dashing"), C->IsDashing());
 	B->PressAttack();
 	B->ReleaseAttack();
-	TestEqual(TEXT("dash strike 35"), 1000.f - Hull(InPath), 35.f, 0.1f);
+	TestEqual(TEXT("dash strike 35"), 1000.f - TDGroundTest::Hull(InPath), 35.f, 0.1f);
 	return true;
 }
 
@@ -421,10 +420,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundBlock, "TriadDrift.Ground.Blade.BlockS
 bool FTDGroundBlock::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
-	ATDCrewDummy* Front = SpawnDummy(W, FVector(130.f, 0.f, 95.f));
-	ATDCrewDummy* Back = SpawnDummy(W, FVector(-130.f, 0.f, 95.f));
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Front = TDGroundTest::SpawnDummy(W, FVector(130.f, 0.f, 95.f));
+	ATDCrewDummy* Back = TDGroundTest::SpawnDummy(W, FVector(-130.f, 0.f, 95.f));
 	W.Advance(0.2f);
 	UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
 	if (!TestNotNull(TEXT("blade"), B)) { return false; }
@@ -455,9 +454,9 @@ bool FTDGroundBlock::RunTest(const FString& Parameters)
 	TestFalse(TEXT("guard recovers"), B->IsGuardBroken());
 
 	// The crit from the parry lands on the next blade hit: 25 x 2.
-	const float Before = Hull(Front);
+	const float Before = TDGroundTest::Hull(Front);
 	B->LightAttack();
-	TestEqual(TEXT("crit after parry = 50"), Before - Hull(Front), 50.f, 0.1f);
+	TestEqual(TEXT("crit after parry = 50"), Before - TDGroundTest::Hull(Front), 50.f, 0.1f);
 	return true;
 }
 
@@ -465,8 +464,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundDeflect, "TriadDrift.Ground.Blade.Defl
 bool FTDGroundDeflect::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
-	ATDFirstPersonCharacter* C = SpawnPlayer(W);
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
 	// Turret 30° to the left, inside the 120° guard; the crosshair looks straight down +X.
 	const FVector TurretLoc = FVector(1400.f, -800.f, 0.f);
 	ATDDummyTurret* T = W.Spawn<ATDDummyTurret>(TurretLoc + FVector(0.f, 0.f, 60.f)); // base sits on the floor
@@ -480,7 +479,7 @@ bool FTDGroundDeflect::RunTest(const FString& Parameters)
 	// Unblocked: the bolt hurts (10).
 	T->FireAt(C);
 	W.Advance(1.2f);
-	TestEqual(TEXT("unblocked bolt hits for 10"), Hull(C), 90.f, 0.5f);
+	TestEqual(TEXT("unblocked bolt hits for 10"), TDGroundTest::Hull(C), 90.f, 0.5f);
 
 	// Normal deflect: block raised well before the shot -> flies along the crosshair, x1.
 	B->SetBlockHeld(true);
@@ -488,7 +487,7 @@ bool FTDGroundDeflect::RunTest(const FString& Parameters)
 	ATDProjectile* P1 = Cast<ATDProjectile>(T->FireAt(C));
 	for (int32 i = 0; i < 120 && Normal == 0; ++i) { W.Tick(); }
 	TestEqual(TEXT("normal deflect"), Normal, 1);
-	TestEqual(TEXT("no damage while blocking"), Hull(C), 90.f, 0.5f);
+	TestEqual(TEXT("no damage while blocking"), TDGroundTest::Hull(C), 90.f, 0.5f);
 	if (P1 && P1->IsActive())
 	{
 		TestEqual(TEXT("deflected to the player team"), P1->GetTeam(), ETDTeam::Player);
@@ -500,8 +499,8 @@ bool FTDGroundDeflect::RunTest(const FString& Parameters)
 	W.Advance(1.f);
 
 	// Perfect deflect: raise the block just before it lands -> back at the shooter, x2, slow-mo.
-	const float TurretBefore = Hull(T);
-	const float PlayerBefore = Hull(C);
+	const float TurretBefore = TDGroundTest::Hull(T);
+	const float PlayerBefore = TDGroundTest::Hull(C);
 	ATDProjectile* P2 = Cast<ATDProjectile>(T->FireAt(C));
 	for (int32 i = 0; i < 240 && P2 && P2->IsActive() && FVector::Dist(P2->GetActorLocation(), C->GetActorLocation()) > 450.f; ++i) { W.Tick(); }
 	B->SetBlockHeld(true);
@@ -515,8 +514,8 @@ bool FTDGroundDeflect::RunTest(const FString& Parameters)
 	const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(W.GetWorld());
 	TestTrue(TEXT("0.15 s slow-mo"), Feel && Feel->IsSlowMoActive());
 	W.Advance(2.f);
-	TestEqual(TEXT("returned bolt hits the turret for 20"), TurretBefore - Hull(T), 20.f, 0.5f);
-	TestTrue(TEXT("player unharmed by the deflected shot"), Hull(C) >= PlayerBefore);
+	TestEqual(TEXT("returned bolt hits the turret for 20"), TurretBefore - TDGroundTest::Hull(T), 20.f, 0.5f);
+	TestTrue(TEXT("player unharmed by the deflected shot"), TDGroundTest::Hull(C) >= PlayerBefore);
 	return true;
 }
 
@@ -527,7 +526,7 @@ bool FTDGroundDeflect::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundObjective, "TriadDrift.Ground.ObjectiveStepsRewardAndRetake", TD_TEST_FLAGS)
 bool FTDGroundObjective::RunTest(const FString& Parameters)
 {
-	FNoSaveWrites NoWrites;
+	TDGroundTest::FNoSaveWrites NoWrites;
 	FTDTestWorld W(UTDGameInstance::StaticClass());
 	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
 	ATDObjective* O = W.Spawn<ATDObjective>();
@@ -574,7 +573,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundEncounter, "TriadDrift.Ground.Encounte
 bool FTDGroundEncounter::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	SpawnFloor(W);
+	TDGroundTest::SpawnFloor(W);
 	ATDObjective* O = W.Spawn<ATDObjective>();
 	ATDDoor* Exit = W.Spawn<ATDDoor>(FVector(1000.f, 0.f, 0.f));
 	ATDDoor* Entry = W.Spawn<ATDDoor>(FVector(-1000.f, 0.f, 0.f));
@@ -625,7 +624,7 @@ bool FTDGroundEncounter::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundSandbox, "TriadDrift.Ground.SandboxBoots", TD_TEST_FLAGS)
 bool FTDGroundSandbox::RunTest(const FString& Parameters)
 {
-	FNoSaveWrites NoWrites;
+	TDGroundTest::FNoSaveWrites NoWrites;
 	FTDTestWorld W(UTDGameInstance::StaticClass(), ATDGroundGameMode::StaticClass());
 	TestTrue(TEXT("world"), W.IsValid());
 	W.Advance(0.5f);
@@ -639,6 +638,31 @@ bool FTDGroundSandbox::RunTest(const FString& Parameters)
 	TestTrue(TEXT("floor, ledges, platforms and room built"), Blocks >= 15);
 	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
 	TestEqual(TEXT("entered Verdance"), GI ? GI->GetCurrentDestination() : ETDDestination::MainMenu, ETDDestination::Verdance);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundPerfectWindow, "TriadDrift.Ground.Blade.PerfectWindowAt30_60_120", TD_TEST_FLAGS)
+bool FTDGroundPerfectWindow::RunTest(const FString& Parameters)
+{
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+		ATDCrewDummy* Early = TDGroundTest::SpawnDummy(W, FVector(130.f, -40.f, 95.f));
+		ATDCrewDummy* Late = TDGroundTest::SpawnDummy(W, FVector(130.f, 40.f, 95.f));
+		UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
+		if (!TestNotNull(TEXT("blade"), B)) { return false; }
+		B->SetBlockHeld(true);
+		float T = 0.f;
+		while (T + Step < 0.19f) { W.Tick(Step); T += Step; }
+		Early->MeleeAttack(C);
+		TestTrue(FString::Printf(TEXT("parry at %.3f s @%.0f fps"), T, 1.f / Step), Early->IsStaggered());
+		while (T <= 0.2f + 1e-4f) { W.Tick(Step); T += Step; }
+		Late->MeleeAttack(C);
+		TestFalse(FString::Printf(TEXT("no parry at %.3f s @%.0f fps"), T, 1.f / Step), Late->IsStaggered());
+		TestEqual(TEXT("blocked anyway"), TDGroundTest::Hull(C), 100.f, 0.1f);
+	}
 	return true;
 }
 

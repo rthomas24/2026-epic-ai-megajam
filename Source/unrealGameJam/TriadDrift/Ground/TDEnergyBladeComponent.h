@@ -135,6 +135,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Deflect")
 	float PerfectDeflectSlowMoDilation = 0.25f;
 
+	/** Importance passed to the director for a perfect deflect (docs/eng/director.md: 0.6). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Deflect", meta = (ClampMin = "0", ClampMax = "1"))
+	float PerfectDeflectImportance = 0.6f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Parry", meta = (Units = "s"))
 	float ParryStaggerSeconds = 1.2f;
 

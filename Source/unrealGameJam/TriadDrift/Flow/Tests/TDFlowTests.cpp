@@ -25,6 +25,8 @@
 #include "GameFramework/SaveGame.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -513,7 +515,9 @@ bool FTDFlowSandboxBoots::RunTest(const FString& Parameters)
 			TestEqual(TEXT("fixed-exposure post process"), Count(APostProcessVolume::StaticClass()), 1);
 			if (GM)
 			{
-				TestEqual(TEXT("asteroids"), Count(AStaticMeshActor::StaticClass()), GM->AsteroidCount);
+				// T4's galaxy layout replaces the placeholder asteroids (and spawns the Dominion).
+				TestEqual(TEXT("one galaxy layout"), Count(ATDGalaxyLayout::StaticClass()), 1);
+				TestEqual(TEXT("no placeholder asteroids with the layout"), Count(AStaticMeshActor::StaticClass()), 0);
 			}
 
 			UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
@@ -951,6 +955,48 @@ bool FTDFlowSandboxPlayer::RunTest(const FString& Parameters)
 				AddInfo(TEXT("Squad manager not merged yet: stray-pawn check skipped (free-fly fallback)."));
 			}
 		}
+	}
+	Settings->bWriteSlotOnCheckpoint = bSavedWrite;
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowDirectorSceneIds, "TriadDrift.Flow.WaveSceneIdsComeFromTheDirector", TDFlowTest::TestFlags)
+bool FTDFlowDirectorSceneIds::RunTest(const FString& Parameters)
+{
+	UTDFlowSettings* Settings = GetMutableDefault<UTDFlowSettings>();
+	const bool bSavedWrite = Settings->bWriteSlotOnCheckpoint;
+	Settings->bWriteSlotOnCheckpoint = false;
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		APawn* Player = Cast<APawn>(TDFlowTest::SpawnWithHealth(W, ADefaultPawn::StaticClass(), ETDTeam::Player));
+		W.SpawnPlayerController(Player);
+		ATDWaveDirector* Director = W.Spawn<ATDWaveDirector>();
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("director"), Director))
+		{
+			return false;
+		}
+		TArray<FTDWaveDef> Table = Director->GetWaveTable();
+		if (!TestTrue(TEXT("default wave table"), Table.Num() > 0))
+		{
+			return false;
+		}
+		const FName Custom(TEXT("Custom_Ambush"));
+		Table[0].SceneId = Custom;
+		Director->SetWaveTable(Table);
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		Director->StartWave(0);
+		W.Advance(3.f);
+		TestEqual(TEXT("scene id comes from the director's table"), GI->GetCurrentScene(), Custom);
+		TestEqual(TEXT("take 1 of the custom scene"), GI->GetTakeNumber(Custom), 1);
+		TestEqual(TEXT("no fallback scene opened"), GI->GetTakeNumber(TEXT("Wave1")), 0);
+
+		GI->ReportPlayerDefeated();
+		GI->TickFlow(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.1f);
+		W.Advance(0.5f);
+		TestEqual(TEXT("retake of the custom scene"), GI->GetTakeNumber(Custom), 2);
+		TestEqual(TEXT("still in the custom scene after the director rebuilt it"), GI->GetCurrentScene(), Custom);
 	}
 	Settings->bWriteSlotOnCheckpoint = bSavedWrite;
 	return true;

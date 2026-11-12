@@ -10,6 +10,8 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/World.h"
@@ -524,13 +526,21 @@ bool UTDEnergyBladeComponent::TryDeflect(AActor* ProjectileActor)
 	}
 	if (bPerfect)
 	{
-		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
+		// Director's Cut money shot (C-03 #2): the director owns the slow-mo, camera, event and stat.
+		bool bDirected = false;
+		if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this))
 		{
-			Feel->RequestSlowMo(PerfectDeflectSlowMoSeconds, PerfectDeflectSlowMoDilation);
+			bDirected = Director->ReportHighlight(ETDHighlightKind::PerfectDeflect, Owner, PerfectDeflectImportance, Proj ? Proj->GetOriginalShooter() : nullptr);
 		}
-		if (UTDEventBus* Bus = UTDEventBus::Get(this))
+		// Refused (rate limit, no director): still give the deflect its 0.15 s beat, except mid-CUT or travel.
+		const UTDGameInstance* GI = UTDGameInstance::Get(this);
+		const bool bFlowBusy = GI && (GI->IsRetakePending() || GI->IsTravelPending());
+		if (!bDirected && !bFlowBusy)
 		{
-			Bus->BroadcastHighlightMoment(ETDHighlightKind::PerfectDeflect, Owner, 0.6f);
+			if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
+			{
+				Feel->RequestSlowMo(PerfectDeflectSlowMoSeconds, PerfectDeflectSlowMoDilation);
+			}
 		}
 	}
 	if (BladeFX)
