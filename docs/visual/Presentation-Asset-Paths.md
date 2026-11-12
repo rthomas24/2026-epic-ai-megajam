@@ -17,8 +17,8 @@ references `/Game/TriadDrift/Presentation/<Name>.<Name>`.
 Weapon names match TDShipLibrary IDs reviewed at main `802aa8c`. No instances have
 been created or promised as present. Engineering defaults must remain optional and
 null-safe until exact paths are claimed, assets authored, and integration validated.
-Remaining enemy/ability/travel/blade/UI names require agreement against actual IDs
-before a future dispatch; no additional required defaults are established here.
+Additional enemy/ability/travel/blade/UI names are agreed in the R005 table below;
+all remain optional until separately claimed and authored.
 
 ## Current integration boundaries
 
@@ -33,11 +33,11 @@ before a future dispatch; no additional required defaults are established here.
   decide activation, dependencies, host lifecycle and packaging before integration.
 - SpaceFoundation needs no Presentation data asset. Material VFX prototypes need
   Niagara wrappers before filling UNiagaraSystem fields; that work is not dispatched.
-- Three switch audio candidates remain branch-only pending Nicholas audition.
+- M02 switch audio was rejected; a wholly new RiftConcept01 alone is active; M02/M03 are preserved for comparison.
   OnSwitchCut plus UTDShipVisuals.SwitchIn/SwitchOut are the future integration hooks;
   choose one playback route to avoid double firing. No audio-system edits authorized.
-- Lancer modular assembly and centre-pivot rocket offset are open engineering/human
-  decisions in N-001. No socket, gameplay, collision or spawn logic changes made.
+- N001 modular assembly and centre-pivot rocket offset decisions are recorded below.
+  Nick has made no socket, gameplay, collision or spawn logic changes.
 
 Board is an append-only communication log; this file records the technical plan.
 Human HUD activation and final art/audio acceptance remain unresolved approvals.
@@ -78,4 +78,4 @@ handling and game-mode fallback; MainMenuWidgetClass/LoadingWidgetClass, crew
 AnimBPClass/Stagger/Death and BladeMesh now exist per engineering's closed reply.
 Existing BladeColor/Retract reused; ragdoll remains gameplay-owned. No menu/crew/
 blade/dressing production assigned. Planet size/capsule/mantle/slope/cover supplied
-by engineering remain unchanged. Audio M02 was rejected; only M03 refinement is active.
+by engineering remain unchanged. Audio M02 was rejected; only the new RiftConcept01 benchmark is active.

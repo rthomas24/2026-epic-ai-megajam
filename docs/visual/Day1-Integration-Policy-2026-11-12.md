@@ -26,7 +26,7 @@ and safety rules; it is not a permanent replacement for Ryan's workflow.
 - From November 13, return to explicit approval-based, end-of-day integration;
   no extension or scheduled automatic merge is authorized by this document.
 
-For this review, the consolidated visual-assets source package is eligible as
+Initial pre-native checkpoint (historical): the consolidated visual-assets source package was eligible as
 source/prototype work only. Lancer/PR #3 is withheld (unapproved silhouette and
 assembly QA failures; user also explicitly prohibited its merge). Native HUD and
 Environment/VFX work remain active/unverified and are withheld. The legacy
