@@ -15,9 +15,12 @@ We are a **team of two humans** (plus our AI agents) competing in the
 > Four days. Up to five humans. As many AI agents as you want. Build a playable game in
 > Unreal Engine or Unreal Editor for Fortnite (UEFN) and compete for cash prizes.
 
-Our goal: ship a **polished, fun, packaged, playable game** that fits the jam theme, **before the deadline**.
-A small, finished, juicy game beats an ambitious broken one. Every decision you make should be weighed
-against the clock.
+Our goal: build **everything in [features.md](features.md)**, fitted to the jam theme, and ship it **polished,
+fun, packaged and playable before the deadline**. We're going for full scope at full speed, so keep `main`
+playable at all times and package often. That way there's always a build we could submit.
+
+**[features.md](features.md) is the source of truth** for what to build and who builds it: every feature, the
+Dev 1 / Dev 2 split, folder ownership, and the shared contracts between the two halves. Read it before you start work.
 
 ### Team
 
@@ -58,11 +61,8 @@ Theme fit is an explicit judging category — keep it visible in the game, not j
 
 **Late submissions are disqualified.** Plan to have a submitted build several hours early, then iterate.
 
-Suggested internal milestones:
-- **Day 1 (Nov 12):** concept locked, project created, core loop greyboxed and playable.
-- **Day 2 (Nov 13):** full loop playable start→end. **Do a first packaged test build today** (jam tip).
-- **Day 3 (Nov 14):** content, art, audio, juice, level progression. Feature freeze end of day.
-- **Day 4 (Nov 15):** bug fixing, polish, final package, gameplay video, dev log, submit by early afternoon PST.
+There is **no day-by-day schedule.** Both devs build at full speed, in the dependency order from
+[features.md §10](features.md#10-dependency-order-no-dates). Don't invent or impose daily milestones.
 
 ---
 
@@ -218,9 +218,8 @@ Create it if it doesn't exist. Format:
 - Optionally, once Git LFS is set up, `git lfs lock <file>` / `git lfs unlock <file>` can enforce this.
 
 ### 6.6 Structure the project to avoid collisions
-- **Folder ownership:** each person works in their own area of `Content/` where possible
-  (e.g. one owns player/gameplay systems, the other owns level/art/audio). Agree on this early and write it
-  in the Team table above.
+- **Folder ownership:** each dev works only in their own lane's folders and maps, as defined in
+  [features.md §2](features.md#2-folder--file-ownership). Never edit the other dev's folders or maps.
 - **Maps:** enable World Partition **One File Per Actor** or split levels into sublevels, so two people
   can edit the same level without touching the same file.
 - **Shared Blueprints** (GameMode, PlayerController, PlayerCharacter, GameInstance) are hot spots —
@@ -284,7 +283,8 @@ Write in append-only fashion at the bottom to avoid merge conflicts with the tea
 
 ## 10. Agent working style for this jam
 
-- Scope ruthlessly. If a feature can't be playable within a few hours, propose a smaller version.
+- Full scope: build everything in features.md. Don't cut or shrink a feature on your own. If something looks
+  at risk, tell your human and let them decide.
 - Keep the game **always playable** on `main`.
 - Verify changes in-editor (PIE) before committing; report honestly what was and wasn't tested.
 - When unsure whether something conflicts with the teammate's work, **ask your human — don't guess.**
