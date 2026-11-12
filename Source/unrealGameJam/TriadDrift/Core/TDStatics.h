@@ -10,6 +10,9 @@
 #include "TDStatics.generated.h"
 
 class ITDGameFlow;
+class UAudioComponent;
+class UMaterialInstanceDynamic;
+class UMeshComponent;
 class UNiagaraComponent;
 class USceneComponent;
 class UTDHealthComponent;
@@ -59,12 +62,42 @@ public:
 	static ITDGameFlow* GetGameFlow(const UObject* WorldContextObject);
 
 	// ------------------------------------------------------------------ presentation (all null-safe)
+	/**
+	 * One-shot cue at a world location. The Niagara component comes from the engine pool and is
+	 * released automatically: use the return value this frame only, never store it.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|FX", meta = (WorldContext = "WorldContextObject"))
 	static UNiagaraComponent* PlayCue(const UObject* WorldContextObject, const FTDFXCue& Cue, FVector Location,
 		FRotator Rotation = FRotator::ZeroRotator);
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|FX")
 	static UNiagaraComponent* PlayCueAttached(const FTDFXCue& Cue, USceneComponent* AttachTo, FName Socket = NAME_None);
+
+	/**
+	 * Attached cue for loops (charge-up, engine, beam): also hands back the audio component so the
+	 * caller can stop both halves. Neither is pooled; the caller owns stopping them
+	 * (Deactivate / FadeOut). Either value can be null when the cue leaves that half empty.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|FX")
+	static UNiagaraComponent* PlayCueAttachedLoop(const FTDFXCue& Cue, USceneComponent* AttachTo, FName Socket,
+		UAudioComponent*& OutAudio);
+
+	/**
+	 * Placeholder look for engine BasicShapes meshes until real art is assigned: a flat colour on
+	 * every material slot. EmissiveBoost > 0 uses an unlit glowing material (engine glows, eyes,
+	 * projectiles) at Color * EmissiveBoost. Returns the instance on slot 0. Never call this on a
+	 * mesh that has real art: check the visuals asset first.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|FX")
+	static UMaterialInstanceDynamic* TintPlaceholder(UMeshComponent* Mesh, FLinearColor Color, float EmissiveBoost = 0.f);
+
+	/** Squad colour code: Rift magenta, Lancer cyan, Bastion amber. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")
+	static FLinearColor ShipColor(ETDShipId Ship);
+
+	/** Team colour code: player green-white, enemy red-orange, neutral grey. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")
+	static FLinearColor TeamColor(ETDTeam Team);
 
 	/** True in the editor / dev builds when placeholder debug drawing should stand in for missing art. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|FX")

@@ -7,11 +7,15 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TriadDrift/Squad/TDSwitchCut.h"
 #include "TDSquadManager.generated.h"
 
 class ATDShip;
 class ATDWingmanAIController;
 class APlayerController;
+
+/** C-03 #1: a switch, as a director's cut. Same frame as the switch; presentation only. */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnSwitchCut, const FTDSwitchCut&, Cut);
 
 /** Life state of one squad slot. */
 UENUM(BlueprintType)
@@ -150,6 +154,24 @@ public:
 	UFUNCTION()
 	void HandlePowerUsed(ETDShipId Ship, FName PowerName);
 
+	/** C-03 #1: fired in the same frame as every successful switch, after OnShipSwitched. */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Squad")
+	FTDOnSwitchCut OnSwitchCut;
+
+	/** The most recent cut (SwitchIndex 0 = none yet this take). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	const FTDSwitchCut& GetLastSwitchCut() const { return LastSwitchCut; }
+
+	/**
+	 * Landing (ENG-20) and cinematics: passive wingmen release triggers, drop targets and stop
+	 * sending flight input until made active again (they then regroup).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void SetWingmenPassive(bool bPassive);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	bool AreWingmenPassive() const { return bWingmenPassive; }
+
 	/** Override the controller the squad drives (default: first local player controller). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
 	void SetSquadPlayerController(APlayerController* InController);
@@ -228,6 +250,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
 	float FocusCommandSeconds = 8.f;
 
+	/** Suggested presentation timing copied into every FTDSwitchCut (C-03 #1). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Cut")
+	FTDSwitchCutTiming CutTiming;
+
 	/** Loose V (ENG-08: 1500-2500 cm). Leader-local space: X forward, Y right, Z up. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Formation")
 	FVector FormationLeftOffset = FVector(-1600.f, -1600.f, 150.f);
@@ -277,6 +303,9 @@ protected:
 	TWeakObjectPtr<ATDShip> SwitchStrikeShip;
 	TWeakObjectPtr<APlayerController> SquadPC;
 	bool bSquadWiped = false;
+	bool bWingmenPassive = false;
+	int32 SwitchCount = 0;
+	FTDSwitchCut LastSwitchCut;
 	/** True when a game flow took the defeat; it owns the restart, so timers stop. */
 	bool bWipeHandledByFlow = false;
 };

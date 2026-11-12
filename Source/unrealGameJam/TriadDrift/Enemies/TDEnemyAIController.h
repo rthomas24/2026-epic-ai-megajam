@@ -79,6 +79,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0", ClampMax = "1"))
 	float GunshipHoldRangeFraction = 0.6f;
 
+	/** Obstacle look-ahead (seconds of travel). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float AvoidLookAheadSeconds = 1.2f;
+
+	/** True while steering around an obstacle this frame. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
+	bool IsAvoiding() const { return bAvoiding; }
+
 	/** Enable on-screen debug draws (state, target line). Console: TD.EnemyAIDebug 1 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI")
 	bool bDebugDraw = false;
@@ -122,6 +130,7 @@ protected:
 	FVector GetBomberRoutePoint(const AActor& InTarget) const;
 
 	ETDEnemyAIState State = ETDEnemyAIState::Idle;
+	bool bAvoiding = false;
 	float StateTime = 0.f;
 	float RetargetTimer = 0.f;
 	FVector BreakOffDirection = FVector::ForwardVector;

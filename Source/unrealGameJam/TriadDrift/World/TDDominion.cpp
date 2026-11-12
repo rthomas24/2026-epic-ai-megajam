@@ -12,6 +12,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "NiagaraComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -232,6 +233,7 @@ void ATDDominion::WarpIn()
 	{
 		BuildParts();
 		SetState(ETDDominionState::ShieldsUp);
+		StartShieldIdle();
 		ApplyStage(0);
 	}
 }
@@ -318,6 +320,23 @@ void ATDDominion::BuildParts()
 }
 
 // ------------------------------------------------------------------------------------------- stages
+
+void ATDDominion::StartShieldIdle()
+{
+	if (Visuals && !ShieldIdleFX)
+	{
+		ShieldIdleFX = UTDStatics::PlayCueAttached(Visuals->ShieldIdle, Root);
+	}
+}
+
+void ATDDominion::StopShieldIdle()
+{
+	if (ShieldIdleFX)
+	{
+		ShieldIdleFX->Deactivate();
+		ShieldIdleFX = nullptr;
+	}
+}
 
 void ATDDominion::ApplyStage(int32 NewStage)
 {
@@ -489,6 +508,7 @@ void ATDDominion::OnDefensesDown(bool bFromSave)
 			Flow->SetDominionState(true, true);
 		}
 	}
+	StopShieldIdle();
 	if (Visuals)
 	{
 		UTDStatics::PlayCue(this, Visuals->ShieldCollapse, GetActorLocation(), GetActorRotation());
@@ -578,6 +598,7 @@ void ATDDominion::Tick(float DeltaSeconds)
 		{
 			BuildParts();
 			SetState(ETDDominionState::ShieldsUp);
+			StartShieldIdle();
 			ApplyStage(0);
 		}
 		break;

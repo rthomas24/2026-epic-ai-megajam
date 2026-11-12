@@ -1,0 +1,48 @@
+// Triad Drift - engineering placeholder HUD (dev builds). Lead-owned.
+// Draws crosshair, squad cards, wave info, target brackets and speed with the Canvas so the game is
+// playable before Nick's real HUD exists. It installs itself only when the player has the stock
+// AHUD; any real HUD class set by a game mode wins. Toggle with the console variable TD.DebugHUD.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/HUD.h"
+#include "Subsystems/WorldSubsystem.h"
+#include "TDDebugHUD.generated.h"
+
+UCLASS()
+class UNREALGAMEJAM_API ATDDebugHUD : public AHUD
+{
+	GENERATED_BODY()
+
+public:
+	virtual void DrawHUD() override;
+
+private:
+	void DrawSquad(float& Y);
+	void DrawWave();
+	void DrawTargets();
+	void DrawCrosshair();
+	void DrawFlight();
+	void DrawLine2D(const FVector2D& A, const FVector2D& B, const FLinearColor& Color, float Thickness = 1.f);
+	void DrawBracket(const FVector2D& Center, float HalfSize, const FLinearColor& Color);
+	AActor* FindHUDDataActor();
+
+	TWeakObjectPtr<AActor> CachedHUDDataActor;
+	float NextSearchTime = 0.f;
+};
+
+/** Installs ATDDebugHUD for local players that still have the stock HUD. Not created in Shipping. */
+UCLASS()
+class UNREALGAMEJAM_API UTDDebugHUDSubsystem : public UTickableWorldSubsystem
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
+
+private:
+	float TimeUntilCheck = 0.f;
+};
