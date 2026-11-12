@@ -63,6 +63,11 @@ namespace TDSquad
 	void GetPlayerHostiles(const UWorld* World, TArray<AActor*>& OutHostiles);
 	/** The last actor that damaged Actor (Core UTDHealthComponent::GetLastAttacker). */
 	AActor* GetLastAttacker(const AActor* Actor);
+	/**
+	 * T4 obstacle registry (asteroids, ruins, planets, Dominion hull): if something registered lies
+	 * within ProbeDistance along Direction, returns true and a unit direction that slides around it.
+	 */
+	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection);
 	/** True if a hostile homing projectile is tracking Ship. */
 	bool IsMissileIncoming(const ATDShip* Ship);
 	/** Nearest active player shield dome (Bastion, ENG-11) within MaxDistance of Location. */
@@ -71,12 +76,22 @@ namespace TDSquad
 	/** HUD: T2 power cooldowns, 1 = ready (also 1 when the ship has no such power). */
 	void GetPowerCooldowns(const ATDShip* Ship, float& OutPower1, float& OutPower2, float& OutAbility);
 
+	/** T2 powers: install the spec's signature powers and ability slot once (no-op for slots already filled). */
+	void InstallPowers(ATDShip* Ship, const FTDShipSpec& Spec);
+	/** T2 powers: every power on the ship back to ready (respawn, retake). Never re-creates them. */
+	void ResetPowers(ATDShip* Ship);
+	/** T2: refill ammo, clear heat and charge (respawn, retake). */
+	void ResetWeapons(ATDShip* Ship);
+
 	// ---- HUD (T1 flight state, T2 targeting, T4 waves) ----
 	float GetBoost01(const ATDShip* Ship);
 	float GetSpeed01(const ATDShip* Ship);
 	bool IsOutOfBounds(const ATDShip* Ship);
 	AActor* GetCurrentTarget(const ATDShip* Ship);
 	void GetLockedTargets(const ATDShip* Ship, TArray<AActor*>& Out);
+	void GetTargetMarkers(const ATDShip* Ship, TArray<FTDTargetMarker>& Out);
+	ETDMissileWarning GetMissileWarning(const ATDShip* Ship);
+	bool GetLeadIndicator(const ATDShip* Ship, FVector& OutWorldLocation);
 	/** Cached wave-director lookup: ATDWaveDirector::Get iterates actors, so the HUD path must not call it every frame. */
 	struct FWaveDirectorCache
 	{

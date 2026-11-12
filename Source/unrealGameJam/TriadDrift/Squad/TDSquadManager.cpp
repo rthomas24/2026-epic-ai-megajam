@@ -181,6 +181,8 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 
 		TDSquad::ApplySpec(Slot->Ship, GetSpec(Id));
 		TDSquad::RestoreFullHealth(Slot->Ship);
+		TDSquad::ResetWeapons(Slot->Ship);
+		TDSquad::ResetPowers(Slot->Ship);
 		// Start the take at cruise along the facing, whatever the ship was doing before.
 		{
 			float MinS, CruiseS, BoostS;
@@ -704,6 +706,8 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	TDSquad::TeleportShip(Ship, Loc, Facing, false);
 	TDSquad::SetVelocity(Ship, Vel);
 	TDSquad::RestoreFullHealth(Ship);
+	TDSquad::ResetWeapons(Ship);
+	TDSquad::ResetPowers(Ship);
 	TDSquad::SetInvulnerable(Ship, RespawnInvulnerability);
 	Slot.State = ETDSquadSlotState::Alive;
 	Slot.RespawnAtTime = 0.0;
@@ -811,6 +815,23 @@ FTDWaveInfo ATDSquadManager::GetWaveInfo() const
 float ATDSquadManager::GetSpeed01() const
 {
 	return TDSquad::GetSpeed01(GetActiveShip());
+}
+
+TArray<FTDTargetMarker> ATDSquadManager::GetTargetMarkers() const
+{
+	TArray<FTDTargetMarker> Out;
+	TDSquad::GetTargetMarkers(GetActiveShip(), Out);
+	return Out;
+}
+
+ETDMissileWarning ATDSquadManager::GetMissileWarning() const
+{
+	return TDSquad::GetMissileWarning(GetActiveShip());
+}
+
+bool ATDSquadManager::GetLeadIndicator(FVector& OutWorldLocation) const
+{
+	return TDSquad::GetLeadIndicator(GetActiveShip(), OutWorldLocation);
 }
 
 bool ATDSquadManager::IsOutOfBounds() const

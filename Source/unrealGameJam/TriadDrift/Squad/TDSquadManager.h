@@ -198,6 +198,9 @@ public:
 	virtual TArray<AActor*> GetLockedTargets() const override;
 	virtual FTDWaveInfo GetWaveInfo() const override;
 	virtual float GetSpeed01() const override;
+	virtual TArray<FTDTargetMarker> GetTargetMarkers() const override;
+	virtual ETDMissileWarning GetMissileWarning() const override;
+	virtual bool GetLeadIndicator(FVector& OutWorldLocation) const override;
 	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------

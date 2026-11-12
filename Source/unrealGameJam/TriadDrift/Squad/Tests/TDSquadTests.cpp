@@ -15,6 +15,12 @@
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Powers/TDAbilityComponent.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "TriadDrift/Powers/TDRamPower.h"
+#include "TriadDrift/Powers/TDBastionPowers.h"
+#include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "EnhancedPlayerInput.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
@@ -465,10 +471,9 @@ bool FTDSquadSwitchStrikeRealPower::RunTest(const FString& Parameters)
 	F.W.Advance(0.5f);
 	ATDShip* Rift = F.Ship(ETDShipId::Rift);
 	UTDPowerComponent* Power = UTDPowerComponent::FindPower(Rift, ETDPowerInput::Signature1);
-	if (!Power)
+	if (!TestNotNull(TEXT("Rift carries its signature power (installed by the squad)"), Power))
 	{
-		AddWarning(TEXT("PENDING: squad ships carry no UTDPowerComponent yet (T2 ENG-09..11 signature powers not on main); the real-power path is unverified"));
-		return true;
+		return false;
 	}
 	UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Signature1, true);
 	F.W.Tick();
@@ -565,10 +570,8 @@ bool FTDSquadEngage::RunTest(const FString& Parameters)
 			}
 		}
 	}
-	if (!UTDPowerComponent::FindPower(F.Ship(ETDShipId::Lancer), ETDPowerInput::Signature1))
-	{
-		AddWarning(TEXT("PENDING: wingman ships carry no power components yet (T2 ENG-09..11), so 'never activated' is only checked through OnPowerUsed"));
-	}
+	TestNotNull(TEXT("the wingman ships do carry powers (so the check above is real)"),
+		UTDPowerComponent::FindPower(F.Ship(ETDShipId::Lancer), ETDPowerInput::Signature1));
 	TestFalse(TEXT("no Switch Strike from wingmen"), F.Squad->IsSwitchStrikeActive());
 	return true;
 }
@@ -789,6 +792,228 @@ bool FTDSquadHUDWaveInfo::RunTest(const FString& Parameters)
 	TestTrue(TEXT("HUD forwards the director's wave info"), Got.WaveNumber == Expected.WaveNumber && Got.WaveCount == Expected.WaveCount
 		&& Got.EnemiesAlive == Expected.EnemiesAlive && Got.bWaveActive == Expected.bWaveActive);
 	TestTrue(TEXT("wave table is known"), Got.WaveCount > 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadPowersInstalled, "TriadDrift.Squad.ShipLibrary.PowersInstalledOnce", TD_TEST_FLAGS)
+bool FTDSquadPowersInstalled::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	auto Count = [](const AActor* A) { TInlineComponentArray<UTDPowerComponent*> P(A); return P.Num(); };
+	TestNotNull(TEXT("Rift: portal blaster"), Cast<UTDPortalBlasterPower>(UTDPowerComponent::FindPower(F.Ship(ETDShipId::Rift), ETDPowerInput::Signature1)));
+	TestNotNull(TEXT("Lancer: ram"), Cast<UTDRamPower>(UTDPowerComponent::FindPower(F.Ship(ETDShipId::Lancer), ETDPowerInput::Signature1)));
+	TestNotNull(TEXT("Bastion: missile swarm"), Cast<UTDMissileSwarmPower>(UTDPowerComponent::FindPower(F.Ship(ETDShipId::Bastion), ETDPowerInput::Signature1)));
+	TestNotNull(TEXT("Bastion: shield dome (hold)"), Cast<UTDShieldDomePower>(UTDPowerComponent::FindPower(F.Ship(ETDShipId::Bastion), ETDPowerInput::Signature2)));
+	for (const ETDShipId Id : UTDShipLibrary::AllShips())
+	{
+		TestNotNull(TEXT("ability slot"), F.Ship(Id)->FindComponentByClass<UTDAbilityComponent>());
+	}
+	const int32 BastionPowers = Count(F.Ship(ETDShipId::Bastion));
+	// Death, respawn and a retake must not stack duplicate power components.
+	F.Kill(ETDShipId::Bastion);
+	F.W.Advance(12.5f);
+	F.Squad->SpawnSquad(FTransform::Identity);
+	F.W.Tick();
+	TestEqual(TEXT("no duplicate powers after respawn + retake"), Count(F.Ship(ETDShipId::Bastion)), BastionPowers);
+	TestTrue(TEXT("Bastion carries both signature powers"), BastionPowers >= 2);
+	// HUD shows real cooldowns: the player's power on cooldown after use.
+	ATDShip* Rift = F.Ship(ETDShipId::Rift);
+	UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Signature1, true);
+	F.W.Tick();
+	UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Signature1, false);
+	F.W.Advance(0.2f);
+	TestTrue(TEXT("HUD power cooldown reflects real use"), F.Squad->GetSquadHUD()[0].PowerCooldown01 < 1.f);
+	TestEqual(TEXT("HUD shows a wingman's power ready"), F.Squad->GetSquadHUD()[1].PowerCooldown01, 1.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadRespawnResetsWeapons, "TriadDrift.Squad.Death.RespawnResetsWeapons", TD_TEST_FLAGS)
+bool FTDSquadRespawnResetsWeapons::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+	UTDWeaponComponent* W = Lancer->GetWeapons();
+	if (!TestNotNull(TEXT("weapons"), W))
+	{
+		return false;
+	}
+	const int32 FullAmmo = W->GetAmmo(ETDWeaponSlot::Secondary);
+	for (int32 i = 0; i < 3; ++i)
+	{
+		W->FireOnce(ETDWeaponSlot::Secondary);
+	}
+	TestTrue(TEXT("ammo spent"), W->GetAmmo(ETDWeaponSlot::Secondary) < FullAmmo);
+	TestTrue(TEXT("killed by real damage"), F.KillWithDamage(ETDShipId::Lancer));
+	F.W.Advance(12.3f);
+	TestTrue(TEXT("respawned"), F.Squad->IsShipAlive(ETDShipId::Lancer));
+	TestEqual(TEXT("ammo refilled on respawn"), W->GetAmmo(ETDWeaponSlot::Secondary), FullAmmo);
+	TestEqual(TEXT("heat cleared on respawn"), W->GetHeat01(ETDWeaponSlot::Primary), 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadHUDTargeting, "TriadDrift.Squad.HUD.TargetingForwardsActiveShip", TD_TEST_FLAGS)
+bool FTDSquadHUDTargeting::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.SpawnEnemy(FVector(8000.f, 0.f, 0.f), 100000.f);
+	F.W.Advance(0.5f);
+	const UTDTargetingComponent* T = F.Ship(ETDShipId::Rift)->GetTargeting();
+	if (!TestNotNull(TEXT("targeting"), T))
+	{
+		return false;
+	}
+	TestEqual(TEXT("markers forwarded from the active ship"), F.Squad->GetTargetMarkers().Num(), T->GetMarkers().Num());
+	TestTrue(TEXT("missile warning forwarded"), F.Squad->GetMissileWarning() == T->GetMissileWarning());
+	FVector A, B;
+	TestEqual(TEXT("lead indicator forwarded"), F.Squad->GetLeadIndicator(A), T->GetLeadIndicator(B));
+	TestTrue(TEXT("current target forwarded"), F.Squad->GetCurrentTarget() == T->GetCurrentTarget());
+	// After a switch, the HUD follows the new active ship.
+	F.W.Advance(0.5f);
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestTrue(TEXT("HUD follows the new ship"), F.Squad->GetCurrentTarget() == F.Ship(ETDShipId::Lancer)->GetTargeting()->GetCurrentTarget());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadPowersDataDriven, "TriadDrift.Squad.ShipLibrary.PowersComeFromTheSpec", TD_TEST_FLAGS)
+bool FTDSquadPowersDataDriven::RunTest(const FString& Parameters)
+{
+	TestTrue(TEXT("spec lists Rift's power class"), UTDShipLibrary::Get(ETDShipId::Rift).Signature1PowerClass == UTDPortalBlasterPower::StaticClass());
+	TestTrue(TEXT("spec lists Bastion's dome on Signature2"), UTDShipLibrary::Get(ETDShipId::Bastion).Signature2PowerClass == UTDShieldDomePower::StaticClass());
+	TestTrue(TEXT("Lancer has no second signature"), UTDShipLibrary::Get(ETDShipId::Lancer).Signature2PowerClass == nullptr);
+
+	// An override (a BP child or Nick's data would do the same) swaps the class without code changes.
+	FSquadFixture F(/*bSpawnSquad*/ false);
+	FTDShipSpec Custom = UTDShipLibrary::Get(ETDShipId::Lancer);
+	Custom.Signature1PowerClass = UTDPortalBlasterPower::StaticClass();
+	F.Squad->ShipSpecOverrides.Add(ETDShipId::Lancer, Custom);
+	F.Squad->SpawnSquad(FTransform::Identity);
+	F.W.Tick();
+	TestNotNull(TEXT("override installed"), Cast<UTDPortalBlasterPower>(UTDPowerComponent::FindPower(F.Ship(ETDShipId::Lancer), ETDPowerInput::Signature1)));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadWingmanCannotFirePowers, "TriadDrift.Squad.Wingmen.CannotFirePowersEvenIfAsked", TD_TEST_FLAGS)
+bool FTDSquadWingmanCannotFirePowers::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	F.W.Advance(0.5f);
+	// Push the power input straight at the AI-flown ships: the components exist, but must refuse.
+	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		ATDShip* Ship = F.Ship(Id);
+		TestNotNull(TEXT("AI-flown"), F.Wing(Id));
+		for (const ETDPowerInput Slot : { ETDPowerInput::Signature1, ETDPowerInput::Signature2 })
+		{
+			UTDPowerComponent* Power = UTDPowerComponent::FindPower(Ship, Slot);
+			if (!Power)
+			{
+				continue;
+			}
+			UTDPowerComponent::RoutePowerInput(Ship, Slot, true);
+			F.W.Advance(0.6f);
+			UTDPowerComponent::RoutePowerInput(Ship, Slot, false);
+			TestFalse(TEXT("TryActivate refused on an AI ship"), Power->TryActivate());
+			F.W.Tick();
+			TestTrue(TEXT("power did not start on an AI-flown ship"), !Power->IsPowerActive() && Power->GetCooldown01() == 1.f);
+		}
+	}
+	TestEqual(TEXT("no OnPowerUsed"), F.Events->PowersUsed, 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadPowerSurvivesSwitch, "TriadDrift.Squad.Switch.PowerKeepsRunningAfterSwitch", TD_TEST_FLAGS)
+bool FTDSquadPowerSurvivesSwitch::RunTest(const FString& Parameters)
+{
+	// ENG-07: "A power started on one ship finishes after you switch away (dome stays up)".
+	FSquadFixture F;
+	TestTrue(TEXT("player into Bastion"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	ATDShip* Bastion = F.Ship(ETDShipId::Bastion);
+	UTDPowerComponent* Dome = UTDPowerComponent::FindPower(Bastion, ETDPowerInput::Signature2);
+	if (!TestNotNull(TEXT("dome power"), Dome))
+	{
+		return false;
+	}
+	UTDPowerComponent::RoutePowerInput(Bastion, ETDPowerInput::Signature2, true);
+	F.W.Advance(0.6f);
+	UTDPowerComponent::RoutePowerInput(Bastion, ETDPowerInput::Signature2, false);
+	F.W.Tick();
+	const UTDPowerSubsystem* Powers = UTDPowerSubsystem::Get(F.W.GetWorld());
+	TestTrue(TEXT("dome is up"), Powers && Powers->GetActiveDomes().Num() == 1);
+	F.W.Advance(0.5f);
+	TestTrue(TEXT("switch away mid-power"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
+	F.W.Advance(2.f);
+	TestTrue(TEXT("dome stays up after the switch"), Powers && Powers->GetActiveDomes().Num() == 1);
+	TestTrue(TEXT("Bastion now AI-flown"), F.Wing(ETDShipId::Bastion) != nullptr);
+	F.W.Advance(5.f);
+	TestTrue(TEXT("dome finishes on its own timer (6 s)"), Powers && Powers->GetActiveDomes().Num() == 0);
+	TestTrue(TEXT("and goes on cooldown"), Dome->GetCooldown01() < 1.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadPowersThroughInput, "TriadDrift.Squad.Switch.PowersThroughPlayerInput", TD_TEST_FLAGS)
+bool FTDSquadPowersThroughInput::RunTest(const FString& Parameters)
+{
+	// The full real path for each ship: Switch1/2/3 key -> squad switch; Q -> controller ->
+	// RoutePowerInput -> the ship's signature power fires; E -> the unlocked ability fires.
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("space player controller"), PC) || !Squad)
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	UEnhancedPlayerInput* Input = Cast<UEnhancedPlayerInput>(PC->PlayerInput);
+	if (!TestNotNull(TEXT("enhanced input"), Input))
+	{
+		return false;
+	}
+	const TPair<ETDShipId, const TCHAR*> Ships[] = {
+		{ ETDShipId::Rift, TEXT("IA_Switch1") }, { ETDShipId::Lancer, TEXT("IA_Switch2") }, { ETDShipId::Bastion, TEXT("IA_Switch3") } };
+	const TPair<ETDShipId, ETDAbilityId> Abilities[] = {
+		{ ETDShipId::Rift, ETDAbilityId::Cloak }, { ETDShipId::Lancer, ETDAbilityId::EMPPulse }, { ETDShipId::Bastion, ETDAbilityId::GravityWell } };
+	for (int32 i = 0; i < 3; ++i)
+	{
+		const ETDShipId Id = Ships[i].Key;
+		const FString Name = UEnum::GetValueAsString(Id);
+		W.Advance(0.5f); // past the switch cooldown
+		if (Id != Squad->GetActiveShipId())
+		{
+			Input->InjectInputForAction(PC->FindActionByName(Ships[i].Value), FInputActionValue(true));
+			W.Tick();
+			W.Tick();
+		}
+		ATDShip* Ship = Squad->GetShip(Id);
+		TestTrue(Name + TEXT(": switched by key"), Squad->GetActiveShipId() == Id && PC->GetPawn() == Ship);
+
+		// Q tap -> Signature1.
+		UTDPowerComponent* Power = UTDPowerComponent::FindPower(Ship, ETDPowerInput::Signature1);
+		if (!TestNotNull(Name + TEXT(": signature power installed"), Power))
+		{
+			continue;
+		}
+		Input->InjectInputForAction(PC->FindActionByName(TEXT("IA_Power")), FInputActionValue(true));
+		W.Tick();
+		W.Tick();
+		W.Advance(0.1f);
+		TestTrue(Name + TEXT(": Q fired the signature power"), Power->IsPowerActive() || Power->GetCooldown01() < 1.f);
+
+		// E -> the unlocked ability.
+		if (UTDAbilityComponent* AbilityComp = Ship->FindComponentByClass<UTDAbilityComponent>())
+		{
+			AbilityComp->SetAbility(Abilities[i].Value);
+			UTDPowerComponent* AbilityPower = AbilityComp->GetAbilityPower();
+			if (TestNotNull(Name + TEXT(": ability installed"), AbilityPower))
+			{
+				Input->InjectInputForAction(PC->FindActionByName(TEXT("IA_Ability")), FInputActionValue(true));
+				W.Tick();
+				W.Tick();
+				TestTrue(Name + TEXT(": E fired the ability"), AbilityPower->IsPowerActive() || AbilityPower->GetCooldown01() < 1.f);
+			}
+		}
+	}
 	return true;
 }
 
