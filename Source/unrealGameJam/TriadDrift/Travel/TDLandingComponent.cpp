@@ -251,6 +251,23 @@ FQuat UTDLandingComponent::PadFacing() const
 	return P ? FRotator(0.f, P->GetActorRotation().Yaw, 0.f).Quaternion() : FQuat::Identity;
 }
 
+FTransform UTDLandingComponent::GetExitTransform() const
+{
+	const ATDShip* Ship = GetShip();
+	if (!Ship)
+	{
+		return FTransform::Identity;
+	}
+	const FRotator Facing(0.f, Ship->GetActorRotation().Yaw, 0.f);
+	const FVector Right = FRotationMatrix(Facing).GetUnitAxis(EAxis::Y);
+	FVector Location = Ship->GetActorLocation() + Right * Tuning.ExitSideOffset;
+	if (const ATDLandingPad* P = Pad.Get())
+	{
+		Location.Z = P->GetBeaconLocation().Z + Tuning.ExitHeightAboveDeck;
+	}
+	return FTransform(Facing, Location);
+}
+
 float UTDLandingComponent::StateDuration(ETDLandingState S) const
 {
 	switch (S)
