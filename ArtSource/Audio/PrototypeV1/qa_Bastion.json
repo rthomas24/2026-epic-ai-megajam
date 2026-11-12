@@ -1,0 +1,34 @@
+{
+ "category": "sting",
+ "mix": false,
+ "files": [
+  {
+   "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Bastion\\V1_Bastion_01.wav",
+   "codec": "pcm_s16le",
+   "sample_rate": 48000,
+   "channels": 1,
+   "bits": 16,
+   "duration": 1.248,
+   "loudness_lufs": -26.8,
+   "loudness_kind": "ungated",
+   "integrated_lufs": null,
+   "ungated_lufs": -26.8,
+   "lra_lu": null,
+   "true_peak_dbtp": -1.0,
+   "sample_peak_dbfs": -1.577212,
+   "rms_dbfs": -27.924303,
+   "lead_silence_s": 0.0,
+   "tail_silence_s": 0.0136,
+   "dc_offset": 4e-06,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

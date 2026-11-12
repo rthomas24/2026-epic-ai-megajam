@@ -1,0 +1,41 @@
+{
+  "exit_code": 0,
+  "reason": "ok",
+  "pid": 24684,
+  "build": {
+    "branch": "++UE5+Release-5.9",
+    "changelist": 60351404,
+    "configuration": "Development"
+  },
+  "started_utc": "2026-11-12T21:08:22.439Z",
+  "ended_utc": "2026-11-12T21:09:48.105Z",
+  "duration_s": 85.7,
+  "log": {
+    "errors": 2,
+    "warnings": 7,
+    "errors_by_category": {
+      "LogInit": 2
+    },
+    "warnings_by_category": {
+      "LogDirectoryWatcher": 1,
+      "LogUObjectGlobals": 2,
+      "LogAnimationCompression": 2,
+      "LogModelContextProtocol": 1,
+      "LogLayoutService": 1
+    },
+    "first_errors": [
+      "LogInit: RendererSettings failed to find console variable fx.GPUSimulationTextureSizeX for GPUSimulationTextureSizeX",
+      "LogInit: RendererSettings failed to find console variable fx.GPUSimulationTextureSizeY for GPUSimulationTextureSizeY"
+    ]
+  },
+  "suppressed_dialogs": [],
+  "os": {
+    "exit_code": 0,
+    "monitor_reason": "normal",
+    "elapsed_seconds": 90.01,
+    "minimum_free_gib": 2.1134,
+    "peak_working_gib": 1.9264
+  },
+  "acceptance": "FAIL: two startup renderer CVar errors; no audio authoring",
+  "fix": "Enable stock Cascade in isolated HostTemplate and ensure Content directory; pending receipt/build recheck and validation grant"
+}

@@ -1,0 +1,147 @@
+{
+  "checked_utc": "2026-11-12T20:34:52.947195+00:00",
+  "skill_commit": "4096f47",
+  "originals_unchanged": true,
+  "assets": [
+    {
+      "event": "Engine",
+      "pack": "Terminal User Interface Sound Effects Pack LITE Edition",
+      "listing": "https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf",
+      "original_asset": "CMPTMisc_ComputerAmbienceLoop_HA_TerminalUI_06_Wav",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\MechAmbienceLoops\\CMPTMisc_ComputerAmbienceLoop_HA_TerminalUI_06_Wav.uasset",
+      "source_sha256": "3b3ed487809f15e9791bb766dbc32500cf03e78d33d96fe163f613213566404a",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "event": "Acceleration",
+      "pack": "Terminal User Interface Sound Effects Pack LITE Edition",
+      "listing": "https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf",
+      "original_asset": "MACHAppl_PowerUp_HA_TerminalUI_02_Wav",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\Power\\MACHAppl_PowerUp_HA_TerminalUI_02_Wav.uasset",
+      "source_sha256": "16fcdf6b8ed1f7b090b4b3c4582d059088fc9d83a8264f144113aad58585dcc6",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "event": "Primary",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Sci-Fi_Gun_1-1",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Sci-Fi_Gun_1-1.uasset",
+      "source_sha256": "ab086a675f6e99bd582f1be3d7cfe7d3ff096636ad1f9f6b2808be14a65b01f6",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    },
+    {
+      "event": "Missile",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Fire_Whoosh_2-15",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Fire_Whoosh_2-15.uasset",
+      "source_sha256": "214c5986f19635291e87ba897d2108c6d27e0ab9b9337bba96f3b9b8e77abfc6",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    },
+    {
+      "event": "Explosion",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Explosion_Medium_2-1",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Explosion_Medium_2-1.uasset",
+      "source_sha256": "c516541f4c6fc6b81a3827497777475a082809235e049b2a937b89e0aea5c9cb",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    },
+    {
+      "event": "Shield",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Shield_Metal_Impact_1-3",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Shield_Metal_Impact_1-3.uasset",
+      "source_sha256": "77bc4da4e2fe24bb7bc745cb4585b59a068d1c622d9daf2c2b8a702aa5e5eeec",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    },
+    {
+      "event": "Hull",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Hit_Generic_2-1",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Hit_Generic_2-1.uasset",
+      "source_sha256": "75690a88d707c1b6fccfa38ceb25c26aebd873092075d09be3433d4ab6a51257",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    },
+    {
+      "event": "Rift",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Whoosh_4-1",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Whoosh_4-1.uasset",
+      "source_sha256": "c757fff49af2ba011bd2493c6646e84ecbff1b50fd6810e6949b6e1d63236621",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    },
+    {
+      "event": "Lancer",
+      "pack": "Terminal User Interface Sound Effects Pack LITE Edition",
+      "listing": "https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf",
+      "original_asset": "MACHAppl_PowerUp_HA_TerminalUI_02_Wav",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\Power\\MACHAppl_PowerUp_HA_TerminalUI_02_Wav.uasset",
+      "source_sha256": "16fcdf6b8ed1f7b090b4b3c4582d059088fc9d83a8264f144113aad58585dcc6",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "event": "Bastion",
+      "pack": "Terminal User Interface Sound Effects Pack LITE Edition",
+      "listing": "https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf",
+      "original_asset": "CMPTMisc_DiskTrayClose_HA_TerminalUI_02_Wav",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\DiskTray\\CMPTMisc_DiskTrayClose_HA_TerminalUI_02_Wav.uasset",
+      "source_sha256": "b023175f072d2e9ac7e687b75b57af15a5e978d8393ed01d15622f1180148b45",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "event": "Target",
+      "pack": "Terminal User Interface Sound Effects Pack LITE Edition",
+      "listing": "https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf",
+      "original_asset": "MACHAppl_VCRButton_HA_TerminalUI_04_Wav",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\Buttons\\VCR\\MACHAppl_VCRButton_HA_TerminalUI_04_Wav.uasset",
+      "source_sha256": "7234ccabdc9e24cdfe060b1362b12f71ebc138e1824a7009537d8560f7b9bcdc",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "event": "Ability",
+      "pack": "Terminal User Interface Sound Effects Pack LITE Edition",
+      "listing": "https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf",
+      "original_asset": "CMPTMisc_PowerButton_HA_TerminalUI_02_Wav",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\Buttons\\Computer\\CMPTMisc_PowerButton_HA_TerminalUI_02_Wav.uasset",
+      "source_sha256": "bf849be81157a210e7c6788ebc06b48445492b0f626fa74d0f05feda5bc65a3d",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "event": "Explore",
+      "pack": "Atmoshpheric Worlds - FREE Game Music Pack - No AI",
+      "listing": "https://www.fab.com/listings/c9e03a63-9359-4929-9c8a-a680309dbd3f",
+      "original_asset": "Nordic_Exploration__The_Ancient_Moon",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Atmoshphe294217f9506V1\\data\\Content\\FreeAtmosGameMusic\\wav\\Nordic_Exploration__The_Ancient_Moon.uasset",
+      "source_sha256": "d693cf66c7844ec1975787ff4c96416d2ba715f53589d571e10461393ac5f274",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "event": "Combat",
+      "pack": "Atmoshpheric Worlds - FREE Game Music Pack - No AI",
+      "listing": "https://www.fab.com/listings/c9e03a63-9359-4929-9c8a-a680309dbd3f",
+      "original_asset": "Trailer_Solaric",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Atmoshphe294217f9506V1\\data\\Content\\FreeAtmosGameMusic\\wav\\Trailer_Solaric.uasset",
+      "source_sha256": "63e413c615345d7ae16dda5af684fc37878d46587dea11a1aa8149cd33b9868f",
+      "extraction": "Oodle buffer; header CRC and block lengths verified",
+      "restoration": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    }
+  ]
+}

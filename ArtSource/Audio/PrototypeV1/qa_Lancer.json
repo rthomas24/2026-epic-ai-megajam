@@ -1,0 +1,34 @@
+{
+ "category": "sting",
+ "mix": false,
+ "files": [
+  {
+   "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Lancer\\V1_Lancer_01.wav",
+   "codec": "pcm_s16le",
+   "sample_rate": 48000,
+   "channels": 1,
+   "bits": 16,
+   "duration": 0.9257,
+   "loudness_lufs": -15.12,
+   "loudness_kind": "ungated",
+   "integrated_lufs": null,
+   "ungated_lufs": -15.12,
+   "lra_lu": null,
+   "true_peak_dbtp": -1.0,
+   "sample_peak_dbfs": -0.965454,
+   "rms_dbfs": -13.667476,
+   "lead_silence_s": 0.0,
+   "tail_silence_s": 0.0062,
+   "dc_offset": 1.2e-05,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

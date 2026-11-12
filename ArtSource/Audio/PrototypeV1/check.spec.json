@@ -1,0 +1,59 @@
+{
+  "waves": [
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Engine_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_02",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_03",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_02",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_03",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_02",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_03",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_02",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_03",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_02",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_03",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_02",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_03",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Rift_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Lancer_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Bastion_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Target_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Ability_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explore_01",
+    "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Combat_01"
+  ],
+  "render": [
+    {
+      "sound": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Primary",
+      "name": "V1_Primary_Five",
+      "plays": 5,
+      "gap_seconds": 0.5,
+      "tail_seconds": 1
+    },
+    {
+      "sound": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Engine",
+      "name": "V1_Engine_Speed0",
+      "plays": 1,
+      "gap_seconds": 10,
+      "tail_seconds": 0.5,
+      "params": {
+        "Speed01": 0
+      }
+    },
+    {
+      "sound": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Engine",
+      "name": "V1_Engine_Speed1",
+      "plays": 1,
+      "gap_seconds": 10,
+      "tail_seconds": 0.5,
+      "params": {
+        "Speed01": 1
+      }
+    }
+  ]
+}

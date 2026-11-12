@@ -1,0 +1,52 @@
+{
+  "builds": [
+    {
+      "target": "TDAudioV1Editor",
+      "exit_code": 0,
+      "elapsed_seconds": 67.97,
+      "command": [
+        "C:\\Program Files\\Epic Games\\UE_5.9\\Engine\\Binaries\\ThirdParty\\DotNet\\10.0\\win-x64\\dotnet.exe",
+        "C:\\Program Files\\Epic Games\\UE_5.9\\Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.dll",
+        "TDAudioV1Editor",
+        "Win64",
+        "Development",
+        "-Project=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\TDAudioV1.uproject",
+        "-WaitMutex",
+        "-NoHotReloadFromIDE",
+        "-MaxParallelActions=1",
+        "-NoUBA"
+      ]
+    },
+    {
+      "target": "TDAudioV1",
+      "exit_code": 0,
+      "elapsed_seconds": 50.77,
+      "command": [
+        "C:\\Program Files\\Epic Games\\UE_5.9\\Engine\\Binaries\\ThirdParty\\DotNet\\10.0\\win-x64\\dotnet.exe",
+        "C:\\Program Files\\Epic Games\\UE_5.9\\Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.dll",
+        "TDAudioV1",
+        "Win64",
+        "Development",
+        "-Project=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\TDAudioV1.uproject",
+        "-WaitMutex",
+        "-NoHotReloadFromIDE",
+        "-MaxParallelActions=1",
+        "-NoUBA"
+      ]
+    }
+  ],
+  "editor_launch_attempts": [
+    {
+      "started": false,
+      "free_gib": 4.41857528686523,
+      "required_gib": 4.5,
+      "reason": "resource guard hold"
+    },
+    {
+      "started": false,
+      "free_gib": 4.24782943725586,
+      "required_gib": 4.5,
+      "reason": "renewed slot resource guard hold"
+    }
+  ]
+}

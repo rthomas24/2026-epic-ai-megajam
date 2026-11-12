@@ -1,0 +1,63 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.9",
+  "Description": "Isolated audio prototype; no shared Triad Drift gameplay module",
+  "DisableEnginePluginsByDefault": true,
+  "Modules": [
+    {
+      "Name": "TDAudioV1",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "Cascade",
+      "Enabled": true
+    },
+    {
+      "Name": "Metasound",
+      "Enabled": true
+    },
+    {
+      "Name": "ModelContextProtocol",
+      "Enabled": true
+    },
+    {
+      "Name": "EditorScriptingUtilities",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "PythonScriptPlugin",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "EditorToolset",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "MetaSoundToolset",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "ConsoleToolset",
+      "Enabled": true
+    },
+    {
+      "Name": "InputToolset",
+      "Enabled": true
+    }
+  ]
+}

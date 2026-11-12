@@ -1,0 +1,34 @@
+{
+ "category": "loop",
+ "mix": false,
+ "files": [
+  {
+   "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Engine\\V1_Engine_01.wav",
+   "codec": "pcm_s16le",
+   "sample_rate": 48000,
+   "channels": 1,
+   "bits": 16,
+   "duration": 4.3651,
+   "loudness_lufs": -23.0,
+   "loudness_kind": "integrated",
+   "integrated_lufs": -23.0,
+   "ungated_lufs": -23.04,
+   "lra_lu": 0.1,
+   "true_peak_dbtp": -10.3,
+   "sample_peak_dbfs": -10.319163,
+   "rms_dbfs": -20.606392,
+   "lead_silence_s": 0.0,
+   "tail_silence_s": 0.0,
+   "dc_offset": 6e-06,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": -54.2,
+   "seam_level_db": 1.03,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

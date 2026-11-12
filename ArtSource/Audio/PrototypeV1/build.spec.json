@@ -1,0 +1,616 @@
+{
+  "mix": [
+    {
+      "type": "SoundClass",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Master"
+    },
+    {
+      "type": "SoundClass",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+      "properties": {
+        "parentClass": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Master"
+      }
+    },
+    {
+      "type": "SoundClass",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_UI",
+      "properties": {
+        "parentClass": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Master",
+        "properties.bIsUISound": true
+      }
+    },
+    {
+      "type": "SoundClass",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Cine",
+      "properties": {
+        "parentClass": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Master"
+      }
+    },
+    {
+      "type": "SoundClass",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Music",
+      "properties": {
+        "parentClass": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Master",
+        "properties.bIsMusic": true,
+        "properties.volume": 1.0
+      }
+    },
+    {
+      "type": "SoundAttenuation",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Near",
+      "properties": {
+        "attenuation.bAttenuate": true,
+        "attenuation.bSpatialize": true,
+        "attenuation.attenuationShapeExtents": {
+          "x": 2500,
+          "y": 0,
+          "z": 0
+        },
+        "attenuation.falloffDistance": 17500,
+        "attenuation.nonSpatializedRadiusStart": 2500,
+        "attenuation.bAttenuateWithLPF": true,
+        "attenuation.lPFRadiusMin": 2500,
+        "attenuation.lPFRadiusMax": 20000,
+        "attenuation.lPFFrequencyAtMin": 20000,
+        "attenuation.lPFFrequencyAtMax": 2500
+      }
+    },
+    {
+      "type": "SoundAttenuation",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Medium",
+      "properties": {
+        "attenuation.bAttenuate": true,
+        "attenuation.bSpatialize": true,
+        "attenuation.attenuationShapeExtents": {
+          "x": 3000,
+          "y": 0,
+          "z": 0
+        },
+        "attenuation.falloffDistance": 57000,
+        "attenuation.nonSpatializedRadiusStart": 2500,
+        "attenuation.bAttenuateWithLPF": true,
+        "attenuation.lPFRadiusMin": 3000,
+        "attenuation.lPFRadiusMax": 60000,
+        "attenuation.lPFFrequencyAtMin": 20000,
+        "attenuation.lPFFrequencyAtMax": 2500
+      }
+    },
+    {
+      "type": "SoundConcurrency",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Weapon",
+      "properties": {
+        "concurrency.maxCount": 6,
+        "concurrency.resolutionRule": "StopQuietest",
+        "concurrency.retriggerTime": 0.03,
+        "concurrency.voiceStealReleaseTime": 0.03
+      }
+    },
+    {
+      "type": "SoundConcurrency",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Impact",
+      "properties": {
+        "concurrency.maxCount": 8,
+        "concurrency.resolutionRule": "StopQuietest",
+        "concurrency.retriggerTime": 0.02,
+        "concurrency.voiceStealReleaseTime": 0.03
+      }
+    },
+    {
+      "type": "SoundConcurrency",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Explosion",
+      "properties": {
+        "concurrency.maxCount": 4,
+        "concurrency.resolutionRule": "StopQuietest",
+        "concurrency.retriggerTime": 0.05,
+        "concurrency.voiceStealReleaseTime": 0.03
+      }
+    },
+    {
+      "type": "SoundConcurrency",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Loop",
+      "properties": {
+        "concurrency.maxCount": 12,
+        "concurrency.resolutionRule": "StopFarthestThenOldest",
+        "concurrency.retriggerTime": 0,
+        "concurrency.voiceStealReleaseTime": 0.03
+      }
+    },
+    {
+      "type": "SoundMix",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Mix/MIX_V1_Settings",
+      "properties": {
+        "duration": -1,
+        "fadeInTime": 0.15,
+        "fadeOutTime": 0.15
+      }
+    }
+  ],
+  "import": [
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Engine\\V1_Engine_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Engine_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": true,
+        "virtualizationMode": "PlayWhenSilent"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Acceleration\\V1_Acceleration_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Acceleration\\V1_Acceleration_02.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_02",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Acceleration\\V1_Acceleration_03.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_03",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Primary\\V1_Primary_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Primary\\V1_Primary_02.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_02",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Primary\\V1_Primary_03.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_03",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Missile\\V1_Missile_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Missile\\V1_Missile_02.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_02",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Missile\\V1_Missile_03.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_03",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Explosion\\V1_Explosion_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Explosion\\V1_Explosion_02.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_02",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Explosion\\V1_Explosion_03.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_03",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Shield\\V1_Shield_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Shield\\V1_Shield_02.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_02",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Shield\\V1_Shield_03.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_03",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Hull\\V1_Hull_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Hull\\V1_Hull_02.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_02",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\export\\Hull\\V1_Hull_03.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_03",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Rift\\V1_Rift_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Rift_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Lancer\\V1_Lancer_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Lancer_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Bastion\\V1_Bastion_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Bastion_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Target\\V1_Target_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Target_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Ability\\V1_Ability_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Ability_01",
+      "properties": {
+        "loadingBehavior": "RetainOnLoad",
+        "bLooping": false,
+        "virtualizationMode": "Restart"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Explore\\V1_Explore_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explore_01",
+      "properties": {
+        "loadingBehavior": "PrimeOnLoad",
+        "bLooping": true,
+        "virtualizationMode": "PlayWhenSilent"
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\prepared\\Combat\\V1_Combat_01.wav",
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Combat_01",
+      "properties": {
+        "loadingBehavior": "PrimeOnLoad",
+        "bLooping": true,
+        "virtualizationMode": "PlayWhenSilent"
+      }
+    }
+  ],
+  "oneshots": [
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Acceleration",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Weapon"
+        ]
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_01",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_02",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Acceleration_03"
+      ],
+      "volume_db": -10,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Primary",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Weapon"
+        ]
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_01",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_02",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Primary_03"
+      ],
+      "volume_db": -6,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Missile",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Weapon"
+        ]
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_01",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_02",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Missile_03"
+      ],
+      "volume_db": -5,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Explosion",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Explosion"
+        ]
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_01",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_02",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explosion_03"
+      ],
+      "volume_db": -7,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Shield",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Impact"
+        ]
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_01",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_02",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Shield_03"
+      ],
+      "volume_db": -11,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Hull",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Impact"
+        ]
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_01",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_02",
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Hull_03"
+      ],
+      "volume_db": -9,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Rift",
+      "format": "Stereo",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Cine"
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Rift_01"
+      ],
+      "volume_db": -10,
+      "volume_spread_db": 0,
+      "pitch_semitones": 0,
+      "pitch_spread": 0
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Lancer",
+      "format": "Stereo",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Cine"
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Lancer_01"
+      ],
+      "volume_db": -10,
+      "volume_spread_db": 0,
+      "pitch_semitones": 0,
+      "pitch_spread": 0
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Bastion",
+      "format": "Stereo",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Cine"
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Bastion_01"
+      ],
+      "volume_db": -10,
+      "volume_spread_db": 0,
+      "pitch_semitones": 0,
+      "pitch_spread": 0
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Target",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_UI"
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Target_01"
+      ],
+      "volume_db": -16,
+      "volume_spread_db": 0,
+      "pitch_semitones": 0,
+      "pitch_spread": 0
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Ability",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_UI"
+      },
+      "sounds": [
+        "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Ability_01"
+      ],
+      "volume_db": -12,
+      "volume_spread_db": 0,
+      "pitch_semitones": 0,
+      "pitch_spread": 0
+    }
+  ],
+  "loops": [
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Engine",
+      "format": "Mono",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/PrototypeV1/Mix/ATT_V1_Near",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/PrototypeV1/Mix/SCON_V1_Loop"
+        ]
+      },
+      "wave": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Engine_01",
+      "param": "Speed01",
+      "pitch_range": [
+        -2,
+        3
+      ],
+      "gain_range_db": [
+        -14,
+        -9
+      ],
+      "smooth_seconds": 0.15
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Explore",
+      "format": "Stereo",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Music"
+      },
+      "wave": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Explore_01",
+      "param": "Intensity",
+      "pitch_range": [
+        0,
+        0
+      ],
+      "gain_range_db": [
+        0,
+        0
+      ],
+      "smooth_seconds": 1.5
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_Combat",
+      "format": "Stereo",
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/PrototypeV1/Mix/SC_V1_Music"
+      },
+      "wave": "/Game/TriadDrift/Audio/PrototypeV1/Waves/SW_V1_Combat_01",
+      "param": "Intensity",
+      "pitch_range": [
+        0,
+        0
+      ],
+      "gain_range_db": [
+        0,
+        0
+      ],
+      "smooth_seconds": 1.5
+    }
+  ]
+}
