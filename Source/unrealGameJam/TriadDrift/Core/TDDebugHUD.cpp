@@ -442,7 +442,8 @@ void ATDDebugHUD::DrawObjective()
 	{
 		float W = 0.f, H = 0.f;
 		GetTextSize(Objective, W, H, nullptr, 1.3f);
-		DrawText(Objective, ColorObjective, (Canvas->SizeX - W) * 0.5f, FMath::Max(22.f, Canvas->SizeY * 0.12f), nullptr, 1.3f);
+		// Below the three squad rows, so the two never overlap.
+		DrawText(Objective, ColorObjective, (Canvas->SizeX - W) * 0.5f, FMath::Max(22.f, Canvas->SizeY * 0.12f) + 76.f, nullptr, 1.3f);
 	}
 
 	const FVector Eye = Pawn->GetActorLocation();
