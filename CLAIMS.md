@@ -27,7 +27,7 @@ See docs/visual/Day1-Integration-Policy-2026-11-12.md for the dated integration 
 
 | Owner / chat | Exact writable paths | Branch | Nick worktree | Ownership status |
 |---|---|---|---|---|
-| Lead Coordinator | docs/visual/**; CREDITS.md; DEVLOG.md; coordinated CLAIMS.md updates | nick/visual-assets; nick/day1-integration | visual-assets; day1-integration | Active coordination only; no asset implementation; serial claim publication/integration |
+| Lead Coordinator | docs/visual/**; CREDITS.md; DEVLOG.md; coordinated CLAIMS.md updates; Nick-side MESSAGEBOARD.md posts/replies under AGENTS §6.10 | nick/visual-assets; nick/day1-integration | visual-assets; day1-integration | Active coordination only; no asset implementation; serial claim publication/integration |
 | Environment & VFX Agent | ArtSource/Environment/SpaceFoundation/UnrealNative/**; Content/TriadDrift/Environment/SpaceFoundation/** | nick/environment-vfx | environment-vfx | Active first native environment milestone; original source outside UnrealNative read-only; future VFX/Audio not assigned |
 | UI/UX & HUD Agent | Plugins/TriadDriftHUD/**; ArtSource/UI/TriadHUD/Unreal/**; Content/TriadDrift/UI/TriadHUD/** | nick/hud-native | hud-native | Frozen standalone milestone at pushed 6d9739e; PR #4 draft; reservation retained; Ryan activation/packaging approval required; legacy staged claim excluded |
 | Ships & Weapons Agent | ArtSource/Space/Ships/Lancer/production/**; ArtSource/Space/Ships/Lancer/review/M02/** | nick/ships-lancer | ships-lancer | Active user-authorized M02 refinement; M01 sources/reviews and attachments read-only; preserve 33 names/transforms/pivots; no Unreal import/final production approval |
@@ -54,6 +54,7 @@ Earlier task start times were not recorded precisely; they are not invented here
 | Lancer M02 refinement | Ships & Weapons Agent | in progress | Nov 12 12:50; claim 2d4831f | User-authorized production refinement; source preparation only until heavy slot; render approval before Unreal | production/** and review/M02/** inside exact Lancer lane |
 | Lancer M02 bounded Blender QA / renders | Ships & Weapons Agent | queued | Not started | After Environment releases its entire heavy sequence and Lead checks RAM; one 2-thread process | Same M02 lane, no original source/interface changes |
 | Three cinematic ship-switch candidates (Rift/Lancer/Bastion) | Audio & Music Agent | in progress | Nov 12 12:56; ownership transfer 13:01, direct dedicated-chat brief verified | Claim first; exactly three playable WAVs with provenance and measured metrics; manual approval before further audio work | ArtSource/Audio/StarterPlan/SwitchM02/** only |
+| Message-board adoption and R-001/002/003 technical replies | Lead Coordinator | in progress | Nov 12 13:09 | Read origin/main §6.10 and board; collect worker facts, publish replies separately; no human decisions assumed | MESSAGEBOARD.md; docs/visual/**; Nick claims only |
 
 The dedicated Audio & Music chat succeeds the stopped Audio & Polish worker for this three-candidate task; the predecessor is not resumed.
 Broader audio-library/music and future combat VFX production remain unassigned;
