@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Powers/TDAbilityComponent.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Powers/TDAbilityPowers.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -10,6 +11,9 @@
 UTDAbilityComponent::UTDAbilityComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	AbilityClasses.Add(ETDAbilityId::GravityWell, UTDGravityWellPower::StaticClass());
+	AbilityClasses.Add(ETDAbilityId::Cloak, UTDCloakPower::StaticClass());
+	AbilityClasses.Add(ETDAbilityId::EMPPulse, UTDEMPPower::StaticClass());
 }
 
 void UTDAbilityComponent::BeginPlay()
