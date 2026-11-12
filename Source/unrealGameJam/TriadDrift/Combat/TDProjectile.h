@@ -199,6 +199,9 @@ private:
 	uint32 LaunchSerial = 0;
 	FVector PreviousLocation = FVector::ZeroVector;
 	double LastTransitTime = -1.0;
+
+	/** World time of the launch: the projectile's own Tick skips that frame (the weapon already stepped it). */
+	double LaunchWorldTime = -1.0;
 	FVector Velocity = FVector::ZeroVector;
 	float Age = 0.f;
 	float Lifetime = 1.f;
