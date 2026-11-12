@@ -46,6 +46,19 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 * 90 degrees FOV, up to MaxDistanceGrowth times the base. Returns the scale factor (>= 1).
 	 */
 	static float DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
+	/** Same, with an explicit on-screen floor (incoming hostile fire uses MinIncomingStreakPixels). */
+	static float DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera, float MinPixels);
+
+	/**
+	 * Hostile fire flying TOWARD the camera is seen head-on: its streak is a dot. It gets a hot head and this
+	 * on-screen floor so incoming fire reads before it lands (T1's feel pass).
+	 */
+	static constexpr float MinIncomingStreakPixels = 18.f;
+	static constexpr float IncomingHeadScale = 2.2f;
+	static bool IsIncoming(const FVector& Velocity, const FVector& ShotLocation, const FVector& CameraLocation)
+	{
+		return FVector::DotProduct(Velocity, ShotLocation - CameraLocation) < 0.f;
+	}
 	static constexpr float MinStreakPixels = 11.f;
 	/** Heavy shells read bigger than needles: the heavy ship's gun should look heavy. */
 	static constexpr float MinHeavyStreakPixels = 18.f;
