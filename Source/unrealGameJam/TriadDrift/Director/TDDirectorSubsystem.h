@@ -122,9 +122,13 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (ClampMin = "2"))
 	int32 MultiKillCount = 3;
 
-	/** ...within this window (game seconds). */
+	/** ...within this window (real seconds). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "s"))
 	float MultiKillWindowSeconds = 1.5f;
+
+	/** Multi-kill importance never exceeds this (and always stays below CooldownBypassImportance). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (ClampMin = "0", ClampMax = "1"))
+	float MultiKillMaxImportance = 0.7f;
 
 	/** Extra importance per kill beyond MultiKillCount. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director")
@@ -210,7 +214,6 @@ private:
 
 	/** Recent player kill times (game seconds), oldest first; bounded. */
 	TArray<double> RecentKillTimes;
-	int32 MultiKillStreakReported = 0;
 
 	int32 ShotCount = 0;
 	bool bSceneCutPending = false;
