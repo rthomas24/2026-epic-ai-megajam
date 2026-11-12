@@ -475,6 +475,35 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 		SteerDir = (SteerDir + (Home - Loc).GetSafeNormal() * 0.6f).GetSafeNormal();
 	}
 
+	// Stay in the shot (live-measured: wingmen fought behind the camera): unless off defending the
+	// player, get in front of the chase camera, and keep out of the player's aim line.
+	if (Leader && !bDefendingPlayer)
+	{
+		const FTransform Cam = Leader->GetChaseCameraTransformNow();
+		const FVector CamFwd = Cam.GetRotation().GetForwardVector();
+		const float Depth = FVector::DotProduct(Loc - Cam.GetLocation(), CamFwd);
+		if (Depth < InShotMinDepth)
+		{
+			SteerDir = (SteerDir + CamFwd * InShotOvertakeWeight).GetSafeNormal();
+			TargetSpeed = BoostS;
+			bBoost = true;
+		}
+		const FVector LeaderLoc = Leader->GetActorLocation();
+		const FVector AimLine = TDSquad::GetAimDirection(Leader);
+		const FVector ToMe = Loc - LeaderLoc;
+		const float Along = FVector::DotProduct(ToMe, AimLine);
+		if (Along > 0.f)
+		{
+			const FVector Off = ToMe - AimLine * Along;
+			const float MinOff = Along * FMath::Tan(FMath::DegreesToRadians(AimLineClearanceDeg)) + 400.f;
+			if (Off.Size() < MinOff)
+			{
+				const FVector Out = Off.IsNearlyZero() ? Leader->GetActorUpVector() : Off.GetSafeNormal();
+				SteerDir = (SteerDir + Out * 1.5f).GetSafeNormal();
+			}
+		}
+	}
+
 	SteerToward(Ship, ApplyAvoidance(Ship, SteerDir), TargetSpeed, bBoost);
 
 	// Weapon aim: the lead direction plus this pilot's aim error.
@@ -600,6 +629,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 
 	// What the other wingman is shooting (spread out unless the player is threatened).
 	const AActor* OtherWingTarget = nullptr;
+	bool bOtherDefending = false;
 	if (S)
 	{
 		for (const FTDSquadSlot& Slot : S->GetSlots())
@@ -610,6 +640,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 				if (const ATDWingmanAIController* OtherAI = Cast<ATDWingmanAIController>(Other->GetController()))
 				{
 					OtherWingTarget = OtherAI->GetCurrentTarget();
+					bOtherDefending = OtherAI->IsDefendingPlayer();
 				}
 			}
 		}
@@ -617,8 +648,20 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 
 	AActor* BestThreat = nullptr;
 	float BestThreatDistSq = TNumericLimits<float>::Max();
+	bool bBestThreatInView = false;
 	AActor* Best = nullptr;
 	float BestScore = TNumericLimits<float>::Max();
+	// Live measurement (TD.Squad.Frame): with a bias alone the wing still fought off-screen most of the
+	// time. So when anything worth shooting is inside the player's view, pick only among those.
+	AActor* BestInView = nullptr;
+	float BestInViewScore = TNumericLimits<float>::Max();
+	FTransform ViewCam = FTransform::Identity;
+	float CosView = 2.f; // > 1: no view cone without a leader
+	if (Leader)
+	{
+		ViewCam = Leader->GetChaseCameraTransformNow();
+		CosView = FMath::Cos(FMath::DegreesToRadians(FMath::Max(10.f, Leader->GetChaseCameraFOVNow() * 0.5f * ViewConeScale)));
+	}
 
 	for (AActor* H : ScratchHostiles)
 	{
@@ -644,6 +687,8 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 			{
 				BestThreatDistSq = DistToAnchorSq;
 				BestThreat = H;
+				bBestThreatInView = Leader && FVector::DotProduct((HLoc - Leader->GetChaseCameraTransformNow().GetLocation()).GetSafeNormal(),
+					Leader->GetChaseCameraTransformNow().GetRotation().GetForwardVector()) > FMath::Cos(FMath::DegreesToRadians(Leader->GetChaseCameraFOVNow() * 0.5f * ViewConeScale));
 			}
 		}
 
@@ -671,9 +716,23 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 			BestScore = Score;
 			Best = H;
 		}
+		const bool bInView = FVector::DotProduct((HLoc - ViewCam.GetLocation()).GetSafeNormal(), ViewCam.GetRotation().GetForwardVector()) > CosView;
+		if (bInView && Score < BestInViewScore)
+		{
+			BestInViewScore = Score;
+			BestInView = H;
+		}
 	}
 
-	return BestThreat ? BestThreat : Best;
+	// Defending the player comes first, but one wingman off-screen on defence is enough: the other
+	// keeps the fight in front of the camera (a threat already on screen is fine for either).
+	if (BestThreat && (!bOtherDefending || bBestThreatInView))
+	{
+		bDefendingPlayer = !bBestThreatInView;
+		return BestThreat;
+	}
+	bDefendingPlayer = false;
+	return BestInView ? BestInView : Best;
 }
 
 // ---------------------------------------------------------------------------------------------

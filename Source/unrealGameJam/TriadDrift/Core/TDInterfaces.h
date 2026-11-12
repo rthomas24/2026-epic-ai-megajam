@@ -133,6 +133,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual bool IsOutOfBounds() const { return false; }
 
+	/**
+	 * Play-area warning for the player's ship: "EDGE OF THE COMBAT ZONE" in the warning band,
+	 * "LEAVING THE COMBAT ZONE - TURN BACK" outside it; empty when well inside.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual FText GetBoundaryWarningText() const { return FText::GetEmpty(); }
+
 	/** Why the hyperdrive cannot be used right now ("HYPERDRIVE LOCKED - ENEMIES IN RANGE"); empty when it can. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual FText GetHyperdriveBlockText() const { return FText::GetEmpty(); }

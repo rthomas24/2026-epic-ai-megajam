@@ -176,6 +176,14 @@ By hand in the sandbox:
 | `PlayBounds.AppliedToEveryShip` | existing and later-spawned ships pick up `SetPlayBounds` |
 | `Landing.PromptRuleAndAssistRange` | 60% of the atmosphere cap; "Hold F to land" at 300 m when fast (the assist can start) and at 100 m when slow; nothing at 500 m or for a ship the player isn't flying |
 | `Landing.HoldFFromArrivalLandsInOneMotion` | from the rig's descent start, hands-off until the prompt, then a real held F: the assist starts, the landing sequence begins in under 8 s, never below the end speed, never touches the ground, lands on the player pad |
+| `Landing.HoldFLandsAtAnyFrameRateAndInSlowMotion` | the descent-start arrival with a held F lands without touching the ground at 30 / 60 / 120 fps and at 0.25 time dilation |
+| `Landing.ReboardLiftsAWingmanStillComingDown` | re-board while a far wingman is still landing: it goes straight back to flying, unparked, vulnerable, pad free |
+| `Planet.PlaceholderGroundCanBeSwitchedOff` | `SpawnForPlanet(..., false)` and `SetPlaceholderGround` switch the slab and its collision |
+| `Safety.HeldFNeverCarriesThroughAHandOver` | F pressed mid-landing and held through hand-over, re-board and take-off: no take-off at touchdown, no self-landing after |
+| `Safety.VoidedOrTimedOutTravelHandsBackAndRetries` | a superseded load and a timeout each hand the entering ship back and allow a new request |
+| `Safety.SwitchLeavesNoLatchedInputOrHeldHyperdrive` | the ship the player leaves gets neutral input; a held H ends the old spool and never spools the new ship |
+| `Safety.JumpUnderSlowMotion` | spool, jump distance and drop-out follow game time at 0.25 dilation |
+| `Safety.LockReasonRefusedEventOwnedLocks` | lock reasons, the refused event, locks holding through a retake, a destroyed owner's lock gone, a new level unlocked |
 | `Landing.PadIsTheObjectiveUntilTouchdown` | rig pad tagged while flying in; survives a switch; off outside the atmosphere, on death, at touchdown, after take-off, on destroy; back after a retake and on a new visit |
 | `Landing.AssistStopsOnReleaseRetakeAndBoost` | releasing F, a retake and death each end the assist and clear its override |
 | `Landing.PromptSequenceWingmenTakeOff` | prompt range and speed, the full sequence and its states, pad reservation, a wingman on the side pad, input ignored while landed, take-off with the wingman |
@@ -198,7 +206,14 @@ By hand in the sandbox:
   - The look-ahead sweep (300 m plus one frame of travel) ends the jump at cruise speed without a burst. There's no contact and no damage.
   - A spool is refused with anything solid within 200 m along the nose (`ObstacleAhead`).
 - **Wells and boundary:** gravity wells stop the jump at the well's edge, and the play boundary stops it inside the play space, at all three frame rates. The spool takes 1.2 s at every frame rate.
-- **Hyperdrive locks:** while `UTDTravelSubsystem::AddHyperdriveLock(Owner, Reason)` is active, no ship can spool. A lock added mid-jump drops the ship out, with end cause `Locked`.
+- **Hyperdrive locks:** while `UTDTravelSubsystem::AddHyperdriveLock(Owner, Reason, OwnerObject)` is active,
+  no ship can spool. A lock added mid-jump drops the ship out, with end cause `Locked`.
+  - Locks belong to their owners. Nothing clears them wholesale; a CUT retake doesn't either (review MAJOR,
+    Nov 12).
+  - Pass `OwnerObject` (the wave director, the Dominion): a lock whose owner is destroyed is ignored and pruned.
+  - Locks never survive level travel, since they live per world.
+  - `ClearAllHyperdriveLocks` is for debug and tests only.
+  - Each owner removes its own lock when a retake restarts its scene without the condition.
 - **Atmospheric entry:**
   - It's refused for wingmen, dead ships, while an entry is already running, and while a retake or level travel is pending.
   - A death during entry aborts it cleanly: override and invulnerability released, no travel.
@@ -207,7 +222,8 @@ By hand in the sandbox:
 - **Timing:** landing (4.9 s), take-off (3.5 s) and entry (2.5 s) are the same at 30, 60 and 120 fps.
 
 ### Not proven yet
-- **Whether a wave or the finale should lock the hyperdrive is a policy call** for the Lead. The lock mechanism exists, but nothing adds a lock yet.
+- Locks in use: "Wave" (T4's wave director, while a wave is active) and "Finale" (the Dominion, from the assault
+  to victory). Lead decision, Nov 12.
 - **The look-ahead only checks straight along the nose.** A jump steered at 10% around a large body is caught by the per-frame look-ahead, not by a full path prediction.
 - **Real level travel firing exactly once is only partly tested.** Headless tests can't perform a real `TravelTo`; the guard is tested with the flow's pending flags.
 - **The full planet round trip** (descent, landing, hand-off, re-board, take-off, return) still waits on T5's ground mode.

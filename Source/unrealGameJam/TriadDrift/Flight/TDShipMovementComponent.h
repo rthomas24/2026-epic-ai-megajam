@@ -13,6 +13,19 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnFlightImpact, const FTDFlightIm
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTDOnFlightEvent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDriftEnded, bool, bBurst);
 
+/** Where the ship is relative to the play space (sphere in space, box in an atmosphere zone). */
+UENUM(BlueprintType)
+enum class ETDBoundaryState : uint8
+{
+	Inside,
+	/** In the warning band just inside the edge (BoundaryWarnDistance). */
+	Warning,
+	/** Past the edge: the nose is being turned back and the ship pushed in. */
+	Outside
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnBoundaryStateChanged, ETDBoundaryState, NewState);
+
 /**
  * Arcade 6DOF-lite flight: custom velocity integration (TDFlightSim), swept movement with glancing /
  * head-on collision response, soft spherical play-space boundary. Driven only by SetFlightInput, so
@@ -209,6 +222,23 @@ public:
 	 */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
 	FTDOnDriftEnded OnDriftReleased;
+
+	/** Fires once per change of GetBoundaryState (presentation: warning sting, HUD flash). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
+	FTDOnBoundaryStateChanged OnBoundaryStateChanged;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	ETDBoundaryState GetBoundaryState() const
+	{
+		return State.bOutOfBounds ? ETDBoundaryState::Outside : (State.bNearBoundary ? ETDBoundaryState::Warning : ETDBoundaryState::Inside);
+	}
+
+	/**
+	 * Player-facing boundary text for the HUD (ITDHUDData): "EDGE OF THE COMBAT ZONE" in the warning band,
+	 * "LEAVING THE COMBAT ZONE - TURN BACK" past the edge ("FLIGHT AREA" in an atmosphere zone), empty inside.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	FText GetBoundaryWarningText() const;
 
 	// ---- UMovementComponent --------------------------------------------------------------------------
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

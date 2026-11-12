@@ -101,14 +101,18 @@ void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransi
 	}
 	if (!FX || !FTDPowerPresentation::HasArt(FX->PortalIdle))
 	{
-		// Shipping-safe placeholder: a thin magenta disc (cylinder axis along the portal normal) with a bright rim.
+		// Shipping-safe placeholder: a bright magenta ring with a faint open "iris" of thin inner rings, so the player
+		// sees what they are flying into (playtest 3: a solid disc hid the reticle and everything behind it).
 		const FLinearColor Magenta = UTDStatics::ShipColor(ETDShipId::Rift);
-		const float D = Radius * 2.f / 100.f;
-		PlaceholderDisc = FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Cylinder, FVector(D, D, 0.04f),
-			FRotator(90.f, 0.f, 0.f), Magenta * 0.5f, 2.f);
-		if (USceneComponent* Rim = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 24, 60.f, Magenta, 8.f))
+		PlaceholderDisc = nullptr;
+		struct FRingSpec { float RadiusScale; float Thickness; float Glow; };
+		const FRingSpec Rings[] = { { 1.f, 70.f, 10.f }, { 0.93f, 25.f, 5.f }, { 0.62f, 12.f, 2.f }, { 0.32f, 10.f, 1.5f } };
+		for (const FRingSpec& R : Rings)
 		{
-			Rim->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+			if (USceneComponent* Ring = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius * R.RadiusScale, 1, 24, R.Thickness, Magenta, R.Glow))
+			{
+				Ring->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+			}
 		}
 	}
 	BroadcastState(ETDPortalState::Open);

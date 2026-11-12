@@ -151,6 +151,34 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		SkyLight->SetIntensity(1.5f);
 		// Daylight: auto exposure is fine; the post-process only exists so a map without one is consistent.
 	}
+	if (Style == ETDPlaceholderSkyStyle::Verdance && Atmosphere)
+	{
+		Sun->SetWorldRotation(FRotator(-9.f, 200.f, 0.f));
+		Sun->SetIntensity(4.f);
+		Sun->SetLightColor(FLinearColor(1.f, 0.78f, 0.62f));
+		Atmosphere->SetRayleighScattering(FLinearColor(0.0035f, 0.02f, 0.03f));
+		if (Fill) { Fill->SetLightColor(FLinearColor(0.35f, 0.9f, 0.85f)); Fill->SetIntensity(1.2f); }
+		SkyLight->SetIntensity(1.f);
+		FPostProcessSettings& S = Exposure->Settings;
+		S.bOverride_AutoExposureBias = true;
+		S.AutoExposureBias = -0.7f;
+		S.bOverride_BloomIntensity = true;
+		S.BloomIntensity = 1.4f;
+	}
+	else if (Style == ETDPlaceholderSkyStyle::Cinder && Atmosphere)
+	{
+		Sun->SetWorldRotation(FRotator(-22.f, 130.f, 0.f));
+		Sun->SetIntensity(6.f);
+		Sun->SetLightColor(FLinearColor(1.f, 0.55f, 0.35f));
+		Atmosphere->SetRayleighScattering(FLinearColor(0.03f, 0.011f, 0.005f));
+		Atmosphere->SetMieScatteringScale(0.012f);
+		if (Fill) { Fill->SetLightColor(FLinearColor(1.f, 0.4f, 0.2f)); Fill->SetIntensity(1.2f); }
+		FPostProcessSettings& S = Exposure->Settings;
+		S.bOverride_AutoExposureBias = true;
+		S.AutoExposureBias = -0.4f;
+		S.bOverride_BloomIntensity = true;
+		S.BloomIntensity = 1.3f;
+	}
 	SkyLight->RecaptureSky();
 }
 

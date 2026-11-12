@@ -1,6 +1,7 @@
 // Triad Drift - first-person character (ENG-21). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -448,6 +449,7 @@ void ATDFirstPersonCharacter::SetCarrying(bool bNewCarrying)
 
 void ATDFirstPersonCharacter::RespawnAt(const FTransform& Where)
 {
+	LastSafeLocation = Where.GetLocation();
 	bForcedMove = bDashing = bSliding = bMantling = false;
 	ForcedTimeLeft = SlideTimeLeft = 0.f;
 	UnCrouch();
@@ -551,9 +553,10 @@ void ATDFirstPersonCharacter::PingObjective()
 
 void ATDFirstPersonCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
 {
-	if (ShieldDamage + HullDamage > 0.f)
+	const ATDInteractableActor* Held = Cast<ATDInteractableActor>(HoldTarget.Get());
+	if (ShieldDamage + HullDamage > 0.f && !(Held && Held->bHoldSurvivesDamage))
 	{
-		CancelInteract(); // holds are interrupted by damage
+		CancelInteract(); // holds are interrupted by damage (except a hold made to be done under fire)
 	}
 }
 
@@ -729,6 +732,42 @@ void ATDFirstPersonCharacter::TickInteract(float DeltaSeconds)
 	}
 }
 
+void ATDFirstPersonCharacter::TickSafeGround(float DeltaSeconds)
+{
+	SafeSampleTimer -= DeltaSeconds;
+	if (SafeSampleTimer > 0.f)
+	{
+		return;
+	}
+	SafeSampleTimer = 0.25f;
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	const FFindFloorResult& Floor = Move->CurrentFloor;
+	if (!Move->IsMovingOnGround() || !Floor.IsWalkableFloor() || bForcedMove)
+	{
+		return;
+	}
+	const AActor* FloorActor = Floor.HitResult.GetActor();
+	if (FloorActor && FloorActor->ActorHasTag(TEXT("TD.Unsafe")))
+	{
+		return;
+	}
+	LastSafeLocation = GetActorLocation();
+}
+
+void ATDFirstPersonCharacter::ReturnToSafeGround()
+{
+	if (LastSafeLocation.IsZero())
+	{
+		return;
+	}
+	CancelInteract();
+	bForcedMove = bDashing = bSliding = bMantling = false;
+	GetCharacterMovement()->StopMovementImmediately();
+	SetActorLocation(LastSafeLocation, false, nullptr, ETeleportType::TeleportPhysics);
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	SafeSampleTimer = 0.5f; // don't re-sample a spot at the hazard edge straight away
+}
+
 void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -749,6 +788,7 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 		TickSlide(DeltaSeconds);
 		TickMantle(DeltaSeconds);
 		TickInteract(DeltaSeconds);
+		TickSafeGround(DeltaSeconds);
 	}
 	TickDash(DeltaSeconds);
 	PingTimeLeft = FMath::Max(0.f, PingTimeLeft - DeltaSeconds);

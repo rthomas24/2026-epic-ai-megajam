@@ -497,4 +497,23 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 	{
 		OnDriftReleased.Broadcast(State.bDriftBurstThisStep);
 	}
+	const ETDBoundaryState WasBoundary = Before.bOutOfBounds ? ETDBoundaryState::Outside : (Before.bNearBoundary ? ETDBoundaryState::Warning : ETDBoundaryState::Inside);
+	if (GetBoundaryState() != WasBoundary)
+	{
+		OnBoundaryStateChanged.Broadcast(GetBoundaryState());
+	}
+}
+
+FText UTDShipMovementComponent::GetBoundaryWarningText() const
+{
+	const bool bZone = Context.bBoxBoundary;
+	switch (GetBoundaryState())
+	{
+	case ETDBoundaryState::Warning:
+		return bZone ? NSLOCTEXT("TDFlight", "EdgeOfArea", "EDGE OF THE FLIGHT AREA") : NSLOCTEXT("TDFlight", "EdgeOfZone", "EDGE OF THE COMBAT ZONE");
+	case ETDBoundaryState::Outside:
+		return bZone ? NSLOCTEXT("TDFlight", "LeavingArea", "LEAVING THE FLIGHT AREA - TURN BACK") : NSLOCTEXT("TDFlight", "LeavingZone", "LEAVING THE COMBAT ZONE - TURN BACK");
+	default:
+		return FText::GetEmpty();
+	}
 }

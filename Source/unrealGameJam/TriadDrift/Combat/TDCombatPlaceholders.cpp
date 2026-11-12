@@ -15,19 +15,21 @@ FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec
 	FTDStreakLook Look;
 	Look.bStreak = Spec.Speed >= 2000.f;
 	Look.bHeavy = Spec.bIsMissile || Spec.bHoming || Spec.SplashRadius > 0.f || Spec.PlaceholderScale.Y >= 0.5f;
-	Look.bHead = Spec.bHoming || Spec.bIsMissile;
+	// Missiles and heavy shells carry a hot head: the slow heavy bolt must outweigh a needle on screen.
+	Look.bHead = Spec.bHoming || Spec.bIsMissile || Look.bHeavy;
 	const float Width = FMath::Max(Spec.PlaceholderScale.Y, Spec.PlaceholderScale.Z) * 100.f;
 	if (Look.bHeavy)
 	{
 		Look.Length = FMath::Clamp(Spec.Speed * 0.015f, 250.f, 500.f);
-		Look.Thickness = FMath::Clamp(Width * 1.4f, 70.f, 140.f);
+		// Slim missiles (the 12-missile swarm) stay slimmer than shells: packed at launch, fat heads merged into a blob.
+		Look.Thickness = FMath::Clamp(Width * 1.4f, Spec.bIsMissile ? 40.f : 70.f, 140.f);
 	}
 	else
 	{
 		Look.Length = FMath::Clamp(Spec.Speed * 0.015f, 300.f, 800.f);
 		Look.Thickness = FMath::Clamp(Width * 2.5f, 35.f, 60.f);
 	}
-	Look.HeadDiameter = Look.bHead ? Look.Thickness * 1.8f : 0.f;
+	Look.HeadDiameter = Look.bHead ? Look.Thickness * (Spec.bIsMissile ? 1.4f : 1.8f) : 0.f;
 	return Look;
 }
 
@@ -43,8 +45,13 @@ float FTDCombatPlaceholders::DistanceGrowth(const FTDStreakLook& Look, float Dis
 		return 1.f;
 	}
 	// Pixels across = Thickness * 1280 / (2 * Distance * tan(45 deg)).
-	const float Needed = MinStreakPixels * 2.f * DistanceToCamera / 1280.f;
+	const float Needed = (Look.bHeavy ? MinHeavyStreakPixels : MinStreakPixels) * 2.f * DistanceToCamera / 1280.f;
 	return FMath::Clamp(Needed / Look.Thickness, 1.f, MaxDistanceGrowth);
+}
+
+float FTDCombatPlaceholders::CapMuzzleFlashRadius(float Radius, float HullRadius)
+{
+	return HullRadius > 0.f ? FMath::Min(Radius, HullRadius / 3.6f) : Radius;
 }
 
 float FTDCombatPlaceholders::MuzzleFlashRadius(const FTDProjectileSpec& Spec)

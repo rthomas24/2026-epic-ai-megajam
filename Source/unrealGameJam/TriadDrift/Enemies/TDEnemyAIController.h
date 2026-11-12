@@ -82,6 +82,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0", ClampMax = "1"))
 	float GunshipHoldRangeFraction = 0.6f;
 
+	/** Gunships steer at their target plus its velocity x this (s): covers the heavy hull's turning lag. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float GunshipTurnLeadSeconds = 0.6f;
+
 	/**
 	 * Leash: beyond this distance from its target (or with no target in range) a pilot flies at
 	 * CatchUpSpeedMultiplier x its cruise so a wave can always be finished, even vs a fleeing Lancer.
@@ -94,7 +98,11 @@ public:
 
 	/** Break off when time-to-impact with the target drops below this (seconds). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
-	float BreakOffTimeToImpact = 0.8f;
+	float BreakOffTimeToImpact = 0.6f;
+
+	/** Telegraphed attacks (interceptor missiles, gunship volleys) never start closer than this (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float TelegraphMinDistance = 6000.f;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	bool IsCatchingUp() const { return bCatchingUp; }

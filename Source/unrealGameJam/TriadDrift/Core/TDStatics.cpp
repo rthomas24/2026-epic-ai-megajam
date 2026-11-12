@@ -24,6 +24,7 @@
 #include "TriadDrift/Core/TDDamageTypes.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
+#include "UObject/ConstructorHelpers.h"
 
 // ---------------------------------------------------------------------------------------------- teams
 
@@ -274,6 +275,18 @@ UNiagaraComponent* UTDStatics::PlayCueAttachedLoop(const FTDFXCue& Cue, USceneCo
 	return Component;
 }
 
+UTDStatics::UTDStatics()
+{
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(
+		TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_PlaceholderGlow.M_TD_PlaceholderGlow"));
+	PlaceholderGlowMaterial = Glow.Object;
+}
+
+UMaterialInterface* UTDStatics::GetPlaceholderGlowMaterial()
+{
+	return GetDefault<UTDStatics>()->PlaceholderGlowMaterial;
+}
+
 UMaterialInstanceDynamic* UTDStatics::TintPlaceholder(UMeshComponent* Mesh, FLinearColor Color, float EmissiveBoost)
 {
 	if (!IsValid(Mesh))
@@ -290,10 +303,10 @@ UMaterialInstanceDynamic* UTDStatics::TintPlaceholder(UMeshComponent* Mesh, FLin
 	}
 	if (EmissiveBoost > 0.f && !GlowBase.IsValid())
 	{
-		GlowBase = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
+		GlowBase = GetPlaceholderGlowMaterial();
 	}
 
-	// The glow material may be missing from a cooked build; the lit one is always cooked.
+	// Falls back to the lit material if the project glow material is ever missing.
 	const bool bGlow = EmissiveBoost > 0.f && GlowBase.IsValid();
 	UMaterialInterface* Base = bGlow ? GlowBase.Get() : LitBase.Get();
 	if (!Base)

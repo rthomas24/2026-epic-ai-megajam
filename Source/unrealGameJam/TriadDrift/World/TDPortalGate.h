@@ -72,6 +72,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
 	bool bTransitProjectiles = true;
 
+	/** Whether Armada ships transit this gate. Off by default: an enemy through a planet gate would reappear
+	 *  ~400 000 cm away and stall its wave. On for the in-zone flank pair (waves 3-5). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
+	bool bTransitEnemyShips = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
 	FTDPortalTransitParams TransitParams;
 
