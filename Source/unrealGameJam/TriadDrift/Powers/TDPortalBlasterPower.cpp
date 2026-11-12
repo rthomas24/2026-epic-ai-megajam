@@ -266,6 +266,7 @@ UTDPortalBlasterPower::UTDPortalBlasterPower()
 	CooldownSeconds = 8.f;
 	bCooldownStartsWhenPowerEnds = true;
 	bEndsManually = true;
+	bEndOnOwnerDeath = false; // open portals stay usable by the wingmen
 }
 
 bool UTDPortalBlasterPower::IsUsingBlink() const

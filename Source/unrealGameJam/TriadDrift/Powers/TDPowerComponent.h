@@ -65,6 +65,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Power")
 	void EndPower(bool bInterrupted = true);
 
+	/** End any active phase safely and make the power ready (death, respawn, retake). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Power")
+	void ResetPower() { EndPower(true); CooldownRemaining = 0.f; }
+
 	/** Reset cooldown to ready (respawn, cheats). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Power")
 	void ResetCooldown() { CooldownRemaining = 0.f; }
@@ -102,6 +106,10 @@ public:
 	/** 0 = instant power (unless bEndsManually). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Power", meta = (Units = "s"))
 	float ActiveSeconds = 0.f;
+
+	/** End the power when its ship dies (ram, cloak). Dome and portals keep running for the rest of the squad. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Power")
+	bool bEndOnOwnerDeath = true;
 
 	/** Only fires while the player flies this ship (features.md: wingmen never use powers). Tests turn it off. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Power")

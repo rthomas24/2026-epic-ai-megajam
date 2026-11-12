@@ -4,6 +4,8 @@
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -69,10 +71,15 @@ bool UTDPortalTransit::TransitActor(AActor* Actor, const FTransform& Entry, cons
 				{
 					Flow->AddStat(TEXT("MissilesReturned"), 1);
 				}
-				if (Bus)
+				// Subject: the enemy it returns to (stable; the projectile is pooled). Director picks the importance.
+				AActor* Subject = P->GetOriginalShooter() ? P->GetOriginalShooter() : P;
+				if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(Actor))
 				{
-					AActor* Subject = P->GetOriginalShooter() ? P->GetOriginalShooter() : P;
-					Bus->BroadcastHighlightMoment(ETDHighlightKind::MissileReturn, Subject, 0.8f);
+					Director->ReportHighlight(ETDHighlightKind::MissileReturn, Subject, -1.f, PortalInstigator);
+				}
+				else if (Bus)
+				{
+					Bus->BroadcastHighlightMoment(ETDHighlightKind::MissileReturn, Subject, 0.55f);
 				}
 			}
 		}

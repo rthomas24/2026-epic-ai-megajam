@@ -10,6 +10,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Pawn.h"
 #include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
 
 namespace
 {
@@ -412,8 +413,11 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 				{
 					if (AActor* Owner = GetOwner())
 					{
-						UNiagaraComponent* Loop = UTDStatics::PlayCueAttached(FX->ChargeLoop, Owner->GetRootComponent());
+						StopChargeFX(Slot);
+						UAudioComponent* Audio = nullptr;
+						UNiagaraComponent* Loop = UTDStatics::PlayCueAttachedLoop(FX->ChargeLoop, Owner->GetRootComponent(), NAME_None, Audio);
 						(Slot == ETDWeaponSlot::Primary ? PrimaryChargeFX : SecondaryChargeFX) = Loop;
+						(Slot == ETDWeaponSlot::Primary ? PrimaryChargeAudio : SecondaryChargeAudio) = Audio;
 					}
 				}
 			}
@@ -668,5 +672,11 @@ void UTDWeaponComponent::StopChargeFX(ETDWeaponSlot Slot)
 	{
 		Comp->Deactivate();
 		Comp = nullptr;
+	}
+	TObjectPtr<UAudioComponent>& Audio = Slot == ETDWeaponSlot::Primary ? PrimaryChargeAudio : SecondaryChargeAudio;
+	if (Audio)
+	{
+		Audio->FadeOut(0.1f, 0.f);
+		Audio = nullptr;
 	}
 }

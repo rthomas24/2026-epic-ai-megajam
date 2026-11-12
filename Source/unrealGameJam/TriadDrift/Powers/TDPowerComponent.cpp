@@ -8,6 +8,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 
 UTDPowerComponent::UTDPowerComponent()
 {
@@ -135,6 +136,14 @@ void UTDPowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	{
 		CooldownRemaining = FMath::Max(0.f, CooldownRemaining - DeltaTime);
 	}
+	if (bPowerActive && bEndOnOwnerDeath)
+	{
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner());
+		if (Health && Health->IsDead())
+		{
+			EndPower(true);
+		}
+	}
 	if (bPowerActive)
 	{
 		ActiveElapsed += DeltaTime;
@@ -204,7 +213,11 @@ ETDTeam UTDPowerComponent::GetOwnerTeam() const
 
 void UTDPowerComponent::Highlight(ETDHighlightKind Kind, AActor* Subject, float Importance01) const
 {
-	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this))
+	{
+		Director->ReportHighlight(Kind, Subject, Importance01, GetOwner());
+	}
+	else if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->BroadcastHighlightMoment(Kind, Subject, Importance01);
 	}

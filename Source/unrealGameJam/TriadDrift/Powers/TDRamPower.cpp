@@ -210,7 +210,7 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 
 	if (bWasAlive && Health && Health->IsDead())
 	{
-		Highlight(ETDHighlightKind::RamKill, Victim, 0.7f);
+		// RamKill money shot: UTDDirectorSubsystem derives it from the Ram damage kind on OnActorKilled.
 		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
 		{
 			Feel->RequestHitStop();

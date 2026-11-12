@@ -11,6 +11,7 @@
 class ATDProjectile;
 class UTDWeaponFX;
 class UNiagaraComponent;
+class UAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponFired, ETDWeaponSlot, Slot, FName, WeaponId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponOverheat, ETDWeaponSlot, Slot, bool, bOverheated);
@@ -251,6 +252,12 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> SecondaryChargeFX;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> PrimaryChargeAudio;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> SecondaryChargeAudio;
 
 	struct FFiredShot
 	{
