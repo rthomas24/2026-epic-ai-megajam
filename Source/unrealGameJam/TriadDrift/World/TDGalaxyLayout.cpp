@@ -485,6 +485,10 @@ void ATDGalaxyLayout::BuildGates()
 		}
 		A->GateId = G.IdA;
 		B->GateId = G.IdB;
+		// Enemies may use only the in-zone flank pair; planet gates would carry them out of the fight.
+		const bool bFlank = G.IdA.ToString().StartsWith(TEXT("Gate_Flank"));
+		A->bTransitEnemyShips = bFlank;
+		B->bTransitEnemyShips = bFlank;
 		A->Radius = B->Radius = G.Radius;
 		A->FinishSpawning(TA);
 		B->FinishSpawning(TB);

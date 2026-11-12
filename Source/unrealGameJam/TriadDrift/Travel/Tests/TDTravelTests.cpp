@@ -1,6 +1,7 @@
 // Automation tests for travel (ENG-15 hyperdrive, ENG-20 atmosphere + landing). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Travel
 
 #include "Misc/AutomationTest.h"
+#include "GameFramework/WorldSettings.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -874,6 +875,54 @@ bool FTDTravelRigNoPlaceholder::RunTest(const FString& Parameters)
 	Off->SetPlaceholderGround(false);
 	W.Tick();
 	TestTrue(TEXT("switched off after BeginPlay too"), Probe->GetAltitudeMeters() < 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAssistRates, "TriadDrift.Travel.Landing.HoldFLandsAtAnyFrameRateAndInSlowMotion", TD_TEST_FLAGS)
+bool FTDTravelAssistRates::RunTest(const FString& Parameters)
+{
+	// Review minor 9: the arrival, ground floor and approach assist at 30 / 60 / 120 fps and under slow motion
+	// (a director money shot can be running while the player lands).
+	struct FCase { float Fps; float Dilation; };
+	const FCase Cases[] = { { 30.f, 1.f }, { 60.f, 1.f }, { 120.f, 1.f }, { 60.f, 0.25f } };
+	for (const FCase& C : Cases)
+	{
+		const FString Tag = FString::Printf(TEXT("%.0f fps x%.2f: "), C.Fps, C.Dilation);
+		FTDTestWorld W;
+		W.GetWorld()->GetWorldSettings()->SetTimeDilation(C.Dilation);
+		ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+		if (!TestNotNull(*(Tag + TEXT("rig")), Rig) || !Rig->GetPlayerPad()) { return false; }
+		const FTransform Start = Rig->GetDescentStart();
+		ATDShip* Ship = TDTravelTest::SpawnShip(W, Start.GetLocation(), Start.Rotator());
+		ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+		if (!TestNotNull(*(Tag + TEXT("controller")), PC)) { return false; }
+		Ship->SetPlayerControlled(true);
+		const float Dt = 1.f / C.Fps;
+		W.Tick(Dt);
+		UTDLandingComponent* Land = Ship->GetLanding();
+		ATDLandingPad* Pad = Rig->GetPlayerPad();
+		const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
+		const float GroundZ = Pad->GetActorLocation().Z - 200.f;
+		float MinGap = TNumericLimits<float>::Max();
+		const int32 MaxFrames = FMath::CeilToInt(40.f / (Dt * C.Dilation)); // 40 s of game time
+		int32 i = 0;
+		for (; i < MaxFrames && Land->GetLandPrompt().IsEmpty(); ++i)
+		{
+			W.Tick(Dt);
+			MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		}
+		TestFalse(*(Tag + TEXT("prompt appears")), Land->GetLandPrompt().IsEmpty());
+		FTDTestWorld::InjectKey(PC, EKeys::F, true);
+		for (; i < MaxFrames && !Land->IsLanded(); ++i)
+		{
+			W.Tick(Dt);
+			MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius - GroundZ);
+		}
+		FTDTestWorld::InjectKey(PC, EKeys::F, false);
+		W.Tick(Dt);
+		TestTrue(*(Tag + TEXT("landed on the player pad")), Land->IsLanded() && Land->GetPad() == Pad);
+		TestTrue(*(Tag + FString::Printf(TEXT("never touched the ground (min gap %.0f cm)"), MinGap)), MinGap > 0.f);
+	}
 	return true;
 }
 
