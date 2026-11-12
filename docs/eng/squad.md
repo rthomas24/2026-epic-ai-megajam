@@ -36,7 +36,7 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 - **Powers keep running after a switch:** Squad never cancels anything on the ship you leave.
   Powers are T2's components and keep ticking on their ship.
 - **Formation:** loose V. Left slot `(-1600, -1600, 150)`, right slot `(-1600, 1600, -150)` in
-  leader space (≈2.3 m… i.e. ~2300 cm from the leader), assigned by switch order so wingmen don't
+  leader space (about 2300 cm from the leader), assigned by switch order so wingmen don't
   swap sides. `GetFormationSlotLocation(Ship)`.
 - **Wingman AI:**
   - Formation: matches the leader's speed, corrects toward the slot, boosts beyond 8000 cm.
