@@ -8,7 +8,7 @@
       "UnrealAssetPath": null,
       "MaterialSlots": [
         "M_LancerM03_Graphite",
-        "M_LancerM03_Composite"
+        "M_LancerM03_Gunmetal"
       ],
       "ParentSocket": null,
       "translation_cm": [
@@ -33,7 +33,7 @@
       "UnrealAssetPath": null,
       "MaterialSlots": [
         "M_LancerM03_Graphite",
-        "M_LancerM03_Composite"
+        "M_LancerM03_Gunmetal"
       ],
       "ParentSocket": null,
       "translation_cm": [
@@ -58,8 +58,7 @@
       "UnrealAssetPath": null,
       "MaterialSlots": [
         "M_LancerM03_Canopy",
-        "M_LancerM03_Titanium",
-        "M_LancerM03_Gunmetal"
+        "M_LancerM03_Graphite"
       ],
       "ParentSocket": null,
       "translation_cm": [
@@ -185,8 +184,7 @@
       "MeshSource": "SM_LancerM03_Secondary",
       "UnrealAssetPath": null,
       "MaterialSlots": [
-        "M_LancerM03_Composite",
-        "M_LancerM03_Gunmetal"
+        "M_LancerM03_Graphite"
       ],
       "ParentSocket": null,
       "translation_cm": [
@@ -210,8 +208,7 @@
       "MeshSource": "SM_LancerM03_Secondary",
       "UnrealAssetPath": null,
       "MaterialSlots": [
-        "M_LancerM03_Composite",
-        "M_LancerM03_Gunmetal"
+        "M_LancerM03_Graphite"
       ],
       "ParentSocket": null,
       "translation_cm": [

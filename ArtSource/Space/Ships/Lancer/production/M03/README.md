@@ -1,5 +1,14 @@
 # Lancer M03 — Production Review 01
 
+Latest checkpoint: **Structural A02**, technically verified and awaiting Nick's
+structural review. Open [A02 comparison page](../../review/M03/StageA02/index.html)
+or `Lancer_M03_structure_v03.blend`. It preserves A01, compares actual front/side/
+top and three-quarter views against A01 and the approved reference, and passes
+mesh/contact/36-frame/12-ray/material-role validation. Detailed surface refinement,
+other ships and native integration remain held. The earlier A01 failure record
+below remains historical; v02 is the preserved first A02 attempt and v03 corrects
+material-slot assignment and primary-plane shading. See the A02 report for limits.
+
 Nick's approved blue military-spacecraft turnaround in `refs/Lancer_M03_authority.png`
 is the visual authority for this redesign. The rounded white/cyan M02 remains
 unchanged for history, technical reference and rollback. No old files are replaced.

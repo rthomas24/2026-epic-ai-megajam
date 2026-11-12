@@ -1,9 +1,10 @@
 """Reference-led Lancer M03, original geometry with the repository MIT kit."""
 from pathlib import Path
-import hashlib,json,math,runpy,time
+import hashlib,json,math,runpy,time,os
+from collections import Counter
 import bpy,bmesh
 from mathutils import Vector,Matrix
-P=Path(__file__).resolve().parent;ROOT=P.parents[1];REPO=ROOT.parents[3];OUT=ROOT/'review/M03/Review01'
+P=Path(__file__).resolve().parent;ROOT=P.parents[1];REPO=ROOT.parents[3];OUT=Path(os.environ.get('LANCER_M03_REVIEW_DIR',str(ROOT/'review/M03/Review01')))
 HS=runpy.run_path(str(REPO/'.claude/skills/blender-game-asset/scripts/hardsurface.py'))
 MATS=[];GROUPS={}
 PARTS={'Hull':(0,0,0),'Wing_L':(0,-70,0),'Wing_R':(0,70,0),'Canopy':(-112,0,63),
@@ -11,7 +12,7 @@ PARTS={'Hull':(0,0,0),'Wing_L':(0,-70,0),'Wing_R':(0,70,0),'Canopy':(-112,0,63),
        'Secondary_L':(-90,-220,-44),'Secondary_R':(-90,220,-44),'Engine_L':(-402,-111,-3),'Engine_R':(-402,111,-3)}
 HULL=[(-385,42,21,0),(-300,62,29,1),(-180,74,33,3),(-60,76,34,5),(60,76,30,7),
       (160,68,26,6),(280,52,21,3),(370,31,17,0),(400,25,12,0)]
-WING=[(70,100,-260,54,-4),(145,70,-250,40,-8),(270,-70,-245,25,-15),(360,-155,-228,12,-19)]
+WING=[(70,115,-270,58,-4),(145,100,-270,42,-8),(270,-65,-255,28,-15),(360,-145,-225,16,-19)]
 AIR=[(0,0),(.06,.34),(.2,.5),(.8,.5),(.96,.24),(1,0),(.96,-.24),(.75,-.44),(.2,-.44),(.05,-.27)]
 
 def write(name,data,folder=OUT):
@@ -133,9 +134,9 @@ def primary_structure():
         loft(g,'ShoulderBackbone'+label,[(-274,27,20,side*110,17),(-215,36,27,side*110,20),(-155,38,29,side*110,23),(-100,37,30,side*110,28)],0,.86,.45,.65)
         loft(g,'RootTransition'+label,[(-222,32,15,side*92,-1),(-140,48,21,side*100,3),(-40,43,18,side*100,7),(60,25,14,side*100,12)],1,.77,.4,.7)
         # Cannons are held by a shaped saddle, not floating below the wing.
-        loft('Hull','PrimarySaddle'+label,[(-16,20,21,side*100,-30),(28,26,25,side*100,-31),(68,21,21,side*100,-32)],1,.8,.4)
+        loft('Hull','PrimarySaddle'+label,[(-95,22,18,side*91,-20),(-30,30,28,side*96,-21),(38,25,27,side*100,-25),(68,21,21,side*100,-32)],1,.8,.4)
     # Armored cockpit glass with distinct framing, low roof and sloped windshield.
-    secs=[(-112,40,47,84),(-50,53,49,104),(65,45,45,95),(143,23,40,54)]
+    secs=[(-112,44,42,70),(-40,53,43,84),(65,45,40,76),(155,25,37,49)]
     vv=[];ff=[]
     for x,w,b,t in secs:
         vv.extend([(x,w,b),(x,.82*w,t-10),(x,.5*w,t),(x,-.5*w,t),(x,-.82*w,t-10),(x,-w,b),(x,-.6*w,b-3),(x,.6*w,b-3)])
@@ -146,16 +147,16 @@ def primary_structure():
     for j,(x,w,b,t) in enumerate(secs):
         ring=vv[j*8:j*8+8];verts=[]
         centre=Vector((x,0,(b+t)*.5))
-        for dx,scale in [(-1.4,1.05),(1.4,1.05),(-1.4,.975),(1.4,.975)]:
+        for dx,scale in [(-2.8,1.09),(2.8,1.09),(-2.8,.94),(2.8,.94)]:
             for p in ring:
                 v=centre+(Vector(p)-centre)*scale;v.x=x+dx;verts.append(tuple(v))
         faces=[]
         for i in range(8):
             k=(i+1)%8;faces.extend([(i,k,8+k,8+i),(16+i,24+i,24+k,16+k),(i,16+i,16+k,k),(8+i,8+k,24+k,24+i)])
-        solid('Canopy','Frame'+str(j),verts,faces,2,.87,.18,.6)
+        solid('Canopy','Frame'+str(j),verts,faces,0,.87,.32,.6)
     for side in [-1,1]:
-        strip('Canopy','SideSill'+str(side),[(x,side*w,b) for x,w,b,t in secs],5,4,1,.85)
-        strip('Canopy','RoofRail'+str(side),[(x,side*.5*w,t+.7) for x,w,b,t in secs],2.5,2.8,2,.9)
+        strip('Canopy','SideSill'+str(side),[(x,side*w,b) for x,w,b,t in secs],8,6,0,.85)
+        strip('Canopy','RoofRail'+str(side),[(x,side*.5*w,t+.7) for x,w,b,t in secs],5,4,0,.9)
 
 def machinery():
     loft('Primary','Receiver',[(-47,17,16,0,-15),(-25,24,22,0,-15),(22,25,23,0,-15),(37,20,20,0,-15)],1,.8,.45)
@@ -253,7 +254,7 @@ def refinement():
     loft('Hull','BellyPanel',[(-222,38,3,0,-28),(-170,42,3,0,-30),(-55,37,3,0,-29)],1,.65,.3,rough=.8)
 
 def combine():
-    meshes={}
+    meshes={};material_checks=[]
     for group,parts in GROUPS.items():
         if not parts:continue
         if len(parts)==1:ob=parts[0];HS['apply_modifiers'](ob);ob.name='SM_LancerM03_'+group;ob.data.name=ob.name
@@ -264,9 +265,17 @@ def combine():
         # Boolean cutters can leave unused slots; compact and preserve assignments.
         used=sorted({f.material_index for f in ob.data.polygons});slots=[ob.data.materials[i] for i in used]
         remap={old:new for new,old in enumerate(used)}
-        for f in ob.data.polygons:f.material_index=remap[f.material_index]
+        expected_names=[ob.data.materials[f.material_index].name for f in ob.data.polygons]
+        indices=[remap[f.material_index] for f in ob.data.polygons]
         ob.data.materials.clear()
         for mat in slots:ob.data.materials.append(mat)
+        for f,index in zip(ob.data.polygons,indices):f.material_index=index
+        actual_names=[ob.data.materials[f.material_index].name for f in ob.data.polygons]
+        preserved=expected_names==actual_names
+        assert preserved, 'Material role loss during slot compaction: '+group
+        material_checks.append(dict(group=group,passed=preserved,before_role_face_counts=dict(Counter(expected_names)),after_role_face_counts=dict(Counter(actual_names))))
+        if group in ['Hull','Wing_L','Wing_R']:
+            HS['smooth_by_angle'](ob,angle_deg=20);HS['add_weighted_normal'](ob);HS['apply_modifiers'](ob)
         HS['smart_uv'](ob,angle_deg=60,island_margin=.012)
         uv=ob.data.uv_layers.active.data;tiny=[]
         for f in ob.data.polygons:
@@ -282,6 +291,7 @@ def combine():
             pivot=co(PARTS[group])
             for v in ob.data.vertices:v.co-=pivot
         meshes[group]=ob
+    write('material_assignment_checks.json',material_checks)
     return meshes
 
 def assemble(meshes):

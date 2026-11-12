@@ -1,0 +1,89 @@
+{
+  "blender": "5.1.1",
+  "beauty_engine": "BLENDER_EEVEE",
+  "beauty_color_view": "Khronos PBR Neutral",
+  "diagnostic_engines": "BLENDER_WORKBENCH",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1838882,
+      "pixel_std": 0.1286381334066391,
+      "title": "Front three-quarter / neutral bright studio",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    },
+    {
+      "file": "02_front.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1793952,
+      "pixel_std": 0.09653650224208832,
+      "title": "Front orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1806953,
+      "pixel_std": 0.11720592528581619,
+      "title": "Rear orthographic",
+      "azimuth_deg": 180,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "04_left.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1762891,
+      "pixel_std": 0.1202617809176445,
+      "title": "Left orthographic",
+      "azimuth_deg": -90,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "05_right.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1763884,
+      "pixel_std": 0.11188220232725143,
+      "title": "Right orthographic",
+      "azimuth_deg": 90,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1811809,
+      "pixel_std": 0.14173519611358643,
+      "title": "Top orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": 90,
+      "perspective": false
+    },
+    {
+      "file": "07_bottom.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1823348,
+      "pixel_std": 0.1339629888534546,
+      "title": "Bottom orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": -90,
+      "perspective": false
+    }
+  ],
+  "full_review": true,
+  "render_threads": 2,
+  "source_mesh_geometry_unchanged_for_render": true,
+  "elapsed_seconds": 8.33132839999962
+}

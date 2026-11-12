@@ -1,10 +1,10 @@
 """Actual Blender review images only. Studio rig adapted from the frozen Lancer review."""
 from pathlib import Path
-import json, math, runpy, time
+import json, math, runpy, time, os
 import bpy, numpy as np
 from mathutils import Vector
 from bpy_extras.object_utils import world_to_camera_view
-OUT=Path(__file__).resolve().parent;ROOT=OUT.parents[2];REPO=ROOT.parents[3]
+ROOT=Path(__file__).resolve().parent.parents[2];REPO=ROOT.parents[3];OUT=Path(os.environ.get('LANCER_M03_REVIEW_DIR',str(ROOT/'review/M03/Review01')))
 
 def look(o,p):o.rotation_euler=(Vector(p)-o.location).to_track_quat('-Z','Y').to_euler()
 
@@ -120,6 +120,19 @@ def run(full=True,structural=False):
         frame(cam,targets,az,el,persp);path=OUT/(slug+'.png');sc.render.filepath=str(path)
         print('LANCER_M03_RENDER '+slug,flush=True);bpy.ops.render.render(write_still=True)
         rec=check(path);rec.update(title=title,azimuth_deg=az,elevation_deg=el,perspective=persp);records.append(rec);paths.append(path)
+    if OUT.name=='StageA02':
+        for o in obs:o.hide_render=False
+        camera=cam;camera.data.shift_x=0;camera.data.shift_y=0;camera.data.type='PERSP';camera.data.lens=78
+        lo=Vector((-3.6,-4.02,-.96));hi=Vector((3.6,4.02,1.061));centre=(lo+hi)*.5
+        a,e=math.radians(35),math.radians(24);d=Vector((math.sin(a)*math.cos(e),-math.cos(a)*math.cos(e),math.sin(e)))
+        camera.location=centre+d*max((hi-lo).length*2.7,3);look(camera,centre)
+        rot=camera.rotation_euler.to_matrix();rr=rot@Vector((1,0,0));u=rot@Vector((0,1,0))
+        aspect=sc.render.resolution_x/sc.render.resolution_y;tanx=math.tan(camera.data.angle_x/2);tany=tanx/aspect;distance=0
+        for x in (lo.x,hi.x):
+            for y in (lo.y,hi.y):
+                for z in (lo.z,hi.z):
+                    q=Vector((x,y,z))-centre;distance=max(distance,abs(q.dot(rr))*1.16/tanx+q.dot(d),abs(q.dot(u))*1.16/tany+q.dot(d))
+        camera.location=centre+d*distance;sc.render.filepath=str(OUT/'A02_same_A01_camera.png');bpy.ops.render.render(write_still=True)
     if full:sheet(paths,'Lancer_M03_overview.png')
     for o in obs:o.hide_render=False
     diag=runpy.run_path(str(REPO/'.claude/skills/blender-mcp/scripts/review_renders.py'))['main']
@@ -128,9 +141,10 @@ def run(full=True,structural=False):
         configure(scene,*args,**kwargs)
         scene.render.threads_mode='FIXED';scene.render.threads=2
     diag.__globals__['_configure_engine']=configure_limited
-    clay=diag(targets=[o.name for o in obs],out_dir=str(OUT),label='Lancer_M03',mode='clay',resolution=700,samples=16,keep_views=False)
+    clay=diag(targets=[o.name for o in obs],out_dir=str(OUT),label='Lancer_M03',mode='clay',resolution=700,samples=16,keep_views=OUT.name=='StageA02')
     (OUT/'clay_manifest.json').write_text(json.dumps(clay,indent=2))
-    if full and not structural:wire(cam,obs);silhouette(cam,obs)
+    if full and (not structural or OUT.name=='StageA02'):wire(cam,obs)
+    if full and not structural:silhouette(cam,obs)
     report=dict(blender=bpy.app.version_string,beauty_engine='BLENDER_EEVEE',beauty_color_view='Khronos PBR Neutral',
                 diagnostic_engines='BLENDER_WORKBENCH',images=records,full_review=full,render_threads=2,
                 source_mesh_geometry_unchanged_for_render=True,elapsed_seconds=time.perf_counter()-started)

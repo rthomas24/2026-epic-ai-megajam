@@ -1,10 +1,10 @@
 """Measured Lancer M03 QA, including immutable legacy and proposed new frames."""
 from pathlib import Path
-import hashlib, json, runpy, time
+import hashlib, json, runpy, time, os
 import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-P=Path(__file__).resolve().parent;ROOT=P.parents[1];REPO=ROOT.parents[3];OUT=ROOT/'review/M03/Review01'
+P=Path(__file__).resolve().parent;ROOT=P.parents[1];REPO=ROOT.parents[3];OUT=Path(os.environ.get('LANCER_M03_REVIEW_DIR',str(ROOT/'review/M03/Review01')))
 
 def write(name,data):
     (OUT/name).write_text(json.dumps(data,indent=2)+'\n')
@@ -70,7 +70,12 @@ def run():
                 material_parameters_pass=len(params)==6 and all(0<=p['metallic']<=1 and (.15 if 'Canopy' in p['name'] else .2)<=p['roughness']<=.85 and p['emissive_strength']<=3 for p in params),
                 native_imported=False,presentation_approved=False,gameplay_validated=False,elapsed_seconds=time.perf_counter()-started)
     report['legacy_manifest_unchanged']=hashlib.sha256((ROOT/'attachments.json').read_bytes()).hexdigest()==hashlib.sha256((P/'refs/legacy_attachments.json').read_bytes()).hexdigest()
-    report['technical_pass']=all(report[k] for k in ['geometry_pass','contact_pass','attachment_pass','ray_pass','unit_positive_scale','panel_tint_present','emissive_area_pass','material_parameters_pass','legacy_manifest_unchanged']) and len(faces)<=60000
+    mc=json.loads((OUT/'material_assignment_checks.json').read_text())
+    report['material_assignment_pass']=len(mc)==8 and all(c['passed'] and c['before_role_face_counts']==c['after_role_face_counts'] for c in mc)
+    roles={o.get('part_name'):{o.data.materials[f.material_index].name for f in o.data.polygons} for o in obs}
+    expected={'Canopy':{'Canopy','Graphite'},'Engine_L':{'Blue','Composite','Titanium','Gunmetal'},'Rotor_L':{'Blue','Titanium','Gunmetal'}}
+    report['material_assignment_pass'] &= all({'M_LancerM03_'+v for v in values}<=roles[part] for part,values in expected.items())
+    report['technical_pass']=all(report[k] for k in ['material_assignment_pass','geometry_pass','contact_pass','attachment_pass','ray_pass','unit_positive_scale','panel_tint_present','emissive_area_pass','material_parameters_pass','legacy_manifest_unchanged']) and len(faces)<=60000
     write('validation_summary.json',report)
     print('LANCER_M03_QA '+json.dumps({k:report[k] for k in ['technical_pass','assembly_triangles','geometry_errors','contact_pass','attachment_pass','ray_clearance']}),flush=True)
     return report
