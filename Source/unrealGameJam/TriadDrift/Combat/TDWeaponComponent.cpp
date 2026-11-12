@@ -388,7 +388,11 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 		}
 	}
 
-	// Remaining projectiles of a rippled salvo.
+	// Remaining projectiles of a rippled salvo. A dead or blocked shooter launches nothing more from its wreck.
+	if (S.SalvoRemaining > 0 && AreWeaponsBlocked())
+	{
+		S.SalvoRemaining = 0;
+	}
 	if (S.SalvoRemaining > 0)
 	{
 		S.SalvoTimer -= DeltaTime;
@@ -401,7 +405,14 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 		}
 	}
 
+	// A weapon that was ready at the start of the frame fires "now" on the press: no sub-frame head start.
+	// (Otherwise the press-frame shot is stepped a whole frame: 1333+ cm ahead at 30 fps, 50 at 120.)
+	const bool bReadyAtFrameStart = S.RefireTimer <= 0.f;
 	S.RefireTimer -= DeltaTime;
+	if (bReadyAtFrameStart)
+	{
+		S.RefireTimer = 0.f;
+	}
 	const bool bCanShoot = !AreWeaponsBlocked() && !S.bOverheated;
 
 	if (Spec->FireMode == ETDFireMode::Automatic)
@@ -573,7 +584,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	{
 		UTDStatics::PlayCue(this, ProjSpec.FX->Muzzle, MuzzleLocation, Dir.Rotation());
 	}
-	if (!ProjSpec.FX || ProjSpec.FX->Muzzle.IsEmpty())
+	if (!ProjSpec.FX || !FTDCombatPlaceholders::HasVisualArt(ProjSpec.FX->Muzzle))
 	{
 		// Placeholder muzzle flash, riding on the ship so it stays at the barrel.
 		if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))

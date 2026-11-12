@@ -7,6 +7,7 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TDProjectile.generated.h"
 
 class UStaticMeshComponent;
@@ -148,6 +149,8 @@ private:
 	void ApplyKnockback(AActor* Victim) const;
 	bool CanDamage(const AActor* Victim) const;
 	void UpdatePlaceholderLook();
+	/** Keeps the placeholder streak readable far from the camera (see FTDCombatPlaceholders::DistanceGrowth). */
+	void UpdatePlaceholderDistanceScale();
 	/** Placeholder impact flash, unless the cue the art would play there has content. */
 	void PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt) const;
 
@@ -167,6 +170,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> HeadMID;
+
+	/** The streak in use (bStreak false when art replaces it). */
+	FTDStreakLook StreakLook;
 
 	/** Engine glow material, hard-referenced so it cooks. Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)
@@ -193,6 +199,9 @@ private:
 	uint32 LaunchSerial = 0;
 	FVector PreviousLocation = FVector::ZeroVector;
 	double LastTransitTime = -1.0;
+
+	/** World time of the launch: the projectile's own Tick skips that frame (the weapon already stepped it). */
+	double LaunchWorldTime = -1.0;
 	FVector Velocity = FVector::ZeroVector;
 	float Age = 0.f;
 	float Lifetime = 1.f;

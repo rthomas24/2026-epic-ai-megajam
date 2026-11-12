@@ -8,6 +8,7 @@
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
+#include "TriadDrift/Core/TDPresentation.h"
 
 FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec)
 {
@@ -28,6 +29,22 @@ FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec
 	}
 	Look.HeadDiameter = Look.bHead ? Look.Thickness * 1.8f : 0.f;
 	return Look;
+}
+
+bool FTDCombatPlaceholders::HasVisualArt(const FTDFXCue& Cue)
+{
+	return !Cue.VFX.IsNull();
+}
+
+float FTDCombatPlaceholders::DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera)
+{
+	if (Look.Thickness <= 0.f)
+	{
+		return 1.f;
+	}
+	// Pixels across = Thickness * 1280 / (2 * Distance * tan(45 deg)).
+	const float Needed = MinStreakPixels * 2.f * DistanceToCamera / 1280.f;
+	return FMath::Clamp(Needed / Look.Thickness, 1.f, MaxDistanceGrowth);
 }
 
 float FTDCombatPlaceholders::MuzzleFlashRadius(const FTDProjectileSpec& Spec)

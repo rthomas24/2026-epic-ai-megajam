@@ -5,6 +5,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "GameFramework/MovementComponent.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -47,7 +48,8 @@ bool FTDRamDash::RunTest(const FString& Parameters)
 		UTDRamPower* Ram = AddPower<UTDRamPower>(Lancer);
 		const float Boost = Lancer->GetShipMovement()->GetFlightTuning().BoostSpeed;
 		// Real fighters on the line, flying head-on at Lancer: they block the Ship channel.
-		TArray<ATDEnemyShip*> Fighters;
+		// Weak: a destroyed fighter can be garbage-collected while the world ticks.
+		TArray<TWeakObjectPtr<ATDEnemyShip>> Fighters;
 		for (const float X : { 5000.f, 9000.f, 13000.f })
 		{
 			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(X, 0.f, 0.f));
@@ -72,9 +74,11 @@ bool FTDRamDash::RunTest(const FString& Parameters)
 				MinDashSpeed = FMath::Min(MinDashSpeed, (float)Lancer->GetVelocity().Size());
 			}
 		}
-		for (const ATDEnemyShip* F : Fighters)
+		// Regression probe: destroyed fighters may be collected mid-test; the weak pointers must cope.
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+		for (const TWeakObjectPtr<ATDEnemyShip>& F : Fighters)
 		{
-			TestTrue(*(Fps + TEXT("fighter in the line destroyed")), !IsValid(F) || F->GetHealth()->IsDead());
+			TestTrue(*(Fps + TEXT("fighter in the line destroyed")), !F.IsValid() || F->GetHealth()->IsDead());
 		}
 		TestTrue(*(Fps + TEXT("passed through: speed never dropped below 2.5x boost")), MinDashSpeed > Boost * 2.5f);
 		TestTrue(*(Fps + TEXT("the gunship stopped the dash")), Ram->WasStoppedByImpact());
@@ -198,6 +202,101 @@ bool FTDSwarmLocks::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** An unpossessed fighter keeps cruising; hold it still so a lock test isn't about where it drifted. */
+static void TDSwarmTestHoldStill(ATDEnemyShip* Ship)
+{
+	if (UMovementComponent* Move = Ship ? Ship->FindComponentByClass<UMovementComponent>() : nullptr)
+	{
+		Move->StopMovementImmediately();
+		Move->Deactivate();
+	}
+}
+
+/**
+ * Review MAJOR (ENG-06 / ENG-11): auto-painted locks must not stick for life. Paint six real fighters, turn
+ * away for 2 s, face a new group and tap: every missile goes to the new group.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmStaleLocks, "TriadDrift.Powers.Swarm.StaleLocksReplacedByNewGroup", TD_TEST_FLAGS)
+bool FTDSwarmStaleLocks::RunTest(const FString& Parameters)
+{
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+		FScopedPowerFrameStep TDStepScope(TDFrameStep);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / TDFrameStep);
+		FTDTestWorld W;
+		AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Bastion, TEXT("Targeting"));
+		Targeting->RegisterComponent();
+		UTDMissileSwarmPower* Swarm = AddPower<UTDMissileSwarmPower>(Bastion);
+
+		TArray<TWeakObjectPtr<ATDEnemyShip>> OldGroup;
+		for (int32 I = 0; I < 6; ++I)
+		{
+			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(9000.f, (I - 2.5f) * 900.f, 0.f));
+			TDSwarmTestHoldStill(F);
+			OldGroup.Add(F);
+		}
+		TArray<TWeakObjectPtr<ATDEnemyShip>> NewGroup;
+		for (int32 I = 0; I < 3; ++I)
+		{
+			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(-9000.f, (I - 1.f) * 1200.f, 0.f));
+			TDSwarmTestHoldStill(F);
+			NewGroup.Add(F);
+		}
+
+		W.Advance(2.f, PowerFrameStep());
+		TestEqual(TEXT("six painted on the first group") + Fps, Targeting->GetLockedTargets().Num(), 6);
+
+		// Turn to the new group for 2 s: the old locks are behind (out of view) and drop after 1.5 s.
+		Bastion->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+		W.Advance(2.f, PowerFrameStep());
+		for (const TWeakObjectPtr<ATDEnemyShip>& Old : OldGroup)
+		{
+			TestFalse(TEXT("old lock dropped") + Fps, Targeting->GetLockedTargets().Contains(Old.Get()));
+		}
+		TestTrue(TEXT("swarm fires") + Fps, Swarm->TryActivate());
+		const TArray<TWeakObjectPtr<AActor>>& Targets = Swarm->GetLastTargets();
+		TestEqual(TEXT("split across the new group") + Fps, Targets.Num(), 3);
+		for (const TWeakObjectPtr<AActor>& T : Targets)
+		{
+			TestTrue(TEXT("every missile goes to the new group") + Fps,
+				NewGroup.ContainsByPredicate([&T](const TWeakObjectPtr<ATDEnemyShip>& N) { return N.Get() == T.Get(); }));
+		}
+	}
+	return true;
+}
+
+/** Full locks: a new candidate in the cone replaces the lock that has been out of view the longest. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmLockReplace, "TriadDrift.Powers.Swarm.FullLocksReplaceTheStalest", TD_TEST_FLAGS)
+bool FTDSwarmLockReplace::RunTest(const FString& Parameters)
+{
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+		FScopedPowerFrameStep TDStepScope(TDFrameStep);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / TDFrameStep);
+		FTDTestWorld W;
+		AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Bastion, TEXT("Targeting"));
+		Targeting->RegisterComponent();
+		AddPower<UTDMissileSwarmPower>(Bastion);
+		for (int32 I = 0; I < 6; ++I)
+		{
+			TDSwarmTestHoldStill(SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(9000.f, (I - 2.5f) * 900.f, 0.f)));
+		}
+		ATDEnemyShip* Newcomer = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(0.f, 9000.f, 0.f));
+		TDSwarmTestHoldStill(Newcomer);
+		W.Advance(2.f, PowerFrameStep());
+		TestEqual(TEXT("six locks") + Fps, Targeting->GetLockedTargets().Num(), 6);
+
+		// Face the newcomer: within about 1 s (well before the 1.5 s stale drop) it takes a slot.
+		Bastion->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+		W.Advance(1.f, PowerFrameStep());
+		TestTrue(TEXT("newcomer replaces a stale lock") + Fps, Targeting->GetLockedTargets().Contains(Newcomer));
+		TestTrue(TEXT("never more than six") + Fps, Targeting->GetLockedTargets().Num() <= 6);
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmSoftTarget, "TriadDrift.Powers.Swarm.FallsBackToSoftTarget", TD_TEST_FLAGS)
 bool FTDSwarmSoftTarget::RunTest(const FString& Parameters)
 {
@@ -280,7 +379,8 @@ bool FTDDome::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a cruising Bastion stays inside its own dome"), Dome->Covers(Bastion->GetActorLocation()));
 	(void)Pace;
 
-	const float GoneAt = AdvanceUntil(W, [&] { return !IsValid(Dome); }, 3.f);
+	const TWeakObjectPtr<ATDShieldDome> DomeWeak = Dome; // the dome is destroyed and may be collected
+	const float GoneAt = AdvanceUntil(W, [&] { return !DomeWeak.IsValid(); }, 3.f);
 	TestTrue(TEXT("dome gone after 6 s"), GoneAt > 0.f);
 	TestFalse(TEXT("power ended"), DomePower->IsPowerActive());
 	W.Advance(15.7f, PowerFrameStep());
@@ -363,8 +463,8 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 
 	TestTrue(TEXT("well launched"), Well->TryActivate());
 	W.Advance(0.85f, PowerFrameStep());
-	ATDGravityWell* Vortex = Well->GetLastWell();
-	TestTrue(TEXT("vortex open where the orb stopped"), Vortex && Vortex->IsVortexActive() && Vortex->GetActorLocation().Equals(Centre, 1.f));
+	const TWeakObjectPtr<ATDGravityWell> Vortex = Well->GetLastWell();
+	TestTrue(TEXT("vortex open where the orb stopped"), Vortex.IsValid() && Vortex->IsVortexActive() && Vortex->GetActorLocation().Equals(Centre, 1.f));
 	// A fighter flying straight out of the vortex at full cruise: it must not escape.
 	ATDEnemyShip* Fighter = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, Centre + FVector(1500.f, 2500.f, 0.f));
 	Fighter->GetHealth()->InitMaxValues(1000.f, 0.f, true);
@@ -393,7 +493,7 @@ bool FTDGravityWell::RunTest(const FString& Parameters)
 	TestEqual(TEXT("far enemy not pulled"), (float)FVector::Dist(Far->GetActorLocation(), Centre), 9000.f, 1.f);
 
 	W.Advance(2.3f, PowerFrameStep());
-	TestFalse(TEXT("vortex gone after 5 s"), IsValid(Vortex));
+	TestFalse(TEXT("vortex gone after 5 s"), Vortex.IsValid());
 	const float Taken = 1000.f - Fighter->GetHealth()->GetHull();
 	TestTrue(TEXT("fighter: 10 dps while caught (3.5-5 s) + 120 implosion"), Taken >= 120.f + 35.f && Taken <= 120.f + 50.f);
 	TestFalse(TEXT("fighter's engines released after the implosion"), Fighter->GetShipMovement()->HasSpeedOverride());
@@ -580,14 +680,14 @@ bool FTDRetakeClearsPowers::RunTest(const FString& Parameters)
 	TestEqual(TEXT("take 1 keeps the domes"), Powers->GetActiveDomes().Num(), 2);
 
 	// CUT! -> everything from the failed take is gone.
-	ATDGravityWell* Vortex = Well->GetLastWell();
+	const TWeakObjectPtr<ATDGravityWell> Vortex = Well->GetLastWell();
 	Bus->BroadcastSceneCut(TEXT("Wave2"), 2, 1.f);
 	W.Tick(PowerFrameStep());
 	TestEqual(TEXT("portals closed"), Portal->GetPortals().Num(), 0);
 	TestFalse(TEXT("cloak off"), Cloak->IsCloaked());
 	TestTrue(TEXT("Rift targetable again"), UTDStatics::GetHealth(Rift)->bTargetable);
 	TestEqual(TEXT("dome and blink field collapsed"), Powers->GetActiveDomes().Num(), 0);
-	TestFalse(TEXT("vortex gone"), IsValid(Vortex));
+	TestFalse(TEXT("vortex gone"), Vortex.IsValid());
 	for (UTDPowerComponent* P : TArray<UTDPowerComponent*>{ Portal, Cloak, Dome, Well, Blink })
 	{
 		TestTrue(*FString::Printf(TEXT("%s ready for take 2"), *P->GetPowerName().ToString()), P->CanActivate());

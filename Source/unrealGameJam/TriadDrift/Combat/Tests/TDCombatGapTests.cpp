@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Tests closing the review's gaps. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Combat
 
 #include "Misc/AutomationTest.h"
+#include "UObject/StrongObjectPtr.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -334,7 +335,9 @@ bool FTDGapMultiFps::RunTest(const FString& Parameters)
 			UTDWeaponComponent* G = Guns(Rift, TDWeaponIds::PhasePulseLasers);
 			G->SetTriggerHeld(ETDWeaponSlot::Primary, true);
 			const float At = AdvanceUntil(W, [&] { return G->IsOverheated(ETDWeaponSlot::Primary); }, 6.f, Step);
-			TestEqual(*(Fps + TEXT(": overheats at 4 s")), At, 4.f, Step + 0.01f);
+			// The press-frame shot fires at the end of the first frame (no sub-frame head start), so every shot,
+			// and the overheat, lands one frame after "4 s from the press".
+			TestEqual(*(Fps + TEXT(": overheats at 4 s")), At, 4.f + Step, Step + 0.01f);
 			const int32 Shots = G->GetSlotState(ETDWeaponSlot::Primary).ShotsFired;
 			float Locked = 0.f;
 			bool bShotDuringLockout = false;
@@ -511,6 +514,7 @@ bool FTDGapMeshOffset::RunTest(const FString& Parameters)
 	FTDTestWorld W;
 	AActor* Lancer = Body(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 	UTDWeaponFX* FX = NewObject<UTDWeaponFX>();
+	const TStrongObjectPtr<UTDWeaponFX> FXRooted(FX); // a test-made asset: nothing else holds it until it's assigned
 	FX->ProjectileMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cone.Cone")));
 	FX->ProjectileMeshOffset = FVector(54.f, 0.f, 0.f);
 	FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::SpikeRockets).Projectile;

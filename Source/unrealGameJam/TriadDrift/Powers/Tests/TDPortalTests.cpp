@@ -41,6 +41,33 @@ namespace TDPowerTest
 		return N;
 	}
 
+/** Review minor 8: a 30 fps laser step must transit at the portal plane, not hit a ship just behind it. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalNoTunnel, "TriadDrift.Powers.Portal.FastShotTransitsInsteadOfHittingBehind", TD_TEST_FLAGS)
+bool FTDPortalNoTunnel::RunTest(const FString& Parameters)
+{
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+		FScopedPowerFrameStep TDStepScope(TDFrameStep);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / TDFrameStep);
+		FTDTestWorld W;
+		AActor* Rift = nullptr;
+		UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
+		if (!TestEqual(TEXT("two portals") + Fps, Power->GetPortals().Num(), 2))
+		{
+			return false;
+		}
+		// Portal A is 12000 cm ahead. A ship sits 500 cm behind its plane, inside one 30 fps laser step.
+		AActor* Behind = SpawnBody(W, ETDTeam::Enemy, FVector(12600.f, 0.f, 0.f), FVector(100.f), 100.f, 0.f);
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
+		Spec.FX = nullptr;
+		ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(FVector(11400.f, 0.f, 0.f)), Rift, ETDTeam::Player, nullptr, FVector::ZeroVector, 1.f, false);
+		W.Advance(0.2f, PowerFrameStep());
+		TestEqual(TEXT("ship behind the portal untouched") + Fps, Hull(Behind), 100.f);
+		TestTrue(TEXT("the shot transited") + Fps, PortalTestTotalTransits(Power) >= 1);
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalPlacement, "TriadDrift.Powers.Portal.PlacementPairingAndRecycle", TD_TEST_FLAGS)
 bool FTDPortalPlacement::RunTest(const FString& Parameters)
 {
@@ -53,7 +80,8 @@ bool FTDPortalPlacement::RunTest(const FString& Parameters)
 	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
 	TestTrue(TEXT("power active"), Power->IsPowerActive());
 	TestEqual(TEXT("two portals"), Power->GetPortals().Num(), 2);
-	ATDPortal* A = Power->GetPortals()[0].Get();
+	const TWeakObjectPtr<ATDPortal> AWeak = Power->GetPortals()[0];
+	ATDPortal* A = AWeak.Get();
 	ATDPortal* B = Power->GetPortals()[1].Get();
 	TestTrue(TEXT("A at max range ahead"), A && A->GetActorLocation().Equals(FVector(12000.f, 0.f, 0.f), 1.f));
 	TestTrue(TEXT("B at max range left"), B && B->GetActorLocation().Equals(FVector(0.f, 12000.f, 0.f), 1.f));
@@ -65,7 +93,7 @@ bool FTDPortalPlacement::RunTest(const FString& Parameters)
 	Power->HandleInputPressed();
 	W.Tick(PowerFrameStep());
 	TestEqual(TEXT("still two portals"), Power->GetPortals().Num(), 2);
-	TestFalse(TEXT("A closed"), IsValid(A));
+	TestFalse(TEXT("A closed"), AWeak.IsValid()); // A may already be garbage-collected: never touch the raw pointer
 	ATDPortal* C = Power->GetPortals()[1].Get();
 	TestTrue(TEXT("B now pairs with C"), B && C && B->GetPartner() == C && C->GetPartner() == B);
 

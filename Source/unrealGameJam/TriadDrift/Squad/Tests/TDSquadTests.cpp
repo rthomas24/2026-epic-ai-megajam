@@ -1971,5 +1971,139 @@ bool FTDSquadFightOnScreen::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveMarkers, "TriadDrift.Squad.HUD.ObjectiveMarkersFromTags", TD_TEST_FLAGS)
+bool FTDSquadObjectiveMarkers::RunTest(const FString& Parameters)
+{
+	// ENG-06 (Combat review MAJOR): the space HUD points at whatever the world / flow tagged as the
+	// place to go. Real actors: a landing pad and a portal gate (no wave running, so no fallback).
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	auto Markers = [&] { return Squad->GetObjectiveMarkers(); };
+
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector(50000.f, 0.f, 0.f));
+	ATDPortalGate* Gate = W.Spawn<ATDPortalGate>(FVector(0.f, 60000.f, 0.f));
+	ATDPortalGate* Other = W.Spawn<ATDPortalGate>(FVector(0.f, -60000.f, 0.f));
+	W.Advance(0.6f);
+	TestEqual(TEXT("nothing tagged: empty"), Markers().Num(), 0);
+
+	Pad->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	Gate->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	W.Advance(0.6f);
+	TArray<AActor*> M = Markers();
+	TestTrue(TEXT("exactly the tagged ones"), M.Num() == 2 && M.Contains(Pad) && M.Contains(Gate) && !M.Contains(Other));
+
+	Gate->Tags.Remove(ATDSquadManager::ObjectiveMarkerTag);
+	TestTrue(TEXT("untagging drops it at once"), Markers().Num() == 1 && Markers()[0] == Pad);
+	Gate->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	W.Advance(0.6f);
+	Gate->Destroy();
+	W.Tick();
+	TestTrue(TEXT("destroyed: dropped at once"), Markers().Num() == 1 && Markers()[0] == Pad);
+
+	// A dead marker (a generator just killed) drops too: a tagged enemy ship stands in for it.
+	ATDEnemyShip* Dying = TDPowerTest::SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(0.f, 0.f, 90000.f));
+	Dying->SetFlightParked(true);
+	Dying->Tags.Add(ATDSquadManager::ObjectiveMarkerTag);
+	W.Advance(0.6f);
+	TestTrue(TEXT("live tagged enemy listed"), Markers().Contains(Dying));
+	UTDStatics::GetHealth(Dying)->Kill();
+	W.Tick();
+	TestFalse(TEXT("dead: dropped"), Markers().Contains(Dying));
+
+	TestTrue(TEXT("switch"), Squad->RequestSwitchTo(ETDShipId::Bastion));
+	W.Advance(0.6f);
+	TestTrue(TEXT("survives a ship switch"), Markers().Contains(Pad));
+	Squad->SpawnSquad(FTransform::Identity); // a CUT retake
+	W.Advance(0.6f);
+	TestTrue(TEXT("survives a retake"), Markers().Contains(Pad));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadLandPrompt, "TriadDrift.Squad.HUD.LandingPromptReachesTheHUD", TD_TEST_FLAGS)
+bool FTDSquadLandPrompt::RunTest(const FString& Parameters)
+{
+	// T1's landing prompts reach both HUDs through the squad's HUD data while flying.
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FVector(-300000.f, 0.f, 0.f)));
+	W.Tick();
+	TestTrue(TEXT("far from any pad: empty"), Squad->GetInteractPrompt().IsEmpty());
+
+	auto BringToPad = [&](ATDShip* Ship)
+	{
+		Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+		Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+		W.Tick();
+		W.Tick();
+	};
+	BringToPad(Squad->GetActiveShip());
+	const FText Own = Squad->GetActiveShip()->GetLanding()->GetLandPrompt();
+	TestFalse(TEXT("near the pad, slow: a prompt"), Squad->GetInteractPrompt().IsEmpty());
+	TestEqual(TEXT("it is the ship's own landing prompt"), Squad->GetInteractPrompt().ToString(), Own.ToString());
+
+	TestTrue(TEXT("switch"), Squad->RequestSwitchTo(ETDShipId::Bastion));
+	W.Advance(0.5f);
+	Squad->GetShip(ETDShipId::Rift)->TeleportSpacecraft(FVector(-300000.f, 5000.f, 0.f), FRotator::ZeroRotator, false);
+	BringToPad(Squad->GetActiveShip());
+	TestFalse(TEXT("after a switch: the new ship's prompt"), Squad->GetInteractPrompt().IsEmpty());
+	Squad->GetActiveShip()->TeleportSpacecraft(FVector(-300000.f, -5000.f, 0.f), FRotator::ZeroRotator, false);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("flown away: empty again"), Squad->GetInteractPrompt().IsEmpty());
+	return Pad != nullptr;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveText, "TriadDrift.Squad.HUD.ObjectiveTextFollowsTheFlow", TD_TEST_FLAGS)
+bool FTDSquadObjectiveText::RunTest(const FString& Parameters)
+{
+	// Nick's HUD objective line, through the real bus: empty before the first objective, then always
+	// the latest line; a switch or a retake keeps it.
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
+	TestTrue(TEXT("empty before any objective"), Squad->GetObjectiveText().IsEmpty());
+	Bus->BroadcastObjectiveUpdated(TEXT("Wave"), 1, FText::FromString(TEXT("Clear the ambush")));
+	TestEqual(TEXT("the line"), Squad->GetObjectiveText().ToString(), FString(TEXT("Clear the ambush")));
+	Bus->BroadcastObjectiveUpdated(TEXT("Travel"), 2, FText::FromString(TEXT("Fly to Verdance")));
+	TestEqual(TEXT("overwritten by the next"), Squad->GetObjectiveText().ToString(), FString(TEXT("Fly to Verdance")));
+	TestTrue(TEXT("switch"), Squad->RequestSwitchTo(ETDShipId::Lancer));
+	W.Advance(0.5f);
+	TestEqual(TEXT("survives a switch"), Squad->GetObjectiveText().ToString(), FString(TEXT("Fly to Verdance")));
+	Squad->SpawnSquad(FTransform::Identity); // a CUT retake
+	W.Tick();
+	TestEqual(TEXT("survives a retake"), Squad->GetObjectiveText().ToString(), FString(TEXT("Fly to Verdance")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveTextLate, "TriadDrift.Squad.HUD.ObjectiveTextForALateSquad", TD_TEST_FLAGS)
+bool FTDSquadObjectiveTextLate::RunTest(const FString& Parameters)
+{
+	// Level travel: the squad manager is created after the line was broadcast; it shows it at once.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
+	Bus->BroadcastObjectiveUpdated(TEXT("Travel"), 1, FText::FromString(TEXT("Land on Cinder")));
+	W.Tick();
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	TestEqual(TEXT("current line straight away"), Squad->GetObjectiveText().ToString(), FString(TEXT("Land on Cinder")));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 

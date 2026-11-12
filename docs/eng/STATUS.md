@@ -9,56 +9,60 @@ Status values: `todo` / `in progress` / `in review` (merged, tests pass, review 
 Mapping to the stages in `/AAA.md`: `in progress` on a branch with passing tests is *prototype complete*;
 `in review` is *technically verified* and *integrated*; `DONE` additionally needs every review BLOCKER and
 MAJOR closed and the item *gameplay validated* (played in a running game, noted in `DEVLOG.md`).
-*Presentation approved* is tracked on Nick's side in `docs/visual/STATUS.md`. **No item is `DONE` yet.**
+*Presentation approved* is tracked on Nick's side in `docs/visual/STATUS.md`. **No gameplay item (`ENG-xx`, C-03) is `DONE` yet.**
 
-Nothing below has been hand-flown in a windowed session yet: every "tests pass" is headless automation.
+"Played" below means an agent flying the running game through Unreal's MCP server with injected input, unless it says otherwise. No human has played yet.
 
-| Item | Owner | Status | On main | Tests (filter, count) | Notes |
-|---|---|---|---|---|---|
-| C-01 project bootstrap | Lead | DONE | `802aa8c` | - | Project, LFS, collision channels, claims board, message board, five maps (World Partition, streaming off), game modes by map name |
-| C-02 contracts (Core) | Lead | DONE | `1cf7fe1` + additions | `TriadDrift.Core` (8) | Types, interfaces, event bus, health, registry, statics, feel, presentation assets, test harness, dev HUD, placeholder tint |
-| C-03 #1 switching is a cut | T3 | in review | `d8f7dbb` | `TriadDrift.Squad.Switch.CutPayload` | Review: acceptable. Open: play `SwitchIn` / `SwitchOut` cues, camera of AI-flown ship (T1 API merged) |
-| C-03 #2 director-cam money shots | T3 | in review | `d8f7dbb` | `TriadDrift.Director` (11) | Review blocker closed: all producers go through the director and the bus broadcast is private to it. Open: multi-kill rules, per-kind durations, real-actor tests |
-| C-03 #3 scenes and takes | T5 | in review | `d8f7dbb` | `TriadDrift.Flow.ScenesAndTakes` | Second review running |
-| ENG-01 flight model | T1 | in review | `d8f7dbb` | `TriadDrift.Flight` (22) | All 15 first-review findings reported fixed; second review running; not hand-flown |
-| ENG-02 input map | T1 | in review | `d8f7dbb` | `TriadDrift.Flight` | Power keys routed with press / release and released on switch; real key-injection tests; second review running |
-| ENG-03 health / death / respawn | Lead + T3 | in review | `d8f7dbb` | `TriadDrift.Core.Health`, `TriadDrift.Squad` | Death tumble, parked downed ships and full flight / weapon / power reset on respawn and retake merged (`26670f2`). Open: switch-in invulnerability rule |
-| ENG-04 three ships | T3 | in review | `d8f7dbb` | `TriadDrift.Squad` (48) | Powers installed per ship from the spec. Open: per-ship art by path, switch cues |
-| ENG-05 ship weapons | T2 | in review | `d8f7dbb` | `TriadDrift.Combat` (35) | All first-review findings and gap tests merged (`461d296`); second review queued |
-| ENG-06 targeting | T2 | in review | `d8f7dbb` | `TriadDrift.Combat` | Lead under drift fixed with real-projectile tests; HUD data on `ITDHUDData` and forwarded by Squad; second review queued |
-| ENG-07 squad + switching | T3 | in review | `d8f7dbb` | `TriadDrift.Squad` | Batch 1 merged: stale aim cleared, real-time cooldown, switch refused during hyperdrive / landing. Batch 2 in progress |
-| ENG-08 wingman AI | T3 | in review | `d8f7dbb` | `TriadDrift.Squad` | Batch 1 merged: no stuck form-up after a switch during hyperdrive. Open: wingman collisions, formation under roll, gate follow |
-| ENG-09 Rift portal blaster | T2 | in review | `d8f7dbb` | `TriadDrift.Powers` (17) | Review: not done. Portal placement ignores dynamic geometry (can teleport into the Dominion hull); shots fired right after an exit are sent back at 30 fps; no art path, invisible in Shipping. T2 fixing |
-| ENG-10 Lancer ram | T2 | in review | `d8f7dbb` | `TriadDrift.Powers` (17) | Review: not done. Does not pass through real fighters, never stops on world geometry, 3x speed not reached, dies to collisions right after the dash. T2 fixing |
-| ENG-11 Bastion swarm + dome | T2 | in review | `d8f7dbb` | `TriadDrift.Powers` (17) | Review: mechanics right. Open: no art path / invisible in Shipping, state survives a retake, dome cannot keep up with Bastion. T2 fixing |
-| ENG-12 unlockable abilities | T2 | in review | `d8f7dbb` | `TriadDrift.Powers` (17) | Review BLOCKER: Gravity Well drags generators, the reactor and carrier parts. Also no art path, turrets ignore EMP. T2 fixing |
-| ENG-13 enemy ships + AI | T4 | in review | `d8f7dbb` | `TriadDrift.Enemies` (27) | First-review blocker, majors and minors all reported fixed with real-path tests; second review queued |
-| ENG-14 wave director | T4 | in review | `d8f7dbb` | `TriadDrift.Waves` (7) | Leash, spawn-at-announce, no-spawn-ahead and minors merged; second review queued |
-| ENG-15 hyperdrive | T1 | in review | `d8f7dbb` | `TriadDrift.Travel` (12) | Ends cleanly on pilot loss, AI cannot spool; first review running |
-| ENG-16 portal gates | T4 | in review | `d8f7dbb` | `TriadDrift.World` (17 with ENG-17, 18) | Review: acceptable once wingmen stop bouncing back through gates, gates stop reflecting enemy shots and can take FX. T4 fixing |
-| ENG-17 galaxy layout | T4 | in review | `d8f7dbb` | `TriadDrift.World` | Uses T1's play bounds, gravity wells and atmosphere entry. Review: acceptable as gameplay layout; needs an art path, editor preview and gate keep-out. T4 fixing |
-| ENG-18 Dominion assault + finale | T4 | in review | `d8f7dbb` | `TriadDrift.World.Dominion` | Review: acceptable after the reactor mesh is applied and victory can no longer be lost. T4 fixing |
-| ENG-19 game instance / saves / travel | T5 | in review | `d8f7dbb` | `TriadDrift.Flow` (19) | 12 first-review findings reported fixed; menu and transition game modes added; second review running |
-| ENG-20 atmosphere flight + landing | T1 | in progress | `d8f7dbb` (first pass) | `TriadDrift.Travel` | End-to-end level change, landing hand-off and take-off with T5 in progress; first review running |
-| ENG-21 first-person character | T5 | in review | `d8f7dbb` | `TriadDrift.Ground` (31 with 22, 23, 24) | First review running; not hand-played |
-| ENG-22 energy blade | T5 | in review | `d8f7dbb` | `TriadDrift.Ground` | First review running |
-| ENG-23 crew enemies | T5 | in review | `d8f7dbb` | `TriadDrift.Ground.Crew` (12) | Grunt, trooper, heavy, drone, Warden with real AI / projectile / blade tests. Open: trooper cover; first review running |
-| ENG-24 objective framework | T5 | in review | `d8f7dbb` | `TriadDrift.Ground` | First review running |
-| ENG-25 Verdance gameplay | T5 | in progress | | `TriadDrift.Ground` | Objective ids fixed: `Obj_WreckCore`, `Obj_Relay` |
-| ENG-26 Cinder gameplay | T5 | in progress | | `TriadDrift.Ground` | Objective ids fixed: `Obj_Outpost`, `Obj_Jammer` |
-| ENG-27 balance + difficulty | Lead + T4 | todo | | | Headless balance run and difficulty presets queued for T4 after the World fixes |
-| ENG-28 integration / perf / packaging | Lead + T4 | in progress | main | all (362) + `TDPerf` | Shipping package 750 MB (under 1 GB); Development package boots; stress test: 81 spacecraft + 120 projectiles at 4.2-6.4 ms world tick, live wave 5 at 2.6-4.2 ms per frame. Open: whole journey in a packaged build, HLOD warnings on the maps |
-| ENG-29 docking (stretch) | - | todo | | | Only after core is solid |
-| ENG-30 interior + core fight (stretch) | - | todo | | | |
-| ENG-31 escape (stretch) | - | todo | | | |
+| Item | Owner | Status | Tests (filter) | Reviews | Played (agent over MCP unless said) | Open |
+|---|---|---|---|---|---|---|
+| C-01 project bootstrap | Lead | DONE | - | - | boots from `L_Galaxy` in editor and packaged Development build | HLOD layer warnings on the five maps |
+| C-02 contracts (Core) | Lead | DONE | `TriadDrift.Core` (12) | - | - | Additions since: presentation loader, audio live state, `TDTags`, `GetObjectiveText` |
+| C-03 #1 switching is a cut | T3 | in review | `TriadDrift.Squad.Switch`, `TriadDrift.Director.CutPresentation` | 1 review, fixes merged | Tab switch, name card, flash: playtests 2 and 3 | Fallback name card vs real HUD fixed (`7c9c17d`); replay with the HUD on |
+| C-03 #2 director-cam money shots | T3 | in review | `TriadDrift.Director` | 1 review, fixes merged | Ram and generator shots captured; ram shot not yet seen mid-shot after the wingman fix | One live capture per highlight kind |
+| C-03 #3 scenes and takes | T5 + T3 | in review | `TriadDrift.Flow.ScenesAndTakes` | 2 reviews: acceptable | Slate and "CUT!" seen live | Slate position under the real HUD |
+| ENG-01 flight model | T1 | in review | `TriadDrift.Flight` | 2 reviews; second: drift-burst pumping and pinned-contact damage | Fly, boost, turn settle, drift: playtests 2 and 3, T1's own | T1's full playtest; minors |
+| ENG-02 input map | T1 | in review | `TriadDrift.Flight`, `TriadDrift.Core.Harness` | 2 reviews: acceptable | Real injected keys and mouse | - |
+| ENG-03 health / death / respawn | Lead + T3 | in review | `TriadDrift.Core.Health`, `TriadDrift.Squad` | 1 review, fixes merged | Auto-switch on death seen live | Human play |
+| ENG-04 three ships | T3 | in review | `TriadDrift.Squad` | 1 review, fixes merged | All three flown | Human play |
+| ENG-05 ship weapons | T2 | in review | `TriadDrift.Combat` | 2 reviews; second (Nov 12 15:26): 1 MAJOR (fixed in `e37cd81`), 5 minors open | Visible streaks, muzzle and impact flashes: playtest 3 | Bastion flash and shell presence; frame-rate head start; salvo after death |
+| ENG-06 targeting | T2 + T3 | in review | `TriadDrift.Combat`, `TriadDrift.Squad` | 2 reviews; second: Bastion locks never expire (MAJOR, open); objective markers (MAJOR, `d78e783` merged) | Brackets, lock, missile warning, arrows through the real HUD | Lock expiry; markers when 40 ships |
+| ENG-07 squad + switching | T3 | in review | `TriadDrift.Squad` | 1 review, fixes merged | Switch stays instant; stick resets on switch (`eeaeaa1`) | Second review |
+| ENG-08 wingman AI | T3 | in review | `TriadDrift.Squad` | 1 review, fixes merged | Wingmen in frame 67-80% in small samples | 70% over 20 cycles in waves 1, 3, 5; second review |
+| ENG-09 Rift portal blaster | T2 | in review | `TriadDrift.Powers` | 1 review, fixes merged | Portal opened live | Placeholder is a solid disc; second review |
+| ENG-10 Lancer ram | T2 | in review | `TriadDrift.Powers` | 1 review, fixes merged | Ram at 335 m/s, playtest 2 | Second review |
+| ENG-11 Bastion swarm + dome | T2 | in review | `TriadDrift.Powers` | 1 review, fixes merged | Not fired live by the Lead yet | Lock rules (ENG-06); second review |
+| ENG-12 unlockable abilities | T2 | in review | `TriadDrift.Powers`, `TriadDrift.UI.HUDHost.N004AbilitySequence` | 1 review, fixes merged | LOCKED state through the real HUD | Each ability used live; second review |
+| ENG-13 enemy ships + AI | T4 | in review | `TriadDrift.Enemies` | 2 reviews; second (Nov 12 15:31): 4 MAJOR open (fighters do not fire at a facing player, interceptor point-blank launch, gunship faces the lead point, followers escape the Gravity Well) | Waves 1-5 run live; ships are specks | The four MAJORs; placeholder visibility and scale |
+| ENG-14 wave director | T4 | in review | `TriadDrift.Waves` | 2 reviews; second: acceptable with minors | Waves advance, breather, wave 5 with 29 enemies | Soft-lock when the last enemy dies during the "CUT!" delay; warp-in telegraph; tips; difficulty not selectable |
+| ENG-15 hyperdrive | T1 | in review | `TriadDrift.Travel` | 1 review, fixes merged | Spool, jump, drop-out (T1) | Second review |
+| ENG-16 portal gates | T4 | in review | `TriadDrift.World.Gate` | 1 review, fixes merged | Not flown through by the Lead yet | Enemies can leave through planet gates |
+| ENG-17 galaxy layout | T4 | in review | `TriadDrift.World.Layout` | 1 review, fixes merged | Belt, planet, gates seen | Stars black from half the sky (T5) |
+| ENG-18 Dominion assault + finale | T4 | in review | `TriadDrift.World.Dominion` | 1 review, fixes merged | Stage starts facing the Dominion; turrets bracketed | Whole assault to victory not played; HUD wave block during the assault |
+| ENG-19 game instance / saves / travel | T5 | in review | `TriadDrift.Flow` | 2 reviews: acceptable | Real level change to Verdance and back (T1, T5) | Difficulty in the save |
+| ENG-20 atmosphere flight + landing | T1 + T5 | in review | `TriadDrift.Travel`, `TriadDrift.Flow` | 1 review, fixes merged | Arrival, braking, landing on the pad, on foot (T1) | Approach assist on held F; take-off and return played end to end |
+| ENG-21 first-person character | T5 | in review | `TriadDrift.Ground` | 1 review, fixes merged | Walk, dash, HUD | Human play |
+| ENG-22 energy blade | T5 | in review | `TriadDrift.Ground.Blade` | 1 review, fixes merged | Held blade with per-move poses (T5) | Deflect timing judged by a person |
+| ENG-23 crew enemies | T5 | in review | `TriadDrift.Ground.Crew` | 1 review, fixes merged | Each type captured (T5) | Fights played end to end |
+| ENG-24 objective framework | T5 | in review | `TriadDrift.Ground` | 1 review, fixes merged | Objective line for space scenes (`7ca95fe`) | Seen through the real HUD |
+| ENG-25 Verdance gameplay | T5 | in progress | `TriadDrift.Ground` | - | Arrival and on-foot hand-over only | Both objectives finishable, rewards, return |
+| ENG-26 Cinder gameplay | T5 | in progress | `TriadDrift.Ground` | - | - | Both objectives finishable, rewards, Dominion reveal |
+| ENG-27 balance + difficulty | T4 + Lead | in review | `TriadDrift.Waves.Balance` | covered by the ENG-14 review | Headless balance run only: waves 1-5 in 7.1-7.9 min on Standard, enemy on screen 59-96% of the time | Human play; difficulty choice |
+| ENG-28 integration / perf / packaging | Lead + T4 | in progress | all (see the log below) + `TDPerf` | - | Packaged Development build boots and runs; Shipping 750 MB | Whole journey in a packaged build; `WBP_SpaceHUD` in the cook; spikes rechecked |
+| HUD host for Nick's plugin | T2 | in review | `TriadDrift.UI.HUDHost` (4) | Nick's side validating (N-007) | Played with the real HUD on, playtest 3 | Default still off; objective text and name card replay |
+| Audio support (skill, live state, engine loop parameters) | Lead + T1 | in review | `TriadDrift.Core.AudioState` (3), `TriadDrift.Flight.Visuals.EngineLoopAudioParameters` | - | Nothing heard by a person | Used by no audio yet |
+| ENG-29 docking (stretch) | - | todo | | | | Only after core is solid |
+| ENG-30 interior + core fight (stretch) | - | todo | | | | |
+| ENG-31 escape (stretch) | - | todo | | | | |
 
 ## Open review findings (owner fixes, Lead re-verifies)
-- Powers (T2): Gravity Well moves fixed parts (BLOCKER); no art path and no placeholders in Shipping (BLOCKER); portal clearance vs dynamic geometry; projectile previous-position inference; ram vs real fighters, world geometry, speed and aftermath; state surviving retakes; dome follow; turrets vs EMP.
-- World (T4): reactor mesh never applied; victory travel not retried and squad unprotected during breakup; wingmen bounce back through gates; no art path or editor preview; gates reflect enemy shots; asteroid keep-out and collision shape; Dominion hull does not block enemy shots.
-- Squad / Director (T3) batch 2: per-ship art by path and switch cues; switch-in invulnerability rule (0.35 s manual, 2 s auto / respawn, 6 s re-arm); wingman collisions and formation under roll; multi-kill rules; minors and test gaps.
-- Flight / Input, Flow (second pass) and Travel, Ground (first pass): reviews running.
-- Combat and Enemies / Waves second pass: queued.
-- Known gaps reported by owners: trooper cover behaviour; real key input for the first-person character in headless tests; ENG-20 end-to-end run; nothing hand-played.
+Updated 2026-11-12 15:36 EST.
+- Combat (T2), second review: Bastion locks never expire (MAJOR); frame-rate dependent head start on the press frame; salvo continues after death; hit confirmed on rocks; markers cut off at 24; portal plane clipped late at 30 fps; lifetime ignores inherited speed; test gaps.
+- Enemies (T4), second review: fighters do not fire at a facing player; interceptor launches at point-blank on a head-on pass; gunship faces the lead point; pack followers escape the Gravity Well (all MAJOR). Wave soft-lock when the last enemy dies during the "CUT!" delay; enemies leave through planet gates; warp-in telegraph shows nothing; signature-power tips never fired; difficulty not selectable or saved; spawn points ignore obstacles; `docs/eng/enemies.md` asset names stale.
+- Playtest 3 (Lead): stars black from half the sky (T5); enemy ships too small and dark (T4); Bastion muzzle flash and shell presence, Rift portal placeholder (T2); slate behind the objective block (T3); HUD wave block during the Dominion assault (T4 + T5).
+- Squad / Director (T3), second review: wingman controller stays Downed after a retake or an in-place respawn (BLOCKER); a manual switch during the death tumble gets 0.35 s instead of 2 s (MAJOR); breather repair is 8 hull points per second, not 8%; director shot snaps back when its subject dies; test gaps.
+- Travel and planet hand-over (T5, T1, T4), second review: **the planet objectives cannot be completed on `main`, so a planet cannot be left and a run ends at Verdance (BLOCKER, T5: first slice of ENG-25 / 26)**; a retake clears every hyperdrive lock and the finale's is never re-added (MAJOR, T1 + T4); wingman left parked if the player re-boards within 2.5 s; travel flags not reset when a load fails; stale held F after take-off; placeholder ground slab cannot be switched off; test gaps (no end-to-end land, walk, re-board, exit test).
+- Second reviews still owed: Powers, World, Ground.
+- Nothing has been played by a human.
 
 ## Integration log
 - `1cf7fe1` Core foundation on main. Build clean, `TriadDrift.Core` 8/8 passing headless (14 s).
@@ -77,3 +81,9 @@ Nothing below has been hand-flown in a windowed session yet: every "tests pass" 
 - `adb1912` Unreal 5.9 agent toolsets enabled (21 engine plugins, Editor only) and MCP play-test tools added; a live game was driven through the engine's MCP server on a private port (viewport capture, frame timings, console). T1 `1588fdb` (modular ship parts, flight cues), T2 `fdc205e` (Powers review batch 1), T3 `da65cb8` (Squad batch 2, real-actor director tests), T4 World review fixes. Build clean, 276/276 headless (55 s): Combat 35, Core 8, Director 17, Enemies 27, Flight 24, Flow 19, Ground 31, Powers 19, Squad 53, Travel 13, Waves 7, World 23. Shipping package: 750 MB including a 239 MB debug symbol file, about 510 MB without it.
 - First live look through MCP found: an on-screen engine warning about two competing directional lights (space game mode spawns a sun and a fill light), and the input toolset could not find its player target in a `-game` session (to investigate).
 - `f31a1f1` (Nov 12 15:14 EST): T2 `3f1a8b0` HUD host (`UI/`, switch default off) and `96e7c25` visible placeholder projectiles; T3 `6520438` + `c77d246` (earned-ability HUD data, forward wedge, gate follow, director shots keep wingmen out of frame); T4 `b82a2e1` stress test `TDPerf.Stress.Wave5PlusDominion` (not in the default suite); T1 `99d5d14` (virtual stick recentres, motion blur off); T5 `74aa64d` + `43dc279` (tick cycle removed, held blade poses, crew look); audio skill `4096f47`; `Tools/td-play-mcp.ps1 -Audio`. Build clean, 362/362 headless.
+- `f2db3ce` (Nov 12 15:33 EST): Core `UTDAudioStateSubsystem` (live state for music and mixes, 3 tests); T2 `68bfb04` (streak thickness by camera distance); T1 `89022c2` (atmosphere ground floor); T5 `d70a4c8` + `ceb102a` (Dominion stages face the objective, planet fill light); T4 `18e4447` (strict gate assertion). Build clean, 369/369 headless. One earlier run of this merge crashed in `Powers.Presentation.EveryMomentRequestsItsCue` (dome FX freed under garbage collection): with T2.
+- `850a557` (Nov 12 15:38 EST): T1 `eeaeaa1` + `f2653f8`, T2 `e37cd81` (+ `1421acb` test rooting), T3 `7c9c17d`, `35eed19`, `d78e783`, `88f5b3a`, T4 `1a372d2`, T5 `7ca95fe` + `a872bce`; Core `TDTags`, `GetObjectiveText`, dev HUD landing prompt. Build clean, 378/378 headless. Ledger table rewritten with review and play columns.
+- `707d15e` (Nov 12 15:46 EST): T2 `53f2994` (lock expiry), T3 `5d8ff1b` + `7c158cd` (objective text getter), T5 `7ed01a0` (unlit stars), `cdfa8dd`, `04e5b7e` (soft-lock test, disabled until T4's fix); Core capture tool `-TDShotUI`. Build clean, 383/383 headless. Development package of `c37a94e` boots and hosts the cooked `WBP_SpaceHUD_C`.
+- `4b29787` (Nov 12 15:50 EST): T5 `9b29fc2` (the flow owns the objective-marker tag; first-person `GetObjectiveText`) and `52c94e7` (difficulty in the save, `TD.Difficulty`). Build clean, 383/383 headless.
+- `590bd14` (Nov 12 15:55 EST): T1 `405a458` + `7c04fe3` (approach assist, pad marker), T2 `ec0ef8b` (Combat review minors). Build clean, 389/389 headless. Second review of Squad / Director: BLOCKER in ENG-08 (wingman controller left Downed after a retake or in-place respawn), MAJOR in ENG-03 (manual switch during the death tumble gets the short grace); with T3.
+- Nov 12 15:56 EST: second review of Travel and the planet hand-over at `fc52b79`. ENG-20 travel code acceptable with minors; ENG-15 not acceptable (finale lock lost on a retake); main is not finishable past Verdance until ENG-25's first slice lands. `features.md` section 7 step 9 aligned (`919931d`).

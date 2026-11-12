@@ -74,6 +74,14 @@ FTDPilotSkill FTDPilotSkill::Weak()
 	return S;
 }
 
+FTDPilotSkill FTDPilotSkill::Passive()
+{
+	FTDPilotSkill S = Weak();
+	S.Name = TEXT("Passive");
+	S.bPassive = true;
+	return S;
+}
+
 FTDPilotSkill FTDPilotSkill::Strong()
 {
 	FTDPilotSkill S;
@@ -174,25 +182,52 @@ void FTDBalancePilot::Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSec
 		if (!Ship) { return; }
 	}
 
-	// Readability: is the fight in front of the player? (a chase camera sees roughly the nose cone)
+	// Readability: is the fight in front of the player? The chase camera's view, roughly: 90 deg horizontal
+	// FOV at 16:9 gives 45 deg either side and about 28 deg up/down of the nose.
 	Stats.SecondsTotal += DeltaSeconds;
 	if (const UTDCombatRegistry* Reg = UTDCombatRegistry::Get(World))
 	{
 		const FVector Me = Ship->GetActorLocation();
 		const FVector Fwd = Ship->GetActorForwardVector();
-		const float CosView = FMath::Cos(FMath::DegreesToRadians(45.f));
+		const FVector Right = Ship->GetActorRightVector();
+		const FVector Up = Ship->GetActorUpVector();
+		const float TanH = FMath::Tan(FMath::DegreesToRadians(45.f));
+		const float TanV = FMath::Tan(FMath::DegreesToRadians(28.f));
+		int32 OnScreen = 0;
+		int32 Alive = 0;
 		for (const TWeakObjectPtr<AActor>& Weak : Reg->GetAll())
 		{
 			const ATDEnemyShip* E = Cast<ATDEnemyShip>(Weak.Get());
 			if (!E || E->IsDying()) { continue; }
+			++Alive;
 			const FVector To = E->GetActorLocation() - Me;
-			const float D = To.Size();
-			if (D < 25000.f && D > KINDA_SMALL_NUMBER && FVector::DotProduct(To / D, Fwd) >= CosView)
+			const float Ahead = FVector::DotProduct(To, Fwd);
+			if (Ahead > 100.f && To.SizeSquared() < FMath::Square(30000.f)
+				&& FMath::Abs(FVector::DotProduct(To, Right)) <= Ahead * TanH && FMath::Abs(FVector::DotProduct(To, Up)) <= Ahead * TanV)
 			{
-				Stats.SecondsEnemyOnScreen += DeltaSeconds;
-				break;
+				++OnScreen;
 			}
 		}
+		Stats.EnemyOnScreenCountSeconds += OnScreen * DeltaSeconds;
+		if (OnScreen > 0)
+		{
+			Stats.SecondsEnemyOnScreen += DeltaSeconds;
+			Stats.CurrentEmptySeconds = 0.f;
+			if (Stats.FirstContactSeconds < 0.f) { Stats.FirstContactSeconds = Stats.SecondsTotal; }
+		}
+		else if (Alive > 0)
+		{
+			Stats.CurrentEmptySeconds += DeltaSeconds;
+			Stats.LongestEmptySeconds = FMath::Max(Stats.LongestEmptySeconds, Stats.CurrentEmptySeconds);
+		}
+	}
+
+	if (Skill.bPassive)
+	{
+		FTDFlightInput Cruise;
+		Cruise.Throttle = 0.f;
+		Ship->SetFlightInput(Cruise);
+		return;
 	}
 
 	// Reaction time: the pilot only re-picks its target every ReactionSeconds.

@@ -110,6 +110,13 @@ bool FTDPlanetLandHandOff::RunTest(const FString& Parameters)
 	TestEqual(TEXT("checkpoint taken on foot"), V.GI->GetLastCheckpoint().Progress.ReturnPoint, FName(TEXT("Verdance_Pad")));
 	TestNotNull(TEXT("board-ship prompt"), V.Director->GetBoardPoint());
 	TestTrue(TEXT("board prompt usable"), V.Director->GetBoardPoint() && V.Director->GetBoardPoint()->CanInteract(FP));
+
+	// Both objectives done on foot: the take-off point is the objective marker and the line says so.
+	V.GI->CompleteObjective(TEXT("Obj_WreckCore"), ETDAbilityId::GravityWell, ETDShipId::Bastion);
+	V.GI->CompleteObjective(TEXT("Obj_Relay"), ETDAbilityId::Cloak, ETDShipId::Rift);
+	V.GI->RefreshObjective(false);
+	TestTrue(TEXT("board point tagged as the objective"), V.Director->GetBoardPoint() && V.Director->GetBoardPoint()->ActorHasTag(TDTags::ObjectiveMarker));
+	TestTrue(FString::Printf(TEXT("character reports the line ('%s')"), *FP->GetObjectiveText().ToString()), FP->GetObjectiveText().ToString().Contains(TEXT("RETURN TO YOUR SHIP")));
 	return true;
 }
 

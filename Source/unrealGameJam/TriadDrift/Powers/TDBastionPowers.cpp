@@ -60,6 +60,8 @@ void UTDMissileSwarmPower::TickComponent(float DeltaTime, ELevelTick TickType, F
 	{
 		return;
 	}
+	// Locks beyond the swarm's reach are dropped (review: old locks behind the player or out of range).
+	Targeting->LockMaxRange = MissileSpec.Range;
 	const bool bShouldPaint = CooldownRemaining <= 0.f && (!bRequirePlayerControl || IsOwnerPlayerControlled());
 	if (bShouldPaint && !Targeting->IsPainting())
 	{

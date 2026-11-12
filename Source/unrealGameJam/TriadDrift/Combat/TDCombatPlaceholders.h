@@ -8,6 +8,7 @@
 #include "TDCombatPlaceholders.generated.h"
 
 struct FTDProjectileSpec;
+struct FTDFXCue;
 class UStaticMeshComponent;
 class UStaticMesh;
 class UMaterialInterface;
@@ -38,6 +39,21 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 * 250-500 cm, 70-140 cm thick. Homing missiles and missiles also get a head 1.8x the thickness.
 	 */
 	static FTDStreakLook ComputeStreak(const FTDProjectileSpec& Spec);
+
+	/**
+	 * Seen from the chase camera a shot flies away end-on, so its length doesn't show: its thickness is what
+	 * reads. Thickness grows with distance from the camera to keep about MinStreakPixels (11) at 1280 wide and
+	 * 90 degrees FOV, up to MaxDistanceGrowth times the base. Returns the scale factor (>= 1).
+	 */
+	static float DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
+	static constexpr float MinStreakPixels = 11.f;
+	static constexpr float MaxDistanceGrowth = 8.f;
+
+	/**
+	 * True when Cue draws something (a VFX). A sound- or shake-only cue does not replace a placeholder
+	 * flash: hiding on FTDFXCue::IsEmpty would make every flash vanish the moment audio lands.
+	 */
+	static bool HasVisualArt(const FTDFXCue& Cue);
 
 	/** Muzzle flash radius for a shot of Spec. */
 	static float MuzzleFlashRadius(const FTDProjectileSpec& Spec);

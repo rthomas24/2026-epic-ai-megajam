@@ -759,4 +759,86 @@ bool FTDReviewMouseSettles::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewGroundFloorSim, "TriadDrift.Flight.Review.AtmosphereGroundFloorSim", TD_TEST_FLAGS)
+bool FTDReviewGroundFloorSim::RunTest(const FString& Parameters)
+{
+	const FTDFlightTuning T;
+	FTDFlightContext C = TDReviewTest::Open();
+	C.bAtmosphere = true;
+	FTDFlightInput In;
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		const FString Tag = FString::Printf(TEXT("%.0f fps: "), Fps);
+		FTDFlightState S = TDReviewTest::Cruising(T);
+		S.Rotation = FRotator(-30.f, 0.f, 0.f).Quaternion();
+		S.Velocity = S.Rotation.GetForwardVector() * S.ForwardSpeed;
+		C.GroundClearance = 300.f; // 3 m above the ground, diving 30 deg
+		for (int32 i = 0; i < FMath::RoundToInt(Fps); ++i)
+		{
+			TDFlightSim::Advance(S, In, T, C, 1.f / Fps);
+		}
+		TestTrue(*(Tag + FString::Printf(TEXT("nose pulled to level (pitch %.1f)"), S.Rotation.Rotator().Pitch)), S.Rotation.Rotator().Pitch > -2.f);
+		TestTrue(*(Tag + FString::Printf(TEXT("sink cancelled (vz %.0f)"), S.Velocity.Z)), S.Velocity.Z > -T.CruiseSpeed * 0.06f);
+		TestTrue(*(Tag + TEXT("no pull-up past level")), S.Rotation.Rotator().Pitch < 2.f);
+
+		// No ground in range: the dive is untouched by the floor.
+		FTDFlightState Free = TDReviewTest::Cruising(T);
+		Free.Rotation = FRotator(-30.f, 0.f, 0.f).Quaternion();
+		C.GroundClearance = -1.f;
+		TDFlightSim::Advance(Free, In, T, C, 0.5f);
+		TestTrue(*(Tag + TEXT("high up: dive kept")), Free.Rotation.Rotator().Pitch < -25.f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewGroundFloorWorld, "TriadDrift.Flight.Review.AtmosphereHandsOffNeverHitsTheGround", TD_TEST_FLAGS)
+bool FTDReviewGroundFloorWorld::RunTest(const FString& Parameters)
+{
+	// Live playtest (Nov 12): arriving nose-down on Verdance, a hands-off ship flew into the plain and skidded.
+	FTDTestWorld W;
+	AActor* Ground = TDReviewTest::SpawnWall(W, FVector(0.f, 0.f, -200.f));
+	Cast<UBoxComponent>(Ground->GetRootComponent())->SetBoxExtent(FVector(400000.f, 400000.f, 200.f)); // top at Z = 0
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 4000.f), FRotator(-30.f, 0.f, 0.f));
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	Move->SetAtmosphereMode(true, 1200.f, 0.6f);
+	W.Tick();
+	const float Radius = Ship->GetRootComponent()->Bounds.SphereRadius;
+	float MinGap = TNumericLimits<float>::Max();
+	for (int32 i = 0; i < 360; ++i) // 6 s hands-off
+	{
+		W.Tick();
+		MinGap = FMath::Min(MinGap, (float)Ship->GetActorLocation().Z - Radius);
+	}
+	TestTrue(*FString::Printf(TEXT("hull stays clear of the ground (min gap %.0f cm)"), MinGap), MinGap > 50.f);
+	TestTrue(*FString::Printf(TEXT("levelled off (pitch %.1f)"), Ship->GetActorRotation().Pitch), FMath::Abs(Ship->GetActorRotation().Pitch) < 5.f);
+	TestTrue(*FString::Printf(TEXT("still flying (speed %.0f)"), Ship->GetVelocity().Size()), Ship->GetVelocity().Size() > 1500.f);
+	TestFalse(TEXT("no damage taken"), Ship->GetHealth() && Ship->GetHealth()->GetHull01() < 0.999f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewSwitchResetsMouseStick, "TriadDrift.Flight.Review.SwitchStartsStraight", TD_TEST_FLAGS)
+bool FTDReviewSwitchResetsMouseStick::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f));
+	ATDShip* Other = W.Spawn<ATDShip>(FVector(0.f, 5000.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	FTDSpaceControllerTestAccess Access{ PC };
+	Access.Mouse(FVector2D(150.f, 0.f));
+	W.Tick();
+	TestTrue(TEXT("mouse offset steers the first ship"), PC->GetCurrentFlightInput().Aim.X > 0.3f);
+
+	Ship->SetPlayerControlled(false);
+	PC->Possess(Other);
+	Other->SetPlayerControlled(true);
+	TestTrue(TEXT("stick recentred on the switch"), Access.VirtualStick().IsNearlyZero());
+	TestTrue(TEXT("the new ship gets no turn on its first frame"), Other->GetFlightInput().Aim.IsNearlyZero());
+	W.Tick();
+	TestTrue(TEXT("still straight after a frame"), PC->GetCurrentFlightInput().Aim.IsNearlyZero());
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

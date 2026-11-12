@@ -94,8 +94,8 @@ Tests (`.\Tools\td-test.ps1 -Filter TriadDrift.Flow`):
 | `Waves3to4` | Galaxy at `Verdance_Orbit`, wave 3 running | Verdance done: Gravity Well (Bastion), Cloak (Rift) |
 | `CinderArrival` / `CinderOnFoot` | Cinder, descending / at `Cinder_Pad` | waves 1-4 cleared, Verdance done |
 | `Wave5` | Galaxy at `Cinder_Orbit`, wave 5 running | Cinder done: EMP Pulse (Lancer) |
-| `DominionAssault` | Galaxy at `Dominion_Approach`, Dominion warped in, shields up, no wave | Dominion revealed |
-| `ReactorExposed` | as above, all generators down | defenses down |
+| `DominionAssault` | Galaxy at `Dominion_Approach`: front-right-above the Dominion, outside the shield, facing it with the hull filling the frame; shields up, no wave | Dominion revealed |
+| `ReactorExposed` | Galaxy at `Dominion_Trench`: off the bow on the trench line, facing aft, the reactor dead ahead; all generators down | defenses down |
 | `Victory` | phase Victory (clock stopped) | everything |
 
 - **Galaxy stages in the galaxy** are applied in place:
@@ -109,6 +109,43 @@ Tests:
 - `Flow.Journey.GalaxyStagesApplyInPlace` (real space mode, galaxy layout, director and Dominion)
 - `Flow.Journey.PlanetStagesTravelWithTheRightReturnPoint`
 - `Flow.Journey.StageAndUnlockAllCheats`
+- `Flow.Journey.DominionStagesFaceTheObjective` (view dot > 0.9, inside the FOV, hull size in frame, clear line of sight to the reactor)
+
+`Dominion_Approach` and `Dominion_Trench` are not layout return points: `FTDJourney::FindStageStart` frames them from the
+live Dominion (its `HullExtent` and `ShieldRadius`), so they stay right if T4 moves or resizes it. The space game mode uses
+the same lookup when it arrives with one of them as the return point.
+
+## Objective line (bus OnObjectiveUpdated, read by Nick's HUD)
+The flow owns the line for every scene that has no objective actor. `FTDObjectiveText::Compute` builds it from
+progress, the destination and the live world; the GI checks it every 0.25 s on its real-time clock and broadcasts
+only when it changes.
+
+| When | Id | Step | Text |
+|---|---|---|---|
+| Wave running | the wave's scene id (`Wave3`) | wave number | `WAVE 3 · CLEAR THE NULL ARMADA` |
+| Between waves | `Wave4_Incoming` | next wave | `WAVE 4 INCOMING` |
+| Phase Verdance / Cinder in the galaxy | `Travel_Verdance` | 0 | `JUMP TO VERDANCE` |
+| On the planet, flying, objectives open | `Land_Verdance` | 0 | `LAND AT THE BEACON` |
+| On foot, objectives open | (silent: `ATDObjective` steps own the line) | | |
+| On foot, both objectives done | `Return_Verdance` | 0 | `RETURN TO YOUR SHIP` |
+| Flying, both objectives done | `Leave_Verdance` | 0 | `TAKE OFF · CLIMB TO ORBIT` |
+| Dominion warping in | `Dominion_Reveal` | 0 | `THE DOMINION IS HERE · STAND BY` |
+| Shields up | `Dominion_Shields` | generators down | `DESTROY THE SHIELD GENERATORS  2 / 4` |
+| Reactor exposed | `Dominion_Reactor` | 0 | `FLY THE TRENCH · DESTROY THE REACTOR` |
+| Breakup | `Dominion_Breakup` | 0 | `GET CLEAR OF THE DOMINION` |
+| Victory | `Victory` | 0 | `VICTORY · THAT'S A WRAP` |
+
+- The line is re-broadcast 0.3 s after every retake and 0.5 s after every level entry, even if it hasn't changed, so a HUD
+  created on BeginPlay is never empty. On foot it repeats the last objective step.
+- `UTDGameInstance::GetCurrentObjectiveText()` returns the last line anyone broadcast.
+- Every level entry also re-broadcasts `OnPhaseChanged`, so music state and HUDs in the new level learn the phase.
+- **Objective markers (`TDTags::ObjectiveMarker`).** The flow is the single owner of the tag (agreed with T4 and T3). From the
+  same 0.25 s refresh, `FTDObjectiveText::ComputeMarkers` picks the actors and the GI tags them and untags the previous ones:
+  the planet's `ATDPlanetAtmosphere` for "JUMP TO …", every live generator, then the reactor, the running on-foot objective's
+  waypoints, and the board-ship point once both planet objectives are done. Nothing is tagged during a wave (T3 falls back to the
+  nearest enemy), during a CUT, mid-travel or on menus. T1 tags the landing pad in atmosphere. `GetFlowMarkers()` lists them.
+- `ATDFirstPersonCharacter::GetObjectiveText()` (ITDHUDData) returns the GI's current line.
+- Test: `Flow.Journey.ObjectiveTextForEverySpaceScene` (real stages, one generator killed, a retake, a level entry, and the CUT and new take on the bus).
 
 ## Placeholder sky (N-004, agreed with Nick's side)
 All placeholder lighting and exposure is one actor, `ATDPlaceholderSky` (tag `TD.Placeholder.Sky`). It holds the sun (forward-shading priority 1), the fill (0), the sky light, a planet atmosphere, and an unbound post-process at priority -100. Both game modes spawn it only when the map has no sky of its own:

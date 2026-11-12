@@ -34,6 +34,13 @@ public:
 	void SetPartner(ATDPortal* InPartner) { Partner = InPartner; }
 	void Close();
 
+	/**
+	 * Where segment Prev -> Cur first crosses this portal's disc (T in 0..1), if it has a partner. Projectiles
+	 * call it inside their own step and then TransitAlong, so a fast shot never sweeps past the plane.
+	 */
+	bool FindDiscCrossing(const FVector& Prev, const FVector& Cur, float& OutT) const;
+	bool TransitAlong(AActor* Traveller, const FVector& Prev, const FVector& Cur) { return TryCross(Traveller, Prev, Cur); }
+
 	/** Tell this portal a traveller just appeared at Location, so its next motion isn't seen as a crossing. */
 	void NotifyArrived(const AActor* Traveller, const FVector& Location);
 
