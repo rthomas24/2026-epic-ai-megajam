@@ -1,0 +1,36 @@
+{
+  "concept": "Rift / Veil 01",
+  "direction": "Quiet sample-led spatial glass shimmer; no M02/M03 timbral layers",
+  "source_mp3_sha256": "0f77baa3e6613fbe89200e17de94b9611b0471bd4117d1f193b316bdb68ecc1d",
+  "output": "SW_TD_Rift_Veil_Concept01.wav",
+  "format": {
+    "rate": 48000,
+    "channels": 2,
+    "width": 3,
+    "frames": 68160
+  },
+  "duration_s": 1.42,
+  "peak_dbfs": -9.20499895996938,
+  "peak_4x_fft_estimate_dbfs": -8.999997154630059,
+  "rms_dbfs": -27.412065981269336,
+  "onset_minus50_ms": 2.4375,
+  "clipped_samples": 0,
+  "first_last_zero": true,
+  "final25ms_zero": true,
+  "tail50ms_rms_dbfs": -147.5556634455446,
+  "dc_offset_dbfs": -124.48889452124132,
+  "stereo_correlation": 0.6310492082707563,
+  "eight_repeats_400ms_peak_dbfs": -8.317794702723905,
+  "sha256": "74d13f592348644b8608936d38bf0b07990774d33dd8d61cbc6837aa2db4aaaf",
+  "preserved_reference_hashes": {
+    "SwitchM02\\audition\\SW_TD_Bastion_Switch_M02.wav": "8270b46ac035f3778ea05db4b0c8d767ddf08e942d47ed0c42fc43d18cfd50b0",
+    "SwitchM02\\audition\\SW_TD_Lancer_Switch_M02.wav": "e19782adeab22c6d79d33d186491bd7d7059945b65617ae98ad0fd40fc5f97a5",
+    "SwitchM02\\audition\\SW_TD_Rift_Switch_M02.wav": "1db4b41aeed8798ed594797debe24d4d975730026266883eb00c1a9bb93445e5",
+    "SwitchM03\\audition\\SW_TD_Bastion_Switch_M03.wav": "127de5b7b38c3d9cae5ee022a96ca5822aca1d6842a14b287fce2ccb79c49454",
+    "SwitchM03\\audition\\SW_TD_Lancer_Switch_M03.wav": "97a030a0e5d496edbbdb440534d68979bfe97ca5728220fe80fb81018dbb2d1a",
+    "SwitchM03\\audition\\SW_TD_Rift_Switch_M03.wav": "4375bc0ddcce4a911b19854e664e8cbd475de6a27f882205811294c3b275d393"
+  },
+  "auditory_review": "Pending Nicholas; no claim of subjective hearing or quality acceptance",
+  "source_quality": "Public high-quality MP3 preview; PCM24/48k is the delivery format and does not restore information lost in the compressed source",
+  "passed": true
+}
