@@ -89,11 +89,10 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 15:56 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 16:00 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
-All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
-edited yet.** Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
+Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
 contract: `docs/eng/ARCHITECTURE.md`.
 
 ### Lanes (who may write where)
@@ -164,6 +163,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | Second independent reviews: Squad / Director (1 BLOCKER, 1 MAJOR, with T3) and Travel + planet hand-over (1 BLOCKER, 1 MAJOR, with T5, T1, T4) | Lead | done | Nov 12 15:39 | Nov 12 15:56; summary in `docs/eng/STATUS.md`. Still owed: Powers, World, Ground | none |
 | Objective markers owned by the flow (tags the destination atmosphere, live shield generators, the reactor, on-foot waypoints and the board-ship point; nothing during waves, a cut, travel or menus); `GetObjectiveText` on foot; difficulty (Story / Standard / Ace) kept in the save, `TD.Difficulty` cheat | T5 | in review | Nov 12 15:40 | Nov 12 15:50 (`4b29787`); markers and difficulty not played live yet | none |
 | On `main` at `590bd14` (389 tests): hold-F approach assist and pad objective marker (T1 `405a458`, `7c04fe3`); Combat review minors (T2 `ec0ef8b`: press-frame shot starts at the muzzle, no salvo from a wreck, rocks never confirm a hit, target and locks always marked); `features.md` ENG-20 landing numbers | T1, T2, Lead | in review | Nov 12 15:50 | Nov 12 15:55 (`590bd14`) | `/features.md` (ENG-20) |
+| Core: one project-owned unlit glow material for every placeholder that must read from all sides and on instanced meshes (playtest 4: the engine's `EmissiveMeshMaterial` has no instanced-mesh usage, so the stars fall back to the default material) | Lead | in progress | Nov 12 16:00 | | **CLAIM: new binary `Content/TriadDrift/Gameplay/Materials/M_TD_PlaceholderGlow.uasset`** (Ryan's folder, created headless by `Tools/td-make-materials.py`); `Core/TDStatics.*` |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
