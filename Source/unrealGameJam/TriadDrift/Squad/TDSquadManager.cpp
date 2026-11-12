@@ -1159,6 +1159,11 @@ TArray<AActor*> ATDSquadManager::GetObjectiveMarkers() const
 	return Out;
 }
 
+FText ATDSquadManager::GetInteractPrompt() const
+{
+	return TDSquad::GetLandPrompt(GetActiveShip());
+}
+
 FTDWaveInfo ATDSquadManager::GetWaveInfo() const
 {
 	return TDSquad::GetWaveInfo(this, WaveDirectorCache);

@@ -238,6 +238,8 @@ public:
 	 *  as scenes change); with none tagged, during a wave whose fighters are all off the player's
 	 *  screen, the nearest enemy ("the fight is this way"). Cached, refreshed every ObjectiveRefreshSeconds. */
 	virtual TArray<AActor*> GetObjectiveMarkers() const override;
+	/** The player's ship's landing prompt ("Hold F to land", "SLOW DOWN TO LAND - ..."); empty otherwise. */
+	virtual FText GetInteractPrompt() const override;
 
 	/** The actor tag that marks "the place to go now" (contract with T4 / T5; Core constant pending). */
 	static const FName ObjectiveMarkerTag;

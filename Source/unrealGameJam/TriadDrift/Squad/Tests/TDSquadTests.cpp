@@ -2023,5 +2023,42 @@ bool FTDSquadObjectiveMarkers::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadLandPrompt, "TriadDrift.Squad.HUD.LandingPromptReachesTheHUD", TD_TEST_FLAGS)
+bool FTDSquadLandPrompt::RunTest(const FString& Parameters)
+{
+	// T1's landing prompts reach both HUDs through the squad's HUD data while flying.
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FVector(-300000.f, 0.f, 0.f)));
+	W.Tick();
+	TestTrue(TEXT("far from any pad: empty"), Squad->GetInteractPrompt().IsEmpty());
+
+	auto BringToPad = [&](ATDShip* Ship)
+	{
+		Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+		Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+		W.Tick();
+		W.Tick();
+	};
+	BringToPad(Squad->GetActiveShip());
+	const FText Own = Squad->GetActiveShip()->GetLanding()->GetLandPrompt();
+	TestFalse(TEXT("near the pad, slow: a prompt"), Squad->GetInteractPrompt().IsEmpty());
+	TestEqual(TEXT("it is the ship's own landing prompt"), Squad->GetInteractPrompt().ToString(), Own.ToString());
+
+	TestTrue(TEXT("switch"), Squad->RequestSwitchTo(ETDShipId::Bastion));
+	W.Advance(0.5f);
+	Squad->GetShip(ETDShipId::Rift)->TeleportSpacecraft(FVector(-300000.f, 5000.f, 0.f), FRotator::ZeroRotator, false);
+	BringToPad(Squad->GetActiveShip());
+	TestFalse(TEXT("after a switch: the new ship's prompt"), Squad->GetInteractPrompt().IsEmpty());
+	Squad->GetActiveShip()->TeleportSpacecraft(FVector(-300000.f, -5000.f, 0.f), FRotator::ZeroRotator, false);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("flown away: empty again"), Squad->GetInteractPrompt().IsEmpty());
+	return Pad != nullptr;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
