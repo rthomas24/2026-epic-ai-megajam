@@ -86,6 +86,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Power")
 	static bool RoutePowerInput(AActor* Ship, ETDPowerInput Slot, bool bPressed);
 
+	/** Where this power's active cue attaches (tests and diagnostics). */
+	USceneComponent* GetActiveCueAttachRoot() const { return GetActiveCueRoot(); }
+
 	// --- Tuning ---
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Power")
 	ETDPowerInput Slot = ETDPowerInput::Signature1;
