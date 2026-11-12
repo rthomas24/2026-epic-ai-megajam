@@ -110,6 +110,11 @@ namespace TDSquad
 	 * T4 obstacle registry (asteroids, ruins, planets, Dominion hull): if something registered lies
 	 * within ProbeDistance along Direction, returns true and a unit direction that slides around it.
 	 */
+	/** Wingmen never transit a permanent gate on their own (they lead the player in the forward wedge
+	 *  and would arrive alone): if Ship's next LookAheadSeconds of flight crosses an active gate disc,
+	 *  hold it in the transit cooldown so it flies through the frame; the leader's transit follow-warps
+	 *  it across. Returns true while held. */
+	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds);
 	bool FindRegisteredAvoidance(const UWorld* World, const FVector& Origin, const FVector& Direction, float ProbeDistance, float ShipRadius, FVector& OutAvoidDirection);
 	/** True if a hostile homing projectile is tracking Ship. */
 	bool IsMissileIncoming(const ATDShip* Ship);
