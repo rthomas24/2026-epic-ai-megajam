@@ -50,7 +50,7 @@ public:
 	FVector ZoneExtent = FVector(250000.f, 250000.f, 60000.f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "0"))
-	float ZoneBelowPad = 5000.f;
+	float ZoneBelowPad = 500.f; // just under the pad: no flying beneath the ground plane where the ground ends
 
 	/** Wingman pads sit this far to each side of the player pad. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "0"))

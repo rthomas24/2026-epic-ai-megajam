@@ -161,7 +161,11 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	{
 		const FVector Closest = C.BoundaryBox.GetClosestPointTo(S.Location);
 		const float Outside = FVector::Dist(Closest, S.Location);
-		S.bNearBoundary = Outside > 0.f || !C.BoundaryBox.ExpandBy(-T.BoundaryWarnDistance).IsInsideOrOn(S.Location);
+		// The warning band covers the walls and the ceiling only: an atmosphere zone's floor is the ground, and flying
+		// low over it is the whole point (it still pushes back if the ship goes under it).
+		const FBox WarnBox(C.BoundaryBox.Min + FVector(T.BoundaryWarnDistance, T.BoundaryWarnDistance, -1.f),
+			C.BoundaryBox.Max - FVector(T.BoundaryWarnDistance, T.BoundaryWarnDistance, T.BoundaryWarnDistance));
+		S.bNearBoundary = Outside > 0.f || !WarnBox.IsInsideOrOn(S.Location);
 		if (Outside > KINDA_SMALL_NUMBER)
 		{
 			S.bOutOfBounds = true;
@@ -325,6 +329,12 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		const float Near01 = 1.f - C.GroundClearance / T.GroundAvoidHeight;
 		const float MaxSink = T.CruiseSpeed * 0.5f * (1.f - Near01);
 		S.Velocity.Z = FMath::Max(S.Velocity.Z, -MaxSink);
+		// Cushion: below GroundCushionHeight push back up, so hands-off flight settles there instead of skimming the
+		// ground at ~1 m (live playtest, Nov 12) under gravity.
+		if (C.GroundClearance < T.GroundCushionHeight && !C.bSpeedOverride)
+		{
+			S.Velocity.Z = FMath::Max(S.Velocity.Z, (T.GroundCushionHeight - C.GroundClearance) * 2.f);
+		}
 		const FVector Nose = S.Rotation.GetForwardVector();
 		if (Nose.Z < 0.f)
 		{
