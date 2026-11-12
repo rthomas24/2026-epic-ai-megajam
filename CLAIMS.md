@@ -72,7 +72,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 14:15 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 14:16 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -118,6 +118,9 @@ open) · `done` (on `main`, tests pass, review closed).
 | Core: one quiet loader for presentation assets (`UTDStatics::LoadPresentation<T>`), Python name clash fix | Lead | done | Nov 12 14:10 | Nov 12 14:15, this push | `/Source/unrealGameJam/unrealGameJam.Build.cs` (adds AssetRegistry) |
 | C-03 #2 director camera that really cuts, #1 fallback cut presentation (flash, letterbox, name card, CUT!, slate), squad barks | T3 | in review | Nov 12 13:40 | Nov 12 14:15, this push (`ebe00a5`); live captures in progress | none |
 | ENG-20 ground half (planet director: fly in, land, first person, re-board, take off) + on-foot soft-lock fixes | T5 | in review | Nov 12 13:50 | Nov 12 14:15, this push; blade feel fixes in progress | none |
+| `MESSAGEBOARD.md` N-004 fix 1: `FTDShipHUD.Ability` is the earned ability (None while locked), readiness 0 while locked; test for the unlock sequence | T3 + T2 | in progress | Nov 12 14:16 | | none |
+| `MESSAGEBOARD.md` N-004 fix 2: placeholder sun / fill / post-process skipped when any actor has a directional light or post-process component, or the tag `TD.Presentation.Sky` | T5 | in progress | Nov 12 14:16 | | none |
+| Capture tools: verify a written PNG ends at IEND before it is used as evidence (pitfall from Nick's side) | Lead | queued | | | `/Tools/**` |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
