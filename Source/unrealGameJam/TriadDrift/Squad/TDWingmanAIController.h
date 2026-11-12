@@ -140,9 +140,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "cm"))
 	float BreakOffDistance = 1800.f;
 
-	/** Leader faster than this multiple of our boost speed = hyperdrive: jump with it, in formation. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation")
-	float HyperdriveFollowSpeedRatio = 1.6f;
+	/**
+	 * Leader faster than this = hyperdrive (ENG-15 jumps at 80 000 cm/s): ride along in the slot.
+	 * Must stay above every non-jump speed, including Lancer's ram (3x boost = 45 000 cm/s).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm/s"))
+	float HyperdriveFollowMinSpeed = 60000.f;
+
+	/** After a leash break or an evade, wait this long before picking a new fight. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
+	float RegroupCommitSeconds = 2.f;
 
 	/** Bus handler: a spacecraft was moved discontinuously (portal, gate, hyperdrive drop-out). */
 	UFUNCTION()
@@ -195,6 +202,8 @@ protected:
 	FVector CachedAvoidance = FVector::ZeroVector;
 	FRotator AimError = FRotator::ZeroRotator;
 	float PrevShield01 = 1.f;
+	/** Regroup was forced (leash/evade): don't re-engage for RegroupCommitSeconds. */
+	bool bRegroupCommitted = false;
 	bool bPrimaryHeld = false;
 	bool bSecondaryHeld = false;
 	FRandomStream Random;

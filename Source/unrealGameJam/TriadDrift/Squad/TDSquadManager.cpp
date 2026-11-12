@@ -179,6 +179,12 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 
 		TDSquad::ApplySpec(Slot->Ship, GetSpec(Id));
 		TDSquad::RestoreFullHealth(Slot->Ship);
+		// Start the take at cruise along the facing, whatever the ship was doing before.
+		{
+			float MinS, CruiseS, BoostS;
+			TDSquad::GetSpeedRange(Slot->Ship, MinS, CruiseS, BoostS);
+			TDSquad::SetVelocity(Slot->Ship, Facing.Vector() * CruiseS);
+		}
 		Slot->State = ETDSquadSlotState::Alive;
 		Slot->RespawnAtTime = 0.0;
 		SpawnWingmanFor(*Slot);
@@ -199,9 +205,13 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 				Slot.Wingman->UnPossess();
 			}
 		}
-		else if (Slot.Wingman->GetPawn() != Slot.Ship)
+		else
 		{
-			Slot.Wingman->Possess(Slot.Ship);
+			if (Slot.Wingman->GetPawn() != Slot.Ship)
+			{
+				Slot.Wingman->Possess(Slot.Ship);
+			}
+			// Always: a wingman left in Downed by the last take must fly again.
 			Slot.Wingman->NotifyShipRespawned();
 		}
 		TDSquad::SetPlayerControlled(Slot.Ship, Slot.ShipId == ActiveShipId);

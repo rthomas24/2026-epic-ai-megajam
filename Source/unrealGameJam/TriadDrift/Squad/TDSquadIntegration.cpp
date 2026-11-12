@@ -20,7 +20,8 @@
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 
-#include "TriadDrift/Waves/TDWaveDirector.h"
+// TODO(T4): re-enable when Waves/ lands on main:
+// #include "TriadDrift/Waves/TDWaveDirector.h"
 
 namespace TDSquadIntegrationPrivate
 {
@@ -75,7 +76,18 @@ namespace TDSquad
 			H->InitMaxValues(Spec.MaxHull, Spec.MaxShield, /*bRefill*/ true);
 		}
 
-		if (UTDWeaponComponent* W = Weapons(Ship))
+		UTDWeaponComponent* W = Weapons(Ship);
+		if (!W)
+		{
+			// Until T1 adds the "Weapons" default subobject to ATDSpacecraft, add one at runtime.
+			W = NewObject<UTDWeaponComponent>(Ship, TEXT("Weapons"));
+			if (W)
+			{
+				Ship->AddInstanceComponent(W);
+				W->RegisterComponent();
+			}
+		}
+		if (W)
 		{
 			W->EquipWeapon(ETDWeaponSlot::Primary, Spec.PrimaryWeapon);
 			W->EquipWeapon(ETDWeaponSlot::Secondary, Spec.SecondaryWeapon);
@@ -362,8 +374,8 @@ namespace TDSquad
 
 	FTDWaveInfo GetWaveInfo(const UObject* WorldContext)
 	{
-		const ATDWaveDirector* Director = ATDWaveDirector::Get(WorldContext);
-		return Director ? Director->GetWaveInfo() : FTDWaveInfo();
+		// TODO(T4): return ATDWaveDirector::Get(WorldContext)->GetWaveInfo() once Waves/ is on main.
+		return FTDWaveInfo();
 	}
 
 	// --------------------------------------------------------------------------- events & flow

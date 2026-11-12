@@ -11,6 +11,8 @@
 class AActor;
 class APawn;
 class ATDShip;
+class ATDSquadManager;
+class ATDWingmanAIController;
 class UWorld;
 struct FTDShipSpec;
 
@@ -82,10 +84,10 @@ namespace TDSquad
 	void AddShipSwitchStat(const UObject* WorldContext);
 
 	/** Subscribe / unsubscribe Squad->HandlePowerUsed to UTDEventBus::OnPowerUsed (T2 broadcasts it). */
-	void BindPowerUsed(class ATDSquadManager* Squad);
-	void UnbindPowerUsed(class ATDSquadManager* Squad);
+	void BindPowerUsed(ATDSquadManager* Squad);
+	void UnbindPowerUsed(ATDSquadManager* Squad);
 
 	/** Subscribe / unsubscribe Wingman->HandleSpacecraftTeleported to UTDEventBus::OnSpacecraftTeleported. */
-	void BindTeleported(class ATDWingmanAIController* Wingman);
-	void UnbindTeleported(class ATDWingmanAIController* Wingman);
+	void BindTeleported(ATDWingmanAIController* Wingman);
+	void UnbindTeleported(ATDWingmanAIController* Wingman);
 }

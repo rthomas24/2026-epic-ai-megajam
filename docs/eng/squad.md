@@ -52,7 +52,7 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
   - Avoidance: sphere sweep along velocity (1.2 s look-ahead, 0.15 s cadence) against WorldStatic /
     WorldDynamic, plus 900 cm separation from squadmates.
   - Follows the leader: `UTDEventBus::OnSpacecraftTeleported` (portals, gates) warps it to its slot;
-    during hyperdrive (leader faster than 1.6× our boost) it rides in its slot; if more than
+    during hyperdrive (leader above 60 000 cm/s, well over ram speed) it rides in its slot; if more than
     60 000 cm from the leader for any reason it warps back.
   - **Never** calls a power or ability (there is no code path to one).
 - **HUD** (`ITDHUDData`): `GetSquadHUD` (per ship hull/shield/boost/heat/secondary ammo/alive/
@@ -82,6 +82,8 @@ ENG-03 death/respawn rules for squad ships. Code: `Source/unrealGameJam/TriadDri
 | `Wingmen.EngageWithoutPowers` | both engage, deal damage, zero `OnPowerUsed` |
 | `Wingmen.KeepFightingAfterSwitch` | the ship you left keeps fighting under AI |
 | `Wingmen.FocusCommand` | focus overrides priority, expires at 8 s |
+| `Wingmen.FollowHyperdriveNotRam` | a 45 000 cm/s dash does not break engagement; an 80 000 cm/s jump carries wingmen in formation |
+| `Death.SpawnSquadIsARetake` | `SpawnSquad` again revives, repositions and resets everything (T5 retake) |
 
 ## Known gaps
 

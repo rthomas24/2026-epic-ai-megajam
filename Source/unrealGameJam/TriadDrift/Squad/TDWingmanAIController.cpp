@@ -78,6 +78,7 @@ void ATDWingmanAIController::SetState(ETDWingmanState NewState)
 	}
 	State = NewState;
 	StateEnterTime = Now();
+	bRegroupCommitted = false;
 	if (NewState != ETDWingmanState::Engage)
 	{
 		SetTriggers(false, false);
@@ -173,7 +174,7 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 		float MinS, CruiseS, BoostS;
 		TDSquad::GetSpeedRange(Ship, MinS, CruiseS, BoostS);
 		const float LeaderSpeed = TDSquad::GetSpeed(Leader);
-		if (LeaderSpeed > BoostS * HyperdriveFollowSpeedRatio)
+		if (LeaderSpeed > FMath::Max(HyperdriveFollowMinSpeed, BoostS * 2.f))
 		{
 			SetTriggers(false, false);
 			const FVector Slot = S->GetFormationSlotLocation(ShipId);
@@ -257,7 +258,8 @@ void ATDWingmanAIController::UpdateFormation(float DeltaSeconds, ATDShip* Ship, 
 		if (AActor* Target = PickTarget(Ship, Leader))
 		{
 			const bool bFocus = Squad.IsValid() && Target == Squad->GetFocusTarget();
-			if (State == ETDWingmanState::Formation || bFocus || T - StateEnterTime > 2.0)
+			const bool bCommitted = State == ETDWingmanState::Regroup && bRegroupCommitted && T - StateEnterTime < RegroupCommitSeconds;
+			if (bFocus || !bCommitted)
 			{
 				CurrentTarget = Target;
 				SetState(ETDWingmanState::Engage);
@@ -344,6 +346,7 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 	{
 		CurrentTarget.Reset();
 		SetState(ETDWingmanState::Regroup);
+		bRegroupCommitted = true;
 		return;
 	}
 
@@ -451,6 +454,7 @@ void ATDWingmanAIController::UpdateEvade(float DeltaSeconds, ATDShip* Ship, ATDS
 	if (Elapsed >= EvadeSeconds)
 	{
 		SetState(ETDWingmanState::Regroup);
+		bRegroupCommitted = true;
 		return;
 	}
 

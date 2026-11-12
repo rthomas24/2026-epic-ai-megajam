@@ -76,8 +76,11 @@ public:
 	static ATDSquadManager* Get(const UObject* WorldContext);
 
 	/**
-	 * Spawn (or re-place) the three ships around Origin, active ship first, wingmen in formation.
-	 * The first living ship in SwitchOrder (or the last flown ship) is possessed by the local player.
+	 * Spawn the three ships around Origin (StartingShip leads, wingmen in their V slots) and give the
+	 * player StartingShip. Safe to call again for a retake (C-03 #3): every ship is revived to full
+	 * health, unhidden, repositioned at Origin at cruise speed and handed back to its wingman; switch
+	 * cooldown, Switch Strike, focus, respawn timers and the wipe state are all reset. No events fire
+	 * for the reset itself. Set StartingShip first to resume in a different ship.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
 	void SpawnSquad(const FTransform& Origin);
