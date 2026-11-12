@@ -856,27 +856,6 @@ void ATDWaveDirector::StopAndClear()
 
 // --------------------------------------------------------------------------------------------- tick
 
-void ATDWaveDirector::RepairSquadHulls(float DeltaSeconds)
-{
-	UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
-	if (!Registry || BreatherHullRepairPerSecond01 <= 0.f)
-	{
-		return;
-	}
-	ScratchActors.Reset();
-	Registry->GetActorsOfTeam(ETDTeam::Player, ScratchActors, true);
-	for (AActor* A : ScratchActors)
-	{
-		if (UTDHealthComponent* H = UTDStatics::GetHealth(A))
-		{
-			if (H->IsAlive() && H->GetHull01() < 1.f)
-			{
-				H->RepairHull(H->MaxHull * BreatherHullRepairPerSecond01 * DeltaSeconds);
-			}
-		}
-	}
-}
-
 void ATDWaveDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -938,7 +917,7 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 		break;
 	}
 	case ETDWaveState::Breather:
-		RepairSquadHulls(DeltaSeconds);
+		// Squad hull repair between waves belongs to the squad manager (ENG-03, 8%/s): it reads bInBreather.
 		StateRemaining -= DeltaSeconds;
 		if (StateRemaining <= 0.f)
 		{

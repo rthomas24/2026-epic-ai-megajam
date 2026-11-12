@@ -35,6 +35,7 @@ namespace
 		{
 			GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
 			GI->Progress.bDominionRevealed = bRevealed;
+			if (bRevealed) { GI->Progress.Phase = ETDGamePhase::DominionAssault; }
 			GI->Progress.bDominionDefensesDown = bDefensesDown;
 			L = NewObject<UTDWaveTestListener>();
 			L->AddToRoot();
@@ -73,7 +74,7 @@ bool FTDWorldDominionArrival::RunTest(const FString& Parameters)
 	TestEqual(TEXT("no generators yet"), R.D->GetGenerators().Num(), 0);
 
 	// Wave 5 cleared -> flow reveals the Dominion; it notices within a poll.
-	R.GI->Progress.bDominionRevealed = true;
+	R.GI->Progress.bDominionRevealed = true; R.GI->Progress.Phase = ETDGamePhase::DominionAssault;
 	R.W.Advance(R.D->ProgressPollSeconds + 0.05f);
 	TestTrue(TEXT("warping in"), R.D->GetState() == ETDDominionState::WarpingIn);
 	TestFalse(TEXT("hull visible"), R.D->IsHidden());
@@ -242,7 +243,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDominionVisuals, "TriadDrift.World.Domi
 bool FTDWorldDominionVisuals::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
-	Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.bDominionRevealed = true;
+	Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.bDominionRevealed = true; Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.Phase = ETDGamePhase::DominionAssault;
 	UTDDominionVisuals* DV = NewObject<UTDDominionVisuals>();
 	DV->ReactorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cone.Cone")));
 	DV->GeneratorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cone.Cone")));

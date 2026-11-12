@@ -432,10 +432,19 @@ void ATDEnemyAIController::TryHeavyAttacks(ATDEnemyShip& Ship, AActor& InTarget)
 		{
 			continue;
 		}
-		// A telegraphed attack must leave time to wind up AND peel away: never launch on the target's flight line.
-		// Not inside TelegraphMinDistance either: a pilot still turning shows a long time-to-impact while sitting
-		// right on top of its target.
-		if (A->IsTelegraphed() && (Dist < TelegraphMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds + BreakOffTimeToImpact + 0.5f))
+		// Minimum distances per attack (review E2 and its re-check). The interceptor's homing missile must leave
+		// time to wind up AND peel away, so it never launches on the player's flight line. A gunship is a
+		// turret on engines: its bolts fire at a ship charging it (down to a short minimum), and its salvo keeps
+		// its own smaller margin so the missiles have room to arm.
+		if (A->Kind == ETDEnemyAttack::Missile && (Dist < TelegraphMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds + BreakOffTimeToImpact + 0.5f))
+		{
+			continue;
+		}
+		if (A->Kind == ETDEnemyAttack::HeavyBolt && Dist < GunshipBoltMinDistance)
+		{
+			continue;
+		}
+		if (A->Kind == ETDEnemyAttack::MissileSalvo && (Dist < GunshipSalvoMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds))
 		{
 			continue;
 		}
