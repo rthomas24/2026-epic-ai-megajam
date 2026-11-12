@@ -103,7 +103,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 18:28 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 18:38 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -196,6 +196,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | Planets: Cinder blade blocker and magma height, then both planets dressed with the engineering props and trees | T5 | in progress | Nov 12 17:25 | | reads `/Game/TriadDrift/Gameplay/{Props,Vegetation}/**` |
 | On `main` at `140efdf` (472 tests): wingmen call their position when they enter a fight (T3 `48cd6d7`); real Bastion locks through the camera and other re-check tests (T2) | T2, T3 | in review | Nov 12 18:16 | Nov 12 18:24 (`140efdf`) | none |
 | On `main` at `ef0ca44` (473 tests): enemy aim and AI use deterministic per-world seeds (the flaky head-on test's root cause), head-on passes hit with an 8-seed margin and never ram, gunships volley a charging ship, breather repair is 8% once, finale combat helper (T4); incoming hostile fire reads before it lands (T2); `GetDamageIndicators` on the squad manager (T3) | T2, T3, T4 | in review | Nov 12 18:25 | Nov 12 18:28 (`ef0ca44`); hit-direction chevrons not yet seen live | none |
+| On `main` at `84e8ca3`: the blade breaks blade-breakable props, so Cinder can be finished (review BLOCKER N1), magma hurts at its surface only, a checkpoint before the Warden, planets exercised by a vulnerable pilot with real movement (T5 `61ec5d5`, `ced5161`); hit-direction feed (T3); dev HUD bark subtitle, dodge cue slot (Lead); `features.md` engineering items marked in progress with the Nov 12 rules. Held back: T1's dodge (`4c2c406`), until its feel test is deterministic | T3, T5, Lead | in review | Nov 12 18:35 | Nov 12 18:38 (`84e8ca3`); Cinder not yet played end to end | `/features.md` |
 | ENG-28 Shipping package: 777 MB at `140efdf` (Nov 12 18:24), with the 26 props, both gameplay materials and `WBP_SpaceHUD` inside. **Packaging was broken between `9f1f8ae` and this commit**: always-cooking all of `/Game/TriadDrift/Gameplay` pulled in the trees' editor-only vegetation graphs; now only `Gameplay/Materials` and `Gameplay/Props` are always cooked, and trees ship through hard references from the code that places them | Lead | in progress | Nov 12 13:21 | | `/Config/DefaultGame.ini`; output in git-ignored `Builds/` |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
