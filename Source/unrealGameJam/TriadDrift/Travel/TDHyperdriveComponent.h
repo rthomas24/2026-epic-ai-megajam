@@ -66,6 +66,10 @@ struct UNREALGAMEJAM_API FTDHyperdriveTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive", meta = (ClampMin = "0"))
 	float DropOutSeconds = 0.6f;
 
+	/** How hard the ship brakes from jump speed to DropOutSpeed (cm/s^2): a snap, not a coast. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive", meta = (ClampMin = "0"))
+	float DropOutDeceleration = 400000.f;
+
 	/** Can't spool again for this long after a drop-out. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive", meta = (ClampMin = "0"))
 	float CooldownSeconds = 1.f;

@@ -211,7 +211,7 @@ void UTDHyperdriveComponent::BeginDropOut(FName WellId)
 		Craft->SetSpeedOverride(Tuning.DropOutSpeed, 1.f);
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
-			Move->SetOverrideAcceleration(Tuning.JumpAcceleration);
+			Move->SetOverrideAcceleration(Tuning.DropOutDeceleration);
 		}
 		if (TravelFX)
 		{

@@ -152,7 +152,7 @@ FBox ATDAtmosphereFlightZone::GetZoneBox() const
 
 bool ATDAtmosphereFlightZone::IsShipInZone(const ATDShip* Ship) const
 {
-	return Ship && GetZoneBox().ExpandBy(FVector(0.f, 0.f, ExitHeightAboveCeiling)).IsInsideOrOn(Ship->GetActorLocation());
+	return Ship && GetZoneBox().ExpandBy(FVector(0.f, 0.f, ExitHeightAboveCeiling * 4.f)).IsInsideOrOn(Ship->GetActorLocation());
 }
 
 bool ATDAtmosphereFlightZone::IsExitAllowed() const

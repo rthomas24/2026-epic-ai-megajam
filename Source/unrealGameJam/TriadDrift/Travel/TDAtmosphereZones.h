@@ -136,6 +136,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	FBox GetZoneBox() const;
 
+	/** The ceiling exit fired (TravelTo(Galaxy, "<PlanetId>_Orbit") was requested). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+	bool IsExitTriggered() const { return bExitTriggered; }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	bool IsShipInZone(const ATDShip* Ship) const;
 
