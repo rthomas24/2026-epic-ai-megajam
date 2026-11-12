@@ -4,7 +4,6 @@
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
-#include "Misc/PackageName.h"
 #include "TriadDrift/Powers/TDAbilityComponent.h"
 #include "TriadDrift/Powers/TDBastionPowers.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
@@ -136,27 +135,9 @@ UTDShipVisuals* UTDShipLibrary::LoadVisuals(const FTDShipSpec& Spec)
 	{
 		return Loaded;
 	}
-	// Only touch the disk if the package is there: an asset Nick hasn't made yet is not an error.
-	// Misses are cached (this runs on every switch for the cut colour), retried at most every 10 s.
-	static TMap<FSoftObjectPath, double> MissUntil;
-	const FSoftObjectPath Path = Spec.Visuals.ToSoftObjectPath();
-	const double Now = FPlatformTime::Seconds();
-	if (const double* Until = MissUntil.Find(Path); Until && Now < *Until)
-	{
-		return nullptr;
-	}
-	const FString Package = Path.GetLongPackageName();
-	if (Package.IsEmpty() || !FPackageName::DoesPackageExist(Package))
-	{
-		MissUntil.Add(Path, Now + 10.0);
-		return nullptr;
-	}
-	UTDShipVisuals* Loaded = Spec.Visuals.LoadSynchronous();
-	if (!Loaded)
-	{
-		MissUntil.Add(Path, Now + 10.0);
-	}
-	return Loaded;
+	// Core's single loader: quiet when Nick hasn't authored the asset yet, remembers misses, and works
+	// in packaged builds (the Presentation folder is always cooked).
+	return UTDStatics::LoadPresentation<UTDShipVisuals>(Spec.Visuals.GetAssetName());
 }
 
 FLinearColor UTDShipLibrary::GetSquadColor(const FTDShipSpec& Spec)
