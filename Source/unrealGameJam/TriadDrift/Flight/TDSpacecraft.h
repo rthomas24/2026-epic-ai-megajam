@@ -100,6 +100,8 @@ public:
 	// ---- AActor / APawn ------------------------------------------------------------------------------
 	virtual void Tick(float DeltaSeconds) override;
 	virtual UPawnMovementComponent* GetMovementComponent() const override;
+	/** APawn::Restart (run on every possess) stops movement; ships keep flying through a switch. */
+	virtual void Restart() override;
 
 protected:
 	virtual void BeginPlay() override;
