@@ -59,6 +59,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Projectile")
 	void SetVelocity(const FVector& NewVelocity) { Velocity = NewVelocity; }
 
+	/** Scales all damage this projectile (and its shards) deals from now on. Blade perfect deflect: x2. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Projectile")
+	void SetDamageMultiplier(float NewMultiplier) { DamageMultiplier = FMath::Max(NewMultiplier, 0.f); }
+
+	/** Stop homing entirely and fly straight (a normal deflect aimed at the crosshair: call right after Deflect). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Projectile")
+	void ClearHoming() { Spec.bHoming = false; HomingTarget = nullptr; }
+
 	/** Move without sweeping (portal transit). Keeps speed; NewDirection zero = keep direction. */
 	void TeleportProjectile(const FVector& NewLocation, const FVector& NewDirection);
 
@@ -135,6 +143,9 @@ private:
 
 	UPROPERTY(Transient)
 	FTDProjectileSpec Spec;
+
+	/** Turn rate a deflected shot gets while re-homing on its original shooter (returns must land). */
+	static constexpr float DeflectHomingTurnRateDeg = 360.f;
 
 	ETDTeam Team = ETDTeam::Neutral;
 	FVector Velocity = FVector::ZeroVector;
