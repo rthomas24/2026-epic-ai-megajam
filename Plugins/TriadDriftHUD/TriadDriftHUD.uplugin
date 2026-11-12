@@ -1,0 +1,12 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1",
+  "FriendlyName": "Triad Drift HUD",
+  "Description": "Native UMG combat HUD and explicitly isolated mock-data preview.",
+  "Category": "UI",
+  "CreatedBy": "Nicholas Tosti / OpenAI Codex",
+  "EnabledByDefault": true,
+  "CanContainContent": false,
+  "Modules": [{ "Name": "TriadDriftHUD", "Type": "Runtime", "LoadingPhase": "PostDefault" }]
+}
