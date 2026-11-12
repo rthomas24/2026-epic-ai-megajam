@@ -22,6 +22,7 @@
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
 #include "TriadDrift/Travel/TDPlanetTravelRig.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 
 #if __has_include("TriadDrift/World/TDPlanetAtmosphere.h")
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
@@ -141,6 +142,24 @@ namespace TDTravelDebug
 		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Exit: exit opened, climbing out"));
 	}
 
+	void ToBoundary(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = GetPlayerShip(World);
+		const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(World);
+		FVector Center;
+		float Radius = 0.f;
+		if (!Ship || !Travel || !Travel->GetPlayBounds(Center, Radius))
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToBoundary: need a player ship and play bounds"));
+			return;
+		}
+		FVector Out = (Ship->GetActorLocation() - Center).GetSafeNormal();
+		if (Out.IsNearlyZero()) { Out = FVector::ForwardVector; }
+		// Just inside the edge, nose straight out: a hands-off ship must come back by itself.
+		Ship->TeleportSpacecraft(Center + Out * (Radius - 2000.f), Out.Rotation(), false);
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToBoundary: radius %.0f, flying out hands-off"), Radius);
+	}
+
 	void Status(const TArray<FString>& Args, UWorld* World)
 	{
 		ATDShip* Ship = GetPlayerShip(World);
@@ -149,6 +168,15 @@ namespace TDTravelDebug
 			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: map %s, no player ship (pawn: %s)"), World ? *World->GetMapName() : TEXT("?"),
 				(GetPC(World) && GetPC(World)->GetPawn()) ? *GetPC(World)->GetPawn()->GetName() : TEXT("none"));
 			return;
+		}
+		const FTDFlightInput& In = Ship->GetFlightInput();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: input throttle %.2f aim %.2f,%.2f roll %.2f boost %d drift %d brake %d | boost meter %.2f boosting %d drifting %d out-of-bounds %d near-boundary %d"),
+			In.Throttle, In.Aim.X, In.Aim.Y, In.Roll, In.bBoost, In.bDrift, In.bBrake, Ship->GetBoost01(), Ship->IsBoosting(), Ship->IsDrifting(),
+			Ship->IsOutOfBounds(), Ship->GetShipMovement()->IsNearBoundary());
+		if (const UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
+		{
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: hyperdrive state %d charge %.2f block '%s' player-flown %d"),
+				(int32)Hyper->GetState(), Hyper->GetCharge01(), *Hyper->GetBlockReasonText().ToString(), Ship->IsPlayerFlown());
 		}
 		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.Status: map %s ship %s at %s speed %.0f atmosphere %d hyperdrive %d landing %d altitude %.0f m"),
 			*World->GetMapName(), *Ship->GetName(), *Ship->GetActorLocation().ToString(), (float)Ship->GetVelocity().Size(),
@@ -171,6 +199,9 @@ static FAutoConsoleCommandWithWorldAndArgs GTDTravelTakeOffCmd(TEXT("TD.Travel.T
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelExitCmd(TEXT("TD.Travel.Exit"),
 	TEXT("Open the planet ceiling and climb out to the galaxy"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::Exit));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelToBoundaryCmd(TEXT("TD.Travel.ToBoundary"),
+	TEXT("Put the player ship at the play-bounds edge, nose out (boundary turn-back check)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::ToBoundary));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelStatusCmd(TEXT("TD.Travel.Status"),
 	TEXT("Log the player ship's travel state"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::Status));
