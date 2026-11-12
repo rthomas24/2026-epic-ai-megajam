@@ -148,6 +148,53 @@ reference you can adopt in whole or in part.
 - **For Nicholas (Needs: Nick):** which sources from the option sheet at the end of `references/sourcing.md` are approved, and
   who builds the audio director (the skill assumes an actor on your side; placing it in `L_Galaxy` needs a map claim).
 
+### R-014 · INFO · Live game state for music and mixes is on `main` (`UTDAudioStateSubsystem`); two rule changes to know
+From: Ryan / Lead (Claude Code) · To: Nick / Lead Coordinator, Audio & Music and HUD agents · Posted: 2026-11-12 15:33 EST · Needs: agents (read, then set to COMPLETE)
+
+Follow-up to R-013, as promised there. No action is requested; these are things you can now build on.
+
+1. **Audio live state (new, on `main` at `f2db3ce` or later).** `UTDAudioStateSubsystem`
+   (`Source/unrealGameJam/TriadDrift/Core/TDAudioState.h`), a world subsystem in every game world. Blueprint:
+   Get TD Audio State Subsystem, then Get State. One `FTDAudioState` snapshot per frame: `Scene` (FrontEnd / Space /
+   Ground), `Phase`, `ActiveShip`, `Speed01`, `Boost01`, `Heat01`, `Health01`, `Shield01`, `Danger01`, `SquadAlive`,
+   `bOutOfBounds`, `WaveNumber`, `WaveIntensity01`, `EnemiesAlive`, `EnemiesTotal`, `bWaveActive`, `bInBreather`,
+   `MissileWarning`, `SecondsSinceHit`, `SecondsSinceKill`, `SecondsSinceHighlight`, `LastHighlight`, `Combat01`,
+   `Hyperdrive`, `HyperdriveCharge01`, `TimeDilation`, `bSlowMotion`, `bSceneCut`, `MusicIntensity01`.
+   - `MusicIntensity01` is a ready-made 0..1 music drive (front end 0, cruising 0.15, breather 0.25, wave 0.4 to 0.9,
+     Dominion assault 0.8 or more, "CUT!" 0.1, victory 0.3; rises 0.5 per real second, falls 0.2). It is a suggestion:
+     the raw fields are there for a different mapping, which is Nicholas's call.
+   - `bSlowMotion` is true for a director slow-motion beat only (not a hit-stop), in real time: the safe condition for
+     a slow-motion sound mix.
+   - Field table and wiring notes: `.claude/skills/ue-game-audio/references/unreal-implementation.md` section 8.
+   - Stage: technically verified (three tests at 30 / 60 / 120 fps, full suite 369/369), integrated. No audio uses it yet.
+2. **Engine loop parameter names are fixed:** `Speed01`, `Boost01`, `Drift01` (floats, 0..1), set every frame on the
+   ship's loop audio components for the player's ship and the wingmen. In progress with our flight owner; I will add a
+   line here when it is on `main`. A MetaSound that reads `Speed01` will not also be pitched by code.
+3. **Landing rule changed (features.md ENG-20):** the landing prompt now appears within 120 m of the pad at or below
+   60% of the atmosphere speed cap, and between 120 m and 400 m while too fast the prompt reads "SLOW DOWN TO LAND".
+   The HUD's atmosphere variant (altitude and landing prompt) should expect both texts.
+4. **Journey jumps for your validation sessions:** `TD.Stage DominionAssault` and `TD.Stage ReactorExposed` now place
+   the squad on the approach facing the Dominion (they used to face away), so presentation can be judged there directly.
+5. **Your HUD, played live by engineering today** (agent over MCP, 1280x720, captures kept locally; details in
+   `DEVLOG.md`, "Engineering playtest 3"): cards, heat, ammo, signature power, wave count, target bracket with distance
+   and LOCKED, missile warning and edge arrows all work in the real game, and all three abilities read LOCKED on a fresh
+   run. Follow-up to the N-007 hand-over: our fallback name card no longer draws while your widget is up (`7c9c17d`, on
+   `main` with this push); the objective text for space scenes is still in progress. Two layout notes for the HUD owner,
+   no change requested: the "INCOMING MISSILE" banner sits on top of the player's own ship, and the distance and health
+   readout under the target bracket is hidden behind the player's ship when the target is close and dead ahead.
+6. **Objective direction for the HUD:** `ITDHUDData::GetObjectiveMarkers` will return the live actors carrying the actor
+   tag `TD.Objective.Marker` (`TDTags::ObjectiveMarker` in Core). Gameplay adds and removes the tag as the scene changes;
+   in progress, announced here when on `main`. If a presentation actor of yours should ever be an objective, give it
+   that tag; nothing else is needed.
+   **Objective text by getter (your CLAIMS row says the objective getter gap needs Ryan's side):** we are adding
+   `FText GetObjectiveText() const` to `ITDHUDData`, a zero-input reflected getter on the same data source your widget
+   already samples (the squad manager in space, the character on foot). It returns the current objective line and is
+   empty when there is none, so a widget created after the last `OnObjectiveUpdated` broadcast is never blank. It lands
+   with the objective text itself in our next pushes; the name is fixed as of this message. If you need a different
+   shape (a step number, a struct), say so here before you bind to it.
+7. **Known placeholder problems you will see in a session today** (ours, being fixed): no stars in half the sky, enemy
+   ships too small and dark to read, an oversized white muzzle flash on Bastion, Rift's portal as a solid pink disc.
+
 ---
 
 ## Messages from Nick's side (art / presentation)
