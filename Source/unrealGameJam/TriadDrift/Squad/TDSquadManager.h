@@ -1,0 +1,238 @@
+// Triad Drift - Squad (Teammate 3). ENG-07: squad manager & instant switching (PROTECT), ENG-03 respawn.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Core/TDInterfaces.h"
+#include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TDSquadManager.generated.h"
+
+class ATDShip;
+class ATDWingmanAIController;
+class APlayerController;
+
+/** Life state of one squad slot. */
+UENUM(BlueprintType)
+enum class ETDSquadSlotState : uint8
+{
+	NotSpawned,
+	Alive,
+	/** Death tumble (0.6 s) before the ship is hidden and the respawn timer runs. */
+	Dying,
+	/** Hidden, waiting for the respawn timer. */
+	Downed
+};
+
+/** Runtime record for one of the three ships. */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDSquadSlot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad")
+	ETDShipId ShipId = ETDShipId::Rift;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad")
+	TObjectPtr<ATDShip> Ship = nullptr;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad")
+	TObjectPtr<ATDWingmanAIController> Wingman = nullptr;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad")
+	ETDSquadSlotState State = ETDSquadSlotState::NotSpawned;
+
+	/** World time at which a Dying/Downed ship comes back. */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad")
+	double RespawnAtTime = 0.0;
+
+	/** World time at which this ship was downed (Dying started). */
+	double DownedAtTime = 0.0;
+
+	/** World time this ship last used a signature power / ability (for Switch Strike). */
+	double LastPowerTime = -1000.0;
+};
+
+/**
+ * Owns the three squad ships and who the player flies.
+ *
+ * - SpawnSquad spawns Rift/Lancer/Bastion, applies their ENG-04 specs and gives each a wingman AI.
+ * - RequestSwitch* possesses the target on the SAME frame; the ship you left keeps its velocity and
+ *   is handed to its wingman AI. 0.4 s cooldown; downed ships can't be selected.
+ * - Active ship death auto-switches to the healthiest living ship; downed ships warp back after 12 s
+ *   with 2 s of invulnerability. All three down = OnSquadWiped + ITDGameFlow::ReportPlayerDefeated.
+ * - Switch Strike: switching within 1.5 s of using a power gives +25% damage for 4 s.
+ * - Fires OnShipSwitched / OnShipDowned / OnShipRespawned / OnSquadWiped on UTDEventBus.
+ * - Implements ITDHUDData for the space HUD.
+ */
+UCLASS(Blueprintable)
+class UNREALGAMEJAM_API ATDSquadManager : public AActor, public ITDHUDData
+{
+	GENERATED_BODY()
+
+public:
+	ATDSquadManager();
+
+	/** The squad manager of this world (registered on BeginPlay), or null. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad", meta = (WorldContext = "WorldContext"))
+	static ATDSquadManager* Get(const UObject* WorldContext);
+
+	/**
+	 * Spawn (or re-place) the three ships around Origin, active ship first, wingmen in formation.
+	 * The first living ship in SwitchOrder (or the last flown ship) is possessed by the local player.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void SpawnSquad(const FTransform& Origin);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	ATDShip* GetShip(ETDShipId Ship) const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	ATDShip* GetActiveShip() const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	ETDShipId GetActiveShipId() const { return ActiveShipId; }
+
+	/** Instant switch. False if on cooldown, the target is downed/missing, or it is already active. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	bool RequestSwitchTo(ETDShipId Ship);
+
+	/** Next living ship in SwitchOrder (wraps). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	bool RequestSwitchNext();
+
+	/** Previous living ship in SwitchOrder (wraps). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	bool RequestSwitchPrev();
+
+	/** Living (Alive) ships, in SwitchOrder. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	TArray<ATDShip*> GetLivingShips() const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	bool IsShipAlive(ETDShipId Ship) const;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	ETDSquadSlotState GetShipState(ETDShipId Ship) const;
+
+	/** Seconds until a downed ship returns (0 when alive). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	float GetRespawnSeconds(ETDShipId Ship) const;
+
+	/** 0..1 remaining switch cooldown (0 = ready). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	float GetSwitchCooldown01() const;
+
+	/** "Focus my target" (IA_SquadCommand): wingmen prioritise Target for FocusCommandSeconds. Null = clear. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void IssueFocusCommand(AActor* Target);
+
+	/** True while the Switch Strike damage buff is running. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	bool IsSwitchStrikeActive() const;
+
+	/** Outgoing damage multiplier for a ship (1.25 on the active ship during Switch Strike, else 1). T2 reads this. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	float GetDamageMultiplier(const AActor* SourceShip) const;
+
+	/** T2's power/ability components call this when a power or ability fires (arms Switch Strike). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void NotifyPowerUsed(ETDShipId Ship);
+
+	/** Wingman controllers ask for their formation anchor (the player's ship). */
+	ATDShip* GetFormationLeader() const { return GetActiveShip(); }
+
+	/** World-space formation slot for a ship, relative to the current leader. */
+	FVector GetFormationSlotLocation(ETDShipId Ship) const;
+
+	/** Current focus target (null when none or expired). */
+	AActor* GetFocusTarget() const;
+
+	/** The player controller the squad drives (first local player by default). */
+	APlayerController* GetSquadPlayerController() const;
+
+	// ---------------- Tuning (features.md defaults) ----------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Classes")
+	TSubclassOf<ATDShip> ShipClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Classes")
+	TSubclassOf<ATDWingmanAIController> WingmanControllerClass;
+
+	/** Optional per-ship spec overrides; unset ships use UTDShipLibrary::Get. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning")
+	TMap<ETDShipId, FTDShipSpec> ShipSpecOverrides;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning")
+	TArray<ETDShipId> SwitchOrder = { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning")
+	ETDShipId StartingShip = ETDShipId::Rift;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float SwitchCooldown = 0.4f;
+
+	/** Invulnerability given to the ship you switch into (ENG-03). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float SwitchInInvulnerability = 2.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float DeathTumbleSeconds = 0.6f;
+
+	/** Measured from the moment the ship is downed. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float RespawnDelay = 12.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float RespawnInvulnerability = 2.f;
+
+	/** Respawned ships warp in this far behind the leader. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "cm"))
+	float RespawnBehindDistance = 4000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float SwitchStrikeWindow = 1.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float SwitchStrikeDuration = 4.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning")
+	float SwitchStrikeDamageMultiplier = 1.25f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
+	float FocusCommandSeconds = 8.f;
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
+	virtual void Tick(float DeltaSeconds) override;
+
+	FTDSquadSlot* FindSlot(ETDShipId Ship);
+	const FTDSquadSlot* FindSlot(ETDShipId Ship) const;
+	const FTDShipSpec& GetSpec(ETDShipId Ship) const;
+
+	/** Core of switching; bForced bypasses the cooldown (auto-switch on death). */
+	bool SwitchToInternal(ETDShipId Ship, bool bForced);
+	bool CycleSwitch(int32 Direction);
+
+	void HandleShipDeath(ETDShipId Ship);
+	void FinishDying(FTDSquadSlot& Slot);
+	void RespawnShip(FTDSquadSlot& Slot);
+	void HandleSquadWiped();
+
+	/** Healthiest living ship (hull + shield fraction), excluding Except. False if none. */
+	bool FindHealthiestLivingShip(ETDShipId Except, ETDShipId& OutShip) const;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad|State")
+	TArray<FTDSquadSlot> Slots;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Squad|State")
+	ETDShipId ActiveShipId = ETDShipId::Rift;
+
+	double LastSwitchTime = -1000.0;
+	double SwitchStrikeEndTime = -1000.0;
+	double FocusEndTime = -1000.0;
+	TWeakObjectPtr<AActor> FocusTarget;
+	bool bSquadWiped = false;
+};
