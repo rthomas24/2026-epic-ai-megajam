@@ -8,6 +8,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 
 UTDPowerComponent::UTDPowerComponent()
@@ -19,6 +20,16 @@ UTDPowerComponent::UTDPowerComponent()
 void UTDPowerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	// Nick's data assets by convention, if nobody assigned one.
+	if (!FX && GetAbilityId() != ETDAbilityId::None)
+	{
+		FX = FTDPowerPresentation::LoadAbilityFX(GetAbilityId());
+	}
+	ETDShipId Ship;
+	if (!ShipVisuals && GetOwnerShipId(Ship))
+	{
+		ShipVisuals = FTDPowerPresentation::LoadShipVisuals(Ship);
+	}
 	if (UTDPowerSubsystem* Subsystem = UTDPowerSubsystem::Get(this))
 	{
 		ResetHandle = Subsystem->OnPowersReset.AddUObject(this, &UTDPowerComponent::HandlePowersReset);
@@ -73,13 +84,7 @@ bool UTDPowerComponent::TryActivate()
 			Bus->BroadcastPowerUsed(Ship, PowerName);
 		}
 	}
-	if (FX)
-	{
-		if (const AActor* Owner = GetOwner())
-		{
-			UTDStatics::PlayCue(this, FX->Activate, Owner->GetActorLocation(), Owner->GetActorRotation());
-		}
-	}
+	PlayActivationCues();
 	OnPowerActivated.Broadcast(this);
 
 	if (!bPowerActive)
@@ -110,7 +115,45 @@ void UTDPowerComponent::EndPower(bool bInterrupted)
 			UTDStatics::PlayCue(this, FX->End, Owner->GetActorLocation(), Owner->GetActorRotation());
 		}
 	}
+	PlayShipCue(2);
 	OnPowerEnded.Broadcast(this, bInterrupted);
+}
+
+void UTDPowerComponent::PlayActivationCues()
+{
+	if (FX)
+	{
+		if (const AActor* Owner = GetOwner())
+		{
+			UTDStatics::PlayCue(this, FX->Activate, Owner->GetActorLocation(), Owner->GetActorRotation());
+		}
+	}
+	PlayShipCue(1);
+}
+
+void UTDPowerComponent::PlayShipCue(int32 Which)
+{
+	const AActor* Owner = GetOwner();
+	if (!ShipVisuals || !Owner || Slot == ETDPowerInput::Ability)
+	{
+		return;
+	}
+	const FTDFXCue& Cue = Which == 0 ? ShipVisuals->PowerWindup
+		: (Which == 2 ? ShipVisuals->PowerEnd : (Slot == ETDPowerInput::Signature2 ? ShipVisuals->Power2Active : ShipVisuals->PowerActive));
+	UTDStatics::PlayCueAttached(Cue, Owner->GetRootComponent());
+}
+
+bool UTDPowerComponent::HasActiveArt() const
+{
+	if (FX && (FTDPowerPresentation::HasArt(FX->Activate) || FTDPowerPresentation::HasArt(FX->Loop)))
+	{
+		return true;
+	}
+	if (ShipVisuals && Slot != ETDPowerInput::Ability)
+	{
+		return FTDPowerPresentation::HasArt(Slot == ETDPowerInput::Signature2 ? ShipVisuals->Power2Active : ShipVisuals->PowerActive);
+	}
+	return false;
 }
 
 float UTDPowerComponent::GetCooldown01() const

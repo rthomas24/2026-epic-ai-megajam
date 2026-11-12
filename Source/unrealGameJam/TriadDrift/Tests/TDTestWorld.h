@@ -18,6 +18,8 @@ class UGameInstance;
 class AGameModeBase;
 class APlayerController;
 class APawn;
+class ULocalPlayer;
+struct FKey;
 
 /** Flags every Triad Drift test uses, so `td-test.ps1` finds them. */
 #define TD_TEST_FLAGS (EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
@@ -51,6 +53,20 @@ public:
 	/** Spawn a player controller (optionally of a specific class) and possess Pawn with it. */
 	APlayerController* SpawnPlayerController(APawn* PawnToPossess = nullptr, TSubclassOf<APlayerController> ControllerClass = nullptr);
 
+	/**
+	 * Spawn a LOCAL player controller: creates a ULocalPlayer on the test game instance (no viewport),
+	 * so IsLocalController() is true, the Enhanced Input local-player subsystem exists, input
+	 * components are processed and CharacterMovement simulates. Use this, not SpawnPlayerController,
+	 * for anything driven by real key input. One local player per test world; removed on teardown.
+	 */
+	APlayerController* SpawnLocalPlayerController(APawn* PawnToPossess = nullptr, TSubclassOf<APlayerController> ControllerClass = nullptr);
+
+	/** Press or release a key on a local controller through APlayerController::InputKey (the real path). */
+	static void InjectKey(APlayerController* Controller, const FKey& Key, bool bPressed);
+
+	/** Feed an analog value (mouse axis, stick axis, trigger) for one frame. */
+	static void InjectAxis(APlayerController* Controller, const FKey& Key, float Value);
+
 	/** Advance one frame of DeltaSeconds (real, undilated seconds). */
 	void Tick(float DeltaSeconds = 1.f / 60.f);
 
@@ -63,4 +79,5 @@ public:
 private:
 	UGameInstance* GameInstance = nullptr;
 	UWorld* World = nullptr;
+	ULocalPlayer* LocalPlayer = nullptr;
 };

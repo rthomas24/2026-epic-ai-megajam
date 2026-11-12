@@ -1,0 +1,204 @@
+// Triad Drift - Powers (Teammate 2). Power presentation: data assets by convention + Shipping-safe placeholders.
+
+#include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/World.h"
+
+const FName FTDPowerPresentation::PlaceholderTag(TEXT("TDPowerPlaceholder"));
+
+namespace
+{
+	/** Path -> loaded asset, or a remembered miss. Assets are long-lived; weak pointers survive editor reloads. */
+	template <typename T>
+	T* TDPresLoadCached(const FString& Name)
+	{
+		static TMap<FString, TWeakObjectPtr<UObject>> Found;
+		static TSet<FString> Missing;
+		if (Missing.Contains(Name))
+		{
+			return nullptr;
+		}
+		if (const TWeakObjectPtr<UObject>* Hit = Found.Find(Name))
+		{
+			if (UObject* Obj = Hit->Get())
+			{
+				return Cast<T>(Obj);
+			}
+		}
+		const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Presentation/%s.%s"), *Name, *Name);
+		T* Asset = LoadObject<T>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+		if (Asset)
+		{
+			Found.Add(Name, Asset);
+		}
+		else
+		{
+			Missing.Add(Name);
+		}
+		return Asset;
+	}
+
+	UStaticMesh* TDPresShapeMesh(FTDPowerPresentation::EShape Shape)
+	{
+		const TCHAR* Path = TEXT("/Engine/BasicShapes/Sphere.Sphere");
+		switch (Shape)
+		{
+		case FTDPowerPresentation::EShape::Cylinder: Path = TEXT("/Engine/BasicShapes/Cylinder.Cylinder"); break;
+		case FTDPowerPresentation::EShape::Cone: Path = TEXT("/Engine/BasicShapes/Cone.Cone"); break;
+		case FTDPowerPresentation::EShape::Cube: Path = TEXT("/Engine/BasicShapes/Cube.Cube"); break;
+		default: break;
+		}
+		return LoadObject<UStaticMesh>(nullptr, Path);
+	}
+
+	template <typename TComp>
+	TComp* TDPresNewComponent(AActor* Owner, USceneComponent* Parent)
+	{
+		TComp* Comp = NewObject<TComp>(Owner);
+		Comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Comp->SetGenerateOverlapEvents(false);
+		Comp->SetCastShadow(false);
+		Comp->SetCanEverAffectNavigation(false);
+		Comp->ComponentTags.Add(FTDPowerPresentation::PlaceholderTag);
+		USceneComponent* AttachTo = Parent ? Parent : Owner->GetRootComponent();
+		if (AttachTo)
+		{
+			Comp->SetupAttachment(AttachTo);
+		}
+		Comp->RegisterComponent();
+		return Comp;
+	}
+}
+
+UTDShipVisuals* FTDPowerPresentation::LoadShipVisuals(ETDShipId Ship)
+{
+	const TCHAR* Name = Ship == ETDShipId::Rift ? TEXT("DA_Rift_Visuals") : (Ship == ETDShipId::Lancer ? TEXT("DA_Lancer_Visuals") : TEXT("DA_Bastion_Visuals"));
+	return TDPresLoadCached<UTDShipVisuals>(Name);
+}
+
+UTDAbilityFX* FTDPowerPresentation::LoadAbilityFX(ETDAbilityId Ability)
+{
+	switch (Ability)
+	{
+	case ETDAbilityId::GravityWell: return TDPresLoadCached<UTDAbilityFX>(TEXT("DA_Ability_GravityWell_FX"));
+	case ETDAbilityId::Cloak: return TDPresLoadCached<UTDAbilityFX>(TEXT("DA_Ability_Cloak_FX"));
+	case ETDAbilityId::EMPPulse: return TDPresLoadCached<UTDAbilityFX>(TEXT("DA_Ability_EMPPulse_FX"));
+	default: return nullptr;
+	}
+}
+
+UTDTravelFX* FTDPowerPresentation::LoadTravelFX()
+{
+	return TDPresLoadCached<UTDTravelFX>(TEXT("DA_Travel_FX"));
+}
+
+UTDWeaponFX* FTDPowerPresentation::LoadWeaponFX(FName WeaponId)
+{
+	return WeaponId.IsNone() ? nullptr : TDPresLoadCached<UTDWeaponFX>(FString::Printf(TEXT("DA_%s_FX"), *WeaponId.ToString()));
+}
+
+bool FTDPowerPresentation::HasArt(const FTDFXCue& Cue)
+{
+	return !Cue.VFX.IsNull();
+}
+
+UStaticMeshComponent* FTDPowerPresentation::AddShape(AActor* Owner, USceneComponent* Parent, EShape Shape, const FVector& Scale,
+	const FRotator& RelativeRotation, FLinearColor Color, float EmissiveBoost)
+{
+	if (!Owner)
+	{
+		return nullptr;
+	}
+	UStaticMeshComponent* Mesh = TDPresNewComponent<UStaticMeshComponent>(Owner, Parent);
+	Mesh->SetStaticMesh(TDPresShapeMesh(Shape));
+	Mesh->SetRelativeRotation(RelativeRotation);
+	Mesh->SetRelativeScale3D(Scale);
+	UTDStatics::TintPlaceholder(Mesh, Color, EmissiveBoost);
+	return Mesh;
+}
+
+UInstancedStaticMeshComponent* FTDPowerPresentation::AddRingLattice(AActor* Owner, USceneComponent* Parent, float Radius, int32 Rings,
+	int32 SegmentsPerRing, float Thickness, FLinearColor Color, float EmissiveBoost)
+{
+	if (!Owner || Radius <= 0.f || SegmentsPerRing < 3)
+	{
+		return nullptr;
+	}
+	UInstancedStaticMeshComponent* ISM = TDPresNewComponent<UInstancedStaticMeshComponent>(Owner, Parent);
+	ISM->SetStaticMesh(TDPresShapeMesh(EShape::Cube));
+	UTDStatics::TintPlaceholder(ISM, Color, EmissiveBoost);
+
+	// Ring planes: horizontal, then the two vertical great circles.
+	const FQuat Planes[3] = { FQuat::Identity, FQuat(FVector::ForwardVector, HALF_PI), FQuat(FVector::RightVector, HALF_PI) };
+	const float SegmentLength = 2.f * PI * Radius / SegmentsPerRing * 1.05f;
+	for (int32 R = 0; R < FMath::Clamp(Rings, 1, 3); ++R)
+	{
+		for (int32 i = 0; i < SegmentsPerRing; ++i)
+		{
+			const float A = 2.f * PI * (i + 0.5f) / SegmentsPerRing;
+			const FVector Local(FMath::Cos(A) * Radius, FMath::Sin(A) * Radius, 0.f);
+			const FVector Tangent(-FMath::Sin(A), FMath::Cos(A), 0.f);
+			const FQuat Rot = Planes[R] * FRotationMatrix::MakeFromX(Tangent).ToQuat();
+			ISM->AddInstance(FTransform(Rot, Planes[R].RotateVector(Local), FVector(SegmentLength / 100.f, Thickness / 100.f, Thickness / 100.f)));
+		}
+	}
+	return ISM;
+}
+
+int32 FTDPowerPresentation::CountPlaceholders(const AActor* Owner)
+{
+	if (!Owner)
+	{
+		return 0;
+	}
+	int32 N = 0;
+	TInlineComponentArray<UPrimitiveComponent*> Prims(Owner);
+	for (const UPrimitiveComponent* P : Prims)
+	{
+		N += (P && P->ComponentHasTag(PlaceholderTag) && P->IsVisible()) ? 1 : 0;
+	}
+	return N;
+}
+
+// ------------------------------------------------------------------------------------------ flash actor
+
+ATDPlaceholderFlash::ATDPlaceholderFlash()
+{
+	PrimaryActorTick.bCanEverTick = true;
+	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
+	SetCanBeDamaged(false);
+}
+
+ATDPlaceholderFlash* ATDPlaceholderFlash::SpawnRingFlash(UWorld* World, const FVector& Location, float Radius, FLinearColor Color, float Seconds)
+{
+	if (!World)
+	{
+		return nullptr;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATDPlaceholderFlash* Flash = World->SpawnActor<ATDPlaceholderFlash>(ATDPlaceholderFlash::StaticClass(), Location, FRotator::ZeroRotator, Params);
+	if (Flash)
+	{
+		Flash->Life = FMath::Max(Seconds, 0.05f);
+		FTDPowerPresentation::AddRingLattice(Flash, nullptr, Radius, 3, 48, 80.f, Color, 6.f);
+	}
+	return Flash;
+}
+
+void ATDPlaceholderFlash::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	Age += DeltaSeconds;
+	// Expand from 60% to 100% of the radius so the pulse reads as a wave.
+	const float T = FMath::Clamp(Age / Life, 0.f, 1.f);
+	GetRootComponent()->SetRelativeScale3D(FVector(FMath::Lerp(0.6f, 1.f, T)));
+	if (Age >= Life)
+	{
+		Destroy();
+	}
+}

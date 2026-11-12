@@ -184,7 +184,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Weapon")
 	TArray<FVector> MuzzleOffsets;
 
-	/** Presentation per slot (Nick's DA_*_FX). Null = placeholder visuals, silence. */
+	/**
+	 * Presentation per slot. Left empty, EquipWeapon loads /Game/TriadDrift/Presentation/DA_<WeaponId>_FX if
+	 * it exists. Null = placeholder visuals, silence.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Weapon")
 	TObjectPtr<UTDWeaponFX> PrimaryFX = nullptr;
 
@@ -265,6 +268,9 @@ private:
 		uint32 Serial = 0;
 	};
 	TArray<FFiredShot> LastFired;
+	/** The slot's FX came from the path convention (so re-equipping may replace it); designer-set FX is never replaced. */
+	bool bPrimaryFXAuto = false;
+	bool bSecondaryFXAuto = false;
 	TArray<FTransform> MuzzleScratch;
 	FRandomStream Random;
 };

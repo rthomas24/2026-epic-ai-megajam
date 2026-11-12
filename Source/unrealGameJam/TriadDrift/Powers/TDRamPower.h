@@ -8,6 +8,7 @@
 #include "TDRamPower.generated.h"
 
 struct FTDFlightImpact;
+class UStaticMeshComponent;
 
 /**
  * 0.3 s wind-up (PowerWindup01 for the wing fold), then a 1.2 s dash at 3x boost speed with 40% steering.
@@ -87,6 +88,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
+	virtual void PlayActivationCues() override { PlayShipCue(0); }
 	virtual bool OnActivate() override;
 	virtual void OnTickActive(float DeltaTime) override;
 	virtual void OnEnd(bool bInterrupted) override;
@@ -105,6 +107,9 @@ private:
 
 	UFUNCTION()
 	void HandleFlightImpact(const FTDFlightImpact& Impact);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMeshComponent> PlaceholderCone;
 
 	TArray<TWeakObjectPtr<AActor>> HitThisDash;
 	/** Reused every tick (no per-frame allocation). */

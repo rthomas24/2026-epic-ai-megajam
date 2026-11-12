@@ -15,7 +15,7 @@ class UTDTargetingComponent;
  * target), 18 damage + 200 cm splash each, 9 s cooldown. While the player flies Bastion and the swarm
  * is ready, lock painting runs automatically (hold-Q is the dome, so painting can't need a held button).
  */
-UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
 class UNREALGAMEJAM_API UTDMissileSwarmPower : public UTDPowerComponent
 {
 	GENERATED_BODY()
@@ -51,7 +51,7 @@ private:
 };
 
 /** Hold Q: a 3000 cm dome for 6 s, 16 s cooldown (counted from when it collapses). */
-UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
 class UNREALGAMEJAM_API UTDShieldDomePower : public UTDPowerComponent
 {
 	GENERATED_BODY()
