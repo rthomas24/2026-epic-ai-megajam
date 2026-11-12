@@ -3,6 +3,7 @@
 #include "TriadDrift/Flow/TDDebugMenu.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Flow/TDJourney.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
@@ -111,6 +112,17 @@ TSharedRef<SWidget> FTDDebugMenu::Build()
 	Actions->AddSlot()[MakeButton(TEXT("Skip wave"), [World]() { UTDCheatManager::DoSkipWave(World()); })];
 	Actions->AddSlot()[MakeButton(TEXT("CUT! (retake)"), [World]() { UTDCheatManager::DoTake(World()); })];
 
+	TSharedRef<SWrapBox> Journey = SNew(SWrapBox).UseAllottedSize(true);
+	if (const UEnum* E = StaticEnum<ETDJourneyStage>())
+	{
+		for (int32 i = 0; i < E->NumEnums() - 1; ++i)
+		{
+			const FString Name = E->GetNameStringByIndex(i);
+			Journey->AddSlot()[MakeButton(Name, [World, Name]() { UTDCheatManager::DoStage(World(), Name); })];
+		}
+	}
+	Actions->AddSlot()[MakeButton(TEXT("Unlock all"), [World]() { UTDCheatManager::DoUnlock(World(), TEXT("All"), FString()); })];
+
 	TSharedRef<SWrapBox> Phases = SNew(SWrapBox).UseAllottedSize(true);
 	if (const UEnum* E = StaticEnum<ETDGamePhase>())
 	{
@@ -155,7 +167,9 @@ TSharedRef<SWidget> FTDDebugMenu::Build()
 				SNew(SScrollBox)
 				+ SScrollBox::Slot()[Header(TEXT("TRIAD DRIFT DEBUG (F10)"))]
 				+ SScrollBox::Slot().Padding(0, 6)[Actions]
-				+ SScrollBox::Slot()[Header(TEXT("Phase"))]
+				+ SScrollBox::Slot()[Header(TEXT("Journey stage (progress + world)"))]
+				+ SScrollBox::Slot().Padding(0, 6)[Journey]
+				+ SScrollBox::Slot()[Header(TEXT("Phase (progress only)"))]
 				+ SScrollBox::Slot().Padding(0, 6)[Phases]
 				+ SScrollBox::Slot()[Header(TEXT("Unlock ability"))]
 				+ SScrollBox::Slot().Padding(0, 6)[Unlocks]
