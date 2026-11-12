@@ -13,34 +13,11 @@ const FName FTDPowerPresentation::PlaceholderTag(TEXT("TDPowerPlaceholder"));
 
 namespace
 {
-	/** Path -> loaded asset, or a remembered miss. Assets are long-lived; weak pointers survive editor reloads. */
+	/** Core's single presentation loader: quiet on missing assets, remembers misses, works in packaged builds. */
 	template <typename T>
 	T* TDPresLoadCached(const FString& Name)
 	{
-		static TMap<FString, TWeakObjectPtr<UObject>> Found;
-		static TSet<FString> Missing;
-		if (Missing.Contains(Name))
-		{
-			return nullptr;
-		}
-		if (const TWeakObjectPtr<UObject>* Hit = Found.Find(Name))
-		{
-			if (UObject* Obj = Hit->Get())
-			{
-				return Cast<T>(Obj);
-			}
-		}
-		const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Presentation/%s.%s"), *Name, *Name);
-		T* Asset = LoadObject<T>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
-		if (Asset)
-		{
-			Found.Add(Name, Asset);
-		}
-		else
-		{
-			Missing.Add(Name);
-		}
-		return Asset;
+		return UTDStatics::LoadPresentation<T>(Name);
 	}
 
 	UStaticMesh* TDPresShapeMesh(FTDPowerPresentation::EShape Shape)
@@ -133,6 +110,11 @@ int32 FTDPowerPresentation::GetCueRequests(FName Moment)
 void FTDPowerPresentation::ResetCueRequests()
 {
 	TDPresCueRequests().Reset();
+}
+
+UTDWeaponFX* FTDPowerPresentation::LoadMissileSwarmFX()
+{
+	return TDPresLoadCached<UTDWeaponFX>(TEXT("DA_MissileSwarm_FX"));
 }
 
 bool FTDPowerPresentation::HasArt(const FTDFXCue& Cue)

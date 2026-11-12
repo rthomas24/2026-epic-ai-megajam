@@ -307,6 +307,8 @@ bool FTDAbilitySlot::RunTest(const FString& Parameters)
 	UTDAbilityComponent* Slot = NewObject<UTDAbilityComponent>(Bastion, TEXT("AbilitySlot"));
 	Slot->RegisterComponent();
 	TestTrue(TEXT("starts empty"), Slot->GetAbility() == ETDAbilityId::None);
+	TestEqual(TEXT("locked ability: HUD readiness 0, not 1"), Slot->GetReadiness01(), 0.f);
+	TestFalse(TEXT("locked: HasAbility false"), Slot->HasAbility());
 	TestNull(TEXT("no ability power"), UTDPowerComponent::FindPower(Bastion, ETDPowerInput::Ability));
 
 	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
@@ -315,6 +317,7 @@ bool FTDAbilitySlot::RunTest(const FString& Parameters)
 	TestTrue(TEXT("another ship's unlock is ignored"), Slot->GetAbility() == ETDAbilityId::None);
 	Bus->BroadcastAbilityUnlocked(ETDAbilityId::GravityWell, ETDShipId::Bastion);
 	TestTrue(TEXT("Gravity Well installed"), Slot->GetAbility() == ETDAbilityId::GravityWell);
+	TestEqual(TEXT("earned and ready: readiness 1"), Slot->GetReadiness01(), 1.f);
 	TestTrue(TEXT("routable in the Ability slot"), Cast<UTDGravityWellPower>(UTDPowerComponent::FindPower(Bastion, ETDPowerInput::Ability)) != nullptr);
 
 	Slot->SetAbility(ETDAbilityId::EMPPulse);

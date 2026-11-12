@@ -158,6 +158,7 @@ void UTDRamPower::BeginDash()
 				if (UStaticMeshComponent* Streak = FTDPowerPresentation::AddShape(Owner, PlaceholderCone, FTDPowerPresentation::EShape::Cylinder,
 					FVector(0.35f, 0.35f, 14.f), FRotator(0.f, 0.f, 0.f), UTDStatics::ShipColor(ETDShipId::Lancer), 8.f))
 				{
+					Streak->ComponentTags.Remove(FTDPowerPresentation::PlaceholderTag); // part of the cone placeholder
 					Streak->SetUsingAbsoluteScale(true);
 					Streak->SetWorldScale3D(FVector(0.35f, 0.35f, 14.f));
 					Streak->SetRelativeLocation(FVector(0.f, Side * 380.f / 5.f, -1400.f / 9.f)); // cone space: Z is backwards along the hull
@@ -363,7 +364,7 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 	}
 	if (PlaceholderCone)
 	{
-		PlaceholderCone->DestroyComponent();
+		FTDPowerPresentation::DestroyPlaceholder(PlaceholderCone); // the streaks are its children: they go too
 		PlaceholderCone = nullptr;
 	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Owner))

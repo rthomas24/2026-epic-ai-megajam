@@ -25,7 +25,8 @@ struct FTDFXCue;
  *   /Game/TriadDrift/Presentation/DA_<WeaponId>_FX                    (UTDWeaponFX)
  *   /Game/TriadDrift/Presentation/DA_Ability_<GravityWell|Cloak|EMPPulse>_FX (UTDAbilityFX, proposed)
  *   /Game/TriadDrift/Presentation/DA_Travel_FX                        (UTDTravelFX: portals, proposed)
- * All optional: a missing asset returns null and is remembered (no repeated disk probes).
+ * All optional, through UTDStatics::LoadPresentation (quiet on missing assets, remembers misses, packaged-safe).
+ *   /Game/TriadDrift/Presentation/DA_MissileSwarm_FX                 (UTDWeaponFX for Bastion's swarm micro-missiles)
  */
 struct UNREALGAMEJAM_API FTDPowerPresentation
 {
@@ -33,6 +34,8 @@ struct UNREALGAMEJAM_API FTDPowerPresentation
 	static UTDAbilityFX* LoadAbilityFX(ETDAbilityId Ability);
 	static UTDTravelFX* LoadTravelFX();
 	static UTDWeaponFX* LoadWeaponFX(FName WeaponId);
+	/** Bastion's swarm micro-missiles have no weapon id: DA_MissileSwarm_FX. */
+	static UTDWeaponFX* LoadMissileSwarmFX();
 
 	/**
 	 * Play a cue through a named request (e.g. "Ship.PowerActive", "Travel.PortalOpen", "Ability.Loop").
