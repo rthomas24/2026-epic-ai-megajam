@@ -6,7 +6,7 @@
 
 namespace
 {
-	FTDEnemyAttackSpec MakeAttack(ETDEnemyAttack Kind, FName WeaponId, float Damage, int32 Count, float Interval,
+	FTDEnemyAttackSpec TDEnemyLib_MakeAttack(ETDEnemyAttack Kind, FName WeaponId, float Damage, int32 Count, float Interval,
 		float Telegraph, float Range, float Cone, float Splash = 0.f)
 	{
 		FTDEnemyAttackSpec A;
@@ -49,7 +49,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.CruiseSpeed = 7000.f;
 		S.TurnRateDeg = 110.f;
 		S.Radius = 220.f;
-		S.Guns = MakeAttack(ETDEnemyAttack::Guns, TDEnemyWeaponIds::PulseGuns, 5.f, 1, 0.25f, 0.f, 9000.f, 10.f);
+		S.Guns = TDEnemyLib_MakeAttack(ETDEnemyAttack::Guns, TDEnemyWeaponIds::PulseGuns, 5.f, 1, 0.25f, 0.f, 9000.f, 10.f);
 		S.EngageRange = 11000.f;
 		S.BreakOffRange = 2200.f;
 		S.BreakOffSeconds = 2.0f;
@@ -74,8 +74,8 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.CruiseSpeed = 9000.f;
 		S.TurnRateDeg = 125.f;
 		S.Radius = 260.f;
-		S.Guns = MakeAttack(ETDEnemyAttack::Guns, TDEnemyWeaponIds::PulseGuns, 5.f, 1, 0.25f, 0.f, 9000.f, 10.f);
-		S.Heavy = MakeAttack(ETDEnemyAttack::Missile, TDEnemyWeaponIds::HomingMissile, 25.f, 1, 8.f, 0.8f, 16000.f, 35.f);
+		S.Guns = TDEnemyLib_MakeAttack(ETDEnemyAttack::Guns, TDEnemyWeaponIds::PulseGuns, 5.f, 1, 0.25f, 0.f, 9000.f, 10.f);
+		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::Missile, TDEnemyWeaponIds::HomingMissile, 25.f, 1, 8.f, 0.8f, 16000.f, 35.f);
 		S.EngageRange = 14000.f;
 		S.BreakOffRange = 2500.f;
 		S.BreakOffSeconds = 1.6f;
@@ -104,9 +104,9 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.TurnRateDeg = 45.f;
 		S.MinSpeedFraction = 0.f;	// holds range, nose to the threat
 		S.Radius = 700.f;
-		S.Heavy = MakeAttack(ETDEnemyAttack::HeavyBolt, TDEnemyWeaponIds::HeavyBolt, 20.f, 3, 3.5f, 0.6f, 18000.f, 15.f);
+		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::HeavyBolt, TDEnemyWeaponIds::HeavyBolt, 20.f, 3, 3.5f, 0.6f, 18000.f, 15.f);
 		// One FireOnce of Enemy_SalvoMissile = T2's 3-missile ripple.
-		S.Heavy2 = MakeAttack(ETDEnemyAttack::MissileSalvo, TDEnemyWeaponIds::SalvoMissile, 20.f, 3, 10.f, 1.2f, 20000.f, 40.f, 0.f);
+		S.Heavy2 = TDEnemyLib_MakeAttack(ETDEnemyAttack::MissileSalvo, TDEnemyWeaponIds::SalvoMissile, 20.f, 3, 10.f, 1.2f, 20000.f, 40.f, 0.f);
 		S.EngageRange = 15000.f;
 		S.BreakOffRange = 4000.f;
 		S.BreakOffSeconds = 0.f;		// gunships hold range instead of breaking off
@@ -131,7 +131,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.Radius = 500.f;
 		// Range = how close to the squad's route point the bomber must be to start a trail.
 		// Interval = cooldown between trails; Count = mines per trail (one FireOnce each).
-		S.Heavy = MakeAttack(ETDEnemyAttack::MineTrail, TDEnemyWeaponIds::PlasmaMines, 60.f, 4, 5.f, 0.5f, 7000.f, 180.f, 800.f);
+		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::MineTrail, TDEnemyWeaponIds::PlasmaMines, 60.f, 4, 5.f, 0.5f, 7000.f, 180.f, 800.f);
 		S.EngageRange = 9000.f;
 		S.BreakOffRange = 0.f;
 		S.BreakOffSeconds = 3.f;
@@ -155,13 +155,13 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.TurnRateDeg = 15.f;
 		S.MinSpeedFraction = 0.f;
 		S.Radius = 1800.f;
-		S.Heavy = MakeAttack(ETDEnemyAttack::LaunchFighters, NAME_None, 0.f, 3, 12.f, 1.5f, 60000.f, 180.f);
+		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::LaunchFighters, NAME_None, 0.f, 3, 12.f, 1.5f, 60000.f, 180.f);
 		S.BayCount = 3;
 		S.BayHull = 300.f;
 		S.LaunchedEnemyId = TDEnemyIds::ShardFighter;
 		S.TurretCount = 4;
 		S.TurretHull = 60.f;
-		S.TurretGuns = MakeAttack(ETDEnemyAttack::Guns, TDEnemyWeaponIds::PointDefense, 6.f, 1, 1.f / 6.f, 0.f, 8000.f, 6.f);
+		S.TurretGuns = TDEnemyLib_MakeAttack(ETDEnemyAttack::Guns, TDEnemyWeaponIds::PointDefense, 6.f, 1, 1.f / 6.f, 0.f, 8000.f, 6.f);
 		S.EngageRange = 25000.f;
 		S.BreakOffRange = 0.f;
 		S.BreakOffSeconds = 0.f;

@@ -21,7 +21,7 @@
 
 namespace
 {
-	UStaticMeshComponent* MakePart(AActor* Owner, USceneComponent* Parent, const TCHAR* Name, UStaticMesh* Mesh, bool bCollide)
+	UStaticMeshComponent* TDDominion_MakePart(AActor* Owner, USceneComponent* Parent, const TCHAR* Name, UStaticMesh* Mesh, bool bCollide)
 	{
 		UStaticMeshComponent* C = Owner->CreateDefaultSubobject<UStaticMeshComponent>(Name);
 		C->SetupAttachment(Parent);
@@ -30,7 +30,7 @@ namespace
 		return C;
 	}
 
-	FTDDominionStage MakeStage(float Launch, float Cooldown, float Telegraph)
+	FTDDominionStage TDDominion_MakeStage(float Launch, float Cooldown, float Telegraph)
 	{
 		FTDDominionStage S;
 		S.LaunchInterval = Launch;
@@ -39,7 +39,7 @@ namespace
 		return S;
 	}
 
-	FTDWaveGroup MakeGroup(FName Id, int32 PerPack)
+	FTDWaveGroup TDDominion_MakeGroup(FName Id, int32 PerPack)
 	{
 		FTDWaveGroup G;
 		G.EnemyId = Id;
@@ -62,16 +62,16 @@ ATDDominion::ATDDominion()
 	SetRootComponent(Root);
 
 	// Placeholder hull: one long slab, a bridge tower and two trench walls (engine cubes are 100 cm).
-	HullMesh = MakePart(this, Root, TEXT("Hull"), CubeMesh, true);
-	BridgeMesh = MakePart(this, Root, TEXT("Bridge"), CubeMesh, true);
-	TrenchWallLeft = MakePart(this, Root, TEXT("TrenchWallL"), CubeMesh, true);
-	TrenchWallRight = MakePart(this, Root, TEXT("TrenchWallR"), CubeMesh, true);
+	HullMesh = TDDominion_MakePart(this, Root, TEXT("Hull"), CubeMesh, true);
+	BridgeMesh = TDDominion_MakePart(this, Root, TEXT("Bridge"), CubeMesh, true);
+	TrenchWallLeft = TDDominion_MakePart(this, Root, TEXT("TrenchWallL"), CubeMesh, true);
+	TrenchWallRight = TDDominion_MakePart(this, Root, TEXT("TrenchWallR"), CubeMesh, true);
 
 	// Shield-section emitters: four glowing towers on the hull, one goes dark per generator kill.
 	// (A real shield bubble is Nick's ShieldIdle cue; an opaque placeholder sphere would hide the fight.)
 	for (int32 i = 0; i < 4; ++i)
 	{
-		ShieldSections.Add(MakePart(this, Root, *FString::Printf(TEXT("ShieldEmitter%d"), i), CylMesh, false));
+		ShieldSections.Add(TDDominion_MakePart(this, Root, *FString::Printf(TEXT("ShieldEmitter%d"), i), CylMesh, false));
 	}
 
 	HangarPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Hangar"));
@@ -84,14 +84,14 @@ ATDDominion::ATDDominion()
 	TurretGuns.ConeHalfAngleDeg = 5.f;
 	TurretGuns.TelegraphSeconds = 1.2f;
 
-	Stages.Add(MakeStage(15.f, 2.5f, 1.2f));	// shields up
-	Stages.Add(MakeStage(12.f, 2.0f, 1.0f));	// reactor phase 1
-	Stages.Add(MakeStage(9.f, 1.5f, 0.9f));		// phase 2
-	Stages.Add(MakeStage(6.f, 1.0f, 0.8f));		// phase 3
+	Stages.Add(TDDominion_MakeStage(15.f, 2.5f, 1.2f));	// shields up
+	Stages.Add(TDDominion_MakeStage(12.f, 2.0f, 1.0f));	// reactor phase 1
+	Stages.Add(TDDominion_MakeStage(9.f, 1.5f, 0.9f));		// phase 2
+	Stages.Add(TDDominion_MakeStage(6.f, 1.0f, 0.8f));		// phase 3
 
-	LaunchGroups.Add(MakeGroup(TDEnemyIds::ShardFighter, 4));
-	LaunchGroups.Add(MakeGroup(TDEnemyIds::HookInterceptor, 2));
-	LaunchGroups.Add(MakeGroup(TDEnemyIds::ShardFighter, 5));
+	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::ShardFighter, 4));
+	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::HookInterceptor, 2));
+	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::ShardFighter, 5));
 }
 
 ATDDominion* ATDDominion::Get(const UObject* WorldContext)

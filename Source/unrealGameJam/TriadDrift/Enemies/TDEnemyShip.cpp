@@ -915,6 +915,16 @@ void ATDEnemyShip::Explode()
 	Destroy();
 }
 
+void ATDEnemyShip::GetSimpleCollisionCylinder(float& CollisionRadius, float& CollisionHalfHeight) const
+{
+	CollisionRadius = Spec.Radius;
+	if (Spec.Role == ETDEnemyRole::Carrier && (Bays.Num() > 0 || Turrets.Num() > 0))
+	{
+		CollisionRadius = Spec.Radius + CarrierPartClearance + 2.f * 300.f;	// parts + their extent
+	}
+	CollisionHalfHeight = CollisionRadius;
+}
+
 float ATDEnemyShip::GetDamage01() const
 {
 	const UTDHealthComponent* H = GetHealth();

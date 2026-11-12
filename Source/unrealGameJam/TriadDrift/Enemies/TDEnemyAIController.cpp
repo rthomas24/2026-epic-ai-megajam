@@ -16,7 +16,7 @@ namespace
 	int32 GTDEnemyAIDebug = 0;
 	FAutoConsoleVariableRef CVarTDEnemyAIDebug(TEXT("TD.EnemyAIDebug"), GTDEnemyAIDebug, TEXT("Draw enemy AI state and target lines (1 = on)."));
 
-	FTDFlightInput MakeInput(const FVector2D& Aim, float Throttle01, bool bBoost)
+	FTDFlightInput TDEnemyAI_MakeInput(const FVector2D& Aim, float Throttle01, bool bBoost)
 	{
 		FTDFlightInput In;
 		In.Aim = Aim;
@@ -315,7 +315,7 @@ void ATDEnemyAIController::SteerToward(ATDEnemyShip& Ship, const FVector& WorldP
 		}
 	}
 
-	Ship.SetFlightInput(MakeInput(ComputeSteer(Ship.GetActorTransform(), Goal, SteerFullDeflectionDeg), Throttle01, bBoost && !bAvoiding));
+	Ship.SetFlightInput(TDEnemyAI_MakeInput(ComputeSteer(Ship.GetActorTransform(), Goal, SteerFullDeflectionDeg), Throttle01, bBoost && !bAvoiding));
 }
 
 FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor& InTarget) const
@@ -363,7 +363,7 @@ void ATDEnemyAIController::TickIdle(ATDEnemyShip& Ship, float DeltaSeconds)
 {
 	Ship.SetGunsFiring(false, nullptr);
 	// Cruise in a lazy arc so idle ships don't fly off forever.
-	FTDFlightInput In = MakeInput(FVector2D(0.15f, 0.f), 0.4f, false);
+	FTDFlightInput In = TDEnemyAI_MakeInput(FVector2D(0.15f, 0.f), 0.4f, false);
 	Ship.SetFlightInput(In);
 	if (Target.IsValid())
 	{

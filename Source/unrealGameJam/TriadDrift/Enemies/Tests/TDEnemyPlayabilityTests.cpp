@@ -19,7 +19,7 @@
 
 namespace
 {
-	ATDSpacecraft* SpawnPlayerShip(FTDTestWorld& W, const FVector& Loc, float Speed)
+	ATDSpacecraft* TDEnemyPlay_SpawnPlayerShip(FTDTestWorld& W, const FVector& Loc, float Speed)
 	{
 		ATDSpacecraft* S = W.Spawn<ATDSpacecraft>(Loc);
 		S->SetTeam(ETDTeam::Player);
@@ -89,7 +89,7 @@ bool FTDPlayFlee::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	// A cruising Lancer (7500 cm/s) that flies straight away for 30 s.
-	ATDSpacecraft* Player = SpawnPlayerShip(W, FVector::ZeroVector, 7500.f);
+	ATDSpacecraft* Player = TDEnemyPlay_SpawnPlayerShip(W, FVector::ZeroVector, 7500.f);
 	ATDWaveDirector* D = W.Spawn<ATDWaveDirector>();
 	D->StartWave(0);
 
@@ -119,7 +119,7 @@ bool FTDPlayNoRam::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	// Head-on: the player flies at the fighter at cruise, the fighter attacks.
-	ATDSpacecraft* Player = SpawnPlayerShip(W, FVector(15000.f, 0.f, 0.f), 6000.f);
+	ATDSpacecraft* Player = TDEnemyPlay_SpawnPlayerShip(W, FVector(15000.f, 0.f, 0.f), 6000.f);
 	Player->SetActorRotation(FRotator(0.f, 180.f, 0.f));
 	ATDEnemyShip* F = W.Spawn<ATDEnemyShip>(FVector::ZeroVector);
 	F->InitFromSpec(TDEnemyIds::ShardFighter);
