@@ -6,92 +6,86 @@ Code: `Source/unrealGameJam/TriadDrift/Flow/`. Tests: `Flow/Tests/` (`TriadDrift
 
 | Class | What it does |
 |---|---|
-| `UTDGameInstance` (`ITDGameFlow`) | Holds `FTDProgress`. Covers travel, checkpoints, the save slot with Continue, scenes and takes, run stats and the run timer. Get it with `UTDGameInstance::Get(ctx)` or `UTDStatics::GetGameFlow(ctx)`. |
-| `UTDSaveGame` | One versioned slot: `Version` + `FTDCheckpoint` + scene order. A slot with a different version is refused, never half-loaded. |
-| `UTDFlowSettings` | Project Settings → Game → **Triad Drift Flow**: destination → map table, transition map, fade and transition times, slot name, retake delay, phase-after-wave table, ability owners, and the sandbox class paths. |
-| `ATDSpaceGameMode` | A zero-asset playable sandbox (see below). |
-| `UTDCheatManager` | `TD.*` console commands (see below). The logic is compiled out of Shipping. |
-| `TDFlowReflection` | Late-bound calls (`SpawnSquad`, `GetActiveShip`, `StartFromProgress`, `StartWave`, `SkipWave`), so Flow compiles without T3 or T4. |
+| `UTDGameInstance` (`ITDGameFlow`) | Holds `FTDProgress`. Covers travel, checkpoints, the save slot with Continue, scenes and takes, run stats, the run timer, story phase transitions, and the F10 debug menu. Get it with `UTDGameInstance::Get(ctx)` or `UTDStatics::GetGameFlow(ctx)`. |
+| `UTDSaveGame` | One versioned slot: `Version` + `FTDCheckpoint` + scene order. The file header is checked before parsing, so a corrupt or foreign file is ignored instead of crashing. |
+| `UTDFlowSettings` | Project Settings → Game → **Triad Drift Flow**: destination maps, transition map, fade, transition and timeout times, slot, retake delay, phase-after-wave table, planet objective lists, ability owners, and the sandbox class paths. |
+| `ATDSpaceGameMode` | A zero-asset space sandbox (see below). |
+| `UTDCheatManager` | `TD.*` console commands. `InstallOn(PC)` replaces the stock cheat manager. Compiled out of Shipping. |
+| `FTDDebugMenu` | The F10 overlay (plain Slate, dev builds only), with one button per cheat. |
+| `TDFlowReflection` | Late-bound calls into T3 and T4 (`SpawnSquad`, `GetActiveShip`, `StartFromProgress`, `StartWave`, `SkipWave`). |
 
-### Progress rules
-- `ReportWaveCleared(WaveNumber)` is **1-based** and idempotent: it ignores numbers ≤ `WavesCleared`. It closes the scene,
-  applies `PhaseAfterWaveCleared` (2 → Verdance, 4 → Cinder, 5 → DominionAssault) and takes a checkpoint.
-- `CompleteObjective(Id, Reward, Ship)` records the objective and unlocks the reward, firing
-  `OnAbilityUnlocked` (once only). It also closes the scene and takes a checkpoint.
-- **Checkpoints** are taken on `NotifyLevelEntered` (game modes call it from StartPlay), on wave clear, on objective
-  complete, and on `SaveCheckpoint()`. Each one writes the slot (`bWriteSlotOnCheckpoint`).
-- **Stats:** `AddStat(FieldName, Amount)` resolves the `FTDRunStats` field by name. The GI also listens to the
-  bus `OnActorKilled`:
-  - an enemy killed by the player team counts as Kills +1
-  - the death of the pawn the player is piloting counts as Deaths +1; wingmen being downed don't count
-- **Run timer:** real time (slow motion doesn't stretch it). It's paused on the main menu, during travel and on Victory.
+### Progress and story
+- `ReportWaveCleared(N)` takes 1-based wave numbers and is idempotent. It's ignored while a CUT is pending. It
+  checkpoints and then applies `PhaseAfterWaveCleared`: 2 → Verdance, 4 → Cinder, 5 → DominionAssault.
+- **Back from a planet** (`NotifyLevelEntered(Galaxy)`):
+  - phase Verdance with `Obj_WreckCore` + `Obj_Relay` done → **Waves3to4**
+  - phase Cinder with `Obj_Outpost` + `Obj_Jammer` done → **Wave5**
+  These objective ids are fixed for ENG-25/26 (`VerdanceObjectives` / `CinderObjectives`).
+- `CompleteObjective(Id, Reward, Ship)` records the objective, unlocks the reward once (`OnAbilityUnlocked`) and checkpoints.
+- **Story state is never rolled back by a retake.** `SetPhase`, `SetDominionState` and `UnlockAbility`
+  patch the last checkpoint and the slot. A restore that changes the phase re-broadcasts `OnPhaseChanged`, and so does Continue.
+- **Stats:** `AddStat(FieldName, Amount)` resolves the field by name. From the bus `OnActorKilled`:
+  - an enemy killed by the player team counts as Kills
+  - the death of the pawn the player is piloting counts as Deaths (wingmen don't count)
+- **Run timer:** real time. It's stopped on the main menu, during travel and at Victory.
 
 ### Scenes and takes (C-03 #3)
-- A scene is one wave (`"Wave3"`, `UTDGameInstance::WaveSceneId`) or one objective (its objective id).
-- `BeginScene(Id)` opens it: take 1 the first time, and it fires `OnTakeStarted(Id, Take)` on the bus. The GI
-  also calls this itself from the bus's `OnWaveStarted`. Re-opening the take already announced doesn't fire the slate again.
-- `ReportPlayerDefeated()` is **"CUT!"**: after `RetakeDelaySeconds` (1.75 s, for Nick's CUT! card) the last
-  checkpoint is restored. **Takes, stats and run time are kept.** The scene's take goes up, and then:
-  - native `OnSceneRestart(Scene, Take)` fires: the game mode respawns the squad, and T4's director restarts its wave
-  - bus `OnTakeStarted(Scene, Take)` fires
-- `GetSceneTakes()` gives the victory screen its rows (scene id, slate number, takes) in play order.
+- A scene is a wave (`"Wave3"`) or an objective (its id). `BeginScene(Id)` → take 1 → bus `OnTakeStarted`. The GI
+  also opens wave scenes from the bus `OnWaveStarted`, and doesn't re-fire the slate for a take it has already announced.
+- `ReportPlayerDefeated()` is **CUT!**:
+  - Right away, it fires bus `OnSceneCut(Scene, NextTake, Delay)` for Nick's card.
+  - After `RetakeDelaySeconds` (1.75 s) of **real time**, the last checkpoint is restored. Slow motion and pause don't stretch this delay.
+  - Takes, stats and run time are kept. The take goes up and the slot is written.
+  - Then native `OnSceneRestart` fires (game modes respawn the player or squad), and bus `OnTakeStarted` fires (T4 rebuilds its wave).
+- A death outside any scene still cuts and restarts, with scene None and take 0, so the card always clears.
+- `GetSceneTakes()` gives the victory screen its rows.
+
+### Save safety
+- The main menu and Victory never checkpoint or write.
+- A pristine run is never written.
+- A fresh boot doesn't touch an existing save until one of these happens:
+  - `StartNewRun()` (New Game)
+  - `ContinueRun()`
+  - real progress (a wave cleared or an objective completed)
+- `ContinueRun()` returns false if travel fails.
+- `HasContinue()` is cached and refreshed on every write or delete.
 
 ### Travel
-`TravelTo(Dest, ReturnPoint)` checks that the destination's map exists before doing anything. If it doesn't, it
-logs a warning and returns false with no state change. Otherwise it fades out over `TravelFadeSeconds`, opens
-`L_Transition` if it exists (and holds there for `MinTransitionSeconds`), then opens the target map.
-`ContinueRun()` applies the slot and travels to the saved destination.
+`TravelTo(Dest, ReturnPoint)` first checks that the map exists; if it doesn't, it returns false and changes
+nothing. Otherwise travel runs on the real-time flow clock, which keeps working while the game is paused:
+1. It unpauses the game.
+2. It fades out over `TravelFadeSeconds`.
+3. It opens `L_Transition`, if that exists, and holds there for `MinTransitionSeconds`.
+4. It opens the target, once.
+
+If a different level loads in the meantime, the travel is dropped. A watchdog (`TravelTimeoutSeconds`, 30 s)
+clears a travel that never arrives. `IsTravelPending()` is public; T3 uses it to suppress slow motion.
 
 ## How to try it
-
-The sandbox needs no assets:
 ```
 "C:\Program Files\Epic Games\UE_5.9\Engine\Binaries\Win64\UnrealEditor.exe" "<worktree>\unrealGameJam.uproject" /Engine/Maps/Entry?game=/Script/unrealGameJam.TDSpaceGameMode -game -windowed
 ```
 On an empty map it spawns:
-- a key light, a violet fill light, a sky light and fixed-exposure post-processing
-- about 1,200 emissive star spheres and 24 asteroids (engine basic shapes, seeded layout)
-- T3's squad manager (`SpawnSquad(SquadOrigin)`, then possesses `GetActiveShip()`)
-- T4's wave director (`StartFromProgress()` after `FirstWaveDelaySeconds`, 3 s)
+- lights, fixed exposure, stars and asteroids (engine basic shapes)
+- T3's squad: there's no login pawn when the squad class exists, and stray default pawns are destroyed
+- T4's wave director
 
-Missing classes are logged and skipped. Without a squad you get a free-fly `ADefaultPawn`.
+**F10** opens the debug menu. Console commands: `TD.Phase <phase>`, `TD.Unlock <ability> [ship]`, `TD.God`, `TD.KillAll`,
+`TD.SkipWave`, `TD.Travel <destination>`, `TD.Take`.
 
-Console (`~`):
+Tests (`.\Tools\td-test.ps1 -Filter TriadDrift.Flow`):
 
-| Command | Effect |
+| Area | Tests |
 |---|---|
-| `TD.Phase Cinder` | set the phase |
-| `TD.Unlock Cloak [Rift]` | unlock an ability (the ship defaults to the ability's owner) |
-| `TD.God` | toggle invulnerability for the player's team |
-| `TD.KillAll` | kill every enemy |
-| `TD.SkipWave` | skip the current wave |
-| `TD.Travel Verdance` | travel to a destination |
-| `TD.Take` | force CUT! and a retake of the current scene |
-
-Tests:
-```powershell
-.\Tools\td-test.ps1 -Filter TriadDrift.Flow
-```
-- `ProgressMutations`
-- `AbilityUnlocks`
-- `CheckpointRestore`
-- `SaveSlotRoundTrip`
-- `ScenesAndTakes`
-- `StatsAndTimer`
-- `Events`
-- `TravelMissingMapFailsSafely`
-- `SandboxBootsOnEmptyWorld`
-
-The tests use the save slot `TriadDrift_AutomationTest` and never touch the real save.
+| Progress and story | `ProgressMutations`, `AbilityUnlocks`, `StoryPhaseTransitions` |
+| Checkpoints and saves | `CheckpointRestore`, `SaveSlotRoundTrip`, `SaveSafety` (menu, pristine, fresh boot, Continue, foreign and corrupt saves), `StoryStateSurvivesRetakeAndSave` |
+| Scenes and stats | `ScenesAndTakes` (real delayed CUT path), `StatsAndTimer`, `KillsAndDeathsFromBus`, `Events` |
+| Travel | `TravelMissingMapFailsSafely`, `TravelSucceedsAndRecovers` (transition hold, arrival, superseded, watchdog) |
+| Cheats and sandbox | `Cheats` (every `TD.*` command), `SandboxBootsOnEmptyWorld`, `SandboxPlayerHandOver` |
 
 ## Known gaps
-- **Config:** `GameInstanceClass=/Script/unrealGameJam.TDGameInstance` must be set in `DefaultEngine.ini` (Lead).
-  Until it is, the sandbox logs that progress, checkpoints and takes are off.
-- **Maps:** none of the maps exist yet (`L_Galaxy`, `L_Planet_*`, `L_Transition`, `L_MainMenu`), so `TD.Travel` fails
-  safely for now. The fade uses the camera manager; Nick's loading widget belongs on `L_Transition`.
-- **Defeat menu:** ENG-19's "Retry from checkpoint / Quit" is a UI choice. Retry is `RestartSceneNow()`, and Quit
-  is `TravelTo(MainMenu)`. The ENG-19 F10 debug menu widget is Nick's UI, and it calls the `UTDCheatManager::Do*` functions.
-- **God mode:** it applies to actors alive when toggled. Ships respawned later aren't invulnerable until you toggle again.
-- **Late binding:** the sandbox reaches T3 and T4 by reflection. Their functions must stay `UFUNCTION`s with these names.
-- **Not tested by hand:** the 9 `TriadDrift.Flow.*` tests pass headless, and the sandbox boots in a test world.
-  No one has played the windowed sandbox yet, and the stars use `EmissiveMeshMaterial`, which is still unverified.
+- **Not tested by hand:** the windowed sandbox and the F10 menu haven't been played by hand (worktrees are headless).
+- **Squad hand-over:** the check runs fully only once T3's squad manager is on main. Until then it logs and skips.
+- **Cooking:** the maps don't exist yet. The cook needs `/Engine/BasicShapes` and the destination maps listed: the
+  DefaultGame.ini lines are with the Lead.
+- **God mode:** it applies to actors alive when it's toggled.
