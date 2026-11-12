@@ -79,6 +79,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0", ClampMax = "1"))
 	float GunshipHoldRangeFraction = 0.6f;
 
+	/**
+	 * Leash: beyond this distance from its target (or with no target in range) a pilot flies at
+	 * CatchUpSpeedMultiplier x its cruise so a wave can always be finished, even vs a fleeing Lancer.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float CatchUpDistance = 22000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "1"))
+	float CatchUpSpeedMultiplier = 1.7f;
+
+	/** Break off when time-to-impact with the target drops below this (seconds). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float BreakOffTimeToImpact = 0.8f;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
+	bool IsCatchingUp() const { return bCatchingUp; }
+
 	/** Obstacle look-ahead (seconds of travel). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float AvoidLookAheadSeconds = 1.2f;
@@ -131,6 +148,10 @@ protected:
 
 	ETDEnemyAIState State = ETDEnemyAIState::Idle;
 	bool bAvoiding = false;
+	bool bCatchingUp = false;
+	bool bRunReachedGunRange = false;
+	void UpdateCatchUp(ATDEnemyShip& Ship);
+	static float TimeToImpact(const AActor& A, const AActor& B);
 	float StateTime = 0.f;
 	float RetargetTimer = 0.f;
 	FVector BreakOffDirection = FVector::ForwardVector;

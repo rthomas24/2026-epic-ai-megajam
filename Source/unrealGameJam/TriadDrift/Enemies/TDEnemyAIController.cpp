@@ -65,6 +65,7 @@ void ATDEnemyAIController::SetState(ETDEnemyAIState NewState)
 	{
 		State = NewState;
 		StateTime = 0.f;
+		bRunReachedGunRange = false;
 	}
 }
 
@@ -146,7 +147,63 @@ AActor* ATDEnemyAIController::ChooseTarget() const
 
 	// Any squad ship (wingmen too), nearest first.
 	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
-	return Registry ? Registry->FindNearestHostile(ETDTeam::Enemy, Ship->GetActorLocation(), AcquireRange, Ship) : nullptr;
+	if (AActor* Near = Registry ? Registry->FindNearestHostile(ETDTeam::Enemy, Ship->GetActorLocation(), AcquireRange, Ship) : nullptr)
+	{
+		return Near;
+	}
+
+	// Leash: nothing in range -> go after the player's ship wherever it is, so no wave stalls.
+	APawn* PlayerShip = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (IsValidTarget(PlayerShip))
+	{
+		return PlayerShip;
+	}
+	return Registry ? Registry->FindNearestHostile(ETDTeam::Enemy, Ship->GetActorLocation(), 0.f, Ship) : nullptr;
+}
+
+float ATDEnemyAIController::TimeToImpact(const AActor& A, const AActor& B)
+{
+	const FVector RelPos = B.GetActorLocation() - A.GetActorLocation();
+	const FVector RelVel = B.GetVelocity() - A.GetVelocity();
+	const float Dist = RelPos.Size();
+	if (Dist < KINDA_SMALL_NUMBER)
+	{
+		return 0.f;
+	}
+	const float Closing = -FVector::DotProduct(RelPos / Dist, RelVel);
+	return Closing > KINDA_SMALL_NUMBER ? Dist / Closing : TNumericLimits<float>::Max();
+}
+
+void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
+{
+	bool bWant = false;
+	if (Ship.GetRole() != ETDEnemyRole::Carrier && !Ship.IsStunned())
+	{
+		if (ATDEnemyShip* Leader = FormationLeader.Get())
+		{
+			const FVector Slot = Leader->GetActorTransform().TransformPositionNoScale(FormationOffset);
+			bWant = FVector::Dist(Slot, Ship.GetActorLocation()) > 4000.f && Leader->GetVelocity().Size() > Ship.GetSpec().CruiseSpeed * 0.9f;
+		}
+		else if (const AActor* T = Target.Get())
+		{
+			// Hysteresis: start beyond CatchUpDistance, keep going until inside gun range, otherwise a
+			// pilot slower than its target hovers at the leash edge forever.
+			const FTDEnemySpec& Spec = Ship.GetSpec();
+			const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
+			const float Dist = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation());
+			bWant = bCatchingUp ? Dist > GunRange * 0.8f : Dist > CatchUpDistance;
+		}
+	}
+	if (bWant && !bCatchingUp)
+	{
+		Ship.SetSpeedOverride(Ship.GetSpec().CruiseSpeed * CatchUpSpeedMultiplier, 1.f);
+		bCatchingUp = true;
+	}
+	else if (!bWant && bCatchingUp)
+	{
+		Ship.ClearSpeedOverride();
+		bCatchingUp = false;
+	}
 }
 
 void ATDEnemyAIController::UpdateTarget(float DeltaSeconds)
@@ -157,10 +214,10 @@ void ATDEnemyAIController::UpdateTarget(float DeltaSeconds)
 		Target.Reset();
 		return;
 	}
-	if (!IsValidTarget(Target.Get()))
+	if (Target.IsValid() && !IsValidTarget(Target.Get()))
 	{
 		Target.Reset();
-		RetargetTimer = 0.f;
+		RetargetTimer = 0.f;	// lost a real target: look again now (once)
 	}
 	RetargetTimer -= DeltaSeconds;
 	if (RetargetTimer <= 0.f)
@@ -350,8 +407,15 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 	}
 	TryHeavyAttacks(Ship, *T);
 
-	const bool bTooClose = Dist < Spec.BreakOffRange;
-	const bool bTooLong = Spec.AttackRunMaxSeconds > 0.f && StateTime > Spec.AttackRunMaxSeconds;
+	const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
+	if (!bRunReachedGunRange && Dist <= GunRange)
+	{
+		bRunReachedGunRange = true;
+		StateTime = 0.f;	// the run's clock starts once we're actually shooting
+	}
+	// Peel away before a collision: time-to-impact, not a fixed distance (head-on closing is ~13000 cm/s).
+	const bool bTooClose = Dist < Spec.BreakOffRange || TimeToImpact(Ship, *T) < BreakOffTimeToImpact;
+	const bool bTooLong = bRunReachedGunRange && Spec.AttackRunMaxSeconds > 0.f && StateTime > Spec.AttackRunMaxSeconds;
 	if ((bTooClose || bTooLong) && !Ship.IsTelegraphing())
 	{
 		// Peel away: mostly sideways/up, away from the target, so the run reads as a pass.
@@ -449,6 +513,7 @@ void ATDEnemyAIController::Tick(float DeltaSeconds)
 	{
 		SetState(ETDEnemyAIState::Stunned);
 		Ship->SetGunsFiring(false, nullptr);
+		UpdateCatchUp(*Ship);	// drops any catch-up override
 		return;	// the ship holds a dead stick itself
 	}
 	if (State == ETDEnemyAIState::Stunned)
@@ -457,6 +522,7 @@ void ATDEnemyAIController::Tick(float DeltaSeconds)
 	}
 
 	UpdateTarget(DeltaSeconds);
+	UpdateCatchUp(*Ship);
 
 	AActor* T = Target.Get();
 	const ETDEnemyRole ShipRole = Ship->GetRole();
