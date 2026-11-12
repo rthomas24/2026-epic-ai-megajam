@@ -169,7 +169,7 @@ Technical verification and Nick visual approval precede rigging/native integrati
 integrate the approved crew base before spending time on optional cosmetic variants.
 No core gameplay class, character reference or artistic direction is removed.
 
-## HUD safe handoff and infantry source activation — November12,17:34EST
+## HUD safe handoff and infantry source activation — November12,17:33EST
 
 HUD ca579ab is published/clean on nick/hud-lancer-polish (draftPR8): build,10UItests,26actual-game captures, real landing/on-foot host removal and return verified. Independent review clears branch publication; SLOWDOWN not reproduced, N013 remains open. Latest-main compatibility, default-on, Shipping, human gameplay/final presentation and main integration remain separate gates. HUD scope stays frozen.
 
