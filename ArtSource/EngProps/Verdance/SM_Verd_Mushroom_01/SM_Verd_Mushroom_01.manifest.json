@@ -1,0 +1,75 @@
+{
+  "asset": "SM_Verd_Mushroom_01",
+  "fbx": "ArtSource/EngProps/Verdance/SM_Verd_Mushroom_01/SM_Verd_Mushroom_01.fbx",
+  "tris": 2064,
+  "size_cm": [
+    134.6,
+    133.2,
+    127.8
+  ],
+  "pivot": "root object origin (SM_Verd_Mushroom_01): the base centre, on the ground plane",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Verd_Mushrooms"
+  ],
+  "material_params": [
+    {
+      "name": "M_Verd_Mushrooms",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Verd_Mushrooms_BC.png",
+    "T_Verd_Mushrooms_N.png",
+    "T_Verd_Mushrooms_ORM.png",
+    "T_Verd_Mushrooms_E.png"
+  ],
+  "collision": [
+    "UCX_SM_Verd_Mushroom_01_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "status": "ok",
+  "fbx_path_is": "relative to the repository root",
+  "texture_set": {
+    "name": "Verd_Mushrooms",
+    "shared_atlas": true,
+    "dir": "ArtSource/EngProps/Verdance/textures",
+    "files": {
+      "BC": "T_Verd_Mushrooms_BC.png",
+      "N": "T_Verd_Mushrooms_N.png",
+      "ORM": "T_Verd_Mushrooms_ORM.png",
+      "E": "T_Verd_Mushrooms_E.png"
+    },
+    "size": 1024,
+    "emission_strength": 2.0,
+    "normal_convention": "DirectX (green flipped)",
+    "material": "M_Verd_Mushrooms",
+    "px_per_m": 142.5
+  },
+  "collision_note": "whole shape (the cap is below eye height, nothing to walk under)"
+}

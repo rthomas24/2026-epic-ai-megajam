@@ -214,6 +214,37 @@ bool FTDReviewNoCatchUpInWell::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Re-check MAJOR: a ship charging a gunship (each ship's cruise and boost) is volleyed, not ignored.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewGunshipVsCharge, "TriadDrift.Enemies.Review.GunshipVolleysAShipChargingIt", TD_TEST_FLAGS)
+bool FTDReviewGunshipVsCharge::RunTest(const FString& Parameters)
+{
+	using namespace TDEnemyReview;
+	// Bastion / Rift / Lancer cruise, then boost (cm/s).
+	const float Speeds[] = { 5000.f, 6000.f, 7500.f, 10800.f, 13500.f };
+	for (const float Fps : Rates)
+	{
+		for (const float V : Speeds)
+		{
+			FTDTestWorld W;
+			ATDSpacecraft* Player = SpawnPlayer(W, FVector(22000.f, 400.f, 0.f), FRotator(0.f, 180.f, 0.f), V);
+			ATDEnemyShip* G = SpawnEnemy(W, TDEnemyIds::WallGunship, FVector::ZeroVector, FRotator::ZeroRotator);
+			const float Hull0 = Player->GetHealth()->GetHull();
+			bool bVolley = false;
+			const int32 Frames = FMath::RoundToInt(Fps * (20000.f / V));	// until it reaches the gunship
+			for (int32 i = 0; i < Frames; ++i)
+			{
+				W.Tick(1.f / Fps);
+				bVolley |= G->GetTelegraphAttack() == ETDEnemyAttack::HeavyBolt || G->GetAttackCooldownRemaining(ETDEnemyAttack::HeavyBolt) > 0.f;
+			}
+			W.Advance(0.5f, 1.f / Fps);
+			const float Taken = Hull0 - Player->GetHealth()->GetHull();
+			TestTrue(*FString::Printf(TEXT("@%.0f fps, %.0f cm/s: the gunship volleyed the charging ship"), Fps, V), bVolley);
+			TestTrue(*FString::Printf(TEXT("@%.0f fps, %.0f cm/s: and a straight charge got hit (%.0f damage)"), Fps, V, Taken), Taken > 0.f);
+		}
+	}
+	return true;
+}
+
 // Combat review: a gunship killed after missile 1 of its salvo launches nothing more from its wreck.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewWreckSalvo, "TriadDrift.Enemies.Review.WreckLaunchesNoSalvo", TD_TEST_FLAGS)
 bool FTDReviewWreckSalvo::RunTest(const FString& Parameters)

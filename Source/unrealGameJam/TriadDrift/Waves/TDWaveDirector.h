@@ -136,10 +136,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float WarpInSeconds = 1.5f;
 
-	/** Fraction of max hull repaired per second during the breather, on every living squad ship. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
-	float BreatherHullRepairPerSecond01 = 0.08f;
-
 	/** Distance from the player at which groups warp in (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float SpawnDistance = 16000.f;
@@ -218,7 +214,6 @@ protected:
 	void FinishWave();
 	void AdvanceAfterBreather();
 	void ClearEnemies();
-	void RepairSquadHulls(float DeltaSeconds);
 	void PickSpawnPoint(ETDSpawnZone Zone, bool bLarge, FVector& OutLocation, FRotator& OutFacing);
 	AActor* GetSpawnAnchor() const;
 	void AnnounceScene(const FTDWaveDef& Wave);

@@ -1,0 +1,939 @@
+{
+ "kit": "Cinder",
+ "blender": "5.2.2 LTS",
+ "assets": {
+  "SM_Cind_Crystal_01": {
+   "asset": "SM_Cind_Crystal_01",
+   "tris": 1024,
+   "budget": [
+    600,
+    2500
+   ],
+   "in_budget": true,
+   "height_cm": 81.4,
+   "below_ground_cm": 8.0,
+   "width_cm": [
+    72.2,
+    70.7
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Crystals"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [
+    {
+     "severity": "info",
+     "object": "SM_Cind_Crystal_01",
+     "message": "7 n-gons; fine if planar, they get triangulated on export"
+    }
+   ],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 9,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00202
+   },
+   "texture_set": "Cind_Crystals",
+   "collision": false,
+   "px_per_m": 160.1,
+   "review": {
+    "clay": "SM_Cind_Crystal_01_clay_sheet.png",
+    "material": "SM_Cind_Crystal_01_material_sheet.png"
+   },
+   "export": {
+    "tris": 1024,
+    "size_cm": [
+     70.7,
+     72.2,
+     89.4
+    ],
+    "collision": [],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 128.3,
+    "fbx_kb": 107.2
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_Crystal_01"
+    ],
+    "ok": true,
+    "tris": 1024,
+    "dimensions_cm": [
+     70.7,
+     72.2,
+     89.4
+    ],
+    "height_cm": 81.4,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "collision": [],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_Crystal_02": {
+   "asset": "SM_Cind_Crystal_02",
+   "tris": 886,
+   "budget": [
+    600,
+    2500
+   ],
+   "in_budget": true,
+   "height_cm": 182.4,
+   "below_ground_cm": 18.1,
+   "width_cm": [
+    119.7,
+    81.9
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Crystals"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [
+    {
+     "severity": "info",
+     "object": "SM_Cind_Crystal_02",
+     "message": "5 n-gons; fine if planar, they get triangulated on export"
+    }
+   ],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 8,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00371
+   },
+   "texture_set": "Cind_Crystals",
+   "collision": true,
+   "px_per_m": 107.5,
+   "review": {
+    "clay": "SM_Cind_Crystal_02_clay_sheet.png",
+    "material": "SM_Cind_Crystal_02_material_sheet.png"
+   },
+   "export": {
+    "tris": 886,
+    "size_cm": [
+     81.9,
+     119.7,
+     200.5
+    ],
+    "collision": [
+     "UCX_SM_Cind_Crystal_02_00"
+    ],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 123.3,
+    "fbx_kb": 97.7
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_Crystal_02",
+     "UCX_SM_Cind_Crystal_02_00"
+    ],
+    "ok": true,
+    "tris": 886,
+    "dimensions_cm": [
+     81.9,
+     119.7,
+     200.5
+    ],
+    "height_cm": 182.4,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "collision": [
+     "UCX_SM_Cind_Crystal_02_00"
+    ],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_Crystal_03": {
+   "asset": "SM_Cind_Crystal_03",
+   "tris": 1530,
+   "budget": [
+    600,
+    2500
+   ],
+   "in_budget": true,
+   "height_cm": 302.1,
+   "below_ground_cm": 30.4,
+   "width_cm": [
+    174.8,
+    149.1
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Crystals"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [
+    {
+     "severity": "info",
+     "object": "SM_Cind_Crystal_03",
+     "message": "8 n-gons; fine if planar, they get triangulated on export"
+    }
+   ],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 11,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00606
+   },
+   "texture_set": "Cind_Crystals",
+   "collision": true,
+   "px_per_m": 89.8,
+   "review": {
+    "clay": "SM_Cind_Crystal_03_clay_sheet.png",
+    "material": "SM_Cind_Crystal_03_material_sheet.png"
+   },
+   "export": {
+    "tris": 1530,
+    "size_cm": [
+     149.1,
+     174.8,
+     332.5
+    ],
+    "collision": [
+     "UCX_SM_Cind_Crystal_03_00"
+    ],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 146.1,
+    "fbx_kb": 152.1
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_Crystal_03",
+     "UCX_SM_Cind_Crystal_03_00"
+    ],
+    "ok": true,
+    "tris": 1530,
+    "dimensions_cm": [
+     149.1,
+     174.8,
+     332.5
+    ],
+    "height_cm": 302.1,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "collision": [
+     "UCX_SM_Cind_Crystal_03_00"
+    ],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_Crystal_04": {
+   "asset": "SM_Cind_Crystal_04",
+   "tris": 2138,
+   "budget": [
+    600,
+    2500
+   ],
+   "in_budget": true,
+   "height_cm": 501.3,
+   "below_ground_cm": 51.9,
+   "width_cm": [
+    254.8,
+    215.1
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Crystals"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [
+    {
+     "severity": "info",
+     "object": "SM_Cind_Crystal_04",
+     "message": "9 n-gons; fine if planar, they get triangulated on export"
+    }
+   ],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 13,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00969
+   },
+   "texture_set": "Cind_Crystals",
+   "collision": true,
+   "px_per_m": 90.2,
+   "review": {
+    "clay": "SM_Cind_Crystal_04_clay_sheet.png",
+    "material": "SM_Cind_Crystal_04_material_sheet.png"
+   },
+   "export": {
+    "tris": 2138,
+    "size_cm": [
+     215.1,
+     254.8,
+     553.2
+    ],
+    "collision": [
+     "UCX_SM_Cind_Crystal_04_00"
+    ],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 168.3,
+    "fbx_kb": 204.7
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_Crystal_04",
+     "UCX_SM_Cind_Crystal_04_00"
+    ],
+    "ok": true,
+    "tris": 2138,
+    "dimensions_cm": [
+     215.1,
+     254.8,
+     553.2
+    ],
+    "height_cm": 501.3,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Crystals"
+    ],
+    "collision": [
+     "UCX_SM_Cind_Crystal_04_00"
+    ],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_Basalt_01": {
+   "asset": "SM_Cind_Basalt_01",
+   "tris": 694,
+   "budget": [
+    500,
+    2000
+   ],
+   "in_budget": true,
+   "height_cm": 46.8,
+   "below_ground_cm": 13.0,
+   "width_cm": [
+    83.4,
+    45.5
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Basalt"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 2,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00168
+   },
+   "texture_set": "Cind_Basalt",
+   "collision": false,
+   "px_per_m": 208.2,
+   "review": {
+    "clay": "SM_Cind_Basalt_01_clay_sheet.png",
+    "material": "SM_Cind_Basalt_01_material_sheet.png"
+   },
+   "export": {
+    "tris": 694,
+    "size_cm": [
+     45.5,
+     83.4,
+     59.7
+    ],
+    "collision": [],
+    "materials": [
+     "M_Cind_Basalt"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 115.3,
+    "fbx_kb": 79.0
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_Basalt_01"
+    ],
+    "ok": true,
+    "tris": 694,
+    "dimensions_cm": [
+     45.5,
+     83.4,
+     59.7
+    ],
+    "height_cm": 46.8,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Basalt"
+    ],
+    "collision": [],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_Basalt_02": {
+   "asset": "SM_Cind_Basalt_02",
+   "tris": 1008,
+   "budget": [
+    500,
+    2000
+   ],
+   "in_budget": true,
+   "height_cm": 130.3,
+   "below_ground_cm": 18.7,
+   "width_cm": [
+    211.3,
+    144.7
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Basalt"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 4,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00444
+   },
+   "texture_set": "Cind_Basalt",
+   "collision": true,
+   "px_per_m": 130.6,
+   "review": {
+    "clay": "SM_Cind_Basalt_02_clay_sheet.png",
+    "material": "SM_Cind_Basalt_02_material_sheet.png"
+   },
+   "export": {
+    "tris": 1008,
+    "size_cm": [
+     144.7,
+     211.3,
+     149.0
+    ],
+    "collision": [
+     "UCX_SM_Cind_Basalt_02_00"
+    ],
+    "materials": [
+     "M_Cind_Basalt"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 125.6,
+    "fbx_kb": 108.1
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_Basalt_02",
+     "UCX_SM_Cind_Basalt_02_00"
+    ],
+    "ok": true,
+    "tris": 1008,
+    "dimensions_cm": [
+     144.7,
+     211.3,
+     149.0
+    ],
+    "height_cm": 130.3,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Basalt"
+    ],
+    "collision": [
+     "UCX_SM_Cind_Basalt_02_00"
+    ],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_Basalt_03": {
+   "asset": "SM_Cind_Basalt_03",
+   "tris": 1458,
+   "budget": [
+    500,
+    2000
+   ],
+   "in_budget": true,
+   "height_cm": 235.8,
+   "below_ground_cm": 26.0,
+   "width_cm": [
+    342.8,
+    157.7
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Basalt"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 6,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00689
+   },
+   "texture_set": "Cind_Basalt",
+   "collision": true,
+   "px_per_m": 113.3,
+   "review": {
+    "clay": "SM_Cind_Basalt_03_clay_sheet.png",
+    "material": "SM_Cind_Basalt_03_material_sheet.png"
+   },
+   "export": {
+    "tris": 1458,
+    "size_cm": [
+     157.7,
+     342.8,
+     261.8
+    ],
+    "collision": [
+     "UCX_SM_Cind_Basalt_03_00"
+    ],
+    "materials": [
+     "M_Cind_Basalt"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 142.3,
+    "fbx_kb": 146.8
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_Basalt_03",
+     "UCX_SM_Cind_Basalt_03_00"
+    ],
+    "ok": true,
+    "tris": 1458,
+    "dimensions_cm": [
+     157.7,
+     342.8,
+     261.8
+    ],
+    "height_cm": 235.8,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Basalt"
+    ],
+    "collision": [
+     "UCX_SM_Cind_Basalt_03_00"
+    ],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_BasaltColumn_01": {
+   "asset": "SM_Cind_BasaltColumn_01",
+   "tris": 468,
+   "budget": [
+    1,
+    2500
+   ],
+   "in_budget": true,
+   "height_cm": 254.4,
+   "below_ground_cm": 35.5,
+   "width_cm": [
+    187.1,
+    200.9
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Columns"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [
+    {
+     "severity": "info",
+     "object": "SM_Cind_BasaltColumn_01",
+     "message": "18 n-gons; fine if planar, they get triangulated on export"
+    }
+   ],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 9,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00599
+   },
+   "texture_set": "Cind_Columns",
+   "collision": true,
+   "px_per_m": 61.3,
+   "review": {
+    "clay": "SM_Cind_BasaltColumn_01_clay_sheet.png",
+    "material": "SM_Cind_BasaltColumn_01_material_sheet.png"
+   },
+   "export": {
+    "tris": 468,
+    "size_cm": [
+     200.9,
+     187.1,
+     289.9
+    ],
+    "collision": [
+     "UCX_SM_Cind_BasaltColumn_01_00"
+    ],
+    "materials": [
+     "M_Cind_Columns"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 108.0,
+    "fbx_kb": 62.0
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_BasaltColumn_01",
+     "UCX_SM_Cind_BasaltColumn_01_00"
+    ],
+    "ok": true,
+    "tris": 468,
+    "dimensions_cm": [
+     200.9,
+     187.1,
+     289.9
+    ],
+    "height_cm": 254.4,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Columns"
+    ],
+    "collision": [
+     "UCX_SM_Cind_BasaltColumn_01_00"
+    ],
+    "all_triangles": true
+   }
+  },
+  "SM_Cind_BasaltColumn_02": {
+   "asset": "SM_Cind_BasaltColumn_02",
+   "tris": 984,
+   "budget": [
+    1,
+    2500
+   ],
+   "in_budget": true,
+   "height_cm": 508.8,
+   "below_ground_cm": 41.6,
+   "width_cm": [
+    301.7,
+    298.4
+   ],
+   "base_center_offset_cm": [
+    0.0,
+    0.0
+   ],
+   "material_slots": [
+    "M_Cind_Columns"
+   ],
+   "uv_layers": [
+    "UVMap"
+   ],
+   "errors": 0,
+   "warnings": 0,
+   "issues": [
+    {
+     "severity": "info",
+     "object": "SM_Cind_BasaltColumn_02",
+     "message": "30 n-gons; fine if planar, they get triangulated on export"
+    }
+   ],
+   "assembly_ok": true,
+   "assembly": {
+    "islands": 15,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01042
+   },
+   "texture_set": "Cind_Columns",
+   "collision": true,
+   "px_per_m": 61.4,
+   "review": {
+    "clay": "SM_Cind_BasaltColumn_02_clay_sheet.png",
+    "material": "SM_Cind_BasaltColumn_02_material_sheet.png"
+   },
+   "export": {
+    "tris": 984,
+    "size_cm": [
+     298.4,
+     301.7,
+     550.3
+    ],
+    "collision": [
+     "UCX_SM_Cind_BasaltColumn_02_00"
+    ],
+    "materials": [
+     "M_Cind_Columns"
+    ],
+    "status": "ok",
+    "warnings": [],
+    "blend_kb": 125.5,
+    "fbx_kb": 105.7
+   },
+   "fbx_round_trip": {
+    "objects": [
+     "SM_Cind_BasaltColumn_02",
+     "UCX_SM_Cind_BasaltColumn_02_00"
+    ],
+    "ok": true,
+    "tris": 984,
+    "dimensions_cm": [
+     298.4,
+     301.7,
+     550.3
+    ],
+    "height_cm": 508.8,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "uv_layers": [
+     "UVMap"
+    ],
+    "materials": [
+     "M_Cind_Columns"
+    ],
+    "collision": [
+     "UCX_SM_Cind_BasaltColumn_02_00"
+    ],
+    "all_triangles": true
+   }
+  }
+ },
+ "texture_sets": {
+  "Cind_Crystals": {
+   "set": "Cind_Crystals",
+   "material": "M_Cind_Crystals",
+   "files": {
+    "BC": "T_Cind_Crystals_BC.png",
+    "N": "T_Cind_Crystals_N.png",
+    "ORM": "T_Cind_Crystals_ORM.png",
+    "E": "T_Cind_Crystals_E.png"
+   },
+   "size": 1024,
+   "emission_strength": 1.5,
+   "normal_convention": "DirectX (green flipped)",
+   "px_per_m": {
+    "SM_Cind_Crystal_01": 160.1,
+    "SM_Cind_Crystal_02": 107.5,
+    "SM_Cind_Crystal_03": 89.8,
+    "SM_Cind_Crystal_04": 90.2
+   },
+   "uv_fill": 0.377,
+   "seconds": 17.3,
+   "warnings": []
+  },
+  "Cind_Basalt": {
+   "set": "Cind_Basalt",
+   "material": "M_Cind_Basalt",
+   "files": {
+    "BC": "T_Cind_Basalt_BC.png",
+    "N": "T_Cind_Basalt_N.png",
+    "ORM": "T_Cind_Basalt_ORM.png",
+    "E": "T_Cind_Basalt_E.png"
+   },
+   "size": 1024,
+   "emission_strength": 1.5,
+   "normal_convention": "DirectX (green flipped)",
+   "px_per_m": {
+    "SM_Cind_Basalt_01": 208.2,
+    "SM_Cind_Basalt_02": 130.6,
+    "SM_Cind_Basalt_03": 113.3
+   },
+   "uv_fill": 0.459,
+   "seconds": 43.8,
+   "warnings": []
+  },
+  "Cind_Columns": {
+   "set": "Cind_Columns",
+   "material": "M_Cind_Columns",
+   "files": {
+    "BC": "T_Cind_Columns_BC.png",
+    "N": "T_Cind_Columns_N.png",
+    "ORM": "T_Cind_Columns_ORM.png"
+   },
+   "size": 1024,
+   "emission_strength": 1.5,
+   "normal_convention": "DirectX (green flipped)",
+   "px_per_m": {
+    "SM_Cind_BasaltColumn_01": 61.3,
+    "SM_Cind_BasaltColumn_02": 61.4
+   },
+   "uv_fill": 0.487,
+   "seconds": 17.3,
+   "warnings": []
+  }
+ },
+ "sheets": {
+  "lit": {
+   "path": "Cinder_contact_sheet.png",
+   "rows": 2,
+   "px_per_m": 120.0,
+   "mode": "lit",
+   "size_px": [
+    1685,
+    1429
+   ],
+   "figure_height_cm": 180.0
+  },
+  "dark": {
+   "path": "Cinder_contact_sheet_dark.png",
+   "rows": 2,
+   "px_per_m": 120.0,
+   "mode": "dark",
+   "size_px": [
+    1685,
+    1429
+   ],
+   "figure_height_cm": 180.0
+  },
+  "clay": {
+   "path": "Cinder_contact_sheet_clay.png",
+   "rows": 2,
+   "px_per_m": 120.0,
+   "mode": "clay",
+   "size_px": [
+    1685,
+    1429
+   ],
+   "figure_height_cm": 180.0
+  },
+  "first_person": {
+   "path": "Cinder_first_person_dusk.png",
+   "eye_height_cm": 154.0,
+   "lens_mm": 24.0
+  }
+ },
+ "emission_strength": 1.5,
+ "all_round_trips_ok": true
+}

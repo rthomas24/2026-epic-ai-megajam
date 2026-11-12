@@ -58,7 +58,7 @@ bool FTDWorldAssaultRealPath::RunTest(const FString& Parameters)
 		const FString Fps = FString::Printf(TEXT("%.0f fps"), 1.f / Step);
 		FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
 		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
-		GI->Progress.bDominionRevealed = true;
+		GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
 		ATDDominion* D = W.Spawn<ATDDominion>(FVector::ZeroVector);
 		D->MaxLaunchedAlive = 0;
 		D->Stages[0].LaunchInterval = 0.f;	// keep the sky clear of stray fighters for a clean count
@@ -110,7 +110,7 @@ bool FTDWorldHullCover::RunTest(const FString& Parameters)
 {
 	using namespace TDWorldRealPathTest;
 	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
-	Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.bDominionRevealed = true;
+	Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.bDominionRevealed = true; Cast<UTDWaveTestGameInstance>(W.GetGameInstance())->Progress.Phase = ETDGamePhase::DominionAssault;
 	ATDDominion* D = W.Spawn<ATDDominion>(FVector::ZeroVector);
 	D->MaxLaunchedAlive = 0;
 	W.Advance(D->WarpInSeconds + 0.2f);

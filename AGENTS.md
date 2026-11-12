@@ -525,6 +525,7 @@ skills there, mirror them into the git-ignored `Skills/` folder the same way:
 | `blender-unreal-export` | `.claude/skills/blender-unreal-export/SKILL.md` | Export to Unreal (FBX + manifest), calibration, and the UE import script |
 | `ue-cpp-gameplay` | `.claude/skills/ue-cpp-gameplay/SKILL.md` | Any C++ gameplay work (`ENG-xx`): Core contracts, headless build and automation tests, worktree rules, UE 5.9 pitfalls. Team contract: `docs/eng/ARCHITECTURE.md`; status: `docs/eng/STATUS.md` |
 | `ue-game-audio` | `.claude/skills/ue-game-audio/SKILL.md` | Any sound, music, ambience, voice, mixing or loudness work (`ART-10`, `ART-11`): sources and licences, layered design with takes, measured levels (ffmpeg scripts), MetaSounds, attenuation / classes / mixes built through Unreal's MCP server, the mix standard. An agent reaches "technically verified" at most; Nicholas approves by ear. Research: `reports/Game audio practices for Triad Drift.md` |
+| `procedural-trees` | `.claude/skills/procedural-trees/SKILL.md` | Trees for any biome through Unreal 5.9's Procedural Vegetation Editor and the engine MCP server: species for a setting, botanical data with sources, seven crown archetypes (`UTDVegetationLibrary`), a parametric preset per species with growth stage and seed, scale and triangle checks. Background and mid-ground vegetation, not hero trees |
 
 Check that a machine's Blender works with the skills:
 ```

@@ -1,0 +1,72 @@
+{
+  "asset": "SM_Verd_GlowPlant_02",
+  "fbx": "ArtSource/EngProps/Verdance/SM_Verd_GlowPlant_02/SM_Verd_GlowPlant_02.fbx",
+  "tris": 1134,
+  "size_cm": [
+    73.0,
+    66.5,
+    64.1
+  ],
+  "pivot": "root object origin (SM_Verd_GlowPlant_02): the base centre, on the ground plane",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Verd_Flora"
+  ],
+  "material_params": [
+    {
+      "name": "M_Verd_Flora",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Verd_Flora_BC.png",
+    "T_Verd_Flora_N.png",
+    "T_Verd_Flora_ORM.png",
+    "T_Verd_Flora_E.png"
+  ],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "status": "ok",
+  "fbx_path_is": "relative to the repository root",
+  "texture_set": {
+    "name": "Verd_Flora",
+    "shared_atlas": true,
+    "dir": "ArtSource/EngProps/Verdance/textures",
+    "files": {
+      "BC": "T_Verd_Flora_BC.png",
+      "N": "T_Verd_Flora_N.png",
+      "ORM": "T_Verd_Flora_ORM.png",
+      "E": "T_Verd_Flora_E.png"
+    },
+    "size": 1024,
+    "emission_strength": 2.0,
+    "normal_convention": "DirectX (green flipped)",
+    "material": "M_Verd_Flora",
+    "px_per_m": 297.7
+  }
+}

@@ -348,7 +348,8 @@ void ATDDebugHUD::DrawWave()
 		{
 			float W = 0.f, H = 0.f;
 			GetTextSize(Prompt, W, H, nullptr, 1.5f);
-			DrawText(Prompt, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.66f, nullptr, 1.5f);
+			// Low enough to clear the player's own ship in the chase view.
+			DrawText(Prompt, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.80f, nullptr, 1.5f);
 		}
 	}
 }
