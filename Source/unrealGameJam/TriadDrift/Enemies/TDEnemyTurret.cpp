@@ -72,10 +72,7 @@ void ATDEnemyTurret::BeginPlay()
 	{
 		Health->OnDeath.AddUniqueDynamic(this, &ATDEnemyTurret::HandleDeath);
 	}
-	if (UMaterialInstanceDynamic* MID = Mesh ? Mesh->CreateDynamicMaterialInstance(0) : nullptr)
-	{
-		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.15f, 0.02f, 0.02f));
-	}
+	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.55f, 0.06f, 0.04f), 0.f);
 }
 
 void ATDEnemyTurret::EndPlay(const EEndPlayReason::Type EndPlayReason)
