@@ -47,6 +47,8 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 */
 	static float DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
 	static constexpr float MinStreakPixels = 11.f;
+	/** Heavy shells read bigger than needles: the heavy ship's gun should look heavy. */
+	static constexpr float MinHeavyStreakPixels = 18.f;
 	static constexpr float MaxDistanceGrowth = 8.f;
 
 	/**
@@ -54,6 +56,12 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 * flash: hiding on FTDFXCue::IsEmpty would make every flash vanish the moment audio lands.
 	 */
 	static bool HasVisualArt(const FTDFXCue& Cue);
+
+	/**
+	 * Caps a muzzle flash to about a third of the hull across at its biggest (it swells to 1.2x): HullRadius is the
+	 * shooter's collision radius. 0 or less = no cap.
+	 */
+	static float CapMuzzleFlashRadius(float Radius, float HullRadius);
 
 	/** Muzzle flash radius for a shot of Spec. */
 	static float MuzzleFlashRadius(const FTDProjectileSpec& Spec);
