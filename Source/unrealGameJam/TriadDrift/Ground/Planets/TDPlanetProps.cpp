@@ -137,7 +137,7 @@ void ATDStepTrigger::HandleOverlap(UPrimitiveComponent*, AActor* Other, UPrimiti
 bool ATDStepTrigger::TryComplete(AActor* Other)
 {
 	ATDFirstPersonCharacter* Player = AsPlayer(Other);
-	if (!Player || !IsLinkedStepCurrent() || (bRequireCarrying && !Player->IsCarrying()))
+	if (!Player || Player->IsDead() || !IsLinkedStepCurrent() || (bRequireCarrying && !Player->IsCarrying()))
 	{
 		return false;
 	}
