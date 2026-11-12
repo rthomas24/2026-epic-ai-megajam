@@ -20,6 +20,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Camera/CameraComponent.h"
@@ -550,6 +551,39 @@ bool FTDCourseMissingNet::RunTest(const FString& Parameters)
 	TestEqual(TEXT("rewards granted"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::Cloak), ETDShipId::Rift);
 	ATDAtmosphereFlightZone* Zone = V.Director->GetRig() ? V.Director->GetRig()->GetZone() : nullptr;
 	TestTrue(TEXT("the way out opens"), Zone && Zone->IsExitAllowed());
+	return true;
+}
+
+
+// Review MAJOR 1: boarding with crew on the pilot must never CUT in flight.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPlanetBoardUnderAttack, "TriadDrift.Ground.Planet.BoardingWithCrewChasingNeverCutsInFlight", TD_TEST_FLAGS)
+bool FTDPlanetBoardUnderAttack::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Verdance"), /*bCourse*/ false);
+	AddExpectedError(TEXT("has no objective actor in the world"), EAutomationExpectedErrorFlags::Contains, 2); // the net, no course here
+	if (!TestTrue(TEXT("landed"), V.LandForReal())) { return false; }
+	ATDFirstPersonCharacter* FP = V.Director->GetFirstPerson();
+	ATDBoardShipInteractable* Board = V.Director->GetBoardPoint();
+	if (!TestNotNull(TEXT("pilot"), FP) || !TestNotNull(TEXT("board"), Board)) { return false; }
+	TArray<ATDCrewCharacter*> Crew;
+	for (int32 i = 0; i < 2; ++i)
+	{
+		const FTransform Xf(FRotator(0.f, 180.f, 0.f), FP->GetActorLocation() + FVector(250.f, i * 150.f - 75.f, 0.f));
+		ATDCrewCharacter* C = V.W.GetWorld()->SpawnActorDeferred<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		C->CrewType = ETDCrewType::Grunt;
+		C->FinishSpawning(Xf);
+		Crew.Add(C);
+	}
+	for (float T = 0.f; T < 2.f; T += 1.f / 30.f) { V.W.Tick(1.f / 30.f); V.GI->TickFlow(1.f / 30.f); }
+	TestTrue(TEXT("the grunts are fighting the pilot"), FP->GetHealth()->GetHull01() < 1.f || Crew[0]->GetController() != nullptr);
+	const float HullAtBoard = FP->GetHealth()->GetHull01();
+	Board->Interact(FP);
+	for (float T = 0.f; T < 6.f; T += 1.f / 30.f) { V.W.Tick(1.f / 30.f); V.GI->TickFlow(1.f / 30.f); }
+	TestFalse(TEXT("no CUT after take-off"), V.GI->IsRetakePending());
+	TestTrue(TEXT("pilot never hit after boarding"), FP->GetHealth()->IsAlive() && FP->GetHealth()->GetHull01() >= HullAtBoard - KINDA_SMALL_NUMBER);
+	TestTrue(TEXT("still flying the ship"), V.PC->GetPawn() == (APawn*)V.Ship());
+	// And back on foot the pilot is a target again.
+	TestTrue(TEXT("pilot invulnerable while stowed"), FP->GetHealth()->IsInvulnerable());
 	return true;
 }
 

@@ -93,6 +93,11 @@ void ATDCrewAIController::Sense()
 	}
 	AActor* Current = Target.Get();
 	const UTDHealthComponent* TH = Current ? UTDStatics::GetHealth(Current) : nullptr;
+	if (Current && Current->IsHidden())
+	{
+		Current = nullptr; // the pilot boarded (stowed, hidden): find someone else or stand down
+		Target = nullptr;
+	}
 	if (!Current || !TH || TH->IsDead())
 	{
 		Current = Registry->FindNearestHostile(ETDTeam::Enemy, Crew->GetActorLocation(), Crew->Spec.SightRange, Crew);
@@ -284,6 +289,9 @@ bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, 
 		}
 		CoverIndex = Found;
 		CoverPhase = ECoverPhase::Moving;
+		MoveBestDist = TNumericLimits<float>::Max();
+		MoveStallTime = 0.f;
+		MoveTotalTime = 0.f;
 	}
 
 	const FTDCoverPoint* P = Cover->GetPoint(CoverIndex);
@@ -298,15 +306,32 @@ bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, 
 	case ECoverPhase::Moving:
 	{
 		const FVector ToPoint = FVector(P->Location.X - Here.X, P->Location.Y - Here.Y, 0.f);
-		if (ToPoint.Size() < 45.f)
+		const float Dist = (float)ToPoint.Size();
+		if (Dist < 45.f)
 		{
 			CoverPhase = ECoverPhase::Hidden;
 			CoverTimer = S.CoverHideSeconds;
+			return true;
+		}
+		// Stuck against the cover (or anything) on the way: no real progress for 1 s, or 4 s overall, and
+		// it gives the spot up and fights from where it stands; it won't look for cover again for 2 s.
+		MoveTotalTime += DeltaSeconds;
+		if (Dist < MoveBestDist - 20.f)
+		{
+			MoveBestDist = Dist;
+			MoveStallTime = 0.f;
 		}
 		else
 		{
-			Steer(Crew, ToPoint, 1.f);
+			MoveStallTime += DeltaSeconds;
 		}
+		if (MoveStallTime > 1.f || MoveTotalTime > 4.f)
+		{
+			LeaveCover(false);
+			CoverSearchTimer = 2.f;
+			return false; // this tick: plain engage (attacks are chosen)
+		}
+		Steer(Crew, ToPoint, 1.f);
 		return true;
 	}
 	case ECoverPhase::Hidden:
@@ -349,6 +374,9 @@ bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, 
 		if (Crew->GetCooldownLeft(ETDCrewAttack::Burst) > 0.f)
 		{
 			CoverPhase = ECoverPhase::Moving; // fired: duck back
+			MoveBestDist = TNumericLimits<float>::Max();
+			MoveStallTime = 0.f;
+			MoveTotalTime = 0.f;
 		}
 		return true;
 	}
