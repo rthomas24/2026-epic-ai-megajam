@@ -264,6 +264,7 @@ void UTDEnergyBladeComponent::StartSwing(int32 Index)
 	ComboIndex = Index + 1;
 	State = static_cast<ETDBladeState>(static_cast<uint8>(ETDBladeState::Light1) + FMath::Min(Index, 2));
 	SwingTimeLeft = Swing.Duration;
+	MoveDuration = Swing.Duration;
 	ComboTimeLeft = 0.f;
 	bLightQueued = false;
 	OnSwing.Broadcast(State);
@@ -292,6 +293,7 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	State = ETDBladeState::HeavyLunge;
 	HeavyCooldownLeft = HeavyCooldown;
 	SwingTimeLeft = HeavyLungeDuration;
+	MoveDuration = HeavyLungeDuration;
 	ComboIndex = 0;
 	ComboTimeLeft = 0.f;
 	OnSwing.Broadcast(State);
@@ -393,6 +395,7 @@ bool UTDEnergyBladeComponent::DashStrike(FVector Direction, float Distance)
 	}
 	State = ETDBladeState::DashStrike;
 	SwingTimeLeft = 0.2f;
+	MoveDuration = 0.2f;
 	OnSwing.Broadcast(State);
 	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	const FVector Start = Owner->GetActorLocation();

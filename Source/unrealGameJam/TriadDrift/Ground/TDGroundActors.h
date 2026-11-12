@@ -226,6 +226,7 @@ public:
 
 	virtual ETDTeam GetTeam() const override { return ETDTeam::Enemy; }
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Turret")
 	TObjectPtr<UStaticMeshComponent> Base;
