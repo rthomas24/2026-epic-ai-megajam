@@ -1,0 +1,102 @@
+{
+  "generated_utc": "2026-11-12T18:18:57.589064+00:00",
+  "task_started_utc": "2026-11-12T17:27:00+00:00",
+  "elapsed_seconds_at_freeze": 3118,
+  "branch": "nick/environment-vfx",
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "frozen_source_hashes_unchanged": true,
+  "previous_manifest_sha256": "b8717b7e5845eefd1f167819ff1e2b63a919a72f9dad1d5a1853c958781c3b53",
+  "native_assets_unchanged_from_previous_manifest": true,
+  "png_valid_prefixes_and_pixel_payloads_unchanged": true,
+  "native_assets": [
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/BP_GalaxySkybox_Combat.uasset",
+      "bytes": 29719,
+      "sha256": "db835ce8cc1568669c28f30e56d2ba9a4b7845ec206774fe32cd7f2616caf00a"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/BP_GalaxySkybox_Hero.uasset",
+      "bytes": 29626,
+      "sha256": "5a4ff62e7b35619d3e2d332e6d6eede31117be952dbb9823a5b6d567394465be"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/BP_GalaxySkybox_Verdance.uasset",
+      "bytes": 29755,
+      "sha256": "a3117793216276e8884e9c7fee7444a1fbd6bf135971908daf0ec84fe0a780ac"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/M_TD_SpaceFoundation.uasset",
+      "bytes": 18620,
+      "sha256": "e4f21dd2196f4d459875e2fd0864dffcd4a5e19d0dde31efe422248eaec8ae61"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/MI_TD_Space_Combat.uasset",
+      "bytes": 5719,
+      "sha256": "8bb88c80f4d70c547de63199915f1df202dfea2b3802a1dfbbfcd4fcef4e674f"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/MI_TD_Space_Hero.uasset",
+      "bytes": 5709,
+      "sha256": "57fe0797e7aeb25220b1f0c2c55d1a425fadd6a8d9f6e634ccfde67802157154"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/MI_TD_Space_Verdance.uasset",
+      "bytes": 5729,
+      "sha256": "219a5d740f0c8705827980f23cf548f259dac9157bfdf170c339ed8e5fb02616"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/Review/L_SpaceFoundation_Combat.umap",
+      "bytes": 14664,
+      "sha256": "a075e7156b5b2e3c348618bcd8a4e1562d8aac4635c273ed5930971a3b20c395"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/Review/L_SpaceFoundation_Hero.umap",
+      "bytes": 14626,
+      "sha256": "8fccf78d83c50e8288a58d0bdc63762335a362e4d2b4f8cf129aafed919a80f2"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/Review/L_SpaceFoundation_Verdance.umap",
+      "bytes": 14702,
+      "sha256": "74559f374739a1d22b8ec18da5f8a6be615be89ff7346155e36516a48ed3e927"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/T_TD_Nebula_BC.uasset",
+      "bytes": 139869,
+      "sha256": "8c5277d59288587e39375fb9db1882836d701c8766edc4118e2134e5565ac5ff"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/T_TD_Stars_BC.uasset",
+      "bytes": 67016,
+      "sha256": "99dbd2a89cb0764aa8b78f7296bf78c21b9332321c5086969aca759d8d377a3c"
+    }
+  ],
+  "native_captures": [
+    {
+      "path": "ArtSource/Environment/SpaceFoundation/UnrealNative/review/Hero_Panorama.png",
+      "bytes": 915124,
+      "sha256": "48297055055261e94463d6ab2f7eeae33b1ab8df43c437554d46945c194abdf3"
+    },
+    {
+      "path": "ArtSource/Environment/SpaceFoundation/UnrealNative/review/Combat_Panorama.png",
+      "bytes": 773361,
+      "sha256": "20e32ac77dc97bba8d34e58982b13071105c676d4914ddb231360842a350ed49"
+    },
+    {
+      "path": "ArtSource/Environment/SpaceFoundation/UnrealNative/review/Verdance_Panorama.png",
+      "bytes": 831360,
+      "sha256": "45e072a8064542dec5ed64385a4c4fcc2a3658aa23658a8250894be1c6ce3a78"
+    },
+    {
+      "path": "ArtSource/Environment/SpaceFoundation/UnrealNative/review/Hero_LongitudeSeam.png",
+      "bytes": 882737,
+      "sha256": "49376b437e5b2e11aab2288b15e6e310a745c78e8f99376401afecdcca3add56"
+    },
+    {
+      "path": "ArtSource/Environment/SpaceFoundation/UnrealNative/review/Hero_NorthPole.png",
+      "bytes": 799198,
+      "sha256": "c6bc0eb2605e73a3a5e2aec9968404b60404720c6b26d05226a8769ba4371939"
+    }
+  ],
+  "native_asset_bytes": 375754,
+  "native_capture_bytes": 4201780
+}
