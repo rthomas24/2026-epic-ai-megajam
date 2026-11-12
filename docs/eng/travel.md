@@ -85,6 +85,18 @@ Rule decided by the Lead on Nov 12, replacing 30 m / 40% of space cruise:
   far from the hover point never snaps.
 - Hold F / A for 0.5 s to call `RequestLand`.
 
+**HUD objective marker (TDTags::ObjectiveMarker on the player pad):**
+- The player pad carries the tag while the player's ship flies in that atmosphere and hasn't landed this visit, and
+  through the descent. It is removed at touchdown, on death, when the ship is destroyed and when leaving the
+  atmosphere.
+- After a retake it comes back if the ship is flying in the atmosphere again. After take-off it stays off until
+  the next visit.
+- The travel subsystem owns the mark (`UpdatePadMarker` / `GetMarkedPad`): one pad at most, and no flicker on a
+  ship switch.
+- Wingman pads are never marked.
+- On the ground, the take-off point is T5's to tag. It is the board point (`ATDBoardShipInteractable`) beside
+  the parked ship.
+
 **Landing sequence:**
 1. Aligning, 1.5 s: fly to the hover point 900 cm above the pad and turn to the pad's facing.
 2. GearDown, 0.6 s.
@@ -164,6 +176,7 @@ By hand in the sandbox:
 | `PlayBounds.AppliedToEveryShip` | existing and later-spawned ships pick up `SetPlayBounds` |
 | `Landing.PromptRuleAndAssistRange` | 60% of the atmosphere cap; "Hold F to land" at 300 m when fast (the assist can start) and at 100 m when slow; nothing at 500 m or for a ship the player isn't flying |
 | `Landing.HoldFFromArrivalLandsInOneMotion` | from the rig's descent start, hands-off until the prompt, then a real held F: the assist starts, the landing sequence begins in under 8 s, never below the end speed, never touches the ground, lands on the player pad |
+| `Landing.PadIsTheObjectiveUntilTouchdown` | rig pad tagged while flying in; survives a switch; off outside the atmosphere, on death, at touchdown, after take-off, on destroy; back after a retake and on a new visit |
 | `Landing.AssistStopsOnReleaseRetakeAndBoost` | releasing F, a retake and death each end the assist and clear its override |
 | `Landing.PromptSequenceWingmenTakeOff` | prompt range and speed, the full sequence and its states, pad reservation, a wingman on the side pad, input ignored while landed, take-off with the wingman |
 | `Camera.CockpitToggle` | chase / cockpit switching; V binding |

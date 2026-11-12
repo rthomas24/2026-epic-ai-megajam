@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "Engine/World.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "Misc/PackageName.h"
@@ -227,6 +228,37 @@ void UTDTravelSubsystem::RegisterPad(ATDLandingPad* Pad)
 void UTDTravelSubsystem::UnregisterPad(ATDLandingPad* Pad)
 {
 	Pads.Remove(Pad);
+}
+
+void UTDTravelSubsystem::UpdatePadMarker(const UObject* Requester, ATDLandingPad* Wanted, bool bIsPlayerShip)
+{
+	if (!bIsPlayerShip)
+	{
+		if (MarkOwner.Get() != Requester)
+		{
+			return; // not ours to clear
+		}
+		Wanted = nullptr;
+		MarkOwner.Reset();
+	}
+	else
+	{
+		MarkOwner = Requester;
+	}
+	ATDLandingPad* Old = MarkedPad.Get();
+	if (Old == Wanted)
+	{
+		return;
+	}
+	if (Old)
+	{
+		Old->Tags.Remove(TDTags::ObjectiveMarker);
+	}
+	MarkedPad = Wanted;
+	if (Wanted)
+	{
+		Wanted->Tags.AddUnique(TDTags::ObjectiveMarker);
+	}
 }
 
 ATDLandingPad* UTDTravelSubsystem::FindPlayerPad(const FVector& Location, float MaxDistance) const
