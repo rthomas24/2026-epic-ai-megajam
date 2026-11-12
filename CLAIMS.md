@@ -30,7 +30,7 @@ See docs/visual/Day1-Integration-Policy-2026-11-12.md for the dated integration 
 | Lead Coordinator | docs/visual/**; CREDITS.md; DEVLOG.md; coordinated CLAIMS.md updates | nick/visual-assets; nick/day1-integration | visual-assets; day1-integration | Active coordination only; no asset implementation; serial claim publication/integration |
 | Environment & VFX Agent | ArtSource/Environment/SpaceFoundation/UnrealNative/**; Content/TriadDrift/Environment/SpaceFoundation/** | nick/environment-vfx | environment-vfx | Active first native environment milestone; original source outside UnrealNative read-only; future VFX/Audio not assigned |
 | UI/UX & HUD Agent | Plugins/TriadDriftHUD/**; ArtSource/UI/TriadHUD/Unreal/**; Content/TriadDrift/UI/TriadHUD/** | nick/hud-native | hud-native | Active publication/verification handoff; frozen prototype read-only; plugin/shared activation withheld pending Ryan approval |
-| Ships & Weapons Agent | ArtSource/Space/Ships/Lancer/** | nick/ships-lancer | ships-lancer | Frozen review at pushed 43dc320; no active edits; reservation retained, not released; silhouette/assembly QA unresolved, no main integration |
+| Ships & Weapons Agent | ArtSource/Space/Ships/Lancer/production/**; ArtSource/Space/Ships/Lancer/review/M02/** | nick/ships-lancer | ships-lancer | Active user-authorized M02 refinement; M01 sources/reviews and attachments read-only; preserve 33 names/transforms/pivots; no Unreal import/final production approval |
 
 Completed Environment/VFX/HUD/Audio source snapshots are read-only shared references.
 Future combat VFX output paths and Audio/music production are not activated or
