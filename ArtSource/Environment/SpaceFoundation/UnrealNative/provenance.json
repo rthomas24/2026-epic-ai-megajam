@@ -1,0 +1,33 @@
+{
+  "frozen_source_sha256": {
+    "build_unreal.py": "9aac5d4f6f3beb6dd513a0dd4244386f125a141a8fd94e0fc135783db7293f05",
+    "credits.json": "e2abf4acdc1ad0a19c5511357b55ab09eb9595f461e27a24bf6c9ff5768b52d1",
+    "generate_sky.py": "e59d075a62f9319d9886117d110f077618eae676599c41c175e07f4b61d3e479",
+    "presets.json": "ee5a2c02e5d4ceae8ace6e556d49cc73ede2fca38e6ef3aaf77e932aac5c77c8",
+    "preview.html": "ee30bd948e1e8b282b11c01564af2946c8f793febc03ebd0afc06de59c1ebf42",
+    "README.txt": "ee3637b095a8db4a6e1f1f0e9748f77bfb8021c0c40e8b59614baf14f56c9cdf"
+  },
+  "source_checkpoint": "e2d4139",
+  "generator_validation": "range, seam, poles, deterministic star buffer: PASS",
+  "outputs": {
+    "T_TD_Nebula_BC.png": {
+      "bytes": 132981,
+      "sha256": "184c4b98d9825b08c255f51aa53fb3f5b9a69f0a54f28818784e412b1c78eeb0"
+    },
+    "T_TD_Stars_BC.png": {
+      "bytes": 33973,
+      "sha256": "df380a3c595d53bf2e5564d00b7cd0a304bd872ac275729eacfa9f2706118717"
+    },
+    "presets.json": {
+      "bytes": 1305,
+      "sha256": "ee5a2c02e5d4ceae8ace6e556d49cc73ede2fca38e6ef3aaf77e932aac5c77c8"
+    }
+  },
+  "third_party_assets": [],
+  "tools": [
+    "OpenAI Codex",
+    "Unreal Engine 5.9 Python",
+    "Python standard library"
+  ],
+  "author": "Nicholas Tosti / Environment & VFX Agent"
+}

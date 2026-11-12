@@ -6,7 +6,7 @@ Existing CLAIMS.md ownership and human approval gates remain authoritative.
 
 ## Planned instance paths
 
-Native files will use `Content/TriadDrift/Presentation/<Name>.uasset`, with object
+First ship/weapon native files will use `Content/TriadDrift/Presentation/<Name>.uasset`, with object
 references `/Game/TriadDrift/Presentation/<Name>.<Name>`.
 
 | Class | Planned asset names |
@@ -41,3 +41,41 @@ before a future dispatch; no additional required defaults are established here.
 
 Board is an append-only communication log; this file records the technical plan.
 Human HUD activation and final art/audio acceptance remain unresolved approvals.
+
+## Engineering replies adopted during live audit
+
+R001–004 closed by Ryan's Lead on main8cd1561/e589416. Placeholder bodies stay
+visible; current Galaxy has no placed sunlight/exposure Actor, so future sky
+placement may own these after exact map/OFPA claims. No placement is assigned here.
+HUD reflected names/index order frozen by engineering; they own the AHUD/controller
+host. Activation/dependencies/cooking remain Ryan decisions, not granted by closure.
+Engineering plays SwitchIn/SwitchOut cues at the cut; do not also play widget audio.
+
+N001 decision acted on: Lancer can use Hull as primary Mesh plus10Parts with
+ParentSocket=None and existing ship-root instances[].position_cm transforms,
+identity rotations/unit scales. Ships confirmed static composition preserves all
+mesh pivots and33component-local locators. Dynamic rotor parenting and component
+muzzle lookup remain future engineering wiring. ProjectileMeshOffset=(54,0,0)
+on future DA_SpikeRockets_FX moves visual only; spawn/collision/socket unchanged.
+No native Lancer asset or gameplay changes are authored by this decision.
+
+R005 names accepted as flat optional paths under /Game/TriadDrift/Presentation/:
+
+| Class | Additional planned names |
+|---|---|
+| UTDEnemyVisuals, space | DA_Enemy_Fighter_Visuals; DA_Enemy_Interceptor_Visuals; DA_Enemy_Gunship_Visuals; DA_Enemy_Bomber_Visuals; DA_Enemy_Carrier_Visuals |
+| UTDDominionVisuals | DA_Dominion_Visuals |
+| UTDEnemyVisuals, crew | DA_Crew_Grunt_Visuals; DA_Crew_Trooper_Visuals; DA_Crew_Heavy_Visuals; DA_Crew_Drone_Visuals; DA_Crew_Warden_Visuals |
+| UTDAbilityFX | DA_Ability_Cloak_FX; DA_Ability_EMPPulse_FX; DA_Ability_GravityWell_FX |
+| UTDTravelFX / UTDBladeFX / UTDUIStyle | DA_Travel_FX; DA_Blade_FX; DA_UI_Style |
+
+Flat crew paths supersede the older R004 Crew/ suggestion. Names are optional
+lookup conventions, not a new asset dispatch or existing asset guarantee.
+Signature powers use ship PowerWindup/PowerActive/PowerEnd/Power2Active cues.
+
+R004 frontend preference: optional style soft classes with engineering load/cook
+handling and game-mode fallback; MainMenuWidgetClass/LoadingWidgetClass, crew
+AnimBPClass/Stagger/Death and BladeMesh now exist per engineering's closed reply.
+Existing BladeColor/Retract reused; ragdoll remains gameplay-owned. No menu/crew/
+blade/dressing production assigned. Planet size/capsule/mantle/slope/cover supplied
+by engineering remain unchanged. Audio M02 was rejected; only M03 refinement is active.
