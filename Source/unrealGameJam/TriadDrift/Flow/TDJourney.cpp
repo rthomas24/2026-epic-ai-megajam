@@ -25,6 +25,44 @@ namespace TDJourneyImpl
 	}
 }
 
+const FName FTDJourney::DominionApproach(TEXT("Dominion_Approach"));
+const FName FTDJourney::DominionTrench(TEXT("Dominion_Trench"));
+
+bool FTDJourney::FindStageStart(UWorld* World, FName ReturnPoint, FTransform& Out)
+{
+	if (!World || ReturnPoint.IsNone())
+	{
+		return false;
+	}
+	if (ReturnPoint == DominionApproach || ReturnPoint == DominionTrench)
+	{
+		if (const ATDDominion* Dominion = ATDDominion::Get(World))
+		{
+			const FTransform D = Dominion->GetActorTransform();
+			const FVector E = Dominion->HullExtent;
+			if (ReturnPoint == DominionApproach)
+			{
+				// Front-right and a little above, outside the shield and generator ring, far enough that the
+				// whole hull is in frame and close enough that it fills a good part of it.
+				const FVector LocalDir = FVector(0.75f, 0.6f, 0.25f).GetSafeNormal();
+				const float Dist = FMath::Max(Dominion->ShieldRadius * 2.f, E.X * 2.4f); // ~12 s at cruise before the hull
+				const FVector Loc = D.TransformPosition(LocalDir * Dist);
+				Out = FTransform((D.GetLocation() - Loc).Rotation(), Loc);
+			}
+			else
+			{
+				// Off the bow on the trench line (walls at hull top + 1500), facing aft: the reactor sits near the
+				// bow end of the trench, straight ahead, and the stern bridge block is behind it, not in the way.
+				const FVector Loc = D.TransformPosition(FVector(E.X + 20000.f, 0.f, E.Z + 1500.f));
+				Out = FTransform((-D.GetUnitAxis(EAxis::X)).Rotation(), Loc);
+			}
+			return true;
+		}
+	}
+	const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(World);
+	return Layout && Layout->FindReturnPoint(ReturnPoint, Out);
+}
+
 FTDProgress FTDJourney::MakeProgress(ETDJourneyStage Stage, const FTDProgress& Keep)
 {
 	FTDProgress P;
@@ -91,9 +129,9 @@ FName FTDJourney::ReturnPointOf(ETDJourneyStage Stage)
 	case ETDJourneyStage::CinderOnFoot: return TEXT("Cinder_Pad");
 	case ETDJourneyStage::Waves3to4: return TDReturnPoints::VerdanceOrbit;
 	case ETDJourneyStage::Wave5: return TDReturnPoints::CinderOrbit;
-	case ETDJourneyStage::DominionAssault:
+	case ETDJourneyStage::DominionAssault: return DominionApproach;
 	case ETDJourneyStage::ReactorExposed:
-	case ETDJourneyStage::Victory: return TEXT("Dominion_Approach");
+	case ETDJourneyStage::Victory: return DominionTrench;
 	default: return NAME_None;
 	}
 }
@@ -147,7 +185,7 @@ void FTDJourney::ApplyGalaxyInPlace(UWorld* World, ETDJourneyStage Stage)
 		FTransform Where;
 		const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(World);
 		const FName Point = ReturnPointOf(Stage);
-		if (Layout && (Point.IsNone() || !Layout->FindReturnPoint(Point, Where)))
+		if (Layout && !FindStageStart(World, Point, Where))
 		{
 			Where = Layout->GetPlayerStart();
 		}

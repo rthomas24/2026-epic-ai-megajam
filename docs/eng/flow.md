@@ -94,8 +94,8 @@ Tests (`.\Tools\td-test.ps1 -Filter TriadDrift.Flow`):
 | `Waves3to4` | Galaxy at `Verdance_Orbit`, wave 3 running | Verdance done: Gravity Well (Bastion), Cloak (Rift) |
 | `CinderArrival` / `CinderOnFoot` | Cinder, descending / at `Cinder_Pad` | waves 1-4 cleared, Verdance done |
 | `Wave5` | Galaxy at `Cinder_Orbit`, wave 5 running | Cinder done: EMP Pulse (Lancer) |
-| `DominionAssault` | Galaxy at `Dominion_Approach`, Dominion warped in, shields up, no wave | Dominion revealed |
-| `ReactorExposed` | as above, all generators down | defenses down |
+| `DominionAssault` | Galaxy at `Dominion_Approach`: front-right-above the Dominion, outside the shield, facing it with the hull filling the frame; shields up, no wave | Dominion revealed |
+| `ReactorExposed` | Galaxy at `Dominion_Trench`: off the bow on the trench line, facing aft, the reactor dead ahead; all generators down | defenses down |
 | `Victory` | phase Victory (clock stopped) | everything |
 
 - **Galaxy stages in the galaxy** are applied in place:
@@ -109,6 +109,11 @@ Tests:
 - `Flow.Journey.GalaxyStagesApplyInPlace` (real space mode, galaxy layout, director and Dominion)
 - `Flow.Journey.PlanetStagesTravelWithTheRightReturnPoint`
 - `Flow.Journey.StageAndUnlockAllCheats`
+- `Flow.Journey.DominionStagesFaceTheObjective` (view dot > 0.9, inside the FOV, hull size in frame, clear line of sight to the reactor)
+
+`Dominion_Approach` and `Dominion_Trench` are not layout return points: `FTDJourney::FindStageStart` frames them from the
+live Dominion (its `HullExtent` and `ShieldRadius`), so they stay right if T4 moves or resizes it. The space game mode uses
+the same lookup when it arrives with one of them as the return point.
 
 ## Placeholder sky (N-004, agreed with Nick's side)
 All placeholder lighting and exposure is one actor, `ATDPlaceholderSky` (tag `TD.Placeholder.Sky`). It holds the sun (forward-shading priority 1), the fill (0), the sky light, a planet atmosphere, and an unbound post-process at priority -100. Both game modes spawn it only when the map has no sky of its own:
