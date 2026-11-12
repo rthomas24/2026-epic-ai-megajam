@@ -260,6 +260,9 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	/** True hull size including carrier parts mounted outside the sphere (break-off and avoidance). */
+	virtual void GetSimpleCollisionCylinder(float& CollisionRadius, float& CollisionHalfHeight) const override;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

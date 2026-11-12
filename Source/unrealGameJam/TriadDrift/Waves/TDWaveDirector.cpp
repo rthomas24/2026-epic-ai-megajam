@@ -19,7 +19,7 @@
 
 namespace
 {
-	FTDWaveGroup Group(FName EnemyId, int32 Packs, int32 PerPack, ETDSpawnZone Zone, float Delay = 0.f)
+	FTDWaveGroup TDWaveDir_Group(FName EnemyId, int32 Packs, int32 PerPack, ETDSpawnZone Zone, float Delay = 0.f)
 	{
 		FTDWaveGroup G;
 		G.EnemyId = EnemyId;
@@ -30,7 +30,7 @@ namespace
 		return G;
 	}
 
-	bool IsActorAlive(const AActor* Actor)
+	bool TDWaveDir_IsActorAlive(const AActor* Actor)
 	{
 		if (!IsValid(Actor))
 		{
@@ -87,8 +87,8 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.2f;
 		W.Phase = ETDGamePhase::Waves1to2;
 		W.StartTip = TDTipIds::Switching;
-		W.Groups.Add(Group(ShardFighter, 1, 4, ETDSpawnZone::FlankLeft));
-		W.Groups.Add(Group(ShardFighter, 1, 4, ETDSpawnZone::FlankRight, 2.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 4, ETDSpawnZone::FlankLeft));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 4, ETDSpawnZone::FlankRight, 2.f));
 		Out.Add(W);
 	}
 	// 2: 3 x 5 fighters + 2 interceptors, 0.35. Verdance marker appears.
@@ -99,8 +99,8 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.35f;
 		W.Phase = ETDGamePhase::Waves1to2;
 		W.StartTip = TDTipIds::Drift;
-		W.Groups.Add(Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank));
-		W.Groups.Add(Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 4.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 4.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Verdance;
 		Out.Add(W);
@@ -113,8 +113,8 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.55f;
 		W.Phase = ETDGamePhase::Waves3to4;
 		W.StartTip = TDTipIds::Gunships;
-		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::FlankRight));
-		W.Groups.Add(Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank, 2.f));
+		W.Groups.Add(TDWaveDir_Group(WallGunship, 2, 1, ETDSpawnZone::FlankRight));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank, 2.f));
 		Out.Add(W);
 	}
 	// 4: 2 gunships, 2 bombers, 4 interceptors, fighters, 0.7. Cinder marker appears.
@@ -124,10 +124,10 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Title = LOCTEXT("Wave4", "Minefield");
 		W.Intensity01 = 0.7f;
 		W.Phase = ETDGamePhase::Waves3to4;
-		W.Groups.Add(Group(WallGunship, 2, 1, ETDSpawnZone::FlankLeft));
-		W.Groups.Add(Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 1.f));
-		W.Groups.Add(Group(HookInterceptor, 4, 1, ETDSpawnZone::Behind, 5.f));
-		W.Groups.Add(Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 3.f));
+		W.Groups.Add(TDWaveDir_Group(WallGunship, 2, 1, ETDSpawnZone::FlankLeft));
+		W.Groups.Add(TDWaveDir_Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 1.f));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 4, 1, ETDSpawnZone::Behind, 5.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 3.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Cinder;
 		Out.Add(W);
@@ -140,10 +140,10 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.9f;
 		W.Phase = ETDGamePhase::Wave5;
 		W.StartTip = TDTipIds::Carriers;
-		W.Groups.Add(Group(HiveCarrier, 2, 1, ETDSpawnZone::Behind));
-		W.Groups.Add(Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 1.f));
-		W.Groups.Add(Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 3.f));
-		W.Groups.Add(Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 6.f));
+		W.Groups.Add(TDWaveDir_Group(HiveCarrier, 2, 1, ETDSpawnZone::Behind));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 1.f));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 3.f));
+		W.Groups.Add(TDWaveDir_Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 6.f));
 		W.bRevealsDominion = true;
 		Out.Add(W);
 	}
@@ -621,7 +621,7 @@ int32 ATDWaveDirector::GetEnemiesAlive() const
 	int32 N = 0;
 	for (const TWeakObjectPtr<AActor>& Weak : Living)
 	{
-		if (IsActorAlive(Weak.Get())) { ++N; }
+		if (TDWaveDir_IsActorAlive(Weak.Get())) { ++N; }
 	}
 	return N;
 }
@@ -633,7 +633,7 @@ TArray<AActor*> ATDWaveDirector::GetLivingEnemies() const
 	{
 		if (AActor* A = Weak.Get())
 		{
-			if (IsActorAlive(A)) { Out.Add(A); }
+			if (TDWaveDir_IsActorAlive(A)) { Out.Add(A); }
 		}
 	}
 	return Out;
@@ -649,7 +649,7 @@ void ATDWaveDirector::CheckWaveCleared()
 	{
 		return;
 	}
-	Living.RemoveAll([](const TWeakObjectPtr<AActor>& W) { return !IsActorAlive(W.Get()); });
+	Living.RemoveAll([](const TWeakObjectPtr<AActor>& W) { return !TDWaveDir_IsActorAlive(W.Get()); });
 	if (Living.Num() == 0)
 	{
 		FinishWave();

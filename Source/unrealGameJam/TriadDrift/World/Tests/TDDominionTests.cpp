@@ -19,7 +19,7 @@
 
 namespace
 {
-	struct FDominionRig
+	struct FTDDominionTestRig
 	{
 		FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
 		UTDWaveTestGameInstance* GI = nullptr;
@@ -27,7 +27,7 @@ namespace
 		UTDWaveTestListener* L = nullptr;
 		AActor* Player = nullptr;	// the killer: the Director only stages player kills
 
-		explicit FDominionRig(bool bRevealed, bool bDefensesDown = false)
+		explicit FTDDominionTestRig(bool bRevealed, bool bDefensesDown = false)
 		{
 			GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
 			GI->Progress.bDominionRevealed = bRevealed;
@@ -45,7 +45,7 @@ namespace
 			D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
 			D->MaxLaunchedAlive = 0;	// unlimited, deterministic counting
 		}
-		~FDominionRig() { L->RemoveFromRoot(); }
+		~FTDDominionTestRig() { L->RemoveFromRoot(); }
 
 		void ArriveAndRaiseShields()
 		{
@@ -62,7 +62,7 @@ namespace
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDominionArrival, "TriadDrift.World.Dominion.WarpsInWhenRevealed", TD_TEST_FLAGS)
 bool FTDWorldDominionArrival::RunTest(const FString& Parameters)
 {
-	FDominionRig R(/*bRevealed*/ false);
+	FTDDominionTestRig R(/*bRevealed*/ false);
 	TestTrue(TEXT("hidden before the reveal"), R.D->GetState() == ETDDominionState::Hidden && R.D->IsHidden());
 	R.W.Advance(2.f);
 	TestTrue(TEXT("stays hidden"), R.D->GetState() == ETDDominionState::Hidden);
@@ -94,7 +94,7 @@ bool FTDWorldDominionArrival::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDominionShield, "TriadDrift.World.Dominion.ShieldBlocksUntilGeneratorsDown", TD_TEST_FLAGS)
 bool FTDWorldDominionShield::RunTest(const FString& Parameters)
 {
-	FDominionRig R(true);
+	FTDDominionTestRig R(true);
 	R.ArriveAndRaiseShields();
 	ATDDominionReactor* Reactor = R.D->GetReactor();
 	if (!TestNotNull(TEXT("reactor"), Reactor)) { return false; }
@@ -124,7 +124,7 @@ bool FTDWorldDominionShield::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldReactorPhases, "TriadDrift.World.Dominion.ReactorThreePhasesThenVictory", TD_TEST_FLAGS)
 bool FTDWorldReactorPhases::RunTest(const FString& Parameters)
 {
-	FDominionRig R(true);
+	FTDDominionTestRig R(true);
 	R.ArriveAndRaiseShields();
 	R.D->DebugDropShields();
 	ATDDominionReactor* Reactor = R.D->GetReactor();
@@ -164,7 +164,7 @@ bool FTDWorldReactorPhases::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDominionLaunches, "TriadDrift.World.Dominion.LaunchesEscalate", TD_TEST_FLAGS)
 bool FTDWorldDominionLaunches::RunTest(const FString& Parameters)
 {
-	FDominionRig R(true);
+	FTDDominionTestRig R(true);
 	R.ArriveAndRaiseShields();
 	const float I0 = R.D->Stages[0].LaunchInterval;
 	R.W.Advance(I0 * 0.5f + 0.1f);
@@ -179,7 +179,7 @@ bool FTDWorldDominionLaunches::RunTest(const FString& Parameters)
 	TestTrue(TEXT("launches continue in the reactor phase"), R.D->GetLaunchCount() > AtExpose);
 
 	// The cap holds.
-	FDominionRig Capped(true);
+	FTDDominionTestRig Capped(true);
 	Capped.D->MaxLaunchedAlive = 5;
 	Capped.ArriveAndRaiseShields();
 	Capped.W.Advance(Capped.D->Stages[0].LaunchInterval * 4.f);
@@ -190,7 +190,7 @@ bool FTDWorldDominionLaunches::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDominionResume, "TriadDrift.World.Dominion.ResumeWithDefensesDown", TD_TEST_FLAGS)
 bool FTDWorldDominionResume::RunTest(const FString& Parameters)
 {
-	FDominionRig R(/*bRevealed*/ true, /*bDefensesDown*/ true);
+	FTDDominionTestRig R(/*bRevealed*/ true, /*bDefensesDown*/ true);
 	TestTrue(TEXT("straight to the reactor"), R.D->GetState() == ETDDominionState::ReactorExposed);
 	TestEqual(TEXT("generators already down"), R.D->GetGeneratorsRemaining(), 0);
 	TestTrue(TEXT("reactor exposed"), R.D->GetReactor() && R.D->GetReactor()->IsExposed());
@@ -202,7 +202,7 @@ bool FTDWorldDominionResume::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldDirectorTags, "TriadDrift.World.Dominion.DirectorTagsProduceHighlights", TD_TEST_FLAGS)
 bool FTDWorldDirectorTags::RunTest(const FString& Parameters)
 {
-	FDominionRig R(true);
+	FTDDominionTestRig R(true);
 	R.ArriveAndRaiseShields();
 	ATDShieldGenerator* G = R.D->GetGenerators()[0];
 	TestTrue(TEXT("generator tagged"), G->ActorHasTag(TDDirectorTags::Generator));

@@ -16,13 +16,13 @@
 
 namespace
 {
-	struct FGateRig
+	struct FTDGateTestRig
 	{
 		FTDTestWorld W;
 		ATDPortalGate* A = nullptr;
 		ATDPortalGate* B = nullptr;
 
-		FGateRig()
+		FTDGateTestRig()
 		{
 			A = W.Spawn<ATDPortalGate>(FVector::ZeroVector, FRotator::ZeroRotator);			// travel +X into A
 			B = W.Spawn<ATDPortalGate>(FVector(100000.f, 0.f, 0.f), FRotator(0.f, 90.f, 0.f));	// come out along +Y
@@ -56,7 +56,7 @@ bool FTDWorldGateMaths::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateShip, "TriadDrift.World.Gate.ShipTransitsToPartner", TD_TEST_FLAGS)
 bool FTDWorldGateShip::RunTest(const FString& Parameters)
 {
-	FGateRig R;
+	FTDGateTestRig R;
 	ATDSpacecraft* Ship = R.SpawnShip(FVector(-800.f, 300.f, 0.f), FRotator::ZeroRotator, ETDTeam::Player);
 	R.W.Advance(0.6f);
 
@@ -74,7 +74,7 @@ bool FTDWorldGateShip::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateBack, "TriadDrift.World.Gate.TwoSidedAndInactive", TD_TEST_FLAGS)
 bool FTDWorldGateBack::RunTest(const FString& Parameters)
 {
-	FGateRig R;
+	FTDGateTestRig R;
 	// From the back: travelling -X into A -> out of B's back (-Y).
 	ATDSpacecraft* Back = R.SpawnShip(FVector(800.f, 0.f, 0.f), FRotator(0.f, 180.f, 0.f), ETDTeam::Player);
 	R.W.Advance(0.6f);
@@ -97,7 +97,7 @@ bool FTDWorldGateBack::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateEnemy, "TriadDrift.World.Gate.EnemiesLoseTracking", TD_TEST_FLAGS)
 bool FTDWorldGateEnemy::RunTest(const FString& Parameters)
 {
-	FGateRig R;
+	FTDGateTestRig R;
 	ATDEnemyShip* E = R.W.Spawn<ATDEnemyShip>(FVector(-800.f, 0.f, 0.f));
 	if (AController* C = E->GetController()) { C->UnPossess(); C->Destroy(); }
 	E->InitFromSpec(TDEnemyIds::ShardFighter);
@@ -113,7 +113,7 @@ bool FTDWorldGateEnemy::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateProjectile, "TriadDrift.World.Gate.EnemyShotsAreReturned", TD_TEST_FLAGS)
 bool FTDWorldGateProjectile::RunTest(const FString& Parameters)
 {
-	FGateRig R;
+	FTDGateTestRig R;
 	ATDSpacecraft* Shooter = R.SpawnShip(FVector(-30000.f, 0.f, 0.f), FRotator::ZeroRotator, ETDTeam::Enemy);
 	Shooter->SetSpeedOverride(0.f, 0.f);
 	const FTDWeaponSpec& Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPulseGuns);

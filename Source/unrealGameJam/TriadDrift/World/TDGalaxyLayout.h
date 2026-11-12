@@ -94,6 +94,11 @@ struct UNREALGAMEJAM_API FTDGalaxyLayoutData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") TMap<FName, FTransform> ReturnPoints;
 };
 
+namespace TDGalaxyWells
+{
+	inline const FName Dominion(TEXT("Dominion_Approach"));
+}
+
 namespace TDReturnPoints
 {
 	inline const FName VerdanceOrbit(TEXT("Verdance_Orbit"));
@@ -108,7 +113,7 @@ namespace TDReturnPoints
  * L_Galaxy map places one); both run the same code. Layout data, return points and the player start
  * are valid right after spawn, before BeginPlay.
  */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, Config = Game)
 class UNREALGAMEJAM_API ATDGalaxyLayout : public AActor
 {
 	GENERATED_BODY()
@@ -165,20 +170,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
 	bool bSpawnDominion = true;
 
-	/** Re-apply the play bounds to spacecraft this often (catches respawns and new enemies). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0.1"))
-	float BoundsRefreshSeconds = 2.f;
+	/** Hyperdrive drop-out radius around the Dominion (T1's gravity wells). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
+	float DominionWellRadius = 60000.f;
+
+	/**
+	 * Hide our placeholder dressing (asteroid/ruin/planet meshes) when Nick's environment art is in
+	 * the map. Collision, obstacles and gameplay are unchanged. Config: [/Script/unrealGameJam.TDGalaxyLayout]
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Config, Category = "TriadDrift|Galaxy")
+	bool bHidePlaceholderDressing = false;
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Galaxy")
+	void SetHidePlaceholderDressing(bool bHide);
 
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void BuildAsteroids();
 	void BuildRuins();
 	void BuildPlanets();
 	void BuildGates();
-	void ApplyBoundsToShips();
 	void UpdateGatePhases();
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
@@ -199,7 +214,6 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<ATDDominion> Dominion;
 
-	float BoundsTimer = 0.f;
 	float PhaseTimer = 0.f;
 	bool bBuilt = false;
 };

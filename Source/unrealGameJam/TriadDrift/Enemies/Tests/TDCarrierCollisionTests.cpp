@@ -24,7 +24,7 @@
 
 namespace
 {
-	ATDEnemyShip* SpawnCarrier(FTDTestWorld& W, const FVector& Loc, bool bKeepAI)
+	ATDEnemyShip* TDCarrierTest_SpawnCarrier(FTDTestWorld& W, const FVector& Loc, bool bKeepAI)
 	{
 		ATDEnemyShip* C = W.Spawn<ATDEnemyShip>(Loc);
 		if (!bKeepAI)
@@ -37,7 +37,7 @@ namespace
 	}
 
 	/** A heavy player bolt from From at Target, led for the target's motion (a real ATDProjectile with its real sweep). */
-	ATDProjectile* FireAt(FTDTestWorld& W, const FVector& From, const AActor* Target, float Damage, ETDDamageKind Kind = ETDDamageKind::Explosive)
+	ATDProjectile* TDCarrierTest_FireAt(FTDTestWorld& W, const FVector& From, const AActor* Target, float Damage, ETDDamageKind Kind = ETDDamageKind::Explosive)
 	{
 		const AActor* Mover = Target->GetAttachParentActor() ? Target->GetAttachParentActor() : Target;
 		const FVector To = Target->GetActorLocation() + Mover->GetVelocity() * (FVector::Dist(From, Target->GetActorLocation()) / 30000.f);
@@ -53,7 +53,7 @@ namespace
 		return ATDProjectile::Spawn(W.GetWorld(), Spec, FTransform((To - From).Rotation(), From), nullptr, ETDTeam::Player);
 	}
 
-	AActor* SweepShip(FTDTestWorld& W, const FVector& From, const FVector& To)
+	AActor* TDCarrierTest_SweepShip(FTDTestWorld& W, const FVector& From, const FVector& To)
 	{
 		FHitResult Hit;
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDTestShipSweep), false);
@@ -66,7 +66,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCarrierRealShot, "TriadDrift.Enemies.Carrier
 bool FTDCarrierRealShot::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDEnemyShip* C = SpawnCarrier(W, FVector::ZeroVector, false);
+	ATDEnemyShip* C = TDCarrierTest_SpawnCarrier(W, FVector::ZeroVector, false);
 	TArray<ATDCarrierBay*> Bays = C->GetBays();
 	if (!TestEqual(TEXT("3 bays"), Bays.Num(), 3)) { return false; }
 	ATDCarrierBay* Bay = Bays[0];
@@ -76,11 +76,11 @@ bool FTDCarrierRealShot::RunTest(const FString& Parameters)
 	TestTrue(TEXT("bay faces outward (no double rotation)"), FVector::DotProduct(Bay->GetActorForwardVector(), Out) > 0.95f);
 
 	// Two real 200-damage bolts fired from outside straight at the bay.
-	FireAt(W, Bay->GetActorLocation() + Out * 6000.f, Bay, 200.f);
+	TDCarrierTest_FireAt(W, Bay->GetActorLocation() + Out * 6000.f, Bay, 200.f);
 	W.Advance(0.5f);
 	TestEqual(TEXT("first bolt hit the bay, not the hull"), Bay->GetHealth()->GetHull(), 100.f);
 	TestEqual(TEXT("carrier hull untouched"), C->GetHealth()->GetHull(), 2000.f);
-	FireAt(W, Bay->GetActorLocation() + Out * 6000.f, Bay, 200.f);
+	TDCarrierTest_FireAt(W, Bay->GetActorLocation() + Out * 6000.f, Bay, 200.f);
 	W.Advance(0.5f);
 	TestFalse(TEXT("real shots destroyed the bay"), Bay->IsAlive());
 	TestEqual(TEXT("2 bays left"), C->GetLivingBayCount(), 2);
@@ -88,7 +88,7 @@ bool FTDCarrierRealShot::RunTest(const FString& Parameters)
 	// Turrets are reachable too.
 	ATDEnemyTurret* T = C->GetTurrets()[0];
 	const FVector TOut = (T->GetActorLocation() - C->GetActorLocation()).GetSafeNormal();
-	FireAt(W, T->GetActorLocation() + TOut * 5000.f, T, 500.f);
+	TDCarrierTest_FireAt(W, T->GetActorLocation() + TOut * 5000.f, T, 500.f);
 	W.Advance(0.5f);
 	TestFalse(TEXT("real shot destroyed a point-defense turret"), T->IsAlive());
 	return true;
@@ -98,13 +98,13 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCarrierRam, "TriadDrift.Enemies.Carrier.RamP
 bool FTDCarrierRam::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
-	ATDEnemyShip* C = SpawnCarrier(W, FVector::ZeroVector, false);
+	ATDEnemyShip* C = TDCarrierTest_SpawnCarrier(W, FVector::ZeroVector, false);
 	ATDCarrierBay* Bay = C->GetBays()[1];
 	const FVector Out = (Bay->GetActorLocation() - C->GetActorLocation()).GetSafeNormal();
 
 	// The ram (ENG-10) moves a ship along its path on the Ship channel and damages whatever it hits
 	// with ETDDamageKind::Ram. Prove the same sweep reaches the bay before the hull.
-	AActor* HitActor = SweepShip(W, Bay->GetActorLocation() + Out * 5000.f, C->GetActorLocation());
+	AActor* HitActor = TDCarrierTest_SweepShip(W, Bay->GetActorLocation() + Out * 5000.f, C->GetActorLocation());
 	TestTrue(TEXT("a ship flying at the bay hits the bay first"), HitActor == Bay);
 
 	UTDStatics::ApplyTDDamage(HitActor, 100.f, ETDDamageKind::Ram, nullptr, nullptr, Bay->GetActorLocation(), -Out);
@@ -127,7 +127,7 @@ bool FTDCarrierMoves::RunTest(const FString& Parameters)
 		H->DefaultTeam = ETDTeam::Player;
 		H->RegisterComponent();
 	}
-	ATDEnemyShip* C = SpawnCarrier(W, FVector::ZeroVector, /*bKeepAI*/ true);
+	ATDEnemyShip* C = TDCarrierTest_SpawnCarrier(W, FVector::ZeroVector, /*bKeepAI*/ true);
 	TestNotNull(TEXT("carrier is piloted"), Cast<ATDEnemyAIController>(C->GetController()));
 	const float Start = FVector::Dist(C->GetActorLocation(), Target->GetActorLocation());
 	W.Advance(8.f);
@@ -148,10 +148,10 @@ bool FTDDominionRealShot::RunTest(const FString& Parameters)
 	W.Advance(D->WarpInSeconds + 0.2f);
 	ATDShieldGenerator* G = D->GetGenerators()[0];
 	const FVector Out = (G->GetActorLocation() - D->GetActorLocation()).GetSafeNormal();
-	FireAt(W, G->GetActorLocation() + Out * 6000.f, G, 300.f);
+	TDCarrierTest_FireAt(W, G->GetActorLocation() + Out * 6000.f, G, 300.f);
 	W.Advance(0.5f);
 	TestEqual(TEXT("real shot damaged the generator"), G->GetHealth()->GetHull(), 500.f);
-	TestTrue(TEXT("a ship flying at the generator hits it"), SweepShip(W, G->GetActorLocation() + Out * 5000.f, G->GetActorLocation()) == G);
+	TestTrue(TEXT("a ship flying at the generator hits it"), TDCarrierTest_SweepShip(W, G->GetActorLocation() + Out * 5000.f, G->GetActorLocation()) == G);
 	return true;
 }
 
