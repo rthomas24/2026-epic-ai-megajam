@@ -12,6 +12,8 @@
 #include "Widgets/Layout/SSpacer.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Application/IInputProcessor.h"
+#include "Fonts/FontMeasure.h"
+#include "Rendering/SlateRenderer.h"
 
 namespace TDHUD
 {
@@ -143,10 +145,34 @@ struct FPainter
         FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(bBold ? "Bold" : "Regular",FMath::Max(8,FMath::RoundToInt(Size*Scale*Style.TextScale)));
         FSlateDrawElement::MakeText(List, Layer+1, Geo({X,Y},{1,1}), S, Font, ESlateDrawEffect::None,C);
     }
+    void CenteredText(float CenterX,float Y,const FString& S,int32 Size,FLinearColor C,bool bBold=false) const
+    {
+        if(Scale<=0 || !FSlateApplication::IsInitialized()) return;
+        const FSlateFontInfo Font=FCoreStyle::GetDefaultFontStyle(bBold?"Bold":"Regular",FMath::Max(8,FMath::RoundToInt(Size*Scale*Style.TextScale)));
+        // Match Slate's actual glyph raster scale; nominal-size measurement drifts at 720p DPI.
+        const float DrawScale=G.GetAccumulatedLayoutTransform().GetScale();
+        if(DrawScale<=0) return;
+        const float Width=FSlateApplication::Get().GetRenderer()->GetFontMeasureService()->Measure(S,Font,DrawScale).X/DrawScale;
+        Text(CenterX-Width/(2*Scale),Y,S,Size,C,bBold);
+    }
     void Line(FVector2D A,FVector2D B,FLinearColor C,float Width=1) const
     {
         TArray<FVector2D> Points; Points.Add(A*Scale+Origin); Points.Add(B*Scale+Origin);
         FSlateDrawElement::MakeLines(List,Layer+1,G.ToPaintGeometry(),Points,ESlateDrawEffect::None,C,true,Width*Scale);
+    }
+    void HealthIcon(float X,float Y,FLinearColor C) const
+    {
+        TArray<FVector2D> Points;
+        for(const FVector2D Q : {FVector2D(-8,-4),FVector2D(-5,-8),FVector2D(-1,-8),FVector2D(0,-5),FVector2D(1,-8),FVector2D(5,-8),FVector2D(8,-4),FVector2D(8,0),FVector2D(0,9),FVector2D(-8,0),FVector2D(-8,-4)})
+            Points.Add((FVector2D(X,Y)+Q)*Scale+Origin);
+        FSlateDrawElement::MakeLines(List,Layer+1,G.ToPaintGeometry(),Points,ESlateDrawEffect::None,C,true,1.8f*Scale);
+    }
+    void ShieldIcon(float X,float Y,FLinearColor C) const
+    {
+        TArray<FVector2D> Points;
+        for(const FVector2D Q : {FVector2D(-8,-8),FVector2D(8,-8),FVector2D(7,2),FVector2D(0,10),FVector2D(-7,2),FVector2D(-8,-8)})
+            Points.Add((FVector2D(X,Y)+Q)*Scale+Origin);
+        FSlateDrawElement::MakeLines(List,Layer+1,G.ToPaintGeometry(),Points,ESlateDrawEffect::None,C,true,1.8f*Scale);
     }
     void Arc(FVector2D C,float R,float Fraction,FLinearColor Color,float Width=2,float Start=-PI*.5f) const
     {
@@ -192,16 +218,20 @@ struct FPainter
             Path({{38,28},{46,28},{46,40},{38,40},{38,28}});
         }
     }
-    void Card(float X,float Y,int32 Index,const FTDUIShip& S,const FTDUIShip& Smooth,float Pulse=0) const
+    void Card(float X,float Y,int32 Index,const FTDUIShip& S,const FTDUIShip& Smooth) const
     {
         const FLinearColor C=Style.ShipColor(Index), Dim=Style.Muted;
         Box(X,Y,356,196,Style.Panel);
-        Box(X,Y,356,S.bActive?3:1,S.bActive?C:FLinearColor(.12f,.2f,.28f));
-        if(S.bActive) { Box(X,Y,3,196,C); Box(X+3,Y+3,350,37,FLinearColor(C.R,C.G,C.B,.09f+.06f*Pulse)); }
-        Text(X+18,Y+13,FString::Printf(TEXT("0%d  %s"),Index+1,Names[Index]),20,Style.Ink,true);
-        Text(X+249,Y+17,S.bActive?TEXT("PILOTING"):S.bAlive?TEXT("WINGMAN"):TEXT("OFFLINE"),11,S.bActive?C:Dim,true);
-        Text(X+18,Y+42,Pilots[Index],11,Dim);
-        ShipIcon(X+313,Y+74,Index,C);
+        Box(X,Y,356,S.bActive?4:1,S.bActive?C:FLinearColor(.12f,.2f,.28f));
+        if(S.bActive)
+        {
+            Box(X,Y,5,196,C); Box(X+5,Y+4,351,35,FLinearColor(C.R,C.G,C.B,.14f));
+            Box(X+280,Y+10,58,27,C); Text(X+287,Y+11,TEXT("YOU"),15,FLinearColor(.008f,.02f,.03f),true);
+        }
+        else Text(X+249,Y+17,S.bAlive?TEXT("WINGMAN"):TEXT("OFFLINE"),12,Dim,true);
+        Text(X+18,Y+10,FString::Printf(TEXT("0%d  %s"),Index+1,Names[Index]),S.bActive?22:20,Style.Ink,true);
+        Text(X+18,Y+43,Pilots[Index],11,Dim);
+        ShipIcon(X+313,Y+94,Index,C);
         if(!S.bAvailable) { Text(X+18,Y+85,TEXT("AWAITING TELEMETRY"),15,Dim); return; }
         if(!S.bAlive)
         {
@@ -209,16 +239,19 @@ struct FPainter
             Text(X+18,Y+115,FString::Printf(TEXT("RESPAWN  %.1f s"),S.RespawnSeconds),14,Style.Ink);
             return;
         }
-        Text(X+18,Y+65,TEXT("HULL"),11,Dim); Text(X+220,Y+65,FString::Printf(TEXT("%03d"),FMath::RoundToInt(S.Hull*100)),13,Style.Ink,true);
-        Meter(X+18,Y+86,238,Smooth.Hull,S.Hull<.25?Style.Hostile:C,5);
-        Text(X+18,Y+96,TEXT("SHIELD"),11,Dim); Text(X+220,Y+96,FString::Printf(TEXT("%03d"),FMath::RoundToInt(S.Shield*100)),13,Style.Ink,true);
-        Meter(X+18,Y+117,238,Smooth.Shield,Style.Lancer,3);
-        Text(X+18,Y+130,Powers[Index],10,Dim);
-        Text(X+249,Y+129,S.Power>=.999?TEXT("READY"):FString::Printf(TEXT("%d%%"),FMath::RoundToInt(S.Power*100)),12,C,true);
-        Meter(X+18,Y+150,318,Smooth.Power,C,2);
-        Text(X+18,Y+162, S.bUnlocked ? FString::Printf(TEXT("%s  %s"),Abilities[Index],S.Ability>=.999?TEXT("READY"):TEXT("CHARGING")) : FString::Printf(TEXT("%s  LOCKED"),Abilities[Index]),10, S.bUnlocked?C:Dim);
-        Text(X+249,Y+162,FString::Printf(TEXT("AMMO %02d"),S.Ammo),11,Style.Ink);
-        if(Index==2) { Arc({X+313,Y+74},32,1,Dim,1); Arc({X+313,Y+74},32,S.Power2,C,3); Text(X+277,Y+110,FString::Printf(TEXT("DOME %d%%"),FMath::RoundToInt(S.Power2*100)),9,Dim); }
+        const FLinearColor HealthColor=S.Hull<.25f?Style.Hostile:Style.Ink;
+        HealthIcon(X+26,Y+73,HealthColor); Text(X+44,Y+62,TEXT("HEALTH"),Style.EssentialLabelSize,HealthColor,true);
+        Text(X+183,Y+59,FString::Printf(TEXT("%d%%"),FMath::RoundToInt(S.Hull*100)),Style.StatusNumberSize,HealthColor,true);
+        Meter(X+18,Y+87,238,Smooth.Hull,HealthColor,Style.HealthBarThickness);
+        ShieldIcon(X+26,Y+113,Style.Lancer); Text(X+44,Y+102,TEXT("SHIELD"),Style.EssentialLabelSize,Style.Lancer,true);
+        Text(X+183,Y+99,FString::Printf(TEXT("%d%%"),FMath::RoundToInt(S.Shield*100)),Style.StatusNumberSize,Style.Lancer,true);
+        Meter(X+18,Y+130,238,Smooth.Shield,Style.Lancer,Style.ShieldBarThickness);
+        Text(X+18,Y+145,Powers[Index],10,Dim);
+        Text(X+249,Y+142,S.Power>=.999?TEXT("READY"):FString::Printf(TEXT("%d%%"),FMath::RoundToInt(S.Power*100)),13,C,true);
+        Meter(X+18,Y+164,318,Smooth.Power,C,3);
+        Text(X+18,Y+176, S.bUnlocked ? FString::Printf(TEXT("%s  %s"),Abilities[Index],S.Ability>=.999?TEXT("READY"):TEXT("CHARGING")) : FString::Printf(TEXT("%s  LOCKED"),Abilities[Index]),11, S.bUnlocked?C:Dim);
+        Text(X+249,Y+176,FString::Printf(TEXT("AMMO %02d"),S.Ammo),11,Style.Ink);
+        if(Index==2) { Arc({X+313,Y+94},32,1,Dim,1); Arc({X+313,Y+94},32,S.Power2,C,3); Text(X+277,Y+130,FString::Printf(TEXT("DOME %d%%"),FMath::RoundToInt(S.Power2*100)),9,Dim); }
     }
 };
 }
@@ -537,26 +570,43 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     {
         P.Text(87,743,TEXT("FLIGHT TELEMETRY"),11,Dim,true);
         P.Text(87,770,FString::Printf(TEXT("%03d"),FMath::RoundToInt(Speed01*100)),42,Ink,true); P.Text(194,798,TEXT("% SPEED"),11,Dim);
-        P.Text(87,839,TEXT("BOOST"),11,Dim); P.Meter(87,863,227,Active->Boost,Accent,5);
-        P.Text(87,893,TEXT("HYPERDRIVE"),11,Dim); P.Meter(87,918,227,Hyperdrive01,Dim,3);
-        P.Text(1580,785,TEXT("PRIMARY / HEAT"),11,Dim); P.Text(1580,811,FString::Printf(TEXT("%02d %%"),FMath::RoundToInt(Active->Heat*100)),30,Active->Heat>.85f?Style.Hostile:Ink,true);
-        P.Meter(1580,862,254,Active->Heat,Active->Heat>.85f?Style.Hostile:Accent,5);
-        P.Text(1580,893,FString::Printf(TEXT("SECONDARY   %02d"),Active->Ammo),18,Ink,true);
+        P.Text(87,839,TEXT("BOOST"),14,Ink); P.Meter(87,867,227,Active->Boost,Accent,7);
+        P.Text(87,901,TEXT("HYPERDRIVE"),14,Ink); P.Meter(87,929,227,Hyperdrive01,Dim,5);
+        P.Text(1580,711,TEXT("WEAPON HEAT"),13,Ink); P.Text(1757,708,FString::Printf(TEXT("%d%%"),FMath::RoundToInt(Active->Heat*100)),18,Active->Heat>.85f?Style.Hostile:Ink,true);
+        P.Meter(1580,738,254,Active->Heat,Active->Heat>.85f?Style.Hostile:Accent,4);
+        P.Text(1580,751,TEXT("SECONDARY AMMO"),12,Dim); P.Text(1788,748,FString::Printf(TEXT("%02d"),Active->Ammo),18,Ink,true);
+
+        // A named, actionable active power; cooldown is readiness, not invented remaining seconds.
+        const FString Key=(bGamepadGlyphs?SignatureGamepadKey:SignatureKeyboardKey).ToString().Left(3);
+        const bool Ready=Active->Power>=.999f;
+        P.Box(1560,779,294,221,Style.Panel); P.Box(1560,779,294,3,Accent);
+        P.Text(1580,792,TEXT("SIGNATURE POWER"),13,Ink,true);
+        P.Text(1580,824,TDHUD::Powers[ActiveIndex],18,Ink,true);
+        P.Box(1797,789,39,33,Accent); P.Text(1805,790,Key,22,FLinearColor(.008f,.02f,.03f),true);
+        P.Arc({1590,886},9,1,Ready?Accent:Dim,1.6f);
+        if(Ready) { P.Line({1585,886},{1589,890},Accent,2); P.Line({1589,890},{1596,881},Accent,2); }
+        else { P.Line({1590,881},{1590,886},Dim,1.5f); P.Line({1590,886},{1594,888},Dim,1.5f); }
+        P.Text(1611,871,Ready?TEXT("READY"):TEXT("COOLDOWN"),23,Ready?Accent:Ink,true);
+        P.Meter(1580,918,254,Active->Power,Accent,9);
+        P.Text(1580,950,Ready?FString::Printf(TEXT("PRESS [%s] TO ACTIVATE"),*Key):FString::Printf(TEXT("RECHARGING / %d%%"),FMath::RoundToInt(Active->Power*100)),14,Ink,true);
         if(Active->Hull<=LowHullThreshold) { P.Text(772,714,TEXT("LOW HULL / SWITCH SHIP"),17,Style.Hostile,true); }
     }
-    const float Pulse=Style.bReducedMotion?0:(FMath::Sin(Elapsed*5)+1)*.5f;
-    for(int32 I=0;I<3;++I) if(Ships.IsValidIndex(I) && Display.IsValidIndex(I)) P.Card(398+I*374,804,I,Ships[I],Display[I],Pulse);
+    for(int32 I=0;I<3;++I) if(Ships.IsValidIndex(I) && Display.IsValidIndex(I))
+    {
+        P.Card(398+I*374,804,I,Ships[I],Display[I]);
+        if(Ships[I].bActive) P.Text(398+I*374,777,TEXT("PLAYER CONTROLLED"),14,Style.ShipColor(I),true);
+    }
     if(HitLeft>0)
     {
         const FLinearColor C=bKillConfirmed?Style.Bastion:Ink;
         for(int32 X:{-1,1}) for(int32 Y:{-1,1}) P.Line(Center+FVector2D(X*14,Y*14),Center+FVector2D(X*21,Y*21),C,2);
-        if(bKillConfirmed) P.Text(882,591,TEXT("TARGET ELIMINATED"),13,C,true);
+        if(bKillConfirmed) P.CenteredText(Center.X,591,TEXT("TARGET ELIMINATED"),15,C,true);
     }
     if(bOutOfBounds || IncomingMissiles>0 || WarningLeft>0)
     {
         P.Box(704,640,512,42,Style.Panel); P.Box(704,640,3,42,Style.Hostile);
         const FString Message=bOutOfBounds?TEXT("BOUNDARY / RETURN TO COMBAT"):IncomingMissiles>0?FString::Printf(TEXT("INCOMING MISSILE x%d / EVADE"),IncomingMissiles):Warning.ToString().Left(46);
-        P.Text(729,651,Message,16,Style.Hostile,true);
+        P.Text(729,649,Message,18,Style.Hostile,true);
     }
     else if(ReadyLeft>0) P.Text(729,651,ReadyPrompt.ToString(),15,Style.ShipColor(ReadyShip),true);
     if(SwitchLeft>0 && Active)
@@ -565,8 +615,8 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
         P.Box(66+Offset,169,4,42,Accent); P.Text(83+Offset,169,FString::Printf(TEXT("CUT TO / %s"),TDHUD::Names[ActiveIndex]),18,Ink,true);
         P.Text(83+Offset,196,TDHUD::Pilots[ActiveIndex],11,Accent);
     }
-    const FString Hint=bPreview?(bGamepadGlyphs?TEXT("PREVIEW / [LB / RB] SWITCH   [X] DAMAGE   [A] POWER   [Y] KILL"):TEXT("PREVIEW / [1 / 2 / 3] SWITCH SHIP")):(bGamepadGlyphs?GamepadHint.ToString():KeyboardHint.ToString());
+    const FString Hint=bPreview?(bGamepadGlyphs?TEXT("PREVIEW / [LB / RB] SWITCH   [B] DAMAGE   [X] SIGNATURE   [Y] KILL"):TEXT("PREVIEW / [1 / 2 / 3] SWITCH SHIP   [Q] SIGNATURE")):(bGamepadGlyphs?GamepadHint.ToString():KeyboardHint.ToString());
     P.Text(66,1031,Hint,12,Dim);
-    if(bPreview) P.Text(995,1031,TEXT("[H] DAMAGE   [K] KILL   [P] POWER   [R] RESPAWN   [F5] RESET   [F6] MOTION"),11,Dim);
+    if(bPreview) P.Text(995,1031,TEXT("[H] DAMAGE   [K] KILL   [R] RESPAWN   [F5] RESET   [F6] MOTION"),11,Dim);
     return Base+4;
 }

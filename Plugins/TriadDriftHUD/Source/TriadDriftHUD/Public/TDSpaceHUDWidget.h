@@ -39,6 +39,10 @@ struct TRIADDRIFTHUD_API FTDHUDStyle
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style") FLinearColor Panel = FLinearColor::FromSRGBColor(FColor(8,19,31,230));
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style") FLinearColor Hostile = FLinearColor::FromSRGBColor(FColor(255,148,124));
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="0.5",ClampMax="2")) float TextScale = 1.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Readability", meta=(ClampMin="12",ClampMax="18")) int32 EssentialLabelSize = 14;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Readability", meta=(ClampMin="16",ClampMax="22")) int32 StatusNumberSize = 18;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Readability", meta=(ClampMin="6",ClampMax="12")) float HealthBarThickness = 10.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Readability", meta=(ClampMin="5",ClampMax="10")) float ShieldBarThickness = 7.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="1",ClampMax="30")) float MeterResponse = 9.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="0.05",ClampMax="2")) float SwitchSeconds = .65f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style") bool bReducedMotion = false;
@@ -74,6 +78,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HUD") bool bGamepadGlyphs = false;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HUD|Inputs") FText KeyboardHint = FText::FromString(TEXT("[1 / 2 / 3]  SWITCH SHIP     [LMB]  FIRE     [Q]  SIGNATURE"));
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HUD|Inputs") FText GamepadHint = FText::FromString(TEXT("[D-PAD L / R]  SWITCH SHIP     [RB]  FIRE     [X]  SIGNATURE"));
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HUD|Inputs") FText SignatureKeyboardKey = FText::FromString(TEXT("Q"));
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HUD|Inputs") FText SignatureGamepadKey = FText::FromString(TEXT("X"));
     /** Set by the weapon owner for physical intercept. 0 hides lead; never fabricate ballistics. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HUD", meta=(ClampMin="0")) float ProjectileSpeedCm = 0;
 

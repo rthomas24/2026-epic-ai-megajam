@@ -28,9 +28,9 @@ UnrealEditor.exe <absolute uproject> /Engine/Maps/Entry?game=/Script/TriadDriftH
   -game -windowed -ResX=1920 -ResY=1080 -NoLiveCoding -nosound
 
 1/2/3 select ship. H previews damage and missile warning; K confirms a kill;
-P starts signature cooldown; R toggles another ship down (auto-respawn after
+Q starts signature cooldown (P remains an alias); R toggles another ship down (auto-respawn after
 8 seconds); F5 resets mock data; F6 toggles reduced motion. Pad: LB/RB switch,
-X damage, A power, Y kill. UI observes device changes without consuming input.
+B damage, X signature (A remains an alias), Y kill. UI observes device changes without consuming input.
 Every preview is explicitly labelled MOCK DATA and only the opt-in preview
 game mode enables it. It never changes real gameplay or its event bus.
 
@@ -39,6 +39,21 @@ Add -TDHUDCapture -RenderOffscreen -unattended to the preview command.
 It captures five states in Saved/HUDReview then quits: normal 1080p, damage/
 warning/kill, 720p respawn/reduced motion, ultrawide, and unavailable telemetry.
 Images in Saved are verification artifacts, not tracked runtime content.
+
+READABILITY M02
+One user-authorized pass: HEALTH with heart icon/white 10px bar; SHIELD with
+shield icon/cyan 7px bar; 14pt labels/18pt percentages (previously 11pt/13pt).
+Card footprint stays 356x196 in the 1920x1080 design space. Active card has
+PLAYER CONTROLLED, a YOU badge and a static accent border; the old idle pulse
+was removed. The compact active signature panel names the power, displays Q/X
+and READY/COOLDOWN with readiness percentage. No cooldown seconds are invented.
+Signature key text and essential font/bar sizes are editor-adjustable.
+Preview inputs now match the shown activation keys; gameplay input is untouched.
+Add -TDHUDReadabilityCapture instead of -TDHUDCapture for seven reproducible
+states in Saved/HUDReadabilityM02: each ship ready, cooldown, 720p low health,
+ultrawide, unavailable. M01 review files remain unchanged; M02 evidence goes
+under review/ReadabilityM02/. Screenshots need Nicholas's manual readability
+review before further polish; numerical size changes alone do not prove UX quality.
 
 NATIVE WBP GENERATION
 After building, run create_widgets.py using UE 5.9's PythonScript commandlet
