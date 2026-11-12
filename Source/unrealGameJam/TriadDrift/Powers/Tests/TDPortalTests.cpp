@@ -135,7 +135,9 @@ bool FTDPortalMissileReturn::RunTest(const FString& Parameters)
 	TestTrue(TEXT("missile entered the portal"), At > 0.f);
 	TestTrue(TEXT("now on the Player team"), Missile && Missile->GetTeam() == ETDTeam::Player);
 	TestTrue(TEXT("re-homing on the interceptor"), Missile && Missile->GetHomingTarget() == Interceptor);
-	TestTrue(TEXT("MissileReturn highlight"), Listener->Highlights.Contains(ETDHighlightKind::MissileReturn));
+	TestTrue(TEXT("MissileReturn highlight (accepted by the director)"), Listener->Highlights.Contains(ETDHighlightKind::MissileReturn));
+	UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(W.GetWorld());
+	TestTrue(TEXT("director money shot: slow-mo running"), Feel && Feel->IsSlowMoActive());
 
 	// Assert at impact: the interceptor's shield regenerates 3 s later.
 	const float HitAt = AdvanceUntil(W, [&] { return Shield(Interceptor) < 100.f; }, 6.f);

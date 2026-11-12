@@ -73,13 +73,10 @@ bool UTDPortalTransit::TransitActor(AActor* Actor, const FTransform& Entry, cons
 				}
 				// Subject: the enemy it returns to (stable; the projectile is pooled). Director picks the importance.
 				AActor* Subject = P->GetOriginalShooter() ? P->GetOriginalShooter() : P;
+				// Only through the director: it owns slow-mo, rate limits, camera hints and CUT / travel gating.
 				if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(Actor))
 				{
 					Director->ReportHighlight(ETDHighlightKind::MissileReturn, Subject, -1.f, PortalInstigator);
-				}
-				else if (Bus)
-				{
-					Bus->BroadcastHighlightMoment(ETDHighlightKind::MissileReturn, Subject, 0.55f);
 				}
 			}
 		}

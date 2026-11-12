@@ -213,13 +213,10 @@ ETDTeam UTDPowerComponent::GetOwnerTeam() const
 
 void UTDPowerComponent::Highlight(ETDHighlightKind Kind, AActor* Subject, float Importance01) const
 {
+	// Only through the director (slow-mo, rate limits, camera hints, CUT / travel gating).
 	if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this))
 	{
 		Director->ReportHighlight(Kind, Subject, Importance01, GetOwner());
-	}
-	else if (UTDEventBus* Bus = UTDEventBus::Get(this))
-	{
-		Bus->BroadcastHighlightMoment(Kind, Subject, Importance01);
 	}
 }
 

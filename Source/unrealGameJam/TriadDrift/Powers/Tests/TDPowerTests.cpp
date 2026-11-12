@@ -57,7 +57,13 @@ bool FTDRamDash::RunTest(const FString& Parameters)
 	W.Advance(0.2f);
 	TestTrue(TEXT("dashing after 0.3 s"), Ram->IsDashing());
 
-	const float StopAt = AdvanceUntil(W, [&] { return !Ram->IsPowerActive(); }, 1.5f);
+	const float KillAt = AdvanceUntil(W, [&] { return Hull(FighterA) <= 0.f; }, 1.f);
+	TestTrue(TEXT("first fighter smashed"), KillAt > 0.f);
+	W.Tick();
+	UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(W.GetWorld());
+	TestTrue(TEXT("RamKill money shot: director slow-mo running"), Feel && Feel->IsSlowMoActive());
+
+	const float StopAt = AdvanceUntil(W, [&] { return !Ram->IsPowerActive(); }, 4.f);
 	TestTrue(TEXT("dash ended"), StopAt > 0.f);
 	TestEqual(TEXT("fighter A smashed (300 > 200)"), Hull(FighterA), 0.f);
 	TestEqual(TEXT("fighter B smashed"), Hull(FighterB), 0.f);
