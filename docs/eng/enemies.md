@@ -161,6 +161,7 @@ It flies only through `SetFlightInput`.
 - **Hyperdrive:** the "Finale" lock holds only once a squad ship has been inside the Dominion's gravity well
   (`HyperdriveLockRadius` = the layout's `DominionWellRadius`), so the first approach is a hyperdrive jump that
   drops out at the well. It is released at victory.
-- **Reveal:** needs the reveal flag **and** the `DominionAssault` phase (a voided wave-5 clear never starts it).
+- **Reveal:** the reveal flag; a voided wave-5 clear never sets it (T5's flow ignores `SetDominionState` while a
+  retake is pending).
 - **Victory phase:** a won save or `TD.Stage Victory` leaves the Dominion `Finished`: hidden, no weapons, no
   launches, no lock.

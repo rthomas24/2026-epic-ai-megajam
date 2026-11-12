@@ -6,6 +6,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Waves/TDWarpInMarker.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
@@ -111,6 +113,40 @@ bool FTDRetakeLocksFollowState::RunTest(const FString& Parameters)
 		W.Advance(0.3f);
 		TestTrue(TEXT("and re-asserted within 0.3 s whatever the order"), LockReason(W).Contains(TEXT("DOMINION")));
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBreatherRepairOnce, "TriadDrift.Waves.BreatherRepairIsEightPercentOnce", TD_TEST_FLAGS)
+bool FTDBreatherRepairOnce::RunTest(const FString& Parameters)
+{
+	using namespace TDWaveRetakeTest;
+	// Re-check finding: director and squad manager both repaired 8%/s (16% in the game). One owner now.
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	ATDWaveDirector* D = Director(W);
+	W.Tick();
+	ATDShip* Ship = Squad->GetActiveShip();
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	UTDHealthComponent* H = Ship->GetHealth();
+	H->SetInvulnerable(false);
+
+	D->StartWave(0);
+	W.Advance(D->WarpInSeconds + 0.5f);
+	H->ApplyDamage([&] { FTDDamageInfo I; I.Amount = H->GetShield() + H->MaxHull * 0.6f; I.Kind = ETDDamageKind::Explosive; return I; }());
+	const float InWave = H->GetHull();
+	W.Advance(2.f);
+	TestEqual(TEXT("no repair during a wave"), H->GetHull(), InWave, 1.f);
+	H->SetInvulnerable(true);	// nothing else changes the hull from here
+	KillAll(D);
+	W.Tick();
+	TestTrue(TEXT("breather"), D->GetState() == ETDWaveState::Breather);
+	const float Start = H->GetHull();
+	W.Advance(1.f);
+	const float PerSecond = (H->GetHull() - Start) / H->MaxHull;
+	TestEqual(TEXT("8% of max hull per second, once"), PerSecond, 0.08f, 0.012f);
 	return true;
 }
 

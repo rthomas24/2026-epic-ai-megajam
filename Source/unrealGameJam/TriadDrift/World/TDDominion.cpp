@@ -385,8 +385,8 @@ void ATDDominion::SyncWithProgress()
 		FinishAfterVictory();	// a won run: the Dominion is gone, nothing fights
 		return;
 	}
-	// The assault phase must be on, not only the reveal flag (a voided wave-5 clear never starts the finale).
-	if (!P.bDominionRevealed || P.Phase < ETDGamePhase::DominionAssault)
+	// A voided wave-5 clear never sets the flag: the flow ignores SetDominionState while a retake is pending.
+	if (!P.bDominionRevealed)
 	{
 		return;
 	}

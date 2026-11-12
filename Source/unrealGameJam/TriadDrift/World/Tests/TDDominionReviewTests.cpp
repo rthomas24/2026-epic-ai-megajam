@@ -138,16 +138,6 @@ bool FTDFinaleVictoryPhase::RunTest(const FString& Parameters)
 		TestEqual(TEXT("a won save: finished"), (int32)Dom->GetState(), (int32)ETDDominionState::Finished);
 		TestTrue(TEXT("a won save: no lock"), LockReason(W).IsEmpty());
 	}
-	// Minor 4: the reveal flag alone (a voided wave-5 clear) doesn't start the finale.
-	{
-		FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
-		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
-		GI->Progress.bDominionRevealed = true;
-		GI->Progress.Phase = ETDGamePhase::Wave5;
-		ATDDominion* Dom = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
-		W.Advance(Dom->ProgressPollSeconds + 0.5f);
-		TestEqual(TEXT("wave 5 replayed: still hidden"), (int32)Dom->GetState(), (int32)ETDDominionState::Hidden);
-	}
 	return true;
 }
 
