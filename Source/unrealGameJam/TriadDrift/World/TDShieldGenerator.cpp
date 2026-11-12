@@ -4,6 +4,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -12,6 +13,7 @@
 ATDShieldGenerator::ATDShieldGenerator()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	Tags.AddUnique(TDDirectorTags::Generator);	// GeneratorKill money shot (C-03 #2)
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
