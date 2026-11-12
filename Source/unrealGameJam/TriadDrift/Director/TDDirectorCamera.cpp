@@ -255,6 +255,15 @@ FVector UTDDirectorCameraRig::TrackedLocationFor(const FVector& Focus) const
 	Params.AddIgnoredActor(Subject.Get());
 	Params.AddIgnoredActor(Secondary.Get());
 	Params.AddIgnoredActor(PawnAtStart.Get());
+	// Squad wingmen are moving and steer clear of the shot camera themselves: pulling in for one put
+	// the camera right in front of it, filling the frame (live capture, ram kill).
+	if (const ATDSquadManager* Squad = ATDSquadManager::Get(World))
+	{
+		for (const ATDShip* Mate : Squad->GetLivingShips())
+		{
+			Params.AddIgnoredActor(Mate);
+		}
+	}
 	FCollisionObjectQueryParams Objects;
 	Objects.AddObjectTypesToQuery(ECC_WorldStatic);
 	Objects.AddObjectTypesToQuery(ECC_WorldDynamic);

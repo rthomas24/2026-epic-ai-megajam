@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Tests closing the review's gaps. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Combat
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -522,7 +523,10 @@ bool FTDGapMeshOffset::RunTest(const FString& Parameters)
 	P->Kill(false);
 	ATDProjectile* Reused = ATDProjectile::Spawn(W.GetWorld(), UTDWeaponLibrary::Get(TDWeaponIds::NeedleCannons).Projectile, At, Lancer, ETDTeam::Player);
 	const UStaticMeshComponent* Mesh2 = Reused ? Reused->FindComponentByClass<UStaticMeshComponent>() : nullptr;
-	TestTrue(TEXT("pooled reuse resets the offset"), Reused == P && Mesh2 && Mesh2->GetRelativeLocation().IsNearlyZero(0.01f));
+	// Reuse without art: the art offset is gone; the placeholder streak sits at its own trailing offset.
+	const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::NeedleCannons).Projectile);
+	const FVector StreakOffset(-0.5f * Look.Length + 0.5f * Look.Thickness, 0.f, 0.f);
+	TestTrue(TEXT("pooled reuse drops the art offset"), Reused == P && Mesh2 && Mesh2->GetRelativeLocation().Equals(StreakOffset, 0.01f));
 	return true;
 }
 

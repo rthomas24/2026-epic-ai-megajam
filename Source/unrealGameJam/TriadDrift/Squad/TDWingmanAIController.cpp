@@ -195,6 +195,8 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 	{
 		return; // the player flies this one (we should already be unpossessed)
 	}
+	// Gates are the leader's call: never transit one ahead of the player (T4's gate test).
+	TDSquad::HoldOutOfGates(Ship, 0.4f);
 	const bool bHaveLeader = Leader && S->IsShipAlive(S->GetActiveShipId());
 	const double T = Now();
 
@@ -652,6 +654,14 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		{
 			Score += 1.5f; // prefer a different target from the other wingman
 		}
+		// Fight where the player can see it: targets behind or beside the leader cost extra bands, so
+		// with a choice the wing's dogfights happen in front of the chase camera (threats to the player
+		// above still always win).
+		if (Leader)
+		{
+			const float Facing = FVector::DotProduct(Leader->GetActorForwardVector(), (HLoc - Anchor).GetSafeNormal());
+			Score += (1.f - Facing) * 0.5f * OnScreenTargetBias;
+		}
 		if (H == CurrentTarget.Get())
 		{
 			Score -= 0.75f; // stickiness: don't flicker between equal targets
@@ -774,6 +784,17 @@ FVector ATDWingmanAIController::ComputeSeparation(const ATDShip* Ship) const
 		if (D > KINDA_SMALL_NUMBER && D < TeammateSeparation)
 		{
 			Separation += (Delta / D) * (1.f - D / TeammateSeparation) * TeammateSeparationStrength;
+		}
+	}
+	// A director money shot is running: stay out of its lens (C-03 #2).
+	FVector ShotCamera;
+	if (TDSquad::GetDirectorShotCamera(Ship, ShotCamera))
+	{
+		const FVector Delta = Loc - ShotCamera;
+		const float D = Delta.Size();
+		if (D > KINDA_SMALL_NUMBER && D < ShotCameraClearance)
+		{
+			Separation += (Delta / D) * (1.f - D / ShotCameraClearance) * TeammateSeparationStrength * 2.f;
 		}
 	}
 	return Separation;

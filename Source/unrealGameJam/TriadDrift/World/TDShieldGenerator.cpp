@@ -53,9 +53,10 @@ void ATDShieldGenerator::Init(float Hull, int32 InSectionIndex)
 			Core->SetVisibility(false);
 		}
 	}
-	else if (UMaterialInstanceDynamic* MID = Core->CreateDynamicMaterialInstance(0))
+	else
 	{
-		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.3f, 0.8f, 1.f));	// glowing weak point
+		UTDStatics::TintPlaceholder(Core, FLinearColor(0.3f, 0.8f, 1.f), 6.f);	// glowing weak point
+		UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.08f, 0.06f, 0.06f), 0.f);
 	}
 }
 

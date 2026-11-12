@@ -728,4 +728,35 @@ bool FTDReviewDriftPumping::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewMouseSettles, "TriadDrift.Flight.Review.MouseTurnSettlesWingsLevel", TD_TEST_FLAGS)
+bool FTDReviewMouseSettles::RunTest(const FString& Parameters)
+{
+	// Lead playtest: after a mouse turn the ship stayed banked ~30 deg for 10+ s with no input.
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+
+	// A hard mouse turn: 0.5 s of mouse movement every frame (the controller's Mouse2D handler; the headless
+	// world has no viewport to pair MouseX/MouseY into Mouse2D).
+	FTDSpaceControllerTestAccess Access{ PC };
+	for (int32 i = 0; i < 30; ++i)
+	{
+		Access.Mouse(FVector2D(20.f, 0.f));
+		W.Tick();
+	}
+	const float TurningBank = FMath::Abs(Ship->GetShipMovement()->GetVisualBank());
+	TestTrue(*FString::Printf(TEXT("mouse turn banks the hull (%.1f deg)"), TurningBank), TurningBank > 10.f);
+	TestTrue(TEXT("mouse turn steers"), FMath::Abs(PC->GetCurrentFlightInput().Aim.X) > 0.3f);
+
+	// Mouse still: the stick recentres and the hull is wings-level within ~1.5 s.
+	W.Advance(1.5f);
+	TestTrue(*FString::Printf(TEXT("aim back to zero (%.2f)"), PC->GetCurrentFlightInput().Aim.Size()), PC->GetCurrentFlightInput().Aim.IsNearlyZero(0.01f));
+	TestTrue(*FString::Printf(TEXT("visual bank settled (%.1f deg)"), Ship->GetShipMovement()->GetVisualBank()), FMath::Abs(Ship->GetShipMovement()->GetVisualBank()) < 3.f);
+	TestTrue(*FString::Printf(TEXT("flight frame wings-level (%.1f deg)"), Ship->GetActorRotation().Roll), FMath::Abs(Ship->GetActorRotation().Roll) < 3.f);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

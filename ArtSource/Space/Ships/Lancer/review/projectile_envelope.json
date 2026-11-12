@@ -1,0 +1,88 @@
+{
+  "scope": "Conservative axial envelope check, not full collision sweep",
+  "ray_clearance_does_not_prove_volume_clearance": true,
+  "ports": [
+    {
+      "socket": "Muzzle_Secondary_L_01",
+      "parent": "Secondary_L",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    },
+    {
+      "socket": "Muzzle_Secondary_L_02",
+      "parent": "Secondary_L",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    },
+    {
+      "socket": "Muzzle_Secondary_L_03",
+      "parent": "Secondary_L",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    },
+    {
+      "socket": "Muzzle_Secondary_L_04",
+      "parent": "Secondary_L",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    },
+    {
+      "socket": "Muzzle_Secondary_R_01",
+      "parent": "Secondary_R",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    },
+    {
+      "socket": "Muzzle_Secondary_R_02",
+      "parent": "Secondary_R",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    },
+    {
+      "socket": "Muzzle_Secondary_R_03",
+      "parent": "Secondary_R",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    },
+    {
+      "socket": "Muzzle_Secondary_R_04",
+      "parent": "Secondary_R",
+      "pod_lip_x_cm": 108,
+      "socket_x_cm": 112,
+      "rocket_rear_extent_cm": -54,
+      "tail_world_relative_to_pod_x_cm": 58,
+      "tail_overlap_behind_lip_cm": 50,
+      "visual_forward_offset_to_keep_tail_4cm_clear_cm": 54
+    }
+  ],
+  "requires_gameplay_owner_decision": true,
+  "source_or_manifest_changed": false
+}

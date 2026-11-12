@@ -8,6 +8,8 @@
 #include "TDProjectileSubsystem.generated.h"
 
 class ATDProjectile;
+class ATDCombatFlash;
+class USceneComponent;
 
 /**
  * Owns the projectile pool and the list of live projectiles, so flak, point defense, the shield dome,
@@ -42,6 +44,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Combat")
 	int32 KillAll(bool bPlayFX = false);
 
+	/**
+	 * Placeholder muzzle / impact flash (a glowing sphere that swells and fades over Seconds). Pooled: at most
+	 * MaxFlashes at once, the oldest is reused beyond that. AttachTo keeps a muzzle flash on a moving ship.
+	 */
+	ATDCombatFlash* PlayPlaceholderFlash(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds,
+		USceneComponent* AttachTo = nullptr);
+
+	/** Flashes playing right now (tests). */
+	int32 GetPlayingFlashCount() const;
+
+	int32 MaxFlashes = 48;
+
 	int32 GetLiveCount() const { return Live.Num(); }
 	int32 GetPooledCount() const { return Pool.Num(); }
 
@@ -66,4 +80,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDProjectile>> Live;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ATDCombatFlash>> Flashes;
+
+	int32 NextFlash = 0;
 };

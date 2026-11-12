@@ -13,6 +13,7 @@
   .\Tools\td-play-mcp.ps1                                   # game on L_Galaxy, windowed
   .\Tools\td-play-mcp.ps1 -Map /Game/TriadDrift/Maps/L_Planet_Verdance
   .\Tools\td-play-mcp.ps1 -Editor                           # full editor (all editor toolsets), no window
+  .\Tools\td-play-mcp.ps1 -Editor -Audio                    # editor with the audio engine on (offline, silent): audio work
   .\Tools\td-play-mcp.ps1 -Stop
 #>
 param(
@@ -23,6 +24,7 @@ param(
     [int]$ResY = 720,
     [int]$MaxSeconds = 900,
     [switch]$Editor,
+    [switch]$Audio,
     [switch]$Stop
 )
 $ErrorActionPreference = "Stop"
@@ -58,7 +60,10 @@ $logFile = Join-Path $root "Saved\Logs\td-play-mcp_$Port.log"
 New-Item -ItemType Directory -Force -Path (Split-Path $logFile) | Out-Null
 if (Test-Path $logFile) { Remove-Item $logFile -Force }
 
-$common = @("-nosplash", "-nosound", "-unattended", "-NoLiveCoding",
+# -nosound skips MetaSound pre-save and cannot preview or render audio. -Audio swaps it for
+# -NonRealtimeAudio: the audio engine runs and can be rendered offline, nothing reaches the speakers.
+$soundFlag = if ($Audio) { "-NonRealtimeAudio" } else { "-nosound" }
+$common = @("-nosplash", $soundFlag, "-unattended", "-NoLiveCoding",
             "-ModelContextProtocolStartServer", "-ModelContextProtocolPort=$Port", "-abslog=`"$logFile`"")
 if ($Editor) {
     # Full editor, hidden: every enabled editor toolset (Blueprint, Niagara, automation tests, cheats in PIE...).
