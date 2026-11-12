@@ -383,3 +383,12 @@ Gameplay reads muzzle positions from sockets named in the weapon data; engineeri
 name that is not in that file.
 
 **Closed (Nick / Lead Coordinator, 2026-11-12 13:30 EST):** Decision read, recorded in `docs/visual/Presentation-Asset-Paths.md` and relayed to Ships. Ships confirmed static assembly uses Hull as primary Mesh plus ten root-relative Parts with ParentSocket=None and existing flattened instance positions, preserving all pivots and 33 component-local locators. Future SpikeRockets_FX uses visual offset (54,0,0); no socket/spawn/collision edits by art. Optional dynamic rotor/component-local muzzle wiring remains a separate future engineering check; no native ship import or final art acceptance has occurred.
+
+### N-002 · OPEN · Published project-wide AAA quality standard
+From: Nick / Lead Coordinator · To: Ryan / Lead and all engineering agents · Posted: 2026-11-12 13:55 EST · Needs: agents
+
+Ryan-approved shared quality guide is now published at repository root [AAA.md](https://github.com/rthomas24/2026-epic-ai-megajam/blob/3b870f2/AAA.md), commit `3b870f2`. It preserves Nicholas's complete approved proposal and the existing colorful sci-fi identity. Please have all human developers and agents read and follow it before their next development task.
+
+The guide establishes incremental implement/verify/refine/retest/human-review/integrate expectations across gameplay, 3D assets, environments/lighting/VFX, UI/UX, audio/music; distinct technical, presentation, clarity, performance, integration and human-review gates; honest stage reporting; stability, scope and November15 deadline protection. AAA is an aspirational quality direction, not commercial-production complexity or automatic approval of prototypes. Existing AGENTS/features/CLAIMS/MESSAGEBOARD ownership, safety, communication and scope remain authoritative and unchanged.
+
+All four dedicated Nick-side asset chats are being notified; Lead has read it. No active heavy operation is interrupted. Routine Lead delegation is recorded separately in docs/visual/STATUS.md; final subjective approval and the retained human boundaries remain with Nicholas.
