@@ -96,6 +96,17 @@ void ATDShip::BeginPlay()
 	SpringArm->CameraRotationLagSpeed = CameraTuning.RotationLag;
 	SpringArm->CameraLagMaxDistance = CameraTuning.LagMaxDistance;
 	CurrentFOV = CameraTuning.MinFOV;
+	for (UCameraComponent* Cam : { ChaseCamera.Get(), CockpitCamera.Get() })
+	{
+		if (Cam)
+		{
+			Cam->PostProcessSettings.bOverride_MotionBlurAmount = true;
+			Cam->PostProcessSettings.MotionBlurAmount = CameraTuning.MotionBlurAmount;
+			Cam->PostProcessSettings.bOverride_MotionBlurMax = true;
+			Cam->PostProcessSettings.MotionBlurMax = CameraTuning.MotionBlurMax;
+			Cam->PostProcessBlendWeight = 1.f;
+		}
+	}
 	ChaseCamera->SetFieldOfView(CurrentFOV);
 
 	SetPlayerControlled(bPlayerControlled);

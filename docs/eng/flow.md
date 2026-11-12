@@ -83,6 +83,44 @@ Tests (`.\Tools\td-test.ps1 -Filter TriadDrift.Flow`):
 | Travel | `TravelMissingMapFailsSafely`, `TravelSucceedsAndRecovers` (transition hold, arrival, superseded, watchdog) |
 | Cheats and sandbox | `Cheats` (every `TD.*` command), `SandboxBootsOnEmptyWorld`, `SandboxPlayerHandOver` |
 
+## Journey stages (cheats, playtests, F10)
+`TD.Stage <stage>` (also the F10 menu's "Journey stage" row) puts **progress and the world** in a stage:
+
+| Stage | Where | Progress |
+|---|---|---|
+| `Waves1to2` | Galaxy, wave 1 running | fresh |
+| `VerdanceArrival` | Verdance, squad descending | waves 1-2 cleared |
+| `VerdanceOnFoot` | Verdance, landed, pilot on foot (`Verdance_Pad`) | waves 1-2 cleared |
+| `Waves3to4` | Galaxy at `Verdance_Orbit`, wave 3 running | Verdance done: Gravity Well (Bastion), Cloak (Rift) |
+| `CinderArrival` / `CinderOnFoot` | Cinder, descending / at `Cinder_Pad` | waves 1-4 cleared, Verdance done |
+| `Wave5` | Galaxy at `Cinder_Orbit`, wave 5 running | Cinder done: EMP Pulse (Lancer) |
+| `DominionAssault` | Galaxy at `Dominion_Approach`, Dominion warped in, shields up, no wave | Dominion revealed |
+| `ReactorExposed` | as above, all generators down | defenses down |
+| `Victory` | phase Victory (clock stopped) | everything |
+
+- **Galaxy stages in the galaxy** are applied in place:
+  - the wave director runs `StopAndClear` and then `StartFromProgress`
+  - the Dominion runs `SyncWithProgress`, and `DebugDropShields` for the reactor stage
+  - the squad is respawned at the stage's return point
+- **Any other stage** travels there with that return point.
+- Takes, stats and run time are kept. `TD.Unlock All` puts every ability on its owner ship.
+
+Tests:
+- `Flow.Journey.GalaxyStagesApplyInPlace` (real space mode, galaxy layout, director and Dominion)
+- `Flow.Journey.PlanetStagesTravelWithTheRightReturnPoint`
+- `Flow.Journey.StageAndUnlockAllCheats`
+
+## Placeholder sky (N-004, agreed with Nick's side)
+All placeholder lighting and exposure is one actor, `ATDPlaceholderSky` (tag `TD.Placeholder.Sky`). It holds the sun (forward-shading priority 1), the fill (0), the sky light, a planet atmosphere, and an unbound post-process at priority -100. Both game modes spawn it only when the map has no sky of its own:
+
+| The map has | Placeholder effect |
+|---|---|
+| An actor tagged `TD.Presentation.Sky` | Off entirely (and no star backdrop) |
+| Any actor with a `UDirectionalLightComponent` | Our lights go |
+| Any unbound `UPostProcessComponent` or `APostProcessVolume` | Our exposure and bloom go |
+
+It re-scans every 0.5 s, so a sky that streams in late takes over. Test: `Flow.PlaceholderSkyYieldsToTheMapsSky`.
+
 ## Known gaps
 - **Not tested by hand:** the windowed sandbox and the F10 menu haven't been played by hand (worktrees are headless).
 - **Squad hand-over:** the check runs fully only once T3's squad manager is on main. Until then it logs and skips.
