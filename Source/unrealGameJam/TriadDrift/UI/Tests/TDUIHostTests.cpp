@@ -10,6 +10,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UObject/UnrealType.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
+#include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
@@ -264,6 +265,7 @@ bool FTDUIHostShowRules::RunTest(const FString& Parameters)
 	TestNotNull(TEXT("switch on: widget created"), First);
 	TestTrue(TEXT("data source is the squad manager"), F.Host->GetDataSource() == F.Squad);
 	TestTrue(TEXT("owned by the local player"), First && First->GetOwningPlayer() == F.PC);
+	TestTrue(TEXT("dev HUD steps aside while it is up"), ATDDebugHUD::IsRealHUDActive(F.W.GetWorld()));
 
 	// Kept across ship switches: same widget, same source.
 	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion, ETDShipId::Rift })
@@ -283,6 +285,7 @@ bool FTDUIHostShowRules::RunTest(const FString& Parameters)
 	F.PC->Possess(OnFoot);
 	F.Host->Evaluate();
 	TestFalse(TEXT("on foot: removed"), F.Host->IsSpaceHUDShown());
+	TestFalse(TEXT("on foot: dev HUD back"), ATDDebugHUD::IsRealHUDActive(F.W.GetWorld()));
 
 	// Back in a ship: re-created.
 	F.PC->Possess(F.Squad->GetShip(ETDShipId::Rift));
@@ -292,6 +295,7 @@ bool FTDUIHostShowRules::RunTest(const FString& Parameters)
 	Switch.Set(0);
 	F.Host->Evaluate();
 	TestFalse(TEXT("switch turned off at runtime: removed"), F.Host->IsSpaceHUDShown());
+	TestFalse(TEXT("switch off: dev HUD back"), ATDDebugHUD::IsRealHUDActive(F.W.GetWorld()));
 	return true;
 }
 

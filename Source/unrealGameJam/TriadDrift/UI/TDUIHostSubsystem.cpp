@@ -18,11 +18,6 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDUIHost, Log, All);
 
-// Set to 1 once Core's ATDDebugHUD::SetRealHUDActive hook is on main (requested from the Lead).
-#ifndef TD_UIHOST_HAS_DEVHUD_HOOK
-#define TD_UIHOST_HAS_DEVHUD_HOOK 0
-#endif
-
 namespace TDUIHost
 {
 	const TCHAR* const NativeWidgetClassPath = TEXT("/Script/TriadDriftHUD.TDSpaceHUDWidget");
@@ -206,9 +201,8 @@ void UTDUIHostSubsystem::SetDevHUDSuppressed(bool bSuppressed)
 		return;
 	}
 	bDevHUDSuppressed = bSuppressed;
-#if TD_UIHOST_HAS_DEVHUD_HOOK
+	// Cleared on every removal (Hide, which Deinitialize calls) so a stale world key never hides the dev HUD.
 	ATDDebugHUD::SetRealHUDActive(GetWorld(), bSuppressed);
-#endif
 }
 
 // ------------------------------------------------------------------------------------------ reflection
