@@ -1,12 +1,14 @@
 # Audio Prototype V1
 
-Source for an isolated Unreal 5.9 listening demonstration using Nick's existing owned/free sources. Editor and Game C++ targets compiled successfully. Native audio import and gameplay playback are not yet verified: the first editor session stopped on two stock renderer-setting errors before authoring. The reviewed Cascade-plugin correction is staged and awaits Lead's next validation grant. No shared gameplay code, configuration, maps, Blueprints or presentation data assets are changed.
+Isolated Unreal 5.9 audio prototype using Nick's existing owned/free sources. The corrected Editor target compiled successfully; 53 native assets passed validation, and imported waves plus offline MetaSound previews are verified. Runtime controls, game-mixer behavior and human listening remain pending. The first editor failure and its corrected retest are preserved separately. No shared gameplay code, configuration, maps, Blueprints or presentation data assets are changed.
 
-The staged native host and licensed media are local and ignored. This project is not yet playback-ready:
+The native host and licensed media are local and ignored. Native assets can be previewed in the editor; runtime audition verification is still pending:
 
 `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/audio-prototype-v1/Saved/AudioMusic/PrototypeV1/Host/TDAudioV1.uproject`
 
-Planned map: `/Game/TriadDrift/Audio/PrototypeV1/L_AudioPrototypeV1` (not created yet).
+Created map: `/Game/TriadDrift/Audio/PrototypeV1/L_AudioPrototypeV1`.
+
+Physical map: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/audio-prototype-v1/Saved/AudioMusic/PrototypeV1/Host/Content/TriadDrift/Audio/PrototypeV1/L_AudioPrototypeV1.umap`.
 
 ## Intended controls in Play / the standalone game — pending runtime verification
 
@@ -29,7 +31,7 @@ Start at a comfortable system volume. Listen to each event, then hold rapid fire
 
 ## Event mapping for future coordinated integration
 
-The build spec places V1 sources under `/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_<Event>` in the private host. Each repeating one-shot specifies three prepared variations, no-repeat selection, ±0.7 semitone / ±1.5 dB runtime spread. These variations derive from the same source recording/design; they are not three newly recorded takes. Switches and UI signatures use one stable take. The WAV preparation is verified; native graphs are not yet created.
+V1 sources are saved under `/Game/TriadDrift/Audio/PrototypeV1/Sources/MSS_V1_<Event>` in the private host. Each repeating one-shot specifies three prepared variations, no-repeat selection, ±0.7 semitone / ±1.5 dB runtime spread. These variations derive from the same source recording/design; they are not three newly recorded takes. Switches and UI signatures use one stable take. The native primary-fire preview contains five distinct 0.30–0.33-second bursts with 1.54 dB peak variation; other signatures still need runtime listening.
 
 | V1 event | Proposed gameplay destination — not connected in V1 |
 |---|---|
@@ -45,15 +47,17 @@ The build spec places V1 sources under `/Game/TriadDrift/Audio/PrototypeV1/Sourc
 
 Lead's R014 handoff identifies the published `TDAudioStateSubsystem.GetState` snapshot (main `f2db3ce`) for future music/mix binding, including `MusicIntensity01`, scene/phase, speed/boost, health/shield, wave/combat and slow-motion state. V1 does not duplicate that API or bind to it. A read-only inspection of published `TDShip.cpp` confirms that `EngineLoop` is read and `ApplyEngineAudioParams` supplies `Speed01`, `Boost01`, and `Drift01` to both engine components each frame; MetaSounds avoid a second external pitch multiplier. This supersedes the older skill's unused/in-progress notes. No shared data asset has been assigned.
 
-## Intended native behavior — authored assets and playback pending
+## Native settings verified; runtime behavior pending
 
-WAV files are prepared and checked at 48 kHz / 16-bit PCM, following the published skill's native import target. The native spec defines MetaSound Sources with Sound Class, attenuation and concurrency, Master/SFX/UI/Cine/Music classes and a settings Sound Mix. Compiled C++ defines independent volume controls, a −3 dB master submix limiter with 2 ms look-ahead, a `Speed01` engine control and a two-second equal-power music crossfade, with component/override cleanup on teardown. Their actual playback, levels and teardown remain acceptance gates. Prepared loop excerpts crossfade the internal edit seam and retain a continuous original sample boundary; their file-boundary measurements pass.
+WAV files are prepared and checked at 48 kHz / 16-bit PCM. All 26 imported waves remain non-silent at 48 kHz. The 53 saved assets include 14 MetaSound Sources, five Sound Classes, two attenuation presets, four concurrency presets, one settings Sound Mix and the demo map. Native inspection confirms the source settings, four master child classes, and PlayWhenSilent on all three looping sources. Compiled C++ defines independent volume controls, a −3 dB master submix limiter with 2 ms look-ahead, a `Speed01` engine control and a two-second equal-power music crossfade, with cleanup on teardown. Their game playback, levels and teardown remain acceptance gates. The offline engine previews show a 5.008 dB sustained RMS increase at full throttle. Prepared loop-boundary measurements pass.
 
 ## Reproduction and evidence
 
 Run `prepare.py` with the existing Blender Python executable. It reads the frozen audit helpers and only the approved VaultCache clips, snapshots Ryan's published scripts into ignored storage, runs prep/layer/report checks, and generates `build.spec.json`, `check.spec.json`, `sources.json`, category QA JSON and a preparation log. `make_host.py` stages the native source template under the ignored host. No script downloads assets.
 
-Only run native builds/editor/game after Lead grants the sole heavy slot, port **8025**. Authoring uses `-NonRealtimeAudio`, not `-nosound`, and the skill's `ue_run_python.py` / `ue_audio_build.py` / `ue_audio_check.py`. The host is separate from Triad Drift's project and uses the same installed 5.9 build. Native test results are recorded separately in `VERIFICATION.md`; source QA and C++ compilation are not proof of successful Unreal playback. The reviewed minimal-plugin fix enables stock Cascade, which owns the missing renderer CVars; it does not restore every default plugin. Its editor target receipt still needs a recheck before another authoring run.
+Only run native builds/editor/game after Lead grants the sole heavy slot, port **8025**. Authoring uses `-NonRealtimeAudio`, not `-nosound`, and the skill's `ue_run_python.py` / `ue_audio_build.py` / `ue_audio_check.py`. The builder's private copy only adds immediate exception propagation to honor the first-error stop rule. The reviewed stock Cascade correction passed its Editor rebuild and authoring retest. Full results are in `VERIFICATION.md` and `native_author_02.json`.
+
+Offline previews are at `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/audio-prototype-v1/Saved/AudioMusic/PrototypeV1/Host/Saved/BouncedWavFiles/ue-game-audio/`: `V1_Primary_Five.wav`, `V1_Engine_Speed0.wav`, `V1_Engine_Speed1.wav`. They are non-silent and unclipped. This editor's offline clock renders about four seconds of audio per wall-clock second; recorded durations are not gameplay timing evidence. Preview levels also differ from the game mix.
 
 Licensing and Lead credits handoff: [CREDITS_PROTOTYPE.md](CREDITS_PROTOTYPE.md). Exact source names and hashes: `sources.json`.
 

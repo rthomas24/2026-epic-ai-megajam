@@ -1,0 +1,197 @@
+{
+  "stage": "Native authoring and offline preview verified; gameplay playback pending",
+  "engine": {
+    "exit_code": 0,
+    "reason": "ok",
+    "pid": 888,
+    "build": {
+      "branch": "++UE5+Release-5.9",
+      "changelist": 60351404,
+      "configuration": "Development"
+    },
+    "started_utc": "2026-11-12T21:29:53.462Z",
+    "ended_utc": "2026-11-12T21:35:01.218Z",
+    "duration_s": 307.8,
+    "log": {
+      "errors": 0,
+      "warnings": 6,
+      "errors_by_category": {},
+      "warnings_by_category": {
+        "LogUObjectGlobals": 2,
+        "LogAnimationCompression": 2,
+        "LogModelContextProtocol": 1,
+        "LogPython": 1
+      },
+      "first_errors": []
+    },
+    "suppressed_dialogs": []
+  },
+  "resource": {
+    "exit_code": 0,
+    "monitor_reason": "normal",
+    "elapsed_seconds": 310.04,
+    "minimum_free_gib": 2.0114,
+    "peak_working_gib": 2.0873
+  },
+  "validation": {
+    "numChecked": 53,
+    "numValid": 53,
+    "numInvalid": 0,
+    "numWarnings": 0,
+    "numSkipped": 0,
+    "bAssetLimitReached": false,
+    "errors": [],
+    "warnings": []
+  },
+  "asset_counts": {
+    "waves": 26,
+    "metasounds": 14,
+    "mix_assets": 12,
+    "maps": 1
+  },
+  "bindings": {
+    "source_count": 14,
+    "master_child_count": 4,
+    "map_exists": true,
+    "errors": []
+  },
+  "imported_wave_summary": {
+    "count": 26,
+    "sample_rates": [
+      48000
+    ],
+    "silent_count": 0,
+    "maximum_true_peak_db": -0.946,
+    "errors": []
+  },
+  "native_preview_metrics": {
+    "category": null,
+    "mix": false,
+    "files": [
+      {
+        "file": "Saved\\AudioMusic\\PrototypeV1\\Host\\Saved\\BouncedWavFiles\\ue-game-audio\\V1_Engine_Speed0.wav",
+        "codec": "pcm_s16le",
+        "sample_rate": 48000,
+        "channels": 2,
+        "bits": 16,
+        "duration": 41.9627,
+        "loudness_lufs": -43.4,
+        "loudness_kind": "integrated",
+        "integrated_lufs": -43.4,
+        "ungated_lufs": null,
+        "lra_lu": 0.1,
+        "true_peak_dbtp": -33.3,
+        "sample_peak_dbfs": -33.271342,
+        "rms_dbfs": -43.84857,
+        "lead_silence_s": 0.04,
+        "tail_silence_s": 1.9742,
+        "dc_offset": 1e-06,
+        "flat_factor": 13.4845,
+        "peak_count": 65,
+        "clipped": false,
+        "silent": false,
+        "seam_jump_db": null,
+        "seam_level_db": null,
+        "fails": []
+      },
+      {
+        "file": "Saved\\AudioMusic\\PrototypeV1\\Host\\Saved\\BouncedWavFiles\\ue-game-audio\\V1_Engine_Speed1.wav",
+        "codec": "pcm_s16le",
+        "sample_rate": 48000,
+        "channels": 2,
+        "bits": 16,
+        "duration": 42.0053,
+        "loudness_lufs": -37.7,
+        "loudness_kind": "integrated",
+        "integrated_lufs": -37.7,
+        "ungated_lufs": null,
+        "lra_lu": 0.1,
+        "true_peak_dbtp": -28.3,
+        "sample_peak_dbfs": -28.266923,
+        "rms_dbfs": -38.84213,
+        "lead_silence_s": 0.03,
+        "tail_silence_s": 1.9951,
+        "dc_offset": 3e-06,
+        "flat_factor": 4.681664,
+        "peak_count": 28,
+        "clipped": false,
+        "silent": false,
+        "seam_jump_db": null,
+        "seam_level_db": null,
+        "fails": []
+      },
+      {
+        "file": "Saved\\AudioMusic\\PrototypeV1\\Host\\Saved\\BouncedWavFiles\\ue-game-audio\\V1_Primary_Five.wav",
+        "codec": "pcm_s16le",
+        "sample_rate": 48000,
+        "channels": 2,
+        "bits": 16,
+        "duration": 13.952,
+        "loudness_lufs": -27.1,
+        "loudness_kind": "integrated",
+        "integrated_lufs": -27.1,
+        "ungated_lufs": -33.43,
+        "lra_lu": 4.0,
+        "true_peak_dbtp": -15.0,
+        "sample_peak_dbfs": -15.046166,
+        "rms_dbfs": -35.932574,
+        "lead_silence_s": 0.03,
+        "tail_silence_s": 5.6455,
+        "dc_offset": -1e-06,
+        "flat_factor": 0.0,
+        "peak_count": 2,
+        "clipped": false,
+        "silent": false,
+        "seam_jump_db": null,
+        "seam_level_db": null,
+        "fails": []
+      }
+    ],
+    "group_fails": [],
+    "failures": 0
+  },
+  "native_preview_behavior": {
+    "primary_burst_count": 5,
+    "primary_bursts": [
+      {
+        "onset_s": 0.03,
+        "duration_s": 0.3,
+        "peak_dbfs": -15.05
+      },
+      {
+        "onset_s": 1.99,
+        "duration_s": 0.31,
+        "peak_dbfs": -16.53
+      },
+      {
+        "onset_s": 3.99,
+        "duration_s": 0.32,
+        "peak_dbfs": -15.15
+      },
+      {
+        "onset_s": 6.0,
+        "duration_s": 0.31,
+        "peak_dbfs": -16.59
+      },
+      {
+        "onset_s": 7.98,
+        "duration_s": 0.33,
+        "peak_dbfs": -15.94
+      }
+    ],
+    "checks": {
+      "five_bursts": true,
+      "peak_variation_db": 1.54
+    },
+    "engine_0_sustained_rms_dbfs": -43.635,
+    "engine_1_sustained_rms_dbfs": -38.627,
+    "engine_gain_change_db": 5.008
+  },
+  "notes": [
+    "Original source files unchanged; native media remains ignored.",
+    "Offline NonRealtimeAudio rendered about four seconds of audio per wall-clock second; durations are not gameplay timing evidence.",
+    "Preview output levels are not the game mix. No mix-loudness acceptance claimed.",
+    "Native loop_seam_jump_db is normalized against adjacent-sample RMS; do not compare it with the absolute dBFS source seam threshold.",
+    "Builder helper changed only to raise immediately on first exception; base is published skill4096f47."
+  ]
+}
