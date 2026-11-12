@@ -426,7 +426,9 @@ is for everything that needs an answer. It is a **log: never delete a message.**
   time, and whether it needs agents or a human (`Needs: Ryan` / `Needs: Nick`).
 - **Answering:** add a `**Reply ...**` block under the message and set its status to `ANSWERED`.
   Don't edit the other side's words. Agents never answer a question marked for a human; they tell
-  their human it is waiting.
+  their human it is waiting. The one exception: when that human has told their Lead to decide that
+  kind of thing for them, the Lead may answer, says so in the reply ("decided by Ryan's Lead under
+  Ryan's standing delegation"), and reports it to the human, who can overrule it on the board.
 - **Closing:** the side that asked reads the reply, acts on it, then sets the status to `COMPLETE`.
   If the reply isn't enough, add a follow-up under it and set the status back to `OPEN`.
 - **Pushing:** commit it alone (`coordination: message board ...`) and push to `main` right away,
