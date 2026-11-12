@@ -11,7 +11,7 @@ Owner: Teammate 1. Code: `Source/unrealGameJam/TriadDrift/Travel/`. Tests: `Tria
 | `UTDHyperdriveComponent` (on `ATDShip`) | ENG-15 hyperdrive; see below |
 | `UTDAtmosphereEntryComponent` (on `ATDShip`) | Atmospheric entry, called by T4's galaxy `ATDPlanetAtmosphere`: `BeginEntry(Destination, ReturnPoint, PlanetCenter)` |
 | `ATDAtmosphereFlightZone` (planet maps) | Every squad ship inside its box flies in atmosphere mode, with soft walls and a ceiling; the ceiling exit leads back to the galaxy |
-| `ATDLandingPad` | A pad: beacon, prompt range 3000 cm, "Hold F to land", wingman pads (`bWingmanPad`, `SidePads`), reservation |
+| `ATDLandingPad` | A pad: beacon, prompt range 12000 cm, "Hold F to land", wingman pads (`bWingmanPad`, `SidePads`), reservation |
 | `UTDLandingComponent` (on `ATDShip`) | Auto-landing and take-off state machine, with the state Nick animates from |
 
 ### Hyperdrive (ENG-15)
@@ -62,8 +62,17 @@ Owner: Teammate 1. Code: `Source/unrealGameJam/TriadDrift/Travel/`. Tests: `Tria
 ### Landing and take-off (ENG-20, §7 steps 6, 7, 9 and 10)
 
 **When landing is offered:**
-- The pad's beacon is within 3,000 cm, speed is below 40% of space cruise, and the hyperdrive is idle.
-- `GetLandPrompt()` returns "Hold F to land".
+Rule decided by the Lead on Nov 12, replacing 30 m / 40% of space cruise:
+- The pad's beacon is within 120 m (`ATDLandingPad::PromptRange`).
+- The speed is at or below 60% of the plain top speed (`MaxSpeedFraction`). On a planet that is the atmosphere
+  cap, 3,600 → 2,160 cm/s; in space it is cruise.
+- The hyperdrive is idle.
+- When all three hold, `GetLandPrompt()` returns "Hold F to land".
+- Within `SlowDownPromptRange` (400 m) of a pad but too fast, it returns "SLOW DOWN TO LAND - HOLD SPACE / LT TO
+  BRAKE", so a player who never brakes is told why.
+- This is the text `ITDHUDData::GetInteractPrompt` should carry in flight.
+- Measured: a hands-off arrival from the descent start is told to slow down. Braking from that first prompt,
+  touchdown follows 17.8 s later, most of it crawling at brake speed.
 - Hold F / A for 0.5 s to call `RequestLand`.
 
 **Landing sequence:**
@@ -143,6 +152,8 @@ By hand in the sandbox:
 | `Atmosphere.ZoneModeAltitudeAndExit` | zone applies the mode and the input layer, altitude, hyperdrive blocked, ceiling shut until allowed, exit fires, the objectives gate |
 | `Atmosphere.EntryCommitsAndHandsBack` | 2.5 s entry, nose into the planet, speed held, hyperdrive off, hand-back without a flow |
 | `PlayBounds.AppliedToEveryShip` | existing and later-spawned ships pick up `SetPlayBounds` |
+| `Landing.SlowDownPromptAndAtmosphereRule` | 60% of the atmosphere cap; slow-down text at 300 m and at 100 m when too fast; landing prompt at 100 m when slow; nothing at 500 m |
+| `Landing.HandsOffArrivalNeverSoftLocks` | from the rig's descent start, hands-off: told to slow down, never touches the ground; braking then lands on the player pad |
 | `Landing.PromptSequenceWingmenTakeOff` | prompt range and speed, the full sequence and its states, pad reservation, a wingman on the side pad, input ignored while landed, take-off with the wingman |
 | `Camera.CockpitToggle` | chase / cockpit switching; V binding |
 

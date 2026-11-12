@@ -40,7 +40,7 @@ void UTDShipMovementComponent::ApplyFlightTuning(const FTDFlightTuning& NewTunin
 	// Clamp a plain cruise down to the new top speed (only ever down; intentional extra speed is kept).
 	const bool bExtraSpeedIntended = State.bBoosting || State.bDrifting || State.bBurstOverspeed
 		|| Context.bSpeedOverride || Context.ThrottleTopSpeed > Tuning.CruiseSpeed;
-	const float Top = Context.bAtmosphere ? Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction : Tuning.CruiseSpeed;
+	const float Top = GetCruiseCapSpeed();
 	if (!bExtraSpeedIntended && State.ForwardSpeed > Top)
 	{
 		const float Speed = State.Velocity.Size();
