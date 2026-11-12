@@ -1175,6 +1175,11 @@ void ATDSquadManager::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FTex
 	ObjectiveText = Text;
 }
 
+FText ATDSquadManager::GetBoundaryWarningText() const
+{
+	return TDSquad::GetBoundaryWarningText(GetActiveShip());
+}
+
 FText ATDSquadManager::GetInteractPrompt() const
 {
 	const FText Land = TDSquad::GetLandPrompt(GetActiveShip());
