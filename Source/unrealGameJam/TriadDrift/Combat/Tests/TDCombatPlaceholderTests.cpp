@@ -6,6 +6,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "UObject/StrongObjectPtr.h"
+#include "Camera/CameraShakeBase.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
@@ -49,6 +50,14 @@ bool FTDCombatPlaceholderStreakSizes::RunTest(const FString& Parameters)
 	TestTrue(TEXT("heavy shell carries a hot head"), Shell.bHeavy && Shell.bHead);
 	TestTrue(TEXT("far away, a heavy shell is drawn bigger than a needle"),
 		Shell.Thickness * FTDCombatPlaceholders::DistanceGrowth(Shell, 20000.f) > Needle.Thickness * FTDCombatPlaceholders::DistanceGrowth(Needle, 20000.f) * 1.4f);
+	// Incoming hostile fire (flying toward the camera) keeps a bigger floor than the player's own outgoing shots.
+	const FTDStreakLook EnemyBolt = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::EnemyPulseGuns).Projectile);
+	TestTrue(TEXT("an enemy bolt flying at the camera is incoming"),
+		FTDCombatPlaceholders::IsIncoming(FVector(-30000.f, 0.f, 0.f), FVector(20000.f, 0.f, 0.f), FVector::ZeroVector));
+	TestFalse(TEXT("one flying away is not"),
+		FTDCombatPlaceholders::IsIncoming(FVector(30000.f, 0.f, 0.f), FVector(20000.f, 0.f, 0.f), FVector::ZeroVector));
+	const float IncomingPx = EnemyBolt.Thickness * FTDCombatPlaceholders::DistanceGrowth(EnemyBolt, 30000.f, FTDCombatPlaceholders::MinIncomingStreakPixels) * 1280.f / (2.f * 30000.f);
+	TestTrue(FString::Printf(TEXT("incoming enemy bolt at 300 m is at least 18 px (%.1f)"), IncomingPx), IncomingPx >= FTDCombatPlaceholders::MinIncomingStreakPixels - 0.01f);
 	const float HullRadius = 400.f;
 	const float Capped = FTDCombatPlaceholders::CapMuzzleFlashRadius(FTDCombatPlaceholders::MuzzleFlashRadius(UTDWeaponLibrary::Get(TDWeaponIds::BreakerBlaster).Projectile), HullRadius);
 	TestTrue(TEXT("muzzle flash at its biggest is at most a third of the hull across"), 2.f * 1.2f * Capped <= 2.f * HullRadius / 3.f + 0.01f);
@@ -223,6 +232,91 @@ bool FTDCombatPlaceholderSoundOnlyCue::RunTest(const FString& Parameters)
 		Visual->ImpactHull = WithVFX;
 		Visual->ImpactShield = WithVFX;
 		TestEqual(TEXT("VFX cues replace every placeholder flash") + Fps, TDCombatPlaceholderTest::FireIntoWallAndCountFlashes(Visual.Get(), Step), 0);
+	}
+	return true;
+}
+
+namespace TDCombatPlaceholderTest
+{
+	struct FFlashCounts { int32 Muzzle = 0; int32 Impact = 0; };
+
+	/** One shot of WeaponId into a wall 3000 cm ahead; the most flashes seen at the muzzle and at the wall. */
+	FFlashCounts FireAndCountBySite(FName WeaponId, UTDWeaponFX* FX, float Step)
+	{
+		FFlashCounts Out;
+		FTDTestWorld W;
+		UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
+		TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(3100.f, 0.f, 0.f), FVector(100.f, 800.f, 800.f), 100000.f, 0.f);
+		AActor* Shooter = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDWeaponComponent* Weapons = TDCombatTest::AddWeapons(Shooter);
+		Weapons->EquipWeapon(ETDWeaponSlot::Primary, WeaponId);
+		Weapons->PrimaryFX = FX;
+		Weapons->FireOnce(ETDWeaponSlot::Primary);
+		Out.Muzzle = Projectiles ? Projectiles->CountPlayingFlashesNear(FVector::ZeroVector, 700.f) : 0;
+		for (float T = 0.f; T < 0.5f; T += Step)
+		{
+			W.Tick(Step);
+			Out.Impact = FMath::Max(Out.Impact, Projectiles ? Projectiles->CountPlayingFlashesNear(FVector(3000.f, 0.f, 0.f), 1200.f) : 0);
+		}
+		return Out;
+	}
+}
+
+/** Review C1: each placeholder flash site follows its own cue: muzzle, impact, detonation; sound and shake never hide one. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderPerSite, "TriadDrift.Combat.Placeholder.EachFlashSiteFollowsItsOwnCue", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderPerSite::RunTest(const FString& Parameters)
+{
+	FTDFXCue Sound;
+	Sound.Sound = TSoftObjectPtr<USoundBase>(FSoftObjectPath(TDCombatPlaceholderTest::EngineSound));
+	FTDFXCue Shake;
+	Shake.Shake = TSoftClassPtr<UCameraShakeBase>(FSoftObjectPath(TEXT("/Script/Engine.CameraShakeBase")));
+	FTDFXCue Vfx;
+	Vfx.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TDCombatPlaceholderTest::EngineVFX));
+	TestFalse(TEXT("a shake-only cue is not visual art"), FTDCombatPlaceholders::HasVisualArt(Shake));
+
+	for (const float Step : TDCombatTest::kCombatFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		auto Make = [](const FTDFXCue& Muzzle, const FTDFXCue& Impact, const FTDFXCue& Detonation)
+		{
+			UTDWeaponFX* FX = NewObject<UTDWeaponFX>();
+			FX->Muzzle = Muzzle;
+			FX->ImpactWorld = Impact;
+			FX->ImpactHull = Impact;
+			FX->ImpactShield = Impact;
+			FX->Detonation = Detonation;
+			return TStrongObjectPtr<UTDWeaponFX>(FX);
+		};
+		const FTDFXCue None;
+		{
+			const auto FX = Make(Sound, Vfx, None);
+			const auto C = TDCombatPlaceholderTest::FireAndCountBySite(TDWeaponIds::NeedleCannons, FX.Get(), Step);
+			TestTrue(TEXT("sound muzzle: muzzle flash stays") + Fps, C.Muzzle > 0);
+			TestEqual(TEXT("VFX impact: no impact flash") + Fps, C.Impact, 0);
+		}
+		{
+			const auto FX = Make(Vfx, Sound, None);
+			const auto C = TDCombatPlaceholderTest::FireAndCountBySite(TDWeaponIds::NeedleCannons, FX.Get(), Step);
+			TestEqual(TEXT("VFX muzzle: no muzzle flash") + Fps, C.Muzzle, 0);
+			TestTrue(TEXT("sound impact: impact flash stays") + Fps, C.Impact > 0);
+		}
+		{
+			const auto FX = Make(Shake, Shake, None);
+			const auto C = TDCombatPlaceholderTest::FireAndCountBySite(TDWeaponIds::NeedleCannons, FX.Get(), Step);
+			TestTrue(TEXT("shake-only muzzle keeps its flash") + Fps, C.Muzzle > 0);
+			TestTrue(TEXT("shake-only impact keeps its flash") + Fps, C.Impact > 0);
+		}
+		// Splash weapon: the Detonation cue covers the impact.
+		{
+			const auto FX = Make(None, None, Sound);
+			const auto C = TDCombatPlaceholderTest::FireAndCountBySite(TDWeaponIds::SpikeRockets, FX.Get(), Step);
+			TestTrue(TEXT("sound detonation: impact flash stays") + Fps, C.Impact > 0);
+		}
+		{
+			const auto FX = Make(None, None, Vfx);
+			const auto C = TDCombatPlaceholderTest::FireAndCountBySite(TDWeaponIds::SpikeRockets, FX.Get(), Step);
+			TestEqual(TEXT("VFX detonation: no impact flash") + Fps, C.Impact, 0);
+		}
 	}
 	return true;
 }

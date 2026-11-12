@@ -1,0 +1,194 @@
+{
+ "asset": "SM_Verd_Mushroom_03",
+ "tris": 2440,
+ "budget": [
+  600,
+  2500
+ ],
+ "in_budget": true,
+ "height_cm": 451.0,
+ "below_ground_cm": 16.5,
+ "width_cm": [
+  299.3,
+  303.5
+ ],
+ "base_center_offset_cm": [
+  9.4,
+  -1.7
+ ],
+ "material_slots": [
+  "M_Verd_Mushrooms"
+ ],
+ "uv_layers": [
+  "UVMap"
+ ],
+ "errors": 0,
+ "warnings": 0,
+ "issues": [
+  {
+   "severity": "info",
+   "object": "SM_Verd_Mushroom_03",
+   "message": "2 n-gons; fine if planar, they get triangulated on export"
+  }
+ ],
+ "assembly_ok": true,
+ "assembly": {
+  "islands": 28,
+  "groups": 1,
+  "floating": [],
+  "tolerance_m": 0.00949
+ },
+ "asset_report": {
+  "status": "ok",
+  "scene_units": {
+   "system": "METRIC",
+   "scale_length": 1.0,
+   "length_unit": "METERS"
+  },
+  "objects": [
+   {
+    "name": "SM_Verd_Mushroom_03",
+    "type": "MESH",
+    "parent": null,
+    "collections": [
+     "Verdance"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     299.28,
+     303.5,
+     467.42
+    ],
+    "hide_render": false,
+    "modifiers": [],
+    "materials": [
+     "M_Verd_Mushrooms"
+    ],
+    "verts": 1276,
+    "faces": 1384,
+    "tris": 2440,
+    "quads": 1042,
+    "ngons": 2,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 1.0,
+    "has_custom_normals": false,
+    "uv_layers": [
+     "UVMap"
+    ],
+    "faces_per_material_index": {
+     "0": 1384
+    },
+    "local_bbox_min": [
+     -1.39601,
+     -1.48805,
+     -0.16464
+    ],
+    "local_bbox_max": [
+     1.59683,
+     1.54696,
+     4.50958
+    ],
+    "origin_placement": "custom"
+   },
+   {
+    "name": "UCX_SM_Verd_Mushroom_03",
+    "type": "MESH",
+    "parent": "SM_Verd_Mushroom_03",
+    "collections": [
+     "Verdance"
+    ],
+    "location": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "rotation_mode": "XYZ",
+    "rotation_euler_deg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "dimensions_cm": [
+     168.53,
+     179.71,
+     438.73
+    ],
+    "hide_render": true,
+    "modifiers": [],
+    "materials": [],
+    "verts": 14,
+    "faces": 24,
+    "tris": 24,
+    "quads": 0,
+    "ngons": 0,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "wire_edges": 0,
+    "flipped_winding_edges": 0,
+    "loose_verts": 0,
+    "zero_area_faces": 0,
+    "duplicate_verts": 0,
+    "closed": true,
+    "inside_out": false,
+    "smooth_face_ratio": 0.0,
+    "has_custom_normals": false,
+    "uv_layers": [],
+    "faces_per_material_index": {
+     "0": 24
+    },
+    "local_bbox_min": [
+     -0.74143,
+     -0.91557,
+     -0.02
+    ],
+    "local_bbox_max": [
+     0.94386,
+     0.88152,
+     4.36734
+    ],
+    "origin_placement": "custom"
+   }
+  ],
+  "totals": {
+   "objects": 2,
+   "tris": 2464,
+   "errors": 0,
+   "warnings": 0
+  },
+  "issues": [
+   {
+    "severity": "info",
+    "object": "SM_Verd_Mushroom_03",
+    "message": "2 n-gons; fine if planar, they get triangulated on export"
+   }
+  ]
+ }
+}

@@ -375,6 +375,13 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   the destination planet's atmosphere, live shield generators, the reactor, on-foot waypoints and the
   board-ship point; the landing pad while in atmosphere (flight). Nothing is tagged during a wave.
 - Incoming-missile warning state (Nick supplies the sound and UI).
+- More HUD data on the same source, all optional zero-input getters (added Nov 12): `GetObjectiveText`
+  (current objective line), `GetBoundaryWarningText` (edge of the play area), `GetInteractPrompt` (landing
+  prompt, and for 1.5 s why a switch was refused), `GetSquadMarkers` (where each squad ship is and whether
+  the wingman is engaging: off-screen wing arrows), `GetDamageIndicators` (direction of recent hits on the
+  player: "who is shooting me").
+- Pause: Escape / gamepad Start, in space and on foot (`OnPauseChanged` on the player controller;
+  `UTDUIStyle.PauseWidgetClass` for the menu). Refused during level travel, a pending retake and victory.
 
 #### ENG-07 · Squad manager & instant switching (PROTECT) · `⬜`
 - `ATDSquadManager` spawns, tracks and respawns all three ships, and owns who the player controls.
@@ -435,6 +442,13 @@ and on `OnAbilityUnlocked`.
 | **EMP Pulse** | Lancer | Cinder Obj 3 | A 6000 cm pulse: stuns enemies for 3 s, drops gunship shields for 5 s, fizzles missiles. Stunned enemies take +25% damage | 14 s |
 
 `UTDAbilityBase` + three children. Visuals: `UTDAbilityFX` (Nick).
+
+**Powers and ship switching (decided Nov 12):** a power or ability that is running when the player
+switches away (cloak, shield dome, an open portal pair, a gravity well) keeps running on that ship
+and ends on its own timer. The new ship's presses never reach the old ship's powers, and an
+AI-flown ship never starts one. Two exceptions end at the switch (also on an auto-switch after a
+death): the ram (wind-up cancelled, dash ended, no invulnerability left behind) and a portal blaster
+with only one portal placed (the lone portal closes).
 
 #### ENG-13 · Enemy ships & AI · `⬜`
 | Enemy | Role | HP / Shield | Speed | Weapons | Behaviour | Counter |

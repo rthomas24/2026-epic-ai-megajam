@@ -196,6 +196,13 @@ void UTDPowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 			EndPower(true);
 		}
 	}
+	// Switch away mid-power (before OnTickActive, so a ram wind-up never turns into a dash under AI).
+	const bool bPlayerNow = IsOwnerPlayerControlled();
+	if (bPowerActive && bWasPlayerControlled && !bPlayerNow)
+	{
+		OnLostPlayerControl();
+	}
+	bWasPlayerControlled = bPlayerNow;
 	if (bPowerActive)
 	{
 		ActiveElapsed += DeltaTime;

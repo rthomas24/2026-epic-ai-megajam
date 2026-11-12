@@ -62,6 +62,11 @@ public:
 		const FVector& TargetVelocity, float ProjectileSpeed);
 
 	// --- HUD data ---
+	/**
+	 * Markers are rebuilt in this component's tick (TG_PostPhysics), before the camera updates, so ScreenPosition01 /
+	 * bOnScreen can trail by one frame in a fast turn. Both HUDs (the dev HUD and Nick's widget) project Actor /
+	 * WorldLocation at draw time instead, which never lags; a new HUD should do the same.
+	 */
 	const TArray<FTDTargetMarker>& GetMarkers() const { return Markers; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Targeting", meta = (DisplayName = "Get Markers"))

@@ -130,6 +130,9 @@ public:
 	 *  (12-21% on the left); never under a letterbox bar. */
 	static FBox2D SlateRect(const FVector2D& Size, float Letterbox);
 
+	/** Viewport layer of the overlay: just under the real HUD while it is up, else 900. */
+	static int32 OverlayZOrder(bool bRealHUDActive);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cut")
 	FTDCutPresentationTuning Tuning;
 
@@ -142,6 +145,7 @@ private:
 	TWeakObjectPtr<UWorld> OwnerWorld;
 	TWeakObjectPtr<ATDSquadManager> BoundSquad;
 	TSharedPtr<SWidget> Widget;
+	int32 WidgetZOrder = 900;
 
 	FTDCutPresentationState State;
 	bool bHandledExternally = false;

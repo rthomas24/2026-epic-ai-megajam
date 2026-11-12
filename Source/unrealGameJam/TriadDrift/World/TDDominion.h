@@ -122,6 +122,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	float WarpInSeconds = 6.f;
 
+	/** The finale locks the hyperdrive only once a squad ship is this close (the galaxy layout sets its gravity-well
+	 *  radius here: jumps drop out at the well, then the lock holds for the fight). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
+	float HyperdriveLockRadius = 60000.f;
+
+	/** The flow's scene for the whole assault (UTDGameInstance::DominionScene); its retakes reset the fight. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
+	FName DominionSceneId = TEXT("Dominion");
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	float BreakupSeconds = 8.f;
 
@@ -225,10 +234,14 @@ protected:
 	virtual void BeginDockingFinale();
 
 	void SetState(ETDDominionState NewState);
-	/** Hyperdrive "Finale" lock from the current state (assault = locked). Idempotent. */
+	/** Hyperdrive "Finale" lock: assault states AND a squad ship has been inside HyperdriveLockRadius. Idempotent. */
 	void SyncHyperdriveLock();
 	UFUNCTION()
 	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+	/** A new take of the assault scene: see docs/eng/world.md (what stays, what restarts). */
+	void ResetForNewTake();
+	/** Victory phase reached without the breakup (won save, TD.Stage Victory): gone, silent, unlocked. */
+	void FinishAfterVictory();
 	void BuildParts();
 	void ShowHull(bool bVisible);
 	void ApplyStage(int32 NewStage);
@@ -293,6 +306,7 @@ protected:
 	float StateTime = 0.f;
 	float PollTimer = 0.f;
 	float LockSyncTimer = 0.f;
+	bool bSquadArrived = false;
 	float LaunchTimer = 0.f;
 	int32 LaunchCursor = 0;
 	int32 LaunchCount = 0;

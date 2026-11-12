@@ -297,6 +297,9 @@ void ATDGalaxyLayout::Build()
 		{
 			Travel->RegisterGravityWell(TDGalaxyWells::Dominion, Dominion->GetActorLocation(), DominionWellRadius, Dominion);
 		}
+		Dominion->HyperdriveLockRadius = DominionWellRadius;	// the finale locks where jumps drop out
+		{
+		}
 	}
 
 	SetHidePlaceholderDressing(bHidePlaceholderDressing);

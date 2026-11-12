@@ -1,6 +1,7 @@
 // Triad Drift - Squad (Teammate 3). ENG-07: squad manager & instant switching (PROTECT), ENG-03 respawn.
 
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "HAL/IConsoleManager.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -226,6 +227,11 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 	}
 
 	// Hand out control: wingmen first, then the player takes the starting ship. A new take is active.
+	if (ActiveShipId != StartingShip && GetShip(ActiveShipId) != nullptr)
+	{
+		LogSwitch(ActiveShipId, StartingShip, ETDSwitchCause::Retake);
+		LastSwitchCause = ETDSwitchCause::Retake;
+	}
 	ActiveShipId = StartingShip;
 	SetWingmenPassive(false);
 	for (FTDSquadSlot& Slot : Slots)
@@ -406,7 +412,7 @@ AActor* ATDSquadManager::GetFocusTarget() const
 
 bool ATDSquadManager::RequestSwitchTo(ETDShipId Ship)
 {
-	if (SwitchToInternal(Ship, false))
+	if (SwitchWithCause(Ship, false, ETDSwitchCause::Manual))
 	{
 		return true;
 	}
@@ -416,6 +422,7 @@ bool ATDSquadManager::RequestSwitchTo(ETDShipId Ship)
 
 bool ATDSquadManager::RequestSwitchNext()
 {
+	TGuardValue<ETDSwitchCause> Cause(CurrentSwitchCause, ETDSwitchCause::Manual);
 	if (CycleSwitch(+1))
 	{
 		return true;
@@ -426,6 +433,7 @@ bool ATDSquadManager::RequestSwitchNext()
 
 bool ATDSquadManager::RequestSwitchPrev()
 {
+	TGuardValue<ETDSwitchCause> Cause(CurrentSwitchCause, ETDSwitchCause::Manual);
 	if (CycleSwitch(-1))
 	{
 		return true;
@@ -458,6 +466,7 @@ void ATDSquadManager::RunPendingSwitch()
 	{
 		return;
 	}
+	TGuardValue<ETDSwitchCause> Cause(CurrentSwitchCause, ETDSwitchCause::Buffered);
 	if (Kind == 2)
 	{
 		SwitchToInternal(PendingSwitchShip, false);
@@ -486,6 +495,19 @@ bool ATDSquadManager::CycleSwitch(int32 Direction)
 		}
 	}
 	return false;
+}
+
+bool ATDSquadManager::SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCause Cause)
+{
+	TGuardValue<ETDSwitchCause> Guard(CurrentSwitchCause, Cause);
+	return SwitchToInternal(Ship, bForced);
+}
+
+void ATDSquadManager::LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const
+{
+	// Every change of the player's ship, with why (T2's wave-5 run: "Rift became Lancer, nothing in the log").
+	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch %s -> %s cause=%s"), *UEnum::GetDisplayValueAsText(From).ToString(),
+		*UEnum::GetDisplayValueAsText(To).ToString(), *UEnum::GetDisplayValueAsText(Cause).ToString());
 }
 
 bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
@@ -566,6 +588,8 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	{
 		PC->Possess(NewShip);
 	}
+	LogSwitch(OldId, Ship, CurrentSwitchCause);
+	LastSwitchCause = CurrentSwitchCause;
 	ActiveShipId = Ship;
 	TDSquad::SetPlayerControlled(NewShip, true);
 
@@ -647,9 +671,42 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 // Powers & Switch Strike
 // ---------------------------------------------------------------------------------------------
 
+namespace TDSquadManagerPrivate
+{
+	// Playtest log (dev): kills by squad ships, "steals" of the player's target, and every squad bark
+	// asked for (played or held by the limiter). For judging how the wing feels from the cockpit.
+	static TAutoConsoleVariable<int32> CVarLogEvents(TEXT("td.Squad.LogEvents"), 0,
+		TEXT("1: log squad kills, steals of the player's target and barks (TDSQUAD lines)."), ECVF_Default);
+}
+
+void ATDSquadManager::NotifyWingmanEngaged(ETDShipId Ship)
+{
+	FTDSquadSlot* Slot = FindSlot(Ship);
+	const ATDShip* Player = GetActiveShip();
+	if (!Slot || !Slot->Ship || !Player || Ship == ActiveShipId || Slot->State != ETDSquadSlotState::Alive)
+	{
+		return;
+	}
+	if (RealNow() - Slot->LastEngageCallTime < EngageCallCooldownSeconds)
+	{
+		return;
+	}
+	const FName Line = TDBarkIds::EngageCallFor(Player->GetChaseCameraTransformNow(), Slot->Ship->GetActorLocation());
+	if (RequestSquadBark(Line, Ship))
+	{
+		Slot->LastEngageCallTime = RealNow();
+	}
+}
+
 bool ATDSquadManager::RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkPriority Priority)
 {
-	if (!BarkLimiter.TryConsume(BarkTuning, BarkId, Priority, RealNow()))
+	const bool bPlayed = BarkLimiter.TryConsume(BarkTuning, BarkId, Priority, RealNow());
+	if (TDSquadManagerPrivate::CVarLogEvents.GetValueOnGameThread() != 0)
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD t=%.1f bark %s by %s: %s"), RealNow(), *BarkId.ToString(),
+			*UEnum::GetDisplayValueAsText(Speaker).ToString(), bPlayed ? TEXT("played") : TEXT("held"));
+	}
+	if (!bPlayed)
 	{
 		return false;
 	}
@@ -659,6 +716,17 @@ bool ATDSquadManager::RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkP
 
 void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
 {
+	if (TDSquadManagerPrivate::CVarLogEvents.GetValueOnGameThread() != 0 && UTDStatics::AreHostile(Killer, Victim))
+	{
+		const ATDShip* Player = GetActiveShip();
+		const FTDSquadSlot* KillerSlot = Slots.FindByPredicate([Killer](const FTDSquadSlot& S) { return S.Ship == Killer; });
+		if (KillerSlot)
+		{
+			const bool bSteal = Killer != Player && TDSquad::GetCurrentTarget(Player) == Victim;
+			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD t=%.1f kill by %s%s%s"), RealNow(), *UEnum::GetDisplayValueAsText(KillerSlot->ShipId).ToString(),
+				Killer == Player ? TEXT(" (player)") : TEXT(" (wingman)"), bSteal ? TEXT(" STEAL of the player's target") : TEXT(""));
+		}
+	}
 	// A wingman scored: that pilot crows about it.
 	for (const FTDSquadSlot& Slot : Slots)
 	{
@@ -797,9 +865,16 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 		const float Hull = TDSquad::GetHull01(Slot.Ship);
 		if (Slot.bLowHullBarkArmed && Hull > 0.f && Hull < BarkTuning.LowHullFraction)
 		{
-			if (RequestSquadBark(TDBarkIds::LowHull, Slot.ShipId))
+			// Live playtest: held by the limiter, the line was retried every frame and played long after
+			// the moment. It gets LowHullBarkWindowSeconds, then this dip goes unannounced.
+			if (Slot.LowHullSince < 0.0)
+			{
+				Slot.LowHullSince = RealNow();
+			}
+			if (RealNow() - Slot.LowHullSince > LowHullBarkWindowSeconds || RequestSquadBark(TDBarkIds::LowHull, Slot.ShipId))
 			{
 				Slot.bLowHullBarkArmed = false;
+				Slot.LowHullSince = -1.0;
 			}
 		}
 		else if (!Slot.bLowHullBarkArmed && Hull > BarkTuning.LowHullRearmFraction)
@@ -936,7 +1011,7 @@ void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 		ETDShipId Best = ETDShipId::Rift;
 		if (FindHealthiestLivingShip(Slot.ShipId, Best))
 		{
-			SwitchToInternal(Best, /*bForced*/ true);
+			SwitchWithCause(Best, /*bForced*/ true, ETDSwitchCause::AutoOnDeath);
 		}
 	}
 }
@@ -983,7 +1058,7 @@ void ATDSquadManager::RespawnShip(FTDSquadSlot& Slot)
 	// m4: no game flow took the wipe and the player sits in a downed ship: cut to the one that's back.
 	if (Slot.ShipId != ActiveShipId && !IsShipAlive(ActiveShipId))
 	{
-		SwitchToInternal(Slot.ShipId, /*bForced*/ true);
+		SwitchWithCause(Slot.ShipId, /*bForced*/ true, ETDSwitchCause::RespawnRescue);
 	}
 	if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(Ship))
 	{
@@ -1173,6 +1248,33 @@ TArray<AActor*> ATDSquadManager::GetObjectiveMarkers() const
 void ATDSquadManager::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
 {
 	ObjectiveText = Text;
+}
+
+FText ATDSquadManager::GetBoundaryWarningText() const
+{
+	return TDSquad::GetBoundaryWarningText(GetActiveShip());
+}
+
+TArray<FTDSquadMarker> ATDSquadManager::GetSquadMarkers() const
+{
+	TArray<FTDSquadMarker> Out;
+	Out.Reserve(Slots.Num());
+	for (const FTDSquadSlot& Slot : Slots)
+	{
+		FTDSquadMarker M;
+		M.Ship = Slot.ShipId;
+		M.Actor = Slot.Ship;
+		M.bPlayerControlled = Slot.ShipId == ActiveShipId;
+		M.bAlive = Slot.State == ETDSquadSlotState::Alive && IsValid(Slot.Ship) && !TDSquad::IsDead(Slot.Ship);
+		// Engaging = the wingman flying it has a live target (Engage and defending the player).
+		if (M.bAlive && !M.bPlayerControlled && Slot.Wingman && Slot.Wingman->GetPawn() == Slot.Ship)
+		{
+			const AActor* T = Slot.Wingman->GetCurrentTarget();
+			M.bEngaging = IsValid(T) && !TDSquad::IsDead(T);
+		}
+		Out.Add(M);
+	}
+	return Out;
 }
 
 FText ATDSquadManager::GetInteractPrompt() const

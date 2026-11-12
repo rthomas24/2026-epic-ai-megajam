@@ -130,6 +130,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Scenes")
 	bool IsRetakePending() const { return RetakeTimeLeft >= 0.f; }
 
+	/** Victory wins over a CUT already counting down (the reactor died from a shot in flight after the wipe). */
+	void CancelPendingRetake();
+
+	/** The finale's scene id: the whole Dominion assault is one scene with takes. */
+	static const FName DominionScene;
+
 	/** Restore the checkpoint and start the next take immediately (skips RetakeDelaySeconds). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Scenes")
 	void RestartSceneNow();
@@ -244,6 +250,10 @@ private:
 	void BroadcastPhase();
 	UTDEventBus* GetBus() const;
 	void TickDebugMenu();
+public:
+	/** In the galaxy during the assault: open the "Dominion" scene (once) and put it in the checkpoint. */
+	void BeginDominionSceneIfAssault();
+private:
 
 	UPROPERTY(Transient)
 	FTDProgress Progress;

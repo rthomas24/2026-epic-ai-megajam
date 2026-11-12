@@ -227,10 +227,43 @@ void ATDEnemyShip::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageIn
 	}
 }
 
+namespace TDEnemyShipSeeding
+{
+	// Per-world spawn order: the same world always plays the same way, whatever ran before it (a seed from
+	// GetUniqueID depended on how many objects earlier tests had created: flaky in the full suite).
+	TMap<TWeakObjectPtr<const UWorld>, int32>& Counters()
+	{
+		static TMap<TWeakObjectPtr<const UWorld>, int32> Map;
+		return Map;
+	}
+}
+
+int32 ATDEnemyShip::GetSpawnSeed()
+{
+	if (SpawnSeed == INDEX_NONE)
+	{
+		TMap<TWeakObjectPtr<const UWorld>, int32>& Map = TDEnemyShipSeeding::Counters();
+		for (auto It = Map.CreateIterator(); It; ++It) { if (!It.Key().IsValid()) { It.RemoveCurrent(); } }
+		int32& Next = Map.FindOrAdd(GetWorld());
+		SpawnSeed = 7919 * (++Next) + 104729;
+	}
+	return SpawnSeed;
+}
+
+void ATDEnemyShip::SetSpawnSeed(int32 Seed)
+{
+	SpawnSeed = Seed;
+	AimRng.Initialize(Seed);
+	if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(GetController()))
+	{
+		AI->ReseedRandom(Seed ^ 0x5bd1e995);
+	}
+}
+
 void ATDEnemyShip::BeginPlay()
 {
 	Super::BeginPlay();
-	AimRng.Initialize(static_cast<int32>(GetUniqueID()));	// every pilot misses differently
+	AimRng.Initialize(GetSpawnSeed());	// every pilot misses differently, the same way every run
 	EnsureWeapons();
 	bVisualsExplicit = Visuals != nullptr && !bSpecApplied;	// set on a BP child / placed instance
 	if (bSpecApplied) { StartLoopCues(); }
@@ -988,11 +1021,11 @@ float ATDEnemyShip::GetGunFireRange(const AActor* Target) const
 	if (Target)
 	{
 		const FVector Dir = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		Closing = FMath::Max(0.f, -FVector::DotProduct(Target->GetVelocity(), Dir));	// target flying at us
+		Closing = FMath::Max(0.f, FVector::DotProduct(GetVelocity() - Target->GetVelocity(), Dir));	// both ships' closing speed
 	}
 	// A target closing at V meets the bolts (about 30 000 cm/s, 20 000 cm range) well before gun range, and a
 	// head-on pass at 12 000-16 000 cm/s otherwise leaves room for one shot: open fire earlier the faster it closes.
-	return FMath::Min(Spec.Guns.Range * (1.f + 2.f * Closing / 30000.f), Spec.Guns.Range * 1.9f);
+	return FMath::Min(Spec.Guns.Range * (1.f + 2.f * Closing / 30000.f), Spec.Guns.Range * 2.2f);	// bolts still reach at 2.2x
 }
 
 void ATDEnemyShip::GetSimpleCollisionCylinder(float& CollisionRadius, float& CollisionHalfHeight) const

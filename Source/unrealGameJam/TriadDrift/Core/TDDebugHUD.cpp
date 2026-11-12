@@ -1,5 +1,6 @@
 #include "TriadDrift/Core/TDDebugHUD.h"
 
+#include "Camera/PlayerCameraManager.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -8,6 +9,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -56,6 +58,16 @@ namespace
 		case ETDShipId::Rift: return ColorRift;
 		case ETDShipId::Lancer: return ColorLancer;
 		default: return ColorBastion;
+		}
+	}
+
+	const TCHAR* PilotName(ETDShipId Ship)
+	{
+		switch (Ship)
+		{
+		case ETDShipId::Rift: return TEXT("WREN");
+		case ETDShipId::Lancer: return TEXT("KATO");
+		default: return TEXT("MOSS");
 		}
 	}
 
@@ -149,8 +161,151 @@ void ATDDebugHUD::DrawHUD()
 	DrawSquad(Y);
 	DrawWave();
 	DrawTargets();
+	DrawWingmen();
+	DrawDamageIndicators();
+	DrawObjective();
 	DrawCrosshair();
 	DrawFlight();
+
+	if (const UWorld* World = GetWorld(); World && World->IsPaused())
+	{
+		const FString Paused(TEXT("PAUSED - ESC TO RESUME"));
+		float W = 0.f, H = 0.f;
+		GetTextSize(Paused, W, H, nullptr, 2.2f);
+		DrawText(Paused, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.42f, nullptr, 2.2f);
+	}
+}
+
+void ATDDebugHUD::BeginPlay()
+{
+	Super::BeginPlay();
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnHitConfirmed.AddUniqueDynamic(this, &ATDDebugHUD::HandleHitConfirmed);
+	}
+}
+
+void ATDDebugHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// The bus lives on the game instance and outlives this HUD.
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnHitConfirmed.RemoveAll(this);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void ATDDebugHUD::HandleHitConfirmed(AActor* Target, bool bKill)
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	// A kill marker is never shortened by a later plain hit.
+	const double Until = World->GetRealTimeSeconds() + (bKill ? 0.35 : 0.12);
+	if (bKill || World->GetRealTimeSeconds() >= HitMarkerUntil || !bLastHitWasKill)
+	{
+		bLastHitWasKill = bKill;
+	}
+	HitMarkerUntil = FMath::Max(HitMarkerUntil, Until);
+}
+
+// Where fire is coming from: a red arc segment around the crosshair for each recent hit, on the side
+// the hit came from (up on screen = ahead, down = behind), fading over about 1.5 s.
+void ATDDebugHUD::DrawDamageIndicators()
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
+	const APlayerController* PC = GetOwningPlayerController();
+	if (!Data || !PC || !PC->PlayerCameraManager)
+	{
+		return;
+	}
+	const FRotator View = PC->PlayerCameraManager->GetCameraRotation();
+	const FVector Forward = View.Vector();
+	const FVector Right = FRotationMatrix(View).GetUnitAxis(EAxis::Y);
+	const FVector Up = FRotationMatrix(View).GetUnitAxis(EAxis::Z);
+	const FVector2D C(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+	const float Radius = FMath::Min(Canvas->SizeX, Canvas->SizeY) * 0.16f;
+
+	for (const FTDDamageIndicator& Hit : Data->GetDamageIndicators())
+	{
+		const float Life = 1.f - FMath::Clamp(Hit.AgeSeconds / 1.5f, 0.f, 1.f);
+		if (Life <= 0.f)
+		{
+			continue;
+		}
+		// Flatten the direction onto the screen: sideways and up / down keep their sense, and a hit
+		// from straight ahead or straight behind lands at the top or bottom of the ring.
+		const float X = FVector::DotProduct(Hit.WorldDirection, Right);
+		const float Y = FVector::DotProduct(Hit.WorldDirection, Up);
+		const float Z = FVector::DotProduct(Hit.WorldDirection, Forward);
+		FVector2D Dir(X, -Y);
+		if (Dir.SizeSquared() < 0.01f)
+		{
+			Dir = FVector2D(0.f, Z >= 0.f ? -1.f : 1.f);
+		}
+		Dir.Normalize();
+		const FVector2D Side(-Dir.Y, Dir.X);
+		const FLinearColor Color = Hit.bShieldOnly ? FLinearColor(0.4f, 0.8f, 1.f, Life) : FLinearColor(1.f, 0.15f, 0.1f, Life);
+		const float Half = 26.f + 34.f * FMath::Clamp(Hit.Strength01 * 4.f, 0.f, 1.f);
+		const FVector2D Mid = C + Dir * Radius;
+		// A shallow chevron pointing outward, wider for a harder hit.
+		DrawLine2D(Mid - Side * Half - Dir * 8.f, Mid, Color, 4.f);
+		DrawLine2D(Mid + Side * Half - Dir * 8.f, Mid, Color, 4.f);
+	}
+}
+
+// The wing: each AI-flown squad ship in its own colour. In view: the pilot's name beside it. Out of
+// view: an edge arrow with the name, so the player always knows where the wing is. Brighter while
+// that wingman is engaging a target.
+void ATDDebugHUD::DrawWingmen()
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
+	const APawn* Pawn = GetOwningPawn();
+	if (!Data || !Pawn)
+	{
+		return;
+	}
+	const FVector2D ScreenCenter(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+	for (const FTDSquadMarker& Marker : Data->GetSquadMarkers())
+	{
+		const AActor* Actor = Marker.Actor.Get();
+		if (Marker.bPlayerControlled || !Marker.bAlive || !IsValid(Actor) || Actor == Pawn)
+		{
+			continue;
+		}
+		FLinearColor Color = ShipColor(Marker.Ship);
+		Color.A = Marker.bEngaging ? 1.f : 0.6f;
+		const FString Label = Marker.bEngaging ? FString::Printf(TEXT("%s !"), PilotName(Marker.Ship)) : FString(PilotName(Marker.Ship));
+
+		const FVector Screen = Project(Actor->GetActorLocation());
+		const bool bOnScreen = Screen.Z > 0.f && Screen.X >= 0.f && Screen.X <= Canvas->SizeX && Screen.Y >= 0.f && Screen.Y <= Canvas->SizeY;
+		if (bOnScreen)
+		{
+			DrawText(Label, Color, Screen.X + 14.f, Screen.Y + 8.f, nullptr, 0.9f);
+			continue;
+		}
+		FVector2D Dir(Screen.X - ScreenCenter.X, Screen.Y - ScreenCenter.Y);
+		if (Screen.Z <= 0.f)
+		{
+			Dir *= -1.f;   // behind the camera the projection is mirrored
+		}
+		if (!Dir.Normalize())
+		{
+			Dir = FVector2D(0.f, 1.f);
+		}
+		// Inside the ring the hostile arrows use (0.45), so the two never sit on top of each other.
+		const float Radius = FMath::Min(Canvas->SizeX, Canvas->SizeY) * 0.34f;
+		const FVector2D Tip = ScreenCenter + Dir * Radius;
+		const FVector2D Side(-Dir.Y, Dir.X);
+		const float Thickness = Marker.bEngaging ? 3.f : 2.f;
+		DrawLine2D(Tip, Tip - Dir * 16.f + Side * 8.f, Color, Thickness);
+		DrawLine2D(Tip, Tip - Dir * 16.f - Side * 8.f, Color, Thickness);
+		float W = 0.f, H = 0.f;
+		GetTextSize(Label, W, H, nullptr, 0.85f);
+		DrawText(Label, Color, Tip.X - Dir.X * 30.f - W * 0.5f, Tip.Y - Dir.Y * 30.f - H * 0.5f, nullptr, 0.85f);
+	}
 }
 
 void ATDDebugHUD::DrawSquad(float& Y)
@@ -240,7 +395,8 @@ void ATDDebugHUD::DrawWave()
 		{
 			float W = 0.f, H = 0.f;
 			GetTextSize(Prompt, W, H, nullptr, 1.5f);
-			DrawText(Prompt, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.66f, nullptr, 1.5f);
+			// Low enough to clear the player's own ship in the chase view.
+			DrawText(Prompt, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.80f, nullptr, 1.5f);
 		}
 	}
 }
@@ -316,6 +472,70 @@ void ATDDebugHUD::DrawTargets()
 	}
 }
 
+// The objective line (top centre) and where to go: a diamond with the distance on each objective
+// marker in view, an edge arrow toward each one out of view. Works in space and on foot.
+void ATDDebugHUD::DrawObjective()
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
+	const APawn* Pawn = GetOwningPawn();
+	if (!Data || !Pawn)
+	{
+		return;
+	}
+	const FLinearColor ColorObjective(1.f, 0.78f, 0.2f);
+
+	const FString Objective = Data->GetObjectiveText().ToString();
+	if (!Objective.IsEmpty())
+	{
+		float W = 0.f, H = 0.f;
+		GetTextSize(Objective, W, H, nullptr, 1.3f);
+		// Below the three squad rows, so the two never overlap.
+		DrawText(Objective, ColorObjective, (Canvas->SizeX - W) * 0.5f, FMath::Max(22.f, Canvas->SizeY * 0.12f) + 76.f, nullptr, 1.3f);
+	}
+
+	const FVector Eye = Pawn->GetActorLocation();
+	const FVector2D ScreenCenter(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+	for (const AActor* Marker : Data->GetObjectiveMarkers())
+	{
+		if (!IsValid(Marker) || Marker == Pawn)
+		{
+			continue;
+		}
+		const FVector Screen = Project(Marker->GetActorLocation());
+		const bool bOnScreen = Screen.Z > 0.f && Screen.X >= 0.f && Screen.X <= Canvas->SizeX && Screen.Y >= 0.f && Screen.Y <= Canvas->SizeY;
+		const float DistanceM = static_cast<float>(FVector::Dist(Eye, Marker->GetActorLocation())) / 100.f;
+		if (bOnScreen)
+		{
+			const FVector2D C(Screen.X, Screen.Y);
+			const float R = 11.f;
+			DrawLine2D(C + FVector2D(0.f, -R), C + FVector2D(R, 0.f), ColorObjective, 2.f);
+			DrawLine2D(C + FVector2D(R, 0.f), C + FVector2D(0.f, R), ColorObjective, 2.f);
+			DrawLine2D(C + FVector2D(0.f, R), C + FVector2D(-R, 0.f), ColorObjective, 2.f);
+			DrawLine2D(C + FVector2D(-R, 0.f), C + FVector2D(0.f, -R), ColorObjective, 2.f);
+			DrawText(FString::Printf(TEXT("%.0f m"), DistanceM), ColorObjective, C.X + R + 5.f, C.Y - 8.f, nullptr, 1.f);
+		}
+		else
+		{
+			// Behind the camera the projection is mirrored: flip it so the arrow points the way to turn.
+			FVector2D Dir(Screen.X - ScreenCenter.X, Screen.Y - ScreenCenter.Y);
+			if (Screen.Z <= 0.f)
+			{
+				Dir *= -1.f;
+			}
+			if (!Dir.Normalize())
+			{
+				Dir = FVector2D(0.f, 1.f);
+			}
+			const float Radius = FMath::Min(Canvas->SizeX, Canvas->SizeY) * 0.40f;
+			const FVector2D Tip = ScreenCenter + Dir * Radius;
+			const FVector2D Side(-Dir.Y, Dir.X);
+			DrawLine2D(Tip, Tip - Dir * 22.f + Side * 11.f, ColorObjective, 3.f);
+			DrawLine2D(Tip, Tip - Dir * 22.f - Side * 11.f, ColorObjective, 3.f);
+			DrawText(FString::Printf(TEXT("%.0f m"), DistanceM), ColorObjective, Tip.X - Dir.X * 40.f - 14.f, Tip.Y - Dir.Y * 40.f - 8.f, nullptr, 0.9f);
+		}
+	}
+}
+
 void ATDDebugHUD::DrawCrosshair()
 {
 	const FVector2D C(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
@@ -324,6 +544,21 @@ void ATDDebugHUD::DrawCrosshair()
 	DrawLine2D(C + FVector2D(5.f, 0.f), C + FVector2D(14.f, 0.f), Color, 2.f);
 	DrawLine2D(C + FVector2D(0.f, -14.f), C + FVector2D(0.f, -5.f), Color, 2.f);
 	DrawLine2D(C + FVector2D(0.f, 5.f), C + FVector2D(0.f, 14.f), Color, 2.f);
+
+	// Hit marker: four short diagonals around the centre; red and thicker for a kill.
+	const UWorld* World = GetWorld();
+	if (World && World->GetRealTimeSeconds() < HitMarkerUntil)
+	{
+		const FLinearColor Mark = bLastHitWasKill ? FLinearColor(1.f, 0.2f, 0.2f) : FLinearColor::White;
+		const float Thick = bLastHitWasKill ? 3.f : 2.f;
+		const float Gap = 8.f;
+		const float Len = 10.f;
+		for (const FVector2D& D : { FVector2D(1.f, 1.f), FVector2D(1.f, -1.f), FVector2D(-1.f, 1.f), FVector2D(-1.f, -1.f) })
+		{
+			const FVector2D N = D.GetSafeNormal();
+			DrawLine2D(C + N * Gap, C + N * (Gap + Len), Mark, Thick);
+		}
+	}
 }
 
 void ATDDebugHUD::DrawFlight()

@@ -1,0 +1,272 @@
+{
+  "asset": "SM_SpaceDebris_02",
+  "checks": {
+    "tris_in_budget": true,
+    "single_material_slot": true,
+    "closed_manifold": true,
+    "no_ngons_all_triangles": true,
+    "no_floating_parts": true,
+    "bounding_sphere_100cm": true,
+    "uv_inside_0_1": true,
+    "uv_no_overlap": true,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0
+  },
+  "geometry": {
+    "tris": 380,
+    "verts": 192,
+    "bounding_sphere_radius_m_from_pivot": 0.5000000250173222,
+    "bounding_sphere_diameter_cm": 100.0,
+    "aabb_size_cm": [
+      99.71,
+      32.15,
+      23.98
+    ],
+    "uv_islands": 28,
+    "uv_faces_detached_to_fix_overlap": 0,
+    "uv": {
+      "uv_min": [
+        0.012,
+        0.012
+      ],
+      "uv_max": [
+        0.9694,
+        0.9766
+      ],
+      "inside_0_1": true,
+      "coverage": 0.5253,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 2048
+    },
+    "triangle_quality": {
+      "aspect_median": 2.67,
+      "aspect_p95": 11.04,
+      "aspect_max": 83.8,
+      "slivers_over_25": 6,
+      "min_area_cm2": 0.62522,
+      "shortest_edge_cm": 1.2638
+    },
+    "source_tris": 53266,
+    "source_closed": {
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "closed": true
+    },
+    "normalisation": {
+      "centre_before": [
+        -0.0010352533565162253,
+        -0.002020912325703151,
+        0.0015614593128100616
+      ],
+      "radius_before": 0.49889591243968684
+    }
+  },
+  "bake": {
+    "status": "ok",
+    "asset": "SpaceDebris_02",
+    "files": {
+      "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.claude\\worktrees\\agent-ac042639111712983\\ArtSource\\EngProps\\SpaceRocks\\SM_SpaceDebris_02\\T_SpaceDebris_02_BC.png",
+      "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.claude\\worktrees\\agent-ac042639111712983\\ArtSource\\EngProps\\SpaceRocks\\SM_SpaceDebris_02\\T_SpaceDebris_02_N.png",
+      "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.claude\\worktrees\\agent-ac042639111712983\\ArtSource\\EngProps\\SpaceRocks\\SM_SpaceDebris_02\\T_SpaceDebris_02_ORM.png"
+    },
+    "size": 512,
+    "normal_convention": "DirectX (green flipped)",
+    "emission_strength": 0.0,
+    "preview_material": "M_SpaceDebris_02_Baked",
+    "notes": [
+      "No emission in source materials"
+    ],
+    "warnings": [],
+    "seconds": 7.04
+  },
+  "bake_miss_fill": {
+    "status": "ok",
+    "texels_missed": 47665,
+    "texels_left": 28116
+  },
+  "cavity_tint": {
+    "status": "ok",
+    "share_of_texels_tinted": 0.1073
+  },
+  "bake_cage_m": 0.004817865177989001,
+  "deviation_source_to_game_mesh_m": {
+    "max_m": 0.0028672139160335064,
+    "mean_m": 0.0003423493874135181,
+    "p99_m": 0.0016113248048350212,
+    "p999_m": 0.0022773901470936843,
+    "game_to_source_p995_m": 0.002552203983068462,
+    "game_to_source_max_m": 0.0031376283150166273
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        512,
+        512
+      ],
+      "mean_rgb": [
+        0.4778,
+        0.3761,
+        0.3036
+      ],
+      "min": 0.0,
+      "max": 0.8706
+    },
+    "N": {
+      "size": [
+        512,
+        512
+      ],
+      "mean_rgb": [
+        0.5018,
+        0.5021,
+        0.9863
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0479,
+        0.0982
+      ]
+    },
+    "ORM": {
+      "size": [
+        512,
+        512
+      ],
+      "mean_rgb": [
+        0.8904,
+        0.7484,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "collision": [],
+  "asset_report": {
+    "status": "ok",
+    "scene_units": {
+      "system": "METRIC",
+      "scale_length": 1.0,
+      "length_unit": "METERS"
+    },
+    "objects": [
+      {
+        "name": "SM_SpaceDebris_02",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "SpaceRocks"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          99.71,
+          32.15,
+          23.98
+        ],
+        "hide_render": false,
+        "modifiers": [],
+        "materials": [
+          "M_SpaceDebris_02_Rock"
+        ],
+        "verts": 192,
+        "faces": 380,
+        "tris": 380,
+        "quads": 0,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 380
+        },
+        "local_bbox_min": [
+          -0.49854,
+          -0.15171,
+          -0.12759
+        ],
+        "local_bbox_max": [
+          0.49854,
+          0.16981,
+          0.1122
+        ],
+        "origin_placement": "center"
+      }
+    ],
+    "totals": {
+      "objects": 1,
+      "tris": 380,
+      "errors": 0,
+      "warnings": 0
+    },
+    "issues": []
+  },
+  "assembly_check": {
+    "status": "ok",
+    "ok": true,
+    "tolerance_m": 0.00161,
+    "objects": [
+      "SM_SpaceDebris_02"
+    ],
+    "islands": 1,
+    "groups": 1,
+    "main_body_tris": 380,
+    "floating": [],
+    "hint": "All parts are connected."
+  },
+  "review_sheets": [
+    "SM_SpaceDebris_02_clay_sheet.png",
+    "SM_SpaceDebris_02_material_sheet.png",
+    "SM_SpaceDebris_02_wireframe_sheet.png"
+  ],
+  "export": {
+    "status": "ok",
+    "tris": 380,
+    "size_cm": [
+      32.2,
+      99.7,
+      24.0
+    ],
+    "collision": [],
+    "collision_source": "none",
+    "materials": [
+      "M_SpaceDebris_02_Rock"
+    ],
+    "textures": [
+      "T_SpaceDebris_02_BC.png",
+      "T_SpaceDebris_02_N.png",
+      "T_SpaceDebris_02_ORM.png"
+    ],
+    "warnings": [],
+    "errors": [],
+    "welded_verts": 0
+  },
+  "seconds": 14.6
+}

@@ -95,6 +95,8 @@ protected:
 	virtual bool OnActivate() override;
 	virtual void OnTickActive(float DeltaTime) override;
 	virtual void OnEnd(bool bInterrupted) override;
+	/** Switched away mid-ram: a wind-up is cancelled and a dash ends now (never AI-flown at dash speed). */
+	virtual void OnLostPlayerControl() override { EndPower(true); }
 
 private:
 	void BeginDash();

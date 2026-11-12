@@ -48,9 +48,9 @@ ATDEnemyShip* ATDEnemyAIController::GetEnemyShip() const
 void ATDEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	if (InPawn)
+	if (ATDEnemyShip* Ship = Cast<ATDEnemyShip>(InPawn))
 	{
-		Rng.Initialize(static_cast<int32>(InPawn->GetUniqueID()));
+		Rng.Initialize(Ship->GetSpawnSeed() ^ 0x5bd1e995);	// deterministic per world, not per object count
 	}
 	bPrefersPlayer = Rng.FRand() < PreferPlayerShipChance;
 	CrossInFrontDistance = GTDEnemyCrossInFront;
@@ -270,7 +270,9 @@ void ATDEnemyAIController::UpdateCatchUp(ATDEnemyShip& Ship)
 			const FTDEnemySpec& Spec = Ship.GetSpec();
 			const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
 			const float Dist = FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation());
-			bWant = bCatchingUp ? Dist > GunRange * 0.8f : Dist > CatchUpDistance;
+			// Drop catch-up once the guns can open (closing-aware), so a head-on run isn't flown at 1.7x cruise.
+			const float Release = Spec.Guns.IsValid() ? FMath::Max(GunRange * 0.8f, Ship.GetGunFireRange(T)) : GunRange * 0.8f;
+			bWant = bCatchingUp ? Dist > Release : Dist > CatchUpDistance;
 		}
 	}
 	// Never fight a control effect (Gravity Well, EMP...): no catch-up while weapons are blocked or while
@@ -432,10 +434,19 @@ void ATDEnemyAIController::TryHeavyAttacks(ATDEnemyShip& Ship, AActor& InTarget)
 		{
 			continue;
 		}
-		// A telegraphed attack must leave time to wind up AND peel away: never launch on the target's flight line.
-		// Not inside TelegraphMinDistance either: a pilot still turning shows a long time-to-impact while sitting
-		// right on top of its target.
-		if (A->IsTelegraphed() && (Dist < TelegraphMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds + BreakOffTimeToImpact + 0.5f))
+		// Minimum distances per attack (review E2 and its re-check). The interceptor's homing missile must leave
+		// time to wind up AND peel away, so it never launches on the player's flight line. A gunship is a
+		// turret on engines: its bolts fire at a ship charging it (down to a short minimum), and its salvo keeps
+		// its own smaller margin so the missiles have room to arm.
+		if (A->Kind == ETDEnemyAttack::Missile && (Dist < TelegraphMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds + BreakOffTimeToImpact + 0.5f))
+		{
+			continue;
+		}
+		if (A->Kind == ETDEnemyAttack::HeavyBolt && Dist < GunshipBoltMinDistance)
+		{
+			continue;
+		}
+		if (A->Kind == ETDEnemyAttack::MissileSalvo && (Dist < GunshipSalvoMinDistance || TimeToImpact(Ship, InTarget) < A->TelegraphSeconds))
 		{
 			continue;
 		}
@@ -563,7 +574,10 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 	TryHeavyAttacks(Ship, *T);
 
 	const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
-	if (!bRunReachedGunRange && FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation()) <= GunRange)
+	// The break-off clock arms at the range the guns actually open at (closing-aware), or a fast head-on pass
+	// reaches 9000 cm with under 0.5 s to impact and clips the target.
+	const float ArmRange = Spec.Guns.IsValid() ? FMath::Max(GunRange, Ship.GetGunFireRange(T)) : GunRange;
+	if (!bRunReachedGunRange && FVector::Dist(T->GetActorLocation(), Ship.GetActorLocation()) <= ArmRange)
 	{
 		bRunReachedGunRange = true;
 		StateTime = 0.f;	// the run's clock starts once we're actually shooting

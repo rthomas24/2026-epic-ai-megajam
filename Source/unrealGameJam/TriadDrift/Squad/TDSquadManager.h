@@ -33,6 +33,18 @@ enum class ETDSwitchRefusal : uint8
 	Locked
 };
 
+/** Why the active ship changed (logged on every switch: "TDSQUAD switch A -> B cause=..."). */
+UENUM(BlueprintType)
+enum class ETDSwitchCause : uint8
+{
+	None,			// a path that didn't say: a bug if it ever shows up in the log
+	Manual,			// the player's own press (Tab / 1-2-3 / cheats / bots calling RequestSwitch*)
+	Buffered,		// a press made during the cooldown, run when it ended (at most one cooldown later)
+	AutoOnDeath,	// the player's ship finished dying: cut to the healthiest survivor
+	RespawnRescue,	// no flow took the wipe; a ship came back while the player sat in a downed one
+	Retake			// SpawnSquad: the take restarts in StartingShip
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnSwitchRefused, ETDSwitchRefusal, Reason, ETDShipId, RequestedShip);
 
 /** Life state of one squad slot. */
@@ -80,6 +92,10 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 
 	/** The low-hull line is armed (re-armed once the hull is repaired). */
 	bool bLowHullBarkArmed = true;
+	/** Real time the hull first dipped low this time (the line only plays close to that moment). */
+	double LowHullSince = -1.0;
+	/** Real time of this wingman's last engage call. */
+	double LastEngageCallTime = -1000.0;
 };
 
 /**
@@ -240,6 +256,9 @@ public:
 	virtual TArray<AActor*> GetObjectiveMarkers() const override;
 	/** The player's ship's landing prompt ("Hold F to land", "SLOW DOWN TO LAND - ..."); empty otherwise. */
 	virtual FText GetInteractPrompt() const override;
+	/** One entry per squad ship for the HUD's wing markers; bEngaging while its wingman has a live target. */
+	virtual TArray<FTDSquadMarker> GetSquadMarkers() const override;
+	virtual FText GetBoundaryWarningText() const override;
 	/** Nick's HUD objective line: the Text of the last OnObjectiveUpdated (empty before the first). */
 	virtual FText GetObjectiveText() const override { return ObjectiveText; }
 
@@ -256,6 +275,8 @@ public:
 	/** HUD-ready text for the last lock refusal (from T1's IsSwitchLocked). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
 	FText GetLastRefusalText() const { return LastRefusalText; }
+	/** Why the active ship last changed (tests, logs). */
+	ETDSwitchCause GetLastSwitchCause() const { return LastSwitchCause; }
 	virtual bool IsOutOfBounds() const override;
 
 	// ---------------- Tuning (features.md defaults) ----------------
@@ -346,6 +367,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks")
 	FTDBarkTuning BarkTuning;
 
+	/** A low-hull line not played within this many real seconds of the dip is dropped (never late). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks", meta = (ClampMin = "0", Units = "s"))
+	float LowHullBarkWindowSeconds = 1.5f;
+
+	/** A wingman just entered a fight: it calls where it is, seen from the player's camera. */
+	void NotifyWingmanEngaged(ETDShipId Ship);
+
+	/** At most one engage call per wingman this often (real seconds), on top of the limiter. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks", meta = (ClampMin = "0", Units = "s"))
+	float EngageCallCooldownSeconds = 10.f;
+
 	/** Ask for a squad line; false if the limiter held it back. */
 	bool RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkPriority Priority = ETDBarkPriority::Normal);
 
@@ -381,6 +413,11 @@ protected:
 
 	/** Core of switching; bForced bypasses the cooldown (auto-switch on death). */
 	bool SwitchToInternal(ETDShipId Ship, bool bForced);
+	/** SwitchToInternal with the cause recorded for the log and GetLastSwitchCause. */
+	bool SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCause Cause);
+	ETDSwitchCause CurrentSwitchCause = ETDSwitchCause::None;
+	ETDSwitchCause LastSwitchCause = ETDSwitchCause::None;
+	void LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const;
 	bool CycleSwitch(int32 Direction);
 	void BufferIfCoolingDown(int32 Kind, ETDShipId Ship);
 	void RunPendingSwitch();
