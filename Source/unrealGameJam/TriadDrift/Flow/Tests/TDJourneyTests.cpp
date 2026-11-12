@@ -341,4 +341,40 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+// ------------------------------------------------------------------------------------------------
+// Enemies review: the last enemy dies inside the 1.75 s CUT delay. The flow voids that clear (the scene is
+// about to restart); the retake must then rebuild the wave, so the run can never be left with no enemies
+// and no phase change. Real GI, real wave director, real kills, in exactly that order.
+// DISABLED until T4's director rebuilds the wave on the retake (fails today: wave 2 is left empty, no phase change).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyClearDuringCut, "TriadDrift.Flow.Journey.LastKillDuringCutNeverSoftLocks", TD_TEST_FLAGS | EAutomationTestFlags::Disabled)
+bool FTDJourneyClearDuringCut::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	ATDWaveDirector* Director = ATDWaveDirector::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), G.GI) || !TestNotNull(TEXT("director"), Director)) { return false; }
+	for (const int32 Wave : { 2, 4, 5 })
+	{
+		const FString W = FString::Printf(TEXT("Wave%d"), Wave);
+		TestTrue(*(TEXT("stage ") + W), UTDCheatManager::DoStage(G.W.GetWorld(), W));
+		TDJourneyTest::Run(G, 6.f);
+		const ETDGamePhase PhaseBefore = G.GI->GetProgressRef().Phase;
+		if (!TestTrue(*(W + TEXT(" running with enemies")), Director->GetWaveInfo().bWaveActive && Director->GetWaveInfo().EnemiesAlive > 0)) { continue; }
+
+		G.GI->ReportPlayerDefeated();                 // CUT!
+		TDJourneyTest::Run(G, 0.3f);
+		UTDCheatManager::DoKillAll(G.W.GetWorld());    // the last enemies die inside the delay
+		TDJourneyTest::Run(G, 0.3f);
+		TestTrue(*(W + TEXT(": CUT still pending")), G.GI->IsRetakePending());
+		TDJourneyTest::Run(G, 6.f);                    // retake, rebuild, breather
+
+		const FTDWaveInfo Info = Director->GetWaveInfo();
+		const bool bRebuilt = Info.bWaveActive && Info.WaveNumber == Wave && Info.EnemiesAlive > 0;
+		const bool bAdvanced = G.GI->GetProgressRef().WavesCleared >= Wave && G.GI->GetProgressRef().Phase != PhaseBefore;
+		TestTrue(FString::Printf(TEXT("%s: retake rebuilds the wave or the clear stands (active %d, wave %d, alive %d, cleared %d)"),
+			*W, Info.bWaveActive, Info.WaveNumber, Info.EnemiesAlive, G.GI->GetProgressRef().WavesCleared), bRebuilt || bAdvanced);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
