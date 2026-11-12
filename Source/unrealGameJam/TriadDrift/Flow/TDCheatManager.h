@@ -1,4 +1,4 @@
-// Triad Drift - debug cheats (ENG-19 debug menu). Owner: Teammate 5. Not compiled into Shipping.
+﻿// Triad Drift - debug cheats (ENG-19 debug menu). Owner: Teammate 5. Not compiled into Shipping.
 
 #pragma once
 
@@ -20,7 +20,7 @@
  * The static Do* functions hold the logic so tests and the F10 debug menu can call them directly.
  */
 UCLASS()
-class UTDCheatManager : public UCheatManager
+class UNREALGAMEJAM_API UTDCheatManager : public UCheatManager
 {
 	GENERATED_BODY()
 
@@ -40,6 +40,12 @@ public:
 	static bool DoSkipWave(UWorld* World);
 	static bool DoTravel(UWorld* World, const FString& DestinationName);
 	static bool DoTake(UWorld* World);
+
+	/**
+	 * Makes UTDCheatManager the controller's cheat manager (replacing the stock one the engine creates
+	 * in standalone). Dev builds only; no-op in Shipping or if already installed.
+	 */
+	static void InstallOn(APlayerController* PC);
 
 	/** Current god-mode state (shared between the console command and the cheat manager). */
 	static bool IsGodModeOn() { return bGodMode; }

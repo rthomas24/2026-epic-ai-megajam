@@ -216,6 +216,8 @@ protected:
 	void LaunchGroup();
 	void OnDefensesDown(bool bFromSave);
 	void ExposeReactor();
+	void StartShieldIdle();
+	void StopShieldIdle();
 
 	UFUNCTION()
 	void HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor* Killer);
@@ -261,6 +263,9 @@ protected:
 	TObjectPtr<ATDDominionReactor> Reactor;
 
 	TArray<TWeakObjectPtr<ATDEnemyShip>> Launched;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> ShieldIdleFX;
 
 	ETDDominionState State = ETDDominionState::Hidden;
 	float StateTime = 0.f;
