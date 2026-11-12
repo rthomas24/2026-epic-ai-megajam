@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "material_instances": [
+    {"asset": "MI_TD_Space_Hero", "scalars": {"YawTurns": 0.0, "NebulaIntensity": 1.0, "StarIntensity": 1.8, "SkyIntensity": 1.0}, "nebula_tint_linear": [1.0, 1.0, 1.0]},
+    {"asset": "MI_TD_Space_Combat", "scalars": {"YawTurns": 0.09, "NebulaIntensity": 0.58, "StarIntensity": 1.15, "SkyIntensity": 0.85}, "nebula_tint_linear": [0.88, 0.95, 1.0]},
+    {"asset": "MI_TD_Space_Verdance", "scalars": {"YawTurns": 0.37, "NebulaIntensity": 0.9, "StarIntensity": 1.5, "SkyIntensity": 1.0}, "nebula_tint_linear": [0.65, 1.0, 0.95]}
+  ],
+  "lighting_presets": {
+    "note": "Starting art values only; no project settings or maps are modified. Validate in target exposure/tonemapper.",
+    "hero": {"directional_lux": 8, "directional_temperature_kelvin": 6500, "sun_pitch_deg": -25, "sun_yaw_deg": -35, "sky_light_intensity": 0.35, "fixed_ev100": 0, "bloom_intensity": 0.2},
+    "combat": {"directional_lux": 6, "directional_temperature_kelvin": 6800, "sun_pitch_deg": -30, "sun_yaw_deg": -35, "sky_light_intensity": 0.25, "fixed_ev100": 0, "bloom_intensity": 0.12}
+  },
+  "budget": {"runtime_texture_samples": 2, "default_nebula_size": [1024, 512], "star_size": [2048, 1024], "opaque_sky_draws": 1, "volume_raymarch_steps": 0, "runtime_particles": 0}
+}
