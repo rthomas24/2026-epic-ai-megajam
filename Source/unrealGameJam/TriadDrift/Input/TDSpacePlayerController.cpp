@@ -902,6 +902,14 @@ void ATDSpacePlayerController::OnLandReleased(const FInputActionValue&)
 {
 	LandPressTime = -1.0;
 	bLandFired = false;
+	// Letting go of F hands the approach back to the pilot (a started landing sequence carries on).
+	if (const ATDShip* Ship = Cast<ATDShip>(GetPawn()))
+	{
+		if (UTDLandingComponent* Landing = Ship->GetLanding())
+		{
+			Landing->StopApproachAssist();
+		}
+	}
 }
 
 void ATDSpacePlayerController::OnCameraToggle(const FInputActionValue&)
@@ -1023,7 +1031,8 @@ bool ATDSpacePlayerController::RouteLand()
 	{
 		return Landing->RequestTakeOff();
 	}
-	return Landing->RequestLand();
+	// Slow and close: land now. Otherwise, near a pad, the approach assist flies the ship in while F is held.
+	return Landing->RequestLand() || Landing->StartApproachAssist();
 }
 
 void ATDSpacePlayerController::RouteSquadCommand()

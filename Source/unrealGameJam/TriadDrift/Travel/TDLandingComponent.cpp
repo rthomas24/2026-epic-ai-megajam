@@ -133,16 +133,119 @@ float UTDLandingComponent::GetLandingSpeedLimit() const
 	return Move ? Move->GetCruiseCapSpeed() * Tuning.MaxSpeedFraction + 1.f : 0.f; // +1: "at or below"
 }
 
+ATDLandingPad* UTDLandingComponent::GetAssistPad() const
+{
+	const ATDShip* Ship = GetShip();
+	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+	if (!Ship || !Travel || State != ETDLandingState::Flying || !Ship->IsPlayerFlown() || Ship->IsBoosting())
+	{
+		return nullptr;
+	}
+	if (const UTDHealthComponent* Health = Ship->GetHealth())
+	{
+		if (Health->IsDead())
+		{
+			return nullptr;
+		}
+	}
+	if (const UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
+	{
+		if (Hyper->GetState() != ETDHyperdriveState::Idle)
+		{
+			return nullptr;
+		}
+	}
+	ATDLandingPad* Near = Travel->FindPlayerPad(Ship->GetActorLocation(), TNumericLimits<float>::Max());
+	if (Near && !Near->IsOccupied() && FVector::Dist(Near->GetBeaconLocation(), Ship->GetActorLocation()) <= Tuning.SlowDownPromptRange)
+	{
+		return Near;
+	}
+	return nullptr;
+}
+
+bool UTDLandingComponent::StartApproachAssist()
+{
+	if (IsApproachAssisting())
+	{
+		return true;
+	}
+	ATDLandingPad* Target = GetAssistPad();
+	if (!Target)
+	{
+		return false;
+	}
+	AssistPad = Target;
+	TickApproachAssist(0.f);
+	return true;
+}
+
+void UTDLandingComponent::StopApproachAssist()
+{
+	const bool bWasAssisting = AssistPad.IsValid() || AssistPad.IsStale();
+	AssistPad.Reset();
+	if (bWasAssisting)
+	{
+		if (ATDShip* Ship = GetShip())
+		{
+			Ship->ClearSpeedOverrideFor(TEXT("LandingAssist"));
+		}
+	}
+}
+
+void UTDLandingComponent::TickApproachAssist(float DeltaTime)
+{
+	ATDShip* Ship = GetShip();
+	ATDLandingPad* Target = AssistPad.Get();
+	// Anything that would refuse a new assist (death, a switch, hyperdrive, boost, out of range) ends this one.
+	if (!Ship || !Target || GetAssistPad() != Target)
+	{
+		StopApproachAssist();
+		return;
+	}
+	const float Radius = Ship->GetCollisionSphere() ? Ship->GetCollisionSphere()->GetScaledSphereRadius() : 200.f;
+	const FVector Hover = Target->GetBeaconLocation() + FVector(0.f, 0.f, Radius + 5.f + Tuning.HoverHeight);
+	const FVector ToHover = Hover - Ship->GetActorLocation();
+	const float Dist = ToHover.Size();
+	if (Dist <= Tuning.AssistHandOffDistance)
+	{
+		StopApproachAssist();
+		if (BeginLanding(Target))
+		{
+			LandWingmen(Target);
+		}
+		return;
+	}
+	const float ToGo = FMath::Max(0.f, Dist - Tuning.AssistHandOffDistance);
+	const float Speed = FMath::Clamp(FMath::Sqrt(FMath::Square(Tuning.AssistEndSpeed) + 2.f * Tuning.AssistBrake * ToGo),
+		Tuning.AssistEndSpeed, FMath::Max(Tuning.AssistSpeed, Tuning.AssistEndSpeed));
+	// Steering 0: the assist owns the nose. Acceleration high enough to follow the braking curve.
+	Ship->SetSpeedOverrideFor(TEXT("LandingAssist"), Speed, 0.f, Tuning.AssistBrake * 2.f);
+	if (DeltaTime > 0.f)
+	{
+		const FQuat Want = ToHover.GetSafeNormal().ToOrientationQuat();
+		const FQuat Turned = FMath::QInterpConstantTo(Ship->GetActorQuat(), Want, DeltaTime, FMath::DegreesToRadians(Tuning.AssistTurnRate));
+		Ship->SetActorRotation(Turned);
+	}
+}
+
 FText UTDLandingComponent::GetLandPrompt() const
 {
 	if (const ATDLandingPad* Available = GetAvailablePad())
 	{
 		return Available->GetPromptText();
 	}
+	if (const ATDLandingPad* Assisting = AssistPad.Get())
+	{
+		return Assisting->GetPromptText();
+	}
+	if (const ATDLandingPad* Assist = GetAssistPad())
+	{
+		return Assist->GetPromptText();
+	}
 	// Near a pad but too fast: say why there is no prompt (a player who never brakes would otherwise never know).
 	const ATDShip* Ship = GetShip();
 	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
-	if (!Ship || !Travel || State != ETDLandingState::Flying || Ship->GetVelocity().Size() <= GetLandingSpeedLimit())
+	if (!Ship || !Travel || State != ETDLandingState::Flying || !Ship->IsPlayerFlown() || Ship->GetVelocity().Size() <= GetLandingSpeedLimit())
 	{
 		return FText::GetEmpty();
 	}
@@ -164,7 +267,7 @@ FText UTDLandingComponent::GetLandPrompt() const
 bool UTDLandingComponent::RequestLand()
 {
 	ATDLandingPad* Available = GetAvailablePad();
-	if (!Available || !LandOnPad(Available))
+	if (!Available || !BeginLanding(Available))
 	{
 		return false;
 	}
@@ -174,12 +277,24 @@ bool UTDLandingComponent::RequestLand()
 
 bool UTDLandingComponent::LandOnPad(ATDLandingPad* InPad)
 {
+	return BeginLanding(InPad);
+}
+
+bool UTDLandingComponent::BeginLanding(ATDLandingPad* InPad)
+{
 	ATDShip* Ship = GetShip();
 	if (!Ship || !InPad || State != ETDLandingState::Flying || !InPad->Reserve(Ship))
 	{
 		return false;
 	}
+	StopApproachAssist();
 	Pad = InPad;
+	// Aligning covers the distance to the hover point at no more than the speed the ship arrived with.
+	{
+		const float Dist = FVector::Dist(Ship->GetActorLocation(), HoverPoint());
+		const float Speed = FMath::Max((float)Ship->GetVelocity().Size(), 500.f);
+		AlignSecondsNow = FMath::Clamp(1.5f * Dist / Speed, Tuning.AlignSeconds, 4.f); // smoothstep peak = 1.5 x average
+	}
 	if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
 	{
 		Hyper->CancelSpool();
@@ -208,6 +323,7 @@ bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
 
 void UTDLandingComponent::AbortToFlying()
 {
+	StopApproachAssist(); // a retake mid-approach hands the ship straight back
 	if (State == ETDLandingState::Flying)
 	{
 		return;
@@ -347,7 +463,7 @@ float UTDLandingComponent::StateDuration(ETDLandingState S) const
 {
 	switch (S)
 	{
-	case ETDLandingState::Aligning: return Tuning.AlignSeconds;
+	case ETDLandingState::Aligning: return AlignSecondsNow;
 	case ETDLandingState::GearDown: return Tuning.GearSeconds;
 	case ETDLandingState::Descending: return Tuning.DescendSeconds;
 	case ETDLandingState::Touchdown: return Tuning.TouchdownSeconds;
@@ -463,6 +579,10 @@ void UTDLandingComponent::FinishTakeOff()
 void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (State == ETDLandingState::Flying && (AssistPad.IsValid() || AssistPad.IsStale()) && DeltaTime > 0.f)
+	{
+		TickApproachAssist(DeltaTime);
+	}
 	if (State == ETDLandingState::Flying || State == ETDLandingState::Landed || DeltaTime <= 0.f)
 	{
 		return;
