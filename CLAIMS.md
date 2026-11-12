@@ -89,7 +89,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 15:46 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 15:50 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -162,6 +162,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | On `main` at `707d15e` (383 tests): Bastion lock expiry and replacement (T2 `53f2994`); `GetObjectiveText` on the squad manager, also for a late squad (T3 `7c158cd`); star backdrop unlit in three tints and following the camera, `TD.Stage` aliases and on-screen error (T5 `7ed01a0`, `cdfa8dd`); capture tool `-TDShotUI` and quoting fix (Lead) | all | in review | Nov 12 15:40 | Nov 12 15:46 (`707d15e`) | none |
 | ENG-28: Development package of `main` `c37a94e` (1.9 min, 1,112 MB): boots, runs wave 5, hosts `WBP_SpaceHUD_C` from the cook, quits cleanly | Lead | done | Nov 12 15:38 | Nov 12 15:42; Shipping re-check and a full packaged journey still open | none (git-ignored `Builds/`) |
 | Second independent reviews: Squad / Director (ENG-03, 04, 07, 08, C-03 #1, #2) and Travel (ENG-15, ENG-20) | Lead | in progress | Nov 12 15:39 | | none |
+| Objective markers owned by the flow (tags the destination atmosphere, live shield generators, the reactor, on-foot waypoints and the board-ship point; nothing during waves, a cut, travel or menus); `GetObjectiveText` on foot; difficulty (Story / Standard / Ace) kept in the save, `TD.Difficulty` cheat | T5 | in review | Nov 12 15:40 | Nov 12 15:50 (`4b29787`); markers and difficulty not played live yet | none |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
@@ -189,7 +190,7 @@ open) · `done` (on `main`, tests pass, review closed).
 | Menu and transition game modes (`ATDMenuGameMode`, `ATDTransitionGameMode`) | T5 | done | Nov 12 | Nov 12 13:10, this push (`85af40b`) | `/Config/DefaultEngine.ini` map prefixes |
 | ENG-21 to ENG-24 on-foot review fixes (objective soft-lock on retake, respawn point, encounter resets, blade on press, deflect aim) | T5 | in progress | Nov 12 13:58 | review done Nov 12 13:58: ENG-19 and Flow side of C-03 #3 acceptable; Ground items not done | none |
 | ENG-23 crew enemies | T5 | in review | Nov 12 13:10 | Nov 12 13:24 (`0136518`); trooper cover merged 13:50 | none |
-| ENG-25 Verdance gameplay, ENG-26 Cinder gameplay | T5 | in progress | Nov 12 13:24 | | places gameplay in `L_Planet_*` from C++ only; reads `/Game/TriadDrift/Presentation/DA_*` by path |
+| ENG-25 Verdance gameplay, ENG-26 Cinder gameplay: both objectives per planet finishable, rewards, slates, retakes, return to space, played end to end over MCP | T5 | in progress | Nov 12 13:24 | main work from Nov 12 15:50 | places gameplay in `L_Planet_*` from C++ only; reads `/Game/TriadDrift/Presentation/DA_*` by path |
 | ENG-29 docking, ENG-30 interior + core fight, ENG-31 escape (stretch) | unassigned | queued | | | only after core is solid |
 
 ### Coming next that touches shared things (heads-up for Nick's side)

@@ -371,8 +371,9 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   swarm's range, or stays outside the cone for more than 1.5 s; when all six are used, a new
   candidate replaces the stalest lock.
 - Off-screen arrows, incoming-missile and objective direction data → `ITDHUDData`. Objective
-  markers are the live actors carrying the actor tag `TD.Objective.Marker` (world and flow actors add
-  and remove it as the scene changes).
+  markers are the live actors carrying the actor tag `TD.Objective.Marker`. The game flow owns the tag:
+  the destination planet's atmosphere, live shield generators, the reactor, on-foot waypoints and the
+  board-ship point; the landing pad while in atmosphere (flight). Nothing is tagged during a wave.
 - Incoming-missile warning state (Nick supplies the sound and UI).
 
 #### ENG-07 · Squad manager & instant switching (PROTECT) · `⬜`
