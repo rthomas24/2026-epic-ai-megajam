@@ -277,7 +277,7 @@ void UTDDirectorSubsystem::BuildCameraHint(FTDDirectorShot& Shot)
 	const AActor* Subject = Shot.Subject.Get();
 	const AActor* Other = Shot.Secondary.Get();
 	FVector Focus = Subject ? Subject->GetActorLocation() : (Other ? Other->GetActorLocation() : FVector::ZeroVector);
-	if (Subject && Other)
+	if (Subject && Other && FVector::Dist(Subject->GetActorLocation(), Other->GetActorLocation()) <= Tuning.MaxTwoShotDistance)
 	{
 		// Two-shot: frame between them, weighted to the subject.
 		Focus = FMath::Lerp(Subject->GetActorLocation(), Other->GetActorLocation(), 0.35f);

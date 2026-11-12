@@ -67,7 +67,7 @@ if ($Editor) {
     # The game itself. -TDQuit is a safety net so a forgotten session does not run forever.
     $arguments = @("`"$project`"", $Map, "-game", "-windowed", "-ResX=$ResX", "-ResY=$ResY", "-TDQuit=$MaxSeconds") + $common
 }
-Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Minimized | Out-Null
+$started = Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Minimized -PassThru
 
 $deadline = (Get-Date).AddSeconds(180)
 $ready = $false
@@ -81,6 +81,16 @@ while ((Get-Date) -lt $deadline) {
         break
     } catch { }
     if (@(Get-TDMcpProcess).Count -eq 0) { break }
+}
+if ($ready -and -not $Editor) {
+    # CaptureGameViewport reports "no drawable area" for a minimised window: show it without stealing focus.
+    try {
+        Add-Type -Namespace TD -Name Win -MemberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindowAsync(System.IntPtr hWnd, int nCmdShow);' -ErrorAction SilentlyContinue
+        foreach ($p in @(Get-TDMcpProcess)) {
+            $proc = Get-Process -Id $p.ProcessId -ErrorAction SilentlyContinue
+            if ($proc -and $proc.MainWindowHandle -ne [IntPtr]::Zero) { [TD.Win]::ShowWindowAsync($proc.MainWindowHandle, 4) | Out-Null }
+        }
+    } catch { }
 }
 if ($ready) {
     Write-Output "MCP SESSION READY on port $Port  ($(if ($Editor) { 'editor' } else { 'game' }), map $Map, log: $logFile)"

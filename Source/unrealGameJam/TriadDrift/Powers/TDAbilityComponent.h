@@ -32,6 +32,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ability")
 	UTDPowerComponent* GetAbilityPower() const { return Power; }
 
+	/** HUD readiness: 0 while no ability is earned (locked), else the ability power's GetCooldown01 (1 = ready). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ability")
+	float GetReadiness01() const;
+
+	/** True once an ability has been earned and installed on this ship. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ability")
+	bool HasAbility() const { return Ability != ETDAbilityId::None && Power != nullptr; }
+
 	/** Re-read the unlocks from game flow (respawn, checkpoint restore). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ability")
 	void RefreshFromProgress();

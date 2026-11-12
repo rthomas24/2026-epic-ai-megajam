@@ -1,0 +1,12 @@
+[2026.11.12-18.59.28:396][  0]LogTemp: Display: TDHUD_PREVIEW_CLASS /Game/TriadDrift/UI/TriadHUD/WBP_SpaceHUD.WBP_SpaceHUD_C
+[2026.11.12-18.59.32:564][677]LogCore: Display: Tracing Screenshot "01-lancer-ready-1080p" taken with size: 1920 x 1080
+[2026.11.12-18.59.34:229][ 41]LogCore: Display: Tracing Screenshot "02-rift-ready-1080p" taken with size: 1920 x 1080
+[2026.11.12-18.59.36:234][513]LogCore: Display: Tracing Screenshot "03-bastion-ready-pad-1080p" taken with size: 1920 x 1080
+[2026.11.12-18.59.37:203][731]LogTemp: Display: TDHUD_READABILITY_INPUT PASS Gamepad_FaceButton_Left -> power cooldown
+[2026.11.12-18.59.37:302][756]LogTemp: Display: TDHUD_READABILITY_DPI 1080p 1.0000 local 1920x1080
+[2026.11.12-18.59.37:430][781]LogCore: Display: Tracing Screenshot "04-bastion-cooldown-1080p" taken with size: 1920 x 1080
+[2026.11.12-18.59.38:200][958]LogTemp: Display: TDHUD_READABILITY_INPUT PASS Q -> power cooldown
+[2026.11.12-18.59.39:003][139]LogTemp: Display: TDHUD_READABILITY_DPI 720p 0.6660 local 1922x1081
+[2026.11.12-18.59.39:217][184]LogCore: Display: Tracing Screenshot "05-rift-low-health-720p" taken with size: 1280 x 720
+[2026.11.12-18.59.41:237][666]LogCore: Display: Tracing Screenshot "06-rift-cooldown-ultrawide" taken with size: 2560 x 1080
+[2026.11.12-18.59.43:249][131]LogCore: Display: Tracing Screenshot "07-unavailable" taken with size: 2560 x 1080

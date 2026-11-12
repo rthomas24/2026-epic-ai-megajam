@@ -183,6 +183,14 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
 	float ScrapeBounceSpeed = 400.f;
 
+	/** No single collision deals more than this (cm/s above BoostSpeed count as BoostSpeed too). Never one-shots a ship. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
+	float MaxImpactDamage = 60.f;
+
+	/** Touching the same actor again within this long is resting contact: resolved, but no event or damage. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
+	float RestingContactWindow = 0.5f;
+
 	/** Minimum seconds between two collision damage events (no damage machine-gunning while scraping). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
 	float CollisionDamageCooldown = 0.3f;

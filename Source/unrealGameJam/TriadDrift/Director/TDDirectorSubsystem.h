@@ -134,6 +134,11 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director")
 	float MultiKillImportancePerExtraKill = 0.1f;
 
+	/** Frame subject + secondary together only when they're this close; else the subject alone
+	 *  (a generator kill from 3 km away must not frame the empty space between them). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "cm"))
+	float MaxTwoShotDistance = 8000.f;
+
 	/** Suggested camera distance from the focus at importance 0 and 1. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "cm"))
 	float CameraDistanceMin = 2500.f;

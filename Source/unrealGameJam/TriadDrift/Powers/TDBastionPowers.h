@@ -41,6 +41,7 @@ public:
 	const TArray<TWeakObjectPtr<AActor>>& GetLastTargets() const { return LastTargets; }
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void BeginPlay() override;
 
 protected:
 	virtual bool OnActivate() override;

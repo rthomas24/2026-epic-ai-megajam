@@ -15,21 +15,52 @@ UTDTravelSubsystem* UTDTravelSubsystem::Get(const UObject* WorldContextObject)
 	return World ? World->GetSubsystem<UTDTravelSubsystem>() : nullptr;
 }
 
-UTDTravelFX* UTDTravelSubsystem::GetDefaultTravelFX()
+UTDTravelFX* UTDTravelSubsystem::GetDefaultTravelFX(const UObject* WorldContextObject)
 {
-	static TWeakObjectPtr<UTDTravelFX> Cached;
-	static bool bLooked = false;
-	if (!Cached.IsValid() && !bLooked)
+	UTDTravelSubsystem* Travel = Get(WorldContextObject);
+	if (!Travel)
 	{
-		bLooked = true;
-		static const TCHAR* Package = TEXT("/Game/TriadDrift/Presentation/DA_Travel_FX");
-		if (FPackageName::DoesPackageExist(Package))
+		return nullptr;
+	}
+	if (!Travel->TravelFX && !Travel->bTravelFXLooked)
+	{
+		// Core's single presentation loader (quiet when missing, cooked path); held strongly per world.
+		Travel->bTravelFXLooked = true;
+		Travel->TravelFX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
+	}
+	return Travel->TravelFX;
+}
+
+void UTDTravelSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+	Super::OnWorldBeginPlay(InWorld);
+	// A CUT retake rebuilds the scene: no hyperdrive lock may survive it (the wave re-adds its own).
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(InWorld.GetGameInstance()))
+	{
+		SceneRestartHandle = GI->OnSceneRestart.AddWeakLambda(this, [this](FName, int32) { ClearAllHyperdriveLocks(); });
+	}
+}
+
+void UTDTravelSubsystem::Deinitialize()
+{
+	if (UWorld* World = GetWorld())
+	{
+		if (UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance()))
 		{
-			Cached = Cast<UTDTravelFX>(StaticLoadObject(UTDTravelFX::StaticClass(), nullptr,
-				TEXT("/Game/TriadDrift/Presentation/DA_Travel_FX.DA_Travel_FX"), nullptr, LOAD_NoWarn | LOAD_Quiet));
+			GI->OnSceneRestart.Remove(SceneRestartHandle);
 		}
 	}
-	return Cached.Get();
+	Super::Deinitialize();
+}
+
+void UTDTravelSubsystem::ClearAllHyperdriveLocks()
+{
+	HyperdriveLocks.Reset();
+}
+
+FText UTDTravelSubsystem::GetHyperdriveLockText() const
+{
+	return HyperdriveLocks.Num() > 0 ? HyperdriveLocks.Last().Value : FText::GetEmpty();
 }
 
 void UTDTravelSubsystem::RegisterGravityWell(FName Id, FVector Location, float Radius, AActor* Owner)
