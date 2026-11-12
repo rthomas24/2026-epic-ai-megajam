@@ -121,7 +121,11 @@ public:
 	/** Calls Flow->TravelTo once per world (guarded by CanRequestLevelTravel). Returns true if travel started. */
 	bool RequestLevelTravel(ETDDestination Destination, FName ReturnPoint);
 
-	bool HasRequestedLevelTravel() const { return bLevelTravelRequested; }
+	/**
+	 * A level travel requested from this level is still under way. False again if the flow voided it or it timed
+	 * out (the world is still here), so the entry / exit that asked can hand control back and try again.
+	 */
+	bool HasRequestedLevelTravel() const;
 
 	// ---- Landing pads ---------------------------------------------------------------------------
 	void RegisterPad(ATDLandingPad* Pad);
