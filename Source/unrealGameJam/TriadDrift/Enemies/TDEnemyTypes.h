@@ -195,6 +195,10 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier", meta = (ClampMin = "0"))
 	int32 TurretCount = 0;
 
+	/** Launches per bay before it is spent (0 = unlimited). Finite so a carrier wave always ends (ENG-27). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier", meta = (ClampMin = "0"))
+	int32 MaxLaunchesPerBay = 0;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier")
 	FTDEnemyAttackSpec TurretGuns;
 

@@ -157,6 +157,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.Radius = 1800.f;
 		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::LaunchFighters, NAME_None, 0.f, 3, 12.f, 1.5f, 60000.f, 180.f);
 		S.BayCount = 3;
+		S.MaxLaunchesPerBay = 4;	// 3 bays x 4 x 3 = at most 36 fighters per carrier
 		S.BayHull = 300.f;
 		S.LaunchedEnemyId = TDEnemyIds::ShardFighter;
 		S.TurretCount = 4;

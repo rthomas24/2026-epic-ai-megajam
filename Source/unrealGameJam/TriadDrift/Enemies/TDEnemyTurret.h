@@ -66,7 +66,7 @@ public:
 
 	/** Pause between bursts. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
-	float BurstCooldownSeconds = 1.0f;
+	float BurstCooldownSeconds = 2.0f;	// ENG-27: 1.0 made carrier point defense a death zone
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
 	float StartHull = 60.f;

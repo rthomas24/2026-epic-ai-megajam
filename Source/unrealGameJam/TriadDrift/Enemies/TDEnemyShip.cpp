@@ -745,6 +745,7 @@ void ATDEnemyShip::SpawnCarrierParts()
 		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f);
 		const float FirstDelay = Spec.Heavy.Interval * 0.5f + i * 2.f;
 		Bay->Init(this, Spec.BayHull, Spec.Heavy.Count, Spec.Heavy.Interval, Spec.Heavy.TelegraphSeconds, FirstDelay);
+		Bay->MaxLaunches = Spec.MaxLaunchesPerBay;
 		Bay->Visuals = Visuals;
 		Bays.Add(Bay);
 	}

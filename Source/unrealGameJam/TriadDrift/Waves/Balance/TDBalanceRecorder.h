@@ -70,6 +70,8 @@ struct UNREALGAMEJAM_API FTDBalancePilot
 	float FireRange = 25000.f;
 	/** Secondary FireOnce every this many seconds when lined up. */
 	float SecondaryEverySeconds = 2.5f;
+	/** Stay this far from carrier bays (outside the 8000 cm point defense). */
+	float StandOffDistance = 11000.f;
 
 	void Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSeconds);
 

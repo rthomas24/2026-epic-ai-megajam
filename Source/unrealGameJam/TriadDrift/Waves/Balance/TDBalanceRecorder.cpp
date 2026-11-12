@@ -5,6 +5,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
+#include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -106,6 +107,18 @@ void FTDBalancePilot::Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSec
 
 	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(World);
 	AActor* Target = Registry ? Registry->FindNearestHostile(ETDTeam::Player, Ship->GetActorLocation(), 0.f, Ship) : nullptr;
+	// Like a player: with a carrier around, fighters within 4000 cm are swatted, otherwise go for its bays.
+	if (Registry && (!Target || FVector::Dist(Target->GetActorLocation(), Ship->GetActorLocation()) > 4000.f))
+	{
+		float Best = TNumericLimits<float>::Max();
+		for (const TWeakObjectPtr<AActor>& Weak : Registry->GetAll())
+		{
+			const ATDCarrierBay* Bay = Cast<ATDCarrierBay>(Weak.Get());
+			if (!Bay || !Bay->IsAlive()) { continue; }
+			const float D = FVector::DistSquared(Bay->GetActorLocation(), Ship->GetActorLocation());
+			if (D < Best) { Best = D; Target = const_cast<ATDCarrierBay*>(Bay); }
+		}
+	}
 	UTDWeaponComponent* Weapons = Ship->GetWeapons();
 
 	FTDFlightInput In;
@@ -121,12 +134,17 @@ void FTDBalancePilot::Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSec
 	const float Dist = To.Size();
 	const FVector Aim = Target->GetActorLocation() + Target->GetVelocity() * FMath::Clamp(Dist / 40000.f, 0.f, 1.f);
 	FVector Goal = Aim;
-	if (Dist < 3000.f)
+	const bool bStandOff = Target->IsA<ATDCarrierBay>();	// shoot bays from outside point-defense range
+	if (bStandOff && Dist < StandOffDistance)
+	{
+		Goal = Ship->GetActorLocation() - To.GetSafeNormal() * 10000.f + Ship->GetActorUpVector() * 3000.f;	// back out, then turn in again
+	}
+	else if (Dist < 3000.f)
 	{
 		Goal = Ship->GetActorLocation() + Ship->GetActorRightVector() * 10000.f + Ship->GetActorForwardVector() * 4000.f;	// pass, don't ram
 	}
 	In.Aim = ATDEnemyAIController::ComputeSteer(Ship->GetActorTransform(), Goal, 25.f);
-	In.Throttle = Dist < 6000.f ? 0.f : 1.f;
+	In.Throttle = (Dist < 6000.f || (bStandOff && Dist < StandOffDistance * 1.3f)) ? 0.f : 1.f;
 	In.bBoost = Dist > 25000.f;
 	Ship->SetFlightInput(In);
 

@@ -191,7 +191,7 @@ public:
 
 	/** Cap on living fighters a single carrier keeps in the air (perf + fairness). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
-	int32 MaxLaunchedAlive = 12;
+	int32 MaxLaunchedAlive = 8;
 
 	// --- Death --------------------------------------------------------------------------------
 
