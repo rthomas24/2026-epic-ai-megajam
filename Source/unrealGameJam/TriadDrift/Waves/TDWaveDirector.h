@@ -7,31 +7,37 @@
 #include "TriadDrift/Waves/TDWaveTypes.h"
 #include "TDWaveDirector.generated.h"
 
-class ATDEnemyShip;
 class UDataTable;
+class UTDHealthComponent;
+class UTDTravelFX;
 
 UENUM(BlueprintType)
 enum class ETDWaveState : uint8
 {
-	Idle,			// nothing running (before StartFromProgress, or waiting for the flow to change phase)
-	WarpingIn,		// red warp-in telegraphs are playing; enemies not yet spawned
+	Idle,			// nothing running (before StartFromProgress, or the current phase has no waves)
+	WarpingIn,		// red warp-in telegraphs are playing; the wave's first groups are not spawned yet
 	Active,			// fighting
-	Breather,		// 6 s between waves; hulls repair
+	Breather,		// 6 s between waves of the same phase; hulls repair
 	PhaseComplete,	// last wave of the current phase cleared; the flow takes over (planet / Dominion)
 	AllComplete		// every wave cleared
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDWarpInSignature, FVector, Location, FName, EnemyId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDWaveStateSignature, ETDWaveState, NewState);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDEnemySpawnedSignature, ATDEnemyShip*, Enemy);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDEnemySpawnedSignature, AActor*, Enemy);
+
+/** Spawns one enemy. Return null to skip. Tests install stand-ins through SetSpawnFactory. */
+using FTDEnemySpawnFactory = TFunction<AActor*(UWorld* World, FName EnemyId, const FTransform& Transform)>;
 
 /**
- * Runs the five galaxy waves (features.md ENG-14). Spawns each wave's groups behind / flanking the
- * player's active ship after a red warp-in telegraph, counts every enemy (carrier launches included),
- * clears the wave when they're all dead, runs a 6 s breather with hull repair, then starts the next
- * wave of the same phase. Talks to the rest of the game only through UTDEventBus and ITDGameFlow.
+ * Runs the five galaxy waves (features.md ENG-14). Each wave warps its groups in behind / flanking
+ * the player's ship after a red warp-in telegraph, counts every enemy (carrier launches included,
+ * via RegisterEnemy), clears when they're all dead, runs a 6 s breather with hull repair, then starts
+ * the next wave of the same phase. The last wave of a phase hands over to the flow (planet travel).
+ * Talks to the rest of the game only through UTDEventBus and ITDGameFlow.
  *
- * One per world; the space game mode spawns it. Get() finds it.
+ * Numbering: StartWave takes a 0-based table index; every event and FTDWaveInfo use 1-based
+ * wave numbers (Core rule).
  */
 UCLASS(Blueprintable)
 class UNREALGAMEJAM_API ATDWaveDirector : public AActor
@@ -45,19 +51,19 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves", meta = (WorldContext = "WorldContext"))
 	static ATDWaveDirector* Get(const UObject* WorldContext);
 
-	/** Start wave Index (0-based) now: kills nothing, spawns its warp-ins. */
+	/** Start the wave at table Index (0-based) now. Clears whatever is running. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
 	void StartWave(int32 Index);
 
-	/** Read ITDGameFlow::GetProgress() and start the right wave for the current phase (or stay idle). */
+	/** Read ITDGameFlow::GetProgress() and start the right wave for the current phase (or stay idle). No-op while a wave runs. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
 	void StartFromProgress();
 
-	/** Debug: kill the current wave's enemies and treat it as cleared. */
+	/** Debug: remove the current wave's enemies and treat it as cleared. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
 	void SkipWave();
 
-	/** Despawn everything and go idle (scene restart, travel). */
+	/** Despawn everything and go idle (travel, debug). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
 	void StopAndClear();
 
@@ -65,12 +71,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
 	void RestartCurrentWave();
 
+	/** Count an enemy that joined mid-wave (carrier launches). Safe to call twice. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
+	void RegisterEnemy(AActor* Enemy);
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
 	FTDWaveInfo GetWaveInfo() const;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
 	ETDWaveState GetState() const { return State; }
 
+	/** 0-based table index of the current (or last) wave; INDEX_NONE before the first. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
 	int32 GetCurrentWaveIndex() const { return CurrentWave; }
 
@@ -80,6 +91,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
 	int32 GetEnemiesAlive() const;
 
+	/** Enemies of the current wave so far (table count + launches registered). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
 	int32 GetEnemiesTotal() const { return EnemiesTotal; }
 
@@ -88,13 +100,22 @@ public:
 
 	/** Living enemies of the current wave (HUD, debug, tests). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
-	TArray<ATDEnemyShip*> GetLivingEnemies() const;
+	TArray<AActor*> GetLivingEnemies() const;
+
+	/** Groups still waiting to warp in for the current wave. */
+	int32 GetPendingGroupCount() const { return Pending.Num(); }
 
 	const FTDWaveDef* GetWaveDef(int32 Index) const;
 	const TArray<FTDWaveDef>& GetWaveTable() const { return Waves; }
 
 	/** The features.md ENG-14 table. */
 	static TArray<FTDWaveDef> MakeDefaultWaves();
+
+	/** Replace the wave table (tests / debug). */
+	void SetWaveTable(const TArray<FTDWaveDef>& InWaves);
+
+	/** Override how enemies are spawned (tests). Null restores the default (EnemyClass). */
+	void SetSpawnFactory(FTDEnemySpawnFactory InFactory) { SpawnFactory = MoveTemp(InFactory); }
 
 	// --- Tuning ---------------------------------------------------------------------------------
 
@@ -105,7 +126,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float BreatherSeconds = 6.f;
 
-	/** Red warp-in telegraph before enemies appear. */
+	/** Red warp-in telegraph before a group appears. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float WarpInSeconds = 1.5f;
 
@@ -125,29 +146,33 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float FormationSpacing = 900.f;
 
-	/** Big ships (carriers, gunships) spawn this much farther out. */
+	/** Carriers and gunships warp in this much farther out. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "1"))
 	float LargeShipSpawnDistanceScale = 1.6f;
 
-	/** Pawn class spawned for enemies. */
+	/** Actor class spawned for enemies by default (must implement ITDWaveEnemy). Null = ATDEnemyShip. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves")
-	TSubclassOf<ATDEnemyShip> EnemyClass;
+	TSubclassOf<AActor> EnemyClass;
 
-	/** If true, StartFromProgress runs automatically on BeginPlay. */
+	/** Start automatically on BeginPlay. Off by default: the space game mode calls StartFromProgress. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves")
-	bool bAutoStartFromProgress = true;
+	bool bAutoStartFromProgress = false;
 
 	/** Seed for spawn placement (tests set it for determinism). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves")
 	int32 RandomSeed = 1337;
 
-	/** Optional explicit anchor for spawns. Null = the player's pawn (or this actor if no pawn). */
+	/** Nick's travel FX asset; EnemyWarpIn plays at each warp-in point. Empty = OnWarpInStarted only. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TObjectPtr<UTDTravelFX> TravelFX;
+
+	/** Optional explicit anchor for spawns. Null = the player's pawn (or this actor if none). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves")
 	TObjectPtr<AActor> SpawnAnchorOverride;
 
-	// --- Events (local; the global ones go through UTDEventBus) --------------------------------
+	// --- Events (local; global ones go through UTDEventBus) -------------------------------------
 
-	/** A red warp-in telegraph started at Location (Nick: red flash VFX + sound). */
+	/** A red warp-in telegraph started at Location (Nick: red flash VFX + sound, UTDTravelFX::EnemyWarpIn). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Waves")
 	FTDWarpInSignature OnWarpInStarted;
 
@@ -159,9 +184,6 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	/** Replace the wave table (tests / debug). */
-	void SetWaveTable(const TArray<FTDWaveDef>& InWaves) { Waves = InWaves; }
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -171,43 +193,52 @@ protected:
 		FTDWaveGroup Group;
 		FVector Location = FVector::ZeroVector;
 		FRotator Facing = FRotator::ZeroRotator;
-		float Remaining = 0.f;	// seconds until spawn (delay + warp-in)
+		float Remaining = 0.f;		// seconds until spawn (delay + warp-in)
 		bool bWarpAnnounced = false;
 	};
 
 	void LoadWaveTable();
 	void SetState(ETDWaveState NewState, float Duration = 0.f);
-	void BeginWave(int32 Index, bool bIsRetake);
-	void SpawnGroup(const FPendingGroup& Pending);
-	ATDEnemyShip* SpawnEnemy(FName EnemyId, const FVector& Location, const FRotator& Facing);
-	void RegisterEnemy(ATDEnemyShip* Enemy);
+	void BeginWave(int32 Index);
+	void SpawnGroup(const FPendingGroup& Group);
+	AActor* SpawnEnemy(FName EnemyId, const FTransform& Transform);
 	void CheckWaveCleared();
-	void OnWaveCleared();
+	void FinishWave();
+	void AdvanceAfterBreather();
+	void ClearEnemies();
 	void RepairSquadHulls(float DeltaSeconds);
 	void PickSpawnPoint(ETDSpawnZone Zone, bool bLarge, FVector& OutLocation, FRotator& OutFacing);
 	AActor* GetSpawnAnchor() const;
-	int32 ResolveTakeNumber(FName SceneId) const;
+	void AnnounceScene(const FTDWaveDef& Wave);
 	void FireTips(const FTDWaveDef& Wave);
+	bool PhaseMatches(ETDGamePhase WavePhase, ETDGamePhase ProgressPhase) const;
+	FName GetSceneId(int32 Index) const;
+
+	/** T5's game instance announces retakes on the bus: a higher take of our scene restarts the wave. */
+	UFUNCTION()
+	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
 
 	UFUNCTION()
-	void HandleEnemyDied(ATDEnemyShip* Ship, AActor* Killer);
+	void HandleEnemyDeath(UTDHealthComponent* Health, const FTDDamageInfo& KillingBlow);
 
 	UFUNCTION()
-	void HandleEnemyLaunched(ATDEnemyShip* Parent, ATDEnemyShip* Launched);
+	void HandleEnemyDestroyed(AActor* Actor);
 
 	UPROPERTY(Transient)
 	TArray<FTDWaveDef> Waves;
 
-	UPROPERTY(Transient)
-	TArray<TWeakObjectPtr<ATDEnemyShip>> Living;
-
+	TArray<TWeakObjectPtr<AActor>> Living;
 	TArray<FPendingGroup> Pending;
+	FTDEnemySpawnFactory SpawnFactory;
+	TArray<AActor*> ScratchActors;
 
 	ETDWaveState State = ETDWaveState::Idle;
 	float StateRemaining = 0.f;
 	int32 CurrentWave = INDEX_NONE;
 	int32 EnemiesTotal = 0;
 	int32 CurrentTake = 1;
+	bool bTakeAnnouncedByFlow = false;
+	bool bWaveTableLoaded = false;
 	bool bSwitchTipShown = false;
 	FRandomStream Rng;
 };
