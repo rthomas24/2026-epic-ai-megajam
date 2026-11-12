@@ -23,7 +23,7 @@
 namespace TDCourseColors
 {
 	// Verdance: deep teal ground, bioluminescent cyan / magenta / lime.
-	static const FLinearColor VerdanceGround(0.03f, 0.12f, 0.1f);
+	static const FLinearColor VerdanceGround(0.012f, 0.05f, 0.045f);
 	static const FLinearColor VerdanceRock(0.08f, 0.16f, 0.14f);
 	static const FLinearColor Trunk(0.06f, 0.05f, 0.08f);
 	static const FLinearColor Cyan(0.2f, 0.95f, 1.f);
@@ -33,7 +33,7 @@ namespace TDCourseColors
 	static const FLinearColor Ember(1.f, 0.45f, 0.1f);
 	static const FLinearColor RelayStone(0.6f, 0.5f, 1.f);
 	// Cinder: basalt, magma orange, crystal violet.
-	static const FLinearColor CinderGround(0.07f, 0.05f, 0.05f);
+	static const FLinearColor CinderGround(0.05f, 0.035f, 0.035f);
 	static const FLinearColor Basalt(0.12f, 0.1f, 0.1f);
 	static const FLinearColor MagmaGlow(1.f, 0.3f, 0.04f);
 	static const FLinearColor Crystal(0.7f, 0.3f, 1.f);
