@@ -237,8 +237,11 @@ bool FTDReviewWreckSalvo::RunTest(const FString& Parameters)
 		TestTrue(TEXT("salvo started"), G->TryStartAttack(ETDEnemyAttack::MissileSalvo, Player));
 		for (int32 i = 0; i < FMath::RoundToInt(Fps * 4.f) && Seen.Num() == 0; ++i) { W.Tick(1.f / Fps); CountMissiles(); }
 		TestEqual(*FString::Printf(TEXT("@%.0f fps: missile 1 launched"), Fps), Seen.Num(), 1);
+		// The wreck is destroyed and may be garbage collected while we wait: never touch the raw pointer again.
+		// CountMissiles only compares G's address with each live missile's shooter, which is safe.
+		const TWeakObjectPtr<ATDEnemyShip> GunshipAlive(G);
 		G->GetHealth()->Kill();
-		for (int32 i = 0; i < FMath::RoundToInt(Fps * 3.f); ++i) { W.Tick(1.f / Fps); if (IsValid(G)) { CountMissiles(); } }
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 3.f); ++i) { W.Tick(1.f / Fps); if (GunshipAlive.IsValid()) { CountMissiles(); } }
 		TestEqual(*FString::Printf(TEXT("@%.0f fps: the wreck launched nothing more"), Fps), Seen.Num(), 1);
 	}
 	return true;
