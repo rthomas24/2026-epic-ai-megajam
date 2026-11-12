@@ -173,7 +173,7 @@ and every line respects its own cooldown. Tests: `Barks.LimiterRules`, `Barks.Tr
 
 ## Wingmen in frame: regression number (`TDSquadFrame.Standard.Weak`)
 
-`.\Tools	d-test.ps1 -Filter TDSquadFrame` (not in the default suite, about 2-5 min). It flies waves 1-5 with
+`.\Tools\td-test.ps1 -Filter TDSquadFrame` (not in the default suite, about 2-5 min). It flies waves 1-5 with
 T4's seeded `FTDBalancePilot` (Weak: the player is always Rift; Lancer and Bastion are AI) and, every
 0.25 s, projects from the player's real chase camera (no window involved). It plays both
 `td.Wingmen.InViewTargeting` modes. Per wave: **engaging** = samples with an enemy inside the frame;
