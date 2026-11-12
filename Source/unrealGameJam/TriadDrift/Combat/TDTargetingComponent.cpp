@@ -209,7 +209,7 @@ void UTDTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	PruneLocks();
+	PruneLocks(DeltaTime);
 
 	UpdateAccumulator += DeltaTime;
 	const float Interval = UpdateHz > 0.f ? 1.f / UpdateHz : 0.f;
@@ -355,20 +355,29 @@ void UTDTargetingComponent::CycleTarget()
 
 // ------------------------------------------------------------------------------------------ multi-lock
 
-void UTDTargetingComponent::PruneLocks()
+void UTDTargetingComponent::PruneLocks(float DeltaTime)
 {
-	const int32 Before = LockedWeak.Num();
-	LockedWeak.RemoveAll([this](const TWeakObjectPtr<AActor>& W)
+	const AActor* Owner = GetOwner();
+	const float Range = LockMaxRange > 0.f ? LockMaxRange : MaxTargetRange;
+	LockAwaySeconds.SetNum(LockedWeak.Num());
+	bool bChanged = LockedTargets.Num() != LockedWeak.Num();
+	for (int32 Index = LockedWeak.Num() - 1; Index >= 0; --Index)
 	{
-		const AActor* A = W.Get();
-		if (!IsValid(A))
+		const AActor* A = LockedWeak[Index].Get();
+		bool bDrop = !IsValidTarget(A) || (Owner && FVector::DistSquared(A->GetActorLocation(), Owner->GetActorLocation()) > FMath::Square(Range));
+		if (!bDrop)
 		{
-			return true;
+			LockAwaySeconds[Index] = GetAngleFromView(A->GetActorLocation()) > CycleConeDeg ? LockAwaySeconds[Index] + DeltaTime : 0.f;
+			bDrop = LockAwaySeconds[Index] > LockStaleSeconds;
 		}
-		const UTDHealthComponent* Health = UTDStatics::GetHealth(A);
-		return Health && Health->IsDead();
-	});
-	if (Before != LockedWeak.Num() || LockedTargets.Num() != LockedWeak.Num())
+		if (bDrop)
+		{
+			LockedWeak.RemoveAt(Index);
+			LockAwaySeconds.RemoveAt(Index);
+			bChanged = true;
+		}
+	}
+	if (bChanged)
 	{
 		LockedTargets.Reset();
 		for (const TWeakObjectPtr<AActor>& W : LockedWeak)
@@ -378,10 +387,50 @@ void UTDTargetingComponent::PruneLocks()
 	}
 }
 
+int32 UTDTargetingComponent::FindStalestLock() const
+{
+	int32 Stalest = INDEX_NONE;
+	float Longest = 0.f;
+	for (int32 Index = 0; Index < LockAwaySeconds.Num(); ++Index)
+	{
+		if (LockAwaySeconds[Index] > Longest)
+		{
+			Longest = LockAwaySeconds[Index];
+			Stalest = Index;
+		}
+	}
+	return Stalest;
+}
+
+void UTDTargetingComponent::AddLock(AActor* Target)
+{
+	LockedWeak.Add(Target);
+	LockAwaySeconds.Add(0.f);
+	LockedTargets.Add(Target);
+}
+
+void UTDTargetingComponent::RemoveLockAt(int32 Index)
+{
+	if (!LockedWeak.IsValidIndex(Index))
+	{
+		return;
+	}
+	LockedWeak.RemoveAt(Index);
+	if (LockAwaySeconds.IsValidIndex(Index))
+	{
+		LockAwaySeconds.RemoveAt(Index);
+	}
+	if (LockedTargets.IsValidIndex(Index))
+	{
+		LockedTargets.RemoveAt(Index);
+	}
+}
+
 void UTDTargetingComponent::BeginLockPainting()
 {
 	bPainting = true;
 	LockedWeak.Reset();
+	LockAwaySeconds.Reset();
 	LockedTargets.Reset();
 	PaintCandidate = nullptr;
 	PaintProgress = 0.f;
@@ -399,6 +448,7 @@ TArray<AActor*> UTDTargetingComponent::EndLockPainting()
 void UTDTargetingComponent::ClearLocks()
 {
 	LockedWeak.Reset();
+	LockAwaySeconds.Reset();
 	LockedTargets.Reset();
 	PaintCandidate = nullptr;
 	PaintProgress = 0.f;
@@ -411,7 +461,9 @@ float UTDTargetingComponent::GetPaintProgress01() const
 
 void UTDTargetingComponent::UpdatePainting(float DeltaTime)
 {
-	if (LockedWeak.Num() >= MaxLocks)
+	// Full: paint only if a lock has gone out of view, to replace the stalest one.
+	const bool bFull = LockedWeak.Num() >= MaxLocks;
+	if (bFull && FindStalestLock() == INDEX_NONE)
 	{
 		PaintCandidate = nullptr;
 		PaintProgress = 0.f;
@@ -465,8 +517,11 @@ void UTDTargetingComponent::UpdatePainting(float DeltaTime)
 	if (PaintProgress + 1e-4f >= SecondsPerLock)
 	{
 		PaintProgress = FMath::Max(0.f, PaintProgress - SecondsPerLock);
-		LockedWeak.Add(Candidate);
-		LockedTargets.Add(Candidate);
+		if (LockedWeak.Num() >= MaxLocks)
+		{
+			RemoveLockAt(FindStalestLock());
+		}
+		AddLock(Candidate);
 		PaintCandidate = nullptr;
 		OnTargetLocked.Broadcast(Candidate, LockedWeak.Num());
 	}

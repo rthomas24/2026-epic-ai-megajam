@@ -139,6 +139,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "s"))
 	float SecondsPerLock = 0.25f;
 
+	/**
+	 * A lock is dropped once its target is beyond this range (0 = MaxTargetRange). The missile swarm sets it to
+	 * its own range.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "cm"))
+	float LockMaxRange = 0.f;
+
+	/**
+	 * A lock is dropped once its target has been outside CycleConeDeg this long (auto-paint: turning to a new
+	 * group lets the old locks go). When all MaxLocks are used, a new candidate in the lock cone replaces the
+	 * lock that has been out of view the longest.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "s"))
+	float LockStaleSeconds = 1.5f;
+
 	/** Cone the paint candidate must stay inside. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "Degrees"))
 	float LockConeDeg = 25.f;
@@ -176,7 +191,12 @@ private:
 	void UpdateMissileWarning();
 	void UpdateMarkers();
 	void SetCurrentTarget(AActor* NewTarget);
-	void PruneLocks();
+	/** Drops locks that are invalid, out of range, or out of view for LockStaleSeconds (DeltaTime ages them). */
+	void PruneLocks(float DeltaTime = 0.f);
+	/** Index of the lock out of view the longest, or INDEX_NONE when every lock is in view. */
+	int32 FindStalestLock() const;
+	void AddLock(AActor* Target);
+	void RemoveLockAt(int32 Index);
 	void Refresh();
 	bool IsValidTarget(const AActor* Actor) const;
 	void GetView(FVector& OutLocation, FRotator& OutRotation) const;
@@ -193,6 +213,8 @@ private:
 	UPROPERTY(Transient)
 	TArray<AActor*> LockedTargets;
 	TArray<TWeakObjectPtr<AActor>> LockedWeak;
+	/** Seconds each lock (same index as LockedWeak) has been outside CycleConeDeg. */
+	TArray<float> LockAwaySeconds;
 	TArray<FTDTargetMarker> Markers;
 	UPROPERTY(Transient)
 	TArray<ATDProjectile*> MissileScratch;
