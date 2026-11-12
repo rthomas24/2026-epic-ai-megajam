@@ -1,0 +1,11 @@
+// Plane UV: U=0 at nozzle, U=1 at tail. No textures, no dynamic lights.
+float u = UV.x / max(Length, 0.05);
+float v = (UV.y - 0.5) / max(Width, 0.02);
+float taper = max(0.025, 0.4 * (1.0 - saturate(u)));
+float plume = exp(-pow(abs(v) / taper, 2.0) * max(Softness, 0.1));
+float cap = smoothstep(0.0, 0.025, u) * pow(saturate(1.0 - u), 1.25);
+float cells = 0.78 + 0.22 * sin(u * 55.0 - Clock * Speed * 18.0);
+float core = exp(-abs(v) * 24.0) * pow(saturate(1.0-u), 3.0);
+float mask = saturate((plume * cells + core * 0.6) * cap);
+float3 color = lerp(Tint, float3(0.7, 0.94, 1.0), core * 0.55);
+return float4(color * max(Intensity, 0.0), mask);

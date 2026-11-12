@@ -535,45 +535,31 @@ bool FTDSquadHyperdriveFollow::RunTest(const FString& Parameters)
 	return true;
 }
 
-namespace TDSquadTests
-{
-	template <typename M>
-	concept HasThrottleTopSpeed = requires(M* Move, float V) { Move->SetThrottleTopSpeed(V); };
-}
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadFormationFastLeader, "TriadDrift.Squad.Wingmen.HoldFormationBehindFasterLeader", TD_TEST_FLAGS)
 bool FTDSquadFormationFastLeader::RunTest(const FString& Parameters)
 {
-	if constexpr (!TDSquadTests::HasThrottleTopSpeed<UTDShipMovementComponent>)
+	// The player flies Lancer at full throttle (cruise 7500). Bastion cruises at only 4800 and
+	// Rift at 6000: both must still hold their slots, through the catch-up allowance.
+	for (const float Step : { 1.f / 30.f, 1.f / 120.f })
 	{
-		AddWarning(TEXT("PENDING: needs T1's UTDShipMovementComponent::SetThrottleTopSpeed (eng/t1 adb6959) on main; slow wingmen can't yet out-cruise a faster leader"));
-		return true;
-	}
-	else
-	{
-		// The player flies Lancer at full throttle (cruise 7500). Bastion cruises at only 4800 and
-		// Rift at 6000: both must still hold their slots, through the catch-up allowance.
-		for (const float Step : { 1.f / 30.f, 1.f / 120.f })
-		{
-			FSquadFixture F;
-			F.W.Advance(0.5f, Step);
-			TestTrue(TEXT("switch to Lancer"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
-			ATDShip* Leader = F.Ship(ETDShipId::Lancer);
-			FTDFlightInput Full;
-			Full.Throttle = 1.f;
-			Leader->SetFlightInput(Full);
-			F.W.Advance(14.f, Step);
+		FSquadFixture F;
+		F.W.Advance(0.5f, Step);
+		TestTrue(TEXT("switch to Lancer"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+		ATDShip* Leader = F.Ship(ETDShipId::Lancer);
+		FTDFlightInput Full;
+		Full.Throttle = 1.f;
+		Leader->SetFlightInput(Full);
+		F.W.Advance(14.f, Step);
 
-			TestTrue(TEXT("leader really is at Lancer cruise"), Leader->GetShipMovement()->GetSpeed() > 7000.f);
-			for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Bastion })
-			{
-				const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
-				TestTrue(FString::Printf(TEXT("%s @ %.0f fps holds its slot behind a faster leader (%.0f cm)"),
-					*UEnum::GetValueAsString(Id), 1.f / Step, Dist), Dist < 1500.f);
-			}
+		TestTrue(TEXT("leader really is at Lancer cruise"), Leader->GetShipMovement()->GetSpeed() > 7000.f);
+		for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Bastion })
+		{
+			const float Dist = FVector::Dist(F.Ship(Id)->GetActorLocation(), F.Squad->GetFormationSlotLocation(Id));
+			TestTrue(FString::Printf(TEXT("%s @ %.0f fps holds its slot behind a faster leader (%.0f cm)"),
+				*UEnum::GetValueAsString(Id), 1.f / Step, Dist), Dist < 1500.f);
 		}
-		return true;
 	}
+	return true;
 }
 
 #endif // WITH_DEV_AUTOMATION_TESTS
