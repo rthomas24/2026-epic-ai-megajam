@@ -129,6 +129,10 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
 	float DriftBurstMinAngle = 20.f;
 
+	/** Seconds after a release burst before another drift can earn one (stops drift-pumping). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
+	float DriftBurstCooldown = 1.5f;
+
 	/** Speed lost per second while drifting (cm/s^2). 0 = drift keeps all speed. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Drift", meta = (ClampMin = "0"))
 	float DriftDrag = 300.f;

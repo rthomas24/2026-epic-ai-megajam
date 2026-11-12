@@ -39,6 +39,9 @@ struct UNREALGAMEJAM_API FTDFlightState
 	FVector DriftStartForward = FVector::ForwardVector;
 	float DriftTime = 0.f;
 
+	/** Seconds since the last drift release burst (burst cooldown). */
+	float TimeSinceBurst = 1000.f;
+
 	/** Meter ran dry while boost was held: no boost until the button is released. */
 	bool bBoostLockout = false;
 
@@ -104,6 +107,13 @@ namespace TDFlightSim
 	 * (the movement component then sweeps to resolve collisions). Returns the number of sub-steps.
 	 */
 	UNREALGAMEJAM_API int32 Advance(FTDFlightState& State, const FTDFlightInput& Input, const FTDFlightTuning& Tuning, const FTDFlightContext& Context, float DeltaSeconds);
+
+	/**
+	 * The fastest the pilot may legally be going right now without an override: cruise (or the catch-up
+	 * allowance), boost speed if the boost meter is being used or was just used, the atmosphere cap in
+	 * atmosphere. Drift bursts are capped at this x (1 + DriftReleaseBurst).
+	 */
+	UNREALGAMEJAM_API float LegalTopSpeed(const FTDFlightState& State, const FTDFlightTuning& Tuning, const FTDFlightContext& Context);
 
 	/** Clamps and sanitises an input (NaN-safe, axes to -1..1). */
 	UNREALGAMEJAM_API FTDFlightInput Sanitize(const FTDFlightInput& Input);
