@@ -28,7 +28,7 @@ ATDPlanetTravelRig::ATDPlanetTravelRig()
 }
 
 ATDPlanetTravelRig* ATDPlanetTravelRig::SpawnForPlanet(UWorld* World, FName InPlanetId, const FTransform& PadTransform,
-	const TArray<FName>& InRequiredObjectives)
+	const TArray<FName>& InRequiredObjectives, bool bInPlaceholderGround)
 {
 	if (!World)
 	{
@@ -42,6 +42,7 @@ ATDPlanetTravelRig* ATDPlanetTravelRig::SpawnForPlanet(UWorld* World, FName InPl
 	{
 		Rig->PlanetId = InPlanetId;
 		Rig->RequiredObjectives = InRequiredObjectives;
+		Rig->bPlaceholderGround = bInPlaceholderGround; // before BeginPlay (review minor 5)
 		Rig->FinishSpawning(PadTransform);
 	}
 	return Rig;
@@ -50,9 +51,18 @@ ATDPlanetTravelRig* ATDPlanetTravelRig::SpawnForPlanet(UWorld* World, FName InPl
 void ATDPlanetTravelRig::BeginPlay()
 {
 	Super::BeginPlay();
-	GroundSlab->SetVisibility(bPlaceholderGround);
-	GroundSlab->SetCollisionEnabled(bPlaceholderGround ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+	SetPlaceholderGround(bPlaceholderGround);
 	BuildRig();
+}
+
+void ATDPlanetTravelRig::SetPlaceholderGround(bool bEnabled)
+{
+	bPlaceholderGround = bEnabled;
+	if (GroundSlab)
+	{
+		GroundSlab->SetVisibility(bEnabled);
+		GroundSlab->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+	}
 }
 
 void ATDPlanetTravelRig::EndPlay(const EEndPlayReason::Type EndPlayReason)

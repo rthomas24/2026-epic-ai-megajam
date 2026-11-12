@@ -26,9 +26,16 @@ class UNREALGAMEJAM_API ATDPlanetTravelRig : public AActor
 public:
 	ATDPlanetTravelRig();
 
-	/** Spawns and configures a rig (ground game mode). Returns null if the world is missing. */
+	/**
+	 * Spawns and configures a rig (ground game mode). Returns null if the world is missing. bPlaceholderGround is
+	 * applied before BeginPlay: pass false when the level has real terrain (Nick's environment).
+	 */
 	static ATDPlanetTravelRig* SpawnForPlanet(UWorld* World, FName PlanetId, const FTransform& PadTransform,
-		const TArray<FName>& RequiredObjectives);
+		const TArray<FName>& RequiredObjectives, bool bInPlaceholderGround = true);
+
+	/** Shows / hides the placeholder ground slab and its collision (any time, also after BeginPlay). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Planet")
+	void SetPlaceholderGround(bool bEnabled);
 
 	/** "Verdance" / "Cinder". The zone's exit return point is "<PlanetId>_Orbit". */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet")

@@ -857,6 +857,26 @@ bool FTDTravelLateWingman::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelRigNoPlaceholder, "TriadDrift.Travel.Planet.PlaceholderGroundCanBeSwitchedOff", TD_TEST_FLAGS)
+bool FTDTravelRigNoPlaceholder::RunTest(const FString& Parameters)
+{
+	// Review minor 5: with real terrain the 4 km placeholder slab must be off from the first frame.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Off = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") }, false);
+	if (!TestNotNull(TEXT("rig"), Off)) { return false; }
+	W.Tick();
+	ATDShip* Probe = TDTravelTest::SpawnShip(W, FVector(3000.f, 3000.f, 1500.f));
+	W.Tick();
+	TestTrue(TEXT("no placeholder: nothing under a ship beside the pads"), Probe->GetAltitudeMeters() < 0.f);
+	Off->SetPlaceholderGround(true);
+	W.Tick();
+	TestTrue(TEXT("switched back on: ground under the ship"), Probe->GetAltitudeMeters() >= 0.f);
+	Off->SetPlaceholderGround(false);
+	W.Tick();
+	TestTrue(TEXT("switched off after BeginPlay too"), Probe->GetAltitudeMeters() < 0.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelCameraNow, "TriadDrift.Travel.Camera.ChaseTransformNowForAIShip", TD_TEST_FLAGS)
 bool FTDTravelCameraNow::RunTest(const FString& Parameters)
 {
