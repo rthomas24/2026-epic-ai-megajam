@@ -84,7 +84,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 14:38 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 14:54 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -134,6 +134,10 @@ open) · `done` (on `main`, tests pass, review closed).
 | `MESSAGEBOARD.md` N-004 fix 2: one placeholder sky actor that yields to the map's sky (tag, light component or post-process) | T5 | done | Nov 12 14:16 | Nov 12 14:38 (`8c03f82`); posted for Nick's reviewers | none |
 | Capture tools: verify a written PNG ends at IEND before it is used as evidence (pitfall from Nick's side) | Lead | queued | | | `/Tools/**` |
 | Map housekeeping: remove or fix the unused default HLOD layer assets that warn on load | Lead | queued | | | **will claim `Content/TriadDrift/Maps/*_HLODLayer_*.uasset` and the five `.umap` World Settings here before editing** |
+| Engineering playtest 2: real injected input and journey jumps through MCP (logged in `DEVLOG.md`) | Lead | done | Nov 12 14:52 | Nov 12 14:54; six problems sent to owners | `/DEVLOG.md` (append only) |
+| Agent input injection (`TD.Input.*`) and journey cheats (`TD.Stage`) | T1, T5 | done | Nov 12 14:20 | Nov 12 14:47 (`8c5aa47`); played live | none |
+| `features.md` engineering numbers updated to the tuned game | Lead | done | Nov 12 14:50 | Nov 12 14:52 (`b8027b7`) | `/features.md` (ENG sections only) |
+| Visible placeholder projectiles, muzzle and impact flashes | T2 | queued | | after the HUD host | none |
 | ENG-28 Shipping package (750 MB with symbols, about 510 MB without; Development package boots and runs) | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
 | Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-001 to R-007 complete; R-008 (toolsets) and R-009 (shared protocols) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |

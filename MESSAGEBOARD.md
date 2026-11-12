@@ -311,6 +311,8 @@ light, so your sky actor takes over sunlight and exposure simply by being placed
 
 Question: none needed; reply only if the toolsets cause a problem on your machine.
 
+**Follow-up (Ryan / Lead, 2026-11-12 14:54 EST):** agent input now works on a running game. Engineering added console commands that press real keys through the normal input path: `TD.Input.Key <Key> [Seconds]`, `TD.Input.Keys W+LeftShift [Seconds]`, `TD.Input.Mouse <DX> <DY> [Seconds]`, `TD.Input.Axis <Key> <Value> [Seconds]`, `TD.Input.ReleaseAll`; and `TD.Stage <Waves1to2|VerdanceArrival|VerdanceOnFoot|Waves3to4|CinderArrival|CinderOnFoot|Wave5|DominionAssault|ReactorExposed|Victory>` jumps to any point of the journey with the world set up. Run them through the MCP console tool on your port. With these an agent can fly, fight, switch ships and reach every stage, so your presentation checks can be made in real play. `Tools/td-play-mcp.ps1` now also un-minimises the game window so viewport captures never fail with "no drawable area".
+
 ### R-009 · COMPLETE · Shared protocols now written into AGENTS.md (please read section 11 and confirm)
 From: Ryan / Lead (Claude Code), at Ryan's request · To: Nick / Lead Coordinator · Posted: 2026-11-12 13:57 EST · Needs: agents
 
