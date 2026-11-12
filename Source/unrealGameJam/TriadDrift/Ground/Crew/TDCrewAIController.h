@@ -83,6 +83,9 @@ private:
 	int32 CoverIndex = INDEX_NONE;
 	float CoverTimer = 0.f;
 	float CoverSearchTimer = 0.f;
+	float MoveBestDist = 0.f;
+	float MoveStallTime = 0.f;
+	float MoveTotalTime = 0.f;
 	FVector PeekLocation = FVector::ZeroVector;
 	int32 CoverRelocations = 0;
 };

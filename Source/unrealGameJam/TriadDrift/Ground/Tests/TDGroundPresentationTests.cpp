@@ -251,6 +251,38 @@ bool FTDCrewCover::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+// Review MAJOR 2: a trooper whose straight path to its cover runs into the cover itself must not pin
+// itself there forever: it gives the spot up and fires.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewCoverBlocked, "TriadDrift.Ground.Crew.TrooperBlockedOnTheWayToCoverStillFires", TD_TEST_FLAGS)
+bool FTDCrewCoverBlocked::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-900.f, 0.f, 95.f));
+	// A wide block between the trooper and the only cover points that hide it from the player.
+	AActor* Block = TDGroundTest::SpawnBox(W, FVector(200.f, 0.f, 100.f), FVector(200.f, 900.f, 200.f));
+	UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("player"), P) || !TestNotNull(TEXT("cover"), Cover)) { return false; }
+	Cover->RegisterCoverActor(Block);
+	P->GetHealth()->SetInvulnerable(true);
+
+	const FTransform Xf(FRotator(0.f, 180.f, 0.f), FVector(40.f, 0.f, 95.f)); // player side, flush against the block
+	ATDCrewCharacter* Tr = W.GetWorld()->SpawnActorDeferred<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	Tr->CrewType = ETDCrewType::Trooper;
+	Tr->FinishSpawning(Xf);
+	ATDCrewAIController* AI = Cast<ATDCrewAIController>(Tr->GetController());
+	if (!TestNotNull(TEXT("trooper AI"), AI)) { return false; }
+	int32 Bursts = 0;
+	Tr->OnAttackReleased.AddLambda([&](ATDCrewCharacter*, ETDCrewAttack A) { Bursts += (A == ETDCrewAttack::Burst) ? 1 : 0; });
+	for (int32 i = 0; i < 60 * 8; ++i)
+	{
+		W.Tick(1.f / 60.f);
+	}
+	TestTrue(FString::Printf(TEXT("the trooper fires within 8 s (%d bursts)"), Bursts), Bursts >= 1);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundBindings, "TriadDrift.Ground.InputBindingsForEveryAction", TD_TEST_FLAGS)
 bool FTDGroundBindings::RunTest(const FString& Parameters)
 {
