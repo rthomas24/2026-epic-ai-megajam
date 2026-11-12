@@ -517,7 +517,9 @@ See §7.
 - **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
   altitude data.
 - **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land"
-  within 3000 cm below 40% speed).
+  within 120 m of the pad at or below 60% of the atmosphere speed cap; between 120 m and 400 m
+  while too fast the prompt reads "SLOW DOWN TO LAND"). Near the ground the ship levels out by
+  itself, so a hands-off arrival never crashes.
 - **Landing and take-off:** auto-land (gear and canopy state exposed), wingmen land beside you, the
   exit hands off to first person, and boarding reverses it.
 
