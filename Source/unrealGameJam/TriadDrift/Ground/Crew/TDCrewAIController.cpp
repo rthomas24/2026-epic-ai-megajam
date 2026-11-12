@@ -283,9 +283,10 @@ bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, 
 		}
 		CoverSearchTimer = 0.5f;
 		const int32 Found = Cover->FindCover(Crew, T, S.CoverMaxTravel, FMath::Max(S.CoverAbandonDistance + 100.f, S.PreferredRangeMin * 0.6f), S.PreferredRangeMax * 1.5f);
-		if (Found == INDEX_NONE || !Cover->Claim(Found, Crew))
+		const bool bAvoid = Found != INDEX_NONE && Found == BlockedCoverIndex && GetWorld()->GetTimeSeconds() - BlockedCoverTime < 6.f;
+		if (Found == INDEX_NONE || bAvoid || !Cover->Claim(Found, Crew))
 		{
-			return false;
+			return false; // (a spot that just stalled us is skipped for 6 s: fight in the open meanwhile)
 		}
 		CoverIndex = Found;
 		CoverPhase = ECoverPhase::Moving;
@@ -327,6 +328,8 @@ bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, 
 		}
 		if (MoveStallTime > 1.f || MoveTotalTime > 4.f)
 		{
+			BlockedCoverIndex = CoverIndex;
+			BlockedCoverTime = GetWorld()->GetTimeSeconds();
 			LeaveCover(false);
 			CoverSearchTimer = 2.f;
 			return false; // this tick: plain engage (attacks are chosen)
@@ -347,6 +350,7 @@ bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, 
 			if (Cover->FindPeekLocation(CoverIndex, T, Crew, PeekLocation))
 			{
 				CoverPhase = ECoverPhase::Peeking;
+				PeekTime = 0.f;
 			}
 			else
 			{
@@ -361,6 +365,15 @@ bool ATDCrewAIController::TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, 
 		if (Crew->IsAttacking())
 		{
 			return true; // stand and shoot
+		}
+		// Blocked on the way to the peek spot, or there with no line of sight: after 3 s it gives the spot up.
+		if ((PeekTime += DeltaSeconds) > 3.f)
+		{
+			BlockedCoverIndex = CoverIndex;
+			BlockedCoverTime = GetWorld()->GetTimeSeconds();
+			LeaveCover(false);
+			CoverSearchTimer = 2.f;
+			return false;
 		}
 		if (ToPeek.Size() > 35.f && !bHasLOS)
 		{

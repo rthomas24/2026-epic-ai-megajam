@@ -86,6 +86,10 @@ void ATDPlanetProp::HandleGroundReset()
 {
 	if (!LinkedObjective || !LinkedObjective->IsComplete())
 	{
+		if (LinkedObjective && LinkedStep != INDEX_NONE && LinkedStep < LinkedObjective->GetCheckpointStep())
+		{
+			return; // a step before the checkpoint: stays done
+		}
 		ResetProp();
 	}
 }
@@ -410,8 +414,10 @@ ATDMagmaVolume::ATDMagmaVolume()
 
 void ATDMagmaVolume::SetSize(const FVector& Size)
 {
-	Box->SetBoxExtent(FVector(Size.X * 0.5f, Size.Y * 0.5f, Size.Z * 0.5f + 60.f));
-	Box->SetRelativeLocation(FVector(0.f, 0.f, -Size.Z * 0.5f + 60.f));
+	// The trigger ends 10 cm above the surface: standing in the magma burns, standing on a stone or a
+	// bridge slab over it (tops 60+ cm) never does.
+	Box->SetBoxExtent(FVector(Size.X * 0.5f, Size.Y * 0.5f, Size.Z * 0.5f));
+	Box->SetRelativeLocation(FVector(0.f, 0.f, -Size.Z * 0.5f + 10.f));
 	Surface->SetRelativeScale3D(FVector(Size.X, Size.Y, 10.f) / 100.f);
 	Surface->SetRelativeLocation(FVector(0.f, 0.f, -5.f));
 }
@@ -556,6 +562,7 @@ ATDShatterCrystal::ATDShatterCrystal()
 	Health = CreateDefaultSubobject<UTDHealthComponent>(TEXT("Health"));
 	Health->MaxShield = 0.f;
 	Health->DefaultTeam = ETDTeam::Neutral;
+	Tags.Add(TEXT("TD.BladeBreakable")); // the blade breaks it (it's on no team)
 }
 
 void ATDShatterCrystal::BeginPlay()

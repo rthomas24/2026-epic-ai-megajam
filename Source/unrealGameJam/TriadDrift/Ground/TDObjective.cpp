@@ -75,11 +75,13 @@ void ATDObjective::StartObjective()
 		Finish();
 		return;
 	}
-	Broadcast(0, Steps[0].Text);
-	OnStepStarted.Broadcast(this, 0);
+	// A retake after a checkpoint step picks the scene up there.
+	CurrentStep = Steps.IsValidIndex(CheckpointStep) ? CheckpointStep : 0;
+	Broadcast(CurrentStep, Steps[CurrentStep].Text);
+	OnStepStarted.Broadcast(this, CurrentStep);
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
-		Scene->NotifyStepStarted(this, 0);
+		Scene->NotifyStepStarted(this, CurrentStep);
 	}
 }
 
@@ -100,6 +102,10 @@ bool ATDObjective::CompleteStep(int32 StepIndex)
 	{
 		Finish();
 		return true;
+	}
+	if (Steps[CurrentStep].bCheckpoint)
+	{
+		CheckpointStep = CurrentStep;
 	}
 	Broadcast(CurrentStep, Steps[CurrentStep].Text);
 	OnStepStarted.Broadcast(this, CurrentStep);

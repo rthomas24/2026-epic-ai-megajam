@@ -22,6 +22,14 @@ struct FTDObjectiveStep
 	/** Where the marker points while this step is current (optional). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Objective")
 	TObjectPtr<AActor> Waypoint;
+
+	/** Reaching this step is a checkpoint: a retake restarts the scene here, not at step 0. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Objective")
+	bool bCheckpoint = false;
+
+	/** Where the pilot comes back for a retake from this checkpoint (optional; else the pad). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Objective")
+	TObjectPtr<AActor> RespawnAt;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnObjectiveStep, ATDObjective*, Objective, int32, StepIndex);
@@ -88,6 +96,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Objective") bool IsComplete() const { return bComplete; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Objective") int32 GetCurrentStepIndex() const { return bActive ? CurrentStep : INDEX_NONE; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Objective") FText GetCurrentStepText() const;
+	/** The step a retake restarts from (the last checkpoint step reached; 0 when none). */
+	int32 GetCheckpointStep() const { return CheckpointStep; }
+	/** Where the pilot should come back for a retake, if the last checkpoint has a spot. */
+	AActor* GetCheckpointRespawn() const { return Steps.IsValidIndex(CheckpointStep) ? Steps[CheckpointStep].RespawnAt.Get() : nullptr; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Objective") AActor* GetCurrentWaypoint() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Objective")
@@ -111,6 +123,7 @@ private:
 	bool bActive = false;
 	bool bComplete = false;
 	int32 CurrentStep = 0;
+	int32 CheckpointStep = 0;
 };
 
 /** Tracks active objectives so the HUD and the ping can find their markers without actor iteration. */

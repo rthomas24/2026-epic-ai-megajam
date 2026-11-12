@@ -39,9 +39,9 @@ namespace TDCrewSpecs
 		// Sentry drone: 30 HP, fast small bolts (5), hovers out of melee range.
 		FTDCrewSpec& D = T[(int32)ETDCrewType::Drone];
 		D.Type = ETDCrewType::Drone; D.VisualsId = TEXT("Drone");
-		D.MaxHealth = 30.f; D.MoveSpeed = 600.f; D.bFlying = true; D.HoverHeight = 320.f;
+		D.MaxHealth = 30.f; D.MoveSpeed = 600.f; D.bFlying = true; D.HoverHeight = 220.f; // within a jump-slash (machine playtest: at 320 the blade could never reach one)
 		D.CapsuleRadius = 35.f; D.CapsuleHalfHeight = 35.f;
-		D.PreferredRangeMin = 600.f; D.PreferredRangeMax = 950.f; D.StrafeScale = 0.8f;
+		D.PreferredRangeMin = 350.f; D.PreferredRangeMax = 600.f; D.StrafeScale = 0.8f;
 		D.BoltDamage = 5.f; D.BoltSpeed = 4000.f; D.BoltRadius = 14.f; D.BurstCount = 1; D.BurstWindup = 0.25f; D.BurstCooldown = 0.9f;
 		D.BodyScale = FVector(0.6f, 0.6f, 0.5f);
 		D.TeamColor = FLinearColor(1.f, 0.55f, 0.1f);
@@ -49,12 +49,12 @@ namespace TDCrewSpecs
 		// Warden (mini-boss): 600 HP, charge slam (40 AoE), bolt fan, summons grunts; phase 2 at 50%.
 		FTDCrewSpec& W = T[(int32)ETDCrewType::Warden];
 		W.Type = ETDCrewType::Warden; W.VisualsId = TEXT("Warden");
-		W.MaxHealth = 600.f; W.MoveSpeed = 380.f; W.CapsuleRadius = 70.f; W.CapsuleHalfHeight = 130.f;
+		W.MaxHealth = 400.f; W.MoveSpeed = 380.f; // (machine playtest: 600 HP + 40 slam + 7x10 fans beat the pilot every take) W.CapsuleRadius = 70.f; W.CapsuleHalfHeight = 130.f;
 		W.SightRange = 5000.f; W.AlertSeconds = 1.0f;
 		W.PreferredRangeMin = 400.f; W.PreferredRangeMax = 1100.f;
-		W.ChargeSlamDamage = 40.f; W.ChargeSlamRadius = 320.f; W.ChargeDistance = 1200.f; W.ChargeDuration = 0.5f; W.ChargeWindup = 0.8f;
-		W.BoltDamage = 10.f; W.BoltSpeed = 2000.f; W.FanBolts = 7; W.FanArcDeg = 60.f; W.Phase2FanBolts = 11;
-		W.SummonCount = 2; W.Phase2SummonCount = 3; W.SummonMaxAlive = 4;
+		W.ChargeSlamDamage = 30.f; W.ChargeSlamRadius = 320.f; W.ChargeDistance = 1200.f; W.ChargeDuration = 0.5f; W.ChargeWindup = 0.8f;
+		W.BoltDamage = 7.f; W.BoltSpeed = 2000.f; W.FanBolts = 7; W.FanArcDeg = 60.f; W.Phase2FanBolts = 11;
+		W.SummonCount = 1; W.Phase2SummonCount = 2; W.SummonMaxAlive = 4;
 		W.BossAttackInterval = 2.4f; W.Phase2HealthFraction = 0.5f; W.Phase2CooldownScale = 0.7f;
 		W.BurstWindup = 0.5f;
 		W.BodyScale = FVector(1.5f, 1.5f, 2.6f);

@@ -98,7 +98,9 @@ void UTDGroundSceneSubsystem::ResetUnfinished(FName CurrentScene)
 			continue;
 		}
 		const bool bObjectiveDone = Enc->LinkedObjective && Enc->LinkedObjective->IsComplete();
-		if (!bObjectiveDone)
+		// A room of a step before the objective's checkpoint stays as it was (cleared, doors open).
+		const bool bBeforeCheckpoint = Enc->LinkedObjective && Enc->LinkedStep != INDEX_NONE && Enc->LinkedStep < Enc->LinkedObjective->GetCheckpointStep();
+		if (!bObjectiveDone && !bBeforeCheckpoint)
 		{
 			Enc->ResetEncounter();
 		}
@@ -107,7 +109,8 @@ void UTDGroundSceneSubsystem::ResetUnfinished(FName CurrentScene)
 	for (const TWeakObjectPtr<ATDInteractableActor>& I : Interactables)
 	{
 		ATDInteractableActor* Int = I.Get();
-		if (Int && (!Int->LinkedObjective || !Int->LinkedObjective->IsComplete()))
+		const bool bBeforeCheckpoint = Int && Int->LinkedObjective && Int->LinkedStep < Int->LinkedObjective->GetCheckpointStep();
+		if (Int && !bBeforeCheckpoint && (!Int->LinkedObjective || !Int->LinkedObjective->IsComplete()))
 		{
 			Int->ResetUse();
 		}
