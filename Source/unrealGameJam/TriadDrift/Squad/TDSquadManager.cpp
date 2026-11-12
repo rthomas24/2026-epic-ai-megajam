@@ -1213,6 +1213,28 @@ FText ATDSquadManager::GetBoundaryWarningText() const
 	return TDSquad::GetBoundaryWarningText(GetActiveShip());
 }
 
+TArray<FTDSquadMarker> ATDSquadManager::GetSquadMarkers() const
+{
+	TArray<FTDSquadMarker> Out;
+	Out.Reserve(Slots.Num());
+	for (const FTDSquadSlot& Slot : Slots)
+	{
+		FTDSquadMarker M;
+		M.Ship = Slot.ShipId;
+		M.Actor = Slot.Ship;
+		M.bPlayerControlled = Slot.ShipId == ActiveShipId;
+		M.bAlive = Slot.State == ETDSquadSlotState::Alive && IsValid(Slot.Ship) && !TDSquad::IsDead(Slot.Ship);
+		// Engaging = the wingman flying it has a live target (Engage and defending the player).
+		if (M.bAlive && !M.bPlayerControlled && Slot.Wingman && Slot.Wingman->GetPawn() == Slot.Ship)
+		{
+			const AActor* T = Slot.Wingman->GetCurrentTarget();
+			M.bEngaging = IsValid(T) && !TDSquad::IsDead(T);
+		}
+		Out.Add(M);
+	}
+	return Out;
+}
+
 FText ATDSquadManager::GetInteractPrompt() const
 {
 	const FText Land = TDSquad::GetLandPrompt(GetActiveShip());

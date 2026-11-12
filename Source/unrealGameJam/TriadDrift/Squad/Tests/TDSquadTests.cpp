@@ -2367,5 +2367,39 @@ bool FTDSquadWingmenHitGenerators::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadMarkersHUD, "TriadDrift.Squad.HUD.SquadMarkersForTheWing", TD_TEST_FLAGS)
+bool FTDSquadMarkersHUD::RunTest(const FString& Parameters)
+{
+	// Lead decision: the HUD shows where the wing is (brackets in view, edge arrows out of view).
+	FSquadFixture F;
+	auto Marker = [&](ETDShipId Id)
+	{
+		for (const FTDSquadMarker& M : F.Squad->GetSquadMarkers())
+		{
+			if (M.Ship == Id) { return M; }
+		}
+		return FTDSquadMarker();
+	};
+	TestEqual(TEXT("one per ship"), F.Squad->GetSquadMarkers().Num(), 3);
+	TestTrue(TEXT("Rift is the player's"), Marker(ETDShipId::Rift).bPlayerControlled && Marker(ETDShipId::Rift).Actor.Get() == F.Ship(ETDShipId::Rift));
+	TestTrue(TEXT("wingmen alive, not engaging with nothing around"), Marker(ETDShipId::Lancer).bAlive && !Marker(ETDShipId::Lancer).bPlayerControlled && !Marker(ETDShipId::Lancer).bEngaging);
+
+	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 2000.f, 0.f), 100000.f);
+	F.W.Advance(1.f);
+	TestTrue(TEXT("a wingman engaging the enemy"), Marker(ETDShipId::Lancer).bEngaging || Marker(ETDShipId::Bastion).bEngaging);
+	TestFalse(TEXT("the player's ship is never 'engaging' (it's not AI)"), Marker(ETDShipId::Rift).bEngaging);
+
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestTrue(TEXT("follows the switch"), Marker(ETDShipId::Lancer).bPlayerControlled && !Marker(ETDShipId::Rift).bPlayerControlled);
+	F.W.Advance(1.f);
+	F.Kill(ETDShipId::Bastion);
+	F.W.Tick();
+	TestTrue(TEXT("down: not alive, not engaging"), !Marker(ETDShipId::Bastion).bAlive && !Marker(ETDShipId::Bastion).bEngaging);
+	UTDStatics::GetHealth(Enemy)->Kill();
+	F.W.Tick();
+	TestFalse(TEXT("dead target: not engaging"), Marker(ETDShipId::Rift).bEngaging);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
