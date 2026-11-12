@@ -3,6 +3,7 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 
 UTDShipMovementComponent::UTDShipMovementComponent()
 {
@@ -49,11 +50,58 @@ void UTDShipMovementComponent::ClearSpeedOverride()
 	Context.bSpeedOverride = false;
 }
 
+void UTDShipMovementComponent::SetOverrideAcceleration(float AccelerationCmPerSec2)
+{
+	Context.OverrideAcceleration = AccelerationCmPerSec2 >= 0.f ? AccelerationCmPerSec2 : FTDFlightContext().OverrideAcceleration;
+}
+
 void UTDShipMovementComponent::SetBoundary(const FVector& Center, float Radius, bool bEnabled)
 {
 	Context.BoundaryCenter = Center;
 	Context.bBoundaryEnabled = bEnabled;
-	Tuning.BoundaryRadius = FMath::Max(0.f, Radius);
+	Context.BoundaryRadius = FMath::Max(0.f, Radius);
+}
+
+void UTDShipMovementComponent::SetBoxBoundary(const FBox& Box)
+{
+	Context.bBoxBoundary = Box.IsValid != 0;
+	Context.BoundaryBox = Box;
+	Context.bBoundaryEnabled = true;
+}
+
+void UTDShipMovementComponent::ClearBoxBoundary()
+{
+	Context.bBoxBoundary = false;
+}
+
+void UTDShipMovementComponent::SetAtmosphereMode(bool bEnabled, float Gravity, float SpeedCapFraction)
+{
+	Context.bAtmosphere = bEnabled;
+	Context.AtmosphereGravity = FMath::Max(0.f, Gravity);
+	Context.AtmosphereSpeedCapFraction = FMath::Clamp(SpeedCapFraction, 0.05f, 1.f);
+}
+
+void UTDShipMovementComponent::ApplyWorldPlayBounds()
+{
+	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+	if (!Travel || Travel->GetPlayBoundsVersion() == AppliedPlayBoundsVersion)
+	{
+		return;
+	}
+	AppliedPlayBoundsVersion = Travel->GetPlayBoundsVersion();
+	FVector Center;
+	float Radius;
+	if (Travel->GetPlayBounds(Center, Radius))
+	{
+		Context.BoundaryCenter = Center;
+		Context.BoundaryRadius = Radius;
+		Context.bBoundaryEnabled = true;
+		bWorldBoundsApplied = true;
+	}
+	else if (bWorldBoundsApplied)
+	{
+		Context.BoundaryRadius = -1.f; // the world cleared its bounds: back to the tuning default
+	}
 }
 
 void UTDShipMovementComponent::NotifyTeleported(const FQuat& NewFacing, bool bKeepSpeed)
@@ -63,8 +111,13 @@ void UTDShipMovementComponent::NotifyTeleported(const FQuat& NewFacing, bool bKe
 	const float Speed = bKeepSpeed ? FMath::Max(Velocity.Size(), State.ForwardSpeed) : Tuning.CruiseSpeed;
 	State.ForwardSpeed = Speed;
 	State.StrafeVelocity = FVector2D::ZeroVector;
-	State.bDrifting = false;
 	State.Velocity = State.Rotation.GetForwardVector() * Speed;
+	if (State.bDrifting)
+	{
+		// Keep the drift going through the portal (no silent end / re-start), now locked to the new facing.
+		State.DriftDirection = State.Rotation.GetForwardVector();
+		State.DriftStartForward = State.DriftDirection;
+	}
 	Velocity = State.Velocity;
 	LastWrittenVelocity = Velocity;
 }
@@ -81,6 +134,41 @@ void UTDShipMovementComponent::AddImpulseVelocity(const FVector& DeltaVelocity)
 		Velocity = State.Velocity;
 		LastWrittenVelocity = Velocity;
 	}
+}
+
+void UTDShipMovementComponent::ResetFlightState(bool bKeepVelocity)
+{
+	SyncStateFromComponent();
+	const bool bWasBoosting = State.bBoosting;
+	const bool bWasDrifting = State.bDrifting;
+
+	Input = FTDFlightInput();
+	State.Boost01 = 1.f;
+	State.TimeSinceBoost = 1000.f;
+	State.bBoosting = false;
+	State.bBoostLockout = false;
+	State.bDrifting = false;
+	State.bBurstOverspeed = false;
+	State.bDriftBurstThisStep = false;
+	State.bDriftEndedThisStep = false;
+	State.AngularRate = FVector::ZeroVector;
+	State.StrafeVelocity = FVector2D::ZeroVector;
+	State.VisualBank = 0.f;
+	Context.bSpeedOverride = false;
+	Context.OverrideSteeringScale = 1.f;
+	Context.OverrideAcceleration = FTDFlightContext().OverrideAcceleration;
+	Context.ThrottleTopSpeed = 0.f;
+
+	if (bKeepVelocity)
+	{
+		State.ForwardSpeed = State.Velocity.Size();
+	}
+	else
+	{
+		SetForwardSpeedImmediate(Tuning.CruiseSpeed * StartSpeedFraction);
+	}
+	if (bWasBoosting) { OnBoostEnded.Broadcast(); }
+	if (bWasDrifting) { OnDriftReleased.Broadcast(false); }
 }
 
 void UTDShipMovementComponent::SetVelocityImmediate(const FVector& NewVelocity)
@@ -161,6 +249,7 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		return;
 	}
 
+	ApplyWorldPlayBounds();
 	SyncStateFromComponent();
 	const FTDFlightState Before = State;
 	const FVector StartLocation = State.Location;
@@ -214,6 +303,12 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 	{
 		return;
 	}
+	if (Into < Tuning.MinImpactSpeed)
+	{
+		// Resting / pinned contact: just stop pushing into the surface. No event, no damage, no shield-regen reset.
+		State.Velocity = V + Normal * Into;
+		return;
+	}
 
 	FTDFlightImpact Impact;
 	Impact.OtherActor = Hit.GetActor();
@@ -229,7 +324,7 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 	{
 		// Bounce straight back off the surface, losing most of the speed.
 		State.Velocity = V + Normal * Into * (1.f + Tuning.HeadOnRestitution);
-		State.Velocity *= 0.5f;
+		State.Velocity *= Tuning.HeadOnSpeedRetain;
 		State.ForwardSpeed = FMath::Min(State.ForwardSpeed, State.Velocity.Size());
 		Damage = Tuning.HeadOnDamage * (Into / CruiseRef);
 	}
@@ -244,7 +339,7 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 		if (!TangentDir.IsNearlyZero() && !State.bDrifting)
 		{
 			const FQuat Along = FQuat::FindBetweenNormals(State.Rotation.GetForwardVector(), TangentDir);
-			State.Rotation = (FQuat::Slerp(FQuat::Identity, Along, 0.5f) * State.Rotation).GetNormalized();
+			State.Rotation = (FQuat::Slerp(FQuat::Identity, Along, Tuning.ScrapeNoseAlign) * State.Rotation).GetNormalized();
 			UpdatedComponent->SetWorldRotation(State.Rotation);
 		}
 		const float Angle01 = Tuning.HeadOnThreshold > 0.f ? Impact.HeadOn01 / Tuning.HeadOnThreshold : 1.f;
@@ -277,8 +372,8 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 	{
 		OnDriftStarted.Broadcast();
 	}
-	if (State.bDriftBurstThisStep)
+	if (State.bDriftEndedThisStep && Before.bDrifting)
 	{
-		OnDriftReleased.Broadcast();
+		OnDriftReleased.Broadcast(State.bDriftBurstThisStep);
 	}
 }

@@ -11,6 +11,7 @@ class UTDHealthComponent;
 class UTDWeaponComponent;
 class UStaticMeshComponent;
 class ATDEnemyTurret;
+class UTDEnemyVisuals;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDTurretSignature, ATDEnemyTurret*, Turret);
 
@@ -66,6 +67,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
 	float StartHull = 60.f;
+
+	/** TurretTelegraph (falls back to Telegraph), TurretDestroyed. Set by the owner, or per placed turret. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TObjectPtr<UTDEnemyVisuals> Visuals;
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Turret")
 	FTDTurretSignature OnTelegraphStarted;

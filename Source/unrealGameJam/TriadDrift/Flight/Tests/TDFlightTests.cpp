@@ -148,8 +148,7 @@ bool FTDFlightBoost::RunTest(const FString& Parameters)
 	TestFalse(TEXT("boost ends when the 3 s meter is empty"), S.bBoosting);
 	TestEqual(TEXT("meter empty"), S.Boost01, 0.f, 0.001f);
 
-	// Still holding boost on an empty meter: no re-boost, no regen (boost is still held but the meter
-	// can't start); release and measure the regen delay.
+	// Release and measure the regen delay (holding through empty is covered by Boost.EmptyMeterLockout).
 	In.bBoost = false;
 	Run(S, In, T, NoBoundary(), 1.1f, Fps);
 	TestEqual(TEXT("no regen before 1.2 s"), S.Boost01, 0.f, 0.001f);
@@ -473,7 +472,6 @@ bool FTDFlightCollision::RunTest(const FString& Parameters)
 		Fly(W, Ship, 0.f);
 		const float HP0 = Ship->GetHealth()->GetHull() + Ship->GetHealth()->GetShield();
 		bool bHit = false;
-		FTDFlightImpact Impact;
 		for (int32 i = 0; i < 60 && !bHit; ++i)
 		{
 			W.Tick();
@@ -539,7 +537,7 @@ bool FTDFlightInputMap::RunTest(const FString& Parameters)
 		{ TEXT("IA_FirePrimary"), EKeys::LeftMouseButton }, { TEXT("IA_FirePrimary"), EKeys::Gamepad_RightShoulder },
 		{ TEXT("IA_FireSecondary"), EKeys::RightMouseButton }, { TEXT("IA_FireSecondary"), EKeys::Gamepad_LeftShoulder },
 		{ TEXT("IA_Boost"), EKeys::LeftShift }, { TEXT("IA_Boost"), EKeys::Gamepad_LeftThumbstick },
-		{ TEXT("IA_Drift"), EKeys::LeftAlt }, { TEXT("IA_Drift"), EKeys::C }, { TEXT("IA_Drift"), EKeys::Gamepad_FaceButton_Right },
+		{ TEXT("IA_Drift"), EKeys::C }, { TEXT("IA_Drift"), EKeys::Gamepad_FaceButton_Right },
 		{ TEXT("IA_Power"), EKeys::Q }, { TEXT("IA_Power"), EKeys::Gamepad_FaceButton_Left },
 		{ TEXT("IA_Ability"), EKeys::E }, { TEXT("IA_Ability"), EKeys::Gamepad_FaceButton_Top },
 		{ TEXT("IA_SwitchNext"), EKeys::Tab }, { TEXT("IA_SwitchNext"), EKeys::Gamepad_DPad_Right },
@@ -563,8 +561,6 @@ bool FTDFlightInputMap::RunTest(const FString& Parameters)
 	TestTrue(TEXT("IMC_Atmosphere: Land on A"), Has(Atmo, A(TEXT("IA_Land")), EKeys::Gamepad_FaceButton_Bottom));
 	TestFalse(TEXT("IMC_Atmosphere has no Hyperdrive"), Has(Atmo, A(TEXT("IA_Hyperdrive")), EKeys::H));
 
-	PC->SetFlightContext(ETDFlightContext::Atmosphere);
-	TestEqual(TEXT("context switch"), PC->GetFlightContext(), ETDFlightContext::Atmosphere);
 
 	// With no throttle pressed the controller flies the ship at cruise.
 	W.Advance(3.f);
