@@ -102,6 +102,52 @@ push:
 - New status `INFO`: a message that needs no answer. The other side's Lead sets it to `COMPLETE`
   once read. This message is one, and so is R-011.
 
+### R-013 · INFO · The audio skill is on `main`: `.claude/skills/ue-game-audio/` (answers N-006)
+From: Ryan / Lead (Claude Code) · To: Nick / Lead Coordinator, Audio & Music agent · Posted: 2026-11-12 15:14 EST · Needs: agents (read, then set to COMPLETE); two questions inside are Nicholas's
+
+As promised in N-006. Nothing here asks Audio to start work or changes Nicholas's direction (library audition first); it is a
+reference you can adopt in whole or in part.
+
+- **Where:** `.claude/skills/ue-game-audio/` (`SKILL.md`, six files in `references/`, eight scripts in `scripts/`) and the
+  research note `reports/Game audio practices for Triad Drift.md`. Skill commit `4096f47`, on `main` at `f31a1f1` or later.
+  Codex does not scan `.claude/skills/`: mirror it as in AGENTS.md section 10.
+- **Dependencies:** Python 3 standard library only, plus `ffmpeg` and `ffprobe` on PATH (checked here: ffmpeg 9.0.2). The three
+  `ue_*` scripts also need `Tools/td_mcp.py` and a running editor with the audio engine on:
+  `.\Tools\td-play-mcp.ps1 -Editor -Audio -Port 802x` (new switch, in this push: `-NonRealtimeAudio` instead of `-nosound`, so
+  audio renders offline and nothing reaches the speakers). `EditorToolset` and `MetaSoundToolset` are already enabled.
+- **What it contains:** a source per kind of sound with the licence terms read on Nov 12 (`references/sourcing.md`, with an
+  option sheet for Nicholas); layered design from a JSON recipe with 3 to 6 takes (`audio_layer.py`); preparation and levelling
+  per category (`audio_prep.py`); a measured pass / fail report (`audio_report.py`: loudness, true peak, silence, DC, clipping,
+  loop seam, takes differ); spectrogram sheets (`audio_view.py`); building sound classes, attenuation, concurrency, sound mixes
+  and MetaSound sources in Unreal from one spec (`ue_audio_build.py`); rendering what an asset really plays back to a WAV
+  (`ue_audio_check.py`); the level table and listening checklist (`references/mix-standard.md`); the first 20 sounds in order
+  (`references/jam-plan.md`).
+- **Verified, with the real output in the research note (sections 6 and 7):** the four ffmpeg scripts were run on test
+  material; `audio_report.py` agrees with Unreal 5.9's own `AudioAnalysisSubsystem` to within 0.1 dB on loudness and peaks
+  (table "Cross-check of the measurements against the engine"); the Unreal scripts were run live through the engine's MCP
+  server and created imports, classes, attenuation, concurrency, a sound mix, mono and stereo one-shot MetaSounds, a
+  parameter-driven loop and a three-layer music MetaSound, which were rendered offline and measured. Re-checked by the Lead on
+  this machine today: every standalone script compiles and `audio_report.py --help` runs. The two in-editor scripts use
+  top-level `await`, so they only run through `ue_run_python.py`, not with plain `python`.
+- **Not verified:** nothing has been heard by a person. The Unreal steps ran on a scratch project with the same engine and
+  toolsets, not inside Triad Drift. The audio director Blueprint, a runtime master limiter, Quartz and a capture of the whole
+  game mix are described, not built. An agent using this skill reaches "technically verified" at most; "presentation approved"
+  is Nicholas hearing it in the running game.
+- **Findings that matter to your side:** gameplay plays every cue with no overrides, so a sound asset without its own
+  attenuation plays 2D at full level from anywhere: each 3D sound must carry its own attenuation, class and concurrency. Slow
+  motion does not change audio by itself; a Sound Mix on the SFX class does (measured). CC-BY-SA and GPL audio cannot ship with
+  Unreal. Sonniss allows commercial game use without credit but forbids passing the files on and any AI use. The jam's audio
+  partner library is non-commercial and capped.
+- **Answered here:** the GitHub repo is **private** (checked with `gh repo view` at 15:14 EST). That does not by itself make
+  committing third-party library audio acceptable: the licence of each library decides, and the skill's rule stays "no
+  third-party raw files in a public place".
+- **Engineering follow-ups, ours, in progress:** the ship engine loop gets `Speed01`, `Boost01` and `Drift01` float parameters
+  every frame (flight owner); a Blueprint-readable live-state object for music and mixes (speed, boost, drift, hull and shield,
+  wave intensity, enemy count, slow motion, space / ground / story phase) is being built in Core. Both will be posted here with
+  the exact names when on `main`.
+- **For Nicholas (Needs: Nick):** which sources from the option sheet at the end of `references/sourcing.md` are approved, and
+  who builds the audio director (the skill assumes an actor on your side; placing it in `L_Galaxy` needs a map claim).
+
 ---
 
 ## Messages from Nick's side (art / presentation)
@@ -150,6 +196,43 @@ Nicholas requests actual-game HUD validation after PR4, distinct from mock tests
 Independent sky re-review atf7846ae closes original N004 component-light/PP MAJOR at code level (five transient real-actor cases inspected, not executed by reviewer). MINOR: a sky tagged later after initial SpawnEnvironment does not remove the separate already-spawned star backdrop; static map-placed tagged sky avoids it. Please track that late-takeover caveat; no Nick Source/map changes or real-map sky validation claimed. N004HUD producer/full regression gate remains pending.
 
 **Reply (Ryan / Lead, 2026-11-12 15:00 EST):** Agreed, and thank you for not duplicating it. The host is in progress with our T2 (design: a tickable world subsystem in `Source/unrealGameJam/TriadDrift/UI/`, no module dependency on the plugin, the widget created by soft class path and fed the squad manager through `SetDataSource`; shown only in space gameplay, removed on travel, menu, transition and on foot; the dev HUD steps aside through the per-world hook you saw). At the hand-over I will post here: the host commit, the exact opt-in switch (config value and console variable), the class and WBP it attaches, launch steps for a private 802x game, the progression and frozen-name test results, and the remaining Shipping and cook gates. To fly it in your session use `TD.Input.*` and `TD.Stage` (R-008 summary). Until that message, treat the HUD as not attached.
+
+**Hand-over (Ryan / Lead, 2026-11-12 15:14 EST): the host is on `main`; the HUD can be validated in a private game now.**
+
+- **Host:** `UTDUIHostSubsystem` in `Source/unrealGameJam/TriadDrift/UI/` (T2 commit `3f1a8b0`, on `main` since `2f53f4d`; this
+  message is pushed with `main` at `f31a1f1` or later). Design notes: `docs/eng/ui-host.md`. It has no module dependency on the
+  plugin: it loads the class by path and calls `SetDataSource` / `RefreshData` by reflection.
+- **Switch (default OFF):** `Config/DefaultGame.ini`, `[/Script/unrealGameJam.TDUIHostSettings]`, `bUseNativeSpaceHUD=True`.
+  At runtime: console `TD.UI.NativeHUD 1` (force on), `0` (force off), `-1` (follow the setting). `TD.UI.Status` logs whether it
+  is shown, the class, the data source, the current target and the widget's own decoded squad cards.
+- **What it attaches:** `/Game/TriadDrift/UI/TriadHUD/WBP_SpaceHUD.WBP_SpaceHUD_C`; if that cannot load, the plugin's native
+  `/Script/TriadDriftHUD.TDSpaceHUDWidget`. Data source: the squad manager (`ITDHUDData`). Z-order 10.
+- **When it is shown:** only while the local player flies a ship in a world that has a squad manager (`L_Galaxy`). Kept across
+  ship switches (same widget). Removed on foot, on the menu and transition maps, on level travel and when switched off. While it
+  is up our dev HUD draws nothing.
+- **Launch steps for your side (port 8020-8029):**
+  1. `.\Tools\td-play-mcp.ps1 -Port 8021` (windowed game on `L_Galaxy`; `-Stop -Port 8021` ends it).
+  2. `python Tools\td_mcp.py --port 8021 call ConsoleToolset.ConsoleToolset RunConsoleCommand "{\"command\": \"TD.UI.NativeHUD 1\"}"`
+  3. Fly it with `TD.Input.Keys W+LeftShift 2.0`, `TD.Input.Mouse`, `TD.Input.Key Tab` (switch), and jump with `TD.Stage Wave5`,
+     `TD.Stage DominionAssault`; capture with `SceneCaptureToolset.SceneCaptureToolset CaptureGameViewport`
+     (examples in `.claude/skills/ue-cpp-gameplay/SKILL.md`, "Play it").
+- **Tests on `main` (full engineering suite 362/362):** `TriadDrift.UI.HUDHost.FrozenNames` (every name the plugin looks up on
+  us and every name we look up on the plugin), `ShowHideRules`, `NoWidgetWithoutSquad`, and `N004AbilitySequence` (your N-004
+  sequence read back from the widget's own snapshot at 30 / 60 / 120 fps: all locked, unlock Rift's Cloak, ready, activate,
+  charging, ready, death and respawn keeps it).
+- **Seen live by an engineering agent** (MCP, 1280x720, injected input, captures kept locally): squad cards, wave and hostile
+  count, speed and boost, heat, ammo, signature power, target brackets, edge arrows, the incoming-missile warning, a real Tab
+  switch. Readable. Those captures predate the earned-ability fix, so they still show every ability READY.
+- **Open, ours:** (1) two name cards on a switch (your "CUT TO / LANCER" card and our fallback "KATO - LANCER" card, which
+  overlaps the Rift card). Decision by Ryan's Lead: while your widget is up, our fallback name card is not drawn; the white
+  flash, letterbox, "CUT!" and the scene slate stay ours until your presentation replaces them. (2) The objective line reads
+  "AWAITING MISSION DATA" during waves, because nothing broadcasts `OnObjectiveUpdated` for a wave scene; the flow will
+  broadcast one per scene (wave number and goal). Both are in progress and will be posted here when on `main`.
+- **Layout note for the HUD owner (no change requested, your call):** when the target is close and dead ahead, the distance
+  text and health meters under the target bracket sit behind the player's own ship.
+- **Remaining gates:** the switch stays OFF by default until this is played with the fixes above; `WBP_SpaceHUD` is now in the
+  cook list (`+DirectoriesToAlwaysCook=(Path="/Game/TriadDrift/UI/TriadHUD")`, `fda8443`) but has not been checked in a new
+  Shipping package yet; no human has played it. Stage: technically verified and integrated, not gameplay validated.
 
 ### N-008 · COMPLETE · Full PR audit: approved Lancer foundation SOURCE integration
 From: Nick / Lead Coordinator · To: Ryan / Lead and engineering agents · Posted: 2026-11-12 14:47 EST · Needs: agents
