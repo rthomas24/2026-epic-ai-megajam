@@ -73,7 +73,7 @@ public:
 	void SetPlayerControlled(bool bInPlayerControlled);
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
-	bool IsPlayerControlled() const { return bPlayerControlled; }
+	bool IsPlayerFlown() const { return bPlayerControlled; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	USpringArmComponent* GetSpringArm() const { return SpringArm; }
@@ -110,5 +110,6 @@ protected:
 private:
 	bool bPlayerControlled = false;
 	float CurrentFOV = 90.f;
+	int32 SnapFramesRemaining = 0;
 	FVector2D LookAhead = FVector2D::ZeroVector;
 };

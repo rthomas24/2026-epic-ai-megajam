@@ -15,14 +15,14 @@ class UTDShipMovementComponent;
 class UTDHealthComponent;
 class UDamageType;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FTDOnSpacecraftTeleported, ATDSpacecraft*, Spacecraft, FVector, FromLocation, FVector, ToLocation, FRotator, NewFacing);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FTDOnTeleported, ATDSpacecraft*, Spacecraft, FVector, FromLocation, FVector, ToLocation, FRotator, NewFacing);
 
 /**
  * A flyable spacecraft: collision sphere root, placeholder hull mesh (engine basic shape), arcade
  * movement, health. Fly it only through SetFlightInput (player controller, wingman AI and enemy AI
  * all use the same path). Possession changes never touch velocity.
  */
-UCLASS(Abstract = false, Blueprintable)
+UCLASS(Blueprintable)
 class UNREALGAMEJAM_API ATDSpacecraft : public APawn, public ITDTeam
 {
 	GENERATED_BODY()
@@ -73,7 +73,7 @@ public:
 
 	/** Fired after every TeleportSpacecraft (wingmen warp-follow, presentation transit FX). */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Flight")
-	FTDOnSpacecraftTeleported OnTeleported;
+	FTDOnTeleported OnTeleported;
 
 	// ---- Components, team, health -------------------------------------------------------------------
 
@@ -124,9 +124,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift")
 	ETDTeam Team = ETDTeam::Neutral;
 
-	/** Damage type for collision damage (glancing scrapes and head-on hits). */
+	/** Damage kind for collision damage (glancing scrapes and head-on hits). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Flight")
-	TSubclassOf<UDamageType> CollisionDamageType;
+	ETDDamageKind CollisionDamageKind = ETDDamageKind::Environmental;
+
+	/** Placeholder wings (engine cube) so the silhouette reads before art exists. Hidden once real art is set. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift")
+	TObjectPtr<UStaticMeshComponent> PlaceholderWings;
 
 	/** Pitch added on top of the visual bank so the nose dips into hard turns (deg at full pitch rate). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Flight")

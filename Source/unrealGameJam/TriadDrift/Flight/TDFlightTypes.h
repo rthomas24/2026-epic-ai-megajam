@@ -21,13 +21,9 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "0"))
 	float MinSpeed = 1500.f;
 
-	/** Speed with the throttle at neutral. Arcade style: the ship always cruises. */
+	/** Speed at Throttle +1. FTDFlightInput::Throttle maps -1..+1 linearly to MinSpeed..CruiseSpeed. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "0"))
 	float CruiseSpeed = 6000.f;
-
-	/** Throttle fully forward flies at CruiseSpeed * this. 1 = forward throttle does nothing. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "1"))
-	float ThrottleUpMultiplier = 1.15f;
 
 	/** Speed while boosting. Default is cruise +80% (ENG-01); ENG-04 sets it per ship. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "0"))
@@ -99,7 +95,7 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Boost", meta = (ClampMin = "0"))
 	float BoostRegenDelay = 1.2f;
 
-	/** Seconds to refill an empty meter once regen has started. */
+	/** Seconds to refill an empty meter once regen has started (lower = faster regen, e.g. Lancer). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Boost", meta = (ClampMin = "0.1"))
 	float BoostRegenTime = 2.5f;
 

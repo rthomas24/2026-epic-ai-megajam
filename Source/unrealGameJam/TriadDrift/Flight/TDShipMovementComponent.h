@@ -68,6 +68,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void AddImpulseVelocity(const FVector& DeltaVelocity);
 
+	/** Sets the full velocity instantly (switch hand-offs, scripted moves). Engine speed follows its length. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetVelocityImmediate(const FVector& NewVelocity);
+
 	/** Sets speed instantly along the current nose (spawns, respawns, cutscene hand-offs). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void SetForwardSpeedImmediate(float SpeedCmPerSec);
@@ -142,13 +146,15 @@ protected:
 
 private:
 	void ResolveMove(const FVector& Delta, float DeltaTime);
-	void HandleImpact(const FHitResult& Hit, float DeltaTime);
+	void HandleShipImpact(const FHitResult& Hit, float DeltaTime);
 	void SyncStateFromComponent();
 	void BroadcastStateChanges(const FTDFlightState& Before);
 
 	FTDFlightInput Input;
 	FTDFlightState State;
 	FTDFlightContext Context;
+	/** Velocity we wrote last tick; a mismatch means someone outside changed Velocity (knockback). */
+	FVector LastWrittenVelocity = FVector::ZeroVector;
 	double LastCollisionDamageTime = -1000.0;
 	bool bStateInitialised = false;
 };

@@ -42,6 +42,9 @@ struct UNREALGAMEJAM_API FTDFlightState
 	/** Visual-only hull bank (deg), for the mesh and the camera. */
 	float VisualBank = 0.f;
 
+	/** Speed above target came from a drift burst (bleeds off at OverspeedDeceleration). */
+	bool bBurstOverspeed = false;
+
 	/** Set for one step when a drift is released (presentation burst hook). */
 	bool bDriftBurstThisStep = false;
 };
