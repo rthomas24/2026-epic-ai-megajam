@@ -118,6 +118,10 @@ ATDDominion* ATDDominion::Get(const UObject* WorldContext)
 void ATDDominion::BeginPlay()
 {
 	Super::BeginPlay();
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDDominion::HandleTakeStarted);
+	}
 
 	// Nick's asset by convention when none is set (no gameplay BP edit needed).
 	if (!Visuals)
@@ -198,6 +202,10 @@ void ATDDominion::LayoutParts()
 
 void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnTakeStarted.RemoveDynamic(this, &ATDDominion::HandleTakeStarted);
+	}
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale);
@@ -220,16 +228,28 @@ void ATDDominion::SetState(ETDDominionState NewState)
 	if (State != NewState)
 	{
 		State = NewState;
-		// The assault (warp-in to victory) locks the hyperdrive: the finale is fought, not skipped.
-		if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
-		{
-			const bool bLocked = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
-				|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
-			if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT")); }
-			else { Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale); }
-		}
+		SyncHyperdriveLock();
 		OnStateChanged.Broadcast(this, NewState);
 	}
+}
+
+void ATDDominion::SyncHyperdriveLock()
+{
+	// The assault (warp-in to victory) locks the hyperdrive: the finale is fought, not skipped. The lock
+	// follows the STATE, not its transitions: it is re-asserted on every state change, on every retake and a
+	// few times a second, so nothing that clears locks (a retake, a level arrival, a resume) can open it.
+	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		const bool bLocked = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
+			|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+		if (bLocked) { Travel->AddHyperdriveLock(TDHyperdriveLocks::Finale, NSLOCTEXT("TD", "HyperLockFinale", "HYPERDRIVE LOCKED - DOMINION ASSAULT")); }
+		else { Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale); }
+	}
+}
+
+void ATDDominion::HandleTakeStarted(FName /*SceneId*/, int32 /*TakeNumber*/)
+{
+	SyncHyperdriveLock();
 }
 
 void ATDDominion::ShowHull(bool bVisible)
@@ -656,6 +676,13 @@ void ATDDominion::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	StateTime += DeltaSeconds;
+
+	LockSyncTimer -= DeltaSeconds;
+	if (LockSyncTimer <= 0.f)
+	{
+		LockSyncTimer = 0.25f;
+		SyncHyperdriveLock();
+	}
 
 	switch (State)
 	{

@@ -424,7 +424,18 @@ void ATDWaveDirector::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		return;
 	}
 	const bool bRunning = State == ETDWaveState::WarpingIn || State == ETDWaveState::Active;
-	if (TakeNumber > CurrentTake && bRunning)
+	// The last enemy can die during the CUT delay (an asteroid, a mine): the wave then finishes, the flow voids
+	// the clear because the scene is restarting, and the retake arrives here with the wave already over. If
+	// the flow doesn't count this wave as cleared, it is still being played: rebuild it (no soft-lock).
+	bool bClearVoided = false;
+	if (!bRunning && CurrentWave != INDEX_NONE)
+	{
+		if (const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+		{
+			bClearVoided = Flow->GetProgress().WavesCleared < CurrentWave + 1;
+		}
+	}
+	if (TakeNumber > CurrentTake && (bRunning || bClearVoided))
 	{
 		// "CUT!" -> next take: rebuild the scene.
 		CurrentTake = TakeNumber;
@@ -846,6 +857,18 @@ void ATDWaveDirector::RepairSquadHulls(float DeltaSeconds)
 void ATDWaveDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	// The wave lock follows the state: re-asserted a few times a second while a wave runs, so a retake or
+	// anything else that clears locks can't open the hyperdrive mid-wave (whatever order handlers run in).
+	if (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active)
+	{
+		LockSyncTimer -= DeltaSeconds;
+		if (LockSyncTimer <= 0.f)
+		{
+			LockSyncTimer = 0.25f;
+			SetWaveHyperdriveLock(true);
+		}
+	}
 
 	switch (State)
 	{
