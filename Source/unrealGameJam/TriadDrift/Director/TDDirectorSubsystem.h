@@ -90,6 +90,10 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "s"))
 	float MaxSlowMoSeconds = 1.0f;
 
+	/** Per-kind slow-mo length overriding the importance curve (ENG-22: a perfect deflect is a 0.15 s beat). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director")
+	TMap<ETDHighlightKind, float> DurationOverrideSeconds;
+
 	/** Time dilation at importance 0 and 1 (lower = slower). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (ClampMin = "0.05", ClampMax = "1"))
 	float DilationAtMinImportance = 0.4f;

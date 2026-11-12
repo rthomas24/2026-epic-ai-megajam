@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDPresentation.h"
 
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -23,6 +24,8 @@
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Travel/TDLandingComponent.h"
 
 #include "TriadDrift/Input/TDSpacePlayerController.h" // ETDPowerInput
 #include "TriadDrift/Powers/TDPowerComponent.h"
@@ -200,6 +203,63 @@ namespace TDSquad
 		Ship->SetFlightInput(In);
 	}
 
+	void SetFlightParked(ATDShip* Ship, bool bParked)
+	{
+		if (Ship)
+		{
+			Ship->SetFlightParked(bParked);
+		}
+	}
+
+	bool IsFlightParked(const ATDShip* Ship)
+	{
+		return Ship && Ship->IsFlightParked();
+	}
+
+	void ResetFlightState(ATDShip* Ship, bool bKeepVelocity)
+	{
+		if (Ship)
+		{
+			Ship->ResetFlightState(bKeepVelocity);
+		}
+	}
+
+	void SendNeutralInput(ATDShip* Ship)
+	{
+		if (Ship)
+		{
+			Ship->SetFlightInput(FTDFlightInput());
+		}
+	}
+
+	ETDHyperdriveState GetHyperdriveState(const ATDShip* Ship)
+	{
+		const UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr;
+		return H ? H->GetState() : ETDHyperdriveState::Idle;
+	}
+
+	bool IsLandingBusy(const ATDShip* Ship)
+	{
+		const UTDLandingComponent* L = Ship ? Ship->GetLanding() : nullptr;
+		return L && L->IsBusy();
+	}
+
+	void StopHyperdrive(ATDShip* Ship)
+	{
+		if (UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
+		{
+			H->SetHyperdriveEnabled(false); // cancels a spool; a jump drops out
+		}
+	}
+
+	void EnableHyperdrive(ATDShip* Ship)
+	{
+		if (UTDHyperdriveComponent* H = Ship ? Ship->GetHyperdrive() : nullptr)
+		{
+			H->SetHyperdriveEnabled(true);
+		}
+	}
+
 	void TeleportShip(ATDShip* Ship, const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
 	{
 		if (Ship)
@@ -254,6 +314,15 @@ namespace TDSquad
 		}
 	}
 
+	void RepairHull(AActor* Actor, float Amount)
+	{
+		UTDHealthComponent* H = Health(Actor);
+		if (H && H->IsAlive() && Amount > 0.f && H->GetHull01() < 1.f)
+		{
+			H->RepairHull(Amount);
+		}
+	}
+
 	void RestoreFullHealth(AActor* Actor)
 	{
 		if (UTDHealthComponent* H = Health(Actor))
@@ -278,6 +347,23 @@ namespace TDSquad
 		{
 			W->SetAimTarget(Target);
 			W->SetAimDirection(WorldDir);
+		}
+	}
+
+	void ClearAim(ATDShip* Ship)
+	{
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->SetAimTarget(nullptr);
+			W->SetAimDirection(FVector::ZeroVector);
+		}
+	}
+
+	void SetWeaponsBlocked(ATDShip* Ship, FName SourceKey, bool bBlocked)
+	{
+		if (UTDWeaponComponent* W = Weapons(Ship))
+		{
+			W->SetWeaponsBlocked(SourceKey, bBlocked);
 		}
 	}
 
@@ -625,19 +711,37 @@ namespace TDSquad
 		}
 	}
 
-	void BindHyperdriveState(ATDWingmanAIController* Wingman)
+	void BindWaveEvents(ATDSquadManager* Squad)
 	{
-		if (UTDEventBus* Bus = UTDEventBus::Get(Wingman))
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
 		{
-			Bus->OnHyperdriveState.AddUniqueDynamic(Wingman, &ATDWingmanAIController::HandleHyperdriveState);
+			Bus->OnWaveCleared.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
+			Bus->OnWaveStarted.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
 		}
 	}
 
-	void UnbindHyperdriveState(ATDWingmanAIController* Wingman)
+	void UnbindWaveEvents(ATDSquadManager* Squad)
 	{
-		if (UTDEventBus* Bus = UTDEventBus::Get(Wingman))
+		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
 		{
-			Bus->OnHyperdriveState.RemoveDynamic(Wingman, &ATDWingmanAIController::HandleHyperdriveState);
+			Bus->OnWaveCleared.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
+			Bus->OnWaveStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
+		}
+	}
+
+	void PlayShipCue(const ATDShip* Ship, const FTDFXCue& Cue, bool bAttached)
+	{
+		if (!Ship)
+		{
+			return;
+		}
+		if (bAttached)
+		{
+			UTDStatics::PlayCueAttached(Cue, Ship->GetRootComponent());
+		}
+		else
+		{
+			UTDStatics::PlayCue(Ship, Cue, Ship->GetActorLocation(), Ship->GetActorRotation());
 		}
 	}
 

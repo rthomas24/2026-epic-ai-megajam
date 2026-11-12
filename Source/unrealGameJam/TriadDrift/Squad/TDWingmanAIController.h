@@ -132,13 +132,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "s"))
 	float AvoidanceLookAhead = 1.2f;
 
+	/** How hard squadmates push apart inside TeammateSeparation (relative to the desired direction). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (ClampMin = "0"))
+	float TeammateSeparationStrength = 5.f;
+
+	/** cm/s of speed change per unit of along-track separation push. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (ClampMin = "0"))
+	float SeparationSpeedGain = 600.f;
+
 	/** Ship radius used for obstacle probes. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
 	float AvoidanceShipRadius = 500.f;
 
 	/** Keep at least this far from squadmates. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
-	float TeammateSeparation = 900.f;
+	float TeammateSeparation = 1500.f;
 
 	/** Steering gain: degrees of error that map to full stick deflection. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Steering", meta = (Units = "deg"))
@@ -173,13 +181,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
 	bool IsPassive() const { return bPassive; }
 
-	/** True while forming up for the player's hyperdrive jump (Spooling .. DropOut). */
+	/** True while forming up for the leader's hyperdrive jump (its hyperdrive is not Idle). Re-read every tick. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Wingman")
 	bool IsFormingUpForJump() const { return bHyperdriveFormUp; }
-
-	/** Bus handler: the player's hyperdrive state (T1 fires it only for the player's ship). */
-	UFUNCTION()
-	void HandleHyperdriveState(ETDHyperdriveState NewState);
 
 	/** Bus handler: a spacecraft was moved discontinuously (portal, gate, hyperdrive drop-out). */
 	UFUNCTION()
@@ -210,6 +214,9 @@ protected:
 
 	/** Bend DesiredDir away from obstacles and squadmates. */
 	FVector ApplyAvoidance(ATDShip* Ship, const FVector& DesiredDir);
+
+	/** Push away from squadmates closer than TeammateSeparation (unscaled direction * strength). */
+	FVector ComputeSeparation(const ATDShip* Ship) const;
 
 	void SetTriggers(bool bPrimary, bool bSecondary);
 	void BeginEvade(ATDShip* Ship);
