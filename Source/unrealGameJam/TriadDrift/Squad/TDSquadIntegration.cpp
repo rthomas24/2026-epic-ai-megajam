@@ -899,6 +899,7 @@ namespace TDSquad
 		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
 		{
 			Bus->OnActorKilled.AddUniqueDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+			Bus->OnObjectiveUpdated.AddUniqueDynamic(Squad, &ATDSquadManager::HandleObjectiveUpdated);
 		}
 	}
 
@@ -907,6 +908,7 @@ namespace TDSquad
 		if (UTDEventBus* Bus = UTDEventBus::Get(Squad))
 		{
 			Bus->OnActorKilled.RemoveDynamic(Squad, &ATDSquadManager::HandleActorKilled);
+			Bus->OnObjectiveUpdated.RemoveDynamic(Squad, &ATDSquadManager::HandleObjectiveUpdated);
 		}
 	}
 

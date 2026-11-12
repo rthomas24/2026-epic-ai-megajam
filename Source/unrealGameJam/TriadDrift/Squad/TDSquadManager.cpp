@@ -1089,7 +1089,7 @@ TArray<AActor*> ATDSquadManager::GetLockedTargets() const
 	return Out;
 }
 
-const FName ATDSquadManager::ObjectiveMarkerTag(TEXT("TD.Objective.Marker"));
+const FName ATDSquadManager::ObjectiveMarkerTag = TDTags::ObjectiveMarker;
 
 TArray<AActor*> ATDSquadManager::GetObjectiveMarkers() const
 {
@@ -1157,6 +1157,11 @@ TArray<AActor*> ATDSquadManager::GetObjectiveMarkers() const
 		Out.Add(Nearest);
 	}
 	return Out;
+}
+
+void ATDSquadManager::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
+{
+	ObjectiveText = Text;
 }
 
 FText ATDSquadManager::GetInteractPrompt() const
