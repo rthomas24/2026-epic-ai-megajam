@@ -1,0 +1,29 @@
+{
+  "revision": "M02",
+  "blender": "5.1.1",
+  "m01_hashes_before": {
+    "SM_Lancer_MinigunBody.mesh.json": "a5769f841b71b00f4e0c73bc2ea70e28faea65adf692d4321bd40b47ede66d8d",
+    "SM_Lancer_MinigunRotor.mesh.json": "814f45eb0d358077094c51a2571a3508f86ef72db0bb20d167f39704c4df0be9",
+    "SM_Lancer_RocketPod.mesh.json": "18320a4913837fd93a678499ef79bdcd9dd2c4ebc786db40ee276dd924589038",
+    "SM_Lancer_SpikeRocket.mesh.json": "697ce123eaf3d8295e7216decee4f8820f0889a0a9d10b309e7b986cc5c8e29e",
+    "SM_Lancer_UniversalMount.mesh.json": "cfe3c71c6f0a44b2f66e045eaba2b27593441003dcd7fd6cefd9a1e149801752",
+    "SM_Ship_Lancer_Proxy.mesh.json": "50649eee95016bcc423da06e5a91e2c35ee778133e206b38decd17a764623e98",
+    "attachments.json": "2aabc5fa3df1a46a3732f5c2405d0a3508ce8d056d8672a40b4b9840de6ee8ca"
+  },
+  "m01_hashes_after": {
+    "SM_Lancer_MinigunBody.mesh.json": "a5769f841b71b00f4e0c73bc2ea70e28faea65adf692d4321bd40b47ede66d8d",
+    "SM_Lancer_MinigunRotor.mesh.json": "814f45eb0d358077094c51a2571a3508f86ef72db0bb20d167f39704c4df0be9",
+    "SM_Lancer_RocketPod.mesh.json": "18320a4913837fd93a678499ef79bdcd9dd2c4ebc786db40ee276dd924589038",
+    "SM_Lancer_SpikeRocket.mesh.json": "697ce123eaf3d8295e7216decee4f8820f0889a0a9d10b309e7b986cc5c8e29e",
+    "SM_Lancer_UniversalMount.mesh.json": "cfe3c71c6f0a44b2f66e045eaba2b27593441003dcd7fd6cefd9a1e149801752",
+    "SM_Ship_Lancer_Proxy.mesh.json": "50649eee95016bcc423da06e5a91e2c35ee778133e206b38decd17a764623e98",
+    "attachments.json": "2aabc5fa3df1a46a3732f5c2405d0a3508ce8d056d8672a40b4b9840de6ee8ca"
+  },
+  "m01_unchanged": true,
+  "assembly_objects": 11,
+  "triangles": 57792,
+  "materials": 6,
+  "elapsed_seconds": 1.7484813000010035,
+  "final_visual_approval": false,
+  "unreal_imported": false
+}
