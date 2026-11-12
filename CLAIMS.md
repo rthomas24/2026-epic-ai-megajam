@@ -38,7 +38,7 @@ assigned by these rows. No existing claim is released merely by publishing this 
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 12:46 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 12:48 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -75,11 +75,10 @@ open) · `done` (on `main`, tests pass, review closed).
 | Second review pass on Flow fixes | Lead | queued | | | none |
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
 | ENG-28 Shipping package under 1 GB, MapsToCook | Lead | queued | | | `/Config/DefaultGame.ini` (one line added now: always cook `/Engine/BasicShapes`) |
-| C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) and `Content/TriadDrift` tree | Lead | queued | | | **`Content/TriadDrift/Maps/**` (binary, shared): will be claimed here before creation** |
+| C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) and `Content/TriadDrift` tree | Lead | in progress | Nov 12 12:48 | | **CLAIMED by Ryan / Lead: `Content/TriadDrift/Maps/L_MainMenu.umap`, `L_Galaxy.umap`, `L_Planet_Verdance.umap`, `L_Planet_Cinder.umap`, `L_Transition.umap` and their World Settings (binary, shared). Created empty, World Partition + One File Per Actor; gameplay actors are spawned from C++. Nick's side: do not create or save these five files until this row says done; after that, add actors freely (they save as separate `__ExternalActors__` files), and claim World Settings before changing them.** |
 | ENG-27 balance + difficulty | Lead | queued | | | none |
 | ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | `ef345ca`; review fixes in progress (drift burst cap, camera roll, power routing) | none |
-| ENG-15 hyperdrive | T1 | in progress | Nov 12 | | none |
-| ENG-20 atmosphere flight + landing | T1 | queued | | | none |
+| ENG-15 hyperdrive, ENG-20 atmosphere flight + landing (first pass) | T1 | in progress | Nov 12 | finished on `eng/t1` `19b4ac3` at 12:48; integrating | none |
 | ENG-05 ship weapons, ENG-06 targeting | T2 | in review | Nov 12 | `6bd14ec`; review fixes in progress (lead under drift, pool identity, retake cleanup, HUD data) | one-off Core edit for targeting HUD data: merged `0734b8c`, permission closed |
 | ENG-09 Rift portal blaster, ENG-10 Lancer ram, ENG-11 Bastion swarm + dome, ENG-12 unlockable abilities | T2 | in review | Nov 12 | Nov 12 12:46, this push (`6455ee0`); independent review running | none |
 | ENG-03 respawn rules, ENG-04 three ships, ENG-07 switching, ENG-08 wingman AI | T3 | in review | Nov 12 | `448f658`; independent review queued | none |
@@ -95,9 +94,9 @@ open) · `done` (on `main`, tests pass, review closed).
 
 ### Coming next that touches shared things (heads-up for Nick's side)
 
-- `Content/TriadDrift/Maps/**`: Ryan's Lead will create the five maps (empty, gameplay actors
-  spawned from C++). The claim row moves to `in progress` here, on `main`, before the first `.umap`
-  exists.
+- `Content/TriadDrift/Maps/**`: Ryan's Lead is creating the five maps now (see the claimed row
+  above). They land on `main` in one commit; the row then moves to `done` and the files are open
+  for actor placement by both sides.
 - `/Config/DefaultGame.ini` (`MapsToCook`, packaging) and `/Config/DefaultEngine.ini` (default maps)
   change when the maps land.
 - `unrealGameJam.uproject` is unclaimed. Nick's `Plugins/TriadDriftHUD/**` row implies a plugin
