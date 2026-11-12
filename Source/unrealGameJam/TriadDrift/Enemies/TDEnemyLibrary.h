@@ -17,16 +17,18 @@ namespace TDEnemyIds
 }
 
 /**
- * Enemy weapon ids that T2 registers in UTDWeaponLibrary (ENG-05/13). Enemy code only passes
- * these ids to UTDWeaponComponent::EquipWeapon; mines and fighter launches are enemy-side.
+ * Enemy weapon ids that T2 registers in UTDWeaponLibrary (same strings as TDWeaponIds::Enemy* in
+ * Combat/TDWeaponTypes.h). Enemy code only passes these ids to UTDWeaponComponent; fighter
+ * launches are enemy-side.
  */
 namespace TDEnemyWeaponIds
 {
 	inline const FName PulseGuns(TEXT("Enemy_PulseGuns"));			// 5 dmg, 4/s
 	inline const FName HomingMissile(TEXT("Enemy_HomingMissile"));	// 25 dmg, homing
 	inline const FName HeavyBolt(TEXT("Enemy_HeavyBolt"));			// 20 dmg, slow
-	inline const FName SalvoMissile(TEXT("Enemy_SalvoMissile"));	// 3 x 20 dmg
-	inline const FName PointDefense(TEXT("Enemy_PointDefense"));	// 6 dmg
+	inline const FName SalvoMissile(TEXT("Enemy_SalvoMissile"));	// 3 x 20 dmg ripple per FireOnce
+	inline const FName PlasmaMines(TEXT("Enemy_PlasmaMines"));		// 60 dmg, 800 cm, proximity fuse
+	inline const FName PointDefense(TEXT("Enemy_PointDefense"));	// 6 dmg, shoots down missiles
 }
 
 /**

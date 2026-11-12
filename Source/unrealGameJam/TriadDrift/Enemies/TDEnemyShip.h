@@ -8,9 +8,11 @@
 
 class UTDWeaponComponent;
 class UTDEnemyVisuals;
+class UTDHealthComponent;
 class ATDCarrierBay;
 class ATDEnemyTurret;
 class ATDEnemyShip;
+struct FTDDamageInfo;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FTDEnemyTelegraphSignature, ATDEnemyShip*, Ship, ETDEnemyAttack, Attack, float, Duration);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDEnemyAttackSignature, ATDEnemyShip*, Ship, ETDEnemyAttack, Attack);
@@ -21,10 +23,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDEnemyShieldSignature, ATDEnemyShi
 
 /**
  * A Null Armada ship. Same flight model as the squad (T1's ATDSpacecraft, driven through
- * SetFlightInput), T2's UTDWeaponComponent for guns, and a telegraph -> fire attack pipeline that
- * the AI drives and Nick's VFX/audio read.
+ * SetFlightInput), T2's UTDWeaponComponent for every weapon, and a telegraph -> fire attack
+ * pipeline that the AI drives and Nick's VFX/audio read.
  *
- * Lifecycle: spawn -> InitFromSpec(Id) -> (AI possesses) -> ... -> Die() -> tumble -> explode -> destroy.
+ * Lifecycle: spawn -> InitFromSpec(Id) -> (AI possesses) -> ... -> death -> tumble -> explode -> destroy.
  */
 UCLASS(Blueprintable)
 class UNREALGAMEJAM_API ATDEnemyShip : public ATDSpacecraft
@@ -32,7 +34,7 @@ class UNREALGAMEJAM_API ATDEnemyShip : public ATDSpacecraft
 	GENERATED_BODY()
 
 public:
-	ATDEnemyShip(const FObjectInitializer& ObjectInitializer);
+	ATDEnemyShip();
 
 	// --- Setup ----------------------------------------------------------------------------------
 
@@ -41,7 +43,7 @@ public:
 	void InitFromSpec(FName EnemyId);
 
 	/** Apply an explicit spec (tests, debug). */
-	void InitFromSpecData(const FTDEnemySpec& Spec);
+	void InitFromSpecData(const FTDEnemySpec& InSpec);
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	FName GetEnemyId() const { return Spec.Id; }
@@ -61,23 +63,28 @@ public:
 
 	/**
 	 * Start an attack. Telegraphed attacks enter the telegraph state for the spec's TelegraphSeconds,
-	 * then fire; others fire immediately. Returns false if stunned, dead, on cooldown or already busy.
+	 * then fire; others fire immediately. Returns false if it can't start (see CanStartAttack).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Enemy")
 	bool TryStartAttack(ETDEnemyAttack Attack, AActor* Target);
 
-	/** True while the attack is off cooldown and nothing else is telegraphing. */
+	/** Off cooldown, alive, able to fire, and no other telegraph or burst in progress. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	bool CanStartAttack(ETDEnemyAttack Attack) const;
 
-	/** Hold or release the continuous guns. Ignored while stunned. */
+	/** Hold or release the continuous guns. Suppressed while stunned / fire-suppressed / dying. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Enemy")
 	void SetGunsFiring(bool bFiring, AActor* Target);
 
+	/** The AI wants the guns on. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	bool AreGunsFiring() const { return bGunsFiring; }
 
-	/** Cancel an in-progress telegraph (stun, death, lost tracking). */
+	/** The primary trigger is actually held on the weapon component (false while stunned). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
+	bool IsPrimaryTriggerHeld() const { return bPrimaryTriggerHeld; }
+
+	/** Cancel an in-progress telegraph or burst (stun, death, lost tracking). Cooldown is kept. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Enemy")
 	void CancelTelegraph();
 
@@ -98,12 +105,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	float GetAttackCooldownRemaining(ETDEnemyAttack Attack) const;
 
-	/** How many times each attack has actually fired (tests, stats). */
+	/** How many shots each attack has actually fired (tests, stats). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	int32 GetFireCount(ETDEnemyAttack Attack) const;
 
 	// --- Status effects (EMP, cloak, portals, gravity well) ------------------------------------
 
-	/** Stun: no steering input, no firing, telegraphs cancelled. Stacks by taking the longer time. */
+	/** Stun: dead stick, no firing, telegraphs cancelled, carrier bays paused. Takes the longer time. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Enemy")
 	void ApplyStun(float Seconds);
 
@@ -113,7 +121,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	float GetStunRemaining() const { return StunRemaining; }
 
-	/** Lose tracking: the AI forgets its target and cannot re-acquire one (cloak, portal transit). */
+	/** Lose tracking: the AI forgets its target and can't re-acquire one (cloak, portal transit). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Enemy")
 	void LoseTracking(float Seconds);
 
@@ -127,20 +135,24 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	bool CanFire() const;
 
+	/** Extra damage taken while stunned (EMP: +25%). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "1"))
+	float StunnedDamageMultiplier = 1.25f;
+
 	// --- Gunship frontal shield -------------------------------------------------------------------
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	bool HasFrontalShield() const { return Spec.FrontalShield > 0.f; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
-	bool IsFrontalShieldUp() const { return HasFrontalShield() && FrontalShieldHP > 0.f && FrontalShieldDownRemaining <= 0.f; }
+	bool IsFrontalShieldUp() const;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	float GetFrontalShield01() const;
 
-	/** True if damage travelling along WorldDirection (from source toward this ship) hits the frontal arc. */
+	/** True if a hit travelling along TravelDirection (source -> ship) arrives inside the frontal arc. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
-	bool IsFrontalHit(const FVector& DamageTravelDirection) const;
+	bool IsFrontalHit(const FVector& TravelDirection) const;
 
 	/** Drop the frontal shield for Seconds without draining it (EMP: 5 s). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Enemy")
@@ -161,17 +173,24 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	TArray<ATDEnemyTurret*> GetTurrets() const;
 
-	/** Called by a bay on its launch cadence. Spawns the launched fighters at the bay. */
+	/** Called by a bay on its launch cadence. Spawns Count fighters at the bay. */
 	void LaunchFightersFromBay(ATDCarrierBay* Bay, int32 Count);
 
-	/** Class used for fighters launched by carriers (and by the wave director by default). */
+	/** Class used for fighters launched by carriers. Null = ATDEnemyShip. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy")
 	TSubclassOf<ATDEnemyShip> LaunchedShipClass;
+
+	/** Cap on living fighters a single carrier keeps in the air (perf + fairness). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
+	int32 MaxLaunchedAlive = 12;
 
 	// --- Death --------------------------------------------------------------------------------
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
 	bool IsDying() const { return bDying; }
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
+	bool IsAliveEnemy() const;
 
 	/** Fraction of hull lost, 0 (pristine) .. 1 (dead). For damage-state visuals. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
@@ -183,7 +202,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Enemy")
 	FTDEnemyTelegraphSignature OnTelegraphStarted;
 
-	/** An attack fired (after its telegraph, if any). */
+	/** An attack fired (after its telegraph, if any). Once per attack, not per projectile. */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Enemy")
 	FTDEnemyAttackSignature OnAttackFired;
 
@@ -217,31 +236,36 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDEnemyVisuals> Visuals;
 
-	// --- AActor -------------------------------------------------------------------------------
 	virtual void Tick(float DeltaSeconds) override;
-	virtual float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** Fires the attack for real. Override in Blueprint children for custom patterns. */
+	/** Fires the attack for real (after the telegraph). */
 	virtual void ExecuteAttack(ETDEnemyAttack Attack, AActor* Target);
 
-	/** Start the death sequence. Safe to call more than once. */
-	virtual void Die(AActor* Killer);
-	virtual void Explode();
-
-	const FTDEnemyAttackSpec* FindAttack(ETDEnemyAttack Attack) const;
+	/** Health pre-filter: frontal shield + stun vulnerability. */
+	float FilterIncomingDamage(const FTDDamageInfo& Info);
 
 	UFUNCTION()
-	void HandleHealthDeath(AActor* Killer);
+	void HandleHealthDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
 
+	UFUNCTION()
+	void HandleLaunchedDied(ATDEnemyShip* Ship, AActor* Killer);
+
+	void BeginDeath(AActor* Killer);
+	void Explode();
+	const FTDEnemyAttackSpec* FindAttack(ETDEnemyAttack Attack) const;
 	void SpawnCarrierParts();
 	void DestroyCarrierParts();
-	void DropMine(const FTDEnemyAttackSpec& Attack);
-	void FireMissileSalvo(const FTDEnemyAttackSpec& Attack, AActor* Target);
+	void FireSecondaryShot(FName WeaponId, AActor* Target);
+	void TickTimers(float DeltaSeconds);
+	void TickBurst(float DeltaSeconds);
+	void TickDeath(float DeltaSeconds);
+	void ApplyPrimaryTrigger();
 	void UpdatePlaceholderLook();
+	void SetBaysPaused(bool bPaused);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Enemy")
 	TObjectPtr<UTDWeaponComponent> Weapons;
@@ -255,6 +279,8 @@ protected:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDEnemyTurret>> Turrets;
 
+	TArray<TWeakObjectPtr<ATDEnemyShip>> LaunchedAlive;
+
 	TWeakObjectPtr<AActor> TelegraphTarget;
 	TWeakObjectPtr<AActor> GunTarget;
 	TMap<ETDEnemyAttack, float> CooldownRemaining;
@@ -264,17 +290,40 @@ protected:
 	float TelegraphElapsed = 0.f;
 	float TelegraphDuration = 0.f;
 
+	// Multi-shot attack in progress (bolt volley, mine trail): one FireOnce per shot.
+	ETDEnemyAttack BurstAttack = ETDEnemyAttack::None;
+	int32 BurstShotsRemaining = 0;
+	float BurstTimer = 0.f;
+	TWeakObjectPtr<AActor> BurstTarget;
+
+	/** Seconds between shots inside a volley (heavy bolts). */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
+	float BurstShotSpacing = 0.18f;
+
+	/** Seconds between mines in a trail. */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
+	float MineSpacingSeconds = 0.45f;
+
+	/** Projectile speed used to lead targets with the guns (cm/s). */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Enemy", meta = (ClampMin = "1000"))
+	float GunLeadSpeed = 30000.f;
+
+	FRandomStream AimRng{ 4242 };
+
 	float StunRemaining = 0.f;
 	float TrackingLostRemaining = 0.f;
 	float FireSuppressedRemaining = 0.f;
 
 	float FrontalShieldHP = 0.f;
-	float FrontalShieldDownRemaining = 0.f;	// EMP drop (shield HP kept)
+	float FrontalShieldDownRemaining = 0.f;		// EMP drop (HP kept)
 	float FrontalShieldRecoverRemaining = 0.f;	// broken, recovering
 
 	float DeathTimer = 0.f;
 	TWeakObjectPtr<AActor> LastKiller;
+	FName SecondaryWeaponId = NAME_None;
 	bool bGunsFiring = false;
+	bool bPrimaryTriggerHeld = false;
 	bool bDying = false;
 	bool bExploded = false;
+	bool bSpecApplied = false;
 };

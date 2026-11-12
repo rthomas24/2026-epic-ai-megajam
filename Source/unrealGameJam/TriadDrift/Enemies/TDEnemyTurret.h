@@ -60,6 +60,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
 	float BurstSeconds = 1.5f;
 
+	/** Pause between bursts. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
+	float BurstCooldownSeconds = 1.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Turret", meta = (ClampMin = "0"))
 	float StartHull = 60.f;
 
@@ -77,8 +81,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UFUNCTION()
-	void HandleDeath(AActor* Killer);
+	void HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Turret")
 	TObjectPtr<UStaticMeshComponent> Mesh;

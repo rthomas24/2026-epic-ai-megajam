@@ -47,7 +47,7 @@ struct UNREALGAMEJAM_API FTDEnemyAttackSpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	ETDEnemyAttack Kind = ETDEnemyAttack::None;
 
-	/** Weapon id in T2's UTDWeaponLibrary. NAME_None = handled by enemy code (mines, launches). */
+	/** Weapon id in T2's UTDWeaponLibrary. NAME_None = handled by enemy code (fighter launches). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	FName WeaponId = NAME_None;
 
@@ -194,20 +194,6 @@ struct UNREALGAMEJAM_API FTDEnemySpec
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carrier", meta = (ClampMin = "0"))
 	float TurretHull = 60.f;
-
-	// --- Bomber mines ---------------------------------------------------------------------------
-
-	/** Seconds a plasma mine stays armed before fizzling. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bomber", meta = (ClampMin = "0"))
-	float MineLifetime = 20.f;
-
-	/** Seconds after dropping before a mine arms. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bomber", meta = (ClampMin = "0"))
-	float MineArmSeconds = 0.75f;
-
-	/** Proximity trigger radius (cm). Damage uses Heavy.SplashRadius. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bomber", meta = (ClampMin = "0"))
-	float MineTriggerRadius = 450.f;
 
 	// --- Presentation / death -------------------------------------------------------------------
 

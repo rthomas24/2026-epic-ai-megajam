@@ -72,11 +72,15 @@ public:
 	virtual ETDTeam GetTeam() const override;
 
 	virtual void Tick(float DeltaSeconds) override;
-	virtual float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UFUNCTION()
-	void HandleDeath(AActor* Killer);
+	void HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
+
+	float FilterDamage(const FTDDamageInfo& Info);
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Carrier")
 	TObjectPtr<UStaticMeshComponent> Mesh;
