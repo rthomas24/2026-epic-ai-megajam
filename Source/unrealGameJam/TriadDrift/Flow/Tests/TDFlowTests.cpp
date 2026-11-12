@@ -1152,6 +1152,7 @@ bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
 		{
 			UMaterialInterface* M = ISM->GetMaterial(0);
 			TestTrue(FString::Printf(TEXT("%s is unlit"), *ISM->GetName()), M && M->GetShadingModels().HasShadingModel(MSM_Unlit));
+			TestTrue(FString::Printf(TEXT("%s uses the instanced-safe project glow"), *ISM->GetName()), M && UTDStatics::GetPlaceholderGlowMaterial() && M->GetMaterial() == UTDStatics::GetPlaceholderGlowMaterial()->GetMaterial());
 			for (int32 i = 0; i < ISM->GetInstanceCount(); ++i)
 			{
 				FTransform X;

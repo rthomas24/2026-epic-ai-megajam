@@ -25,10 +25,6 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Waves")
 	TObjectPtr<UStaticMeshComponent> Ring;
 
-	/** Hard references so the cook ships what the placeholder uses. */
-	UPROPERTY()
-	TObjectPtr<UMaterialInterface> GlowMaterial;
-
 private:
 	float Duration = 1.5f;
 	float Elapsed = 0.f;

@@ -434,6 +434,11 @@ void UTDGameInstance::SetPhase(ETDGamePhase NewPhase)
 		return;
 	}
 	Progress.Phase = NewPhase;
+	if (NewPhase == ETDGamePhase::Victory)
+	{
+		CancelPendingRetake(); // a win is a win
+		EndScene();
+	}
 	SetRunTimerPaused(NewPhase == ETDGamePhase::Victory || IsMenuDestination(CurrentDestination));
 	// Story state is never rolled back by a retake: patch the checkpoint and the slot.
 	if (LastCheckpoint.bValid)
@@ -442,6 +447,33 @@ void UTDGameInstance::SetPhase(ETDGamePhase NewPhase)
 		WriteSaveSlot();
 	}
 	BroadcastPhase();
+	BeginDominionSceneIfAssault();
+}
+
+const FName UTDGameInstance::DominionScene(TEXT("Dominion"));
+
+void UTDGameInstance::BeginDominionSceneIfAssault()
+{
+	if (Progress.Phase != ETDGamePhase::DominionAssault || CurrentDestination != ETDDestination::Galaxy || CurrentSceneId == DominionScene)
+	{
+		return;
+	}
+	BeginScene(DominionScene); // slate "SCENE n · TAKE t"
+	if (LastCheckpoint.bValid)
+	{
+		LastCheckpoint.SceneId = DominionScene; // a wipe restarts the assault as the next take
+	}
+}
+
+void UTDGameInstance::CancelPendingRetake()
+{
+	if (!IsRetakePending())
+	{
+		return;
+	}
+	RetakeTimeLeft = -1.f;
+	RetakeScene = NAME_None;
+	UE_LOG(LogTriadDrift, Log, TEXT("Pending CUT cancelled (victory)."));
 }
 
 void UTDGameInstance::ReportWaveCleared(int32 WaveNumber)
@@ -481,6 +513,10 @@ void UTDGameInstance::CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, 
 
 void UTDGameInstance::SetDominionState(bool bRevealed, bool bDefensesDown)
 {
+	if (IsRetakePending())
+	{
+		return; // like a wave clear inside the CUT delay: void (the scene is about to restart)
+	}
 	if (Progress.bDominionRevealed == bRevealed && Progress.bDominionDefensesDown == bDefensesDown)
 	{
 		return;
@@ -658,7 +694,8 @@ bool UTDGameInstance::HasContinue() const
 	if (!bContinueCacheValid)
 	{
 		UTDSaveGame* Save = nullptr;
-		bContinueCache = ReadSaveSlot(Save);
+		// A won run never continues into the fight: there is nothing left to play.
+		bContinueCache = ReadSaveSlot(Save) && Save && Save->Checkpoint.Progress.Phase != ETDGamePhase::Victory;
 		bContinueCacheValid = true;
 	}
 	return bContinueCache;
@@ -667,7 +704,7 @@ bool UTDGameInstance::HasContinue() const
 bool UTDGameInstance::ContinueRun()
 {
 	UTDSaveGame* Save = nullptr;
-	if (!ReadSaveSlot(Save) || !ApplySave(*Save))
+	if (!ReadSaveSlot(Save) || (Save && Save->Checkpoint.Progress.Phase == ETDGamePhase::Victory) || !ApplySave(*Save))
 	{
 		return false;
 	}
@@ -739,6 +776,7 @@ void UTDGameInstance::NotifyLevelEntered(ETDDestination Destination)
 	{
 		BroadcastPhase(); // the new level's listeners (HUD, music state) learn the phase on every level entry
 	}
+	BeginDominionSceneIfAssault(); // arriving (or continuing) into the assault opens its scene
 	LastObjective = FTDObjectiveLine(); // the old level's line is stale; on-foot objectives re-announce themselves
 	ObjectiveForceLeft = 0.5f; // once the new level's HUD exists
 	TakeCheckpoint(TDFlow::ReasonLevelEntry);

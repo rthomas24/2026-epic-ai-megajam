@@ -34,6 +34,9 @@ public:
 	TArray<TPair<FName, int32>> ObjectiveSteps;
 	TArray<FText> ObjectiveTexts;
 
+	/** Any no-argument dynamic delegate (input events such as OnPauseInput). */
+	int32 SimpleCount = 0;
+	UFUNCTION() void OnSimple() { ++SimpleCount; }
 	UFUNCTION() void OnPhase(ETDGamePhase Phase) { Phases.Add(Phase); }
 	UFUNCTION() void OnUnlock(ETDAbilityId Ability, ETDShipId Ship) { Unlocks.Emplace(Ability, Ship); }
 	UFUNCTION() void OnTake(FName SceneId, int32 TakeNumber) { Takes.Emplace(SceneId, TakeNumber); }

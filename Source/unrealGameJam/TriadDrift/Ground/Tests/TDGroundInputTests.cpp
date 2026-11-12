@@ -5,6 +5,9 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
+#include "Misc/ScopeExit.h"
 #include "TriadDrift/Ground/Tests/TDGroundTestHelpers.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -211,6 +214,41 @@ bool FTDGroundSlamNeverSticks::RunTest(const FString& Parameters)
 	C->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 	W.Advance(1.f);
 	TestTrue(TEXT("blade works again"), B->LightAttack());
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Review MAJOR 3: Escape / Start pauses on foot too (IMC_SpaceCommon is off while walking).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundPauseKey, "TriadDrift.Ground.EscapePausesOnFoot", TD_TEST_FLAGS)
+bool FTDGroundPauseKey::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(C, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("space controller"), PC)) { return false; }
+	W.Advance(0.3f);
+	TestTrue(TEXT("possessing the pilot"), PC->GetPawn() == C);
+	UTDFlowTestListener* Counter = NewObject<UTDFlowTestListener>();
+	Counter->AddToRoot();
+	ON_SCOPE_EXIT { Counter->RemoveFromRoot(); };
+	int32 Pauses = 0;
+	PC->OnPauseInput.AddDynamic(Counter, &UTDFlowTestListener::OnSimple);
+	FTDTestWorld::InjectKey(PC, EKeys::Escape, true);
+	W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::Escape, false);
+	W.Tick();
+	Pauses = Counter->SimpleCount;
+	TestEqual(TEXT("Escape on foot reaches OnPauseInput once"), Pauses, 1);
+	// And while the game is paused (the same key unpauses).
+	W.GetWorld()->GetFirstPlayerController()->SetPause(true);
+	FTDTestWorld::InjectKey(PC, EKeys::Escape, true);
+	W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::Escape, false);
+	W.Tick();
+	TestEqual(TEXT("Escape still reaches it while paused"), Counter->SimpleCount, 2);
+	PC->SetPause(false);
 	return true;
 }
 

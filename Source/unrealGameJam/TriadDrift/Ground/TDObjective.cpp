@@ -89,6 +89,12 @@ bool ATDObjective::CompleteStep(int32 StepIndex)
 	{
 		return false;
 	}
+	// Inside the CUT delay nothing counts: the scene is about to restart, and a finish now would be lost
+	// (the flow ignores CompleteObjective while a retake is pending, but we'd already be complete).
+	if (const UTDGameInstance* GI = UTDGameInstance::Get(this); GI && GI->IsRetakePending())
+	{
+		return false;
+	}
 	++CurrentStep;
 	if (CurrentStep >= Steps.Num())
 	{

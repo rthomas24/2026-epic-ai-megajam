@@ -816,6 +816,12 @@ namespace TDSquad
 		return Ship ? Ship->IsOutOfBounds() : false;
 	}
 
+	FText GetBoundaryWarningText(const ATDShip* Ship)
+	{
+		const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+		return Move ? Move->GetBoundaryWarningText() : FText::GetEmpty();
+	}
+
 	AActor* GetCurrentTarget(const ATDShip* Ship)
 	{
 		const UTDTargetingComponent* T = Ship ? Ship->FindComponentByClass<UTDTargetingComponent>() : nullptr;

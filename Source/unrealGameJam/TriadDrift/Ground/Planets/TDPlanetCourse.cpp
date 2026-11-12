@@ -4,6 +4,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Ground/TDGroundScene.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
@@ -50,13 +51,12 @@ ATDPlanetCourse::ATDPlanetCourse()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cyl(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sph(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cone(TEXT("/Engine/BasicShapes/Cone.Cone"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Lit(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 	CubeMesh = Cube.Object;
 	CylinderMesh = Cyl.Object;
 	SphereMesh = Sph.Object;
 	ConeMesh = Cone.Object;
-	GlowMaterial = Glow.Object;
+	GlowMaterial = nullptr; // glow comes from UTDStatics::TintPlaceholder (Core's always-cooked glow material)
 	LitMaterial = Lit.Object;
 }
 
@@ -442,7 +442,15 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 		if (O && GI->GetProgressRef().CompletedObjectives.Contains(O->ObjectiveId))
 		{
 			O->MarkAlreadyComplete(); // loaded mid-planet: done stays done
+			for (const FTDStepDoor& D : StepDoors)
+			{
+				if (D.Objective == O && D.Door) { D.Door->Open(); } // the breached gate stays breached
+			}
 		}
+	}
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->ApplyCompletedState(); // rooms cleared, doors open, crystals gone
 	}
 }
 
