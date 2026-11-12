@@ -9,6 +9,8 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/Core/TDInterfaces.h"
 #include "UObject/StructOnScope.h"
 #include "UObject/UnrealType.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
@@ -292,3 +294,49 @@ bool UTDUIHostSubsystem::ReadSnapshot(const UUserWidget* HUD, TArray<FTDHostShip
 	}
 	return true;
 }
+
+// ------------------------------------------------------------------------------------------ dev status
+
+#if !UE_BUILD_SHIPPING
+namespace TDUIHost
+{
+	void LogHostStatus(UWorld* World)
+	{
+		UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+		if (!Host)
+		{
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: no host in this world"));
+			return;
+		}
+		UUserWidget* HUD = Host->GetSpaceHUD();
+		UObject* Source = Host->GetDataSource();
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: enabled=%d shown=%d class=%s source=%s"),
+			UTDUIHostSettings::IsNativeSpaceHUDEnabled() ? 1 : 0, HUD ? 1 : 0,
+			HUD ? *HUD->GetClass()->GetName() : TEXT("-"), Source ? *Source->GetName() : TEXT("-"));
+		if (const ITDHUDData* Data = Cast<ITDHUDData>(Source))
+		{
+			AActor* Target = Data->GetCurrentTarget();
+			FVector2D Screen = FVector2D::ZeroVector;
+			const bool bOnScreen = Target && HUD && HUD->GetOwningPlayer()
+				&& HUD->GetOwningPlayer()->ProjectWorldLocationToScreen(Target->GetActorLocation(), Screen, true);
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target=%s onscreen=%d at (%.0f, %.0f), locked=%d, markers=%d"),
+				Target ? *Target->GetName() : TEXT("none"), bOnScreen ? 1 : 0, Screen.X, Screen.Y,
+				Data->GetLockedTargets().Num(), Data->GetTargetMarkers().Num());
+		}
+		TArray<FTDHostShipView> Cards;
+		if (UTDUIHostSubsystem::ReadSnapshot(HUD, Cards))
+		{
+			for (int32 I = 0; I < Cards.Num(); ++I)
+			{
+				const FTDHostShipView& C = Cards[I];
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: card %d active=%d alive=%d unlocked=%d hull=%.2f power=%.2f ability=%.2f"),
+					I, C.bActive, C.bAlive, C.bUnlocked, C.Hull, C.Power, C.Ability);
+			}
+		}
+	}
+
+	FAutoConsoleCommandWithWorld CmdTDUIStatus(TEXT("TD.UI.Status"),
+		TEXT("TD.UI.Status: log the space HUD host state, its data source's current target and the widget's decoded squad cards."),
+		FConsoleCommandWithWorldDelegate::CreateStatic(&LogHostStatus));
+}
+#endif
