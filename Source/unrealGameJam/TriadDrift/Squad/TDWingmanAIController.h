@@ -107,7 +107,7 @@ public:
 	/** Distance bands (2000 cm each) a target directly behind the leader costs vs one dead ahead, so
 	 *  with a choice wingmen fight in front of the player's camera. 0 = ignore. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (ClampMin = "0"))
-	float OnScreenTargetBias = 4.f;
+	float OnScreenTargetBias = 10.f;
 
 	/** The player's last attacker counts as a threat for this long after its last hit. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Engage", meta = (Units = "s"))
