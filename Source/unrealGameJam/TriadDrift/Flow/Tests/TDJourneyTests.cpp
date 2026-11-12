@@ -14,6 +14,12 @@
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "Camera/PlayerCameraManager.h"
+#include "TriadDrift/Flow/TDObjectiveText.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
+#include "Misc/ScopeExit.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -212,6 +218,111 @@ bool FTDJourneyCheats::RunTest(const FString& Parameters)
 	TestTrue(TEXT("TD.Stage DominionAssault"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("DominionAssault")));
 	TestEqual(TEXT("phase set"), G.GI->GetProgressRef().Phase, ETDGamePhase::DominionAssault);
 	TestFalse(TEXT("bogus stage refused"), UTDCheatManager::DoStage(G.W.GetWorld(), TEXT("Narnia")));
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+namespace TDJourneyTest
+{
+
+	/** Real time on the flow clock and game time in the world, together. */
+	static void Run(FGalaxy& G, float Seconds)
+	{
+		for (float T = 0.f; T < Seconds; T += 0.1f)
+		{
+			G.W.Advance(0.1f, 1.f / 30.f);
+			G.GI->TickFlow(0.1f);
+		}
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyObjectiveText, "TriadDrift.Flow.Journey.ObjectiveTextForEverySpaceScene", TD_TEST_FLAGS)
+bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	UTDEventBus* Bus = UTDEventBus::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), G.GI) || !TestNotNull(TEXT("bus"), Bus)) { return false; }
+	G.GI->NotifyLevelEntered(ETDDestination::Galaxy);
+	UTDFlowTestListener* Log = NewObject<UTDFlowTestListener>();
+	Log->AddToRoot();
+	Log->Bind(Bus);
+	ON_SCOPE_EXIT { Log->RemoveFromRoot(); };
+	auto LastText = [&]() { return Log->ObjectiveTexts.Num() ? Log->ObjectiveTexts.Last().ToString() : FString(TEXT("<none>")); };
+	auto Expect = [&](const TCHAR* What, const TCHAR* Contains)
+	{
+		TestTrue(FString::Printf(TEXT("%s: '%s' contains '%s'"), What, *LastText(), Contains), LastText().Contains(Contains));
+		TestTrue(FString::Printf(TEXT("%s: GI remembers it"), What), G.GI->GetCurrentObjectiveText().ToString() == LastText());
+	};
+
+	TestTrue(TEXT("Waves1to2"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Waves1to2));
+	TDJourneyTest::Run(G, 2.f);
+	Expect(TEXT("wave 1"), TEXT("WAVE 1"));
+	TestTrue(TEXT("wave line names the enemy"), LastText().Contains(TEXT("NULL ARMADA")));
+
+	// The line is broadcast on change, not every tick.
+	const int32 Before = Log->ObjectiveTexts.Num();
+	TDJourneyTest::Run(G, 2.f);
+	TestEqual(TEXT("no spam while nothing changes"), Log->ObjectiveTexts.Num(), Before);
+
+	// CUT! -> the new take re-announces the scene's line (a HUD rebuilt for the take is never empty).
+	// The cut and the new take also go through the bus (music / mix state listens there).
+	const int32 CutsBefore = Log->Cuts.Num(), TakesBefore = Log->Takes.Num();
+	G.GI->ReportPlayerDefeated();
+	TDJourneyTest::Run(G, 3.f);
+	TestEqual(TEXT("CUT! on the bus"), Log->Cuts.Num(), CutsBefore + 1);
+	TestTrue(TEXT("new take on the bus"), Log->Takes.Num() > TakesBefore);
+	TestTrue(TEXT("re-broadcast after the retake"), Log->ObjectiveTexts.Num() > Before);
+	Expect(TEXT("after the retake"), TEXT("WAVE 1"));
+
+	// Level entry re-announces even when nothing changed.
+	const int32 BeforeEntry = Log->ObjectiveTexts.Num();
+	const int32 PhasesBefore = Log->Phases.Num();
+	G.GI->NotifyLevelEntered(ETDDestination::Galaxy);
+	TDJourneyTest::Run(G, 1.f);
+	TestTrue(TEXT("re-broadcast after level entry"), Log->ObjectiveTexts.Num() > BeforeEntry);
+	TestTrue(TEXT("phase re-broadcast on level entry"), Log->Phases.Num() > PhasesBefore);
+
+	// Travel beat: Verdance phase in the galaxy.
+	G.GI->GetMutableProgress().Phase = ETDGamePhase::Verdance;
+	TDJourneyTest::Run(G, 0.5f);
+	Expect(TEXT("travel"), TEXT("JUMP TO VERDANCE"));
+
+	TestTrue(TEXT("Waves3to4"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Waves3to4));
+	TDJourneyTest::Run(G, 2.f);
+	Expect(TEXT("wave 3"), TEXT("WAVE 3"));
+
+	TestTrue(TEXT("DominionAssault"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::DominionAssault));
+	TDJourneyTest::Run(G, 9.f); // past the warp-in
+	Expect(TEXT("assault"), TEXT("SHIELD GENERATORS  0 / 4"));
+	ATDDominion* Dominion = ATDDominion::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("Dominion"), Dominion) || !TestTrue(TEXT("generators"), Dominion->GetGenerators().Num() > 0)) { return false; }
+	UTDHealthComponent* GenHealth = Dominion->GetGenerators()[0]->FindComponentByClass<UTDHealthComponent>();
+	if (TestNotNull(TEXT("generator health"), GenHealth))
+	{
+		GenHealth->Kill(G.PC->GetPawn(), ETDDamageKind::Explosive);
+		TDJourneyTest::Run(G, 1.f);
+		Expect(TEXT("one generator down"), TEXT("1 / 4"));
+		TestEqual(TEXT("step = generators down"), Log->ObjectiveSteps.Last().Value, 1);
+	}
+
+	TestTrue(TEXT("ReactorExposed"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::ReactorExposed));
+	TDJourneyTest::Run(G, 2.f);
+	Expect(TEXT("reactor"), TEXT("DESTROY THE REACTOR"));
+
+	TestTrue(TEXT("Victory"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Victory));
+	TDJourneyTest::Run(G, 0.5f);
+	Expect(TEXT("victory"), TEXT("VICTORY"));
+
+	// Planets (computed for the planet destination; on foot the objective actors own the line).
+	FTDObjectiveLine L;
+	FTDProgress P = FTDJourney::MakeProgress(ETDJourneyStage::VerdanceArrival, FTDProgress());
+	TestTrue(TEXT("planet arrival has a line"), FTDObjectiveText::Compute(G.W.GetWorld(), P, ETDDestination::Verdance, L));
+	TestTrue(TEXT("land at the beacon"), L.Text.ToString().Contains(TEXT("LAND")));
+	P = FTDJourney::MakeProgress(ETDJourneyStage::Waves3to4, FTDProgress());
+	TestTrue(TEXT("objectives done on the planet"), FTDObjectiveText::Compute(G.W.GetWorld(), P, ETDDestination::Verdance, L));
+	TestTrue(TEXT("take off"), L.Text.ToString().Contains(TEXT("TAKE OFF")));
+	TestFalse(TEXT("main menu stays silent"), FTDObjectiveText::Compute(G.W.GetWorld(), P, ETDDestination::MainMenu, L));
 	return true;
 }
 
