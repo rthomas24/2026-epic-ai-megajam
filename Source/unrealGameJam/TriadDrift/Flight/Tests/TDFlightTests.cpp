@@ -98,6 +98,19 @@ bool FTDFlightCruiseSpeed::RunTest(const FString& Parameters)
 	Run(S, In, T, NoBoundary(), 3.f, 60.f);
 	TestEqual(TEXT("throttle 0 is halfway (3750 cm/s)"), (float)S.Velocity.Size(), 3750.f, 40.f);
 
+	// AI catch-up allowance: throttle +1 flies at the allowance instead of cruise.
+	FTDFlightState Catch = CruisingState(T);
+	FTDFlightContext CatchCtx = NoBoundary();
+	CatchCtx.ThrottleTopSpeed = 7500.f;
+	FTDFlightInput Full;
+	Full.Throttle = 1.f;
+	Run(Catch, Full, T, CatchCtx, 2.f, 60.f);
+	TestEqual(TEXT("catch-up allowance raises throttle +1 to 7500"), (float)Catch.Velocity.Size(), 7500.f, 75.f);
+	TestEqual(TEXT("no boost meter used"), Catch.Boost01, 1.f, 0.001f);
+	CatchCtx.ThrottleTopSpeed = 0.f;
+	Run(Catch, Full, T, CatchCtx, 2.f, 60.f);
+	TestEqual(TEXT("cleared allowance returns to cruise"), (float)Catch.Velocity.Size(), T.CruiseSpeed, 60.f);
+
 	// Brake from cruise is a hard stop to min speed.
 	FTDFlightState B = CruisingState(T);
 	FTDFlightInput Brake;
