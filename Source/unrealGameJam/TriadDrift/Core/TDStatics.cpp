@@ -1,5 +1,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "Camera/CameraShakeBase.h"
 #include "Components/AudioComponent.h"
 #include "Components/MeshComponent.h"
@@ -13,6 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
+#include "Misc/PackageName.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
@@ -336,6 +339,64 @@ FLinearColor UTDStatics::TeamColor(ETDTeam Team)
 	case ETDTeam::Enemy: return FLinearColor(1.f, 0.16f, 0.08f);
 	default: return FLinearColor(0.5f, 0.5f, 0.5f);
 	}
+}
+
+FString UTDStatics::GetPresentationFolder()
+{
+	return TEXT("/Game/TriadDrift/Presentation");
+}
+
+UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf<UObject> ExpectedClass)
+{
+	if (AssetName.IsEmpty())
+	{
+		return nullptr;
+	}
+
+	// Remembered misses: asking again every frame for art that does not exist yet must cost nothing.
+	static TMap<FString, double> MissTimes;
+	const double Now = FPlatformTime::Seconds();
+	if (const double* MissedAt = MissTimes.Find(AssetName))
+	{
+		if (!GIsEditor || Now - *MissedAt < 10.0)
+		{
+			return nullptr;
+		}
+	}
+
+	const FString PackagePath = GetPresentationFolder() / AssetName;
+	const FSoftObjectPath ObjectPath(PackagePath + TEXT(".") + AssetName);
+
+	// Ask the asset registry first (silent, and it is what a cooked build has). While the editor is
+	// still scanning, fall back to the package file check.
+	bool bExists = false;
+	if (IAssetRegistry* Registry = IAssetRegistry::Get())
+	{
+		bExists = Registry->GetAssetByObjectPath(ObjectPath).IsValid();
+		if (!bExists && Registry->IsLoadingAssets())
+		{
+			bExists = FPackageName::DoesPackageExist(PackagePath);
+		}
+	}
+	else
+	{
+		bExists = FPackageName::DoesPackageExist(PackagePath);
+	}
+
+	UObject* Asset = bExists ? ObjectPath.TryLoad() : nullptr;
+	if (Asset && ExpectedClass && !Asset->IsA(ExpectedClass))
+	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("Presentation asset %s is a %s, expected %s"), *AssetName,
+			*Asset->GetClass()->GetName(), *ExpectedClass->GetName());
+		Asset = nullptr;
+	}
+	if (!Asset)
+	{
+		MissTimes.Add(AssetName, Now);
+		return nullptr;
+	}
+	MissTimes.Remove(AssetName);
+	return Asset;
 }
 
 bool UTDStatics::ShouldDrawPlaceholders()

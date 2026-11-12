@@ -117,3 +117,31 @@ The money shot now really cuts:
 | `Director.Camera.EveryCancelPathReturnsTheView` | CUT, switch (view on the new ship), player down, disabled mid-shot (30/60/120), travel, bigger shot takeover; nothing stuck afterwards |
 | `Director.Camera.NeverInsideGeometry` | wall on the preferred side → other side at full distance; registry asteroid avoided; ≥ 900 cm from the player's ship |
 | `Director.Camera.ReducedAndOffModes` | reduced: no takeover, FOV punch in real time; off: neither, slow-mo still |
+
+## Fallback cut presentation (C-03 #1 / #2 / #3, `TDCutPresentation.h`)
+
+So the theme reads in every build even before Nick's HUD exists, the Director draws a minimal
+gameplay-side presentation **only when no real HUD claims it**. Nick's HUD (or any host) sets
+`UTDDirectorSubsystem::bCutPresentationHandledExternally = true` and the fallback draws nothing.
+
+- **Ship switch** (`ATDSquadManager::OnSwitchCut`): a 1-frame white flash; letterbox bars easing
+  with `FTDSwitchCutTiming` (in 0.08 s / hold 0.45 s / out 0.25 s; none on a quick re-switch); the
+  pilot name card ("KATO · LANCER") with a tab in the squad colour, 1.4 s.
+- **"CUT!"** (`OnSceneCut`): a big CUT! card with full bars for the retake delay (min 1.2 s).
+- **New take** (`OnTakeStarted`): a slate "SCENE Wave 3 · TAKE 2" for 2.2 s (CamelCase scene ids
+  are spaced; an unnamed take shows none).
+- **Money shot**: thin letterbox bars (6 %) for the shot and its return.
+- Implementation: `UTDCutPresentation` (the model, real-time, tested) + a hit-test-invisible Slate
+  leaf widget added to the game viewport at z 900 (under T5's F10 menu) that paints it with engine
+  fonts and the white brush. Never blocks input; cleared while travel is pending; removed with the
+  world. Headless worlds have no viewport: model only.
+
+| Test | Proves |
+|---|---|
+| `Director.CutPresentation.SwitchFlashLetterboxNameCard` | 1-frame flash, bars in/out, name card text and colour, all gone after (30/60/120) |
+| `Director.CutPresentation.RealTimeUnderSlowMoAndQuickCut` | slow-mo doesn't stretch it; quick re-switch = flash + card, no bars |
+| `Director.CutPresentation.ExternalHUDSuppressesIt` | external flag suppresses everything; clearing it restores the fallback |
+| `Director.CutPresentation.CutCardThenSlate` | CUT! held for the delay, replaced by "SCENE Wave 3 · TAKE 2"; no slate for an unnamed take |
+| `Director.CutPresentation.MoneyShotThinBars` | thin bars during an accepted shot |
+| `Director.CutPresentation.NothingSurvivesTravelOrShutdown` | travel clears it; shutdown clears and removes the widget |
+

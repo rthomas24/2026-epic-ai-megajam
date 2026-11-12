@@ -33,7 +33,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnObjectiveDone, ATDObjective*, O
  * OnObjectiveUpdated(Id, Step, Text); the last calls ITDGameFlow::CompleteObjective(Id, Reward, Ship),
  * which unlocks the ability and brings up Nick's reward screen.
  *
- * On a retake of its scene it resets to step 0 and restarts.
+ * On any retake, if incomplete, it resets to step 0 (and restarts if it was running): UTDGroundSceneSubsystem.
  */
 UCLASS()
 class UNREALGAMEJAM_API ATDObjective : public AActor
@@ -100,12 +100,10 @@ protected:
 private:
 	void Broadcast(int32 Step, const FText& Text) const;
 	void Finish();
-	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 
 	bool bActive = false;
 	bool bComplete = false;
 	int32 CurrentStep = 0;
-	FDelegateHandle RestartHandle;
 };
 
 /** Tracks active objectives so the HUD and the ping can find their markers without actor iteration. */
