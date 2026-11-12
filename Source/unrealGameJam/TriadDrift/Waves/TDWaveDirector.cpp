@@ -449,6 +449,8 @@ void ATDWaveDirector::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		return;
 	}
 	CurrentTake = FMath::Max(CurrentTake, TakeNumber);
+	// A retake that doesn't run a wave here must not leave our lock behind.
+	SetWaveHyperdriveLock(bRunning);
 }
 
 void ATDWaveDirector::FireTips(const FTDWaveDef& Wave)
@@ -832,7 +834,7 @@ void ATDWaveDirector::SetWaveHyperdriveLock(bool bLocked)
 	}
 	if (bLocked)
 	{
-		Travel->AddHyperdriveLock(TDHyperdriveLocks::Wave, NSLOCTEXT("TD", "HyperLockWave", "HYPERDRIVE LOCKED - ENEMIES IN RANGE"));
+		Travel->AddHyperdriveLock(TDHyperdriveLocks::Wave, NSLOCTEXT("TD", "HyperLockWave", "HYPERDRIVE LOCKED - ENEMIES IN RANGE"), this);	// pruned if we die
 	}
 	else
 	{

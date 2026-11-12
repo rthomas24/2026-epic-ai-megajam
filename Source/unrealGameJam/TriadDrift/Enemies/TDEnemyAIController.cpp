@@ -402,7 +402,7 @@ FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor
 	const bool bBesideOrAhead = FVector::DotProduct(InTarget.GetActorForwardVector(), (Ship.GetActorLocation() - InTarget.GetActorLocation()).GetSafeNormal()) > -0.3f;
 	// Inside gun range the nose goes onto the ship itself, so the gun cone (measured to the ship) can line up.
 	const FTDEnemySpec& Spec = Ship.GetSpec();
-	const float GunRange = Spec.Guns.IsValid() ? Spec.Guns.Range : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
+	const float GunRange = Spec.Guns.IsValid() ? Ship.GetGunFireRange(&InTarget) : (Spec.Heavy.IsValid() ? Spec.Heavy.Range : Spec.EngageRange);
 	if (CrossInFrontDistance > 0.f && bBesideOrAhead && &InTarget == UGameplayStatics::GetPlayerPawn(this, 0) && To.Size() > GunRange)
 	{
 		Point += InTarget.GetActorForwardVector() * CrossInFrontDistance;
@@ -493,7 +493,7 @@ void ATDEnemyAIController::TickFormation(ATDEnemyShip& Ship, float DeltaSeconds)
 		const FVector ToT = T->GetActorLocation() - Ship.GetActorLocation();
 		const float Cone = Ship.GetSpec().Guns.ConeHalfAngleDeg * (Leader->AreGunsFiring() ? 1.5f : 1.f);
 		const bool bLinedUp = FVector::DotProduct(ToT.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Cone));
-		Ship.SetGunsFiring(bLinedUp && ToT.Size() <= Ship.GetSpec().Guns.Range, T);
+		Ship.SetGunsFiring(bLinedUp && ToT.Size() <= Ship.GetGunFireRange(T), T);
 	}
 	else
 	{
@@ -517,7 +517,7 @@ void ATDEnemyAIController::TickApproach(ATDEnemyShip& Ship, float DeltaSeconds)
 		SteerToward(Ship, GetOpeningPassPoint(), 1.f, false);
 		// Take the shot if the target happens to be lined up on the way.
 		const FVector ToT = T->GetActorLocation() - Ship.GetActorLocation();
-		const bool bInCone = Spec.Guns.IsValid() && ToT.Size() <= Spec.Guns.Range
+		const bool bInCone = Spec.Guns.IsValid() && ToT.Size() <= Ship.GetGunFireRange(T)
 			&& FVector::DotProduct(ToT.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Spec.Guns.ConeHalfAngleDeg));
 		Ship.SetGunsFiring(bInCone, T);
 		return;
@@ -525,7 +525,8 @@ void ATDEnemyAIController::TickApproach(ATDEnemyShip& Ship, float DeltaSeconds)
 	Ship.SetGunsFiring(false, nullptr);
 	SteerToward(Ship, GetAimPoint(Ship, *T), 1.f, Dist > Spec.EngageRange * 2.f);
 
-	if (Dist <= Spec.EngageRange)
+	// Start the run where the guns can already land: a target closing head-on meets the bolts further out.
+	if (Dist <= FMath::Max(Spec.EngageRange, Ship.GetGunFireRange(T)))
 	{
 		SetState(ETDEnemyAIState::AttackRun);
 	}
@@ -557,7 +558,7 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 		// Cone against the ship itself (the steering point may be offset in front of it).
 		const FVector ToShip = T->GetActorLocation() - Ship.GetActorLocation();
 		const bool bInCone = FVector::DotProduct(ToShip.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Spec.Guns.ConeHalfAngleDeg));
-		Ship.SetGunsFiring(bInCone && ToShip.Size() <= Spec.Guns.Range, T);
+		Ship.SetGunsFiring(bInCone && ToShip.Size() <= Ship.GetGunFireRange(T), T);
 	}
 	TryHeavyAttacks(Ship, *T);
 
