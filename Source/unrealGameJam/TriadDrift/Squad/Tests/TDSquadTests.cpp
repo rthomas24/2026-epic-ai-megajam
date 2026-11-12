@@ -1254,5 +1254,32 @@ bool FTDSquadHullRepair::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadRamEndsAfterSwitch, "TriadDrift.Squad.Switch.RamEndsCleanlyAfterSwitch", TD_TEST_FLAGS)
+bool FTDSquadRamEndsAfterSwitch::RunTest(const FString& Parameters)
+{
+	// T2: the ram finishes its 1.2 s dash under the AI, then the speed override must be gone.
+	FSquadFixture F;
+	TestTrue(TEXT("player into Lancer"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+	UTDPowerComponent* Ram = UTDPowerComponent::FindPower(Lancer, ETDPowerInput::Signature1);
+	if (!TestNotNull(TEXT("ram installed"), Ram))
+	{
+		return false;
+	}
+	UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, true);
+	F.W.Tick();
+	UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
+	F.W.Advance(0.5f); // past the 0.3 s wind-up, mid-dash
+	TestTrue(TEXT("ram dashing"), Ram->IsPowerActive() && Lancer->GetShipMovement()->HasSpeedOverride());
+	TestTrue(TEXT("switch away mid-dash"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
+	TestNotNull(TEXT("Lancer under AI during the rest of the dash"), F.Wing(ETDShipId::Lancer));
+	F.W.Advance(1.5f);
+	TestFalse(TEXT("ram over"), Ram->IsPowerActive());
+	TestFalse(TEXT("speed override cleared"), Lancer->GetShipMovement()->HasSpeedOverride());
+	// Speed after the dash is T1/T2's call (overspeed bleed); logged for them, not asserted here.
+	AddInfo(FString::Printf(TEXT("Lancer speed 1.5 s after a ram + switch: %.0f cm/s"), Lancer->GetShipMovement()->GetSpeed()));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
