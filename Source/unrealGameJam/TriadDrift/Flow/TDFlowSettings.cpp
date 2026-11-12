@@ -18,6 +18,10 @@ UTDFlowSettings::UTDFlowSettings()
 	AbilityOwners.Add(ETDAbilityId::Cloak, ETDShipId::Rift);
 	AbilityOwners.Add(ETDAbilityId::EMPPulse, ETDShipId::Lancer);
 
+	// Objective ids shared with ENG-25 (Verdance) and ENG-26 (Cinder).
+	VerdanceObjectives = { TEXT("Obj_WreckCore"), TEXT("Obj_Relay") };
+	CinderObjectives = { TEXT("Obj_Outpost"), TEXT("Obj_Jammer") };
+
 	// 1-based wave numbers.
 	PhaseAfterWaveCleared.Add(2, ETDGamePhase::Verdance);
 	PhaseAfterWaveCleared.Add(4, ETDGamePhase::Cinder);
