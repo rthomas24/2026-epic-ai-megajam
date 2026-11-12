@@ -32,7 +32,7 @@ presentation/readability, measured cost, integration and subjective approval.
 |---|---|---|
 | ART-01 Direction | Lead coordination; foundation palette/layout approved, AAA target raised | Preserve cyan/violet environment and ship identity; benchmark approval next |
 | ART-02 Inventory/sourcing | Lead + specialists; initial source inventory | Source package957b45e; every acquisition needs license/provenance before use |
-| ART-03 Ships | Ships & Weapons; Lancer M02 in refinement, Rift/Bastion backlog | M01 draftPR3/43dc320; M02 branch4b7ef12:57,788tri,33locators/12rays/geometry pass,9views+clay; major subjective presentation findings, Nick review before import/main |
+| ART-03 Ships | Ships & Weapons; Lancer refined source foundation integrated, Rift Phase1 active | PR3 merged100f21c, manual foundation approval recorded;57,788tris/33locators/12rays/9views+clay technical pass, fresh source review clear; finalAAA/native/export/collision/LOD/runtime gates remain; Bastion waits Rift approval |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
 | ART-05 Space | Environment & VFX; native foundation integrated, new Hero benchmark active | Main9c629e8,12native/5captures; isolated UE reload9assets0errors/warnings; no real-map playtest; HeroM02 before-after and zenith fix need Nick review |
 | ART-06 Planets | Environment & VFX planning; queued, not dispatched | Geometry/dressing absent; supplied ground dimensions unchanged; no shared map editing |
@@ -77,3 +77,22 @@ with scripted captures disclosed as the minimum fallback. Lead minimum default-G
 
 Use existing engineering Tools read-only; shared tooling/skill changes require owner
 coordination. No unrequested tool consolidation or new production assignment here.
+
+## Full PR audit — November12
+
+| PR | Verified disposition | Remaining gate |
+|---|---|---|
+|1 Claims | Closed/unmerged, superseded by authoritative narrow main claims | Do not merge stale claims |
+|2 Source kits | GitHub merged957b45e;40source files exact,credits/log evolved | Native/presentation gates separate |
+|3 Lancer foundation | GitHub merge100f21c;111source/review additions,33LFS checked; human foundation approval + independent/postmerge review | FinalAAA/native integration not approved |
+|4 HUD | GitHub merged8963477;37files exact | RyanT2 host/config/progression/Shipping/cook/livegame acceptance pending; N007 |
+|5 Audio | Open draft8cd30fb;30files/8LFS integrity passes, sounds rejected | No main merge; owned-library audition remains frozen |
+|6 Environment | Closed/unmerged onGitHub, all37files exact onmain via9c629e8 cherry-pick | No repeat merge; presentation/actual-placement/perf gates remain |
+
+Lancer current foundation approval supersedes approval-pending wording in frozen
+historical source reports; it does not grant finalAAA or native approval. No runtime
+file changed in PR3 integration. New own-source branches stay isolated/unapproved.
+Sky component/PP MAJOR closed at fresh code review726909f; late-star-backdrop MINOR
+remains engineering-owned. Hero01cold-start watchdog125 before asset script;
+private SM6/longer-bound retry follows queued UI clean capture. Audio skill remains
+unpublished, Ryan actively authors/tests it, N006confirmed no action until notice.
