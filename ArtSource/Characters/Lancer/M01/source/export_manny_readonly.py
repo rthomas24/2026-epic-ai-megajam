@@ -54,24 +54,25 @@ def main():
     skeleton = unreal.load_asset('/Game/Characters/Mannequins/Meshes/SK_Mannequin')
     if not isinstance(mesh, unreal.SkeletalMesh) or not isinstance(skeleton, unreal.Skeleton):
         raise RuntimeError('Exact existing template mesh/skeleton unavailable')
-    if mesh.get_skeleton() != skeleton:
+    # BlueprintGetter accessors are reflected properties, not Python methods.
+    if mesh.get_editor_property('skeleton') != skeleton:
         raise RuntimeError('Template mesh is not bound to the agreed skeleton')
     component = unreal.SkeletalMeshComponent()
-    component.set_skeletal_mesh_asset(mesh)  # Transient inspection object; never registered/saved.
+    component.set_editor_property('skeletal_mesh_asset', mesh)  # Uses the reflected setter on a transient component.
     count = component.get_num_bones()
     bones = [dict(index=i, name=str(component.get_bone_name(i)),
                   parent=str(component.get_parent_bone(component.get_bone_name(i)))) for i in range(count)]
     names = {bone['name'] for bone in bones}
     if not {'root', 'pelvis', 'spine_01', 'head', 'hand_r', 'foot_l', 'foot_r'} <= names:
         raise RuntimeError('Required mannequin reference bones missing')
-    bounds = mesh.get_imported_bounds()
+    bounds = mesh.get_imported_bounds()  # BlueprintCallable, unlike the two getters above/below.
     extent = bounds.box_extent
     origin = bounds.origin
     size = [float(extent.x * 2), float(extent.y * 2), float(extent.z * 2)]
     if not all(value > 0 for value in size):
         raise RuntimeError('Invalid imported template bounds')
     materials = []
-    for material in mesh.get_materials():
+    for material in mesh.get_editor_property('materials'):
         interface = material.get_editor_property('material_interface')
         materials.append(dict(slot=str(material.get_editor_property('material_slot_name')),
                               material=interface.get_path_name() if interface else None))
