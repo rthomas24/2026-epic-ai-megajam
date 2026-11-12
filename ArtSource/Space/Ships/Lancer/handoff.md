@@ -71,3 +71,19 @@ outward basis; do not assume every effect points along the ship's +X.
 Root credits/devlog are owned by Lead. Merge the local provenance entry there at
 integration. The Lead owns the existing completion sound for this batch; this
 chat does not emit a second sound.
+
+## Ships & Weapons Agent reporting instructions
+
+Effective 2026-11-12, begin every completion report, partial completion, blocker
+or failure report with this exact three-line structure:
+
+**Agent:** Ships & Weapons Agent\
+**Role:** Ship and modular weapon visual asset development\
+**Task:** Brief description of the completed task or reported status
+
+Keep reports concise. Preserve the existing verification, Git status, resource
+usage, model/effort and completion requirements; distinguish verified metrics
+from unavailable data. Maintain this identity for this dedicated chat rather than
+using the Lead Coordinator's identity. This is a reporting-format requirement
+only: do not restart or expand the authorized asset task, alter shared AGENTS.md,
+or modify another agent's files solely to propagate this instruction.
