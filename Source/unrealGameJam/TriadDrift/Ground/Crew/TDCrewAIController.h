@@ -37,6 +37,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") ETDCrewState GetState() const { return State; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") AActor* GetTarget() const { return Target.Get(); }
 
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") int32 GetCoverIndex() const { return CoverIndex; }
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsInCover() const { return CoverPhase == ECoverPhase::Hidden || CoverPhase == ECoverPhase::Peeking; }
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsPeeking() const { return CoverPhase == ECoverPhase::Peeking; }
+	/** Times this crew member gave up a cover spot (flanked, approached, cover destroyed). */
+	int32 GetCoverRelocations() const { return CoverRelocations; }
+
 	/** Force a target (encounters that start "already alerted"). */
 	void SetTarget(AActor* NewTarget);
 
@@ -47,6 +53,11 @@ protected:
 	virtual void OnUnPossess() override;
 
 private:
+	enum class ECoverPhase : uint8 { None, Moving, Hidden, Peeking };
+
+	/** Trooper cover behaviour; returns true if it handled movement and attacks this frame. */
+	bool TickCover(ATDCrewCharacter* Crew, float DeltaSeconds, float Distance);
+	void LeaveCover(bool bRelocation);
 	void Sense();
 	bool HasLineOfSight(const AActor* To) const;
 	void TickEngage(ATDCrewCharacter* Crew, float DeltaSeconds);
@@ -68,4 +79,10 @@ private:
 	bool bHasLOS = false;
 	int32 BossCycle = 0;
 	FDelegateHandle FinishedHandle;
+	ECoverPhase CoverPhase = ECoverPhase::None;
+	int32 CoverIndex = INDEX_NONE;
+	float CoverTimer = 0.f;
+	float CoverSearchTimer = 0.f;
+	FVector PeekLocation = FVector::ZeroVector;
+	int32 CoverRelocations = 0;
 };

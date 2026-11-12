@@ -300,6 +300,11 @@ void ATDGroundGameMode::SpawnTrainingGround()
 		Encounter->LinkedStep = 1;
 		Encounter->Count = 3;
 		Encounter->RingRadius = 450.f;
+		Encounter->CrewMix = { ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt };
+		Encounter->CoverActors = {
+			SpawnBlock(RoomCenter + FVector(-350.f, 300.f, 75.f), FVector(160.f, 260.f, 150.f), Parkour, TEXT("TD_Ground_Room_Cover1")),
+			SpawnBlock(RoomCenter + FVector(-350.f, -300.f, 75.f), FVector(160.f, 260.f, 150.f), Parkour, TEXT("TD_Ground_Room_Cover2")),
+		};
 		Encounter->DoorsToLock = { RoomDoor };
 		Encounter->Box->SetBoxExtent(FVector(800.f, 800.f, 300.f));
 

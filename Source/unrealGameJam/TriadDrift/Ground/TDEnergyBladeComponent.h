@@ -17,6 +17,8 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FTDOnBladeHit, AActor* /*Victim*/, float 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnBladeDeflect, AActor* /*Projectile*/, bool /*bPerfect*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnBladeParry, AActor* /*Attacker*/);
 DECLARE_MULTICAST_DELEGATE(FTDOnGuardBroken);
+DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnBladeCue, FName /*CueName*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnBladeRetract, bool /*bRetracted*/);
 
 /**
  * The on-foot melee weapon. Put it on an ACharacter that has a UTDHealthComponent.
@@ -151,7 +153,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Feel", meta = (Units = "s"))
 	float HitStopOnKill = 0.12f;
 
-	/** Nick's blade presentation (optional; an empty slot does nothing). */
+	/** Nick's blade presentation (optional; an empty slot does nothing). Loads /Game/TriadDrift/Presentation/DA_Blade_FX when unset. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Presentation")
 	TObjectPtr<UTDBladeFX> BladeFX;
 
@@ -223,6 +225,17 @@ public:
 	/** Tries to catch one projectile now (used by the per-tick scan; public for tests). */
 	bool TryDeflect(AActor* Projectile);
 
+	/** Put the blade away (death, boarding the ship): plays Retract. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Blade")
+	void Retract();
+
+	/** Draw it again (respawn, leaving the ship): plays Ignite. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Blade")
+	void Ignite();
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
+	bool IsRetracted() const { return bRetracted; }
+
 	/** Interrupts everything (death, carrying an objective). */
 	void CancelAll();
 
@@ -231,6 +244,9 @@ public:
 	FTDOnBladeDeflect OnDeflect;
 	FTDOnBladeParry OnParry;
 	FTDOnGuardBroken OnGuardBroken;
+	/** Every presentation cue request by name, even when the slot is empty (tests, debugging). */
+	FTDOnBladeCue OnCueRequested;
+	FTDOnBladeRetract OnRetractChanged;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -244,6 +260,7 @@ private:
 	bool HitActor(AActor* Victim, float Damage, const FVector& HitLocation, const FVector& HitDir, float Knockback);
 	void ScanForProjectiles(float DeltaTime);
 	void BreakGuard();
+	void PlayBladeCue(FName Name, const struct FTDFXCue* Cue, bool bAttached, const FVector& Location);
 	float FilterIncomingDamage(const FTDDamageInfo& Info);
 	void GetView(FVector& OutLocation, FVector& OutForward) const;
 	ETDTeam GetOwnerTeam() const;
@@ -266,6 +283,7 @@ private:
 	float LungeTimeLeft = 0.f;
 	FVector LungeVelocity = FVector::ZeroVector;
 	bool bCritReady = false;
+	bool bRetracted = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTDHealthComponent> OwnerHealth;

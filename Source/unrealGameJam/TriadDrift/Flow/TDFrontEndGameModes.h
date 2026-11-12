@@ -6,6 +6,19 @@
 #include "GameFramework/GameModeBase.h"
 #include "TDFrontEndGameModes.generated.h"
 
+class UTDUIStyle;
+
+/** Front-end widget lookup: an explicit override wins, else Nick's DA_UI_Style, else nothing. */
+struct UNREALGAMEJAM_API FTDFrontEndWidgets
+{
+	enum class EKind : uint8 { MainMenu, Loading };
+
+	/** /Game/TriadDrift/Presentation/DA_UI_Style if it exists, else null. */
+	static UTDUIStyle* LoadDefaultStyle();
+
+	static UClass* Resolve(UClass* Override, const UTDUIStyle* Style, EKind Kind);
+};
+
 /**
  * L_MainMenu: no pawn, mouse cursor on, run timer stopped, never checkpoints. Nick's menu widget lives
  * in the map (or a BP child sets MenuWidgetClass). New Game: UTDGameInstance::StartNewRun() then
@@ -19,7 +32,7 @@ class UNREALGAMEJAM_API ATDMenuGameMode : public AGameModeBase
 public:
 	ATDMenuGameMode();
 
-	/** Optional menu widget (Nick's WBP) added to the viewport on start. */
+	/** Optional menu widget override. When unset, DA_UI_Style's MainMenuWidgetClass is used (if any). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
 	TSubclassOf<class UUserWidget> MenuWidgetClass;
 
@@ -36,7 +49,7 @@ class UNREALGAMEJAM_API ATDTransitionGameMode : public AGameModeBase
 public:
 	ATDTransitionGameMode();
 
-	/** Optional loading-screen widget (Nick's WBP). */
+	/** Optional loading-screen override. When unset, DA_UI_Style's LoadingWidgetClass is used (if any). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transition")
 	TSubclassOf<class UUserWidget> LoadingWidgetClass;
 
