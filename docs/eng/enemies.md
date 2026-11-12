@@ -6,16 +6,17 @@ Code: `Source/unrealGameJam/TriadDrift/Enemies/` and `Waves/`. Tests: `Enemies/T
 
 ## For Nick: which asset to fill per enemy
 
-Make one `UTDEnemyVisuals` data asset per type at exactly this path. The ship loads it by name, so no
-code or Blueprint edit is needed:
+Make one `UTDEnemyVisuals` data asset per type at exactly this path (the same names as
+`docs/visual/Presentation-Asset-Paths.md`). The ship loads it by name, so no code or Blueprint edit is
+needed:
 
 | Enemy | Asset path |
 |---|---|
-| Shard Fighter | `/Game/TriadDrift/Presentation/DA_Enemy_ShardFighter_Visuals` |
-| Hook Interceptor | `/Game/TriadDrift/Presentation/DA_Enemy_HookInterceptor_Visuals` |
-| Wall Gunship | `/Game/TriadDrift/Presentation/DA_Enemy_WallGunship_Visuals` |
-| Maul Bomber | `/Game/TriadDrift/Presentation/DA_Enemy_MaulBomber_Visuals` |
-| Hive Carrier (also its bays and turrets) | `/Game/TriadDrift/Presentation/DA_Enemy_HiveCarrier_Visuals` |
+| Shard Fighter | `/Game/TriadDrift/Presentation/DA_Enemy_Fighter_Visuals` |
+| Hook Interceptor | `/Game/TriadDrift/Presentation/DA_Enemy_Interceptor_Visuals` |
+| Wall Gunship | `/Game/TriadDrift/Presentation/DA_Enemy_Gunship_Visuals` |
+| Maul Bomber | `/Game/TriadDrift/Presentation/DA_Enemy_Bomber_Visuals` |
+| Hive Carrier (also its bays and turrets) | `/Game/TriadDrift/Presentation/DA_Enemy_Carrier_Visuals` |
 
 Which slot plays when:
 - **`Mesh` / `MaterialOverrides`:** replaces the placeholder cone and wings. Author it +X forward,
@@ -36,8 +37,11 @@ Two ways to override the convention asset:
 - `FTDEnemySpec::Visuals` (soft pointer) in C++.
 - `ATDEnemyShip::Visuals` set on a BP child or a placed instance.
 
-**Without any asset:** the placeholder is tinted with `UTDStatics::TintPlaceholder`: red-orange body,
-emissive boost 8 for the glowing "eyes".
+**Without any asset:** a placeholder that carries the colour code on its own (`UTDStatics::TintPlaceholder`):
+a glowing red-orange body (`PlaceholderBodyGlow` 2.5), dark-red wings, two white glowing "eyes" at the nose
+and a white-hot engine (`PlaceholderEmissiveBoost` 8), a cyan plate across a gunship's nose while its frontal
+shield is up, a shape per role, and a visual-only readability scale by size (small ×2.2, medium ×1.6, large
+×1.4; collision keeps the gameplay radius). All of it hides as soon as `Mesh` is set.
 
 ## What exists
 
@@ -50,9 +54,9 @@ field is tunable. Ids live in `TDEnemyIds::*`. The weapon ids in `TDEnemyWeaponI
 |---|---|---|---|---|---|
 | `ShardFighter` | 30 / 0 | 7000 | 220 | Pulse guns 5 dmg, 4/s | none (guns) |
 | `HookInterceptor` | 50 / 20 | 9000 | 260 | Pulse guns + homing missile 25 every 8 s | 0.8 s |
-| `WallGunship` | 400 + 300 frontal | 3000 | 700 | Heavy bolt volley (3 × 20) every 3.5 s, missile salvo (3 × 20) every 10 s | 0.6 s / 1.2 s |
+| `WallGunship` | 400 + 300 frontal (recovers 15 s after breaking) | 3000 | 700 | Heavy bolt volley (3 × 20) every 4.5 s, missile salvo (3 × 20) every 12 s | 0.6 s / 1.2 s |
 | `MaulBomber` | 150 / 50 | 4000 | 500 | Plasma mine trail (4 × 60 dmg, 800 cm), every 5 s | 0.5 s |
-| `HiveCarrier` | 2000, 3 bays × 300, 4 PD turrets | 1500 | 1800 | 3 fighters per bay every 12 s | 1.5 s per launch |
+| `HiveCarrier` | 1500, 3 bays × 300, 4 PD turrets (6 dmg, 1 s on / 2 s off) | 1500 | 1800 | 3 fighters per bay every 12 s, at most 3 launches per bay, 8 alive | 1.5 s per launch |
 
 ### `ATDEnemyShip : ATDSpacecraft, ITDWaveEnemy`
 - **Setup:** `InitFromSpec(Id)` applies health, flight tuning, collision radius, T1's `Weapons`
