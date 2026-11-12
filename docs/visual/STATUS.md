@@ -96,3 +96,23 @@ Sky component/PP MAJOR closed at fresh code review726909f; late-star-backdrop MI
 remains engineering-owned. Hero01cold-start watchdog125 before asset script;
 private SM6/longer-bound retry follows queued UI clean capture. Audio skill remains
 unpublished, Ryan actively authors/tests it, N006confirmed no action until notice.
+
+## Coordination checkpoint — November12,15:04EST
+
+N004 both original MAJOR findings closed at fresh independent code review: sky
+component/PP fallback726909f and earned ability producer727b511 (reviewed main
+e356921). Ability None/readiness0 while locked, actual installed ability/readiness
+after unlock, respawn/retake persistence; regression sequence inspected, not rerun
+by reviewer. Actual attached-widget sequence remains N007 host-validation gate.
+Ryan accepts/owns late-star-backdrop MINOR. No shared Source edits by Nick.
+
+Heavy slot: HeroM02 SM6 retry02 still active, PID24260/private8024, previous188s
+startup timeout preserved; no source-script/native result yet. Rift one2thread
+under60s QA/review follows actualrelease/freshRAMguard unless published realHUDhost
+needs validation priority. M03 aca9334 safely branch-published/frozen, screenshots
+being delivered, no new art assignment. Audio skill still unpublished.
+
+MESSAGEBOARD now uses INFO and verified verbatim archive; all five prior Nick
+messages checked byte-for-byte as text against precompaction blocks. Do not alter
+archived message history or reuse IDs. Current summaries coexist with newer N008
+source-foundation approval; earlier held-PR decisions remain historical.
