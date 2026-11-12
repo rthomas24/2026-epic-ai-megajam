@@ -15,7 +15,8 @@ FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec
 	FTDStreakLook Look;
 	Look.bStreak = Spec.Speed >= 2000.f;
 	Look.bHeavy = Spec.bIsMissile || Spec.bHoming || Spec.SplashRadius > 0.f || Spec.PlaceholderScale.Y >= 0.5f;
-	Look.bHead = Spec.bHoming || Spec.bIsMissile;
+	// Missiles and heavy shells carry a hot head: the slow heavy bolt must outweigh a needle on screen.
+	Look.bHead = Spec.bHoming || Spec.bIsMissile || Look.bHeavy;
 	const float Width = FMath::Max(Spec.PlaceholderScale.Y, Spec.PlaceholderScale.Z) * 100.f;
 	if (Look.bHeavy)
 	{
@@ -43,8 +44,13 @@ float FTDCombatPlaceholders::DistanceGrowth(const FTDStreakLook& Look, float Dis
 		return 1.f;
 	}
 	// Pixels across = Thickness * 1280 / (2 * Distance * tan(45 deg)).
-	const float Needed = MinStreakPixels * 2.f * DistanceToCamera / 1280.f;
+	const float Needed = (Look.bHeavy ? MinHeavyStreakPixels : MinStreakPixels) * 2.f * DistanceToCamera / 1280.f;
 	return FMath::Clamp(Needed / Look.Thickness, 1.f, MaxDistanceGrowth);
+}
+
+float FTDCombatPlaceholders::CapMuzzleFlashRadius(float Radius, float HullRadius)
+{
+	return HullRadius > 0.f ? FMath::Min(Radius, HullRadius / 3.6f) : Radius;
 }
 
 float FTDCombatPlaceholders::MuzzleFlashRadius(const FTDProjectileSpec& Spec)
