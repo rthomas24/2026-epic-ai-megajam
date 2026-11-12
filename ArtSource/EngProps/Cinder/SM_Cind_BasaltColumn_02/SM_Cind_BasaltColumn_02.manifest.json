@@ -1,0 +1,77 @@
+{
+  "asset": "SM_Cind_BasaltColumn_02",
+  "fbx": "ArtSource/EngProps/Cinder/SM_Cind_BasaltColumn_02/SM_Cind_BasaltColumn_02.fbx",
+  "tris": 984,
+  "size_cm": [
+    298.4,
+    301.7,
+    550.3
+  ],
+  "pivot": "root object origin (SM_Cind_BasaltColumn_02): the base centre, on the ground plane",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Cind_Columns"
+  ],
+  "material_params": [
+    {
+      "name": "M_Cind_Columns",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [
+    "T_Cind_Columns_BC.png",
+    "T_Cind_Columns_N.png",
+    "T_Cind_Columns_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Cind_BasaltColumn_02_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "status": "ok",
+  "fbx_path_is": "relative to the repository root",
+  "texture_set": {
+    "name": "Cind_Columns",
+    "shared_atlas": true,
+    "dir": "ArtSource/EngProps/Cinder/textures",
+    "files": {
+      "BC": "T_Cind_Columns_BC.png",
+      "N": "T_Cind_Columns_N.png",
+      "ORM": "T_Cind_Columns_ORM.png"
+    },
+    "size": 1024,
+    "emission_strength": 1.5,
+    "normal_convention": "DirectX (green flipped)",
+    "material": "M_Cind_Columns",
+    "px_per_m": 61.4
+  },
+  "collision_note": "one convex hull of the whole piece"
+}

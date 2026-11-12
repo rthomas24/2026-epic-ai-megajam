@@ -1,0 +1,75 @@
+{
+  "asset": "SM_Cind_Crystal_02",
+  "fbx": "ArtSource/EngProps/Cinder/SM_Cind_Crystal_02/SM_Cind_Crystal_02.fbx",
+  "tris": 886,
+  "size_cm": [
+    81.9,
+    119.7,
+    200.5
+  ],
+  "pivot": "root object origin (SM_Cind_Crystal_02): the base centre, on the ground plane",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Cind_Crystals"
+  ],
+  "material_params": [
+    {
+      "name": "M_Cind_Crystals",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 1.5
+    }
+  ],
+  "textures": [
+    "T_Cind_Crystals_BC.png",
+    "T_Cind_Crystals_N.png",
+    "T_Cind_Crystals_ORM.png",
+    "T_Cind_Crystals_E.png"
+  ],
+  "collision": [
+    "UCX_SM_Cind_Crystal_02_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "status": "ok",
+  "fbx_path_is": "relative to the repository root",
+  "texture_set": {
+    "name": "Cind_Crystals",
+    "shared_atlas": true,
+    "dir": "ArtSource/EngProps/Cinder/textures",
+    "files": {
+      "BC": "T_Cind_Crystals_BC.png",
+      "N": "T_Cind_Crystals_N.png",
+      "ORM": "T_Cind_Crystals_ORM.png",
+      "E": "T_Cind_Crystals_E.png"
+    },
+    "size": 1024,
+    "emission_strength": 1.5,
+    "normal_convention": "DirectX (green flipped)",
+    "material": "M_Cind_Crystals",
+    "px_per_m": 107.5
+  },
+  "collision_note": "one convex hull of the whole piece"
+}
