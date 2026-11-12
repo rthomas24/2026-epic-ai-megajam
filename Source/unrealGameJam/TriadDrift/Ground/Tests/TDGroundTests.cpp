@@ -23,6 +23,8 @@
 #include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
 #include "AIController.h"
+#include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
+#include "TriadDrift/Core/TDEventBus.h"
 
 namespace TDGroundTest
 {
@@ -539,8 +541,12 @@ bool FTDGroundObjective::RunTest(const FString& Parameters)
 	FTDObjectiveStep S1; S1.Text = FText::FromString(TEXT("Clear the wreck site"));
 	O->Steps = { S0, S1 };
 
+	UTDFlowTestListener* Listener = NewObject<UTDFlowTestListener>();
+	Listener->AddToRoot();
+	Listener->Bind(UTDEventBus::Get(W.GetWorld()));
 	GI->NotifyLevelEntered(ETDDestination::Verdance);
 	O->StartObjective();
+	TestTrue(TEXT("OnObjectiveUpdated(Id, 0) on start"), Listener->ObjectiveSteps.Num() == 1 && Listener->ObjectiveSteps[0].Key == FName(TEXT("Obj_WreckCore")) && Listener->ObjectiveSteps[0].Value == 0);
 	TestTrue(TEXT("active"), O->IsActive());
 	TestEqual(TEXT("opens its scene"), GI->GetCurrentScene(), FName(TEXT("Obj_WreckCore")));
 	TestEqual(TEXT("take 1"), GI->GetTakeNumber(TEXT("Obj_WreckCore")), 1);
@@ -561,6 +567,8 @@ bool FTDGroundObjective::RunTest(const FString& Parameters)
 	O->AdvanceStep();
 	O->AdvanceStep();
 	TestTrue(TEXT("complete"), O->IsComplete());
+	TestTrue(TEXT("OnObjectiveUpdated(Id, StepCount) on completion"), Listener->ObjectiveSteps.Num() > 0 && Listener->ObjectiveSteps.Last().Value == 2);
+	Listener->RemoveFromRoot();
 	TestTrue(TEXT("recorded in progress"), GI->GetProgressRef().CompletedObjectives.Contains(TEXT("Obj_WreckCore")));
 	TestEqual(TEXT("reward unlocked for Bastion"), GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::GravityWell), ETDShipId::Bastion);
 	Markers.Reset();
@@ -663,6 +671,76 @@ bool FTDGroundPerfectWindow::RunTest(const FString& Parameters)
 		TestFalse(FString::Printf(TEXT("no parry at %.3f s @%.0f fps"), T, 1.f / Step), Late->IsStaggered());
 		TestEqual(TEXT("blocked anyway"), TDGroundTest::Hull(C), 100.f, 0.1f);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundHudPing, "TriadDrift.Ground.HudDataAndObjectivePing", TD_TEST_FLAGS)
+bool FTDGroundHudPing::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Enemy = TDGroundTest::SpawnDummy(W, FVector(-400.f, 0.f, 95.f));
+	ATDObjective* O = W.Spawn<ATDObjective>();
+	AActor* Marker = W.Spawn<AActor>(FVector(900.f, 0.f, 0.f));
+	if (!TestNotNull(TEXT("character"), C) || !TestNotNull(TEXT("objective"), O)) { return false; }
+	FTDObjectiveStep S0; S0.Waypoint = Marker;
+	O->ObjectiveId = TEXT("Obj_Hud");
+	O->Steps = { S0 };
+	O->StartObjective();
+
+	const ITDHUDData* Hud = C;
+	TestEqual(TEXT("HUD health 1"), Hud->GetHealth01(), 1.f, 1e-3f);
+	UTDStatics::ApplyTDDamage(C, 25.f, ETDDamageKind::Energy, Enemy, Enemy);
+	TestEqual(TEXT("HUD health 0.75"), Hud->GetHealth01(), 0.75f, 1e-3f);
+	TestEqual(TEXT("HUD dash charges 2"), Hud->GetDashCharges(), 2);
+	C->TryDash();
+	TestEqual(TEXT("HUD dash charges 1"), Hud->GetDashCharges(), 1);
+	W.Advance(0.3f);
+	C->GetBlade()->SetBlockHeld(true);
+	W.Advance(1.5f);
+	TestEqual(TEXT("HUD block stamina halves after 1.5 s"), Hud->GetBlockStamina01(), 0.5f, 0.05f);
+	C->GetBlade()->SetBlockHeld(false);
+	TestTrue(TEXT("HUD speed01 in range"), Hud->GetSpeed01() >= 0.f && Hud->GetSpeed01() <= 1.f);
+	const TArray<AActor*> Markers = Hud->GetObjectiveMarkers();
+	TestTrue(TEXT("HUD objective marker"), Markers.Contains(Marker));
+
+	TestFalse(TEXT("not pinged"), C->IsObjectivePinged());
+	C->PingObjective();
+	TestTrue(TEXT("pinged"), C->IsObjectivePinged());
+	W.Advance(3.9f);
+	TestTrue(TEXT("ping lasts 4 s"), C->IsObjectivePinged());
+	W.Advance(0.2f);
+	TestFalse(TEXT("ping gone after 4 s"), C->IsObjectivePinged());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundHitStop, "TriadDrift.Ground.Blade.HitStop50And120", TD_TEST_FLAGS)
+bool FTDGroundHitStop::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Tough = TDGroundTest::SpawnDummy(W, FVector(130.f, 0.f, 95.f), 1000.f);
+	UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
+	const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("blade"), B) || !TestNotNull(TEXT("feel"), Feel)) { return false; }
+	B->LightAttack();
+	W.Advance(0.03f, 0.01f);
+	TestTrue(TEXT("hit-stop active at 30 ms"), Feel->GetCurrentDilation() < 0.99f);
+	W.Advance(0.04f, 0.01f);
+	TestEqual(TEXT("hit-stop over after 50 ms"), Feel->GetCurrentDilation(), 1.f, 1e-3f);
+
+	W.Advance(1.5f);
+	Tough->SetActorLocation(FVector(500.f, 500.f, 95.f));
+	ATDCrewDummy* Weak = TDGroundTest::SpawnDummy(W, FVector(130.f, 0.f, 95.f), 10.f);
+	W.Advance(0.2f);
+	B->LightAttack();
+	TestTrue(TEXT("killed"), Weak->GetHealth()->IsDead());
+	W.Advance(0.09f, 0.01f);
+	TestTrue(TEXT("kill hit-stop still active at 90 ms"), Feel->GetCurrentDilation() < 0.99f);
+	W.Advance(0.05f, 0.01f);
+	TestEqual(TEXT("kill hit-stop over after 120 ms"), Feel->GetCurrentDilation(), 1.f, 1e-3f);
 	return true;
 }
 
