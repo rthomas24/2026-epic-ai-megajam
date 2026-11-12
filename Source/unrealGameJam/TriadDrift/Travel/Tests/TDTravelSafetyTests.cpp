@@ -568,6 +568,56 @@ bool FTDTravelVoidedTravel::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSwitchLatches, "TriadDrift.Travel.Safety.SwitchLeavesNoLatchedInputOrHeldHyperdrive", TD_TEST_FLAGS)
+bool FTDTravelSwitchLatches::RunTest(const FString& Parameters)
+{
+	// Squad review questions: (1) the ship the player leaves must not keep flying the player's last input until its
+	// AI writes one; (2) a hyperdrive key held through a switch must not spool the new ship.
+	FTDTestWorld W;
+	ATDShip* A = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f));
+	ATDShip* B = W.Spawn<ATDShip>(FVector(0.f, 8000.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(A, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	A->SetPlayerControlled(true);
+	W.Tick();
+	W.Tick();
+
+	// (1) Boost + roll + drift held on A, then switch to B with no AI on A.
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, true);
+	FTDTestWorld::InjectKey(PC, EKeys::D, true);
+	W.Advance(0.3f);
+	TestTrue(TEXT("A boosting and rolling under the player"), A->GetFlightInput().bBoost && A->GetFlightInput().Roll > 0.9f);
+	A->SetPlayerControlled(false);
+	PC->Possess(B);
+	B->SetPlayerControlled(true);
+	W.Tick();
+	TestFalse(TEXT("left ship: no latched boost"), A->GetFlightInput().bBoost);
+	TestEqual(TEXT("left ship: no latched roll"), A->GetFlightInput().Roll, 0.f, 0.01f);
+	TestTrue(TEXT("left ship: no latched turn"), A->GetFlightInput().Aim.IsNearlyZero());
+	TestEqual(TEXT("left ship: cruise throttle"), A->GetFlightInput().Throttle, 1.f, 0.01f);
+	W.Advance(0.5f);
+	TestFalse(TEXT("left ship stops boosting"), A->IsBoosting());
+	TestTrue(TEXT("held keys carry to the new ship (by design)"), B->GetFlightInput().bBoost);
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, false);
+	FTDTestWorld::InjectKey(PC, EKeys::D, false);
+	W.Advance(3.f); // boost cooldown, hyperdrive cooldowns
+
+	// (2) H held on B (spooling), switch back to A while still holding H.
+	FTDTestWorld::InjectKey(PC, EKeys::H, true);
+	W.Advance(0.3f);
+	TestEqual(TEXT("B spooling under the held key"), B->GetHyperdrive()->GetState(), ETDHyperdriveState::Spooling);
+	B->SetPlayerControlled(false);
+	PC->Possess(A);
+	A->SetPlayerControlled(true);
+	W.Advance(2.5f); // longer than a full spool
+	TestEqual(TEXT("left ship's spool ended"), B->GetHyperdrive()->GetState(), ETDHyperdriveState::Idle);
+	TestEqual(TEXT("the held key doesn't spool the new ship"), A->GetHyperdrive()->GetState(), ETDHyperdriveState::Idle);
+	FTDTestWorld::InjectKey(PC, EKeys::H, false);
+	W.Tick();
+	TestEqual(TEXT("release: still idle"), A->GetHyperdrive()->GetState(), ETDHyperdriveState::Idle);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
 bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
 {
