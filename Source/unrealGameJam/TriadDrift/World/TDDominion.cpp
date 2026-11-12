@@ -164,14 +164,14 @@ void ATDDominion::LayoutParts()
 	}
 	HangarPoint->SetRelativeLocation(FVector(E.X + 3000.f, 0.f, -E.Z * 0.4f));
 
-	UMaterialInstanceDynamic* HullMID = HullMesh->CreateDynamicMaterialInstance(0);
-	if (HullMID) { HullMID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.04f, 0.03f, 0.03f)); }
+	// Black armour with red trim, glowing shield emitters (Null Armada colour code).
+	UTDStatics::TintPlaceholder(HullMesh, FLinearColor(0.05f, 0.04f, 0.045f), 0.f);
+	UTDStatics::TintPlaceholder(BridgeMesh, FLinearColor(0.35f, 0.04f, 0.03f), 0.f);
+	UTDStatics::TintPlaceholder(TrenchWallLeft, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
+	UTDStatics::TintPlaceholder(TrenchWallRight, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
 	for (UStaticMeshComponent* S : ShieldSections)
 	{
-		if (UMaterialInstanceDynamic* MID = S->CreateDynamicMaterialInstance(0))
-		{
-			MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.2f, 0.7f, 1.f));
-		}
+		UTDStatics::TintPlaceholder(S, FLinearColor(0.2f, 0.7f, 1.f), 6.f);
 	}
 	if (Visuals && !Visuals->HullMesh.IsNull())
 	{

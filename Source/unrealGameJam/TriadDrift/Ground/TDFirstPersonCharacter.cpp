@@ -37,18 +37,28 @@ ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& Objec
 	Camera->SetFieldOfView(95.f);
 	BaseEyeHeight = 64.f;
 
-	// Placeholder blade: a long thin glowing-white cube held low-right in view.
-	BladePlaceholder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BladePlaceholder"));
-	BladePlaceholder->SetupAttachment(Camera);
-	BladePlaceholder->SetRelativeLocationAndRotation(FVector(45.f, 22.f, -24.f), FRotator(55.f, -10.f, 0.f));
-	BladePlaceholder->SetRelativeScale3D(FVector(0.03f, 0.03f, 0.9f));
-	BladePlaceholder->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	BladePlaceholder->SetCastShadow(false);
-	BladePlaceholder->SetOnlyOwnerSee(true);
+	// Placeholder blade, held like a weapon low-right: a grip (posed per move), a dark hilt and a thin
+	// emissive blade 70 cm long running up the grip's +Z. Never crosses the near plane or the crosshair at rest.
+	BladeGrip = CreateDefaultSubobject<USceneComponent>(TEXT("BladeGrip"));
+	BladeGrip->SetupAttachment(Camera);
+	BladeGrip->SetRelativeLocationAndRotation(FVector(40.f, 24.f, -26.f), FRotator(-40.f, 0.f, 15.f));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
-	if (Cube.Succeeded())
+	BladeHilt = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BladeHilt"));
+	BladeHilt->SetupAttachment(BladeGrip);
+	BladeHilt->SetRelativeScale3D(FVector(0.035f, 0.035f, 0.13f));
+	BladePlaceholder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BladePlaceholder"));
+	BladePlaceholder->SetupAttachment(BladeGrip);
+	BladePlaceholder->SetRelativeLocation(FVector(0.f, 0.f, 42.f));
+	BladePlaceholder->SetRelativeScale3D(FVector(0.012f, 0.028f, 0.7f));
+	for (UStaticMeshComponent* C : { BladeHilt.Get(), BladePlaceholder.Get() })
 	{
-		BladePlaceholder->SetStaticMesh(Cube.Object);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCastShadow(false);
+		C->SetOnlyOwnerSee(true);
+		if (Cube.Succeeded())
+		{
+			C->SetStaticMesh(Cube.Object);
+		}
 	}
 
 	Health = CreateDefaultSubobject<UTDHealthComponent>(TEXT("Health"));
@@ -93,8 +103,8 @@ void ATDFirstPersonCharacter::BeginPlay()
 	ApplyBladeVisuals();
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
 
-	// Movement integrates after our Tick, so forced moves and slides set velocity deterministically.
-	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(this, PrimaryActorTick);
+	// No extra tick ordering: CharacterMovement already ticks before its owner (bTickBeforeOwner). Forced
+	// moves sweep the capsule themselves in our Tick, so they don't depend on the order.
 }
 
 void ATDFirstPersonCharacter::ApplyBladeVisuals()
@@ -106,18 +116,74 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 		{
 			// Nick's first-person blade replaces the placeholder (authored at final scale).
 			BladePlaceholder->SetStaticMesh(ArtMesh);
+			BladePlaceholder->SetRelativeLocation(FVector::ZeroVector); // authored with its pivot in the hand
 			BladePlaceholder->SetRelativeScale3D(FVector::OneVector);
+			BladeHilt->SetVisibility(false);
 			bBladeMeshFromArt = true;
 			return;
 		}
 	}
 	bBladeMeshFromArt = false;
-	UTDStatics::TintPlaceholder(BladePlaceholder, FX ? FX->BladeColor : FLinearColor(0.6f, 0.9f, 1.f), 4.f);
+	UTDStatics::TintPlaceholder(BladePlaceholder, FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f), 1.4f);
+	UTDStatics::TintPlaceholder(BladeHilt, FLinearColor(0.25f, 0.27f, 0.32f), 0.15f); // metal, never pure black
+}
+
+void ATDFirstPersonCharacter::UpdateBladePose(float DeltaSeconds)
+{
+	// Placeholder first-person blade motion (until Nick's arms/AnimBP): readable arcs for each move.
+	if (!BladeGrip || !Blade)
+	{
+		return;
+	}
+	const float A = Blade->GetMoveProgress01();
+	const float Ease = FMath::InterpEaseInOut(0.f, 1.f, A, 2.f);
+	FVector Loc(40.f, 24.f, -26.f);
+	FRotator Rot(-40.f, 0.f, 15.f); // rest: up and forward, leaning in a little
+	switch (Blade->GetBladeState())
+	{
+	case ETDBladeState::Light1: // flat cut, right to left
+		Loc = FVector(35.f, FMath::Lerp(26.f, -14.f, Ease), -14.f);
+		Rot = FRotator(-80.f, FMath::Lerp(55.f, -65.f, Ease), 0.f);
+		break;
+	case ETDBladeState::Light2: // backhand, left to right
+		Loc = FVector(35.f, FMath::Lerp(-14.f, 26.f, Ease), -12.f);
+		Rot = FRotator(-80.f, FMath::Lerp(-65.f, 55.f, Ease), 0.f);
+		break;
+	case ETDBladeState::Light3: // overhead finisher
+		Loc = FVector(35.f, 8.f, FMath::Lerp(-4.f, -22.f, Ease));
+		Rot = FRotator(FMath::Lerp(15.f, -110.f, Ease), 0.f, 0.f);
+		break;
+	case ETDBladeState::HeavyLunge:
+	case ETDBladeState::DashStrike: // thrust
+		Loc = FVector(FMath::Lerp(25.f, 50.f, Ease), 10.f, -16.f);
+		Rot = FRotator(-88.f, -4.f, 0.f);
+		break;
+	case ETDBladeState::AirSlam: // raised, ready to drive down
+		Loc = FVector(30.f, 8.f, -6.f);
+		Rot = FRotator(20.f, 0.f, 0.f);
+		break;
+	case ETDBladeState::Blocking: // across the lower view, right to left
+		Loc = FVector(42.f, 24.f, -14.f);
+		Rot = FRotator(0.f, -10.f, -85.f);
+		break;
+	case ETDBladeState::GuardBroken: // knocked low and wide
+		Loc = FVector(30.f, 32.f, -36.f);
+		Rot = FRotator(25.f, 0.f, 45.f);
+		break;
+	default:
+		break;
+	}
+	// Swings snap fast; everything else eases back so the blade never teleports.
+	const float Speed = Blade->IsAttacking() ? 40.f : 14.f;
+	const FVector NewLoc = FMath::VInterpTo(BladeGrip->GetRelativeLocation(), Loc, DeltaSeconds, Speed);
+	const FRotator NewRot = FMath::RInterpTo(BladeGrip->GetRelativeRotation(), Rot, DeltaSeconds, Speed);
+	BladeGrip->SetRelativeLocationAndRotation(NewLoc, NewRot);
 }
 
 void ATDFirstPersonCharacter::HandleBladeRetract(bool bRetracted)
 {
 	BladePlaceholder->SetVisibility(!bRetracted);
+	BladeHilt->SetVisibility(!bRetracted && !bBladeMeshFromArt);
 }
 
 bool ATDFirstPersonCharacter::IsDead() const
@@ -682,6 +748,7 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 
 	// Mirror state for animation and HUD.
 	BladeState = GetBladeState();
+	UpdateBladePose(DeltaSeconds);
 	bBlocking = Blade && Blade->IsBlocking();
 	const float Horizontal = GetVelocity().Size2D();
 	Speed01 = FMath::Clamp(Horizontal / FMath::Max(Tuning.SprintSpeed, 1.f), 0.f, 1.f);

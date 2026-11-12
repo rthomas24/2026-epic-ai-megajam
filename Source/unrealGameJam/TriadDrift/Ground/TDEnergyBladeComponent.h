@@ -217,6 +217,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	int32 GetComboIndex() const { return ComboIndex; }
 
+	/** 0..1 through the current swing / lunge (0 when idle): drives the blade pose and Nick's AnimBP. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
+	float GetMoveProgress01() const { return (IsAttacking() && MoveDuration > 0.f) ? FMath::Clamp(1.f - SwingTimeLeft / MoveDuration, 0.f, 1.f) : 0.f; }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool HasCritReady() const { return bCritReady; }
 
@@ -292,6 +296,7 @@ private:
 	FVector LungeVelocity = FVector::ZeroVector;
 	bool bCritReady = false;
 	bool bRetracted = false;
+	float MoveDuration = 0.f;
 	bool bPressSwingLanded = false;
 	int32 HitCounter = 0;
 

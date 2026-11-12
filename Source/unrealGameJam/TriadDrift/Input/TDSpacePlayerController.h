@@ -158,9 +158,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0", ClampMax = "0.9"))
 	float MouseDeadzone = 0.06f;
 
-	/** Virtual stick re-centres at this rate (1/s) when the mouse is still. 0 = stays put. */
+	/**
+	 * Virtual stick re-centres at this rate (1/s) when the mouse is still. 0 = stays put.
+	 * 3 brings a released stick to ~5% (inside the deadzone) in about a second, so a mouse player stops turning
+	 * and the hull settles wings-level instead of circling banked forever (Lead playtest, Nov 12).
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0"))
-	float MouseRecenterRate = 0.f;
+	float MouseRecenterRate = 3.f;
 
 	/** Response exponent on the virtual stick (1 = linear, >1 = finer control near centre). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0.5", ClampMax = "4"))

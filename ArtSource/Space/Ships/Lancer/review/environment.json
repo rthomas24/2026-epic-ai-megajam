@@ -1,0 +1,21 @@
+{
+  "blender_version": "5.1.1",
+  "blender_build_hash": "b70da489d7f4",
+  "python_version": "3.13.9",
+  "mode": "background",
+  "gpu_detected_by_blender": "NVIDIA GeForce RTX 5060",
+  "render_engine": "BLENDER_EEVEE",
+  "color_view_transform": "Khronos PBR Neutral",
+  "cpu_render_threads": 2,
+  "available_ram_gib_before_environment_check": 7.09,
+  "available_ram_gib_before_material_sequence": 6.93,
+  "observed_first_hero_blender_working_set_mib": 582.2,
+  "working_set_measurement_note": "Point-in-time process sample, not full-session peak",
+  "blender_5_2_tested": false,
+  "installed_blender_replaced": false,
+  "unreal_launched": false,
+  "source_regenerated": false,
+  "coordination": "Lead granted exclusive heavy slot after prior review and queued HUD work; slot released after material/clay sequence, then one corrective diagnostic job queued after HUD",
+  "environment_check_warning": "Cycles enumeration logged HIP library initialization warning; this NVIDIA/EEVEE review did not use HIP",
+  "codex_usage_model_metrics": "Exact serving model, effort, token totals and cost not exposed by available task tools"
+}

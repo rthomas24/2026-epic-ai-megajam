@@ -268,11 +268,24 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 	if (PlaceholderWings) { PlaceholderWings->SetVisibility(true); }
 	if (HullPivot)
 	{
-		HullPivot->SetRelativeScale3D(FVector(FMath::Max(0.2f, Spec.Radius / 220.f)));
+		// One silhouette per role, so types read apart before the art lands (playtest: all cones looked alike).
+		FVector Shape(1.f);
+		switch (Spec.Role)
+		{
+		case ETDEnemyRole::Interceptor: Shape = FVector(1.5f, 0.75f, 0.75f); break;	// long dart
+		case ETDEnemyRole::Gunship:     Shape = FVector(0.8f, 1.9f, 0.8f); break;	// wide wall
+		case ETDEnemyRole::Bomber:      Shape = FVector(1.1f, 1.5f, 1.5f); break;	// fat
+		case ETDEnemyRole::Carrier:     Shape = FVector(2.0f, 1.2f, 0.7f); break;	// long slab
+		default: break;
+		}
+		HullPivot->SetRelativeScale3D(Shape * FMath::Max(0.2f, Spec.Radius / 220.f));
 	}
 	// Red-orange hull with glowing white "eyes" (Core helper), per the art direction.
-	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, PlaceholderEmissiveBoost);
-	UTDStatics::TintPlaceholder(PlaceholderWings, UTDStatics::TeamColor(ETDTeam::Enemy) * 0.35f, 0.f);
+	// Lit red-orange body, dark wings, and the engine block as the glowing white "eyes" (playtest: an
+	// emissive-tinted hull rendered black on black and enemies were invisible).
+	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, 0.f);
+	UTDStatics::TintPlaceholder(PlaceholderWings, FLinearColor(0.06f, 0.05f, 0.05f), 0.f);
+	UTDStatics::TintPlaceholder(GetEngineGlow(), FLinearColor(1.f, 0.95f, 0.9f), PlaceholderEmissiveBoost);
 }
 
 // ---------------------------------------------------------------------------------------- attacks

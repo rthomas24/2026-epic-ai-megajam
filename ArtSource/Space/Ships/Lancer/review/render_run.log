@@ -1,0 +1,44 @@
+C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review_lancer.py:237: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  sc.world.use_nodes = True
+REVIEW_RENDER_START 01_hero_front_3q
+00:02.672  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\01_hero_front_3q.png'
+REVIEW_RENDER_DONE 01_hero_front_3q
+REVIEW_RENDER_START 02_front
+00:03.234  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\02_front.png'
+REVIEW_RENDER_DONE 02_front
+REVIEW_RENDER_START 03_rear
+00:03.797  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\03_rear.png'
+REVIEW_RENDER_DONE 03_rear
+REVIEW_RENDER_START 04_side
+00:04.390  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\04_side.png'
+REVIEW_RENDER_DONE 04_side
+REVIEW_RENDER_START 05_top
+00:04.984  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\05_top.png'
+REVIEW_RENDER_DONE 05_top
+REVIEW_RENDER_START 06_rear_3q
+00:05.625  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\06_rear_3q.png'
+REVIEW_RENDER_DONE 06_rear_3q
+REVIEW_RENDER_START 07_mounts_underside
+00:06.265  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\07_mounts_underside.png'
+REVIEW_RENDER_DONE 07_mounts_underside
+REVIEW_RENDER_START 08_weapon_detail
+00:06.844  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\08_weapon_detail.png'
+REVIEW_RENDER_DONE 08_weapon_detail
+REVIEW_RENDER_START 09_rocket_visual
+00:07.390  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\09_rocket_visual.png'
+REVIEW_RENDER_DONE 09_rocket_visual
+00:08.203  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_clay_front_3q.png'
+00:08.328  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_clay_front.png'
+00:08.390  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_clay_right.png'
+00:08.469  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_clay_top.png'
+00:08.578  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_clay_back_3q.png'
+00:08.750  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_clay_low_3q.png'
+00:09.140  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_wireframe_front_3q.png'
+00:09.297  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_wireframe_front.png'
+00:09.390  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_wireframe_right.png'
+00:09.469  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_wireframe_top.png'
+00:09.609  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_wireframe_back_3q.png'
+00:09.812  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer\ArtSource\Space\Ships\Lancer\review\Lancer_diagnostic_wireframe_low_3q.png'
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

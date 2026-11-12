@@ -689,4 +689,40 @@ bool FTDGroundHitStop::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundTickOrder, "TriadDrift.Ground.NoTickPrerequisiteCycles", TD_TEST_FLAGS)
+bool FTDGroundTickOrder::RunTest(const FString& Parameters)
+{
+	TDGroundTest::FScopedLogWatch Cycles(TEXT("would form a cycle"));
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+		TDGroundTest::SpawnDummy(W, FVector(400.f, 0.f, 95.f));
+		if (!TestNotNull(TEXT("character"), C)) { return false; }
+		// Exercise every movement path: run, dash, jump, slide, lunge.
+		C->SetMoveInput(FVector2D(0.f, 1.f));
+		C->SetSprintHeld(true);
+		W.Advance(0.6f);
+		C->TrySlide();
+		W.Advance(0.8f);
+		C->TryDash();
+		W.Advance(0.4f);
+		C->TryJump();
+		W.Advance(0.6f);
+		C->GetBlade()->HeavyLunge();
+		W.Advance(0.6f);
+
+		// The movement component ticks before its owner; nothing may point the other way as well.
+		const UCharacterMovementComponent* Move = C->GetCharacterMovement();
+		bool bMoveWaitsForActor = false;
+		for (const FTickPrerequisite& Pre : Move->PrimaryComponentTick.GetPrerequisites())
+		{
+			bMoveWaitsForActor |= (Pre.Get() == &C->PrimaryActorTick);
+		}
+		TestFalse(TEXT("movement does not wait for the character's tick"), bMoveWaitsForActor);
+	}
+	TestEqual(TEXT("no LogTick prerequisite-cycle warnings"), Cycles.Count, 0);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

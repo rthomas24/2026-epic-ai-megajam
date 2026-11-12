@@ -552,7 +552,7 @@ bool FTDSquadHUD::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Rift is player controlled"), Cards[0].bPlayerControlled && !Cards[1].bPlayerControlled);
 	TestTrue(TEXT("Lancer down with a countdown"), !Cards[1].bAlive && Cards[1].RespawnSeconds > 11.f);
 	TestTrue(TEXT("Bastion healthy"), Cards[2].bAlive && Cards[2].Health01 == 1.f && Cards[2].Shield01 == 1.f);
-	TestTrue(TEXT("abilities listed"), Cards[2].Ability == ETDAbilityId::GravityWell);
+	TestTrue(TEXT("no ability shown while locked (N-004)"), Cards[2].Ability == ETDAbilityId::None && Cards[2].AbilityCooldown01 == 0.f);
 	TestTrue(TEXT("manager found by Get"), ATDSquadManager::Get(F.W.GetWorld()) == F.Squad);
 	return true;
 }
@@ -1694,6 +1694,15 @@ bool FTDSquadManualTargetCarry::RunTest(const FString& Parameters)
 	TestTrue(TEXT("HUD shows it"), F.Squad->GetCurrentTarget() == Picked);
 	TestTrue(TEXT("HUD hyperdrive charge forwarded"), F.Squad->GetHyperdriveCharge01() == F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetCharge01());
 	TestEqual(TEXT("HUD altitude forwarded"), F.Squad->GetAltitude(), F.Ship(ETDShipId::Lancer)->GetAltitudeMeters());
+	TestEqual(TEXT("HUD hyperdrive block text forwarded"), F.Squad->GetHyperdriveBlockText().ToString(),
+		F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetBlockReasonText().IsEmpty() ? F.Squad->GetHyperdriveBlockText().ToString() : F.Ship(ETDShipId::Lancer)->GetHyperdrive()->GetBlockReasonText().ToString());
+	AActor* Near = F.SpawnEnemy(F.Ship(ETDShipId::Lancer)->GetActorLocation() + FVector(3000.f, 0.f, 0.f), 1000.f);
+	F.W.Advance(0.3f);
+	TestNotNull(TEXT("(enemy close by)"), Near);
+	if (!F.Ship(ETDShipId::Lancer)->GetHyperdrive()->CanSpool())
+	{
+		TestFalse(TEXT("a blocked hyperdrive explains itself on the HUD"), F.Squad->GetHyperdriveBlockText().IsEmpty());
+	}
 	return true;
 }
 
@@ -1818,6 +1827,147 @@ bool FTDSquadBarkSpam::RunTest(const FString& Parameters)
 	const int32 SwitchLines = F.Events->CountBarks(TDBarkIds::SwitchIn);
 	TestTrue(FString::Printf(TEXT("switch-in lines throttled by their 6 s cooldown (%d in 20 s)"), SwitchLines), SwitchLines >= 3 && SwitchLines <= 4);
 	TestTrue(FString::Printf(TEXT("never more than 3 lines in any 10 s (%d total)"), F.Events->Barks.Num()), F.Events->Barks.Num() <= 6);
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------ live-playtest items
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadHUDEarnedAbility, "TriadDrift.Squad.HUD.AbilityShownOnlyWhenEarned", TD_TEST_FLAGS)
+bool FTDSquadHUDEarnedAbility::RunTest(const FString& Parameters)
+{
+	// N-004 contract through the real flow: fresh run -> none; unlock Rift's -> only Rift, ready;
+	// use it -> charging; cooldown -> ready; respawn -> still unlocked.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	W.Tick();
+	auto Card = [&](ETDShipId Id) { return Squad->GetSquadHUD()[static_cast<int32>(Id)]; };
+
+	for (const ETDShipId Id : UTDShipLibrary::AllShips())
+	{
+		TestTrue(TEXT("fresh run: no ability, readiness 0"), Card(Id).Ability == ETDAbilityId::None && Card(Id).AbilityCooldown01 == 0.f);
+	}
+	GI->CompleteObjective(TEXT("VerdanceRelay"), ETDAbilityId::Cloak, ETDShipId::Rift);
+	W.Advance(0.2f);
+	TestTrue(TEXT("Rift shows Cloak, ready"), Card(ETDShipId::Rift).Ability == ETDAbilityId::Cloak && Card(ETDShipId::Rift).AbilityCooldown01 == 1.f);
+	TestTrue(TEXT("Lancer still locked"), Card(ETDShipId::Lancer).Ability == ETDAbilityId::None && Card(ETDShipId::Lancer).AbilityCooldown01 == 0.f);
+	TestTrue(TEXT("Bastion still locked"), Card(ETDShipId::Bastion).Ability == ETDAbilityId::None);
+
+	ATDShip* Rift = Squad->GetShip(ETDShipId::Rift);
+	UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Ability, true);
+	W.Tick();
+	UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Ability, false);
+	W.Advance(0.5f);
+	TestTrue(TEXT("after use: charging"), Card(ETDShipId::Rift).AbilityCooldown01 < 1.f);
+	W.Advance(25.f);
+	TestEqual(TEXT("cooldown over: ready"), Card(ETDShipId::Rift).AbilityCooldown01, 1.f);
+
+	UTDStatics::GetHealth(Rift)->Kill();
+	W.Advance(13.f);
+	TestTrue(TEXT("respawned"), Squad->IsShipAlive(ETDShipId::Rift));
+	TestTrue(TEXT("still unlocked after respawn"), Card(ETDShipId::Rift).Ability == ETDAbilityId::Cloak && Card(ETDShipId::Rift).AbilityCooldown01 == 1.f);
+	Squad->SpawnSquad(FTransform::Identity); // a CUT retake
+	W.Tick();
+	TestTrue(TEXT("still unlocked after a retake"), Card(ETDShipId::Rift).Ability == ETDAbilityId::Cloak);
+	return true;
+}
+
+namespace TDSquadTests
+{
+	/** Normalised screen position (-1..1 on each axis) of a world point seen from a chase camera. */
+	static bool ProjectFromChaseCam(const ATDShip* Leader, const FVector& P, FVector2D& OutScreen)
+	{
+		const FTransform Cam = Leader->GetChaseCameraTransformNow();
+		const FVector Local = Cam.InverseTransformPositionNoScale(P); // X forward, Y right, Z up
+		if (Local.X <= 1.f)
+		{
+			return false; // behind the camera
+		}
+		const float HalfH = FMath::DegreesToRadians(Leader->GetChaseCameraFOVNow() * 0.5f);
+		const float Aspect = 16.f / 9.f;
+		const float HalfV = FMath::Atan(FMath::Tan(HalfH) / Aspect);
+		OutScreen = FVector2D(Local.Y / (Local.X * FMath::Tan(HalfH)), Local.Z / (Local.X * FMath::Tan(HalfV)));
+		return true;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadWingmenOnScreen, "TriadDrift.Squad.Wingmen.VisibleFromTheChaseCamera", TD_TEST_FLAGS)
+bool FTDSquadWingmenOnScreen::RunTest(const FString& Parameters)
+{
+	// Live playtest finding: the player could never see the wing they lead.
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		ATDShip* Leader = F.Ship(ETDShipId::Rift);
+		F.W.Advance(6.f, Step);
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			FVector2D Screen;
+			const bool bInFront = ProjectFromChaseCam(Leader, F.Ship(Id)->GetActorLocation(), Screen);
+			const FString Name = UEnum::GetValueAsString(Id) + Fps;
+			TestTrue(TEXT("in front of the camera: ") + Name, bInFront);
+			TestTrue(FString::Printf(TEXT("inside the frame (%.2f, %.2f): %s"), Screen.X, Screen.Y, *Name),
+				FMath::Abs(Screen.X) < 0.9f && FMath::Abs(Screen.Y) < 0.9f);
+			TestTrue(FString::Printf(TEXT("clear of the crosshair / aim cone (%.2f): %s"), Screen.Size(), *Name), Screen.Size() > 0.25f);
+			// Not in the leader's line of fire: more than 30 deg off its nose (weapon spread + aim assist are a few degrees).
+			const FVector ToWing = (F.Ship(Id)->GetActorLocation() - Leader->GetActorLocation()).GetSafeNormal();
+			TestTrue(TEXT("out of the line of fire: ") + Name, FVector::DotProduct(ToWing, Leader->GetActorForwardVector()) < FMath::Cos(FMath::DegreesToRadians(30.f)));
+		}
+		// They read as a V: one on each side, at different depths.
+		FVector2D A, B;
+		ProjectFromChaseCam(Leader, F.Ship(ETDShipId::Lancer)->GetActorLocation(), A);
+		ProjectFromChaseCam(Leader, F.Ship(ETDShipId::Bastion)->GetActorLocation(), B);
+		TestTrue(TEXT("one each side") + Fps, A.X * B.X < 0.f);
+		const float DepthA = FVector::DotProduct(F.Ship(ETDShipId::Lancer)->GetActorLocation() - Leader->GetActorLocation(), Leader->GetActorForwardVector());
+		const float DepthB = FVector::DotProduct(F.Ship(ETDShipId::Bastion)->GetActorLocation() - Leader->GetActorLocation(), Leader->GetActorForwardVector());
+		TestTrue(TEXT("at different depths") + Fps, FMath::Abs(DepthA - DepthB) > 400.f);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadOpeningFrame, "TriadDrift.Squad.Switch.OpeningFrameIsLevel", TD_TEST_FLAGS)
+bool FTDSquadOpeningFrame::RunTest(const FString& Parameters)
+{
+	// The judges' video opens on the first five seconds: with the real space controller and no input,
+	// the player's ship stays level and on heading, and the wingmen arrive in frame.
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	float MaxRoll = 0.f, MaxYaw = 0.f;
+	for (int32 i = 0; i < 300; ++i)
+	{
+		W.Tick();
+		const FRotator R = Squad->GetActiveShip()->GetActorRotation();
+		MaxRoll = FMath::Max(MaxRoll, FMath::Abs(R.Roll));
+		MaxYaw = FMath::Max(MaxYaw, FMath::Abs(R.Yaw));
+	}
+	TestTrue(FString::Printf(TEXT("no roll with zero input over 5 s (max %.1f deg)"), MaxRoll), MaxRoll < 3.f);
+	TestTrue(FString::Printf(TEXT("no drift off heading (max %.1f deg)"), MaxYaw), MaxYaw < 3.f);
+	TestTrue(TEXT("still the starting ship (no surprise auto-switch)"), Squad->GetActiveShipId() == ETDShipId::Rift && Squad->GetLastSwitchCut().SwitchIndex == 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadFightOnScreen, "TriadDrift.Squad.Wingmen.PreferFightsInFrontOfThePlayer", TD_TEST_FLAGS)
+bool FTDSquadFightOnScreen::RunTest(const FString& Parameters)
+{
+	// With a choice, wingmen take the enemy ahead of the leader (on screen) over one behind it,
+	// even when the one behind is a little closer to them.
+	FSquadFixture F;
+	F.Kill(ETDShipId::Bastion); // one wingman: no target spreading
+	F.W.Tick();
+	const FVector L = F.Ship(ETDShipId::Rift)->GetActorLocation();
+	AActor* Ahead = F.SpawnEnemy(L + FVector(9000.f, -1500.f, 0.f), 100000.f);
+	AActor* Behind = F.SpawnEnemy(L + FVector(-6500.f, -1500.f, 0.f), 100000.f);
+	Behind->SetActorRotation(FRotator(0.f, 180.f, 0.f)); // facing away: not a threat, just a target
+	F.W.Advance(0.6f);
+	TestTrue(TEXT("Lancer takes the on-screen enemy"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Ahead);
+	TestNotNull(TEXT("(enemy behind exists)"), Behind);
 	return true;
 }
 

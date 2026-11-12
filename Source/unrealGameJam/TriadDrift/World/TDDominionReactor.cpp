@@ -47,9 +47,9 @@ void ATDDominionReactor::BeginPlay()
 			Mesh->SetRelativeScale3D(FVector::OneVector);
 		}
 	}
-	else if (UMaterialInstanceDynamic* MID = Mesh->CreateDynamicMaterialInstance(0))
+	else
 	{
-		MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(1.f, 0.85f, 0.2f));
+		UTDStatics::TintPlaceholder(Mesh, FLinearColor(1.f, 0.7f, 0.15f), 6.f);	// a hot, glowing core
 	}
 }
 
