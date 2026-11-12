@@ -12,6 +12,8 @@
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDDominionReactor.h"
+#include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -102,6 +104,66 @@ bool FTDJourneyGalaxyStages::RunTest(const FString& Parameters)
 	TestTrue(TEXT("back to Waves1to2"), G.Stage(ETDJourneyStage::Waves1to2));
 	TestEqual(TEXT("wave 1 running"), Director->GetWaveInfo().WaveNumber, 1);
 	TestEqual(TEXT("nothing unlocked at the start"), G.GI->GetProgressRef().UnlockedAbilities.Num(), 0);
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+namespace TDJourneyTest
+{
+	/** The player's view (camera if there is one, else the piloted ship's nose). */
+	static void PlayerView(const FGalaxy& G, FVector& Loc, FVector& Fwd, float& HalfFov)
+	{
+		APawn* P = G.PC ? G.PC->GetPawn() : nullptr;
+		Loc = P ? P->GetActorLocation() : FVector::ZeroVector;
+		Fwd = P ? P->GetActorForwardVector() : FVector::ForwardVector;
+		HalfFov = 45.f;
+		if (G.PC && G.PC->PlayerCameraManager)
+		{
+			FRotator R;
+			G.PC->PlayerCameraManager->GetCameraViewPoint(Loc, R);
+			Fwd = R.Vector();
+			HalfFov = G.PC->PlayerCameraManager->GetFOVAngle() * 0.5f;
+		}
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyDominionFraming, "TriadDrift.Flow.Journey.DominionStagesFaceTheObjective", TD_TEST_FLAGS)
+bool FTDJourneyDominionFraming::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	if (!TestNotNull(TEXT("GI"), G.GI)) { return false; }
+
+	// Assault: looking at the Dominion, the hull filling a good part of the frame.
+	TestTrue(TEXT("DominionAssault"), G.Stage(ETDJourneyStage::DominionAssault, 1.f));
+	const ATDDominion* Dominion = ATDDominion::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("Dominion"), Dominion)) { return false; }
+	FVector Loc, Fwd; float HalfFov;
+	TDJourneyTest::PlayerView(G, Loc, Fwd, HalfFov);
+	const FVector ToDom = Dominion->GetActorLocation() - Loc;
+	const float Dot = (float)FVector::DotProduct(Fwd, ToDom.GetSafeNormal());
+	TestTrue(FString::Printf(TEXT("facing the Dominion (dot %.2f)"), Dot), Dot > 0.9f);
+	const float AngleOff = FMath::RadiansToDegrees(FMath::Acos(Dot));
+	TestTrue(FString::Printf(TEXT("Dominion inside the view (%.0f deg off, half fov %.0f)"), AngleOff, HalfFov), AngleOff < HalfFov);
+	const float HullAngle = FMath::RadiansToDegrees(FMath::Atan(Dominion->HullExtent.X / ToDom.Size()));
+	TestTrue(FString::Printf(TEXT("hull fills a good part of the frame (half-size %.0f deg)"), HullAngle), HullAngle > HalfFov * 0.35f);
+	TestTrue(TEXT("outside the main shield"), ToDom.Size() > Dominion->ShieldRadius * 1.2f);
+	TestTrue(TEXT("ship at the stage start, not the galaxy start"), ToDom.Size() < Dominion->ShieldRadius * 3.f);
+
+	// Reactor: lined up with the trench, the reactor straight ahead.
+	TestTrue(TEXT("ReactorExposed"), G.Stage(ETDJourneyStage::ReactorExposed, 7.f));
+	const AActor* Reactor = (const AActor*)Dominion->GetReactor();
+	if (!TestNotNull(TEXT("reactor"), Reactor)) { return false; }
+	TDJourneyTest::PlayerView(G, Loc, Fwd, HalfFov);
+	const FVector ToReactor = Reactor->GetActorLocation() - Loc;
+	const float RDot = (float)FVector::DotProduct(Fwd, ToReactor.GetSafeNormal());
+	TestTrue(FString::Printf(TEXT("facing the reactor (dot %.2f)"), RDot), RDot > 0.9f);
+	TestTrue(TEXT("reactor inside the view"), FMath::RadiansToDegrees(FMath::Acos(RDot)) < HalfFov);
+	FHitResult Hit;
+	FCollisionQueryParams Q(TEXT("TDReactorSight"), true, G.PC->GetPawn());
+	const bool bBlocked = G.W.GetWorld()->LineTraceSingleByChannel(Hit, Loc, Reactor->GetActorLocation(), ECC_Visibility, Q) && Hit.GetActor() != Reactor;
+	TestFalse(FString::Printf(TEXT("clear line of sight to the reactor (blocked by %s)"), *GetNameSafe(Hit.GetActor())), bBlocked);
+	const float Along = FMath::Abs((float)FVector::DotProduct(Fwd, Dominion->GetActorForwardVector()));
+	TestTrue(FString::Printf(TEXT("lined up with the trench axis (dot %.2f)"), Along), Along > 0.95f);
 	return true;
 }
 
