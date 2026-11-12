@@ -140,16 +140,40 @@ void ATDShip::ApplyPlaceholderLook()
 void ATDShip::SetPlayerControlled(bool bInPlayerControlled)
 {
 	const bool bWasControlled = bPlayerControlled;
-	bPlayerControlled = bInPlayerControlled;
-	ApplyCameraActivation();
 	if (!bInPlayerControlled && bWasControlled && Hyperdrive)
 	{
-		Hyperdrive->CancelSpool(); // a switch mid-spool cancels it (a jump in progress carries on)
+		// Before dropping player-flown, so the Idle broadcast still goes out on the event bus.
+		Hyperdrive->EndForPilotLoss();
 	}
+	bPlayerControlled = bInPlayerControlled;
+	ApplyCameraActivation();
 	if (bInPlayerControlled && !bWasControlled)
 	{
 		SnapCamera(); // a switch is a hard cut (Director's Cut hook #1): no lag swoop from the old ship
 	}
+}
+
+bool ATDShip::IsSwitchLocked(FText& OutReason) const
+{
+	if (Hyperdrive && Hyperdrive->GetState() != ETDHyperdriveState::Idle)
+	{
+		OutReason = NSLOCTEXT("TDShip", "SwitchLockHyperdrive", "Hyperdrive engaged");
+		return true;
+	}
+	if (Landing && Landing->IsBusy())
+	{
+		OutReason = Landing->IsLanded()
+			? NSLOCTEXT("TDShip", "SwitchLockLanded", "Landed")
+			: NSLOCTEXT("TDShip", "SwitchLockLanding", "Landing in progress");
+		return true;
+	}
+	if (AtmosphereEntry && AtmosphereEntry->IsEntering())
+	{
+		OutReason = NSLOCTEXT("TDShip", "SwitchLockEntry", "Entering atmosphere");
+		return true;
+	}
+	OutReason = FText::GetEmpty();
+	return false;
 }
 
 void ATDShip::SetCockpitView(bool bCockpit)
@@ -215,6 +239,59 @@ void ATDShip::Tick(float DeltaSeconds)
 	}
 }
 
+FQuat ATDShip::ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeconds, float& OutRoll) const
+{
+	// Bank is measured against a reference "up" that tracks world up (rate-limited, held while the
+	// nose is near vertical), so barrel rolls and loops never make the target jump.
+	const FQuat ShipQuat = GetActorQuat();
+	const FVector Forward = ShipQuat.GetForwardVector();
+	const FVector ShipUp = ShipQuat.GetUpVector();
+
+	FVector Current = TDShipCamera::Perp(InOutRefUp, Forward);
+	FVector Target = FMath::Abs(Forward.Z) < CameraTuning.VerticalHoldLimit ? TDShipCamera::Perp(FVector::UpVector, Forward) : Current;
+	if (Target.IsNearlyZero()) { Target = ShipUp; }
+	if (bSnap || Current.IsNearlyZero()) { Current = Target; }
+	const float ToTarget = TDShipCamera::SignedAngle(Current, Target, Forward);
+	const float MaxStep = CameraTuning.ReferenceUpRate * DeltaSeconds;
+	InOutRefUp = TDShipCamera::Rotate(Current, Forward, bSnap ? ToTarget : FMath::Clamp(ToTarget, -MaxStep, MaxStep));
+
+	const float VisualBank = ShipMovement ? ShipMovement->GetVisualBank() : 0.f;
+	const FVector VisualUp = (ShipQuat * FQuat(FRotator(0.f, 0.f, VisualBank))).GetUpVector();
+	const float Bank = TDShipCamera::SignedAngle(InOutRefUp, ShipUp, Forward) + TDShipCamera::SignedAngle(ShipUp, VisualUp, Forward);
+	OutRoll = CameraTuning.RollFollow * TDShipCamera::FoldBank(Bank);
+	const FVector CameraUp = TDShipCamera::Rotate(InOutRefUp, Forward, OutRoll);
+	return FRotationMatrix::MakeFromXZ(Forward, CameraUp).ToQuat();
+}
+
+FTransform ATDShip::GetChaseCameraTransformNow() const
+{
+	if (bPlayerControlled && !bCockpitView && ChaseCamera)
+	{
+		return ChaseCamera->GetComponentTransform();
+	}
+	FVector RefUp = FVector::ZeroVector; // snap: as the camera would be on a fresh cut to this ship
+	float Roll = 0.f;
+	const FQuat ArmQuat = ComputeChaseQuat(RefUp, true, 0.f, Roll);
+	const FVector ArmEnd = GetActorLocation() - ArmQuat.GetForwardVector() * CameraTuning.ArmLength;
+	const FVector CameraLocation = ArmEnd + ArmQuat.RotateVector(FVector(0.f, 0.f, CameraTuning.Height));
+
+	FQuat CameraQuat = ArmQuat;
+	if (ShipMovement)
+	{
+		const FVector Rates = ShipMovement->GetAngularRate();
+		const float TurnRef = FMath::Max(ShipMovement->GetFlightTuning().TurnRate, 1.f);
+		const FRotator Look(FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle,
+			FMath::Clamp(Rates.Z / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle, 0.f);
+		CameraQuat = ArmQuat * Look.Quaternion();
+	}
+	return FTransform(CameraQuat, CameraLocation);
+}
+
+float ATDShip::GetChaseCameraFOVNow() const
+{
+	return FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, GetSpeed01());
+}
+
 void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 {
 	if (!SpringArm || !ChaseCamera || !ShipMovement)
@@ -236,26 +313,7 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	}
 
 	// --- Arm rotation: ship forward, with only RollFollow of its bank -------------------------------
-	// Bank is measured against a reference "up" that tracks world up (rate-limited, held while the
-	// nose is near vertical), so barrel rolls and loops never make the target jump.
-	using namespace TDShipCamera;
-	const FQuat ShipQuat = GetActorQuat();
-	const FVector Forward = ShipQuat.GetForwardVector();
-	const FVector ShipUp = ShipQuat.GetUpVector();
-
-	FVector Current = Perp(CameraRefUp, Forward);
-	FVector Target = FMath::Abs(Forward.Z) < CameraTuning.VerticalHoldLimit ? Perp(FVector::UpVector, Forward) : Current;
-	if (Target.IsNearlyZero()) { Target = ShipUp; }
-	if (bSnap || Current.IsNearlyZero()) { Current = Target; }
-	const float ToTarget = SignedAngle(Current, Target, Forward);
-	const float MaxStep = CameraTuning.ReferenceUpRate * DeltaSeconds;
-	CameraRefUp = Rotate(Current, Forward, bSnap ? ToTarget : FMath::Clamp(ToTarget, -MaxStep, MaxStep));
-
-	const FVector VisualUp = (ShipQuat * FQuat(FRotator(0.f, 0.f, ShipMovement->GetVisualBank()))).GetUpVector();
-	const float Bank = SignedAngle(CameraRefUp, ShipUp, Forward) + SignedAngle(ShipUp, VisualUp, Forward);
-	CameraRoll = CameraTuning.RollFollow * FoldBank(Bank);
-	const FVector CameraUp = Rotate(CameraRefUp, Forward, CameraRoll);
-	ChaseTargetQuat = FRotationMatrix::MakeFromXZ(Forward, CameraUp).ToQuat();
+	ChaseTargetQuat = ComputeChaseQuat(CameraRefUp, bSnap, DeltaSeconds, CameraRoll);
 	SpringArm->SetWorldRotation(ChaseTargetQuat);
 
 	// --- Look-ahead: the camera leans into the turn --------------------------------------------------

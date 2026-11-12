@@ -5,27 +5,27 @@
 namespace
 {
 	/** Frame-rate independent exponential blend factor. */
-	FORCEINLINE float ExpAlpha(float Rate, float DeltaSeconds)
+	FORCEINLINE float TDFlightSim_ExpAlpha(float Rate, float DeltaSeconds)
 	{
 		return Rate > 0.f ? 1.f - FMath::Exp(-Rate * DeltaSeconds) : 0.f;
 	}
 
-	FORCEINLINE float SafeAxis(float V)
+	FORCEINLINE float TDFlightSim_SafeAxis(float V)
 	{
 		return FMath::IsFinite(V) ? FMath::Clamp(V, -1.f, 1.f) : 0.f;
 	}
 
 	/** Longest frame we integrate; longer hitches are clamped so the ship can't tunnel or explode. */
-	constexpr float MaxFrameSeconds = 0.25f;
+	constexpr float TDFlightSim_MaxFrameSeconds = 0.25f;
 }
 
 FTDFlightInput TDFlightSim::Sanitize(const FTDFlightInput& In)
 {
 	FTDFlightInput Out = In;
-	Out.Throttle = SafeAxis(In.Throttle);
-	Out.Aim = FVector2D(SafeAxis(In.Aim.X), SafeAxis(In.Aim.Y));
-	Out.Roll = SafeAxis(In.Roll);
-	Out.Strafe = FVector2D(SafeAxis(In.Strafe.X), SafeAxis(In.Strafe.Y));
+	Out.Throttle = TDFlightSim_SafeAxis(In.Throttle);
+	Out.Aim = FVector2D(TDFlightSim_SafeAxis(In.Aim.X), TDFlightSim_SafeAxis(In.Aim.Y));
+	Out.Roll = TDFlightSim_SafeAxis(In.Roll);
+	Out.Strafe = FVector2D(TDFlightSim_SafeAxis(In.Strafe.X), TDFlightSim_SafeAxis(In.Strafe.Y));
 	return Out;
 }
 
@@ -46,7 +46,7 @@ float TDFlightSim::ComputeTargetSpeed(const FTDFlightState& State, const FTDFlig
 	}
 	else
 	{
-		const float Throttle01 = (SafeAxis(In.Throttle) + 1.f) * 0.5f;
+		const float Throttle01 = (TDFlightSim_SafeAxis(In.Throttle) + 1.f) * 0.5f;
 		const float Top = FMath::Max(Tuning.CruiseSpeed, Context.ThrottleTopSpeed);
 		Target = FMath::Lerp(Tuning.MinSpeed, Top, Throttle01);
 	}
@@ -125,7 +125,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	}
 
 	const FVector TargetRates(TargetRoll, In.Aim.Y * TurnCap, In.Aim.X * TurnCap);
-	const float AngAlpha = ExpAlpha(T.AngularResponse, Dt);
+	const float AngAlpha = TDFlightSim_ExpAlpha(T.AngularResponse, Dt);
 	S.AngularRate = FMath::Lerp(S.AngularRate, TargetRates, AngAlpha);
 	// Hard caps (drift release or steering-scale changes can leave the rate above the new cap).
 	S.AngularRate.X = FMath::Clamp(S.AngularRate.X, -RollCap, RollCap);
@@ -281,7 +281,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		S.StrafeVelocity = FMath::Vector2DInterpConstantTo(S.StrafeVelocity, StrafeTarget, Dt, T.StrafeAcceleration);
 
 		const FVector Desired = Forward * S.ForwardSpeed + Right * S.StrafeVelocity.X + Up * S.StrafeVelocity.Y;
-		S.Velocity = FMath::Lerp(S.Velocity, Desired, ExpAlpha(T.VelocityGrip, Dt));
+		S.Velocity = FMath::Lerp(S.Velocity, Desired, TDFlightSim_ExpAlpha(T.VelocityGrip, Dt));
 	}
 
 	// Atmosphere: gravity pulls down (grip mostly counters it, so the ship sags rather than falls).
@@ -302,7 +302,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 
 	// ---- Visual bank (presentation only) ------------------------------------------------------------
 	const float Yaw01 = T.TurnRate > 0.f ? FMath::Clamp(S.AngularRate.Z / T.TurnRate, -1.f, 1.f) : 0.f;
-	S.VisualBank = FMath::Lerp(S.VisualBank, Yaw01 * T.AutoBankAngle, ExpAlpha(T.AutoBankResponse, Dt));
+	S.VisualBank = FMath::Lerp(S.VisualBank, Yaw01 * T.AutoBankAngle, TDFlightSim_ExpAlpha(T.AutoBankResponse, Dt));
 
 	// ---- Integrate position ---------------------------------------------------------------------------
 	S.Location += S.Velocity * Dt;
@@ -314,7 +314,7 @@ int32 TDFlightSim::Advance(FTDFlightState& State, const FTDFlightInput& Input, c
 	{
 		return 0;
 	}
-	const float Frame = FMath::Min(DeltaSeconds, MaxFrameSeconds);
+	const float Frame = FMath::Min(DeltaSeconds, TDFlightSim_MaxFrameSeconds);
 	const float MaxStep = FMath::Clamp(Tuning.MaxSubstepSeconds, 0.001f, 0.05f);
 	const int32 Steps = FMath::Max(1, FMath::CeilToInt((Frame / MaxStep) - 1.e-4f));
 	const float StepSeconds = Frame / Steps;

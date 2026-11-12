@@ -310,6 +310,8 @@ private:
 	/** This press went straight to Signature1 (the ship has no Signature2 power). */
 	bool bPowerImmediate = false;
 	bool bThrottleUpApplied = false;
+	bool bAbilityHeld = false;
+	void ReleaseHeldPowers();
 
 	friend struct FTDSpaceControllerTestAccess;
 	double RadialPressTime = -1.0;

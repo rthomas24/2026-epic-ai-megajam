@@ -25,6 +25,7 @@ void UTDHyperdriveComponent::BeginPlay()
 		if (UTDHealthComponent* Health = Craft->GetHealth())
 		{
 			Health->OnDamaged.AddDynamic(this, &UTDHyperdriveComponent::HandleDamaged);
+			Health->OnDeath.AddDynamic(this, &UTDHyperdriveComponent::HandleDeath);
 		}
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
@@ -59,6 +60,11 @@ ETDHyperdriveBlock UTDHyperdriveComponent::GetBlockReason() const
 	if (!bEnabled || !Craft)
 	{
 		return ETDHyperdriveBlock::Disabled;
+	}
+	const ATDShip* Ship = Cast<ATDShip>(Craft);
+	if (!Ship || !Ship->IsPlayerFlown())
+	{
+		return ETDHyperdriveBlock::NotPlayerFlown;
 	}
 	if (const UTDShipMovementComponent* Move = Craft->GetShipMovement())
 	{
@@ -251,6 +257,51 @@ void UTDHyperdriveComponent::HandleDamaged(UTDHealthComponent* HealthComp, const
 {
 	LastDamageTime = Now();
 	CancelSpool(); // a hit cancels the spool
+}
+
+void UTDHyperdriveComponent::EndForPilotLoss()
+{
+	switch (State)
+	{
+	case ETDHyperdriveState::Spooling:
+		CancelSpool();
+		break;
+	case ETDHyperdriveState::Jumping:
+	case ETDHyperdriveState::DropOut:
+		StopLoopFX();
+		LastDropOutTime = Now();
+		FinishDropOut(); // clears the override (the flight model bleeds 80k off at HighOverspeedDeceleration) -> Idle
+		break;
+	default:
+		break;
+	}
+}
+
+void UTDHyperdriveComponent::ResetHyperdrive()
+{
+	StopLoopFX();
+	if (State != ETDHyperdriveState::Idle)
+	{
+		if (ATDSpacecraft* Craft = GetCraft())
+		{
+			Craft->ClearSpeedOverride();
+			if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
+			{
+				Move->SetOverrideAcceleration(-1.f);
+			}
+		}
+	}
+	Charge = 0.f;
+	bEnabled = true;
+	LastDamageTime = -1000.0;
+	LastDropOutTime = -1000.0;
+	LastDropOutWell = NAME_None;
+	SetState(ETDHyperdriveState::Idle);
+}
+
+void UTDHyperdriveComponent::HandleDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow)
+{
+	EndForPilotLoss();
 }
 
 void UTDHyperdriveComponent::HandleImpact(const FTDFlightImpact& Impact)

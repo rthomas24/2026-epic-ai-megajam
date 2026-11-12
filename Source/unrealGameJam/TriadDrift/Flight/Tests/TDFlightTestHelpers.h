@@ -16,6 +16,12 @@ UCLASS(Transient, NotBlueprintable, HideDropdown)
 class UNREALGAMEJAM_API UTDTestPowerComponent : public UTDPowerComponent
 {
 	GENERATED_BODY()
+
+public:
+	int32 Presses = 0;
+	int32 Releases = 0;
+	virtual void HandleInputPressed() override { ++Presses; Super::HandleInputPressed(); }
+	virtual void HandleInputReleased() override { ++Releases; Super::HandleInputReleased(); }
 };
 
 UCLASS(Transient, NotBlueprintable)

@@ -9,6 +9,7 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Ground/TDGroundTypes.h"
+#include "TriadDrift/Ground/Crew/TDCrewTypes.h"
 #include "TDGroundActors.generated.h"
 
 class UStaticMeshComponent;
@@ -251,9 +252,13 @@ class UNREALGAMEJAM_API ATDEncounterVolume : public AActor
 public:
 	ATDEncounterVolume();
 
-	/** What to spawn (defaults to the stand-in crew; ENG-23 swaps in real grunts/troopers). */
+	/** What to spawn (default: ATDCrewCharacter, the ENG-23 crew). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TSubclassOf<AActor> CrewClass;
+
+	/** Crew types, cycled across the spawn points (only for ATDCrewCharacter classes). Empty = all grunts. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	TArray<ETDCrewType> CrewMix;
 
 	/** Spawn points relative to the volume. If empty, Count crew are placed in a ring. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (MakeEditWidget))
