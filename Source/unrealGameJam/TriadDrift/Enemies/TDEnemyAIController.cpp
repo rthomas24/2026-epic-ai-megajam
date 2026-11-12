@@ -329,7 +329,9 @@ FVector ATDEnemyAIController::GetAimPoint(const ATDEnemyShip& Ship, const AActor
 	FVector Point = InTarget.GetActorLocation() + InTarget.GetVelocity() * Lead;
 	// Readable combat: runs on the player's own ship cut across its nose instead of sitting behind it,
 	// so the fight happens on screen (the guns still aim at the ship itself).
-	if (CrossInFrontDistance > 0.f && &InTarget == UGameplayStatics::GetPlayerPawn(this, 0) && To.Size() > CrossInFrontDistance * 0.5f)
+	// Only when coming from the side or the front: a pilot chasing a fleeing player just chases.
+	const bool bBesideOrAhead = FVector::DotProduct(InTarget.GetActorForwardVector(), (Ship.GetActorLocation() - InTarget.GetActorLocation()).GetSafeNormal()) > -0.3f;
+	if (CrossInFrontDistance > 0.f && bBesideOrAhead && &InTarget == UGameplayStatics::GetPlayerPawn(this, 0) && To.Size() > CrossInFrontDistance * 0.5f)
 	{
 		Point += InTarget.GetActorForwardVector() * CrossInFrontDistance;
 	}
@@ -457,8 +459,10 @@ void ATDEnemyAIController::TickAttackRun(ATDEnemyShip& Ship, float DeltaSeconds)
 	// Guns: only when lined up and in range, so shots are readable and dodgeable.
 	if (Spec.Guns.IsValid())
 	{
-		const bool bInCone = FVector::DotProduct(To.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Spec.Guns.ConeHalfAngleDeg));
-		Ship.SetGunsFiring(bInCone && Dist <= Spec.Guns.Range, T);
+		// Cone against the ship itself (the steering point may be offset in front of it).
+		const FVector ToShip = T->GetActorLocation() - Ship.GetActorLocation();
+		const bool bInCone = FVector::DotProduct(ToShip.GetSafeNormal(), Ship.GetActorForwardVector()) >= FMath::Cos(FMath::DegreesToRadians(Spec.Guns.ConeHalfAngleDeg));
+		Ship.SetGunsFiring(bInCone && ToShip.Size() <= Spec.Guns.Range, T);
 	}
 	TryHeavyAttacks(Ship, *T);
 
