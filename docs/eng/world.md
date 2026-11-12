@@ -40,8 +40,8 @@ same code.
   story has moved past that phase.
 - **Entry:** when the player-controlled ship enters (overlap, or a per-frame distance check as
   backup), it fires `OnShipEnteredAtmosphere`. Then, after `EntryDelaySeconds`,
-  `Flow->TravelTo(Destination, ReturnPoint)`. This becomes T1's `BeginEntry` when ENG-20 lands; see
-  gaps.
+  T1's `GetAtmosphereEntry()->BeginEntry(Destination, ReturnPoint, Center, PlanetRadius)`, with
+  `Flow->TravelTo(Destination, ReturnPoint)` only as a fallback for a ship without the component.
 
 ### Art hooks on the layout (for Nick)
 - `GateClass`, `PlanetClass`, `DominionClass`: BP subclasses to spawn instead of the C++ classes.
@@ -118,12 +118,20 @@ same code.
   reveal. `ATDDominion::DebugDropShields()` kills the generators.
 
 ## Known gaps
-- **Waiting on T1's Travel/** (not on main at the time of writing):
-  - switch the bounds to `UTDTravelSubsystem::SetPlayBounds` and drop the 2 s push
-  - register gravity wells at 1.8× the atmosphere radius for planets and about 60 000 cm for the
-    Dominion approach
-  - hand atmosphere entry to `GetAtmosphereEntry()->BeginEntry(...)`, keeping the TravelTo fallback
+- **Done with T1's Travel/:** bounds via `UTDTravelSubsystem::SetPlayBounds`, gravity wells at 1.8×
+  the atmosphere radius (planets) and about 60 000 cm (Dominion approach), entry via `BeginEntry`.
 - **Not flown by hand:** the layout scale, asteroid density and the Dominion's size and turret
   pressure need a PIE pass.
 - **No shield bubble geometry:** the main shield has no physical bubble. It's a damage filter plus
   Nick's ShieldIdle cue, because an opaque placeholder sphere would hide the fight.
+
+## Placeholder look and dev commands
+- **Placeholder colours:** every placeholder mesh goes through `UTDStatics::TintPlaceholder` (lit for
+  armour, emissive for weak points). Enemies: lit red/orange hull, dark wings, white emissive engine
+  "eyes"; per-role hull shape (interceptor long and thin, gunship wide, bomber fat, carrier long and
+  flat). Bays glow orange, generator cores and Dominion emitters glow cyan, the reactor glows gold.
+  Real art replaces all of it through the `DA_*_Visuals` assets.
+- **Dev console commands** (`TDWorldDebug.cpp`, not in Shipping):
+  - `TD.World.Goto <Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start>` teleports the player's ship.
+  - `TD.World.SpawnEnemy <Id> [distance cm] [pilot 0/1]` spawns an enemy ahead (unpiloted holds still).
+  - `TD.World.Dominion <Reveal|DropShields>` drives the finale for captures.
