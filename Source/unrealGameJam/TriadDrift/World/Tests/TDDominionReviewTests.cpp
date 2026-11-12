@@ -14,6 +14,8 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/World/Tests/TDFinaleTestHelpers.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
@@ -177,6 +179,40 @@ bool FTDFinaleRetakeReset::RunTest(const FString& Parameters)
 	TestEqual(TEXT("still phase 2"), R->GetPhase(), 2);
 	TestEqual(TEXT("phase 2 back at full"), R->GetHealth()->GetHull(), R->PhaseHull * (R->PhaseCount - 1), 1.f);
 	TestEqual(TEXT("still exposed: generators stay down"), (int32)A.Dom->GetState(), (int32)ETDDominionState::ReactorExposed);
+	return true;
+}
+
+// World review MAJOR (tests): the finale fought for real. A real squad (squad manager, three ships, wingman
+// AI), each generator and every reactor phase destroyed by the active ship's real weapons fired from flight
+// (the reactor down the trench mouth), then the breakup and victory, at 30 / 60 / 120 fps.
+// T5 wraps the same helpers with the real game instance (scene, takes, respawn, Continue) in TDJourneyTests.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFinaleFoughtForReal, "TriadDrift.World.Finale.FoughtWithRealWeaponsToVictory", TD_TEST_FLAGS)
+bool FTDFinaleFoughtForReal::RunTest(const FString& Parameters)
+{
+	using namespace TDFinaleReview;
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+		ATDDominion* Dom = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+		APlayerController* PC = W.SpawnPlayerController();
+		ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+		Squad->SetSquadPlayerController(PC);
+		Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(150000.f, 0.f, 3000.f)));
+		GI->Progress.bDominionRevealed = true;
+		GI->Progress.Phase = ETDGamePhase::DominionAssault;
+		W.Advance(Dom->ProgressPollSeconds + Dom->WarpInSeconds + 0.5f, 1.f / Fps);
+		if (!TestEqual(*FString::Printf(TEXT("@%.0f: shields up"), Fps), (int32)Dom->GetState(), (int32)ETDDominionState::ShieldsUp)) { return false; }
+
+		if (!TDFinaleCombat::DestroyGenerators(*this, W, Dom, 4, Fps)) { return false; }
+		W.Advance(0.5f, 1.f / Fps);
+		TestEqual(*FString::Printf(TEXT("@%.0f: reactor exposed"), Fps), (int32)Dom->GetState(), (int32)ETDDominionState::ReactorExposed);
+		if (!TDFinaleCombat::DestroyReactorPhases(*this, W, Dom, 3, Fps)) { return false; }
+		TestEqual(*FString::Printf(TEXT("@%.0f: breakup"), Fps), (int32)Dom->GetState(), (int32)ETDDominionState::Breakup);
+		W.Advance(Dom->BreakupSeconds + 1.f, 1.f / Fps);
+		TestTrue(*FString::Printf(TEXT("@%.0f: victory"), Fps), GI->Progress.Phase == ETDGamePhase::Victory);
+		TestTrue(*FString::Printf(TEXT("@%.0f: hyperdrive free after victory"), Fps), LockReason(W).IsEmpty());
+	}
 	return true;
 }
 

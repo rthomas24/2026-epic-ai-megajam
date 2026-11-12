@@ -59,6 +59,9 @@ public:
 	/** Override the per-pilot "prefers the player's ship" roll (tests, scripted pilots). */
 	void SetPrefersPlayerShip(bool bPrefer) { bPrefersPlayer = bPrefer; }
 
+	/** Re-seed this pilot's random choices (ATDEnemyShip::SetSpawnSeed). */
+	void ReseedRandom(int32 Seed) { Rng.Initialize(Seed); }
+
 	/** Forget the target immediately (called by the ship's LoseTracking). */
 	void ForgetTarget();
 

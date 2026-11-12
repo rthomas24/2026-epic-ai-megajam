@@ -39,6 +39,16 @@ bool FTDCombatPlaceholders::HasVisualArt(const FTDFXCue& Cue)
 	return !Cue.VFX.IsNull();
 }
 
+float FTDCombatPlaceholders::DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera, float MinPixels)
+{
+	if (Look.Thickness <= 0.f)
+	{
+		return 1.f;
+	}
+	const float Needed = MinPixels * 2.f * DistanceToCamera / 1280.f;
+	return FMath::Clamp(Needed / Look.Thickness, 1.f, MaxDistanceGrowth * 2.5f);
+}
+
 float FTDCombatPlaceholders::DistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera)
 {
 	if (Look.Thickness <= 0.f)

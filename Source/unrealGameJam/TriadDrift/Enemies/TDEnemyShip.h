@@ -285,8 +285,15 @@ public:
 	/** Effective gun range against a target closing on us: bolts meet it, so fire opens earlier (cm). */
 	float GetGunFireRange(const AActor* Target) const;
 
+	/** Deterministic per-world spawn-order seed for this pilot's random draws (aim error, AI choices). */
+	int32 GetSpawnSeed();
+
+	/** Fix this pilot's random draws to Seed (tests: N seeded passes of the same scenario). */
+	void SetSpawnSeed(int32 Seed);
+
 	/** GunAimMaxMissCm scaled by the difficulty in play (set in InitFromSpecData). */
 	float AimMaxMissCm = 260.f;
+	int32 SpawnSeed = INDEX_NONE;
 
 	/**
 	 * Nick's presentation data asset (features.md 3.5). Set explicitly to override; otherwise filled
