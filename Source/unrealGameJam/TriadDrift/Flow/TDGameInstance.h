@@ -193,7 +193,7 @@ public:
 	UFUNCTION()
 	void HandleWaveCleared(int32 WaveNumber);
 
-	/** Scene id used for a wave (matches FTDWaveInfo::SceneId: "Wave3"). */
+	/** Fallback scene id for a wave ("Wave3") when the wave director gives none. The director owns the real id. */
 	static FName WaveSceneId(int32 WaveNumber);
 
 	/** Main menu and victory are not gameplay: no checkpoints, clock stopped. */

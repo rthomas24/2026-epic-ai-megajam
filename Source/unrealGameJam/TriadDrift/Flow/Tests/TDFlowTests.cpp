@@ -25,6 +25,8 @@
 #include "GameFramework/SaveGame.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -34,9 +36,48 @@ namespace TDFlowTest
 	constexpr EAutomationTestFlags TestFlags = TD_TEST_FLAGS;
 	static const TCHAR* TestSlot = TEXT("TriadDrift_AutomationTest");
 
+	/** Swaps flow settings for the duration of a test and restores them after. */
+	struct FScopedSettings
+	{
+		UTDFlowSettings* S = GetMutableDefault<UTDFlowSettings>();
+		TMap<ETDDestination, FSoftObjectPath> Maps = S->DestinationMaps;
+		FSoftObjectPath Transition = S->TransitionMap;
+		float Fade = S->TravelFadeSeconds;
+		float MinTransition = S->MinTransitionSeconds;
+		float Timeout = S->TravelTimeoutSeconds;
+
+		/**
+		 * Every test starts with NO destination map and no transition map resolvable, whether or not
+		 * the real maps are on disk; tests that need a successful travel point a destination at an
+		 * engine map and fake OpenLevel (UTDGameInstance::OpenLevelOverride).
+		 */
+		FScopedSettings()
+		{
+			if (const UEnum* E = StaticEnum<ETDDestination>())
+			{
+				for (int32 i = 0; i < E->NumEnums() - 1; ++i)
+				{
+					const FString Bogus = FString::Printf(TEXT("/Game/TriadDrift/Tests/NoSuchMap_%s.NoSuchMap_%s"), *E->GetNameStringByIndex(i), *E->GetNameStringByIndex(i));
+					S->DestinationMaps.Add(static_cast<ETDDestination>(E->GetValueByIndex(i)), FSoftObjectPath(Bogus));
+				}
+			}
+			S->TransitionMap = FSoftObjectPath(TEXT("/Game/TriadDrift/Tests/NoSuchTransition.NoSuchTransition"));
+		}
+
+		~FScopedSettings()
+		{
+			S->DestinationMaps = Maps;
+			S->TransitionMap = Transition;
+			S->TravelFadeSeconds = Fade;
+			S->MinTransitionSeconds = MinTransition;
+			S->TravelTimeoutSeconds = Timeout;
+		}
+	};
+
 	/** A real, initialized UTDGameInstance (with its event bus) on a throwaway world and test-only save slot. */
 	struct FScopedGI
 	{
+		FScopedSettings NoRealMaps; // first member: built before, restored after, the GI
 		UTDGameInstance* GI = nullptr;
 		UTDFlowTestListener* Listener = nullptr;
 
@@ -513,7 +554,9 @@ bool FTDFlowSandboxBoots::RunTest(const FString& Parameters)
 			TestEqual(TEXT("fixed-exposure post process"), Count(APostProcessVolume::StaticClass()), 1);
 			if (GM)
 			{
-				TestEqual(TEXT("asteroids"), Count(AStaticMeshActor::StaticClass()), GM->AsteroidCount);
+				// T4's galaxy layout replaces the placeholder asteroids (and spawns the Dominion).
+				TestEqual(TEXT("one galaxy layout"), Count(ATDGalaxyLayout::StaticClass()), 1);
+				TestEqual(TEXT("no placeholder asteroids with the layout"), Count(AStaticMeshActor::StaticClass()), 0);
 			}
 
 			UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
@@ -542,25 +585,6 @@ bool FTDFlowSandboxBoots::RunTest(const FString& Parameters)
 
 namespace TDFlowTest
 {
-	/** Swaps flow settings for the duration of a test and restores them after. */
-	struct FScopedSettings
-	{
-		UTDFlowSettings* S = GetMutableDefault<UTDFlowSettings>();
-		TMap<ETDDestination, FSoftObjectPath> Maps = S->DestinationMaps;
-		FSoftObjectPath Transition = S->TransitionMap;
-		float Fade = S->TravelFadeSeconds;
-		float MinTransition = S->MinTransitionSeconds;
-		float Timeout = S->TravelTimeoutSeconds;
-		~FScopedSettings()
-		{
-			S->DestinationMaps = Maps;
-			S->TransitionMap = Transition;
-			S->TravelFadeSeconds = Fade;
-			S->MinTransitionSeconds = MinTransition;
-			S->TravelTimeoutSeconds = Timeout;
-		}
-	};
-
 	static const TCHAR* ExistingMapA = TEXT("/Engine/Maps/Entry.Entry");
 	static const TCHAR* ExistingMapB = TEXT("/Engine/Maps/Templates/Template_Default.Template_Default");
 
@@ -859,9 +883,11 @@ bool FTDFlowStoryStateSurvivesRetake::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowCheats, "TriadDrift.Flow.Cheats", TDFlowTest::TestFlags)
 bool FTDFlowCheats::RunTest(const FString& Parameters)
 {
+	TDFlowTest::FScopedSettings NoRealMaps;
 	FTDTestWorld W(UTDGameInstance::StaticClass());
 	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
 	TestNotNull(TEXT("TD game instance"), GI);
+	GI->OpenLevelOverride = [](const FString&) {}; // belt and braces: never a real OpenLevel in a test world
 	if (!GI)
 	{
 		return false;
@@ -953,6 +979,66 @@ bool FTDFlowSandboxPlayer::RunTest(const FString& Parameters)
 		}
 	}
 	Settings->bWriteSlotOnCheckpoint = bSavedWrite;
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowDirectorSceneIds, "TriadDrift.Flow.WaveSceneIdsComeFromTheDirector", TDFlowTest::TestFlags)
+bool FTDFlowDirectorSceneIds::RunTest(const FString& Parameters)
+{
+	UTDFlowSettings* Settings = GetMutableDefault<UTDFlowSettings>();
+	const bool bSavedWrite = Settings->bWriteSlotOnCheckpoint;
+	Settings->bWriteSlotOnCheckpoint = false;
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		APawn* Player = Cast<APawn>(TDFlowTest::SpawnWithHealth(W, ADefaultPawn::StaticClass(), ETDTeam::Player));
+		W.SpawnPlayerController(Player);
+		ATDWaveDirector* Director = W.Spawn<ATDWaveDirector>();
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("director"), Director))
+		{
+			return false;
+		}
+		TArray<FTDWaveDef> Table = Director->GetWaveTable();
+		if (!TestTrue(TEXT("default wave table"), Table.Num() > 0))
+		{
+			return false;
+		}
+		const FName Custom(TEXT("Custom_Ambush"));
+		Table[0].SceneId = Custom;
+		Director->SetWaveTable(Table);
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		Director->StartWave(0);
+		W.Advance(3.f);
+		TestEqual(TEXT("scene id comes from the director's table"), GI->GetCurrentScene(), Custom);
+		TestEqual(TEXT("take 1 of the custom scene"), GI->GetTakeNumber(Custom), 1);
+		TestEqual(TEXT("no fallback scene opened"), GI->GetTakeNumber(TEXT("Wave1")), 0);
+
+		GI->ReportPlayerDefeated();
+		GI->TickFlow(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.1f);
+		W.Advance(0.5f);
+		TestEqual(TEXT("retake of the custom scene"), GI->GetTakeNumber(Custom), 2);
+		TestEqual(TEXT("still in the custom scene after the director rebuilt it"), GI->GetCurrentScene(), Custom);
+	}
+	Settings->bWriteSlotOnCheckpoint = bSavedWrite;
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowResolveMap, "TriadDrift.Flow.ResolveDestinationMap", TDFlowTest::TestFlags)
+bool FTDFlowResolveMap::RunTest(const FString& Parameters)
+{
+	TDFlowTest::FScopedSettings Scoped;
+	FString Package;
+	TestFalse(TEXT("bogus path does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
+	TestTrue(TEXT("no package for a bogus path"), Package.IsEmpty());
+	Scoped.S->DestinationMaps.Add(ETDDestination::Galaxy, FSoftObjectPath(TDFlowTest::ExistingMapA));
+	TestTrue(TEXT("existing map resolves"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
+	TestEqual(TEXT("long package name"), Package, FString(TEXT("/Engine/Maps/Entry")));
+	Scoped.S->DestinationMaps.Remove(ETDDestination::Galaxy);
+	TestFalse(TEXT("unconfigured destination does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
+	Scoped.S->DestinationMaps.Add(ETDDestination::Galaxy, FSoftObjectPath());
+	TestFalse(TEXT("null path does not resolve"), Scoped.S->ResolveDestinationMap(ETDDestination::Galaxy, Package));
 	return true;
 }
 
