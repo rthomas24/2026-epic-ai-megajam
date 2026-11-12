@@ -5,6 +5,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "GameFramework/MovementComponent.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -197,6 +198,101 @@ bool FTDSwarmLocks::RunTest(const FString& Parameters)
 	W.Advance(6.1f, PowerFrameStep());
 	TestTrue(TEXT("ready after 9 s"), Swarm->CanActivate());
 	continue;
+	}
+	return true;
+}
+
+/** An unpossessed fighter keeps cruising; hold it still so a lock test isn't about where it drifted. */
+static void TDSwarmTestHoldStill(ATDEnemyShip* Ship)
+{
+	if (UMovementComponent* Move = Ship ? Ship->FindComponentByClass<UMovementComponent>() : nullptr)
+	{
+		Move->StopMovementImmediately();
+		Move->Deactivate();
+	}
+}
+
+/**
+ * Review MAJOR (ENG-06 / ENG-11): auto-painted locks must not stick for life. Paint six real fighters, turn
+ * away for 2 s, face a new group and tap: every missile goes to the new group.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmStaleLocks, "TriadDrift.Powers.Swarm.StaleLocksReplacedByNewGroup", TD_TEST_FLAGS)
+bool FTDSwarmStaleLocks::RunTest(const FString& Parameters)
+{
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+		FScopedPowerFrameStep TDStepScope(TDFrameStep);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / TDFrameStep);
+		FTDTestWorld W;
+		AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Bastion, TEXT("Targeting"));
+		Targeting->RegisterComponent();
+		UTDMissileSwarmPower* Swarm = AddPower<UTDMissileSwarmPower>(Bastion);
+
+		TArray<TWeakObjectPtr<ATDEnemyShip>> OldGroup;
+		for (int32 I = 0; I < 6; ++I)
+		{
+			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(9000.f, (I - 2.5f) * 900.f, 0.f));
+			TDSwarmTestHoldStill(F);
+			OldGroup.Add(F);
+		}
+		TArray<TWeakObjectPtr<ATDEnemyShip>> NewGroup;
+		for (int32 I = 0; I < 3; ++I)
+		{
+			ATDEnemyShip* F = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(-9000.f, (I - 1.f) * 1200.f, 0.f));
+			TDSwarmTestHoldStill(F);
+			NewGroup.Add(F);
+		}
+
+		W.Advance(2.f, PowerFrameStep());
+		TestEqual(TEXT("six painted on the first group") + Fps, Targeting->GetLockedTargets().Num(), 6);
+
+		// Turn to the new group for 2 s: the old locks are behind (out of view) and drop after 1.5 s.
+		Bastion->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+		W.Advance(2.f, PowerFrameStep());
+		for (const TWeakObjectPtr<ATDEnemyShip>& Old : OldGroup)
+		{
+			TestFalse(TEXT("old lock dropped") + Fps, Targeting->GetLockedTargets().Contains(Old.Get()));
+		}
+		TestTrue(TEXT("swarm fires") + Fps, Swarm->TryActivate());
+		const TArray<TWeakObjectPtr<AActor>>& Targets = Swarm->GetLastTargets();
+		TestEqual(TEXT("split across the new group") + Fps, Targets.Num(), 3);
+		for (const TWeakObjectPtr<AActor>& T : Targets)
+		{
+			TestTrue(TEXT("every missile goes to the new group") + Fps,
+				NewGroup.ContainsByPredicate([&T](const TWeakObjectPtr<ATDEnemyShip>& N) { return N.Get() == T.Get(); }));
+		}
+	}
+	return true;
+}
+
+/** Full locks: a new candidate in the cone replaces the lock that has been out of view the longest. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSwarmLockReplace, "TriadDrift.Powers.Swarm.FullLocksReplaceTheStalest", TD_TEST_FLAGS)
+bool FTDSwarmLockReplace::RunTest(const FString& Parameters)
+{
+	for (const float TDFrameStep : kPowerFrameSteps)
+	{
+		FScopedPowerFrameStep TDStepScope(TDFrameStep);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / TDFrameStep);
+		FTDTestWorld W;
+		AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDTargetingComponent* Targeting = NewObject<UTDTargetingComponent>(Bastion, TEXT("Targeting"));
+		Targeting->RegisterComponent();
+		AddPower<UTDMissileSwarmPower>(Bastion);
+		for (int32 I = 0; I < 6; ++I)
+		{
+			TDSwarmTestHoldStill(SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(9000.f, (I - 2.5f) * 900.f, 0.f)));
+		}
+		ATDEnemyShip* Newcomer = SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(0.f, 9000.f, 0.f));
+		TDSwarmTestHoldStill(Newcomer);
+		W.Advance(2.f, PowerFrameStep());
+		TestEqual(TEXT("six locks") + Fps, Targeting->GetLockedTargets().Num(), 6);
+
+		// Face the newcomer: within about 1 s (well before the 1.5 s stale drop) it takes a slot.
+		Bastion->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+		W.Advance(1.f, PowerFrameStep());
+		TestTrue(TEXT("newcomer replaces a stale lock") + Fps, Targeting->GetLockedTargets().Contains(Newcomer));
+		TestTrue(TEXT("never more than six") + Fps, Targeting->GetLockedTargets().Num() <= 6);
 	}
 	return true;
 }
