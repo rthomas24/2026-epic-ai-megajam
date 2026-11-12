@@ -37,7 +37,7 @@ presentation/readability, measured cost, integration and subjective approval.
 | ART-05 Space | Environment & VFX; foundation integrated, HeroM02 source checkpoint published | Main9c629e8 foundation; new fc4db83/15files and35baselinehashes/source checks pass, independent source review no BLOCKER/MAJOR. HeroM02 native build/captures0, next one-SCW corrected startup resource-gated; actual cube resolution/archive checks required before acceptance |
 | ART-06 Planets | Environment & VFX future terrain/look; engineering small props R015 | Nick terrain/hero dressing not dispatched. Ryan now owns separate unstarted small rocks/crystals/flora/tree kits in EngProps and Gameplay/Props/Vegetation; no existing Nick claim transferred, final look approval remains Nick's; no Nick shared-map edits |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
-| ART-08 Ground visuals | Characters & Enemies FUTURE role explicitly queued in GameJam UI, UX & HUD | Current task remains HUD. No humanoid .blend/branch/worktree exists. Lead assigned queued LancerM01 after HUD verification/commit/push/handoff and future exact claim/worktree activation. N011: UE5 mannequin/A-pose180cm, base export allowed, no sourceFBX or player-body hook; infantry/heavy/sensor-special follow technical+Nick gates |
+| ART-08 Ground visuals | Characters & Enemies FUTURE role explicitly queued/ACK in GameJam UI, UX & HUD | No humanoid model/branch exists. After HUD safe handoff, Nick delegated priority: crew INFANTRY first using existing SkeletalMesh/AnimBP hook, unhooked Lancer pilot deferred/preserved. Future nick/characters-infantry and exact source claims activate before writes; Manny A-pose180cm target confirmed; model QA+Nick approval then real integration before optional variants |
 | ART-09 HUD | UI/UX & HUD; approved M03 prototype draftPR8, new functional fix in progress | b21a98f worker build+8tests/16actual captures and fresh review pass. Optional objective late-attach source reviewed, native tests pending. EXISTING MAJOR default-on/planet gate: native widget misses landing/braking prompt while devHUD suppressed; owned public-getter display/clearing fix dispatched, actual pad checks required. Shipping/human/finalAAA retained |
 | ART-10 Audio/music | Audio & Music; source checkpoint0717d9f published, native authoring blocked | Nick approves existing owned/free audition for prototype only;26prepared WAV/14events sourceQA and both private-host builds pass. Nativeauthor01 stopped on2missingCascadecvar errors, no assets imported. Source correction/loopvirtualization ready; next NullRHI grant conditional on>=4GiB/zeroheavy. Licensed/native media ignored; no shared integration/final ears approval; skill4096f47 adopted |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
@@ -155,3 +155,16 @@ Manny A-pose, about180cm, feet-origin+Xforward/cm units; read-only owned-base ex
 allowed, no sourceFBX exists. Crew SkeletalMesh/AnimBP hooks exist; player currently
 renders neither body nor arms, so full-body Lancer integration is a later explicit
 dependency, not a completed feature. No character production started in this audit.
+
+## Integration-first priority update — November12
+
+Nick directly delegated the pilot-versus-crew priority decision in Lead chat. Lead
+chooses standard infantry first after the HUD checkpoint because existing crew
+SkeletalMesh/AnimBP hooks can use it, while the player has no rendered-body hook.
+The earlier Lancer-first sequence above is historical, not canceled source work:
+there is no pilot model to move/delete. UI chat ACKs the queued Characters role.
+ArtSource/Characters/NullArmada/Infantry/M01/** is reserved read-only; proposed
+nick/characters-infantry/worktree are not created. Activate after HUD handoff.
+Technical verification and Nick visual approval precede rigging/native integration;
+integrate the approved crew base before spending time on optional cosmetic variants.
+No core gameplay class, character reference or artistic direction is removed.
