@@ -183,6 +183,9 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 	ATDShip* GetShip() const;
 	void SetState(ETDLandingState NewState);

@@ -42,6 +42,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
 	void SetPadEnabled(bool bEnabled) { bPadEnabled = bEnabled; }
 
+	/** Wingman pads take the squadmates; the player never lands on one. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
+	void SetWingmanPad(bool bInWingmanPad) { bWingmanPad = bInWingmanPad; }
+
+	void SetSidePads(const TArray<ATDLandingPad*>& InSidePads) { SidePads.Reset(); for (ATDLandingPad* P : InSidePads) { SidePads.Add(P); } }
+
 	/** Reserve / release (landing component). Returns false if another ship holds it. */
 	bool Reserve(ATDShip* Ship);
 	void Release(ATDShip* Ship);
