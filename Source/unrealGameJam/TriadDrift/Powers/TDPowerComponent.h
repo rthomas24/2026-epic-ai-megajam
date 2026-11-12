@@ -149,6 +149,11 @@ protected:
 	virtual bool OnActivate() { return true; }
 	virtual void OnTickActive(float DeltaTime) {}
 	virtual void OnEnd(bool bInterrupted) {}
+	/**
+	 * The player switched away from this ship while the power was running (it is now AI-flown). Default: keep
+	 * running on its own timer (cloak, dome, a portal pair, a well). Powers that must not run under AI end here.
+	 */
+	virtual void OnLostPlayerControl() {}
 
 	bool IsOwnerPlayerControlled() const;
 	/** Owner's ship id; false if the owner is not a squad ship. */
@@ -166,6 +171,8 @@ protected:
 	bool HasActiveArt() const;
 
 	bool bPowerActive = false;
+	/** Player-controlled on the previous tick (to detect a switch away mid-power). */
+	bool bWasPlayerControlled = false;
 	float ActiveElapsed = 0.f;
 	float CooldownRemaining = 0.f;
 };

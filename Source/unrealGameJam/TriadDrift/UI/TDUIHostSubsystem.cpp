@@ -322,6 +322,8 @@ namespace TDUIHost
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target=%s onscreen=%d at (%.0f, %.0f), locked=%d, markers=%d"),
 				Target ? *Target->GetName() : TEXT("none"), bOnScreen ? 1 : 0, Screen.X, Screen.Y,
 				Data->GetLockedTargets().Num(), Data->GetTargetMarkers().Num());
+			const FTDWaveInfo Wave = Data->GetWaveInfo();
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: wave=%d alive=%d"), Wave.WaveNumber, Wave.EnemiesAlive);
 		}
 		TArray<FTDHostShipView> Cards;
 		if (UTDUIHostSubsystem::ReadSnapshot(HUD, Cards))
