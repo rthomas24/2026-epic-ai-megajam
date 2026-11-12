@@ -331,8 +331,8 @@ namespace TDUIHost
 			for (int32 I = 0; I < Cards.Num(); ++I)
 			{
 				const FTDHostShipView& C = Cards[I];
-				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: card %d active=%d alive=%d unlocked=%d hull=%.2f power=%.2f ability=%.2f"),
-					I, C.bActive, C.bAlive, C.bUnlocked, C.Hull, C.Power, C.Ability);
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: card %d active=%d alive=%d unlocked=%d hull=%.2f shield=%.2f power=%.2f ability=%.2f"),
+					I, C.bActive, C.bAlive, C.bUnlocked, C.Hull, C.Shield, C.Power, C.Ability);
 			}
 		}
 	}
