@@ -1813,6 +1813,24 @@ bool FTDSquadBarkTriggers::RunTest(const FString& Parameters)
 	F.W.Advance(3.f);
 	TestEqual(TEXT("not repeated while still low"), F.Events->CountBarks(TDBarkIds::LowHull), 1);
 
+	// Live playtest: a low-hull line held back by the limiter must not play late. Fill the window with
+	// wingman-kill lines, dip Lancer low, wait out the window, free the limiter: no late Kato line.
+	{
+		F.W.Advance(11.f); // the limiter's 10 s window is empty again
+		for (int32 i = 0; i < 3; ++i)
+		{
+			// Distinct ids (no per-line cooldown) spaced past the minimum gap: the window is then full.
+			TestTrue(TEXT("filler line played"), F.Squad->RequestSquadBark(FName(*FString::Printf(TEXT("Test_Filler%d"), i)), ETDShipId::Rift));
+			F.W.Advance(2.6f);
+		}
+		UTDHealthComponent* LH = F.Health(ETDShipId::Lancer);
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), LH->MaxShield + LH->MaxHull * 0.8f, ETDDamageKind::Energy, Enemy, Enemy);
+		F.W.Advance(1.6f); // the line's window: it plays now or never
+		const int32 InWindow = F.Events->CountBarks(TDBarkIds::LowHull);
+		F.W.Advance(12.f); // the limiter frees up long after
+		TestEqual(TEXT("no late low-hull line"), F.Events->CountBarks(TDBarkIds::LowHull), InWindow);
+	}
+
 	// Ship down: high priority, a survivor calls it.
 	F.Kill(ETDShipId::Bastion);
 	F.W.Tick();
@@ -2346,6 +2364,40 @@ bool FTDSquadWingmenHitGenerators::RunTest(const FString& Parameters)
 	}
 	AddInfo(FString::Printf(TEXT("wing damage to generators in 30 s: %.0f"), Dealt));
 	TestTrue(TEXT("the wing damages the Dominion's generators on its own"), Dealt > 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadMarkersHUD, "TriadDrift.Squad.HUD.SquadMarkersForTheWing", TD_TEST_FLAGS)
+bool FTDSquadMarkersHUD::RunTest(const FString& Parameters)
+{
+	// Lead decision: the HUD shows where the wing is (brackets in view, edge arrows out of view).
+	FSquadFixture F;
+	auto Marker = [&](ETDShipId Id)
+	{
+		for (const FTDSquadMarker& M : F.Squad->GetSquadMarkers())
+		{
+			if (M.Ship == Id) { return M; }
+		}
+		return FTDSquadMarker();
+	};
+	TestEqual(TEXT("one per ship"), F.Squad->GetSquadMarkers().Num(), 3);
+	TestTrue(TEXT("Rift is the player's"), Marker(ETDShipId::Rift).bPlayerControlled && Marker(ETDShipId::Rift).Actor.Get() == F.Ship(ETDShipId::Rift));
+	TestTrue(TEXT("wingmen alive, not engaging with nothing around"), Marker(ETDShipId::Lancer).bAlive && !Marker(ETDShipId::Lancer).bPlayerControlled && !Marker(ETDShipId::Lancer).bEngaging);
+
+	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 2000.f, 0.f), 100000.f);
+	F.W.Advance(1.f);
+	TestTrue(TEXT("a wingman engaging the enemy"), Marker(ETDShipId::Lancer).bEngaging || Marker(ETDShipId::Bastion).bEngaging);
+	TestFalse(TEXT("the player's ship is never 'engaging' (it's not AI)"), Marker(ETDShipId::Rift).bEngaging);
+
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestTrue(TEXT("follows the switch"), Marker(ETDShipId::Lancer).bPlayerControlled && !Marker(ETDShipId::Rift).bPlayerControlled);
+	F.W.Advance(1.f);
+	F.Kill(ETDShipId::Bastion);
+	F.W.Tick();
+	TestTrue(TEXT("down: not alive, not engaging"), !Marker(ETDShipId::Bastion).bAlive && !Marker(ETDShipId::Bastion).bEngaging);
+	UTDStatics::GetHealth(Enemy)->Kill();
+	F.W.Tick();
+	TestFalse(TEXT("dead target: not engaging"), Marker(ETDShipId::Rift).bEngaging);
 	return true;
 }
 

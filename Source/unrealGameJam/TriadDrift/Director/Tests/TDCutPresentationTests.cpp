@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Misc/ScopeExit.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
+#include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
@@ -121,6 +122,16 @@ bool FTDCutPresSlateLayout::RunTest(const FString& Parameters)
 			TestTrue(TEXT("on screen, centred") + Case, R.Min.X >= 0.f && R.Max.X <= Size.X && FMath::IsNearlyEqual(R.GetCenter().X, Size.X * 0.5f));
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresLayer, "TriadDrift.Director.CutPresentation.UnderTheRealHUD", TD_TEST_FLAGS)
+bool FTDCutPresLayer::RunTest(const FString& Parameters)
+{
+	// Live capture: the letterbox covered Nick's squad cards during a switch. With his HUD up our overlay
+	// sits just under it; without it, above gameplay widgets and under the F10 menu (1000).
+	TestTrue(TEXT("real HUD up: under it"), UTDCutPresentation::OverlayZOrder(true) < UTDUIHostSettings::Get()->ZOrder);
+	TestTrue(TEXT("no real HUD: above gameplay, under the menu"), UTDCutPresentation::OverlayZOrder(false) > UTDUIHostSettings::Get()->ZOrder && UTDCutPresentation::OverlayZOrder(false) < 1000);
 	return true;
 }
 

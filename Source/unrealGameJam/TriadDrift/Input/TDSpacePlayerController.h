@@ -34,6 +34,7 @@ enum class ETDPowerInput : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponInput, ETDWeaponSlot, Slot, bool, bHeld);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnPowerInput, ETDPowerInput, Power);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnHoldInput, bool, bHeld);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnPauseChanged, bool, bPaused);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnSwitchDirectInput, ETDShipId, Ship);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnSwitchStepInput, int32, Direction);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTDOnSimpleInput);
@@ -137,6 +138,25 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Input")
 	FTDOnSimpleInput OnPauseInput;
 
+	// ---- Pause (Escape / Start, in space and on foot) ------------------------------------------------
+	/** The player paused or resumed the game (a pause menu opens / closes on this). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Pause")
+	FTDOnPauseChanged OnPauseChanged;
+
+	/** Pauses or resumes. Refused (false) during level travel, a pending CUT retake, or the victory sequence. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Pause")
+	bool SetPlayerPaused(bool bPause);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Pause")
+	bool TogglePlayerPause() { return SetPlayerPaused(!bPausedByPlayer); }
+
+	/** The game is paused because the player paused it (not a loading or engine pause). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Pause")
+	bool IsGamePausedByPlayer() const { return bPausedByPlayer; }
+
+	/** Whether a pause is allowed right now, and why not. */
+	bool CanPauseNow(FText* OutReason = nullptr) const;
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Input")
 	FTDOnSimpleInput OnGalaxyMapInput;
 
@@ -145,6 +165,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
@@ -261,6 +282,10 @@ private:
 	/** Hold F / A: land on a pad in reach, or take off again from a landed ship. True if it acted. */
 	bool RouteLand();
 	void OnPause(const FInputActionValue& Value);
+	/** Space (IA_Pause) and foot (T5's IA_Ground_Pause) both broadcast OnPauseInput; this is the one toggle. */
+	UFUNCTION()
+	void HandlePauseInput();
+	bool bPausedByPlayer = false;
 	void OnGalaxyMap(const FInputActionValue& Value);
 
 	// Routing to other areas (no-ops until their classes are merged)

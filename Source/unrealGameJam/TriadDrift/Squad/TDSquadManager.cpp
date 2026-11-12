@@ -1,6 +1,7 @@
 // Triad Drift - Squad (Teammate 3). ENG-07: squad manager & instant switching (PROTECT), ENG-03 respawn.
 
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "HAL/IConsoleManager.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -647,9 +648,23 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 // Powers & Switch Strike
 // ---------------------------------------------------------------------------------------------
 
+namespace TDSquadManagerPrivate
+{
+	// Playtest log (dev): kills by squad ships, "steals" of the player's target, and every squad bark
+	// asked for (played or held by the limiter). For judging how the wing feels from the cockpit.
+	static TAutoConsoleVariable<int32> CVarLogEvents(TEXT("td.Squad.LogEvents"), 0,
+		TEXT("1: log squad kills, steals of the player's target and barks (TDSQUAD lines)."), ECVF_Default);
+}
+
 bool ATDSquadManager::RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkPriority Priority)
 {
-	if (!BarkLimiter.TryConsume(BarkTuning, BarkId, Priority, RealNow()))
+	const bool bPlayed = BarkLimiter.TryConsume(BarkTuning, BarkId, Priority, RealNow());
+	if (TDSquadManagerPrivate::CVarLogEvents.GetValueOnGameThread() != 0)
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD t=%.1f bark %s by %s: %s"), RealNow(), *BarkId.ToString(),
+			*UEnum::GetDisplayValueAsText(Speaker).ToString(), bPlayed ? TEXT("played") : TEXT("held"));
+	}
+	if (!bPlayed)
 	{
 		return false;
 	}
@@ -659,6 +674,17 @@ bool ATDSquadManager::RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkP
 
 void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
 {
+	if (TDSquadManagerPrivate::CVarLogEvents.GetValueOnGameThread() != 0 && UTDStatics::AreHostile(Killer, Victim))
+	{
+		const ATDShip* Player = GetActiveShip();
+		const FTDSquadSlot* KillerSlot = Slots.FindByPredicate([Killer](const FTDSquadSlot& S) { return S.Ship == Killer; });
+		if (KillerSlot)
+		{
+			const bool bSteal = Killer != Player && TDSquad::GetCurrentTarget(Player) == Victim;
+			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD t=%.1f kill by %s%s%s"), RealNow(), *UEnum::GetDisplayValueAsText(KillerSlot->ShipId).ToString(),
+				Killer == Player ? TEXT(" (player)") : TEXT(" (wingman)"), bSteal ? TEXT(" STEAL of the player's target") : TEXT(""));
+		}
+	}
 	// A wingman scored: that pilot crows about it.
 	for (const FTDSquadSlot& Slot : Slots)
 	{
@@ -797,9 +823,16 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 		const float Hull = TDSquad::GetHull01(Slot.Ship);
 		if (Slot.bLowHullBarkArmed && Hull > 0.f && Hull < BarkTuning.LowHullFraction)
 		{
-			if (RequestSquadBark(TDBarkIds::LowHull, Slot.ShipId))
+			// Live playtest: held by the limiter, the line was retried every frame and played long after
+			// the moment. It gets LowHullBarkWindowSeconds, then this dip goes unannounced.
+			if (Slot.LowHullSince < 0.0)
+			{
+				Slot.LowHullSince = RealNow();
+			}
+			if (RealNow() - Slot.LowHullSince > LowHullBarkWindowSeconds || RequestSquadBark(TDBarkIds::LowHull, Slot.ShipId))
 			{
 				Slot.bLowHullBarkArmed = false;
+				Slot.LowHullSince = -1.0;
 			}
 		}
 		else if (!Slot.bLowHullBarkArmed && Hull > BarkTuning.LowHullRearmFraction)
@@ -1178,6 +1211,28 @@ void ATDSquadManager::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FTex
 FText ATDSquadManager::GetBoundaryWarningText() const
 {
 	return TDSquad::GetBoundaryWarningText(GetActiveShip());
+}
+
+TArray<FTDSquadMarker> ATDSquadManager::GetSquadMarkers() const
+{
+	TArray<FTDSquadMarker> Out;
+	Out.Reserve(Slots.Num());
+	for (const FTDSquadSlot& Slot : Slots)
+	{
+		FTDSquadMarker M;
+		M.Ship = Slot.ShipId;
+		M.Actor = Slot.Ship;
+		M.bPlayerControlled = Slot.ShipId == ActiveShipId;
+		M.bAlive = Slot.State == ETDSquadSlotState::Alive && IsValid(Slot.Ship) && !TDSquad::IsDead(Slot.Ship);
+		// Engaging = the wingman flying it has a live target (Engage and defending the player).
+		if (M.bAlive && !M.bPlayerControlled && Slot.Wingman && Slot.Wingman->GetPawn() == Slot.Ship)
+		{
+			const AActor* T = Slot.Wingman->GetCurrentTarget();
+			M.bEngaging = IsValid(T) && !TDSquad::IsDead(T);
+		}
+		Out.Add(M);
+	}
+	return Out;
 }
 
 FText ATDSquadManager::GetInteractPrompt() const

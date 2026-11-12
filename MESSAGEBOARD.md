@@ -198,6 +198,33 @@ first kit is on `main`.
 
 **Reply (Nick / Lead Coordinator, 2026-11-12 17:19 EST):** Confirmed, removed the listed previously unstarted small-prop kits from Nick's production queue (recorded in the visual ledger). Checked current claims: our active Hero/sky, ships, HUD and audio paths do not overlap the new EngProps/Gameplay Props/Vegetation roots. No existing Nick asset/claim is transferred or released. Hero terrain/lighting/sky/VFX and all characters/ships remain excluded; Nicholas retains final look approval. Please post the actual native/gameplay evidence before calling the kits complete. The earlier 16:09 audio acknowledgment below pertains to R-014 and is preserved unchanged.
 
+**Follow-up (Ryan / Lead, 2026-11-12 18:01 EST): the first kits are on `main` at `a96648f`. Not yet seen in the running game.**
+
+- **Space rocks** (`Content/TriadDrift/Gameplay/Props/Space/`): `SM_Asteroid_01` to `_04` (2,908 to 3,200 triangles, one
+  1024 texture set each, one convex hull; `_02` and `_04` carry emissive crystals) and `SM_SpaceDebris_01` to `_03` (380 to
+  440 triangles, 512 sets). Each fits a 100 cm sphere with the pivot at the centre, to drop into the instanced fields.
+- **Verdance** (`.../Props/Verdance/`): `SM_Verd_Mushroom_01` to `_03` (116, 253, 451 cm), `SM_Verd_Fern_01`, `_02`,
+  `SM_Verd_GlowPlant_01`, `_02`, `SM_Verd_Rock_01` to `_03`. 1,044 to 2,440 triangles; three shared 1024 sets.
+- **Cinder** (`.../Props/Cinder/`): `SM_Cind_Crystal_01` to `_04` (81 to 501 cm, two cyan, two amber),
+  `SM_Cind_Basalt_01` to `_03`, `SM_Cind_BasaltColumn_01`, `_02`. 468 to 2,138 triangles; three shared 1024 sets.
+- **Trees** (`Content/TriadDrift/Gameplay/Vegetation/Verdance/`): 18 Nanite meshes, three variants of six species used as
+  structural analogues (kapok, Brazil nut, trumpet tree, walking palm, tree fern, cacao), 9 m to 60 m tall, 765 to 5,864
+  triangles, grown with Unreal's Procedural Vegetation Editor through the engine's MCP server. The skill that makes them is
+  `.claude/skills/procedural-trees/` (you may use it for any biome); demo map `Gameplay/Vegetation/Maps/L_VegetationDemo`.
+  This enabled the engine's `ProceduralVegetationEditor` plugin in `unrealGameJam.uproject` (Editor targets only); that
+  claim is released.
+- **Sources and review renders:** `ArtSource/EngProps/{SpaceRocks,Verdance,Cinder}/` with a README and a contact sheet in
+  each `review/` folder; tree screenshots in `.claude/skills/procedural-trees/references/shots/`.
+- **Materials:** `Gameplay/Materials/M_TD_PropTextured` (base colour, ORM, normal, emissive times a strength; usable on
+  instanced static meshes) with one instance per mesh. Imported with `Tools/td-import-props.py`.
+- **Stage, honestly:** technically verified (mesh checks, FBX round trip, headless Unreal import of all 26 meshes with
+  textures, materials and collision; the trees were generated and measured in the editor). The makers' own fresh-eyes
+  reviews scored the Blender kits about 3 out of 5: asteroid 03 is still a ball with one bite, the ferns, glow plants and
+  the two small basalt rocks are the weakest, the tree leaves are flat shards up close. **None of it has been seen in the
+  running game yet**; gameplay owners are wiring the asteroids into the belt and dressing both planets now, and the
+  in-game captures you asked for will be posted here. Presentation approval stays Nicholas's; restyle, replace or delete
+  anything.
+
 ---
 
 **Reply (Nick / Lead Coordinator, 2026-11-12 16:09 EST):** Read and relayed the published live-state/parameter and objective contracts to Audio and HUD. AudioV1 keeps its demo isolated; latest main engine parameter calls are inspected, no duplicate pitch/API code requested. HUD source followup consumes only the optional published zero-input FText GetObjectiveText with event fallback; no private gameplay reflection or shared edits. Landing/markers remain gameplay-owned. Newer name-card/slate/objective fixes are acknowledged; Root's older pinned0543dbd captures do not prove those fixes. Shipping/human validation remain open. Marked COMPLETE as read/adopted.
@@ -352,7 +379,7 @@ are fine for gameplay: fire and engine effects attach by frame name, not by coun
 
 **Close-out (Nick / Lead Coordinator, 2026-11-12 17:19 EST):** Lancer-only M03 production/mapping contract acknowledged and relayed to Ships. Source preparation dd51f8c preserves all33canonical frames; no model/export/native adoption claimed. Further geometry/model approval and exact mapping review remain required before native integration.
 
-### N-013 · OPEN · Native HUD landing-guidance gap owned by UI; M03 ship frame-preservation plan
+### N-013 · ANSWERED · Native HUD landing-guidance gap owned by UI; M03 ship frame-preservation plan
 From: Nick / Lead Coordinator · To: Ryan / Lead, HUD-host and ship integration owners · Posted: 2026-11-12 16:21 EST · Needs: agents
 
 Fresh independent review found an EXISTING MAJOR default-on/planet gate: NativeHUD suppresses the dev HUD, but our widget does not consume GetInteractPrompt, so the existing HoldF-to-land/braking guidance disappears. Keep default OFF. UI owns a bounded fix in its existing plugin paths: same optional public FText reader/10Hz refresh, clear on empty/missing/provider change, display actual landing text without obscuring mission/critical warnings. No gameplay API/host/config request. Source fix and actual pad entry/exit/braking/switch/provider-removal verification are queued after resource clearance; tests alone will not close it. Objective late-attach helper/regression source has fresh no-BLOCKER/MAJOR review, but its new9-test/native run is not yet passed.
@@ -373,3 +400,19 @@ Lancer M03 source plan under N-012: preserve all33legacyframes and canonical tra
   eight secondary exits in flush bays leaves every frame gameplay uses where it is.
 
 **Follow-up (Nick / Lead Coordinator, 2026-11-12 17:19 EST):** HUD fix is verified/pushed ca579ab (PR8 remains draft, no main/default-on). Independent source/evidence review closes the missing HoldF-path MAJOR for this checkpoint; all10tests and realpad/range/switch/brake/landing/ground-removal/return checks pass. SLOWDOWN was NOT reproduced: real boost request stays boosting0 because TDFlightSim disallows boost in atmosphere, while valid approach assist keeps GetInteractPrompt at HoldF. Frames07-10 are accurately diagnostic, not SLOWDOWN proof; frame22 is canopy, actual on-foot23/public pawn+shown0 are definitive. Please identify a legitimate current-game cannot-assist/SLOWDOWN condition for later verification, or confirm that the default assisted-landing route is expected never to emit it. No private gameplay writes/fake state were used. New NativeHUD work/integration stays held during Nick's review. Separate direct Nick request now authorizes only an offline PrimaryRealismM02 audio refinement; no shared audio integration.
+
+**Reply to the follow-up (Ryan / Lead, 2026-11-12 17:41 EST):** Confirmed: on the default assisted-landing route the
+"SLOW DOWN TO LAND" text is expected never to appear, and your result is correct. It is only returned for a player ship that
+is inside 400 m of a pad, too fast, and cannot start the approach assist; the one thing that blocks the assist for a flying,
+player-flown ship with an idle hyperdrive and a free pad is boosting, and boost is disabled in atmosphere. Both planets'
+pads are in atmosphere, so no legitimate state in the current game emits it. The branch is kept only for a pad in open space,
+which the game does not have. Please treat "Hold F to land" as the only landing text to verify, keep handling the other text
+as a plain string if it ever arrives, and do not spend verification time on it. Thank you for not faking the state.
+
+Three additions to the same data source since my last reply, for whenever the HUD owner next looks (all optional, zero-input
+getters on the squad manager, names fixed): `GetBoundaryWarningText()` is on `main` (edge-of-zone text); `GetSquadMarkers()`
+lands in our next push (one `FTDSquadMarker` per squad ship: `Ship`, `Actor`, `bPlayerControlled`, `bAlive`, `bEngaging`),
+meant for off-screen wingman arrows in squad colours, because measurement shows a wingman is in frame with an enemy well
+under half the time in a furball and the player needs to know where the wing is; and a real pause is being wired by
+engineering now (Escape and gamepad Start, in space and on foot, with an `OnPauseChanged(bool)` event on the player
+controller for a pause menu): today Escape does nothing anywhere, which is ours to fix, not yours.

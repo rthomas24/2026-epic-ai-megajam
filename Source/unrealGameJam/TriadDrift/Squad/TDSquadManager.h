@@ -80,6 +80,8 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 
 	/** The low-hull line is armed (re-armed once the hull is repaired). */
 	bool bLowHullBarkArmed = true;
+	/** Real time the hull first dipped low this time (the line only plays close to that moment). */
+	double LowHullSince = -1.0;
 };
 
 /**
@@ -240,6 +242,8 @@ public:
 	virtual TArray<AActor*> GetObjectiveMarkers() const override;
 	/** The player's ship's landing prompt ("Hold F to land", "SLOW DOWN TO LAND - ..."); empty otherwise. */
 	virtual FText GetInteractPrompt() const override;
+	/** One entry per squad ship for the HUD's wing markers; bEngaging while its wingman has a live target. */
+	virtual TArray<FTDSquadMarker> GetSquadMarkers() const override;
 	virtual FText GetBoundaryWarningText() const override;
 	/** Nick's HUD objective line: the Text of the last OnObjectiveUpdated (empty before the first). */
 	virtual FText GetObjectiveText() const override { return ObjectiveText; }
@@ -346,6 +350,10 @@ public:
 	/** Voice lines (ART-11): per-bark cooldowns, a global gap, a window cap. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks")
 	FTDBarkTuning BarkTuning;
+
+	/** A low-hull line not played within this many real seconds of the dip is dropped (never late). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks", meta = (ClampMin = "0", Units = "s"))
+	float LowHullBarkWindowSeconds = 1.5f;
 
 	/** Ask for a squad line; false if the limiter held it back. */
 	bool RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkPriority Priority = ETDBarkPriority::Normal);

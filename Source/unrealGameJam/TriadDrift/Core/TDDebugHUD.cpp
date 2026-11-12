@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -56,6 +57,16 @@ namespace
 		case ETDShipId::Rift: return ColorRift;
 		case ETDShipId::Lancer: return ColorLancer;
 		default: return ColorBastion;
+		}
+	}
+
+	const TCHAR* PilotName(ETDShipId Ship)
+	{
+		switch (Ship)
+		{
+		case ETDShipId::Rift: return TEXT("WREN");
+		case ETDShipId::Lancer: return TEXT("KATO");
+		default: return TEXT("MOSS");
 		}
 	}
 
@@ -149,9 +160,105 @@ void ATDDebugHUD::DrawHUD()
 	DrawSquad(Y);
 	DrawWave();
 	DrawTargets();
+	DrawWingmen();
 	DrawObjective();
 	DrawCrosshair();
 	DrawFlight();
+
+	if (const UWorld* World = GetWorld(); World && World->IsPaused())
+	{
+		const FString Paused(TEXT("PAUSED - ESC TO RESUME"));
+		float W = 0.f, H = 0.f;
+		GetTextSize(Paused, W, H, nullptr, 2.2f);
+		DrawText(Paused, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.42f, nullptr, 2.2f);
+	}
+}
+
+void ATDDebugHUD::BeginPlay()
+{
+	Super::BeginPlay();
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnHitConfirmed.AddUniqueDynamic(this, &ATDDebugHUD::HandleHitConfirmed);
+	}
+}
+
+void ATDDebugHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// The bus lives on the game instance and outlives this HUD.
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnHitConfirmed.RemoveAll(this);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void ATDDebugHUD::HandleHitConfirmed(AActor* Target, bool bKill)
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	// A kill marker is never shortened by a later plain hit.
+	const double Until = World->GetRealTimeSeconds() + (bKill ? 0.35 : 0.12);
+	if (bKill || World->GetRealTimeSeconds() >= HitMarkerUntil || !bLastHitWasKill)
+	{
+		bLastHitWasKill = bKill;
+	}
+	HitMarkerUntil = FMath::Max(HitMarkerUntil, Until);
+}
+
+// The wing: each AI-flown squad ship in its own colour. In view: the pilot's name beside it. Out of
+// view: an edge arrow with the name, so the player always knows where the wing is. Brighter while
+// that wingman is engaging a target.
+void ATDDebugHUD::DrawWingmen()
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
+	const APawn* Pawn = GetOwningPawn();
+	if (!Data || !Pawn)
+	{
+		return;
+	}
+	const FVector2D ScreenCenter(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+	for (const FTDSquadMarker& Marker : Data->GetSquadMarkers())
+	{
+		const AActor* Actor = Marker.Actor.Get();
+		if (Marker.bPlayerControlled || !Marker.bAlive || !IsValid(Actor) || Actor == Pawn)
+		{
+			continue;
+		}
+		FLinearColor Color = ShipColor(Marker.Ship);
+		Color.A = Marker.bEngaging ? 1.f : 0.6f;
+		const FString Label = Marker.bEngaging ? FString::Printf(TEXT("%s !"), PilotName(Marker.Ship)) : FString(PilotName(Marker.Ship));
+
+		const FVector Screen = Project(Actor->GetActorLocation());
+		const bool bOnScreen = Screen.Z > 0.f && Screen.X >= 0.f && Screen.X <= Canvas->SizeX && Screen.Y >= 0.f && Screen.Y <= Canvas->SizeY;
+		if (bOnScreen)
+		{
+			DrawText(Label, Color, Screen.X + 14.f, Screen.Y + 8.f, nullptr, 0.9f);
+			continue;
+		}
+		FVector2D Dir(Screen.X - ScreenCenter.X, Screen.Y - ScreenCenter.Y);
+		if (Screen.Z <= 0.f)
+		{
+			Dir *= -1.f;   // behind the camera the projection is mirrored
+		}
+		if (!Dir.Normalize())
+		{
+			Dir = FVector2D(0.f, 1.f);
+		}
+		// Inside the ring the hostile arrows use (0.45), so the two never sit on top of each other.
+		const float Radius = FMath::Min(Canvas->SizeX, Canvas->SizeY) * 0.34f;
+		const FVector2D Tip = ScreenCenter + Dir * Radius;
+		const FVector2D Side(-Dir.Y, Dir.X);
+		const float Thickness = Marker.bEngaging ? 3.f : 2.f;
+		DrawLine2D(Tip, Tip - Dir * 16.f + Side * 8.f, Color, Thickness);
+		DrawLine2D(Tip, Tip - Dir * 16.f - Side * 8.f, Color, Thickness);
+		float W = 0.f, H = 0.f;
+		GetTextSize(Label, W, H, nullptr, 0.85f);
+		DrawText(Label, Color, Tip.X - Dir.X * 30.f - W * 0.5f, Tip.Y - Dir.Y * 30.f - H * 0.5f, nullptr, 0.85f);
+	}
 }
 
 void ATDDebugHUD::DrawSquad(float& Y)
@@ -241,7 +348,8 @@ void ATDDebugHUD::DrawWave()
 		{
 			float W = 0.f, H = 0.f;
 			GetTextSize(Prompt, W, H, nullptr, 1.5f);
-			DrawText(Prompt, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.66f, nullptr, 1.5f);
+			// Low enough to clear the player's own ship in the chase view.
+			DrawText(Prompt, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.80f, nullptr, 1.5f);
 		}
 	}
 }
@@ -388,6 +496,21 @@ void ATDDebugHUD::DrawCrosshair()
 	DrawLine2D(C + FVector2D(5.f, 0.f), C + FVector2D(14.f, 0.f), Color, 2.f);
 	DrawLine2D(C + FVector2D(0.f, -14.f), C + FVector2D(0.f, -5.f), Color, 2.f);
 	DrawLine2D(C + FVector2D(0.f, 5.f), C + FVector2D(0.f, 14.f), Color, 2.f);
+
+	// Hit marker: four short diagonals around the centre; red and thicker for a kill.
+	const UWorld* World = GetWorld();
+	if (World && World->GetRealTimeSeconds() < HitMarkerUntil)
+	{
+		const FLinearColor Mark = bLastHitWasKill ? FLinearColor(1.f, 0.2f, 0.2f) : FLinearColor::White;
+		const float Thick = bLastHitWasKill ? 3.f : 2.f;
+		const float Gap = 8.f;
+		const float Len = 10.f;
+		for (const FVector2D& D : { FVector2D(1.f, 1.f), FVector2D(1.f, -1.f), FVector2D(-1.f, 1.f), FVector2D(-1.f, -1.f) })
+		{
+			const FVector2D N = D.GetSafeNormal();
+			DrawLine2D(C + N * Gap, C + N * (Gap + Len), Mark, Thick);
+		}
+	}
 }
 
 void ATDDebugHUD::DrawFlight()

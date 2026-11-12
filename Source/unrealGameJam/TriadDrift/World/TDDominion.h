@@ -127,6 +127,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	float HyperdriveLockRadius = 60000.f;
 
+	/** The flow's scene for the whole assault (UTDGameInstance::DominionScene); its retakes reset the fight. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
+	FName DominionSceneId = TEXT("Dominion");
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	float BreakupSeconds = 8.f;
 
@@ -234,6 +238,10 @@ protected:
 	void SyncHyperdriveLock();
 	UFUNCTION()
 	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+	/** A new take of the assault scene: see docs/eng/world.md (what stays, what restarts). */
+	void ResetForNewTake();
+	/** Victory phase reached without the breakup (won save, TD.Stage Victory): gone, silent, unlocked. */
+	void FinishAfterVictory();
 	void BuildParts();
 	void ShowHull(bool bVisible);
 	void ApplyStage(int32 NewStage);

@@ -50,6 +50,10 @@ public:
 	UFUNCTION() void HandleDriftEnded(bool bBurst) { ++DriftEnded; DriftBursts += bBurst ? 1 : 0; }
 	UFUNCTION() void HandleImpact(const FTDFlightImpact& Impact);
 
+	int32 PauseChanges = 0;
+	bool bLastPaused = false;
+	UFUNCTION() void HandlePause(bool bPaused) { ++PauseChanges; bLastPaused = bPaused; }
+
 	TArray<ETDBoundaryState> BoundaryStates;
 	UFUNCTION() void HandleBoundary(ETDBoundaryState NewState) { BoundaryStates.Add(NewState); }
 };

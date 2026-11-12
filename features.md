@@ -439,7 +439,9 @@ and on `OnAbilityUnlocked`.
 **Powers and ship switching (decided Nov 12):** a power or ability that is running when the player
 switches away (cloak, shield dome, an open portal pair, a gravity well) keeps running on that ship
 and ends on its own timer. The new ship's presses never reach the old ship's powers, and an
-AI-flown ship never starts one.
+AI-flown ship never starts one. Two exceptions end at the switch (also on an auto-switch after a
+death): the ram (wind-up cancelled, dash ended, no invulnerability left behind) and a portal blaster
+with only one portal placed (the lone portal closes).
 
 #### ENG-13 · Enemy ships & AI · `⬜`
 | Enemy | Role | HP / Shield | Speed | Weapons | Behaviour | Counter |

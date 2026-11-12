@@ -365,6 +365,30 @@ enum class ETDMissileWarning : uint8
 };
 
 /** One hostile for the HUD: on-screen bracket or off-screen edge arrow. */
+/** Where one squad ship is, for a HUD that shows the player their wing (ITDHUDData::GetSquadMarkers). */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDSquadMarker
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Squad")
+	ETDShipId Ship = ETDShipId::Rift;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Squad")
+	TWeakObjectPtr<AActor> Actor;
+
+	/** The ship the player is flying (a HUD normally skips this one). */
+	UPROPERTY(BlueprintReadOnly, Category = "Squad")
+	bool bPlayerControlled = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Squad")
+	bool bAlive = true;
+
+	/** This AI wingman has a live target right now. */
+	UPROPERTY(BlueprintReadOnly, Category = "Squad")
+	bool bEngaging = false;
+};
+
 USTRUCT(BlueprintType)
 struct UNREALGAMEJAM_API FTDTargetMarker
 {
