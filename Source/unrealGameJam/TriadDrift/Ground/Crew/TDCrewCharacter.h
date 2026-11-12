@@ -17,6 +17,7 @@ class UTDEnemyVisuals;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnCrewAttack, class ATDCrewCharacter* /*Crew*/, ETDCrewAttack /*Attack*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnCrewEvent, class ATDCrewCharacter* /*Crew*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnCrewCue, class ATDCrewCharacter* /*Crew*/, FName /*CueName*/);
 
 /**
  * One crew member. The AI controller (ATDCrewAIController) decides when to attack; the character owns
@@ -41,7 +42,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew")
 	FTDCrewSpec Spec;
 
-	/** Nick's look. If empty, /Game/TriadDrift/Presentation/Crew/DA_Crew_<Id>_Visuals is loaded when it exists. */
+	/** Nick's look. If empty, /Game/TriadDrift/Presentation/DA_Crew_<Id>_Visuals is loaded when it exists. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew")
 	TObjectPtr<UTDEnemyVisuals> Visuals;
 
@@ -87,6 +88,8 @@ public:
 	FTDOnCrewAttack OnAttackFinished;  // recovered; tokens release here
 	FTDOnCrewEvent OnBossPhase2;
 	FTDOnCrewEvent OnCrewDied;
+	/** Every presentation cue request (Telegraph, Stagger, Death, ShieldHit, HullHit, SlamImpact), even if the slot is empty. */
+	FTDOnCrewCue OnCueRequested;
 
 	// ITDTeam
 	virtual ETDTeam GetTeam() const override { return ETDTeam::Enemy; }
@@ -120,6 +123,7 @@ private:
 	float AttackCooldown(ETDCrewAttack Attack) const;
 	float FilterDamage(const FTDDamageInfo& Info);
 	void LoadDefaultVisuals();
+	void PlayCrewCue(FName Name, const struct FTDFXCue& Cue, bool bAttached, const FVector& Location);
 
 	UFUNCTION()
 	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);

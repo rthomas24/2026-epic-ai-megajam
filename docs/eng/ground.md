@@ -126,9 +126,16 @@ Tests (`TriadDrift.Ground.Crew.*`, all through the real AI, projectiles and blad
 | Visuals asset replaces the placeholder | `VisualsReplacePlaceholder` |
 
 Gaps:
-- Cover use is distance-keeping and strafing only (no cover points).
+- **Cover:** troopers use `UTDCrewCoverSubsystem`, with four points per registered block (encounter `CoverActors`). They move to a point the player can't see, hide for 1.2 s, peek out to the side with line of sight, burst, then duck back. They relocate when flanked, when the player comes within 5 m, or when the cover is destroyed. Test: `Crew.TrooperUsesCoverPeeksAndRelocates`.
 - The crew use C++ AI, not the template's StateTree.
 - No skeletal art yet, so the ragdoll is the placeholder block.
+- **Presentation:**
+  - Visuals load from `/Game/TriadDrift/Presentation/DA_Crew_<Id>_Visuals` (flat folder).
+  - `AnimBPClass` is applied together with `SkeletalMesh`.
+  - Cues: Telegraph, Stagger (on entering stagger), Death, ShieldHit, HullHit, SlamImpact. They're observable through `OnCueRequested`; test: `Crew.PresentationCuesAndAnimBP`.
+- **Blade:**
+  - The blade loads `/Game/TriadDrift/Presentation/DA_Blade_FX`. `BladeMesh` replaces the placeholder; without it, the placeholder is tinted with `BladeColor`.
+  - Retract plays on death (the blade is hidden and can't attack) and Ignite on respawn. Every cue goes through `OnCueRequested`; test: `Blade.PresentationCuesMeshAndRetract`.
 ## Planet arrival and hand-off (agreed with T1, ENG-20)
 
 | Moment | Who | What |

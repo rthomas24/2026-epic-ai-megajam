@@ -76,6 +76,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ClearSpeedOverride();
 
+	/** Keyed override (see UTDShipMovementComponent::SetSpeedOverrideFor): owners stack, clearing restores the previous. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetSpeedOverrideFor(FName OverrideOwner, float SpeedCmPerSec, float SteeringScale = 1.f, float AccelerationCmPerSec2 = -1.f);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void ClearSpeedOverrideFor(FName OverrideOwner);
+
 	/**
 	 * Clean flight state: latched input cleared, boost meter full, no drift / boost / speed override /
 	 * catch-up allowance, angular rates zeroed. bKeepVelocity=false restarts at cruise along the nose.
