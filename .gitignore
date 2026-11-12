@@ -33,6 +33,10 @@ Builds/
 # ---- Optional mirror of .claude/skills for Codex (AGENTS.md §10) ----
 .agents/
 
+# ---- Per-agent git worktrees (docs/eng/ARCHITECTURE.md) ----
+.wt/
+Worktrees/
+
 # ---- Python ----
 __pycache__/
 *.pyc
