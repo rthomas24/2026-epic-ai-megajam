@@ -1,6 +1,7 @@
 // Triad Drift - Director (Teammate 3). C-03 fallback presentation (see header).
 
 #include "TriadDrift/Director/TDCutPresentation.h"
+#include "TriadDrift/Core/TDDebugHUD.h"
 
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -71,14 +72,16 @@ namespace TDCutPresentationPrivate
 				Box(FVector2D::ZeroVector, FVector2D(Size.X, H), FLinearColor::Black);
 				Box(FVector2D(0.f, Size.Y - H), FVector2D(Size.X, H), FLinearColor::Black);
 			}
-			// Pilot name card, lower left, sitting on the bottom bar.
+			// Pilot name card, lower centre on the bottom bar: clear of the dev HUD's left-hand squad rows
+			// and flight line, and of the crosshair. (Hidden while the real HUD draws its own card.)
 			if (S.NameCardAlpha > 0.f)
 			{
 				FLinearColor C = S.NameCardColor;
 				C.A = S.NameCardAlpha;
 				const float BarH = Size.Y * FMath::Max(S.Letterbox, 0.08f);
-				Box(FVector2D(Size.X * 0.06f, Size.Y - BarH - 52.f), FVector2D(6.f, 44.f), C); // colour tab
-				Text(S.NameCardText, 30, FVector2D(Size.X * 0.06f + 18.f, Size.Y - BarH - 54.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), false);
+				const float Y = Size.Y - BarH - 30.f;
+				Text(S.NameCardText, 30, FVector2D(Size.X * 0.5f, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
+				Box(FVector2D(Size.X * 0.5f - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
 			}
 			// Slate, top centre under the bar.
 			if (S.SlateAlpha > 0.f)
@@ -320,7 +323,9 @@ void UTDCutPresentation::Tick(double RealNow)
 		S.Letterbox = FMath::Max(S.Letterbox, Tuning.SwitchLetterbox * FMath::Clamp(A, 0.f, 1.f));
 	}
 	const float CardA = CardAlpha(RealNow, SwitchStart, SwitchTiming.NameCardSeconds, Tuning.CardFadeSeconds * 0.6f);
-	if (CardA > 0.f)
+	// N-007 (Lead): Nick's real HUD draws its own "CUT TO" card; ours would sit on top of it. Flash,
+	// letterbox, CUT! and the slate stay ours until bCutPresentationHandledExternally.
+	if (CardA > 0.f && !ATDDebugHUD::IsRealHUDActive(OwnerWorld.Get()))
 	{
 		S.NameCardText = NameCard;
 		S.NameCardColor = NameColor;
