@@ -137,7 +137,21 @@ bool UTDShieldDomePower::OnActivate()
 	ActiveSeconds = DomeSeconds;
 	ATDShieldDome* NewDome = ATDShieldDome::SpawnDome(GetWorld(), Owner, GetOwnerTeam(), DomeRadius, DomeSeconds + 0.1f, FX);
 	Dome = NewDome;
+	if (NewDome)
+	{
+		// Nick's Power2Active (or ability FX) is the dome's look: no placeholder lattice under it (review).
+		NewDome->SetCoveredByArt(HasActiveArt());
+	}
 	return NewDome != nullptr;
+}
+
+USceneComponent* UTDShieldDomePower::GetActiveCueRoot() const
+{
+	if (const ATDShieldDome* D = Dome.Get())
+	{
+		return D->GetRootComponent(); // the dome lags Bastion by up to ~2000 cm: its art rides the dome
+	}
+	return Super::GetActiveCueRoot();
 }
 
 void UTDShieldDomePower::OnEnd(bool bInterrupted)

@@ -219,6 +219,9 @@ private:
 	void OnBlockReleased();
 	void OnInteractPressed() { BeginInteract(); }
 	void OnInteractReleased() { EndInteract(); }
+public:
+	UInputAction* GetPauseAction() const { return IA_Pause; }
+protected:
 	void OnPingPressed() { PingObjective(); }
 
 	FVector2D MoveInput = FVector2D::ZeroVector;
@@ -263,5 +266,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Attack;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Block;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Interact;
+	/** Escape / Start on foot: forwarded to the controller's OnPauseInput (IMC_SpaceCommon is off on foot). */
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Pause;
+	void OnPausePressed();
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Ping;
 };

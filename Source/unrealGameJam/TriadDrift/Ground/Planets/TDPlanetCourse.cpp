@@ -4,6 +4,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Ground/TDGroundScene.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
@@ -23,7 +24,7 @@
 namespace TDCourseColors
 {
 	// Verdance: deep teal ground, bioluminescent cyan / magenta / lime.
-	static const FLinearColor VerdanceGround(0.03f, 0.12f, 0.1f);
+	static const FLinearColor VerdanceGround(0.012f, 0.05f, 0.045f);
 	static const FLinearColor VerdanceRock(0.08f, 0.16f, 0.14f);
 	static const FLinearColor Trunk(0.06f, 0.05f, 0.08f);
 	static const FLinearColor Cyan(0.2f, 0.95f, 1.f);
@@ -33,7 +34,7 @@ namespace TDCourseColors
 	static const FLinearColor Ember(1.f, 0.45f, 0.1f);
 	static const FLinearColor RelayStone(0.6f, 0.5f, 1.f);
 	// Cinder: basalt, magma orange, crystal violet.
-	static const FLinearColor CinderGround(0.07f, 0.05f, 0.05f);
+	static const FLinearColor CinderGround(0.05f, 0.035f, 0.035f);
 	static const FLinearColor Basalt(0.12f, 0.1f, 0.1f);
 	static const FLinearColor MagmaGlow(1.f, 0.3f, 0.04f);
 	static const FLinearColor Crystal(0.7f, 0.3f, 1.f);
@@ -50,13 +51,12 @@ ATDPlanetCourse::ATDPlanetCourse()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cyl(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sph(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cone(TEXT("/Engine/BasicShapes/Cone.Cone"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glow(TEXT("/Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Lit(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 	CubeMesh = Cube.Object;
 	CylinderMesh = Cyl.Object;
 	SphereMesh = Sph.Object;
 	ConeMesh = Cone.Object;
-	GlowMaterial = Glow.Object;
+	GlowMaterial = nullptr; // glow comes from UTDStatics::TintPlaceholder (Core's always-cooked glow material)
 	LitMaterial = Lit.Object;
 }
 
@@ -442,7 +442,15 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 		if (O && GI->GetProgressRef().CompletedObjectives.Contains(O->ObjectiveId))
 		{
 			O->MarkAlreadyComplete(); // loaded mid-planet: done stays done
+			for (const FTDStepDoor& D : StepDoors)
+			{
+				if (D.Objective == O && D.Door) { D.Door->Open(); } // the breached gate stays breached
+			}
 		}
+	}
+	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
+	{
+		Scene->ApplyCompletedState(); // rooms cleared, doors open, crystals gone
 	}
 }
 

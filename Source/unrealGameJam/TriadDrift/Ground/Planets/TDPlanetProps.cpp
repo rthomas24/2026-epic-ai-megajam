@@ -60,6 +60,15 @@ void ATDPlanetProp::BeginPlay()
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
 		ResetHandle = Scene->OnResetUnfinished.AddUObject(this, &ATDPlanetProp::HandleGroundReset);
+		CompletedHandle = Scene->OnCompletedOnLoad.AddUObject(this, &ATDPlanetProp::HandleCompletedOnLoad);
+	}
+}
+
+void ATDPlanetProp::HandleCompletedOnLoad()
+{
+	if (LinkedObjective && LinkedObjective->IsComplete())
+	{
+		ApplyCompleted();
 	}
 }
 
@@ -68,6 +77,7 @@ void ATDPlanetProp::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
 		Scene->OnResetUnfinished.Remove(ResetHandle);
+		Scene->OnCompletedOnLoad.Remove(CompletedHandle);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -127,7 +137,7 @@ void ATDStepTrigger::HandleOverlap(UPrimitiveComponent*, AActor* Other, UPrimiti
 bool ATDStepTrigger::TryComplete(AActor* Other)
 {
 	ATDFirstPersonCharacter* Player = AsPlayer(Other);
-	if (!Player || !IsLinkedStepCurrent() || (bRequireCarrying && !Player->IsCarrying()))
+	if (!Player || Player->IsDead() || !IsLinkedStepCurrent() || (bRequireCarrying && !Player->IsCarrying()))
 	{
 		return false;
 	}
@@ -550,6 +560,13 @@ void ATDShatterCrystal::BeginPlay()
 }
 
 void ATDShatterCrystal::HandleDeath(UTDHealthComponent*, const FTDDamageInfo&)
+{
+	bShattered = true;
+	Mesh->SetVisibility(false);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ATDShatterCrystal::ApplyCompleted()
 {
 	bShattered = true;
 	Mesh->SetVisibility(false);

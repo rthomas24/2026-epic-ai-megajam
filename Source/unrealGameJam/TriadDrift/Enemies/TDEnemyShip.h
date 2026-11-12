@@ -275,11 +275,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Presentation")
 	TObjectPtr<UStaticMeshComponent> PlaceholderShieldPlate;
 
-	/** Hard reference so the cook ships the engine glow material that TintPlaceholder loads by path. */
-	UPROPERTY()
-	TObjectPtr<UMaterialInterface> PlaceholderGlowMaterial;
-
 	bool bPlaceholderLook = false;
+
+public:
+	/** Gun aim error is an angle (spec AimErrorDeg) capped so a bolt misses by at most this (cm, x difficulty). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
+	float GunAimMaxMissCm = 260.f;
+
+	/** Effective gun range against a target closing on us: bolts meet it, so fire opens earlier (cm). */
+	float GetGunFireRange(const AActor* Target) const;
+
+	/** GunAimMaxMissCm scaled by the difficulty in play (set in InitFromSpecData). */
+	float AimMaxMissCm = 260.f;
 
 	/**
 	 * Nick's presentation data asset (features.md 3.5). Set explicitly to override; otherwise filled

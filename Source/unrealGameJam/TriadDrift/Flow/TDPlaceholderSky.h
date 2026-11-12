@@ -15,7 +15,9 @@ UENUM()
 enum class ETDPlaceholderSkyStyle : uint8
 {
 	Space,   // warm sun + violet fill + sky light, fixed exposure, bloom
-	Planet   // daylight sun + real-time sky light + sky atmosphere
+	Planet,  // daylight sun + real-time sky light + sky atmosphere
+	Verdance, // planet, at dusk: a low cool sun and a teal sky so the bioluminescence glows
+	Cinder    // planet, in ember haze: a red sun through a rust-red sky
 };
 
 /**

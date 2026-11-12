@@ -35,9 +35,9 @@ presentation/readability, measured cost, integration and subjective approval.
 | ART-03 Ships | Ships & Weapons; Lancer M03 source production authorized, Rift/Bastion held | Nick subsequent brief207f9e02 and blue reference approve Lancer-only Production Review01 in isolated nick/ships-lancer-m03. Preserve M02/main100f21c and Rift a7c0463/draftPR7. No native/main/other ships before approval; preserve or explicitly propose attachment mapping, no unilateral canonical-transform changes |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
 | ART-05 Space | Environment & VFX; foundation integrated, HeroM02 source checkpoint published | Main9c629e8 foundation; new fc4db83/15files and35baselinehashes/source checks pass, independent source review no BLOCKER/MAJOR. HeroM02 native build/captures0, next one-SCW corrected startup resource-gated; actual cube resolution/archive checks required before acceptance |
-| ART-06 Planets | Environment & VFX planning; queued, not dispatched | Geometry/dressing absent; supplied ground dimensions unchanged; no shared map editing |
+| ART-06 Planets | Environment & VFX future terrain/look; engineering small props R015 | Nick terrain/hero dressing not dispatched. Ryan now owns separate unstarted small rocks/crystals/flora/tree kits in EngProps and Gameplay/Props/Vegetation; no existing Nick claim transferred, final look approval remains Nick's; no Nick shared-map edits |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
-| ART-08 Ground visuals | Lead coordinates production owner; queued | No approved crew/arms/blade art; engineering supplies optional mesh/animation/cue contracts |
+| ART-08 Ground visuals | Characters & Enemies FUTURE role explicitly queued/ACK in GameJam UI, UX & HUD | No humanoid model/branch exists. After HUD safe handoff, Nick delegated priority: crew INFANTRY first using existing SkeletalMesh/AnimBP hook, unhooked Lancer pilot deferred/preserved. Future nick/characters-infantry and exact source claims activate before writes; Manny A-pose180cm target confirmed; model QA+Nick approval then real integration before optional variants |
 | ART-09 HUD | UI/UX & HUD; approved M03 prototype draftPR8, new functional fix in progress | b21a98f worker build+8tests/16actual captures and fresh review pass. Optional objective late-attach source reviewed, native tests pending. EXISTING MAJOR default-on/planet gate: native widget misses landing/braking prompt while devHUD suppressed; owned public-getter display/clearing fix dispatched, actual pad checks required. Shipping/human/finalAAA retained |
 | ART-10 Audio/music | Audio & Music; source checkpoint0717d9f published, native authoring blocked | Nick approves existing owned/free audition for prototype only;26prepared WAV/14events sourceQA and both private-host builds pass. Nativeauthor01 stopped on2missingCascadecvar errors, no assets imported. Source correction/loopvirtualization ready; next NullRHI grant conditional on>=4GiB/zeroheavy. Licensed/native media ignored; no shared integration/final ears approval; skill4096f47 adopted |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
@@ -133,3 +133,38 @@ Ships are frozen for the directly requested redesign, not awaiting approval of t
 superseded Rift design. Keep PR7 draft/history; do not merge/import it. Character
 campaign remains queued after HUD safe handoff and published exclusive claims,
 with base-mesh/skeleton proposal coordinated before any native rigging work.
+
+## Humanoid ownership audit — November12,16:30EST
+
+Five active Codex development chats were inspected. No dedicated Characters &
+Enemies chat, character branch/worktree, humanoid Blender model or FBX is present.
+Earlier briefs in GameJam | UI, UX & HUD did not themselves transfer its HUD role.
+After reading Nick's latest direct sequencing and complete campaign, Lead explicitly
+assigns that same chat the FUTURE Characters & Enemies role after its current HUD
+build/tests/real landing verification/commit/push/handoff. This is a queued owner,
+not a claim that modeling is active. No new chat is required or assumed created.
+Proposed nick/characters-lancer / Worktrees/characters-lancer remain NOT CREATED;
+ArtSource/Characters/Lancer/M01/** is reserved read-only until explicit activation.
+No unfinished HUD work is transferred or abandoned.
+
+Sequence: Lancer ground humanoid M01, then standard infantry, heavy, sensor-special,
+each technically verified and Nick-approved before the next. Rigging/animation/native
+integration remain gated. Full campaign/reference attachment8dd6f5fb-d554-4970-a348-
+3d01c9998ca5 is available in that chat. Ryan N011 confirms existing UE5 SK_Mannequin/
+Manny A-pose, about180cm, feet-origin+Xforward/cm units; read-only owned-base export
+allowed, no sourceFBX exists. Crew SkeletalMesh/AnimBP hooks exist; player currently
+renders neither body nor arms, so full-body Lancer integration is a later explicit
+dependency, not a completed feature. No character production started in this audit.
+
+## Integration-first priority update — November12
+
+Nick directly delegated the pilot-versus-crew priority decision in Lead chat. Lead
+chooses standard infantry first after the HUD checkpoint because existing crew
+SkeletalMesh/AnimBP hooks can use it, while the player has no rendered-body hook.
+The earlier Lancer-first sequence above is historical, not canceled source work:
+there is no pilot model to move/delete. UI chat ACKs the queued Characters role.
+ArtSource/Characters/NullArmada/Infantry/M01/** is reserved read-only; proposed
+nick/characters-infantry/worktree are not created. Activate after HUD handoff.
+Technical verification and Nick visual approval precede rigging/native integration;
+integrate the approved crew base before spending time on optional cosmetic variants.
+No core gameplay class, character reference or artistic direction is removed.

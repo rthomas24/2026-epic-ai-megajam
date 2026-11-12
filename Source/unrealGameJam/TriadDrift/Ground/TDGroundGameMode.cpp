@@ -257,7 +257,9 @@ AActor* ATDGroundGameMode::SpawnBlock(const FVector& Center, const FVector& Size
 void ATDGroundGameMode::SpawnEnvironment()
 {
 	// Daylight placeholder only where the planet map has no sky of its own (N-004 contract).
-	ATDPlaceholderSky::SpawnIfNeeded(GetWorld(), ETDPlaceholderSkyStyle::Planet);
+	const ETDPlaceholderSkyStyle Style = !bPlanetMode ? ETDPlaceholderSkyStyle::Planet
+		: (Destination == ETDDestination::Cinder ? ETDPlaceholderSkyStyle::Cinder : ETDPlaceholderSkyStyle::Verdance);
+	ATDPlaceholderSky::SpawnIfNeeded(GetWorld(), Style);
 }
 
 void ATDGroundGameMode::SpawnTrainingGround()
