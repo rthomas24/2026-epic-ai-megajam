@@ -68,7 +68,7 @@ no inactive source worker is being restarted. New task/path transfers must be pu
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 13:33 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-12 13:37 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 All of Ryan's side is C++ / text so far: **no `.uasset`, `.umap` or other binary file is claimed or
@@ -104,27 +104,30 @@ open) · `done` (on `main`, tests pass, review closed).
 | Independent code review of Powers + World (ENG-09 to 12, 16, 17, 18) | Lead | done | Nov 12 12:46 | Nov 12 13:15; findings with T2 and T4 | none |
 | Core: `UTDShipVisuals.Parts` (modular ships), `UTDWeaponFX.ProjectileMeshOffset`, highlight broadcast restricted to the director | Lead | done | Nov 12 13:16 | Nov 12 13:16, this push (answers `MESSAGEBOARD.md` N-001) | none |
 | ENG-28 build / test / screenshot / package tools | Lead | done | Nov 12 | `642f232` | `/Tools/**` |
-| Enable Unreal 5.9 agent toolsets for the built-in MCP server; MCP play-test tools | Lead | in progress | Nov 12 13:33 | | **CLAIMED by Ryan / Lead: `/unrealGameJam.uproject`** (adds engine toolset plugins, Editor targets only, `EngineAssociation` untouched); `/Tools/**` |
+| Enable Unreal 5.9 agent toolsets for the built-in MCP server; MCP play-test tools (`Tools/td-play-mcp.ps1`, `Tools/td_mcp.py`) | Lead | done | Nov 12 13:33 | Nov 12 13:38 (`adb1912`); **`/unrealGameJam.uproject` claim released**; see `MESSAGEBOARD.md` R-007 | `/unrealGameJam.uproject` (21 engine toolset plugins, Editor targets only) |
+| HUD plugin decision: approved for integration (`MESSAGEBOARD.md` R-006); engineering host + switch + frozen-name test | Lead | queued | | starts when Nick's side merges PR #4 | `/Plugins/TriadDriftHUD/**` stays Nick's; engineering adds a host in `Source/` and a `Build.cs` dependency |
 | ENG-28 Shipping package under 1 GB | Lead | in progress | Nov 12 13:21 | | none (output goes to git-ignored `Builds/`) |
 | Second-pass reviews: Ground + Flow (ENG-19, 21, 22, 24), Travel + Flight (ENG-01, 02, 15, 20) | Lead | in progress | Nov 12 13:21 | | none |
 | Core: front-end widget classes on `UTDUIStyle`, crew `AnimBPClass` / `Stagger` / `Death`, `BladeMesh` (answers `MESSAGEBOARD.md` R-004) | Lead | done | Nov 12 13:21 | Nov 12 13:21, this push | none |
-| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-004 complete, N-001 answered, R-005 open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
+| Message board (`MESSAGEBOARD.md`) + AGENTS.md §6.10 | Lead | done | Nov 12 13:02 | Nov 12 13:02, R-001 to R-005 and N-001 complete; R-006 (HUD approval) and R-007 (toolsets) open for Nick's side | `/MESSAGEBOARD.md`, `/AGENTS.md` |
 | C-01 maps (`L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`) | Lead | done | Nov 12 12:48 | Nov 12 13:02, this push | **Claim released.** `Content/TriadDrift/Maps/**` now exists: empty World Partition levels, streaming off, One File Per Actor. Both sides may place actors (they save as separate `__ExternalActors__` files): claim the map and what you add first. Do not re-save the `.umap` or change World Settings without a claim here; game modes are set by map name in `/Config/DefaultEngine.ini`. See `MESSAGEBOARD.md` R-001 |
 | ENG-27 balance + difficulty | Lead | queued | | | none |
 | ENG-01 flight model, ENG-02 input map | T1 | in review | Nov 12 | all 15 review fixes merged Nov 12 13:02, this push (`e046c82`); second review queued | none |
 | ENG-15 hyperdrive, ENG-20 atmosphere flight + landing (first pass) | T1 | in review | Nov 12 | Nov 12 13:02, this push (`2686272`); not reviewed yet | none |
-| ENG-20 end to end: planet arrival, landing, first-person hand-off, take-off (with T5); modular ship parts from `UTDShipVisuals.Parts` | T1 | in progress | Nov 12 13:02 | | none |
+| Modular ship parts from `UTDShipVisuals.Parts`; flight and travel cues played from data | T1 | done | Nov 12 13:19 | Nov 12 13:38 (`1588fdb`) | none |
+| ENG-20 end to end: first half verified live (`L_Galaxy` -> atmosphere -> `L_Transition` -> `L_Planet_Verdance`); landing hand-off, re-board, take-off and return wait on T5's ENG-25 / 26 ground mode | T1 + T5 | in progress | Nov 12 13:02 | | none |
 | Placeholder look: squad-coloured hulls, glowing engines, `UTDShipVisuals` slot | T1 | done | Nov 12 | Nov 12 13:02, this push (`ab8915b`) | none |
 | ENG-05 ship weapons, ENG-06 targeting | T2 | in review | Nov 12 | all 16 review fixes + gap tests merged Nov 12 13:15 (`461d296`); second review queued | none |
-| ENG-09 Rift portal blaster, ENG-10 Lancer ram, ENG-11 Bastion swarm + dome, ENG-12 unlockable abilities | T2 | in review | Nov 12 | `6455ee0`; review done Nov 12 13:15: 2 blockers (Gravity Well moves fixed parts; no art path, placeholders missing in Shipping), 6 majors; fixes in progress | reads `/Game/TriadDrift/Presentation/DA_*` by path |
+| ENG-09 Rift portal blaster, ENG-10 Lancer ram, ENG-11 Bastion swarm + dome, ENG-12 unlockable abilities | T2 | in review | Nov 12 | review fixes batch 1 merged Nov 12 13:38 (`fdc205e`: Gravity Well only pulls free-flying ships, portal clearance vs dynamic geometry, ram through real fighters / stops on rock / 3x speed); batch 2 in progress (retake state, art path and Shipping placeholders, projectile previous location, minors) | reads `/Game/TriadDrift/Presentation/DA_*` by path |
 | ENG-03 respawn rules, ENG-04 three ships, ENG-07 switching, ENG-08 wingman AI | T3 | in review | Nov 12 | `448f658`; review done Nov 12 13:05: 2 blockers, 8 majors; fixes in progress | none |
 | C-03 #1 switch-as-cut, #2 director-cam money shots | T3 | in review | Nov 12 | Nov 12 12:45, this push (`1309c5b`); review running | none |
 | Squad follow-ups: travel guard in director, powers installed on the three ships, weapon reset on respawn, targeting HUD forwarders | T3 | done | Nov 12 12:43 | Nov 12 13:02, this push (`9c93bd1`) | none |
 | Squad / Director review fixes batch 1 (wingmen stuck after switch during hyperdrive, stale aim, death tumble + flight reset, real-time cooldown, switch guard) | T3 | done | Nov 12 13:05 | Nov 12 13:16, this push (`26670f2`) | none |
-| Squad / Director review fixes batch 2 (per-ship art, switch invulnerability rule, wingman collisions, multi-kill rules, minors) | T3 | in progress | Nov 12 13:16 | | reads `/Game/TriadDrift/Presentation/DA_<Ship>_Visuals` by path |
+| Squad / Director review fixes batch 2 (per-ship art by path, switch invulnerability rule, wingman collisions, multi-kill rules, 15 minors) and real-actor director tests | T3 | done | Nov 12 13:19 | Nov 12 13:38 (`da65cb8`); second review queued | reads `/Game/TriadDrift/Presentation/DA_<Ship>_Visuals` by path |
+| Squad: missile-evade test; bark triggers (switch-in, ship down, focus acknowledged) | T3 | in progress | Nov 12 13:38 | | none |
 | ENG-13 enemy ships + AI, ENG-14 wave director | T4 | in review | Nov 12 | all review BLOCKER and MAJOR fixes merged Nov 12 13:10, this push (`7ae379c`: reachable carrier parts, leash, break-off, 11 real-path tests, per-type visuals by path convention); minors in progress; second review queued | none |
-| ENG-27 groundwork: headless balance run + difficulty presets; 40-ship performance stress test | T4 | queued | | after the World review fixes | none |
-| ENG-16 portal gates, ENG-17 galaxy layout, ENG-18 Dominion | T4 | in review | Nov 12 | Travel hand-off merged Nov 12 13:15 (`a1a52b9`); review done: no blockers, 4 majors (reactor mesh never applied, victory can be lost, wingmen bounce through gates, no art path); fixes in progress | reads `/Game/TriadDrift/Presentation/DA_*` by path |
+| ENG-27 groundwork: headless balance run + difficulty presets (Story / Standard / Ace); then a 40-ship performance stress test | T4 | in progress | Nov 12 13:36 | | none (`Waves/Balance/**`, output in git-ignored `Saved/Balance/`) |
+| ENG-16 portal gates, ENG-17 galaxy layout, ENG-18 Dominion | T4 | in review | Nov 12 | all four review majors + minors merged Nov 12 13:38 (reactor mesh applied, victory is a phase change with the squad protected, no gate bounce-back, art path + editor preview, asteroid keep-out); second review queued | reads `/Game/TriadDrift/Presentation/DA_*` by path |
 | ENG-19 game instance / saves / travel, C-03 #3 scenes and takes | T5 | in review | Nov 12 | `a2fdf3e`; all 12 review fixes merged Nov 12 12:45, this push (`125146f`); second review queued | none |
 | ENG-21 first-person character, ENG-22 energy blade, ENG-24 objective framework | T5 | in review | Nov 12 | Nov 12 13:02, this push (`fc329d0`); not reviewed yet | none |
 | Menu and transition game modes (`ATDMenuGameMode`, `ATDTransitionGameMode`) | T5 | done | Nov 12 | Nov 12 13:10, this push (`85af40b`) | `/Config/DefaultEngine.ini` map prefixes |
@@ -137,7 +140,7 @@ open) · `done` (on `main`, tests pass, review closed).
 - `/Config/DefaultEngine.ini` now boots into `L_Galaxy` and assigns game modes by map name
   (`L_Galaxy` space, `L_Planet*` and `L_Dominion*` ground). A menu game mode for `L_MainMenu`
   and the boot-map switch to it follow when the menu exists.
-- `unrealGameJam.uproject` is claimed by Ryan / Lead while the toolset plugins are added (see the row above). Nick's `Plugins/TriadDriftHUD/**` row implies a plugin
+- `unrealGameJam.uproject` is unclaimed again. It now lists 21 engine toolset plugins (Editor targets only). Nick's `Plugins/TriadDriftHUD/**` row implies a plugin
   entry there and a module dependency. A plugin cannot include the game module's headers
   (`ITDHUDData`, `UTDEventBus`), so how the HUD reads gameplay data needs to be agreed between
   Ryan and Nick before that plugin is integrated.
