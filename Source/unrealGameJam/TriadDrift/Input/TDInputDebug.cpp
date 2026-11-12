@@ -9,6 +9,7 @@
 //       TD.Input.Keys <K1+K2+...> [Seconds=0.1]   several keys held together (e.g. TD.Input.Keys W+LeftShift 3)
 //       TD.Input.Axis <Key> <Value> [Seconds=0.1] analog every frame (e.g. TD.Input.Axis Gamepad_RightX 1 0.5)
 //       TD.Input.Mouse <DX> <DY> [Seconds=0.1]    mouse delta per frame (virtual joystick)
+//       TD.Input.Tap <Key> [Count=2] [Interval=0.15] taps in one go (double-tap dodge: TD.Input.Tap D 2)
 //       TD.Input.ReleaseAll                       release everything this tool pressed
 // Keys use FKey names (EKeys): W A S D Q E F H C T V Tab SpaceBar LeftShift One Two Three LeftMouseButton...
 
@@ -35,6 +36,9 @@ namespace TDInputDebug
 		float Value = 0.f;
 		FVector2D MouseDelta = FVector2D::ZeroVector;
 		double EndTime = 0.0;
+		/** Taps scheduled ahead: pressed at StartTime (not yet pressed while bPending). */
+		double StartTime = 0.0;
+		bool bPending = false;
 	};
 
 	TArray<FHeld>& GetHeld()
@@ -70,6 +74,15 @@ namespace TDInputDebug
 			if (!PC)
 			{
 				Held.RemoveAt(i);
+				continue;
+			}
+			if (H.bPending)
+			{
+				if (Now >= H.StartTime)
+				{
+					Send(PC, H.Key, IE_Pressed, 1.f);
+					H.bPending = false;
+				}
 				continue;
 			}
 			if (Now >= H.EndTime)
@@ -213,6 +226,30 @@ namespace TDInputDebug
 		EnsureTicker();
 	}
 
+	void Tap(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = GetPC(World);
+		if (!PC || Args.Num() < 1 || !FKey(*Args[0]).IsValid())
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Input.Tap <Key> [Count=2] [Interval=0.15]"));
+			return;
+		}
+		const int32 Count = Args.IsValidIndex(1) ? FMath::Clamp(FCString::Atoi(*Args[1]), 1, 10) : 2;
+		const float Interval = Args.IsValidIndex(2) ? FMath::Max(0.04f, FCString::Atof(*Args[2])) : 0.15f;
+		const double Now = FPlatformTime::Seconds();
+		for (int32 i = 0; i < Count; ++i)
+		{
+			FHeld H;
+			H.PC = PC;
+			H.Key = FKey(*Args[0]);
+			H.StartTime = Now + i * Interval;
+			H.EndTime = H.StartTime + Interval * 0.4f;
+			H.bPending = true;
+			GetHeld().Add(H);
+		}
+		EnsureTicker();
+	}
+
 	void ReleaseAll(const TArray<FString>& Args, UWorld* World)
 	{
 		for (FHeld& H : GetHeld())
@@ -235,6 +272,9 @@ static FAutoConsoleCommandWithWorldAndArgs GTDInputAxisCmd(TEXT("TD.Input.Axis")
 static FAutoConsoleCommandWithWorldAndArgs GTDInputMouseCmd(TEXT("TD.Input.Mouse"),
 	TEXT("Mouse delta every frame (virtual joystick): TD.Input.Mouse <DX> <DY> [Seconds=0.1]"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDInputDebug::Mouse));
+static FAutoConsoleCommandWithWorldAndArgs GTDInputTapCmd(TEXT("TD.Input.Tap"),
+	TEXT("Tap a key Count times, Interval apart, in one go: TD.Input.Tap <Key> [Count=2] [Interval=0.15]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDInputDebug::Tap));
 static FAutoConsoleCommandWithWorldAndArgs GTDInputReleaseCmd(TEXT("TD.Input.ReleaseAll"),
 	TEXT("Release every key / axis TD.Input pressed"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDInputDebug::ReleaseAll));
