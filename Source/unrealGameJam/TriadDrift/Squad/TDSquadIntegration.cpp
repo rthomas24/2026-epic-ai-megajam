@@ -94,6 +94,8 @@ namespace TDSquad
 		if (UTDHealthComponent* H = Health(Ship))
 		{
 			H->InitMaxValues(Spec.MaxHull, Spec.MaxShield, /*bRefill*/ true);
+			H->ShieldRegenDelay = Spec.ShieldRegenDelay;
+			H->ShieldRegenFractionPerSecond = Spec.ShieldRegenFractionPerSecond;
 		}
 
 		UTDWeaponComponent* W = Weapons(Ship);

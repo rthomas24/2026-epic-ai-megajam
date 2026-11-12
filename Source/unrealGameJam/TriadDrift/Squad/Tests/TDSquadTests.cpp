@@ -2594,5 +2594,45 @@ bool FTDSquadDamageIndicators::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadShieldRegenFromSpec, "TriadDrift.Squad.Spec.ShieldRegenPerShip", TD_TEST_FLAGS)
+bool FTDSquadShieldRegenFromSpec::RunTest(const FString& Parameters)
+{
+	// T4's balance sweep: shield regen delay and rate come from each ship's spec, and stay through a
+	// respawn and a retake. Defaults are today's 3 s / 25% per second.
+	FSquadFixture F(/*bSpawnSquad*/ false);
+	FTDShipSpec Lancer = UTDShipLibrary::Get(ETDShipId::Lancer);
+	Lancer.ShieldRegenDelay = 5.f;
+	Lancer.ShieldRegenFractionPerSecond = 0.1f;
+	F.Squad->ShipSpecOverrides.Add(ETDShipId::Lancer, Lancer);
+	F.Squad->SpawnSquad(FTransform::Identity);
+	F.W.Tick();
+	auto Check = [&](const TCHAR* When)
+	{
+		const UTDHealthComponent* L = F.Health(ETDShipId::Lancer);
+		const UTDHealthComponent* B = F.Health(ETDShipId::Bastion);
+		TestTrue(FString(TEXT("Lancer gets its spec: ")) + When, L->ShieldRegenDelay == 5.f && L->ShieldRegenFractionPerSecond == 0.1f);
+		TestTrue(FString(TEXT("Bastion keeps today's defaults: ")) + When, B->ShieldRegenDelay == 3.f && B->ShieldRegenFractionPerSecond == 0.25f);
+	};
+	Check(TEXT("spawn"));
+	F.Kill(ETDShipId::Lancer);
+	F.W.Advance(13.f);
+	TestTrue(TEXT("respawned"), F.Squad->IsShipAlive(ETDShipId::Lancer));
+	Check(TEXT("respawn"));
+	F.Squad->SpawnSquad(FTransform::Identity);
+	F.W.Tick();
+	Check(TEXT("retake"));
+	// And it really regenerates at that rate: break the shield, wait out the delay, 2 s at 10%/s.
+	AActor* Enemy = F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f);
+	UTDHealthComponent* L = F.Health(ETDShipId::Lancer);
+	F.W.Advance(2.5f); // past the retake's spawn grace
+	TestFalse(TEXT("vulnerable again"), L->IsInvulnerable());
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), L->MaxShield, ETDDamageKind::Energy, Enemy, Enemy);
+	F.W.Advance(4.5f);
+	TestTrue(TEXT("no regen inside the 5 s delay"), L->GetShield01() < 0.01f);
+	F.W.Advance(2.5f);
+	TestEqual(TEXT("about 20% after 2 s at 10%/s"), L->GetShield01(), 0.2f, 0.06f);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 

@@ -43,6 +43,14 @@ struct UNREALGAMEJAM_API FTDShipSpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health", meta = (ClampMin = "0"))
 	float MaxShield = 100.f;
 
+	/** Seconds without damage before the shield regenerates (balance sweep, T4: 3-6 s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health", meta = (ClampMin = "0", Units = "s"))
+	float ShieldRegenDelay = 3.f;
+
+	/** Fraction of MaxShield regenerated per second (0.25 = 25%/s; T4 sweeps 0.08-0.25). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health", meta = (ClampMin = "0"))
+	float ShieldRegenFractionPerSecond = 0.25f;
+
 	// --- Flight (ENG-01 base values x ENG-04 per-ship) ---
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (Units = "cm/s"))
 	float MinSpeed = 1500.f;
