@@ -16,6 +16,7 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Travel/Tests/TDTravelTestHelpers.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -744,6 +745,82 @@ bool FTDTravelAssistStops::RunTest(const FString& Parameters)
 	W.Tick();
 	TestFalse(TEXT("death: assist off"), Land->IsApproachAssisting());
 	TestFalse(TEXT("death: override cleared"), Move->HasSpeedOverrideFor(Assist));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelPadMarker, "TriadDrift.Travel.Landing.PadIsTheObjectiveUntilTouchdown", TD_TEST_FLAGS)
+bool FTDTravelPadMarker::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	ATDLandingPad* Pad = Rig->GetPlayerPad();
+	const FTransform PadXf = Pad->GetActorTransform();
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-30000.f, 0.f, 5000.f)));
+	ATDShip* Mate = TDTravelTest::SpawnShip(W, PadXf.TransformPosition(FVector(-30000.f, 3000.f, 5000.f)));
+	W.Tick();
+	auto Marked = [Pad]() { return Pad->ActorHasTag(TDTags::ObjectiveMarker); };
+	auto AnyWingPadMarked = [Rig]() { for (ATDLandingPad* P : Rig->GetWingmanPads()) { if (P && P->ActorHasTag(TDTags::ObjectiveMarker)) { return true; } } return false; };
+	TestFalse(TEXT("no player ship: pad unmarked"), Marked());
+
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	TestTrue(TEXT("player flying in the atmosphere: pad marked"), Marked());
+	TestFalse(TEXT("wingman pads never marked"), AnyWingPadMarked());
+
+	// A switch keeps it marked (no flicker frame).
+	Ship->SetPlayerControlled(false);
+	Mate->SetPlayerControlled(true);
+	W.Tick();
+	TestTrue(TEXT("after a switch: still marked"), Marked());
+	Mate->SetPlayerControlled(false);
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+
+	// Leaving the atmosphere clears it (in game that is the exit climb and a level change; here, out of the zone).
+	Ship->TeleportSpacecraft(FVector(0.f, 0.f, 5000000.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetAtmosphereMode(false);
+	W.Tick();
+	W.Tick();
+	TestFalse(TEXT("outside the atmosphere: unmarked"), Marked());
+	Ship->TeleportSpacecraft(PadXf.TransformPosition(FVector(-1500.f, 0.f, 1500.f)), FRotator::ZeroRotator, false);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("back in: marked again"), Marked());
+
+	// Death clears it.
+	Ship->GetHealth()->Kill();
+	W.Tick();
+	TestFalse(TEXT("dead: unmarked"), Marked());
+	Ship->GetHealth()->Revive();
+	Ship->GetLanding()->AbortToFlying();
+	W.Tick();
+	TestTrue(TEXT("retake, flying in the atmosphere: marked again"), Marked());
+
+	// Marked through the descent, cleared at touchdown, not re-marked after take-off.
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	TestTrue(TEXT("lands"), Ship->GetLanding()->RequestLand());
+	W.Advance(1.f);
+	TestTrue(TEXT("coming down: still marked"), Marked());
+	W.Advance(6.f);
+	TestTrue(TEXT("landed"), Ship->GetLanding()->IsLanded());
+	TestFalse(TEXT("touchdown: unmarked"), Marked());
+	TestTrue(TEXT("takes off"), Ship->GetLanding()->RequestTakeOff());
+	W.Advance(5.f);
+	TestEqual(TEXT("flying"), Ship->GetLanding()->GetLandingState(), ETDLandingState::Flying);
+	TestFalse(TEXT("after take-off: the pad is no longer the objective"), Marked());
+
+	// A destroyed ship drops its mark.
+	Ship->TeleportSpacecraft(FVector(0.f, 0.f, 5000000.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetAtmosphereMode(false);
+	W.Tick();
+	Ship->TeleportSpacecraft(PadXf.TransformPosition(FVector(-20000.f, 0.f, 3000.f)), FRotator::ZeroRotator, false);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("new visit: marked"), Marked());
+	Ship->Destroy();
+	W.Tick();
+	TestFalse(TEXT("ship destroyed: unmarked"), Marked());
 	return true;
 }
 

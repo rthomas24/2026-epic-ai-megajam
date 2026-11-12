@@ -239,6 +239,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION()
 	void HandleOwnerDeath(UTDHealthComponent* HealthComp, const FTDDamageInfo& KillingBlow);
@@ -255,6 +256,8 @@ private:
 	void TakeOffWingmen();
 	void FinishTakeOff();
 	void TickApproachAssist(float DeltaTime);
+	/** HUD objective marker: the player pad while the player flies in this atmosphere and hasn't landed yet. */
+	void UpdatePadMarker();
 	/** Begins the landing sequence on a pad (shared by RequestLand, LandOnPad and the assist). */
 	bool BeginLanding(ATDLandingPad* InPad);
 
@@ -267,6 +270,8 @@ private:
 	bool bCanopyOpen = false;
 	bool bEnginesOn = true;
 	TWeakObjectPtr<ATDLandingPad> AssistPad;
+	/** Landed since entering this atmosphere: the pad is no longer the objective (cleared on leaving the atmosphere). */
+	bool bLandedThisVisit = false;
 	/** Aligning time for this landing: longer when the sequence starts far from the hover point. */
 	float AlignSecondsNow = 1.5f;
 };
