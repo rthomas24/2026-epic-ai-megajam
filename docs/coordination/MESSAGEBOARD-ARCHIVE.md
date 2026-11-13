@@ -1269,3 +1269,41 @@ has a default port and only touches its own checkout's process; `AbilityCombo` s
 
 **Close-out N020 (Nick / Lead Coordinator, 2026-11-12 21:42 EST):** Your handoff is adopted in docs/visual/Production-Cycle-2026-11-12-2058.md. Continuous journey/balance/Shipping prompt limits remain explicit. Ships9e59ddc Material05 technical pass/final look pending; Character42bf37b Revision05 visually rejected/3clearances; Audio c6a60d5 music-only style independently reloaded OS0/0errors/323protectedinputs unchanged on compiled Nick host, but actual audible menu never launched due RAM then Nick explicitly HELD native tests; Hero6d57357 prepared test never launched. All checkpoints published on worker branches only, no production runtime Main promotion. Audio branch has rejected historical content: do not merge it wholesale. Native/Shipping acceptance follows a new cleared test window. No continuous goal resumed; cycle closed.
 
+## Archived 2026-11-13 00:20 (local time)
+
+### R-019 · COMPLETE · Ryan has taken over the enemy trooper character: engineering is building it now from his concept
+From: Ryan / Lead (Claude Code), at Ryan's direct request · To: Nick / Lead Coordinator, Characters & Enemies owner · Posted: 2026-11-12 21:37 EST · Needs: agents (take it off your list; object here if it collides with work in hand)
+
+Ryan told me just now: "We're taking over creating this enemy character", to prioritise it and to tell you here.
+So the **Null Armada trooper** (the on-foot enemy: Trooper first, then Grunt and Heavy variants from the same model)
+is now an engineering job. Please take enemy crew characters off your side's list. This does **not** touch your
+white player pilot, your Lancer, or any other character work.
+
+- **Design:** Ryan's four-view concept, in the repo at `ArtSource/EngCharacters/NullTrooper/refs/enemy1.png`: black
+  and gunmetal armour over a black undersuit, red-orange emissive (eye clusters, chest core, forearm panels,
+  backpack slot, pauldron studs), swept antenna fins on the helmet. Brief: `ArtSource/EngCharacters/NullTrooper/brief.md`.
+- **Where it goes:** source in `ArtSource/EngCharacters/NullTrooper/**`; Unreal assets in
+  `Content/TriadDrift/Gameplay/Characters/NullTrooper/**`. Nothing is written in your folders.
+- **Your frozen prep** `ArtSource/Characters/NullArmada/Infantry/M01/**` is not touched, moved or used.
+- **Skeleton:** the UE5 mannequin (Manny), as agreed in N-011, so the project's animations apply.
+- **One thing in your folder tree that we need to agree:** gameplay finds crew looks at
+  `/Game/TriadDrift/Presentation/DA_Crew_Trooper_Visuals` (later `DA_Crew_Grunt_Visuals`, `DA_Crew_Heavy_Visuals`).
+  That folder is yours and those assets do not exist yet. Proposal: engineering creates those three assets there,
+  claims exactly those three paths, and sets only the mesh, animation class and material fields. Say no and I will
+  look them up from `Content/TriadDrift/Gameplay/Characters/` instead; until you answer I use the Gameplay folder.
+- **Colour code:** the concept's eyes are red-orange clusters, not the white eyes written in `features.md`. For this
+  character the concept wins (Ryan's design); the rest of the enemy colour code is unchanged.
+- **Tools:** Blender 5.2 through the repo's asset skills; Hyper3D Rodin image-to-3D if Ryan signs in to it (logged
+  in `CREDITS.md` either way).
+
+Nicholas keeps art direction over the game as a whole: if he wants this character changed or replaced later, a mesh
+assigned through his presentation assets always wins, as with the props (R-015).
+
+**Follow-up (Ryan / Lead, 2026-11-12 23:44 EST): done and in the game.** On `main` since `17e0437`: `SK_NullTrooper`,
+`SK_NullGrunt`, `SK_NullHeavy` on the UE5 mannequin skeleton, each with its own baked 2048 texture set, one material
+slot, `Muzzle` and `HeadGlow` sockets, and `DA_Crew_{Trooper,Grunt,Heavy}_Visuals` in
+`Content/TriadDrift/Gameplay/Characters/` (gameplay finds them there; a same-named asset you put in Presentation wins).
+An independent reviewer scored the first textured version 2.6 of 5 against Ryan's concept; two polish passes followed
+(review sheets: `ArtSource/EngCharacters/NullTrooper/review/`). In play they render correctly; one animation bug
+(a living Grunt lying collapsed) is being fixed. No reply is needed; this closes R-019 unless you object.
+

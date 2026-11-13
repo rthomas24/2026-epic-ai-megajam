@@ -84,7 +84,11 @@ void ATDPortalGate::LayoutParts()
 		{
 			Frame[0]->SetStaticMesh(Art);
 			Frame[0]->SetRelativeLocation(FVector::ZeroVector);
-			Frame[0]->SetRelativeScale3D(FVector::OneVector);
+			Frame[0]->SetRelativeRotation(FRotator::ZeroRotator);
+			// One round frame: scale its opening to the transit disc (the disc stays the gameplay truth).
+			const float RingScale = FrameMeshInnerDiameter > 0.f ? (Radius * 2.f) / FrameMeshInnerDiameter : 1.f;
+			Frame[0]->SetRelativeScale3D(FVector(RingScale));
+			Frame[0]->EmptyOverrideMaterials();
 			for (int32 i = 1; i < Frame.Num(); ++i)
 			{
 				Frame[i]->SetVisibility(false);

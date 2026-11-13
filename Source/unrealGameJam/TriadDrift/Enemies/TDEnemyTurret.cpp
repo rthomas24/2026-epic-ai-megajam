@@ -74,7 +74,19 @@ void ATDEnemyTurret::BeginPlay()
 	{
 		Health->OnDeath.AddUniqueDynamic(this, &ATDEnemyTurret::HandleDeath);
 	}
-	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.55f, 0.06f, 0.04f), 0.f);
+	if (Visuals && !Visuals->TurretMesh.IsNull())
+	{
+		if (UStaticMesh* Art = Visuals->TurretMesh.LoadSynchronous())
+		{
+			Mesh->SetStaticMesh(Art);
+			Mesh->SetRelativeScale3D(FVector::OneVector);
+			Mesh->EmptyOverrideMaterials();
+		}
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.55f, 0.06f, 0.04f), 0.f);
+	}
 }
 
 void ATDEnemyTurret::EndPlay(const EEndPlayReason::Type EndPlayReason)

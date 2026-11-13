@@ -1,0 +1,34 @@
+{
+  "faces": 8192,
+  "inward_faces": 8192,
+  "tris": 16128,
+  "asset_report_totals": {
+    "objects": 1,
+    "tris": 16128,
+    "errors": 0,
+    "warnings": 1
+  },
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_TD_SkySphere",
+      "message": "317 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_TD_SkySphere",
+      "message": "636 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "export": {
+    "status": "ok",
+    "tris": 16128,
+    "size_cm": [
+      200.0,
+      200.0,
+      200.0
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -191,9 +191,28 @@ void ATDDominion::LayoutParts()
 	// Art rules: a real hull mesh hides the placeholder bridge and trench-wall visuals (their collision
 	// stays: the trench is gameplay cover); a ShieldIdle effect replaces the emitter towers.
 	const bool bArtHull = Visuals && !Visuals->HullMesh.IsNull() && HullMesh->GetStaticMesh() == Visuals->HullMesh.Get();
-	BridgeMesh->SetVisibility(!bArtHull);
-	TrenchWallLeft->SetVisibility(!bArtHull);
-	TrenchWallRight->SetVisibility(!bArtHull);
+	// Per-piece art (optional): each replaces its stand-in at scale 1 and stays visible with an art hull.
+	auto UsePiece = [](UStaticMeshComponent* C, const TSoftObjectPtr<UStaticMesh>& Soft, const FVector& Scale) -> bool
+	{
+		if (!C || Soft.IsNull()) { return false; }
+		UStaticMesh* Art = Soft.LoadSynchronous();
+		if (!Art) { return false; }
+		C->SetStaticMesh(Art);
+		C->SetRelativeScale3D(Scale);
+		C->EmptyOverrideMaterials();
+		C->SetVisibility(true);
+		return true;
+	};
+	const bool bArtBridge = Visuals && UsePiece(BridgeMesh, Visuals->BridgeMesh, FVector::OneVector);
+	const bool bArtTrench = Visuals && UsePiece(TrenchWallLeft, Visuals->TrenchMesh, FVector::OneVector)
+		&& UsePiece(TrenchWallRight, Visuals->TrenchMesh, FVector(1.f, -1.f, 1.f));	// mirrored
+	BridgeMesh->SetVisibility(bArtBridge || !bArtHull);
+	TrenchWallLeft->SetVisibility(bArtTrench || !bArtHull);
+	TrenchWallRight->SetVisibility(bArtTrench || !bArtHull);
+	if (Visuals && !Visuals->ShieldEmitterMesh.IsNull())
+	{
+		for (UStaticMeshComponent* S : ShieldSections) { UsePiece(S, Visuals->ShieldEmitterMesh, FVector::OneVector); }
+	}
 	const bool bArtShield = Visuals && !Visuals->ShieldIdle.VFX.IsNull();
 	for (UStaticMeshComponent* S : ShieldSections)
 	{
