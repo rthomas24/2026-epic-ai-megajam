@@ -291,7 +291,7 @@ int32 ATDCrewCharacter::GetAliveSummons() const
 
 bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 {
-	if (Attack == ETDCrewAttack::None || IsDead() || IsStaggered() || IsAttacking() || GetCooldownLeft(Attack) > 0.f)
+	if (Attack == ETDCrewAttack::None || IsDead() || IsStaggered() || IsAttacking() || GetCooldownLeft(Attack) > 0.f || OpeningGraceLeft > 0.f)
 	{
 		return false;
 	}
@@ -646,6 +646,7 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 void ATDCrewCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	OpeningGraceLeft = FMath::Max(0.f, OpeningGraceLeft - DeltaSeconds);
 	if (DeltaSeconds <= 0.f || IsDead())
 	{
 		return;

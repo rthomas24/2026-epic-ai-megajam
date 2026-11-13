@@ -636,8 +636,12 @@ void ATDPlanetCourse::BuildVerdance()
 	{
 		Block(EShape::Cube, L + FVector(0.f, 0.f, 70.f), FVector(500.f, 110.f, 140.f), Trunk, 0.f, FRotator(0.f, 35.f, 0.f));
 	}
-	Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
+	ATDEncounterVolume* AmbushFight = Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
 		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight: one shooter (playtest: 4 crew killed a non-blocker in ~4 s)
+	// Director's mercy (agent journey: 16 takes lost here): take 3 one grunt fewer, take 5 the trooper alone.
+	FTDRetakeMercyTier AmbushMercy3; AmbushMercy3.FromTake = 3; AmbushMercy3.DropCrew = 1;
+	FTDRetakeMercyTier AmbushMercy5; AmbushMercy5.FromTake = 5; AmbushMercy5.DropCrew = 2;
+	AmbushFight->MercyTiers = { AmbushMercy3, AmbushMercy5 };
 
 	// The wreck: a broken hull nose-down in the ground, glowing breaks, debris to fight around.
 	// Collidable pieces turn in yaw only (a tilted box left an overhang the pilot got wedged under in playtest);
