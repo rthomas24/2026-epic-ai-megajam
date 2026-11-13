@@ -1,0 +1,77 @@
+{
+  "asset": "SM_Cind_MagmaSurface",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_MagmaSurface\\SM_Cind_MagmaSurface.fbx",
+  "tris": 222,
+  "size_cm": [
+    100.0,
+    100.0,
+    10.0
+  ],
+  "pivot": "root object origin (SM_Cind_MagmaSurface~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Cind_MagmaSurface"
+  ],
+  "material_params": [
+    {
+      "name": "M_Cind_MagmaSurface",
+      "textured": true,
+      "base_color": [
+        0.03,
+        0.028,
+        0.027
+      ],
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "emission_color": null,
+      "emission_strength": 4.0
+    }
+  ],
+  "textures": [
+    "T_Cind_MagmaSurface_M.png",
+    "T_Cind_MagmaSurface_N.png"
+  ],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Cind_MagmaSurface.fbx",
+  "texture_size": 2048,
+  "emission_strength": 0.0,
+  "nanite": false,
+  "family": "cinder",
+  "footprint_cm": [
+    100.0,
+    100.0,
+    10.0
+  ],
+  "world_aligned": true,
+  "tile_cm": 800.0,
+  "custom_importer": "ue_import_magma_surface.py",
+  "texture_stats": {
+    "R_mean": 0.4825422066922514,
+    "R_lt_0.3": 0.3541996479034424,
+    "G_lt_0.1": 0.1026759147644043,
+    "B_mean": 0.5208079218864441,
+    "normal_z_min": 0.4777161231718315,
+    "tileable_max_seam_delta": 0.009350147625476979
+  }
+}
