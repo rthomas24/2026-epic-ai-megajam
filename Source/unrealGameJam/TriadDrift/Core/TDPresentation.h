@@ -654,6 +654,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
 	TSoftObjectPtr<UObject> IntroSequence;
 
+	/**
+	 * Tutorial music (N-039, issue #24; optional). On New Game the prelude (non-looping) starts so it ends on the frame
+	 * the intro returns control (cut on a skip or with no intro); the loop (looping) starts at 0:00 on that frame and
+	 * plays across the opening fights and gaps (the combat gate and intensity gain don't touch it; a retake doesn't
+	 * restart it) until wave TutorialEndsAfterWave is cleared, then fades over TutorialFadeOutSeconds on a voice that
+	 * survives level travel. CombatMusic takes over from the next wave. A Continue never plays it.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music")
+	TSoftObjectPtr<USoundBase> TutorialPrelude;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music")
+	TSoftObjectPtr<USoundBase> TutorialLoop;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0"))
+	float TutorialFadeOutSeconds = 20.f;
+
 	/** Music for the intro, swelling into wave 1 (optional; silence when empty). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
 	TSoftObjectPtr<USoundBase> IntroMusic;

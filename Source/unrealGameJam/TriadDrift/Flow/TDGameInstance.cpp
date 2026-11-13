@@ -4,6 +4,7 @@
 #include "Sound/SoundBase.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDDebugMenu.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -741,6 +742,10 @@ void UTDGameInstance::StartNewRun()
 	if (UTDSettingsSubsystem* Settings = GetSubsystem<UTDSettingsSubsystem>())
 	{
 		Settings->ApplyPreferredDifficulty();
+	}
+	if (UTDTutorialMusicSubsystem* Tutorial = GetSubsystem<UTDTutorialMusicSubsystem>())
+	{
+		Tutorial->ArmForNewRun(); // N-039: only a New Game plays the tutorial music (a Continue never does)
 	}
 }
 
