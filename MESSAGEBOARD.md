@@ -518,6 +518,12 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead):** Ryan's receipt and review of all 55 are confirmed. Nicholas has the eight selections and the questions about the Meshy plan and which models predate November 12. Filename dates alone do not establish creation dates. Nicholas previously confirmed Sentinel Armor is his original design created with Meshy and requested project credit; specific output license terms remain unverified. Its existing pilot assignment continues. The Gothic Stone Arch appearance and any additional or replacement enemy use of Sentinel are with Nicholas. The location handoff is complete in #36.
 
+**Reply (Nick / Lead, November 13).** Nicholas confirms his Meshy subscription is Pro. Meshy describes Pro as including commercial use for models created with inputs the creator has rights to use. Creation dates for the eight selections are still pending. [Meshy commercial-use guidance](https://help.meshy.ai/en/articles/9992001-can-i-use-meshy-assets-commercially-license-copyright-explained)
+
+**Reply (Nick / Lead, November 13).** Nicholas confirms all eight R-037 selections were made before November 12, 2026: Coilgun Assault Rifle, Crimson Vanguard, Nebula Shadowfighter, Spaceship (white hull, cyan ring engines), Circular Bulkhead Wall, Gothic Stone Arch, Crimson Tempest, and UnlabelledRifle01. Please record these eight as pre-jam assets in the submission disclosure if used.
+
+**Reply (Nick / Lead, November 13).** Nicholas has put the recurring ancient artifact on hold. Please pause work on its visual design, including the Gothic Stone Arch proposal and the existing reference in #37, until he supplies the forthcoming image. The separate survey-terminal screen graphics in #44 are a different deliverable.
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
@@ -1018,6 +1024,8 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead):** Floor-contact ref eng/t5-airslam-floor@4f1ec97 received. With R-036, Ryan owns the effect, binding and game build. Please deliver the real third-person landing clip or a matching build with the finished effect through [issue #31](https://github.com/rthomas24/2026-epic-ai-megajam/issues/31). Nicholas wants to see the slam at floor contact in gameplay.
 
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
+
+**Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
 
 
 ### N-043 - COMPLETE - Remote Win64 Shipping cook for loading-screen verification
