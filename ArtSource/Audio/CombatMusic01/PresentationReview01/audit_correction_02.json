@@ -1,0 +1,17 @@
+{
+  "stage": "Correction prepared; native rerun NOT executed",
+  "first_native_attempt": "GuardBind01/PID14108",
+  "first_native_passed": false,
+  "protected_unchanged": 1682,
+  "style_unchanged": true,
+  "all_29_rows_inspected": true,
+  "all_12_cue_printed_members_match_defaults": true,
+  "printed_values_only_omitted_memory_addresses_for_diagnosis": true,
+  "production_correction": "Explicit native member reads of all6 FTDFXCue members including vectorxyz and objectpaths; no string normalization used by audit",
+  "remaining_raw_difference": [
+    "menu_music"
+  ],
+  "corrected_audit_sha256": "1fc871d6d01eaa6efae8bd0e81f6d03b9b12f00ad78a5eba6f4d6b3d0285d6ea",
+  "source_syntax_checked": true,
+  "native_launches_since_failure": 0
+}

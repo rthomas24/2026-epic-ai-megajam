@@ -47,3 +47,11 @@ Lead provisions/builds `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/presen
 4. Granted actual game-only probes: existing attach-only `observe_music.py`, isolated UserDir, private port8025, real output device, -NoLiveCoding, bounded owned-process launcher and fresh RAM/process preflight. Lead must review the launcher after build/host pins are available. Keep actual victory/map cleanup separate from the real pause-menu fade test. Loop probe emits heartbeats and fits a reviewed300-second outer limit; separate ground/cleanup run as needed. No fake audio Play or director override.
 
 The three copied Morning01 scripts preserve their original bytes. Old READY.json and frozen sources remain unchanged; this handoff supersedes only the assumption that the current host already has a style. No script auto-mounts or creates one. After tests, ask Lead for fresh remote preflight before any scoped commit/publication. No Main merge or listening approval implied.
+
+## First native attempt and correction
+
+Lead subsequently granted the built isolated host at dae4943a. GuardBind01/PID14108 stopped at the read-only audit, before the binder ran: OS4294967295, engine exit1/exit_request,53.859seconds, minimum available4.610GiB. All1682 protected files unchanged and no new Content; style remained0a1f. No process remained. Preserve both raw style_audit.json and engine/guard reports under that host's Saved/AudioMusic/CombatMusic01.
+
+The audit flagged all12 FTDFXCue properties because their Python wrappers compare by identity. Every printed named value matched the CDO; only memory addresses differed. Other16 non-menu properties matched, and MenuMusic was the expected difference. This failed run is not a native compatibility PASS.
+
+The corrected audit checks the current FTDFXCue schema has exactly the six understood members, then reads vfx/sound/shake reference paths, exact shake_scale/shake_radius values and all three vfx_scale components. It compares these value dictionaries for every cue, plus all remaining properties. Unknown members or unreadable properties fail. The corrected audit still requires MenuMusic to be the only real difference, and does not change or skip any style field. Lead must grant the new evidence-ID attempt after the Hero slot; no automatic native retry.
