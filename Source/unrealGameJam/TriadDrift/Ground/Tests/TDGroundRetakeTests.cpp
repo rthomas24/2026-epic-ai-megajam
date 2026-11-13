@@ -245,4 +245,61 @@ bool FTDRetakeSummons::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Director's mercy is a hook on any encounter: no tiers = the same fight every take; with tiers the highest
+// reached applies to every member it spawns; a capped Warden stops summoning after its allowance.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeMercyHook, "TriadDrift.Ground.Retake.DirectorsMercyEasesByTake", TD_TEST_FLAGS)
+bool FTDRetakeMercyHook::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-900.f, 0.f, 95.f));
+	ATDEncounterVolume* Plain = TDRetakeTest::MakeRoom(W, FVector(0.f, 3000.f, 150.f), nullptr, INDEX_NONE, 2);
+	ATDEncounterVolume* Room = TDRetakeTest::MakeRoom(W, FVector(0.f, 0.f, 150.f), nullptr, INDEX_NONE, 2);
+	Room->CrewMix = { ETDCrewType::Warden, ETDCrewType::Grunt };
+	FTDRetakeMercyTier T3; T3.FromTake = 3; T3.HealthScale = 0.75f; T3.MaxSummons = 1;
+	FTDRetakeMercyTier T5; T5.FromTake = 5; T5.HealthScale = 0.5f; T5.MaxSummons = 0;
+	Room->MercyTiers = { T5, T3 }; // order doesn't matter
+	W.Advance(0.1f);
+	const float WardenHp = FTDCrewLibrary::Get(ETDCrewType::Warden).MaxHealth;
+	const float GruntHp = FTDCrewLibrary::Get(ETDCrewType::Grunt).MaxHealth;
+	for (int32 Take = 1; Take <= 5; ++Take)
+	{
+		Plain->Activate();
+		Room->Activate();
+		const float Scale = Take >= 5 ? 0.5f : Take >= 3 ? 0.75f : 1.f;
+		TestEqual(*FString::Printf(TEXT("take %d counted"), Take), Room->GetTake(), Take);
+		TestTrue(*FString::Printf(TEXT("take %d: mercy only from take 3"), Take), (Room->GetActiveMercy() != nullptr) == (Take >= 3));
+		TestNull(TEXT("no tiers, never eased"), Plain->GetActiveMercy());
+		for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned())
+		{
+			const ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get());
+			if (!C) { continue; }
+			const float Full = C->CrewType == ETDCrewType::Warden ? WardenHp : GruntHp;
+			TestEqual(*FString::Printf(TEXT("take %d: %s health"), Take, *UEnum::GetValueAsString(C->CrewType)), C->GetHealth()->MaxHull, Full * Scale, 0.5f);
+		}
+		for (const TWeakObjectPtr<AActor>& M : Plain->GetSpawned())
+		{
+			if (const ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get())) { TestEqual(TEXT("plain room full health"), C->GetHealth()->MaxHull, GruntHp, 0.5f); }
+		}
+		if (Take == 3)
+		{
+			ATDCrewCharacter* Warden = Cast<ATDCrewCharacter>(Room->GetSpawned()[0].Get());
+			if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+			TestTrue(TEXT("take 3: one summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
+			W.Advance(Warden->Spec.BurstWindup + 1.f);
+			for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned())
+			{
+				if (ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && C != Warden && C->CrewType == ETDCrewType::Grunt && C->GetHealth()) { C->GetHealth()->Kill(P, ETDDamageKind::Melee); }
+			}
+			W.Advance(Warden->GetCooldownLeft(ETDCrewAttack::Summon) + 0.5f);
+			TestEqual(TEXT("take 3: allowance spent"), Warden->GetSummonsLeft(), 0);
+			TestFalse(TEXT("take 3: no second summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
+		}
+		Plain->ResetEncounter();
+		Room->ResetEncounter();
+		W.Advance(0.1f);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

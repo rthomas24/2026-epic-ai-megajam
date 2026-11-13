@@ -306,8 +306,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	bool bTriggerOnOverlap = true;
 
+	/** Director's mercy: easing per take of this fight (empty = always the same fight). Sorted by FromTake. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	TArray<FTDRetakeMercyTier> MercyTiers;
+
 	UPROPERTY(BlueprintAssignable, Category = "Encounter")
 	FTDOnEncounterCleared OnCleared;
+
+	/** This fight's current take (0 before it first starts, 1 on the first attempt). */
+	UFUNCTION(BlueprintPure, Category = "Encounter") int32 GetTake() const { return Take; }
+	/** The mercy tier in force for the current take, or null. */
+	const FTDRetakeMercyTier* GetActiveMercy() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Encounter") void Activate();
 	UFUNCTION(BlueprintCallable, Category = "Encounter") void ResetEncounter();
@@ -355,4 +364,5 @@ private:
 	TArray<TWeakObjectPtr<AActor>> Spawned;
 	bool bActivated = false;
 	bool bCleared = false;
+	int32 Take = 0;
 };
