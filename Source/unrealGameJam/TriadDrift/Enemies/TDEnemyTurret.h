@@ -30,6 +30,12 @@ public:
 
 	void Init(const FTDEnemyAttackSpec& InGuns, float Hull);
 
+	/** Turret art from Visuals (TurretMesh), else the placeholder. Called from BeginPlay and Init. */
+	void ApplyLook();
+
+	/** The mesh drawn (tests). */
+	UStaticMeshComponent* GetMesh() const { return Mesh; }
+
 	/** Difficulty / power multiplier on the turret's outgoing damage. */
 	void SetDamageMultiplier(float Multiplier);
 

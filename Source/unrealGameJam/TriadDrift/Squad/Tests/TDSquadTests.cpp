@@ -152,7 +152,7 @@ bool FTDSquadShipSpecs::RunTest(const FString& Parameters)
 	const FTDShipSpec& B = UTDShipLibrary::Get(ETDShipId::Bastion);
 
 	TestEqual(TEXT("Rift hull"), R.MaxHull, 100.f);      TestEqual(TEXT("Rift shield"), R.MaxShield, 100.f);
-	TestEqual(TEXT("Lancer hull"), L.MaxHull, 70.f);     TestEqual(TEXT("Lancer shield"), L.MaxShield, 80.f);
+	TestEqual(TEXT("Lancer hull"), L.MaxHull, 70.f);     TestEqual(TEXT("Lancer shield"), L.MaxShield, 96.f);	// x1.2, T4 sweep (Nov 13)
 	TestEqual(TEXT("Bastion hull"), B.MaxHull, 180.f);   TestEqual(TEXT("Bastion shield"), B.MaxShield, 160.f);
 	TestEqual(TEXT("Rift cruise"), R.CruiseSpeed, 6000.f);     TestEqual(TEXT("Rift boost"), R.BoostSpeed, 11000.f);
 	TestEqual(TEXT("Lancer cruise"), L.CruiseSpeed, 7500.f);   TestEqual(TEXT("Lancer boost"), L.BoostSpeed, 15000.f);
@@ -1190,8 +1190,8 @@ bool FTDSquadEvadeOnShieldBreak::RunTest(const FString& Parameters)
 		AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
 		F.W.Advance(2.f, Step);
 		TestTrue(TEXT("engaged") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Engage);
-		// Break Lancer's 80-point shield with a real hit.
-		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 85.f, ETDDamageKind::Energy, Enemy, Enemy);
+		// Break Lancer's 96-point shield with a real hit (80 before T4's Nov 13 balance pass).
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 101.f, ETDDamageKind::Energy, Enemy, Enemy);
 		F.W.Tick(Step);
 		F.W.Tick(Step);
 		TestTrue(TEXT("evades when the shield breaks") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Evade);
@@ -1272,7 +1272,7 @@ bool FTDSquadDomeDrift::RunTest(const FString& Parameters)
 	FSquadFixture F;
 	F.W.Advance(0.5f);
 	// Hurt Lancer below 40% with a real hit, then raise a player dome off to the side.
-	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 110.f, ETDDamageKind::Energy, F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f), nullptr);
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 126.f, ETDDamageKind::Energy, F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f), nullptr);	// 96 shield + 30 hull
 	TestTrue(TEXT("Lancer hurt"), UTDStatics::GetHealth(F.Ship(ETDShipId::Lancer))->GetHull01() < 0.6f);
 	AActor* DomeAnchor = F.W.Spawn<AActor>(F.Ship(ETDShipId::Rift)->GetActorLocation() + FVector(9000.f, -9000.f, 0.f));
 	USceneComponent* Root = NewObject<USceneComponent>(DomeAnchor, TEXT("Root"));
