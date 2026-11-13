@@ -205,7 +205,7 @@ Bark_Dom_GeneratorDown__Moss,Bark_Dom_GeneratorDown,Moss,High,"(""That's another
 Bark_Dom_Turrets__Wren,Bark_Dom_Turrets,Wren,High,"(""Turrets, watch the turrets!"")"
 Bark_Dom_Turrets__Kato,Bark_Dom_Turrets,Kato,High,"(""Defensive fire. Stay low."")"
 Bark_Dom_Turrets__Moss,Bark_Dom_Turrets,Moss,High,"(""They've got guns everywhere."")"
-Bark_Dom_FieldDown__Kato,Bark_Dom_FieldDown,Kato,Critical,"(""The field is down. The bay is open."")"
+Bark_Dom_FieldDown__Kato,Bark_Dom_FieldDown,Kato,Critical,"(""The shield is down. The bay is open."")"
 Bark_Dom_Tractor__Wren,Bark_Dom_Tractor,Wren,High,"(""Something's pulling us in."")"
 Bark_Dom_Tractor__Kato,Bark_Dom_Tractor,Kato,High,"(""We are being guided. Controls limited."")"
 Bark_Dom_Tractor__Moss,Bark_Dom_Tractor,Moss,High,"(""Easy. Let it take us."")"
