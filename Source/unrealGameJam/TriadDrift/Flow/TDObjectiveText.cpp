@@ -51,6 +51,15 @@ namespace TDObjectiveTextImpl
 		case ETDGamePhase::Cinder:
 			Out = Line(TEXT("Travel_Cinder"), 0, LOCTEXT("JumpCinder", "JUMP TO CINDER"));
 			return true;
+		case ETDGamePhase::Escape:
+		{
+			// The escape flight (T4, ENG-31): fly clear of the breaking Dominion; the seconds left from its clock.
+			const ATDDominion* D = ATDDominion::Get(World);
+			const int32 Left = D && D->GetState() == ETDDominionState::EscapeFlight ? FMath::CeilToInt(D->GetEscapeTimeLeft()) : 0;
+			Out = Left > 0 ? Line(TEXT("Escape_Flight"), 0, FText::Format(LOCTEXT("EscapeFlightLeft", "GET CLEAR OF THE DOMINION · {0}"), Left))
+				: Line(TEXT("Escape_Flight"), 0, LOCTEXT("EscapeFlight", "GET CLEAR OF THE DOMINION"));
+			return true;
+		}
 		case ETDGamePhase::DominionAssault:
 		{
 			const ATDDominion* D = ATDDominion::Get(World);
@@ -158,6 +167,19 @@ bool FTDObjectiveText::Compute(UWorld* World, const FTDProgress& Progress, ETDDe
 		}
 		return true;
 	}
+	case ETDDestination::DominionInterior:
+	{
+		// Between rooms: "HEAD TO THE FLIGHT DECK" (the running room's objective owns the line otherwise).
+		TArray<AActor*> Unused;
+		const ATDPlanetCourse* Interior = ATDPlanetCourse::Get(World);
+		if (Interior && Interior->IsInterior() && Interior->GetIdleLine(Out.Text, Unused))
+		{
+			Out.Id = TEXT("Choose_Interior");
+			Out.Step = 0;
+			return true;
+		}
+		return false;
+	}
 	default:
 		return false;
 	}
@@ -245,6 +267,19 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 				FText Unused;
 				Planet->GetCourse()->GetIdleLine(Unused, Out); // the trailheads still open
 			}
+		}
+	}
+	if (Destination == ETDDestination::DominionInterior)
+	{
+		if (const UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(World))
+		{
+			Objectives->GetActiveWaypoints(Out);
+		}
+		const ATDPlanetCourse* Interior = ATDPlanetCourse::Get(World);
+		if (Out.Num() == 0 && Interior && Interior->IsInterior())
+		{
+			FText Unused;
+			Interior->GetIdleLine(Unused, Out); // the next room's door
 		}
 	}
 }

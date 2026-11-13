@@ -21,6 +21,9 @@ ENEMY = (1.0, 0.22, 0.05, 1.0)
 FIRE = (1.0, 0.42, 0.10, 1.0)
 SHIELD = (0.25, 0.60, 1.0, 1.0)
 SHIELD_HIT = (0.22, 0.62, 1.0, 1.0)   # pale cyan-blue (the ring material adds white on top)
+# round 5: sprites and world-space particles do not follow the component's scale, so a cue's VFXScale did nothing to
+# them. SCL folds the owner's scale in. Local-space mesh particles already follow the component: they keep User.Scale.
+SCL = '(User.Scale*Engine.Owner.Scale.x)'
 FADE = 'pow(1.0 - Particles.NormalizedAge, %s)'
 FLICK = '(0.80 + 0.40*frac(sin(Engine.Time*%s)*43758.5))'
 
@@ -52,9 +55,9 @@ def single(name, mat, size, k=1.0, flicker=None, local=True, life=None, extra=No
     # particle would otherwise hang in space where the shot ended until its loop ran out (seen in play, round 4).
     sets = [(EU, 'EmitterState', 'Life Cycle Mode', E('Self')), (EU, 'EmitterState', 'Loop Behavior', E('Infinite')), (EU, 'EmitterState', 'Inactive Response', E('Kill')), (PS, INIT, 'Color Mode', E('Direct Set')), (PS, INIT, 'Color', col(k))]
     if isinstance(size, tuple):
-        sets += [(PS, INIT, 'Sprite Size Mode', E('Non-Uniform')), (PS, INIT, 'Sprite Size', X('float2(%s, %s)*User.Scale' % size))]
+        sets += [(PS, INIT, 'Sprite Size Mode', E('Non-Uniform')), (PS, INIT, 'Sprite Size', X('float2(%s, %s)*' % size + SCL))]
     else:
-        sets += [(PS, INIT, 'Sprite Size Mode', E('Uniform')), (PS, INIT, 'Uniform Sprite Size', X('%s*User.Scale' % size))]
+        sets += [(PS, INIT, 'Sprite Size Mode', E('Uniform')), (PS, INIT, 'Uniform Sprite Size', X('%s*%s' % (size, SCL)))]
     if offset:
         sets += [(PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset', X('float3(%s,%s,%s)*User.Scale' % offset))]
     add = []
@@ -79,7 +82,7 @@ def ribbon(name, width, life, k=1.0, rate=150.0, mat='M_TD_VFX_Ribbon', taper=0.
             'add': [(EU, 'Emitter/SpawnRate'), (PU, 'Ribbons/ScaleRibbonWidth'), (PU, 'Update/Color/ScaleColor')],
             'set': [(EU, 'EmitterState', 'Loop Behavior', E('Infinite')), (EU, 'SpawnRate', 'SpawnRate', float(rate)),
                     (PS, INIT, 'Lifetime', float(life)), (PS, INIT, 'Color Mode', E('Direct Set')), (PS, INIT, 'Color', col(k)),
-                    (PS, INIT, 'Ribbon Width Mode', E('Direct Set')), (PS, INIT, 'Ribbon Width', X('%s*User.Scale' % width)),
+                    (PS, INIT, 'Ribbon Width Mode', E('Direct Set')), (PS, INIT, 'Ribbon Width', X('%s*%s' % (width, SCL))),
                     (PU, 'ScaleRibbonWidth', 'Ribbon Width Scale', X('1.0 - Particles.NormalizedAge*%s' % taper))] + fade_alpha(power),
             'mat': mat, 'rend': {'UV0Settings': {'distributionMode': 'TiledOverRibbonLength', 'tilingLength': tile}}}
 
@@ -89,6 +92,7 @@ def shed(name, mat, rate, life, size, speed, k=1.0, radius=10.0, drag=2.0, curl=
     """Many small particles: sparks, wisps, puffs, embers. rate (continuous) or burst (count, one shot).
     cone = (axis xyz, angle) shoots them in a cone (emitter local space); otherwise outwards from the centre."""
     base = 'burst' if burst else 'rate'
+    PSC = 'User.Scale' if local else SCL   # positions and speeds of a local-space emitter already follow the component
     add = [(PU, 'Update/Size/ScaleSpriteSize')] if (growth and base == 'rate') else []
     sets = []
     if burst:
@@ -101,12 +105,12 @@ def shed(name, mat, rate, life, size, speed, k=1.0, radius=10.0, drag=2.0, curl=
              (PS, INIT, 'Color', X('float4(%s, %s, %s, %s)' % (rgb + (alpha,))) if rgb else col(k, alpha))]
     if stretch:  # thin streaks: width x (width*stretch), velocity aligned
         sets += [(PS, INIT, 'Sprite Size Mode', E('Random Non-Uniform')),
-                 (PS, INIT, 'Sprite Size Min', X('float2(%s, %s)*User.Scale' % (size[0], size[0] * stretch))),
-                 (PS, INIT, 'Sprite Size Max', X('float2(%s, %s)*User.Scale' % (size[1], size[1] * stretch)))]
+                 (PS, INIT, 'Sprite Size Min', X('float2(%s, %s)*' % (size[0], size[0] * stretch) + SCL)),
+                 (PS, INIT, 'Sprite Size Max', X('float2(%s, %s)*' % (size[1], size[1] * stretch) + SCL))]
     else:
-        sets += [(PS, INIT, 'Uniform Sprite Size Min', X('%s*User.Scale' % size[0])), (PS, INIT, 'Uniform Sprite Size Max', X('%s*User.Scale' % size[1]))]
-    sets += [(PS, 'ShapeLocation', 'Sphere Radius', X('%s*User.Scale' % radius))]
-    spd = X('lerp(%s, %s, Particles.MaterialRandom)*User.Scale' % speed)
+        sets += [(PS, INIT, 'Uniform Sprite Size Min', X('%s*%s' % (size[0], SCL))), (PS, INIT, 'Uniform Sprite Size Max', X('%s*%s' % (size[1], SCL)))]
+    sets += [(PS, 'ShapeLocation', 'Sphere Radius', X('%s*%s' % (radius, PSC)))]
+    spd = X('lerp(%s, %s, Particles.MaterialRandom)*' % speed + PSC)
     if cone:
         sets += [(PS, 'AddVelocity', 'Velocity Mode', E('In Cone')), (PS, 'AddVelocity', 'Velocity Speed', spd),
                  (PS, 'AddVelocity', 'Cone Axis', cone[0]), (PS, 'AddVelocity', 'Cone Angle', float(cone[1]))]
@@ -115,7 +119,7 @@ def shed(name, mat, rate, life, size, speed, k=1.0, radius=10.0, drag=2.0, curl=
     sets += [(PU, 'GravityForce', 'Gravity', (0.0, 0.0, 0.0)), (PU, 'Drag', 'Drag', float(drag))] + fade_alpha(power, 'saturate(Particles.NormalizedAge*%s)' % fade_in if fade_in else '1.0')
     if curl:
         add.append((PU, 'Update/Forces/CurlNoiseForce'))
-        sets += [(PU, 'CurlNoiseForce', 'Noise Strength', X('%s*User.Scale' % curl)), (PU, 'CurlNoiseForce', 'Noise Frequency', 0.004)]
+        sets += [(PU, 'CurlNoiseForce', 'Noise Strength', X('%s*%s' % (curl, PSC))), (PU, 'CurlNoiseForce', 'Noise Frequency', 0.004)]
     if growth:
         sets += grow(growth, base)
     rend = {'Alignment': 'VelocityAligned'} if (aligned or stretch) else {}
@@ -192,7 +196,7 @@ def chunks(name, mesh, count, life, size, speed, drag=0.5, radius=60.0, cone=Non
     e['add'] = [(PS, 'Spawn/Orientation/V3/InitialMeshOrientation'), (PU, 'Update/Orientation/V3/UpdateMeshOrientation'), (PU, 'Update/Size/ScaleMeshSize')]
     e['keep_solver_order'] = True
     e['set'] += [(PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')),
-                 (PS, INIT, 'Mesh Scale', X('float3(1.0, 0.6 + 0.8*frac(Particles.MaterialRandom*7.13), 0.5 + 0.9*frac(Particles.MaterialRandom*3.71))*lerp(%s, %s, frac(Particles.MaterialRandom*5.77))*User.Scale' % size)),
+                 (PS, INIT, 'Mesh Scale', X('float3(1.0, 0.6 + 0.8*frac(Particles.MaterialRandom*7.13), 0.5 + 0.9*frac(Particles.MaterialRandom*3.71))*lerp(%s, %s, frac(Particles.MaterialRandom*5.77))*' % size + SCL)),
                  (PS, 'InitialMeshOrientation', 'Use Rotation Vector', True),
                  (PS, 'InitialMeshOrientation', 'Rotation', X('float3(frac(Particles.MaterialRandom*11.3), frac(Particles.MaterialRandom*17.7), frac(Particles.MaterialRandom*23.9))')),
                  (PU, 'UpdateMeshOrientation', 'Rotation Vector', X('normalize(float3(frac(Particles.MaterialRandom*3.3)-0.5, frac(Particles.MaterialRandom*9.1)-0.5, frac(Particles.MaterialRandom*13.7)-0.5))*lerp(%s, %s, Particles.MaterialRandom)' % spin)),
@@ -261,7 +265,7 @@ def glow_single(name, size, k, flick):
     return e
 
 
-def tracer(length, width, sheath=3.2, rib_life=0.16, spark_rate=40.0, flick=71.3, extra=(), hot=1.0):
+def tracer(length, width, sheath=3.2, rib_life=0.16, spark_rate=40.0, flick=71.3, extra=(), hot=1.0, needle_core=True):
     # Round 4: the shot must be the most readable thing on screen after the reticle. A white-hot core (the bolt mesh
     # driven over 1 so its centre clips to white, plus a white core sprite), a saturated sheath in the squad colour, a
     # short fading trail and a small additive glow.
@@ -270,9 +274,22 @@ def tracer(length, width, sheath=3.2, rib_life=0.16, spark_rate=40.0, flick=71.3
     white['set'] = [x for x in white['set'] if x[2] != 'Color'] + [(PS, INIT, 'Color', X('float4(lerp(User.Color.rgb, float3(1,1,1), 0.75)*%s, 1.0)' % (2.2 * hot))),
                                                                     (PU, 'ScaleSpriteSize', 'Scale Sprite Size Mode', E('Uniform')), (PU, 'ScaleSpriteSize', 'Uniform Scale Factor', X(DIST))]
     white['add'].append((PU, 'Update/Size/ScaleSpriteSize'))
-    return [mesh_single('Bolt', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '%s, %s, %s' % (L, W, W), 1.5 * hot, flick, offset=(-length * 0.30, 0, 0),
+    # Round 5: a dark translucent body under the bolt (drawn first) so the shot reads against the bright magenta nebula,
+    # and a thin white-hot needle along the axis (squad shots only; the enemy's stays a ball).
+    shadow = mesh_single('Shadow', 'SM_TD_VFX_Bolt', 'M_TD_VFX_BoltShadow', '%s, %s, %s' % (L * 1.06, W * 1.45, W * 1.45), 1.0, None,   # 2.1 wide read as a dark bubble end-on (seen in play)
+                         offset=(-length * 0.30, 0, 0), live_scale='float3(1,1,1)*' + DIST)
+    shadow['rend']['SortOrderHint'] = -10
+    core = []
+    if needle_core:
+        nd = needle('Needle', width * 0.34, length * 0.80, 1.0, flick * 0.9, back=-length * 0.30)
+        nd['set'] = [x for x in nd['set'] if x[2] != 'Color'] + [(PS, INIT, 'Color', X('float4(lerp(User.Color.rgb, float3(1,1,1), 0.85)*2.6, 1.0)')),
+                                                                 (PU, 'ScaleSpriteSize', 'Scale Sprite Size Mode', E('Uniform')), (PU, 'ScaleSpriteSize', 'Uniform Scale Factor', X(DIST))]
+        nd['add'].append((PU, 'Update/Size/ScaleSpriteSize'))
+        core = [nd]
+    return [shadow,
+            mesh_single('Bolt', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '%s, %s, %s' % (L, W, W), 1.5 * hot, flick, offset=(-length * 0.30, 0, 0),
                         live_scale='float3(1,1,1)*' + DIST),
-            white,
+            white] + core + [
             glow_single('Sheath', width * sheath, 0.55, flick * 0.77),
             trail('Trail', width * 0.95, rib_life, 1.1),
             shed('Sparks', 'M_TD_VFX_Glow', spark_rate, (0.15, 0.40), (width * 0.12, width * 0.30), (40, 300), k=1.2, radius=width * 0.3, drag=1.5, curl=900.0)] + list(extra)
@@ -291,7 +308,7 @@ S('NS_TD_Tracer_Bastion', U(BASTION), tracer(420, 115, sheath=3.2, rib_life=0.10
     spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 40.0, (0.5, 0.9), (130, 200), (10, 90), radius=12.0, drag=1.0, curl=500.0, power=0.8, rgb=(0.32, 0.28, 0.27), alpha=0.6,
               growth='0.8 + Particles.NormalizedAge*1.6', sort=True))]))
 # Enemy: a red-orange ball of plasma, short and round where the squad's shots are long needles; dimmer core.
-S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(230, 125, sheath=3.0, rib_life=0.07, spark_rate=30.0, flick=47.1, hot=0.7))
+S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(230, 125, sheath=3.0, rib_life=0.07, spark_rate=30.0, flick=47.1, hot=0.7, needle_core=False))
 
 # --------------------------------------------------------------------------------------------- muzzle flashes
 # Directional: a short flame cone along +X, a spiked star seen down the barrel, a few forward sparks. 2-3 frames.
@@ -314,20 +331,21 @@ S('NS_TD_Muzzle_Enemy', U(ENEMY), muzzle(140, 6))
 # --------------------------------------------------------------------------------------------- engines
 # Attached at the nozzle, blowing along -X. User.Throttle (0..1, default 0.6) and User.Boost (0 or 1) are read every
 # frame: the flame grows longer, wider and brighter; Boost adds a long second flame with shock diamonds and sparks.
-THR = '(0.35 + 0.65*User.Throttle)'
-LEN = '(0.45 + 0.75*User.Throttle + 0.9*User.Boost)'
+THR = '(0.22 + 0.78*User.Throttle)'            # round 5: a stopped ship idles visibly smaller
+LEN = '(0.20 + 1.00*User.Throttle + 0.9*User.Boost)'
 FLK = '(0.92 + 0.16*frac(sin(Engine.Time*%s)*43758.5))'
 
 
-def engine(boost_only=False):
-    outer = mesh_single('Flame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-4.2, 1.25, 1.25', 0.85, None,
+def engine(boost_only=False, kk=1.0):
+    # kk < 1 keeps the flame's own colour (less white-hot core): the Null fleet's exhaust must read red-orange.
+    outer = mesh_single('Flame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-4.2, 1.25, 1.25', 0.85 * kk, None,
                         live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 61.3, THR, THR))
-    inner = mesh_single('Inner', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-2.3, 0.7, 0.7', 1.7, None,
+    inner = mesh_single('Inner', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-2.3, 0.7, 0.7', 1.7 * kk * kk, None,
                         live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 97.1, THR, THR))
     boost = mesh_single('BoostFlame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame_Boost', '-9.5, 1.0, 1.0', 1.3, None,
                         live_scale='float3(1,1,1)*User.Boost*%s' % (FLK % 43.7))
     glow = single('Glow', 'M_TD_VFX_Glow', '(260*%s + 160*User.Boost)' % THR, 0.6, 83.3)
-    hot = single('Hot', 'M_TD_VFX_Glow', '(110*%s + 60*User.Boost)' % THR, 1.6, 57.9)
+    hot = single('Hot', 'M_TD_VFX_Glow', '(110*%s + 60*User.Boost)' % THR, 1.6 * kk * kk, 57.9)
     wisps = shed('Wisps', 'M_TD_VFX_Fire', 0, (0.10, 0.22), (60, 110), ('1200*%s' % LEN, '2600*%s' % LEN), k=0.5, radius=18.0, drag=1.2,
                  curl=2200.0, local=True, cone=((-1.0, 0.0, 0.0), 6.0), growth='1.0 - Particles.NormalizedAge*0.5',
                  rate_expr='90.0*(0.3 + 0.7*User.Throttle + 0.6*User.Boost)')
@@ -341,7 +359,9 @@ def engine(boost_only=False):
 
 
 for _n, _c in (('Rift', RIFT), ('Lancer', LANCER), ('Bastion', BASTION), ('Enemy', ENEMY)):
-    S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=0.6, Boost=0.0), engine())
+    _kk = 0.62 if _n == 'Enemy' else 1.0
+    _c = (1.0, 0.10, 0.015, 1.0) if _n == 'Enemy' else _c
+    S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=0.6, Boost=0.0), engine(kk=_kk))
     # the afterburner alone, always on: for the BoostLoop cue slot, which is a separate attached loop
     S('NS_TD_EngineBoost_' + _n, U(_c, 1.0, Throttle=1.0, Boost=1.0), engine(True))
 
@@ -373,12 +393,25 @@ S('NS_TD_Impact_Shield', U(SHIELD_HIT), [
 
 # Ship-level hit cues (UTDShipVisuals / UTDEnemyVisuals HullHit, ShieldHit). An enemy ship plays these IN ADDITION to the
 # weapon's impact cue at the same point, with no rotation, so they are light and camera-facing: no ring, no flash.
+# Round 5 (T4, fe7ca8f): a projectile hit plays only the weapon's impact cue. These two now play for rams, beams, splash
+# and melee, with +X pointing back along the hit: a strong directional spray, a flash and a few hot bits.
 S('NS_TD_Ship_HullHit', U(FIRE), [
-    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.20, 0.50), (5, 10), (900, 3600), k=1.5, radius=14.0, drag=2.2, stretch=11, burst=10, dur=0.6),
-    shed('Flecks', 'M_TD_VFX_Glow', 0, (0.35, 0.8), (9, 20), (150, 1100), k=1.0, radius=16.0, drag=1.6, curl=700.0, burst=6, dur=1.0, power=2.0)])
+    flash('Flash', 'M_TD_VFX_Flare', 380, 0.08, 1.2, growth='(0.5 + Particles.NormalizedAge)*' + NEAR),
+    flash('Glow', 'M_TD_VFX_Glow', 520, 0.16, 0.45, growth=NEAR),
+    shed('Spray', 'M_TD_VFX_Spark', 0, (0.22, 0.60), (6, 13), (2200, 7500), k=1.7, radius=14.0, drag=2.0, stretch=16,
+         cone=((1.0, 0.0, 0.0), 32.0), burst=34, dur=0.7),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.20, 0.50), (5, 10), (900, 3600), k=1.5, radius=14.0, drag=2.2, stretch=11,
+         cone=((1.0, 0.0, 0.0), 85.0), burst=14, dur=0.6),
+    shed('Flecks', 'M_TD_VFX_Glow', 0, (0.35, 0.9), (9, 20), (150, 1600), k=1.0, radius=16.0, drag=1.6, curl=700.0,
+         cone=((1.0, 0.0, 0.0), 70.0), burst=12, dur=1.0, power=2.0),
+    chunks('Bits', 'SM_TD_VFX_Shard_B', 5, (0.5, 1.0), (0.10, 0.26), (600, 2400), drag=0.6, radius=10.0, cone=((1.0, 0.0, 0.0), 50.0), dur=1.1, spin=(1.5, 5.0))])
 S('NS_TD_Ship_ShieldHit', U(SHIELD_HIT), [
-    flash('Glow', 'M_TD_VFX_Glow', 150, 0.12, 0.25, growth=NEAR),
-    shed('Motes', 'M_TD_VFX_Glow', 0, (0.25, 0.5), (7, 15), (250, 1100), k=1.0, radius=20.0, drag=2.5, curl=600.0, burst=8, dur=0.7, power=2.0)])
+    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_Shock', '1.0, 6.0, 6.0', 0.32, 0.55, growth='float3(1,1,1)*(0.16 + pow(Particles.NormalizedAge, 0.6)*0.84)*' + NEAR, power=1.3),
+    flash('Glow', 'M_TD_VFX_Glow', 240, 0.14, 0.35, growth=NEAR),
+    shed('Spray', 'M_TD_VFX_Spark', 0, (0.14, 0.34), (4, 9), (1400, 4800), k=1.3, radius=8.0, drag=2.8, stretch=12,
+         cone=((1.0, 0.0, 0.0), 45.0), burst=16, dur=0.5),
+    shed('Motes', 'M_TD_VFX_Glow', 0, (0.25, 0.6), (7, 15), (250, 1300), k=1.0, radius=20.0, drag=2.5, curl=600.0,
+         cone=((1.0, 0.0, 0.0), 80.0), burst=12, dur=0.7, power=2.0)])
 
 # --------------------------------------------------------------------------------------------- explosions
 # The blast, the smoke and the main ring use Grok Bot's textures (T_TD_VFX_Grok_*, sources ArtSource/EngAI/VFX); the rest
@@ -388,36 +421,62 @@ S('NS_TD_Ship_ShieldHit', U(SHIELD_HIT), [
 def pops():
     """Secondary blasts for the large explosion: smaller flipbook blasts going off around the centre for 0.6 s.
     One emitter on purpose: every extra emitter costs gigabytes of editor memory when the system is rebuilt."""
-    e = spin(shed('Pops', 'M_TD_VFX_FlipExplosion', 5.0, (0.7, 0.95), (650, 1000), (0, 80), radius=560.0, drag=2.0, rgb=(1.3, 1.3, 1.3),
+    e = spin(shed('Pops', 'M_TD_VFX_FlipExplosion', 5.0, (0.7, 0.95), (650, 1000), (0, 80), radius=560.0, drag=2.0, rgb=(0.9, 0.9, 0.9),
                   power=0.35, growth='0.6 + pow(Particles.NormalizedAge, 0.5)*0.6'))
-    e['set'] += [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', 1.5)]   # round 4: staggered over 1.5 s
+    e['set'] += [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', 2.4)]   # round 5: staggered over 2.4 s
     return e
 
 
+def spark_trails(count, speed, life=0.9, size=(15, 26), trail_life=0.45, bounds=26000):
+    """Round 5: real spark trails. 'Leaders' are GPU sparks flying out; 'Followers' are spawned along every leader's path
+    (attribute reader, emitters taken from the engine's AttributeReaderTrails template) and shrink away behind it."""
+    fb = {'SimTarget': 'GPUComputeSim', 'CalculateBoundsMode': 'Fixed',
+          'FixedBounds': {'min': {'x': -bounds, 'y': -bounds, 'z': -bounds}, 'max': {'x': bounds, 'y': bounds, 'z': bounds}, 'isValid': True}}
+    lead = {'name': 'Leaders', 'base': 'leaders', 'props': dict(fb), 'remove': [(PU, 'Collision')], 'mat': 'M_TD_VFX_Glow',
+            'set': [(EU, 'EmitterState', 'Life Cycle Mode', E('Self')), (EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', float(life + 0.2)),
+                    (EU, 'SpawnBurst_Instantaneous', 'Spawn Count', int(count)),
+                    (PS, INIT, 'Lifetime', float(life)), (PS, INIT, 'Color Mode', E('Direct Set')), (PS, INIT, 'Color', col(2.2)),
+                    (PS, INIT, 'Uniform Sprite Size Min', X('%s*%s' % (size[0], SCL))), (PS, INIT, 'Uniform Sprite Size Max', X('%s*%s' % (size[1], SCL))),
+                    (PS, 'AddVelocity', 'Velocity Mode', E('In Cone')), (PS, 'AddVelocity', 'Cone Angle', 360.0),   # leaders start AT the centre: 'From Point' gave them no direction
+                    (PS, 'AddVelocity', ['Velocity Speed', 'Minimum'], X('%s*%s' % (speed[0], SCL))), (PS, 'AddVelocity', ['Velocity Speed', 'Maximum'], X('%s*%s' % (speed[1], SCL))),
+                    (PU, 'GravityForce', 'Gravity', (0.0, 0.0, 0.0)), (PU, 'Drag', 'Drag', 1.7)]}
+    follow = {'name': 'Followers', 'base': 'followers', 'props': dict(fb), 'mat': 'M_TD_VFX_Glow',
+              'set': [(EU, 'EmitterState', 'Life Cycle Mode', E('Self')), (EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', float(life + 0.2)),
+                      (EU, 'SpawnParticlesFromOtherEmitter', 'Spawn Rate', 420.0),
+                      (PS, INIT, 'Lifetime', float(trail_life)), (PS, INIT, 'Color Mode', E('Direct Set')), (PS, INIT, 'Color', col(1.3)),
+                      (PS, INIT, 'Sprite Size Mode', E('Uniform')), (PS, INIT, 'Uniform Sprite Size', X('%s*%s' % (size[0] * 0.8, SCL))),
+                      (PU, 'ScaleSpriteSize', 'Scale Factor', X('float2(1.0, 1.0)*pow(1.0 - Particles.NormalizedAge, 1.5)'))]}
+    return [lead, follow]
+
+
 def explosion(tier):
+    # Round 5: the body of the blast is procedural (layers of noise-eroded black-body fire sprites that expand, curl and
+    # cool, M_TD_VFX_Fireball), with Grok Bot's flipbook kept as ONE dim layer underneath for large-scale shape. Real
+    # spark trails, more tumbling mesh debris with cooling edges (three shard meshes), rim-lit smoke, no painted scrap.
     n = {1: 1.0, 2: 1.8, 3: 2.6}[tier]
     e = [flash('Flash', 'M_TD_VFX_Glow', 1500, 0.09, 0.9, growth='0.5 + Particles.NormalizedAge*0.7', power=1.2),
          flash('Star', 'M_TD_VFX_Flare', 1700, 0.10, 0.7, growth='0.5 + Particles.NormalizedAge'),
          light('Light', 4000, 0.30),
-         # the blast itself: Grok Bot's 8x8 explosion flipbook, played once over the particle's life
-         spin(shed('Blast', 'M_TD_VFX_FlipExplosion', 0, (1.0, 1.25), (1500, 1900), (0, 60), radius=40.0 * tier, drag=3.0, rgb=(1.3, 1.3, 1.3),
-                   burst=tier, dur=1.4, power=0.35, growth='0.62 + pow(Particles.NormalizedAge, 0.5)*0.55')),
-         shed('Core', 'M_TD_VFX_Fireball', 0, (0.25, 0.40), (420, 600), (40, 260), radius=60.0, drag=3.0, rgb=(1.6, 1.6, 1.6),
-              burst=int(2 * n), dur=0.6, power=0.6, growth='0.55 + Particles.NormalizedAge*0.8'),
-         shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.55, 1.1), (300, 520), (700, 2300), radius=140.0, drag=3.0, curl=900.0, rgb=(1.0, 1.0, 1.0),
-              burst=int(7 * n), dur=1.5, power=0.7, growth='0.5 + pow(Particles.NormalizedAge, 0.45)*1.15'),
+         spin(shed('Blast', 'M_TD_VFX_FlipExplosion', 0, (1.0, 1.25), (1500, 1900), (0, 60), radius=40.0 * tier, drag=3.0, rgb=(0.42, 0.42, 0.42),
+                   burst=1, dur=1.4, power=0.35, growth='0.62 + pow(Particles.NormalizedAge, 0.5)*0.55')),
+         spin(shed('Core', 'M_TD_VFX_Fireball', 0, (0.28, 0.45), (460, 680), (40, 260), radius=60.0, drag=3.0, rgb=(1.7, 1.7, 1.7),
+                   burst=int(3 * n), dur=0.6, power=0.6, growth='0.55 + Particles.NormalizedAge*0.8')),
+         spin(shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.80, 1.60), (340, 620), (500, 2100), radius=170.0, drag=2.8, curl=1100.0, rgb=(1.0, 1.0, 1.0),
+                   burst=int(13 * n), dur=1.6, power=0.7, growth='0.45 + pow(Particles.NormalizedAge, 0.45)*1.25')),
+         spin(shed('Licks', 'M_TD_VFX_Fireball', 0, (0.35, 0.80), (150, 300), (1500, 4200), radius=120.0, drag=3.4, curl=1600.0, rgb=(1.1, 1.1, 1.1),
+                   burst=int(12 * n), dur=1.1, power=0.8, growth='0.6 + pow(Particles.NormalizedAge, 0.5)*1.0')),
          flash('Shockwave', 'M_TD_VFX_FlipRing', 5200, 0.34, 1.0, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4),
-         # round 4: long streaking spark trails (velocity-aligned, 26:1) that slow down and fade
          shed('Sparks', 'M_TD_VFX_Spark', 0, (0.45, 1.20), (9, 20), (2600, 10500), k=1.9, radius=60.0, drag=2.2, stretch=26,
-              burst=int(34 * n), dur=1.3, power=1.4),
+              burst=int(26 * n), dur=1.3, power=1.4),
          chunks('Chunks', 'SM_TD_VFX_Shard_A', int(4 * n), (1.2, 2.2), (0.35, 0.9), (700, 3000), radius=80.0),
-         # painted scrap from Grok Bot's debris atlas (camera-facing sprites), next to the tumbling meshes
-         spin(shed('Scrap', 'M_TD_VFX_FlipDebris', 0, (1.4, 2.6), (110, 260), (500, 2600), radius=80.0, drag=0.5, rgb=(1.0, 1.0, 1.0),
-                   burst=int(5 * n), dur=3.0, power=0.01, sort=True)),
+         chunks('Plates', 'SM_TD_VFX_Shard_B', int(4 * n), (1.3, 2.4), (0.30, 0.8), (900, 3600), radius=80.0, spin=(1.0, 4.0)),
+         spin(shed('SmokeRim', 'M_TD_VFX_SmokeRim', 0, (1.2, 2.0), (420, 640), (250, 1100), radius=200.0, drag=2.0, curl=500.0, rgb=(0.34, 0.30, 0.28), alpha=0.8,
+                   burst=int(4 * n), dur=2.2, power=0.7, fade_in=6.0, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.2', sort=True)),
          spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (2.2, 3.6), (520, 760), (150, 700), radius=180.0, drag=1.5, curl=300.0, rgb=(0.52, 0.45, 0.40), alpha=0.85,
-                   burst=int(5 * n), dur=3.8, power=0.6, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
+                   burst=int(4 * n), dur=3.8, power=0.6, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
          shed('Embers', 'M_TD_VFX_Glow', 0, (0.9, 1.8), (12, 30), (150, 1700), k=1.2, radius=150.0, drag=1.3, curl=1300.0,
-              burst=int(20 * n), dur=2.0, power=2.0)]
+              burst=int(24 * n), dur=2.0, power=2.0)]
+    e += spark_trails(int(9 * n), (2600, 9000))
     if tier >= 2:
         e += [chunks('Lumps', 'SM_TD_VFX_Shard_C', int(2 * n), (1.4, 2.6), (0.4, 1.1), (400, 1800), radius=100.0)]
     if tier >= 3:
@@ -433,10 +492,10 @@ S('NS_TD_Explosion_Large', U(FIRE, 2.2), explosion(3))
 def explosion_cheap(final=False):
     """Six sprite emitters, no meshes, no light: for chains of 20 at once (Dominion hull sections) and the final blast."""
     e = [flash('Flash', 'M_TD_VFX_Glow', 1500, 0.10, 0.9, growth='0.5 + Particles.NormalizedAge*0.7', power=1.2),
-         spin(shed('Blast', 'M_TD_VFX_FlipExplosion', 0, (1.0, 1.3), (1500, 1900), (0, 60), radius=60.0, drag=3.0, rgb=(1.3, 1.3, 1.3),
+         spin(shed('Blast', 'M_TD_VFX_FlipExplosion', 0, (1.0, 1.3), (1500, 1900), (0, 60), radius=60.0, drag=3.0, rgb=(0.6, 0.6, 0.6),
                    burst=3 if final else 1, dur=1.4, power=0.35, growth='0.62 + pow(Particles.NormalizedAge, 0.5)*0.55')),
-         shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.55, 1.1), (300, 520), (700, 2300), radius=140.0, drag=3.0, rgb=(1.0, 1.0, 1.0),
-              burst=10 if final else 5, dur=1.5, power=0.7, growth='0.5 + pow(Particles.NormalizedAge, 0.45)*1.15'),
+         spin(shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.60, 1.25), (340, 620), (500, 2100), radius=170.0, drag=2.8, rgb=(1.0, 1.0, 1.0),
+                   burst=18 if final else 10, dur=1.6, power=0.7, growth='0.45 + pow(Particles.NormalizedAge, 0.45)*1.25')),
          flash('Shockwave', 'M_TD_VFX_FlipRing', 5200, 0.36, 0.9, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4),
          shed('Sparks', 'M_TD_VFX_Spark', 0, (0.45, 1.20), (9, 20), (2600, 10500), k=1.9, radius=60.0, drag=2.2, stretch=26,
               burst=40 if final else 14, dur=1.3, power=1.4),

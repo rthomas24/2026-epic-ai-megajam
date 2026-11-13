@@ -19,6 +19,9 @@ enum class ETDJourneyStage : uint8
 	Wave5,             // back from Cinder: the Dominion's guard
 	DominionAssault,   // Dominion revealed, shields up, squad at the approach
 	ReactorExposed,    // all four generators down
+	DominionDocking,   // as ReactorExposed: with boarding on, the Dominion opens its bay (T4's docking)
+	DominionInterior,  // on foot in the Dominion, at the hangar (ENG-29)
+	EscapeFlight,      // the core is dead: T4's escape flight from the hangar mouth (ENG-31)
 	Victory
 };
 
@@ -41,6 +44,8 @@ struct UNREALGAMEJAM_API FTDJourney
 	/** Stage start points computed from the Dominion itself (not layout return points). */
 	static const FName DominionApproach;	// front-right-above, outside the shield, the whole hull in frame
 	static const FName DominionTrench;		// lined up with the trench, the reactor dead ahead
+	/** The interior's start (T4's docking travels here), and its later return points (checkpoints). */
+	static const FName InteriorHangar;
 
 	/**
 	 * Where the squad starts for a return point: the two Dominion points above are framed from the live

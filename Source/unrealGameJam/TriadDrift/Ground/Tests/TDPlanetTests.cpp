@@ -348,6 +348,24 @@ namespace TDCourseTest
 			return false;
 		}
 		int32 Step(const ATDObjective* O) const { return O ? O->GetCurrentStepIndex() : -2; }
+		/** Verdance objective 1: the terminal (step 2), then the transfer to the package step (5), clearing each wave. */
+		ATDArchiveTransfer* Transfer() const { return Course ? Course->GetArchiveTransfer() : nullptr; }
+		void UseTerminal(const ATDObjective* Obj)
+		{
+			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
+			{
+				if (It->LinkedObjective == Obj && It->LinkedStep == 2 && !It->IsA<ATDExtractionSite>()) { Use(*It, It->HoldTime); return; }
+			}
+		}
+		void RunTransfer(const ATDObjective* Obj, float MaxSeconds = 140.f)
+		{
+			ATDArchiveTransfer* X = Transfer();
+			for (float Tm = 0.f; X && Tm < MaxSeconds && Step(Obj) >= 3 && Step(Obj) <= 4; Tm += 1.f)
+			{
+				for (ATDEncounterVolume* E : X->Waves) { if (E && E->IsActive()) { KillAll(E); } }
+				Tick(1.f);
+			}
+		}
 		FString Line() const { return V.GI->GetCurrentObjectiveText().ToString(); }
 
 		/** Re-board at the board point, climb out through the ceiling, and check the galaxy travel. */
@@ -384,7 +402,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TDCourseTest::FRun R(V, *this);
 	if (!R.Land()) { return false; }
 	R.Tick(0.6f);
-	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")) && R.Line().Contains(TEXT("THE RELAY")));
+	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE SURVEY STATION")) && R.Line().Contains(TEXT("THE RELAY")));
 	TestEqual(TEXT("both trailheads marked"), V.GI->GetFlowMarkers().Num(), 2);
 
 	ATDObjective* Relay = R.Course->FindObjective(TEXT("Obj_Relay"));
@@ -414,42 +432,38 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TestTrue(TEXT("relay done"), Relay->IsComplete());
 	TestEqual(TEXT("Cloak on Rift"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::Cloak), ETDShipId::Rift);
 	R.Tick(0.5f);
-	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")));
+	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE SURVEY STATION")));
 
-	// The wreck core.
+	// The survey archive (storyline.md section 18): station fight, terminal, a 75 s transfer under three waves, the package.
 	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
 	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
-	TestEqual(TEXT("at the beacon -> clear the site"), R.Step(Wreck), 1);
+	TestEqual(TEXT("at the beacon -> clear the station"), R.Step(Wreck), 1);
 	ATDEncounterVolume* Site = R.StepFight(Wreck, 1);
-	TestTrue(TEXT("site fight running"), Site && Site->IsActive());
+	TestTrue(TEXT("station fight running"), Site && Site->IsActive());
 	R.KillAll(Site);
-	TestEqual(TEXT("site clear -> extract"), R.Step(Wreck), 2);
+	TestEqual(TEXT("station clear -> the terminal"), R.Step(Wreck), 2);
+	int32 Hooked = 0;
+	const FDelegateHandle Hook = ATDArchiveTransfer::OnAnyTerminalActivated.AddLambda([&Hooked](AActor*) { ++Hooked; });
+	R.UseTerminal(Wreck);
+	ATDArchiveTransfer::OnAnyTerminalActivated.Remove(Hook);
+	TestEqual(TEXT("Cinematic 03's hook fires once"), Hooked, 1);
+	TestEqual(TEXT("terminal -> the transfer"), R.Step(Wreck), 3);
+	float P01 = -1.f; bool bPaused = true; FText Label;
+	TestTrue(TEXT("T2's meter sees a running transfer"), ATDArchiveTransfer::GetArchiveTransfer(V.W.GetWorld(), P01, bPaused, Label) && P01 < 0.1f && !bPaused);
+	R.RunTransfer(Wreck);
+	TestEqual(TEXT("transfer done -> take the package"), R.Step(Wreck), 5);
+	TestTrue(TEXT("the midpoint was a checkpoint"), Wreck->GetCheckpointStep() >= 4);
+	TestTrue(TEXT("the third wave (the Heavy) dropped"), R.Transfer() && R.Transfer()->Waves.Num() == 3 && R.Transfer()->Waves[2] && (R.Transfer()->Waves[2]->IsActive() || R.Transfer()->Waves[2]->IsCleared()));
+	TestFalse(TEXT("meter gone after the transfer"), ATDArchiveTransfer::GetArchiveTransfer(V.W.GetWorld(), P01, bPaused, Label));
 	ATDExtractionSite* Core = nullptr;
 	for (TActorIterator<ATDExtractionSite> It(V.W.GetWorld()); It; ++It) { Core = *It; }
-	if (!TestNotNull(TEXT("core"), Core)) { return false; }
-	TestTrue(TEXT("first wave drops in"), Core->WaveA && Core->WaveA->IsActive());
-	{
-		// Damage must not break this hold. Aim at the glowing core (what the eye goes to), not the console.
-		const FVector Target = Core->Core->GetComponentLocation();
-		R.FP->RespawnAt(FTransform(FRotator::ZeroRotator, Target + FVector(-160.f, 0.f, 40.f)));
-		R.Tick(0.2f);
-		V.PC->SetControlRotation((Target - R.FP->FindComponentByClass<UCameraComponent>()->GetComponentLocation()).Rotation());
-		R.Tick(0.1f);
-		R.FP->BeginInteract();
-		R.Tick(1.f);
-		TestTrue(TEXT("second wave drops when the hold starts"), Core->WaveB && Core->WaveB->IsActive());
-		R.FP->GetHealth()->SetInvulnerable(false);
-		UTDStatics::ApplyTDDamage(R.FP, 5.f, ETDDamageKind::Energy, nullptr, nullptr);
-		R.FP->GetHealth()->SetInvulnerable(true);
-		TestTrue(TEXT("hold survives damage"), R.FP->GetHoldTarget() == Core);
-		R.Tick(Core->HoldTime);
-		R.FP->EndInteract();
-	}
+	if (!TestNotNull(TEXT("data package"), Core)) { return false; }
+	R.Use(Core, Core->HoldTime);
 	TestTrue(TEXT("carrying the core"), R.FP->IsCarrying());
-	TestEqual(TEXT("carry step"), R.Step(Wreck), 3);
+	TestEqual(TEXT("carry step"), R.Step(Wreck), 6);
 	R.FP->RespawnAt(FTransform(FVector(300.f, 0.f, 120.f)));
 	R.Tick(0.5f);
-	TestTrue(TEXT("wreck done at the ship"), Wreck->IsComplete());
+	TestTrue(TEXT("archive delivered at the ship"), Wreck->IsComplete());
 	TestFalse(TEXT("hands free again"), R.FP->IsCarrying());
 	TestEqual(TEXT("Gravity Well on Bastion"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::GravityWell), ETDShipId::Bastion);
 
@@ -522,6 +536,8 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
 	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
 	R.KillAll(R.StepFight(Wreck, 1));
+	R.UseTerminal(Wreck);
+	R.RunTransfer(Wreck);
 	ATDExtractionSite* Core = nullptr;
 	for (TActorIterator<ATDExtractionSite> It(V.W.GetWorld()); It; ++It) { Core = *It; }
 	if (!TestNotNull(TEXT("core"), Core)) { return false; }
@@ -536,7 +552,7 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	TestFalse(TEXT("core back at the wreck"), Core->IsCarried());
 	TestFalse(TEXT("pilot alive"), R.FP->IsDead());
 	// The extraction is a checkpoint: take 2 restarts there, at the wreck, with fresh waves (no leftovers).
-	TestTrue(TEXT("same scene restarts at the extraction checkpoint"), Wreck->IsActive() && R.Step(Wreck) == 2);
+	TestTrue(TEXT("same scene restarts at the package checkpoint"), Wreck->IsActive() && R.Step(Wreck) == 5);
 	TestEqual(TEXT("take 2"), V.GI->GetProgressRef().Takes.FindRef(TEXT("Obj_WreckCore")), 2);
 	TestTrue(TEXT("respawned at the wreck"), FVector::Dist2D(R.FP->GetActorLocation(), Core->GetActorLocation()) < 1500.f);
 	TestTrue(TEXT("the site fight before the checkpoint stays cleared"), R.StepFight(Wreck, 1)->IsCleared());
@@ -547,6 +563,56 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	R.FP->RespawnAt(FTransform(FVector(300.f, 0.f, 120.f)));
 	R.Tick(0.5f);
 	TestTrue(TEXT("finished on take 2"), Wreck->IsComplete());
+	return true;
+}
+
+// Verdance's archive transfer (storyline.md section 18): it pauses while a crewman stands at the terminal, the midpoint is
+// a checkpoint, and a death after it resumes the transfer from 50 % with the Heavy's wave dropping again.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDArchiveTransferPauseAndMidpoint, "TriadDrift.Ground.Course.ArchiveTransferPausesAndResumesAtTheMidpoint", TD_TEST_FLAGS)
+bool FTDArchiveTransferPauseAndMidpoint::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Wreck = R.Course->FindObjective(TEXT("Obj_WreckCore"));
+	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
+	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
+	R.KillAll(R.StepFight(Wreck, 1));
+	R.UseTerminal(Wreck);
+	ATDArchiveTransfer* X = R.Transfer();
+	if (!TestNotNull(TEXT("transfer"), X) || !TestEqual(TEXT("transfer step"), R.Step(Wreck), 3)) { return false; }
+	// Put a living crewman of the first wave at the terminal: the transfer holds.
+	R.Tick(2.f);
+	AActor* Crew = nullptr;
+	for (const TWeakObjectPtr<AActor>& M : X->Waves[0]->GetSpawned()) { if (M.IsValid()) { Crew = M.Get(); break; } }
+	if (!TestNotNull(TEXT("first wave crew"), Crew)) { return false; }
+	Crew->SetActorLocation(X->GetActorLocation() + FVector(150.f, 0.f, 100.f), false, nullptr, ETeleportType::TeleportPhysics);
+	R.Tick(0.3f);
+	const float Held = X->GetProgress01();
+	R.Tick(2.f);
+	TestTrue(TEXT("paused with a hostile at the terminal"), X->IsPaused());
+	TestEqual(TEXT("no progress while paused"), X->GetProgress01(), Held, 0.02f);
+	TestTrue(*FString::Printf(TEXT("the line says so ('%s')"), *R.Line()), R.Line().Contains(TEXT("PAUSED")));
+	// Clear it and run to the midpoint.
+	for (float T = 0.f; T < 80.f && R.Step(Wreck) == 3; T += 1.f)
+	{
+		for (ATDEncounterVolume* E : X->Waves) { if (E && E->IsActive()) { R.KillAll(E); } }
+		R.Tick(1.f);
+	}
+	TestEqual(TEXT("midpoint -> second half"), R.Step(Wreck), 4);
+	TestEqual(TEXT("the second half is the checkpoint"), Wreck->GetCheckpointStep(), 4);
+	R.Tick(3.f);
+	TestTrue(TEXT("the Heavy's wave drops at the midpoint"), X->Waves[2]->IsActive());
+	// Die: take 2 picks up at 50 %, the Heavy's wave fresh.
+	R.FP->GetHealth()->SetInvulnerable(false);
+	R.FP->GetHealth()->Kill(nullptr, ETDDamageKind::Energy);
+	R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 1.5f);
+	TestEqual(TEXT("take 2 at the second half"), R.Step(Wreck), 4);
+	TestTrue(*FString::Printf(TEXT("resumes from the midpoint (%.2f)"), X->GetProgress01()), X->GetProgress01() >= 0.5f && X->GetProgress01() < 0.6f);
+	TestTrue(TEXT("the Heavy's wave again"), X->Waves[2]->IsActive());
+	R.FP->GetHealth()->SetInvulnerable(true);
+	R.RunTransfer(Wreck);
+	TestEqual(TEXT("finished on take 2 -> the package"), R.Step(Wreck), 5);
 	return true;
 }
 
@@ -1117,7 +1183,7 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 	P.RunTo(FVector(9200.f, -8200.f, 0.f) + FVector(-1400.f, 0.f, 0.f), 200.f, 10.f); // off the plateau edge
 	bOk = P.RunTo(P.Trailhead(TEXT("Obj_WreckCore")), 300.f, 60.f);
 	P.Report(bOk && Wreck->IsActive(), TEXT("wreck started at its trailhead"));
-	for (int32 Try = 0; Try < 4 && !Wreck->IsComplete(); ++Try)
+	for (int32 Try = 0; Try < 6 && !Wreck->IsComplete(); ++Try)
 	{
 		if (Wreck->GetCurrentStepIndex() == 0)
 		{
@@ -1128,14 +1194,31 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 		if (Wreck->GetCurrentStepIndex() == 1) { P.Fight(P.FightOf(Wreck, 1)); }
 		if (Wreck->GetCurrentStepIndex() == 2)
 		{
+			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
+			{
+				if (It->LinkedObjective == Wreck && It->LinkedStep == 2 && !It->IsA<ATDExtractionSite>()) { P.Use(*It, It->HoldTime, It->GetActorLocation() + FVector(0.f, 0.f, 80.f)); }
+			}
+		}
+		// The transfer: fight each wave as it drops, keeping them off the terminal.
+		for (float Tm = 0.f; Tm < 150.f && (Wreck->GetCurrentStepIndex() == 3 || Wreck->GetCurrentStepIndex() == 4); Tm += 1.f)
+		{
+			bool bFought = false;
+			if (ATDArchiveTransfer* X = P.Course->GetArchiveTransfer())
+			{
+				for (ATDEncounterVolume* E : X->Waves) { if (E && E->IsActive()) { P.Fight(E, 60.f); bFought = true; } }
+			}
+			if (!bFought) { P.Tick(1.f); }
+		}
+		if (Wreck->GetCurrentStepIndex() == 5)
+		{
 			ATDExtractionSite* Site = nullptr;
 			for (TActorIterator<ATDExtractionSite> It(V.W.GetWorld()); It; ++It) { Site = *It; }
-			if (Site && Site->WaveA) { P.Fight(Site->WaveA, 60.f); }              // clear the first drop, then extract
+			if (Site && Site->WaveA && Site->WaveA->IsActive()) { P.Fight(Site->WaveA, 60.f); }
 			if (Site) { P.Use(Site, Site->HoldTime, Site->Core->GetComponentLocation()); }
 		}
-		if (Wreck->GetCurrentStepIndex() == 3) { P.RunTo(FVector(300.f, 0.f, 0.f), 300.f, 60.f, false); P.Tick(0.5f); }
+		if (Wreck->GetCurrentStepIndex() == 6) { P.RunTo(FVector(300.f, 0.f, 0.f), 300.f, 60.f, false); P.Tick(0.5f); }
 	}
-	P.Report(Wreck->IsComplete(), TEXT("wreck core extracted and carried to the ship"));
+	P.Report(Wreck->IsComplete(), TEXT("survey archive transferred and the data package carried to the ship"));
 	TestEqual(TEXT("Gravity Well on Bastion"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::GravityWell), ETDShipId::Bastion);
 	TestEqual(TEXT("Cloak on Rift"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::Cloak), ETDShipId::Rift);
 

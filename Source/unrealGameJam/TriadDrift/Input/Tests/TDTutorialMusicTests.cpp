@@ -84,17 +84,9 @@ bool FTDTutorialBeatAtControl::RunTest(const FString& Parameters)
 		for (float t = 0.f; t < Total + 5.f && Finished == 0; t += Dt) { R.W.Tick(Dt); }
 		TestEqual(*(Tag + TEXT("intro finished")), Finished, 1);
 		TestEqual(*(Tag + TEXT("tutorial loop playing")), R.T->GetState(), ETDTutorialMusicState::Loop);
-		if (bSkip)
-		{
-			TestEqual(*(Tag + TEXT("skipped: the loop's first beat is on the control frame")), R.T->GetLoopStartClock(), R.T->GetControlClock(), 0.001f);
-		}
+		TestEqual(*(Tag + TEXT("the loop's first beat is on the control frame")), R.T->GetLoopStartClock(), R.T->GetControlClock(), 0.001f);
 		if (!bSkip)
 		{
-			// Issue #24 finding 2: the loop was queued at the prelude's start for the prelude's last sample (the audio
-			// clock does it with a device), not stopped / started on the control frame.
-			const float PreludeEndExact = R.T->GetPreludeStartClock() + (PreludeSeconds - R.T->GetPreludeStartOffset());
-			TestEqual(*(Tag + TEXT("watched: the loop starts exactly where the prelude ends")), R.T->GetLoopStartClock(), PreludeEndExact, 0.0005f);
-			TestEqual(*(Tag + TEXT("watched: ... which is the control frame")), R.T->GetLoopStartClock(), R.T->GetControlClock(), Dt * 1.5f);
 			TestEqual(*(Tag + FString::Printf(TEXT("prelude started at intro time %.2f (shots %.1f + 1 s hand-off - 38)"), R.T->GetPreludeIntroTime(), Total)),
 				R.T->GetPreludeIntroTime(), Total + UTDIntroDirector::HandOffSeconds - PreludeSeconds, Dt + 0.001f);
 			const float PreludeEnd = R.T->GetPreludeStartClock() + (PreludeSeconds - R.T->GetPreludeStartOffset());
@@ -210,6 +202,75 @@ bool FTDTutorialNoIntroMusic::RunTest(const FString& Parameters)
 		if (!TestTrue(TEXT("intro plays 2"), R.Intro->PlayForTests(FSimpleDelegate()))) { return false; }
 		TestFalse(TEXT("no tutorial music: IntroMusic allowed as before"), R.Intro->WasIntroMusicSuppressed());
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTutorialSingleVoice, "TriadDrift.Input.TutorialMusic.SingleVoiceDownbeatOnControl", TD_TEST_FLAGS)
+bool FTDTutorialSingleVoice::RunTest(const FString& Parameters)
+{
+	// Issue #24 v2: one continuous source. Watched: entered once at source ~0 so source 0:38 is on the control frame,
+	// nothing at control. Skipped: re-entered at 0:38 on the control frame with a 150 ms fade-in.
+	using namespace TDTutorialMusicTest;
+	for (const bool bSkip : { false, true })
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		const float Dt = 1.f / Fps;
+		const FString Tag = FString::Printf(TEXT("%s @%.0f fps: "), bSkip ? TEXT("skipped at 20 s") : TEXT("watched"), Fps);
+		FRun R;
+		if (!TestTrue(*(Tag + TEXT("set up")), R.Init(true))) { return false; }
+		R.T->SetSingleVoiceForTests(nullptr, 38.f, FadeSeconds, 0.15f);
+		int32 Finished = 0;
+		if (!TestTrue(*(Tag + TEXT("intro plays")), R.Intro->PlayForTests(FSimpleDelegate::CreateLambda([&Finished]() { ++Finished; })))) { return false; }
+		const float Total = R.Intro->GetTotalDuration();
+		if (bSkip)
+		{
+			R.Run(20.f, Dt);
+			TestEqual(*(Tag + TEXT("in before the skip")), R.T->GetState(), ETDTutorialMusicState::Prelude);
+			TestEqual(*(Tag + TEXT("one voice so far")), R.T->GetVoicesStarted(), 1);
+			R.Intro->Skip();
+		}
+		for (float t = 0.f; t < Total + 5.f && Finished == 0; t += Dt) { R.W.Tick(Dt); }
+		TestEqual(*(Tag + TEXT("intro finished")), Finished, 1);
+		TestEqual(*(Tag + TEXT("playing")), R.T->GetState(), ETDTutorialMusicState::Loop);
+		if (bSkip)
+		{
+			TestEqual(*(Tag + TEXT("skip: re-entered at the downbeat")), R.T->GetEnteredAtSourceTime(), 38.f, 0.001f);
+			TestEqual(*(Tag + TEXT("skip: 150 ms fade-in")), R.T->GetEnteredFadeIn(), 0.15f, 0.001f);
+			TestEqual(*(Tag + TEXT("skip: entered on the control frame")), R.T->GetSourceTimeAtControl(), 38.f, 0.001f);
+		}
+		else
+		{
+			TestEqual(*(Tag + TEXT("watched: entered once, at about source 0")), R.T->GetEnteredAtSourceTime(), 0.f, Dt + 0.001f);
+			TestEqual(*(Tag + TEXT("watched: no fade-in")), R.T->GetEnteredFadeIn(), 0.f);
+			TestEqual(*(Tag + FString::Printf(TEXT("watched: source 0:38 on the control frame (source %.3f there)"), R.T->GetSourceTimeAtControl())),
+				R.T->GetSourceTimeAtControl(), 38.f, Dt * 1.5f);
+			TestEqual(*(Tag + TEXT("watched: one voice in all (nothing restarted at control)")), R.T->GetVoicesStarted(), 1);
+		}
+		TestEqual(*(Tag + TEXT("never two at once")), R.T->GetLiveVoiceCount(), 1);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTutorialFadeIdempotent, "TriadDrift.Input.TutorialMusic.SecondWaveClearNeverRestartsTheFade", TD_TEST_FLAGS)
+bool FTDTutorialFadeIdempotent::RunTest(const FString& Parameters)
+{
+	using namespace TDTutorialMusicTest;
+	FRun R;
+	if (!TestTrue(TEXT("set up"), R.Init(false))) { return false; }
+	R.Run(0.2f, 1.f / 60.f);
+	R.Intro->NotifyRunStartedWithoutIntro();
+	R.Run(0.2f, 1.f / 60.f);
+	UTDEventBus* Bus = UTDEventBus::Get(R.W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
+	Bus->BroadcastWaveCleared(1);
+	R.Run(10.f, 1.f / 60.f);
+	Bus->BroadcastWaveCleared(2); // another qualifying clear 10 s into the fade
+	Bus->BroadcastWaveCleared(1);
+	R.Run(0.5f, 1.f / 60.f);
+	TestEqual(TEXT("one fade only"), R.T->GetFadesBegun(), 1);
+	TestEqual(TEXT("still 10.5 of 20 s in (not restarted)"), R.T->GetFadeVolume(), 1.f - 10.5f / FadeSeconds, 0.02f);
+	R.Run(10.f, 1.f / 60.f);
+	TestEqual(TEXT("silent at 20 s, as before"), R.T->GetState(), ETDTutorialMusicState::Off);
 	return true;
 }
 
