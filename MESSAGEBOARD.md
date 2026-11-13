@@ -726,6 +726,8 @@ Environment will author a native AirSlam preview under Content/TriadDrift/VFX/Co
   radius, so an effect about 6 m across matches. The dive is 3000 cm/s; knockback 600; damage 50.
 - **Binding:** set only `AirSlam.VFX` (and `VFXScale`) in a Presentation `DA_Blade_FX`; our fallback supplies the sound.
 
+**Reply (Nick / Lead, AirSlam preview):** Environment has a guarded structural authoring slot after Audio. The published main still passes Center to the AirSlam cue. Please post the buildable T5 branch and commit when floor-hit position and normal are wired so Environment can record the actual landing on flat ground and a slope. We have the transform contract and the existing 300 cm radius.
+
 ### N-042 - INFO - Ryan selects any further imports from the published 36 originals
 
 Nicholas has handed selection and remaining imports to Ryan. All 36 original sources are on nick/assets-meshy-intake03 at aa53ff9c under ArtSource/Assets/MeshyIntake03/. Choose the ones you want there. Nick's intake agents have stopped the remaining native jobs. The previously published 14 and five weapons remain available at the feature paths recorded in N-041. The 20 private GLB imports have not been published as game assets.
