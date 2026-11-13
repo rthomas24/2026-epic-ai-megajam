@@ -1,7 +1,7 @@
 {
   "asset": "SM_Verd_Wreck_Engine",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Engine\\SM_Verd_Wreck_Engine.fbx",
-  "tris": 20586,
+  "tris": 17457,
   "size_cm": [
     900.0,
     700.0,
@@ -32,14 +32,14 @@
   "collision": [],
   "collision_source": "none",
   "sockets": [],
-  "welded_verts": 30,
-  "nanite_recommended": true,
+  "welded_verts": 50,
+  "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,
     "generate_lightmap_uvs": false,
     "normals": "Import Normals (keep the authored hard edges/custom normals)",
     "combine_meshes": true,
-    "nanite": true,
+    "nanite": false,
     "collision": "none / add simple collision in UE",
     "textures": {
       "_BC": "sRGB on, Default",

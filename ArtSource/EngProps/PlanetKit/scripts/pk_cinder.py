@@ -478,7 +478,9 @@ def build_door(P):
     split = [(0.0, 0.0), (0.0, 2.3), (-0.45, 2.85), (-0.45, 3.45), (0.0, 4.0), (0.0, 6.0)]
     gap = 0.015
     left = [(-3.1, 0.0)] + [(y - gap, z) for y, z in split] + [(-3.1, 6.0)]
-    right = [(y + gap, z) for y, z in reversed(split)] + [(3.1, 6.0), (3.1, 0.0)]
+    # r9 fix: the outer corners were listed top-then-bottom, which made the right half a self-crossing (bow-tie)
+    # outline: a pale twisted sliver and see-through holes near the rails in Unreal
+    right = [(y + gap, z) for y, z in reversed(split)] + [(3.1, 0.0), (3.1, 6.0)]
     for poly in (left, right):
         prism(P, m["armour"], poly, "X", -0.12, 0.12, bevel=0.02, seg=2)
     # layered face plates on both faces, inside the box (x up to +-0.145)

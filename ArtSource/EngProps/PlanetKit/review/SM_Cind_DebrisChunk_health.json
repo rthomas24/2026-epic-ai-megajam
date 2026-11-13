@@ -1,15 +1,15 @@
 {
   "asset": "SM_Cind_DebrisChunk",
-  "tag": "r7",
+  "tag": "r12",
   "family": "cinder",
   "checks": {
-    "tris": 5120,
+    "tris": 722,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.4342,
+      "coverage": 0.6192,
       "overlap_pixels": 0,
       "overlap_share_of_covered": 0.0,
       "raster": 1024
@@ -17,14 +17,14 @@
     "asset_report_errors": 0,
     "asset_report_warnings": 0,
     "bounds_min_cm": [
-      -105.4,
-      -93.5,
-      -86.7
+      -62.6,
+      -75.0,
+      -63.0
     ],
     "bounds_max_cm": [
-      105.4,
-      93.5,
-      86.7
+      62.6,
+      75.0,
+      63.0
     ],
     "fit": {
       "scale": [
@@ -34,9 +34,9 @@
       ],
       "warn_axes": [],
       "size_before_m": [
-        2.107,
-        1.87,
-        1.735
+        1.252,
+        1.5,
+        1.259
       ]
     },
     "export_status": null
@@ -50,19 +50,19 @@
       ],
       "warn_axes": [],
       "size_before_m": [
-        2.107,
-        1.87,
-        1.735
+        1.252,
+        1.5,
+        1.259
       ]
     },
-    "edge_area_share": 0.0,
+    "edge_area_share": 0.1508,
     "uv_unwrap": {
       "margin": 0.006,
-      "faces_detached_for_overlap": 24
+      "faces_detached_for_overlap": 0
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.4342,
+      "coverage": 0.6192,
       "overlap_pixels": 0,
       "overlap_share_of_covered": 0.0,
       "raster": 1024
@@ -82,13 +82,13 @@
       "preview_material": "M_Cind_DebrisChunk_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 18.07
+      "seconds": 26.56
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.2244
+      "share_tinted": 0.5293
     },
-    "build_seconds": 49.8
+    "build_seconds": 43.3
   },
   "textures": {
     "BC": {
@@ -97,12 +97,12 @@
         1024
       ],
       "mean_rgb": [
-        0.1967,
-        0.1783,
-        0.1834
+        0.1638,
+        0.1443,
+        0.1421
       ],
       "min": 0.0,
-      "max": 0.6784
+      "max": 0.6745
     },
     "N": {
       "size": [
@@ -110,15 +110,15 @@
         1024
       ],
       "mean_rgb": [
-        0.5007,
-        0.4992,
-        0.9997
+        0.5005,
+        0.4996,
+        0.9996
       ],
-      "min": 0.3647,
+      "min": 0.3569,
       "max": 1.0,
       "std_rg": [
-        0.0246,
-        0.025
+        0.0277,
+        0.028
       ]
     },
     "ORM": {
@@ -127,15 +127,15 @@
         1024
       ],
       "mean_rgb": [
-        0.8267,
-        0.7053,
+        0.5619,
+        0.6086,
         0.0
       ],
       "min": 0.0,
       "max": 1.0,
       "roughness_p5_p95": [
         0.0,
-        0.851
+        0.847
       ],
       "metallic_mean": 0.0
     },
@@ -145,26 +145,32 @@
         1024
       ],
       "mean_rgb": [
-        0.0034,
-        0.0011,
-        0.0003
+        0.0631,
+        0.0429,
+        0.0167
       ],
       "min": 0.0,
-      "max": 0.9059
+      "max": 0.9294
     }
   },
-  "emissive_surface_share": 0.0067,
-  "asset_report_issues": [],
+  "emissive_surface_share": 0.0635,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Cind_DebrisChunk",
+      "message": "11 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
   "assembly": {
     "ok": true,
-    "islands": 1,
+    "islands": 7,
     "groups": 1,
     "floating": [],
-    "tolerance_m": 0.00496
+    "tolerance_m": 0.00349
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_DebrisChunk_r7_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_DebrisChunk_r7_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_DebrisChunk_r12_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_DebrisChunk_r12_clay_sheet.png",
     "warnings": []
   }
 }
