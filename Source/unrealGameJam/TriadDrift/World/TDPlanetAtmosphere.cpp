@@ -90,22 +90,37 @@ void ATDPlanetAtmosphere::ApplyLook()
 
 bool ATDPlanetAtmosphere::SyncSunDirection()
 {
-	// The planet material lights its night side from a SunDirection vector: point it at the space sun (the directional
-	// light that drives the atmosphere), which the placeholder sky may spawn after the planets.
-	UDirectionalLightComponent* SunLight = nullptr;
-	for (TActorIterator<AActor> It(GetWorld()); It && !SunLight; ++It)
+	// The planet surface and atmosphere light themselves from a SunDirection vector: point it at the active sun. That is
+	// the atmosphere sun light if there is one, else the brightest visible directional light (Nick's skybox included).
+	UDirectionalLightComponent* SunLight = FindActiveSun(GetWorld());
+	if (!SunLight) { return false; }
+	const FLinearColor Dir(-SunLight->GetForwardVector());
+	for (UStaticMeshComponent* Part : { SurfaceLook.Get(), AtmosphereLook.Get() })
 	{
+		if (!Part || !Part->GetStaticMesh() || !Part->IsVisible()) { continue; }
+		UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(Part->GetMaterial(0));
+		if (!MID) { MID = Part->CreateAndSetMaterialInstanceDynamic(0); }
+		if (MID) { MID->SetVectorParameterValue(TEXT("SunDirection"), Dir); }
+	}
+	return true;
+}
+
+UDirectionalLightComponent* ATDPlanetAtmosphere::FindActiveSun(UWorld* World)
+{
+	UDirectionalLightComponent* Atmo = nullptr;
+	UDirectionalLightComponent* Brightest = nullptr;
+	for (TActorIterator<AActor> It(World); It; ++It)
+	{
+		if (It->IsActorBeingDestroyed()) { continue; }
 		TInlineComponentArray<UDirectionalLightComponent*> Lights(*It);
 		for (UDirectionalLightComponent* L : Lights)
 		{
-			if (L && L->IsUsedAsAtmosphereSunLight()) { SunLight = L; break; }
+			if (!L || !L->IsRegistered() || !L->IsVisible()) { continue; }
+			if (L->IsUsedAsAtmosphereSunLight() && !Atmo) { Atmo = L; }
+			if (!Brightest || L->Intensity > Brightest->Intensity) { Brightest = L; }
 		}
 	}
-	if (!SunLight || !SurfaceLook) { return false; }
-	UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(SurfaceLook->GetMaterial(0));
-	if (!MID) { MID = SurfaceLook->CreateAndSetMaterialInstanceDynamic(0); }
-	if (MID) { MID->SetVectorParameterValue(TEXT("SunDirection"), FLinearColor(-SunLight->GetForwardVector())); }
-	return true;
+	return Atmo ? Atmo : Brightest;
 }
 
 ETDGamePhase ATDPlanetAtmosphere::PhaseFor(ETDDestination InDestination)
@@ -266,8 +281,11 @@ void ATDPlanetAtmosphere::TryEnter(ATDSpacecraft* Ship)
 void ATDPlanetAtmosphere::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (bArtLook && !bSunSynced)
+	// Re-aim at the active sun every couple of seconds: a sky that spawns or streams in later takes over.
+	SunSyncTimer -= DeltaSeconds;
+	if (bArtLook && (!bSunSynced || SunSyncTimer <= 0.f))
 	{
+		SunSyncTimer = 2.f;
 		bSunSynced = SyncSunDirection();
 	}
 	if (bArtLook && Look.SpinDegPerSecond != 0.f)
