@@ -211,7 +211,7 @@ SWITCH STRIKE
 Use a ship's power (Q), then switch within a second and a half: the ship you switch to hits 25% harder for 4 seconds.
 
 FOCUS FIRE
-Press F with a target locked and your wingmen go after it for 8 seconds.
+Press F and your wingmen go after your current target for 8 seconds.
 
 DOWN, NOT OUT
 Shields recover on their own; hull repairs between waves. If your ship goes down, you jump straight into the healthiest one and are protected for 2 seconds. A downed ship warps back in after 12 seconds.
