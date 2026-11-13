@@ -582,7 +582,7 @@ textures, not these audio packages, and engineering is cutting texture sizes now
 
 **Reply (Nick / Lead Coordinator, 2026-11-13 11:15 EST; Nick-side resumption reviewed):** Your no-objection/current-Main cook/package/audio proof is received and retained; thank you. PR12 stays draft/unmerged until Nick listening. No repeated completed technical checks requested absent a changed candidate. Audio now completes his supplied combat track using the implemented WorldSubsystem director; a verified Wave branch/style/battle handoff will follow. The source-only96d7 intake is still not a confirmed game-project import.
 
-### N-033 - OPEN - Nick resumed: named lanes, actual images and targeted Core handoffs
+### N-033 - ANSWERED - Nick resumed: named lanes, actual images and targeted Core handoffs
 From: Nick / Lead Coordinator - To: Ryan / Claude Lead and active engineering agents - Posted: 2026-11-13 11:15 EST - Needs: agents
 
 Reviewed every current Ryan-side thread R020,R022-R027 and the N031 response, plus current AGENTS/AAA/features/claims/status/art history/HUD design. Direct replies are under those messages. Existing named chats are assigned: Assets remaining14 then separately claimed36 (Azure Shadow excluded); Audio supplied combat track/current director; Environment Hero/owned VFX without changing Combat/Verdance; UI latest READ-ONLY menu/HUD screenshot review before development decisions. Engineering ENG34-37 and EngAI source generation stay with your owners. No broad takeover or duplicate controller/HUD/effect library.
@@ -592,3 +592,21 @@ One reviewed private14 native attempt actually STARTED PID2124/11:13EST; all oth
 UI needs your actual new menu/current compact-HUD images and tested SHA (wireframes are not gameplay). Concrete existing menu-owner issue: ReturnToMenu still clears victory then ShowPlaceholder instead of re-resolving MainMenuWidgetClass; please address/test that narrow route when safe. Single-backdrop TD.Menu.Scene timing and public Settings subsystem API will be respected; no shared map/Source changes by UI.
 
 Please share newer playable-route/packaging blockers and latest package-size evidence after ENG34/35/37 when already available. Older586-test/package snapshots are not a fresh certification of this new Main. Gameplay/Shipping stays ahead of optional polish. PR11/12 listening and final visual gates remain with Nick; no automatic merge or new goal campaign.
+
+**Reply (Ryan / Lead, 2026-11-13 16:17 EST):** Welcome back, and thank you for the replies; all read. Agreed: ENG-34 to 37 and
+the EngAI lane stay with engineering, your lanes are as you named them, no duplicate libraries on either side.
+- **Actual compact-HUD image (not a wireframe):** `docs/eng/hud-redesign/live/P1_vs_wireframe.png` on `main`: four panels
+  from a running game at 1920x1080 (top-left the DESIGN wireframe, top-right ENG-36 pass 1 live with the Lancer flown,
+  bottom-left the objective expanded, bottom-right your M03 HUD in the same session). Tested at T2's `9754f24` on `eng/t2`
+  (6 `TriadDrift.UI.FlightHUD` tests + UI 21/21); **not on `main` yet and not the default**. Pass 2 (target bracket, lead
+  marker, edge arrows, missile warning, hit arcs, boost and hyperdrive bars) is in progress; the default does not change
+  until pass 2 is captured, and I post those captures here first. Your plugin is untouched and stays selectable.
+- **Menu captures:** T5 posts current main-menu, pause and Settings captures with the tested commit under this message today.
+- **ReturnToMenu re-resolving `MainMenuWidgetClass`** instead of `ShowPlaceholder`: taken, T5, with a test.
+- **Package and route evidence** after ENG-34 / 35 / 37 land: I will post the fresh Shipping size and an end-to-end run
+  here; the last measured Shipping zip was about 800 MB before the sounds (about +30 MB expected).
+- **Ryan's realignment for today is R-028** (new section at the top of `features.md`). It proposes priorities for your
+  lanes; your N-033 assignments fit it (Audio = priority 1, Environment Hero = priority 2, UI review = priority 3 and 6).
+  The gaps it names that nobody holds yet: lighting / fog / grade on the two planets' new terrain, voice and barks, and
+  the submission page and video. Tell us which of those you take.
+
