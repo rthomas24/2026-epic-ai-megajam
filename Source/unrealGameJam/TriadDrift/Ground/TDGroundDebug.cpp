@@ -29,6 +29,9 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/TDPilotAnim.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 
 namespace TDGroundDebug
 {
@@ -185,13 +188,57 @@ namespace TDGroundDebug
 			auto Z = [M, Feet](const TCHAR* Bone) { return M->GetBoneIndex(Bone) != INDEX_NONE ? (float)M->GetBoneLocation(Bone).Z - Feet : -1.f; };
 			const UAnimInstance* A = M->GetAnimInstance();
 			const UAnimMontage* Mont = A ? A->GetCurrentActiveMontage() : nullptr;
-			UE_LOG(LogTriadDrift, Display, TEXT("TD.Bones %s mesh=%s visible=%d mode=%d anim=%s montage=%s head=%.0f pelvis=%.0f root=%.0f sim=%d scale=%.2f"),
+			const UTDLoopBlendAnimInstance* L = Cast<UTDLoopBlendAnimInstance>(A);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Bones %s mesh=%s visible=%d mode=%d anim=%s montage=%s head=%.0f pelvis=%.0f root=%.0f sim=%d scale=%.2f loop=%s shot=%s upper=%s proc=%d"),
 				*It->GetName(), *GetNameSafe(M->GetSkeletalMeshAsset()), M->IsVisible(), (int32)M->GetAnimationMode(), *GetNameSafe(A ? A->GetClass() : nullptr),
-				*GetNameSafe(Mont), Z(TEXT("head")), Z(TEXT("pelvis")), Z(TEXT("root")), M->IsSimulatingPhysics(), (float)M->GetComponentScale().Z);
+				*GetNameSafe(Mont), Z(TEXT("head")), Z(TEXT("pelvis")), Z(TEXT("root")), M->IsSimulatingPhysics(), (float)M->GetComponentScale().Z,
+				*GetNameSafe(L ? L->GetLoop() : nullptr), *GetNameSafe(L ? L->GetOneShot() : nullptr), *GetNameSafe(L ? L->GetUpperLoop() : nullptr), L ? (int32)L->bProcedural : -1);
 		}
 	}
 	static FAutoConsoleCommandWithWorldAndArgs CmdBones(TEXT("TD.Ground.Bones"), TEXT("Log head / pelvis heights and anim state of every skeletal crew and pilot body."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Bones));
+
+	static ATDFirstPersonCharacter* Pilot(UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		return PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
+	}
+
+	// TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (toggles without an argument). Not saved.
+	static void ThirdPerson(const TArray<FString>& Args, UWorld* World)
+	{
+		if (ATDFirstPersonCharacter* P = Pilot(World))
+		{
+			const bool bWant = Args.Num() > 0 ? FCString::Atoi(*Args[0]) != 0 : !P->IsThirdPersonView();
+			P->SetThirdPerson(bWant);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.ThirdPerson want=%d"), bWant);
+		}
+	}
+	// TD.Ground.HandBlade X Y Z Pitch Yaw Roll: place the hand blade on hand_r live (to set HandBladeOffset by eye).
+	static void HandBlade(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDFirstPersonCharacter* P = Pilot(World);
+		if (!P || !P->GetHandBladeHilt())
+		{
+			return;
+		}
+		if (Args.Num() >= 6)
+		{
+			const FTransform T(FRotator(FCString::Atof(*Args[3]), FCString::Atof(*Args[4]), FCString::Atof(*Args[5])),
+				FVector(FCString::Atof(*Args[0]), FCString::Atof(*Args[1]), FCString::Atof(*Args[2])));
+			P->HandBladeOffset = T;
+			P->GetHandBladeHilt()->SetRelativeLocationAndRotation(T.GetLocation(), T.Rotator());
+		}
+		const UStaticMeshComponent* Beam = P->GetHandBladeBeam();
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.HandBlade offset=%s hilt=%s visible=%d beam=%s visible=%d tip=%s extend=%.2f"),
+			*P->HandBladeOffset.ToString(), *GetNameSafe(P->GetHandBladeHilt()->GetStaticMesh()), P->GetHandBladeHilt()->IsVisible(),
+			*GetNameSafe(Beam->GetStaticMesh()), Beam->IsVisible(),
+			*(Beam->GetComponentTransform().TransformPosition(FVector(100.f, 0.f, 0.f))).ToCompactString(), P->GetHandBladeExtend01());
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdThird(TEXT("TD.Ground.ThirdPerson"), TEXT("TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (not saved)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&ThirdPerson));
+	static FAutoConsoleCommandWithWorldAndArgs CmdHandBlade(TEXT("TD.Ground.HandBlade"), TEXT("TD.Ground.HandBlade [X Y Z Pitch Yaw Roll]: place / report the hand blade."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&HandBlade));
 }
 
 #endif // !UE_BUILD_SHIPPING

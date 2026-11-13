@@ -35,6 +35,11 @@ namespace TDLoopBlend
 		const UAnimSequenceBase* Current = nullptr;
 		const UAnimSequenceBase* Previous = nullptr;
 		const UAnimSequenceBase* Shot = nullptr;
+		const UAnimSequenceBase* Upper = nullptr;
+		double UpperTime = 0.0;
+		float UpperAlpha = 0.f;
+		bool bShotUpper = false;
+		FName UpperRoot;
 		bool bProcedural = false;
 		float ArmDown = 0.f, Speed01 = 0.f, Phase = 0.f, Attack = 0.f, Flinch = 0.f, SideSign = 1.f, ForwardSign = 1.f;
 		FVector ForwardCS = FVector(0.f, 1.f, 0.f);
@@ -56,6 +61,11 @@ namespace TDLoopBlend
 			Shot = A->Shot;
 			ShotTime = A->ShotTime;
 			ShotAlpha = A->ShotAlpha;
+			bShotUpper = A->bShotUpper;
+			Upper = A->Upper;
+			UpperTime = A->UpperTime;
+			UpperAlpha = A->UpperAlpha;
+			UpperRoot = A->UpperRootBone;
 			bProcedural = A->bProcedural;
 			ArmDown = A->ProcArmDown;
 			Speed01 = A->ProcSpeed01;
@@ -108,15 +118,15 @@ namespace TDLoopBlend
 			// Arms down out of the T/A-pose: about the axis that takes each arm's outward direction toward straight down.
 			for (const TCHAR* Side2 : { TEXT("l"), TEXT("r") })
 			{
-				const FString Upper = FString::Printf(TEXT("upperarm_%s"), Side2);
+				const FString UpperArm = FString::Printf(TEXT("upperarm_%s"), Side2);
 				const FString Lower = FString::Printf(TEXT("lowerarm_%s"), Side2);
-				const FVector Out = (CS(*Lower) - CS(*Upper)).GetSafeNormal();
+				const FVector Out = (CS(*Lower) - CS(*UpperArm)).GetSafeNormal();
 				const FVector Axis = FVector::CrossProduct(Out, FVector(0.f, 0.f, -1.f)).GetSafeNormal();
 				if (!Axis.IsNearlyZero())
 				{
 					// Only as far as straight down: the reference arm may already hang partly (A-pose).
 					const float Below = FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(-Out.Z, -1.f, 1.f)));
-					RotateCS(Output.Pose, Ref, *Upper, Q(Axis, FMath::Clamp(ArmDown + 20.f - Below, 0.f, 85.f)));
+					RotateCS(Output.Pose, Ref, *UpperArm, Q(Axis, FMath::Clamp(ArmDown + 20.f - Below, 0.f, 85.f)));
 				}
 			}
 			const FVector Side = Swing;
@@ -133,6 +143,22 @@ namespace TDLoopBlend
 			RotateCS(Output.Pose, Ref, TEXT("lowerarm_r"), Q(Side, -35.f * FMath::Abs(Attack)));
 			// Lean into a run, flinch back from a hit, breathe at rest.
 			RotateCS(Output.Pose, Ref, TEXT("spine_01"), Q(Side, -6.f * Speed01 + 18.f * Flinch + 1.5f * FMath::Sin(Phase * 0.5f) * (1.f - Speed01)));
+		}
+
+		/** Blend Over into Output by W on UpperRoot and its children only (local space); everything without the root bone: all bones. */
+		void BlendUpper(FPoseContext& Output, const FPoseContext& Over, float W) const
+		{
+			const FBoneContainer& Bones = Output.Pose.GetBoneContainer();
+			const FReferenceSkeleton& Ref = Bones.GetReferenceSkeleton();
+			const int32 Root = UpperRoot.IsNone() ? INDEX_NONE : Ref.FindBoneIndex(UpperRoot);
+			for (const FCompactPoseBoneIndex B : Output.Pose.ForEachBoneIndex())
+			{
+				const int32 Mesh = Bones.MakeMeshPoseIndex(B).GetInt();
+				if (Root == INDEX_NONE || Mesh == Root || Ref.BoneIsChildOf(Mesh, Root))
+				{
+					Output.Pose[B].BlendWith(Over.Pose[B], W);
+				}
+			}
 		}
 
 		virtual bool Evaluate(FPoseContext& Output) override
@@ -155,12 +181,26 @@ namespace TDLoopBlend
 				Previous->GetAnimationPose(UnderData, FAnimExtractContext(PreviousTime, false, {}, true));
 				FAnimationRuntime::BlendTwoPosesTogetherInPlace(OutData, UnderData, Alpha);
 			}
+			if (Upper && UpperAlpha > 0.f)
+			{
+				FPoseContext Guard(this);
+				FAnimationPoseData GuardData(Guard);
+				Upper->GetAnimationPose(GuardData, FAnimExtractContext(UpperTime, false, {}, true));
+				BlendUpper(Output, Guard, UpperAlpha);
+			}
 			if (Shot && ShotAlpha > 0.f)
 			{
 				FPoseContext Over(this);
 				FAnimationPoseData OverData(Over);
 				Shot->GetAnimationPose(OverData, FAnimExtractContext(ShotTime, false, {}, false));
-				FAnimationRuntime::BlendTwoPosesTogetherInPlace(OutData, OverData, 1.f - ShotAlpha);
+				if (bShotUpper)
+				{
+					BlendUpper(Output, Over, ShotAlpha);
+				}
+				else
+				{
+					FAnimationRuntime::BlendTwoPosesTogetherInPlace(OutData, OverData, 1.f - ShotAlpha);
+				}
 			}
 			// In place, always: a sequence that keeps root motion (the crew attacks travel 1.4-1.5 m) would walk the
 			// body out of its capsule. The capsule does the moving.
@@ -192,7 +232,17 @@ void UTDLoopBlendAnimInstance::SetLoop(UAnimSequenceBase* Loop, float Rate)
 	Alpha = Previous ? 0.f : 1.f;
 }
 
-void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate)
+void UTDLoopBlendAnimInstance::SetUpperLoop(UAnimSequenceBase* Loop)
+{
+	bUpperWanted = Loop != nullptr;
+	if (Loop && Loop != Upper)
+	{
+		Upper = TDMakePlayable(Loop);
+		UpperTime = 0.0;
+	}
+}
+
+void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate, bool bUpperBodyOnly, bool bHold)
 {
 	if (!InShot)
 	{
@@ -206,6 +256,8 @@ void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate
 	Shot = TDMakePlayable(InShot);
 	ShotTime = 0.0;
 	ShotRate = Rate;
+	bShotUpper = bUpperBodyOnly;
+	bShotHold = bHold;
 	ShotAlpha = FMath::Max(ShotAlpha, 0.01f);
 }
 
@@ -217,9 +269,13 @@ void UTDLoopBlendAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		const float Length = Shot->GetPlayLength();
 		ShotTime += DeltaSeconds * ShotRate;
 		const float Fade = 0.1f;
-		const bool bEnding = Length <= 0.f || ShotTime >= Length - Fade;
+		if (bShotHold)
+		{
+			ShotTime = FMath::Min(ShotTime, (double)FMath::Max(0.f, Length - 0.001f));
+		}
+		const bool bEnding = !bShotHold && (Length <= 0.f || ShotTime >= Length - Fade);
 		ShotAlpha = bEnding ? ShotAlpha - DeltaSeconds / Fade : FMath::Min(1.f, ShotAlpha + DeltaSeconds / Fade);
-		if (ShotAlpha <= 0.f || ShotTime >= Length)
+		if (!bShotHold && (ShotAlpha <= 0.f || ShotTime >= Length))
 		{
 			Shot = nullptr;
 			ShotAlpha = 0.f;
@@ -234,6 +290,16 @@ void UTDLoopBlendAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		}
 	};
 	Advance(Current, CurrentTime);
+	if (Upper)
+	{
+		const float Length = Upper->GetPlayLength();
+		UpperTime = Length > 0.f ? FMath::Fmod(UpperTime + DeltaSeconds, (double)Length) : 0.0;
+		UpperAlpha = FMath::Clamp(UpperAlpha + (bUpperWanted ? 1.f : -1.f) * DeltaSeconds / 0.12f, 0.f, 1.f);
+		if (!bUpperWanted && UpperAlpha <= 0.f)
+		{
+			Upper = nullptr;
+		}
+	}
 	Advance(Previous, PreviousTime);
 	Alpha = BlendSeconds > 0.f ? FMath::Min(1.f, Alpha + DeltaSeconds / BlendSeconds) : 1.f;
 	if (Alpha >= 1.f)
