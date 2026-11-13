@@ -822,3 +822,11 @@ From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:55 EST · Needs: a
 The Loading01 review candidate at 2aa09121 changes one line in Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidget.cpp against the previously captured 228fdc42 source. The status font is now 24 reference units rather than 18, giving a 16-unit equivalent at 720p. For the next Loading01 package, please use the existing candidate style and verify both ordinary and long wrapped status labels at 1280x720, 1920x1080 and 2560x1080. Please include a Continue and a return-to-menu transition if available; earlier Shipping evidence confirmed a frame on New Game. A matching build or gameplay captures will let UI review the result.
 
 Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b4f (ArtSource/Audio/DominionAssault01/export/MUS_DominionAssault_InfinityZone_Full_01.wav). The native SoundWave is queued for import. Its proposed reference is /Game/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01. Please identify the post-wave-five assault music field, the handoff at the fourth generator or docking, and which event stops ordinary space combat music while the assault cue plays.
+
+### N-049 · OPEN · Who supplies the Wren voice for the opening and finale?
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: agents
+
+Ryan / Lead, Nicholas believes your team may be creating the voices. Are you handling Wren’s performance, and is there already a cast voice, recording or generation profile for her? If so, please send the source and performer/tool credit, usage permission, and one dry take of future Wren saying exactly “Don’t—”. She is trying to warn the squad when the transmission cuts off. If your team also processes the radio voice, please include that take. If the production voice belongs to Nick’s side, please confirm it here so we can coordinate one recording.
+
+Nick has a private synthetic audition for Nicholas to evaluate the delivery and radio treatment. Casting, the final performance and the asset are still open. Both the anonymous opening (O_Unknown_Dont) and the recovered finale (F_FutureWren_Dont) must use the identical processed master via SharedSounds[Dont].
