@@ -189,6 +189,11 @@ ATDCombatFlash::ATDCombatFlash()
 	Mesh->bReceivesDecals = false;
 	Mesh->SetVisibility(false);
 
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (Cube.Succeeded())
+	{
+		CubeMesh = Cube.Object;
+	}
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	if (Sphere.Succeeded())
 	{
@@ -216,6 +221,14 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 	bDebris = false;
 	bStyled = false;
 	DelayLeft = 0.f;
+	if (bChunk)
+	{
+		bChunk = false;
+		if (SphereMesh)
+		{
+			Mesh->SetStaticMesh(SphereMesh);
+		}
+	}
 	if (MID && Mesh->GetMaterial(0) != MID)
 	{
 		Mesh->SetMaterial(0, MID);
@@ -243,6 +256,45 @@ void ATDCombatFlash::PlayDebris(const FVector& Location, const FVector& Velocity
 	Apply(0.f);
 }
 
+UMaterialInterface* ATDCombatFlash::GetSmokeMaterial()
+{
+	static TWeakObjectPtr<UMaterialInterface> Cached;
+	static bool bLooked = false;
+	if (!Cached.IsValid() && !bLooked)
+	{
+		bLooked = true;
+		static const TCHAR* Path = TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_SmokePuff.M_TD_SmokePuff");
+		if (FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(FString(Path))))
+		{
+			Cached = LoadObject<UMaterialInterface>(nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+		}
+	}
+	return Cached.Get();
+}
+
+void ATDCombatFlash::PlayChunk(const FVector& Location, const FVector& Velocity, float Size, UMaterialInterface* HullMaterial, float Seconds,
+	const FVector& AngularDegPerSec)
+{
+	Play(Location, Size * 0.5f, FLinearColor(0.03f, 0.03f, 0.035f), Seconds, nullptr);
+	bChunk = true;
+	bDebris = false;
+	ChunkSize = FMath::Max(Size, 1.f);
+	// Hull plates and shards (live, equal cubes read as toy blocks).
+	ChunkAspect = FVector(1.f, FMath::FRandRange(0.45f, 0.8f), FMath::FRandRange(0.12f, 0.3f));
+	DebrisVelocity = Velocity;
+	ChunkSpin = FRotator(AngularDegPerSec.Y, AngularDegPerSec.Z, AngularDegPerSec.X);
+	if (CubeMesh)
+	{
+		Mesh->SetStaticMesh(CubeMesh);
+	}
+	if (HullMaterial)
+	{
+		Mesh->SetMaterial(0, HullMaterial); // the hull's own (lit) material: a piece of the ship
+	}
+	SetActorRotation(FRotator(FMath::FRandRange(-180.f, 180.f), FMath::FRandRange(-180.f, 180.f), FMath::FRandRange(-180.f, 180.f)));
+	Apply(0.f);
+}
+
 UMaterialInterface* ATDCombatFlash::GetFlashGlowMaterial()
 {
 	static TWeakObjectPtr<UMaterialInterface> Cached;
@@ -261,6 +313,22 @@ UMaterialInterface* ATDCombatFlash::GetFlashGlowMaterial()
 
 void ATDCombatFlash::UseStyledMaterial()
 {
+	if (StyledLook.bSmoke)
+	{
+		if (!SmokeMID)
+		{
+			if (UMaterialInterface* Smoke = GetSmokeMaterial())
+			{
+				SmokeMID = UMaterialInstanceDynamic::Create(Smoke, this);
+			}
+		}
+		if (SmokeMID)
+		{
+			Mesh->SetMaterial(0, SmokeMID);
+			SmokeMID->SetScalarParameterValue(TEXT("EdgePower"), StyledLook.EdgePower);
+			return;
+		}
+	}
 	if (!AdditiveMID)
 	{
 		if (UMaterialInterface* Additive = GetFlashGlowMaterial())
@@ -277,6 +345,7 @@ void ATDCombatFlash::UseStyledMaterial()
 	{
 		AdditiveMID->SetScalarParameterValue(TEXT("Opacity"), 1.f);
 		AdditiveMID->SetScalarParameterValue(TEXT("EdgePower"), StyledLook.EdgePower);
+		AdditiveMID->SetScalarParameterValue(TEXT("Rim"), StyledLook.bRim ? 1.f : 0.f);
 	}
 }
 
@@ -287,6 +356,20 @@ void ATDCombatFlash::PlayLook(const FVector& Location, float InRadius, float Sec
 	StyledLook = InLook;
 	DelayLeft = FMath::Max(InLook.Delay, 0.f);
 	UseStyledMaterial();
+	if (InLook.bFaceCamera)
+	{
+		// The squashed axis (local Z) toward the camera: a shockwave ring seen face-on.
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (PC && PC->PlayerCameraManager)
+		{
+			const FVector ToCamera = (PC->PlayerCameraManager->GetCameraLocation() - Location).GetSafeNormal();
+			if (!ToCamera.IsNearlyZero())
+			{
+				SetActorRotation(FRotationMatrix::MakeFromZ(ToCamera).Rotator());
+			}
+		}
+	}
 	Mesh->SetVisibility(DelayLeft <= 0.f);
 	Apply(0.f);
 }
@@ -334,16 +417,33 @@ void ATDCombatFlash::Tick(float DeltaSeconds)
 		Stop();
 		return;
 	}
-	if (bDebris)
+	if (bDebris || bChunk)
 	{
 		SetActorLocation(GetActorLocation() + DebrisVelocity * DeltaSeconds);
 		DebrisVelocity *= FMath::Exp(-1.5f * DeltaSeconds); // drag: streaks slow as they fade
+	}
+	if (bChunk)
+	{
+		AddActorLocalRotation(ChunkSpin * DeltaSeconds);
 	}
 	Apply(Age / Life);
 }
 
 void ATDCombatFlash::Apply(float Alpha)
 {
+	if (bChunk)
+	{
+		// A tumbling piece of hull, shrinking away in its last half (a lit mesh can't fade).
+		float Size = ChunkSize * FMath::Clamp(2.f * (1.f - Alpha), 0.f, 1.f);
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (PC && PC->PlayerCameraManager)
+		{
+			Size = FMath::Min(Size, FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation()) * 0.08f);
+		}
+		SetActorScale3D(ChunkAspect * (FMath::Max(Size, 0.1f) / 100.f));
+		return;
+	}
 	if (bDebris)
 	{
 		// A stretched streak along its flight, thinning as it fades. Near the camera (a hulk exploding as it drifts past)
@@ -379,7 +479,8 @@ void ATDCombatFlash::Apply(float Alpha)
 		{
 			Size = FMath::Min(Size, FMath::Max(Distance * CameraCap, 1.f));
 		}
-		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
+		const FVector Squash = bStyled ? StyledLook.Squash : FVector::OneVector;
+		SetActorScale3D(Squash * (Size / 50.f)); // the engine sphere is 100 cm across
 	}
 	if (bStyled)
 	{
@@ -387,6 +488,14 @@ void ATDCombatFlash::Apply(float Alpha)
 		const FTDFlashLook& L = StyledLook;
 		const FLinearColor Tint = Alpha < 0.4f ? FMath::Lerp(L.Hot, L.Mid, Alpha / 0.4f) : FMath::Lerp(L.Mid, L.Cool, (Alpha - 0.4f) / 0.6f);
 		const float Glow = L.bEmber ? L.Glow * FMath::Sin(PI * FMath::Clamp(Alpha, 0.f, 1.f)) : L.Glow * FMath::Pow(FMath::Max(1.f - Alpha, 0.f), L.GlowExponent);
+		if (L.bSmoke && SmokeMID && Mesh->GetMaterial(0) == SmokeMID)
+		{
+			// Smoke: its colour, its opacity swelling in fast and thinning out slowly.
+			LastColor = Tint;
+			SmokeMID->SetVectorParameterValue(TEXT("Color"), Tint);
+			SmokeMID->SetScalarParameterValue(TEXT("Opacity"), L.Opacity * FMath::Sin(PI * FMath::Pow(FMath::Clamp(Alpha, 0.f, 1.f), 0.6f)));
+			return;
+		}
 		LastColor = Tint * Glow;
 		if (UMaterialInstanceDynamic* Target = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0)))
 		{

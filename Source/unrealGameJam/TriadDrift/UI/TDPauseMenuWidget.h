@@ -50,6 +50,14 @@ public:
 	/** What the last activation did (tests): "resume", "settings", "settings-missing" (the page refused), "restart", "quit". */
 	FString LastAction;
 
+	/**
+	 * "STANDARD": the difficulty in play (T1's UTDSettingsSubsystem::GetDifficultyInPlay, the run's own after a Continue),
+	 * re-read each time the screen opens. Empty (no line drawn) when that API isn't in this build.
+	 */
+	const FString& GetDifficultyLine() const { return DifficultyLine; }
+	/** Reads the difficulty in play through reflection; empty when unavailable. */
+	static FString ReadDifficultyInPlay();
+
 	/** False in tests: activations are recorded but not executed (no unpause, travel or retake). */
 	bool bExecuteActions = true;
 
@@ -75,5 +83,6 @@ private:
 	bool bConfirming = false;
 	int32 ConfirmChoice = 1;
 	FString Toast;
+	FString DifficultyLine;
 	double ToastUntil = 0.0;
 };

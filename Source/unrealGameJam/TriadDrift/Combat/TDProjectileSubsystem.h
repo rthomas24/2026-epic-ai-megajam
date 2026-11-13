@@ -71,6 +71,13 @@ public:
 	static constexpr float MultiPopRadius = 1200.f;
 	/** How many secondary pops an explosion of Radius plays. */
 	static int32 ExplosionPops(float Radius) { return Radius >= MultiPopRadius ? 3 : Radius >= PopRadius ? 2 : 0; }
+	/** Hull chunks thrown by an explosion of Radius. */
+	static int32 ExplosionChunks(float Radius) { return Radius >= PopRadius ? 6 : 4; }
+	/**
+	 * The dying hull an explosion at Location belongs to: the nearest dead spacecraft within Radius x 1.5 (T4 calls
+	 * PlayPlaceholderExplosion at the hulk). Null for a missile or a hit on nothing alive.
+	 */
+	AActor* FindDyingHull(const FVector& Location, float Radius) const;
 
 	/** Flashes playing right now (tests). */
 	int32 GetPlayingFlashCount() const;

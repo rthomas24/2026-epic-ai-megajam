@@ -1,6 +1,9 @@
 // Triad Drift - engineering host for Nick's native space HUD (Teammate 2).
 
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Blueprint/UserWidget.h"
 #include "Engine/Engine.h"
@@ -19,6 +22,7 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
+#include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -68,6 +72,7 @@ void UTDUIHostSubsystem::Deinitialize()
 	HideGround();
 	HidePause();
 	BindPause(nullptr);
+	BindHitSounds(false);
 	SetDevHUDSuppressed(false);
 	Super::Deinitialize();
 }
@@ -113,7 +118,7 @@ bool UTDUIHostSubsystem::WantsSpaceHUD(APlayerController*& OutController, UObjec
 {
 	OutController = nullptr;
 	OutSource = nullptr;
-	if (!UTDUIHostSettings::IsNativeSpaceHUDEnabled())
+	if (UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Dev)
 	{
 		return false;
 	}
@@ -135,6 +140,7 @@ void UTDUIHostSubsystem::Evaluate()
 	// On foot and pause first: independent of the space HUD's switch.
 	APlayerController* LocalPC = FindLocalController();
 	BindPause(LocalPC);
+	BindHitSounds(true);
 	if (WantsGroundHUD(LocalPC))
 	{
 		if (!GroundWidget || GroundOwner.Get() != LocalPC)
@@ -160,7 +166,7 @@ void UTDUIHostSubsystem::Evaluate()
 		Hide();
 		return;
 	}
-	if (Widget && Owner.Get() == PC)
+	if (Widget && Owner.Get() == PC && ShownChoice == UTDUIHostSettings::GetSpaceHUDChoice())
 	{
 		if (DataSource.Get() != Source)
 		{
@@ -177,7 +183,8 @@ void UTDUIHostSubsystem::Evaluate()
 
 void UTDUIHostSubsystem::ShowFor(APlayerController* Controller, UObject* Source)
 {
-	UClass* Class = ResolveWidgetClass();
+	const ETDSpaceHUDChoice Choice = UTDUIHostSettings::GetSpaceHUDChoice();
+	UClass* Class = Choice == ETDSpaceHUDChoice::Engineering ? UTDFlightHUDWidget::StaticClass() : ResolveWidgetClass();
 	if (!Class)
 	{
 		if (!bClassWarningLogged)
@@ -205,6 +212,7 @@ void UTDUIHostSubsystem::ShowFor(APlayerController* Controller, UObject* Source)
 	Widget = NewWidget;
 	Owner = Controller;
 	DataSource = Source;
+	ShownChoice = Choice;
 	const UWorld* World = GetWorld();
 	if (bAddToViewport && World && World->GetGameViewport())
 	{
@@ -356,6 +364,41 @@ void UTDUIHostSubsystem::BindPause(APlayerController* PC)
 	{
 		New->OnPauseChanged.AddUniqueDynamic(this, &UTDUIHostSubsystem::HandlePauseChanged);
 	}
+}
+
+void UTDUIHostSubsystem::BindHitSounds(bool bBind)
+{
+	UTDEventBus* Bus = bBind ? UTDEventBus::Get(this) : nullptr;
+	if (HitBus.Get() == Bus)
+	{
+		return;
+	}
+	if (UTDEventBus* Old = HitBus.Get())
+	{
+		Old->OnHitConfirmed.RemoveDynamic(this, &UTDUIHostSubsystem::HandleHitConfirmed);
+	}
+	HitBus = Bus;
+	if (Bus)
+	{
+		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDUIHostSubsystem::HandleHitConfirmed);
+	}
+}
+
+void UTDUIHostSubsystem::HandleHitConfirmed(AActor* Target, bool bKill)
+{
+	const UTDUIStyle* Style = StyleOverride ? StyleOverride.Get() : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	if (!Style)
+	{
+		return;
+	}
+	const FTDFXCue& Cue = bKill ? Style->KillConfirm : Style->HitConfirm;
+	USoundBase* Sound = Cue.Sound.IsNull() ? nullptr : Cue.Sound.LoadSynchronous();
+	if (!Sound)
+	{
+		return; // silent until Nick assigns the sound
+	}
+	UGameplayStatics::PlaySound2D(this, Sound); // 2D, no overrides: the asset's class, volume and concurrency apply
+	++(bKill ? KillSoundsPlayed : HitSoundsPlayed);
 }
 
 void UTDUIHostSubsystem::HandlePauseChanged(bool bPaused)
@@ -563,7 +606,8 @@ namespace TDUIHost
 		// Without the native HUD (dev HUD on), read the squad manager directly.
 		UObject* Source = Host->GetDataSource() ? Host->GetDataSource() : static_cast<UObject*>(ATDSquadManager::Get(World));
 		APlayerController* ViewPC = HUD && HUD->GetOwningPlayer() ? HUD->GetOwningPlayer() : World->GetFirstPlayerController();
-		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: enabled=%d shown=%d class=%s source=%s"),
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: choice=%s enabled=%d shown=%d class=%s source=%s"),
+			*StaticEnum<ETDSpaceHUDChoice>()->GetNameStringByValue(static_cast<int64>(UTDUIHostSettings::GetSpaceHUDChoice())),
 			UTDUIHostSettings::IsNativeSpaceHUDEnabled() ? 1 : 0, HUD ? 1 : 0,
 			HUD ? *HUD->GetClass()->GetName() : TEXT("-"), Source ? *Source->GetName() : TEXT("-"));
 		if (const ITDHUDData* Data = Cast<ITDHUDData>(Source))
