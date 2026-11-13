@@ -644,7 +644,23 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 	// The flown ship in the chase view: the camera sits ~14 m behind, right above its own exhaust, so the ribbon
 	// stops PlayerTrailMax behind the nozzle (tapering over that length) instead of streaming under the camera.
 	const bool bOwnChase = Ship->IsPlayerFlown() && !Ship->IsCockpitView();
-	const float Cap = bOwnChase ? Tuning.PlayerTrailMax : TNumericLimits<float>::Max();
+	const float BaseCap = bOwnChase ? Tuning.PlayerTrailMax * (Engines > 2 ? Tuning.PlayerFlameManyEnginesScale : 1.f)
+		: TNumericLimits<float>::Max();
+	// Screen-space limit for the flown flame: project along the ribbon with the camera's own transform and FOV and
+	// stop where it would cross PlayerFlameScreenLimit of the viewport height (the HUD band). Headless (no viewport)
+	// only the length cap applies.
+	int32 ViewW = 0, ViewH = 0;
+	if (bOwnChase && bHaveEye) { ViewPC->GetViewportSize(ViewW, ViewH); }
+	const bool bScreenCap = bOwnChase && bHaveEye && ViewW > 0 && ViewH > 0;
+	const FRotator EyeRot = bHaveEye ? ViewPC->PlayerCameraManager->GetCameraRotation() : FRotator::ZeroRotator;
+	const float TanHalf = bHaveEye ? FMath::Tan(FMath::DegreesToRadians(FMath::Clamp(ViewPC->PlayerCameraManager->GetFOVAngle(), 5.f, 170.f) * 0.5f)) : 1.f;
+	const float Aspect = ViewH > 0 ? (float)ViewW / (float)ViewH : 1.f;
+	auto ScreenY = [&](const FVector& P) -> float // 0 top .. 1 bottom; 2 = behind the eye
+	{
+		const FVector L = EyeRot.UnrotateVector(P - Eye);
+		if (L.X < 1.f) { return 2.f; }
+		return 0.5f - 0.5f * (L.Z / (L.X * TanHalf)) * Aspect;
+	};
 	float FirstLength = 0.f;
 	for (int32 e = 0; e < Engines; ++e)
 	{
@@ -654,6 +670,30 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 		{
 			H.Insert(TrailNozzles[e], 0);
 			H.SetNum(N + 1);
+		}
+		float Cap = BaseCap;
+		if (bScreenCap)
+		{
+			const float Limit = Tuning.PlayerFlameScreenLimit;
+			float Walked = 0.f;
+			for (int32 i = 0; i < N && Walked < Cap; ++i)
+			{
+				const FVector A = H[i], B = H[i + 1];
+				const float Len = FVector::Dist(A, B);
+				if (ScreenY(A) > Limit) { Cap = Walked; break; }
+				if (ScreenY(B) > Limit)
+				{
+					float Lo = 0.f, Hi = 1.f; // bisect the crossing inside this segment
+					for (int32 k = 0; k < 8; ++k)
+					{
+						const float Mid = 0.5f * (Lo + Hi);
+						(ScreenY(FMath::Lerp(A, B, Mid)) > Limit ? Hi : Lo) = Mid;
+					}
+					Cap = FMath::Min(Cap, Walked + Lo * Len);
+					break;
+				}
+				Walked += Len;
+			}
 		}
 		float Length = 0.f;
 		for (int32 i = 0; i < N; ++i)
