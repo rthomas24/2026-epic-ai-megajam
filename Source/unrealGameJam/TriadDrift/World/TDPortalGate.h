@@ -54,6 +54,15 @@ public:
 	 */
 	static bool SegmentCrossesGate(const FTransform& GateTransform, float Radius, const FVector& From, const FVector& To, bool& bOutForward);
 
+	/** True while a gate is moving a traveller (its own teleport broadcast is not an "arrival"). */
+	static bool IsTransitInProgress() { return TransitInProgressFlag(); }
+	static bool& TransitInProgressFlag();
+
+	/** After a ship arrives by anything but a gate (level travel, stage jump, retake, spawn), no gate takes it
+	 *  for this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "0"))
+	float ArrivalNoTransitSeconds = 5.f;
+
 	/** Gate id for layout, return points and debugging ("Gate_Verdance_A"). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
 	FName GateId = NAME_None;

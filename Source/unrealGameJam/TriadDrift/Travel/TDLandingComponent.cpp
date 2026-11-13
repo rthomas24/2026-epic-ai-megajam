@@ -701,11 +701,12 @@ void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	}
 	if (!Pad.IsValid() && State < ETDLandingState::Landed)
 	{
-		// Pad vanished mid-landing: abort back to flight.
+		// Pad vanished mid-landing: abort back to flight, and give the wingmen their AI back.
 		bGearDown = bCanopyOpen = false;
 		bEnginesOn = true;
 		PauseFlight(false);
 		SetState(ETDLandingState::Flying);
+		TDLandingSquad::SetWingmenPassive(this, false);
 		return;
 	}
 
@@ -730,7 +731,7 @@ void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		break;
 	case ETDLandingState::GearUp:
 		// Keep climbing gently and start moving forward so the hand-back to flight is smooth.
-		Target = SegmentStart + (Ship->GetActorForwardVector() * 600.f + FVector(0.f, 0.f, 300.f)) * A;
+		Target = SegmentStart + (Ship->GetActorForwardVector() * Tuning.GearUpForward + FVector(0.f, 0.f, Tuning.GearUpClimb)) * A;
 		break;
 	default:
 		break;
