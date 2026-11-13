@@ -100,14 +100,22 @@ public:
 	 *  /Game/TriadDrift/Gameplay/Characters (engineering-made crew looks). Null when neither has it. */
 	static class UTDEnemyVisuals* FindCrewVisuals(FName VisualsId);
 
+	/** The shared look lookup (crew and pilot): Presentation/<Name> first, else <Name> of Class anywhere under
+	 *  /Game/TriadDrift/Gameplay/Characters. Null when neither exists. */
+	static UObject* FindLookAsset(const FString& Name, UClass* Class);
+
 	/** Where bolts and the tell come from: the mesh's "Muzzle" socket when the skeletal look has one, else in front of the capsule. */
 	FVector GetMuzzleLocation(const FVector& AimDirection) const;
 
 	/** The anim blueprint in use on the skeletal look came from the template fallback (the visuals had none). */
 	bool UsesFallbackAnimation() const { return bFallbackAnim; }
 
-	/** Template mannequin animations used when a skeletal look has no AnimBP of its own (also cooked: see docs/eng/ground.md). */
-	static const TCHAR* FallbackAnimBP;
+	/** Template anim blueprint for a skeletal look with no AnimBP: the rifle set for shooters (Trooper, Heavy, Warden),
+	 *  unarmed for Grunts. Cooked through DirectoriesToAlwaysCook. */
+	static const TCHAR* FallbackAnimBPFor(ETDCrewType Type);
+
+	/** Scale of the skeletal look (a type borrowing another type's look is sized to its own capsule). */
+	float GetLookScale() const { return LookScale; }
 
 	FTDOnCrewAttack OnAttackStarted;   // wind-up begins (telegraph)
 	FTDOnCrewAttack OnAttackReleased;  // the hit / shots go out
@@ -191,6 +199,7 @@ private:
 	int32 BossPhase = 1;
 	int32 SummonsLeft = -1;
 	bool bFallbackAnim = false;
+	float LookScale = 1.f;
 	void PlayFallbackAnim(const TCHAR* AssetPath, float Rate = 1.f);
 	const TCHAR* FallbackDeathAnim(const FVector& HitDirection) const;
 	float OpeningGraceLeft = 0.f;

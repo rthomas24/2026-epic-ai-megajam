@@ -91,6 +91,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
 	void RespawnAt(const FTransform& Where);
 
+	// ------------------------------------------------------------------ pilot body (N-021)
+	/** The pilot's look. Empty: DA_Pilot_Visuals (Presentation, else Gameplay/Characters/**) at BeginPlay; none: no body. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body")
+	TObjectPtr<class UTDPilotVisuals> PilotVisuals;
+
+	/** In first person the body sits this far behind the camera so looking down never shows the inside of the chest. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm"))
+	float FirstPersonBodyBack = 18.f;
+
+	/** Ground speeds the walk and run loops were authored for: playback rate follows the real speed (less foot sliding). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
+	float BodyWalkSpeed = 300.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
+	float BodyRunSpeed = 650.f;
+
+	/** Applies PilotVisuals (loads the default when empty). Public for tests. */
+	void ApplyPilotVisuals();
+	bool HasBody() const;
+	/** Which loop a ground speed plays: 0 idle, 1 walk, 2 run. */
+	static int32 ChooseBodyLoop(float GroundSpeed);
+	/** First person: head hidden, body pushed back. Other views (director shots, death, boarding): the full body. */
+	void SetBodyFirstPersonView(bool bFirstPerson);
+	bool IsBodyFirstPersonView() const { return bBodyFirstPerson; }
+
 	/** Put back on the last solid ground stood on (magma). Floors tagged TD.Unsafe never count as safe. */
 	void ReturnToSafeGround();
 	FVector GetLastSafeLocation() const { return LastSafeLocation; }
@@ -161,6 +185,12 @@ public:
 	virtual void UnPossessed() override;
 
 protected:
+	void UpdateBody(float DeltaSeconds);
+	void PlaceBody();
+	bool bBodyFirstPerson = false;
+	bool bBodyViewKnown = false;
+	UPROPERTY(Transient) TObjectPtr<class UTDPilotVisuals> AppliedPilotVisuals;
+
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Ground")
