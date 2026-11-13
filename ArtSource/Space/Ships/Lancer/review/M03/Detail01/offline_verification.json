@@ -1,0 +1,10 @@
+{
+  "png_crc_iend_zlib_pass": true,
+  "png_count": 25,
+  "local_links_pass": true,
+  "local_link_count": 53,
+  "json_ast_pass": true,
+  "approved_v03_sha256_unchanged": true,
+  "canonical_frames_byte_unchanged": true,
+  "warning": "Offline HTML structure/links verified; browser rendering not independently automated"
+}

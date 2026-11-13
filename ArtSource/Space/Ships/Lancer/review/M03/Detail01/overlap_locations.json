@@ -1,0 +1,3842 @@
+[
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -79.32114601135254,
+      13.097666203975677
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -80.94397783279419,
+      12.235893309116364
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -81.13099336624146,
+      12.631301581859589
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -79.97159957885742,
+      14.229217171669006
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -82.3749840259552,
+      14.725305140018463
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -143.029522895813,
+      12.35627681016922
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -141.0092830657959,
+      12.33474537730217
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -142.02840328216553,
+      14.229217171669006
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -140.6088352203369,
+      13.083921372890472
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -140.84854125976562,
+      15.99501222372055
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -139.15307521820068,
+      15.43162316083908
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -81.15147352218628,
+      15.99501222372055
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -82.84693360328674,
+      15.43162316083908
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -91.70757532119751,
+      25.019735097885132
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -91.61879420280457,
+      27.69506573677063
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -92.41389632225037,
+      25.491678714752197
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -130.29242753982544,
+      25.019735097885132
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -130.38121461868286,
+      27.69506573677063
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -127.94473171234131,
+      26.475489139556885
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -129.58611249923706,
+      25.491678714752197
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -93.49173903465271,
+      28.696173429489136
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -94.80445981025696,
+      26.87593102455139
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -95.45378684997559,
+      29.508879780769348
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -128.50828170776367,
+      28.696173429489136
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -127.19554901123047,
+      26.87593102455139
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -126.54621601104736,
+      29.508879780769348
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -111.00000143051147,
+      32.099997997283936
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -111.00000143051147,
+      30.539995431900024
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -78.86660099029541,
+      12.136605381965637
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -80.76215982437134,
+      11.851469427347183
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -146.76666259765625,
+      -3.611096739768982
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -75.2333402633667,
+      -3.611096739768982
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -77.1933376789093,
+      -3.2444391399621964
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -143.029522895813,
+      -18.96737515926361
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -78.9704978466034,
+      -18.96737515926361
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -79.97159957885742,
+      -20.840315520763397
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -81.39117956161499,
+      -19.328363239765167
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -142.02840328216553,
+      -20.840315520763397
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -139.62501287460327,
+      -20.96974551677704
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -140.84854125976562,
+      -22.60611057281494
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -139.15307521820068,
+      -21.676063537597656
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -81.15147352218628,
+      -22.60611057281494
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -82.84693360328674,
+      -21.676063537597656
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -130.29495477676392,
+      -31.01974129676819
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -91.70504808425903,
+      -31.01974129676819
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -130.38753271102905,
+      -33.69507193565369
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -129.58863973617554,
+      -31.491684913635254
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -128.5145878791809,
+      -34.69617962837219
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -91.61248207092285,
+      -33.69507193565369
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -94.05275583267212,
+      -32.47549533843994
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -92.41136908531189,
+      -31.491684913635254
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -93.48542094230652,
+      -34.696173667907715
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -94.80193257331848,
+      -32.87593722343445
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -126.55253410339355,
+      -35.508882999420166
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -95.44748067855835,
+      -35.508882999420166
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -111.00001335144043,
+      -38.10000121593475
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_L",
+      "SM_LancerM03_Detail_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -111.00000143051147,
+      -36.54000163078308
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      142.67886877059937,
+      13.097666203975677
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      141.05602502822876,
+      12.235893309116364
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      140.86902141571045,
+      12.631301581859589
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      142.02840328216553,
+      14.229217171669006
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      139.62501287460327,
+      14.725305140018463
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      78.9704978466034,
+      12.35627681016922
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      80.990731716156,
+      12.33474537730217
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      79.97159957885742,
+      14.229217171669006
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      81.39117956161499,
+      13.083921372890472
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      81.15147352218628,
+      15.99501222372055
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      82.84693360328674,
+      15.43162316083908
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      140.84854125976562,
+      15.99501222372055
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      139.15307521820068,
+      15.43162316083908
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      130.29242753982544,
+      25.019735097885132
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      130.38122653961182,
+      27.69506573677063
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      129.58611249923706,
+      25.491678714752197
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      91.70757532119751,
+      25.019735097885132
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      91.61879420280457,
+      27.69506573677063
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      94.0552830696106,
+      26.475489139556885
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      92.41389632225037,
+      25.491678714752197
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      128.50826978683472,
+      28.696173429489136
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      127.19554901123047,
+      26.87593102455139
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      126.54622793197632,
+      29.508879780769348
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      93.49173903465271,
+      28.696173429489136
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      94.80445981025696,
+      26.87593102455139
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      95.45378684997559,
+      29.508879780769348
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      111.00000143051147,
+      32.099997997283936
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      111.00000143051147,
+      30.539995431900024
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      143.13342571258545,
+      12.136605381965637
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      141.23785495758057,
+      11.851469427347183
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      75.2333402633667,
+      -3.611096739768982
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      146.76666259765625,
+      -3.611096739768982
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      144.80665922164917,
+      -3.2444391399621964
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      78.9704978466034,
+      -18.96737515926361
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      143.029522895813,
+      -18.96737515926361
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      142.02840328216553,
+      -20.840315520763397
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      140.6088352203369,
+      -19.328363239765167
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      79.97159957885742,
+      -20.840315520763397
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      82.3749840259552,
+      -20.96974551677704
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      81.15147352218628,
+      -22.60611057281494
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      82.84693360328674,
+      -21.676063537597656
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      140.84854125976562,
+      -22.60611057281494
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      139.15307521820068,
+      -21.676063537597656
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      91.70505404472351,
+      -31.01974129676819
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      130.29495477676392,
+      -31.01974129676819
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      91.61248207092285,
+      -33.69507193565369
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      92.41136908531189,
+      -31.491684913635254
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      93.48542094230652,
+      -34.69617962837219
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      130.38753271102905,
+      -33.69507193565369
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      127.94725894927979,
+      -32.47549533843994
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      129.58863973617554,
+      -31.491684913635254
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      128.51459980010986,
+      -34.696173667907715
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      127.19807624816895,
+      -32.87593722343445
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      95.44748067855835,
+      -35.508882999420166
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      126.55253410339355,
+      -35.508882999420166
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      111.00000143051147,
+      -38.10000121593475
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Engine_R",
+      "SM_LancerM03_Detail_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      111.00000143051147,
+      -36.54000163078308
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      398.0726957321167,
+      -20.774224400520325,
+      11.867450922727585
+    ],
+    "normal": [
+      0.15800373256206512,
+      -0.9874384999275208,
+      -3.121826352980861e-07
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      -49.993690848350525,
+      -61.25996112823486,
+      33.97529125213623
+    ],
+    "normal": [
+      -0.013713405467569828,
+      0.9999059438705444,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      397.9273319244385,
+      19.86577808856964,
+      11.867450922727585
+    ],
+    "normal": [
+      -0.15800373256206512,
+      -0.9874384999275208,
+      3.121826352980861e-07
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      -50.006312131881714,
+      60.340046882629395,
+      33.97529125213623
+    ],
+    "normal": [
+      0.013713405467569828,
+      0.9999059438705444,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      397.9273319244385,
+      -19.86577808856964,
+      12.12078481912613
+    ],
+    "normal": [
+      0.15800373256206512,
+      -0.9874384999275208,
+      -3.0979452958490583e-07
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      -50.006312131881714,
+      -60.340046882629395,
+      34.22862887382507
+    ],
+    "normal": [
+      -0.013713405467569828,
+      0.9999059438705444,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      398.0726957321167,
+      20.774221420288086,
+      12.12078481912613
+    ],
+    "normal": [
+      -0.15800373256206512,
+      -0.9874384999275208,
+      3.0979452958490583e-07
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Hull",
+      "SM_LancerM03_Detail_Hull"
+    ],
+    "position_cm": [
+      -49.993690848350525,
+      61.25996112823486,
+      34.22862887382507
+    ],
+    "normal": [
+      0.013713405467569828,
+      0.9999059438705444,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_L",
+      "SM_LancerM03_Detail_Wing_L"
+    ],
+    "position_cm": [
+      83.5385262966156,
+      -91.92197322845459,
+      12.292300164699554
+    ],
+    "normal": [
+      0.9831385016441345,
+      -0.1828623116016388,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_L",
+      "SM_LancerM03_Detail_Wing_L"
+    ],
+    "position_cm": [
+      -145.4473853111267,
+      -354.26721572875977,
+      -11.808999627828598
+    ],
+    "normal": [
+      -0.7795915007591248,
+      0.6262883543968201,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_L",
+      "SM_LancerM03_Detail_Wing_L"
+    ],
+    "position_cm": [
+      84.88084077835083,
+      -92.17164516448975,
+      12.241633236408234
+    ],
+    "normal": [
+      0.9831385016441345,
+      -0.1828623116016388,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_L",
+      "SM_LancerM03_Detail_Wing_L"
+    ],
+    "position_cm": [
+      -146.51179313659668,
+      -353.412127494812,
+      -11.85966581106186
+    ],
+    "normal": [
+      -0.7795915007591248,
+      0.6262883543968201,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_R",
+      "SM_LancerM03_Detail_Wing_R"
+    ],
+    "position_cm": [
+      84.37747359275818,
+      92.07801818847656,
+      12.292300164699554
+    ],
+    "normal": [
+      -0.9831385016441345,
+      -0.1828623116016388,
+      -0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_R",
+      "SM_LancerM03_Detail_Wing_R"
+    ],
+    "position_cm": [
+      -146.11263275146484,
+      353.7327766418457,
+      -11.808999627828598
+    ],
+    "normal": [
+      0.7795915007591248,
+      0.6262883543968201,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_R",
+      "SM_LancerM03_Detail_Wing_R"
+    ],
+    "position_cm": [
+      83.03515911102295,
+      91.82835221290588,
+      12.241633236408234
+    ],
+    "normal": [
+      -0.9831385016441345,
+      -0.1828623116016388,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Wing_R",
+      "SM_LancerM03_Detail_Wing_R"
+    ],
+    "position_cm": [
+      -145.04821300506592,
+      354.58786487579346,
+      -11.85966581106186
+    ],
+    "normal": [
+      0.7795915007591248,
+      0.6262883543968201,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -75.11667013168335,
+      -0.7820560596883297
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -79.80577349662781,
+      16.71794354915619
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -78.74577641487122,
+      16.199475526809692
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -92.61667132377625,
+      29.52883243560791
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -94.20782923698425,
+      29.78806495666504
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -91.55666828155518,
+      29.010364413261414
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -129.20783758163452,
+      29.78806495666504
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -140.427565574646,
+      16.71794354915619
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -142.018723487854,
+      16.977177560329437
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -145.1166868209839,
+      -0.7820560596883297
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -140.427565574646,
+      -18.282055854797363
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -127.61667966842651,
+      -31.092947721481323
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -110.11667251586914,
+      -35.7820600271225
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -111.70783042907715,
+      -35.52282452583313
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -109.58551168441772,
+      -35.52282452583313
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -79.80577349662781,
+      -18.282055854797363
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -75.40888786315918,
+      -4.876470565795898
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -76.8833339214325,
+      -5.263235419988632
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -76.58953666687012,
+      -1.2141123414039612
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -82.04267024993896,
+      12.855589389801025
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -94.38333511352539,
+      25.047656893730164
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -92.26333498954773,
+      28.28558087348938
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -110.40890216827393,
+      30.123531818389893
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -109.69955921173096,
+      29.659414291381836
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -111.88334226608276,
+      29.7367662191391
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -110.28933525085449,
+      29.50470745563507
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -112.41734027862549,
+      29.50470745563507
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -129.38334941864014,
+      25.047656893730164
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -127.26333141326904,
+      28.28558087348938
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -130.3258180618286,
+      28.837543725967407
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -139.48445320129395,
+      12.855589389801025
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -143.2542324066162,
+      15.474693477153778
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -142.60786771774292,
+      16.80435538291931
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -145.40889263153076,
+      -4.876470565795898
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -146.8833327293396,
+      -5.263235419988632
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -146.8833327293396,
+      -2.5940142571926117
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -146.5895414352417,
+      -1.2141123414039612
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -142.19422340393066,
+      -22.763237357139587
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -143.2542324066162,
+      -19.525307416915894
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -139.95671272277832,
+      -18.973346054553986
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -129.7366738319397,
+      -34.42145586013794
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -127.90889739990234,
+      -35.187357664108276
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -129.38334941864014,
+      -35.57412326335907
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -127.78934240341187,
+      -35.8061820268631
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -111.88334226608276,
+      -37.59401738643646
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -112.29697465896606,
+      -35.695645213127136
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -92.90889501571655,
+      -35.187357664108276
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -94.85356211662292,
+      -34.95529890060425
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -92.78934001922607,
+      -35.8061820268631
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -94.08954381942749,
+      -31.525003910064697
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -78.74577641487122,
+      -19.904446601867676
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -81.92577362060547,
+      -21.610569953918457
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      -80.09799718856812,
+      -22.376470267772675
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -79.45244312286377,
+      -19.525307416915894
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_L",
+      "SM_LancerM03_Engine_L"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      -82.51492977142334,
+      -18.973346054553986
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      146.8833327293396,
+      -0.7820560596883297
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      142.19422340393066,
+      16.71794354915619
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      143.2542324066162,
+      16.199475526809692
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      129.38334941864014,
+      29.52883243560791
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      127.79217958450317,
+      29.78806495666504
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      130.44334650039673,
+      29.010364413261414
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      92.7921712398529,
+      29.78806495666504
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      81.57243728637695,
+      16.71794354915619
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      79.98127937316895,
+      16.977177560329437
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      76.8833339214325,
+      -0.7820560596883297
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      81.57243728637695,
+      -18.282055854797363
+    ],
+    "normal": [
+      -0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      94.38333511352539,
+      -31.092947721481323
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      111.88334226608276,
+      -35.7820600271225
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      110.2921724319458,
+      -35.52282452583313
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      112.41450309753418,
+      -35.52282452583313
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      142.19422340393066,
+      -18.282055854797363
+    ],
+    "normal": [
+      -0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      146.59112691879272,
+      -4.876470565795898
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      145.1166868209839,
+      -5.263235419988632
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      145.4104781150818,
+      -1.2141123414039612
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      139.95733261108398,
+      12.855589389801025
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      127.61667966842651,
+      25.047656893730164
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      129.7366738319397,
+      28.28558087348938
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      111.59112453460693,
+      30.123531818389893
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      112.30044364929199,
+      29.659414291381836
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      110.11667251586914,
+      29.7367662191391
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      111.71066761016846,
+      29.50470745563507
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      109.58267450332642,
+      29.50470745563507
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      92.61667132377625,
+      25.047656893730164
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      94.7366714477539,
+      28.28558087348938
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      91.67418479919434,
+      28.837543725967407
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      82.51555562019348,
+      12.855589389801025
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      78.74577641487122,
+      15.474693477153778
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      79.39213514328003,
+      16.80435538291931
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      76.59111022949219,
+      -4.876470565795898
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      75.11667013168335,
+      -5.263235419988632
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      75.11667013168335,
+      -2.5940142571926117
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      75.41046142578125,
+      -1.2141123414039612
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      79.80577349662781,
+      -22.763237357139587
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      78.74577641487122,
+      -19.525307416915894
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      82.04330205917358,
+      -18.973346054553986
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      92.26333498954773,
+      -34.42145586013794
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      94.09111738204956,
+      -35.187357664108276
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      92.61667132377625,
+      -35.57412326335907
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      94.21066641807556,
+      -35.8061820268631
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      110.11667251586914,
+      -37.59401738643646
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      109.70302820205688,
+      -35.695645213127136
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      129.09111976623535,
+      -35.187357664108276
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      127.1464467048645,
+      -34.95529890060425
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      129.21066284179688,
+      -35.8061820268631
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      127.91047096252441,
+      -31.525003910064697
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      143.2542324066162,
+      -19.904446601867676
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      140.07422924041748,
+      -21.610569953918457
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000247955322,
+      141.90200567245483,
+      -22.376470267772675
+    ],
+    "normal": [
+      0.0,
+      0.9999999403953552,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      142.54755973815918,
+      -19.525307416915894
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  {
+    "objects": [
+      "SM_LancerM03_Detail_Engine_R",
+      "SM_LancerM03_Engine_R"
+    ],
+    "position_cm": [
+      -399.0000009536743,
+      139.48508501052856,
+      -18.973346054553986
+    ],
+    "normal": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  }
+]

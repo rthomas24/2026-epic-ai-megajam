@@ -40,7 +40,8 @@ A kill matching several picks the most important. **Reported by the owner** with
 portals, 0.55), `PerfectDeflect` (T5 blade, 0.6), or any kind with a custom importance.
 `AbilityCombo` is dropped (Nov 12): nothing identifies an "ability kill" (no damage kind or causer
 contract; Cloak never kills), and the kill highlights already cover those moments. The Core enum value
-can be removed; nothing in Director uses it.
+`ETDHighlightKind::AbilityCombo` **stays** (unused, never produced): `Core/` is frozen, and existing enum
+values are not removed or renumbered (features.md §2 rules).
 
 **Rate limiting** (all real time, all in `Tuning`): ignored below 0.3; while a shot runs, a new one
 replaces it only if 0.25 more important, but story beats (≥ 0.8) replace any shot that isn't more
