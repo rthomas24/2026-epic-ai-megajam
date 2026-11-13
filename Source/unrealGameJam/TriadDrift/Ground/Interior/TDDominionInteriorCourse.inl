@@ -370,7 +370,8 @@ void ATDPlanetCourse::BuildInterior()
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
 	}
-	ATDShatterCrystal* Heart = SpawnProp<ATDShatterCrystal>(CoreAt + FVector(-480.f, 0.f, 0.f));
+	// Outside the kit core's base ring (live run, Nov 13: at -480 it sat buried inside the base, unreachable).
+	ATDShatterCrystal* Heart = SpawnProp<ATDShatterCrystal>(CoreAt + FVector(-760.f, 0.f, 0.f));
 	Heart->LinkedObjective = Reactor;
 	Heart->LinkedStep = 1;
 	Heart->Color = CoreGlow;
@@ -503,8 +504,12 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	}
 	const FName Id = Objective->ObjectiveId;
 	auto Beat = [this](const TCHAR* Beat) { UTDStorySubsystem::Fire(this, FName(Beat)); };
+	// Verdance, the survey archive (storyline.md section 16, reduced form): the transfer starts, the disruption, data secured.
+	if (Id == TEXT("Obj_WreckCore") && StepIndex == 3) { Beat(TEXT("G3_TransferStart")); }
+	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 4) { Beat(TEXT("G3_Disruption")); }
+	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 5) { Beat(TEXT("G3_DataSecured")); }
 	// Cinder: the enemy's transmissions echo the squad, one pilot at a time (act 3).
-	if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("A3_EchoWren")); }
+	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("A3_EchoWren")); }
 	else if (Id == TEXT("Obj_Outpost") && StepIndex == 3) { Beat(TEXT("A3_EchoKato")); }
 	else if (Id == TEXT("Obj_Jammer") && StepIndex == 0) { Beat(TEXT("A3_EchoMoss")); }
 	// The Dominion (acts 4 and 5).
