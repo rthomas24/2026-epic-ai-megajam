@@ -24,6 +24,7 @@
 ATDBoardShipInteractable::ATDBoardShipInteractable()
 {
 	Prompt = NSLOCTEXT("TriadDrift", "BoardShip", "Board ship");
+	ConsoleMesh = TDPropArt::Default(TEXT("SM_BoardPoint"));
 	HoldTime = 0.5f;
 	bSingleUse = false;
 	SetActorScale3D(FVector(0.6f));

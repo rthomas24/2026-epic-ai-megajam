@@ -76,6 +76,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Planet")
 	TObjectPtr<UStaticMeshComponent> Beacon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> BeaconMesh;
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -156,6 +158,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Planet")
 	TObjectPtr<UStaticMeshComponent> Core;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> CoreMesh;
+
 	virtual void Interact(AActor* Interactor) override;
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -195,6 +199,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Hazard")
 	TObjectPtr<UStaticMeshComponent> Surface;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> SurfaceMesh;
+
 	UPROPERTY(VisibleAnywhere, Category = "Hazard")
 	TObjectPtr<UBoxComponent> Box;
 
@@ -232,6 +238,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Hazard") TObjectPtr<UStaticMeshComponent> Vent;
 	UPROPERTY(VisibleAnywhere, Category = "Hazard") TObjectPtr<UStaticMeshComponent> Plume;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> VentMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> PlumeMesh;
 	UPROPERTY(VisibleAnywhere, Category = "Hazard") TObjectPtr<UBoxComponent> Box;
 
 	bool IsErupting() const;
@@ -257,6 +265,7 @@ public:
 	ATDShatterCrystal();
 
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UStaticMeshComponent> Mesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> CrystalMesh;
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UTDHealthComponent> Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FLinearColor Color = FLinearColor(1.f, 0.45f, 0.1f);
@@ -286,6 +295,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float FallDelay = 1.1f;
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UStaticMeshComponent> Slab;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> SlabMesh;
 
 	void SetSize(const FVector& Size);
 	bool HasFallen() const { return bFallen; }
@@ -313,6 +323,9 @@ class UNREALGAMEJAM_API ATDCollapseRun : public ATDPlanetProp
 	GENERATED_BODY()
 
 public:
+	/** Art for the falling debris (fitted to each 100-220 cm rock). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> DebrisMesh;
+
 	ATDCollapseRun();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float Seconds = 25.f;
