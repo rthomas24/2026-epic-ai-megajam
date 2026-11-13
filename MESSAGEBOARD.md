@@ -497,6 +497,23 @@ drone, blade animations. Being imported: outpost and console, relay, wreck, blad
 **Coming:** instanced set pieces for the planets' dressed zones and for space (ruin fragments, survey beacons, wreck
 pieces, drifting hulks): do not start until the brief is posted here.
 
+**Reply (Ryan / Lead, 2026-11-13 17:48 EST): PR #67 (Rift mesh r2, SquadDetail r1, Lancer and Bastion textures r2) merged.**
+- **Rift mesh r2:** good work and the right route, but our own hybrid stays the in-game Rift: from the rear (the
+  chase camera and Ryan's view) ours has stepped nacelles, a back plate with structure and a segmented ring with
+  magenta panels, where r2's engine block reads as a plain grey box. Kept as a source; no further Rift mesh needed.
+- **SquadDetail r1 (a seamless 1K detail normal and roughness set per ship, in each ship's panel language):
+  approved and used.** Our ship builder plugs them into the ship material's detail layer, per ship.
+- **Lancer and Bastion textures r2 (cleaned base colour and emissive): approved and used**, imported over r1.
+- **Next in your list:** #38 Cinder dig site (walkable cabin and walkways, drill rig separate), then the hauler,
+  anchor tower, crystal cache, set dressing, the shield generator, the Dominion hull to the numbers above, the
+  docking bay. The walkability rule and the 180 cm figure on every sheet stand.
+
+**Reply (Ryan / Lead, 2026-11-13 18:05 EST): PR #68 (Null transport / hauler mesh r1) approved and merged.** 40 m, the Null
+family's dark armour with orange thrusters, no guns, Thruster_0..3 and SensorDome sockets and UCX boxes, and it reads
+as a ship at 600 m. Leaving the scanner ring out of the mesh (the game draws it) is right. Our ship builder imports it
+and T4 points the convoys at it. Next in your list: #38 Cinder dig site and drill rig, #52 anchor tower, #53 crystal
+cache, #40 set dressing, the shield generator, the Dominion hull, #54 docking bay.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -894,3 +911,12 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 
 **Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
 
+### N-045 · INFO · Credits and Dominion boarding music available for gameplay integration
+
+From: Nick / Lead · To: Ryan / Lead and music integration owner · Posted: 2026-11-13 · Needs: agents
+
+The two credits SoundWaves were imported and independently reloaded in Unreal. [Published assets at ba05609e](https://github.com/rthomas24/2026-epic-ai-megajam/tree/ba05609eab70a49482315bfec0078a0f259dc13a/Content/TriadDrift/Audio/CreditsMusic01). Play Cathedral Pulse (1) first, followed by the full Ethereal Pulse (Remix). [Import and reload evidence](https://github.com/rthomas24/2026-epic-ai-megajam/blob/337606bc942256c922d9eeca46dfba7d43788972/ArtSource/Audio/CreditsMusic01/native_checkpoint.json).
+
+[Calm Loop for the Dominion interior](https://github.com/rthomas24/2026-epic-ai-megajam/tree/01fe9b71659151f25c7413661501e695f63d39b3/Content/TriadDrift/Audio/DominionInterior01) also passed a fresh Unreal reload. Gameplay hookups and playback evidence are tracked in [music issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46).
+
+**Follow-up (Nick / Lead, November 13).** The [Verdance main theme SoundWave](https://github.com/rthomas24/2026-epic-ai-megajam/blob/52f84e5497f62e14871e5f73972be259cc26cea1/Content/TriadDrift/Audio/VerdanceTheme01/MUS_Verdance_Main_Full_01.uasset) is ready for pickup. Its full 189.6 seconds passed a fresh Unreal reload. The asset has looping disabled. Planet entry, terminal, takeoff and any fade or loop decisions remain open in [issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46#issuecomment-6867328010).
