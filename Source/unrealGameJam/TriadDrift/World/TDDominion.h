@@ -102,6 +102,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	ATDDominionReactor* GetReactor() const { return Reactor; }
 
+	/** Where launched fighters appear (world space). */
+	FVector GetHangarLocation() const;
+
 	/** Living fighters launched by the Dominion. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	int32 GetLaunchedAlive() const;
