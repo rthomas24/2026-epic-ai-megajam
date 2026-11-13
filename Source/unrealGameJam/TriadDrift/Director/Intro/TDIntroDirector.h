@@ -20,6 +20,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Tickable.h"
+#include "InputCoreTypes.h"
 #include "TDIntroDirector.generated.h"
 
 class ACameraActor;
@@ -30,6 +31,7 @@ class UInputComponent;
 class SWidget;
 class UAudioComponent;
 class ULevelSequencePlayer;
+class ULevelSequence;
 class ALevelSequenceActor;
 
 /** One beat of the intro: a camera move, a lens, what is in focus, and what happens in it. */
@@ -111,6 +113,14 @@ public:
 	}
 
 	bool IsPlaying() const { return bPlaying; }
+	/** The last second: the lens eases into the chase camera (the scene slate shows now). */
+	bool IsHandingOff() const { return bPlaying && bHandingOff; }
+	/** A button that may skip (not an axis, a virtual stick button or the mouse wheel). */
+	static bool IsSkipKey(const FKey& Key);
+	/** True while presentation's Level Sequence plays instead of the code shots. */
+	bool IsPlayingSequence() const { return bPlaying && bSequenceMode; }
+	/** Tests: play this sequence as if UTDUIStyle::IntroSequence pointed at it. */
+	void SetSequenceOverrideForTests(ULevelSequence* Sequence);
 	/** Tests: let Play run in a test world with no game viewport (other systems' tests that go through Play). */
 	void SetAllowWithoutViewportForTests(bool bAllow) { bAllowWithoutViewportAlways = bAllow; }
 
@@ -150,6 +160,8 @@ public:
 
 private:
 	void BuildShots();
+	/** The code-driven shots: the shot camera, the view, shot 1. */
+	void StartCodeShots();
 	void BeginShot(int32 Index);
 	void UpdateShot(float ShotTime);
 	void UpdateOverlay(float ShotTime);
@@ -165,12 +177,15 @@ private:
 	/** The Dominion hull's radius (cm) from its art, for framing. */
 	static float DominionRadius();
 	void RestoreGateSurface();
+	/** Put back what one shot hid (the eclipse's fill light, the gates beside Verdance). */
+	void RestoreShotHidden();
+	static float EclipseExposureEV100();
 	void ApplyLens(float FocalMm, float FStop, float FocusDistance);
 	void PlayNarrationVoice(int32 Line);
 	void EnsureWidget();
 	void RemoveWidget();
-	void HandleSkipPressed();
-	void HandleSkipReleased();
+	void HandleSkipPressed(FKey Key);
+	void HandleSkipReleased(FKey Key);
 	APlayerController* GetPlayer() const;
 	FVector SunDirection() const;
 
@@ -188,6 +203,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<AActor> DominionStandIn;
 	/** Shot 5: the gate's membrane, hidden so the ring frames Cinder instead of covering it. */
 	TWeakObjectPtr<class UPrimitiveComponent> HiddenSurface;
+	TArray<TWeakObjectPtr<class UDirectionalLightComponent>> ShotHiddenLights;
+	TArray<TWeakObjectPtr<AActor>> ShotHiddenActors;
 	UPROPERTY(Transient) TObjectPtr<ULevelSequencePlayer> SequencePlayer;
 	UPROPERTY(Transient) TObjectPtr<ALevelSequenceActor> SequenceActor;
 	TWeakObjectPtr<APlayerController> Player;
@@ -212,6 +229,7 @@ private:
 	bool bHandingOff = false;
 	bool bSkipped = false;
 	bool bSkipHeld = false;
+	TSet<FKey> SkipKeysHeld;
 	bool bSkipConsumed = false;
 	float SkipHeldFor = 0.f;
 	float Elapsed = 0.f;
@@ -226,6 +244,10 @@ private:
 	bool bGateFlared = false;
 	bool bDominionShown = false;
 	bool bDebugFrozen = false;
+	/** Playing presentation's Level Sequence instead of the code shots (it owns framing: no bars). */
+	bool bSequenceMode = false;
+	bool bSequenceStarted = false;
+	TWeakObjectPtr<ULevelSequence> SequenceOverrideForTests;
 	/** Shot 6b: close fighters spawned so far (one every 0.45 s). */
 	int32 CloseSpawned = 0;
 };

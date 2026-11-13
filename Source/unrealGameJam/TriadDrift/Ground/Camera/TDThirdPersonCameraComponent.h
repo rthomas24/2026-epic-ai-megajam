@@ -9,8 +9,8 @@
 // clear. Closer than 60 cm to the pilot it hides the pilot's meshes (SetHiddenInGame, which is separate from the
 // visibility T5's body code uses) and shows them again past 70 cm.
 //
-// Switching (SetThirdPerson) blends the lens between the first-person camera and the chase view in 0.15 s and
-// swaps which camera is active on the pawn. While the director owns the view (a director shot or the on-foot
+// Switching (SetThirdPerson) is instant (a cut, features.md ENG-32; BlendSeconds can add a blend) and swaps which
+// camera is active on the pawn, even while paused. While the director owns the view (a director shot or the on-foot
 // death cam, or anything else that took the view target), a change waits and applies when the view comes back.
 
 #pragma once
@@ -60,6 +60,17 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	static float GetDesiredActorYaw(const FVector& MoveVector, float CameraYaw, bool bCombatAction, float CurrentYaw);
 
+	/**
+	 * Melee framing (ENG-32 review): while true (a live enemy within sword range, or the blade attacking / blocking),
+	 * the shoulder eases out to CombatShoulderRight / CombatShoulderUp in CombatBlendSeconds so the pilot's body no
+	 * longer covers the enemy and its tell; false eases back. The probe, the arm and the body hide are unchanged.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
+	void SetCloseCombat(bool bClose) { bCloseCombat = bClose; }
+	bool IsCloseCombat() const { return bCloseCombat; }
+	/** 0 = the travel shoulder, 1 = the melee shoulder (eased). */
+	float GetCombatFraming01() const { return CombatBlend; }
+
 	/** Optional: the first-person camera to blend from and to (default: the owner's other camera component). */
 	void SetFirstPersonCamera(UCameraComponent* InCamera);
 
@@ -80,6 +91,13 @@ public:
 	float ShoulderRight = 55.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
 	float ShoulderUp = 65.f;
+	/** The shoulder at sword range (SetCloseCombat). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
+	float CombatShoulderRight = 80.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
+	float CombatShoulderUp = 90.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "s"))
+	float CombatBlendSeconds = 0.2f;
 	/** Pivot location lag (interp speed); 0 = none. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person")
 	float LocationLagSpeed = 12.f;
@@ -94,7 +112,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person")
 	float EaseOutSpeed = 5.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "s"))
-	float BlendSeconds = 0.15f;
+	float BlendSeconds = 0.f; // features.md ENG-32: the switch is instant (a cut)
 	/** Hide the pilot when the lens is closer than this to the capsule (shown again 10 cm further out). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
 	float HideBodyDistance = 60.f;
@@ -130,6 +148,8 @@ private:
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<UPrimitiveComponent>> HiddenByUs;
 
 	bool bWantThirdPerson = false;
+	bool bCloseCombat = false;
+	float CombatBlend = 0.f;
 	bool bThirdPersonActive = false;
 	/** Blending back to first person: our lens still shows, moving to the first-person eye. */
 	bool bBlendingOut = false;

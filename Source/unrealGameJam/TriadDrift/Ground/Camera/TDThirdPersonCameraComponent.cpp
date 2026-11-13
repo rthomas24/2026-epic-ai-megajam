@@ -28,6 +28,7 @@ UTDThirdPersonCameraComponent::UTDThirdPersonCameraComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 	PrimaryComponentTick.TickGroup = TG_PostPhysics; // after the character moved; cameras update after all ticks
+	PrimaryComponentTick.bTickEvenWhenPaused = true; // a Settings-page change while paused shows at once
 }
 
 void UTDThirdPersonCameraComponent::OnRegister()
@@ -104,7 +105,22 @@ UCameraComponent* UTDThirdPersonCameraComponent::GetViewCamera() const
 
 void UTDThirdPersonCameraComponent::SetThirdPerson(bool bWanted)
 {
-	bWantThirdPerson = bWanted; // applied on the next tick when the view is ours (never mid director shot)
+	bWantThirdPerson = bWanted;
+	// Now if the view is ours (instant, even while paused); otherwise when the director gives it back.
+	if (Camera && bWantThirdPerson != bThirdPersonActive && IsViewOurs())
+	{
+		ApplyMode(bWantThirdPerson);
+		if (BlendSeconds <= 0.f && bBlendingOut)
+		{
+			bBlendingOut = false;
+			Camera->Deactivate();
+			if (UCameraComponent* FP = FirstPersonCamera.Get())
+			{
+				FP->Activate();
+			}
+			SetBodyHidden(false);
+		}
+	}
 }
 
 float UTDThirdPersonCameraComponent::GetDesiredActorYaw(const FVector& MoveVector, float CameraYaw, bool bCombatAction, float CurrentYaw)
@@ -250,7 +266,10 @@ FVector UTDThirdPersonCameraComponent::SafePoint(const FVector& From, const FVec
 FVector UTDThirdPersonCameraComponent::ShoulderFor(const FVector& Anchor, const FRotator& View) const
 {
 	const FRotator Yaw(0.f, View.Yaw, 0.f);
-	return SafePoint(Anchor, Anchor + Yaw.RotateVector(FVector(0.f, ShoulderRight, 0.f)) + FVector::UpVector * ShoulderUp);
+	const float E = CombatBlend * CombatBlend * (3.f - 2.f * CombatBlend);
+	const float Right = FMath::Lerp(ShoulderRight, CombatShoulderRight, E);
+	const float Up = FMath::Lerp(ShoulderUp, CombatShoulderUp, E);
+	return SafePoint(Anchor, Anchor + Yaw.RotateVector(FVector(0.f, Right, 0.f)) + FVector::UpVector * Up);
 }
 
 FVector UTDThirdPersonCameraComponent::ResolveChaseLocation(const FVector& Pivot, const FRotator& View, float& OutSafeArm) const
@@ -358,6 +377,14 @@ void UTDThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Ti
 		BlendAlpha = FMath::Min(1.f, BlendAlpha + DeltaTime / Dilation / FMath::Max(BlendSeconds, 0.01f));
 	}
 
+	if (CombatBlendSeconds > 0.f)
+	{
+		CombatBlend = FMath::FInterpConstantTo(CombatBlend, bCloseCombat ? 1.f : 0.f, DeltaTime / Dilation, 1.f / CombatBlendSeconds);
+	}
+	else
+	{
+		CombatBlend = bCloseCombat ? 1.f : 0.f;
+	}
 	UpdateChase(DeltaTime, false);
 	FVector TargetLocation = ChaseLocation;
 	FQuat TargetRotation = LaggedRotation.Quaternion();
@@ -389,7 +416,14 @@ void UTDThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Ti
 		SetBodyHidden(false);
 		return;
 	}
-	UpdateBodyHidden();
+	if (IsViewOurs())
+	{
+		UpdateBodyHidden();
+	}
+	else
+	{
+		SetBodyHidden(false); // the director / death cam frames the pilot from outside: never an empty spot (review M2)
+	}
 }
 
 void UTDThirdPersonCameraComponent::UpdateBodyHidden()
