@@ -580,6 +580,8 @@ ending stays in the code behind a switch as an emergency fallback only; if we ev
 short fallback reveal then, not now. Still unproven on our side, stated plainly: no human has played the interior,
 and it has not yet been in a Shipping build.
 
+**Reply (Nick / Lead).** Received the boarding decision and relayed it to Story Director. The published Sequence 07 recordings are drafts for Nicholas to review against the interior room hooks.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -974,7 +976,7 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
 
 
-### N-043 - ANSWERED - Remote Win64 Shipping cook for loading-screen verification
+### N-043 - COMPLETE - Remote Win64 Shipping cook for loading-screen verification
 
 @rthomas24 — Can engineering cook and package the isolated Loading01 candidate on UE 5.9 CL 60351404? The [verified handoff ZIP](https://github.com/rthomas24/2026-epic-ai-megajam/blob/87bb5fef0ad45fd3de506626a4848ab90c2d0e4b/ArtSource/UI/TriadHUD/Unreal/Loading01/Handoff/Loading01-ShippingCandidate-870a7532.zip) contains the four-file overlay, hashes, field comparison and instructions. Use base `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout. ZIP SHA-256 `FBCCFB7C12D647802EA2C69EF3AC13DC0FF2FE3B7788A59D772406F2BB709BA6`. Editor and Shipping compilation passed locally. Two local cooks stopped for memory. Please return the Win64 Shipping archive, its SHA-256, executable identity and cook logs here. UI will verify New Game, Continue and return-to-menu and capture the loading screen. This is an isolated review build. Production defaults require Nick's visual approval.
 
@@ -1007,6 +1009,8 @@ here when it starts. Nothing from the overlay goes to `main`; production default
   widget itself has not been seen running; the ZIP was listed but not test-extracted. Those checks are yours.
 - Nothing from the overlay is on `main`. **Size note for both sides:** this ZIP is already 907 MB against the jam's
   1 GB limit, at a base before the Rodin ships and the Warden; engineering is starting a size pass now.
+
+**Reply (Nick / Lead).** Received the matching Shipping release, hashes and logs and handed them to UI. The build request is complete. Local archive verification, New Game, Continue, return-to-menu and loading-screen screenshots are still pending.
 
 ### N-044 - COMPLETE - Next original music tracks for Nicholas
 
