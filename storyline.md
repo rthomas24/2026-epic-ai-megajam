@@ -101,3 +101,52 @@ only the essential reveal: **the apparent alien enemy is the squad's own future.
    through the presentation assets.
 3. Nothing may reveal §4 before act 4. Clues are small and deniable.
 4. Keep this file current: when a beat is built, add the commit and where it plays to §5.
+
+## 11. The opening and its payoff: *First Contact* (Nicholas's cinematic brief, received Nov 13)
+Full text: [`docs/story/First-Contact-Cinematic-Brief.md`](docs/story/First-Contact-Cinematic-Brief.md). It replaces
+the opening row of §5 and sharpens acts 1, 4 and 5.
+
+**Opening cinematic, about 2 min 20 s** (today's intro is 49 s and will be rebuilt to this):
+| Time | Beat | Lines (drafts) |
+|---|---|---|
+| 0:00-0:25 | **Missing patrol.** Black; a patrol distress call through static; a quiet system and the distant silhouette of something impossibly large; the score is held back | Patrol Seven |
+| 0:25-0:55 | **Triad arrives.** Rift, Lancer and Bastion drop out of a jump and form up; short exchanges establish the three pilots | Command ("Recon only. Do not engage."), Wren, Kato, Moss |
+| 0:55-1:30 | **The impossible vessel.** The approach; the surface seems dormant; instruments glitch; Kato catches an encrypted signal like a military authentication handshake, gone before he can resolve it | Wren, Kato, Moss |
+| 1:30-2:00 | **The first launch.** Hangars open across the Dominion; drones stream toward the planets, mostly ignoring Triad; one drone scans Rift at close range, its targeting light goes **red to blue**, and it holds fire; a separate group breaks formation and attacks | Wren, Kato, Command ("disengage") |
+| 2:00-2:20 | **The interrupted warning.** A heavily distorted voice: **"Don't-"**, cut off. Wren calls the break; the camera settles into the player's ship view and the HUD comes on | Unknown voice, Wren, Command |
+
+**Tutorial battle, straight after the cut:** evasion (the first volley) → weapons (a small, readable group of drones) →
+squad play (switching, then each ship's ability) → escalation (a larger craft arrives) → **withdrawal**: Command orders a
+retreat and the drones stop pursuing at a boundary, as if guarding a task. **Hand-off:** a distress report from Verdance:
+machines have landed around a remote research facility and are probing beneath the surface.
+
+**Foreshadowing that only registers in hindsight:** the handshake (the future Dominion recognises Triad's
+authorisation); the drone that goes blue and holds fire (it identifies Rift as friendly); the cut-off "Don't-" (future
+Wren reaching across temporal interference); the Verdance ambush (they remember where their younger selves went); Cinder
+navigation data that matches Triad's later missions; Dominion doors that recognise the squad.
+
+**Finale payoff (inside the Dominion):** a recovered record leads to a short scene on the future command deck showing
+the opening transmission from the other side: "All three signatures confirmed. It's us." ... "Don't-". **The identical
+processed audio of "Don't-" is reused, never re-recorded.** The full warning ("Don't engage the Dominion. You don't
+understand what happens if you do.") is learned from the record, not by changing what the squad heard.
+
+**Rules from the brief:** future Triad is not a villain; the squad must still have a compelling reason to board and to
+destroy the reactor; keep the opening lean (in-engine ship cameras, radio performances, a launch, a scan and hesitation,
+one camera transition into play); no clear time-travel words in the opening.
+
+**How and when we build it (Ryan, Nov 13): the intro is redone ONCE, after the models and graphics it shows are in**, so
+it is not re-shot after every import. Gate: the Rodin player ships, the Null Armada fleet (incl. a space drone), the
+Dominion exterior with hangars that open, the round-4 effects (engines, tracers, explosions, the distortion field) and
+the new HUD are on `main`. Until then T3 prepares only what does not depend on art: the shot plan with timings, the
+dialogue as transmission entries (ids `O_PatrolSeven`, `O_Command_Orders`, `O_Wren_HowBad`, ... `O_Unknown_Dont`), the
+red-to-blue drone beat as a gameplay hook, and the hand-over into the tutorial battle. Owner: T3 (director), with T4
+(the launch, the drone that holds fire, the withdrawal boundary), T1 (the jump-in), the effects builder, and
+Nicholas for every line, voice and the score.
+
+**Questions for Nicholas (asked in issue #29):**
+1. The brief has each ship's ability in the tutorial as Cloak, EMP Pulse and Gravity Well. In the game those are
+   **earned on the planets** (acts 2 and 3); the tutorial teaches each ship's signature power (Rift's portal blaster,
+   Lancer's afterburner ram, Bastion's missile swarm and shield dome). Keep that progression?
+2. Today's waves 1-2 become the tutorial battle: wave 1 = evasion, weapons, switching; wave 2 = the larger craft and the
+   withdrawal. Is that the split you want, and does the tutorial music (#24) end at the withdrawal?
+3. The intro grows from 49 s to about 2:20: confirm the length (a skip stays available from the first second).

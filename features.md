@@ -160,6 +160,7 @@ with a plain placeholder line for every beat. Nothing reveals the twist before t
 | Transmissions: a small event system (id, speaker, placeholder line) fired at story beats; echo-voice lines from Cinder on | 2-5 | T3 (system, with T5 / T4 triggers), Nicholas (lines, voice) | medium |
 | **Boarding finale**: docking, interior with consoles that recognise the pilots and a recording per room, core fight, escape run and flight | 4, 5 | T4 (docking, escape flight), T5 (interior, core, escape run), builders (interior kit), Grok Bot (Warden) | large |
 | Ending stinger: the distress signal with the squad's own identifiers on the victory screen | 5 | T3 / T5 (hook), Nicholas (text, audio) | small |
+| **Opening cinematic redone to the *First Contact* brief** (2:20) and waves 1-2 shaped as its tutorial battle (evasion, weapons, switching, a larger craft, the withdrawal boundary, the Verdance distress call); the finale's command-deck payoff reusing the same "Don't-" audio | opening, 1, 4 | T3 (+ T4, T1, effects builder), Nicholas (lines, voice, score) | large; **queued until the models and effects are in, done once** |
 | Clues: enemy pre-empting a manoeuvre now and then; Triad's insignia shape under damaged enemy armour; one ancient-technology artefact on both planets and in the core | 1-4 | T4 (AI), Grok Bot / builders (assets) | small each |
 | Pilot characters per the story (Wren bold, Kato analytical, Moss steady) in every bark and name card | all | T3 (hooks), Nicholas (lines) | small |
 
@@ -969,6 +970,7 @@ third person with readable attacks and blocks, the camera never clips through th
 restart, and tests cover the toggle, persistence, camera collision, facing rule and the space-only exclusion.
 
 #### ENG-33 · Cinematic intro (CORE, added Nov 12 by Ryan) · `🟢`
+**Redo queued (Ryan, Nov 13): the opening is rebuilt to Nicholas's *First Contact* brief** (about 2:20: missing patrol, Triad arrives, the impossible vessel, the first launch with the drone that goes blue and holds fire, the cut-off "Don't-", then straight into the tutorial battle; `storyline.md` §11, `docs/story/First-Contact-Cinematic-Brief.md`). **Done once, after the art it shows is on `main`** (Rodin player ships, the fleet with a space drone, the Dominion with opening hangars, round-4 effects, the new HUD). Until then T3 prepares the shot plan, the dialogue hooks and the drone beat only. Today's 49 s intro stays in the game meanwhile.
 **Story (opening):** the intro shows the premise: the silent Dominion, machines descending on worlds, Triad deployed to identify it and report back. No hint of the truth. Text and narration are Nicholas's through the existing slots.
 Ryan, Nov 12 (late): the intro should be "really high definition cinematic views of space and the spacecraft going
 by and worlds". **Reference for the cinematic language only** (pacing, scale, framing, grade), not its content, world
