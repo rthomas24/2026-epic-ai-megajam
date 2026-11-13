@@ -1,0 +1,572 @@
+{
+  "state": "PROPOSAL ONLY; no claims/copies/native authorization",
+  "branch": "nick/assets-meshy-intake03",
+  "worktree": "C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/assets-meshy-intake03",
+  "source_root": "ArtSource/Assets/MeshyIntake03/",
+  "asset_count": 36,
+  "assets": [
+    {
+      "id": "PlasmaPistol03",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_03_Plasma_Pistol_1113064647_texture.glb",
+      "sha256": "5bdd91b8efc869a7687fa80697b7945ca0f80e049d2c1f876e4ad3c8290d799e",
+      "bytes": 81251392,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/PlasmaPistol03",
+      "proposed_native_path": "Content/Intake03/PlasmaPistol03/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "ArmoredCombatTruck",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Armored_Combat_Truck_1113065752_texture.glb",
+      "sha256": "5358b4c1afa7e0a10217eb8f872899a9f73705c0da175ee15927b5d9b0fad05a",
+      "bytes": 95902796,
+      "category": "prop_vehicle",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/ArmoredCombatTruck",
+      "proposed_native_path": "Content/Intake03/ArmoredCombatTruck/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "ArmoredTechCase",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Armored_Tech_Case_20260707_texture_fbx.zip",
+      "sha256": "bf9af2ebafd61d148ed14c57b8e055ea220bb774cdeff9643379be5fa7da2376",
+      "bytes": 54577137,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/ArmoredTechCase",
+      "proposed_native_path": "Content/Intake03/ArmoredTechCase/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "AuroraLandingPad",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Aurora_Landing_Pad_20260725_texture_fbx.zip",
+      "sha256": "171ab3cb5429753ba1a340957a5fa332abb95ca431c94018aff94f388d69dc9e",
+      "bytes": 9306119,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/AuroraLandingPad",
+      "proposed_native_path": "Content/Intake03/AuroraLandingPad/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": []
+    },
+    {
+      "id": "AzureRailgun",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Azure_Railgun_1113064517_texture.glb",
+      "sha256": "7beaa3ec013055b880eb03a7fd0b2aedb4d83ff418c75e569aa446744a4e1f58",
+      "bytes": 86831128,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/AzureRailgun",
+      "proposed_native_path": "Content/Intake03/AzureRailgun/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "BluePowerArmor",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Blue_Power_Armor_1113061829_texture.glb",
+      "sha256": "5914e73092f46ccc3775b6cdae1a53861b07a29da22865f7e585c9c6188e7046",
+      "bytes": 70958556,
+      "category": "character",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/BluePowerArmor",
+      "proposed_native_path": "Content/Intake03/BluePowerArmor/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "Static/unrigged; no animation clips; not a playable skeletal character.",
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "BrassStormGatlingCannon",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Brass_Storm_Gatling_Cannon_20260511_texture_fbx.zip",
+      "sha256": "9605743d1376744734842bcb6503a2d369bd1ca960d680929a8a07a26dfc767f",
+      "bytes": 110850094,
+      "category": "weapon",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/BrassStormGatlingCannon",
+      "proposed_native_path": "Content/Intake03/BrassStormGatlingCannon/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "ChinaFighter",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_China_fighter_1113064400_texture.glb",
+      "sha256": "120c9adf210287c3f29010638d05adb7f981431f4fcc1a062b703bf873ae4631",
+      "bytes": 9780108,
+      "category": "prop_vehicle",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/ChinaFighter",
+      "proposed_native_path": "Content/Intake03/ChinaFighter/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": []
+    },
+    {
+      "id": "CoilgunAssaultRifle",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Coilgun_Assault_Rifle_1113061845_texture.glb",
+      "sha256": "82942c219516182718848c17ce3ac7b38c09327f92b02e6785a1cbe413dc7d04",
+      "bytes": 22761656,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/CoilgunAssaultRifle",
+      "proposed_native_path": "Content/Intake03/CoilgunAssaultRifle/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": []
+    },
+    {
+      "id": "CircularBulkheadWall",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Create_a_massive_hard_1113062957_texture.glb",
+      "sha256": "4940e1423ce46b83da7340af5a7c631bf9877646674b549748940c497979d370",
+      "bytes": 139316996,
+      "category": "prop_vehicle",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/CircularBulkheadWall",
+      "proposed_native_path": "Content/Intake03/CircularBulkheadWall/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "CrimsonSigilRailgun",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Crimson_Sigil_Railgun_1113065450_texture.glb",
+      "sha256": "605070336924f9f1548b9d97e6147949f330f2e0097058d0877d1c2916a1a751",
+      "bytes": 49495880,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/CrimsonSigilRailgun",
+      "proposed_native_path": "Content/Intake03/CrimsonSigilRailgun/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "CrimsonSkullAssault",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Crimson_Skull_Assault_1113065554_texture.glb",
+      "sha256": "b273504412869215a723c309b144d7acfe977862307f54594886c6f9313c9590",
+      "bytes": 20023716,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/CrimsonSkullAssault",
+      "proposed_native_path": "Content/Intake03/CrimsonSkullAssault/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "CrimsonSteamRevolve",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Crimson_Steam_Revolve_1112171038_texture.glb",
+      "sha256": "fe1fb926120c0f81c8c85aaf1b2609eac2cc6b6010084b8eeb3e277faf6e5ce2",
+      "bytes": 43614944,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/CrimsonSteamRevolve",
+      "proposed_native_path": "Content/Intake03/CrimsonSteamRevolve/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "CrimsonVanguard",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Crimson_Vanguard_1113062628_texture.glb",
+      "sha256": "80b315f7b50144c5ca14aca5278fc1b8cfec4b8fcbe5cb12add593a748eaa93b",
+      "bytes": 29335616,
+      "category": "prop_vehicle",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/CrimsonVanguard",
+      "proposed_native_path": "Content/Intake03/CrimsonVanguard/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "CyberneticSpecialFo",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Cybernetic_Special_Fo_1113062943_texture.glb",
+      "sha256": "265a8096b21c7874a6c5ed64b1fe18de796bb9bf399bfa4437de82dbde2258b2",
+      "bytes": 32712144,
+      "category": "character",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/CyberneticSpecialFo",
+      "proposed_native_path": "Content/Intake03/CyberneticSpecialFo/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "Static/unrigged; no animation clips; not a playable skeletal character.",
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "FuturisticLandingPa",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Futuristic_Landing_Pa_1113063253_texture.glb",
+      "sha256": "72c96b8b314d460c8cf56d3f4598026ccf44b52b98b67f8b5a38ab7196f3821a",
+      "bytes": 22740464,
+      "category": "prop_vehicle",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/FuturisticLandingPa",
+      "proposed_native_path": "Content/Intake03/FuturisticLandingPa/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "FuturisticPistol",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Futuristic_Pistol_1113062812_texture.glb",
+      "sha256": "df2e66471096974aca555bc4d8774fba912e4922fff0a467a75a82d4be4ca45f",
+      "bytes": 118774768,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/FuturisticPistol",
+      "proposed_native_path": "Content/Intake03/FuturisticPistol/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "HyperLumenRifleX",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Hyper_Lumen_Rifle_X_1113065231_texture.glb",
+      "sha256": "5c27b7c4bca0835be69a3c4f4ceadee3ee69e4bf27527c083b86ee573d1b111e",
+      "bytes": 19011412,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/HyperLumenRifleX",
+      "proposed_native_path": "Content/Intake03/HyperLumenRifleX/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "IndustrialLandingPad",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Industrial_Landing_Pad_20261007_texture_fbx.zip",
+      "sha256": "741b1b940dcf6d747118b8ea4bed1ad9eeb6e30894b62643f4d8c956c6824033",
+      "bytes": 60789561,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/IndustrialLandingPad",
+      "proposed_native_path": "Content/Intake03/IndustrialLandingPad/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "IronWardenPistol",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Iron_Warden_Pistol_1112171103_texture.glb",
+      "sha256": "04812aa546715c36d61474cd26f1d2c18ff880c0c87ed66e977c05f8c4b49b66",
+      "bytes": 21893808,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/IronWardenPistol",
+      "proposed_native_path": "Content/Intake03/IronWardenPistol/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "NeonFluxBlaster",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Neon_Flux_Blaster_1113064614_texture.glb",
+      "sha256": "3bd485379856d068c9f390eaf97703de03642a44ab8fc8bf018a5d684e4cebee",
+      "bytes": 15376812,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/NeonFluxBlaster",
+      "proposed_native_path": "Content/Intake03/NeonFluxBlaster/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "NeonLumenAssaultRifle",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Neon_Lumen_Assault_Rifle_20260329_texture_fbx.zip",
+      "sha256": "1586a1ead35bdf6bc937cd23207d8c2576d4edeedc5c5934c3c6e389fb3a5138",
+      "bytes": 58094338,
+      "category": "weapon",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/NeonLumenAssaultRifle",
+      "proposed_native_path": "Content/Intake03/NeonLumenAssaultRifle/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "NeonSecurityGate",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Neon_Security_Gate_20261025_texture_fbx.zip",
+      "sha256": "a69534fa30f8521a221e9953292ef828fdf1f39f964ef7593a48d5045356ed16",
+      "bytes": 39638164,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/NeonSecurityGate",
+      "proposed_native_path": "Content/Intake03/NeonSecurityGate/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "NeonSentinel",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Neon_Sentinel_1113065617_texture.glb",
+      "sha256": "f4d998b62c6e0d87d88dd989bec534f08867a28856be4bab75bb8757deec1e18",
+      "bytes": 40171244,
+      "category": "character",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/NeonSentinel",
+      "proposed_native_path": "Content/Intake03/NeonSentinel/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "Static/unrigged; no animation clips; not a playable skeletal character.",
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "NeonSteelPlatform",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Neon_Steel_Platform_20261025_texture_fbx.zip",
+      "sha256": "fa424e3721702e62d8f0807b6d8fb398bf03ed9cd87237a600bc601ee4b5ab03",
+      "bytes": 46414030,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/NeonSteelPlatform",
+      "proposed_native_path": "Content/Intake03/NeonSteelPlatform/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "ObsidianVanguard",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Obsidian_Vanguard_20260607_texture_fbx.zip",
+      "sha256": "6def8cd7051b10520ec8f1884fe87c05c4c46e31ce7b535019d07f213d4ff394",
+      "bytes": 140831664,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/ObsidianVanguard",
+      "proposed_native_path": "Content/Intake03/ObsidianVanguard/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "OrbitalCargoModule",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Orbital_Cargo_Module_20260531_texture_fbx.zip",
+      "sha256": "1890fc42ce3ec8678414e8c64e0a417cc25947730d148d7dc4da07b9e9db835e",
+      "bytes": 154584364,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/OrbitalCargoModule",
+      "proposed_native_path": "Content/Intake03/OrbitalCargoModule/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "QuantumFreightPod",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Quantum_Freight_Pod_20260727_texture_fbx.zip",
+      "sha256": "e57ce545ab8d96cd6cfc0ad9ef08a723f465f09eb6105d00b45716beb32fafde",
+      "bytes": 42601846,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/QuantumFreightPod",
+      "proposed_native_path": "Content/Intake03/QuantumFreightPod/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "RustyOrbitalCargoPod",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Rusty_Orbital_Cargo_Pod_20260713_texture_fbx.zip",
+      "sha256": "cd4cde43ab1ab86ff451ec3dbdb6a468010bc8740c3b03f4db8707091fa03957",
+      "bytes": 139785436,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/RustyOrbitalCargoPod",
+      "proposed_native_path": "Content/Intake03/RustyOrbitalCargoPod/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "SciFiWeaponPack",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Sci_Fi_Weapon_Pack_1112082356_texture.glb",
+      "sha256": "9071b3aa129d6e56f529cd6547f9a0aeb3414284b7f9a9faa99ccb2af7f28396",
+      "bytes": 29195680,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/SciFiWeaponPack",
+      "proposed_native_path": "Content/Intake03/SciFiWeaponPack/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "TitanSentinel",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Titan_Sentinel_20261113_animated_mixamo_60fps_All_animation.zip",
+      "sha256": "3781ec46681b850fd41a7281e1f7b6adbb19424ecbb03497426cb4d2365f713e",
+      "bytes": 264481087,
+      "category": "character",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/TitanSentinel",
+      "proposed_native_path": "Content/Intake03/TitanSentinel/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "Two FBX members: animated Mixamo file and separate Meshy rest-rig mesh; do not merge/retarget automatically. Rig/deformation not validated.",
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "VanguardVX07RailS",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Vanguard_VX_07_Rail_S_1112171246_texture.glb",
+      "sha256": "4716d6929fcab765822fb9c95daefc73578f6f21ac8bf1eb9c7d96dd20e23316",
+      "bytes": 53106512,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/VanguardVX07RailS",
+      "proposed_native_path": "Content/Intake03/VanguardVX07RailS/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "VerdantStarblade",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Verdant_Starblade_20260427_texture_fbx.zip",
+      "sha256": "f43221cb94492bb91c415be1d2454f22c63f22023cb3e13d1391e9d30b1b5633",
+      "bytes": 24457954,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/VerdantStarblade",
+      "proposed_native_path": "Content/Intake03/VerdantStarblade/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": []
+    },
+    {
+      "id": "WastelandPulseRifle",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Wasteland_Pulse_Rifle_1113062152_texture.glb",
+      "sha256": "2161fc977d04b5d56d8f8b63be55b4d3a0a51a2b7a6f2ec56385180a85ebdab5",
+      "bytes": 91537668,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/WastelandPulseRifle",
+      "proposed_native_path": "Content/Intake03/WastelandPulseRifle/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "UnnamedCyanRifle",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI__1112153907_texture.glb",
+      "sha256": "4d38a53e2e8ef8aec78ddc407652e67288688df5e71774019208a55a642f7b0a",
+      "bytes": 38967120,
+      "category": "weapon",
+      "source_format": ".glb",
+      "proposed_destination": "/Game/Intake03/UnnamedCyanRifle",
+      "proposed_native_path": "Content/Intake03/UnnamedCyanRifle/",
+      "authoring_owner": "ChatGPT Asset Manager",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    },
+    {
+      "id": "ModularFloorTile3d",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_modular_floor_tile_3d_20261024_image-to-3d-texture_fbx.zip",
+      "sha256": "13d32799f9d391ca9902cd7af6c1479b4318e78fae7e81ddbf06ac7e6bcffd32",
+      "bytes": 132732579,
+      "category": "prop_vehicle",
+      "source_format": ".zip",
+      "proposed_destination": "/Game/Intake03/ModularFloorTile3d",
+      "proposed_native_path": "Content/Intake03/ModularFloorTile3d/",
+      "authoring_owner": "Assets & Mesh Agent",
+      "provenance": "User-supplied Meshy-labelled model; source/license metadata unverified",
+      "warnings": [
+        "High-density source; runtime budget/LOD/optimization approval is pending."
+      ]
+    }
+  ],
+  "excluded_or_held": [
+    {
+      "path": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Azure_Shadow_20261113_animated_mixamo_All_animation.glb",
+      "sha256": "da54d97eef1a633c7ee79eb1967be42acc265fa816aec371917916e0cab76b41",
+      "status": "excluded"
+    },
+    {
+      "path": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Cyberpunk_Modular_Ziegel_Wand_20260422_texture_fbx.zip",
+      "sha256": "abedf8dabd51af232330ae333feab1ea7c420a9dcf093a2117f90d3f6445db96",
+      "status": "excluded"
+    },
+    {
+      "path": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Earth_from_Space_20260514_texture_fbx.zip",
+      "sha256": "5b32a4d2af07f2b1f3a3bfc603dc4b9ec10a0e38835e9210f984decaf98c600d",
+      "status": "held"
+    },
+    {
+      "path": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Full_Moon_1113062216_texture.glb",
+      "sha256": "6dccdcc4b8f256dc3bdfddfda17785ca5a017ffc8aeb7075bab4098e81e09e43",
+      "status": "held"
+    },
+    {
+      "path": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Heraldic_Castle_Wall_20260909_texture_remesh_tri_fbx.zip",
+      "sha256": "3543580415923071e9e5b207f8e5312e46bd085eef596fe951ad6b7da6d119c7",
+      "status": "excluded"
+    }
+  ]
+}
