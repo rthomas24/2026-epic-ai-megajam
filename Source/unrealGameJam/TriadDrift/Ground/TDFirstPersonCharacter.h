@@ -143,6 +143,9 @@ public:
 	/** Turn rate toward the facing rule's yaw in third person (deg/s). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Camera", meta = (Units = "deg"))
 	float ThirdPersonTurnRate = 900.f;
+	/** Motion blur on foot, both views (overrides the planet volume's 0.2: fast crew and drones smeared). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float OnFootMotionBlur = 0.05f;
 	/** Beam length in the hand (the art is 100 cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm"))
 	float HandBladeLength = 95.f;
