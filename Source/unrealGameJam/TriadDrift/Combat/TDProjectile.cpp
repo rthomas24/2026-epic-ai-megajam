@@ -3,6 +3,7 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -196,7 +197,7 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 
 namespace
 {
-	/** The local player is on foot (first-person camera), or with no player, a non-spacecraft fired it. */
+	/** The local player is on foot (first-person camera), or with no player pawn, a character (crew) fired it. */
 	bool TDProjIsOnFootShot(const UWorld* World, const AActor* Shooter)
 	{
 		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
@@ -204,7 +205,7 @@ namespace
 		{
 			return !Pawn->IsA<ATDSpacecraft>();
 		}
-		return Shooter && !Shooter->IsA<ATDSpacecraft>();
+		return Shooter && Shooter->IsA<ACharacter>();
 	}
 }
 
