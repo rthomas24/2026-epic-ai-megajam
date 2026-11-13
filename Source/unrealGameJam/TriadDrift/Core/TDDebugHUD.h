@@ -55,6 +55,10 @@ private:
 
 	/** Stand-in subtitle for squad barks until voice and real subtitles exist. */
 	FString BarkLine;
+public:
+	/** Set by the Squad module (FTDBarkLines): the line for a bark id + speaker. Without a line, nothing shows. */
+	static bool (*BarkLineResolver)(const UObject* WorldContext, FName BarkId, FName Speaker, FString& OutLine);
+private:
 	double BarkUntil = 0.0;
 };
 

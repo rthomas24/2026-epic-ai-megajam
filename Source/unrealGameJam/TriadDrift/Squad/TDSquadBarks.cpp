@@ -51,6 +51,10 @@ bool FTDBarkLimiter::TryConsume(const FTDBarkTuning& Tuning, FName BarkId, ETDBa
 	{
 		return false;
 	}
+	if (Priority == ETDBarkPriority::Flavour && RealNow - LastAny < Tuning.FlavourQuietSeconds)
+	{
+		return false; // banter waits for a quiet moment
+	}
 	LastById.Add(BarkId, RealNow);
 	Recent.Add(RealNow);
 	LastAny = RealNow;

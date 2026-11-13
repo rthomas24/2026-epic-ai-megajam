@@ -1,6 +1,7 @@
 // Triad Drift - Squad (Teammate 3). ENG-07: squad manager & instant switching (PROTECT), ENG-03 respawn.
 
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "EngineUtils.h"
@@ -758,6 +759,58 @@ void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamag
 void ATDSquadManager::HandleWaveCleared(int32 WaveNumber)
 {
 	bBetweenWaves = true;
+	StartBanter();
+}
+
+bool ATDSquadManager::StartBanter()
+{
+	// dialogs.md §9: one exchange per calm stretch, never twice. The first line is Flavour (needs quiet); the replies
+	// follow it 2.6 s apart and are dropped if the breather ends or something more important speaks.
+	if (BanterSteps.Num() > 0)
+	{
+		return false;
+	}
+	const TArray<TArray<TPair<FName, FName>>> All = FTDBarkLines::GetBanters();
+	for (int32 i = 0; i < All.Num(); ++i)
+	{
+		if (BantersPlayed.Contains(i) || All[i].Num() == 0)
+		{
+			continue;
+		}
+		const TPair<FName, FName>& First = All[i][0];
+		if (!BarkLimiter.TryConsume(BarkTuning, First.Key, ETDBarkPriority::Flavour, RealNow()))
+		{
+			return false; // not quiet enough: try at the next breather
+		}
+		BantersPlayed.Add(i);
+		TDSquad::RequestBark(this, First.Key, First.Value);
+		for (int32 k = 1; k < All[i].Num(); ++k)
+		{
+			BanterSteps.Add({ All[i][k].Key, All[i][k].Value, RealNow() + 2.6 * k });
+		}
+		return true;
+	}
+	return false;
+}
+
+void ATDSquadManager::TickBanter()
+{
+	if (BanterSteps.Num() == 0)
+	{
+		return;
+	}
+	if (!bBetweenWaves)
+	{
+		BanterSteps.Reset(); // the fight is back: drop the rest
+		return;
+	}
+	if (RealNow() >= BanterSteps[0].At)
+	{
+		const FTDBanterStep Step = BanterSteps[0];
+		BanterSteps.RemoveAt(0);
+		BarkLimiter.LastAny = RealNow();
+		TDSquad::RequestBark(this, Step.Id, Step.Speaker);
+	}
 }
 
 void ATDSquadManager::HandleWaveStarted(int32 WaveNumber, float Intensity01)
@@ -876,6 +929,7 @@ void ATDSquadManager::IssueFocusCommand(AActor* Target)
 void ATDSquadManager::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickBanter();
 
 	const double T = Now();
 

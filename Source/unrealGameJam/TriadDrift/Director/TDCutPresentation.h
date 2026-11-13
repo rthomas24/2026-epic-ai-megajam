@@ -244,6 +244,8 @@ public:
 	/** True when the hosted space HUD draws its own pilot card: Nick's (N-007), or any widget whose bCoversNameCard is
 	 *  true. Engineering's flight HUD (the default since ENG-36) doesn't, so the fallback card shows under it. */
 	static bool IsNameCardClaimedByHUD(const UWorld* World);
+	/** Centre of the fallback pilot card on a viewport of Size: left of the ship at reticle height. */
+	static FVector2D NameCardCentre(const FVector2D& Size);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cut")
 	FTDCutPresentationTuning Tuning;

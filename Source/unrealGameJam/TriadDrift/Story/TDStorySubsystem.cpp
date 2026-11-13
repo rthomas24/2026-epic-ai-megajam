@@ -7,6 +7,7 @@
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/UI/TDUIHostSettings.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -56,9 +57,9 @@ namespace TDStory
 			E(TEXT("Intro_N3"), S::Control, LOCTEXT("Intro_N3", "Identify the ship. Learn what it wants. Report back.")),
 			E(TEXT("Intro_N4"), S::Control, LOCTEXT("Intro_N4", "And out of the dark... the Null Armada.")),
 			// Pilot traits (storyline.md §3): the second line of the pilot name cards (intro and switch). Not fired.
-			E(TEXT("Trait_Wren"), S::Wren, LOCTEXT("Trait_Wren", "BOLD  ·  INSTINCTIVE")),
-			E(TEXT("Trait_Kato"), S::Kato, LOCTEXT("Trait_Kato", "ANALYTICAL  ·  CAUTIOUS")),
-			E(TEXT("Trait_Moss"), S::Moss, LOCTEXT("Trait_Moss", "STEADY  ·  GOOD-HUMOURED")),
+			E(TEXT("Trait_Wren"), S::Wren, LOCTEXT("Trait_Wren", "TRICKSTER  ·  BOLD  ·  INSTINCTIVE")),
+			E(TEXT("Trait_Kato"), S::Kato, LOCTEXT("Trait_Kato", "INTERCEPTOR  ·  ANALYTICAL  ·  CAUTIOUS")),
+			E(TEXT("Trait_Moss"), S::Moss, LOCTEXT("Trait_Moss", "HEAVY  ·  STEADY  ·  GOOD-HUMOURED")),
 			// First Contact (docs/story/First-Contact-Cinematic-Brief.md): the opening, ~2:20, re-shot once the art is in.
 			// Draft lines from the brief; Nicholas's words replace them.
 			E(TEXT("O_PatrolSeven"), S::PatrolSeven, LOCTEXT("O_PatrolSeven", "Command, we have an unidentified structure on the outer perimeter. It's not on any chart. Wait, something's coming out of-"), St::Static),
@@ -203,8 +204,10 @@ namespace TDStory
 			const FVector2D TagSize = Measure(TagText, TagFont);
 			const FVector2D LineSize = Measure(V.Text, LineFont);
 			const float W = TagSize.X + LineSize.X;
-			// Centred at 62% height: above the pilot name card (70%), the boost bar (73%) and the tutorial card (77-84%).
-			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * 0.62f - LineSize.Y * 0.5f);
+			// T2's subtitle spot, under its lower lane (83%, y 900 at 1080p); Nick's HUD fills the bottom with panels, so
+			// under his the line goes just below his objective block at the top.
+			const bool bNickHUD = UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Nick;
+			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * (bNickHUD ? 0.17f : 0.83f) - LineSize.Y * 0.5f);
 			float A = V.Alpha;
 			if (V.Style == ETDTransmissionStyle::Static)
 			{
