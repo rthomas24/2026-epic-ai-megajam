@@ -144,6 +144,55 @@ bool FTDUIGroundHUDByMode::RunTest(const FString& Parameters)
 	return true;
 }
 
+// The Warden's bar (T5's ATDCrewCharacter::GetActiveBoss): none without a Warden; shown with name and phase; phase 2
+// under half hull; a hit leaves a ghost that holds, then drains to the new hull; painted centred under the objective.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIGroundBossBar, "TriadDrift.UI.GroundHUD.WardenBossBar", TD_TEST_FLAGS)
+bool FTDUIGroundBossBar::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDFirstPersonCharacter* Walker = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Walker, ATDSpacePlayerController::StaticClass());
+	const TStrongObjectPtr<UTDGroundHUDWidget> Keep(PC ? CreateWidget<UTDGroundHUDWidget>(PC, UTDGroundHUDWidget::StaticClass()) : nullptr);
+	UTDGroundHUDWidget* HUD = Keep.Get();
+	if (!TestNotNull(TEXT("ground HUD"), HUD))
+	{
+		return false;
+	}
+	HUD->Sample(.1f);
+	TestFalse(TEXT("no Warden: no bar"), HUD->GetView().bBoss);
+	HUD->ForceBoss01 = .8f;
+	HUD->Sample(.1f);
+	TestTrue(TEXT("Warden: bar, phase 1, its name"), HUD->GetView().bBoss && HUD->GetView().BossPhase == 1 && HUD->GetView().BossName == TEXT("WARDEN"));
+	HUD->ForceBoss01 = .4f;
+	HUD->Sample(.05f);
+	TestEqual(TEXT("under half: phase 2"), HUD->GetView().BossPhase, 2);
+	TestTrue(TEXT("the hit leaves a ghost at 0.8"), FMath::IsNearlyEqual(HUD->GetBossGhost01(), .8f, .01f));
+	HUD->Sample(.3f);
+	TestTrue(TEXT("the ghost holds a moment"), FMath::IsNearlyEqual(HUD->GetBossGhost01(), .8f, .01f));
+	for (int32 I = 0; I < 30; ++I)
+	{
+		HUD->Sample(.1f);
+	}
+	TestTrue(TEXT("then drains to the hull"), FMath::IsNearlyEqual(HUD->GetBossGhost01(), .4f, .01f));
+
+	TSharedRef<SWidget> Slate = HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	const TPair<FName, FBox2D>* Box = HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("boss"); });
+	if (TestNotNull(TEXT("boss bar painted"), Box))
+	{
+		TestTrue(TEXT("centred, under the objective panel"), FMath::IsNearlyEqual(Box->Value.GetCenter().X, 960.f, 1.f) && Box->Value.Min.Y >= 145.f);
+	}
+	HUD->ForceBoss01 = -1.f;
+	HUD->Sample(.1f);
+	TestFalse(TEXT("Warden dead: bar gone"), HUD->GetView().bBoss);
+	return true;
+}
+
 // Verdance's archive transfer meter (T5's ATDArchiveTransfer): none without a transfer; shown with its progress while
 // one runs; paused is flagged; painted as one plate under the objective panel, inside the frame.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIGroundTransferMeter, "TriadDrift.UI.GroundHUD.ArchiveTransferMeter", TD_TEST_FLAGS)
