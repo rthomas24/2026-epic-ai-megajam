@@ -185,3 +185,7 @@ Reviewed latest AGENTS addition for engineering procedural-trees (read-only to N
 ### Lancer A02 structural decision — November12 19:07EST
 
 Nick directly approved the actual A02 structure as the foundation for the next materials/detail milestone. Ships preserves source_v03 and prepares one bounded reference-driven PBR/detail pass in the same owned M03 roots, with fresh technical QA and actual multiview comparison. This is not final AAA, export, Unreal, gameplay or other-craft approval. Heavy execution remains separately scheduled.
+
+### Cross-team handoff decisions — November12 19:45EST
+
+RyanN017 confirms routing, corrected HUDhost owner is RyanLead/Core (T2combat data,T3squad,T5mission/landing). Audio may exclusively create exact DA_UI_Style with class defaults/null widgets and ONLY MenuMusic; no fallback suppression. Corefield is onmain2d931e4, Flow/menu boot pending nextpush. Shipping with mergedHUD cook-clean778MB but packagedattachment stillpending; c0c1d5c fixes ShippingfallbackHUD visibility after first run found no HUD. Headless-first resource rule nowsharedAGENTS11 at3f83711. Existingmain/runtime/human approval gates remain. Character firstdiagnosticarmorv03 constructed,6QAerrors notaccepted; actualformrenders next.
