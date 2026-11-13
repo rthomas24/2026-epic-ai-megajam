@@ -419,8 +419,8 @@ void ATDDebugHUD::DrawSquad(float& Y)
 	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
 	if (!Data)
 	{
-		DrawText(TEXT("TRIAD DRIFT dev HUD (no HUD data source yet)"), ColorDim, 24.f, Y, nullptr, 1.1f);
-		Y += 22.f;
+		// Nothing to show (menu, loading, victory screen): draw nothing. A note here ended up behind the menu
+		// in the packaged game.
 		return;
 	}
 	const TArray<FTDShipHUD> Cards = Data->GetSquadHUD();
