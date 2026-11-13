@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+  Green Moss Carpet - exported from PBRgen.
+  Texture files are referenced by name and live beside this file.
+-->
+<materialx version="1.39" colorspace="lin_rec709">
+
+  <image name="COL_tex" type="color3" colorspace="srgb_texture">
+    <input name="file" type="filename" value="pbrgen_Green_Moss_Carpet_COL_2K.png" />
+  </image>
+
+  <image name="ROUGH_tex" type="float">
+    <input name="file" type="filename" value="pbrgen_Green_Moss_Carpet_ROUGH_2K.png" />
+  </image>
+
+  <image name="REFL_tex" type="color3">
+    <input name="file" type="filename" value="pbrgen_Green_Moss_Carpet_SPEC_2K.png" />
+  </image>
+
+  <image name="NRM_tex" type="vector3">
+    <input name="file" type="filename" value="pbrgen_Green_Moss_Carpet_NRM_2K.png" />
+  </image>
+
+  <image name="DISP_tex" type="float">
+    <input name="file" type="filename" value="pbrgen_Green_Moss_Carpet_DISP_2K.png" />
+  </image>
+
+  <normalmap name="NRM_map" type="vector3">
+    <input name="in" type="vector3" nodename="NRM_tex" />
+    <input name="scale" type="float" value="1" />
+  </normalmap>
+
+  <subtract name="DISP_zeroed" type="float">
+    <input name="in1" type="float" nodename="DISP_tex" />
+    <input name="in2" type="float" value="0.5" />
+  </subtract>
+
+  <displacement name="pbrgen_displacement" type="displacementshader">
+    <input name="displacement" type="float" nodename="DISP_zeroed" />
+    <!-- Height sized for the model in the .usda beside this file. -->
+    <input name="scale" type="float" value="0.020033" />
+  </displacement>
+
+  <open_pbr_surface name="pbrgen_surface" type="surfaceshader">
+    <input name="base_color" type="color3" nodename="COL_tex" />
+    <input name="specular_roughness" type="float" nodename="ROUGH_tex" />
+    <input name="specular_color" type="color3" nodename="REFL_tex" />
+    <input name="geometry_normal" type="vector3" nodename="NRM_map" />
+    <input name="base_weight" type="float" value="1" />
+    <input name="base_diffuse_roughness" type="float" value="0" />
+    <input name="specular_weight" type="float" value="1" />
+    <input name="specular_ior" type="float" value="1.501961" />
+    <input name="specular_roughness_anisotropy" type="float" value="0" />
+    <input name="transmission_weight" type="float" value="0" />
+    <input name="transmission_color" type="color3" value="1, 1, 1" />
+    <input name="transmission_depth" type="float" value="0" />
+    <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+    <input name="transmission_scatter_anisotropy" type="float" value="0.003922" />
+    <input name="transmission_dispersion_scale" type="float" value="0" />
+    <input name="transmission_dispersion_abbe_number" type="float" value="19.933333" />
+    <input name="subsurface_color" type="color3" value="0.8, 0.8, 0.8" />
+    <input name="subsurface_radius" type="float" value="1" />
+    <input name="subsurface_radius_scale" type="color3" value="1, 0.501961, 0.25098" />
+    <input name="subsurface_scatter_anisotropy" type="float" value="0.003922" />
+    <input name="coat_weight" type="float" value="0" />
+    <input name="coat_color" type="color3" value="1, 1, 1" />
+    <input name="coat_roughness" type="float" value="0" />
+    <input name="coat_roughness_anisotropy" type="float" value="0" />
+    <input name="coat_ior" type="float" value="1.603922" />
+    <input name="coat_darkening" type="float" value="1" />
+    <input name="fuzz_color" type="color3" value="1, 1, 1" />
+    <input name="fuzz_roughness" type="float" value="0.501961" />
+    <input name="thin_film_weight" type="float" value="0" />
+    <input name="thin_film_thickness" type="float" value="0.501961" />
+    <input name="thin_film_ior" type="float" value="1.4" />
+    <input name="emission_color" type="color3" value="0, 0, 0" />
+    <input name="geometry_opacity" type="float" value="1" />
+    <input name="geometry_thin_walled" type="boolean" value="false" />
+  </open_pbr_surface>
+
+  <surfacematerial name="Green_Moss_Carpet" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="pbrgen_surface" />
+    <input name="displacementshader" type="displacementshader" nodename="pbrgen_displacement" />
+  </surfacematerial>
+
+  <!-- The same surface without the displacement, for parts that must stay flat
+       (the shaderball's base). -->
+  <surfacematerial name="Green_Moss_Carpet_flat" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="pbrgen_surface" />
+  </surfacematerial>
+
+</materialx>
