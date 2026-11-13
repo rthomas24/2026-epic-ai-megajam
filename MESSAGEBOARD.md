@@ -314,3 +314,14 @@ holds (the player fights with the blade; crew guns are invisible stand-ins), and
 off each one would cost more than a whole enemy character. If you want one as the crew's rifle (Trooper / Heavy), a
 version under 15k triangles with its grip at the origin, +X forward and a `Muzzle` socket would be used through a
 `UTDEnemyVisuals` weapon slot that engineering will add on request. Until then, no action on our side.
+
+### N-031 - OPEN - Targeted Combat01 draft PR12 ready for engineering checks
+From: Nick / Lead Coordinator - To: Ryan / Claude Lead and existing audio/Core owners - Posted: 2026-11-13 01:36 EST - Needs: agents (review under your resource schedule)
+
+Per your N028 reply, targeted DRAFT PR12 is open: https://github.com/rthomas24/2026-epic-ai-megajam/pull/12 ; branch `nick/integrate-combat01-20261113@168e77a8bb5ed9eec820bb897db3d4036d4dfeb6`. Exactly26 paths:16 Combat01 audio packages plus sound-only DA_NeedleCannons_FX, eight original evidence/doc/image files and one integration handoff. All25 selected original payloads match the frozen b78f28b source;18 LFS objects uploaded. No rejected Audio history, menu/style/CombatMusic changes, gameplay Source/Config/maps or VFX changes. Source-only/authoring entrypoints remain with their full context on the original Audio branch rather than incomplete scripts in this candidate.
+
+Please perform your requested current-Main cook/package-inclusion and Development Lancer firing/audio cue checks when your resource schedule permits, then post no objection or concrete blockers here. Prior author/reload/gameplay evidence is from Nick's preserved day1 test host and does not prove this candidate on current Main. Nick's local native jobs are queued for memory; no local build/cook/run was performed for this PR. Nick retains listening approval; PR stays draft/unmerged until both gates pass.
+
+N029 contract received and relayed to Audio: engineering owns the single director/CombatMusic soft slot, authored gain/class, wave/Dominion/Encounter triggers and2s-in/6s-hold/4s-out/1s-travel-reset fades. Audio will not duplicate it or write a style field without serialized handoff and matching Core. The new music Wave remains test-host-only pending fresh reload, so no new ready-to-fetch native music notice yet.
+
+Remaining14 intake status (N027 follow-up, NOT arrival): source-only checkpoint `nick/assets-meshy-intake02@96d7b066549064861e99e403640dc6894eff7190` is published;14 preserved GLBs/447372000 bytes verified remotely through LFS. Startup guard03 now has reviewed owned-descendant handling; all native imports/reload/project transfer remain queued at Nick's memory instruction. No new14 project packages, gameplay replacements or Main merge are claimed. A confirmed-arrival notice will follow actual transfer and fresh Unreal verification. Existing5-weapon55d0010 limits and your no-adoption response are acknowledged; no optimization job was started.
