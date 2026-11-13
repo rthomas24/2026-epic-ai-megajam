@@ -1,0 +1,72 @@
+{
+  "stage": "Two full credits SoundWaves imported and fresh-process readback verified; in-game sequence not implemented",
+  "native_host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9",
+  "native_branch": "nick/audio-dominion-interior-01",
+  "source_revision": "c4190e20816b9f171f07d2a628faa063bfc11e5f",
+  "claim": "8fbb2ac6",
+  "import_guard": {
+    "pid": 24920,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 25.82800000000134,
+    "minimum_free_gib": 3.0278244018554688,
+    "protected_count": 2052,
+    "changed_protected": [],
+    "new_content": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\CreditsMusic01\\MUS_Credits_EtherealPulseRemix_Full_02.uasset": "0e843c1d8f764eaac412e9c32136c9687f3f920e2253fbc23b04d4ea175b7017",
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\CreditsMusic01\\MUS_Credits_CathedralPulse_Full_01.uasset": "435482148d4994d533f12866c43871dbb3e35520d18b1e65fc22557980300dd4"
+    }
+  },
+  "reload_guard": {
+    "pid": 25772,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 13.889999999999418,
+    "minimum_free_gib": 3.0600738525390625,
+    "protected_count": 2054,
+    "changed_protected": [],
+    "new_content": {}
+  },
+  "readback": {
+    "stage": "Two full credits Waves verified; runtime ordered playlist/handoff not implemented",
+    "mode": "reload",
+    "ordered_assets": [
+      {
+        "order": 1,
+        "asset": "/Game/TriadDrift/Audio/CreditsMusic01/MUS_Credits_CathedralPulse_Full_01.MUS_Credits_CathedralPulse_Full_01",
+        "sha256": "435482148d4994d533f12866c43871dbb3e35520d18b1e65fc22557980300dd4",
+        "bytes": 10440745,
+        "decoded_duration_s": 89.96,
+        "looping": false,
+        "volume": 0.5,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+      },
+      {
+        "order": 2,
+        "asset": "/Game/TriadDrift/Audio/CreditsMusic01/MUS_Credits_EtherealPulseRemix_Full_02.MUS_Credits_EtherealPulseRemix_Full_02",
+        "sha256": "0e843c1d8f764eaac412e9c32136c9687f3f920e2253fbc23b04d4ea175b7017",
+        "bytes": 17703647,
+        "decoded_duration_s": 139.2135,
+        "looping": false,
+        "volume": 0.5,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+      }
+    ],
+    "source_order_preserved": true,
+    "crossfade_or_repeat": "Not specified or implemented",
+    "credits_roll_separate_from_victory_distress": true
+  },
+  "approved_order": [
+    "Cathedral Pulse (1) full",
+    "Ethereal Pulse (Remix) full"
+  ],
+  "unspecified": [
+    "Crossfade",
+    "Repeat behavior",
+    "Precise credits scene handoff/timestamps"
+  ],
+  "required_runtime_check": "Ryan must bind the ordered playlist to actual credits roll separately from victory cut/distress line, then verify first-track completion starts second fulltrack. No runtime-order claim from asset readback.",
+  "native_slot_released": true
+}
