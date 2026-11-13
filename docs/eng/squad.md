@@ -201,3 +201,21 @@ out of view. Mode 1 stays the default. Its balance check (T4's `TDBalance.Standa
 per minute per wingman vs mode 0 with bias 10): w1 L +28% B -24%, w3 L -2% B +18%, w5 L +42% B -10%
 (guard rail: no wingman down by more than a third).
 
+## How to play: squad and Director (player-facing text, for the pause screen / README)
+
+```
+YOUR SQUAD
+You lead three ships: Rift, Lancer and Bastion. Switch between them at any moment with Tab, or 1, 2 and 3. The switch is instant, and the two ships you leave keep flying and fighting on their own.
+
+SWITCH STRIKE
+Use a ship's power (Q), then switch within a second and a half: the ship you switch to hits 25% harder for 4 seconds.
+
+FOCUS FIRE
+Press F and your wingmen go after your current target for 8 seconds.
+
+DOWN, NOT OUT
+Shields recover on their own; hull repairs between waves. If your ship goes down, you jump straight into the healthiest one and are protected for 2 seconds. A downed ship warps back in after 12 seconds.
+
+SCENES AND TAKES
+Every wave and objective is a scene. Lose all three ships and the director calls "CUT!": the scene starts again as the next take, with the whole squad back.
+```

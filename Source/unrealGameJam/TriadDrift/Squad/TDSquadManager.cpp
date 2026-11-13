@@ -942,7 +942,8 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 			if (Tn >= NextStrikePulse)
 			{
 				NextStrikePulse = Tn + FeedbackPulseInterval;
-				TDSquad::PlayPlaceholderPulse(Strike, FMath::Max(250.f, TDSquad::GetBoundsRadius(Strike) * 1.2f), UTDStatics::ShipColor(Strike->GetShipId()));
+				// Small and brief: it sits right under the player's chase camera (live: a big ball over the ship).
+				TDSquad::PlayPlaceholderPulse(Strike, FMath::Clamp(TDSquad::GetBoundsRadius(Strike) * 0.5f, 60.f, 140.f), UTDStatics::ShipColor(Strike->GetShipId()), 0.18f);
 			}
 		}
 		if (AActor* Focus = GetFocusTarget())
@@ -950,7 +951,7 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 			if (Tn >= NextFocusPulse)
 			{
 				NextFocusPulse = Tn + FeedbackPulseInterval * 1.5f;
-				TDSquad::PlayPlaceholderPulse(Focus, FMath::Max(300.f, TDSquad::GetBoundsRadius(Focus) * 1.5f), FLinearColor::White);
+				TDSquad::PlayPlaceholderPulse(Focus, FMath::Max(300.f, TDSquad::GetBoundsRadius(Focus) * 1.5f), FLinearColor::White, 0.3f);
 			}
 		}
 	}

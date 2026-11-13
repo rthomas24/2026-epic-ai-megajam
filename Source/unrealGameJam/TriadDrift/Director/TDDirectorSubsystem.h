@@ -54,6 +54,13 @@ struct UNREALGAMEJAM_API FTDDirectorShot
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
 	FVector SuggestedCameraLocation = FVector::ZeroVector;
 
+	/** The camera holds on FocusLocation instead of tracking the subject (a multi-kill: the victims are gone). */
+	UPROPERTY(BlueprintReadOnly, Category = "Director")
+	bool bStaticFocus = false;
+
+	/** More actors the camera placement ignores (a multi-kill's dead victims sit right at the focus). */
+	TArray<TWeakObjectPtr<AActor>> IgnoreForPlacement;
+
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
 	FRotator SuggestedCameraRotation = FRotator::ZeroRotator;
 
@@ -145,6 +152,10 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "cm"))
 	float CameraDistanceMax = 7000.f;
+
+	/** The shot camera is at least this many subject bounds-radii from the focus (big subjects fit). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Director|Camera", meta = (ClampMin = "1"))
+	float SubjectFramingRadii = 3.f;
 
 	FTDDirectorTuning();
 };
@@ -248,6 +259,10 @@ private:
 
 	/** Recent player kill times (game seconds), oldest first; bounded. */
 	TArray<double> RecentKillTimes;
+	TArray<FVector> RecentKillLocations; // in step with RecentKillTimes
+	TArray<TWeakObjectPtr<AActor>> RecentKillVictims; // in step with RecentKillTimes
+	FVector PendingClusterCentroid = FVector::ZeroVector;
+	float PendingClusterSpread = 0.f;
 
 	int32 ShotCount = 0;
 	bool bSceneCutPending = false;

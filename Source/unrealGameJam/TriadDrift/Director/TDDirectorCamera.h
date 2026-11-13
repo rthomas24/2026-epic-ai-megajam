@@ -234,6 +234,10 @@ private:
 	FVector LastFocus = FVector::ZeroVector;
 	/** The live subject died / vanished mid-shot: frame LastFocus until the hold ends. */
 	bool bSubjectGone = false;
+	/** The shot holds on LastFocus (multi-kill cluster). */
+	bool bStaticFocus = false;
+	/** Extra actors the tracking sweep ignores (the multi-kill's dead victims). */
+	TArray<TWeakObjectPtr<AActor>> PlacementIgnore;
 	float ShotFOV = 65.f;
 
 	ETDDirectorCameraCancel LastCancel = ETDDirectorCameraCancel::SceneCut;

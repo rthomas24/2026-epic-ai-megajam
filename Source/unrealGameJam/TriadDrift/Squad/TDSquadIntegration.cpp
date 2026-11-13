@@ -673,12 +673,12 @@ namespace TDSquad
 		return Used > 0;
 	}
 
-	void PlayPlaceholderPulse(AActor* At, float Radius, const FLinearColor& Color)
+	void PlayPlaceholderPulse(AActor* At, float Radius, const FLinearColor& Color, float Seconds)
 	{
 		UTDProjectileSubsystem* P = At ? UTDProjectileSubsystem::Get(At) : nullptr;
 		if (P)
 		{
-			P->PlayPlaceholderExplosion(At->GetActorLocation(), Radius, Color, 0);
+			P->PlayPlaceholderFlash(At->GetActorLocation(), Radius, Color, Seconds, At->GetRootComponent());
 		}
 	}
 
