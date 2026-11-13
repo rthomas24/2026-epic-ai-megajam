@@ -136,6 +136,14 @@ public:
 	/** Snapshot of what the widget draws. Updated every tick from the data source. */
 	struct FView
 	{
+		// ---- Director's Cut moments
+		/** The whole HUD's opacity: 0 during a CUT, 0.4 behind a slate, 0.3 paused, fading back in over 0.25 s. */
+		float HUDOpacity = 1.f;
+		/** 0..1 into a money shot (director slow-mo): everything but the reticle (40%) and the arcs hides. */
+		float MoneyShot = 0.f;
+		bool bInCut = false;
+		bool bInSlate = false;
+		bool bPaused = false;
 		// ---- P2
 		TArray<FMark> Marks;
 		TArray<FWaypoint> Waypoints;
@@ -248,6 +256,20 @@ public:
 	UFUNCTION()
 	void HandleHitConfirmed(AActor* Target, bool bKill);
 
+	// ---- Director's Cut moments (spec section 4; the theme is a judging category, the HUD gets out of the way)
+	UFUNCTION()
+	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+	UFUNCTION()
+	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
+	/** Tests: force the money-shot / paused state (-1 = read the feel subsystem / world). */
+	int32 ForceMoneyShot = -1;
+	int32 ForcePaused = -1;
+	static constexpr float SlateSeconds = 1.5f;
+	static constexpr float SlateOpacity = .4f;
+	static constexpr float PauseOpacity = .3f;
+	static constexpr float CutFadeInSeconds = .25f;
+	static constexpr float MoneyShotEaseSeconds = .15f;
+
 	static constexpr float HitMarkSeconds = .15f;
 	static constexpr float KillMarkSeconds = .35f;
 	static constexpr float KillAtTargetSeconds = .6f;
@@ -339,6 +361,9 @@ private:
 	float BlockedLeft = 0.f;
 	float HintDoneAge = 0.f;
 	float StrikePulseLeft = 0.f;
+	float CutLeft = 0.f;
+	float SlateLeft = 0.f;
+	void SampleDirector(float Dt);
 	float HitLeft = 0.f;
 	float KillLeft = 0.f;
 	float KillAtLeft = 0.f;

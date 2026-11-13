@@ -699,6 +699,83 @@ bool FTDFlightHUDLayouts::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Director's Cut moments: CUT turns the HUD off, the slate holds it at 40%, it fades back in over 0.25 s; pause dims it
+// to 30%; a money shot leaves only the reticle and the arcs.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDDirector, "TriadDrift.UI.FlightHUD.P3.DirectorMoments", TD_TEST_FLAGS)
+bool FTDFlightHUDDirector::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->ForceMoneyShot = 0;
+	F.HUD->ForcePaused = 0;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("normal: full opacity"), F.V().HUDOpacity, 1.f);
+
+	F.HUD->HandleSceneCut(TEXT("Wave2"), 2, 2.f);
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("CUT: off at once"), F.V().bInCut && F.V().HUDOpacity == 0.f);
+	F.HUD->Sample(1.f);
+	TestEqual(TEXT("still off during the cut delay"), F.V().HUDOpacity, 0.f);
+	F.HUD->HandleTakeStarted(TEXT("Wave2"), 2);
+	F.HUD->Sample(.05f);
+	F.HUD->Sample(.3f);
+	TestTrue(TEXT("take starts: slate, HUD at 40%"), F.V().bInSlate && FMath::IsNearlyEqual(F.V().HUDOpacity, UTDFlightHUDWidget::SlateOpacity, .01f));
+	F.HUD->Sample(UTDFlightHUDWidget::SlateSeconds - .35f - .01f); // just before the slate ends (0.35 s already sampled)
+	TestTrue(TEXT("still behind the slate"), F.V().bInSlate);
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("slate over: fading back in"), !F.V().bInSlate && F.V().HUDOpacity > UTDFlightHUDWidget::SlateOpacity && F.V().HUDOpacity < 1.f);
+	F.HUD->Sample(UTDFlightHUDWidget::CutFadeInSeconds);
+	TestEqual(TEXT("back to full after the 0.25 s fade"), F.V().HUDOpacity, 1.f);
+
+	F.HUD->ForcePaused = 1;
+	F.HUD->Sample(.5f);
+	TestTrue(TEXT("paused: dimmed to 30%"), F.V().bPaused && FMath::IsNearlyEqual(F.V().HUDOpacity, UTDFlightHUDWidget::PauseOpacity, .01f));
+	F.HUD->ForcePaused = 0;
+	F.HUD->Sample(.5f);
+
+	F.HUD->ForceMoneyShot = 1;
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("money shot: easing in"), F.V().MoneyShot > 0.f && F.V().MoneyShot < 1.f);
+	F.HUD->Sample(UTDFlightHUDWidget::MoneyShotEaseSeconds);
+	TestEqual(TEXT("money shot: in"), F.V().MoneyShot, 1.f);
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	TestTrue(TEXT("money shot: reticle kept"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("reticle"); }));
+	TestTrue(TEXT("money shot: arcs kept"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("arcs"); }));
+	TestFalse(TEXT("money shot: strip, objective and pip hidden"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B)
+		{ return B.Key == TEXT("chip") || B.Key == TEXT("objective") || B.Key == TEXT("pip"); }));
+	F.HUD->ForceMoneyShot = 0;
+	F.HUD->Sample(UTDFlightHUDWidget::MoneyShotEaseSeconds + .01f);
+	TestEqual(TEXT("money shot over: back within 150 ms"), F.V().MoneyShot, 0.f);
+	return true;
+}
+
+// The real event bus drives it (not only the handlers called directly).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDDirectorBus, "TriadDrift.UI.FlightHUD.P3.DirectorMomentsFromTheBus", TD_TEST_FLAGS)
+bool FTDFlightHUDDirectorBus::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->ForceMoneyShot = 0;
+	F.HUD->ForcePaused = 0;
+	F.HUD->Sample(.016f); // binds the bus
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	Bus->OnSceneCut.Broadcast(TEXT("Wave1"), 2, 1.f);
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("bus CUT: off"), F.V().bInCut);
+	Bus->OnTakeStarted.Broadcast(TEXT("Wave1"), 2);
+	F.HUD->Sample(.5f);
+	TestTrue(TEXT("bus take: slate"), F.V().bInSlate);
+	return true;
+}
+
 // Hit feel at the reticle: a hit tick, a kill X that a later hit never cuts short, both timing out.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHitMarks, "TriadDrift.UI.FlightHUD.HitAndKillMarkers", TD_TEST_FLAGS)
 bool FTDFlightHUDHitMarks::RunTest(const FString& Parameters)

@@ -246,6 +246,8 @@ void UTDFlightHUDWidget::NativeDestruct()
 	if (UTDEventBus* Bus = BoundBus.Get())
 	{
 		Bus->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Bus->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Bus->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
 	}
 	BoundBus.Reset();
 	Super::NativeDestruct();
@@ -279,12 +281,48 @@ void UTDFlightHUDWidget::BindBus()
 	if (UTDEventBus* Old = BoundBus.Get())
 	{
 		Old->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Old->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Old->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
 	}
 	BoundBus = Bus;
 	if (Bus)
 	{
 		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
 	}
+}
+
+void UTDFlightHUDWidget::HandleTakeStarted(FName SceneId, int32 TakeNumber)
+{
+	CutLeft = 0.f; // the take starts: the slate card is up, the HUD sits at 40% behind it
+	SlateLeft = SlateSeconds;
+}
+
+void UTDFlightHUDWidget::HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds)
+{
+	CutLeft = FMath::Max(.1f, DelaySeconds); // "CUT!": every HUD element off until the next take starts
+	SlateLeft = 0.f;
+}
+
+void UTDFlightHUDWidget::SampleDirector(float Dt)
+{
+	CutLeft = FMath::Max(0.f, CutLeft - Dt);
+	SlateLeft = FMath::Max(0.f, SlateLeft - Dt);
+	const UWorld* World = GetWorld();
+	const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this);
+	const bool bMoney = ForceMoneyShot >= 0 ? ForceMoneyShot > 0 : (Feel && Feel->IsSlowMoActive());
+	View.bPaused = ForcePaused >= 0 ? ForcePaused > 0 : (World && World->IsPaused());
+	View.bInCut = CutLeft > 0.f;
+	View.bInSlate = !View.bInCut && SlateLeft > 0.f;
+	// Money shot eases in and out over 150 ms (spec: "returns over 150 ms when time dilation ends"). Real time: the
+	// slow-mo itself scales world delta, so ease on the undilated step.
+	const float RealDt = World && World->GetWorldSettings() ? Dt / FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), .01f) : Dt;
+	View.MoneyShot = FMath::FInterpConstantTo(View.MoneyShot, bMoney ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
+	const float Target = View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f;
+	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
+	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
+	SetRenderOpacity(View.HUDOpacity);
 }
 
 void UTDFlightHUDWidget::HandleHitConfirmed(AActor* Target, bool bKill)
@@ -697,6 +735,7 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	}
 	BindController();
 	BindBus();
+	SampleDirector(Dt);
 	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
@@ -778,7 +817,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	Rec(TEXT("reticle"), C.X - 16.f, C.Y - 16.f, 32.f, 32.f);
 
 	// ---- reticle: 2 px dot, four 8 px ticks starting 8 px out
-	const FLinearColor Ink = T::Neutral().CopyWithNewOpacity(.9f);
+	const FLinearColor Ink = T::Neutral().CopyWithNewOpacity(FMath::Lerp(.9f, .4f, View.MoneyShot)); // 40% in a money shot
 	P.Box(C.X - 1, C.Y - 1, 2, 2, Ink);
 	for (const FVector2D D : { FVector2D(1, 0), FVector2D(-1, 0), FVector2D(0, 1), FVector2D(0, -1) })
 	{
@@ -802,6 +841,13 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		Pair(HullRadius, View.Hull, T::Hull(View.Hull), 5.f);
 		Pair(ShieldRadius, View.Shield, T::Shield(), 3.f);
 		Rec(TEXT("arcs"), C.X - ShieldRadius - 2.f, C.Y - 40.f, 2.f * ShieldRadius + 4.f, 80.f);
+	}
+
+	// ---- money shot (director slow-mo): everything but the reticle and the hull / shield arcs gets out of the shot
+	if (View.MoneyShot >= .5f)
+	{
+		LastCoverage01 = Area / (1920.f * 1080.f);
+		return Base + 4;
 	}
 
 	// ---- signature power pip: ship-colour ring + glyph when ready, grey ring refilling clockwise when cooling
