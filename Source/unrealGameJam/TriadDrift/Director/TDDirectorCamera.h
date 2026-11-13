@@ -106,6 +106,16 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Camera", meta = (Units = "cm"))
 	float MinDistanceFromFocus = 900.f;
 
+	/** On-foot death cam: distance from the body (cm), focus height above the pelvis, orbit over the CUT. */
+	UPROPERTY(Config, EditAnywhere, Category = "Death Cam", meta = (ClampMin = "200", Units = "cm"))
+	float DeathCamDistance = 520.f;
+	UPROPERTY(Config, EditAnywhere, Category = "Death Cam", meta = (Units = "cm"))
+	float DeathCamFocusHeight = 110.f; // clear of the ground the ragdoll lies on (the placement probe starts here)
+	UPROPERTY(Config, EditAnywhere, Category = "Death Cam", meta = (Units = "deg"))
+	float DeathCamOrbitDegrees = 15.f;
+	UPROPERTY(Config, EditAnywhere, Category = "Death Cam", meta = (ClampMin = "0.1", Units = "s"))
+	float DeathCamOrbitSeconds = 3.f;
+
 	/** Camera collision radius for the placement sweep. */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Camera", meta = (Units = "cm"))
 	float CameraProbeRadius = 80.f;
@@ -189,7 +199,19 @@ public:
 	 * Ignore = actors the probe passes through (the shot's subjects). Public for tests.
 	 */
 	static bool ResolveCameraLocation(const UWorld* World, const FVector& Focus, const FVector& Preferred,
-		const TArray<const AActor*>& Ignore, const AActor* PlayerShip, FVector& OutLocation);
+		const TArray<const AActor*>& Ignore, const AActor* PlayerShip, FVector& OutLocation, float MinDistanceOverride = -1.f);
+
+	/**
+	 * On-foot death (Lead, Director's Cut): cut to a third-person camera behind and above the dead pilot
+	 * (DeathCamDistance), orbit it slowly (DeathCamOrbitDegrees), and hold until the retake ends it.
+	 * Collision-safe like the space shots. The pilot body shows its head by itself once it is no longer
+	 * the view target (T5). False (the CUT stays first person) when the possessed pawn is not a dead
+	 * on-foot pilot with a visible body, or nowhere is safe.
+	 */
+	bool BeginDeathCam(APawn* Body);
+	bool IsDeathCam() const { return IsActive() && bDeathCam; }
+	/** Where the death cam looks: the ragdoll's pelvis (T5), else the mesh, else the actor. */
+	static FVector DeathCamFocus(const APawn* Body, float Height);
 
 	/** Called by the subsystem when a shot is accepted in Reduced mode. */
 	void PunchFOV();
@@ -236,6 +258,9 @@ private:
 	bool bSubjectGone = false;
 	/** The shot holds on LastFocus (multi-kill cluster). */
 	bool bStaticFocus = false;
+	bool bDeathCam = false;
+	double DeathCamStart = 0.0;
+	FVector DeathCamOffset = FVector::ZeroVector;
 	/** Extra actors the tracking sweep ignores (the multi-kill's dead victims). */
 	TArray<TWeakObjectPtr<AActor>> PlacementIgnore;
 	float ShotFOV = 65.f;

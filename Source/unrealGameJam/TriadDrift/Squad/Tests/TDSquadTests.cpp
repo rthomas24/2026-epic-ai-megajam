@@ -2864,6 +2864,10 @@ bool FTDSquadStrikeAndFocusFeedback::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the strike ship pulses (placeholder aura)"), P->GetPlayingFlashCount() > 0);
 	F.W.Advance(1.9f);
 	TestEqual(TEXT("half the window left after 2 s"), F.Squad->GetSwitchStrikeRemaining01(), 0.5f, 0.05f);
+	{
+		const ITDHUDData* Hud = F.Squad; // Core's HUD contract, as the HUDs read it
+		TestEqual(TEXT("through ITDHUDData::GetSwitchStrike01"), Hud->GetSwitchStrike01(), F.Squad->GetSwitchStrikeRemaining01());
+	}
 	F.W.Advance(2.2f);
 	TestEqual(TEXT("over after 4 s"), F.Squad->GetSwitchStrikeRemaining01(), 0.f);
 
@@ -2876,6 +2880,10 @@ bool FTDSquadStrikeAndFocusFeedback::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the target is marked"), P->CountPlayingFlashesNear(Enemy->GetActorLocation(), 500.f) > 0);
 	F.W.Advance(4.f);
 	TestEqual(TEXT("half the order left after 4 s"), F.Squad->GetFocusRemaining01(), 0.5f, 0.05f);
+	{
+		const ITDHUDData* Hud = F.Squad;
+		TestTrue(TEXT("through ITDHUDData: the target and the time left"), Hud->GetFocusTarget() == Enemy && FMath::IsNearlyEqual(Hud->GetFocusRemaining01(), 0.5f, 0.05f));
+	}
 	F.W.Advance(4.2f);
 	TestEqual(TEXT("expired after 8 s"), F.Squad->GetFocusRemaining01(), 0.f);
 	return true;

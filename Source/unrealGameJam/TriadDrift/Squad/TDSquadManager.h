@@ -185,8 +185,10 @@ public:
 	bool IsSwitchStrikeActive() const;
 	/** HUD feedback (Lead item 2): Switch Strike time left, 1 at arming -> 0 at its end (0 when off). */
 	float GetSwitchStrikeRemaining01() const;
+	/** ITDHUDData: Switch Strike time left (Core's fallback HUD draws it). */
+	virtual float GetSwitchStrike01() const override { return GetSwitchStrikeRemaining01(); }
 	/** HUD feedback (Lead item 3): the "focus my target" order's time left, 1 -> 0 (0 without an order). */
-	float GetFocusRemaining01() const;
+	virtual float GetFocusRemaining01() const override;
 
 	/** Placeholder feedback until Nick's art: squad-colour pulses at the Switch Strike ship, white pulses
 	 *  on the focus target, every this many seconds. 0 = off. */
@@ -246,7 +248,7 @@ public:
 	FVector GetFormationSlotLocation(ETDShipId Ship) const;
 
 	/** Current focus target (null when none or expired). */
-	AActor* GetFocusTarget() const;
+	virtual AActor* GetFocusTarget() const override;
 
 	/** The player controller the squad drives (first local player by default). */
 	APlayerController* GetSquadPlayerController() const;
