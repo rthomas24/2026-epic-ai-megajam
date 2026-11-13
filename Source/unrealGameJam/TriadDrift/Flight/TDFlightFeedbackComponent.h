@@ -154,6 +154,25 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float ExplosionShakeRadius = 9000.f;
+
+	// ---- Audition profile (issue #23, opt-in: TD.Flight.CamProfile Audition). Nick's UI proposal as the start.
+	/** Extra camera roll into a turn at full yaw rate (deg), and pitch at full pitch rate (deg). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionTurnRoll = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionTurnPitch = 0.6f;
+	/** How fast the tilt follows and settles back when steering stops (1/s). No idle bob. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionSettleRate = 5.f;
+	/** Sustained shake (deg): cruising, boosting, in the hyperdrive. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionShakeCruise = 0.04f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionShakeBoost = 0.08f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionShakeHyper = 0.15f;
+	/** Motion blur amount boosting / in the hyperdrive (0 cruising), and its max length (% of screen width). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionBlurBoost = 0.04f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionBlurHyper = 0.12f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionBlurMax = 0.35f;
+	/** Caps on the composed camera motion (every kick, shake and tilt together), any profile: deg. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Caps") float ComposedRollCap = 8.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Caps") float ComposedPitchCap = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Caps") float ComposedShakeCap = 1.5f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
@@ -202,6 +221,27 @@ public:
 	 */
 	static float UserShakeScale;
 	static float UserSpeedFOVScale;
+
+	/**
+	 * Issue #23 camera profiles (TD.Flight.CamProfile), Default until Ryan and Nicholas have seen the video:
+	 *  Default  = the camera as on main before the fixes (FOV punches never reach the camera after BeginPlay, blur as
+	 *             set in BeginPlay, no composed caps);
+	 *  Tuned    = both fixes: the feedback FOV punches and the live blur reach the chase camera every frame, with the
+	 *             composed caps; engineering's kicks and hit / explosion shakes at their tuned values;
+	 *  Audition = Tuned + Nicholas's restrained profile (turn tilt that settles, light sustained shake, speed blur).
+	 */
+	enum class ECamProfile : uint8 { Default, Tuned, Audition };
+	static ECamProfile CamProfile;
+	static bool IsFixedCameraPath() { return CamProfile != ECamProfile::Default; }
+	static const TCHAR* CamProfileName() { return CamProfile == ECamProfile::Audition ? TEXT("Audition") : CamProfile == ECamProfile::Tuned ? TEXT("Tuned") : TEXT("Default"); }
+
+	/** Motion blur the chase camera should use now (Audition: by boost / hyperdrive, scaled by the Speed slider). */
+	float GetMotionBlurAmount() const { return BlurAmount; }
+	float GetMotionBlurMax() const { return BlurAmount > 0.f ? Tuning.AuditionBlurMax : 0.f; }
+
+	/** Peaks of the composed camera motion since the last reset (deg), for the audition report. */
+	struct FComposedPeaks { float Roll = 0.f; float Pitch = 0.f; float Shake = 0.f; float FOV = 0.f; float Blur = 0.f; };
+	static FComposedPeaks ComposedPeaks;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
 	int32 GetActiveBurstCount() const;
@@ -287,6 +327,8 @@ private:
 
 	FRotator CameraOffset = FRotator::ZeroRotator;
 	float FOVOffset = 0.f;
+	FVector2D AuditionTilt = FVector2D::ZeroVector; // roll, pitch (deg)
+	float BlurAmount = 0.f;
 	UFUNCTION() void HandleDamaged(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
 	UFUNCTION() void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
 	float SustainedFOV = 0.f;
