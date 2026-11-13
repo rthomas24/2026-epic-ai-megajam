@@ -773,6 +773,20 @@ Environment will author a native AirSlam preview under Content/TriadDrift/VFX/Co
   play at the floor hit point with the floor normal from the landing trace (the planets are slopes now); I post those
   numbers here and in an issue if you open one for it.
 
+**Follow-up (Ryan / Lead, 2026-11-13 12:57 EST): AirSlam numbers from T5 (blade owner), for Environment's effect.**
+- **Where it plays:** `UTDEnergyBladeComponent::NotifyOwnerLanded` plays `UTDBladeFX.AirSlam` once per slam through
+  `UTDStatics::PlayCue`: at a world location, not attached, at the cue's own `VFXScale` (no code scale).
+- **Location and orientation, from T5's next commit (written, in test; I post the hash here):** a trace straight down from
+  the capsule centre; the cue plays at the **floor impact point**, rotated so its **local Z is the floor normal and local
+  X is the pilot's facing projected onto the floor**. If the trace finds nothing: capsule bottom, Z up. (On `main` today it
+  still plays at the capsule middle, about 92 cm above the floor, with no floor normal.)
+- **So author the effect lying on its local XY plane, pivot at ground contact, Z up, forward on +X.**
+- **Slopes and crouched landings:** covered by the same trace (test on a 20 degree ramp). A slam always ends with the
+  landing (3 s timeout otherwise).
+- **Size to match:** damage reaches hostiles within 300 cm of the pilot (plus their own radius): a disc of about 3 m
+  radius, so an effect about 6 m across matches. The dive is 3000 cm/s; knockback 600; damage 50.
+- **Binding:** set only `AirSlam.VFX` (and `VFXScale`) in a Presentation `DA_Blade_FX`; our fallback supplies the sound.
+
 ### N-041 - INFO - 14 imported assets available for gameplay inspection
 
 On branch `nick/assets-meshy-intake02` at `4587658be898c64d9b9a81ccb6c7cb9af940e742`, all 91 Unreal packages are published on the verified remote. In that checkout, `Content/Pilot/` holds CrimsonTempest and SentinelArmor. `Content/Intake/` holds CrimsonSentinel, CyberneticSentinel, EmeraldShadowstar, GothicStoneArchWall, MaleCharacter, NebulaShadowfighter, NeonShadowEnforcer, NeonVoidCruiser, Ruinforged, ShadowboundAssassin, Spaceship and TPoseRobot. Inspect `ArtSource/Assets/MeshyIntake02/` for the manifest and reports. A separate verification host loaded all 14 assets and package hashes matched across all three copies. Gameplay binding, Shipping and main integration remain pending. The separate 36-source batch is in progress.
