@@ -215,8 +215,13 @@ bool FTDInteriorFinalRecord::RunTest(const FString& Parameters)
 	TestEqual(TEXT("T3's hook once"), Started, 1);
 	I.W.Advance(0.3f);
 	TestFalse(TEXT("the door waits while the record plays"), Reactor->IsOpen() && !I.Course->IsFinalRecordDone());
+	TestTrue(*FString::Printf(TEXT("the door shows the playback ('%s')"), *Reactor->GetStatusText().ToString()), Reactor->GetStatusText().ToString().Contains(TEXT("PLAYBACK")));
+	// A second press skips (the Lead's (b)); without a sequence the queue simply plays out.
+	I.W.Advance(1.5f);
+	if (!I.Course->IsFinalRecordDone()) { Record->Interact(P); }
 	for (int32 i = 0; i < 200 && !I.Course->IsFinalRecordDone(); ++i) { I.W.Advance(0.5f); }
-	TestTrue(TEXT("the record ends"), I.Course->IsFinalRecordDone());
+	TestTrue(TEXT("the record ends (or was skipped)"), I.Course->IsFinalRecordDone());
+	TestTrue(TEXT("the playback line is cleared"), Reactor->GetStatusText().IsEmpty());
 	I.W.Advance(1.f);
 	TestTrue(TEXT("then the reactor door opens"), Reactor->IsOpen());
 	return true;

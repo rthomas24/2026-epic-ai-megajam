@@ -309,7 +309,7 @@ void ATDPlanetCourse::BuildInterior()
 	// --- Objectives, in order -------------------------------------------------------------------------
 	Entry(NAME_None, FVector(-600.f, 0.f, 40.f), 0.f); // the hangar start (T4's docking travels to "Hangar")
 	// Kato on arrival in the hangar (first visit: the story fires once per run).
-	GetWorldTimerManager().SetTimerForNextTick([this]() { UTDStorySubsystem::Fire(this, TEXT("C7_Kato_Layout")); });
+	GetWorldTimerManager().SetTimerForNextTick([this]() { UTDStorySubsystem::PlaySequence(this, TEXT("HangarArrival")); });
 
 	// 1. The deflect lesson: two troopers at the corridor's far end, behind low cover, firing down the lane.
 	ATDObjective* Lesson = MakeObjective(Corridor, LOCTEXT("DICorridorTitle", "Reach the Command Archive"), ETDAbilityId::None, ETDShipId::Rift, 2);
@@ -442,6 +442,7 @@ void ATDPlanetCourse::BuildInterior()
 	if (ATDInteractableActor* Rec = Cast<ATDInteractableActor>(FinalRecordConsole))
 	{
 		Rec->Prompt = LOCTEXT("FinalRecord", "Play the final record");
+		Rec->bSingleUse = false; // a second press skips the record
 	}
 
 	// 5. The escape run: back to the ship against the clock, debris falling (a CUT restarts the run, not the fight).
@@ -534,15 +535,33 @@ void ATDPlanetCourse::HandleStoryConsole(AActor* Interactable, AActor* Interacto
 		return;
 	}
 	LastStoryBeat = *Id;
-	UTDStorySubsystem::Fire(this, *Id); // T3's transmissions: Nicholas's words and voices through Presentation
-	if (Interactable == FinalRecordConsole && FinalRecordElapsed < 0.f)
+	if (Interactable == FinalRecordConsole)
 	{
-		FinalRecordElapsed = 0.f; // the reactor door waits for the record to end (TickFinalRecord)
-		UTDStorySubsystem::Fire(this, TEXT("G7_Wren_FullRecord")); // queued after the record (T3)
-		FinalRecordQuiet = 0.f;
-		OnFinalRecordStarted.Broadcast(Interactable);
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+		if (FinalRecordElapsed < 0.f)
+		{
+			// T3's Cinematic 08: the final record and the decision, voices over the shut reactor door (story 07-09).
+			FinalRecordElapsed = 0.f;
+			FinalRecordQuiet = 0.f;
+			if (Story)
+			{
+				Story->OnSequenceFinished.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStorySequenceFinished);
+			}
+			bFinalRecordSequence = UTDStorySubsystem::PlaySequence(this, TEXT("Cinematic08"));
+			if (ATDInteractableActor* Rec = Cast<ATDInteractableActor>(Interactable))
+			{
+				Rec->Prompt = LOCTEXT("SkipRecord", "Skip the record");
+			}
+			OnFinalRecordStarted.Broadcast(Interactable);
+		}
+		else if (!bFinalRecordDone && Story && Story->IsSequencePlaying(TEXT("Cinematic08")))
+		{
+			Story->SkipSequence(); // OnSequenceFinished(Cinematic08, true) opens the door
+		}
+		return;
 	}
-	else if (*Id == TEXT("A4_Recording_Corridor"))
+	UTDStorySubsystem::Fire(this, *Id); // T3's transmissions: Nicholas's words and voices through Presentation
+	if (*Id == TEXT("A4_Recording_Corridor"))
 	{
 		UTDStorySubsystem::Fire(this, TEXT("G7_Moss_MyVoice")); // queued after it (T3)
 	}
@@ -590,9 +609,7 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	// The Dominion (acts 4 and 5).
 	else if (Id == Corridor && StepIndex == 0)
 	{
-		Beat(TEXT("A4_DoorsKnowUs")); // the first door opens to the pilot's ID
-		Beat(TEXT("C7_Kato_Archive"));
-		Beat(TEXT("C7_Wren_Record"));
+		UTDStorySubsystem::PlaySequence(this, TEXT("FirstDoor")); // A4_DoorsKnowUs, C7_Kato_Archive, C7_Wren_Record (T3)
 	}
 	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
 	else if (Id == Core && StepIndex == 0) { Beat(TEXT("G8_Wren_ConduitsFirst")); }
@@ -641,10 +658,25 @@ void ATDPlanetCourse::TickFinalRecord(float DeltaSeconds)
 		return;
 	}
 	FinalRecordElapsed += DeltaSeconds;
-	// The door opens when T3's queue has played out (a skip empties it) and stayed quiet a moment, or at the cap.
+	// The door shows the playback while it waits (the Lead's (a)), counting up.
+	const int32 Second = FMath::FloorToInt(FinalRecordElapsed);
+	if (ReactorDoor && Second != ShownPlaybackSecond)
+	{
+		ShownPlaybackSecond = Second;
+		ReactorDoor->ShowStatusText(FText::Format(LOCTEXT("Playback", "ARCHIVE PLAYBACK · {0} s"), Second));
+	}
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
-	const bool bOnAir = Story && (Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0);
-	FinalRecordQuiet = bOnAir ? 0.f : FinalRecordQuiet + DeltaSeconds;
+	bool bWaiting = false;
+	if (bFinalRecordSequence && Story)
+	{
+		bWaiting = Story->IsSequencePlaying(TEXT("Cinematic08")); // OnSequenceFinished normally opens it first
+	}
+	else
+	{
+		// No sequence (a missing id): wait for the queue to play out instead.
+		bWaiting = Story && (Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0);
+	}
+	FinalRecordQuiet = bWaiting ? 0.f : FinalRecordQuiet + DeltaSeconds;
 	if ((FinalRecordElapsed > 1.f && FinalRecordQuiet > 0.75f) || FinalRecordElapsed > FinalRecordMaxSeconds)
 	{
 		OpenReactorDoor();
@@ -660,7 +692,16 @@ void ATDPlanetCourse::OpenReactorDoor()
 	bFinalRecordDone = true;
 	if (ReactorDoor)
 	{
+		ReactorDoor->ClearStatusText();
 		ReactorDoor->Open();
+	}
+	if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(this))
+	{
+		Story->OnSequenceFinished.RemoveDynamic(this, &ATDPlanetCourse::HandleStorySequenceFinished);
+	}
+	if (ATDInteractableActor* Rec = Cast<ATDInteractableActor>(FinalRecordConsole))
+	{
+		Rec->bEnabled = false; // played
 	}
 	// T3's Cinematic 08 carries the decision lines now (no A5_Choice here).
 }
@@ -669,4 +710,12 @@ void ATDPlanetCourse::HandleConduitDown(UTDHealthComponent* Health, const FTDDam
 {
 	++ConduitsDown;
 	UTDStorySubsystem::Fire(this, ConduitsDown == 1 ? TEXT("G8_Kato_ConduitDown") : TEXT("G8_Moss_KeepMoving")); // T3: the first, then the second
+}
+
+void ATDPlanetCourse::HandleStorySequenceFinished(FName SequenceId, bool bSkipped)
+{
+	if (SequenceId == TEXT("Cinematic08"))
+	{
+		OpenReactorDoor(); // finished or skipped (T3: it fires once)
+	}
 }
