@@ -342,6 +342,16 @@ void UTDGameInstance::TickFlow(float RealDeltaSeconds)
 		}
 	}
 
+	// Victory: after the hold, to the victory screen (the menu map shows it, then the menu).
+	if (VictoryTravelLeft >= 0.f && !IsTravelPending())
+	{
+		VictoryTravelLeft -= RealDeltaSeconds;
+		if (VictoryTravelLeft < 0.f)
+		{
+			TravelTo(ETDDestination::Victory, NAME_None);
+		}
+	}
+
 	// Objective line for flow-owned scenes (cheap; only broadcasts on change or when forced).
 	ObjectiveCheckLeft -= RealDeltaSeconds;
 	bool bForceObjective = false;
@@ -438,6 +448,10 @@ void UTDGameInstance::SetPhase(ETDGamePhase NewPhase)
 	{
 		CancelPendingRetake(); // a win is a win
 		EndScene();
+		if (!IsMenuDestination(CurrentDestination))
+		{
+			VictoryTravelLeft = UTDFlowSettings::Get()->VictoryHoldSeconds; // then the victory screen
+		}
 	}
 	SetRunTimerPaused(NewPhase == ETDGamePhase::Victory || IsMenuDestination(CurrentDestination));
 	// Story state is never rolled back by a retake: patch the checkpoint and the slot.
@@ -669,6 +683,7 @@ void UTDGameInstance::ResetRunState()
 	LastCheckpoint = FTDCheckpoint();
 	SceneOrder.Reset();
 	LastObjective = FTDObjectiveLine();
+	VictoryTravelLeft = -1.f;
 	CurrentSceneId = NAME_None;
 	LastAnnouncedScene = NAME_None;
 	LastAnnouncedTake = 0;

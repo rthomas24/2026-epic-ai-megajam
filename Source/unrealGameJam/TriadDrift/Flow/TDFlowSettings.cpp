@@ -11,6 +11,7 @@ UTDFlowSettings::UTDFlowSettings()
 	DestinationMaps.Add(ETDDestination::Verdance, FSoftObjectPath(TEXT("/Game/TriadDrift/Maps/L_Planet_Verdance.L_Planet_Verdance")));
 	DestinationMaps.Add(ETDDestination::Cinder, FSoftObjectPath(TEXT("/Game/TriadDrift/Maps/L_Planet_Cinder.L_Planet_Cinder")));
 	DestinationMaps.Add(ETDDestination::DominionInterior, FSoftObjectPath(TEXT("/Game/TriadDrift/Maps/L_Dominion_Interior.L_Dominion_Interior")));
+	DestinationMaps.Add(ETDDestination::Victory, FSoftObjectPath(TEXT("/Game/TriadDrift/Maps/L_MainMenu.L_MainMenu"))); // the victory screen, then the menu
 	TransitionMap = FSoftObjectPath(TEXT("/Game/TriadDrift/Maps/L_Transition.L_Transition"));
 
 	// Ability owners (features.md §0): Verdance -> Gravity Well (Bastion), Cloak (Rift); Cinder -> EMP (Lancer).

@@ -11,6 +11,7 @@
 #include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
+#include "Misc/ScopeExit.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
@@ -1181,6 +1182,74 @@ bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
 		W.Advance(1.f);
 		TestFalse(TEXT("late tagged sky removes the star backdrop"), Stars.IsValid() && !Stars->IsActorBeingDestroyed());
 		TestNull(TEXT("mode forgets it"), GM ? GM->GetStarBackdrop() : nullptr);
+	}
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// The front end: New Game / Continue / Quit from the menu mode (Nick's widget or the placeholder), the win
+// travelling to the victory screen, and the victory screen returning to the menu.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowMenuJourney, "TriadDrift.Flow.MenuNewGameContinueVictoryAndBack", TDFlowTest::TestFlags)
+bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
+{
+	UTDFlowSettings* S = GetMutableDefault<UTDFlowSettings>();
+	const bool bWrite = S->bWriteSlotOnCheckpoint;
+	S->bWriteSlotOnCheckpoint = false;
+	ON_SCOPE_EXIT { S->bWriteSlotOnCheckpoint = bWrite; };
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDMenuGameMode::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		ATDMenuGameMode* Menu = W.GetWorld()->GetAuthGameMode<ATDMenuGameMode>();
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("menu mode"), Menu)) { return false; }
+		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationMenu"));
+		GI->DeleteSave();
+		ON_SCOPE_EXIT { GI->DeleteSave(); GI->SetSaveSlotOverride(FString()); };
+		TestFalse(TEXT("the menu, not the victory screen"), Menu->IsShowingVictory());
+		TestFalse(TEXT("no Continue without a save"), Menu->CanContinue());
+		TestFalse(TEXT("Continue refused"), Menu->ContinueGame());
+
+		FString Opened;
+		GI->OpenLevelOverride = [&Opened](const FString& P) { Opened = P; };
+		GI->GetMutableProgress().WavesCleared = 3; // leftovers from an earlier run
+		TestTrue(TEXT("New Game travels"), Menu->NewGame());
+		TestEqual(TEXT("a fresh run"), GI->GetProgressRef().WavesCleared, 0);
+		GI->TickFlow(UTDFlowSettings::Get()->TravelFadeSeconds + UTDFlowSettings::Get()->MinTransitionSeconds + 0.5f);
+		GI->TickFlow(UTDFlowSettings::Get()->MinTransitionSeconds + 0.5f);
+		TestTrue(FString::Printf(TEXT("to the galaxy (%s)"), *Opened), Opened.Contains(TEXT("L_Galaxy")) || Opened.Contains(TEXT("L_Transition")));
+		GI->OpenLevelOverride = nullptr;
+	}
+	{
+		// Winning in the galaxy: the victory screen follows after the hold.
+		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDSpaceGameMode::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		if (!TestNotNull(TEXT("GI"), GI)) { return false; }
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		FString Opened;
+		GI->OpenLevelOverride = [&Opened](const FString& P) { Opened = P; };
+		GI->SetPhase(ETDGamePhase::Victory);
+		GI->TickFlow(1.f);
+		TestFalse(TEXT("the outro plays first"), GI->IsTravelPending());
+		GI->TickFlow(UTDFlowSettings::Get()->VictoryHoldSeconds);
+		TestTrue(TEXT("then to the victory screen"), GI->IsTravelPending());
+		for (int32 i = 0; i < 20 && !Opened.Contains(TEXT("L_MainMenu")); ++i) { GI->TickFlow(0.5f); if (Opened.Contains(TEXT("L_Transition"))) { GI->NotifyMapLoaded(TEXT("/Game/TriadDrift/Maps/L_Transition")); Opened.Reset(); } }
+		TestTrue(FString::Printf(TEXT("the victory screen is the menu map (%s)"), *Opened), Opened.Contains(TEXT("L_MainMenu")));
+		GI->OpenLevelOverride = nullptr;
+	}
+	{
+		// The menu map after a win shows the victory screen, then returns to the menu.
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationMenuWon"));
+		GI->DeleteSave(); // a won run's slot holds the Victory phase: no Continue either way
+		ON_SCOPE_EXIT { GI->SetSaveSlotOverride(FString()); };
+		GI->GetMutableProgress().Phase = ETDGamePhase::Victory;
+		ATDMenuGameMode* Menu = W.Spawn<ATDMenuGameMode>();
+		Menu->StartPlay();
+		TestTrue(TEXT("victory screen first"), Menu->IsShowingVictory());
+		TestFalse(TEXT("no Continue into a won run"), Menu->CanContinue());
+		Menu->ReturnToMenu();
+		TestFalse(TEXT("then the menu"), Menu->IsShowingVictory());
 	}
 	return true;
 }
