@@ -443,6 +443,33 @@ a finished outpost mesh is still useful as the visual target and for distant cop
 trim sets and by when, and anything in this rule you think is wrong. Scale check for every delivery from now on: put
 a 180 cm figure in the contact sheet.
 
+**Reply (Ryan / Lead, 2026-11-13 16:30 EST): PR #50 (Verdance outpost and console) approved and merged, and it changes
+my last message.** This is the standard: an open bay 283 cm high and 338 cm wide, hollow, with a 180 cm figure on the
+sheet. It already meets the walkability rule, so **we use your outpost as the building; our Blender kit is stopped.**
+Our structures builder now imports it, authors walkable collision (flat deck, ramp no steeper than 20 degrees; it may
+lengthen the ramp), walks the pilot through it in the game and makes a Cinder variant by material. So for #42 no trim
+set is needed. One note for an r2 only if cheap: the console's desk is 86 cm high, fine as it is.
+
+**Corrections to the table in my previous message:**
+- **#38 Cinder dig site:** make the cabin and walkways yourself in the same way as #50 (walkable: doorway at least
+  140 x 240 cm, hollow, flat deck, ramp or steps we can replace), plus the drill rig. Put the 180 cm figure on the sheet.
+- **#37 Ancient relay: the hold is lifted.** Nicholas confirmed the board already on the issue is the intended
+  artefact. Generate from that exact board (hero prop, about 10 m, emissive mask for the core, under 30k tris).
+- **Four new boards from Nicholas** (issues #51-#54, branches `nick/refs-*`): the Null transport / hauler (about 40 m,
+  Null family, sensor pods and a scanner ring, no guns), the Cinder field anchor tower (about 40 m, the top emitter a
+  separate part, the base where charges go visible), the crystal cache and hero crystal (crystals separate from the
+  cradle), the Dominion docking bay mouth (must match the hull in #41).
+- **Order now:** Rift r2 and the close-range ship textures (R-041); then #39 wreck, #38 dig site and rig, #51 hauler,
+  #37 relay, #52 anchor tower, #53 crystal cache, #40 set dressing, #41 generators and hull, #54 docking bay.
+  Everything the player walks through follows the rule in my previous message.
+
+**Reply (Ryan / Grok Bot, 2026-11-13 16:39 EST): Ancient Relay hero prop mesh r1 (#37) is up in PR #64.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/64 (branch `grok/assets-ancient-relay-r1`, do not merge without your OK). Also commented on issue #37.
+Contact sheet: `ArtSource/EngAI/Props/AncientRelay/mesh_r1/contact_sheet.png`.
+- **`SM_AncientRelay`:** **26,487 tris** (decimated `COLLAPSE` from the 50,000-tri Rodin pack, inside 24,000–27,500 and under the 30k brief; UVs intact, watertight). AABB **1124.0 × 1221.0 × 1000.0 cm**. Height **1000.0 cm (10.0 m)** as briefed. Pivot at the ground-base centre (X = 0, Y = 0, min Z = 0). +Z up; the stair-fronted plinth and ring face point +X, symmetric on Y. Stair tip at X = **+562.0 cm**; stair width about **215.2 cm**; courtyard / deck about **242.5 cm**.
+2K PBR; N is DirectX (green channel flipped from Rodin's OpenGL +Y map); ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. E was lightly thresholded (`max(R,G,B) <= 18 → 0`) so the cyan core, beams and runes stay crisp and residual near-black noise on the stone is gone. Prefer the FBX (`UnitScaleFactor` 100). The GLB is clean glTF in metres with the same +Z up / +X pose stored in the file; prefer the FBX for Unreal.
+The contact sheet includes a 180 cm pilot box at the foot of the +X stairs. Nicholas's board callouts 18.5 m tall; height was set to the R-030 10 m brief. This is the hero visual mesh (the board's stairs are part of it); a walkable collision slab can be added on import if the pilot needs to go onto the plinth. **1.0 credit** spent on the Business plan (about 394.5 remaining). Status stays OPEN.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
@@ -592,6 +619,8 @@ used for an enemy as well, or instead?
 **Batch 1** — [Ancient Relay](https://github.com/rthomas24/2026-epic-ai-megajam/tree/dd70060c/ArtSource/Reference/AncientRelay) · [Cinder dig site](https://github.com/rthomas24/2026-epic-ai-megajam/tree/a0132955/ArtSource/Reference/CinderDigSite) · [Verdance wreck](https://github.com/rthomas24/2026-epic-ai-megajam/tree/3c1d14b9/ArtSource/Reference/VerdanceCrashedShip) · [Landing-pad set dressing](https://github.com/rthomas24/2026-epic-ai-megajam/tree/4902ffb7/ArtSource/Reference/LandingPadSetDressing) · [Dominion exterior](https://github.com/rthomas24/2026-epic-ai-megajam/tree/478cff86/ArtSource/Reference/DominionMothership) · [Verdance research outpost](https://github.com/rthomas24/2026-epic-ai-megajam/tree/8d81e7e7/ArtSource/Reference/VerdanceResearchOutpost)
 
 **Batch 2** — [Null transport / hauler](https://github.com/rthomas24/2026-epic-ai-megajam/tree/c2b614dd/ArtSource/Reference/NullTransportHauler) · [Cinder field anchor tower](https://github.com/rthomas24/2026-epic-ai-megajam/tree/73e4c584/ArtSource/Reference/CinderFieldAnchor) · [Crystal cache and hero crystal](https://github.com/rthomas24/2026-epic-ai-megajam/tree/116e6470/ArtSource/Reference/CrystalCache) · [Dominion docking bay mouth](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6bfaea46/ArtSource/Reference/DominionDockingBay)
+
+**Batch 3** — [Browse all 12 original modular interior images](https://github.com/rthomas24/2026-epic-ai-megajam/tree/31464c4d8943f1c169120181fcfdf36ff2ea824c/ArtSource/Reference/ModularInteriorKit). Seven asset issues link directly to the individual files: bridge #55, ceilings #56, column #57, crate #58, doors #59, floors #60 and wall #61. Nicholas supplied these for modeling reference. Level placement is unassigned.
 
 **Reply (Nick / Lead, November 13).** Nicholas approved both survey terminal images. The [Verdance discovery and Cinder match screen graphics](https://github.com/rthomas24/2026-epic-ai-megajam/tree/b4086108317c62b08e3d2b776b985d66d3444927/ArtSource/UI/TriadHUD/Unreal/SurveyTerminals01) are ready for the respective terminal scenes. [Issue #44 has direct PNG links and the request for in-game captures](https://github.com/rthomas24/2026-epic-ai-megajam/issues/44#issuecomment-6865267994).
 
