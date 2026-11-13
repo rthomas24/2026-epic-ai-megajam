@@ -544,6 +544,21 @@ void UTDFlightFeedbackComponent::UpdateDust(float DeltaTime)
 	bDustVisible = true;
 }
 
+float UTDFlightFeedbackComponent::TrailFadeAt(const FTDFlightFeedbackTuning& Tuning, float DistToEye, float ScreenY)
+{
+	const float Near = Tuning.TrailCameraFadeEnd > Tuning.TrailCameraFadeStart
+		? FMath::Clamp((DistToEye - Tuning.TrailCameraFadeStart) / (Tuning.TrailCameraFadeEnd - Tuning.TrailCameraFadeStart), 0.f, 1.f)
+		: (DistToEye >= Tuning.TrailCameraFadeStart ? 1.f : 0.f);
+	float Band = 1.f;
+	if (ScreenY >= 0.f)
+	{
+		Band = Tuning.TrailHudBandLimit > Tuning.TrailHudBandFadeStart
+			? FMath::Clamp((Tuning.TrailHudBandLimit - ScreenY) / (Tuning.TrailHudBandLimit - Tuning.TrailHudBandFadeStart), 0.f, 1.f)
+			: (ScreenY < Tuning.TrailHudBandLimit ? 1.f : 0.f);
+	}
+	return Near * Band;
+}
+
 void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 {
 	ATDShip* Ship = GetShip();
@@ -650,8 +665,9 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 	// stop where it would cross PlayerFlameScreenLimit of the viewport height (the HUD band). Headless (no viewport)
 	// only the length cap applies.
 	int32 ViewW = 0, ViewH = 0;
-	if (bOwnChase && bHaveEye) { ViewPC->GetViewportSize(ViewW, ViewH); }
-	const bool bScreenCap = bOwnChase && bHaveEye && ViewW > 0 && ViewH > 0;
+	if (bHaveEye) { ViewPC->GetViewportSize(ViewW, ViewH); }
+	const bool bHaveScreen = bHaveEye && ViewW > 0 && ViewH > 0;
+	const bool bScreenCap = bOwnChase && bHaveScreen;
 	const FRotator EyeRot = bHaveEye ? ViewPC->PlayerCameraManager->GetCameraRotation() : FRotator::ZeroRotator;
 	const float TanHalf = bHaveEye ? FMath::Tan(FMath::DegreesToRadians(FMath::Clamp(ViewPC->PlayerCameraManager->GetFOVAngle(), 5.f, 170.f) * 0.5f)) : 1.f;
 	const float Aspect = ViewH > 0 ? (float)ViewW / (float)ViewH : 1.f;
@@ -718,13 +734,18 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 			// Quadratic taper: thin quickly, then a long hairline tail that reads as fading out.
 			const float Lin = bOwnChase ? FMath::Clamp(1.f - Length / FMath::Max(Cap, 1.f), 0.f, 1.f) : 1.f - (float)i / (float)N;
 			const float Taper = Lin * Lin;
-			const float Near = bHaveEye ? FMath::Clamp(FVector::Dist((A + B) * 0.5f, Eye) / Clear - 0.25f, 0.f, 1.f) : 1.f;
+			// The flown ribbon is already cut by length and screen height; every other ribbon (wingmen) fades out near
+			// the camera and over the HUD band, so a wingman passing close never paints across the HUD.
+			const FVector Mid = (A + B) * 0.5f;
+			const float Near = !bHaveEye ? 1.f
+				: bOwnChase ? FMath::Clamp(FVector::Dist(Mid, Eye) / Clear - 0.25f, 0.f, 1.f)
+				: TrailFadeAt(Tuning, FVector::Dist(Mid, Eye), bHaveScreen ? FMath::Max(ScreenY(A), ScreenY(B)) : -1.f);
 			const float T = FMath::Max(0.01f, Thick * Taper * Near / 100.f);
 			const FQuat Q = Len > KINDA_SMALL_NUMBER ? FRotationMatrix::MakeFromX(D / Len).ToQuat() : Ship->GetActorQuat();
 			TrailTransforms[e * N + i] = FTransform(Q, (A + B) * 0.5f, FVector(FMath::Max(0.01f, Len / 100.f), T, T));
 			if (bTrailTranslucent)
 			{
-				Trail->SetCustomDataValue(e * N + i, 0, Lin, false); // fades out along the ribbon
+				Trail->SetCustomDataValue(e * N + i, 0, Lin * Near, false); // fades out along the ribbon and near the eye/HUD
 			}
 			Length += Len;
 		}
