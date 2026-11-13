@@ -1,0 +1,29 @@
+// UE Custom expression float4: UV float2, Age float, Variation float,
+// Tint float3. Intended translucent sprite,16 particles,0.82s lifetime.
+// Three density bands, no textures/volume simulation or depth-camera capture.
+float2 p = UV * 2.0 - 1.0;
+float age = saturate(Age);
+float2 drift = float2(0.18, -0.27) * age + frac(Variation) * 5.0;
+float density = 0.0;
+float weight = 0.5;
+float frequency = 2.5;
+[unroll] for (int octave = 0; octave < 3; ++octave)
+{
+    float2 q = p * frequency + drift;
+    float2 cell = floor(q);
+    float2 f = frac(q);
+    f = f * f * (3.0 - 2.0 * f);
+    float4 n = frac(sin(float4(dot(cell, float2(127.1,311.7)),
+        dot(cell + float2(1,0), float2(127.1,311.7)),
+        dot(cell + float2(0,1), float2(127.1,311.7)),
+        dot(cell + float2(1,1), float2(127.1,311.7)))) * 43758.5453);
+    density += lerp(lerp(n.x,n.y,f.x),lerp(n.z,n.w,f.x),f.y) * weight;
+    frequency *= 2.13;
+    weight *= 0.5;
+}
+float edge = saturate(1.0 - dot(p, p));
+edge = edge * edge;
+float fade = smoothstep(0.0, 0.07317, age) * pow(1.0 - age, 1.5);
+float alpha = min(0.21, edge * smoothstep(0.13, 0.69, density) * fade * 0.21);
+// Dust is deliberately low-emission; tune against the real ground under native lighting.
+return float4(max(Tint, 0.0) * (0.08 + density * 0.08), alpha);

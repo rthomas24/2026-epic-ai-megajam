@@ -1,0 +1,20 @@
+// UE Custom expression, float4: UV float2, Age float (0..1), Tint float3,
+// Intensity float. Sprite610cm, lifetime0.42s. Surface-facing XY only.
+float time = saturate(Age) * 0.42;
+float2 p = (UV * 2.0 - 1.0) * 305.0;
+float r = length(p);
+float angle = r > 0.001 ? atan2(p.y, p.x) : 0.0;
+float sectorPosition = (angle + 3.14159265) * (19.0 / 6.2831853);
+float sector = floor(sectorPosition);
+float part = frac(sectorPosition);
+float seed = frac(sin((sector + 6.0) * 127.1 + 31.7) * 43758.5453);
+float breakup = smoothstep(0.06, 0.15, part) * (1.0 - smoothstep(0.70, 0.85, part));
+breakup *= smoothstep(0.14, 0.22, seed);
+float radius = 300.0 * (1.0 - exp(-time / 0.095));
+float irregularRadius = radius * (1.0 + 0.009 * sin(angle * 37.0 + sector));
+float width = max(1.0, fwidth(r) * 0.75);
+float band = 1.0 - smoothstep(width * 0.5, width * 1.5, abs(r - irregularRadius));
+float trailing = 1.0 - smoothstep(width, width * 3.5, abs(r - irregularRadius * 0.94));
+float decay = pow(saturate(1.0 - time / 0.42), 1.8);
+float alpha = saturate((band + trailing * 0.15) * breakup * decay * smoothstep(0.0, 0.008, time));
+return float4(max(Tint, 0.0) * clamp(Intensity, 0.0, 1.35), alpha);

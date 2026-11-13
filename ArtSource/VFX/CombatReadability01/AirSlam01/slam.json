@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "stage": "source_preview_only",
+  "cue": "UTDBladeFX.AirSlam",
+  "name": "Fractured ground compression",
+  "duration_seconds": 1.15,
+  "tint_linear_rgb": [0.04, 0.65, 0.9],
+  "ring": {
+    "spawn_count": 1,
+    "lifetime_seconds": 0.42,
+    "sprite_diameter_cm": 610,
+    "plane": "surface tangent XY, never camera facing",
+    "radius_cm": 300,
+    "expansion_time_constant_seconds": 0.095,
+    "fracture_sectors": 19,
+    "intensity_max": 1.35,
+    "blend": "additive"
+  },
+  "dust": {
+    "spawn_count": 16,
+    "lifetime_seconds": 0.82,
+    "spawn_delay_seconds": [0.012, 0.044],
+    "radial_speed_cm_s": [110, 240],
+    "drag_time_constant_seconds": 0.22,
+    "opacity_max": 0.21,
+    "blend": "translucent",
+    "world_space": true
+  },
+  "debris": {
+    "spawn_count": 8,
+    "lifetime_seconds": [0.48, 0.78],
+    "radial_speed_cm_s": [85, 170],
+    "vertical_speed_cm_s": [100, 170],
+    "gravity_cm_s2": 420,
+    "size_cm": [2, 6],
+    "collision": false,
+    "world_space": true
+  },
+  "glints": {
+    "spawn_count": 10,
+    "lifetime_seconds": 0.17,
+    "blend": "additive"
+  },
+  "runtime_prerequisites": {
+    "owner": "Ryan, N-040 pending",
+    "binding": "Owner to confirm AirSlam VFX field only; no Sound or Shake replacement",
+    "location": "Actual landing floor contact, not capsule center",
+    "orientation": "Actual surface normal plus stable yaw",
+    "standing_half_height_cm_reference": 90,
+    "crouched_half_height_cm_reference": 50,
+    "do_not_assume_fixed_offset": true
+  },
+  "proposed_budget": {
+    "max_simultaneous_particles_per_activation": 35,
+    "emitters": 4,
+    "retrigger_policy": "one activation per actual landing event",
+    "dynamic_lights": 0,
+    "volumetrics": false,
+    "scene_capture": false,
+    "gameplay_radius_changes": false,
+    "gpu_timing_measured": false
+  }
+}
