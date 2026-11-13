@@ -154,6 +154,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	bool IsPlayerFlown() const { return bPlayerControlled; }
 
+	/** World position of the engine exhaust (art socket / Engine part, else the rear of the hull or the placeholder glow). */
+	FVector GetEngineExhaustLocation() const;
+
+	/** Engines are lit (alive, not parked or hidden, not landed with engines off). */
+	bool AreEnginesRunning() const { return ShouldEnginesRun(); }
+
 	/**
 	 * True while the player must not switch away from this ship: hyperdrive spooling / jumping /
 	 * dropping out, a landing or take-off in progress, landed (on foot), or atmospheric entry.

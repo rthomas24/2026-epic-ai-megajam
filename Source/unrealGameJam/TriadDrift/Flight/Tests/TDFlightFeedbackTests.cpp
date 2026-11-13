@@ -168,4 +168,48 @@ bool FTDFeedbackPortal::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFeedbackTrail, "TriadDrift.Flight.Feedback.EngineTrailRibbonWithNoArt", TD_TEST_FLAGS)
+bool FTDFeedbackTrail::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Wingman = TDFeedbackTest::SpawnFlying(W, false); // every squad ship has one, not only the player's
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Wingman->SetFlightInput(In);
+	W.Advance(1.5f);
+	UTDFlightFeedbackComponent* FB = Wingman->GetFlightFeedback();
+	TestEqual(TEXT("cruising: the whole ribbon draws"), FB->GetVisibleTrailSegments(), FB->Tuning.TrailSegments);
+	const float Expected = (float)Wingman->GetVelocity().Size() * FB->Tuning.TrailSegments * FB->Tuning.TrailSampleSeconds;
+	AddInfo(FString::Printf(TEXT("trail %.0f cm at %.0f cm/s (expected about %.0f)"), FB->GetTrailLength(), (float)Wingman->GetVelocity().Size(), Expected));
+	TestTrue(TEXT("its length follows the speed"), FB->GetTrailLength() > Expected * 0.6f && FB->GetTrailLength() < Expected * 1.4f);
+	const float CruiseLength = FB->GetTrailLength();
+	In.bBoost = true;
+	Wingman->SetFlightInput(In);
+	W.Advance(1.f);
+	TestTrue(TEXT("boost: a longer streak"), FB->GetTrailLength() > CruiseLength * 1.3f);
+
+	// A portal jump never draws a streak across space.
+	Wingman->TeleportSpacecraft(Wingman->GetActorLocation() + FVector(0.f, 400000.f, 0.f), FRotator::ZeroRotator, true);
+	W.Tick();
+	TestTrue(TEXT("teleport: no streak across the jump"), FB->GetTrailLength() < 20000.f);
+	W.Advance(0.5f);
+	TestEqual(TEXT("and it grows back from the new spot"), FB->GetVisibleTrailSegments(), FB->Tuning.TrailSegments);
+
+	// Art wins: an EngineTrail VFX hides the placeholder.
+	UTDShipVisuals* Visuals = NewObject<UTDShipVisuals>();
+	Visuals->EngineTrail.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TEXT("/Game/TriadDrift/VFX/NS_Anything.NS_Anything")));
+	FB->Tuning.bEngineTrail = true;
+	// Only the decision is asserted here (no Niagara asset loads in tests).
+	TestFalse(TEXT("an EngineTrail VFX replaces the placeholder"), UTDFlightFeedbackComponent::WantsVisualPlaceholder(&Visuals->EngineTrail));
+
+	// Stopped engines: no trail.
+	In = FTDFlightInput();
+	In.Throttle = -1.f;
+	Wingman->SetFlightInput(In);
+	Wingman->SetActorHiddenInGame(true);
+	W.Tick();
+	TestEqual(TEXT("hidden ship: no trail"), FB->GetVisibleTrailSegments(), 0);
+	return true;
+}
+
 #endif

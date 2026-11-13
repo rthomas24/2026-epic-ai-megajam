@@ -91,6 +91,7 @@ void UTDFlightFeedbackComponent::EndPlay(const EEndPlayReason::Type EndPlayReaso
 	BurstMIDs.Reset();
 	Bursts.Reset();
 	if (Dust) { Dust->DestroyComponent(); Dust = nullptr; }
+	if (Trail) { Trail->DestroyComponent(); Trail = nullptr; }
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -542,6 +543,93 @@ void UTDFlightFeedbackComponent::UpdateDust(float DeltaTime)
 	bDustVisible = true;
 }
 
+void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
+{
+	ATDShip* Ship = GetShip();
+	UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+	const UTDShipVisuals* Visuals = Ship ? Ship->GetShipVisuals() : nullptr;
+	const bool bWanted = Ship && Move && Tuning.bEngineTrail && !Ship->IsHidden() && Ship->AreEnginesRunning()
+		&& WantsVisualPlaceholder(Visuals ? &Visuals->EngineTrail : nullptr) && Move->Velocity.Size() > 500.f;
+	auto Hide = [this]()
+	{
+		if (Trail && bTrailVisible) { Trail->SetVisibility(false); }
+		bTrailVisible = false;
+		TrailHistory.Reset();
+		TrailLength = 0.f;
+	};
+	if (!bWanted)
+	{
+		Hide();
+		return;
+	}
+	if (!Trail)
+	{
+		UStaticMesh* Cube = TDFlightFeedback::LoadShape(TEXT("/Engine/BasicShapes/Cube.Cube"));
+		if (!Cube || !Ship->GetRootComponent())
+		{
+			return;
+		}
+		Trail = NewObject<UInstancedStaticMeshComponent>(Ship, TEXT("TDEngineTrail"), RF_Transient);
+		Trail->SetStaticMesh(Cube);
+		Trail->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Trail->SetGenerateOverlapEvents(false);
+		Trail->SetCastShadow(false);
+		Trail->SetCanEverAffectNavigation(false);
+		Trail->CanCharacterStepUpOn = ECB_No;
+		Trail->SetupAttachment(Ship->GetRootComponent());
+		Trail->SetUsingAbsoluteLocation(true);
+		Trail->SetUsingAbsoluteRotation(true);
+		Trail->SetUsingAbsoluteScale(true);
+		Trail->RegisterComponent();
+		Trail->SetWorldTransform(FTransform::Identity);
+		UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
+		TrailTransforms.SetNum(FMath::Max(2, Tuning.TrailSegments));
+		for (FTransform& T : TrailTransforms) { T = FTransform(FQuat::Identity, Ship->GetActorLocation(), FVector(0.01f)); }
+		Trail->AddInstances(TrailTransforms, false, true);
+	}
+
+	// Path samples: [0] follows the nozzle every frame; a new sample is pushed every TrailSampleSeconds.
+	const int32 N = TrailTransforms.Num();
+	const FVector Nozzle = Ship->GetEngineExhaustLocation();
+	if (TrailHistory.Num() == 0)
+	{
+		TrailHistory.Init(Nozzle, N + 1);
+	}
+	TrailHistory[0] = Nozzle;
+	TrailClock += DeltaTime;
+	if (TrailClock >= Tuning.TrailSampleSeconds)
+	{
+		TrailClock = 0.f;
+		TrailHistory.Insert(Nozzle, 0);
+		TrailHistory.SetNum(N + 1);
+	}
+	// A teleport (portal, hyperdrive drop-out, respawn) never draws a streak across space.
+	const float MaxStep = FMath::Max(5000.f, (float)Move->Velocity.Size() * Tuning.TrailSampleSeconds * 3.f);
+	const float Thick = Tuning.TrailThickness * (Ship->IsBoosting() ? 1.4f : 1.f);
+	float Length = 0.f;
+	for (int32 i = 0; i < N; ++i)
+	{
+		const FVector A = TrailHistory[i];
+		const FVector B = TrailHistory[i + 1];
+		const FVector D = A - B;
+		const float Len = D.Size();
+		if (Len > MaxStep)
+		{
+			Hide();
+			return;
+		}
+		const float Taper = 1.f - (float)i / (float)N;
+		const float T = FMath::Max(0.01f, Thick * Taper / 100.f);
+		const FQuat Q = Len > KINDA_SMALL_NUMBER ? FRotationMatrix::MakeFromX(D / Len).ToQuat() : Ship->GetActorQuat();
+		TrailTransforms[i] = FTransform(Q, (A + B) * 0.5f, FVector(FMath::Max(0.01f, Len / 100.f), T, T));
+		Length += Len;
+	}
+	TrailLength = Length;
+	Trail->BatchUpdateInstancesTransforms(0, TrailTransforms, false, false, true);
+	if (!bTrailVisible) { Trail->SetVisibility(true); }
+	bTrailVisible = true;
+}
+
 void UTDFlightFeedbackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -550,6 +638,7 @@ void UTDFlightFeedbackComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	UpdateCamera(DeltaTime);
 	UpdateBursts(DeltaTime);
 	UpdateDust(DeltaTime);
+	UpdateTrail(DeltaTime);
 	const float Ms = float((FPlatformTime::Seconds() - Start) * 1000.0);
 	const float Alpha = FMath::Clamp(DeltaTime / 2.f, 0.f, 1.f);
 	AverageTickMs = AverageTickMs <= 0.f ? Ms : FMath::Lerp(AverageTickMs, Ms, Alpha);
