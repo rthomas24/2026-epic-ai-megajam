@@ -115,6 +115,10 @@ public:
 	UInputMappingContext* GetCommonContext() const { return IMC_SpaceCommon; }
 	UInputMappingContext* GetSpaceContext() const { return IMC_Space; }
 	UInputMappingContext* GetAtmosphereContext() const { return IMC_Atmosphere; }
+	/** On foot only (ENG-32): V / View toggles first / third person. */
+	UInputMappingContext* GetOnFootContext() const { return IMC_OnFoot; }
+	/** Always on: O / Y opens the Settings page while the game is paused. */
+	UInputMappingContext* GetGlobalContext() const { return IMC_Global; }
 	UInputAction* FindActionByName(FName ActionName) const;
 
 	// ---- Routed-input events -----------------------------------------------------------------------
@@ -314,6 +318,8 @@ private:
 	/** Hold F / A: land on a pad in reach, or take off again from a landed ship. True if it acted. */
 	bool RouteLand();
 	void OnPause(const FInputActionValue& Value);
+	void OnFootCameraToggle(const FInputActionValue& Value);
+	void OnOpenSettings(const FInputActionValue& Value);
 	/** Space (IA_Pause) and foot (T5's IA_Ground_Pause) both broadcast OnPauseInput; this is the one toggle. */
 	UFUNCTION()
 	void HandlePauseInput();
@@ -331,6 +337,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_SpaceCommon;
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_Space;
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_Atmosphere;
+	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_OnFoot;
+	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_Global;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_OnFootCameraToggle;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_OpenSettings;
 	UPROPERTY(Transient) TArray<TObjectPtr<UInputAction>> Actions;
 
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Throttle;
