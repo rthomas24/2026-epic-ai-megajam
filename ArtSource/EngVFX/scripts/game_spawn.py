@@ -67,6 +67,12 @@ elif kind == 'engine':
         if len(CMD) > 4:
             c.set_variable_float('Scale', float(CMD[4]))
     out.append('engine %s' % ('ok' if c else 'FAILED'))
+elif kind == 'attach_set':   # ('attach_set', name, (x, y, z), {'Power': 1.0, ...}): attach to the player ship and set user floats
+    c = tag(NFL.spawn_system_attached(load(CMD[1]), pawn.root_component, 'None', unreal.Vector(*CMD[2]), unreal.Rotator(0, 0, 0),
+                                      unreal.AttachLocation.KEEP_RELATIVE_OFFSET, True, True, unreal.NCPoolMethod.NONE, True))
+    for k, v in (CMD[3] if len(CMD) > 3 else {}).items():
+        c.set_variable_float(k, float(v))
+    out.append('%s %s' % (CMD[1], 'ok' if c else 'FAILED'))
 elif kind == 'at_enemies':
     n = 0
     for a in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDEnemyShip):

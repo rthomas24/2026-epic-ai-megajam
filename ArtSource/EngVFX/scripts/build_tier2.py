@@ -375,16 +375,92 @@ RAMP = _RAMP_IN
 # Slot wanted: a looped attached cue on UTDShipVisuals at the socket "Portal" (ring centre, +X along the ring's axis),
 # with the floats User.Power (0.5 idle, 1 while the portal blaster is open) and User.Radius (cm, the ring's inner radius).
 RPOW = '(0.35 + 0.65*User.Power)'
-S2('NS_TD_Rift_RingIdle', U(RIFT, 1.0, Power=0.5, Radius=60.0), [
+def in_plane(e):
+    """Spawn on a ring in the plane across the system's +X (the ring's own plane) instead of on a sphere."""
+    e['set'] = [(PS, 'ShapeLocation', 'Shape Primitive', E('Ring'))] + [x for x in e['set'] if x[2] != 'Sphere Radius'] + [(PS, 'ShapeLocation', 'Ring Radius', X('User.Radius*User.Scale'))]
+    e['verbose_dump'] = True
+    return e
+
+
+S2('NS_TD_Rift_RingIdle', U(RIFT, 1.0, Power=0.5, Radius=44.0), [
     looping(mesh_single('Swirl', 'SM_TD_VFX_Disc', 'M_TD_VFX_Swirl', '1.0, User.Radius/50.0, User.Radius/50.0', '(0.30 + 0.60*User.Power)', None), 1.6),   # brighter washed the magenta out to white
     tint(looping(mesh_single('SwirlV', 'SM_TD_VFX_Disc', 'M_TD_VFX_Swirl', '1.0, User.Radius/72.0, User.Radius/72.0', 1.0, None), 1.1), (0.50, 0.20, 1.0), 0.6),
     single('Core', 'M_TD_VFX_Glow', '(User.Radius*(0.55 + 0.75*User.Power)*(0.90 + 0.10*sin(Engine.Time*4.0)))', 1.1, 31.7),
-    shed('Motes', 'M_TD_VFX_Glow', 0, (0.45, 0.85), (1.6, 4.2), ('-1.7*User.Radius', '-0.9*User.Radius'), k=1.3, radius='User.Radius', drag=0.0, curl=60.0, local=True,
-         rate_expr='(18.0 + 70.0*User.Power)', power=0.7, fade_in=5.0),
-    shed('Streaks', 'M_TD_VFX_Spark', 0, (0.30, 0.55), (0.8, 1.6), ('-2.6*User.Radius', '-1.6*User.Radius'), k=1.5, radius='(User.Radius*1.05)', drag=0.0, local=True, stretch=14,
-         rate_expr='(10.0 + 50.0*User.Power)', power=0.6, fade_in=5.0, rgb=(0.65, 0.35, 1.0)),
+    in_plane(shed('Motes', 'M_TD_VFX_Glow', 0, (0.45, 0.85), (1.6, 4.2), ('-1.7*User.Radius', '-0.9*User.Radius'), k=1.3, radius='User.Radius', drag=0.0, curl=40.0, local=True,
+                  rate_expr='(18.0 + 70.0*User.Power)', power=0.7, fade_in=5.0)),
+    in_plane(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.30, 0.55), (0.8, 1.6), ('-2.6*User.Radius', '-1.6*User.Radius'), k=1.5, radius='(User.Radius*1.05)', drag=0.0, local=True, stretch=14,
+                  rate_expr='(10.0 + 50.0*User.Power)', power=0.6, fade_in=5.0, rgb=(0.65, 0.35, 1.0))),
     spin(shed('Arcs', 'M_TD_VFX_FlipArc', 0, (0.08, 0.2), ('User.Radius*0.9', 'User.Radius*1.5'), (0, 0), k=1.3, radius='(User.Radius*0.3)', drag=0.0, power=0.6, local=True,
               rate_expr='(2.0 + 12.0*User.Power)'))])
+
+# ============================================================================================= pickups (round 8, for T2)
+# Four looping idles and a collect burst each, built to a 1 m core, Z up. Colours stay clear of the squad's magenta / cyan /
+# amber and the enemy's red / orange; each has its own silhouette so it reads without colour:
+#   Hull (green)        a cross          Shield (white-blue)   a hexagon ripple in a bubble
+#   Power (violet)      an upright crystal with a swirl        Overcharge (gold-white)  a spiked star throwing sparks
+# Slots: whatever T2 names them (a looped attached cue per pickup type and a one-shot cue at the pickup on collect).
+PK_HULL = (0.22, 1.0, 0.36, 1.0)
+PK_SHIELD = (0.72, 0.90, 1.0, 1.0)
+PK_POWER = (0.55, 0.22, 1.0, 1.0)
+PK_OVER = (1.0, 0.86, 0.50, 1.0)
+PULSE = '(0.85 + 0.15*sin(Engine.Time*%s))'
+
+
+def upright(e):
+    """Turn a persistent mesh emitter's +X to the system's +Z (mesh renderer Velocity facing, a token velocity straight up)."""
+    e['add'] = [(PS, 'Spawn/Velocity/AddVelocity')] + e['add']
+    e['set'] += [(PS, 'AddVelocity', 'Velocity', (0.0, 0.0, 2.0))]
+    e['rend']['FacingMode'] = 'Velocity'
+    return e
+
+
+def pk_common(halo=230):
+    return [single('Halo', 'M_TD_VFX_Glow', '(%s*%s)' % (halo, PULSE % 2.6), 0.32, None),
+            shed('Motes', 'M_TD_VFX_Glow', 14.0, (0.8, 1.6), (2.5, 6.0), (10, 60), k=1.2, radius=70.0, drag=0.5, curl=120.0, local=True, power=1.2, fade_in=4.0)]
+
+
+def pk_collect(extra=()):
+    return [flash('Flash', 'M_TD_VFX_Flare', 320, 0.10, 1.3, growth='0.5 + Particles.NormalizedAge'),
+            flash('Glow', 'M_TD_VFX_Glow', 420, 0.22, 0.6, growth='0.5 + Particles.NormalizedAge*0.8'),
+            flash('Ring', 'M_TD_VFX_Shock', 520, 0.32, 1.1, growth='0.10 + pow(Particles.NormalizedAge, 0.5)*0.90', power=1.3),
+            shed('Sparks', 'M_TD_VFX_Spark', 0, (0.20, 0.50), (2.5, 5.5), (500, 2200), k=1.7, radius=20.0, drag=2.6, stretch=12, burst=30, dur=0.6),
+            shed('Motes', 'M_TD_VFX_Glow', 0, (0.5, 1.1), (4, 10), (80, 520), k=1.2, radius=40.0, drag=1.8, curl=500.0, burst=22, dur=1.2, power=1.6)] + list(extra)
+
+
+# Hull repair: a green cross (two bars facing the camera), a hot centre, motes rising.
+S2('NS_TD_Pickup_Hull', U(PK_HULL), pk_common() + [
+    single('BarH', 'M_TD_VFX_Glow', ('(118*%s)' % (PULSE % 3.1), 40), 1.5, None),
+    single('BarV', 'M_TD_VFX_Glow', (40, '(118*%s)' % (PULSE % 3.1)), 1.5, None),
+    single('Core', 'M_TD_VFX_Glow', 46, 1.6, 23.7),
+    shed('Rise', 'M_TD_VFX_Spark', 10.0, (0.6, 1.1), (2.0, 4.0), (60, 150), k=1.4, radius=45.0, drag=0.0, local=True, stretch=7, cone=((0.0, 0.0, 1.0), 6.0), power=1.0, fade_in=5.0)])
+S2('NS_TD_Pickup_Hull_Collect', U(PK_HULL), pk_collect([
+    flash('BarH', 'M_TD_VFX_Glow', 1, 0.28, 1.6, growth='float2(4.2, 0.9)*(0.4 + Particles.NormalizedAge*0.9)*60.0', power=1.0),
+    flash('BarV', 'M_TD_VFX_Glow', 1, 0.28, 1.6, growth='float2(0.9, 4.2)*(0.4 + Particles.NormalizedAge*0.9)*60.0', power=1.0)]))
+# Shield cell: a hexagon ripple that keeps spreading inside a faint bubble, with a thin rim.
+S2('NS_TD_Pickup_Shield', U(PK_SHIELD), pk_common(210) + [
+    looping(single('Hex', 'M_TD_VFX_Hex', 128, 0.9, None), 1.3),
+    single('Rim', 'M_TD_VFX_Ring', 150, 0.6, None),
+    shed('Glints', 'M_TD_VFX_Glow', 10.0, (0.3, 0.6), (3.0, 7.0), (0, 10), k=1.4, radius=56.0, drag=0.0, local=True, power=1.0, fade_in=4.0)])   # first build (a sphere shell and a Shock rim) never activated
+S2('NS_TD_Pickup_Shield_Collect', U(PK_SHIELD), pk_collect([
+    flash('Hex', 'M_TD_VFX_Hex', 420, 0.35, 1.2, growth='0.35 + Particles.NormalizedAge*0.65', power=0.8),
+    shell_flash('Bubble', 60, 0.35, 'float3(1,1,1)*(1.0 + 2.2*pow(Particles.NormalizedAge, 0.6))', k=0.9, power=1.2)]))
+# Power cell: an upright violet crystal (the bolt spindle stood on end) inside a turning swirl, small arcs.
+S2('NS_TD_Pickup_Power', U(PK_POWER), pk_common(210) + [
+    upright(mesh_single('Crystal', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '1.5, 0.55, 0.55', 3.0, 41.3)),
+    looping(single('Swirl', 'M_TD_VFX_Swirl', 150, 0.5, None), 2.2),
+    arcs('Arcs', 5.0, (40, 80), 30, life=(0.08, 0.2), k=1.2)])
+S2('NS_TD_Pickup_Power_Collect', U(PK_POWER), pk_collect([
+    arcs('Arcs', 0, (70, 150), 50, life=(0.1, 0.3), k=1.0, burst=10, dur=0.5, local=False),
+    spin(flash('Swirl', 'M_TD_VFX_Swirl', 460, 0.4, 1.0, growth='0.3 + Particles.NormalizedAge*0.7', power=0.8))]))
+# Overcharge: a spiked gold-white star that throws sparks outward all the time.
+S2('NS_TD_Pickup_Overcharge', U(PK_OVER), pk_common(250) + [
+    looping(single('Star', 'M_TD_VFX_Flare', '(190*%s)' % (PULSE % 6.3), 1.0, None), 0.5),
+    looping(single('Star2', 'M_TD_VFX_Flare', 120, 1.3, None), 0.33),
+    single('Core', 'M_TD_VFX_Glow', 60, 1.8, 67.1),
+    shed('Sparks', 'M_TD_VFX_Spark', 34.0, (0.25, 0.5), (2.0, 4.5), (160, 420), k=1.6, radius=12.0, drag=1.0, local=True, stretch=11, power=1.0)])
+S2('NS_TD_Pickup_Overcharge_Collect', U(PK_OVER), pk_collect([
+    flash('Star', 'M_TD_VFX_Flare', 620, 0.16, 1.5, growth='0.4 + Particles.NormalizedAge*0.8'),
+    shed('Burst', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (3.0, 6.5), (1200, 3600), k=1.9, radius=10.0, drag=2.2, stretch=16, burst=40, dur=0.7)]))
 
 # Slots: UTDBladeFX.SwingLight / SwingHeavy. The code plays these ATTACHED TO THE CHARACTER ROOT (not the blade tip), so
 # a ribbon would trail the body: this is a self-contained crescent in front of the chest instead (camera-facing).
@@ -400,6 +476,12 @@ S2('NS_TD_Blade_SwingArc_Heavy', U(BLADE), swing(320, 1.9))
 
 fx2 = tdvfx.Builder(call_tool)
 for _name, _user, _emitters in SYSTEMS2:
-    await fx2.system(_name, _emitters, user=_user)
+    _sys = await fx2.system(_name, _emitters, user=_user)
+    for _e in _emitters:
+        if _e.get('verbose_dump'):
+            try:
+                fx2.log.append(await fx2.dump(_sys, _e['name'], ['ShapeLocation']))
+            except Exception as _ex:
+                fx2.log.append('dump failed ' + str(_ex)[:200])
     await asyncio.sleep(0)
 fx2.report()
