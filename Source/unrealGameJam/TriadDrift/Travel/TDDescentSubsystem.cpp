@@ -8,6 +8,8 @@
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/MeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -359,6 +361,42 @@ void UTDDescentSubsystem::TickCover(float Dt)
 		}
 		break;
 	}
+}
+
+void UTDDescentSubsystem::RecordSquad(UWorld* World)
+{
+	ATDSquadManager* Squad = nullptr;
+	for (TActorIterator<ATDSquadManager> It(World); It; ++It) { Squad = *It; break; }
+	if (!Squad) { ClearSquadCarry(); return; }
+	FTDSquadCarry C;
+	C.bValid = true;
+	C.Active = Squad->GetActiveShipId();
+	for (const FTDSquadSlot& Slot : Squad->GetSlots())
+	{
+		const UTDHealthComponent* H = Slot.Ship ? Slot.Ship->GetHealth() : nullptr;
+		const bool bAlive = Slot.State == ETDSquadSlotState::Alive && H && !H->IsDead();
+		C.Hull01.Add(Slot.ShipId, bAlive ? H->GetHull01() : 0.f); // downed / dying: 0 (the read side sets the floor)
+		C.Shield01.Add(Slot.ShipId, bAlive ? H->GetShield01() : 0.f);
+	}
+	SquadCarry = C;
+	SquadCarryWorld.Reset();
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: squad carried (flown %s; hulls %s)"), *UEnum::GetValueAsString(C.Active),
+		*FString::JoinBy(C.Hull01, TEXT(" "), [](const TPair<ETDShipId, float>& P) { return FString::Printf(TEXT("%s %.0f%%"), *UEnum::GetDisplayValueAsText(P.Key).ToString(), P.Value * 100.f); }));
+}
+
+bool UTDDescentSubsystem::ConsumeSquadCarry(UWorld* World, FTDSquadCarry& Out, bool& bOutFirstSpawnInWorld)
+{
+	bOutFirstSpawnInWorld = false;
+	if (!SquadCarry.bValid || !World) { return false; }
+	if (SquadCarryWorld.IsValid() && SquadCarryWorld.Get() != World)
+	{
+		ClearSquadCarry(); // a later map with no new record: as before
+		return false;
+	}
+	bOutFirstSpawnInWorld = !SquadCarryWorld.IsValid();
+	SquadCarryWorld = World;
+	Out = SquadCarry;
+	return true;
 }
 
 void UTDDescentSubsystem::SetEntryHeat(float Heat01)

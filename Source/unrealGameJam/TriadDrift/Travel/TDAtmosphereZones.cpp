@@ -173,6 +173,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 			if (D < Best) { Best = D; Atmo = *It; }
 		}
 		Descent->RecordEntry(Destination, Atmo, Craft->GetActorLocation(), Craft->GetVelocity());
+		Descent->RecordSquad(GetWorld()); // the flown ship and the hulls go down with the squad
 	}
 	OnEntryStarted.Broadcast(this);
 	if (UTDDescentSubsystem* Timing = UTDDescentSubsystem::Get(this)) { Timing->BeginTiming(TEXT("atmosphere entry")); } // ENG-38 timing log
@@ -216,7 +217,7 @@ void UTDAtmosphereEntryComponent::StopEntryCue()
 void UTDAtmosphereEntryComponent::RestoreFlight()
 {
 	StopEntryCue(); // aborted or travel failed: the roar and plasma must stop
-	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->ClearHeat(); }
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->ClearHeat(); Descent->ClearSquadCarry(); Descent->ClearArrival(); } // aborted: nothing carries
 	if (bCoveredEntry)
 	{
 		if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->AbortCover(TEXT("entry handed back")); }
@@ -520,6 +521,7 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		{
 			// Latched only on a successful request (review minor 6); a refused request retries next frame.
 			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->RecordSquad(GetWorld()); } // and back up
 			const bool bRequested = Travel && Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
 			// No game flow (tests, sandbox): still report the exit, as the entry does.
 			if (bRequested || !Travel || !UTDStatics::GetGameFlow(this))
