@@ -157,6 +157,13 @@ public:
 	 * "BoostLoop", "DriftLoop", "DriftRelease", "CollisionScrape"). Requests happen whenever a visuals
 	 * asset is assigned, even if the slot is empty (then nothing plays). For tests and debugging.
 	 */
+	/**
+	 * Low-hull alarm (ENG-35): UTDShipVisuals::LowHullLoop runs on the ship the PLAYER flies while its hull is below
+	 * this fraction; it stops above it (+ 0.02), on death and when the player switches away. Wingmen never sound it.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ship", meta = (ClampMin = "0", ClampMax = "1"))
+	float LowHullAlarmFraction = 0.35f;
+
 	int32 GetCueRequestCount(FName Slot) const { const int32* N = CueRequests.Find(Slot); return N ? *N : 0; }
 
 	/** True while a looping cue slot ("EngineTrail", "EngineLoop", "BoostLoop", "DriftLoop") is running on this ship. */
@@ -299,6 +306,8 @@ protected:
 	UFUNCTION() void HandleDriftStarted();
 	UFUNCTION() void HandleDriftEnded(bool bBurst);
 	UFUNCTION() void HandleFlightImpactCue(const FTDFlightImpact& Impact);
+	UFUNCTION() void HandleShieldBrokenCue(UTDHealthComponent* BrokenHealth, const FTDDamageInfo& Info);
+	void UpdateLowHullAlarm();
 
 	/** Where engine cues attach: a part named "Engine", else the primary mesh's "Engine" socket, else the hull. */
 	USceneComponent* GetEngineAttach(FName& OutSocket) const;
@@ -326,7 +335,8 @@ protected:
 
 	TMap<FName, int32> CueRequests;
 	TWeakObjectPtr<UNiagaraComponent> EngineTrailFX, BoostLoopFX, DriftLoopFX;
-	TWeakObjectPtr<UAudioComponent> EngineTrailAudio, BoostLoopAudio, DriftLoopAudio;
+	TWeakObjectPtr<UAudioComponent> EngineTrailAudio, BoostLoopAudio, DriftLoopAudio, LowHullAudio;
+	TWeakObjectPtr<UNiagaraComponent> LowHullFX;
 
 	/** Tears down parts, restores placeholders, then builds Mesh / Parts from Visuals. */
 	void RebuildVisuals();

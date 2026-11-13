@@ -92,6 +92,10 @@ void ATDShip::BeginPlay()
 		ShipMovement->OnDriftReleased.AddDynamic(this, &ATDShip::HandleDriftEnded);
 		ShipMovement->OnFlightImpact.AddDynamic(this, &ATDShip::HandleFlightImpactCue);
 	}
+	if (UTDHealthComponent* H = GetHealth())
+	{
+		H->OnShieldBroken.AddUniqueDynamic(this, &ATDShip::HandleShieldBrokenCue);
+	}
 
 	SpringArm->TargetArmLength = CameraTuning.ArmLength;
 	SpringArm->SocketOffset = FVector(0.f, 0.f, CameraTuning.Height);
@@ -636,6 +640,35 @@ void ATDShip::Tick(float DeltaSeconds)
 	AudioDrift01 = FMath::FInterpConstantTo(AudioDrift01, IsDrifting() ? 1.f : 0.f, DeltaSeconds, AudioEaseRate);
 	ApplyEngineAudioParams(EngineLoopAudio.Get());
 	ApplyEngineAudioParams(EngineTrailAudio.Get());
+	UpdateLowHullAlarm();
+}
+
+void ATDShip::UpdateLowHullAlarm()
+{
+	static const FName Slot(TEXT("LowHullLoop"));
+	const UTDHealthComponent* H = GetHealth();
+	const bool bOn = ActiveLoops.Contains(Slot);
+	const float Hull01 = H ? H->GetHull01() : 1.f;
+	const bool bWant = Visuals && H && !H->IsDead() && IsPlayerFlown()
+		&& Hull01 < LowHullAlarmFraction + (bOn ? 0.02f : 0.f); // a little hysteresis: no flicker at the line
+	if (bWant && !bOn)
+	{
+		StartLoop(Slot, Visuals->LowHullLoop, LowHullFX, LowHullAudio);
+	}
+	else if (!bWant && bOn)
+	{
+		StopLoop(Slot, LowHullFX, LowHullAudio);
+	}
+}
+
+void ATDShip::HandleShieldBrokenCue(UTDHealthComponent* BrokenHealth, const FTDDamageInfo& Info)
+{
+	// Any squad ship's shield reaching zero (ENG-35): the ship's own ShieldBreak cue, on the hull.
+	NoteCue(TEXT("ShieldBreak"));
+	if (Visuals)
+	{
+		UTDStatics::PlayCueAttached(ForThisShip(Visuals->ShieldBreak), HullMesh);
+	}
 }
 
 FQuat ATDShip::ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeconds, float& OutRoll) const

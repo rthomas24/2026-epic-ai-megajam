@@ -32,6 +32,16 @@ enum class ETDOnFootCamera : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnFootCameraModeChanged, ETDOnFootCamera, NewMode);
 
 UENUM(BlueprintType)
+enum class ETDUISound : uint8
+{
+	Move,     // selection moves (rows, menu and pause lists)
+	Confirm,  // activate / change a value
+	Back,     // close a page / back out
+	PauseIn,  // the game pauses
+	PauseOut  // the game resumes
+};
+
+UENUM(BlueprintType)
 enum class ETDWindowMode : uint8
 {
 	Fullscreen,
@@ -176,6 +186,17 @@ public:
 	/** Makes the saved preference the difficulty in play (start-up and New Game). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void ApplyPreferredDifficulty();
 
+	/**
+	 * One path for every front-end and pause sound (ENG-35): plays DA_UI_Style's UIMove / UIConfirm / UIBack /
+	 * PauseIn / PauseOut cue as a 2D sound (the sound's own class and concurrency apply). Silent when unset.
+	 * Used by the Settings page and the pause toggle here, T2's pause list and T5's menus.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static void PlayUISound(const UObject* WorldContextObject, ETDUISound Sound);
+
+	/** Tests: how many times each UI sound was asked for (whether or not a sound asset exists). */
+	static int32 GetUISoundRequestsForTests(ETDUISound Sound);
+
 	/** "Story" / "Standard" / "Ace", and a one-line description of what that preset changes (from T4's tables). */
 	static FText DifficultyName(ETDDifficulty Difficulty);
 	static FText DifficultyDescription(ETDDifficulty Difficulty);
@@ -210,6 +231,7 @@ public:
 	float GetAppliedMasterVolume() const { return AppliedMaster; }
 	bool HasMusicClass() const { return MusicClass != nullptr; }
 	bool HasEffectsClass() const { return EffectsClass != nullptr; }
+	bool HasEngEffectsClass() const { return EngEffectsClass != nullptr; }
 
 	static constexpr const TCHAR* DefaultSlot = TEXT("TD_Settings");
 
@@ -237,4 +259,5 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USoundMix> VolumeMix;
 	UPROPERTY(Transient) TObjectPtr<USoundClass> MusicClass;
 	UPROPERTY(Transient) TObjectPtr<USoundClass> EffectsClass;
+	UPROPERTY(Transient) TObjectPtr<USoundClass> EngEffectsClass;
 };
