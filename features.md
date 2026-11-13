@@ -109,6 +109,36 @@ How the lanes meet, unchanged: gameplay reads `DA_*_Visuals` / `DA_*_FX` / `DA_U
 at the Presentation name always wins over an engineering fallback with no code change, so nothing engineering
 or Grok Bot makes blocks or overwrites Nick's work, and Nicholas can take any task back on the board.
 
+### Who owns what now (Nov 13, decided by Ryan)
+Ryan's rule: **anything Claude or Grok Bot is making is under Ryan's name; anything Ryan's side is not making is
+under Nick's name.** The items were moved in this file to match: `ART-03, 04, 06, 07, 08` now sit in Ryan's
+section (§5, "Art and assets made on Ryan's side"), with their IDs unchanged so older references still work.
+Nicholas keeps art direction and final sign-off on everything, and anything he makes at the Presentation name
+still replaces ours with no code change.
+
+| What | Item | Owner | Made by | Put in the game by |
+|---|---|---|---|---|
+| Player ships (Rift, Lancer, Bastion) | ART-03 | 🟦 **Ryan** | Grok Bot (Rodin, approved concepts) | Claude builders (clean-up, import, sockets), T1 |
+| Enemy ships and turrets | ART-04 | 🟦 **Ryan** | Grok Bot | Claude builders, T4 |
+| Dominion exterior, generators, reactor | ART-04 | 🟦 **Ryan** | Claude builders (exterior, in game); Grok Bot (generator, reactor) | T4 |
+| Crew, Warden, drone; blade animations | ART-04, ART-08 | 🟦 **Ryan** | Grok Bot (Warden, drone, animations); Claude builders (trooper, grunt, heavy) | T5 |
+| Planets: terrain, mountains, materials, rocks, trees, set pieces | ART-06, ENG-34 | 🟦 **Ryan** | Claude (T4 in code, builders); Grok Bot (texture sets, set pieces) | T4, T5 |
+| Effects: projectiles, engines, explosions, powers | ART-07, ENG-37 | 🟦 **Ryan** | Claude effects builder; Grok Bot (flipbook textures) | T1, T2, T4 |
+| Flight HUD | ENG-36 | 🟦 **Ryan** | Claude (T2) | T2 |
+| Sound effects | ENG-35 | 🟦 **Ryan** | Claude audio builder | T1-T5 |
+| Space dressing, 8K sky stand-in, intro, capture pipeline for the video | ENG-17, ENG-33 | 🟦 **Ryan** | Claude | T3, T4 |
+| Art direction, style guide, sign-off | ART-01, ART-02 | 🟩 **Nick** | Nicholas | - |
+| Space sky (Hero), galaxy look | ART-05 | 🟩 **Nick** | Nick's Environment agent | Nick |
+| Lighting, fog, grade, post-process on every level, including the two planets | ART-13 | 🟩 **Nick** | Nick's Environment agent | Nick |
+| Menus, reward, victory, credits, loading screens; fonts, icons, colours | ART-09 | 🟩 **Nick** | Nick's UI agent | Nick |
+| Music and the final mix; approval of every sound by ear | ART-10 | 🟩 **Nick** | Nick's Audio agent | Nick |
+| Voice and barks | ART-11 | 🟩 **Nick** | Nick's Audio agent | Nick |
+| Director's Cut presentation design (slate, CUT, name card, letterbox) | ART-12 | 🟩 **Nick** | Nick's UI agent | Nick |
+| Itch page, video edit, screenshots, dev log | ART-14 | 🟩 **Nick** | Nick's Lead | Nick + Ryan's Lead |
+
+If Nick's side does not pick up one of its rows by Nov 14 noon, Ryan's Lead takes it as a fallback and says so on
+the board (AGENTS.md §11).
+
 ### Engineering today (Claude side)
 
 | Who | Now | Next |
@@ -231,7 +261,7 @@ Target length: 20–30 minutes.
 | **AI assistant** | Claude Code | OpenAI Codex |
 | **Mission** | Own the playable game systems, engineering integration and technical reliability, so the game stays fun, responsive and shippable | Own the visual identity, presentation quality and player-facing feel, compatible with the gameplay foundation and the 4-day window |
 | **Owns** | Flight and controls; three-ship switching and wingman AI; weapons, damage, shields, enemy AI, waves, targeting, balance, signature and unlockable power *mechanics*; objectives, encounter pacing, hyperdrive and level transitions, mission flow, win/lose and restart; first-person gameplay on the planets (character, blade combat, crew AI, objectives); C++ architecture and interfaces; profiling, testing, packaging, critical bugs | Visual direction; ships, enemies, Dominion and prop *visuals*; space and planet environments, lighting, atmosphere, materials; all VFX (Niagara); HUD, UI/UX, menus, onboarding, ship-switch feedback, targeting clarity; all audio and music; character and ship animation polish; cinematics and the Director's Cut presentation; performance-minded art; trailer and store page |
-| **Feature IDs** | `ENG-xx` | `ART-xx` |
+| **Feature IDs** | `ENG-xx`, and since Nov 13 `ART-03, 04, 06, 07, 08` | `ART-01, 02, 05, 09, 10, 11, 12, 13, 14` (stretch: 15, 16) |
 
 **A third lane since Nov 13: Grok Bot (Ryan's asset-generation agent).** It makes concepts, raw 3D models,
 textures, animations and key art with fal, Hyper3D Rodin and PBRgen, as source files only, in
@@ -1030,6 +1060,70 @@ coming out and there's movement ... a bunch of particles, and everything that ma
 - Owner: Lead (effects builder sub-agents), T2 (combat cues and placeholders), T1 (engines and trails), T4 (enemy,
   Dominion and world cues), T5 (on-foot cues).
 
+### Art and assets made on Ryan's side (moved from Nick's section, Nov 13)
+
+Ryan's rule (Nov 13): what Claude or Grok Bot makes is under Ryan's name. These five items keep their `ART-xx`
+IDs and their original spec text; the first line of each says who makes it now. Nicholas keeps direction and
+sign-off, and an asset of his at the Presentation name replaces ours.
+
+#### ART-03 · Ship visuals: Rift, Lancer, Bastion · `🟨`
+**🟦 Ryan since Nov 13.** Made by Grok Bot (Rodin, R-027 #1) from the approved concepts; Ryan's builders clean up, import and wire into `Gameplay/Characters/Squad`; engineering's r7 ships are in the game until then. Paths in the text below that name Nick's folders now mean engineering's (`Gameplay/**`, `ArtSource/Eng*/**`).
+| | Rift | Lancer | Bastion |
+|---|---|---|---|
+| Silhouette | Crescent wing + ring-shaped portal emitter on the nose | Long needle fuselage, forward-swept wings | Wide, chunky hull, twin missile pods, dome emitter |
+| Colours | Violet `#6B2BD9` / magenta glow `#FF2BD6` | Ice white `#E8F4FF` / cyan `#12C8FF` | Amber gold `#F2A01E` / gunmetal |
+| Part animations | Portal ring spin-up, gear, canopy | **Wing fold for the ram**, gear, canopy | **Missile pods open**, dome emitter rises, gear, canopy |
+
+- Models via route A (concept → Rodin → cleanup) or the kits, passing the AAA rubric (the
+  `blender-game-asset` skill). Sockets: muzzles, engines, cockpit camera.
+- Delivered as `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`, `DA_Bastion_Visuals`; exact
+  names in `docs/visual/Presentation-Asset-Paths.md`, a differently named asset is silently ignored) (§3.5), with animations driven by the exposed state. **Readable as
+  black silhouettes at 64 px.**
+
+#### ART-04 · Enemy & Dominion visuals · `🟨`
+**🟦 Ryan since Nov 13.** Enemy ships, turret, Warden, drone, generator and reactor by Grok Bot (R-027 #2, #5, #6); Dominion exterior and crew by engineering, already in the game; T4 and T5 wire them.
+- **Null Armada ships:** Shard Fighter, Hook Interceptor, Wall Gunship (shield emitter), Maul Bomber,
+  Hive Carrier (animated bay doors).
+- **Dominion exterior:** a modular Nanite hull with rotating rings, shield generators, turrets, the
+  reactor trench (core ending) and the hangar mouth (stretch).
+- **Look:** angular, red/black/white-eye shape language. Telegraph glows tied to the gameplay states.
+
+#### ART-06 · Planet environments: Verdance & Cinder (CORE) · `🟨`
+**🟦 Ryan since Nov 13.** Terrain, mountains, materials, rocks, trees and set pieces: engineering (ENG-34) with Grok Bot's texture sets and set pieces (R-027 #3, #8). **Lighting, fog, sky and grade on the planets stay with Nick (ART-13).**
+- **Verdance:** bioluminescent jungle, giant mushrooms and ferns, waterfalls, mist, ringed moon,
+  pollen, critters, wreck-site and relay-spire art.
+- **Cinder:** basalt, magma rivers, cyan and amber crystal spires (crystal kits), falling ash, an
+  outpost kit, the jammer tower and its destruction.
+- **Across both:** terrain materials, foliage instancing, sky and atmosphere, lighting, and the
+  atmospheric-descent vista (canyons and clouds the ship flies through).
+
+#### ART-07 · Combat & travel VFX (Niagara) · `🟨`
+**🟦 Ryan since Nov 13.** Built as Niagara effects in `Gameplay/VFX` (ENG-37) with Grok Bot's flipbook textures (R-027 #7). Nick's side may hand over its own effect for any cue.
+- **Explosions** in 4 tiers; engine trails per squad colour; boost, drift and speed lines; warp-ins
+  (squad white-blue, Armada red tear).
+- **Every weapon's muzzle, tracer and impact** (hull, shield, rock); shield ripples; overheat vents;
+  missiles and flak.
+- **Powers:** portals (ring, swirl, transit flash), ram cone and sonic boom, missile swarm trails,
+  shield dome (hex, ripples, shatter).
+- **Abilities:** Gravity Well (lens distortion, accretion), Cloak (refraction shimmer), EMP (ring and
+  arcs).
+- **Travel:** hyperdrive (spool, tunnel, drop-out), atmospheric entry plasma, landing dust,
+  tractor beam (stretch).
+- **Readability rule:** nothing important hidden by bloom. Budgets: particle caps and significance
+  (ART-13).
+
+#### ART-08 · Ground visuals & animation · `🟨`
+**🟦 Ryan since Nov 13.** Crew models and rigs by engineering; blade combat animations by Grok Bot (R-027 #4), hooked up by T5. The pilot body stays Nicholas's Sentinel Armor.
+- **First-person arms:** idle, run, sprint, jump, slide, mantle and dash; blade ignite and retract;
+  combo ×3, lunge, air slam, block, deflect flourish, guard break; interact and carry; climb into
+  and out of the cockpit.
+- **Energy blade:** emissive core and trail, scorch decals, the perfect-deflect flash.
+- **(Nov 12)** The Null Armada trooper model (Trooper, then Grunt and Heavy variants) is built by engineering
+  from Ryan's concept (`ArtSource/EngCharacters/NullTrooper/`, `MESSAGEBOARD.md` R-019); the rest of this item
+  stays with Nick.
+- **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
+  deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
+
 ### STRETCH: boarding finale
 
 #### ENG-29 · Docking & boarding transition · `⬜` STRETCH
@@ -1056,18 +1150,18 @@ coming out and there's movement ... a bunch of particles, and everything that ma
 **Nov 13: read [the realignment](#presentation-today-nicks-agents-proposed-by-ryan) first.** It lists what
 engineering and Grok Bot now cover as fallbacks and proposes today's priorities for Nick's agents: music and
 the mix, lighting and look, menus and the Director's Cut presentation, voice, the submission, and art review.
-The item texts below are unchanged and still describe the full presentation scope.
+**Ownership changed Nov 13 (Ryan):** ART-03, 04, 06, 07 and 08 moved to Ryan's section (§5); what remains below is Nick's: ART-01, 02, 05, 09, 10, 11, 12, 13, 14 (and the stretch items).
 
-| Item | State Nov 13 | Covered by a fallback? | Proposed for Nick's agents today |
+| Item | State Nov 13 | Owner now / stand-in from Ryan's side | For Nick's agents today |
 |---|---|---|---|
 | ART-01 direction | 🟨 palettes and colour code in use | - | Review and sign-off notes (priority 6) |
 | ART-02 inventory | 🟨 intake lists published | Grok Bot's ranked list (R-027) | Keep as the record |
-| ART-03 ships | 🟨 Lancer source parked | Engineering ships r7 in game; Rodin ships coming | Parked; review the Rodin ships |
-| ART-04 enemies, Dominion | 🟨 | Engineering fleet, Dominion r9, generator, reactor, crew; fleet concepts approved | Parked; review |
+| ART-03 ships | 🟨 Lancer source parked | **🟦 Ryan** (moved to §5): Grok Bot + builders | Review only |
+| ART-04 enemies, Dominion | 🟨 | **🟦 Ryan** (moved to §5): Grok Bot + builders | Review only |
 | ART-05 space | 🟨 Hero sky parked | Engineering 8K sky and space dressing | **Priority 2:** Hero sky into the real galaxy |
-| ART-06 planets | 🟨 | Terrain worlds, materials, prop kit, trees (ENG-34) | **Priority 2:** light, fog, sky and grade on both planets |
-| ART-07 VFX | 🟨 source only | ENG-37 Niagara set | Parked; review captures |
-| ART-08 ground visuals | 🟨 Sentinel pilot in game | Pilot loops, crew rig; blade animations requested from Grok Bot | Review |
+| ART-06 planets | 🟨 | **🟦 Ryan** (moved to §5): terrain, materials, props, trees | Review; the planets' light, fog, sky and grade are yours under ART-13 |
+| ART-07 VFX | 🟨 source only | **🟦 Ryan** (moved to §5): ENG-37 | Review only; offer per-cue studies |
+| ART-08 ground visuals | 🟨 Sentinel pilot in game | **🟦 Ryan** (moved to §5): crew, animations | Review only |
 | ART-09 HUD and menus | 🟨 M03 HUD on `main`, menu on a branch | ENG-36 flight HUD, fallback menus | **Priority 3:** menus, reward, victory, loading, fonts and tokens |
 | ART-10 audio and music | 🟨 menu theme on `main`, PR #11, PR #12, one combat track | ENG-35, 200 stand-in sounds | **Priority 1:** music, mix, ear approval |
 | ART-11 barks, voice | ⬜ | Text barks | **Priority 4** |
@@ -1105,26 +1199,6 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Status and credits:** track each asset's status here or in `ArtSource/inventory.md`, and log
   licences in `CREDITS.md`.
 
-#### ART-03 · Ship visuals: Rift, Lancer, Bastion · `⬜`
-| | Rift | Lancer | Bastion |
-|---|---|---|---|
-| Silhouette | Crescent wing + ring-shaped portal emitter on the nose | Long needle fuselage, forward-swept wings | Wide, chunky hull, twin missile pods, dome emitter |
-| Colours | Violet `#6B2BD9` / magenta glow `#FF2BD6` | Ice white `#E8F4FF` / cyan `#12C8FF` | Amber gold `#F2A01E` / gunmetal |
-| Part animations | Portal ring spin-up, gear, canopy | **Wing fold for the ram**, gear, canopy | **Missile pods open**, dome emitter rises, gear, canopy |
-
-- Models via route A (concept → Rodin → cleanup) or the kits, passing the AAA rubric (the
-  `blender-game-asset` skill). Sockets: muzzles, engines, cockpit camera.
-- Delivered as `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`, `DA_Bastion_Visuals`; exact
-  names in `docs/visual/Presentation-Asset-Paths.md`, a differently named asset is silently ignored) (§3.5), with animations driven by the exposed state. **Readable as
-  black silhouettes at 64 px.**
-
-#### ART-04 · Enemy & Dominion visuals · `⬜`
-- **Null Armada ships:** Shard Fighter, Hook Interceptor, Wall Gunship (shield emitter), Maul Bomber,
-  Hive Carrier (animated bay doors).
-- **Dominion exterior:** a modular Nanite hull with rotating rings, shield generators, turrets, the
-  reactor trench (core ending) and the hangar mouth (stretch).
-- **Look:** angular, red/black/white-eye shape language. Telegraph glows tied to the gameplay states.
-
 #### ART-05 · Space environment & galaxy dressing · `⬜`
 - **Space assets:**
   - `BP_GalaxySkybox`: layered nebula, stars, sun with lens flare.
@@ -1132,39 +1206,6 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   - Nebula volumes, a speed-dust field, asteroid-field kits (`procedural_rocks.py`), station ruins.
 - **Galaxy map:** dress `L_Galaxy` on your own actors (One File Per Actor): lighting, post-process
   and scale cues.
-
-#### ART-06 · Planet environments: Verdance & Cinder (CORE) · `⬜`
-- **Verdance:** bioluminescent jungle, giant mushrooms and ferns, waterfalls, mist, ringed moon,
-  pollen, critters, wreck-site and relay-spire art.
-- **Cinder:** basalt, magma rivers, cyan and amber crystal spires (crystal kits), falling ash, an
-  outpost kit, the jammer tower and its destruction.
-- **Across both:** terrain materials, foliage instancing, sky and atmosphere, lighting, and the
-  atmospheric-descent vista (canyons and clouds the ship flies through).
-
-#### ART-07 · Combat & travel VFX (Niagara) · `⬜`
-- **Explosions** in 4 tiers; engine trails per squad colour; boost, drift and speed lines; warp-ins
-  (squad white-blue, Armada red tear).
-- **Every weapon's muzzle, tracer and impact** (hull, shield, rock); shield ripples; overheat vents;
-  missiles and flak.
-- **Powers:** portals (ring, swirl, transit flash), ram cone and sonic boom, missile swarm trails,
-  shield dome (hex, ripples, shatter).
-- **Abilities:** Gravity Well (lens distortion, accretion), Cloak (refraction shimmer), EMP (ring and
-  arcs).
-- **Travel:** hyperdrive (spool, tunnel, drop-out), atmospheric entry plasma, landing dust,
-  tractor beam (stretch).
-- **Readability rule:** nothing important hidden by bloom. Budgets: particle caps and significance
-  (ART-13).
-
-#### ART-08 · Ground visuals & animation · `⬜`
-- **First-person arms:** idle, run, sprint, jump, slide, mantle and dash; blade ignite and retract;
-  combo ×3, lunge, air slam, block, deflect flourish, guard break; interact and carry; climb into
-  and out of the cockpit.
-- **Energy blade:** emissive core and trail, scorch decals, the perfect-deflect flash.
-- **(Nov 12)** The Null Armada trooper model (Trooper, then Grunt and Heavy variants) is built by engineering
-  from Ryan's concept (`ArtSource/EngCharacters/NullTrooper/`, `MESSAGEBOARD.md` R-019); the rest of this item
-  stays with Nick.
-- **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
-  deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
 
 #### ART-09 · HUD & UI/UX · `⬜`
 - **`WBP_SpaceHUD`** (via `ITDHUDData`):
