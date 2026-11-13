@@ -24,7 +24,8 @@ New-Item -ItemType Directory -Force -Path (Split-Path $logFile) | Out-Null
 
 # Shipping leaves the debug symbols (.pdb, about 250 MB) out of the package: players never need them and the jam
 # limit is 1 GB. Development keeps them for crash triage.
-$debugArgs = if ($Configuration -eq "Shipping") { @("-nodebuginfo") } else { @() }
+# @( ) keeps it an array: an if-expression unrolls a one-item array to a string, and splatting a string passes its characters.
+$debugArgs = @(if ($Configuration -eq "Shipping") { "-nodebuginfo" })
 
 $sw = [Diagnostics.Stopwatch]::StartNew()
 # -WaitMutex: other worktrees build at the same time and UnrealBuildTool allows one instance per engine.

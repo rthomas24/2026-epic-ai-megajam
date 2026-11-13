@@ -1,0 +1,181 @@
+{
+  "asset": "SM_Cind_JammerTower",
+  "tag": "r7",
+  "family": "cinder",
+  "checks": {
+    "tris": 13972,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4137,
+      "overlap_pixels": 2104,
+      "overlap_share_of_covered": 0.00485,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 1,
+    "bounds_min_cm": [
+      -700.0,
+      -800.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      700.0,
+      800.0,
+      4200.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        14.0,
+        16.0,
+        42.0
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        14.0,
+        16.0,
+        42.0
+      ]
+    },
+    "edge_area_share": 0.0397,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 19
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4137,
+      "overlap_pixels": 2104,
+      "overlap_share_of_covered": 0.00485,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Cind_JammerTower",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_JammerTower\\T_Cind_JammerTower_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_JammerTower\\T_Cind_JammerTower_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_JammerTower\\T_Cind_JammerTower_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_JammerTower\\T_Cind_JammerTower_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Cind_JammerTower_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 65.76
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7154
+    },
+    "build_seconds": 73.3
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1614,
+        0.1312,
+        0.1489
+      ],
+      "min": 0.0,
+      "max": 0.6588
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.4996,
+        0.9999
+      ],
+      "min": 0.2,
+      "max": 1.0,
+      "std_rg": [
+        0.0182,
+        0.0176
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3942,
+        0.324,
+        0.437
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.447
+      ],
+      "metallic_mean": 0.427
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.112,
+        0.041,
+        0.024
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0345,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Cind_JammerTower",
+      "message": "68 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Cind_JammerTower",
+      "message": "198 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 160,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.07061
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_JammerTower_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_JammerTower_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

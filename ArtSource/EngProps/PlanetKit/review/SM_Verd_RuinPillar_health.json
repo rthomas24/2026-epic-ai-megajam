@@ -1,0 +1,177 @@
+{
+  "asset": "SM_Verd_RuinPillar",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 1352,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.6078,
+      "overlap_pixels": 79,
+      "overlap_share_of_covered": 0.000124,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -60.0,
+      -60.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      60.0,
+      60.0,
+      600.0
+    ],
+    "fit": {
+      "scale": [
+        0.9901,
+        0.9901,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        1.212,
+        1.212,
+        6.0
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        0.9901,
+        0.9901,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        1.212,
+        1.212,
+        6.0
+      ]
+    },
+    "edge_area_share": 0.0754,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 4
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.6078,
+      "overlap_pixels": 79,
+      "overlap_share_of_covered": 0.000124,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_RuinPillar",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RuinPillar\\T_Verd_RuinPillar_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RuinPillar\\T_Verd_RuinPillar_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RuinPillar\\T_Verd_RuinPillar_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RuinPillar\\T_Verd_RuinPillar_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_RuinPillar_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 25.09
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.5245
+    },
+    "detail_uv": "UVDetail (channel 1), 4 m per tile",
+    "build_seconds": 78.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.2414,
+        0.2662,
+        0.3244
+      ],
+      "min": 0.0,
+      "max": 0.5647
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.4996,
+        0.9999
+      ],
+      "min": 0.3843,
+      "max": 1.0,
+      "std_rg": [
+        0.021,
+        0.0206
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5479,
+        0.6238,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.847
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.016,
+        0.0715,
+        0.0627
+      ],
+      "min": 0.0,
+      "max": 0.7686
+    }
+  },
+  "emissive_surface_share": 0.0509,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Verd_RuinPillar",
+      "message": "12 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 22,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00935
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_RuinPillar_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_RuinPillar_r7_clay_sheet.png",
+    "warnings": []
+  }
+}
