@@ -29,6 +29,9 @@ namespace
 			A = W.Spawn<ATDPortalGate>(FVector::ZeroVector, FRotator::ZeroRotator);			// travel +X into A
 			B = W.Spawn<ATDPortalGate>(FVector(100000.f, 0.f, 0.f), FRotator(0.f, 90.f, 0.f));	// come out along +Y
 			ATDPortalGate::LinkGates(A, B);
+			// These rigs spawn ships right at a gate on purpose; the post-arrival grace has its own test.
+			A->ArrivalNoTransitSeconds = 0.f;
+			B->ArrivalNoTransitSeconds = 0.f;
 		}
 
 		ATDSpacecraft* SpawnShip(const FVector& Loc, const FRotator& Facing, ETDTeam Team)
@@ -175,6 +178,42 @@ bool FTDWorldGateSquad::RunTest(const FString& Parameters)
 		const float ToB = FVector::Dist(S->GetActorLocation(), R.B->GetActorLocation());
 		const float ToA = FVector::Dist(S->GetActorLocation(), R.A->GetActorLocation());
 		TestTrue(*FString::Printf(TEXT("ship %d ended up on the far side (to B %.0f, to A %.0f)"), (int32)S->GetShipId(), ToB, ToA), ToB < ToA);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldGateArrivalGrace, "TriadDrift.World.Gate.NoTransitRightAfterAnArrival", TD_TEST_FLAGS)
+bool FTDWorldGateArrivalGrace::RunTest(const FString& Parameters)
+{
+	// A ship that arrives by level travel / stage jump / retake (a non-gate teleport) or is freshly spawned
+	// right in front of a gate flies through the frame for 5 s instead of transiting.
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		{
+			FTDGateTestRig R;
+			R.A->ArrivalNoTransitSeconds = R.B->ArrivalNoTransitSeconds = 5.f;
+			ATDSpacecraft* Fresh = R.SpawnShip(FVector(-3000.f, 0.f, 0.f), FRotator::ZeroRotator, ETDTeam::Player);
+			R.W.Advance(1.f, 1.f / Fps);
+			TestEqual(*FString::Printf(TEXT("@%.0f: a freshly spawned ship is not taken"), Fps), R.A->GetTransitCount(), 0);
+			(void)Fresh;
+		}
+		{
+			FTDGateTestRig R;
+			R.A->ArrivalNoTransitSeconds = R.B->ArrivalNoTransitSeconds = 5.f;
+			ATDSpacecraft* S = R.SpawnShip(FVector(-60000.f, 0.f, 0.f), FRotator::ZeroRotator, ETDTeam::Player);
+			R.W.Advance(6.f, 1.f / Fps);	// old enough
+			S->TeleportSpacecraft(FVector(-3000.f, 0.f, 0.f), FRotator::ZeroRotator, true);	// a stage jump / retake
+			R.W.Advance(1.f, 1.f / Fps);
+			TestEqual(*FString::Printf(TEXT("@%.0f: a ship that just arrived by teleport is not taken"), Fps), R.A->GetTransitCount(), 0);
+			S->TeleportSpacecraft(FVector(-3000.f, 0.f, 0.f), FRotator::ZeroRotator, true);
+			R.W.Advance(5.5f, 1.f / Fps);	// it flies on; then later passes are fine
+			S->TeleportSpacecraft(FVector(-3000.f, 0.f, 0.f), FRotator::ZeroRotator, true);
+			R.W.Advance(5.2f, 1.f / Fps);
+			const int32 Before = R.A->GetTransitCount();
+			S->SetActorLocation(FVector(-3000.f, 0.f, 0.f));	// moved without a teleport broadcast: a normal approach
+			R.W.Advance(1.f, 1.f / Fps);
+			TestTrue(*FString::Printf(TEXT("@%.0f: after the grace a normal pass transits"), Fps), R.A->GetTransitCount() > Before);
+		}
 	}
 	return true;
 }
