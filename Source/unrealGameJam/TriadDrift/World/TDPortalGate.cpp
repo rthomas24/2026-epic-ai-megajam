@@ -1,6 +1,7 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDPortalGate.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "Misc/PackageName.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -318,6 +319,21 @@ void ATDPortalGate::Tick(float DeltaSeconds)
 			{
 				TryTransit(A, DeltaSeconds);
 			}
+		}
+	}
+}
+
+void ATDPortalGate::PlayTransitFlare(const FVector& Where)
+{
+	if (TravelFX)
+	{
+		UTDStatics::PlayCue(this, TravelFX->PortalTransit, Where, GetActorRotation());
+	}
+	if (!TravelFX || !FTDCombatPlaceholders::HasVisualArt(TravelFX->PortalTransit))
+	{
+		if (UTDProjectileSubsystem* Proj = UTDProjectileSubsystem::Get(this))
+		{
+			Proj->PlayPlaceholderFlash(Where, Radius * 0.6f, FLinearColor(1.f, 0.35f, 1.f) * 6.f, 0.6f);
 		}
 	}
 }

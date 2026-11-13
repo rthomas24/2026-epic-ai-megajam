@@ -1,6 +1,11 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
+#include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Waves/TDWaveEnemy.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
@@ -495,6 +500,81 @@ void ATDWaveDirector::FireTips(const FTDWaveDef& Wave)
 }
 
 // ----------------------------------------------------------------------------------------- spawning
+
+const FName ATDWaveDirector::ShowcaseTag(TEXT("TD.Showcase"));
+
+ATDEnemyShip* ATDWaveDirector::SpawnShowcaseShip(UWorld* World, FName EnemyId, const FTransform& Where)
+{
+	if (!World || !UTDEnemyLibrary::HasEnemy(EnemyId))
+	{
+		return nullptr;
+	}
+	ATDEnemyShip* E = World->SpawnActorDeferred<ATDEnemyShip>(ATDEnemyShip::StaticClass(), Where, nullptr, nullptr,
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (!E)
+	{
+		return nullptr;
+	}
+	E->AutoPossessAI = EAutoPossessAI::Disabled;	// no pilot: it never flies, fires or launches
+	E->AIControllerClass = nullptr;
+	E->Tags.Add(ShowcaseTag);
+	E->FinishSpawning(Where);
+	E->InitFromSpec(EnemyId);
+	auto LockDown = [](AActor* A)
+	{
+		if (!A) { return; }
+		A->Tags.AddUnique(ShowcaseTag);
+		if (UTDHealthComponent* H = A->FindComponentByClass<UTDHealthComponent>())
+		{
+			H->SetInvulnerable(true);
+			H->SetTargetable(false);
+		}
+		if (UTDWeaponComponent* Wp = A->FindComponentByClass<UTDWeaponComponent>())
+		{
+			Wp->SetWeaponsBlocked(ShowcaseTag, true);
+		}
+		A->SetActorEnableCollision(false);
+	};
+	LockDown(E);
+	TArray<AActor*> Parts;
+	E->GetAttachedActors(Parts, true, true);
+	for (AActor* P : Parts) { LockDown(P); }
+	if (UTDShipMovementComponent* Move = E->GetShipMovement())
+	{
+		Move->SetComponentTickEnabled(false);	// stays where the shot puts it
+	}
+	return E;
+}
+
+void ATDWaveDirector::PlayShowcaseWarpIn(UWorld* World, const FVector& Location, float Size)
+{
+	if (!World)
+	{
+		return;
+	}
+	UTDTravelFX* FX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
+	FRotator Facing = FRotator::ZeroRotator;
+	FVector LookAt = Location + FVector::ForwardVector;
+	if (APlayerController* PC = World->GetFirstPlayerController(); PC && PC->PlayerCameraManager)
+	{
+		LookAt = PC->PlayerCameraManager->GetCameraLocation();
+		Facing = (LookAt - Location).Rotation();
+	}
+	if (FX)
+	{
+		UTDStatics::PlayCue(World, FX->EnemyWarpIn, Location, Facing);
+	}
+	if (!FX || !FTDCombatPlaceholders::HasVisualArt(FX->EnemyWarpIn))
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		if (ATDWarpInMarker* M = World->SpawnActor<ATDWarpInMarker>(ATDWarpInMarker::StaticClass(), Location, FRotator::ZeroRotator, Params))
+		{
+			M->Tags.Add(ShowcaseTag);
+			M->Begin(GetDefault<ATDWaveDirector>()->WarpInSeconds, FMath::Max(500.f, Size), LookAt);
+		}
+	}
+}
 
 void ATDWaveDirector::SpawnWarpInMarker(const FVector& Location, float EnemyRadius)
 {

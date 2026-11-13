@@ -45,6 +45,8 @@ using FTDEnemySpawnFactory = TFunction<AActor*(UWorld* World, FName EnemyId, con
  * Numbering: StartWave takes a 0-based table index; every event and FTDWaveInfo use 1-based
  * wave numbers (Core rule).
  */
+class ATDEnemyShip;
+
 UCLASS(Blueprintable)
 class UNREALGAMEJAM_API ATDWaveDirector : public AActor
 {
@@ -282,6 +284,20 @@ protected:
 	UFUNCTION()
 	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
 	void SpawnWarpInMarker(const FVector& Location, float EnemyRadius);
+
+public:
+	/**
+	 * ENG-33 (T3's showcase shots): an enemy ship for the camera only. No AI, never registered with a wave, invulnerable,
+	 * not targetable, weapons blocked, no collision, no movement (place it yourself), tagged "TD.Showcase". Its carrier
+	 * parts get the same treatment. Destroy it when the shot ends.
+	 */
+	static ATDEnemyShip* SpawnShowcaseShip(UWorld* World, FName EnemyId, const FTransform& Where);
+
+	/** ENG-33: the enemy warp-in telegraph alone (Nick's EnemyWarpIn cue, or the placeholder marker). Size in cm. */
+	static void PlayShowcaseWarpIn(UWorld* World, const FVector& Location, float Size);
+
+	static const FName ShowcaseTag;	// "TD.Showcase"
+protected:
 	int32 EnemiesTotal = 0;
 	int32 CurrentTake = 1;
 	bool bTakeAnnouncedByFlow = false;

@@ -74,6 +74,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "100"))
 	float Radius = 2500.f;
 
+	/** ENG-33 (T3's showcase shots): the transit flare alone at Where (the PortalTransit cue, or a placeholder flash).
+	 *  No transit, no counts, no cooldowns. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Portal")
+	void PlayTransitFlare(const FVector& Where);
+
 	/** Inactive gates are visible but closed (the flank pair opens for waves 3-5). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
 	bool bActive = true;
