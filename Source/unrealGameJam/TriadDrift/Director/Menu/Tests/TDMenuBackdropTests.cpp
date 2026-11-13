@@ -138,6 +138,7 @@ bool FTDMenuBackdropVictory::RunTest(const FString& Parameters)
 	}
 	const ACameraActor* Cam = B->GetCamera();
 	TestTrue(TEXT("the lens has the view"), Cam && PC->GetViewTarget() == Cam);
+	TestTrue(TEXT("a wreck: its parts and debris drift"), B->GetWreckPieceCount() >= 10);
 	TestTrue(TEXT("the Dominion in frame"), TDMenuBackdropTest::InFrame(Cam, Dominion->GetActorLocation()));
 	TestTrue(TEXT("Verdance in frame"), TDMenuBackdropTest::InFrame(Cam, B->GetPlanet()->GetActorLocation()));
 	const FVector Cam0 = Cam->GetActorLocation();

@@ -94,6 +94,18 @@ private:
 	float NextFire = 0.f;
 	int32 Fires = 0;
 	bool bStingerPlayed = false;
+	struct FWreckPiece
+	{
+		TWeakObjectPtr<UStaticMeshComponent> Component;
+		FTransform Start;
+		FVector Drift = FVector::ZeroVector; // cm/s, in the wreck's space
+		FRotator Spin = FRotator::ZeroRotator; // deg/s
+		float Head = 0.f; // seconds of breakup already behind it at the first frame
+	};
+	TArray<FWreckPiece> Wreck;
+public:
+	int32 GetWreckPieceCount() const { return Wreck.Num(); }
+private:
 	double StingerStart = 0.0;
 	TSharedPtr<class SWidget> StingerBlack;
 	FRandomStream FireRng;

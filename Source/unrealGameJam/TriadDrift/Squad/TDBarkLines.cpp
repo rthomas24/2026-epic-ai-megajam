@@ -5,6 +5,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "Engine/World.h"
 #include "Misc/CoreDelegates.h"
+#include "UObject/GCObject.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 TWeakObjectPtr<UDataTable> FTDBarkLines::PresentationOverrideForTests;
@@ -39,6 +40,14 @@ namespace TDBarkLinesPrivate
 		return UTDStatics::LoadPresentation<UDataTable>(TEXT("DT_Barks"));
 	}
 
+	class FTableKeepAlive : public FGCObject
+	{
+	public:
+		TObjectPtr<UDataTable> Table = nullptr;
+		virtual void AddReferencedObjects(FReferenceCollector& Collector) override { Collector.AddReferencedObject(Table); }
+		virtual FString GetReferencerName() const override { return TEXT("FTDBarkLines fallback table"); }
+	};
+
 	static UDataTable* Fallback()
 	{
 #if WITH_DEV_AUTOMATION_TESTS
@@ -47,14 +56,17 @@ namespace TDBarkLinesPrivate
 			return FTDBarkLines::FallbackOverrideForTests.Get();
 		}
 #endif
-		static TWeakObjectPtr<UDataTable> Cached;
-		static bool bTried = false;
-		if (!Cached.IsValid() && !bTried)
+		// Held by a GC referencer for the session (T2 found a weak pointer here: the first GC freed the table and every
+		// bark went silent). Tried again only while it is missing, and at most once a second.
+		static FTableKeepAlive* Keep = new FTableKeepAlive(); // never deleted: outlives shutdown order
+		static double LastTry = -1000.0;
+		const double Now = FPlatformTime::Seconds();
+		if (!Keep->Table && Now - LastTry >= 1.0)
 		{
-			bTried = true;
-			Cached = LoadObject<UDataTable>(nullptr, FallbackPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+			LastTry = Now;
+			Keep->Table = LoadObject<UDataTable>(nullptr, FallbackPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
 		}
-		return Cached.Get();
+		return Keep->Table;
 	}
 
 	static FName RowName(FName BarkId, FName Speaker)

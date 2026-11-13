@@ -156,6 +156,11 @@ bool FTDBarkTableFromDialogs::RunTest(const FString& Parameters)
 		&& Line.ToString().Contains(TEXT("low behind")));
 	TestTrue(TEXT("Command"), FTDBarkLines::FindRow(TEXT("Bark_Cmd_Retake"), TEXT("Command")) != nullptr);
 	TestTrue(TEXT("six banter exchanges"), FTDBarkLines::GetBanters().Num() == 6);
+
+	// A garbage collection must not take the table away (T2: every bark went silent a minute into a run).
+	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS, true);
+	TestTrue(TEXT("still a line after a full GC"), FTDBarkLines::FindRow(TEXT("Bark_SquadSwitchIn"), TEXT("Moss")) != nullptr
+		&& FTDBarkLines::PickLine(W.GetWorld(), TEXT("Bark_SquadWingmanKill"), TEXT("Kato"), Line) && !Line.IsEmpty());
 	return true;
 }
 
