@@ -37,6 +37,26 @@ public:
 
 	float BlendSeconds = 0.2f;
 
+	// ---- procedural pose (no animation data): built from the reference pose in C++. Used for crew meshes whose
+	// sequences evaluate collapsed (Nov 13: SK_Mannequin compressed data on the Null crew meshes).
+	/** Pose the body procedurally instead of playing loops. */
+	bool bProcedural = false;
+	/** Arms lowered out of the A-pose (degrees). */
+	float ProcArmDown = 55.f;
+	/** 0 standing .. 1 running: stride amplitude and pace. */
+	float ProcSpeed01 = 0.f;
+	/** Stride phase in radians (advanced by the owner from its ground speed). */
+	float ProcPhase = 0.f;
+	/** 0..1 right arm raised for an attack (wind-up) / swung through (release, negative). */
+	float ProcAttack = 0.f;
+	/** 0..1 spine flinch from a hit. */
+	float ProcFlinch = 0.f;
+	/** Sign flips per axis for skeletons whose local conventions differ (tuned by eye on SK_Mannequin). */
+	float ProcSideSign = 1.f;
+	float ProcForwardSign = 1.f;
+	/** The body's facing in COMPONENT space (set by the owner from its actor forward); swing axes derive from it. */
+	FVector ProcForwardCS = FVector(0.f, 1.f, 0.f);
+
 	// Read by the proxy before each update (game thread).
 	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Current;
 	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Previous;
