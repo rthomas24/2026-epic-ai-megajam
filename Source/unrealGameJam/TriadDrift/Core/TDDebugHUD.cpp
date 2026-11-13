@@ -174,7 +174,8 @@ void ATDDebugHUD::DrawHUD()
 		{
 			DrawDamageIndicators();
 		}
-		DrawSupplementText(!Covered(ETDHUDSurface::InteractPrompt), !Covered(ETDHUDSurface::HyperdriveBlockText),
+		// Nick's widget already draws the interact prompt (N-018), so that one is never duplicated here.
+		DrawSupplementText(false, !Covered(ETDHUDSurface::HyperdriveBlockText),
 			!Covered(ETDHUDSurface::Altitude));
 	}
 	else
