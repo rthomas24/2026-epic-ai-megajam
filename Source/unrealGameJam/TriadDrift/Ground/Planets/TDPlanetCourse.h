@@ -37,6 +37,19 @@ struct FTDStepDoor
 	UPROPERTY() TObjectPtr<ATDDoor> Door;
 };
 
+/** One area the world scatter (T4, WORLD-DENSITY-PLAN) must leave clear, in world space. */
+USTRUCT(BlueprintType)
+struct FTDCourseKeepOut
+{
+	GENERATED_BODY()
+	/** What it protects: "Pad", "Route", "Site", "Encounter", "Spawn", "Structure". */
+	UPROPERTY(BlueprintReadOnly, Category = "Planet") FName Kind;
+	/** A box (Box valid) or a polyline with a half width (Points, HalfWidth). 2D: Z is ignored by the query. */
+	UPROPERTY(BlueprintReadOnly, Category = "Planet") FBox Box = FBox(ForceInit);
+	UPROPERTY(BlueprintReadOnly, Category = "Planet") TArray<FVector> Points;
+	UPROPERTY(BlueprintReadOnly, Category = "Planet") float HalfWidth = 0.f;
+};
+
 /** One objective's trailhead: walking up to it starts the objective (its own Director's Cut scene). */
 USTRUCT()
 struct FTDTrailhead
@@ -82,6 +95,24 @@ public:
 
 	/** Between objectives on foot: "HEAD TO A SIGNAL · THE RESEARCH SITE OR THE RELAY" and the trailheads still open. */
 	bool GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) const;
+
+	/**
+	 * T4's world scatter: may something of Radius (cm) stand at this world point? False on the pad and the ships'
+	 * parking ring, within the walking width of a route, on an objective site, inside an encounter volume, near a crew
+	 * spawn point or on the course's own colliding structures. The shapes behind it: GetKeepOuts (world space).
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Planet")
+	bool IsScatterAllowed(const FVector& WorldPoint, float Radius) const;
+	/** Every keep-out shape, in world space (built once, after the course is built). */
+	const TArray<FTDCourseKeepOut>& GetKeepOuts() const;
+	/** Static helper: the first course in the world (or null) answers; no course = allowed. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Planet", meta = (WorldContext = "WorldContextObject"))
+	static bool IsScatterAllowedAt(const UObject* WorldContextObject, const FVector& WorldPoint, float Radius);
+
+	/** Clear width either side of a route's centre line (cm). */
+	static constexpr float RouteHalfWidth = 700.f;
+	/** The pad and the parked squad (cm, from the course origin). */
+	static constexpr float PadClearRadius = 3500.f;
 
 	/** True if a point (course-local) is within Clearance of a route (tests: nothing collides on a route). */
 	bool IsRouteBlockedAt(const FVector& Local, float Clearance) const { return IsOnRoute(Local, Clearance); }
@@ -242,6 +273,9 @@ private:
 	UPROPERTY(Transient) TArray<TObjectPtr<ATDObjective>> Objectives;
 	UPROPERTY(Transient) TArray<FTDTrailhead> Trailheads;
 	UPROPERTY(Transient) TArray<FTDStepEncounter> StepEncounters;
+	UPROPERTY(Transient) mutable TArray<FTDCourseKeepOut> KeepOutCache;
+	mutable bool bKeepOutBuilt = false;
+	void BuildKeepOuts() const;
 	UPROPERTY(Transient) TArray<FTDStepDoor> StepDoors;
 	UPROPERTY(Transient) TObjectPtr<AActor> Dressing; // one actor holds every static block (cheap)
 	TArray<TArray<FVector>> Routes;

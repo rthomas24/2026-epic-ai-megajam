@@ -662,6 +662,54 @@ bool FTDArchiveTransferPauseAndMidpoint::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T4's world scatter asks the course where it may place things (WORLD-DENSITY-PLAN): never on a route, the pad, a site, an
+// encounter or a spawn point; and the course's routes stay walkable (every route point is refused for scatter, and
+// open ground off the routes is allowed).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseKeepOuts, "TriadDrift.Ground.Course.KeepOutsProtectRoutesSitesAndSpawns", TD_TEST_FLAGS)
+bool FTDCourseKeepOuts::RunTest(const FString& Parameters)
+{
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		ATDPlanetCourse* Course = V.Director->GetCourse();
+		if (!TestNotNull(TEXT("course"), Course)) { return false; }
+		const TArray<FTDCourseKeepOut>& K = Course->GetKeepOuts();
+		int32 Routes = 0, Encounters = 0, Spawns = 0, Pads = 0;
+		for (const FTDCourseKeepOut& O : K)
+		{
+			Routes += O.Kind == TEXT("Route"); Encounters += O.Kind == TEXT("Encounter"); Spawns += O.Kind == TEXT("Spawn"); Pads += O.Kind == TEXT("Pad");
+		}
+		TestTrue(*FString::Printf(TEXT("%s: routes %d, encounters %d, spawns %d, pad %d"), Planet, Routes, Encounters, Spawns, Pads), Routes >= 2 && Encounters >= 3 && Spawns >= 3 && Pads == 1);
+		// Every point along every route (each 2 m) is refused for a 1 m tree, and so is the pad.
+		int32 Points = 0, Blocked = 0;
+		for (const FTDCourseKeepOut& O : K)
+		{
+			for (int32 i = 0; O.Kind == TEXT("Route") && i + 1 < O.Points.Num(); ++i)
+			{
+				const float Len = (float)FVector::Dist2D(O.Points[i], O.Points[i + 1]);
+				for (float D = 0.f; D <= Len; D += 200.f)
+				{
+					const FVector P = FMath::Lerp(O.Points[i], O.Points[i + 1], Len > 0.f ? D / Len : 0.f);
+					++Points;
+					Blocked += Course->IsScatterAllowed(P, 100.f) ? 0 : 1;
+				}
+			}
+		}
+		TestTrue(*FString::Printf(TEXT("%s: route points"), Planet), Points > 50);
+		TestEqual(*FString::Printf(TEXT("%s: every route point refused"), Planet), Blocked, Points);
+		TestFalse(TEXT("the pad refused"), ATDPlanetCourse::IsScatterAllowedAt(V.W.GetWorld(), Course->GetActorLocation() + FVector(800.f, 300.f, 0.f), 100.f));
+		// Open ground exists for the scatter (a ring far from everything).
+		int32 Open = 0;
+		for (int32 a = 0; a < 36; ++a)
+		{
+			const FVector P = Course->GetActorLocation() + FVector(FMath::Cos(a * 10.f * PI / 180.f), FMath::Sin(a * 10.f * PI / 180.f), 0.f) * 25000.f;
+			Open += Course->IsScatterAllowed(P, 100.f) ? 1 : 0;
+		}
+		TestTrue(*FString::Printf(TEXT("%s: open ground at 250 m (%d / 36)"), Planet, Open), Open >= 18);
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseMissingNet, "TriadDrift.Ground.Course.MissingObjectiveActorNeverTrapsThePlayer", TD_TEST_FLAGS)
 bool FTDCourseMissingNet::RunTest(const FString& Parameters)
 {

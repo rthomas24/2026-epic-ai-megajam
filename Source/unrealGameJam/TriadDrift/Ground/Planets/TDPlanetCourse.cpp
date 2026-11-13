@@ -176,6 +176,149 @@ void ATDPlanetCourse::AdoptTerrainMaterial()
 	}
 }
 
+
+// ------------------------------------------------------------------------------------------------
+// Keep-out areas for the world scatter (T4, docs/eng/WORLD-DENSITY-PLAN.md)
+// ------------------------------------------------------------------------------------------------
+
+void ATDPlanetCourse::BuildKeepOuts() const
+{
+	KeepOutCache.Reset();
+	bKeepOutBuilt = true;
+	const FTransform Xf = GetActorTransform();
+	auto AddBox = [this](FName Kind, const FBox& B)
+	{
+		if (B.IsValid)
+		{
+			FTDCourseKeepOut K;
+			K.Kind = Kind;
+			K.Box = B;
+			KeepOutCache.Add(K);
+		}
+	};
+	// The pad and the parked squad.
+	{
+		const FVector C = Xf.GetLocation();
+		AddBox(TEXT("Pad"), FBox(C - FVector(PadClearRadius, PadClearRadius, 1000.f), C + FVector(PadClearRadius, PadClearRadius, 1000.f)));
+	}
+	// The routes between objectives: polylines with the walking width.
+	for (const TArray<FVector>& R : Routes)
+	{
+		FTDCourseKeepOut K;
+		K.Kind = TEXT("Route");
+		K.HalfWidth = RouteHalfWidth;
+		for (const FVector& L : R) { K.Points.Add(Xf.TransformPosition(L)); }
+		KeepOutCache.Add(K);
+	}
+	// The course's own hand-made keep-outs (magma, geysers, the compound, the lake...).
+	for (const FKeepOut& O : KeepOuts)
+	{
+		const FVector C = Xf.TransformPosition(O.Center);
+		AddBox(TEXT("Site"), FBox(C - FVector(O.Extent.X, O.Extent.Y, 1000.f), C + FVector(O.Extent.X, O.Extent.Y, 1000.f)));
+	}
+	// Everything the course spawned that play touches: objective props, interactables, triggers, doors, encounter
+	// volumes (and their crew spawn points), with a margin.
+	for (const TObjectPtr<AActor>& A : Spawned)
+	{
+		if (!A || A == Dressing)
+		{
+			continue;
+		}
+		if (const ATDEncounterVolume* E = Cast<ATDEncounterVolume>(A))
+		{
+			if (E->Box)
+			{
+				AddBox(TEXT("Encounter"), E->Box->Bounds.GetBox());
+			}
+			const FVector C = E->GetActorLocation();
+			TArray<FVector> Points = E->SpawnPoints;
+			if (Points.Num() == 0)
+			{
+				for (int32 i = 0; i < FMath::Max(E->Count, 1); ++i)
+				{
+					const float Angle = 2.f * PI * i / FMath::Max(E->Count, 1);
+					Points.Add(FVector(FMath::Cos(Angle) * E->RingRadius, FMath::Sin(Angle) * E->RingRadius, 0.f));
+				}
+			}
+			for (const FVector& P : Points)
+			{
+				AddBox(TEXT("Spawn"), FBox(C + P - FVector(250.f, 250.f, 1000.f), C + P + FVector(250.f, 250.f, 1000.f)));
+			}
+			continue;
+		}
+		if (A->IsA<ATDObjective>())
+		{
+			continue; // no shape of its own
+		}
+		FVector Origin, Extent;
+		A->GetActorBounds(false, Origin, Extent);
+		if (Extent.IsNearlyZero())
+		{
+			continue; // markers
+		}
+		AddBox(TEXT("Site"), FBox(Origin - Extent - FVector(300.f, 300.f, 0.f), Origin + Extent + FVector(300.f, 300.f, 0.f)));
+	}
+	// The course's own colliding structures (platforms, walls, the station, the relay climb...).
+	if (Dressing)
+	{
+		TInlineComponentArray<UStaticMeshComponent*> Meshes(Dressing);
+		for (const UStaticMeshComponent* M : Meshes)
+		{
+			if (M && M != GroundSlab && M->GetCollisionEnabled() != ECollisionEnabled::NoCollision)
+			{
+				FBox B = M->Bounds.GetBox();
+				if (B.GetSize().X > 20000.f || B.GetSize().Y > 20000.f)
+				{
+					continue; // ground-sized: the slab and the like
+				}
+				AddBox(TEXT("Structure"), B.ExpandBy(FVector(200.f, 200.f, 0.f)));
+			}
+		}
+	}
+}
+
+const TArray<FTDCourseKeepOut>& ATDPlanetCourse::GetKeepOuts() const
+{
+	if (!bKeepOutBuilt)
+	{
+		BuildKeepOuts();
+	}
+	return KeepOutCache;
+}
+
+bool ATDPlanetCourse::IsScatterAllowed(const FVector& WorldPoint, float Radius) const
+{
+	const FVector2D P(WorldPoint.X, WorldPoint.Y);
+	for (const FTDCourseKeepOut& K : GetKeepOuts())
+	{
+		if (K.Points.Num() > 1)
+		{
+			for (int32 i = 0; i + 1 < K.Points.Num(); ++i)
+			{
+				const FVector C = FMath::ClosestPointOnSegment(FVector(P, 0.f), FVector(K.Points[i].X, K.Points[i].Y, 0.f), FVector(K.Points[i + 1].X, K.Points[i + 1].Y, 0.f));
+				if (FVector2D::Distance(FVector2D(C.X, C.Y), P) < K.HalfWidth + Radius)
+				{
+					return false;
+				}
+			}
+		}
+		else if (K.Box.IsValid)
+		{
+			if (P.X > K.Box.Min.X - Radius && P.X < K.Box.Max.X + Radius && P.Y > K.Box.Min.Y - Radius && P.Y < K.Box.Max.Y + Radius)
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool ATDPlanetCourse::IsScatterAllowedAt(const UObject* WorldContextObject, const FVector& WorldPoint, float Radius)
+{
+	const ATDPlanetCourse* Course = Get(WorldContextObject);
+	return !Course || Course->IsScatterAllowed(WorldPoint, Radius);
+}
+
 // ------------------------------------------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------------------------------------------
@@ -939,9 +1082,6 @@ void ATDPlanetCourse::BuildVerdance()
 	const FVector Mid(5000.f, 0.f, 0.f);
 	const bool bProps = ScatterMeshes({
 		// A canopy ring around the play space; a few giants as landmarks.
-		{ TEXT("SM_TDVeg_Kapok_S100_11"), 10, FVector2D(0.9f, 1.1f), false, 1500.f, Mid, FVector2D(17000.f, 24000.f), 20.f },
-		{ TEXT("SM_TDVeg_BrazilNut_S100_21"), 18, FVector2D(0.9f, 1.15f), false, 1500.f, Mid, FVector2D(15000.f, 24000.f), 20.f },
-		{ TEXT("SM_TDVeg_TrumpetTree_S100_31"), 30, FVector2D(0.85f, 1.2f), false, 1200.f, Mid, FVector2D(12000.f, 22000.f), 10.f },
 		{ TEXT("SM_TDVeg_StiltPalm_S100_41"), 30, FVector2D(0.8f, 1.2f), false, 1000.f, Mid, FVector2D(9000.f, 20000.f), 10.f },
 		{ TEXT("SM_TDVeg_Kapok_S070_12"), 3, FVector2D(1.f, 1.f), false, 2500.f, FVector(6000.f, 0.f, 0.f), FVector2D(5000.f, 9000.f), 20.f },
 		// The mid layer inside the play space.
