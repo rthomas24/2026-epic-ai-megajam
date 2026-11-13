@@ -16,6 +16,7 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -168,6 +169,87 @@ bool FTDDominionStageStarts::RunTest(const FString&)
 	const FVector TLocal = D->GetActorTransform().InverseTransformPosition(Trench.GetLocation());
 	TestTrue(TEXT("trench start is off the real bow"), TLocal.X > Local.Max.X + 10000.f);
 	TestTrue(*FString::Printf(TEXT("trench start is clear (inside %s)"), *Inside(Prims, Trench.GetLocation(), 600.f)), Inside(Prims, Trench.GetLocation(), 600.f).IsEmpty());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionBreakupShows, "TriadDrift.World.Dominion.BreakupExplodesTheHullThenVictory", TD_TEST_FLAGS)
+bool FTDDominionBreakupShows::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true;
+	GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	AActor* Killer = W.Spawn<AActor>(FVector(150000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.5f);
+	for (ATDShieldGenerator* G : D->GetGenerators()) { UTDStatics::ApplyTDDamage(G, 1000000.f, ETDDamageKind::Explosive, Killer, Killer); W.Advance(0.2f); }
+	W.Advance(1.f);
+	// One phase per hit (each phase opens after a short invulnerable beat), as TD.Director.ReactorKill does.
+	for (int32 Hit = 0; Hit < 10 && D->GetReactor() && D->GetState() != ETDDominionState::Breakup; ++Hit)
+	{
+		UTDStatics::ApplyTDDamage(D->GetReactor(), 100000000.f, ETDDamageKind::Explosive, Killer, Killer);
+		W.Advance(1.5f);
+	}
+	if (!TestEqual(TEXT("breakup started"), (int32)D->GetState(), (int32)ETDDominionState::Breakup)) { return false; }
+	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+	const bool bArt = V && FTDCombatPlaceholders::HasVisualArt(V->BreakupSequence);
+	W.Advance(D->BreakupSeconds - 1.f, 1.f / 30.f);
+	if (!bArt)
+	{
+		TestTrue(*FString::Printf(TEXT("a chain of explosions walks the hull (%d)"), D->GetBreakupBoomCount()), D->GetBreakupBoomCount() >= 8);
+		TestTrue(TEXT("final blast"), D->HasBreakupFinalBlast());
+		TestTrue(TEXT("the hull is gone after the blast"), D->IsHidden());
+	}
+	W.Advance(2.f);
+	TestTrue(TEXT("victory follows the breakup"), GI->Progress.Phase == ETDGamePhase::Victory);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionArtMaterials, "TriadDrift.World.Dominion.ArtHullKeepsItsAuthoredMaterials", TD_TEST_FLAGS)
+bool FTDDominionArtMaterials::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	if (!TestNotNull(TEXT("dominion"), D)) { return false; }
+	W.Advance(0.5f);
+	int32 Checked = 0;
+	TInlineComponentArray<UStaticMeshComponent*> Meshes(D);
+	for (UStaticMeshComponent* C : Meshes)
+	{
+		const UStaticMesh* M = C ? C->GetStaticMesh() : nullptr;
+		if (!M || !M->GetName().StartsWith(TEXT("SM_Dominion_"))) { continue; }
+		for (int32 Slot = 0; Slot < M->GetStaticMaterials().Num(); ++Slot)
+		{
+			++Checked;
+			TestTrue(*FString::Printf(TEXT("%s slot %d draws the authored material"), *C->GetName(), Slot), C->GetMaterial(Slot) == M->GetMaterial(Slot));
+		}
+	}
+	if (Checked == 0) { AddInfo(TEXT("no Dominion art in this checkout")); }
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionTurretArt, "TriadDrift.World.Dominion.TurretsWearTheirArt", TD_TEST_FLAGS)
+bool FTDDominionTurretArt::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true;
+	GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	if (!TestNotNull(TEXT("dominion"), D)) { return false; }
+	W.Advance(D->WarpInSeconds + 0.5f);
+	const UTDEnemyVisuals* TV = UTDStatics::LoadPresentation<UTDEnemyVisuals>(TEXT("DA_DominionTurret_Visuals"));
+	UStaticMesh* Art = (TV && !TV->TurretMesh.IsNull()) ? TV->TurretMesh.LoadSynchronous() : nullptr;
+	TestTrue(TEXT("turrets built"), D->GetTurrets().Num() > 0);
+	for (ATDEnemyTurret* T : D->GetTurrets())
+	{
+		if (!T) { continue; }
+		if (Art)
+		{
+			TestTrue(*FString::Printf(TEXT("%s draws the turret art (Visuals reaches it before Init)"), *T->GetName()), T->GetMesh() && T->GetMesh()->GetStaticMesh() == Art);
+		}
+	}
+	if (!Art) { AddInfo(TEXT("no DA_DominionTurret_Visuals in this checkout: placeholder turrets")); }
 	return true;
 }
 

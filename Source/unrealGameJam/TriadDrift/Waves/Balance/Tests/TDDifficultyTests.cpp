@@ -72,6 +72,11 @@ bool FTDBalanceRiftRegen::RunTest(const FString& Parameters)
 	const FTDShipSpec& Rift = UTDShipLibrary::Get(ETDShipId::Rift);
 	TestEqual(TEXT("Rift shield regen delay"), Rift.ShieldRegenDelay, 2.f);
 	TestEqual(TEXT("Rift shield regen rate"), Rift.ShieldRegenFractionPerSecond, 0.35f);
+	// TDBalance.Sweep.EvaderLancerShield: x1.2 shield (80 -> 96) brought wave-5 downs near Bastion; hull stays 70.
+	const FTDShipSpec& Lancer = UTDShipLibrary::Get(ETDShipId::Lancer);
+	TestEqual(TEXT("Lancer max shield"), Lancer.MaxShield, 96.f);
+	TestEqual(TEXT("Lancer hull unchanged (fragile-fast)"), Lancer.MaxHull, 70.f);
+	TestTrue(TEXT("Lancer still the least total protection"), Lancer.MaxHull + Lancer.MaxShield < UTDShipLibrary::Get(ETDShipId::Rift).MaxHull + UTDShipLibrary::Get(ETDShipId::Rift).MaxShield);
 	const FTDShipSpec& Bastion = UTDShipLibrary::Get(ETDShipId::Bastion);
 	TestTrue(TEXT("Bastion (the reference) unchanged"), Bastion.ShieldRegenDelay == 3.f && Bastion.ShieldRegenFractionPerSecond == 0.25f);
 	return true;

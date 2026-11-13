@@ -87,6 +87,13 @@ public:
 	/** True once a planet style built its far ground and haze (tests). */
 	bool HasHorizon() const;
 
+	/** ENG-34: the planet world (procedural terrain), spawned at the course origin once the course exists. */
+	UPROPERTY(Transient) TObjectPtr<class ATDPlanetTerrain> Terrain;
+	/** Planet styles spawn the terrain (off in tests that only check lighting). */
+	UPROPERTY(EditAnywhere, Category = "Placeholder") bool bSpawnTerrain = true;
+	void TrySpawnTerrain();
+	ETDPlaceholderSkyStyle AppliedStyle = ETDPlaceholderSkyStyle::Space;
+
 private:
 	float RescanTimer = 0.f;
 };
