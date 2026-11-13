@@ -935,7 +935,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Way, 2.5f);
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 9.f, Wp.Pos.Y - 9.f, 18.f, 18.f);
 			P.Line(Wp.Pos + F * 11.f, Wp.Pos + F * 17.f, Way, 2.5f);
-			const FVector2D Label = Wp.Pos - F * 30.f;
+			// The range sits inward of the diamond, clear of it (the planet capture had "5.1 km" over the diamond).
+			const FVector2D Label = Wp.Pos - F * 52.f;
 			P.BackedWords(Label.X, Label.Y - 8.f, Range(Wp.Distance), 14, Way, .5f, 20);
 			Area += 70.f * 40.f;
 		}
