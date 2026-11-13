@@ -103,6 +103,10 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
 	float TrailGlow = 5.f;
+
+	/** The flown ship's own ribbon in the chase view stops this far behind the nozzle (cm); wingmen keep the full length. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float PlayerTrailMax = 900.f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
@@ -145,7 +149,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
 	int32 GetVisibleDustCount() const { return bDustVisible ? DustPositions.Num() : 0; }
 
-	/** Placeholder engine trail: segments drawn now (0 = hidden) and its length end to end (cm). */
+	/** Placeholder engine trail: segments drawn now over every engine (0 = hidden), and the first ribbon's length (cm). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
 	int32 GetVisibleTrailSegments() const { return bTrailVisible ? TrailTransforms.Num() : 0; }
 	float GetTrailLength() const { return TrailLength; }
@@ -211,7 +215,8 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInstancedStaticMeshComponent> Trail;
-	TArray<FVector> TrailHistory; // newest first; [0] is the live nozzle position
+	TArray<TArray<FVector>> TrailHistory; // per engine, newest first; [0] is the live nozzle position
+	TArray<FVector> TrailNozzles;
 	TArray<FTransform> TrailTransforms;
 	float TrailClock = 0.f;
 	float TrailLength = 0.f;
