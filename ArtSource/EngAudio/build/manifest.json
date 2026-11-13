@@ -1817,8 +1817,12 @@
    "looping": true,
    "att": null,
    "con": null,
-   "cls": "UI",
-   "slots": [],
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.LowHullLoop",
+    "DA_Lancer_Visuals.LowHullLoop",
+    "DA_Bastion_Visuals.LowHullLoop"
+   ],
    "note": "Low-hull warning: two soft notes every half second over a quiet bed. NOT wired: ATDShip never plays LowHullLoop (and would have to gate and stop it)."
   },
   {
