@@ -110,6 +110,11 @@ ATDGalaxyLayout::ATDGalaxyLayout()
 		}
 	}
 
+	RuinModules = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("RuinModules"));
+	RuinModules->SetupAttachment(GetRootComponent());
+	RuinModules->SetCollisionProfileName(TEXT("BlockAll"));
+	RuinModules->SetMobility(EComponentMobility::Movable);
+
 	RuinBlocks = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Ruins"));
 	RuinBlocks->SetupAttachment(GetRootComponent());
 	RuinBlocks->SetCollisionProfileName(TEXT("BlockAll"));
@@ -145,6 +150,7 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 		R.Location = FVector(FMath::Cos(A) * RuinRing, FMath::Sin(A) * RuinRing, (i % 2 ? 1.f : -1.f) * 2500.f);
 		R.Rotation = FRotator(i * 7.f, FMath::RadiansToDegrees(A) + 90.f, i * 11.f);
 		R.Extent = (i % 2) ? FVector(5000.f, 500.f, 500.f) : FVector(1800.f, 1500.f, 1200.f);
+		R.bModule = (i % 2) == 0;	// girders on odd slots, modules on even
 		L.Ruins.Add(R);
 	}
 
@@ -422,6 +428,9 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 	// Idempotent: the editor preview and BeginPlay both build; never stack instances.
 	Asteroids->ClearInstances();
 	RuinBlocks->ClearInstances();
+	if (RuinModules) { RuinModules->ClearInstances(); }
+	UStaticMesh* ModuleArt = !RuinModuleMesh.IsNull() ? RuinModuleMesh.LoadSynchronous() : nullptr;
+	if (ModuleArt && RuinModules) { RuinModules->SetStaticMesh(ModuleArt); }
 	for (UInstancedStaticMeshComponent* Look : AsteroidLooks) { if (Look) { Look->ClearInstances(); } }
 	for (UInstancedStaticMeshComponent* Look : DebrisLooks) { if (Look) { Look->ClearInstances(); } }
 	bool bNickRock = false;
@@ -506,7 +515,14 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 
 	for (const FTDRuinSpec& R : Layout.Ruins)
 	{
-		RuinBlocks->AddInstance(FTransform(R.Rotation, R.Location, R.Extent * 2.f / 100.f));
+		if (R.bModule && ModuleArt && RuinModules)
+		{
+			RuinModules->AddInstance(FTransform(R.Rotation, R.Location, R.Extent * 2.f / 100.f));	// same convention as RuinMesh
+		}
+		else
+		{
+			RuinBlocks->AddInstance(FTransform(R.Rotation, R.Location, R.Extent * 2.f / 100.f));
+		}
 		if (WorldSys) { WorldSys->AddObstacle(Xf.TransformPosition(R.Location), R.Extent.GetMax()); }
 	}
 	if (RuinMesh.IsNull())
@@ -577,6 +593,7 @@ void ATDGalaxyLayout::BuildPlanets()
 		ATDPlanetAtmosphere* Planet = GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(Cls, T, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (!Planet) { continue; }
 		Planet->Configure(P.Destination, P.ReturnPoint, P.PlanetRadius, P.AtmosphereRadius, P.Color);
+		Planet->PlanetArtMesh = P.PlanetMesh;	// optional, normalised to 100 cm, scaled to the planet
 		Planet->FinishSpawning(T);
 		Planets.Add(Planet);
 	}

@@ -40,6 +40,8 @@ struct UNREALGAMEJAM_API FTDRuinSpec
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FRotator Rotation = FRotator::ZeroRotator;
 	/** Half extents (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FVector Extent = FVector(3000.f, 600.f, 1500.f);
+	/** Module (true) or girder/truss (false): which art slot dresses it (RuinModuleMesh vs RuinMesh). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") bool bModule = false;
 };
 
 USTRUCT(BlueprintType)
@@ -54,6 +56,8 @@ struct UNREALGAMEJAM_API FTDPlanetSpec
 	/** Return point used when coming back from the planet (also registered as a named return point). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FName ReturnPoint = NAME_None;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FLinearColor Color = FLinearColor(0.1f, 0.9f, 0.5f);
+	/** Optional planet mesh, normalised to a 100 cm bounding sphere (like the asteroids); scaled to PlanetRadius. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") TSoftObjectPtr<UStaticMesh> PlanetMesh;
 };
 
 USTRUCT(BlueprintType)
@@ -191,8 +195,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TSoftObjectPtr<UStaticMesh> AsteroidMesh;
 
+	/** Girders / trusses (ruins with bModule false). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TSoftObjectPtr<UStaticMesh> RuinMesh;
+
+	/** Station modules (ruins with bModule true). Empty = RuinMesh for both. Like RuinMesh, authored in a 100 cm
+	 *  box and scaled by each ruin's extent. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSoftObjectPtr<UStaticMesh> RuinModuleMesh;
 
 	/** Optional art mesh for each gate frame. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
@@ -241,6 +251,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
 	TObjectPtr<UInstancedStaticMeshComponent> RuinBlocks;
+
+	/** Module ruins when RuinModuleMesh is set (otherwise all ruins are in RuinBlocks). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TObjectPtr<UInstancedStaticMeshComponent> RuinModules;
 
 	/** The rocks' look: one no-collision instanced component per engineering asteroid mesh (SM_Asteroid_01..04),
 	 *  each asteroid picks one from the layout seed. Gameplay collision stays on Asteroids (spheres, hidden). */

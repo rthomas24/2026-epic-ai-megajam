@@ -44,7 +44,19 @@ void ATDCarrierBay::Init(ATDEnemyShip* InCarrier, float Hull, int32 InFightersPe
 	{
 		Health->InitMaxValues(FMath::Max(1.f, Hull), 0.f, true);
 	}
-	UTDStatics::TintPlaceholder(Mesh, FLinearColor(1.f, 0.35f, 0.05f), 2.f);	// glowing orange bay doors: the weak point
+	if (Visuals && !Visuals->BayMesh.IsNull())
+	{
+		if (UStaticMesh* Art = Visuals->BayMesh.LoadSynchronous())
+		{
+			Mesh->SetStaticMesh(Art);
+			Mesh->SetRelativeScale3D(FVector::OneVector);
+			Mesh->EmptyOverrideMaterials();
+		}
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(Mesh, FLinearColor(1.f, 0.35f, 0.05f), 2.f);	// glowing orange bay doors: the weak point
+	}
 }
 
 void ATDCarrierBay::BeginPlay()

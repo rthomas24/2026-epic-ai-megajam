@@ -79,6 +79,10 @@ public:
 	/** Hide the placeholder sphere (keeps its collision). */
 	void SetPlaceholderVisible(bool bVisible);
 
+	/** Optional planet mesh (100 cm bounding sphere at scale 1, scaled to PlanetRadius). Set before BeginPlay. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet")
+	TSoftObjectPtr<UStaticMesh> PlanetArtMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "0"))
 	float EntryDelaySeconds = 1.f;
 
