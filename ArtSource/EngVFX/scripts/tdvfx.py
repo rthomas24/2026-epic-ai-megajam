@@ -30,6 +30,11 @@ TEMPLATES = {
     'ribbon': '/Niagara/DefaultAssets/Templates/Emitters/LocationBasedRibbon',
     'single': '/Niagara/DefaultAssets/Templates/Emitters/SingleLoopingParticle',
     'minimal': '/Niagara/DefaultAssets/Templates/Emitters/Minimal',
+    # round 5: standalone copies (scripts/make_trail_emitters.py) of the two emitters inside the engine's
+    # AttributeReaderTrails template SYSTEM. A system that uses the sub-objects directly builds but cannot be SAVED. 'followers' spawns particles along every
+    # particle of the emitter named 'Leaders' (attribute reader bound by name), so keep that name: real spark trails.
+    'leaders': ROOT + '/Emitters/NE_TD_Leaders',
+    'followers': ROOT + '/Emitters/NE_TD_Followers',
 }
 ES, EU, PS, PU = 'EmitterSpawnScript', 'EmitterUpdateScript', 'ParticleSpawnScript', 'ParticleUpdateScript'
 
@@ -113,7 +118,8 @@ class Builder(object):
             self.log.append('SET FAIL %s/%s/%s/%s: %s' % (emitter, script, module, name, str(ex)[:500]))
 
     async def emitter(self, system, spec):
-        tmpl = unreal.load_asset(TEMPLATES[spec['base']])
+        _tp = TEMPLATES[spec['base']]
+        tmpl = unreal.load_object(None, _tp) if ':' in _tp else unreal.load_asset(_tp)
         topo = await self.call(T + 'AddEmitter', system=system, templateEmitter=tmpl, emitterName=spec['name'])
         en = topo['emitterName']
         eref = {'system': system, 'emitterName': en}
@@ -213,8 +219,8 @@ class Builder(object):
                     bad.append('ERR %s/%s/%s: %s' % (loc.get('emitterName'), loc.get('moduleName'), loc.get('inputNameStack'), (i.get('shortDescription', '') + ' - ' + i.get('longDescription', ''))[:260]))
         except Exception as ex:
             bad.append('issues? ' + str(ex)[:100])
-        unreal.EditorAssetLibrary.save_loaded_asset(system)
-        self.log.append('%s: %s%s' % (name, cs['aggregateStatus'], (' | ' + ' || '.join(bad)) if bad else ''))
+        saved = unreal.EditorAssetLibrary.save_loaded_asset(system, False)   # round 5: a failed save used to pass silently
+        self.log.append('%s: %s%s%s' % (name, cs['aggregateStatus'], '' if saved else ' | SAVE FAILED', (' | ' + ' || '.join(bad)) if bad else ''))
         return system
 
     async def dump(self, system, emitter, modules=None):
