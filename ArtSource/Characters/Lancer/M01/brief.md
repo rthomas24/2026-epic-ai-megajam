@@ -1,6 +1,7 @@
 # Lancer player M01 — first armor blockout
 
-Stage: executable SOURCE PREPARATION ONLY; model construction is not yet run.
+Stage: Build01 failed before saving a model (pectoral outline missed body).
+Build02 is corrected SOURCE PREPARATION ONLY; no second model construction yet.
 White reference2fa970f1 is the approved concept. One player humanoid only; no
 enemies/ships, rig, animation, gameplay hook or native integration in this pass.
 
@@ -33,11 +34,19 @@ later work; no runtime/production-readiness claim from a saved blockout alone.
 
 Two separately granted jobs, each <=120s/two threads, fresh>=4GiB/no heavy job,
 abort only its own process on pressure<1.5GiB/error. BUILD creates
-source/armor/Blockout01/{Lancer_Armor_Blockout_v01.blend,blockout-qa.json}.
-RENDER creates review/Blockout01/Lancer_Blockout01_{front,side,back,top,beauty}.png
+source/armor/Blockout02/{Lancer_Armor_Blockout_v02.blend,blockout-qa.json,surface-fit.json}.
+RENDER creates review/Blockout02/Lancer_Blockout02_{front,side,back,top,beauty}.png
 and views.json. These are720x960 studio-color form-review views, not final PBR
 beauty renders. Every image must be opened and compared with the reference.
 Immutable source/base hashes and input blend are checked after both jobs.
+
+Build02 fits all torso outline/support samples to measured horizontal body
+cross-sections before constructing any panels. A missing point may move inward
+at fixed height by at most65mm; central-body intersection, front/back-facing
+normal and torso bounds must pass. Failed regions and collapsed outlines abort
+explicitly. No outer-body extrapolation or missing anatomy is generated. Every
+fitted sample/distance is recorded; visual review must assess chevron preservation.
+Failed Blockout01 directory and private runtime logs remain untouched.
 
 Stop after this first form review for Nick's silhouette approval and Lead-routed
 independent critique, following the repo asset skill. Do not proceed to secondary

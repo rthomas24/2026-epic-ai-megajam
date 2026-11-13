@@ -8,10 +8,10 @@ if([IO.Path]::GetFullPath($taskOwned) -ne [IO.Path]::GetFullPath((Join-Path $tas
 $taskHeavy=@(Get-CimInstance Win32_Process -Filter "Name='UnrealEditor.exe' OR Name='UnrealEditor-Cmd.exe' OR Name='ShaderCompileWorker.exe' OR Name='blender.exe' OR Name='cl.exe'")
 $taskFree=(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1MB
 if($taskHeavy.Count -or $taskFree -lt 4){throw 'Fresh zero-heavy/4GiB guard failed'}
-$taskSaved=Join-Path $taskRoot "Saved/Characters/Lancer/M01/ArmorBlockout01-$Phase"
+$taskSaved=Join-Path $taskRoot "Saved/Characters/Lancer/M01/ArmorBlockout02-$Phase"
 if(Test-Path -LiteralPath $taskSaved){throw 'Attempt exists; no overwrite or automatic retry'}
-$taskInput=if($Phase -eq 'BUILD'){Join-Path $taskOwned 'source/base/Lancer_Manny_Reference_v02.blend'}else{Join-Path $taskOwned 'source/armor/Blockout01/Lancer_Armor_Blockout_v01.blend'}
-$taskOutput=if($Phase -eq 'BUILD'){Join-Path $taskOwned 'source/armor/Blockout01'}else{Join-Path $taskOwned 'review/Blockout01'}
+$taskInput=if($Phase -eq 'BUILD'){Join-Path $taskOwned 'source/base/Lancer_Manny_Reference_v02.blend'}else{Join-Path $taskOwned 'source/armor/Blockout02/Lancer_Armor_Blockout_v02.blend'}
+$taskOutput=if($Phase -eq 'BUILD'){Join-Path $taskOwned 'source/armor/Blockout02'}else{Join-Path $taskOwned 'review/Blockout02'}
 if(Test-Path -LiteralPath $taskOutput){throw 'Output exists'}
 $taskBefore=@{};Get-ChildItem -LiteralPath (Join-Path $taskOwned 'source/base') -File | ForEach-Object {$taskBefore[$_.FullName]=(Get-FileHash -LiteralPath $_.FullName).Hash}
 $taskInputHash=(Get-FileHash -LiteralPath $taskInput).Hash
@@ -22,7 +22,7 @@ try{
     $env:TD_LANCER_BLOCKOUT_CLEARED=$Phase
     try{$taskProcess=Start-Process -FilePath 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -ArgumentList @('--background','--factory-startup',('"{0}"' -f $taskInput),'--threads','2','--python-exit-code','1','--python',('"{0}"' -f (Join-Path $PSScriptRoot $taskScript))) -PassThru -WindowStyle Hidden -WorkingDirectory $taskSaved -RedirectStandardOutput (Join-Path $taskSaved 'stdout.log') -RedirectStandardError (Join-Path $taskSaved 'stderr.log')}
     finally{$env:TD_LANCER_BLOCKOUT_CLEARED=$taskOld}
-    Write-Output "START ArmorBlockout01-$Phase PID=$($taskProcess.Id) guardGiB=$taskFree"
+    Write-Output "START ArmorBlockout02-$Phase PID=$($taskProcess.Id) guardGiB=$taskFree"
     @{pid=$taskProcess.Id;phase=$Phase;utc=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskSaved 'process.json')
     while(-not $taskProcess.WaitForExit(2000)){
         if($taskWatch.Elapsed.TotalSeconds -gt 120 -or (Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1MB -lt 1.5){throw 'Own timeout/pressure stop; preserve, no retry'}
@@ -31,7 +31,7 @@ try{
     if($taskCode -ne 0){throw "Blender failed $taskCode"}
     $taskMarker=if($Phase -eq 'BUILD'){'LANCER_BLOCKOUT_BUILD_OK'}else{'LANCER_BLOCKOUT_RENDER_OK'}
     if(-not (Select-String -LiteralPath (Join-Path $taskSaved 'stdout.log') -SimpleMatch $taskMarker -Quiet)){throw 'Success marker missing'}
-    $taskQA=Get-Content -Raw -LiteralPath (Join-Path $taskOwned 'source/armor/Blockout01/blockout-qa.json') | ConvertFrom-Json
+    $taskQA=Get-Content -Raw -LiteralPath (Join-Path $taskOwned 'source/armor/Blockout02/blockout-qa.json') | ConvertFrom-Json
     $taskTechnical=$taskQA.technical_checks_passed
     if(-not $taskTechnical){Write-Output 'QA_FAILED: diagnostic output only; process success is not technical acceptance'}
 }catch{$taskError=$_.Exception.Message;if($null -ne $taskProcess){if(-not $taskProcess.HasExited){$taskProcess.Kill($true);$taskProcess.WaitForExit()};$taskCode=$taskProcess.ExitCode}}

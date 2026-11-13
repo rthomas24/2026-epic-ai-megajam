@@ -7,7 +7,7 @@ from mathutils.bvhtree import BVHTree
 ROOT=next(p for p in Path(__file__).resolve().parents if (p/'unrealGameJam.uproject').is_file())
 OWN=Path(__file__).resolve().parent.parent
 BASE=OWN/'source/base/Lancer_Manny_Reference_v02.blend'
-OUT=OWN/'source/armor/Blockout01'
+OUT=OWN/'source/armor/Blockout02'
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 
 def main():
@@ -19,7 +19,7 @@ def main():
     ref=bpy.data.collections['REF_Manny_NotForExport'];assert ref.hide_render and not ref['export_allowed']
     rig=next(o for o in ref.objects if o.type=='ARMATURE')
     bone=lambda n:rig.matrix_world @ rig.data.bones[n].head_local
-    col=bpy.data.collections.new('MODEL_Lancer_Blockout01_STATIC');scene.collection.children.link(col)
+    col=bpy.data.collections.new('MODEL_Lancer_Blockout02_STATIC');scene.collection.children.link(col)
     col['stage']='Primary armor forms; no rigging or production approval'
     kit=runpy.run_path(str(ROOT/'.claude/skills/blender-game-asset/scripts/hardsurface.py'))
     def material(name,hexcolor,roughness,emission=0):
@@ -56,19 +56,57 @@ def main():
     # Keep the complete closed owned body for this silhouette pass; no new open neck loops.
     head=bone('head')
     bm=bmesh.new();bm.from_mesh(me);bvh=BVHTree.FromBMesh(bm);bm.free()
+    panel_specs=[];surface_fit=[]
     def panel(name,outline,side,mat=white,offset=.018,thick=.008,mount=True):
-        outer=[]
-        for x,z in outline:
-            hit,normal,_,_=bvh.ray_cast(Vector((x,side*.9,z)),Vector((0,-side,0)),1.8)
-            if hit is None:raise RuntimeError('Panel misses owned body: '+name+repr((x,z)))
-            outer.append((x,hit.y+side*offset,z))
-        inner=[(x,y-side*thick,z) for x,y,z in outer];n=len(outer)
-        faces=[tuple(range(n)),tuple(range(2*n-1,n-1,-1))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
-        ob=obj(name,outer+inner,faces,mat)
+        panel_specs.append(dict(name=name,outline=outline,side=side,mat=mat,offset=offset,thick=thick))
         if mount:
-            cx=sum(x for x,z in outline)/n;cz=sum(z for x,z in outline)/n
+            n=len(outline);cx=sum(x for x,z in outline)/n;cz=sum(z for x,z in outline)/n
             panel(name+'_Mount',[(cx-.012,cz-.014),(cx+.012,cz-.014),(cx+.012,cz+.014),(cx-.012,cz+.014)],side,dark,.021,.026,False)
-        return ob
+            panel_specs[-1]['parent']=name
+    def fit_panels():
+        # Measure each horizontal body cross-section, never invent a missing surface.
+        # Clamp only inward towards the torso centre; keep height and chevron order.
+        # All panel and support samples must pass before any panel is constructed.
+        max_fit=.065;step=.001;torso_low=hip-.18;torso_high=shoulder+.03
+        center_y=bone('pelvis').y
+        def cast(x,z,side):
+            hit,normal,_,_=bvh.ray_cast(Vector((x,side*.9,z)),Vector((0,-side,0)),1.8)
+            if hit is None:return None
+            if not (torso_low<=hit.z<=torso_high and abs(hit.x)<=.23):return None
+            if not (0 < side*(hit.y-center_y) < .23 and side*normal.y>.15):return None
+            return hit
+        fitted=[];resolved={}
+        for spec in panel_specs:
+            if spec.get('parent'):
+                parent=resolved[spec['parent']];cx=sum(p.x for p in parent)/len(parent);cz=sum(p.z for p in parent)/len(parent)
+                spec['outline']=[(cx-.012,cz-.014),(cx+.012,cz-.014),(cx+.012,cz+.014),(cx-.012,cz+.014)]
+            hits=[]
+            for x,z in spec['outline']:
+                if not (torso_low<=z<=torso_high and abs(x)<=.23):
+                    raise RuntimeError('Panel sample outside anatomical torso region: '+spec['name'])
+                if cast(0,z,spec['side']) is None:
+                    raise RuntimeError('No central torso cross-section: '+spec['name']+repr(z))
+                hit=None
+                for i in range(math.ceil(max_fit/step)+1):
+                    dx=min(abs(x),i*step);sample_x=math.copysign(abs(x)-dx,x)
+                    hit=cast(sample_x,z,spec['side'])
+                    if hit is not None:break
+                if hit is None or abs(hit.x-x)>max_fit+1e-8:
+                    raise RuntimeError('Bounded torso cross-section fit failed: '+spec['name']+repr((x,z)))
+                hits.append(hit)
+                surface_fit.append(dict(panel=spec['name'],requested_xz=[x,z],surface=list(hit),distance_m=abs(hit.x-x),side=spec['side']))
+            # Prevent inward fits collapsing or reversing a panel footprint.
+            area=sum(hits[i].x*hits[(i+1)%len(hits)].z-hits[(i+1)%len(hits)].x*hits[i].z for i in range(len(hits)))/2
+            outline=spec['outline'];original_area=sum(outline[i][0]*outline[(i+1)%len(outline)][1]-outline[(i+1)%len(outline)][0]*outline[i][1] for i in range(len(outline)))/2
+            if abs(area)<1e-5 or area*original_area<=0 or min((hits[i]-hits[(i+1)%len(hits)]).length for i in range(len(hits)))<.003:
+                raise RuntimeError('Collapsed torso panel after fitting: '+spec['name'])
+            fitted.append((spec,hits));resolved[spec['name']]=hits
+        return fitted
+    def construct_panel(spec,hits):
+        outer=[(p.x,p.y+spec['side']*spec['offset'],p.z) for p in hits]
+        inner=[(x,y-spec['side']*spec['thick'],z) for x,y,z in outer];n=len(outer)
+        faces=[tuple(range(n)),tuple(range(2*n-1,n-1,-1))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+        return obj(spec['name'],outer+inner,faces,spec['mat'])
     def shell(name,a,b,profiles,mat=white,arc=math.pi,segments=12,thick=.007,solid=False):
         a,b=Vector(a),Vector(b);axis=(b-a).normalized();front=Vector((0,-1,0));front=(front-axis*front.dot(axis)).normalized();right=axis.cross(front).normalized()
         full=abs(arc-math.pi)<1e-6;count=segments if full else segments+1
@@ -104,6 +142,8 @@ def main():
         panel(label+'_AbdomenLower',[(-.075,shoulder-.335),(.075,shoulder-.335),(.055,shoulder-.405),(-.055,shoulder-.405)],side)
     hip=bone('pelvis').z
     panel('PelvisFront',[(-.065,hip-.035),(.065,hip-.035),(.035,hip-.16),(-.035,hip-.16)],-1)
+    fitted_panels=fit_panels()
+    for spec,hits in fitted_panels:construct_panel(spec,hits)
     for suffix in ('l','r'):
         upper,elbow,wrist=bone('upperarm_'+suffix),bone('lowerarm_'+suffix),bone('hand_'+suffix)
         thigh,knee,ankle=bone('thigh_'+suffix),bone('calf_'+suffix),bone('foot_'+suffix)
@@ -140,10 +180,11 @@ def main():
     assembly=runpy.run_path(str(ROOT/'.claude/skills/blender-mcp/scripts/assembly_check.py'))['main'](targets=names)
     qa=runpy.run_path('C:/Users/nicho/.agents/skills/blender-asset-qa/scripts/qa_check.py')['run'](objects=names,profile='game')
     technical=budget['totals']['errors']==0 and budget['totals']['tris']<=130000 and assembly.get('ok',False) and qa['pass']
-    blend=OUT/'Lancer_Armor_Blockout_v01.blend';assert bpy.ops.wm.save_as_mainfile(filepath=str(blend),check_existing=False)=={'FINISHED'}
+    blend=OUT/'Lancer_Armor_Blockout_v02.blend';assert bpy.ops.wm.save_as_mainfile(filepath=str(blend),check_existing=False)=={'FINISHED'}
     assert sha(BASE)==original
     report=dict(stage='PRIMARY FORM REVIEW ONLY',technical_checks_passed=technical,blend_sha256=sha(blend),reference_sha256=original,objects=names,original_armor_objects=[o.name for o in parts],original_armor_evaluated_triangles=armor_tris,model_material_roles=[white.name,dark.name,cyan.name],immutable_reference_excluded_from_model_budget=True,body_source='Complete closed owned Manny static copy; no head/neck deletion',budget=budget,assembly=assembly,qa=qa,limits=['No rig/weights/animation/native changes','Armor UVs are basic individual face charts; final texel layout/baking later','UV/final texturing and production topology not accepted','Full visual and independent review required before secondary forms'])
     (OUT/'blockout-qa.json').write_text(json.dumps(report,indent=2)+'\n')
+    (OUT/'surface-fit.json').write_text(json.dumps(dict(method='Measured horizontal body cross-section; inward-only bounded fit',max_distance_m=.065,samples=surface_fit),indent=2)+'\n')
     if not technical:print('LANCER_BLOCKOUT_QA_FAILED diagnostic blend only; inspect full report before any acceptance')
     print('LANCER_BLOCKOUT_BUILD_OK '+str(blend))
 
