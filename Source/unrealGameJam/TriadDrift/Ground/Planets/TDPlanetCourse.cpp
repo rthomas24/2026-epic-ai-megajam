@@ -1,6 +1,9 @@
 // Triad Drift - planet layouts (ENG-25 Verdance, ENG-26 Cinder). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "Components/MeshComponent.h"
+#include "TimerManager.h"
+#include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
@@ -138,6 +141,34 @@ void ATDPlanetCourse::BeginPlay()
 		BuildVerdance();
 	}
 	MarkCompletedFromProgress();
+	AdoptTerrainMaterial();
+}
+
+void ATDPlanetCourse::AdoptTerrainMaterial()
+{
+	UWorld* World = GetWorld();
+	if (!GroundSlab || !World)
+	{
+		return;
+	}
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It)
+	{
+		TArray<UMeshComponent*> Meshes;
+		It->GetComponents(Meshes);
+		for (const UMeshComponent* M : Meshes)
+		{
+			if (UMaterialInterface* Mat = M && M->GetNumMaterials() > 0 ? M->GetMaterial(0) : nullptr)
+			{
+				GroundSlab->SetMaterial(0, Mat); // the slab and the terrain read as one ground (T4, ENG-34)
+				return;
+			}
+		}
+	}
+	// The terrain may be spawned (or its first chunk built) a moment after the course: try again for ~10 s.
+	if (++TerrainMaterialTries < 40)
+	{
+		World->GetTimerManager().SetTimer(TerrainMaterialTimer, this, &ATDPlanetCourse::AdoptTerrainMaterial, 0.25f, false);
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -235,7 +266,7 @@ void ATDPlanetCourse::ScatterFlora(int32 Count, float Radius, uint32 Seed)
 	for (int32 Tries = 0; Tries < Count * 6 && Placed < Count; ++Tries)
 	{
 		const FVector P(Rng.FRandRange(-Radius * 0.35f, Radius), Rng.FRandRange(-Radius, Radius), 0.f);
-		if (P.Size2D() < 3500.f || IsOnRoute(P, 1100.f))
+		if (P.Size2D() < 3500.f || IsOnRoute(P, 1100.f) || !IsOnGround(P, 600.f))
 		{
 			continue; // keep the pads, the routes and the arenas clear
 		}
@@ -323,7 +354,7 @@ bool ATDPlanetCourse::ScatterMeshes(const TArray<FScatter>& Kinds, uint32 Seed)
 			const float A = Rng.FRandRange(0.f, 2.f * PI);
 			const float R = FMath::Sqrt(Rng.FRandRange(FMath::Square(K.Radius.X), FMath::Square(K.Radius.Y)));
 			const FVector P = K.Center + FVector(FMath::Cos(A) * R, FMath::Sin(A) * R, 0.f);
-			if (P.Size2D() < 3500.f || IsKeptClear(P, K.Clearance))
+			if (P.Size2D() < 3500.f || IsKeptClear(P, K.Clearance) || !IsOnGround(P, 300.f))
 			{
 				continue; // the pad, the routes and every objective area stay clear
 			}
@@ -662,9 +693,12 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 void ATDPlanetCourse::BuildVerdance()
 {
 	using namespace TDCourseColors;
-	// Ground: one lit slab, 4 km, top at the pad (z = 0). The rig's grey slab is switched off.
-	if (UStaticMeshComponent* Ground = Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), VerdanceGround))
+	// Ground: one lit slab, top at the pad (z = 0), the gameplay box plus ~600 m (ENG-34): T4's terrain takes over
+	// from its edge. The rig's grey slab is switched off.
+	GroundBox = FBox2D(FVector2D(-3100.f, -10600.f), FVector2D(14100.f, 10100.f));
+	if (UStaticMeshComponent* Ground = Block(EShape::Cube, FVector(GroundBox.GetCenter(), -100.f), FVector(GroundBox.GetSize(), 200.f), VerdanceGround))
 	{
+		GroundSlab = Ground;
 		if (UMaterialInterface* GroundArt = GroundMaterialVerdance.IsNull() ? nullptr : (FPackageName::DoesPackageExist(GroundMaterialVerdance.ToSoftObjectPath().GetLongPackageName()) ? GroundMaterialVerdance.LoadSynchronous() : nullptr))
 		{
 			Ground->SetMaterial(0, GroundArt); // world-aligned tiling ground (Lead's MI_Ground_*)
@@ -862,8 +896,10 @@ void ATDPlanetCourse::BuildVerdance()
 void ATDPlanetCourse::BuildCinder()
 {
 	using namespace TDCourseColors;
-	if (UStaticMeshComponent* Ground = Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), CinderGround))
+	GroundBox = FBox2D(FVector2D(-3100.f, -10600.f), FVector2D(20100.f, 9600.f));
+	if (UStaticMeshComponent* Ground = Block(EShape::Cube, FVector(GroundBox.GetCenter(), -100.f), FVector(GroundBox.GetSize(), 200.f), CinderGround))
 	{
+		GroundSlab = Ground;
 		if (UMaterialInterface* GroundArt = GroundMaterialCinder.IsNull() ? nullptr : (FPackageName::DoesPackageExist(GroundMaterialCinder.ToSoftObjectPath().GetLongPackageName()) ? GroundMaterialCinder.LoadSynchronous() : nullptr))
 		{
 			Ground->SetMaterial(0, GroundArt); // world-aligned tiling ground (Lead's MI_Ground_*)

@@ -31,7 +31,15 @@ public:
 
 	/** True if a ship of ClearanceRadius fits at Location (no world-static geometry). */
 	static bool HasClearance(const UWorld* World, const FVector& Location, float ClearanceRadius);
-	void SetPartner(ATDPortal* InPartner) { Partner = InPartner; }
+	/** Pairing resets the crossing history: a lone portal's stale positions must not teleport a ship that never touched the
+	 *  disc (second review, ENG-09). */
+	void SetPartner(ATDPortal* InPartner)
+	{
+		Partner = InPartner;
+		LastPositions.Reset();
+	}
+	/** Ships whose last position this portal remembers (tests). */
+	int32 GetTrackedCount() const { return LastPositions.Num(); }
 	void Close();
 
 	/**
@@ -71,9 +79,27 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> IdleFX;
 
-	/** Engine-shape disc + rim, shown until UTDTravelFX::PortalIdle has art. */
+	/**
+	 * The swirling magenta membrane (T4's M_TD_PortalMembrane on a flat disc) inside the bright rim, shown until
+	 * UTDTravelFX::PortalIdle has art. Null when the material is missing (the rim and its thin inner rings show instead).
+	 */
 	UPROPERTY(Transient)
 	TObjectPtr<UStaticMeshComponent> PlaceholderDisc;
+
+	/** Hard reference (always cooked): /Game/TriadDrift/Gameplay/Materials/M_TD_PortalMembrane. */
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> MembraneMaterial;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> DiscMesh;
+
+public:
+	/** The membrane disc (tests); null with art or without the material. */
+	UStaticMeshComponent* GetMembrane() const { return PlaceholderDisc; }
+	static constexpr float MembraneBrightness = 1.4f;
+	static constexpr float MembraneSwirlSpeed = 1.2f;
+
+private:
 
 	TWeakObjectPtr<ATDPortal> Partner;
 	TWeakObjectPtr<AActor> PortalInstigator;

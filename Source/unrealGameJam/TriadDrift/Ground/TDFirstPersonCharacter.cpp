@@ -34,6 +34,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Ground/Camera/TDThirdPersonCameraComponent.h"
+#include "TriadDrift/Ground/TDGroundAudio.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
@@ -86,6 +87,13 @@ ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& Objec
 
 	Blade = CreateDefaultSubobject<UTDEnergyBladeComponent>(TEXT("Blade"));
 
+	StepSoilSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Step_Soil"));
+	StepRockSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Step_Rock"));
+	DashSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Dash"));
+	JumpSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Jump"));
+	LandSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Land"));
+	HurtSound = TDGroundAudio::Default(TEXT("Foot/MSS_Player_Hurt"));
+
 	// ENG-32: T3's chase rig on the capsule, and the blade the body holds whenever the whole pilot is on screen.
 	ThirdPersonRig = CreateDefaultSubobject<UTDThirdPersonCameraComponent>(TEXT("ThirdPersonCamera"));
 	ThirdPersonRig->SetupAttachment(GetCapsuleComponent());
@@ -137,6 +145,10 @@ void ATDFirstPersonCharacter::BeginPlay()
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
 
 	ThirdPersonRig->SetFirstPersonCamera(Camera);
+	if (const UWorld* World = GetWorld())
+	{
+		bRockyGround = bRockyGround || World->GetMapName().Contains(TEXT("Cinder"));
+	}
 	if (UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this))
 	{
 		// The saved choice applies at start-up and after every level travel (a new pilot each level).
@@ -605,6 +617,28 @@ void ATDFirstPersonCharacter::PlayBodyAction(FName Anim, float Rate, bool bUpper
 	}
 }
 
+void ATDFirstPersonCharacter::PlayFootSound(const TSoftObjectPtr<USoundBase>& Sound, FName Event, bool b2D)
+{
+	const FVector Feet = GetActorLocation() - FVector(0.f, 0.f, GetSimpleCollisionHalfHeight());
+	TDGroundAudio::Play(this, Sound, Feet, b2D, SoundEvents, Event);
+}
+
+void ATDFirstPersonCharacter::UpdateFootsteps(float DeltaSeconds)
+{
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (!Move || !Move->IsMovingOnGround() || bSliding || bDashing || bMantling)
+	{
+		return;
+	}
+	StepDistance += (float)GetVelocity().Size2D() * DeltaSeconds;
+	const float Stride = bSprinting ? SprintStepStride : StepStride;
+	if (StepDistance >= Stride)
+	{
+		StepDistance = FMath::Fmod(StepDistance, Stride);
+		PlayFootSound(bRockyGround ? StepRockSound : StepSoilSound, bRockyGround ? FName(TEXT("StepRock")) : FName(TEXT("StepSoil")));
+	}
+}
+
 void ATDFirstPersonCharacter::UpdateCloseCombat(float DeltaSeconds)
 {
 	if (!ThirdPersonRig)
@@ -763,6 +797,7 @@ bool ATDFirstPersonCharacter::TryJump()
 	{
 		LaunchCharacter(FVector(0.f, 0.f, Tuning.JumpZ), false, true);
 		JumpsUsed = 1;
+		PlayFootSound(JumpSound, TEXT("Jump"));
 		return true;
 	}
 	if (JumpsUsed < 2)
@@ -770,6 +805,7 @@ bool ATDFirstPersonCharacter::TryJump()
 		// Falling off a ledge without jumping still allows exactly one air jump.
 		LaunchCharacter(FVector(0.f, 0.f, Tuning.DoubleJumpZ), false, true);
 		JumpsUsed = 2;
+		PlayFootSound(JumpSound, TEXT("Jump"));
 		return true;
 	}
 	return false;
@@ -804,6 +840,7 @@ bool ATDFirstPersonCharacter::TryDash()
 	StartForcedMove(Dir * (Tuning.DashDistance / Duration), Duration, Tuning.DashExitSpeed);
 	bDashing = true;
 	Health->SetInvulnerableFor(Tuning.DashIFrames);
+	PlayFootSound(DashSound, TEXT("Dash"));
 	return true;
 }
 
@@ -1065,6 +1102,11 @@ void ATDFirstPersonCharacter::PingObjective()
 void ATDFirstPersonCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
 {
 	UE_LOG(LogTriadDrift, Verbose, TEXT("Pilot hit: %.0f %s from %s, hull %.0f"), HullDamage, *UEnum::GetValueAsString(Info.Kind), *GetNameSafe(Info.Causer), InHealth ? InHealth->GetHull() : 0.f);
+	if (HullDamage > 0.f && GetWorld() && GetWorld()->GetTimeSeconds() - LastHurtSoundTime > 0.25)
+	{
+		LastHurtSoundTime = GetWorld()->GetTimeSeconds(); // a burst of bolts is one grunt, not five
+		PlayFootSound(HurtSound, TEXT("Hurt"), true);
+	}
 	if (HullDamage > 0.f && InHealth && InHealth->IsAlive() && Blade && !Blade->IsAttacking())
 	{
 		// A flinch the camera can read in third person: front or back by where the hit came from.
@@ -1121,6 +1163,8 @@ void ATDFirstPersonCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 	JumpsUsed = 0;
+	StepDistance = 0.f; // the landing is the step
+	PlayFootSound(LandSound, TEXT("Land"));
 	if (Blade)
 	{
 		Blade->NotifyOwnerLanded();
@@ -1335,6 +1379,10 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 	UpdateBodyActions();
 	UpdateHandBlade(DeltaSeconds);
 	UpdateCloseCombat(DeltaSeconds);
+	if (!IsDead())
+	{
+		UpdateFootsteps(DeltaSeconds);
+	}
 
 	// Mirror state for animation and HUD.
 	BladeState = GetBladeState();

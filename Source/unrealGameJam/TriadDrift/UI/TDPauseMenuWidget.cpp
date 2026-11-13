@@ -42,11 +42,48 @@ void UTDPauseMenuWidget::NativeConstruct()
 	Super::NativeConstruct();
 	Selected = 0;
 	bConfirming = false;
+	DifficultyLine = ReadDifficultyInPlay(); // fresh each opening: it may have changed through SETTINGS
 	if (APlayerController* PC = GetOwningPlayer())
 	{
 		SetUserFocus(PC);
 		SetKeyboardFocus();
 	}
+}
+
+FString UTDPauseMenuWidget::ReadDifficultyInPlay()
+{
+	// T1's static UFUNCTION GetDifficultyInPlay() -> ETDDifficulty, by name so this file builds before it lands.
+	UFunction* Get = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("GetDifficultyInPlay"));
+	const FProperty* Ret = Get ? Get->GetReturnProperty() : nullptr;
+	if (!Ret)
+	{
+		return FString();
+	}
+	TArray<uint8> Params;
+	Params.SetNumZeroed(FMath::Max<int32>(Get->ParmsSize, 8));
+	UTDSettingsSubsystem::StaticClass()->GetDefaultObject()->ProcessEvent(Get, Params.GetData());
+	int64 Value = 0;
+	const UEnum* Enum = nullptr;
+	if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(Ret))
+	{
+		Value = EnumProp->GetUnderlyingProperty()->GetSignedIntPropertyValue(EnumProp->ContainerPtrToValuePtr<void>(Params.GetData()));
+		Enum = EnumProp->GetEnum();
+	}
+	else if (const FByteProperty* ByteProp = CastField<FByteProperty>(Ret))
+	{
+		Value = ByteProp->GetPropertyValue_InContainer(Params.GetData());
+		Enum = ByteProp->Enum;
+	}
+	if (!Enum)
+	{
+		return FString();
+	}
+	FString Name = Enum->GetDisplayNameTextByValue(Value).ToString();
+	if (Name.IsEmpty())
+	{
+		Name = Enum->GetNameStringByValue(Value);
+	}
+	return Name.ToUpper();
 }
 
 FString UTDPauseMenuWidget::ItemLabel(ETDPauseItem Item)
@@ -298,6 +335,12 @@ int32 UTDPauseMenuWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 
 	P.Glass(PanelX, PanelY, PanelW, PanelH, Accent, true);
 	P.Label(RowX, PanelY + 22, TEXT("SCENE ON HOLD"), 11, Accent, 150);
+	if (!DifficultyLine.IsEmpty())
+	{
+		// The difficulty in play, on the same line, right side (T1, at the Lead's request).
+		P.Label(RowX + RowW - 190, PanelY + 22, TEXT("DIFFICULTY"), 11, Dim, 120);
+		P.Label(RowX + RowW - 82, PanelY + 22, DifficultyLine, 11, Ink, 120);
+	}
 	P.Title(RowX, PanelY + 46, TEXT("PAUSED"), 40, Ink);
 	P.Line({ RowX, PanelY + 112 }, { RowX + RowW, PanelY + 112 }, Accent.CopyWithNewOpacity(.2f));
 

@@ -56,6 +56,13 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | | round 1 (26 pieces) | `a94988c` | same |
 | Cinder magma surface | first version (current) | `d3a4643` | same |
 | Planets from space | self-lit with night side (current) | `219057b` | `Content/TriadDrift/Gameplay/Props/Planets`, `ArtSource/EngProps/Planets` |
+| Planet terrain materials | `M_TD_Terrain` r1: slope rock, peaks, lava valleys, procedural textures (current) | `a101603` | `Content/TriadDrift/Gameplay/Props/Planets`, `ArtSource/EngProps/Planets` (`review/terrain_r1_*.jpg`); before it the terrain wore `MI_Ground_*` |
+| Planet terrain shape | M2: 2.5 km hero peaks, regions, skyline (current on `lead/int`) | `e77e701` | `Source/unrealGameJam/TriadDrift/World/TDTerrainField.*` (code; `td.PlanetTerrain 0` brings back the flat slab) |
+| | M1: first procedural mountains | `71d11c5` | same |
+| Niagara effects (ENG-37) | tier 1 round 2, unwired | `02bfcbc` | `Content/TriadDrift/Gameplay/VFX`, `ArtSource/EngVFX` (`review/tier1_r1_*`, `tier1_r2_*`, `rounds/r2/`) |
+| Fallback sound set (ENG-35) | first version (current) | `31f2120` (+ `7f2c175`) | `Content/TriadDrift/Gameplay/Audio`, `ArtSource/EngAudio` (recipes rebuild every sound) |
+| HUD | ENG-36 flight HUD P1 (in progress, not default) | T2 `9754f24` | spec `docs/eng/hud-redesign.md`; Nick's `WBP_SpaceHUD` and the developer HUD stay selectable |
+| AI concepts and terrain texture sets (Grok Bot) | r1 / r2 per folder, never overwritten | `20060b1` | `ArtSource/EngAI/**` |
 | Planet ground | anti-tiling (current) | `44d790a` | same |
 | Crew (trooper, grunt, heavy) | centimetre rig on `SKEL_NullCrew` (current) | `5dc659f` | `Content/TriadDrift/Gameplay/Characters/{NullTrooper,NullGrunt,NullHeavy,Crew}` |
 | | mannequin-skeleton versions | `17e0437` and earlier | same |

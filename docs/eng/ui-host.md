@@ -41,6 +41,19 @@ So:
   `bUseNativeSpaceHUD` (default **off** until the Lead approves it from play), `SpaceHUDClass`
   (default `WBP_SpaceHUD`), `NativeFallbackClass` (`/Script/TriadDriftHUD.TDSpaceHUDWidget`), `ZOrder` 10.
 - Console: `TD.UI.NativeHUD -1|0|1` (-1 = use the setting, 0 = force off, 1 = force on).
+- **Which space HUD (ENG-36):** `SpaceHUD = Engineering | Nick | Dev` (`ETDSpaceHUDChoice`). `Unset` (the default)
+  keeps the old meaning of `bUseNativeSpaceHUD` (on = Nick's, off = the dev HUD), so nothing changes until the Lead
+  sets `SpaceHUD=Engineering` in `DefaultGame.ini`. Console `TD.UI.SpaceHUD -1|0|1|2` (-1 = the setting, 0 = dev,
+  1 = Nick's, 2 = engineering) wins over everything; `TD.UI.NativeHUD 1` still forces Nick's HUD and `0` turns his
+  off. A live change replaces the widget on the next host check (0.2 s). Every HUD stays selectable (Ryan: keep the
+  old look recoverable).
+- **The engineering HUD** is `UTDFlightHUDWidget` (`Source/.../UI/TDFlightHUDWidget.*`), built to
+  `docs/eng/hud-redesign.md`: painted in code, it samples the squad manager every frame into a testable `FView`. It
+  has the same `SetDataSource` / `RefreshData` names as Nick's widget, so the host drives both alike. P1 (reticle with
+  hull and shield arcs, signature power pip, squad strip, objective line) is in; P2 (target bracket, ticks, edge
+  arrows, missile, hit arcs, boost / hyperdrive bars, lower lane) comes next. Until P2 it claims no surface, and since
+  the dev HUD's supplement mode does not draw the reticle, brackets or arrows, it must not become the default before P2.
+  Tests: `TriadDrift.UI.FlightHUD`.
 - Dev: `TD.UI.Status` logs whether it's shown, the class, the data source, the source's current target
   (and where it projects), and the widget's decoded squad cards.
 
