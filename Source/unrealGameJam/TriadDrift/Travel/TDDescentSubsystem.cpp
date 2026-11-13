@@ -7,6 +7,7 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "Components/AudioComponent.h"
 #include "Components/MeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -124,6 +125,7 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 		bDestLoaded = true;
 		bDestFirstFrameSeen = false;
 		bFirstViewBuilt = false;
+		bArrivalSettled = false;
 	}
 	if (!IsTiming() || !World || World->GetGameInstance() != GetGameInstance()) { return; }
 	PostLoadTime = FPlatformTime::Seconds() - TimingStart;
@@ -309,7 +311,29 @@ void UTDDescentSubsystem::TickCover(float Dt)
 				const double Ms = Terrain->BuildFirstViewAt(ArrivalCourseLocal);
 				Mark(*FString::Printf(TEXT("terrain first view at the arrival (%.0f ms; setup %.0f ms)"), Ms, Terrain->GetSetupMs()));
 			}
-			const bool bTerrainReady = !Terrain || (Terrain->GetChunkCount() > 0 && Terrain->GetPendingCount() == 0);
+			bool bTerrainReady = !Terrain || (Terrain->GetChunkCount() > 0 && Terrain->GetPendingCount() == 0);
+			// The flight zone fits its ceiling to the terrain (highest ground + 400 m): wait for it, then keep the arrival
+			// out of the ceiling's warning band (a high arrival over high ground showed "EDGE OF THE FLIGHT AREA").
+			ATDAtmosphereFlightZone* Zone = nullptr;
+			for (TActorIterator<ATDAtmosphereFlightZone> It(World); It; ++It) { Zone = *It; break; }
+			if (Terrain && Zone && !Zone->IsFittedToTerrain()) { bTerrainReady = false; }
+			if (bTerrainReady && !bArrivalSettled && ArrivalWorld.Get() == World && Zone)
+			{
+				bArrivalSettled = true;
+				const float Top = Zone->GetZoneBox().Max.Z - CeilingClearanceCm;
+				for (TActorIterator<ATDShip> It(World); It; ++It)
+				{
+					FVector L = It->GetActorLocation();
+					if (L.Z <= Top) { continue; }
+					const float Ground = Terrain ? Terrain->GetHeightAt(L) : L.Z - ArrivalAltitudeCm;
+					const float NewZ = FMath::Max(Top, Ground + 30000.f);
+					Mark(*FString::Printf(TEXT("arrival lowered %.0f m under the ceiling (%s)"), (L.Z - NewZ) / 100.f, *It->GetName()));
+					L.Z = NewZ;
+					It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
+				}
+				FVector A = ArrivalWorldXf.GetLocation();
+				if (A.Z > Top) { A.Z = FMath::Max(Top, (Terrain ? Terrain->GetHeightAt(A) : A.Z) + 30000.f); ArrivalWorldXf.SetLocation(A); } // retakes too
+			}
 			const double Held = Now - DestFirstFrameAt;
 			if (bTerrainReady && Held >= RevealMinHoldSeconds) { bReveal = true; Why = Terrain ? TEXT("terrain built") : TEXT("no terrain"); }
 			else if (Held >= RevealMaxHoldSeconds) { bReveal = true; Why = TEXT("4 s hold limit"); }

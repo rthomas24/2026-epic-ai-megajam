@@ -83,6 +83,8 @@ public:
 	static constexpr float ArrivalAltitudeCm = 100000.f;
 	/** Arrivals stay within 6 km of the pad, inside the zone's edge-warning band (T4's ring reaches 7 km). */
 	static constexpr float MaxArrivalRadiusCm = 600000.f;
+	/** Arrivals sit at least this far under the fitted zone ceiling (its warning band is 500 m). */
+	static constexpr float CeilingClearanceCm = 65000.f;
 
 	// ---- Hull heat (ENG-38): M_TD_Ship's HeatGlow 0..1 on every squad ship (player and wingmen), on dynamic instances
 	// made only for materials that expose the parameter. Rises with the dive, holds under the cover, decays over
@@ -158,6 +160,7 @@ private:
 	ETDDestination CoverDestination = ETDDestination::Galaxy;
 	TWeakObjectPtr<UWorld> DestWorld;
 	bool bFirstViewBuilt = false;
+	bool bArrivalSettled = false;
 
 	bool bArrivalPending = false;
 	ETDDestination ArrivalPlanet = ETDDestination::Verdance;
