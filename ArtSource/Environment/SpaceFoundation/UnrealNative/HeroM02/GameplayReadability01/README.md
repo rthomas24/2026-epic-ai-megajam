@@ -23,6 +23,26 @@ never launches Unreal.** Actual execution additionally requires `-Execute`, a fr
 serialized slot, at least 4 GiB available RAM and no competing Unreal, Blender,
 shader compiler or C++ compiler. Source readiness is not a slot grant.
 
+After the first native attempt exhausted available memory, this driver also samples
+Windows available physical RAM every two seconds. Below 1.5 GiB continuously for
+ten seconds stops only its owned process tree after verifying parent PID, exact
+project, private port and isolated user directory. Samples and the stop reason are
+preserved; a memory stop prevents technical pass. No concurrent MCP calls occur.
+This guard does not authorize another full-editor attempt: a lower-memory game-only
+route and fresh Lead review/grant are required first. The first run produced no
+paired captures and remains failed evidence, not a successful native capability test.
+
+Observed attempt 01: published driver `6d57357`, host `a0c714a`, grant
+`Lead-Hero-20261112-2158`, engine PID 21188. Diagnostics are preserved at
+`HeroM02/Saved/GameplayReadability01/20261113T025834310148Z/`. The probe registered
+as `PythonTypes.HeroReadabilityProbe_0xAE4810B7`; the original discovery matcher
+rejected that generated suffix and timed out before prepare/PIE/captures. The
+process ended with failure/forced termination and no final engine result file.
+Its report records zero captures, zero protected-input changes, identical host
+Git status and all 22 frozen checkpoint hashes unchanged. Lead observed free RAM
+fall to 0.34 GiB during the editor run. The suffix matcher and runtime RAM monitor
+are source fixes pending review; they do not turn attempt 01 into a passing run.
+
 ## Bounded execution
 
 One hidden-start editor on private port 8024 loads actual `L_Galaxy`. A startup

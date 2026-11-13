@@ -6,6 +6,7 @@ unique run directory: {"readable": true, "reviewer": "...", "notes": "..."}.
 False, absent after 90 seconds, or any error ends the run without extended testing.
 """
 import argparse
+import ctypes
 import datetime as dt
 import hashlib
 import importlib.util
@@ -17,6 +18,7 @@ import statistics
 import struct
 import subprocess
 import sys
+import threading
 import time
 import zlib
 
@@ -41,6 +43,60 @@ def git(root, *args):
 
 def write_json(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+
+
+def available_ram_gib():
+    class MemoryStatus(ctypes.Structure):
+        _fields_ = [('length', ctypes.c_ulong), ('load', ctypes.c_ulong)] + [
+            (name, ctypes.c_ulonglong) for name in (
+                'total_phys', 'avail_phys', 'total_page', 'avail_page',
+                'total_virtual', 'avail_virtual', 'avail_extended')]
+    status = MemoryStatus()
+    status.length = ctypes.sizeof(status)
+    if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+        raise ctypes.WinError()
+    return status.avail_phys / 1024 ** 3
+
+
+def monitor_memory(process, project, out, finished):
+    """OS telemetry only, never a concurrent MCP call. Kill only this verified child tree."""
+    low_since = None
+    while not finished.is_set() and process.poll() is None:
+        now = time.monotonic()
+        try:
+            free = available_ram_gib()
+            low_since = (low_since if low_since is not None else now) if free < 1.5 else None
+            sample = {'utc': dt.datetime.now(dt.timezone.utc).isoformat(), 'free_gib': free,
+                      'below_1_5_seconds': 0 if low_since is None else now - low_since}
+            reason = 'sustained_available_ram_below_1_5_gib' if sample['below_1_5_seconds'] >= 10 else None
+        except Exception as error:
+            sample = {'utc': dt.datetime.now(dt.timezone.utc).isoformat(), 'probe_error': repr(error)}
+            reason = 'runtime_memory_probe_failed'
+        with (out / 'memory_samples.jsonl').open('a', encoding='utf-8') as stream:
+            stream.write(json.dumps(sample) + '\n')
+        if reason:
+            evidence = {'reason': reason, 'sample': sample, 'pid': process.pid,
+                        'expected_parent_pid': os.getpid(), 'identity_verified': False}
+            try:
+                query = ("Get-CimInstance Win32_Process -Filter 'ProcessId=" + str(process.pid) +
+                         "' | Select-Object ProcessId,ParentProcessId,CommandLine | ConvertTo-Json -Compress")
+                identity = json.loads(subprocess.check_output(
+                    ['powershell', '-NoProfile', '-Command', query], text=True, timeout=5))
+                command = identity['CommandLine'].replace('\\', '/').lower()
+                assert identity['ParentProcessId'] == os.getpid()
+                assert str(project).replace('\\', '/').lower() in command
+                assert '-modelcontextprotocolport=8024' in command
+                assert str(out / 'RuntimeUser').replace('\\', '/').lower() in command
+                assert process.poll() is None
+                evidence.update({'identity_verified': True, 'identity': identity})
+                write_json(out / 'memory_stop.json', evidence)
+                subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'],
+                               capture_output=True, timeout=10)
+            except Exception as error:
+                evidence['stop_error'] = repr(error)
+                write_json(out / 'memory_stop.json', evidence)
+            return
+        finished.wait(2.0)
 
 
 def png_info(path):
@@ -165,6 +221,10 @@ def execute(args, project, mounts):
     startup.wShowWindow = 0
     environment = dict(os.environ, TD_HERO_RUN_DIR=str(out))
     process = subprocess.Popen(argv, startupinfo=startup, env=environment)
+    memory_finished = threading.Event()
+    memory_thread = threading.Thread(target=monitor_memory,
+        args=(process, project, out, memory_finished), daemon=True)
+    memory_thread.start()
     print('EDITOR_PID', process.pid, 'OUTPUT', out, flush=True)
     probe_name = None
     pie = False
@@ -250,7 +310,8 @@ def execute(args, project, mounts):
             try:
                 if log.exists() and 'HERO_GAMEPLAY_PROBE_REGISTERED' in log.read_text(errors='replace'):
                     client.connect()
-                    names = [s for s in strings(client.tool('list_toolsets')) if s.endswith('.HeroReadabilityProbe')]
+                    names = [name for s in strings(client.tool('list_toolsets'))
+                             for name in re.findall(r'[A-Za-z_][A-Za-z0-9_.]*\.HeroReadabilityProbe(?:_0x[0-9A-Fa-f]+)?(?![A-Za-z0-9_])', s)]
                     if names:
                         probe_name = sorted(set(names))[0]
                         break
@@ -348,6 +409,10 @@ def execute(args, project, mounts):
             subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'], capture_output=True)
             report['process_exit'] = process.wait(timeout=15)
             report['forced_termination'] = True
+        memory_finished.set()
+        memory_thread.join(timeout=7)
+        memory_stop = out / 'memory_stop.json'
+        report['runtime_memory_stop'] = json.loads(memory_stop.read_text()) if memory_stop.exists() else None
         after = protected(project.parent)
         write_json(out / 'protected_after.json', after)
         report['changed_protected_inputs'] = sorted(k for k in before.keys() | after.keys() if before.get(k) != after.get(k))
@@ -370,6 +435,7 @@ def execute(args, project, mounts):
             report.get('process_exit') == 0 and result.get('exit_code') == 0 and result.get('reason') == 'ok' and
             not result.get('suppressed_dialogs') and digest.returncode == 0 and
             not report.get('cleanup_error') and not report.get('forced_termination') and
+            not report['runtime_memory_stop'] and
             not report['changed_protected_inputs'] and report['frozen22_unchanged'] and
             report['host_status_before'] == report['host_status_after'])
         save()
