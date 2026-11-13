@@ -435,7 +435,7 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 		PC->SetViewTarget(Camera);
 	}
 	BeginShot(0);
-	UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing %d shots, %.1f s"), Shots.Num(), GetTotalDuration());
+	UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing %d shots, %.1f s, sun toward %s"), Shots.Num(), GetTotalDuration(), *SunDirection().ToCompactString());
 	return true;
 }
 
@@ -445,8 +445,24 @@ void UTDIntroDirector::BuildShots()
 	const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this);
 	const FTDGalaxyLayoutData Layout = Galaxy ? Galaxy->GetLayout() : ATDGalaxyLayout::MakeDefaultLayout();
 	const FVector Up = FVector::UpVector;
-	const FVector S0 = Layout.PlayerStart.GetLocation();
-	const FVector F0 = Layout.PlayerStart.GetRotation().GetForwardVector().GetSafeNormal2D();
+	// Anchor on the player's ship where the run really starts (the layout's start when there is no squad yet).
+	FTransform Start = Layout.PlayerStart;
+	if (const APlayerController* PC = GetPlayer())
+	{
+		for (const FHeldShip& H : Held)
+		{
+			if (H.Ship.IsValid() && H.Ship.Get() == PC->GetPawn())
+			{
+				Start = H.Transform;
+			}
+		}
+	}
+	const FVector S0 = Start.GetLocation();
+	FVector F0 = Start.GetRotation().GetForwardVector().GetSafeNormal2D();
+	if (F0.IsNearlyZero())
+	{
+		F0 = FVector::ForwardVector;
+	}
 	const FVector R0 = FVector::CrossProduct(Up, F0).GetSafeNormal();
 	const FVector Sun = SunDirection();
 	const float FormationGap = 600.f;
@@ -457,8 +473,9 @@ void UTDIntroDirector::BuildShots()
 		FTDIntroShot S;
 		S.Id = TEXT("Nebula");
 		S.Duration = 6.f;
-		const FVector Away = (-Sun + Up * 0.25f + R0 * 0.3f).GetSafeNormal();
-		S.CamFrom = S0 - F0 * 8000.f + Up * 1500.f;
+		// High above the combat plane, looking out and up: nothing but the sky (no ruins or rocks in frame).
+		const FVector Away = (-Sun + Up * 0.45f + R0 * 0.3f).GetSafeNormal();
+		S.CamFrom = S0 - F0 * 8000.f + Up * 30000.f;
 		S.CamTo = S.CamFrom + Away * 2500.f;
 		S.LookFrom = S.CamFrom + Away * 100000.f;
 		S.LookTo = S.LookFrom;
@@ -497,11 +514,13 @@ void UTDIntroDirector::BuildShots()
 		FTDIntroShot S;
 		S.Id = TEXT("Squad");
 		S.Duration = 8.f;
-		S.CamFrom = S0 + R0 * 1300.f - Up * 260.f;
+		// Above the combat plane and its asteroid field: nothing between the lens and the ships.
+		const FVector P3 = S0 + Up * 26000.f;
+		S.CamFrom = P3 + R0 * 1300.f - Up * 260.f;
 		S.CamTo = S.CamFrom + F0 * 600.f;
 		S.bSquad = true;
-		S.SquadFrom = S0 - F0 * 9000.f;
-		S.SquadTo = S0 + F0 * 13400.f; // 2800 cm/s
+		S.SquadFrom = P3 - F0 * 9000.f;
+		S.SquadTo = P3 + F0 * 13400.f; // 2800 cm/s
 		S.bTrackSquad = true;
 		S.FocalFrom = S.FocalTo = 24.f;
 		S.FStop = 2.f;
@@ -593,10 +612,12 @@ void UTDIntroDirector::BuildShots()
 		S.bSquad = true;
 		S.SquadFrom = Gate - Dir * 11000.f;
 		S.SquadTo = Gate + Dir * 5000.f;
-		S.CamFrom = S.SquadFrom - Dir * 2800.f + Side * 1100.f + Up * 420.f;
-		S.CamTo = S.SquadTo - Dir * 2800.f + Side * 1100.f + Up * 420.f;
+		// The lens tracks in behind the squad and settles beside the ring, outside it (never through the membrane),
+		// so the wing flies on through the gate toward Cinder.
+		S.CamFrom = S.SquadFrom - Dir * 2800.f + Side * 1300.f + Up * 450.f;
+		S.CamTo = Gate - Dir * 1600.f + Side * 3600.f + Up * 700.f;
 		S.LookFrom = S.SquadFrom + Dir * 6000.f;
-		S.LookTo = S.SquadTo + Dir * 6000.f;
+		S.LookTo = Gate + Dir * 9000.f;
 		S.FocalFrom = S.FocalTo = 35.f;
 		S.FStop = 4.f;
 		S.FocusDistance = 3200.f;
