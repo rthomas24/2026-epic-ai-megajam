@@ -11,6 +11,9 @@
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
@@ -76,6 +79,7 @@ void ATDMenuGameMode::StartPlay()
 	{
 		GI->NotifyLevelEntered(bShowingVictory ? ETDDestination::Victory : ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
+	StartMusic();
 	UClass* Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::MainMenu);
 	TDFrontEnd::ShowWidget(GetWorld(), Widget, true);
 	if (!Widget)
@@ -84,8 +88,47 @@ void ATDMenuGameMode::StartPlay()
 	}
 }
 
+void ATDMenuGameMode::StartMusic()
+{
+	// DA_UI_Style.MenuMusic (N-015): Nick's asset carries its own volume and class; no overrides here.
+	const UTDUIStyle* Style = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
+	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(UTDUIStyle::StaticClass()->FindPropertyByName(TEXT("MenuMusic"))) : nullptr;
+	if (!Prop)
+	{
+		return;
+	}
+	const FSoftObjectPtr& Soft = *Prop->ContainerPtrToValuePtr<FSoftObjectPtr>(Style);
+	USoundBase* Sound = Cast<USoundBase>(Soft.LoadSynchronous());
+	if (!Sound)
+	{
+		return; // no music assigned: silence, nothing created
+	}
+	// A 2D UI sound on the menu mode itself: it goes when the map goes (no persistence across travel).
+	Music = NewObject<UAudioComponent>(this, TEXT("MenuMusic"));
+	Music->SetSound(Sound);
+	Music->bAllowSpatialization = false;
+	Music->bIsUISound = true;
+	Music->bAutoDestroy = false;
+	Music->RegisterComponentWithWorld(GetWorld());
+	Music->Play();
+	bMusicStarted = true;
+}
+
+void ATDMenuGameMode::FadeOutMusic()
+{
+	if (Music)
+	{
+		Music->FadeOut(1.f, 0.f); // a short fade as the travel starts
+		bMusicFading = true;
+	}
+}
+
 void ATDMenuGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (Music)
+	{
+		Music->Stop();
+	}
 	HidePlaceholder();
 	Super::EndPlay(EndPlayReason);
 }
@@ -98,13 +141,19 @@ bool ATDMenuGameMode::NewGame()
 		return false;
 	}
 	GI->StartNewRun();
+	FadeOutMusic();
 	return GI->TravelTo(ETDDestination::Galaxy, NAME_None);
 }
 
 bool ATDMenuGameMode::ContinueGame()
 {
 	UTDGameInstance* GI = UTDGameInstance::Get(this);
-	return GI && GI->HasContinue() && GI->ContinueRun();
+	if (!GI || !GI->HasContinue())
+	{
+		return false;
+	}
+	FadeOutMusic();
+	return GI->ContinueRun();
 }
 
 bool ATDMenuGameMode::CanContinue() const

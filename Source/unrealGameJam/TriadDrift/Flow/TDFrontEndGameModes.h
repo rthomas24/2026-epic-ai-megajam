@@ -7,6 +7,7 @@
 #include "TDFrontEndGameModes.generated.h"
 
 class UTDUIStyle;
+class UAudioComponent;
 
 /** Front-end widget lookup: an explicit override wins, else Nick's DA_UI_Style, else nothing. */
 struct UNREALGAMEJAM_API FTDFrontEndWidgets
@@ -67,11 +68,25 @@ public:
 	/** True while the code-built placeholder menu is up (no widget assigned in DA_UI_Style). */
 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }
 
+	/** The menu music playing (DA_UI_Style.MenuMusic, 2D, UI sound); null when the style has none. */
+	class UAudioComponent* GetMusic() const { return Music; }
+	bool WasMusicStarted() const { return bMusicStarted; }
+	bool IsMusicFadingOut() const { return bMusicFading; }
+
+	/** Tests: use this style instead of DA_UI_Style. */
+	UPROPERTY(Transient)
+	TObjectPtr<UTDUIStyle> StyleOverride;
+
 private:
+	void StartMusic();
+	void FadeOutMusic();
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> Music;
 	void ShowPlaceholder();
 	void HidePlaceholder();
 	TSharedPtr<class SWidget> Placeholder;
 	bool bShowingVictory = false;
+	bool bMusicStarted = false;
+	bool bMusicFading = false;
 	bool bQuitRequested = false;
 };
 
