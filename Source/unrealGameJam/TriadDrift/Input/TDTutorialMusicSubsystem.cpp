@@ -183,8 +183,12 @@ void UTDTutorialMusicSubsystem::HandleIntroFinished(bool bPlayed, bool bSkipped)
 		if (bWatchedThrough && EnterClock >= 0.f)
 		{
 			// The voice runs on the audio (wall) clock; the intro on its own. Positive = the downbeat came before control.
-			UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: drift at control %+.0f ms (voice at source %.3f s, downbeat %.3f s)"),
-				1000.f * (GetSourceTimeAtControl() - PreludeSeconds()), GetSourceTimeAtControl(), PreludeSeconds());
+			// Intro wall time at control (this clock, unclamped) vs the intro's own time there (shots + hand-off).
+			const float IntroWall = PreludeIntroTime + (ControlClock - PreludeStartClock);
+			const UTDIntroDirector* Director = Intro.IsValid() ? Intro.Get() : UTDIntroDirector::Get(BoundWorld.Get());
+			const float IntroOwn = Director ? Director->GetIntroLength() : -1.f;
+			UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: drift at control %+.0f ms (voice wall age %.3f s after source %.3f, downbeat %.3f) | intro wall %.3f s vs intro time %.3f s"),
+				1000.f * (GetSourceTimeAtControl() - PreludeSeconds()), ControlClock - EnterClock, EnteredAtSource, PreludeSeconds(), IntroWall, IntroOwn);
 		}
 	}
 	else
