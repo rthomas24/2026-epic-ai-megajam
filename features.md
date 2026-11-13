@@ -21,6 +21,8 @@ editing the same files.
 - **STRETCH (optional; only once core is solid):** the **boarding finale**: docking, the Dominion
   interior on foot, the reactor-core fight, the escape run and the escape flight. Without it, the war
   ends in space when the squad destroys the exposed reactor from outside (ENG-18).
+- **Added Nov 12 (Ryan), core:** a Settings page and an on-foot first / third-person camera choice (ENG-32).
+- **Added Nov 12 (Ryan), core:** a high-quality cinematic intro of space, the squad, worlds and the Armada (ENG-33).
 - **Protect above all:** the three-ship switching mechanic and satisfying combat.
 - **C++ first;** use Blueprints when they are clearly faster or necessary.
 - Keep a playable build at all times, coordinate shared-file edits before starting, verify licences
@@ -698,6 +700,90 @@ Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20�
 - **Final zip:** `TeamName_GameName`, < 1 GB (otherwise use butler). Upload the build and fill in the
   submission form with Nick (ART-14).
 
+#### ENG-32 · On-foot third-person camera & the Settings page (CORE, added Nov 12 by Ryan) · `🟨`
+Ryan, Nov 12 (late): "a settings page, and you should be able to switch between first and third person ...
+when you're using a character on the ground". Space flight keeps its own cameras (chase, cockpit); this item is
+**on foot only** (planets, and the stretch interior).
+
+**Camera modes on foot**
+| Mode | What the player sees | Values |
+|---|---|---|
+| First person (default) | Today's view: blade on the camera rig, the body below the neck and its shadow | as ENG-21 |
+| Third person | Over-the-shoulder chase view of the whole pilot | spring arm 320 cm, shoulder offset right 55 cm / up 65 cm, camera lag 12, rotation lag 18, collision probe 12 cm, FOV 85 |
+
+- **Switching:** keyboard **V**, gamepad **View / Select** (on foot the galaxy-map binding does not apply), or the
+  Settings page. Instant, no fade; never while a director shot or the death cam owns the view (it applies when
+  they end). The choice is saved with the other options and restored at start-up and after every level travel.
+- **Body in third person:** the whole pilot is shown (head included), the blade is held in the pilot's **right
+  hand** (socket on the hand, set by eye), and the camera-rig blade is hidden. In first person nothing changes.
+- **Facing:** the pilot turns toward the way it moves while just running; while attacking, blocking, aiming a
+  deflect or standing still with the camera turned more than 60°, it turns to face the camera direction
+  (strafe), so the blade always swings where the crosshair points. Melee targeting, the perfect-deflect return
+  and interaction all use the camera's aim, exactly as in first person.
+- **Animation readability:** idle / walk / run from `DA_Pilot_Visuals`; attacks, heavy lunge, block, dash, slide,
+  air slam, mantle, hit react and death must visibly read in third person: retargeted mannequin animations onto
+  the pilot's skeleton where that works headless, otherwise procedural upper-body poses in the pilot's animation
+  instance. No T-pose, no sliding idle while moving.
+- **Camera collision:** never inside walls, props, trees or crew; pulls in smoothly and eases back out; hides the
+  pilot if the camera is closer than 60 cm; tight spaces (corridors, the interior) still readable.
+- **Crosshair and HUD:** the crosshair stays centred and melee / interact prompts are unchanged; Nick's HUD and the
+  fallback HUD work in both modes.
+- **Combat fairness:** crew attacks, tells and deflect windows are identical in both modes; third person must not
+  reveal enemies through walls.
+
+**Settings page (in-game, reachable from the main menu and the pause menu)**
+- Engineering ships a code-built page (keyboard, mouse and gamepad navigable) over `UTDSettingsSubsystem`:
+  **On-foot camera (First / Third person)**, mouse sensitivity, invert mouse Y, gamepad sensitivity, gamepad dead
+  zone, invert gamepad Y, control hints on / off, master / music / effects volume, window mode, resolution, and
+  "Reset to defaults". Every change applies at once and is saved.
+- Nick's side may supply a styled page through `UTDUIStyle::SettingsWidgetClass`; it calls the same Blueprint
+  functions and replaces the code-built page with no engineering change.
+
+**Done when:** on both planets a player can switch with V / View and from the Settings page, fights a full room in
+third person with readable attacks and blocks, the camera never clips through the level, the choice survives a
+restart, and tests cover the toggle, persistence, camera collision, facing rule and the space-only exclusion.
+
+#### ENG-33 · Cinematic intro (CORE, added Nov 12 by Ryan) · `🟨`
+Ryan, Nov 12 (late): the intro should be "really high definition cinematic views of space and the spacecraft going
+by and worlds". **Reference for the cinematic language only** (pacing, scale, framing, grade), not its content, world
+or style, which belong to another IP: the *Warhammer 40,000: Darktide* intro cutscene
+(https://www.youtube.com/watch?v=CZgaAUA9brI, 2:54). What it does well, from frames reviewed by the Lead:
+- very slow push-ins on a vast nebula; huge objects (a planet in silhouette, a colossal ship) that cross the frame
+  slowly so scale reads; cuts to black between beats; narration as short subtitled lines; a consistent colour grade
+  (warm nebula against cold metal); shallow depth of field on close subjects; long lenses for scale shots.
+Triad Drift's version is **bright and saturated**, not grimdark (AGENTS.md section 2), and uses our own assets.
+
+**Shot list (about 45 to 55 s, every shot real-time in `L_Galaxy` with the game's own assets)**
+| # | Shot | Camera | Duration |
+|---|---|---|---|
+| 1 | Black. First narration line fades in. The nebula fades up behind it | locked, 35 mm, a very slow push | 6 s |
+| 2 | Verdance in eclipse: ringed planet silhouetted, sun breaking over its limb (rim light, lens flare) | long lens 85 to 135 mm, slow lateral dolly | 6 s |
+| 3 | The squad: Rift, Lancer and Bastion pass close in formation, engines streaking; each pilot's name card as it passes (C-03 #1 style) | 24 mm low angle, whip-pan follow, shallow depth of field | 8 s |
+| 4 | Threading the asteroid belt (ice, metal and crystal rocks, debris) with the squad small in frame for scale | 50 mm drifting through the belt, foreground rocks parallax | 6 s |
+| 5 | Cinder, red and volcanic, far off; a portal gate ring flares as the squad passes through | 35 mm, track with the squad | 6 s |
+| 6 | The threat: red warp-in flashes; Null Armada fighters pour out; the Dominion's silhouette slides across the stars, vast | 135 mm from far away, slow push; then 24 mm as fighters scream past | 10 s |
+| 7 | Hard cut to black. Title card **TRIAD DRIFT**, then the slate "SCENE 1 · WAVE 1 · TAKE 1"; the camera eases into the chase camera behind the player's ship and control starts | blend 1.0 s into the chase camera | 6 s |
+
+- **Look:** 2.39:1 letterbox (the Director's Cut bars), Cine Camera with real filmback and focal lengths, depth of
+  field focused on the subject, gentle handheld noise on close shots only, motion blur on, exposure locked per shot,
+  bloom and lens flare on engines and suns, a light film grain, colour grade per the art direction (saturated
+  nebula hues; squad colours magenta / cyan / amber on the ships, red-orange on the Armada).
+- **Narration:** 4 to 6 short lines as subtitles (text cards), written in the Director's Cut voice (a director
+  framing the story: "Scene one. A wing of three ..."), localisable text; an optional voice-over cue per line plays
+  when presentation assigns one. Music: an intro cue that swells into wave 1 (presentation slot; silence is allowed
+  until Audio assigns it).
+- **Rules:** plays once on **New Game** (not on Continue, not on a retake); skippable at any time after 1 s with any
+  key, click or pad button (hold for 0.5 s to avoid accidental skips; a "HOLD TO SKIP" hint); never takes input
+  away for longer than the intro; the HUD is hidden during it; the wave director, enemies and squad AI do not start
+  until it ends; the game state is identical whether it was watched or skipped.
+- **Presentation override:** if Nick's side authors a Level Sequence (`UTDUIStyle::IntroSequence`), it plays
+  instead of the code-driven shots, with the same skip and hand-off rules.
+- **Performance:** 60 fps on the target machine at 1080p; shots may hide gameplay-only actors that are not in frame.
+
+**Done when:** New Game plays the intro from the menu into wave 1 with a seamless hand-off; skip works by keyboard,
+mouse and pad; Continue and retakes never play it; captures of every shot are reviewed against `AAA.md` by an
+independent reviewer; tests cover play-once, skip, hand-off and that waves start only after it.
+
 ### STRETCH: boarding finale
 
 #### ENG-29 · Docking & boarding transition · `⬜` STRETCH
@@ -825,6 +911,8 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Menus and screens:**
   - Main menu (animated galaxy background), Pause, Settings (audio, sensitivity, invert, difficulty,
     subtitles, shake, graphics), Controls.
+  - **(Nov 12, Ryan)** The Settings page also carries the on-foot **first / third person** choice (ENG-32).
+    Engineering ships a code-built page; a styled one goes in `UTDUIStyle::SettingsWidgetClass`.
   - Galaxy map; `WBP_AbilityUnlocked` (the big reward moment); Defeat, Victory (stats, rank, takes)
     and Credits; Loading.
 - **Onboarding:** `WBP_Tip` toasts from `DT_Tips` (on `OnTipRequested`), with glyphs that switch
@@ -852,6 +940,8 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   `OnBarkRequested` through a priority queue, with radio-filtered VO (AI-voiced, credited) and
   subtitles.
 - **Intro sequence (30–45 s, skippable):** the squad over Verdance's ring, then the Armada warps in.
+  **(Nov 12, Ryan)** Engineering builds the intro as real-time shots in code (ENG-33); presentation supplies
+  narration voice, music, the grade and optionally its own Level Sequence (`UTDUIStyle::IntroSequence`).
 
 #### ART-12 · Cinematics & the Director's Cut presentation · `⬜`
 - **Sequences:** the Dominion reveal, the reactor breakup and victory hero shot, landing and

@@ -245,7 +245,8 @@ void ATDProjectile::UpdatePlaceholderLook()
 			GlowMaterial = UTDStatics::GetPlaceholderGlowMaterial(); // project M_TD_PlaceholderGlow, always cooked
 		}
 		UMaterialInterface* Base = GlowMaterial ? GlowMaterial.Get() : DefaultMaterial.Get();
-		const FLinearColor Final = GlowMaterial ? Color * FTDCombatPlaceholders::StreakGlow : Color;
+		const float GlowScale = bOnFootLook ? FTDCombatPlaceholders::OnFootGlow : FTDCombatPlaceholders::StreakGlow;
+		const FLinearColor Final = GlowMaterial ? Color * GlowScale : Color;
 		if (!PlaceholderMID && Base)
 		{
 			PlaceholderMID = UMaterialInstanceDynamic::Create(Base, this);
@@ -280,8 +281,9 @@ void ATDProjectile::UpdatePlaceholderLook()
 			{
 				// Hot core: the team colour pushed towards white and brighter than the trail.
 				// Stays in squad / enemy colour (playtest: 0.45 white read as a white ball); incoming enemy fire burns hotter.
-				const float HeadGlow = (Team == ETDTeam::Enemy && !bOnFootLook) ? 1.3f : 0.8f;
-				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * HeadGlow : 1.f);
+				const float HeadGlow = bOnFootLook ? 1.f : Team == ETDTeam::Enemy ? 1.3f : 0.8f;
+				// On foot the head stays pure team colour: any white tips red-orange to pink at first-person range.
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, bOnFootLook ? 0.f : 0.15f) * (GlowMaterial ? GlowScale * HeadGlow : 1.f);
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
 			}
@@ -958,6 +960,14 @@ void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasA
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 	{
 		const FLinearColor Color = LookColor;
+		if (bOnFootLook)
+		{
+			// On foot the hit is often a metre from the camera (a pellet on the player): a small spark at the on-foot
+			// glow, not the 140 cm space pop at glow 14 that hid the Heavy in the live check.
+			const float Dim = FTDCombatPlaceholders::OnFootGlow / FTDCombatPlaceholders::FlashGlow;
+			Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::OnFootImpactRadius(StreakLook), Color * Dim, 0.1f);
+			return;
+		}
 		if (Spec.SplashRadius > 0.f || Spec.bIsMissile)
 		{
 			// Rockets, missiles, flak and mines: a real explosion read (core, shell, debris), not a pop.

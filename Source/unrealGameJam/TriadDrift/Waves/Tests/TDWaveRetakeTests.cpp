@@ -6,6 +6,9 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Waves/TDWarpInMarker.h"
@@ -175,6 +178,41 @@ bool FTDBreatherRepairOnce::RunTest(const FString& Parameters)
 	W.Advance(1.f);
 	const float PerSecond = (H->GetHull() - Start) / H->MaxHull;
 	TestEqual(TEXT("8% of max hull per second, once"), PerSecond, 0.08f, 0.012f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeClearsMinesAndTurretFire, "TriadDrift.Waves.Retake.MinesAndTurretFireCleared", TD_TEST_FLAGS)
+bool FTDRetakeClearsMinesAndTurretFire::RunTest(const FString& Parameters)
+{
+	using namespace TDWaveRetakeTest;
+	// T3's retake audit: a real bomber's mines and a real carrier's point-defence fire must not survive into the
+	// next take (a mine sitting on the respawn line is a cheap death).
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	for (ATDShip* S : Squad->GetLivingShips()) { if (S && S->GetHealth()) { S->GetHealth()->SetInvulnerable(true); } }
+	ATDEnemyShip* Bomber = W.Spawn<ATDEnemyShip>(FVector(9000.f, 2000.f, 0.f), FRotator(0.f, 180.f, 0.f));
+	Bomber->InitFromSpec(TEXT("MaulBomber"));
+	ATDEnemyShip* Carrier = W.Spawn<ATDEnemyShip>(FVector(14000.f, -6000.f, 0.f), FRotator(0.f, 160.f, 0.f));
+	Carrier->InitFromSpec(TEXT("HiveCarrier"));
+	UTDProjectileSubsystem* Proj = UTDProjectileSubsystem::Get(W.GetWorld());
+	auto EnemyShots = [Proj]()
+	{
+		int32 N = 0;
+		for (const ATDProjectile* P : Proj->GetLiveProjectiles()) { N += (P && P->GetTeam() == ETDTeam::Enemy) ? 1 : 0; }
+		return N;
+	};
+	int32 Peak = 0;
+	for (int32 i = 0; i < 60 * 10; ++i) { W.Tick(); Peak = FMath::Max(Peak, EnemyShots()); }
+	TestTrue(*FString::Printf(TEXT("the bomber and the carrier fired (peak %d enemy shots and mines)"), Peak), Peak > 0);
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	Bus->BroadcastSceneCut(TEXT("Wave4"), 2, 1.75f);
+	TestEqual(TEXT("cleared on the CUT"), EnemyShots(), 0);
+	W.Advance(1.75f);	// the enemies are still alive during the delay and may fire again
+	Bus->BroadcastTakeStarted(TEXT("Wave4"), 2);
+	TestEqual(TEXT("cleared again on the retake: nothing waits on the respawn line"), EnemyShots(), 0);
 	return true;
 }
 
