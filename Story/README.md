@@ -6,43 +6,64 @@ This folder contains the official narrative development documents for Triad Drif
 
 [The Paradox Narrative](Triad_Drift_The_Paradox_Narrative.docx) covers the main storyline, the pilots, the Dominion mystery, and the future-self reveal.
 
+Use that original narrative and Nicholas's explicitly approved decisions as the reference for every new or revised sequence. Check characterisation, discovery order, carried evidence, ability progression and reveal timing before publication; proposed additions must not silently become established lore.
+
 ## Cinematic and gameplay sequences
 
 1. [Cinematic 01 — First Contact](Triad_Drift_First_Contact_Cinematic_Brief.docx) opens the story and sets up the encounter with the Dominion drones.
 2. [Gameplay Sequence 01 — Tutorial Battle](Triad_Drift_Gameplay_Sequence_01_Tutorial_Battle.docx) follows the handoff to player control and ends with Command ordering the squad to withdraw.
 3. [Cinematic 02 — Aftermath](Triad_Drift_Sequence_02_Aftermath.docx) follows the withdrawal and leads into Verdance.
-4. [Gameplay Sequence 02 — Verdance Arrival](Triad_Drift_Gameplay_Sequence_02_Verdance_Arrival.docx) follows Aftermath: approach Verdance, secure landing, traverse the jungle, and activate the outpost geological survey terminal.
-5. [Cinematic 03 — Beneath the Surface](Triad_Drift_Cinematic_Sequence_03_Beneath_the_Surface.docx) reveals the buried artificial structure, the dormant drone acknowledgment, and a Cinder coordinate match before reinforcements arrive.
-6. [Gameplay Sequence 03 — Facility Defense](Triad_Drift_Gameplay_Sequence_03_Facility_Defense.docx) begins with the archive transfer incomplete; protect it, secure the data package, and reach extraction.
+4. [Gameplay Sequence 02 — Verdance Arrival](Triad_Drift_Gameplay_Sequence_02_Verdance_Arrival.docx) reaches the research site, recovers the signal-analysis device and awards Bastion's Gravity Well, then connects the device to the survey station.
+5. [Cinematic 03 — Beneath the Surface](Triad_Drift_Cinematic_Sequence_03_Beneath_the_Surface.docx) uses the relay to resolve human voice fragments and signal patterns, reveals the buried structure and drone acknowledgment, and locates Cinder's crystal operation.
+6. [Gameplay Sequence 03 — Facility Defense](Triad_Drift_Gameplay_Sequence_03_Facility_Defense.docx) protects the relay's archive transfer, secures the device and recordings, awards Rift's Cloak, and reaches extraction.
 7. [Cinematic 04 — Verdance Departure](Triad_Drift_Cinematic_Sequence_04_Verdance_Departure.docx) follows successful extraction and gives Triad its next reconnaissance assignment on Cinder.
 
 8. [Gameplay Sequence 04 — Cinder Approach](Triad_Drift_Gameplay_Sequence_04_Cinder_Approach.docx) covers travel to Cinder, descent, and investigation of the mining complex, ending at the survey terminal's geometric match with the Verdance archive.
 
-9. [Cinematic 05 — The Pattern](Triad_Drift_Cinematic_Sequence_05_The_Pattern.docx) compares the two worlds' ancient geometry, introduces a distorted voice echo, and identifies the crystal cache and excavation field anchor as the next mission targets.
-10. [Gameplay Sequence 05 — Cinder Excavation](Triad_Drift_Gameplay_Sequence_05_Cinder_Excavation.docx) covers the guarded dig, crystal recovery and Lancer's EMP unlock, anchor shutdown, and extraction.
+9. [Cinematic 05 — The Pattern](Triad_Drift_Cinematic_Sequence_05_The_Pattern.docx) compares the ancient geometry, plays the single approved Kato echo at the terminal, names the Origin Core as a suspected temporal device, and marks the cache and field anchor.
+10. [Gameplay Sequence 05 — Cinder Excavation](Triad_Drift_Gameplay_Sequence_05_Cinder_Excavation.docx) covers the Warden, one cache interaction recovering crystals and an EMP prototype, anchor shutdown with passage still pending, and extraction.
+11. [Cinematic 06 — The Path to Dominion](Triad_Drift_Cinematic_Sequence_06_The_Path_to_Dominion.docx) carries the evidence and Origin Core lead into take-off transmissions and the final guard wave, with the approach still blocked.
+12. [Gameplay Sequence 06 — The Dominion Assault](Triad_Drift_Gameplay_Sequence_06_The_Dominion_Assault.docx) clears wave 5, opens the approach after Cinder completion, destroys the four generators sustaining the Dominion's separate shield, and reaches docking.
 
-Next planned document: **Cinematic 06 — The Path to Dominion** (proposed title; not yet included).
+Next to document: the **boarding cinematic and interior gameplay**, including the future-Triad identity evidence and the opening-warning payoff. Titles and sequence details remain to be drafted.
 
 ## Sequence dependencies and continuity
 
 | Sequence | Entry dependency | Exit / next handoff |
 |---|---|---|
-| Gameplay 02 — Verdance Arrival | Cinematic 02 ends with orders to investigate Verdance. | Activate the geological survey console to trigger Cinematic 03; preserve the terminal and dormant drone positions. |
-| Cinematic 03 — Beneath the Surface | Gameplay 02 reaches the survey terminal. | Return control in the same outpost with the transfer incomplete and reinforcements approaching; objective: “Protect the data transfer.” |
-| Gameplay 03 — Facility Defense | Cinematic 03 establishes the archive transfer and incoming attack. | Secure the complete archive and Cinder coordinates, then reach extraction before triggering Cinematic 04. Encounter retries should not replay Cinematic 03. |
+| Gameplay 02 — Verdance Arrival | Cinematic 02 ends with orders to investigate Verdance. | Recover the signal-analysis device, award Gravity Well, and connect it to the relay and terminal to trigger Cinematic 03. |
+| Cinematic 03 — Beneath the Surface | Gameplay 02 recovers and connects the device. | Resolve human recordings and signal patterns at the research-site relay; return control with the archive transfer incomplete and reinforcements approaching. |
+| Gameplay 03 — Facility Defense | Cinematic 03 establishes the relay transfer and incoming attack. | Preserve the device, signal analysis, recordings and survey archive; complete the relay objective and Cloak reward, then extract into Cinematic 04. Retries preserve rewards without replaying Cinematic 03. |
 | Cinematic 04 — Verdance Departure | Gameplay 03 completes data recovery and extraction. | Depart Verdance with the recovered evidence and set course for Cinder; hand off to Gameplay 04. |
 | Gameplay 04 — Cinder Approach | Cinematic 04 ends with Triad following the recovered Cinder coordinates. | Land, reach the mining complex survey terminal, and interact outside active combat to trigger Cinematic 05. Preserve the player position for the return to Gameplay 05. Crystal recovery, the EMP unlock and the field-anchor assault belong to Gameplay 05. |
-| Cinematic 05 — The Pattern | Gameplay 04 reaches and activates the survey terminal. | Record the scan match, intercepted echo and target locations; return control at the survey station with “Secure the excavation.” Skipping applies the briefing state once and completes no gameplay objectives. |
-| Gameplay 05 — Cinder Excavation | Cinematic 05 establishes the crystal cache and field-anchor targets. | Secure the excavation and crystals, award Lancer's EMP Pulse, disable the anchor, then reach extraction to trigger Cinematic 06. Preserve earned rewards through checkpoint retries; the later Dominion generator assault remains separate. |
+| Cinematic 05 — The Pattern | Gameplay 04 activates the terminal after the short route; no echo plays on the approach. | Record the single echo, Origin Core lead and targets. Return to “Secure the excavation.” Skipping applies briefing state once and completes no gameplay objectives. |
+| Gameplay 05 — Cinder Excavation | Cinematic 05 establishes the targets and Origin Core lead. | Warden, then one cache interaction recovers crystals and the EMP prototype; disable the anchor, mark the approach as pending, and extract into Cinematic 06. |
+| Cinematic 06 — The Path to Dominion | Cinder recovery, anchor shutdown and extraction are complete. | Carry all evidence and rewards into wave 5. The approach field is not yet open; the Dominion's separate shield remains intact. |
+| Gameplay 06 — The Dominion Assault | Cinematic 06 returns control before the guard wave. | Cinder complete plus wave 5 cleared opens the approach distortion field. Four generator kills then drop the separate Dominion shield and permit docking; interior evidence reveals the future-self identity later. |
 
-Keep the Dominion's purpose mysterious and its recognition of Triad subtle. Cinematic 03's three-pulse authentication motif is reserved for a payoff during the Dominion finale. Do not reveal the future-self identity here or repeat the opening “Don't—” warning before its finale replay. Verdance yields survey evidence, not the buried structure or Origin Core.
+Keep the Dominion's ultimate purpose mysterious and its recognition of Triad subtle. Verdance establishes human voices whose identities remain unknown. Cinder supplies the name Origin Core and a suspected temporal purpose; its maker, exact function, intended use and connection to a catastrophe remain unknown. Only aboard the Dominion does Triad identify its commanders as its future selves. Preserve the opening “Don't—” recording for its finale replay and the three-pulse motif for its established payoff. Verdance yields the signal-analysis device and records, not the buried structure or Origin Core.
+
+## Approved Cinder decisions
+
+Nicholas approved [all six decisions in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6863767143). The fixed sequence is **terminal → excavation and crystal cache → field anchor → extraction**.
+
+- **Field and shield:** crystals stabilise passage through the approach distortion field; disabling Cinder's anchor prepares the route. Passage stays pending until Cinder is complete and wave 5 is cleared. The Dominion has a separate defensive shield sustained by four generators; all four must be destroyed before docking.
+- **Signal data:** the device recovered on Verdance contains intercepted traffic and fragmented human voices. At the research-site relay, Kato resolves and preserves their signal patterns and recordings with the survey archive; that recovered analysis is the signal data used on Cinder.
+- **One echo at the terminal:** Kato says “Different worlds. Same construction. They knew where to dig.” Immediately afterward, the heavily processed Unknown voice says “Same construction.” Kato replies “Could be feedback. Keep the recording.” This replaces the approach-route echo and all three engineering `A3_Echo*` placeholders.
+- **EMP source:** the cache after the Warden contains crystals and a compatible EMP prototype, recovered through the same interaction. Kato says “Samples secured. EMP prototype recovered. Lancer’s pulse is online.” No installation objective or on-foot EMP is required; the crystals serve the field crossing.
+- **Both sides want crystals:** the machines collect them as part of Origin Core recovery, with their equipment's precise use unspecified; Triad needs them to cross the approach field and reach the Dominion. Excavation yields crystals and exposes ancient technology.
+- **Origin Core named before excavation:** at the terminal, Kato says “The records call it the Origin Core. These look like components—or keys—to a temporal device.” This knowledge does not disclose the future-self identity.
+
+## Ability progression
+
+The tutorial teaches Rift's portal blaster, Lancer's afterburner ram, and Bastion's missile swarm and shield dome. Bastion's Gravity Well is earned with Verdance device recovery; Rift's Cloak follows the relay objective; Lancer's EMP Pulse comes from the prototype at Cinder's cache. Recovery objectives award the upgrades through the existing progression system; the narrative does not claim that crystals manufacture EMP technology.
 
 ## Production status and decisions
 
-These documents are narrative and gameplay design proposals, not confirmation of implemented mechanics. The supplied DOCX originals are preserved unchanged. [storyline.md](../storyline.md) records the adopted story; [features.md](../features.md) governs implementation scope and [dialogs.md](../dialogs.md) tracks gameplay dialogue. Resolve differences through Nicholas for story wording and Ryan's Lead for gameplay delivery before implementation.
+The sequence documents were revised against Nicholas's unchanged Paradox narrative and the six approved Cinder decisions. Their earlier versions remain in Git history. They describe narrative and gameplay intent, not verification of implemented mechanics. [storyline.md](../storyline.md) records the adopted story; [features.md](../features.md) governs implementation scope and [dialogs.md](../dialogs.md) tracks gameplay dialogue. Resolve delivery differences through Nicholas for story wording and Ryan's Lead for gameplay implementation.
 
-Open choices include the outpost name, insertion method, on-foot squad representation, encounter composition, and Cinder environmental protection. Co-op references and suggested mission durations are proposals; they do not establish supported multiplayer or change the campaign budget. Gameplay 04 follows the adopted storyline: Cinder's stabilising crystals help create a passage through the Dominion's distortion field. Cinematic 04's earlier heat-protection reference does not establish that the crystals are thermal shielding. No new heat meter or mandatory equipment hunt is specified. Cinematic 05 proposes the scan comparison, distorted echo and return to the survey-station area; final staging, interaction hooks and encounter tuning require Lead coordination.
+The adopted production budgets remain Verdance 8–10 minutes and Cinder 6–8 minutes from atmosphere to take-off. Cinder uses the short route, 40–50 second terminal scene, excavation/cache, anchor and extraction; waves 3–4 stay between planets and wave 5 follows Cinder. Cinematic 04 and Cinematic 06 use transmissions over existing take-off transitions; their expanded shot outlines are story references. No heat-shielding quest, new heat meter or co-op is added. Final names, staging, encounter tuning and presentation remain production choices.
 
-The originals remain narrative proposals where they differ from adopted production decisions, including Ryan's reduced Verdance scope in [storyline.md section 18](../storyline.md#18-verdance-scope-the-decision-on-sections-14-17). Adding the Cinder documents does not replace that decision or approve new gameplay. Their mining-complex, crystal and anchor delivery must be reconciled with the implemented survey-station route by Nicholas and Ryan's Lead. Gameplay 05 keeps EMP as Lancer's ship ability; no on-foot EMP gate is required. The voice echo stays ambiguous, and the future-self reveal remains reserved for the Dominion.
+The reduced scopes in [storyline.md section 18](../storyline.md#18-verdance-scope-the-decision-on-sections-14-17) and [section 22](../storyline.md#22-cinder-scope-the-decision-on-sections-19-21) continue to govern delivery. The approved Cinder decisions above resolve the former field, signal-data, echo, EMP-source, crystal-motive and Origin Core wording gaps. Later reactor motivation, the future catastrophe, the Core's exact mechanism and the causal paradox remain intentionally unresolved for the upcoming interior and finale documents. The documented primary route boards the Dominion; using the existing space-only fallback requires the coordinated alternative reveal and finale delivery.
 
 Future cinematic scripts, dialogue, mission narratives, and lore documents will be stored here.
