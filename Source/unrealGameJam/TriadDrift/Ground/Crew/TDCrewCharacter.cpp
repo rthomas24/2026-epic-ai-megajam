@@ -266,6 +266,19 @@ float ATDCrewCharacter::GetCooldownLeft(ETDCrewAttack Attack) const
 	return Left ? FMath::Max(0.f, *Left) : 0.f;
 }
 
+void ATDCrewCharacter::ApplyMercy(float HealthScale, int32 MaxSummons)
+{
+	if (!bSpecApplied)
+	{
+		InitFromType(CrewType);
+	}
+	if (Health && HealthScale < 1.f)
+	{
+		Health->InitMaxValues(FMath::Max(1.f, Spec.MaxHealth * FMath::Clamp(HealthScale, 0.1f, 1.f)), 0.f, true);
+	}
+	SummonsLeft = MaxSummons;
+}
+
 int32 ATDCrewCharacter::GetAliveSummons() const
 {
 	int32 Alive = 0;
@@ -291,7 +304,7 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	case ETDCrewAttack::Shotgun: bCan = Spec.ShotgunPellets > 0 && Target; break;
 	case ETDCrewAttack::ChargeSlam: bCan = Spec.ChargeSlamDamage > 0.f && Target; Windup = Spec.ChargeWindup; break;
 	case ETDCrewAttack::BoltFan: bCan = Spec.FanBolts > 0 && Target; break;
-	case ETDCrewAttack::Summon: bCan = Spec.SummonCount > 0 && GetAliveSummons() < Spec.SummonMaxAlive; break;
+	case ETDCrewAttack::Summon: bCan = Spec.SummonCount > 0 && SummonsLeft != 0 && GetAliveSummons() < Spec.SummonMaxAlive; break;
 	default: break;
 	}
 	if (!bCan)
@@ -448,6 +461,14 @@ void ATDCrewCharacter::DoSummon()
 	if (!World)
 	{
 		return;
+	}
+	if (SummonsLeft == 0)
+	{
+		return;
+	}
+	if (SummonsLeft > 0)
+	{
+		--SummonsLeft;
 	}
 	const int32 Want = BossPhase >= 2 && Spec.Phase2SummonCount > 0 ? Spec.Phase2SummonCount : Spec.SummonCount;
 	const int32 Room = FMath::Max(0, Spec.SummonMaxAlive - GetAliveSummons());
