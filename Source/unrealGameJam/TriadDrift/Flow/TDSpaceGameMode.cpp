@@ -30,6 +30,7 @@
 #include "EngineUtils.h"
 #include "TimerManager.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/World/TDSkySphere.h"
 
 namespace TDSandbox
 {
@@ -406,9 +407,11 @@ void ATDSpaceGameMode::SpawnEnvironment()
 	{
 		SpawnedEnvironment.Add(Sky);
 	}
-	if (!ATDPlaceholderSky::Scan(World).bTaggedSky)
+	// A real skybox (Nick's, or the galaxy layout's engineering nebula sky) brings its own stars.
+	const bool bEngineeringSky = GalaxyLayout && GalaxyLayout->bSpawnSky && ATDSkySphere::IsArtAvailable();
+	if (!ATDPlaceholderSky::Scan(World).bTaggedSky && !bEngineeringSky)
 	{
-		SpawnStarBackdrop(); // a real skybox brings its own stars
+		SpawnStarBackdrop();
 	}
 	if (!GalaxyLayout)
 	{

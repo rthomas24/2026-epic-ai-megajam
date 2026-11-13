@@ -1,6 +1,7 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 
+#include "Misc/PackageName.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -15,6 +16,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Components/DirectionalLightComponent.h"
+#include "EngineUtils.h"
 #include "UObject/ConstructorHelpers.h"
 
 ATDPlanetAtmosphere::ATDPlanetAtmosphere()
@@ -35,6 +38,74 @@ ATDPlanetAtmosphere::ATDPlanetAtmosphere()
 	PlanetMesh->SetupAttachment(Atmosphere);
 	PlanetMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	if (Sphere.Succeeded()) { PlanetMesh->SetStaticMesh(Sphere.Object); }
+
+	// Art look (no collision): surface and atmosphere spin slowly; the ring sits on a tilted pivot.
+	auto MakeLook = [this](const TCHAR* Name, USceneComponent* Parent)
+	{
+		UStaticMeshComponent* L = CreateDefaultSubobject<UStaticMeshComponent>(Name);
+		L->SetupAttachment(Parent);
+		L->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		L->SetGenerateOverlapEvents(false);
+		L->SetVisibility(false);
+		return L;
+	};
+	SpinPivot = CreateDefaultSubobject<USceneComponent>(TEXT("SpinPivot"));
+	SpinPivot->SetupAttachment(Atmosphere);
+	SurfaceLook = MakeLook(TEXT("SurfaceLook"), SpinPivot);
+	AtmosphereLook = MakeLook(TEXT("AtmosphereLook"), SpinPivot);
+	RingPivot = CreateDefaultSubobject<USceneComponent>(TEXT("RingPivot"));
+	RingPivot->SetupAttachment(Atmosphere);
+	RingLook = MakeLook(TEXT("RingLook"), RingPivot);
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+void ATDPlanetAtmosphere::ApplyLook()
+{
+	// Defaults point at props that may not exist yet: check the package first (no load warnings, no errors).
+	auto Exists = [](const FSoftObjectPath& P) { return !P.IsNull() && FPackageName::DoesPackageExist(P.GetLongPackageName()); };
+	auto Load = [&Exists](const TSoftObjectPtr<UStaticMesh>& M) -> UStaticMesh* { return Exists(M.ToSoftObjectPath()) ? M.LoadSynchronous() : nullptr; };
+	auto Mat = [&Exists](const TSoftObjectPtr<UMaterialInterface>& M) -> UMaterialInterface* { return Exists(M.ToSoftObjectPath()) ? M.LoadSynchronous() : nullptr; };
+	const FVector Scale(PlanetRadius / 100.f);	// art is authored around a 100 cm radius planet
+	UStaticMesh* SurfaceArt = Load(Look.Surface);
+	bArtLook = SurfaceArt != nullptr;
+	bSunSynced = false;	// SetMaterial below replaces any dynamic instance
+	auto Set = [&Scale](UStaticMeshComponent* C, UStaticMesh* Mesh, UMaterialInterface* M)
+	{
+		if (!C) { return; }
+		C->SetVisibility(Mesh != nullptr);
+		if (!Mesh) { return; }
+		C->SetStaticMesh(Mesh);
+		C->SetRelativeScale3D(Scale);
+		if (M) { C->SetMaterial(0, M); }
+	};
+	Set(SurfaceLook, SurfaceArt, Mat(Look.SurfaceMaterial));
+	Set(AtmosphereLook, bArtLook ? Load(Look.Atmosphere) : nullptr, Mat(Look.AtmosphereMaterial));
+	Set(RingLook, bArtLook ? Load(Look.Ring) : nullptr, Mat(Look.RingMaterial));
+	if (RingPivot) { RingPivot->SetRelativeRotation(FRotator(0.f, 0.f, Look.RingTiltDeg)); }
+	// The sphere stays for collision; it only draws when there is no art.
+	PlanetMesh->SetVisibility(!bArtLook);
+}
+
+
+
+bool ATDPlanetAtmosphere::SyncSunDirection()
+{
+	// The planet material lights its night side from a SunDirection vector: point it at the space sun (the directional
+	// light that drives the atmosphere), which the placeholder sky may spawn after the planets.
+	UDirectionalLightComponent* SunLight = nullptr;
+	for (TActorIterator<AActor> It(GetWorld()); It && !SunLight; ++It)
+	{
+		TInlineComponentArray<UDirectionalLightComponent*> Lights(*It);
+		for (UDirectionalLightComponent* L : Lights)
+		{
+			if (L && L->IsUsedAsAtmosphereSunLight()) { SunLight = L; break; }
+		}
+	}
+	if (!SunLight || !SurfaceLook) { return false; }
+	UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(SurfaceLook->GetMaterial(0));
+	if (!MID) { MID = SurfaceLook->CreateAndSetMaterialInstanceDynamic(0); }
+	if (MID) { MID->SetVectorParameterValue(TEXT("SunDirection"), FLinearColor(-SunLight->GetForwardVector())); }
+	return true;
 }
 
 ETDGamePhase ATDPlanetAtmosphere::PhaseFor(ETDDestination InDestination)
@@ -56,18 +127,8 @@ void ATDPlanetAtmosphere::Configure(ETDDestination InDestination, FName InReturn
 	Color = InColor;
 	Atmosphere->SetSphereRadius(AtmosphereRadius);
 	PlanetMesh->SetRelativeScale3D(FVector(PlanetRadius * 2.f / 100.f));
-	if (!PlanetArtMesh.IsNull())
-	{
-		if (UStaticMesh* Art = PlanetArtMesh.LoadSynchronous())
-		{
-			PlanetMesh->SetStaticMesh(Art);	// same scale: the art is normalised to the 100 cm sphere it replaces
-			PlanetMesh->EmptyOverrideMaterials();
-		}
-	}
-	else
-	{
-		UTDStatics::TintPlaceholder(PlanetMesh, Color, 0.f);
-	}
+	UTDStatics::TintPlaceholder(PlanetMesh, Color, 0.f);
+	ApplyLook();
 }
 
 void ATDPlanetAtmosphere::BeginPlay()
@@ -99,7 +160,11 @@ FName ATDPlanetAtmosphere::GetWellId() const
 
 void ATDPlanetAtmosphere::SetPlaceholderVisible(bool bVisible)
 {
-	if (PlanetMesh) { PlanetMesh->SetVisibility(bVisible); }
+	if (PlanetMesh) { PlanetMesh->SetVisibility(bVisible && !bArtLook); }
+	for (UStaticMeshComponent* L : { SurfaceLook.Get(), AtmosphereLook.Get(), RingLook.Get() })
+	{
+		if (L && bArtLook) { L->SetVisibility(bVisible && L->GetStaticMesh() != nullptr); }
+	}
 }
 
 void ATDPlanetAtmosphere::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -201,6 +266,15 @@ void ATDPlanetAtmosphere::TryEnter(ATDSpacecraft* Ship)
 void ATDPlanetAtmosphere::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bArtLook && !bSunSynced)
+	{
+		bSunSynced = SyncSunDirection();
+	}
+	if (bArtLook && Look.SpinDegPerSecond != 0.f)
+	{
+		SpinPivot->AddRelativeRotation(FRotator(0.f, Look.SpinDegPerSecond * DeltaSeconds, 0.f));
+		RingPivot->AddLocalRotation(FRotator(0.f, Look.SpinDegPerSecond * 0.5f * DeltaSeconds, 0.f));
+	}
 
 	// Cheap progress poll so the atmosphere opens/closes with the phase (resume, cheats, retakes).
 	PollTimer -= DeltaSeconds;

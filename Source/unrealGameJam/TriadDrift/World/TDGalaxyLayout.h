@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TDGalaxyLayout.generated.h"
 
 class UInstancedStaticMeshComponent;
@@ -56,8 +57,8 @@ struct UNREALGAMEJAM_API FTDPlanetSpec
 	/** Return point used when coming back from the planet (also registered as a named return point). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FName ReturnPoint = NAME_None;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FLinearColor Color = FLinearColor(0.1f, 0.9f, 0.5f);
-	/** Optional planet mesh, normalised to a 100 cm bounding sphere (like the asteroids); scaled to PlanetRadius. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") TSoftObjectPtr<UStaticMesh> PlanetMesh;
+	/** The planet's look (surface / atmosphere / ring); defaults point at the engineering planet props. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FTDPlanetLook Look;
 };
 
 USTRUCT(BlueprintType)
@@ -173,6 +174,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
 	bool bBuildOnBeginPlay = true;
 
+	/** Spawn the engineering nebula sky (SM_TD_SkySphere) when its art exists; Nick's TD.Presentation.Sky wins. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
+	bool bSpawnSky = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
 	bool bSpawnDominion = true;
 
@@ -204,9 +209,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TSoftObjectPtr<UStaticMesh> RuinModuleMesh;
 
-	/** Optional art mesh for each gate frame. */
+	/** Optional art mesh for each gate frame: one ring (inner diameter ATDPortalGate::FrameMeshInnerDiameter at
+	 *  scale 1). Defaults to the engineering ring; missing = the four placeholder bars. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
-	TSoftObjectPtr<UStaticMesh> GateFrameMesh;
+	TSoftObjectPtr<UStaticMesh> GateFrameMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_GateRing_01.SM_GateRing_01")));
 
 	/** No asteroid within this distance of a gate, return point or the player start (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
@@ -294,6 +300,10 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<ATDDominion> Dominion;
+
+	/** The engineering nebula sky (camera-centred), when its art exists. */
+	UPROPERTY(Transient)
+	TObjectPtr<class ATDSkySphere> SkySphere;
 
 	float PhaseTimer = 0.f;
 	bool bBuilt = false;

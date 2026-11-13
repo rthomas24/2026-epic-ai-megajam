@@ -24,6 +24,9 @@
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/WorldSettings.h"
 
 ATDEnemyShip::ATDEnemyShip()
 {
@@ -336,6 +339,9 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 			PlaceholderEyeLeft = nullptr;
 			PlaceholderShieldPlate = nullptr;
 			if (HullPivot) { HullPivot->SetRelativeScale3D(FVector::OneVector); }
+			BaseVisualScale = FVector::OneVector;
+			EngineGlowMID = nullptr;
+			ApplyVisualScale();
 			bPlaceholderLook = false;
 			return;
 		}
@@ -358,17 +364,20 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 		// Placeholder-only readability scale (collision keeps the gameplay radius).
 		const float Readable = Spec.Size == ETDEnemySize::Small ? PlaceholderSmallShipScale
 			: (Spec.Size == ETDEnemySize::Medium ? PlaceholderMediumShipScale : PlaceholderLargeShipScale);
-		HullPivot->SetRelativeScale3D(Shape * FMath::Max(0.2f, Spec.Radius / 220.f) * Readable);
+		BaseVisualScale = Shape * FMath::Max(0.2f, Spec.Radius / 220.f) * Readable;
+		ApplyVisualScale();
 	}
 	// The colour code on its own, on black space (Lead playtest 3: lit hulls were dark specks): a glowing
 	// red-orange body that blooms, dark-red wings for the silhouette, two white glowing "eyes" at the nose,
 	// a white-hot engine, and the gunship's shield as a cyan plate while it is up.
 	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, PlaceholderBodyGlow);
 	UTDStatics::TintPlaceholder(PlaceholderWings, FLinearColor(0.35f, 0.03f, 0.02f), 0.6f);
-	UTDStatics::TintPlaceholder(GetEngineGlow(), FLinearColor(1.f, 0.95f, 0.9f), PlaceholderEmissiveBoost);
+	// Red-orange engine streak (the spacecraft stretches it with speed); white stays for the eyes.
+	EngineGlowBase = FLinearColor(1.f, 0.32f, 0.06f) * PlaceholderEmissiveBoost;
+	EngineGlowMID = UTDStatics::TintPlaceholder(GetEngineGlow(), FLinearColor(1.f, 0.32f, 0.06f), PlaceholderEmissiveBoost);
 	for (UStaticMeshComponent* Eye : { PlaceholderEyeLeft.Get(), PlaceholderEyeRight.Get() })
 	{
-		if (Eye) { Eye->SetVisibility(true); UTDStatics::TintPlaceholder(Eye, FLinearColor::White, PlaceholderEmissiveBoost); }
+		if (Eye) { Eye->SetVisibility(true); UTDStatics::TintPlaceholder(Eye, FLinearColor::White, PlaceholderEyeGlow); }
 	}
 	bPlaceholderLook = true;
 	if (PlaceholderShieldPlate && !HasFrontalShield())
@@ -803,6 +812,8 @@ void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float 
 	{
 		return;
 	}
+	bHasMountedParts = true;
+	if (RangeScale != 1.f) { RangeScale = 1.f; ApplyVisualScale(); }
 	// Snap (not KeepRelative) so a freshly spawned part doesn't inherit our world rotation twice.
 	Part->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true));
 	// Outside our own blocking sphere, so shots and rams reach the part instead of the hull.
@@ -1128,6 +1139,53 @@ void ATDEnemyShip::TickTimers(float DeltaSeconds)
 	}
 }
 
+float ATDEnemyShip::RangeScaleFor(float DistanceCm, float NearCm, float FarCm, float MaxScale)
+{
+	if (FarCm <= NearCm) { return DistanceCm > NearCm ? MaxScale : 1.f; }
+	const float T = FMath::Clamp((DistanceCm - NearCm) / (FarCm - NearCm), 0.f, 1.f);
+	return FMath::Lerp(1.f, FMath::Max(1.f, MaxScale), T);
+}
+
+void ATDEnemyShip::ApplyVisualScale()
+{
+	// HullPivot sits at the actor centre and carries only visuals (no collision): scaling it scales about the
+	// aim point and never touches the collision sphere or the mounted hit parts.
+	if (HullPivot) { HullPivot->SetRelativeScale3D(BaseVisualScale * RangeScale); }
+	AppliedRangeScale = RangeScale;
+	if (EngineGlowMID && bPlaceholderLook)
+	{
+		const float T = RangeScaleMax > 1.f ? (RangeScale - 1.f) / (RangeScaleMax - 1.f) : 0.f;
+		const FLinearColor Glow = EngineGlowBase * FMath::Lerp(1.f, RangeEngineGlowMax, FMath::Clamp(T, 0.f, 1.f));
+		EngineGlowMID->SetVectorParameterValue(TEXT("Color"), Glow);
+		EngineGlowMID->SetVectorParameterValue(TEXT("EmissiveColor"), Glow);
+	}
+}
+
+void ATDEnemyShip::UpdateRangeScale(const FVector& ViewLocation, bool bAllowed, float RealDeltaSeconds)
+{
+	const float Target = (bAllowed && !bHasMountedParts)
+		? RangeScaleFor(FVector::Dist(ViewLocation, GetActorLocation()), RangeScaleNearCm, RangeScaleFarCm, RangeScaleMax) : 1.f;
+	RangeScale = FMath::FInterpTo(RangeScale, Target, FMath::Max(0.f, RealDeltaSeconds), RangeScaleSmoothing);
+	if (FMath::Abs(RangeScale - AppliedRangeScale) > 0.004f || (RangeScale == 1.f && AppliedRangeScale != 1.f))
+	{
+		ApplyVisualScale();
+	}
+}
+
+void ATDEnemyShip::TickRangeScale(float DeltaSeconds)
+{
+	UWorld* World = GetWorld();
+	if (!World || !World->IsGameWorld()) { return; }
+	APlayerController* PC = World->GetFirstPlayerController();
+	if (!PC || !PC->PlayerCameraManager) { return; }
+	// True scale whenever the camera is not the player's own chase cam (T3's intro and showcase cameras) or a
+	// director money shot is running.
+	const UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this);
+	const bool bAllowed = PC->GetViewTarget() == PC->GetPawn() && !(Director && Director->IsShotActive());
+	const float Dilation = FMath::Max(0.01f, World->GetWorldSettings() ? World->GetWorldSettings()->GetEffectiveTimeDilation() : 1.f);
+	UpdateRangeScale(PC->PlayerCameraManager->GetCameraLocation(), bAllowed, DeltaSeconds / Dilation);
+}
+
 void ATDEnemyShip::Tick(float DeltaSeconds)
 {
 	if (bDying)
@@ -1154,6 +1212,7 @@ void ATDEnemyShip::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	TickTimers(DeltaSeconds);
+	TickRangeScale(DeltaSeconds);
 
 	if (bPlaceholderLook && PlaceholderShieldPlate && HasFrontalShield())
 	{

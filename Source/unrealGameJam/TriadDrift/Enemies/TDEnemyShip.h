@@ -255,15 +255,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
 	float PlaceholderBodyGlow = 2.5f;
 
+	/** The white "eyes" (visor), brighter than the engine so they read against a bright nebula. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float PlaceholderEyeGlow = 16.f;
+
 	/** Placeholder-only visual scale by role (collision unchanged): readable at 100-400 m before the art lands. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0.1"))
-	float PlaceholderSmallShipScale = 2.2f;
+	float PlaceholderSmallShipScale = 2.75f;	// art audit: +25% (2.2 -> 2.75)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0.1"))
-	float PlaceholderMediumShipScale = 1.6f;
+	float PlaceholderMediumShipScale = 2.f;	// +25%
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0.1"))
-	float PlaceholderLargeShipScale = 1.4f;
+	float PlaceholderLargeShipScale = 1.75f;	// +25%
 
 	/** Placeholder "eyes" (two white glowing spheres at the nose) and the gunship's frontal-shield plate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Presentation")
@@ -276,6 +280,49 @@ public:
 	TObjectPtr<UStaticMeshComponent> PlaceholderShieldPlate;
 
 	bool bPlaceholderLook = false;
+
+	// --- Range readability (Lead, art audit): the visual mesh grows with camera distance; collision never does ---
+public:
+	/** Visual scale is 1 inside this camera distance (cm)... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float RangeScaleNearCm = 6000.f;
+
+	/** ...rising linearly to RangeScaleMax at this distance, and capped there. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "1"))
+	float RangeScaleFarCm = 25000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "1"))
+	float RangeScaleMax = 2.5f;
+
+	/** Placeholder engine glow multiplier at RangeScaleFarCm (1 up close): a red-orange spark at range. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "1"))
+	float RangeEngineGlowMax = 2.f;
+
+	/** Smoothing rate (1/s, real time) so the scale never pops. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0.1"))
+	float RangeScaleSmoothing = 4.f;
+
+	/** The curve: 1 at Near, MaxScale at Far, linear between, clamped. */
+	static float RangeScaleFor(float DistanceCm, float NearCm, float FarCm, float MaxScale);
+
+	/** Current (smoothed) range multiplier on the visual mesh. */
+	float GetRangeScale() const { return RangeScale; }
+
+	/** One step of the range scale toward a view location; bAllowed=false eases back to 1 (director shots, intro). */
+	void UpdateRangeScale(const FVector& ViewLocation, bool bAllowed, float RealDeltaSeconds);
+
+protected:
+	void TickRangeScale(float DeltaSeconds);
+	void ApplyVisualScale();
+
+	FVector BaseVisualScale = FVector::OneVector;
+	float RangeScale = 1.f;
+	float AppliedRangeScale = 1.f;
+	bool bHasMountedParts = false;	// carriers / gunships with hit parts keep true scale (parts sit on the hull)
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> EngineGlowMID;
+	FLinearColor EngineGlowBase = FLinearColor::Black;
 
 public:
 	/** Gun aim error is an angle (spec AimErrorDeg) capped so a bolt misses by at most this (cm, x difficulty). */
