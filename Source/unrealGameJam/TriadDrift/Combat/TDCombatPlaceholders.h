@@ -142,9 +142,31 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 };
 
 /**
- * A short glowing sphere that swells and fades: the muzzle / impact flash placeholder. Pooled by
- * UTDProjectileSubsystem::PlayPlaceholderFlash; never spawn it directly. The engine sphere is hard-referenced by the
- * class default object; the glow is Core's always-cooked M_TD_PlaceholderGlow.
+ * A styled flash (explosion parts): drawn with the additive M_TD_FlashGlow (soft-edged, fades to transparent) when the
+ * project has it, its colour running Hot -> Mid -> Cool over its life (40% / 60%) and its glow falling off, or rising
+ * and falling for an ember afterglow. Size eases out from GrowFrom to GrowTo x the radius. Delay hides it first.
+ */
+struct FTDFlashLook
+{
+	FLinearColor Hot = FLinearColor::White;
+	FLinearColor Mid = FLinearColor(1.f, 0.6f, 0.15f);
+	FLinearColor Cool = FLinearColor(0.5f, 0.05f, 0.02f);
+	float Glow = 8.f;
+	/** Glow x (1 - t)^GlowExponent (ignored for an ember). */
+	float GlowExponent = 1.5f;
+	/** Glow x sin(pi t): an afterglow that swells in and dies away. */
+	bool bEmber = false;
+	float GrowFrom = 0.4f;
+	float GrowTo = 1.f;
+	float Delay = 0.f;
+	/** M_TD_FlashGlow edge falloff (higher = softer edge, smaller bright centre). */
+	float EdgePower = 1.5f;
+};
+
+/**
+ * A short glowing sphere that swells and fades: the muzzle / impact flash placeholder, and the parts of a placeholder
+ * explosion (PlayLook). Pooled by UTDProjectileSubsystem; never spawn it directly. The engine sphere is hard-referenced
+ * by the class default object; the glows are M_TD_PlaceholderGlow (Core) and M_TD_FlashGlow, both always cooked.
  */
 UCLASS(NotBlueprintable)
 class UNREALGAMEJAM_API ATDCombatFlash : public AActor
@@ -157,6 +179,17 @@ public:
 	void Play(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds, USceneComponent* AttachTo);
 	/** A debris streak: flies at Velocity, stretched along it (Length x Thickness), shrinking as it fades. */
 	void PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& Color, float Seconds);
+	/** A styled sphere (explosion core, shell, pop, ember). */
+	void PlayLook(const FVector& Location, float Radius, float Seconds, const FTDFlashLook& Look);
+	/** A styled debris spark. */
+	void PlayDebrisLook(const FVector& Location, const FVector& Velocity, float Length, float Thickness, float Seconds, const FTDFlashLook& Look);
+	/** The additive soft glow (/Game/TriadDrift/Gameplay/Materials/M_TD_FlashGlow, always cooked), or null if missing. */
+	static UMaterialInterface* GetFlashGlowMaterial();
+	bool IsStyled() const { return bStyled; }
+	bool IsDelayed() const { return bPlaying && DelayLeft > 0.f; }
+	/** Emissive written last (tests). */
+	FLinearColor GetLastColor() const { return LastColor; }
+	bool UsesAdditiveGlow() const { return bStyled && AdditiveMID && Mesh->GetMaterial(0) == AdditiveMID; }
 	/** A flash sphere's radius never exceeds this fraction of its distance to the player's camera (default cap). */
 	static constexpr float MaxRadiusPerCameraDistance = 0.3f;
 	/**
@@ -168,7 +201,14 @@ public:
 	static constexpr float MaxDebrisThicknessPerCameraDistance = 0.02f;
 	static constexpr float MaxDebrisLengthPerCameraDistance = 0.25f;
 	/** This play's camera cap (Play resets it to MaxRadiusPerCameraDistance). */
-	void SetCameraCap(float RadiusPerCameraDistance) { CameraCap = FMath::Max(RadiusPerCameraDistance, 0.01f); }
+	void SetCameraCap(float RadiusPerCameraDistance)
+	{
+		CameraCap = FMath::Max(RadiusPerCameraDistance, 0.01f);
+		if (bPlaying)
+		{
+			Apply(FMath::Clamp(Age / Life, 0.f, 1.f)); // at once, also for a delayed part still waiting its turn
+		}
+	}
 	float GetCameraCap() const { return CameraCap; }
 	bool IsPlaying() const { return bPlaying; }
 	float GetRadius() const { return Radius; }
@@ -190,6 +230,15 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> MID;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> AdditiveMID;
+
+	void UseStyledMaterial();
+	bool bStyled = false;
+	FTDFlashLook StyledLook;
+	float DelayLeft = 0.f;
+	FLinearColor LastColor = FLinearColor::Black;
 
 	FLinearColor Color = FLinearColor::White;
 	float CameraCap = MaxRadiusPerCameraDistance;

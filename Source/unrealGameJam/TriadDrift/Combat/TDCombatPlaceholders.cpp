@@ -12,6 +12,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Misc/PackageName.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Engine/World.h"
@@ -213,6 +214,12 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 		MID = Mesh->CreateDynamicMaterialInstance(0, GlowMaterial);
 	}
 	bDebris = false;
+	bStyled = false;
+	DelayLeft = 0.f;
+	if (MID && Mesh->GetMaterial(0) != MID)
+	{
+		Mesh->SetMaterial(0, MID);
+	}
 	CameraCap = MaxRadiusPerCameraDistance;
 	SetActorRotation(FRotator::ZeroRotator);
 	Radius = FMath::Max(InRadius, 1.f);
@@ -236,6 +243,66 @@ void ATDCombatFlash::PlayDebris(const FVector& Location, const FVector& Velocity
 	Apply(0.f);
 }
 
+UMaterialInterface* ATDCombatFlash::GetFlashGlowMaterial()
+{
+	static TWeakObjectPtr<UMaterialInterface> Cached;
+	static bool bLooked = false;
+	if (!Cached.IsValid() && !bLooked)
+	{
+		bLooked = true;
+		static const TCHAR* Path = TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_FlashGlow.M_TD_FlashGlow");
+		if (FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(FString(Path))))
+		{
+			Cached = LoadObject<UMaterialInterface>(nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+		}
+	}
+	return Cached.Get();
+}
+
+void ATDCombatFlash::UseStyledMaterial()
+{
+	if (!AdditiveMID)
+	{
+		if (UMaterialInterface* Additive = GetFlashGlowMaterial())
+		{
+			AdditiveMID = UMaterialInstanceDynamic::Create(Additive, this);
+		}
+	}
+	UMaterialInstanceDynamic* Want = AdditiveMID ? AdditiveMID.Get() : MID.Get();
+	if (Want && Mesh->GetMaterial(0) != Want)
+	{
+		Mesh->SetMaterial(0, Want);
+	}
+	if (AdditiveMID)
+	{
+		AdditiveMID->SetScalarParameterValue(TEXT("Opacity"), 1.f);
+		AdditiveMID->SetScalarParameterValue(TEXT("EdgePower"), StyledLook.EdgePower);
+	}
+}
+
+void ATDCombatFlash::PlayLook(const FVector& Location, float InRadius, float Seconds, const FTDFlashLook& InLook)
+{
+	Play(Location, InRadius, InLook.Hot, Seconds, nullptr);
+	bStyled = true;
+	StyledLook = InLook;
+	DelayLeft = FMath::Max(InLook.Delay, 0.f);
+	UseStyledMaterial();
+	Mesh->SetVisibility(DelayLeft <= 0.f);
+	Apply(0.f);
+}
+
+void ATDCombatFlash::PlayDebrisLook(const FVector& Location, const FVector& Velocity, float Length, float Thickness, float Seconds,
+	const FTDFlashLook& InLook)
+{
+	PlayDebris(Location, Velocity, Length, Thickness, InLook.Hot, Seconds);
+	bStyled = true;
+	StyledLook = InLook;
+	DelayLeft = FMath::Max(InLook.Delay, 0.f);
+	UseStyledMaterial();
+	Mesh->SetVisibility(DelayLeft <= 0.f);
+	Apply(0.f);
+}
+
 void ATDCombatFlash::Stop()
 {
 	bPlaying = false;
@@ -250,6 +317,16 @@ void ATDCombatFlash::Tick(float DeltaSeconds)
 	if (!bPlaying)
 	{
 		return;
+	}
+	if (DelayLeft > 0.f)
+	{
+		// A staggered pop: hidden until its turn, then it plays its whole life.
+		DelayLeft -= DeltaSeconds;
+		if (DelayLeft > 0.f)
+		{
+			return;
+		}
+		Mesh->SetVisibility(true);
 	}
 	Age += DeltaSeconds;
 	if (Age >= Life)
@@ -295,16 +372,32 @@ void ATDCombatFlash::Apply(float Alpha)
 		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
 		const float Distance = (PC && PC->PlayerCameraManager) ? FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation()) : -1.f;
 		const float R = Distance > 0.f ? FMath::Max(Radius, Distance * FTDCombatPlaceholders::MinFlashRadiusPerCameraDistance) : Radius;
-		float Size = Alpha < 0.3f ? R * (0.6f + 2.f * Alpha) : FMath::Max(R * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		float Size = bStyled
+			? FMath::Max(R * FMath::Lerp(StyledLook.GrowFrom, StyledLook.GrowTo, 1.f - FMath::Square(1.f - Alpha)), 1.f)
+			: Alpha < 0.3f ? R * (0.6f + 2.f * Alpha) : FMath::Max(R * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
 		if (Distance > 0.f)
 		{
 			Size = FMath::Min(Size, FMath::Max(Distance * CameraCap, 1.f));
 		}
 		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
 	}
-	if (MID)
+	if (bStyled)
+	{
+		// Hot -> Mid over the first 40% of its life, Mid -> Cool after; glow falls off (or swells and dies for an ember).
+		const FTDFlashLook& L = StyledLook;
+		const FLinearColor Tint = Alpha < 0.4f ? FMath::Lerp(L.Hot, L.Mid, Alpha / 0.4f) : FMath::Lerp(L.Mid, L.Cool, (Alpha - 0.4f) / 0.6f);
+		const float Glow = L.bEmber ? L.Glow * FMath::Sin(PI * FMath::Clamp(Alpha, 0.f, 1.f)) : L.Glow * FMath::Pow(FMath::Max(1.f - Alpha, 0.f), L.GlowExponent);
+		LastColor = Tint * Glow;
+		if (UMaterialInstanceDynamic* Target = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0)))
+		{
+			Target->SetVectorParameterValue(TEXT("Color"), LastColor);
+			Target->SetVectorParameterValue(TEXT("EmissiveColor"), LastColor);
+		}
+	}
+	else if (MID)
 	{
 		const FLinearColor Glow = Color * (FTDCombatPlaceholders::FlashGlow * FMath::Square(1.f - Alpha));
+		LastColor = Glow;
 		MID->SetVectorParameterValue(TEXT("Color"), Glow);
 		MID->SetVectorParameterValue(TEXT("EmissiveColor"), Glow);
 	}

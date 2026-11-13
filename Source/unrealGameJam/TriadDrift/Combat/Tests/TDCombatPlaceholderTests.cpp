@@ -352,35 +352,53 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
 	const FVector Here(5000.f, 0.f, 0.f);
 	const int32 Used = Projectiles->PlayPlaceholderExplosion(Here, 600.f, FLinearColor::Red, 8);
-	TestEqual(TEXT("core + shell + 8 debris"), Used, 10);
+	const int32 Pops = UTDProjectileSubsystem::ExplosionPops(600.f);
+	TestEqual(TEXT("core + shell + pops + ember + 8 sparks"), Used, 3 + Pops + 8);
+	TestEqual(TEXT("a 6 m explosion has 2 staggered pops"), Pops, 2);
+	TestTrue(TEXT("additive soft glow (M_TD_FlashGlow) is in the project"), ATDCombatFlash::GetFlashGlowMaterial() != nullptr);
+
+	// Sort the styled spheres: the core (smallest live), the shell (largest), the delayed pops and the ember.
+	auto Spheres = [&W](TArray<ATDCombatFlash*>& Live, TArray<ATDCombatFlash*>& Delayed)
 	{
-		// The shell (the biggest flash) stays saturated team colour at a low glow; the core is the small white-hot part.
-		float ShellR = 0.f, CoreR = TNumericLimits<float>::Max();
-		FLinearColor Shell = FLinearColor::Black, Core = FLinearColor::Black;
+		Live.Reset();
+		Delayed.Reset();
 		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
 		{
-			const UMaterialInstanceDynamic* FMID = It->IsPlaying() ? Cast<UMaterialInstanceDynamic>(It->FindComponentByClass<UStaticMeshComponent>()->GetMaterial(0)) : nullptr;
-			if (!FMID || It->GetActorRotation() != FRotator::ZeroRotator)
+			if (It->IsPlaying() && It->IsStyled() && It->GetActorRotation() == FRotator::ZeroRotator)
 			{
-				continue; // debris streaks are rotated along their flight
+				(It->IsDelayed() ? Delayed : Live).Add(*It);
 			}
-			FLinearColor C;
-			FMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), C);
-			const float Size = It->GetActorScale3D().X;
-			if (Size > ShellR) { ShellR = Size; Shell = C; }
-			if (Size < CoreR) { CoreR = Size; Core = C; }
 		}
-		TestTrue(FString::Printf(TEXT("shell glow %.1f stays low (<= 4)"), Shell.R), Shell.R > 0.f && Shell.R <= 4.f);
-		TestTrue(FString::Printf(TEXT("shell stays saturated red (G %.2f, B %.2f)"), Shell.G, Shell.B), Shell.G <= 0.05f && Shell.B <= 0.05f);
-		TestTrue(TEXT("core whiter than the shell"), Core.G > Shell.G && CoreR < ShellR);
+	};
+	TArray<ATDCombatFlash*> Live, Delayed;
+	Spheres(Live, Delayed);
+	TestEqual(TEXT("core and shell start at once"), Live.Num(), 2);
+	TestEqual(TEXT("pops and ember wait their turn"), Delayed.Num(), Pops + 1);
+	for (const ATDCombatFlash* F : Live)
+	{
+		TestTrue(TEXT("explosion parts use the additive glow"), F->UsesAdditiveGlow());
 	}
-	W.Advance(0.3f);
+	if (Live.Num() == 2)
+	{
+		Live.Sort([](const ATDCombatFlash& A, const ATDCombatFlash& B) { return A.GetRadius() < B.GetRadius(); });
+		const FLinearColor Core = Live[0]->GetLastColor(), Shell = Live[1]->GetLastColor();
+		TestTrue(FString::Printf(TEXT("core starts white-hot (%s)"), *Core.ToString()), Core.B > 0.8f * Core.R && Core.R > 2.f);
+		W.Advance(0.3f);
+		const FLinearColor ShellLater = Live[1]->GetLastColor();
+		TestTrue(FString::Printf(TEXT("shell cools into the team colour (%s -> %s)"), *Shell.ToString(), *ShellLater.ToString()),
+			Shell.G / FMath::Max(Shell.R, 0.01f) > 0.3f && ShellLater.G / FMath::Max(ShellLater.R, 0.01f) < 0.15f);
+	}
+	Spheres(Live, Delayed);
+	TestEqual(TEXT("after 0.3 s every pop and the ember have started"), Delayed.Num(), 0);
 	const int32 Playing = Projectiles->GetPlayingFlashCount();
 	const int32 Inside = Projectiles->CountPlayingFlashesNear(Here, 350.f);
 	AddInfo(FString::Printf(TEXT("after 0.3 s: %d playing, %d within 350 cm"), Playing, Inside));
-	TestTrue(TEXT("debris has flown outward"), Playing >= 8 && Playing - Inside >= 6);
-	W.Advance(1.f);
-	TestEqual(TEXT("all gone within a second"), Projectiles->GetPlayingFlashCount(), 0);
+	TestTrue(TEXT("sparks have flown outward"), Playing >= 8 && Playing - Inside >= 6);
+	W.Advance(0.45f);
+	Spheres(Live, Delayed);
+	TestTrue(TEXT("the ember afterglow is still up at 0.75 s"), Live.Num() >= 1);
+	W.Advance(0.8f);
+	TestEqual(TEXT("all gone by 1.6 s"), Projectiles->GetPlayingFlashCount(), 0);
 
 	// A rocket hitting a wall explodes (more than one flash at the wall), a laser only flashes.
 	const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());
