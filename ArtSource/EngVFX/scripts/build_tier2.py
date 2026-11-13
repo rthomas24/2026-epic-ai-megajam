@@ -446,16 +446,23 @@ def in_plane(e):
     return e
 
 
-S2('NS_TD_Rift_RingIdle', U(RIFT, 1.0, Power=0.5, Radius=44.0), [
-    looping(mesh_single('Swirl', 'SM_TD_VFX_Disc', 'M_TD_VFX_Swirl', '1.0, User.Radius/50.0, User.Radius/50.0', '(0.30 + 0.60*User.Power)', None), 1.6),   # brighter washed the magenta out to white
-    tint(looping(mesh_single('SwirlV', 'SM_TD_VFX_Disc', 'M_TD_VFX_Swirl', '1.0, User.Radius/72.0, User.Radius/72.0', 1.0, None), 1.1), (0.50, 0.20, 1.0), 0.6),
-    single('Core', 'M_TD_VFX_Glow', '(User.Radius*(0.55 + 0.75*User.Power)*(0.90 + 0.10*sin(Engine.Time*4.0)))', 1.1, 31.7),
-    in_plane(shed('Motes', 'M_TD_VFX_Glow', 0, (0.45, 0.85), (1.6, 4.2), ('-1.7*User.Radius', '-0.9*User.Radius'), k=1.3, radius='User.Radius', drag=0.0, curl=40.0, local=True,
-                  rate_expr='(18.0 + 70.0*User.Power)', power=0.7, fade_in=5.0)),
-    in_plane(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.30, 0.55), (0.8, 1.6), ('-2.6*User.Radius', '-1.6*User.Radius'), k=1.5, radius='(User.Radius*1.05)', drag=0.0, local=True, stretch=14,
-                  rate_expr='(10.0 + 50.0*User.Power)', power=0.6, fade_in=5.0, rgb=(0.65, 0.35, 1.0))),
-    spin(shed('Arcs', 'M_TD_VFX_FlipArc', 0, (0.08, 0.2), ('User.Radius*0.9', 'User.Radius*1.5'), (0, 0), k=1.3, radius='(User.Radius*0.3)', drag=0.0, power=0.6, local=True,
-              rate_expr='(2.0 + 12.0*User.Power)'))])
+# Round 8 (Lead, after Ryan saw the Rift up close in the Dominion hangar: the fill read as a static, cloudy purple texture;
+# and the machine is over its video memory budget): ONE emitter, one particle. A disc mesh with M_TD_VFX_PortalVortex
+# (the animated vortex: swirl, glow falling off into a dark centre, white-hot rim, sparks spiralling in, all in the
+# shader), sized to User.Radius (cm, default 44: the new portal disc), 3 cm behind the socket so it sits over the
+# ship's own fill as seen from the chase camera. User.Power (0.5 idle, 1 with the blaster open) drives its strength
+# through the particle alpha every frame. The round 7 version (two swirls, core, motes, streaks, arcs) was hidden behind
+# the hull's opaque disc in play.
+# The same material works straight on the ship's disc (MI_TD_VFX_RiftPortalVortex, PortalPower from T1's
+# SetShipMaterialScalar): then it shows from both sides and costs no particles at all.
+_ring = mesh_single('Vortex', 'SM_TD_VFX_Disc', 'M_TD_VFX_PortalVortex', '1.0, User.Radius/50.0, User.Radius/50.0', 1.0, None, offset=(-3, 0, 0))
+_ring['add'].append((PU, 'Update/Color/ScaleColor'))
+_ring['set'] += [(PU, 'ScaleColor', 'ScaleRGB', False), (PU, 'ScaleColor', 'ScaleA', True), (PU, 'ScaleColor', 'Scale Alpha', X('(0.35 + 0.65*User.Power)'))]
+# A system of persistent emitters only never activates (round 5), so a handful of sparks falls into the ring too
+# (4 to 10 a second, alive 0.4 s: at most four on screen).
+_glints = offset(shed('Glints', 'M_TD_VFX_Spark', 0, (0.30, 0.45), (0.8, 1.4), ('-2.4*User.Radius', '-1.8*User.Radius'), k=1.4, radius='(User.Radius*0.95)', drag=0.0,
+                      local=True, stretch=10, rate_expr='(4.0 + 6.0*User.Power)', power=0.8, fade_in=5.0), -4)
+S2('NS_TD_Rift_RingIdle', U(RIFT, 1.0, Power=0.5, Radius=44.0), [_ring, _glints])
 
 # ============================================================================================= pickups (round 8, for T2)
 # Four looping idles and a collect burst each, Z up, sized to T2's 3.4 m pickup (ATDPickup::Size). Colours are T2's

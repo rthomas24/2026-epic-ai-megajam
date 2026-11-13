@@ -437,6 +437,47 @@ return float4(c*Intensity, PC.a);""", {}),
 
     # round 8: a soft dark disc drawn under a pickup (translucent, sorted first), so its colour holds over the bright
     # magenta nebula instead of adding up to white.
+    # round 8: Rift's portal fill as an animated vortex with depth (Lead, after Ryan saw the ring up close: "a static,
+    # cloudy purple texture"). Works on a particle (the disc mesh of NS_TD_Rift_RingIdle) AND straight on a static mesh:
+    # it animates on engine time (Tm), its colour is PC x Tint (PC is white on a static mesh) and its strength is
+    # PortalPower x PC.a. UV (0.5, 0.5) = centre, a UV radius of 0.5 = the rim. Translucent, nearly opaque, so it hides
+    # whatever fill is under it. Spiral arms that twist tighter toward the centre and turn, a glow that falls off into a
+    # dark centre (the depth), a white-hot rim, and sparks spiralling into the centre - all in the shader: no particles.
+    'M_TD_VFX_PortalVortex': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, """
+float2 p = UV*2-1; float r = length(p); float ang = atan2(p.y, p.x);
+float pw = saturate(PortalPower*PC.a);
+float spd = 0.8;   // not scaled by power: a power change would jump the phase
+float t = Tm*spd;
+float tw = ang + 1.9/(r + 0.18) - t*3.2;
+float arms = pow(0.5 + 0.5*sin(tw*3.0), 2.2);
+float arms2 = pow(0.5 + 0.5*sin(tw*5.0 + 1.7 - t*1.3), 4.0);
+float depth = smoothstep(0.02, 0.95, r);
+float inner = pow(depth, 2.4);   // the first capture read flat: a deeper fall-off into the dark centre
+float3 col = PC.rgb*Tint.rgb;
+float3 hot = lerp(col, float3(1,1,1), 0.65);
+float3 c = col*0.05;
+c += col*(arms*0.9 + arms2*0.35)*inner*(0.35 + 1.3*pw);
+c += hot*pow(arms, 3.0)*inner*inner*0.6*pw;
+float rim = exp(-pow((r - 0.93)/0.035, 2.0));
+float rimN = 0.75 + 0.25*sin(ang*7.0 + Tm*4.0);
+c += hot*rim*(1.2 + 1.6*pw)*rimN;
+float sp = 0.0;
+for (int i = 0; i < 7; i++) {
+    float h = frac(sin(i*12.9898)*43758.5453);
+    float ph = frac(Tm*(0.45 + 0.35*h)*spd*1.6 + h);
+    float rr = 0.9*(1.0 - ph);
+    float aa = h*6.2831853 + ph*3.4;
+    float2 q = p - rr*float2(cos(aa), sin(aa));
+    float2 tang = float2(-sin(aa), cos(aa));
+    float along = dot(q, tang); float across = dot(q, float2(cos(aa), sin(aa)));
+    sp += exp(-(along*along)/0.006 - (across*across)/0.0006)*ph*(1.0 - ph)*4.0;
+}
+c += hot*sp*(0.2 + 1.8*pw);
+c += hot*exp(-r*r/0.004)*0.25*pw;
+float mask = 1.0 - smoothstep(0.985, 1.0, r);
+float a = mask*saturate(0.92 + rim);
+return float4(c*Intensity*mask, a);""", {'PortalPower': 1.0, 'Tint': (1.0, 1.0, 1.0)}),
+
     'M_TD_VFX_Backdrop': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
 return float4(0.0, 0.0, 0.0, saturate(pow(m, 1.4)*Dark*PC.a));""", {'Dark': 0.75}),
 }
@@ -473,11 +514,18 @@ def build(name, spec):
     inputs = [('UV', uv, ''), ('PC', pc4, ''), ('Age', age, ''), ('Rnd', rnd, ''), ('Intensity', inten, '')]
     yy = 700
     for pname, default in extra.items():
-        sp = node(unreal.MaterialExpressionScalarParameter, -1500, yy)
-        sp.set_editor_property('parameter_name', pname)
-        sp.set_editor_property('default_value', default)
+        if isinstance(default, tuple):   # round 8: a vector parameter (r, g, b[, a])
+            sp = node(unreal.MaterialExpressionVectorParameter, -1500, yy)
+            sp.set_editor_property('parameter_name', pname)
+            sp.set_editor_property('default_value', unreal.LinearColor(*(list(default) + [1.0])[:4]))
+        else:
+            sp = node(unreal.MaterialExpressionScalarParameter, -1500, yy)
+            sp.set_editor_property('parameter_name', pname)
+            sp.set_editor_property('default_value', default)
         inputs.append((pname, sp, ''))
         yy += 100
+    if 'Tm' in body:   # round 8: engine time (animates on a static mesh too, where particle age is 0)
+        inputs.append(('Tm', node(unreal.MaterialExpressionTime, -1500, yy), ''))
 
     if name in FLIP:
         tname, cols, rows, fp, loops = FLIP[name][:5]
@@ -569,9 +617,14 @@ for _name, _spec in SPECS.items():
 MICS = {'M_TD_VFX_Ribbon_Clean': ('M_TD_VFX_Ribbon', {'Wisp': 0.12}),
         'M_TD_VFX_Jet_Rev': ('M_TD_VFX_Jet', {'FlipV': 1.0}),
         'M_TD_VFX_Ribbon_Trail': ('M_TD_VFX_Ribbon', {'Wisp': 0.0}),
-        'M_TD_VFX_Flame_Boost': ('M_TD_VFX_Flame', {'Diamonds': 1.0})}
+        'M_TD_VFX_Flame_Boost': ('M_TD_VFX_Flame', {'Diamonds': 1.0}),
+        # round 8: the vortex for the Rift's portal disc as a plain mesh material (for the ship builder to assign to the
+        # disc's slot; T1's SetShipMaterialScalar drives PortalPower). Rift magenta.
+        'MI_TD_VFX_RiftPortalVortex': ('M_TD_VFX_PortalVortex', {'Tint': (1.0, 0.10, 0.85), 'PortalPower': 0.5})}
 mic_log = []
 for _n, (_parent, _params) in MICS.items():
+    if ONLY_MATS and _n not in ONLY_MATS:   # round 8: no incidental re-saves of the instances
+        continue
     _p = MAT + '/' + _n
     if EAL.does_asset_exist(_p):
         _mi = unreal.load_asset(_p)
@@ -579,7 +632,10 @@ for _n, (_parent, _params) in MICS.items():
         _mi = unreal.AssetToolsHelpers.get_asset_tools().create_asset(_n, MAT, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     MEL.set_material_instance_parent(_mi, unreal.load_asset(MAT + '/' + _parent))
     for _k, _v in _params.items():
-        MEL.set_material_instance_scalar_parameter_value(_mi, _k, _v)
+        if isinstance(_v, tuple):
+            MEL.set_material_instance_vector_parameter_value(_mi, _k, unreal.LinearColor(*(list(_v) + [1.0])[:4]))
+        else:
+            MEL.set_material_instance_scalar_parameter_value(_mi, _k, _v)
     MEL.update_material_instance(_mi)
     EAL.save_loaded_asset(_mi)
     mic_log.append(_n + ' ok')
