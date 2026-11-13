@@ -178,7 +178,7 @@ bool FTDStoryTriggers::RunTest(const FString& Parameters)
 		Bus->BroadcastWaveCleared(1);
 		TestTrue(TEXT("wave 1 cleared: they search"), Story->HasPlayed(TEXT("A1_TheySearch")));
 		Bus->BroadcastWaveStarted(2, 0.3f);
-		TestTrue(TEXT("wave 2: the field"), Story->HasPlayed(TEXT("A1_FieldUnreachable")));
+		TestFalse(TEXT("wave 2: the field line is T4's (the field approach), not the wave's"), Story->HasPlayed(TEXT("A1_FieldUnreachable")));
 		Bus->BroadcastWaveCleared(2);
 		TestTrue(TEXT("wave 2 cleared: to Verdance"), Story->HasPlayed(TEXT("A1_TrailToVerdance")));
 		TestFalse(TEXT("nothing else fires on its own"), Story->HasPlayed(TEXT("A2_DeviceFound")));

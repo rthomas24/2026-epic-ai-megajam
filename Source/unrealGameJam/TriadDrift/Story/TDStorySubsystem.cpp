@@ -315,8 +315,8 @@ void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
 void UTDStorySubsystem::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*/)
 {
 	// Act 1, First Contact: the hail nobody answers; the field around the ship (storyline.md §5).
+	// (A1_FieldUnreachable is T4's: fired when the player first approaches the distortion field.)
 	if (WaveNumber == 1) { FireTransmission(TEXT("A1_HailNoAnswer")); }
-	else if (WaveNumber == 2) { FireTransmission(TEXT("A1_FieldUnreachable")); }
 }
 
 void UTDStorySubsystem::HandleWaveCleared(int32 WaveNumber)
