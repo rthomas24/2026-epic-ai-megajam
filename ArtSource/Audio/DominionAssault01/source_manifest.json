@@ -1,0 +1,36 @@
+{
+  "stage": "Full source decoded for Unreal; native import/runtime binding not performed",
+  "assignment": "Approved post-wave5 Dominion space assault; keep separate from tutorial/globalcombat music",
+  "assignment_reference": "https://github.com/rthomas24/2026-epic-ai-megajam/issues/46#issuecomment-6864925387",
+  "claim": "bd62a7d2",
+  "source_path": "C:\\Users\\nicho\\Downloads\\Infinity Zone.m4a",
+  "source_sha256": "1aad26c362efbf62df65d07b301cdab0485363b84360046369e776e86369ba79",
+  "source_bytes": 2295430,
+  "source_metadata": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "opus",
+        "sample_rate": "48000",
+        "channels": 2
+      }
+    ],
+    "format": {
+      "duration": "139.160000"
+    }
+  },
+  "source_unchanged": true,
+  "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionAssault01\\export\\MUS_DominionAssault_InfinityZone_Full_01.wav",
+  "output_sha256": "4a4c04b10350133aee17a8f3a8423e78dc9150670f9256c7991dad5ad0379650",
+  "sample_rate": 48000,
+  "channels": 2,
+  "bits": 16,
+  "decoded_frames": 6680328,
+  "decoded_duration_s": 139.1735,
+  "processing": "Full audio decode/channel-map only. No trim, fade, normalization, crossfade, looping, pitch or tempo edit. Full decoded sample count retained.",
+  "proposed_native_path": "/Game/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01",
+  "runtime_behavior": "Entry/exit, repeat and transition behavior remain to be assigned by engineering; no invented timing",
+  "cook_exclusivity_gate": "Bind through cooked Presentation reference or explicit cooker rule; suppress competing general combat music while assault cue owns scene",
+  "utc": "2026-11-13T23:52:39.057692+00:00"
+}

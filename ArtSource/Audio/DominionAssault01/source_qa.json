@@ -1,0 +1,34 @@
+{
+ "category": "music",
+ "mix": false,
+ "files": [
+  {
+   "file": "ArtSource/Audio/DominionAssault01/export\\MUS_DominionAssault_InfinityZone_Full_01.wav",
+   "codec": "pcm_s16le",
+   "sample_rate": 48000,
+   "channels": 2,
+   "bits": 16,
+   "duration": 139.1735,
+   "loudness_lufs": -15.6,
+   "loudness_kind": "integrated",
+   "integrated_lufs": -15.6,
+   "ungated_lufs": null,
+   "lra_lu": 4.8,
+   "true_peak_dbtp": -2.5,
+   "sample_peak_dbfs": -2.479798,
+   "rms_dbfs": -17.332956,
+   "lead_silence_s": 0.1054,
+   "tail_silence_s": 0.0133,
+   "dc_offset": -2.1e-05,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

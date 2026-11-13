@@ -1,0 +1,12 @@
+{
+  "full_decoded_pcm_byte_identical": true,
+  "decoded_audio_frames": 6680328,
+  "decoded_duration_s": 139.1735,
+  "output_wav_sha256": "4a4c04b10350133aee17a8f3a8423e78dc9150670f9256c7991dad5ad0379650",
+  "source_sha256_unchanged": true,
+  "category_qa_failures": 0,
+  "source_head_quiet_s_retained": 0.1054,
+  "decoded_container_length_note": "M4A metadata139.160s, complete decoded PCM139.1735s. All decoded samples retained; no trim was applied.",
+  "native_unreal_launched": false,
+  "runtime_binding_claimed": false
+}
