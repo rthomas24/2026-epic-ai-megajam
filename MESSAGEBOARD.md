@@ -324,6 +324,38 @@ Contact sheets: `ArtSource/EngAI/Ships/NullFleet/{Bomber,Carrier,Turret}/mesh_r1
 - **Interceptor mesh_r2:** `SM_NullInterceptor` is **8,589 tris** (inside the 6–10k budget), **660.0 × 632.9 × 220.9 cm**, pivot at the centre, nose +X. This is a new textured mesh; `mesh_r1` (8,974 tris, untextured) was not overwritten and the r2 maps will not fit the r1 UVs. The hull is a deep black; the red-orange seams survive. **Flags: two rear engines vs the concept's one; the white eye is present but much dimmer than the concept's bright disc; the nose is a little blunter.**
 Heat-glow masks (same method as #35) are in `ArtSource/EngAI/Ships/NullFleet/{Bomber,Carrier,Interceptor}/heatmask_r1/T_Null*_HeatMask.png`. Prefer the FBX (`UnitScaleFactor` 100). Status stays OPEN.
 
+**Reply (Ryan / Lead, 2026-11-13 15:17 EST): PR #43 merged; r1 ships are in the game; six new requests from Nicholas's references.**
+
+**PR #43 (bomber, carrier, turret mesh r1, interceptor mesh_r2): approved and merged.** These are the best of the fleet
+so far: near-black armour, clean orange seams, white eyes. The textured interceptor r2 fixes the one gap from r1 (the
+r1 interceptor arrived as untextured clay, so it was not imported). Our ship builder imports all four next.
+
+**Import status of your r1 meshes (on our integration branch, on `main` with the next batch):** Rift, Lancer, Bastion,
+the fighter and the gunship now fly in the game on a new `M_TD_Ship` material (heat mask wired as `HeatGlow`).
+Notes for an r2 if you have time, none blocking: the fighter's emissive is speckled rather than clean seams and its eye
+does not read white (darkened at import); Lancer's guns are asymmetric (long barrel left, short pod right); Rift has
+three nozzles and Bastion two against the briefs' two and four; the gunship's engine bells are upward cones on the
+rear deck and the hull is 1116 cm tall (was 677); Rift has 35 small floating islands.
+
+**New: six reference boards from Nicholas** (his own images, made with ChatGPT; one `Asset:` issue each with the
+full-resolution PNG, and a `nick/refs-*` branch under `ArtSource/Reference/`). Generate from these, in this order,
+one PR each with a contact sheet, replying in the issue as well:
+1. **#42 Verdance research outpost and console** (raised modular cabin, open console bay, cyan displays, short ramp,
+   roof antenna). Needed first: Verdance and Cinder both use it as the survey station. Keep it **open-sided** so the
+   player walks up to the console; the console as a separate mesh. About 8 m long, under 25k tris.
+2. **#37 Ancient relay / artefact** (split outer ring, cyan core, radial supports, stair-fronted plinth). Hero prop,
+   emissive mask for the core, about 10 m tall, under 30k tris.
+3. **#39 Verdance crashed ship wreck** (ruptured fuselage, broken wing, exposed ribs). The wreck only, not the intact
+   ship; under 30k tris.
+4. **#38 Cinder dig site and outpost** (industrial cabin, amber railings, stairs, tall drill rig). The drill rig as
+   its own mesh; the cabin may reuse #42's with a material change.
+5. **#40 Outpost and landing-pad set dressing** (crates, consoles, antennae, lights, power units): 8-10 small props,
+   each under 3k tris, one shared texture set if possible.
+6. **#41 Dominion exterior and shield generators** (long armoured silhouette, red hull banners, blue domed
+   generators). The generator as its own mesh first (four are placed on the hull); the hull after, and post the
+   concept sheet for the hull before meshing, because it replaces the finale's centrepiece.
+These go **ahead of** the crew sets and Warden clips in your queue; the energy blade mesh (direction B) stays first.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
