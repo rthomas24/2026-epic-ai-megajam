@@ -404,6 +404,8 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	bFleetSpawned = false;
 	bGateFlared = false;
 	bDominionShown = false;
+	bSequenceMode = false;
+	bSequenceStarted = false;
 	Overlay = FTDIntroOverlayState();
 
 	// Input: one blocking component on top of the stack. It sees every key (for the hold-to-skip) and nothing
@@ -435,6 +437,75 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	HoldSquad(true);
 	BuildShots();
 
+	// Music (presentation slot; the asset carries its own class and volume).
+	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+	{
+		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
+		{
+			Music = UGameplayStatics::SpawnSound2D(this, Sound);
+		}
+	}
+
+	EnsureWidget();
+	// Presentation override (UTDUIStyle::IntroSequence): Nick's authored Level Sequence plays instead of the code
+	// shots, with the same skip, input, HUD, squad and hand-off rules. It owns its framing: no bars of ours.
+	ULevelSequence* Sequence = SequenceOverrideForTests.Get();
+	if (!Sequence)
+	{
+		if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+		{
+			Sequence = Cast<ULevelSequence>(Style->IntroSequence.LoadSynchronous());
+		}
+	}
+	if (Sequence)
+	{
+		FMovieSceneSequencePlaybackSettings Settings;
+		Settings.bDisableMovementInput = true;
+		Settings.bDisableLookAtInput = true;
+		Settings.bHideHud = true;
+		ALevelSequenceActor* OutActor = nullptr;
+		SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(World, Sequence, Settings, OutActor);
+		SequenceActor = OutActor;
+		if (SequencePlayer && SequencePlayer->GetDuration().AsSeconds() < 0.1)
+		{
+			// Nothing to play (an empty or unfinished sequence): say so and play the code shots.
+			UE_LOG(LogTriadDrift, Warning, TEXT("Intro: the presentation sequence did not start (%s has no length); playing the code shots"), *GetNameSafe(Sequence));
+			SequencePlayer = nullptr;
+			if (SequenceActor)
+			{
+				SequenceActor->Destroy();
+				SequenceActor = nullptr;
+			}
+		}
+		else if (SequencePlayer)
+		{
+			bSequenceMode = true;
+			bSequenceStarted = false;
+			Overlay.Black = 0.f;
+			Overlay.Bars = 0.f;
+			SequencePlayer->Play();
+			UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing the presentation sequence %s"), *GetNameSafe(Sequence));
+			return true;
+		}
+		else
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("Intro: the presentation sequence did not start (%s could not be played); playing the code shots"), *GetNameSafe(Sequence));
+		}
+	}
+	StartCodeShots();
+	return true;
+}
+
+void UTDIntroDirector::StartCodeShots()
+{
+	UWorld* World = GetWorld();
+	APlayerController* PC = GetPlayer();
+	if (!World || !PC)
+	{
+		return;
+	}
+	bSequenceMode = false;
+	Overlay.Bars = 1.f;
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.ObjectFlags |= RF_Transient;
@@ -468,45 +539,17 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 		PP.AutoExposureSpeedDown = 0.25f;
 	}
 
-	// Music (presentation slot; the asset carries its own class and volume).
-	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
-	{
-		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
-		{
-			Music = UGameplayStatics::SpawnSound2D(this, Sound);
-		}
-	}
-
-	EnsureWidget();
-	// Presentation override (UTDUIStyle::IntroSequence): Nick's authored Level Sequence plays instead of the code
-	// shots, with the same skip, input, HUD, squad and hand-off rules.
-	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
-	{
-		if (ULevelSequence* Sequence = Cast<ULevelSequence>(Style->IntroSequence.LoadSynchronous()))
-		{
-			FMovieSceneSequencePlaybackSettings Settings;
-			Settings.bDisableMovementInput = true;
-			Settings.bDisableLookAtInput = true;
-			Settings.bHideHud = true;
-			ALevelSequenceActor* OutActor = nullptr;
-			SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(World, Sequence, Settings, OutActor);
-			SequenceActor = OutActor;
-			if (SequencePlayer)
-			{
-				Overlay.Black = 0.f;
-				SequencePlayer->Play();
-				UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing the presentation sequence %s"), *GetNameSafe(Sequence));
-				return true;
-			}
-		}
-	}
 	if (Camera)
 	{
 		PC->SetViewTarget(Camera);
 	}
 	BeginShot(0);
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing %d shots, %.1f s, sun toward %s"), Shots.Num(), GetTotalDuration(), *SunDirection().ToCompactString());
-	return true;
+}
+
+void UTDIntroDirector::SetSequenceOverrideForTests(ULevelSequence* Sequence)
+{
+	SequenceOverrideForTests = Sequence;
 }
 
 void UTDIntroDirector::BuildShots()
@@ -1403,7 +1446,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		HandOffElapsed += Dt;
 		Overlay.Black = 0.f;
 		Overlay.SubtitleAlpha = 0.f;
-		Overlay.Bars = 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
 		if (HandOffElapsed >= HandOffSeconds)
 		{
 			Finish();
@@ -1417,11 +1460,31 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		return;
 	}
 	Elapsed += Dt;
-	if (SequencePlayer)
+	if (bSequenceMode)
 	{
 		// Presentation's own Level Sequence: it owns the camera cuts; the hand-off follows its last frame.
 		Overlay.Black = 0.f;
-		if (!SequencePlayer->IsPlaying() && Elapsed > 0.2f)
+		const bool bRunning = SequencePlayer && SequencePlayer->IsPlaying();
+		bSequenceStarted = bSequenceStarted || bRunning;
+		if (!bSequenceStarted && Elapsed > 0.5f)
+		{
+			// Never started (empty, broken, unloadable bindings): say so, and play the code shots instead.
+			UE_LOG(LogTriadDrift, Warning, TEXT("Intro: the presentation sequence did not start; playing the code shots"));
+			if (SequencePlayer)
+			{
+				SequencePlayer->Stop();
+				SequencePlayer = nullptr;
+			}
+			if (SequenceActor)
+			{
+				SequenceActor->Destroy();
+				SequenceActor = nullptr;
+			}
+			Elapsed = 0.f;
+			StartCodeShots();
+			return;
+		}
+		if (bSequenceStarted && !bRunning)
 		{
 			BeginHandOff();
 		}

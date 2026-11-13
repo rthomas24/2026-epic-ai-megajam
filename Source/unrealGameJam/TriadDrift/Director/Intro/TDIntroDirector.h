@@ -30,6 +30,7 @@ class UInputComponent;
 class SWidget;
 class UAudioComponent;
 class ULevelSequencePlayer;
+class ULevelSequence;
 class ALevelSequenceActor;
 
 /** One beat of the intro: a camera move, a lens, what is in focus, and what happens in it. */
@@ -111,6 +112,10 @@ public:
 	}
 
 	bool IsPlaying() const { return bPlaying; }
+	/** True while presentation's Level Sequence plays instead of the code shots. */
+	bool IsPlayingSequence() const { return bPlaying && bSequenceMode; }
+	/** Tests: play this sequence as if UTDUIStyle::IntroSequence pointed at it. */
+	void SetSequenceOverrideForTests(ULevelSequence* Sequence);
 	/** Tests: let Play run in a test world with no game viewport (other systems' tests that go through Play). */
 	void SetAllowWithoutViewportForTests(bool bAllow) { bAllowWithoutViewportAlways = bAllow; }
 
@@ -150,6 +155,8 @@ public:
 
 private:
 	void BuildShots();
+	/** The code-driven shots: the shot camera, the view, shot 1. */
+	void StartCodeShots();
 	void BeginShot(int32 Index);
 	void UpdateShot(float ShotTime);
 	void UpdateOverlay(float ShotTime);
@@ -226,6 +233,10 @@ private:
 	bool bGateFlared = false;
 	bool bDominionShown = false;
 	bool bDebugFrozen = false;
+	/** Playing presentation's Level Sequence instead of the code shots (it owns framing: no bars). */
+	bool bSequenceMode = false;
+	bool bSequenceStarted = false;
+	TWeakObjectPtr<ULevelSequence> SequenceOverrideForTests;
 	/** Shot 6b: close fighters spawned so far (one every 0.45 s). */
 	int32 CloseSpawned = 0;
 };
