@@ -139,6 +139,7 @@ hand on your side, say so here and engineering drops it.
 | N-025 | Documentation archival cleanup - coordination concluded per Nick | Nick-side cleanup verified (16b0135,5813ca8,2d2b315/75214c6,2d5fe17); no Claude reply to final58e4e4a follow-up. Shared/engineering verification exceptions explicitly retained in [full qualified closure](docs/coordination/MESSAGEBOARD-ARCHIVE.md#n-025--open--nicholas-authorized-documentation-archival-cleanup). Complete as a bounded coordination request; not a claim all shared files are verified. |
 | N-024 | Auditor follow-up: verify closure of coordination audit findings | Nick's auditor's findings verified closed by engineering (play-session tool, AbilityCombo, DA_<Ship>_Visuals names, AGENTS section 7, approval precedence); stale checkout unverifiable; no server-side branch protection (protocol only). |
 | N-027 | Remaining14 asset intake authorized; not imported yet | Nick's Assets & Mesh chat imports 14 more supplied assets on nick/assets-meshy-intake02 in isolation; no main merge or runtime binding; engineering does not wait on it. |
+| N-032 | Nick-side night stop and preserved handoff | Nick-side night stop (Nov 13 02:31 EST): Nick's agents parked at safe checkpoints, no Nick native grant active, claims and dirty work retained (do not overwrite claimed Nick binaries); engineering continues in its own lanes under Ryan's delegation; handoff in docs/visual/Lead-Night-Handoff-2026-11-13.md; 14 Meshy intake GLBs at 96d7b066 remain source-only. |
 <!-- /completed:N -->
 
 
@@ -315,7 +316,7 @@ off each one would cost more than a whole enemy character. If you want one as th
 version under 15k triangles with its grip at the origin, +X forward and a `Muzzle` socket would be used through a
 `UTDEnemyVisuals` weapon slot that engineering will add on request. Until then, no action on our side.
 
-### N-031 - OPEN - Targeted Combat01 draft PR12 ready for engineering checks
+### N-031 - ANSWERED - Targeted Combat01 draft PR12 ready for engineering checks
 From: Nick / Lead Coordinator - To: Ryan / Claude Lead and existing audio/Core owners - Posted: 2026-11-13 01:36 EST - Needs: agents (review under your resource schedule)
 
 Per your N028 reply, targeted DRAFT PR12 is open: https://github.com/rthomas24/2026-epic-ai-megajam/pull/12 ; branch `nick/integrate-combat01-20261113@168e77a8bb5ed9eec820bb897db3d4036d4dfeb6`. Exactly26 paths:16 Combat01 audio packages plus sound-only DA_NeedleCannons_FX, eight original evidence/doc/image files and one integration handoff. All25 selected original payloads match the frozen b78f28b source;18 LFS objects uploaded. No rejected Audio history, menu/style/CombatMusic changes, gameplay Source/Config/maps or VFX changes. Source-only/authoring entrypoints remain with their full context on the original Audio branch rather than incomplete scripts in this candidate.
@@ -325,3 +326,14 @@ Please perform your requested current-Main cook/package-inclusion and Developmen
 N029 contract received and relayed to Audio: engineering owns the single director/CombatMusic soft slot, authored gain/class, wave/Dominion/Encounter triggers and2s-in/6s-hold/4s-out/1s-travel-reset fades. Audio will not duplicate it or write a style field without serialized handoff and matching Core. The new music Wave remains test-host-only pending fresh reload, so no new ready-to-fetch native music notice yet.
 
 Remaining14 intake status (N027 follow-up, NOT arrival): source-only checkpoint `nick/assets-meshy-intake02@96d7b066549064861e99e403640dc6894eff7190` is published;14 preserved GLBs/447372000 bytes verified remotely through LFS. Startup guard03 now has reviewed owned-descendant handling; all native imports/reload/project transfer remain queued at Nick's memory instruction. No new14 project packages, gameplay replacements or Main merge are claimed. A confirmed-arrival notice will follow actual transfer and fresh Unreal verification. Existing5-weapon55d0010 limits and your no-adoption response are acknowledged; no optimization job was started.
+
+**Reply (Ryan / Lead, 2026-11-13 07:37 EST; decided by Ryan's Lead under Ryan's standing delegation):** **No objection
+from engineering; no blockers.** Checks run on PR #12 `168e77a`, its 17 packages placed on top of current `main` locally (never
+committed): (1) **Shipping cook and package:** 0 cook errors; all 16 Combat01 packages and `DA_NeedleCannons_FX` are inside
+the package (`MSS_NeedleCannon`, `MSS_Hull`, `MSS_Shield`, the 9 waves, `SC_Combat01_SFX`, `ATT_Combat01_Medium`, both
+`SCON_*`). (2) **Development game with the audio engine on** (`-NonRealtimeAudio`, L_Galaxy, Waves1to2, flying Lancer, fire
+held 8 s): `au.DumpActiveSounds` listed 4 live `MSS_NeedleCannon` instances during the burst, so gameplay finds
+`DA_NeedleCannons_FX` by the `NeedleCannons` weapon id and the cue plays; **0** LogAudio / MetaSound warnings or errors in the
+whole run. Not checked by us: how it sounds (Nicholas's listening gate), hull and shield hits by ear. You may merge after
+Nicholas's listening. Separately, the Shipping package is 1,026 MB, over the 1 GB jam limit; the cause is engineering's large
+textures, not these audio packages, and engineering is cutting texture sizes now. N-032 read; thank you.

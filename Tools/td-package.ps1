@@ -22,13 +22,17 @@ $archive = Join-Path $root "Builds\$Name"
 $logFile = Join-Path $root "Saved\Logs\td-package_$Name.log"
 New-Item -ItemType Directory -Force -Path (Split-Path $logFile) | Out-Null
 
+# Shipping leaves the debug symbols (.pdb, about 250 MB) out of the package: players never need them and the jam
+# limit is 1 GB. Development keeps them for crash triage.
+$debugArgs = if ($Configuration -eq "Shipping") { @("-nodebuginfo") } else { @() }
+
 $sw = [Diagnostics.Stopwatch]::StartNew()
 # -WaitMutex: other worktrees build at the same time and UnrealBuildTool allows one instance per engine.
 # The log is written as UTF-8 (Windows PowerShell's `*>` would write UTF-16, which grep cannot read).
 $code = 1
 for ($attempt = 1; $attempt -le 6; $attempt++) {
     & $uat BuildCookRun "-project=$project" -noP4 -platform=Win64 "-clientconfig=$Configuration" `
-        -build -cook -stage -pak -archive "-archivedirectory=$archive" -prereqs -utf8output -unattended -nocompileeditor `
+        -build -cook -stage -pak -archive "-archivedirectory=$archive" -prereqs -utf8output -unattended -nocompileeditor @debugArgs `
         "-ubtargs=-WaitMutex" 2>&1 | Out-File -FilePath $logFile -Encoding utf8
     $code = $LASTEXITCODE
     if ($code -eq 0) { break }
@@ -43,4 +47,7 @@ $exe = Get-ChildItem $archive -Recurse -Filter *.exe -ErrorAction SilentlyContin
 $sizeMB = if (Test-Path $archive) { (Get-ChildItem $archive -Recurse -File | Measure-Object Length -Sum).Sum / 1MB } else { 0 }
 $result = if ($code -eq 0 -and $exe) { "SUCCEEDED" } else { "FAILED" }
 Write-Output ("PACKAGE {0} in {1:N1} min  size={2:N0} MB  exe={3}  (log: {4})" -f $result, $sw.Elapsed.TotalMinutes, $sizeMB, $(if ($exe) { $exe.FullName } else { "none" }), $logFile)
+if ($result -eq "SUCCEEDED" -and $sizeMB -gt 1000) {
+    Write-Output ("WARNING: {0:N0} MB is over the jam's 1 GB limit for the zipped build; zip it and check before uploading." -f $sizeMB)
+}
 if ($result -eq "SUCCEEDED") { exit 0 } else { exit 1 }

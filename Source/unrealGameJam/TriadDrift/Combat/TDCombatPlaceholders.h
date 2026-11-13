@@ -68,6 +68,15 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 
 	/** Muzzle, impact and explosion flashes keep at least this radius per cm of camera distance (~20 px at 300 m, 1080p). */
 	static constexpr float MinFlashRadiusPerCameraDistance = 0.007f;
+
+	/**
+	 * A projectile head (missiles, heavy shells, incoming hostile fire) is never wider than this fraction of its distance to
+	 * the camera (~50 px at 1080p): live in a wave-5 furball an incoming bolt passing a few metres from the camera drew its
+	 * 2.2x head as a pale ball over the player's ship.
+	 */
+	static constexpr float MaxHeadPerCameraDistance = 0.045f;
+	/** Enemy heads in space: pure Armada colour at this glow (x StreakGlow), not pushed toward white. */
+	static constexpr float EnemyHeadGlow = 0.7f;
 	static constexpr float MinOnFootStreakPixels = 5.f;
 	/** Live on Cinder, glow 3 tonemapped to (255, 231, 225), a pale pink-white dot; the lit floor is about 0.18. 1.2 stays
 	 *  saturated red-orange and still stands well clear of the ground. */
