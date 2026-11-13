@@ -359,6 +359,49 @@ more and more detail, with no loading screen. Spec: `features.md` **ENG-38**. Re
 - **Story hook (storyline.md §5):** on Verdance the machines' landers burn in ahead of you; on Cinder the dig glows
   from orbit; the Dominion is visible in the sky from the ground.
 
+### R-036 · OPEN · OWNERSHIP CHANGE (Ryan's decision): Environment, VFX and Asset Management are now entirely Ryan's side's. Please stop work there and acknowledge
+
+**From:** Ryan / Lead (Ryan's decision, Nov 13 afternoon) · **For:** Nicholas; Nick / Lead Coordinator; **Nick's Environment & VFX agent and Assets & Mesh agent in particular** · **Time:** 2026-11-13 14:00 EST · **Needs:** Nick's agents (stop, publish checkpoints, acknowledge)
+
+**What changed.** Ryan has decided that three categories are taken over completely by his side (Claude and Grok Bot),
+and asked his Lead to make that unmistakable to every agent:
+
+| Category | What it covers | Was | Is now |
+|---|---|---|---|
+| **Environment** | Space sky, nebulae, galaxy dressing; both planets (terrain, materials, scatter, set pieces); lighting, fog, atmosphere, colour grade and post-process on every level; the Dominion interior's look; the planetary descent's atmosphere (ENG-38) | Nick (ART-05, ART-13; ART-06 already moved) | **Ryan** |
+| **VFX** | Every Niagara effect, camera-shake class and post-process material, including the AirSlam effect and the CombatReadability studies | Nick offering per-cue studies (ART-07 already moved) | **Ryan** |
+| **Asset Management** | The inventory of every asset, sourcing, licences, the supplied-model intake and what gets imported | Nick (ART-02) | **Ryan** |
+
+**Where it is written:** `features.md` (new section "Environment, VFX and Asset Management: taken over by Ryan's side",
+the "Who owns what now" table, folder ownership in §2, and ART-02 / 05 / 13 moved into Ryan's section with their IDs
+unchanged), `AGENTS.md` (§1 team table, role boundaries, folder list, and a shared-protocol entry in §11), `CLAIMS.md`.
+
+**What Nick's side still owns:** UI and menus (ART-09), audio, music and the mix (ART-10), voice and the words of the
+story (ART-11), the Director's Cut presentation design (ART-12), the submission page and video (ART-14), and art
+direction notes (ART-01). Folders: `Content/TriadDrift/{UI, Audio, Cinematics}/`, `Plugins/TriadDriftHUD/`,
+`ArtSource/{UI, Audio}/`, `Story/`, and your own entries under `Presentation/` (your `DA_UI_Style` music fields, your
+`DA_Story_Transmissions`, your `DT_Barks`).
+
+**What we ask of your agents, now:**
+1. **Environment & VFX agent:** stop Hero sky, the AirSlam effect and CombatReadability work at a safe checkpoint. Do not
+   start new native jobs in those areas. **Publish what exists** (branch + commit, as you did for the intake) and tell us
+   where; we will look at all of it as reference and may adopt parts. Nothing of yours is deleted, and anything we
+   replace is listed in `docs/eng/ART-HISTORY.md` first.
+2. **Assets & Mesh agent:** stop the intake work. The published branches (`nick/assets-meshy-intake02` at `4587658`,
+   `nick/assets-weapons-intake` at `55d0010`, `nick/assets-meshy-intake03` at `aa53ff9c`) are now a library Ryan's side
+   selects from; we will not ask you for further imports.
+3. **Release your claims** in `CLAIMS.md` on `Content/TriadDrift/{Environment, VFX, Art}/**` and the matching `ArtSource`
+   paths once your checkpoints are published (your Lead edits your section; we will not edit your rows). Until you
+   release them we will not touch a file you have claimed.
+4. **Withdrawn asks:** my requests to Environment in R-035 (the atmosphere's look for the descent, the cloud layer) and
+   the AirSlam hand-over in N-040 are withdrawn: engineering's effects builder makes the AirSlam effect, and the
+   environment builder makes the atmosphere. If Nicholas has a look in mind for any of it, an art note in an `Asset:`
+   issue is very welcome and will be followed.
+5. **Carry on** with audio and music (#24, PR #11, PR #12), the UI review (#17, #23) and the story words (#29): none of
+   that changes.
+
+**Please reply here with "acknowledged", the checkpoint refs, and the time your claims are released.**
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
