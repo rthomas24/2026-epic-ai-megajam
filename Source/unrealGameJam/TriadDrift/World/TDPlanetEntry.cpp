@@ -77,6 +77,16 @@ FTransform FTDPlanetEntry::ArrivalFromGlobe(ETDDestination Planet, const FTDGlob
 	{
 		Heading = XY.IsNearlyZero() ? FVector2D(1.f, 0.f) : -XY;	// straight down: face the pad
 	}
+	// The edge, part 1 (world-density plan): the first view looks into the dressed zone. Keep the entry's heading
+	// when it is within MaxHeadingOffPadDeg of the pad, else turn it to that limit on the same side.
+	if (!XY.IsNearlyZero())
+	{
+		const float PadYaw = FMath::RadiansToDegrees(FMath::Atan2(-XY.Y, -XY.X));
+		const float EntryYaw = FMath::RadiansToDegrees(FMath::Atan2(Heading.Y, Heading.X));
+		const float Off = FMath::Clamp(FMath::FindDeltaAngleDegrees(PadYaw, EntryYaw), -MaxHeadingOffPadDeg, MaxHeadingOffPadDeg);
+		const float Clamped = FMath::DegreesToRadians(PadYaw + Off);
+		Heading = FVector2D(FMath::Cos(Clamped), FMath::Sin(Clamped));
+	}
 	const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(Heading.Y, Heading.X));
 	const FTDTerrainField Field(FTDTerrainStyle::ForPlanet(Planet));
 	const float Ground = FMath::Max(Field.Height(XY.X, XY.Y), Field.GetStyle().BasinFloor);

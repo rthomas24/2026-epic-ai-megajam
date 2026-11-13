@@ -8,6 +8,7 @@
 #include "HAL/PlatformTime.h"
 #include "Materials/MaterialInterface.h"
 #include "Async/Async.h"
+#include "TriadDrift/World/TDPlanetScatter.h"
 #include "EngineUtils.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
@@ -164,8 +165,10 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 			}
 		}
 		FarMesh->CreateMeshSection(0, V, Tri, Nrm, UV0, UV1, TArray<FVector2D>(), TArray<FVector2D>(), Col, Tan, false);
-		if (Material) { FarMesh->SetMaterial(0, Material); }
+		if (TerrainMaterial) { FarMesh->SetMaterial(0, TerrainMaterial); }	// the MID with HeightRangeM (the base material made the far ranges flat white)
 	}
+	// World density v1: the dressed play zone's trees and boulders (off-thread; td.Scatter 0 = none).
+	Scatter = ATDPlanetScatter::SpawnFor(this, Planet);
 	SetupMs = (FPlatformTime::Seconds() - SetupStart) * 1000.0;
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetTerrain: world built in %.0f ms (%d chunks, far ring, sync collision within %.0f m of the pad)"),
 		SetupMs, Chunks.Num(), SyncCollisionRadius / 100.f);

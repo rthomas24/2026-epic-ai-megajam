@@ -209,7 +209,27 @@ public:
 	FVector GlobeFacePoint = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "64"))
-	int32 GlobeBakeWidth = 1024;
+	int32 GlobeBakeWidth = 2048;
+
+	/**
+	 * The landing site's marker on the globe: a small soft light at the landing zone that reads from orbit as "something
+	 * is down there", holds about BeaconAngularDeg of the view, and fades out as the ship closes: gone inside
+	 * BeaconHideRadii planet radii from the centre (well before the dive's white cover).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "0"))
+	float BeaconAngularDeg = 0.35f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "1"))
+	float BeaconHideRadii = 3.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "1"))
+	float BeaconFullRadii = 6.f;
+
+	bool IsBeaconVisible() const;
+	/** Scale the beacon had last frame (tests). */
+	float GetBeaconWorldSize() const;
+	/** Updates the beacon for a viewer at ViewLocation (Tick does this with the camera; tests call it directly). */
+	void UpdateBeacon(const FVector& ViewLocation);
 
 protected:
 	void StartGlobeBake();
@@ -224,5 +244,7 @@ protected:
 	bool bGlobeBaked = false;
 	bool bGlobeBaking = false;
 	bool bGlobeFacing = false;
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMeshComponent> PadBeacon;
 	FQuat GlobeQuat = FQuat::Identity;
 };

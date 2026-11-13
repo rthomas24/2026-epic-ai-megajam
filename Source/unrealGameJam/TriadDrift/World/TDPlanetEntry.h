@@ -31,7 +31,10 @@ struct FTDGlobePoint
  */
 struct UNREALGAMEJAM_API FTDPlanetEntry
 {
-	static constexpr float MaxArrivalRadius = 600000.f;	// 6 km: T1's flight zone warns from ~7 km (one number, agreed with T1)
+	static constexpr float MaxArrivalRadius = 250000.f;	// 2.5 km: every arrival lands over the dressed zone (world-density plan; T1's flight zone matches)
+
+	/** The arrival heading is turned to within this of the pad's bearing (keeping the side the player came from). */
+	static constexpr float MaxHeadingOffPadDeg = 50.f;
 	static constexpr float SpreadDeg = 60.f;
 
 	/**
