@@ -1,0 +1,39 @@
+{
+  "status": "DEFECT REPRODUCTION ONLY, not completed tutorial video",
+  "head": "35f37d610251cfc92e27d4378045b071df9046cf",
+  "style_sha256": "74151482768bb0eb46a2137c26148e049d31b997e8e3144bd7eafa8cd59fdc91",
+  "source_unchanged": true,
+  "overlap_root_cause": "IntroDirector independently starts IntroMusic. Unset Presentation IntroMusic is filled from engineering fallback by TDStatics. Actual log loads SW_Music_Intro_01 and tutorial prelude.",
+  "prelude_source30_capture_s": 40.6505,
+  "prelude_correlation": 0.9228,
+  "prelude_inferred_end_s": 48.6505,
+  "first_loop_capture_s": 49.484,
+  "first_loop_correlation": 0.9526,
+  "next_loop_capture_s": 106.484,
+  "next_loop_correlation": 0.9925,
+  "repeat_period_s": 57.0,
+  "inferred_handoff_gap_s": 0.8335,
+  "fade_verified": false,
+  "reason": "Game viewport closed before tutorial completion; final proof still pending corrected owner build.",
+  "native_slot_released": true,
+  "actual_pcm": {
+    "sha256": "264df8b43f69bcb2b22478e246f54f4a4aa6535e01bbe449ca2e225512b5e76d",
+    "rate": 48000,
+    "channels": 2,
+    "frames": 5425920,
+    "duration_s": 113.04,
+    "clipped_samples": 0,
+    "true_peak_dbfs": -9.9,
+    "integrated_lufs": -25.9
+  },
+  "raw_video": {
+    "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\tutorial-music-t1\\Saved\\AudioMusic\\CombatMusic01\\TutorialCapture01\\User\\Saved\\Recordings\\Viewport_20261113-135811_EWLW0ZDIMPU7Y2375HM0J6ZTC.mp4",
+    "duration_s": 110.4864,
+    "size_bytes": 35305838,
+    "resolution": [
+      1280,
+      720
+    ]
+  },
+  "verification_limit": "Original recorder stdout timestamps lost on early viewport close; source correlation timing is relative to actual PCM, not asserted final video sync."
+}
