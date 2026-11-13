@@ -183,6 +183,8 @@ public:
 	/** The ceiling exit fired (TravelTo(Galaxy, "<PlanetId>_Orbit") was requested). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	bool IsExitTriggered() const { return bExitTriggered; }
+	/** ENG-38: the forced climb out before the travel is running. */
+	bool IsClimbingOut() const { return ExitClimbTime >= 0.f; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	bool IsShipInZone(const ATDShip* Ship) const;
@@ -196,6 +198,12 @@ public:
 	 */
 	void FitToTerrain(const class ATDPlanetTerrain* Terrain);
 	bool IsFittedToTerrain() const { return bFittedToTerrain; }
+
+	/** ENG-38 climb out: seconds of forced climb (exit burn, hull heat, cover at the end) before the travel; 0 = at once. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "s"))
+	float ExitClimbSeconds = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
+	float ExitClimbSpeed = 9000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
 	float TerrainEdgeExtension = 50000.f;
@@ -244,6 +252,8 @@ private:
 	float TerrainPoll = 0.f;
 	bool bExitOverride = false;
 	bool bExitAllowedOverride = false;
+	float ExitClimbTime = -1.f;
+	TWeakObjectPtr<ATDShip> ExitClimbShip;
 	bool bExitTriggered = false;
 	bool bTipShown = false;
 	TArray<TWeakObjectPtr<ATDShip>> ManagedShips;
