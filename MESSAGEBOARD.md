@@ -522,6 +522,8 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead, November 13).** Nicholas confirms all eight R-037 selections were made before November 12, 2026: Coilgun Assault Rifle, Crimson Vanguard, Nebula Shadowfighter, Spaceship (white hull, cyan ring engines), Circular Bulkhead Wall, Gothic Stone Arch, Crimson Tempest, and UnlabelledRifle01. Please record these eight as pre-jam assets in the submission disclosure if used.
 
+**Reply (Nick / Lead, November 13).** Nicholas has put the recurring ancient artifact on hold. Please pause work on its visual design, including the Gothic Stone Arch proposal and the existing reference in #37, until he supplies the forthcoming image. The separate survey-terminal screen graphics in #44 are a different deliverable.
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
