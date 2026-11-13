@@ -229,9 +229,11 @@ void ATDPlanetCourse::BuildInterior()
 	ATDDoor* CoreIn = Doorway(L2X1, true);
 
 	// Lights: cold white overhead, red in the corridors, the core's orange glow.
-	Light(FVector(0.f, 0.f, 1000.f), 3200.f, FLinearColor(0.8f, 0.85f, 1.f), 4000.f);
-	for (float X = HX1 + 600.f; X < CX1; X += 1200.f) { Light(FVector(X, 0.f, 520.f), 900.f, Strip, 900.f); }
-	Light(FVector((CX1 + AX1) * 0.5f, 0.f, 520.f), 2600.f, FLinearColor(0.85f, 0.9f, 1.f), 4000.f);
+	// (First capture, Nov 13: the corridor read solid red and the hangar floor washed out; the kit's own strips and
+	// ceiling lights carry most of it.)
+	Light(FVector(0.f, 0.f, 1000.f), 3200.f, FLinearColor(0.8f, 0.85f, 1.f), 1800.f);
+	for (float X = HX1 + 600.f; X < CX1; X += 1200.f) { Light(FVector(X, 0.f, 520.f), 700.f, Strip, 180.f); }
+	Light(FVector((CX1 + AX1) * 0.5f, 0.f, 520.f), 2600.f, FLinearColor(0.85f, 0.9f, 1.f), 2200.f);
 	Light(FVector((L1X1 + WX1) * 0.5f, 0.f, 520.f), 2200.f, FLinearColor(1.f, 0.6f, 0.5f), 3000.f);
 	Light(CoreAt + FVector(0.f, 0.f, 1500.f), 4200.f, CoreGlow, 8000.f);
 
@@ -261,8 +263,10 @@ void ATDPlanetCourse::BuildInterior()
 	StepDoors.Add({ Lesson, 0, HangarDoor });
 	const FBox CoverBox(FVector(-30.f, -100.f, 0.f), FVector(30.f, 100.f, 110.f));
 	Kit(TEXT("SM_DI_Cover_Low"), FVector(CX1 - 700.f, -70.f, 0.f), 0.f, CoverBox); // the troopers' cover; a 1.4 m gap on +Y
-	ATDEncounterVolume* Lane = Encounter(Lesson, 0, FVector((HX1 + CX1) * 0.5f, 0.f, 200.f), FVector((CX1 - HX1) * 0.5f, CY, 400.f),
-		{ ETDCrewType::Trooper, ETDCrewType::Trooper }, false, 0.f, { FVector(CX1 - 450.f, -100.f, 100.f), FVector(CX1 - 450.f, 100.f, 100.f) });
+	// Spawn points are relative to the encounter volume's centre.
+	const FVector LaneMid((HX1 + CX1) * 0.5f, 0.f, 200.f);
+	ATDEncounterVolume* Lane = Encounter(Lesson, 0, LaneMid, FVector((CX1 - HX1) * 0.5f, CY, 400.f),
+		{ ETDCrewType::Trooper, ETDCrewType::Trooper }, false, 0.f, { FVector(CX1 - 450.f, -100.f, 100.f) - LaneMid, FVector(CX1 - 450.f, 100.f, 100.f) - LaneMid });
 	StepEncounters.Add({ Lesson, 0, Lane });
 	if (Lane) { Lane->DoorsToOpen.Add(ArenaIn); }
 	ATDStepTrigger* IntoArena = SpawnProp<ATDStepTrigger>(FVector(CX1 + 500.f, 0.f, 0.f));
@@ -302,8 +306,9 @@ void ATDPlanetCourse::BuildInterior()
 	AddTrailhead(Gate, FVector(L1X1 + 400.f, 0.f, 0.f), Strip, LOCTEXT("DIWarden", "THE GATE"));
 	Trailheads.Last().After = Fight;
 	StepDoors.Add({ Gate, 0, WardenIn });
-	ATDEncounterVolume* Boss = Encounter(Gate, 0, FVector((L1X1 + WX1) * 0.5f, 0.f, 200.f), FVector((WX1 - L1X1) * 0.5f, WY, 500.f), { ETDCrewType::Warden }, false, 0.f,
-		{ FVector(WX1 - 500.f, 0.f, 120.f) });
+	const FVector GateMid((L1X1 + WX1) * 0.5f, 0.f, 200.f);
+	ATDEncounterVolume* Boss = Encounter(Gate, 0, GateMid, FVector((WX1 - L1X1) * 0.5f, WY, 500.f), { ETDCrewType::Warden }, false, 0.f,
+		{ FVector(WX1 - 500.f, 0.f, 120.f) - GateMid });
 	StepEncounters.Add({ Gate, 0, Boss });
 	if (Boss)
 	{

@@ -519,6 +519,17 @@ void ATDPlanetCourse::Checkpoint(ATDObjective* Obj, int32 Step, const FVector& A
 
 void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const FLinearColor& Color, const FText& Name)
 {
+	if (IsInterior())
+	{
+		// Inside the Dominion the doors show the way: the trailhead is only its marker (no totem on the deck).
+		AActor* Spot = Marker(At + FVector(0.f, 0.f, 300.f));
+		FTDTrailhead T;
+		T.Objective = Obj;
+		T.Marker = Spot;
+		T.Name = Name;
+		Trailheads.Add(T);
+		return;
+	}
 	// A glowing totem: a dark plinth, a tall light column and a floating crown.
 	UStaticMeshComponent* Plinth = Platform(At, 40.f, FVector(500.f, 500.f, 40.f), FLinearColor(0.05f, 0.05f, 0.06f));
 	UStaticMeshComponent* Column = Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(22.f, 22.f, 440.f), Color, 2.f, FRotator::ZeroRotator, false); // thin: readable without filling the view up close

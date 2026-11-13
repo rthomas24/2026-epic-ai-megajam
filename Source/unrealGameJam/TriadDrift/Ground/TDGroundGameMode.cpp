@@ -101,7 +101,9 @@ bool ATDGroundGameMode::PlayerCanRestart_Implementation(APlayerController* Playe
 
 AActor* ATDGroundGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	if (AActor* Found = Super::ChoosePlayerStart_Implementation(Player))
+	// The interior starts where the course says (the hangar, or the next room), never at a PlayerStart a new map
+	// template left at the origin (live run, Nov 13: it stood inside the corridor's trailhead).
+	if (AActor* Found = bInteriorMode ? nullptr : Super::ChoosePlayerStart_Implementation(Player))
 	{
 		RespawnTransform = Found->GetActorTransform(); // retakes come back to the start actually used
 		bHasRespawnTransform = true;
@@ -210,6 +212,27 @@ void ATDGroundGameMode::SpawnInterior()
 		Interior->PlanetId = TEXT("DominionInterior");
 		Interior->FinishSpawning(FTransform::Identity);
 		PlayerSpawn = Interior->GetInteriorStart(); // the hangar, or the next room after a Continue
+		// The login already picked a start (InitNewPlayer runs before StartPlay) at the default spot, and a player start
+		// is static (it cannot be moved): make a new one here and point every controller at it (live run, Nov 13).
+		FActorSpawnParameters StartParams;
+		StartParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		if (AActor* Start = GetWorld()->SpawnActor<APlayerStart>(APlayerStart::StaticClass(), PlayerSpawn, StartParams))
+		{
+			if (SpawnPoint)
+			{
+				SpawnPoint->Destroy();
+			}
+			SpawnPoint = Start;
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			{
+				if (APlayerController* PC = It->Get())
+				{
+					PC->StartSpot = Start;
+				}
+			}
+		}
+		RespawnTransform = PlayerSpawn;
+		bHasRespawnTransform = true;
 	}
 }
 
