@@ -806,8 +806,10 @@ one little section on the map ... a massive, massive map that you should be able
   slope and noise masks, instanced, never on the course's paths.
 - **Flight:** atmosphere flight (ENG-20) flies over and between the mountains; arrival and take-off stay as they are;
   the landing assist still finds the pad.
-  - (T1, Nov 13) The flight zone grows to the terrain's collision core (minus 500 m) with its ceiling 400 m above the
-    highest ground in it, so the whole world is flyable without a boundary warning. Boost (60% of boost speed) crosses
+  - (T1, Nov 13) The flight zone grows to the terrain's whole collision core plus 500 m (the edge warning starts at the
+    8 km edge) with its ceiling 400 m above the highest ground in it, so the whole world is flyable without a boundary
+    warning; past the collision core ships stay above the generated ground. Take-off: once the exit is open the climb-out
+    triggers at the old height above the ground under the ship (~1.2 km), not at the raised ceiling. Boost (60% of boost speed) crosses
     it; the ground floor and terrain-ahead pull-up keep the ship off slopes and cliffs at boost speed too.
 - **Performance:** inside the ENG-28 budget on the target machine; generation is incremental (no hitch above 4 ms a
   frame) and the first view is ready before the arrival camera shows it.

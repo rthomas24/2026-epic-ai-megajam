@@ -75,6 +75,13 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 	{
 		return MusicOverride;
 	}
+	// Review M10: found once and held (UPROPERTY); while missing, looked up again every 2 s, never every frame.
+	if (CachedMusic || MusicRetry > 0.f)
+	{
+		return CachedMusic;
+	}
+	MusicRetry = 2.f;
+	++MusicLookups;
 	// UTDUIStyle::CombatMusic, read by name (the slot lands in Core with the N-029 push).
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
 	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(Style->GetClass()->FindPropertyByName(TEXT("CombatMusic"))) : nullptr;
@@ -83,7 +90,8 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 		return nullptr;
 	}
 	const FSoftObjectPtr& Soft = Prop->GetPropertyValue_InContainer(Style);
-	return Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+	CachedMusic = Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+	return CachedMusic;
 }
 
 FName UTDMusicDirectorSubsystem::AmbienceSlotForMap(const FString& MapName)
@@ -300,6 +308,7 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	}
 	TickAmbience(Dt, bTravelling || bVictory || bMenuMap);
 
+	MusicRetry = FMath::Max(0.f, MusicRetry - Dt);
 	// N-037: the fight's intensity sets the music's level, rate-limited on top of the intensity's own smoothing.
 	IntensityGain = FMath::FInterpConstantTo(IntensityGain, TargetIntensityGain(), Dt, UTDMusicSettings::Get()->MaxGainRatePerSecond);
 

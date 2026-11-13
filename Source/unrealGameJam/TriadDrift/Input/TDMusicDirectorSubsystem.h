@@ -87,6 +87,8 @@ public:
 	 */
 	float GetIntensityGain() const { return IntensityGain; }
 	float GetAppliedVolume() const { return Envelope * IntensityGain; }
+	/** Tests (review M10): how many times the style slot was looked up (never per frame while silent). */
+	int32 GetMusicLookupsForTests() const { return MusicLookups; }
 	/** Tests: force the music intensity (otherwise UTDAudioStateSubsystem's smoothed MusicIntensity01). */
 	void SetIntensityForTests(TOptional<float> InIntensity) { IntensityOverride = InIntensity; }
 
@@ -114,6 +116,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> AmbienceAudio;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceOverride;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceBed;
+	/** The combat track, held once found (a packaged build would otherwise reload it after every GC). */
+	UPROPERTY(Transient) mutable TObjectPtr<USoundBase> CachedMusic;
+	mutable float MusicRetry = 0.f;
+	mutable int32 MusicLookups = 0;
 	bool bUseAmbienceOverride = false;
 	float AmbienceEnvelope = 0.f;
 	float IntensityGain = 1.f;

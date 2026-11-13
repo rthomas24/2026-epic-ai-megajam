@@ -565,3 +565,15 @@ To capture screenshots:
   - Quiet plays at the calm gain, a full fight at the authored volume.
   - It is rate-limited: the volume never moves faster than 0.55/s.
   - A CUT still silences it within 1 s, and a travel stays silent.
+
+## Gamepad pass on every screen (T1, Nov 13)
+Played offscreen with the engine's MCP server: pad keys injected through `APlayerController::InputKey`, menus through Slate (`TD.UI.Key`).
+- **Flight:** right-stick aim, the RT/LT throttle and brake, left-stick roll and strafe, L3 boost, B drift, double-flick dodge, RB fire, LB secondary, X power (tap and hold), D-pad switch and radial, Y ability (locked and unlocked on all three ships), R3 cockpit and target, and D-pad-down hyperdrive all work.
+- **Pause** (T2): Start pauses. The D-pad moves the highlight; A on SETTINGS opens the Settings page on top; B goes back to the pause screen; Start resumes.
+- **Settings:** the D-pad and stick move the framed row, left and right change it, A acts, and B closes.
+- **On foot:** stick move and look, A jump, the L3 sprint toggle, B dash, the RT combo, LT block, the View camera toggle, R3, Start pause, and Y settings all work. X interact did nothing only because nothing interactable was in reach.
+- **Main menu** (T5): the D-pad focus frame moves; A on SETTINGS opens the page; B closes it; A on NEW GAME loads the galaxy.
+- **Device detection:** in flight, any pad input now switches "using gamepad" (and the HUD glyphs), not only the right stick; keys and the mouse switch back (test `Input.Device.InFlightAnyPadInputSwitchesTheGlyphs`).
+- **Seen, other owners:**
+  - The pause screen's footer always shows the keyboard keys ("[W/S] SELECT [ENTER] CHOOSE [ESC] RESUME") (T2).
+  - After closing Settings, the main menu's focus returns to NEW GAME, not SETTINGS (T5).

@@ -524,7 +524,7 @@ void ATDShip::StartEngineTrail()
 		{
 			FName Socket;
 			USceneComponent* Attach = GetEngineAttach(Socket);
-			EngineLoopAudio = TestSpawnEngineLoop ? TestSpawnEngineLoop(Sound, Attach, Socket) : UGameplayStatics::SpawnSoundAttached(Sound, Attach, Socket);
+			EngineLoopAudio = TestSpawnEngineLoop ? TestSpawnEngineLoop(Sound, Attach, Socket) : UGameplayStatics::SpawnSoundAttached(Sound, Attach, Socket, FVector::ZeroVector, EAttachLocation::KeepRelativeOffset, /*bStopWhenAttachedToDestroyed*/ true);
 			ApplyEngineAudioParams(EngineLoopAudio.Get());
 		}
 	}

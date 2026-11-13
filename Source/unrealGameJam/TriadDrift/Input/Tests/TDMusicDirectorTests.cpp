@@ -226,4 +226,19 @@ bool FTDMusicIntensityGain::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicNoPerFrameLookup, "TriadDrift.Input.Music.NoStyleLookupEveryFrameWhileSilent", TD_TEST_FLAGS)
+bool FTDMusicNoPerFrameLookup::RunTest(const FString& Parameters)
+{
+	// Review M10: while the music was silent Tick resolved the track every frame (LoadPresentation + LoadSynchronous).
+	FTDTestWorld W;
+	UTDMusicDirectorSubsystem* M = UTDMusicDirectorSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("director"), M)) { return false; }
+	M->SetCombatOverrideForTests(false);
+	const int32 Before = M->GetMusicLookupsForTests();
+	for (int32 i = 0; i < 120; ++i) { W.Tick(1.f / 60.f); } // 2 s of silence
+	const int32 Lookups = M->GetMusicLookupsForTests() - Before;
+	TestTrue(FString::Printf(TEXT("at most one lookup per 2 s while silent (%d in 120 frames)"), Lookups), Lookups <= 2);
+	return true;
+}
+
 #endif
