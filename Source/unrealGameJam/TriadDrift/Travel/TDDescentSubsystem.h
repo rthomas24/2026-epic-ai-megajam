@@ -182,6 +182,7 @@ private:
 	float AppliedHeat = -1.f;
 	float HeatFedLeft = 0.f;
 	bool bBurnExit = false;
+	bool bHUDHeld = false;
 	TMap<TWeakObjectPtr<class ATDShip>, TWeakObjectPtr<class UNiagaraComponent>> BurnFX;
 	TWeakObjectPtr<UWorld> HeatWorld;
 

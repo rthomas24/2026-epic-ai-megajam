@@ -14,6 +14,8 @@
 #include "Components/MeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -459,6 +461,17 @@ void UTDDescentSubsystem::StopBurnFX()
 
 void UTDDescentSubsystem::TickHeat(float Dt)
 {
+	// The camera's burn feel and the HUD hold follow the same curve (T2's hold: dim to 35 %, objectives and slates away).
+	UTDFlightFeedbackComponent::DescentIntensity = Heat;
+	const bool bHold = Heat > 0.f || CoverPhase != ETDDescentCover::Off;
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UWorld* W = GI->GetWorld())
+		{
+			if (bHold) { UTDUIHostSubsystem::PushHUDFocus(W, TEXT("Entry"), 0.35f, true); bHUDHeld = true; }
+			else if (bHUDHeld) { UTDUIHostSubsystem::PopHUDFocus(W, TEXT("Entry")); bHUDHeld = false; }
+		}
+	}
 	if (Heat <= 0.f && AppliedHeat <= 0.f) { return; }
 	// Decay once the entry has stopped feeding it and the cover is not holding (after the reveal, or with no cover).
 	const bool bFed = HeatFedLeft > 0.f;
