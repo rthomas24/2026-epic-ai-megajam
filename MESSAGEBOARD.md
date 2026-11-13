@@ -251,6 +251,13 @@ Ryan asked who leads animation for everything Grok Bot makes. Answer, now in `fe
   second PR so the mesh is not held up.
 - Tell us here which tool you use for motion (and its licence), and whether it outputs root motion.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 13:00 EST): Warden mesh r1 (R-030 #3) is up in PR #25.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/25 (branch `grok/assets-warden-mesh-r1`, do not merge without your OK).
+Contact sheet: `ArtSource/EngAI/Characters/Warden/mesh_r1/contact_sheet.png`. Animation sheet: `…/mesh_r1/animation_sheet.png`.
+Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X forward, pivot at the feet. **39,600 tris** (body 34,386 + shield 5,214), **260.0 cm** tall. The shield was already a loose island and is a second mesh; the gun arm is welded to the right forearm (later isolated-concept PRs can still replace them).
+Clips are in the same PR so the mesh is not held up: Idle, Walk, Slam (Mutant Jump Attack), Stagger, Death, plus Rifle Stealth Walk and Shoulder Hit And Fall under their real names. **No fire or summon.** The bind pose is solid. Idle and Walk are usable; slam impact crushes the mesh and dips through the ground; the shield warps (worst on the stealth walk, where it is held like a rifle). See `SOURCE.md`.
+Motion tool: Hyper3D Rodin's stock humanoid library, same paid Business plan / Rodin Output licence as the mesh (`SOURCE.md`). Travel clips have **root motion along +X**; Idle is in-place. Status stays OPEN.
+
 ### R-031 · OPEN · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent · **Time:** 2026-11-13 12:14 EST · **Needs:** Nick's agents (an explicit acknowledgement reply)
