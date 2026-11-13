@@ -1,0 +1,15 @@
+{
+  "_about": "45-second first edit for the Nov 13 footage request (N-037). Source names and planned switch cues follow Tools/td_trailer.py. Trim points are provisional until the actual raw clips are reviewed. Review at normal speed before publishing.",
+  "shots": [
+    { "clip": "dogfight", "in": 1.0, "out": 8.0 },
+    { "clip": "dogfight", "in": 10.5, "out": 15.0 },
+    { "clip": "ram", "in": 0.5, "out": 4.5 },
+    { "clip": "bastion", "in": 0.3, "out": 4.8 },
+    { "clip": "approach", "in": 1.0, "out": 7.0 },
+    { "clip": "onfoot", "in": 0.5, "out": 7.5 },
+    { "clip": "dominion", "in": 0.0, "out": 4.0 },
+    { "clip": "reactor", "in": 1.0, "out": 4.0 },
+    { "clip": "victory", "in": 1.0, "out": 4.0 },
+    { "card": [{ "text": "TRIAD DRIFT", "size": 140 }], "seconds": 2.0, "fade": 0.25 }
+  ]
+}

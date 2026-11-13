@@ -7,6 +7,7 @@
 
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Flight/Tests/TDFlightTestHelpers.h"
 
@@ -51,6 +52,39 @@ bool FTDOnFootDeviceTest::RunTest(const FString& Parameters)
 	FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, false);
 	W.Tick();
 	TestFalse(TEXT("a mouse click switches back"), PC->IsUsingGamepad());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightDeviceTest, "TriadDrift.Input.Device.InFlightAnyPadInputSwitchesTheGlyphs", TD_TEST_FLAGS)
+bool FTDFlightDeviceTest::RunTest(const FString& Parameters)
+{
+	// T2's HUD check (Nov 13): in flight only the right stick flipped "using gamepad", so a pad player on triggers,
+	// buttons or the left stick still saw keyboard glyphs. Any pad input flips it now; keys and the mouse flip back.
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 20000.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("controller"), PC) || !Ship) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	TestFalse(TEXT("starts on mouse and keyboard"), PC->IsUsingGamepad());
+	FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_RightTriggerAxis, 1.f);
+	W.Tick();
+	TestTrue(TEXT("the throttle trigger switches to gamepad"), PC->IsUsingGamepad());
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, true);
+	FTDTestWorld::InjectKey(PC, EKeys::LeftShift, false);
+	W.Tick();
+	TestFalse(TEXT("a key switches back"), PC->IsUsingGamepad());
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Bottom, true);
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Bottom, false);
+	W.Tick();
+	TestTrue(TEXT("a pad button switches to gamepad"), PC->IsUsingGamepad());
+	FTDTestWorld::InjectAxis(PC, EKeys::MouseX, 25.f);
+	W.Tick();
+	TestFalse(TEXT("a real mouse move switches back"), PC->IsUsingGamepad());
+	FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_LeftX, 0.7f);
+	W.Tick();
+	TestTrue(TEXT("the left stick (roll) switches to gamepad"), PC->IsUsingGamepad());
+	TestTrue(TEXT("and the mouse reticle is recentred"), PC->GetVirtualStick().IsNearlyZero());
 	return true;
 }
 

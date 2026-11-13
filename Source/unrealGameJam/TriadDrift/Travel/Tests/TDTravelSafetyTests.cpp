@@ -1283,4 +1283,34 @@ bool FTDTravelNoBoundaryInTheWorld::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelExitAltitude, "TriadDrift.Travel.Safety.TakeOffExitStaysAtTheOldHeightOverTerrain", TD_TEST_FLAGS)
+bool FTDTravelExitAltitude::RunTest(const FString& Parameters)
+{
+	// Review m6: over generated terrain the ceiling clears the highest peak (~1.75 km on Verdance, ~2.9 km on Cinder),
+	// which made the climb out ~2.4x longer. With the exit open it triggers at the old height (the rig's ceiling,
+	// 1.2 km) plus the exit margin above the ground under the ship; the hard ceiling stays above the peaks.
+	FTDTestWorld W;
+	ATDAtmosphereFlightZone* Zone = W.Spawn<ATDAtmosphereFlightZone>(FVector(0.f, 0.f, 59500.f));
+	if (!TestNotNull(TEXT("zone"), Zone)) { return false; }
+	Zone->SetZoneExtent(FVector(250000.f, 250000.f, 60000.f));
+	const float OldCeilingAboveFloor = Zone->GetZoneBox().Max.Z - Zone->GetZoneBox().Min.Z;
+	ATDPlanetTerrain* Terrain = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform::Identity, nullptr);
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W, FVector(0.f, 0.f, 30000.f));
+	if (!Terrain || !Ship) { return false; }
+	W.Advance(1.2f);
+	TestTrue(TEXT("fitted"), Zone->IsFittedToTerrain());
+	TestTrue(TEXT("the hard ceiling is above the old one"), Zone->GetZoneBox().Max.Z > OldCeilingAboveFloor + 50000.f);
+	Zone->SetExitAllowed(true);
+	const FVector XY(2000.f, 1000.f, 0.f);
+	const float Ground = Terrain->GetHeightAt(XY);
+	Ship->TeleportSpacecraft(FVector(XY.X, XY.Y, Ground + OldCeilingAboveFloor - 20000.f), FRotator(80.f, 0.f, 0.f), false);
+	W.Tick();
+	TestFalse(TEXT("200 m under the old height: still on the planet"), Zone->IsExitTriggered());
+	Ship->TeleportSpacecraft(FVector(XY.X, XY.Y, Ground + OldCeilingAboveFloor + Zone->ExitHeightAboveCeiling + 1000.f), FRotator(80.f, 0.f, 0.f), false);
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("past the old height above the ground: the exit fires (no climb to the peak ceiling)"), Zone->IsExitTriggered());
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

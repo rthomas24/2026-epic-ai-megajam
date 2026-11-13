@@ -198,6 +198,10 @@ public:
 	 */
 	void GetEngineNozzles(TArray<TPair<USceneComponent*, FName>>& Out) const;
 
+	/** The nozzle sockets a mesh has, in order: "Engine", then "Engine_0".."Engine_8" that exist (empty when none).
+	 *  Shared with T4's enemy engines (ENG-37). */
+	static void GetNozzleSockets(const UStaticMeshComponent* Mesh, TArray<FName>& Out);
+
 	/** What the exhaust effects are fed each frame as Niagara user parameters "Throttle" (0..1) and "Boost" (0/1). */
 	float GetExhaustThrottle01() const { return ExhaustThrottle01; }
 	bool GetExhaustBoost() const { return bExhaustBoost; }

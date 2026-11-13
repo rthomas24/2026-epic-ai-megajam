@@ -327,15 +327,9 @@ void ATDShip::GetEngineExhaustLocations(TArray<FVector>& Out) const
 void ATDShip::GetEngineNozzles(TArray<TPair<USceneComponent*, FName>>& Out) const
 {
 	Out.Reset();
-	if (HullMesh && HullMesh->GetStaticMesh())
-	{
-		if (HullMesh->DoesSocketExist(TEXT("Engine"))) { Out.Emplace(HullMesh, TEXT("Engine")); }
-		for (int32 i = 0; i <= 8; ++i)
-		{
-			const FName Name(*FString::Printf(TEXT("Engine_%d"), i));
-			if (HullMesh->DoesSocketExist(Name)) { Out.Emplace(HullMesh, Name); }
-		}
-	}
+	TArray<FName> Sockets;
+	GetNozzleSockets(HullMesh, Sockets);
+	for (const FName& Socket : Sockets) { Out.Emplace(HullMesh, Socket); }
 	if (Out.Num() == 0)
 	{
 		FName Socket;
@@ -343,6 +337,21 @@ void ATDShip::GetEngineNozzles(TArray<TPair<USceneComponent*, FName>>& Out) cons
 		{
 			Out.Emplace(Attach, Socket);
 		}
+	}
+}
+
+void ATDShip::GetNozzleSockets(const UStaticMeshComponent* Mesh, TArray<FName>& Out)
+{
+	Out.Reset();
+	if (!Mesh || !Mesh->GetStaticMesh())
+	{
+		return;
+	}
+	if (Mesh->DoesSocketExist(TEXT("Engine"))) { Out.Add(TEXT("Engine")); }
+	for (int32 i = 0; i <= 8; ++i)
+	{
+		const FName Name(*FString::Printf(TEXT("Engine_%d"), i));
+		if (Mesh->DoesSocketExist(Name)) { Out.Add(Name); }
 	}
 }
 
@@ -524,7 +533,7 @@ void ATDShip::StartEngineTrail()
 		{
 			FName Socket;
 			USceneComponent* Attach = GetEngineAttach(Socket);
-			EngineLoopAudio = TestSpawnEngineLoop ? TestSpawnEngineLoop(Sound, Attach, Socket) : UGameplayStatics::SpawnSoundAttached(Sound, Attach, Socket);
+			EngineLoopAudio = TestSpawnEngineLoop ? TestSpawnEngineLoop(Sound, Attach, Socket) : UGameplayStatics::SpawnSoundAttached(Sound, Attach, Socket, FVector::ZeroVector, EAttachLocation::KeepRelativeOffset, /*bStopWhenAttachedToDestroyed*/ true);
 			ApplyEngineAudioParams(EngineLoopAudio.Get());
 		}
 	}

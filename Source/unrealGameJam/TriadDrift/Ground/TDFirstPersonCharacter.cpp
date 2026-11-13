@@ -145,6 +145,15 @@ void ATDFirstPersonCharacter::BeginPlay()
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
 
 	ThirdPersonRig->SetFirstPersonCamera(Camera);
+	// Almost no motion blur on foot (the Rodin drone smeared under the planet volume's 0.2): both views.
+	for (UCameraComponent* View : { Camera.Get(), ThirdPersonRig->GetThirdPersonCamera() })
+	{
+		if (View)
+		{
+			View->PostProcessSettings.bOverride_MotionBlurAmount = true;
+			View->PostProcessSettings.MotionBlurAmount = OnFootMotionBlur;
+		}
+	}
 	if (const UWorld* World = GetWorld())
 	{
 		bRockyGround = bRockyGround || World->GetMapName().Contains(TEXT("Cinder"));
