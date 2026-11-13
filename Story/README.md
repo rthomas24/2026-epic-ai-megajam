@@ -24,8 +24,10 @@ Use that original narrative and Nicholas's explicitly approved decisions as the 
 10. [Gameplay Sequence 05 — Cinder Excavation](Triad_Drift_Gameplay_Sequence_05_Cinder_Excavation.docx) covers the Warden, one cache interaction recovering crystals and an EMP prototype, anchor shutdown with passage still pending, and extraction.
 11. [Cinematic 06 — The Path to Dominion](Triad_Drift_Cinematic_Sequence_06_The_Path_to_Dominion.docx) carries the evidence and Origin Core lead into take-off transmissions and the final guard wave, with the approach still blocked.
 12. [Gameplay Sequence 06 — The Dominion Assault](Triad_Drift_Gameplay_Sequence_06_The_Dominion_Assault.docx) clears wave 5, opens the approach after Cinder completion, destroys the four generators sustaining the Dominion's separate shield, and reaches docking.
+13. [Cinematic 07 — Boarding the Dominion](Triad_Drift_Cinematic_Sequence_07_Boarding_the_Dominion.docx) carries the selected ship through docking and hangar arrival, establishes familiar architecture and recognised access, and returns control at the safe interior checkpoint without identifying the commanders yet.
+14. [Gameplay Sequence 07 — Inside the Dominion](Triad_Drift_Gameplay_Sequence_07_Inside_the_Dominion.docx) advances through the interior encounters and recordings, establishes the older-Triad identity, and reaches the core-side command record after the Warden.
 
-Next to document: the **boarding cinematic and interior gameplay**, including the future-Triad identity evidence and the opening-warning payoff. Titles and sequence details remain to be drafted.
+Next to document: the **recovered future command-deck cinematic**, including the identical opening-warning replay and the opposing arguments about the Origin Core, followed by the reactor confrontation and escape. Titles and sequence details remain to be drafted.
 
 ## Sequence dependencies and continuity
 
@@ -39,9 +41,13 @@ Next to document: the **boarding cinematic and interior gameplay**, including th
 | Cinematic 05 — The Pattern | Gameplay 04 activates the terminal after the short route; no echo plays on the approach. | Record the single echo, Origin Core lead and targets. Return to “Secure the excavation.” Skipping applies briefing state once and completes no gameplay objectives. |
 | Gameplay 05 — Cinder Excavation | Cinematic 05 establishes the targets and Origin Core lead. | Warden, then one cache interaction recovers crystals and the EMP prototype; disable the anchor, mark the approach as pending, and extract into Cinematic 06. |
 | Cinematic 06 — The Path to Dominion | Cinder recovery, anchor shutdown and extraction are complete. | Carry all evidence and rewards into wave 5. The approach field is not yet open; the Dominion's separate shield remains intact. |
-| Gameplay 06 — The Dominion Assault | Cinematic 06 returns control before the guard wave. | Cinder complete plus wave 5 cleared opens the approach distortion field. Four generator kills then drop the separate Dominion shield and permit docking; interior evidence reveals the future-self identity later. |
+| Gameplay 06 — The Dominion Assault | Cinematic 06 returns control before the guard wave. | Cinder complete plus wave 5 cleared opens the approach distortion field. Four generator kills drop the separate Dominion shield; docking commitment triggers Cinematic 07. Identity evidence remains inside the ship. |
+| Cinematic 07 — Boarding the Dominion | The approach is open, all four shield generators are destroyed, and the player commits to docking. | Land the selected ship and return control at the hangar checkpoint with “Reach the command archive.” Preserve the access response on skip; grant no records, identity revelation, Warden victory or reactor damage. |
+| Gameplay 07 — Inside the Dominion | Cinematic 07 hands off safely inside the hangar; earlier evidence and rewards remain available. | Progress through familiar architecture, recognised credentials and older-pilot recordings. After the Warden, access the core-side command record and trigger the next cinematic. Preserve collected evidence through retries; do not start reactor damage or the 90-second escape here. |
 
 Keep the Dominion's ultimate purpose mysterious and its recognition of Triad subtle. Verdance establishes human voices whose identities remain unknown. Cinder supplies the name Origin Core and a suspected temporal purpose; its maker, exact function, intended use and connection to a catastrophe remain unknown. Only aboard the Dominion does Triad identify its commanders as its future selves. Preserve the opening “Don't—” recording for its finale replay and the three-pulse motif for its established payoff. Verdance yields the signal-analysis device and records, not the buried structure or Origin Core.
+
+The boarding and interior documents keep that reveal order: Cinematic 07 establishes clues; Gameplay 07 makes the identity undeniable through the command records. The following cinematic must replay the identical processed “Don't—” fragment without re-recording it, develop the future commanders' case, and let present Triad weigh the danger to its system before the reactor decision. The identity reveal does not settle who caused the catastrophe.
 
 ## Approved Cinder decisions
 
@@ -61,6 +67,8 @@ The tutorial teaches Rift's portal blaster, Lancer's afterburner ram, and Bastio
 ## Production status and decisions
 
 The sequence documents were revised against Nicholas's unchanged Paradox narrative and the six approved Cinder decisions. Their earlier versions remain in Git history. They describe narrative and gameplay intent, not verification of implemented mechanics. [storyline.md](../storyline.md) records the adopted story; [features.md](../features.md) governs implementation scope and [dialogs.md](../dialogs.md) tracks gameplay dialogue. Resolve delivery differences through Nicholas for story wording and Ryan's Lead for gameplay implementation.
+
+Cinematic 07 and Gameplay 07 were checked section by section against the original narrative. Their new dialogue and recording samples remain drafts for Nicholas's review, distinct from the verbatim approved Cinder lines above. Publishing these documents does not approve new gameplay systems or claim that boarding and its presentation have been implemented or validated. The intended staging uses one boarding character, with the other pilots on squad radio; final implementation and timing remain with Ryan's Lead.
 
 The adopted production budgets remain Verdance 8–10 minutes and Cinder 6–8 minutes from atmosphere to take-off. Cinder uses the short route, 40–50 second terminal scene, excavation/cache, anchor and extraction; waves 3–4 stay between planets and wave 5 follows Cinder. Cinematic 04 and Cinematic 06 use transmissions over existing take-off transitions; their expanded shot outlines are story references. No heat-shielding quest, new heat meter or co-op is added. Final names, staging, encounter tuning and presentation remain production choices.
 
