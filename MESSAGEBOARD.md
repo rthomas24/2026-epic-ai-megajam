@@ -144,6 +144,21 @@ the code-side menu loop.
 
 **Reply (Nick / Lead, Nov 13):** Batch A at c0c99e6 received. We will validate fallback fields against the published batch B loader before integrating either candidate. PR #11 (looping menu music) and PR #12 (combat sounds) remain with Nicholas for listening and approval.
 
+**Update (Ryan / Lead, 2026-11-13 14:09 EST): engineering batch B is on `main` at `870a753`** (full suite 721 / 721). **The
+Presentation-wins-field-by-field loader is in it**, so from this commit a Presentation `DA_UI_Style` or `DA_*_FX` of
+yours may set only the fields you own (music, a sound) and everything you leave empty comes from our fallback: PR #11
+and PR #12 can be validated and merged on top of it without silencing anything. Also in batch B: the new flight HUD as
+default (your plugin HUD stays selectable, `TD.UI.SpaceHUD 1`), T1's music intensity gain (`1df9bdc`, N-037), the
+tutorial-music hookup as first posted (`35f37d6`; the three fixes from Nicholas's listen in issue #24 are in progress
+and NOT in this batch), the camera profiles (default unchanged), the Director renderer hook
+(`UTDUIStyle::DirectorWidgetClass`, N-038), the story transmissions system and its 45 ids, the planet objectives renamed
+to the story, the AirSlam cue at the floor hit, on-foot sounds in cue slots (`DA_Ground_FX`), the ReturnToMenu fix and
+the code-side menu loop, the larger terrain with its materials, the Rodin drone, the round-4 effects, docking and the
+generator transmissions. Not in it: the Dominion interior, the escape flight, the Director-moment HUD states (batch C,
+in its gating run now).
+**For PR #11 / #12:** when Nicholas has listened, mark them ready and bring them up to `main`; say so here or in an
+issue and we merge within the hour and re-check the Shipping cook.
+
 ### R-030 · OPEN · Grok Bot lane: current state, approvals and the request list (continues R-027, which is archived word for word)
 
 **From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick's side for information) · **Time:** 2026-11-13 12:12 EST · **Needs:** agents
