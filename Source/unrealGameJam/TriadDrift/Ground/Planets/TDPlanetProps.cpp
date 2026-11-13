@@ -123,6 +123,7 @@ ATDStepTrigger::ATDStepTrigger()
 	Beacon->SetRelativeLocation(FVector(0.f, 0.f, 3000.f));
 	Beacon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Beacon->SetCastShadow(false);
+	BeaconMesh = TDPropArt::Default(TEXT("SM_StepBeacon"));
 }
 
 void ATDStepTrigger::BeginPlay()
@@ -130,7 +131,8 @@ void ATDStepTrigger::BeginPlay()
 	Super::BeginPlay();
 	Box->OnComponentBeginOverlap.AddUniqueDynamic(this, &ATDStepTrigger::HandleOverlap);
 	UTDStatics::TintPlaceholder(Beacon, bRequireCarrying ? FLinearColor(0.3f, 1.f, 0.5f) : FLinearColor(0.4f, 0.9f, 1.f), 3.f);
-	Beacon->SetVisibility(false);
+	TDPropArt::Dress(Beacon, TDPropArt::Load(BeaconMesh));
+	Beacon->SetVisibility(false, true);
 }
 
 void ATDStepTrigger::HandleOverlap(UPrimitiveComponent*, AActor* Other, UPrimitiveComponent*, int32, bool, const FHitResult&)
@@ -163,7 +165,7 @@ void ATDStepTrigger::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	const bool bCurrent = IsLinkedStepCurrent();
-	Beacon->SetVisibility(bCurrent);
+	Beacon->SetVisibility(bCurrent, true);
 	if (!bCurrent)
 	{
 		return;
@@ -267,12 +269,14 @@ ATDExtractionSite::ATDExtractionSite()
 	Core->SetRelativeScale3D(FVector(0.55f));
 	Core->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Core->SetCastShadow(false);
+	CoreMesh = TDPropArt::Default(TEXT("SM_ExtractionCore"));
 }
 
 void ATDExtractionSite::BeginPlay()
 {
 	Super::BeginPlay();
 	UTDStatics::TintPlaceholder(Core, FLinearColor(0.5f, 1.f, 0.6f), 4.f);
+	TDPropArt::Dress(Core, TDPropArt::Load(CoreMesh));
 	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.2f); // the console glows: it reads in the dark
 	// The glowing core is what the eye goes to: it takes the interact trace too (playtest).
 	Core->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -372,7 +376,7 @@ void ATDExtractionSite::Deliver()
 		C->SetCarrying(false);
 	}
 	Carrier = nullptr;
-	Core->SetVisibility(false);
+	Core->SetVisibility(false, true);
 }
 
 void ATDExtractionSite::DropCore()
@@ -390,7 +394,7 @@ void ATDExtractionSite::DropCore()
 void ATDExtractionSite::ResetSite()
 {
 	DropCore();
-	Core->SetVisibility(true);
+	Core->SetVisibility(true, true);
 	ResetUse();
 	StepElapsed = -1.f;
 	bWaveBDropped = false;
@@ -410,6 +414,7 @@ ATDMagmaVolume::ATDMagmaVolume()
 	Surface->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Surface->SetCastShadow(false);
 	SetSize(FVector(1000.f, 1000.f, 200.f));
+	SurfaceMesh = TDPropArt::Default(TEXT("SM_Cind_MagmaSurface"));
 }
 
 void ATDMagmaVolume::SetSize(const FVector& Size)
@@ -426,6 +431,7 @@ void ATDMagmaVolume::BeginPlay()
 {
 	Super::BeginPlay();
 	UTDStatics::TintPlaceholder(Surface, FLinearColor(1.f, 0.28f, 0.03f), 3.f);
+	TDPropArt::Dress(Surface, TDPropArt::Load(SurfaceMesh));
 	Box->OnComponentBeginOverlap.AddUniqueDynamic(this, &ATDMagmaVolume::HandleOverlap);
 }
 
@@ -487,6 +493,8 @@ ATDGeyser::ATDGeyser()
 	Box->SetBoxExtent(FVector(110.f, 110.f, 400.f));
 	Box->SetRelativeLocation(FVector(0.f, 0.f, 400.f));
 	Box->SetCollisionProfileName(TEXT("Trigger"));
+	VentMesh = TDPropArt::Default(TEXT("SM_Cind_GeyserVent"));
+	PlumeMesh = TDPropArt::Default(TEXT("SM_Cind_GeyserPlume"));
 }
 
 void ATDGeyser::BeginPlay()
@@ -494,8 +502,10 @@ void ATDGeyser::BeginPlay()
 	Super::BeginPlay();
 	VentMID = UTDStatics::TintPlaceholder(Vent, FLinearColor(1.f, 0.35f, 0.05f), 0.15f);
 	UTDStatics::TintPlaceholder(Plume, FLinearColor(1.f, 0.55f, 0.2f), 2.5f);
+	TDPropArt::Dress(Vent, TDPropArt::Load(VentMesh));
+	TDPropArt::Dress(Plume, TDPropArt::Load(PlumeMesh));
 	Clock = Phase;
-	Plume->SetVisibility(false);
+	Plume->SetVisibility(false, true);
 }
 
 bool ATDGeyser::IsErupting() const
@@ -525,7 +535,7 @@ void ATDGeyser::Tick(float DeltaSeconds)
 	{
 		HitThisEruption.Reset();
 	}
-	Plume->SetVisibility(bWarn || bErupt);
+	Plume->SetVisibility(bWarn || bErupt, true);
 	Plume->SetRelativeScale3D(bErupt ? FVector(1.6f, 1.6f, 8.f) : FVector(0.4f, 0.4f, 2.f));
 	Plume->SetRelativeLocation(FVector(0.f, 0.f, bErupt ? 400.f : 100.f));
 	if (!bErupt)
@@ -563,6 +573,7 @@ ATDShatterCrystal::ATDShatterCrystal()
 	Health->MaxShield = 0.f;
 	Health->DefaultTeam = ETDTeam::Neutral;
 	Tags.Add(TEXT("TD.BladeBreakable")); // the blade breaks it (it's on no team)
+	CrystalMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Crystal_01.SM_Cind_Crystal_01")));
 }
 
 void ATDShatterCrystal::BeginPlay()
@@ -571,19 +582,20 @@ void ATDShatterCrystal::BeginPlay()
 	Health->InitMaxValues(MaxHealth, 0.f, true);
 	Health->OnDeath.AddUniqueDynamic(this, &ATDShatterCrystal::HandleDeath);
 	UTDStatics::TintPlaceholder(Mesh, Color, 1.5f);
+	TDPropArt::Dress(Mesh, TDPropArt::Load(CrystalMesh));
 }
 
 void ATDShatterCrystal::HandleDeath(UTDHealthComponent*, const FTDDamageInfo&)
 {
 	bShattered = true;
-	Mesh->SetVisibility(false);
+	Mesh->SetVisibility(false, true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ATDShatterCrystal::ApplyCompleted()
 {
 	bShattered = true;
-	Mesh->SetVisibility(false);
+	Mesh->SetVisibility(false, true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -596,7 +608,7 @@ void ATDShatterCrystal::ResetProp()
 	bShattered = false;
 	Health->Revive();
 	Health->InitMaxValues(MaxHealth, 0.f, true);
-	Mesh->SetVisibility(true);
+	Mesh->SetVisibility(true, true);
 	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 }
 
@@ -610,6 +622,7 @@ ATDCollapsingPlatform::ATDCollapsingPlatform()
 	Slab = TDPlanetPropsImpl::MakeMesh(this, TEXT("Slab"), TDPlanetPropsImpl::CubePath, RootComponent);
 	Slab->SetCollisionProfileName(TEXT("BlockAll"));
 	SetSize(FVector(400.f, 300.f, 60.f));
+	SlabMesh = TDPropArt::Default(TEXT("SM_Cind_CollapseSlab"));
 }
 
 void ATDCollapsingPlatform::SetSize(const FVector& Size)
@@ -624,6 +637,7 @@ void ATDCollapsingPlatform::BeginPlay()
 	HomeRelative = Slab->GetRelativeLocation();
 	Tags.AddUnique(TEXT("TD.Unsafe")); // never a safe-ground respawn spot
 	UTDStatics::TintPlaceholder(Slab, FLinearColor(0.6f, 0.3f, 1.f), 1.2f);
+	TDPropArt::Dress(Slab, TDPropArt::Load(SlabMesh));
 }
 
 void ATDCollapsingPlatform::Tick(float DeltaSeconds)
@@ -637,7 +651,7 @@ void ATDCollapsingPlatform::Tick(float DeltaSeconds)
 			Slab->AddRelativeLocation(FVector(0.f, 0.f, -FallSpeed * DeltaSeconds));
 			if (Slab->GetRelativeLocation().Z < HomeRelative.Z - 6000.f)
 			{
-				Slab->SetVisibility(false);
+				Slab->SetVisibility(false, true);
 			}
 		}
 		return;
@@ -672,7 +686,7 @@ void ATDCollapsingPlatform::ResetProp()
 	StandTime = -1.f;
 	FallSpeed = 0.f;
 	Slab->SetRelativeLocation(HomeRelative);
-	Slab->SetVisibility(true);
+	Slab->SetVisibility(true, true);
 	Slab->SetCollisionProfileName(TEXT("BlockAll"));
 	UTDStatics::TintPlaceholder(Slab, FLinearColor(0.6f, 0.3f, 1.f), 1.2f);
 }
@@ -684,6 +698,7 @@ void ATDCollapsingPlatform::ResetProp()
 ATDCollapseRun::ATDCollapseRun()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	DebrisMesh = TDPropArt::Default(TEXT("SM_Cind_DebrisChunk"));
 }
 
 void ATDCollapseRun::BeginPlay()
@@ -776,6 +791,7 @@ void ATDCollapseRun::DropDebris()
 	M->SetSimulatePhysics(true);
 	M->SetPhysicsLinearVelocity(FVector(0.f, 0.f, -1500.f));
 	UTDStatics::TintPlaceholder(M, FLinearColor(0.5f, 0.2f, 0.9f), 0.8f);
+	TDPropArt::Dress(M, TDPropArt::Load(DebrisMesh));
 	Rock->SetLifeSpan(6.f);
 	Debris.Add(Rock);
 }
