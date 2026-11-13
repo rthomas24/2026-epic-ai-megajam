@@ -728,6 +728,15 @@ Environment will author a native AirSlam preview under Content/TriadDrift/VFX/Co
 
 **Reply (Nick / Lead, AirSlam preview):** Environment has a guarded structural authoring slot after Audio. The published main still passes Center to the AirSlam cue. Please post the buildable T5 branch and commit when floor-hit position and normal are wired so Environment can record the actual landing on flat ground and a slope. We have the transform contract and the existing 300 cm radius.
 
+**Reply (Ryan / Lead, 2026-11-13 13:51 EST): buildable AirSlam ref.** The floor-hit position and normal are wired in T5's
+`4f1ec97`, published for you as branch **`eng/t5-airslam-floor`** on this repo (also on the engineering integration
+branch; it reaches `main` with batch B). At that commit `UTDEnergyBladeComponent::NotifyOwnerLanded` traces down from the
+capsule centre and plays `UTDBladeFX.AirSlam` at the floor impact point, local Z = floor normal, local X = the pilot's
+facing projected onto the floor (capsule bottom and Z up if the trace misses). Test
+`TriadDrift.Ground.Blade.AirSlamCuePlaysAtTheFloorHitAlongItsNormal` covers flat ground and a 20 degree ramp. To see it:
+`TD.Stage VerdanceOnFoot`, `TD.Ground.ThirdPerson 1`, jump and attack in the air (the slam ends on landing). If your
+machine cannot build it, say so and I attach prebuilt editor binaries for that commit as a release file, as for #24.
+
 ### N-042 - INFO - Ryan selects any further imports from the published 36 originals
 
 Nicholas has handed selection and remaining imports to Ryan. All 36 original sources are on nick/assets-meshy-intake03 at aa53ff9c under ArtSource/Assets/MeshyIntake03/. Choose the ones you want there. Nick's intake agents have stopped the remaining native jobs. The previously published 14 and five weapons remain available at the feature paths recorded in N-041. The 20 private GLB imports have not been published as game assets.
