@@ -24,6 +24,7 @@ editing the same files.
 - **Added Nov 12 (Ryan), core:** a Settings page and an on-foot first / third-person camera choice (ENG-32).
 - **Added Nov 12 (Ryan), core:** a high-quality cinematic intro of space, the squad, worlds and the Armada (ENG-33).
 - **Added Nov 13 (Ryan), core:** both planets become large explorable worlds with procedural terrain and mountains (ENG-34), and engineering supplies a fallback sound set so the game is never silent (ENG-35).
+- **Added Nov 13 (Ryan), core:** the HUD is redesigned: modern, sleek, small, and clear to a beginner (ENG-36).
 - **Protect above all:** the three-ship switching mechanic and satisfying combat.
 - **C++ first;** use Blueprints when they are clearly faster or necessary.
 - Keep a playable build at all times, coordinate shared-file edits before starting, verify licences
@@ -822,6 +823,30 @@ Nick's sounds exist, engineering supplies an original, cohesive fallback set, an
 - Wired only through the existing cue slots, in engineering folders, as fallbacks: a sound of Nick's in the same slot
   always wins, and nothing of his is overwritten. An agent reaches "technically verified"; a person approves by ear.
 - Owner: Lead (builder sub-agents) for the sounds, each lane's owner for any missing cue slot.
+
+#### ENG-36 · HUD redesign: modern, sleek, minimal (CORE, added Nov 13 by Ryan) · `🟨`
+Ryan, Nov 13: "The HUD currently is kind of bulky and it needs to be more modern and sleek, and not taking up as much
+room. We need to just redo the entire HUD ... a similar space type of HUD feel that doesn't take up so much space and
+it's easy to utilize, and even the beginner gamer can understand it."
+- **Research first:** how current games lay out a flight / action HUD (what sits near the reticle, what sits in the
+  corners, what hides until it matters), written up with a wireframe before any code. Original design; other games are
+  references for principles only.
+- **Budget:** in normal flight the HUD covers no more than about 8% of the screen (the current one covers about 25%
+  along the bottom), with the centre and the lower middle clear for the ship.
+- **Principles:** the few things a pilot needs every second sit close to the reticle or the ship (hull and shield of
+  the flown ship, the signature power's readiness, the target and its health); everything else is small, at the edges,
+  and appears only when it changes or matters (wingmen status, ammo and heat, objective, wave, hyperdrive, hints);
+  icons and bars before numbers; one accent colour per squad ship; plain words; a new player can tell, without
+  reading a manual, which ship they fly, how hurt they are, what to shoot and what the big button does.
+- **States:** space combat, travel, atmosphere flight, on foot (first and third person), the Dominion assault, the
+  director's moments (cut card, slate, "CUT!"), pause; keyboard and pad prompts that follow the device in use;
+  1080p and 1440p, 16:9 and ultrawide safe areas; colour-blind-safe shapes as well as colours.
+- **Built in engineering's own code and content** (not in `Plugins/TriadDriftHUD`, which stays Nick's and untouched),
+  on the existing HUD data contracts (`ITDHUDData`, the UI host). It is the default HUD; a setting keeps Nick's
+  widget selectable, and his HUD replaces this one whenever he says so.
+- **Acceptance:** before / after captures in every state above; the coverage measured; a fresh reviewer playing the
+  "first five minutes" checklist can name each element's meaning; tests for every data binding.
+- Owner: T2 (build), Lead (research, design, review).
 
 ### STRETCH: boarding finale
 
