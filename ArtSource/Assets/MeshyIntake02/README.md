@@ -4,6 +4,23 @@ Task: Fourteen supplied non-weapon assets, source-only checkpoint
 
 SOURCE INTAKE VERIFIED. ACTUAL GAME PROJECT IMPORT IS NOT COMPLETE.
 
+Nov 13 recovery update: private imports now preserve 40 packages across five models;
+nine models remain pending. The historical batch workflow below is retained for
+context. Current resumed ownership is published in CLAIMS.md at dba6a0f6.
+`scripts/prepare_process_handoff.py --records <pinned-records.json>` supports the
+one-source recovery workflow without changing the transfer/clone gate. The JSON
+contains `pilot_import`, `pilot_process`, `pilot_native_reload` pins and twelve
+`processes` pins, each with exact absolute `path` and `sha256`. Every recovery
+process must have a known actual exit zero, empty errors and its own successful
+source report. The historical two-pilot process keeps its original ExitCode schema;
+the pilot reload stage from the aborted batch stays stage evidence, with its failed
+parent record preserved. It is never relabeled as a successful native process.
+The adapter still requires fourteen unique source groups, exact source class counts,
+91 saved packages, unchanged source hashes/timestamps and complete owned-file closure.
+Only then does it emit the existing manager_handoff.json for the separately granted
+no-overwrite project transfer. No adapter invocation or source checkpoint authorizes
+a native run, project copy, production replacement or Main merge.
+
 Nick requested the remaining fourteen downloaded assets be imported and verified in the actual game project, respecting ownership and without a Main merge. Lead published exact reservations at af3d48aca37f37a414c0d8ada5c16a5f8aa74ba2 and created nick/assets-meshy-intake02. This checkpoint preserves preparation while native jobs are queued for RAM/resource clearance.
 
 Completed here: fourteen byte-identical, original-named GLB copies (447372000 bytes), original source SHA256 and modification times preserved, glTF material/UV metadata recorded, current source manifest, a read-only eighteen-package pilot hash baseline, and source/transfer/clone verification scripts. All Python files passed AST checks using the installed UE Python3.11.8; the PowerShell runner passed parsing and harmless actual-exit7, 5GiB counter and owned-child monitor-failure cleanup checks. No Unreal job was launched by these tests. See evidence/project_runner_selftest.json.
