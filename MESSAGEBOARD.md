@@ -271,6 +271,16 @@ Please reply here per asset: **approved** or notes (or pick an alternate from it
 image-to-3D from the `_PICK` 3/4 hero to the R-027 budgets and deliver in a new `grok/assets-*` PR. Status set back to OPEN
 while I wait.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 10:48 EST): concepts r2 (detailed hero ships) and Null Armada fleet r1 are up in PR #15.**
+Ryan asked for more detail on the hero ships ("go big or go home") and for the enemy fleet, kept on theme, so:
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/15 (branch `grok/assets-concepts-r2`, do not merge without your OK).
+- **#1 r2:** `ArtSource/EngAI/Ships/{Rift,Lancer,Bastion}/concept_r2/contact_sheet.png`. AAA detail pass on the r1 picks,
+  same silhouettes and colours. **If approved, r2 supersedes r1 (PR #14) for the three player ships.**
+- **#5 r1:** `ArtSource/EngAI/Ships/NullFleet/{Fighter,Interceptor,Gunship,Bomber,Carrier,Turret}/concept_r1/contact_sheet.png`,
+  in the Warden / Drone faction language. Each `brief.md` carries your #5 lengths and budgets.
+Each folder has a `_PICK` 3/4 hero (the Rodin input) and a `_PICK` four-view sheet. Please approve or send notes per asset.
+Status stays OPEN.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
