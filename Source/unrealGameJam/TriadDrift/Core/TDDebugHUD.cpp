@@ -220,7 +220,7 @@ void ATDDebugHUD::DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool b
 		const FString Prompt = Data->GetInteractPrompt().ToString();
 		if (!Prompt.IsEmpty())
 		{
-			Centred(Prompt, 0.68f, 1.5f, FLinearColor::White);
+			Centred(Prompt, 0.70f, 1.5f, FLinearColor::White);
 		}
 	}
 	FString Line;
@@ -234,7 +234,7 @@ void ATDDebugHUD::DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool b
 	}
 	if (!Line.IsEmpty())
 	{
-		Centred(Line, 0.64f, 1.2f, ColorDim);
+		Centred(Line, 0.735f, 1.2f, ColorDim);
 	}
 }
 
@@ -354,12 +354,12 @@ void ATDDebugHUD::DrawDamageIndicators()
 		}
 		Dir.Normalize();
 		const FVector2D Side(-Dir.Y, Dir.X);
-		const FLinearColor Color = Hit.bShieldOnly ? FLinearColor(0.4f, 0.8f, 1.f, Life) : FLinearColor(1.f, 0.15f, 0.1f, Life);
+		const FLinearColor Color = Hit.bShieldOnly ? FLinearColor(1.f, 0.95f, 0.8f, Life) : FLinearColor(1.f, 0.15f, 0.1f, Life); // shield hits near-white: never a squad colour
 		const float Half = 26.f + 34.f * FMath::Clamp(Hit.Strength01 * 4.f, 0.f, 1.f);
 		const FVector2D Mid = C + Dir * Radius;
 		// A shallow chevron pointing outward, wider for a harder hit.
-		DrawLine2D(Mid - Side * Half - Dir * 8.f, Mid, Color, 4.f);
-		DrawLine2D(Mid + Side * Half - Dir * 8.f, Mid, Color, 4.f);
+		DrawLine2D(Mid - Side * Half - Dir * 10.f, Mid, Color, 7.f);
+		DrawLine2D(Mid + Side * Half - Dir * 10.f, Mid, Color, 7.f);
 	}
 }
 
