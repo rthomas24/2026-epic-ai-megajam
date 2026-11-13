@@ -69,9 +69,78 @@ public:
 		FVector2D Size = FVector2D::ZeroVector;
 	};
 
+	/** P2: one hostile or missile as drawn: a bracket / tick on screen, an edge chevron off screen. */
+	struct FMark
+	{
+		bool bOnScreen = false;
+		/** Design-space position (on screen) or the chevron's spot on the safe frame (off screen). */
+		FVector2D Pos = FVector2D::ZeroVector;
+		/** Off screen: the chevron's angle in radians (screen space, 0 = right, +PI/2 = down). */
+		float Angle = 0.f;
+		bool bCurrent = false;
+		bool bLocked = false;
+		bool bMissile = false;
+		bool bFocus = false;
+		/** Current target: bracket size (48..160) and its health 0..1 (-1 = unknown). */
+		float Size = 0.f;
+		float Health = -1.f;
+		/** Metres. */
+		float Distance = 0.f;
+	};
+
+	/** P2: a wingman's arrow (off screen only, hollow chevron in its colour; pulses in trouble). */
+	struct FWingArrow
+	{
+		ETDShipId Ship = ETDShipId::Rift;
+		FVector2D Pos = FVector2D::ZeroVector;
+		float Angle = 0.f;
+		bool bTrouble = false;
+	};
+
+	/** P2: one hit-direction arc around the reticle. */
+	struct FHitArc
+	{
+		float Angle = 0.f;
+		float Opacity = 0.f;
+		bool bShieldOnly = false;
+	};
+
+	/** What the one lower-lane message is (priority order). */
+	enum class ELane : uint8 { None, Prompt, HyperdriveBlocked, Hint };
+
 	/** Snapshot of what the widget draws. Updated every tick from the data source. */
 	struct FView
 	{
+		// ---- P2
+		TArray<FMark> Marks;
+		bool bHasLead = false;
+		FVector2D Lead = FVector2D::ZeroVector;
+		TArray<FWingArrow> Wings;
+		ETDMissileWarning Missile = ETDMissileWarning::None;
+		TArray<FHitArc> Hits;
+		/** Low-hull edge glow strength 0..1 (hull under 25%). */
+		float Vignette = 0.f;
+		/** Boost bar: shown while boosting or refilling, hidden 1.5 s after full. */
+		bool bShowBoost = false;
+		float Boost = 1.f;
+		bool bDodgeReady = true;
+		/** Hyperdrive charge bar while charging. */
+		float Hyperdrive = 0.f;
+		ELane Lane = ELane::None;
+		FString LaneText;
+		FString Boundary;
+		float SwitchStrike = 0.f;
+		/** Metres, -1 when not in atmosphere. */
+		float Altitude = -1.f;
+		/** The flown ship's ability (E / Y), second power (Bastion's dome, hold Q) and secondary ammo. */
+		bool bHasAbility = false;
+		float Ability = 1.f;
+		FString AbilityGlyph;
+		bool bHasPower2 = false;
+		float Power2 = 1.f;
+		int32 Ammo = 0;
+		float Heat = 0.f;
+		// ---- P1
 		bool bHasData = false;
 		/** The flown ship (the reticle cluster's colour). */
 		ETDShipId Flown = ETDShipId::Rift;
@@ -113,6 +182,32 @@ public:
 	/** Tests: force the glyph device (-1 = ask the owning controller). */
 	int32 ForceGamepad = -1;
 
+	/** The player pressed the hyperdrive key: if it is blocked, the reason shows in the lower lane for 3 s (spec: only then). */
+	UFUNCTION()
+	void HandleHyperdriveInput(bool bHeld);
+
+	// Surfaces this widget draws, so the dev HUD stops drawing them (UTDUIHostSubsystem reads these by name). Subtitles
+	// and the pause line stay with the dev HUD / pause screen.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversDamageIndicators = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversSquadMarkers = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversInteractPrompt = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversHyperdriveBlockText = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversAltitude = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversBoundaryWarning = true;
+
+	static constexpr float BlockedSeconds = 3.f;
+	static constexpr float BoostHideSeconds = 1.5f;
+	static constexpr float HitSeconds = 1.2f;
+	static constexpr float HitRadius = 150.f;
+	static constexpr float BracketMin = 48.f;
+	static constexpr float BracketMax = 160.f;
+
 	static constexpr float TroubleHull = .35f;
 	static constexpr float ArcAwakeSeconds = 3.f;
 	static constexpr float ArcRestOpacity = .55f;
@@ -142,6 +237,7 @@ public:
 	static constexpr float ObjectiveExpandedHeight = 72.f;
 
 protected:
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
 		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -149,6 +245,17 @@ protected:
 private:
 	bool IsUsingGamepad() const;
 	void LayoutChips();
+	void SampleCombat(const class ITDHUDData& Data, const FTDShipHUD* Flown, float Dt);
+	/** Viewport pixels -> design space (the same letterbox the painter uses). */
+	FVector2D ToDesign(const FVector2D& Pixels) const;
+	/** A point on the safe frame along Dir from the centre (edge chevrons). */
+	static FVector2D OnSafeFrame(const FVector2D& Dir);
+	void BindController();
+
+	FVector2D ViewportSize = FVector2D(1920, 1080);
+	float BlockedLeft = 0.f;
+	float BoostFullFor = 1e6f;
+	TWeakObjectPtr<class ATDSpacePlayerController> BoundPC;
 
 	FView View;
 	TWeakObjectPtr<UObject> Source;

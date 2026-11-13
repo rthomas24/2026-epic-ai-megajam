@@ -4,7 +4,11 @@
 
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 
@@ -120,6 +124,45 @@ namespace TDFlightHUD
 				FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Hex, ESlateDrawEffect::None, Color, true, 2.2f * Scale);
 			}
 		}
+		/** An arrowhead pointing along Angle (screen radians). Filled = solid wedge (stacked strokes), else an outline. */
+		void Chevron(const FVector2D& At, float Angle, float Size, FLinearColor Color, bool bFilled) const
+		{
+			const FVector2D F(FMath::Cos(Angle), FMath::Sin(Angle));
+			const FVector2D S(-F.Y, F.X);
+			const FVector2D Tip = At + F * Size * .5f;
+			const FVector2D L = At - F * Size * .5f + S * Size * .45f;
+			const FVector2D R = At - F * Size * .5f - S * Size * .45f;
+			const FVector2D Notch = At - F * Size * .2f;
+			if (bFilled)
+			{
+				for (int32 I = 0; I <= 4; ++I)
+				{
+					const float T = I / 4.f;
+					Line(Tip, FMath::Lerp(L, R, T), Color, 2.5f);
+				}
+			}
+			TArray<FVector2D> Points;
+			for (const FVector2D& Q : { Tip, L, Notch, R, Tip })
+			{
+				Points.Add(Q * Scale + Origin);
+			}
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Color, true, 2.f * Scale);
+		}
+		/** A ready / cooling ring pip with a glyph (signature, ability, second power). */
+		void Pip(const FVector2D& At, float Radius, float Value, bool bReady, FLinearColor Accent, const FString& Glyph, int32 GlyphSize) const
+		{
+			Plate(At.X - Radius, At.Y - Radius, 2 * Radius, 2 * Radius, Radius, T::Plate().CopyWithNewOpacity(.55f));
+			if (bReady)
+			{
+				Arc(At, Radius, 1.f, Accent, 3.f);
+			}
+			else
+			{
+				Arc(At, Radius, 1.f, T::Dim().CopyWithNewOpacity(.25f), 3.f);
+				Arc(At, Radius, Value, T::Dim(), 3.f, -PI * .5f);
+			}
+			Words(At.X, At.Y - GlyphSize * .62f, Glyph, GlyphSize, T::Neutral().CopyWithNewOpacity(bReady ? 1.f : .45f), "Bold", .5f, 0);
+		}
 		/** A plain bar with a dim track. */
 		void Bar(float X, float Y, float W, float H, float Value, FLinearColor C, float Opacity) const
 		{
@@ -161,7 +204,247 @@ bool UTDFlightHUDWidget::IsUsingGamepad() const
 void UTDFlightHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+	if (MyGeometry.GetLocalSize().X > 1.f && MyGeometry.GetLocalSize().Y > 1.f)
+	{
+		ViewportSize = MyGeometry.GetLocalSize();
+	}
 	Sample(InDeltaTime);
+}
+
+void UTDFlightHUDWidget::NativeDestruct()
+{
+	if (ATDSpacePlayerController* PC = BoundPC.Get())
+	{
+		PC->OnHyperdriveInput.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHyperdriveInput);
+	}
+	BoundPC.Reset();
+	Super::NativeDestruct();
+}
+
+void UTDFlightHUDWidget::BindController()
+{
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(GetOwningPlayer());
+	if (PC == BoundPC.Get())
+	{
+		return;
+	}
+	if (ATDSpacePlayerController* Old = BoundPC.Get())
+	{
+		Old->OnHyperdriveInput.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHyperdriveInput);
+	}
+	BoundPC = PC;
+	if (PC)
+	{
+		PC->OnHyperdriveInput.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleHyperdriveInput);
+	}
+}
+
+void UTDFlightHUDWidget::HandleHyperdriveInput(bool bHeld)
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(Source.Get());
+	if (bHeld && Data && !Data->GetHyperdriveBlockText().IsEmpty())
+	{
+		BlockedLeft = BlockedSeconds;
+	}
+}
+
+FVector2D UTDFlightHUDWidget::ToDesign(const FVector2D& Local) const
+{
+	const float Scale = FMath::Min(ViewportSize.X / 1920.f, ViewportSize.Y / 1080.f);
+	if (Scale <= 0.f)
+	{
+		return Local;
+	}
+	const FVector2D Origin = (ViewportSize - FVector2D(1920, 1080) * Scale) * .5;
+	return (Local - Origin) / Scale;
+}
+
+FVector2D UTDFlightHUDWidget::OnSafeFrame(const FVector2D& InDir)
+{
+	const FVector2D Dir = InDir.IsNearlyZero() ? FVector2D(0, 1) : InDir.GetSafeNormal();
+	const FVector2D C(CenterX, CenterY);
+	float T = TNumericLimits<float>::Max();
+	if (Dir.X > 1e-4f) { T = FMath::Min(T, float((1920.f - SafeX - C.X) / Dir.X)); }
+	if (Dir.X < -1e-4f) { T = FMath::Min(T, float((SafeX - C.X) / Dir.X)); }
+	if (Dir.Y > 1e-4f) { T = FMath::Min(T, float((1080.f - SafeY - C.Y) / Dir.Y)); }
+	if (Dir.Y < -1e-4f) { T = FMath::Min(T, float((SafeY - C.Y) / Dir.Y)); }
+	return C + Dir * T;
+}
+
+void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* Flown, float Dt)
+{
+	APlayerController* PC = GetOwningPlayer();
+	FVector ViewLoc = FVector::ZeroVector;
+	FRotator ViewRot = FRotator::ZeroRotator;
+	float FovDeg = 90.f;
+	if (PC)
+	{
+		PC->GetPlayerViewPoint(ViewLoc, ViewRot);
+		if (PC->PlayerCameraManager)
+		{
+			FovDeg = PC->PlayerCameraManager->GetFOVAngle();
+		}
+	}
+	else if (const AActor* Ship = Cast<AActor>(Source.Get()))
+	{
+		ViewLoc = Ship->GetActorLocation();
+	}
+	int32 PxW = 0, PxH = 0;
+	if (PC)
+	{
+		PC->GetViewportSize(PxW, PxH);
+	}
+	// World -> design space, or an off-screen direction (x right, y down) when it is behind or outside the view.
+	auto Project = [&](const FVector& World, FVector2D& OutDesign, FVector2D& OutDir) -> bool
+	{
+		const FVector Local = ViewRot.UnrotateVector(World - ViewLoc);
+		OutDir = FVector2D(Local.Y, -Local.Z);
+		if (OutDir.IsNearlyZero())
+		{
+			OutDir = FVector2D(0, 1);
+		}
+		OutDir.Normalize();
+		FVector2D Px;
+		if (!PC || PxW <= 0 || Local.X <= 1.f || !PC->ProjectWorldLocationToScreen(World, Px, true))
+		{
+			return false;
+		}
+		OutDesign = ToDesign(Px / FVector2D(PxW, PxH) * ViewportSize);
+		return OutDesign.X >= SafeX && OutDesign.X <= 1920.f - SafeX && OutDesign.Y >= SafeY && OutDesign.Y <= 1080.f - SafeY;
+	};
+
+	// Hostiles and missiles.
+	View.Marks.Reset();
+	const AActor* Current = Data.GetCurrentTarget();
+	const AActor* Focus = Data.GetFocusRemaining01() > 0.f ? Data.GetFocusTarget() : nullptr;
+	const float PxPerRadian = 540.f / FMath::Tan(FMath::DegreesToRadians(FMath::Clamp(FovDeg, 20.f, 170.f) * .5f));
+	for (const FTDTargetMarker& M : Data.GetTargetMarkers())
+	{
+		FMark& Mark = View.Marks.AddDefaulted_GetRef();
+		Mark.bCurrent = M.bIsCurrentTarget || (Current && M.Actor.Get() == Current);
+		Mark.bLocked = M.bLocked;
+		Mark.bMissile = M.bIncomingMissile;
+		Mark.bFocus = Focus && M.Actor.Get() == Focus;
+		Mark.Distance = M.Distance / 100.f;
+		Mark.bOnScreen = M.bOnScreen;
+		if (M.bOnScreen)
+		{
+			Mark.Pos = ToDesign(M.ScreenPosition01 * ViewportSize);
+			Mark.bOnScreen = Mark.Pos.X >= SafeX && Mark.Pos.X <= 1920.f - SafeX && Mark.Pos.Y >= SafeY && Mark.Pos.Y <= 1080.f - SafeY;
+		}
+		if (!Mark.bOnScreen)
+		{
+			const FVector2D Dir = M.ScreenDirection.IsNearlyZero() ? FVector2D(0, 1) : M.ScreenDirection.GetSafeNormal();
+			Mark.Pos = OnSafeFrame(Dir);
+			Mark.Angle = FMath::Atan2(Dir.Y, Dir.X);
+		}
+		if (Mark.bCurrent)
+		{
+			if (const AActor* A = M.Actor.Get())
+			{
+				const UTDHealthComponent* Health = UTDStatics::GetHealth(A);
+				Mark.Health = Health ? Health->GetHull01() : -1.f;
+				const float Radius = A->GetSimpleCollisionRadius();
+				Mark.Size = FMath::Clamp(2.f * Radius / FMath::Max(M.Distance, 1.f) * PxPerRadian, BracketMin, BracketMax);
+			}
+			else
+			{
+				Mark.Size = BracketMin;
+			}
+		}
+	}
+
+	// Lead indicator (only with a current target).
+	FVector LeadWorld;
+	FVector2D LeadDir;
+	View.bHasLead = Current && Data.GetLeadIndicator(LeadWorld) && Project(LeadWorld, View.Lead, LeadDir);
+
+	// Wingmen off screen: a hollow chevron in their colour, pulsing when that wingman is in trouble.
+	View.Wings.Reset();
+	for (const FTDSquadMarker& S : Data.GetSquadMarkers())
+	{
+		const AActor* A = S.Actor.Get();
+		if (S.bPlayerControlled || !S.bAlive || !A)
+		{
+			continue;
+		}
+		FVector2D At, Dir;
+		if (Project(A->GetActorLocation(), At, Dir))
+		{
+			continue; // on screen: the ship itself is visible
+		}
+		FWingArrow& W = View.Wings.AddDefaulted_GetRef();
+		W.Ship = S.Ship;
+		W.Pos = OnSafeFrame(Dir);
+		W.Angle = FMath::Atan2(Dir.Y, Dir.X);
+		const FChip* Chip = View.Chips.FindByPredicate([&S](const FChip& C) { return C.Ship == S.Ship; });
+		W.bTrouble = Chip && Chip->bTrouble;
+	}
+
+	View.Missile = Data.GetMissileWarning();
+
+	// Hit direction arcs around the reticle; the low-hull vignette.
+	View.Hits.Reset();
+	for (const FTDDamageIndicator& D : Data.GetDamageIndicators())
+	{
+		if (D.AgeSeconds >= HitSeconds)
+		{
+			continue;
+		}
+		const FVector Local = ViewRot.UnrotateVector(D.WorldDirection);
+		FHitArc& Arc = View.Hits.AddDefaulted_GetRef();
+		const FVector2D Flat(Local.Y, -Local.Z);
+		Arc.Angle = Flat.SizeSquared() > .01f ? FMath::Atan2(Flat.Y, Flat.X) : (Local.X < 0.f ? PI * .5f : -PI * .5f); // behind = below
+		Arc.Opacity = (.4f + .6f * FMath::Clamp(D.Strength01, 0.f, 1.f)) * (1.f - D.AgeSeconds / HitSeconds);
+		Arc.bShieldOnly = D.bShieldOnly;
+	}
+	View.Vignette = (Flown && View.Hull < .25f) ? 1.f : 0.f;
+
+	// The flown ship's contextual readouts.
+	if (Flown)
+	{
+		View.bHasAbility = Flown->Ability != ETDAbilityId::None;
+		View.Ability = TDFlightHUD::Clamp01(Flown->AbilityCooldown01);
+		View.AbilityGlyph = View.bUsingGamepad ? TEXT("Y") : TEXT("E");
+		View.bHasPower2 = Flown->Ship == ETDShipId::Bastion; // the dome: hold Q (only Bastion has a second signature power)
+		View.Power2 = TDFlightHUD::Clamp01(Flown->Power2Cooldown01);
+		View.Ammo = FMath::Max(0, Flown->SecondaryAmmo);
+		View.Heat = TDFlightHUD::Clamp01(Flown->Heat01);
+		View.Boost = TDFlightHUD::Clamp01(Flown->Boost01);
+		View.bDodgeReady = Flown->Dodge01 >= .999f;
+		BoostFullFor = View.Boost < .999f ? 0.f : BoostFullFor + Dt;
+		View.bShowBoost = BoostFullFor < BoostHideSeconds;
+	}
+	View.Hyperdrive = TDFlightHUD::Clamp01(Data.GetHyperdriveCharge01());
+
+	// The lower lane: one message at a time. Interact / landing prompt, then a blocked jump (3 s after the press), then a hint.
+	BlockedLeft = FMath::Max(0.f, BlockedLeft - Dt);
+	const FString Prompt = Data.GetInteractPrompt().ToString();
+	const FString Blocked = Data.GetHyperdriveBlockText().ToString();
+	const FString Hint = UTDHintComponent::GetHintText(this).ToString();
+	if (!Prompt.IsEmpty())
+	{
+		View.Lane = ELane::Prompt;
+		View.LaneText = Prompt.ToUpper();
+	}
+	else if (BlockedLeft > 0.f && !Blocked.IsEmpty())
+	{
+		View.Lane = ELane::HyperdriveBlocked;
+		View.LaneText = Blocked.ToUpper();
+	}
+	else if (!Hint.IsEmpty())
+	{
+		View.Lane = ELane::Hint;
+		View.LaneText = Hint.ToUpper();
+	}
+	else
+	{
+		View.Lane = ELane::None;
+		View.LaneText.Reset();
+	}
+	View.Boundary = Data.GetBoundaryWarningText().ToString().ToUpper();
+	View.SwitchStrike = TDFlightHUD::Clamp01(Data.GetSwitchStrike01());
+	View.Altitude = Data.GetAltitude();
 }
 
 void UTDFlightHUDWidget::Sample(float DeltaSeconds)
@@ -229,6 +512,8 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 		LastShield = View.Shield;
 		LastFlown = Flown->Ship;
 	}
+	BindController();
+	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
 	PulseLeft = FMath::Max(0.f, PulseLeft - Dt);
@@ -337,6 +622,169 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Arc(Pip, R, View.Power, T::Dim(), 3.f, -PI * .5f);
 		}
 		P.Words(Pip.X, Pip.Y - 10.f, View.PowerGlyph, 15, T::Neutral().CopyWithNewOpacity(View.bPowerReady ? 1.f : .45f), "Bold", .5f, 0);
+	}
+
+	// ======================================================================== P2: contextual
+	const float Now = Time;
+	// ---- low-hull vignette: a 10% red edge glow breathing at 1 Hz
+	if (View.Vignette > 0.f)
+	{
+		const FLinearColor Edge = T::Danger().CopyWithNewOpacity(.10f * (.6f + .4f * FMath::Sin(Now * 2.f * PI)));
+		const FLinearColor Clear = T::Danger().CopyWithNewOpacity(0.f);
+		P.Gradient(-200, 0, 320, 1080, Edge, Clear, false);
+		P.Gradient(1800, 0, 320, 1080, Clear, Edge, false);
+		P.Gradient(0, -120, 1920, 220, Edge, Clear, true);
+		P.Gradient(0, 980, 1920, 220, Clear, Edge, true);
+	}
+
+	// ---- hostiles: tick above each, the bracket + health + distance on the current target, chevrons off screen
+	const FLinearColor Enemy = T::Danger();
+	const float Pulse25 = .55f + .45f * FMath::Sin(Now * 2.5f * 2.f * PI); // under 3 Hz
+	for (const FMark& M : View.Marks)
+	{
+		if (!M.bOnScreen)
+		{
+			P.Chevron(M.Pos, M.Angle, 18.f, Enemy.CopyWithNewOpacity(M.bMissile ? Pulse25 : .9f), true);
+			continue;
+		}
+		if (M.bMissile)
+		{
+			P.Arc(M.Pos, 9.f, 1.f, Enemy.CopyWithNewOpacity(Pulse25), 2.f);
+			P.Box(M.Pos.X - 2, M.Pos.Y - 2, 4, 4, Enemy);
+			continue;
+		}
+		if (M.bCurrent)
+		{
+			const float H = M.Size * .5f;
+			P.Brackets(M.Pos, H, Enemy, FMath::Clamp(M.Size * .22f, 8.f, 18.f));
+			if (M.Health >= 0.f)
+			{
+				P.Bar(M.Pos.X - H, M.Pos.Y - H - 10.f, M.Size, 4.f, M.Health, Enemy, 1.f);
+			}
+			P.Words(M.Pos.X, M.Pos.Y + H + 4.f, FString::Printf(TEXT("%.0f m"), M.Distance), 14, T::Neutral(), "Bold", .5f, 20);
+			if (M.bLocked)
+			{
+				P.Poly(M.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, T::Warning(), 2.f);
+				P.Words(M.Pos.X + H + 6.f, M.Pos.Y - 9.f, TEXT("LOCK"), 14, T::Warning(), "Bold", 0.f, 40);
+			}
+			if (M.bFocus)
+			{
+				for (const float Up : { 0.f, 7.f })
+				{
+					const FVector2D A(M.Pos.X, M.Pos.Y - H - 18.f - Up);
+					P.Line(A + FVector2D(-7, -4), A, T::Warning(), 2.f);
+					P.Line(A, A + FVector2D(7, -4), T::Warning(), 2.f);
+				}
+			}
+			continue;
+		}
+		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
+		const FVector2D Tick(M.Pos.X, M.Pos.Y - 18.f);
+		P.Poly(Tick, { { -7, -6 }, { 7, -6 }, { 0, 6 }, { -7, -6 } }, Enemy.CopyWithNewOpacity(.9f), 2.f);
+		if (M.bLocked)
+		{
+			P.Poly(M.Pos, { { 0, -10 }, { 10, 0 }, { 0, 10 }, { -10, 0 }, { 0, -10 } }, T::Warning(), 2.f);
+		}
+		if (M.bFocus)
+		{
+			P.Line(Tick + FVector2D(-6, -14), Tick + FVector2D(0, -10), T::Warning(), 2.f);
+			P.Line(Tick + FVector2D(0, -10), Tick + FVector2D(6, -14), T::Warning(), 2.f);
+		}
+	}
+	if (View.bHasLead)
+	{
+		P.Arc(View.Lead, 7.f, 1.f, T::Neutral().CopyWithNewOpacity(.9f), 2.f);
+	}
+	// ---- wingmen off screen: hollow chevron in squad colour, pulsing at 1 Hz in trouble
+	for (const FWingArrow& Wing : View.Wings)
+	{
+		const float O = Wing.bTrouble ? .5f + .5f * FMath::Sin(Now * 2.f * PI) : .85f;
+		P.Chevron(Wing.Pos, Wing.Angle, 18.f, T::Ship(Wing.Ship).CopyWithNewOpacity(O), false);
+	}
+
+	// ---- hit direction arcs (radius 150, 50 degrees, 8 px)
+	for (const FHitArc& Hit : View.Hits)
+	{
+		const float HalfWidth = FMath::DegreesToRadians(25.f);
+		P.ArcSpan(C, HitRadius, Hit.Angle - HalfWidth, 2.f * HalfWidth, (Hit.bShieldOnly ? T::Shield() : T::Danger()).CopyWithNewOpacity(Hit.Opacity), 8.f);
+	}
+
+	// ---- around the reticle: Switch Strike ring, heat arc, ability pip, second power pip, ammo, altitude
+	if (View.SwitchStrike > 0.f)
+	{
+		P.Arc(C, 62.f, View.SwitchStrike, Accent.CopyWithNewOpacity(.85f), 2.f, -PI * .5f);
+	}
+	if (View.Heat >= .6f)
+	{
+		const FLinearColor HeatC = View.Heat >= .9f ? T::Danger() : T::Bastion();
+		const float Half60 = FMath::DegreesToRadians(30.f);
+		P.ArcSpan(C, 30.f, PI * .5f - Half60, 2.f * Half60 * View.Heat, HeatC, 3.f);
+		if (View.Heat >= .9f)
+		{
+			P.Words(C.X, C.Y + 34.f, TEXT("HOT"), 14, T::Danger(), "Bold", .5f, 60);
+		}
+	}
+	if (View.bHasAbility)
+	{
+		P.Pip(C + FVector2D(-PipOffsetX, PipOffsetY), 14.f, View.Ability, View.Ability >= .999f, Accent, View.AbilityGlyph, 13);
+	}
+	float AmmoX = C.X + PipOffsetX + PipRadius + 8.f;
+	if (View.bHasPower2)
+	{
+		const FVector2D P2(C.X + PipOffsetX + 40.f, C.Y + PipOffsetY);
+		P.Pip(P2, 12.f, View.Power2, View.Power2 >= .999f, Accent, View.PowerGlyph, 12);
+		P.Words(P2.X, P2.Y + 13.f, TEXT("HOLD"), 10, T::Dim(), "Bold", .5f, 40);
+		AmmoX = P2.X + 12.f + 8.f;
+	}
+	P.Words(AmmoX, C.Y + PipOffsetY - 10.f, FString::FromInt(View.Ammo), 15, T::Neutral().CopyWithNewOpacity(View.Ammo > 0 ? .9f : .4f), "Bold", 0.f, 0);
+	if (View.Altitude >= 0.f)
+	{
+		P.Words(C.X - 110.f, C.Y - 5.f, FString::Printf(TEXT("ALT %.0f m"), View.Altitude), 15, View.Altitude < 60.f ? T::Bastion() : T::Neutral(),
+			"Bold", 1.f, 20);
+	}
+
+	// ---- missile warning, centred above the reticle
+	if (View.Missile != ETDMissileWarning::None)
+	{
+		const float O = View.Missile == ETDMissileWarning::Imminent ? Pulse25 : 1.f;
+		P.Plate(CenterX - 75.f, 444.f, 150.f, 28.f, 6.f, T::Plate().CopyWithNewOpacity(.6f * O));
+		P.Poly(FVector2D(CenterX - 56.f, 458.f), { { 0, -8 }, { 8, 6 }, { -8, 6 }, { 0, -8 } }, Enemy.CopyWithNewOpacity(O), 2.f);
+		P.Words(CenterX + 10.f, 449.f, TEXT("MISSILE"), 15, Enemy.CopyWithNewOpacity(O), "Bold", .5f, 80);
+	}
+
+	// ---- boundary warning
+	if (!View.Boundary.IsEmpty())
+	{
+		P.Plate(CenterX - 260.f, 132.f, 520.f, 28.f, 14.f, T::Plate().CopyWithNewOpacity(.6f));
+		P.Poly(FVector2D(CenterX - 240.f, 146.f), { { 0, -8 }, { 8, 6 }, { -8, 6 }, { 0, -8 } }, T::Warning(), 2.f);
+		P.Words(CenterX + 8.f, 136.f, View.Boundary, 15, T::Warning(), "Bold", .5f, 40);
+	}
+
+	// ---- boost (with the dodge notch) and hyperdrive bars, under the ship
+	if (View.bShowBoost)
+	{
+		P.Bar(CenterX - 80.f, 792.f, 160.f, 6.f, View.Boost, Accent, .9f);
+		P.Box(CenterX + 84.f, 791.f, 2.f, 8.f, (View.bDodgeReady ? T::Neutral() : T::Dim()).CopyWithNewOpacity(View.bDodgeReady ? .95f : .4f));
+	}
+	if (View.Hyperdrive > 0.f)
+	{
+		P.Bar(CenterX - 120.f, 806.f, 240.f, 6.f, View.Hyperdrive, T::Shield(), .95f);
+	}
+
+	// ---- the lower lane: one message
+	if (View.Lane != ELane::None && !View.LaneText.IsEmpty())
+	{
+		const FLinearColor LaneC = View.Lane == ELane::HyperdriveBlocked ? T::Warning() : T::Neutral();
+		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", 17, 50)) + 48.f, 240.f, 760.f);
+		P.Plate(CenterX - LaneW * .5f, 838.f, LaneW, 36.f, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : .65f));
+		if (View.Lane == ELane::HyperdriveBlocked)
+		{
+			// A padlock: shackle arc + body.
+			const FVector2D L(CenterX - LaneW * .5f + 20.f, 858.f);
+			P.ArcSpan(L + FVector2D(0, -4), 5.f, PI, PI, LaneC, 2.f);
+			P.Outline(L.X - 7.f, L.Y - 4.f, 14.f, 10.f, 2.f, 1.5f, LaneC);
+		}
+		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
 	}
 
 	// ---- squad strip, bottom-left of the safe frame, order 1 2 3
