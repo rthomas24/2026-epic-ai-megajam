@@ -623,14 +623,63 @@ namespace TDSquad
 			return false;
 		}
 		const float R = GetBoundsRadius(Ship);
-		// Trail puffs stay small: the chase camera is only ~14 m away during the player's own tumble.
-		const float Radius = bTrailPuff ? FMath::Clamp(R * 0.2f, 60.f, 150.f) : FMath::Max(600.f, R * 2.5f);
-		if (!bTrailPuff)
+		const FLinearColor Color = UTDStatics::ShipColor(Id);
+		const FVector Loc = Ship->GetActorLocation();
+		if (bTrailPuff)
 		{
-			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD death placeholder: %s bounds %.0f cm -> explosion radius %.0f cm"),
-				*UEnum::GetDisplayValueAsText(Id).ToString(), R, Radius);
+			if (Ship->IsPlayerFlown())
+			{
+				// The player's chase camera follows the tumble's path, so a lingering puff ends up in its face
+				// (live dth6: a screen-sized disc). Brief sparks only, gone before the camera gets there.
+				return P->PlayPlaceholderFlash(Loc, 60.f, FMath::Lerp(Color, FLinearColor::White, 0.5f), 0.12f) != nullptr;
+			}
+			return P->PlayPlaceholderExplosion(Loc, FMath::Clamp(R * 0.2f, 60.f, 150.f), Color, 1) > 0;
 		}
-		return P->PlayPlaceholderExplosion(Ship->GetActorLocation(), Radius, UTDStatics::ShipColor(Id), bTrailPuff ? 1 : 12) > 0;
+		const float Radius = FMath::Max(600.f, R * 2.5f);
+		if (!Ship->IsPlayerFlown())
+		{
+			// A wingman, seen from a distance: T2's full placeholder explosion.
+			return P->PlayPlaceholderExplosion(Loc, Radius, Color, 12) > 0;
+		}
+		// The player's own ship, seen from its chase camera (Lead playtest 8: the 0.6 s shell at 600 cm
+		// filled half the screen as a flat pink wipe). The shell never reaches the camera: capped to 45% of
+		// the camera distance and gone in 0.22 s; a small hot core; the debris does the work.
+		const float CamDist = FVector::Dist(Ship->GetChaseCameraTransformNow().GetLocation(), Loc);
+		// Live (dth5_*): even at 45% the opaque placeholder shell read as a flat disc, and it darkens as
+		// it fades. So: a small, brief shell (20% of the camera distance, 0.12 s), a hot white core, and
+		// the debris (sized to the 45% limit) carries the blast.
+		const float Blast = FMath::Min(Radius, CamDist * 0.45f);
+		const float Shell = FMath::Min(Blast, CamDist * 0.2f);
+		const float Core = CamDist * 0.07f;
+		int32 Used = 0;
+		Used += P->PlayPlaceholderFlash(Loc, Core, FMath::Lerp(Color, FLinearColor::White, 0.75f), 0.15f) ? 1 : 0;
+		Used += P->PlayPlaceholderFlash(Loc, Shell, Color, 0.12f) ? 1 : 0;
+		const int32 Debris = 16;
+		for (int32 I = 0; I < Debris; ++I)
+		{
+			const float Y = 1.f - 2.f * (I + 0.5f) / Debris;
+			const float RingR = FMath::Sqrt(FMath::Max(0.f, 1.f - Y * Y));
+			const float Phi = I * 2.39996f + FMath::FRandRange(-0.3f, 0.3f);
+			const FVector Dir(FMath::Cos(Phi) * RingR, FMath::Sin(Phi) * RingR, Y);
+			if (ATDCombatFlash* Flash = P->PlayPlaceholderFlash(Loc, 1.f, Color, 0.01f))
+			{
+				Flash->PlayDebris(Loc + Dir * Shell * 0.3f, Dir * Blast * FMath::FRandRange(3.f, 4.5f), Blast * 0.5f,
+					FMath::Clamp(Blast * 0.05f, 15.f, 60.f), FMath::Lerp(Color, FLinearColor::White, 0.25f), FMath::FRandRange(0.5f, 0.8f));
+				++Used;
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD death placeholder (player): %s camera %.0f cm -> shell %.0f cm, core %.0f cm, %d flashes"),
+			*UEnum::GetDisplayValueAsText(Id).ToString(), CamDist, Shell, Core, Used);
+		return Used > 0;
+	}
+
+	void PlayPlaceholderPulse(AActor* At, float Radius, const FLinearColor& Color)
+	{
+		UTDProjectileSubsystem* P = At ? UTDProjectileSubsystem::Get(At) : nullptr;
+		if (P)
+		{
+			P->PlayPlaceholderExplosion(At->GetActorLocation(), Radius, Color, 0);
+		}
 	}
 
 	FText GetLandPrompt(const ATDShip* Ship)

@@ -269,7 +269,8 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 	SwitchTiming.NameCardSeconds += DebugHold;
 	bQuickCut = Cut.bQuickCut;
 	FlashFramesLeft = FMath::Max(0, Cut.Timing.FlashFrames);
-	NameCard = Cut.NameCardText;
+	NameCard = Cut.bSwitchStrike
+		? FText::Format(NSLOCTEXT("TDDirector", "StrikeCard", "{0}  ·  STRIKE +25%"), Cut.NameCardText) : Cut.NameCardText;
 	NameColor = Cut.SquadColor;
 	State.FlashAlpha = FlashFramesLeft > 0 ? 1.f : 0.f; // visible on the very next paint
 }

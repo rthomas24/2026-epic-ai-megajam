@@ -782,6 +782,9 @@ void ATDSquadManager::StartSwitchStrike(ATDShip* OnShip)
 	SwitchStrikeShip = OnShip;
 	SwitchStrikeEndTime = Now() + SwitchStrikeDuration;
 	TDSquad::SetOutgoingDamageMultiplier(OnShip, SwitchStrikeKey, SwitchStrikeDamageMultiplier);
+	// Tell the player they have it: the pilot calls it, and the ship pulses in its colour while it lasts.
+	RequestSquadBark(TDBarkIds::SwitchStrike, OnShip->GetShipId(), ETDBarkPriority::High);
+	NextStrikePulse = 0.0;
 	// Consume the power so one power can't arm two chained switches.
 	LastPowerTime = -1000.0;
 }
@@ -794,6 +797,18 @@ void ATDSquadManager::EndSwitchStrike()
 	}
 	SwitchStrikeShip.Reset();
 	SwitchStrikeEndTime = -1000.0;
+}
+
+float ATDSquadManager::GetSwitchStrikeRemaining01() const
+{
+	return IsSwitchStrikeActive() && SwitchStrikeDuration > 0.f
+		? FMath::Clamp(static_cast<float>((SwitchStrikeEndTime - Now()) / SwitchStrikeDuration), 0.f, 1.f) : 0.f;
+}
+
+float ATDSquadManager::GetFocusRemaining01() const
+{
+	return GetFocusTarget() && FocusCommandSeconds > 0.f
+		? FMath::Clamp(static_cast<float>((FocusEndTime - Now()) / FocusCommandSeconds), 0.f, 1.f) : 0.f;
 }
 
 bool ATDSquadManager::IsSwitchStrikeActive() const
@@ -914,6 +929,28 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 			{
 				// features.md ENG-03: a percentage of the ship's own hull (Bastion and Lancer alike).
 				TDSquad::RepairHull(Slot.Ship, TDSquad::GetMaxHull(Slot.Ship) * BetweenWaveHullRepairPercentPerSecond * 0.01f * DeltaSeconds);
+			}
+		}
+	}
+
+	// Placeholder feedback pulses (Switch Strike aura on the player's ship, a mark on the focus target).
+	if (FeedbackPulseInterval > 0.f)
+	{
+		const double Tn = Now();
+		if (ATDShip* Strike = IsSwitchStrikeActive() ? SwitchStrikeShip.Get() : nullptr)
+		{
+			if (Tn >= NextStrikePulse)
+			{
+				NextStrikePulse = Tn + FeedbackPulseInterval;
+				TDSquad::PlayPlaceholderPulse(Strike, FMath::Max(250.f, TDSquad::GetBoundsRadius(Strike) * 1.2f), UTDStatics::ShipColor(Strike->GetShipId()));
+			}
+		}
+		if (AActor* Focus = GetFocusTarget())
+		{
+			if (Tn >= NextFocusPulse)
+			{
+				NextFocusPulse = Tn + FeedbackPulseInterval * 1.5f;
+				TDSquad::PlayPlaceholderPulse(Focus, FMath::Max(300.f, TDSquad::GetBoundsRadius(Focus) * 1.5f), FLinearColor::White);
 			}
 		}
 	}

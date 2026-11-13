@@ -489,6 +489,10 @@ bool FTDSquadSwitchStrike::RunTest(const FString& Parameters)
 		ATDShip* Bastion = F.Ship(ETDShipId::Bastion);
 		TestTrue(TEXT("Switch Strike active") + Fps, F.Squad->IsSwitchStrikeActive());
 		TestEqual(TEXT("+25% on the new ship") + Fps, F.Squad->GetDamageMultiplier(Bastion), 1.25f);
+		// The player is told (Lead): the pilot calls it, the HUD has its time left, the cut card says so.
+		TestTrue(TEXT("Moss calls the strike") + Fps, F.Events->CountBarks(TDBarkIds::SwitchStrike) == 1);
+		TestEqual(TEXT("time left: full at arming") + Fps, F.Squad->GetSwitchStrikeRemaining01(), 1.f, 0.02f);
+		TestTrue(TEXT("the cut payload flags it") + Fps, F.Squad->GetLastSwitchCut().bSwitchStrike);
 		TestEqual(TEXT("not on the old ship") + Fps, F.Squad->GetDamageMultiplier(F.Ship(ETDShipId::Lancer)), 1.f);
 		const UTDWeaponComponent* Weapons = Bastion ? Bastion->FindComponentByClass<UTDWeaponComponent>() : nullptr;
 		if (!TestNotNull(TEXT("weapons") + Fps, Weapons))
@@ -2841,6 +2845,39 @@ bool FTDSquadDeathPlaceholder::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the explosion is playing"), P->GetPlayingFlashCount() > Before);
 	F.W.Advance(1.5f);
 	TestEqual(TEXT("all gone after about 0.8 s (pooled)"), P->GetPlayingFlashCount(), Before);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadStrikeAndFocusFeedback, "TriadDrift.Squad.HUD.SwitchStrikeAndFocusFeedback", TD_TEST_FLAGS)
+bool FTDSquadStrikeAndFocusFeedback::RunTest(const FString& Parameters)
+{
+	// Lead items 2 and 3: the player can tell they have Switch Strike / that the focus order was heard,
+	// on what, and until when. Time-left getters for the HUD, plus placeholder pulses until there's art.
+	FSquadFixture F;
+	F.W.Advance(0.5f);
+	UTDProjectileSubsystem* P = UTDProjectileSubsystem::Get(F.Ship(ETDShipId::Rift));
+	TestEqual(TEXT("no strike: 0"), F.Squad->GetSwitchStrikeRemaining01(), 0.f);
+	UTDEventBus::Get(F.W.GetWorld())->BroadcastPowerUsed(ETDShipId::Rift, TEXT("PortalBlaster"));
+	F.W.Advance(0.5f);
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	F.W.Advance(0.1f);
+	TestTrue(TEXT("the strike ship pulses (placeholder aura)"), P->GetPlayingFlashCount() > 0);
+	F.W.Advance(1.9f);
+	TestEqual(TEXT("half the window left after 2 s"), F.Squad->GetSwitchStrikeRemaining01(), 0.5f, 0.05f);
+	F.W.Advance(2.2f);
+	TestEqual(TEXT("over after 4 s"), F.Squad->GetSwitchStrikeRemaining01(), 0.f);
+
+	// Focus: heard (a wingman's ack), which target (pulses on it), and when it ends (time left).
+	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+	TestEqual(TEXT("no order: 0"), F.Squad->GetFocusRemaining01(), 0.f);
+	F.Squad->IssueFocusCommand(Enemy);
+	F.W.Tick();
+	TestTrue(TEXT("a wingman acknowledges"), F.Events->CountBarks(TDBarkIds::FocusAck) == 1);
+	TestTrue(TEXT("the target is marked"), P->CountPlayingFlashesNear(Enemy->GetActorLocation(), 500.f) > 0);
+	F.W.Advance(4.f);
+	TestEqual(TEXT("half the order left after 4 s"), F.Squad->GetFocusRemaining01(), 0.5f, 0.05f);
+	F.W.Advance(4.2f);
+	TestEqual(TEXT("expired after 8 s"), F.Squad->GetFocusRemaining01(), 0.f);
 	return true;
 }
 

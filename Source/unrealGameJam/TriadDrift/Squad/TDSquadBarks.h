@@ -21,6 +21,7 @@ namespace TDBarkIds
 	inline const FName ShipDownBastion(TEXT("Bark_SquadShipDownBastion"));
 	inline const FName Respawn(TEXT("Bark_SquadRespawn"));          // speaker = the pilot back in
 	inline const FName FocusAck(TEXT("Bark_SquadFocusAck"));        // speaker = a wingman acknowledging
+	inline const FName SwitchStrike(TEXT("Bark_SquadSwitchStrike")); // speaker = the pilot switched to: "Strike's hot!"
 	inline const FName WingmanKill(TEXT("Bark_SquadWingmanKill"));  // speaker = the wingman who scored
 	inline const FName LowHull(TEXT("Bark_SquadLowHull"));          // speaker = the pilot in trouble
 	inline const FName SquadWipe(TEXT("Bark_SquadWipe"));           // speaker = the last pilot down

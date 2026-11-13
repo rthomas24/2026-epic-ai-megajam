@@ -124,6 +124,8 @@ namespace TDSquad
 	 *  Nick's ship Explosion cue has VFX art. bTrailPuff = a small puff for the tumble's trail. Returns
 	 *  true when a placeholder played. */
 	bool PlayShipDeathPlaceholder(ATDShip* Ship, ETDShipId Id, bool bTrailPuff);
+	/** A small placeholder flash on an actor (Switch Strike aura, focus-target mark): T2's pooled flashes. */
+	void PlayPlaceholderPulse(AActor* At, float Radius, const FLinearColor& Color);
 	/** HUD: T1's dodge readiness, 0 right after a dodge, 1 ready (1 without a movement component). */
 	float GetDodgeReady01(const ATDShip* Ship);
 	/** Subscribe Squad->HandleShipDamaged to Ship's health OnDamaged (idempotent). */
