@@ -19,7 +19,7 @@ Audio: the agent's game runs without the audio device, so the cut is silent for 
 import argparse, datetime, json, os, re, shutil, subprocess, sys, time
 
 ROOT = os.environ.get("TD_ROOT") or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-OUT = os.path.join(ROOT, "Builds", "trailer")
+OUT = os.environ.get("TD_TRAILER_OUT") or os.path.join(ROOT, "Builds", "trailer")
 RAW = os.path.join(OUT, "raw")
 FPS = 30
 # The recorder burns a 4 px red frame and a "Recording viewport / Stop / Cancel" box into the top-right corner:
@@ -31,7 +31,7 @@ FONT = "C\\:/Windows/Fonts/segoeuib.ttf"
 # "pilot": run Tools/td_agent_pilot.py alongside (aims, fires, dodges, uses powers) for the dogfight beats.
 BEATS = {
     "dogfight": {"setup": [("TD.God", 0.5), ("TD.Stage Wave3", 6.0)], "pilot": ("Rift", 26), "lead": 4.0, "seconds": 18,
-                 "timeline": [(6.0, "TD.Squad.Switch Lancer"), (12.0, "TD.Squad.Switch Bastion")]},
+                 "timeline": [(4.5, "TD.Squad.Switch Lancer"), (11.5, "TD.Squad.Switch Bastion")]},
     "ram": {"setup": [("TD.Stage Wave2", 5.0)], "seconds": 7, "timeline": [(0.6, "TD.Director.RamKill")]},
     "missile": {"setup": [("TD.Stage Wave2", 5.0)], "seconds": 8, "timeline": [(0.6, "TD.Director.MissileReturn")]},
     "bastion": {"setup": [("TD.Stage Wave3", 5.0), ("TD.Squad.Switch Bastion", 1.5), ("TD.Power.Ship Bastion", 0.3)], "seconds": 8,
@@ -50,9 +50,11 @@ BEATS = {
                  "timeline": [(0.8, "TD.Director.GeneratorKill"), (5.5, "TD.Director.GeneratorKill")]},
     # T4's framing: the stage puts the squad 200 m off the bow facing the reactor (~350 m); at cruise it passes it in ~6 s, so
     # aim at it and throttle down at once, then three kills ~1 s apart (one phase each; the third starts the breakup).
-    "reactor": {"setup": [("TD.God", 0.5), ("TD.Stage ReactorExposed", 2.5), ("TD.World.AimAt Reactor 1.5", 0.2), ("TD.Input.Keys S 3", 0.5)],
-                "seconds": 14, "timeline": [(0.6, "TD.Director.ReactorKill"), (1.7, "TD.Director.ReactorKill"), (2.8, "TD.Director.ReactorKill")]},
-    # The victory screen's own scene: the Dominion burning beside Verdance, the squad flying home past the lens.
+    # T4's framing: hold the ship still in front of the reactor, aim at it, then three kills ~1 s apart (one phase each;
+    # the third starts the breakup, now with the placeholder breakup explosions and the round-4 effects).
+    "reactor": {"setup": [("TD.God", 0.5), ("TD.Stage ReactorExposed", 2.5), ("TD.World.Hold 20", 0.3), ("TD.World.AimAt Reactor 1.5", 1.8)],
+                "seconds": 14, "timeline": [(0.8, "TD.Director.ReactorKill"), (2.3, "TD.Director.ReactorKill"), (3.8, "TD.Director.ReactorKill"),
+                                            (5.3, "TD.Director.ReactorKill")]},  # 1.5 s apart: each phase opens after a beat
     "victory": {"setup": [("TD.Stage Victory", 12.0)], "map": "MainMenu", "seconds": 12, "timeline": []},
 }
 
@@ -91,6 +93,7 @@ def wait_world(port, contains, seconds):
 def record_beat(port, name, beat):
     print("== beat", name)
     console(port, "TD.UI.NativeHUD -1")  # the game's own HUD (an agent pilot may have left the dev HUD on)
+    console(port, "TD.UI.SpaceHUD 2")     # the shipping default: engineering's flight HUD (wins over the pilot's legacy switch)
     for c, wait in beat.get("setup", []):
         console(port, c)
         time.sleep(wait)
@@ -102,7 +105,7 @@ def record_beat(port, name, beat):
     if beat.get("pilot"):
         ship, secs = beat["pilot"]
         pilot = subprocess.Popen([sys.executable, os.path.join(ROOT, "Tools", "td_agent_pilot.py"), "--port", str(port), "--ship", ship,
-                                  "--stage", "Wave3", "--seconds", str(secs), "--god", "--native-hud"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                  "--stage", "Wave3", "--seconds", str(secs), "--god"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(beat.get("lead", 3.0))
     opts = {"options": {"source": "GameViewport", "world": {"refPath": world}, "maxResolution": 1920, "frameRate": FPS,
                         "maxDurationSeconds": beat["seconds"] + 5}}
