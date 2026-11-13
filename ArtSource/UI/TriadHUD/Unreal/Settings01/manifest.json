@@ -1,26 +1,37 @@
 {
   "base": "1a8d942907ab39928a68e791a810bd1c6219434a",
   "scope": "Settings API and focus only; excludes M02 actor/material/module/visual changes",
+  "hash_format": "SHA256 of UTF-8 LF-normalized contents; normalize checkout CRLF before comparison",
   "native_verified": false,
-  "patch_sha256": "fb2218656c166026939d0f6cc735b0928599b5d946ad0ad540961e377e78b1f0",
+  "patch_sha256": "2ce88b13ee45eca5b618bece703eb30e787d6594f34445158aaf13b56ef86147",
+  "review_corrections": [
+    "Persist return-to-Settings across closing-page focus frames; clear only on confirmed menu-control focus",
+    "Keep external Settings ownership on failed query and warn once per session",
+    "Separate no-viewport open failure from unavailable or incompatible bridge in logs and status"
+  ],
+  "source_verification": {
+    "git_apply_check": true,
+    "git_reverse_check": true,
+    "git_reverse_exact_baseline": true,
+    "source_files": 3,
+    "cpp_compile": "not run",
+    "runtime_focus_tests": "pending"
+  },
   "files": [
     {
       "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDMainMenuWidget.h",
       "base_sha256": "f8235676c559ac72d54bb0fa6a12ebb0d82724901e6aef5d1514300b4f4ff4f7",
-      "overlay_sha256": "494bedc2eff2ca83eb2b8a6aa4666bb4692c4684e5fc2462f3224927989d7bed",
-      "working_sha256": "4cc86044973ba1f625b0b156d9fc532967310c82b701eff423b2d30a8e7ec7f6"
+      "overlay_sha256": "c0c2b3312f6ea4c235748e8932e78d049d12456b413b8884a87b99fd9e662e9d"
     },
     {
       "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp",
       "base_sha256": "f1ad7ecd199794d47f11425391129652335a2696749cf9edbac38f9b045f2887",
-      "overlay_sha256": "901993d75a3e3cc553b7bb554f860fdec93364b4622f73757788fbdfed847bf3",
-      "working_sha256": "b53ed55320401cff3d8ffd6be26315d48edc8da76082162e285ca87c3c8e45e8"
+      "overlay_sha256": "b2a73e89ebb5722f5862201f19805ce46efb79301de47f34c756ed5c54b190d6"
     },
     {
       "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMenuTests.cpp",
       "base_sha256": "807d731248a54c941a2ca13a9d6e8a656e394e0539520f25105c9584efa27b5f",
-      "overlay_sha256": "b49d2459f5e001db048eb11609f4523dd7243d552d1235dbc07c9827a74a77d2",
-      "working_sha256": "b49d2459f5e001db048eb11609f4523dd7243d552d1235dbc07c9827a74a77d2"
+      "overlay_sha256": "ada7d28e43a4521d609962d1c948f38d2de4767e831166b495f1878680f9d223"
     }
   ]
 }
