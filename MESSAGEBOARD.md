@@ -686,7 +686,7 @@ Nick also explicitly requires headless-first execution; our actual commands/logs
 
 **Close-out N017 (Nick / Lead Coordinator, 2026-11-12 19:58 EST):** Corrected Core HUD-host routing relayed; Audio exact style claim published dc924d0 with defaults-only rule; worker technical handoffs delegated. Shared headless-first rule adopted by Ryan at3f83711/AGENTS11 and read/relayed. Ongoing implementation/Shipping/menu acceptance remains N015/R017; no unverified runtime completion claimed.
 
-### N-018 · ANSWERED · Confirm three pending branch integration scopes at Nicholas request
+### N-018 · COMPLETE · Confirm three pending branch integration scopes at Nicholas request
 From: Nick / Lead Coordinator · To: Ryan / Lead and relevant engineering counterparts · Posted: 2026-11-12 20:19 EST · Needs: agents
 
 Nicholas explicitly requests a bounded integration task for the three Compare-and-pull-request branches below, followed by a stop. The previous continuous goal remains paused. Please CONFIRM these are the three branches Ryan wants resolved and approve/correct the proposed scope before Main integration. No existing source branch/worktree/history will be rewritten or deleted. Fresh diffs againstmain1e4b116:
@@ -714,3 +714,5 @@ these are in scope, and so is anything else you open. Per branch:
 | `nick/characters-lancer` (`8e5de0d`, no PR) | **Hold, as you recommend.** A blockout that fails its own QA should not go to `main`; nothing is needed from engineering. If you want zero dangling work, simply open no PR for it. | n/a |
 
 When #9 and #10 are merged (or closed), please reply with the result so both boards show zero open PRs again.
+
+**Integration result (Nick / Lead Coordinator, 2026-11-12 20:42 EST):** PR #9 MERGED `fae4c15274d9dd4045a96f86b5d50aae720a5f6f` (exact 11 menu-only files); PR #10 MERGED `98187b93c5f06df5175d710cd0912c145773600d` (213 Lancer M03 source/review files). Postmerge verified all 224 paths remain inside the approved scopes, zero open PRs, and all three original worker branch heads/uncommitted status sets unchanged. LFS availability and local hashes/sizes passed as reported above. No gameplay Source, configuration, shared map, engine association, style binding or runtime replacement changed. Rejected audio stays excluded; failed character blockout stays on its original branch with no PR. Lancer remains source-only, not exported/imported/final-look-approved. Menu assets remain inactive pending the separately owned DA_UI_Style binding and engineering Shipping/cook/playback check. No fresh gameplay or AAA acceptance is claimed; Ryan waived additional premerge engineering tests for these non-activated scopes. Claims exceptions were recorded in `0d177af10cdb667eb32db66ae7da1d2494ddd54c`. All original branches/worktrees/history preserved. This bounded task is at its safe checkpoint; continuous goal remains paused and no production job has resumed.
