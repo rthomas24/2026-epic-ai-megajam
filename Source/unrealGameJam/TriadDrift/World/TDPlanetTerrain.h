@@ -71,6 +71,21 @@ public:
 	bool IsBuilt() const { return Field.IsValid(); }
 	int32 GetChunkLodAt(const FVector& WorldPoint) const;
 
+	/**
+	 * ENG-38: the first view at its final LOD around an ARRIVAL point (course-local, absolute Z) instead of the pad:
+	 * chunks near it are built at the LOD the descent will want from there (altitude included), in parallel, with
+	 * collision under it cooked at once; the rest cooks async. Returns the milliseconds it took (also logged).
+	 */
+	double BuildFirstViewAt(const FVector& CourseLocalPoint);
+
+	/** Milliseconds the synchronous spawn-time build took (Setup) and the last BuildFirstViewAt (T1's load log). */
+	double GetSetupMs() const { return SetupMs; }
+	double GetFirstViewMs() const { return FirstViewMs; }
+
+	/** Collision under the first view cooks synchronously within this radius (cm); everything farther cooks async. */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Terrain")
+	float SyncCollisionRadius = 200000.f;
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -100,8 +115,11 @@ protected:
 	static void GenerateChunk(const FTDTerrainField& InField, FIntPoint Cell, float InChunkSize, int32 Quads, FChunkData& Out);
 	void ApplyChunk(FChunkData& Data);
 	int32 QuadsFor(int32 Lod) const { return Lod == 0 ? QuadsLod0 : (Lod == 1 ? QuadsLod1 : QuadsLod2); }
-	int32 WantedLod(const FChunk& C, const FVector2D& ViewLocal) const;
-	FVector2D ViewLocal() const;
+	/** View = course-local XY plus Z = height above the ground (altitude coarsens the LOD: detail resolves on the way down). */
+	int32 WantedLod(const FChunk& C, const FVector& View) const;
+	FVector ViewLocal() const;
+	/** Builds every chunk whose LOD for View differs, in parallel; collision cooks synchronously within SyncCollisionRadius. */
+	void BuildAround(const FVector& View);
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Terrain")
 	TObjectPtr<USceneComponent> Root;
@@ -148,4 +166,6 @@ protected:
 	float AwaitSeconds = 0.f;
 	/** Apply budget per frame (m1: one LOD0 upload can take ~4 ms; at most one LOD0 per frame and a small budget). */
 	int32 MaxLod0PerFrame = 1;
+	double SetupMs = 0.0;
+	double FirstViewMs = 0.0;
 };

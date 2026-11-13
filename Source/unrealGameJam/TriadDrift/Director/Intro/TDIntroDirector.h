@@ -142,6 +142,8 @@ public:
 
 	/** Seconds from the intro's first frame to control: the shots plus the 1 s hand-off (49.0 today). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Intro")
+	/** T1, issue #24: this intro did not start IntroMusic because the tutorial music owns the opening. */
+	bool WasIntroMusicSuppressed() const { return bIntroMusicSuppressed; }
 	float GetIntroLength() const { return GetTotalDuration() + HandOffSeconds; }
 
 	/** Seconds since the intro's first frame, through the hand-off (0 when not playing). A music prelude of L seconds
@@ -165,6 +167,8 @@ public:
 	bool WasSkipped() const { return bSkipped; }
 	/** The narration lines, in order (localisable). */
 	static const TArray<FText>& NarrationLines();
+	/** This play's narration (story table Intro_N*, else NarrationLines()). */
+	TArray<FText> Narration;
 	/** Jump to a shot (captures, debug): restarts that shot from its first frame. */
 	void DebugJumpToShot(int32 Index);
 	/** Captures: replay the intro's shot up to time T (s from the start) in 1/30 s steps; bFreeze holds it there. */
@@ -228,6 +232,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputComponent> SkipInput;
 	UPROPERTY(Transient) TArray<TObjectPtr<AActor>> Showcase;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Music;
+	bool bIntroMusicSuppressed = false; // T1, issue #24: the tutorial music owns the opening
 	/** Shot 6: a red-orange key light on the fleet (it would read black against space otherwise). */
 	UPROPERTY(Transient) TObjectPtr<AActor> KeyLight;
 	/** Shot 6 until T4's ATDDominion::SetShowcase: the Dominion's art (DA_Dominion_Visuals) on a transient actor. */

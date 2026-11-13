@@ -44,6 +44,15 @@ bool FTDJourney::FindStageStart(UWorld* World, FName ReturnPoint, FTransform& Ou
 			return true;
 		}
 	}
+	if (ReturnPoint == TDReturnPoints::DominionHangarExit)
+	{
+		if (const ATDDominion* Dominion = ATDDominion::Get(World))
+		{
+			// ENG-31: the escape flight starts out of the real bay mouth (T4's ATDDominion owns it).
+			Out = Dominion->GetEscapeStart();
+			return true;
+		}
+	}
 	const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(World);
 	return Layout && Layout->FindReturnPoint(ReturnPoint, Out);
 }

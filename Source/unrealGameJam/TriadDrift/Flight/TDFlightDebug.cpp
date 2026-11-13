@@ -15,6 +15,8 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "Misc/App.h"
 #include "EngineUtils.h"
@@ -288,6 +290,33 @@ static FAutoConsoleCommandWithWorldAndArgs GTDFlightThreatsCmd(TEXT("TD.Flight.T
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightFeedbackCmd(TEXT("TD.Flight.Feedback"),
 	TEXT("Log the no-art flight feedback: its tick cost, dust motes shown, active bursts, camera kick and placeholder counts."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Feedback));
+
+static FAutoConsoleCommandWithWorldAndArgs GTDFlightShipFeelCmd(TEXT("TD.Flight.ShipFeel"),
+	TEXT("Ship-feel A/B: TD.Flight.ShipFeel 1 = per-ship handling weight (acceleration, nose response, drift turn, dodge cooldown), 0 = shared (default)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		if (Args.Num())
+		{
+			ATDShip::bPerShipFeel = FCString::Atoi(*Args[0]) != 0;
+		}
+		for (TActorIterator<ATDShip> It(World); It; ++It)
+		{
+			ATDShip* Ship = *It;
+			const FTDShipSpec& Spec = UTDShipLibrary::Get(Ship->GetShipId());
+			if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
+			{
+				FTDFlightTuning Tuning = Move->GetFlightTuning();
+				const FTDFlightTuning Shared;
+				Tuning.Acceleration = ATDShip::bPerShipFeel ? Spec.FeelAcceleration : Shared.Acceleration;
+				Tuning.AngularResponse = ATDShip::bPerShipFeel ? Spec.FeelAngularResponse : Shared.AngularResponse;
+				Tuning.DriftTurnMultiplier = ATDShip::bPerShipFeel ? Spec.FeelDriftTurnMultiplier : Shared.DriftTurnMultiplier;
+				Tuning.DodgeCooldown = ATDShip::bPerShipFeel ? Spec.FeelDodgeCooldown : Shared.DodgeCooldown;
+				Ship->ApplyFlightTuning(Tuning);
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.ShipFeel %d: %s accel %.0f response %.1f drift x%.2f dodge cd %.1f s"), ATDShip::bPerShipFeel ? 1 : 0,
+					*UEnum::GetValueAsString(Ship->GetShipId()), Tuning.Acceleration, Tuning.AngularResponse, Tuning.DriftTurnMultiplier, Tuning.DodgeCooldown);
+			}
+		}
+	}));
 
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightCamProfileCmd(TEXT("TD.Flight.CamProfile"),
 	TEXT("Issue #23 camera audition: TD.Flight.CamProfile Default (default) | Tuned | Audition | Report (composed peaks since the last switch)"),

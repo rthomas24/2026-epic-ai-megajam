@@ -65,10 +65,13 @@ no known origin). Its ground units are automated: armour with nobody inside that
 `td.Finale.Boarding 0`). The reveal then moves into the assault as transmissions that break through as each generator
 falls, the reactor shield opening to the squad's IDs, and the same stinger. Nothing else in the story changes.
 
+**Descent (ENG-38):** every landing is a flight from orbit through the atmosphere into the world, with no cut. Use it for the story: on Verdance the
+machines' landers are visible burning in ahead of you; on Cinder the dig's glow shows from orbit; the Dominion hangs in the sky from the ground.
+
 ## 6. Clues throughout play (reward attention, never give the twist away early)
 | Clue | Where | Owner |
 |---|---|---|
-| The Dominion always visible or referenced as the looming, unexplained destination | Galaxy sky from wave 1, intro, planet skies, objective line | T4, T3; Nicholas (sky, lighting) |
+| The Dominion always visible or referenced as the looming, unexplained destination | Galaxy sky from wave 1, intro, planet skies, objective line | T4, T3; Lead's environment builder (sky, lighting) |
 | Enemy tactics that anticipate Triad's manoeuvres | Wave 3 onward: enemies that pre-empt a ship switch or dodge once in a while, with a bark noticing it | T4 (AI), Nicholas (line) |
 | Familiar markings under damaged armour | Destroyed enemy ships and troopers show Triad's unit insignia shape under the black plating | Grok Bot / builders (damage variants), effects builder |
 | Transmission fragments using the squad's own terminology | Verdance relay, Cinder, the assault | T5 / T3 hooks; Nicholas (audio) |
@@ -150,3 +153,68 @@ Nicholas for every line, voice and the score.
 2. Today's waves 1-2 become the tutorial battle: wave 1 = evasion, weapons, switching; wave 2 = the larger craft and the
    withdrawal. Is that the split you want, and does the tutorial music (#24) end at the withdrawal?
 3. The intro grows from 49 s to about 2:20: confirm the length (a skip stays available from the first second).
+
+## 12. Sequence 02: *Aftermath* (Nicholas's brief, received Nov 13)
+Original documents from Nicholas are in [`Story/`](Story/) (the three `.docx` files and his README); readable copies
+and our build notes are here and in `docs/story/`. This sequence answers how the tutorial battle ends.
+
+**When:** immediately after the player wins the opening tutorial battle and escapes the Dominion's defence perimeter.
+**Length:** 75-100 seconds, in-engine: existing ships, cockpit / HUD close-ups, radio dialogue, a distant Dominion. No
+faces. Skippable after a first viewing.
+**Its job:** change the assignment from "identify the vessel" to "follow its forces to Verdance", show that the enemy is
+running a purposeful search, and plant one quiet clue.
+
+| Time | On screen | Beat |
+|---|---|---|
+| 0:00-0:20 | Triad regroups beyond a faint boundary of interference; the last drones peel away; alarms settle; the HUD returns to normal | They survived; the mission has changed. Kato: "They're not pursuing us." |
+| 0:20-0:45 | A tactical display: hostile contacts leaving the Dominion in disciplined lanes toward Verdance; some never targeted Triad. **A faint pulse; the player's navigation display briefly marks the corridor the drones use, then clears. Nobody comments** | The attackers follow an objective. The clue: the Dominion's systems can anticipate Triad |
+| 0:45-1:10 | Mission Control reconnects through static: a research outpost on Verdance has gone dark near a restricted survey zone | New orders: avoid the mothership, reach Verdance, find the outpost, recover its survey data |
+| 1:10-1:30 | Triad plots a course; the camera lingers on the Dominion; **a row of its exterior lights changes in the same rhythm as the pulse on the HUD**; match cut from the jump to Verdance | The connection is visible but unexplained |
+
+**Rules from the brief:** the Dominion never speaks plainly here; the fleet defends its route then resumes its
+operation; **the "Don't-" fragment is NOT repeated here** (it is kept for the finale); Command does not know what the
+Dominion is; the outpost's name, the planetary resource and the future catastrophe are undecided and must not be
+presented as lore.
+
+**What it means for the game:** the first playable stretch is ONE tutorial battle (today's wave 1, shaped as the
+*First Contact* tutorial: evasion, weapons, switching, a larger craft, the withdrawal where drones stop at a boundary),
+then this sequence, then Verdance. Today's wave 2 becomes part of that battle or the approach to Verdance (T4 and T3
+propose; Nicholas confirms in issue #29). New needs: a simple animated tactical display of drone lanes (T2, in the new
+HUD's style), the navigation pulse on the HUD (T2), the Dominion's light row pulsing in the same rhythm (T4 / effects
+builder), the lines as transmissions `S2_*` (T3). **Built once, with the opening, after the art is in** (same gate as
+§11); T3 adds it to the shot plan now.
+
+## 13. Gameplay Sequence 01: the tutorial battle (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Gameplay_Sequence_01_Tutorial_Battle.docx`. It sits between the opening cinematic (§11)
+and *Aftermath* (§12): **one uninterrupted first mission, about 6-10 minutes**, no cinematic in between. The player
+takes control as a drone group turns hostile: Triad was ordered to investigate, not fight, so it begins as an
+emergency escape and becomes a short combat lesson.
+
+| Phase | Player learns | Ends when | Call (draft) / HUD prompt |
+|---|---|---|---|
+| 01 Break formation | Steer, pitch / yaw, throttle or boost; evade a readable first volley | A safe corridor is reached / the opening attack is survived | COMMAND: "Pilot, incoming fire! Evade now!" / EVASIVE MANEUVERS |
+| 02 Return fire | Acquire a marked drone, fire, read the target indicator and damage feedback | The required drones are destroyed | KATO: "Keep moving. I'm marking a hostile." / TARGET AND FIRE |
+| 03 Fight as Triad | Switching ships; each ship's ability in a staged situation | Each available ability is shown, or its substitute | MOSS: "We've still got three ships. Use them." / SQUAD SYSTEMS |
+| 04 Heavy contact | Everything under pressure; the squad as a team | The larger craft is driven off or disabled | WREN: "That one's bigger. Focus it together!" / DISABLE HEAVY CONTACT |
+| 05 Withdraw | Flying to a marked escape vector under pursuit | The escape boundary is crossed; **the drones deliberately stop at the perimeter** | COMMAND: "Triad, disengage. Fall back to the marked corridor." / BREAK CONTACT, then KATO: "They're breaking off." → *Aftermath* |
+
+**Rules from the proposal:** entry straight from the cinematic with no fade, reload or training room; most Dominion
+craft keep heading for the planets and only a small defensive group attacks (never the whole fleet chasing the squad);
+the drone that hesitated in the opening is not an immediate target; nobody labels the enemy; one action taught at a
+time with large markers and hints for the real input device; checkpoints at the opening of the engagement, the heavy
+contact and the retreat, with the cinematic never replayed after a death; no hard lock on an ability prompt (a timed
+hint, a substitute objective or a reset); the "Don't-" audio is not repeated.
+
+**How it maps to the game today (engineering's answer, posted in issue #29):**
+- Flight, targeting, switching (`1` / `2` / `3` or the pad's D-pad), the three ships with AI wingmen (solo; no co-op),
+  the onboarding hints (fly, fire, switch, power, one at a time, ticked off, a second chance on a miss) and scene
+  checkpoints with "CUT!" retakes all exist. Waves 1-2 hold the content: wave 1's fighters are phases 01-02, wave 2's
+  gunship is the heavy contact.
+- **New work:** phase 01 as an evade-first beat; staged situations for each ship's power (phase 03); the withdrawal:
+  a marked corridor, pursuers that stop at a boundary, the trigger for *Aftermath*; three checkpoints inside the one
+  mission; most of the fleet streaming past toward Verdance in the background. Owners: T4 (encounter), T3 (hints,
+  director, checkpoints as scenes), T2 (prompts in the HUD), T1 (escape vector).
+- **Open with Nicholas:** phase 03 names Cloak, EMP Pulse and Gravity Well, which the game awards on the planets;
+  today the tutorial would teach the signature powers (portal blaster, afterburner ram, missile swarm and dome).
+- The Verdance transition is the hyperdrive jump, then the planetary descent (ENG-38).
+

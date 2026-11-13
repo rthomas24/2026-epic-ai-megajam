@@ -84,9 +84,17 @@ bool FTDTutorialBeatAtControl::RunTest(const FString& Parameters)
 		for (float t = 0.f; t < Total + 5.f && Finished == 0; t += Dt) { R.W.Tick(Dt); }
 		TestEqual(*(Tag + TEXT("intro finished")), Finished, 1);
 		TestEqual(*(Tag + TEXT("tutorial loop playing")), R.T->GetState(), ETDTutorialMusicState::Loop);
-		TestEqual(*(Tag + TEXT("the loop's first beat is on the control frame")), R.T->GetLoopStartClock(), R.T->GetControlClock(), 0.001f);
+		if (bSkip)
+		{
+			TestEqual(*(Tag + TEXT("skipped: the loop's first beat is on the control frame")), R.T->GetLoopStartClock(), R.T->GetControlClock(), 0.001f);
+		}
 		if (!bSkip)
 		{
+			// Issue #24 finding 2: the loop was queued at the prelude's start for the prelude's last sample (the audio
+			// clock does it with a device), not stopped / started on the control frame.
+			const float PreludeEndExact = R.T->GetPreludeStartClock() + (PreludeSeconds - R.T->GetPreludeStartOffset());
+			TestEqual(*(Tag + TEXT("watched: the loop starts exactly where the prelude ends")), R.T->GetLoopStartClock(), PreludeEndExact, 0.0005f);
+			TestEqual(*(Tag + TEXT("watched: ... which is the control frame")), R.T->GetLoopStartClock(), R.T->GetControlClock(), Dt * 1.5f);
 			TestEqual(*(Tag + FString::Printf(TEXT("prelude started at intro time %.2f (shots %.1f + 1 s hand-off - 38)"), R.T->GetPreludeIntroTime(), Total)),
 				R.T->GetPreludeIntroTime(), Total + UTDIntroDirector::HandOffSeconds - PreludeSeconds, Dt + 0.001f);
 			const float PreludeEnd = R.T->GetPreludeStartClock() + (PreludeSeconds - R.T->GetPreludeStartOffset());
@@ -139,7 +147,7 @@ bool FTDTutorialLoopAndFade::RunTest(const FString& Parameters)
 		TestEqual(*(Tag + TEXT("half way after 10 s")), R.T->GetFadeVolume(), 0.5f, 0.02f);
 		R.Music->SetCombatOverrideForTests(true);
 		R.Run(0.5f, Dt);
-		TestTrue(*(Tag + TEXT("combat music takes over under the fade")), R.Music->GetMusicState() != ETDCombatMusicState::Silent);
+		TestEqual(*(Tag + TEXT("combat music still held under the fade (issue #24 finding 3)")), R.Music->GetMusicState(), ETDCombatMusicState::Silent);
 		{
 			FTDTestWorld Next; // the next level: the voice belongs to the game instance, the next world keeps it going
 			for (float t = 0.f; t < 5.f; t += Dt) { R.T->Step(Next.GetWorld(), Dt, false); }
@@ -148,6 +156,8 @@ bool FTDTutorialLoopAndFade::RunTest(const FString& Parameters)
 		R.Run(5.5f, Dt);
 		TestEqual(*(Tag + TEXT("silent after the full 20 s")), R.T->GetState(), ETDTutorialMusicState::Off);
 		TestEqual(*(Tag + TEXT("no voice left")), R.T->GetLiveVoiceCount(), 0);
+		R.Run(1.f, Dt);
+		TestTrue(*(Tag + TEXT("combat music comes in once the fade has finished")), R.Music->GetMusicState() != ETDCombatMusicState::Silent);
 	}
 	return true;
 }
@@ -174,6 +184,32 @@ bool FTDTutorialContinue::RunTest(const FString& Parameters)
 	TestEqual(TEXT("playing"), R.T->GetState(), ETDTutorialMusicState::Loop);
 	R.T->Step(R.W.GetWorld(), 1.f / 60.f, /*bMenuMap*/ true);
 	TestEqual(TEXT("quit to menu: stopped"), R.T->GetState(), ETDTutorialMusicState::Off);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTutorialNoIntroMusic, "TriadDrift.Input.TutorialMusic.IntroMusicOnlyWithoutTheTutorial", TD_TEST_FLAGS)
+bool FTDTutorialNoIntroMusic::RunTest(const FString& Parameters)
+{
+	// Issue #24 finding 1: a New Game with tutorial music never starts the intro's legacy IntroMusic.
+	using namespace TDTutorialMusicTest;
+	{
+		FRun R;
+		if (!TestTrue(TEXT("set up"), R.Init(true))) { return false; }
+		TestTrue(TEXT("armed: owns the opening"), R.T->OwnsOpeningMusic());
+		if (!TestTrue(TEXT("intro plays"), R.Intro->PlayForTests(FSimpleDelegate()))) { return false; }
+		TestTrue(TEXT("tutorial armed: the intro did not start IntroMusic"), R.Intro->WasIntroMusicSuppressed());
+		R.Run(15.f, 1.f / 60.f);
+		TestEqual(TEXT("prelude playing, IntroMusic still not started"), R.T->GetState(), ETDTutorialMusicState::Prelude);
+		TestTrue(TEXT("... still suppressed"), R.Intro->WasIntroMusicSuppressed());
+	}
+	{
+		FRun R;
+		if (!TestTrue(TEXT("set up 2"), R.Init(true))) { return false; }
+		R.T->Stop(TEXT("test: a run without tutorial music"));
+		TestFalse(TEXT("off: does not own the opening"), R.T->OwnsOpeningMusic());
+		if (!TestTrue(TEXT("intro plays 2"), R.Intro->PlayForTests(FSimpleDelegate()))) { return false; }
+		TestFalse(TEXT("no tutorial music: IntroMusic allowed as before"), R.Intro->WasIntroMusicSuppressed());
+	}
 	return true;
 }
 

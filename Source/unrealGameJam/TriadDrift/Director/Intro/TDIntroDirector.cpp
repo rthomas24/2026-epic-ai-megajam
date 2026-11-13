@@ -1,6 +1,8 @@
 // Triad Drift - ENG-33 the cinematic intro. Owner: Teammate 3.
 
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
 
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
@@ -451,9 +453,17 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 
 	HoldSquad(true);
 	BuildShots();
+	// The narration's words come from the story table (Intro_N0..N4, storyline.md: the premise); these are fallbacks.
+	Narration.Reset();
+	for (int32 i = 0; i < NarrationLines().Num(); ++i)
+	{
+		Narration.Add(UTDStorySubsystem::GetText(FName(*FString::Printf(TEXT("Intro_N%d"), i)), NarrationLines()[i]));
+	}
 
-	// Music (presentation slot; the asset carries its own class and volume).
-	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+	// Music (presentation slot; the asset carries its own class and volume). T1, issue #24: not while the tutorial
+	// music (prelude / loop) owns a New Game's opening; IntroMusic stays for runs without it.
+	bIntroMusicSuppressed = !UTDTutorialMusicSubsystem::ShouldIntroPlayIntroMusic(this);
+	if (const UTDUIStyle* Style = bIntroMusicSuppressed ? nullptr : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
 	{
 		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
 		{
@@ -1366,9 +1376,9 @@ void UTDIntroDirector::UpdateOverlay(float T)
 	Overlay.Black = Black;
 
 	// Narration.
-	if (S.Narration >= 0 && NarrationLines().IsValidIndex(S.Narration))
+	if (S.Narration >= 0 && Narration.IsValidIndex(S.Narration))
 	{
-		Overlay.Subtitle = NarrationLines()[S.Narration];
+		Overlay.Subtitle = Narration[S.Narration];
 		const float Start = S.Id == TEXT("Nebula") ? 0.8f : 0.4f;
 		Overlay.SubtitleAlpha = TDIntro::Span(T, Start, S.Duration - 0.35f, 0.5f, 0.45f);
 		if (LastNarrationVoice != S.Narration && T >= Start)
@@ -1396,7 +1406,8 @@ void UTDIntroDirector::UpdateOverlay(float T)
 				const ETDShipId Id = static_cast<ETDShipId>(i);
 				const FTDShipSpec Spec = Squad ? Squad->GetSpec(Id) : UTDShipLibrary::GetShipSpec(Id);
 				Overlay.NameCard = FText::Format(LOCTEXT("PilotCard", "{0}"), Spec.PilotName);
-				Overlay.NameCardRole = FText::Format(LOCTEXT("PilotRole", "{0}  ·  {1}"), Spec.ShipName, Spec.RoleName);
+				const FText Trait = UTDStorySubsystem::PilotTrait(Id);
+				Overlay.NameCardRole = FText::Format(LOCTEXT("PilotRole", "{0}  ·  {1}"), Spec.ShipName, Trait.IsEmpty() ? Spec.RoleName : Trait);
 				Overlay.NameCardColor = UTDShipLibrary::GetSquadColor(Spec);
 				Overlay.NameCardAlpha = Alpha;
 			}

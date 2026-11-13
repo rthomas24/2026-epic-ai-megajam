@@ -41,6 +41,10 @@ struct UNREALGAMEJAM_API FTDCutPresentationState
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
 	float NameCardAlpha = 0.f;
 
+	/** The card's second line: "RIFT · BOLD · INSTINCTIVE" (the pilot's trait, storyline.md §3). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
+	FText NameCardSubText;
+
 	/** "CUT!" */
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
 	FText CutCardText;

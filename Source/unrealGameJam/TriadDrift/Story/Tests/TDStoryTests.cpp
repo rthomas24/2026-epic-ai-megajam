@@ -12,6 +12,9 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
+#include "TriadDrift/Flow/TDFrontEndGameModes.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
@@ -27,7 +30,9 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TEXT("O_Wren_BigShip"), TEXT("O_Kato_NoSignature"), TEXT("O_Moss_Message"), TEXT("O_Kato_Handshake"), TEXT("O_Wren_WhyNotFiring"),
 		TEXT("O_Kato_Contacts"), TEXT("O_Command_Disengage"), TEXT("O_Unknown_Dont"), TEXT("O_Wren_Break"), TEXT("O_Command_Evade"),
 		TEXT("F_FutureKato_Signatures"), TEXT("F_FutureMoss_Where"), TEXT("F_FutureWren_Channel"), TEXT("F_FutureKato_Interference"),
-		TEXT("F_FutureWren_Dont"), TEXT("Intro_N0"), TEXT("Intro_N4") };
+		TEXT("F_FutureWren_Dont"), TEXT("Intro_N0"), TEXT("Intro_N4"),
+		TEXT("S2_Moss_Accounted"), TEXT("S2_Kato_NotPursuing"), TEXT("S2_Command_Orders"), TEXT("S2_Kato_Recorders"),
+		TEXT("TB_Kato_Marking"), TEXT("TB_Command_FallBack"), TEXT("TB_Kato_BreakingOff") };
 	for (const TCHAR* Id : Required)
 	{
 		FTDTransmission E;
@@ -47,6 +52,14 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 			E.Speaker == ETDSpeaker::FutureWren || E.Speaker == ETDSpeaker::FutureKato || E.Speaker == ETDSpeaker::FutureMoss);
 		TestFalse(FString::Printf(TEXT("%s: never says 'future' or 'time' before act 4"), *Id), Line.Contains(TEXT("future")) || Line.Contains(TEXT(" time")));
 		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before act 4"), *Id), Line.Contains(TEXT("it's us")));
+	}
+	// Aftermath: the "Don't-" fragment is never used here (kept for the finale).
+	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
+	{
+		if (E.Id.ToString().StartsWith(TEXT("S2_")))
+		{
+			TestTrue(FString::Printf(TEXT("%s: no shared 'Dont' sound in Aftermath"), *E.Id.ToString()), E.SharedSound.IsNone());
+		}
 	}
 	// The First Contact brief: the two "Don't-" lines are ONE sound.
 	FTDTransmission Open, Fin;
@@ -154,6 +167,63 @@ bool FTDStoryOverride::RunTest(const FString& Parameters)
 	TestTrue(TEXT("repeatable once"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("N_OnlyNicholas")));
 	W.Advance(8.f, 1.f / 30.f);
 	TestTrue(TEXT("repeatable again"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("N_OnlyNicholas")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTriggers, "TriadDrift.Story.Transmissions.ActOneWavesTraitsIntroAndEndingStinger", TD_TEST_FLAGS)
+bool FTDStoryTriggers::RunTest(const FString& Parameters)
+{
+	{
+		// Act 1 rides the waves: hail on wave 1, they search when it clears, the field on wave 2, Verdance after it.
+		FTDTestWorld W;
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("story"), Story) || !TestNotNull(TEXT("bus"), Bus))
+		{
+			return false;
+		}
+		W.Tick();
+		Bus->BroadcastWaveStarted(1, 0.2f);
+		TestTrue(TEXT("wave 1: the hail"), Story->HasPlayed(TEXT("A1_HailNoAnswer")));
+		Bus->BroadcastWaveCleared(1);
+		TestTrue(TEXT("wave 1 cleared: they search"), Story->HasPlayed(TEXT("A1_TheySearch")));
+		Bus->BroadcastWaveStarted(2, 0.3f);
+		TestFalse(TEXT("wave 2: the field line is T4's (the field approach), not the wave's"), Story->HasPlayed(TEXT("A1_FieldUnreachable")));
+		Bus->BroadcastWaveCleared(2);
+		TestTrue(TEXT("wave 2 cleared: to Verdance"), Story->HasPlayed(TEXT("A1_TrailToVerdance")));
+		TestFalse(TEXT("nothing else fires on its own"), Story->HasPlayed(TEXT("A2_DeviceFound")));
+	}
+	// The pilot traits on the name cards (storyline.md §3), and the intro's narration from the story table.
+	TestTrue(TEXT("Wren is bold"), UTDStorySubsystem::PilotTrait(ETDShipId::Rift).ToString().Contains(TEXT("BOLD")));
+	TestTrue(TEXT("Kato is analytical"), UTDStorySubsystem::PilotTrait(ETDShipId::Lancer).ToString().Contains(TEXT("ANALYTICAL")));
+	TestTrue(TEXT("Moss is steady"), UTDStorySubsystem::PilotTrait(ETDShipId::Bastion).ToString().Contains(TEXT("STEADY")));
+	TestTrue(TEXT("the intro opens on the premise"),
+		UTDStorySubsystem::GetText(TEXT("Intro_N0"), FText::GetEmpty()).ToString().Contains(TEXT("without warning")));
+	{
+		// The ending stinger on the victory screen: the distress signal, then black.
+		FTDTestWorld W(nullptr, ATDMenuGameMode::StaticClass());
+		W.SpawnLocalPlayerController();
+		for (TActorIterator<ATDMenuBackdrop> It(W.GetWorld()); It; ++It) { It->Destroy(); }
+		W.Tick();
+		ATDMenuBackdrop* B = ATDMenuBackdrop::SpawnFor(W.GetWorld()->GetAuthGameMode(), ETDBackdropScene::Victory);
+		if (!TestNotNull(TEXT("backdrop"), B))
+		{
+			return false;
+		}
+		W.Tick();
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (B->GetDominion())
+		{
+			W.Advance(B->StingerSeconds - 1.f, 1.f / 30.f);
+			TestFalse(TEXT("not before the breakup has played out"), B->HasPlayedStinger());
+			W.Advance(1.5f, 1.f / 30.f);
+			TestTrue(TEXT("the stinger"), B->HasPlayedStinger() && Story && Story->HasPlayed(TEXT("A5_DistressSignal")));
+		}
+		else
+		{
+			AddInfo(TEXT("no victory Dominion in this world: stinger checked through the menu-mode test"));
+		}
+	}
 	return true;
 }
 

@@ -26,6 +26,16 @@ Nick's agents are **not asked to build animations**. To ask about one, send a no
 | **B. Authored in Blender** (animation builder, `blender-*` skills) | Mechanical and prop animation (the blade unfolding, doors, turrets, the drone's shell, landing gear, generator petals), short bespoke character moves, fixing or re-timing route A clips | Keyframed on the asset's own rig by script, exported as FBX with the `blender-unreal-export` skill | Exact control and exact lengths. Slow for long organic motion |
 | **C. In-engine, procedural** (animation builder + the owning teammate) | Everything that should react to gameplay: aim offsets, additive hit reacts, lean and bank, foot IK on slopes, look-at, recoil, hover bob, idle breathing, blade trail timing, ship banking and death tumble, camera animation | Animation blueprints, blend spaces, Control Rig, additive layers, curves and code | Always matches gameplay, no clips to manage. Cannot invent a whole combat move |
 
+**Approved library source (Ryan, Nov 13): Epic's Game Animation Sample Project.** "If we need super realistic
+animations for easy access, we can use Epic Games' Animation Sample Project." It is Epic's free sample (Fab / the Epic
+launcher): several hundred motion-captured clips on the UE5 mannequin, made for motion matching. Use it as a route A
+source for **body movement**: idles, starts, stops, pivots, turn in place, strafes and backpedals at walk / run /
+sprint, jumps, hard and soft landings, traversal (vault, mantle, climb). It has no blade combat, so combat moves still
+come from Grok Bot or Blender. Rules: retarget with our existing retargeters (`RTG_Manny_to_Pilot`,
+`RTG_Manny_to_NullCrew`); import only the clips we use (the package is near its size limit); confirm the licence shown
+on its Fab page before first use and log it in `CREDITS.md` and the submission's third-party asset list (jam rule).
+It replaces the template mannequin set wherever the audit scored a move low for foot sliding or weight.
+
 Most finished moves use two routes: a clip (A or B) for the body, plus C on top so it reacts.
 
 ## 3. Pipeline and stages (one row passes through these in order)
@@ -98,6 +108,7 @@ State values: `none`, `placeholder` (works, not good enough), `source in`, `in g
 |---|---|---|---|---|
 | Player ships: bank, pitch, drift lean, boost surge, dodge roll | flight model + camera | in game | C | T1: compare the three ships' feel; add control-surface / thruster motion if the Rodin ships have movable parts |
 | Ship switch, hyperdrive wind-up and jump, portal entry | camera and effects | in game | C | T1 / T3 with the effects builder |
+| **Atmospheric entry (ENG-38)**: ship attitude into the burn (nose-up angle of attack), buffet, control-surface or airbrake deployment, heat-shield plates if the Rodin ships have them; wingmen burning in alongside | level change behind a short entry | none | B + C | T1 (+ Grok Bot for deployable parts, effects builder for the plasma) |
 | Landing and take-off: gear, settle, lift | scripted path | placeholder | B + C | Landing gear and a settle bounce once the Rodin ships are in |
 | Wingmen formation motion | wingman AI | in game | C | T3 |
 | Enemy ships: attack runs, evasive rolls, death tumble, carrier bay doors, turret tracking | AI + physics | in game | C (+ B for doors) | T4: death tumble variety; turret barrels recoil |

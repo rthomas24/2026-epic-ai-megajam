@@ -55,6 +55,10 @@ namespace TDStory
 			E(TEXT("Intro_N2"), S::Control, LOCTEXT("Intro_N2", "Triad is deployed. Wren. Kato. Moss.")),
 			E(TEXT("Intro_N3"), S::Control, LOCTEXT("Intro_N3", "Identify the ship. Learn what it wants. Report back.")),
 			E(TEXT("Intro_N4"), S::Control, LOCTEXT("Intro_N4", "And out of the dark... the Null Armada.")),
+			// Pilot traits (storyline.md §3): the second line of the pilot name cards (intro and switch). Not fired.
+			E(TEXT("Trait_Wren"), S::Wren, LOCTEXT("Trait_Wren", "BOLD  ·  INSTINCTIVE")),
+			E(TEXT("Trait_Kato"), S::Kato, LOCTEXT("Trait_Kato", "ANALYTICAL  ·  CAUTIOUS")),
+			E(TEXT("Trait_Moss"), S::Moss, LOCTEXT("Trait_Moss", "STEADY  ·  GOOD-HUMOURED")),
 			// First Contact (docs/story/First-Contact-Cinematic-Brief.md): the opening, ~2:20, re-shot once the art is in.
 			// Draft lines from the brief; Nicholas's words replace them.
 			E(TEXT("O_PatrolSeven"), S::PatrolSeven, LOCTEXT("O_PatrolSeven", "Command, we have an unidentified structure on the outer perimeter. It's not on any chart. Wait, something's coming out of-"), St::Static),
@@ -72,6 +76,28 @@ namespace TDStory
 			E(TEXT("O_Unknown_Dont"), S::Unknown, LOCTEXT("O_Unknown_Dont", "Don't-"), St::Static, TEXT("Dont")),
 			E(TEXT("O_Wren_Break"), S::Wren, LOCTEXT("O_Wren_Break", "Triad, break formation!")),
 			E(TEXT("O_Command_Evade"), S::Command, LOCTEXT("O_Command_Evade", "Pilot, incoming fire! Evade now!")),
+			// Gameplay Sequence 01, the tutorial battle (storyline.md §13): the calls per phase. Drafts.
+			E(TEXT("TB_Kato_Marking"), S::Kato, LOCTEXT("TB_Kato_Marking", "Keep moving. I'm marking a hostile.")),
+			E(TEXT("TB_Moss_ThreeShips"), S::Moss, LOCTEXT("TB_Moss_ThreeShips", "We've still got three ships. Use them.")),
+			E(TEXT("TB_Wren_Bigger"), S::Wren, LOCTEXT("TB_Wren_Bigger", "That one's bigger. Focus it together!")),
+			E(TEXT("TB_Command_FallBack"), S::Command, LOCTEXT("TB_Command_FallBack", "Triad, disengage. Fall back to the marked corridor.")),
+			E(TEXT("TB_Kato_BreakingOff"), S::Kato, LOCTEXT("TB_Kato_BreakingOff", "They're breaking off.")),
+			// Sequence 02, Aftermath (Story/Triad_Drift_Sequence_02_Aftermath.docx, storyline.md §12). Drafts. No "Don't-" here.
+			E(TEXT("S2_Moss_Accounted"), S::Moss, LOCTEXT("S2_Moss_Accounted", "All three ships accounted for. I'm calling that a win.")),
+			E(TEXT("S2_Wren_WelcomeParty"), S::Wren, LOCTEXT("S2_Wren_WelcomeParty", "If that was a welcome party, I don't want to meet the host.")),
+			E(TEXT("S2_Kato_NotPursuing"), S::Kato, LOCTEXT("S2_Kato_NotPursuing", "Hold on. They're not pursuing us.")),
+			E(TEXT("S2_Kato_Vectors"), S::Kato, LOCTEXT("S2_Kato_Vectors", "Look at their vectors. Most of those craft never joined the fight.")),
+			E(TEXT("S2_Wren_WhatDoing"), S::Wren, LOCTEXT("S2_Wren_WhatDoing", "Then what are they doing?")),
+			E(TEXT("S2_Kato_Planetside"), S::Kato, LOCTEXT("S2_Kato_Planetside", "Heading planetside. Every group. Same destination.")),
+			E(TEXT("S2_Moss_InTheWay"), S::Moss, LOCTEXT("S2_Moss_InTheWay", "So we got in the way of something.")),
+			E(TEXT("S2_Command_Report"), S::Command, LOCTEXT("S2_Command_Report", "Triad, report. We lost your telemetry when you approached the unidentified vessel."), St::Static),
+			E(TEXT("S2_Wren_Hostile"), S::Wren, LOCTEXT("S2_Wren_Hostile", "Confirmed hostile. Automated fighters, heavy numbers. We're intact, barely.")),
+			E(TEXT("S2_Kato_Coordinated"), S::Kato, LOCTEXT("S2_Kato_Coordinated", "They've launched a coordinated operation toward Verdance. This wasn't a defensive scramble.")),
+			E(TEXT("S2_Command_Outpost"), S::Command, LOCTEXT("S2_Command_Outpost", "We've received an emergency report from a research outpost there. Unidentified machines landed near a restricted survey zone. The outpost has gone dark.")),
+			E(TEXT("S2_Moss_FindOut"), S::Moss, LOCTEXT("S2_Moss_FindOut", "And you want us to find out why.")),
+			E(TEXT("S2_Command_Orders"), S::Command, LOCTEXT("S2_Command_Orders", "Affirmative. Avoid direct engagement with the mothership. Reach Verdance, locate the outpost, and recover its survey data. We need to know what they're looking for.")),
+			E(TEXT("S2_Wren_FormUp"), S::Wren, LOCTEXT("S2_Wren_FormUp", "Triad, form up. Verdance it is.")),
+			E(TEXT("S2_Kato_Recorders"), S::Kato, LOCTEXT("S2_Kato_Recorders", "And keep your recorders running. Nothing about this adds up.")),
 			// Act 1: First Contact, the Watcher (waves 1-2).
 			E(TEXT("A1_HailNoAnswer"), S::Kato, LOCTEXT("A1_HailNoAnswer", "Hailing on every band. Nothing. It isn't even listening.")),
 			E(TEXT("A1_TheySearch"), S::Moss, LOCTEXT("A1_TheySearch", "They're not holding ground. They scan, they sweep, they move on.")),
@@ -286,6 +312,40 @@ FText UTDStorySubsystem::GetText(FName Id, const FText& Fallback)
 {
 	FTDTransmission E;
 	return (FindEntry(Id, E) && !E.Text.IsEmpty()) ? E.Text : Fallback;
+}
+
+FText UTDStorySubsystem::PilotTrait(ETDShipId Ship)
+{
+	switch (Ship)
+	{
+	case ETDShipId::Rift: return GetText(TEXT("Trait_Wren"), FText::GetEmpty());
+	case ETDShipId::Lancer: return GetText(TEXT("Trait_Kato"), FText::GetEmpty());
+	default: return GetText(TEXT("Trait_Moss"), FText::GetEmpty());
+	}
+}
+
+void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+	Super::OnWorldBeginPlay(InWorld);
+	if (UTDEventBus* Bus = UTDEventBus::Get(&InWorld))
+	{
+		Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
+		Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
+	}
+}
+
+void UTDStorySubsystem::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*/)
+{
+	// Act 1, First Contact: the hail nobody answers; the field around the ship (storyline.md §5).
+	// (A1_FieldUnreachable is T4's: fired when the player first approaches the distortion field.)
+	if (WaveNumber == 1) { FireTransmission(TEXT("A1_HailNoAnswer")); }
+}
+
+void UTDStorySubsystem::HandleWaveCleared(int32 WaveNumber)
+{
+	// They search, they don't hold ground; then the trail to Verdance.
+	if (WaveNumber == 1) { FireTransmission(TEXT("A1_TheySearch")); }
+	else if (WaveNumber == 2) { FireTransmission(TEXT("A1_TrailToVerdance")); }
 }
 
 FText UTDStorySubsystem::SpeakerTag(ETDSpeaker Speaker)
@@ -511,6 +571,11 @@ void UTDStorySubsystem::RemoveOverlay()
 
 void UTDStorySubsystem::Deinitialize()
 {
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnWaveStarted.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
+		Bus->OnWaveCleared.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
+	}
 	RemoveOverlay();
 	Super::Deinitialize();
 }

@@ -140,6 +140,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI")
 	void SetCinematicHidden(bool bHidden);
 
+	/**
+	 * A story transmission (T3's transmissions system, "The Paradox"): Line in the space HUD's subtitle slot for Seconds,
+	 * speaker tag in the pilot's colour. Style: 0 = clean (squad), 1 = static ("Unknown"), 2 = echo ("Older"). Returns
+	 * false when no HUD that shows transmissions is up (Nick's HUD, the dev HUD, on foot): the caller may fall back.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool ShowTransmission(const UObject* WorldContext, FName Speaker, FText Line, uint8 Style, float Seconds);
+
 	/** SetCinematicHidden on WorldContext's world (no-op without a game world). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
 	static void SetCinematicHiddenIn(const UObject* WorldContext, bool bHidden);

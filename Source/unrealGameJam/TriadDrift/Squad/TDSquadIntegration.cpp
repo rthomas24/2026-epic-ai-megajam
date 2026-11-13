@@ -89,6 +89,12 @@ namespace TDSquad
 			Tuning.BoostDuration = Spec.BoostMeterSeconds;
 			Tuning.BoostRegenDelay = Spec.BoostRegenDelay;
 			Tuning.BoostRegenTime = Spec.BoostRegenSeconds;
+			// T1's ship-feel A/B (TD.Flight.ShipFeel, OFF by default): per-ship handling weight, else the shared defaults.
+			const FTDFlightTuning Shared;
+			Tuning.Acceleration = ATDShip::bPerShipFeel ? Spec.FeelAcceleration : Shared.Acceleration;
+			Tuning.AngularResponse = ATDShip::bPerShipFeel ? Spec.FeelAngularResponse : Shared.AngularResponse;
+			Tuning.DriftTurnMultiplier = ATDShip::bPerShipFeel ? Spec.FeelDriftTurnMultiplier : Shared.DriftTurnMultiplier;
+			Tuning.DodgeCooldown = ATDShip::bPerShipFeel ? Spec.FeelDodgeCooldown : Shared.DodgeCooldown;
 			Ship->ApplyFlightTuning(Tuning);
 		}
 
