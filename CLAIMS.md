@@ -32,6 +32,8 @@ Audio has the next exclusive Unreal recording slot once Ryan posts the corrected
 | UI | Isolated Worktrees/ui-loading-shipping-01 based on 870a7532 with the three TDLoadingWidget files from 228fdc42. Candidate-only Content/TriadDrift/Presentation/DA_UI_Style.uasset LoadingWidgetClass and Saved/Loading01/** for packaging and real New Game, Continue and menu-return evidence | No production default or shared style changes. Audio has priority for its corrected-build capture; serialize the cook and capture. |
 | Audio | Existing ArtSource/Audio/CombatMusic01/ lane; planning for R-035 descent sound deferred until tutorial video and Ryan's cue names | No new sound or music direction assigned. |
 
+Audio owns private Worktrees/tutorial-music-t1-27ead2a at 27ead2af for read-only field reload and normal/skip gameplay capture in Saved/AudioMusic/** using the five hash-verified audio/style trial assets. UI yielded after its Editor build; style authoring and Shipping cook resume once Audio releases the machine. The earlier capture host and original recording remain preserved.
+
 ### Active presentation assignments, Nov 13
 
 Nicholas has restarted his presentation team under the Nov 13 realignment. These rows supersede the historical assignments below. Each next item starts under a refreshed claim. Nicholas approves appearance and sound.
