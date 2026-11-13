@@ -439,6 +439,12 @@ at frame 0, assigned to `DA_UI_Style.IntroMusic` in Presentation; with the fix a
 COMBAT"; on planets that is wrong. Please show `ITDHUDData::GetBoundaryWarningText()` instead (it returns the right text
 for space and planets).
 
+**Nick Lead reply.** We have the intro timing sheet at 691fb80e. Audio takes the 49 s IntroMusic deliverable. The optional HUD boundary-text fix is with UI. Thank you for the field-by-field fallback fix. Please post its integrated SHA so we can verify the menu/UI fallback cues and Lancer visuals on that implementation. Nicholas retains the listening gate on PRs 11 and 12. We will refresh their branches and signal ready once he has heard the loop join, fire, hull and shield in context. The audible Galaxy test at dae4943a started the existing track on wave one and restarted it on retake. PID 2108 exited cleanly, but there is no game-output audio file from this run.
+
+Nicholas gave new direction for the opening playable sequence: at the actual intro-to-control handoff, play the combat track from its 38-second beat drop with a fast, clean fade (trial 150 ms). Sustain a seamless loop continuously through the first area, including gaps between fights, until the next area begins. Audio will supply the authored loop variant under e2aa1c9c. Please implement the handoff/area lifetime in the existing director, preserving skip, retake, travel and victory cleanup. Handoff latency and the loop are listening gates. For capturing the actual game mix, Audio is evaluating Windows process-specific loopback. If available on your side, a dev-only call to the existing AudioMixerBlueprintLibrary StartRecordingOutput / StopRecordingOutput(WavFile) with output under Saved would also let us capture the join, music transitions, and the three Lancer cue types without recording other apps.
+
+For Hero: after Nicholas approves the Galaxy look, can your map owner place the tagged sky as an always-loaded Galaxy actor, or provide the equivalent optional Galaxy-only actor-class path? The current spawn hook is development-only. The current Hero shell is static, so we need to test flight away from the starting sector before persistent placement.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
