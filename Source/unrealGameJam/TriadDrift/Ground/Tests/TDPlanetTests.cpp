@@ -766,8 +766,16 @@ namespace TDPlayedTest
 				return false;
 			}
 			float Swing = 0.f;
+			const int32 DeathsAtStart = Deaths;
 			for (float S = 0.f; S < Timeout && E && !E->IsCleared(); S += 1.f / Fps)
 			{
+				if (Deaths > DeathsAtStart)
+				{
+					Release();
+					HoldBlock(false);
+					Failed = FString::Printf(TEXT("pilot died in %s (the scene restarted)"), *E->GetName());
+					return false; // the retake reset the room: the caller takes it again
+				}
 				AActor* Best = nullptr;
 				float BestD = 1e12f;
 				for (const TWeakObjectPtr<AActor>& M : E->GetSpawned())
@@ -1043,7 +1051,9 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 		}
 		if (Jammer->GetCurrentStepIndex() == 1)
 		{
-			for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Jammer && It->IsActive()) { P.Fight(*It); } }
+			bool bDied = false;
+			for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Jammer && It->IsActive()) { bDied |= !P.Fight(*It); } }
+			if (bDied) { continue; } // the retake restarted the defence
 			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
 			{
 				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.Use(*It, It->HoldTime); }
