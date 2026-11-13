@@ -12,6 +12,7 @@
 #include "TriadDrift/Waves/TDWaveTypes.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "InputActionValue.h"
 
 /** Mouse aim on the controller (the headless world has no viewport to pair MouseX/Y into Mouse2D). */
@@ -59,7 +60,7 @@ namespace TDHintTest
 		}
 
 		/** Ticks until a hint is SHOWING (not ticked off) or Seconds pass. */
-		ETDHint WaitForHint(float Seconds = 4.f)
+		ETDHint WaitForHint(float Seconds = 9.f) // the wave 1 story line (A1_HailNoAnswer) plays before the first hint
 		{
 			for (float T = 0.f; T < Seconds && Hints->GetCurrentHintState() != ETDHintState::Showing; T += 1.f / 60.f) { W.Tick(); }
 			return Hints->GetCurrentHintState() == ETDHintState::Showing ? Hints->GetCurrentHint() : ETDHint::None;
@@ -301,6 +302,28 @@ bool FTDHintsOnboarding::RunTest(const FString& Parameters)
 		if (UTDEventBus* Bus = UTDEventBus::Get(S.W.GetWorld())) { Bus->BroadcastTipRequested(TDTipIds::Drift); }
 		TestEqual(TEXT("contextual hints still come"), S.WaitForHint(), ETDHint::Drift);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHintsWaitForTransmission, "TriadDrift.Input.Hints.WaitWhileAStoryLineIsOnAir", TD_TEST_FLAGS)
+bool FTDHintsWaitForTransmission::RunTest(const FString& Parameters)
+{
+	// T2's HUD holds the tutorial card back while a story transmission is on air; the hint waits with its clock stopped.
+	TDHintTest::FSquadWorld S;
+	if (!TestTrue(TEXT("squad, controller and hints"), S.Init())) { return false; }
+	S.WaveStarts(1);
+	TestEqual(TEXT("fly"), S.WaitForHint(), ETDHint::Fly);
+	S.Hints->TimeoutSeconds = 3.f; // a hint left showing this long would be missed: proves the clock stops on air
+	TestTrue(TEXT("a story line"), UTDStorySubsystem::Fire(S.W.GetWorld(), TEXT("A2_DeviceFound")));
+	S.W.Tick();
+	TestTrue(TEXT("on air"), UTDStorySubsystem::GetCurrentTransmissionFor(S.W.GetWorld()).bActive);
+	TestEqual(TEXT("no hint while it plays"), S.Hints->GetCurrentHint(), ETDHint::None);
+	S.W.Advance(2.5f);
+	TestFalse(TEXT("the hint's clock stopped: not missed"), S.Hints->WasMissed(ETDHint::Fly));
+	for (float T = 0.f; T < 8.f && UTDStorySubsystem::GetCurrentTransmissionFor(S.W.GetWorld()).bActive; T += 1.f / 60.f) { S.W.Tick(); }
+	S.W.Tick();
+	TestFalse(TEXT("the line is over"), UTDStorySubsystem::GetCurrentTransmissionFor(S.W.GetWorld()).bActive);
+	TestEqual(TEXT("the same hint is back"), S.Hints->GetCurrentHint(), ETDHint::Fly);
 	return true;
 }
 
