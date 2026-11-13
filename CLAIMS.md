@@ -35,6 +35,15 @@ Nicholas has restarted his presentation team under the Nov 13 realignment. These
 
 Previous private intake runs and asset production are parked. Only one heavy job may run. Lead owns the first native slot for current-main host preparation/build. Runtime sessions use -NoLiveCoding and Nick ports 8020-8029.
 
+**Additional direct assignment from Nicholas, Nov 13, after this presentation restart.** The Assets pair resumes supplied-model intake as an independent technical delivery. Existing ART-14 evidence selection has been delivered to Lead. Lead takes over immediate review of engineering screenshots.
+
+| Owner | Current work, paths and branch | Next |
+|---|---|---|
+| Asset Manager, queued for a native slot | Remaining nine approved sources in the existing private Pilot_20261112_2233 host. Protect the 40 saved packages. Start with a small GLB after the current presentation runs. Cybernetic Sentinel last, subject to available RAM. | 22 selected GLBs from the new 36 after Intake03 claims are published. |
+| Assets and Mesh, in progress | Prepare the consolidated verification handoff for the Intake02 roots reserved below in Worktrees/assets-meshy-intake02, branch nick/assets-meshy-intake02, base 96d7b066. Use actual per-process results as they land. | Complete game-project transfer and fresh-clone reload once all 14 are verified. Then handle the 14 selected archives and Intake03 project transfer under separate path claims. |
+
+Originals stay intact, Azure Shadow stays excluded, and intake assets stay in their own feature project. Current native order: Hero baseline / takeover, corrected Audio verification, then intake when memory allows. Keep one process at a time. No native grant is issued to intake by this row.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
@@ -64,7 +73,7 @@ The following reservations remain in force; archival does not release them. Ask 
 
 ### Shared boundaries and execution
 
-Current resource checkpoint: Lead owns the current-main runtime host build. Audio follows when the host is ready. Other agents work with available source and captures.
+Current resource checkpoint: isolated current-main build succeeded at dae4943a. Audio released after a read-only audit. Hero has the native slot for the Galaxy comparison. Corrected Audio and private intake are queued.
 
 - Nick does not independently edit Ryan-owned Source, Config, Gameplay content, shared maps/actors, engine association or interfaces. Shared changes and engineering asset exceptions use the current board agreements and their exact claims.
 - Shared presentation binaries and DA_UI_Style fields have one writer at a time. Audio owns the stated sound/music fields until Lead publishes a serialized handoff; UI and Environment do not edit that binary concurrently.
