@@ -832,7 +832,9 @@ void ATDDominion::SyncWithProgress()
 	// A voided wave-5 clear never sets the flag: the flow ignores SetDominionState while a retake is pending.
 	if (!P.bDominionRevealed)
 	{
-		// Story Act 1: seen far off behind its distortion field, unreachable, until Cinder's anchor falls.
+		// Story Act 1: seen far off behind its distortion field, unreachable, until the passage opens: Cinder finished
+		// AND wave 5 cleared (the wave director sets bDominionRevealed only then). The field is the approach; the four
+		// generators hold the Dominion's separate defensive shield.
 		if (bShowBehindField && !DistortionField && GetWorld())
 		{
 			FActorSpawnParameters SP;
@@ -1131,6 +1133,10 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	// during money shots; a retake or a resumed save (generators silently destroyed) never replays them.
 	const int32 Down = FMath::Clamp(Generators.Num() - Remaining, 1, 4);
 	UTDStorySubsystem::Fire(this, FName(*FString::Printf(TEXT("A4_GeneratorDown%d"), Down)));
+	// The hostile fragments come through clearer as the shield weakens (T3, story alignment a16 / a19).
+	if (Down == 2) { UTDStorySubsystem::Fire(this, TEXT("G6_Clue1")); }
+	if (Down == 3) { UTDStorySubsystem::Fire(this, TEXT("G6_Clue2")); }
+	if (Remaining == 0) { UTDStorySubsystem::Fire(this, TEXT("G6_Command_ShieldCollapsed")); }
 	OnShieldSectionDown.Broadcast(this, Remaining);
 	if (Remaining == 0)
 	{
