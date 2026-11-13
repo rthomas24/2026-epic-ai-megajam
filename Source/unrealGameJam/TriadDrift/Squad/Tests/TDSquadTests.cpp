@@ -1684,9 +1684,18 @@ bool FTDSquadThroughGate::RunTest(const FString& Parameters)
 		return false;
 	}
 	ATDPortalGate::LinkGates(A, B);
-	F.Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(-6000.f, 0.f, 0.f)));
-	F.W.Advance(3.f);
+	// T4's gate rule: no transit for 5 s after a ship spawns or teleports. Spawn 400 m out, so at cruise
+	// (6000 cm/s) the squad reaches A after the grace and flies through under the real rule.
+	F.Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(-40000.f, 0.f, 0.f)));
 	ATDShip* Leader = F.Ship(ETDShipId::Rift);
+	float Arrived = -1.f;
+	for (int32 i = 0; i < 60 * 15 && A->GetTransitCount() == 0; ++i)
+	{
+		F.W.Tick();
+		Arrived = i / 60.f;
+	}
+	TestTrue(FString::Printf(TEXT("the leader transited A after the 5 s arrival grace (%.1f s)"), Arrived), A->GetTransitCount() > 0 && Arrived > 5.f);
+	F.W.Advance(1.f);
 	TestTrue(TEXT("leader came out of B"), FVector::Dist(Leader->GetActorLocation(), B->GetActorLocation()) < 30000.f);
 	const int32 TransitsAfterJump = A->GetTransitCount() + B->GetTransitCount();
 	F.W.Advance(3.f);
