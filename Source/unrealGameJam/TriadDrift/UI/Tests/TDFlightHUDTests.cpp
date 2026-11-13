@@ -14,6 +14,8 @@
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -795,6 +797,48 @@ bool FTDFlightHUDSubtitles::RunTest(const FString& Parameters)
 	F.HUD->Sample(4.f);
 	TestTrue(TEXT("expired after its seconds"), F.V().Subtitle.Text.IsEmpty());
 	TestTrue(TEXT("claims the Subtitles surface"), GetDefault<UTDFlightHUDWidget>()->bCoversSubtitles);
+	return true;
+}
+
+// T3's real story subsystem drives the slot: its first transmission shows with its speaker tag and colour, its own
+// OnBarkRequested echo is not shown twice, and its fallback overlay steps aside (bDrawnExternally).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDStory, "TriadDrift.UI.FlightHUD.P3.StoryTransmissionsFromT3", TD_TEST_FLAGS)
+bool FTDFlightHUDStory::RunTest(const FString& Parameters)
+{
+	const TArray<FTDTransmission> Entries = UTDStorySubsystem::GetAllEntries();
+	if (!TestTrue(TEXT("the story has transmissions"), Entries.Num() > 0))
+	{
+		return false;
+	}
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("story subsystem"), Story))
+	{
+		return false;
+	}
+	TestTrue(TEXT("this HUD draws transmissions: T3's fallback steps aside"), Story->bDrawnExternally);
+	const FTDTransmission& First = Entries[0];
+	TestTrue(TEXT("fired"), Story->FireTransmission(First.Id));
+	for (int32 I = 0; I < 30 && !Story->GetCurrentTransmission().bActive; ++I)
+	{
+		F.W.Tick(1.f / 30.f);
+	}
+	const FTDTransmissionView Now = Story->GetCurrentTransmission();
+	if (!TestTrue(TEXT("on air"), Now.bActive))
+	{
+		return false;
+	}
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("shown as a story line"), F.V().Subtitle.bStory);
+	TestEqual(TEXT("its text"), F.V().Subtitle.Text, Now.Text.ToString());
+	TestEqual(TEXT("its speaker tag"), F.V().Subtitle.Speaker, Now.SpeakerTag.ToString().ToUpper());
+	TestTrue(TEXT("its speaker colour"), F.V().Subtitle.TagColor.Equals(Now.Color));
+	// Its OnBarkRequested echo (id = the transmission id) is ignored; an ordinary bark doesn't replace the story line.
+	F.HUD->HandleBarkRequested(First.Id, TEXT("Kato"));
+	F.HUD->HandleBarkRequested(TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("still the story line"), F.V().Subtitle.Text, Now.Text.ToString());
 	return true;
 }
 

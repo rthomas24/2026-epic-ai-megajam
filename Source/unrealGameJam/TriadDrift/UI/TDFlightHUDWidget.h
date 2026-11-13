@@ -80,6 +80,10 @@ public:
 		ETransmissionStyle Style = ETransmissionStyle::Clean;
 		float Age = 0.f;
 		float Seconds = 0.f;
+		/** The speaker tag's colour (T3's UTDStorySubsystem::SpeakerColor for story lines; the pilot's colour for barks). */
+		FLinearColor TagColor = FLinearColor(.54f, .58f, .65f);
+		/** A story transmission (from T3's subsystem), not a squad bark. */
+		bool bStory = false;
 	};
 
 	/** P2: one hostile or missile as drawn: a bracket / tick on screen, an edge chevron off screen. */
@@ -393,6 +397,9 @@ private:
 	float CutLeft = 0.f;
 	float SlateLeft = 0.f;
 	void SampleDirector(float Dt);
+	/** T3's story transmissions (UTDStorySubsystem): the current line drives the subtitle slot. */
+	void SampleStory();
+	TWeakObjectPtr<class UTDStorySubsystem> BoundStory;
 	float HitLeft = 0.f;
 	float KillLeft = 0.f;
 	float KillAtLeft = 0.f;

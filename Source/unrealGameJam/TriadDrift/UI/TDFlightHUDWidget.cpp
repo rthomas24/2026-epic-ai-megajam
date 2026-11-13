@@ -11,6 +11,8 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 
@@ -251,6 +253,11 @@ void UTDFlightHUDWidget::NativeDestruct()
 		Bus->OnBarkRequested.RemoveDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
 	BoundBus.Reset();
+	if (UTDStorySubsystem* Story = BoundStory.Get())
+	{
+		Story->bDrawnExternally = false; // the HUD went away: T3's fallback overlay draws transmissions again
+	}
+	BoundStory.Reset();
 	Super::NativeDestruct();
 }
 
@@ -326,16 +333,55 @@ void UTDFlightHUDWidget::ShowTransmission(FName Speaker, const FText& Line, ETra
 	View.Subtitle.Style = Style;
 	View.Subtitle.Age = 0.f;
 	View.Subtitle.Seconds = FMath::Max(.5f, Seconds);
+	View.Subtitle.bStory = Style != ETransmissionStyle::Clean;
+	View.Subtitle.TagColor = Style == ETransmissionStyle::Echo ? FTDFlightHUDTokens::Shield() : FTDFlightHUDTokens::Dim();
 }
 
 void UTDFlightHUDWidget::HandleBarkRequested(FName BarkId, FName Speaker)
 {
-	// A story transmission on screen outranks a squad bark (it is the line the player must not miss).
-	if (!View.Subtitle.Text.IsEmpty() && View.Subtitle.Style != ETransmissionStyle::Clean)
+	// A transmission also fires OnBarkRequested with its own id: T3's subsystem draws that one (no double line). And a story
+	// transmission on screen outranks a squad bark (it is the line the player must not miss).
+	FTDTransmission Entry;
+	if (UTDStorySubsystem::FindEntry(BarkId, Entry) || (!View.Subtitle.Text.IsEmpty() && View.Subtitle.bStory))
 	{
 		return;
 	}
 	ShowTransmission(Speaker, FText::FromString(BarkText(BarkId)), ETransmissionStyle::Clean, BarkSeconds);
+	const FString& Who = View.Subtitle.Speaker;
+	View.Subtitle.TagColor = Who == TEXT("WREN") ? FTDFlightHUDTokens::Rift() : Who == TEXT("KATO") ? FTDFlightHUDTokens::Lancer()
+		: Who == TEXT("MOSS") ? FTDFlightHUDTokens::Bastion() : FTDFlightHUDTokens::Dim();
+}
+
+void UTDFlightHUDWidget::SampleStory()
+{
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	if (!Story)
+	{
+		return;
+	}
+	Story->bDrawnExternally = true; // T3's fallback overlay steps aside while this HUD draws the line
+	BoundStory = Story;
+	const FTDTransmissionView T = Story->GetCurrentTransmission();
+	if (!T.bActive)
+	{
+		return;
+	}
+	const ETransmissionStyle Style = T.Style == ETDTransmissionStyle::Static ? ETransmissionStyle::Static
+		: T.Style == ETDTransmissionStyle::Echo ? ETransmissionStyle::Echo : ETransmissionStyle::Clean;
+	FSubtitle& Sub = View.Subtitle;
+	const FString Text = T.Text.ToString();
+	if (!Sub.bStory || Sub.Text != Text)
+	{
+		Sub.Speaker = T.SpeakerTag.ToString().ToUpper();
+		Sub.Text = Text;
+		Sub.Style = Style;
+	}
+	Sub.bStory = true;
+	Sub.TagColor = T.Color;
+	// Drive the fade from the subsystem's own clock (one line at a time, never overlapping).
+	const float Remaining01 = FMath::Max(1.f - T.Progress01, .01f);
+	Sub.Seconds = FMath::Max(.5f, T.TimeLeft / Remaining01);
+	Sub.Age = Sub.Seconds * T.Progress01;
 }
 
 void UTDFlightHUDWidget::HandleTakeStarted(FName SceneId, int32 TakeNumber)
@@ -789,6 +835,7 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	BindController();
 	BindBus();
 	SampleDirector(Dt);
+	SampleStory();
 	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
@@ -1255,8 +1302,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		const FSubtitle& Sub = View.Subtitle;
 		const FString& Who = Sub.Speaker;
-		const FLinearColor Tag = Who == TEXT("WREN") ? T::Rift() : Who == TEXT("KATO") ? T::Lancer() : Who == TEXT("MOSS") ? T::Bastion()
-			: Who == TEXT("ARMADA") ? T::Danger() : Who == TEXT("OLDER") ? T::Shield() : T::Dim();
+		const FLinearColor Tag = Sub.TagColor;
 		// Fade in 0.15 s, out over the last 0.3 s.
 		const float Fade = FMath::Min(FMath::Clamp(Sub.Age / .15f, 0.f, 1.f), FMath::Clamp((Sub.Seconds - Sub.Age) / .3f, 0.f, 1.f));
 		// Static: the line flickers and jitters like a bad channel; Echo: a faint late copy trails it.
