@@ -132,6 +132,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float BreatherSeconds = 6.f;	// clamped to >= 2 s at runtime (longer than the 1.75 s CUT delay)
 
+	/** ENG-27: attack slots per wave (index 0 = wave 1): how many pilots may press the same squad ship at once.
+	 *  0 = unlimited. Tuned with the Evader balance pilot as the reference player. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves")
+	TArray<int32> AttackSlotsByWave = { 0, 1, 1, 2, 2 };
+
 	/** Red warp-in telegraph before a group appears. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float WarpInSeconds = 1.5f;

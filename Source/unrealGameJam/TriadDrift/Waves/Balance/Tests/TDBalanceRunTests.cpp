@@ -68,6 +68,7 @@ namespace TDBalanceRun
 			float T = 0.f;
 			while (T < MaxSecondsPerWave)
 			{
+				if (const ATDShip* Active = Squad->GetActiveShip()) { Rec->LastActiveShip = Active->GetShipId(); }
 				Pilot.Tick(W.GetWorld(), Squad, Step, Rec->Current);
 				W.Tick(Step);
 				T += Step;
@@ -213,46 +214,72 @@ bool FTDBalanceStandardAverageNoCross::RunTest(const FString& Parameters)
 	return bOk;
 }
 
-// ENG-27 (Lead, Nov 12): is the game able to take a ship off the player? Ten seeded runs of waves 1-5 on
-// Standard with the Average pilot; per wave: the share of runs where at least one squad ship went down, the
-// share with a squad wipe ("CUT!"), and hull lost per minute by the ship the player was flying.
-// Writes Saved/Balance/distribution_Standard_Average_<time>.md. Measurement only: no assertions on the numbers.
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceDistribution, "TDBalance.Distribution.StandardAverage", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
-bool FTDBalanceDistribution::RunTest(const FString& Parameters)
+// Writes Saved/Balance/distribution_Standard_<Pilot>_<time>.md: per wave, the share of runs with a squad ship
+// down, the share with a wipe ("CUT!"), active-ship hull lost per minute and first contact.
+namespace TDBalanceRun
 {
-	constexpr int32 Runs = 10;
-	const float Step = 1.f / 30.f;
-	struct FAgg { int32 Runs = 0; int32 WithDown = 0; int32 WithWipe = 0; int32 Cleared = 0; float HullPerMin = 0.f; float Seconds = 0.f; float Downs = 0.f; };
-	TArray<FAgg> Agg;
-	Agg.SetNum(5);
-	for (int32 Seed = 1; Seed <= Runs; ++Seed)
+	/** Ten seeded runs of waves 1-5 on Standard for one pilot; writes and returns the markdown table. */
+	FString Distribution(FAutomationTestBase& Test, const FTDPilotSkill& Skill, int32 Runs = 10)
 	{
-		const TDBalanceRun::FRunResult R = TDBalanceRun::Play(*this, ETDDifficulty::Standard, FTDPilotSkill::Average(), Step, 300.f, Seed);
-		for (const FTDBalanceWaveStats& S : R.Waves)
+		const float Step = 1.f / 30.f;
+		struct FAgg { int32 Runs = 0; int32 WithDown = 0; int32 WithActiveDown = 0; int32 WithWipe = 0; int32 Cleared = 0; float HullPerMin = 0.f; float Seconds = 0.f; float Downs = 0.f; float FirstContact = 0.f; TMap<FName, float> BySource; };
+		TArray<FAgg> Agg;
+		Agg.SetNum(5);
+		for (int32 Seed = 1; Seed <= Runs; ++Seed)
 		{
-			if (!Agg.IsValidIndex(S.WaveNumber - 1)) { continue; }
-			FAgg& A = Agg[S.WaveNumber - 1];
-			++A.Runs;
-			A.WithDown += S.ShipDowns > 0 ? 1 : 0;
-			A.WithWipe += S.Takes > 1 ? 1 : 0;
-			A.Cleared += S.bCleared ? 1 : 0;
-			A.Downs += S.ShipDowns;
-			A.Seconds += S.Seconds;
-			A.HullPerMin += S.SecondsTotal > 0.f ? 100.f * S.ActiveHullLost01 / (S.SecondsTotal / 60.f) : 0.f;
+			const FRunResult R = Play(Test, ETDDifficulty::Standard, Skill, Step, 300.f, Seed);
+			for (const FTDBalanceWaveStats& S : R.Waves)
+			{
+				if (!Agg.IsValidIndex(S.WaveNumber - 1)) { continue; }
+				FAgg& A = Agg[S.WaveNumber - 1];
+				++A.Runs;
+				A.WithDown += S.ShipDowns > 0 ? 1 : 0;
+				A.WithActiveDown += S.ActiveShipDowns > 0 ? 1 : 0;
+				A.WithWipe += S.Takes > 1 ? 1 : 0;
+				A.Cleared += S.bCleared ? 1 : 0;
+				A.Downs += S.ShipDowns;
+				A.Seconds += S.Seconds;
+				A.FirstContact += FMath::Max(0.f, S.FirstContactSeconds);
+				for (const TPair<FName, float>& KV : S.DamageBySource) { A.BySource.FindOrAdd(KV.Key) += KV.Value; }
+				A.HullPerMin += S.SecondsTotal > 0.f ? 100.f * S.ActiveHullLost01 / (S.SecondsTotal / 60.f) : 0.f;
+			}
 		}
+		FString Md = FString::Printf(TEXT("# Ship-down distribution: Standard, %s pilot, %d seeded runs\n\n| Wave | Runs with a ship down | Runs with the ACTIVE ship down | Runs with a wipe (CUT) | Avg ship downs | Active ship hull lost / min | First contact (s) | Avg time (s) | Cleared |\n|---|---|---|---|---|---|---|---|---|\n"), *Skill.Name.ToString(), Runs);
+		for (int32 i = 0; i < Agg.Num(); ++i)
+		{
+			const FAgg& A = Agg[i];
+			const float N = FMath::Max(1, A.Runs);
+			Md += FString::Printf(TEXT("| %d | %d of %d (%.0f%%) | %d (%.0f%%) | %d of %d (%.0f%%) | %.1f | %.0f%% | %.0f | %.0f | %d of %d |\n"), i + 1, A.WithDown, A.Runs, 100.f * A.WithDown / N,
+				A.WithActiveDown, 100.f * A.WithActiveDown / N,
+				A.WithWipe, A.Runs, 100.f * A.WithWipe / N, A.Downs / N, A.HullPerMin / N, A.FirstContact / N, A.Seconds / N, A.Cleared, A.Runs);
+		}
+		Md += TEXT("\n**Squad damage taken by source (all runs, per wave):**\n\n");
+		for (int32 i = 0; i < Agg.Num(); ++i)
+		{
+			TArray<TPair<FName, float>> Sorted;
+			for (const TPair<FName, float>& KV : Agg[i].BySource) { Sorted.Add(KV); }
+			Sorted.Sort([](const TPair<FName, float>& X, const TPair<FName, float>& Y) { return X.Value > Y.Value; });
+			Md += FString::Printf(TEXT("- Wave %d:"), i + 1);
+			for (int32 k = 0; k < FMath::Min(4, Sorted.Num()); ++k) { Md += FString::Printf(TEXT(" %s %.0f;"), *Sorted[k].Key.ToString(), Sorted[k].Value); }
+			Md += TEXT("\n");
+		}
+		const FString Path = FPaths::ProjectSavedDir() / TEXT("Balance") / FString::Printf(TEXT("distribution_Standard_%s_%s.md"), *Skill.Name.ToString(), *FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")));
+		FFileHelper::SaveStringToFile(Md, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+		Test.AddInfo(FString::Printf(TEXT("Distribution report: %s"), *Path));
+		return Md;
 	}
-	FString Md = FString::Printf(TEXT("# Ship-down distribution: Standard, Average pilot, %d seeded runs\n\n| Wave | Runs with a ship down | Runs with a wipe (CUT) | Avg ship downs | Active ship hull lost / min | Avg time (s) | Cleared |\n|---|---|---|---|---|---|---|\n"), Runs);
-	for (int32 i = 0; i < Agg.Num(); ++i)
-	{
-		const FAgg& A = Agg[i];
-		const float N = FMath::Max(1, A.Runs);
-		Md += FString::Printf(TEXT("| %d | %d of %d (%.0f%%) | %d of %d (%.0f%%) | %.1f | %.0f%% | %.0f | %d of %d |\n"), i + 1, A.WithDown, A.Runs, 100.f * A.WithDown / N,
-			A.WithWipe, A.Runs, 100.f * A.WithWipe / N, A.Downs / N, A.HullPerMin / N, A.Seconds / N, A.Cleared, A.Runs);
-	}
-	const FString Path = FPaths::ProjectSavedDir() / TEXT("Balance") / FString::Printf(TEXT("distribution_Standard_Average_%s.md"), *FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")));
-	FFileHelper::SaveStringToFile(Md, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
-	AddInfo(FString::Printf(TEXT("Distribution report: %s"), *Path));
-	return true;
 }
+
+// ENG-27 (Lead, Nov 12): can the game take a ship off the player? Ten seeded runs of waves 1-5 on Standard per
+// pilot: Evader is the reference player, Average (never evades) the upper bound, Drifter (T2's script) the lower.
+// Measurement only: no assertions on the numbers.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceDistribution, "TDBalance.Distribution.StandardAverage", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceDistribution::RunTest(const FString& Parameters) { TDBalanceRun::Distribution(*this, FTDPilotSkill::Average()); return true; }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceDistributionEvader, "TDBalance.Distribution.StandardEvader", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceDistributionEvader::RunTest(const FString& Parameters) { TDBalanceRun::Distribution(*this, FTDPilotSkill::Evader()); return true; }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceDistributionDrifter, "TDBalance.Distribution.StandardDrifter", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceDistributionDrifter::RunTest(const FString& Parameters) { TDBalanceRun::Distribution(*this, FTDPilotSkill::Drifter()); return true; }
 
 #endif // WITH_DEV_AUTOMATION_TESTS

@@ -5,6 +5,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/World/TDDominion.h"
@@ -193,6 +194,7 @@ bool FTDWorldNoPopAfterReturn::RunTest(const FString& Parameters)
 			Prev = Ship->GetActorLocation();
 		}
 		TestTrue(*FString::Printf(TEXT("%s: never jumps (largest move beyond its own flight: %.0f cm)"), *Return.ToString(), MaxJump), MaxJump < 500.f);
+		TestEqual(*FString::Printf(TEXT("%s: no silent teleport (T1's watchdog)"), *Return.ToString()), Ship->GetShipMovement()->GetSilentMoveCount(), 0);
 		TestTrue(*FString::Printf(TEXT("%s: still on its way home, not at the centre"), *Return.ToString()), FVector::Dist(Ship->GetActorLocation(), Orbit.GetLocation()) < 120000.f);
 	}
 	return true;

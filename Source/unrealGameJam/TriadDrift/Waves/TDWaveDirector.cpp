@@ -4,6 +4,7 @@
 #include "TriadDrift/Waves/TDWaveEnemy.h"
 #include "TriadDrift/Waves/TDWarpInMarker.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -93,6 +94,10 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.StartTip = TDTipIds::Switching;
 		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 4, ETDSpawnZone::FlankLeft));
 		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 4, ETDSpawnZone::FlankRight, 2.f));
+		// ENG-27: a late third pack. The tutorial's first 30 s stay as they were; a player who has found their
+		// feet meets a little more pressure before the wave ends.
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 4, ETDSpawnZone::AnyFlank, 14.f));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 1, 1, ETDSpawnZone::Behind, 20.f));	// a first look at a missile, late
 		Out.Add(W);
 	}
 	// 2: 3 x 5 fighters + 2 interceptors, 0.35. Verdance marker appears.
@@ -103,8 +108,11 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.35f;
 		W.Phase = ETDGamePhase::Waves1to2;
 		W.StartTip = TDTipIds::Drift;
-		W.Groups.Add(TDWaveDir_Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank));
-		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 4.f));
+		// ENG-27: the three packs arrive spaced (0 / 12 / 24 s), not all at once: same count, more readable fight.
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 1, 1, ETDSpawnZone::Behind, 8.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank, 12.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank, 24.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Verdance;
 		Out.Add(W);
@@ -130,7 +138,7 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Phase = ETDGamePhase::Waves3to4;
 		W.Groups.Add(TDWaveDir_Group(WallGunship, 2, 1, ETDSpawnZone::FlankLeft));
 		W.Groups.Add(TDWaveDir_Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 1.f));
-		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 4, 1, ETDSpawnZone::Behind, 5.f));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 3, 1, ETDSpawnZone::Behind, 5.f));	// ENG-27: 4 -> 3
 		W.Groups.Add(TDWaveDir_Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 3.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Cinder;
@@ -579,6 +587,14 @@ AActor* ATDWaveDirector::SpawnEnemy(FName EnemyId, const FTransform& Transform)
 		Spawned = World->SpawnActor<AActor>(Class, Transform, Params);
 	}
 
+	// ENG-27 attack slots for this wave (how many pilots may press the same squad ship at once).
+	if (const APawn* Pawn = Cast<APawn>(Spawned))
+	{
+		if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(Pawn->GetController()))
+		{
+			AI->AttackSlotsPerTarget = AttackSlotsByWave.IsValidIndex(CurrentWave) ? AttackSlotsByWave[CurrentWave] : 0;
+		}
+	}
 	if (ITDWaveEnemy* WaveEnemy = Cast<ITDWaveEnemy>(Spawned))
 	{
 		WaveEnemy->InitWaveEnemy(EnemyId);
@@ -899,6 +915,13 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 				const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
 				PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
 				OnWarpInStarted.Broadcast(P.Location, P.Group.EnemyId);
+#if !UE_BUILD_SHIPPING
+				if (const AActor* Anchor = GetSpawnAnchor())
+				{
+					UE_LOG(LogTriadDrift, Display, TEXT("TD.Waves: wave %d warps in %s %.0f cm from %s"), CurrentWave + 1, *P.Group.EnemyId.ToString(),
+						FVector::Dist(P.Location, Anchor->GetActorLocation()), *Anchor->GetName());
+				}
+#endif
 				if (TravelFX)
 				{
 					UTDStatics::PlayCue(this, TravelFX->EnemyWarpIn, P.Location, P.Facing);
