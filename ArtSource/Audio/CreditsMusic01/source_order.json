@@ -1,0 +1,67 @@
+{
+  "status": "Full source conversion/order prepared; native import/playback not yet verified",
+  "tracks": [
+    {
+      "order": 1,
+      "source": "C:\\Users\\nicho\\Downloads\\Cathedral Pulse (1).mp3",
+      "source_sha256": "12f35e2098ed309aa0833fd69496c045a417e81b90897ced4e041d7f5e5ebfe2",
+      "source_bytes": 2074601,
+      "metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "mp3",
+            "sample_rate": "48000",
+            "channels": 2
+          }
+        ],
+        "format": {
+          "duration": "89.960000"
+        }
+      },
+      "full_duration_preserved": true,
+      "wav": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CreditsMusic01\\export\\MUS_Credits_CathedralPulse_Full_01.wav",
+      "wav_sha256": "0df8f20dd5358e94e6817e575ca1e5947c41e3a6c3165e76c0abf0cd18852e20",
+      "asset_name": "MUS_Credits_CathedralPulse_Full_01",
+      "asset_path": "/Game/TriadDrift/Audio/CreditsMusic01/MUS_Credits_CathedralPulse_Full_01",
+      "decoded_pcm_frames": 4318080,
+      "decoded_pcm_duration_s": 89.96
+    },
+    {
+      "order": 2,
+      "source": "C:\\Users\\nicho\\Downloads\\Ethereal Pulse (Remix).m4a",
+      "source_sha256": "07c7a9d84ed252b3281c5ac31db3f612aff9d3d0f6ec0638a4aa423788241051",
+      "source_bytes": 2251052,
+      "metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "opus",
+            "sample_rate": "48000",
+            "channels": 2
+          }
+        ],
+        "format": {
+          "duration": "139.200000"
+        }
+      },
+      "full_duration_preserved": true,
+      "wav": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CreditsMusic01\\export\\MUS_Credits_EtherealPulseRemix_Full_02.wav",
+      "wav_sha256": "2fd202b894bed2fedb2e34c71e40d96c0e21841780520eeea57b58627a97086c",
+      "asset_name": "MUS_Credits_EtherealPulseRemix_Full_02",
+      "asset_path": "/Game/TriadDrift/Audio/CreditsMusic01/MUS_Credits_EtherealPulseRemix_Full_02",
+      "decoded_pcm_frames": 6682248,
+      "decoded_pcm_duration_s": 139.2135
+    }
+  ],
+  "crossfade": "Unspecified, not applied",
+  "repeat_behavior": "Unspecified, not applied",
+  "precise_scene_timing": "Unspecified; credits roll is separate from victory-cut/distress-line music",
+  "source_distinction": "Cathedral Pulse (1).mp3 credits source differs from Cathedral Pulse.mp3 core candidate. Full original Remix differs from95s tutorial and107s menu arrangements.",
+  "processing": "Full duration decode to48k stereo16PCM only, no trim, fade, crossfade, gain, compression, loop or pitch edit",
+  "claim": "8fbb2ac6",
+  "utc": "2026-11-13T23:07:25.143233+00:00",
+  "decoded_playlist_duration_s": 229.1735
+}
