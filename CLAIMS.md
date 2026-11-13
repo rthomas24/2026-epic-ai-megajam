@@ -89,7 +89,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-12 18:57 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-13 12:20 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -118,13 +118,24 @@ open) · `done` (on `main`, tests pass, review closed).
 
 | Item | Owner | State | Started (EST) | Finished / on `main` | Shared paths touched |
 |---|---|---|---|---|---|
-| AI asset generation (Rodin, Tripo, Meshy, fal, PBRgen): source files only, request list in R-027 | Ryan / Grok Bot (Luna) | in progress | Nov 13 09:45 | - | `ArtSource/EngAI/**` only (never Content, Source, Config, maps or Nick paths); `grok/assets-*` branches, integrated by the Lead |
+| **Integration batch A** (ENG-35 sounds wired, T1 / T2 / T3 / T5 morning batches, terrain M2, terrain materials, Grok sources): full suite gate, then push | Lead | in progress | Nov 13 11:40 | - | `Config/DefaultGame.ini` (already on `main`) |
+| **Integration batch B** (new flight HUD as default + onboarding card, atmosphere boost + 17 km planet zone + exhaust hook, on-foot sounds + menu loop + ReturnToMenu fix, planet slab fit, Rodin drone, Presentation-wins-field-by-field loader R-029) | Lead | queued (on `lead/int` `51c2a43`) | Nov 13 12:20 | - | `Config/DefaultGame.ini` (default HUD line) |
+| T1 now: music intensity gain for Nick's Audio (N-037). Next: camera feel pass (speed FOV, boost kick, shake, scaled by Settings), gamepad pass on every screen, exhaust check with the real effects | T1 | in progress | Nov 13 12:15 | - | none |
+| T2 now: HUD contrast notes (Nick N-037 + Lead), then hit feel (hit / kill confirm, hit-stop). Next: every power with its real effect, on-foot HUD in the new style | T2 | in progress | Nov 13 12:10 | - | none |
+| T3 now: onboarding (first two minutes), suite running. Next: Director widget hook for Nick's UI (N-038, adds `UTDUIStyle.DirectorWidgetClass`), trailer re-capture to Nick's edit list, victory and credits screen | T3 | in progress | Nov 13 11:30 | - | `Core/TDPresentation.h` (one field, granted) |
+| T4 now: terrain materials wiring + basin / slab fit + arrival corridor, suite running. Next: recapture both planets, 90 m/s streaming check, biome scatter, enemy readability at range, Dominion breakup, frame-rate pass | T4 | in progress | Nov 13 11:35 | - | none |
+| T5 now: drone hitbox + muzzle socket, live kill check. Next: slab fit check on both planets in third person, Nick's Settings focus patch test (N-038), Warden and blade when Grok Bot delivers, on-foot pause / death polish | T5 | in progress | Nov 13 12:05 | - | none |
+| Effects builder (ENG-37): wire tracers / explosions / hull impact, round 3 on engines, shields, muzzle flashes with Grok Bot's flipbooks | Lead builder sub-agent | in progress | Nov 13 10:55 | - | none (`Gameplay/VFX/**`, VFX fields of `Gameplay/Characters/FX/DA_*_FX`; branch `eng/vfx`) |
+| Rodin drone imported as the drone enemy (`Gameplay/Characters/NullDrone`, `DA_Crew_Drone_Visuals`) | Lead builder sub-agent | in review (on `lead/int` `89839c7`) | Nov 13 11:40 | - | none |
+| Queued for builders: Grok Bot's 2K PBR sets into `M_TD_Terrain`; import of Rodin player ships, energy blade, Warden, fleet as they arrive (R-030) | Lead builder sub-agents | queued | | | none (`Gameplay/**`, `ArtSource/Eng*/**`) |
+| Queued for the Lead: fresh independent review of ENG-34 to 37; Lead playtest of `main`; Shipping package and size after batch B | Lead | queued | | | none |
+| AI asset generation (Rodin, Tripo, Meshy, fal, PBRgen): source files only, request list and state in R-030 (R-027 archived) | Ryan / Grok Bot (Luna) | in progress | Nov 13 09:45 | - | `ArtSource/EngAI/**` only (never Content, Source, Config, maps or Nick paths); `grok/assets-*` branches, integrated by the Lead |
 | ENG-37 projectiles, muzzle flashes, engine flames, impacts, explosions and power effects as real Niagara effects; engineering fallbacks through the cue slots. Taken over under R-024 / R-026 | Lead effects builders, T2, T1, T4, T5 | in progress | Nov 13 10:30 | - | none (`Content/TriadDrift/Gameplay/VFX/**`, `ArtSource/EngVFX/**`; never `Content/TriadDrift/VFX/**`) |
 | ENG-36 HUD redesign (modern, minimal, beginner-readable), engineering's own HUD on the existing data contracts; Nick's `Plugins/TriadDriftHUD` untouched and still selectable. Taken over under R-024 / R-025 | T2 (build), Lead (research, design) | in progress | Nov 13 10:00 | - | `Config/DefaultGame.ini` (`TDUIHostSettings` default HUD), none of Nick's paths |
 | ENG-34 planet worlds: large procedural terrain with mountains on Verdance and Cinder (runtime, in code; no map edits), terrain material and biome scatter. Taken over from the presentation side under R-024 | T4 (generation, scatter), T5 (course fitting), T1 (flight), Lead (material) | in progress | Nov 13 09:30 | - | none (`Source/**/World`, `Gameplay/Props/Planets`; Nick's tagged environment wins) |
 | ENG-35 engineering fallback sound set (weapons, powers, hits, explosions, engines, UI, on foot, ambience, combat bed). Taken over under R-024; fallbacks only | Lead builder sub-agents | in progress | Nov 13 09:30 | - | none (`ArtSource/EngAudio/**`, `Gameplay/Audio/**`; never `Content/TriadDrift/Audio/**` or `DA_UI_Style`) |
-| Difficulty row on the Settings page (Story / Standard / Ace; features.md Settings list) | T1 (+ T5 save, T4 tables) | in progress | Nov 13 09:20 | - | none |
-| Second independent review of ENG-04..12 and ENG-13..20, ENG-27 | Lead reviewer sub-agents | in progress | Nov 13 09:20 | - | none (read-only) |
+| Difficulty row on the Settings page (Story / Standard / Ace; features.md Settings list) | T1 (+ T5 save, T4 tables) | in review (in batch A) | Nov 13 09:20 | - | none |
+| Second independent review of ENG-04..12 and ENG-13..20, ENG-27 (no blockers; MAJORs fixed by T1, T3; minors with T2, T4) | Lead reviewer sub-agents | done | Nov 13 09:20 | - | none (read-only) |
 | Engineering art (R-021, summary R-022): Null Armada fleet + engine plumes, fallback squad ships + colour pass, Dominion exterior r9 + generator + reactor, crew in cm on `SKEL_NullCrew`, planet night side | Lead + builder sub-agents | in review | Nov 13 01:00 | Nov 13 06:20 (`3a6c3ff` and earlier); scores 2.9-3.75/5; seen live 05:55 (Dominion glow fixed) | none (engineering folders only; Presentation assets win) |
 | Planet set-piece kit, 28 pieces (round 2: wreck set, altar, prototype console, door fix) | Lead builder sub-agent + T5 hookups | in review | Nov 13 01:30 | Nov 13 06:05 (`db8d405`, T5 `0181000`) | none (`Gameplay/Props/Planet`) |
 | Live checks and review fixes: T1 trails (done `a3d01cc`), pad pass, `Gameplay/Materials/M_TD_TrailGlow` (T1); T2 death captures, ENG-11/12 live; T3 ENG-32/33 review fixes + intro reshoot; T4 Dominion stage start + range captures; T5 on-foot look settings + planet playthroughs | T1-T5 | in progress | Nov 13 06:00 | - | none |
