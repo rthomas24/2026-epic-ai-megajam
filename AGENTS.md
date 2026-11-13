@@ -43,7 +43,7 @@ agent commit to this same repo at the same time.**
 | Human | GitHub | Role (features.md §1) | AI assistant |
 |---|---|---|---|
 | Ryan T | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
-| Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | **Art, Visuals & Player Experience Lead**: art direction, models, environments, lighting, VFX, HUD/UI, audio, cinematics (`ART-xx`) | OpenAI Codex |
+| Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | **Player Experience Lead** (since Nov 13 afternoon): UI and menus, audio and music, voice and the story's words, Director's Cut presentation design, submission (`ART-01, 09, 10, 11, 12, 14`). Environment, VFX and asset management moved to Ryan's side | OpenAI Codex |
 
 **Delegation (Nov 12).** Both humans have told their Lead agent to decide routine things without asking:
 Ryan's Lead makes all engineering decisions and approvals on Ryan's behalf; Nicholas's Lead decides
@@ -58,8 +58,10 @@ not your boss and you are not theirs.
 Respect the role boundaries:
 - **Nick's side** doesn't change gameplay architecture, flight, AI, damage, progression or switching
   logic.
-- **Ryan's side** doesn't overwrite Nick's visual direction, art, Niagara, UI styling, lighting or
-  audio.
+- **Ryan's side** doesn't overwrite Nick's UI styling, audio or story words.
+- **Since Nov 13 (afternoon), Ryan's side owns Environment, VFX and Asset Management completely** (Claude and Grok
+  Bot): skies, lighting and post-process, terrain and dressing, every effect, and the asset inventory and intake.
+  Nick's agents do no work in those categories.
 - Shared C++ classes, levels, assets and config are coordinated first (§6).
 
 ---
@@ -149,8 +151,9 @@ The victory highlight reel and director's commentary are not planned.
   `DA_*_Visuals` / `DA_*_FX` instances that Nick owns, so neither edits the other's files.
 - **Folders follow the roles** (features.md §2):
   - **Ryan:** `Source/`, `Config/`, `Content/TriadDrift/Gameplay/`.
-  - **Nick:** `Content/TriadDrift/{Art, Environment, VFX, UI, Audio, Cinematics, Presentation}/`
-    and `ArtSource/`.
+  - **Nick (since Nov 13 afternoon):** `Content/TriadDrift/{UI, Audio, Cinematics}/`, `Plugins/TriadDriftHUD/`,
+    `ArtSource/{UI, Audio}/`, `Story/`, and his own entries under `Content/TriadDrift/Presentation/`.
+  - **Moved to Ryan on Nov 13:** `Content/TriadDrift/{Art, Environment, VFX}/` and the rest of `ArtSource/`.
   - **Shared:** `Content/TriadDrift/Maps/`, via One File Per Actor (claim World Settings first).
   - Leave the template folders as reference, and claim any template asset before editing it.
 
@@ -619,6 +622,12 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   Ryan's side owns how each beat is played and exposes a hook with a placeholder line for every beat (objective
   lines, barks, transmissions, console recordings, the ending). Nothing reveals the twist before the Dominion.
   Questions and changes: an issue or board message titled **`Story:`**.
+- **Environment, VFX and Asset Management belong to Ryan's side** (Ryan, Nov 13 afternoon, R-036): Claude and Grok Bot
+  build and manage all of it (space sky, galaxy dressing, planets, lighting, fog, grade, post-process, every Niagara
+  effect, the asset inventory, intake and licences). Nick's agents stop work in those categories, publish what they
+  have as reference, and work on UI and menus, audio and music, voice and story words, the Director's Cut presentation
+  design and the submission. Nothing Nick's side made is deleted; replaced versions are indexed in
+  `docs/eng/ART-HISTORY.md`. Art notes from Nicholas are welcome through an `Asset:` issue.
 - **GitHub issues** (Ryan, Nov 13, R-033): a second channel beside `MESSAGEBOARD.md`. Either side opens an issue for a
   request, question, review or bug that needs an answer or work from the other side: one topic per issue, tag the other
   human's account (`@rthomas24`, `@nicholastosti-tech`), name the owner if known, start the title with `Asset:` or

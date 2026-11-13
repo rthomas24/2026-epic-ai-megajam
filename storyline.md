@@ -71,7 +71,7 @@ machines' landers are visible burning in ahead of you; on Cinder the dig's glow 
 ## 6. Clues throughout play (reward attention, never give the twist away early)
 | Clue | Where | Owner |
 |---|---|---|
-| The Dominion always visible or referenced as the looming, unexplained destination | Galaxy sky from wave 1, intro, planet skies, objective line | T4, T3; Nicholas (sky, lighting) |
+| The Dominion always visible or referenced as the looming, unexplained destination | Galaxy sky from wave 1, intro, planet skies, objective line | T4, T3; Lead's environment builder (sky, lighting) |
 | Enemy tactics that anticipate Triad's manoeuvres | Wave 3 onward: enemies that pre-empt a ship switch or dodge once in a while, with a bark noticing it | T4 (AI), Nicholas (line) |
 | Familiar markings under damaged armour | Destroyed enemy ships and troopers show Triad's unit insignia shape under the black plating | Grok Bot / builders (damage variants), effects builder |
 | Transmission fragments using the squad's own terminology | Verdance relay, Cinder, the assault | T5 / T3 hooks; Nicholas (audio) |
