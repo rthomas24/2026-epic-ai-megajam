@@ -517,6 +517,7 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	if (Id == TEXT("Obj_WreckCore") && StepIndex == 3) { Beat(TEXT("G3_TransferStart")); }
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 4) { Beat(TEXT("G3_Disruption")); }
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 5) { Beat(TEXT("G3_DataSecured")); }
+	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 6) { Beat(TEXT("G3_Command_Extraction")); }
 	// Cinder: the enemy's transmissions echo the squad, one pilot at a time (act 3).
 	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("A3_EchoWren")); }
 	else if (Id == TEXT("Obj_Outpost") && StepIndex == 3) { Beat(TEXT("A3_EchoKato")); }
