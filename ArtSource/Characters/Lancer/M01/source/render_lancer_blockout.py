@@ -5,8 +5,8 @@ from mathutils import Vector
 OWN=Path(__file__).resolve().parent.parent
 def main():
     assert os.environ.get('TD_LANCER_BLOCKOUT_CLEARED')=='RENDER'
-    assert Path(bpy.data.filepath).resolve()==(OWN/'source/armor/Blockout02/Lancer_Armor_Blockout_v02.blend').resolve()
-    out=OWN/'review/Blockout02'
+    assert Path(bpy.data.filepath).resolve()==(OWN/'source/armor/Blockout03/Lancer_Armor_Blockout_v03.blend').resolve()
+    out=OWN/'review/Blockout03'
     assert not out.exists();out.mkdir(parents=True)
     scene=bpy.context.scene;scene.render.engine='BLENDER_WORKBENCH'
     scene.render.threads_mode='FIXED';scene.render.threads=2
@@ -23,7 +23,7 @@ def main():
     for name,pos in views:
         camera.location=pos;look=Vector((0,0,.9)) if name!='top' else Vector((0,0,0))
         camera.rotation_euler=(look-camera.location).to_track_quat('-Z','Y').to_euler()
-        scene.render.filepath=str(out/('Lancer_Blockout02_'+name+'.png'))
+        scene.render.filepath=str(out/('Lancer_Blockout03_'+name+'.png'))
         assert bpy.ops.render.render(write_still=True)=={'FINISHED'}
         outputs.append(dict(view=name,path=scene.render.filepath,bytes=Path(scene.render.filepath).stat().st_size))
     (out/'views.json').write_text(json.dumps(dict(stage='Studio-color PRIMARY FORM REVIEW; not final beauty/PBR approval',resolution=[720,960],views=outputs),indent=2)+'\n')

@@ -7,7 +7,7 @@ from mathutils.bvhtree import BVHTree
 ROOT=next(p for p in Path(__file__).resolve().parents if (p/'unrealGameJam.uproject').is_file())
 OWN=Path(__file__).resolve().parent.parent
 BASE=OWN/'source/base/Lancer_Manny_Reference_v02.blend'
-OUT=OWN/'source/armor/Blockout02'
+OUT=OWN/'source/armor/Blockout03'
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 
 def main():
@@ -19,7 +19,7 @@ def main():
     ref=bpy.data.collections['REF_Manny_NotForExport'];assert ref.hide_render and not ref['export_allowed']
     rig=next(o for o in ref.objects if o.type=='ARMATURE')
     bone=lambda n:rig.matrix_world @ rig.data.bones[n].head_local
-    col=bpy.data.collections.new('MODEL_Lancer_Blockout02_STATIC');scene.collection.children.link(col)
+    col=bpy.data.collections.new('MODEL_Lancer_Blockout03_STATIC');scene.collection.children.link(col)
     col['stage']='Primary armor forms; no rigging or production approval'
     kit=runpy.run_path(str(ROOT/'.claude/skills/blender-game-asset/scripts/hardsurface.py'))
     def material(name,hexcolor,roughness,emission=0):
@@ -56,7 +56,7 @@ def main():
     # Keep the complete closed owned body for this silhouette pass; no new open neck loops.
     head=bone('head')
     bm=bmesh.new();bm.from_mesh(me);bvh=BVHTree.FromBMesh(bm);bm.free()
-    panel_specs=[];surface_fit=[]
+    panel_specs=[];surface_fit=[];pelvis_fit=[]
     def panel(name,outline,side,mat=white,offset=.018,thick=.008,mount=True):
         panel_specs.append(dict(name=name,outline=outline,side=side,mat=mat,offset=offset,thick=thick))
         if mount:
@@ -77,6 +77,24 @@ def main():
             return hit
         fitted=[];resolved={}
         for spec in panel_specs:
+            if spec['name']=='PelvisFront':
+                # The lower crotch is not a continuous torso cross-section. Measure
+                # the actual central/side boundary, and shorten only the guard's
+                # lower edge; the upper attachment and owned body stay unchanged.
+                requested=min(z for x,z in spec['outline']);upper=max(z for x,z in spec['outline'])
+                lower_x=sorted(x for x,z in spec['outline'] if abs(z-requested)<1e-8)
+                assert len(lower_x)==2
+                samples=[lower_x[0]+(lower_x[1]-lower_x[0])*i/8 for i in range(9)]
+                max_raise=.080;fitted_z=None
+                for i in range(81):
+                    candidate=requested+i*.001
+                    if candidate>upper-.035:break
+                    if all(cast(x,candidate,spec['side']) is not None for x in samples):
+                        fitted_z=candidate;break
+                if fitted_z is None or fitted_z-requested>max_raise+1e-8:
+                    raise RuntimeError('No measured pelvis lower boundary within80mm; guard retained in plan')
+                spec['outline']=[(x,fitted_z if abs(z-requested)<1e-8 else z) for x,z in spec['outline']]
+                pelvis_fit.append(dict(panel=spec['name'],requested_lower_z=requested,measured_lower_z=fitted_z,vertical_correction_m=fitted_z-requested,max_correction_m=max_raise,cross_section_x_samples=samples,upper_attachment_z=upper))
             if spec.get('parent'):
                 parent=resolved[spec['parent']];cx=sum(p.x for p in parent)/len(parent);cz=sum(p.z for p in parent)/len(parent)
                 spec['outline']=[(cx-.012,cz-.014),(cx+.012,cz-.014),(cx+.012,cz+.014),(cx-.012,cz+.014)]
@@ -180,11 +198,11 @@ def main():
     assembly=runpy.run_path(str(ROOT/'.claude/skills/blender-mcp/scripts/assembly_check.py'))['main'](targets=names)
     qa=runpy.run_path('C:/Users/nicho/.agents/skills/blender-asset-qa/scripts/qa_check.py')['run'](objects=names,profile='game')
     technical=budget['totals']['errors']==0 and budget['totals']['tris']<=130000 and assembly.get('ok',False) and qa['pass']
-    blend=OUT/'Lancer_Armor_Blockout_v02.blend';assert bpy.ops.wm.save_as_mainfile(filepath=str(blend),check_existing=False)=={'FINISHED'}
+    blend=OUT/'Lancer_Armor_Blockout_v03.blend';assert bpy.ops.wm.save_as_mainfile(filepath=str(blend),check_existing=False)=={'FINISHED'}
     assert sha(BASE)==original
     report=dict(stage='PRIMARY FORM REVIEW ONLY',technical_checks_passed=technical,blend_sha256=sha(blend),reference_sha256=original,objects=names,original_armor_objects=[o.name for o in parts],original_armor_evaluated_triangles=armor_tris,model_material_roles=[white.name,dark.name,cyan.name],immutable_reference_excluded_from_model_budget=True,body_source='Complete closed owned Manny static copy; no head/neck deletion',budget=budget,assembly=assembly,qa=qa,limits=['No rig/weights/animation/native changes','Armor UVs are basic individual face charts; final texel layout/baking later','UV/final texturing and production topology not accepted','Full visual and independent review required before secondary forms'])
     (OUT/'blockout-qa.json').write_text(json.dumps(report,indent=2)+'\n')
-    (OUT/'surface-fit.json').write_text(json.dumps(dict(method='Measured horizontal body cross-section; inward-only bounded fit',max_distance_m=.065,samples=surface_fit),indent=2)+'\n')
+    (OUT/'surface-fit.json').write_text(json.dumps(dict(method='Measured horizontal body cross-section; inward-only bounded torso fit; separately measured pelvic lower boundary',max_distance_m=.065,pelvis_lower_boundary=pelvis_fit,samples=surface_fit),indent=2)+'\n')
     if not technical:print('LANCER_BLOCKOUT_QA_FAILED diagnostic blend only; inspect full report before any acceptance')
     print('LANCER_BLOCKOUT_BUILD_OK '+str(blend))
 
