@@ -90,6 +90,10 @@ struct FTDIntroOverlayState
 	float SkipProgress = 0.f;
 };
 
+/** Any intro in any world started / finished (bSkipped). Finish is the frame control returns to the player (N-039). */
+DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnAnyIntroStarted, class UTDIntroDirector*);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnAnyIntroFinished, class UTDIntroDirector*, bool /*bSkipped*/);
+
 UCLASS()
 class UNREALGAMEJAM_API UTDIntroDirector : public UTickableWorldSubsystem
 {
@@ -115,6 +119,10 @@ public:
 	}
 
 	bool IsPlaying() const { return bPlaying; }
+
+	/** N-039 (T1's tutorial music): fired when Play starts an intro, and from Finish (watched or skipped). */
+	static FTDOnAnyIntroStarted OnAnyIntroStarted;
+	static FTDOnAnyIntroFinished OnAnyIntroFinished;
 	/** The last second: the lens eases into the chase camera (the scene slate shows now). */
 	bool IsHandingOff() const { return bPlaying && bHandingOff; }
 	/** A button that may skip (not an axis, a virtual stick button or the mouse wheel). */
