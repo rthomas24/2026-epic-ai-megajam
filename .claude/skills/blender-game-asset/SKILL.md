@@ -17,11 +17,13 @@ gates. This skill fixes that with three things:
 
 Read `references/aaa-quality-bar.md` before your first asset. It defines "done".
 
-## Approved Triad Drift routes and current references (November 12)
+## Routing and current authorization
 
-Nicholas explicitly approved Lancer M03 source production from his blue reference and approved A02 v03 structure at19:07EST. Continue that existing authored foundation for bounded materials/detail improvements; the route defaults below do not revoke it or require a new acquisition. White-player armor is original fitted gear on the existing owned Manny reference, not newly generated anatomy. Preserve the base; rig/export readiness remains unverified.
+The route table is a default recommendation. Nicholas's explicitly approved method/reference takes precedence; it does not waive technical QA or final presentation approval. Fitted armor/gear on an approved owned mannequin is different from code-generating anatomy from nothing. Preserve existing approved foundations rather than forcing a new acquisition solely to match a default route.
 
-The fresh Lead handoff and CLAIMS.md identify exact source/reference paths and scoped grants. Blue Lancer, yellow Bastion and green Rift redesign references do not change the runtime Rift-magenta/Lancer-cyan/Bastion-amber contract. Bastion/Rift remain secondary and separately gated. Current-cycle Material04 was explicitly held by Nicholas for material correction; no export/import promotion follows a technical pass. Human final appearance, mesh QA, resource scheduling and Unreal validation remain mandatory.
+Read the current published `CLAIMS.md` and current human instructions for active tasks, exact writable paths and resource grants. This skill is a reusable workflow, not a standing instruction to continue Lancer or restart stopped production. Redesign reference colors do not themselves change the runtime Rift-magenta/Lancer-cyan/Bastion-amber contract.
+
+Earlier milestone-specific approvals and dispatch wording are [archived with the original skill](../../../docs/visual/archive/2026-11-13-cdea6df/blender-game-asset-SKILL.md). Current work state belongs in CLAIMS, not this skill.
 
 ## Step 0: Route the asset before touching Blender
 

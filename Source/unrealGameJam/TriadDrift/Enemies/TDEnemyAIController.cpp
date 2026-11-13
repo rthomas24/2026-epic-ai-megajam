@@ -582,9 +582,25 @@ void ATDEnemyAIController::TickApproach(ATDEnemyShip& Ship, float DeltaSeconds)
 			bHoldingForSlot = true;
 			HoldAngle += DeltaSeconds * 0.35f;
 			const FVector Up = FVector::UpVector;
-			const FVector Out = (Ship.GetActorLocation() - T->GetActorLocation()).GetSafeNormal2D();
-			const FVector Around = Out.RotateAngleAxis(25.f, Up);	// keep sliding round, not parking
-			const FVector Hold = T->GetActorLocation() + Around * AttackSlotHoldDistance + Up * 1500.f;
+			FVector Around;
+			const APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+			// Queue in the player's view whenever the fight is near the player (its wingmen fly beside it): the
+			// target is still T, but the waiting spot is ahead of the player's nose.
+			const bool bNearPlayer = PlayerPawn && FVector::DistSquared(T->GetActorLocation(), PlayerPawn->GetActorLocation()) < FMath::Square(20000.f);
+			if (bNearPlayer)
+			{
+				// Waiting for a slot on the player's ship: queue AHEAD of it, inside +-35 degrees of its nose, drifting
+				// across the frame (live check: an orbit all round the player put most of the queue off-screen).
+				const float Sweep = 35.f * FMath::Sin(HoldAngle + OpeningPassSideSign);
+				Around = PlayerPawn->GetActorForwardVector().RotateAngleAxis(Sweep, Up);
+			}
+			else
+			{
+				const FVector Out = (Ship.GetActorLocation() - T->GetActorLocation()).GetSafeNormal2D();
+				Around = Out.RotateAngleAxis(25.f, Up);	// keep sliding round, not parking
+			}
+			const FVector HoldOrigin = bNearPlayer ? PlayerPawn->GetActorLocation() : T->GetActorLocation();
+			const FVector Hold = HoldOrigin + Around * AttackSlotHoldDistance + Up * 1500.f;
 			SteerToward(Ship, Hold, 0.8f, false);
 			const FVector ToT = T->GetActorLocation() - Ship.GetActorLocation();
 			// Long-range potshots only if lined up (no run): keeps the pressure readable.

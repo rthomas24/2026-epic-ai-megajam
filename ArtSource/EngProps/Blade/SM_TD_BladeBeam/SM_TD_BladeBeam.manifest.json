@@ -1,0 +1,44 @@
+{
+  "asset": "SM_TD_BladeBeam",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Blade\\SM_TD_BladeBeam\\SM_TD_BladeBeam.fbx",
+  "tris": 576,
+  "size_cm": [
+    100.0,
+    4.0,
+    2.0
+  ],
+  "pivot": "root object origin (SM_TD_BladeBeam~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_BladeBeam_BlenderPreview"
+  ],
+  "material_params": [
+    {
+      "name": "M_BladeBeam_BlenderPreview",
+      "textured": true
+    }
+  ],
+  "textures": [],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 71,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

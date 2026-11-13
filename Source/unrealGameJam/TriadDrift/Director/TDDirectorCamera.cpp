@@ -10,6 +10,8 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "GameFramework/Character.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 
@@ -156,7 +158,7 @@ ATDShip* UTDDirectorCameraRig::GetPlayerShip() const
 }
 
 bool UTDDirectorCameraRig::ResolveCameraLocation(const UWorld* World, const FVector& Focus, const FVector& Preferred,
-	const TArray<const AActor*>& Ignore, const AActor* PlayerShip, FVector& OutLocation)
+	const TArray<const AActor*>& Ignore, const AActor* PlayerShip, FVector& OutLocation, float MinDistanceOverride)
 {
 	if (!World)
 	{
@@ -205,7 +207,7 @@ bool UTDDirectorCameraRig::ResolveCameraLocation(const UWorld* World, const FVec
 			P = Focus + (P - Focus).GetSafeNormal() * FMath::Max(0.f, Hit.Distance - S->CameraProbeRadius);
 			bPulledIn = true;
 		}
-		if (FVector::Dist(P, Focus) < S->MinDistanceFromFocus)
+		if (FVector::Dist(P, Focus) < (MinDistanceOverride > 0.f ? MinDistanceOverride : S->MinDistanceFromFocus))
 		{
 			continue;
 		}
@@ -349,8 +351,16 @@ bool UTDDirectorCameraRig::BeginShot(const FTDDirectorShot& Shot, double ShotEnd
 	UWorld* World = OwnerWorld.Get();
 	APlayerController* Controller = GetPlayerController();
 	ATDShip* Ship = Controller ? Cast<ATDShip>(Controller->GetPawn()) : nullptr;
-	if (!World || !Controller || !Ship)
+	if (!World || !Controller)
 	{
+		return false;
+	}
+	if (!Ship)
+	{
+		// On foot (a perfect deflect, the blade): the view stays first-person. The director never cuts
+		// away from the pilot's eyes, so the body is never framed from outside and the first-person
+		// head-hiding is never touched (rule agreed with T5). The beat is the slow-mo plus an FOV punch.
+		PunchFOV();
 		return false;
 	}
 	const UTDDirectorSettings* S = UTDDirectorSettings::Get();
@@ -429,8 +439,90 @@ bool UTDDirectorCameraRig::BeginShot(const FTDDirectorShot& Shot, double ShotEnd
 	return true;
 }
 
+FVector UTDDirectorCameraRig::DeathCamFocus(const APawn* Body, float Height)
+{
+	FVector At = Body ? Body->GetActorLocation() : FVector::ZeroVector;
+	if (const ACharacter* Char = Cast<ACharacter>(Body))
+	{
+		if (const USkeletalMeshComponent* Mesh = Char->GetMesh())
+		{
+			// The ragdoll falls away from the (still) capsule: follow the pelvis (T5).
+			At = Mesh->GetBoneIndex(TEXT("pelvis")) != INDEX_NONE ? Mesh->GetBoneLocation(TEXT("pelvis")) : Mesh->GetComponentLocation();
+		}
+	}
+	return At + FVector::UpVector * Height;
+}
+
+bool UTDDirectorCameraRig::BeginDeathCam(APawn* Body)
+{
+	UWorld* World = OwnerWorld.Get();
+	APlayerController* Controller = GetPlayerController();
+	const UTDHealthComponent* H = UTDStatics::GetHealth(Body);
+	if (!World || !Controller || !Body || Controller->GetPawn() != Body || Body->IsA<ATDShip>() || !H || !H->IsDead()
+		|| UTDDirectorSettings::GetEffectiveMode() != ETDDirectorCameraMode::Full)
+	{
+		UE_LOG(LogTriadDrift, Verbose, TEXT("Death cam: not an on-foot death (pc %d body %d possessed %d health %d dead %d mode %d)"),
+			Controller != nullptr, Body != nullptr, Controller && Controller->GetPawn() == Body, H != nullptr, H && H->IsDead(), static_cast<int32>(UTDDirectorSettings::GetEffectiveMode()));
+		return false;
+	}
+	// No pilot look (no DA_Pilot_Visuals or no mesh) = no body to show: keep the first-person CUT (T5).
+	const ACharacter* Char = Cast<ACharacter>(Body);
+	if (!Char || !Char->GetMesh() || !Char->GetMesh()->GetSkeletalMeshAsset())
+	{
+		UE_LOG(LogTriadDrift, Verbose, TEXT("Death cam: no pilot body, the CUT stays first person"));
+		return false;
+	}
+	const UTDDirectorSettings* S = UTDDirectorSettings::Get();
+	const FVector Focus = DeathCamFocus(Body, S->DeathCamFocusHeight);
+	FVector Back = -Body->GetActorForwardVector();
+	Back.Z = 0.f;
+	Back = Back.IsNearlyZero() ? -FVector::ForwardVector : Back.GetSafeNormal();
+	const FVector Preferred = Focus + (Back * 0.8f + FVector::UpVector * 0.6f).GetSafeNormal() * S->DeathCamDistance;
+	TArray<const AActor*> Ignore;
+	Ignore.Add(Body);
+	FVector Location;
+	if (!ResolveCameraLocation(World, Focus, Preferred, Ignore, nullptr, Location, S->DeathCamDistance * 0.6f))
+	{
+		UE_LOG(LogTriadDrift, Verbose, TEXT("Death cam: nowhere safe around %s, the CUT stays first person"), *Focus.ToCompactString());
+		return false; // nowhere safe: stay first person
+	}
+	if (!CameraActor)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.ObjectFlags |= RF_Transient;
+		CameraActor = World->SpawnActor<ATDDirectorCameraActor>(ATDDirectorCameraActor::StaticClass(), FTransform::Identity, Params);
+		if (!CameraActor)
+		{
+			return false;
+		}
+	}
+	PC = Controller;
+	PawnAtStart = Body;
+	Subject = Body;
+	Secondary.Reset();
+	bSubjectAliveAtStart = false;
+	bSubjectGone = false;
+	bStaticFocus = false;
+	PlacementIgnore.Reset();
+	bDeathCam = true;
+	DeathCamStart = World->GetRealTimeSeconds();
+	DeathCamOffset = Location - Focus;
+	LastFocus = Focus;
+	TrackedLocation = Location;
+	ShotFOV = S->ShotFOV;
+	Phase = ETDDirectorCameraPhase::Hold;
+	PhaseStart = DeathCamStart;
+	HoldEnd = DeathCamStart + 3600.0; // held until the retake ends it
+	ApplyPose(Location, (Focus - Location).Rotation(), ShotFOV);
+	Controller->SetViewTarget(CameraActor); // a hard cut: this is the CUT
+	UE_LOG(LogTriadDrift, Verbose, TEXT("Death cam: on %s, %.0f cm out"), *GetNameSafe(Body), DeathCamOffset.Size());
+	return true;
+}
+
 void UTDDirectorCameraRig::FinishReturn()
 {
+	bDeathCam = false;
 	if (APlayerController* Controller = PC.Get())
 	{
 		if (Controller->GetViewTarget() == CameraActor)
@@ -447,6 +539,10 @@ void UTDDirectorCameraRig::Cancel(ETDDirectorCameraCancel Reason)
 	{
 		return;
 	}
+	if (bDeathCam)
+	{
+		UE_LOG(LogTriadDrift, Verbose, TEXT("Death cam cancelled: %s"), *UEnum::GetValueAsString(Reason));
+	}
 	LastCancel = Reason;
 	++CancelCount;
 	FinishReturn();
@@ -460,6 +556,50 @@ void UTDDirectorCameraRig::Tick(double RealNow, float RealDelta)
 	}
 	APlayerController* Controller = PC.Get();
 	ATDShip* Ship = GetPlayerShip();
+
+	if (bDeathCam)
+	{
+		// On-foot death: let go if anyone else takes the view or the controller possesses something else
+		// (the retake normally ends it first, from the subsystem).
+		APawn* Body = Cast<APawn>(Subject.Get());
+		const bool bViewOurs = Controller && CameraActor && Controller->GetViewTarget() == CameraActor;
+		if (!bViewOurs || !Body || Controller->GetPawn() != Body)
+		{
+			UE_LOG(LogTriadDrift, Verbose, TEXT("Death cam ended: view ours %d, body %d, possessed %s, view %s"), bViewOurs, Body != nullptr,
+				Controller ? *GetNameSafe(Controller->GetPawn()) : TEXT("-"), Controller ? *GetNameSafe(Controller->GetViewTarget()) : TEXT("-"));
+			LastCancel = bViewOurs ? ETDDirectorCameraCancel::ShipSwitch : ETDDirectorCameraCancel::ViewTakenOver;
+			++CancelCount;
+			if (bViewOurs)
+			{
+				FinishReturn();
+			}
+			else
+			{
+				bDeathCam = false;
+				Phase = ETDDirectorCameraPhase::Idle;
+			}
+			return;
+		}
+		const UTDDirectorSettings* DS = UTDDirectorSettings::Get();
+		const FVector Focus = FMath::VInterpTo(LastFocus, DeathCamFocus(Body, DS->DeathCamFocusHeight), RealDelta, 6.f);
+		const float T01 = FMath::Clamp(static_cast<float>((RealNow - DeathCamStart) / FMath::Max(0.1f, DS->DeathCamOrbitSeconds)), 0.f, 1.f);
+		const FVector Offset = DeathCamOffset.RotateAngleAxis(DS->DeathCamOrbitDegrees * Ease(T01), FVector::UpVector);
+		// Collision-safe each frame: pull in short of anything between the body and the lens.
+		FVector Desired = Focus + Offset;
+		if (UWorld* W = OwnerWorld.Get())
+		{
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(TDDirectorDeathCam), false, Body);
+			FHitResult Hit;
+			if (W->SweepSingleByChannel(Hit, Focus, Desired, FQuat::Identity, ECC_Camera, FCollisionShape::MakeSphere(DS->CameraProbeRadius), Params))
+			{
+				Desired = Focus + Offset.GetSafeNormal() * FMath::Max(150.f, Hit.Distance - DS->CameraProbeRadius);
+			}
+		}
+		LastFocus = Focus;
+		TrackedLocation = Desired;
+		ApplyPose(Desired, (Focus - Desired).Rotation(), ShotFOV);
+		return;
+	}
 
 	// ---- cancel paths
 	if (UTDDirectorSettings::GetEffectiveMode() != ETDDirectorCameraMode::Full)

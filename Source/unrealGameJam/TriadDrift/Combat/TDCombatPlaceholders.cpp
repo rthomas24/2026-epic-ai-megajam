@@ -45,9 +45,10 @@ FTDStreakLook FTDCombatPlaceholders::ComputeOnFootStreak(const FTDProjectileSpec
 	Look.bStreak = Spec.Speed >= 600.f;
 	Look.bHeavy = false;
 	Look.bHead = true; // a hot core so the bolt reads as a bolt, not a stick
-	Look.Length = FMath::Clamp(Spec.Speed * 0.06f, 90.f, 220.f);
-	Look.Thickness = FMath::Clamp(Spec.CollisionRadius * 0.6f, 8.f, 16.f);
-	Look.HeadDiameter = Look.Thickness * 1.6f;
+	// Heavy pellets (r16, 2600 cm/s): 6 cm x 52 cm. Trooper bolt (r22, 2200): 8 x 44. Drone (r14, 4000): 5 x 80.
+	Look.Length = FMath::Clamp(Spec.Speed * 0.02f, 40.f, 80.f);
+	Look.Thickness = FMath::Clamp(Spec.CollisionRadius * 0.35f, 5.f, 9.f);
+	Look.HeadDiameter = Look.Thickness * 1.4f;
 	return Look;
 }
 

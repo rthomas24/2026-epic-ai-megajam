@@ -12,6 +12,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "Engine/StaticMesh.h"
@@ -75,28 +76,44 @@ ATDGalaxyLayout::ATDGalaxyLayout()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris1(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_01.SM_SpaceDebris_01"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris2(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_02.SM_SpaceDebris_02"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris3(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_03.SM_SpaceDebris_03"));
-	auto MakeLook = [this](const FName Name, UStaticMesh* Mesh) -> UInstancedStaticMeshComponent*
+	// Rendering headroom (T1's 1080p profile): Static mobility (the belt never moves, so no per-frame primitive
+	// updates) and per-instance cull distances; debris skips shadows and ray tracing.
+	auto MakeLook = [this](const FName Name, UStaticMesh* Mesh, float CullStart, float CullEnd, bool bDetail) -> UInstancedStaticMeshComponent*
 	{
+		// Plain instancing: the belt is ~155 rocks + debris in 7 components, too small for HISM's clusters to pay
+		// off (measured: HISM raised draw calls 57 -> 73 for no frame-time gain).
 		UInstancedStaticMeshComponent* Look = CreateDefaultSubobject<UInstancedStaticMeshComponent>(Name);
 		Look->SetupAttachment(GetRootComponent());
 		Look->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Look->SetGenerateOverlapEvents(false);
-		Look->SetMobility(EComponentMobility::Movable);
+		Look->SetMobility(EComponentMobility::Static);
 		Look->SetStaticMesh(Mesh);
+		Look->InstanceStartCullDistance = static_cast<int32>(CullStart);
+		Look->InstanceEndCullDistance = static_cast<int32>(CullEnd);
+		if (bDetail)
+		{
+			Look->SetCastShadow(false);
+			Look->SetVisibleInRayTracing(false);
+		}
 		return Look;
 	};
 	{
 		UStaticMesh* Rocks[] = { Rock1.Object, Rock2.Object, Rock3.Object, Rock4.Object };
 		for (UStaticMesh* M : Rocks)
 		{
-			if (M) { AsteroidLooks.Add(MakeLook(*FString::Printf(TEXT("AsteroidLook%d"), AsteroidLooks.Num() + 1), M)); }
+			if (M) { AsteroidLooks.Add(MakeLook(*FString::Printf(TEXT("AsteroidLook%d"), AsteroidLooks.Num() + 1), M, 250000.f, 320000.f, false)); }
 		}
 		UStaticMesh* Bits[] = { Debris1.Object, Debris2.Object, Debris3.Object };
 		for (UStaticMesh* M : Bits)
 		{
-			if (M) { DebrisLooks.Add(MakeLook(*FString::Printf(TEXT("DebrisLook%d"), DebrisLooks.Num() + 1), M)); }
+			if (M) { DebrisLooks.Add(MakeLook(*FString::Printf(TEXT("DebrisLook%d"), DebrisLooks.Num() + 1), M, 40000.f, 60000.f, true)); }
 		}
 	}
+
+	RuinModules = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("RuinModules"));
+	RuinModules->SetupAttachment(GetRootComponent());
+	RuinModules->SetCollisionProfileName(TEXT("BlockAll"));
+	RuinModules->SetMobility(EComponentMobility::Movable);
 
 	RuinBlocks = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Ruins"));
 	RuinBlocks->SetupAttachment(GetRootComponent());
@@ -133,6 +150,7 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 		R.Location = FVector(FMath::Cos(A) * RuinRing, FMath::Sin(A) * RuinRing, (i % 2 ? 1.f : -1.f) * 2500.f);
 		R.Rotation = FRotator(i * 7.f, FMath::RadiansToDegrees(A) + 90.f, i * 11.f);
 		R.Extent = (i % 2) ? FVector(5000.f, 500.f, 500.f) : FVector(1800.f, 1500.f, 1200.f);
+		R.bModule = (i % 2) == 0;	// girders on odd slots, modules on even
 		L.Ruins.Add(R);
 	}
 
@@ -410,6 +428,9 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 	// Idempotent: the editor preview and BeginPlay both build; never stack instances.
 	Asteroids->ClearInstances();
 	RuinBlocks->ClearInstances();
+	if (RuinModules) { RuinModules->ClearInstances(); }
+	UStaticMesh* ModuleArt = !RuinModuleMesh.IsNull() ? RuinModuleMesh.LoadSynchronous() : nullptr;
+	if (ModuleArt && RuinModules) { RuinModules->SetStaticMesh(ModuleArt); }
 	for (UInstancedStaticMeshComponent* Look : AsteroidLooks) { if (Look) { Look->ClearInstances(); } }
 	for (UInstancedStaticMeshComponent* Look : DebrisLooks) { if (Look) { Look->ClearInstances(); } }
 	bool bNickRock = false;
@@ -494,7 +515,14 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 
 	for (const FTDRuinSpec& R : Layout.Ruins)
 	{
-		RuinBlocks->AddInstance(FTransform(R.Rotation, R.Location, R.Extent * 2.f / 100.f));
+		if (R.bModule && ModuleArt && RuinModules)
+		{
+			RuinModules->AddInstance(FTransform(R.Rotation, R.Location, R.Extent * 2.f / 100.f));	// same convention as RuinMesh
+		}
+		else
+		{
+			RuinBlocks->AddInstance(FTransform(R.Rotation, R.Location, R.Extent * 2.f / 100.f));
+		}
 		if (WorldSys) { WorldSys->AddObstacle(Xf.TransformPosition(R.Location), R.Extent.GetMax()); }
 	}
 	if (RuinMesh.IsNull())
@@ -565,6 +593,7 @@ void ATDGalaxyLayout::BuildPlanets()
 		ATDPlanetAtmosphere* Planet = GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(Cls, T, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (!Planet) { continue; }
 		Planet->Configure(P.Destination, P.ReturnPoint, P.PlanetRadius, P.AtmosphereRadius, P.Color);
+		Planet->PlanetArtMesh = P.PlanetMesh;	// optional, normalised to 100 cm, scaled to the planet
 		Planet->FinishSpawning(T);
 		Planets.Add(Planet);
 	}

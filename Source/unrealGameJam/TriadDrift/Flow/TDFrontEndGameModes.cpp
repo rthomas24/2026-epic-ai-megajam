@@ -109,7 +109,18 @@ void ATDMenuGameMode::StartPlay()
 		GI->NotifyLevelEntered(bShowingVictory ? ETDDestination::Victory : ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
 	StartMusic();
-	UClass* Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : (StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle()), FTDFrontEndWidgets::EKind::MainMenu);
+	const UTDUIStyle* MenuStyle = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
+	UClass* Widget = nullptr;
+	if (bShowingVictory)
+	{
+		// N-023: a main-menu widget is never asked to show the victory statistics. A styled victory widget if one
+		// is assigned, otherwise the code-built victory screen (the placeholder path).
+		Widget = (MenuStyle && !MenuStyle->VictoryWidgetClass.IsNull()) ? MenuStyle->VictoryWidgetClass.LoadSynchronous() : nullptr;
+	}
+	else
+	{
+		Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : MenuStyle, FTDFrontEndWidgets::EKind::MainMenu);
+	}
 	bPlaceholderWanted = !Widget;
 	TDFrontEnd::ShowWidget(GetWorld(), Widget, true);
 	if (!Widget)
