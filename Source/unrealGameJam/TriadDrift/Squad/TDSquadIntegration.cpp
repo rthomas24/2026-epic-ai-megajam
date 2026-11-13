@@ -19,6 +19,7 @@
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 
@@ -603,6 +604,33 @@ namespace TDSquad
 	{
 		const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
 		return Move ? Move->GetDodgeReady01() : 1.f;
+	}
+
+	bool PlayShipDeathPlaceholder(ATDShip* Ship, ETDShipId Id, bool bTrailPuff)
+	{
+		if (!Ship)
+		{
+			return false;
+		}
+		const UTDShipVisuals* V = GetShipVisuals(Ship);
+		if (V && FTDCombatPlaceholders::HasVisualArt(V->Explosion))
+		{
+			return false; // Nick's art plays through the cue
+		}
+		UTDProjectileSubsystem* P = UTDProjectileSubsystem::Get(Ship);
+		if (!P)
+		{
+			return false;
+		}
+		const float R = GetBoundsRadius(Ship);
+		// Trail puffs stay small: the chase camera is only ~14 m away during the player's own tumble.
+		const float Radius = bTrailPuff ? FMath::Clamp(R * 0.2f, 60.f, 150.f) : FMath::Max(600.f, R * 2.5f);
+		if (!bTrailPuff)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD death placeholder: %s bounds %.0f cm -> explosion radius %.0f cm"),
+				*UEnum::GetDisplayValueAsText(Id).ToString(), R, Radius);
+		}
+		return P->PlayPlaceholderExplosion(Ship->GetActorLocation(), Radius, UTDStatics::ShipColor(Id), bTrailPuff ? 1 : 12) > 0;
 	}
 
 	FText GetLandPrompt(const ATDShip* Ship)
