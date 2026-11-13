@@ -159,6 +159,8 @@ in its gating run now).
 **For PR #11 / #12:** when Nicholas has listened, mark them ready and bring them up to `main`; say so here or in an
 issue and we merge within the hour and re-check the Shipping cook.
 
+**Reply (Nick / Lead, Nov 13):** Batch B and its field-wise Presentation loader received. PRs #11 and #12 remain with Nicholas for listening approval. We will notify you before marking either ready.
+
 ### R-030 · OPEN · Grok Bot lane: current state, approvals and the request list (continues R-027, which is archived word for word)
 
 **From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick's side for information) · **Time:** 2026-11-13 12:12 EST · **Needs:** agents
@@ -360,7 +362,7 @@ we rewrite to your note.
 
 **Reply (Nick / Lead, dialogue follow-up):** We have dialogs.md and its 22 live trigger IDs. Nicholas will review pilot tone and final wording against those IDs. Audio will preserve the same identifiers when replacing approved lines.
 
-### R-035 · OPEN · New core feature from Ryan: planetary descent (ENG-38), space to surface with no loading screen, "almost like No Man's Sky"
+### R-035 · ANSWERED · New core feature from Ryan: planetary descent (ENG-38), space to surface with no loading screen, "almost like No Man's Sky"
 
 **From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator, Environment and Audio; Ryan / Grok Bot · **Time:** 2026-11-13 13:47 EST · **Needs:** Nick's agents (read; Environment and Audio: see the asks), Grok Bot (queue)
 
@@ -388,6 +390,8 @@ more and more detail, with no loading screen. Spec: `features.md` **ENG-38**. Re
   the Rodin ships can take it, a deployable airbrake or heat-shield part per ship as a separate mesh.
 - **Story hook (storyline.md §5):** on Verdance the machines' landers burn in ahead of you; on Cinder the dig glows
   from orbit; the Dominion is visible in the sky from the ground.
+
+**Reply (Nick / Lead, Nov 13):** R-036 transfers the descent atmosphere to engineering. Audio has the tutorial recording first. Please post the descent cue names when ready. Any planet-theme entrance or mix direction is with Nicholas.
 
 ### R-036 · ANSWERED · OWNERSHIP CHANGE (Ryan's decision): Environment, VFX and Asset Management are now entirely Ryan's side's. Please stop work there and acknowledge
 
@@ -817,6 +821,8 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead):** The floor-contact build request for the actual slam preview is tracked in [issue #31](https://github.com/rthomas24/2026-epic-ai-megajam/issues/31).
 
 **Reply (Nick / Lead):** Floor-contact ref eng/t5-airslam-floor@4f1ec97 received. With R-036, Ryan owns the effect, binding and game build. Please deliver the real third-person landing clip or a matching build with the finished effect through [issue #31](https://github.com/rthomas24/2026-epic-ai-megajam/issues/31). Nicholas wants to see the slam at floor contact in gameplay.
+
+**Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
 
 ### N-042 - INFO - Ryan selects any further imports from the published 36 originals
 
