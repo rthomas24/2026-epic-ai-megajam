@@ -121,14 +121,40 @@ void UTDSettingsSubsystem::SetResolution(FIntPoint Resolution) { Settings.Resolu
 
 void UTDSettingsSubsystem::ResetToDefaults()
 {
+	const ETDOnFootCamera Before = Settings.OnFootCameraMode;
 	Settings = FTDPlayerSettings();
 	Changed(true, true);
+	BroadcastCameraIfChanged(Before);
 }
 
 void UTDSettingsSubsystem::ApplyAll(const FTDPlayerSettings& NewSettings)
 {
+	const ETDOnFootCamera Before = Settings.OnFootCameraMode;
 	Settings = NewSettings;
 	Changed(true, true);
+	BroadcastCameraIfChanged(Before);
+}
+
+void UTDSettingsSubsystem::SetOnFootCameraMode(ETDOnFootCamera Mode)
+{
+	const ETDOnFootCamera Before = Settings.OnFootCameraMode;
+	Settings.OnFootCameraMode = Mode;
+	Changed();
+	BroadcastCameraIfChanged(Before);
+}
+
+void UTDSettingsSubsystem::ToggleOnFootCameraMode()
+{
+	SetOnFootCameraMode(Settings.OnFootCameraMode == ETDOnFootCamera::FirstPerson ? ETDOnFootCamera::ThirdPerson : ETDOnFootCamera::FirstPerson);
+}
+
+void UTDSettingsSubsystem::BroadcastCameraIfChanged(ETDOnFootCamera Before)
+{
+	if (Settings.OnFootCameraMode != Before)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD settings: on-foot camera %s"), *UEnum::GetValueAsString(Settings.OnFootCameraMode));
+		OnOnFootCameraModeChanged.Broadcast(Settings.OnFootCameraMode);
+	}
 }
 
 TArray<FIntPoint> UTDSettingsSubsystem::GetSupportedResolutions() const
@@ -249,10 +275,13 @@ namespace TDSettings
 				else if (K == TEXT("Master")) { S->SetMasterVolume(V); }
 				else if (K == TEXT("Music")) { S->SetMusicVolume(V); }
 				else if (K == TEXT("Effects")) { S->SetEffectsVolume(V); }
+				else if (K == TEXT("Camera")) { S->SetOnFootCameraMode(B ? ETDOnFootCamera::ThirdPerson : ETDOnFootCamera::FirstPerson); }
 				else if (K == TEXT("Window")) { S->SetWindowMode((ETDWindowMode)FMath::Clamp(FCString::Atoi(*Args[1]), 0, 2)); }
 				else if (K == TEXT("Res") && Args.Num() >= 3) { S->SetResolution(FIntPoint(FCString::Atoi(*Args[1]), FCString::Atoi(*Args[2]))); }
 			}
 			const FTDPlayerSettings& P = S->GetSettings();
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Settings: on-foot camera %s | page open %d"), *UEnum::GetValueAsString(P.OnFootCameraMode),
+				UTDSettingsSubsystem::IsSettingsPageOpen(World) ? 1 : 0);
 			UE_LOG(LogTriadDrift, Log, TEXT("TD.Settings: mouse %.2f invert %d | pad %.2f deadzone %.2f invert %d | hints %d | master %.2f music %.2f effects %.2f (classes: music %d sfx %d) | video %s %dx%d"),
 				P.MouseSensitivity, P.bInvertMouseY ? 1 : 0, P.GamepadSensitivity, P.GamepadDeadzone, P.bInvertGamepadY ? 1 : 0,
 				P.bHintsEnabled ? 1 : 0, P.MasterVolume, P.MusicVolume, P.EffectsVolume, S->HasMusicClass() ? 1 : 0, S->HasEffectsClass() ? 1 : 0,
