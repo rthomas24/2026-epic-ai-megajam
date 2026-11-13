@@ -8,7 +8,10 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "NiagaraSystem.h"
+#include "Sound/SoundBase.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
@@ -273,6 +276,63 @@ bool FTDCoreHarnessLocalPlayer::RunTest(const FString& Parameters)
 		// A second request returns the same controller instead of adding a second local player.
 		TestTrue(TEXT("one local player per world"), W.SpawnLocalPlayerController() == PC);
 	}
+	return true;
+}
+
+// R-029: a Presentation asset wins field by field over the engineering fallback of the same name.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPresentationMergesFieldByField, "TriadDrift.Core.Presentation.MergesFieldByField", TD_TEST_FLAGS)
+bool FTDPresentationMergesFieldByField::RunTest(const FString& Parameters)
+{
+	const FSoftObjectPath NickSound(TEXT("/Game/Test/NickSound.NickSound"));
+	const FSoftObjectPath NickMusic(TEXT("/Game/Test/NickMusic.NickMusic"));
+	const FSoftObjectPath OurSound(TEXT("/Game/Test/OurSound.OurSound"));
+	const FSoftObjectPath OurVFX(TEXT("/Game/Test/OurVFX.OurVFX"));
+	const FSoftObjectPath OurMusic(TEXT("/Game/Test/OurMusic.OurMusic"));
+
+	// A sound-only weapon asset from the presentation side over a fallback with effects and sounds.
+	UTDWeaponFX* Nick = NewObject<UTDWeaponFX>(GetTransientPackage());
+	UTDWeaponFX* Ours = NewObject<UTDWeaponFX>(GetTransientPackage());
+	Nick->Muzzle.Sound = TSoftObjectPtr<USoundBase>(NickSound);
+	Ours->Muzzle.Sound = TSoftObjectPtr<USoundBase>(OurSound);
+	Ours->Muzzle.VFX = TSoftObjectPtr<UNiagaraSystem>(OurVFX);
+	Ours->ImpactHull.Sound = TSoftObjectPtr<USoundBase>(OurSound);
+	Ours->ImpactHull.VFXScale = FVector(2.0);
+
+	const UTDWeaponFX* Merged = Cast<UTDWeaponFX>(UTDStatics::MergePresentationWithFallback(Nick, Ours));
+	TestNotNull(TEXT("merged asset"), Merged);
+	if (Merged)
+	{
+		TestTrue(TEXT("the copy is a new object"), Merged != Nick && Merged != Ours);
+		TestEqual(TEXT("presentation's sound wins"), Merged->Muzzle.Sound.ToSoftObjectPath(), NickSound);
+		TestEqual(TEXT("fallback's effect fills the unset member of the same cue"), Merged->Muzzle.VFX.ToSoftObjectPath(), OurVFX);
+		TestEqual(TEXT("a cue presentation left empty comes from the fallback"), Merged->ImpactHull.Sound.ToSoftObjectPath(), OurSound);
+		TestEqual(TEXT("non-pointer members follow"), Merged->ImpactHull.VFXScale, FVector(2.0));
+		TestTrue(TEXT("the presentation asset itself is untouched"), Nick->Muzzle.VFX.IsNull() && Nick->ImpactHull.Sound.IsNull());
+	}
+
+	// A music-only UI style over the fallback style.
+	UTDUIStyle* NickStyle = NewObject<UTDUIStyle>(GetTransientPackage());
+	UTDUIStyle* OurStyle = NewObject<UTDUIStyle>(GetTransientPackage());
+	NickStyle->MenuMusic = TSoftObjectPtr<USoundBase>(NickMusic);
+	OurStyle->MenuMusic = TSoftObjectPtr<USoundBase>(OurMusic);
+	OurStyle->CombatMusic = TSoftObjectPtr<USoundBase>(OurMusic);
+	OurStyle->HitConfirm.Sound = TSoftObjectPtr<USoundBase>(OurSound);
+	const UTDUIStyle* Style = Cast<UTDUIStyle>(UTDStatics::MergePresentationWithFallback(NickStyle, OurStyle));
+	TestNotNull(TEXT("merged style"), Style);
+	if (Style)
+	{
+		TestEqual(TEXT("presentation's menu music wins"), Style->MenuMusic.ToSoftObjectPath(), NickMusic);
+		TestEqual(TEXT("combat music stays from the fallback"), Style->CombatMusic.ToSoftObjectPath(), OurMusic);
+		TestEqual(TEXT("hit confirm stays from the fallback"), Style->HitConfirm.Sound.ToSoftObjectPath(), OurSound);
+	}
+
+	// No fallback, or a fallback of another class: a plain copy.
+	const UTDWeaponFX* Alone = Cast<UTDWeaponFX>(UTDStatics::MergePresentationWithFallback(Nick, nullptr));
+	TestTrue(TEXT("no fallback: unchanged copy"), Alone && Alone->Muzzle.VFX.IsNull()
+		&& Alone->Muzzle.Sound.ToSoftObjectPath() == NickSound);
+	const UTDWeaponFX* WrongClass = Cast<UTDWeaponFX>(UTDStatics::MergePresentationWithFallback(Nick, OurStyle));
+	TestTrue(TEXT("other class: unchanged copy"), WrongClass && WrongClass->Muzzle.VFX.IsNull());
+	TestNull(TEXT("null primary"), UTDStatics::MergePresentationWithFallback(nullptr, Ours));
 	return true;
 }
 
