@@ -175,6 +175,24 @@ public:
 		 */
 		int32 Approach = 0;
 		FWaypoint ApproachWp;
+		/** Space pickups (UTDPickupSubsystem) within PickupMarkRange: Type is uint8 ETDPickupType. */
+		struct FPickupMark
+		{
+			uint8 Type = 0;
+			FLinearColor Color = FLinearColor::White;
+			bool bOnScreen = false;
+			FVector2D Pos = FVector2D::ZeroVector;
+			float Angle = 0.f;
+			float Distance = 0.f;
+		};
+		TArray<FPickupMark> Pickups;
+		/** The collect toast ("+HULL", "SHIELD CELL", "POWER READY", "OVERCHARGE"): text, colour, 0..1 age. */
+		FString PickupToast;
+		FLinearColor PickupToastColor = FLinearColor::White;
+		float PickupToast01 = 0.f;
+		/** Overcharge time left 0..1 (the timer ring) and in seconds. */
+		float Overcharge01 = 0.f;
+		float OverchargeSeconds = 0.f;
 		// ---- P2
 		TArray<FMark> Marks;
 		TArray<FWaypoint> Waypoints;
@@ -326,6 +344,9 @@ public:
 	/** The objective whose completion means Cinder's field anchor is down (T5's course). */
 	static inline const FName AnchorObjectiveId = TEXT("Obj_Jammer");
 	static constexpr float ApproachOpenSeconds = 8.f;
+	/** Pickups get a marker within this many cm (800 m); the collect toast lasts PickupToastSeconds. */
+	static constexpr float PickupMarkRange = 80000.f;
+	static constexpr float PickupToastSeconds = 1.4f;
 	/** Where the approach marker points when no ATDDominion is in the world (tests). */
 	TOptional<FVector> ApproachTargetOverride;
 	static constexpr float SlateSeconds = 1.5f;
@@ -428,6 +449,9 @@ private:
 	float CutLeft = 0.f;
 	float NavLeft = 0.f;
 	/** Approach marker: the reveal seen last sample (an edge opens the 8 s "open" state), its countdown, first-sample guard. */
+	/** Pickups: the collected counts last seen (a change = a toast) and the toast's clock. */
+	int32 PickupSeen[4] = { 0, 0, 0, 0 };
+	float PickupToastLeft = 0.f;
 	bool bApproachWasRevealed = false;
 	bool bApproachSeeded = false;
 	float ApproachOpenLeft = 0.f;

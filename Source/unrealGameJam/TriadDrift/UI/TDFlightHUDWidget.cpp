@@ -17,6 +17,7 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 
 namespace TDFlightHUD
 {
@@ -709,6 +710,52 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 	}
 
+	// Space pickups: a marker for each within 800 m, a toast when one is taken, the overcharge timer.
+	View.Pickups.Reset();
+	View.Overcharge01 = View.OverchargeSeconds = 0.f;
+	PickupToastLeft = FMath::Max(0.f, PickupToastLeft - Dt);
+	if (const UTDPickupSubsystem* Pickups = UTDPickupSubsystem::Get(this))
+	{
+		for (const ATDPickup* Pk : Pickups->GetPickups())
+		{
+			if (!IsValid(Pk) || FVector::DistSquared(From, Pk->GetActorLocation()) > FMath::Square(PickupMarkRange))
+			{
+				continue;
+			}
+			FView::FPickupMark& M = View.Pickups.AddDefaulted_GetRef();
+			M.Type = static_cast<uint8>(Pk->GetType());
+			M.Color = ATDPickup::ColorOf(Pk->GetType());
+			FVector2D Dir;
+			M.bOnScreen = Project(Pk->GetActorLocation(), M.Pos, Dir);
+			if (!M.bOnScreen)
+			{
+				M.Pos = AvoidStrip(OnSafeFrame(Dir));
+				M.Angle = FMath::Atan2(Dir.Y, Dir.X);
+			}
+			M.Distance = FVector::Dist(From, Pk->GetActorLocation()) / 100.f;
+		}
+		for (int32 I = 0; I < 4; ++I)
+		{
+			const int32 N = Pickups->GetCollected(static_cast<ETDPickupType>(I));
+			if (N > PickupSeen[I])
+			{
+				const ETDPickupType Type = static_cast<ETDPickupType>(I);
+				View.PickupToast = ATDPickup::WordOf(Type);
+				View.PickupToastColor = ATDPickup::ColorOf(Type);
+				PickupToastLeft = PickupToastSeconds;
+			}
+			PickupSeen[I] = N;
+		}
+		const float Total = Pickups->GetOverchargeSeconds();
+		View.OverchargeSeconds = Pickups->GetOverchargeRemaining();
+		View.Overcharge01 = Total > 0.f ? FMath::Clamp(View.OverchargeSeconds / Total, 0.f, 1.f) : 0.f;
+	}
+	View.PickupToast01 = PickupToastLeft > 0.f ? 1.f - PickupToastLeft / PickupToastSeconds : 0.f;
+	if (PickupToastLeft <= 0.f)
+	{
+		View.PickupToast.Reset();
+	}
+
 	// Navigation pulse: project the corridor; off screen or no view, a generic corridor from under the ship toward the
 	// screen's right third (it only has to read as a sensor flicker).
 	NavLeft = FMath::Max(0.f, NavLeft - Dt);
@@ -1226,6 +1273,56 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		}
 		Rec(TEXT("approach"), At.X - R, At.Y - R, 2.f * R, 2.f * R);
 		Area += 160.f * 60.f;
+	}
+
+	// ---- space pickups within 800 m: a small diamond in the pickup's colour with a dot (on screen: the range under it),
+	// an edge diamond with a pointer off screen. Smaller than an objective waypoint: a reward, not an order.
+	if (!View.bCombatHeld)
+	{
+		for (const FView::FPickupMark& M : View.Pickups)
+		{
+			// No marker on the reticle cluster or over the ship (live: three pickups dead ahead piled their labels onto the
+			// reticle); no range text either: the diamond in its colour is enough, the pickup itself is visible.
+			if (M.bOnScreen && (FVector2D::Distance(M.Pos, C) < 72.f || ShipZone().IsInside(M.Pos)))
+			{
+				continue;
+			}
+			const FLinearColor PkC = M.Color;
+			const float R = M.bOnScreen ? 8.f : 7.f;
+			P.Poly(M.Pos, { { 0, -R }, { R, 0 }, { 0, R }, { -R, 0 }, { 0, -R } }, PkC, 2.f);
+			P.Box(M.Pos.X - 2.f, M.Pos.Y - 2.f, 4.f, 4.f, PkC);
+			if (!M.bOnScreen)
+			{
+				const FVector2D F(FMath::Cos(M.Angle), FMath::Sin(M.Angle));
+				P.Line(M.Pos + F * (R + 2.f), M.Pos + F * (R + 7.f), PkC, 2.f);
+			}
+			Rec(M.bOnScreen ? TEXT("pickup") : TEXT("pickup_edge"), M.Pos.X - R, M.Pos.Y - R, 2.f * R, 2.f * R);
+			Area += 30.f * 30.f;
+		}
+	}
+
+	// ---- overcharge: a thin gold-white ring outside the shield arc running down clockwise, the seconds at its top
+	if (View.Overcharge01 > 0.f)
+	{
+		const FLinearColor Gold = ATDPickup::ColorOf(ETDPickupType::Overcharge);
+		const float RingR = ShieldRadius + 11.f;
+		P.ArcSpan(C, RingR, -PI * .5f, 2.f * PI, Gold.CopyWithNewOpacity(.18f), 2.f);
+		P.ArcSpan(C, RingR, -PI * .5f, 2.f * PI * View.Overcharge01, Gold, 2.5f);
+		P.BackedWords(C.X, C.Y - RingR - 22.f, FString::FromInt(FMath::CeilToInt(View.OverchargeSeconds)), 13, Gold, .5f, 20);
+		Rec(TEXT("overcharge"), C.X - RingR, C.Y - RingR, 2.f * RingR, 2.f * RingR);
+	}
+
+	// ---- the collect toast, just above the squad strip: the pickup's word in its colour, rising a little, then fading
+	if (!View.PickupToast.IsEmpty() && View.Chips.Num() > 0)
+	{
+		const float A = View.PickupToast01;
+		const float Fade = FMath::Clamp((1.f - A) / .3f, 0.f, 1.f);
+		const FVector2D Chip = View.Chips[0].Pos;
+		const float Y = Chip.Y - 40.f - 10.f * A;
+		const FString Text = View.PickupToast == TEXT("OVERCHARGE")
+			? FString::Printf(TEXT("OVERCHARGE  %d s"), FMath::CeilToInt(View.OverchargeSeconds)) : View.PickupToast;
+		P.BackedWords(Chip.X + 6.f, Y, Text, 20, View.PickupToastColor.CopyWithNewOpacity(Fade), 0.f, 60);
+		Rec(TEXT("pickup_toast"), Chip.X, Y - 4.f, 260.f, 32.f);
 	}
 
 	static const TArray<FWaypoint> NoWaypoints;

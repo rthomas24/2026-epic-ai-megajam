@@ -139,6 +139,20 @@ bool FTDPowerReviewRealSwarm::RunTest(const FString& Parameters)
 			NewGroup.Add(HoldStill(TDPowerTest::SpawnEnemyShip(W, TDEnemyIds::ShardFighter, Here + Facing.RotateVector(FVector(0.f, 30000.f, (I - 1.5f) * 700.f)))));
 		}
 		W.Advance(2.f, Step);
+		if (Targeting->GetLockedTargets().Num() < 3)
+		{
+			FVector VL;
+			FRotator VR;
+			PC->PlayerCameraManager->GetCameraViewPoint(VL, VR);
+			FString Angles;
+			for (const TWeakObjectPtr<ATDEnemyShip>& E : OldGroup)
+			{
+				Angles += E.IsValid() ? FString::Printf(TEXT(" %.1f"), Targeting->GetAngleFromView(E->GetActorLocation())) : TEXT(" -");
+			}
+			AddInfo(FString::Printf(TEXT("DIAG%s: locks %d, cone %.1f, angles%s; view rot %s, ship rot %s, view->ship %.0f cm"),
+				*Fps, Targeting->GetLockedTargets().Num(), Targeting->LockConeDeg, *Angles, *VR.ToString(), *Bastion->GetActorRotation().ToString(),
+				FVector::Dist(VL, Bastion->GetActorLocation())));
+		}
 		TestTrue(TEXT("old group painted through the camera") + Fps, Targeting->GetLockedTargets().Num() >= 3);
 
 		// The real ship cruises on: place both groups relative to it now. Old group dead ahead of the old heading,

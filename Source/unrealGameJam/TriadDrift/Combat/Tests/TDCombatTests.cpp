@@ -561,6 +561,30 @@ bool FTDCombatTargetCycle::RunTest(const FString& Parameters)
 	return true;
 }
 
+// A shaking view (the Audition chase camera's sustained shake) over two targets tied for "nearest the centre" must not
+// restart the paint every frame: four targets in the crosshair still lock at the 0.25 s cadence (gating run, lead/int
+// 173a64f: 2 locks in 2 s instead of 3+).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPaintUnderShake, "TriadDrift.Combat.Targeting.PaintKeepsItsCandidateUnderShake", TD_TEST_FLAGS)
+bool FTDCombatPaintUnderShake::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	AActor* Ship = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+	UTDTargetingComponent* Targeting = AddTargeting(Ship);
+	for (int32 i = 0; i < 4; ++i)
+	{
+		SpawnBody(W, ETDTeam::Enemy, FVector(20000.f, (i - 1.5f) * 700.f, 0.f)); // the two middle ones tie at the centre
+	}
+	Targeting->BeginLockPainting();
+	// The view jitters a tenth of a degree left and right every frame: the nearest of the tied pair alternates.
+	for (int32 Frame = 0; Frame < 30; ++Frame) // 1 s at 30 fps
+	{
+		Targeting->SetViewOverride(FVector::ZeroVector, FRotator(0.f, (Frame % 2) ? .1f : -.1f, 0.f));
+		W.Tick(1.f / 30.f);
+	}
+	TestTrue(FString::Printf(TEXT("4 locks in 1 s under shake (got %d)"), Targeting->GetLockedTargets().Num()), Targeting->GetLockedTargets().Num() >= 3);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatMultiLock, "TriadDrift.Combat.Targeting.MultiLockSixAtQuarterSecond", TD_TEST_FLAGS)
 bool FTDCombatMultiLock::RunTest(const FString& Parameters)
 {
