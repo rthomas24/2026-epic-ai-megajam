@@ -866,6 +866,26 @@ bool FTDTravelR3Keys::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSteeringScale, "TriadDrift.Travel.Safety.ActiveSteeringScaleFollowsTheOverrideStack", TD_TEST_FLAGS)
+bool FTDTravelSteeringScale::RunTest(const FString& Parameters)
+{
+	// For T2's ram test: the steering scale actually in force (1 with no override; the top override's otherwise).
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	W.Tick();
+	TestEqual(TEXT("no override: 1"), Move->GetActiveSteeringScale(), 1.f);
+	Ship->SetSpeedOverrideFor(TEXT("Ram"), 33000.f, 0.4f);
+	TestEqual(TEXT("ram: 0.4"), Move->GetActiveSteeringScale(), 0.4f, 0.001f);
+	Ship->SetSpeedOverrideFor(TEXT("Hyperdrive"), 80000.f, 0.f);
+	TestEqual(TEXT("last-in override wins: 0"), Move->GetActiveSteeringScale(), 0.f, 0.001f);
+	Ship->ClearSpeedOverrideFor(TEXT("Hyperdrive"));
+	TestEqual(TEXT("back to the ram's 0.4"), Move->GetActiveSteeringScale(), 0.4f, 0.001f);
+	Ship->ClearSpeedOverrideFor(TEXT("Ram"));
+	TestEqual(TEXT("cleared: 1"), Move->GetActiveSteeringScale(), 1.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
 bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
 {
