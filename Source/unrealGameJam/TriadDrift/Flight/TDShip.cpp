@@ -643,8 +643,23 @@ FQuat ATDShip::ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeco
 	// Bank is measured against a reference "up" that tracks world up (rate-limited, held while the
 	// nose is near vertical), so barrel rolls and loops never make the target jump.
 	const FQuat ShipQuat = GetActorQuat();
-	const FVector Forward = ShipQuat.GetForwardVector();
+	FVector Forward = ShipQuat.GetForwardVector();
 	const FVector ShipUp = ShipQuat.GetUpVector();
+
+	// Drift: yaw partway toward where the ship is actually going (eased), so a boosted drift spin keeps it framed.
+	const float DriftW = CameraTuning.DriftYawFollow * FMath::SmoothStep(0.f, 1.f, DriftCamBlend);
+	if (DriftW > KINDA_SMALL_NUMBER)
+	{
+		const FVector Slide = FVector::VectorPlaneProject(GetVelocity(), ShipUp).GetSafeNormal();
+		if (!Slide.IsNearlyZero())
+		{
+			// Follows the slip up to 90 deg, then back down to 0 at 180: flying backwards the sign of the slip flips,
+			// and a plain clamp would swing the camera from one side to the other in a single frame.
+			const float Raw = TDShipCamera::SignedAngle(Forward, Slide, ShipUp);
+			const float Slip = FMath::Abs(Raw) <= 90.f ? Raw : FMath::Sign(Raw) * (180.f - FMath::Abs(Raw));
+			Forward = TDShipCamera::Rotate(Forward, ShipUp, DriftW * Slip).GetSafeNormal();
+		}
+	}
 
 	FVector Current = TDShipCamera::Perp(InOutRefUp, Forward);
 	FVector Target = FMath::Abs(Forward.Z) < CameraTuning.VerticalHoldLimit ? TDShipCamera::Perp(FVector::UpVector, Forward) : Current;
@@ -713,6 +728,12 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 		SpringArm->TargetArmLength = CameraTuning.ArmLength;
 		SpringArm->SocketOffset = FVector(0.f, 0.f, CameraTuning.Height);
 	}
+
+	// --- Drift blend: in over DriftBlendSeconds while drifting above cruise speed, out on release --------
+	const bool bDriftCam = IsDrifting() && GetVelocity().Size() > ShipMovement->GetCruiseCapSpeed() * CameraTuning.DriftMinSpeedFraction && bPlayerControlled;
+	const float DriftTarget = bDriftCam ? 1.f : 0.f;
+	DriftCamBlend = bSnap ? DriftTarget
+		: FMath::FInterpConstantTo(DriftCamBlend, DriftTarget, DeltaSeconds, 1.f / FMath::Max(CameraTuning.DriftBlendSeconds, 0.01f));
 
 	// --- Arm rotation: ship forward, with only RollFollow of its bank -------------------------------
 	ChaseTargetQuat = ComputeChaseQuat(CameraRefUp, bSnap, DeltaSeconds, CameraRoll);

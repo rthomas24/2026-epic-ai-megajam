@@ -64,6 +64,20 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
 	float LookAheadPitchScale = 0.2f;
 
+	/** While drifting above cruise speed the camera's yaw follows the ship's velocity by this fraction of the slip
+	 *  angle, so a sliding spin keeps the ship on screen. The reticle and the shots stay together (both use this
+	 *  camera); the nose keeps the rest of the slip, so you still fly one way and shoot another. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float DriftYawFollow = 0.4f;
+
+	/** Ease in at drift start and out at release (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float DriftBlendSeconds = 0.3f;
+
+	/** The drift camera works above this fraction of cruise speed (1 = only above cruise). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float DriftMinSpeedFraction = 1.f;
+
 	/** Max distance the location lag may trail the ship (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float LagMaxDistance = 1000.f;
@@ -246,6 +260,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	float GetCameraRoll() const { return CameraRoll; }
 
+	/** How far the drift camera blend is in (0 none .. 1 full DriftYawFollow), before easing. */
+	float GetDriftCameraBlend() const { return DriftCamBlend; }
+
 	const FTDChaseCameraTuning& GetCameraTuning() const { return CameraTuning; }
 
 	virtual void Tick(float DeltaSeconds) override;
@@ -356,5 +373,6 @@ private:
 	FVector CameraRefUp = FVector::ZeroVector;
 	FQuat ChaseTargetQuat = FQuat::Identity;
 	float CameraRoll = 0.f;
+	float DriftCamBlend = 0.f;
 	FVector2D LookAhead = FVector2D::ZeroVector;
 };
