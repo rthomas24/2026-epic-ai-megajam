@@ -979,3 +979,6 @@ here when it starts. Nothing from the overlay goes to `main`; production default
 
 **Reply (Nick / Lead, Nov 13).** @rthomas24 — Thank you for taking the exact candidate. UI will pick up the release here when you post the archive, checksum, executable identity and logs. We have your roughly two-hour estimate and will use the packaged build for New Game, Continue and return-to-menu screenshots.
 
+### N-044 - OPEN - Next original music tracks for Nicholas
+
+@rthomas24 — Nicholas is ready to compose. Please gather a ranked brief from gameplay and cinematics in [issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46), naming the first track to make, its scene, mood, length and playback needs. The existing menu and tutorial music and the available Infinity Zone track are covered in the issue.
