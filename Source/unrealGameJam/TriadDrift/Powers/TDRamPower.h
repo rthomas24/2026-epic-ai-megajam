@@ -90,13 +90,28 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+public:
+	/** Seconds of post-dash invulnerability still to run (tests). */
+	float GetPostDashGrace() const { return PostDashGrace; }
+
 protected:
 	virtual void PlayActivationCues() override { PlayShipCue(0); }
 	virtual bool OnActivate() override;
 	virtual void OnTickActive(float DeltaTime) override;
 	virtual void OnEnd(bool bInterrupted) override;
 	/** Switched away mid-ram: a wind-up is cancelled and a dash ends now (never AI-flown at dash speed). */
-	virtual void OnLostPlayerControl() override { EndPower(true); }
+	/**
+	 * A switch mid-dash ends the ram with no post-dash grace and no end-of-dash renewal: the AI-flown Lancer must not
+	 * stay invulnerable (second review, ENG-10 minor: up to 1.5 s).
+	 */
+	virtual void OnLostPlayerControl() override
+	{
+		bEndingForControlLoss = true;
+		EndPower(true);
+		bEndingForControlLoss = false;
+		PostDashGrace = 0.f;
+	}
+
 
 private:
 	void BeginDash();
@@ -123,6 +138,7 @@ private:
 	FVector DashDirection = FVector::ForwardVector;
 	float DashDistance = 0.f;
 	float PostDashGrace = 0.f;
+	bool bEndingForControlLoss = false;
 	bool bDashStarted = false;
 	bool bStoppedByImpact = false;
 	bool bIgnoringShips = false;

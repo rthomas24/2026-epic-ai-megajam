@@ -31,7 +31,15 @@ public:
 
 	/** True if a ship of ClearanceRadius fits at Location (no world-static geometry). */
 	static bool HasClearance(const UWorld* World, const FVector& Location, float ClearanceRadius);
-	void SetPartner(ATDPortal* InPartner) { Partner = InPartner; }
+	/** Pairing resets the crossing history: a lone portal's stale positions must not teleport a ship that never touched the
+	 *  disc (second review, ENG-09). */
+	void SetPartner(ATDPortal* InPartner)
+	{
+		Partner = InPartner;
+		LastPositions.Reset();
+	}
+	/** Ships whose last position this portal remembers (tests). */
+	int32 GetTrackedCount() const { return LastPositions.Num(); }
 	void Close();
 
 	/**

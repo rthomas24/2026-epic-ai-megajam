@@ -15,6 +15,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
@@ -151,6 +152,9 @@ bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 	}
 	Menu->bExecuteActions = false;
 	TestEqual(TEXT("opens on RESUME"), Menu->GetSelected(), 0);
+	// The difficulty in play (T1's API, read by reflection): a name when it is in this build, else no line.
+	const bool bDifficultyApi = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("GetDifficultyInPlay")) != nullptr;
+	TestEqual(TEXT("difficulty line iff the API is in the build"), !UTDPauseMenuWidget::ReadDifficultyInPlay().IsEmpty(), bDifficultyApi);
 	TestTrue(TEXT("S moves down"), Menu->HandleKey(EKeys::S));
 	TestEqual(TEXT("SETTINGS"), Menu->GetSelected(), 1);
 	Menu->HandleKey(EKeys::Gamepad_DPad_Down);

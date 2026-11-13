@@ -18,6 +18,24 @@
 
 namespace
 {
+	/** Distance from the segment From-To to Actor's bounds box (0 inside). Two closest-point passes (both convex). */
+	float TDRamDistanceSegmentToBounds(const AActor* Actor, const FVector& From, const FVector& To)
+	{
+		FVector Origin, Extent;
+		Actor->GetActorBounds(true, Origin, Extent, false);
+		if (Extent.IsNearlyZero())
+		{
+			return FMath::PointDistToSegment(Actor->GetActorLocation(), From, To);
+		}
+		const FBox Box(Origin - Extent, Origin + Extent);
+		FVector OnSeg = FMath::ClosestPointOnSegment(Origin, From, To);
+		for (int32 Pass = 0; Pass < 2; ++Pass)
+		{
+			OnSeg = FMath::ClosestPointOnSegment(Box.GetClosestPointTo(OnSeg), From, To);
+		}
+		return FMath::Sqrt(Box.ComputeSquaredDistanceToPoint(OnSeg));
+	}
+
 	float TDRamBoundsRadius(const AActor* Actor, FVector& OutCenter)
 	{
 		FVector Extent;
@@ -248,9 +266,10 @@ void UTDRamPower::SweepHits(const FVector& From, const FVector& To)
 			{
 				continue;
 			}
-			FVector Center;
-			const float Radius = TDRamBoundsRadius(Hostile, Center);
-			if (FMath::PointDistToSegment(Center, From, To) <= Reach + Radius)
+			// Distance to the hull's box: passing a carrier's short side no longer "touches" its long axis (second review).
+			FVector Center, Unused;
+			Hostile->GetActorBounds(true, Center, Unused, false);
+			if (TDRamDistanceSegmentToBounds(Hostile, From, To) <= Reach)
 			{
 				Touched.Add({ Hostile, (float)(FVector::DotProduct(Center - From, Seg) / SegLenSq) });
 			}
@@ -307,9 +326,10 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 	if (IsBig(Victim))
 	{
 		// Stop at first contact, not wherever the frame ended (we may be inside the hull by now).
-		FVector OwnerCenter, VictimCenter;
-		const float Reach = TDRamBoundsRadius(Owner, OwnerCenter) + TDRamBoundsRadius(Victim, VictimCenter);
-		const float Back = FMath::Max(0.f, Reach - (float)FVector::Dist(Owner->GetActorLocation(), VictimCenter));
+		FVector OwnerCenter;
+		const float OwnerRadius = TDRamBoundsRadius(Owner, OwnerCenter);
+		const FVector Here = Owner->GetActorLocation();
+		const float Back = FMath::Max(0.f, OwnerRadius - TDRamDistanceSegmentToBounds(Victim, Here, Here)); // to the hull's box
 		if (Back > 0.f)
 		{
 			Owner->SetActorLocation(Owner->GetActorLocation() - Direction * Back);
@@ -391,7 +411,13 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 	}
 	bOwnsOverride = false;
 	bDashStarted = false;
-	// Stay safe while the speed bleeds off (head-on hits at 45 000 cm/s are lethal).
+	// Stay safe while the speed bleeds off (head-on hits at 45 000 cm/s are lethal) - unless the player switched away:
+	// the AI-flown ship gets no grace.
+	if (bEndingForControlLoss)
+	{
+		PostDashGrace = 0.f;
+		return;
+	}
 	PostDashGrace = MaxPostDashInvulnerableSeconds;
 	RefreshInvulnerability(0.2f);
 }

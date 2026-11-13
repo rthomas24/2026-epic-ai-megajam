@@ -418,15 +418,15 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	Spheres(Live, Delayed);
 	TestTrue(TEXT("the ember afterglow is still up at 0.75 s"), Live.Num() >= 1);
 	Spheres(Live, Delayed);
-	W.Advance(0.6f);
+	W.Advance(0.45f);
 	bool bSmokeUp = false;
 	for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
 	{
 		bSmokeUp |= It->IsSmoke() && It->GetActorScale3D().X > 0.f;
 	}
-	TestTrue(TEXT("smoke still hangs at 1.35 s"), bSmokeUp);
-	W.Advance(0.8f);
-	TestEqual(TEXT("all gone by 2.2 s"), Projectiles->GetPlayingFlashCount(), 0);
+	TestTrue(TEXT("smoke still hangs at 1.2 s"), bSmokeUp);
+	W.Advance(0.3f);
+	TestEqual(TEXT("all gone by 1.5 s (fits the squad's 1.5 s death beat)"), Projectiles->GetPlayingFlashCount(), 0);
 
 	// A rocket hitting a wall explodes (more than one flash at the wall), a laser only flashes.
 	const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());

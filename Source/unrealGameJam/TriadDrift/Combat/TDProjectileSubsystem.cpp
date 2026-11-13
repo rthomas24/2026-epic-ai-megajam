@@ -327,7 +327,7 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 	Shock.bFaceCamera = true;
 	Part(Location, R * 2.2f, 0.4f, Shock, ShellCap * 1.6f);
 
-	// 6. Smoke: a dark translucent puff rising after the ember, thinning out over a second and a half.
+	// 6. Smoke: a dark translucent puff rising after the ember, thinning out by 1.4 s (the whole explosion fits the 1.5 s death beat).
 	FTDFlashLook Smoke;
 	Smoke.bSmoke = true;
 	Smoke.Hot = FLinearColor(0.09f, 0.08f, 0.08f);
@@ -336,9 +336,9 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 	Smoke.Opacity = 0.55f;
 	Smoke.GrowFrom = 0.8f;
 	Smoke.GrowTo = 1.7f;
-	Smoke.Delay = 0.45f;
+	Smoke.Delay = 0.35f;
 	Smoke.EdgePower = 1.3f;
-	Part(Location, R * 0.95f, 1.3f, Smoke, ShellCap);
+	Part(Location, R * 0.95f, 1.05f, Smoke, ShellCap);
 
 	// 7. Hull chunks: small pieces in the dying ship's own material, flung out on its velocity, tumbling away.
 	AActor* Hull = FindDyingHull(Location, R);
@@ -363,7 +363,7 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 		if (ATDCombatFlash* Flash = AcquireFlash(Location))
 		{
 			Flash->PlayChunk(Location + Dir * R * 0.25f, HullVelocity + Dir * R * FMath::FRandRange(1.f, 2.5f), R * FMath::FRandRange(0.06f, 0.11f), HullMaterial,
-				FMath::FRandRange(1.f, 1.4f), FVector(FMath::FRandRange(-360.f, 360.f), FMath::FRandRange(-360.f, 360.f), FMath::FRandRange(-360.f, 360.f)));
+				FMath::FRandRange(0.9f, 1.2f), FVector(FMath::FRandRange(-360.f, 360.f), FMath::FRandRange(-360.f, 360.f), FMath::FRandRange(-360.f, 360.f)));
 			++Used;
 		}
 	}
