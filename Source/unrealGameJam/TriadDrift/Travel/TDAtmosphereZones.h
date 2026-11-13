@@ -213,6 +213,9 @@ private:
 	bool bFittedToTerrain = false;
 	TWeakObjectPtr<const class ATDPlanetTerrain> FittedTerrain;
 	float TerrainCoreHalf = 0.f;
+	/** The rig's original ceiling height above the zone floor (cm), kept when the zone grows over the terrain:
+	 *  once the exit is open the climb-out triggers this high above the ground under the ship (review m6). */
+	float ExitAltitudeAboveGround = -1.f;
 	void KeepAboveFarGround(class ATDShip* Ship) const;
 	float TerrainPoll = 0.f;
 	bool bExitOverride = false;

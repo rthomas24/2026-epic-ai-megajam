@@ -39,6 +39,11 @@ bool FTDShipExhaustNozzles::RunTest(const FString& Parameters)
 	Ship->GetEngineNozzles(Nozzles);
 	TestEqual(TEXT("four nozzle sockets: four exhausts"), Nozzles.Num(), 4);
 	TestTrue(TEXT("in socket order"), Nozzles.Num() == 4 && Nozzles[0].Value == FName(TEXT("Engine_0")) && Nozzles[3].Value == FName(TEXT("Engine_3")));
+	TArray<FName> Sockets;
+	ATDShip::GetNozzleSockets(Ship->GetHullMesh(), Sockets);
+	TestEqual(TEXT("the shared static scan finds the same four"), Sockets.Num(), 4);
+	ATDShip::GetNozzleSockets(nullptr, Sockets);
+	TestEqual(TEXT("... and nothing for no mesh"), Sockets.Num(), 0);
 
 	// The parameters the exhaust is fed: Throttle 0..1 against the cruise cap, Boost while boosting.
 	Ship->SetPlayerControlled(true);

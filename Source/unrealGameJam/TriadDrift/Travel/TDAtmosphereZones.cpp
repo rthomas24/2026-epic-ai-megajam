@@ -374,6 +374,10 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 		}
 	}
 	FBox Box = GetZoneBox();
+	if (ExitAltitudeAboveGround < 0.f)
+	{
+		ExitAltitudeAboveGround = Box.Max.Z - Box.Min.Z; // the take-off climb stays as it was before the terrain
+	}
 	Box.Min.X = FMath::Min(Box.Min.X, O.X - Half);
 	Box.Min.Y = FMath::Min(Box.Min.Y, O.Y - Half);
 	Box.Max.X = FMath::Max(Box.Max.X, O.X + Half);
@@ -450,7 +454,17 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		}
 		const bool bLanding = Ship->GetLanding() && Ship->GetLanding()->IsBusy();
 		const float Z = Ship->GetActorLocation().Z;
-		if (bExitOpen && !bLanding && Z >= Box.Max.Z + ExitHeightAboveCeiling)
+		// Over generated terrain the hard ceiling clears the highest peak, so the exit is a climb to a fixed height
+		// above the ground under the ship instead (the take-off climb stays as long as before the terrain).
+		float ExitZ = Box.Max.Z + ExitHeightAboveCeiling;
+		if (const ATDPlanetTerrain* Terrain = FittedTerrain.Get())
+		{
+			if (ExitAltitudeAboveGround > 0.f)
+			{
+				ExitZ = FMath::Min(ExitZ, Terrain->GetHeightAt(Ship->GetActorLocation()) + ExitAltitudeAboveGround + ExitHeightAboveCeiling);
+			}
+		}
+		if (bExitOpen && !bLanding && Z >= ExitZ)
 		{
 			// Latched only on a successful request (review minor 6); a refused request retries next frame.
 			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
