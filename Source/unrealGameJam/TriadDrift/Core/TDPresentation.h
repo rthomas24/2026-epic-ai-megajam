@@ -598,6 +598,15 @@ public:
 	 * Director's Cut and progress stings (optional, 2D): the scene slate, the "CUT!" call, slow motion in and out
 	 * for a money shot, an objective completed. Silent when unset.
 	 */
+	/**
+	 * N-038: Nick's widget for the Director's Cut cards (switch cut, pilot name card, scene / take slate, "CUT!",
+	 * money-shot letterbox). When set, the director keeps all timing and state and only its fallback drawing yields;
+	 * the widget reads UTDDirectorSubsystem::GetDirectorCards (BlueprintPure, an FTDDirectorCards struct) and binds
+	 * OnDirectorCardsChanged. Created by the director for the local player, hit-test invisible, gone with the world.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftClassPtr<UUserWidget> DirectorWidgetClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;
 
