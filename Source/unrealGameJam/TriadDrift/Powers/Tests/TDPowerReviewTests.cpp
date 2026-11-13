@@ -238,4 +238,37 @@ bool FTDPowerAuditGaps::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** ENG-10: Lancer steers at 40% while dashing (T1's GetActiveSteeringScale), and full steering comes back after. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPowerRamSteering, "TriadDrift.Powers.Review.RamSteersAtFortyPercent", TD_TEST_FLAGS)
+bool FTDPowerRamSteering::RunTest(const FString& Parameters)
+{
+	for (const float Step : TDPowerTest::kPowerFrameSteps)
+	{
+		TDPowerTest::FScopedPowerFrameStep StepScope(Step);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FTDTestWorld W;
+		ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
+		Lancer->SetTeam(ETDTeam::Player);
+		UTDRamPower* Ram = TDPowerTest::AddPower<UTDRamPower>(Lancer);
+		const UTDShipMovementComponent* Move = Lancer->GetShipMovement();
+		TestEqual(TEXT("full steering before") + Fps, Move->GetActiveSteeringScale(), 1.f);
+		TestTrue(TEXT("ram starts") + Fps, Ram->TryActivate());
+		bool bDashed = false;
+		float DashSteering = -1.f;
+		for (float T = 0.f; T < 1.f && !bDashed; T += Step)
+		{
+			W.Tick(Step);
+			bDashed = Ram->IsDashing();
+		}
+		DashSteering = Move->GetActiveSteeringScale();
+		TestTrue(TEXT("dashing") + Fps, bDashed);
+		TestEqual(TEXT("40% steering during the dash") + Fps, DashSteering, Ram->SteeringScale, 0.001f);
+		TestEqual(TEXT("the spec's 40%") + Fps, Ram->SteeringScale, 0.4f, 0.001f);
+		W.Advance(2.f, Step);
+		TestFalse(TEXT("dash over") + Fps, Ram->IsPowerActive());
+		TestEqual(TEXT("full steering back") + Fps, Move->GetActiveSteeringScale(), 1.f);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
