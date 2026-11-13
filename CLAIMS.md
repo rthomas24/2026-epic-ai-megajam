@@ -52,6 +52,8 @@ PlasmaPistol03, ArmoredCombatTruck, ArmoredTechCase, AuroraLandingPad, AzureRail
 
 Lead reserves only Content/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_Drop38_01.uasset and Content/TriadDrift/Presentation/DA_UI_Style.uasset in Worktrees/tutorial-music-drop38 on nick/tutorial-music-drop38, based on the existing PR11 listening candidate 6afb4b4a. Publish the exact reloaded Audio package bytes for engineering playback. Nicholas retains listening approval. No merge or gameplay-source change is assigned here.
 
+Subsequent task-specific instructions from Nick. Audio keeps tutorial music and capture priority. UI may prepare an opt-in camera review in ArtSource/UI/TriadHUD/Unreal/CameraFeel01/** on its HUD branch. T1 owns the implementation. Environment owns ArtSource/VFX/CombatReadability01/AirSlam01/** in environment-vfx for a source preview of one landing cue while Ryan confirms the native handoff. Hero, Combat and Verdance stay parked. The two intake specialists resume the existing Intake02 and Intake03 paths, protected sources and per-source transfer split listed above. The private manager owns its existing guarded runner and freeze for the required explicit Unreal port 8026. First queued native import is NeonVoidCruiser. Fresh grants serialize native runs around Audio. No production asset replacement or main intake merge.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
