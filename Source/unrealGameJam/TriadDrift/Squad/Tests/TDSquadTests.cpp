@@ -2285,7 +2285,7 @@ bool FTDSquadPromptOrder::RunTest(const FString& Parameters)
 	TestTrue(TEXT("no hint yet: empty"), Squad->GetInteractPrompt().IsEmpty());
 
 	UTDEventBus::Get(W.GetWorld())->BroadcastWaveStarted(1, 0.2f);
-	for (float T = 0.f; T < 4.f && Hints->GetCurrentHint() == ETDHint::None; T += 1.f / 60.f)
+	for (float T = 0.f; T < 12.f && Hints->GetCurrentHint() == ETDHint::None; T += 1.f / 60.f) // after the wave 1 hail
 	{
 		W.Tick();
 	}

@@ -560,7 +560,7 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	}
 	auto WaitFor = [&](ETDHint Hint)
 	{
-		for (float T = 0.f; T < 5.f && !(Hints->GetCurrentHint() == Hint && Hints->GetCurrentHintState() == ETDHintState::Showing); T += 1.f / 60.f)
+		for (float T = 0.f; T < 12.f && !(Hints->GetCurrentHint() == Hint && Hints->GetCurrentHintState() == ETDHintState::Showing); T += 1.f / 60.f) // T3: the wave 1 hail holds the first hint
 		{
 			W.Tick();
 		}
