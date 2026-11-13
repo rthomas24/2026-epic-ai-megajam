@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "Camera/PlayerCameraManager.h"
+#include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -82,6 +83,20 @@ namespace TDFlightHUD
 			const FSlateFontInfo F = Font(Face, Size, Tracking);
 			const float W = Align > 0.f ? Measure(S, Font(Face, Size, Tracking)) : 0.f;
 			FSlateDrawElement::MakeText(List, Layer + 2, Geo({ X - W * Align, Y }, { 1, 1 }), S, F, ESlateDrawEffect::None, C);
+		}
+		/** The one backing style for text over a bright sky (N-037, Lead): #0A0F1C at this opacity, tight around the text. */
+		static constexpr float BackingOpacity = .62f;
+		/** Words on a tight dark plate (small readouts that cross bright planet rings: the range under a bracket). */
+		void BackedWords(float X, float Y, const FString& S, int32 Size, FLinearColor C, float Align = 0.f, int32 Tracking = 20) const
+		{
+			float W = Measure(S, Font("Bold", Size, Tracking));
+			if (W <= 0.f)
+			{
+				W = S.Len() * Size * .62f; // headless: no font measure; an estimate keeps the plate sane
+			}
+			const float Left = X - W * Align;
+			Plate(Left - 5.f, Y - 1.f, W + 10.f, Size + 6.f, 4.f, T::Plate().CopyWithNewOpacity(BackingOpacity));
+			Words(Left, Y, S, Size, C, "Bold", 0.f, Tracking);
 		}
 		void Poly(const FVector2D& At, std::initializer_list<FVector2D> Local, FLinearColor C, float Width, float Size = 1.f) const
 		{
@@ -228,6 +243,11 @@ void UTDFlightHUDWidget::NativeDestruct()
 		PC->OnHyperdriveInput.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHyperdriveInput);
 	}
 	BoundPC.Reset();
+	if (UTDEventBus* Bus = BoundBus.Get())
+	{
+		Bus->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+	}
+	BoundBus.Reset();
 	Super::NativeDestruct();
 }
 
@@ -246,6 +266,42 @@ void UTDFlightHUDWidget::BindController()
 	if (PC)
 	{
 		PC->OnHyperdriveInput.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleHyperdriveInput);
+	}
+}
+
+void UTDFlightHUDWidget::BindBus()
+{
+	UTDEventBus* Bus = UTDEventBus::Get(this);
+	if (Bus == BoundBus.Get())
+	{
+		return;
+	}
+	if (UTDEventBus* Old = BoundBus.Get())
+	{
+		Old->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+	}
+	BoundBus = Bus;
+	if (Bus)
+	{
+		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+	}
+}
+
+void UTDFlightHUDWidget::HandleHitConfirmed(AActor* Target, bool bKill)
+{
+	if (bKill)
+	{
+		KillLeft = KillMarkSeconds;
+		HitLeft = 0.f;
+		if (Target)
+		{
+			KillWorld = Target->GetActorLocation();
+			KillAtLeft = KillAtTargetSeconds;
+		}
+	}
+	else if (KillLeft <= 0.f)
+	{
+		HitLeft = HitMarkSeconds; // a hit never cuts a kill X short
 	}
 }
 
@@ -477,6 +533,29 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 	}
 
+	// Objective waypoints (review M3): planets, gates, Dominion generators, the landing pad on a 16 km planet.
+	View.Waypoints.Reset();
+	const APawn* Me = PC ? PC->GetPawn() : nullptr;
+	const FVector From = Me ? Me->GetActorLocation() : ViewLoc;
+	for (const AActor* Marker : Data.GetObjectiveMarkers())
+	{
+		if (!IsValid(Marker) || Marker == Me)
+		{
+			continue;
+		}
+		FWaypoint& Wp = View.Waypoints.AddDefaulted_GetRef();
+		FVector2D Dir;
+		Wp.bOnScreen = Project(Marker->GetActorLocation(), Wp.Pos, Dir);
+		if (!Wp.bOnScreen)
+		{
+			Wp.Pos = AvoidStrip(OnSafeFrame(Dir));
+			Wp.Angle = FMath::Atan2(Dir.Y, Dir.X);
+		}
+		Wp.Distance = FVector::Dist(From, Marker->GetActorLocation()) / 100.f;
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(Marker);
+		Wp.Health = Health && Health->IsAlive() ? Health->GetHull01() : -1.f;
+	}
+
 	// Lead indicator (only with a current target).
 	FVector LeadWorld;
 	FVector2D LeadDir;
@@ -583,6 +662,16 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	StrikePulseLeft = FMath::Max(0.f, StrikePulseLeft - Dt);
 	View.SwitchStrikePulse = StrikePulseLeft > 0.f ? 1.f - StrikePulseLeft / StrikePulseSeconds : 0.f;
 	View.Focus = TDFlightHUD::Clamp01(Data.GetFocusRemaining01());
+
+	// Hit feel: the reticle tick / kill X, and the kill X on the victim's last spot (readable at range).
+	HitLeft = FMath::Max(0.f, HitLeft - Dt);
+	KillLeft = FMath::Max(0.f, KillLeft - Dt);
+	KillAtLeft = FMath::Max(0.f, KillAtLeft - Dt);
+	View.HitMark = HitLeft > 0.f ? 1.f - HitLeft / HitMarkSeconds : 0.f;
+	View.KillMark = KillLeft > 0.f ? 1.f - KillLeft / KillMarkSeconds : 0.f;
+	View.KillAtTarget = KillAtLeft > 0.f ? 1.f - KillAtLeft / KillAtTargetSeconds : 0.f;
+	FVector2D KillDir;
+	View.bKillAtTarget = KillAtLeft > 0.f && Project(KillWorld, View.KillPos, KillDir);
 	View.Altitude = Data.GetAltitude();
 }
 
@@ -652,6 +741,7 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 		LastFlown = Flown->Ship;
 	}
 	BindController();
+	BindBus();
 	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
@@ -801,11 +891,14 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			{
 				P.Bar(M.Pos.X - H, M.Pos.Y - H - 10.f, M.Size, 4.f, M.Health, Enemy, 1.f);
 			}
-			P.Words(M.Pos.X, M.Pos.Y + H + 4.f, FString::Printf(TEXT("%.0f m"), M.Distance), 14, T::Neutral(), "Bold", .5f, 20);
+			// The range on a tight dark plate: it crossed bright planet rings with a weak edge (N-037).
+			P.BackedWords(M.Pos.X, M.Pos.Y + H + 5.f, FString::Printf(TEXT("%.0f m"), M.Distance), 14, T::Neutral(), .5f, 20);
 			if (M.bLocked)
 			{
-				P.Poly(M.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, T::Warning(), 2.f);
-				P.Words(M.Pos.X + H + 6.f, M.Pos.Y - 9.f, TEXT("LOCK"), 14, T::Warning(), "Bold", 0.f, 40);
+				// The selected lock reads as the selected one (N-037): diamond and LOCK in the flown ship's colour, LOCK on
+				// a plate; other locks are small half-alpha amber diamonds.
+				P.Poly(M.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Accent, 2.5f);
+				P.BackedWords(M.Pos.X + H + 8.f, M.Pos.Y - H - 2.f, TEXT("LOCK"), 14, Accent, 0.f, 40);
 			}
 			if (M.bFocus)
 			{
@@ -823,13 +916,63 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.Poly(Tick, { { -7, -6 }, { 7, -6 }, { 0, 6 }, { -7, -6 } }, Enemy.CopyWithNewOpacity(.9f), 2.f);
 		if (M.bLocked)
 		{
-			P.Poly(M.Pos, { { 0, -10 }, { 10, 0 }, { 0, 10 }, { -10, 0 }, { 0, -10 } }, T::Warning(), 2.f);
+			P.Poly(M.Pos, { { 0, -6 }, { 6, 0 }, { 0, 6 }, { -6, 0 }, { 0, -6 } }, T::Warning().CopyWithNewOpacity(.5f), 1.5f);
 		}
 		if (M.bFocus)
 		{
 			P.Line(Tick + FVector2D(-6, -14), Tick + FVector2D(0, -10), T::Warning(), 2.f);
 			P.Line(Tick + FVector2D(0, -10), Tick + FVector2D(6, -14), T::Warning(), 2.f);
 		}
+	}
+	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
+	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
+	for (const FWaypoint& Wp : View.Waypoints)
+	{
+		const FLinearColor Way = T::Neutral();
+		if (Wp.bOnScreen)
+		{
+			P.Poly(Wp.Pos, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
+			P.Box(Wp.Pos.X - 1.5f, Wp.Pos.Y - 1.5f, 3.f, 3.f, Way);
+			P.BackedWords(Wp.Pos.X, Wp.Pos.Y + 16.f, Range(Wp.Distance), 14, Way, .5f, 20);
+			if (Wp.Health >= 0.f)
+			{
+				P.Bar(Wp.Pos.X - 24.f, Wp.Pos.Y - 22.f, 48.f, 4.f, Wp.Health, T::Danger(), 1.f);
+			}
+			Area += 60.f * 60.f;
+		}
+		else
+		{
+			// An edge diamond with a pointer notch toward the waypoint, and the range beside it.
+			const FVector2D F(FMath::Cos(Wp.Angle), FMath::Sin(Wp.Angle));
+			P.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Way, 2.5f);
+			P.Line(Wp.Pos + F * 11.f, Wp.Pos + F * 17.f, Way, 2.5f);
+			const FVector2D Label = Wp.Pos - F * 30.f;
+			P.BackedWords(Label.X, Label.Y - 8.f, Range(Wp.Distance), 14, Way, .5f, 20);
+			Area += 70.f * 40.f;
+		}
+	}
+
+	// ---- hit feel: a white tick around the reticle per hit; a bigger red X on a kill, and one on the victim's spot
+	auto Cross = [&P](const FVector2D& At, float Inner, float Outer, FLinearColor Color, float Width)
+	{
+		for (const FVector2D D : { FVector2D(1, 1), FVector2D(-1, 1), FVector2D(1, -1), FVector2D(-1, -1) })
+		{
+			const FVector2D N = D.GetSafeNormal();
+			P.Line(At + N * Inner, At + N * Outer, Color, Width);
+		}
+	};
+	if (View.KillMark > 0.f)
+	{
+		const float Pop = 1.f + .35f * FMath::Sin(FMath::Min(View.KillMark * 3.f, 1.f) * PI); // pops out, settles
+		Cross(C, 10.f * Pop, 24.f * Pop, T::Danger().CopyWithNewOpacity(1.f - View.KillMark * View.KillMark), 3.f);
+	}
+	else if (View.HitMark > 0.f)
+	{
+		Cross(C, 9.f, 17.f, T::Neutral().CopyWithNewOpacity(1.f - View.HitMark), 2.f);
+	}
+	if (View.bKillAtTarget)
+	{
+		Cross(View.KillPos, 0.f, 16.f + 10.f * View.KillAtTarget, T::Danger().CopyWithNewOpacity(1.f - View.KillAtTarget), 3.f);
 	}
 	if (View.bHasLead)
 	{
@@ -985,7 +1128,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const float O = Chip.bActive ? 1.f : .72f;
 		const float X = Chip.Pos.X, Y = Chip.Pos.Y, W = Chip.Size.X, H = Chip.Size.Y;
 		const float S = StripScale;
-		P.Plate(X, Y, W, H, 6.f * S, T::Plate().CopyWithNewOpacity(.62f));
+		// The shared backing, a step darker on wingman chips (their contents sit at 72%; they faded into bright nebula).
+		P.Plate(X, Y, W, H, 6.f * S, T::Plate().CopyWithNewOpacity(Chip.bActive ? FPaint::BackingOpacity : FPaint::BackingOpacity + .12f));
 		if (Chip.bActive)
 		{
 			P.Outline(X, Y, W, H, 6.f * S, 1.5f, Ship.CopyWithNewOpacity(.9f));
@@ -1062,8 +1206,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const float H = FMath::Lerp(ObjectiveHeight, ObjectiveExpandedHeight, E);
 		const float X = CenterX - W * .5f, Y = SafeY;
 		Area += W * H;
-		P.Plate(X, Y, W, H, 14.f, T::Plate().CopyWithNewOpacity(FMath::Lerp(.45f, .7f, E)));
-		const float TextO = FMath::Lerp(.7f, 1.f, E);
+		// The shared backing (was 45%: low contrast on bright nebula, Lead + N-037); text up to 85% collapsed.
+		P.Plate(X, Y, W, H, 14.f, T::Plate().CopyWithNewOpacity(FMath::Lerp(FPaint::BackingOpacity, .75f, E)));
+		const float TextO = FMath::Lerp(.85f, 1.f, E);
 		const FVector2D Dia(X + 18.f, Y + FMath::Lerp(14.f, 26.f, E)); // centred on the 17 px line, then on the 28 px title
 		P.Poly(Dia, { { 0, -6 }, { 6, 0 }, { 0, 6 }, { -6, 0 }, { 0, -6 } }, T::Neutral().CopyWithNewOpacity(TextO), 2.f);
 		if (E < .5f)

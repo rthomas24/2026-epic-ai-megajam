@@ -392,6 +392,14 @@ void UTDUIHostSubsystem::HandleHitConfirmed(AActor* Target, bool bKill)
 	{
 		return;
 	}
+	// Rapid fire would play the hit tick every frame: at most one per HitSoundMinInterval (real time). Kills always play.
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetRealTimeSeconds() : 0.0;
+	if (!bKill && Now - LastHitSoundTime < HitSoundMinInterval)
+	{
+		++HitSoundsThrottled;
+		return;
+	}
 	const FTDFXCue& Cue = bKill ? Style->KillConfirm : Style->HitConfirm;
 	USoundBase* Sound = Cue.Sound.IsNull() ? nullptr : Cue.Sound.LoadSynchronous();
 	if (!Sound)
@@ -400,6 +408,10 @@ void UTDUIHostSubsystem::HandleHitConfirmed(AActor* Target, bool bKill)
 	}
 	UGameplayStatics::PlaySound2D(this, Sound); // 2D, no overrides: the asset's class, volume and concurrency apply
 	++(bKill ? KillSoundsPlayed : HitSoundsPlayed);
+	if (!bKill)
+	{
+		LastHitSoundTime = Now;
+	}
 }
 
 void UTDUIHostSubsystem::HandlePauseChanged(bool bPaused)

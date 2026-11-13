@@ -88,6 +88,18 @@ public:
 		float Distance = 0.f;
 	};
 
+	/** An objective waypoint (planet, gate, generator, landing pad): a white diamond on screen, an edge diamond off screen. */
+	struct FWaypoint
+	{
+		bool bOnScreen = false;
+		FVector2D Pos = FVector2D::ZeroVector;
+		float Angle = 0.f;
+		/** Metres. */
+		float Distance = 0.f;
+		/** 0..1 when the marker has health (a Dominion generator), else -1. */
+		float Health = -1.f;
+	};
+
 	/** P2: a wingman's arrow (off screen only, hollow chevron in its colour; pulses in trouble). */
 	struct FWingArrow
 	{
@@ -113,6 +125,7 @@ public:
 	{
 		// ---- P2
 		TArray<FMark> Marks;
+		TArray<FWaypoint> Waypoints;
 		bool bHasLead = false;
 		FVector2D Lead = FVector2D::ZeroVector;
 		TArray<FWingArrow> Wings;
@@ -146,6 +159,12 @@ public:
 		float SwitchStrikePulse = 0.f;
 		/** A focus-fire order: 1 when given, draining to 0. */
 		float Focus = 0.f;
+		/** Hit feel: 0..1 through the reticle hit tick / kill X (0 when idle), and the kill X at the victim's spot. */
+		float HitMark = 0.f;
+		float KillMark = 0.f;
+		bool bKillAtTarget = false;
+		FVector2D KillPos = FVector2D::ZeroVector;
+		float KillAtTarget = 0.f;
 		/** Metres, -1 when not in atmosphere. */
 		float Altitude = -1.f;
 		/** The flown ship's ability (E / Y), second power (Bastion's dome, hold Q) and secondary ammo. */
@@ -208,6 +227,14 @@ public:
 	UFUNCTION()
 	void HandleHyperdriveInput(bool bHeld);
 
+	/** The event bus's OnHitConfirmed (the player's hits): the reticle tick, or on a kill the X there and on the victim. */
+	UFUNCTION()
+	void HandleHitConfirmed(AActor* Target, bool bKill);
+
+	static constexpr float HitMarkSeconds = .15f;
+	static constexpr float KillMarkSeconds = .35f;
+	static constexpr float KillAtTargetSeconds = .6f;
+
 	// Surfaces this widget draws, so the dev HUD stops drawing them (UTDUIHostSubsystem reads these by name). Subtitles
 	// and the pause line stay with the dev HUD / pause screen.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
@@ -224,6 +251,8 @@ public:
 	bool bCoversBoundaryWarning = true;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
 	bool bCoversCombatStates = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversObjectiveMarkers = true;
 
 	static constexpr float StrikePulseSeconds = .35f;
 
@@ -284,6 +313,12 @@ private:
 	float BlockedLeft = 0.f;
 	float HintDoneAge = 0.f;
 	float StrikePulseLeft = 0.f;
+	float HitLeft = 0.f;
+	float KillLeft = 0.f;
+	float KillAtLeft = 0.f;
+	FVector KillWorld = FVector::ZeroVector;
+	TWeakObjectPtr<class UTDEventBus> BoundBus;
+	void BindBus();
 	/** Reads T3's hint getters (UTDHintComponent::GetHintKey / Action / Step / State) by reflection; false when absent. */
 	bool ReadHintCard();
 	float BoostFullFor = 1e6f;

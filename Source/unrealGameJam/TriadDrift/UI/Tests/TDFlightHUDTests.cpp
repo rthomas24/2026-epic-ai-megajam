@@ -483,6 +483,29 @@ bool FTDFlightHUDCombatStates::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Hit feel at the reticle: a hit tick, a kill X that a later hit never cuts short, both timing out.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHitMarks, "TriadDrift.UI.FlightHUD.HitAndKillMarkers", TD_TEST_FLAGS)
+bool FTDFlightHUDHitMarks::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("idle: no marks"), F.V().HitMark + F.V().KillMark, 0.f);
+	F.HUD->HandleHitConfirmed(nullptr, false);
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("hit: tick showing"), F.V().HitMark > 0.f && F.V().HitMark < 1.f);
+	F.HUD->Sample(UTDFlightHUDWidget::HitMarkSeconds);
+	TestEqual(TEXT("hit tick gone after 0.15 s"), F.V().HitMark, 0.f);
+	F.HUD->HandleHitConfirmed(F.Src, true);
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("kill: X showing"), F.V().KillMark > 0.f);
+	F.HUD->HandleHitConfirmed(nullptr, false);
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("a hit during the kill X does not replace it"), F.V().KillMark > 0.f && F.V().HitMark == 0.f);
+	F.HUD->Sample(UTDFlightHUDWidget::KillMarkSeconds);
+	TestEqual(TEXT("kill X gone after 0.35 s"), F.V().KillMark, 0.f);
+	return true;
+}
+
 // The host's cover answer both ways: the engineering HUD claims CombatStates (the dev HUD's line goes), Nick's does not.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCombatCover, "TriadDrift.UI.FlightHUD.P2.CombatStatesCoverBothWays", TD_TEST_FLAGS)
 bool FTDFlightHUDCombatCover::RunTest(const FString& Parameters)
@@ -575,6 +598,9 @@ bool FTDFlightHUDPaints::RunTest(const FString& Parameters)
 	F.Src->Card(ETDShipId::Lancer).Boost01 = .5f;
 	F.Src->Card(ETDShipId::Lancer).SecondaryAmmo = 4;
 	F.HUD->HandleHyperdriveInput(true);
+	F.HUD->HandleHitConfirmed(F.Src, true); // the kill X
+	F.Src->SwitchStrike = 1.f;				// the Switch Strike burst
+	F.Src->Focus = .5f;
 
 	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
 	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));

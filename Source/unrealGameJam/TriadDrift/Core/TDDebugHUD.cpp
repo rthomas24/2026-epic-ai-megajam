@@ -176,6 +176,11 @@ void ATDDebugHUD::DrawHUD()
 		{
 			DrawWingmen();
 		}
+		// Objective markers (ENG-36 review M3): drawn here unless the shown HUD claims them; the text is the HUD's own.
+		if (!Covered(ETDHUDSurface::ObjectiveMarkers))
+		{
+			DrawObjective(false);
+		}
 		if (!Covered(ETDHUDSurface::DamageIndicators))
 		{
 			DrawDamageIndicators();
@@ -608,7 +613,7 @@ void ATDDebugHUD::DrawTargets()
 
 // The objective line (top centre) and where to go: a diamond with the distance on each objective
 // marker in view, an edge arrow toward each one out of view. Works in space and on foot.
-void ATDDebugHUD::DrawObjective()
+void ATDDebugHUD::DrawObjective(bool bText)
 {
 	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
 	const APawn* Pawn = GetOwningPawn();
@@ -618,7 +623,7 @@ void ATDDebugHUD::DrawObjective()
 	}
 	const FLinearColor ColorObjective(1.f, 0.78f, 0.2f);
 
-	const FString Objective = Data->GetObjectiveText().ToString();
+	const FString Objective = bText ? Data->GetObjectiveText().ToString() : FString();
 	if (!Objective.IsEmpty())
 	{
 		float W = 0.f, H = 0.f;
