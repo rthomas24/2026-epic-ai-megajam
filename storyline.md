@@ -218,3 +218,203 @@ hint, a substitute objective or a reset); the "Don't-" audio is not repeated.
   today the tutorial would teach the signature powers (portal blaster, afterburner ram, missile swarm and dome).
 - The Verdance transition is the hyperdrive jump, then the planetary descent (ENG-38).
 
+## 14. Gameplay Sequence 02: *Verdance Arrival* (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Gameplay_Sequence_02_Verdance_Arrival.docx`. Status in the document: "proposed, not
+verified implementation". It sits between *Aftermath* (§12) and Cinematic 03 (§15): it starts as Triad leaves the
+Dominion perimeter for Verdance and ends when the team reaches the outpost's **geological survey terminal**.
+**Suggested length: 10-15 minutes, "subject to playtesting".**
+**Player goal:** reach Verdance, find the missing research outpost, recover evidence of why Dominion machines have
+landed nearby. "Reconnaissance under pressure": not yet a mission to destroy the enemy or obtain the Origin Core.
+
+| Phase | Player does | Ends when | Story beat / draft line |
+|---|---|---|---|
+| 1 Orbital approach | Flies the Verdance approach corridor and scans hostile traffic; most drones ignore Triad and ferry equipment to the surface | The insertion sector is reached and **one convoy is scanned** | Orbital clue: the craft carry scanner assemblies and extraction equipment, not troop columns; Kato notes a pattern but cannot infer the target. WREN: "That's a lot of machines for a geology expedition." |
+| 2 Secure landing | Evades or defeats a small interception force while protecting a safe landing path | The landing zone is clear and the squad reaches the drop point (**checkpoint**) | COMMAND: "The outpost went dark twelve hours ago. Find its survey archive. Do not destroy the facility." (the document does not place this line in a phase; put here by us) |
+| 3 Jungle traverse | Moves through bioluminescent terrain using cover and navigation markers; meets survey beacons and limited Dominion ground patrols | The outpost perimeter is found and the unusual digging is identified (**checkpoint** before the perimeter) | Ground clue: instruments placed over a narrow subsurface corridor, measuring, not stripping resources. KATO: "They're concentrating their scans along one underground line. That's not random." Quiet unease: a sensor marker briefly labels a squad transponder **"verified"**, then resets to **"unknown"**; nobody explains it |
+| 4 Reach outpost | Disables or bypasses the perimeter defences; finds lights and equipment on and nobody answering | The facility is entered and the geological-data console is activated → Cinematic 03 | Outpost arrival: the station looks maintained, no obvious battlefield; why the researchers are gone stays unresolved. MOSS: "Lights are on. Doors are open. Nobody's answering. I don't like this." |
+
+Objective text on screen throughout: **"Investigate the silent research outpost."**
+
+**Rules from the proposal:** a modest orbital encounter and a compact ground route if production is constrained; a
+seamless flight-to-ground transition is optional (a short skippable insertion beat is acceptable); do not require ship
+switching, co-op, advanced stealth or unique traversal abilities unless already confirmed working; solo play must not
+depend on three humans; the "verified" marker must not name future Triad; Cinematic 03 triggers when all squad members
+are at the console, or when the local player interacts in solo mode; the positions of the terminal and of the dormant
+drone are kept for the return to gameplay.
+
+**How it maps to the game today:**
+- **Exists:** the hyperdrive jump to Verdance orbit and the gate (ENG-15, 16); the descent and landing (ENG-20, with
+  ENG-38 replacing the arrival, so the "optional" seamless transition is already planned and better than asked);
+  wingmen landing beside the player; the on-foot character, the blade and the crew enemies (ENG-21, 22, 23); route
+  posts, markers, objective lines, interactables, encounter volumes and scene checkpoints with "CUT!" retakes
+  (ENG-24, 25); transmissions by id. The game is solo with AI wingmen, which is what the document asks to be safe for.
+- **Does not match:** `storyline.md` §5 act 2 and ENG-25 have a **wrecked** research site, a **signal-analysis
+  device** (objective 1, unlocks Gravity Well) and a **relay** that plays **voices** (objective 2, unlocks Cloak).
+  This document has an **intact, silent** outpost and a **geological survey terminal**, and names no device, relay,
+  voices or ability rewards. See the open questions.
+- **New work if adopted:** an orbital beat with drone convoys that ignore the squad, and a "scan" (no scan action
+  exists; the nearest thing is holding a lock on a convoy: *our inference*) (T4, with T2 for the prompt); a small
+  interception force over the landing zone (T4); the outpost as a place: perimeter defences to disable or bypass, an
+  interior room, the console (T5, builders / Grok Bot for the set); the survey-instrument and dig dressing along the
+  route (builders); the "verified / unknown" marker flicker (T2); the lines as transmissions (T3; ids to reserve,
+  suggested `G2_*`: *our suggestion*); Nicholas for every line and voice.
+- **Owners:** T1 none beyond what exists; T2 scan prompt and marker flicker; T3 transmissions and the cinematic
+  trigger; T4 orbital convoys and interceptors; T5 the ground route, the outpost objective and its checkpoints.
+
+**Open questions (the first five are the document's own "open decisions"):**
+1. The outpost's final name.
+2. The landing / insertion method (we have the ENG-38 descent and the pad landing).
+3. Number and type of ground enemies (the document says "limited Dominion ground patrols" and nothing more).
+4. How the squad is represented on foot (today: one first-person player; Kato "at the console" would be a voice).
+5. Optional environmental interactables.
+6. Does the survey terminal **replace** the signal-analysis device and the relay's voices of §5 act 2, or sit beside
+   them? Where do Gravity Well and Cloak come from in this version? (Nicholas for the story, Ryan for the rewards.)
+7. The length: 10-15 minutes here is half of the whole game's 20-30 minute target (Ryan).
+
+## 15. Cinematic 03: *Beneath the Surface* (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Cinematic_Sequence_03_Beneath_the_Surface.docx`. "The campaign's first investigative
+payoff."
+**When:** the player activates the outpost's geological survey terminal at the end of §14.
+**Length:** 90-120 seconds, one outpost interior.
+**Its job:** reveal that the Dominion is hunting a hidden artificial structure, not launching a conventional invasion.
+It must not reveal the future-self identity, the final catastrophe or the complete function of the Origin Core.
+
+| Time | On screen | Lines (drafts) |
+|---|---|---|
+| 0:00-0:20 | **Empty but operating.** The camera tracks through a lit, intact research room: untouched equipment, unanswered comms, recently interrupted work. Triad enters, weapons lowered but cautious | MOSS: "No bodies. No signs of a fight. Where did everybody go?" WREN: "Kato, see if the survey station can tell us anything." |
+| 0:20-0:55 | **Below Verdance.** Kato projects layered geological scans: a gigantic, geometrically precise structure deep under the jungle; several Dominion scan sites align across its outline | KATO: "These aren't mineral readings. That shape is artificial. And it predates this facility by a long way." WREN: "So they didn't come here to take the planet." KATO: "They're looking for something beneath it." |
+| 0:55-1:15 | **The acknowledgment.** A disabled drone in the corner powers on silently; its optic glows **blue**; it emits **three evenly spaced pulses**; Triad's comms respond without anyone touching them; the drone pauses, then shuts down | WREN: "Did we just answer that thing?" KATO: "I didn't send anything." |
+| 1:15-1:40 | **A second coordinate.** The archive shows correlated scan coordinates at **Cinder**. Before the transfer completes, motion alerts: reinforcements approaching | KATO: "There's another match. Cinder. I'm copying the data-" MOSS: "Company incoming. A lot of it." WREN: "Keep that transfer running. We'll hold them off." |
+
+**Hand-off:** cut straight from the alarm to the player's combat view in the same room or a defensive exterior, with
+the objective **"Protect the data transfer."** No teleport or unexplained change in squad positions; the transfer is
+incomplete when control returns.
+
+**Rules from the proposal:** the three pulses are a future version of the squad's authentication handshake; on first
+viewing they read as alien scanning, and **the same rhythm returns in the Dominion finale** with future Triad's command
+authorisation; neither Kato nor Wren decodes it now; reuse the opening's encrypted-handshake motif (§11) but **do not
+repeat the spoken "Don't-"**, which is reserved for the finale. Voice-only staging is acceptable if on-foot character
+animation is constrained; a monitor graphic can stand in for the 3D hologram; the purpose of Cinder's resource stays
+unresolved. From `Story/README.md`: Verdance yields survey evidence, not the buried structure or the Origin Core.
+
+**How it maps to the game today:**
+- **Exists:** transmissions by id with speaker, style and queueing (T3); the director's in-engine camera work (C-03,
+  ENG-33); interactables that can fire an event (ENG-24); a sentry drone enemy class (no finished mesh yet); the blue
+  targeting light is already the planned "holds fire" colour of the opening (§11).
+- **New work if adopted:** an outpost interior room (T5 layout, builders / Grok Bot for the set); the survey display:
+  a monitor graphic of the buried structure with the scan sites and the Cinder match (T2, or a builder's material);
+  a dormant drone prop with a blue optic and a three-pulse light and sound cue (T4 / effects builder; the rhythm
+  becomes a shared asset so the finale reuses it, like the `Dont` sound); a HUD "comms responded" acknowledgement
+  (T2); the cutscene itself: camera track, timing, skip, and no replay on a retry (T3); the lines as transmissions
+  (suggested ids `C3_*`: *our suggestion*); Nicholas for lines, voices and the pulse's sound.
+- **Staging note (ours):** the game shows no pilot bodies on foot beyond the player, so "Triad enters" and "Kato
+  projects" would be played voice-only over the room and the display, which the document allows.
+- **Owners:** T3 the sequence; T2 the display and HUD beat; T4 the drone beat; T5 the room and the trigger.
+
+**Open questions:**
+1. Confirm a monitor graphic instead of a 3D hologram, and voice-only staging (the document invites both).
+2. The length: 90-120 s, on top of a 2:20 opening and a 75-100 s *Aftermath*. A 40-60 s cut would keep all four beats.
+3. The three-pulse rhythm needs one definition (interval, tone) that the opening handshake (§11), this scene and the
+   finale share. Who writes it down: Nicholas (sound) with T3?
+4. Words: Wren's "tell us anything" and Kato's "by a long way" are fine; note for §16 that the story test rejects the
+   word "time" in any line before act 4.
+
+## 16. Gameplay Sequence 03: *Facility Defense* (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Gameplay_Sequence_03_Facility_Defense.docx`. Status in the document: "proposed gameplay
+specification". It begins the instant Cinematic 03 (§15) ends, with reinforcements closing on the outpost, and ends
+when the complete survey archive is secured and Triad reaches extraction, which triggers Cinematic 04 (§17).
+**Suggested length: 7-12 minutes.**
+**Primary goal:** keep the archive transfer alive long enough to copy the geological records and the Cinder
+coordinates. **Secondary:** survive and regroup for evacuation. The player does not retrieve the buried structure.
+
+| Phase | Player objective | Gate / feedback | Beat / draft line |
+|---|---|---|---|
+| 1 Set defensive positions | Move to the terminal perimeter; identify the approach routes and the limited cover | The first hostile wave enters; the transfer visibly begins | Start: the quiet room of §15 becomes an arena under emergency lights and approaching engines. KATO: "Transfer's moving. If they destroy this station, we lose everything." MOSS: "Then nobody gets near the station." |
+| 2 Protect the archive | Stop drones from disabling the terminal while a **progress meter** advances | The transfer reaches a milestone; **checkpoint** (the transfer midpoint) | WREN: "Left approach! Keep them off Kato." Midpoint: **a drone reaches the archive but pauses on identifying Triad** while the others keep attacking; "a half-second targeting hesitation rather than a complex AI state" |
+| 3 Counter the disruption | A tougher machine or a jamming unit interrupts the transfer: destroy or disable it, or restore local power | The transfer resumes and completes | Pressure: Kato reports the archive almost complete; a heavier unit forces the squad to reposition instead of camping one doorway |
+| 4 Extract | Collect the verified data package; fight or evade to the landing location | The squad reaches extraction and the immediate pursuit breaks → Cinematic 04 | Resolution: the data resolves into two leads, a map of Verdance's subterranean structure and a match on Cinder. KATO: "Data secured. I've got the Cinder coordinates. Time to go." COMMAND: "Triad, extraction corridor is open. Return with the archive intact." |
+
+**Rules from the proposal:** clear attack indicators and spawn limits; a timed wave count or objective-based progress,
+not endlessly escalating spawns; a checkpoint at the transfer midpoint, and a failure retries the current encounter,
+never Cinematic 03; readable on-screen controls; no specific ship or pilot ability required unless already
+implemented; the transfer may run on a flexible timer but must not be an arbitrary long wait; enemy pressure scales to
+the actual players, and if AI partners cannot meaningfully defend, the arena is tuned for one active player; the
+"emergency reboot" interaction is optional, not a confirmed feature; carry visible minor battle damage into Cinematic
+04 if possible; do not reveal the Dominion's origin. **Assets the document lists:** the outpost arena, an archive
+progress UI, 2-3 escalating enemy compositions, an extraction marker, the transition into the ship departure.
+
+**How it maps to the game today:**
+- **Exists, and is close:** Verdance objective 1 already has "hold-interact for 4 s while 2 waves drop in", then
+  "carry the core back (no sprint or block while carrying)" to the ship (ENG-25): that is phases 2 and 4 in small.
+  Encounter volumes spawn crew in waves with attack tokens and spawn limits; checkpoints and retakes that never
+  replay a cutscene; mercy tiers for a fight the player keeps losing (ENG-26 note); grunts, troopers, heavies, sentry
+  drones (ENG-23); the board point as the extraction marker; take-off (ENG-20).
+- **New work if adopted:** a **defend-the-object mode**: the terminal as a damageable or interruptible objective that
+  enemies path to and "disable", with a transfer that advances on a timer and pauses when disrupted (T5, with T4 for
+  the enemy behaviour of targeting an object instead of the player: no enemy does this today, *as far as the
+  features.md entries say*); the archive progress meter (T2); the disruption unit: a Heavy can stand in, a "jamming
+  unit" would be a new enemy (T4); the half-second hesitation on one drone (T4, small); a second checkpoint inside one
+  encounter (T5); emergency lighting state for the room (environment builder); the lines as transmissions (suggested
+  ids `G3_*`: *our suggestion*), Nicholas for lines and voices.
+- **The player is alone on foot today.** "Keep them off Kato" and "the squad repositions" are voices; the arena must be
+  tuned for one player, which the document itself allows.
+- **Owners:** T5 the mode, arena and flow; T4 enemy compositions, object-targeting and the hesitation; T2 the meter and
+  attack indicators; T3 lines, checkpoints as scenes, the hand-over to §17.
+
+**Open questions:**
+1. Is a defence encounter wanted at all before the freeze, and at what length (Ryan)? See the reduced form proposed in
+   the scope list: the existing hold-interact stretched into a 60-90 s transfer with three waves.
+2. Encounter composition: the document says "drones" and "a tougher machine or jamming unit"; which of our crew types
+   (grunt, trooper, heavy, sentry drone) play them (Nicholas for the fiction, T4 / T5 for the fight)?
+3. Which ability, if any, is the reward here? The document names none; today objective 1 gives Gravity Well.
+4. Kato's "Time to go." contains "time", which `storyline.md` §8 forbids before act 4 and the story test rejects
+   (it checks for " time" in every earlier line). A rewording such as "We're leaving." is Nicholas's call.
+5. "Carry forward visible minor battle damage" into the departure: no persistent ship damage look exists; skip?
+
+## 17. Cinematic 04: *Verdance Departure* (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Cinematic_Sequence_04_Verdance_Departure.docx`. Status in the document: "narrative
+production proposal".
+**When:** successful extraction at the end of §16.
+**Length:** 70-95 seconds; reuses the Verdance departure shots, the three ship models, a tactical overlay and the
+Dominion silhouette; no detailed character animation.
+**Its job:** give a clear next mission and turn apparent enemy chaos into a pattern. The squad has evidence that the
+Dominion is hunting a prehistoric artificial structure; the data points to Cinder but does not explain what the
+structure does.
+
+| Time | On screen | Lines (drafts) |
+|---|---|---|
+| 0:00-0:20 | **Leaving the jungle.** Triad's craft lift away from the glowing forest; below, the outpost still stands but its perimeter swarms with enemy machines; the squad says little at first | MOSS: "That was a lot of trouble for a few survey files." WREN: "Apparently they wanted those files just as badly." |
+| 0:20-0:50 | **The same shape.** Kato overlays the Verdance scans with a second partial pattern from Cinder: two related components or locations; the architecture and purpose stay unreadable | KATO: "They weren't searching at random. These two sites have the same geometric signature." WREN: "Verdance and Cinder. What connects them?" KATO: "I don't know. But there's a survey station on Cinder that may have recorded the missing section." |
+| 0:50-1:10 | **A way forward.** Command confirms a hazardous approach to Cinder: Triad needs a heat-resistant stabiliser or locally sourced **shielding component** to cross its volcanic environment. "An operational requirement, not yet a confirmed artifact from the Dominion" | COMMAND: "Proceed to Cinder. Recover the missing survey records and secure any shielding material necessary for the approach. Maintain reconnaissance priority." MOSS: "Volcanoes. Great. I was getting tired of the jungle." |
+| 1:10-1:25 | **The Watcher.** As Triad jumps, a brief cut to the distant Dominion: a navigation marker flashes at the exact instant Wren chooses the departure vector | WREN: "Triad, set course for Cinder." |
+
+**Rules from the proposal:** the matching navigation pulse is "nearly imperceptible" and is not proof of time travel;
+do not show future Wren, Kato or Moss, a human insignia or a decrypted message; the full opening warning stays unheard
+until the finale; do not claim the shielding equipment, the exact resource or a traversal system is implemented;
+whether the protection is a craft upgrade, a ground-suit requirement or a general equipment objective is undecided
+and is not lore yet. **Next:** "Gameplay 04: Cinder Approach" (not written): optional objectives to navigate a
+hazardous orbit, secure environmental protection and locate the archived survey site.
+
+**How it maps to the game today:**
+- **Exists:** take-off and the return to Verdance orbit (ENG-20, ENG-38 take-off return point); the three ships; the
+  Dominion visible in the galaxy sky (§5 act 1 change); the hyperdrive jump; the director's cameras; transmissions.
+  The pulse on a navigation marker repeats the clue of *Aftermath* (§12), so its HUD pulse (T2) is built once and
+  used twice.
+- **Does not match:** `storyline.md` §5 has **waves 3-4 in the galaxy between Verdance and Cinder**; this sequence
+  jumps straight to Cinder. §5 act 3 has a **mining complex** and **crystals that stabilise a passage through the
+  distortion field**; this document has a **survey station** with "the missing section" and a **shielding component
+  against heat**. `Story/README.md` lists Cinder's shielding, resource and traversal as undecided.
+- **New work if adopted:** the cutscene: take-off shots, the overlay of the two scan patterns as one 2D composite
+  (T2 or a builder's material), the Dominion cut with the marker flash, skip (T3); the lines as transmissions
+  (suggested ids `C4_*`: *our suggestion*); Nicholas for lines and voices. A "shielding" requirement on Cinder would
+  be new gameplay (T5 / T1) and is not proposed for building here.
+- **Owners:** T3 the sequence; T2 the overlay and the marker pulse; T4 the Dominion shot and the swarm around the
+  outpost seen from above; T1 the jump-out.
+
+**Open questions:**
+1. Where do waves 3-4 go: before this sequence's jump (Triad is intercepted leaving orbit), on arrival at Cinder, or
+   dropped from the story's telling while staying in the game (Ryan for the flow, Nicholas for the telling)?
+2. Does the Cinder survey station replace the mining complex and the stabilising crystals of §5 act 3, and what then
+   opens the passage through the distortion field (Nicholas)? Until answered, §5 act 3 and ENG-26 stand.
+3. The shielding component: Command's line can ship as words only, with no mechanic, or be cut. Which?
+4. The length: 70-95 s. A 30-45 s cut (lift-off, the two shapes, the marker flash) keeps the three beats.
