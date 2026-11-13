@@ -22,7 +22,7 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 {
 	const TCHAR* Required[] = {
 		TEXT("A1_HailNoAnswer"), TEXT("A1_TheySearch"), TEXT("A2_DeviceFound"), TEXT("A2_Voices"), TEXT("A3_CrystalsFound"),
-		TEXT("A3_EchoWren"), TEXT("A3_EchoKato"), TEXT("A3_EchoMoss"), TEXT("A3_PassageOpen"), TEXT("A4_GeneratorDown1"),
+		TEXT("A3_PassageOpen"), TEXT("A4_GeneratorDown1"),
 		TEXT("A4_GeneratorDown2"), TEXT("A4_GeneratorDown3"), TEXT("A4_GeneratorDown4"), TEXT("A4_DoorsKnowUs"),
 		TEXT("A4_Recording_Hangar"), TEXT("A4_Recording_Corridor"), TEXT("A4_Recording_Barracks"), TEXT("A4_Recording_Core"),
 		TEXT("A5_Choice"), TEXT("A5_Escape"), TEXT("A5_DistressSignal"),
@@ -34,33 +34,69 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TEXT("S2_Moss_Accounted"), TEXT("S2_Kato_NotPursuing"), TEXT("S2_Command_Orders"), TEXT("S2_Kato_Recorders"),
 		TEXT("TB_Kato_Marking"), TEXT("TB_Command_FallBack"), TEXT("TB_Kato_BreakingOff"),
 		TEXT("A2_ConvoyScanned"), TEXT("A2_TransponderSighted"), TEXT("G2_Command_Archive"), TEXT("C3_Kato_Artificial"),
-		TEXT("C3_Wren_Answered"), TEXT("G3_TransferStart"), TEXT("G3_Disruption"), TEXT("G3_DataSecured"), TEXT("C4_Command_Proceed"), TEXT("C4_Wren_SetCourse") };
+		TEXT("C3_Wren_Answered"), TEXT("G3_TransferStart"), TEXT("G3_Disruption"), TEXT("G3_DataSecured"), TEXT("C4_Command_Proceed"), TEXT("C4_Wren_SetCourse"),
+		TEXT("G4_Kato_Transports"), TEXT("C5_Kato_SameConstruction"), TEXT("C5_Unknown_SameConstruction"), TEXT("C5_Kato_Feedback"),
+		TEXT("C5_Kato_OriginCore"), TEXT("G5_Wren_ClearRoute"), TEXT("C6_Command_FindOutWhy"), TEXT("C6_Wren_StayTogether"),
+		TEXT("G6_Kato_MarkingTargets"), TEXT("G6_Command_ShieldCollapsed"), TEXT("G6_Clue1"), TEXT("G6_Clue2") };
+	for (const TCHAR* Gone : { TEXT("A3_EchoWren"), TEXT("A3_EchoKato"), TEXT("A3_EchoMoss") })
+	{
+		FTDTransmission E;
+		TestFalse(FString::Printf(TEXT("%s is gone (one echo only, at the Cinder terminal)"), Gone), UTDStorySubsystem::FindEntry(FName(Gone), E));
+	}
 	for (const TCHAR* Id : Required)
 	{
 		FTDTransmission E;
 		TestTrue(FString::Printf(TEXT("%s exists with a line"), Id), UTDStorySubsystem::FindEntry(FName(Id), E) && !E.Text.IsEmpty());
 	}
-	// storyline.md §4 / §8: before act 4 nothing says "future", "time" or "us", and no future speaker talks.
+	// The reveal (storyline.md §8, §25; Story/README.md): only aboard the Dominion does the squad learn who commands it.
+	// After the reveal: the interior (A4_Recording_*, A4_DoorsKnowUs), the command deck (F_*), act 5 (A5_*) and any
+	// space-only fallback reveal (A4F_*). Everything else, the assault included, is before it.
+	const TCHAR* EarlierThanTerminal[] = { TEXT("Intro_"), TEXT("O_"), TEXT("TB_"), TEXT("S2_"), TEXT("A1_"), TEXT("A2_"), TEXT("G2_"),
+		TEXT("C3_"), TEXT("G3_"), TEXT("C4_"), TEXT("G4_") };
 	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
 	{
 		const FString Id = E.Id.ToString();
-		const bool bLate = Id.StartsWith(TEXT("A4_")) || Id.StartsWith(TEXT("A5_")) || Id.StartsWith(TEXT("F_"));
-		if (bLate)
+		const bool bAfterReveal = Id.StartsWith(TEXT("A4_Recording_")) || Id == TEXT("A4_DoorsKnowUs") || Id.StartsWith(TEXT("A4F_"))
+			|| Id.StartsWith(TEXT("A5_")) || Id.StartsWith(TEXT("F_"));
+		if (bAfterReveal)
 		{
 			continue;
 		}
 		const FString Line = TEXT(" ") + E.Text.ToString().ToLower() + TEXT(" ");
-		TestFalse(FString::Printf(TEXT("%s: no future speaker before act 4"), *Id),
+		TestFalse(FString::Printf(TEXT("%s: no future speaker before the reveal"), *Id),
 			E.Speaker == ETDSpeaker::FutureWren || E.Speaker == ETDSpeaker::FutureKato || E.Speaker == ETDSpeaker::FutureMoss);
-		TestFalse(FString::Printf(TEXT("%s: never says 'future' or 'time' before act 4"), *Id), Line.Contains(TEXT("future")) || Line.Contains(TEXT(" time")));
-		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before act 4"), *Id), Line.Contains(TEXT("it's us")));
+		TestFalse(FString::Printf(TEXT("%s: never says 'future' or 'time' before the reveal"), *Id), Line.Contains(TEXT("future")) || Line.Contains(TEXT(" time")));
+		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before the reveal"), *Id), Line.Contains(TEXT("it's us")));
+		for (const TCHAR* Word : { TEXT("older"), TEXT("ourselves"), TEXT("our own voice"), TEXT("years from") })
+		{
+			TestFalse(FString::Printf(TEXT("%s: never says '%s' before the reveal"), *Id, Word), Line.Contains(Word));
+		}
+		// The one approved hint (Nicholas, issue #29): Kato's "a temporal device" at the Cinder terminal, nowhere else.
+		TestTrue(FString::Printf(TEXT("%s: 'temporal' only in Kato's terminal line"), *Id), !Line.Contains(TEXT("temporal")) || Id == TEXT("C5_Kato_OriginCore"));
+		bool bEarly = false;
+		for (const TCHAR* Prefix : EarlierThanTerminal)
+		{
+			bEarly = bEarly || Id.StartsWith(Prefix);
+		}
+		TestFalse(FString::Printf(TEXT("%s: the Origin Core is not named before the Cinder terminal"), *Id), bEarly && Line.Contains(TEXT("origin core")));
+		// "Don't-" is reserved for the opening and the finale.
+		TestTrue(FString::Printf(TEXT("%s: no shared 'Dont' sound outside the opening"), *Id), E.SharedSound.IsNone() || Id == TEXT("O_Unknown_Dont"));
 	}
-	// Aftermath: the "Don't-" fragment is never used here (kept for the finale).
+	// The terminal echo stays an echo: an unknown voice repeating words Kato has just said.
+	FTDTransmission KatoLine, EchoLine;
+	UTDStorySubsystem::FindEntry(TEXT("C5_Kato_SameConstruction"), KatoLine);
+	UTDStorySubsystem::FindEntry(TEXT("C5_Unknown_SameConstruction"), EchoLine);
+	TestTrue(TEXT("the echo is Unknown, Echo style, and repeats Kato's words"), EchoLine.Speaker == ETDSpeaker::Unknown
+		&& EchoLine.Style == ETDTransmissionStyle::Echo && !EchoLine.Text.IsEmpty() && KatoLine.Text.ToString().Contains(EchoLine.Text.ToString()));
+	// The assault is an access mission: nothing before docking orders the Dominion or its reactor destroyed (§23-24).
 	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
 	{
-		if (E.Id.ToString().StartsWith(TEXT("S2_")))
+		const FString Id = E.Id.ToString();
+		if (Id.StartsWith(TEXT("C6_")) || Id.StartsWith(TEXT("G6_")) || Id.StartsWith(TEXT("A4_Generator")))
 		{
-			TestTrue(FString::Printf(TEXT("%s: no shared 'Dont' sound in Aftermath"), *E.Id.ToString()), E.SharedSound.IsNone());
+			const FString Line = E.Text.ToString().ToLower();
+			TestFalse(FString::Printf(TEXT("%s: no order to destroy the ship or reactor"), *Id),
+				Line.Contains(TEXT("destroy the dominion")) || Line.Contains(TEXT("reactor")) || Line.Contains(TEXT("field is")));
 		}
 	}
 	// The First Contact brief: the two "Don't-" lines are ONE sound.

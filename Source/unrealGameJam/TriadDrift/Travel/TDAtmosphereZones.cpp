@@ -173,6 +173,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 			if (D < Best) { Best = D; Atmo = *It; }
 		}
 		Descent->RecordEntry(Destination, Atmo, Craft->GetActorLocation(), Craft->GetVelocity());
+		Descent->RecordSquad(GetWorld()); // the flown ship and the hulls go down with the squad
 	}
 	OnEntryStarted.Broadcast(this);
 	if (UTDDescentSubsystem* Timing = UTDDescentSubsystem::Get(this)) { Timing->BeginTiming(TEXT("atmosphere entry")); } // ENG-38 timing log
@@ -216,6 +217,7 @@ void UTDAtmosphereEntryComponent::StopEntryCue()
 void UTDAtmosphereEntryComponent::RestoreFlight()
 {
 	StopEntryCue(); // aborted or travel failed: the roar and plasma must stop
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->ClearHeat(); Descent->ClearSquadCarry(); Descent->ClearArrival(); } // aborted: nothing carries
 	if (bCoveredEntry)
 	{
 		if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->AbortCover(TEXT("entry handed back")); }
@@ -271,6 +273,15 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	if (EntryState == ETDAtmosphereEntryState::Entering)
 	{
 		EntryTime += DeltaTime;
+		if (EntrySeconds > 0.f)
+		{
+			// Hull heat (M_TD_Ship HeatGlow): eases in over the dive, full at the end (with the cover).
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this))
+			{
+				const float T = FMath::Clamp(EntryTime / EntrySeconds, 0.f, 1.f);
+				Descent->SetEntryHeat(T * T * (3.f - 2.f * T));
+			}
+		}
 		if (bCoveredEntry && EntrySeconds > 0.f)
 		{
 			// The plasma ramps to full white over the last CoverRampInSeconds of the dive.
@@ -510,6 +521,7 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		{
 			// Latched only on a successful request (review minor 6); a refused request retries next frame.
 			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->RecordSquad(GetWorld()); } // and back up
 			const bool bRequested = Travel && Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
 			// No game flow (tests, sandbox): still report the exit, as the entry does.
 			if (bRequested || !Travel || !UTDStatics::GetGameFlow(this))

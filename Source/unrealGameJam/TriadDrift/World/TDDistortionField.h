@@ -18,8 +18,9 @@ class UNiagaraComponent;
  *   sphere shell); without either, an engineering stand-in (a slowly turning lattice of lights).
  * - A squad ship that reaches the shell is pushed back out, with the HUD line "DISTORTION FIELD - NO APPROACH" (a
  *   hyperdrive lock while a ship is near) and, the first time, the A1_FieldUnreachable transmission.
- * - When Cinder's field anchor falls the Dominion warps in: Collapse() plays DistortionFieldCollapse and the field
- *   goes away. From then on the four shield generators are the field that is left.
+ * - When the passage opens (Cinder finished AND wave 5 cleared: bDominionRevealed) the Dominion warps in: Collapse()
+ *   plays DistortionFieldCollapse and the field goes away. The four generators then hold the Dominion's separate
+ *   defensive SHIELD (not the field).
  */
 UCLASS()
 class UNREALGAMEJAM_API ATDDistortionField : public AActor

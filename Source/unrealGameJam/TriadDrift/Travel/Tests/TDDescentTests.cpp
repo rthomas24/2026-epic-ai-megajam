@@ -15,6 +15,14 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/Material.h"
 #include "Misc/ScopeExit.h"
 
 namespace TDDescentTest
@@ -152,17 +160,10 @@ bool FTDT1DescentArrival::RunTest(const FString& Parameters)
 		D->RecordEntryGlobe(ETDDestination::Verdance, P, C.Vel);
 		FTransform Xf;
 		if (!TestTrue(TEXT("arrival from the record"), D->GetArrival(W.GetWorld(), ETDDestination::Verdance, Pad, Xf))) { return false; }
-		FTransform ExpectLocal = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, P, C.Vel, UTDDescentSubsystem::ArrivalAltitudeCm);
-		const FVector2D EXY(ExpectLocal.GetLocation());
-		if (EXY.Size() > UTDDescentSubsystem::MaxArrivalRadiusCm)
-		{
-			const FVector2D In = EXY.GetSafeNormal() * UTDDescentSubsystem::MaxArrivalRadiusCm;
-			ExpectLocal.SetLocation(FVector(In.X, In.Y, ExpectLocal.GetLocation().Z));
-		}
-		const FTransform Expect = ExpectLocal * Pad;
+		const FTransform Expect = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, P, C.Vel, UTDDescentSubsystem::ArrivalAltitudeCm) * Pad;
 		TestTrue(*FString::Printf(TEXT("lon %.0f: position = T4's mapping through the pad"), C.Lon), Xf.GetLocation().Equals(Expect.GetLocation(), 1.f));
 		TestEqual(*FString::Printf(TEXT("lon %.0f: heading = T4's mapping"), C.Lon), (float)Xf.Rotator().Yaw, (float)Expect.Rotator().Yaw, 0.1f);
-		TestTrue(*FString::Printf(TEXT("lon %.0f: within 6 km of the pad (clear of the edge warning)"), C.Lon), FVector2D(Pad.InverseTransformPosition(Xf.GetLocation())).Size() <= UTDDescentSubsystem::MaxArrivalRadiusCm + 1.f);
+		TestTrue(*FString::Printf(TEXT("lon %.0f: within 6 km of the pad (clear of the edge warning)"), C.Lon), FVector2D(Pad.InverseTransformPosition(Xf.GetLocation())).Size() <= FTDPlanetEntry::MaxArrivalRadius + 1.f);
 		// A retake in the same visit: the same arrival; a later visit with no new entry: the fixed start.
 		FTransform Again;
 		TestTrue(TEXT("retake: same world, same arrival"), D->GetArrival(W.GetWorld(), ETDDestination::Verdance, Pad, Again) && Again.Equals(Xf));
@@ -233,6 +234,122 @@ bool FTDT1DescentCoverAbort::RunTest(const FString& Parameters)
 	TestEqual(TEXT("full white: open the map at once"), D->BeginCoveredTravel(ETDDestination::Verdance), 0.f, 0.001f);
 	TestEqual(TEXT("held"), D->GetCoverPhase(), ETDDescentCover::Held);
 	D->AbortCover(TEXT("test cleanup"));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1DescentHeat, "TriadDrift.Travel.Descent.HullHeatGlowOnSquadShips", TD_TEST_FLAGS)
+bool FTDT1DescentHeat::RunTest(const FString& Parameters)
+{
+	UMaterialInterface* ShipMI = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Ships/Lancer/MI_Lancer.MI_Lancer"));
+	if (!TestNotNull(TEXT("MI_Lancer (M_TD_Ship child)"), ShipMI)) { return false; }
+	float Def = -1.f;
+	if (!TestTrue(TEXT("M_TD_Ship exposes HeatGlow"), ShipMI->GetScalarParameterValue(FHashedMaterialParameterInfo(UTDDescentSubsystem::HeatGlowParam), Def))) { return false; }
+
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("descent"), D)) { return false; }
+	auto MakeShip = [&](UMaterialInterface* Mat, float Y)
+	{
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, Y, 20000.f));
+		TInlineComponentArray<UMeshComponent*> Meshes(Ship);
+		for (UMeshComponent* M : Meshes) { for (int32 i = 0; i < M->GetNumMaterials(); ++i) { M->SetMaterial(i, Mat); } }
+		return Ship;
+	};
+	auto HeatOf = [](ATDShip* Ship)
+	{
+		TInlineComponentArray<UMeshComponent*> Meshes(Ship);
+		for (UMeshComponent* M : Meshes) { for (int32 i = 0; i < M->GetNumMaterials(); ++i)
+		{
+			float V = 0.f;
+			if (UMaterialInterface* Mat = M->GetMaterial(i); Mat && Mat->GetScalarParameterValue(FHashedMaterialParameterInfo(UTDDescentSubsystem::HeatGlowParam), V)) { return V; }
+		} }
+		return -1.f;
+	};
+	ATDShip* Player = MakeShip(ShipMI, 0.f);
+	ATDShip* Wingman = MakeShip(ShipMI, 3000.f);
+	ATDShip* Plain = MakeShip(UMaterial::GetDefaultMaterial(MD_Surface), 6000.f);
+	if (!TestNotNull(TEXT("ships"), Player) || !Wingman || !Plain) { return false; }
+	TestEqual(TEXT("cold: no dynamic instance made"), ATDShip::StaticClass() ? D->ApplyHeatToShip(Player, 0.f) : 0, 0);
+
+	// The dive feeds it (never down while entering); every squad ship gets it, a material without HeatGlow is untouched.
+	D->SetEntryHeat(0.6f);
+	D->SetEntryHeat(0.3f);
+	D->Tick(1.f / 60.f);
+	TestEqual(TEXT("player ship glows with the dive"), HeatOf(Player), 0.6f, 0.02f);
+	TestEqual(TEXT("the wingman too"), HeatOf(Wingman), 0.6f, 0.02f);
+	TestEqual(TEXT("no HeatGlow parameter: left alone (no instance)"), HeatOf(Plain), -1.f);
+	TestFalse(TEXT("... still its own material"), Plain->FindComponentByClass<UMeshComponent>() && Cast<UMaterialInstanceDynamic>(Plain->FindComponentByClass<UMeshComponent>()->GetMaterial(0)) != nullptr);
+	// A ship that appears mid-entry (a switch, the planet squad) picks up the current value.
+	ATDShip* Late = MakeShip(ShipMI, 9000.f);
+	D->SetEntryHeat(1.f);
+	D->Tick(1.f / 60.f);
+	TestEqual(TEXT("a new squad ship gets the same heat"), HeatOf(Late), 1.f, 0.02f);
+	// Not fed and no cover holding it: 2 s decay.
+	for (int32 i = 0; i < 60; ++i) { D->Tick(1.f / 60.f); }
+	TestEqual(TEXT("1 s after the last feed: 0.25 s held, then 0.75 s of the 2 s decay"), HeatOf(Player), 0.625f, 0.03f);
+	for (int32 i = 0; i < 90; ++i) { D->Tick(1.f / 60.f); }
+	TestEqual(TEXT("gone after 2 s"), HeatOf(Player), 0.f, 0.001f);
+	// An abort clears it at once.
+	D->SetEntryHeat(0.8f);
+	D->Tick(1.f / 60.f);
+	D->ClearHeat();
+	TestEqual(TEXT("abort: cold now"), HeatOf(Wingman), 0.f, 0.001f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1DescentSquadCarry, "TriadDrift.Travel.Descent.FlownShipAndHullsCarriedThroughTravel", TD_TEST_FLAGS)
+bool FTDT1DescentSquadCarry::RunTest(const FString& Parameters)
+{
+	// Bastion flies the squad into the planet with Rift at 50 % (shield 30 %), Lancer downed, Bastion at 80 %.
+	FTDSquadCarry Carry;
+	Carry.Active = ETDShipId::Bastion;
+	Carry.Hull01 = { { ETDShipId::Rift, 0.5f }, { ETDShipId::Lancer, 0.f }, { ETDShipId::Bastion, 0.8f } };
+	Carry.Shield01 = { { ETDShipId::Rift, 0.3f }, { ETDShipId::Lancer, 0.f } }; // Bastion's shield missing: arrives full
+	auto Hull = [](ATDSquadManager* Sq, ETDShipId Id) { ATDShip* S = Sq->GetShip(Id); return S && S->GetHealth() ? S->GetHealth()->GetHull01() : -1.f; };
+	auto Shield = [](ATDSquadManager* Sq, ETDShipId Id) { ATDShip* S = Sq->GetShip(Id); return S && S->GetHealth() ? S->GetHealth()->GetShield01() : -1.f; };
+
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("descent"), D)) { return false; }
+	D->RecordSquadForTests(Carry);
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	APlayerController* PC = W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass());
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("pc"), PC)) { return false; }
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FVector(0.f, 0.f, 20000.f)));
+	const float RiftShieldAtSpawn = Shield(Squad, ETDShipId::Rift); // before any regeneration tick
+	W.Advance(0.2f);
+	TestEqual(TEXT("arrives flying the ship that went in"), Squad->GetActiveShipId(), ETDShipId::Bastion);
+	TestTrue(TEXT("the player controls it"), PC->GetPawn() == Squad->GetShip(ETDShipId::Bastion));
+	const FTDSquadSlot* Active = Squad->GetSlots().FindByPredicate([](const FTDSquadSlot& S) { return S.ShipId == ETDShipId::Bastion; });
+	TestTrue(TEXT("the active slot is alive (T3)"), Active && Active->State == ETDSquadSlotState::Alive);
+	const UTDDirectorSubsystem* Dir = W.GetWorld()->GetSubsystem<UTDDirectorSubsystem>();
+	TestFalse(TEXT("no director shot or switch cut on arrival (T3)"), Dir && Dir->IsShotActive());
+	TestEqual(TEXT("Rift hull carried"), Hull(Squad, ETDShipId::Rift), 0.5f, 0.01f);
+	TestEqual(TEXT("Rift shield carried"), RiftShieldAtSpawn, 0.3f, 0.01f);
+	TestEqual(TEXT("downed Lancer arrives alive at 25 %"), Hull(Squad, ETDShipId::Lancer), 0.25f, 0.01f);
+	TestEqual(TEXT("Bastion hull carried"), Hull(Squad, ETDShipId::Bastion), 0.8f, 0.01f);
+	TestEqual(TEXT("a shield missing from the record arrives full"), Shield(Squad, ETDShipId::Bastion), 1.f, 0.01f);
+
+	// A retake in the same visit: still Bastion, hulls full as before.
+	Squad->SpawnSquad(FTransform(FVector(0.f, 0.f, 20000.f)));
+	W.Advance(0.2f);
+	TestEqual(TEXT("retake: same ship"), Squad->GetActiveShipId(), ETDShipId::Bastion);
+	TestEqual(TEXT("retake: full hull"), Hull(Squad, ETDShipId::Rift), 1.f, 0.01f);
+
+	// The next map with no new record: as before (and the record is gone).
+	{
+		FTDTestWorld Next;
+		FTDSquadCarry Out; bool bFirst = false;
+		TestFalse(TEXT("a later map without a new record gets nothing"), D->ConsumeSquadCarry(Next.GetWorld(), Out, bFirst));
+	}
+
+	// Recording from a live squad writes the progress's LastShip (saves and Continue carry the flown ship; T5).
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	Squad->RequestSwitchTo(ETDShipId::Lancer);
+	W.Advance(0.5f);
+	D->RecordSquad(W.GetWorld());
+	TestEqual(TEXT("recorded: the flown ship"), GI ? GI->GetProgressRef().LastShip : ETDShipId::Rift, Squad->GetActiveShipId());
 	return true;
 }
 

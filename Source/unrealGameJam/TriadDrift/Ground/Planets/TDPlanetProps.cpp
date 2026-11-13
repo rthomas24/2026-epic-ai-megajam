@@ -17,6 +17,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 #define LOCTEXT_NAMESPACE "TDPlanetProps"
 
@@ -754,7 +755,7 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 	if (Shown != LastShownSecond)
 	{
 		LastShownSecond = Shown;
-		LinkedObjective->UpdateStepText(FText::Format(RunText.IsEmpty() ? LOCTEXT("Run", "GET CLEAR OF THE ANCHOR · {0}") : RunText, Shown));
+		LinkedObjective->UpdateStepText(FText::Format(RunText.IsEmpty() ? LOCTEXT("Run", "RETURN TO EXTRACTION · {0}") : RunText, Shown));
 	}
 	DebrisTimer -= DeltaSeconds;
 	if (DebrisTimer <= 0.f)
@@ -925,7 +926,14 @@ void ATDArchiveTransfer::Tick(float DeltaSeconds)
 	if (bPaused != bWasPaused)
 	{
 		OnTransferPaused.Broadcast(bPaused);
+		if (bPaused)
+		{
+			UTDStorySubsystem::Fire(this, TEXT("G3_Moss_NobodyNear")); // the first time one reaches the terminal (once per run)
+		}
 	}
+	// T3's lines over the transfer (each once per run): the second wave, then nearly there.
+	if (Progress >= 0.25f) { UTDStorySubsystem::Fire(this, TEXT("G3_Wren_LeftApproach")); }
+	if (Progress >= 0.85f) { UTDStorySubsystem::Fire(this, TEXT("G3_Kato_AlmostThere")); }
 	if (!bPaused)
 	{
 		const float Cap = Step == LinkedStep - 1 ? 0.5f : 1.f;
@@ -972,6 +980,41 @@ void ATDArchiveTransfer::ResetProp()
 	for (int32 i = 0; i < Fired.Num(); ++i)
 	{
 		Fired[i] = WaveAt.IsValidIndex(i) && WaveAt[i] < Progress;
+	}
+}
+
+
+// ================================================================================================
+// Survey terminal (Cinder)
+// ================================================================================================
+
+FTDOnSurveyRecordsAccessed ATDSurveyTerminal::OnAnySurveyRecordsAccessed;
+
+bool ATDSurveyTerminal::IsHostileNear() const
+{
+	const FVector At = GetActorLocation();
+	for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It; ++It)
+	{
+		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < ClearRadius)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ATDSurveyTerminal::CanInteract(AActor* Interactor) const
+{
+	return Super::CanInteract(Interactor) && !IsHostileNear();
+}
+
+void ATDSurveyTerminal::Interact(AActor* Interactor)
+{
+	const bool bWasUsable = CanInteract(Interactor);
+	Super::Interact(Interactor);
+	if (bWasUsable)
+	{
+		OnAnySurveyRecordsAccessed.Broadcast(this);
 	}
 }
 

@@ -66,10 +66,11 @@ void ATDArmadaConvoy::SetupLane(const FVector& A, const FVector& B, int32 Count,
 	for (int32 i = 0; i < Count; ++i)
 	{
 		FHauler H;
-		H.Body = Part(CubeMesh, FVector(18.f, 6.f, 5.f), Armour, 0.f);	// 18 x 6 x 5 m: a freighter, not a fighter
-		H.PodL = Part(SphereMesh, FVector(3.f), Gear, 1.5f);			// sensor pods: the gear it is ferrying
-		H.PodR = Part(SphereMesh, FVector(3.f), Gear, 1.5f);
-		H.Ring = Part(CylinderMesh, FVector(7.f, 7.f, 0.3f), FLinearColor(1.f, 0.35f, 0.08f), 3.f);	// scanner ring, Armada orange
+		// 40 x 13 x 11 m: a freighter, readable at 1-2 km (live look, Nov 13: 18 m read as specks at 600 m).
+		H.Body = Part(CubeMesh, FVector(40.f, 13.f, 11.f), Armour, 0.f);
+		H.PodL = Part(SphereMesh, FVector(7.f), Gear, 6.f);			// sensor pods: the gear it is ferrying, lit
+		H.PodR = Part(SphereMesh, FVector(7.f), Gear, 6.f);
+		H.Ring = Part(CylinderMesh, FVector(16.f, 16.f, 0.6f), FLinearColor(1.f, 0.35f, 0.08f), 6.f);	// scanner ring, Armada orange
 		H.Along = -i * Spacing;
 		Haulers.Add(H);
 	}
@@ -112,9 +113,9 @@ void ATDArmadaConvoy::Tick(float DeltaSeconds)
 		const bool bOnLane = H.Along >= 0.f;
 		for (UStaticMeshComponent* C : { H.Body.Get(), H.PodL.Get(), H.PodR.Get(), H.Ring.Get() }) { if (C) { C->SetVisibility(bOnLane); } }
 		H.Body->SetWorldLocationAndRotation(P, Facing);
-		H.PodL->SetWorldLocation(P + Facing.RotateVector(FVector(-300.f, -500.f, 300.f)));
-		H.PodR->SetWorldLocation(P + Facing.RotateVector(FVector(-300.f, 500.f, 300.f)));
-		H.Ring->SetWorldLocationAndRotation(P + Facing.RotateVector(FVector(400.f, 0.f, 450.f)), Facing * FQuat(FRotator(0.f, RingSpin, 0.f)));
+		H.PodL->SetWorldLocation(P + Facing.RotateVector(FVector(-700.f, -1100.f, 700.f)));
+		H.PodR->SetWorldLocation(P + Facing.RotateVector(FVector(-700.f, 1100.f, 700.f)));
+		H.Ring->SetWorldLocationAndRotation(P + Facing.RotateVector(FVector(900.f, 0.f, 1000.f)), Facing * FQuat(FRotator(0.f, RingSpin, 0.f)));
 	}
 
 	// The scannable hauler (the column's lead): hold close to read what it carries.
@@ -130,7 +131,7 @@ void ATDArmadaConvoy::Tick(float DeltaSeconds)
 	{
 		// Being read: the ring flares (the only feedback; no HUD mode).
 		bRingHot = bClose;
-		UTDStatics::TintPlaceholder(Lead.Ring, FLinearColor(1.f, 0.35f, 0.08f), bRingHot ? 14.f : 3.f);
+		UTDStatics::TintPlaceholder(Lead.Ring, FLinearColor(1.f, 0.35f, 0.08f), bRingHot ? 20.f : 6.f);
 	}
 	if (ScanTime >= ScanSeconds)
 	{
@@ -150,12 +151,12 @@ ATDTransponderBeacon::ATDTransponderBeacon()
 	Mast = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mast"));
 	SetRootComponent(Mast);
 	if (Cylinder.Succeeded()) { Mast->SetStaticMesh(Cylinder.Object); }
-	Mast->SetRelativeScale3D(FVector(0.6f, 0.6f, 14.f));
+	Mast->SetRelativeScale3D(FVector(3.f, 3.f, 120.f));	// a 120 m mast and a 40 m light: findable from ~2 km
 	Light = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Light"));
 	Light->SetupAttachment(Mast);
 	if (Sphere.Succeeded()) { Light->SetStaticMesh(Sphere.Object); }
 	Light->SetRelativeLocation(FVector(0.f, 0.f, 55.f));
-	Light->SetRelativeScale3D(FVector(8.f, 8.f, 0.6f));
+	Light->SetRelativeScale3D(FVector(13.f, 13.f, 0.35f));	// relative to the mast: ~40 m across
 	for (UStaticMeshComponent* C : { Mast.Get(), Light.Get() })
 	{
 		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -193,7 +194,7 @@ void ATDTransponderBeacon::Tick(float DeltaSeconds)
 	if (bOn != bLit)
 	{
 		bLit = bOn;
-		UTDStatics::TintPlaceholder(Light, bLit ? FLinearColor(0.35f, 1.f, 0.85f) : FLinearColor(0.02f, 0.05f, 0.05f), bLit ? 14.f : 0.f);
+		UTDStatics::TintPlaceholder(Light, bLit ? FLinearColor(0.35f, 1.f, 0.85f) : FLinearColor(0.02f, 0.05f, 0.05f), bLit ? 40.f : 0.f);
 	}
 	if (!bSighted)
 	{

@@ -333,12 +333,19 @@ namespace TDCourseTest
 			}
 			return nullptr;
 		}
-		bool StartAt(FName Id)
+		bool StartAt(FName Id, bool bSkipEarlier = true)
 		{
 			for (const FTDTrailhead& H : Course->GetTrailheads())
 			{
 				if (H.Objective && H.Objective->ObjectiveId == Id && H.Marker)
 				{
+					for (ATDObjective* Before = H.After; bSkipEarlier && Before; )
+					{
+						if (!Before->IsComplete()) { Before->MarkAlreadyComplete(); }
+						ATDObjective* Next = nullptr;
+						for (const FTDTrailhead& O : Course->GetTrailheads()) { if (O.Objective == Before) { Next = O.After; } }
+						Before = Next;
+					}
 					TeleportTo(H.Marker, -150.f);
 					Tick(0.5f);
 					return T.TestTrue(*FString::Printf(TEXT("%s starts at its trailhead (own scene)"), *Id.ToString()),
@@ -402,7 +409,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TDCourseTest::FRun R(V, *this);
 	if (!R.Land()) { return false; }
 	R.Tick(0.6f);
-	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE SURVEY STATION")) && R.Line().Contains(TEXT("THE RELAY")));
+	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")) && R.Line().Contains(TEXT("THE RELAY")));
 	TestEqual(TEXT("both trailheads marked"), V.GI->GetFlowMarkers().Num(), 2);
 
 	ATDObjective* Relay = R.Course->FindObjective(TEXT("Obj_Relay"));
@@ -432,7 +439,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TestTrue(TEXT("relay done"), Relay->IsComplete());
 	TestEqual(TEXT("Cloak on Rift"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::Cloak), ETDShipId::Rift);
 	R.Tick(0.5f);
-	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE SURVEY STATION")));
+	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")));
 
 	// The survey archive (storyline.md section 18): station fight, terminal, a 75 s transfer under three waves, the package.
 	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
@@ -482,23 +489,43 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	ATDObjective* Jammer = R.Course->FindObjective(TEXT("Obj_Jammer"));
 	if (!TestNotNull(TEXT("outpost"), Outpost) || !TestNotNull(TEXT("jammer"), Jammer)) { return false; }
 
-	// The jammer first.
-	if (!R.StartAt(TEXT("Obj_Jammer"))) { return false; }
-	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 0)[0], 60.f);
-	TestEqual(TEXT("across the bridge -> charges"), R.Step(Jammer), 1);
-	TArray<ATDInteractableActor*> Charges;
-	for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Jammer && It->LinkedStep == 1) { Charges.Add(*It); } }
-	TestEqual(TEXT("three charge sites"), Charges.Num(), 3);
-	for (ATDInteractableActor* C : Charges) { R.Use(C, C->HoldTime); }
-	TestEqual(TEXT("charges set -> run"), R.Step(Jammer), 2);
-	TArray<ATDCollapseRun*> Runs = R.Props<ATDCollapseRun>(Jammer, 2);
-	TestTrue(TEXT("the tower is coming down"), Runs.Num() == 1 && Runs[0]->IsRunning());
-	TestTrue(*FString::Printf(TEXT("countdown on the line ('%s')"), *R.Line()), R.Line().Contains(TEXT("GET CLEAR")));
-	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 2)[0], 60.f);
-	TestTrue(TEXT("jammer done"), Jammer->IsComplete());
+	// The fixed order (storyline.md section 25): the survey records, then the excavation, then the anchor.
+	ATDObjective* Survey = R.Course->FindObjective(TEXT("Obj_Survey"));
+	if (!TestNotNull(TEXT("survey records"), Survey)) { return false; }
+	TestFalse(TEXT("the excavation waits for the records"), R.Course->StartObjectiveAt(TEXT("Obj_Outpost")));
+	TestFalse(TEXT("the anchor waits too"), R.Course->StartObjectiveAt(TEXT("Obj_Jammer")));
+	if (!R.StartAt(TEXT("Obj_Survey"), false)) { return false; }
+	// The patrol on the way (a player fights it; the terminal works only once it is dead or far behind).
+	for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective == Survey)
+		{
+			R.TeleportTo(*It, 0.f);
+			R.Tick(0.5f);
+			TestTrue(TEXT("the patrol engages on the route"), It->IsActive() || It->IsCleared());
+			R.KillAll(*It);
+		}
+	}
+	R.TeleportTo(R.Props<ATDStepTrigger>(Survey, 0)[0], 60.f);
+	TestEqual(TEXT("at the station -> the records"), R.Step(Survey), 1);
+	ATDSurveyTerminal* Records = R.Course->GetSurveyTerminal();
+	if (!TestNotNull(TEXT("survey terminal"), Records)) { return false; }
+	// Out of combat only: a crewman near the station blocks it.
+	ATDCrewCharacter* Patrol = V.W.Spawn<ATDCrewCharacter>(Records->GetActorLocation() + FVector(-600.f, 300.f, 0.f));
+	R.Tick(0.2f);
+	TestFalse(TEXT("the terminal waits while a hostile is near"), Records->CanInteract(R.FP));
+	if (Patrol) { Patrol->Destroy(); }
+	R.Tick(0.2f);
+	int32 Hooked = 0;
+	const FDelegateHandle Hook = ATDSurveyTerminal::OnAnySurveyRecordsAccessed.AddLambda([&Hooked](AActor*) { ++Hooked; });
+	R.Use(Records, Records->HoldTime);
+	ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Remove(Hook);
+	TestEqual(TEXT("Cinematic 05's hook fires once"), Hooked, 1);
+	TestTrue(TEXT("records accessed"), Survey->IsComplete());
+	TestFalse(TEXT("the anchor still waits for the excavation"), R.Course->StartObjectiveAt(TEXT("Obj_Jammer")));
 
-	// The outpost.
-	if (!R.StartAt(TEXT("Obj_Outpost"))) { return false; }
+	// The excavation.
+	if (!R.StartAt(TEXT("Obj_Outpost"), false)) { return false; }
 	TArray<ATDShatterCrystal*> Conduits = R.Props<ATDShatterCrystal>(Outpost);
 	TestEqual(TEXT("two conduits"), Conduits.Num(), 2);
 	for (ATDShatterCrystal* C : Conduits) { UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Melee, R.FP, R.FP); }
@@ -514,12 +541,31 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 		R.KillAll(E);
 		TestEqual(*FString::Printf(TEXT("room %d cleared"), Room), R.Step(Outpost), Room + 1);
 	}
-	ATDInteractableActor* Proto = nullptr;
-	for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Outpost && It->LinkedStep == 5) { Proto = *It; } }
-	if (!TestNotNull(TEXT("prototype"), Proto)) { return false; }
-	R.Use(Proto, Proto->HoldTime);
-	TestTrue(TEXT("outpost done"), Outpost->IsComplete());
+	ATDInteractableActor* Cache = nullptr;
+	for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Outpost && It->LinkedStep == 5) { Cache = *It; } }
+	if (!TestNotNull(TEXT("crystal cache"), Cache)) { return false; }
+	R.Use(Cache, Cache->HoldTime);
+	TestTrue(TEXT("excavation secured"), Outpost->IsComplete());
 	TestEqual(TEXT("EMP on Lancer"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::EMPPulse), ETDShipId::Lancer);
+
+	// The anchor, then the run to extraction.
+	int32 AnchorDown = 0;
+	const FDelegateHandle Anchor = ATDPlanetCourse::OnFieldAnchorDisabled.AddLambda([&AnchorDown]() { ++AnchorDown; });
+	if (!R.StartAt(TEXT("Obj_Jammer"), false)) { ATDPlanetCourse::OnFieldAnchorDisabled.Remove(Anchor); return false; }
+	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 0)[0], 60.f);
+	TestEqual(TEXT("across the bridge -> charges"), R.Step(Jammer), 1);
+	TArray<ATDInteractableActor*> Charges;
+	for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Jammer && It->LinkedStep == 1) { Charges.Add(*It); } }
+	TestEqual(TEXT("three charge sites"), Charges.Num(), 3);
+	for (ATDInteractableActor* C : Charges) { R.Use(C, C->HoldTime); }
+	TestEqual(TEXT("charges set -> run"), R.Step(Jammer), 2);
+	TArray<ATDCollapseRun*> Runs = R.Props<ATDCollapseRun>(Jammer, 2);
+	TestTrue(TEXT("the tower is coming down"), Runs.Num() == 1 && Runs[0]->IsRunning());
+	TestTrue(*FString::Printf(TEXT("countdown on the line ('%s')"), *R.Line()), R.Line().Contains(TEXT("RETURN TO EXTRACTION")));
+	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 2)[0], 60.f);
+	ATDPlanetCourse::OnFieldAnchorDisabled.Remove(Anchor);
+	TestTrue(TEXT("anchor disabled"), Jammer->IsComplete());
+	TestEqual(TEXT("T2's pending-marker event once"), AnchorDown, 1);
 
 	R.Tick(0.5f);
 	R.LeaveForOrbit(TEXT("Cinder"));
@@ -1241,38 +1287,18 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 	const float Start = V.W.GetWorld()->GetTimeSeconds();
 	const float HullAtStart = P.FP->GetHealth()->GetHull01();
 
-	// --- The jammer: slash the crystal wall, run the collapsing bridge, plant under fire, outrun the tower. ---
-	P.Report(P.RunTo(P.Trailhead(TEXT("Obj_Jammer")), 300.f) && Jammer->IsActive(), TEXT("jammer started at its trailhead"));
-	for (int32 Try = 0; Try < 4 && !Jammer->IsComplete(); ++Try)
+	// --- The survey records: the marked route past the patrol to the station, the terminal once it is clear. ---
+	ATDObjective* Survey = P.Course->FindObjective(TEXT("Obj_Survey"));
+	P.Report(P.RunTo(P.Trailhead(TEXT("Obj_Survey")), 300.f) && Survey && Survey->IsActive(), TEXT("survey started at its trailhead"));
+	for (int32 Try = 0; Try < 4 && Survey && !Survey->IsComplete(); ++Try)
 	{
-		if (Jammer->GetCurrentStepIndex() == 0)
-		{
-			for (ATDShatterCrystal* C : TArray<ATDShatterCrystal*>(TDCourseTest::FRun(V, *this).Props<ATDShatterCrystal>(Jammer)))
-			{
-				if (!C->IsShattered()) { P.Report(P.Break(C), TEXT("crystal wall slashed with the blade")); }
-			}
-			P.RunTo(FVector(6800.f, -5000.f, 0.f), 150.f);
-			// The bridge: one straight sprint along the slabs (they fall 1.1 s after you step on them).
-			P.RunTo(FVector(10400.f + 700.f, -5000.f, 0.f), 200.f, 20.f);
-		}
-		if (Jammer->GetCurrentStepIndex() == 1)
-		{
-			bool bDied = false;
-			for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Jammer && It->IsActive()) { bDied |= !P.Fight(*It); } }
-			if (bDied) { continue; } // the retake restarted the defence
-			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
-			{
-				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.Use(*It, It->HoldTime); }
-			}
-		}
-		if (Jammer->GetCurrentStepIndex() == 2)
-		{
-			P.RunTo(FVector(10400.f + 800.f, -5000.f - 3300.f, 0.f), 300.f, 15.f);
-			P.RunTo(FVector(7000.f - 600.f, -5000.f - 3400.f, 0.f), 300.f, 15.f);
-			P.Tick(0.3f);
-		}
+		if (ATDEncounterVolume* Patrol = P.ActiveFightNear(FVector(2300.f, 0.f, 0.f), 1500.f)) { P.Fight(Patrol); }
+		P.RunTo(FVector(2900.f, 0.f, 0.f), 200.f, 20.f);
+		if (ATDEncounterVolume* Patrol = P.ActiveFightNear(FVector(2300.f, 0.f, 0.f), 1500.f)) { P.Fight(Patrol); }
+		if (ATDSurveyTerminal* T = P.Course->GetSurveyTerminal()) { P.Use(T, T->HoldTime, T->GetActorLocation() + FVector(0.f, 0.f, 40.f)); }
+		P.Tick(0.3f);
 	}
-	P.Report(Jammer->IsComplete(), TEXT("jammer destroyed and outrun"));
+	P.Report(Survey && Survey->IsComplete(), TEXT("survey records accessed after the patrol"));
 
 	// --- The outpost: the stepping stones over the magma river (real jumps), conduits, three rooms, the Warden. ---
 	P.Report(P.RunTo(P.Trailhead(TEXT("Obj_Outpost")), 300.f, 60.f) && Outpost->IsActive(), TEXT("outpost started at its trailhead"));
@@ -1321,6 +1347,39 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 	P.RunTo(FVector(6700.f, 5200.f, 0.f), 80.f, 30.f, false);
 	for (int32 i = 2; i >= 0; --i) { P.JumpTo(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), false, false, 0.5f); }
 	P.JumpTo(FVector(4600.f, 4100.f, 0.f), false, false, 0.6f);
+	// --- The jammer: slash the crystal wall, run the collapsing bridge, plant under fire, outrun the tower. ---
+	P.Report(P.RunTo(P.Trailhead(TEXT("Obj_Jammer")), 300.f) && Jammer->IsActive(), TEXT("jammer started at its trailhead"));
+	for (int32 Try = 0; Try < 4 && !Jammer->IsComplete(); ++Try)
+	{
+		if (Jammer->GetCurrentStepIndex() == 0)
+		{
+			for (ATDShatterCrystal* C : TArray<ATDShatterCrystal*>(TDCourseTest::FRun(V, *this).Props<ATDShatterCrystal>(Jammer)))
+			{
+				if (!C->IsShattered()) { P.Report(P.Break(C), TEXT("crystal wall slashed with the blade")); }
+			}
+			P.RunTo(FVector(6800.f, -5000.f, 0.f), 150.f);
+			// The bridge: one straight sprint along the slabs (they fall 1.1 s after you step on them).
+			P.RunTo(FVector(10400.f + 700.f, -5000.f, 0.f), 200.f, 20.f);
+		}
+		if (Jammer->GetCurrentStepIndex() == 1)
+		{
+			bool bDied = false;
+			for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Jammer && It->IsActive()) { bDied |= !P.Fight(*It); } }
+			if (bDied) { continue; } // the retake restarted the defence
+			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
+			{
+				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.Use(*It, It->HoldTime); }
+			}
+		}
+		if (Jammer->GetCurrentStepIndex() == 2)
+		{
+			P.RunTo(FVector(10400.f + 800.f, -5000.f - 3300.f, 0.f), 300.f, 15.f);
+			P.RunTo(FVector(7000.f - 600.f, -5000.f - 3400.f, 0.f), 300.f, 15.f);
+			P.Tick(0.3f);
+		}
+	}
+	P.Report(Jammer->IsComplete(), TEXT("jammer destroyed and outrun"));
+
 	if (ATDBoardShipInteractable* Board = V.Director->GetBoardPoint()) { P.RunTo(FVector(0.f, 0.f, 0.f), 600.f, 60.f); P.Use(Board, Board->HoldTime); }
 	P.Tick(1.f);
 	TestFalse(TEXT("played: re-boarded"), V.Director->IsOnFoot());

@@ -5,7 +5,8 @@
 #
 # Writes under /Game/TriadDrift/Gameplay/Ships:
 #   Materials/M_TD_Ship           lit master: BaseColorTex x BaseTint, ORMTex (AO / rough x RoughnessScale / metal),
-#                                 NormalTex, EmissiveTex x EmissiveTint x EmissiveStrength
+#                                 NormalTex, EmissiveTex x EmissiveStrength x (EmissiveTint for coloured texels,
+#                                 EyeBoost for near-white ones: saturation x WhiteSharpness decides)
 #                                 + HeatMaskTex x HeatColor x HeatStrength x HeatGlow (HeatGlow 0..1, default 0:
 #                                 descent / afterburner code can drive it on a dynamic instance later)
 #                                 + BaseColor x SelfLight (a little self-light so the squad colours still read on
@@ -14,11 +15,12 @@
 #   <Ship>/SM_<Ship>, MI_<Ship>, T_<Ship>_BC|N|ORM|E[|HeatMask]     Nanite static mesh, one material slot
 # and edits ONLY the Mesh / MaterialOverrides fields of the existing engineering fallbacks
 #   /Game/TriadDrift/Gameplay/Characters/Squad/DA_<Ship>_Visuals
-#   /Game/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_<Type>_Visuals
+#   /Game/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_<Type>_Visuals   (TurretMesh too, for the turret)
+#   /Game/TriadDrift/Gameplay/Characters/Dominion/DA_DominionTurret_Visuals  (TurretMesh only)
 # (/Game/TriadDrift/Presentation is never touched and still wins). The old meshes (SM_Squad_*, SM_Null_*) stay
 # where they are; to switch a ship back run this script with TD_RODIN_REVERT=<Ship>[,<Ship>...] in the
-# environment (add OldFleet to also drop the material override from the interceptor, bomber and carrier
-# visuals), or re-run the old ue_import_squad.py / ue_import_null_fleet.py.
+# environment (an enemy goes back to its old mesh AND its old MI_Null_* as the material override; a bare mesh
+# with no override draws as the flat orange glow of the placeholder), or re-run ue_import_squad.py.
 # TD_RODIN_MI_ONLY=1 keeps meshes and textures and only rewrites the material instances and visuals (tuning).
 # Idempotent. The master is created once; to change its graph delete M_TD_Ship.uasset and run again.
 
@@ -35,31 +37,51 @@ MASTER = ROOT + "/Materials/M_TD_Ship"
 PIPELINE = ROOT + "/Pipelines/PL_Ship_StaticMesh"
 SQUAD = "/Game/TriadDrift/Gameplay/Characters/Squad"
 FLEET = "/Game/TriadDrift/Gameplay/Characters/NullFleet"
+DOMINION = "/Game/TriadDrift/Gameplay/Characters/Dominion"
+ALT_ROOT = os.environ.get("TD_RODIN_AI_ROOT", "")     # mirror of the repo tree for sources not merged here yet
+# Coloured emissive texels (seams, engines) are pushed to red-orange; near-white texels (the eyes) keep their
+# colour and get EyeBoost instead (M_TD_Ship separates them by saturation).
+ENEMY_GLOW = (1.0, 0.55, 0.35)
 
 # ship -> data asset folder, data asset, visuals class, the old mesh (for revert), material instance values
 SHIPS = {
-    "Rift": dict(da=(SQUAD, "DA_Rift_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Rift",
+    "Rift": dict(da=(SQUAD, "DA_Rift_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Rift", old_mi=None,
                  emissive=6.0, base_tint=(1.0, 1.0, 1.0), rough=1.0, self_light=0.12),
-    "Lancer": dict(da=(SQUAD, "DA_Lancer_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Lancer",
+    "Lancer": dict(da=(SQUAD, "DA_Lancer_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Lancer", old_mi=None,
                    emissive=6.0, base_tint=(1.0, 1.0, 1.0), rough=1.0, self_light=0.12),
-    "Bastion": dict(da=(SQUAD, "DA_Bastion_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Bastion",
+    "Bastion": dict(da=(SQUAD, "DA_Bastion_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Bastion", old_mi=None,
                     emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.0, self_light=0.18),
     # Null Armada: the Rodin albedo came out light silver; the brief is near-black armour, red-orange glow,
     # white eyes. BaseTint multiplies the albedo down; the emissive map keeps its own colours.
     "NullFighter": dict(da=(FLEET, "DA_Enemy_Fighter_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Fighter",
-                        emissive=10.0, base_tint=(0.35, 0.33, 0.34), rough=1.0,
-                        emissive_tint=(1.0, 0.55, 0.35)),
+                        old_mi=FLEET + "/MI_Null_Fighter", emissive=10.0, base_tint=(0.35, 0.33, 0.34),
+                        # its seams are a pale peach in the texture: a sharper white test keeps them orange and
+                        # leaves only the really neutral texels (the nose chevron eye) white
+                        emissive_tint=ENEMY_GLOW, eye_boost=1.6, white_sharp=9.0),
     "NullGunship": dict(da=(FLEET, "DA_Enemy_Gunship_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Gunship",
-                        emissive=8.0, base_tint=(0.6, 0.57, 0.57), rough=1.0,
-                        emissive_tint=(1.0, 0.55, 0.35)),
-}
-# The other Null Armada ships keep their engineering meshes (the Rodin interceptor arrived without textures; the
-# bomber and carrier have no Rodin mesh yet). Their visuals get the same material-override fix, so the whole
-# fleet draws its real materials instead of the placeholder's flat glow.
-OLD_FLEET = {
-    "DA_Enemy_Interceptor_Visuals": "MI_Null_Interceptor",
-    "DA_Enemy_Bomber_Visuals": "MI_Null_Bomber",
-    "DA_Enemy_Carrier_Visuals": "MI_Null_Carrier",
+                        old_mi=FLEET + "/MI_Null_Gunship", emissive=8.0, base_tint=(0.6, 0.57, 0.57),
+                        emissive_tint=ENEMY_GLOW, eye_boost=1.6),
+    # Fleet r3 (Grok Bot, Nov 13): these came out properly dark with clean orange seams: no BaseTint darkening.
+    "NullInterceptor": dict(da=(FLEET, "DA_Enemy_Interceptor_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Interceptor",
+                            old_mi=FLEET + "/MI_Null_Interceptor", emissive=10.0, base_tint=(1.0, 1.0, 1.0),
+                            emissive_tint=ENEMY_GLOW, eye_boost=2.5),      # its eye is dim in the texture
+    "NullBomber": dict(da=(FLEET, "DA_Enemy_Bomber_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Bomber",
+                       old_mi=FLEET + "/MI_Null_Bomber", emissive=9.0, base_tint=(1.0, 1.0, 1.0),
+                       emissive_tint=ENEMY_GLOW, eye_boost=2.0),
+    "NullCarrier": dict(da=(FLEET, "DA_Enemy_Carrier_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Carrier",
+                        old_mi=FLEET + "/MI_Null_Carrier", emissive=3.0, base_tint=(1.0, 1.0, 1.0),
+                        emissive_tint=ENEMY_GLOW, eye_boost=2.0,
+                        # NOT wired: gameplay mounts the three bays and four turrets at fixed offsets around the
+                        # r 1800 sphere (ATDEnemyShip::MountPart), which fits the old carrier's arms and pads; on
+                        # this slimmer hull (2276 wide, 1785 tall) they float 9-11 m off it. The mesh and its
+                        # material are imported and ready; the visuals keep SM_Null_Carrier until the mounts
+                        # can follow the mesh. Set wire=True to try it.
+                        wire=False),
+    # The turret has no visuals of its own: it is the TurretMesh field of the carrier visuals and of the
+    # Dominion turret visuals (ATDEnemyTurret::ApplyLook empties the override materials itself).
+    "NullTurret": dict(slots=((FLEET, "DA_Enemy_Carrier_Visuals"), (DOMINION, "DA_DominionTurret_Visuals")),
+                       slot_prop="turret_mesh", old=FLEET + "/SM_Null_Turret",
+                       emissive=9.0, base_tint=(1.0, 1.0, 1.0), emissive_tint=ENEMY_GLOW, eye_boost=1.6),
 }
 SUFFIX_PARAM = (("BaseColorTex", "BC"), ("ORMTex", "ORM"), ("NormalTex", "N"), ("EmissiveTex", "E"),
                 ("HeatMaskTex", "HeatMask"))
@@ -212,6 +234,8 @@ def ensure_master(defaults):
     normal = tex_param("NormalTex", eas.load_asset("/Engine/EngineMaterials/DefaultNormal"), st.SAMPLERTYPE_NORMAL, -1200, 320)
     emis = tex_param("EmissiveTex", defaults["E"], st.SAMPLERTYPE_COLOR, -1200, 600)
     etint = vector("EmissiveTint", (1.0, 1.0, 1.0), -1200, 850)
+    eyeb = scalar("EyeBoost", 1.0, -1200, 950)
+    wsharp = scalar("WhiteSharpness", 4.0, -1200, 1000)
     strength = scalar("EmissiveStrength", 0.0, -1200, 1050)
     heat = tex_param("HeatMaskTex", defaults["HeatMask"], st.SAMPLERTYPE_LINEAR_GRAYSCALE, -1200, 1200)
     hcol = vector("HeatColor", (1.0, 0.32, 0.05), -1200, 1450)
@@ -222,7 +246,26 @@ def ensure_master(defaults):
     ok = True
     bc, k = mul(base, "RGB", tint, "RGB", -800, -400); ok &= k
     rg, k = mul(orm, "G", rough, "", -800, 100); ok &= k
-    e1, k = mul(emis, "RGB", etint, "RGB", -800, 700); ok &= k
+    # whiteness of an emissive texel = 1 - saturation x WhiteSharpness: white eyes are not tinted, they get EyeBoost
+    def node(cls, x, y, **inputs):
+        n = mel.create_material_expression(mat, cls, x, y)
+        good = True
+        for pin, (src, out) in inputs.items():
+            good &= mel.connect_material_expressions(src, out, n, pin)
+        return n, good
+    mx0, k = node(E.MaterialExpressionMax, -1000, 2100, A=(emis, "R"), B=(emis, "G")); ok &= k
+    mx1, k = node(E.MaterialExpressionMax, -900, 2100, A=(mx0, ""), B=(emis, "B")); ok &= k
+    mn0, k = node(E.MaterialExpressionMin, -1000, 2250, A=(emis, "R"), B=(emis, "G")); ok &= k
+    mn1, k = node(E.MaterialExpressionMin, -900, 2250, A=(mn0, ""), B=(emis, "B")); ok &= k
+    rng, k = node(E.MaterialExpressionSubtract, -800, 2150, A=(mx1, ""), B=(mn1, "")); ok &= k
+    den, k = node(E.MaterialExpressionMax, -800, 2300, A=(mx1, "")); ok &= k
+    den.set_editor_property("const_b", 0.02)
+    sat, k = node(E.MaterialExpressionDivide, -700, 2200, A=(rng, ""), B=(den, "")); ok &= k
+    sharp, k = mul(sat, "", wsharp, "", -600, 2200); ok &= k
+    inv, k = node(E.MaterialExpressionOneMinus, -500, 2200, Input=(sharp, "")); ok &= k
+    white, k = node(E.MaterialExpressionSaturate, -400, 2200, Input=(inv, "")); ok &= k
+    tsel, k = node(E.MaterialExpressionLinearInterpolate, -900, 800, A=(etint, "RGB"), B=(eyeb, ""), Alpha=(white, "")); ok &= k
+    e1, k = mul(emis, "RGB", tsel, "", -800, 700); ok &= k
     e2, k = mul(e1, "", strength, "", -600, 800); ok &= k
     h1, k = mul(heat, "R", hcol, "RGB", -800, 1300); ok &= k
     h2, k = mul(hstr, "", hglow, "", -800, 1700); ok &= k
@@ -292,6 +335,21 @@ def set_visuals_mesh(cfg, mesh, notes, mi=None):
     return str(da.get_editor_property("mesh"))
 
 
+def set_slots(cfg, mesh, notes):
+    """A mesh that lives in a field of another visuals asset (the turret)."""
+    done = []
+    for folder, da_name in cfg["slots"]:
+        path = "%s/%s" % (folder, da_name)
+        if not eas.does_asset_exist(path):
+            notes.append("data asset missing: " + path)
+            continue
+        da = eas.load_asset(path)
+        if _set(da, cfg["slot_prop"], mesh, notes):
+            eas.save_loaded_asset(da)
+            done.append("%s.%s" % (da_name, cfg["slot_prop"]))
+    return ", ".join(done) or None
+
+
 def main():
     revert = [s.strip() for s in os.environ.get("TD_RODIN_REVERT", "").split(",") if s.strip()]
     only = [s.strip() for s in os.environ.get("TD_RODIN_ONLY", "").split(",") if s.strip()]
@@ -306,8 +364,12 @@ def main():
         notes = []
         if ship in revert:
             old = eas.load_asset(cfg["old"])
-            got = set_visuals_mesh(cfg, old, notes) if old else None
-            log("%s: REVERTED %s -> %s %s" % (ship, cfg["da"][1], got, "; ".join(notes)))
+            old_mi = eas.load_asset(cfg["old_mi"]) if cfg.get("old_mi") else None
+            if "slots" in cfg:
+                got = set_slots(cfg, old, notes) if old else None
+            else:
+                got = set_visuals_mesh(cfg, old, notes, old_mi) if old else None
+            log("%s: REVERTED -> %s %s" % (ship, got, "; ".join(notes)))
             good += 1 if got else 0
             bad += 0 if got else 1
             continue
@@ -324,6 +386,8 @@ def main():
         dest = "%s/%s" % (ROOT, ship)
         ensure_dir(dest)
         tex_dir = os.path.join(REPO, man["texture_dir"])
+        if not os.path.isdir(tex_dir) and ALT_ROOT:
+            tex_dir = os.path.join(ALT_ROOT, man["texture_dir"])
         files = {}
         for suffix in ("BC", "N", "ORM", "E"):
             p = os.path.join(tex_dir, "T_%s_%s.png" % (ship, suffix))
@@ -375,9 +439,11 @@ def main():
             if suffix in tex:
                 mel.set_material_instance_texture_parameter_value(mi, pname, tex[suffix])
         mel.set_material_instance_scalar_parameter_value(mi, "EmissiveStrength", cfg["emissive"] if "E" in tex else 0.0)
-        mel.set_material_instance_scalar_parameter_value(mi, "RoughnessScale", cfg["rough"])
+        mel.set_material_instance_scalar_parameter_value(mi, "RoughnessScale", cfg.get("rough", 1.0))
         mel.set_material_instance_scalar_parameter_value(mi, "HeatGlow", 0.0)
         mel.set_material_instance_scalar_parameter_value(mi, "SelfLight", cfg.get("self_light", 0.0))
+        mel.set_material_instance_scalar_parameter_value(mi, "EyeBoost", cfg.get("eye_boost", 1.0))
+        mel.set_material_instance_scalar_parameter_value(mi, "WhiteSharpness", cfg.get("white_sharp", 4.0))
         et = cfg.get("emissive_tint", (1.0, 1.0, 1.0))
         mel.set_material_instance_vector_parameter_value(mi, "EmissiveTint", unreal.LinearColor(et[0], et[1], et[2], 1.0))
         bt = cfg["base_tint"]
@@ -393,30 +459,26 @@ def main():
             pass
         b = mesh.get_bounds()
         size = [round(b.box_extent.x * 2.0, 1), round(b.box_extent.y * 2.0, 1), round(b.box_extent.z * 2.0, 1)]
-        got = set_visuals_mesh(cfg, mesh, notes, mi)
+        if not cfg.get("wire", True):
+            old, old_mi = eas.load_asset(cfg["old"]), eas.load_asset(cfg["old_mi"])
+            got = "NOT WIRED, visuals keep %s" % set_visuals_mesh(cfg, old, notes, old_mi)
+        elif "slots" in cfg:
+            got = set_slots(cfg, mesh, notes)
+        else:
+            got = set_visuals_mesh(cfg, mesh, notes, mi)
         row = {"asset": asset, "importer": how, "tris": tris, "size_cm": size,
                "bounds_origin_cm": [round(b.origin.x, 1), round(b.origin.y, 1), round(b.origin.z, 1)],
                "collision_hulls": hulls, "material_slots": len(mesh.static_materials), "textures": sorted(tex),
-               "sockets": sockets, "visuals": cfg["da"][1], "visuals_mesh": got, "notes": notes}
+               "sockets": sockets, "visuals": cfg["da"][1] if "da" in cfg else cfg["slot_prop"], "visuals_mesh": got,
+               "notes": notes}
         rows.append(row)
         log("%s: tris %s, size %s cm, bounds origin %s, hulls %d, slots %d, textures %s, sockets %s, %s.Mesh = %s%s"
             % (asset, tris, size, row["bounds_origin_cm"], hulls, row["material_slots"], row["textures"], sockets,
-               cfg["da"][1], got, ("  NOTES: " + "; ".join(notes)) if notes else ""))
+               cfg["da"][1] if "da" in cfg else "slots", got, ("  NOTES: " + "; ".join(notes)) if notes else ""))
         if got:
             good += 1
         else:
             bad += 1
-    for da_name, mi_name in OLD_FLEET.items():
-        path = "%s/%s" % (FLEET, da_name)
-        mi = eas.load_asset("%s/%s" % (FLEET, mi_name))
-        if not eas.does_asset_exist(path) or mi is None:
-            log("note: %s or %s missing, left alone" % (da_name, mi_name))
-            continue
-        da = eas.load_asset(path)
-        notes = []
-        _set(da, "material_overrides", [] if "OldFleet" in revert else [mi], notes)
-        eas.save_loaded_asset(da)
-        log("%s.MaterialOverrides = %s %s" % (da_name, "[] (reverted)" if "OldFleet" in revert else mi_name, "; ".join(notes)))
     out = os.path.join(REPO, "Saved", "RodinShips", "import_report.json")
     try:
         os.makedirs(os.path.dirname(out), exist_ok=True)

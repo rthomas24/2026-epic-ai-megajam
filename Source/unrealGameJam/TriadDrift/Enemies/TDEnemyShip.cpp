@@ -872,7 +872,7 @@ float ATDEnemyShip::FilterIncomingDamage(const FTDDamageInfo& Info)
 
 // ------------------------------------------------------------------------------------------ carrier
 
-void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up)
+void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up, FName Socket)
 {
 	if (!Part)
 	{
@@ -880,6 +880,18 @@ void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float 
 	}
 	bHasMountedParts = true;
 	if (RangeScale != 1.f) { RangeScale = 1.f; ApplyVisualScale(); }
+	UStaticMeshComponent* Hull = GetHullMesh();
+	if (!Socket.IsNone() && Hull && Hull->DoesSocketExist(Socket))
+	{
+		// The art says where the part goes (the Rodin carrier is slim: the old sphere placement left parts floating
+		// 9-11 m off it). Socket +X faces outward, like the sphere placement's LocalDirection.
+		Part->AttachToComponent(Hull, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true), Socket);
+		bSocketMounts = true;
+		FitCollisionToSocketedHull();
+		if (USphereComponent* Sphere = GetCollisionSphere()) { Sphere->IgnoreActorWhenMoving(Part, true); }
+		if (UPrimitiveComponent* PartRoot = Cast<UPrimitiveComponent>(Part->GetRootComponent())) { PartRoot->IgnoreActorWhenMoving(this, true); }
+		return;
+	}
 	// Snap (not KeepRelative) so a freshly spawned part doesn't inherit our world rotation twice.
 	Part->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true));
 	// Outside our own blocking sphere, so shots and rams reach the part instead of the hull.
@@ -896,6 +908,27 @@ void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float 
 	{
 		PartRoot->IgnoreActorWhenMoving(this, true);
 	}
+}
+
+void ATDEnemyShip::FitCollisionToSocketedHull()
+{
+	UStaticMeshComponent* Hull = GetHullMesh();
+	USphereComponent* Sphere = GetCollisionSphere();
+	if (!Hull || !Hull->GetStaticMesh() || !Sphere || bFittedToSockets)
+	{
+		return;
+	}
+	bFittedToSockets = true;
+	const FVector Half = Hull->GetStaticMesh()->GetBoundingBox().GetExtent() * Hull->GetComponentScale().GetAbs() / FMath::Max(GetActorScale3D().GetAbsMax(), KINDA_SMALL_NUMBER);
+	const float Thin = FMath::Max(100.f, Half.GetMin());
+	if (Thin < Sphere->GetUnscaledSphereRadius())
+	{
+		Sphere->SetSphereRadius(Thin);
+	}
+	// The hull's own collision answers projectiles (query only: flight and avoidance still use the sphere).
+	Hull->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Hull->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Hull->SetCollisionResponseToChannel(TDCollision::Projectile, ECR_Block);
 }
 
 void ATDEnemyShip::SpawnCarrierParts()
@@ -919,7 +952,7 @@ void ATDEnemyShip::SpawnCarrierParts()
 		if (!Bay) { continue; }
 		Bay->Visuals = Visuals;	// before Init, which applies the bay art
 		const FVector Dir = BayDirs[i % UE_ARRAY_COUNT(BayDirs)].RotateAngleAxis(25.f * (i / 3), FVector::UpVector);
-		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f);
+		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f, FName(*FString::Printf(TEXT("Bay_%d"), i)));
 		const float FirstDelay = Spec.Heavy.Interval * 0.5f + i * 2.f;
 		Bay->Init(this, Spec.BayHull, Spec.Heavy.Count, Spec.Heavy.Interval, Spec.Heavy.TelegraphSeconds, FirstDelay);
 		Bay->MaxLaunches = Spec.MaxLaunchesPerBay;
@@ -933,7 +966,7 @@ void ATDEnemyShip::SpawnCarrierParts()
 		if (!Turret) { continue; }
 		Turret->Visuals = Visuals;	// before Init, which applies the turret art
 		const float Angle = (PI * 0.5f) * i + PI * 0.25f;
-		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f);
+		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f, FName(*FString::Printf(TEXT("Turret_%d"), i)));
 		Turret->Init(Spec.TurretGuns, Spec.TurretHull);
 		Turret->SetDamageMultiplier(DifficultyDamage);
 		Turrets.Add(Turret);

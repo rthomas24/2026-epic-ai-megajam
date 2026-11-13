@@ -141,7 +141,9 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 				const FTDTerrainSample Sm = Field->Sample(X, Y, Step * 0.5f);
 				// True heights everywhere (the old sunk inner part made slabs at the core edge: pale flat patches);
 				// the quads inside the core are skipped below, so the ring is a ring. Real normals.
-				V.Add(FVector(X, Y, Sm.Height));
+				// ENG-38: the ring bends down like a sphere's surface from the core's edge out (Z -= d^2 / 2R), so
+				// the flat world's far edge drops under the horizon; the collidable core keeps its exact heights.
+				V.Add(FVector(X, Y, Sm.Height - CurvatureDrop(X, Y)));
 				const float HX = Field->Height(X + Step * 0.5f, Y) - Field->Height(X - Step * 0.5f, Y);
 				const float HY = Field->Height(X, Y + Step * 0.5f) - Field->Height(X, Y - Step * 0.5f);
 				Nrm.Add(FVector(-HX, -HY, Step).GetSafeNormal());
@@ -199,6 +201,16 @@ void ATDPlanetTerrain::BuildAround(const FVector& View)
 		if (M) { M->bUseAsyncCooking = true; }
 		Pending.Remove(D.Index);
 	}
+}
+
+float ATDPlanetTerrain::CurvatureDrop(float X, float Y) const
+{
+	if (CurvatureRadius <= 0.f || !Field.IsValid())
+	{
+		return 0.f;
+	}
+	const float Beyond = FMath::Max(0.f, FMath::Max(FMath::Abs(X), FMath::Abs(Y)) - Field->GetStyle().CoreHalfSize);
+	return Beyond * Beyond / (2.f * CurvatureRadius);
 }
 
 double ATDPlanetTerrain::BuildFirstViewAt(const FVector& CourseLocalPoint)

@@ -44,6 +44,8 @@ for ($attempt = 1; $attempt -le 6; $attempt++) {
 $log = Get-Content $logFile
 $errors = $log | Where-Object { $_ -match '(Error: |ERROR: |: error )' } | Select-Object -First 40
 if ($errors) { Write-Output "---- ERRORS ----"; $errors | ForEach-Object { Write-Output $_ } }
+# Build size (docs/eng/BUILD-SIZE.md): the ARM64 Visual C++ installer is 11.5 MB zipped and the game is x64 only.
+Get-ChildItem $archive -Recurse -Filter vc_redist.arm64.exe -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 $exe = Get-ChildItem $archive -Recurse -Filter *.exe -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'unrealGameJam' } | Select-Object -First 1
 $sizeMB = if (Test-Path $archive) { (Get-ChildItem $archive -Recurse -File | Measure-Object Length -Sum).Sum / 1MB } else { 0 }
 $result = if ($code -eq 0 -and $exe) { "SUCCEEDED" } else { "FAILED" }
