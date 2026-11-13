@@ -1,6 +1,8 @@
 // Triad Drift - the main menu's backdrop. Owner: Teammate 3.
 
 #include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "Camera/PlayerCameraManager.h"
 
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
@@ -225,6 +227,17 @@ void ATDMenuBackdrop::UpdateBreakup(float Dt)
 	if (!Dominion)
 	{
 		return;
+	}
+	// The ending stinger (storyline.md act 5): after the breakup, the squad's scanners take a distress signal bearing
+	// their own call signs, dated decades ahead. Cut to black under it; the victory panel stays usable.
+	if (!bStingerPlayed && Time >= StingerSeconds)
+	{
+		bStingerPlayed = true;
+		UTDStorySubsystem::Fire(this, TEXT("A5_DistressSignal"));
+		if (APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && PC->PlayerCameraManager)
+		{
+			PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.35f, FLinearColor::Black, false, /*bHoldWhenFinished*/ true);
+		}
 	}
 	// The hull lists and sinks as it dies, over the first minute, then holds.
 	const float A = FMath::Clamp(Time / 60.f, 0.f, 1.f);

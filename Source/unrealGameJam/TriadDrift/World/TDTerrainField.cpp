@@ -345,6 +345,7 @@ FTDTerrainSample FTDTerrainField::Sample(float X, float Y, float Step) const
 	const float HX = Height(X + Step, Y) - Height(X - Step, Y);
 	const float HY = Height(X, Y + Step) - Height(X, Y - Step);
 	const FVector N = FVector(-HX, -HY, 2.f * Step).GetSafeNormal();
+	S.Normal = N;
 	S.Slope = FMath::Clamp(1.f - N.Z, 0.f, 1.f);
 	S.Height01 = FMath::Clamp((S.Height - Style.BasinFloor) / FMath::Max(1.f, MaxHeight()), 0.f, 1.f);
 	// Cinder: the material's lava follows the carved river beds (Lead's M_TD_Terrain, ValleyWidth ~0.35);

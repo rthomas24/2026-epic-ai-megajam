@@ -264,6 +264,20 @@ void UTDUIHostSubsystem::SetCinematicHidden(bool bHidden)
 	Evaluate();
 }
 
+bool UTDUIHostSubsystem::ShowTransmission(const UObject* WorldContext, FName Speaker, FText Line, uint8 Style, float Seconds)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	UTDFlightHUDWidget* Flight = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+	if (!Flight)
+	{
+		return false;
+	}
+	const UTDFlightHUDWidget::ETransmissionStyle S = Style == 1 ? UTDFlightHUDWidget::ETransmissionStyle::Static
+		: Style == 2 ? UTDFlightHUDWidget::ETransmissionStyle::Echo : UTDFlightHUDWidget::ETransmissionStyle::Clean;
+	Flight->ShowTransmission(Speaker, Line, S, Seconds);
+	return true;
+}
+
 void UTDUIHostSubsystem::SetCinematicHiddenIn(const UObject* WorldContext, bool bHidden)
 {
 	if (UTDUIHostSubsystem* Host = Get(WorldContext))
@@ -629,8 +643,20 @@ namespace TDUIHost
 		if (const UTDFlightHUDWidget* Flight = Cast<UTDFlightHUDWidget>(HUD))
 		{
 			const UTDFlightHUDWidget::FView& V = Flight->GetView();
-			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD coverage=%.2f%% marks=%d wings=%d hits=%d lane=%d hull=%.2f shield=%.2f gamepad=%d"),
-				Flight->GetCoverage01() * 100.f, V.Marks.Num(), V.Wings.Num(), V.Hits.Num(), static_cast<int32>(V.Lane), V.Hull, V.Shield, V.bUsingGamepad ? 1 : 0);
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD coverage=%.2f%% marks=%d wings=%d hits=%d lane=%d hull=%.2f shield=%.2f gamepad=%d waypoints=%d card=%d step=%d/%d"),
+				Flight->GetCoverage01() * 100.f, V.Marks.Num(), V.Wings.Num(), V.Hits.Num(), static_cast<int32>(V.Lane), V.Hull, V.Shield, V.bUsingGamepad ? 1 : 0,
+				V.Waypoints.Num(), V.bHintCard ? 1 : 0, V.HintStep, V.HintCount);
+			if (const ITDHUDData* Src = Cast<ITDHUDData>(Flight->GetDataSource()))
+			{
+				for (const AActor* Marker : Src->GetObjectiveMarkers())
+				{
+					if (Marker)
+					{
+						UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: waypoint %s at (%.0f, %.0f, %.0f) m"), *Marker->GetName(),
+							Marker->GetActorLocation().X / 100.f, Marker->GetActorLocation().Y / 100.f, Marker->GetActorLocation().Z / 100.f);
+					}
+				}
+			}
 		}
 		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: choice=%s enabled=%d shown=%d class=%s source=%s"),
 			*StaticEnum<ETDSpaceHUDChoice>()->GetNameStringByValue(static_cast<int64>(UTDUIHostSettings::GetSpaceHUDChoice())),

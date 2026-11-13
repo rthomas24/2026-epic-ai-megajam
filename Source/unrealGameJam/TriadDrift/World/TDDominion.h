@@ -17,6 +17,18 @@ class ATDDominionReactor;
 class ATDEnemyTurret;
 class ATDEnemyShip;
 class ATDDominion;
+class ATDDockingBay;
+
+/** ENG-29: which ending the generators' fall leads to. */
+UENUM(BlueprintType)
+enum class ETDBoardingMode : uint8
+{
+	/** Boarding when td.Finale.Boarding is 1 (default), the map is a real level (not a /Temp test world) and
+	 *  L_Dominion_Interior exists; otherwise the space reactor kill. */
+	Auto,
+	ForceOn,	// always board (tests)
+	ForceOff	// always the space reactor kill
+};
 
 UENUM(BlueprintType)
 enum class ETDDominionState : uint8
@@ -25,6 +37,8 @@ enum class ETDDominionState : uint8
 	WarpingIn,		// Nick's reveal plays; nothing fights yet
 	ShieldsUp,		// generators + turrets + launches; hull and reactor immune
 	ReactorExposed,	// all generators down: fly the trench, kill the reactor
+	DockingOpen,	// boarding finale (ENG-29): all generators down, the docking bay is open, the reactor stays shielded
+	EscapeFlight,	// ENG-31: back from the interior (Phase Escape): the hull burns, debris falls, fly clear in time
 	Breakup,		// reactor dead; breakup sequence plays, then Victory
 	Finished		// TravelTo(Victory) requested
 };
@@ -122,6 +136,17 @@ public:
 	 */
 	FTransform GetStageStart(bool bTrench) const;
 
+	/** ENG-31: where the escape flight starts (TDReturnPoints::DominionHangarExit): just out of the bay mouth, facing out. */
+	FTransform GetEscapeStart() const;
+
+	/** ENG-31 escape flight: seconds left, how far out counts as clear (cm from the Dominion's centre), and state. */
+	float GetEscapeTimeLeft() const { return State == ETDDominionState::EscapeFlight ? FMath::Max(0.f, EscapeSeconds - StateTime) : 0.f; }
+	float GetEscapeExitRadius() const;
+	bool IsEscapeClear() const { return bEscapeClear; }
+	/** The clock ran out this take (the Dominion went up with the squad; CUT was called). */
+	bool HasEscapeFailed() const { return bEscapeFailReported; }
+	int32 GetEscapeDebrisSpawned() const { return EscapeDebrisSpawned; }
+
 	/** The hull, bridge and trench walls' extent in the Dominion's local space (art collision included). */
 	FBox GetLocalHullBounds() const;
 
@@ -158,6 +183,29 @@ public:
 	/** The flow's scene for the whole assault (UTDGameInstance::DominionScene); its retakes reset the fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
 	FName DominionSceneId = TEXT("Dominion");
+
+	/** ENG-31: the escape flight is its own scene: a fail retakes it at the bay mouth, never the interior. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape")
+	FName EscapeSceneId = TEXT("Escape");
+
+	/** Seconds to fly clear before the Dominion goes up with the squad (fail = CUT, the next take). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "5"))
+	float EscapeSeconds = 60.f;
+
+	/** Clear = this many hull radii from the centre (at least twice the shield radius). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "1"))
+	float EscapeExitHullRadii = 2.5f;
+
+	/** A debris chunk falls across the way out this often (s), faster near the end. 0 = no debris. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "0"))
+	float EscapeDebrisInterval = 0.6f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "0"))
+	float EscapeDebrisDamage = 20.f;
+
+	/** After clearing: the final blast, then victory this many seconds later. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "0"))
+	float EscapeVictoryDelay = 3.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	float BreakupSeconds = 8.f;
@@ -210,9 +258,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
 	TSubclassOf<ATDEnemyShip> LaunchedShipClass;
 
-	/** Stretch ENG-29: when true, defenses down calls BeginDockingFinale() instead of exposing the reactor. */
+	/**
+	 * ENG-29: when the generators fall, board (the docking bay opens, BeginDockingFinale) or kill the reactor from
+	 * space. `td.Finale.Boarding 0` forces the space ending (our fallback). Decided when the defenses go down.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
-	bool bDockingFinale = false;
+	ETDBoardingMode BoardingMode = ETDBoardingMode::Auto;
+
+	/** True when the defenses' fall leads to boarding (BoardingMode, the cvar, the map). */
+	bool UsesBoardingFinale() const;
+
+	/** The docking bay (null until the boarding finale opens it). */
+	ATDDockingBay* GetDockingBay() const { return DockingBay; }
 
 	// --- Presentation (all optional) ------------------------------------------------------------
 
@@ -258,8 +315,11 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** Stretch hook (ENG-29). Default: logs and falls back to the core reactor ending. */
-	virtual void BeginDockingFinale();
+	/** ENG-29: opens the docking bay on the bow (bPlayCues false when resuming a save or a retake). */
+	virtual void BeginDockingFinale(bool bPlayCues = true);
+
+	UPROPERTY(Transient)
+	TObjectPtr<ATDDockingBay> DockingBay;
 
 	void SetState(ETDDominionState NewState);
 	/** Hyperdrive "Finale" lock: assault states AND a squad ship has been inside HyperdriveLockRadius. Idempotent. */
@@ -324,6 +384,24 @@ protected:
 
 	/** Placeholder breakup while Nick's BreakupSequence has no VFX: explosion chain, final blast, hull gone. */
 	void TickPlaceholderBreakup(float DeltaSeconds);
+	/** One burst on the hull (HullSectionExplosion, else the placeholder); T01 grows its size. */
+	void PlayHullSectionBurst(float T01, int32 Seed);
+	/** The flash that swallows the ship (BreakupFinalBlast, else the placeholder) and hides the hull. */
+	void PlayFinalBlast();
+
+	// ENG-31 escape flight
+	void BeginEscapeFlight();
+	void ResetEscapeTake();
+	void TickEscapeFlight(float DeltaSeconds);
+	void SpawnEscapeDebris();
+	float EscapeBoomTimer = 0.f;
+	float EscapeDebrisTimer = 0.f;
+	float EscapeClearTime = 0.f;
+	int32 EscapeDebrisSpawned = 0;
+	bool bEscapeClear = false;
+	bool bEscapeFailReported = false;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<AActor>> EscapeDebris;
 	bool bPlaceholderBreakup = false;
 	bool bBreakupFinalBlast = false;
 	float BreakupBoomTimer = 0.f;

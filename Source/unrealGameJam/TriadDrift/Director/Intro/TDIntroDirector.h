@@ -167,6 +167,8 @@ public:
 	bool WasSkipped() const { return bSkipped; }
 	/** The narration lines, in order (localisable). */
 	static const TArray<FText>& NarrationLines();
+	/** This play's narration (story table Intro_N*, else NarrationLines()). */
+	TArray<FText> Narration;
 	/** Jump to a shot (captures, debug): restarts that shot from its first frame. */
 	void DebugJumpToShot(int32 Index);
 	/** Captures: replay the intro's shot up to time T (s from the start) in 1/30 s steps; bFreeze holds it there. */

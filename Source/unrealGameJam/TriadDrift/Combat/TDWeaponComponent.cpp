@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Weapon slots: fire rate, heat, ammo, charge, salvos, spread, aim assist.
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "GameFramework/MovementComponent.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -597,7 +598,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 
 	if (ProjSpec.FX)
 	{
-		UTDStatics::PlayCue(this, ProjSpec.FX->Muzzle, MuzzleLocation, Dir.Rotation());
+		FTDCombatCueLog::Play(this, ProjSpec.FX->Muzzle, ETDCombatCueKind::Muzzle, ProjSpec.FX, MuzzleLocation, Dir.Rotation());
 	}
 	if (!ProjSpec.FX || !FTDCombatPlaceholders::HasVisualArt(ProjSpec.FX->Muzzle))
 	{

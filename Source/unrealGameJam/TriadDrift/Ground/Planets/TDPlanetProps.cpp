@@ -263,7 +263,7 @@ ATDExtractionSite::ATDExtractionSite()
 	PrimaryActorTick.bCanEverTick = true;
 	HoldTime = 4.f;
 	bHoldSurvivesDamage = true;
-	Prompt = LOCTEXT("Extract", "Extract the core");
+	Prompt = LOCTEXT("Extract", "Recover the device");
 	Core = TDPlanetPropsImpl::MakeMesh(this, TEXT("Core"), TDPlanetPropsImpl::SpherePath, RootComponent);
 	Core->SetRelativeLocation(FVector(0.f, 0.f, 160.f));
 	Core->SetRelativeScale3D(FVector(0.55f));

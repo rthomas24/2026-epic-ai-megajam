@@ -393,6 +393,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue BreakupSequence;
 
+	/**
+	 * One explosion of the breakup chain on a hull section (runs when BreakupSequence has no VFX): a burst every
+	 * 0.45 s down to 0.12 s, walking out from the reactor. Author it for a 50 m radius; gameplay multiplies VFXScale
+	 * by each burst's size (25-70 m radius, so about 0.5x to 1.7x). No VFX = the engineering placeholder burst.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue HullSectionExplosion;
+
+	/**
+	 * The last flash of the breakup chain that swallows the ship (the hull hides under it). Author it for a 500 m
+	 * radius; gameplay scales VFXScale to the real hull. No VFX = the engineering placeholder burst.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue BreakupFinalBlast;
+
 	/** Stretch: the docking bay opening (ENG-29). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue DockingBayOpen;
@@ -714,4 +729,30 @@ public:
 	/** Bone hidden from the owner in first person so the camera does not sit inside the head. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	FName HeadBone = TEXT("head");
+};
+
+/**
+ * On-foot sounds (ENG-35, review M11): the pilot's steps, dash, jump, landing and hurt, the crew rifle shot and the drone
+ * hum, as cue slots. Looked up as DA_Ground_FX (Presentation, else the engineering copy under Gameplay/Characters/FX);
+ * an empty slot falls back to engineering's sound in code, so nothing goes silent. Owner of the class: Teammate 5.
+ */
+UCLASS(BlueprintType)
+class UNREALGAMEJAM_API UTDGroundFX : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	/** A step on soft ground (Verdance). Played at the feet every stride. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue StepSoil;
+	/** A step on rock (Cinder). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue StepRock;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Dash;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Jump;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Land;
+	/** The player's own hurt: its sound plays in 2D (one per burst of hits). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Hurt;
+	/** A crew bolt leaving the muzzle (one per volley). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew") FTDFXCue CrewRifleShot;
+	/** The drone's hover loop, attached, faded out on death. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew") FTDFXCue DroneHum;
 };

@@ -293,6 +293,19 @@ public:
 
 	FVector GetDeathDrift() const { return DeathDrift; }
 
+	/**
+	 * ENG-37: exhaust effects running now: one EngineTrail effect per hull nozzle socket ("Engine", "Engine_0".."Engine_8",
+	 * ATDShip::GetNozzleSockets), or one at the hull origin when the mesh has none. 0 without EngineTrail VFX or once dead.
+	 */
+	int32 GetExhaustEffectCount() const;
+
+	/** Exhausts this ship asked for: its nozzle sockets, or 1 at the hull origin (0 without EngineTrail VFX / once dead). */
+	int32 GetExhaustNozzleCount() const { return ExhaustNozzleCount; }
+
+	/** What the exhaust effects are fed as Niagara user floats "Throttle" (0..1, speed / cruise) and "Boost" (0/1). */
+	float GetExhaustThrottle01() const { return ExhaustThrottle01; }
+	bool GetExhaustBoost() const { return bExhaustBoost; }
+
 protected:
 	FVector DeathDrift = FVector::ZeroVector;
 	FRotator DeathSpin = FRotator::ZeroRotator;
@@ -393,9 +406,20 @@ protected:
 	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
 
 	void StartLoopCues();
+	void StopExhaust();
+	void UpdateExhaustParams();
 
+	/** The first exhaust (it carries the EngineTrail sound). */
 	UPROPERTY(Transient)
 	TObjectPtr<class UNiagaraComponent> EngineTrailFX;
+
+	/** The other nozzles' exhausts (VFX only). */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class UNiagaraComponent>> ExtraExhaustFX;
+
+	float ExhaustThrottle01 = 0.f;
+	int32 ExhaustNozzleCount = 0;
+	bool bExhaustBoost = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<class UNiagaraComponent> DamagedSmokeFX;

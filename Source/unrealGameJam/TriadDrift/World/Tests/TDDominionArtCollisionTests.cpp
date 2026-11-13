@@ -8,6 +8,8 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "NiagaraSystem.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
@@ -200,6 +202,52 @@ bool FTDDominionBreakupShows::RunTest(const FString&)
 		TestTrue(TEXT("final blast"), D->HasBreakupFinalBlast());
 		TestTrue(TEXT("the hull is gone after the blast"), D->IsHidden());
 	}
+	W.Advance(2.f);
+	TestTrue(TEXT("victory follows the breakup"), GI->Progress.Phase == ETDGamePhase::Victory);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionBreakupCues, "TriadDrift.World.Dominion.BreakupExplosionsUseTheirCueSlots", TD_TEST_FLAGS)
+bool FTDDominionBreakupCues::RunTest(const FString&)
+{
+	// ENG-37: with HullSectionExplosion / BreakupFinalBlast VFX set (and no whole-sequence BreakupSequence VFX), the chain
+	// plays those cues and no placeholder burst; the hull still hides at the final blast and victory follows.
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true;
+	GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	AActor* Killer = W.Spawn<AActor>(FVector(150000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.5f);
+	UTDDominionVisuals* V = D->Visuals ? DuplicateObject<UTDDominionVisuals>(D->Visuals, GetTransientPackage()) : NewObject<UTDDominionVisuals>();
+	V->BreakupSequence = FTDFXCue();
+	const FSoftObjectPath Fake(TEXT("/Game/TriadDrift/Tests/NS_TD_TestBoom.NS_TD_TestBoom"));	// a path only: nothing loads, no burst
+	V->HullSectionExplosion = FTDFXCue();
+	V->HullSectionExplosion.VFX = TSoftObjectPtr<UNiagaraSystem>(Fake);
+	V->BreakupFinalBlast = V->HullSectionExplosion;
+	D->Visuals = V;	// the Dominion's own copy; generators and reactor keep theirs
+	for (ATDShieldGenerator* G : D->GetGenerators()) { UTDStatics::ApplyTDDamage(G, 1000000.f, ETDDamageKind::Explosive, Killer, Killer); W.Advance(0.2f); }
+	W.Advance(1.f);
+	for (int32 Hit = 0; Hit < 10 && D->GetReactor() && D->GetState() != ETDDominionState::Breakup; ++Hit)
+	{
+		UTDStatics::ApplyTDDamage(D->GetReactor(), 100000000.f, ETDDamageKind::Explosive, Killer, Killer);
+		W.Advance(1.5f);
+	}
+	if (!TestEqual(TEXT("breakup started"), (int32)D->GetState(), (int32)ETDDominionState::Breakup)) { return false; }
+	UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(D);
+	if (!TestNotNull(TEXT("placeholder pool"), Booms)) { return false; }
+	const float Half = D->BreakupSeconds * 0.5f;
+	W.Advance(Half, 1.f / 30.f);	// the reactor's own placeholder (its visuals are unchanged) has faded by now
+	int32 MaxFlashes = 0;
+	for (float T = 0.f; T < D->BreakupSeconds - Half - 1.f; T += 1.f / 30.f)
+	{
+		W.Tick(1.f / 30.f);
+		MaxFlashes = FMath::Max(MaxFlashes, Booms->GetPlayingFlashCount());
+	}
+	TestTrue(*FString::Printf(TEXT("the chain still walks the hull (%d)"), D->GetBreakupBoomCount()), D->GetBreakupBoomCount() >= 8);
+	TestTrue(TEXT("final blast"), D->HasBreakupFinalBlast());
+	TestTrue(TEXT("the hull is gone after the blast"), D->IsHidden());
+	TestEqual(TEXT("no placeholder bursts while the cue slots have VFX"), MaxFlashes, 0);
 	W.Advance(2.f);
 	TestTrue(TEXT("victory follows the breakup"), GI->Progress.Phase == ETDGamePhase::Victory);
 	return true;

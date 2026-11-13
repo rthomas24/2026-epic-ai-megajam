@@ -41,6 +41,10 @@ struct UNREALGAMEJAM_API FTDCutPresentationState
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
 	float NameCardAlpha = 0.f;
 
+	/** The card's second line: "RIFT · BOLD · INSTINCTIVE" (the pilot's trait, storyline.md §3). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
+	FText NameCardSubText;
+
 	/** "CUT!" */
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
 	FText CutCardText;
@@ -222,7 +226,12 @@ public:
 	/** "Wave3" -> "Wave 3" (scene ids are CamelCase + number). */
 	/** features.md C-03 #3: "SCENE 3 · CINDER · OUTPOST · TAKE 1". SceneNumber 0 (unknown) drops the number;
 	 *  Place is the planet for an objective scene (empty in the galaxy). */
-	static FText MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber = 0, const FString& Place = FString());
+	static FText MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber = 0, const FString& Place = FString(),
+		const FText& SceneTitle = FText::GetEmpty());
+
+	/** The story name of a scene: the objective's Title for a planet objective ("THE RESEARCH SITE"), else empty (the
+	 *  slate then falls back to the id, "WAVE 3"). */
+	static FText FindSceneTitle(const UWorld* World, FName SceneId);
 
 	/** Where the scene slate is drawn on a viewport of Size (px). Centred, in the upper third, below
 	 *  the top 15% (Nick's OBJECTIVE block, the real HUD's top row) and below the dev HUD's squad rows
@@ -231,6 +240,10 @@ public:
 
 	/** Viewport layer of the overlay: just under the real HUD while it is up, else 900. */
 	static int32 OverlayZOrder(bool bRealHUDActive);
+
+	/** True when the hosted space HUD draws its own pilot card: Nick's (N-007), or any widget whose bCoversNameCard is
+	 *  true. Engineering's flight HUD (the default since ENG-36) doesn't, so the fallback card shows under it. */
+	static bool IsNameCardClaimedByHUD(const UWorld* World);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cut")
 	FTDCutPresentationTuning Tuning;
