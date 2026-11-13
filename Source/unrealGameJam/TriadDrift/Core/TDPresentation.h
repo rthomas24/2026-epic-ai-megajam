@@ -465,6 +465,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue AtmosphericEntry;
 
+	/** ENG-38 (T1): the entry roar, a 2D loop that persists across the planet load under the white cover. Only Sound is
+	 *  used. Empty: AtmosphericEntry's sound stands in. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue DescentRoar;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 

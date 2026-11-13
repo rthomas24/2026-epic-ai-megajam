@@ -6,6 +6,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -23,6 +24,9 @@
 // ------------------------------------------------------------------------------------------------ cover widget
 
 static int32 GTDCoverPaints = 0;
+
+static TAutoConsoleVariable<int32> CVarTDDescentLegacy(TEXT("td.Descent.Legacy"), 0,
+	TEXT("ENG-38: 1 = planet entry and exit use today's 0.6 s fade to black and the L_Transition loading screen; 0 = the white cover straight to the map (default)."));
 
 /** A full-screen flat colour. Counts its paints, which is how the probe proves it is still on screen after a load. */
 class STDDescentCover : public SLeafWidget
@@ -97,6 +101,12 @@ void UTDDescentSubsystem::Mark(const TCHAR* Step)
 
 void UTDDescentSubsystem::HandlePreLoadMap(const FString& MapName)
 {
+	if (CoverPhase == ETDDescentCover::RampIn || CoverPhase == ETDDescentCover::Held)
+	{
+		SetCoverAlpha(1.f); // the last galaxy frame is full white
+		CoverPhase = ETDDescentCover::Held;
+		bDestLoaded = false;
+	}
 	if (!IsTiming()) { return; }
 	OpenLevelTime = FPlatformTime::Seconds() - TimingStart;
 	Mark(*FString::Printf(TEXT("OpenLevel %s (cover %s, roar %s)"), *FPackageName::GetShortName(MapName), IsCoverShown() ? TEXT("up") : TEXT("off"),
@@ -105,6 +115,14 @@ void UTDDescentSubsystem::HandlePreLoadMap(const FString& MapName)
 
 void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 {
+	if (World && World->GetGameInstance() == GetGameInstance() && CoverPhase == ETDDescentCover::Held)
+	{
+		DestWorld = World;
+		DestPostLoadFrame = GFrameCounter;
+		bDestLoaded = true;
+		bDestFirstFrameSeen = false;
+		bFirstViewBuilt = false;
+	}
 	if (!IsTiming() || !World || World->GetGameInstance() != GetGameInstance()) { return; }
 	PostLoadTime = FPlatformTime::Seconds() - TimingStart;
 	PaintsAtPostLoad = GTDCoverPaints;
@@ -118,6 +136,7 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 
 void UTDDescentSubsystem::Tick(float DeltaTime)
 {
+	TickCover(FMath::Min(DeltaTime, 0.1f));
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -193,6 +212,164 @@ void UTDDescentSubsystem::EndTiming(const TCHAR* Why)
 			Why, FirstFrameTime, TerrainTime, ControlTime, LongestFrame * 1000.0);
 	}
 	TimingStart = -1.0;
+}
+
+// ------------------------------------------------------------------------------------------------ covered route
+
+bool UTDDescentSubsystem::IsLegacy() { return CVarTDDescentLegacy.GetValueOnGameThread() != 0; }
+
+bool UTDDescentSubsystem::IsCoveredRoute(ETDDestination From, ETDDestination To)
+{
+	auto IsPlanet = [](ETDDestination D) { return D == ETDDestination::Verdance || D == ETDDestination::Cinder; };
+	return !IsLegacy() && ((From == ETDDestination::Galaxy && IsPlanet(To)) || (IsPlanet(From) && To == ETDDestination::Galaxy));
+}
+
+float UTDDescentSubsystem::BeginCoveredTravel(ETDDestination To)
+{
+	CoverDestination = To;
+	bDestLoaded = false;
+	DestWorld.Reset();
+	if (CoverAlpha >= 1.f)
+	{
+		CoverPhase = ETDDescentCover::Held;
+		CoverFullAt = FPlatformTime::Seconds();
+		return 0.f;
+	}
+	CoverPhase = ETDDescentCover::RampIn;
+	CoverRampRate = 1.f / CoverRampSeconds;
+	return (1.f - CoverAlpha) * CoverRampSeconds;
+}
+
+void UTDDescentSubsystem::SetEntryCover(float Alpha01)
+{
+	if (CoverPhase == ETDDescentCover::Off || CoverPhase == ETDDescentCover::RampIn)
+	{
+		if (Alpha01 > CoverAlpha)
+		{
+			SetCoverAlpha(Alpha01);
+		}
+	}
+}
+
+void UTDDescentSubsystem::AbortCover(const TCHAR* Why)
+{
+	if (CoverPhase == ETDDescentCover::Off && !Cover.IsValid() && !Roar) { return; }
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: cover dropped (%s)"), Why);
+	CoverPhase = ETDDescentCover::Aborting;
+	StopRoar(0.3f);
+}
+
+void UTDDescentSubsystem::SetCoverAlpha(float Alpha)
+{
+	CoverAlpha = FMath::Clamp(Alpha, 0.f, 1.f);
+	if (CoverAlpha <= 0.f)
+	{
+		HideCover();
+	}
+	else
+	{
+		ShowCover(CoverAlpha);
+	}
+	if (CoverAlpha >= 1.f && CoverFullAt < 0.0)
+	{
+		CoverFullAt = FPlatformTime::Seconds();
+	}
+}
+
+void UTDDescentSubsystem::TickCover(float Dt)
+{
+	const double Now = FPlatformTime::Seconds();
+	switch (CoverPhase)
+	{
+	case ETDDescentCover::Off:
+		return;
+	case ETDDescentCover::RampIn:
+		SetCoverAlpha(CoverAlpha + CoverRampRate * Dt);
+		if (CoverAlpha >= 1.f) { CoverPhase = ETDDescentCover::Held; }
+		break;
+	case ETDDescentCover::Held:
+	{
+		UWorld* World = DestWorld.Get();
+		bool bReveal = false;
+		const TCHAR* Why = TEXT("");
+		if (bDestLoaded && World && World->HasBegunPlay() && GFrameCounter > DestPostLoadFrame)
+		{
+			if (!bDestFirstFrameSeen) { bDestFirstFrameSeen = true; DestFirstFrameAt = Now; }
+			// T4's first view around the arrival, once, under the cover (its cost lands on the white frame).
+			ATDPlanetTerrain* Terrain = nullptr;
+			for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { Terrain = *It; break; }
+			if (Terrain && !bFirstViewBuilt && ArrivalWorld.Get() == World && Terrain->GetChunkCount() > 0)
+			{
+				bFirstViewBuilt = true;
+				const double Ms = Terrain->BuildFirstViewAt(ArrivalCourseLocal);
+				Mark(*FString::Printf(TEXT("terrain first view at the arrival (%.0f ms; setup %.0f ms)"), Ms, Terrain->GetSetupMs()));
+			}
+			const bool bTerrainReady = !Terrain || (Terrain->GetChunkCount() > 0 && Terrain->GetPendingCount() == 0);
+			const double Held = Now - DestFirstFrameAt;
+			if (bTerrainReady && Held >= RevealMinHoldSeconds) { bReveal = true; Why = Terrain ? TEXT("terrain built") : TEXT("no terrain"); }
+			else if (Held >= RevealMaxHoldSeconds) { bReveal = true; Why = TEXT("4 s hold limit"); }
+		}
+		if (!bReveal && CoverFullAt >= 0.0 && Now - CoverFullAt > CoverHardLimitSeconds) { bReveal = true; Why = TEXT("12 s hard limit"); }
+		if (bReveal)
+		{
+			Mark(*FString::Printf(TEXT("reveal (%s)"), Why));
+			UE_LOG(LogTriadDrift, Log, TEXT("TD descent: reveal (%s)"), Why);
+			CoverPhase = ETDDescentCover::Revealing;
+			StopRoar(1.f);
+		}
+		break;
+	}
+	case ETDDescentCover::Revealing:
+	case ETDDescentCover::Aborting:
+		SetCoverAlpha(CoverAlpha - Dt / (CoverPhase == ETDDescentCover::Revealing ? RevealSeconds : 0.3f));
+		if (CoverAlpha <= 0.f)
+		{
+			CoverPhase = ETDDescentCover::Off;
+			CoverFullAt = -1.0;
+			bDestLoaded = false;
+		}
+		break;
+	}
+}
+
+void UTDDescentSubsystem::RecordEntry(ETDDestination Planet, const ATDPlanetAtmosphere* Atmosphere, const FVector& WorldPoint, const FVector& WorldVelocity)
+{
+	if (!Atmosphere) { ClearArrival(); return; }
+	FVector GlobeVel = FVector::ZeroVector;
+	const FTDGlobePoint P = FTDPlanetEntry::GlobeFromWorld(Atmosphere, WorldPoint, WorldVelocity, GlobeVel);
+	RecordEntryGlobe(Planet, P, GlobeVel);
+}
+
+void UTDDescentSubsystem::RecordEntryGlobe(ETDDestination Planet, const FTDGlobePoint& P, const FVector& GlobeVelocity)
+{
+	bArrivalPending = true;
+	ArrivalPlanet = Planet;
+	ArrivalPoint = P;
+	ArrivalGlobeVelocity = GlobeVelocity;
+	ArrivalWorld.Reset();
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: entry recorded at lat %.1f lon %.1f (%.0f deg from the landing zone)"), P.LatDeg, P.LonDeg, P.AngleFromPadDeg());
+}
+
+bool UTDDescentSubsystem::GetArrival(UWorld* World, ETDDestination Planet, const FTransform& CourseToWorld, FTransform& OutWorld)
+{
+	if (World && ArrivalWorld.Get() == World)
+	{
+		OutWorld = ArrivalWorldXf; // a retake in the same visit: the same arrival
+		return true;
+	}
+	if (!bArrivalPending || ArrivalPlanet != Planet || !World)
+	{
+		return false;
+	}
+	const FTransform Local = FTDPlanetEntry::ArrivalFromGlobe(Planet, ArrivalPoint, ArrivalGlobeVelocity, ArrivalAltitudeCm);
+	ArrivalCourseLocal = Local.GetLocation();
+	OutWorld = Local * CourseToWorld;
+	ArrivalWorldXf = OutWorld;
+	ArrivalWorld = World;
+	bArrivalPending = false; // consumed: a later visit without a new entry uses the fixed start
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: arrival at course-local (%.0f, %.0f, %.0f) m, yaw %.0f"),
+		ArrivalCourseLocal.X / 100.f, ArrivalCourseLocal.Y / 100.f, ArrivalCourseLocal.Z / 100.f, Local.Rotator().Yaw);
+	return true;
 }
 
 void UTDDescentSubsystem::ShowCover(float Alpha, FLinearColor Color)

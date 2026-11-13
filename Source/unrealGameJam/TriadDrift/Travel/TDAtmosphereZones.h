@@ -65,6 +65,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
 	float EntrySeconds = 2.5f;
 
+	/** ENG-38: on the covered route, the white cover ramps in over the last this-many seconds of the dive. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0.05", Units = "s"))
+	float CoverRampInSeconds = 0.6f;
+
 	/** Speed held during entry. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
 	float EntrySpeed = 9000.f;
@@ -116,6 +120,7 @@ private:
 	TWeakObjectPtr<class UAudioComponent> EntryAudio;
 	void StopEntryCue();
 
+	bool bCoveredEntry = false; // ENG-38: this entry runs the white cover and the persistent roar
 	ETDAtmosphereEntryState EntryState = ETDAtmosphereEntryState::Idle;
 	ETDDestination Destination = ETDDestination::Verdance;
 	FName ReturnPoint = NAME_None;

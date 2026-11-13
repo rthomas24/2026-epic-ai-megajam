@@ -11,12 +11,18 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Tickable.h"
+#include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/World/TDPlanetEntry.h"
 #include "TDDescentSubsystem.generated.h"
 
 class SWidget;
 class STDDescentCover;
 class UAudioComponent;
 class USoundBase;
+class ATDPlanetAtmosphere;
+
+/** Cover phases of a covered (white) travel. */
+enum class ETDDescentCover : uint8 { Off, RampIn, Held, Revealing, Aborting };
 
 UCLASS()
 class UNREALGAMEJAM_API UTDDescentSubsystem : public UGameInstanceSubsystem, public FTickableGameObject
@@ -47,6 +53,42 @@ public:
 	void StopRoar(float FadeSeconds = 0.5f);
 	bool IsRoarPlaying() const;
 
+	// ---- Covered route (ENG-38): galaxy <-> planet with the white cover instead of the black fade and L_Transition.
+	/** td.Descent.Legacy 0 (default) and a galaxy <-> planet trip. Every other route keeps today's fade. */
+	static bool IsCoveredRoute(ETDDestination From, ETDDestination To);
+	static bool IsLegacy();
+	/** The flow's TravelTo on a covered route: brings the cover to full white; returns the seconds until it is (0 = now). */
+	float BeginCoveredTravel(ETDDestination To);
+	/** The atmosphere entry ramps the cover with its plasma (0..1, never down while a travel is pending). */
+	void SetEntryCover(float Alpha01);
+	/** The travel fell through (voided, timed out, refused) or the entry aborted: cover and roar go. */
+	void AbortCover(const TCHAR* Why);
+	ETDDescentCover GetCoverPhase() const { return CoverPhase; }
+	float GetCoverAlpha() const { return CoverAlpha; }
+
+	// ---- Arrival from the entry point (ENG-38 stage 1).
+	/** At the entry commit: where on the globe and which way the squad went in. */
+	void RecordEntry(ETDDestination Planet, const ATDPlanetAtmosphere* Atmosphere, const FVector& WorldPoint, const FVector& WorldVelocity);
+	/** The same, already in globe terms (tests). */
+	void RecordEntryGlobe(ETDDestination Planet, const FTDGlobePoint& P, const FVector& GlobeVelocity);
+	bool HasPendingArrival() const { return bArrivalPending; }
+	void ClearArrival() { bArrivalPending = false; ArrivalWorld.Reset(); }
+	/**
+	 * The planet rig's fresh-arrival transform: from the recorded entry (consumed by the first world that asks, kept
+	 * for that world's retakes), or false (no entry recorded: a Continue, a dev jump) for today's fixed descent start.
+	 */
+	bool GetArrival(UWorld* World, ETDDestination Planet, const FTransform& CourseToWorld, FTransform& OutWorld);
+	/** Arrival height above the ground under it. 1,000 m: under the 1.2 km take-off exit height and near the fitted
+	 *  zone ceiling (highest ground + 400 m) until stage 2's glide owns the altitude. */
+	static constexpr float ArrivalAltitudeCm = 100000.f;
+
+	// ---- Tuning
+	static constexpr float CoverRampSeconds = 0.35f;   // a travel with no entry ramp in front of it (take-off, dev)
+	static constexpr float RevealMinHoldSeconds = 0.5f; // after the destination's first frame
+	static constexpr float RevealMaxHoldSeconds = 4.f;  // after the first frame, terrain or not
+	static constexpr float RevealSeconds = 1.2f;
+	static constexpr float CoverHardLimitSeconds = 12.f; // since full white: never stuck
+
 	/** Probe (TD.Descent.Probe): when the run reaches control, log what survived and how long it took, then clean up. */
 	void ArmProbe() { bProbe = true; }
 
@@ -61,6 +103,8 @@ private:
 	void HandlePreLoadMap(const FString& MapName);
 	void HandlePostLoadMap(UWorld* World);
 	void EndTiming(const TCHAR* Why);
+	void TickCover(float RealDt);
+	void SetCoverAlpha(float Alpha);
 
 	double TimingStart = -1.0;
 	double LastMark = 0.0;
@@ -80,6 +124,26 @@ private:
 	double PostLoadTime = -1.0;
 	double OpenLevelTime = -1.0;
 	TWeakObjectPtr<UWorld> LoadedWorld;
+
+	ETDDescentCover CoverPhase = ETDDescentCover::Off;
+	float CoverAlpha = 0.f;
+	float CoverRampRate = 0.f;
+	double CoverFullAt = -1.0;
+	double DestFirstFrameAt = -1.0;
+	uint64 DestPostLoadFrame = 0;
+	bool bDestLoaded = false;
+	bool bDestFirstFrameSeen = false;
+	ETDDestination CoverDestination = ETDDestination::Galaxy;
+	TWeakObjectPtr<UWorld> DestWorld;
+	bool bFirstViewBuilt = false;
+
+	bool bArrivalPending = false;
+	ETDDestination ArrivalPlanet = ETDDestination::Verdance;
+	FTDGlobePoint ArrivalPoint;
+	FVector ArrivalGlobeVelocity = FVector::ZeroVector;
+	TWeakObjectPtr<UWorld> ArrivalWorld;
+	FTransform ArrivalWorldXf;
+	FVector ArrivalCourseLocal = FVector::ZeroVector;
 
 	TSharedPtr<STDDescentCover> Cover;
 	TWeakPtr<class SWidget> CoverInViewport;

@@ -5,6 +5,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDDebugMenu.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -251,7 +252,15 @@ bool UTDGameInstance::TravelTo(ETDDestination Destination, FName ReturnPoint)
 	}
 	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
 	const float Fade = Settings->TravelFadeSeconds;
-	if (PC && PC->PlayerCameraManager && Fade > 0.f)
+	// T1, ENG-38: galaxy <-> planet goes under the white cover, straight to the map (td.Descent.Legacy 1: as before).
+	UTDDescentSubsystem* Descent = GetSubsystem<UTDDescentSubsystem>();
+	bCoveredTravel = Descent && UTDDescentSubsystem::IsCoveredRoute(CurrentDestination, Destination);
+	if (bCoveredTravel)
+	{
+		TravelStage = ETravelStage::FadingOut;
+		TravelStageTimeLeft = Descent->BeginCoveredTravel(Destination);
+	}
+	else if (PC && PC->PlayerCameraManager && Fade > 0.f)
 	{
 		PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, Fade, FLinearColor::Black, false, true);
 		TravelStage = ETravelStage::FadingOut;
@@ -322,6 +331,11 @@ void UTDGameInstance::FinishTravel(bool bArrived)
 	{
 		CurrentDestination = PendingDestination;
 	}
+	if (!bArrived && bCoveredTravel)
+	{
+		if (UTDDescentSubsystem* Descent = GetSubsystem<UTDDescentSubsystem>()) { Descent->AbortCover(TEXT("travel fell through")); }
+	}
+	bCoveredTravel = false;
 	TravelStage = ETravelStage::None;
 	TravelStageTimeLeft = 0.f;
 	TravelElapsed = 0.f;
@@ -403,7 +417,7 @@ void UTDGameInstance::TickFlow(float RealDeltaSeconds)
 			if (TravelStageTimeLeft <= 0.f)
 			{
 				const FString Transition = UTDFlowSettings::Get()->TransitionMap.GetLongPackageName();
-				const bool bUseTransition = TravelStage == ETravelStage::FadingOut && !Transition.IsEmpty()
+				const bool bUseTransition = TravelStage == ETravelStage::FadingOut && !bCoveredTravel && !Transition.IsEmpty()
 					&& !TDFlow::SamePackage(Transition, PendingPackage) && FPackageName::DoesPackageExist(Transition);
 				BeginLoad(bUseTransition ? Transition : PendingPackage);
 			}
