@@ -33,7 +33,7 @@ all remain optional until separately claimed and authored.
   decide activation, dependencies, host lifecycle and packaging before integration.
 - SpaceFoundation needs no Presentation data asset. Material VFX prototypes need
   Niagara wrappers before filling UNiagaraSystem fields; that work is not dispatched.
-- M02 switch audio was rejected; a wholly new RiftConcept01 alone is active; M02/M03 are preserved for comparison.
+- M02/M03 and RiftConcept01 are rejected/frozen comparison history, not active production. The selected MenuTheme01 track is the current bounded audio scope; see CLAIMS.md and N-017/N-018/N-020.
   OnSwitchCut plus UTDShipVisuals.SwitchIn/SwitchOut are the future integration hooks;
   choose one playback route to avoid double firing. No audio-system edits authorized.
 - N001 modular assembly and centre-pivot rocket offset decisions are recorded below.
@@ -78,4 +78,4 @@ handling and game-mode fallback; MainMenuWidgetClass/LoadingWidgetClass, crew
 AnimBPClass/Stagger/Death and BladeMesh now exist per engineering's closed reply.
 Existing BladeColor/Retract reused; ragdoll remains gameplay-owned. No menu/crew/
 blade/dressing production assigned. Planet size/capsule/mantle/slope/cover supplied
-by engineering remain unchanged. Audio M02 was rejected; only the new RiftConcept01 benchmark is active.
+by engineering remain unchanged. Audio M02 and RiftConcept01 are rejected/frozen; only the selected MenuTheme01 readiness work is currently assigned.

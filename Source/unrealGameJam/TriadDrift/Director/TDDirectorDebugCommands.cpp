@@ -10,6 +10,7 @@
 //   TD.Director.Status            log the camera rig / presentation state
 //   TD.Director.MultiKill         the player's ship kills three live enemies in one beat (spawns fighters if needed)
 //   TD.Director.MissileReturn     Rift opens both portals; an enemy missile goes through and back at its shooter
+//   TD.Squad.Passive <0|1>        wingmen hold fire and formation (weapon checks without the wing stealing targets)
 //   TD.Squad.KillActive           kill the ship the player flies (the tumble, then the auto-switch)
 //   TD.Squad.Check <label>        log frame, active ship, possessed pawn, view target, slow-mo, pause (switch stress)
 //   TD.Squad.Frame                log where the wingmen and the nearest enemy are on screen (-1..1),
@@ -320,6 +321,16 @@ namespace TDDirectorDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MultiKill));
 	static FAutoConsoleCommandWithWorldAndArgs CmdMissile(TEXT("TD.Director.MissileReturn"), TEXT("TD.Director.MissileReturn: Rift sends a missile back through its portals"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MissileReturn));
+	static FAutoConsoleCommandWithWorldAndArgs CmdPassive(TEXT("TD.Squad.Passive"), TEXT("TD.Squad.Passive <0|1>: wingmen hold fire (1) or fight (0)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (ATDSquadManager* S = Squad(World))
+			{
+				const bool bPassive = Args.Num() == 0 || FCString::Atoi(*Args[0]) != 0;
+				S->SetWingmenPassive(bPassive);
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.Passive: wingmen %s"), bPassive ? TEXT("passive (hold fire)") : TEXT("fighting"));
+			}
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdKillActive(TEXT("TD.Squad.KillActive"), TEXT("TD.Squad.KillActive: kill the player's ship"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
 		{

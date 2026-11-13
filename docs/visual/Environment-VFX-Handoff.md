@@ -1,5 +1,7 @@
 # Environment & VFX responsibility handoff
 
+> Historical handoff. Current owners, PR dispositions and asset stages are in Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md, CLAIMS.md and STATUS.md. PR #1 is closed unmerged; this document is not production authority.
+
 Read-only reference, 2026-11-12. This records completed work and boundaries; it does
 not launch development, relax claims, grant a heavy-tool slot or authorize a main merge.
 Lead Coordinator coordinates Nick's agents and integration, rather than producing

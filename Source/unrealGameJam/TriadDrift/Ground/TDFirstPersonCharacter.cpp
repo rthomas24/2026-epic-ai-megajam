@@ -562,6 +562,7 @@ void ATDFirstPersonCharacter::PingObjective()
 
 void ATDFirstPersonCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
 {
+	UE_LOG(LogTriadDrift, Verbose, TEXT("Pilot hit: %.0f %s from %s, hull %.0f"), HullDamage, *UEnum::GetValueAsString(Info.Kind), *GetNameSafe(Info.Causer), InHealth ? InHealth->GetHull() : 0.f);
 	const ATDInteractableActor* Held = Cast<ATDInteractableActor>(HoldTarget.Get());
 	if (ShieldDamage + HullDamage > 0.f && !(Held && Held->bHoldSurvivesDamage))
 	{
@@ -571,6 +572,9 @@ void ATDFirstPersonCharacter::HandleDamaged(UTDHealthComponent* InHealth, const 
 
 void ATDFirstPersonCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow)
 {
+	// Every on-foot death says what did it (playtests, balance: a death nobody can explain is a bug).
+	UE_LOG(LogTriadDrift, Log, TEXT("Pilot down at %s: %.0f %s from %s (causer %s)"), *GetActorLocation().ToCompactString(), KillingBlow.Amount,
+		*UEnum::GetValueAsString(KillingBlow.Kind), *GetNameSafe(KillingBlow.Instigator), *GetNameSafe(KillingBlow.Causer));
 	CancelInteract();
 	if (Blade)
 	{

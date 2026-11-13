@@ -505,8 +505,8 @@ void ATDEncounterVolume::Activate()
 	const FTDRetakeMercyTier* Mercy = GetActiveMercy();
 	if (Mercy)
 	{
-		UE_LOG(LogTriadDrift, Log, TEXT("Director's mercy: %s take %d eases the fight (health %.0f%%, summons %d)"), *GetName(), Take,
-			Mercy->HealthScale * 100.f, Mercy->MaxSummons);
+		UE_LOG(LogTriadDrift, Log, TEXT("Director's mercy: %s take %d eases the fight (health %.0f%%, summons %d, %d fewer crew)"), *GetName(), Take,
+			Mercy->HealthScale * 100.f, Mercy->MaxSummons, Mercy->DropCrew);
 	}
 	if (UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(this))
 	{
@@ -532,6 +532,10 @@ void ATDEncounterVolume::Activate()
 			Points.Add(FVector(FMath::Cos(Angle) * RingRadius, FMath::Sin(Angle) * RingRadius, 0.f));
 		}
 	}
+	if (Mercy && Mercy->DropCrew > 0 && Points.Num() > 1)
+	{
+		Points.SetNum(FMath::Max(1, Points.Num() - Mercy->DropCrew));
+	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	const FVector Center = GetActorLocation();
@@ -549,9 +553,13 @@ void ATDEncounterVolume::Activate()
 			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
 		}
 		Member->FinishSpawning(Xf);
-		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member); Crew && Mercy)
+		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
 		{
-			Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons);
+			if (Mercy)
+			{
+				Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons);
+			}
+			Crew->SetOpeningGrace(OpeningGraceSeconds);
 		}
 		// The fight starts now: everyone already knows where the player is.
 		if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Cast<APawn>(Member) ? Cast<APawn>(Member)->GetController() : nullptr))

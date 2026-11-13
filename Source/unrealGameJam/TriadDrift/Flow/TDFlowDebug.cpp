@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "EngineUtils.h"
 
 namespace TDFlowDebug
 {
@@ -24,7 +25,7 @@ namespace TDFlowDebug
 		}
 		const FTDProgress& P = GI->GetProgressRef();
 		const FName Scene = GI->GetCurrentScene();
-		UE_LOG(LogTriadDrift, Display, TEXT("TD.Flow: map=%s phase=%s scene=%s take=%d retake=%d travel=%d waves=%d run=%.0fs kills=%d cuts=%d line='%s'"),
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Flow: map=%s phase=%s scene=%s take=%d retake=%d travel=%d waves=%d run=%.0fs kills=%d shipslost=%d line='%s'"),
 			*World->GetMapName(), *UEnum::GetValueAsString(P.Phase), *Scene.ToString(), Scene.IsNone() ? 0 : GI->GetTakeNumber(Scene),
 			GI->IsRetakePending(), GI->IsTravelPending(), P.WavesCleared, P.RunTimeSeconds, P.Stats.Kills, P.Stats.Deaths,
 			*GI->GetCurrentObjectiveText().ToString().Replace(TEXT("\n"), TEXT(" / ")));
@@ -41,7 +42,20 @@ namespace TDFlowDebug
 			UE_LOG(LogTriadDrift, Display, TEXT("TD.Flow: pawn=%s at (%.0f %.0f %.0f) yaw=%.1f pitch=%.1f"), *Pawn->GetClass()->GetName(),
 				Pawn->GetActorLocation().X, Pawn->GetActorLocation().Y, Pawn->GetActorLocation().Z, View.Yaw, View.Pitch);
 		}
+		// Every objective marker the HUD can show: the flow's own and any other system's (the travel rig tags the pad).
+		TArray<const AActor*> Markers;
 		for (const AActor* M : GI->GetFlowMarkers())
+		{
+			Markers.AddUnique(M);
+		}
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			if (It->ActorHasTag(TDTags::ObjectiveMarker))
+			{
+				Markers.AddUnique(*It);
+			}
+		}
+		for (const AActor* M : Markers)
 		{
 			if (!M)
 			{
