@@ -72,6 +72,8 @@ separate-branch/M01-only notes above describe historical checkpoints.
   - Cinder props: `SM_Cind_Crystal_01` to `_04`, `SM_Cind_Basalt_01` to `_03`, `SM_Cind_BasaltColumn_01`, `_02`. Tool: Blender 5.2 headless. Sources `ArtSource/EngProps/Cinder/`.
   - Verdance trees: 18 meshes `SM_TDVeg_<Species>_S<stage>_<seed>` (kapok, Brazil nut, trumpet tree, walking palm, tree fern, cacao as structural analogues). Tool: Unreal Engine 5.9 Procedural Vegetation Editor driven through the engine's MCP server. Botanical figures (heights, crown shapes) were read from Useful Tropical Plants and Wikipedia, with each value's source recorded in `.claude/skills/procedural-trees/biomes/verdance.json`; no media was taken from them.
   - `Content/TriadDrift/Gameplay/Materials/M_TD_PropTextured`: original material built by script (`Tools/td-import-props.py`).
+- Null Armada trooper character (`Content/TriadDrift/Gameplay/Characters/NullTrooper/`, sources `ArtSource/EngCharacters/NullTrooper/`): armour and undersuit modelled in Blender 5.2 (headless Python, Claude Code sub-agent) on Epic's UE5 mannequin body and skeleton from the project template, after a concept image supplied by Ryan (`refs/enemy1.png`; **the tool that generated the concept image is to be stated by Ryan**). In progress, Nov 12.
+- On-foot player body trial (`Content/TriadDrift/Gameplay/Characters/Pilot/`): imported from the rigged and animated sample supplied by Nicholas (`ArtSource/Characters/Samples/SentinelArmor/`, board N-021); the file name indicates Meshy AI. **Tool, plan and licence to be confirmed by Nicholas before submission.**
 
 ## Primary-fire realism M02 — offline review only
 
