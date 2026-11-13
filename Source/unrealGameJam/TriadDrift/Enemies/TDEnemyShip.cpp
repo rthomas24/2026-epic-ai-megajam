@@ -25,6 +25,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Flight/TDShip.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/WorldSettings.h"
@@ -201,6 +202,14 @@ UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
 {
 	if (!InSpec.Visuals.IsNull())
 	{
+		// A Presentation asset must come through Core's loader: it returns the MERGED copy (Nick's fields win over the
+		// engineering fallback). A raw LoadSynchronous returns the unmerged asset, so a sound-only DA would drop the
+		// engineering mesh (review M7).
+		const FSoftObjectPath Path = InSpec.Visuals.ToSoftObjectPath();
+		if (Path.GetLongPackageName().StartsWith(UTDStatics::GetPresentationFolder()))
+		{
+			return UTDStatics::LoadPresentation<UTDEnemyVisuals>(Path.GetAssetName());
+		}
 		return InSpec.Visuals.LoadSynchronous();
 	}
 	const FString Name = VisualsAssetName(InSpec);
@@ -210,10 +219,55 @@ UTDEnemyVisuals* ATDEnemyShip::ResolveVisuals(const FTDEnemySpec& InSpec)
 
 void ATDEnemyShip::StartLoopCues()
 {
-	if (Visuals && !EngineTrailFX)
+	if (!Visuals || EngineTrailFX)
 	{
-		EngineTrailFX = UTDStatics::PlayCueAttached(Visuals->EngineTrail, GetHullMesh());
+		return;
 	}
+	// ENG-37: one exhaust per nozzle socket (T1's scan, shared with the squad ships); the hull origin when there are none.
+	// The first carries the sound; the rest are VFX only, so a four-engine bomber doesn't play four engine sounds.
+	TArray<FName> Nozzles;
+	ATDShip::GetNozzleSockets(GetHullMesh(), Nozzles);
+	if (Nozzles.Num() == 0) { Nozzles.Add(NAME_None); }
+	ExhaustNozzleCount = Visuals->EngineTrail.VFX.IsNull() ? 0 : Nozzles.Num();
+	EngineTrailFX = UTDStatics::PlayCueAttached(Visuals->EngineTrail, GetHullMesh(), Nozzles[0]);
+	FTDFXCue VFXOnly = Visuals->EngineTrail;
+	VFXOnly.Sound.Reset();
+	VFXOnly.Shake.Reset();
+	for (int32 i = 1; i < Nozzles.Num() && !VFXOnly.VFX.IsNull(); ++i)
+	{
+		if (UNiagaraComponent* FX = UTDStatics::PlayCueAttached(VFXOnly, GetHullMesh(), Nozzles[i])) { ExtraExhaustFX.Add(FX); }
+	}
+	UpdateExhaustParams();
+}
+
+void ATDEnemyShip::StopExhaust()
+{
+	if (EngineTrailFX) { EngineTrailFX->Deactivate(); EngineTrailFX = nullptr; }
+	for (UNiagaraComponent* FX : ExtraExhaustFX) { if (FX) { FX->Deactivate(); } }
+	ExtraExhaustFX.Reset();
+	ExhaustNozzleCount = 0;
+}
+
+int32 ATDEnemyShip::GetExhaustEffectCount() const
+{
+	int32 N = EngineTrailFX ? 1 : 0;
+	for (const UNiagaraComponent* FX : ExtraExhaustFX) { N += FX ? 1 : 0; }
+	return N;
+}
+
+void ATDEnemyShip::UpdateExhaustParams()
+{
+	const UTDShipMovementComponent* Move = GetShipMovement();
+	ExhaustThrottle01 = Move ? FMath::Clamp((float)GetVelocity().Size() / FMath::Max(Move->GetCruiseCapSpeed(), 1.f), 0.f, 1.f) : 0.f;
+	bExhaustBoost = IsBoosting();
+	if (IsStunned()) { ExhaustThrottle01 = 0.f; bExhaustBoost = false; }	// dead stick: the exhaust idles
+	auto Feed = [this](UNiagaraComponent* FX)
+	{
+		ATDShip::SetExhaustParamIfExposed(FX, TEXT("Throttle"), ExhaustThrottle01);
+		ATDShip::SetExhaustParamIfExposed(FX, TEXT("Boost"), bExhaustBoost ? 1.f : 0.f);
+	};
+	if (EngineTrailFX) { Feed(EngineTrailFX); }
+	for (UNiagaraComponent* FX : ExtraExhaustFX) { if (FX) { Feed(FX); } }
 }
 
 void ATDEnemyShip::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float /*ShieldDamage*/, float HullDamage)
@@ -1016,7 +1070,7 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 		Sphere->SetCollisionResponseToChannel(TDCollision::Ship, ECR_Ignore);
 	}
 	ClearSpeedOverrideFor(TEXT("EnemyAI"));
-	if (EngineTrailFX) { EngineTrailFX->Deactivate(); EngineTrailFX = nullptr; }
+	StopExhaust();
 	if (Visuals)
 	{
 		UTDStatics::PlayCueAttached(Visuals->DeathTumble, GetHullMesh());
@@ -1237,6 +1291,7 @@ void ATDEnemyShip::Tick(float DeltaSeconds)
 
 	TickTimers(DeltaSeconds);
 	TickRangeScale(DeltaSeconds);
+	if (EngineTrailFX || ExtraExhaustFX.Num() > 0) { UpdateExhaustParams(); }
 
 	if (bPlaceholderLook && PlaceholderShieldPlate && HasFrontalShield())
 	{
