@@ -1,6 +1,7 @@
 // Triad Drift - atmosphere entry and atmosphere flight zone (ENG-20). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDTerrainField.h"
 #include "EngineUtils.h"
@@ -148,6 +149,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		EntryAudio = Audio;
 	}
 	OnEntryStarted.Broadcast(this);
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->BeginTiming(TEXT("atmosphere entry")); } // ENG-38 timing log
 	if (EntrySeconds <= 0.f)
 	{
 		FinishEntry();
@@ -162,6 +164,7 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 	OnEntryCompleted.Broadcast(this);
 
 	bool bTravelled = false;
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->Mark(TEXT("entry done, travel request")); }
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		bTravelled = Travel->RequestLevelTravel(Destination, ReturnPoint); // once per level, never over a retake
