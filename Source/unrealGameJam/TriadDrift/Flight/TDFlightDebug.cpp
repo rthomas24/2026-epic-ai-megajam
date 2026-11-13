@@ -289,6 +289,25 @@ static FAutoConsoleCommandWithWorldAndArgs GTDFlightFeedbackCmd(TEXT("TD.Flight.
 	TEXT("Log the no-art flight feedback: its tick cost, dust motes shown, active bursts, camera kick and placeholder counts."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Feedback));
 
+static FAutoConsoleCommandWithWorldAndArgs GTDFlightCamProfileCmd(TEXT("TD.Flight.CamProfile"),
+	TEXT("Issue #23 camera audition: TD.Flight.CamProfile Default (default) | Tuned | Audition | Report (composed peaks since the last switch)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+	{
+		using EP = UTDFlightFeedbackComponent::ECamProfile;
+		const FString Want = Args.Num() ? Args[0] : TEXT("Report");
+		const bool bSet = Want.Equals(TEXT("Audition"), ESearchCase::IgnoreCase) || Want.Equals(TEXT("Tuned"), ESearchCase::IgnoreCase) || Want.Equals(TEXT("Default"), ESearchCase::IgnoreCase);
+		if (bSet)
+		{
+			UTDFlightFeedbackComponent::CamProfile = Want.Equals(TEXT("Audition"), ESearchCase::IgnoreCase) ? EP::Audition
+				: Want.Equals(TEXT("Tuned"), ESearchCase::IgnoreCase) ? EP::Tuned : EP::Default;
+			UTDFlightFeedbackComponent::ComposedPeaks = UTDFlightFeedbackComponent::FComposedPeaks();
+		}
+		const UTDFlightFeedbackComponent::FComposedPeaks& P = UTDFlightFeedbackComponent::ComposedPeaks;
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.CamProfile: %s | composed peaks: roll %.2f pitch %.2f shake %.3f deg, FOV kick %.2f deg, blur %.3f | shake scale %.2f speed scale %.2f"),
+			UTDFlightFeedbackComponent::CamProfileName(), P.Roll, P.Pitch, P.Shake, P.FOV, P.Blur,
+			UTDFlightFeedbackComponent::UserShakeScale, UTDFlightFeedbackComponent::UserSpeedFOVScale);
+	}));
+
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightCamCmd(TEXT("TD.Flight.Cam"),
 	TEXT("Chase-camera feel readout: [tag] once | rec <seconds> [tag] every 0.1 s | set <Cam|FB> <Field> <Value> on every squad ship (dev tuning)"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Cam));

@@ -170,7 +170,7 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::Hints: return LOCTEXT("Hints", "Control hints");
 	case ETDSettingsRow::Difficulty: return LOCTEXT("Difficulty", "Difficulty");
 	case ETDSettingsRow::CameraShake: return LOCTEXT("CameraShake", "Camera shake");
-	case ETDSettingsRow::SpeedFOV: return LOCTEXT("SpeedFOV", "Speed FOV effect");
+	case ETDSettingsRow::SpeedFOV: return LOCTEXT("SpeedFOV", "Speed effects (FOV, blur)");
 	case ETDSettingsRow::MasterVolume: return LOCTEXT("Master", "Master volume");
 	case ETDSettingsRow::MusicVolume: return LOCTEXT("Music", "Music volume");
 	case ETDSettingsRow::EffectsVolume: return LOCTEXT("Effects", "Effects volume");

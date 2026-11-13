@@ -915,5 +915,23 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	// The Settings "Speed FOV" option scales how much the view widens with speed (0 = a fixed FOV).
 	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01() * FMath::Clamp(UTDFlightFeedbackComponent::UserSpeedFOVScale, 0.f, 1.f));
 	CurrentFOV = bSnap ? TargetFOV : FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, CameraTuning.FOVResponse);
-	ChaseCamera->SetFieldOfView(CurrentFOV);
+	// Issue #23 finding 2: the feedback FOV punches (boost, dodge, hyperdrive, portal, explosions) only reached the
+	// camera in BeginPlay; they apply every frame now.
+	// Default profile (issue #23): exactly as before the fix, until Ryan and Nicholas have seen the video.
+	if (!UTDFlightFeedbackComponent::IsFixedCameraPath())
+	{
+		ChaseCamera->SetFieldOfView(CurrentFOV);
+		return;
+	}
+	const float FOVKick = FlightFeedback ? FlightFeedback->GetFOVOffset() : 0.f;
+	ChaseCamera->SetFieldOfView(FMath::Clamp(CurrentFOV + FOVKick, 5.f, 170.f));
+
+	// --- Motion blur (issue #23 finding 1: it was only set in BeginPlay): the tuning, or the Audition profile's
+	// speed blur when that is on (0 by default: camera-rotation blur smears the stars).
+	const float Blur = FMath::Max(CameraTuning.MotionBlurAmount, FlightFeedback ? FlightFeedback->GetMotionBlurAmount() : 0.f);
+	const float BlurMax = FlightFeedback && FlightFeedback->GetMotionBlurAmount() > 0.f ? FlightFeedback->GetMotionBlurMax() : CameraTuning.MotionBlurMax;
+	ChaseCamera->PostProcessSettings.bOverride_MotionBlurAmount = true;
+	ChaseCamera->PostProcessSettings.MotionBlurAmount = Blur;
+	ChaseCamera->PostProcessSettings.bOverride_MotionBlurMax = true;
+	ChaseCamera->PostProcessSettings.MotionBlurMax = BlurMax;
 }
