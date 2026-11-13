@@ -20,6 +20,8 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDSkySphere.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
 
 static TAutoConsoleVariable<int32> CVarTDMenuBackdrop(
 	TEXT("td.MenuBackdrop"), 1,
@@ -44,7 +46,7 @@ ATDMenuBackdrop::ATDMenuBackdrop()
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
 }
 
-ATDMenuBackdrop* ATDMenuBackdrop::SpawnFor(AGameModeBase* MenuMode)
+ATDMenuBackdrop* ATDMenuBackdrop::SpawnFor(AGameModeBase* MenuMode, ETDBackdropScene InScene)
 {
 	UWorld* World = MenuMode ? MenuMode->GetWorld() : nullptr;
 	if (!World || CVarTDMenuBackdrop.GetValueOnGameThread() == 0)
@@ -62,7 +64,14 @@ ATDMenuBackdrop* ATDMenuBackdrop::SpawnFor(AGameModeBase* MenuMode)
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.ObjectFlags |= RF_Transient;
-	return World->SpawnActor<ATDMenuBackdrop>(ATDMenuBackdrop::StaticClass(), FTransform::Identity, Params);
+	Params.bDeferConstruction = true;
+	ATDMenuBackdrop* B = World->SpawnActor<ATDMenuBackdrop>(ATDMenuBackdrop::StaticClass(), FTransform::Identity, Params);
+	if (B)
+	{
+		B->Scene = InScene;
+		B->FinishSpawning(FTransform::Identity);
+	}
+	return B;
 }
 
 void ATDMenuBackdrop::BeginPlay()
@@ -171,19 +180,109 @@ void ATDMenuBackdrop::Build()
 		}
 		Spawned.Add(Squad);
 	}
+	if (Scene == ETDBackdropScene::Victory)
+	{
+		BuildVictory(World);
+	}
 	NextFlyby = FirstFlybySeconds;
 	if (APlayerController* PC = World->GetFirstPlayerController(); PC && Camera)
 	{
 		PC->SetViewTarget(Camera);
 	}
 	UpdateCamera();
-	UE_LOG(LogTriadDrift, Log, TEXT("Menu backdrop: sky, Verdance, camera and %d squad ships"), SquadMeshes.Num());
+	UE_LOG(LogTriadDrift, Log, TEXT("Menu backdrop (%s): sky, Verdance, camera and %d squad ships%s"),
+		Scene == ETDBackdropScene::Victory ? TEXT("victory") : TEXT("menu"), SquadMeshes.Num(),
+		Dominion ? TEXT(", the Dominion breaking up") : TEXT(""));
+}
+
+void ATDMenuBackdrop::BuildVictory(UWorld* World)
+{
+	// That's a wrap: the Dominion breaking up in the middle distance beside ringed Verdance, fires walking along its
+	// hull; the squad flies away from it, home past the lens; the camera pushes in slowly.
+	const FVector ToPlanet = (PlanetAt - CamBase).GetSafeNormal();
+	const FVector Right = FVector::CrossProduct(FVector::UpVector, ToPlanet).GetSafeNormal();
+	DominionRadius = UTDIntroDirector::DominionRadius();
+	const FVector At = FMath::Lerp(CamBase, PlanetAt, 0.5f) - Right * (PlanetRadius * 1.9f) - FVector::UpVector * (PlanetRadius * 0.35f);
+	// Three-quarter on to the lens, its bow toward the frame's left edge.
+	const FRotator Facing = (-Right * 0.8f - ToPlanet * 0.6f).Rotation();
+	DominionStart = FTransform(Facing, At);
+	Dominion = UTDIntroDirector::SpawnDominionVisual(World, DominionStart);
+	if (Dominion)
+	{
+		Spawned.Add(Dominion);
+	}
+	// The lens looks between the wreck and the planet; the stats sit in the sky above.
+	LookBase = FMath::Lerp(At, PlanetAt, 0.45f) + FVector::UpVector * (PlanetRadius * 0.4f);
+	FireRng.Initialize(20261115);
+	NextFire = 0.2f;
+	FirstFlybySeconds = 2.f;
+	FlybySeconds = 10.f;
+	FlybyEverySeconds = 16.f;
+}
+
+void ATDMenuBackdrop::UpdateBreakup(float Dt)
+{
+	if (!Dominion)
+	{
+		return;
+	}
+	// The hull lists and sinks as it dies, over the first minute, then holds.
+	const float A = FMath::Clamp(Time / 60.f, 0.f, 1.f);
+	const FRotator List = DominionStart.Rotator() + FRotator(-7.f * A, 0.f, 11.f * A);
+	Dominion->SetActorLocationAndRotation(DominionStart.GetLocation() - FVector::UpVector * (DominionRadius * 0.4f * A), List);
+	// Fires: small bursts walking along the hull, now and then a big one.
+	if (Time < NextFire)
+	{
+		return;
+	}
+	NextFire = Time + FireRng.FRandRange(0.18f, 0.6f);
+	UTDProjectileSubsystem* P = UTDProjectileSubsystem::Get(this);
+	if (!P)
+	{
+		return;
+	}
+	// On the lens-facing skin: aim from the lens at a random point inside the hull's box and burn where the ray enters
+	// it (a point inside the hull would be hidden by it).
+	const FBox Box = Dominion->GetComponentsBoundingBox(true).ExpandBy(-0.15f * DominionRadius);
+	const FVector Inner(FireRng.FRandRange(Box.Min.X, Box.Max.X), FireRng.FRandRange(Box.Min.Y, Box.Max.Y),
+		FireRng.FRandRange(Box.Min.Z, Box.Max.Z));
+	const FVector Eye = Camera ? Camera->GetActorLocation() : Inner;
+	FVector Where = Inner;
+	{
+		const FVector D = Inner - Eye;
+		float TEnter = 0.f;
+		for (int32 Ax = 0; Ax < 3; ++Ax)
+		{
+			if (FMath::Abs(D[Ax]) > KINDA_SMALL_NUMBER)
+			{
+				const float T0 = (Box.Min[Ax] - Eye[Ax]) / D[Ax];
+				const float T1 = (Box.Max[Ax] - Eye[Ax]) / D[Ax];
+				TEnter = FMath::Max(TEnter, FMath::Min(T0, T1));
+			}
+		}
+		Where = Eye + D * FMath::Clamp(TEnter, 0.f, 1.f);
+	}
+	// The arcade explosion placeholder (additive, soft-edged, cooling through orange; Nick's FX Death when it lands):
+	// small bursts walking along the hull, now and then a big one.
+	const bool bBig = FireRng.FRand() < 0.12f;
+	const FLinearColor Hot = FireRng.FRand() < 0.5f ? FLinearColor(1.f, 0.42f, 0.08f) : FLinearColor(1.f, 0.2f, 0.05f);
+	P->PlayPlaceholderExplosion(Where, DominionRadius * (bBig ? 0.22f : FireRng.FRandRange(0.05f, 0.1f)), Hot, bBig ? 6 : 0);
+	++Fires;
 }
 
 void ATDMenuBackdrop::UpdateCamera()
 {
 	if (!Camera)
 	{
+		return;
+	}
+	if (Scene == ETDBackdropScene::Victory)
+	{
+		// A slow push-in toward the wreck, eased over 40 s, then held.
+		const float A = FMath::Clamp(Time / 40.f, 0.f, 1.f);
+		const float E = A * A * (3.f - 2.f * A);
+		const FVector Cam = FMath::Lerp(CamBase, LookBase, 0.12f * E) + FVector::UpVector * FMath::Sin(Time * 0.19f) * 500.f;
+		Camera->SetActorLocationAndRotation(Cam, (LookBase - Cam).Rotation());
 		return;
 	}
 	// A slow drift: a few degrees round the planet and a breath of push, over a minute.
@@ -203,6 +302,12 @@ void ATDMenuBackdrop::UpdateFlyby(float Dt)
 		// (x forward, y right, z up): the camera drifts kilometres round the planet, so the squad flies with it.
 		FlybyFrom = FVector(8000.f, -4200.f, -1300.f);
 		FlybyTo = FVector(10500.f, 4400.f, -700.f);
+		if (Scene == ETDBackdropScene::Victory)
+		{
+			// Away from the burning Dominion (deep in frame, left) and home past the lens on the right.
+			FlybyFrom = FVector(70000.f, -14000.f, -6000.f);
+			FlybyTo = FVector(4500.f, 5200.f, -900.f);
+		}
 		FlybyT = 0.f;
 		++Flybys;
 		for (UStaticMeshComponent* C : SquadMeshes)
@@ -246,6 +351,7 @@ void ATDMenuBackdrop::Tick(float DeltaSeconds)
 	Time += DeltaSeconds;
 	UpdateCamera();
 	UpdateFlyby(DeltaSeconds);
+	UpdateBreakup(DeltaSeconds);
 	// Keep the view: something resetting the menu's view target (a respawned spectator) must not drop the scene.
 	if (APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && Camera)
 	{
@@ -264,6 +370,8 @@ void ATDMenuBackdrop::DebugSetTime(float Seconds)
 	FlybyT = -1.f;
 	NextFlyby = FirstFlybySeconds;
 	Flybys = 0;
+	FireRng.Initialize(20261115);
+	NextFire = Seconds - 1.f; // only the last second's fires are replayed
 	for (UStaticMeshComponent* C : SquadMeshes)
 	{
 		C->SetVisibility(false);
@@ -273,6 +381,7 @@ void ATDMenuBackdrop::DebugSetTime(float Seconds)
 		Time += 1.f / 30.f;
 		UpdateCamera();
 		UpdateFlyby(1.f / 30.f);
+		UpdateBreakup(1.f / 30.f);
 	}
 }
 

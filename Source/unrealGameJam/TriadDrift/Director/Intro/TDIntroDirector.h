@@ -176,8 +176,14 @@ private:
 	void ClearShowcase();
 	void SetKeyLight(const FVector& At, float Radius, float Intensity);
 	void SpawnDominionStandIn(const FTransform& At);
+public:
+	/** The Dominion's art (DA_Dominion_Visuals: hull, bridge, trench walls) on a transient visual-only actor. */
+	static AActor* SpawnDominionVisual(UWorld* World, const FTransform& At);
+private:
+public:
 	/** The Dominion hull's radius (cm) from its art, for framing. */
 	static float DominionRadius();
+private:
 	void RestoreGateSurface();
 	/** Put back what one shot hid (the eclipse's fill light, the gates beside Verdance). */
 	void RestoreShotHidden();

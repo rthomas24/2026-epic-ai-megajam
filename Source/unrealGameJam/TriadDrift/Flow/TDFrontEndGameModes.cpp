@@ -116,10 +116,9 @@ void ATDMenuGameMode::StartPlay()
 		GI->NotifyLevelEntered(bShowingVictory ? ETDDestination::Victory : ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
 	StartMusic();
-	if (!bShowingVictory)
-	{
-		ATDMenuBackdrop::SpawnFor(this); // T3: the scene behind the menu (sky, Verdance, the squad); off if the map has its own
-	}
+	// T3: the scene behind the menu or the victory screen (sky, Verdance, the squad; after a win the Dominion breaking
+	// up); off if the map has its own scene.
+	ATDMenuBackdrop::SpawnFor(this, bShowingVictory ? ETDBackdropScene::Victory : ETDBackdropScene::Menu);
 	const UTDUIStyle* MenuStyle = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
 	UClass* Widget = nullptr;
 	if (bShowingVictory)

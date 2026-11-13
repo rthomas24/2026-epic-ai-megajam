@@ -123,6 +123,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Health")
 	void SetInvulnerableFor(float Seconds);
 
+	/** Ends a timed invulnerability now (a power that granted it was interrupted). The untimed flag is untouched. */
+	void ClearTimedInvulnerability() { InvulnerableTimeRemaining = 0.f; }
+
 	/** Untimed invulnerability flag (ram dash, cinematics, god mode). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Health")
 	void SetInvulnerable(bool bNewInvulnerable) { bInvulnerable = bNewInvulnerable; }
