@@ -81,6 +81,9 @@ public:
 	/** Between objectives on foot: "HEAD TO A SIGNAL · THE WRECK OR THE RELAY" and the trailheads still open. */
 	bool GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) const;
 
+	/** True if a point (course-local) is within Clearance of a route (tests: nothing collides on a route). */
+	bool IsRouteBlockedAt(const FVector& Local, float Clearance) const { return IsOnRoute(Local, Clearance); }
+
 	/** Everything the course spawned (tests). */
 	const TArray<TObjectPtr<AActor>>& GetSpawned() const { return Spawned; }
 
@@ -100,6 +103,14 @@ protected:
 	UPROPERTY() TObjectPtr<UMaterialInterface> GlowMaterial;
 	UPROPERTY() TObjectPtr<UMaterialInterface> LitMaterial;
 
+	/**
+	 * Engineering's planet props and trees (Gameplay/Props, Gameplay/Vegetation) by short name. Soft references
+	 * on the CDO (the cooker follows them; loading the PVE trees during module start-up asserts in PCG), loaded
+	 * when the course is built.
+	 */
+	UPROPERTY() TMap<FName, TSoftObjectPtr<UStaticMesh>> PropRefs;
+	UPROPERTY(Transient) TMap<FName, TObjectPtr<UStaticMesh>> PropMeshes;
+
 private:
 	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
 	UFUNCTION() void HandleObjectiveCompleted(ATDObjective* Objective);
@@ -115,11 +126,35 @@ private:
 	UStaticMeshComponent* Platform(const FVector& XY, float Top, const FVector& SizeCm, const FLinearColor& Color, float Glow = 0.f);
 	void Route(const TArray<FVector>& Points, const FLinearColor& Color, float Spacing = 700.f);
 	void ScatterFlora(int32 Count, float Radius, uint32 Seed);
+
+	/** One kind of dressing mesh: how many, how big, and whether it collides (only when well off the routes). */
+	struct FScatter
+	{
+		FName Mesh;
+		int32 Count = 0;
+		FVector2D Scale = FVector2D(1.f, 1.f);
+		bool bCollide = false;
+		float Clearance = 600.f;
+		FVector Center = FVector::ZeroVector;
+		FVector2D Radius = FVector2D(4000.f, 16000.f);
+		float Sink = 10.f;
+	};
+	/** Instanced, seeded scatter of real meshes (one component per mesh). False if a mesh is missing. */
+	bool ScatterMeshes(const TArray<FScatter>& Kinds, uint32 Seed);
+	/** Tall markers along each route, alternating sides. */
+	void MarkRoutes(FName Mesh, float Spacing, float Offset, const FVector2D& Scale);
+	bool IsKeptClear(const FVector& Local, float Clearance) const;
+	struct FKeepOut { FVector Center; FVector Extent; };
+	TArray<FKeepOut> KeepOuts;
+	UStaticMesh* Prop(FName Name) const { const TObjectPtr<UStaticMesh>* M = PropMeshes.Find(Name); return M ? M->Get() : nullptr; }
 	ATDObjective* MakeObjective(FName Id, const FText& Title, ETDAbilityId Reward, ETDShipId Ship, int32 StepCount);
 	void FinishObjective(ATDObjective* Obj, const TArray<FText>& StepTexts, const TArray<AActor*>& Waypoints);
 	ATDEncounterVolume* Encounter(ATDObjective* Obj, int32 LinkedStep, const FVector& Center, const FVector& Extent, const TArray<ETDCrewType>& Mix, bool bOnOverlap, float RingRadius = 600.f, const TArray<FVector>& Points = TArray<FVector>());
 	template <class T> T* SpawnProp(const FVector& Location, const FRotator& Rotation = FRotator::ZeroRotator);
 	void AddTrailhead(ATDObjective* Obj, const FVector& At, const FLinearColor& Color, const FText& Name);
+	/** Mark a step as a checkpoint: a retake restarts the scene there and the pilot comes back at At. */
+	void Checkpoint(ATDObjective* Obj, int32 Step, const FVector& At, float Yaw = 0.f);
+	AActor* Marker(const FVector& At, float Yaw = 0.f);
 	FVector W(const FVector& Local) const { return GetActorTransform().TransformPosition(Local); }
 
 	bool IsOnRoute(const FVector& Local, float Clearance) const;

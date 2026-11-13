@@ -16,6 +16,7 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "GameFramework/PlayerController.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -25,6 +26,10 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Camera/CameraComponent.h"
 #include "EngineUtils.h"
+#include "Components/BoxComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 namespace TDPlanetTest
 {
@@ -37,12 +42,13 @@ namespace TDPlanetTest
 		APlayerController* PC = nullptr;
 		ATDPlanetDirector* Director = nullptr;
 
-		explicit FVisit(FName PresetReturnPoint = NAME_None, FName Planet = TEXT("Verdance"), bool bCourse = true, const TArray<FName>& AlreadyDone = TArray<FName>())
+		explicit FVisit(FName PresetReturnPoint = NAME_None, FName Planet = TEXT("Verdance"), bool bCourse = true, const TArray<FName>& AlreadyDone = TArray<FName>(), bool bLocalController = false)
 			: W(UTDGameInstance::StaticClass())
 		{
 			const bool bCinder = Planet == TEXT("Cinder");
 			GI = Cast<UTDGameInstance>(W.GetGameInstance());
-			PC = W.SpawnPlayerController();
+			// A local space controller (real Enhanced Input, so tests can press real keys) or a plain one.
+			PC = bLocalController ? W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()) : W.SpawnPlayerController();
 			if (GI)
 			{
 				GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationTest"));
@@ -118,6 +124,7 @@ bool FTDPlanetLandHandOff::RunTest(const FString& Parameters)
 	TestFalse(TEXT("ship no longer player-controlled"), Ship->IsPlayerFlown());
 	const FTransform Exit = Ship->GetLanding()->GetExitTransform();
 	TestTrue(TEXT("pilot stands at the ship's exit point"), FVector::Dist(FP->GetActorLocation(), Exit.GetLocation()) < 120.f);
+	TestTrue(FString::Printf(TEXT("pilot faces the course, not the ship (yaw %.0f)"), V.PC->GetControlRotation().Yaw), FMath::Abs(FRotator::NormalizeAxis(V.PC->GetControlRotation().Yaw - V.Director->PadTransform.Rotator().Yaw)) < 10.f);
 	TestEqual(TEXT("ReturnPoint is the pad"), V.GI->GetProgressRef().ReturnPoint, FName(TEXT("Verdance_Pad")));
 	TestEqual(TEXT("checkpoint taken on foot"), V.GI->GetLastCheckpoint().Progress.ReturnPoint, FName(TEXT("Verdance_Pad")));
 	TestNotNull(TEXT("board-ship prompt"), V.Director->GetBoardPoint());
@@ -528,13 +535,14 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	TestFalse(TEXT("not carrying after the retake"), R.FP->IsCarrying());
 	TestFalse(TEXT("core back at the wreck"), Core->IsCarried());
 	TestFalse(TEXT("pilot alive"), R.FP->IsDead());
-	TestTrue(TEXT("same scene restarts"), Wreck->IsActive() && R.Step(Wreck) == 0);
+	// The extraction is a checkpoint: take 2 restarts there, at the wreck, with fresh waves (no leftovers).
+	TestTrue(TEXT("same scene restarts at the extraction checkpoint"), Wreck->IsActive() && R.Step(Wreck) == 2);
 	TestEqual(TEXT("take 2"), V.GI->GetProgressRef().Takes.FindRef(TEXT("Obj_WreckCore")), 2);
-	TestFalse(TEXT("waves cleared away"), Core->WaveA && Core->WaveA->GetAliveCount() > 0);
+	TestTrue(TEXT("respawned at the wreck"), FVector::Dist2D(R.FP->GetActorLocation(), Core->GetActorLocation()) < 1500.f);
+	TestTrue(TEXT("the site fight before the checkpoint stays cleared"), R.StepFight(Wreck, 1)->IsCleared());
+	TestTrue(TEXT("wave A dropped fresh, not leftovers"), Core->WaveA && Core->WaveA->GetAliveCount() <= Core->WaveA->CrewMix.Num());
 	// And it can still be finished.
 	R.FP->GetHealth()->SetInvulnerable(true);
-	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
-	R.KillAll(R.StepFight(Wreck, 1));
 	R.Use(Core, Core->HoldTime);
 	R.FP->RespawnAt(FTransform(FVector(300.f, 0.f, 120.f)));
 	R.Tick(0.5f);
@@ -648,12 +656,506 @@ bool FTDCourseNoFinishDuringCut::RunTest(const FString& Parameters)
 	TestFalse(TEXT("not complete inside the delay"), Jammer->IsComplete());
 	TestFalse(TEXT("not recorded either"), V.GI->GetProgressRef().CompletedObjectives.Contains(TEXT("Obj_Jammer")));
 	R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.5f);
-	TestTrue(TEXT("take 2 replays the jammer"), Jammer->IsActive() && R.Step(Jammer) == 0);
+	TestTrue(TEXT("take 2 replays the jammer from its charges checkpoint"), Jammer->IsActive() && R.Step(Jammer) == 1);
 	// And it can be finished properly.
-	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 0)[0], 60.f);
 	for (ATDInteractableActor* C : R.Props<ATDInteractableActor>(Jammer, 1)) { R.Use(C, C->HoldTime); }
 	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 2)[0], 60.f);
 	TestTrue(TEXT("finished on take 2 and recorded"), Jammer->IsComplete() && V.GI->GetProgressRef().CompletedObjectives.Contains(TEXT("Obj_Jammer")));
 	return true;
 }
+
+// ================================================================================================
+// Review G6: each planet PLAYED by the machine: a vulnerable pilot, real keys for movement (W, Shift,
+// Space, Q), real blade attacks (LMB), real interact holds (E), along the real route. The only
+// non-input help is turning the view (the mouse). If a step can't be done this way, a player can't either.
+// ================================================================================================
+namespace TDPlayedTest
+{
+	struct FPlayer
+	{
+		TDPlanetTest::FVisit& V;
+		FAutomationTestBase& T;
+		float Fps = 60.f;
+		ATDFirstPersonCharacter* FP = nullptr;
+		ATDPlanetCourse* Course = nullptr;
+		bool bW = false, bShift = false;
+		int32 Deaths = 0;
+		FString Failed;
+
+		FPlayer(TDPlanetTest::FVisit& InV, FAutomationTestBase& InT, float InFps) : V(InV), T(InT), Fps(InFps) {}
+
+		APlayerController* PC() const { return V.PC; }
+		void Tick(float Seconds)
+		{
+			const float Dt = 1.f / Fps;
+			for (float S = 0.f; S < Seconds; S += Dt)
+			{
+				V.W.Tick(Dt);
+				V.GI->TickFlow(Dt);
+				if (FP && FP->IsDead())
+				{
+					FString Foes;
+					for (TActorIterator<ATDCrewCharacter> It(V.W.GetWorld()); It; ++It)
+					{
+						const UTDHealthComponent* H = UTDStatics::GetHealth(*It);
+						if (H && H->IsAlive() && FVector::Dist(It->GetActorLocation(), FP->GetActorLocation()) < 3000.f)
+						{
+							Foes += FString::Printf(TEXT("%s %.0f/%.0f at %.0f cm; "), *UEnum::GetValueAsString(It->CrewType), H->GetHull(), H->MaxHull, FVector::Dist(It->GetActorLocation(), FP->GetActorLocation()));
+						}
+					}
+					T.AddInfo(FString::Printf(TEXT("death %d at %s: %s"), Deaths + 1, *FP->GetActorLocation().ToCompactString(), *Foes));
+					++Deaths; Release(); WaitRetake();
+				}
+			}
+		}
+		void WaitRetake()
+		{
+			const float Dt = 1.f / Fps;
+			for (float S = 0.f; S < UTDFlowSettings::Get()->RetakeDelaySeconds + 1.f; S += Dt) { V.W.Tick(Dt); V.GI->TickFlow(Dt); }
+		}
+		void Key(const FKey& K, bool bDown) { FTDTestWorld::InjectKey(PC(), K, bDown); }
+		void Tap(const FKey& K) { Key(K, true); V.W.Tick(1.f / Fps); Key(K, false); }
+		void HoldW(bool bDown) { if (bW != bDown) { Key(EKeys::W, bDown); bW = bDown; } }
+		void HoldShift(bool bDown) { if (bShift != bDown) { Key(EKeys::LeftShift, bDown); bShift = bDown; } }
+		bool bBlock = false;
+		int32 HeavyCount = 0;
+		float DodgeCooldown = 0.f;
+		float Retreat = 0.f;
+		int32 DodgeCount = 0;
+		void HoldBlock(bool bDown) { if (bBlock != bDown) { Key(EKeys::RightMouseButton, bDown); bBlock = bDown; } }
+		void Release() { HoldW(false); HoldShift(false); }
+		FVector Eye() const { return FP->GetPawnViewLocation(); }
+		void LookAt(const FVector& P) { PC()->SetControlRotation((P - Eye()).Rotation()); }
+		void Face(const FVector& P) { PC()->SetControlRotation(FRotator(0.f, (P - FP->GetActorLocation()).Rotation().Yaw, 0.f)); }
+
+		bool Land()
+		{
+			if (!T.TestTrue(TEXT("lands"), V.LandForReal())) { return false; }
+			FP = V.Director->GetFirstPerson();
+			Course = V.Director->GetCourse();
+			Tick(0.3f);
+			return FP && Course;
+		}
+
+		/** Run (W + Shift) to a point on the ground; hops when blocked. False on timeout. */
+		bool RunTo(const FVector& Target, float Radius = 160.f, float Timeout = 40.f, bool bSprint = true)
+		{
+			float Stall = 0.f, Best = 1e12f;
+			for (float S = 0.f; S < Timeout; S += 1.f / Fps)
+			{
+				const float D = (float)FVector::Dist2D(FP->GetActorLocation(), Target);
+				if (D < Radius) { Release(); return true; }
+				Face(Target);
+				HoldW(true);
+				HoldShift(bSprint && !FP->IsCarrying());
+				if (D < Best - 10.f) { Best = D; Stall = 0.f; }
+				else if ((Stall += 1.f / Fps) > 0.6f) { Tap(EKeys::SpaceBar); Stall = 0.f; }
+				Tick(1.f / Fps);
+			}
+			Release();
+			Failed = FString::Printf(TEXT("could not reach %s (stopped %.0f cm away at %s)"), *Target.ToCompactString(), Best, *FP->GetActorLocation().ToCompactString());
+			return false;
+		}
+
+		/** Fight an encounter with the blade until it is cleared (approach, swing, re-face). */
+		bool Fight(ATDEncounterVolume* E, float Timeout = 120.f)
+		{
+			if (E && !E->IsActive() && !E->IsCleared())
+			{
+				Failed = FString::Printf(TEXT("fight %s never started (player at %s)"), *E->GetName(), *FP->GetActorLocation().ToCompactString());
+				return false;
+			}
+			float Swing = 0.f;
+			const int32 DeathsAtStart = Deaths;
+			for (float S = 0.f; S < Timeout && E && !E->IsCleared(); S += 1.f / Fps)
+			{
+				if (Deaths > DeathsAtStart)
+				{
+					Release();
+					HoldBlock(false);
+					Failed = FString::Printf(TEXT("pilot died in %s (the scene restarted)"), *E->GetName());
+					return false; // the retake reset the room: the caller takes it again
+				}
+				AActor* Best = nullptr;
+				float BestD = 1e12f;
+				for (const TWeakObjectPtr<AActor>& M : E->GetSpawned())
+				{
+					const UTDHealthComponent* H = M.IsValid() ? UTDStatics::GetHealth(M.Get()) : nullptr;
+					const float D = H && H->IsAlive() ? (float)FVector::Dist(M->GetActorLocation(), FP->GetActorLocation()) : 1e12f;
+					if (D < BestD) { BestD = D; Best = M.Get(); }
+				}
+				if (!Best) { Tick(1.f / Fps); continue; }
+				LookAt(Best->GetActorLocation());
+				const float Flat = (float)FVector::Dist2D(Best->GetActorLocation(), FP->GetActorLocation());
+				const ATDCrewCharacter* Foe = Cast<ATDCrewCharacter>(Best);
+				const bool bAirborne = Best->GetActorLocation().Z - FP->GetActorLocation().Z > 150.f;
+				const bool bTelegraph = Foe && Foe->IsTelegraphing() && BestD < 500.f;
+				// Like a player: a hovering drone is beaten by turning its bolts back (block while looking at it);
+				// a telegraphed blow is blocked, not swung into; otherwise guard up while closing in, down to swing.
+				// Low on health: back off out of the fight until the regen has done its work, like a player.
+				if (false && FP->GetHealth()->GetHull01() < 0.35f && Retreat <= 0.f) // retreating made the bot worse (it bled out at range)
+				{
+					Retreat = 7.f;
+				}
+				if (Retreat > 0.f)
+				{
+					Retreat -= 1.f / Fps;
+					HoldBlock(true);
+					// Back toward where we came in (the room's entry side), never into a corner.
+					const FVector Box = E->Box ? E->Box->GetScaledBoxExtent() : FVector(1000.f);
+					Face(E->GetActorLocation() - FVector(Box.X - 200.f, 0.f, 0.f));
+					HoldW(true);
+					Tick(1.f / Fps);
+					if (Retreat <= 0.f || FP->GetHealth()->GetHull01() > 0.8f) { Retreat = 0.f; HoldBlock(false); }
+					continue;
+				}
+				// The Warden's telegraphed charge / fan: sidestep with a dash (i-frames), like a player.
+				if (Foe && Foe->CrewType == ETDCrewType::Warden && Foe->IsTelegraphing() && BestD < 1400.f && (DodgeCooldown -= 1.f / Fps) <= 0.f)
+				{
+					HoldW(false);
+					const FKey Side = (++DodgeCount % 2) ? EKeys::D : EKeys::A;
+					Key(Side, true);
+					Tap(EKeys::Q);
+					Tick(0.25f);
+					Key(Side, false);
+					DodgeCooldown = 1.f;
+					continue;
+				}
+				(void)bTelegraph;
+				// A drone: get under it and jump-slash.
+				if (bAirborne && Flat < 260.f && FP->GetCharacterMovement()->IsMovingOnGround())
+				{
+					Tap(EKeys::SpaceBar);
+				}
+				HoldW(Flat > 170.f);
+				HoldShift(false);
+				HoldBlock(BestD >= 320.f);
+				if ((Swing -= 1.f / Fps) <= 0.f && BestD < 320.f)
+				{
+					const ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Best);
+					if (Crew && Crew->CrewType == ETDCrewType::Heavy && (++HeavyCount % 2) == 0)
+					{
+						// A Heavy's guard only breaks to the heavy lunge: hold the attack (like a player learns to).
+						Key(EKeys::LeftMouseButton, true);
+						Tick(0.45f);
+						Key(EKeys::LeftMouseButton, false);
+						Swing = 0.5f;
+					}
+					else
+					{
+						Tap(EKeys::LeftMouseButton);
+						Swing = 0.35f;
+					}
+				}
+				Tick(1.f / Fps);
+			}
+			Release();
+			HoldBlock(false);
+			if (E && !E->IsCleared())
+			{
+				Failed = FString::Printf(TEXT("fight %s not cleared (%d alive, %d spawned, active %d, room step %d, objective step %d)"), *E->GetName(), E->GetAliveCount(),
+					E->GetSpawned().Num(), E->IsActive(), E->LinkedStep, E->LinkedObjective ? E->LinkedObjective->GetCurrentStepIndex() : -9);
+				return false;
+			}
+			return true;
+		}
+
+		/** Walk up to an interactable, look at it and hold E (tap when Hold is 0). */
+		bool Use(AActor* A, float Hold, const FVector& LookPoint = FVector::ZeroVector)
+		{
+			if (!RunTo(A->GetActorLocation(), 170.f, 30.f, false)) { return false; }
+			LookAt(LookPoint.IsZero() ? A->GetActorLocation() : LookPoint);
+			Tick(0.1f);
+			Key(EKeys::E, true);
+			Tick(Hold + 0.3f);
+			Key(EKeys::E, false);
+			Tick(0.2f);
+			return true;
+		}
+
+		/** Break a prop with the blade (real swings). */
+		bool Break(ATDShatterCrystal* C)
+		{
+			if (!RunTo(C->GetActorLocation(), 150.f, 30.f)) { return false; }
+			for (int32 i = 0; i < 12 && !C->IsShattered(); ++i)
+			{
+				LookAt(C->GetActorLocation() + FVector(0.f, 0.f, 120.f));
+				Tap(EKeys::LeftMouseButton);
+				Tick(0.4f);
+			}
+			if (!C->IsShattered()) { Failed = FString::Printf(TEXT("%s not broken by the blade"), *C->GetName()); }
+			return C->IsShattered();
+		}
+
+		/** Jump from where we stand toward a point (running jump, optional double jump / dash). */
+		void JumpTo(const FVector& Target, bool bDouble, bool bDash, float Run = 1.f)
+		{
+			Face(Target);
+			HoldW(true);
+			Tick(0.05f);
+			Tap(EKeys::SpaceBar);
+			if (bDouble) { Tick(0.3f); Tap(EKeys::SpaceBar); }
+			if (bDash) { Tick(0.15f); Tap(EKeys::Q); }
+			Tick(Run);
+			Release();
+			Tick(0.3f);
+		}
+
+		ATDEncounterVolume* FightOf(const ATDObjective* Obj, int32 Step)
+		{
+			for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Obj && It->LinkedStep == Step) { return *It; } }
+			return nullptr;
+		}
+		ATDEncounterVolume* ActiveFightNear(const FVector& P, float Radius)
+		{
+			for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It)
+			{
+				if (It->IsActive() && FVector::Dist2D(It->GetActorLocation(), P) < Radius) { return *It; }
+			}
+			return nullptr;
+		}
+		FVector Trailhead(FName Id) const
+		{
+			for (const FTDTrailhead& H : Course->GetTrailheads()) { if (H.Objective && H.Objective->ObjectiveId == Id && H.Marker) { return H.Marker->GetActorLocation(); } }
+			return FVector::ZeroVector;
+		}
+		void Trace(const ATDObjective* O, int32 Try)
+		{
+			FString Doors;
+			for (TActorIterator<ATDDoor> It(V.W.GetWorld()); It; ++It) { Doors += FString::Printf(TEXT("%.0f:%d "), It->GetActorLocation().X, It->IsOpen()); }
+			T.AddInfo(FString::Printf(TEXT("%s try %d: step %d (checkpoint %d), pilot at %s, hull %.2f, deaths %d, dead %d, doors %s"), *O->ObjectiveId.ToString(), Try,
+				O->GetCurrentStepIndex(), O->GetCheckpointStep(), *FP->GetActorLocation().ToCompactString(), FP->GetHealth()->GetHull01(), Deaths, FP->IsDead(), *Doors));
+		}
+		bool Report(bool bOk, const TCHAR* What)
+		{
+			T.TestTrue(*FString::Printf(TEXT("played: %s%s%s (deaths so far %d)"), What, Failed.IsEmpty() ? TEXT("") : TEXT(" - "), *Failed, Deaths), bOk);
+			Failed.Reset();
+			return bOk;
+		}
+	};
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVerdancePlayed, "TriadDrift.Ground.Played.Verdance", TD_TEST_FLAGS)
+bool FTDVerdancePlayed::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Verdance"), true, {}, /*bLocalController*/ true);
+	TDPlayedTest::FPlayer P(V, *this, 60.f);
+	if (!P.Land()) { return false; }
+	ATDObjective* Wreck = P.Course->FindObjective(TEXT("Obj_WreckCore"));
+	ATDObjective* Relay = P.Course->FindObjective(TEXT("Obj_Relay"));
+	const float Start = V.W.GetWorld()->GetTimeSeconds();
+
+	// --- The relay: run there, climb with real jumps, wake the nodes, awaken it. ---
+	bool bOk = P.RunTo(P.Trailhead(TEXT("Obj_Relay")), 300.f) && P.RunTo(FVector(5250.f, -5100.f, 0.f));
+	P.Report(bOk && Relay->IsActive(), TEXT("relay started at its trailhead"));
+	for (int32 Try = 0; Try < 6 && !Relay->IsComplete(); ++Try)
+	{
+		P.Trace(Relay, Try);
+		const int32 Step = Relay->GetCurrentStepIndex();
+		if (Step == 0)
+		{
+			P.RunTo(FVector(5250.f, -5100.f, 0.f), 160.f, 60.f);
+			P.JumpTo(FVector(5700.f, -5500.f, 0.f), false, false, 0.6f);           // A (+110)
+			P.JumpTo(FVector(6400.f, -6050.f, 0.f), true, false, 0.7f);            // B (+180)
+			P.RunTo(FVector(6620.f, -6250.f, 0.f), 60.f, 4.f, false);             // B's far edge
+			P.JumpTo(FVector(7550.f, -7000.f, 0.f), false, true, 0.9f);            // jump + dash over the gap onto C
+			P.JumpTo(FVector(9200.f, -8200.f, 0.f), true, false, 1.0f);            // plateau (+270: jump + mantle)
+			P.Tick(0.5f);
+			if (Try == 0) { P.Report(Relay->GetCurrentStepIndex() == 1, TEXT("climbed to the relay with real jumps, double jump, dash and mantle")); }
+		}
+		else if (Step == 1)
+		{
+			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
+			{
+				ATDInteractableActor* N = *It;
+				if (N->LinkedObjective != Relay || N->LinkedStep != 1 || N->WasUsed()) { continue; }
+				const FVector Dir = (N->GetActorLocation() - FVector(9200.f, -8200.f, 0.f)).GetSafeNormal2D();
+				P.RunTo(FVector(9200.f, -8200.f, 0.f) + Dir * 450.f, 80.f, 10.f, false);
+				P.JumpTo(N->GetActorLocation(), true, false, 0.6f);                   // onto the stub (+180)
+				P.LookAt(N->GetActorLocation());
+				P.Tap(EKeys::E);
+				P.Tick(0.3f);
+			}
+		}
+		else if (Step == 2)
+		{
+			// The drones break the hold: take them down with the blade first (jumping into them).
+			if (ATDEncounterVolume* Drones = P.ActiveFightNear(FVector(9200.f, -8200.f, 0.f), 1500.f))
+			{
+				P.Report(P.Fight(Drones, 60.f), TEXT("drones over the plateau killed with the blade"));
+			}
+			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Relay && It->LinkedStep == 2) { P.Use(*It, It->HoldTime); } }
+		}
+		P.Tick(0.2f);
+	}
+	P.Report(Relay->IsComplete(), TEXT("relay awakened"));
+
+	// --- The wreck: the ambush on the way, the site fight, the extraction under fire, the carry. ---
+	P.RunTo(FVector(9200.f, -8200.f, 0.f) + FVector(-1400.f, 0.f, 0.f), 200.f, 10.f); // off the plateau edge
+	bOk = P.RunTo(P.Trailhead(TEXT("Obj_WreckCore")), 300.f, 60.f);
+	P.Report(bOk && Wreck->IsActive(), TEXT("wreck started at its trailhead"));
+	for (int32 Try = 0; Try < 4 && !Wreck->IsComplete(); ++Try)
+	{
+		if (Wreck->GetCurrentStepIndex() == 0)
+		{
+			P.RunTo(FVector(6200.f, 4600.f, 0.f), 400.f);
+			if (ATDEncounterVolume* Ambush = P.ActiveFightNear(FVector(6200.f, 4600.f, 0.f), 1500.f)) { P.Fight(Ambush); }
+			P.RunTo(FVector(9300.f, 6300.f, 0.f), 200.f);
+		}
+		if (Wreck->GetCurrentStepIndex() == 1) { P.Fight(P.FightOf(Wreck, 1)); }
+		if (Wreck->GetCurrentStepIndex() == 2)
+		{
+			ATDExtractionSite* Site = nullptr;
+			for (TActorIterator<ATDExtractionSite> It(V.W.GetWorld()); It; ++It) { Site = *It; }
+			if (Site && Site->WaveA) { P.Fight(Site->WaveA, 60.f); }              // clear the first drop, then extract
+			if (Site) { P.Use(Site, Site->HoldTime, Site->Core->GetComponentLocation()); }
+		}
+		if (Wreck->GetCurrentStepIndex() == 3) { P.RunTo(FVector(300.f, 0.f, 0.f), 300.f, 60.f, false); P.Tick(0.5f); }
+	}
+	P.Report(Wreck->IsComplete(), TEXT("wreck core extracted and carried to the ship"));
+	TestEqual(TEXT("Gravity Well on Bastion"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::GravityWell), ETDShipId::Bastion);
+	TestEqual(TEXT("Cloak on Rift"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::Cloak), ETDShipId::Rift);
+
+	// --- Back aboard. ---
+	if (ATDBoardShipInteractable* Board = V.Director->GetBoardPoint()) { P.Use(Board, Board->HoldTime); }
+	P.Tick(1.f);
+	TestFalse(TEXT("played: re-boarded"), V.Director->IsOnFoot());
+	AddInfo(FString::Printf(TEXT("Verdance played in %.0f s of game time with %d deaths"), V.W.GetWorld()->GetTimeSeconds() - Start, P.Deaths));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCinderPlayed, "TriadDrift.Ground.Played.Cinder", TD_TEST_FLAGS)
+bool FTDCinderPlayed::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"), true, {}, /*bLocalController*/ true);
+	TDPlayedTest::FPlayer P(V, *this, 60.f);
+	if (!P.Land()) { return false; }
+	ATDObjective* Outpost = P.Course->FindObjective(TEXT("Obj_Outpost"));
+	ATDObjective* Jammer = P.Course->FindObjective(TEXT("Obj_Jammer"));
+	const float Start = V.W.GetWorld()->GetTimeSeconds();
+	const float HullAtStart = P.FP->GetHealth()->GetHull01();
+
+	// --- The jammer: slash the crystal wall, run the collapsing bridge, plant under fire, outrun the tower. ---
+	P.Report(P.RunTo(P.Trailhead(TEXT("Obj_Jammer")), 300.f) && Jammer->IsActive(), TEXT("jammer started at its trailhead"));
+	for (int32 Try = 0; Try < 4 && !Jammer->IsComplete(); ++Try)
+	{
+		if (Jammer->GetCurrentStepIndex() == 0)
+		{
+			for (ATDShatterCrystal* C : TArray<ATDShatterCrystal*>(TDCourseTest::FRun(V, *this).Props<ATDShatterCrystal>(Jammer)))
+			{
+				if (!C->IsShattered()) { P.Report(P.Break(C), TEXT("crystal wall slashed with the blade")); }
+			}
+			P.RunTo(FVector(6800.f, -5000.f, 0.f), 150.f);
+			// The bridge: one straight sprint along the slabs (they fall 1.1 s after you step on them).
+			P.RunTo(FVector(10400.f + 700.f, -5000.f, 0.f), 200.f, 20.f);
+		}
+		if (Jammer->GetCurrentStepIndex() == 1)
+		{
+			bool bDied = false;
+			for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Jammer && It->IsActive()) { bDied |= !P.Fight(*It); } }
+			if (bDied) { continue; } // the retake restarted the defence
+			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
+			{
+				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.Use(*It, It->HoldTime); }
+			}
+		}
+		if (Jammer->GetCurrentStepIndex() == 2)
+		{
+			P.RunTo(FVector(10400.f + 800.f, -5000.f - 3300.f, 0.f), 300.f, 15.f);
+			P.RunTo(FVector(7000.f - 600.f, -5000.f - 3400.f, 0.f), 300.f, 15.f);
+			P.Tick(0.3f);
+		}
+	}
+	P.Report(Jammer->IsComplete(), TEXT("jammer destroyed and outrun"));
+
+	// --- The outpost: the stepping stones over the magma river (real jumps), conduits, three rooms, the Warden. ---
+	P.Report(P.RunTo(P.Trailhead(TEXT("Obj_Outpost")), 300.f, 60.f) && Outpost->IsActive(), TEXT("outpost started at its trailhead"));
+	const float HullBeforeRiver = P.FP->GetHealth()->GetHull01();
+	P.RunTo(FVector(4700.f, 4200.f, 0.f), 80.f, 20.f, false);
+	for (int32 i = 0; i < 3; ++i) { P.JumpTo(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), false, false, 0.5f); }
+	P.JumpTo(FVector(6700.f, 5200.f, 0.f), false, false, 0.6f);
+	P.Report(P.FP->GetHealth()->GetHull01() >= HullBeforeRiver - 0.01f, TEXT("crossed the river on the stones without touching magma"));
+	for (int32 Try = 0; Try < 14 && !Outpost->IsComplete(); ++Try)
+	{
+		P.Trace(Outpost, Try);
+		const int32 Step = Outpost->GetCurrentStepIndex();
+		if (P.FP->GetActorLocation().X < 4800.f) // back at the pad after a retake: the stones again
+		{
+			P.RunTo(FVector(4700.f, 4200.f, 0.f), 80.f, 40.f, false);
+			for (int32 i = 0; i < 3; ++i) { P.JumpTo(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), false, false, 0.5f); }
+			P.JumpTo(FVector(6700.f, 5200.f, 0.f), false, false, 0.6f);
+		}
+		if (Step == 0)
+		{
+			P.RunTo(FVector(9600.f - 1400.f, 6000.f, 0.f), 300.f, 40.f);
+			if (ATDEncounterVolume* Guards = P.ActiveFightNear(FVector(9600.f - 1400.f, 6000.f, 0.f), 1500.f)) { P.Fight(Guards); }
+			for (ATDShatterCrystal* C : TArray<ATDShatterCrystal*>(TDCourseTest::FRun(V, *this).Props<ATDShatterCrystal>(Outpost)))
+			{
+				if (!C->IsShattered()) { P.Break(C); }
+			}
+			P.Tick(1.f); // the gate lifts
+		}
+		else if (Step >= 1 && Step <= 4)
+		{
+			ATDEncounterVolume* Room = P.FightOf(Outpost, Step);
+			P.RunTo(Room->GetActorLocation(), 400.f, 40.f);
+			P.Fight(Room, 150.f);
+			P.Tick(1.f);
+		}
+		else if (Step == 5)
+		{
+			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Outpost && It->LinkedStep == 5) { P.Use(*It, It->HoldTime); } }
+		}
+		P.Tick(0.2f);
+	}
+	P.Report(Outpost->IsComplete(), TEXT("outpost cleared, Warden down, prototype claimed"));
+	TestEqual(TEXT("EMP on Lancer"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::EMPPulse), ETDShipId::Lancer);
+	// Back to the ship: out through the gate and back over the stones (never through the magma).
+	P.RunTo(FVector(9000.f, 6000.f, 0.f), 300.f, 60.f);
+	P.RunTo(FVector(6700.f, 5200.f, 0.f), 80.f, 30.f, false);
+	for (int32 i = 2; i >= 0; --i) { P.JumpTo(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), false, false, 0.5f); }
+	P.JumpTo(FVector(4600.f, 4100.f, 0.f), false, false, 0.6f);
+	if (ATDBoardShipInteractable* Board = V.Director->GetBoardPoint()) { P.RunTo(FVector(0.f, 0.f, 0.f), 600.f, 60.f); P.Use(Board, Board->HoldTime); }
+	P.Tick(1.f);
+	TestFalse(TEXT("played: re-boarded"), V.Director->IsOnFoot());
+	AddInfo(FString::Printf(TEXT("Cinder played in %.0f s of game time with %d deaths (hull at start %.2f)"), V.W.GetWorld()->GetTimeSeconds() - Start, P.Deaths, HullAtStart));
+	return true;
+}
+
+
+// Dressing: both planets use engineering's real props and trees (instanced), and nothing that collides
+// stands on a route.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseDressing, "TriadDrift.Ground.Course.DressedWithRealPropsRoutesClear", TD_TEST_FLAGS)
+bool FTDCourseDressing::RunTest(const FString& Parameters)
+{
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		ATDPlanetCourse* Course = V.Director->GetCourse();
+		if (!TestNotNull(TEXT("course"), Course)) { return false; }
+		int32 Kinds = 0, Instances = 0, Blocking = 0;
+		for (const TObjectPtr<AActor>& A : Course->GetSpawned())
+		{
+			if (!A) { continue; }
+			TInlineComponentArray<UInstancedStaticMeshComponent*> ISMs(A.Get());
+			for (UInstancedStaticMeshComponent* ISM : ISMs)
+			{
+				if (!ISM->GetStaticMesh() || !ISM->GetStaticMesh()->GetPathName().StartsWith(TEXT("/Game/TriadDrift/Gameplay/"))) { continue; }
+				++Kinds;
+				Instances += ISM->GetInstanceCount();
+				if (ISM->GetCollisionEnabled() == ECollisionEnabled::NoCollision) { continue; }
+				for (int32 i = 0; i < ISM->GetInstanceCount(); ++i)
+				{
+					FTransform X;
+					ISM->GetInstanceTransform(i, X, false);
+					Blocking += Course->IsRouteBlockedAt(X.GetLocation(), 800.f) ? 1 : 0;
+				}
+			}
+		}
+		TestTrue(FString::Printf(TEXT("%s: real props in use (%d kinds, %d instances)"), Planet, Kinds, Instances), Kinds >= 9 && Instances > 300);
+		TestEqual(FString::Printf(TEXT("%s: nothing that collides within 8 m of a route"), Planet), Blocking, 0);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

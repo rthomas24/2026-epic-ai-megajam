@@ -34,6 +34,9 @@ private:
 
 	UFUNCTION()
 	void HandleHitConfirmed(AActor* Target, bool bKill);
+
+	UFUNCTION()
+	void HandleBarkRequested(FName BarkId, FName Speaker);
 	void DrawCrosshair();
 	void DrawFlight();
 	void DrawLine2D(const FVector2D& A, const FVector2D& B, const FLinearColor& Color, float Thickness = 1.f);
@@ -46,6 +49,10 @@ private:
 	/** Hit marker around the crosshair: real seconds, so slow motion does not stretch it. */
 	double HitMarkerUntil = 0.0;
 	bool bLastHitWasKill = false;
+
+	/** Stand-in subtitle for squad barks until voice and real subtitles exist. */
+	FString BarkLine;
+	double BarkUntil = 0.0;
 };
 
 /** Installs ATDDebugHUD for local players that still have the stock HUD. Not created in Shipping. */

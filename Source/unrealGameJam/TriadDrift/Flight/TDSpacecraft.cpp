@@ -219,9 +219,20 @@ float ATDSpacecraft::GetAltitudeMeters() const
 void ATDSpacecraft::TeleportSpacecraft(const FVector& Location, const FRotator& Facing, bool bKeepSpeed)
 {
 	const FVector From = GetActorLocation();
+#if !UE_BUILD_SHIPPING
+	// Dev trail for long teleports of the player's ship (portals, return points, squad placement): who moved it.
+	if (IsPlayerControlled() && FVector::Dist(From, Location) > 100000.f)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD teleport: %s %.0f m (%s -> %s). Caller:"), *GetName(), FVector::Dist(From, Location) / 100.f,
+			*From.ToCompactString(), *Location.ToCompactString());
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Log);
+	}
+#endif
+	if (ShipMovement) { ShipMovement->SetMoveAnnounced(true); }
 	SetActorLocationAndRotation(Location, Facing, false, nullptr, ETeleportType::TeleportPhysics);
 	if (ShipMovement)
 	{
+		ShipMovement->SetMoveAnnounced(false);
 		ShipMovement->NotifyTeleported(Facing.Quaternion(), bKeepSpeed);
 	}
 	OnTeleported.Broadcast(this, From, Location, Facing);

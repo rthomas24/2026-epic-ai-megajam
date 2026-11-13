@@ -87,7 +87,7 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 
 	/** Lateral / vertical thruster speed at full strafe input. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Strafe", meta = (ClampMin = "0"))
-	float StrafeSpeed = 2500.f;
+	float StrafeSpeed = 4000.f; // Lead, Nov 12: 25 -> 40 m/s (fine positioning; the dodge is the evasive move)
 
 	/** How quickly strafe velocity follows input (cm/s^2). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Strafe", meta = (ClampMin = "0"))
@@ -144,6 +144,22 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	/** Deceleration when far above boost speed (dropping out of hyperdrive, end of a ram). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Speed", meta = (ClampMin = "0"))
 	float HighOverspeedDeceleration = 30000.f;
+
+	// ---- Dodge (player only: a short lateral burst that moves the hull out of a bolt's path) -----------
+	/**
+	 * Lateral speed of the dodge (cm/s). No invulnerability: it dodges by moving the hull. Measured against real
+	 * fighters (Flight.Feel / TDExplore.Flight.DodgeSweep, Nov 12): at 60 m/s (15 m sidestep) the dodge gave no
+	 * measurable gain over weaving; at 100 m/s (25 m) weave + timed dodge took ~50% of straight-line damage vs ~65% for
+	 * weaving alone. Lead's spec was ~60 m/s: 100 is a data-backed proposal (one number to revert).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Dodge", meta = (ClampMin = "0"))
+	float DodgeSpeed = 10000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Dodge", meta = (ClampMin = "0.01"))
+	float DodgeSeconds = 0.25f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Dodge", meta = (ClampMin = "0"))
+	float DodgeCooldown = 1.5f;
 
 	// ---- Atmosphere ground floor ----------------------------------------------------------------
 	/**

@@ -5,6 +5,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Flow/Tests/TDFlowTestListener.h"
 #include "Misc/ScopeExit.h"
@@ -249,6 +250,40 @@ bool FTDGroundPauseKey::RunTest(const FString& Parameters)
 	W.Tick();
 	TestEqual(TEXT("Escape still reaches it while paused"), Counter->SimpleCount, 2);
 	PC->SetPause(false);
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Review N1: the blade breaks the planets' neutral props (crystals, gate conduits) with real attack input.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBladeBreaksProps, "TriadDrift.Ground.Blade.RealSwingsBreakCrystalsAndConduitsAt30_60_120", TD_TEST_FLAGS)
+bool FTDBladeBreaksProps::RunTest(const FString& Parameters)
+{
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		for (const float MaxHealth : { 30.f, 60.f }) // crystal, conduit
+		{
+			FTDTestWorld W;
+			TDGroundTest::SpawnFloor(W);
+			ATDFirstPersonCharacter* C = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+			APlayerController* PC = W.SpawnLocalPlayerController(C);
+			if (!TestNotNull(TEXT("local controller"), PC)) { return false; }
+			const FTransform Xf(FVector(140.f, 0.f, 0.f));
+			ATDShatterCrystal* Prop = W.GetWorld()->SpawnActorDeferred<ATDShatterCrystal>(ATDShatterCrystal::StaticClass(), Xf);
+			Prop->MaxHealth = MaxHealth;
+			Prop->FinishSpawning(Xf);
+			W.Advance(0.3f, 1.f / Fps);
+			int32 Swings = 0;
+			for (; Swings < 10 && !Prop->IsShattered(); ++Swings)
+			{
+				FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, true);
+				W.Tick(1.f / Fps);
+				FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, false);
+				W.Advance(0.45f, 1.f / Fps);
+			}
+			TestTrue(FString::Printf(TEXT("%.0f fps: a %.0f HP prop breaks to real swings (%d swings)"), Fps, MaxHealth, Swings), Prop->IsShattered());
+		}
+	}
 	return true;
 }
 

@@ -226,7 +226,7 @@ bool FTDRetakeSummons::RunTest(const FString& Parameters)
 	if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
 	TestTrue(TEXT("summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
 	W.Advance(Warden->Spec.BurstWindup + 0.1f);
-	TestEqual(TEXT("summons join the room (M7)"), Room->GetAliveCount(), 3);
+	TestEqual(TEXT("summons join the room (M7)"), Room->GetAliveCount(), 1 + Warden->Spec.SummonCount);
 	Warden->GetHealth()->Kill(P, ETDDamageKind::Melee);
 	TestEqual(TEXT("summons die with the Warden"), Room->GetAliveCount(), 0);
 	TestTrue(TEXT("room cleared"), Room->IsCleared());

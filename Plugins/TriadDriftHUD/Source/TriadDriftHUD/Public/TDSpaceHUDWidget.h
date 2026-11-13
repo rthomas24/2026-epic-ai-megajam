@@ -46,6 +46,8 @@ struct TRIADDRIFTHUD_API FTDHUDStyle
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="1",ClampMax="30")) float MeterResponse = 9.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style", meta=(ClampMin="0.05",ClampMax="2")) float SwitchSeconds = .65f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style") bool bReducedMotion = false;
+    /** Nick-approved M03 prototype styling. Only affects the controlled Lancer; false restores M02. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Style|Review") bool bLancerVisualBenchmark = true;
     FLinearColor ShipColor(int32 Index) const { return Index == 0 ? Rift : Index == 1 ? Lancer : Bastion; }
 };
 
@@ -97,6 +99,10 @@ public:
     UFUNCTION(BlueprintCallable, Category="HUD|Preview") void PreviewPower();
     const TArray<FTDUIShip>& GetSnapshot() const { return Ships; }
     bool HasValidSource() const { return DataSource.IsValid(); }
+    bool IsLancerBenchmarkActive() const { return Style.bLancerVisualBenchmark && ActiveIndex==1; }
+    /** Preview-only CPU paint sampling. No production telemetry or gameplay writes. */
+    void ResetBenchmarkPaintMetrics() const;
+    FString GetBenchmarkPaintMetrics() const;
     static bool SolveIntercept(const FVector& RelativePosition, const FVector& TargetVelocity, float Speed, FVector& OutAim);
 protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -105,6 +111,8 @@ protected:
     virtual void NativeTick(const FGeometry&, float) override;
     virtual int32 NativePaint(const FPaintArgs&, const FGeometry&, const FSlateRect&, FSlateWindowElementList&, int32, const FWidgetStyle&, bool) const override;
 private:
+    friend class FTDHUDObjectiveTextTest;
+    friend class FTDHUDInteractionTest;
     UPROPERTY(Transient) TArray<FTDUIShip> Ships;
     UPROPERTY(Transient) TArray<FTDUIShip> Display;
     TWeakObjectPtr<UObject> DataSource;
@@ -117,6 +125,11 @@ private:
     float Elapsed = 0, SwitchLeft = 0, HitLeft = 0, WarningLeft = 0;
     float Speed01 = 0, Hyperdrive01 = 0;
     float TargetHull = 0, TargetShield = 0, ReadyLeft = 0;
+    float AcquisitionLeft = 0, ActivationLeft = 0, DamageLeft = 0;
+    TWeakObjectPtr<AActor> VisualTarget;
+    bool bVisualPreviewTarget = false;
+    mutable double PaintTotalMicros = 0, PaintMaxMicros = 0;
+    mutable int32 PaintSamples = 0;
     FVector LeadWorld = FVector::ZeroVector;
     bool bHasTargetHealth = false, bHasGameplayLead = false;
     int32 IncomingMissiles = 0;
@@ -124,7 +137,7 @@ private:
     TArray<TWeakObjectPtr<AActor>> Hostiles;
     int32 Wave = 0, Enemies = 0, ActiveIndex = INDEX_NONE, ReadyShip = 0;
     bool bPreview = false, bKillConfirmed = false, bOutOfBounds = false;
-    FText Warning, ObjectivePrompt;
+    FText Warning, ObjectivePrompt, InteractPrompt;
     void BindEvents(bool bBind);
     UFUNCTION() void HandleHit(AActor* Actor, bool bKill);
     UFUNCTION() void HandleObjective(FName Id, int32 Step, FText Text);

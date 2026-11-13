@@ -100,6 +100,7 @@ void ATDSpaceGameMode::StartPlay()
 		if (GalaxyLayout)
 		{
 			SquadOrigin = ResolveSquadOrigin();
+			UE_LOG(LogTriadDrift, Log, TEXT("Space mode: squad origin at level start %s"), *SquadOrigin.GetLocation().ToCompactString());
 		}
 	}
 	if (bSpawnEnvironment)
@@ -117,6 +118,7 @@ void ATDSpaceGameMode::StartPlay()
 		const FTransform Resolved = ResolveSquadOrigin();
 		if (!Resolved.GetLocation().Equals(SquadOrigin.GetLocation(), 1.f) && SquadManager)
 		{
+			UE_LOG(LogTriadDrift, Log, TEXT("Space mode: squad origin re-resolved after StartPlay %s -> %s"), *SquadOrigin.GetLocation().ToCompactString(), *Resolved.GetLocation().ToCompactString());
 			SquadOrigin = Resolved;
 			TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin);
 		}
@@ -340,6 +342,7 @@ void ATDSpaceGameMode::RestartScene()
 			SquadOrigin = ResolveSquadOrigin(); // the phase may have moved on since level entry (the assault)
 		}
 		ApplyStartingShip();
+		UE_LOG(LogTriadDrift, Log, TEXT("Space mode: retake respawns the squad at %s"), *SquadOrigin.GetLocation().ToCompactString());
 		TDFlowReflection::CallTransform(SquadManager, TDSandbox::FnSpawnSquad, SquadOrigin);
 	}
 	HandOverPlayers();

@@ -106,6 +106,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue EngineTrail;
 
+	/** Dodge: a short side-thruster burst, attached at the engine (player ship only). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
+	FTDFXCue Dodge;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue BoostStart;
 
@@ -505,4 +509,11 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
 	TSoftClassPtr<UUserWidget> PauseWidgetClass;
+
+	/**
+	 * Music for the main menu (optional). The menu game mode plays it 2D and fades it out when the game
+	 * travels to the first map. Empty = a silent menu. The sound's own class and volume are used as authored.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftObjectPtr<USoundBase> MenuMusic;
 };

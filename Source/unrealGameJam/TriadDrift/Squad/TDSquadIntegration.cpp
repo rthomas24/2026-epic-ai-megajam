@@ -94,6 +94,8 @@ namespace TDSquad
 		if (UTDHealthComponent* H = Health(Ship))
 		{
 			H->InitMaxValues(Spec.MaxHull, Spec.MaxShield, /*bRefill*/ true);
+			H->ShieldRegenDelay = Spec.ShieldRegenDelay;
+			H->ShieldRegenFractionPerSecond = Spec.ShieldRegenFractionPerSecond;
 		}
 
 		UTDWeaponComponent* W = Weapons(Ship);
@@ -581,6 +583,26 @@ namespace TDSquad
 		const UTDWeaponComponent* W = Ship->FindComponentByClass<UTDWeaponComponent>();
 		const FVector Dir = W ? W->GetAimDirection() : FVector::ZeroVector;
 		return Dir.IsNearlyZero() ? Ship->GetActorForwardVector() : Dir.GetSafeNormal();
+	}
+
+	void BindShipDamaged(ATDSquadManager* Squad, ATDShip* Ship)
+	{
+		if (UTDHealthComponent* H = Health(Ship))
+		{
+			H->OnDamaged.AddUniqueDynamic(Squad, &ATDSquadManager::HandleShipDamaged);
+		}
+	}
+
+	float GetMaxHullAndShield(const AActor* Actor)
+	{
+		const UTDHealthComponent* H = Health(Actor);
+		return H ? H->MaxHull + H->MaxShield : 0.f;
+	}
+
+	float GetDodgeReady01(const ATDShip* Ship)
+	{
+		const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+		return Move ? Move->GetDodgeReady01() : 1.f;
 	}
 
 	FText GetLandPrompt(const ATDShip* Ship)

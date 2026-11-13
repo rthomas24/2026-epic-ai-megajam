@@ -42,6 +42,11 @@ struct UNREALGAMEJAM_API FTDFlightState
 	/** Seconds since the last drift release burst (burst cooldown). */
 	float TimeSinceBurst = 1000.f;
 
+	/** Dodge: seconds of lateral burst left, its side (-1 left, +1 right) and time since the last one (cooldown). */
+	float DodgeTimeLeft = 0.f;
+	float DodgeSign = 0.f;
+	float TimeSinceDodge = 1000.f;
+
 	/** Meter ran dry while boost was held: no boost until the button is released. */
 	bool bBoostLockout = false;
 

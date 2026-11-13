@@ -167,6 +167,13 @@ void ATDDebugHUD::DrawHUD()
 	DrawCrosshair();
 	DrawFlight();
 
+	if (const UWorld* World = GetWorld(); World && World->GetRealTimeSeconds() < BarkUntil && !BarkLine.IsEmpty())
+	{
+		float W = 0.f, H = 0.f;
+		GetTextSize(BarkLine, W, H, nullptr, 1.2f);
+		DrawText(BarkLine, FLinearColor(0.85f, 0.95f, 1.f), (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.86f, nullptr, 1.2f);
+	}
+
 	if (const UWorld* World = GetWorld(); World && World->IsPaused())
 	{
 		const FString Paused(TEXT("PAUSED - ESC TO RESUME"));
@@ -182,6 +189,7 @@ void ATDDebugHUD::BeginPlay()
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnHitConfirmed.AddUniqueDynamic(this, &ATDDebugHUD::HandleHitConfirmed);
+		Bus->OnBarkRequested.AddUniqueDynamic(this, &ATDDebugHUD::HandleBarkRequested);
 	}
 }
 
@@ -191,8 +199,38 @@ void ATDDebugHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnHitConfirmed.RemoveAll(this);
+		Bus->OnBarkRequested.RemoveAll(this);
 	}
 	Super::EndPlay(EndPlayReason);
+}
+
+// A bark id such as "Bark_SquadEngageHighLeft" becomes "KATO: engage high left": readable enough to
+// judge when and how often the wing speaks, before any voice exists.
+void ATDDebugHUD::HandleBarkRequested(FName BarkId, FName Speaker)
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	FString Text = BarkId.ToString();
+	Text.RemoveFromStart(TEXT("Bark_"));
+	Text.RemoveFromStart(TEXT("Squad"));
+	FString Spaced;
+	for (int32 i = 0; i < Text.Len(); ++i)
+	{
+		if (i > 0 && FChar::IsUpper(Text[i]) && !FChar::IsUpper(Text[i - 1]))
+		{
+			Spaced += TEXT(" ");
+		}
+		Spaced.AppendChar(FChar::ToLower(Text[i]));
+	}
+	if (Spaced.RemoveFromStart(TEXT("engage ")))
+	{
+		Spaced = TEXT("engaging, ") + Spaced;
+	}
+	BarkLine = FString::Printf(TEXT("%s: %s"), *Speaker.ToString().ToUpper(), *Spaced);
+	BarkUntil = World->GetRealTimeSeconds() + 2.5;
 }
 
 void ATDDebugHUD::HandleHitConfirmed(AActor* Target, bool bKill)
@@ -327,7 +365,7 @@ void ATDDebugHUD::DrawSquad(float& Y)
 			Line += FString::Printf(TEXT(" HULL %s  SHLD %s  PWR %s"), *Bar(Card.Health01), *Bar(Card.Shield01), *Bar(Card.PowerCooldown01, 5));
 			if (Card.bPlayerControlled)
 			{
-				Line += FString::Printf(TEXT("  BOOST %s  HEAT %s  AMMO %d"), *Bar(Card.Boost01, 6), *Bar(Card.Heat01, 6), Card.SecondaryAmmo);
+				Line += FString::Printf(TEXT("  BOOST %s  HEAT %s  AMMO %d  DODGE %s"), *Bar(Card.Boost01, 6), *Bar(Card.Heat01, 6), Card.SecondaryAmmo, *Bar(Card.Dodge01, 3));
 			}
 		}
 		else
@@ -596,12 +634,10 @@ void ATDDebugHUD::DrawFlight()
 
 bool UTDDebugHUDSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
-#if UE_BUILD_SHIPPING
-	return false;
-#else
+	// Also in Shipping: until Nick's HUD is on by default this is the only HUD a player gets (seen Nov 12:
+	// the Shipping package had no HUD at all). It hides itself wherever a real HUD widget is up.
 	const UWorld* World = Cast<UWorld>(Outer);
 	return World && World->IsGameWorld();
-#endif
 }
 
 void UTDDebugHUDSubsystem::Tick(float DeltaTime)

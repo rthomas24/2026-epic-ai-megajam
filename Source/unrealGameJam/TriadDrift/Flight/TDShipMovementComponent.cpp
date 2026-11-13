@@ -1,6 +1,7 @@
 // Triad Drift - ship movement component (ENG-01). Owner: Teammate 1 (Flight & Input).
 
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -18,6 +19,12 @@ void UTDShipMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	SyncStateFromComponent();
+	if (UpdatedComponent)
+	{
+		WatchLastLocation = UpdatedComponent->GetComponentLocation();
+		bWatchReady = true;
+		UpdatedComponent->TransformUpdated.AddUObject(this, &UTDShipMovementComponent::HandleTransformUpdated);
+	}
 	if (!bStateInitialised)
 	{
 		bStateInitialised = true;
@@ -345,7 +352,13 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	const FVector Delta = State.Location - StartLocation;
 	State.Location = StartLocation;
+	bInOwnMove = true;
 	ResolveMove(Delta, FMath::Min(DeltaTime, 0.25f));
+	bInOwnMove = false;
+	if (UpdatedComponent)
+	{
+		WatchLastLocation = UpdatedComponent->GetComponentLocation();
+	}
 
 	State.Location = UpdatedComponent->GetComponentLocation();
 	Velocity = State.Velocity;
@@ -353,6 +366,33 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	UpdateComponentVelocity();
 
 	BroadcastStateChanges(Before);
+}
+
+void UTDShipMovementComponent::HandleTransformUpdated(USceneComponent* Component, EUpdateTransformFlags Flags, ETeleportType Teleport)
+{
+	if (!bWatchReady || !Component)
+	{
+		return;
+	}
+	const FVector Now = Component->GetComponentLocation();
+	const float Moved = FVector::Dist(Now, WatchLastLocation);
+	const FVector From = WatchLastLocation;
+	WatchLastLocation = Now;
+	if (bInOwnMove || bMoveAnnounced || Moved <= SilentMoveDistance)
+	{
+		return;
+	}
+	++SilentMoveCount;
+	LargestSilentMove = FMath::Max(LargestSilentMove, Moved);
+#if !UE_BUILD_SHIPPING
+	const APawn* Pawn = Cast<APawn>(GetOwner());
+	if (Pawn && Pawn->IsPlayerControlled())
+	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("TD silent move: %s moved %.0f m in one step, outside flight and without TeleportSpacecraft (%s -> %s). Mover's callstack:"),
+			*GetNameSafe(GetOwner()), Moved / 100.f, *From.ToCompactString(), *Now.ToCompactString());
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+	}
+#endif
 }
 
 FCollisionObjectQueryParams UTDShipMovementComponent::TerrainObjectTypes()
@@ -601,6 +641,25 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 	{
 		OnBoundaryStateChanged.Broadcast(GetBoundaryState());
 	}
+}
+
+bool UTDShipMovementComponent::CanDodge() const
+{
+	return Tuning.DodgeSpeed > 0.f && !Context.bSpeedOverride && IsComponentTickEnabled() && State.DodgeTimeLeft <= 0.f
+		&& State.TimeSinceDodge >= Tuning.DodgeCooldown;
+}
+
+bool UTDShipMovementComponent::RequestDodge(float Direction)
+{
+	if (FMath::IsNearlyZero(Direction) || !CanDodge())
+	{
+		return false;
+	}
+	State.DodgeSign = FMath::Sign(Direction);
+	State.DodgeTimeLeft = Tuning.DodgeSeconds;
+	State.TimeSinceDodge = 0.f;
+	OnDodge.Broadcast(State.DodgeSign);
+	return true;
 }
 
 FText UTDShipMovementComponent::GetBoundaryWarningText() const

@@ -31,6 +31,11 @@ assets or tables, not hard-coded.
 
 **Status key** (edit inline): `⬜ todo` · `🟨 in progress` · `✅ done` · `🐞 has bugs`
 
+**Engineering status (Nov 12, evening):** every core `ENG-xx` item is on `main` with automated tests and has
+had two independent reviews; none is `✅` yet, because nothing has been played by a human. Item by item, with
+open findings: `docs/eng/STATUS.md`. Rules decided during the day are written into the items below and marked
+"(Nov 12)".
+
 ### Contents
 0. [The game](#0-the-game) · 1. [The split](#1-the-split) · 2. [Folder & file ownership](#2-folder--file-ownership) ·
 3. [Shared contracts](#3-shared-contracts) · 4. [Shared setup](#4-shared-setup-c-xx) ·
@@ -229,7 +234,7 @@ Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for 
 - [ ] Maps (World Partition + One File Per Actor): `L_MainMenu`, `L_Galaxy`, `L_Planet_Verdance`, `L_Planet_Cinder`, `L_Transition`, plus stretch `L_Dominion_Interior`. Also `L_Test_Space` (Ryan) and `L_Test_Presentation` (Nick).
 - [ ] Create `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`, then push.
 
-### C-02 · Contracts · 🟦 Ryan writes, 🟩 Nick reviews §3.5 · `⬜`
+### C-02 · Contracts · 🟦 Ryan writes, 🟩 Nick reviews §3.5 · `✅`
 - [ ] Write everything in §3 as C++ (`Core/`) and compile. Create empty presentation data-asset classes and placeholder instances.
 - [ ] Nick checks that the presentation slots cover what he needs for ships, weapons, enemies, travel, blade and UI.
 - [ ] Push. **`Core/` is now frozen.**
@@ -244,10 +249,16 @@ presentation-heavy, and build on the switching mechanic. #4 and #5 are not plann
    a hard camera cut with a 1-frame flash, a quick letterbox snap and the pilot's name card
    ("WREN · RIFT"). It stays instant, with no lost control. 🟦 switch event + timing · 🟩 cut
    transition, card, sound.
+   **(Nov 12)** While Nick's space HUD is up it draws the name card ("CUT TO / LANCER"); the fallback
+   card hides and the fallback overlay sits under his HUD (N-007).
 2. **Director cam "money shots"** *(BUILD)*. Big moments fire `OnHighlightMoment`: ram kills,
    portal missile returns, multi-kills, generator and reactor kills. Each triggers a 0.5–1 s
    slow-motion beat from a cinematic angle, rate-limited. 🟦 events + time dilation · 🟩 camera rigs,
    framing, grade.
+   **(Nov 12, as built)** Also produced: carrier kills, Switch Strike kills and the on-foot perfect
+   deflect (0.15 s, deliberately a parry flash rather than a beat). Limits: time dilation 0.4 at the
+   lowest importance down to 0.2 at the highest; 3 s global cooldown and 6 s per kind; importance 0.8
+   or higher bypasses the cooldowns; multi-kills are capped at importance 0.7.
 3. **Scenes and takes, not lives** *(BUILD)*.
    - Each wave or objective is a "scene" opened by a slate card ("SCENE 3 · CINDER · TAKE 1").
    - Dying calls "CUT!" and the scene restarts as TAKE 2.
@@ -281,7 +292,7 @@ can start.
 
 ### Space core
 
-#### ENG-01 · Space flight model · `⬜`
+#### ENG-01 · Space flight model · `🟨`
 Arcade 6DOF-lite flight: fast, readable, with a signature **drift**. Gamepad and keyboard + mouse are
 both first-class.
 
@@ -306,7 +317,7 @@ both first-class.
 **Done when:** flying through an asteroid field is fun on its own, and drifting around a rock while
 shooting backwards feels great.
 
-#### ENG-02 · Space input map · `⬜`
+#### ENG-02 · Space input map · `🟨`
 `IMC_Space` (plus `IMC_Atmosphere`, which adds Land and removes Hyperdrive):
 
 | Action | KB/M | Gamepad |
@@ -324,8 +335,9 @@ shooting backwards feels great.
 | Squad command / Land / Interact | F | A |
 | Pause / Galaxy map | Esc / M | Start / Select |
 
-#### ENG-03 · Health, shields, death and respawn · `⬜`
-- **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s.
+#### ENG-03 · Health, shields, death and respawn · `🟨`
+- **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s. **(Nov 12)** Set per
+  ship in `FTDShipSpec` (`ShieldRegenDelay`, `ShieldRegenFractionPerSecond`); those are the defaults.
 - **Hull:** doesn't regenerate in combat, but repairs at 8% per second in the breather between waves.
 - **Death:** a 0.6 s tumble, then an explosion (`UTDShipVisuals` tier), then **auto-switch** to the
   healthiest living ship. A downed ship warps back in after 12 s. There are 2 s of invulnerability
@@ -334,7 +346,12 @@ shooting backwards feels great.
 - **Squad wipe:** if all three ships are down at once, fire `OnSquadWiped`, then
   `ReportPlayerDefeated()` (Director's Cut: "CUT!", then the next take).
 
-#### ENG-04 · The three ships (gameplay stats) · `⬜`
+- **(Nov 12)** A manual switch made during your own ship's death tumble gets the same 2 s protection as
+  the automatic switch. Between waves only the squad manager repairs (8% of max hull per second). After a
+  retake or an in-place respawn every ship, including the one the player was flying, is flown by its AI
+  again as soon as the player switches away.
+
+#### ENG-04 · The three ships (gameplay stats) · `🟨`
 | | **Rift** (Trickster) | **Lancer** (Interceptor) | **Bastion** (Heavy) |
 |---|---|---|---|
 | Hull / Shield | 100 / 100 | 70 / 80 | 180 / 160 |
@@ -345,10 +362,11 @@ shooting backwards feels great.
 | Signature | Portal Blaster | Afterburner Ram | Missile Swarm + Shield Dome |
 | Unlockable | Cloak | EMP Pulse | Gravity Well |
 
-`BP_Ship_Rift/Lancer/Bastion` (children of `ATDShip`) + `DA_ShipStats_*`. Each ship's look comes from
-its `DA_Ship_*_Visuals` (Nick, ART-03).
+**(Nov 12, as built)** Stats are `FTDShipSpec` in `UTDShipLibrary` (C++), overridable per ship on
+`ATDSquadManager` (`ShipSpecOverrides`); no `BP_Ship_*` children or `DA_ShipStats_*` assets are needed.
+Each ship's look comes from its `DA_Ship_*_Visuals` (Nick, ART-03).
 
-#### ENG-05 · Ship weapons · `⬜`
+#### ENG-05 · Ship weapons · `🟨`
 | Weapon | Ship | Type | Damage | Rate | Speed | Range | Resource | Notes |
 |---|---|---|---|---|---|---|---|---|
 | Phase Pulse Lasers | Rift | Twin alternating bolts | 8 each | 8/s | 40 000 | 40 000 | Heat: 4 s to overheat, 1.5 s lockout | 3° aim assist |
@@ -356,15 +374,15 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
 | Needle Cannons | Lancer | Rapid kinetic | 4 | 20/s | 55 000 | 30 000 | Heat: 5 s | 1.2° spread |
 | Spike Rockets | Lancer | Dumb-fire salvo of 4 | 25 each, 300 cm splash | 1 per 1.5 s | 30 000 | 40 000 | 8 salvos, +1 per 5 s | |
 | Breaker Blaster | Bastion | Heavy plasma | 30, 250 cm splash | 2.5/s | 28 000 | 35 000 | Heat: 6 s | Knocks back fighters |
-| Flak Burst | Bastion | Proximity flak | 15 per fragment, 800 cm | 1 per 1.2 s | 22 000 | 20 000 | 10 shells, +1 per 3 s | **Shoots down missiles** |
+| Flak Burst | Bastion | Proximity flak | 15 splash over 800 cm, 500 cm proximity fuse | 1 per 1.2 s | 22 000 | 20 000 | 10 shells, +1 per 3 s | **Shoots down missiles** |
 
-- `UTDWeaponComponent` + `UTDWeaponData`; all projectiles derive from `ATDProjectile` (C++,
+- `UTDWeaponComponent` + `UTDWeaponLibrary` (the `FTDWeaponSpec` table, C++; looks in `UTDWeaponFX`); all projectiles derive from `ATDProjectile` (C++,
   implements `ITDDeflectable`).
 - Lead indicator data for the HUD; `OnHitConfirmed` for hit and kill markers; 40 ms hit-stop on
   kills.
 - Visuals and audio come from `UTDWeaponFX` (Nick).
 
-#### ENG-06 · Targeting & lock-on · `⬜`
+#### ENG-06 · Targeting & lock-on · `🟨`
 - Soft target = the enemy closest to screen centre within 25°, cycled by distance.
 - Bastion missile locks: targets inside the 25° cone are painted automatically, up to 6, at 0.25 s
   each. A lock is dropped when its target dies, becomes invalid (cloaked, wrong team), goes beyond the
@@ -380,10 +398,14 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   prompt, and for 1.5 s why a switch was refused), `GetSquadMarkers` (where each squad ship is and whether
   the wingman is engaging: off-screen wing arrows), `GetDamageIndicators` (direction of recent hits on the
   player: "who is shooting me").
+- Dodge (player ship only, added Nov 12): a 0.25 s sideways burst at 100 m/s with a 1.5 s cooldown and no
+  invulnerability. Left Alt (toward the held roll or steering side), double-tap A or D, or a double flick of
+  the left stick. Refused during the ram, landing, atmosphere entry, hyperdrive and director slow motion.
+  Measured: weaving with a timed dodge takes about 40-50% of straight-line damage. Strafe is 40 m/s.
 - Pause: Escape / gamepad Start, in space and on foot (`OnPauseChanged` on the player controller;
   `UTDUIStyle.PauseWidgetClass` for the menu). Refused during level travel, a pending retake and victory.
 
-#### ENG-07 · Squad manager & instant switching (PROTECT) · `⬜`
+#### ENG-07 · Squad manager & instant switching (PROTECT) · `🟨`
 - `ATDSquadManager` spawns, tracks and respawns all three ships, and owns who the player controls.
   It implements `ITDHUDData`.
 - **Switching:** next, previous or direct; possesses the target instantly on the same frame; the ship
@@ -393,9 +415,11 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
 - A power started on one ship finishes after you switch away (portal stays open, dome stays up).
 - Fires `OnShipSwitched`, which drives Nick's "cut" presentation (C-03 #1).
 
-#### ENG-08 · Wingman AI (PROTECT) · `⬜`
+#### ENG-08 · Wingman AI (PROTECT) · `🟨`
 - States: Formation → Engage → Evade → Regroup → Downed.
-  - Formation: a loose V at 1500–2500 cm offsets; boosts to catch up beyond 8000 cm.
+  - Formation: a loose V at 1500–2500 cm offsets; boosts to catch up beyond 8000 cm. **(Nov 12)** The V is
+    swept forward (both wingmen ahead and outboard of the player, at different depths) so the chase
+    camera shows it.
   - Engage: attacks whoever threatens the player first, then the nearest, then the lowest health;
     primary and secondary weapons only.
   - Evade: kicks in on shield break or an incoming missile.
@@ -404,7 +428,13 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   target" for 8 s.
 - Avoids rocks and teammates; moves toward an active Bastion dome when hurt; 2–4° aim error.
 
-#### ENG-09 · Rift: Portal Blaster · `⬜` ⚠️ highest risk
+- **(Nov 12)** Target choice: one wingman may defend against an off-screen threat at a time; the other
+  prefers targets inside the player's view (within 80 m bands of its best target). Wingmen keep clear of
+  the aim line and of an active director shot. In a furball a wingman shares the frame with an enemy well
+  under half the time, so the wing is made readable through the HUD (`GetSquadMarkers`: named arrows in
+  squad colours) and short position calls (`Bark_SquadEngage...`), not by formation flying.
+
+#### ENG-09 · Rift: Portal Blaster · `🟨` ⚠️ highest risk
 - **Placement:** Fire 1 opens portal A where it hits or at max range (12 000 cm); Fire 2 opens B; a
   third shot recycles the oldest. Open for 12 s, then an 8 s cooldown.
 - **Ships:** pass through keeping their speed, take the exit's facing, and get 0.3 s of
@@ -416,14 +446,14 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   missile-reflect field.
 - Visuals: `UTDTravelFX` portal slots (Nick).
 
-#### ENG-10 · Lancer: Afterburner Ram · `⬜`
+#### ENG-10 · Lancer: Afterburner Ram · `🟨`
 - 0.3 s wind-up, then a 1.2 s dash at 3× boost speed. Lancer is invulnerable and steers at 40%.
 - Deals **300 to whatever it touches**: passes through fighters, **breaks gunship shields** and
   carrier bay doors.
 - Hitting something big stops the dash with a 150-damage shockwave over 1500 cm.
 - 7 s cooldown. Exposes `PowerWindup01` for the wing-fold animation (Nick).
 
-#### ENG-11 · Bastion: Missile Swarm & Shield Dome · `⬜`
+#### ENG-11 · Bastion: Missile Swarm & Shield Dome · `🟨`
 - **Missile Swarm (tap):** 12 micro-missiles split across painted locks (or the soft target),
   18 damage each with a 200 cm splash; 9 s cooldown.
 - **Shield Dome (hold 0.5 s):** a 3000 cm radius for 6 s with a 16 s cooldown.
@@ -431,17 +461,17 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
   - Enemy shots are destroyed on the dome, and missiles are deflected back.
   - The dome follows Bastion slowly.
 
-#### ENG-12 · Unlockable abilities (CORE: powers aren't optional) · `⬜`
+#### ENG-12 · Unlockable abilities (CORE: powers aren't optional) · `🟨`
 One ability slot per ship (`IA_Ability`), filled from `GetProgress().UnlockedAbilities` on spawn
 and on `OnAbilityUnlocked`.
 
 | Ability | Ship | Unlocked by | Behaviour | Cooldown |
 |---|---|---|---|---|
 | **Gravity Well** | Bastion | Verdance Obj 1 | A slow orb that becomes a 5000 cm vortex for 5 s, pulling enemies and their projectiles in. Enemies inside take 10 dps and can't fire; it ends with a 120-damage implosion | 18 s |
-| **Cloak** | Rift | Verdance Obj 2 | 6 s invisible: AI loses lock and missiles lose tracking. The first shot out does **3× damage**; firing or ramming breaks it | 15 s |
+| **Cloak** | Rift | Verdance Obj 2 | 6 s untargetable (how it looks is Nick's, `DA_Ability_Cloak_FX`): AI loses lock and missiles lose tracking. The first shot out does **3× damage**; firing or using another power breaks it | 15 s |
 | **EMP Pulse** | Lancer | Cinder Obj 3 | A 6000 cm pulse: stuns enemies for 3 s, drops gunship shields for 5 s, fizzles missiles. Stunned enemies take +25% damage | 14 s |
 
-`UTDAbilityBase` + three children. Visuals: `UTDAbilityFX` (Nick).
+`UTDAbilityComponent` (the slot) installs one `UTDPowerComponent` child per ability (`UTDGravityWellPower`, `UTDCloakPower`, `UTDEMPPower`). Visuals: `UTDAbilityFX` (Nick).
 
 **Powers and ship switching (decided Nov 12):** a power or ability that is running when the player
 switches away (cloak, shield dome, an open portal pair, a gravity well) keeps running on that ship
@@ -450,7 +480,7 @@ AI-flown ship never starts one. Two exceptions end at the switch (also on an aut
 death): the ram (wind-up cancelled, dash ended, no invulnerability left behind) and a portal blaster
 with only one portal placed (the lone portal closes).
 
-#### ENG-13 · Enemy ships & AI · `⬜`
+#### ENG-13 · Enemy ships & AI · `🟨`
 | Enemy | Role | HP / Shield | Speed | Weapons | Behaviour | Counter |
 |---|---|---|---|---|---|---|
 | Shard Fighter | Swarm | 30 / 0 | 7000 | Pulse guns (5, 4/s) | Packs of 4–8, strafing runs | Needles, Splitter, Flak |
@@ -467,7 +497,13 @@ with only one portal placed (the lone portal closes).
 - Every big attack has a **telegraph** state for Nick's VFX and audio.
 - Visuals: `UTDEnemyVisuals` (Nick).
 
-#### ENG-14 · Wave director · `⬜`
+- **(Nov 12)** Enemy aim and AI choices use a deterministic seed per ship (spawn order in the world), so the
+  same fight plays the same way. Fighters open fire at a range that grows with closing speed and never ram on
+  a head-on pass. Only the interceptor's missile has a point-blank rule (no launch inside 60 m or with too
+  little time to dodge); gunship bolts fire down to 15 m and its salvo from 40 m. Enemy ships do not use the
+  planet gates. Placeholder ships glow red-orange with white eyes and are drawn larger than their collision.
+
+#### ENG-14 · Wave director · `🟨`
 - `ATDWaveDirector` + `DT_Waves`. Waves spawn behind or flanking the player, with a 6 s breather
   between them.
 - Reads `GetProgress()` on load and resumes the right phase.
@@ -484,7 +520,7 @@ with only one portal placed (the lone portal closes).
 Tutorial beats fire `ShowTip`: switching (wave 1), each signature power (first time in each ship),
 drift, hyperdrive.
 
-#### ENG-15 · Hyperdrive · `⬜`
+#### ENG-15 · Hyperdrive · `🟨`
 - Hold to spool for 1.2 s; can't spool within 2 s of taking damage, and a hit cancels it.
 - Jump at 80 000 cm/s with 10% steering. Auto-drops out near markers and the Dominion. Wingmen jump
   too and arrive in formation.
@@ -495,19 +531,19 @@ drift, hyperdrive.
 - **Hyperdrive lock:** the hyperdrive is locked while a wave is active and during the Dominion
   assault, and free in the breather between waves and in the planet phases.
 
-#### ENG-16 · Portal gates (galaxy shortcuts) · `⬜`
+#### ENG-16 · Portal gates (galaxy shortcuts) · `🟨`
 Three permanent `ATDPortalGate` pairs: combat zone ↔ Verdance orbit, combat zone ↔ Cinder orbit, and
 a flank pair used in waves 3–5. They reuse ENG-09's transit logic, and wingmen follow. Shots pass
 through a gate unchanged: only Rift's own portals return enemy missiles.
 
-#### ENG-17 · Galaxy level: gameplay layout · `⬜`
+#### ENG-17 · Galaxy level: gameplay layout · `🟨`
 - **Zones:** the combat zone (asteroids, station ruins as cover), Verdance and Cinder orbits, and
   the Dominion approach.
 - **Gameplay actors:** `ATDPlanetAtmosphere` triggers, spawn zones, portal gates and return points
   (`Verdance_Orbit`, `Cinder_Orbit`, `Dominion_Hangar_Exit` for the stretch).
 - **Shared map:** Nick dresses the same map with art, lighting and VFX (One File Per Actor).
 
-#### ENG-18 · Dominion assault & space finale (CORE) · `⬜`
+#### ENG-18 · Dominion assault & space finale (CORE) · `🟨`
 - **Arrival:** when `bDominionRevealed` is set after wave 5, the Dominion warps in (Nick's reveal
   sequence plays).
 - **Assault:**
@@ -519,10 +555,15 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
   escalating turret fire and launches). When it dies the squad is protected and every remaining
   enemy is destroyed; victory is a phase change on the galaxy map after Nick's breakup sequence.
 - **Stretch ending:** the docking bay opens instead and leads to ENG-29.
+- **(Nov 12) Retakes and saves:** the assault is one scene ("Dominion"). After a squad wipe the squad restarts on
+  the approach (at the trench once the defences are down); destroyed generators stay destroyed, reactor phases
+  already passed stay passed, and the current phase restarts. The hyperdrive is locked only inside the
+  Dominion's gravity well, so the first approach can jump and drops out at the well. Victory cancels a pending
+  retake, and a won save does not continue into the fight.
 
 ### Game loop & progression
 
-#### ENG-19 · Game instance, progression, saves & travel · `⬜`
+#### ENG-19 · Game instance, progression, saves & travel · `🟨`
 - `UTDGameInstance` implements `ITDGameFlow` and holds `FTDProgress`.
 - **Travel:** `TravelTo` fades to `L_Transition` (Nick's loading screen widget), then the target
   level.
@@ -532,7 +573,7 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
 - **Debug menu** (F10, dev builds only): jump to any phase, unlock abilities, god mode, kill all,
   skip wave.
 
-#### ENG-20 · Atmosphere flight, landing & take-off (gameplay) · `⬜`
+#### ENG-20 · Atmosphere flight, landing & take-off (gameplay) · `🟨`
 See §7.
 - **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
   altitude data.
@@ -549,7 +590,7 @@ See §7.
 - **Landing and take-off:** auto-land (gear and canopy state exposed), wingmen land beside you, the
   exit hands off to first person, and boarding reverses it.
 
-#### ENG-21 · First-person character (planets: CORE) · `⬜`
+#### ENG-21 · First-person character (planets: CORE) · `🟨`
 Extends the template's first-person character.
 
 | Move | Input | Values |
@@ -565,7 +606,7 @@ Extends the template's first-person character.
 - 100 health, regenerating after 4 s at 15/s; death → checkpoint respawn.
 - Implements the ground side of `ITDHUDData`.
 
-#### ENG-22 · Energy blade combat (CORE, used on planets) · `⬜`
+#### ENG-22 · Energy blade combat (CORE, used on planets) · `🟨`
 | Move | Damage | Behaviour |
 |---|---|---|
 | Light combo ×3 | 25 / 25 / 45 | 180 cm, 100° arc sweeps; the third hit knocks back; 0.45 s combo window |
@@ -579,7 +620,7 @@ Extends the template's first-person character.
 
 Hit-stop: 50 ms on hit, 120 ms on kill. Visuals and audio: `UTDBladeFX` (Nick).
 
-#### ENG-23 · Crew enemies: AI & combat (CORE, planets) · `⬜`
+#### ENG-23 · Crew enemies: AI & combat (CORE, planets) · `🟨`
 | Enemy | HP | Attacks | Behaviour |
 |---|---|---|---|
 | Grunt | 60 | Telegraphed baton (15) | Groups of 3–5; flanks |
@@ -593,12 +634,12 @@ Hit-stop: 50 ms on hit, 120 ms on kill. Visuals and audio: `UTDBladeFX` (Nick).
 - Attack tokens: at most 2 grunts attack at once.
 - Ragdoll on death. Models and animations are Nick's (ART-08).
 
-#### ENG-24 · Objective framework · `⬜`
+#### ENG-24 · Objective framework · `🟨`
 `ATDObjective` (Id, steps, waypoint, reward ability and ship) and interactables (tap or hold;
 interrupted by damage). Fires `OnObjectiveUpdated` and calls `CompleteObjective`, which brings up
 Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its doors.
 
-#### ENG-25 · Verdance: gameplay layout & objectives (CORE) · `⬜`
+#### ENG-25 · Verdance: gameplay layout & objectives (CORE) · `🟨`
 - **Level:** a compact level (about 1 km²) with the landing pad and a descent start point. Nick
   dresses the look.
 - **Obj 1, Wreck Core** (→ Gravity Well):
@@ -609,7 +650,12 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
 - **Obj 2, Ancient Relay** (→ Cloak): light platforming (double jump, dash, mantle) with drones,
   three resonance nodes, then the relay pulses.
 
-#### ENG-26 · Cinder: gameplay layout, hazards & objectives (CORE) · `⬜`
+- **(Nov 12)** Built in code around the pad (`ATDPlanetCourse`): both objectives can be done in either order,
+  each starts at its trailhead as its own scene, with route posts, objective lines and markers. Boarding is
+  allowed at any time; the way back to space opens when both are done. A required objective with no actor in
+  the world is completed with an error in the log, so a content mistake never traps the player.
+
+#### ENG-26 · Cinder: gameplay layout, hazards & objectives (CORE) · `🟨`
 - **Hazards:** magma (heavy damage + respawn at the last safe spot), timed geysers, crystals that
   shatter when slashed.
 - **Obj 3, Outpost** (→ EMP): breach the gate (2 conduits), 3 escalating areas, the Warden, then
@@ -617,11 +663,20 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
 - **Obj 4, Jammer** (→ reveals the Dominion): collapsing crystal bridges, plant 3 charges under
   attack, then run as the tower collapses.
 
-#### ENG-27 · Balance & tuning · `⬜`
+- **(Nov 12)** The blade breaks blade-breakable props (crystals, gate conduits), not only enemies. The magma
+  hurts at its surface only. A checkpoint precedes the Warden. Engineering-made props dress both planets
+  (`Content/TriadDrift/Gameplay/Props`, trees in `Gameplay/Vegetation`) until Nick's art replaces them.
+
+#### ENG-27 · Balance & tuning · `🟨`
 Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20–30 minutes. Add a
 "Pilot / Ace" difficulty setting that scales enemy damage and accuracy.
 
-#### ENG-28 · Integration, performance, packaging & submission build · `⬜`
+- **(Nov 12) Pressure targets on Standard, to be confirmed by a human:** a squad ship goes down in about 1 run
+  in 5 in waves 1-2, about 1 in 2 in waves 3-4, most runs in wave 5 and the assault, with a squad wipe in about
+  1 run in 5 there. Measured in the headless balance run (chance of a ship down and hull lost per minute for
+  the active ship) before any tuning.
+
+#### ENG-28 · Integration, performance, packaging & submission build · `🟨`
 - **Integration and testing:** C++ architecture reviews, profiling (a steady 60 fps target on mid
   hardware), a smoke test after every merge.
 - **Packaging:** Windows Shipping profile with all maps listed, startup map `L_MainMenu`, and the

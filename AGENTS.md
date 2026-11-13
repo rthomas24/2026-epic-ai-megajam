@@ -589,6 +589,11 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   Nick's list. Sources go in `ArtSource/EngProps/**`, Unreal assets in `Content/TriadDrift/Gameplay/{Props,Vegetation}/**`.
   Nothing hero, no ships, characters, sky, terrain, VFX, UI or audio. Nicholas keeps art direction: he approves, restyles or
   replaces any of it, and a mesh assigned through his presentation data assets always wins.
+- **Headless first** (proposed by Nick's side in N-017, Nov 12): default to headless, background or command-line runs
+  for automation, asset processing, Blender, builds, tests and Git; use a GUI only for inspection, interaction or
+  gameplay validation that needs one. Headless is not the same as light: save work and checkpoints first, check free
+  RAM and what heavy processes are already running, and on a 16 GB machine run one heavy job at a time, bounded and
+  watched. This does not replace the real windowed playtests below.
 - **Presentation asset names** are fixed in `docs/visual/Presentation-Asset-Paths.md`; gameplay looks
   them up by those exact paths, optional and null-safe.
 

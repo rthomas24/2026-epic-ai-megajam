@@ -115,6 +115,7 @@ bool FTDFlightCruise::RunTest(const FString& Parameters)
 | A placeholder disappears when presentation assigns only a sound | `FTDFXCue::IsEmpty()` is false when only `Sound` or `Shake` is set. Decide whether to hide a visual placeholder with `Cue.VFX.IsNull()` |
 | A placeholder is visible from one side and black from the other (stars, markers, far ships) | It uses the lit `BasicShapeMaterial`. Anything that must read from every direction uses the unlit glow material, hard-referenced on a CDO so it cooks |
 | A test passes but the enemy never does its attack against a real player | The test asserted positions or timers, not the attack. Assert the thing itself happened (a projectile was fired, damage landed) against a moving, real ship, at 30 / 60 / 120 fps |
+| Packaging fails with `Failed to cook ... It imports class /Script/Procedural...` (or any editor-only class) | An always-cooked folder contains editor-only assets (PVE graphs and presets, editor utilities). Always-cook only folders of runtime assets (`Gameplay/Materials`, `Gameplay/Props`); everything else ships through hard references. Run `Tools/td-package.ps1` after every content change |
 | A console command with a wrong argument "works" silently | It only logged the valid list. Mistyped cheats must say so on screen; check the log after every cheat in a playtest |
 
 ## Try it by hand (human or agent with a screen)

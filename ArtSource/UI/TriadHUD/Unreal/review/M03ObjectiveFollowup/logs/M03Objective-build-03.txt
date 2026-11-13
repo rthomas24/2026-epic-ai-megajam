@@ -1,0 +1,28 @@
+Using bundled DotNet SDK version: 10.0 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" unrealGameJamEditor Win64 Development -Project=C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\hud-lancer-polish\unrealGameJam.uproject -MaxParallelActions=1 -NoUBA -WaitMutex -NoHotReloadFromIDE
+Log file: C:\Users\nicho\AppData\Local\UnrealBuildTool\Log.txt
+Executing up to 1 actions based on MaxProcessorCount override
+Using 'git status' to determine working set for adaptive non-unity build (C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\hud-lancer-polish).
+UbaSessionServer - Disable remote execution (remote sessions will finish current processes)
+Warning: Plugin 'Fab' does not list plugin 'ToolsetRegistry' as a dependency, but module 'FabToolset' depends on module 'ToolsetRegistry'.
+Building unrealGameJamEditor...
+===== Toolchain Information =====
+Using ISPC compiler (C:\Program Files\Epic Games\UE_5.9\Engine\Source\ThirdParty\Intel\ISPC\bin\Windows\ispc.exe)
+  Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.24.0 (build commit  @ 20250404, LLVM 18.1.2) 
+Using Visual Studio 14.50.35739 toolchain (C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717) and Windows 10.0.26100.0 SDK (C:\Program Files (x86)\Windows Kits\10).
+[Adaptive Build] Excluded from TriadDriftHUD unity file: TDHUDTests.cpp, TDSpaceHUDWidget.cpp
+===== End Toolchain Information =====
+Using Unreal Build Accelerator local executor to run 4 action(s)
+  CPU 8 physical cores, 16 logical cores
+  Memory 15.61 GB physical, 18.78 GB/30.61 GB committed
+  UBA Storage capacity 40 GB
+[1/4] Compile [x64] TDHUDTests.cpp [NoUba]
+[2/4] Link [x64] UnrealEditor-TriadDriftHUD.dll [NoUba]
+[3/4] Link [x64] UnrealEditor-TriadDriftHUD.lib [NoUba]
+[4/4] WriteMetadata unrealGameJamEditor.target [NoUba]
+
+Total time in Unreal Build Accelerator local executor: 5.09 seconds
+Output binary: C:\Program Files\Epic Games\UE_5.9\Engine\Binaries\Win64\UnrealEditor.exe
+
+Result: Succeeded
+Trace written to file C:\Users\nicho\AppData\Local\UnrealBuildTool\Trace.uba with size 6.4kb

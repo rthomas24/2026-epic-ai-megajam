@@ -24,6 +24,7 @@
 #include "EnhancedPlayerInput.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/Squad/TDSquadBarks.h"
 #include "TriadDrift/Squad/Tests/TDSquadTestListener.h"
@@ -2452,6 +2453,201 @@ bool FTDSquadNoSilentSwitch::RunTest(const FString& Parameters)
 			TestEqual(TEXT("invulnerable and no input: the player stays in Rift") + Case, Changes, 0);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEngageCallDirections, "TriadDrift.Squad.Barks.EngageCallDirection", TD_TEST_FLAGS)
+bool FTDSquadEngageCallDirections::RunTest(const FString& Parameters)
+{
+	// Lead decision: the wing says where it is when it enters a fight, seen from the player's camera.
+	const FTransform Cam(FRotator(0.f, 90.f, 0.f), FVector(100.f, 200.f, 300.f)); // looking along +Y
+	auto Call = [&](const FVector& Local) { return TDBarkIds::EngageCallFor(Cam, Cam.TransformPositionNoScale(Local)).ToString(); };
+	TestEqual(TEXT("ahead"), Call(FVector(5000.f, 0.f, 0.f)), FString(TEXT("Bark_SquadEngageAhead")));
+	TestEqual(TEXT("high left"), Call(FVector(2000.f, -3000.f, 3000.f)), FString(TEXT("Bark_SquadEngageHighLeft")));
+	TestEqual(TEXT("low right"), Call(FVector(1000.f, 4000.f, -3000.f)), FString(TEXT("Bark_SquadEngageLowRight")));
+	TestEqual(TEXT("behind"), Call(FVector(-5000.f, 500.f, 0.f)), FString(TEXT("Bark_SquadEngageBehind")));
+	TestEqual(TEXT("high ahead"), Call(FVector(3000.f, 0.f, 2500.f)), FString(TEXT("Bark_SquadEngageHighAhead")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEngageCallLive, "TriadDrift.Squad.Barks.WingmanCallsWhereItEngages", TD_TEST_FLAGS)
+bool FTDSquadEngageCallLive::RunTest(const FString& Parameters)
+{
+	// Real wing, real engagement: a wingman leaving formation for a fight calls its position, once.
+	FSquadFixture F;
+	F.W.Advance(3.f); // settled in formation
+	const FTransform Cam = F.Ship(ETDShipId::Rift)->GetChaseCameraTransformNow();
+	F.SpawnEnemy(FVector(12000.f, -6000.f, 4000.f), 100000.f);
+	FName Line;
+	FName Speaker;
+	FVector WingAtCall = FVector::ZeroVector;
+	for (int32 i = 0; i < 180 && Line.IsNone(); ++i)
+	{
+		const int32 Before = F.Events->Barks.Num();
+		F.W.Tick();
+		for (int32 b = Before; b < F.Events->Barks.Num(); ++b)
+		{
+			if (F.Events->Barks[b].Key.ToString().StartsWith(TEXT("Bark_SquadEngage")))
+			{
+				Line = F.Events->Barks[b].Key;
+				Speaker = F.Events->Barks[b].Value;
+				const ETDShipId Who = Speaker == FName(TEXT("Kato")) ? ETDShipId::Lancer : ETDShipId::Bastion;
+				WingAtCall = F.Ship(Who)->GetActorLocation();
+			}
+		}
+	}
+	if (!TestFalse(TEXT("a wingman called its engagement"), Line.IsNone()))
+	{
+		return false;
+	}
+	TestTrue(TEXT("by a wingman, not the player's pilot"), Speaker == FName(TEXT("Kato")) || Speaker == FName(TEXT("Moss")));
+	TestEqual(TEXT("the direction is where that wingman is"), Line, TDBarkIds::EngageCallFor(F.Ship(ETDShipId::Rift)->GetChaseCameraTransformNow(), WingAtCall));
+	F.W.Advance(5.f);
+	int32 Calls = 0;
+	for (const TPair<FName, FName>& B : F.Events->Barks)
+	{
+		Calls += (B.Key.ToString().StartsWith(TEXT("Bark_SquadEngage")) && B.Value == Speaker) ? 1 : 0;
+	}
+	TestEqual(TEXT("one call per wingman per fight (10 s cooldown)"), Calls, 1);
+	return Cam.IsValid();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadDamageIndicators, "TriadDrift.Squad.HUD.DamageIndicatorsPointAtTheShooter", TD_TEST_FLAGS)
+bool FTDSquadDamageIndicators::RunTest(const FString& Parameters)
+{
+	// T1's feel pass: "nearly all damage comes from off screen and nothing says where from".
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FSquadFixture F;
+		ATDShip* Rift = F.Ship(ETDShipId::Rift);
+		Rift->SetFlightParked(true);
+		F.W.Tick(Step);
+		const FVector P = Rift->GetActorLocation();
+		auto Enemy = [&](const FVector& Offset)
+		{
+			ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, P + Offset);
+			E->SetFlightParked(true);
+			return E;
+		};
+		ATDEnemyShip* Right = Enemy(FVector(0.f, 30000.f, 0.f));
+		ATDEnemyShip* Left = Enemy(FVector(0.f, -30000.f, 0.f));
+		ATDEnemyShip* Behind = Enemy(FVector(-30000.f, 0.f, 0.f));
+		ATDEnemyShip* Above = Enemy(FVector(0.f, 0.f, 30000.f));
+		auto Hit = [&](AActor* From, float Amount) { UTDStatics::ApplyTDDamage(Rift, Amount, ETDDamageKind::Energy, From, From); };
+		auto Ind = [&] { return F.Squad->GetDamageIndicators(); };
+		auto Points = [&](const FTDDamageIndicator& I, const FVector& Dir) { return FVector::DotProduct(I.WorldDirection, Dir) > 0.95f; };
+
+		TestEqual(TEXT("nothing before any hit") + Fps, Ind().Num(), 0);
+		Hit(Right, 5.f);
+		TestTrue(TEXT("a hit from the right points right") + Fps, Ind().Num() == 1 && Points(Ind()[0], FVector::RightVector));
+		TestTrue(TEXT("small hit: shield only") + Fps, Ind()[0].bShieldOnly && Ind()[0].Strength01 > 0.f && Ind()[0].Strength01 < 0.1f);
+		F.W.Advance(0.3f, Step);
+		Hit(Left, 5.f);
+		TestTrue(TEXT("two hits, newest (left) first") + Fps, Ind().Num() == 2 && Points(Ind()[0], FVector::LeftVector) && Points(Ind()[1], FVector::RightVector));
+		TestTrue(TEXT("ages in real seconds") + Fps, FMath::IsNearlyEqual(Ind()[1].AgeSeconds, 0.3f, Step + 0.02f));
+		F.W.Advance(0.2f, Step);
+		// A burst from behind: one indicator, stronger.
+		Hit(Behind, 5.f);
+		const float One = Ind()[0].Strength01;
+		F.W.Tick(Step);
+		Hit(Behind, 5.f);
+		F.W.Tick(Step);
+		Hit(Behind, 5.f);
+		TestTrue(TEXT("a burst from one attacker is one indicator") + Fps, Ind().Num() == 3 && Points(Ind()[0], FVector::BackwardVector));
+		TestTrue(TEXT("...that grows with the burst") + Fps, Ind()[0].Strength01 > One * 2.5f);
+		// Through the shield: hull damage.
+		F.W.Advance(0.2f, Step);
+		Hit(Above, F.Health(ETDShipId::Rift)->GetShield() + F.Health(ETDShipId::Rift)->MaxHull * 0.3f); // through the shield, not a kill
+		TestTrue(TEXT("from above, hull hit") + Fps, Points(Ind()[0], FVector::UpVector) && !Ind()[0].bShieldOnly);
+		// A wingman's damage is not the player's.
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 5.f, ETDDamageKind::Energy, Right, Right);
+		TestEqual(TEXT("a wingman being hit adds nothing") + Fps, Ind().Num(), 4);
+		// Old hits drop after 1.5 s of real time.
+		F.W.Advance(1.6f, Step);
+		TestEqual(TEXT("gone after 1.5 s") + Fps, Ind().Num(), 0);
+		// No attacker at all: back along the hit direction.
+		{
+			FTDDamageInfo Info;
+			Info.Amount = 5.f;
+			Info.Kind = ETDDamageKind::Energy;
+			Info.HitDirection = FVector::LeftVector; // travelling left, so it came from the right
+			F.Health(ETDShipId::Rift)->ApplyDamage(Info);
+			TestTrue(TEXT("no attacker: from the hit direction") + Fps, Ind().Num() == 1 && Points(Ind()[0], FVector::RightVector));
+		}
+		// The new ship starts clean, and its own hits register.
+		TestTrue(TEXT("switch") + Fps, F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		TestEqual(TEXT("cleared on switch") + Fps, Ind().Num(), 0);
+		F.W.Advance(0.5f, Step); // past the switch-in grace
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Bastion), 5.f, ETDDamageKind::Energy, Left, Left);
+		TestTrue(TEXT("the new ship's hits show") + Fps, Ind().Num() == 1);
+		F.Squad->SpawnSquad(FTransform::Identity);
+		TestEqual(TEXT("cleared on a retake") + Fps, Ind().Num(), 0);
+		// Slow motion (a money shot) must not stretch them: 1.6 real seconds at 0.2x is still gone.
+		F.W.Advance(0.5f, Step);
+		UTDStatics::ApplyTDDamage(F.Squad->GetActiveShip(), 5.f, ETDDamageKind::Energy, Left, Left);
+		TestEqual(TEXT("a hit before the slow-mo") + Fps, Ind().Num(), 1);
+		UTDFeelSubsystem::Get(F.W.GetWorld())->RequestSlowMo(5.f, 0.2f);
+		F.W.Advance(1.6f, Step);
+		TestTrue(TEXT("slow-mo running") + Fps, UTDFeelSubsystem::Get(F.W.GetWorld())->IsSlowMoActive());
+		TestEqual(TEXT("gone after 1.5 REAL seconds even in slow-mo") + Fps, Ind().Num(), 0);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadShieldRegenFromSpec, "TriadDrift.Squad.Spec.ShieldRegenPerShip", TD_TEST_FLAGS)
+bool FTDSquadShieldRegenFromSpec::RunTest(const FString& Parameters)
+{
+	// T4's balance sweep: shield regen delay and rate come from each ship's spec, and stay through a
+	// respawn and a retake. Defaults are today's 3 s / 25% per second.
+	FSquadFixture F(/*bSpawnSquad*/ false);
+	FTDShipSpec Lancer = UTDShipLibrary::Get(ETDShipId::Lancer);
+	Lancer.ShieldRegenDelay = 5.f;
+	Lancer.ShieldRegenFractionPerSecond = 0.1f;
+	F.Squad->ShipSpecOverrides.Add(ETDShipId::Lancer, Lancer);
+	F.Squad->SpawnSquad(FTransform::Identity);
+	F.W.Tick();
+	auto Check = [&](const TCHAR* When)
+	{
+		const UTDHealthComponent* L = F.Health(ETDShipId::Lancer);
+		const UTDHealthComponent* B = F.Health(ETDShipId::Bastion);
+		TestTrue(FString(TEXT("Lancer gets its spec: ")) + When, L->ShieldRegenDelay == 5.f && L->ShieldRegenFractionPerSecond == 0.1f);
+		TestTrue(FString(TEXT("Bastion keeps today's defaults: ")) + When, B->ShieldRegenDelay == 3.f && B->ShieldRegenFractionPerSecond == 0.25f);
+	};
+	Check(TEXT("spawn"));
+	F.Kill(ETDShipId::Lancer);
+	F.W.Advance(13.f);
+	TestTrue(TEXT("respawned"), F.Squad->IsShipAlive(ETDShipId::Lancer));
+	Check(TEXT("respawn"));
+	F.Squad->SpawnSquad(FTransform::Identity);
+	F.W.Tick();
+	Check(TEXT("retake"));
+	// And it really regenerates at that rate: break the shield, wait out the delay, 2 s at 10%/s.
+	AActor* Enemy = F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f);
+	UTDHealthComponent* L = F.Health(ETDShipId::Lancer);
+	F.W.Advance(2.5f); // past the retake's spawn grace
+	TestFalse(TEXT("vulnerable again"), L->IsInvulnerable());
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), L->MaxShield, ETDDamageKind::Energy, Enemy, Enemy);
+	F.W.Advance(4.5f);
+	TestTrue(TEXT("no regen inside the 5 s delay"), L->GetShield01() < 0.01f);
+	F.W.Advance(2.5f);
+	TestEqual(TEXT("about 20% after 2 s at 10%/s"), L->GetShield01(), 0.2f, 0.06f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadDodgeOnHUD, "TriadDrift.Squad.HUD.DodgeReadiness", TD_TEST_FLAGS)
+bool FTDSquadDodgeOnHUD::RunTest(const FString& Parameters)
+{
+	// The HUD's dodge pip for the player's ship: T1's readiness, 0 right after a dodge, back to 1.
+	FSquadFixture F;
+	F.W.Advance(1.f);
+	ATDShip* Rift = F.Ship(ETDShipId::Rift);
+	TestEqual(TEXT("ready before any dodge"), TDSquad::GetDodgeReady01(Rift), 1.f);
+	TestTrue(TEXT("dodge"), Rift->GetShipMovement()->RequestDodge(1.f));
+	F.W.Tick();
+	TestTrue(TEXT("spent right after"), TDSquad::GetDodgeReady01(Rift) < 0.2f);
+	F.W.Advance(5.f);
+	TestEqual(TEXT("ready again"), TDSquad::GetDodgeReady01(Rift), 1.f);
 	return true;
 }
 

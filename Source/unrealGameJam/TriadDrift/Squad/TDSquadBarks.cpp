@@ -63,3 +63,14 @@ void FTDBarkLimiter::Reset()
 	Recent.Reset();
 	LastAny = -1000.0;
 }
+
+FName TDBarkIds::EngageCallFor(const FTransform& Camera, const FVector& Where)
+{
+	const FVector L = Camera.InverseTransformPositionNoScale(Where); // X forward, Y right, Z up
+	const float Elevation = FMath::RadiansToDegrees(FMath::Atan2(L.Z, FVector2D(L.X, L.Y).Size()));
+	const float Azimuth = FMath::RadiansToDegrees(FMath::Atan2(L.Y, L.X));
+	const TCHAR* Vert = Elevation > 25.f ? TEXT("High") : (Elevation < -25.f ? TEXT("Low") : TEXT(""));
+	const TCHAR* Horiz = FMath::Abs(Azimuth) <= 35.f ? TEXT("Ahead")
+		: (FMath::Abs(Azimuth) >= 145.f ? TEXT("Behind") : (Azimuth > 0.f ? TEXT("Right") : TEXT("Left")));
+	return FName(*FString::Printf(TEXT("Bark_SquadEngage%s%s"), Vert, Horiz));
+}

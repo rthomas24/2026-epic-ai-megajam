@@ -88,6 +88,14 @@ namespace
 		return Modifier;
 	}
 
+	template <typename T>
+	T* TDSpacePC_AddTrigger(FEnhancedActionKeyMapping& Mapping, UObject* Outer)
+	{
+		T* Trigger = NewObject<T>(Outer);
+		Mapping.Triggers.Add(Trigger);
+		return Trigger;
+	}
+
 	/** Maps a key onto the Y axis of a 2D action (optionally negated). */
 	void TDSpacePC_MapAxis2D(UInputMappingContext* Context, const UInputAction* Action, const FKey& Key, bool bYAxis, bool bNegate)
 	{
@@ -153,6 +161,8 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IA_AimMouse = MakeAction(TEXT("IA_AimMouse"), V::Axis2D);
 	IA_AimStick = MakeAction(TEXT("IA_AimStick"), V::Axis2D);
 	IA_Roll = MakeAction(TEXT("IA_Roll"), V::Axis1D);
+	IA_Dodge = MakeAction(TEXT("IA_Dodge"), V::Boolean);
+	IA_DodgeTap = MakeAction(TEXT("IA_DodgeTap"), V::Axis1D);
 	IA_Strafe = MakeAction(TEXT("IA_Strafe"), V::Axis2D);
 	IA_Boost = MakeAction(TEXT("IA_Boost"), V::Boolean);
 	IA_Drift = MakeAction(TEXT("IA_Drift"), V::Boolean);
@@ -217,6 +227,16 @@ void ATDSpacePlayerController::BuildInputObjects()
 	}
 
 	// Boost / Drift / Brake.
+	// Dodge: LeftAlt dodges toward the held roll (A / D) or steering side; A / D double-tap, left stick double flick.
+	C->MapKey(IA_Dodge, EKeys::LeftAlt);
+	C->MapKey(IA_DodgeTap, EKeys::D);
+	TDSpacePC_MapNegated(C, IA_DodgeTap, EKeys::A);
+	{
+		FEnhancedActionKeyMapping& M = C->MapKey(IA_DodgeTap, EKeys::Gamepad_LeftX);
+		UInputTriggerPressed* Flick = TDSpacePC_AddTrigger<UInputTriggerPressed>(M, C);
+		Flick->ActuationThreshold = 0.85f; // a full flick, not roll steering
+	}
+
 	C->MapKey(IA_Boost, EKeys::LeftShift);
 	C->MapKey(IA_Boost, EKeys::Gamepad_LeftThumbstick);
 	// No LeftAlt: Alt + Tab (switch) would alt-tab out of the game on Windows.
@@ -419,6 +439,8 @@ void ATDSpacePlayerController::SetupInputComponent()
 	EIC->BindAction(IA_AimStick, E::Triggered, this, &ThisClass::OnStickAim);
 	EIC->BindAction(IA_AimStick, E::Completed, this, &ThisClass::OnStickAimReleased);
 	EIC->BindAction(IA_Roll, E::Triggered, this, &ThisClass::OnRoll);
+	EIC->BindAction(IA_Dodge, E::Started, this, &ThisClass::OnDodgePressed);
+	EIC->BindAction(IA_DodgeTap, E::Started, this, &ThisClass::OnDodgeTap);
 	EIC->BindAction(IA_Roll, E::Completed, this, &ThisClass::OnRollReleased);
 	EIC->BindAction(IA_Strafe, E::Triggered, this, &ThisClass::OnStrafe);
 	EIC->BindAction(IA_Strafe, E::Completed, this, &ThisClass::OnStrafeReleased);
@@ -815,6 +837,44 @@ void ATDSpacePlayerController::OnStickAim(const FInputActionValue& Value)
 void ATDSpacePlayerController::OnStickAimReleased(const FInputActionValue&)
 {
 	StickAim = FVector2D::ZeroVector;
+}
+
+bool ATDSpacePlayerController::RouteDodge(float Direction)
+{
+	ATDShip* Ship = Cast<ATDShip>(GetPawn());
+	return Ship && bSpaceInputEnabled && Ship->TryDodge(Direction);
+}
+
+void ATDSpacePlayerController::OnDodgePressed(const FInputActionValue&)
+{
+	// Dedicated key: toward the held roll, else the steering side, else right.
+	float Dir = CurrentFlightInput.Roll;
+	if (FMath::Abs(Dir) < 0.2f)
+	{
+		Dir = CurrentFlightInput.Aim.X;
+	}
+	RouteDodge(FMath::Abs(Dir) < 0.05f ? 1.f : FMath::Sign(Dir));
+}
+
+void ATDSpacePlayerController::OnDodgeTap(const FInputActionValue& Value)
+{
+	const float V = Value.Get<float>();
+	if (FMath::IsNearlyZero(V))
+	{
+		return;
+	}
+	const int32 Side = V > 0.f ? 1 : 0;
+	const double Now = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
+	if (LastDodgeTapTime[Side] >= 0.0 && Now - LastDodgeTapTime[Side] <= DodgeDoubleTapWindow)
+	{
+		LastDodgeTapTime[Side] = -1.0;
+		RouteDodge(Side == 1 ? 1.f : -1.f);
+	}
+	else
+	{
+		LastDodgeTapTime[Side] = Now;
+		LastDodgeTapTime[1 - Side] = -1.0;
+	}
 }
 
 void ATDSpacePlayerController::OnRoll(const FInputActionValue& Value)

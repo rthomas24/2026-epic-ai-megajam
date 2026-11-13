@@ -208,7 +208,10 @@ FTransform ATDPlanetDirector::ExitTransformFor(ATDShip* Ship) const
 {
 	if (Ship && Ship->GetLanding())
 	{
-		return Ship->GetLanding()->GetExitTransform();
+		// Out of the hatch facing the course (the pad's nose, between the two trailheads), not the ship.
+		FTransform Exit = Ship->GetLanding()->GetExitTransform();
+		Exit.SetRotation(FRotator(0.f, PadTransform.Rotator().Yaw, 0.f).Quaternion());
+		return Exit;
 	}
 	return Rig ? Rig->GetActorTransform() : GetActorTransform();
 }
@@ -409,7 +412,19 @@ void ATDPlanetDirector::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 				}
 			}
 		}
-		FirstPerson->RespawnAt(ExitTransformFor(PlayerShip.Get()));
+		// A scene past a checkpoint picks up at the checkpoint's spot (the Warden's door, the far bank...).
+		FTransform Where = ExitTransformFor(PlayerShip.Get());
+		if (Course)
+		{
+			if (const ATDObjective* Obj = Course->FindObjective(SceneId))
+			{
+				if (const AActor* Spot = Obj->GetCheckpointRespawn())
+				{
+					Where = Spot->GetActorTransform();
+				}
+			}
+		}
+		FirstPerson->RespawnAt(Where);
 		return;
 	}
 	// CUT in the air (squad wiped): T3's SpawnSquad is the retake; descend again.

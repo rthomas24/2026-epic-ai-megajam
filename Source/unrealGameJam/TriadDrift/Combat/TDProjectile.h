@@ -175,6 +175,8 @@ private:
 	FTDStreakLook StreakLook;
 	/** Distance growth last applied (re-scaling is skipped while it changes by under 3%). */
 	float AppliedGrowth = 1.f;
+	/** Hostile shot currently flying toward the camera: drawn with a hot head and a bigger floor. */
+	bool bAppliedIncoming = false;
 
 	/** Project glow material (UTDStatics::GetPlaceholderGlowMaterial, always cooked). Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)
