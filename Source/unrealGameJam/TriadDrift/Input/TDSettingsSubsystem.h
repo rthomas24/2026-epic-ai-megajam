@@ -68,6 +68,13 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 	/** 0,0 = the desktop resolution. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
 	FIntPoint Resolution = FIntPoint::ZeroValue;
+
+	/**
+	 * The player has chosen video options in a menu. Until then the game keeps the engine's own window settings
+	 * (GameUserSettings, -windowed / -ResX), so a first start never forces a mode.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
+	bool bVideoChosen = false;
 };
 
 UCLASS()
@@ -147,7 +154,7 @@ private:
 	void Load();
 	void Save() const;
 	void ApplyAudio();
-	void ApplyVideo();
+	void ApplyVideo(bool bStartup = false);
 	void ApplyControls();
 
 	FTDPlayerSettings Settings;

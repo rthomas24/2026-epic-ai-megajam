@@ -86,6 +86,8 @@ bool FTDSettingsPersist::RunTest(const FString& Parameters)
 	TestEqual(TEXT("effects"), P.EffectsVolume, 0.75f);
 	TestEqual(TEXT("window mode"), P.WindowMode, ETDWindowMode::Windowed);
 	TestEqual(TEXT("resolution"), P.Resolution, FIntPoint(1280, 720));
+	TestTrue(TEXT("video marked as chosen (applied at the next start-up)"), P.bVideoChosen);
+	TestFalse(TEXT("defaults never force a video mode"), FTDPlayerSettings().bVideoChosen);
 	TestEqual(TEXT("master volume reached the audio path"), T.S->GetAppliedMasterVolume(), 0.4f);
 
 	// A controller that begins play afterwards (new map, new session) picks the options up.

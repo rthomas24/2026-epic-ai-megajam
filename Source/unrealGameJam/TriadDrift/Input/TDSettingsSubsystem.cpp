@@ -5,6 +5,7 @@
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "AudioDevice.h"
@@ -54,7 +55,7 @@ void UTDSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		bApplyVideo = false;
 	}
 	Load();
-	ApplyVideo();
+	ApplyVideo(true);
 	ApplyAudio();
 }
 
@@ -115,8 +116,8 @@ void UTDSettingsSubsystem::SetHintsEnabled(bool b) { Settings.bHintsEnabled = b;
 void UTDSettingsSubsystem::SetMasterVolume(float V) { Settings.MasterVolume = V; Changed(false, true); }
 void UTDSettingsSubsystem::SetMusicVolume(float V) { Settings.MusicVolume = V; Changed(false, true); }
 void UTDSettingsSubsystem::SetEffectsVolume(float V) { Settings.EffectsVolume = V; Changed(false, true); }
-void UTDSettingsSubsystem::SetWindowMode(ETDWindowMode Mode) { Settings.WindowMode = Mode; Changed(true); }
-void UTDSettingsSubsystem::SetResolution(FIntPoint Resolution) { Settings.Resolution = Resolution; Changed(true); }
+void UTDSettingsSubsystem::SetWindowMode(ETDWindowMode Mode) { Settings.WindowMode = Mode; Settings.bVideoChosen = true; Changed(true); }
+void UTDSettingsSubsystem::SetResolution(FIntPoint Resolution) { Settings.Resolution = Resolution; Settings.bVideoChosen = true; Changed(true); }
 
 void UTDSettingsSubsystem::ResetToDefaults()
 {
@@ -203,11 +204,11 @@ void UTDSettingsSubsystem::ApplyAudio()
 	if (EffectsClass) { Device->SetSoundMixClassOverride(VolumeMix, EffectsClass, Settings.EffectsVolume, 1.f, 0.f, true); }
 }
 
-void UTDSettingsSubsystem::ApplyVideo()
+void UTDSettingsSubsystem::ApplyVideo(bool bStartup)
 {
-	if (!bApplyVideo || GIsEditor || IsRunningCommandlet() || !GEngine)
+	if (!bApplyVideo || GIsEditor || IsRunningCommandlet() || !GEngine || !Settings.bVideoChosen)
 	{
-		return; // never resize the editor or a headless run
+		return; // never resize the editor or a headless run; never force a mode the player didn't choose
 	}
 	UGameUserSettings* GUS = GEngine->GetGameUserSettings();
 	if (!GUS)
@@ -219,7 +220,8 @@ void UTDSettingsSubsystem::ApplyVideo()
 	const FIntPoint Res = (Settings.Resolution.X > 0 && Settings.Resolution.Y > 0) ? Settings.Resolution : GUS->GetDesktopResolution();
 	GUS->SetFullscreenMode(Mode);
 	GUS->SetScreenResolution(Res);
-	GUS->ApplyResolutionSettings(false);
+	GUS->ApplyResolutionSettings(bStartup); // at start-up, -windowed / -ResX on the command line still win
+	GUS->SaveSettings(); // the engine's own start-up then opens the window this way too
 	UE_LOG(LogTriadDrift, Log, TEXT("TD settings: video %s %dx%d"), *UEnum::GetValueAsString(Settings.WindowMode), Res.X, Res.Y);
 }
 
@@ -228,7 +230,7 @@ void UTDSettingsSubsystem::ApplyVideo()
 namespace TDSettings
 {
 	static FAutoConsoleCommandWithWorldAndArgs CmdStatus(TEXT("TD.Settings"),
-		TEXT("Log the player options (TD.Settings) or set one: TD.Settings <MouseSens|InvertMouse|PadSens|PadDeadzone|InvertPad|Hints|Master|Music|Effects> <value>"),
+		TEXT("Log the player options (TD.Settings) or set one: TD.Settings <MouseSens|InvertMouse|PadSens|PadDeadzone|InvertPad|Hints|Master|Music|Effects|Window 0-2> <value>, or TD.Settings Res <W> <H>"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			UTDSettingsSubsystem* S = UTDSettingsSubsystem::GetTDSettings(World);
@@ -247,11 +249,19 @@ namespace TDSettings
 				else if (K == TEXT("Master")) { S->SetMasterVolume(V); }
 				else if (K == TEXT("Music")) { S->SetMusicVolume(V); }
 				else if (K == TEXT("Effects")) { S->SetEffectsVolume(V); }
+				else if (K == TEXT("Window")) { S->SetWindowMode((ETDWindowMode)FMath::Clamp(FCString::Atoi(*Args[1]), 0, 2)); }
+				else if (K == TEXT("Res") && Args.Num() >= 3) { S->SetResolution(FIntPoint(FCString::Atoi(*Args[1]), FCString::Atoi(*Args[2]))); }
 			}
 			const FTDPlayerSettings& P = S->GetSettings();
 			UE_LOG(LogTriadDrift, Log, TEXT("TD.Settings: mouse %.2f invert %d | pad %.2f deadzone %.2f invert %d | hints %d | master %.2f music %.2f effects %.2f (classes: music %d sfx %d) | video %s %dx%d"),
 				P.MouseSensitivity, P.bInvertMouseY ? 1 : 0, P.GamepadSensitivity, P.GamepadDeadzone, P.bInvertGamepadY ? 1 : 0,
 				P.bHintsEnabled ? 1 : 0, P.MasterVolume, P.MusicVolume, P.EffectsVolume, S->HasMusicClass() ? 1 : 0, S->HasEffectsClass() ? 1 : 0,
 				*UEnum::GetValueAsString(P.WindowMode), P.Resolution.X, P.Resolution.Y);
+			if (GEngine && GEngine->GameViewport)
+			{
+				FVector2D Size;
+				GEngine->GameViewport->GetViewportSize(Size);
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Settings: viewport now %.0fx%.0f"), Size.X, Size.Y);
+			}
 		}));
 }
