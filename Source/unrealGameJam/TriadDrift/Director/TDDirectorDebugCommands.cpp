@@ -18,6 +18,7 @@
 //   TD.Squad.Check <label>        log frame, active ship, possessed pawn, view target, slow-mo, pause (switch stress)
 //   TD.Intro.Play                 play the ENG-33 cinematic intro now (no waves are started by it here)
 //   TD.Intro.At <s> [hold]        jump to s seconds into the intro (replayed in 1/30 s steps); "hold" freezes it there
+//   TD.Intro.Probe <u> <v>        log what is at a screen point (0..1) from the current view (captures triage)
 //   TD.Intro.Run                  unfreeze;  TD.Intro.Skip  skip it (after the first second)
 //   TD.Squad.Frame                log where the wingmen and the nearest enemy are on screen (-1..1),
 //                                 for a scripted live pilot and for measuring "wingmen in frame"
@@ -49,6 +50,9 @@
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
+#include "Camera/CameraActor.h"
+#include "Components/StaticMeshComponent.h"
 
 namespace TDDirectorDebug
 {
@@ -495,6 +499,65 @@ namespace TDDirectorDebug
 		UTDIntroDirector* Intro = UTDIntroDirector::Get(World);
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro.Skip: %s"), Intro && Intro->Skip() ? TEXT("skipped") : TEXT("not playing or in its first second"));
 	}
+	static void IntroProbe(const TArray<FString>& Args, UWorld* World)
+	{
+		// What is at a point of the screen (u, v in 0..1 of the 16:9 frame), from the current view: name, class, mesh.
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (!PC || !PC->PlayerCameraManager || Args.Num() < 2)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro.Probe <u> <v>: no view"));
+			return;
+		}
+		const FMinimalViewInfo POV = PC->PlayerCameraManager->GetCameraCacheView();
+		const float U = FCString::Atof(*Args[0]) * 2.f - 1.f;
+		const float V = 1.f - FCString::Atof(*Args[1]) * 2.f;
+		const float TanH = FMath::Tan(FMath::DegreesToRadians(POV.FOV * 0.5f));
+		const FVector Dir = POV.Rotation.RotateVector(FVector(1.f, U * TanH, V * TanH * 9.f / 16.f)).GetSafeNormal();
+		FCollisionQueryParams Q(SCENE_QUERY_STAT(TDIntroProbe), true);
+		TArray<FHitResult> Hits;
+		// Visual-only dressing has no collision: test bounds of every primitive along the ray as well.
+		World->LineTraceMultiByChannel(Hits, POV.Location, POV.Location + Dir * 2.0e6f, ECC_Visibility, Q);
+		for (const FHitResult& H : Hits)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro.Probe hit %s.%s (%s) at %.0f m"), *GetNameSafe(H.GetActor()), *GetNameSafe(H.GetComponent()),
+				H.GetComponent() ? *H.GetComponent()->GetClass()->GetName() : TEXT("-"), H.Distance / 100.f);
+		}
+		int32 Listed = 0;
+		for (TObjectIterator<UPrimitiveComponent> It; It && Listed < 12; ++It)
+		{
+			if (It->GetWorld() != World || !It->IsVisible() || (It->GetOwner() && It->GetOwner()->IsHidden()) || It->Bounds.SphereRadius > 200000.f)
+			{
+				continue;
+			}
+			const FVector C = It->Bounds.Origin;
+			const float Along = FVector::DotProduct(C - POV.Location, Dir);
+			if (Along > 0.f && FMath::PointDistToLine(C, Dir, POV.Location) < It->Bounds.SphereRadius && Along < 500000.f)
+			{
+				++Listed;
+				const UStaticMeshComponent* SM = Cast<UStaticMeshComponent>(*It);
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro.Probe on ray: %s.%s (%s, mesh %s, mat %s) %.0f m away, radius %.0f m"),
+					*GetNameSafe(It->GetOwner()), *It->GetName(), *It->GetClass()->GetName(), SM ? *GetNameSafe(SM->GetStaticMesh()) : TEXT("-"),
+					*GetNameSafe(It->GetMaterial(0)), Along / 100.f, It->Bounds.SphereRadius / 100.f);
+			}
+		}
+	}
+	static void MenuAt(const TArray<FString>& Args, UWorld* World)
+	{
+		for (TActorIterator<ATDMenuBackdrop> It(World); It; ++It)
+		{
+			It->DebugSetTime(Args.Num() ? FCString::Atof(*Args[0]) : 0.f);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Menu.At: fly-by %d, camera %s"), It->IsFlybyActive(), It->GetCamera() ? *It->GetCamera()->GetActorLocation().ToCompactString() : TEXT("-"));
+			for (const UStaticMeshComponent* C : It->GetSquadMeshes())
+			{
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Menu.At:   %s at %s, visible %d, mesh %s, bounds %.0f"), *C->GetName(), *C->GetComponentLocation().ToCompactString(),
+					C->IsVisible(), *GetNameSafe(C->GetStaticMesh()), C->Bounds.SphereRadius);
+			}
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdMenuAt(TEXT("TD.Menu.At"), TEXT("TD.Menu.At <seconds>: jump the menu backdrop's loop (captures)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MenuAt));
+	static FAutoConsoleCommandWithWorldAndArgs CmdIntroProbe(TEXT("TD.Intro.Probe"), TEXT("TD.Intro.Probe <u> <v>: log what is at that screen point"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&IntroProbe));
 	static FAutoConsoleCommandWithWorldAndArgs CmdIntroPlay(TEXT("TD.Intro.Play"), TEXT("TD.Intro.Play: play the cinematic intro now"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&IntroPlay));
 	static FAutoConsoleCommandWithWorldAndArgs CmdIntroAt(TEXT("TD.Intro.At"), TEXT("TD.Intro.At <seconds> [hold]: jump into the intro (captures)"),

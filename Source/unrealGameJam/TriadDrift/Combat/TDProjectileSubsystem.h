@@ -58,10 +58,19 @@ public:
 	 */
 	int32 PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount = 8);
 
-	/** The explosion shell's colour scale (x the flash glow 14 = about 3.5): stays saturated instead of a white disc. */
-	static constexpr float ExplosionShellDim = 0.25f;
-	/** Debris streaks: a little under full glow so they read as hot fragments, not white sparks. */
-	static constexpr float ExplosionDebrisDim = 0.6f;
+	/**
+	 * Placeholder hit on something with health, telling shield from hull at a glance (the art path already picks
+	 * ImpactShield / ImpactHull cues): a shield hit is a soft cyan-blue puff 1.4x the radius; a hull hit is a small
+	 * white-hot flash cooling to orange plus a few short orange sparks thrown off along Normal. Returns flashes used.
+	 */
+	int32 PlayPlaceholderHit(const FVector& Location, float Radius, bool bShield, const FVector& Normal);
+	static FLinearColor ShieldHitColor() { return FLinearColor(0.3f, 0.75f, 1.f); }
+
+	/** Explosions this radius and up get 2 staggered secondary pops, MultiPopRadius and up 3. */
+	static constexpr float PopRadius = 500.f;
+	static constexpr float MultiPopRadius = 1200.f;
+	/** How many secondary pops an explosion of Radius plays. */
+	static int32 ExplosionPops(float Radius) { return Radius >= MultiPopRadius ? 3 : Radius >= PopRadius ? 2 : 0; }
 
 	/** Flashes playing right now (tests). */
 	int32 GetPlayingFlashCount() const;
@@ -84,6 +93,9 @@ public:
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 
 private:
+	/** A free pooled flash (spawning one up to MaxFlashes, else reusing the oldest). */
+	ATDCombatFlash* AcquireFlash(const FVector& Location);
+
 	UFUNCTION()
 	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
 

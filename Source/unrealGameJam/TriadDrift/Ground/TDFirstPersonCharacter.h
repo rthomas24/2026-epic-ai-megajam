@@ -50,6 +50,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
 	void SetSprintHeld(bool bHeld) { bSprintHeld = bHeld; }
 
+	/** Pad (L3 click): sprint on until the stick is released or eased under SprintToggleMinStick. Shift stays hold. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
+	void ToggleSprint() { bSprintToggled = !bSprintToggled; }
+	bool IsSprintToggled() const { return bSprintToggled; }
+	/** Stick deflection under which a toggled sprint ends. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ground")
+	float SprintToggleMinStick = 0.3f;
+
 	/** Jump from the ground, or double jump once in the air. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
 	bool TryJump();
@@ -143,6 +151,16 @@ public:
 	FTransform HandBladeOffset;
 	/** The pilot animation that plays for a blade state / move right now (tests, TD.Ground.Bones). */
 	FName GetBodyActionName() const { return BodyActionName; }
+	/**
+	 * Look input shaped by the player's settings (Settings page rows, ENG-32 review): mouse sensitivity and invert Y,
+	 * or for the stick its dead zone (radial, rescaled), sensitivity and invert Y. Returns (yaw, pitch) to add.
+	 */
+	static FVector2D ShapeLook(const FVector2D& Raw, bool bGamepad, const struct FTDPlayerSettings& Settings);
+	/** Base stick turn per frame at full deflection (sensitivity 1). */
+	static constexpr float StickLookScale = 3.f;
+	/** Apply a look input as the player's device would (public for tests and agents). */
+	void ApplyLookInput(const FVector2D& Raw, bool bGamepad);
+
 	/** Eye point and aim: in third person the eye aims at what the crosshair (the chase camera's centre) is on. */
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
@@ -281,6 +299,17 @@ private:
 	float HandBladeExtend = 1.f;
 	/** Standing still, the camera went > 60 deg off: keep turning until the body faces it (not just back under 60). */
 	bool bIdleTurnToCamera = false;
+	/** Attacking last frame (third person): a new attack snaps the body to the camera at once. */
+	bool bFacingWasAttacking = false;
+	/** T3's melee framing: a live crewman this close (or the blade attacking / blocking) lifts the chase shoulder. */
+	float CloseCombatRange = 400.f;
+	float CloseCombatScan = 0.f;
+	bool bEnemyClose = false;
+	/** What the pilot last asked the rig for (only changes are sent: a test or the director may set it too). */
+	bool bLastCloseCombat = false;
+	void UpdateCloseCombat(float DeltaSeconds);
+	/** Body, head, blades and turning for the current view (Tick, and at once on a mode change, even paused). */
+	void ApplyViewState();
 	ETDBladeState LastBodyBladeState = ETDBladeState::Idle;
 	bool bLastBodyDashing = false;
 	bool bLastBodySliding = false;
@@ -315,6 +344,7 @@ protected:
 
 	FVector2D MoveInput = FVector2D::ZeroVector;
 	bool bSprintHeld = false;
+	bool bSprintToggled = false;
 	bool bCarrying = false;
 	FVector LastSafeLocation = FVector::ZeroVector;
 	float SafeSampleTimer = 0.f;
@@ -348,8 +378,13 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> InputContext;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Move;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Look;
+	/** The right stick, apart from the mouse: its own sensitivity, dead zone and invert (the Settings page rows). */
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_LookStick;
+	void OnLookStick(const FInputActionValue& Value);
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Jump;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Sprint;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_SprintToggle;
+	void OnSprintTogglePressed() { ToggleSprint(); }
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Dash;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Crouch;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Attack;

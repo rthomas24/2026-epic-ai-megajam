@@ -124,8 +124,7 @@ void UTDProjectileSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 	}
 }
 
-ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds,
-	USceneComponent* AttachTo)
+ATDCombatFlash* UTDProjectileSubsystem::AcquireFlash(const FVector& Location)
 {
 	UWorld* World = GetWorld();
 	if (!World || !World->IsGameWorld())
@@ -133,31 +132,31 @@ ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Loca
 		return nullptr;
 	}
 	Flashes.RemoveAll([](const TObjectPtr<ATDCombatFlash>& F) { return !IsValid(F); });
-
-	ATDCombatFlash* Flash = nullptr;
 	for (ATDCombatFlash* Candidate : Flashes)
 	{
 		if (!Candidate->IsPlaying())
 		{
-			Flash = Candidate;
-			break;
+			return Candidate;
 		}
 	}
-	if (!Flash && Flashes.Num() < MaxFlashes)
+	if (Flashes.Num() < MaxFlashes)
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		Params.ObjectFlags |= RF_Transient;
-		Flash = World->SpawnActor<ATDCombatFlash>(ATDCombatFlash::StaticClass(), Location, FRotator::ZeroRotator, Params);
-		if (Flash)
+		if (ATDCombatFlash* Flash = World->SpawnActor<ATDCombatFlash>(ATDCombatFlash::StaticClass(), Location, FRotator::ZeroRotator, Params))
 		{
 			Flashes.Add(Flash);
+			return Flash;
 		}
 	}
-	if (!Flash && Flashes.Num() > 0)
-	{
-		Flash = Flashes[NextFlash++ % Flashes.Num()];
-	}
+	return Flashes.Num() > 0 ? Flashes[NextFlash++ % Flashes.Num()].Get() : nullptr;
+}
+
+ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds,
+	USceneComponent* AttachTo)
+{
+	ATDCombatFlash* Flash = AcquireFlash(Location);
 	if (Flash)
 	{
 		Flash->Play(Location, Radius, Color, Seconds, AttachTo);
@@ -165,25 +164,135 @@ ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Loca
 	return Flash;
 }
 
-int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount)
+int32 UTDProjectileSubsystem::PlayPlaceholderHit(const FVector& Location, float Radius, bool bShield, const FVector& Normal)
 {
 	int32 Used = 0;
+	const float Cap = ATDCombatFlash::MaxShellRadiusPerCameraDistance;
+	if (bShield)
+	{
+		FTDFlashLook Shield;
+		Shield.Hot = FLinearColor(0.85f, 0.97f, 1.f);
+		Shield.Mid = ShieldHitColor();
+		Shield.Cool = FLinearColor(0.1f, 0.3f, 0.9f);
+		Shield.Glow = 2.2f;
+		Shield.GlowExponent = 1.5f;
+		Shield.GrowFrom = 0.6f;
+		Shield.GrowTo = 1.f;
+		Shield.EdgePower = 0.9f;
+		if (ATDCombatFlash* Flash = AcquireFlash(Location))
+		{
+			Flash->PlayLook(Location, Radius * 1.4f, 0.2f, Shield);
+			Flash->SetCameraCap(Cap);
+			++Used;
+		}
+		return Used;
+	}
+	FTDFlashLook Hull;
+	Hull.Hot = FLinearColor::White;
+	Hull.Mid = FLinearColor(1.f, 0.75f, 0.3f);
+	Hull.Cool = FLinearColor(1.f, 0.35f, 0.05f);
+	Hull.Glow = 3.f;
+	Hull.GlowExponent = 2.f;
+	Hull.GrowFrom = 0.5f;
+	Hull.GrowTo = 0.9f;
+	Hull.EdgePower = 1.6f;
+	if (ATDCombatFlash* Flash = AcquireFlash(Location))
+	{
+		Flash->PlayLook(Location, Radius * 0.8f, 0.13f, Hull);
+		Flash->SetCameraCap(Cap);
+		++Used;
+	}
+	FTDFlashLook Spark = Hull;
+	Spark.Hot = FLinearColor(1.f, 0.9f, 0.6f);
+	Spark.Glow = 3.f;
+	Spark.GlowExponent = 1.2f;
+	const FVector Out = Normal.IsNearlyZero() ? FVector::UpVector : Normal.GetSafeNormal();
+	for (int32 I = 0; I < 3; ++I)
+	{
+		const FVector Dir = (Out + FMath::VRand() * 0.8f).GetSafeNormal();
+		if (ATDCombatFlash* Flash = AcquireFlash(Location))
+		{
+			Flash->PlayDebrisLook(Location, Dir * Radius * FMath::FRandRange(4.f, 7.f), Radius * 0.6f, FMath::Clamp(Radius * 0.06f, 5.f, 14.f),
+				FMath::FRandRange(0.18f, 0.3f), Spark);
+			++Used;
+		}
+	}
+	return Used;
+}
+
+int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount)
+{
+	// An arcade explosion until Nick's FX Death lands (the Lead, after T4's frame-by-frame: a flat peach disc and flat
+	// ellipses, gone in 0.3 s). Additive soft glow throughout (M_TD_FlashGlow): nothing ever fades to a dark disc.
+	int32 Used = 0;
 	const float R = FMath::Max(Radius, 100.f);
-	// A small white-hot core, then the slower shell in pure team colour at a low glow. Live in a wave-5 furball the old
-	// shell (15% white at glow 14) blew out to big flat pink-white discs over the player's ship: against black space any
-	// saturated colour at glow 14 tonemaps to white. The shell now stays enemy red-orange / squad colour.
-	if (ATDCombatFlash* Core = PlayPlaceholderFlash(Location, R * 0.3f, FMath::Lerp(Color, FLinearColor::White, 0.45f), 0.22f))
+	const FLinearColor Team = Color;
+	auto Part = [this, &Used](const FVector& At, float PartRadius, float Seconds, const FTDFlashLook& Look, float Cap)
 	{
-		Core->SetCameraCap(ATDCombatFlash::MaxShellRadiusPerCameraDistance * 0.5f);
-		++Used;
-	}
-	// A near death never fills more than ~25% of the screen height (the Lead, after the wave-5 furball captures).
-	if (ATDCombatFlash* Shell = PlayPlaceholderFlash(Location, R, Color * ExplosionShellDim, 0.6f))
+		if (ATDCombatFlash* Flash = AcquireFlash(At))
+		{
+			Flash->PlayLook(At, PartRadius, Seconds, Look);
+			Flash->SetCameraCap(Cap);
+			++Used;
+		}
+	};
+	const float ShellCap = ATDCombatFlash::MaxShellRadiusPerCameraDistance; // a near death stays under ~25% of the screen
+
+	// 1. A white-hot core that cools through yellow to orange.
+	FTDFlashLook Core;
+	Core.Hot = FLinearColor::White;
+	Core.Mid = FLinearColor(1.f, 0.85f, 0.35f);
+	Core.Cool = FLinearColor(1.f, 0.42f, 0.08f);
+	// Glows stay low enough that the soft edge survives tonemapping (live: glow 4.5-10 clipped every part to a flat ball).
+	Core.Glow = 3.f;
+	Core.GlowExponent = 2.f;
+	Core.GrowFrom = 0.45f;
+	Core.GrowTo = 1.f;
+	Core.EdgePower = 2.2f;
+	Part(Location, R * 0.45f, 0.32f, Core, ShellCap * 0.6f);
+
+	// 2. The fireball shell: hot yellow-orange -> the team colour -> a dark ember red, soft-edged, easing out.
+	FTDFlashLook Shell;
+	Shell.Hot = FMath::Lerp(Team, FLinearColor(1.f, 0.8f, 0.4f), 0.6f);
+	Shell.Mid = Team;
+	Shell.Cool = Team * 0.3f;
+	Shell.Glow = 1.6f;
+	Shell.GlowExponent = 1.4f;
+	Shell.GrowFrom = 0.35f;
+	Shell.GrowTo = 1.f;
+	Shell.EdgePower = 2.5f;
+	Part(Location, R, 0.65f, Shell, ShellCap);
+
+	// 3. Staggered secondary pops across a big hull.
+	const int32 Pops = ExplosionPops(R);
+	for (int32 I = 0; I < Pops; ++I)
 	{
-		Shell->SetCameraCap(ATDCombatFlash::MaxShellRadiusPerCameraDistance);
-		++Used;
+		FTDFlashLook Pop = Core;
+		Pop.Glow = 2.4f;
+		Pop.Delay = 0.12f * (I + 1);
+		Part(Location + FMath::VRand() * R * FMath::FRandRange(0.35f, 0.6f), R * 0.3f, 0.3f, Pop, ShellCap * 0.6f);
 	}
-	// Debris streaks, evenly spread on a jittered sphere so they read from any camera angle.
+
+	// 4. Ember afterglow: a dim, soft team-coloured glow that swells in and dies over about a second.
+	FTDFlashLook Ember;
+	Ember.Hot = FMath::Lerp(Team, FLinearColor(1.f, 0.5f, 0.1f), 0.5f);
+	Ember.Mid = Team * 0.7f;
+	Ember.Cool = Team * 0.25f;
+	Ember.Glow = 1.1f;
+	Ember.bEmber = true;
+	Ember.GrowFrom = 0.7f;
+	Ember.GrowTo = 1.15f;
+	Ember.Delay = 0.15f;
+	Ember.EdgePower = 1.6f;
+	Part(Location, R * 0.85f, 0.9f, Ember, ShellCap);
+
+	// 5. Thin hot debris sparks flung out on a jittered sphere, fading as they slow.
+	FTDFlashLook Spark;
+	Spark.Hot = FLinearColor(1.f, 0.95f, 0.75f);
+	Spark.Mid = FLinearColor(1.f, 0.6f, 0.15f);
+	Spark.Cool = Team * 0.5f;
+	Spark.Glow = 3.f;
+	Spark.GlowExponent = 1.2f;
 	const int32 Count = FMath::Clamp(DebrisCount, 0, 16);
 	for (int32 I = 0; I < Count; ++I)
 	{
@@ -192,23 +301,9 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 		const float Phi = I * 2.39996f + FMath::FRandRange(-0.3f, 0.3f); // golden angle
 		const FVector Dir(FMath::Cos(Phi) * RingR, FMath::Sin(Phi) * RingR, Y);
 		const FVector Velocity = Dir * R * FMath::FRandRange(2.5f, 4.f);
-		ATDCombatFlash* Flash = nullptr;
-		Flashes.RemoveAll([](const TObjectPtr<ATDCombatFlash>& F) { return !IsValid(F); });
-		for (ATDCombatFlash* Candidate : Flashes)
+		if (ATDCombatFlash* Flash = AcquireFlash(Location))
 		{
-			if (!Candidate->IsPlaying())
-			{
-				Flash = Candidate;
-				break;
-			}
-		}
-		if (!Flash && Flashes.Num() < MaxFlashes)
-		{
-			Flash = PlayPlaceholderFlash(Location, 1.f, Color, 0.01f); // spawns (and parks) one more pooled actor
-		}
-		if (Flash)
-		{
-			Flash->PlayDebris(Location + Dir * R * 0.3f, Velocity, R * 0.6f, FMath::Clamp(R * 0.06f, 20.f, 90.f), Color * ExplosionDebrisDim, FMath::FRandRange(0.5f, 0.8f));
+			Flash->PlayDebrisLook(Location + Dir * R * 0.3f, Velocity, R * 0.5f, FMath::Clamp(R * 0.025f, 8.f, 30.f), FMath::FRandRange(0.5f, 0.85f), Spark);
 			++Used;
 		}
 	}

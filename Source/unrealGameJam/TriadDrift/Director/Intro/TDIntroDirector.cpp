@@ -33,6 +33,7 @@
 #include "Styling/CoreStyle.h"
 #include "Widgets/SLeafWidget.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
@@ -45,12 +46,24 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDCutPresentation.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 
 #define LOCTEXT_NAMESPACE "TDIntro"
 
 static TAutoConsoleVariable<int32> CVarTDIntro(
 	TEXT("td.Intro"), 1,
 	TEXT("ENG-33 cinematic intro on New Game: 1 = play (default), 0 = never."),
+	ECVF_Default);
+
+static TAutoConsoleVariable<float> CVarTDIntroEclipseEV(
+	TEXT("td.Intro.EclipseEV"), -3.5f,
+	TEXT("Intro shot 2 (Verdance in eclipse): the exposure bias (stops; the galaxy's exposure is manual). Lower = darker."),
 	ECVF_Default);
 
 static TAutoConsoleVariable<int32> CVarTDIntroSunFromLight(
@@ -87,13 +100,8 @@ namespace TDIntro
 		return FMath::Min(In, Out);
 	}
 
-	// ---- T4's showcase hooks (World / Waves). Until they land on main: visual-only stand-ins here. ----
-	// Switch TD_INTRO_T4_HOOKS to 1 once ATDDominion::SetShowcase, ATDWaveDirector::SpawnShowcaseShip /
-	// PlayShowcaseWarpIn and ATDPortalGate::PlayTransitFlare are on main.
-#ifndef TD_INTRO_T4_HOOKS
-#define TD_INTRO_T4_HOOKS 0
-#endif
-
+	// ---- T4's showcase hooks (World / Waves): the real ships, the real Dominion, the real cues. Each falls back to a
+	// visual-only stand-in here if its hook has nothing to give (an unknown id, the Dominion mid-assault). ----
 	static void Flash(UWorld* World, const FVector& Where, float Radius, const FLinearColor& Color, float Seconds)
 	{
 		if (UTDProjectileSubsystem* P = World ? UTDProjectileSubsystem::Get(World) : nullptr)
@@ -102,7 +110,21 @@ namespace TDIntro
 		}
 	}
 
+	static AActor* SpawnFighterStandIn(UWorld* World, const FTransform& At);
+
 	static AActor* SpawnFighter(UWorld* World, const FTransform& At)
+	{
+		static int32 Variant = 0;
+		const FName Id = (Variant++ % 3 == 2) ? TDEnemyIds::HookInterceptor : TDEnemyIds::ShardFighter;
+		if (AActor* Ship = ATDWaveDirector::SpawnShowcaseShip(World, Id, At))
+		{
+			Ship->SetActorScale3D(At.GetScale3D());
+			return Ship;
+		}
+		return SpawnFighterStandIn(World, At);
+	}
+
+	static AActor* SpawnFighterStandIn(UWorld* World, const FTransform& At)
 	{
 		if (!World)
 		{
@@ -150,18 +172,32 @@ namespace TDIntro
 
 	static void WarpFlash(UWorld* World, const FVector& Where, float Size)
 	{
+		// Nick's EnemyWarpIn cue through T4's hook once it has visual art. Until then T4's placeholder marker is a
+		// gameplay readability ring (big, long-lived, camera-facing) that would veil the Dominion in a 135 mm shot:
+		// a brief red flash reads better on film.
+		const UTDTravelFX* FX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
+		if (FX && FTDCombatPlaceholders::HasVisualArt(FX->EnemyWarpIn))
+		{
+			ATDWaveDirector::PlayShowcaseWarpIn(World, Where, Size);
+			return;
+		}
 		Flash(World, Where, Size, FLinearColor(1.f, 0.12f, 0.05f), 0.3f);
 	}
 
 	static void GateFlare(AActor* Gate, const FVector& Where)
 	{
+		if (ATDPortalGate* Portal = Cast<ATDPortalGate>(Gate))
+		{
+			Portal->PlayTransitFlare(Where);
+			return;
+		}
 		Flash(Gate ? Gate->GetWorld() : nullptr, Where, 2600.f, FLinearColor(0.5f, 0.9f, 1.f), 0.6f);
 	}
 
 	static bool ShowDominion(UWorld* World, bool bShow, const FTransform* Override)
 	{
-		(void)World; (void)bShow; (void)Override;
-	return false; // T4's ATDDominion::SetShowcase; until then shot 6 is the fleet against the stars
+		ATDDominion* Dominion = World ? ATDDominion::Get(World) : nullptr;
+		return Dominion && Dominion->SetShowcase(bShow, Override); // false: the stand-in from DA_Dominion_Visuals
 	}
 
 	// ---- The overlay: bars, black, subtitles, title, name cards, the skip hint ----
@@ -376,6 +412,8 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	bFleetSpawned = false;
 	bGateFlared = false;
 	bDominionShown = false;
+	bSequenceMode = false;
+	bSequenceStarted = false;
 	Overlay = FTDIntroOverlayState();
 
 	// Input: one blocking component on top of the stack. It sees every key (for the hold-to-skip) and nothing
@@ -383,8 +421,15 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	SkipInput = NewObject<UInputComponent>(PC, TEXT("TDIntroSkip"), RF_Transient);
 	SkipInput->bBlockInput = true;
 	SkipInput->Priority = 10000;
-	SkipInput->BindKey(EKeys::AnyKey, IE_Pressed, this, &UTDIntroDirector::HandleSkipPressed);
-	SkipInput->BindKey(EKeys::AnyKey, IE_Released, this, &UTDIntroDirector::HandleSkipReleased);
+	{
+		FInputKeyBinding Pressed(FInputChord(EKeys::AnyKey), IE_Pressed);
+		Pressed.KeyDelegate.BindDelegate(this, &UTDIntroDirector::HandleSkipPressed);
+		SkipInput->KeyBindings.Add(Pressed);
+		FInputKeyBinding Released(FInputChord(EKeys::AnyKey), IE_Released);
+		Released.KeyDelegate.BindDelegate(this, &UTDIntroDirector::HandleSkipReleased);
+		SkipInput->KeyBindings.Add(Released);
+	}
+	SkipKeysHeld.Reset();
 	PC->PushInputComponent(SkipInput);
 	PC->SetIgnoreMoveInput(true);
 	PC->SetIgnoreLookInput(true);
@@ -407,6 +452,75 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	HoldSquad(true);
 	BuildShots();
 
+	// Music (presentation slot; the asset carries its own class and volume).
+	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+	{
+		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
+		{
+			Music = UGameplayStatics::SpawnSound2D(this, Sound);
+		}
+	}
+
+	EnsureWidget();
+	// Presentation override (UTDUIStyle::IntroSequence): Nick's authored Level Sequence plays instead of the code
+	// shots, with the same skip, input, HUD, squad and hand-off rules. It owns its framing: no bars of ours.
+	ULevelSequence* Sequence = SequenceOverrideForTests.Get();
+	if (!Sequence)
+	{
+		if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+		{
+			Sequence = Cast<ULevelSequence>(Style->IntroSequence.LoadSynchronous());
+		}
+	}
+	if (Sequence)
+	{
+		FMovieSceneSequencePlaybackSettings Settings;
+		Settings.bDisableMovementInput = true;
+		Settings.bDisableLookAtInput = true;
+		Settings.bHideHud = true;
+		ALevelSequenceActor* OutActor = nullptr;
+		SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(World, Sequence, Settings, OutActor);
+		SequenceActor = OutActor;
+		if (SequencePlayer && SequencePlayer->GetDuration().AsSeconds() < 0.1)
+		{
+			// Nothing to play (an empty or unfinished sequence): say so and play the code shots.
+			UE_LOG(LogTriadDrift, Warning, TEXT("Intro: the presentation sequence did not start (%s has no length); playing the code shots"), *GetNameSafe(Sequence));
+			SequencePlayer = nullptr;
+			if (SequenceActor)
+			{
+				SequenceActor->Destroy();
+				SequenceActor = nullptr;
+			}
+		}
+		else if (SequencePlayer)
+		{
+			bSequenceMode = true;
+			bSequenceStarted = false;
+			Overlay.Black = 0.f;
+			Overlay.Bars = 0.f;
+			SequencePlayer->Play();
+			UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing the presentation sequence %s"), *GetNameSafe(Sequence));
+			return true;
+		}
+		else
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("Intro: the presentation sequence did not start (%s could not be played); playing the code shots"), *GetNameSafe(Sequence));
+		}
+	}
+	StartCodeShots();
+	return true;
+}
+
+void UTDIntroDirector::StartCodeShots()
+{
+	UWorld* World = GetWorld();
+	APlayerController* PC = GetPlayer();
+	if (!World || !PC)
+	{
+		return;
+	}
+	bSequenceMode = false;
+	Overlay.Bars = 1.f;
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.ObjectFlags |= RF_Transient;
@@ -440,45 +554,17 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 		PP.AutoExposureSpeedDown = 0.25f;
 	}
 
-	// Music (presentation slot; the asset carries its own class and volume).
-	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
-	{
-		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
-		{
-			Music = UGameplayStatics::SpawnSound2D(this, Sound);
-		}
-	}
-
-	EnsureWidget();
-	// Presentation override (UTDUIStyle::IntroSequence): Nick's authored Level Sequence plays instead of the code
-	// shots, with the same skip, input, HUD, squad and hand-off rules.
-	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
-	{
-		if (ULevelSequence* Sequence = Cast<ULevelSequence>(Style->IntroSequence.LoadSynchronous()))
-		{
-			FMovieSceneSequencePlaybackSettings Settings;
-			Settings.bDisableMovementInput = true;
-			Settings.bDisableLookAtInput = true;
-			Settings.bHideHud = true;
-			ALevelSequenceActor* OutActor = nullptr;
-			SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(World, Sequence, Settings, OutActor);
-			SequenceActor = OutActor;
-			if (SequencePlayer)
-			{
-				Overlay.Black = 0.f;
-				SequencePlayer->Play();
-				UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing the presentation sequence %s"), *GetNameSafe(Sequence));
-				return true;
-			}
-		}
-	}
 	if (Camera)
 	{
 		PC->SetViewTarget(Camera);
 	}
 	BeginShot(0);
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: playing %d shots, %.1f s, sun toward %s"), Shots.Num(), GetTotalDuration(), *SunDirection().ToCompactString());
-	return true;
+}
+
+void UTDIntroDirector::SetSequenceOverrideForTests(ULevelSequence* Sequence)
+{
+	SequenceOverrideForTests = Sequence;
 }
 
 void UTDIntroDirector::BuildShots()
@@ -541,8 +627,9 @@ void UTDIntroDirector::BuildShots()
 		S.Id = TEXT("Eclipse");
 		S.Duration = 6.f;
 		// The sun creeps up to the limb and stays just behind it: a rim of light, never a flare.
-		S.CamFrom = Base + Lat * (R * 0.45f) + Up * (R * 0.18f);
-		S.CamTo = Base + Lat * (R * 0.74f) + Up * (R * 0.2f);
+		// Silhouetted Verdance; the sun slides out from behind it and breaks over the limb in the last second.
+		S.CamFrom = Base + Lat * (R * 0.80f) + Up * (R * 0.12f);
+		S.CamTo = Base + Lat * (R * 1.03f) + Up * (R * 0.12f);
 		S.LookFrom = PV + Lat * (R * 0.35f);
 		S.LookTo = PV + Lat * (R * 0.5f);
 		S.FocalFrom = 85.f;
@@ -571,68 +658,37 @@ void UTDIntroDirector::BuildShots()
 		S.Narration = 2;
 		Shots.Add(S);
 	}
-	// 4. Threading an asteroid field: 50 mm drifting through, the squad small ahead, rocks in the foreground.
+	// 4. Threading the Verdance lane: 50 mm drifting along T4's lane-rock tube past the cargo pods spilled a third of the
+	// way out (foreground parallax), the squad small ahead on the lane.
 	{
-		const FTDAsteroidFieldSpec* Field = Layout.AsteroidFields.Num() > 1 ? &Layout.AsteroidFields[1] : (Layout.AsteroidFields.Num() ? &Layout.AsteroidFields[0] : nullptr);
-		const FVector C = Field ? Field->Center : S0;
-		const float FR = Field ? Field->Radius : 20000.f;
-		// The clearest line through the field (camera and squad both), with the most rocks close to it.
-		const UInstancedStaticMeshComponent* Rocks = Galaxy ? Galaxy->GetAsteroidCollision() : nullptr;
-		FVector BestDir = F0;
-		float BestScore = -1.f;
-		for (int32 i = 0; i < 16; ++i)
-		{
-			const FVector Dir = F0.RotateAngleAxis(i * 22.5f, Up);
-			const FVector A = C - Dir * FR * 0.8f;
-			const FVector B = C + Dir * FR * 0.9f;
-			float Score = 0.f;
-			bool bBlocked = false;
-			if (Rocks)
-			{
-				for (int32 k = 0; k < Rocks->GetInstanceCount(); ++k)
-				{
-					FTransform T;
-					Rocks->GetInstanceTransform(k, T, true);
-					const float Radius = Rocks->GetStaticMesh() ? Rocks->GetStaticMesh()->GetBounds().SphereRadius * T.GetMaximumAxisScale() : 1000.f;
-					const float Dist = FMath::PointDistToSegment(T.GetLocation(), A, B) - Radius;
-					if (Dist < 900.f)
-					{
-						bBlocked = true;
-						break;
-					}
-					if (Dist < 6000.f)
-					{
-						Score += 1.f;
-					}
-				}
-			}
-			if (!bBlocked && Score > BestScore)
-			{
-				BestScore = Score;
-				BestDir = Dir;
-			}
-		}
+		const FTDPlanetSpec* V = Layout.Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Verdance; });
+		const FVector LaneEnd = V ? V->Location : FVector(450000.f, 260000.f, 0.f);
+		const FVector LaneDir = (LaneEnd - Layout.CombatZoneCenter).GetSafeNormal();
+		const FVector LaneSide = FVector::CrossProduct(LaneDir, Up).GetSafeNormal(); // the side the layout spills the pods
+		const FVector Cargo = FMath::Lerp(Layout.CombatZoneCenter, LaneEnd, 0.33f) + LaneSide * 6000.f;
+		const FVector OnLane = Cargo - LaneSide * 6000.f;
 		FTDIntroShot S;
 		S.Id = TEXT("Belt");
 		S.Duration = 6.f;
-		S.CamFrom = C - BestDir * FR * 0.8f + Up * 300.f;
-		S.CamTo = S.CamFrom + BestDir * 9000.f;
+		S.Anchor = Cargo;
+		S.CamFrom = OnLane - LaneDir * 14000.f + LaneSide * 3200.f + Up * 700.f;
+		S.CamTo = OnLane - LaneDir * 2000.f + LaneSide * 3400.f + Up * 900.f; // the pods slide past just off the lens
 		S.bSquad = true;
-		S.SquadFrom = S.CamFrom + BestDir * 9000.f;
-		S.SquadTo = S.SquadFrom + BestDir * 24000.f;
+		S.SquadFrom = OnLane - LaneDir * 2000.f;
+		S.SquadTo = OnLane + LaneDir * 22000.f;
 		S.bTrackSquad = true;
 		S.FocalFrom = S.FocalTo = 50.f;
-		S.FStop = 5.6f;
-		S.Handheld = 2.f;
+		S.FStop = 5.6f; // wide: no handheld
 		S.Narration = 3;
 		Shots.Add(S);
 	}
-	// 5. Cinder far off, beyond a portal gate ring: 35 mm tracking with the squad as it flies through.
+	// 5. Cinder far off, down a gate approach: the squad races along T4's beacon buoys on the gate's own axis and through
+	// the ring; 35 mm tracking beside them, the ring framing Cinder.
 	{
 		const FTDPlanetSpec* Cin = Layout.Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Cinder; });
 		const FVector PC = Cin ? Cin->Location : FVector(-420000.f, 330000.f, 40000.f);
 		// The zone gate nearest the line to Cinder.
-		FVector Gate = S0 + (PC - S0).GetSafeNormal() * 20000.f;
+		FTransform GateT(S0 + (PC - S0).GetSafeNormal() * 20000.f);
 		float BestDot = -2.f;
 		for (const FTDGatePairSpec& G : Layout.Gates)
 		{
@@ -643,28 +699,31 @@ void UTDIntroDirector::BuildShots()
 				if (Dot > BestDot && FVector::Dist(At, S0) < 150000.f)
 				{
 					BestDot = Dot;
-					Gate = At;
+					GateT = *T;
 				}
 			}
 		}
-		const FVector Dir = (PC - Gate).GetSafeNormal();
-		const FVector Side = FVector::CrossProduct(Up, Dir).GetSafeNormal();
+		const FVector Gate = GateT.GetLocation();
+		FVector Axis = GateT.GetRotation().GetForwardVector();
+		if (FVector::DotProduct(Axis, PC - Gate) < 0.f)
+		{
+			Axis = -Axis; // fly the approach toward Cinder
+		}
+		const FVector Side = FVector::CrossProduct(Up, Axis).GetSafeNormal();
 		FTDIntroShot S;
 		S.Id = TEXT("Gate");
 		S.Duration = 6.f;
+		S.Anchor = Gate;
 		S.bSquad = true;
-		S.SquadFrom = Gate - Dir * 11000.f;
-		S.SquadTo = Gate + Dir * 5000.f;
-		// The lens tracks in behind the squad and settles beside the ring, outside it (never through the membrane),
-		// so the wing flies on through the gate toward Cinder.
-		S.CamFrom = S.SquadFrom - Dir * 3000.f + Side * 1800.f + Up * 600.f;
-		S.CamTo = Gate - Dir * 4500.f + Side * 7500.f + Up * 1400.f; // the whole ring in frame, Cinder beyond it
-		S.LookFrom = S.SquadFrom + Dir * 6000.f;
-		S.LookTo = Gate + Dir * 9000.f;
+		S.SquadFrom = Gate - Axis * 40000.f; // past the buoy pairs at 90, 60 and 30 m out
+		S.SquadTo = Gate + Axis * 6000.f;
+		S.CamFrom = S.SquadFrom - Axis * 3500.f + Side * 2200.f + Up * 700.f;
+		S.CamTo = Gate - Axis * 8000.f + Side * 11000.f + Up * 2000.f; // settles beside the ring, outside it, the whole ring in frame
+		S.LookFrom = S.SquadFrom + Axis * 8000.f;
+		S.LookTo = Gate + Axis * 9000.f;
 		S.FocalFrom = S.FocalTo = 35.f;
 		S.FStop = 4.f;
-		S.FocusDistance = 3200.f;
-		S.Handheld = 3.f;
+		S.FocusDistance = 4000.f; // wide: no handheld
 		Shots.Add(S);
 	}
 	// 6a. The threat from far away: 135 mm, the Dominion's silhouette sliding across the stars, red warp flashes.
@@ -756,11 +815,39 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		}
 	}
 	RestoreGateSurface();
+	RestoreShotHidden();
+	if (S.Id == TEXT("Eclipse"))
+	{
+		// An eclipse needs the night side dark: the sky's fill light (lighting the shadow side for gameplay) is off
+		// for this shot, and so are the gates near the planet (a pink ring floating beside it at 135 mm).
+		if (const UWorld* W = GetWorld())
+		{
+			for (TObjectIterator<UDirectionalLightComponent> It; It; ++It)
+			{
+				if (It->GetWorld() == W && It->IsVisible() && !It->IsUsedAsAtmosphereSunLight())
+				{
+					It->SetVisibility(false);
+					ShotHiddenLights.Add(*It);
+				}
+			}
+		}
+		if (const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this))
+		{
+			const FTDPlanetSpec* V = Galaxy->GetLayout().Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Verdance; });
+			for (ATDPortalGate* G : Galaxy->GetGateActors())
+			{
+				if (G && V && !G->IsHidden() && FVector::Dist(G->GetActorLocation(), V->Location) < V->PlanetRadius * 4.f)
+				{
+					G->SetActorHiddenInGame(true);
+					ShotHiddenActors.Add(G);
+				}
+			}
+		}
+	}
 	if (S.Id == TEXT("Gate"))
 	{
 		// The ring frames Cinder: hide the gate's membrane for the shot (put back at the next cut).
-		const FVector Dir = (S.SquadTo - S.SquadFrom).GetSafeNormal();
-		const FVector GateAt = S.SquadFrom + Dir * 11000.f;
+		const FVector GateAt = S.Anchor;
 		if (const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this))
 		{
 			ATDPortalGate* Nearest = nullptr;
@@ -791,7 +878,11 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		// The last beat eases into the chase camera: lift the exposure so the ship reads, not a black frame.
 		FPostProcessSettings& PP = Camera->GetCameraComponent()->PostProcessSettings;
 		PP.bOverride_AutoExposureBias = true;
-		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (S.Id == TEXT("Eclipse") ? -1.5f : 0.f));
+		// The galaxy's exposure is manual (the sky's post-process), so the bias is the exposure. The eclipse is shot
+		// well under it so the night side reads as a silhouette, with the lens flare down (its ghosts sat on the disc).
+		const bool bEclipse = S.Id == TEXT("Eclipse");
+		PP.LensFlareIntensity = bEclipse ? 0.f : 1.6f;
+		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (bEclipse ? EclipseExposureEV100() : 0.f));
 	}
 	if (S.Id == TEXT("Title"))
 	{
@@ -977,7 +1068,7 @@ void UTDIntroDirector::UpdateShot(float T)
 	if (S.Id == TEXT("Gate") && !bGateFlared && Held.Num() && Held[0].Ship.IsValid())
 	{
 		const FVector Dir = (S.SquadTo - S.SquadFrom).GetSafeNormal();
-		const FVector Gate = S.SquadFrom + Dir * 11000.f;
+		const FVector Gate = S.Anchor;
 		if (FVector::DotProduct(Held[0].Ship->GetActorLocation() - Gate, Dir) > 0.f)
 		{
 			bGateFlared = true;
@@ -1197,6 +1288,31 @@ void UTDIntroDirector::SetKeyLight(const FVector& At, float Radius, float Intens
 	}
 }
 
+float UTDIntroDirector::EclipseExposureEV100()
+{
+	return CVarTDIntroEclipseEV.GetValueOnGameThread();
+}
+
+void UTDIntroDirector::RestoreShotHidden()
+{
+	for (const TWeakObjectPtr<UDirectionalLightComponent>& L : ShotHiddenLights)
+	{
+		if (UDirectionalLightComponent* C = L.Get())
+		{
+			C->SetVisibility(true);
+		}
+	}
+	ShotHiddenLights.Reset();
+	for (const TWeakObjectPtr<AActor>& A : ShotHiddenActors)
+	{
+		if (AActor* Actor = A.Get())
+		{
+			Actor->SetActorHiddenInGame(false);
+		}
+	}
+	ShotHiddenActors.Reset();
+}
+
 void UTDIntroDirector::RestoreGateSurface()
 {
 	if (UPrimitiveComponent* P = HiddenSurface.Get())
@@ -1296,16 +1412,40 @@ void UTDIntroDirector::PlayNarrationVoice(int32 Line)
 	}
 }
 
-void UTDIntroDirector::HandleSkipPressed()
+bool UTDIntroDirector::IsSkipKey(const FKey& Key)
 {
-	bSkipHeld = true;
-	SkipHeldFor = 0.f;
+	// Real buttons only: AnyKey also reports analog axes and their virtual "stick pushed" buttons (a resting thumb
+	// drifting across a dead zone must neither skip nor cancel a skip), and the mouse wheel.
+	if (!Key.IsValid() || Key.IsAnalog() || Key.IsAxis1D() || Key.IsAxis2D() || Key.IsAxis3D())
+	{
+		return false;
+	}
+	const FString Name = Key.GetFName().ToString();
+	return !Name.Contains(TEXT("Stick_")) && !Name.Contains(TEXT("MouseScroll")) && !Name.Contains(TEXT("MouseWheel"));
 }
 
-void UTDIntroDirector::HandleSkipReleased()
+void UTDIntroDirector::HandleSkipPressed(FKey Key)
 {
-	bSkipHeld = false;
-	SkipHeldFor = 0.f;
+	if (!IsSkipKey(Key))
+	{
+		return;
+	}
+	if (SkipKeysHeld.IsEmpty())
+	{
+		SkipHeldFor = 0.f;
+	}
+	SkipKeysHeld.Add(Key);
+	bSkipHeld = true;
+}
+
+void UTDIntroDirector::HandleSkipReleased(FKey Key)
+{
+	SkipKeysHeld.Remove(Key);
+	if (SkipKeysHeld.IsEmpty())
+	{
+		bSkipHeld = false; // only when every held button is up: letting go of one never cancels another
+		SkipHeldFor = 0.f;
+	}
 }
 
 void UTDIntroDirector::UpdateSkip(float RealDelta)
@@ -1346,6 +1486,15 @@ void UTDIntroDirector::BeginHandOff()
 {
 	bHandingOff = true;
 	HandOffElapsed = 0.f;
+	// Then the slate (C-03): scene one's card comes up as the lens settles behind the ship, not seconds later
+	// with the wave. The real first take's slate does not repeat it.
+	if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this))
+	{
+		if (UTDCutPresentation* Cut = Director->GetCutPresentation())
+		{
+			Cut->PreviewFirstSlate(UTDGameInstance::WaveSceneId(1));
+		}
+	}
 	if (APlayerController* PC = GetPlayer())
 	{
 		if (APawn* Pawn = PC->GetPawn())
@@ -1375,7 +1524,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		HandOffElapsed += Dt;
 		Overlay.Black = 0.f;
 		Overlay.SubtitleAlpha = 0.f;
-		Overlay.Bars = 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
 		if (HandOffElapsed >= HandOffSeconds)
 		{
 			Finish();
@@ -1389,11 +1538,31 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		return;
 	}
 	Elapsed += Dt;
-	if (SequencePlayer)
+	if (bSequenceMode)
 	{
 		// Presentation's own Level Sequence: it owns the camera cuts; the hand-off follows its last frame.
 		Overlay.Black = 0.f;
-		if (!SequencePlayer->IsPlaying() && Elapsed > 0.2f)
+		const bool bRunning = SequencePlayer && SequencePlayer->IsPlaying();
+		bSequenceStarted = bSequenceStarted || bRunning;
+		if (!bSequenceStarted && Elapsed > 0.5f)
+		{
+			// Never started (empty, broken, unloadable bindings): say so, and play the code shots instead.
+			UE_LOG(LogTriadDrift, Warning, TEXT("Intro: the presentation sequence did not start; playing the code shots"));
+			if (SequencePlayer)
+			{
+				SequencePlayer->Stop();
+				SequencePlayer = nullptr;
+			}
+			if (SequenceActor)
+			{
+				SequenceActor->Destroy();
+				SequenceActor = nullptr;
+			}
+			Elapsed = 0.f;
+			StartCodeShots();
+			return;
+		}
+		if (bSequenceStarted && !bRunning)
 		{
 			BeginHandOff();
 		}
@@ -1480,6 +1649,7 @@ void UTDIntroDirector::Finish()
 		return;
 	}
 	ClearShowcase();
+	RestoreShotHidden();
 	if (SequencePlayer)
 	{
 		SequencePlayer->Stop();

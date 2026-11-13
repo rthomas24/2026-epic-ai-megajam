@@ -16,6 +16,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Misc/PackageName.h"
 #include "Engine/StaticMesh.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTime.h"
@@ -543,6 +544,21 @@ void UTDFlightFeedbackComponent::UpdateDust(float DeltaTime)
 	bDustVisible = true;
 }
 
+float UTDFlightFeedbackComponent::TrailFadeAt(const FTDFlightFeedbackTuning& Tuning, float DistToEye, float ScreenY)
+{
+	const float Near = Tuning.TrailCameraFadeEnd > Tuning.TrailCameraFadeStart
+		? FMath::Clamp((DistToEye - Tuning.TrailCameraFadeStart) / (Tuning.TrailCameraFadeEnd - Tuning.TrailCameraFadeStart), 0.f, 1.f)
+		: (DistToEye >= Tuning.TrailCameraFadeStart ? 1.f : 0.f);
+	float Band = 1.f;
+	if (ScreenY >= 0.f)
+	{
+		Band = Tuning.TrailHudBandLimit > Tuning.TrailHudBandFadeStart
+			? FMath::Clamp((Tuning.TrailHudBandLimit - ScreenY) / (Tuning.TrailHudBandLimit - Tuning.TrailHudBandFadeStart), 0.f, 1.f)
+			: (ScreenY < Tuning.TrailHudBandLimit ? 1.f : 0.f);
+	}
+	return Near * Band;
+}
+
 void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 {
 	ATDShip* Ship = GetShip();
@@ -587,13 +603,37 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 			Trail->SetUsingAbsoluteScale(true);
 			Trail->RegisterComponent();
 			Trail->SetWorldTransform(FTransform::Identity);
-			UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
+			// Translucent trail glow when the project has it (Tools/td-make-trail-material.py), else the opaque glow.
+			static const TCHAR* TrailMatPath = TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_TrailGlow.M_TD_TrailGlow");
+			UMaterialInterface* TrailMat = FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(FString(TrailMatPath)))
+				? LoadObject<UMaterialInterface>(nullptr, TrailMatPath, nullptr, LOAD_NoWarn | LOAD_Quiet) : nullptr;
+			if (TrailMat)
+			{
+				TrailMID = UMaterialInstanceDynamic::Create(TrailMat, Trail);
+				Trail->SetMaterial(0, TrailMID);
+				Trail->SetNumCustomDataFloats(1);
+				bTrailTranslucent = true;
+				TrailMID->SetVectorParameterValue(TEXT("Color"), UTDStatics::ShipColor(Ship->GetShipId()) * Tuning.TrailGlow);
+			}
+			else
+			{
+				TrailMID = UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
+			}
+			TrailMIDGlow = Tuning.TrailGlow;
 		}
 		Trail->ClearInstances();
 		TrailTransforms.SetNum(N * Engines);
 		for (FTransform& T : TrailTransforms) { T = FTransform(FQuat::Identity, Ship->GetActorLocation(), FVector(0.01f)); }
 		Trail->AddInstances(TrailTransforms, false, true);
 		TrailHistory.Reset();
+	}
+
+	// The flown ship's short flame burns dimmer than a wingman's streak (it sits right under the camera).
+	const float WantGlow = (Ship->IsPlayerFlown() && !Ship->IsCockpitView()) ? Tuning.PlayerFlameGlow : Tuning.TrailGlow;
+	if (TrailMID && !FMath::IsNearlyEqual(WantGlow, TrailMIDGlow))
+	{
+		TrailMID->SetVectorParameterValue(TEXT("Color"), UTDStatics::ShipColor(Ship->GetShipId()) * WantGlow);
+		TrailMIDGlow = WantGlow;
 	}
 
 	// Path samples per engine: [0] follows the nozzle every frame; a new sample is pushed every TrailSampleSeconds.
@@ -608,7 +648,8 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 	// A teleport (portal, hyperdrive drop-out, respawn) never draws a streak across space.
 	const float MaxStep = FMath::Max(5000.f, (float)Move->Velocity.Size() * Tuning.TrailSampleSeconds * 3.f);
 	// Several engines: thinner ribbons, so a five-engine Bastion doesn't drag a wall of light.
-	const float Thick = Tuning.TrailThickness * (Ship->IsBoosting() ? 1.4f : 1.f) * (Engines > 1 ? 0.65f : 1.f);
+	const float Thick = (Ship->IsPlayerFlown() && !Ship->IsCockpitView() ? Tuning.PlayerFlameThickness : Tuning.TrailThickness)
+		* (Ship->IsBoosting() ? 1.25f : 1.f) * (Engines > 1 ? 0.75f : 1.f);
 	// Near the camera a ribbon would smear across the view (the chase camera sits right above the player's own
 	// trail): segments shrink to nothing as they come within DustCameraClear of the eye, as the dust does.
 	const APlayerController* ViewPC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
@@ -618,7 +659,24 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 	// The flown ship in the chase view: the camera sits ~14 m behind, right above its own exhaust, so the ribbon
 	// stops PlayerTrailMax behind the nozzle (tapering over that length) instead of streaming under the camera.
 	const bool bOwnChase = Ship->IsPlayerFlown() && !Ship->IsCockpitView();
-	const float Cap = bOwnChase ? Tuning.PlayerTrailMax : TNumericLimits<float>::Max();
+	const float BaseCap = bOwnChase ? Tuning.PlayerTrailMax * (Engines > 2 ? Tuning.PlayerFlameManyEnginesScale : 1.f)
+		: TNumericLimits<float>::Max();
+	// Screen-space limit for the flown flame: project along the ribbon with the camera's own transform and FOV and
+	// stop where it would cross PlayerFlameScreenLimit of the viewport height (the HUD band). Headless (no viewport)
+	// only the length cap applies.
+	int32 ViewW = 0, ViewH = 0;
+	if (bHaveEye) { ViewPC->GetViewportSize(ViewW, ViewH); }
+	const bool bHaveScreen = bHaveEye && ViewW > 0 && ViewH > 0;
+	const bool bScreenCap = bOwnChase && bHaveScreen;
+	const FRotator EyeRot = bHaveEye ? ViewPC->PlayerCameraManager->GetCameraRotation() : FRotator::ZeroRotator;
+	const float TanHalf = bHaveEye ? FMath::Tan(FMath::DegreesToRadians(FMath::Clamp(ViewPC->PlayerCameraManager->GetFOVAngle(), 5.f, 170.f) * 0.5f)) : 1.f;
+	const float Aspect = ViewH > 0 ? (float)ViewW / (float)ViewH : 1.f;
+	auto ScreenY = [&](const FVector& P) -> float // 0 top .. 1 bottom; 2 = behind the eye
+	{
+		const FVector L = EyeRot.UnrotateVector(P - Eye);
+		if (L.X < 1.f) { return 2.f; }
+		return 0.5f - 0.5f * (L.Z / (L.X * TanHalf)) * Aspect;
+	};
 	float FirstLength = 0.f;
 	for (int32 e = 0; e < Engines; ++e)
 	{
@@ -628,6 +686,30 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 		{
 			H.Insert(TrailNozzles[e], 0);
 			H.SetNum(N + 1);
+		}
+		float Cap = BaseCap;
+		if (bScreenCap)
+		{
+			const float Limit = Tuning.PlayerFlameScreenLimit;
+			float Walked = 0.f;
+			for (int32 i = 0; i < N && Walked < Cap; ++i)
+			{
+				const FVector A = H[i], B = H[i + 1];
+				const float Len = FVector::Dist(A, B);
+				if (ScreenY(A) > Limit) { Cap = Walked; break; }
+				if (ScreenY(B) > Limit)
+				{
+					float Lo = 0.f, Hi = 1.f; // bisect the crossing inside this segment
+					for (int32 k = 0; k < 8; ++k)
+					{
+						const float Mid = 0.5f * (Lo + Hi);
+						(ScreenY(FMath::Lerp(A, B, Mid)) > Limit ? Hi : Lo) = Mid;
+					}
+					Cap = FMath::Min(Cap, Walked + Lo * Len);
+					break;
+				}
+				Walked += Len;
+			}
 		}
 		float Length = 0.f;
 		for (int32 i = 0; i < N; ++i)
@@ -649,11 +731,22 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 				D = A - B;
 				Len = Keep;
 			}
-			const float Taper = bOwnChase ? FMath::Clamp(1.f - Length / FMath::Max(Cap, 1.f), 0.f, 1.f) : 1.f - (float)i / (float)N;
-			const float Near = bHaveEye ? FMath::Clamp(FVector::Dist((A + B) * 0.5f, Eye) / Clear - 0.25f, 0.f, 1.f) : 1.f;
+			// Quadratic taper: thin quickly, then a long hairline tail that reads as fading out.
+			const float Lin = bOwnChase ? FMath::Clamp(1.f - Length / FMath::Max(Cap, 1.f), 0.f, 1.f) : 1.f - (float)i / (float)N;
+			const float Taper = Lin * Lin;
+			// The flown ribbon is already cut by length and screen height; every other ribbon (wingmen) fades out near
+			// the camera and over the HUD band, so a wingman passing close never paints across the HUD.
+			const FVector Mid = (A + B) * 0.5f;
+			const float Near = !bHaveEye ? 1.f
+				: bOwnChase ? FMath::Clamp(FVector::Dist(Mid, Eye) / Clear - 0.25f, 0.f, 1.f)
+				: TrailFadeAt(Tuning, FVector::Dist(Mid, Eye), bHaveScreen ? FMath::Max(ScreenY(A), ScreenY(B)) : -1.f);
 			const float T = FMath::Max(0.01f, Thick * Taper * Near / 100.f);
 			const FQuat Q = Len > KINDA_SMALL_NUMBER ? FRotationMatrix::MakeFromX(D / Len).ToQuat() : Ship->GetActorQuat();
 			TrailTransforms[e * N + i] = FTransform(Q, (A + B) * 0.5f, FVector(FMath::Max(0.01f, Len / 100.f), T, T));
+			if (bTrailTranslucent)
+			{
+				Trail->SetCustomDataValue(e * N + i, 0, Lin * Near, false); // fades out along the ribbon and near the eye/HUD
+			}
 			Length += Len;
 		}
 		if (e == 0) { FirstLength = Length; }

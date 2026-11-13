@@ -47,9 +47,11 @@ MAJOR closed and the item *gameplay validated* (played in a running game, noted 
 | ENG-25 Verdance gameplay | T5 | in progress | `TriadDrift.Ground` | - | Arrival and on-foot hand-over only | Both objectives finishable, rewards, return |
 | ENG-26 Cinder gameplay | T5 | in progress | `TriadDrift.Ground` | - | - | Both objectives finishable, rewards, Dominion reveal |
 | ENG-27 balance + difficulty | T4 + Lead | in review | `TriadDrift.Waves.Balance` | covered by the ENG-14 review | Headless balance run only: waves 1-5 in 7.1-7.9 min on Standard, enemy on screen 59-96% of the time | Human play; difficulty choice |
-| ENG-28 integration / perf / packaging | Lead + T4 | in progress | all (see the log below) + `TDPerf` | - | Packaged Development build boots and runs; Shipping 750 MB | Whole journey in a packaged build; `WBP_SpaceHUD` in the cook; spikes rechecked |
+| ENG-28 integration / perf / packaging | Lead + T4 | in progress | all (see the log below) + `TDPerf` | - | Shipping 942 MB, 797 MB zipped without the .pdb (`fea764d`, under the 1 GB limit) | Whole journey in a packaged build; `WBP_SpaceHUD` in the cook; spikes rechecked |
 | HUD host for Nick's plugin | T2 | in review | `TriadDrift.UI.HUDHost` (4) | Nick's side validating (N-007) | Played with the real HUD on, playtest 3 | Default still off; objective text and name card replay |
 | Audio support (skill, live state, engine loop parameters) | Lead + T1 | in review | `TriadDrift.Core.AudioState` (3), `TriadDrift.Flight.Visuals.EngineLoopAudioParameters` | - | Nothing heard by a person | Used by no audio yet |
+| ENG-32 on-foot third person + Settings page | T3 (rig) + T5 (pilot) + T1 (settings) | in review | `TriadDrift.Ground.ThirdPerson`, `TriadDrift.Ground.LookFollowsEverySettingsRow`, `TriadDrift.UI` | independent review + re-check: all MAJORs closed (`8e41112`), verdict acceptable; 2 new MINORs with T5 | Rooms cleared in third person by an agent; full pad pass (T1) | Human play |
+| ENG-33 cinematic intro | T3 (+ T4 showcase hooks) | in review | `TriadDrift.Director.Intro`, `TriadDrift.Flow.E2E.NewGameIntroWavesContinue` | independent review + re-check: all findings closed (`8e41112`), verdict acceptable | v10 contact sheet on real art incl. eclipse shot; E2E New Game run in PIE | Hand-off slate seen in a watched run; human watch |
 | ENG-29 docking (stretch) | - | todo | | | | Only after core is solid |
 | ENG-30 interior + core fight (stretch) | - | todo | | | | |
 | ENG-31 escape (stretch) | - | todo | | | | |

@@ -14,6 +14,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import ue_mat_builder  # noqa: E402
 import ue_planet_surface as surf  # noqa: E402
+import ue_ground_material as ground_mat  # noqa: E402
 ROOT = os.path.dirname(HERE)
 TEX = os.path.join(ROOT, "textures")
 MESH = os.path.join(ROOT, "meshes")
@@ -46,12 +47,7 @@ PLANET = {
                    atmo=lin("#FF7A2A"), atmo_intensity=2.6, rim_power=4.5, cloud_pan=0.0010),
 }
 SUN_DIR = surf.SUN_DIR              # default: direction TOWARDS the sun (ATDSkySphere's baked sun); code sets it per level
-GROUND = {
-    "Verdance": dict(emissive=4.0, tint_a=(0.80, 0.80, 0.72), tint_b=(1.0, 1.15, 1.05)),
-    "Cinder": dict(emissive=6.0, tint_a=(0.85, 0.82, 0.82), tint_b=(1.1, 1.0, 0.95)),
-}
-MACRO = dict(scale1=7.3, scale2=31.7, angle1=37.0, angle2=-61.0, strength=0.6, mip=6,
-             b_scale=1.37, b_offset=(0.31, 0.57), blend_contrast=1.5, glow_macro=0.8)
+# Ground look values (GROUND / MACRO) live in ue_ground_material.py.
 
 
 # ------------------------------------------------------------------ textures
@@ -61,6 +57,7 @@ def import_textures():
         names += ["T_Planet_%s_%s" % (p, s) for s in ("BC", "N", "ORM", "E", "Clouds")]
         names += ["T_Ground_%s_%s" % (p, s) for s in ("BC", "N", "ORM", "E")]
     names.append("T_PlanetRing_Verdance")
+    names.append("T_Ground_MacroNoise")          # build_ground_noise.py
     tasks = []
     for n in names:
         t = unreal.AssetImportTask()
@@ -82,7 +79,7 @@ def import_textures():
             tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP)
             tex.set_editor_property("srgb", False)
             tex.set_editor_property("flip_green_channel", False)
-        elif sfx in ("ORM", "Clouds"):
+        elif sfx in ("ORM", "Clouds", "MacroNoise"):
             tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_MASKS)
             tex.set_editor_property("srgb", False)
         else:
@@ -238,58 +235,11 @@ def build_ring_master(t):
 
 
 def build_ground_master(t):
+    # Anti-tiling ground graph lives in ue_ground_material.py (also used by ue_ground_rebuild.py).
     mat, kept = new_master("M_TD_Ground")
     if kept:
         return kept
-    b = MB(mat)
-    wp = b.e(unreal.MaterialExpressionWorldPosition)
-    xy = b.mask(wp, True, True, False)
-    tile = b.scalar("TileSize", 400.0)
-    uva = b.div(xy, tile)
-    uvb = b.add(b.div(xy, b.mul(tile, b.scalar("BScale", MACRO["b_scale"]))), b.const2(*MACRO["b_offset"]))
-    import math as _m
-
-    def rot_uv(angle, scale_name, scale):
-        a = _m.radians(angle)
-        u = b.dot(xy, b.const2(_m.cos(a), -_m.sin(a)))
-        v = b.dot(xy, b.const2(_m.sin(a), _m.cos(a)))
-        return b.div(b.append(u, v), b.mul(tile, b.scalar(scale_name, scale)))
-    maps = (("BaseColorTex", "T_Ground_Verdance_BC", ST.SAMPLERTYPE_COLOR), ("NormalTex", "T_Ground_Verdance_N", ST.SAMPLERTYPE_NORMAL),
-            ("ORMTex", "T_Ground_Verdance_ORM", ST.SAMPLERTYPE_MASKS), ("EmissiveTex", "T_Ground_Verdance_E", ST.SAMPLERTYPE_COLOR))
-    A = {p: b.tex(p, t[d], s, uva) for p, d, s in maps}
-    B = {p: b.tex(p, t[d], s, uvb) for p, d, s in maps}
-    lumw = b.const3(0.2126, 0.7152, 0.0722)
-
-    def macro(angle, sname, scale):
-        n = b.tex("BaseColorTex", t["T_Ground_Verdance_BC"], ST.SAMPLERTYPE_COLOR, rot_uv(angle, sname, scale))
-        try:
-            n.set_editor_property("mip_value_mode", unreal.TextureMipValueMode.TMVM_MIP_LEVEL)
-            n.set_editor_property("const_mip_value", MACRO["mip"])
-        except Exception as e:
-            problems.append("macro mip level: %s" % e)
-        lum = b.dot(n, lumw, "RGB")
-        return b.mul(b.sub(lum, b.scalar("MacroMean", 0.05)), b.scalar("MacroK", 10.0))   # ~ -1..1
-    d1 = macro(MACRO["angle1"], "MacroScale1", MACRO["scale1"])
-    d2 = macro(MACRO["angle2"], "MacroScale2", MACRO["scale2"])
-    blend = b.sat(b.add(b.mul(d2, b.scalar("BlendContrast", MACRO["blend_contrast"])), b.const(0.5)))
-    bc = b.lerp(A["BaseColorTex"], B["BaseColorTex"], blend, "RGB", "RGB")
-    nn = b.lerp(A["NormalTex"], B["NormalTex"], blend, "RGB", "RGB")
-    orm = b.lerp(A["ORMTex"], B["ORMTex"], blend, "RGB", "RGB")
-    em = b.lerp(A["EmissiveTex"], B["EmissiveTex"], blend, "RGB", "RGB")
-    factor = b.add(b.const(1.0), b.mul(d1, b.mul(b.scalar("MacroStrength", MACRO["strength"]), b.const(0.35))))
-    tint = b.lerp(b.vector("MacroTintA", (0.8, 0.8, 0.8)), b.vector("MacroTintB", (1, 1, 1)),
-                  b.sat(b.add(b.mul(d1, b.const(0.5)), b.const(0.5))))
-    ao = b.mask(orm, True, False, False)
-    aob = b.lerp(b.const(1.0), ao, b.scalar("AOToBaseColor", 1.0))
-    base = b.mul(b.mul(b.mul(bc, factor), tint), aob)
-    b.out(base, "", MP.MP_BASE_COLOR)
-    b.out(b.mask(orm, False, True, False), "", MP.MP_ROUGHNESS)
-    b.out(ao, "", MP.MP_AMBIENT_OCCLUSION)
-    b.out(b.const(0.0), "", MP.MP_METALLIC)
-    b.out(b.norm(nn), "", MP.MP_NORMAL)
-    gm = b.sat(b.add(b.mul(d1, b.const(1.2)), b.const(0.6)))
-    glow = b.lerp(b.const(1.0), gm, b.scalar("GlowMacro", MACRO["glow_macro"]))
-    b.out(b.mul(b.mul(em, b.scalar("EmissiveStrength", 4.0)), glow), "", MP.MP_EMISSIVE_COLOR)
+    ground_mat.build_ground_graph(MB(mat), t)
     return finish(mat)
 
 
@@ -344,15 +294,9 @@ def main():
            vectors=dict(AtmoColor=c["atmo"], SunDirection=SUN_DIR))
     mi("MI_PlanetRing_Verdance", m_ring, scalars=dict(Brightness=1.2, Opacity=0.85), vectors=dict(RingTint=(1, 1, 1)),
        textures=dict(RingTex=t["T_PlanetRing_Verdance"]))
-    for g, c in GROUND.items():
-        with open(os.path.join(TEX, "T_Ground_%s_stats.json" % g)) as f:
-            st = json.load(f)
-        k = 1.0 / (2.0 * st["macro_std_rel"] * st["macro_mean_lum"])
-        mi("MI_Ground_" + g, m_ground,
-           scalars=dict(TileSize=400.0, MacroMean=st["macro_mean_lum"], MacroK=k, EmissiveStrength=c["emissive"],
-                        MacroStrength=MACRO["strength"], BlendContrast=MACRO["blend_contrast"], GlowMacro=MACRO["glow_macro"],
-                        MacroScale1=MACRO["scale1"], MacroScale2=MACRO["scale2"], BScale=MACRO["b_scale"], AOToBaseColor=1.0),
-           vectors=dict(MacroTintA=c["tint_a"], MacroTintB=c["tint_b"]),
+    for g in ground_mat.GROUND:
+        scalars, vectors = ground_mat.instance_values(g)
+        mi("MI_Ground_" + g, m_ground, scalars=scalars, vectors=vectors,
            textures=dict(BaseColorTex=t["T_Ground_%s_BC" % g], NormalTex=t["T_Ground_%s_N" % g],
                          ORMTex=t["T_Ground_%s_ORM" % g], EmissiveTex=t["T_Ground_%s_E" % g]))
     # default materials on the meshes

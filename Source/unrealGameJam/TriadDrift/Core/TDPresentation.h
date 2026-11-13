@@ -566,6 +566,16 @@ public:
 	TSoftObjectPtr<USoundBase> CombatMusic;
 
 	/**
+	 * Combat feedback sounds (optional): played as 2D UI sounds by the HUD host when a squad shot lands
+	 * (OnHitConfirmed) and when it kills. The sound's own class, volume and concurrency apply; silent when unset.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat Feedback")
+	FTDFXCue HitConfirm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat Feedback")
+	FTDFXCue KillConfirm;
+
+	/**
 	 * The intro (ENG-33), optional. When set, this Level Sequence plays on New Game instead of the code-driven
 	 * shots, with the same skip and hand-off rules.
 	 */

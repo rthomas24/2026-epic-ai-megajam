@@ -10,6 +10,8 @@
 #include "TriadDrift/Ground/Tests/TDGroundTestHelpers.h"
 #include "TriadDrift/Ground/Camera/TDThirdPersonCameraComponent.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -125,10 +127,10 @@ bool FTDTPPilotFacing::RunTest(const FString& Parameters)
 	T.W.Advance(0.5f);
 	TestTrue(TEXT("a 30 deg look does not turn the body"), FMath::Abs(FMath::FindDeltaAngleDegrees(T.Yaw(), Settled)) < 2.f);
 
-	// An attack swings where the crosshair points.
+	// An attack swings where the crosshair points, from its first frame (review MINOR 7: no swing the wrong way).
 	P->GetBlade()->LightAttack();
-	T.W.Advance(0.15f);
-	TestTrue(*FString::Printf(TEXT("attacking faces the camera (%.0f)"), T.Yaw()), FMath::Abs(FMath::FindDeltaAngleDegrees(T.Yaw(), Settled + 30.f)) < 10.f);
+	T.W.Tick(1.f / 60.f);
+	TestTrue(*FString::Printf(TEXT("attacking faces the camera on the first frame (%.1f)"), T.Yaw()), FMath::Abs(FMath::FindDeltaAngleDegrees(T.Yaw(), Settled + 30.f)) < 1.f);
 	return true;
 }
 
@@ -238,6 +240,148 @@ bool FTDTPPilotBladeRetract::RunTest(const FString& Parameters)
 	T.W.Advance(0.4f);
 	TestTrue(TEXT("back out on the next take"), P->GetHandBladeExtend01() > 0.99f && P->GetHandBladeBeam()->IsVisible());
 	TestTrue(TEXT("back in the hand after the ragdoll"), P->GetHandBladeHilt()->GetAttachParent() == P->GetMesh());
+	return true;
+}
+
+// ENG-32 review MAJOR 1: the Settings page's look rows act on foot, for the mouse and the stick separately.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundLookSettings, "TriadDrift.Ground.LookFollowsEverySettingsRow", TD_TEST_FLAGS)
+bool FTDGroundLookSettings::RunTest(const FString& Parameters)
+{
+	using C = ATDFirstPersonCharacter;
+	const FTDPlayerSettings Base;
+	auto Eq = [this](const TCHAR* What, const FVector2D& Got, const FVector2D& Want)
+	{
+		TestTrue(*FString::Printf(TEXT("%s: %s (want %s)"), What, *Got.ToString(), *Want.ToString()), Got.Equals(Want, 0.01f));
+	};
+	Eq(TEXT("mouse, defaults (up looks up)"), C::ShapeLook(FVector2D(1.f, 1.f), false, Base), FVector2D(1.f, -1.f));
+	FTDPlayerSettings S = Base; S.MouseSensitivity = 2.f;
+	Eq(TEXT("mouse sensitivity x2"), C::ShapeLook(FVector2D(1.f, 1.f), false, S), FVector2D(2.f, -2.f));
+	S = Base; S.bInvertMouseY = true;
+	Eq(TEXT("invert mouse Y"), C::ShapeLook(FVector2D(1.f, 1.f), false, S), FVector2D(1.f, 1.f));
+	Eq(TEXT("the stick ignores the mouse invert"), C::ShapeLook(FVector2D(0.f, 1.f), true, S), FVector2D(0.f, -C::StickLookScale));
+	Eq(TEXT("stick inside the default dead zone"), C::ShapeLook(FVector2D(0.1f, 0.f), true, Base), FVector2D::ZeroVector);
+	Eq(TEXT("stick full right"), C::ShapeLook(FVector2D(1.f, 0.f), true, Base), FVector2D(C::StickLookScale, 0.f));
+	S = Base; S.GamepadSensitivity = 2.f;
+	Eq(TEXT("gamepad sensitivity x2"), C::ShapeLook(FVector2D(1.f, 0.f), true, S), FVector2D(2.f * C::StickLookScale, 0.f));
+	Eq(TEXT("the mouse ignores the stick sensitivity"), C::ShapeLook(FVector2D(1.f, 0.f), false, S), FVector2D(1.f, 0.f));
+	S = Base; S.GamepadDeadzone = 0.5f;
+	Eq(TEXT("bigger dead zone swallows a push that used to turn"), C::ShapeLook(FVector2D(0.4f, 0.f), true, S), FVector2D::ZeroVector);
+	Eq(TEXT("past the dead zone the rest is rescaled"), C::ShapeLook(FVector2D(0.75f, 0.f), true, S), FVector2D(0.5f * C::StickLookScale, 0.f));
+	S = Base; S.bInvertGamepadY = true;
+	Eq(TEXT("invert gamepad Y"), C::ShapeLook(FVector2D(0.f, 1.f), true, S), FVector2D(0.f, C::StickLookScale));
+
+	// And the real pilot reads the live settings: the same mouse move turns twice as far at sensitivity 2.
+	TDThirdPersonPilotTest::FScene T(false);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	auto Turn = [&T](const FVector2D& Raw, bool bPad)
+	{
+		const FRotator Before = T.PC->GetControlRotation();
+		T.P->ApplyLookInput(Raw, bPad);
+		T.W.Tick(1.f / 60.f);
+		const FRotator After = T.PC->GetControlRotation();
+		return FVector2D(FMath::FindDeltaAngleDegrees((float)Before.Yaw, (float)After.Yaw), FMath::FindDeltaAngleDegrees((float)Before.Pitch, (float)After.Pitch));
+	};
+	const FVector2D Mouse1 = Turn(FVector2D(1.f, 0.f), false);
+	TestTrue(TEXT("the mouse turns the pilot"), Mouse1.X > 0.01f);
+	T.S->SetMouseSensitivity(2.f);
+	const FVector2D Mouse2 = Turn(FVector2D(1.f, 0.f), false);
+	TestTrue(*FString::Printf(TEXT("mouse sensitivity 2 turns twice as far (%.3f vs %.3f)"), Mouse2.X, Mouse1.X), FMath::IsNearlyEqual(Mouse2.X, 2.f * Mouse1.X, 0.01f));
+	const FVector2D UpBefore = Turn(FVector2D(0.f, 1.f), false);
+	T.S->SetInvertMouseY(true);
+	const FVector2D UpAfter = Turn(FVector2D(0.f, 1.f), false);
+	TestTrue(*FString::Printf(TEXT("invert mouse Y flips the pitch (%.3f -> %.3f)"), UpBefore.Y, UpAfter.Y), UpBefore.Y * UpAfter.Y < 0.f);
+	T.S->SetGamepadDeadzone(0.5f);
+	TestTrue(TEXT("a small push inside the new dead zone does nothing"), Turn(FVector2D(0.3f, 0.f), true).IsNearlyZero(0.0001f));
+	return true;
+}
+
+// T1's pad pass: L3 clicks sprint on; it ends when the stick is let go or eased under 30%. Shift stays a hold.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundSprintToggle, "TriadDrift.Ground.PadSprintIsAClickToggle", TD_TEST_FLAGS)
+bool FTDGroundSprintToggle::RunTest(const FString& Parameters)
+{
+	TDThirdPersonPilotTest::FScene T(false);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	ATDFirstPersonCharacter* P = T.P;
+	P->SetMoveInput(FVector2D(0.f, 1.f));
+	P->ToggleSprint();
+	T.W.Advance(0.3f);
+	TestTrue(TEXT("click: sprinting with the stick held forward"), P->IsSprinting());
+	T.W.Advance(1.f);
+	TestTrue(TEXT("no need to hold anything"), P->IsSprinting() && P->IsSprintToggled());
+	P->SetMoveInput(FVector2D(0.f, 0.2f));
+	T.W.Advance(0.1f);
+	TestFalse(TEXT("eased under 30%: the sprint ends"), P->IsSprinting() || P->IsSprintToggled());
+	P->SetMoveInput(FVector2D(0.f, 1.f));
+	T.W.Advance(0.2f);
+	TestFalse(TEXT("and stays off until the next click"), P->IsSprinting());
+	P->ToggleSprint();
+	T.W.Advance(0.2f);
+	P->SetMoveInput(FVector2D::ZeroVector);
+	T.W.Advance(0.1f);
+	TestFalse(TEXT("letting go of the stick ends it too"), P->IsSprintToggled());
+	P->SetMoveInput(FVector2D(0.f, 1.f));
+	P->SetSprintHeld(true);
+	T.W.Advance(0.2f);
+	TestTrue(TEXT("Shift held still sprints"), P->IsSprinting());
+	P->SetSprintHeld(false);
+	T.W.Advance(0.1f);
+	TestFalse(TEXT("and stops on release"), P->IsSprinting());
+	return true;
+}
+
+// T3's melee framing, driven by the pilot: close combat while a live crewman is within 4 m or the blade is busy.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTPPilotCloseCombat, "TriadDrift.Ground.ThirdPerson.PilotDrivesMeleeFraming", TD_TEST_FLAGS)
+bool FTDTPPilotCloseCombat::RunTest(const FString& Parameters)
+{
+	TDThirdPersonPilotTest::FScene T(true);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	ATDFirstPersonCharacter* P = T.P;
+	UTDThirdPersonCameraComponent* Rig = P->GetThirdPersonRig();
+	T.W.Advance(0.3f);
+	TestFalse(TEXT("nobody near: the normal shoulder"), Rig->IsCloseCombat());
+	P->GetBlade()->SetBlockHeld(true);
+	T.W.Advance(0.2f);
+	TestTrue(TEXT("blocking: close combat"), Rig->IsCloseCombat());
+	P->GetBlade()->SetBlockHeld(false);
+	T.W.Advance(0.5f);
+	TestFalse(TEXT("guard down, nobody near: back"), Rig->IsCloseCombat());
+
+	const FTransform Xf(FRotator(0.f, 180.f, 0.f), P->GetActorLocation() + FVector(330.f, 0.f, 0.f));
+	ATDCrewCharacter* Crew = T.W.GetWorld()->SpawnActorDeferred<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (!TestNotNull(TEXT("crewman"), Crew)) { return false; }
+	Crew->CrewType = ETDCrewType::Grunt;
+	Crew->FinishSpawning(Xf);
+	T.W.Advance(0.3f);
+	TestTrue(TEXT("a crewman at 3.3 m: close combat"), Rig->IsCloseCombat());
+	UTDStatics::ApplyTDDamage(Crew, 100000.f, ETDDamageKind::Melee, P, P);
+	T.W.Advance(0.3f);
+	TestFalse(TEXT("he is down: the normal shoulder again"), Rig->IsCloseCombat());
+	return true;
+}
+
+// Review MINOR (Lead, Nov 13): switching from the pause page applies to the body at once, not on resume.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTPPilotPausedSwitch, "TriadDrift.Ground.ThirdPerson.SwitchWhilePausedUpdatesTheBody", TD_TEST_FLAGS)
+bool FTDTPPilotPausedSwitch::RunTest(const FString& Parameters)
+{
+	TDThirdPersonPilotTest::FScene T(false);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	ATDFirstPersonCharacter* P = T.P;
+	USkeletalMeshComponent* Body = P->GetMesh();
+	TestTrue(TEXT("first person: head hidden"), Body->IsBoneHiddenByName(TEXT("head")));
+	UGameplayStatics::SetGamePaused(T.W.GetWorld(), true);
+	T.S->SetOnFootCameraMode(ETDOnFootCamera::ThirdPerson); // the Settings page over the pause screen
+	T.W.Tick(1.f / 60.f); // paused: the pilot's own Tick does not run
+	TestTrue(TEXT("the view switched while paused"), P->IsThirdPersonView());
+	TestFalse(TEXT("head shown at once"), Body->IsBoneHiddenByName(TEXT("head")));
+	TestFalse(TEXT("the camera-rig blade hidden at once"), P->GetBladeMesh()->IsVisible());
+	TestTrue(TEXT("the hand blade shown at once"), P->GetHandBladeBeam()->IsVisible());
+	TestFalse(TEXT("the body no longer turns with the mouse"), P->bUseControllerRotationYaw);
+	T.S->SetOnFootCameraMode(ETDOnFootCamera::FirstPerson);
+	T.W.Tick(1.f / 60.f);
+	TestTrue(TEXT("back to first person while paused: head hidden"), Body->IsBoneHiddenByName(TEXT("head")));
+	TestTrue(TEXT("the camera-rig blade back"), P->GetBladeMesh()->IsVisible());
+	TestFalse(TEXT("no hand blade"), P->GetHandBladeBeam()->IsVisible());
+	UGameplayStatics::SetGamePaused(T.W.GetWorld(), false);
 	return true;
 }
 

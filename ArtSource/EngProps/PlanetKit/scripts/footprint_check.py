@@ -60,6 +60,8 @@ SPEC = {
     "SM_Trailhead": ((500, 500, 480), "bottom", 40, [], [(-240, -60, -240, 240), (60, 240, -240, 240)]),
     "SM_Verd_RelayAltar": ((200, 200, 150), "bottom", 150, [], [(-80, -45, -80, 80), (45, 80, -80, 80), (-45, 45, -80, -45), (-45, 45, 45, 80)]),
     "SM_Cind_PrototypeConsole": ((160, 160, 140), "bottom", None, [], None),
+    # unit slab, stretched over each ATDMagmaVolume by TDPropArt::Dress (field 1600 x 7000, lake 3400 x 5000, 10 cm)
+    "SM_Cind_MagmaSurface": ((100, 100, 10), "bottom", 10, ["-X", "+X", "-Y", "+Y"], 0.95),
 }
 TOL = 2.0
 

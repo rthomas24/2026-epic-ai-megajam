@@ -352,35 +352,53 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
 	const FVector Here(5000.f, 0.f, 0.f);
 	const int32 Used = Projectiles->PlayPlaceholderExplosion(Here, 600.f, FLinearColor::Red, 8);
-	TestEqual(TEXT("core + shell + 8 debris"), Used, 10);
+	const int32 Pops = UTDProjectileSubsystem::ExplosionPops(600.f);
+	TestEqual(TEXT("core + shell + pops + ember + 8 sparks"), Used, 3 + Pops + 8);
+	TestEqual(TEXT("a 6 m explosion has 2 staggered pops"), Pops, 2);
+	TestTrue(TEXT("additive soft glow (M_TD_FlashGlow) is in the project"), ATDCombatFlash::GetFlashGlowMaterial() != nullptr);
+
+	// Sort the styled spheres: the core (smallest live), the shell (largest), the delayed pops and the ember.
+	auto Spheres = [&W](TArray<ATDCombatFlash*>& Live, TArray<ATDCombatFlash*>& Delayed)
 	{
-		// The shell (the biggest flash) stays saturated team colour at a low glow; the core is the small white-hot part.
-		float ShellR = 0.f, CoreR = TNumericLimits<float>::Max();
-		FLinearColor Shell = FLinearColor::Black, Core = FLinearColor::Black;
+		Live.Reset();
+		Delayed.Reset();
 		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
 		{
-			const UMaterialInstanceDynamic* FMID = It->IsPlaying() ? Cast<UMaterialInstanceDynamic>(It->FindComponentByClass<UStaticMeshComponent>()->GetMaterial(0)) : nullptr;
-			if (!FMID || It->GetActorRotation() != FRotator::ZeroRotator)
+			if (It->IsPlaying() && It->IsStyled() && It->GetActorRotation() == FRotator::ZeroRotator)
 			{
-				continue; // debris streaks are rotated along their flight
+				(It->IsDelayed() ? Delayed : Live).Add(*It);
 			}
-			FLinearColor C;
-			FMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), C);
-			const float Size = It->GetActorScale3D().X;
-			if (Size > ShellR) { ShellR = Size; Shell = C; }
-			if (Size < CoreR) { CoreR = Size; Core = C; }
 		}
-		TestTrue(FString::Printf(TEXT("shell glow %.1f stays low (<= 4)"), Shell.R), Shell.R > 0.f && Shell.R <= 4.f);
-		TestTrue(FString::Printf(TEXT("shell stays saturated red (G %.2f, B %.2f)"), Shell.G, Shell.B), Shell.G <= 0.05f && Shell.B <= 0.05f);
-		TestTrue(TEXT("core whiter than the shell"), Core.G > Shell.G && CoreR < ShellR);
+	};
+	TArray<ATDCombatFlash*> Live, Delayed;
+	Spheres(Live, Delayed);
+	TestEqual(TEXT("core and shell start at once"), Live.Num(), 2);
+	TestEqual(TEXT("pops and ember wait their turn"), Delayed.Num(), Pops + 1);
+	for (const ATDCombatFlash* F : Live)
+	{
+		TestTrue(TEXT("explosion parts use the additive glow"), F->UsesAdditiveGlow());
 	}
-	W.Advance(0.3f);
+	if (Live.Num() == 2)
+	{
+		Live.Sort([](const ATDCombatFlash& A, const ATDCombatFlash& B) { return A.GetRadius() < B.GetRadius(); });
+		const FLinearColor Core = Live[0]->GetLastColor(), Shell = Live[1]->GetLastColor();
+		TestTrue(FString::Printf(TEXT("core starts white-hot (%s)"), *Core.ToString()), Core.B > 0.8f * Core.R && Core.R > 2.f);
+		W.Advance(0.3f);
+		const FLinearColor ShellLater = Live[1]->GetLastColor();
+		TestTrue(FString::Printf(TEXT("shell cools into the team colour (%s -> %s)"), *Shell.ToString(), *ShellLater.ToString()),
+			Shell.G / FMath::Max(Shell.R, 0.01f) > 0.3f && ShellLater.G / FMath::Max(ShellLater.R, 0.01f) < 0.15f);
+	}
+	Spheres(Live, Delayed);
+	TestEqual(TEXT("after 0.3 s every pop and the ember have started"), Delayed.Num(), 0);
 	const int32 Playing = Projectiles->GetPlayingFlashCount();
 	const int32 Inside = Projectiles->CountPlayingFlashesNear(Here, 350.f);
 	AddInfo(FString::Printf(TEXT("after 0.3 s: %d playing, %d within 350 cm"), Playing, Inside));
-	TestTrue(TEXT("debris has flown outward"), Playing >= 8 && Playing - Inside >= 6);
-	W.Advance(1.f);
-	TestEqual(TEXT("all gone within a second"), Projectiles->GetPlayingFlashCount(), 0);
+	TestTrue(TEXT("sparks have flown outward"), Playing >= 8 && Playing - Inside >= 6);
+	W.Advance(0.45f);
+	Spheres(Live, Delayed);
+	TestTrue(TEXT("the ember afterglow is still up at 0.75 s"), Live.Num() >= 1);
+	W.Advance(0.8f);
+	TestEqual(TEXT("all gone by 1.6 s"), Projectiles->GetPlayingFlashCount(), 0);
 
 	// A rocket hitting a wall explodes (more than one flash at the wall), a laser only flashes.
 	const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());
@@ -635,6 +653,19 @@ bool FTDCombatPlaceholderFlashCap::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("near explosion shell capped: %.0f cm at 15 m (<= 193)"), ShellMax),
 		ShellMax > 0.f && ShellMax <= 1500.f * ATDCombatFlash::MaxShellRadiusPerCameraDistance + 1.f);
 
+	// A debris streak 15 m from the camera (a hulk exploding as it drifts past) stays a thin streak.
+	if (ATDCombatFlash* Debris = Projectiles->PlayPlaceholderFlash(Camera + FVector(1500.f, 300.f, 0.f), 1.f, FLinearColor::Red, 0.01f))
+	{
+		Debris->PlayDebris(Camera + FVector(1500.f, 300.f, 0.f), FVector(0.f, 10.f, 0.f), 600.f, 90.f, FLinearColor::Red, 0.6f);
+		W.Tick(1.f / 60.f);
+		const FVector Scale = Debris->GetActorScale3D() * 100.f;
+		const float Dist = FVector::Dist(Debris->GetActorLocation(), Camera);
+		TestTrue(FString::Printf(TEXT("near debris thickness %.0f cm (<= %.0f)"), Scale.Y, Dist * ATDCombatFlash::MaxDebrisThicknessPerCameraDistance),
+			Scale.Y <= Dist * ATDCombatFlash::MaxDebrisThicknessPerCameraDistance + 1.f);
+		TestTrue(FString::Printf(TEXT("near debris length %.0f cm (<= %.0f)"), Scale.X, Dist * ATDCombatFlash::MaxDebrisLengthPerCameraDistance),
+			Scale.X <= Dist * ATDCombatFlash::MaxDebrisLengthPerCameraDistance + 1.f);
+	}
+
 	// A small hit spark 300 m away keeps a readable size (~20 px at 1080p): radius >= 0.007 x distance at its peak.
 	ATDCombatFlash* Spark = Projectiles->PlayPlaceholderFlash(Camera + FVector(30000.f, 0.f, 0.f), 140.f, FLinearColor::White, 0.14f);
 	float SparkMax = 0.f;
@@ -748,6 +779,54 @@ bool FTDCombatPlaceholderIncomingNearCamera::RunTest(const FString& Parameters)
 	}
 	const FLinearColor Want = P->GetPlaceholderLookColor();
 	TestTrue(FString::Printf(TEXT("enemy head in pure Armada colour (%s)"), *Head.ToString()), Head.R > 0.f && FMath::IsNearlyEqual(Head.G / Head.R, Want.G / Want.R, 0.02f));
+	return true;
+}
+
+// Shield hits and hull hits read differently at a glance (the Lead's combat-feel pass): a cyan-blue puff on a shield, a
+// white-hot flash cooling to orange plus sparks on bare hull.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderShieldVsHull, "TriadDrift.Combat.Placeholder.ShieldHitVsHullHit", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderShieldVsHull::RunTest(const FString& Parameters)
+{
+	auto ShootAt = [this](float Shield, int32& OutStyled, int32& OutSparks, FLinearColor& OutColor)
+	{
+		FTDTestWorld W;
+		AActor* Target = TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(1500.f, 0.f, 1000.f), FVector(100.f), 1000.f, Shield);
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
+		Spec.FX = nullptr;
+		ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Player, nullptr, FVector::ZeroVector, 1.f, false);
+		OutStyled = OutSparks = 0;
+		for (int32 Frame = 0; Frame < 60 && OutStyled == 0; ++Frame)
+		{
+			W.Tick(1.f / 120.f);
+			for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+			{
+				if (!It->IsPlaying() || !It->IsStyled())
+				{
+					continue;
+				}
+				if (It->GetActorRotation() == FRotator::ZeroRotator)
+				{
+					++OutStyled;
+					OutColor = It->GetLastColor();
+				}
+				else
+				{
+					++OutSparks;
+				}
+			}
+		}
+		TestTrue(TEXT("the laser hit"), Target && UTDStatics::GetHealth(Target)->GetHull() + UTDStatics::GetHealth(Target)->GetShield() < 1000.f + Shield);
+	};
+	int32 Styled = 0, Sparks = 0;
+	FLinearColor Color;
+	ShootAt(500.f, Styled, Sparks, Color);
+	TestEqual(TEXT("shield hit: one puff"), Styled, 1);
+	TestTrue(FString::Printf(TEXT("shield hit: cyan-blue (%s)"), *Color.ToString()), Color.B > Color.R);
+	TestEqual(TEXT("shield hit: no hull sparks"), Sparks, 0);
+	ShootAt(0.f, Styled, Sparks, Color);
+	TestEqual(TEXT("hull hit: one hot flash"), Styled, 1);
+	TestTrue(FString::Printf(TEXT("hull hit: white-hot to orange, not blue (%s)"), *Color.ToString()), Color.R >= Color.B);
+	TestEqual(TEXT("hull hit: three sparks"), Sparks, 3);
 	return true;
 }
 
