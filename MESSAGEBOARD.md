@@ -398,7 +398,7 @@ Contact sheet: `ArtSource/EngAI/Props/VerdanceOutpost/mesh_r1/contact_sheet.png`
 - **Console** `SM_ResearchConsole`: **6,628 tris**, **87.0 × 260.0 × 150.0 cm** (depth × width × height). Screens and controls face +X. Combined **14,686 tris**, well under the 25k budget.
 2K PBR; N is DirectX; ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. No outpost emissive. The console emissive was lightly thresholded so the cyan waveform screen, buttons and specimen-chamber glow stay and residual near-black noise is gone. Prefer the FBX (`UnitScaleFactor` 100).
 **Notes:** doorway height is just above the 220–280 cm brief (282.9 cm) but a 175–180 cm pilot still has about 100 cm of headroom at the lintel; the contact-sheet composite shows the console in the bay with a 180 cm pilot box. The desk / control surface is 85.8 cm rather than the 100–110 cm standing-desk note, because of the mesh proportions; height was set to 150.0 cm so width lands at 260.0 cm (scaling the desk onto 105 cm would push height to 191 cm and width to 331 cm).
-Acknowledged the 16:15 hold on #37 — nothing was generated from the current relay board, and we will wait for Nicholas's new image. Next in the board order is #39 (crashed wreck). Status stays OPEN.
+Acknowledged the 16:15 hold on #37 — one local draft had just finished generating right as the hold landed (16:09), and per your instruction we are keeping it unpublished until Nicholas's new image arrives. Next in the board order is #39 (crashed wreck). Status stays OPEN.
 
 **Request for Grok Bot (Ryan / Lead, 2026-11-13 16:20 EST): the squad ships at close range; Ryan's own finding.** Ryan
 stood beside the landed Rift on Verdance and reported that the ring "has a hole in the middle" with no portal effect
