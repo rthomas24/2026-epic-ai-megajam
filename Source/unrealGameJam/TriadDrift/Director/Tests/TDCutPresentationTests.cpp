@@ -177,6 +177,24 @@ bool FTDCutPresSlateFitsAndClears::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlateHold, "TriadDrift.Director.CutPresentation.SlateWaitsForTheEntryHold", TD_TEST_FLAGS)
+bool FTDCutPresSlateHold::RunTest(const FString& Parameters)
+{
+	// T1's atmosphere entry pushes a HUD focus hold that hides combat presentation (T2): the scene's slate waits under
+	// it and comes up when the hold ends; the "CUT!" card is never held.
+	FFixture F;
+	UTDUIHostSubsystem::PushHUDFocus(F.W.GetWorld(), TEXT("Entry"), 0.35f, /*bHideCombat*/ true);
+	TestTrue(TEXT("the hold is up"), UTDUIHostSubsystem::IsCombatPresentationHeld(F.W.GetWorld()));
+	F.Bus()->BroadcastTakeStarted(TEXT("Wave3"), 1);
+	F.W.Advance(0.5f);
+	TestEqual(TEXT("no slate under the hold"), F.S().SlateAlpha, 0.f);
+	UTDUIHostSubsystem::PopHUDFocus(F.W.GetWorld(), TEXT("Entry"));
+	F.W.Tick();
+	F.W.Tick();
+	TestTrue(TEXT("the slate comes up when the hold ends"), F.S().SlateAlpha > 0.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlowMo, "TriadDrift.Director.CutPresentation.RealTimeUnderSlowMoAndQuickCut", TD_TEST_FLAGS)
 bool FTDCutPresSlowMo::RunTest(const FString& Parameters)
 {

@@ -117,6 +117,7 @@ public:
 	static TSharedPtr<class SWidget> ChooseRefocus(const TSharedPtr<class SWidget>& LastFocused, const TSharedPtr<class SWidget>& First);
 private:
 	bool bShowingVictory = false;
+	bool bReturnPending = false; // the stinger plays before the menu comes back
 	bool bMusicStarted = false;
 	bool bPlaceholderWanted = false;
 	bool bMusicFading = false;

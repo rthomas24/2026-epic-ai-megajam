@@ -425,9 +425,11 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		FTDDirectorSounds::Play(OwnerWorld.Get(), ETDDirectorSound::SlateClap); // Nick's widget draws the slate; the clap is ours
 		return;
 	}
-	if (IsSuppressedByIntro())
+	// The intro owns the screen; T1's atmosphere entry (or any HUD focus hold) keeps combat presentation away (T2's
+	// UTDUIHostSubsystem::IsCombatPresentationHeld). The slate waits and comes up when either ends. "CUT!" never waits.
+	if (IsSuppressedByIntro() || UTDUIHostSubsystem::IsCombatPresentationHeld(OwnerWorld.Get()))
 	{
-		PendingSlateScene = SceneId; // shown when the intro ends
+		PendingSlateScene = SceneId; // shown when the intro or the hold ends
 		PendingSlateTake = TakeNumber;
 		return;
 	}
@@ -474,7 +476,7 @@ void UTDCutPresentation::HandleShotStarted(float RealSeconds)
 
 void UTDCutPresentation::Tick(double RealNow)
 {
-	if (!PendingSlateScene.IsNone() && !IsSuppressedByIntro())
+	if (!PendingSlateScene.IsNone() && !IsSuppressedByIntro() && !UTDUIHostSubsystem::IsCombatPresentationHeld(OwnerWorld.Get()))
 	{
 		const FName Scene = PendingSlateScene;
 		PendingSlateScene = NAME_None;
