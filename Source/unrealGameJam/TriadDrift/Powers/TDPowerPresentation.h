@@ -84,7 +84,16 @@ class UNREALGAMEJAM_API ATDPlaceholderFlash : public AActor
 public:
 	ATDPlaceholderFlash();
 
-	static ATDPlaceholderFlash* SpawnRingFlash(UWorld* World, const FVector& Location, float Radius, FLinearColor Color, float Seconds);
+	/**
+	 * Three ring lattices that expand from StartScale to Radius over Seconds. Rotation aligns them (pass the ship's, so the
+	 * ring across its nose faces the chase camera); StartScale small makes the pulse grow out of the ship (live at 1080p the
+	 * world-aligned rings starting at 60% of a 40+ m radius read as two lines slicing the screen, the face-on ring already
+	 * off it).
+	 */
+	static ATDPlaceholderFlash* SpawnRingFlash(UWorld* World, const FVector& Location, float Radius, FLinearColor Color, float Seconds,
+		const FRotator& Rotation = FRotator::ZeroRotator, float StartScale = 0.6f);
+
+	float GetStartScale() const { return StartScale; }
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -100,5 +109,6 @@ public:
 
 private:
 	float Life = 0.4f;
+	float StartScale = 0.6f;
 	float Age = 0.f;
 };

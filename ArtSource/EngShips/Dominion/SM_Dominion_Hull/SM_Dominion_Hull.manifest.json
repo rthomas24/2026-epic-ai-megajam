@@ -1,0 +1,175 @@
+{
+  "asset": "SM_Dominion_Hull",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\SM_Dominion_Hull\\SM_Dominion_Hull.fbx",
+  "tris": 56766,
+  "size_cm": [
+    72984.1,
+    32000.0,
+    14194.1
+  ],
+  "pivot": "root object origin (SM_Dominion_Hull~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Dominion_Trim",
+    "M_Dominion_Panel",
+    "M_Dominion_GlowRed",
+    "M_Dominion_GlowEngine",
+    "M_Dominion_Armor",
+    "M_Dominion_GlowWhite"
+  ],
+  "material_params": [
+    {
+      "name": "M_Dominion_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": 0.8,
+      "roughness": null,
+      "emission_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Dominion_Panel",
+      "textured": true,
+      "base_color": null,
+      "metallic": 0.55,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 1.3
+    },
+    {
+      "name": "M_Dominion_GlowRed",
+      "textured": false,
+      "base_color": [
+        0.05,
+        0.007,
+        0.001
+      ],
+      "metallic": 0.0,
+      "roughness": 0.3,
+      "emission_color": [
+        1.0,
+        0.14,
+        0.02
+      ],
+      "emission_strength": 1.3
+    },
+    {
+      "name": "M_Dominion_GlowEngine",
+      "textured": false,
+      "base_color": [
+        0.05,
+        0.015,
+        0.0025
+      ],
+      "metallic": 0.0,
+      "roughness": 0.3,
+      "emission_color": [
+        1.0,
+        0.3,
+        0.05
+      ],
+      "emission_strength": 1.6
+    },
+    {
+      "name": "M_Dominion_Armor",
+      "textured": true,
+      "base_color": null,
+      "metallic": 0.5,
+      "roughness": null,
+      "emission_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Dominion_GlowWhite",
+      "textured": false,
+      "base_color": [
+        0.045,
+        0.0475,
+        0.05
+      ],
+      "metallic": 0.0,
+      "roughness": 0.3,
+      "emission_color": [
+        0.9,
+        0.95,
+        1.0
+      ],
+      "emission_strength": 1.6
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Dominion_Hull_00",
+    "UCX_SM_Dominion_Hull_01",
+    "UCX_SM_Dominion_Hull_02",
+    "UCX_SM_Dominion_Hull_03",
+    "UCX_SM_Dominion_Hull_04",
+    "UCX_SM_Dominion_Hull_05",
+    "UCX_SM_Dominion_Hull_06",
+    "UCX_SM_Dominion_Hull_07",
+    "UCX_SM_Dominion_Hull_08",
+    "UCX_SM_Dominion_Hull_09",
+    "UCX_SM_Dominion_Hull_10",
+    "UCX_SM_Dominion_Hull_11",
+    "UCX_SM_Dominion_Hull_12",
+    "UCX_SM_Dominion_Hull_13",
+    "UCX_SM_Dominion_Hull_14",
+    "UCX_SM_Dominion_Hull_15",
+    "UCX_SM_Dominion_Hull_16",
+    "UCX_SM_Dominion_Hull_17",
+    "UCX_SM_Dominion_Hull_18",
+    "UCX_SM_Dominion_Hull_19",
+    "UCX_SM_Dominion_Hull_20",
+    "UCX_SM_Dominion_Hull_21",
+    "UCX_SM_Dominion_Hull_22",
+    "UCX_SM_Dominion_Hull_23",
+    "UCX_SM_Dominion_Hull_24",
+    "UCX_SM_Dominion_Hull_25",
+    "UCX_SM_Dominion_Hull_26",
+    "UCX_SM_Dominion_Hull_27",
+    "UCX_SM_Dominion_Hull_28"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 7,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "nanite": true,
+  "fbx_relative": "SM_Dominion_Hull.fbx",
+  "ue_extent_cm": {
+    "min": [
+      -33384.1,
+      -16000.0,
+      -7000.0
+    ],
+    "max": [
+      39600.0,
+      16000.0,
+      7194.1
+    ]
+  }
+}

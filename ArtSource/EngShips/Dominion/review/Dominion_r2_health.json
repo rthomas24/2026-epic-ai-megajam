@@ -1,0 +1,399 @@
+{
+  "tag": "r2",
+  "stage": "full",
+  "assets": {
+    "SM_Dominion_Bridge": {
+      "tris": 2614,
+      "budget": [
+        3000,
+        60000
+      ],
+      "ue_min_cm": [
+        -3700.0,
+        -1993.9,
+        -3000.0
+      ],
+      "ue_max_cm": [
+        3835.0,
+        1993.9,
+        2980.0
+      ],
+      "ucx": 3,
+      "slots": [
+        [
+          0,
+          null,
+          false
+        ],
+        [
+          1,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_GlowWhite",
+          true
+        ],
+        [
+          4,
+          "M_Dominion_GlowRed",
+          true
+        ]
+      ],
+      "glow_area_m2": 0.0,
+      "ucx_objects": 3,
+      "report_errors": 0,
+      "report_warnings": 1,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Bridge",
+          "message": "8 n-gons; fine if planar, they get triangulated on export"
+        },
+        {
+          "severity": "warn",
+          "object": "SM_Dominion_Bridge",
+          "message": "Missing material slot(s); engine will show the default material"
+        }
+      ],
+      "assembly_ok": false,
+      "floating": [
+        {
+          "object": "SM_Dominion_Bridge",
+          "island": 34,
+          "tris": 12,
+          "center": [
+            0.0,
+            30.0,
+            18.0
+          ],
+          "gap_m": 3.9223
+        },
+        {
+          "object": "SM_Dominion_Bridge",
+          "island": 42,
+          "tris": 12,
+          "center": [
+            0.0,
+            36.0,
+            -5.4
+          ],
+          "gap_m": 0.6644
+        }
+      ],
+      "export": {
+        "status": "ok",
+        "tris": 2614,
+        "size_cm": [
+          7535.0,
+          3987.9,
+          5980.0
+        ],
+        "collision": [
+          "UCX_SM_Dominion_Bridge_00",
+          "UCX_SM_Dominion_Bridge_01",
+          "UCX_SM_Dominion_Bridge_02"
+        ],
+        "materials": [
+          "M_Dominion_Trim",
+          "M_Dominion_Panel",
+          "M_Dominion_GlowWhite",
+          "M_Dominion_GlowRed"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_Hull": {
+      "tris": 57156,
+      "budget": [
+        60000,
+        300000
+      ],
+      "ue_min_cm": [
+        -32460.0,
+        -16000.0,
+        -7000.0
+      ],
+      "ue_max_cm": [
+        34400.0,
+        16000.0,
+        7194.1
+      ],
+      "ucx": 19,
+      "slots": [
+        [
+          0,
+          null,
+          false
+        ],
+        [
+          1,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_GlowRed",
+          true
+        ],
+        [
+          4,
+          "M_Dominion_GlowEngine",
+          true
+        ],
+        [
+          5,
+          "M_Dominion_GlowWhite",
+          true
+        ]
+      ],
+      "glow_area_m2": 3496.5,
+      "ucx_objects": 19,
+      "report_errors": 0,
+      "report_warnings": 2,
+      "issues": [
+        {
+          "severity": "warn",
+          "object": "SM_Dominion_Hull",
+          "message": "7 duplicate vertices within 0.0001 m; merge by distance"
+        },
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Hull",
+          "message": "134 n-gons; fine if planar, they get triangulated on export"
+        },
+        {
+          "severity": "warn",
+          "object": "SM_Dominion_Hull",
+          "message": "Missing material slot(s); engine will show the default material"
+        },
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Hull",
+          "message": "800 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 57146,
+        "size_cm": [
+          66860.0,
+          32000.0,
+          14194.1
+        ],
+        "collision": [
+          "UCX_SM_Dominion_Hull_00",
+          "UCX_SM_Dominion_Hull_01",
+          "UCX_SM_Dominion_Hull_02",
+          "UCX_SM_Dominion_Hull_03",
+          "UCX_SM_Dominion_Hull_04",
+          "UCX_SM_Dominion_Hull_05",
+          "UCX_SM_Dominion_Hull_06",
+          "UCX_SM_Dominion_Hull_07",
+          "UCX_SM_Dominion_Hull_08",
+          "UCX_SM_Dominion_Hull_09",
+          "UCX_SM_Dominion_Hull_10",
+          "UCX_SM_Dominion_Hull_11",
+          "UCX_SM_Dominion_Hull_12",
+          "UCX_SM_Dominion_Hull_13",
+          "UCX_SM_Dominion_Hull_14",
+          "UCX_SM_Dominion_Hull_15",
+          "UCX_SM_Dominion_Hull_16",
+          "UCX_SM_Dominion_Hull_17",
+          "UCX_SM_Dominion_Hull_18"
+        ],
+        "materials": [
+          "M_Dominion_Trim",
+          "M_Dominion_Panel",
+          "M_Dominion_GlowRed",
+          "M_Dominion_GlowEngine",
+          "M_Dominion_GlowWhite"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_ShieldEmitter": {
+      "tris": 1784,
+      "budget": [
+        2000,
+        30000
+      ],
+      "ue_min_cm": [
+        -635.7,
+        -726.2,
+        -2000.0
+      ],
+      "ue_max_cm": [
+        729.2,
+        726.2,
+        1990.7
+      ],
+      "ucx": 0,
+      "slots": [
+        [
+          0,
+          null,
+          false
+        ],
+        [
+          1,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_GlowRed",
+          true
+        ],
+        [
+          4,
+          "M_Dominion_GlowWhite",
+          true
+        ]
+      ],
+      "glow_area_m2": 0.0,
+      "ucx_objects": 0,
+      "report_errors": 0,
+      "report_warnings": 1,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_ShieldEmitter",
+          "message": "20 n-gons; fine if planar, they get triangulated on export"
+        },
+        {
+          "severity": "warn",
+          "object": "SM_Dominion_ShieldEmitter",
+          "message": "Missing material slot(s); engine will show the default material"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 1784,
+        "size_cm": [
+          1364.9,
+          1452.4,
+          3990.7
+        ],
+        "collision": [
+          "UCX_SM_Dominion_ShieldEmitter_00"
+        ],
+        "materials": [
+          "M_Dominion_Trim",
+          "M_Dominion_Panel",
+          "M_Dominion_GlowRed",
+          "M_Dominion_GlowWhite"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_TrenchWall": {
+      "tris": 8072,
+      "budget": [
+        5000,
+        60000
+      ],
+      "ue_min_cm": [
+        -21592.9,
+        -890.6,
+        -1500.0
+      ],
+      "ue_max_cm": [
+        21592.9,
+        317.7,
+        1500.0
+      ],
+      "ucx": 1,
+      "slots": [
+        [
+          0,
+          null,
+          false
+        ],
+        [
+          1,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_GlowWhite",
+          true
+        ],
+        [
+          4,
+          "M_Dominion_GlowRed",
+          true
+        ]
+      ],
+      "glow_area_m2": 0.0,
+      "ucx_objects": 1,
+      "report_errors": 0,
+      "report_warnings": 1,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_TrenchWall",
+          "message": "4 n-gons; fine if planar, they get triangulated on export"
+        },
+        {
+          "severity": "warn",
+          "object": "SM_Dominion_TrenchWall",
+          "message": "Missing material slot(s); engine will show the default material"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 8072,
+        "size_cm": [
+          43185.8,
+          1208.3,
+          3000.0
+        ],
+        "collision": [
+          "UCX_SM_Dominion_TrenchWall_00"
+        ],
+        "materials": [
+          "M_Dominion_Panel",
+          "M_Dominion_Trim",
+          "M_Dominion_GlowWhite",
+          "M_Dominion_GlowRed"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    }
+  },
+  "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Dominion_r2_clay_sheet.png",
+  "views": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Dominion_r2_views.png"
+}

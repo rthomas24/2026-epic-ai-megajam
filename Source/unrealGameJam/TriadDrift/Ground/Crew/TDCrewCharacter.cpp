@@ -95,13 +95,24 @@ void ATDCrewCharacter::GuardAgainstCollapse(float DeltaSeconds)
 	if (CollapseStrikes >= 2)
 	{
 		bLookPoseFrozen = true;
-		bFallbackAnim = false;
 		++CollapseRetries;
 		FrozenRetryLeft = 1.f;
-		M->SetAnimInstanceClass(nullptr);
-		M->SetAnimationMode(EAnimationMode::AnimationSingleNode);
-		M->SetAnimation(nullptr);
-		UE_LOG(LogTriadDrift, Warning, TEXT("Crew look %s collapsed under its animation (head %.0f cm, expected %.0f): reference pose from now on."),
+		// No usable animation data for this look: pose it procedurally (C++, from the reference pose).
+		if (UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(M->GetAnimInstance()))
+		{
+			Loops->bProcedural = true;
+			Loops->Current = nullptr;
+			Loops->Previous = nullptr;
+			Loops->Shot = nullptr;
+		}
+		else
+		{
+			bFallbackAnim = false;
+			M->SetAnimInstanceClass(nullptr);
+			M->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+			M->SetAnimation(nullptr);
+		}
+		UE_LOG(LogTriadDrift, Warning, TEXT("Crew look %s collapsed under its animation (head %.0f cm, expected %.0f): procedural pose from now on."),
 			*GetNameSafe(M->GetSkeletalMeshAsset()), Head, RefHeadHeight);
 	}
 }
@@ -114,6 +125,17 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 		return;
 	}
 	const float Speed = (float)GetVelocity().Size2D();
+	if (Loops->bProcedural)
+	{
+		const float Dt = GetWorld() ? GetWorld()->GetDeltaSeconds() : 0.f;
+		Loops->ProcForwardCS = GetMesh()->GetComponentTransform().InverseTransformVectorNoScale(GetActorForwardVector());
+		Loops->ProcSpeed01 = FMath::FInterpTo(Loops->ProcSpeed01, FMath::Clamp(Speed / 500.f, 0.f, 1.f), Dt, 8.f);
+		Loops->ProcPhase += Dt * (Speed > 40.f ? Speed / 55.f : 2.f); // a stride every ~3.5 m; slow breathing at rest
+		const float Wind = IsTelegraphing() ? 1.f : (IsAttacking() ? -0.4f : 0.f);
+		Loops->ProcAttack = FMath::FInterpTo(Loops->ProcAttack, Wind, Dt, 10.f);
+		Loops->ProcFlinch = FMath::FInterpTo(Loops->ProcFlinch, 0.f, Dt, 6.f);
+		return;
+	}
 	const int32 Want = Speed < 40.f ? 0 : Speed < 300.f ? 1 : 2;
 	const FString Path = CrewAnimPath(Spec.Type, Want);
 	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
@@ -124,7 +146,8 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 	}
 	if (!Loop)
 	{
-		return; // no crew set yet: the loop player shows the reference pose (standing)
+		Loops->bProcedural = true; // no crew set on disk: pose it in C++ rather than stand in the T-pose
+		return;
 	}
 	const float Ref = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
 	Loops->SetLoop(Loop, Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f);
@@ -917,7 +940,14 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 		PlayCrewCue(TEXT("HullHit"), Visuals ? Visuals->HullHit : FTDFXCue(), false, Info.HitLocation);
 		if (!IsDead() && !IsAttacking())
 		{
-			PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
+			if (UTDLoopBlendAnimInstance* Loops = GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr; Loops && Loops->bProcedural)
+			{
+				Loops->ProcFlinch = 1.f;
+			}
+			if (Spec.Type != ETDCrewType::Grunt) // the hit react holds a rifle: wrong on an unarmed grunt
+			{
+				PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
+			}
 		}
 	}
 	if (Spec.Type == ETDCrewType::Warden && BossPhase == 1 && !IsDead() && Health->GetHull01() <= Spec.Phase2HealthFraction)
