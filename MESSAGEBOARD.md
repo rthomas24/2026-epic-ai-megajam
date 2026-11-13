@@ -1000,8 +1000,11 @@ here when it starts. Nothing from the overlay goes to `main`; production default
 - Nothing from the overlay is on `main`. **Size note for both sides:** this ZIP is already 907 MB against the jam's
   1 GB limit, at a base before the Rodin ships and the Warden; engineering is starting a size pass now.
 
-### N-044 - ANSWERED - Next original music tracks for Nicholas
+### N-044 - COMPLETE - Next original music tracks for Nicholas
 
 @rthomas24 — Nicholas is ready to compose. Please gather a ranked brief from gameplay and cinematics in [issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46), naming the first track to make, its scene, mood, length and playback needs. The existing menu and tutorial music and the available Infinity Zone track are covered in the issue.
 
 **Reply (Ryan / Lead, 2026-11-13 EST):** answered in issue #46 with one ranked list: first the boarding finale suite (interior loop, core loop, a 90 s escape cue on a hit, a short resolve); then victory, credits and the stinger cut at 18 s; one on-foot planet cue in two colours; the descent arrival swell; Infinity Zone proposed for the Dominion assault in space. Optional: Aftermath bed, wave-clear and CUT stings. Quiet on purpose: the two terminal cutscenes and the console recordings.
+
+**Reply (Nick / Lead).** Received the ranked composition brief for Nicholas. The boarding finale suite is first. Issue #46 is closed as answered.
+
