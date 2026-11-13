@@ -54,12 +54,16 @@ bool FTDPresPlaceholders::RunTest(const FString& Parameters)
 
 	// EMP: a short ring flash actor.
 	AActor* Lancer = SpawnBody(W, ETDTeam::Player, FVector(0.f, 30000.f, 0.f), FVector(100.f));
+	Lancer->SetActorRotation(FRotator(10.f, 35.f, 0.f));
 	UTDEMPPower* Emp = AddPower<UTDEMPPower>(Lancer);
 	Emp->TryActivate();
 	int32 Flashes = 0;
 	for (TActorIterator<ATDPlaceholderFlash> It(W.GetWorld()); It; ++It)
 	{
 		++Flashes;
+		// Live at 1080p the world-aligned rings at 60% read as two lines across the screen: ship-aligned, growing out of it.
+		TestTrue(TEXT("EMP pulse is aligned with the ship (the nose ring faces the chase camera)"), It->GetActorRotation().Equals(Lancer->GetActorRotation(), 0.5f));
+		TestTrue(FString::Printf(TEXT("EMP pulse starts small (%.2f of its radius)"), It->GetStartScale()), It->GetStartScale() <= 0.1f);
 	}
 	TestEqual(TEXT("EMP shows a pulse flash"), Flashes, 1);
 	W.Advance(0.6f, PowerFrameStep());
