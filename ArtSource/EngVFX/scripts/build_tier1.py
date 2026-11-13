@@ -20,6 +20,7 @@ BASTION = (1.0, 0.55, 0.08, 1.0)
 ENEMY = (1.0, 0.22, 0.05, 1.0)
 FIRE = (1.0, 0.42, 0.10, 1.0)
 SHIELD = (0.25, 0.60, 1.0, 1.0)
+SHIELD_HIT = (0.22, 0.62, 1.0, 1.0)   # pale cyan-blue (the ring material adds white on top)
 FADE = 'pow(1.0 - Particles.NormalizedAge, %s)'
 FLICK = '(0.80 + 0.40*frac(sin(Engine.Time*%s)*43758.5))'
 
@@ -349,13 +350,17 @@ S('NS_TD_Impact_Hull', U(FIRE), [
          cone=((1.0, 0.0, 0.0), 70.0), burst=4, dur=0.5, growth='0.7 + Particles.NormalizedAge*0.9'),
     spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (0.7, 1.2), (150, 240), (60, 260), radius=20.0, drag=1.5, rgb=(0.30, 0.27, 0.27), alpha=0.7,
               cone=((1.0, 0.0, 0.0), 60.0), burst=3, dur=1.3, power=0.8, growth='0.8 + Particles.NormalizedAge*1.3', sort=True))])
-S('NS_TD_Impact_Shield', U(SHIELD), [
-    # Grok Bot's hexagon ripple flipbook on a disc lying on the hit plane
-    mesh_flash('Hex', 'SM_TD_VFX_Disc', 'M_TD_VFX_FlipShield', '1.0, 6.0, 6.0', 0.50, 0.7, growth='float3(1,1,1)*(0.85 + Particles.NormalizedAge*0.25)', power=0.4),
-    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_Shock', '1.0, 5.0, 5.0', 0.30, 0.5, growth='float3(1,1,1)*(0.10 + pow(Particles.NormalizedAge, 0.6)*0.95)', power=1.5),
-    flash('Glow', 'M_TD_VFX_Glow', 260, 0.12, 0.45),
-    shed('Motes', 'M_TD_VFX_Glow', 0, (0.3, 0.6), (9, 20), (300, 1400), k=1.1, radius=20.0, drag=2.5, curl=600.0, burst=12, dur=0.8, power=2.0,
-         cone=((1.0, 0.0, 0.0), 88.0))])
+# Round 4: SMALL. A ring from 0.4 m to 2.5 m radius in 0.3 s at about half brightness, a hexagon ripple inside it
+# (procedural M_TD_VFX_Hex, tinted, no white), a small glow and a few fast sparks. It must read as "a hit on a shield
+# here" and never hide the ship, also when eight land in a second.
+# NEAR: a hit close to the camera (a wingman beside the chase camera, 17 m behind the ship) shrinks, so it cannot fill the screen.
+NEAR = 'clamp(Engine.Owner.LODDistance/1700.0, 0.28, 1.0)'
+S('NS_TD_Impact_Shield', U(SHIELD_HIT), [
+    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_Shock', '1.0, 5.0, 5.0', 0.30, 0.50, growth='float3(1,1,1)*(0.16 + pow(Particles.NormalizedAge, 0.6)*0.84)*' + NEAR, power=1.3),
+    mesh_flash('Hex', 'SM_TD_VFX_Disc', 'M_TD_VFX_Hex', '1.0, 4.2, 4.2', 0.28, 0.20, growth='float3(1,1,1)*(0.45 + Particles.NormalizedAge*0.55)*' + NEAR, power=0.8),
+    flash('Glow', 'M_TD_VFX_Glow', 110, 0.10, 0.35, growth=NEAR),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.10, 0.26), (4, 8), (900, 3200), k=1.2, radius=6.0, drag=3.0, stretch=10,
+         cone=((1.0, 0.0, 0.0), 75.0), burst=7, dur=0.4)])
 
 # --------------------------------------------------------------------------------------------- explosions
 # The blast, the smoke and the main ring use Grok Bot's textures (T_TD_VFX_Grok_*, sources ArtSource/EngAI/VFX); the rest
