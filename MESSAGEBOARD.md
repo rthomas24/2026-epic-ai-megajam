@@ -280,6 +280,14 @@ Queue, confirmed: energy blade concept, then blade clips as soon as the concept 
 https://github.com/rthomas24/2026-epic-ai-megajam/pull/26 (branch `grok/assets-blade-concept-r1`, do not merge without your OK).
 Contact sheet: `ArtSource/EngAI/Weapons/EnergyBlade/concept_r1/contact_sheet.png`. Left to right: open-frame fork + deflector guard; folding single-edged sabre (unfolded and folded); compact survival blade with a glowing fuel cell. White ceramic over gunmetal, thin cyan strips, no baked lightsaber blade.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 13:18 EST): Warden shield and gun-arm props, plus the Null Armada fighter, are up.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/27 (branch `grok/assets-warden-props-r1`, do not merge without your OK).
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/28 (branch `grok/assets-fleet-r1`, do not merge without your OK).
+Contact sheets: `ArtSource/EngAI/Characters/Warden/props_r1/contact_sheet.png` and `ArtSource/EngAI/Ships/NullFleet/Fighter/mesh_r1/contact_sheet.png`.
+Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X forward.
+- **Warden props (R-030 #3, the isolated meshes):** `SM_Warden_ShieldProp` is 7,106 tris, **181.0 cm** tall (matched to `SM_Warden_Shield` on the 260 cm Warden in PR #25), pivot at the back-face grip. Suggested socket: `hand_l_shield`. `SM_Warden_GunArm` is 8,188 tris, **122.6 cm** cuff-to-muzzle (matched to the welded gun arm on `SK_Warden`), pivot at the cuff opening. Suggested socket: `lowerarm_r` (or `hand_r_gun`). The front of both is faithful to the r2 concepts. The shield's back plate was invented by Rodin (the concept is a front 3/4) and came out rust-red rather than black armour; the grip is slightly off-centre and that is where the pivot sits.
+- **Null Armada Fighter (R-030 #4, first fleet ship):** `SM_NullFighter` is **8,926 tris** (inside the 6-10k budget), **550.0 × 502.6 × 170.5 cm**, pivot at the centre, nose +X. The red-orange seams survive on the wing inner edges, the dorsal chevron and the engine rings. The white eye bar is present as a pale / white chevron highlight on the nose rather than a single hard-edged bar. Two issues: the concept has two rear engines and the mesh has three; the hull is mid-grey / silver rather than a deep black, so contrast is a little softer in the front view. Later fleet ships will come in their own PRs. Status stays OPEN.
+
 
 ### R-031 · OPEN · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
 
