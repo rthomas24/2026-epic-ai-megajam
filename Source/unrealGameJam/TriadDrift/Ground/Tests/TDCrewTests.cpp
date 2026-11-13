@@ -615,6 +615,7 @@ bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
 	return true;
 }
 
+#if WITH_EDITOR // USkeletalMesh::AddSocket is editor-only: a packaged Development game compiles the tests too
 // ------------------------------------------------------------------------------------------------
 // A look with a Muzzle socket on the hand (the re-imported NullTrooper): the socket is only where shots start;
 // they are aimed from there at the target and land. A socket that sits beside or behind the body falls back to
@@ -678,6 +679,7 @@ bool FTDCrewMuzzleSocket::RunTest(const FString& Parameters)
 	return true;
 }
 
+#endif // WITH_EDITOR
 // ------------------------------------------------------------------------------------------------
 // Playtest 17e0437: a live grunt lay collapsed (every bone at the floor) while tests passed, because they checked an
 // animation mode, not the pose. Every crew type with its real look stands: head above the pelvis and above
