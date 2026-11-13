@@ -82,6 +82,16 @@ public:
 	double GetSetupMs() const { return SetupMs; }
 	double GetFirstViewMs() const { return FirstViewMs; }
 
+	/**
+	 * ENG-38: the far ring bends down by d^2 / (2 * CurvatureRadius), with d = the distance beyond the collidable
+	 * core's square edge, so the edge of the flat world sinks under the horizon. 0 = flat (the old look).
+	 */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Terrain")
+	float CurvatureRadius = 53000000.f;	// 530 km: ~1 km down at the far edge, 0 inside the core
+
+	/** How far (cm) the far ring is bent down at a course-local point (0 inside the core). */
+	float CurvatureDrop(float X, float Y) const;
+
 	/** Collision under the first view cooks synchronously within this radius (cm); everything farther cooks async. */
 	UPROPERTY(EditAnywhere, Category = "TriadDrift|Terrain")
 	float SyncCollisionRadius = 200000.f;
