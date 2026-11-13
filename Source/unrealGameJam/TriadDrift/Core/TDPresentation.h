@@ -530,6 +530,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
 	TSoftClassPtr<UUserWidget> SettingsWidgetClass;
 
+	/** The on-foot HUD (optional). Empty = engineering's styled native on-foot HUD. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> GroundHUDWidgetClass;
+
 	/**
 	 * The intro (ENG-33), optional. When set, this Level Sequence plays on New Game instead of the code-driven
 	 * shots, with the same skip and hand-off rules.
