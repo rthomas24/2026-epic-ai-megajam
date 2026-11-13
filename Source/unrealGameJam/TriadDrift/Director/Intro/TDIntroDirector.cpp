@@ -1367,6 +1367,7 @@ void UTDIntroDirector::HoldSquad(bool bHold)
 				H.Velocity = Move->Velocity;
 				H.bMovementTick = Move->IsComponentTickEnabled();
 				Move->SetComponentTickEnabled(false);
+				Move->SetMoveAnnounced(true); // the intro poses the ship on purpose: not a silent move (T1's watchdog)
 			}
 			if (AController* C = Ship->GetController(); C && !C->IsA<APlayerController>())
 			{
@@ -1390,6 +1391,7 @@ void UTDIntroDirector::HoldSquad(bool bHold)
 		{
 			Move->SetComponentTickEnabled(H.bMovementTick);
 			Move->Velocity = H.Velocity;
+			Move->SetMoveAnnounced(false); // back where it was; the watchdog resumes from here
 		}
 		if (AController* C = Ship->GetController(); C && !C->IsA<APlayerController>())
 		{
