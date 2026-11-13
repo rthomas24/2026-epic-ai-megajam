@@ -59,6 +59,36 @@ namespace TDTravelTest
 
 // =================================================================================== hyperdrive
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelPadArt, "TriadDrift.Travel.Landing.PadArtSwapsTheLookNotTheCollision", TD_TEST_FLAGS)
+bool FTDTravelPadArt::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	if (!TestNotNull(TEXT("pad"), Pad)) { return false; }
+	UStaticMeshComponent* Deck = Pad->GetPadCollisionMesh();
+	UStaticMeshComponent* Art = Pad->GetPadArtMesh();
+	// The default slot points at Props/Planet/SM_LandingPad; until that asset exists the cylinder shows.
+	if (!Pad->GetPadArtMesh()->GetStaticMesh())
+	{
+		TestTrue(TEXT("no art yet: the cylinder deck shows"), Deck->IsVisible());
+		TestFalse(TEXT("no art yet: the art mesh is hidden"), Art->IsVisible());
+	}
+	TestEqual(TEXT("the deck collides"), Deck->GetCollisionEnabled(), ECollisionEnabled::QueryAndPhysics);
+
+	Pad->PadArt = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Cube.Cube")));
+	Pad->ApplyPadArt();
+	TestTrue(TEXT("art assigned: it shows"), Art->IsVisible() && Art->GetStaticMesh() != nullptr);
+	TestFalse(TEXT("art assigned: the cylinder stops drawing"), Deck->IsVisible());
+	TestEqual(TEXT("art assigned: the cylinder still collides"), Deck->GetCollisionEnabled(), ECollisionEnabled::QueryAndPhysics);
+	TestEqual(TEXT("art never collides"), Art->GetCollisionEnabled(), ECollisionEnabled::NoCollision);
+	TestEqual(TEXT("walkable top at DeckHeight above the origin"), (float)(Pad->GetBeaconLocation().Z - Pad->GetActorLocation().Z), 40.f, 0.1f);
+
+	Pad->PadArt = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Planet/SM_DoesNotExist.SM_DoesNotExist")));
+	Pad->ApplyPadArt();
+	TestTrue(TEXT("missing art: back to the cylinder"), Deck->IsVisible() && !Art->IsVisible());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelHyperSpool, "TriadDrift.Travel.Hyperdrive.SpoolJumpAndSteering", TD_TEST_FLAGS)
 bool FTDTravelHyperSpool::RunTest(const FString& Parameters)
 {

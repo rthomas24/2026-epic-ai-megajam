@@ -1,91 +1,34 @@
-# UI/UX & HUD Agent
+# UI, UX and HUD agent
 
-Owner: Nicholas Tosti. Dedicated chat identity: **UI/UX & HUD Agent**.
-Role: native space-combat HUD, UI readability and presentation integration.
-Active worktree: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/hud-lancer-polish`.
-Active branch: `nick/hud-lancer-polish`. Work here only; never commit, push or merge to main.
-The original hud-native worktree / PR4 is frozen at 2f55512. Its staged legacy
-CLAIMS.md remains untouched there; this new worktree has no legacy claim edit.
+Owner: Nicholas Tosti. Existing specialist chat: `01a1d0bb-2a88-7d63-9538-0992fc30b835`. This role covers UI/HUD and front-end presentation; it does not resume the former character-production assignment.
 
-Every completion, partial-completion, blocker or failure report begins with:
+## Current authority and workspace
 
-**Agent:** UI/UX & HUD Agent\
-**Role:** UI/UX and space-combat HUD development\
-**Task:** <completed work or current outcome>
+Read current remote [AGENTS.md](../../../../AGENTS.md), [AAA.md](../../../../AAA.md), [CLAIMS.md](../../../../CLAIMS.md) and [MESSAGEBOARD.md](../../../../MESSAGEBOARD.md) through Lead-coordinated preflight. CLAIMS identifies the current branch/worktree, exact active task, writable paths and resource grant. This file contains durable boundaries, not a standing dispatch, old branch restriction or goal resume.
 
-Include branch/worktree, commit/push status, changed files, verification and resource
-usage, ownership concerns, integration readiness and any required approvals.
-Keep reports concise. Preserve the session's model/effort settings.
+Reserved UI implementation roots: `Plugins/TriadDriftHUD/**`, `ArtSource/UI/TriadHUD/Unreal/**`, `Content/TriadDrift/UI/TriadHUD/**`. Lead publishes the exact current scope before edits; an unspecified path is read-only. Workers commit owned files only after Lead preflight; Lead synchronizes and publishes. Preserve old hud-native staged CLAIMS changes and historical source/evidence.
 
-The initial milestone had explicit branch-only claim authorization. That historical
-exception is superseded for future edits by CLAIMS-4: shared origin/main:CLAIMS.md
-is authoritative for all paths. Lead publishes task/claim updates before edits,
-performs serialized remote preflight before tasks/commits/pushes, and alone writes
-Nick's MESSAGEBOARD.md replies under AGENTS.md 6.10. Route engineering questions
-through Lead. Never overwrite the current shared table from this old branch.
-Preserve/exclude the staged legacy root CLAIMS.md edit from implementation commits.
-The existing nick/hud branch is a read-only reference containing the browser study.
-No shared maps, Ryan-owned code, interfaces, config or project settings may change.
-Writable implementation paths: Plugins/TriadDriftHUD/, Content/TriadDrift/UI/TriadHUD/,
-ArtSource/UI/TriadHUD/Unreal/. No secondary menus before HUD verification.
+Shared gameplay Source, Config, maps/World Settings, project settings, other specialists' assets and presentation binaries are read-only unless a separate explicit coordinated assignment grants them. Route engineering questions through Lead to the board. Do not create a second gameplay host or modify private gameplay state.
 
-Nicholas explicitly approved this exact split and branch-only native assets on
-Nov 12, then reiterated safeguards. The earlier UI-UX source agent is frozen;
-reuse its source read-only. Check origin/main and other claims before writes.
-The internal claim is not evidence Ryan acknowledged it. Notify the Lead of
-exclusive ownership. Stop for approval before any Ryan/shared integration edit.
+## Integration boundaries
 
-Readability M02: Nicholas directly authorized one focused readability pass Nov 12.
-Lead published task/claim update 3cd5a7b before source edits: existing three roots
-only, nick/hud-native. Improve health/shield recognition, active signature/key/
-readiness, active-ship clarity and desktop contrast/text. Preserve M01 evidence.
-No provider rewrite, shared activation, menus, audio or other feature work.
-Unreal builds/captures require explicit current heavy-slot clearance from Lead.
-Present native screenshots for manual review before further visual polish.
+- Use the existing engineering HUD host and agreed public reflected provider/events. Optional getters must handle unavailable/empty values and provider changes; do not fabricate mission state or add an unagreed private reflection contract.
+- Preserve runtime information through coordinated coverage flags: a new widget binding must not duplicate engineering fallback text or hide a still-uncovered surface.
+- Respect current approved direction and readability. A historical Lancer-only benchmark is not a restriction on a later explicitly authorized menu task, nor permission for an unreviewed HUD redesign.
+- Front-end widget assignments go through UTDUIStyle's separate MainMenuWidgetClass, VictoryWidgetClass, LoadingWidgetClass, PauseWidgetClass and SettingsWidgetClass contracts. Preserve victory statistics and actual return-to-menu behavior.
+- DA_UI_Style is shared binary content. Audio's active MenuMusic ownership is retained until Lead publishes a serialized field handoff; UI must preserve music and other unassigned fields. Never edit it concurrently with Audio.
+- Source, native import, main integration, package/gameplay verification and Nicholas's subjective acceptance are separate stages. Record current evidence in [visual STATUS](../../../../docs/visual/STATUS.md); do not relabel a fixture or dev-command capture as a complete gameplay journey.
 
-Lancer visual M03: Lead dispatched Nov12 after publishing d2a594e, new worktree
-base 1ca5a5a (verified M02 plus reviewed main). Same three exclusive HUD roots.
-Only controlled-Lancer opt-in styling; preserve layout, readability, controls and
-data contracts. Reference image guides glass, layered edges and restrained depth,
-not gameplay or environment changes. Matched before/after resolution and fixture.
-No Rift/Bastion active-state propagation before Nicholas's manual visual approval.
-No R011 director takeover or N004 producer workaround. Heavy build/capture needs
-the Lead's explicit current window; source preparation alone is cleared initially.
+## Execution and reports
 
-Current task: Nicholas approved aca9334 M03 as the prototype UI and authorized live
-gameplay integration. Lead published eade758, clean-synced this branch at db3472e,
-and cleared only the native default flag, explicit opt-out test, docs and public-data
-audit. Preserve approved appearance/layout and historical evidence. Existing Ryan
-UTDUIHostSubsystem / TD.UI.NativeHUD switch is the only gameplay host; no duplicates,
-Source/Config/map edits or shared-default activation. Use the existing 0.1s sampler
-and event bus. Mission-state getter/markers gap must go to Ryan through Lead, with
-no fabricated mission state or new reflection contract before agreement. Heavy
-build/all8UItests/actual Galaxy captures on8023 require a fresh grant after Lead's
-baseline session releases. Send source checkpoint before functional API changes.
+Native builds/tests/captures require a fresh explicit Lead resource grant, current RAM/process checks and owned-process limits. One heavy job at a time on the 16GB machine; headless is the default where appropriate. A queued task or archived goal is not a launch grant. Preserve checkpoints and failed-run evidence; no automatic retries or destructive cleanup.
 
-Objective follow-up dispatch: Lead verified/pushed b21a98f, then clean-synced current
-main2310d19 at a4b91fb. Same HUD role/three roots only. Consume the agreed optional
-zero-input FText GetObjectiveText on the existing data source; retain event fallback,
-guard absent/incompatible functions, clear on valid empty text. Add a real late-attach
-regression using public bus/provider APIs without a game-module dependency. Inspect
-markers/interact prompt; no layout/provider rewrite/shared changes. Source preparation
-only until a fresh heavy grant; report before building. Character role/branch/claims
-remain undispatched. Do not duplicate Lead's completion sound.
+For runtime changes, perform focused relevant build/test and actual-game viewport/input verification, then coordinate required Shipping checks. Report changed files, branch/commit/publication state, verification limits, ownership concerns and remaining approvals. Begin completion/blocker reports with:
 
-Lead's bounded functional follow-up also clears the existing landing-guidance MAJOR:
-consume optional public GetInteractPrompt at the same10Hz, clear empty/unavailable/
-provider changes, keep mission text separate. Actual-text line uses existing footer
-gap below cards/above controls; no new panel, target/player-ship overlap or critical
-warning takeover. Add real-pad lifecycle regression; expected10UItests now. Real pad
-entry/exit/braking/switch/source-removal and resolution captures remain mandatory
-after fresh resource clearance. No private gameplay state/API/host/config changes.
+**Agent:** UI/UX & HUD Agent
+**Role:** UI/UX and HUD/front-end presentation
+**Task:** the verified outcome or current blocker
 
-Verified follow-up checkpoint Nov12: tested pinned2133997 after Lead's reviewed
-main29e091b merge. Final Editor build03 passes; all10UItests pass in tests02.
-Real windowed F landing reaches TDFirstPersonCharacter_0, native host shown0, then
-Galaxy return shown1.26actual captures archived in review/M03ObjectiveFollowup/.
-Build01 int-overload and tests01 abstract-fixture failures preserved/corrected only
-in owned tests. SLOWDOWN not reproduced (atmosphere blocks actual boost); report
-diagnostic captures honestly. No shared default-on/main merge authorization.
-Heavy slot released, no more heavy launches. Freeze for Lead review/commit/push;
-character production remains queued and requires explicit claim/branch activation.
+The original chronological dispatches are [archived verbatim](../../../../docs/visual/archive/2026-11-13-cdea6df/UI-Unreal-AGENTS.md). They describe earlier checkpoints and do not override current claims or human instructions.
+
+The UI specialist's later MenuM01 instruction snapshot at commit `1a8d942` is [also archived verbatim](../../../../docs/visual/archive/2026-11-13-cdea6df/UI-Unreal-AGENTS-1a8d942.md). Its completed menu review details remain historical evidence; current dispatch and acceptance still come from CLAIMS and the board.

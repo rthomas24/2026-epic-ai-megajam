@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Misc/PackageName.h"
 
 #define LOCTEXT_NAMESPACE "TDLandingPad"
 
@@ -28,12 +29,48 @@ ATDLandingPad::ATDLandingPad()
 	}
 	PadMesh->SetCollisionProfileName(TEXT("BlockAll"));
 
+	PadArtMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PadArtMesh"));
+	PadArtMesh->SetupAttachment(Root);
+	PadArtMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PadArtMesh->SetGenerateOverlapEvents(false);
+	PadArtMesh->SetVisibility(false);
+
 	PromptText = LOCTEXT("HoldToLand", "Hold F to land");
+}
+
+void ATDLandingPad::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	ApplyPadArt();
+}
+
+void ATDLandingPad::ApplyPadArt()
+{
+	UStaticMesh* Art = nullptr;
+	if (!PadArt.IsNull())
+	{
+		Art = PadArt.Get();
+		if (!Art && FPackageName::DoesPackageExist(PadArt.ToSoftObjectPath().GetLongPackageName()))
+		{
+			Art = PadArt.LoadSynchronous();
+		}
+	}
+	if (PadArtMesh)
+	{
+		PadArtMesh->SetStaticMesh(Art);
+		PadArtMesh->SetVisibility(Art != nullptr);
+	}
+	if (PadMesh)
+	{
+		// The cylinder keeps colliding either way; it only stops drawing once real art shows.
+		PadMesh->SetVisibility(Art == nullptr);
+	}
 }
 
 void ATDLandingPad::BeginPlay()
 {
 	Super::BeginPlay();
+	ApplyPadArt();
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		Travel->RegisterPad(this);

@@ -57,8 +57,24 @@ public:
 	float GetPromptRange() const { return PromptRange; }
 	const FText& GetPromptText() const { return PromptText; }
 
+	/** The deck's art mesh in use (null while the placeholder cylinder shows). */
+	UStaticMeshComponent* GetPadArtMesh() const { return PadArtMesh; }
+	UStaticMeshComponent* GetPadCollisionMesh() const { return PadMesh; }
+
+	/** Loads PadArt (when the asset exists) and swaps the visible deck; collision always stays on the cylinder. */
+	void ApplyPadArt();
+
+	/**
+	 * Art for the deck. Footprint: a 1000 cm diameter disc (500 cm radius) centred on the actor, walkable face = its
+	 * top (+Z) at DeckHeight (40 cm) above the actor origin; pivot at the bottom centre, +X forward (the landing
+	 * facing). Collision is unchanged: the placeholder cylinder keeps colliding (hidden) whatever art is assigned.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Landing")
+	TSoftObjectPtr<UStaticMesh> PadArt = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Planet/SM_LandingPad.SM_LandingPad")));
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Landing")
@@ -67,6 +83,10 @@ protected:
 	/** Placeholder deck (engine cylinder). Art replaces it. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Landing")
 	TObjectPtr<UStaticMeshComponent> PadMesh;
+
+	/** Visual-only deck art (no collision), shown when PadArt loads. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Landing")
+	TObjectPtr<UStaticMeshComponent> PadArtMesh;
 
 	/** Wingmen land here, not the player. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Landing")

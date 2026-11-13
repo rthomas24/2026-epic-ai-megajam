@@ -131,4 +131,41 @@ bool FTDPilotBodyLoops::RunTest(const FString& Parameters)
 	return true;
 }
 
+// The real pilot look (DA_Pilot_Visuals) stands upright: head above the pelvis and above 140 cm x scale, standing
+// and running, sampled across a second (the 17e0437 lesson: assert the pose, not the mode).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPilotBodyUpright, "TriadDrift.Ground.PilotBody.RealLookStandsUpright", TD_TEST_FLAGS)
+bool FTDPilotBodyUpright::RunTest(const FString& Parameters)
+{
+	for (int32 Pass = 0; Pass < 2; ++Pass)
+	{
+		// Made per pass: a test world's teardown collects transient objects made before it.
+		UTDPilotVisuals* Look = Pass == 0 ? Cast<UTDPilotVisuals>(ATDCrewCharacter::FindLookAsset(TEXT("DA_Pilot_Visuals"), UTDPilotVisuals::StaticClass()))
+			: TDPilotBodyTest::StandIn();
+		if (!Look)
+		{
+			AddInfo(TEXT("no DA_Pilot_Visuals on this branch: the stand-in only"));
+			continue;
+		}
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDPilotBodyTest::SpawnPilot(W, Look);
+		AddInfo(FString::Printf(TEXT("look %s: mesh %s, scale %.2f, head bone %s"), *GetNameSafe(Look), *Look->SkeletalMesh.ToString(), Look->MeshScale, *Look->HeadBone.ToString()));
+		if (!TestTrue(TEXT("body"), P->HasBody())) { return false; }
+		USkeletalMeshComponent* Body = P->GetMesh();
+		Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones; // nothing renders in tests
+		const float MinHead = 140.f * Look->MeshScale;
+		auto Check = [&](const TCHAR* What)
+		{
+			const float Feet = (float)(P->GetActorLocation().Z - P->GetSimpleCollisionHalfHeight());
+			const float Head = (float)Body->GetBoneLocation(Look->HeadBone).Z - Feet;
+			const float Pelvis = (float)Body->GetBoneLocation(TEXT("pelvis")).Z - Feet;
+			TestTrue(*FString::Printf(TEXT("%s %s stands: head %.0f cm (min %.0f), pelvis %.0f"), *GetNameSafe(Body->GetSkeletalMeshAsset()), What, Head, MinHead, Pelvis),
+				Head > Pelvis + 30.f && Head > MinHead);
+		};
+		for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); if (i % 20 == 19) { Check(TEXT("standing")); } }
+		for (int32 i = 0; i < 60; ++i) { P->AddMovementInput(FVector::ForwardVector, 1.f); W.Tick(1.f / 60.f); if (i % 20 == 19) { Check(TEXT("running")); } }
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

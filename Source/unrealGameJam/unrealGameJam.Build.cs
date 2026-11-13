@@ -27,7 +27,7 @@ public class unrealGameJam : ModuleRules
 			"NavigationSystem"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] { "LevelSequence", "MovieScene" }); // ENG-33: UTDUIStyle::IntroSequence
 
 		PublicIncludePaths.AddRange(new string[] {
 			"unrealGameJam",
