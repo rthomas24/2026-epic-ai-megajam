@@ -9,7 +9,8 @@
 //       TD.Input.Keys <K1+K2+...> [Seconds=0.1]   several keys held together (e.g. TD.Input.Keys W+LeftShift 3)
 //       TD.Input.Axis <Key> <Value> [Seconds=0.1] analog every frame (e.g. TD.Input.Axis Gamepad_RightX 1 0.5)
 //       TD.Input.Mouse <DX> <DY> [Seconds=0.1]    mouse delta per frame (virtual joystick)
-//       TD.Input.Tap <Key> [Count=2] [Interval=0.15] taps in one go (double-tap dodge: TD.Input.Tap D 2)
+//       TD.Input.Tap <Key> [Count=2] [Interval=0.15] [AxisValue=1]   taps in one go (double-tap dodge: TD.Input.Tap D 2;
+//                                                 stick flick: TD.Input.Tap Gamepad_LeftX 2 0.15 -1)
 //       TD.Input.ReleaseAll                       release everything this tool pressed
 // Keys use FKey names (EKeys): W A S D Q E F H C T V Tab SpaceBar LeftShift One Two Three LeftMouseButton...
 
@@ -80,8 +81,11 @@ namespace TDInputDebug
 			{
 				if (Now >= H.StartTime)
 				{
-					Send(PC, H.Key, IE_Pressed, 1.f);
-					H.bPending = false;
+					if (!H.bAxis)
+					{
+						Send(PC, H.Key, IE_Pressed, 1.f);
+					}
+					H.bPending = false; // an axis tap is driven every frame below until EndTime
 				}
 				continue;
 			}
@@ -236,6 +240,9 @@ namespace TDInputDebug
 		}
 		const int32 Count = Args.IsValidIndex(1) ? FMath::Clamp(FCString::Atoi(*Args[1]), 1, 10) : 2;
 		const float Interval = Args.IsValidIndex(2) ? FMath::Max(0.04f, FCString::Atof(*Args[2])) : 0.15f;
+		// Analog keys (sticks, triggers) tap as an axis value: TD.Input.Tap Gamepad_LeftX 2 0.15 -1 = double flick left.
+		const FKey TapKey(*Args[0]);
+		const float AxisValue = Args.IsValidIndex(3) ? FCString::Atof(*Args[3]) : 1.f;
 		const double Now = FPlatformTime::Seconds();
 		for (int32 i = 0; i < Count; ++i)
 		{
@@ -245,6 +252,8 @@ namespace TDInputDebug
 			H.StartTime = Now + i * Interval;
 			H.EndTime = H.StartTime + Interval * 0.4f;
 			H.bPending = true;
+			H.bAxis = TapKey.IsAnalog();
+			H.Value = AxisValue;
 			GetHeld().Add(H);
 		}
 		EnsureTicker();
