@@ -1,0 +1,30 @@
+{
+  "stage": "presentation approved",
+  "presentation_approved": true,
+  "approval": "Nicholas approved both images and requested delivery to Ryan's team on November 13, 2026 (America/New_York).",
+  "images": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "source_width": 1672,
+      "source_height": 941,
+      "bytes": 3806113,
+      "file": "T_Survey_Verdance_Discovery_1920x1080.png",
+      "sha256": "54744B62040C66AEA1C3FBC229F48A39720C7691E83AF5E586A9794B7757CA55",
+      "source": "verdance-generated.png",
+      "source_sha256": "91A77B7B7388281A05E261ABF638E3AB6CF3BAF2795A1A45F453CEEE66B0B593"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "source_width": 1672,
+      "source_height": 941,
+      "bytes": 3394668,
+      "file": "T_Survey_Cinder_Match_1920x1080.png",
+      "sha256": "A4C70C7DB843562E18C2863E3631BF28A315A14E0D5F0FB0256CA295779E9BD7",
+      "source": "cinder-generated.png",
+      "source_sha256": "F341115C720B037375E0D6B95F529AD3CEE628BBA53513537E532B8E5F03D17E"
+    }
+  ],
+  "integrated": false
+}
