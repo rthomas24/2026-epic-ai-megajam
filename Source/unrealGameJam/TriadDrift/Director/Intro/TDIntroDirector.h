@@ -90,9 +90,8 @@ struct FTDIntroOverlayState
 	float SkipProgress = 0.f;
 };
 
-/** Any intro in any world started / finished (bSkipped). Finish is the frame control returns to the player (N-039). */
-DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnAnyIntroStarted, class UTDIntroDirector*);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnAnyIntroFinished, class UTDIntroDirector*, bool /*bSkipped*/);
+/** The player has control (N-039): bPlayed = the intro ran (watched or skipped); false = the run started without it. */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnIntroFinished, bool, bPlayed, bool, bSkipped);
 
 UCLASS()
 class UNREALGAMEJAM_API UTDIntroDirector : public UTickableWorldSubsystem
@@ -119,10 +118,6 @@ public:
 	}
 
 	bool IsPlaying() const { return bPlaying; }
-
-	/** N-039 (T1's tutorial music): fired when Play starts an intro, and from Finish (watched or skipped). */
-	static FTDOnAnyIntroStarted OnAnyIntroStarted;
-	static FTDOnAnyIntroFinished OnAnyIntroFinished;
 	/** The last second: the lens eases into the chase camera (the scene slate shows now). */
 	bool IsHandingOff() const { return bPlaying && bHandingOff; }
 	/** A button that may skip (not an axis, a virtual stick button or the mouse wheel). */
@@ -136,6 +131,26 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Intro", meta = (WorldContext = "WorldContext"))
 	static bool IsIntroPlaying(const UObject* WorldContext);
+
+	/**
+	 * N-039 (the music director): fired on the frame the player gains control. After the hand-off when the intro is
+	 * watched, at once on a skip (bSkipped), and from NotifyRunStartedWithoutIntro when the galaxy is entered without
+	 * it (Continue, a retake level, td.Intro 0): bPlayed false. Fires once per entry.
+	 */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Intro")
+	FTDOnIntroFinished OnIntroFinished;
+
+	/** Seconds from the intro's first frame to control: the shots plus the 1 s hand-off (49.0 today). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Intro")
+	float GetIntroLength() const { return GetTotalDuration() + HandOffSeconds; }
+
+	/** Seconds since the intro's first frame, through the hand-off (0 when not playing). A music prelude of L seconds
+	 *  starts at GetIntroLength() - L to land its end on the control frame. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Intro")
+	float GetIntroTime() const { return bPlaying ? (bHandingOff ? GetTotalDuration() + HandOffElapsed : Elapsed) : 0.f; }
+
+	/** The space game mode calls this when it enters the galaxy without playing the intro: OnIntroFinished(false, false). */
+	void NotifyRunStartedWithoutIntro();
 
 	/** Skip now (the hold-to-skip input calls this; also the debug command). Ignored in the first second. */
 	bool Skip();

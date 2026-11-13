@@ -6,6 +6,7 @@
 //   TD.Spawn <Id> [count] [distance]                                live, piloted enemies ahead of the player
 
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TimerManager.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Materials/MaterialInterface.h"
@@ -259,6 +260,20 @@ namespace TDWorldDebug
 			FTimerHandle H;
 			World->GetTimerManager().SetTimer(H, [Weak]() { if (Weak.IsValid()) { Weak->ClearSpeedOverrideFor(HoldOwner); } }, Secs, false);
 			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.Hold: %.0f m/s for %.1f s"), Speed / 100.f, Secs);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdPlanetGoto(TEXT("TD.World.PlanetGoto"), TEXT("On a planet: put the player's ship over the terrain: <x km> <y km> <m above ground> [yaw] [pitch] (course-local)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDPlanetTerrain* T = nullptr;
+			for (TActorIterator<ATDPlanetTerrain> It(World); It && !T; ++It) { T = *It; }
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			if (!T || !Pawn || Args.Num() < 3) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.PlanetGoto <x km> <y km> <m above ground> [yaw] [pitch]: needs a planet terrain and a pawn")); return; }
+			const FVector Local(FCString::Atof(*Args[0]) * 100000.f, FCString::Atof(*Args[1]) * 100000.f, 0.f);
+			FVector P = T->GetActorTransform().TransformPosition(Local);
+			P.Z = T->GetHeightAt(P) + FCString::Atof(*Args[2]) * 100.f;
+			const FRotator R(Args.Num() > 4 ? FCString::Atof(*Args[4]) : 0.f, Args.Num() > 3 ? FCString::Atof(*Args[3]) : 0.f, 0.f);
+			PlaceFacing(Pawn, P, R);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdDressing(TEXT("TD.World.Dressing"), TEXT("Space dressing (landmarks, lane rocks, ruin art) on or off: <0|1>."),

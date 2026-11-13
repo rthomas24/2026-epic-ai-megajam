@@ -340,9 +340,6 @@ const TArray<FText>& UTDIntroDirector::NarrationLines()
 	return Lines;
 }
 
-FTDOnAnyIntroStarted UTDIntroDirector::OnAnyIntroStarted;
-FTDOnAnyIntroFinished UTDIntroDirector::OnAnyIntroFinished;
-
 float UTDIntroDirector::GetTotalDuration() const
 {
 	float Total = 0.f;
@@ -403,7 +400,6 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	Player = PC;
 	OnFinishedDelegate = MoveTemp(OnFinished);
 	bPlaying = true;
-	OnAnyIntroStarted.Broadcast(this); // N-039: the tutorial music times its prelude from here
 	bHandingOff = false;
 	bSkipped = false;
 	bSkipHeld = false;
@@ -1707,10 +1703,19 @@ void UTDIntroDirector::Finish()
 	Overlay.Black = 0.f;
 	Overlay.Bars = 0.f;
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: finished (%s) at %.1f s"), bSkipped ? TEXT("skipped") : TEXT("watched"), Elapsed);
-	OnAnyIntroFinished.Broadcast(this, bSkipped); // the control frame (N-039 tutorial music)
 	FSimpleDelegate Done = MoveTemp(OnFinishedDelegate);
 	OnFinishedDelegate.Unbind();
 	Done.ExecuteIfBound();
+	OnIntroFinished.Broadcast(/*bPlayed*/ true, bSkipped); // N-039: the control frame
+}
+
+void UTDIntroDirector::NotifyRunStartedWithoutIntro()
+{
+	if (bPlaying)
+	{
+		return;
+	}
+	OnIntroFinished.Broadcast(/*bPlayed*/ false, /*bSkipped*/ false);
 }
 
 void UTDIntroDirector::EnsureWidget()

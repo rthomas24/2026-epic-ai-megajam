@@ -26,6 +26,7 @@
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "EnhancedPlayerInput.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -168,6 +169,34 @@ bool FTDSquadShipSpecs::RunTest(const FString& Parameters)
 	TestTrue(TEXT("abilities"), R.UnlockableAbility == ETDAbilityId::Cloak && L.UnlockableAbility == ETDAbilityId::EMPPulse
 		&& B.UnlockableAbility == ETDAbilityId::GravityWell);
 	TestTrue(TEXT("Get returns the requested ship"), R.Ship == ETDShipId::Rift && L.Ship == ETDShipId::Lancer && B.Ship == ETDShipId::Bastion);
+	return true;
+}
+
+/**
+ * Review M7: LoadVisuals always goes through Core's loader (the MERGED copy: Presentation field by field over the
+ * engineering fallback), never Spec.Visuals.Get(), which after a first load returns the raw Presentation asset left in
+ * memory. Stand-in: a raw object loaded at a Presentation path that the loader doesn't hand out; LoadVisuals must
+ * return exactly what the loader returns, call after call, never the raw object.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadVisualsAlwaysMerged, "TriadDrift.Squad.ShipLibrary.VisualsAlwaysThroughTheMergedLoader", TD_TEST_FLAGS)
+bool FTDSquadVisualsAlwaysMerged::RunTest(const FString& Parameters)
+{
+	const FString Name = TEXT("DA_TestM7_Visuals");
+	const FString PackagePath = UTDStatics::GetPresentationFolder() / Name;
+	UPackage* Package = CreatePackage(*PackagePath);
+	UTDShipVisuals* Raw = NewObject<UTDShipVisuals>(Package, *Name, RF_Transient);
+	Raw->AddToRoot();
+	ON_SCOPE_EXIT { Raw->RemoveFromRoot(); Raw->MarkAsGarbage(); };
+	FTDShipSpec Spec = UTDShipLibrary::Get(ETDShipId::Rift);
+	Spec.Visuals = TSoftObjectPtr<UTDShipVisuals>(FSoftObjectPath(PackagePath + TEXT(".") + Name));
+	TestTrue(TEXT("the raw object is what Spec.Visuals.Get() would hand out"), Spec.Visuals.Get() == Raw);
+	const UTDShipVisuals* Expected = UTDStatics::LoadPresentation<UTDShipVisuals>(Name);
+	for (int32 i = 0; i < 3; ++i)
+	{
+		const UTDShipVisuals* Got = UTDShipLibrary::LoadVisuals(Spec);
+		TestTrue(FString::Printf(TEXT("call %d: the loader's result, not the raw in-memory asset"), i + 1), Got == Expected);
+		TestTrue(FString::Printf(TEXT("call %d: never the raw object"), i + 1), Got != Raw || Expected == Raw);
+	}
 	return true;
 }
 
