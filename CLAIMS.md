@@ -184,6 +184,8 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 | Ryan / Teammate 3 | `Squad/**`; `Director/**`; `/docs/eng/squad.md`; `/docs/eng/director.md` | `eng/t3` / `.wt/t3` |
 | Ryan / Teammate 4 | `Enemies/**`; `Waves/**`; `World/**`; `/docs/eng/enemies.md` | `eng/t4` / `.wt/t4` |
 | Ryan / Teammate 5 | `Flow/**`; `Ground/**`; `/docs/eng/flow.md` | `eng/t5` / `.wt/t5` |
+| Ryan / Teammate 6 (joined Nov 13 evening) | `World/SpaceField/**` (new; T4 reviews, minimal hook in `World/TDGalaxyLayout.*`) | `eng/t6` / `.wt/t6` |
+| Ryan / Teammate 7 (joined Nov 13 evening) | new files for the first-play tutorial flag (lines in `Director/**`, `Flow/**`, `Input/**` only as agreed with T3, T5, T1); `/docs/eng/PLAYTEST-*.md` | `eng/t7` / `.wt/t7` |
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
@@ -195,6 +197,9 @@ open) · `done` (on `main`, tests pass, review closed).
 
 | Item | Owner | State | Started (EST) | Finished / on `main` | Shared paths touched |
 |---|---|---|---|---|---|
+| **Space Field** (ENG-39, Ryan): a galaxy layer of belts, clusters, debris fields, drifting wrecks and buoy chains across the whole flyable space, then a streaming debris ring around the ship, convoys on more lanes and a comet; keep-outs around the combat zone, gates, planets and the Dominion; `td.SpaceField` | T6 (moved from T5) | in progress | Nov 13 18:09 | - | `World/SpaceField/**`; one hook in `World/TDGalaxyLayout.*` (T4 reviews) |
+| **First-play tutorial flag** (Nicholas, #29): the tutorial is required on a first playthrough; afterwards a New Game offers "Skip the tutorial" into Aftermath | T7 | in progress | Nov 13 18:09 | - | new files; agreed lines in `Director/`, `Flow/`, `Input/` |
+| **Playtest lane**: the engineering checklist played live end to end on each new `main`, defects routed to owners, section timings; log in `docs/eng/PLAYTEST-*.md` | T7 | queued | - | - | none |
 | **Integration batch C** (Dominion interior kit, escape flight, Director-moment HUD states and transmission slot, opening / tutorial / Aftermath plan and lines, fallback sound fills, animation audit and 116 clips, descent research) | Lead | in progress (gating run) | Nov 13 14:09 | - | none |
 | ENG-38 stage 1 (hidden load in the plasma frame, arrival from the entry point); first: three fixes to the tutorial music from Nicholas's listen (issue #24) | T1 (+ T4 mapping and first view) | in progress | Nov 13 14:00 | - | `Flow/` travel path (granted to T1, behind `td.Descent.Legacy`) |
 | Boarding finale: docking and escape flight done on `lead/int`; interior step 1 in progress | T4 (done), T5 | in progress | Nov 13 13:20 | - | `Content/TriadDrift/Maps/L_Dominion_Interior` (new map, T5 creates; claimed here) |
