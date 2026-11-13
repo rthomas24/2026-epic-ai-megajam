@@ -562,6 +562,17 @@ void ATDSpacePlayerController::OnUnPossess()
 
 void ATDSpacePlayerController::ResetHeldInputs()
 {
+	// A held hyperdrive key's release is swallowed while input is disabled: stop a spool now, never mid-jump.
+	if (const ATDShip* Ship = Cast<ATDShip>(GetPawn()))
+	{
+		if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
+		{
+			if (Hyper->GetState() == ETDHyperdriveState::Spooling)
+			{
+				Hyper->StopSpool();
+			}
+		}
+	}
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, false); }
 	if (bFireSecondaryHeld) { RouteTrigger(ETDWeaponSlot::Secondary, false); }
 	bFirePrimaryHeld = bFireSecondaryHeld = false;

@@ -99,6 +99,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Atmosphere")
 	void AbortEntry();
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -108,6 +110,7 @@ protected:
 private:
 	void FinishEntry();
 	void RestoreFlight();
+	FDelegateHandle SceneRestartHandle;
 
 	TWeakObjectPtr<class UNiagaraComponent> EntryFX;
 	TWeakObjectPtr<class UAudioComponent> EntryAudio;

@@ -785,6 +785,39 @@ bool FTDTravelDodgeKeys::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelMinors2, "TriadDrift.Travel.Safety.RetakeAbortsEntryAndDisableStopsSpool", TD_TEST_FLAGS)
+bool FTDTravelMinors2::RunTest(const FString& Parameters)
+{
+	// Minors: a CUT retake abandons an atmosphere entry; disabling space input mid-spool stops the spool.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetWorld()->GetGameInstance());
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("flow"), GI) || !TestNotNull(TEXT("controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry();
+	TestTrue(TEXT("entry begins"), Entry->BeginEntry(ETDDestination::Verdance, TEXT("Descent"), FVector(400000.f, 0.f, 0.f), 60000.f));
+	W.Advance(0.5f);
+	GI->OnSceneRestart.Broadcast(TEXT("Wave1"), 2);
+	W.Tick();
+	TestFalse(TEXT("retake: entry abandoned"), Entry->IsEntering());
+	TestFalse(TEXT("retake: entry override released"), Ship->GetShipMovement()->HasSpeedOverrideFor(UTDAtmosphereEntryComponent::OverrideOwner));
+	TestFalse(TEXT("retake: not invulnerable"), Ship->GetHealth()->IsInvulnerable());
+
+	W.Advance(3.f); // hyperdrive cooldowns
+	FTDTestWorld::InjectKey(PC, EKeys::H, true);
+	W.Advance(0.3f);
+	TestEqual(TEXT("H held: spooling"), Ship->GetHyperdrive()->GetState(), ETDHyperdriveState::Spooling);
+	PC->SetSpaceInputEnabled(false); // cutscene / director takes over while H is still held
+	W.Advance(2.f);
+	TestEqual(TEXT("input disabled mid-spool: spool stopped, no jump"), Ship->GetHyperdrive()->GetState(), ETDHyperdriveState::Idle);
+	FTDTestWorld::InjectKey(PC, EKeys::H, false);
+	PC->SetSpaceInputEnabled(true);
+	W.Tick();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
 bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
 {

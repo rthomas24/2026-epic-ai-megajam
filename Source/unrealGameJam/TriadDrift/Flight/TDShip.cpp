@@ -538,6 +538,10 @@ void ATDShip::ApplyCameraActivation()
 	// The pilot doesn't see their own placeholder hull from inside it.
 	if (HullMesh) { HullMesh->SetOwnerNoSee(bCockpit); }
 	if (PlaceholderWings) { PlaceholderWings->SetOwnerNoSee(bCockpit); }
+	for (UStaticMeshComponent* Part : VisualParts)
+	{
+		if (Part) { Part->SetOwnerNoSee(bCockpit); } // modular art (Nick's parts) too
+	}
 }
 
 void ATDShip::SnapCamera()
