@@ -291,7 +291,9 @@ void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
 			H->SetStaticMesh(Mesh);
 			H->SetupAttachment(Root);
-			H->SetMobility(EComponentMobility::Static);
+			// Movable, explicitly: (H)ISMs default to Static, and a Static component cannot attach to the actor's movable
+			// root - Unreal aborts the attach and the forest lands around the world origin instead of the course (live).
+			H->SetMobility(EComponentMobility::Movable);
 			H->SetCullDistances(int32(K.CullStartCm), int32(K.CullEndCm));
 			H->SetCastShadow(Pass == 0 || k >= Plan.FirstRock);	// the far canopy skips dynamic shadow
 			const bool bCollide = Pass == 0 && K.bBlocksOnFoot;
@@ -312,6 +314,14 @@ void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 			AddInstanceComponent(H);
 			Hisms.Add(H);
 			InstanceCount += Xfs.Num();
+			if (Hisms.Num() <= 2)
+			{
+				FTransform First;
+				H->GetInstanceTransform(0, First, /*bWorldSpace*/ true);
+				UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: %s x%d, mesh radius %.0f cm, first at %s (world), visible %d, cull %d-%d"),
+					*Mesh->GetName(), Xfs.Num(), Mesh->GetBounds().SphereRadius, *First.GetLocation().ToCompactString(), H->IsVisible() ? 1 : 0,
+					H->InstanceStartCullDistance, H->InstanceEndCullDistance);
+			}
 		}
 	}
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms)"),

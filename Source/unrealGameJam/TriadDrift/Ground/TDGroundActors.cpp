@@ -17,6 +17,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -256,10 +258,51 @@ void ATDDoor::Close() { bWantOpen = false; }
 
 bool ATDDoor::IsAccessTextShown() const { return AccessTextLeft > 0.f; }
 
+void ATDDoor::ShowStatusText(const FText& Text)
+{
+	EnsureLabels();
+	StatusText = Text;
+	for (UTextRenderComponent* Label : AccessLabels)
+	{
+		Label->SetText(Text);
+		Label->SetVisibility(true);
+	}
+}
+
+void ATDDoor::ClearStatusText()
+{
+	StatusText = FText::GetEmpty();
+	if (AccessTextLeft <= 0.f)
+	{
+		for (UTextRenderComponent* Label : AccessLabels)
+		{
+			if (Label) { Label->SetVisibility(false); }
+		}
+	}
+}
+
 void ATDDoor::ShowAccessText()
 {
 	++AccessGreetings;
 	AccessTextLeft = FMath::Max(AccessTextSeconds, 0.1f);
+	EnsureLabels();
+	for (UTextRenderComponent* Label : AccessLabels)
+	{
+		Label->SetText(AccessText);
+		Label->SetVisibility(true);
+	}
+	if (!AccessSound.IsNull())
+	{
+		if (USoundBase* S = AccessSound.LoadSynchronous())
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, S, GetActorLocation() + FVector(0.f, 0.f, 300.f));
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("TDDoor %s: %s"), *GetName(), *AccessText.ToString());
+}
+
+void ATDDoor::EnsureLabels()
+{
 	if (AccessLabels.Num() == 0)
 	{
 		// Over the opening (the leaf's closed top), readable from both sides.
@@ -282,12 +325,6 @@ void ATDDoor::ShowAccessText()
 			AccessLabels.Add(Label);
 		}
 	}
-	for (UTextRenderComponent* Label : AccessLabels)
-	{
-		Label->SetText(AccessText);
-		Label->SetVisibility(true);
-	}
-	UE_LOG(LogTemp, Log, TEXT("TDDoor %s: %s"), *GetName(), *AccessText.ToString());
 }
 
 void ATDDoor::Tick(float DeltaSeconds)
@@ -296,7 +333,7 @@ void ATDDoor::Tick(float DeltaSeconds)
 	if (AccessTextLeft > 0.f)
 	{
 		AccessTextLeft -= DeltaSeconds;
-		if (AccessTextLeft <= 0.f)
+		if (AccessTextLeft <= 0.f && StatusText.IsEmpty())
 		{
 			for (UTextRenderComponent* Label : AccessLabels)
 			{

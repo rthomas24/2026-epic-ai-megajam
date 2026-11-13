@@ -160,6 +160,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Story", meta = (Units = "s"))
 	float AccessTextSeconds = 4.f;
 
+	/** Optional: played at the door when it recognises the pilot (the Warden door's three-pulse authentication). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Story")
+	TSoftObjectPtr<class USoundBase> AccessSound;
+
+	/** A standing line over the door (both faces) until cleared: the reactor door's "ARCHIVE PLAYBACK · n s". */
+	void ShowStatusText(const FText& Text);
+	void ClearStatusText();
+	FText GetStatusText() const { return StatusText; }
+
 	/** True while the access line is shown (tests). */
 	UFUNCTION(BlueprintPure, Category = "Door|Story") bool IsAccessTextShown() const;
 	/** How many times this door has greeted the pilot. */
@@ -176,6 +185,8 @@ private:
 	int32 AccessGreetings = 0;
 	UPROPERTY(Transient) TArray<TObjectPtr<class UTextRenderComponent>> AccessLabels;
 	void ShowAccessText();
+	void EnsureLabels();
+	FText StatusText;
 };
 
 // ================================================================================================

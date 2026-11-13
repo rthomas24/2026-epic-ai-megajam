@@ -1,0 +1,72 @@
+{
+  "asset": "SM_Relay",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Outpost\\Relay\\export\\SM_Relay.fbx",
+  "tris": 26487,
+  "size_cm": [
+    1124.0,
+    1221.0,
+    1000.0
+  ],
+  "pivot": "root object origin (SM_Relay~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Relay"
+  ],
+  "material_params": [
+    {
+      "name": "M_Relay",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Relay_00",
+    "UCX_SM_Relay_01",
+    "UCX_SM_Relay_02",
+    "UCX_SM_Relay_03",
+    "UCX_SM_Relay_04",
+    "UCX_SM_Relay_05",
+    "UCX_SM_Relay_06",
+    "UCX_SM_Relay_07",
+    "UCX_SM_Relay_08",
+    "UCX_SM_Relay_09",
+    "UCX_SM_Relay_10",
+    "UCX_SM_Relay_11",
+    "UCX_SM_Relay_12",
+    "UCX_SM_Relay_13",
+    "UCX_SM_Relay_14",
+    "UCX_SM_Relay_15",
+    "UCX_SM_Relay_16",
+    "UCX_SM_Relay_17",
+    "UCX_SM_Relay_18",
+    "UCX_SM_Relay_19",
+    "UCX_SM_Relay_20",
+    "UCX_SM_Relay_21"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

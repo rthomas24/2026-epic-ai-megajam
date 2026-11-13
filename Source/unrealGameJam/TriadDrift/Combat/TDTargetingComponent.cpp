@@ -498,12 +498,20 @@ void UTDTargetingComponent::UpdatePainting(float DeltaTime)
 
 	auto IsLocked = [this](const AActor* A) { return LockedWeak.ContainsByPredicate([A](const TWeakObjectPtr<AActor>& W) { return W.Get() == A; }); };
 
-	// Prefer the soft target, else the unlocked hostile nearest screen centre inside the lock cone.
+	// Prefer the soft target, else keep painting the one already being painted while it is still in the cone, else the
+	// unlocked hostile nearest screen centre inside the lock cone. Keeping the candidate matters: with the Audition chase
+	// camera's sustained shake (T1, Nov 13) two near-tied targets swapped "nearest" every frame and each swap restarted
+	// the paint, so a group in the crosshair locked at half speed (gating run on lead/int 173a64f).
 	AActor* Candidate = nullptr;
 	AActor* Current = CurrentTarget.Get();
+	AActor* Painting = PaintCandidate.Get();
 	if (Current && !IsLocked(Current) && IsValidTarget(Current) && GetAngleFromView(Current->GetActorLocation()) <= LockConeDeg)
 	{
 		Candidate = Current;
+	}
+	else if (Painting && !IsLocked(Painting) && IsValidTarget(Painting) && GetAngleFromView(Painting->GetActorLocation()) <= LockConeDeg)
+	{
+		Candidate = Painting;
 	}
 	else
 	{

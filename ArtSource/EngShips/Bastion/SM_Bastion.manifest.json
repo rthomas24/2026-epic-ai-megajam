@@ -1,7 +1,7 @@
 {
   "asset": "SM_Bastion",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Bastion\\SM_Bastion.fbx",
-  "tris": 49871,
+  "tris": 50151,
   "size_cm": [
     524.0,
     472.3,
@@ -10,7 +10,8 @@
   "pivot": "root object origin (SM_Bastion~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Bastion.001"
+    "M_Bastion.001",
+    "M_Bastion_Glow"
   ],
   "material_params": [
     {
@@ -21,11 +22,29 @@
       "roughness": null,
       "emission_color": null,
       "emission_strength": 2.0
+    },
+    {
+      "name": "M_Bastion_Glow",
+      "textured": false,
+      "base_color": [
+        1.0,
+        0.7,
+        0.12
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        1.0,
+        0.7,
+        0.12
+      ],
+      "emission_strength": 4.0
     }
   ],
   "textures": [],
   "collision": [
-    "UCX_SM_Bastion_00"
+    "UCX_SM_Bastion_00",
+    "UCX_SM_Bastion_01"
   ],
   "collision_source": "auto convex hulls",
   "sockets": [

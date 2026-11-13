@@ -7,7 +7,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Styling/SlateBrush.h"
 #include "TDScanMonitorWidget.generated.h"
+
+class UTexture2D;
 
 /**
  * Stages, each adding to the one before (call ShowScanMonitor again with a higher stage to advance; new layers draw in
@@ -52,12 +55,32 @@ public:
 	/** Named boxes painted last frame (tests). */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
 
+	/**
+	 * Nicholas's scan art (issue #62): UTDUIStyle::ScanVerdance (stages 1-3) / ScanCinder (4-5) from DA_UI_Style, or a
+	 * dev / test override (SetTextureOverride). Null = the code-drawn placeholder. With an image the monitor shows it in
+	 * the panel with a reveal wipe and a scan line instead of the code layers.
+	 */
+	static UTexture2D* ResolveScanTexture(bool bCinder);
+	/** Dev / tests: use this texture for both scans (null clears it). */
+	static void SetTextureOverride(UTexture2D* Texture);
+	/** True while an image (not the placeholder) is shown. */
+	bool IsShowingImage() const { return ImageFor(Stage) != nullptr; }
+
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
 		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
+	UTexture2D* ImageFor(int32 InStage) const { return InStage <= 0 ? nullptr : InStage <= 3 ? VerdanceTex.Get() : CinderTex.Get(); }
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTexture2D> VerdanceTex;
+	UPROPERTY(Transient)
+	TObjectPtr<UTexture2D> CinderTex;
+	FSlateBrush VerdanceBrush;
+	FSlateBrush CinderBrush;
+
 	int32 Stage = 0;
 	float Age = 0.f;
 	float Duration = 0.f;

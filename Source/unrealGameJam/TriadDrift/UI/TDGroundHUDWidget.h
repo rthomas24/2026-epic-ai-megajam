@@ -47,12 +47,23 @@ public:
 		bool bTransfer = false;
 		float Transfer01 = 0.f;
 		bool bTransferPaused = false;
+		/** The Warden (T5's ATDCrewCharacter::GetActiveBoss): bar shown while one is alive. */
+		bool bBoss = false;
+		float Boss01 = 0.f;
+		int32 BossPhase = 1;
+		FString BossName;
 	};
 	const FView& GetView() const { return View; }
+	/** The boss bar's damage ghost (tests). */
+	float GetBossGhost01() const { return GhostBoss; }
 
 	/** Tests: >= 0 forces a running transfer at this progress (no ATDArchiveTransfer needed); -1 reads the world. */
 	float ForceTransfer01 = -1.f;
 	bool bForceTransferPaused = false;
+	/** Tests: >= 0 forces a Warden at this hull (phase 2 below BossPhase2At); -1 reads the world. */
+	float ForceBoss01 = -1.f;
+	/** Where the bar marks the phase change (T5: Phase2HealthFraction 0.5). */
+	static constexpr float BossPhase2At = .5f;
 
 	/** Named boxes painted last frame (tests: "transfer" for the meter plate). */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
@@ -94,6 +105,11 @@ private:
 	float SmoothBlock = 1.f;
 	float DamageFlash = 0.f;
 	float SmoothTransfer = 0.f;
+	/** Boss bar: the fill eases to the hull; the ghost holds where it was for a moment, then drains (recent damage). */
+	float SmoothBoss = 0.f;
+	float GhostBoss = 0.f;
+	float GhostHold = 0.f;
+	float LastBoss = 0.f;
 	float Time = 0.f;
 	TArray<FTDGroundHit> Hits;
 	TArray<TWeakObjectPtr<AActor>> Hostiles;

@@ -1014,7 +1014,7 @@ void ATDSurveyTerminal::Interact(AActor* Interactor)
 {
 	const bool bWasUsable = CanInteract(Interactor);
 	Super::Interact(Interactor);
-	if (bWasUsable)
+	if (bWasUsable && bAnnounceRecords)
 	{
 		OnAnySurveyRecordsAccessed.Broadcast(this);
 	}

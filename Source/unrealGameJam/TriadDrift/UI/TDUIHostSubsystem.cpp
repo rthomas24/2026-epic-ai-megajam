@@ -25,6 +25,10 @@
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
+#include "Components/MeshComponent.h"
+#include "Engine/Texture2D.h"
+#include "EngineUtils.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -389,6 +393,33 @@ bool UTDUIHostSubsystem::ShowScanMonitor(const UObject* WorldContext, int32 Stag
 		}
 	}
 	Monitor->Show(Stage, Seconds);
+	return true;
+}
+
+bool UTDUIHostSubsystem::ShowScanOnScreen(UMeshComponent* Mesh, FName ScreenSlot, bool bCinder, float Power)
+{
+	UTexture2D* Scan = UTDScanMonitorWidget::ResolveScanTexture(bCinder);
+	if (!Mesh || !Scan)
+	{
+		return false;
+	}
+	const int32 Index = ScreenSlot.IsNone() ? 0 : Mesh->GetMaterialIndex(ScreenSlot);
+	if (Index == INDEX_NONE || Index >= Mesh->GetNumMaterials())
+	{
+		UE_LOG(LogTDUIHost, Warning, TEXT("ShowScanOnScreen: %s has no material slot '%s'"), *GetNameSafe(Mesh), *ScreenSlot.ToString());
+		return false;
+	}
+	UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(Index));
+	if (!MID)
+	{
+		MID = Mesh->CreateDynamicMaterialInstance(Index);
+	}
+	if (!MID)
+	{
+		return false;
+	}
+	MID->SetTextureParameterValue(TEXT("ScreenTexture"), Scan);
+	MID->SetScalarParameterValue(TEXT("ScreenPower"), Power);
 	return true;
 }
 
@@ -972,6 +1003,48 @@ namespace TDUIHost
 				return;
 			}
 			UTDUIHostSubsystem::ShowScanMonitor(World, FCString::Atoi(*Args[0]), Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIScanTexture(TEXT("TD.UI.ScanTexture"),
+		TEXT("TD.UI.ScanTexture <texture object path> | off: a stand-in for both scan graphics (dev; DA_UI_Style's ScanVerdance / ScanCinder otherwise)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDScanMonitorWidget::SetTextureOverride(Args.Num() > 0 && Args[0] != TEXT("off")
+				? LoadObject<UTexture2D>(nullptr, *Args[0], nullptr, LOAD_NoWarn | LOAD_Quiet) : nullptr);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIScanOnNearest(TEXT("TD.UI.ScanOnNearest"),
+		TEXT("TD.UI.ScanOnNearest [slot name|0] [cinder 0|1]: put the scan on the nearest mesh (not the player) within 8 m (dev, the issue #62 proof)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+			const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+			if (!Pawn)
+			{
+				return;
+			}
+			UMeshComponent* Best = nullptr;
+			float BestDist = 800.f;
+			for (TActorIterator<AActor> It(World); It; ++It)
+			{
+				if (*It == Pawn || It->IsA<APawn>())
+				{
+					continue;
+				}
+				TInlineComponentArray<UMeshComponent*> Meshes(*It);
+				for (UMeshComponent* M : Meshes)
+				{
+					const float D = M ? FVector::Dist(M->GetComponentLocation(), Pawn->GetActorLocation()) : 1e9f;
+					if (M && M->IsVisible() && D < BestDist)
+					{
+						Best = M;
+						BestDist = D;
+					}
+				}
+			}
+			const FName Slot = Args.Num() > 0 && Args[0] != TEXT("0") ? FName(*Args[0]) : NAME_None;
+			const bool bOk = UTDUIHostSubsystem::ShowScanOnScreen(Best, Slot, Args.Num() > 1 && Args[1] == TEXT("1"));
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.ScanOnNearest: %s on %s (%.0f cm)"), bOk ? TEXT("shown") : TEXT("not shown"), *GetPathNameSafe(Best), BestDist);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIFocus(TEXT("TD.UI.Focus"),

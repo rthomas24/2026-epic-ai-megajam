@@ -1,0 +1,31 @@
+{
+ "asset": "SM_Relay",
+ "ok": true,
+ "min_cm": [
+  -562.0,
+  -610.5,
+  -0.0
+ ],
+ "max_cm": [
+  562.0,
+  610.5,
+  1000.0
+ ],
+ "size_cm": [
+  1124.0,
+  1221.0,
+  1000.0
+ ],
+ "tris": 26487,
+ "hulls": 22,
+ "instances": [
+  "MI_Relay",
+  "MI_Relay_Awake"
+ ],
+ "actors": [
+  "BP_Relay",
+  "BP_Relay_Awake"
+ ],
+ "uasset_bytes": 14461646,
+ "notes": []
+}

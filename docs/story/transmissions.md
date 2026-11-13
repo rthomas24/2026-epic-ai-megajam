@@ -73,10 +73,11 @@ branch since Nov 13 and on `main` with engineering batch B.
 | `A3_CrystalsFound` | Kato | Samples secured. EMP prototype recovered. Lancer's pulse is online. |
 | `A3_PassageOpen` | Kato | The anchor is down. The approach is prepared; passage is still blocked. |
 
-### Verdance, Cinder and the assault (sequences 02-06; storyline.md §14-25, aligned to Nicholas's cc8c31d)
-The one echo is at the Cinder terminal (`C5_Unknown_SameConstruction`); the three `A3_Echo*` placeholders are gone.
-`C5_Kato_OriginCore` is the one approved line before the reveal that says "temporal". The assault (`C6_`, `G6_`,
-`A4_GeneratorDown*`) is still before the reveal: the generators drop the Dominion's **shield**, not the field.
+### Sequences 02-09 (storyline.md §14-31; generated from the code table, Nov 13)
+The one echo is at the Cinder terminal (`C5_Unknown_SameConstruction`). `C5_Kato_OriginCore` is the one line before
+the reveal that says "temporal". The reveal is aboard the Dominion: the four recordings climb (Unknown, then future
+Moss, Wren, Kato), then Cinematic 08 at the threshold (`PlaySequence("Cinematic08")`, skippable). "Boarding pilot" lines
+are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarning` does not reuse the "Dont" sound.
 
 | Id | Speaker | Placeholder line |
 |---|---|---|
@@ -144,9 +145,38 @@ The one echo is at the Cinder terminal (`C5_Unknown_SameConstruction`); the thre
 | `G6_Moss_TurretsCharging` | Moss | Those turrets are charging. Keep moving. |
 | `G6_Kato_ShieldWeakening` | Kato | Generator down. Their shield is weakening. |
 | `G6_Command_ShieldCollapsed` | Command | Dominion shield collapsed. Docking approach marked. |
-| `G6_Wren_CoverTheBay` | Wren | Keep that bay covered. We need a way back out. |
+| `G6_Wren_CoverTheBay` | Boarding pilot | Keep that bay covered. We need a way back out. |
 | `G6_Clue1` | Unknown (Static) | ...[static] ...hold formation... [static] ...vector two... |
 | `G6_Clue2` | Unknown (Echo) | ...Triad... authentication pending... hold formation... |
+| `C7_Moss_WayOut` | Moss | We'll keep a way out clear. |
+| `C7_Kato_Layout` | Kato | That layout. We use the same arrangement. |
+| `C7_Kato_Archive` | Kato | There's a local command archive ahead. |
+| `C7_Wren_Record` | Boarding pilot | Record everything. Find who's giving the orders. |
+| `G7_Moss_MyVoice` | Moss | That's my voice in those records. Older. |
+| `G7_Kato_Authorisations` | Kato | Those authorisations match all three of us. |
+| `G7_Wren_FullRecord` | Boarding pilot | We hear the full record before we touch that reactor. |
+| `F_FutureWren_FullWarning` | FutureWren | Don't engage the Dominion. You don't understand what happens if you do. |
+| `C8_RecKato_OneEvent` | FutureKato (Echo) | The Origin Core may let us change one event. Before everything was lost. |
+| `C8_RecWren_LastChance` | FutureWren (Echo) | We believe recovering it can prevent the catastrophe. It's the last chance we have. |
+| `C8_RecMoss_SaveYou` | FutureMoss (Echo) | We came back to save you. |
+| `C8_Kato_NoSafeShutdown` | Kato | I can't verify a safe shutdown. Continuing could put the whole system at risk. |
+| `C8_Moss_CantLetThem` | Moss | Then we can't let them finish. |
+| `C8_Wren_Order` | Boarding pilot | Take out the reactor. Keep the route to the hangar clear. |
+| `G8_Wren_ConduitsFirst` | Boarding pilot | Conduits first. Then the heart. |
+| `G8_Kato_ConduitDown` | Kato | Conduit destroyed. |
+| `G8_Moss_KeepMoving` | Moss | Keep moving. Watch the way back. |
+| `G8_Kato_HeartExposed` | Kato | The heart is exposed. |
+| `G8_Command_ReactorLost` | Command | Reactor lost. Get back to the hangar. |
+| `G9_Moss_HoldingWayOut` | Moss | Keep moving. We're holding the way out. |
+| `G9_Kato_HangarConfirmed` | Kato | Hangar signal confirmed. Get the ship clear. |
+| `G9_Wren_PullAway` | Wren | Triad, pull away. Follow the clear vector. |
+| `C9_Kato_Clear` | Kato | Lancer clear. |
+| `C9_Moss_Clear` | Moss | Bastion clear. Still here. |
+| `C9_Wren_Clear` | Wren | Rift clear. All three accounted for. |
+| `C9_Moss_TakeThat` | Moss | All three. I'll take that. |
+| `C9_Kato_Identifiers` | Kato | A distress signal. Those are our identifiers. |
+| `C9_Wren_Source` | Wren | The source? |
+| `C9_Kato_Decades` | Kato | It's dated decades ahead. |
 
 ### Act 4 (the Dominion)
 | Id | Speaker (style) | Line |
@@ -155,11 +185,11 @@ The one echo is at the Cinder terminal (`C5_Unknown_SameConstruction`); the thre
 | `A4_GeneratorDown2` | Kato | Two down. The shield is losing shape. |
 | `A4_GeneratorDown3` | Wren | Three! One more and it's open. |
 | `A4_GeneratorDown4` | Moss | That's the last one. The shield is gone. |
-| `A4_DoorsKnowUs` | Wren | The door opened for my ID. Why does it know my ID? |
-| `A4_Recording_Hangar` | FutureWren (Echo) | If you're hearing this, you came anyway. Of course you did. |
-| `A4_Recording_Corridor` | FutureKato (Echo) | We ran every number a thousand times. This is the only way. |
-| `A4_Recording_Barracks` | FutureMoss (Echo) | We were you, once. We know what you'll choose. |
-| `A4_Recording_Core` | FutureWren (Echo) | The Origin Core can stop it. Don't take that from us. |
+| `A4_DoorsKnowUs` | Boarding pilot | They shouldn't have our access codes. |
+| `A4_Recording_Hangar` | Unknown (Echo) | Keep the recovery teams on the Core search. |
+| `A4_Recording_Corridor` | FutureMoss (Echo) | Bring every recovery team back. |
+| `A4_Recording_Barracks` | FutureWren (Echo) | Recover the Core. Protect the younger Triad. |
+| `A4_Recording_Core` | FutureKato (Echo) | We are you, from the future. We came back for the Origin Core. |
 
 ### Finale payoff (the future command deck)
 | Id | Speaker (style) | Line |
@@ -168,14 +198,14 @@ The one echo is at the Cinder terminal (`C5_Unknown_SameConstruction`); the thre
 | `F_FutureMoss_Where` | FutureMoss | They're exactly where we were. |
 | `F_FutureWren_Channel` | FutureWren | Open a channel. Now. |
 | `F_FutureKato_Interference` | FutureKato | Temporal interference. Less than a second. |
-| `F_FutureWren_Dont` | FutureWren (Static, shared sound `Dont`) | Don't- |
+| `F_FutureWren_Dont` | FutureWren (Static) | Don't- |
 
 ### Act 5
 | Id | Speaker (style) | Line |
 |---|---|---|
 | `A5_Choice` | Moss | We can't trust them, and we can't let them finish. We end it here. |
 | `A5_Escape` | Control | The ship is coming apart. Ninety seconds. Move! |
-| `A5_DistressSignal` | Unknown (Static) | DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED FORTY-ONE YEARS FROM TODAY |
+| `A5_DistressSignal` | Unknown (Static) | DISTRESS SIGNAL  ·  TRIAD: WREN, KATO, MOSS  ·  DATED DECADES AHEAD |
 
 ### To be added: Sequence 02, *Aftermath* (Nicholas's brief of Nov 13; ids reserved `S2_*`)
 Moss "All three ships accounted for...", Wren "If that was a welcome party...", Kato "Hold on. They're not pursuing

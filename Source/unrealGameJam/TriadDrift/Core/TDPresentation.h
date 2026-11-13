@@ -599,6 +599,19 @@ public:
 	TSoftClassPtr<UUserWidget> GroundHUDWidgetClass;
 
 	/**
+	 * The survey scan graphics (optional, issue #62; Nicholas's 1920x1080 art). ScanVerdance: the buried-structure scan
+	 * on the Verdance terminal (Cinematic 03, "Beneath the Surface"); ScanCinder: the Verdance / Cinder match on the Cinder
+	 * terminal (Cinematic 05, "The Pattern"). When set, engineering's scan monitor shows the image instead of its
+	 * code-drawn placeholder, and the terminal's in-world screen shows the same texture
+	 * (UTDUIHostSubsystem::ShowScanOnScreen). Empty = the placeholder.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Story Scans")
+	TSoftObjectPtr<UTexture2D> ScanVerdance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Story Scans")
+	TSoftObjectPtr<UTexture2D> ScanCinder;
+
+	/**
 	 * Combat music (optional; N-029): played by engineering's music director while a fight is on (space waves,
 	 * the Dominion assault, active on-foot encounters), faded in and out; the sound's own class and volume apply.
 	 */

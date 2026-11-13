@@ -14,6 +14,8 @@
 #include "TriadDrift/Flow/TDJourney.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "EngineUtils.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 
@@ -180,6 +182,74 @@ bool FTDInteriorContinue::RunTest(const FString& Parameters)
 	TestTrue(*FString::Printf(TEXT("after the arena: at the Warden's gate (x %.0f)"), Mid.GetLocation().X), Mid.GetLocation().X > 7600.f && Mid.GetLocation().X < 8400.f);
 	TestTrue(TEXT("corridor and arena stay done"), I.Obj(0)->IsComplete() && I.Obj(1)->IsComplete());
 	TestTrue(TEXT("the Warden can start"), I.Course->StartObjectiveAt(Ids[2]));
+	return true;
+}
+
+// Story 07-09: the final record is mandatory and gates the reactor: after the Warden the reactor door stays shut until
+// the record (and its queued lines) has played; then it opens. Story consoles answer only out of combat.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorFinalRecord, "TriadDrift.Ground.Interior.FinalRecordGatesTheReactorDoor", TD_TEST_FLAGS)
+bool FTDInteriorFinalRecord::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1], Ids[2] }); // through the Warden
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	ATDDoor* Reactor = nullptr;
+	for (TActorIterator<ATDDoor> It(I.W.GetWorld()); It; ++It) { if (FMath::Abs(It->GetActorLocation().X - 11200.f) < 50.f) { Reactor = *It; } }
+	if (!TestNotNull(TEXT("reactor door"), Reactor)) { return false; }
+	I.W.Advance(2.f);
+	TestFalse(TEXT("after the Warden the reactor door is still shut"), Reactor->IsOpen());
+	ATDSurveyTerminal* Record = Cast<ATDSurveyTerminal>(I.Course->GetFinalRecordConsole());
+	if (!TestNotNull(TEXT("final record console"), Record)) { return false; }
+	TestTrue(TEXT("outside the reactor room (the Warden room's side)"), Record->GetActorLocation().X < 10400.f);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, Record->GetActorLocation() + FVector(-200.f, 0.f, 50.f));
+	// A crewman near it: the record waits (recordings never compete with a fight).
+	ATDCrewCharacter* Crew = I.W.Spawn<ATDCrewCharacter>(Record->GetActorLocation() + FVector(-600.f, 400.f, 50.f));
+	I.W.Advance(0.2f);
+	TestFalse(TEXT("no record while a hostile is near"), Record->CanInteract(P));
+	if (Crew) { Crew->Destroy(); }
+	I.W.Advance(0.2f);
+	int32 Started = 0;
+	const FDelegateHandle H = ATDPlanetCourse::OnFinalRecordStarted.AddLambda([&Started](AActor*) { ++Started; });
+	Record->Interact(P);
+	ATDPlanetCourse::OnFinalRecordStarted.Remove(H);
+	TestEqual(TEXT("T3's hook once"), Started, 1);
+	I.W.Advance(0.3f);
+	TestFalse(TEXT("the door waits while the record plays"), Reactor->IsOpen() && !I.Course->IsFinalRecordDone());
+	TestTrue(*FString::Printf(TEXT("the door shows the playback ('%s')"), *Reactor->GetStatusText().ToString()), Reactor->GetStatusText().ToString().Contains(TEXT("PLAYBACK")));
+	// A second press skips (the Lead's (b)); without a sequence the queue simply plays out.
+	I.W.Advance(1.5f);
+	if (!I.Course->IsFinalRecordDone()) { Record->Interact(P); }
+	for (int32 i = 0; i < 200 && !I.Course->IsFinalRecordDone(); ++i) { I.W.Advance(0.5f); }
+	TestTrue(TEXT("the record ends (or was skipped)"), I.Course->IsFinalRecordDone());
+	TestTrue(TEXT("the playback line is cleared"), Reactor->GetStatusText().IsEmpty());
+	I.W.Advance(1.f);
+	TestTrue(TEXT("then the reactor door opens"), Reactor->IsOpen());
+	return true;
+}
+
+// Nicholas (issue #29): the pilot on foot is the flown ship's pilot; the interior parks that ship on the hangar pad.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorBoardingPilot, "TriadDrift.Ground.Interior.BoardingPilotIsTheFlownShips", TD_TEST_FLAGS)
+bool FTDInteriorBoardingPilot::RunTest(const FString& Parameters)
+{
+	TDInteriorTest::FInterior I;
+	if (!TestNotNull(TEXT("interior"), I.Course) || !TestNotNull(TEXT("game instance"), I.GI)) { return false; }
+	for (const ETDShipId Ship : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		I.GI->GetMutableProgress().LastShip = Ship;
+		const FName Name = ATDFirstPersonCharacter::GetOnFootPilotName(I.W.GetWorld());
+		TestEqual(TEXT("pilot ship"), ATDFirstPersonCharacter::GetOnFootPilotShip(I.W.GetWorld()), Ship);
+		TestEqual(TEXT("pilot name"), Name, Ship == ETDShipId::Lancer ? FName(TEXT("Kato")) : Ship == ETDShipId::Bastion ? FName(TEXT("Moss")) : FName(TEXT("Wren")));
+	}
+	if (UStaticMeshComponent* Parked = I.Course->GetParkedShip())
+	{
+		const FBox B = Parked->Bounds.GetBox();
+		TestTrue(*FString::Printf(TEXT("the ship stands on the pad (bottom z %.0f)"), B.Min.Z), B.Min.Z > -5.f && B.Min.Z < 20.f);
+		TestTrue(TEXT("over the pad"), FMath::Abs(B.GetCenter().X + 200.f) < 400.f && FMath::Abs(B.GetCenter().Y) < 400.f);
+	}
+	else
+	{
+		AddInfo(TEXT("no ship art in this checkout: the pad stays empty"));
+	}
 	return true;
 }
 

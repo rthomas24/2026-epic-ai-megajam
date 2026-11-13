@@ -15,6 +15,7 @@
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 
 void UTDGroundHUDWidget::NativeConstruct()
@@ -185,6 +186,50 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 	View.Transfer01 = FMath::Clamp(Progress, 0.f, 1.f);
 	View.bTransferPaused = View.bTransfer && bPaused;
 	SmoothTransfer = !bWasTransfer ? View.Transfer01 : FMath::Lerp(SmoothTransfer, View.Transfer01, Alpha);
+
+	// The Warden's bar (T5). Mercy tiers start it lower; phase 2 from half hull.
+	const bool bWasBoss = View.bBoss;
+	float BossHull = 0.f;
+	int32 Phase = 1;
+	FText BossName;
+	if (ForceBoss01 >= 0.f)
+	{
+		View.bBoss = true;
+		BossHull = ForceBoss01;
+		Phase = ForceBoss01 <= BossPhase2At ? 2 : 1;
+		BossName = FText::FromString(TEXT("WARDEN"));
+	}
+	else
+	{
+		View.bBoss = ATDCrewCharacter::GetActiveBoss(this, BossHull, Phase, BossName);
+	}
+	View.Boss01 = FMath::Clamp(BossHull, 0.f, 1.f);
+	View.BossPhase = Phase;
+	View.BossName = BossName.ToString().ToUpper();
+	if (!bWasBoss)
+	{
+		SmoothBoss = GhostBoss = LastBoss = View.Boss01;
+		GhostHold = 0.f;
+	}
+	SmoothBoss = FMath::Lerp(SmoothBoss, View.Boss01, Alpha);
+	if (View.Boss01 >= GhostBoss)
+	{
+		GhostBoss = View.Boss01; // healed or untouched: no ghost
+		GhostHold = 0.f;
+	}
+	else
+	{
+		if (View.Boss01 < LastBoss - .001f)
+		{
+			GhostHold = .6f; // a new hit: hold the ghost where it is a moment longer
+		}
+		GhostHold -= DeltaSeconds;
+		if (GhostHold <= 0.f)
+		{
+			GhostBoss = FMath::Max(View.Boss01, GhostBoss - DeltaSeconds * .5f);
+		}
+	}
+	LastBoss = View.Boss01;
 }
 
 // ------------------------------------------------------------------------------------------ paint
@@ -247,6 +292,28 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		P.Meter(X + 20, Y + 32, 360, SmoothTransfer, C, 10);
 		P.Line({ X + 20 + 180, Y + 28 }, { X + 20 + 180, Y + 46 }, Ink.CopyWithNewOpacity(View.Transfer01 >= .5f ? .9f : .4f), 1.5f);
 		// Paused: the plate and bar pulse amber only; the objective panel above carries the reason (the Lead, Nov 13).
+	}
+
+	// The Warden's bar, under the objective panel (and under the transfer meter if both are up): name left, phase right,
+	// a 600 px hull bar in the hostile colour with a tick at the phase-2 threshold and a pale ghost of recent damage.
+	if (View.bBoss)
+	{
+		const float W = 640.f, H = 58.f, X = 960.f - W * .5f;
+		const float Y = View.bTransfer ? 156.f + 62.f + 10.f : 156.f;
+		const bool bPhase2 = View.BossPhase >= 2;
+		const FLinearColor Edge = bPhase2 ? Hostile : Hostile.CopyWithNewOpacity(.7f);
+		P.Glass(X, Y, W, H, Edge, bPhase2);
+		LastBoxes.Emplace(TEXT("boss"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		P.Label(X + 20.f, Y + 9.f, View.BossName.IsEmpty() ? TEXT("WARDEN") : View.BossName, 13, Hostile, 160);
+		const FString PhaseText = bPhase2 ? TEXT("PHASE 2") : TEXT("PHASE 1");
+		const float PhaseW = P.MeasureText(PhaseText, 12, true);
+		P.Text(X + W - 20.f - (PhaseW > 0 ? PhaseW : 60.f), Y + 8.f, PhaseText, 12, bPhase2 ? Hostile : Dim, true);
+		const float BarX = X + 20.f, BarY = Y + 34.f, BarW = W - 40.f;
+		P.Box(BarX, BarY, BarW, 10.f, FLinearColor(.05f, .06f, .08f, .95f));
+		P.Box(BarX, BarY, BarW * FMath::Clamp(GhostBoss, 0.f, 1.f), 10.f, FLinearColor(1.f, .85f, .8f, .55f)); // recent damage
+		P.Box(BarX, BarY, BarW * FMath::Clamp(SmoothBoss, 0.f, 1.f), 10.f, Hostile);
+		const float TickX = BarX + BarW * BossPhase2At;
+		P.Line({ TickX, BarY - 4.f }, { TickX, BarY + 14.f }, Ink.CopyWithNewOpacity(bPhase2 ? .35f : .85f), 2.f);
 	}
 
 	// Reticle.

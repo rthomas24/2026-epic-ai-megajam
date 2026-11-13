@@ -35,6 +35,7 @@
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -562,6 +563,14 @@ namespace TDDirectorDebug
 			}
 		}
 	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdMenuReturn(TEXT("TD.Menu.Return"), TEXT("TD.Menu.Return: press RETURN TO MENU on the victory screen (captures, tests)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			if (ATDMenuGameMode* M = World ? World->GetAuthGameMode<ATDMenuGameMode>() : nullptr)
+			{
+				M->ReturnToMenu();
+			}
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdMenuAt(TEXT("TD.Menu.At"), TEXT("TD.Menu.At <seconds>: jump the menu backdrop's loop (captures)"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MenuAt));
 	static FAutoConsoleCommandWithWorldAndArgs CmdIntroProbe(TEXT("TD.Intro.Probe"), TEXT("TD.Intro.Probe <u> <v>: log what is at that screen point"),

@@ -432,6 +432,8 @@ class UNREALGAMEJAM_API ATDSurveyTerminal : public ATDInteractableActor
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact", meta = (Units = "cm")) float ClearRadius = 1500.f;
+	/** False for story consoles that only share the out-of-combat rule (the Dominion arena's recordings). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact") bool bAnnounceRecords = true;
 
 	/** The survey records were accessed (T3: Cinematic 05 at the terminal). */
 	static FTDOnSurveyRecordsAccessed OnAnySurveyRecordsAccessed;
