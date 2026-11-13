@@ -32,6 +32,7 @@
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Materials/MaterialInterface.h"
 
 namespace TDGroundDebug
 {
@@ -235,6 +236,73 @@ namespace TDGroundDebug
 			*GetNameSafe(Beam->GetStaticMesh()), Beam->IsVisible(),
 			*(Beam->GetComponentTransform().TransformPosition(FVector(100.f, 0.f, 0.f))).ToCompactString(), P->GetHandBladeExtend01());
 	}
+	// TD.Ground.Art: every code-built shape dressed with kit art (TDPropArt::Dress): art vs collision box, tops and centres.
+	static void Art(const TArray<FString>& Args, UWorld* World)
+	{
+		int32 N = 0, Bad = 0;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TArray<UStaticMeshComponent*> Comps;
+			It->GetComponents(Comps);
+			for (UStaticMeshComponent* ArtC : Comps)
+			{
+				UStaticMeshComponent* Shape = Cast<UStaticMeshComponent>(ArtC ? ArtC->GetAttachParent() : nullptr);
+				const UStaticMesh* Mesh = ArtC ? ArtC->GetStaticMesh() : nullptr;
+				if (!Shape || !Mesh || !Shape->bHiddenInGame || !Mesh->GetPathName().StartsWith(TEXT("/Game/TriadDrift/Gameplay/Props/")))
+				{
+					continue;
+				}
+				const FBox S = Shape->Bounds.GetBox();
+				const FBox A = ArtC->Bounds.GetBox();
+				const float TopDiff = (float)(A.Max.Z - S.Max.Z);
+				const float BottomDiff = (float)(A.Min.Z - S.Min.Z);
+				const float CentreXY = (float)FVector::Dist2D(A.GetCenter(), S.GetCenter());
+				const bool bCollide = Shape->GetCollisionEnabled() != ECollisionEnabled::NoCollision;
+				const bool bOff = bCollide && (FMath::Abs(TopDiff) > 5.f || CentreXY > 25.f);
+				Bad += bOff ? 1 : 0;
+				++N;
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Art %s%s on %s.%s at %s shape=%s art=%s top%+.0f bottom%+.0f centre %.0f collide=%d visible=%d"),
+					bOff ? TEXT("CHECK ") : TEXT(""), *Mesh->GetName(), *It->GetName(), *Shape->GetName(), *S.GetCenter().ToCompactString(),
+					*S.GetSize().ToCompactString(), *A.GetSize().ToCompactString(), TopDiff, BottomDiff, CentreXY, bCollide, ArtC->IsVisible());
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Art total=%d check=%d"), N, Bad);
+	}
+	// TD.Ground.Near X Y Z [Radius]: every rendered primitive whose bounds touch a sphere (what is that thing on screen?).
+	static void Near(const TArray<FString>& Args, UWorld* World)
+	{
+		if (Args.Num() < 3)
+		{
+			return;
+		}
+		const FVector At(FCString::Atof(*Args[0]), FCString::Atof(*Args[1]), FCString::Atof(*Args[2]));
+		const float R = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 400.f;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TArray<UPrimitiveComponent*> Prims;
+			It->GetComponents(Prims);
+			for (const UPrimitiveComponent* P : Prims)
+			{
+				if (!P || !P->IsVisible() || P->bHiddenInGame || !P->IsRegistered())
+				{
+					continue;
+				}
+				const FBox B = P->Bounds.GetBox();
+				if (B.ComputeSquaredDistanceToPoint(At) > R * R || B.GetSize().GetMax() > 20000.f)
+				{
+					continue;
+				}
+				const UStaticMeshComponent* SM = Cast<UStaticMeshComponent>(P);
+				const UMaterialInterface* Mat = P->GetNumMaterials() > 0 ? P->GetMaterial(0) : nullptr;
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Near %s.%s (%s) mesh=%s mat=%s centre=%s size=%s"), *It->GetName(), *P->GetName(), *P->GetClass()->GetName(),
+					*GetNameSafe(SM ? SM->GetStaticMesh() : nullptr), *GetNameSafe(Mat), *B.GetCenter().ToCompactString(), *B.GetSize().ToCompactString());
+			}
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdNear(TEXT("TD.Ground.Near"), TEXT("TD.Ground.Near X Y Z [Radius]: list rendered primitives near a point."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Near));
+	static FAutoConsoleCommandWithWorldAndArgs CmdArt(TEXT("TD.Ground.Art"), TEXT("Log every kit-dressed shape: art vs collision box (tops, bottoms, centres)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Art));
 	static FAutoConsoleCommandWithWorldAndArgs CmdThird(TEXT("TD.Ground.ThirdPerson"), TEXT("TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (not saved)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&ThirdPerson));
 	static FAutoConsoleCommandWithWorldAndArgs CmdHandBlade(TEXT("TD.Ground.HandBlade"), TEXT("TD.Ground.HandBlade [X Y Z Pitch Yaw Roll]: place / report the hand blade."),
