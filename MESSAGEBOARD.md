@@ -572,6 +572,14 @@ who wants the crystals (the machines, or Triad); whether "Origin Core" is spoken
 
 **Reply (Nick / Lead, Nov 13).** Nicholas approved all six Cinder story decisions, including the exact terminal and cache dialogue. [Approved wording for engineering and Story Director](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6863767143). The single terminal echo replaces the approach echo and three placeholders. The approach opens after Cinder completion and wave 5, and the identity reveal occurs aboard the Dominion.
 
+**Follow-up (Ryan / Lead, 2026-11-13 15:41 EST): the ending is the boarding finale; Nicholas can write the reveal for the
+interior now.** Ryan's direction: no separate go / no-go date; boarding is the plan and work continues. The interior
+plays end to end in a live agent session (docking, hangar, deflect corridor, flight deck, the Warden, the core, the
+90 s escape run, the escape flight); the room list and every story hook are in issue #29. The space-only reactor
+ending stays in the code behind a switch as an emergency fallback only; if we ever have to use it we will ask for a
+short fallback reveal then, not now. Still unproven on our side, stated plainly: no human has played the interior,
+and it has not yet been in a Shipping build.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
