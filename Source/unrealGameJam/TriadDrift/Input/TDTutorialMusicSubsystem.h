@@ -11,8 +11,11 @@
 //    at 0:00 on the control frame (150 ms fade-in on a skip).
 //  - The music plays across the opening fights and the gaps between them; the combat-music gate and the intensity gain
 //    don't touch it; a CUT retake doesn't restart it.
-//  - Fade: once wave UTDMusicSettings::TutorialEndsAfterWave is cleared, TutorialFadeOutSeconds (default 20) on the
-//    same voice, carrying on across a level travel. The combat music waits until the fade has finished (finding 3).
+//  - Fade (Nicholas, issue #24): the tutorial battle ends when the player crosses the escape boundary during Command's
+//    ordered withdrawal (T4's ATDWaveDirector::OnTutorialEscaped -> NotifyTutorialEscaped), gunship alive or destroyed;
+//    a wave clear or a kill alone never starts it. Until T4's event exists the fallback is the run leaving Waves1to2,
+//    which follows the escape. TutorialFadeOutSeconds (default 20) on the same voice, carrying on across a level
+//    travel. The combat music waits until the fade has finished (finding 3).
 //  - While it owns the opening, the intro director does not start the legacy UTDUIStyle::IntroMusic (finding 1).
 //  - A Continue never plays it (only UTDGameInstance::StartNewRun arms it); the menu stops it.
 // Stepped by the music director (each game world's), so tests drive it with a test world.
@@ -50,6 +53,8 @@ public:
 
 	/** UTDGameInstance::StartNewRun: this run opens with the tutorial music. */
 	void ArmForNewRun();
+	/** The player crossed the escape boundary in the ordered withdrawal: the 20 s fade starts (once). */
+	void NotifyTutorialEscaped(const TCHAR* Why = TEXT("escape boundary"));
 	/** Stop at once (no fade). */
 	void Stop(const TCHAR* Why);
 
@@ -84,6 +89,9 @@ public:
 	/** Source time on the control frame (single voice): the downbeat, for a correct hand-off. */
 	float GetSourceTimeAtControl() const { return EnterClock >= 0.f && ControlClock >= 0.f ? EnteredAtSource + (ControlClock - EnterClock) : -1.f; }
 	int32 GetFadesBegun() const { return FadesBegun; }
+	/** Seconds from Play to the voice's first audible sample (-1: not reported yet). */
+	float GetAudibleStartDelay() const { return (PlayWallTime >= 0.0 && AudibleWallTime >= 0.0) ? float(AudibleWallTime - PlayWallTime) : -1.f; }
+	int32 GetPrimedCount() const { return Primed.Num(); }
 	float GetControlClock() const { return ControlClock; }
 	float GetFadeVolume() const { return Volume; }
 	int32 GetVoicesStarted() const { return VoicesStarted; }
@@ -114,6 +122,12 @@ private:
 
 	ETDTutorialMusicState State = ETDTutorialMusicState::Off;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Voice;
+	/** Issue #24 (cold runs): the sounds loaded and held from the moment a New Game arms, until the tutorial ends. */
+	UPROPERTY(Transient) TArray<TObjectPtr<USoundBase>> Primed;
+	void HandleEnvelope(const UAudioComponent* Comp, const USoundWave* Wave, const float Envelope);
+	double PlayWallTime = -1.0;
+	double AudibleWallTime = -1.0;
+	float LastStepDt = 1.f / 60.f;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> TestPrelude;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> TestLoop;
 	bool bTestSounds = false;
