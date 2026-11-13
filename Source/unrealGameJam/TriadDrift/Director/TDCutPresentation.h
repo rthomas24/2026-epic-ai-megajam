@@ -222,7 +222,12 @@ public:
 	/** "Wave3" -> "Wave 3" (scene ids are CamelCase + number). */
 	/** features.md C-03 #3: "SCENE 3 · CINDER · OUTPOST · TAKE 1". SceneNumber 0 (unknown) drops the number;
 	 *  Place is the planet for an objective scene (empty in the galaxy). */
-	static FText MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber = 0, const FString& Place = FString());
+	static FText MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber = 0, const FString& Place = FString(),
+		const FText& SceneTitle = FText::GetEmpty());
+
+	/** The story name of a scene: the objective's Title for a planet objective ("THE RESEARCH SITE"), else empty (the
+	 *  slate then falls back to the id, "WAVE 3"). */
+	static FText FindSceneTitle(const UWorld* World, FName SceneId);
 
 	/** Where the scene slate is drawn on a viewport of Size (px). Centred, in the upper third, below
 	 *  the top 15% (Nick's OBJECTIVE block, the real HUD's top row) and below the dev HUD's squad rows
