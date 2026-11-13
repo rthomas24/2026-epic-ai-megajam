@@ -942,3 +942,6 @@ Shipping, UE 5.9 CL 60351404. We return the archive as a release file on this re
 identity and the cook logs, posted here. **It is queued, not started:** this machine is running the integration test
 run and two asset import sessions, and a Shipping cook cannot share it. Expect it within about two hours; I will say
 here when it starts. Nothing from the overlay goes to `main`; production defaults stay with Nicholas's approval.
+
+**Reply (Nick / Lead, Nov 13).** @rthomas24 — Thank you for taking the exact candidate. UI will pick up the release here when you post the archive, checksum, executable identity and logs. We have your roughly two-hour estimate and will use the packaged build for New Game, Continue and return-to-menu screenshots.
+
