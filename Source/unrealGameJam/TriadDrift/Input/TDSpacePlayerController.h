@@ -32,6 +32,7 @@ enum class ETDPowerInput : uint8
 };
 
 class UTDHintComponent;
+struct FTDPlayerSettings;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponInput, ETDWeaponSlot, Slot, bool, bHeld);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnPowerInput, ETDPowerInput, Power);
@@ -75,6 +76,12 @@ public:
 	FVector2D GetVirtualStick() const { return VirtualStick; }
 	float GetMouseSensitivity() const { return MouseSensitivity; }
 	bool IsMousePitchInverted() const { return bInvertMousePitch; }
+	float GetStickDeadzone() const { return StickDeadzone; }
+	float GetStickSensitivity() const { return StickSensitivity; }
+	bool IsStickPitchInverted() const { return bInvertStickPitch; }
+
+	/** Player options (UTDSettingsSubsystem): sensitivities scale this class's defaults; dead zone and inverts replace them. */
+	void ApplyPlayerSettings(const FTDPlayerSettings& Settings);
 
 	/** The aim the ship is currently steering with (-1..1), after deadzone, from mouse or gamepad. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
@@ -218,6 +225,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Gamepad")
 	bool bInvertStickPitch = false;
+
+	/** Player option: shaped right-stick aim is multiplied by this (clamped to full deflection). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Gamepad", meta = (ClampMin = "0.25", ClampMax = "3"))
+	float StickSensitivity = 1.f;
 
 	/** W / RT above neutral raise the ship's top speed by up to this fraction of cruise (0 = W does nothing). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "0", ClampMax = "1"))
@@ -374,6 +385,7 @@ private:
 
 	friend struct FTDSpaceControllerTestAccess;
 	friend struct FTDHintTestAccess;
+	friend struct FTDSettingsTestAccess;
 	double RadialPressTime = -1.0;
 	double LandPressTime = -1.0;
 	bool bLandFired = false;

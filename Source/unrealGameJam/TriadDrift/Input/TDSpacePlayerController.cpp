@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -311,6 +312,10 @@ void TDActivateInputToolset(ULocalPlayer* LocalPlayer);
 void ATDSpacePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	if (UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this))
+	{
+		Options->ApplyToController(this); // the player's saved options (sensitivity, invert, dead zone, hints)
+	}
 	if (IsLocalController())
 	{
 		TDActivateInputToolset(GetLocalPlayer());
@@ -690,7 +695,9 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	}
 	else if (bUsingGamepad)
 	{
-		Aim = TDSpacePC_ShapeStickImpl(StickAim, StickDeadzone, StickResponseExponent);
+		Aim = TDSpacePC_ShapeStickImpl(StickAim, StickDeadzone, StickResponseExponent) * StickSensitivity;
+		Aim.X = FMath::Clamp(Aim.X, -1.f, 1.f);
+		Aim.Y = FMath::Clamp(Aim.Y, -1.f, 1.f);
 		if (bInvertStickPitch) { Aim.Y = -Aim.Y; }
 	}
 	else
@@ -1246,4 +1253,14 @@ void ATDSpacePlayerController::RouteSquadCommand()
 		Squad->IssueFocusCommand(Target);
 	}
 #endif
+}
+
+void ATDSpacePlayerController::ApplyPlayerSettings(const FTDPlayerSettings& Settings)
+{
+	const ATDSpacePlayerController* Defaults = GetClass()->GetDefaultObject<ATDSpacePlayerController>();
+	MouseSensitivity = Defaults->MouseSensitivity * Settings.MouseSensitivity;
+	bInvertMousePitch = Settings.bInvertMouseY;
+	StickSensitivity = Settings.GamepadSensitivity;
+	StickDeadzone = Settings.GamepadDeadzone;
+	bInvertStickPitch = Settings.bInvertGamepadY;
 }

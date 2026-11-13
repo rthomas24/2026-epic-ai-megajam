@@ -159,3 +159,27 @@ overlay state). One MCP round trip plus a capture takes 2-3 s, longer than a sho
 dev-only cheat `td.Director.DebugHoldSeconds 3` first: it lengthens camera holds and every card
 (0 by default, compiled out of Shipping). Captures land in `Saved/TDShots/mcp/<name>/`.
 
+## On foot: the view never leaves first person (agreed with T5, Nov 12)
+
+The director only cuts to its camera when the player flies a ship. On foot (a perfect deflect with the
+blade) the beat is the slow-mo (0.15 s) plus the FOV punch on the first-person camera; a CUT on foot is
+presentation only. Nothing in Ground, Flow or Travel sets a view target on foot. If anything ever does,
+T5's pilot body switches itself to full-body (head shown) while it is not the view target and back to
+first person after, so a future third-person shot needs nothing but the view target. Test:
+`Director.Camera.OnFootStaysFirstPerson`.
+
+
+### The one exception: the on-foot death cam (Lead, Nov 12)
+
+When the pilot dies on foot, the CUT plays on a third-person director camera:
+- `UTDDirectorCameraRig::BeginDeathCam`, called from `HandleSceneCut` on the same frame as T5's death.
+- Placement: 5.2 m behind and above the pelvis (`DeathCamDistance` 520, `DeathCamFocusHeight` 110), collision-resolved, and swept every frame (never closer than 1.5 m).
+- A slow 15° orbit over 3 s (`DeathCamOrbitDegrees` / `DeathCamOrbitSeconds`).
+- It holds through the "CUT!" card; the subsystem's highlight suppression leaves it alone while the CUT is pending.
+- `HandleTakeStarted` ends it and returns to the pilot's own eyes.
+- It also lets go if anything else takes the view or possession changes.
+- No input is taken.
+- Not when there is no pilot body mesh (no pilot look), in Off/Light camera modes, or in a ship.
+- Perfect deflect stays the first-person FOV punch.
+
+Tests: `Director.Camera.OnFootDeathCutsToThirdPerson` (real `ATDFirstPersonCharacter`, real death, real retake) and `Director.Camera.OnFootDeathWithoutABodyStaysFirstPerson`.
