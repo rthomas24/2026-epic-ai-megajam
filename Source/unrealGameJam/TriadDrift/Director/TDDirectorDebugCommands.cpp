@@ -10,6 +10,10 @@
 //   TD.Director.Status            log the camera rig / presentation state
 //   TD.Director.MultiKill         the player's ship kills three live enemies in one beat (spawns fighters if needed)
 //   TD.Director.MissileReturn     Rift opens both portals; an enemy missile goes through and back at its shooter
+//   TD.Director.CarrierKill       the player's ship destroys a real Hive Carrier parked ahead
+//   TD.Director.ReactorKill       first run: destroys every live generator; once exposed: destroys the reactor
+//   TD.Director.StrikeKill        power -> switch (Switch Strike) -> the new ship kills a fighter ahead
+//   TD.Squad.Passive <0|1>        wingmen hold fire and formation (weapon checks without the wing stealing targets)
 //   TD.Squad.KillActive           kill the ship the player flies (the tumble, then the auto-switch)
 //   TD.Squad.Check <label>        log frame, active ship, possessed pawn, view target, slow-mo, pause (switch stress)
 //   TD.Squad.Frame                log where the wingmen and the nearest enemy are on screen (-1..1),
@@ -39,6 +43,8 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
+#include "TriadDrift/World/TDDominionReactor.h"
+#include "TriadDrift/Core/TDEventBus.h"
 
 namespace TDDirectorDebug
 {
@@ -218,6 +224,78 @@ namespace TDDirectorDebug
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Director.GeneratorKill: no live generator (TD.Director.RevealDominion first)"));
 	}
 
+	static void CarrierKill(const TArray<FString>&, UWorld* World)
+	{
+		ATDSquadManager* S = Squad(World);
+		ATDShip* Player = S ? S->GetActiveShip() : nullptr;
+		if (!Player)
+		{
+			return;
+		}
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const FVector At = Player->GetActorLocation() + Player->GetActorForwardVector() * 18000.f;
+		ATDEnemyShip* Carrier = World->SpawnActor<ATDEnemyShip>(ATDEnemyShip::StaticClass(), At, (-Player->GetActorForwardVector()).Rotation(), Params);
+		if (!Carrier)
+		{
+			return;
+		}
+		Carrier->InitFromSpec(TDEnemyIds::HiveCarrier);
+		Carrier->SetFlightParked(true);
+		UTDStatics::ApplyTDDamage(Carrier, 10000000.f, ETDDamageKind::Explosive, Player, Player);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.CarrierKill: carrier destroyed 180 m ahead"));
+	}
+
+	static void ReactorKill(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDSquadManager* S = Squad(World);
+		ATDShip* Player = S ? S->GetActiveShip() : nullptr;
+		for (TActorIterator<ATDDominionReactor> It(World); It; ++It)
+		{
+			const UTDHealthComponent* H = UTDStatics::GetHealth(*It);
+			if (H && H->IsAlive() && !H->IsInvulnerable())
+			{
+				UTDStatics::ApplyTDDamage(*It, 100000000.f, ETDDamageKind::Explosive, Player, Player);
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.ReactorKill: reactor destroyed"));
+				return;
+			}
+		}
+		int32 Killed = 0;
+		for (TActorIterator<ATDShieldGenerator> It(World); It; ++It)
+		{
+			const UTDHealthComponent* H = UTDStatics::GetHealth(*It);
+			if (H && H->IsAlive())
+			{
+				UTDStatics::ApplyTDDamage(*It, 1000000.f, ETDDamageKind::Explosive, Player, Player);
+				++Killed;
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.ReactorKill: reactor not exposed yet; destroyed %d generator(s), run again once exposed"), Killed);
+	}
+
+	static void StrikeKill(const TArray<FString>&, UWorld* World)
+	{
+		ATDSquadManager* S = Squad(World);
+		UTDEventBus* Bus = UTDEventBus::Get(World);
+		if (!S || !Bus || !S->GetActiveShip())
+		{
+			return;
+		}
+		Bus->BroadcastPowerUsed(S->GetActiveShipId(), TEXT("DebugPower"));
+		if (!S->RequestSwitchNext() || !S->IsSwitchStrikeActive())
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Director.StrikeKill: switch refused (cooldown?); try again"));
+			return;
+		}
+		ATDShip* Player = S->GetActiveShip();
+		ATDEnemyShip* Victim = SpawnParkedFighter(World, Player->GetActorLocation() + Player->GetActorForwardVector() * 7000.f, -Player->GetActorForwardVector());
+		if (Victim)
+		{
+			UTDStatics::ApplyTDDamage(Victim, 1000000.f, ETDDamageKind::Energy, Player, Player);
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.StrikeKill: %s killed a fighter under Switch Strike"), *UEnum::GetDisplayValueAsText(S->GetActiveShipId()).ToString());
+	}
+
 	static void Status(const TArray<FString>&, UWorld* World)
 	{
 		UTDDirectorSubsystem* D = UTDDirectorSubsystem::Get(World);
@@ -316,10 +394,26 @@ namespace TDDirectorDebug
 			*UEnum::GetDisplayValueAsText(Player->GetShipId()).ToString(), R.Pitch, R.Yaw, R.Roll);
 	}
 
+	static FAutoConsoleCommandWithWorldAndArgs CmdCarrier(TEXT("TD.Director.CarrierKill"), TEXT("TD.Director.CarrierKill: destroy a real carrier ahead"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CarrierKill));
+	static FAutoConsoleCommandWithWorldAndArgs CmdReactor(TEXT("TD.Director.ReactorKill"), TEXT("TD.Director.ReactorKill: generators, then the reactor"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&ReactorKill));
+	static FAutoConsoleCommandWithWorldAndArgs CmdStrike(TEXT("TD.Director.StrikeKill"), TEXT("TD.Director.StrikeKill: a kill under Switch Strike"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&StrikeKill));
 	static FAutoConsoleCommandWithWorldAndArgs CmdMulti(TEXT("TD.Director.MultiKill"), TEXT("TD.Director.MultiKill: three kills in one beat"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MultiKill));
 	static FAutoConsoleCommandWithWorldAndArgs CmdMissile(TEXT("TD.Director.MissileReturn"), TEXT("TD.Director.MissileReturn: Rift sends a missile back through its portals"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MissileReturn));
+	static FAutoConsoleCommandWithWorldAndArgs CmdPassive(TEXT("TD.Squad.Passive"), TEXT("TD.Squad.Passive <0|1>: wingmen hold fire (1) or fight (0)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (ATDSquadManager* S = Squad(World))
+			{
+				const bool bPassive = Args.Num() == 0 || FCString::Atoi(*Args[0]) != 0;
+				S->SetWingmenPassive(bPassive);
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.Passive: wingmen %s"), bPassive ? TEXT("passive (hold fire)") : TEXT("fighting"));
+			}
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdKillActive(TEXT("TD.Squad.KillActive"), TEXT("TD.Squad.KillActive: kill the player's ship"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
 		{

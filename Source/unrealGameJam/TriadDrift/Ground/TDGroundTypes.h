@@ -22,6 +22,33 @@ enum class ETDBladeState : uint8
 	GuardBroken
 };
 
+/**
+ * Director's mercy (C-03 #3, scenes and takes): one easing step for an on-foot fight the player keeps losing.
+ * An encounter counts its own takes (each time it starts; a retake resets and restarts it). From FromTake on,
+ * the highest matching tier applies to every member it spawns. Invisible to anyone who wins first time.
+ */
+USTRUCT(BlueprintType)
+struct FTDRetakeMercyTier
+{
+	GENERATED_BODY()
+
+	/** The fight's take number (1 = first attempt) this tier starts at. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mercy", meta = (ClampMin = "2"))
+	int32 FromTake = 3;
+
+	/** Members spawn with this fraction of their health. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mercy", meta = (ClampMin = "0.1", ClampMax = "1"))
+	float HealthScale = 1.f;
+
+	/** How many times a boss may summon in this take (-1 = no limit, 0 = never). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mercy")
+	int32 MaxSummons = -1;
+
+	/** Members left out of this take, from the end of the mix (at least one always fights). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mercy", meta = (ClampMin = "0"))
+	int32 DropCrew = 0;
+};
+
 /** First-person movement numbers (features.md ENG-21). */
 USTRUCT(BlueprintType)
 struct FTDGroundMoveTuning

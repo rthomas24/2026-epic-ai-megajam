@@ -6,6 +6,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Components/BoxComponent.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "Misc/ScopeExit.h"
@@ -306,6 +307,122 @@ bool FTDDirectorCamViewTaken::RunTest(const FString& Parameters)
 	TestTrue(TEXT("right reason"), F.Rig()->GetLastCancel() == ETDDirectorCameraCancel::ViewTakenOver);
 	F.W.Advance(1.5f);
 	TestTrue(TEXT("the other view is left alone"), F.PC->GetViewTarget() == Other);
+	return true;
+}
+
+namespace TDDirectorFraming
+{
+	/** Checks the running shot's frame: the focus is well inside the picture, the camera is far enough
+	 *  for the subject's size, and the player's ship is not in the way (unless it IS the subject). */
+	static void CheckFrame(FAutomationTestBase& T, FCamFixture& F, const FString& Kind)
+	{
+		for (int32 i = 0; i < 60 && F.Rig()->IsActive() && F.Rig()->GetPhase() != ETDDirectorCameraPhase::Hold; ++i)
+		{
+			F.W.Tick(1.f / 60.f);
+		}
+		if (!T.TestTrue(Kind + TEXT(": a shot is holding"), F.Rig()->IsActive() && F.Rig()->GetPhase() == ETDDirectorCameraPhase::Hold))
+		{
+			return;
+		}
+		F.W.Tick(1.f / 60.f);
+		const ATDDirectorCameraActor* Cam = F.Rig()->GetCameraActor();
+		const FVector C = Cam->GetActorLocation();
+		const FVector Focus = F.Rig()->GetLastFocus();
+		const FVector L = Cam->GetActorTransform().InverseTransformPositionNoScale(Focus);
+		const float TanH = FMath::Tan(FMath::DegreesToRadians(Cam->GetCameraComponent()->FieldOfView * 0.5f));
+		const FVector2D P(L.Y / (L.X * TanH), L.Z / (L.X * TanH / (16.f / 9.f)));
+		T.TestTrue(FString::Printf(TEXT("%s: the focus is in front of the lens and inside the middle 70%% (%.2f, %.2f)"), *Kind, P.X, P.Y),
+			L.X > 0.f && FMath::Abs(P.X) < 0.7f && FMath::Abs(P.Y) < 0.7f);
+		const AActor* Subject = F.Director->GetCurrentShot().Subject.Get();
+		if (IsValid(Subject))
+		{
+			FVector O, E;
+			Subject->GetActorBounds(true, O, E);
+			const float Dist = FVector::Dist(C, Focus);
+			T.TestTrue(FString::Printf(TEXT("%s: camera far enough for the subject (%.0f cm vs radius %.0f)"), *Kind, Dist, E.Size()), Dist >= E.Size() * 2.f);
+		}
+		const ATDShip* Player = F.Player();
+		if (Player && Subject != Player)
+		{
+			const FVector Closest = FMath::ClosestPointOnSegment(Player->GetActorLocation(), C, Focus);
+			T.TestTrue(FString::Printf(TEXT("%s: the player's ship is not in the way"), *Kind),
+				FVector::Dist(Closest, Player->GetActorLocation()) > 400.f || FVector::Dist(Closest, Focus) < 400.f);
+		}
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamFraming, "TriadDrift.Director.Camera.EveryKindFramesItsSubject", TD_TEST_FLAGS)
+bool FTDDirectorCamFraming::RunTest(const FString& Parameters)
+{
+	// Lead item 1: each money shot frames what it's about, at a distance its size needs.
+	using namespace TDDirectorFraming;
+	{
+		FCamFixture F;
+		F.RamKill();
+		CheckFrame(*this, F, TEXT("ram kill"));
+	}
+	{
+		FCamFixture F;
+		ATDShip* P = F.Player();
+		ATDEnemyShip* Carrier = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::HiveCarrier, P->GetActorLocation() + P->GetActorForwardVector() * 18000.f);
+		Carrier->SetFlightParked(true);
+		F.W.Advance(0.3f);
+		UTDStatics::ApplyTDDamage(Carrier, 10000000.f, ETDDamageKind::Explosive, P, P);
+		F.W.Tick();
+		CheckFrame(*this, F, TEXT("carrier kill"));
+	}
+	{
+		FCamFixture F;
+		ATDShip* P = F.Player();
+		FVector Centroid = FVector::ZeroVector;
+		for (int32 i = 0; i < 3; ++i)
+		{
+			const FVector At = P->GetActorLocation() + P->GetActorForwardVector() * (6000.f + 1500.f * i) + P->GetActorRightVector() * (i - 1) * 1500.f;
+			Centroid += At / 3.f;
+			ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, At);
+			E->SetFlightParked(true);
+			UTDStatics::ApplyTDDamage(E, 1000000.f, ETDDamageKind::Energy, P, P);
+		}
+		CheckFrame(*this, F, TEXT("multi-kill"));
+		// Its own framing (Lead): on the cluster of kills, pulled back, not a chase view of the killer.
+		if (!TestTrue(TEXT("multi-kill: a shot is running"), F.Rig()->IsActive() && F.Rig()->GetCameraActor() != nullptr))
+		{
+			return false;
+		}
+		TestTrue(FString::Printf(TEXT("multi-kill: holds on the cluster of kills (%.0f cm off)"), FVector::Dist(F.Rig()->GetLastFocus(), Centroid)), FVector::Dist(F.Rig()->GetLastFocus(), Centroid) < 800.f);
+		TestTrue(TEXT("multi-kill: pulled well back"), FVector::Dist(F.Rig()->GetCameraActor()->GetActorLocation(), Centroid) > 5000.f);
+		const FVector BehindPlayer = F.Player()->GetChaseCameraTransformNow().GetLocation();
+		TestTrue(TEXT("multi-kill: not the chase camera"), FVector::Dist(F.Rig()->GetCameraActor()->GetActorLocation(), BehindPlayer) > 2000.f);
+	}
+	{
+		FCamFixture F;
+		ATDShip* P = F.Player();
+		UTDEventBus::Get(F.W.GetWorld())->BroadcastPowerUsed(F.Squad->GetActiveShipId(), TEXT("Test"));
+		F.W.Advance(0.5f);
+		TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+		TestTrue(TEXT("Switch Strike armed"), F.Squad->IsSwitchStrikeActive());
+		ATDShip* B = F.Player();
+		ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, B->GetActorLocation() + B->GetActorForwardVector() * 7000.f);
+		E->SetFlightParked(true);
+		UTDStatics::ApplyTDDamage(E, 1000000.f, ETDDamageKind::Energy, B, B);
+		F.W.Tick();
+		CheckFrame(*this, F, TEXT("Switch Strike kill"));
+		(void)P;
+	}
+	{
+		FCamFixture F(UTDGameInstance::StaticClass());
+		Cast<UTDGameInstance>(F.W.GetGameInstance())->SetDominionState(true, false);
+		ATDDominion* D = F.W.Spawn<ATDDominion>(FVector(150000.f, 0.f, 0.f));
+		F.W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.3f);
+		F.RunUntilIdle(3.f);
+		ATDShieldGenerator* G = D->GetGenerators().Num() > 0 ? D->GetGenerators()[0] : nullptr;
+		if (TestNotNull(TEXT("generator"), G))
+		{
+			UTDStatics::ApplyTDDamage(G, 100000.f, ETDDamageKind::Explosive, F.Player(), F.Player());
+			F.W.Tick();
+			CheckFrame(*this, F, TEXT("generator kill"));
+		}
+	}
 	return true;
 }
 

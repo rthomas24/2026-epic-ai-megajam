@@ -135,6 +135,27 @@ bool FTDCutPresLayer::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlateFitsAndClears, "TriadDrift.Director.CutPresentation.SlateFitsItsTextAndClearsBeforeTheWave", TD_TEST_FLAGS)
+bool FTDCutPresSlateFitsAndClears::RunTest(const FString& Parameters)
+{
+	// Lead item 4: the long numbered slate fits its box at 1280x720 and 1920x1080, and it is gone by
+	// the time a wave's first enemies arrive (warp-in 1.5 s), so it never covers incoming fire.
+	for (const FVector2D Size : { FVector2D(1280.f, 720.f), FVector2D(1920.f, 1080.f) })
+	{
+		const float LongText = 640.f; // about "SCENE 6 · CINDER · OUTPOST · TAKE 1" at 28 pt
+		const FBox2D R = UTDCutPresentation::SlateRect(Size, 0.f, LongText);
+		TestTrue(FString::Printf(TEXT("box wider than the text at %.0fx%.0f"), Size.X, Size.Y), R.GetSize().X >= LongText + 40.f);
+		TestTrue(FString::Printf(TEXT("still on screen at %.0fx%.0f"), Size.X, Size.Y), R.Min.X >= 0.f && R.Max.X <= Size.X);
+	}
+	FFixture F;
+	F.Bus()->BroadcastTakeStarted(TEXT("Wave3"), 1);
+	F.W.Tick();
+	TestTrue(TEXT("slate up"), F.S().SlateAlpha > 0.f);
+	F.W.Advance(1.6f);
+	TestEqual(TEXT("gone before the wave's enemies arrive (1.5 s warp-in + a beat)"), F.S().SlateAlpha, 0.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlowMo, "TriadDrift.Director.CutPresentation.RealTimeUnderSlowMoAndQuickCut", TD_TEST_FLAGS)
 bool FTDCutPresSlowMo::RunTest(const FString& Parameters)
 {
@@ -184,8 +205,12 @@ bool FTDCutPresExternal::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresCutAndSlate, "TriadDrift.Director.CutPresentation.CutCardThenSlate", TD_TEST_FLAGS)
 bool FTDCutPresCutAndSlate::RunTest(const FString& Parameters)
 {
-	TestEqual(TEXT("slate wording"), UTDCutPresentation::MakeSlateText(TEXT("Wave3"), 2).ToString(), FString(TEXT("SCENE Wave 3 · TAKE 2")));
-	TestEqual(TEXT("CamelCase scene ids"), UTDCutPresentation::MakeSlateText(TEXT("VerdanceWreckCore"), 1).ToString(), FString(TEXT("SCENE Verdance Wreck Core · TAKE 1")));
+	// features.md C-03 #3: "SCENE 3 · CINDER · TAKE 1".
+	TestEqual(TEXT("wave scene"), UTDCutPresentation::MakeSlateText(TEXT("Wave3"), 2, 3).ToString(), FString(TEXT("SCENE 3 · WAVE 3 · TAKE 2")));
+	TestEqual(TEXT("planet objective"), UTDCutPresentation::MakeSlateText(TEXT("Obj_Outpost"), 1, 6, TEXT("Cinder")).ToString(), FString(TEXT("SCENE 6 · CINDER · OUTPOST · TAKE 1")));
+	TestEqual(TEXT("CamelCase objective"), UTDCutPresentation::MakeSlateText(TEXT("Obj_WreckCore"), 2, 4, TEXT("Verdance")).ToString(), FString(TEXT("SCENE 4 · VERDANCE · WRECK CORE · TAKE 2")));
+	TestEqual(TEXT("the finale"), UTDCutPresentation::MakeSlateText(TEXT("Dominion"), 1, 9).ToString(), FString(TEXT("SCENE 9 · DOMINION · TAKE 1")));
+	TestEqual(TEXT("no number known"), UTDCutPresentation::MakeSlateText(TEXT("Wave3"), 2).ToString(), FString(TEXT("WAVE 3 · TAKE 2")));
 	FFixture F;
 	F.Bus()->BroadcastSceneCut(TEXT("Wave3"), 2, 1.5f);
 	F.W.Advance(0.2f);
@@ -197,7 +222,7 @@ bool FTDCutPresCutAndSlate::RunTest(const FString& Parameters)
 	F.Bus()->BroadcastTakeStarted(TEXT("Wave3"), 2);
 	F.W.Advance(0.3f);
 	TestEqual(TEXT("CUT! replaced by the slate"), F.S().CutCardAlpha, 0.f);
-	TestEqual(TEXT("slate"), F.S().SlateText.ToString(), FString(TEXT("SCENE Wave 3 · TAKE 2")));
+	TestEqual(TEXT("slate"), F.S().SlateText.ToString(), FString(TEXT("WAVE 3 · TAKE 2"))); // no game flow here: no scene number
 	TestTrue(TEXT("slate visible"), F.S().SlateAlpha > 0.5f);
 	F.W.Advance(2.5f);
 	TestTrue(TEXT("slate gone"), F.S().IsEmpty());
@@ -205,6 +230,23 @@ bool FTDCutPresCutAndSlate::RunTest(const FString& Parameters)
 	F.Bus()->BroadcastTakeStarted(NAME_None, 0);
 	F.W.Tick();
 	TestEqual(TEXT("no slate for an unnamed take"), F.S().SlateAlpha, 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlateRealFlow, "TriadDrift.Director.CutPresentation.SlateNumbersScenesThroughTheFlow", TD_TEST_FLAGS)
+bool FTDCutPresSlateRealFlow::RunTest(const FString& Parameters)
+{
+	// C-03 #3 through T5's real game flow: scenes are numbered in the order the run opens them.
+	FFixture F(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(F.W.GetGameInstance());
+	if (!TestNotNull(TEXT("game instance"), GI)) { return false; }
+	GI->BeginScene(TEXT("Wave1"));
+	F.W.Tick();
+	TestEqual(TEXT("first scene"), F.S().SlateText.ToString(), FString(TEXT("SCENE 1 · WAVE 1 · TAKE 1")));
+	F.W.Advance(3.f);
+	GI->BeginScene(TEXT("Wave2"));
+	F.W.Tick();
+	TestEqual(TEXT("second scene"), F.S().SlateText.ToString(), FString(TEXT("SCENE 2 · WAVE 2 · TAKE 1")));
 	return true;
 }
 

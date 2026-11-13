@@ -95,6 +95,7 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 	/** Real time the hull first dipped low this time (the line only plays close to that moment). */
 	double LowHullSince = -1.0;
 	double NextLowHullTry = 0.0;
+	double NextTumblePuffTime = 0.0;
 	/** Real time of this wingman's last engage call. */
 	double LastEngageCallTime = -1000.0;
 };
@@ -182,6 +183,17 @@ public:
 	/** True while the Switch Strike damage buff is running. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
 	bool IsSwitchStrikeActive() const;
+	/** HUD feedback (Lead item 2): Switch Strike time left, 1 at arming -> 0 at its end (0 when off). */
+	float GetSwitchStrikeRemaining01() const;
+	/** HUD feedback (Lead item 3): the "focus my target" order's time left, 1 -> 0 (0 without an order). */
+	float GetFocusRemaining01() const;
+
+	/** Placeholder feedback until Nick's art: squad-colour pulses at the Switch Strike ship, white pulses
+	 *  on the focus target, every this many seconds. 0 = off. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Feedback", meta = (ClampMin = "0", Units = "s"))
+	float FeedbackPulseInterval = 0.4f;
+	double NextStrikePulse = 0.0;
+	double NextFocusPulse = 0.0;
 
 	/** Outgoing damage multiplier for a ship (1.25 on the active ship during Switch Strike, else 1). T2 reads this. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
@@ -335,6 +347,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
 	float DeathTumbleDrag = 1.5f;
+
+	/** Seconds between the placeholder trail puffs while a ship tumbles. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Death", meta = (ClampMin = "0.02", Units = "s"))
+	float DeathTumblePuffInterval = 0.12f;
+
+	/** The player's own ship: seconds the camera holds on its explosion before the auto-switch cut. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Death", meta = (ClampMin = "0", Units = "s"))
+	float DeathExplosionHoldSeconds = 0.35f;
+	double PendingAutoSwitchAt = -1.0;
+	void RunPendingAutoSwitch();
 
 	/** Measured from the moment the ship is downed. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))

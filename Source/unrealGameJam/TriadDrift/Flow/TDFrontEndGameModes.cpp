@@ -20,6 +20,8 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
+#include "Framework/Application/SlateApplication.h"
+#include "HAL/IConsoleManager.h"
 
 UTDUIStyle* FTDFrontEndWidgets::LoadDefaultStyle()
 {
@@ -67,6 +69,33 @@ namespace TDFrontEnd
 ATDMenuGameMode::ATDMenuGameMode()
 {
 	DefaultPawnClass = nullptr;
+	HUDClass = ATDFrontEndHUD::StaticClass();
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
+}
+
+void ATDMenuGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	KeepMenuFocus();
+}
+
+void ATDMenuGameMode::KeepMenuFocus()
+{
+	const TSharedPtr<SWidget> Button = FocusButton.Pin();
+	if (!Placeholder.IsValid() || !Button.IsValid() || !FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+	FSlateApplication& App = FSlateApplication::Get();
+	for (TSharedPtr<SWidget> W = App.GetUserFocusedWidget(0); W.IsValid(); W = W->GetParentWidget())
+	{
+		if (W == Placeholder)
+		{
+			return; // already on one of the menu's buttons (the d-pad moves between them)
+		}
+	}
+	App.SetAllUserFocus(Button, EFocusCause::SetDirectly);
 }
 
 void ATDMenuGameMode::StartPlay()
@@ -80,7 +109,8 @@ void ATDMenuGameMode::StartPlay()
 		GI->NotifyLevelEntered(bShowingVictory ? ETDDestination::Victory : ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
 	StartMusic();
-	UClass* Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::MainMenu);
+	UClass* Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : (StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle()), FTDFrontEndWidgets::EKind::MainMenu);
+	bPlaceholderWanted = !Widget;
 	TDFrontEnd::ShowWidget(GetWorld(), Widget, true);
 	if (!Widget)
 	{
@@ -92,13 +122,7 @@ void ATDMenuGameMode::StartMusic()
 {
 	// DA_UI_Style.MenuMusic (N-015): Nick's asset carries its own volume and class; no overrides here.
 	const UTDUIStyle* Style = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
-	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(UTDUIStyle::StaticClass()->FindPropertyByName(TEXT("MenuMusic"))) : nullptr;
-	if (!Prop)
-	{
-		return;
-	}
-	const FSoftObjectPtr& Soft = *Prop->ContainerPtrToValuePtr<FSoftObjectPtr>(Style);
-	USoundBase* Sound = Cast<USoundBase>(Soft.LoadSynchronous());
+	USoundBase* Sound = (Style && !Style->MenuMusic.IsNull()) ? Style->MenuMusic.LoadSynchronous() : nullptr;
 	if (!Sound)
 	{
 		return; // no music assigned: silence, nothing created
@@ -194,16 +218,23 @@ void ATDMenuGameMode::ShowPlaceholder()
 		return; // headless (tests): the actions above are the menu
 	}
 	TWeakObjectPtr<ATDMenuGameMode> Weak(this);
-	auto Button = [Weak](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
+	TSharedPtr<SButton> FirstButton; // keyboard / gamepad focus starts here (Enter or pad A presses it)
+	auto Button = [Weak, &FirstButton](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
 	{
-		return SNew(SBox).WidthOverride(320.f).Padding(FMargin(0.f, 6.f))
+		TSharedPtr<SButton> Made;
+		TSharedRef<SWidget> Out = SNew(SBox).WidthOverride(320.f).Padding(FMargin(0.f, 6.f))
 			[
-				SNew(SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
+				SAssignNew(Made, SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
 				.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); })
 				[
 					SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
 				]
 			];
+		if (bEnabled && !FirstButton.IsValid())
+		{
+			FirstButton = Made;
+		}
+		return Out;
 	};
 	TSharedRef<SVerticalBox> Box = SNew(SVerticalBox);
 	const UTDGameInstance* GI = UTDGameInstance::Get(this);
@@ -215,9 +246,14 @@ void ATDMenuGameMode::ShowPlaceholder()
 		];
 		const FTDProgress& P = GI->GetProgressRef();
 		const int32 Seconds = FMath::RoundToInt(P.RunTimeSeconds);
+		int32 Cuts = 0; // a CUT is a scene restarted: every take after the first (Stats.Deaths counts ships lost, which a squad survives)
+		for (const FTDSceneTakes& Row : GI->GetSceneTakes())
+		{
+			Cuts += FMath::Max(0, Row.Takes - 1);
+		}
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f)
 		[
-			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths)))
+			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   SHIPS LOST %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths, Cuts)))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18))
 		];
 		for (const FTDSceneTakes& Row : GI->GetSceneTakes())
@@ -248,6 +284,8 @@ void ATDMenuGameMode::ShowPlaceholder()
 			Box
 		];
 	GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);
+	FocusButton = FirstButton;
+	KeepMenuFocus();
 }
 
 void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
@@ -259,6 +297,7 @@ void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
 ATDTransitionGameMode::ATDTransitionGameMode()
 {
 	DefaultPawnClass = nullptr;
+	HUDClass = ATDFrontEndHUD::StaticClass();
 }
 
 void ATDTransitionGameMode::StartPlay()
@@ -266,3 +305,28 @@ void ATDTransitionGameMode::StartPlay()
 	Super::StartPlay();
 	TDFrontEnd::ShowWidget(GetWorld(), FTDFrontEndWidgets::Resolve(LoadingWidgetClass.Get(), LoadingWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::Loading), false);
 }
+
+#if !UE_BUILD_SHIPPING
+// Dev: a real Slate key press (down and up) as a keyboard or pad would send it - drives the menus over MCP.
+//   TD.UI.Key Enter | Down | Up | Gamepad_FaceButton_Bottom
+static FAutoConsoleCommandWithWorldAndArgs GTDUISlateKey(TEXT("TD.UI.Key"), TEXT("TD.UI.Key <Key>: press a key through Slate (menus)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+	{
+		if (Args.Num() < 1 || !FSlateApplication::IsInitialized())
+		{
+			return;
+		}
+		const FKey Key(*Args[0]);
+		if (!Key.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("TD.UI.Key: unknown key %s"), *Args[0]);
+			return;
+		}
+		FSlateApplication& App = FSlateApplication::Get();
+		const FKeyEvent Event(Key, App.GetModifierKeys(), 0, false, 0, 0);
+		App.ProcessKeyDownEvent(Event);
+		App.ProcessKeyUpEvent(Event);
+		const TSharedPtr<SWidget> Focus = App.GetUserFocusedWidget(0);
+		UE_LOG(LogTemp, Log, TEXT("TD.UI.Key %s (focus now %s)"), *Key.ToString(), Focus.IsValid() ? *Focus->GetTypeAsString() : TEXT("none"));
+	}));
+#endif

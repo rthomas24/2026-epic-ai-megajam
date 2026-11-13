@@ -64,7 +64,7 @@ bool FTDHyperLockWave::RunTest(const FString& Parameters)
 	// CUT retake: the retaken wave re-adds the lock (and never stacks a second one).
 	UTDEventBus::Get(W.GetWorld())->BroadcastTakeStarted(D->GetWaveInfo().SceneId, 2);
 	TestTrue(TEXT("retaken wave locks"), Locked(W));
-	W.Advance(D->WarpInSeconds + 5.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	KillAllEnemies(D);
 	W.Tick();
 	TestTrue(TEXT("wave 2 ends the phase"), D->GetState() == ETDWaveState::PhaseComplete);

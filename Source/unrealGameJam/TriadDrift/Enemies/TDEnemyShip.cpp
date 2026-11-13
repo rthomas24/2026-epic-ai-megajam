@@ -1,6 +1,8 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Enemies/TDCarrierBay.h"
@@ -1015,6 +1017,20 @@ void ATDEnemyShip::Explode()
 	if (Visuals)
 	{
 		UTDStatics::PlayCue(this, Visuals->Explosion, GetActorLocation(), GetActorRotation());
+	}
+	// No explosion art yet: T2's pooled placeholder burst, sized to the visible hull (enemies must not vanish).
+	{
+		FVector Origin, Extent;
+		GetActorBounds(true, Origin, Extent);
+		const float VisibleRadius = FMath::Max(Spec.Radius, Extent.GetMax());
+		const bool bBig = Spec.Size == ETDEnemySize::Large || Spec.Size == ETDEnemySize::Boss;
+		if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->Explosion))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), FMath::Max(400.f, VisibleRadius * 2.5f), Spec.PlaceholderColor, bBig ? 14 : 8);
+		}
+	}
 	}
 	OnEnemyExploded.Broadcast(this, LastKiller.Get());
 	Destroy();

@@ -2,6 +2,11 @@
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Ground/TDEnergyBladeComponent.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -32,6 +37,70 @@ FTDStreakLook FTDCombatPlaceholders::ComputeStreak(const FTDProjectileSpec& Spec
 	}
 	Look.HeadDiameter = Look.bHead ? Look.Thickness * (Spec.bIsMissile ? 1.4f : 1.8f) : 0.f;
 	return Look;
+}
+
+FTDStreakLook FTDCombatPlaceholders::ComputeOnFootStreak(const FTDProjectileSpec& Spec)
+{
+	FTDStreakLook Look;
+	Look.bStreak = Spec.Speed >= 600.f;
+	Look.bHeavy = false;
+	Look.bHead = true; // a hot core so the bolt reads as a bolt, not a stick
+	Look.Length = FMath::Clamp(Spec.Speed * 0.06f, 90.f, 220.f);
+	Look.Thickness = FMath::Clamp(Spec.CollisionRadius * 0.6f, 8.f, 16.f);
+	Look.HeadDiameter = Look.Thickness * 1.6f;
+	return Look;
+}
+
+float FTDCombatPlaceholders::OnFootDistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera)
+{
+	if (Look.Thickness <= 0.f)
+	{
+		return 1.f;
+	}
+	const float Needed = MinOnFootStreakPixels * 2.f * DistanceToCamera / 1280.f;
+	return FMath::Clamp(Needed / Look.Thickness, 1.f, OnFootMaxGrowth);
+}
+
+bool FTDCombatPlaceholders::IsArmadaHue(const FLinearColor& Color)
+{
+	const FLinearColor HSV = Color.LinearRGBToHSV();
+	return HSV.R <= 45.f && HSV.G >= 0.6f && HSV.B > 0.05f;
+}
+
+FLinearColor FTDCombatPlaceholders::BladeColorOf(const AActor* Shooter)
+{
+	const UTDEnergyBladeComponent* Blade = Shooter ? Shooter->FindComponentByClass<UTDEnergyBladeComponent>() : nullptr;
+	const UTDBladeFX* FX = Blade ? Blade->BladeFX.Get() : nullptr;
+	return FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f); // ATDFirstPersonCharacter::ApplyBladeVisuals' default
+}
+
+FLinearColor FTDCombatPlaceholders::ProjectileColor(const FTDProjectileSpec& Spec, ETDTeam Team, const AActor* Shooter, bool bDeflected)
+{
+	if (bDeflected)
+	{
+		if (const ATDShip* Ship = Cast<ATDShip>(Shooter))
+		{
+			return UTDStatics::ShipColor(Ship->GetShipId()); // Bastion's dome, Rift's portal
+		}
+		if (Team == ETDTeam::Enemy)
+		{
+			return UTDStatics::TeamColor(ETDTeam::Enemy);
+		}
+		return BladeColorOf(Shooter);
+	}
+	if (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White))
+	{
+		return Spec.FX->Color; // Nick's colour wins
+	}
+	if (Team == ETDTeam::Enemy)
+	{
+		return IsArmadaHue(Spec.PlaceholderColor) ? Spec.PlaceholderColor : UTDStatics::TeamColor(ETDTeam::Enemy);
+	}
+	if (const ATDShip* Ship = Cast<ATDShip>(Shooter))
+	{
+		return UTDStatics::ShipColor(Ship->GetShipId());
+	}
+	return Spec.PlaceholderColor;
 }
 
 bool FTDCombatPlaceholders::HasVisualArt(const FTDFXCue& Cue)
@@ -121,6 +190,8 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 	{
 		MID = Mesh->CreateDynamicMaterialInstance(0, GlowMaterial);
 	}
+	bDebris = false;
+	SetActorRotation(FRotator::ZeroRotator);
 	Radius = FMath::Max(InRadius, 1.f);
 	Color = InColor;
 	Life = FMath::Max(Seconds, 0.01f);
@@ -128,6 +199,17 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 	bPlaying = true;
 	Mesh->SetVisibility(true);
 	SetActorTickEnabled(true);
+	Apply(0.f);
+}
+
+void ATDCombatFlash::PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& InColor,
+	float Seconds)
+{
+	Play(Location, Thickness * 0.5f, InColor, Seconds, nullptr);
+	bDebris = true;
+	DebrisVelocity = Velocity;
+	DebrisLength = FMath::Max(Length, Thickness);
+	SetActorRotation(Velocity.Rotation());
 	Apply(0.f);
 }
 
@@ -152,14 +234,30 @@ void ATDCombatFlash::Tick(float DeltaSeconds)
 		Stop();
 		return;
 	}
+	if (bDebris)
+	{
+		SetActorLocation(GetActorLocation() + DebrisVelocity * DeltaSeconds);
+		DebrisVelocity *= FMath::Exp(-1.5f * DeltaSeconds); // drag: streaks slow as they fade
+	}
 	Apply(Age / Life);
 }
 
 void ATDCombatFlash::Apply(float Alpha)
 {
-	// Swells from 60% to 120% of its radius while the glow falls off.
-	const float Size = Radius * (0.6f + 0.6f * Alpha);
-	SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
+	if (bDebris)
+	{
+		// A stretched streak along its flight, thinning as it fades.
+		const float Shrink = 1.f - 0.6f * Alpha;
+		SetActorScale3D(FVector(DebrisLength * Shrink, Radius * 2.f * Shrink, Radius * 2.f * Shrink) / 100.f);
+	}
+	else
+	{
+		// Swells from 60% to 120% of its radius in the first 30%, then collapses as the glow falls off. The glow material
+		// is opaque unlit, so a fading colour reads darker, not clearer: a shell that kept its size turned into a dark
+		// disc near the camera (T3's death playtest). Collapsing, the dim end is small.
+		const float Size = Alpha < 0.3f ? Radius * (0.6f + 2.f * Alpha) : FMath::Max(Radius * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
+	}
 	if (MID)
 	{
 		const FLinearColor Glow = Color * (FTDCombatPlaceholders::FlashGlow * FMath::Square(1.f - Alpha));

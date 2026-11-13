@@ -1,0 +1,326 @@
+{
+ "mesh": {
+  "verts": 44952,
+  "tris": 33938,
+  "min_m": [
+   -0.34369999170303345,
+   -0.17440000176429749,
+   -0.0
+  ],
+  "max_m": [
+   0.34369999170303345,
+   0.17440000176429749,
+   1.7000000476837158
+  ],
+  "size_cm": [
+   68.69999694824219,
+   34.900001525878906,
+   170.0
+  ],
+  "materials": [
+   "MI_Pilot"
+  ],
+  "bones": 74,
+  "bones_without_weights": [
+   "ball_l_end",
+   "ball_r_end",
+   "head_end",
+   "headfront",
+   "index_03_l_end",
+   "index_03_r_end",
+   "middle_03_l_end",
+   "middle_03_r_end",
+   "pinky_03_l_end",
+   "pinky_03_r_end",
+   "ring_03_l_end",
+   "ring_03_r_end",
+   "thumb_03_l_end",
+   "thumb_03_r_end"
+  ],
+  "max_influences_per_vertex": 4,
+  "unweighted_verts": 0
+ },
+ "rest_bone_heads_m": {
+  "pelvis": [
+   0.02,
+   0.001,
+   0.988
+  ],
+  "head": [
+   0.003,
+   0.002,
+   1.45
+  ],
+  "headfront": [
+   0.003,
+   -0.058,
+   1.45
+  ],
+  "head_end": [
+   0.001,
+   -0.005,
+   1.691
+  ],
+  "Bone_026": [
+   -0.023,
+   -0.11,
+   1.577
+  ],
+  "Bone_028": [
+   0.037,
+   -0.11,
+   1.577
+  ],
+  "hand_l": [
+   0.309,
+   -0.037,
+   0.913
+  ],
+  "hand_r": [
+   -0.302,
+   -0.037,
+   0.913
+  ],
+  "foot_l": [
+   0.19,
+   0.061,
+   0.153
+  ],
+  "ball_l": [
+   0.21,
+   -0.056,
+   0.043
+  ]
+ },
+ "textures": {
+  "size": [
+   2048,
+   2048
+  ],
+  "normal_depth_bits": 24,
+  "normal_mean_rgb": [
+   0.4959999918937683,
+   0.4970000088214874,
+   0.9879999756813049
+  ],
+  "normal_source_convention": "OpenGL (+Y): glTF specifies it and scripts/p12_normal_seam_test.py confirms it (seam agreement 0.82 vs 0.72)",
+  "T_Pilot_N": "green inverted here = DirectX (-Y), import into Unreal WITHOUT flip_green_channel",
+  "orm_mean_rgb": [
+   0.9670000076293945,
+   0.3630000054836273,
+   0.0020000000949949026
+  ],
+  "orm_min_rgb": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "orm_max_rgb": [
+   1.0,
+   0.6940000057220459,
+   0.3529999852180481
+  ]
+ },
+ "animations": {
+  "A_Pilot_Run": {
+   "frames": [
+    0,
+    19
+   ],
+   "keys": 20,
+   "keys_on_integer_frames": true,
+   "length_s": 0.6333,
+   "pelvis_net_cm": {
+    "left_x": 0.0,
+    "forward": 0.0,
+    "up_z": 0.0
+   },
+   "pelvis_range_cm": {
+    "x": 1.62,
+    "y": 7.38,
+    "z": 6.96
+   },
+   "pelvis_height_cm": [
+    94.4,
+    101.3
+   ],
+   "first_vs_last_pose": {
+    "max_bone_offset_cm_pelvis_relative": 0.0,
+    "max_rotation_deg": 0.0,
+    "max_bone_offset_cm_absolute": 0.0
+   },
+   "largest_frame_to_frame_offset_cm": 28.36,
+   "travels": false,
+   "exported_action": "Running"
+  },
+  "A_Pilot_Walk": {
+   "frames": [
+    0,
+    31
+   ],
+   "keys": 32,
+   "keys_on_integer_frames": true,
+   "length_s": 1.0333,
+   "pelvis_net_cm": {
+    "left_x": 0.0,
+    "forward": 0.0,
+    "up_z": -0.0
+   },
+   "pelvis_range_cm": {
+    "x": 5.9,
+    "y": 4.69,
+    "z": 7.04
+   },
+   "pelvis_height_cm": [
+    95.9,
+    102.9
+   ],
+   "first_vs_last_pose": {
+    "max_bone_offset_cm_pelvis_relative": 0.0,
+    "max_rotation_deg": 0.0,
+    "max_bone_offset_cm_absolute": 0.0
+   },
+   "largest_frame_to_frame_offset_cm": 14.64,
+   "travels": false,
+   "exported_action": "Walking"
+  },
+  "A_Pilot_CasualWalk": {
+   "frames": [
+    0,
+    125
+   ],
+   "keys": 126,
+   "keys_on_integer_frames": true,
+   "length_s": 4.1667,
+   "pelvis_net_cm": {
+    "left_x": 0.31,
+    "forward": -0.09,
+    "up_z": 0.91
+   },
+   "pelvis_range_cm": {
+    "x": 7.51,
+    "y": 0.92,
+    "z": 2.67
+   },
+   "pelvis_height_cm": [
+    96.8,
+    99.5
+   ],
+   "first_vs_last_pose": {
+    "max_bone_offset_cm_pelvis_relative": 6.18,
+    "max_rotation_deg": 10.3,
+    "max_bone_offset_cm_absolute": 5.96
+   },
+   "largest_frame_to_frame_offset_cm": 10.04,
+   "travels": false,
+   "exported_action": "Casual_Walk"
+  },
+  "A_Pilot_Idle02": {
+   "frames": [
+    0,
+    56
+   ],
+   "keys": 57,
+   "keys_on_integer_frames": true,
+   "length_s": 1.8667,
+   "pelvis_net_cm": {
+    "left_x": 0.0,
+    "forward": -0.0,
+    "up_z": 0.0
+   },
+   "pelvis_range_cm": {
+    "x": 0.22,
+    "y": 0.44,
+    "z": 0.84
+   },
+   "pelvis_height_cm": [
+    96.6,
+    97.4
+   ],
+   "first_vs_last_pose": {
+    "max_bone_offset_cm_pelvis_relative": 0.0,
+    "max_rotation_deg": 0.0,
+    "max_bone_offset_cm_absolute": 0.0
+   },
+   "largest_frame_to_frame_offset_cm": 0.3,
+   "travels": false,
+   "exported_action": "Idle_02"
+  },
+  "A_Pilot_Idle3": {
+   "frames": [
+    0,
+    299
+   ],
+   "keys": 300,
+   "keys_on_integer_frames": true,
+   "length_s": 9.9667,
+   "pelvis_net_cm": {
+    "left_x": 0.02,
+    "forward": -0.0,
+    "up_z": -0.0
+   },
+   "pelvis_range_cm": {
+    "x": 6.08,
+    "y": 2.9,
+    "z": 2.27
+   },
+   "pelvis_height_cm": [
+    94.2,
+    96.5
+   ],
+   "first_vs_last_pose": {
+    "max_bone_offset_cm_pelvis_relative": 0.09,
+    "max_rotation_deg": 0.08,
+    "max_bone_offset_cm_absolute": 0.07
+   },
+   "largest_frame_to_frame_offset_cm": 1.14,
+   "travels": false,
+   "exported_action": "Idle_3"
+  },
+  "A_Pilot_Idle6": {
+   "frames": [
+    0,
+    221
+   ],
+   "keys": 222,
+   "keys_on_integer_frames": true,
+   "length_s": 7.3667,
+   "pelvis_net_cm": {
+    "left_x": -0.0,
+    "forward": -0.0,
+    "up_z": 0.0
+   },
+   "pelvis_range_cm": {
+    "x": 1.19,
+    "y": 4.05,
+    "z": 0.65
+   },
+   "pelvis_height_cm": [
+    93.5,
+    94.1
+   ],
+   "first_vs_last_pose": {
+    "max_bone_offset_cm_pelvis_relative": 0.06,
+    "max_rotation_deg": 0.1,
+    "max_bone_offset_cm_absolute": 0.05
+   },
+   "largest_frame_to_frame_offset_cm": 1.32,
+   "travels": false,
+   "exported_action": "Idle_6"
+  }
+ },
+ "export_units": {
+  "scene_unit_scale": 0.01,
+  "mesh_height_units": 170.0,
+  "armature_scale": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "mesh_world_scale": [
+   1.0,
+   1.0,
+   1.0
+  ]
+ }
+}

@@ -8,6 +8,7 @@
 #include "TDCombatPlaceholders.generated.h"
 
 struct FTDProjectileSpec;
+enum class ETDTeam : uint8;
 struct FTDFXCue;
 class UStaticMeshComponent;
 class UStaticMesh;
@@ -39,6 +40,28 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 * 250-500 cm, 70-140 cm thick (slim missiles from 40). Heavy shells get a head 1.8x the thickness, missiles 1.4x.
 	 */
 	static FTDStreakLook ComputeStreak(const FTDProjectileSpec& Spec);
+
+	/**
+	 * On foot the camera is a metre or two from the shot, so the space streak (35+ cm thick, 2.2x incoming head)
+	 * reads as a glowing ball (T5's journey check). On-foot bolts: 90-220 cm long, 8-16 cm thick, a head 1.6x the
+	 * thickness; they grow at most OnFootMaxGrowth with distance and get no incoming boost.
+	 */
+	static FTDStreakLook ComputeOnFootStreak(const FTDProjectileSpec& Spec);
+	static constexpr float MinOnFootStreakPixels = 5.f;
+	static constexpr float OnFootMaxGrowth = 3.f;
+	static float OnFootDistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
+
+	/**
+	 * Colour code (AGENTS.md "Look and feel"): squad shots in their ship's colour, every enemy shot in Armada
+	 * red-orange, a deflected shot in the colour of whoever turned it (the blade's colour on foot). An FX colour
+	 * from Nick's DA_<Id>_FX wins, except after a deflection.
+	 *   Shooter: the current instigator. BladeColor: used when a non-ship deflected it.
+	 */
+	static FLinearColor ProjectileColor(const FTDProjectileSpec& Spec, ETDTeam Team, const AActor* Shooter, bool bDeflected);
+	/** Armada hues: red to orange (hue 0-45 degrees, saturated). Anything else on an enemy shot is replaced. */
+	static bool IsArmadaHue(const FLinearColor& Color);
+	/** The blade's colour on Shooter (its UTDBladeFX), else the placeholder blade's default. */
+	static FLinearColor BladeColorOf(const AActor* Shooter);
 
 	/**
 	 * Seen from the chase camera a shot flies away end-on, so its length doesn't show: its thickness is what
@@ -97,6 +120,8 @@ public:
 	ATDCombatFlash();
 
 	void Play(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds, USceneComponent* AttachTo);
+	/** A debris streak: flies at Velocity, stretched along it (Length x Thickness), shrinking as it fades. */
+	void PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& Color, float Seconds);
 	bool IsPlaying() const { return bPlaying; }
 	float GetRadius() const { return Radius; }
 	void Stop();
@@ -119,6 +144,9 @@ private:
 	TObjectPtr<UMaterialInstanceDynamic> MID;
 
 	FLinearColor Color = FLinearColor::White;
+	FVector DebrisVelocity = FVector::ZeroVector;
+	float DebrisLength = 0.f;
+	bool bDebris = false;
 	float Radius = 100.f;
 	float Life = 0.1f;
 	float Age = 0.f;

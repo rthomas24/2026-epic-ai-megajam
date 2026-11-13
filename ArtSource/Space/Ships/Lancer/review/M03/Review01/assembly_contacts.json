@@ -1,0 +1,36 @@
+{
+  "status": "ok",
+  "ok": false,
+  "tolerance_m": 0.002,
+  "objects": [
+    "SM_LancerM03_Hull",
+    "SM_LancerM03_Wing_L",
+    "SM_LancerM03_Wing_R",
+    "SM_LancerM03_Canopy",
+    "SM_LancerM03_Primary_L",
+    "SM_LancerM03_Primary_R",
+    "SM_LancerM03_Rotor_L",
+    "SM_LancerM03_Rotor_R",
+    "SM_LancerM03_Secondary_L",
+    "SM_LancerM03_Secondary_R",
+    "SM_LancerM03_Engine_L",
+    "SM_LancerM03_Engine_R"
+  ],
+  "islands": 53,
+  "groups": 2,
+  "main_body_tris": 16884,
+  "floating": [
+    {
+      "object": "SM_LancerM03_Hull",
+      "island": 2,
+      "tris": 220,
+      "center": [
+        0.0,
+        -3.915,
+        0.0
+      ],
+      "gap_m": 0.0585
+    }
+  ],
+  "hint": "Connect each floating island to the body (strut, pylon, overlap it slightly) or delete it."
+}

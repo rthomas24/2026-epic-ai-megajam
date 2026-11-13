@@ -1209,6 +1209,13 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationMenu"));
 		GI->DeleteSave();
 		ON_SCOPE_EXIT { GI->DeleteSave(); GI->SetSaveSlotOverride(FString()); };
+		{
+			UTDGameInstance* Fresh = NewObject<UTDGameInstance>(GetTransientPackage());
+			TestTrue(TEXT("tests never use the player's save slot"), Fresh->GetSaveSlotName() != UTDFlowSettings::Get()->SaveSlotName
+				&& Fresh->GetSaveSlotName().EndsWith(TEXT("_Automation")));
+		}
+		TestTrue(TEXT("no in-game HUD on the menu (the dev HUD only replaces a stock AHUD)"), Menu->HUDClass == ATDFrontEndHUD::StaticClass()
+			&& GetDefault<ATDTransitionGameMode>()->HUDClass == ATDFrontEndHUD::StaticClass());
 		TestFalse(TEXT("the menu, not the victory screen"), Menu->IsShowingVictory());
 		TestFalse(TEXT("no Continue without a save"), Menu->CanContinue());
 		TestFalse(TEXT("Continue refused"), Menu->ContinueGame());
@@ -1265,8 +1272,6 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowMenuMusic, "TriadDrift.Flow.MenuMusicFromTheStyleFadesOnNewGame", TDFlowTest::TestFlags)
 bool FTDFlowMenuMusic::RunTest(const FString& Parameters)
 {
-	const FSoftObjectProperty* Prop = CastField<FSoftObjectProperty>(UTDUIStyle::StaticClass()->FindPropertyByName(TEXT("MenuMusic")));
-	if (!TestNotNull(TEXT("UTDUIStyle.MenuMusic exists (Core)"), Prop)) { return false; }
 	// Any engine sound stands in for Nick's theme (never referenced by path: only through the style).
 	USoundBase* TestSound = LoadObject<USoundBase>(nullptr, TEXT("/Engine/EngineSounds/WhiteNoise.WhiteNoise"));
 	if (!TestSound) { TestSound = NewObject<USoundWave>(GetTransientPackage()); }
@@ -1275,7 +1280,7 @@ bool FTDFlowMenuMusic::RunTest(const FString& Parameters)
 		FTDTestWorld W(UTDGameInstance::StaticClass());
 		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
 		UTDUIStyle* Style = NewObject<UTDUIStyle>(GetTransientPackage());
-		*Prop->ContainerPtrToValuePtr<FSoftObjectPtr>(Style) = FSoftObjectPtr(bWithMusic ? TestSound : nullptr);
+		Style->MenuMusic = bWithMusic ? TestSound : nullptr; // Nick's DA_UI_Style: MenuMusic only, every widget class empty
 		ATDMenuGameMode* Menu = W.GetWorld()->SpawnActorDeferred<ATDMenuGameMode>(ATDMenuGameMode::StaticClass(), FTransform::Identity);
 		Menu->StyleOverride = Style;
 		Menu->FinishSpawning(FTransform::Identity);
@@ -1285,6 +1290,7 @@ bool FTDFlowMenuMusic::RunTest(const FString& Parameters)
 			TestNull(TEXT("no music asset: nothing created"), Menu->GetMusic());
 			continue;
 		}
+		TestTrue(TEXT("a style with only MenuMusic still gets the placeholder menu"), Menu->UsesPlaceholderMenu());
 		UAudioComponent* M = Menu->GetMusic();
 		if (!TestNotNull(TEXT("music component created"), M)) { return false; }
 		TestTrue(TEXT("the style's sound"), M->Sound == TestSound);

@@ -605,7 +605,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 		if (UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this))
 		{
 			// Squad-coloured, and never bigger than about a third of the hull (playtest 3: Bastion's white flash hid the ship).
-			const FLinearColor Color = (ProjSpec.FX && !ProjSpec.FX->Color.Equals(FLinearColor::White)) ? ProjSpec.FX->Color : ProjSpec.PlaceholderColor;
+			const FLinearColor Color = FTDCombatPlaceholders::ProjectileColor(ProjSpec, GetOwnerTeam(), Owner, false);
 			const float Radius = FTDCombatPlaceholders::CapMuzzleFlashRadius(FTDCombatPlaceholders::MuzzleFlashRadius(ProjSpec), Owner->GetSimpleCollisionRadius());
 			Projectiles->PlayPlaceholderFlash(MuzzleLocation, Radius, FMath::Lerp(Color, FLinearColor::White, 0.12f), 0.06f, Owner->GetRootComponent());
 		}

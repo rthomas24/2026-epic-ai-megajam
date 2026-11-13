@@ -23,6 +23,10 @@ struct UNREALGAMEJAM_API FTDBalanceWaveStats
 	int32 Kills = 0;
 	float DamageTaken = 0.f;		// shield + hull, all squad ships
 	int32 ShipDowns = 0;
+	/** Downs of the ship the player was flying (the rest are wingmen). */
+	int32 ActiveShipDowns = 0;
+	/** Seconds into the wave of the first squad ship down (-1 = none). */
+	float FirstDownSeconds = -1.f;
 	TMap<ETDShipId, int32> KillsByShip;
 	TMap<ETDDamageKind, int32> KillsByKind;
 
@@ -74,11 +78,19 @@ struct UNREALGAMEJAM_API FTDPilotSkill
 	bool bHuntsBays = true;
 	/** Passive: never steers or fires (the worst case for readability: a player who isn't turning). */
 	bool bPassive = false;
+	/** Drifter (T2's scripted run): cruises, fire held in bursts (2 s on, 1 s off), a 35 degree turn every 11 s,
+	 *  no aiming, no evasion. The lower bound: a player who is often not where the fight is. */
+	bool bDrifter = false;
+	/** Evader (the reference player): aims and fights like Average, but weaves, and on a fresh hit (or an enemy
+	 *  closing head-on inside 3000 cm) breaks hard to one side with a boost for 1 s. */
+	bool bEvader = false;
 
 	static FTDPilotSkill Weak();
 	static FTDPilotSkill Average() { return FTDPilotSkill(); }
 	static FTDPilotSkill Strong();
 	static FTDPilotSkill Passive();
+	static FTDPilotSkill Drifter();
+	static FTDPilotSkill Evader();
 };
 
 /**
@@ -99,6 +111,8 @@ public:
 
 	FTDBalanceWaveStats Current;
 	int32 Wipes = 0;
+	/** The ship the player flew last frame (set by the run loop): a down event fires after the auto-switch. */
+	ETDShipId LastActiveShip = ETDShipId::Rift;
 
 	UFUNCTION() void HandleKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
 	UFUNCTION() void HandleShipDowned(ETDShipId Ship);
@@ -121,6 +135,16 @@ struct UNREALGAMEJAM_API FTDBalancePilot
 
 	/** Distribution runs: a different (still deterministic) pilot per seed. */
 	void Reseed(int32 Seed) { Rng.Initialize(Seed); }
+
+	// Drifter / Evader state.
+	float StyleTimer = 0.f;
+	float TurnRemaining = 0.f;
+	float TurnSign = 1.f;
+	float DodgeTimer = -1.f;
+	float DodgeSign = 1.f;
+	float WeavePhase = 0.f;
+	float LastHealthSum = -1.f;
+	TWeakObjectPtr<AActor> LastShip;
 	/** Fires the primary when the target is within the skill's cone and this range (cm). */
 	float FireRange = 25000.f;
 	/** Secondary FireOnce every this many seconds when lined up. */

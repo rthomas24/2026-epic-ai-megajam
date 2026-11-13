@@ -306,8 +306,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	bool bTriggerOnOverlap = true;
 
+	/** Spawned crew hold fire this long: the fight shows itself before it hurts (playtest: an ambush trooper's first
+	 *  burst landed 0.5 s after the crew appeared, and a pilot who didn't react was dead in 5 s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
+	float OpeningGraceSeconds = 1.2f;
+
+	/** Director's mercy: easing per take of this fight (empty = always the same fight). Sorted by FromTake. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	TArray<FTDRetakeMercyTier> MercyTiers;
+
 	UPROPERTY(BlueprintAssignable, Category = "Encounter")
 	FTDOnEncounterCleared OnCleared;
+
+	/** This fight's current take (0 before it first starts, 1 on the first attempt). */
+	UFUNCTION(BlueprintPure, Category = "Encounter") int32 GetTake() const { return Take; }
+	/** The mercy tier in force for the current take, or null. */
+	const FTDRetakeMercyTier* GetActiveMercy() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Encounter") void Activate();
 	UFUNCTION(BlueprintCallable, Category = "Encounter") void ResetEncounter();
@@ -355,4 +369,5 @@ private:
 	TArray<TWeakObjectPtr<AActor>> Spawned;
 	bool bActivated = false;
 	bool bCleared = false;
+	int32 Take = 0;
 };

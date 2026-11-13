@@ -1,0 +1,36 @@
+{
+ "asset": "SK_NullTrooper",
+ "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+ "physics_asset": "/Game/Characters/Mannequins/Rigs/PA_Mannequin",
+ "tris": 55514,
+ "verts": 29929,
+ "bones_in_fbx": 89,
+ "size_cm": [
+  112.7,
+  55.3,
+  187.4
+ ],
+ "material_slots": [
+  "M_NullTrooper"
+ ],
+ "textures": [
+  "T_NullTrooper_BC.png",
+  "T_NullTrooper_N.png",
+  "T_NullTrooper_ORM.png",
+  "T_NullTrooper_E.png"
+ ],
+ "emission_strength_blender": 3.0,
+ "normal_map": "DirectX (no green flip in Unreal)",
+ "sockets": [
+  {
+   "name": "Muzzle",
+   "bone": "hand_r",
+   "how": "SOCKET_ empty under the bone in the FBX"
+  },
+  {
+   "name": "HeadGlow",
+   "bone": "head",
+   "how": "SOCKET_ empty under the bone in the FBX"
+  }
+ ]
+}

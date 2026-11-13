@@ -664,6 +664,121 @@ bool FTDCourseNoFinishDuringCut::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Reaching a checkpoint refills the pilot (the wreck site fight starts from full after the ambush), and a death in
+// the site fight respawns at its edge, not at the pad.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseCheckpointRefill, "TriadDrift.Ground.Course.CheckpointRefillsAndSiteFightRespawnsAtItsEdge", TD_TEST_FLAGS)
+bool FTDCourseCheckpointRefill::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Wreck = R.Course->FindObjective(TEXT("Obj_WreckCore"));
+	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
+	R.FP->GetHealth()->SetInvulnerable(false);
+	R.FP->GetHealth()->SetInvulnerableFor(0.f);
+	UTDStatics::ApplyTDDamage(R.FP, 70.f, ETDDamageKind::Energy, nullptr, nullptr);
+	TestTrue(TEXT("hurt by the ambush"), R.FP->GetHealth()->GetHull01() < 0.5f);
+	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
+	TestEqual(TEXT("at the site fight"), R.Step(Wreck), 1);
+	TestEqual(TEXT("the site fight is a checkpoint"), Wreck->GetCheckpointStep(), 1);
+	TestTrue(TEXT("reaching it refilled the pilot"), R.FP->GetHealth()->GetHull01() > 0.99f);
+	V.GI->ReportPlayerDefeated();
+	R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.5f);
+	TestEqual(TEXT("take 2 still at the site fight"), R.Step(Wreck), 1);
+	TestTrue(*FString::Printf(TEXT("respawned at the site's edge, not the pad (%s)"), *R.FP->GetActorLocation().ToCompactString()),
+		FVector::Dist2D(R.FP->GetActorLocation(), FVector(8300.f, 5800.f, 0.f)) < 400.f);
+	return true;
+}
+
+// Journey run 2 stall: the pilot stood against the wreck core during the site fight and the grunts circled at
+// 1.0-1.3 m for 15 minutes without a swing. An idle pilot there must be attacked (and the crew must stay killable).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseCoreStall, "TriadDrift.Ground.Course.CrewAttackAPilotStandingAtTheWreckCore", TD_TEST_FLAGS)
+bool FTDCourseCoreStall::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Wreck = R.Course->FindObjective(TEXT("Obj_WreckCore"));
+	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
+	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
+	ATDEncounterVolume* Site = R.StepFight(Wreck, 1);
+	if (!TestEqual(TEXT("site fight step"), R.Step(Wreck), 1) || !TestNotNull(TEXT("site fight"), Site)) { return false; }
+	R.FP->SetActorLocation(FVector(11379.f, 7218.f, R.FP->GetActorLocation().Z), false, nullptr, ETeleportType::TeleportPhysics);
+	R.FP->GetHealth()->SetInvulnerable(false);
+	R.FP->GetHealth()->SetInvulnerableFor(0.f);
+	float HullMin = 1.f;
+	int32 Swings = 0;
+	TMap<FString, FString> States;
+	for (int32 i = 0; i < 60 * 12 && !R.FP->IsDead(); ++i)
+	{
+		V.W.Tick(1.f / 60.f);
+		V.GI->TickFlow(1.f / 60.f);
+		HullMin = FMath::Min(HullMin, R.FP->GetHealth()->GetHull01());
+		for (const TWeakObjectPtr<AActor>& M : Site->GetSpawned())
+		{
+			if (const ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()))
+			{
+				Swings += C->IsTelegraphing() ? 1 : 0;
+				States.Add(C->GetName(), FString::Printf(TEXT("%s at %.0f cm, attacking %d, staggered %d, grace %.1f"), *UEnum::GetValueAsString(C->CrewType),
+					FVector::Dist2D(C->GetActorLocation(), R.FP->GetActorLocation()), C->IsAttacking(), C->IsStaggered(), C->GetOpeningGraceLeft()));
+			}
+		}
+	}
+	FString Report;
+	for (const TPair<FString, FString>& S : States) { Report += S.Value + TEXT("; "); }
+	AddInfo(Report);
+	TestTrue(*FString::Printf(TEXT("the crew attack an idle pilot at the core within 12 s (lowest hull %.2f, wind-up frames %d)"), HullMin, Swings), HullMin < 0.99f || R.FP->IsDead());
+	return true;
+}
+
+// Director's mercy on the real Cinder Warden room through real retakes (CUT! -> checkpoint at the arena door):
+// take 1 and 2 the full Warden, take 3 at 75% with one summon, take 5 at 50% with none.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseWardenMercy, "TriadDrift.Ground.Course.WardenEasesOnRetakes", TD_TEST_FLAGS)
+bool FTDCourseWardenMercy::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Outpost = R.Course->FindObjective(TEXT("Obj_Outpost"));
+	if (!R.StartAt(TEXT("Obj_Outpost"))) { return false; }
+	for (ATDShatterCrystal* C : R.Props<ATDShatterCrystal>(Outpost)) { UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Melee, R.FP, R.FP); }
+	R.Tick(0.3f);
+	for (int32 Room = 1; Room <= 3; ++Room)
+	{
+		R.TeleportTo(R.StepFight(Outpost, Room), -150.f);
+		R.Tick(0.5f);
+		R.KillAll(R.StepFight(Outpost, Room));
+	}
+	ATDEncounterVolume* Arena = R.StepFight(Outpost, 4);
+	if (!TestNotNull(TEXT("arena"), Arena) || !TestEqual(TEXT("at the Warden"), R.Step(Outpost), 4)) { return false; }
+	TestEqual(TEXT("the arena carries two mercy tiers"), Arena->MercyTiers.Num(), 2);
+	const float FullHealth = FTDCrewLibrary::Get(ETDCrewType::Warden).MaxHealth;
+	struct FExpect { int32 Take; float Scale; int32 Summons; };
+	const FExpect Expect[] = { { 1, 1.f, -1 }, { 2, 1.f, -1 }, { 3, 0.75f, 1 }, { 4, 0.75f, 1 }, { 5, 0.5f, 0 } };
+	for (const FExpect& E : Expect)
+	{
+		R.FP->GetHealth()->SetInvulnerable(true); // only the scripted defeats count as lost takes
+		R.TeleportTo(Arena, -150.f);
+		R.Tick(0.5f);
+		ATDCrewCharacter* Warden = nullptr;
+		for (const TWeakObjectPtr<AActor>& M : Arena->GetSpawned()) { if (ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && C->CrewType == ETDCrewType::Warden) { Warden = C; } }
+		if (!TestNotNull(*FString::Printf(TEXT("take %d: Warden spawned"), E.Take), Warden)) { return false; }
+		TestEqual(*FString::Printf(TEXT("take %d is the fight's take"), E.Take), Arena->GetTake(), E.Take);
+		TestEqual(*FString::Printf(TEXT("take %d: Warden health"), E.Take), Warden->GetHealth()->MaxHull, FullHealth * E.Scale, 0.5f);
+		TestEqual(*FString::Printf(TEXT("take %d: summons allowed"), E.Take), Warden->GetSummonsLeft(), E.Summons);
+		if (E.Summons == 0)
+		{
+			if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+			TestFalse(TEXT("take 5: the Warden can't summon"), Warden->StartAttack(ETDCrewAttack::Summon, R.FP));
+		}
+		// Lose this take for real: CUT! and back to the arena door.
+		V.GI->ReportPlayerDefeated();
+		R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.5f);
+		TestEqual(*FString::Printf(TEXT("take %d lost: still at the Warden"), E.Take), R.Step(Outpost), 4);
+	}
+	return true;
+}
+
 // ================================================================================================
 // Review G6: each planet PLAYED by the machine: a vulnerable pilot, real keys for movement (W, Shift,
 // Space, Q), real blade attacks (LMB), real interact holds (E), along the real route. The only
@@ -980,9 +1095,10 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 		else if (Step == 2)
 		{
 			// The drones break the hold: take them down with the blade first (jumping into them).
+			// A death here is a retake (from the nodes checkpoint), not a failure: only the outcome is judged.
 			if (ATDEncounterVolume* Drones = P.ActiveFightNear(FVector(9200.f, -8200.f, 0.f), 1500.f))
 			{
-				P.Report(P.Fight(Drones, 60.f), TEXT("drones over the plateau killed with the blade"));
+				if (!P.Fight(Drones, 60.f)) { AddInfo(FString::Printf(TEXT("drone fight: %s"), *P.Failed)); P.Failed.Reset(); continue; }
 			}
 			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Relay && It->LinkedStep == 2) { P.Use(*It, It->HoldTime); } }
 		}

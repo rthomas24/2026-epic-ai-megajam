@@ -209,6 +209,41 @@ void UTDUIHostSubsystem::SetDevHUDSuppressed(bool bSuppressed)
 
 // ------------------------------------------------------------------------------------------ reflection
 
+FName UTDUIHostSubsystem::GetCoverPropertyName(ETDHUDSurface Surface)
+{
+	const UEnum* Enum = StaticEnum<ETDHUDSurface>();
+	return FName(*(TEXT("bCovers") + Enum->GetNameStringByValue(static_cast<int64>(Surface))));
+}
+
+namespace TDUIHost
+{
+	/** Dev override per surface: -1 = read the widget, 0 = not covered, 1 = covered. */
+	TMap<ETDHUDSurface, int32>& CoverOverrides()
+	{
+		static TMap<ETDHUDSurface, int32> Map;
+		return Map;
+	}
+}
+
+bool UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(const UObject* WorldContext, ETDHUDSurface Surface)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	const UUserWidget* HUD = Host ? Host->GetSpaceHUD() : nullptr;
+	if (!HUD)
+	{
+		return false; // native HUD not up: the fallback HUD draws everything
+	}
+	if (const int32* Forced = TDUIHost::CoverOverrides().Find(Surface))
+	{
+		if (*Forced >= 0)
+		{
+			return *Forced > 0;
+		}
+	}
+	const FBoolProperty* Claim = FindFProperty<FBoolProperty>(HUD->GetClass(), GetCoverPropertyName(Surface));
+	return Claim && Claim->GetPropertyValue_InContainer(HUD);
+}
+
 UClass* UTDUIHostSubsystem::FindNativeWidgetClass()
 {
 	return FindObject<UClass>(nullptr, TDUIHost::NativeWidgetClassPath);
@@ -287,6 +322,9 @@ bool UTDUIHostSubsystem::ReadSnapshot(const UUserWidget* HUD, TArray<FTDHostShip
 		View.Power2 = TDUIHost::ReadUIShipNumber(S, V, TEXT("Power2"));
 		View.Ability = TDUIHost::ReadUIShipNumber(S, V, TEXT("Ability"));
 		View.RespawnSeconds = TDUIHost::ReadUIShipNumber(S, V, TEXT("RespawnSeconds"));
+		View.Boost = TDUIHost::ReadUIShipNumber(S, V, TEXT("Boost"));
+		View.Heat = TDUIHost::ReadUIShipNumber(S, V, TEXT("Heat"));
+		View.Ammo = FMath::RoundToInt(TDUIHost::ReadUIShipNumber(S, V, TEXT("Ammo")));
 		View.bActive = TDUIHost::ReadUIShipFlag(S, V, TEXT("bActive"));
 		View.bAlive = TDUIHost::ReadUIShipFlag(S, V, TEXT("bAlive"));
 		View.bUnlocked = TDUIHost::ReadUIShipFlag(S, V, TEXT("bUnlocked"));
@@ -326,6 +364,12 @@ namespace TDUIHost
 				ViewPC->GetViewportSize(ViewW, ViewH);
 			}
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: viewport=%dx%d"), ViewW, ViewH);
+			if (Target && ViewPC && ViewPC->GetPawn())
+			{
+				const FVector ToTarget = Target->GetActorLocation() - ViewPC->GetPawn()->GetActorLocation();
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target wyaw=%.1f wpitch=%.1f dist=%.0f"),
+					FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Y, ToTarget.X)), FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Z, ToTarget.Size2D())), ToTarget.Size());
+			}
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target=%s onscreen=%d at (%.0f, %.0f), locked=%d, markers=%d"),
 				Target ? *Target->GetName() : TEXT("none"), bOnScreen ? 1 : 0, Screen.X, Screen.Y,
 				Data->GetLockedTargets().Num(), Data->GetTargetMarkers().Num());
@@ -342,9 +386,13 @@ namespace TDUIHost
 				FVector ViewLoc; FRotator ViewRot;
 				if (ViewPC) { ViewPC->GetPlayerViewPoint(ViewLoc, ViewRot); }
 				const FVector Local = ViewRot.UnrotateVector(Hostile->GetActorLocation() - ViewLoc);
-				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: nearest=%s dist=%.0f onscreen=%d at (%.0f, %.0f) yaw=%.1f pitch=%.1f"),
+				// World bearing from the player's ship (for TD.Input.TurnToward <YawDeg> <PitchDeg>).
+				const APawn* Ship = ViewPC ? ViewPC->GetPawn() : nullptr;
+				const FVector ToHostile = Hostile->GetActorLocation() - (Ship ? Ship->GetActorLocation() : ViewLoc);
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: nearest=%s dist=%.0f onscreen=%d at (%.0f, %.0f) yaw=%.1f pitch=%.1f wyaw=%.1f wpitch=%.1f"),
 					*Hostile->GetName(), M.Distance, bOn ? 1 : 0, At.X, At.Y,
-					FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X)), FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.Size2D())));
+					FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X)), FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.Size2D())),
+					FMath::RadiansToDegrees(FMath::Atan2(ToHostile.Y, ToHostile.X)), FMath::RadiansToDegrees(FMath::Atan2(ToHostile.Z, ToHostile.Size2D())));
 				break;
 			}
 			const FTDWaveInfo Wave = Data->GetWaveInfo();
@@ -366,14 +414,61 @@ namespace TDUIHost
 		TArray<FTDHostShipView> Cards;
 		if (UTDUIHostSubsystem::ReadSnapshot(HUD, Cards))
 		{
+			// What the widget decoded vs what the data source says now: a MISMATCH line names every field that differs.
+			const ITDHUDData* Src = Cast<ITDHUDData>(Source);
+			const TArray<FTDShipHUD> Truth = Src ? Src->GetSquadHUD() : TArray<FTDShipHUD>();
 			for (int32 I = 0; I < Cards.Num(); ++I)
 			{
 				const FTDHostShipView& C = Cards[I];
-				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: card %d active=%d alive=%d unlocked=%d hull=%.2f shield=%.2f power=%.2f ability=%.2f"),
-					I, C.bActive, C.bAlive, C.bUnlocked, C.Hull, C.Shield, C.Power, C.Ability);
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: card %d active=%d alive=%d unlocked=%d hull=%.2f shield=%.2f power=%.2f ability=%.2f boost=%.2f heat=%.2f ammo=%d"),
+					I, C.bActive, C.bAlive, C.bUnlocked, C.Hull, C.Shield, C.Power, C.Ability, C.Boost, C.Heat, C.Ammo);
+				const FTDShipHUD* T = Truth.FindByPredicate([I](const FTDShipHUD& H) { return static_cast<int32>(H.Ship) == I; });
+				if (!T)
+				{
+					continue;
+				}
+				FString Diff;
+				auto Num = [&Diff](const TCHAR* Name, float Shown, float Real, float Tol)
+				{
+					if (FMath::Abs(Shown - Real) > Tol)
+					{
+						Diff += FString::Printf(TEXT(" %s %.2f vs %.2f"), Name, Shown, Real);
+					}
+				};
+				// The widget samples every 0.1 s and eases meters: allow a little slack on continuous values.
+				Num(TEXT("hull"), C.Hull, T->bAlive ? T->Health01 : 0.f, 0.06f);
+				Num(TEXT("shield"), C.Shield, T->bAlive ? T->Shield01 : 0.f, 0.08f);
+				Num(TEXT("power"), C.Power, T->PowerCooldown01, 0.06f);
+				Num(TEXT("ability"), C.Ability, T->AbilityCooldown01, 0.06f);
+				Num(TEXT("heat"), C.Heat, T->Heat01, 0.08f);
+				Num(TEXT("ammo"), (float)C.Ammo, (float)T->SecondaryAmmo, 0.5f);
+				if (C.bActive != T->bPlayerControlled) { Diff += TEXT(" active"); }
+				if (C.bAlive != T->bAlive) { Diff += TEXT(" alive"); }
+				if (C.bUnlocked != (T->Ability != ETDAbilityId::None)) { Diff += TEXT(" unlocked"); }
+				if (!Diff.IsEmpty())
+				{
+					UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: MISMATCH card %d:%s"), I, *Diff);
+				}
 			}
 		}
 	}
+
+	void SetCoverOverride(const TArray<FString>& Args)
+	{
+		const UEnum* Enum = StaticEnum<ETDHUDSurface>();
+		const int64 Value = Args.Num() > 0 ? Enum->GetValueByNameString(Args[0]) : INDEX_NONE;
+		if (Value == INDEX_NONE || Args.Num() < 2)
+		{
+			UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.Covers <DamageIndicators|SquadMarkers|InteractPrompt|HyperdriveBlockText|Altitude|Subtitles|Pause|BoundaryWarning> <-1|0|1>"));
+			return;
+		}
+		CoverOverrides().Add(static_cast<ETDHUDSurface>(Value), FCString::Atoi(*Args[1]));
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Covers: %s = %s"), *Args[0], *Args[1]);
+	}
+
+	FAutoConsoleCommand CmdTDUICovers(TEXT("TD.UI.Covers"),
+		TEXT("TD.UI.Covers <Surface> <-1|0|1>: dev override of which HUD surfaces the native space HUD covers (-1 = ask the widget)."),
+		FConsoleCommandWithArgsDelegate::CreateStatic(&SetCoverOverride));
 
 	FAutoConsoleCommandWithWorld CmdTDUIStatus(TEXT("TD.UI.Status"),
 		TEXT("TD.UI.Status: log the space HUD host state, its data source's current target and the widget's decoded squad cards."),

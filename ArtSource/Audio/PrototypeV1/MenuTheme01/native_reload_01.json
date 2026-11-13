@@ -1,0 +1,66 @@
+{
+  "stage": "Native read-only reload PASS; no playback/cook/current-game approval",
+  "validation": {
+    "stage": "Read-only native reload; no playback/cook/gameplay approval",
+    "before_sha256": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\MUS_Menu_EtherialPulse_01.uasset": "6253253fe891d364d0180bacada62b70cb723a08ecfe3f20909406c40adb1042",
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\SC_MenuTheme_Music.uasset": "813d76de263314464d0ad6f698a751bec6c99ae85d262601b1df85d80e0600c7"
+    },
+    "settings": {
+      "wave": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.MUS_Menu_EtherialPulse_01",
+      "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+      "assigned_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+      "is_music": true,
+      "duration_s": 107.0,
+      "looping": false,
+      "pitch": 1.0,
+      "volume": 1.0
+    },
+    "package_dependencies": {
+      "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music": [],
+      "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01": [
+        "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music"
+      ]
+    },
+    "import_source": {
+      "filenames": [
+        "C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/audio-prototype-v1/Saved/AudioMusic/PrototypeV1/MenuTheme01/export/MUS_Menu_EtherialPulse_01.wav"
+      ],
+      "referenced_file_sha256": "a1ca5d252040e93cc1e720853275cb901ad6f6e3c626fe53a068692287ed2ff4",
+      "note": "Hashes the referenced local source; not a claim to read the embedded Unreal source hash."
+    },
+    "passed": true,
+    "after_sha256": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\MUS_Menu_EtherialPulse_01.uasset": "6253253fe891d364d0180bacada62b70cb723a08ecfe3f20909406c40adb1042",
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\SC_MenuTheme_Music.uasset": "813d76de263314464d0ad6f698a751bec6c99ae85d262601b1df85d80e0600c7"
+    },
+    "packages_unchanged": true
+  },
+  "guard": {
+    "pid": 29020,
+    "exit_code": 0,
+    "reason": "completed",
+    "minimum_free_gib": 4.094532012939453,
+    "all_inputs_and_packages_unchanged": true,
+    "protected_count": 78
+  },
+  "engine": {
+    "exit_code": 0,
+    "reason": "ok",
+    "pid": 29020,
+    "duration_s": 7.9,
+    "log": {
+      "errors": 0,
+      "warnings": 4,
+      "errors_by_category": {},
+      "warnings_by_category": {
+        "LogUObjectGlobals": 2,
+        "LogAnimationCompression": 2
+      },
+      "first_errors": []
+    },
+    "suppressed_dialogs": []
+  },
+  "evidence_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Saved\\AudioMusic\\PrototypeV1\\MenuTheme01\\Run02",
+  "next_gate": "Lead-approved owned branch copy/publication, N015 matching current-game hook/host and separate playback grant"
+}

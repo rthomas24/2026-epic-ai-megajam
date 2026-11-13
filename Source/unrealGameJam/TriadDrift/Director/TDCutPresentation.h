@@ -48,7 +48,7 @@ struct UNREALGAMEJAM_API FTDCutPresentationState
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
 	float CutCardAlpha = 0.f;
 
-	/** "SCENE Wave 3 · TAKE 2" */
+	/** "SCENE 3 · WAVE 3 · TAKE 2" */
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Cut")
 	FText SlateText;
 
@@ -83,7 +83,7 @@ struct UNREALGAMEJAM_API FTDCutPresentationTuning
 	float CutCardMinSeconds = 1.2f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cut", meta = (Units = "s"))
-	float SlateSeconds = 2.2f;
+	float SlateSeconds = 1.3f; // + fade: gone by the time a wave's warp-in (1.5 s) ends and enemies arrive
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cut", meta = (Units = "s"))
 	float CardFadeSeconds = 0.25f;
@@ -123,12 +123,14 @@ public:
 	bool HasViewportWidget() const { return Widget.IsValid(); }
 
 	/** "Wave3" -> "Wave 3" (scene ids are CamelCase + number). */
-	static FText MakeSlateText(FName SceneId, int32 TakeNumber);
+	/** features.md C-03 #3: "SCENE 3 · CINDER · OUTPOST · TAKE 1". SceneNumber 0 (unknown) drops the number;
+	 *  Place is the planet for an objective scene (empty in the galaxy). */
+	static FText MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber = 0, const FString& Place = FString());
 
 	/** Where the scene slate is drawn on a viewport of Size (px). Centred, in the upper third, below
 	 *  the top 15% (Nick's OBJECTIVE block, the real HUD's top row) and below the dev HUD's squad rows
 	 *  (12-21% on the left); never under a letterbox bar. */
-	static FBox2D SlateRect(const FVector2D& Size, float Letterbox);
+	static FBox2D SlateRect(const FVector2D& Size, float Letterbox, float TextWidth = 0.f);
 
 	/** Viewport layer of the overlay: just under the real HUD while it is up, else 900. */
 	static int32 OverlayZOrder(bool bRealHUDActive);

@@ -2,6 +2,9 @@
 
 #include "TriadDrift/Squad/Tests/TDSquadTestListener.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 
 void UTDSquadTestListener::Listen(UTDEventBus* Bus)
 {
@@ -19,6 +22,7 @@ void UTDSquadTestListener::Listen(UTDEventBus* Bus)
 	Bus->OnHighlightMoment.AddDynamic(this, &UTDSquadTestListener::OnHighlight);
 	Bus->OnBarkRequested.AddDynamic(this, &UTDSquadTestListener::OnBark);
 	Bus->OnSpacecraftTeleported.AddDynamic(this, &UTDSquadTestListener::OnTeleported);
+	Bus->OnActorKilled.AddDynamic(this, &UTDSquadTestListener::OnKilled);
 }
 
 void UTDSquadTestListener::StopListening()
@@ -33,6 +37,25 @@ void UTDSquadTestListener::StopListening()
 		Bus->OnHighlightMoment.RemoveAll(this);
 		Bus->OnBarkRequested.RemoveAll(this);
 		Bus->OnSpacecraftTeleported.RemoveAll(this);
+		Bus->OnActorKilled.RemoveAll(this);
 	}
 	BoundBus.Reset();
+}
+
+void UTDSquadTestListener::OnKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
+{
+	const ATDSquadManager* Squad = SquadForKills.Get();
+	const ATDShip* Ship = Cast<ATDShip>(Killer);
+	if (!Squad || !Ship || Victim == Killer)
+	{
+		return;
+	}
+	for (const ETDShipId Id : UTDShipLibrary::AllShips())
+	{
+		if (Squad->GetShip(Id) == Ship)
+		{
+			(Id == Squad->GetActiveShipId() ? PlayerKills : WingKills)++;
+			return;
+		}
+	}
 }

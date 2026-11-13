@@ -466,13 +466,14 @@ messages are compacted (below), so whatever is still written out in full on the 
   `CLAIMS.md` instead.
 - The Blender asset skills are in place (§10).
 
-**Still to do** (features.md C-01, C-02 and C-03):
-- the `Content/TriadDrift/...` and `Source/unrealGameJam/TriadDrift/...` folder trees
-- collision channels and the maps
-- the C++ contracts and presentation hooks (C-02)
-- building the three Director's Cut hooks (C-03 #1–#3: decided, not built yet)
-- `CREDITS.md` and `DEVLOG.md` entries from the engineering side (`CLAIMS.md` and
-  `MESSAGEBOARD.md` exist and are in use)
+- (Nov 12, evening) The folder trees, collision channels, the five maps, the C++ contracts and
+  presentation hooks (C-01, C-02) and the three Director's Cut hooks (C-03) exist on `main`, with
+  `CREDITS.md`, `DEVLOG.md`, `CLAIMS.md` and `MESSAGEBOARD.md` in use.
+
+**Where the current state lives** (this section is not kept up to date item by item):
+- engineering: `docs/eng/STATUS.md`; presentation: `docs/visual/STATUS.md`
+- who is doing what right now: `CLAIMS.md`; open questions between the sides: `MESSAGEBOARD.md`
+- nothing is done until it is on `main`, verified, reviewed and played (`AAA.md`)
 
 ---
 
@@ -506,15 +507,17 @@ them automatically.
 **Codex (Nick's agent) doesn't scan `.claude/skills/`.** Before any 3D asset task, open and follow
 the `SKILL.md` at the path below. For native Codex skill discovery, mirror them into the
 git-ignored `.agents/skills/` after each pull:
-`robocopy .claude\skills .agents\skills /MIR`. Never edit the mirror; edit `.claude/skills/`.
+`robocopy .claude\skills .agents\skills /MIR`. `/MIR` deletes anything in the destination that is not in the
+source, so `.agents/skills/` must hold nothing but this mirror (keep any other skills elsewhere). Never edit
+the mirror; edit `.claude/skills/`.
 
 The research behind the skills is in `reports/Blender MCP game asset practices.md`.
 
 Unreal 5.9 also has its own skill loader: any agent connected to the editor's MCP server can list
 Markdown skills (`AgentSkillToolset`: `ListSkills`, `GetSkills`) found in `<Project>/Skills/`, in each
 enabled plugin's `Skills/` folder and in `Engine/Extras/AgentTools/Skills/`. To expose this repo's
-skills there, mirror them into the git-ignored `Skills/` folder the same way:
-`robocopy .claude\skills Skills /MIR`.
+skills there, mirror them into the git-ignored `Skills/` folder the same way (same warning: `Skills/` holds
+only this mirror): `robocopy .claude\skills Skills /MIR`.
 
 | Skill | Path | Use it when |
 |---|---|---|
@@ -566,7 +569,8 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   features.md and reports findings as BLOCKER / MAJOR / MINOR with a concrete failure for each. The item
   stays `in review` until every BLOCKER and MAJOR is closed and re-checked. Passing tests or hashes is
   not a review.
-- **Never leave an agent idle:** every lane has a next queued row on the board before the current one
+- **Never leave an agent idle** (while its human has work running; a queued row is a plan, not permission to
+  resume a side that its human has paused): every lane has a next queued row on the board before the current one
   finishes.
 - **Unreal's built-in MCP server** (UE 5.9 "Unreal MCP", doc link in §9): the project enables the
   engine toolsets (Editor targets only). The human's editor owns port 8000. Any editor or game an
@@ -589,6 +593,8 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   Nick's list. Sources go in `ArtSource/EngProps/**`, Unreal assets in `Content/TriadDrift/Gameplay/{Props,Vegetation}/**`.
   Nothing hero, no ships, characters, sky, terrain, VFX, UI or audio. Nicholas keeps art direction: he approves, restyles or
   replaces any of it, and a mesh assigned through his presentation data assets always wins.
+  **Exception (Ryan, Nov 12, R-019):** the Null Armada enemy trooper character is built by engineering from Ryan's
+  concept, in `ArtSource/EngCharacters/NullTrooper/**` and `Content/TriadDrift/Gameplay/Characters/NullTrooper/**`.
 - **Headless first** (proposed by Nick's side in N-017, Nov 12): default to headless, background or command-line runs
   for automation, asset processing, Blender, builds, tests and Git; use a GUI only for inspection, interaction or
   gameplay validation that needs one. Headless is not the same as light: save work and checkpoints first, check free

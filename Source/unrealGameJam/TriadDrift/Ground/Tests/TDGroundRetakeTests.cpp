@@ -224,6 +224,7 @@ bool FTDRetakeSummons::RunTest(const FString& Parameters)
 	ATDCrewCharacter* Warden = Room->GetSpawned().Num() ? Cast<ATDCrewCharacter>(Room->GetSpawned()[0].Get()) : nullptr;
 	if (!TestNotNull(TEXT("warden"), Warden)) { return false; }
 	if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+	Warden->SetOpeningGrace(0.f); // this test is about summons, not the opening
 	TestTrue(TEXT("summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
 	W.Advance(Warden->Spec.BurstWindup + 0.1f);
 	TestEqual(TEXT("summons join the room (M7)"), Room->GetAliveCount(), 1 + Warden->Spec.SummonCount);
@@ -237,11 +238,107 @@ bool FTDRetakeSummons::RunTest(const FString& Parameters)
 	Room->Activate();
 	Warden = Cast<ATDCrewCharacter>(Room->GetSpawned()[0].Get());
 	if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+	Warden->SetOpeningGrace(0.f);
 	Warden->StartAttack(ETDCrewAttack::Summon, P);
 	W.Advance(Warden->Spec.BurstWindup + 0.1f);
 	Room->ResetEncounter();
 	W.Advance(0.1f);
 	TestEqual(TEXT("no stray grunts after a reset"), TDRetakeTest::AliveCrew(W.GetWorld()), 0);
+	return true;
+}
+
+// Director's mercy is a hook on any encounter: no tiers = the same fight every take; with tiers the highest
+// reached applies to every member it spawns; a capped Warden stops summoning after its allowance.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeMercyHook, "TriadDrift.Ground.Retake.DirectorsMercyEasesByTake", TD_TEST_FLAGS)
+bool FTDRetakeMercyHook::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-900.f, 0.f, 95.f));
+	ATDEncounterVolume* Plain = TDRetakeTest::MakeRoom(W, FVector(0.f, 3000.f, 150.f), nullptr, INDEX_NONE, 2);
+	ATDEncounterVolume* Room = TDRetakeTest::MakeRoom(W, FVector(0.f, 0.f, 150.f), nullptr, INDEX_NONE, 2);
+	Room->CrewMix = { ETDCrewType::Warden, ETDCrewType::Grunt };
+	FTDRetakeMercyTier T3; T3.FromTake = 3; T3.HealthScale = 0.75f; T3.MaxSummons = 1;
+	FTDRetakeMercyTier T5; T5.FromTake = 5; T5.HealthScale = 0.5f; T5.MaxSummons = 0;
+	Room->MercyTiers = { T5, T3 }; // order doesn't matter
+	W.Advance(0.1f);
+	const float WardenHp = FTDCrewLibrary::Get(ETDCrewType::Warden).MaxHealth;
+	const float GruntHp = FTDCrewLibrary::Get(ETDCrewType::Grunt).MaxHealth;
+	for (int32 Take = 1; Take <= 5; ++Take)
+	{
+		Plain->Activate();
+		Room->Activate();
+		const float Scale = Take >= 5 ? 0.5f : Take >= 3 ? 0.75f : 1.f;
+		TestEqual(*FString::Printf(TEXT("take %d counted"), Take), Room->GetTake(), Take);
+		TestTrue(*FString::Printf(TEXT("take %d: mercy only from take 3"), Take), (Room->GetActiveMercy() != nullptr) == (Take >= 3));
+		TestNull(TEXT("no tiers, never eased"), Plain->GetActiveMercy());
+		for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned())
+		{
+			const ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get());
+			if (!C) { continue; }
+			const float Full = C->CrewType == ETDCrewType::Warden ? WardenHp : GruntHp;
+			TestEqual(*FString::Printf(TEXT("take %d: %s health"), Take, *UEnum::GetValueAsString(C->CrewType)), C->GetHealth()->MaxHull, Full * Scale, 0.5f);
+		}
+		for (const TWeakObjectPtr<AActor>& M : Plain->GetSpawned())
+		{
+			if (const ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get())) { TestEqual(TEXT("plain room full health"), C->GetHealth()->MaxHull, GruntHp, 0.5f); }
+		}
+		if (Take == 3)
+		{
+			ATDCrewCharacter* Warden = Cast<ATDCrewCharacter>(Room->GetSpawned()[0].Get());
+			if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+			Warden->SetOpeningGrace(0.f);
+			TestTrue(TEXT("take 3: one summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
+			W.Advance(Warden->Spec.BurstWindup + 1.f);
+			for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned())
+			{
+				if (ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && C != Warden && C->CrewType == ETDCrewType::Grunt && C->GetHealth()) { C->GetHealth()->Kill(P, ETDDamageKind::Melee); }
+			}
+			W.Advance(Warden->GetCooldownLeft(ETDCrewAttack::Summon) + 0.5f);
+			TestEqual(TEXT("take 3: allowance spent"), Warden->GetSummonsLeft(), 0);
+			TestFalse(TEXT("take 3: no second summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
+		}
+		Plain->ResetEncounter();
+		Room->ResetEncounter();
+		W.Advance(0.1f);
+	}
+	return true;
+}
+
+// An encounter's crew show themselves before they hurt (opening grace), and a DropCrew tier fields fewer of them
+// on later takes (the Verdance wreck ambush: take 3 one grunt fewer, take 5 the trooper alone).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeOpeningGrace, "TriadDrift.Ground.Retake.OpeningGraceAndFewerCrew", TD_TEST_FLAGS)
+bool FTDRetakeOpeningGrace::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-1500.f, 0.f, 95.f)); // outside the box: Activate() is the only trigger
+	ATDEncounterVolume* Room = TDRetakeTest::MakeRoom(W, FVector(0.f, 0.f, 150.f), nullptr, INDEX_NONE, 3);
+	Room->CrewMix = { ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt };
+	FTDRetakeMercyTier T3; T3.FromTake = 3; T3.DropCrew = 1;
+	FTDRetakeMercyTier T5; T5.FromTake = 5; T5.DropCrew = 2;
+	Room->MercyTiers = { T3, T5 };
+	W.Advance(0.1f);
+	const int32 Expect[] = { 3, 3, 2, 2, 1, 1 };
+	for (int32 Take = 1; Take <= 6; ++Take)
+	{
+		Room->Activate();
+		TestEqual(*FString::Printf(TEXT("take %d crew"), Take), Room->GetSpawned().Num(), Expect[Take - 1]);
+		ATDCrewCharacter* Trooper = nullptr;
+		for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned()) { if (ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && C->CrewType == ETDCrewType::Trooper) { Trooper = C; } }
+		if (!TestNotNull(*FString::Printf(TEXT("take %d: the trooper always fights"), Take), Trooper)) { return false; }
+		if (Take == 1)
+		{
+			if (AController* AI = Trooper->GetController()) { AI->UnPossess(); }
+			TestFalse(TEXT("no shot in the opening grace"), Trooper->StartAttack(ETDCrewAttack::Burst, P));
+			W.Advance(Room->OpeningGraceSeconds * 0.5f);
+			TestFalse(TEXT("still holding fire half-way"), Trooper->StartAttack(ETDCrewAttack::Burst, P));
+			W.Advance(Room->OpeningGraceSeconds * 0.5f + 0.1f);
+			TestTrue(TEXT("fires once the grace is over"), Trooper->StartAttack(ETDCrewAttack::Burst, P));
+		}
+		Room->ResetEncounter();
+		W.Advance(0.1f);
+	}
 	return true;
 }
 

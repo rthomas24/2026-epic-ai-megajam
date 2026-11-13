@@ -1,0 +1,80 @@
+[
+  {
+    "name": "M_LancerM03_Graphite",
+    "base_color_srgb": "#303A44",
+    "metallic": 0,
+    "roughness": 0.46,
+    "coat_weight": 0.08,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "roughness_rule": "Roughness + 0.2*(VertexColor.A-0.5) + microfinish(plus/minus0.0325)",
+    "microfinish": true,
+    "unreal_handoff": "Reconstruct exposed parameters and bake/replicate procedural microfinish before native adoption",
+    "textures_required_for_this_blend": 0
+  },
+  {
+    "name": "M_LancerM03_Gunmetal",
+    "base_color_srgb": "#7B8792",
+    "metallic": 1,
+    "roughness": 0.46,
+    "coat_weight": 0,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "roughness_rule": "Roughness + 0.2*(VertexColor.A-0.5) + microfinish(plus/minus0.0325)",
+    "microfinish": true,
+    "unreal_handoff": "Reconstruct exposed parameters and bake/replicate procedural microfinish before native adoption",
+    "textures_required_for_this_blend": 0
+  },
+  {
+    "name": "M_LancerM03_Titanium",
+    "base_color_srgb": "#B2BDC8",
+    "metallic": 1,
+    "roughness": 0.35,
+    "coat_weight": 0,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "roughness_rule": "Roughness + 0.2*(VertexColor.A-0.5) + microfinish(plus/minus0.0325)",
+    "microfinish": true,
+    "unreal_handoff": "Reconstruct exposed parameters and bake/replicate procedural microfinish before native adoption",
+    "textures_required_for_this_blend": 0
+  },
+  {
+    "name": "M_LancerM03_Composite",
+    "base_color_srgb": "#1B242D",
+    "metallic": 0,
+    "roughness": 0.75,
+    "coat_weight": 0,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "roughness_rule": "Roughness + 0.2*(VertexColor.A-0.5) + microfinish(plus/minus0.0325)",
+    "microfinish": false,
+    "unreal_handoff": "Reconstruct exposed parameters and bake/replicate procedural microfinish before native adoption",
+    "textures_required_for_this_blend": 0
+  },
+  {
+    "name": "M_LancerM03_Canopy",
+    "base_color_srgb": "#123448",
+    "metallic": 0,
+    "roughness": 0.19,
+    "coat_weight": 0.45,
+    "emissive_strength": 0,
+    "vertex_color": "PanelTint",
+    "roughness_rule": "Roughness + 0.2*(VertexColor.A-0.5) + microfinish(plus/minus0.0325)",
+    "microfinish": false,
+    "unreal_handoff": "Reconstruct exposed parameters and bake/replicate procedural microfinish before native adoption",
+    "textures_required_for_this_blend": 0
+  },
+  {
+    "name": "M_LancerM03_Blue",
+    "base_color_srgb": "#12C8FF",
+    "metallic": 0,
+    "roughness": 0.33,
+    "coat_weight": 0,
+    "emissive_strength": 2.1,
+    "vertex_color": "PanelTint",
+    "roughness_rule": "Roughness + 0.2*(VertexColor.A-0.5) + microfinish(plus/minus0.0325)",
+    "microfinish": false,
+    "unreal_handoff": "Reconstruct exposed parameters and bake/replicate procedural microfinish before native adoption",
+    "textures_required_for_this_blend": 0
+  }
+]

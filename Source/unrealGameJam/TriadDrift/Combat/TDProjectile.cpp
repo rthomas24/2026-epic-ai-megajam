@@ -2,6 +2,8 @@
 
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -193,6 +195,20 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 	UpdatePlaceholderLook();
 }
 
+namespace
+{
+	/** The local player is on foot (first-person camera), or with no player pawn, a character (crew) fired it. */
+	bool TDProjIsOnFootShot(const UWorld* World, const AActor* Shooter)
+	{
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (const APawn* Pawn = PC ? PC->GetPawn() : nullptr)
+		{
+			return !Pawn->IsA<ATDSpacecraft>();
+		}
+		return Shooter && Shooter->IsA<ACharacter>();
+	}
+}
+
 void ATDProjectile::UpdatePlaceholderLook()
 {
 	// Mesh: Nick's projectile mesh with its own materials, else the engine sphere tinted in squad / enemy colour.
@@ -215,8 +231,12 @@ void ATDProjectile::UpdatePlaceholderLook()
 	{
 		// A glowing streak trailing the shot (its head at the actor origin, where the sweep is), sized from
 		// the speed so it reads at gameplay distance. One material instance per pooled actor, re-coloured.
-		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
-		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
+		// Colour code: squad shots in ship colour, enemy shots Armada red-orange, deflected shots in the deflector's
+		// colour. On foot (first-person camera close to the shot) bolts use the small bolt look, not the space streak.
+		const FLinearColor Color = FTDCombatPlaceholders::ProjectileColor(Spec, Team, Shooter.Get(), DeflectCount > 0);
+		LookColor = Color;
+		bOnFootLook = TDProjIsOnFootShot(GetWorld(), Shooter.Get());
+		const FTDStreakLook Look = bOnFootLook ? FTDCombatPlaceholders::ComputeOnFootStreak(Spec) : FTDCombatPlaceholders::ComputeStreak(Spec);
 		StreakLook = Look;
 		AppliedGrowth = 1.f;
 		bAppliedIncoming = false;
@@ -260,7 +280,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 			{
 				// Hot core: the team colour pushed towards white and brighter than the trail.
 				// Stays in squad / enemy colour (playtest: 0.45 white read as a white ball); incoming enemy fire burns hotter.
-				const float HeadGlow = Team == ETDTeam::Enemy ? 1.3f : 0.8f;
+				const float HeadGlow = (Team == ETDTeam::Enemy && !bOnFootLook) ? 1.3f : 0.8f;
 				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * HeadGlow : 1.f);
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
@@ -293,7 +313,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 
 	// With a tracer and no art mesh, the trail is the look; otherwise show the mesh. The head is placeholder-only.
 	PlaceholderMesh->SetVisibility(ArtMesh != nullptr || Tracer == nullptr);
-	PlaceholderHead->SetVisibility(!ArtMesh && !Tracer && FTDCombatPlaceholders::ComputeStreak(Spec).bHead);
+	PlaceholderHead->SetVisibility(!ArtMesh && !Tracer && StreakLook.bHead);
 }
 
 void ATDProjectile::Deactivate()
@@ -380,6 +400,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 	{
 		UTDStatics::PlayCue(this, Spec.FX->Deflected, GetActorLocation(), Dir.Rotation());
 	}
+	UpdatePlaceholderLook(); // re-tint in the deflector's colour
 }
 
 void ATDProjectile::Kill(bool bExplodeFX)
@@ -482,8 +503,8 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	}
 	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
 	const float Distance = FVector::Dist(Camera, GetActorLocation());
-	const bool bIncoming = Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
-	const float Grow = bIncoming
+	const bool bIncoming = !bOnFootLook && Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
+	const float Grow = bOnFootLook ? FTDCombatPlaceholders::OnFootDistanceGrowth(StreakLook, Distance) : bIncoming
 		? FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance, FTDCombatPlaceholders::MinIncomingStreakPixels)
 		: FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
 	if (bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
@@ -936,9 +957,16 @@ void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasA
 	}
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 	{
-		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
-		const float Seconds = Spec.SplashRadius > 0.f ? 0.3f : 0.14f;
-		Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), Seconds);
+		const FLinearColor Color = LookColor;
+		if (Spec.SplashRadius > 0.f || Spec.bIsMissile)
+		{
+			// Rockets, missiles, flak and mines: a real explosion read (core, shell, debris), not a pop.
+			Subsystem->PlayPlaceholderExplosion(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), Color, 6);
+		}
+		else
+		{
+			Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.14f);
+		}
 	}
 }
 

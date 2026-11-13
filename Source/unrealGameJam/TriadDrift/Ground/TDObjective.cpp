@@ -7,6 +7,8 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "Engine/Engine.h"
 
 ATDObjective::ATDObjective()
@@ -106,6 +108,12 @@ bool ATDObjective::CompleteStep(int32 StepIndex)
 	if (Steps[CurrentStep].bCheckpoint)
 	{
 		CheckpointStep = CurrentStep;
+		// Reaching a checkpoint refills the pilot (the next fight starts from full, like a retake from here would).
+		const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		if (UTDHealthComponent* H = PC && PC->GetPawn() ? UTDStatics::GetHealth(PC->GetPawn()) : nullptr; H && H->IsAlive())
+		{
+			H->Revive(1.f, 1.f);
+		}
 	}
 	Broadcast(CurrentStep, Steps[CurrentStep].Text);
 	OnStepStarted.Broadcast(this, CurrentStep);

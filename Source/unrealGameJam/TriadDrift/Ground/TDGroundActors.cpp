@@ -501,6 +501,13 @@ void ATDEncounterVolume::Activate()
 	}
 	bActivated = true;
 	bCleared = false;
+	++Take;
+	const FTDRetakeMercyTier* Mercy = GetActiveMercy();
+	if (Mercy)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("Director's mercy: %s take %d eases the fight (health %.0f%%, summons %d, %d fewer crew)"), *GetName(), Take,
+			Mercy->HealthScale * 100.f, Mercy->MaxSummons, Mercy->DropCrew);
+	}
 	if (UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(this))
 	{
 		for (AActor* Block : CoverActors)
@@ -525,6 +532,10 @@ void ATDEncounterVolume::Activate()
 			Points.Add(FVector(FMath::Cos(Angle) * RingRadius, FMath::Sin(Angle) * RingRadius, 0.f));
 		}
 	}
+	if (Mercy && Mercy->DropCrew > 0 && Points.Num() > 1)
+	{
+		Points.SetNum(FMath::Max(1, Points.Num() - Mercy->DropCrew));
+	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	const FVector Center = GetActorLocation();
@@ -542,6 +553,14 @@ void ATDEncounterVolume::Activate()
 			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
 		}
 		Member->FinishSpawning(Xf);
+		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
+		{
+			if (Mercy)
+			{
+				Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons);
+			}
+			Crew->SetOpeningGrace(OpeningGraceSeconds);
+		}
 		// The fight starts now: everyone already knows where the player is.
 		if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Cast<APawn>(Member) ? Cast<APawn>(Member)->GetController() : nullptr))
 		{
@@ -551,6 +570,19 @@ void ATDEncounterVolume::Activate()
 
 	}
 	CheckCleared(); // nothing spawned (bad class) still opens the way rather than soft-locking
+}
+
+const FTDRetakeMercyTier* ATDEncounterVolume::GetActiveMercy() const
+{
+	const FTDRetakeMercyTier* Best = nullptr;
+	for (const FTDRetakeMercyTier& T : MercyTiers)
+	{
+		if (Take >= T.FromTake && (!Best || T.FromTake > Best->FromTake))
+		{
+			Best = &T;
+		}
+	}
+	return Best;
 }
 
 int32 ATDEncounterVolume::GetAliveCount() const
