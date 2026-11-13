@@ -2,6 +2,8 @@
 
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Director/TDDirectorSounds.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Flight/TDShip.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
@@ -108,6 +110,10 @@ namespace TDCutPresentationPrivate
 				const float Y = Size.Y * 0.70f;
 				Text(S.NameCardText, 30, FVector2D(Size.X * 0.5f, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
 				Box(FVector2D(Size.X * 0.5f - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
+				if (!S.NameCardSubText.IsEmpty())
+				{
+					Text(S.NameCardSubText, 16, FVector2D(Size.X * 0.5f, Y + 40.f), C, true); // "RIFT · BOLD · INSTINCTIVE"
+				}
 			}
 			// Slate, top centre under the bar.
 			if (S.SlateAlpha > 0.f)
@@ -376,7 +382,8 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 	NameCard = Cut.bSwitchStrike
 		? FText::Format(NSLOCTEXT("TDDirector", "StrikeCard", "{0}  ·  STRIKE +25%"), Cut.NameCardText) : Cut.NameCardText;
 	NameColor = Cut.SquadColor;
-	NameCardSub = FText::Format(NSLOCTEXT("TDDirector", "PilotSub", "{0}  ·  {1}"), Cut.ShipName, Cut.RoleName);
+	const FText Trait = Cut.NewShipActor ? UTDStorySubsystem::PilotTrait(Cut.NewShipActor->GetShipId()) : FText::GetEmpty();
+	NameCardSub = FText::Format(NSLOCTEXT("TDDirector", "PilotSub", "{0}  ·  {1}"), Cut.ShipName, Trait.IsEmpty() ? Cut.RoleName : Trait);
 	++SwitchCount;
 	State.FlashAlpha = FlashFramesLeft > 0 ? 1.f : 0.f; // visible on the very next paint
 }
@@ -536,6 +543,7 @@ void UTDCutPresentation::Tick(double RealNow)
 	if (CardA > 0.f && !IsNameCardClaimedByHUD(OwnerWorld.Get()))
 	{
 		S.NameCardText = NameCard;
+		S.NameCardSubText = NameCardSub;
 		S.NameCardColor = NameColor;
 		S.NameCardAlpha = CardA;
 	}

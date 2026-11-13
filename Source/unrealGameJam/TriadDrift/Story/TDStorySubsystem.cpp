@@ -55,6 +55,10 @@ namespace TDStory
 			E(TEXT("Intro_N2"), S::Control, LOCTEXT("Intro_N2", "Triad is deployed. Wren. Kato. Moss.")),
 			E(TEXT("Intro_N3"), S::Control, LOCTEXT("Intro_N3", "Identify the ship. Learn what it wants. Report back.")),
 			E(TEXT("Intro_N4"), S::Control, LOCTEXT("Intro_N4", "And out of the dark... the Null Armada.")),
+			// Pilot traits (storyline.md §3): the second line of the pilot name cards (intro and switch). Not fired.
+			E(TEXT("Trait_Wren"), S::Wren, LOCTEXT("Trait_Wren", "BOLD  ·  INSTINCTIVE")),
+			E(TEXT("Trait_Kato"), S::Kato, LOCTEXT("Trait_Kato", "ANALYTICAL  ·  CAUTIOUS")),
+			E(TEXT("Trait_Moss"), S::Moss, LOCTEXT("Trait_Moss", "STEADY  ·  GOOD-HUMOURED")),
 			// First Contact (docs/story/First-Contact-Cinematic-Brief.md): the opening, ~2:20, re-shot once the art is in.
 			// Draft lines from the brief; Nicholas's words replace them.
 			E(TEXT("O_PatrolSeven"), S::PatrolSeven, LOCTEXT("O_PatrolSeven", "Command, we have an unidentified structure on the outer perimeter. It's not on any chart. Wait, something's coming out of-"), St::Static),
@@ -288,6 +292,40 @@ FText UTDStorySubsystem::GetText(FName Id, const FText& Fallback)
 	return (FindEntry(Id, E) && !E.Text.IsEmpty()) ? E.Text : Fallback;
 }
 
+FText UTDStorySubsystem::PilotTrait(ETDShipId Ship)
+{
+	switch (Ship)
+	{
+	case ETDShipId::Rift: return GetText(TEXT("Trait_Wren"), FText::GetEmpty());
+	case ETDShipId::Lancer: return GetText(TEXT("Trait_Kato"), FText::GetEmpty());
+	default: return GetText(TEXT("Trait_Moss"), FText::GetEmpty());
+	}
+}
+
+void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+	Super::OnWorldBeginPlay(InWorld);
+	if (UTDEventBus* Bus = UTDEventBus::Get(&InWorld))
+	{
+		Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
+		Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
+	}
+}
+
+void UTDStorySubsystem::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*/)
+{
+	// Act 1, First Contact: the hail nobody answers; the field around the ship (storyline.md §5).
+	if (WaveNumber == 1) { FireTransmission(TEXT("A1_HailNoAnswer")); }
+	else if (WaveNumber == 2) { FireTransmission(TEXT("A1_FieldUnreachable")); }
+}
+
+void UTDStorySubsystem::HandleWaveCleared(int32 WaveNumber)
+{
+	// They search, they don't hold ground; then the trail to Verdance.
+	if (WaveNumber == 1) { FireTransmission(TEXT("A1_TheySearch")); }
+	else if (WaveNumber == 2) { FireTransmission(TEXT("A1_TrailToVerdance")); }
+}
+
 FText UTDStorySubsystem::SpeakerTag(ETDSpeaker Speaker)
 {
 	switch (Speaker)
@@ -511,6 +549,11 @@ void UTDStorySubsystem::RemoveOverlay()
 
 void UTDStorySubsystem::Deinitialize()
 {
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnWaveStarted.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
+		Bus->OnWaveCleared.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
+	}
 	RemoveOverlay();
 	Super::Deinitialize();
 }

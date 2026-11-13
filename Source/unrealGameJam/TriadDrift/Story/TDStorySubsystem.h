@@ -17,6 +17,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "TriadDrift/Story/TDStoryTypes.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TDStorySubsystem.generated.h"
 
 class SWidget;
@@ -60,6 +61,8 @@ public:
 	/** Text for an id, or Fallback when the id is unknown (the intro reads its narration this way). */
 	static FText GetText(FName Id, const FText& Fallback);
 	static FText SpeakerTag(ETDSpeaker Speaker);
+	/** A pilot's trait line for the name cards (Trait_Wren / _Kato / _Moss): "BOLD · INSTINCTIVE". */
+	static FText PilotTrait(ETDShipId Ship);
 	static FLinearColor SpeakerColor(ETDSpeaker Speaker);
 	/** On-screen seconds for an entry (Duration, or from the text length; at least the sound's length). */
 	static float SecondsFor(const FTDTransmission& Entry);
@@ -80,11 +83,14 @@ public:
 
 	// UWorldSubsystem
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 
 private:
+	UFUNCTION() void HandleWaveStarted(int32 WaveNumber, float Intensity01);
+	UFUNCTION() void HandleWaveCleared(int32 WaveNumber);
 	double RealNow() const;
 	bool IsHeld() const;
 	void StartNext();
