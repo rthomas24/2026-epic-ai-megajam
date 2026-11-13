@@ -1,0 +1,10 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "{D15CB821-4A61-18EC-84FD-0EAD60EA46EA}",
+  "Plugins": [
+    {"Name": "PythonScriptPlugin", "Enabled": true},
+    {"Name": "EditorScriptingUtilities", "Enabled": true},
+    {"Name": "NiagaraToolsets", "Enabled": true},
+    {"Name": "AllToolsets", "Enabled": true}
+  ]
+}
