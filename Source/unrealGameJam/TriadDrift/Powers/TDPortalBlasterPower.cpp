@@ -386,8 +386,17 @@ void UTDPortalBlasterPower::HandleInputPressed()
 	{
 		if (PlacePortal())
 		{
-			// Firing the blaster again is using the power: Cloak and other listeners see it.
+			// Firing the blaster again is using the power: Cloak and other listeners see it, and so does the bus
+			// (Switch Strike's window, barks, stats; second review minor).
 			OnPowerActivated.Broadcast(this);
+			ETDShipId Ship;
+			if (GetOwnerShipId(Ship))
+			{
+				if (UTDEventBus* Bus = UTDEventBus::Get(this))
+				{
+					Bus->BroadcastPowerUsed(Ship, PowerName);
+				}
+			}
 		}
 		return;
 	}
