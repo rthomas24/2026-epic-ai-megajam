@@ -223,7 +223,9 @@ public:
 	static float UserSpeedFOVScale;
 
 	/**
-	 * Issue #23 camera profiles (TD.Flight.CamProfile), Default until Ryan and Nicholas have seen the video:
+	 * Issue #23 camera profiles (TD.Flight.CamProfile). Nicholas chose AUDITION as the player default (Nov 13, from the
+	 * comparison video); Default and Tuned stay selectable for comparison. Reduced motion (the Camera shake and Speed
+	 * effects sliders) scales Audition exactly as before:
 	 *  Default  = the camera as on main before the fixes (FOV punches never reach the camera after BeginPlay, blur as
 	 *             set in BeginPlay, no composed caps);
 	 *  Tuned    = both fixes: the feedback FOV punches and the live blur reach the chase camera every frame, with the
@@ -231,6 +233,8 @@ public:
 	 *  Audition = Tuned + Nicholas's restrained profile (turn tilt that settles, light sustained shake, speed blur).
 	 */
 	enum class ECamProfile : uint8 { Default, Tuned, Audition };
+	/** What a new game starts with (Nicholas's pick, issue #23). */
+	static constexpr ECamProfile PlayerDefaultProfile = ECamProfile::Audition;
 	static ECamProfile CamProfile;
 	static bool IsFixedCameraPath() { return CamProfile != ECamProfile::Default; }
 	static const TCHAR* CamProfileName() { return CamProfile == ECamProfile::Audition ? TEXT("Audition") : CamProfile == ECamProfile::Tuned ? TEXT("Tuned") : TEXT("Default"); }

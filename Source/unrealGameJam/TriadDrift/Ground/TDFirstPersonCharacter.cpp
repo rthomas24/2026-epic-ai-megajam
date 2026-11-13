@@ -1632,3 +1632,19 @@ void ATDFirstPersonCharacter::OnBlockReleased()
 		Blade->SetBlockHeld(false);
 	}
 }
+
+ETDShipId ATDFirstPersonCharacter::GetOnFootPilotShip(const UObject* WorldContextObject)
+{
+	const UTDGameInstance* GI = UTDGameInstance::Get(WorldContextObject);
+	return GI ? GI->GetProgressRef().LastShip : ETDShipId::Rift;
+}
+
+FName ATDFirstPersonCharacter::GetOnFootPilotName(const UObject* WorldContextObject)
+{
+	switch (GetOnFootPilotShip(WorldContextObject))
+	{
+	case ETDShipId::Lancer:  return TEXT("Kato");
+	case ETDShipId::Bastion: return TEXT("Moss");
+	default:                 return TEXT("Wren");
+	}
+}

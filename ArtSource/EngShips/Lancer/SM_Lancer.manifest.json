@@ -1,7 +1,7 @@
 {
   "asset": "SM_Lancer",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Lancer\\SM_Lancer.fbx",
-  "tris": 49718,
+  "tris": 50138,
   "size_cm": [
     524.0,
     269.5,
@@ -10,7 +10,8 @@
   "pivot": "root object origin (SM_Lancer~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Lancer.001"
+    "M_Lancer.001",
+    "M_Lancer_Glow"
   ],
   "material_params": [
     {
@@ -21,11 +22,29 @@
       "roughness": null,
       "emission_color": null,
       "emission_strength": 2.0
+    },
+    {
+      "name": "M_Lancer_Glow",
+      "textured": false,
+      "base_color": [
+        0.25,
+        0.91,
+        1.0
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        0.25,
+        0.91,
+        1.0
+      ],
+      "emission_strength": 4.0
     }
   ],
   "textures": [],
   "collision": [
-    "UCX_SM_Lancer_00"
+    "UCX_SM_Lancer_00",
+    "UCX_SM_Lancer_01"
   ],
   "collision_source": "auto convex hulls",
   "sockets": [

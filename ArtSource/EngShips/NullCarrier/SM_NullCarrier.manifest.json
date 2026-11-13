@@ -1,0 +1,236 @@
+{
+  "asset": "SM_NullCarrier",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullCarrier\\SM_NullCarrier.fbx",
+  "tris": 8890,
+  "size_cm": [
+    4600.0,
+    2276.4,
+    1785.2
+  ],
+  "pivot": "root object origin (SM_NullCarrier~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_NullCarrier"
+  ],
+  "material_params": [
+    {
+      "name": "M_NullCarrier",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_NullCarrier_00",
+    "UCX_SM_NullCarrier_01",
+    "UCX_SM_NullCarrier_02",
+    "UCX_SM_NullCarrier_03",
+    "UCX_SM_NullCarrier_04",
+    "UCX_SM_NullCarrier_05",
+    "UCX_SM_NullCarrier_06",
+    "UCX_SM_NullCarrier_07",
+    "UCX_SM_NullCarrier_08",
+    "UCX_SM_NullCarrier_09"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Bay_0",
+    "SOCKET_Bay_1",
+    "SOCKET_Bay_2",
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Engine_3",
+    "SOCKET_Turret_0",
+    "SOCKET_Turret_1",
+    "SOCKET_Turret_2",
+    "SOCKET_Turret_3"
+  ],
+  "welded_verts": 7719,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -1514,
+        -805,
+        50
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -1514,
+        805,
+        50
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -370,
+        -1040,
+        -290
+      ]
+    },
+    {
+      "name": "Engine_3",
+      "ue_cm": [
+        -370,
+        1040,
+        -290
+      ]
+    },
+    {
+      "name": "Bay_0",
+      "ue_cm": [
+        940,
+        -430,
+        -230
+      ],
+      "ue_x": [
+        0,
+        -1,
+        0
+      ],
+      "ue_y": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Bay_1",
+      "ue_cm": [
+        940,
+        430,
+        -230
+      ],
+      "ue_x": [
+        0,
+        1,
+        0
+      ],
+      "ue_y": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Bay_2",
+      "ue_cm": [
+        0,
+        0,
+        61
+      ],
+      "ue_x": [
+        0,
+        0,
+        1
+      ],
+      "ue_y": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Turret_0",
+      "ue_cm": [
+        1100,
+        -170,
+        -79
+      ],
+      "ue_x": [
+        0,
+        -1,
+        0
+      ],
+      "ue_y": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Turret_1",
+      "ue_cm": [
+        1100,
+        170,
+        -79
+      ],
+      "ue_x": [
+        0,
+        1,
+        0
+      ],
+      "ue_y": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Turret_2",
+      "ue_cm": [
+        -1300,
+        -805,
+        202
+      ],
+      "ue_x": [
+        0,
+        -1,
+        0
+      ],
+      "ue_y": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Turret_3",
+      "ue_cm": [
+        -1300,
+        805,
+        202
+      ],
+      "ue_x": [
+        0,
+        1,
+        0
+      ],
+      "ue_y": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "source": "ArtSource/EngAI/Ships/NullFleet/Carrier/mesh_r1",
+  "texture_dir": "ArtSource/EngAI/Ships/NullFleet/Carrier/mesh_r1",
+  "heat_mask": null,
+  "max_texture_size": 2048
+}

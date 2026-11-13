@@ -72,7 +72,7 @@ bool UTDFlightFeedbackComponent::WantsCameraPlaceholder(const FTDFXCue* Cue)
 }
 
 float UTDFlightFeedbackComponent::UserShakeScale = 1.f;
-UTDFlightFeedbackComponent::ECamProfile UTDFlightFeedbackComponent::CamProfile = UTDFlightFeedbackComponent::ECamProfile::Default;
+UTDFlightFeedbackComponent::ECamProfile UTDFlightFeedbackComponent::CamProfile = UTDFlightFeedbackComponent::PlayerDefaultProfile;
 UTDFlightFeedbackComponent::FComposedPeaks UTDFlightFeedbackComponent::ComposedPeaks;
 float UTDFlightFeedbackComponent::UserSpeedFOVScale = 1.f;
 

@@ -7,7 +7,12 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/AudioComponent.h"
+#include "Components/MeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
@@ -122,6 +127,7 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 		bDestLoaded = true;
 		bDestFirstFrameSeen = false;
 		bFirstViewBuilt = false;
+		bArrivalSettled = false;
 	}
 	if (!IsTiming() || !World || World->GetGameInstance() != GetGameInstance()) { return; }
 	PostLoadTime = FPlatformTime::Seconds() - TimingStart;
@@ -134,9 +140,12 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 	TerrainTime = ControlTime = FirstFrameTime = -1.0;
 }
 
+const FName UTDDescentSubsystem::HeatGlowParam(TEXT("HeatGlow"));
+
 void UTDDescentSubsystem::Tick(float DeltaTime)
 {
 	TickCover(FMath::Min(DeltaTime, 0.1f));
+	TickHeat(FMath::Min(DeltaTime, 0.1f));
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -304,7 +313,29 @@ void UTDDescentSubsystem::TickCover(float Dt)
 				const double Ms = Terrain->BuildFirstViewAt(ArrivalCourseLocal);
 				Mark(*FString::Printf(TEXT("terrain first view at the arrival (%.0f ms; setup %.0f ms)"), Ms, Terrain->GetSetupMs()));
 			}
-			const bool bTerrainReady = !Terrain || (Terrain->GetChunkCount() > 0 && Terrain->GetPendingCount() == 0);
+			bool bTerrainReady = !Terrain || (Terrain->GetChunkCount() > 0 && Terrain->GetPendingCount() == 0);
+			// The flight zone fits its ceiling to the terrain (highest ground + 400 m): wait for it, then keep the arrival
+			// out of the ceiling's warning band (a high arrival over high ground showed "EDGE OF THE FLIGHT AREA").
+			ATDAtmosphereFlightZone* Zone = nullptr;
+			for (TActorIterator<ATDAtmosphereFlightZone> It(World); It; ++It) { Zone = *It; break; }
+			if (Terrain && Zone && !Zone->IsFittedToTerrain()) { bTerrainReady = false; }
+			if (bTerrainReady && !bArrivalSettled && ArrivalWorld.Get() == World && Zone)
+			{
+				bArrivalSettled = true;
+				const float Top = Zone->GetZoneBox().Max.Z - CeilingClearanceCm;
+				for (TActorIterator<ATDShip> It(World); It; ++It)
+				{
+					FVector L = It->GetActorLocation();
+					if (L.Z <= Top) { continue; }
+					const float Ground = Terrain ? Terrain->GetHeightAt(L) : L.Z - ArrivalAltitudeCm;
+					const float NewZ = FMath::Max(Top, Ground + 30000.f);
+					Mark(*FString::Printf(TEXT("arrival lowered %.0f m under the ceiling (%s)"), (L.Z - NewZ) / 100.f, *It->GetName()));
+					L.Z = NewZ;
+					It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
+				}
+				FVector A = ArrivalWorldXf.GetLocation();
+				if (A.Z > Top) { A.Z = FMath::Max(Top, (Terrain ? Terrain->GetHeightAt(A) : A.Z) + 30000.f); ArrivalWorldXf.SetLocation(A); } // retakes too
+			}
 			const double Held = Now - DestFirstFrameAt;
 			if (bTerrainReady && Held >= RevealMinHoldSeconds) { bReveal = true; Why = Terrain ? TEXT("terrain built") : TEXT("no terrain"); }
 			else if (Held >= RevealMaxHoldSeconds) { bReveal = true; Why = TEXT("4 s hold limit"); }
@@ -330,6 +361,103 @@ void UTDDescentSubsystem::TickCover(float Dt)
 		}
 		break;
 	}
+}
+
+void UTDDescentSubsystem::RecordSquad(UWorld* World)
+{
+	ATDSquadManager* Squad = nullptr;
+	for (TActorIterator<ATDSquadManager> It(World); It; ++It) { Squad = *It; break; }
+	if (!Squad) { ClearSquadCarry(); return; }
+	FTDSquadCarry C;
+	C.bValid = true;
+	C.Active = Squad->GetActiveShipId();
+	for (const FTDSquadSlot& Slot : Squad->GetSlots())
+	{
+		const UTDHealthComponent* H = Slot.Ship ? Slot.Ship->GetHealth() : nullptr;
+		const bool bAlive = Slot.State == ETDSquadSlotState::Alive && H && !H->IsDead();
+		C.Hull01.Add(Slot.ShipId, bAlive ? H->GetHull01() : 0.f); // downed / dying: 0 (the read side sets the floor)
+		C.Shield01.Add(Slot.ShipId, bAlive ? H->GetShield01() : 0.f);
+	}
+	SquadCarry = C;
+	SquadCarryWorld.Reset();
+	// T5: FTDProgress::LastShip is what the spawners and a Continue read (saved); nothing wrote it until now.
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(GetGameInstance())) { GI->SetLastShip(C.Active); }
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: squad carried (flown %s; hulls %s)"), *UEnum::GetValueAsString(C.Active),
+		*FString::JoinBy(C.Hull01, TEXT(" "), [](const TPair<ETDShipId, float>& P) { return FString::Printf(TEXT("%s %.0f%%"), *UEnum::GetDisplayValueAsText(P.Key).ToString(), P.Value * 100.f); }));
+}
+
+bool UTDDescentSubsystem::ConsumeSquadCarry(UWorld* World, FTDSquadCarry& Out, bool& bOutFirstSpawnInWorld)
+{
+	bOutFirstSpawnInWorld = false;
+	if (!SquadCarry.bValid || !World) { return false; }
+	if (SquadCarryWorld.IsValid() && SquadCarryWorld.Get() != World)
+	{
+		ClearSquadCarry(); // a later map with no new record: as before
+		return false;
+	}
+	bOutFirstSpawnInWorld = !SquadCarryWorld.IsValid();
+	SquadCarryWorld = World;
+	Out = SquadCarry;
+	return true;
+}
+
+void UTDDescentSubsystem::SetEntryHeat(float Heat01)
+{
+	Heat = FMath::Max(Heat, FMath::Clamp(Heat01, 0.f, 1.f));
+	HeatFedLeft = 0.25f; // ticks of this subsystem, not wall time
+}
+
+void UTDDescentSubsystem::ClearHeat()
+{
+	Heat = 0.f;
+	HeatFedLeft = 0.f;
+	TickHeat(0.f); // apply now
+}
+
+int32 UTDDescentSubsystem::ApplyHeatToShip(ATDShip* Ship, float InHeat)
+{
+	int32 Set = 0;
+	if (!Ship) { return 0; }
+	TInlineComponentArray<UMeshComponent*> Meshes(Ship);
+	for (UMeshComponent* Mesh : Meshes)
+	{
+		for (int32 i = 0; i < Mesh->GetNumMaterials(); ++i)
+		{
+			UMaterialInterface* M = Mesh->GetMaterial(i);
+			if (!M) { continue; }
+			float Current = 0.f;
+			if (!M->GetScalarParameterValue(FHashedMaterialParameterInfo(HeatGlowParam), Current)) { continue; } // no HeatGlow: leave it alone
+			UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(M);
+			if (!MID)
+			{
+				if (InHeat <= 0.f) { continue; } // never heated: no instance needed
+				MID = Mesh->CreateDynamicMaterialInstance(i, M);
+			}
+			if (MID) { MID->SetScalarParameterValue(HeatGlowParam, InHeat); ++Set; }
+		}
+	}
+	return Set;
+}
+
+void UTDDescentSubsystem::TickHeat(float Dt)
+{
+	if (Heat <= 0.f && AppliedHeat <= 0.f) { return; }
+	// Decay once the entry has stopped feeding it and the cover is not holding (after the reveal, or with no cover).
+	const bool bFed = HeatFedLeft > 0.f;
+	HeatFedLeft = FMath::Max(0.f, HeatFedLeft - Dt);
+	const bool bHeld = CoverPhase == ETDDescentCover::RampIn || CoverPhase == ETDDescentCover::Held;
+	if (!bFed && !bHeld && Heat > 0.f)
+	{
+		Heat = FMath::Max(0.f, Heat - Dt / HeatDecaySeconds);
+	}
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	if (!World) { return; }
+	// Every frame while hot: ships spawn (the planet squad) and the player can switch; values are cheap to set.
+	for (TActorIterator<ATDShip> It(World); It; ++It)
+	{
+		ApplyHeatToShip(*It, Heat);
+	}
+	AppliedHeat = Heat;
 }
 
 void UTDDescentSubsystem::RecordEntry(ETDDestination Planet, const ATDPlanetAtmosphere* Atmosphere, const FVector& WorldPoint, const FVector& WorldVelocity)
@@ -361,14 +489,7 @@ bool UTDDescentSubsystem::GetArrival(UWorld* World, ETDDestination Planet, const
 	{
 		return false;
 	}
-	FTransform Local = FTDPlanetEntry::ArrivalFromGlobe(Planet, ArrivalPoint, ArrivalGlobeVelocity, ArrivalAltitudeCm);
-	// Keep the arrival out of the flight zone's edge-warning band (T4's ring is 7 km; the warning shows near 7 km).
-	const FVector2D XY(Local.GetLocation());
-	if (XY.Size() > MaxArrivalRadiusCm)
-	{
-		const FVector2D In = XY.GetSafeNormal() * MaxArrivalRadiusCm;
-		Local.SetLocation(FVector(In.X, In.Y, Local.GetLocation().Z)); // same height above the old point: still well clear
-	}
+	const FTransform Local = FTDPlanetEntry::ArrivalFromGlobe(Planet, ArrivalPoint, ArrivalGlobeVelocity, ArrivalAltitudeCm); // T4's ring: 6 km
 	ArrivalCourseLocal = Local.GetLocation();
 	OutWorld = Local * CourseToWorld;
 	ArrivalWorldXf = OutWorld;

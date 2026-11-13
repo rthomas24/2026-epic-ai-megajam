@@ -266,6 +266,12 @@ private:
 	float StateDuration(ETDLandingState S) const;
 	void PauseFlight(bool bPause);
 	FVector TouchPoint() const;
+public:
+	/** How far the visible hull reaches below the ship's origin (a "Skid" socket, else the meshes' bounds; else the
+	 *  collision sphere's radius). Parked ships rest on this, ParkClearance over the pad. */
+	static float HullBottomBelowOrigin(const ATDShip* Ship);
+	static constexpr float ParkClearance = 4.f;
+private:
 	FVector HoverPoint() const;
 	FQuat PadFacing() const;
 	void LandWingmen(ATDLandingPad* PlayerPad);

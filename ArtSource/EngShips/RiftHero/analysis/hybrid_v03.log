@@ -1,0 +1,39 @@
+00:54.875  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_material_chase.png'
+00:55.313  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_material_chase_3q.png'
+00:55.719  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_material_foot_rear_8m.png'
+00:56.141  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_material_foot_3q_8m.png'
+00:56.609  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_material_rear_close.png'
+00:57.328  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_material_chase.png'
+00:57.875  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_material_chase_3q.png'
+00:58.797  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_material_foot_rear_8m.png'
+00:59.266  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_material_foot_3q_8m.png'
+00:59.828  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_material_rear_close.png'
+01:01.344  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_clay_chase.png'
+01:01.859  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_clay_chase_3q.png'
+01:02.313  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_clay_foot_rear_8m.png'
+01:02.797  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_clay_foot_3q_8m.png'
+01:03.359  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_orig_v03_clay_rear_close.png'
+01:03.938  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_clay_chase.png'
+01:04.469  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_clay_chase_3q.png'
+01:04.828  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_clay_foot_rear_8m.png'
+01:05.297  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_clay_foot_3q_8m.png'
+01:05.922  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\tmp_hyb_v03_clay_rear_close.png'
+01:07.500  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\06_hybrid_v03_material_front_3q.png'
+01:07.969  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\06_hybrid_v03_material_front.png'
+01:08.250  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\06_hybrid_v03_material_top.png'
+01:08.656  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\06_hybrid_v03_material_back_3q.png'
+01:08.984  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\06_hybrid_v03_material_left.png'
+01:09.281  render           | Saved: 'C:\Users\ryant\Documents\myRepos\game-jam\.wt\int\ArtSource\EngShips\RiftHero\review\06_hybrid_v03_material_right.png'
+FBX version: 7400
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+FBX version: 7400
+Info: Saved as "Rift_hybrid_v03.blend"
+__RESULT__{"tag": "v03", "body": {"tris_in": 42762, "cut_faces": 6144, "ring_support_shards_removed": 312, "welded_verts": 34456, "islands_after_weld": 54, "tiny_islands_removed": 40, "ring_zone_islands_removed": 1, "hidden_faces_removed": 744, "tris_out": 35159}, "textures": {"white_frac": 0.1468680053949356, "magenta_frac": 0.22991164028644562, "bc_white_std_before": 0.07748980075120926, "bc_white_std_after": 0.052095405757427216, "rough_paint_std_before": 0.13024964928627014, "rough_paint_std_after": 0.03772516921162605, "metal_paint_mean_before": 0.02907521091401577, "normal_xy_rms_before": 0.11746454983949661, "normal_xy_rms_after": 0.06735258549451828, "emissive_frac_before": 0.13990378379821777, "emissive_frac_after": 0.09504818916320801}, "parts_tris": {"SM_Rift_Ring": 8624, "SM_Rift_RingYoke": 3116, "SM_Rift_RingBase": 3416, "SM_Rift_VentralTail": 1386, "SM_Rift_EngineBulkhead": 1820, "SM_Rift_NozzleC": 3032, "SM_Rift_NozzleO": 4736, "SM_Rift_EngineDetail": 880}, "bake": {"emission_strength": 3.0, "seconds": 24.81, "normal_convention": "DirectX (green flipped)"}, "report": {"totals": {"objects": 11, "tris": 62169, "errors": 0, "warnings": 2}, "issues": [{"severity": "warn", "object": "SM_Rift", "message": "5 non-manifold edges (edges shared by 3+ faces)"}, {"severity": "warn", "object": "SM_Rift_Parts", "message": "8 duplicate vertices within 0.0001 m; merge by distance"}]}, "assembly": {"ok": true, "islands": 59, "main_body_tris": 62169, "floating_count": 0, "floating_tris": 0, "floating_top": []}, "bbox_cm": [[-250.0, -208.7, -113.0], [250.0, 208.7, 112.8]], "sheets": {"material": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\RiftHero\\review\\06_hybrid_v03_ORIGINAL_vs_HYBRID_material.png", "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\RiftHero\\review\\06_hybrid_v03_ORIGINAL_vs_HYBRID_clay.png", "turnaround": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\RiftHero\\review\\06_hybrid_v03_material_sheet.png"}, "blend": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\RiftHero\\Rift_hybrid_v03.blend", "seconds": 57.2}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:37:04)
+
+Blender quit

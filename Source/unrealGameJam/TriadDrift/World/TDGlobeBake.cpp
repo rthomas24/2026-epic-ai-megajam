@@ -36,15 +36,12 @@ namespace
 				Glow = FLinearColor(0.f, 0.06f, 0.05f);	// the bioluminescent shallows, faint
 				return;
 			}
-			// Environment pass (Nov 13): the same palette as MI_Terrain_Verdance (teal / emerald flats by biome, slate cliffs
-			// by slope, tinted lichen on the highest ground only: no white), so the globe and the ground are one world.
-			const FLinearColor Jungle(0.02f, 0.17f, 0.15f), Moss(0.05f, 0.30f, 0.10f), Rock(0.15f, 0.17f, 0.23f), Snow(0.36f, 0.56f, 0.50f);
+			const FLinearColor Jungle(0.04f, 0.24f, 0.08f), Moss(0.16f, 0.32f, 0.12f), Rock(0.46f, 0.47f, 0.5f), Snow(0.88f, 0.92f, 0.96f);
 			Base = FMath::Lerp(Jungle, Moss, FMath::Clamp(Broad, 0.f, 1.f));
-			Base = FMath::Lerp(Base, Rock, FMath::Clamp(FMath::Max((Slope - 0.12f) / 0.2f, (HeightM - 1000.f) / 900.f), 0.f, 1.f));
-			Base = FMath::Lerp(Base, Snow, FMath::Clamp((HeightM - 1450.f) / 550.f, 0.f, 1.f));
+			Base = FMath::Lerp(Base, Rock, FMath::Clamp((HeightM - 600.f) / 600.f, 0.f, 1.f));
+			Base = FMath::Lerp(Base, Snow, FMath::Clamp((HeightM - 1700.f) / 400.f, 0.f, 1.f));
 			// Bioluminescent jungle patches at night, by biome (not by height: the carved arrival corridor must not show).
-			Glow = FMath::Lerp(FLinearColor(0.f, 0.16f, 0.18f), FLinearColor(0.10f, 0.03f, 0.20f), FMath::Clamp((Broad - 0.35f) * 3.f, 0.f, 1.f))
-				* FMath::Clamp(FMath::Abs(Broad - 0.5f) * 5.f, 0.15f, 1.f) * FMath::Clamp(1.f - HeightM / 900.f, 0.f, 1.f);
+			Glow = FLinearColor(0.f, 0.02f, 0.016f) * FMath::Clamp((0.65f - Broad) * 4.f, 0.f, 1.f) * FMath::Clamp(1.f - HeightM / 900.f, 0.f, 1.f);	// was a teal wash up close
 		}
 		Base *= 1.f - 0.2f * FMath::Clamp(Slope, 0.f, 1.f);	// cliffs a little darker: the ranges show their relief
 	}
@@ -95,6 +92,11 @@ namespace
 			const float X = FMath::Cos(Lon) * D, Y = FMath::Sin(Lon) * D;
 			const FTDTerrainSample S = Field.Sample(X, Y, 2000.f);
 			TDGlobeBake_Shade(bCinder, (S.Height - Field.GetStyle().BasinFloor) / 100.f, S.Slope, S.BroadMask, S.Height < Field.GetStyle().SeaLevel, LocalBase, LocalGlow);
+			// Close up in a dive the cap fills the frame: fine breakup (the field's own detail mask) in brightness and a
+			// little hue, so it never reads as one flat colour.
+			const float Fine = S.FineMask;
+			LocalBase *= 0.78f + 0.44f * Fine;
+			LocalBase = FMath::Lerp(LocalBase, LocalBase * FLinearColor(1.15f, 0.95f, 0.8f), FMath::Clamp((Fine - 0.6f) * 2.f, 0.f, 1.f) * 0.5f);
 		}
 		FLinearColor GlobalBase = FLinearColor::Black, GlobalGlow = FLinearColor::Black;
 		if (GlobalW > 0.f)
@@ -103,17 +105,8 @@ namespace
 		}
 		Base = FMath::Lerp(LocalBase, GlobalBase, GlobalW);
 		Glow = FMath::Lerp(LocalGlow, GlobalGlow, GlobalW);
-		// The pad's beacon: a bright core and a ring around it, so the landing site is findable from orbit.
-		if (Angle < 1.2f)
-		{
-			Base = FLinearColor(0.9f, 1.f, 1.f);
-			Glow = FLinearColor(0.6f, 1.f, 1.f);
-		}
-		else if (Angle > 2.f && Angle < 2.6f)
-		{
-			Base = FMath::Lerp(Base, FLinearColor(0.4f, 1.f, 1.f), 0.7f);
-			Glow = FLinearColor(0.3f, 0.9f, 1.f);
-		}
+		// No beacon in the texture (it became a white target disc filling every dive frame): the landing site's light
+		// is a small world-space marker on ATDPlanetAtmosphere that fades out as the ship closes.
 	}
 }
 

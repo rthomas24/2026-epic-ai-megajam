@@ -755,7 +755,7 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 	if (Shown != LastShownSecond)
 	{
 		LastShownSecond = Shown;
-		LinkedObjective->UpdateStepText(FText::Format(RunText.IsEmpty() ? LOCTEXT("Run", "GET CLEAR OF THE ANCHOR · {0}") : RunText, Shown));
+		LinkedObjective->UpdateStepText(FText::Format(RunText.IsEmpty() ? LOCTEXT("Run", "RETURN TO EXTRACTION · {0}") : RunText, Shown));
 	}
 	DebrisTimer -= DeltaSeconds;
 	if (DebrisTimer <= 0.f)
@@ -870,7 +870,9 @@ bool ATDArchiveTransfer::IsHostileAtTerminal() const
 	const FVector At = GetActorLocation();
 	for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It; ++It)
 	{
-		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < PauseRadius)
+		// At the terminal = on its floor: a crewman on the station's roof (5 m up, out of reach) must never hold the
+		// transfer forever (a soft lock).
+		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < PauseRadius && FMath::Abs(It->GetActorLocation().Z - At.Z) < 250.f)
 		{
 			return true;
 		}
@@ -980,6 +982,41 @@ void ATDArchiveTransfer::ResetProp()
 	for (int32 i = 0; i < Fired.Num(); ++i)
 	{
 		Fired[i] = WaveAt.IsValidIndex(i) && WaveAt[i] < Progress;
+	}
+}
+
+
+// ================================================================================================
+// Survey terminal (Cinder)
+// ================================================================================================
+
+FTDOnSurveyRecordsAccessed ATDSurveyTerminal::OnAnySurveyRecordsAccessed;
+
+bool ATDSurveyTerminal::IsHostileNear() const
+{
+	const FVector At = GetActorLocation();
+	for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It; ++It)
+	{
+		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < ClearRadius)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ATDSurveyTerminal::CanInteract(AActor* Interactor) const
+{
+	return Super::CanInteract(Interactor) && !IsHostileNear();
+}
+
+void ATDSurveyTerminal::Interact(AActor* Interactor)
+{
+	const bool bWasUsable = CanInteract(Interactor);
+	Super::Interact(Interactor);
+	if (bWasUsable && bAnnounceRecords)
+	{
+		OnAnySurveyRecordsAccessed.Broadcast(this);
 	}
 }
 

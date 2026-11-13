@@ -200,6 +200,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
 	float TerrainEdgeExtension = 50000.f;
 
+	/**
+	 * Ryan's one dressed zone (Nov 13, WORLD-DENSITY-PLAN 2.0 / 3.6): the fitted zone is DressedHalfSize around the pad
+	 * (turn-back at 5 km), its walls warn DressedWallWarnDistance inside that (4 km), and its ceiling sits
+	 * DressedCeilingAbovePad over the pad (never under the highest ground in it + TerrainCeilingClearance). Off: the whole core, as before.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere")
+	bool bDressedZone = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "10000"))
+	float DressedHalfSize = 500000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
+	float DressedWallWarnDistance = 100000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "10000"))
+	float DressedCeilingAbovePad = 160000.f;
+	/** Seconds between two wingman "turn back" lines at the edge. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
+	float EdgeBarkInterval = 20.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
 	float TerrainCeilingClearance = 40000.f;
 
@@ -215,6 +232,8 @@ protected:
 private:
 	void ApplyToShip(ATDShip* Ship, bool bExitOpen);
 
+	float LastEdgeBarkTime = -1000.f;
+	bool bWasNearEdge = false;
 	bool bFittedToTerrain = false;
 	TWeakObjectPtr<const class ATDPlanetTerrain> FittedTerrain;
 	float TerrainCoreHalf = 0.f;

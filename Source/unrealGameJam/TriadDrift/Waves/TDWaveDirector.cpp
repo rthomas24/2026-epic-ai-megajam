@@ -1,5 +1,6 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 
 #include "TriadDrift/Enemies/TDEnemyShip.h"
@@ -1002,10 +1003,27 @@ void ATDWaveDirector::FinishWave()
 			else if (Bus) { Bus->BroadcastTipRequested(TDTipIds::Hyperdrive); }
 		}
 	}
-	if (Wave.bRevealsDominion && Flow)
+	// Story rule (Ryan, accepted by Nicholas): the approach's distortion field opens only when Cinder is finished AND
+	// wave 5 is cleared. In the normal flow wave 5 cannot start before Cinder (its phase is set when Cinder's
+	// objectives complete); a stage, a cheat or an old save could reach this clear without Cinder, so check both.
+	if (Wave.bRevealsDominion && Flow && IsCinderFinished(Flow->GetProgress()))
 	{
 		Flow->SetDominionState(true, false);
 	}
+}
+
+bool ATDWaveDirector::IsCinderFinished(const FTDProgress& Progress)
+{
+	const UTDFlowSettings* Settings = UTDFlowSettings::Get();
+	if (!Settings)
+	{
+		return true;
+	}
+	for (const FName& Id : Settings->CinderObjectives)
+	{
+		if (!Progress.CompletedObjectives.Contains(Id)) { return false; }
+	}
+	return true;
 }
 
 void ATDWaveDirector::AdvanceAfterBreather()

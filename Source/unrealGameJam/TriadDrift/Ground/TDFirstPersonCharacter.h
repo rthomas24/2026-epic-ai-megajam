@@ -131,6 +131,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
 	void SetThirdPerson(bool bWanted);
 	/** The chase camera is the view (the body is shown whole, the blade is in the hand, facing follows the rule). */
+	/**
+	 * Who is on foot (Nicholas, issue #29): the pilot of the ship the player flew down / docked with, from
+	 * Progress.LastShip (T1 records it at the entry commit; the planet hand-off writes the landed ship).
+	 * Rift = Wren, Lancer = Kato, Bastion = Moss. For T3 (the on-foot speaker) and T2.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|OnFoot", meta = (WorldContext = "WorldContextObject"))
+	static ETDShipId GetOnFootPilotShip(const UObject* WorldContextObject);
+	/** "Wren" / "Kato" / "Moss" (the speaker names the bark and story systems use). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|OnFoot", meta = (WorldContext = "WorldContextObject"))
+	static FName GetOnFootPilotName(const UObject* WorldContextObject);
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	bool IsThirdPersonView() const;
 	UTDThirdPersonCameraComponent* GetThirdPersonRig() const { return ThirdPersonRig; }

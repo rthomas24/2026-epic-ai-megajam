@@ -13,6 +13,8 @@
 #include "Layout/WidgetPath.h"
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
+#include "UObject/StrongObjectPtr.h"
+#include "UObject/UObjectGlobals.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -23,6 +25,7 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
+#include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/UI/Tests/TDFlightHUDTestSource.h"
@@ -65,11 +68,14 @@ namespace TDFlightHUDTests
 		FTDTestWorld W;
 		ATDFlightHUDTestSource* Src = nullptr;
 		UTDFlightHUDWidget* HUD = nullptr;
+		/** Nothing else references a test-made widget (no viewport, no host): without this a GC mid-test frees it. */
+		TStrongObjectPtr<UTDFlightHUDWidget> Keep;
 		FTDFlightHUDFixture()
 		{
 			Src = W.Spawn<ATDFlightHUDTestSource>();
 			Src->SetSquad(ETDShipId::Lancer);
 			HUD = CreateWidget<UTDFlightHUDWidget>(W.GetWorld(), UTDFlightHUDWidget::StaticClass());
+			Keep.Reset(HUD);
 			HUD->ForceGamepad = 0;
 			HUD->SetDataSource(Src);
 		}
@@ -553,7 +559,14 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	Hints->UseMemoryOnlyForTests();
 	Hints->TimeoutSeconds = 2.f;
 	W.Advance(.5f);
-	UTDFlightHUDWidget* HUD = CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass());
+	// Held strongly: the gating run crashed here (Lead, lead/int 8492cf3) when a GC during the 12 s hint wait freed the
+	// unreferenced widget and Sample() ran on freed memory. The shipping host holds its widget in a UPROPERTY.
+	const TStrongObjectPtr<UTDFlightHUDWidget> Keep(CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass()));
+	UTDFlightHUDWidget* HUD = Keep.Get();
+	if (!TestNotNull(TEXT("widget"), HUD))
+	{
+		return false;
+	}
 	HUD->ForceGamepad = 0;
 	HUD->SetDataSource(Squad);
 	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld()))
@@ -583,6 +596,240 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	W.Tick();
 	HUD->Sample(.016f);
 	TestTrue(TEXT("fired: the card ticks off"), HUD->GetView().bHintDone);
+	return true;
+}
+
+// The Lead's gating crash (lead/int 8492cf3, Sample() on freed memory): a GC between Sample() calls. The shipping holder
+// (UTDUIHostSubsystem's UPROPERTY) keeps the flight HUD alive and it samples and paints on; a test-held strong pointer
+// keeps it too; a widget nothing references IS collected (what the old raw pointer in HintCardStep raced).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDSurvivesGC, "TriadDrift.UI.FlightHUD.SurvivesGarbageCollection", TD_TEST_FLAGS)
+bool FTDFlightHUDSurvivesGC::RunTest(const FString& Parameters)
+{
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), 2);
+	FTDFlightScopedCVar Native(TEXT("TD.UI.NativeHUD"), -1);
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 20000.f)));
+	Host->bAddToViewport = false;
+	W.Advance(.2f);
+	Host->Evaluate();
+	const TWeakObjectPtr<UTDFlightHUDWidget> HostHUD = Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD());
+	if (!TestTrue(TEXT("the host shows the engineering flight HUD"), HostHUD.IsValid()))
+	{
+		return false;
+	}
+	const TStrongObjectPtr<UTDFlightHUDWidget> Held(CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass()));
+	const TWeakObjectPtr<UTDFlightHUDWidget> Loose = CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass());
+	Held->SetDataSource(Squad);
+	for (int32 Round = 0; Round < 3; ++Round)
+	{
+		HostHUD->Sample(.016f);
+		Held->Sample(.016f);
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS, true);
+		W.Advance(.1f);
+	}
+	TestTrue(TEXT("host's widget survives GC"), HostHUD.IsValid() && Host->GetSpaceHUD() == HostHUD.Get());
+	TestTrue(TEXT("a strongly held test widget survives GC"), Held.IsValid());
+	TestFalse(TEXT("an unreferenced widget is collected (the old test's raw pointer would now dangle)"), Loose.IsValid());
+	if (HostHUD.IsValid())
+	{
+		HostHUD->Sample(.016f);
+		TestEqual(TEXT("after GC: the host's HUD still reads the squad (3 chips)"), HostHUD->GetView().Chips.Num(), 3);
+		TSharedRef<SWidget> Slate = HostHUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		TestTrue(TEXT("after GC: it paints"), HostHUD->LastBoxes.Num() > 0);
+	}
+	Held->Sample(.016f);
+	TestEqual(TEXT("after GC: the held widget samples"), Held->GetView().Chips.Num(), 3);
+	return true;
+}
+
+// T1's atmosphere entry hook: a focus hold dims the whole flight HUD to the lowest held opacity and, with bHideCombat,
+// takes the objective pill and waypoints off screen and tells slates to stay away; popping every hold restores it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDFocusHold, "TriadDrift.UI.FlightHUD.FocusHoldForEntry", TD_TEST_FLAGS)
+bool FTDFlightHUDFocusHold::RunTest(const FString& Parameters)
+{
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), 2);
+	FTDFlightScopedCVar Native(TEXT("TD.UI.NativeHUD"), -1);
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 20000.f)));
+	Host->bAddToViewport = false;
+	W.Advance(.2f);
+	Host->Evaluate();
+	UTDFlightHUDWidget* HUD = Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD());
+	if (!TestNotNull(TEXT("flight HUD"), HUD))
+	{
+		return false;
+	}
+	auto Paint = [&]()
+	{
+		TSharedRef<SWidget> Slate = HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	};
+	auto Has = [&](const TCHAR* Name) { return HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); }); };
+	HUD->Sample(1.f);
+	Paint();
+	const bool bObjectiveBefore = Has(TEXT("objective"));
+	TestFalse(TEXT("no hold: combat not held"), UTDUIHostSubsystem::IsCombatPresentationHeld(W.GetWorld()));
+
+	UTDUIHostSubsystem::PushHUDFocus(W.GetWorld(), TEXT("Entry"), .35f, true);
+	UTDUIHostSubsystem::PushHUDFocus(W.GetWorld(), TEXT("Other"), .6f, false);
+	for (int32 i = 0; i < 60; ++i)
+	{
+		HUD->Sample(1.f / 60.f);
+	}
+	TestTrue(FString::Printf(TEXT("held: eased to the lowest hold, 0.35 (got %.2f)"), HUD->GetView().HUDOpacity), FMath::IsNearlyEqual(HUD->GetView().HUDOpacity, .35f, .02f));
+	TestTrue(TEXT("held: combat objectives held"), HUD->GetView().bCombatHeld && UTDUIHostSubsystem::IsCombatPresentationHeld(W.GetWorld()));
+	Paint();
+	TestFalse(TEXT("held: no objective pill"), Has(TEXT("objective")));
+	TestFalse(TEXT("held: no waypoints"), Has(TEXT("waypoint")) || Has(TEXT("waypoint_edge")));
+	TestTrue(TEXT("held: the reticle stays"), Has(TEXT("reticle")));
+
+	W.Advance(.5f); // holds survive host ticks
+	TestTrue(TEXT("held across ticks"), HUD->bFocusHideCombat && FMath::IsNearlyEqual(HUD->FocusOpacity, .35f));
+	UTDUIHostSubsystem::PopHUDFocus(W.GetWorld(), TEXT("Entry"));
+	TestFalse(TEXT("Entry popped: combat back (Other never hid it)"), UTDUIHostSubsystem::IsCombatPresentationHeld(W.GetWorld()));
+	TestTrue(TEXT("Entry popped: Other's 0.6 is the floor now"), FMath::IsNearlyEqual(HUD->FocusOpacity, .6f));
+	UTDUIHostSubsystem::PopHUDFocus(W.GetWorld(), TEXT("Other"));
+	for (int32 i = 0; i < 60; ++i)
+	{
+		HUD->Sample(1.f / 60.f);
+	}
+	TestTrue(TEXT("all popped: full opacity again"), FMath::IsNearlyEqual(HUD->GetView().HUDOpacity, 1.f, .01f));
+	Paint();
+	TestEqual(TEXT("all popped: the objective pill as before"), Has(TEXT("objective")), bObjectiveBefore);
+	return true;
+}
+
+// Alignment a13: the Dominion approach marker. Nothing before Cinder's anchor; pending (dashed amber, "APPROACH PENDING")
+// while the anchor is down and the field closed; open for 8 s on the reveal edge, then gone; pending is a marker only.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDApproach, "TriadDrift.UI.FlightHUD.ApproachMarkerPendingThenOpen", TD_TEST_FLAGS)
+bool FTDFlightHUDApproach::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->ApproachTargetOverride = FVector(0.f, 0.f, 0.f) + FVector(5000000.f, 0.f, 0.f); // 50 km ahead of the origin
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("no game flow progress: no marker"), F.V().Approach, 0);
+	F.HUD->ForceApproach = 1;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("pending"), F.V().Approach, 1);
+	TestTrue(TEXT("pending: a range in metres"), F.V().ApproachWp.Distance > 0.f);
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	const TPair<FName, FBox2D>* Box = F.HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("approach"); });
+	if (TestNotNull(TEXT("pending: painted"), Box))
+	{
+		TestTrue(TEXT("inside the frame"), Box->Value.Min.X >= 0.f && Box->Value.Max.X <= 1920.f && Box->Value.Min.Y >= 0.f && Box->Value.Max.Y <= 1080.f);
+	}
+	F.HUD->ForceApproach = 2;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("open"), F.V().Approach, 2);
+	F.HUD->ForceApproach = 0;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("cleared"), F.V().Approach, 0);
+	F.HUD->ApproachTargetOverride.Reset();
+	F.HUD->ForceApproach = 1;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("no Dominion to point at: nothing drawn"), F.V().Approach, 0);
+	return true;
+}
+
+// Cinematic 03 / 05 scan monitor: through the host (its own widget), stages add layers that draw in, the markers sit
+// on the structure's outline and inside the panel, a higher stage advances in place, Hide fades it and the host
+// removes it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDScanMonitor, "TriadDrift.UI.ScanMonitor.StagesAndMarkers", TD_TEST_FLAGS)
+bool FTDFlightHUDScanMonitor::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	TestTrue(TEXT("shown"), UTDUIHostSubsystem::ShowScanMonitor(W.GetWorld(), 3));
+	UTDScanMonitorWidget* M = Cast<UTDScanMonitorWidget>(Host->GetScanMonitor());
+	if (!TestNotNull(TEXT("monitor widget"), M))
+	{
+		return false;
+	}
+	auto Paint = [&]()
+	{
+		TSharedRef<SWidget> Slate = M->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	};
+	auto Count = [&](const TCHAR* Name) { int32 N = 0; for (const TPair<FName, FBox2D>& B : M->LastBoxes) { N += B.Key == FName(Name) ? 1 : 0; } return N; };
+	TestEqual(TEXT("stage 3"), M->GetStage(), 3);
+	TestTrue(TEXT("layers draw in one after another"), M->GetLayer01(1) <= M->GetLayer01(1) && M->GetLayer01(3) == 0.f);
+	M->Advance(5.f);
+	TestTrue(TEXT("after 5 s all three layers are in"), M->GetLayer01(1) >= 1.f && M->GetLayer01(2) >= 1.f && M->GetLayer01(3) >= 1.f);
+	Paint();
+	TestEqual(TEXT("the structure"), Count(TEXT("structure")), 1);
+	TestEqual(TEXT("five scan sites"), Count(TEXT("site")), 5);
+	TestEqual(TEXT("the Cinder correlation tag"), Count(TEXT("cinder_tag")), 1);
+	TestEqual(TEXT("no Cinder layer yet"), Count(TEXT("cinder_layer")), 0);
+	const FBox2D Panel = UTDScanMonitorWidget::PanelBox();
+	const TArray<FVector2D> Outline = UTDScanMonitorWidget::StructureOutline();
+	for (const TPair<FName, FBox2D>& B : M->LastBoxes)
+	{
+		TestTrue(*FString::Printf(TEXT("%s inside the panel"), *B.Key.ToString()), Panel.IsInside(B.Value.Min) && Panel.IsInside(B.Value.Max) || B.Key == TEXT("panel"));
+		if (B.Key == TEXT("site"))
+		{
+			TestTrue(TEXT("a site sits on an outline vertex"), Outline.ContainsByPredicate([&](const FVector2D& V) { return B.Value.GetCenter().Equals(V, 1.f); }));
+		}
+	}
+
+	// Cinematic 05: advance to 5 on the same widget.
+	TestTrue(TEXT("advance"), UTDUIHostSubsystem::ShowScanMonitor(W.GetWorld(), 5, 3.f));
+	TestTrue(TEXT("same widget"), Host->GetScanMonitor() == M);
+	M->Advance(4.f);
+	Paint();
+	TestEqual(TEXT("the Cinder layer"), Count(TEXT("cinder_layer")), 1);
+	TestEqual(TEXT("the crystal cache"), Count(TEXT("cache")), 1);
+	TestEqual(TEXT("the field anchor"), Count(TEXT("anchor")), 1);
+	TestEqual(TEXT("the correlation tag gives way to the overlay"), Count(TEXT("cinder_tag")), 0);
+	// Seconds = 3 from the advance: it fades out by itself, and the host takes it down.
+	M->Advance(1.f);
+	TestTrue(TEXT("faded out"), M->IsFinished());
+	W.Tick();
+	TestNull(TEXT("host removed it"), Host->GetScanMonitor());
 	return true;
 }
 

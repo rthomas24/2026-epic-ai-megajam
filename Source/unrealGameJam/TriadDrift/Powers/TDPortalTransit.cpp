@@ -5,7 +5,7 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
-#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -71,6 +71,9 @@ bool UTDPortalTransit::TransitActor(AActor* Actor, const FTransform& Entry, cons
 				{
 					Flow->AddStat(TEXT("MissilesReturned"), 1);
 				}
+				// dialogs.md Bark_Portal_MissileReturn: "Return to sender!" once per missile (a returned missile is
+				// player-team now and never returns again); the limiter spaces a salvo.
+				FTDCombatBarks::Say(Actor, ETDShipId::Rift, TDBarkIdsT2::PortalMissileReturn, ETDBarkPriority::High);
 				// Subject: the enemy it returns to (stable; the projectile is pooled). Director picks the importance.
 				AActor* Subject = P->GetOriginalShooter() ? P->GetOriginalShooter() : P;
 				// Only through the director: it owns slow-mo, rate limits, camera hints and CUT / travel gating.
@@ -99,6 +102,8 @@ bool UTDPortalTransit::TransitActor(AActor* Actor, const FTransform& Entry, cons
 			{
 				Flow->AddStat(TEXT("PortalsUsed"), 1);
 			}
+			// dialogs.md Bark_Portal_Through: "And... through!" (Flavour) once per transit; Wren calls it whoever flies.
+			FTDCombatBarks::Say(Actor, ETDShipId::Rift, TDBarkIdsT2::PortalThrough, ETDBarkPriority::Flavour);
 		}
 	}
 	else

@@ -24,6 +24,7 @@
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
+#include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -73,6 +74,11 @@ void UTDUIHostSubsystem::Deinitialize()
 	Hide();
 	HideGround();
 	HidePause();
+	if (ScanWidget)
+	{
+		ScanWidget->RemoveFromParent();
+		ScanWidget = nullptr;
+	}
 	if (TacticalWidget)
 	{
 		TacticalWidget->RemoveFromParent();
@@ -97,6 +103,12 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 		TacticalWidget->RemoveFromParent();
 		TacticalWidget = nullptr;
 	}
+	if (const UTDScanMonitorWidget* Monitor = Cast<UTDScanMonitorWidget>(ScanWidget); Monitor && Monitor->IsFinished())
+	{
+		ScanWidget->RemoveFromParent();
+		ScanWidget = nullptr;
+	}
+	ApplyFocus();
 	TimeUntilCheck -= DeltaTime;
 	if (TimeUntilCheck > 0.f)
 	{
@@ -104,6 +116,57 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 	}
 	TimeUntilCheck = TDUIHost::CheckInterval;
 	Evaluate();
+}
+
+void UTDUIHostSubsystem::ApplyFocus()
+{
+	float Opacity = 1.f;
+	bool bHideCombat = false;
+	for (const TPair<FName, FTDHUDFocus>& It : Focus)
+	{
+		Opacity = FMath::Min(Opacity, It.Value.Opacity);
+		bHideCombat |= It.Value.bHideCombat;
+	}
+	if (UTDFlightHUDWidget* Flight = Cast<UTDFlightHUDWidget>(Widget))
+	{
+		Flight->FocusOpacity = Opacity;
+		Flight->bFocusHideCombat = bHideCombat;
+	}
+}
+
+void UTDUIHostSubsystem::PushHUDFocus(const UObject* WorldContext, FName Reason, float Opacity, bool bHideCombat)
+{
+	if (UTDUIHostSubsystem* Host = Get(WorldContext))
+	{
+		Host->Focus.Add(Reason, { FMath::Clamp(Opacity, 0.f, 1.f), bHideCombat });
+		Host->ApplyFocus();
+	}
+}
+
+void UTDUIHostSubsystem::PopHUDFocus(const UObject* WorldContext, FName Reason)
+{
+	if (UTDUIHostSubsystem* Host = Get(WorldContext))
+	{
+		Host->Focus.Remove(Reason);
+		Host->ApplyFocus();
+	}
+}
+
+bool UTDUIHostSubsystem::IsCombatPresentationHeld(const UObject* WorldContext)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	if (!Host)
+	{
+		return false;
+	}
+	for (const TPair<FName, FTDHUDFocus>& It : Host->Focus)
+	{
+		if (It.Value.bHideCombat)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // ------------------------------------------------------------------------------------------ decide
@@ -300,6 +363,42 @@ bool UTDUIHostSubsystem::ShowTacticalDisplay(const UObject* WorldContext, float 
 	}
 	Display->Play(Seconds);
 	return true;
+}
+
+bool UTDUIHostSubsystem::ShowScanMonitor(const UObject* WorldContext, int32 Stage, float Seconds)
+{
+	UTDUIHostSubsystem* Host = Get(WorldContext);
+	APlayerController* PC = Host ? Host->FindLocalController() : nullptr;
+	if (!PC)
+	{
+		return false;
+	}
+	UTDScanMonitorWidget* Monitor = Cast<UTDScanMonitorWidget>(Host->ScanWidget);
+	if (!Monitor)
+	{
+		Monitor = CreateWidget<UTDScanMonitorWidget>(PC, UTDScanMonitorWidget::StaticClass());
+		if (!Monitor)
+		{
+			return false;
+		}
+		Host->ScanWidget = Monitor;
+		const UWorld* World = Host->GetWorld();
+		if (Host->bAddToViewport && World && World->GetGameViewport())
+		{
+			Monitor->AddToViewport(UTDUIHostSettings::Get()->ZOrder + 50); // over the HUD and a cinematic, under menus
+		}
+	}
+	Monitor->Show(Stage, Seconds);
+	return true;
+}
+
+void UTDUIHostSubsystem::HideScanMonitor(const UObject* WorldContext)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	if (UTDScanMonitorWidget* Monitor = Host ? Cast<UTDScanMonitorWidget>(Host->ScanWidget) : nullptr)
+	{
+		Monitor->Hide();
+	}
 }
 
 bool UTDUIHostSubsystem::ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds)
@@ -861,6 +960,30 @@ namespace TDUIHost
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			UTDUIHostSubsystem::ShowTacticalDisplay(World, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 20.f);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIScan(TEXT("TD.UI.Scan"),
+		TEXT("TD.UI.Scan <stage 1..5> [seconds=0 until off] | TD.UI.Scan off: the Cinematic 03 / 05 scan monitor (dev, captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (Args.Num() == 0 || Args[0] == TEXT("off"))
+			{
+				UTDUIHostSubsystem::HideScanMonitor(World);
+				return;
+			}
+			UTDUIHostSubsystem::ShowScanMonitor(World, FCString::Atoi(*Args[0]), Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIFocus(TEXT("TD.UI.Focus"),
+		TEXT("TD.UI.Focus <opacity 0..1> [hideCombat 0|1] | TD.UI.Focus off: the 'Dev' focus hold on the flight HUD (as T1's entry)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (Args.Num() == 0 || Args[0] == TEXT("off"))
+			{
+				UTDUIHostSubsystem::PopHUDFocus(World, TEXT("Dev"));
+				return;
+			}
+			UTDUIHostSubsystem::PushHUDFocus(World, TEXT("Dev"), FCString::Atof(*Args[0]), Args.Num() > 1 && FCString::Atoi(*Args[1]) != 0);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIBark(TEXT("TD.UI.Bark"),

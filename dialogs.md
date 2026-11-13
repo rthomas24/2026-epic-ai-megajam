@@ -61,7 +61,7 @@ Ids marked **(exists)** are fired by the game today; the rest are **(new)**: the
 | `Bark_AmmoLow` / `Bark_AmmoOut` (new, T2) | Missile ammo at 25% / empty | flown pilot (Moss mostly) | Normal / High | "Running light on missiles." / "I'm dry!" | "Ammunition low." / "Out. Guns only." | "Not many left." / "That's the last of them." |
 | `Bark_WeaponHot` (new, T2) | Weapon overheats | flown pilot | Normal | "Guns are cooking!" | "Overheat. Cooling." | "Too hot. Give it a second." |
 | `Bark_BoostEmpty` (new, T1) | Boost runs out while held | flown pilot | Flavour | "Out of burn!" | "Boost depleted." | "That's all she's got." |
-| `Bark_Boundary` (new, T1) | Leaving the flight area | Command | Critical | - | - | - · Command: "Triad, you're leaving the area. Turn back." |
+| `Bark_Boundary` (new, T1) | Leaving the flight area | Command, or a wingman | Critical | "Wide of the zone. Bring it round." | "You're drifting out. Come about." | "Nothing out there for us. Swing back." · Command: "Triad, you're leaving the area. Turn back." |
 | `Bark_WaveCleared` (exists) | A wave ends | a pilot, rotating | High | "That's all of them. For now." | "Area clear. No contacts." | "All quiet. Nice work, everyone." |
 | `Bark_WaveIncoming` (new, T4) | Next wave warps in | Command / Kato | High | "Here they come again." | "New contacts. Many." | "Round two. Stay close." · Command: "Triad, more contacts inbound." |
 | `Bark_Breather` (new, T3) | 4 s into the gap between waves | a wingman | Flavour | "Anyone else enjoying this?" | "They are not behaving like raiders." | "Check your gauges while it's calm." |
@@ -116,7 +116,7 @@ Ids marked **(exists)** are fired by the game today; the rest are **(new)**: the
 |---|---|---|---|---|---|---|
 | `Bark_Dom_GeneratorHit` / `_GeneratorDown` (new, T4) | A field generator at half health / destroyed | a pilot | Normal / High | "It's cracking!" / "Generator's gone!" | "Generator failing." / "One down. {n} remain." | "Keep at it." / "That's another." |
 | `Bark_Dom_Turrets` (new, T4) | Turret fire first hits the flown ship | a wingman | High | "Turrets, watch the turrets!" | "Defensive fire. Stay low." | "They've got guns everywhere." |
-| `Bark_Dom_FieldDown` (new, T4) | All four generators destroyed | Kato | Critical | - | "The field is down. The bay is open." | - |
+| `Bark_Dom_FieldDown` (new, T4) | All four generators destroyed | Kato | Critical | - | "The shield is down. The bay is open." | - |
 | `Bark_Dom_Tractor` (new, T4) | The tractor assist takes hold | flown pilot | High | "Something's pulling us in." | "We are being guided. Controls limited." | "Easy. Let it take us." |
 | `Bark_Dom_Boarded` (new, T5) | First step in the hangar | radio | High | "Bring something back." | "We will hold outside." | "Careful in there." |
 | `Bark_Dom_CoreShield` / `_CoreOpen` (new, T5) | A conduit breaks / the heart is exposed | player's pilot | High | "Shield's dropping!" / "There's the heart!" | "Conduit down." / "Core exposed." | "One more like that." / "There it is." |

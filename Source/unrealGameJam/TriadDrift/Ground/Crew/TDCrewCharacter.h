@@ -67,6 +67,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsGuardBroken() const { return GuardBrokenLeft > 0.f; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsDead() const;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") int32 GetBossPhase() const { return BossPhase; }
+
+	/**
+	 * T2's boss bar: the living Warden in this world (the nearest to the player if several), its hull 0..1, its boss
+	 * phase (1 or 2) and its name. False when no Warden is alive.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew", meta = (WorldContext = "WorldContextObject"))
+	static bool GetActiveBoss(const UObject* WorldContextObject, float& OutHull01, int32& OutPhase, FText& OutName);
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsCharging() const { return ChargeTimeLeft > 0.f; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") float GetCooldownLeft(ETDCrewAttack Attack) const;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsPlaceholderVisible() const;

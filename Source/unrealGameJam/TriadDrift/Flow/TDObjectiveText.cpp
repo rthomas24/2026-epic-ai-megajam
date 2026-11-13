@@ -74,7 +74,7 @@ namespace TDObjectiveTextImpl
 				Out = Line(TEXT("Dominion_Reactor"), 0, LOCTEXT("Reactor", "FLY THE TRENCH · DESTROY THE REACTOR"));
 				return true;
 			case ETDDominionState::DockingOpen:
-				Out = Line(TEXT("Dominion_Dock"), 0, LOCTEXT("Dock", "THE FIELD IS DOWN · DOCK WITH THE DOMINION"));
+				Out = Line(TEXT("Dominion_Dock"), 0, LOCTEXT("Dock", "THE SHIELD IS DOWN · DOCK WITH THE DOMINION"));
 				return true;
 			case ETDDominionState::Breakup:
 			case ETDDominionState::Finished:

@@ -1,11 +1,11 @@
 {
   "asset": "SM_NullInterceptor",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullInterceptor\\SM_NullInterceptor.fbx",
-  "tris": 8948,
+  "tris": 8585,
   "size_cm": [
     660.0,
-    535.3,
-    248.0
+    632.9,
+    220.9
   ],
   "pivot": "root object origin (SM_NullInterceptor~exp)",
   "forward": "+X (authoring front +X rotated)",
@@ -15,20 +15,12 @@
   "material_params": [
     {
       "name": "M_NullInterceptor",
-      "textured": false,
-      "base_color": [
-        0.03,
-        0.03,
-        0.035
-      ],
-      "metallic": 0.8,
-      "roughness": 0.45,
-      "emission_color": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "emission_strength": 0.0
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
     }
   ],
   "textures": [],
@@ -38,12 +30,14 @@
   "collision_source": "auto convex hulls",
   "sockets": [
     "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Missile_0",
+    "SOCKET_Missile_1",
     "SOCKET_Muzzle_0",
-    "SOCKET_Muzzle_1",
-    "SOCKET_Muzzle_2",
-    "SOCKET_Muzzle_3"
+    "SOCKET_Muzzle_1"
   ],
-  "welded_verts": 7252,
+  "welded_verts": 7325,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,
@@ -66,46 +60,62 @@
     {
       "name": "Muzzle_0",
       "ue_cm": [
-        220,
-        -56,
-        -43
+        324,
+        -74,
+        -55
       ]
     },
     {
       "name": "Muzzle_1",
       "ue_cm": [
-        220,
-        56,
-        -43
+        324,
+        74,
+        -55
       ]
     },
     {
-      "name": "Muzzle_2",
+      "name": "Missile_0",
       "ue_cm": [
-        178,
-        -124,
-        -43
+        40,
+        -150,
+        -95
       ]
     },
     {
-      "name": "Muzzle_3",
+      "name": "Missile_1",
       "ue_cm": [
-        142,
-        124,
-        -43
+        40,
+        150,
+        -95
       ]
     },
     {
       "name": "Engine_0",
       "ue_cm": [
-        -308,
+        -332,
+        -80,
+        -13
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -332,
+        80,
+        -13
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -332,
         0,
-        26
+        -15
       ]
     }
   ],
-  "source": "ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r1",
-  "texture_dir": "ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r1",
+  "source": "ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r2",
+  "texture_dir": "ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r2",
   "heat_mask": null,
   "max_texture_size": 1024
 }

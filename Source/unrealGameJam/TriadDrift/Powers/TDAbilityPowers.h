@@ -70,6 +70,11 @@ private:
 	void ReleaseAll();
 
 	TSet<TWeakObjectPtr<ATDSpacecraft>> Captured;
+public:
+	/** Ships caught over this well's life (escapes don't lower it): the third says Bark_Gravity_Caught once. */
+	int32 GetCaughtTotal() const { return CaughtTotal; }
+private:
+	int32 CaughtTotal = 0;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTDAbilityFX> FX;
@@ -120,6 +125,7 @@ public:
 
 protected:
 	virtual bool OnActivate() override;
+	virtual FName GetActivateBark(uint8& OutPriority) const override { OutPriority = static_cast<uint8>(ETDBarkPriority::Normal); return TDBarkIdsT2::GravityFire; }
 
 private:
 	TWeakObjectPtr<ATDGravityWell> LastWell;
@@ -144,6 +150,7 @@ public:
 
 protected:
 	virtual bool OnActivate() override;
+	virtual FName GetActivateBark(uint8& OutPriority) const override { OutPriority = static_cast<uint8>(ETDBarkPriority::Normal); return TDBarkIdsT2::CloakOn; }
 	virtual void OnEnd(bool bInterrupted) override;
 
 private:
@@ -189,6 +196,12 @@ public:
 
 protected:
 	virtual bool OnActivate() override;
+	/** 3+ stunned: "They're dead in space. Go." (High) instead of "Pulse out." (dialogs.md Bark_EMP_Hit). */
+	virtual FName GetActivateBark(uint8& OutPriority) const override
+	{
+		OutPriority = static_cast<uint8>(LastAffected >= 3 ? ETDBarkPriority::High : ETDBarkPriority::Normal);
+		return LastAffected >= 3 ? TDBarkIdsT2::EMPHit : TDBarkIdsT2::EMPFire;
+	}
 
 private:
 	int32 LastAffected = 0;

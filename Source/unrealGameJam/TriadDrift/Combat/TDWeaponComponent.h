@@ -50,6 +50,10 @@ struct UNREALGAMEJAM_API FTDWeaponSlotState
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	int32 Ammo = 0;
 
+	/** Bark_AmmoLow / Bark_AmmoOut asked; re-armed only when the rack is back above half (regen trickle doesn't repeat them). */
+	bool bSaidAmmoLow = false;
+	bool bSaidAmmoOut = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	float AmmoRegenProgress = 0.f;
 
@@ -169,6 +173,9 @@ public:
 	/** World transforms of the muzzles (sockets "Muzzle_N" on the first static mesh with them, else MuzzleOffsets). */
 	void GetMuzzleTransforms(TArray<FTransform>& Out) const;
 
+	/** The muzzles a slot fires from: the secondary uses "<SecondaryMuzzlePrefix>N" sockets when they exist, else as above. */
+	void GetMuzzleTransforms(TArray<FTransform>& Out, ETDWeaponSlot Slot) const;
+
 	/** Fires one shot (or one salvo) immediately, ignoring the trigger but respecting resources. Returns true if it fired. AI / tests. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Weapon")
 	bool FireOnce(ETDWeaponSlot Slot);
@@ -183,6 +190,17 @@ public:
 	/** Local-space muzzle offsets used when the owner has no "Muzzle_N" sockets. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Weapon")
 	TArray<FVector> MuzzleOffsets;
+
+	/**
+	 * The secondary slot (missiles) fires from "<prefix>0".."<prefix>7" sockets on the first static mesh that has
+	 * "<prefix>0"; ships without them fire secondaries from the Muzzle_N sockets / MuzzleOffsets as before. None = off.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Weapon")
+	FName SecondaryMuzzlePrefix = TEXT("Missile_");
+
+	/** Cache of the secondary socket names for SecondaryMuzzlePrefix. */
+	mutable TArray<FName> SecondarySocketNames;
+	mutable FName SecondarySocketPrefixBuilt;
 
 	/**
 	 * Presentation per slot. Left empty, EquipWeapon loads /Game/TriadDrift/Presentation/DA_<WeaponId>_FX if

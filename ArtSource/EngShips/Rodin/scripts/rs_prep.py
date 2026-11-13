@@ -22,7 +22,7 @@ SOCKETS = {
     "Rift": {
         "Muzzle_0": (252, -37, -60), "Muzzle_1": (252, 37, -60),
         "Engine": (-252, 0, -34), "Engine_0": (-252, -64, -34), "Engine_1": (-252, 64, -34),
-        "Portal": (-170, 0, 55), "Cockpit": (60, 0, 0),
+        "Portal": (-160, 0, 44), "Cockpit": (60, 0, 0),     # Portal = ring centre, +X along the ring axis
         "WingTip_L": (238, -176, -109), "WingTip_R": (238, 176, -109),
     },
     "Lancer": {
@@ -42,10 +42,30 @@ SOCKETS = {
         "Muzzle_0": (268, -57, -38), "Muzzle_1": (268, 57, -38),
         "Engine_0": (-277, -63, -14), "Engine_1": (-277, 63, -14), "Engine_2": (-275, 0, -14),
     },
-    "NullInterceptor": {
-        "Muzzle_0": (220, -56, -43), "Muzzle_1": (220, 56, -43),
-        "Muzzle_2": (178, -124, -43), "Muzzle_3": (142, 124, -43),
-        "Engine_0": (-308, 0, 26),
+    "NullInterceptor": {       # mesh_r2 (textured)
+        "Muzzle_0": (324, -74, -55), "Muzzle_1": (324, 74, -55),      # chin guns, 6 cm clear of the barrel tips (x 318)
+        # no missile pods on this mesh: the missiles hang under the wing roots, 30 cm below the skin, with a clear
+        # path forward (inboard of the forward-swept wing tips)
+        "Missile_0": (40, -150, -95), "Missile_1": (40, 150, -95),
+        "Engine_0": (-332, -80, -13), "Engine_1": (-332, 80, -13), "Engine_2": (-332, 0, -15),
+    },
+    "NullBomber": {
+        "Muzzle_0": (-100, 0, -105),
+        "Engine_0": (-563, -165, -10), "Engine_1": (-563, 165, -10), "Engine_2": (-592, 0, 15),
+    },
+    "NullCarrier": {
+        "Engine_0": (-1514, -805, 50), "Engine_1": (-1514, 805, 50),
+        "Engine_2": (-370, -1040, -290), "Engine_3": (-370, 1040, -290),
+        # Mounts read by ATDEnemyShip::MountPart (socket +X = out of the hull; axes in SOCKET_AXES).
+        # Bays are 300 deep (X) x 600 (Y) x 400 (Z) boxes with the pivot at the centre: 150 + 10 off the skin.
+        "Bay_0": (940, -430, -230), "Bay_1": (940, 430, -230),          # over the forward hangar openings
+        "Bay_2": (0, 0, 61),                                             # dorsal, on the flat deck ahead of the tower
+        # Turrets are 112 tall with the pivot at the centre: 56 above the skin.
+        "Turret_0": (1100, -170, -79), "Turret_1": (1100, 170, -79),    # fore deck
+        "Turret_2": (-1300, -805, 202), "Turret_3": (-1300, 805, 202),  # on the rear outrigger pods
+    },
+    "NullTurret": {
+        "Muzzle_0": (110, -11, 9), "Muzzle_1": (108, 23, 12),
     },
     "NullGunship": {
         "Muzzle_0": (748, -280, 295), "Muzzle_1": (748, -210, 300),
@@ -54,6 +74,46 @@ SOCKETS = {
         "Engine_2": (-740, 75, 421), "Engine_3": (-740, 255, 421),
     },
 }
+# socket -> (X axis, Y axis) in Unreal space; sockets not listed keep the mesh axes (+X forward)
+SOCKET_AXES = {
+    "NullCarrier": {
+        "Bay_0": ((0, -1, 0), (1, 0, 0)), "Bay_1": ((0, 1, 0), (-1, 0, 0)),
+        "Bay_2": ((0, 0, 1), (1, 0, 0)),          # opens upward, its 600 side along the ship
+        "Turret_0": ((0, -1, 0), (1, 0, 0)), "Turret_1": ((0, 1, 0), (-1, 0, 0)),
+        "Turret_2": ((0, -1, 0), (1, 0, 0)), "Turret_3": ((0, 1, 0), (-1, 0, 0)),
+    },
+}
+
+
+def carrier_collision(ob, ex):
+    """Simple collision for the carrier: convex hulls that follow the hull (body in five slices along X, the
+    tower, the four outrigger pods with their struts), as UCX_ children the exporter picks up."""
+    from mathutils import Vector
+    pts = [v.co.copy() for v in ob.data.vertices]        # metres, nose +X, Blender Y = -Unreal Y
+
+    def cm(v):
+        return v.x * 100.0, v.y * 100.0, v.z * 100.0
+
+    groups = {}
+    for v in pts:
+        x, y, z = cm(v)
+        if abs(y) > 480 and x < 1500:
+            key = ("pod", "aft" if (x < -700 and abs(y) < 930) else "fore", "L" if y > 0 else "R")
+        elif z > 200 and -1250 < x < -400:
+            key = ("tower",)
+        else:
+            key = ("body", min(4, max(0, int((x + 2300) // 920))))
+        groups.setdefault(key, []).append(v)
+    made = []
+    for i, (key, vs) in enumerate(sorted(groups.items(), key=lambda kv: str(kv[0]))):
+        if len(vs) < 8:
+            continue
+        hull = ex["_hull_object"]("UCX_%s_%02d" % (ob.name, i), vs, bpy.context.scene.collection, max_points=40)
+        hull.parent = ob
+        made.append((hull.name, "_".join(str(k) for k in key), len(hull.data.vertices)))
+    return made
+
+
 MARK_COLORS = {"Muzzle": (0.0, 1.0, 0.1), "Engine": (0.0, 0.4, 1.0)}
 
 
@@ -186,6 +246,10 @@ def main():
               "assembly": {k: asm.get(k) for k in list(asm)[:6]}}
     if not has("--no-export"):
         ex = runpy.run_path(os.path.join(SKILLS, "blender-unreal-export", "scripts", "export_for_unreal.py"))
+        if ship == "NullCarrier":
+            result["collision_hulls"] = carrier_collision(ob, ex)
+        import rs_extras                                   # portal, ring band and nozzle glow cores (squad ships)
+        result["extras"] = rs_extras.add(ship, ob)
         man_path = os.path.join(out_dir, asset + ".manifest.json")
         for stale in (man_path, os.path.join(out_dir, asset + ".fbx")):
             if os.path.isfile(stale):
@@ -200,8 +264,11 @@ def main():
             with open(man_path, encoding="utf-8") as fh:
                 man = json.load(fh)
             result["export"] = {k: man.get(k) for k in ("tris", "size_cm", "collision", "welded_verts", "errors", "warnings")}
-            man["ue_sockets"] = [{"name": n, "ue_cm": list(p)} for n, p in SOCKETS[ship].items()]
-            man["source"] = os.path.relpath(s["src"], C.REPO).replace("\\", "/")
+            axes = SOCKET_AXES.get(ship, {})
+            man["ue_sockets"] = [dict({"name": n, "ue_cm": list(p)},
+                                      **({"ue_x": list(axes[n][0]), "ue_y": list(axes[n][1])} if n in axes else {}))
+                                 for n, p in SOCKETS[ship].items()]
+            man["source"] = os.path.relpath(s.get("rel", s["src"]), C.REPO).replace("\\", "/")
             man["texture_dir"] = man["source"]
             man["heat_mask"] = os.path.relpath(s["heat"], C.REPO).replace("\\", "/") if s["heat"] else None
             man["max_texture_size"] = s["tex"]

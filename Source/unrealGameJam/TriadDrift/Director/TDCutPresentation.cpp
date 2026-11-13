@@ -107,10 +107,17 @@ namespace TDCutPresentationPrivate
 				C.A = S.NameCardAlpha;
 				// Left of the ship at reticle height: clear of T2's ship zone (790-1130 x 612-800 at 1080p), the tutorial card
 				// (830+) and the squad strip (Lead, after a capture with each ship: the Bastion is the widest).
-				const FVector2D At = UTDCutPresentation::NameCardCentre(Size);
+				FVector2D At = UTDCutPresentation::NameCardCentre(Size);
+				// Issue #49 (same check as the intro card): the centred lines never leave the title-safe frame (5%), so a
+				// long strike card or trait line on a narrow window is pulled in instead of clipped.
+				const float NameW = MeasureText(S.NameCardText, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 30)).X;
+				const float SubW = S.NameCardSubText.IsEmpty() ? 0.f : MeasureText(S.NameCardSubText, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 16)).X;
+				const float Half = FMath::Max3(NameW, SubW, 180.f) * 0.5f;
+				At.X = FMath::Clamp(At.X, Size.X * 0.05f + Half, FMath::Max(Size.X * 0.05f + Half, Size.X * 0.95f - Half));
 				const float Y = At.Y;
 				Text(S.NameCardText, 30, FVector2D(At.X, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
-				Box(FVector2D(At.X - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
+				const float UnderW = FMath::Max(180.f, NameW);
+				Box(FVector2D(At.X - UnderW * 0.5f, Y + 18.f), FVector2D(UnderW, 5.f), C); // squad-colour underline, as wide as the name
 				if (!S.NameCardSubText.IsEmpty())
 				{
 					Text(S.NameCardSubText, 16, FVector2D(At.X, Y + 40.f), C, true); // "HEAVY · STEADY · GOOD-HUMOURED"
@@ -418,9 +425,11 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		FTDDirectorSounds::Play(OwnerWorld.Get(), ETDDirectorSound::SlateClap); // Nick's widget draws the slate; the clap is ours
 		return;
 	}
-	if (IsSuppressedByIntro())
+	// The intro owns the screen; T1's atmosphere entry (or any HUD focus hold) keeps combat presentation away (T2's
+	// UTDUIHostSubsystem::IsCombatPresentationHeld). The slate waits and comes up when either ends. "CUT!" never waits.
+	if (IsSuppressedByIntro() || UTDUIHostSubsystem::IsCombatPresentationHeld(OwnerWorld.Get()))
 	{
-		PendingSlateScene = SceneId; // shown when the intro ends
+		PendingSlateScene = SceneId; // shown when the intro or the hold ends
 		PendingSlateTake = TakeNumber;
 		return;
 	}
@@ -467,7 +476,7 @@ void UTDCutPresentation::HandleShotStarted(float RealSeconds)
 
 void UTDCutPresentation::Tick(double RealNow)
 {
-	if (!PendingSlateScene.IsNone() && !IsSuppressedByIntro())
+	if (!PendingSlateScene.IsNone() && !IsSuppressedByIntro() && !UTDUIHostSubsystem::IsCombatPresentationHeld(OwnerWorld.Get()))
 	{
 		const FName Scene = PendingSlateScene;
 		PendingSlateScene = NAME_None;

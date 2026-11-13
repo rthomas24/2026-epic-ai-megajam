@@ -1,0 +1,60 @@
+{
+ "meshes": [
+  {
+   "asset": "SM_Outpost_Cabin",
+   "ok": true,
+   "min_cm": [
+    -400.0,
+    -385.2,
+    -150.0
+   ],
+   "max_cm": [
+    625.9,
+    385.2,
+    674.0
+   ],
+   "size_cm": [
+    1025.9,
+    770.4,
+    824.0
+   ],
+   "tris": 8219,
+   "hulls": 11,
+   "slots": [
+    "M_Outpost_Cabin"
+   ],
+   "material": "MI_Outpost_Cabin_Verdance",
+   "sockets": [],
+   "notes": []
+  },
+  {
+   "asset": "SM_Outpost_Console",
+   "ok": true,
+   "min_cm": [
+    -43.5,
+    -130.0,
+    -0.0
+   ],
+   "max_cm": [
+    43.5,
+    130.0,
+    150.0
+   ],
+   "size_cm": [
+    87.0,
+    260.0,
+    150.0
+   ],
+   "tris": 6628,
+   "hulls": 2,
+   "slots": [
+    "M_Outpost_Console"
+   ],
+   "material": "MI_Outpost_Console_Verdance",
+   "sockets": [],
+   "notes": []
+  }
+ ],
+ "uasset_bytes": 16143777,
+ "notes": []
+}

@@ -11,6 +11,7 @@
 
 #include "TriadDrift/Flight/TDFlightSim.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flight/Tests/TDFlightTestHelpers.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
@@ -504,8 +505,12 @@ bool FTDReviewCamera::RunTest(const FString& Parameters)
 	// Pitch lead is a fraction of the turn lead: a pull-up must not drop the ship into the HUD band.
 	const FTDChaseCameraTuning& CT = Ship->GetCameraTuning();
 	const float LeadPitch = FMath::Abs(Ship->GetChaseCamera()->GetRelativeRotation().Pitch);
-	TestTrue(FString::Printf(TEXT("loop: pitch lead %.2f deg stays within %.2f (scale %.2f of %.0f)"), LeadPitch, CT.LookAheadAngle * CT.LookAheadPitchScale, CT.LookAheadPitchScale, CT.LookAheadAngle),
-		LeadPitch <= CT.LookAheadAngle * CT.LookAheadPitchScale + 0.25f && CT.LookAheadPitchScale < 0.5f);
+	// Audition (the player default since Nicholas's pick, issue #23) adds its own capped turn pitch and light shake on top.
+	const UTDFlightFeedbackComponent* FB = Ship->GetFlightFeedback();
+	const float AuditionPitch = (UTDFlightFeedbackComponent::CamProfile == UTDFlightFeedbackComponent::ECamProfile::Audition && FB)
+		? FB->Tuning.AuditionTurnPitch + FB->Tuning.AuditionShakeBoost : 0.f;
+	TestTrue(FString::Printf(TEXT("loop: pitch lead %.2f deg stays within %.2f (scale %.2f of %.0f) + Audition tilt %.2f"), LeadPitch, CT.LookAheadAngle * CT.LookAheadPitchScale, CT.LookAheadPitchScale, CT.LookAheadAngle, AuditionPitch),
+		LeadPitch <= CT.LookAheadAngle * CT.LookAheadPitchScale + AuditionPitch + 0.25f && CT.LookAheadPitchScale < 0.5f);
 
 	// Teleport snaps the camera too.
 	Ship->TeleportSpacecraft(FVector(500000.f, 0.f, 0.f), FRotator::ZeroRotator, true);
