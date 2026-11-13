@@ -11,6 +11,10 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/PostProcessComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Engine/World.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSkySunDirection, "TriadDrift.World.Sky.SunLightShinesFromTheBakedSun", TD_TEST_FLAGS)
 bool FTDSkySunDirection::RunTest(const FString&)
@@ -65,6 +69,36 @@ bool FTDSkySphereNeverInTheWay::RunTest(const FString&)
 	Presentation->Destroy();
 	Sky->RefreshYield();
 	TestFalse(TEXT("back when it is gone"), Sky->IsYielding());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSkyPlanetSunDirection, "TriadDrift.World.Sky.PlanetNightSideFacesAwayFromTheSun", TD_TEST_FLAGS)
+bool FTDSkyPlanetSunDirection::RunTest(const FString&)
+{
+	const FTDGalaxyLayoutData Layout = ATDGalaxyLayout::MakeDefaultLayout();
+	if (Layout.Planets.Num() == 0 || Layout.Planets[0].Look.Surface.IsNull()) { AddInfo(TEXT("no planet look")); return true; }
+	FTDTestWorld W;
+	ATDPlaceholderSky* Sky = W.Spawn<ATDPlaceholderSky>(FVector::ZeroVector, FRotator::ZeroRotator);
+	Sky->ApplyStyle(ETDPlaceholderSkyStyle::Space);
+	for (const FTDPlanetSpec& Spec : Layout.Planets)
+	{
+		ATDPlanetAtmosphere* P = W.GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(ATDPlanetAtmosphere::StaticClass(), FTransform(Spec.Location));
+		P->Look = Spec.Look;
+		P->Configure(Spec.Destination, Spec.ReturnPoint, Spec.PlanetRadius, Spec.AtmosphereRadius, Spec.Color);
+		P->FinishSpawning(FTransform(Spec.Location));
+		W.Advance(0.1f);
+		UStaticMeshComponent* Surface = nullptr;
+		TInlineComponentArray<UStaticMeshComponent*> Meshes(P);
+		for (UStaticMeshComponent* M : Meshes) { if (M->GetName() == TEXT("SurfaceLook")) { Surface = M; } }
+		if (!Surface || !Surface->GetStaticMesh()) { AddInfo(TEXT("planet art not in this checkout")); continue; }
+		UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(Surface->GetMaterial(0));
+		if (!TestNotNull(*FString::Printf(TEXT("%s surface has a dynamic instance"), *P->GetName()), MID)) { continue; }
+		FLinearColor Dir;
+		TestTrue(*FString::Printf(TEXT("%s material has a SunDirection parameter"), *P->GetName()), MID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("SunDirection")), Dir));
+		const FVector ToSun = -Sky->Sun->GetForwardVector();
+		TestTrue(*FString::Printf(TEXT("%s SunDirection %s points at the sun %s"), *P->GetName(), *FVector(Dir).ToCompactString(), *ToSun.ToCompactString()),
+			FVector(Dir).GetSafeNormal().Equals(ToSun, 0.01f));
+	}
 	return true;
 }
 
