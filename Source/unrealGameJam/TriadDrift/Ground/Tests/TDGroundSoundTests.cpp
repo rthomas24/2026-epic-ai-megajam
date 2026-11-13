@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Sound/SoundBase.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 
 namespace TDGroundSoundTest
 {
@@ -106,6 +107,21 @@ bool FTDCrewSounds::RunTest(const FString& Parameters)
 	UTDStatics::ApplyTDDamage(Drone, 100000.f, ETDDamageKind::Melee, P, P);
 	TestEqual(TEXT("and stops when it dies"), Count(Drone->GetSoundEvents(), TEXT("DroneHumStop")), 1);
 	TestNull(TEXT("no hum left playing"), Drone->GetDroneHum());
+	return true;
+}
+
+// The director's objective-complete sting (DA_UI_Style::ObjectiveComplete) plays once per objective, never on a repeat.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDObjectiveSting, "TriadDrift.Ground.Sound.ObjectiveCompleteStingOncePerObjective", TD_TEST_FLAGS)
+bool FTDObjectiveSting::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("game instance"), GI)) { return false; }
+	const int32 Before = GI->GetObjectiveCompleteSounds();
+	GI->CompleteObjective(TEXT("Obj_SoundTest"), ETDAbilityId::None, ETDShipId::Rift);
+	TestEqual(TEXT("a completed objective stings"), GI->GetObjectiveCompleteSounds(), Before + 1);
+	GI->CompleteObjective(TEXT("Obj_SoundTest"), ETDAbilityId::None, ETDShipId::Rift);
+	TestEqual(TEXT("not again for the same objective"), GI->GetObjectiveCompleteSounds(), Before + 1);
 	return true;
 }
 

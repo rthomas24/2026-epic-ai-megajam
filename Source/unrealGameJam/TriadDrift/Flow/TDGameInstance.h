@@ -59,6 +59,8 @@ public:
 	virtual void SetPhase(ETDGamePhase NewPhase) override;
 	virtual void ReportWaveCleared(int32 WaveNumber) override;
 	virtual void CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, ETDShipId ForShip) override;
+	/** How many objective-complete stings have played (one per objective, never on a repeat): tests. */
+	int32 GetObjectiveCompleteSounds() const { return ObjectiveCompleteSounds; }
 	virtual void SetDominionState(bool bRevealed, bool bDefensesDown) override;
 	virtual void ReportPlayerDefeated() override;
 	virtual void AddStat(FName StatName, int32 Amount) override;
@@ -306,4 +308,6 @@ private:
 	FDelegateHandle PostLoadMapHandle;
 
 	TSharedPtr<FTDDebugMenu> DebugMenu;
+private:
+	int32 ObjectiveCompleteSounds = 0;
 };
