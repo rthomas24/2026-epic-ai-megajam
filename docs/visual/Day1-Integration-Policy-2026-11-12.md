@@ -6,8 +6,7 @@ America/New_York (UTC-05:00). It expires automatically at 2026-11-13 00:00 EST.
 This dated clarification preserves AGENTS.md, CLAIMS.md and features.md ownership
 and safety rules; it is not a permanent replacement for Ryan's workflow.
 
-- Nick's workers remain in their own isolated nick/* branches/worktrees and push
-  only those branches. Only Lead may integrate Nick-owned work into main.
+- Nick's workers remain in their own isolated nick/* branches/worktrees and commit locally only after Lead preflight. Under AGENTS.md section 6.9, Lead alone publishes branches and integrates eligible Nick-owned work into main.
 - On this date only, Lead may integrate completed, verified model/asset work and
   push main without requesting a separate approval for each eligible integration.
 - Fetch, inspect incoming changes and active claims, verify ownership, and review

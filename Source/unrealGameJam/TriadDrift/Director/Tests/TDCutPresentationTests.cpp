@@ -135,6 +135,27 @@ bool FTDCutPresLayer::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlateFitsAndClears, "TriadDrift.Director.CutPresentation.SlateFitsItsTextAndClearsBeforeTheWave", TD_TEST_FLAGS)
+bool FTDCutPresSlateFitsAndClears::RunTest(const FString& Parameters)
+{
+	// Lead item 4: the long numbered slate fits its box at 1280x720 and 1920x1080, and it is gone by
+	// the time a wave's first enemies arrive (warp-in 1.5 s), so it never covers incoming fire.
+	for (const FVector2D Size : { FVector2D(1280.f, 720.f), FVector2D(1920.f, 1080.f) })
+	{
+		const float LongText = 640.f; // about "SCENE 6 · CINDER · OUTPOST · TAKE 1" at 28 pt
+		const FBox2D R = UTDCutPresentation::SlateRect(Size, 0.f, LongText);
+		TestTrue(FString::Printf(TEXT("box wider than the text at %.0fx%.0f"), Size.X, Size.Y), R.GetSize().X >= LongText + 40.f);
+		TestTrue(FString::Printf(TEXT("still on screen at %.0fx%.0f"), Size.X, Size.Y), R.Min.X >= 0.f && R.Max.X <= Size.X);
+	}
+	FFixture F;
+	F.Bus()->BroadcastTakeStarted(TEXT("Wave3"), 1);
+	F.W.Tick();
+	TestTrue(TEXT("slate up"), F.S().SlateAlpha > 0.f);
+	F.W.Advance(1.6f);
+	TestEqual(TEXT("gone before the wave's enemies arrive (1.5 s warp-in + a beat)"), F.S().SlateAlpha, 0.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresSlowMo, "TriadDrift.Director.CutPresentation.RealTimeUnderSlowMoAndQuickCut", TD_TEST_FLAGS)
 bool FTDCutPresSlowMo::RunTest(const FString& Parameters)
 {

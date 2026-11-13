@@ -636,8 +636,12 @@ void ATDPlanetCourse::BuildVerdance()
 	{
 		Block(EShape::Cube, L + FVector(0.f, 0.f, 70.f), FVector(500.f, 110.f, 140.f), Trunk, 0.f, FRotator(0.f, 35.f, 0.f));
 	}
-	Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
+	ATDEncounterVolume* AmbushFight = Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
 		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight: one shooter (playtest: 4 crew killed a non-blocker in ~4 s)
+	// Director's mercy (agent journey: 16 takes lost here): take 3 one grunt fewer, take 5 the trooper alone.
+	FTDRetakeMercyTier AmbushMercy3; AmbushMercy3.FromTake = 3; AmbushMercy3.DropCrew = 1;
+	FTDRetakeMercyTier AmbushMercy5; AmbushMercy5.FromTake = 5; AmbushMercy5.DropCrew = 2;
+	AmbushFight->MercyTiers = { AmbushMercy3, AmbushMercy5 };
 
 	// The wreck: a broken hull nose-down in the ground, glowing breaks, debris to fight around.
 	// Collidable pieces turn in yaw only (a tilted box left an overhang the pilot got wedged under in playtest);
@@ -658,9 +662,13 @@ void ATDPlanetCourse::BuildVerdance()
 
 	// Explicit spawn points clear of the hull (a ring point landed inside it: an unreachable, unkillable grunt).
 	ATDEncounterVolume* SiteFight = Encounter(Wreck, 1, WreckSite + FVector(0.f, 0.f, 200.f), FVector(2600.f, 2600.f, 700.f),
-		{ ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy, ETDCrewType::Grunt }, false, 1000.f,
-		{ FVector(1300.f, 200.f, 0.f), FVector(-200.f, -1300.f, 0.f), FVector(1100.f, 1100.f, 0.f), FVector(-1500.f, -300.f, 0.f) });
+		{ ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy }, false, 1000.f, // take-1 tuning (journey run 2): 3 crew, about 18 dps standing still; the 4th grunt made it about 25
+		{ FVector(1300.f, 200.f, 0.f), FVector(-200.f, -1300.f, 0.f), FVector(1100.f, 1100.f, 0.f) });
 	StepEncounters.Add({ Wreck, 1, SiteFight });
+	// Director's mercy (agent journey: 15 takes lost here): from take 3 the heavy sits it out, from take 5 one grunt.
+	FTDRetakeMercyTier SiteMercy3; SiteMercy3.FromTake = 3; SiteMercy3.DropCrew = 1;
+	FTDRetakeMercyTier SiteMercy5; SiteMercy5.FromTake = 5; SiteMercy5.DropCrew = 2;
+	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
 
 	// Two waves drop in on the extraction (spawned high: they fall in).
 	ATDEncounterVolume* WaveA = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1100.f); // (machine playtest: 3+3 during a 4 s hold killed the pilot 20 times)
@@ -679,6 +687,7 @@ void ATDPlanetCourse::BuildVerdance()
 	Ship->FinishSpawning(Ship->GetActorTransform());
 	Ship->Box->SetBoxExtent(FVector(1400.f, 1400.f, 400.f));
 
+	Checkpoint(Wreck, 1, FVector(8300.f, 5800.f, 0.f), 30.f); // dying in the site fight: back at its edge, not at the pad (outside its box)
 	Checkpoint(Wreck, 2, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // dying in the extraction: back at the wreck
 	FinishObjective(Wreck,
 		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE WRECK"), LOCTEXT("W1", "CLEAR THE WRECK SITE"),
@@ -1050,8 +1059,11 @@ void ATDPlanetCourse::BuildCinder()
 		Charges->WatchInteractable(Site);
 	}
 	ATDEncounterVolume* Defence = Encounter(Jammer, INDEX_NONE, Tower + FVector(0.f, 0.f, 200.f), FVector(2000.f, 2000.f, 600.f),
-		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Drone }, false, 900.f); // (machine playtest: 5 on a 15 m ring spawned on top of the retake point)
+		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 900.f); // take 1 about 25 dps standing still like every other room (the drone made it about 29); (machine playtest: 5 on a 15 m ring spawned on top of the retake point)
 	StepEncounters.Add({ Jammer, 1, Defence });
+	FTDRetakeMercyTier DefenceMercy3; DefenceMercy3.FromTake = 3; DefenceMercy3.DropCrew = 1;
+	FTDRetakeMercyTier DefenceMercy5; DefenceMercy5.FromTake = 5; DefenceMercy5.DropCrew = 2;
+	Defence->MercyTiers = { DefenceMercy3, DefenceMercy5 };
 
 	// The run: back along the lake's south shore (solid ground), debris falling, out of the tower's reach.
 	const FVector Exit(LakeX0 - 600.f, LakeY - 3400.f, 0.f);

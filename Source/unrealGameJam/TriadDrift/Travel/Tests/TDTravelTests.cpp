@@ -705,7 +705,44 @@ bool FTDTravelHandsOffArrival::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAssistStops, "TriadDrift.Travel.Landing.AssistStopsOnReleaseRetakeAndBoost", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelShortHoldOnArrival, "TriadDrift.Travel.Landing.ShortHoldWithThrottleOnStillLands", TD_TEST_FLAGS)
+bool FTDTravelShortHoldOnArrival::RunTest(const FString& Parameters)
+{
+	// T5's first-time-player journey: the prompt shows on arrival, the pilot holds F for 2.5 s with the throttle
+	// still on, then lets go. The assist must carry the ship to the pad, not leave it sailing past.
+	FTDTestWorld W;
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(W.GetWorld(), TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	if (!TestNotNull(TEXT("rig"), Rig) || !Rig->GetPlayerPad()) { return false; }
+	const FTransform Start = Rig->GetDescentStart();
+	ATDShip* Ship = TDTravelTest::SpawnShip(W, Start.GetLocation(), Start.Rotator());
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UTDLandingComponent* Land = Ship->GetLanding();
+	FTDTestWorld::InjectKey(PC, EKeys::W, true); // throttle left on
+	bool bPrompt = false;
+	for (int32 i = 0; i < 60 * 25 && !bPrompt; ++i)
+	{
+		W.Tick();
+		bPrompt = !Land->GetLandPrompt().IsEmpty();
+	}
+	if (!TestTrue(TEXT("prompt on arrival"), bPrompt)) { return false; }
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(2.5f);
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	int32 Frames = 0;
+	for (; Frames < 60 * 25 && !Land->IsLanded(); ++Frames)
+	{
+		W.Tick();
+	}
+	FTDTestWorld::InjectKey(PC, EKeys::W, false);
+	AddInfo(FString::Printf(TEXT("landed %.1f s after letting go of F"), Frames / 60.f));
+	TestTrue(TEXT("a 2.5 s hold with the throttle on lands on the pad"), Land->IsLanded() && Land->GetPad() == Rig->GetPlayerPad());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelAssistStops, "TriadDrift.Travel.Landing.AssistLatchesAndStopsOnTapRetakeSwitchDeath", TD_TEST_FLAGS)
 bool FTDTravelAssistStops::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
@@ -721,15 +758,30 @@ bool FTDTravelAssistStops::RunTest(const FString& Parameters)
 	UTDShipMovementComponent* Move = Ship->GetShipMovement();
 	const FName Assist(TEXT("LandingAssist"));
 
-	// Release F: the assist ends and the override is gone.
+	// Release F: the assist keeps flying (T5's arrival trap); its prompt says how to take control.
 	FTDTestWorld::InjectKey(PC, EKeys::F, true);
 	W.Advance(0.7f);
 	TestTrue(TEXT("hold F: assisting"), Land->IsApproachAssisting() && Move->HasSpeedOverrideFor(Assist));
 	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Advance(0.3f);
+	TestTrue(TEXT("release F: the assist carries on"), Land->IsApproachAssisting() && Move->HasSpeedOverrideFor(Assist));
+	TestTrue(TEXT("assist prompt names the way out"), Land->GetLandPrompt().ToString().Contains(TEXT("TAP F")));
+	// Tap F: the pilot takes control back, and that tap doesn't start a new assist.
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
 	W.Tick();
-	TestFalse(TEXT("release F: assist off"), Land->IsApproachAssisting());
-	TestFalse(TEXT("release F: override cleared"), Move->HasSpeedOverrideFor(Assist));
-	TestFalse(TEXT("release F: still flying"), Land->IsBusy());
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Advance(0.8f);
+	TestFalse(TEXT("tap F: assist off"), Land->IsApproachAssisting());
+	TestFalse(TEXT("tap F: override cleared"), Move->HasSpeedOverrideFor(Assist));
+	TestFalse(TEXT("tap F: still flying"), Land->IsBusy());
+	// A hold that was spent cancelling never re-engages while still held.
+	TestTrue(TEXT("assist re-engages on demand"), Land->StartApproachAssist());
+	W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::F, true);
+	W.Advance(1.5f);
+	TestFalse(TEXT("held cancel press: stays off"), Land->IsApproachAssisting());
+	FTDTestWorld::InjectKey(PC, EKeys::F, false);
+	W.Tick();
 
 	// Retake mid-approach: AbortToFlying ends it, and it doesn't come back on the next tick.
 	TestTrue(TEXT("assist restarts"), Land->StartApproachAssist());

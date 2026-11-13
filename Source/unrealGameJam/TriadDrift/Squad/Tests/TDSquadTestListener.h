@@ -58,6 +58,13 @@ public:
 	void OnTeleported(AActor* Spacecraft, FVector From, FVector To) { Teleports.FindOrAdd(Spacecraft)++; }
 	TMap<TObjectPtr<AActor>, int32> Teleports;
 
+	/** Kills by the squad, split by who flew the killer at that moment (set SquadForKills). */
+	UFUNCTION()
+	void OnKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
+	TWeakObjectPtr<class ATDSquadManager> SquadForKills;
+	int32 PlayerKills = 0;
+	int32 WingKills = 0;
+
 	TArray<TPair<FName, FName>> Barks;
 	int32 CountBarks(FName Id) const { int32 N = 0; for (const TPair<FName, FName>& B : Barks) { N += B.Key == Id ? 1 : 0; } return N; }
 

@@ -76,7 +76,12 @@ Rule decided by the Lead on Nov 12, replacing 30 m / 40% of space cruise:
   - It flies at up to `AssistSpeed` (60 m/s, above the atmosphere cap), braking late along
     `sqrt(End² + 2 × 3000 × distance)`, never below `AssistEndSpeed` (15 m/s).
   - It hands over to the landing sequence 25 m from the hover point.
-  - Releasing F, a retake (`AbortToFlying`), death, a switch, boost or the hyperdrive ends it.
+  - Once engaged it **latches**: letting go of F keeps it flying to the pad. This fixes T5's first-time-player trap
+    (Nov 12): holding F for 2.5 s on arrival with the throttle on used to cancel on release and sail past the pad.
+  - Tapping F again (that press is spent and never re-engages while held), a retake (`AbortToFlying`), death, a switch,
+    boost or the hyperdrive ends it.
+  - While it runs, the prompt reads "LANDING ASSIST - TAP F OR BOOST TO TAKE CONTROL".
+  - Tests: `Landing.ShortHoldWithThrottleOnStillLands` and `Landing.AssistLatchesAndStopsOnTapRetakeSwitchDeath`.
   - Measured from the rig's descent start, holding F from the first prompt (399 m): the landing sequence starts
     after 6.9 s, touchdown at 12.3 s, never below 18.8 m/s while assisting, never touching the ground.
 - "SLOW DOWN TO LAND - HOLD SPACE / LT TO BRAKE" remains only for a player-flown ship that is too fast within

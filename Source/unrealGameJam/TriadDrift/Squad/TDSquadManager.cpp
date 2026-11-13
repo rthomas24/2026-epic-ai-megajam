@@ -223,6 +223,7 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		TDSquad::BindShipDamaged(this, Slot.Ship);
 	}
 	ClearDamageIndicators(); // a retake starts clean
+	PendingAutoSwitchAt = -1.0;
 
 	// M7: squad ships never physically block each other (the AI keeps them apart instead).
 	for (FTDSquadSlot& A : Slots)
@@ -599,6 +600,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 		PC->Possess(NewShip);
 	}
 	ClearDamageIndicators(); // the new ship starts clean
+	PendingAutoSwitchAt = -1.0;
 	LogSwitch(OldId, Ship, CurrentSwitchCause);
 	LastSwitchCause = CurrentSwitchCause;
 	ActiveShipId = Ship;
@@ -780,6 +782,9 @@ void ATDSquadManager::StartSwitchStrike(ATDShip* OnShip)
 	SwitchStrikeShip = OnShip;
 	SwitchStrikeEndTime = Now() + SwitchStrikeDuration;
 	TDSquad::SetOutgoingDamageMultiplier(OnShip, SwitchStrikeKey, SwitchStrikeDamageMultiplier);
+	// Tell the player they have it: the pilot calls it, and the ship pulses in its colour while it lasts.
+	RequestSquadBark(TDBarkIds::SwitchStrike, OnShip->GetShipId(), ETDBarkPriority::High);
+	NextStrikePulse = 0.0;
 	// Consume the power so one power can't arm two chained switches.
 	LastPowerTime = -1000.0;
 }
@@ -792,6 +797,18 @@ void ATDSquadManager::EndSwitchStrike()
 	}
 	SwitchStrikeShip.Reset();
 	SwitchStrikeEndTime = -1000.0;
+}
+
+float ATDSquadManager::GetSwitchStrikeRemaining01() const
+{
+	return IsSwitchStrikeActive() && SwitchStrikeDuration > 0.f
+		? FMath::Clamp(static_cast<float>((SwitchStrikeEndTime - Now()) / SwitchStrikeDuration), 0.f, 1.f) : 0.f;
+}
+
+float ATDSquadManager::GetFocusRemaining01() const
+{
+	return GetFocusTarget() && FocusCommandSeconds > 0.f
+		? FMath::Clamp(static_cast<float>((FocusEndTime - Now()) / FocusCommandSeconds), 0.f, 1.f) : 0.f;
 }
 
 bool ATDSquadManager::IsSwitchStrikeActive() const
@@ -916,6 +933,29 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 		}
 	}
 
+	// Placeholder feedback pulses (Switch Strike aura on the player's ship, a mark on the focus target).
+	if (FeedbackPulseInterval > 0.f)
+	{
+		const double Tn = Now();
+		if (ATDShip* Strike = IsSwitchStrikeActive() ? SwitchStrikeShip.Get() : nullptr)
+		{
+			if (Tn >= NextStrikePulse)
+			{
+				NextStrikePulse = Tn + FeedbackPulseInterval;
+				// Small and brief: it sits right under the player's chase camera (live: a big ball over the ship).
+				TDSquad::PlayPlaceholderPulse(Strike, FMath::Clamp(TDSquad::GetBoundsRadius(Strike) * 0.5f, 60.f, 140.f), UTDStatics::ShipColor(Strike->GetShipId()), 0.18f);
+			}
+		}
+		if (AActor* Focus = GetFocusTarget())
+		{
+			if (Tn >= NextFocusPulse)
+			{
+				NextFocusPulse = Tn + FeedbackPulseInterval * 1.5f;
+				TDSquad::PlayPlaceholderPulse(Focus, FMath::Max(300.f, TDSquad::GetBoundsRadius(Focus) * 1.5f), FLinearColor::White, 0.3f);
+			}
+		}
+	}
+
 	for (FTDSquadSlot& Slot : Slots)
 	{
 		switch (Slot.State)
@@ -934,6 +974,12 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 				Tumbling->AddActorWorldOffset(Slot.TumbleVelocity * DeltaSeconds);
 				Tumbling->AddActorLocalRotation(DeathTumbleSpin * DeltaSeconds);
 				Slot.TumbleVelocity *= FMath::Exp(-DeathTumbleDrag * DeltaSeconds);
+				// A burning trail while it tumbles (placeholder until Nick's art): small squad-colour puffs.
+				if (T >= Slot.NextTumblePuffTime)
+				{
+					Slot.NextTumblePuffTime = T + DeathTumblePuffInterval;
+					TDSquad::PlayShipDeathPlaceholder(Tumbling, Slot.ShipId, /*bTrailPuff*/ true);
+				}
 			}
 			if (T >= Slot.DownedAtTime + DeathTumbleSeconds)
 			{
@@ -942,6 +988,10 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 			break;
 
 		case ETDSquadSlotState::Downed:
+			if (PendingAutoSwitchAt > 0.0 && T >= PendingAutoSwitchAt)
+			{
+				RunPendingAutoSwitch();
+			}
 			if (!bWipeHandledByFlow && T >= Slot.RespawnAtTime)
 			{
 				RespawnShip(Slot);
@@ -1023,6 +1073,8 @@ void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 	{
 		TDSquad::PlayShipCue(Slot.Ship, V->Explosion, false);
 	}
+	// Without explosion art: T2's placeholder (hot core, squad-colour shell, debris), sized to the ship.
+	TDSquad::PlayShipDeathPlaceholder(Slot.Ship, Slot.ShipId, /*bTrailPuff*/ false);
 	if (ATDShip* Ship = Slot.Ship)
 	{
 		TDSquad::SetTriggerHeld(Ship, ETDWeaponSlot::Primary, false);
@@ -1031,14 +1083,30 @@ void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 		Ship->SetActorEnableCollision(false);
 	}
 
-	// The tumble is over: if the player was in this ship, cut to the healthiest survivor.
+	// The tumble is over: if the player was in this ship, hold on its explosion for a beat (ENG-03:
+	// tumble, then explosion, then auto-switch; live capture: cutting on the same frame meant the player
+	// never saw their own ship blow up), then cut to the healthiest survivor.
 	if (Slot.ShipId == ActiveShipId)
 	{
-		ETDShipId Best = ETDShipId::Rift;
-		if (FindHealthiestLivingShip(Slot.ShipId, Best))
+		PendingAutoSwitchAt = Now() + DeathExplosionHoldSeconds;
+		if (DeathExplosionHoldSeconds <= 0.f)
 		{
-			SwitchWithCause(Best, /*bForced*/ true, ETDSwitchCause::AutoOnDeath);
+			RunPendingAutoSwitch();
 		}
+	}
+}
+
+void ATDSquadManager::RunPendingAutoSwitch()
+{
+	PendingAutoSwitchAt = -1.0;
+	if (IsShipAlive(ActiveShipId))
+	{
+		return; // the player already switched away during the beat
+	}
+	ETDShipId Best = ETDShipId::Rift;
+	if (FindHealthiestLivingShip(ActiveShipId, Best))
+	{
+		SwitchWithCause(Best, /*bForced*/ true, ETDSwitchCause::AutoOnDeath);
 	}
 }
 

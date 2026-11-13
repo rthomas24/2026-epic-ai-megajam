@@ -301,7 +301,34 @@ void UTDDirectorSubsystem::BuildCameraHint(FTDDirectorShot& Shot)
 	}
 	bCameraSideFlip = !bCameraSideFlip; // alternate sides shot to shot
 
-	const float Dist = FMath::Lerp(Tuning.CameraDistanceMin, Tuning.CameraDistanceMax, Shot.Importance01);
+	float Dist = FMath::Lerp(Tuning.CameraDistanceMin, Tuning.CameraDistanceMax, Shot.Importance01);
+	// Multi-kill (Lead): the victims are gone the instant they die, so a shot on the killer read like the
+	// chase view. Frame the cluster of explosions instead: hold on its centre from behind, above and to
+	// the side of the player, far enough out for the whole spread.
+	if (Shot.Kind == ETDHighlightKind::MultiKill && !PendingClusterCentroid.IsZero())
+	{
+		const AActor* Killer = Shot.Subject.Get();
+		const FVector From = Killer ? Killer->GetActorLocation() : PendingClusterCentroid - FVector::ForwardVector * 3000.f;
+		FVector Toward = (PendingClusterCentroid - From).GetSafeNormal();
+		if (Toward.IsNearlyZero()) { Toward = FVector::ForwardVector; }
+		FVector ClusterSide = FVector::CrossProduct(Toward, FVector::UpVector).GetSafeNormal();
+		if (ClusterSide.IsNearlyZero()) { ClusterSide = FVector::RightVector; }
+		const float ClusterDist = FMath::Max(Tuning.CameraDistanceMax, PendingClusterSpread * 3.f + 2000.f);
+		Shot.FocusLocation = PendingClusterCentroid;
+		Shot.bStaticFocus = true;
+		Shot.IgnoreForPlacement = RecentKillVictims;
+		Shot.SuggestedCameraLocation = PendingClusterCentroid - Toward * ClusterDist * 0.75f + ClusterSide * ClusterDist * 0.45f + FVector::UpVector * ClusterDist * 0.45f;
+		Shot.SuggestedCameraRotation = (PendingClusterCentroid - Shot.SuggestedCameraLocation).Rotation();
+		return;
+	}
+	// Big subjects (a carrier, a generator on the Dominion's hull) need the camera further out, or the
+	// frame is a wall of hull (live carrier-kill capture): at least SubjectFramingRadii x its radius.
+	if (Subject)
+	{
+		FVector Origin, Extent;
+		Subject->GetActorBounds(/*bOnlyColliding*/ true, Origin, Extent);
+		Dist = FMath::Max(Dist, Extent.Size() * Tuning.SubjectFramingRadii);
+	}
 	// Side-on, a little ahead and above: the action crosses the frame toward the lens.
 	Shot.SuggestedCameraLocation = Focus + Side * Dist * 0.85f + Travel * Dist * 0.3f + FVector::UpVector * Dist * 0.3f;
 	Shot.SuggestedCameraRotation = (Focus - Shot.SuggestedCameraLocation).Rotation();
@@ -331,14 +358,29 @@ void UTDDirectorSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETD
 	if (bPlayerKill)
 	{
 		RecentKillTimes.Add(Now);
+		RecentKillLocations.Add(Victim->GetActorLocation());
+		RecentKillVictims.Add(Victim);
 	}
 	while (RecentKillTimes.Num() > 0 && Now - RecentKillTimes[0] > Tuning.MultiKillWindowSeconds)
 	{
 		RecentKillTimes.RemoveAt(0, EAllowShrinking::No);
+		if (RecentKillLocations.Num() > 0) { RecentKillLocations.RemoveAt(0, EAllowShrinking::No); }
+		if (RecentKillVictims.Num() > 0) { RecentKillVictims.RemoveAt(0, EAllowShrinking::No); }
 	}
 	if (RecentKillTimes.Num() > 32)
 	{
 		RecentKillTimes.RemoveAt(0, RecentKillTimes.Num() - 32, EAllowShrinking::No);
+		RecentKillLocations.RemoveAt(0, FMath::Max(0, RecentKillLocations.Num() - 32), EAllowShrinking::No);
+		RecentKillVictims.RemoveAt(0, FMath::Max(0, RecentKillVictims.Num() - 32), EAllowShrinking::No);
+	}
+	// Where the streak happened (the multi-kill frames the cluster, not the killer).
+	PendingClusterCentroid = FVector::ZeroVector;
+	PendingClusterSpread = 0.f;
+	for (const FVector& L : RecentKillLocations) { PendingClusterCentroid += L; }
+	if (RecentKillLocations.Num() > 0)
+	{
+		PendingClusterCentroid /= RecentKillLocations.Num();
+		for (const FVector& L : RecentKillLocations) { PendingClusterSpread = FMath::Max(PendingClusterSpread, FVector::Dist(L, PendingClusterCentroid)); }
 	}
 
 	// Pick the single best reading of this kill.
@@ -394,6 +436,8 @@ void UTDDirectorSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETD
 		if (BestKind == ETDHighlightKind::MultiKill)
 		{
 			RecentKillTimes.Reset(); // M8: the next multi-kill needs a fresh run of kills
+			RecentKillLocations.Reset();
+			RecentKillVictims.Reset();
 		}
 	}
 }

@@ -161,6 +161,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade")
 	float HurtThreshold01 = 0.4f;
 
+	/** Survival (td.Wingmen.Survival): below this hull, stay out of fights (focus orders excepted)... */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (ClampMin = "0", ClampMax = "1"))
+	float LowHullStayOut01 = 0.3f;
+	/** ...until the shield is back above this. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (ClampMin = "0", ClampMax = "1"))
+	float ShieldBackIn01 = 0.8f;
+	/** Losing this much hull within HullBurstWindowSeconds also triggers an evade. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (ClampMin = "0", ClampMax = "1"))
+	float HullBurst01 = 0.1f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (Units = "s"))
+	float HullBurstWindowSeconds = 1.f;
+
 	/** A hurt wingman only seeks an active shield dome within this distance. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Evade", meta = (Units = "cm"))
 	float DomeSeekDistance = 15000.f;
@@ -249,6 +261,9 @@ protected:
 
 	/** Formation slot, or the shield dome when hurt and a dome is up. */
 	FVector GetHomeLocation(ATDShip* Ship, ATDShip* Leader, bool& bOutIsDome) const;
+	bool ShouldStayOutOfFights(const ATDShip* Ship) const;
+	double HullWindowStart = 0.0;
+	float HullAtWindowStart = 1.f;
 
 	/** Turn the desired world direction + speed into FTDFlightInput and send it to the ship. */
 	void SteerToward(ATDShip* Ship, const FVector& DesiredDir, float TargetSpeed, bool bBoost);
