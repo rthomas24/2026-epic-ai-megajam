@@ -1,0 +1,15 @@
+{
+  "file": "Meshy_AI_Sentinel_Armor_Turnaround_20261113_animated_ue5_mannequin_All_animation.glb",
+  "bytes": 25583856,
+  "sha256": "1adba4e4583dd0e8451814b720c17f6c05a6790634282c7a817f12a15775ae1b",
+  "glb_version": 2,
+  "meshes": 1,
+  "skins": 1,
+  "skin_joint_counts": [
+    74
+  ],
+  "animations": 6,
+  "materials": 1,
+  "images": 3,
+  "scope": "Nick-provided sample for Ryan inspection only; no import, modification, rig compatibility or gameplay acceptance verified."
+}
