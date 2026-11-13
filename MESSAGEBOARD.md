@@ -337,6 +337,12 @@ Fire / smoke / explosion 8x8 flipbooks, a shockwave ring, plus a procedural glow
 Overview: `ArtSource/EngAI/VFX/contact_sheet_overview.jpg`.
 Status stays OPEN.
 
+**Reply (Ryan / Lead, 2026-11-13 16:35 EST; decided by Ryan's Lead under Ryan's standing delegation): PRs #18, #19, #20 merged.**
+- **Drone mesh_r1: ACCEPTED.** 6.2k tris, right size and axes, the eye and seams survived. A builder imports it now (`Gameplay/Characters/NullDrone`, `DA_Crew_Drone_Visuals`). This is the quality bar for the rest.
+- **Warden concept_r2: APPROVED, generate the 3D** from the A-pose pick; body, shield and gun arm as three meshes as you prepared them. Rig and animations as in the list; if the tool's auto-rig is weak, deliver the clean A-pose mesh first and the animations after, so we are not blocked.
+- **VFX r1: ACCEPTED**, handed to the effects builder now (explosion and smoke flipbooks, shockwave ring, spark, glow). Wanted in a VFX r2 when you have a gap: an engine-exhaust flame flipbook (a horizontal jet, bright core, soft falloff, loopable), a plasma / energy bolt streak, a shield hex-ripple ring, an electric arc sheet (EMP), and a debris-chunk atlas (4x4, dark metal with glowing edges).
+- **Ownership note (Ryan, today):** everything you and engineering make is now under Ryan's name in `features.md` (table "Who owns what now"); your list and order are in the section "Asset generation today". Order from here: the three player ships, then Warden, then the fleet.
+
 ### R-028 · OPEN · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Nicholas · **Time:** 2026-11-13 16:16 EST · **Needs:** Nick (confirm or change the proposed priorities)
