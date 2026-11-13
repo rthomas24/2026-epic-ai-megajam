@@ -26,7 +26,11 @@
 
 // Template mannequin set (Content/Characters/Mannequins): the stand-in for a crew look that has a skeletal mesh but no
 // AnimBP. Cooked through DirectoriesToAlwaysCook (/Game/Characters/Mannequins/Anims).
-const TCHAR* ATDCrewCharacter::FallbackAnimBP = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed_C");
+const TCHAR* ATDCrewCharacter::FallbackAnimBPFor(ETDCrewType Type)
+{
+	return Type == ETDCrewType::Grunt ? TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed_C")
+		: TEXT("/Game/Variant_Shooter/Anims/ABP_TP_Rifle.ABP_TP_Rifle_C");
+}
 namespace TDCrewAnims
 {
 	static const TCHAR* Melee = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01.MM_Attack_01");
@@ -214,13 +218,27 @@ void ATDCrewCharacter::LoadDefaultVisuals()
 {
 	// Core's one loader: quiet when Nick hasn't made the asset yet, cooked in packaged builds.
 	Visuals = FindCrewVisuals(Spec.VisualsId);
+	LookScale = 1.f;
+	// Until each type has its own look, grunts and heavies wear the trooper's, sized to their build (R-019).
+	if (!Visuals && (Spec.Type == ETDCrewType::Grunt || Spec.Type == ETDCrewType::Heavy))
+	{
+		if (UTDEnemyVisuals* Trooper = FindCrewVisuals(TEXT("Trooper")); Trooper && !Trooper->SkeletalMesh.IsNull())
+		{
+			Visuals = Trooper;
+			LookScale = Spec.Type == ETDCrewType::Heavy ? 1.12f : 0.96f;
+		}
+	}
 }
 
 UTDEnemyVisuals* ATDCrewCharacter::FindCrewVisuals(FName VisualsId)
 {
-	const FString Name = FString::Printf(TEXT("DA_Crew_%s_Visuals"), *VisualsId.ToString());
+	return Cast<UTDEnemyVisuals>(FindLookAsset(FString::Printf(TEXT("DA_Crew_%s_Visuals"), *VisualsId.ToString()), UTDEnemyVisuals::StaticClass()));
+}
+
+UObject* ATDCrewCharacter::FindLookAsset(const FString& Name, UClass* Class)
+{
 	// Nick's presentation asset always wins.
-	if (UTDEnemyVisuals* Art = UTDStatics::LoadPresentation<UTDEnemyVisuals>(Name))
+	if (UObject* Art = UTDStatics::LoadPresentationAsset(Name, Class))
 	{
 		return Art;
 	}
@@ -232,14 +250,14 @@ UTDEnemyVisuals* ATDCrewCharacter::FindCrewVisuals(FName VisualsId)
 	}
 	// By class, then by folder prefix: also finds assets in folders the registry has not scanned as paths yet.
 	FARFilter Filter;
-	Filter.ClassPaths.Add(UTDEnemyVisuals::StaticClass()->GetClassPathName());
+	Filter.ClassPaths.Add(Class->GetClassPathName());
 	TArray<FAssetData> Found;
 	Registry->GetAssets(Filter, Found);
 	for (const FAssetData& A : Found)
 	{
 		if (A.AssetName.ToString() == Name && A.PackagePath.ToString().StartsWith(TEXT("/Game/TriadDrift/Gameplay/Characters")))
 		{
-			if (UTDEnemyVisuals* V = Cast<UTDEnemyVisuals>(A.GetAsset()))
+			if (UObject* V = A.GetAsset(); V && V->IsA(Class))
 			{
 				return V;
 			}
@@ -254,6 +272,12 @@ FVector ATDCrewCharacter::GetMuzzleLocation(const FVector& AimDirection) const
 	if (GetMesh() && GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->DoesSocketExist(MuzzleSocket))
 	{
 		return GetMesh()->GetSocketLocation(MuzzleSocket);
+	}
+	// No socket yet: the weapon hand of a mannequin-skeleton look.
+	static const FName Hand(TEXT("hand_r"));
+	if (GetMesh() && GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->GetBoneIndex(Hand) != INDEX_NONE)
+	{
+		return GetMesh()->GetBoneLocation(Hand) + AimDirection * 25.f;
 	}
 	return GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
 }
@@ -301,7 +325,11 @@ void ATDCrewCharacter::ApplyVisuals()
 			if (!AnimClass)
 			{
 				// A mesh with no AnimBP would stand frozen in its reference pose: drive it with the template mannequin set.
-				AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBP, nullptr, LOAD_Quiet | LOAD_NoWarn);
+				AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBPFor(Spec.Type), nullptr, LOAD_Quiet | LOAD_NoWarn);
+				if (!AnimClass && Spec.Type != ETDCrewType::Grunt)
+				{
+					AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBPFor(ETDCrewType::Grunt), nullptr, LOAD_Quiet | LOAD_NoWarn);
+				}
 				bFallbackAnim = AnimClass != nullptr;
 			}
 			if (AnimClass)
@@ -319,6 +347,7 @@ void ATDCrewCharacter::ApplyVisuals()
 			GetMesh()->SetVisibility(true);
 			GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -Spec.CapsuleHalfHeight));
 			GetMesh()->SetRelativeRotation(FRotator(0.f, Visuals->SkeletalMeshYaw, 0.f));
+			GetMesh()->SetRelativeScale3D(FVector(LookScale));
 			Body->SetVisibility(false);
 			Eyes->SetVisibility(false);
 			return;

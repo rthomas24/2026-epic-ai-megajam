@@ -559,12 +559,12 @@ bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the skeletal look is shown, the block hidden"), Tr->GetMesh()->IsVisible() && !Tr->IsPlaceholderVisible());
 	TestTrue(TEXT("no AnimBP in the look: the template mannequin set drives it"), Tr->UsesFallbackAnimation());
 	UAnimInstance* Anim = Tr->GetMesh()->GetAnimInstance();
-	TestTrue(*FString::Printf(TEXT("animated by ABP_Unarmed (%s)"), *GetNameSafe(Anim ? Anim->GetClass() : nullptr)), Anim && Anim->GetClass()->GetName().Contains(TEXT("ABP_Unarmed")));
+	TestTrue(*FString::Printf(TEXT("a trooper is animated by the template rifle set (%s)"), *GetNameSafe(Anim ? Anim->GetClass() : nullptr)), Anim && Anim->GetClass()->GetName().Contains(TEXT("ABP_TP_Rifle")));
 	TestEqual(TEXT("mannequin-skeleton meshes face forward (-90 yaw)"), (float)Tr->GetMesh()->GetRelativeRotation().Yaw, -90.f, 0.01f);
 	TestTrue(TEXT("material overrides apply to the skeletal look"), Tr->GetMesh()->GetMaterial(0) == Mat);
 	const FVector Dir = (P->GetActorLocation() - Tr->GetActorLocation()).GetSafeNormal();
-	TestTrue(TEXT("no Muzzle socket: bolts leave from in front of the capsule"),
-		FVector::DistSquared(Tr->GetMuzzleLocation(Dir), Tr->GetActorLocation() + FVector(0.f, 0.f, Tr->Spec.CapsuleHalfHeight * 0.4f) + Dir * (Tr->Spec.CapsuleRadius + 35.f)) < 1.f);
+	TestTrue(TEXT("no Muzzle socket: bolts leave from the weapon hand"),
+		FVector::Dist(Tr->GetMuzzleLocation(Dir), Tr->GetMesh()->GetBoneLocation(TEXT("hand_r"))) < 30.f);
 	// A look with its own yaw keeps it.
 	Look->SkeletalMeshYaw = 0.f;
 	Tr->ApplyVisuals();
