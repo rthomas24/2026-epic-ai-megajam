@@ -38,6 +38,9 @@ struct FTDHostShipView
 	float Power2 = 0.f;
 	float Ability = 0.f;
 	float RespawnSeconds = 0.f;
+	float Boost = 0.f;
+	float Heat = 0.f;
+	int32 Ammo = 0;
 	bool bActive = false;
 	bool bAlive = false;
 	bool bUnlocked = false;
