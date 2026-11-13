@@ -41,6 +41,8 @@
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPortalGate.h"
 
@@ -372,10 +374,19 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	PC->SetIgnoreMoveInput(true);
 	PC->SetIgnoreLookInput(true);
 
-	if (AHUD* HUD = PC->GetHUD())
+	// T2: every HUD (Nick's space and ground HUDs, the fallback HUD's draw) hides for the intro and comes back by
+	// itself after; the pause screen cannot open meanwhile.
+	UTDUIHostSubsystem::SetCinematicHiddenIn(this, true);
+	// T1: no pause while it plays (registered once for every world; the blocker asks this world's intro).
+	static bool bPauseBlockerRegistered = false;
+	if (!bPauseBlockerRegistered)
 	{
-		bHUDWasShown = HUD->bShowHUD;
-		HUD->bShowHUD = false;
+		bPauseBlockerRegistered = true;
+		ATDSpacePlayerController::RegisterPauseBlocker(TEXT("Intro"), [](const UObject* Context, FText& OutReason)
+		{
+			OutReason = LOCTEXT("NoPause", "Intro");
+			return UTDIntroDirector::IsIntroPlaying(Context);
+		});
 	}
 
 	HoldSquad(true);
@@ -1410,12 +1421,9 @@ void UTDIntroDirector::Finish()
 				PC->SetViewTarget(Pawn); // a skip cuts straight to the chase camera
 			}
 		}
-		if (AHUD* HUD = PC->GetHUD())
-		{
-			HUD->bShowHUD = bHUDWasShown;
-		}
 	}
 	SkipInput = nullptr;
+	UTDUIHostSubsystem::SetCinematicHiddenIn(this, false);
 	if (Camera)
 	{
 		Camera->Destroy();

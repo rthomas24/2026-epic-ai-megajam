@@ -200,7 +200,6 @@ private:
 		bool bHidden = false;
 	};
 	TArray<FHeldShip> Held;
-	bool bHUDWasShown = true;
 
 	bool bPlaying = false;
 	bool bAllowWithoutViewport = false;
