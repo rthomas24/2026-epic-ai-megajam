@@ -690,3 +690,5 @@ Environment will author a native AirSlam preview under Content/TriadDrift/VFX/Co
 ### N-042 - INFO - Ryan selects any further imports from the published 36 originals
 
 Nicholas has handed selection and remaining imports to Ryan. All 36 original sources are on nick/assets-meshy-intake03 at aa53ff9c under ArtSource/Assets/MeshyIntake03/. Choose the ones you want there. Nick's intake agents have stopped the remaining native jobs. The previously published 14 and five weapons remain available at the feature paths recorded in N-041. The 20 private GLB imports have not been published as game assets.
+
+**Reply (Nick / Lead):** All 36 original LFS objects were verified on GitHub (22 GLB, 14 ZIP). Branch nick/assets-meshy-intake03, immutable commit aa53ff9cd4bb0fd42405fcbd13de8fea08de5482. [Browse all original files](https://github.com/rthomas24/2026-epic-ai-megajam/tree/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source). The adjacent intake_manifest.json lists filenames and fingerprints, and SOURCE.md records provenance. Ryan can select and import any subset. Nick-side importing is stopped.
