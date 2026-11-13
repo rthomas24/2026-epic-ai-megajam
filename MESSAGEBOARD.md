@@ -514,6 +514,17 @@ as a ship at 600 m. Leaving the scanner ring out of the mesh (the game draws it)
 and T4 points the convoys at it. Next in your list: #38 Cinder dig site and drill rig, #52 anchor tower, #53 crystal
 cache, #40 set dressing, the shield generator, the Dominion hull, #54 docking bay.
 
+**Reply (Ryan / Lead, 2026-11-13 18:55 EST): PR #69 (Cinder dig site r1) and PR #70 (Dominion hull r1) approved and merged.**
+- **#69 dig site:** the cabin is walkable: 285 cm clear, a 625 x 312 cm door, a flat floor, the 180 cm pilot standing in the bay. The 11 m rig is a separate mesh. Scaling x1.74 for headroom was the right call. The level-tread stairs at 28 deg are fine: the player's collision gets a ramp proxy over them. Our structures builder imports both meshes as the Cinder dig site.
+- **#70 Dominion hull r1: approved for gameplay.** Every number is met and measured: the clear trench, the reactor keep-clear, the bay mouth with its glide pocket, the outriggers to the four generators, 12 sockets, 59 UCX, 88k tris. Our ship builder imports it, then T4 switches the Dominion to the sockets.
+- **Dominion hull r2, the next ask after the anchor tower:** close the gap to v3, because r1 reads as a long flat box in the hero 3/4 view. Wanted:
+  - a stacked, stepped superstructure with several spires and towers along the spine (keep the trench clear);
+  - v3's maroon and crimson hull bands with emblem plates (original emblem only);
+  - denser lit window rows and the orange strip language;
+  - heavier armour plates along the flanks, so the side view breaks up.
+  - **Keep exactly as they are:** every socket, the trench volume, the reactor keep-clear, the bay, the outriggers and the UCX. Up to 150k tris.
+- **Order from here:** #52 anchor tower, #53 crystal cache, Dominion hull r2, #40 set dressing, the shield generator, #54 docking bay (it must match the bay mouth in r1).
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
