@@ -57,7 +57,7 @@ def run():
     write('overlap_locations.json',overlaps)
     lo=[min(p[i] for p in vertices) for i in range(3)];hi=[max(p[i] for p in vertices) for i in range(3)]
     materials={m.name for o in obs for m in o.data.materials}
-    params=json.loads((P/'material_parameters.json').read_text())
+    params=json.loads(Path(os.environ.get('LANCER_M03_MATERIAL_PARAMS',str(P/'material_parameters.json'))).read_text())
     report=dict(blender=bpy.app.version_string,assembly_triangles=len(faces),assembly_instances=len(obs),
                 unique_meshes=len({o.data.name for o in obs}),materials=len(materials),textures=0,
                 dimensions_cm=[(hi[1]-lo[1])*100,(hi[0]-lo[0])*100,(hi[2]-lo[2])*100],

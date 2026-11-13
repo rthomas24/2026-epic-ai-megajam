@@ -105,8 +105,8 @@ def run(full=True,structural=False):
            ('04_left','Left orthographic',-90,0,False,obs),('05_right','Right orthographic',90,0,False,obs),
            ('06_top','Top orthographic',0,90,False,obs),('07_bottom','Bottom orthographic',0,-90,False,obs),
            ('08_rear_3q','Rear three-quarter',215,22,True,obs),
-           ('09_weapon_detail','Port cannon and flush rocket bay',35,-10,True,[o for o in obs if o.get('part_name') in ['Primary_L','Rotor_L','Secondary_L']]),
-           ('10_canopy_detail','Framed canopy',35,20,True,[o for o in obs if o.get('part_name')=='Canopy']),
+           ('09_weapon_detail','Port cannon and flush rocket bay',35,-10,True,[o for o in obs if o.get('part_name') in ['Primary_L','Rotor_L','Secondary_L'] or o.get('detail_for') in ['Primary_L','Rotor_L','Secondary_L']]),
+           ('10_canopy_detail','Framed canopy',35,20,True,[o for o in obs if o.get('part_name')=='Canopy' or o.get('detail_for')=='Canopy']),
            ('11_dark_studio','Dark lighting / same model and emission',35,24,True,obs)]
     records=[];paths=[]
     for slug,title,az,el,persp,targets in specs:
@@ -117,7 +117,8 @@ def run(full=True,structural=False):
                 if light.type=='LIGHT':light.data.energy*=.16
             bg=next(n for n in sc.world.node_tree.nodes if n.type=='BACKGROUND');bg.inputs['Strength'].default_value=.10
         for o in obs:o.hide_render=o not in targets
-        frame(cam,targets,az,el,persp);path=OUT/(slug+'.png');sc.render.filepath=str(path)
+        framing=[o for o in targets if not o.get('detail_for')] if OUT.name=='Detail01' else targets
+        frame(cam,framing or targets,az,el,persp);path=OUT/(slug+'.png');sc.render.filepath=str(path)
         print('LANCER_M03_RENDER '+slug,flush=True);bpy.ops.render.render(write_still=True)
         rec=check(path);rec.update(title=title,azimuth_deg=az,elevation_deg=el,perspective=persp);records.append(rec);paths.append(path)
     if OUT.name=='StageA02':
