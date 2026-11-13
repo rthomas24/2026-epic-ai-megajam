@@ -147,9 +147,14 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> CoreShield;
 	UPROPERTY(Transient) TObjectPtr<AActor> InteriorExposure;
 	UPROPERTY(Transient) TObjectPtr<class ATDArchiveTransfer> ArchiveTransfer;
+	UPROPERTY(Transient) TObjectPtr<class ATDSurveyTerminal> SurveyTerminal;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> DormantDrone;
 public:
 	class ATDArchiveTransfer* GetArchiveTransfer() const { return ArchiveTransfer; }
+	class ATDSurveyTerminal* GetSurveyTerminal() const { return SurveyTerminal; }
+	/** Cinder: the field anchor is disabled (T2's pending approach marker toward the Dominion). */
+	DECLARE_MULTICAST_DELEGATE(FTDOnFieldAnchorDisabled);
+	static FTDOnFieldAnchorDisabled OnFieldAnchorDisabled;
 	UStaticMeshComponent* GetDormantDrone() const { return DormantDrone; }
 private:
 	float InteriorTime = 0.f;

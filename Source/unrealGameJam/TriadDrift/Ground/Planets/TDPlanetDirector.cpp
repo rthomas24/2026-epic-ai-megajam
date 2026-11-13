@@ -5,6 +5,7 @@
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -313,6 +314,10 @@ bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 		Squad->SetWingmenPassive(true);
 	}
 	bOnFoot = true;
+	if (PlanetId == TEXT("Cinder"))
+	{
+		UTDStorySubsystem::Fire(this, TEXT("G4_Moss_SolidGround")); // T3: on landing (once per run)
+	}
 
 	// The re-board prompt stands where the pilot climbed out.
 	if (!BoardPoint)

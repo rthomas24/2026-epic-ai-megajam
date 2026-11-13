@@ -983,4 +983,39 @@ void ATDArchiveTransfer::ResetProp()
 	}
 }
 
+
+// ================================================================================================
+// Survey terminal (Cinder)
+// ================================================================================================
+
+FTDOnSurveyRecordsAccessed ATDSurveyTerminal::OnAnySurveyRecordsAccessed;
+
+bool ATDSurveyTerminal::IsHostileNear() const
+{
+	const FVector At = GetActorLocation();
+	for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It; ++It)
+	{
+		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < ClearRadius)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ATDSurveyTerminal::CanInteract(AActor* Interactor) const
+{
+	return Super::CanInteract(Interactor) && !IsHostileNear();
+}
+
+void ATDSurveyTerminal::Interact(AActor* Interactor)
+{
+	const bool bWasUsable = CanInteract(Interactor);
+	Super::Interact(Interactor);
+	if (bWasUsable)
+	{
+		OnAnySurveyRecordsAccessed.Broadcast(this);
+	}
+}
+
 #undef LOCTEXT_NAMESPACE

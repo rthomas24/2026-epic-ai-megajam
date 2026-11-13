@@ -1002,10 +1002,48 @@ void ATDPlanetCourse::BuildCinder()
 		return G;
 	};
 
+	// ---- Obj 0: the survey records (storyline.md sections 22 and 25: Cinder in the reduced form). A short marked route
+	// from the pad past one patrol to an open-sided survey station at the dig's rim (the Verdance station kit), whose
+	// terminal works once the patrol is dead or left behind; it is Cinematic 05's hook (T3). Then the excavation, then
+	// the anchor, in that order. ----
+	const FVector StationAt(3700.f, 0.f, 0.f);
+	ATDObjective* Survey = MakeObjective(TEXT("Obj_Survey"), LOCTEXT("SurveyTitle", "Access the Survey Records"), ETDAbilityId::None, ETDShipId::Rift, 2);
+	AddTrailhead(Survey, FVector(1300.f, 0.f, 0.f), Crystal, LOCTEXT("TheSurvey", "THE SURVEY STATION"));
+	Route({ FVector(700.f, 0.f, 0.f), FVector(2300.f, 0.f, 0.f), StationAt - FVector(900.f, 0.f, 0.f) }, Crystal);
+	{
+		const FLinearColor StationMetal(0.3f, 0.3f, 0.32f);
+		Platform(FVector(StationAt.X, StationAt.Y, 0.f), 30.f, FVector(1600.f, 1600.f, 30.f), StationMetal, 0.f, TEXT("SM_Verd_Station_Deck"));
+		for (const FVector2D& C : { FVector2D(-700.f, -700.f), FVector2D(700.f, -700.f), FVector2D(-700.f, 700.f), FVector2D(700.f, 700.f) })
+		{
+			Block(EShape::Cube, StationAt + FVector(C.X, C.Y, 260.f), FVector(60.f, 60.f, 460.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Post"));
+		}
+		Block(EShape::Cube, StationAt + FVector(0.f, 0.f, 520.f), FVector(1700.f, 1700.f, 40.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Roof"));
+		Block(EShape::Cube, StationAt + FVector(0.f, 760.f, 90.f), FVector(900.f, 60.f, 120.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Rack"));
+		Block(EShape::Cube, StationAt + FVector(0.f, 0.f, 505.f), FVector(1200.f, 60.f, 8.f), Ember, 3.f, FRotator::ZeroRotator, false); // the work light
+	}
+	// The patrol on the way (overlap: it starts when the pilot walks in; leaving it behind is allowed).
+	Encounter(Survey, INDEX_NONE, FVector(2000.f, 0.f, 200.f), FVector(700.f, 1100.f, 600.f), { ETDCrewType::Grunt, ETDCrewType::Trooper }, true, 650.f);
+	ATDStepTrigger* AtStation = SpawnProp<ATDStepTrigger>(StationAt - FVector(900.f, 0.f, 0.f));
+	AtStation->LinkedObjective = Survey;
+	AtStation->LinkedStep = 0;
+	TDCourseImpl::FinishProp(AtStation);
+	ATDSurveyTerminal* Records = SpawnProp<ATDSurveyTerminal>(StationAt + FVector(0.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
+	Records->Prompt = LOCTEXT("SurveyRecords", "Access the survey records");
+	Records->HoldTime = 0.f;
+	Records->LinkedObjective = Survey;
+	Records->LinkedStep = 1;
+	Records->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
+	TDCourseImpl::FinishProp(Records);
+	Records->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f));
+	UTDStatics::TintPlaceholder(Records->Mesh, FLinearColor(1.f, 0.55f, 0.15f), 1.5f);
+	FinishObjective(Survey, { LOCTEXT("S0", "INVESTIGATE THE MINING COMPLEX"), LOCTEXT("S1", "ACCESS THE SURVEY RECORDS · [E]") }, { AtStation, Records });
+	SurveyTerminal = Records;
+
 	// ---- Obj 3: the outpost (-> EMP Pulse on Lancer). North-east, over a magma river. ----
 	const FVector OutHead(2600.f, 2600.f, 0.f);
 	ATDObjective* Outpost = MakeObjective(TEXT("Obj_Outpost"), LOCTEXT("OutpostTitle", "Secure the Excavation"), ETDAbilityId::EMPPulse, ETDShipId::Lancer, 6);
 	AddTrailhead(Outpost, OutHead, Ember, LOCTEXT("TheOutpost", "THE EXCAVATION"));
+	Trailheads.Last().After = Survey; // the fixed order: the records first
 	Route({ FVector(900.f, 900.f, 0.f), OutHead, FVector(5000.f, 4200.f, 0.f), FVector(7600.f, 6000.f, 0.f), FVector(9200.f, 6000.f, 0.f) }, Ember);
 
 	// The magma river with basalt stepping stones (3 m gaps: a jump).
@@ -1162,6 +1200,7 @@ void ATDPlanetCourse::BuildCinder()
 	const FVector JamHead(2600.f, -2600.f, 0.f);
 	ATDObjective* Jammer = MakeObjective(TEXT("Obj_Jammer"), LOCTEXT("JammerTitle", "Disable the Field Anchor"), ETDAbilityId::None, ETDShipId::Rift, 3);
 	AddTrailhead(Jammer, JamHead, Crystal, LOCTEXT("TheJammer", "THE FIELD ANCHOR"));
+	Trailheads.Last().After = Outpost; // then the anchor (the crystals before the anchor: the story needs them)
 	Route({ FVector(900.f, -900.f, 0.f), JamHead, FVector(5200.f, -4600.f, 0.f), FVector(6800.f, -5000.f, 0.f) }, Crystal);
 
 	// A crystal wall across the trail: slash through it.
