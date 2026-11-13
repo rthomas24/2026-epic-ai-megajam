@@ -1,0 +1,35 @@
+{
+  "pid": 2956,
+  "exit_code": 0,
+  "reason": "completed",
+  "monitor_error": null,
+  "cleanup_error": null,
+  "cleanup_return_code": null,
+  "minimum_free_gib": 3.8171958923339844,
+  "duration_s": 13.797000000000025,
+  "protected_count": 1124,
+  "protected_unchanged": true,
+  "changed_protected": [],
+  "new_content": {},
+  "unexpected_content": [],
+  "engine_reason": "ok",
+  "engine_errors": 0,
+  "engine_warnings": 0,
+  "suppressed_dialogs": [],
+  "validation": {
+    "wave": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01",
+    "duration_s": 139.1999969482422,
+    "properties": {
+      "looping": true,
+      "pitch": 1.0,
+      "volume": 0.5,
+      "num_channels": 2,
+      "imported_sample_rate": 48000
+    },
+    "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+    "package_sha256": "1110b70395c6ce3b7423245dfa435ba68be4baf31e4d93f4c579dbb8842117aa",
+    "shared_music_class_unchanged": true,
+    "stage": "Fresh reload verified; combat consumer activation, actual playback/loop and Shipping still pending"
+  },
+  "stage": "Wave fresh reload verified on old day1 host only; current-Core binding and automatic gameplay tests pending"
+}

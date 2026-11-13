@@ -2,7 +2,7 @@
 
 Nick supplied his own original AI-generated track and requested automatic music when gameplay enters combat, including ship battles and ground/melee fights. The unique new download is `C:/Users/nicho/Downloads/Ethereal Pulse (Remix).m4a`, 2,251,052 bytes, duration 139.2 seconds. Original and preserved-copy hashes are in source_receipt.json. Nick explicitly affirms ownership and game-use permission; no purchase or further license confirmation is required.
 
-Current stage: source preparation/category QA and native import passed in the compiled test host. Fresh reload, automatic gameplay playback, listening and Shipping remain pending. Lead published the exact source/one-wave claim at 79d3ab76508f6a69eb875977c09150e8539f296b and sent the consumer request to Core in MESSAGEBOARD N029. No Audio-owned Source, map, config or style change is included here.
+Current stage: source preparation/category QA, native import and fresh Wave reload passed. The exact verified Wave has been copied into the isolated audio feature worktree for publication. Automatic current-Core binding/playback, listening and Shipping remain pending. Lead published the exact source/one-wave claim at 79d3ab76508f6a69eb875977c09150e8539f296b and sent the consumer request to Core in MESSAGEBOARD N029. No Audio-owned Source, map, config or style change is included here.
 
 ## Sound and mix
 
@@ -16,11 +16,11 @@ The most energetic five-second music window (130-135 s), at the planned gain, pl
 
 ## Integration and verification
 
-Core has accepted the N029 contract. The actual reply is archived at `5859843:docs/coordination/MESSAGEBOARD-ARCHIVE.md`, N-029, Ryan/Lead reply November 13, 01:21 EST. Engineering owns ONE GameInstance music director with a single 2D UI-sound audio component and the new optional `UTDUIStyle::CombatMusic` soft SoundBase slot. Its implementation is promised with the next engineering Main push; availability of that implementation and actual Audio binding remain unverified.
+Engineering has implemented `UTDUIStyle::CombatMusic` (dd6c36f341379e8ba20d4d197bb18cb6797b15cd) and `UTDMusicDirectorSubsystem` (dd595c8a13e2a3b0635b263a8ab16df86331aaa1). The actual director is world-scoped with one 2D UI-sound component per map, intentionally differing from the earlier proposed GameInstance design. Use this existing implementation; do not duplicate it.
 
-The agreed triggers are an active space wave, the Dominion assault, or `ATDEncounterVolume.IsActive()` on foot. Fade in over 2 seconds; after combat ends hold 6 seconds, then fade out over 4 seconds. A new fight during the hold continues the same playback without restart. Travel, pause-quit to menu, victory and CUT use a 1-second stop fade; the retake's fight restarts playback. Authored class/volume are used without double attenuation, and an empty slot is silent. Audio will write ONLY the future CombatMusic field under a separate serialized style handoff. No duplicate controller is implemented here.
+The cue point is actual combat activation: an active space wave, Dominion assault, or an authored on-foot encounter's IsActive state. Code supplies 2-second fade-in, 6-second hold, 4-second fade-out, continued playback during a new fight in hold/fade, and a 1-second stop path for travel/victory/CUT. The sound's authored class/volume are used once, and an empty slot is silent. Audio will write ONLY CombatMusic after Root provisions a matching compiled host and publishes a serialized style handoff; retain MenuMusic and every other style field.
 
-MusicIntensity01 alone is unsuitable because idle Ground already targets 0.3. The earlier core_handoff_draft.md is retained as proposal history; the actual archived Core reply above is authoritative.
+MusicIntensity01 alone is unsuitable because idle Ground already targets 0.3. The earlier core_handoff_draft.md and N029 archive retain proposal/contract history; actual published implementation is authoritative. No combat-binding or new-controller implementation is part of this Wave publication.
 
 Verify import/reload references, real wave and encounter activation/clear, no duplicates, Music volume control, travel/retake/menu cleanup and an audible loop. Source QA does not establish those results, Shipping acceptance or subjective approval.
 
@@ -36,8 +36,12 @@ Import03 created exactly one 17,294,337-byte Wave in the Lead-granted day1-integ
 
 The final authoring runner is import_job_03.py, pinned with its reused guard in READY_03.json. The audio specification/importer02 is unchanged; runner03 adds owned-process exception cleanup and an explicit private port. Earlier runners are preserved rather than overwritten.
 
-## Held verification checkpoint
+## Overnight held checkpoint (preserved history)
 
 Lead reports Nick chose KEEP NATIVE JOBS QUEUED while available RAM is below the launch floor. The six-pin fresh-reload proposal is reviewed but has not run. The N029 contract is received, while engineering implementation and actual Audio binding remain unverified; no duplicate controller, style-field write, gameplay/map/config edit, further audio iteration or automatic native retry is included. The imported Wave remains only in the test host. Feature-package copy requires a future fresh-reload PASS and separate serialized Lead clearance; it has not occurred.
 
 A fault-injection check of the exact runner monitor used only a harmless owned sleeping Python child, not Unreal. Injecting a monitoring exception reached finally, stopped that child and preserved its actual error/exit code. See guard_fault_test_01.json. This safety test is distinct from the successful actual Unreal Import03.
+
+## Morning fresh reload and feature copy
+
+Reload01 PID2956 exited0 in13.797seconds, structured reason ok, zero errors/warnings/dialogs, minimum free RAM3.817GiB; all1,124 protected files unchanged. Looping,139.2seconds,48kHz/stereo,volume0.5,pitch1 and the shared Music class persisted. The old day1 host proves the Wave only; it does not contain the new director or CombatMusic slot. See native_reload_01.json and native_package_freeze.json. The exact17,294,337-byte Wave is now in this feature worktree; no style/Core/config/map change or Main activation is included.
