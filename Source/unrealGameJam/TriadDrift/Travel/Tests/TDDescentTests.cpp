@@ -15,6 +15,10 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/Material.h"
 #include "Misc/ScopeExit.h"
 
 namespace TDDescentTest
@@ -233,6 +237,66 @@ bool FTDT1DescentCoverAbort::RunTest(const FString& Parameters)
 	TestEqual(TEXT("full white: open the map at once"), D->BeginCoveredTravel(ETDDestination::Verdance), 0.f, 0.001f);
 	TestEqual(TEXT("held"), D->GetCoverPhase(), ETDDescentCover::Held);
 	D->AbortCover(TEXT("test cleanup"));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1DescentHeat, "TriadDrift.Travel.Descent.HullHeatGlowOnSquadShips", TD_TEST_FLAGS)
+bool FTDT1DescentHeat::RunTest(const FString& Parameters)
+{
+	UMaterialInterface* ShipMI = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Ships/Lancer/MI_Lancer.MI_Lancer"));
+	if (!TestNotNull(TEXT("MI_Lancer (M_TD_Ship child)"), ShipMI)) { return false; }
+	float Def = -1.f;
+	if (!TestTrue(TEXT("M_TD_Ship exposes HeatGlow"), ShipMI->GetScalarParameterValue(FHashedMaterialParameterInfo(UTDDescentSubsystem::HeatGlowParam), Def))) { return false; }
+
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("descent"), D)) { return false; }
+	auto MakeShip = [&](UMaterialInterface* Mat, float Y)
+	{
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, Y, 20000.f));
+		TInlineComponentArray<UMeshComponent*> Meshes(Ship);
+		for (UMeshComponent* M : Meshes) { for (int32 i = 0; i < M->GetNumMaterials(); ++i) { M->SetMaterial(i, Mat); } }
+		return Ship;
+	};
+	auto HeatOf = [](ATDShip* Ship)
+	{
+		TInlineComponentArray<UMeshComponent*> Meshes(Ship);
+		for (UMeshComponent* M : Meshes) { for (int32 i = 0; i < M->GetNumMaterials(); ++i)
+		{
+			float V = 0.f;
+			if (UMaterialInterface* Mat = M->GetMaterial(i); Mat && Mat->GetScalarParameterValue(FHashedMaterialParameterInfo(UTDDescentSubsystem::HeatGlowParam), V)) { return V; }
+		} }
+		return -1.f;
+	};
+	ATDShip* Player = MakeShip(ShipMI, 0.f);
+	ATDShip* Wingman = MakeShip(ShipMI, 3000.f);
+	ATDShip* Plain = MakeShip(UMaterial::GetDefaultMaterial(MD_Surface), 6000.f);
+	if (!TestNotNull(TEXT("ships"), Player) || !Wingman || !Plain) { return false; }
+	TestEqual(TEXT("cold: no dynamic instance made"), ATDShip::StaticClass() ? D->ApplyHeatToShip(Player, 0.f) : 0, 0);
+
+	// The dive feeds it (never down while entering); every squad ship gets it, a material without HeatGlow is untouched.
+	D->SetEntryHeat(0.6f);
+	D->SetEntryHeat(0.3f);
+	D->Tick(1.f / 60.f);
+	TestEqual(TEXT("player ship glows with the dive"), HeatOf(Player), 0.6f, 0.02f);
+	TestEqual(TEXT("the wingman too"), HeatOf(Wingman), 0.6f, 0.02f);
+	TestEqual(TEXT("no HeatGlow parameter: left alone (no instance)"), HeatOf(Plain), -1.f);
+	TestFalse(TEXT("... still its own material"), Plain->FindComponentByClass<UMeshComponent>() && Cast<UMaterialInstanceDynamic>(Plain->FindComponentByClass<UMeshComponent>()->GetMaterial(0)) != nullptr);
+	// A ship that appears mid-entry (a switch, the planet squad) picks up the current value.
+	ATDShip* Late = MakeShip(ShipMI, 9000.f);
+	D->SetEntryHeat(1.f);
+	D->Tick(1.f / 60.f);
+	TestEqual(TEXT("a new squad ship gets the same heat"), HeatOf(Late), 1.f, 0.02f);
+	// Not fed and no cover holding it: 2 s decay.
+	for (int32 i = 0; i < 60; ++i) { D->Tick(1.f / 60.f); }
+	TestEqual(TEXT("1 s after the last feed: 0.25 s held, then 0.75 s of the 2 s decay"), HeatOf(Player), 0.625f, 0.03f);
+	for (int32 i = 0; i < 90; ++i) { D->Tick(1.f / 60.f); }
+	TestEqual(TEXT("gone after 2 s"), HeatOf(Player), 0.f, 0.001f);
+	// An abort clears it at once.
+	D->SetEntryHeat(0.8f);
+	D->Tick(1.f / 60.f);
+	D->ClearHeat();
+	TestEqual(TEXT("abort: cold now"), HeatOf(Wingman), 0.f, 0.001f);
 	return true;
 }
 
