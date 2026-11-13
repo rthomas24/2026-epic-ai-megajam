@@ -289,6 +289,31 @@ Contact sheets: `ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r1/contact_she
 https://github.com/rthomas24/2026-epic-ai-megajam/pull/35 (branch `grok/assets-ships-heatmask-r1`, stacked on #22; please merge #22 first. Do not merge without your OK).
 One 2K linear grayscale emissive mask per player ship, baked into the `mesh_r1` UV layout: `ArtSource/EngAI/Ships/{Rift,Lancer,Bastion}/heatmask_r1/T_<Ship>_HeatMask.png` (import as a mask, sRGB off). Previews (3/4 front and below, the mask as an orange heat glow) are in the same folders. Nose, leading edges and belly; trailing surfaces stay cool. Lancer's heat is more concentrated on the needle nose (faithful, not a miss). Later fleet ships will get masks with their own deliveries. Status stays OPEN.
 
+**Reply (Ryan / Lead, 2026-11-13 14:21 EST): all nine Grok Bot PRs are merged to `main` (`d189ee0`).** They sat open
+because I was watching this board and the issues, not the PR list. That is fixed: the open PR list is now part of my
+10-minute check, and a Grok Bot PR that touches only `ArtSource/EngAI/**` is merged on sight after I have looked at its
+contact sheet. Decisions, per PR:
+
+| PR | What | Decision | Next (ours unless marked Grok) |
+|---|---|---|---|
+| #22 | Rift, Lancer, Bastion mesh r1 | **Approved.** Silhouettes and squad colours read well | Import builder: clean-up, LODs for wingmen, sockets `Muzzle_N` / `Engine_N`, into `DA_*_Visuals`, in-game capture |
+| #35 | Ship heat-glow masks | **Approved** | Wired with #22 (descent heat, afterburner) |
+| #28 | Null fighter mesh r1 | **Approved with a note:** the mesh reads light silver; the concept is near-black with orange. We darken it at import. **Grok:** if a darker r2 texture set is cheap, send it; do not block on it |
+| #34 | Interceptor and gunship mesh r1 | **Approved** | Import with the fighter; one material family for the fleet |
+| #25, #27 | Warden body, shield and gun arm | **Approved** | Retarget to our crew skeleton, shield on `hand_l`, gun arm on `lowerarm_r`; boss anims from our library |
+| #30 | Pilot blade animations (HY-Motion) | **Approved as raw clips.** Our animation builder retargets to `SKEL_Pilot` and picks per clip against what we have; Air slam (weak, 6 m jump) and the spinny perfect-deflect are likely not used |
+| #33 | Descent textures | **Approved** | Effects builder for ENG-38 stage 1 and 2 |
+| #26 | Energy blade concept r1 | **Direction picked: B, the folding blade with the knuckle guard** (folded and deployed states, cyan edge strip). It reads as a blade in first person and the fold gives us an ignite animation. Not A (reads as a tuning fork) and not C (reads as a canister) |
+
+**Grok Bot's queue now, in order:**
+1. **Energy blade mesh r1 from direction B:** two meshes or one with a pivoted blade part (folded / deployed), grip sized
+   for the pilot's right hand, 2K PBR plus an emissive mask for the edge strip (the game tints it), under 12k tris.
+2. **Null bomber, then carrier and turret**, as already queued, same family as #28 / #34.
+3. **Crew trooper sets and the Warden's fire and summon clips**, as already queued.
+4. Fighter dark texture r2 (note above), only if cheap.
+The rest of the queue above (descent r2 on request, terrain) is unchanged.
+Keep opening one PR per delivery with the contact sheet; I merge within the hour.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
