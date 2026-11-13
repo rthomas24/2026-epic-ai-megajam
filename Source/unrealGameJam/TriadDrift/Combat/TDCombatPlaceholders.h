@@ -48,6 +48,26 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 * they grow at most OnFootMaxGrowth with distance and get no incoming boost.
 	 */
 	static FTDStreakLook ComputeOnFootStreak(const FTDProjectileSpec& Spec);
+
+	/**
+	 * Squad shots in space ("bright weapon trails"): seen from the chase camera a shot flies away end-on, so a short
+	 * streak reads as a dot. Light shots become long tracers, SquadTracerSeconds of flight (up to MaxSquadTracerCm), that
+	 * grow out of the muzzle as they fly (never reaching back past the ship or the camera) and carry a near-white tip so
+	 * they never vanish against a sky of their own colour. The squad's heavy shots keep their length with a smaller
+	 * head (stacked 1.8x heads made a pale ball over the reticle).
+	 */
+	static FTDStreakLook ComputeSquadStreak(const FTDProjectileSpec& Spec);
+	static constexpr float SquadTracerSeconds = 0.04f;
+	static constexpr float MaxSquadTracerCm = 2500.f;
+	/** The part of a streak drawn so far: the distance flown, between the thickness and the full length. */
+	static float VisibleLength(const FTDStreakLook& Look, float FlownCm) { return FMath::Clamp(FlownCm, Look.Thickness, FMath::Max(Look.Length, Look.Thickness)); }
+	/** The near-white tracer tip: a fifth of the visible streak, 1.5x the thickness to 400 cm. */
+	static float TipLength(const FTDStreakLook& Look, float Visible) { return FMath::Clamp(Visible * 0.2f, Look.Thickness * 1.5f, 400.f); }
+	static constexpr float TipWhite = 0.45f;
+	static constexpr float TipThickness = 0.85f;
+
+	/** Muzzle, impact and explosion flashes keep at least this radius per cm of camera distance (~20 px at 300 m, 1080p). */
+	static constexpr float MinFlashRadiusPerCameraDistance = 0.007f;
 	static constexpr float MinOnFootStreakPixels = 5.f;
 	/** Live on Cinder, glow 3 tonemapped to (255, 231, 225), a pale pink-white dot; the lit floor is about 0.18. 1.2 stays
 	 *  saturated red-orange and still stands well clear of the ground. */

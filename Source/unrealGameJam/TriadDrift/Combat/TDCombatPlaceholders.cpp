@@ -55,6 +55,24 @@ FTDStreakLook FTDCombatPlaceholders::ComputeOnFootStreak(const FTDProjectileSpec
 	return Look;
 }
 
+FTDStreakLook FTDCombatPlaceholders::ComputeSquadStreak(const FTDProjectileSpec& Spec)
+{
+	FTDStreakLook Look = ComputeStreak(Spec);
+	if (!Look.bStreak)
+	{
+		return Look;
+	}
+	if (Look.bHeavy)
+	{
+		Look.HeadDiameter = Look.bHead ? Look.Thickness * 1.15f : 0.f;
+	}
+	else
+	{
+		Look.Length = FMath::Clamp(Spec.Speed * SquadTracerSeconds, Look.Length, MaxSquadTracerCm);
+	}
+	return Look;
+}
+
 float FTDCombatPlaceholders::OnFootDistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera)
 {
 	if (Look.Thickness <= 0.f)
@@ -259,14 +277,15 @@ void ATDCombatFlash::Apply(float Alpha)
 		// Swells from 60% to 120% of its radius in the first 30%, then collapses as the glow falls off. The glow material
 		// is opaque unlit, so a fading colour reads darker, not clearer: a shell that kept its size turned into a dark
 		// disc near the camera (T3's death playtest). Collapsing, the dim end is small.
-		float Size = Alpha < 0.3f ? Radius * (0.6f + 2.f * Alpha) : FMath::Max(Radius * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
-		// Never fills the frame: at most MaxRadiusPerCameraDistance of its distance to the camera (the Lead's frame-10
-		// white-out; T3's death shell peaks at 0.24, under the cap).
+		// Far away a flash keeps a readable size (hit sparks were ~10 px at 300 m); near the camera it never fills the frame
+		// (at most MaxRadiusPerCameraDistance of its distance: the Lead's frame-10 white-out; T3's death shell peaks at 0.24).
 		const UWorld* World = GetWorld();
 		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
-		if (PC && PC->PlayerCameraManager)
+		const float Distance = (PC && PC->PlayerCameraManager) ? FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation()) : -1.f;
+		const float R = Distance > 0.f ? FMath::Max(Radius, Distance * FTDCombatPlaceholders::MinFlashRadiusPerCameraDistance) : Radius;
+		float Size = Alpha < 0.3f ? R * (0.6f + 2.f * Alpha) : FMath::Max(R * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		if (Distance > 0.f)
 		{
-			const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
 			Size = FMath::Min(Size, FMath::Max(Distance * MaxRadiusPerCameraDistance, 1.f));
 		}
 		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across

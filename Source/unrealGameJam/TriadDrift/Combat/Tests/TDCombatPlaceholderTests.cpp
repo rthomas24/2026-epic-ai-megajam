@@ -92,16 +92,29 @@ bool FTDCombatPlaceholderStreakOnProjectile::RunTest(const FString& Parameters)
 		{
 			return;
 		}
-		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
+		const FTDStreakLook Look = Team == ETDTeam::Player ? FTDCombatPlaceholders::ComputeSquadStreak(Spec) : FTDCombatPlaceholders::ComputeStreak(Spec);
 		const UStaticMeshComponent* Mesh = P->GetPlaceholderMesh();
 		TestTrue(Id.ToString() + TEXT(" streak visible"), Mesh && Mesh->IsVisible());
 		if (Mesh && Look.bStreak)
 		{
-			TestTrue(Id.ToString() + TEXT(" streak length matches"), FMath::IsNearlyEqual(Mesh->GetRelativeScale3D().X * 100.f, Look.Length, 1.f));
+			// At launch nothing is drawn behind the muzzle: the streak grows with the distance flown.
+			TestTrue(FString::Printf(TEXT("%s streak starts at the muzzle (%.0f cm)"), *Id.ToString(), Mesh->GetRelativeScale3D().X * 100.f),
+				Mesh->GetRelativeScale3D().X * 100.f <= Look.Thickness + 1.f);
+			for (int32 Frame = 0; Frame < 12; ++Frame)
+			{
+				W.Tick(1.f / 60.f);
+			}
+			if (P->IsActive())
+			{
+				TestTrue(FString::Printf(TEXT("%s streak grows to its length (%.0f of %.0f cm)"), *Id.ToString(), Mesh->GetRelativeScale3D().X * 100.f, Look.Length),
+					FMath::IsNearlyEqual(Mesh->GetRelativeScale3D().X * 100.f, Look.Length, 1.f));
+			}
 			TestTrue(Id.ToString() + TEXT(" streak trails behind the shot"), Mesh->GetRelativeLocation().X < 0.f);
 		}
 		const UStaticMeshComponent* Head = P->GetPlaceholderHead();
-		TestEqual(Id.ToString() + TEXT(" head only on missiles"), Head && Head->IsVisible(), Look.bHead);
+		const bool bTip = Team == ETDTeam::Player && Look.bStreak && !Look.bHead;
+		TestEqual(Id.ToString() + TEXT(" head on missiles, tracer tip on squad light shots"), Head && Head->IsVisible(), Look.bHead || bTip);
+		TestEqual(Id.ToString() + TEXT(" tracer tip"), P->HasTracerTip(), bTip);
 		P->Kill(false);
 		TestFalse(Id.ToString() + TEXT(" streak hidden when pooled"), Mesh && Mesh->IsVisible());
 		TestFalse(Id.ToString() + TEXT(" head hidden when pooled"), Head && Head->IsVisible());
@@ -126,7 +139,10 @@ bool FTDCombatPlaceholderStreakOnProjectile::RunTest(const FString& Parameters)
 	FTDProjectileSpec LaserSpec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
 	LaserSpec.FX = nullptr;
 	ATDProjectile* L = ATDProjectile::Spawn(W.GetWorld(), LaserSpec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Player);
-	TestTrue(TEXT("reused actor: no stale missile head"), L && L == M && !L->GetPlaceholderHead()->IsVisible());
+	// The squad laser draws its own tracer tip (as thick as its streak), never the missile's big round head.
+	const float TipThick = FTDCombatPlaceholders::ComputeSquadStreak(LaserSpec).Thickness * FTDCombatPlaceholders::TipThickness;
+	TestTrue(TEXT("reused actor: no stale missile head"), L && L == M && L->HasTracerTip()
+		&& FMath::IsNearlyEqual(L->GetPlaceholderHead()->GetRelativeScale3D().Y * 100.f, TipThick, 1.f));
 	return true;
 }
 
@@ -580,6 +596,71 @@ bool FTDCombatPlaceholderFlashCap::RunTest(const FString& Parameters)
 	}
 	TestTrue(FString::Printf(TEXT("near flash capped: %.0f cm radius at 250 cm (<= 76)"), NearMax), NearMax > 0.f && NearMax <= 250.f * ATDCombatFlash::MaxRadiusPerCameraDistance + 1.f);
 	TestTrue(FString::Printf(TEXT("distant flash keeps its size: %.0f cm (> 600)"), FarMax), FarMax > 600.f);
+
+	// A small hit spark 300 m away keeps a readable size (~20 px at 1080p): radius >= 0.007 x distance at its peak.
+	ATDCombatFlash* Spark = Projectiles->PlayPlaceholderFlash(Camera + FVector(30000.f, 0.f, 0.f), 140.f, FLinearColor::White, 0.14f);
+	float SparkMax = 0.f;
+	for (int32 Frame = 0; Frame < 12; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		if (Spark && Spark->IsPlaying())
+		{
+			SparkMax = FMath::Max(SparkMax, Spark->GetActorScale3D().X * 50.f);
+		}
+	}
+	TestTrue(FString::Printf(TEXT("300 m spark peaks at %.0f cm (>= 210)"), SparkMax), SparkMax >= 30000.f * FTDCombatPlaceholders::MinFlashRadiusPerCameraDistance - 1.f);
+	return true;
+}
+
+// Squad tracers (the Lead's "bright weapon trails"): light squad shots are long tracers with a near-white tip that reads
+// against a sky of their own colour; heavy squad heads stay small; enemy shots keep their look.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderSquadTracers, "TriadDrift.Combat.Placeholder.SquadTracersWithWhiteTips", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderSquadTracers::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	for (const FName Id : TDCombatPlaceholderTest::PlayerWeaponIds)
+	{
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(Id).Projectile;
+		Spec.FX = nullptr;
+		const FTDStreakLook Space = FTDCombatPlaceholders::ComputeStreak(Spec);
+		const FTDStreakLook Squad = FTDCombatPlaceholders::ComputeSquadStreak(Spec);
+		if (!Space.bStreak)
+		{
+			continue;
+		}
+		if (Space.bHeavy)
+		{
+			TestTrue(Id.ToString() + TEXT(": heavy squad head no bigger than 1.15x thickness"), Squad.HeadDiameter <= Squad.Thickness * 1.15f + 0.1f);
+			continue;
+		}
+		TestTrue(FString::Printf(TEXT("%s: squad tracer %.0f cm, longer than the %.0f cm streak"), *Id.ToString(), Squad.Length, Space.Length),
+			Squad.Length >= Space.Length && Squad.Length <= FTDCombatPlaceholders::MaxSquadTracerCm);
+		ATDProjectile* P = ATDProjectile::Spawn(W.GetWorld(), Spec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Player);
+		if (!P)
+		{
+			continue;
+		}
+		const UMaterialInstanceDynamic* TipMID = Cast<UMaterialInstanceDynamic>(P->GetPlaceholderHead()->GetMaterial(0));
+		const UMaterialInstanceDynamic* BodyMID = Cast<UMaterialInstanceDynamic>(P->GetPlaceholderMesh()->GetMaterial(0));
+		FLinearColor Tip = FLinearColor::Black, Body = FLinearColor::Black;
+		if (TipMID && BodyMID)
+		{
+			TipMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Tip);
+			BodyMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Body);
+		}
+		// Whiter: the weakest channel lifted towards the strongest.
+		auto Whiteness = [](const FLinearColor& C) { const float Max = FMath::Max3(C.R, C.G, C.B); return Max > 0.f ? FMath::Min3(C.R, C.G, C.B) / Max : 0.f; };
+		TestTrue(FString::Printf(TEXT("%s: tip whiter than the body (%.2f vs %.2f)"), *Id.ToString(), Whiteness(Tip), Whiteness(Body)),
+			Whiteness(Tip) >= Whiteness(Body) + 0.2f);
+		TestTrue(Id.ToString() + TEXT(": tip visible"), P->GetPlaceholderHead()->IsVisible());
+		P->Kill(false);
+	}
+	// Enemy shots: no tracer tip, no squad length.
+	FTDProjectileSpec Enemy = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPulseGuns).Projectile;
+	Enemy.FX = nullptr;
+	ATDProjectile* E = ATDProjectile::Spawn(W.GetWorld(), Enemy, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Enemy);
+	TestTrue(TEXT("enemy shot: no tracer tip"), E && !E->HasTracerTip());
+	TestTrue(TEXT("enemy shot: its own streak length"), E && FMath::IsNearlyEqual(E->GetStreakLook().Length, FTDCombatPlaceholders::ComputeStreak(Enemy).Length, 1.f));
 	return true;
 }
 

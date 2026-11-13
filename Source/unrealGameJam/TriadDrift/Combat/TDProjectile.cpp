@@ -236,8 +236,11 @@ void ATDProjectile::UpdatePlaceholderLook()
 		const FLinearColor Color = FTDCombatPlaceholders::ProjectileColor(Spec, Team, Shooter.Get(), DeflectCount > 0);
 		LookColor = Color;
 		bOnFootLook = TDProjIsOnFootShot(GetWorld(), Shooter.Get());
-		const FTDStreakLook Look = bOnFootLook ? FTDCombatPlaceholders::ComputeOnFootStreak(Spec) : FTDCombatPlaceholders::ComputeStreak(Spec);
+		const FTDStreakLook Look = bOnFootLook ? FTDCombatPlaceholders::ComputeOnFootStreak(Spec)
+			: Team == ETDTeam::Player ? FTDCombatPlaceholders::ComputeSquadStreak(Spec) : FTDCombatPlaceholders::ComputeStreak(Spec);
 		StreakLook = Look;
+		bTracerTip = !bOnFootLook && Team == ETDTeam::Player && Look.bStreak && !Look.bHead;
+		AppliedLength = 0.f;
 		AppliedGrowth = 1.f;
 		bAppliedIncoming = false;
 		if (!GlowMaterial)
@@ -262,15 +265,14 @@ void ATDProjectile::UpdatePlaceholderLook()
 		}
 		if (Look.bStreak)
 		{
-			PlaceholderMesh->SetRelativeScale3D(FVector(Look.Length, Look.Thickness, Look.Thickness) / 100.f);
-			PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * Look.Length + 0.5f * Look.Thickness, 0.f, 0.f));
+			ApplyStreakTransform(1.f, false);
 		}
 		else
 		{
 			PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
 			PlaceholderMesh->SetRelativeLocation(FVector::ZeroVector);
 		}
-		if (Look.bHead || Team == ETDTeam::Enemy)
+		if (Look.bHead || Team == ETDTeam::Enemy || bTracerTip)
 		{
 			if (!HeadMID && Base)
 			{
@@ -281,13 +283,20 @@ void ATDProjectile::UpdatePlaceholderLook()
 			{
 				// Hot core: the team colour pushed towards white and brighter than the trail.
 				// Stays in squad / enemy colour (playtest: 0.45 white read as a white ball); incoming enemy fire burns hotter.
-				const float HeadGlow = bOnFootLook ? 1.f : Team == ETDTeam::Enemy ? 1.3f : 0.8f;
+				// The squad's heavy heads glow softer (stacked over the reticle they bloomed into a pale ball); the squad
+				// tracer tip is near-white so the shot never vanishes against a sky of its own colour.
+				const float HeadGlow = bOnFootLook ? 1.f : Team == ETDTeam::Enemy ? 1.3f : bTracerTip ? 0.9f : 0.6f;
 				// On foot the head stays pure team colour: any white tips red-orange to pink at first-person range.
-				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, bOnFootLook ? 0.f : 0.15f) * (GlowMaterial ? GlowScale * HeadGlow : 1.f);
+				const float White = bOnFootLook ? 0.f : bTracerTip ? FTDCombatPlaceholders::TipWhite : 0.15f;
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, White) * (GlowMaterial ? GlowScale * HeadGlow : 1.f);
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
 			}
-			PlaceholderHead->SetRelativeScale3D(FVector(Look.HeadDiameter / 100.f));
+			if (!bTracerTip)
+			{
+				PlaceholderHead->SetRelativeScale3D(FVector(Look.HeadDiameter / 100.f));
+				PlaceholderHead->SetRelativeLocation(FVector::ZeroVector);
+			}
 		}
 	}
 
@@ -315,7 +324,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 
 	// With a tracer and no art mesh, the trail is the look; otherwise show the mesh. The head is placeholder-only.
 	PlaceholderMesh->SetVisibility(ArtMesh != nullptr || Tracer == nullptr);
-	PlaceholderHead->SetVisibility(!ArtMesh && !Tracer && StreakLook.bHead);
+	PlaceholderHead->SetVisibility(!ArtMesh && !Tracer && (StreakLook.bHead || bTracerTip));
 }
 
 void ATDProjectile::Deactivate()
@@ -497,33 +506,55 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	{
 		return;
 	}
+	float Grow = AppliedGrowth;
+	bool bIncoming = bAppliedIncoming;
 	const UWorld* World = GetWorld();
 	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
-	if (!PC || !PC->PlayerCameraManager)
+	if (PC && PC->PlayerCameraManager)
 	{
-		return;
+		const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+		const float Distance = FVector::Dist(Camera, GetActorLocation());
+		bIncoming = !bOnFootLook && Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
+		Grow = bOnFootLook ? FTDCombatPlaceholders::OnFootDistanceGrowth(StreakLook, Distance) : bIncoming
+			? FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance, FTDCombatPlaceholders::MinIncomingStreakPixels)
+			: FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
 	}
-	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
-	const float Distance = FVector::Dist(Camera, GetActorLocation());
-	const bool bIncoming = !bOnFootLook && Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
-	const float Grow = bOnFootLook ? FTDCombatPlaceholders::OnFootDistanceGrowth(StreakLook, Distance) : bIncoming
-		? FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance, FTDCombatPlaceholders::MinIncomingStreakPixels)
-		: FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
-	if (bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
+	// A streak still growing out of the muzzle is updated every tick; after that only visible changes are.
+	const bool bGrowing = AppliedLength < StreakLook.Length - 1.f;
+	if (!bGrowing && bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
 	{
 		return; // cheap at 150+ live shots: no transform update for a change nobody can see
 	}
+	ApplyStreakTransform(Grow, bIncoming);
+}
+
+void ATDProjectile::ApplyStreakTransform(float Grow, bool bIncoming)
+{
 	AppliedGrowth = Grow;
 	bAppliedIncoming = bIncoming;
 	const float Thickness = StreakLook.Thickness * Grow;
-	PlaceholderMesh->SetRelativeScale3D(FVector(StreakLook.Length, Thickness, Thickness) / 100.f);
-	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * StreakLook.Length + 0.5f * Thickness, 0.f, 0.f));
+	// Only the distance flown is drawn: a long tracer never reaches back through the ship or past the camera.
+	const float Flown = Age * FMath::Max(Velocity.Size(), Spec.Speed);
+	AppliedLength = FTDCombatPlaceholders::VisibleLength(StreakLook, Flown);
+	const float Length = FMath::Max(AppliedLength, Thickness);
+	PlaceholderMesh->SetRelativeScale3D(FVector(Length, Thickness, Thickness) / 100.f);
+	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * Length + 0.5f * Thickness, 0.f, 0.f));
+	if (bTracerTip)
+	{
+		const float TipThick = Thickness * FTDCombatPlaceholders::TipThickness;
+		const float Tip = FMath::Max(FTDCombatPlaceholders::TipLength(StreakLook, AppliedLength) * Grow, TipThick);
+		PlaceholderHead->SetVisibility(HeadMID != nullptr);
+		PlaceholderHead->SetRelativeScale3D(FVector(Tip, TipThick, TipThick) / 100.f);
+		PlaceholderHead->SetRelativeLocation(FVector(-0.5f * Tip + 0.5f * TipThick, 0.f, 0.f));
+		return;
+	}
 	const bool bShowHead = StreakLook.bHead || bIncoming;
 	PlaceholderHead->SetVisibility(bShowHead && HeadMID != nullptr);
 	if (bShowHead)
 	{
 		const float Head = FMath::Max(StreakLook.HeadDiameter, StreakLook.Thickness * (bIncoming ? FTDCombatPlaceholders::IncomingHeadScale : 0.f));
 		PlaceholderHead->SetRelativeScale3D(FVector(Head * Grow / 100.f));
+		PlaceholderHead->SetRelativeLocation(FVector::ZeroVector);
 	}
 }
 
