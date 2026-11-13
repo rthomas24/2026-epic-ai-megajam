@@ -3,6 +3,8 @@
 #include "TriadDrift/Powers/TDAbilityPowers.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -44,8 +46,18 @@ void ATDGravityWell::Launch(AActor* InOwner, ETDTeam InTeam, const FVector& InDi
 	{
 		// Shipping-safe placeholder: a glowing violet core (the ring appears when the vortex opens). 1.8 m at glow 1.5: live, the
 		// old 6 m core at glow 6, launched 4 m ahead of the ship, covered Bastion as a pale lilac ball from the chase camera.
-		FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Sphere, FVector(1.8f), FRotator::ZeroRotator,
-			FLinearColor(0.55f, 0.2f, 1.f), 1.5f);
+		UStaticMeshComponent* Core = FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Sphere, FVector(1.8f),
+			FRotator::ZeroRotator, FLinearColor(0.55f, 0.2f, 1.f), 1.5f);
+		// The explosions' soft additive glow when the project has it: a violet glow brightest at the centre, never a flat
+		// disc (live, the opaque core passed the chase camera as a flat lilac disc).
+		if (UMaterialInterface* Soft = Core ? ATDCombatFlash::GetFlashGlowMaterial() : nullptr)
+		{
+			UMaterialInstanceDynamic* SoftMID = UMaterialInstanceDynamic::Create(Soft, Core);
+			SoftMID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.55f, 0.2f, 1.f) * 2.5f);
+			SoftMID->SetScalarParameterValue(TEXT("Opacity"), 1.f);
+			SoftMID->SetScalarParameterValue(TEXT("EdgePower"), 1.8f);
+			Core->SetMaterial(0, SoftMID);
+		}
 	}
 	if (OrbSeconds <= 0.f)
 	{

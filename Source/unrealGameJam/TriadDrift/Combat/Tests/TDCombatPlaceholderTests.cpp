@@ -782,4 +782,52 @@ bool FTDCombatPlaceholderIncomingNearCamera::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Shield hits and hull hits read differently at a glance (the Lead's combat-feel pass): a cyan-blue puff on a shield, a
+// white-hot flash cooling to orange plus sparks on bare hull.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderShieldVsHull, "TriadDrift.Combat.Placeholder.ShieldHitVsHullHit", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderShieldVsHull::RunTest(const FString& Parameters)
+{
+	auto ShootAt = [this](float Shield, int32& OutStyled, int32& OutSparks, FLinearColor& OutColor)
+	{
+		FTDTestWorld W;
+		AActor* Target = TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(1500.f, 0.f, 1000.f), FVector(100.f), 1000.f, Shield);
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
+		Spec.FX = nullptr;
+		ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Player, nullptr, FVector::ZeroVector, 1.f, false);
+		OutStyled = OutSparks = 0;
+		for (int32 Frame = 0; Frame < 60 && OutStyled == 0; ++Frame)
+		{
+			W.Tick(1.f / 120.f);
+			for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+			{
+				if (!It->IsPlaying() || !It->IsStyled())
+				{
+					continue;
+				}
+				if (It->GetActorRotation() == FRotator::ZeroRotator)
+				{
+					++OutStyled;
+					OutColor = It->GetLastColor();
+				}
+				else
+				{
+					++OutSparks;
+				}
+			}
+		}
+		TestTrue(TEXT("the laser hit"), Target && UTDStatics::GetHealth(Target)->GetHull() + UTDStatics::GetHealth(Target)->GetShield() < 1000.f + Shield);
+	};
+	int32 Styled = 0, Sparks = 0;
+	FLinearColor Color;
+	ShootAt(500.f, Styled, Sparks, Color);
+	TestEqual(TEXT("shield hit: one puff"), Styled, 1);
+	TestTrue(FString::Printf(TEXT("shield hit: cyan-blue (%s)"), *Color.ToString()), Color.B > Color.R);
+	TestEqual(TEXT("shield hit: no hull sparks"), Sparks, 0);
+	ShootAt(0.f, Styled, Sparks, Color);
+	TestEqual(TEXT("hull hit: one hot flash"), Styled, 1);
+	TestTrue(FString::Printf(TEXT("hull hit: white-hot to orange, not blue (%s)"), *Color.ToString()), Color.R >= Color.B);
+	TestEqual(TEXT("hull hit: three sparks"), Sparks, 3);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

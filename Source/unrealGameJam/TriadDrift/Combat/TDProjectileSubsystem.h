@@ -58,6 +58,14 @@ public:
 	 */
 	int32 PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount = 8);
 
+	/**
+	 * Placeholder hit on something with health, telling shield from hull at a glance (the art path already picks
+	 * ImpactShield / ImpactHull cues): a shield hit is a soft cyan-blue puff 1.4x the radius; a hull hit is a small
+	 * white-hot flash cooling to orange plus a few short orange sparks thrown off along Normal. Returns flashes used.
+	 */
+	int32 PlayPlaceholderHit(const FVector& Location, float Radius, bool bShield, const FVector& Normal);
+	static FLinearColor ShieldHitColor() { return FLinearColor(0.3f, 0.75f, 1.f); }
+
 	/** Explosions this radius and up get 2 staggered secondary pops, MultiPopRadius and up 3. */
 	static constexpr float PopRadius = 500.f;
 	static constexpr float MultiPopRadius = 1200.f;
