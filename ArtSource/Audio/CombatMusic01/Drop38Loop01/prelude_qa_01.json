@@ -1,0 +1,34 @@
+{
+ "category": "music",
+ "mix": false,
+ "files": [
+  {
+   "file": "Saved/AudioMusic/PrototypeV1/CombatMusic01/Prelude38_01/MUS_Tutorial_EtherealPulse_Prelude38_01.wav",
+   "codec": "pcm_s16le",
+   "sample_rate": 48000,
+   "channels": 2,
+   "bits": 16,
+   "duration": 38.0,
+   "loudness_lufs": -18.7,
+   "loudness_kind": "integrated",
+   "integrated_lufs": -18.7,
+   "ungated_lufs": null,
+   "lra_lu": 6.1,
+   "true_peak_dbtp": -5.8,
+   "sample_peak_dbfs": -5.905525,
+   "rms_dbfs": -20.616001,
+   "lead_silence_s": 0.0989,
+   "tail_silence_s": 0.0,
+   "dc_offset": 2.9e-05,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

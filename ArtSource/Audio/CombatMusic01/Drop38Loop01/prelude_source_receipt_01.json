@@ -1,0 +1,27 @@
+{
+  "stage": "Source-only prelude, native import/binding and real control synchronization pending",
+  "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\Prelude38_01\\MUS_Tutorial_EtherealPulse_Prelude38_01.wav",
+  "sha256": "7359b155c01f49be385db974c388063fcc86f1130396deb777b4aa75c9d68d16",
+  "duration_s": 38,
+  "frames": 1824000,
+  "rate": 48000,
+  "channels": 2,
+  "bits": 16,
+  "source_range_s": [
+    0,
+    38
+  ],
+  "padding_s": 0,
+  "time_stretch": false,
+  "extra_normalization": false,
+  "same_source_gain_as_loop": true,
+  "end_handling": "No tail fade: final frame immediately precedes loop38s first frame; intended continuous handoff, not standalone ending",
+  "first_loop_sample_original_frame": 1824000,
+  "runtime_requirements": [
+    "Real control event at beat38",
+    "Native class and volume must match57sloop",
+    "No fixed49scinematic/11sdelay assumption",
+    "Earlyskip must reach beatdrop without duplicated or truncated music"
+  ],
+  "source_preserved": true
+}
