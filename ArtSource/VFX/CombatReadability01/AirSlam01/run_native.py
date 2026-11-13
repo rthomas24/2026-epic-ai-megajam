@@ -92,7 +92,7 @@ def main():
         '-EnablePlugins=PythonScriptPlugin,EditorScriptingUtilities,NiagaraToolsets,AllToolsets',
         '-AllowCommandletRendering', '-d3d12', '-sm6', '-DDC=AirSlamAuthoring', '-nosound',
         '-NoSourceControl', '-NoLiveCoding', '-ModelContextProtocolPort=8024',
-        '-ExitTimeout=' + str(bound), '-NoProgressTimeout=120', '-HangTimeout=60',
+        '-ExitTimeout=' + str(bound), '-NoProgressTimeout=300', '-HangTimeout=60',
         '-ini:Engine:[DevOptions.Shaders]:bAllowCompilingThroughWorkers=True',
         '-ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreads=15',
         '-ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreadsDuringGame=15',

@@ -41,3 +41,10 @@ Once the complete system is technically verified, publish and notify the team
 under Nick's standing authorization; no further permission wait is needed.
 Actual game capture must follow binding in a matching runtime. Hero remains
 paused and Combat/Verdance unchanged. No GPU timing or game acceptance yet.
+
+First native attempt materials_1794592270815482300 exited125/no_progress
+during cold engine material/shader startup, before Python ran. It created no
+native output and changed no protected input; minimumfree3.460GiB. One shader
+worker was active. The source progress limit is now300s to accommodate this
+startup, inside the unchanged420s engine/480s outer material-stage bounds.
+This is not a successful material compile; failed evidence and cache remain.
