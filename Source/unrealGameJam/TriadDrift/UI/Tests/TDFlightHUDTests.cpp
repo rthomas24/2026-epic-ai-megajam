@@ -18,11 +18,11 @@
 namespace TDFlightHUDTests
 {
 	/** Sets a console variable for a test's scope and restores it. */
-	struct FScopedCVar
+	struct FTDFlightScopedCVar
 	{
 		IConsoleVariable* Var = nullptr;
 		int32 Previous = -1;
-		FScopedCVar(const TCHAR* Name, int32 Value)
+		FTDFlightScopedCVar(const TCHAR* Name, int32 Value)
 		{
 			Var = IConsoleManager::Get().FindConsoleVariable(Name);
 			if (Var)
@@ -38,7 +38,7 @@ namespace TDFlightHUDTests
 				Var->Set(Value, ECVF_SetByCode);
 			}
 		}
-		~FScopedCVar()
+		~FTDFlightScopedCVar()
 		{
 			if (Var)
 			{
@@ -48,12 +48,12 @@ namespace TDFlightHUDTests
 	};
 
 	/** A widget reading a test source, keyboard glyphs unless told otherwise. */
-	struct FHUD
+	struct FTDFlightHUDFixture
 	{
 		FTDTestWorld W;
 		ATDFlightHUDTestSource* Src = nullptr;
 		UTDFlightHUDWidget* HUD = nullptr;
-		FHUD()
+		FTDFlightHUDFixture()
 		{
 			Src = W.Spawn<ATDFlightHUDTestSource>();
 			Src->SetSquad(ETDShipId::Lancer);
@@ -75,8 +75,8 @@ using namespace TDFlightHUDTests;
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDChoice, "TriadDrift.UI.FlightHUD.ChoiceSetting", TD_TEST_FLAGS)
 bool FTDFlightHUDChoice::RunTest(const FString& Parameters)
 {
-	FScopedCVar Space(TEXT("TD.UI.SpaceHUD"), -1);
-	FScopedCVar Native(TEXT("TD.UI.NativeHUD"), -1);
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), -1);
+	FTDFlightScopedCVar Native(TEXT("TD.UI.NativeHUD"), -1);
 	UTDUIHostSettings* Settings = GetMutableDefault<UTDUIHostSettings>();
 	const ETDSpaceHUDChoice SavedChoice = Settings->SpaceHUD;
 	const bool bSavedNative = Settings->bUseNativeSpaceHUD;
@@ -110,7 +110,7 @@ bool FTDFlightHUDChoice::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHost, "TriadDrift.UI.FlightHUD.HostShowsTheChosenHUD", TD_TEST_FLAGS)
 bool FTDFlightHUDHost::RunTest(const FString& Parameters)
 {
-	FScopedCVar Space(TEXT("TD.UI.SpaceHUD"), 2);
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), 2);
 	FTDTestWorld W;
 	APlayerController* PC = W.SpawnLocalPlayerController();
 	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
@@ -154,7 +154,7 @@ bool FTDFlightHUDHost::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCluster, "TriadDrift.UI.FlightHUD.ReticleCluster", TD_TEST_FLAGS)
 bool FTDFlightHUDCluster::RunTest(const FString& Parameters)
 {
-	FHUD F;
+	FTDFlightHUDFixture F;
 	F.HUD->Sample(0.f);
 	TestEqual(TEXT("flown = Lancer"), F.V().Flown, ETDShipId::Lancer);
 	TestEqual(TEXT("full hull"), F.V().Hull, 1.f);
@@ -191,7 +191,7 @@ bool FTDFlightHUDCluster::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDPip, "TriadDrift.UI.FlightHUD.PowerPip", TD_TEST_FLAGS)
 bool FTDFlightHUDPip::RunTest(const FString& Parameters)
 {
-	FHUD F;
+	FTDFlightHUDFixture F;
 	F.HUD->Sample(0.f);
 	TestTrue(TEXT("ready at start"), F.V().bPowerReady);
 	TestEqual(TEXT("no pulse at start"), F.V().PowerPulse, 0.f);
@@ -225,7 +225,7 @@ bool FTDFlightHUDPip::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDStrip, "TriadDrift.UI.FlightHUD.SquadStrip", TD_TEST_FLAGS)
 bool FTDFlightHUDStrip::RunTest(const FString& Parameters)
 {
-	FHUD F;
+	FTDFlightHUDFixture F;
 	F.Src->Card(ETDShipId::Rift).Health01 = .3f;			// wingman in trouble
 	F.Src->Card(ETDShipId::Rift).PowerCooldown01 = 1.f;		// its power is ready
 	F.Src->Card(ETDShipId::Bastion).bAlive = false;			// down
@@ -274,7 +274,7 @@ bool FTDFlightHUDStrip::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDObjective, "TriadDrift.UI.FlightHUD.ObjectiveLine", TD_TEST_FLAGS)
 bool FTDFlightHUDObjective::RunTest(const FString& Parameters)
 {
-	FHUD F;
+	FTDFlightHUDFixture F;
 	F.HUD->Sample(0.f);
 	TestTrue(TEXT("no objective: empty"), F.V().Objective.IsEmpty());
 	TestEqual(TEXT("no objective: collapsed"), F.V().ObjectiveExpand, 0.f);
