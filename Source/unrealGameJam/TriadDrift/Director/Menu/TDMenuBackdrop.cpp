@@ -216,6 +216,52 @@ void ATDMenuBackdrop::BuildVictory(UWorld* World)
 	if (Dominion)
 	{
 		Spawned.Add(Dominion);
+		// A wreck, not the ship the player just destroyed intact (Lead): its parts drift apart and tumble from the first
+		// frame, and dark debris scatters out of the hull.
+		FRandomStream R(41);
+		TInlineComponentArray<UStaticMeshComponent*> Parts(Dominion);
+		UMaterialInterface* Armour = nullptr;
+		for (UStaticMeshComponent* C : Parts)
+		{
+			if (!C)
+			{
+				continue;
+			}
+			Armour = Armour ? Armour : C->GetMaterial(0);
+			const bool bHull = C->GetName().Contains(TEXT("Hull"));
+			FWreckPiece W;
+			W.Component = C;
+			W.Start = C->GetRelativeTransform();
+			W.Drift = bHull ? FVector::ZeroVector : R.GetUnitVector() * DominionRadius * R.FRandRange(0.02f, 0.05f);
+			W.Spin = bHull ? FRotator::ZeroRotator : FRotator(R.FRandRange(-4.f, 4.f), R.FRandRange(-4.f, 4.f), R.FRandRange(-6.f, 6.f));
+			W.Head = bHull ? 0.f : 8.f; // seconds of breakup already behind it at the first frame
+			Wreck.Add(W);
+		}
+		if (UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))
+		{
+			for (int32 i = 0; i < 14; ++i)
+			{
+				UStaticMeshComponent* D = NewObject<UStaticMeshComponent>(Dominion, *FString::Printf(TEXT("Debris%d"), i));
+				D->SetupAttachment(Dominion->GetRootComponent());
+				D->SetStaticMesh(Cube);
+				D->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				D->SetCastShadow(false);
+				if (Armour)
+				{
+					D->SetMaterial(0, Armour);
+				}
+				D->RegisterComponent();
+				const float Size = DominionRadius * R.FRandRange(0.004f, 0.02f);
+				FWreckPiece W;
+				W.Component = D;
+				W.Start = FTransform(R.GetUnitVector().Rotation(), R.GetUnitVector() * DominionRadius * R.FRandRange(0.1f, 0.4f),
+					FVector(Size / 100.f) * FVector(R.FRandRange(0.6f, 1.6f), R.FRandRange(0.4f, 1.2f), R.FRandRange(0.2f, 0.8f)));
+				W.Drift = W.Start.GetLocation().GetSafeNormal() * DominionRadius * R.FRandRange(0.02f, 0.06f);
+				W.Spin = FRotator(R.FRandRange(-30.f, 30.f), R.FRandRange(-30.f, 30.f), R.FRandRange(-30.f, 30.f));
+				W.Head = 6.f;
+				Wreck.Add(W);
+			}
+		}
 	}
 	// The lens looks between the wreck and the planet; the stats sit in the sky above.
 	LookBase = FMath::Lerp(At, PlanetAt, 0.45f) + FVector::UpVector * (PlanetRadius * 0.4f);
@@ -255,9 +301,18 @@ void ATDMenuBackdrop::UpdateBreakup(float Dt)
 			GEngine->GameViewport->AddViewportWidgetContent(StingerBlack.ToSharedRef(), 5);
 		}
 	}
-	// The hull lists and sinks as it dies, over the first minute, then holds.
-	const float A = FMath::Clamp(Time / 60.f, 0.f, 1.f);
-	const FRotator List = DominionStart.Rotator() + FRotator(-7.f * A, 0.f, 11.f * A);
+	// The parts drift apart and tumble (a wreck from the first frame).
+	for (const FWreckPiece& W : Wreck)
+	{
+		if (UStaticMeshComponent* C = W.Component.Get())
+		{
+			const float T = Time + W.Head;
+			C->SetRelativeLocationAndRotation(W.Start.GetLocation() + W.Drift * T, (W.Start.Rotator() + W.Spin * T).Quaternion());
+		}
+	}
+	// The hull lists hard and sinks as it dies, then holds.
+	const float A = FMath::Clamp(0.35f + Time / 60.f, 0.f, 1.f);
+	const FRotator List = DominionStart.Rotator() + FRotator(-12.f * A, 0.f, 25.f * A);
 	Dominion->SetActorLocationAndRotation(DominionStart.GetLocation() - FVector::UpVector * (DominionRadius * 0.4f * A), List);
 	// Fires: small bursts walking along the hull, now and then a big one.
 	if (Time < NextFire)
