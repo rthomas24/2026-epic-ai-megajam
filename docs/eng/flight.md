@@ -212,7 +212,7 @@ Captures are in `Saved/TDShots/feedback/` (live game on port 8011, Nov 12).
 | Jump (`HyperdriveTunnel`) | FOV at max (speed) | FOV +12 punch, held +10 in the tunnel; side flares; dust becomes a streaking tunnel | `08_jump` |
 | Drop-out (`HyperdriveDropOut`) | a cut to the new spot | FOV −8 snap, 1.2° shake, a flash | (log: `HyperdriveDropOut=1`) |
 | Portal gate / Rift portal transit (`PortalTransit`) | a camera snap only | FOV +12, roll flick, shake, a violet flash. It fires only when the ship left from inside a gate's or portal's bounds, never for arrivals, squad placement, retakes or dev teleports | test `Feedback.PortalTransitKickOnlyFromAPortal` (no live transit captured, see Known gaps) |
-| Atmosphere entry (`AtmosphericEntry`) | nothing until the map loads | heat shake and FOV swell on a bell over the entry, an orange re-entry glow on the nose | `10_entry` (log: `AtmosphereEntry=9` flashes) |
+| Atmosphere entry (`AtmosphericEntry`) | nothing until the map loads | heat shake and FOV swell on a bell over the entry, an orange re-entry glow on the nose | `10_entry` shows the entry haze only; the glow flashes fired (log `AtmosphereEntry=9`) but none was in frame at capture |
 | Landing touchdown (`LandingDust`) | the ship settles | 2° dip, shake, a flat dust disc under the hull | `11_touchdown` |
 | Take-off (`TakeOff`) | the ship rises | lift shake, FOV +3, a flat squad-colour thrust disc under the hull | `12_takeoff` |
 
