@@ -138,6 +138,11 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 					{
 						Move->SetSpeedOverrideFor(TEXT("GravityWell"), CapturedSpeed, CapturedSteering);
 						Captured.Add(Craft);
+						// dialogs.md Bark_Gravity_Caught: "All bunched up." once per well, when the third ship is caught.
+						if (++CaughtTotal == 3)
+						{
+							FTDCombatBarks::Say(this, ETDShipId::Bastion, TDBarkIdsT2::GravityCaught, ETDBarkPriority::High);
+						}
 						if (FX)
 						{
 							FTDPowerPresentation::RequestCueAttached(TEXT("Ability.AffectedTarget"), FX->AffectedTarget, Craft->GetRootComponent());
@@ -443,6 +448,11 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 
 void UTDCloakPower::HandleWeaponFired(ETDWeaponSlot WeaponSlot, FName WeaponId)
 {
+	// dialogs.md Bark_Cloak_Ambush: "Surprise." on the shot that breaks the cloak (once: it ends the cloak).
+	if (!bEndedByShot)
+	{
+		FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT2::CloakAmbush, ETDBarkPriority::High);
+	}
 	bEndedByShot = true;
 	EndPower(true);
 }

@@ -9,6 +9,7 @@
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDTerrainField.h"
+#include "TriadDrift/World/TDGlobeBake.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDescentMapping, "TriadDrift.World.Descent.GlobeAndGroundMapBothWays", TD_TEST_FLAGS)
@@ -20,11 +21,11 @@ bool FTDDescentMapping::RunTest(const FString&)
 	FRandomStream R(31337);
 	for (int32 k = 0; k < 200; ++k)
 	{
-		const FVector2D XY(R.FRandRange(-480000.f, 480000.f), R.FRandRange(-480000.f, 480000.f));
+		const FVector2D XY(R.FRandRange(-420000.f, 420000.f), R.FRandRange(-420000.f, 420000.f));
 		const FVector2D Back = FTDPlanetEntry::GroundFromGlobe(FTDPlanetEntry::GlobeFromGround(XY));
 		if (!Back.Equals(XY, 1.f)) { AddError(FString::Printf(TEXT("round trip (%.0f, %.0f) -> (%.0f, %.0f)"), XY.X, XY.Y, Back.X, Back.Y)); break; }
 	}
-	// Every entry on the globe arrives within 7 km of the pad, in its bearing; beyond the spread it clamps to the ring.
+	// Every entry on the globe arrives within the 6 km ring, in its bearing; beyond the spread it clamps to the ring.
 	for (int32 k = 0; k < 400; ++k)
 	{
 		FTDGlobePoint P;
@@ -49,14 +50,14 @@ bool FTDDescentArrival::RunTest(const FString&)
 	{
 		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(Planet));
 		FTDGlobePoint P;
-		P.LatDeg = 60.f;	// 30 deg from the landing zone: half way out the spread, 3.5 km from the pad
+		P.LatDeg = 60.f;	// 30 deg from the landing zone: half way out the spread, half the ring from the pad
 		P.LonDeg = 45.f;
 		const FVector Up = P.ToUnit();
 		// Flying toward the landing zone (north, along the surface) and a little down.
 		const FVector ToPole = (FVector::UpVector - Up * FVector::DotProduct(FVector::UpVector, Up)).GetSafeNormal();
 		const FTransform A = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, ToPole * 9000.f - Up * 2000.f, 150000.f);
 		const FVector L = A.GetLocation();
-		TestTrue(*FString::Printf(TEXT("planet %d: 3.5 km out (%.0f m)"), (int32)Planet, FVector2D(L.X, L.Y).Size() / 100.f), FMath::IsNearlyEqual((float)FVector2D(L.X, L.Y).Size(), 350000.f, 10.f));
+		TestTrue(*FString::Printf(TEXT("planet %d: half the ring out (%.0f m)"), (int32)Planet, FVector2D(L.X, L.Y).Size() / 100.f), FMath::IsNearlyEqual((float)FVector2D(L.X, L.Y).Size(), FTDPlanetEntry::MaxArrivalRadius * 0.5f, 10.f));
 		TestTrue(*FString::Printf(TEXT("planet %d: 1.5 km above the ground"), (int32)Planet), FMath::IsNearlyEqual(L.Z - FMath::Max(F.Height(L.X, L.Y), F.GetStyle().BasinFloor), 150000.f, 1.f));
 		const FVector Fwd = A.GetRotation().GetForwardVector();
 		const FVector ToPad = (-FVector(L.X, L.Y, 0.f)).GetSafeNormal();
@@ -107,8 +108,8 @@ bool FTDDescentGalaxySide::RunTest(const FString&)
 	Planet->SetActorRotation(FRotator(20.f, 70.f, -10.f));
 	// The planet's +Z is the landing zone.
 	FVector GV;
-	const FTDGlobePoint Pole = FTDPlanetEntry::GlobeFromWorld(Planet, Planet->GetPlanetCenter() + Planet->GetActorUpVector() * 75000.f, FVector::ZeroVector, GV);
-	TestTrue(*FString::Printf(TEXT("the actor's up is the landing zone (lat %.2f)"), Pole.LatDeg), Pole.LatDeg > 89.9f);
+	const FTDGlobePoint Pole = FTDPlanetEntry::GlobeFromWorld(Planet, Planet->GetPlanetCenter() + Planet->GetGlobeQuat().GetUpVector() * 75000.f, FVector::ZeroVector, GV);
+	TestTrue(*FString::Printf(TEXT("the globe frame's up is the landing zone (lat %.2f)"), Pole.LatDeg), Pole.LatDeg > 89.9f);
 	FRandomStream R(77);
 	for (int32 k = 0; k < 50; ++k)
 	{
@@ -155,6 +156,62 @@ bool FTDDescentFirstView::RunTest(const FString&)
 		TestEqual(TEXT("from 3 km up: no LOD0 under the ship"), T->GetChunkLodAt(High) == 0 ? 0 : 1, 1);
 		TestTrue(*FString::Printf(TEXT("the first view is fast enough to hide (%.0f ms)"), Ms), Ms < 3000.0);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDescentGlobeBake, "TriadDrift.World.Descent.GlobeShowsTheSameWorldAsTheGround", TD_TEST_FLAGS)
+bool FTDDescentGlobeBake::RunTest(const FString&)
+{
+	// The globe's landing-zone cap uses exactly the descent mapping: 60 deg from the pole is the 6 km ring.
+	TestTrue(TEXT("the descent ring"), FMath::IsNearlyEqual(FTDGlobeBake::GroundDistanceForAngle(FTDPlanetEntry::SpreadDeg), FTDPlanetEntry::MaxArrivalRadius, 1.f));
+	TestTrue(TEXT("out to the far ring"), FMath::IsNearlyEqual(FTDGlobeBake::GroundDistanceForAngle(120.f), FTDTerrainStyle::ForPlanet(ETDDestination::Verdance).FarHalfSize, 1.f));
+	float Last = -1.f;
+	for (float A = 0.f; A <= 180.f; A += 5.f) { const float D = FTDGlobeBake::GroundDistanceForAngle(A); TestTrue(TEXT("monotonic"), D >= Last); Last = D; }
+	// The pad's beacon at the pole.
+	FLinearColor B, E;
+	FTDGlobeBake::SampleAt(ETDDestination::Verdance, 90.f, 0.f, B, E);
+	TestTrue(TEXT("beacon at the landing zone"), E.G > 0.5f && B.GetLuminance() > 0.5f);
+	// Verdance: the hero massif is rock / snow where the ground has it, the jungle around the pad is green.
+	const FTDTerrainStyle VS = FTDTerrainStyle::ForPlanet(ETDDestination::Verdance);
+	const FVector2D Hero = VS.HeroCentre;
+	const FTDGlobePoint HP = FTDPlanetEntry::GlobeFromGround(Hero);
+	FLinearColor HeroB, HeroE, PadB, PadE;
+	FTDGlobeBake::SampleAt(ETDDestination::Verdance, HP.LatDeg, HP.LonDeg, HeroB, HeroE);
+	{
+		const FTDTerrainField VF(VS);
+		const FTDTerrainSample HS = VF.Sample(Hero.X, Hero.Y, 2000.f);
+		AddInfo(FString::Printf(TEXT("hero sample: h %.0f m, h01 %.2f, slope %.2f, broad %.2f; globe (%.2f, %.2f)"), HS.Height / 100.f, HS.Height01, HS.Slope, HS.BroadMask, HP.LatDeg, HP.LonDeg));
+	}
+	const FTDGlobePoint Near = FTDPlanetEntry::GlobeFromGround(FVector2D(60000.f, 0.f));
+	FTDGlobeBake::SampleAt(ETDDestination::Verdance, Near.LatDeg, Near.LonDeg, PadB, PadE);
+	TestTrue(*FString::Printf(TEXT("the massif reads lighter (rock) than the basin (%.2f vs %.2f)"), HeroB.GetLuminance(), PadB.GetLuminance()), HeroB.GetLuminance() > PadB.GetLuminance());
+	TestTrue(TEXT("the basin is green"), PadB.G > PadB.R && PadB.G > PadB.B);
+	// Cinder: somewhere on the landing-zone cap, lava glows.
+	float MaxGlow = 0.f;
+	for (float Lat = 35.f; Lat < 89.f; Lat += 2.f)
+	{
+		for (float Lon = -180.f; Lon < 180.f; Lon += 6.f)
+		{
+			FTDGlobeBake::SampleAt(ETDDestination::Cinder, Lat, Lon, B, E);
+			MaxGlow = FMath::Max(MaxGlow, E.R);
+		}
+	}
+	TestTrue(*FString::Printf(TEXT("Cinder's lava glows from orbit (%.2f)"), MaxGlow), MaxGlow > 0.5f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDescentCurvature, "TriadDrift.World.Descent.FarRingBendsUnderTheHorizonCoreStaysExact", TD_TEST_FLAGS)
+bool FTDDescentCurvature::RunTest(const FString&)
+{
+	FTDTestWorld W;
+	ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform::Identity, nullptr);
+	if (!TestNotNull(TEXT("terrain"), T)) { return false; }
+	const float Core = T->GetField()->GetStyle().CoreHalfSize;
+	const float Far = T->GetField()->GetStyle().FarHalfSize;
+	TestEqual(TEXT("no bend inside the core (the gameplay ground)"), T->CurvatureDrop(Core * 0.99f, Core * 0.99f), 0.f);
+	const float Edge = T->CurvatureDrop(Far, 0.f);
+	TestTrue(*FString::Printf(TEXT("the far edge drops under the horizon (%.0f m)"), Edge / 100.f), Edge > 50000.f && Edge < 200000.f);
+	TestTrue(TEXT("it grows outward"), T->CurvatureDrop(Core + 1000000.f, 0.f) < Edge);
 	return true;
 }
 

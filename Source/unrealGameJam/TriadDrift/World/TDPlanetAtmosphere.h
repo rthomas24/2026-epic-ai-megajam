@@ -180,4 +180,49 @@ protected:
 	 *  (Pause > Restart Scene, death, a failed or timed-out travel) the planet re-arms once the ship is outside. */
 	TWeakObjectPtr<class UTDAtmosphereEntryComponent> EntryInFlight;
 	bool bRearmOnExit = false;
+
+public:
+	/**
+	 * ENG-38 stage 2: the globe shows the same world as the ground. A runtime bake (FTDGlobeBake, off the game thread)
+	 * of the planet's terrain field replaces the surface material's BaseColorTex / EmissiveTex (the art's normal,
+	 * ORM and clouds stay), with a beacon at the landing zone (the actor's +Z). The surface stops spinning so the
+	 * landing site stays put under the descent mapping. `td.PlanetGlobeBake 0` keeps the old art look.
+	 */
+	bool IsGlobeBaked() const { return bGlobeBaked; }
+	class UTexture2D* GetGlobeBaseTexture() const { return GlobeBase; }
+
+	/** Calibration of the sphere mesh's UVs against the globe frame: yaw (deg) of the surface, and mirrored U. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet")
+	float GlobeYawOffsetDeg = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet")
+	bool bGlobeMirrorU = true;	// measured: SM_Planet_Sphere's U runs westward (lon 90 showed on the -Y side)
+
+	/**
+	 * The globe frame (FTDPlanetEntry): its +Z is the landing zone, +X longitude 0. With the bake on, the landing
+	 * zone faces GlobeFacePoint (the combat zone: the side the squad arrives from), so the pad's beacon is in view;
+	 * otherwise the actor's own rotation.
+	 */
+	FQuat GetGlobeQuat() const;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet")
+	FVector GlobeFacePoint = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "64"))
+	int32 GlobeBakeWidth = 1024;
+
+protected:
+	void StartGlobeBake();
+	void ApplyGlobeBake(TArray<FColor>&& Base, TArray<FColor>&& Emissive, int32 W, int32 H);
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UTexture2D> GlobeBase;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UTexture2D> GlobeEmissive;
+
+	bool bGlobeBaked = false;
+	bool bGlobeBaking = false;
+	bool bGlobeFacing = false;
+	FQuat GlobeQuat = FQuat::Identity;
 };

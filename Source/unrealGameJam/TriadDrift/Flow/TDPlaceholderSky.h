@@ -89,6 +89,25 @@ public:
 
 	/** ENG-34: the planet world (procedural terrain), spawned at the course origin once the course exists. */
 	UPROPERTY(Transient) TObjectPtr<class ATDPlanetTerrain> Terrain;
+
+public:
+	/** ENG-38 focus-in: horizon fog density multiplier high up (DescentFogHighCm and above), easing to 1 at DescentFogLowCm. */
+	UPROPERTY(EditAnywhere, Category = "Placeholder") float DescentFogMaxScale = 12.f;
+	UPROPERTY(EditAnywhere, Category = "Placeholder") float DescentFogHighCm = 500000.f;
+	UPROPERTY(EditAnywhere, Category = "Placeholder") float DescentFogLowCm = 150000.f;
+	/** The multiplier applied last frame (tests). */
+	float GetDescentFogScale() const { return DescentFogScale; }
+	float GetBaseFogDensity() const { return BaseFogDensity; }
+	void TickDescentFog();
+
+protected:
+	float BaseFogDensity = 0.f;
+	float DescentFogScale = 1.f;
+	TWeakObjectPtr<class ATDPlanetTerrain> FogTerrain;
+	TWeakObjectPtr<class UExponentialHeightFogComponent> DescentFog;
+	float DescentFogBase = 0.f;
+	float DescentFogSearch = 0.f;
+	bool bDescentFogLogged = false;
 	/** Planet styles spawn the terrain (off in tests that only check lighting). */
 	UPROPERTY(EditAnywhere, Category = "Placeholder") bool bSpawnTerrain = true;
 	void TrySpawnTerrain();
