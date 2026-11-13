@@ -1,7 +1,7 @@
 {
   "asset": "SM_Dominion_Hull",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\SM_Dominion_Hull\\SM_Dominion_Hull.fbx",
-  "tris": 61500,
+  "tris": 63866,
   "size_cm": [
     75175.0,
     32000.0,
@@ -22,7 +22,7 @@
       "name": "M_Dominion_Trim",
       "textured": true,
       "base_color": null,
-      "metallic": 0.8,
+      "metallic": 0.6,
       "roughness": null,
       "emission_color": [
         0.0,
@@ -184,7 +184,7 @@
   ],
   "collision_source": "authored",
   "sockets": [],
-  "welded_verts": 45,
+  "welded_verts": 37,
   "nanite_recommended": true,
   "unreal_import": {
     "uniform_scale": 1.0,

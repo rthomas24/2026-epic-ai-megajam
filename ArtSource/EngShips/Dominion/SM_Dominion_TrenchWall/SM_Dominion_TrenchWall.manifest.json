@@ -1,7 +1,7 @@
 {
   "asset": "SM_Dominion_TrenchWall",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\SM_Dominion_TrenchWall\\SM_Dominion_TrenchWall.fbx",
-  "tris": 8476,
+  "tris": 8824,
   "size_cm": [
     43185.8,
     1208.3,
@@ -60,7 +60,7 @@
       "name": "M_Dominion_Trim",
       "textured": true,
       "base_color": null,
-      "metallic": 0.8,
+      "metallic": 0.6,
       "roughness": null,
       "emission_color": [
         0.0,
