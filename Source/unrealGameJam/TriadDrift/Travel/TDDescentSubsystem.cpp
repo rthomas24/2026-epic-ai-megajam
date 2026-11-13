@@ -8,6 +8,8 @@
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "Components/AudioComponent.h"
+#include "Components/MeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
@@ -134,9 +136,12 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 	TerrainTime = ControlTime = FirstFrameTime = -1.0;
 }
 
+const FName UTDDescentSubsystem::HeatGlowParam(TEXT("HeatGlow"));
+
 void UTDDescentSubsystem::Tick(float DeltaTime)
 {
 	TickCover(FMath::Min(DeltaTime, 0.1f));
+	TickHeat(FMath::Min(DeltaTime, 0.1f));
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -330,6 +335,65 @@ void UTDDescentSubsystem::TickCover(float Dt)
 		}
 		break;
 	}
+}
+
+void UTDDescentSubsystem::SetEntryHeat(float Heat01)
+{
+	Heat = FMath::Max(Heat, FMath::Clamp(Heat01, 0.f, 1.f));
+	HeatFedLeft = 0.25f; // ticks of this subsystem, not wall time
+}
+
+void UTDDescentSubsystem::ClearHeat()
+{
+	Heat = 0.f;
+	HeatFedLeft = 0.f;
+	TickHeat(0.f); // apply now
+}
+
+int32 UTDDescentSubsystem::ApplyHeatToShip(ATDShip* Ship, float InHeat)
+{
+	int32 Set = 0;
+	if (!Ship) { return 0; }
+	TInlineComponentArray<UMeshComponent*> Meshes(Ship);
+	for (UMeshComponent* Mesh : Meshes)
+	{
+		for (int32 i = 0; i < Mesh->GetNumMaterials(); ++i)
+		{
+			UMaterialInterface* M = Mesh->GetMaterial(i);
+			if (!M) { continue; }
+			float Current = 0.f;
+			if (!M->GetScalarParameterValue(FHashedMaterialParameterInfo(HeatGlowParam), Current)) { continue; } // no HeatGlow: leave it alone
+			UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(M);
+			if (!MID)
+			{
+				if (InHeat <= 0.f) { continue; } // never heated: no instance needed
+				MID = Mesh->CreateDynamicMaterialInstance(i, M);
+			}
+			if (MID) { MID->SetScalarParameterValue(HeatGlowParam, InHeat); ++Set; }
+		}
+	}
+	return Set;
+}
+
+void UTDDescentSubsystem::TickHeat(float Dt)
+{
+	if (Heat <= 0.f && AppliedHeat <= 0.f) { return; }
+	// Decay once the entry has stopped feeding it and the cover is not holding (after the reveal, or with no cover).
+	const bool bFed = HeatFedLeft > 0.f;
+	HeatFedLeft = FMath::Max(0.f, HeatFedLeft - Dt);
+	const bool bHeld = CoverPhase == ETDDescentCover::RampIn || CoverPhase == ETDDescentCover::Held;
+	if (!bFed && !bHeld && Heat > 0.f)
+	{
+		Heat = FMath::Max(0.f, Heat - Dt / HeatDecaySeconds);
+	}
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	if (!World) { return; }
+	// Every frame while hot: ships spawn (the planet squad) and the player can switch; values are cheap to set.
+	for (TActorIterator<ATDShip> It(World); It; ++It)
+	{
+		ApplyHeatToShip(*It, Heat);
+	}
+	AppliedHeat = Heat;
 }
 
 void UTDDescentSubsystem::RecordEntry(ETDDestination Planet, const ATDPlanetAtmosphere* Atmosphere, const FVector& WorldPoint, const FVector& WorldVelocity)

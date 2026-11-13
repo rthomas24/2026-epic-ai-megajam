@@ -84,6 +84,20 @@ public:
 	/** Arrivals stay within 6 km of the pad, inside the zone's edge-warning band (T4's ring reaches 7 km). */
 	static constexpr float MaxArrivalRadiusCm = 600000.f;
 
+	// ---- Hull heat (ENG-38): M_TD_Ship's HeatGlow 0..1 on every squad ship (player and wingmen), on dynamic instances
+	// made only for materials that expose the parameter. Rises with the dive, holds under the cover, decays over
+	// HeatDecaySeconds after the reveal, cleared at once on an abort. Applied to whatever squad ships the current world
+	// has, so a switch mid-entry or the new squad on the planet carries the same value.
+	/** The entry's dive progress (0..1); never goes down while entering. */
+	void SetEntryHeat(float Heat01);
+	/** Abort: back to 0 now. */
+	void ClearHeat();
+	float GetHeat() const { return Heat; }
+	static const FName HeatGlowParam; // "HeatGlow"
+	static constexpr float HeatDecaySeconds = 2.f;
+	/** Sets HeatGlow on one ship's materials that expose it (makes dynamic instances on first use). Returns slots set. */
+	static int32 ApplyHeatToShip(class ATDShip* Ship, float Heat);
+
 	// ---- Tuning
 	static constexpr float CoverRampSeconds = 0.35f;   // a travel with no entry ramp in front of it (take-off, dev)
 	static constexpr float RevealMinHoldSeconds = 0.5f; // after the destination's first frame
@@ -106,6 +120,7 @@ private:
 	void HandlePostLoadMap(UWorld* World);
 	void EndTiming(const TCHAR* Why);
 	void TickCover(float RealDt);
+	void TickHeat(float RealDt);
 	void SetCoverAlpha(float Alpha);
 
 	double TimingStart = -1.0;
@@ -126,6 +141,11 @@ private:
 	double PostLoadTime = -1.0;
 	double OpenLevelTime = -1.0;
 	TWeakObjectPtr<UWorld> LoadedWorld;
+
+	float Heat = 0.f;
+	float AppliedHeat = -1.f;
+	float HeatFedLeft = 0.f;
+	TWeakObjectPtr<UWorld> HeatWorld;
 
 	ETDDescentCover CoverPhase = ETDDescentCover::Off;
 	float CoverAlpha = 0.f;

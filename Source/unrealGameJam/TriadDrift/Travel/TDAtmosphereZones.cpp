@@ -216,6 +216,7 @@ void UTDAtmosphereEntryComponent::StopEntryCue()
 void UTDAtmosphereEntryComponent::RestoreFlight()
 {
 	StopEntryCue(); // aborted or travel failed: the roar and plasma must stop
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->ClearHeat(); }
 	if (bCoveredEntry)
 	{
 		if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->AbortCover(TEXT("entry handed back")); }
@@ -271,6 +272,15 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	if (EntryState == ETDAtmosphereEntryState::Entering)
 	{
 		EntryTime += DeltaTime;
+		if (EntrySeconds > 0.f)
+		{
+			// Hull heat (M_TD_Ship HeatGlow): eases in over the dive, full at the end (with the cover).
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this))
+			{
+				const float T = FMath::Clamp(EntryTime / EntrySeconds, 0.f, 1.f);
+				Descent->SetEntryHeat(T * T * (3.f - 2.f * T));
+			}
+		}
 		if (bCoveredEntry && EntrySeconds > 0.f)
 		{
 			// The plasma ramps to full white over the last CoverRampInSeconds of the dive.
