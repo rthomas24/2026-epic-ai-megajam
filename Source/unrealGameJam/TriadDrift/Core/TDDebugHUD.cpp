@@ -193,7 +193,7 @@ void ATDDebugHUD::DrawHUD()
 
 	if (const UWorld* World = GetWorld(); World && World->IsPaused() && !Covered(ETDHUDSurface::Pause))
 	{
-		const FString Paused(TEXT("PAUSED - ESC TO RESUME"));
+		const FString Paused(TEXT("PAUSED - ESC TO RESUME   ·   O / Y  SETTINGS"));
 		float W = 0.f, H = 0.f;
 		GetTextSize(Paused, W, H, nullptr, 2.2f);
 		DrawText(Paused, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.42f, nullptr, 2.2f);
