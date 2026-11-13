@@ -1,0 +1,41 @@
+00:01.328  blend            | Read blend: "C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\production\M03\Lancer_M03_Detail01_v01.blend"
+Info: Saved as "Lancer_M03_Detail01_Material04_work.blend"
+LANCER_M03_QA {"technical_pass": true, "assembly_triangles": 34516, "geometry_errors": [], "contact_pass": true, "attachment_pass": true, "ray_clearance": [{"name": "Muzzle_Primary_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_01", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_02", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_03", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_04", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Primary_R", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_01", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_02", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_03", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_04", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_R", "clear": true, "hit": null, "distance_cm": null}]}
+Info: Saved as "Lancer_M03_Detail01_v02.blend"
+LANCER_M03_RENDER 01_hero_front_3q
+00:06.125  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\01_hero_front_3q.png'
+LANCER_M03_RENDER 02_front
+00:06.688  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\02_front.png'
+LANCER_M03_RENDER 03_rear
+00:07.282  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\03_rear.png'
+LANCER_M03_RENDER 04_left
+00:07.828  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\04_left.png'
+LANCER_M03_RENDER 05_right
+00:08.391  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\05_right.png'
+LANCER_M03_RENDER 06_top
+00:09.032  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\06_top.png'
+LANCER_M03_RENDER 07_bottom
+00:09.625  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\07_bottom.png'
+LANCER_M03_RENDER 08_rear_3q
+00:10.297  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\08_rear_3q.png'
+LANCER_M03_RENDER 09_weapon_detail
+00:11.000  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\09_weapon_detail.png'
+LANCER_M03_RENDER 10_canopy_detail
+00:11.657  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\10_canopy_detail.png'
+LANCER_M03_RENDER 11_dark_studio
+00:12.344  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\11_dark_studio.png'
+00:13.219  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\Lancer_M03_clay_front_3q.png'
+00:13.500  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\Lancer_M03_clay_front.png'
+00:13.578  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\Lancer_M03_clay_right.png'
+00:13.657  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\Lancer_M03_clay_top.png'
+00:13.766  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\Lancer_M03_clay_back_3q.png'
+00:13.907  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\Lancer_M03_clay_low_3q.png'
+00:14.969  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\wire_front_3q.png'
+00:15.422  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\wire_top.png'
+00:15.813  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\wire_underside.png'
+00:15.985  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\silhouette_128_top.png'
+00:16.000  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\silhouette_128_side.png'
+00:16.016  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material04\silhouette_128_front_3q.png'
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

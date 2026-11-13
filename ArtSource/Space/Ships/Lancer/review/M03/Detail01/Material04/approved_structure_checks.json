@@ -1,0 +1,10 @@
+{
+  "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\production\\M03\\Lancer_M03_Detail01_v01.blend",
+  "source_sha256": "a883c6947b21fa9ddaa25691d8da5f8c5825a8bf85b465609c68967a7029e66b",
+  "mesh_count": 20,
+  "frame_count": 36,
+  "all_geometry_uv_normals_smoothing_transforms_frames_unchanged": true,
+  "material_indices_intentionally_changed": true,
+  "paint_dominant_area_gate": true,
+  "minimum_base_armor_graphite_fraction": 0.6
+}

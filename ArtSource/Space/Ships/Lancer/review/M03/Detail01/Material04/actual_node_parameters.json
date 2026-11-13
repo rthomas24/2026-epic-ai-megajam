@@ -1,0 +1,92 @@
+[
+  {
+    "name": "M_LancerM03_Graphite",
+    "base_linear_rgb": [
+      0.012983032502233982,
+      0.021219009533524513,
+      0.03189603239297867,
+      1.0
+    ],
+    "metallic": 0.0,
+    "roughness_alpha_multiplier": 0.20000000298023224,
+    "roughness_driver_offset": 0.2800000011920929,
+    "roughness_socket_linked": true,
+    "coat_weight": 0.07999999821186066,
+    "emission_strength": 0.0
+  },
+  {
+    "name": "M_LancerM03_Gunmetal",
+    "base_linear_rgb": [
+      0.061246052384376526,
+      0.08865558356046677,
+      0.11697066575288773,
+      1.0
+    ],
+    "metallic": 1.0,
+    "roughness_alpha_multiplier": 0.20000000298023224,
+    "roughness_driver_offset": 0.3400000035762787,
+    "roughness_socket_linked": true,
+    "coat_weight": 0.0,
+    "emission_strength": 0.0
+  },
+  {
+    "name": "M_LancerM03_Titanium",
+    "base_linear_rgb": [
+      0.3915724754333496,
+      0.4564110338687897,
+      0.5088813304901123,
+      1.0
+    ],
+    "metallic": 1.0,
+    "roughness_alpha_multiplier": 0.20000000298023224,
+    "roughness_driver_offset": 0.20999999344348907,
+    "roughness_socket_linked": true,
+    "coat_weight": 0.0,
+    "emission_strength": 0.0
+  },
+  {
+    "name": "M_LancerM03_Composite",
+    "base_linear_rgb": [
+      0.007499032188206911,
+      0.012286487966775894,
+      0.016807375475764275,
+      1.0
+    ],
+    "metallic": 0.0,
+    "roughness_alpha_multiplier": 0.20000000298023224,
+    "roughness_driver_offset": 0.6600000262260437,
+    "roughness_socket_linked": true,
+    "coat_weight": 0.0,
+    "emission_strength": 0.0
+  },
+  {
+    "name": "M_LancerM03_Canopy",
+    "base_linear_rgb": [
+      0.0033465358428657055,
+      0.01850022003054619,
+      0.03189603239297867,
+      1.0
+    ],
+    "metallic": 0.0,
+    "roughness_alpha_multiplier": 0.20000000298023224,
+    "roughness_driver_offset": 0.05000000074505806,
+    "roughness_socket_linked": true,
+    "coat_weight": 0.6499999761581421,
+    "emission_strength": 0.0
+  },
+  {
+    "name": "M_LancerM03_Blue",
+    "base_linear_rgb": [
+      0.00802319310605526,
+      0.5149176716804504,
+      0.8069522380828857,
+      1.0
+    ],
+    "metallic": 0.0,
+    "roughness_alpha_multiplier": 0.20000000298023224,
+    "roughness_driver_offset": 0.23000000417232513,
+    "roughness_socket_linked": true,
+    "coat_weight": 0.0,
+    "emission_strength": 1.7999999523162842
+  }
+]

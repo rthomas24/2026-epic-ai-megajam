@@ -70,10 +70,25 @@ def run():
                 material_parameters_pass=len(params)==6 and all(0<=p['metallic']<=1 and (.15 if 'Canopy' in p['name'] else .2)<=p['roughness']<=.85 and p['emissive_strength']<=3 for p in params),
                 native_imported=False,presentation_approved=False,gameplay_validated=False,elapsed_seconds=time.perf_counter()-started)
     report['legacy_manifest_unchanged']=hashlib.sha256((ROOT/'attachments.json').read_bytes()).hexdigest()==hashlib.sha256((P/'refs/legacy_attachments.json').read_bytes()).hexdigest()
-    mc=json.loads((OUT/'material_assignment_checks.json').read_text())
-    report['material_assignment_pass']=len(mc)==8 and all(c['passed'] and c['before_role_face_counts']==c['after_role_face_counts'] for c in mc)
+    intent_path=os.environ.get('LANCER_M03_MATERIAL_INTENT')
+    if intent_path:
+        intent=json.loads(Path(intent_path).read_text())
+        assignment_ok=intent['rule_id']=='armor_paint_v1' and hashlib.sha256(Path(intent['source']).read_bytes()).hexdigest()==intent['source_sha256'] and set(intent['before'])==set(names)
+        for ob in obs:
+            before=intent['before'][ob.name];actual=[ob.data.materials[f.material_index].name for f in ob.data.polygons]
+            expected_roles=[]
+            for f,old in zip(ob.data.polygons,before):
+                part=ob['part_name'];armor=part in ['Engine_L','Engine_R','Wing_L','Wing_R'] or (part=='Hull' and -(ob.matrix_world@f.center).y*100<200)
+                expected_roles.append('M_LancerM03_Graphite' if old=='M_LancerM03_Gunmetal' and armor else old)
+            assignment_ok &= len(before)==len(actual) and actual==expected_roles and actual==intent['after'][ob.name]
+        report['material_assignment_pass']=bool(assignment_ok)
+        report['material_assignment_mode']='Explicit intentional per-face armor-paint map; indices are not claimed unchanged'
+    else:
+        mc=json.loads((OUT/'material_assignment_checks.json').read_text())
+        report['material_assignment_pass']=len(mc)==8 and all(c['passed'] and c['before_role_face_counts']==c['after_role_face_counts'] for c in mc)
     roles={o.get('part_name'):{o.data.materials[f.material_index].name for f in o.data.polygons} for o in obs}
     expected={'Canopy':{'Canopy','Graphite'},'Engine_L':{'Blue','Composite','Titanium','Gunmetal'},'Rotor_L':{'Blue','Titanium','Gunmetal'}}
+    if intent_path:expected['Engine_L']={'Blue','Composite','Titanium','Graphite'}
     report['material_assignment_pass'] &= all({'M_LancerM03_'+v for v in values}<=roles[part] for part,values in expected.items())
     report['technical_pass']=all(report[k] for k in ['material_assignment_pass','geometry_pass','contact_pass','attachment_pass','ray_pass','unit_positive_scale','panel_tint_present','emissive_area_pass','material_parameters_pass','legacy_manifest_unchanged']) and len(faces)<=60000
     write('validation_summary.json',report)

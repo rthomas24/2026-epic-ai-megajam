@@ -1,0 +1,163 @@
+{
+  "checks": {
+    "png_count": 21,
+    "json_count": 19,
+    "python_ast_count": 3,
+    "local_link_references": 77,
+    "distinct_local_links": 34,
+    "prior_source_hashes_unchanged": true,
+    "new_source_sha256": "24ebb10fc055e26e7108f592300bdc21303d164295fa96217338b1a875fb4d49",
+    "new_source_bytes": 991402,
+    "png_crc_iend_zlib_pass": true,
+    "passed": true
+  },
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1874016,
+      "sha256": "95c638aa80d60c0aad7db72c0222eb0afc37b828866c9f06fa5198bebd23e5b6"
+    },
+    {
+      "file": "02_front.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1797506,
+      "sha256": "19e21aa06f4a946aa15b450aa0ad4dbc7b4e4d60e91f2d4e99f5b898630d20f5"
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1803717,
+      "sha256": "49ffbd727f6c38db3f3df7ea8f81c06c3dd596546646d926e0c2f712fe604dca"
+    },
+    {
+      "file": "04_left.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1763151,
+      "sha256": "274b989e8215b831c17850cf7b17f1c649d050ef5c2831837484efbd270a050f"
+    },
+    {
+      "file": "05_right.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1771217,
+      "sha256": "9a00c230f8c839ad3e4dca4fb0ffa4fc055abb92ed2eb292585884e75546f8f1"
+    },
+    {
+      "file": "06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1876581,
+      "sha256": "15f3f719ad82cdb9f889544a5ff9e5592a9bf586c582ea42c70f674a7fdade6c"
+    },
+    {
+      "file": "07_bottom.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1807154,
+      "sha256": "bd0477d20e4e3185f8d00185fa950ec295d6e0ba4a713a5b2752f4f0fe28e72f"
+    },
+    {
+      "file": "08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1924021,
+      "sha256": "9bea9b02d6022a763e07a679fde8297cd53882e0e661ca686b557da4eb93006c"
+    },
+    {
+      "file": "09_weapon_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1938946,
+      "sha256": "4ef5c2581389eec6ce426d134435c0cc8f9ae63f43d786587d5bfb1b877cc93e"
+    },
+    {
+      "file": "10_canopy_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1785820,
+      "sha256": "1214ffff0c892795a69af9836a328ca03da2cd612347dadff5f7c441c735d75c"
+    },
+    {
+      "file": "11_dark_studio.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1783702,
+      "sha256": "462c7325e6e62df6498aa42247198816cfdc6a203924f1afd94549a4ee72eec6"
+    },
+    {
+      "file": "Lancer_M03_clay_sheet.png",
+      "width": 2124,
+      "height": 1418,
+      "bytes": 838604,
+      "sha256": "32b5380859bf299e66ceb0f2148a45398020214b917239539660e5d7bbe0393c"
+    },
+    {
+      "file": "Lancer_M03_overview.png",
+      "width": 2472,
+      "height": 2290,
+      "bytes": 2715217,
+      "sha256": "fdf2c78367f9df9e6eed1271faa8ab5de76b9dc2410afade417fee54db1ed79f"
+    },
+    {
+      "file": "Lancer_M03_silhouette_sheet.png",
+      "width": 840,
+      "height": 292,
+      "bytes": 50401,
+      "sha256": "7cc898a4c98a28b847dbeb7329d691b6c8e55f282cbb3c56df38a1c0c7d5b856"
+    },
+    {
+      "file": "Lancer_M03_wire_sheet.png",
+      "width": 2172,
+      "height": 536,
+      "bytes": 828260,
+      "sha256": "85f353dd24e92a9fe5a4ed017ce1b1dd76e92b3bbd883804b1b37eec63d0ab77"
+    },
+    {
+      "file": "silhouette_128_front_3q.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 9000,
+      "sha256": "37c1495642c21b0794dfd581a058fcf477e082d29fd566372cbf3c35c71fb0a7"
+    },
+    {
+      "file": "silhouette_128_side.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 8645,
+      "sha256": "47e62918e58959289f5e18461785aac26ce5b3a594a073527cf0f41126781db0"
+    },
+    {
+      "file": "silhouette_128_top.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 9172,
+      "sha256": "4537fb81fcff23163d49b65967b696eca905e37c4a49174178feedbba972380d"
+    },
+    {
+      "file": "wire_front_3q.png",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 1272871,
+      "sha256": "15bfe8c828c2346bf9dae23141e94736af33f8236f00606b60921f644c90da1f"
+    },
+    {
+      "file": "wire_top.png",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 1311039,
+      "sha256": "09e519f1909dcdbcf786486ee1904bd4dc8bf1d8cfd7040c112d62339b85a1ac"
+    },
+    {
+      "file": "wire_underside.png",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 1224586,
+      "sha256": "967947cd20e7a0df5887930cfb41d3bfcdb298bd36d07de2ed8247e01748cdd7"
+    }
+  ]
+}

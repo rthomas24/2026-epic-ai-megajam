@@ -1,0 +1,89 @@
+{
+  "status": "ok",
+  "sheet": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\Detail01\\Material04\\Lancer_M03_clay_sheet.png",
+  "mode": "clay",
+  "engine": "BLENDER_WORKBENCH",
+  "layout": {
+    "columns": 3,
+    "order": [
+      "front_3q",
+      "front",
+      "right",
+      "top",
+      "back_3q",
+      "low_3q"
+    ]
+  },
+  "ortho_cm_per_px": 1.2864,
+  "views": [
+    {
+      "view": "front_3q",
+      "coverage": 0.195,
+      "touches_edge": false
+    },
+    {
+      "view": "front",
+      "coverage": 0.074,
+      "touches_edge": false
+    },
+    {
+      "view": "right",
+      "coverage": 0.106,
+      "touches_edge": false
+    },
+    {
+      "view": "top",
+      "coverage": 0.355,
+      "touches_edge": false
+    },
+    {
+      "view": "back_3q",
+      "coverage": 0.272,
+      "touches_edge": false
+    },
+    {
+      "view": "low_3q",
+      "coverage": 0.167,
+      "touches_edge": false
+    }
+  ],
+  "bbox_min_m": [
+    -3.6,
+    -4.02,
+    -0.8899
+  ],
+  "bbox_max_m": [
+    3.6,
+    4.02,
+    0.867
+  ],
+  "size_cm": [
+    720.0,
+    804.0,
+    175.69
+  ],
+  "objects": [
+    "SM_LancerM03_Hull",
+    "SM_LancerM03_Detail_Hull",
+    "SM_LancerM03_Wing_L",
+    "SM_LancerM03_Detail_Wing_L",
+    "SM_LancerM03_Wing_R",
+    "SM_LancerM03_Detail_Wing_R",
+    "SM_LancerM03_Canopy",
+    "SM_LancerM03_Detail_Canopy",
+    "SM_LancerM03_Primary_L",
+    "SM_LancerM03_Detail_Primary_L",
+    "SM_LancerM03_Primary_R",
+    "SM_LancerM03_Detail_Primary_R",
+    "SM_LancerM03_Rotor_L",
+    "SM_LancerM03_Rotor_R",
+    "SM_LancerM03_Secondary_L",
+    "SM_LancerM03_Secondary_R",
+    "SM_LancerM03_Engine_L",
+    "SM_LancerM03_Detail_Engine_L",
+    "SM_LancerM03_Engine_R",
+    "SM_LancerM03_Detail_Engine_R"
+  ],
+  "warnings": [],
+  "seconds": 1.15
+}
