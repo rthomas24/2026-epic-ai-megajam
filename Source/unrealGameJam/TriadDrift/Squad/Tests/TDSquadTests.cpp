@@ -5,6 +5,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -546,6 +548,98 @@ bool FTDSquadSwitchStrikeRealPower::RunTest(const FString& Parameters)
 	// ENG-07: a power started on one ship keeps running after you switch away.
 	F.W.Advance(0.5f);
 	TestTrue(TEXT("Rift's power kept running or cooling down after the switch"), Power->IsPowerActive() || Power->GetCooldown01() < 1.f);
+	return true;
+}
+
+/**
+ * Second review minors (Lead's decisions): Switch Strike's 1.5 s power-to-switch window runs in REAL time (slow motion
+ * can't stretch it); its +25% applies to powers too (the ram's 300 and the swarm's missiles); and the second portal is a
+ * power use the bus hears.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchStrikeReview, "TriadDrift.Squad.SwitchStrike.RealTimeWindowPowersAndSecondPortal", TD_TEST_FLAGS)
+bool FTDSquadSwitchStrikeReview::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	UWorld* World = F.W.GetWorld();
+	UTDEventBus* Bus = UTDEventBus::Get(World);
+	if (!TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	F.W.Advance(1.2f);
+
+	// 1. Real time: at quarter speed, 1.6 s of real time is 0.4 s of game time; the window is over all the same.
+	UGameplayStatics::SetGlobalTimeDilation(World, 0.25f);
+	Bus->BroadcastPowerUsed(ETDShipId::Rift, TEXT("PortalBlaster"));
+	F.W.Advance(1.6f);
+	TestTrue(TEXT("switch under slow motion"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestFalse(TEXT("1.6 real seconds after the power: no Switch Strike, slow motion or not"), F.Squad->IsSwitchStrikeActive());
+	Bus->BroadcastPowerUsed(ETDShipId::Lancer, TEXT("AfterburnerRam"));
+	F.W.Advance(1.3f);
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Rift));
+	TestTrue(TEXT("1.3 real seconds: armed"), F.Squad->IsSwitchStrikeActive());
+	UGameplayStatics::SetGlobalTimeDilation(World, 1.f);
+	F.W.Advance(4.5f);
+
+	// 2. The second portal is heard on the bus (the first came through TryActivate).
+	ATDShip* Rift = F.Ship(ETDShipId::Rift);
+	const int32 Before = F.Events->PowersUsed;
+	for (int32 i = 0; i < 2; ++i)
+	{
+		UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Signature1, true);
+		F.W.Tick();
+		UTDPowerComponent::RoutePowerInput(Rift, ETDPowerInput::Signature1, false);
+		F.W.Advance(0.4f);
+	}
+	const UTDPortalBlasterPower* Portals = Cast<UTDPortalBlasterPower>(UTDPowerComponent::FindPower(Rift, ETDPowerInput::Signature1));
+	TestTrue(TEXT("two portals placed"), Portals && Portals->IsPowerActive());
+	TestEqual(TEXT("both portals broadcast OnPowerUsed"), F.Events->PowersUsed - Before, 2);
+
+	// 3. The swarm: a Switch Strike Bastion's missiles carry the +25%.
+	F.W.Advance(0.6f);
+	TestTrue(TEXT("switch to Bastion inside the window"), F.Squad->RequestSwitchTo(ETDShipId::Bastion));
+	ATDShip* Bastion = F.Ship(ETDShipId::Bastion);
+	TestEqual(TEXT("Bastion has Switch Strike"), F.Squad->GetDamageMultiplier(Bastion), 1.25f);
+	UTDPowerComponent::RoutePowerInput(Bastion, ETDPowerInput::Signature1, true);
+	F.W.Tick();
+	UTDPowerComponent::RoutePowerInput(Bastion, ETDPowerInput::Signature1, false);
+	F.W.Tick();
+	int32 Missiles = 0;
+	int32 Struck = 0;
+	if (UTDProjectileSubsystem* P = UTDProjectileSubsystem::Get(World))
+	{
+		for (const ATDProjectile* M : P->GetLiveProjectiles())
+		{
+			if (M && M->IsActive() && M->IsMissile() && M->GetShooter() == Bastion)
+			{
+				++Missiles;
+				Struck += FMath::IsNearlyEqual(M->GetDamageMultiplier(), 1.25f, 0.001f) ? 1 : 0;
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("the swarm flew (%d missiles)"), Missiles), Missiles > 0);
+	TestEqual(TEXT("every swarm missile carries +25%"), Struck, Missiles);
+
+	// 4. The ram: its 300 lands as 375 with Switch Strike.
+	F.W.Advance(4.5f); // strike over, switch cooldown passed
+	Bus->BroadcastPowerUsed(ETDShipId::Bastion, TEXT("MissileSwarm"));
+	F.W.Advance(0.2f);
+	TestTrue(TEXT("switch to Lancer inside the window"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+	TestEqual(TEXT("Lancer has Switch Strike"), F.Squad->GetDamageMultiplier(Lancer), 1.25f);
+	AActor* Target = F.SpawnEnemy(Lancer->GetActorLocation() + Lancer->GetActorForwardVector() * 2500.f, 100000.f);
+	const UTDHealthComponent* TH = UTDStatics::GetHealth(Target);
+	UTDRamPower* Ram = Cast<UTDRamPower>(UTDPowerComponent::FindPower(Lancer, ETDPowerInput::Signature1));
+	UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, true);
+	F.W.Tick();
+	UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
+	for (float T = 0.f; T < 2.f && TH && TH->GetHull01() >= 1.f; T += 1.f / 60.f)
+	{
+		F.W.Tick(1.f / 60.f);
+	}
+	const float Taken = TH ? (1.f - TH->GetHull01()) * 100000.f : 0.f;
+	TestTrue(TEXT("rammed"), Ram && Taken > 0.f);
+	TestEqual(TEXT("the ram's hit lands with +25%"), Taken, (Ram ? Ram->RamDamage : 300.f) * 1.25f, 1.f);
 	return true;
 }
 

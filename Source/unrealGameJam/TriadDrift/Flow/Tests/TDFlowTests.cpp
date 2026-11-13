@@ -1322,4 +1322,83 @@ bool FTDFlowMenuMusic::RunTest(const FString& Parameters)
 	return true;
 }
 
+// ------------------------------------------------------------------------------------------------
+// Second review, Flow minors (Lead's decisions; T3): RestartSceneNow has ReportPlayerDefeated's travel guard; a failed
+// victory travel is retried, then falls back to the menu; a Continue into the assault opens with its slate.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowReviewMinors, "TriadDrift.Flow.Review.RestartGuardVictoryRetryAndAssaultSlate", TDFlowTest::TestFlags)
+bool FTDFlowReviewMinors::RunTest(const FString& Parameters)
+{
+	UTDFlowSettings* S = GetMutableDefault<UTDFlowSettings>();
+	const bool bWrite = S->bWriteSlotOnCheckpoint;
+	S->bWriteSlotOnCheckpoint = false;
+	ON_SCOPE_EXIT { S->bWriteSlotOnCheckpoint = bWrite; };
+	{
+		// 1. A restart asked for while leaving the level is ignored (no restore into a world about to unload).
+		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDSpaceGameMode::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		if (!TestNotNull(TEXT("GI"), GI)) { return false; }
+		GI->NotifyLevelEntered(ETDDestination::Galaxy); // checkpoint: 0 waves cleared
+		GI->GetMutableProgress().WavesCleared = 4;
+		FString Opened;
+		GI->OpenLevelOverride = [&Opened](const FString& P) { Opened = P; };
+		TestTrue(TEXT("travel to Verdance starts"), GI->TravelTo(ETDDestination::Verdance, NAME_None));
+		GI->RestartSceneNow();
+		TestEqual(TEXT("no checkpoint restore mid-travel"), GI->GetProgressRef().WavesCleared, 4);
+		TestTrue(TEXT("still travelling"), GI->IsTravelPending());
+		GI->OpenLevelOverride = nullptr;
+	}
+	{
+		// 2. The victory map can't be opened: retried twice, then the menu.
+		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDSpaceGameMode::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		if (!TestNotNull(TEXT("GI"), GI)) { return false; }
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		const FSoftObjectPath* Was = S->DestinationMaps.Find(ETDDestination::Victory);
+		const FSoftObjectPath Saved = Was ? *Was : FSoftObjectPath();
+		const bool bHad = Was != nullptr;
+		S->DestinationMaps.Add(ETDDestination::Victory, FSoftObjectPath(TEXT("/Game/TriadDrift/Maps/L_DoesNotExist.L_DoesNotExist")));
+		ON_SCOPE_EXIT { if (bHad) { S->DestinationMaps.Add(ETDDestination::Victory, Saved); } else { S->DestinationMaps.Remove(ETDDestination::Victory); } };
+		FString Opened;
+		GI->OpenLevelOverride = [&Opened](const FString& P) { Opened = P; };
+		GI->SetPhase(ETDGamePhase::Victory);
+		GI->TickFlow(S->VictoryHoldSeconds + 0.1f);
+		TestFalse(TEXT("first try fails (no victory map)"), GI->IsTravelPending());
+		GI->TickFlow(0.6f);
+		TestFalse(TEXT("second try fails"), GI->IsTravelPending());
+		GI->TickFlow(0.6f);
+		TestTrue(TEXT("third failure: falls back to the menu"), GI->IsTravelPending());
+		for (int32 i = 0; i < 20 && !Opened.Contains(TEXT("L_MainMenu")); ++i)
+		{
+			GI->TickFlow(0.5f);
+			if (Opened.Contains(TEXT("L_Transition"))) { GI->NotifyMapLoaded(TEXT("/Game/TriadDrift/Maps/L_Transition")); Opened.Reset(); }
+		}
+		TestTrue(FString::Printf(TEXT("the menu map opens (%s)"), *Opened), Opened.Contains(TEXT("L_MainMenu")));
+		GI->OpenLevelOverride = nullptr;
+	}
+	{
+		// 3. Continue into the assault: the restored scene id is Dominion, and the slate still plays on entry.
+		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDSpaceGameMode::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		if (!TestNotNull(TEXT("GI"), GI)) { return false; }
+		UTDFlowTestListener* Listener = NewObject<UTDFlowTestListener>();
+		Listener->AddToRoot();
+		ON_SCOPE_EXIT { Listener->RemoveFromRoot(); };
+		Listener->Bind(UTDEventBus::Get(W.GetWorld()));
+		UTDSaveGame* Save = NewObject<UTDSaveGame>();
+		Save->Checkpoint.bValid = true;
+		Save->Checkpoint.Destination = ETDDestination::Galaxy;
+		Save->Checkpoint.SceneId = UTDGameInstance::DominionScene;
+		Save->Checkpoint.Progress.Phase = ETDGamePhase::DominionAssault;
+		Save->Checkpoint.Progress.Takes.Add(UTDGameInstance::DominionScene, 2);
+		TestTrue(TEXT("save applies"), GI->ApplySave(*Save));
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		const bool bSlate = Listener->Takes.ContainsByPredicate([](const TPair<FName, int32>& T) { return T.Key == UTDGameInstance::DominionScene; });
+		TestTrue(TEXT("the assault's slate plays after a Continue"), bSlate);
+		const int32 Before = Listener->Takes.Num();
+		GI->BeginDominionSceneIfAssault();
+		TestEqual(TEXT("and only once"), Listener->Takes.Num(), Before);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
