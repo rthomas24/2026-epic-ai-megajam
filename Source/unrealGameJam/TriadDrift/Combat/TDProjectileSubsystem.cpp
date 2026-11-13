@@ -172,8 +172,17 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 	// A small white-hot core, then the slower shell in pure team colour at a low glow. Live in a wave-5 furball the old
 	// shell (15% white at glow 14) blew out to big flat pink-white discs over the player's ship: against black space any
 	// saturated colour at glow 14 tonemaps to white. The shell now stays enemy red-orange / squad colour.
-	Used += PlayPlaceholderFlash(Location, R * 0.3f, FMath::Lerp(Color, FLinearColor::White, 0.45f), 0.22f) ? 1 : 0;
-	Used += PlayPlaceholderFlash(Location, R, Color * ExplosionShellDim, 0.6f) ? 1 : 0;
+	if (ATDCombatFlash* Core = PlayPlaceholderFlash(Location, R * 0.3f, FMath::Lerp(Color, FLinearColor::White, 0.45f), 0.22f))
+	{
+		Core->SetCameraCap(ATDCombatFlash::MaxShellRadiusPerCameraDistance * 0.5f);
+		++Used;
+	}
+	// A near death never fills more than ~25% of the screen height (the Lead, after the wave-5 furball captures).
+	if (ATDCombatFlash* Shell = PlayPlaceholderFlash(Location, R, Color * ExplosionShellDim, 0.6f))
+	{
+		Shell->SetCameraCap(ATDCombatFlash::MaxShellRadiusPerCameraDistance);
+		++Used;
+	}
 	// Debris streaks, evenly spread on a jittered sphere so they read from any camera angle.
 	const int32 Count = FMath::Clamp(DebrisCount, 0, 16);
 	for (int32 I = 0; I < Count; ++I)

@@ -157,8 +157,16 @@ public:
 	void Play(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds, USceneComponent* AttachTo);
 	/** A debris streak: flies at Velocity, stretched along it (Length x Thickness), shrinking as it fades. */
 	void PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& Color, float Seconds);
-	/** A flash sphere's radius never exceeds this fraction of its distance to the player's camera. */
+	/** A flash sphere's radius never exceeds this fraction of its distance to the player's camera (default cap). */
 	static constexpr float MaxRadiusPerCameraDistance = 0.3f;
+	/**
+	 * Explosion shells: radius at most this fraction of the camera distance, about 25% of the screen height at 16:9 and
+	 * 90 degrees horizontal FOV (tan(7.3 deg)). The Lead: a near death must not fill more than ~25% of the screen height.
+	 */
+	static constexpr float MaxShellRadiusPerCameraDistance = 0.128f;
+	/** This play's camera cap (Play resets it to MaxRadiusPerCameraDistance). */
+	void SetCameraCap(float RadiusPerCameraDistance) { CameraCap = FMath::Max(RadiusPerCameraDistance, 0.01f); }
+	float GetCameraCap() const { return CameraCap; }
 	bool IsPlaying() const { return bPlaying; }
 	float GetRadius() const { return Radius; }
 	void Stop();
@@ -181,6 +189,7 @@ private:
 	TObjectPtr<UMaterialInstanceDynamic> MID;
 
 	FLinearColor Color = FLinearColor::White;
+	float CameraCap = MaxRadiusPerCameraDistance;
 	FVector DebrisVelocity = FVector::ZeroVector;
 	float DebrisLength = 0.f;
 	bool bDebris = false;

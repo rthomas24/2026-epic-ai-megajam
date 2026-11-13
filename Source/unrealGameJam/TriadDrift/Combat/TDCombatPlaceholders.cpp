@@ -213,6 +213,7 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 		MID = Mesh->CreateDynamicMaterialInstance(0, GlowMaterial);
 	}
 	bDebris = false;
+	CameraCap = MaxRadiusPerCameraDistance;
 	SetActorRotation(FRotator::ZeroRotator);
 	Radius = FMath::Max(InRadius, 1.f);
 	Color = InColor;
@@ -286,7 +287,7 @@ void ATDCombatFlash::Apply(float Alpha)
 		float Size = Alpha < 0.3f ? R * (0.6f + 2.f * Alpha) : FMath::Max(R * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
 		if (Distance > 0.f)
 		{
-			Size = FMath::Min(Size, FMath::Max(Distance * MaxRadiusPerCameraDistance, 1.f));
+			Size = FMath::Min(Size, FMath::Max(Distance * CameraCap, 1.f));
 		}
 		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
 	}
