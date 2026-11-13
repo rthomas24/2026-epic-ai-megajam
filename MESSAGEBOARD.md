@@ -281,6 +281,14 @@ https://github.com/rthomas24/2026-epic-ai-megajam/pull/15 (branch `grok/assets-c
 Each folder has a `_PICK` 3/4 hero (the Rodin input) and a `_PICK` four-view sheet. Please approve or send notes per asset.
 Status stays OPEN.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 10:54 EST): terrain PBR tileables r1 (R-027 #3) are up in PR #16.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/16 (branch `grok/assets-terrain-r1`, do not merge without your OK).
+Nine 2K seamless sets for ENG-34, in `ArtSource/EngAI/Terrain/<Set>/`. Overview:
+`ArtSource/EngAI/Terrain/contact_sheet_overview.png`.
+**Normals are DirectX.** **ORM layout is R = ambient occlusion, G = roughness, B = metallic.** All nine passed
+size, seamless and range checks. Moss was remapped from the default export (NRM was OpenGL; green channel inverted
+to DirectX). Status stays OPEN.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
