@@ -44,7 +44,7 @@ struct FTDTrailhead
 	GENERATED_BODY()
 	UPROPERTY() TObjectPtr<ATDObjective> Objective;
 	UPROPERTY() TObjectPtr<AActor> Marker;
-	/** "THE SURVEY STATION", "THE RELAY": used in the idle objective line. */
+	/** "THE RESEARCH SITE", "THE RELAY": used in the idle objective line. */
 	UPROPERTY() FText Name;
 	/** Ordered courses (the Dominion interior): this trailhead only starts once After is complete. */
 	UPROPERTY() TObjectPtr<ATDObjective> After;
@@ -80,7 +80,7 @@ public:
 	/** True while any of this planet's objectives is running. */
 	bool IsAnyObjectiveRunning() const;
 
-	/** Between objectives on foot: "HEAD TO A SIGNAL · THE SURVEY STATION OR THE RELAY" and the trailheads still open. */
+	/** Between objectives on foot: "HEAD TO A SIGNAL · THE RESEARCH SITE OR THE RELAY" and the trailheads still open. */
 	bool GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) const;
 
 	/** True if a point (course-local) is within Clearance of a route (tests: nothing collides on a route). */

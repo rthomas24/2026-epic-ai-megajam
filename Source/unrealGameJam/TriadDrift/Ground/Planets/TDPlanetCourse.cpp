@@ -755,8 +755,8 @@ void ATDPlanetCourse::BuildVerdance()
 	const FVector WreckHead(2600.f, 2600.f, 0.f);
 	const FVector Ambush(6200.f, 4600.f, 0.f);
 	const FVector WreckSite(11500.f, 7200.f, 0.f);
-	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Survey Archive"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 7);
-	AddTrailhead(Wreck, WreckHead, Cyan, LOCTEXT("TheWreck", "THE SURVEY STATION"));
+	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Signal-Analysis Device"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 7);
+	AddTrailhead(Wreck, WreckHead, Cyan, LOCTEXT("TheWreck", "THE RESEARCH SITE"));
 	Route({ FVector(900.f, 900.f, 0.f), WreckHead, Ambush, FVector(9300.f, 6300.f, 0.f), WreckSite }, Cyan);
 
 	// Ambush: fallen logs for cover, two troopers and two grunts waiting in the glow.
@@ -803,14 +803,16 @@ void ATDPlanetCourse::BuildVerdance()
 	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
 
 	// The survey terminal: a tap starts the archive transfer (and Cinematic 03, T3's hook).
-	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f), FRotator(0.f, 180.f, 0.f));
-	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Activate the survey terminal");
+	// The console's origin is its box centre: 60 x 120 x 130 cm standing on the 30 cm deck (T2's live check: at deck height
+	// it sat half sunk and only took the interact trace looking 40 degrees down).
+	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
+	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Connect the device");
 	Terminal->HoldTime = 0.f;
 	Terminal->LinkedObjective = Wreck;
 	Terminal->LinkedStep = 2;
 	Terminal->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
 	TDCourseImpl::FinishProp(Terminal);
-	Terminal->SetActorScale3D(FVector(1.f, 1.4f, 1.3f));
+	Terminal->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f)); // the cube is 60 x 60 x 120 at scale 1
 	UTDStatics::TintPlaceholder(Terminal->Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.5f);
 
 	// The transfer (60-90 s, here 75): three fixed waves dropping in around the station, the third with the Heavy (the
@@ -834,7 +836,7 @@ void ATDPlanetCourse::BuildVerdance()
 	Core->LinkedObjective = Wreck;
 	Core->LinkedStep = 5;
 	Core->HoldTime = 1.5f;
-	Core->Prompt = LOCTEXT("TakePackage", "Take the data package");
+	Core->Prompt = LOCTEXT("TakePackage", "Take the device and the archive");
 	Core->WaveA = Pursuit;
 	Core->WaveB = nullptr;
 	TDCourseImpl::FinishProp(Core);
@@ -850,9 +852,9 @@ void ATDPlanetCourse::BuildVerdance()
 	Checkpoint(Wreck, 4, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the transfer's midpoint
 	Checkpoint(Wreck, 5, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the package: back at the station
 	FinishObjective(Wreck,
-		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE SURVEY STATION"), LOCTEXT("W1", "CLEAR THE STATION"),
-		  LOCTEXT("W2", "ACTIVATE THE SURVEY TERMINAL · [E]"), LOCTEXT("W3", "PROTECT THE DATA TRANSFER"), LOCTEXT("W4", "PROTECT THE DATA TRANSFER"),
-		  LOCTEXT("W5", "TAKE THE DATA PACKAGE · HOLD [E]"), LOCTEXT("W6", "GET THE DATA BACK TO YOUR SHIP") },
+		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE RESEARCH SITE"), LOCTEXT("W1", "CLEAR THE RESEARCH SITE"),
+		  LOCTEXT("W2", "CONNECT THE DEVICE TO THE SURVEY CONSOLE · [E]"), LOCTEXT("W3", "PROTECT THE DATA TRANSFER"), LOCTEXT("W4", "PROTECT THE DATA TRANSFER"),
+		  LOCTEXT("W5", "TAKE THE DEVICE AND THE ARCHIVE · HOLD [E]"), LOCTEXT("W6", "GET BACK TO YOUR SHIP") },
 		{ Beacon, SiteFight, Terminal, Transfer, Transfer, Core, Ship });
 
 	// ---- Obj 2: the ancient relay (-> Cloak on Rift). South-east, up a ruined climb. ----
@@ -1002,8 +1004,8 @@ void ATDPlanetCourse::BuildCinder()
 
 	// ---- Obj 3: the outpost (-> EMP Pulse on Lancer). North-east, over a magma river. ----
 	const FVector OutHead(2600.f, 2600.f, 0.f);
-	ATDObjective* Outpost = MakeObjective(TEXT("Obj_Outpost"), LOCTEXT("OutpostTitle", "Stop the Excavation"), ETDAbilityId::EMPPulse, ETDShipId::Lancer, 6);
-	AddTrailhead(Outpost, OutHead, Ember, LOCTEXT("TheOutpost", "THE MINING COMPLEX"));
+	ATDObjective* Outpost = MakeObjective(TEXT("Obj_Outpost"), LOCTEXT("OutpostTitle", "Secure the Excavation"), ETDAbilityId::EMPPulse, ETDShipId::Lancer, 6);
+	AddTrailhead(Outpost, OutHead, Ember, LOCTEXT("TheOutpost", "THE EXCAVATION"));
 	Route({ FVector(900.f, 900.f, 0.f), OutHead, FVector(5000.f, 4200.f, 0.f), FVector(7600.f, 6000.f, 0.f), FVector(9200.f, 6000.f, 0.f) }, Ember);
 
 	// The magma river with basalt stepping stones (3 m gaps: a jump).
@@ -1136,7 +1138,7 @@ void ATDPlanetCourse::BuildCinder()
 	// Screen toward the way the pilot comes in (the kit console's screen faces its +X).
 	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0 + 700.f, 70.f), FRotator(0.f, 180.f, 0.f)); // off the arena line (the Warden fight crosses it)
 	Prototype->ConsoleMesh = TDPropArt::Default(TEXT("SM_Cind_PrototypeConsole")); // 160 x 160 x 140, the scale below
-	Prototype->Prompt = LOCTEXT("ClaimEmp", "Take the crystals and the EMP prototype");
+	Prototype->Prompt = LOCTEXT("ClaimEmp", "Recover the crystals and the EMP prototype");
 	Prototype->HoldTime = 1.5f;
 	Prototype->LinkedObjective = Outpost;
 	Prototype->LinkedStep = 5;
@@ -1152,13 +1154,13 @@ void ATDPlanetCourse::BuildCinder()
 	Checkpoint(Outpost, 4, FVector(XArena - 600.f, Y0, 0.f), 0.f);
 	FinishObjective(Outpost,
 		{ LOCTEXT("O0", "BREACH THE GATE · DESTROY THE CONDUITS  0 / 2"), LOCTEXT("O1", "CLEAR THE YARD"), LOCTEXT("O2", "CLEAR THE BARRACKS"),
-		  LOCTEXT("O3", "CLEAR THE DIG"), LOCTEXT("O4", "DEFEAT THE WARDEN"), LOCTEXT("O5", "TAKE THE CRYSTALS AND THE EMP · HOLD [E]") },
+		  LOCTEXT("O3", "CLEAR THE DIG"), LOCTEXT("O4", "DEFEAT THE WARDEN"), LOCTEXT("O5", "RECOVER THE STABILISING CRYSTALS · HOLD [E]") },
 		{ Conduits, Yard, Barracks, Command, Arena, Prototype });
 	(void)GateGuards;
 
 	// ---- Obj 4: the jammer (-> reveals the Dominion). South-east, across a magma lake. ----
 	const FVector JamHead(2600.f, -2600.f, 0.f);
-	ATDObjective* Jammer = MakeObjective(TEXT("Obj_Jammer"), LOCTEXT("JammerTitle", "Destroy the Field Anchor"), ETDAbilityId::None, ETDShipId::Rift, 3);
+	ATDObjective* Jammer = MakeObjective(TEXT("Obj_Jammer"), LOCTEXT("JammerTitle", "Disable the Field Anchor"), ETDAbilityId::None, ETDShipId::Rift, 3);
 	AddTrailhead(Jammer, JamHead, Crystal, LOCTEXT("TheJammer", "THE FIELD ANCHOR"));
 	Route({ FVector(900.f, -900.f, 0.f), JamHead, FVector(5200.f, -4600.f, 0.f), FVector(6800.f, -5000.f, 0.f) }, Crystal);
 
@@ -1272,7 +1274,7 @@ void ATDPlanetCourse::BuildCinder()
 
 	Checkpoint(Jammer, 1, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f); // the charges: from the far bank, out of the defence's drop
 	FinishObjective(Jammer,
-		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "GET CLEAR OF THE ANCHOR") },
+		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "RETURN TO EXTRACTION") },
 		{ FarBank, Charges, Clear });
 
 	KeepOuts = {
