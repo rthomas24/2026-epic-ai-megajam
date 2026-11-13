@@ -19,6 +19,10 @@
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/Tests/TDGroundTestHelpers.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
@@ -456,6 +460,99 @@ bool FTDDirectorCamOnFoot::RunTest(const FString& Parameters)
 	UTDEventBus::Get(W.GetWorld())->BroadcastSceneCut(TEXT("Obj_Outpost"), 2, 1.5f);
 	W.Advance(0.5f);
 	TestTrue(TEXT("a CUT on foot keeps the first-person view"), PC->GetViewTarget() == Pilot && !Director->GetCameraRig()->IsActive());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamDeathOnFoot, "TriadDrift.Director.Camera.OnFootDeathCutsToThirdPerson", TD_TEST_FLAGS)
+bool FTDDirectorCamDeathOnFoot::RunTest(const FString& Parameters)
+{
+	// Lead (the real player model): the pilot dies on foot -> the CUT plays on a third-person director
+	// camera outside the body, with a clear line to it and a slow orbit; the retake goes back to the
+	// pilot's own eyes. Real character, real death, T5's real game flow (CUT -> retake).
+	FScopedCamMode Full(2);
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* Pilot = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Pilot);
+	if (!TestNotNull(TEXT("pilot possessed"), PC))
+	{
+		return false;
+	}
+	// A body to show (the shipped look comes from DA_Pilot_Visuals; headless may not load it).
+	if (!Pilot->GetMesh()->GetSkeletalMeshAsset())
+	{
+		USkeletalMesh* Stand = LoadObject<USkeletalMesh>(nullptr, TEXT("/Engine/EngineMeshes/SkeletalCube.SkeletalCube"));
+		if (!TestNotNull(TEXT("a stand-in body mesh"), Stand))
+		{
+			return false;
+		}
+		Pilot->GetMesh()->SetSkeletalMeshAsset(Stand);
+	}
+	W.Advance(0.5f);
+	UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(W.GetWorld());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+
+	UTDStatics::GetHealth(Pilot)->Kill(); // T5's HandleDeath -> ReportPlayerDefeated -> OnSceneCut, same frame
+	W.Tick();
+	UTDDirectorCameraRig* Rig = Director->GetCameraRig();
+	const ATDDirectorCameraActor* Cam = Rig->GetCameraActor();
+	if (!TestTrue(TEXT("the CUT plays on the director's third-person camera"), Rig->IsDeathCam() && Cam && PC->GetViewTarget() == Cam))
+	{
+		return false;
+	}
+	const FVector Focus0 = Rig->GetLastFocus();
+	const FVector C0 = Cam->GetActorLocation();
+	const UCapsuleComponent* Capsule = Pilot->GetCapsuleComponent();
+	TestTrue(FString::Printf(TEXT("camera outside the capsule (%.0f cm from it)"), FVector::Dist(C0, Capsule->GetComponentLocation())),
+		FVector::Dist(C0, Capsule->GetComponentLocation()) > Capsule->GetScaledCapsuleRadius() + Capsule->GetScaledCapsuleHalfHeight());
+	TestTrue(FString::Printf(TEXT("4-6 m from the body (%.0f cm)"), FVector::Dist(C0, Focus0)), FVector::Dist(C0, Focus0) > 300.f && FVector::Dist(C0, Focus0) < 650.f);
+	TestTrue(TEXT("behind and above"), C0.Z > Focus0.Z + 100.f);
+	{
+		FHitResult Hit;
+		FCollisionQueryParams Q(SCENE_QUERY_STAT(TDDeathCamTest), false, Pilot);
+		TestFalse(TEXT("a clear line from the lens to the body"), W.GetWorld()->LineTraceSingleByChannel(Hit, C0, Focus0, ECC_Camera, Q));
+	}
+	// The slow orbit, in real time.
+	W.Advance(3.2f);
+	const FVector C1 = Cam->GetActorLocation();
+	const FVector A = (C0 - Focus0).GetSafeNormal2D();
+	const FVector B = (C1 - Rig->GetLastFocus()).GetSafeNormal2D();
+	const float Orbit = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(A, B), -1.f, 1.f)));
+	TestTrue(FString::Printf(TEXT("a slow orbit of about 15 deg (%.1f)"), Orbit), Orbit > 10.f && Orbit < 20.f);
+	TestTrue(TEXT("still on the death cam through the CUT"), PC->GetViewTarget() == Cam);
+
+	// The retake: back to the pilot's own eyes.
+	for (int32 i = 0; i < 60 * 8 && GI && GI->IsRetakePending(); ++i)
+	{
+		W.Tick(1.f / 60.f);
+		GI->TickFlow(1.f / 60.f);
+	}
+	W.Tick();
+	TestFalse(TEXT("the retake ran"), GI && GI->IsRetakePending());
+	TestFalse(TEXT("death cam over"), Rig->IsDeathCam() || Rig->IsActive());
+	TestTrue(TEXT("the view is the pilot again (first person)"), PC->GetViewTarget() == Pilot);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamDeathNoBody, "TriadDrift.Director.Camera.OnFootDeathWithoutABodyStaysFirstPerson", TD_TEST_FLAGS)
+bool FTDDirectorCamDeathNoBody::RunTest(const FString& Parameters)
+{
+	// T5: without a pilot look there is no body; a third-person camera would frame empty ground.
+	FScopedCamMode Full(2);
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* Pilot = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Pilot);
+	if (!TestNotNull(TEXT("pilot possessed"), PC))
+	{
+		return false;
+	}
+	Pilot->GetMesh()->SetSkeletalMeshAsset(nullptr);
+	W.Advance(0.5f);
+	UTDStatics::GetHealth(Pilot)->Kill();
+	W.Tick();
+	TestFalse(TEXT("no body: no death cam"), UTDDirectorSubsystem::Get(W.GetWorld())->GetCameraRig()->IsDeathCam());
+	TestTrue(TEXT("the CUT stays first person"), PC->GetViewTarget() == Pilot);
 	return true;
 }
 

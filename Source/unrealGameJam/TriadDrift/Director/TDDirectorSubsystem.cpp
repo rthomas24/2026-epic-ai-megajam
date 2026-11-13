@@ -74,7 +74,9 @@ void UTDDirectorSubsystem::Tick(float DeltaTime)
 	{
 		return;
 	}
-	if (CameraRig->IsActive() && !CanTriggerHighlights())
+	// The death cam lives inside the CUT (highlights are off then); travel still ends it.
+	const bool bDeathCamHeld = CameraRig->IsDeathCam() && bSceneCutPending;
+	if (CameraRig->IsActive() && !CanTriggerHighlights() && !bDeathCamHeld)
 	{
 		CameraRig->Cancel(bSceneCutPending ? ETDDirectorCameraCancel::SceneCut : ETDDirectorCameraCancel::Travel);
 	}
@@ -449,6 +451,13 @@ void UTDDirectorSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, f
 	if (CameraRig)
 	{
 		CameraRig->Cancel(ETDDirectorCameraCancel::SceneCut); // the retake starts on the player's own view
+		// The pilot died on foot: cut to the third-person death cam for the CUT, the one time the player
+		// sees their own pilot. In a ship the CUT stays presentation only.
+		APlayerController* Player = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		if (Player)
+		{
+			CameraRig->BeginDeathCam(Player->GetPawn());
+		}
 	}
 	if (CutPresentation)
 	{
@@ -470,6 +479,10 @@ void UTDDirectorSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 	if (CutPresentation)
 	{
 		CutPresentation->HandleTakeStarted(SceneId, TakeNumber);
+	}
+	if (CameraRig && CameraRig->IsDeathCam())
+	{
+		CameraRig->Cancel(ETDDirectorCameraCancel::SceneCut); // back to the pilot's own eyes for the new take
 	}
 	bSceneCutPending = false;
 }
