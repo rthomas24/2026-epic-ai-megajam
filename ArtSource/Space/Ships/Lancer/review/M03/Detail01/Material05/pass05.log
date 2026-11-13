@@ -1,0 +1,17 @@
+00:01.266  blend            | Read blend: "C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\production\M03\Lancer_M03_Detail01_v02.blend"
+Info: Saved as "Lancer_M03_Detail01_Material05_work.blend"
+LANCER_M03_QA {"technical_pass": true, "assembly_triangles": 34516, "geometry_errors": [], "contact_pass": true, "attachment_pass": true, "ray_clearance": [{"name": "Muzzle_Primary_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_01", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_02", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_03", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_04", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Primary_R", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_01", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_02", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_03", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_04", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_R", "clear": true, "hit": null, "distance_cm": null}]}
+00:08.032  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\01_hero_front_3q.png'
+00:08.657  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\06_top.png'
+00:09.329  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\08_rear_3q.png'
+00:09.938  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\neutral_before_01_hero_front_3q.png'
+00:10.532  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\neutral_before_06_top.png'
+00:11.188  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\neutral_before_08_rear_3q.png'
+00:11.766  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\neutral_after_01_hero_front_3q.png'
+00:12.313  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\neutral_after_06_top.png'
+00:12.954  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Material05\neutral_after_08_rear_3q.png'
+Info: Saved as "Lancer_M03_Detail01_v03.blend"
+MATERIAL05_COMPLETE {"technical_pass": true, "render_count": 9, "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\production\\M03\\Lancer_M03_Detail01_v03.blend"}
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

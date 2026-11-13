@@ -1,0 +1,417 @@
+{
+  "blender": "5.1.1",
+  "engine": "BLENDER_EEVEE",
+  "view_transform": "Khronos PBR Neutral",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1862894,
+      "pixel_std": 0.1151922345161438,
+      "lighting": "Original unchanged colored studio",
+      "material_stage": "Material05",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "camera_matrix": [
+        [
+          0.8191519379615784,
+          -0.2332945615053177,
+          0.5239883065223694,
+          11.226269721984863
+        ],
+        [
+          0.5735765695571899,
+          0.3331789970397949,
+          -0.7483326196670532,
+          -16.032773971557617
+        ],
+        [
+          2.7794023083060893e-08,
+          0.913545548915863,
+          0.40673649311065674,
+          8.702731132507324
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 6.0,
+      "camera_type": "PERSP",
+      "shift": [
+        0.06822361797094345,
+        -0.0016785810003057122
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1862792,
+      "pixel_std": 0.1216665655374527,
+      "lighting": "Original unchanged colored studio",
+      "material_stage": "Material05",
+      "azimuth_deg": 0,
+      "elevation_deg": 90,
+      "camera_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -2.384185791015625e-07
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          29.512317657470703
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "ORTHO",
+      "shift": [
+        0.0,
+        0.0
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1906214,
+      "pixel_std": 0.13196462392807007,
+      "lighting": "Original unchanged colored studio",
+      "material_stage": "Material05",
+      "azimuth_deg": 215,
+      "elevation_deg": 22,
+      "camera_matrix": [
+        [
+          -0.8191520571708679,
+          0.21486549079418182,
+          -0.5318108201026917,
+          -11.178909301757812
+        ],
+        [
+          -0.5735764503479004,
+          -0.30685970187187195,
+          0.7595045566558838,
+          15.965136528015137
+        ],
+        [
+          1.195241239315692e-08,
+          0.9271838665008545,
+          0.37460651993751526,
+          7.862939357757568
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "PERSP",
+      "shift": [
+        -0.08873998373746872,
+        -0.053298648446798325
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "neutral_before_01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1301753,
+      "pixel_std": 0.11159763485193253,
+      "lighting": "Neutral-light diagnostic",
+      "material_stage": "Material04",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "camera_matrix": [
+        [
+          0.8191519379615784,
+          -0.2332945615053177,
+          0.5239883065223694,
+          11.226269721984863
+        ],
+        [
+          0.5735765695571899,
+          0.3331789970397949,
+          -0.7483326196670532,
+          -16.032773971557617
+        ],
+        [
+          2.7794023083060893e-08,
+          0.913545548915863,
+          0.40673649311065674,
+          8.702731132507324
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "PERSP",
+      "shift": [
+        0.06822361797094345,
+        -0.0016785810003057122
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "neutral_before_06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1334224,
+      "pixel_std": 0.12126459181308746,
+      "lighting": "Neutral-light diagnostic",
+      "material_stage": "Material04",
+      "azimuth_deg": 0,
+      "elevation_deg": 90,
+      "camera_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -2.384185791015625e-07
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          29.512317657470703
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "ORTHO",
+      "shift": [
+        0.0,
+        0.0
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "neutral_before_08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1366727,
+      "pixel_std": 0.1495770364999771,
+      "lighting": "Neutral-light diagnostic",
+      "material_stage": "Material04",
+      "azimuth_deg": 215,
+      "elevation_deg": 22,
+      "camera_matrix": [
+        [
+          -0.8191520571708679,
+          0.21486549079418182,
+          -0.5318108201026917,
+          -11.178909301757812
+        ],
+        [
+          -0.5735764503479004,
+          -0.30685970187187195,
+          0.7595045566558838,
+          15.965136528015137
+        ],
+        [
+          1.195241239315692e-08,
+          0.9271838665008545,
+          0.37460651993751526,
+          7.862939357757568
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "PERSP",
+      "shift": [
+        -0.08873998373746872,
+        -0.053298648446798325
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "neutral_after_01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1291871,
+      "pixel_std": 0.10615523904561996,
+      "lighting": "Neutral-light diagnostic",
+      "material_stage": "Material05",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "camera_matrix": [
+        [
+          0.8191519379615784,
+          -0.2332945615053177,
+          0.5239883065223694,
+          11.226269721984863
+        ],
+        [
+          0.5735765695571899,
+          0.3331789970397949,
+          -0.7483326196670532,
+          -16.032773971557617
+        ],
+        [
+          2.7794023083060893e-08,
+          0.913545548915863,
+          0.40673649311065674,
+          8.702731132507324
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "PERSP",
+      "shift": [
+        0.06822361797094345,
+        -0.0016785810003057122
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "neutral_after_06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1320756,
+      "pixel_std": 0.11701058596372604,
+      "lighting": "Neutral-light diagnostic",
+      "material_stage": "Material05",
+      "azimuth_deg": 0,
+      "elevation_deg": 90,
+      "camera_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -2.384185791015625e-07
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          29.512317657470703
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "ORTHO",
+      "shift": [
+        0.0,
+        0.0
+      ],
+      "exposure": -0.4000000059604645
+    },
+    {
+      "file": "neutral_after_08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1346699,
+      "pixel_std": 0.13040554523468018,
+      "lighting": "Neutral-light diagnostic",
+      "material_stage": "Material05",
+      "azimuth_deg": 215,
+      "elevation_deg": 22,
+      "camera_matrix": [
+        [
+          -0.8191520571708679,
+          0.21486549079418182,
+          -0.5318108201026917,
+          -11.178909301757812
+        ],
+        [
+          -0.5735764503479004,
+          -0.30685970187187195,
+          0.7595045566558838,
+          15.965136528015137
+        ],
+        [
+          1.195241239315692e-08,
+          0.9271838665008545,
+          0.37460651993751526,
+          7.862939357757568
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "lens": 78.0,
+      "ortho_scale": 13.989601135253906,
+      "camera_type": "PERSP",
+      "shift": [
+        -0.08873998373746872,
+        -0.053298648446798325
+      ],
+      "exposure": -0.4000000059604645
+    }
+  ],
+  "threads": 2,
+  "elapsed_seconds": 8.697712799999863,
+  "same_geometry_all_views": true,
+  "inherited_clay_wire": "../Material04/ (unchanged geometry; not newly rendered)",
+  "source_not_saved_with_diagnostic_lighting": true
+}

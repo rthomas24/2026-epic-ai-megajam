@@ -1,0 +1,39 @@
+{
+  "units": "m2; actual assembled instance surface area, not triangle counts",
+  "before": {
+    "assembly_surface_m2": {
+      "M_LancerM03_Composite": 32.19453968230356,
+      "M_LancerM03_Gunmetal": 48.54620112214158,
+      "M_LancerM03_Graphite": 114.9273880683991,
+      "M_LancerM03_Canopy": 6.096554011117291,
+      "M_LancerM03_Titanium": 8.743532837369287,
+      "M_LancerM03_Blue": 3.260312633812376
+    },
+    "predefined_base_armor_surface_m2": {
+      "M_LancerM03_Composite": 26.426744194790444,
+      "M_LancerM03_Gunmetal": 35.85131375807677,
+      "M_LancerM03_Graphite": 75.53355313350173,
+      "M_LancerM03_Titanium": 2.8815229994943365,
+      "M_LancerM03_Blue": 0.7764660040847957
+    },
+    "graphite_fraction_of_base_armor": 0.5339207369320094
+  },
+  "after": {
+    "assembly_surface_m2": {
+      "M_LancerM03_Composite": 32.19453968230356,
+      "M_LancerM03_Gunmetal": 13.02677333426547,
+      "M_LancerM03_Graphite": 150.4468158562752,
+      "M_LancerM03_Canopy": 6.096554011117291,
+      "M_LancerM03_Titanium": 8.743532837369287,
+      "M_LancerM03_Blue": 3.260312633812376
+    },
+    "predefined_base_armor_surface_m2": {
+      "M_LancerM03_Composite": 26.426744194790444,
+      "M_LancerM03_Gunmetal": 0.33188597020065913,
+      "M_LancerM03_Graphite": 111.05298092137784,
+      "M_LancerM03_Titanium": 2.8815229994943365,
+      "M_LancerM03_Blue": 0.7764660040847957
+    },
+    "graphite_fraction_of_base_armor": 0.7849953689751651
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "checks": {
+    "png_count": 9,
+    "json_count": 18,
+    "python_ast_count": 3,
+    "local_link_references": 37,
+    "distinct_local_links": 24,
+    "prior_source_hashes_unchanged": true,
+    "independent_node_input_diff_count": 2,
+    "matching_camera_exposure_three_regimes": true,
+    "new_source_sha256": "29c037ccf2353ba4e9ebf70e9e8a3d14eed0166ce86ca5a7a6f062053bdf6aba",
+    "new_source_bytes": 991305,
+    "png_crc_iend_zlib_pass": true,
+    "passed": true
+  },
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1862894,
+      "sha256": "da1450646ebeb8e06f2c035037307fe5c7b46a1a40b60087665d93a91c1b8d43"
+    },
+    {
+      "file": "06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1862792,
+      "sha256": "67dd864e1fe0719eb60b1a273a66a591a4532aba9c5d44c3712c9552e66ccd86"
+    },
+    {
+      "file": "08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1906214,
+      "sha256": "8a62604ec6d01f4efac60831dcd2b31a98c30ed6f16852b248ef8411ede65428"
+    },
+    {
+      "file": "neutral_after_01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1291871,
+      "sha256": "7a6c7d6550c4fa7d3ad8c33c273581ffc242afdf3c63f6526ba0c73a7e017780"
+    },
+    {
+      "file": "neutral_after_06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1320756,
+      "sha256": "7c3d66cf65aacf07fb3a1bf332ba97bbaecf880e01374cc0151614ccea0c9918"
+    },
+    {
+      "file": "neutral_after_08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1346699,
+      "sha256": "7189b705b8505b4674e39857bed7d97f16ca60224bf3618a4c4ed0b7575e8820"
+    },
+    {
+      "file": "neutral_before_01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1301753,
+      "sha256": "90a2a63ecc3001a149ee437a7ff9759699c29e342fb12d6ea4f42f4de531c0b4"
+    },
+    {
+      "file": "neutral_before_06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1334224,
+      "sha256": "20fe13ca8a585d4ab52ec901eddfd3d86ad90ffe69abb235edaad8ca35a6fa0a"
+    },
+    {
+      "file": "neutral_before_08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1366727,
+      "sha256": "7db10ef6876fb05c38ecb87c98fe4180b1cd944cc7557605b20a31e4e86f58f7"
+    }
+  ]
+}

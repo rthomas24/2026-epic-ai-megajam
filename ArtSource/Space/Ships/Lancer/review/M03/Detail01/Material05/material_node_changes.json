@@ -1,0 +1,2751 @@
+{
+  "before": {
+    "M_LancerM03_Blue": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              0.00802319310605526,
+              0.5149176716804504,
+              0.8069522380828857,
+              1.0
+            ],
+            "28": 1.7999999523162842,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.00802319310605526,
+              0.5149176716804504,
+              0.8069522380828857,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.23000000417232513
+          }
+        }
+      },
+      "links": [
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ]
+      ]
+    },
+    "M_LancerM03_Canopy": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.6499999761581421,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.0033465358428657055,
+              0.01850022003054619,
+              0.03189603239297867,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.05000000074505806
+          }
+        }
+      },
+      "links": [
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ]
+      ]
+    },
+    "M_LancerM03_Composite": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.007499032188206911,
+              0.012286487966775894,
+              0.016807375475764275,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.6600000262260437
+          }
+        }
+      },
+      "links": [
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ]
+      ]
+    },
+    "M_LancerM03_Graphite": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.07999999821186066,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.012983032502233982,
+              0.021219009533524513,
+              0.03189603239297867,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.2800000011920929
+          }
+        },
+        "Texture Coordinate": {
+          "type": "TEX_COORD",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Vector Math": {
+          "type": "VECT_MATH",
+          "operation": "MULTIPLY",
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              20.0,
+              500.0,
+              500.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 1.0
+          }
+        },
+        "Noise Texture": {
+          "type": "TEX_NOISE",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": 0.0,
+            "2": 1.0,
+            "3": 2.0,
+            "4": 0.6499999761581421,
+            "5": 2.0,
+            "6": 0.0,
+            "7": 1.0,
+            "8": 0.0
+          }
+        },
+        "Math.001": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.06499999761581421,
+            "2": -0.032499998807907104
+          }
+        },
+        "Math.002": {
+          "type": "MATH",
+          "operation": "ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.5,
+            "2": 0.5
+          }
+        },
+        "Bump": {
+          "type": "BUMP",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": 0.11999999731779099,
+            "1": 0.00018000000272877514,
+            "2": 0.10000000149011612,
+            "3": 1.0,
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "links": [
+        [
+          "Bump",
+          "Normal",
+          "Principled BSDF",
+          "Normal"
+        ],
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Math.002",
+          "Value"
+        ],
+        [
+          "Math.001",
+          "Value",
+          "Math.002",
+          "Value_001"
+        ],
+        [
+          "Math.002",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Bump",
+          "Height"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Math.001",
+          "Value"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ],
+        [
+          "Texture Coordinate",
+          "Object",
+          "Vector Math",
+          "Vector"
+        ],
+        [
+          "Vector Math",
+          "Vector",
+          "Noise Texture",
+          "Vector"
+        ]
+      ]
+    },
+    "M_LancerM03_Gunmetal": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 1.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.061246052384376526,
+              0.08865558356046677,
+              0.11697066575288773,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.3400000035762787
+          }
+        },
+        "Texture Coordinate": {
+          "type": "TEX_COORD",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Vector Math": {
+          "type": "VECT_MATH",
+          "operation": "MULTIPLY",
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              20.0,
+              500.0,
+              500.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 1.0
+          }
+        },
+        "Noise Texture": {
+          "type": "TEX_NOISE",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": 0.0,
+            "2": 1.0,
+            "3": 2.0,
+            "4": 0.6499999761581421,
+            "5": 2.0,
+            "6": 0.0,
+            "7": 1.0,
+            "8": 0.0
+          }
+        },
+        "Math.001": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.06499999761581421,
+            "2": -0.032499998807907104
+          }
+        },
+        "Math.002": {
+          "type": "MATH",
+          "operation": "ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.5,
+            "2": 0.5
+          }
+        },
+        "Bump": {
+          "type": "BUMP",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": 0.11999999731779099,
+            "1": 0.00018000000272877514,
+            "2": 0.10000000149011612,
+            "3": 1.0,
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "links": [
+        [
+          "Bump",
+          "Normal",
+          "Principled BSDF",
+          "Normal"
+        ],
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Math.002",
+          "Value"
+        ],
+        [
+          "Math.001",
+          "Value",
+          "Math.002",
+          "Value_001"
+        ],
+        [
+          "Math.002",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Bump",
+          "Height"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Math.001",
+          "Value"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ],
+        [
+          "Texture Coordinate",
+          "Object",
+          "Vector Math",
+          "Vector"
+        ],
+        [
+          "Vector Math",
+          "Vector",
+          "Noise Texture",
+          "Vector"
+        ]
+      ]
+    },
+    "M_LancerM03_Titanium": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 1.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.3915724754333496,
+              0.4564110338687897,
+              0.5088813304901123,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.20999999344348907
+          }
+        },
+        "Texture Coordinate": {
+          "type": "TEX_COORD",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Vector Math": {
+          "type": "VECT_MATH",
+          "operation": "MULTIPLY",
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              20.0,
+              500.0,
+              500.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 1.0
+          }
+        },
+        "Noise Texture": {
+          "type": "TEX_NOISE",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": 0.0,
+            "2": 1.0,
+            "3": 2.0,
+            "4": 0.6499999761581421,
+            "5": 2.0,
+            "6": 0.0,
+            "7": 1.0,
+            "8": 0.0
+          }
+        },
+        "Math.001": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.06499999761581421,
+            "2": -0.032499998807907104
+          }
+        },
+        "Math.002": {
+          "type": "MATH",
+          "operation": "ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.5,
+            "2": 0.5
+          }
+        },
+        "Bump": {
+          "type": "BUMP",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": 0.11999999731779099,
+            "1": 0.00018000000272877514,
+            "2": 0.10000000149011612,
+            "3": 1.0,
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "links": [
+        [
+          "Bump",
+          "Normal",
+          "Principled BSDF",
+          "Normal"
+        ],
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Math.002",
+          "Value"
+        ],
+        [
+          "Math.001",
+          "Value",
+          "Math.002",
+          "Value_001"
+        ],
+        [
+          "Math.002",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Bump",
+          "Height"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Math.001",
+          "Value"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ],
+        [
+          "Texture Coordinate",
+          "Object",
+          "Vector Math",
+          "Vector"
+        ],
+        [
+          "Vector Math",
+          "Vector",
+          "Noise Texture",
+          "Vector"
+        ]
+      ]
+    }
+  },
+  "after": {
+    "M_LancerM03_Blue": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              0.00802319310605526,
+              0.5149176716804504,
+              0.8069522380828857,
+              1.0
+            ],
+            "28": 1.7999999523162842,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.00802319310605526,
+              0.5149176716804504,
+              0.8069522380828857,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.23000000417232513
+          }
+        }
+      },
+      "links": [
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ]
+      ]
+    },
+    "M_LancerM03_Canopy": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.6499999761581421,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.0033465358428657055,
+              0.01850022003054619,
+              0.03189603239297867,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.05000000074505806
+          }
+        }
+      },
+      "links": [
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ]
+      ]
+    },
+    "M_LancerM03_Composite": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.007499032188206911,
+              0.012286487966775894,
+              0.016807375475764275,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.6600000262260437
+          }
+        }
+      },
+      "links": [
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ]
+      ]
+    },
+    "M_LancerM03_Graphite": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 0.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.012983032502233982,
+              0.021219009533524513,
+              0.03189603239297867,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.46000000834465027
+          }
+        },
+        "Texture Coordinate": {
+          "type": "TEX_COORD",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Vector Math": {
+          "type": "VECT_MATH",
+          "operation": "MULTIPLY",
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              20.0,
+              500.0,
+              500.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 1.0
+          }
+        },
+        "Noise Texture": {
+          "type": "TEX_NOISE",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": 0.0,
+            "2": 1.0,
+            "3": 2.0,
+            "4": 0.6499999761581421,
+            "5": 2.0,
+            "6": 0.0,
+            "7": 1.0,
+            "8": 0.0
+          }
+        },
+        "Math.001": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.06499999761581421,
+            "2": -0.032499998807907104
+          }
+        },
+        "Math.002": {
+          "type": "MATH",
+          "operation": "ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.5,
+            "2": 0.5
+          }
+        },
+        "Bump": {
+          "type": "BUMP",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": 0.11999999731779099,
+            "1": 0.00018000000272877514,
+            "2": 0.10000000149011612,
+            "3": 1.0,
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "links": [
+        [
+          "Bump",
+          "Normal",
+          "Principled BSDF",
+          "Normal"
+        ],
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Math.002",
+          "Value"
+        ],
+        [
+          "Math.001",
+          "Value",
+          "Math.002",
+          "Value_001"
+        ],
+        [
+          "Math.002",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Bump",
+          "Height"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Math.001",
+          "Value"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ],
+        [
+          "Texture Coordinate",
+          "Object",
+          "Vector Math",
+          "Vector"
+        ],
+        [
+          "Vector Math",
+          "Vector",
+          "Noise Texture",
+          "Vector"
+        ]
+      ]
+    },
+    "M_LancerM03_Gunmetal": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 1.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.061246052384376526,
+              0.08865558356046677,
+              0.11697066575288773,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.3400000035762787
+          }
+        },
+        "Texture Coordinate": {
+          "type": "TEX_COORD",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Vector Math": {
+          "type": "VECT_MATH",
+          "operation": "MULTIPLY",
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              20.0,
+              500.0,
+              500.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 1.0
+          }
+        },
+        "Noise Texture": {
+          "type": "TEX_NOISE",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": 0.0,
+            "2": 1.0,
+            "3": 2.0,
+            "4": 0.6499999761581421,
+            "5": 2.0,
+            "6": 0.0,
+            "7": 1.0,
+            "8": 0.0
+          }
+        },
+        "Math.001": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.06499999761581421,
+            "2": -0.032499998807907104
+          }
+        },
+        "Math.002": {
+          "type": "MATH",
+          "operation": "ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.5,
+            "2": 0.5
+          }
+        },
+        "Bump": {
+          "type": "BUMP",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": 0.11999999731779099,
+            "1": 0.00018000000272877514,
+            "2": 0.10000000149011612,
+            "3": 1.0,
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "links": [
+        [
+          "Bump",
+          "Normal",
+          "Principled BSDF",
+          "Normal"
+        ],
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Math.002",
+          "Value"
+        ],
+        [
+          "Math.001",
+          "Value",
+          "Math.002",
+          "Value_001"
+        ],
+        [
+          "Math.002",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Bump",
+          "Height"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Math.001",
+          "Value"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ],
+        [
+          "Texture Coordinate",
+          "Object",
+          "Vector Math",
+          "Vector"
+        ],
+        [
+          "Vector Math",
+          "Vector",
+          "Noise Texture",
+          "Vector"
+        ]
+      ]
+    },
+    "M_LancerM03_Titanium": {
+      "nodes": {
+        "Principled BSDF": {
+          "type": "BSDF_PRINCIPLED",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.800000011920929,
+              0.800000011920929,
+              0.800000011920929,
+              1.0
+            ],
+            "1": 1.0,
+            "2": 0.5,
+            "3": 1.5,
+            "4": 1.0,
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": 0.0,
+            "7": 0.0,
+            "8": 0.0,
+            "9": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "10": 0.05000000074505806,
+            "11": 1.399999976158142,
+            "12": 0.0,
+            "13": 0.5,
+            "14": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": 0.0,
+            "16": 0.0,
+            "17": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "18": 0.0,
+            "19": 0.0,
+            "20": 0.25999999046325684,
+            "21": 1.5,
+            "22": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "23": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "24": 0.0,
+            "25": 0.5,
+            "26": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "27": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "28": 0.0,
+            "29": 0.0,
+            "30": 1.3300000429153442
+          }
+        },
+        "Material Output": {
+          "type": "OUTPUT_MATERIAL",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 0.0
+          }
+        },
+        "Color Attribute": {
+          "type": "VERTEX_COLOR",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Mix (Legacy)": {
+          "type": "MIX_RGB",
+          "operation": null,
+          "blend_type": "MULTIPLY",
+          "inputs": {
+            "0": 1.0,
+            "1": [
+              0.3915724754333496,
+              0.4564110338687897,
+              0.5088813304901123,
+              1.0
+            ],
+            "2": [
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "Math": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.20000000298023224,
+            "2": 0.20999999344348907
+          }
+        },
+        "Texture Coordinate": {
+          "type": "TEX_COORD",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {}
+        },
+        "Vector Math": {
+          "type": "VECT_MATH",
+          "operation": "MULTIPLY",
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              20.0,
+              500.0,
+              500.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": 1.0
+          }
+        },
+        "Noise Texture": {
+          "type": "TEX_NOISE",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": 0.0,
+            "2": 1.0,
+            "3": 2.0,
+            "4": 0.6499999761581421,
+            "5": 2.0,
+            "6": 0.0,
+            "7": 1.0,
+            "8": 0.0
+          }
+        },
+        "Math.001": {
+          "type": "MATH",
+          "operation": "MULTIPLY_ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.06499999761581421,
+            "2": -0.032499998807907104
+          }
+        },
+        "Math.002": {
+          "type": "MATH",
+          "operation": "ADD",
+          "blend_type": null,
+          "inputs": {
+            "0": 0.5,
+            "1": 0.5,
+            "2": 0.5
+          }
+        },
+        "Bump": {
+          "type": "BUMP",
+          "operation": null,
+          "blend_type": null,
+          "inputs": {
+            "0": 0.11999999731779099,
+            "1": 0.00018000000272877514,
+            "2": 0.10000000149011612,
+            "3": 1.0,
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "links": [
+        [
+          "Bump",
+          "Normal",
+          "Principled BSDF",
+          "Normal"
+        ],
+        [
+          "Color Attribute",
+          "Alpha",
+          "Math",
+          "Value"
+        ],
+        [
+          "Color Attribute",
+          "Color",
+          "Mix (Legacy)",
+          "Color2"
+        ],
+        [
+          "Math",
+          "Value",
+          "Math.002",
+          "Value"
+        ],
+        [
+          "Math.001",
+          "Value",
+          "Math.002",
+          "Value_001"
+        ],
+        [
+          "Math.002",
+          "Value",
+          "Principled BSDF",
+          "Roughness"
+        ],
+        [
+          "Mix (Legacy)",
+          "Color",
+          "Principled BSDF",
+          "Base Color"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Bump",
+          "Height"
+        ],
+        [
+          "Noise Texture",
+          "Fac",
+          "Math.001",
+          "Value"
+        ],
+        [
+          "Principled BSDF",
+          "BSDF",
+          "Material Output",
+          "Surface"
+        ],
+        [
+          "Texture Coordinate",
+          "Object",
+          "Vector Math",
+          "Vector"
+        ],
+        [
+          "Vector Math",
+          "Vector",
+          "Noise Texture",
+          "Vector"
+        ]
+      ]
+    }
+  },
+  "only_authorized_two_inputs_changed": true,
+  "authorized_inputs": [
+    {
+      "material": "M_LancerM03_Graphite",
+      "node": "Math",
+      "input_index": 2,
+      "meaning": "Nominal roughness .38 to .56; alpha and microfinish unchanged"
+    },
+    {
+      "material": "M_LancerM03_Graphite",
+      "node": "Principled BSDF",
+      "input_index": 19,
+      "meaning": "Coat Weight .08 to zero"
+    }
+  ]
+}
