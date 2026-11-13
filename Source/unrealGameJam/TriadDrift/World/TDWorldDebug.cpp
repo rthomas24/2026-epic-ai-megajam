@@ -6,6 +6,7 @@
 //   TD.Spawn <Id> [count] [distance]                                live, piloted enemies ahead of the player
 
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "EngineUtils.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
@@ -144,6 +145,14 @@ namespace TDWorldDebug
 		else if (Args[0].Equals(TEXT("DropShields"), ESearchCase::IgnoreCase)) { D->DebugDropShields(); }
 	}
 
+	FAutoConsoleCommandWithWorldAndArgs CmdDressing(TEXT("TD.World.Dressing"), TEXT("Space dressing (landmarks, lane rocks, ruin art) on or off: <0|1>."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			for (TActorIterator<ATDGalaxyLayout> It(World); It; ++It)
+			{
+				It->SetSpaceDressing(Args.Num() == 0 || FCString::Atoi(*Args[0]) != 0);
+			}
+		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.World.Goto"), TEXT("Teleport the player's ship to Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.World.SpawnEnemy"), TEXT("Spawn an enemy in front of the player: <Id> [distance] [pilot 0/1]."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnEnemy));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawnLive(TEXT("TD.Spawn"), TEXT("Spawn live, piloted enemies ahead of the player: <Id> [count=1] [distance cm=12000]. Ids: ShardFighter, HookInterceptor, WallGunship, MaulBomber, HiveCarrier."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnLive));
