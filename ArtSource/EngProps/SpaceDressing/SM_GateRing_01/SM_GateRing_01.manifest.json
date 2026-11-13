@@ -1,0 +1,79 @@
+{
+  "asset": "SM_GateRing_01",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_GateRing_01\\SM_GateRing_01.fbx",
+  "tris": 24608,
+  "size_cm": [
+    950.0,
+    15840.0,
+    15840.0
+  ],
+  "pivot": "root object origin (SM_GateRing_01~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_GateRing_01"
+  ],
+  "material_params": [
+    {
+      "name": "M_GateRing_01",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_GateRing_01_BC.png",
+    "T_GateRing_01_E.png",
+    "T_GateRing_01_N.png",
+    "T_GateRing_01_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_GateRing_01_00",
+    "UCX_SM_GateRing_01_01",
+    "UCX_SM_GateRing_01_02",
+    "UCX_SM_GateRing_01_03",
+    "UCX_SM_GateRing_01_04",
+    "UCX_SM_GateRing_01_05",
+    "UCX_SM_GateRing_01_06",
+    "UCX_SM_GateRing_01_07",
+    "UCX_SM_GateRing_01_08",
+    "UCX_SM_GateRing_01_09",
+    "UCX_SM_GateRing_01_10",
+    "UCX_SM_GateRing_01_11",
+    "UCX_SM_GateRing_01_12",
+    "UCX_SM_GateRing_01_13",
+    "UCX_SM_GateRing_01_14",
+    "UCX_SM_GateRing_01_15"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_GateRing_01.fbx",
+  "texture_size": 2048,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "family": "gate_ring",
+  "inner_diameter_cm": 12000.0,
+  "ring_axis_unreal": "X (the gate is flown through along X)",
+  "scaling": "uniform scale s gives an inner diameter of 12000*s cm"
+}

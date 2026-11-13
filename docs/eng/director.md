@@ -159,3 +159,50 @@ overlay state). One MCP round trip plus a capture takes 2-3 s, longer than a sho
 dev-only cheat `td.Director.DebugHoldSeconds 3` first: it lengthens camera holds and every card
 (0 by default, compiled out of Shipping). Captures land in `Saved/TDShots/mcp/<name>/`.
 
+## On foot: the view never leaves first person (agreed with T5, Nov 12)
+
+The director only cuts to its camera when the player flies a ship. On foot (a perfect deflect with the
+blade) the beat is the slow-mo (0.15 s) plus the FOV punch on the first-person camera; a CUT on foot is
+presentation only. Nothing in Ground, Flow or Travel sets a view target on foot. If anything ever does,
+T5's pilot body switches itself to full-body (head shown) while it is not the view target and back to
+first person after, so a future third-person shot needs nothing but the view target. Test:
+`Director.Camera.OnFootStaysFirstPerson`.
+
+
+### The one exception: the on-foot death cam (Lead, Nov 12)
+
+When the pilot dies on foot, the CUT plays on a third-person director camera:
+- `UTDDirectorCameraRig::BeginDeathCam`, called from `HandleSceneCut` on the same frame as T5's death.
+- Placement: 5.2 m behind and above the pelvis (`DeathCamDistance` 520, `DeathCamFocusHeight` 110), collision-resolved, and swept every frame (never closer than 1.5 m).
+- A slow 15° orbit over 3 s (`DeathCamOrbitDegrees` / `DeathCamOrbitSeconds`).
+- It holds through the "CUT!" card; the subsystem's highlight suppression leaves it alone while the CUT is pending.
+- `HandleTakeStarted` ends it and returns to the pilot's own eyes.
+- It also lets go if anything else takes the view or possession changes.
+- No input is taken.
+- Not when there is no pilot body mesh (no pilot look), in Off/Light camera modes, or in a ship.
+- Perfect deflect stays the first-person FOV punch.
+
+Tests: `Director.Camera.OnFootDeathCutsToThirdPerson` (real `ATDFirstPersonCharacter`, real death, real retake) and `Director.Camera.OnFootDeathWithoutABodyStaysFirstPerson`.
+
+## ENG-32: the on-foot third-person camera (T3 builds the rig, T5 wires the pilot)
+
+The rig lives in `Ground/Camera/TDThirdPersonCameraComponent.{h,cpp}`. It is one component, attached to the capsule, and it makes its own lens at BeginPlay.
+
+- **Chase view:** arm 320 cm, shoulder right 55 cm / up 65 cm, location lag 12, rotation lag 18, FOV 85. It looks along the control rotation, so the crosshair stays centred.
+- **Collision:** a 12 cm probe is swept from the pivot (inside the capsule) to the shoulder, then down the arm.
+  - It checks ECC_Camera for the level, and object types Pawn and PhysicsBody for crew, which ignore the camera channel.
+  - The arm snaps in to the first hit, so no frame has the lens inside anything, and eases back out at speed 5.
+  - A probe that starts inside a crewman pressed against the pilot looks past him instead of stopping.
+  - If a corner blocks the straight line from the lens to the pilot, the arm shortens until the pilot is in sight.
+  - Dressing built with NoCollision (scattered flora) cannot be detected. To keep the camera out of it, give it a camera-only profile: query only, block Camera, ignore everything else.
+- **Body:** within 60 cm of the capsule, the pilot's meshes are set HiddenInGame, and shown again past 70 cm. This flag is separate from the SetVisibility that T5's body code drives.
+- **Switching:** `SetThirdPerson` / `ToggleThirdPerson` blends in 0.15 s, in real time, and swaps the active camera. While a director shot, the death cam or any other view target owns the view, the change waits.
+- **Facing:** `GetDesiredActorYaw(Move, CameraYaw, bCombatAction, CurrentYaw)`. Running faces the movement; combat actions face the camera; standing idle with the camera more than 60° off turns to it.
+
+Tests (`TriadDrift.Ground.ThirdPerson.*`):
+- FacingRule
+- SwitchesWithAShortBlend
+- PullsInAtAWallAndEasesOut (includes crew)
+- HidesThePilotWhenTooClose
+- NoViewChangeWhileTheDirectorOwnsIt (the real death cam, and a foreign view target)
+- NeverInsideThePlanetCourses: T5's real Verdance and Cinder builders, with 300 and 555 camera poses beside 23 and 37 colliding pieces, and 0 lens-inside or line-of-sight failures.

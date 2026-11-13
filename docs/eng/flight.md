@@ -271,6 +271,101 @@ in once 8aa5c70 is on main).
   `Input.Hints.LaterHintsWhenTheyApply` (experienced pilot sees none; drift, hyperdrive and ability by real input),
   `Input.Hints.OncePriorityTimeoutDeviceAndSetting`.
 
+## Player options (`UTDSettingsSubsystem`, a game-instance subsystem)
+
+There is one object for every menu: Get Game Instance → Get Subsystem (TDSettingsSubsystem), or
+`UTDSettingsSubsystem::GetTDSettings(this)` in C++. Each setter applies at once and saves to slot `TD_Settings`
+(separate from the run save and the hint profile).
+
+| Option | Call | Range | Takes effect |
+|---|---|---|---|
+| Mouse sensitivity | `SetMouseSensitivity` | ×0.25–3 of the class default | `MouseSensitivity` on every space controller |
+| Invert mouse Y | `SetInvertMouseY` | bool | `bInvertMousePitch` |
+| Gamepad sensitivity | `SetGamepadSensitivity` | ×0.25–3 | shaped right-stick aim × this, clamped to full deflection |
+| Gamepad dead zone | `SetGamepadDeadzone` | 0–0.5 (default 0.15) | `StickDeadzone` |
+| Invert gamepad Y | `SetInvertGamepadY` | bool | `bInvertStickPitch` |
+| Hints | `SetHintsEnabled` | bool | `UTDHintComponent` |
+| Master volume | `SetMasterVolume` | 0–1 | the main audio device's transient primary volume |
+| Music / effects volume | `SetMusicVolume` / `SetEffectsVolume` | 0–1 | a runtime sound mix over `SC_TD_Music` / `SC_TD_SFX`, once Nick's classes exist (kept until then) |
+| Window mode / resolution | `SetWindowMode` / `SetResolution` (0,0 = desktop), `GetSupportedResolutions` | | `UGameUserSettings`, saved |
+
+- **Start-up:** controls apply when each `ATDSpacePlayerController` begins play, and audio applies when the game instance
+  starts.
+- **Video at start-up:** video applies only once the player has chosen it (`bVideoChosen`). A first start keeps the engine's
+  window, and `-windowed` / `-ResX` on the command line always win at start-up. The first version forced windowed
+  fullscreen on every start and broke agent sessions launched with `-ResX`.
+- **Never touched:** the editor window, headless runs and tests (tests use their own slot).
+- **Other calls:** `ResetToDefaults`, `ApplyAll(FTDPlayerSettings)`.
+- **Dev command:** `TD.Settings [key value]`, with keys MouseSens, InvertMouse, PadSens, PadDeadzone, InvertPad, Hints,
+  Master, Music, Effects, `Window 0-2` and `Res W H`.
+- **Played live (Nov 12, -game):** windowed 1600×900 and 1280×720 resized the window, and windowed fullscreen filled the
+  desktop. T5 builds the OPTIONS page.
+- **Tests:** `Input.Settings.PersistAndApplyAtStartup`, `Input.Settings.EachControlTakesEffect` (mouse and stick aim
+  through the controller's handlers: sensitivity, invert, dead zone).
+
+## Shipping builds (what `!UE_BUILD_SHIPPING` removes in Flight / Input / Travel)
+
+Audit of Nov 12. The Shipping game target (`unrealGameJam Win64 Shipping`) compiles. Only these are compiled out, and
+none of them is needed by a player:
+- `Flight/TDFlightDebug.cpp`: the `TD.Flight.Threats` and `TD.Flight.Feedback` readouts.
+- `Flight/TDShipMovementComponent.cpp`: the silent-move warning log and callstack. The counting itself stays.
+- `Flight/TDSpacecraft.cpp`: the long-teleport log and callstack.
+- `Input/TDInputDebug.cpp`: the `TD.Input.*` agent commands. `TDActivateInputToolset` has an empty Shipping body, so the
+  controller still links.
+- `Travel/TDTravelDebug.cpp`: the `TD.Travel.*` commands.
+
+Gameplay code in this lane has no `check()` / `verify()` with side effects, no `WITH_EDITOR` paths and no editor-only
+calls. The hints, the no-art feedback, the options, the approach assist and every prompt are compiled in every
+configuration.
+
+## On-foot camera setting and the Settings page (ENG-32, engineering side)
+
+- **Camera setting:** `UTDSettingsSubsystem` holds `OnFootCameraMode` (`ETDOnFootCamera` FirstPerson / ThirdPerson,
+  default first person), saved with the other options.
+  - `GetOnFootCameraMode`, `SetOnFootCameraMode` and `ToggleOnFootCameraMode` are Blueprint-callable.
+  - `OnOnFootCameraModeChanged` fires on every real change, including from Reset and ApplyAll.
+  - The ground character (T5) binds it, reads the mode at BeginPlay, and applies it once a director shot or the
+    death cam ends.
+- **Keys:** `IMC_OnFoot` exists only while the possessed pawn isn't a spacecraft. In it, V and Gamepad_Special_Left
+  (View) toggle the mode. In space, V stays the cockpit camera. `IMC_Global` (always on) maps O and pad Y to open
+  the Settings page, but only while the game is paused.
+- **Settings page:** `UTDSettingsSubsystem::OpenSettingsPage(this)`, plus `CloseSettingsPage` and
+  `IsSettingsPageOpen`.
+  - If `UTDUIStyle::SettingsWidgetClass` is set in DA_UI_Style, that widget opens instead. It is read by name, so it
+    works however Core declares it.
+  - Otherwise the code-built `STDSettingsPage` (Input/TDSettingsPage.h) opens. Its rows: on-foot camera, mouse
+    sensitivity, invert mouse Y, gamepad sensitivity, gamepad dead zone, invert gamepad Y, control hints, master /
+    music / effects volume, window mode, resolution, Reset to defaults, Back.
+  - Keys: Up / Down (W / S, D-pad, left stick) select; Left / Right (A / D, D-pad, stick) change; Enter / Space / pad A
+    activate; Esc / Backspace / pad B close. The mouse clicks rows and their < > arrows.
+  - Every change applies at once and is saved.
+  - The page keeps keyboard and pad focus while it is open and closes on any map change. Esc through the game's
+    pause input closes the page before it unpauses.
+- **Hooks in other files:**
+  - Main menu (T5, `ATDMenuGameMode`): a SETTINGS button between CONTINUE and QUIT, plus `KeepMenuFocus` leaves the
+    page alone.
+  - Pause line (Lead, TDDebugHUD): "O / Y SETTINGS".
+- **Tests:** `Input.SettingsPage.CameraModePersistsAndBroadcasts`,
+  `Input.SettingsPage.NavigatesWithKeysAndPadAndEveryRowChanges`, `Input.SettingsPage.SettingsWidgetClassOverride`,
+  `Input.SettingsPage.VAndViewToggleOnFootOnly` (real keys: V and View toggle on foot, never in space, and not again
+  after re-boarding).
+- **Played (Nov 13, about 00:30, agent):**
+  - Pause, O, the page opened; keys changed rows (camera, mouse, master); Reset worked; the page closed.
+  - On Verdance, V and View toggled the mode (log).
+  - No screenshots: the display was off overnight, so the viewport had no drawable area.
+
+## Landing pad art
+
+`ATDLandingPad::PadArt` (soft) defaults to `/Game/TriadDrift/Gameplay/Props/Planet/SM_LandingPad`. While the asset is
+missing, the cylinder shows.
+- **Footprint:** a disc 1000 cm across (500 cm radius), centred on the actor, with its walkable face on top (+Z) at
+  `DeckHeight` = 40 cm above the actor origin. Pivot at the bottom centre; +X is the landing facing.
+- **Collision is unchanged:** the cylinder keeps colliding (hidden) and the art mesh never collides, so the art's top
+  must sit at 40 cm.
+- **Cooking:** pads are spawned at run time by the planet rig, so nothing on a map references the mesh. The folder
+  must be in the cook list (Lead) or the packaged game shows the cylinder.
+- **Test:** `Travel.Landing.PadArtSwapsTheLookNotTheCollision`.
+
 ## How to try it
 
 Tests:

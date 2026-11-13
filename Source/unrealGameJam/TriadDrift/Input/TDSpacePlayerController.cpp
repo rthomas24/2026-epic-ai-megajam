@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -191,10 +192,21 @@ void ATDSpacePlayerController::BuildInputObjects()
 	// Menus must work while the game is paused (Esc / Start unpause).
 	IA_Pause->bTriggerWhenPaused = true;
 	IA_GalaxyMap->bTriggerWhenPaused = true;
+	IA_OnFootCameraToggle = MakeAction(TEXT("IA_OnFootCameraToggle"), V::Boolean);
+	IA_OpenSettings = MakeAction(TEXT("IA_OpenSettings"), V::Boolean);
+	IA_OpenSettings->bTriggerWhenPaused = true;
 
 	IMC_SpaceCommon = NewObject<UInputMappingContext>(this, TEXT("IMC_SpaceCommon"));
 	IMC_Space = NewObject<UInputMappingContext>(this, TEXT("IMC_Space"));
 	IMC_Atmosphere = NewObject<UInputMappingContext>(this, TEXT("IMC_Atmosphere"));
+	// ENG-32: on foot, V / View switch first / third person (space keeps V for the cockpit; the galaxy map key is hidden).
+	IMC_OnFoot = NewObject<UInputMappingContext>(this, TEXT("IMC_OnFoot"));
+	IMC_OnFoot->MapKey(IA_OnFootCameraToggle, EKeys::V);
+	IMC_OnFoot->MapKey(IA_OnFootCameraToggle, EKeys::Gamepad_Special_Left);
+	// Always: O / Y open the Settings page from the pause screen (ignored while not paused).
+	IMC_Global = NewObject<UInputMappingContext>(this, TEXT("IMC_Global"));
+	IMC_Global->MapKey(IA_OpenSettings, EKeys::O);
+	IMC_Global->MapKey(IA_OpenSettings, EKeys::Gamepad_FaceButton_Top);
 	UInputMappingContext* C = IMC_SpaceCommon;
 
 	// Throttle: W / S, RT / LT.
@@ -311,6 +323,10 @@ void TDActivateInputToolset(ULocalPlayer* LocalPlayer);
 void ATDSpacePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	if (UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this))
+	{
+		Options->ApplyToController(this); // the player's saved options (sensitivity, invert, dead zone, hints)
+	}
 	if (IsLocalController())
 	{
 		TDActivateInputToolset(GetLocalPlayer());
@@ -332,11 +348,17 @@ void ATDSpacePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		SetPlayerPaused(false); // never leave a world paused behind us
 	}
+	UTDSettingsSubsystem::CloseSettingsPage(this); // never carry the page into the next map
 	Super::EndPlay(EndPlayReason);
 }
 
 void ATDSpacePlayerController::HandlePauseInput()
 {
+	if (UTDSettingsSubsystem::IsSettingsPageOpen(this))
+	{
+		UTDSettingsSubsystem::CloseSettingsPage(this); // Esc / Start back out of Settings first, to the pause screen
+		return;
+	}
 	TogglePlayerPause();
 }
 
@@ -433,6 +455,8 @@ void ATDSpacePlayerController::ApplyMappingContexts()
 	Want(IMC_SpaceCommon, 0, bFlying);
 	Want(IMC_Space, 1, bFlying && FlightContext == ETDFlightContext::Space);
 	Want(IMC_Atmosphere, 1, bFlying && FlightContext == ETDFlightContext::Atmosphere);
+	Want(IMC_OnFoot, 2, GetPawn() != nullptr && GetSpacecraft() == nullptr);
+	Want(IMC_Global, 0, true);
 }
 
 void ATDSpacePlayerController::SetupInputComponent()
@@ -490,6 +514,8 @@ void ATDSpacePlayerController::SetupInputComponent()
 	EIC->BindAction(IA_CameraToggleHold, E::Triggered, this, &ThisClass::OnCameraToggle);
 	EIC->BindAction(IA_TargetCycleTap, E::Triggered, this, &ThisClass::OnTargetCycle);
 	EIC->BindAction(IA_Pause, E::Started, this, &ThisClass::OnPause);
+	EIC->BindAction(IA_OnFootCameraToggle, E::Started, this, &ThisClass::OnFootCameraToggle);
+	EIC->BindAction(IA_OpenSettings, E::Started, this, &ThisClass::OnOpenSettings);
 	EIC->BindAction(IA_GalaxyMap, E::Started, this, &ThisClass::OnGalaxyMap);
 }
 
@@ -690,7 +716,9 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
 	}
 	else if (bUsingGamepad)
 	{
-		Aim = TDSpacePC_ShapeStickImpl(StickAim, StickDeadzone, StickResponseExponent);
+		Aim = TDSpacePC_ShapeStickImpl(StickAim, StickDeadzone, StickResponseExponent) * StickSensitivity;
+		Aim.X = FMath::Clamp(Aim.X, -1.f, 1.f);
+		Aim.Y = FMath::Clamp(Aim.Y, -1.f, 1.f);
 		if (bInvertStickPitch) { Aim.Y = -Aim.Y; }
 	}
 	else
@@ -1246,4 +1274,34 @@ void ATDSpacePlayerController::RouteSquadCommand()
 		Squad->IssueFocusCommand(Target);
 	}
 #endif
+}
+
+void ATDSpacePlayerController::ApplyPlayerSettings(const FTDPlayerSettings& Settings)
+{
+	const ATDSpacePlayerController* Defaults = GetClass()->GetDefaultObject<ATDSpacePlayerController>();
+	MouseSensitivity = Defaults->MouseSensitivity * Settings.MouseSensitivity;
+	bInvertMousePitch = Settings.bInvertMouseY;
+	StickSensitivity = Settings.GamepadSensitivity;
+	StickDeadzone = Settings.GamepadDeadzone;
+	bInvertStickPitch = Settings.bInvertGamepadY;
+}
+
+void ATDSpacePlayerController::OnFootCameraToggle(const FInputActionValue&)
+{
+	if (GetPawn() == nullptr || GetSpacecraft() != nullptr || IsGamePausedByPlayer())
+	{
+		return; // on foot only (the context is only added on foot; this guards a stale binding)
+	}
+	if (UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this))
+	{
+		Options->ToggleOnFootCameraMode(); // saved; the ground character applies it (after a director shot / death cam)
+	}
+}
+
+void ATDSpacePlayerController::OnOpenSettings(const FInputActionValue&)
+{
+	if (IsGamePausedByPlayer())
+	{
+		UTDSettingsSubsystem::OpenSettingsPage(this);
+	}
 }

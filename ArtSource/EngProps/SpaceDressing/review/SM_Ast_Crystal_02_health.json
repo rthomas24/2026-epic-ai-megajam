@@ -1,0 +1,178 @@
+{
+  "asset": "SM_Ast_Crystal_02",
+  "tag": "r5",
+  "checks": {
+    "tris": 6984,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 4,
+    "size_cm": [
+      2800.0,
+      2448.8,
+      2438.5
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "family": "crystal",
+    "deviation": {
+      "p99_m": 0.15410284876823438,
+      "max_m": 0.2313951849937439,
+      "game_to_source_p995_m": 0.17883354909718066,
+      "game_to_source_max_m": 0.2241075038909912
+    },
+    "cage_m": 0.27730446274280546,
+    "uv_islands": 284,
+    "uv_faces_detached": 0,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5689,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "curvature": {
+      "p05": -0.026078529753103,
+      "p50": 0.002645409584744827,
+      "p95": 0.0430203056110715
+    },
+    "source_tris": 327680,
+    "bake": {
+      "status": "ok",
+      "asset": "Ast_Crystal_02",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Crystal_02\\T_Ast_Crystal_02_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Crystal_02\\T_Ast_Crystal_02_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Crystal_02\\T_Ast_Crystal_02_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Crystal_02\\T_Ast_Crystal_02_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Ast_Crystal_02_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 99.14
+    },
+    "bake_misses": {
+      "status": "ok",
+      "texels_missed": 668290,
+      "texels_left": 306580
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.4286
+    },
+    "build_seconds": 151.7
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1016,
+        0.3158,
+        0.333
+      ],
+      "min": 0.0,
+      "max": 0.8196
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5003,
+        0.5007,
+        0.9768
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0717,
+        0.0737
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.6696,
+        0.4235,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.875
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0111,
+        0.1395,
+        0.1198
+      ],
+      "min": 0.0,
+      "max": 0.8314
+    }
+  },
+  "emissive_surface_share": 0.0443,
+  "asset_report_issues": [],
+  "assembly": {
+    "ok": true,
+    "islands": 23,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.06672
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Ast_Crystal_02_r5_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Ast_Crystal_02_r5_clay_sheet.png",
+    "ortho_cm_per_px": 7.0,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 6984,
+    "size_cm": [
+      2448.8,
+      2800.0,
+      2438.5
+    ],
+    "collision": [
+      "UCX_SM_Ast_Crystal_02_00",
+      "UCX_SM_Ast_Crystal_02_01",
+      "UCX_SM_Ast_Crystal_02_02",
+      "UCX_SM_Ast_Crystal_02_03"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Ast_Crystal_02"
+    ],
+    "textures": [
+      "T_Ast_Crystal_02_BC.png",
+      "T_Ast_Crystal_02_E.png",
+      "T_Ast_Crystal_02_N.png",
+      "T_Ast_Crystal_02_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

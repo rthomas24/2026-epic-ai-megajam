@@ -540,6 +540,47 @@ public:
 	TSoftClassPtr<UUserWidget> PauseWidgetClass;
 
 	/**
+	 * Shown on the menu map after a won run INSTEAD of MainMenuWidgetClass (optional). Empty = the code-built
+	 * victory screen (run time, kills, ships lost, cuts, takes per scene, return to menu). A main-menu widget is
+	 * therefore never asked to show the victory statistics (N-023).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> VictoryWidgetClass;
+
+	/**
+	 * The Settings page (optional): opened from the main menu and the pause menu. Empty = the code-built page.
+	 * A styled page calls the same UTDSettingsSubsystem functions (ENG-32).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> SettingsWidgetClass;
+
+	/** The on-foot HUD (optional). Empty = engineering's styled native on-foot HUD. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> GroundHUDWidgetClass;
+
+	/**
+	 * Combat music (optional; N-029): played by engineering's music director while a fight is on (space waves,
+	 * the Dominion assault, active on-foot encounters), faded in and out; the sound's own class and volume apply.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> CombatMusic;
+
+	/**
+	 * The intro (ENG-33), optional. When set, this Level Sequence plays on New Game instead of the code-driven
+	 * shots, with the same skip and hand-off rules.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
+	TSoftObjectPtr<UObject> IntroSequence;
+
+	/** Music for the intro, swelling into wave 1 (optional; silence when empty). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
+	TSoftObjectPtr<USoundBase> IntroMusic;
+
+	/** One optional voice line per narration line of the intro, in order (silence for a missing entry). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
+	TArray<TSoftObjectPtr<USoundBase>> IntroNarrationVoice;
+
+	/**
 	 * Music for the main menu (optional). The menu game mode plays it 2D and fades it out when the game
 	 * travels to the first map. Empty = a silent menu. The sound's own class and volume are used as authored.
 	 */

@@ -1,0 +1,44 @@
+{
+  "tris": 576,
+  "outward_faces": 288,
+  "faces": 320,
+  "bbox_min_m": [
+    -0.02,
+    -1.0,
+    -0.01
+  ],
+  "bbox_max_m": [
+    0.02,
+    0.0,
+    0.01
+  ],
+  "asset_report": {
+    "objects": 1,
+    "tris": 576,
+    "errors": 0,
+    "warnings": 1
+  },
+  "issues": [
+    {
+      "severity": "warn",
+      "object": "SM_TD_BladeBeam",
+      "message": "71 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_TD_BladeBeam",
+      "message": "144 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "export": {
+    "status": "ok",
+    "tris": 576,
+    "size_cm": [
+      100.0,
+      4.0,
+      2.0
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

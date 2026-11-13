@@ -1,0 +1,61 @@
+{
+  "asset": "SM_CargoPod_03",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_CargoPod_03\\SM_CargoPod_03.fbx",
+  "tris": 2936,
+  "size_cm": [
+    460.0,
+    328.0,
+    302.3
+  ],
+  "pivot": "root object origin (SM_CargoPod_03~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_CargoPod_03"
+  ],
+  "material_params": [
+    {
+      "name": "M_CargoPod_03",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_CargoPod_03_BC.png",
+    "T_CargoPod_03_E.png",
+    "T_CargoPod_03_N.png",
+    "T_CargoPod_03_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_CargoPod_03_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 192,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_CargoPod_03.fbx",
+  "texture_size": 1024,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "family": "cargo_pod"
+}

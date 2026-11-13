@@ -1,0 +1,177 @@
+{
+  "asset": "SM_TD_BladeHilt",
+  "tag": "r2",
+  "checks": {
+    "tris": 7392,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 1,
+    "size_cm_blender_xyz": [
+      7.2,
+      27.8,
+      4.9
+    ],
+    "export_status": "ok",
+    "bbox_min_m": [
+      -0.0358,
+      -0.193,
+      -0.0247
+    ],
+    "bbox_max_m": [
+      0.0358,
+      0.085,
+      0.0247
+    ]
+  },
+  "info": {
+    "edge_face_share": 0.1047,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4585,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "TD_BladeHilt",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Blade\\SM_TD_BladeHilt\\T_TD_BladeHilt_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Blade\\SM_TD_BladeHilt\\T_TD_BladeHilt_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Blade\\SM_TD_BladeHilt\\T_TD_BladeHilt_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Blade\\SM_TD_BladeHilt\\T_TD_BladeHilt_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_TD_BladeHilt_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 16.88
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6489
+    }
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.1522,
+        0.1742,
+        0.1974
+      ],
+      "min": 0.0,
+      "max": 0.7373
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5003,
+        0.4997,
+        1.0
+      ],
+      "min": 0.3569,
+      "max": 1.0,
+      "std_rg": [
+        0.0071,
+        0.007
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.4195,
+        0.3868,
+        0.2959
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.769
+      ],
+      "metallic_mean": 0.297
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0283,
+        0.1049,
+        0.1147
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.1153,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_TD_BladeHilt",
+      "message": "4 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 27,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.001
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Blade\\review\\SM_TD_BladeHilt_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Blade\\review\\SM_TD_BladeHilt_r2_clay_sheet.png",
+    "ortho_cm_per_px": 0.0695,
+    "warnings": []
+  },
+  "export": {
+    "status": null,
+    "tris": 7392,
+    "size_cm": [
+      27.8,
+      7.2,
+      4.9
+    ],
+    "collision": [
+      "UCX_SM_TD_BladeHilt_00"
+    ],
+    "sockets": [
+      "SOCKET_BladeEmitter"
+    ],
+    "materials": [
+      "M_TD_BladeHilt"
+    ],
+    "textures": [
+      "T_TD_BladeHilt_BC.png",
+      "T_TD_BladeHilt_E.png",
+      "T_TD_BladeHilt_N.png",
+      "T_TD_BladeHilt_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  },
+  "seconds": 37.3
+}

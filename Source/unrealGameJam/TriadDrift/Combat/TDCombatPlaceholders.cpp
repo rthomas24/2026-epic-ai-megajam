@@ -12,6 +12,9 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Engine/World.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -45,9 +48,10 @@ FTDStreakLook FTDCombatPlaceholders::ComputeOnFootStreak(const FTDProjectileSpec
 	Look.bStreak = Spec.Speed >= 600.f;
 	Look.bHeavy = false;
 	Look.bHead = true; // a hot core so the bolt reads as a bolt, not a stick
-	Look.Length = FMath::Clamp(Spec.Speed * 0.06f, 90.f, 220.f);
-	Look.Thickness = FMath::Clamp(Spec.CollisionRadius * 0.6f, 8.f, 16.f);
-	Look.HeadDiameter = Look.Thickness * 1.6f;
+	// Heavy pellets (r16, 2600 cm/s): 6 cm x 52 cm. Trooper bolt (r22, 2200): 8 x 44. Drone (r14, 4000): 5 x 80.
+	Look.Length = FMath::Clamp(Spec.Speed * 0.02f, 40.f, 80.f);
+	Look.Thickness = FMath::Clamp(Spec.CollisionRadius * 0.35f, 5.f, 9.f);
+	Look.HeadDiameter = Look.Thickness * 1.4f;
 	return Look;
 }
 
@@ -255,7 +259,16 @@ void ATDCombatFlash::Apply(float Alpha)
 		// Swells from 60% to 120% of its radius in the first 30%, then collapses as the glow falls off. The glow material
 		// is opaque unlit, so a fading colour reads darker, not clearer: a shell that kept its size turned into a dark
 		// disc near the camera (T3's death playtest). Collapsing, the dim end is small.
-		const float Size = Alpha < 0.3f ? Radius * (0.6f + 2.f * Alpha) : FMath::Max(Radius * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		float Size = Alpha < 0.3f ? Radius * (0.6f + 2.f * Alpha) : FMath::Max(Radius * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		// Never fills the frame: at most MaxRadiusPerCameraDistance of its distance to the camera (the Lead's frame-10
+		// white-out; T3's death shell peaks at 0.24, under the cap).
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (PC && PC->PlayerCameraManager)
+		{
+			const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
+			Size = FMath::Min(Size, FMath::Max(Distance * MaxRadiusPerCameraDistance, 1.f));
+		}
 		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
 	}
 	if (MID)
