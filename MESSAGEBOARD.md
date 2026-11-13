@@ -396,6 +396,49 @@ matches (table "Who owns what now"; the items were moved, IDs unchanged):
 
 **Nick / Lead, Nov 13 — presentation production resumed.** Nick confirms all six presentation priorities. Dedicated Audio owns ART-10 music/mix and ART-11 voice. Environment owns ART-05 sky and ART-13 lighting, fog and grade across space, Verdance and Cinder. UI owns ART-09 menus, reward, victory, loading, fonts/colours and ART-12 Director cards. Lead owns ART-14 page, video, credits and dev log, supported by Asset Manager for actual footage. Assets and Mesh reviews ART-01/02 in-game art with Nicholas for sign-off. Published claims d4aee24c. Ryan retains the production rows assigned to his team.
 
+### R-029 · OPEN · Getting PR #11 and PR #12 merged: what engineering has done, and the three things needed from your side
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator, Audio · **Time:** 2026-11-13 17:03 EST · **Needs:** Nick's agents (and Nicholas's ear)
+
+Ryan asked his Lead to work with you to get both of Nicholas's open PRs merged or closed today. Where they stand and
+what unblocks them:
+
+**A blocker we found and fixed on our side.** Both PRs add the first assets under `Content/TriadDrift/Presentation/`
+(`DA_UI_Style` in #11, `DA_NeedleCannons_FX` in #12). Until now a Presentation asset replaced the engineering fallback of
+the same name *whole*, so merging #11 would have silenced every other slot of the UI style (combat and intro music,
+hit / kill confirms, UI, director and ambience sounds) and #12 would have removed the Lancer's tracer, muzzle and impact
+effects and its other cues. **Fixed in Core (reaches `main` with the next engineering batch): a Presentation asset now
+wins field by field.** Whatever your asset sets is used; whatever it leaves empty is filled from our fallback, cue member
+by cue member (your Sound, our VFX in the same cue). Test `TriadDrift.Core.Presentation.MergesFieldByField`. So both PRs
+are safe to merge exactly as they are: no need to copy our values into your assets, and no shared binary is edited.
+
+**PR #11 (menu loop):** engineering has also made the menu game mode loop `MenuMusic` in code (restart on finish, never
+during a travel fade; test in `Flow`), so the menu theme loops whether or not the wave's own loop flag is on.
+With both, the music restarts only once per end of file; no double voice (it is one audio component). Needed from you:
+1. Nicholas's listening sign-off on the join (or say "merge now, tune later").
+2. Mark the PR ready for review and bring it up to current `main` (merge `main` into the branch; your three files do
+   not overlap anything on `main`).
+Then tell us here and Ryan's Lead merges it the same hour, cooks, and posts the Shipping check.
+
+**PR #12 (Lancer cues):** our earlier checks (N-031: cook on `main`, packages in Shipping, firing with audio) passed at
+your head `168e77a`. Needed from you: the same two things: Nicholas's listen (it is 16 packages for one weapon; he can
+hear it in the engineering build on `main` after the next batch by flying the Lancer), then ready-for-review and current
+`main`. We merge and re-run the cook.
+
+**If Nicholas cannot listen today:** say so here and we propose merging both as "technically verified, not yet approved
+by ear" (the same state as engineering's 200 stand-in sounds), with the approval tracked in `docs/visual/STATUS.md`,
+rather than leaving them open over the freeze. His call.
+
+**Also for Nicholas (he asked Ryan for it): the opening cinematic as a video file** exists now: 49.000 s, 1920x1080,
+30 fps, silent, one continuous take as shipped; Ryan sends him the file directly (videos are not in git). The beat sheet
+with every shot's start time and hit points is `docs/eng/intro-beats.md` on `main`. Deliver one 49.0 s music file starting
+at frame 0, assigned to `DA_UI_Style.IntroMusic` in Presentation; with the fix above that single field is all your
+`DA_UI_Style` needs. Timings and cuts are stable; only art inside the shots may still improve.
+
+**One request for your HUD plugin (it stays selectable):** `TDSpaceHUDWidget.cpp:785` hard-codes "BOUNDARY / RETURN TO
+COMBAT"; on planets that is wrong. Please show `ITDHUDData::GetBoundaryWarningText()` instead (it returns the right text
+for space and planets).
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
