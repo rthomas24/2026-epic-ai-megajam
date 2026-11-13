@@ -690,3 +690,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	FName HeadBone = TEXT("head");
 };
+
+/**
+ * On-foot sounds (ENG-35, review M11): the pilot's steps, dash, jump, landing and hurt, the crew rifle shot and the drone
+ * hum, as cue slots. Looked up as DA_Ground_FX (Presentation, else the engineering copy under Gameplay/Characters/FX);
+ * an empty slot falls back to engineering's sound in code, so nothing goes silent. Owner of the class: Teammate 5.
+ */
+UCLASS(BlueprintType)
+class UNREALGAMEJAM_API UTDGroundFX : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	/** A step on soft ground (Verdance). Played at the feet every stride. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue StepSoil;
+	/** A step on rock (Cinder). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue StepRock;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Dash;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Jump;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Land;
+	/** The player's own hurt: its sound plays in 2D (one per burst of hits). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Hurt;
+	/** A crew bolt leaving the muzzle (one per volley). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew") FTDFXCue CrewRifleShot;
+	/** The drone's hover loop, attached, faded out on death. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew") FTDFXCue DroneHum;
+};

@@ -97,14 +97,21 @@ void ATDMenuGameMode::KeepMenuFocus()
 		return;
 	}
 	FSlateApplication& App = FSlateApplication::Get();
-	for (TSharedPtr<SWidget> W = App.GetUserFocusedWidget(0); W.IsValid(); W = W->GetParentWidget())
+	const TSharedPtr<SWidget> Focused = App.GetUserFocusedWidget(0);
+	for (TSharedPtr<SWidget> W = Focused; W.IsValid(); W = W->GetParentWidget())
 	{
 		if (W == Placeholder)
 		{
+			LastMenuFocus = Focused; // remembered: closing Settings comes back here (T1's pad pass)
 			return; // already on one of the menu's buttons (the d-pad moves between them)
 		}
 	}
-	App.SetAllUserFocus(Button, EFocusCause::SetDirectly);
+	App.SetAllUserFocus(ChooseRefocus(LastMenuFocus.Pin(), Button), EFocusCause::SetDirectly);
+}
+
+TSharedPtr<SWidget> ATDMenuGameMode::ChooseRefocus(const TSharedPtr<SWidget>& LastFocused, const TSharedPtr<SWidget>& First)
+{
+	return LastFocused.IsValid() && LastFocused->IsEnabled() && LastFocused->SupportsKeyboardFocus() ? LastFocused : First;
 }
 
 void ATDMenuGameMode::StartPlay()
@@ -249,6 +256,7 @@ void ATDMenuGameMode::ReturnToMenu()
 
 void ATDMenuGameMode::HidePlaceholder()
 {
+	LastMenuFocus.Reset(); // a new screen starts on its first button
 	if (Placeholder.IsValid() && GEngine && GEngine->GameViewport)
 	{
 		GEngine->GameViewport->RemoveViewportWidgetContent(Placeholder.ToSharedRef());
