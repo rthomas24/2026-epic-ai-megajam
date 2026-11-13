@@ -55,7 +55,7 @@ bool FTDRetakeAfterVoidedClear::RunTest(const FString& Parameters)
 	ATDWaveDirector* D = Director(W);
 	GI->Progress.WavesCleared = 1;
 	D->StartWave(1);	// wave 2
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	const FName Scene = D->GetWaveInfo().SceneId;
 
 	// The squad died ("CUT!"); during the delay the last enemy dies too, so the wave finishes...
@@ -67,7 +67,7 @@ bool FTDRetakeAfterVoidedClear::RunTest(const FString& Parameters)
 	UTDEventBus::Get(W.GetWorld())->BroadcastTakeStarted(Scene, 2);
 	TestTrue(TEXT("the retake runs wave 2 again"), D->GetState() == ETDWaveState::WarpingIn || D->GetState() == ETDWaveState::Active);
 	TestEqual(TEXT("still wave 2"), D->GetWaveInfo().WaveNumber, 2);
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	TestTrue(*FString::Printf(TEXT("with enemies alive (%d)"), D->GetLivingEnemies().Num()), D->GetLivingEnemies().Num() > 0);
 	TestFalse(TEXT("and the hyperdrive locked"), LockReason(W).IsEmpty());
 
@@ -126,7 +126,7 @@ bool FTDNoClearDuringCut::RunTest(const FString& Parameters)
 	ATDWaveDirector* D = Director(W);
 	GI->Progress.WavesCleared = 1;
 	D->StartWave(1);
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	const FName Scene = D->GetWaveInfo().SceneId;
 	const int32 ReportsBefore = GI->ReportedWaves.Num();
 	UTDEventBus::Get(W.GetWorld())->BroadcastSceneCut(Scene, 2, 1.75f);	// the squad wiped
@@ -135,7 +135,7 @@ bool FTDNoClearDuringCut::RunTest(const FString& Parameters)
 	TestTrue(TEXT("still the running wave (not cleared)"), D->GetWaveInfo().bWaveActive);
 	TestEqual(TEXT("no wave-cleared report to the flow"), GI->ReportedWaves.Num(), ReportsBefore);
 	UTDEventBus::Get(W.GetWorld())->BroadcastTakeStarted(Scene, 2);
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	TestTrue(*FString::Printf(TEXT("the retake runs wave 2 with enemies (%d)"), D->GetLivingEnemies().Num()), D->GetLivingEnemies().Num() > 0 && D->GetWaveInfo().WaveNumber == 2);
 	KillAll(D);
 	W.Tick();
@@ -154,6 +154,7 @@ bool FTDBreatherRepairOnce::RunTest(const FString& Parameters)
 	Squad->SetSquadPlayerController(PC);
 	Squad->SpawnSquad(FTransform::Identity);
 	ATDWaveDirector* D = Director(W);
+	D->OpeningGraceSeconds = 0.f;	// this test is about breather repair; the wave-1 opening has its own test
 	W.Tick();
 	ATDShip* Ship = Squad->GetActiveShip();
 	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
@@ -174,6 +175,39 @@ bool FTDBreatherRepairOnce::RunTest(const FString& Parameters)
 	W.Advance(1.f);
 	const float PerSecond = (H->GetHull() - Start) / H->MaxHull;
 	TestEqual(TEXT("8% of max hull per second, once"), PerSecond, 0.08f, 0.012f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDOpeningGrace, "TriadDrift.Waves.OpeningGraceProtectsAnIdlePlayer", TD_TEST_FLAGS)
+bool FTDOpeningGrace::RunTest(const FString& Parameters)
+{
+	// Lead requirement: in the first 30 s of wave 1 a player who does nothing loses no ship and no squad ship
+	// drops below 50% hull to enemy fire. Real squad, real enemy ships (the director's own factory).
+	for (const float Fps : { 30.f, 60.f })
+	{
+		FTDTestWorld W;
+		APlayerController* PC = W.SpawnPlayerController();
+		ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+		Squad->SetSquadPlayerController(PC);
+		Squad->SpawnSquad(FTransform::Identity);
+		ATDWaveDirector* D = W.Spawn<ATDWaveDirector>();	// real enemy ships and AI
+		W.Tick(1.f / Fps);
+		D->StartWave(0);
+		float MinHull01 = 1.f;
+		bool bGraceSeen = false;
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 29.f); ++i)
+		{
+			W.Tick(1.f / Fps);
+			bGraceSeen |= D->IsOpeningGraceActive();
+			for (ATDShip* S : Squad->GetLivingShips())
+			{
+				if (const UTDHealthComponent* H = S ? S->GetHealth() : nullptr) { MinHull01 = FMath::Min(MinHull01, H->GetHull01()); }
+			}
+		}
+		TestTrue(*FString::Printf(TEXT("@%.0f: the opening grace ran"), Fps), bGraceSeen);
+		TestEqual(*FString::Printf(TEXT("@%.0f: no ship down in the first 30 s"), Fps), Squad->GetLivingShips().Num(), 3);
+		TestTrue(*FString::Printf(TEXT("@%.0f: no squad ship below 50%% hull (lowest %.0f%%)"), Fps, MinHull01 * 100.f), MinHull01 >= 0.49f);
+	}
 	return true;
 }
 

@@ -34,7 +34,7 @@ for name, steps in POSES.items():
     if name not in ONLY: continue
     reset()
     for b, ax, deg in steps: rot(b, ax, deg)
-    r = rr["main"](targets=["SK_NullTrooper"], out_dir=os.path.join(ROOT, "review"), label="%s_%s" % (label, name), mode=mode,
+    r = rr["main"](targets=[next(o.name for o in bpy.data.objects if o.name.startswith("SK_Null"))], out_dir=os.path.join(ROOT, "review"), label="%s_%s" % (label, name), mode=mode,
                    views=["front", "left", "front_3q", "back_3q"], resolution=800, columns=4)
     print("POSE", name, r.get("sheet"))
 reset()

@@ -246,7 +246,7 @@ bool FTDBehRetakePending::RunTest(const FString& Parameters)
 	W.Advance(D->WarpInSeconds + 0.5f);
 	TestTrue(TEXT("interceptors still pending"), D->GetPendingGroupCount() > 0);
 	UTDEventBus::Get(W.GetWorld())->BroadcastTakeStarted(TEXT("Wave2"), 2);
-	W.Advance(8.f);
+	W.Advance(26.f);	// wave 2's packs arrive at 0, 12 and 24 s
 	TestEqual(TEXT("retake spawns the wave exactly once"), D->GetEnemiesAlive(), D->GetWaveDef(1)->TotalEnemies());
 	int32 Count = 0;
 	for (TActorIterator<ATDWaveTestEnemy> It(W.GetWorld()); It; ++It) { if (!It->IsActorBeingDestroyed()) { ++Count; } }

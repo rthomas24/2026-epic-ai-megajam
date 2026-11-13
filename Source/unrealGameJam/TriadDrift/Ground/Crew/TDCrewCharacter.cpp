@@ -26,7 +26,11 @@
 
 // Template mannequin set (Content/Characters/Mannequins): the stand-in for a crew look that has a skeletal mesh but no
 // AnimBP. Cooked through DirectoriesToAlwaysCook (/Game/Characters/Mannequins/Anims).
-const TCHAR* ATDCrewCharacter::FallbackAnimBP = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed_C");
+const TCHAR* ATDCrewCharacter::FallbackAnimBPFor(ETDCrewType Type)
+{
+	return Type == ETDCrewType::Grunt ? TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed_C")
+		: TEXT("/Game/Variant_Shooter/Anims/ABP_TP_Rifle.ABP_TP_Rifle_C");
+}
 namespace TDCrewAnims
 {
 	static const TCHAR* Melee = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01.MM_Attack_01");
@@ -214,13 +218,27 @@ void ATDCrewCharacter::LoadDefaultVisuals()
 {
 	// Core's one loader: quiet when Nick hasn't made the asset yet, cooked in packaged builds.
 	Visuals = FindCrewVisuals(Spec.VisualsId);
+	LookScale = 1.f;
+	// Until each type has its own look, grunts and heavies wear the trooper's, sized to their build (R-019).
+	if (!Visuals && (Spec.Type == ETDCrewType::Grunt || Spec.Type == ETDCrewType::Heavy))
+	{
+		if (UTDEnemyVisuals* Trooper = FindCrewVisuals(TEXT("Trooper")); Trooper && !Trooper->SkeletalMesh.IsNull())
+		{
+			Visuals = Trooper;
+			LookScale = Spec.Type == ETDCrewType::Heavy ? 1.12f : 0.96f;
+		}
+	}
 }
 
 UTDEnemyVisuals* ATDCrewCharacter::FindCrewVisuals(FName VisualsId)
 {
-	const FString Name = FString::Printf(TEXT("DA_Crew_%s_Visuals"), *VisualsId.ToString());
+	return Cast<UTDEnemyVisuals>(FindLookAsset(FString::Printf(TEXT("DA_Crew_%s_Visuals"), *VisualsId.ToString()), UTDEnemyVisuals::StaticClass()));
+}
+
+UObject* ATDCrewCharacter::FindLookAsset(const FString& Name, UClass* Class)
+{
 	// Nick's presentation asset always wins.
-	if (UTDEnemyVisuals* Art = UTDStatics::LoadPresentation<UTDEnemyVisuals>(Name))
+	if (UObject* Art = UTDStatics::LoadPresentationAsset(Name, Class))
 	{
 		return Art;
 	}
@@ -232,14 +250,14 @@ UTDEnemyVisuals* ATDCrewCharacter::FindCrewVisuals(FName VisualsId)
 	}
 	// By class, then by folder prefix: also finds assets in folders the registry has not scanned as paths yet.
 	FARFilter Filter;
-	Filter.ClassPaths.Add(UTDEnemyVisuals::StaticClass()->GetClassPathName());
+	Filter.ClassPaths.Add(Class->GetClassPathName());
 	TArray<FAssetData> Found;
 	Registry->GetAssets(Filter, Found);
 	for (const FAssetData& A : Found)
 	{
 		if (A.AssetName.ToString() == Name && A.PackagePath.ToString().StartsWith(TEXT("/Game/TriadDrift/Gameplay/Characters")))
 		{
-			if (UTDEnemyVisuals* V = Cast<UTDEnemyVisuals>(A.GetAsset()))
+			if (UObject* V = A.GetAsset(); V && V->IsA(Class))
 			{
 				return V;
 			}
@@ -250,12 +268,49 @@ UTDEnemyVisuals* ATDCrewCharacter::FindCrewVisuals(FName VisualsId)
 
 FVector ATDCrewCharacter::GetMuzzleLocation(const FVector& AimDirection) const
 {
-	static const FName MuzzleSocket(TEXT("Muzzle"));
-	if (GetMesh() && GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->DoesSocketExist(MuzzleSocket))
+	// The computed chest-front point: always valid, always toward the aim.
+	const FVector Chest = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
+	const USkeletalMeshComponent* Look = GetMesh();
+	if (!Look || !Look->IsVisible() || !Look->GetSkeletalMeshAsset())
 	{
-		return GetMesh()->GetSocketLocation(MuzzleSocket);
+		return Chest;
 	}
-	return GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
+	// The art's Muzzle socket (else the weapon hand) is only a START POSITION: the shot's direction is always aimed
+	// from it to the target (AimAt). A hand posed beside or behind the body would send bolts past the player, so a
+	// point that isn't in front of the body toward the aim falls back to the chest-front point.
+	static const FName MuzzleSocket(TEXT("Muzzle"));
+	static const FName Hand(TEXT("hand_r"));
+	FVector Point;
+	if (Look->DoesSocketExist(MuzzleSocket))
+	{
+		Point = Look->GetSocketLocation(MuzzleSocket);
+	}
+	else if (Look->GetBoneIndex(Hand) != INDEX_NONE)
+	{
+		Point = Look->GetBoneLocation(Hand);
+	}
+	else
+	{
+		return Chest;
+	}
+	const FVector Aim2D = AimDirection.GetSafeNormal2D();
+	FVector Out = Point - GetActorLocation();
+	const float Ahead = (float)FVector::DotProduct(FVector(Out.X, Out.Y, 0.f), Aim2D);
+	const float Side = (float)(FVector(Out.X, Out.Y, 0.f) - Aim2D * Ahead).Size();
+	// Between waist and shoulder: a pose not evaluated yet (or a hand hanging low) reports near the feet, and a
+	// bolt started there hits the floor (seen with the socketed NullTrooper: Z 85 cm below the centre).
+	const bool bHeight = Out.Z > -Spec.CapsuleHalfHeight * 0.3f && Out.Z < Spec.CapsuleHalfHeight * 0.9f;
+	if (Aim2D.IsNearlyZero() || Ahead < 0.f || Side > Spec.CapsuleRadius + 40.f || !bHeight)
+	{
+		return Chest;
+	}
+	// Never inside our own capsule: at least just past its front along the aim.
+	const float MinAhead = Spec.CapsuleRadius + 20.f;
+	if (Ahead < MinAhead)
+	{
+		Point += Aim2D * (MinAhead - Ahead);
+	}
+	return Point;
 }
 
 void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
@@ -301,7 +356,11 @@ void ATDCrewCharacter::ApplyVisuals()
 			if (!AnimClass)
 			{
 				// A mesh with no AnimBP would stand frozen in its reference pose: drive it with the template mannequin set.
-				AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBP, nullptr, LOAD_Quiet | LOAD_NoWarn);
+				AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBPFor(Spec.Type), nullptr, LOAD_Quiet | LOAD_NoWarn);
+				if (!AnimClass && Spec.Type != ETDCrewType::Grunt)
+				{
+					AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBPFor(ETDCrewType::Grunt), nullptr, LOAD_Quiet | LOAD_NoWarn);
+				}
 				bFallbackAnim = AnimClass != nullptr;
 			}
 			if (AnimClass)
@@ -319,11 +378,13 @@ void ATDCrewCharacter::ApplyVisuals()
 			GetMesh()->SetVisibility(true);
 			GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -Spec.CapsuleHalfHeight));
 			GetMesh()->SetRelativeRotation(FRotator(0.f, Visuals->SkeletalMeshYaw, 0.f));
+			GetMesh()->SetRelativeScale3D(FVector(LookScale));
 			Body->SetVisibility(false);
 			Eyes->SetVisibility(false);
 			return;
 		}
 	}
+	GetMesh()->SetVisibility(false); // not a skeletal look (any more): the static mesh or the block below
 	if (Visuals && !Visuals->Mesh.IsNull())
 	{
 		if (UStaticMesh* SM = Visuals->Mesh.LoadSynchronous())
@@ -567,8 +628,16 @@ void ATDCrewCharacter::CancelAttack()
 
 FVector ATDCrewCharacter::AimAt(const AActor* At) const
 {
-	const FVector Muzzle = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f);
-	return At ? (At->GetActorLocation() - Muzzle).GetSafeNormal() : GetActorForwardVector();
+	if (!At)
+	{
+		return GetActorForwardVector();
+	}
+	// Aim from where the shot actually starts (socket, hand or chest), so it flies at the target, not beside it.
+	const FVector Chest = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f);
+	const FVector Rough = (At->GetActorLocation() - Chest).GetSafeNormal();
+	const FVector Start = GetMuzzleLocation(Rough);
+	const FVector Dir = (At->GetActorLocation() - Start).GetSafeNormal();
+	return Dir.IsNearlyZero() ? Rough : Dir;
 }
 
 void ATDCrewCharacter::DoMelee()

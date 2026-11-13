@@ -211,7 +211,7 @@ Captures are in `Saved/TDShots/feedback/` (live game on port 8011, Nov 12).
 | Hyperdrive spool (`HyperdriveSpool`) | nothing but the HUD charge bar | the view tightens (FOV −7) and shakes harder as the charge builds | `07_spool` |
 | Jump (`HyperdriveTunnel`) | FOV at max (speed) | FOV +12 punch, held +10 in the tunnel; side flares; dust becomes a streaking tunnel | `08_jump` |
 | Drop-out (`HyperdriveDropOut`) | a cut to the new spot | FOV −8 snap, 1.2° shake, a flash | (log: `HyperdriveDropOut=1`) |
-| Portal gate / Rift portal transit (`PortalTransit`) | a camera snap only | FOV +12, roll flick, shake, a violet flash. It fires only when the ship left from inside a gate's or portal's bounds, never for arrivals, squad placement, retakes or dev teleports | test `Feedback.PortalTransitKickOnlyFromAPortal` (no live transit captured, see Known gaps) |
+| Portal gate / Rift portal transit (`PortalTransit`) | a camera snap only | FOV +12, roll flick, shake, a violet flash. It fires only when the ship left from inside a gate's or portal's bounds, never for arrivals, squad placement, retakes or dev teleports | `20`–`25_gate_*`: a live transit of Gate_Verdance_Zone both ways (A→B and back), `PortalTransit` counted each time, wingmen on screen in formation after each (`TD.Squad.Frame`) |
 | Atmosphere entry (`AtmosphericEntry`) | nothing until the map loads | heat shake and FOV swell on a bell over the entry, an orange re-entry glow on the nose | `10_entry` shows the entry haze only; the glow flashes fired (log `AtmosphereEntry=9`) but none was in frame at capture |
 | Landing touchdown (`LandingDust`) | the ship settles | 2° dip, shake, a flat dust disc under the hull | `11_touchdown` |
 | Take-off (`TakeOff`) | the ship rises | lift shake, FOV +3, a flat squad-colour thrust disc under the hull | `12_takeoff` |
@@ -237,6 +237,39 @@ and how many times each placeholder fired.
 | `Feedback.BoostBrakeHyperdriveRead` | boost start and brake fire once with a FOV punch / dip; the spool tightens the view; the jump kicks |
 | `Feedback.PortalTransitKickOnlyFromAPortal` | a placement away from portals gives no kick; a transit out of a gate does |
 | `Feedback.SpeedDustOnlyForThePlayerAtSpeed` | 120 motes for the flown ship, none for wingmen or when not flown; tick under 0.3 ms |
+
+## First-minute control hints (`UTDHintComponent` on `ATDSpacePlayerController`)
+
+The hints teach one control at a time, each finished by doing it. The text goes through `ITDHUDData::GetInteractPrompt`
+(`ATDSquadManager` returns `UTDHintComponent::GetHintText` last, after the land prompt and the switch refusal; T3 wires it
+in once 8aa5c70 is on main).
+- **Core, from wave 1** (first hint 2 s after `OnWaveStarted(1)`, 1.2 s between hints):
+  1. aim/throttle (1 s of steering)
+  2. fire (LMB / RB)
+  3. boost
+  4. dodge
+  5. switch ship (`OnShipSwitched`)
+  6. signature power (Q / X)
+  7. target cycle
+- **Later, when they first apply:**
+  - drift: T4's `Tip_Drift`, or wave 2+
+  - hyperdrive: `Tip_Hyperdrive`, the first planet marker; a spool completes it
+  - each unlocked ability: `OnAbilityUnlocked`, named; E / Y completes it
+  - landing already has its own prompt.
+- **Rules:**
+  - Anything the player already did is never shown, so an experienced pilot sees nothing.
+  - A hint ignored for 20 s counts as seen.
+  - Each hint shows once per profile: slot `TD_Hints`, separate from the run save; tests never touch it.
+  - Nothing shows (and the clock stops) while paused, on foot, landing or with the land prompt up, during atmosphere entry,
+    or with the hyperdrive running.
+  - Wording follows the last input device.
+  - Off with `SetHintsEnabled(false)` (a menu setting, saved) or `TD.Hints 0`. `TD.Hints.Reset` and `TD.Hints.Status` are
+    dev commands.
+- **Wave-1 grace (T4):** enemies deal ×0.5 for the first 15 s of wave 1 whatever the player does, so fire, boost and
+  dodge can be tried safely.
+- **Tests:** `Input.Hints.CoreSequenceCompletesByDoingIt` (real keys and mouse through the squad: every core step),
+  `Input.Hints.LaterHintsWhenTheyApply` (experienced pilot sees none; drift, hyperdrive and ability by real input),
+  `Input.Hints.OncePriorityTimeoutDeviceAndSetting`.
 
 ## How to try it
 
@@ -276,9 +309,11 @@ To capture screenshots:
 | `Input.InjectedActionsAndPowerRouting` | actions injected through `UEnhancedPlayerInput` reach the ship; stick shaping; LT brake threshold; W bonus; device-switch hysteresis; Q tap/hold against real power components; E ability; disabled input leaves scripted input alone; Pause works while paused |
 
 ## Known gaps
-- **No-art feedback:** a live gate transit wasn't captured (`TD.World.Goto Gate` followed by flying forward didn't cross the
-  gate within 8 s). The kick is covered by a test. The placeholders are "technically verified" only; Nicholas decides whether
-  they stay as they are until art lands.
+- **No-art feedback:** the placeholders are "technically verified" only; Nicholas decides whether they stay as they are until
+  art lands. The gate captures were taken about 0.5 s after the transit, so the 0.6 s kick has mostly decayed in them.
+- **Gate arrival block (for testers):** `TD.World.Goto Gate` puts the ship 91 m from the gate at speed, inside the gate's 5 s
+  arrival block, so it passes straight through without a transit. Fly away and come back, as `gate_live2.py` does. In play,
+  the return points sit 700 m from the gates (T4), about 11 s at cruise, so a player never meets the block.
 - **Needs a hand check:**
   - Shift+Tab, since headless tests have no key state for `IsInputKeyDown`.
   - The overall feel (mouse sensitivity, camera, drift and boost numbers). The tests prove the numbers, not the fun.

@@ -2,8 +2,11 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
 #include "TriadDrift/Waves/TDWaveEnemy.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Waves/TDWarpInMarker.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -103,8 +106,11 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Intensity01 = 0.35f;
 		W.Phase = ETDGamePhase::Waves1to2;
 		W.StartTip = TDTipIds::Drift;
-		W.Groups.Add(TDWaveDir_Group(ShardFighter, 3, 5, ETDSpawnZone::AnyFlank));
-		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 2, 1, ETDSpawnZone::Behind, 4.f));
+		// ENG-27: the three packs arrive spaced (0 / 12 / 24 s), not all at once: same count, more readable fight.
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 1, 1, ETDSpawnZone::Behind, 8.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank, 12.f));
+		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank, 24.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Verdance;
 		Out.Add(W);
@@ -130,7 +136,7 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Phase = ETDGamePhase::Waves3to4;
 		W.Groups.Add(TDWaveDir_Group(WallGunship, 2, 1, ETDSpawnZone::FlankLeft));
 		W.Groups.Add(TDWaveDir_Group(MaulBomber, 2, 1, ETDSpawnZone::AnyFlank, 1.f));
-		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 4, 1, ETDSpawnZone::Behind, 5.f));
+		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 3, 1, ETDSpawnZone::Behind, 5.f));	// ENG-27: 4 -> 3
 		W.Groups.Add(TDWaveDir_Group(ShardFighter, 2, 4, ETDSpawnZone::AnyFlank, 3.f));
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Cinder;
@@ -353,6 +359,11 @@ void ATDWaveDirector::BeginWave(int32 Index)
 {
 	const FTDWaveDef& Wave = Waves[Index];
 	CurrentWave = Index;
+	// The tutorial opening: wave 1 only (a retake of wave 1 gets it again).
+	bOpeningGrace = Index == 0 && OpeningGraceSeconds > 0.f;
+	bOpeningFloor = bOpeningGrace;
+	OpeningGraceLeft = OpeningGraceSeconds;
+	OpeningGraceShotBaseline = PlayerShotsFired();
 
 	// ENG-27 difficulty scales pack sizes (and small-ship pack counts); big ships stay as designed.
 	const float SizeScale = UTDDifficultySettings::GetScale().WaveSize;
@@ -501,6 +512,60 @@ void ATDWaveDirector::SpawnWarpInMarker(const FVector& Location, float EnemyRadi
 	}
 }
 
+int32 ATDWaveDirector::PlayerShotsFired() const
+{
+	const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(this, 0));
+	const UTDWeaponComponent* Wp = Craft ? Craft->GetWeapons() : nullptr;
+	return Wp ? Wp->GetSlotState(ETDWeaponSlot::Primary).ShotsFired + Wp->GetSlotState(ETDWeaponSlot::Secondary).ShotsFired : 0;
+}
+
+void ATDWaveDirector::TickOpeningGrace(float DeltaSeconds)
+{
+	OpeningGraceLeft -= DeltaSeconds;
+	const ATDSpacecraft* Player = Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(this, 0));
+	const bool bPlayerActed = Player && (Player->IsBoosting() || PlayerShotsFired() > OpeningGraceShotBaseline);
+	const float Elapsed = OpeningGraceSeconds - OpeningGraceLeft;
+	if (bPlayerActed) { bOpeningFloor = false; }	// the floor ends the moment the player fires or boosts
+	const bool bWaveOver = CurrentWave != 0 || (State != ETDWaveState::WarpingIn && State != ETDWaveState::Active);
+	const bool bOver = bWaveOver || OpeningGraceLeft <= 0.f || (!bOpeningFloor && Elapsed >= OpeningGraceMinDamageSeconds);
+	if (bOver)
+	{
+		EndOpeningGrace();
+		return;
+	}
+	if (!bOpeningFloor)
+	{
+		return;	// reduced damage only, until OpeningGraceMinDamageSeconds
+	}
+	// The floor: no squad ship below OpeningGraceHullFloor01 while the player hasn't acted yet.
+	if (const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+	{
+		TArray<AActor*> Squad;
+		Registry->GetActorsOfTeam(ETDTeam::Player, Squad, true);
+		for (AActor* A : Squad)
+		{
+			UTDHealthComponent* H = A && A->IsA<ATDSpacecraft>() ? UTDStatics::GetHealth(A) : nullptr;
+			if (H && H->IsAlive() && H->GetHull() < H->MaxHull * OpeningGraceHullFloor01)
+			{
+				H->RepairHull(H->MaxHull * OpeningGraceHullFloor01 - H->GetHull());
+			}
+		}
+	}
+}
+
+void ATDWaveDirector::EndOpeningGrace()
+{
+	bOpeningGrace = false;
+	bOpeningFloor = false;
+	for (const TWeakObjectPtr<AActor>& Weak : Living)
+	{
+		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Weak.Get()))
+		{
+			if (UTDWeaponComponent* Wp = Craft->GetWeapons()) { Wp->SetOutgoingDamageMultiplier(TEXT("OpeningGrace"), 1.f); }
+		}
+	}
+}
+
 AActor* ATDWaveDirector::GetSpawnAnchor() const
 {
 	if (SpawnAnchorOverride)
@@ -579,6 +644,21 @@ AActor* ATDWaveDirector::SpawnEnemy(FName EnemyId, const FTransform& Transform)
 		Spawned = World->SpawnActor<AActor>(Class, Transform, Params);
 	}
 
+	// ENG-27 attack slots for this wave (how many pilots may press the same squad ship at once).
+	if (bOpeningGrace)
+	{
+		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Spawned))
+		{
+			if (UTDWeaponComponent* Wp = Craft->GetWeapons()) { Wp->SetOutgoingDamageMultiplier(TEXT("OpeningGrace"), OpeningGraceDamage); }
+		}
+	}
+	if (const APawn* Pawn = Cast<APawn>(Spawned))
+	{
+		if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(Pawn->GetController()))
+		{
+			AI->AttackSlotsPerTarget = AttackSlotsByWave.IsValidIndex(CurrentWave) ? AttackSlotsByWave[CurrentWave] : 0;
+		}
+	}
 	if (ITDWaveEnemy* WaveEnemy = Cast<ITDWaveEnemy>(Spawned))
 	{
 		WaveEnemy->InitWaveEnemy(EnemyId);
@@ -872,6 +952,11 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	if (bOpeningGrace)
+	{
+		TickOpeningGrace(DeltaSeconds);
+	}
+
 	// The wave lock follows the state: re-asserted a few times a second while a wave runs, so a retake or
 	// anything else that clears locks can't open the hyperdrive mid-wave (whatever order handlers run in).
 	if (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active)
@@ -899,6 +984,13 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 				const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
 				PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
 				OnWarpInStarted.Broadcast(P.Location, P.Group.EnemyId);
+#if !UE_BUILD_SHIPPING
+				if (const AActor* Anchor = GetSpawnAnchor())
+				{
+					UE_LOG(LogTriadDrift, Display, TEXT("TD.Waves: wave %d warps in %s %.0f cm from %s"), CurrentWave + 1, *P.Group.EnemyId.ToString(),
+						FVector::Dist(P.Location, Anchor->GetActorLocation()), *Anchor->GetName());
+				}
+#endif
 				if (TravelFX)
 				{
 					UTDStatics::PlayCue(this, TravelFX->EnemyWarpIn, P.Location, P.Facing);

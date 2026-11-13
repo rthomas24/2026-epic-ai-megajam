@@ -101,7 +101,7 @@ bool FTDWavesTable::RunTest(const FString& Parameters)
 	TestEqual(TEXT("W1 intensity"), T[0].Intensity01, 0.2f);
 
 	TestEqual(TEXT("W2 = 3 x 5 fighters"), TDWaveTest_Count(T[1], ShardFighter), 15);
-	TestEqual(TEXT("W2 + 2 interceptors"), TDWaveTest_Count(T[1], HookInterceptor), 2);
+	TestEqual(TEXT("W2 + 1 interceptor (ENG-27 tuning; features.md update sent to the Lead)"), TDWaveTest_Count(T[1], HookInterceptor), 1);
 	TestEqual(TEXT("W2 intensity"), T[1].Intensity01, 0.35f);
 	TestTrue(TEXT("W2 reveals Verdance"), T[1].bRevealsMarker && T[1].MarkerRevealed == ETDDestination::Verdance);
 
@@ -111,7 +111,7 @@ bool FTDWavesTable::RunTest(const FString& Parameters)
 
 	TestEqual(TEXT("W4 gunships"), TDWaveTest_Count(T[3], WallGunship), 2);
 	TestEqual(TEXT("W4 bombers"), TDWaveTest_Count(T[3], MaulBomber), 2);
-	TestEqual(TEXT("W4 interceptors"), TDWaveTest_Count(T[3], HookInterceptor), 4);
+	TestEqual(TEXT("W4 interceptors (ENG-27 tuning: 4 -> 3)"), TDWaveTest_Count(T[3], HookInterceptor), 3);
 	TestTrue(TEXT("W4 fighters"), TDWaveTest_Count(T[3], ShardFighter) > 0);
 	TestEqual(TEXT("W4 intensity"), T[3].Intensity01, 0.7f);
 	TestTrue(TEXT("W4 reveals Cinder"), T[3].bRevealsMarker && T[3].MarkerRevealed == ETDDestination::Cinder);
