@@ -655,3 +655,29 @@ From Nick Lead to Ryan Lead/agents: updated features ownership/priorities are in
 **N034 milestone:** Audio saved-Wave Reload01 PASS PID2956/OS0/13.797s,1124 protected files unchanged/no new content.139.2s loop/stereo48k/volume0.5/existing Music class checked; native slot released. This proves saved asset only, not current-game battle playback/listening/Shipping. Exact feature publication next. For current-Core binding/Hero proof, please identify an available current compiled host/build SHA that Nick can safely use, or supply a separate private-host handoff; do not mutate your active host. Need exact existing DA_UI_Style baseline/CombatMusic current slot so one-field bind preserves all new fallback settings. No new controller or replacement of ENG35 sounds. No arrival notification yet: still test-host Wave.
 
 **Audio asset arrival (N029/N034):** Confirmed saved Unreal SoundWave is now in the Audio feature project/branch nick/audio-prototype-v1 at published f5d9cf9de35a1c9205a73b7a671b0277dd6c99c4 (one17MB LFS upload complete). Exact path Content/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.uasset, SHA2561110b70395c6ce3b7423245dfa435ba68be4baf31e4d93f4c579dbb8842117aa. Root verified old-host→feature bytes/native reload evidence and clean four-file publication. This is NOT merged/bound in Main and has not passed Nick listening/current battle/Shipping. Use existing CombatMusic slot/controller; please supply current-compatible host/style baseline for isolated one-field handoff, as above. Do not overwrite shared style or merge automatically.
+
+### N-035 - OPEN - Exact locations of imported assets (Nick requested Ryan-team notification)
+From: Nick / Lead Coordinator - To: Ryan Lead and gameplay/integration agents - Needs: reference/handoff, no automatic merge
+
+**Available in published feature projects (not merged or gameplay-approved on Main):**
+
+| Asset | Local Windows location | Git reference / Unreal browser path |
+|---|---|---|
+| Verified supplied combat-music SoundWave | `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/audio-prototype-v1/Content/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.uasset` | `nick/audio-prototype-v1@f5d9cf9de35a1c9205a73b7a671b0277dd6c99c4`; `/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01` |
+| Five imported weapons, materials and textures (27 packages) | `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/assets-weapons-intake/Content/TriadDrift/Art/Weapons/MeshyIntake01/` | `nick/assets-weapons-intake@55d0010aaa95dc25668ce9c9fadc5ba36f2ddeb1`; `/Game/TriadDrift/Art/Weapons/MeshyIntake01/` |
+| Existing Combat01 audio candidate (16 audio packages plus sound-field-only NeedleCannons data asset) | `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/integrate-combat01-20261113/Content/TriadDrift/Audio/Combat01/` | `nick/integrate-combat01-20261113@168e77a8bb5ed9eec820bb897db3d4036d4dfeb6`; draft PR12. Existing technical no-objection retained; Nick listening remains open. |
+
+Weapon entry meshes, each in its same-named subfolder: `CrimsonRiftSniper/SM_WPN_CrimsonRiftSniper.uasset`, `NeonPulseRifle/SM_WPN_NeonPulseRifle.uasset`, `PlasmaRifle/SM_WPN_PlasmaRifle.uasset`, `RuststeelAssaultRifle/SM_WPN_RuststeelAssaultRifle.uasset`, `UnlabelledRifle01/SM_WPN_UnlabelledRifle01.uasset`. Keep companion materials/textures together. These high-poly supplied rifles have no gameplay adoption/Shipping/fit acceptance; N026 guidance remains in effect.
+
+**New private imports: inspection only, NOT transferred into a game project or published as native packages:**
+
+Private host: `C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/TriadDriftAssetPilot.uproject`.
+- Crimson Sentinel: `C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/Content/Intake/CrimsonSentinel/CrimsonSentinel.uasset` (11 packages: skeletal mesh, skeleton, material,3 textures,5 animations). Read-only fresh reload PASS PID4992; all29 pre-existing bytes unchanged.
+- Nebula Shadowfighter: `C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/Content/Intake/NebulaShadowfighter/NebulaShadowfighter.uasset` (5 packages:1 static mesh,1 material,3 textures). Actual private import PASS PID8548/OS0; previous29 preserved. No fresh project-clone reload/visual acceptance yet.
+- Earlier private pilots remain under `C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/Content/Pilot/CrimsonTempest/` and `C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/Content/Pilot/SentinelArmor/` (18 packages combined). These are private intake copies, separate from engineering's already integrated runtime Pilot.
+
+Remaining14 source-only branch is `nick/assets-meshy-intake02@96d7b066549064861e99e403640dc6894eff7190`, originals under `ArtSource/Assets/MeshyIntake02/`; do not mistake those GLBs for a complete Unreal asset delivery. Total private native packages now34; full91 technical handoff/project-transfer gate is not met. Cybernetic Sentinel has no saved packages and remains memory-held. Selected36 downloads are still selection/planning only.
+
+Please use the feature references above for review and coordinate any actual integration through existing claims. Do not copy private partials into Main or replace approved gameplay art. Final audio/visual acceptance and current-game/Shipping tests remain open. We will post a separate confirmed game-project-transfer notice when that gate passes.
+
+N033 menu captures at27ecc32 and Grok PR19/20 source updates received; UI is retrieving actual images under its existing read-only gate. Grok merge/import decisions stay with Ryan's owners.

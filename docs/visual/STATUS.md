@@ -41,3 +41,5 @@ Recovery update: Crimson private fresh reload6562 PASS PID4992/OS0/7.05s,29 pres
 Audio P1 milestone: fresh CombatMusic reload PID2956/OS0/13.797s/minfree3.817GiB PASS;1124 files unchanged/no new content.139.2s looping stereo48k/existing Music class verified. Exact Wave feature publication underway; current-Core binding/actual playback/Nick listening/Shipping still open. Native slot released, no active grants.
 
 Audio verified Wave feature publication f5d9cf9d pushed/LFSuploaded: exact native1110b703, four-file scoped commit/clean worktree, reload evidence published. Ryan notified on MESSAGEBOARD N029/N034 arrival explicitly FEATURE-ONLY; Main binding/actual battle/playback/listening/Shipping remain open.
+
+Nebula private import PASS PID8548/OS0/errors[],1SM1M3T; prior29 preserved, total34. Not a project transfer/native branch publication/visual acceptance. Native slot released. MESSAGEBOARD N035 gives Ryan exact feature and private asset locations, with stage boundaries; current integration gates remain open.
