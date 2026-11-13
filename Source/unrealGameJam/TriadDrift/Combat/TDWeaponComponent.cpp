@@ -590,7 +590,7 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 	}
 	FTDWeaponSlotState& S = State(Slot);
 
-	GetMuzzleTransforms(MuzzleScratch);
+	GetMuzzleTransforms(MuzzleScratch, Slot);
 	FTransform Muzzle = Owner->GetActorTransform();
 	if (MuzzleScratch.Num() > 0)
 	{
@@ -695,6 +695,41 @@ bool UTDWeaponComponent::ShouldReportHits() const
 ETDTeam UTDWeaponComponent::GetOwnerTeam() const
 {
 	return UTDStatics::GetTeam(GetOwner());
+}
+
+void UTDWeaponComponent::GetMuzzleTransforms(TArray<FTransform>& Out, ETDWeaponSlot Slot) const
+{
+	// The secondary slot leaves from "<SecondaryMuzzlePrefix>N" sockets when the ship has them (the Rodin interceptor's
+	// Missile_0/1 under the wings, T4 / the Lead); otherwise it shares the guns' muzzles as before.
+	if (Slot == ETDWeaponSlot::Secondary && !SecondaryMuzzlePrefix.IsNone())
+	{
+		if (SecondarySocketNames.Num() == 0 || SecondarySocketPrefixBuilt != SecondaryMuzzlePrefix)
+		{
+			SecondarySocketNames.Reset();
+			for (int32 i = 0; i < TDWeapMaxMuzzleSockets; ++i)
+			{
+				SecondarySocketNames.Add(FName(*FString::Printf(TEXT("%s%d"), *SecondaryMuzzlePrefix.ToString(), i)));
+			}
+			SecondarySocketPrefixBuilt = SecondaryMuzzlePrefix;
+		}
+		Out.Reset();
+		if (const AActor* Owner = GetOwner())
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(Owner);
+			for (const UStaticMeshComponent* Mesh : Meshes)
+			{
+				if (Mesh && Mesh->DoesSocketExist(SecondarySocketNames[0]))
+				{
+					for (int32 i = 0; i < SecondarySocketNames.Num() && Mesh->DoesSocketExist(SecondarySocketNames[i]); ++i)
+					{
+						Out.Add(Mesh->GetSocketTransform(SecondarySocketNames[i]));
+					}
+					return;
+				}
+			}
+		}
+	}
+	GetMuzzleTransforms(Out);
 }
 
 void UTDWeaponComponent::GetMuzzleTransforms(TArray<FTransform>& Out) const
