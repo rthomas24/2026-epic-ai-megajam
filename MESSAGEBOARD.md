@@ -382,6 +382,41 @@ Contact sheet: `ArtSource/EngAI/Terrain/Cinder_Basalt/r2/contact_sheet.png` (inc
   for the convoys (about 40 m, cargo ship of the Null family with sensor pods and a scanner ring, no guns); if you
   have spare capacity, a concept from the existing fleet's design language is welcome without waiting.
 
+**Update for Grok Bot (Ryan / Lead, 2026-11-13 16:15 EST): hold #37, the ancient relay.** Nicholas has put the ancient
+artefact on hold while he prepares a new reference image (issue #37). Do not generate from the current relay board,
+and we will not use the Gothic Stone Arch as a substitute. If you have already started, stop and keep what you have
+unpublished until the new image arrives. The other five boards are unchanged, in this order: #42 survey outpost and
+console, #39 crashed wreck, #38 Cinder dig site and drill rig, #40 set dressing, #41 Dominion generators then hull.
+**New, from Ryan:** the planets must read as whole real places and space must be filled everywhere, so after those
+five expect requests for instanced set pieces (ruin fragments, survey beacons, wreck pieces, rock and crystal
+variants, drifting hulks). The plan is being written now; do not start on it until the brief is posted here.
+
+**Reply (Ryan / Grok Bot, 2026-11-13 16:19 EST): Verdance research outpost + console mesh r1 (#42) is up in PR #50.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/50 (branch `grok/assets-verdance-outpost-r1`, do not merge without your OK). Also commented on issue #42.
+Contact sheet: `ArtSource/EngAI/Props/VerdanceOutpost/mesh_r1/contact_sheet.png`.
+- **Outpost** `SM_VerdanceOutpost`: **8,058 tris**, **800.0 × 770.4 × 662.0 cm**. Deck **138.0 cm**. Open-front doorway **282.9 cm** high × **338.4 cm** wide, bay depth **294.9 cm**, hollow (no baked-in console). Ramp and open bay face +X; pivot at the ground-base centre (min Z = 0).
+- **Console** `SM_ResearchConsole`: **6,628 tris**, **87.0 × 260.0 × 150.0 cm** (depth × width × height). Screens and controls face +X. Combined **14,686 tris**, well under the 25k budget.
+2K PBR; N is DirectX; ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. No outpost emissive. The console emissive was lightly thresholded so the cyan waveform screen, buttons and specimen-chamber glow stay and residual near-black noise is gone. Prefer the FBX (`UnitScaleFactor` 100).
+**Notes:** doorway height is just above the 220–280 cm brief (282.9 cm) but a 175–180 cm pilot still has about 100 cm of headroom at the lintel; the contact-sheet composite shows the console in the bay with a 180 cm pilot box. The desk / control surface is 85.8 cm rather than the 100–110 cm standing-desk note, because of the mesh proportions; height was set to 150.0 cm so width lands at 260.0 cm (scaling the desk onto 105 cm would push height to 191 cm and width to 331 cm).
+Acknowledged the 16:15 hold on #37 — nothing was generated from the current relay board, and we will wait for Nicholas's new image. Next in the board order is #39 (crashed wreck). Status stays OPEN.
+
+**Request for Grok Bot (Ryan / Lead, 2026-11-13 16:20 EST): the squad ships at close range; Ryan's own finding.** Ryan
+stood beside the landed Rift on Verdance and reported that the ring "has a hole in the middle" with no portal effect
+in it, and that the ships need to look better and higher quality. On planets the player now walks around the landed
+ship, so **3 to 10 m is a real viewing distance** for all three squad ships. Our ship builder is fixing what can be
+fixed in the engine (an animated portal membrane in Rift's ring, a cleaned inner rim, texture streaming, a detail
+overlay, idle glow in the nozzles). From you, **ahead of the reference boards if it is a short job, otherwise right
+after #42**:
+1. **Rift mesh r2:** the dorsal ring as a clean, thicker, bevelled hoop with a proper inner rim (r1's inner edge is
+   ragged where the disc was removed) and inset emissive seams; leave the hoop open (we fill it with an animated
+   portal). Keep r1's proportions, pivot and UV layout where you can so the heat mask and sockets carry over.
+2. **For all three ships, a close-range texture pass:** 4K sources if Rodin can give them (we choose the shipped
+   size), with crisp panel lines, decals and edge wear that survive at 3 m, and an emissive map with clean nozzle
+   interiors and cockpit glow. If a full re-texture is expensive, a tiling **panel-line and detail normal** set in
+   the ships' design language (one per ship family, 1K) is the cheaper alternative: say which you can do.
+3. Bastion: four engine pods if the mesh can take it (r1 has two nozzles against the brief's four); Lancer:
+   symmetric guns. Lower priority than 1 and 2.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
