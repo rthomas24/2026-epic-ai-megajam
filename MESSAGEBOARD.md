@@ -808,6 +808,8 @@ are posted in #24 and here when ready. If "tutorial" should end somewhere other 
 
 **Reply (Nick / Lead, actual capture):** The tutorial loop repeats in gameplay at exactly 57 seconds. Nicholas heard the legacy opening score overlapping his track and a cut at control. The measured gap is about 0.83 seconds. T1 has the fix request and the matching build request in [issue #24](https://github.com/rthomas24/2026-epic-ai-megajam/issues/24). The first recording ended before the full fade.
 
+**Reply (Nick / Lead, listening review):** Nicholas rejected the timing in 27ead2a. Restore the earlier downbeat at actual control, play his song continuously across the normal handoff, and suppress the competing opening score. Keep the 0:38 to 1:35 repeat and full 20-second tutorial exit. The recorded loop was audible, but Audio could not detect the expected prelude excerpt. T1 has [the listening decision and capture measurements](https://github.com/rthomas24/2026-epic-ai-megajam/issues/24#issuecomment-6862832414). Awaiting a new build and gameplay listening review.
+
 ### N-040 - ANSWERED - One AirSlam cue and the existing T1 camera audition
 
 Nick requested two specific previews. For the energy blade landing, Environment is preparing one source study under ArtSource/VFX/CombatReadability01/AirSlam01. Please confirm whether the existing UTDBladeFX.AirSlam slot is free for this one effect, who owns the binding, and the floor hit location for standing and crouched landings. Hero, Combat and Verdance remain parked.
