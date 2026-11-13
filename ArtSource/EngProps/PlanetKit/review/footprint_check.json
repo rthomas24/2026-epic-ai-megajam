@@ -402,6 +402,70 @@
     "PASS": true
   },
   {
+    "asset": "SM_Cind_MagmaSurface",
+    "size_cm": [
+      100.0,
+      100.0,
+      10.0
+    ],
+    "min_cm": [
+      -50.0,
+      -50.0,
+      0.0
+    ],
+    "max_cm": [
+      50.0,
+      50.0,
+      10.0
+    ],
+    "dims_ok": [
+      true,
+      true,
+      true
+    ],
+    "pivot": "bottom",
+    "pivot_ok": true,
+    "top": {
+      "walkable_cm": 10,
+      "samples": 625,
+      "share_within_2cm": 1.0,
+      "max_cm": 10.0,
+      "median_cm": 10.0,
+      "ok": true
+    },
+    "sides": {
+      "-X": {
+        "median_gap_cm": 0.0,
+        "p90_gap_cm": 0.0,
+        "share_within_2cm": 1.0,
+        "tight": true,
+        "ok": true
+      },
+      "+X": {
+        "median_gap_cm": 0.0,
+        "p90_gap_cm": 0.0,
+        "share_within_2cm": 1.0,
+        "tight": true,
+        "ok": true
+      },
+      "-Y": {
+        "median_gap_cm": 0.0,
+        "p90_gap_cm": 0.0,
+        "share_within_2cm": 1.0,
+        "tight": true,
+        "ok": true
+      },
+      "+Y": {
+        "median_gap_cm": 0.0,
+        "p90_gap_cm": 0.0,
+        "share_within_2cm": 1.0,
+        "tight": true,
+        "ok": true
+      }
+    },
+    "PASS": true
+  },
+  {
     "asset": "SM_Cind_OutpostWall",
     "size_cm": [
       150.0,
