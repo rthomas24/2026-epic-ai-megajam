@@ -1,0 +1,6886 @@
+{
+  "stage": "PRIMARY FORM REVIEW ONLY",
+  "technical_checks_passed": false,
+  "blend_sha256": "29286940ea9dd856ea799956ed6ead533239818b1d642e3ba3beffb312edd2e0",
+  "reference_sha256": "6eaaed062f11d3dc37de22556d6492a0cb647b8b644d4757c2b65b0441e03607",
+  "objects": [
+    "SM_Lancer_OwnedBase_StaticCopy",
+    "SM_Lancer_Breastplate_L",
+    "SM_Lancer_Breastplate_L_Seat",
+    "SM_Lancer_Breastplate_R",
+    "SM_Lancer_Breastplate_R_Seat",
+    "SM_Lancer_Abdomen0",
+    "SM_Lancer_Abdomen0_Seat",
+    "SM_Lancer_Abdomen1",
+    "SM_Lancer_Abdomen1_Seat",
+    "SM_Lancer_Abdomen2",
+    "SM_Lancer_Abdomen2_Seat",
+    "SM_Lancer_ScapularBack_L",
+    "SM_Lancer_ScapularBack_L_Seat",
+    "SM_Lancer_ScapularBack_R",
+    "SM_Lancer_ScapularBack_R_Seat",
+    "SM_Lancer_Lumbar0",
+    "SM_Lancer_Lumbar0_Seat",
+    "SM_Lancer_Lumbar1",
+    "SM_Lancer_Lumbar1_Seat",
+    "SM_Lancer_Lumbar2",
+    "SM_Lancer_Lumbar2_Seat",
+    "SM_Lancer_PelvicGuard",
+    "SM_Lancer_PelvicGuard_Seat",
+    "SM_Lancer_DeltoidCap_l",
+    "SM_Lancer_DeltoidCap_l_Seat",
+    "SM_Lancer_UpperArmPlate_l",
+    "SM_Lancer_UpperArmPlate_l_Seat",
+    "SM_Lancer_Bracer_l",
+    "SM_Lancer_Bracer_l_Seat",
+    "SM_Lancer_ThighFront_l",
+    "SM_Lancer_ThighFront_l_Seat",
+    "SM_Lancer_ThighOuter_l",
+    "SM_Lancer_ThighOuter_l_Seat",
+    "SM_Lancer_Kneecap_l",
+    "SM_Lancer_Kneecap_l_Seat",
+    "SM_Lancer_ShinFront_l",
+    "SM_Lancer_ShinFront_l_Seat",
+    "SM_Lancer_CalfBack_l",
+    "SM_Lancer_CalfBack_l_Seat",
+    "SM_Lancer_Boot_l",
+    "SM_Lancer_Boot_l_Seat",
+    "SM_Lancer_DeltoidCap_r",
+    "SM_Lancer_DeltoidCap_r_Seat",
+    "SM_Lancer_UpperArmPlate_r",
+    "SM_Lancer_UpperArmPlate_r_Seat",
+    "SM_Lancer_Bracer_r",
+    "SM_Lancer_Bracer_r_Seat",
+    "SM_Lancer_ThighFront_r",
+    "SM_Lancer_ThighFront_r_Seat",
+    "SM_Lancer_ThighOuter_r",
+    "SM_Lancer_ThighOuter_r_Seat",
+    "SM_Lancer_Kneecap_r",
+    "SM_Lancer_Kneecap_r_Seat",
+    "SM_Lancer_ShinFront_r",
+    "SM_Lancer_ShinFront_r_Seat",
+    "SM_Lancer_CalfBack_r",
+    "SM_Lancer_CalfBack_r_Seat",
+    "SM_Lancer_Boot_r",
+    "SM_Lancer_Boot_r_Seat",
+    "SM_Lancer_Helmet_CrownBrowCheekChin",
+    "SM_Lancer_Helmet_EarHousing_L",
+    "SM_Lancer_Helmet_EarHousing_R"
+  ],
+  "original_armor_evaluated_triangles": 21504,
+  "model_material_roles": [
+    "M_Lancer_ArmorWhite",
+    "M_Lancer_FlexGraphite",
+    "M_Lancer_CyanOptics"
+  ],
+  "budget": {
+    "status": "ok",
+    "scene_units": {
+      "system": "METRIC",
+      "scale_length": 1.0,
+      "length_unit": "METERS"
+    },
+    "objects": [
+      {
+        "name": "SM_Lancer_OwnedBase_StaticCopy",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          110.87,
+          42.49,
+          180.54
+        ],
+        "hide_render": false,
+        "modifiers": [],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 46091,
+        "faces": 92178,
+        "tris": 92178,
+        "quads": 0,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "DiffuseUV"
+        ],
+        "faces_per_material_index": {
+          "0": 92178
+        },
+        "local_bbox_min": [
+          -0.55437,
+          -0.28099,
+          -0.0002
+        ],
+        "local_bbox_max": [
+          0.55437,
+          0.14392,
+          1.80524
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Breastplate_L",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          17.84,
+          17.09,
+          31.93
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 318,
+        "faces": 419,
+        "tris": 632,
+        "quads": 199,
+        "ngons": 6,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 46.556,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 419
+        },
+        "local_bbox_min": [
+          0.00489,
+          -0.18276,
+          1.19113
+        ],
+        "local_bbox_max": [
+          0.18329,
+          -0.01188,
+          1.51038
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Breastplate_L_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          2.28,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.09555,
+          -0.15299,
+          1.32369
+        ],
+        "local_bbox_max": [
+          0.11355,
+          -0.13014,
+          1.34369
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Breastplate_R",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          17.84,
+          17.09,
+          31.93
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 318,
+        "faces": 419,
+        "tris": 632,
+        "quads": 199,
+        "ngons": 6,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 46.556,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 419
+        },
+        "local_bbox_min": [
+          -0.18329,
+          -0.18276,
+          1.19113
+        ],
+        "local_bbox_max": [
+          -0.00489,
+          -0.01187,
+          1.51038
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Breastplate_R_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          2.28,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.11355,
+          -0.15299,
+          1.32369
+        ],
+        "local_bbox_max": [
+          -0.09555,
+          -0.13014,
+          1.34369
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Abdomen0",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          18.95,
+          4.92,
+          7.19
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "quads": 142,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 238
+        },
+        "local_bbox_min": [
+          -0.09474,
+          -0.16378,
+          1.11483
+        ],
+        "local_bbox_max": [
+          0.09474,
+          -0.11453,
+          1.18674
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Abdomen0_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          1.6,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.009,
+          -0.15674,
+          1.14683
+        ],
+        "local_bbox_max": [
+          0.009,
+          -0.14074,
+          1.16683
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Abdomen1",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          15.55,
+          2.81,
+          6.79
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "quads": 142,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 238
+        },
+        "local_bbox_min": [
+          -0.07777,
+          -0.15699,
+          1.04183
+        ],
+        "local_bbox_max": [
+          0.07777,
+          -0.12889,
+          1.10972
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Abdomen1_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          1.6,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.009,
+          -0.15071,
+          1.07117
+        ],
+        "local_bbox_max": [
+          0.009,
+          -0.13471,
+          1.09117
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Abdomen2",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          13.35,
+          2.29,
+          5.79
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "quads": 142,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 238
+        },
+        "local_bbox_min": [
+          -0.06676,
+          -0.15242,
+          0.97883
+        ],
+        "local_bbox_max": [
+          0.06676,
+          -0.1295,
+          1.0367
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Abdomen2_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          1.6,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.009,
+          -0.14624,
+          1.0015
+        ],
+        "local_bbox_max": [
+          0.009,
+          -0.13024,
+          1.0215
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ScapularBack_L",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          17.84,
+          15.21,
+          31.93
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 310,
+        "faces": 406,
+        "tris": 616,
+        "quads": 190,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 45.111,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 406
+        },
+        "local_bbox_min": [
+          0.00492,
+          0.00881,
+          1.19113
+        ],
+        "local_bbox_max": [
+          0.18329,
+          0.16088,
+          1.51038
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ScapularBack_L_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          2.28,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.09613,
+          0.11821,
+          1.32369
+        ],
+        "local_bbox_max": [
+          0.11413,
+          0.14106,
+          1.34369
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ScapularBack_R",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          17.84,
+          15.21,
+          31.93
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 310,
+        "faces": 406,
+        "tris": 616,
+        "quads": 190,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 45.111,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 406
+        },
+        "local_bbox_min": [
+          -0.18329,
+          0.00881,
+          1.19113
+        ],
+        "local_bbox_max": [
+          -0.00492,
+          0.16088,
+          1.51038
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ScapularBack_R_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          2.28,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.11413,
+          0.11821,
+          1.32369
+        ],
+        "local_bbox_max": [
+          -0.09613,
+          0.14106,
+          1.34369
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Lumbar0",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          18.95,
+          3.01,
+          7.19
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 212,
+        "faces": 251,
+        "tris": 420,
+        "quads": 159,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 27.889,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 251
+        },
+        "local_bbox_min": [
+          -0.09474,
+          0.05863,
+          1.11483
+        ],
+        "local_bbox_max": [
+          0.09474,
+          0.0887,
+          1.18674
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Lumbar0_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          1.6,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.009,
+          0.06549,
+          1.14683
+        ],
+        "local_bbox_max": [
+          0.009,
+          0.08149,
+          1.16683
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Lumbar1",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          15.55,
+          3.27,
+          6.79
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 212,
+        "faces": 251,
+        "tris": 420,
+        "quads": 159,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 27.889,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 251
+        },
+        "local_bbox_min": [
+          -0.07777,
+          0.06365,
+          1.04183
+        ],
+        "local_bbox_max": [
+          0.07777,
+          0.09632,
+          1.10972
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Lumbar1_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          1.6,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.009,
+          0.06457,
+          1.07117
+        ],
+        "local_bbox_max": [
+          0.009,
+          0.08057,
+          1.09117
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Lumbar2",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          13.35,
+          2.75,
+          5.79
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "quads": 142,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 238
+        },
+        "local_bbox_min": [
+          -0.06676,
+          0.09268,
+          0.97883
+        ],
+        "local_bbox_max": [
+          0.06676,
+          0.12018,
+          1.0367
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Lumbar2_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          1.6,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.009,
+          0.0832,
+          1.0015
+        ],
+        "local_bbox_max": [
+          0.009,
+          0.0992,
+          1.0215
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_PelvicGuard",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          12.93,
+          6.68,
+          8.2
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 272,
+        "faces": 312,
+        "tris": 540,
+        "quads": 213,
+        "ngons": 7,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 34.667,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 312
+        },
+        "local_bbox_min": [
+          -0.06466,
+          -0.14233,
+          0.84197
+        ],
+        "local_bbox_max": [
+          0.06466,
+          -0.07554,
+          0.92397
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_PelvicGuard_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          1.78,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.009,
+          -0.1301,
+          0.87297
+        ],
+        "local_bbox_max": [
+          0.009,
+          -0.11227,
+          0.89297
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_DeltoidCap_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          10.19,
+          19.63,
+          12.85
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 351,
+        "faces": 427,
+        "tris": 698,
+        "quads": 244,
+        "ngons": 11,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 47.444,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 427
+        },
+        "local_bbox_min": [
+          0.21294,
+          -0.06773,
+          1.3547
+        ],
+        "local_bbox_max": [
+          0.31487,
+          0.1286,
+          1.48321
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_DeltoidCap_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          3.91,
+          1.88,
+          3.54
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.26898,
+          0.01607,
+          1.41362
+        ],
+        "local_bbox_max": [
+          0.30805,
+          0.03482,
+          1.44898
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_UpperArmPlate_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          13.06,
+          5.6,
+          12.81
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 254,
+        "faces": 284,
+        "tris": 504,
+        "quads": 194,
+        "ngons": 10,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 31.556,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 284
+        },
+        "local_bbox_min": [
+          0.22225,
+          -0.05232,
+          1.2221
+        ],
+        "local_bbox_max": [
+          0.35287,
+          0.00372,
+          1.35021
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_UpperArmPlate_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.83,
+          2.66,
+          2.05
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.28498,
+          -0.04659,
+          1.27802
+        ],
+        "local_bbox_max": [
+          0.30331,
+          -0.02002,
+          1.29848
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Bracer_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.31,
+          13.76,
+          16.75
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 309,
+        "faces": 398,
+        "tris": 614,
+        "quads": 205,
+        "ngons": 5,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 44.222,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 398
+        },
+        "local_bbox_min": [
+          0.31678,
+          -0.17812,
+          1.05946
+        ],
+        "local_bbox_max": [
+          0.47986,
+          -0.04057,
+          1.22692
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Bracer_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          3.09,
+          3.77,
+          3.09
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.38269,
+          -0.12865,
+          1.13157
+        ],
+        "local_bbox_max": [
+          0.41361,
+          -0.09092,
+          1.16249
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighFront_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          18.42,
+          8.27,
+          30.3
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 329,
+        "faces": 416,
+        "tris": 654,
+        "quads": 219,
+        "ngons": 9,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 46.222,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 416
+        },
+        "local_bbox_min": [
+          0.01872,
+          -0.15986,
+          0.58069
+        ],
+        "local_bbox_max": [
+          0.20287,
+          -0.07714,
+          0.88372
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighFront_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          3.0,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.10179,
+          -0.15472,
+          0.72215
+        ],
+        "local_bbox_max": [
+          0.11979,
+          -0.12469,
+          0.74219
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighOuter_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          3.06,
+          8.12,
+          26.91
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 198,
+        "faces": 244,
+        "tris": 392,
+        "quads": 148,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 244
+        },
+        "local_bbox_min": [
+          0.18261,
+          -0.06869,
+          0.60641
+        ],
+        "local_bbox_max": [
+          0.21325,
+          0.01253,
+          0.87551
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighOuter_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.2,
+          1.8,
+          2.1
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.18678,
+          -0.03465,
+          0.7306
+        ],
+        "local_bbox_max": [
+          0.20877,
+          -0.01665,
+          0.75164
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Kneecap_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          9.73,
+          5.49,
+          8.97
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 254,
+        "faces": 284,
+        "tris": 504,
+        "quads": 194,
+        "ngons": 10,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 31.556,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 284
+        },
+        "local_bbox_min": [
+          0.077,
+          -0.10987,
+          0.42531
+        ],
+        "local_bbox_max": [
+          0.17427,
+          -0.055,
+          0.51502
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Kneecap_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.81,
+          3.05,
+          2.23
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.11558,
+          -0.09962,
+          0.46008
+        ],
+        "local_bbox_max": [
+          0.13369,
+          -0.06909,
+          0.48236
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ShinFront_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          9.37,
+          6.62,
+          25.1
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 310,
+        "faces": 402,
+        "tris": 616,
+        "quads": 206,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 44.667,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 402
+        },
+        "local_bbox_min": [
+          0.0888,
+          -0.08326,
+          0.14126
+        ],
+        "local_bbox_max": [
+          0.18245,
+          -0.01704,
+          0.39228
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ShinFront_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.81,
+          3.15,
+          2.24
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.12406,
+          -0.05989,
+          0.25709
+        ],
+        "local_bbox_max": [
+          0.14217,
+          -0.02835,
+          0.27945
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_CalfBack_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          12.75,
+          6.38,
+          20.53
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 215,
+        "faces": 269,
+        "tris": 426,
+        "quads": 150,
+        "ngons": 3,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 29.889,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 269
+        },
+        "local_bbox_min": [
+          0.07041,
+          0.0454,
+          0.1807
+        ],
+        "local_bbox_max": [
+          0.19788,
+          0.10921,
+          0.38604
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_CalfBack_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.81,
+          2.14,
+          2.15
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.1243,
+          0.07024,
+          0.2521
+        ],
+        "local_bbox_max": [
+          0.14237,
+          0.09168,
+          0.2736
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Boot_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          13.94,
+          34.82,
+          13.6
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 606,
+        "faces": 672,
+        "tris": 1212,
+        "quads": 439,
+        "ngons": 40,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 1,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 672
+        },
+        "local_bbox_min": [
+          0.08991,
+          -0.25079,
+          0.022
+        ],
+        "local_bbox_max": [
+          0.22936,
+          0.09744,
+          0.158
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Boot_l_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          3.11,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.13188,
+          0.0469,
+          0.07
+        ],
+        "local_bbox_max": [
+          0.14988,
+          0.07801,
+          0.09
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_DeltoidCap_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          10.2,
+          19.85,
+          12.85
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 383,
+        "faces": 452,
+        "tris": 762,
+        "quads": 270,
+        "ngons": 16,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 452
+        },
+        "local_bbox_min": [
+          -0.31488,
+          -0.0678,
+          1.3547
+        ],
+        "local_bbox_max": [
+          -0.2129,
+          0.13065,
+          1.48321
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_DeltoidCap_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          3.91,
+          1.88,
+          3.54
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.30805,
+          0.01607,
+          1.41362
+        ],
+        "local_bbox_max": [
+          -0.26899,
+          0.03482,
+          1.44898
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_UpperArmPlate_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          13.07,
+          5.6,
+          12.81
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 214,
+        "faces": 258,
+        "tris": 424,
+        "quads": 158,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 28.667,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 258
+        },
+        "local_bbox_min": [
+          -0.35289,
+          -0.05232,
+          1.22212
+        ],
+        "local_bbox_max": [
+          -0.22224,
+          0.00372,
+          1.35018
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_UpperArmPlate_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.83,
+          2.66,
+          2.05
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.30331,
+          -0.04659,
+          1.27801
+        ],
+        "local_bbox_max": [
+          -0.28497,
+          -0.02002,
+          1.29848
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Bracer_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.32,
+          13.76,
+          16.74
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 306,
+        "faces": 393,
+        "tris": 608,
+        "quads": 205,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 43.667,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 393
+        },
+        "local_bbox_min": [
+          -0.47992,
+          -0.17813,
+          1.05948
+        ],
+        "local_bbox_max": [
+          -0.31673,
+          -0.04057,
+          1.22692
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Bracer_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          3.09,
+          3.77,
+          3.09
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.41361,
+          -0.12865,
+          1.13157
+        ],
+        "local_bbox_max": [
+          -0.38269,
+          -0.09092,
+          1.16249
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighFront_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          18.43,
+          8.27,
+          30.3
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 304,
+        "faces": 391,
+        "tris": 604,
+        "quads": 203,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 43.444,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 391
+        },
+        "local_bbox_min": [
+          -0.20285,
+          -0.15995,
+          0.5807
+        ],
+        "local_bbox_max": [
+          -0.01858,
+          -0.07724,
+          0.88373
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighFront_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          3.0,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.11979,
+          -0.15472,
+          0.72216
+        ],
+        "local_bbox_max": [
+          -0.10179,
+          -0.12469,
+          0.7422
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighOuter_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          3.08,
+          8.13,
+          26.91
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 220,
+        "faces": 254,
+        "tris": 436,
+        "quads": 170,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 28.222,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 254
+        },
+        "local_bbox_min": [
+          -0.21324,
+          -0.06878,
+          0.60641
+        ],
+        "local_bbox_max": [
+          -0.18248,
+          0.01249,
+          0.87552
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ThighOuter_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.2,
+          1.8,
+          2.1
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.20879,
+          -0.03475,
+          0.7306
+        ],
+        "local_bbox_max": [
+          -0.1868,
+          -0.01675,
+          0.75164
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Kneecap_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          9.72,
+          5.47,
+          8.97
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 232,
+        "faces": 275,
+        "tris": 460,
+        "quads": 174,
+        "ngons": 5,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 30.556,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 275
+        },
+        "local_bbox_min": [
+          -0.17422,
+          -0.10977,
+          0.42532
+        ],
+        "local_bbox_max": [
+          -0.07703,
+          -0.05506,
+          0.51498
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Kneecap_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.81,
+          3.05,
+          2.23
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.13369,
+          -0.09963,
+          0.4601
+        ],
+        "local_bbox_max": [
+          -0.11558,
+          -0.06909,
+          0.48237
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ShinFront_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          9.37,
+          6.61,
+          25.09
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 343,
+        "faces": 425,
+        "tris": 682,
+        "quads": 237,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 47.222,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 425
+        },
+        "local_bbox_min": [
+          -0.18237,
+          -0.08325,
+          0.14145
+        ],
+        "local_bbox_max": [
+          -0.08872,
+          -0.0171,
+          0.39231
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_ShinFront_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.81,
+          3.15,
+          2.24
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.14216,
+          -0.05989,
+          0.25711
+        ],
+        "local_bbox_max": [
+          -0.12406,
+          -0.02836,
+          0.27946
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_CalfBack_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          12.74,
+          6.4,
+          20.55
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 244,
+        "faces": 278,
+        "tris": 484,
+        "quads": 182,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 30.889,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 278
+        },
+        "local_bbox_min": [
+          -0.19791,
+          0.0452,
+          0.18054
+        ],
+        "local_bbox_max": [
+          -0.07047,
+          0.10921,
+          0.38606
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_CalfBack_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.81,
+          2.14,
+          2.15
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.14237,
+          0.07024,
+          0.25212
+        ],
+        "local_bbox_max": [
+          -0.1243,
+          0.09168,
+          0.27361
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Boot_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          14.32,
+          33.93,
+          13.6
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 656,
+        "faces": 681,
+        "tris": 1312,
+        "quads": 471,
+        "ngons": 63,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 2,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 681
+        },
+        "local_bbox_min": [
+          -0.23287,
+          -0.24317,
+          0.022
+        ],
+        "local_bbox_max": [
+          -0.08969,
+          0.09617,
+          0.158
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Boot_r_Seat",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          1.8,
+          3.67,
+          2.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.14988,
+          0.0469,
+          0.07
+        ],
+        "local_bbox_max": [
+          -0.13188,
+          0.08363,
+          0.09
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Helmet_CrownBrowCheekChin",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          22.15,
+          29.17,
+          21.95
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite",
+          "M_Lancer_FlexGraphite",
+          "M_Lancer_CyanOptics"
+        ],
+        "verts": 530,
+        "faces": 726,
+        "tris": 1056,
+        "quads": 284,
+        "ngons": 17,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 594,
+          "1": 96,
+          "2": 36
+        },
+        "local_bbox_min": [
+          -0.11075,
+          -0.17299,
+          1.60575
+        ],
+        "local_bbox_max": [
+          0.11075,
+          0.11875,
+          1.82524
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Helmet_EarHousing_L",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.39,
+          8.6,
+          9.17
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite",
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 134,
+        "faces": 144,
+        "tris": 264,
+        "quads": 120,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 132,
+          "1": 12
+        },
+        "local_bbox_min": [
+          0.09734,
+          -0.07012,
+          1.68153
+        ],
+        "local_bbox_max": [
+          0.12122,
+          0.01588,
+          1.77321
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Helmet_EarHousing_R",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Revision05_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.34,
+          8.6,
+          9.17
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite",
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 134,
+        "faces": 144,
+        "tris": 264,
+        "quads": 120,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 132,
+          "1": 12
+        },
+        "local_bbox_min": [
+          -0.12122,
+          -0.07012,
+          1.68153
+        ],
+        "local_bbox_max": [
+          -0.09779,
+          0.01588,
+          1.77321
+        ],
+        "origin_placement": "custom"
+      }
+    ],
+    "totals": {
+      "objects": 62,
+      "tris": 113682,
+      "errors": 0,
+      "warnings": 2
+    },
+    "issues": [
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Breastplate_L",
+        "message": "6 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Breastplate_R",
+        "message": "6 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_ScapularBack_L",
+        "message": "8 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_ScapularBack_R",
+        "message": "8 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Lumbar0",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Lumbar1",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_PelvicGuard",
+        "message": "7 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_DeltoidCap_l",
+        "message": "11 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_UpperArmPlate_l",
+        "message": "10 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Bracer_l",
+        "message": "5 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_ThighFront_l",
+        "message": "9 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Kneecap_l",
+        "message": "10 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_ShinFront_l",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_CalfBack_l",
+        "message": "3 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "warn",
+        "object": "SM_Lancer_Boot_l",
+        "message": "1 duplicate vertices within 0.0001 m; merge by distance"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Boot_l",
+        "message": "40 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_DeltoidCap_r",
+        "message": "16 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_UpperArmPlate_r",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Bracer_r",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_ThighFront_r",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_ThighOuter_r",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Kneecap_r",
+        "message": "5 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_ShinFront_r",
+        "message": "8 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_CalfBack_r",
+        "message": "8 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "warn",
+        "object": "SM_Lancer_Boot_r",
+        "message": "2 duplicate vertices within 0.0001 m; merge by distance"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Boot_r",
+        "message": "63 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Helmet_CrownBrowCheekChin",
+        "message": "17 n-gons; fine if planar, they get triangulated on export"
+      }
+    ]
+  },
+  "assembly": {
+    "status": "ok",
+    "ok": true,
+    "tolerance_m": 0.00327,
+    "objects": [
+      "SM_Lancer_OwnedBase_StaticCopy",
+      "SM_Lancer_Breastplate_L",
+      "SM_Lancer_Breastplate_L_Seat",
+      "SM_Lancer_Breastplate_R",
+      "SM_Lancer_Breastplate_R_Seat",
+      "SM_Lancer_Abdomen0",
+      "SM_Lancer_Abdomen0_Seat",
+      "SM_Lancer_Abdomen1",
+      "SM_Lancer_Abdomen1_Seat",
+      "SM_Lancer_Abdomen2",
+      "SM_Lancer_Abdomen2_Seat",
+      "SM_Lancer_ScapularBack_L",
+      "SM_Lancer_ScapularBack_L_Seat",
+      "SM_Lancer_ScapularBack_R",
+      "SM_Lancer_ScapularBack_R_Seat",
+      "SM_Lancer_Lumbar0",
+      "SM_Lancer_Lumbar0_Seat",
+      "SM_Lancer_Lumbar1",
+      "SM_Lancer_Lumbar1_Seat",
+      "SM_Lancer_Lumbar2",
+      "SM_Lancer_Lumbar2_Seat",
+      "SM_Lancer_PelvicGuard",
+      "SM_Lancer_PelvicGuard_Seat",
+      "SM_Lancer_DeltoidCap_l",
+      "SM_Lancer_DeltoidCap_l_Seat",
+      "SM_Lancer_UpperArmPlate_l",
+      "SM_Lancer_UpperArmPlate_l_Seat",
+      "SM_Lancer_Bracer_l",
+      "SM_Lancer_Bracer_l_Seat",
+      "SM_Lancer_ThighFront_l",
+      "SM_Lancer_ThighFront_l_Seat",
+      "SM_Lancer_ThighOuter_l",
+      "SM_Lancer_ThighOuter_l_Seat",
+      "SM_Lancer_Kneecap_l",
+      "SM_Lancer_Kneecap_l_Seat",
+      "SM_Lancer_ShinFront_l",
+      "SM_Lancer_ShinFront_l_Seat",
+      "SM_Lancer_CalfBack_l",
+      "SM_Lancer_CalfBack_l_Seat",
+      "SM_Lancer_Boot_l",
+      "SM_Lancer_Boot_l_Seat",
+      "SM_Lancer_DeltoidCap_r",
+      "SM_Lancer_DeltoidCap_r_Seat",
+      "SM_Lancer_UpperArmPlate_r",
+      "SM_Lancer_UpperArmPlate_r_Seat",
+      "SM_Lancer_Bracer_r",
+      "SM_Lancer_Bracer_r_Seat",
+      "SM_Lancer_ThighFront_r",
+      "SM_Lancer_ThighFront_r_Seat",
+      "SM_Lancer_ThighOuter_r",
+      "SM_Lancer_ThighOuter_r_Seat",
+      "SM_Lancer_Kneecap_r",
+      "SM_Lancer_Kneecap_r_Seat",
+      "SM_Lancer_ShinFront_r",
+      "SM_Lancer_ShinFront_r_Seat",
+      "SM_Lancer_CalfBack_r",
+      "SM_Lancer_CalfBack_r_Seat",
+      "SM_Lancer_Boot_r",
+      "SM_Lancer_Boot_r_Seat",
+      "SM_Lancer_Helmet_CrownBrowCheekChin",
+      "SM_Lancer_Helmet_EarHousing_L",
+      "SM_Lancer_Helmet_EarHousing_R"
+    ],
+    "islands": 62,
+    "groups": 1,
+    "main_body_tris": 113682,
+    "floating": [],
+    "hint": "All parts are connected."
+  },
+  "qa": {
+    "ok": true,
+    "pass": true,
+    "errors": [],
+    "warnings": [
+      "SM_Lancer_OwnedBase_StaticCopy: ~23.97% UV overlap (ok only if mirrored/stacked on purpose; bakes break)",
+      "SM_Lancer_Breastplate_L: 6 n-gons",
+      "SM_Lancer_Breastplate_R: 6 n-gons",
+      "SM_Lancer_ScapularBack_L: 8 n-gons",
+      "SM_Lancer_ScapularBack_R: 8 n-gons",
+      "SM_Lancer_Lumbar0: 4 n-gons",
+      "SM_Lancer_Lumbar1: 4 n-gons",
+      "SM_Lancer_PelvicGuard: 7 n-gons",
+      "SM_Lancer_DeltoidCap_l: 11 n-gons",
+      "SM_Lancer_UpperArmPlate_l: 10 n-gons",
+      "SM_Lancer_Bracer_l: 5 n-gons",
+      "SM_Lancer_ThighFront_l: 9 n-gons",
+      "SM_Lancer_Kneecap_l: 10 n-gons",
+      "SM_Lancer_ShinFront_l: 4 n-gons",
+      "SM_Lancer_CalfBack_l: 3 n-gons",
+      "SM_Lancer_Boot_l: 40 n-gons",
+      "SM_Lancer_DeltoidCap_r: 16 n-gons",
+      "SM_Lancer_UpperArmPlate_r: 4 n-gons",
+      "SM_Lancer_Bracer_r: 4 n-gons",
+      "SM_Lancer_ThighFront_r: 4 n-gons",
+      "SM_Lancer_ThighOuter_r: 4 n-gons",
+      "SM_Lancer_Kneecap_r: 5 n-gons",
+      "SM_Lancer_ShinFront_r: 8 n-gons",
+      "SM_Lancer_CalfBack_r: 8 n-gons",
+      "SM_Lancer_Boot_r: 63 n-gons",
+      "SM_Lancer_Helmet_CrownBrowCheekChin: 17 n-gons",
+      "hidden back-to-back faces: SM_Lancer_Breastplate_L (1 pairs) - delete to save tris",
+      "hidden back-to-back faces: SM_Lancer_Breastplate_R (1 pairs) - delete to save tris"
+    ],
+    "ground_z": -0.0002,
+    "zfighting": [],
+    "floating": [],
+    "back_to_back": [
+      {
+        "where": "SM_Lancer_Breastplate_L",
+        "tri_pairs": 1
+      },
+      {
+        "where": "SM_Lancer_Breastplate_R",
+        "tri_pairs": 1
+      }
+    ],
+    "enclosed": [],
+    "objects": {
+      "SM_Lancer_OwnedBase_StaticCopy": {
+        "verts": 46091,
+        "faces": 92178,
+        "tris": 92178,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 23.97,
+        "uv_coverage_pct": 47.9
+      },
+      "SM_Lancer_Breastplate_L": {
+        "verts": 318,
+        "faces": 419,
+        "tris": 632,
+        "ngons": 6,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 40.4
+      },
+      "SM_Lancer_Breastplate_L_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Breastplate_R": {
+        "verts": 318,
+        "faces": 419,
+        "tris": 632,
+        "ngons": 6,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 40.3
+      },
+      "SM_Lancer_Breastplate_R_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Abdomen0": {
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 38.3
+      },
+      "SM_Lancer_Abdomen0_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Abdomen1": {
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 40.8
+      },
+      "SM_Lancer_Abdomen1_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Abdomen2": {
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 41.1
+      },
+      "SM_Lancer_Abdomen2_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_ScapularBack_L": {
+        "verts": 310,
+        "faces": 406,
+        "tris": 616,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 41.4
+      },
+      "SM_Lancer_ScapularBack_L_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_ScapularBack_R": {
+        "verts": 310,
+        "faces": 406,
+        "tris": 616,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 41.3
+      },
+      "SM_Lancer_ScapularBack_R_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Lumbar0": {
+        "verts": 212,
+        "faces": 251,
+        "tris": 420,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 40.5
+      },
+      "SM_Lancer_Lumbar0_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Lumbar1": {
+        "verts": 212,
+        "faces": 251,
+        "tris": 420,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 40.4
+      },
+      "SM_Lancer_Lumbar1_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Lumbar2": {
+        "verts": 192,
+        "faces": 238,
+        "tris": 380,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 41.1
+      },
+      "SM_Lancer_Lumbar2_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_PelvicGuard": {
+        "verts": 272,
+        "faces": 312,
+        "tris": 540,
+        "ngons": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 38.8
+      },
+      "SM_Lancer_PelvicGuard_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_DeltoidCap_l": {
+        "verts": 351,
+        "faces": 427,
+        "tris": 698,
+        "ngons": 11,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 33.8
+      },
+      "SM_Lancer_DeltoidCap_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 45.5
+      },
+      "SM_Lancer_UpperArmPlate_l": {
+        "verts": 254,
+        "faces": 284,
+        "tris": 504,
+        "ngons": 10,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 35.3
+      },
+      "SM_Lancer_UpperArmPlate_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 55.2
+      },
+      "SM_Lancer_Bracer_l": {
+        "verts": 309,
+        "faces": 398,
+        "tris": 614,
+        "ngons": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 33.4
+      },
+      "SM_Lancer_Bracer_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 34.3
+      },
+      "SM_Lancer_ThighFront_l": {
+        "verts": 329,
+        "faces": 416,
+        "tris": 654,
+        "ngons": 9,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 38.6
+      },
+      "SM_Lancer_ThighFront_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_ThighOuter_l": {
+        "verts": 198,
+        "faces": 244,
+        "tris": 392,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 40.9
+      },
+      "SM_Lancer_ThighOuter_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 54.8
+      },
+      "SM_Lancer_Kneecap_l": {
+        "verts": 254,
+        "faces": 284,
+        "tris": 504,
+        "ngons": 10,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 36.8
+      },
+      "SM_Lancer_Kneecap_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 53.6
+      },
+      "SM_Lancer_ShinFront_l": {
+        "verts": 310,
+        "faces": 402,
+        "tris": 616,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 38.4
+      },
+      "SM_Lancer_ShinFront_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 53.5
+      },
+      "SM_Lancer_CalfBack_l": {
+        "verts": 215,
+        "faces": 269,
+        "tris": 426,
+        "ngons": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 38.9
+      },
+      "SM_Lancer_CalfBack_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 53.8
+      },
+      "SM_Lancer_Boot_l": {
+        "verts": 606,
+        "faces": 672,
+        "tris": 1212,
+        "ngons": 40,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 33.6
+      },
+      "SM_Lancer_Boot_l_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_DeltoidCap_r": {
+        "verts": 383,
+        "faces": 452,
+        "tris": 762,
+        "ngons": 16,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 34.2
+      },
+      "SM_Lancer_DeltoidCap_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 45.5
+      },
+      "SM_Lancer_UpperArmPlate_r": {
+        "verts": 214,
+        "faces": 258,
+        "tris": 424,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 33.3
+      },
+      "SM_Lancer_UpperArmPlate_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 55.2
+      },
+      "SM_Lancer_Bracer_r": {
+        "verts": 306,
+        "faces": 393,
+        "tris": 608,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 30.1
+      },
+      "SM_Lancer_Bracer_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 34.4
+      },
+      "SM_Lancer_ThighFront_r": {
+        "verts": 304,
+        "faces": 391,
+        "tris": 604,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 37.7
+      },
+      "SM_Lancer_ThighFront_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_ThighOuter_r": {
+        "verts": 220,
+        "faces": 254,
+        "tris": 436,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 40.7
+      },
+      "SM_Lancer_ThighOuter_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 54.8
+      },
+      "SM_Lancer_Kneecap_r": {
+        "verts": 232,
+        "faces": 275,
+        "tris": 460,
+        "ngons": 5,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 37.0
+      },
+      "SM_Lancer_Kneecap_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 53.6
+      },
+      "SM_Lancer_ShinFront_r": {
+        "verts": 343,
+        "faces": 425,
+        "tris": 682,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 39.0
+      },
+      "SM_Lancer_ShinFront_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 53.5
+      },
+      "SM_Lancer_CalfBack_r": {
+        "verts": 244,
+        "faces": 278,
+        "tris": 484,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 37.8
+      },
+      "SM_Lancer_CalfBack_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 53.8
+      },
+      "SM_Lancer_Boot_r": {
+        "verts": 656,
+        "faces": 681,
+        "tris": 1312,
+        "ngons": 63,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 33.3
+      },
+      "SM_Lancer_Boot_r_Seat": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.9
+      },
+      "SM_Lancer_Helmet_CrownBrowCheekChin": {
+        "verts": 530,
+        "faces": 726,
+        "tris": 1056,
+        "ngons": 17,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 3,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 37.0
+      },
+      "SM_Lancer_Helmet_EarHousing_L": {
+        "verts": 134,
+        "faces": 144,
+        "tris": 264,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 2,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 50.0
+      },
+      "SM_Lancer_Helmet_EarHousing_R": {
+        "verts": 134,
+        "faces": 144,
+        "tris": 264,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 2,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 50.1
+      }
+    }
+  },
+  "clearance_failures": [
+    {
+      "part": "ScapularBack_L",
+      "reason": "Separate full-body collision/clearance",
+      "count": 3,
+      "minimum_m": 0.0018398913452983834
+    },
+    {
+      "part": "ScapularBack_R",
+      "reason": "Separate full-body collision/clearance",
+      "count": 3,
+      "minimum_m": 0.0018398812753730454
+    },
+    {
+      "part": "Boot_l",
+      "reason": "Separate full-body collision/clearance",
+      "count": 1,
+      "minimum_m": 0.001845362219683011
+    }
+  ],
+  "limits": [
+    "Complete owned body unchanged; no new anatomy/rig/weights/native assets",
+    "Basic individual face UV charts, not final texture layout",
+    "Actual front/back/side/top/beauty visual and independent review still required"
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "stage": "REJECTED visual checkpoint; not production accepted",
+  "branch": "nick/characters-lancer",
+  "head": "8e5de0d0bf8e6b8a98ee350080ec35d1f2892f38",
+  "technical_checks_passed": false,
+  "rigged": false,
+  "native_integrated": false,
+  "latest_model": "source/armor/Revision05/Lancer_Armor_Revision05.blend",
+  "latest_qa": {
+    "armor_triangles": 21504,
+    "total_triangles": 113682,
+    "objects": 62,
+    "host_errors": 0,
+    "host_warnings": 28,
+    "assembly_pass": true,
+    "open_clearance_findings": 3
+  },
+  "scope": "Owned uncommitted checkpoint only; Saved/caches/backups/empty directories excluded; this manifest excluded from its own hash list",
+  "files": [
+    {
+      "path": "ArtSource/Characters/Lancer/M01/README.md",
+      "bytes": 2563,
+      "sha256": "eaa2cd62884b07308885b90dbeef377957ef78729c33f35cede597d123952230"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/brief.md",
+      "bytes": 13836,
+      "sha256": "ead634fe1247722dbaecec5af696f948ed658f279264a48225c0656ed8736a47"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision04Attempt02/Lancer_Revision04Attempt02_back.png",
+      "bytes": 759921,
+      "sha256": "fe84d8136e7f6fe53aac43346e18e2df012a50f99434ac1db10ff3faa4bb6266"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision04Attempt02/Lancer_Revision04Attempt02_beauty.png",
+      "bytes": 788481,
+      "sha256": "254b8f7f10a59b17eb909d54d5c71b14c9dde31f1e5e5ca02727deea69ac2423"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision04Attempt02/Lancer_Revision04Attempt02_front.png",
+      "bytes": 771151,
+      "sha256": "c47719deac87065b9226d7bee46071cc119d6a21e90bb4eeb9ad826c43a1e4e7"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision04Attempt02/Lancer_Revision04Attempt02_side.png",
+      "bytes": 748484,
+      "sha256": "0a5bbeeb97df01bc9ed1afbdf847ccf71c4847e332c195a851567765c81e8651"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision04Attempt02/Lancer_Revision04Attempt02_top.png",
+      "bytes": 719250,
+      "sha256": "76cf4bcc580588228e8eaa0bb8e0750cfa49d8b93e37c10747fe353c4e502dd9"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision04Attempt02/views.json",
+      "bytes": 1431,
+      "sha256": "05a2e9ee87adf5680f108b52092e0ea86dee953e77f8bfae880c866b0e856522"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision05/Lancer_Revision05_back.png",
+      "bytes": 759053,
+      "sha256": "95d4c6cdaecc28b4d274d41b5ac495b73ff0ff4ad3b6f1e48c7a7c57906834cc"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision05/Lancer_Revision05_beauty.png",
+      "bytes": 787147,
+      "sha256": "7be6ee7b404633d72f588b4bd8f94207f646798da881b1d6e0eb2f80c147de8a"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision05/Lancer_Revision05_front.png",
+      "bytes": 770654,
+      "sha256": "db5a7098505028b445fd7cab7b66f720d5b952c20bf14bc985267dde7cb9936e"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision05/Lancer_Revision05_left.png",
+      "bytes": 734665,
+      "sha256": "3482684ccf9fab75db11a54676a7c72ad46afbeb3d11556405ae598ac9791a58"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision05/Lancer_Revision05_side.png",
+      "bytes": 749972,
+      "sha256": "0ccec6a6415aae740ad6ab5ba2eeaab10c4d7e7a21e2662f9d4a99a769dbbf9d"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision05/Lancer_Revision05_top.png",
+      "bytes": 719249,
+      "sha256": "b6541534c06e09bf573aaab9dfe4d1f23369f59dd7da5d34579c40eaac9908cc"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/review/Revision05/views.json",
+      "bytes": 1661,
+      "sha256": "ea0e9c1ef6d865bf39ff0fd4141b21d57c2ba183eb7591910908e42f5f5ea0e7"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/ReferenceRebuild/PROPOSAL.md",
+      "bytes": 5367,
+      "sha256": "2458af5fecf21f625aa724de70f47cb6b62e892b6839bcd67f410290900e17f5"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision04Attempt02/Lancer_Armor_Revision04Attempt02.blend",
+      "bytes": 8490579,
+      "sha256": "9bcef45693c62fa4d61cb5481e3349c0a0cc66d88b215c767e828c06a546a261"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision04Attempt02/blockout-qa.json",
+      "bytes": 165511,
+      "sha256": "c0d77b4308c19756901d46dbccc59c05d0d93d026cc65e1621909e3fe067d52f"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision04Attempt02/regional-preflight.json",
+      "bytes": 731932,
+      "sha256": "8af5e906a79980c5de7c18b9943b8543a4661acc2cf5907c37022f030b1fa8ad"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision04Attempt02/surface-fit.json",
+      "bytes": 12385,
+      "sha256": "8e4b9f40faa73e8fdec35cb4edfee28d5805799454d2fea804b5067f43d486de"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision05/Lancer_Armor_Revision05.blend",
+      "bytes": 8494493,
+      "sha256": "29286940ea9dd856ea799956ed6ead533239818b1d642e3ba3beffb312edd2e0"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision05/blockout-qa.json",
+      "bytes": 166404,
+      "sha256": "6eabdf61cf0f5a1fe84662f1be3eb80ac38116eb09ca59bfa2464b0a2b4320db"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision05/regional-preflight.json",
+      "bytes": 735882,
+      "sha256": "8a9ea0fdc41440f99653e2138f459debd117746327fa0389eb4cc6a6528f2690"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/armor/Revision05/surface-fit.json",
+      "bytes": 13405,
+      "sha256": "ab31f69ac34e8fd570888e3a2db4d0c96d81c2f90e693f76078ff2385b8d4bfa"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/build_lancer_revision04.py",
+      "bytes": 24945,
+      "sha256": "66517f9e2cfe16e2dcf8c07128fddc21491818a154ee7b002af155bb40fce076"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/build_lancer_revision04_attempt02.py",
+      "bytes": 29683,
+      "sha256": "e9a3cdb2d4efb778dede76a58bb40c1aa35792fdf0c0b9778cc86757d9376680"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/build_lancer_revision05.py",
+      "bytes": 32414,
+      "sha256": "8c2611831a42ffd0c048f0b079c7af7716d666caf90987328def187d789687a4"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/render_lancer_revision04.py",
+      "bytes": 2198,
+      "sha256": "85d876f98134de9a0f0de220c0d44b359b616bf5f389ac630d7308507026c645"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/render_lancer_revision04_attempt02.py",
+      "bytes": 2234,
+      "sha256": "9c8a157386d6564e1de55661c8601b7c5a5b0acb5f6f97003bd4c4c4715006c9"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/render_lancer_revision05.py",
+      "bytes": 2437,
+      "sha256": "6a8ec7cd13a8ccf2a170c4aa6d9b56491aca32f9cdb1c3e5435aef2990154101"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/run_armor_revision04.ps1",
+      "bytes": 4834,
+      "sha256": "a72a76c349f83bac83345da5835dd5c4dfbf1193c3654539a2211135603b860b"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/run_armor_revision04_attempt02.ps1",
+      "bytes": 4917,
+      "sha256": "edef9b6e9796bcbc78e53f12e370b295b34dfd848dc0b127075b8a4f8b65f29b"
+    },
+    {
+      "path": "ArtSource/Characters/Lancer/M01/source/run_armor_revision05.ps1",
+      "bytes": 4834,
+      "sha256": "ca7d1d9decb3d10df0928b589b5cf668a4653cea07ba8afc518a5a33ca34452a"
+    }
+  ]
+}

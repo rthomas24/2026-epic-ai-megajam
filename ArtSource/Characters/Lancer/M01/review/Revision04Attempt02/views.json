@@ -1,0 +1,34 @@
+{
+  "stage": "Studio-color PRIMARY FORM REVIEW; not final beauty/PBR approval",
+  "resolution": [
+    720,
+    960
+  ],
+  "views": [
+    {
+      "view": "front",
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\review\\Revision04Attempt02\\Lancer_Revision04Attempt02_front.png",
+      "bytes": 771151
+    },
+    {
+      "view": "side",
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\review\\Revision04Attempt02\\Lancer_Revision04Attempt02_side.png",
+      "bytes": 748484
+    },
+    {
+      "view": "back",
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\review\\Revision04Attempt02\\Lancer_Revision04Attempt02_back.png",
+      "bytes": 759921
+    },
+    {
+      "view": "top",
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\review\\Revision04Attempt02\\Lancer_Revision04Attempt02_top.png",
+      "bytes": 719250
+    },
+    {
+      "view": "beauty",
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\review\\Revision04Attempt02\\Lancer_Revision04Attempt02_beauty.png",
+      "bytes": 788481
+    }
+  ]
+}

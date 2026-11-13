@@ -1,0 +1,423 @@
+{
+  "method": "Anatomically associated regional BVH fitting; separate full-body collision BVH; face centroid/edge midpoint clearance",
+  "regions": {
+    "torso": {
+      "source_bones": [
+        "clavicle_l",
+        "clavicle_r",
+        "pelvis",
+        "spine_01",
+        "spine_02",
+        "spine_03",
+        "spine_04",
+        "spine_05"
+      ],
+      "faces": 23658
+    },
+    "head": {
+      "source_bones": [
+        "head",
+        "neck_01",
+        "neck_02"
+      ],
+      "faces": 8206
+    },
+    "arm_l": {
+      "source_bones": [
+        "clavicle_l",
+        "hand_l",
+        "lowerarm_l",
+        "lowerarm_twist_01_l",
+        "lowerarm_twist_02_l",
+        "upperarm_twist_01_l",
+        "upperarm_twist_02_l"
+      ],
+      "faces": 14321
+    },
+    "leg_l": {
+      "source_bones": [
+        "ball_l",
+        "calf_l",
+        "calf_twist_01_l",
+        "calf_twist_02_l",
+        "foot_l",
+        "thigh_twist_01_l",
+        "thigh_twist_02_l"
+      ],
+      "faces": 9404
+    },
+    "foot_l": {
+      "source_bones": [
+        "ball_l",
+        "calf_l",
+        "calf_twist_01_l",
+        "calf_twist_02_l",
+        "foot_l"
+      ],
+      "faces": 5285
+    },
+    "arm_r": {
+      "source_bones": [
+        "clavicle_r",
+        "hand_r",
+        "lowerarm_r",
+        "lowerarm_twist_01_r",
+        "lowerarm_twist_02_r",
+        "upperarm_twist_01_r",
+        "upperarm_twist_02_r"
+      ],
+      "faces": 14321
+    },
+    "leg_r": {
+      "source_bones": [
+        "ball_r",
+        "calf_r",
+        "calf_twist_01_r",
+        "calf_twist_02_r",
+        "foot_r",
+        "thigh_twist_01_r",
+        "thigh_twist_02_r"
+      ],
+      "faces": 9404
+    },
+    "foot_r": {
+      "source_bones": [
+        "ball_r",
+        "calf_r",
+        "calf_twist_01_r",
+        "calf_twist_02_r",
+        "foot_r"
+      ],
+      "faces": 5285
+    }
+  },
+  "pelvis_lower_z": 0.8419678049087524,
+  "parts": [
+    {
+      "part": "Breastplate_L",
+      "face_samples": 896,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 2,
+      "minimum_full_body_clearance_m": 0.0017454686312703416,
+      "max_single_adjustment_m": 0.008552346110343934,
+      "max_total_adjustment_m": 0.014931187064577911
+    },
+    {
+      "part": "Breastplate_R",
+      "face_samples": 896,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 2,
+      "minimum_full_body_clearance_m": 0.001745469831803348,
+      "max_single_adjustment_m": 0.008552346110343934,
+      "max_total_adjustment_m": 0.014931250413357832
+    },
+    {
+      "part": "Abdomen0",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.004401895886985585,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Abdomen1",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.004550227051367983,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Abdomen2",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.005943664655205794,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "ScapularBack_L",
+      "face_samples": 896,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.0022992914164206013,
+      "max_single_adjustment_m": 0.004291753947734833,
+      "max_total_adjustment_m": 0.011567532777719913
+    },
+    {
+      "part": "ScapularBack_R",
+      "face_samples": 896,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.0022992809099378064,
+      "max_single_adjustment_m": 0.0042917092442512515,
+      "max_total_adjustment_m": 0.011567562969595433
+    },
+    {
+      "part": "Lumbar0",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.004999458476959262,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Lumbar1",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.005948267396888696,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Lumbar2",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.005288116168230772,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "PelvicGuard",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 2,
+      "minimum_full_body_clearance_m": 0.0016945759210784672,
+      "max_single_adjustment_m": 0.004975829005241394,
+      "max_total_adjustment_m": 0.006702952019409783
+    },
+    {
+      "part": "DeltoidCap_l",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.00687219068640843,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "UpperArmPlate_l",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.007226664026916296,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Bracer_l",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.006085033703129739,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "ThighFront_l",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.0063783154473640025,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "ThighOuter_l",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.00801775224681478,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Kneecap_l",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.004002899137788063,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "ShinFront_l",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.006283441121922806,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "CalfBack_l",
+      "face_samples": 240,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.006012389014358632,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Boot_l",
+      "face_samples": 1024,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 2,
+      "minimum_full_body_clearance_m": 0.0017591158975847065,
+      "max_single_adjustment_m": 0.022024302067700775,
+      "max_total_adjustment_m": 0.037602930504079445
+    },
+    {
+      "part": "DeltoidCap_r",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.006334526871796697,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "UpperArmPlate_r",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.00584296474698931,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Bracer_r",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.006084409134928137,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "ThighFront_r",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.006407060369383544,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "ThighOuter_r",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.00774906355013627,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Kneecap_r",
+      "face_samples": 192,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.004000595087802594,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "ShinFront_r",
+      "face_samples": 384,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.006304828770225868,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "CalfBack_r",
+      "face_samples": 240,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.005073752567113843,
+      "max_single_adjustment_m": 0,
+      "max_total_adjustment_m": 0.0
+    },
+    {
+      "part": "Boot_r",
+      "face_samples": 1024,
+      "outside_region_samples": 0,
+      "final_violations": 0,
+      "full_body_collision_samples": 0,
+      "minimum_full_body_clearance_m": 0.0020390936397234327,
+      "max_single_adjustment_m": 0.011553750425344334,
+      "max_total_adjustment_m": 0.03389993349472488
+    },
+    {
+      "part": "SM_Lancer_Helmet_CrownBrowCheekChin",
+      "face_samples": 1728,
+      "final_violations": 0
+    }
+  ],
+  "failures": [
+    {
+      "part": "Breastplate_L",
+      "reason": "Separate full-body collision/clearance",
+      "count": 2,
+      "minimum_m": 0.0017454686312703416
+    },
+    {
+      "part": "Breastplate_R",
+      "reason": "Separate full-body collision/clearance",
+      "count": 2,
+      "minimum_m": 0.001745469831803348
+    },
+    {
+      "part": "PelvicGuard",
+      "reason": "Separate full-body collision/clearance",
+      "count": 2,
+      "minimum_m": 0.0016945759210784672
+    },
+    {
+      "part": "Boot_l",
+      "reason": "Face exceeds40mm total correction bound",
+      "needed_m": 0.00997252808639314
+    },
+    {
+      "part": "Boot_l",
+      "reason": "Separate full-body collision/clearance",
+      "count": 2,
+      "minimum_m": 0.0017591158975847065
+    }
+  ]
+}
