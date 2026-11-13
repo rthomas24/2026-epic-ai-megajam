@@ -1,0 +1,7 @@
+# HUD usability source review handoff
+
+Candidate local commit5a1382d39d2da5c564f6a2d53e65d58d66987025 on nick/hud-usability-20261112, base15ae7cb. Exactly5owned files, no game Source/Config/map/native asset changes. Adjacent HUD-Usability-M04-Review.patch contains the exact candidate for isolated build/review; do not apply directly to main. Nick retains implementation ownership.
+
+Three changes: independent larger one-second kill confirmation immune to ordinary hits; target metadata avoids reticle/critical panels; truthful ceil-positive recovery countdown and observed control-transfer feedback. Three regression tests added;14UItests expected including5engineering host tests. Source reviewed and whitespace checks pass. Compilation, automation execution, actualgame screenshots and Shipping remain UNVERIFIED. RAM has recovered: Lead granted a single-action Editor build on the candidate's own worktree at22:30EST after Audio and Ships released their slots. Wait for its result before duplicating verification.
+
+A reviewing Lead may apply the patch only in a clean isolated verification checkout after normal claims/incoming checks, build Editor with one compile action, run existing Tools/td-test.ps1 -Filter TriadDrift.UI, and report14test outcomes. Use actual windowed Galaxy captures at1080p/720p/ultrawide for kill/target/downed states, disclosing any dev-stage fixtures. Do not modify gameplay providers/interfaces or promote to main without Nick-side integration review. The old ca579ab branch and all character work remain preserved.
