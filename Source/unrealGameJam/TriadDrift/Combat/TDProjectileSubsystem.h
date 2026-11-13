@@ -51,13 +51,20 @@ public:
 	ATDCombatFlash* PlayPlaceholderFlash(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds,
 		USceneComponent* AttachTo = nullptr);
 
+	/**
+	 * Placeholder explosion for a death or a big detonation with no art: a hot core, an expanding glow shell of
+	 * Radius and DebrisCount streaks flung outward, all pooled flashes. Callers skip it when their cue has a VFX
+	 * (FTDCombatPlaceholders::HasVisualArt). Returns how many flash actors it used.
+	 */
+	int32 PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount = 8);
+
 	/** Flashes playing right now (tests). */
 	int32 GetPlayingFlashCount() const;
 
 	/** Flashes playing within Radius of Location (tests: muzzle vs impact). */
 	int32 CountPlayingFlashesNear(const FVector& Location, float Radius) const;
 
-	int32 MaxFlashes = 48;
+	int32 MaxFlashes = 96;
 
 	int32 GetLiveCount() const { return Live.Num(); }
 	int32 GetPooledCount() const { return Pool.Num(); }

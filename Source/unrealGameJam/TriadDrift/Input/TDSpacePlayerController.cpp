@@ -184,6 +184,8 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IA_Pause = MakeAction(TEXT("IA_Pause"), V::Boolean);
 	IA_GalaxyMap = MakeAction(TEXT("IA_GalaxyMap"), V::Boolean);
 	IA_CameraToggle = MakeAction(TEXT("IA_CameraToggle"), V::Boolean);
+	IA_CameraToggleHold = MakeAction(TEXT("IA_CameraToggleHold"), V::Boolean);
+	IA_TargetCycleTap = MakeAction(TEXT("IA_TargetCycleTap"), V::Boolean);
 	// Menus must work while the game is paused (Esc / Start unpause).
 	IA_Pause->bTriggerWhenPaused = true;
 	IA_GalaxyMap->bTriggerWhenPaused = true;
@@ -268,13 +270,24 @@ void ATDSpacePlayerController::BuildInputObjects()
 	// Targeting.
 	C->MapKey(IA_TargetCycle, EKeys::T);
 	C->MapKey(IA_TargetCycle, EKeys::MiddleMouseButton);
-	C->MapKey(IA_TargetCycle, EKeys::Gamepad_RightThumbstick);
+	// R3: a quick tap cycles the target (on release); holding it 0.5 s toggles the cockpit camera (Lead, Nov 12).
+	{
+		FEnhancedActionKeyMapping& Tap = C->MapKey(IA_TargetCycleTap, EKeys::Gamepad_RightThumbstick);
+		TDSpacePC_AddTrigger<UInputTriggerTap>(Tap, C)->TapReleaseTimeThreshold = 0.35f;
+		FEnhancedActionKeyMapping& Hold = C->MapKey(IA_CameraToggleHold, EKeys::Gamepad_RightThumbstick);
+		UInputTriggerHold* HoldTrigger = TDSpacePC_AddTrigger<UInputTriggerHold>(Hold, C);
+		HoldTrigger->HoldTimeThreshold = 0.5f;
+		HoldTrigger->bIsOneShot = true;
+	}
 
 	// Menus.
 	C->MapKey(IA_Pause, EKeys::Escape);
 	C->MapKey(IA_Pause, EKeys::Gamepad_Special_Right);
-	C->MapKey(IA_GalaxyMap, EKeys::M);
-	C->MapKey(IA_GalaxyMap, EKeys::Gamepad_Special_Left);
+	if (bGalaxyMapEnabled) // hidden until Nick's galaxy map screen exists (Lead, Nov 12): no key, no broadcast
+	{
+		C->MapKey(IA_GalaxyMap, EKeys::M);
+		C->MapKey(IA_GalaxyMap, EKeys::Gamepad_Special_Left);
+	}
 
 	// Camera: chase / cockpit (not in the ENG-02 table; V is free).
 	C->MapKey(IA_CameraToggle, EKeys::V);
@@ -472,6 +485,8 @@ void ATDSpacePlayerController::SetupInputComponent()
 	EIC->BindAction(IA_Land, E::Started, this, &ThisClass::OnLand);
 	EIC->BindAction(IA_Land, E::Completed, this, &ThisClass::OnLandReleased);
 	EIC->BindAction(IA_CameraToggle, E::Started, this, &ThisClass::OnCameraToggle);
+	EIC->BindAction(IA_CameraToggleHold, E::Triggered, this, &ThisClass::OnCameraToggle);
+	EIC->BindAction(IA_TargetCycleTap, E::Triggered, this, &ThisClass::OnTargetCycle);
 	EIC->BindAction(IA_Pause, E::Started, this, &ThisClass::OnPause);
 	EIC->BindAction(IA_GalaxyMap, E::Started, this, &ThisClass::OnGalaxyMap);
 }
@@ -562,6 +577,17 @@ void ATDSpacePlayerController::OnUnPossess()
 
 void ATDSpacePlayerController::ResetHeldInputs()
 {
+	// A held hyperdrive key's release is swallowed while input is disabled: stop a spool now, never mid-jump.
+	if (const ATDShip* Ship = Cast<ATDShip>(GetPawn()))
+	{
+		if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
+		{
+			if (Hyper->GetState() == ETDHyperdriveState::Spooling)
+			{
+				Hyper->StopSpool();
+			}
+		}
+	}
 	if (bFirePrimaryHeld) { RouteTrigger(ETDWeaponSlot::Primary, false); }
 	if (bFireSecondaryHeld) { RouteTrigger(ETDWeaponSlot::Secondary, false); }
 	bFirePrimaryHeld = bFireSecondaryHeld = false;
@@ -1072,7 +1098,13 @@ void ATDSpacePlayerController::OnCameraToggle(const FInputActionValue&)
 	}
 }
 void ATDSpacePlayerController::OnPause(const FInputActionValue&) { OnPauseInput.Broadcast(); }
-void ATDSpacePlayerController::OnGalaxyMap(const FInputActionValue&) { OnGalaxyMapInput.Broadcast(); }
+void ATDSpacePlayerController::OnGalaxyMap(const FInputActionValue&)
+{
+	if (bGalaxyMapEnabled)
+	{
+		OnGalaxyMapInput.Broadcast();
+	}
+}
 
 // -------------------------------------------------------------------------------------------- routing
 

@@ -23,7 +23,6 @@ FTDDirectorTuning::FTDDirectorTuning()
 	BaseImportance.Add(ETDHighlightKind::MissileReturn, 0.55f);
 	BaseImportance.Add(ETDHighlightKind::MultiKill, 0.5f);
 	BaseImportance.Add(ETDHighlightKind::SwitchStrikeKill, 0.5f);
-	BaseImportance.Add(ETDHighlightKind::AbilityCombo, 0.5f);
 
 	DurationOverrideSeconds.Add(ETDHighlightKind::PerfectDeflect, 0.15f);
 }

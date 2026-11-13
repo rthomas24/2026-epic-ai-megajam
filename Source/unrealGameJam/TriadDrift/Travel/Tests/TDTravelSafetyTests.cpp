@@ -785,6 +785,107 @@ bool FTDTravelDodgeKeys::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelMinors2, "TriadDrift.Travel.Safety.RetakeAbortsEntryAndDisableStopsSpool", TD_TEST_FLAGS)
+bool FTDTravelMinors2::RunTest(const FString& Parameters)
+{
+	// Minors: a CUT retake abandons an atmosphere entry; disabling space input mid-spool stops the spool.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetWorld()->GetGameInstance());
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("flow"), GI) || !TestNotNull(TEXT("controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry();
+	TestTrue(TEXT("entry begins"), Entry->BeginEntry(ETDDestination::Verdance, TEXT("Descent"), FVector(400000.f, 0.f, 0.f), 60000.f));
+	W.Advance(0.5f);
+	GI->OnSceneRestart.Broadcast(TEXT("Wave1"), 2);
+	W.Tick();
+	TestFalse(TEXT("retake: entry abandoned"), Entry->IsEntering());
+	TestFalse(TEXT("retake: entry override released"), Ship->GetShipMovement()->HasSpeedOverrideFor(UTDAtmosphereEntryComponent::OverrideOwner));
+	TestFalse(TEXT("retake: not invulnerable"), Ship->GetHealth()->IsInvulnerable());
+
+	W.Advance(3.f); // hyperdrive cooldowns
+	FTDTestWorld::InjectKey(PC, EKeys::H, true);
+	W.Advance(0.3f);
+	TestEqual(TEXT("H held: spooling"), Ship->GetHyperdrive()->GetState(), ETDHyperdriveState::Spooling);
+	PC->SetSpaceInputEnabled(false); // cutscene / director takes over while H is still held
+	W.Advance(2.f);
+	TestEqual(TEXT("input disabled mid-spool: spool stopped, no jump"), Ship->GetHyperdrive()->GetState(), ETDHyperdriveState::Idle);
+	FTDTestWorld::InjectKey(PC, EKeys::H, false);
+	PC->SetSpaceInputEnabled(true);
+	W.Tick();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelR3Keys, "TriadDrift.Travel.Safety.R3TapCyclesHoldTogglesCameraMapHidden", TD_TEST_FLAGS)
+bool FTDTravelR3Keys::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	W.Tick();
+	UTDFlightEventCounter* Cycle = NewObject<UTDFlightEventCounter>();
+	UTDFlightEventCounter* Map = NewObject<UTDFlightEventCounter>();
+	Cycle->AddToRoot();
+	Map->AddToRoot();
+	ON_SCOPE_EXIT { Cycle->RemoveFromRoot(); Map->RemoveFromRoot(); };
+	PC->OnTargetCycleInput.AddDynamic(Cycle, &UTDFlightEventCounter::HandleSimple);
+	PC->OnGalaxyMapInput.AddDynamic(Map, &UTDFlightEventCounter::HandleSimple);
+
+	// Quick tap of R3: target cycle on release, camera untouched.
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_RightThumbstick, true);
+	W.Advance(0.15f);
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_RightThumbstick, false);
+	W.Tick();
+	TestEqual(TEXT("R3 tap cycles the target"), Cycle->SimpleEvents, 1);
+	TestFalse(TEXT("R3 tap leaves the camera alone"), Ship->IsCockpitView());
+
+	// Hold R3: cockpit camera after 0.5 s, no target cycle.
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_RightThumbstick, true);
+	W.Advance(0.7f);
+	TestTrue(TEXT("R3 hold toggles the cockpit camera"), Ship->IsCockpitView());
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_RightThumbstick, false);
+	W.Tick();
+	TestEqual(TEXT("a hold doesn't also cycle the target"), Cycle->SimpleEvents, 1);
+	TestTrue(TEXT("one toggle per hold"), Ship->IsCockpitView());
+
+	// Keyboard target cycle (T) and camera (V) unchanged.
+	FTDTestWorld::InjectKey(PC, EKeys::T, true); W.Tick(); FTDTestWorld::InjectKey(PC, EKeys::T, false); W.Tick();
+	TestEqual(TEXT("T still cycles"), Cycle->SimpleEvents, 2);
+	FTDTestWorld::InjectKey(PC, EKeys::V, true); W.Tick(); FTDTestWorld::InjectKey(PC, EKeys::V, false); W.Tick();
+	TestFalse(TEXT("V still toggles"), Ship->IsCockpitView());
+
+	// Galaxy map hidden until its screen exists: M and Select do nothing.
+	FTDTestWorld::InjectKey(PC, EKeys::M, true); W.Tick(); FTDTestWorld::InjectKey(PC, EKeys::M, false); W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_Special_Left, true); W.Tick(); FTDTestWorld::InjectKey(PC, EKeys::Gamepad_Special_Left, false); W.Tick();
+	TestEqual(TEXT("galaxy map key hidden: no broadcast"), Map->SimpleEvents, 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSteeringScale, "TriadDrift.Travel.Safety.ActiveSteeringScaleFollowsTheOverrideStack", TD_TEST_FLAGS)
+bool FTDTravelSteeringScale::RunTest(const FString& Parameters)
+{
+	// For T2's ram test: the steering scale actually in force (1 with no override; the top override's otherwise).
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	W.Tick();
+	TestEqual(TEXT("no override: 1"), Move->GetActiveSteeringScale(), 1.f);
+	Ship->SetSpeedOverrideFor(TEXT("Ram"), 33000.f, 0.4f);
+	TestEqual(TEXT("ram: 0.4"), Move->GetActiveSteeringScale(), 0.4f, 0.001f);
+	Ship->SetSpeedOverrideFor(TEXT("Hyperdrive"), 80000.f, 0.f);
+	TestEqual(TEXT("last-in override wins: 0"), Move->GetActiveSteeringScale(), 0.f, 0.001f);
+	Ship->ClearSpeedOverrideFor(TEXT("Hyperdrive"));
+	TestEqual(TEXT("back to the ram's 0.4"), Move->GetActiveSteeringScale(), 0.4f, 0.001f);
+	Ship->ClearSpeedOverrideFor(TEXT("Ram"));
+	TestEqual(TEXT("cleared: 1"), Move->GetActiveSteeringScale(), 1.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelSafetyKeys, "TriadDrift.Travel.Safety.RealKeysReachTheShipAndSurviveASwitch", TD_TEST_FLAGS)
 bool FTDTravelSafetyKeys::RunTest(const FString& Parameters)
 {

@@ -121,6 +121,8 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 	{
 		MID = Mesh->CreateDynamicMaterialInstance(0, GlowMaterial);
 	}
+	bDebris = false;
+	SetActorRotation(FRotator::ZeroRotator);
 	Radius = FMath::Max(InRadius, 1.f);
 	Color = InColor;
 	Life = FMath::Max(Seconds, 0.01f);
@@ -128,6 +130,17 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 	bPlaying = true;
 	Mesh->SetVisibility(true);
 	SetActorTickEnabled(true);
+	Apply(0.f);
+}
+
+void ATDCombatFlash::PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& InColor,
+	float Seconds)
+{
+	Play(Location, Thickness * 0.5f, InColor, Seconds, nullptr);
+	bDebris = true;
+	DebrisVelocity = Velocity;
+	DebrisLength = FMath::Max(Length, Thickness);
+	SetActorRotation(Velocity.Rotation());
 	Apply(0.f);
 }
 
@@ -152,14 +165,28 @@ void ATDCombatFlash::Tick(float DeltaSeconds)
 		Stop();
 		return;
 	}
+	if (bDebris)
+	{
+		SetActorLocation(GetActorLocation() + DebrisVelocity * DeltaSeconds);
+		DebrisVelocity *= FMath::Exp(-1.5f * DeltaSeconds); // drag: streaks slow as they fade
+	}
 	Apply(Age / Life);
 }
 
 void ATDCombatFlash::Apply(float Alpha)
 {
-	// Swells from 60% to 120% of its radius while the glow falls off.
-	const float Size = Radius * (0.6f + 0.6f * Alpha);
-	SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
+	if (bDebris)
+	{
+		// A stretched streak along its flight, thinning as it fades.
+		const float Shrink = 1.f - 0.6f * Alpha;
+		SetActorScale3D(FVector(DebrisLength * Shrink, Radius * 2.f * Shrink, Radius * 2.f * Shrink) / 100.f);
+	}
+	else
+	{
+		// Swells from 60% to 120% of its radius while the glow falls off.
+		const float Size = Radius * (0.6f + 0.6f * Alpha);
+		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
+	}
 	if (MID)
 	{
 		const FLinearColor Glow = Color * (FTDCombatPlaceholders::FlashGlow * FMath::Square(1.f - Alpha));

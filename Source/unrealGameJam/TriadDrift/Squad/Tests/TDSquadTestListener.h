@@ -53,6 +53,11 @@ public:
 	UFUNCTION()
 	void OnBark(FName BarkId, FName Speaker) { Barks.Add(TPair<FName, FName>(BarkId, Speaker)); }
 
+	/** Every TeleportSpacecraft (the bus event), counted per actor. */
+	UFUNCTION()
+	void OnTeleported(AActor* Spacecraft, FVector From, FVector To) { Teleports.FindOrAdd(Spacecraft)++; }
+	TMap<TObjectPtr<AActor>, int32> Teleports;
+
 	TArray<TPair<FName, FName>> Barks;
 	int32 CountBarks(FName Id) const { int32 N = 0; for (const TPair<FName, FName>& B : Barks) { N += B.Key == Id ? 1 : 0; } return N; }
 

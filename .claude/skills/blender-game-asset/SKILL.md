@@ -25,7 +25,7 @@ Read `references/aaa-quality-bar.md` before your first asset. It defines "done".
 | Enemy fighters, gunships, bombers, carrier | **A**, or **C** with a strong concept | Mid-detail; many on screen |
 | Modular corridor kit, doors, consoles, crates, props, weapons, energy blade, debris | **C**: code-built with `scripts/hardsurface.py` + trim sheets | Agent strength: precise, modular, grid-based |
 | Asteroids, rocks, crystal clusters | **C**: `scripts/procedural_rocks.py` (+ Nanite) | Procedural strength |
-| Humanoid crew, first-person arms | **B**: Fab or Mixamo rigged assets (or Rodin T-pose + auto-rig) | Never code-model people |
+| Humanoid crew, first-person arms | **B**: Fab or Mixamo rigged assets (or Rodin T-pose + auto-rig) | Never code-model people from nothing. Armour and gear built in code **on an existing rigged mannequin** (UE5 Manny) is a different, allowed route when Nicholas has approved it |
 
 Details, generator settings and licences: `references/asset-routing.md`. Code-built (route C)
 assets still need a concept or a precise written design, and still have to pass the rubric.

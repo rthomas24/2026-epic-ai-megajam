@@ -406,4 +406,32 @@ bool FTDUIHostN004::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** Supplement mode: which surfaces the native HUD covers. None today; a widget claims one with a bCovers<Surface> bool. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIHostCoverage, "TriadDrift.UI.HUDHost.SurfaceCoverage", TD_TEST_FLAGS)
+bool FTDUIHostCoverage::RunTest(const FString& Parameters)
+{
+	FScopedNativeHUD Switch(0);
+	FHostFixture F;
+	F.Host->Evaluate();
+	TestFalse(TEXT("native HUD off: nothing covered"), UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(F.W.GetWorld(), ETDHUDSurface::DamageIndicators));
+	Switch.Set(1);
+	F.Host->Evaluate();
+	TestTrue(TEXT("native HUD up"), F.Host->IsSpaceHUDShown());
+	const UEnum* Enum = StaticEnum<ETDHUDSurface>();
+	for (int32 I = 0; I < Enum->NumEnums() - 1; ++I)
+	{
+		const ETDHUDSurface Surface = static_cast<ETDHUDSurface>(Enum->GetValueByIndex(I));
+		const FName Prop = UTDUIHostSubsystem::GetCoverPropertyName(Surface);
+		const bool bClaimed = FindFProperty<FBoolProperty>(F.Host->GetSpaceHUD()->GetClass(), Prop) != nullptr;
+		AddInfo(FString::Printf(TEXT("%s: widget claims it = %d"), *Prop.ToString(), bClaimed ? 1 : 0));
+		if (!bClaimed)
+		{
+			TestFalse(FString::Printf(TEXT("%s not covered until the widget claims it"), *Prop.ToString()),
+				UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(F.W.GetWorld(), Surface));
+		}
+	}
+	TestEqual(TEXT("property naming"), UTDUIHostSubsystem::GetCoverPropertyName(ETDHUDSurface::DamageIndicators), FName(TEXT("bCoversDamageIndicators")));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

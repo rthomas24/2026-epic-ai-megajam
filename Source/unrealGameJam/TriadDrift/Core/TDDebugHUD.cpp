@@ -1,4 +1,5 @@
 #include "TriadDrift/Core/TDDebugHUD.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 
 #include "Camera/PlayerCameraManager.h"
 #include "Engine/Canvas.h"
@@ -152,10 +153,93 @@ void ATDDebugHUD::DrawBracket(const FVector2D& C, float H, const FLinearColor& C
 void ATDDebugHUD::DrawHUD()
 {
 	Super::DrawHUD();
-	if (!Canvas || CVarTDDebugHUD.GetValueOnGameThread() == 0 || IsRealHUDActive(GetWorld()))
+	if (!Canvas || CVarTDDebugHUD.GetValueOnGameThread() == 0)
 	{
 		return;
 	}
+	// A real HUD widget is up: draw only what it does not show yet (R-017), so no gameplay information is
+	// lost while presentation catches up. Each surface switches off the moment the widget claims it.
+	const bool bSupplement = IsRealHUDActive(GetWorld());
+	auto Covered = [this, bSupplement](ETDHUDSurface Surface)
+	{
+		return bSupplement && UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(this, Surface);
+	};
+	if (bSupplement)
+	{
+		if (!Covered(ETDHUDSurface::SquadMarkers))
+		{
+			DrawWingmen();
+		}
+		if (!Covered(ETDHUDSurface::DamageIndicators))
+		{
+			DrawDamageIndicators();
+		}
+		// Nick's widget already draws the interact prompt (N-018), so that one is never duplicated here.
+		DrawSupplementText(false, !Covered(ETDHUDSurface::HyperdriveBlockText),
+			!Covered(ETDHUDSurface::Altitude));
+	}
+	else
+	{
+		DrawFull();
+	}
+
+	if (const UWorld* World = GetWorld(); World && World->GetRealTimeSeconds() < BarkUntil && !BarkLine.IsEmpty()
+		&& !Covered(ETDHUDSurface::Subtitles))
+	{
+		float W = 0.f, H = 0.f;
+		GetTextSize(BarkLine, W, H, nullptr, 1.2f);
+		DrawText(BarkLine, FLinearColor(0.85f, 0.95f, 1.f), (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.86f, nullptr, 1.2f);
+	}
+
+	if (const UWorld* World = GetWorld(); World && World->IsPaused() && !Covered(ETDHUDSurface::Pause))
+	{
+		const FString Paused(TEXT("PAUSED - ESC TO RESUME"));
+		float W = 0.f, H = 0.f;
+		GetTextSize(Paused, W, H, nullptr, 2.2f);
+		DrawText(Paused, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.42f, nullptr, 2.2f);
+	}
+}
+
+// The three text read-outs a real HUD may not have yet, placed centrally, above the ship cards
+// of Nick's HUD (which start at about 77% of the height and draw over this canvas).
+void ATDDebugHUD::DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool bAltitude)
+{
+	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
+	if (!Data || Data->GetSquadHUD().Num() == 0)
+	{
+		return;
+	}
+	auto Centred = [this](const FString& Text, float Height01, float Scale, const FLinearColor& Colour)
+	{
+		float W = 0.f, H = 0.f;
+		GetTextSize(Text, W, H, nullptr, Scale);
+		DrawText(Text, Colour, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * Height01, nullptr, Scale);
+	};
+	if (bPrompt)
+	{
+		const FString Prompt = Data->GetInteractPrompt().ToString();
+		if (!Prompt.IsEmpty())
+		{
+			Centred(Prompt, 0.70f, 1.5f, FLinearColor::White);
+		}
+	}
+	FString Line;
+	if (bHyperdriveBlock)
+	{
+		Line = Data->GetHyperdriveBlockText().ToString();
+	}
+	if (bAltitude && Data->GetAltitude() >= 0.f)
+	{
+		Line += FString::Printf(TEXT("%sALT %.0f m"), Line.IsEmpty() ? TEXT("") : TEXT("   "), Data->GetAltitude());
+	}
+	if (!Line.IsEmpty())
+	{
+		Centred(Line, 0.735f, 1.2f, ColorDim);
+	}
+}
+
+void ATDDebugHUD::DrawFull()
+{
 	// Start below the tallest letterbox bar (12% of the height) so the cut presentation never covers these rows.
 	float Y = FMath::Max(24.f, Canvas->SizeY * 0.12f);
 	DrawSquad(Y);
@@ -166,21 +250,6 @@ void ATDDebugHUD::DrawHUD()
 	DrawObjective();
 	DrawCrosshair();
 	DrawFlight();
-
-	if (const UWorld* World = GetWorld(); World && World->GetRealTimeSeconds() < BarkUntil && !BarkLine.IsEmpty())
-	{
-		float W = 0.f, H = 0.f;
-		GetTextSize(BarkLine, W, H, nullptr, 1.2f);
-		DrawText(BarkLine, FLinearColor(0.85f, 0.95f, 1.f), (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.86f, nullptr, 1.2f);
-	}
-
-	if (const UWorld* World = GetWorld(); World && World->IsPaused())
-	{
-		const FString Paused(TEXT("PAUSED - ESC TO RESUME"));
-		float W = 0.f, H = 0.f;
-		GetTextSize(Paused, W, H, nullptr, 2.2f);
-		DrawText(Paused, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.42f, nullptr, 2.2f);
-	}
 }
 
 void ATDDebugHUD::BeginPlay()
@@ -285,12 +354,12 @@ void ATDDebugHUD::DrawDamageIndicators()
 		}
 		Dir.Normalize();
 		const FVector2D Side(-Dir.Y, Dir.X);
-		const FLinearColor Color = Hit.bShieldOnly ? FLinearColor(0.4f, 0.8f, 1.f, Life) : FLinearColor(1.f, 0.15f, 0.1f, Life);
+		const FLinearColor Color = Hit.bShieldOnly ? FLinearColor(1.f, 0.95f, 0.8f, Life) : FLinearColor(1.f, 0.15f, 0.1f, Life); // shield hits near-white: never a squad colour
 		const float Half = 26.f + 34.f * FMath::Clamp(Hit.Strength01 * 4.f, 0.f, 1.f);
 		const FVector2D Mid = C + Dir * Radius;
 		// A shallow chevron pointing outward, wider for a harder hit.
-		DrawLine2D(Mid - Side * Half - Dir * 8.f, Mid, Color, 4.f);
-		DrawLine2D(Mid + Side * Half - Dir * 8.f, Mid, Color, 4.f);
+		DrawLine2D(Mid - Side * Half - Dir * 10.f, Mid, Color, 7.f);
+		DrawLine2D(Mid + Side * Half - Dir * 10.f, Mid, Color, 7.f);
 	}
 }
 
@@ -351,8 +420,8 @@ void ATDDebugHUD::DrawSquad(float& Y)
 	const ITDHUDData* Data = Cast<ITDHUDData>(FindHUDDataActor());
 	if (!Data)
 	{
-		DrawText(TEXT("TRIAD DRIFT dev HUD (no HUD data source yet)"), ColorDim, 24.f, Y, nullptr, 1.1f);
-		Y += 22.f;
+		// Nothing to show (menu, loading, victory screen): draw nothing. A note here ended up behind the menu
+		// in the packaged game.
 		return;
 	}
 	const TArray<FTDShipHUD> Cards = Data->GetSquadHUD();

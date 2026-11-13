@@ -8,6 +8,20 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Styling/CoreStyle.h"
+#include "Framework/Application/SlateApplication.h"
+#include "HAL/IConsoleManager.h"
 
 UTDUIStyle* FTDFrontEndWidgets::LoadDefaultStyle()
 {
@@ -55,16 +69,218 @@ namespace TDFrontEnd
 ATDMenuGameMode::ATDMenuGameMode()
 {
 	DefaultPawnClass = nullptr;
+	HUDClass = ATDFrontEndHUD::StaticClass();
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
+}
+
+void ATDMenuGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	KeepMenuFocus();
+}
+
+void ATDMenuGameMode::KeepMenuFocus()
+{
+	const TSharedPtr<SWidget> Button = FocusButton.Pin();
+	if (!Placeholder.IsValid() || !Button.IsValid() || !FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+	FSlateApplication& App = FSlateApplication::Get();
+	for (TSharedPtr<SWidget> W = App.GetUserFocusedWidget(0); W.IsValid(); W = W->GetParentWidget())
+	{
+		if (W == Placeholder)
+		{
+			return; // already on one of the menu's buttons (the d-pad moves between them)
+		}
+	}
+	App.SetAllUserFocus(Button, EFocusCause::SetDirectly);
 }
 
 void ATDMenuGameMode::StartPlay()
 {
 	Super::StartPlay();
-	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
+	// Arriving from a won run: the victory screen first (the menu after "Return").
+	bShowingVictory = GI && GI->GetProgressRef().Phase == ETDGamePhase::Victory;
+	if (GI)
 	{
-		GI->NotifyLevelEntered(ETDDestination::MainMenu); // no checkpoint, clock stopped
+		GI->NotifyLevelEntered(bShowingVictory ? ETDDestination::Victory : ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
-	TDFrontEnd::ShowWidget(GetWorld(), FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::MainMenu), true);
+	StartMusic();
+	UClass* Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : (StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle()), FTDFrontEndWidgets::EKind::MainMenu);
+	bPlaceholderWanted = !Widget;
+	TDFrontEnd::ShowWidget(GetWorld(), Widget, true);
+	if (!Widget)
+	{
+		ShowPlaceholder(); // no menu widget assigned yet: a plain working menu, so the game is always playable
+	}
+}
+
+void ATDMenuGameMode::StartMusic()
+{
+	// DA_UI_Style.MenuMusic (N-015): Nick's asset carries its own volume and class; no overrides here.
+	const UTDUIStyle* Style = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
+	USoundBase* Sound = (Style && !Style->MenuMusic.IsNull()) ? Style->MenuMusic.LoadSynchronous() : nullptr;
+	if (!Sound)
+	{
+		return; // no music assigned: silence, nothing created
+	}
+	// A 2D UI sound on the menu mode itself: it goes when the map goes (no persistence across travel).
+	Music = NewObject<UAudioComponent>(this, TEXT("MenuMusic"));
+	Music->SetSound(Sound);
+	Music->bAllowSpatialization = false;
+	Music->bIsUISound = true;
+	Music->bAutoDestroy = false;
+	Music->RegisterComponentWithWorld(GetWorld());
+	Music->Play();
+	bMusicStarted = true;
+}
+
+void ATDMenuGameMode::FadeOutMusic()
+{
+	if (Music)
+	{
+		Music->FadeOut(1.f, 0.f); // a short fade as the travel starts
+		bMusicFading = true;
+	}
+}
+
+void ATDMenuGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (Music)
+	{
+		Music->Stop();
+	}
+	HidePlaceholder();
+	Super::EndPlay(EndPlayReason);
+}
+
+bool ATDMenuGameMode::NewGame()
+{
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
+	if (!GI)
+	{
+		return false;
+	}
+	GI->StartNewRun();
+	FadeOutMusic();
+	return GI->TravelTo(ETDDestination::Galaxy, NAME_None);
+}
+
+bool ATDMenuGameMode::ContinueGame()
+{
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
+	if (!GI || !GI->HasContinue())
+	{
+		return false;
+	}
+	FadeOutMusic();
+	return GI->ContinueRun();
+}
+
+bool ATDMenuGameMode::CanContinue() const
+{
+	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	return GI && GI->HasContinue();
+}
+
+void ATDMenuGameMode::QuitGame()
+{
+	bQuitRequested = true;
+	UKismetSystemLibrary::QuitGame(this, GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr, EQuitPreference::Quit, false);
+}
+
+void ATDMenuGameMode::ReturnToMenu()
+{
+	bShowingVictory = false;
+	if (Placeholder.IsValid())
+	{
+		HidePlaceholder();
+		ShowPlaceholder();
+	}
+}
+
+void ATDMenuGameMode::HidePlaceholder()
+{
+	if (Placeholder.IsValid() && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(Placeholder.ToSharedRef());
+	}
+	Placeholder.Reset();
+}
+
+void ATDMenuGameMode::ShowPlaceholder()
+{
+	if (!GEngine || !GEngine->GameViewport)
+	{
+		return; // headless (tests): the actions above are the menu
+	}
+	TWeakObjectPtr<ATDMenuGameMode> Weak(this);
+	TSharedPtr<SButton> FirstButton; // keyboard / gamepad focus starts here (Enter or pad A presses it)
+	auto Button = [Weak, &FirstButton](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
+	{
+		TSharedPtr<SButton> Made;
+		TSharedRef<SWidget> Out = SNew(SBox).WidthOverride(320.f).Padding(FMargin(0.f, 6.f))
+			[
+				SAssignNew(Made, SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
+				.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); })
+				[
+					SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
+				]
+			];
+		if (bEnabled && !FirstButton.IsValid())
+		{
+			FirstButton = Made;
+		}
+		return Out;
+	};
+	TSharedRef<SVerticalBox> Box = SNew(SVerticalBox);
+	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	if (bShowingVictory && GI)
+	{
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 8.f)
+		[
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Wrap", "THAT'S A WRAP")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 54)).ColorAndOpacity(FLinearColor(1.f, 0.85f, 0.4f))
+		];
+		const FTDProgress& P = GI->GetProgressRef();
+		const int32 Seconds = FMath::RoundToInt(P.RunTimeSeconds);
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f)
+		[
+			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths)))
+			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18))
+		];
+		for (const FTDSceneTakes& Row : GI->GetSceneTakes())
+		{
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
+			[
+				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENE %d  %s  -  %d %s"), Row.SceneNumber, *Row.SceneId.ToString(), Row.Takes, Row.Takes == 1 ? TEXT("TAKE") : TEXT("TAKES"))))
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(0.8f, 0.85f, 0.95f))
+			];
+		}
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 18.f, 0.f, 0.f)[Button(TEXT("RETURN TO MENU"), [](ATDMenuGameMode* M) { M->ReturnToMenu(); }, true)];
+	}
+	else
+	{
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 24.f)
+		[
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Title", "TRIAD DRIFT")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 64)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
+		];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("NEW GAME"), [](ATDMenuGameMode* M) { M->NewGame(); }, true)];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("CONTINUE"), [](ATDMenuGameMode* M) { M->ContinueGame(); }, CanContinue())];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("QUIT"), [](ATDMenuGameMode* M) { M->QuitGame(); }, true)];
+	}
+	Placeholder = SNew(SBorder)
+		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+		.BorderBackgroundColor(FLinearColor(0.01f, 0.01f, 0.03f, 0.92f))
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		[
+			Box
+		];
+	GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);
+	FocusButton = FirstButton;
+	KeepMenuFocus();
 }
 
 void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
@@ -76,6 +292,7 @@ void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
 ATDTransitionGameMode::ATDTransitionGameMode()
 {
 	DefaultPawnClass = nullptr;
+	HUDClass = ATDFrontEndHUD::StaticClass();
 }
 
 void ATDTransitionGameMode::StartPlay()
@@ -83,3 +300,28 @@ void ATDTransitionGameMode::StartPlay()
 	Super::StartPlay();
 	TDFrontEnd::ShowWidget(GetWorld(), FTDFrontEndWidgets::Resolve(LoadingWidgetClass.Get(), LoadingWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::Loading), false);
 }
+
+#if !UE_BUILD_SHIPPING
+// Dev: a real Slate key press (down and up) as a keyboard or pad would send it - drives the menus over MCP.
+//   TD.UI.Key Enter | Down | Up | Gamepad_FaceButton_Bottom
+static FAutoConsoleCommandWithWorldAndArgs GTDUISlateKey(TEXT("TD.UI.Key"), TEXT("TD.UI.Key <Key>: press a key through Slate (menus)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+	{
+		if (Args.Num() < 1 || !FSlateApplication::IsInitialized())
+		{
+			return;
+		}
+		const FKey Key(*Args[0]);
+		if (!Key.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("TD.UI.Key: unknown key %s"), *Args[0]);
+			return;
+		}
+		FSlateApplication& App = FSlateApplication::Get();
+		const FKeyEvent Event(Key, App.GetModifierKeys(), 0, false, 0, 0);
+		App.ProcessKeyDownEvent(Event);
+		App.ProcessKeyUpEvent(Event);
+		const TSharedPtr<SWidget> Focus = App.GetUserFocusedWidget(0);
+		UE_LOG(LogTemp, Log, TEXT("TD.UI.Key %s (focus now %s)"), *Key.ToString(), Focus.IsValid() ? *Focus->GetTypeAsString() : TEXT("none"));
+	}));
+#endif

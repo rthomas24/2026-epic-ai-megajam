@@ -664,6 +664,54 @@ bool FTDCourseNoFinishDuringCut::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Director's mercy on the real Cinder Warden room through real retakes (CUT! -> checkpoint at the arena door):
+// take 1 and 2 the full Warden, take 3 at 75% with one summon, take 5 at 50% with none.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseWardenMercy, "TriadDrift.Ground.Course.WardenEasesOnRetakes", TD_TEST_FLAGS)
+bool FTDCourseWardenMercy::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Outpost = R.Course->FindObjective(TEXT("Obj_Outpost"));
+	if (!R.StartAt(TEXT("Obj_Outpost"))) { return false; }
+	for (ATDShatterCrystal* C : R.Props<ATDShatterCrystal>(Outpost)) { UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Melee, R.FP, R.FP); }
+	R.Tick(0.3f);
+	for (int32 Room = 1; Room <= 3; ++Room)
+	{
+		R.TeleportTo(R.StepFight(Outpost, Room), -150.f);
+		R.Tick(0.5f);
+		R.KillAll(R.StepFight(Outpost, Room));
+	}
+	ATDEncounterVolume* Arena = R.StepFight(Outpost, 4);
+	if (!TestNotNull(TEXT("arena"), Arena) || !TestEqual(TEXT("at the Warden"), R.Step(Outpost), 4)) { return false; }
+	TestEqual(TEXT("the arena carries two mercy tiers"), Arena->MercyTiers.Num(), 2);
+	const float FullHealth = FTDCrewLibrary::Get(ETDCrewType::Warden).MaxHealth;
+	struct FExpect { int32 Take; float Scale; int32 Summons; };
+	const FExpect Expect[] = { { 1, 1.f, -1 }, { 2, 1.f, -1 }, { 3, 0.75f, 1 }, { 4, 0.75f, 1 }, { 5, 0.5f, 0 } };
+	for (const FExpect& E : Expect)
+	{
+		R.FP->GetHealth()->SetInvulnerable(true); // only the scripted defeats count as lost takes
+		R.TeleportTo(Arena, -150.f);
+		R.Tick(0.5f);
+		ATDCrewCharacter* Warden = nullptr;
+		for (const TWeakObjectPtr<AActor>& M : Arena->GetSpawned()) { if (ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && C->CrewType == ETDCrewType::Warden) { Warden = C; } }
+		if (!TestNotNull(*FString::Printf(TEXT("take %d: Warden spawned"), E.Take), Warden)) { return false; }
+		TestEqual(*FString::Printf(TEXT("take %d is the fight's take"), E.Take), Arena->GetTake(), E.Take);
+		TestEqual(*FString::Printf(TEXT("take %d: Warden health"), E.Take), Warden->GetHealth()->MaxHull, FullHealth * E.Scale, 0.5f);
+		TestEqual(*FString::Printf(TEXT("take %d: summons allowed"), E.Take), Warden->GetSummonsLeft(), E.Summons);
+		if (E.Summons == 0)
+		{
+			if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+			TestFalse(TEXT("take 5: the Warden can't summon"), Warden->StartAttack(ETDCrewAttack::Summon, R.FP));
+		}
+		// Lose this take for real: CUT! and back to the arena door.
+		V.GI->ReportPlayerDefeated();
+		R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.5f);
+		TestEqual(*FString::Printf(TEXT("take %d lost: still at the Warden"), E.Take), R.Step(Outpost), 4);
+	}
+	return true;
+}
+
 // ================================================================================================
 // Review G6: each planet PLAYED by the machine: a vulnerable pilot, real keys for movement (W, Shift,
 // Space, Q), real blade attacks (LMB), real interact holds (E), along the real route. The only
@@ -980,9 +1028,10 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 		else if (Step == 2)
 		{
 			// The drones break the hold: take them down with the blade first (jumping into them).
+			// A death here is a retake (from the nodes checkpoint), not a failure: only the outcome is judged.
 			if (ATDEncounterVolume* Drones = P.ActiveFightNear(FVector(9200.f, -8200.f, 0.f), 1500.f))
 			{
-				P.Report(P.Fight(Drones, 60.f), TEXT("drones over the plateau killed with the blade"));
+				if (!P.Fight(Drones, 60.f)) { AddInfo(FString::Printf(TEXT("drone fight: %s"), *P.Failed)); P.Failed.Reset(); continue; }
 			}
 			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Relay && It->LinkedStep == 2) { P.Use(*It, It->HoldTime); } }
 		}

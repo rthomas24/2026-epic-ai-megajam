@@ -10,6 +10,23 @@ class UUserWidget;
 class APlayerController;
 
 /**
+ * The HUD surfaces the fallback (dev) HUD can draw on top of the native space HUD until Nick's widget shows them.
+ * The fallback HUD asks UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD for each one and skips the covered ones.
+ */
+UENUM(BlueprintType)
+enum class ETDHUDSurface : uint8
+{
+	DamageIndicators,	// hit-direction chevrons (ITDHUDData::GetDamageIndicators)
+	SquadMarkers,		// named wing arrows (GetSquadMarkers)
+	InteractPrompt,		// landing prompt / switch refusal (GetInteractPrompt)
+	HyperdriveBlockText,	// why the hyperdrive is locked (GetHyperdriveBlockText)
+	Altitude,		// atmosphere flight (GetAltitude)
+	Subtitles,		// bark subtitles
+	Pause,			// the PAUSED line / menu
+	BoundaryWarning		// edge-of-zone text (GetBoundaryWarningText)
+};
+
+/**
  * One squad card as the HUD widget decoded it (read back from the widget's reflected snapshot). For
  * tests and diagnostics only: the widget, not the host, draws it.
  */
@@ -21,6 +38,9 @@ struct FTDHostShipView
 	float Power2 = 0.f;
 	float Ability = 0.f;
 	float RespawnSeconds = 0.f;
+	float Boost = 0.f;
+	float Heat = 0.f;
+	int32 Ammo = 0;
 	bool bActive = false;
 	bool bAlive = false;
 	bool bUnlocked = false;
@@ -78,6 +98,18 @@ public:
 
 	/** Reads the widget's decoded squad snapshot (its reflected "Ships" array). False if unreadable. */
 	static bool ReadSnapshot(const UUserWidget* HUD, TArray<FTDHostShipView>& Out);
+
+	/**
+	 * True when the native space HUD is on screen in WorldContext's world AND its widget draws Surface. Nick's side
+	 * switches a surface on by adding a bool UPROPERTY named "bCovers<Surface>" (e.g. bCoversDamageIndicators) set to
+	 * true on the widget class or its Blueprint; until then every surface reads false and the fallback HUD keeps
+	 * drawing it. Also forced per surface by the console: TD.UI.Covers <Surface> 0|1 (dev, -1 = from the widget).
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool IsSurfaceCoveredByNativeHUD(const UObject* WorldContext, ETDHUDSurface Surface);
+
+	/** The reflected property name the widget uses to claim Surface ("bCoversDamageIndicators", ...). */
+	static FName GetCoverPropertyName(ETDHUDSurface Surface);
 
 	/** When false the widget is created but never added to the viewport (headless tests). */
 	bool bAddToViewport = true;

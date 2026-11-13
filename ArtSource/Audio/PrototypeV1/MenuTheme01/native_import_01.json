@@ -1,0 +1,62 @@
+{
+  "stage": "Native import only; reload/playback/cook/current-game validation pending",
+  "claim": "05512b1b3cadac2f680ff6760f8b70090995cf85",
+  "source_checkpoint": "fcf75cdf7a1196372706cafea8c82d7899674032",
+  "engine": {
+    "exit_code": 0,
+    "reason": "ok",
+    "pid": 18412,
+    "duration_s": 9.2,
+    "log": {
+      "errors": 0,
+      "warnings": 4,
+      "errors_by_category": {},
+      "warnings_by_category": {
+        "LogUObjectGlobals": 2,
+        "LogAnimationCompression": 2
+      },
+      "first_errors": []
+    },
+    "suppressed_dialogs": []
+  },
+  "guard": {
+    "exit_code": 0,
+    "reason": "completed",
+    "protected_changes": [],
+    "pid": 18412,
+    "new_content_files": [
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\MUS_Menu_EtherialPulse_01.uasset",
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\SC_MenuTheme_Music.uasset"
+    ],
+    "unexpected_content_files": []
+  },
+  "import": {
+    "wave": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.MUS_Menu_EtherialPulse_01",
+    "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+    "duration_s": 107.0,
+    "looping": false,
+    "stage": "Imported only; game playback, cook and human review pending"
+  },
+  "assets": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\MUS_Menu_EtherialPulse_01.uasset",
+      "bytes": 13058665,
+      "sha256": "6253253fe891d364d0180bacada62b70cb723a08ecfe3f20909406c40adb1042"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Content\\TriadDrift\\Audio\\MenuTheme01\\SC_MenuTheme_Music.uasset",
+      "bytes": 1268,
+      "sha256": "813d76de263314464d0ad6f698a751bec6c99ae85d262601b1df85d80e0600c7"
+    }
+  ],
+  "evidence_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Host\\Saved\\AudioMusic\\PrototypeV1\\MenuTheme01\\Run01",
+  "protected_snapshot": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\MenuTheme01\\protected_host_02.json",
+  "warnings": "Four known isolated-host ACL bone/curve default animation compression warnings; no audio errors.",
+  "pending": [
+    "Reload and native analysis/playback after separate grant",
+    "N015 engineering MenuMusic hook and compiled current-game host",
+    "Cook dependency and actual menu lifecycle/volume/107s endpoint",
+    "Nick listening in game"
+  ],
+  "shared_changes": false
+}

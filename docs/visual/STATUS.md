@@ -7,7 +7,7 @@ and gameplay validated are separate stages. AAA is a quality direction, not a
 verified label or authority to expand scope. All current new benchmarks require
 Nicholas's subjective review before propagation/integration.
 
-**Current checkpoint:** [Recovery and broker handoff](Recovery-and-Broker-Handoff-2026-11-12.md). Nick subsequently authorized NEW scoped continuous coordination; old goals stay cleared. See current CLAIMS for dispatch, with WHITE player priority and all quality/native gates retained. Older timestamped notes below are historical.
+**Current checkpoint:** [Lead fresh-chat handoff](Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md). Continuous goal PAUSED; documentation transition only, no specialist restart. PR9 menu assets merged fae4c15; PR10 Lancer M03 SOURCE-ONLY merged 98187b9; N018 COMPLETE at 7c917f1. Zero open PRs reverified. The recovery report and dated notes below are historical, not current authorization.
 
 ## Nicholas's Lead delegation
 
@@ -34,24 +34,24 @@ presentation/readability, measured cost, integration and subjective approval.
 |---|---|---|
 | ART-01 Direction | Lead coordination; foundation palette/layout approved, AAA target raised | Preserve cyan/violet environment and ship identity; benchmark approval next |
 | ART-02 Inventory/sourcing | Lead + specialists; initial source inventory | Source package957b45e; every acquisition needs license/provenance before use |
-| ART-03 Ships | Ships; Structural A02 technically verified and Nick structure-approved; materials/detail next | cc0d3fd pushed: structure_v03,18,424tris/12parts/6materials, geometry/contact/36frames/12rays/material roles PASS, actual multi-angle review. Not final AAA, exported or Unreal-integrated. Nick approves structural foundation only; next bounded materials/detail pass authorized, native/final-look/nextcraft gates remain |
+| ART-03 Ships | Ships; Detail01 technically verified, final material look MAJOR/open | a19f478 source-only merged98187b9 (PR10);34,516tris/6materials, preserved12approvedmeshes/36frames. Nick A02 structural approval remains; material04.py/QA update local unexecuted. No current M03 export/Unreal/gameplay or final-look approval. Paused |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
 | ART-05 Space | Environment; HeroM02 technically published and look approved for controlled gameplay test |5fde8c3/22files/15LFS;6runtimepackages frozen. Next unsaved actualGalaxy/PIE readability A/B, no shared-map/config/Source save; independent native capture is not gameplay acceptance |
 | ART-06 Planets | Environment & VFX future terrain/look; engineering small props R015 | Nick terrain/hero dressing not dispatched. Ryan now owns separate unstarted small rocks/crystals/flora/tree kits in EngProps and Gameplay/Props/Vegetation; no existing Nick claim transferred, final look approval remains Nick's; no Nick shared-map edits |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
-| ART-08 Ground visuals | Characters role; reference base complete, first armor blockout prepared |23ed199 published,1.805m/92,178reference tris;88bones+rootobject explicitly nonexportable. Four original-armor scripts/brief frozen for review; no armor geometry run yet. White player prioritized; hook decision pending |
-| ART-09 HUD | Lead integration; PR8 MERGED07610fe | Current-runtime Editor build0/155s,10UItests PASS,31.3s actualgame/12captures/0errors. Three ships, host/lifecycle/pause/selectedtarget verified; stage shortcuts disclosed. On-screenlock/real-landing replay/fulljourney/human/Shipping/default-on remain separate gates |
-| ART-10 Audio/music | Audio; selected107s native Music wave/class imported and reloaded privately |11bdc37 preparation/evidence;0errors,78protected hashes unchanged, only Music class dependency. Exact2packages cleared for owned-branch copy/publication, not Main/menu activation. N015hook/current-game/cook/listening pending; rejected directions remain frozen |
+| ART-08 Ground visuals | Characters role in UI chat; actual diagnostic Blockout03, not accepted | Held branch8e5de0d: six QA errors/failed visual fit, no Main PR. Revision04 anatomical source fixes local/unexecuted; Manny reference not export-ready rig. White player priority retained but paused; no native player/hook acceptance |
+| ART-09 HUD | PR8 merged07610fe; Ryan reports Shipping native attachment/default-on | Lead10UItests/12captures/0errors on tested runtime; Ryan R017 ship_2100 808MB/0cookerrors/nativeHUDlive and menu screenshot, engineering e4e17f8 enables default; actual Config confirmed. Human fulljourney/readability and remaining surfaces/layout still open; no UI edit dispatched |
+| ART-10 Audio/music | Audio; two selected107s native packages available Main via PR9 fae4c15 | Exact11menu-only files, no rejected SFX. Import/reload0errors/78protected hashes unchanged. DA_UI_Style absent: inactive until separately granted currentgame creation/reload, engineering cook/menuplayback and Nick in-game listening. Three source preparation files local, paused |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
 | ART-12 Cinematics | Lead coordinates UI/Environment; queued implementation | Engineering switch-cut/director/scene/take hooks exist; runtime presentation not complete |
 | ART-13 Performance/look | Native Hero compiler/resource and synchronized capture evidence exists | Native textures~61.44MiB, not gameplay VRAM budget; capture timings not isolated GPU/FPS. Real-map readability/performance and human quality acceptance remain |
-| ART-14 Submission | Ryan packaging / Lead coordination; no human or full-journey acceptance | Ryan N014:477tests at0082bd5; newer ledger6346c96 reports484 twice. Shipping777MB ship_1826 on Ryan machine NOT launched; last run Development c37a94e booted Galaxy+HUD. Whole journey and latest Shipping playthrough remain open; deadlineNov15 20:59EST |
+| ART-14 Submission | Ryan packaging / Lead coordination; no human or complete current journey acceptance | R017 latest run evidence ship_2100 Shipping808MB/nativeHUDvisible; menu boot L_MainMenu confirmed. Last recorded503tests twice at c8128d1; not rerun for inactive asset batch. Current package/fulljourney verification remains Ryan-owned; deadlineNov15 20:59EST |
 | ART-15 Interior | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 | ART-16 Escape cinematics | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 
-## Immediate production sequence — active scoped goal, November12 19:00EST
+## Next sequence — queued, not dispatched
 
-The recovery stop is superseded by Nick's explicit NEW continuous-coordination goal. Preserve the historical recovery handoff; do not restart old campaigns. Blue Lancer StructuralA02 is approved and one materials/detail job is scheduled; white player M01 is active in its isolated claim, starting with the verified mannequin reference. Lead coordinates HUD PR8 current-main/package acceptance and Ryan-owned menu hook through N015. HeroM02 is approved only for controlled gameplay-readability testing. No shared gameplay/config/maps edits or unapproved asset promotion; one fresh resource grant per heavy job. Bastion, green Rift and enemy variants remain secondary, gated queues.
+Nick's current instruction is a documentation-only transition and complete stop. All specialist chats are idle at saved checkpoints; the continuous goal remains paused. Once Nick authorizes a new milestone, prioritize current-game/package acceptance, Lancer final materials/visual review then separately approved native promotion, corrected white-player QA/visual review and hook decision. Exact menu-style activation, controlled Hero readability and bounded HUD gaps follow readiness/resource scheduling. See the fresh-chat handoff for owners, preserved dirty files and approval gates. Bastion/Rift/enemy variants remain secondary; no automatic resume.
 
 ## Integration/playtest boundary
 
@@ -185,3 +185,7 @@ Reviewed latest AGENTS addition for engineering procedural-trees (read-only to N
 ### Lancer A02 structural decision — November12 19:07EST
 
 Nick directly approved the actual A02 structure as the foundation for the next materials/detail milestone. Ships preserves source_v03 and prepares one bounded reference-driven PBR/detail pass in the same owned M03 roots, with fresh technical QA and actual multiview comparison. This is not final AAA, export, Unreal, gameplay or other-craft approval. Heavy execution remains separately scheduled.
+
+### Cross-team handoff decisions — November12 19:45EST
+
+RyanN017 confirms routing, corrected HUDhost owner is RyanLead/Core (T2combat data,T3squad,T5mission/landing). Audio may exclusively create exact DA_UI_Style with class defaults/null widgets and ONLY MenuMusic; no fallback suppression. Corefield is onmain2d931e4, Flow/menu boot pending nextpush. Shipping with mergedHUD cook-clean778MB but packagedattachment stillpending; c0c1d5c fixes ShippingfallbackHUD visibility after first run found no HUD. Headless-first resource rule nowsharedAGENTS11 at3f83711. Existingmain/runtime/human approval gates remain. Character firstdiagnosticarmorv03 constructed,6QAerrors notaccepted; actualformrenders next.

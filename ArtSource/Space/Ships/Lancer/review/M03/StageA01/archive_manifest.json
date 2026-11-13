@@ -1,0 +1,88 @@
+{
+  "stage": "structural_A01_failed_assembly_gate",
+  "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\production\\M03\\Lancer_M03_structure_v01.blend",
+  "source_sha256": "6940009c7f53fd3bbd3859399783b2dbf6bc52f15a03085c9a97fb58d4778a61",
+  "files": [
+    {
+      "file": "01_hero_front_3q.png",
+      "bytes": 1799870,
+      "sha256": "d97567cd1022371d7fe3146a061af5d3b4c496f162b4c204add517859ac455dd"
+    },
+    {
+      "file": "assembly_contacts.json",
+      "bytes": 820,
+      "sha256": "ded33c911e8b5017a95bb88c7b5b5ed62584903a41be1ccd4abbaca54a62e097"
+    },
+    {
+      "file": "asset_report.json",
+      "bytes": 39249,
+      "sha256": "cccc028ac3ee8ffc6f1e760def7aacbf2dc6e4382645fe8d20493129aee79471"
+    },
+    {
+      "file": "build_manifest.json",
+      "bytes": 358,
+      "sha256": "7289b63d4b20779aa87d659eb282f519eb366c532af535487660d138c632aa68"
+    },
+    {
+      "file": "clay_manifest.json",
+      "bytes": 1613,
+      "sha256": "dc22be49da75dd03dcadf6ee1ff39525d4443062fb53592f3b272e103230574f"
+    },
+    {
+      "file": "environment.json",
+      "bytes": 980,
+      "sha256": "35da21132f7fdf363fa245520306aa52ee21ef1082f7892a2bd352320ce140ad"
+    },
+    {
+      "file": "geometry_qa.json",
+      "bytes": 8905,
+      "sha256": "4ee22879fdea7783eee954f21a9a0a1c6d9329ffe6a4fdb82c83806a7ebec2bf"
+    },
+    {
+      "file": "index.html",
+      "bytes": 3119,
+      "sha256": "fdacd095655072f261c27c804cd08e473f8b6b461eb1cf2700382cbb3e630050"
+    },
+    {
+      "file": "Lancer_M03_clay_sheet.png",
+      "bytes": 782155,
+      "sha256": "6feb7e096a969dca5123f060630ac86b246df32894eee2317d969365f5237566"
+    },
+    {
+      "file": "overlap_locations.json",
+      "bytes": 4,
+      "sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f"
+    },
+    {
+      "file": "pass01_process_metrics.json",
+      "bytes": 278,
+      "sha256": "c9f6abc66c759b35126387144195f889d4b9544321bcf06b32bad5b263644323"
+    },
+    {
+      "file": "pass01_structural.log",
+      "bytes": 2662,
+      "sha256": "0ce99d82f329e3a151852ca5829f19a56e97b1371033881007a45c4dbb7ded94"
+    },
+    {
+      "file": "pass01_structural.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "render_manifest.json",
+      "bytes": 629,
+      "sha256": "6f30f468d00ca9d8277fbfaae5effd84585ee466795dfac5241a24ce4b6a2775"
+    },
+    {
+      "file": "review.md",
+      "bytes": 2254,
+      "sha256": "05cd97f6777330c32eb11bb80e0edf61b22ad64dc223b5a44868641bb97907f5"
+    },
+    {
+      "file": "validation_summary.json",
+      "bytes": 11649,
+      "sha256": "482cd3c92ee749995055ede10524a3e2601d349f06b350ccb697cc12fa38e9d9"
+    }
+  ],
+  "archive_note": "Copied reports retain original Review01 paths; immutable archived bytes are enumerated here."
+}
