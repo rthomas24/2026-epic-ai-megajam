@@ -226,6 +226,7 @@ void UTDSettingsSubsystem::ApplyAudio()
 	}
 	Device->SetTransientPrimaryVolume(Settings.MasterVolume);
 	if (!MusicClass) { MusicClass = TDSettings::LoadClassIfPresent(TDSettings::MusicClassPath); }
+	if (!MusicClass) { MusicClass = TDSettings::LoadClassIfPresent(TEXT("/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music")); } // menu + combat music (N-029)
 	if (!EffectsClass) { EffectsClass = TDSettings::LoadClassIfPresent(TDSettings::EffectsClassPath); }
 	if (!MusicClass && !EffectsClass)
 	{

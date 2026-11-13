@@ -362,9 +362,36 @@ void ATDSpacePlayerController::HandlePauseInput()
 	TogglePlayerPause();
 }
 
+namespace TDPauseBlockers
+{
+	static TMap<FName, ATDSpacePlayerController::FTDPauseBlocker>& Map()
+	{
+		static TMap<FName, ATDSpacePlayerController::FTDPauseBlocker> Blockers;
+		return Blockers;
+	}
+}
+
+void ATDSpacePlayerController::RegisterPauseBlocker(FName Id, FTDPauseBlocker Blocker)
+{
+	TDPauseBlockers::Map().Add(Id, MoveTemp(Blocker));
+}
+
+void ATDSpacePlayerController::UnregisterPauseBlocker(FName Id)
+{
+	TDPauseBlockers::Map().Remove(Id);
+}
+
 bool ATDSpacePlayerController::CanPauseNow(FText* OutReason) const
 {
 	auto No = [OutReason](const FText& Why) { if (OutReason) { *OutReason = Why; } return false; };
+	for (const TPair<FName, FTDPauseBlocker>& Blocker : TDPauseBlockers::Map())
+	{
+		FText Why;
+		if (Blocker.Value && Blocker.Value(this, Why))
+		{
+			return No(Why.IsEmpty() ? FText::FromName(Blocker.Key) : Why);
+		}
+	}
 	const UWorld* World = GetWorld();
 	if (const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr)
 	{

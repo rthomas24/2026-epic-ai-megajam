@@ -232,7 +232,7 @@ void STDSettingsPage::Construct(const FArguments& InArgs)
 		.BorderBackgroundColor(FLinearColor(0.f, 0.f, 0.02f, 0.82f))
 		.HAlign(HAlign_Center).VAlign(VAlign_Center)
 		[
-			SNew(SBox).WidthOverride(720.f)[ Rows ]
+			SNew(SBox).WidthOverride(780.f)[ Rows ]
 		]
 	];
 }
@@ -268,7 +268,7 @@ TSharedRef<SWidget> STDSettingsPage::MakeRow(ETDSettingsRow Row)
 		Line->AddSlot().AutoWidth().VAlign(VAlign_Center)[ Arrow(-1, TEXT("<")) ];
 		Line->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f)
 		[
-			SNew(SBox).WidthOverride(210.f).HAlign(HAlign_Center)
+			SNew(SBox).WidthOverride(270.f).HAlign(HAlign_Center)
 			[
 				SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 18))
 				.Text_Lambda([WeakModel, Row]() { const TSharedPtr<FTDSettingsPageModel> M = WeakModel.Pin(); return M ? M->RowValue(Row) : FText::GetEmpty(); })

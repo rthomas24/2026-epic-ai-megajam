@@ -84,6 +84,25 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0"))
 	float DustGlow = 1.2f;
+
+	// ---- Engine trail placeholder (every squad ship, while UTDShipVisuals::EngineTrail has no VFX) ----
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail")
+	bool bEngineTrail = true;
+
+	/** Glow segments in the ribbon, each one sample of the exhaust's recent path. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "2", ClampMax = "32"))
+	int32 TrailSegments = 10;
+
+	/** Seconds between path samples: the ribbon is TrailSegments x this long in time (0.3 s = 18 m at cruise). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0.005"))
+	float TrailSampleSeconds = 0.03f;
+
+	/** Thickness at the nozzle (cm); it tapers to nothing at the tail. Boost makes it 40% thicker. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "1"))
+	float TrailThickness = 55.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float TrailGlow = 5.f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
@@ -126,6 +145,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
 	int32 GetVisibleDustCount() const { return bDustVisible ? DustPositions.Num() : 0; }
 
+	/** Placeholder engine trail: segments drawn now (0 = hidden) and its length end to end (cm). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
+	int32 GetVisibleTrailSegments() const { return bTrailVisible ? TrailTransforms.Num() : 0; }
+	float GetTrailLength() const { return TrailLength; }
+
 	/** Average game-thread cost of this component's tick over the last ~2 s, in milliseconds. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
 	float GetAverageTickMs() const { return AverageTickMs; }
@@ -163,6 +187,7 @@ private:
 	void UpdateBursts(float DeltaTime);
 	void UpdateDust(float DeltaTime);
 	void EnsureDust();
+	void UpdateTrail(float DeltaTime);
 	FBurst* AcquireBurst();
 
 	UFUNCTION()
@@ -183,6 +208,14 @@ private:
 	TArray<FVector> DustPositions;
 	TArray<FTransform> DustTransforms;
 	bool bDustVisible = false;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInstancedStaticMeshComponent> Trail;
+	TArray<FVector> TrailHistory; // newest first; [0] is the live nozzle position
+	TArray<FTransform> TrailTransforms;
+	float TrailClock = 0.f;
+	float TrailLength = 0.f;
+	bool bTrailVisible = false;
 
 	FRotator CameraOffset = FRotator::ZeroRotator;
 	float FOVOffset = 0.f;

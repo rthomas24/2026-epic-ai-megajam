@@ -27,6 +27,36 @@ namespace TDPauseTest
 	}
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPauseBlockerTest, "TriadDrift.Input.Pause.RegisteredBlockerRefusesPause", TD_TEST_FLAGS)
+bool FTDPauseBlockerTest::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 20000.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("space controller"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	bool bIntroPlaying = true;
+	ATDSpacePlayerController::RegisterPauseBlocker(TEXT("TestIntro"), [&bIntroPlaying](const UObject*, FText& Why)
+	{
+		Why = FText::FromString(TEXT("Intro"));
+		return bIntroPlaying;
+	});
+	ON_SCOPE_EXIT { ATDSpacePlayerController::UnregisterPauseBlocker(TEXT("TestIntro")); };
+	FText Reason;
+	TestFalse(TEXT("blocked: can't pause"), PC->CanPauseNow(&Reason));
+	TestEqual(TEXT("... with the blocker's reason"), Reason.ToString(), FString(TEXT("Intro")));
+	FTDTestWorld::InjectKey(PC, EKeys::Escape, true);
+	W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::Escape, false);
+	W.Tick();
+	TestFalse(TEXT("blocked: Escape doesn't pause"), PC->IsGamePausedByPlayer());
+	bIntroPlaying = false;
+	TestTrue(TEXT("the intro is over: pause allowed"), PC->SetPlayerPaused(true));
+	PC->SetPlayerPaused(false);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPauseSpace, "TriadDrift.Input.Pause.EscapeTogglesInSpace", TD_TEST_FLAGS)
 bool FTDPauseSpace::RunTest(const FString& Parameters)
 {

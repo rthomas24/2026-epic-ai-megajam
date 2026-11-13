@@ -277,6 +277,27 @@ USceneComponent* ATDShip::GetEngineAttach(FName& OutSocket) const
 	return bHasRealArt ? static_cast<USceneComponent*>(HullMesh) : static_cast<USceneComponent*>(EngineGlow);
 }
 
+FVector ATDShip::GetEngineExhaustLocation() const
+{
+	FName Socket;
+	const USceneComponent* Attach = GetEngineAttach(Socket);
+	if (Attach && !Socket.IsNone())
+	{
+		return Attach->GetSocketLocation(Socket);
+	}
+	if (Attach && Attach == EngineGlow)
+	{
+		// The rear face of the placeholder glow box (100 cm cube scaled along X).
+		return Attach->GetComponentLocation() - Attach->GetForwardVector() * (50.f * Attach->GetComponentScale().X);
+	}
+	if (Attach && Attach != HullMesh)
+	{
+		return Attach->GetComponentLocation(); // an Engine part: its origin is the nozzle
+	}
+	const FBoxSphereBounds B = HullMesh ? HullMesh->Bounds : GetRootComponent()->Bounds;
+	return B.Origin - GetActorForwardVector() * B.BoxExtent.X;
+}
+
 FTDFXCue ATDShip::ForThisShip(const FTDFXCue& Cue) const
 {
 	FTDFXCue Out = Cue;
