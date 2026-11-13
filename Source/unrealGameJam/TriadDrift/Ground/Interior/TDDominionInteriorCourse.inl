@@ -330,7 +330,7 @@ void ATDPlanetCourse::BuildInterior()
 	StepDoors.Add({ Gate, 0, WardenIn });
 	const FVector GateMid((L1X1 + WX1) * 0.5f, 0.f, 200.f);
 	ATDEncounterVolume* Boss = Encounter(Gate, 0, GateMid, FVector((WX1 - L1X1) * 0.5f, WY, 500.f), { ETDCrewType::Warden }, false, 0.f,
-		{ FVector(WX1 - 500.f, 0.f, 120.f) - GateMid });
+		{ FVector(WX1 - 500.f, 0.f, 160.f) - GateMid }); // the Warden's capsule is 130 cm half height
 	StepEncounters.Add({ Gate, 0, Boss });
 	if (Boss)
 	{
@@ -379,7 +379,16 @@ void ATDPlanetCourse::BuildInterior()
 	Heart->Mesh->SetStaticMesh(SphereMesh);
 	Heart->Mesh->SetRelativeScale3D(FVector(1.6f));
 	Heart->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 160.f));
+	Heart->CrystalMesh.Reset(); // the glowing sphere until the heart's art lands (not a Cinder crystal)
 	TDCourseImpl::FinishProp(Heart);
+	// The heart's death completes its step (live run, Nov 13: it broke and nothing happened; a counter of one).
+	ATDStepCounter* HeartDone = SpawnProp<ATDStepCounter>(CoreAt + FVector(-760.f, 0.f, 0.f));
+	HeartDone->LinkedObjective = Reactor;
+	HeartDone->LinkedStep = 1;
+	HeartDone->Required = 1;
+	HeartDone->BaseText = LOCTEXT("DIHeart", "STRIKE THE HEART");
+	TDCourseImpl::FinishProp(HeartDone);
+	HeartDone->WatchDestructible(Heart);
 	Checkpoint(Reactor, 0, FVector(L2X1 + 300.f, 0.f, 0.f), 0.f);
 	FinishObjective(Reactor, { LOCTEXT("DIK0", "BREAK THE SHIELD CONDUITS  0 / 4"), LOCTEXT("DIK1", "STRIKE THE HEART") }, { Conduits, Heart });
 	Entry(Core, FVector(L2X1 - 300.f, 0.f, 0.f), 0.f);

@@ -51,6 +51,15 @@ namespace TDObjectiveTextImpl
 		case ETDGamePhase::Cinder:
 			Out = Line(TEXT("Travel_Cinder"), 0, LOCTEXT("JumpCinder", "JUMP TO CINDER"));
 			return true;
+		case ETDGamePhase::Escape:
+		{
+			// The escape flight (T4, ENG-31): fly clear of the breaking Dominion; the seconds left from its clock.
+			const ATDDominion* D = ATDDominion::Get(World);
+			const int32 Left = D && D->GetState() == ETDDominionState::EscapeFlight ? FMath::CeilToInt(D->GetEscapeTimeLeft()) : 0;
+			Out = Left > 0 ? Line(TEXT("Escape_Flight"), 0, FText::Format(LOCTEXT("EscapeFlightLeft", "GET CLEAR OF THE DOMINION · {0}"), Left))
+				: Line(TEXT("Escape_Flight"), 0, LOCTEXT("EscapeFlight", "GET CLEAR OF THE DOMINION"));
+			return true;
+		}
 		case ETDGamePhase::DominionAssault:
 		{
 			const ATDDominion* D = ATDDominion::Get(World);

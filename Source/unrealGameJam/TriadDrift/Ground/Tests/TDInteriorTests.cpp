@@ -14,6 +14,8 @@
 #include "TriadDrift/Flow/TDJourney.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "EngineUtils.h"
+#include "Components/StaticMeshComponent.h"
+#include "TriadDrift/Core/TDStatics.h"
 
 namespace TDInteriorTest
 {
@@ -116,6 +118,22 @@ bool FTDInteriorChain::RunTest(const FString& Parameters)
 	for (int32 i = 0; i < 4; ++i)
 	{
 		TestTrue(*FString::Printf(TEXT("%s starts"), *Ids[i].ToString()), I.Course->StartObjectiveAt(Ids[i]));
+		if (i == 3)
+		{
+			// The core for real: break the four conduits and the heart with damage (live run: the heart's death
+			// completed nothing), and the shield drops between them.
+			TArray<ATDShatterCrystal*> Breakables;
+			for (TActorIterator<ATDShatterCrystal> It(I.W.GetWorld()); It; ++It) { if (It->LinkedObjective == I.Obj(3)) { Breakables.Add(*It); } }
+			TestEqual(TEXT("four conduits and the heart"), Breakables.Num(), 5);
+			TestTrue(TEXT("shield up while the conduits stand"), I.Course->GetCoreShield() && I.Course->GetCoreShield()->IsVisible());
+			for (ATDShatterCrystal* C : Breakables) { if (C->LinkedStep == 0) { UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Melee, nullptr, nullptr); } }
+			I.W.Advance(0.3f);
+			TestEqual(TEXT("conduits down -> the heart"), I.Obj(3)->GetCurrentStepIndex(), 1);
+			TestFalse(TEXT("shield dropped"), I.Course->GetCoreShield() && I.Course->GetCoreShield()->IsVisible());
+			for (ATDShatterCrystal* C : Breakables) { if (C->LinkedStep == 1) { UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Melee, nullptr, nullptr); } }
+			I.W.Advance(0.3f);
+			TestTrue(TEXT("the heart's death destroys the core"), I.Obj(3)->IsComplete());
+		}
 		if (i + 1 < 4)
 		{
 			TestFalse(TEXT("one room at a time"), I.Course->StartObjectiveAt(Ids[i + 1]));

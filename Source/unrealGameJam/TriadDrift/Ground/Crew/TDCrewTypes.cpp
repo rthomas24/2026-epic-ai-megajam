@@ -49,7 +49,8 @@ namespace TDCrewSpecs
 		// Warden (mini-boss): 600 HP, charge slam (40 AoE), bolt fan, summons grunts; phase 2 at 50%.
 		FTDCrewSpec& W = T[(int32)ETDCrewType::Warden];
 		W.Type = ETDCrewType::Warden; W.VisualsId = TEXT("Warden");
-		W.MaxHealth = 320.f; W.MoveSpeed = 380.f; // (machine playtest: 600 HP + 40 slam + 7x10 fans beat the pilot every take) W.CapsuleRadius = 70.f; W.CapsuleHalfHeight = 130.f;
+		W.MaxHealth = 320.f; W.MoveSpeed = 380.f; // (machine playtest: 600 HP + 40 slam + 7x10 fans beat the pilot every take)
+		W.CapsuleRadius = 70.f; W.CapsuleHalfHeight = 130.f; // the 260 cm body (was commented out by accident: hits landed on a 180 cm capsule)
 		W.SightRange = 5000.f; W.AlertSeconds = 1.0f;
 		W.PreferredRangeMin = 400.f; W.PreferredRangeMax = 1100.f;
 		W.ChargeSlamDamage = 30.f; W.ChargeSlamRadius = 320.f; W.ChargeDistance = 1200.f; W.ChargeDuration = 0.5f; W.ChargeWindup = 0.8f;
