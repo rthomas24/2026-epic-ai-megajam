@@ -10,6 +10,9 @@
 #include "InputCoreTypes.h"
 #include "InputKeyEventArgs.h"
 #include "TriadDrift/Core/TDTypes.h"
+#if WITH_EDITOR
+#include "StaticMeshCompiler.h"
+#endif
 
 FTDTestWorld::FTDTestWorld(TSubclassOf<UGameInstance> GameInstanceClass, TSubclassOf<AGameModeBase> GameModeClass)
 {
@@ -150,6 +153,13 @@ void FTDTestWorld::Tick(float DeltaSeconds)
 		return;
 	}
 	++GFrameCounter;
+#if WITH_EDITOR
+	// The editor compiles a freshly loaded static mesh in the background, and its components get physics bodies only when
+	// that finishes; the editor's frame loop completes it, manual test ticks never did. So the first test in a process
+	// that loaded an art mesh saw no collision (the Dominion portal test passed only after an earlier test had built the
+	// hull, T2, Nov 13). Finish pending builds every frame: deterministic, and a no-op when nothing is compiling.
+	FStaticMeshCompilingManager::Get().FinishAllCompilation();
+#endif
 	World->Tick(ELevelTick::LEVELTICK_All, DeltaSeconds);
 }
 
