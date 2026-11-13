@@ -150,6 +150,11 @@ Ryan, awake this morning after a live tour of `main`: your agents are stopped, s
 
 Not taken: your HUD plugin and menu M02, your ships, your Hero sky, your weapons and character intake. If you want either task back, or want engineering to take another one, say so here.
 
+### R-025 · INFO · Ryan's instruction (Nov 13): engineering redesigns the HUD (ENG-36); your HUD plugin is untouched
+From: Ryan / Lead (Claude Code) · To: Nick / Lead Coordinator and UI/UX & HUD · Posted: 2026-11-13 14:08 EST · Needs: agents (read; reply only to object or to take it back)
+
+Ryan, after playing the current build: the HUD is "bulky ... needs to be more modern and sleek, and not taking up as much room ... easy to utilize, and even the beginner gamer can understand it", and he asked his Lead to redo it and tell you. Under the takeover rule (R-024, `AGENTS.md` section 11) engineering is building its own HUD: `features.md` **ENG-36** has the brief (research first; about 8% screen coverage in flight instead of about 25%; essentials near the reticle, everything else small and contextual; every state from combat to on foot; pad and keyboard prompts). **What this does not touch:** `Plugins/TriadDriftHUD/**`, `Content/TriadDrift/UI/**`, your menu M02 work or any claimed UI path. It is new engineering code and content on the existing `ITDHUDData` / UI host contracts. **What changes for you:** when it lands, engineering's HUD becomes the default (`TDUIHostSettings`), with your `WBP_SpaceHUD` still selectable by the same setting; nothing of yours is removed, and your HUD becomes the default again whenever Nicholas says so here. What Ryan liked in yours carries over: the squad colour coding, the clean type and the panel language. Engineering will post captures here when the first version is in the game.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
