@@ -12,6 +12,10 @@
 #include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "GameFramework/Character.h"
+#include "TriadDrift/Ground/Crew/TDCrewTypes.h"
+#include "EngineUtils.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 namespace TDCombatPlaceholderTest
@@ -88,16 +92,29 @@ bool FTDCombatPlaceholderStreakOnProjectile::RunTest(const FString& Parameters)
 		{
 			return;
 		}
-		const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(Spec);
+		const FTDStreakLook Look = Team == ETDTeam::Player ? FTDCombatPlaceholders::ComputeSquadStreak(Spec) : FTDCombatPlaceholders::ComputeStreak(Spec);
 		const UStaticMeshComponent* Mesh = P->GetPlaceholderMesh();
 		TestTrue(Id.ToString() + TEXT(" streak visible"), Mesh && Mesh->IsVisible());
 		if (Mesh && Look.bStreak)
 		{
-			TestTrue(Id.ToString() + TEXT(" streak length matches"), FMath::IsNearlyEqual(Mesh->GetRelativeScale3D().X * 100.f, Look.Length, 1.f));
+			// At launch nothing is drawn behind the muzzle: the streak grows with the distance flown.
+			TestTrue(FString::Printf(TEXT("%s streak starts at the muzzle (%.0f cm)"), *Id.ToString(), Mesh->GetRelativeScale3D().X * 100.f),
+				Mesh->GetRelativeScale3D().X * 100.f <= Look.Thickness + 1.f);
+			for (int32 Frame = 0; Frame < 12; ++Frame)
+			{
+				W.Tick(1.f / 60.f);
+			}
+			if (P->IsActive())
+			{
+				TestTrue(FString::Printf(TEXT("%s streak grows to its length (%.0f of %.0f cm)"), *Id.ToString(), Mesh->GetRelativeScale3D().X * 100.f, Look.Length),
+					FMath::IsNearlyEqual(Mesh->GetRelativeScale3D().X * 100.f, Look.Length, 1.f));
+			}
 			TestTrue(Id.ToString() + TEXT(" streak trails behind the shot"), Mesh->GetRelativeLocation().X < 0.f);
 		}
 		const UStaticMeshComponent* Head = P->GetPlaceholderHead();
-		TestEqual(Id.ToString() + TEXT(" head only on missiles"), Head && Head->IsVisible(), Look.bHead);
+		const bool bTip = Team == ETDTeam::Player && Look.bStreak && !Look.bHead;
+		TestEqual(Id.ToString() + TEXT(" head on missiles, tracer tip on squad light shots"), Head && Head->IsVisible(), Look.bHead || bTip);
+		TestEqual(Id.ToString() + TEXT(" tracer tip"), P->HasTracerTip(), bTip);
 		P->Kill(false);
 		TestFalse(Id.ToString() + TEXT(" streak hidden when pooled"), Mesh && Mesh->IsVisible());
 		TestFalse(Id.ToString() + TEXT(" head hidden when pooled"), Head && Head->IsVisible());
@@ -122,7 +139,10 @@ bool FTDCombatPlaceholderStreakOnProjectile::RunTest(const FString& Parameters)
 	FTDProjectileSpec LaserSpec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
 	LaserSpec.FX = nullptr;
 	ATDProjectile* L = ATDProjectile::Spawn(W.GetWorld(), LaserSpec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Player);
-	TestTrue(TEXT("reused actor: no stale missile head"), L && L == M && !L->GetPlaceholderHead()->IsVisible());
+	// The squad laser draws its own tracer tip (as thick as its streak), never the missile's big round head.
+	const float TipThick = FTDCombatPlaceholders::ComputeSquadStreak(LaserSpec).Thickness * FTDCombatPlaceholders::TipThickness;
+	TestTrue(TEXT("reused actor: no stale missile head"), L && L == M && L->HasTracerTip()
+		&& FMath::IsNearlyEqual(L->GetPlaceholderHead()->GetRelativeScale3D().Y * 100.f, TipThick, 1.f));
 	return true;
 }
 
@@ -332,14 +352,53 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
 	const FVector Here(5000.f, 0.f, 0.f);
 	const int32 Used = Projectiles->PlayPlaceholderExplosion(Here, 600.f, FLinearColor::Red, 8);
-	TestEqual(TEXT("core + shell + 8 debris"), Used, 10);
-	W.Advance(0.3f);
+	const int32 Pops = UTDProjectileSubsystem::ExplosionPops(600.f);
+	TestEqual(TEXT("core + shell + pops + ember + 8 sparks"), Used, 3 + Pops + 8);
+	TestEqual(TEXT("a 6 m explosion has 2 staggered pops"), Pops, 2);
+	TestTrue(TEXT("additive soft glow (M_TD_FlashGlow) is in the project"), ATDCombatFlash::GetFlashGlowMaterial() != nullptr);
+
+	// Sort the styled spheres: the core (smallest live), the shell (largest), the delayed pops and the ember.
+	auto Spheres = [&W](TArray<ATDCombatFlash*>& Live, TArray<ATDCombatFlash*>& Delayed)
+	{
+		Live.Reset();
+		Delayed.Reset();
+		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+		{
+			if (It->IsPlaying() && It->IsStyled() && It->GetActorRotation() == FRotator::ZeroRotator)
+			{
+				(It->IsDelayed() ? Delayed : Live).Add(*It);
+			}
+		}
+	};
+	TArray<ATDCombatFlash*> Live, Delayed;
+	Spheres(Live, Delayed);
+	TestEqual(TEXT("core and shell start at once"), Live.Num(), 2);
+	TestEqual(TEXT("pops and ember wait their turn"), Delayed.Num(), Pops + 1);
+	for (const ATDCombatFlash* F : Live)
+	{
+		TestTrue(TEXT("explosion parts use the additive glow"), F->UsesAdditiveGlow());
+	}
+	if (Live.Num() == 2)
+	{
+		Live.Sort([](const ATDCombatFlash& A, const ATDCombatFlash& B) { return A.GetRadius() < B.GetRadius(); });
+		const FLinearColor Core = Live[0]->GetLastColor(), Shell = Live[1]->GetLastColor();
+		TestTrue(FString::Printf(TEXT("core starts white-hot (%s)"), *Core.ToString()), Core.B > 0.8f * Core.R && Core.R > 2.f);
+		W.Advance(0.3f);
+		const FLinearColor ShellLater = Live[1]->GetLastColor();
+		TestTrue(FString::Printf(TEXT("shell cools into the team colour (%s -> %s)"), *Shell.ToString(), *ShellLater.ToString()),
+			Shell.G / FMath::Max(Shell.R, 0.01f) > 0.3f && ShellLater.G / FMath::Max(ShellLater.R, 0.01f) < 0.15f);
+	}
+	Spheres(Live, Delayed);
+	TestEqual(TEXT("after 0.3 s every pop and the ember have started"), Delayed.Num(), 0);
 	const int32 Playing = Projectiles->GetPlayingFlashCount();
 	const int32 Inside = Projectiles->CountPlayingFlashesNear(Here, 350.f);
 	AddInfo(FString::Printf(TEXT("after 0.3 s: %d playing, %d within 350 cm"), Playing, Inside));
-	TestTrue(TEXT("debris has flown outward"), Playing >= 8 && Playing - Inside >= 6);
-	W.Advance(1.f);
-	TestEqual(TEXT("all gone within a second"), Projectiles->GetPlayingFlashCount(), 0);
+	TestTrue(TEXT("sparks have flown outward"), Playing >= 8 && Playing - Inside >= 6);
+	W.Advance(0.45f);
+	Spheres(Live, Delayed);
+	TestTrue(TEXT("the ember afterglow is still up at 0.75 s"), Live.Num() >= 1);
+	W.Advance(0.8f);
+	TestEqual(TEXT("all gone by 1.6 s"), Projectiles->GetPlayingFlashCount(), 0);
 
 	// A rocket hitting a wall explodes (more than one flash at the wall), a laser only flashes.
 	const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());
@@ -446,6 +505,328 @@ bool FTDCombatPlaceholderColourCode::RunTest(const FString& Parameters)
 			S->Kill(false);
 		}
 	}
+	return true;
+}
+
+// Every enemy on-foot projectile type, specced as ATDCrewCharacter::FireBolt / ATDDummyTurret::FireAt launch it: Armada
+// red-orange, a thin bolt (the Lead's live capture: Heavy pellets were 40 cm white-pink blobs hiding the Heavy at 5 m), no
+// heavy bloom.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderOnFootBolts, "TriadDrift.Combat.Placeholder.OnFootBoltsEveryEnemyType", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderOnFootBolts::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	AActor* Crew = W.Spawn<ACharacter>(FVector(0.f, 0.f, 100.f));
+	struct FCase { FString Name; float Speed; float Radius; float MaxLength; };
+	const FTDCrewSpec& Trooper = FTDCrewLibrary::Get(ETDCrewType::Trooper);
+	const FTDCrewSpec& Heavy = FTDCrewLibrary::Get(ETDCrewType::Heavy);
+	const FTDCrewSpec& Drone = FTDCrewLibrary::Get(ETDCrewType::Drone);
+	const FTDCrewSpec& Warden = FTDCrewLibrary::Get(ETDCrewType::Warden);
+	const FCase Cases[] = {
+		{ TEXT("Trooper bolt"), Trooper.BoltSpeed, Trooper.BoltRadius, 80.f },
+		{ TEXT("Heavy pellet"), Heavy.BoltSpeed, 16.f, 60.f }, // FireBolt(.., 16) in DoShotgun
+		{ TEXT("Drone shot"), Drone.BoltSpeed, Drone.BoltRadius, 80.f },
+		{ TEXT("Warden fan bolt"), Warden.BoltSpeed, Warden.BoltRadius, 80.f },
+		{ TEXT("Dummy turret bolt"), 2200.f, 25.f, 80.f },
+	};
+	for (const FCase& C : Cases)
+	{
+		FTDProjectileSpec Spec;
+		Spec.Speed = C.Speed;
+		Spec.CollisionRadius = C.Radius;
+		Spec.bInheritShooterVelocity = false;
+		ATDProjectile* P = ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(FVector(0.f, 0.f, 1000.f)), Crew, ETDTeam::Enemy, nullptr,
+			FVector::ZeroVector, 1.f, false);
+		if (!TestNotNull(C.Name, P))
+		{
+			continue;
+		}
+		const FTDStreakLook& Look = P->GetStreakLook();
+		const float HeadCm = P->GetPlaceholderHead()->GetRelativeScale3D().X * 100.f;
+		TestTrue(C.Name + TEXT(": Armada red-orange"), P->GetPlaceholderLookColor().Equals(UTDStatics::TeamColor(ETDTeam::Enemy)));
+		TestTrue(C.Name + TEXT(": on-foot look"), P->UsesOnFootLook() && Look.bStreak);
+		TestTrue(FString::Printf(TEXT("%s: %.1f cm thick (5-9)"), *C.Name, Look.Thickness), Look.Thickness >= 5.f && Look.Thickness <= 9.f);
+		TestTrue(FString::Printf(TEXT("%s: %.0f cm long (40-%.0f)"), *C.Name, Look.Length, C.MaxLength), Look.Length >= 40.f && Look.Length <= C.MaxLength);
+		TestTrue(FString::Printf(TEXT("%s: head %.1f cm (<= 13)"), *C.Name, HeadCm), HeadCm <= 13.f);
+		const UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(P->GetPlaceholderMesh()->GetMaterial(0));
+		FLinearColor Drawn = FLinearColor::Black;
+		if (MID)
+		{
+			MID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Drawn);
+		}
+		const float Peak = FMath::Max3(Drawn.R, Drawn.G, Drawn.B);
+		TestTrue(FString::Printf(TEXT("%s: glow %.1f, no heavy bloom (<= %.1f)"), *C.Name, Peak, FTDCombatPlaceholders::OnFootGlow), Peak > 0.f
+			&& Peak <= FTDCombatPlaceholders::OnFootGlow + 0.01f);
+		const float Spark = FTDCombatPlaceholders::OnFootImpactRadius(Look);
+		TestTrue(FString::Printf(TEXT("%s: impact spark %.0f cm radius (<= 30)"), *C.Name, Spark), Spark <= 30.f);
+		if (C.Name.StartsWith(TEXT("Heavy")))
+		{
+			TestTrue(FString::Printf(TEXT("Heavy pellet about 6 cm thick (%.1f)"), Look.Thickness), FMath::IsNearlyEqual(Look.Thickness, 6.f, 1.f));
+		}
+		P->Kill(false);
+	}
+
+	// A real hit: a Heavy pellet into a body a few metres away plays a small, dim spark, not the space impact pop.
+	AActor* Target = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector(400.f, 0.f, 1000.f), FVector(40.f));
+	FTDProjectileSpec Pellet;
+	Pellet.Speed = Heavy.BoltSpeed;
+	Pellet.CollisionRadius = 16.f;
+	Pellet.Damage = 5.f;
+	Pellet.bInheritShooterVelocity = false;
+	ATDProjectile::Launch(W.GetWorld(), Pellet, FTransform(FVector(0.f, 0.f, 1000.f)), Crew, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
+	float BiggestCm = 0.f, BrightestGlow = 0.f;
+	int32 Sparks = 0;
+	for (int32 Frame = 0; Frame < 30 && Sparks == 0; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+		{
+			if (It->IsPlaying())
+			{
+				++Sparks;
+				BiggestCm = FMath::Max(BiggestCm, It->GetActorScale3D().X * 50.f);
+				const UMaterialInstanceDynamic* FMID = Cast<UMaterialInstanceDynamic>(It->FindComponentByClass<UStaticMeshComponent>()->GetMaterial(0));
+				FLinearColor G = FLinearColor::Black;
+				if (FMID)
+				{
+					FMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), G);
+				}
+				BrightestGlow = FMath::Max(BrightestGlow, FMath::Max3(G.R, G.G, G.B));
+			}
+		}
+	}
+	TestTrue(TEXT("pellet hit the body"), Target && UTDStatics::GetHealth(Target)->GetShield() < UTDStatics::GetHealth(Target)->MaxShield);
+	TestTrue(TEXT("pellet hit plays a spark"), Sparks > 0);
+	TestTrue(FString::Printf(TEXT("spark radius %.0f cm (<= 36)"), BiggestCm), BiggestCm <= 36.f);
+	TestTrue(FString::Printf(TEXT("spark glow %.1f (<= on-foot glow)"), BrightestGlow), BrightestGlow <= FTDCombatPlaceholders::OnFootGlow + 0.01f);
+	return true;
+}
+
+// No placeholder flash fills the frame: a big explosion right in front of the camera is capped at 0.3x its distance
+// (the Lead's frame-10 white-out).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderFlashCap, "TriadDrift.Combat.Placeholder.FlashNeverFillsTheFrame", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderFlashCap::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("camera manager"), PC ? PC->PlayerCameraManager.Get() : nullptr)
+		|| !TestNotNull(TEXT("projectiles"), Projectiles))
+	{
+		return false;
+	}
+	W.Tick();
+	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+	const FVector At = Camera + FVector(250.f, 0.f, 0.f); // 2.5 m in front of the camera
+	ATDCombatFlash* Near = Projectiles->PlayPlaceholderFlash(At, 600.f, FLinearColor::Red, 0.6f);
+	const FVector Far = Camera + FVector(20000.f, 0.f, 0.f);
+	ATDCombatFlash* Distant = Projectiles->PlayPlaceholderFlash(Far, 600.f, FLinearColor::Red, 0.6f);
+	float NearMax = 0.f, FarMax = 0.f;
+	for (int32 Frame = 0; Frame < 30; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		if (Near && Near->IsPlaying())
+		{
+			NearMax = FMath::Max(NearMax, Near->GetActorScale3D().X * 50.f);
+		}
+		if (Distant && Distant->IsPlaying())
+		{
+			FarMax = FMath::Max(FarMax, Distant->GetActorScale3D().X * 50.f);
+		}
+	}
+	TestTrue(FString::Printf(TEXT("near flash capped: %.0f cm radius at 250 cm (<= 76)"), NearMax), NearMax > 0.f && NearMax <= 250.f * ATDCombatFlash::MaxRadiusPerCameraDistance + 1.f);
+	TestTrue(FString::Printf(TEXT("distant flash keeps its size: %.0f cm (> 600)"), FarMax), FarMax > 600.f);
+
+	// A big explosion right in front of the camera: its shell stays under ~25% of the screen height (0.128 x distance).
+	Projectiles->PlayPlaceholderExplosion(Camera + FVector(1500.f, 0.f, 0.f), 900.f, FLinearColor::Red, 0);
+	float ShellMax = 0.f;
+	for (int32 Frame = 0; Frame < 30; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+		{
+			if (It->IsPlaying() && FVector::Dist(It->GetActorLocation(), Camera + FVector(1500.f, 0.f, 0.f)) < 1.f)
+			{
+				ShellMax = FMath::Max(ShellMax, It->GetActorScale3D().X * 50.f);
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("near explosion shell capped: %.0f cm at 15 m (<= 193)"), ShellMax),
+		ShellMax > 0.f && ShellMax <= 1500.f * ATDCombatFlash::MaxShellRadiusPerCameraDistance + 1.f);
+
+	// A debris streak 15 m from the camera (a hulk exploding as it drifts past) stays a thin streak.
+	if (ATDCombatFlash* Debris = Projectiles->PlayPlaceholderFlash(Camera + FVector(1500.f, 300.f, 0.f), 1.f, FLinearColor::Red, 0.01f))
+	{
+		Debris->PlayDebris(Camera + FVector(1500.f, 300.f, 0.f), FVector(0.f, 10.f, 0.f), 600.f, 90.f, FLinearColor::Red, 0.6f);
+		W.Tick(1.f / 60.f);
+		const FVector Scale = Debris->GetActorScale3D() * 100.f;
+		const float Dist = FVector::Dist(Debris->GetActorLocation(), Camera);
+		TestTrue(FString::Printf(TEXT("near debris thickness %.0f cm (<= %.0f)"), Scale.Y, Dist * ATDCombatFlash::MaxDebrisThicknessPerCameraDistance),
+			Scale.Y <= Dist * ATDCombatFlash::MaxDebrisThicknessPerCameraDistance + 1.f);
+		TestTrue(FString::Printf(TEXT("near debris length %.0f cm (<= %.0f)"), Scale.X, Dist * ATDCombatFlash::MaxDebrisLengthPerCameraDistance),
+			Scale.X <= Dist * ATDCombatFlash::MaxDebrisLengthPerCameraDistance + 1.f);
+	}
+
+	// A small hit spark 300 m away keeps a readable size (~20 px at 1080p): radius >= 0.007 x distance at its peak.
+	ATDCombatFlash* Spark = Projectiles->PlayPlaceholderFlash(Camera + FVector(30000.f, 0.f, 0.f), 140.f, FLinearColor::White, 0.14f);
+	float SparkMax = 0.f;
+	for (int32 Frame = 0; Frame < 12; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		if (Spark && Spark->IsPlaying())
+		{
+			SparkMax = FMath::Max(SparkMax, Spark->GetActorScale3D().X * 50.f);
+		}
+	}
+	TestTrue(FString::Printf(TEXT("300 m spark peaks at %.0f cm (>= 210)"), SparkMax), SparkMax >= 30000.f * FTDCombatPlaceholders::MinFlashRadiusPerCameraDistance - 1.f);
+	return true;
+}
+
+// Squad tracers (the Lead's "bright weapon trails"): light squad shots are long tracers with a near-white tip that reads
+// against a sky of their own colour; heavy squad heads stay small; enemy shots keep their look.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderSquadTracers, "TriadDrift.Combat.Placeholder.SquadTracersWithWhiteTips", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderSquadTracers::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	for (const FName Id : TDCombatPlaceholderTest::PlayerWeaponIds)
+	{
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(Id).Projectile;
+		Spec.FX = nullptr;
+		const FTDStreakLook Space = FTDCombatPlaceholders::ComputeStreak(Spec);
+		const FTDStreakLook Squad = FTDCombatPlaceholders::ComputeSquadStreak(Spec);
+		if (!Space.bStreak)
+		{
+			continue;
+		}
+		if (Space.bHeavy)
+		{
+			TestTrue(Id.ToString() + TEXT(": heavy squad head no bigger than 1.15x thickness"), Squad.HeadDiameter <= Squad.Thickness * 1.15f + 0.1f);
+			continue;
+		}
+		TestTrue(FString::Printf(TEXT("%s: squad tracer %.0f cm, longer than the %.0f cm streak"), *Id.ToString(), Squad.Length, Space.Length),
+			Squad.Length >= Space.Length && Squad.Length <= FTDCombatPlaceholders::MaxSquadTracerCm);
+		ATDProjectile* P = ATDProjectile::Spawn(W.GetWorld(), Spec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Player);
+		if (!P)
+		{
+			continue;
+		}
+		const UMaterialInstanceDynamic* TipMID = Cast<UMaterialInstanceDynamic>(P->GetPlaceholderHead()->GetMaterial(0));
+		const UMaterialInstanceDynamic* BodyMID = Cast<UMaterialInstanceDynamic>(P->GetPlaceholderMesh()->GetMaterial(0));
+		FLinearColor Tip = FLinearColor::Black, Body = FLinearColor::Black;
+		if (TipMID && BodyMID)
+		{
+			TipMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Tip);
+			BodyMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Body);
+		}
+		// Whiter: the weakest channel lifted towards the strongest.
+		auto Whiteness = [](const FLinearColor& C) { const float Max = FMath::Max3(C.R, C.G, C.B); return Max > 0.f ? FMath::Min3(C.R, C.G, C.B) / Max : 0.f; };
+		TestTrue(FString::Printf(TEXT("%s: tip whiter than the body (%.2f vs %.2f)"), *Id.ToString(), Whiteness(Tip), Whiteness(Body)),
+			Whiteness(Tip) >= Whiteness(Body) + 0.2f);
+		TestTrue(Id.ToString() + TEXT(": tip visible"), P->GetPlaceholderHead()->IsVisible());
+		P->Kill(false);
+	}
+	// Enemy shots: no tracer tip, no squad length.
+	FTDProjectileSpec Enemy = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPulseGuns).Projectile;
+	Enemy.FX = nullptr;
+	ATDProjectile* E = ATDProjectile::Spawn(W.GetWorld(), Enemy, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Enemy);
+	TestTrue(TEXT("enemy shot: no tracer tip"), E && !E->HasTracerTip());
+	TestTrue(TEXT("enemy shot: its own streak length"), E && FMath::IsNearlyEqual(E->GetStreakLook().Length, FTDCombatPlaceholders::ComputeStreak(Enemy).Length, 1.f));
+	return true;
+}
+
+// An enemy bolt flying past the camera: its head never balloons near the camera (live: a pale ball over the player's
+// ship in a wave-5 furball) and stays pure Armada colour.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderIncomingNearCamera, "TriadDrift.Combat.Placeholder.IncomingHeadNeverBalloons", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderIncomingNearCamera::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	if (!TestNotNull(TEXT("camera"), PC ? PC->PlayerCameraManager.Get() : nullptr))
+	{
+		return false;
+	}
+	W.Tick();
+	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+	FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHeavyBolt).Projectile;
+	Spec.FX = nullptr;
+	Spec.Range = 100000.f;
+	// Fired from 60 m ahead, passing 3 m beside the camera.
+	const FVector From = Camera + FVector(6000.f, 300.f, 0.f);
+	const FVector Dir = (Camera + FVector(-2000.f, 300.f, 0.f) - From).GetSafeNormal();
+	ATDProjectile* P = ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(Dir.Rotation(), From), nullptr, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
+	if (!TestNotNull(TEXT("bolt"), P))
+	{
+		return false;
+	}
+	float WorstRatio = 0.f, Closest = TNumericLimits<float>::Max();
+	for (int32 Frame = 0; Frame < 120 && P->IsActive(); ++Frame)
+	{
+		W.Tick(1.f / 120.f);
+		const float Dist = FVector::Dist(P->GetActorLocation(), Camera);
+		if (P->GetPlaceholderHead()->IsVisible() && Dist > 1.f)
+		{
+			WorstRatio = FMath::Max(WorstRatio, P->GetPlaceholderHead()->GetRelativeScale3D().X * 100.f / Dist);
+			Closest = FMath::Min(Closest, Dist);
+		}
+	}
+	TestTrue(FString::Printf(TEXT("bolt came close (%.0f cm)"), Closest), Closest < 1500.f);
+	TestTrue(FString::Printf(TEXT("head never wider than %.3f x camera distance (worst %.3f)"), FTDCombatPlaceholders::MaxHeadPerCameraDistance, WorstRatio),
+		WorstRatio <= FTDCombatPlaceholders::MaxHeadPerCameraDistance + 0.002f);
+	const UMaterialInstanceDynamic* HeadMID = Cast<UMaterialInstanceDynamic>(P->GetPlaceholderHead()->GetMaterial(0));
+	FLinearColor Head = FLinearColor::Black;
+	if (HeadMID)
+	{
+		HeadMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Head);
+	}
+	const FLinearColor Want = P->GetPlaceholderLookColor();
+	TestTrue(FString::Printf(TEXT("enemy head in pure Armada colour (%s)"), *Head.ToString()), Head.R > 0.f && FMath::IsNearlyEqual(Head.G / Head.R, Want.G / Want.R, 0.02f));
+	return true;
+}
+
+// Shield hits and hull hits read differently at a glance (the Lead's combat-feel pass): a cyan-blue puff on a shield, a
+// white-hot flash cooling to orange plus sparks on bare hull.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderShieldVsHull, "TriadDrift.Combat.Placeholder.ShieldHitVsHullHit", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderShieldVsHull::RunTest(const FString& Parameters)
+{
+	auto ShootAt = [this](float Shield, int32& OutStyled, int32& OutSparks, FLinearColor& OutColor)
+	{
+		FTDTestWorld W;
+		AActor* Target = TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(1500.f, 0.f, 1000.f), FVector(100.f), 1000.f, Shield);
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
+		Spec.FX = nullptr;
+		ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Player, nullptr, FVector::ZeroVector, 1.f, false);
+		OutStyled = OutSparks = 0;
+		for (int32 Frame = 0; Frame < 60 && OutStyled == 0; ++Frame)
+		{
+			W.Tick(1.f / 120.f);
+			for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+			{
+				if (!It->IsPlaying() || !It->IsStyled())
+				{
+					continue;
+				}
+				if (It->GetActorRotation() == FRotator::ZeroRotator)
+				{
+					++OutStyled;
+					OutColor = It->GetLastColor();
+				}
+				else
+				{
+					++OutSparks;
+				}
+			}
+		}
+		TestTrue(TEXT("the laser hit"), Target && UTDStatics::GetHealth(Target)->GetHull() + UTDStatics::GetHealth(Target)->GetShield() < 1000.f + Shield);
+	};
+	int32 Styled = 0, Sparks = 0;
+	FLinearColor Color;
+	ShootAt(500.f, Styled, Sparks, Color);
+	TestEqual(TEXT("shield hit: one puff"), Styled, 1);
+	TestTrue(FString::Printf(TEXT("shield hit: cyan-blue (%s)"), *Color.ToString()), Color.B > Color.R);
+	TestEqual(TEXT("shield hit: no hull sparks"), Sparks, 0);
+	ShootAt(0.f, Styled, Sparks, Color);
+	TestEqual(TEXT("hull hit: one hot flash"), Styled, 1);
+	TestTrue(FString::Printf(TEXT("hull hit: white-hot to orange, not blue (%s)"), *Color.ToString()), Color.R >= Color.B);
+	TestEqual(TEXT("hull hit: three sparks"), Sparks, 3);
 	return true;
 }
 

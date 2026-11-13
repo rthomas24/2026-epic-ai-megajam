@@ -1,0 +1,85 @@
+{
+  "asset": "SM_Dominion_GeneratorCore",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\SM_Dominion_GeneratorCore\\SM_Dominion_GeneratorCore.fbx",
+  "tris": 2296,
+  "size_cm": [
+    766.2,
+    766.2,
+    1010.0
+  ],
+  "pivot": "root object origin (SM_Dominion_GeneratorCore~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Dominion_GlowCyan",
+    "M_Dominion_Trim"
+  ],
+  "material_params": [
+    {
+      "name": "M_Dominion_GlowCyan",
+      "textured": false,
+      "base_color": [
+        0.015,
+        0.04,
+        0.05
+      ],
+      "metallic": 0.0,
+      "roughness": 0.3,
+      "emission_color": [
+        0.3,
+        0.8,
+        1.0
+      ],
+      "emission_strength": 2.2
+    },
+    {
+      "name": "M_Dominion_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": 0.6,
+      "roughness": null,
+      "emission_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "nanite": true,
+  "fbx_relative": "SM_Dominion_GeneratorCore.fbx",
+  "ue_extent_cm": {
+    "min": [
+      -383.1,
+      -383.1,
+      635.0
+    ],
+    "max": [
+      383.1,
+      383.1,
+      1645.0
+    ]
+  }
+}

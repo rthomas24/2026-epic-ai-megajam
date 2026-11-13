@@ -56,6 +56,13 @@ def material(key):
             "armor2": ("M_NT_ArmorDark", (0.014, 0.015, 0.017, 1), 0.8, 0.42, None),
             "suit": ("M_NT_Suit", (0.006, 0.006, 0.007, 1), 0.0, 0.8, None),
             "emis": ("M_NT_Emissive", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (1.0, 0.068, 0.013, 1)),
+            "emisdim": ("M_NT_EmissiveDim", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (0.45, 0.03, 0.006, 1)),
+            "emisglow": ("M_NT_EmissiveGlow", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (0.2, 0.014, 0.003, 1)),
+            "emiscore": ("M_NT_EmissiveCore", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (0.6, 0.04, 0.008, 1)),
+            "emisline": ("M_NT_EmissiveLine", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (0.1, 0.007, 0.002, 1)),
+            "armorflat": ("M_NT_ArmorFlat", (0.030, 0.032, 0.036, 1), 0.9, 0.5, None),
+            "rubber": ("M_NT_Rubber", (0.009, 0.009, 0.01, 1), 0.0, 0.7, None),
+            "emishex": ("M_NT_EmissiveHex", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (1.0, 0.068, 0.013, 1)),
             "stripe": ("M_NT_Stripe", (0.55, 0.03, 0.01, 1), 0.0, 0.5, None)}[key]
     m = bpy.data.materials.get(spec[0]) or bpy.data.materials.new(spec[0])
     b = next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
@@ -213,7 +220,7 @@ def _params(n, grooves, axis):
 
 def shell(name, sample, ns, nt, body=None, region=None, offset=0.012, shape=None, smooth=2, clear=0.004, bulge=None,
           thick=0.012, sink=0.004, maxskirt=0.035, grooves=(), wrap=False, mat="armor", emis=None, mats2=None,
-          bone="transfer", bevel=0.003, inner=False, edge_drop=0.0, far=0.6, segs=1):
+          bone="transfer", bevel=0.003, inner=False, edge_drop=0.0, far=0.6, segs=1, emis_key="emis", cross=False):
     """Fitted plate. Outer surface r = max(shape, smooth(body)+offset) + bulge along the sampler's rays; a skirt
     drops from the rim into the body; the back is capped. grooves: ('s'|'t', pos, halfwidth, depth[, (lo, hi)]).
     emis: list of (s0, s1, t0, t1) rectangles that get the emissive material; mats2: [(key, s0, s1, t0, t1)]."""
@@ -261,6 +268,7 @@ def shell(name, sample, ns, nt, body=None, region=None, offset=0.012, shape=None
     bm = bmesh.new()
     outer = [[None] * NT for _ in range(NS)]
     rin = [[None] * NT for _ in range(NS)]
+    skl = [[0.0] * NT for _ in range(NS)]
     for i, s in enumerate(S):
         for j, t in enumerate(T):
             o, d = O[i][j], D[i][j]
@@ -286,8 +294,9 @@ def shell(name, sample, ns, nt, body=None, region=None, offset=0.012, shape=None
                 ri = r - thick
             outer[i][j] = bm.verts.new(o + d * r)
             rin[i][j] = ri
+            skl[i][j] = max(0.002, r - ri)
     keys = [mat]
-    if emis: keys.append("emis")
+    if emis: keys.append(emis_key)
     for m2 in (mats2 or []):
         if m2[0] not in keys: keys.append(m2[0])
     for g in grooves:
@@ -304,15 +313,35 @@ def shell(name, sample, ns, nt, body=None, region=None, offset=0.012, shape=None
                 rng = g[4] or (0.0, 1.0)
                 if abs(a - g[1]) < g[2] and rng[0] <= c <= rng[1]: return keys.index(g[5])
         for e in (emis or []):
-            if e[0] <= sc <= e[1] and e[2] <= tc <= e[3]: return keys.index("emis")
+            if e[0] <= sc <= e[1] and e[2] <= tc <= e[3]: return keys.index(emis_key)
         for m2 in (mats2 or []):
             if m2[1] <= sc <= m2[2] and m2[3] <= tc <= m2[4]: return keys.index(m2[0])
         return 0
+    uvl = bm.loops.layers.uv.new("UVMap")
+
+    def plen(pts):
+        return sum((q - p_).length for p_, q in zip(pts, pts[1:]))
+    W = sum(plen([outer[i][j].co for i in range(NS)]) for j in range(NT)) / NT
+    if wrap: W *= NS / max(1.0, NS - 1.0)
+    Hh = sum(plen([outer[i][j].co for j in range(NT)]) for i in range(NS)) / NS
+    Sx = lambda i: (S[i] if i < NS else 1.0) * W
+
+    cl = bm.loops.layers.float_color.new("PlateCoord")
+
+    def setuv(face, uvs, plate=False):
+        # PlateCoord: R / G = distance (m) to the plate's s / t edges, B = signed distance from the plate's middle, A = cross-break flag
+        for l_, u_ in zip(face.loops, uvs):
+            l_[uvl].uv = u_
+            if plate:
+                l_[cl] = (1.0 if wrap else min(u_[0], W - u_[0]), min(u_[1], Hh - u_[1]), u_[1] - Hh * 0.5, 1.0 if cross else 0.0)
+            else:
+                l_[cl] = (1.0, 1.0, 1.0, 0.0)
     for i in range(ni):
         for j in range(NT - 1):
             a, b = i, (i + 1) % NS
             f = bm.faces.new((outer[a][j], outer[b][j], outer[b][j + 1], outer[a][j + 1]))
             f.material_index = face_mat(i, j); f.smooth = True
+            setuv(f, [(Sx(i), T[j] * Hh), (Sx(i + 1), T[j] * Hh), (Sx(i + 1), T[j + 1] * Hh), (Sx(i), T[j + 1] * Hh)], plate=True)
     # boundary loops (index pairs, in order)
     if wrap:
         loops = [[(i, 0) for i in range(NS)], [(i, NT - 1) for i in range(NS)]]
@@ -326,7 +355,9 @@ def shell(name, sample, ns, nt, body=None, region=None, offset=0.012, shape=None
         for i in range(ni):
             for j in range(NT - 1):
                 a, b = i, (i + 1) % NS
-                bm.faces.new((innerv[a][j + 1], innerv[b][j + 1], innerv[b][j], innerv[a][j])).smooth = True
+                f = bm.faces.new((innerv[a][j + 1], innerv[b][j + 1], innerv[b][j], innerv[a][j])); f.smooth = True
+                X0 = W * 2.3 + 0.2
+                setuv(f, [(X0 - Sx(i), T[j + 1] * Hh), (X0 - Sx(i + 1), T[j + 1] * Hh), (X0 - Sx(i + 1), T[j] * Hh), (X0 - Sx(i), T[j] * Hh)])
         getin = lambda ij: innerv[ij[0]][ij[1]]
     else:
         cache = {}
@@ -345,6 +376,17 @@ def shell(name, sample, ns, nt, body=None, region=None, offset=0.012, shape=None
             vo0, vo1 = outer[p[0]][p[1]], outer[q[0]][q[1]]
             vi0, vi1 = getin(p), getin(q)
             f = bm.faces.new((vo0, vo1, vi1, vi0)); f.smooth = True
+
+            def bd(ij):
+                if wrap: return (0.0, -1.0 if ij[1] == 0 else 1.0)
+                return (-1.0 if ij[0] == 0 else (1.0 if ij[0] == NS - 1 else 0.0), -1.0 if ij[1] == 0 else (1.0 if ij[1] == NT - 1 else 0.0))
+            sp = S[p[0]] * W
+            sq = (1.0 if (wrap and q[0] == 0 and p[0] == NS - 1) else S[q[0]]) * W
+            if wrap and p[0] == 0 and q[0] == NS - 1: sp = W
+            up_, uq_ = (sp, T[p[1]] * Hh), (sq, T[q[1]] * Hh)
+            dp, dq = bd(p), bd(q)
+            setuv(f, [up_, uq_, (uq_[0] + dq[0] * skl[q[0]][q[1]], uq_[1] + dq[1] * skl[q[0]][q[1]]),
+                      (up_[0] + dp[0] * skl[p[0]][p[1]], up_[1] + dp[1] * skl[p[0]][p[1]])])
             e = bm.edges.get((vo0, vo1))
             if e: e[bw] = 1.0
             if not inner:
@@ -441,8 +483,9 @@ def lathe(name, center, axis, profile, segs=20, mat="armor", ring_mats=None, bon
     return _new_obj(name, bm, keys, bone, bevel=bevel, bevel_mode='ANGLE', angle=angle)
 
 
-def tube(name, path, radius, segs=10, mat="armor2", bone="transfer", ribs=0, rib_depth=0.003, sub=6):
-    """Ribbed hose along a Catmull-Rom path through `path` points."""
+def tube(name, path, radius, segs=8, mat="armor2", bone="transfer", ribs=0, rib_depth=0.003, sub=6, groove_mat=None, groove_every=1):
+    """Ribbed hose along a Catmull-Rom path. Each rib is three rings (high, high, low); the two bands into the
+    groove get groove_mat."""
     P = [Vector(p) for p in path]
     pts = []
     ext = [P[0] * 2 - P[1]] + P + [P[-1] * 2 - P[-2]]
@@ -453,21 +496,21 @@ def tube(name, path, radius, segs=10, mat="armor2", bone="transfer", ribs=0, rib
             pts.append(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3))
     pts.append(P[-1])
     if ribs:
-        # resample evenly to 2*ribs+1 rings
-        L = [0.0]
-        for a, b in zip(pts, pts[1:]): L.append(L[-1] + (b - a).length)
-        n = ribs * 2
+        Ln = [0.0]
+        for a_, b_ in zip(pts, pts[1:]): Ln.append(Ln[-1] + (b_ - a_).length)
+        n = ribs * 3
         res = []
         for k in range(n + 1):
-            d = L[-1] * k / n
-            for i in range(len(L) - 1):
-                if L[i + 1] >= d - 1e-9:
-                    f = (d - L[i]) / max(1e-9, L[i + 1] - L[i]); res.append(pts[i].lerp(pts[i + 1], f)); break
+            d = Ln[-1] * k / n
+            for i in range(len(Ln) - 1):
+                if Ln[i + 1] >= d - 1e-9:
+                    f = (d - Ln[i]) / max(1e-9, Ln[i + 1] - Ln[i]); res.append(pts[i].lerp(pts[i + 1], f)); break
         pts = res
     bm = bmesh.new()
+    keys = [mat] + ([groove_mat] if groove_mat else [])
     rings = []
     up = Vector((0, 0, 1))
-    tprev = None; e1 = None
+    e1 = None
     for k, p in enumerate(pts):
         tg = (pts[min(k + 1, len(pts) - 1)] - pts[max(k - 1, 0)]).normalized()
         if e1 is None:
@@ -477,14 +520,15 @@ def tube(name, path, radius, segs=10, mat="armor2", bone="transfer", ribs=0, rib
         else:
             e1 = (e1 - tg * e1.dot(tg)).normalized()
         e2 = tg.cross(e1)
-        r = radius - (rib_depth if (ribs and k % 2 == 1) else 0.0)
+        r = radius - (rib_depth if (ribs and k % 3 == 2) else 0.0)
         rings.append([bm.verts.new(p + (e1 * math.cos(2 * math.pi * q / segs) + e2 * math.sin(2 * math.pi * q / segs)) * r) for q in range(segs)])
-    for a, b in zip(rings, rings[1:]):
+    for k, (a_, b_) in enumerate(zip(rings, rings[1:])):
         for q in range(segs):
             q2 = (q + 1) % segs
-            bm.faces.new((a[q], a[q2], b[q2], b[q])).smooth = True
+            f = bm.faces.new((a_[q], a_[q2], b_[q2], b_[q])); f.smooth = True
+            if groove_mat and ribs and k % 3 != 0 and (k // 3) % groove_every == 0: f.material_index = 1
     bm.faces.new(rings[0][::-1]); bm.faces.new(rings[-1])
-    return _new_obj(name, bm, [mat], bone, bevel=0.0)
+    return _new_obj(name, bm, keys, bone, bevel=0.0)
 
 
 def loft(name, sections, origin, ex, ey, ez, ring=16, mat="armor", bone="transfer", bevel=0.0, angle=30.0, cap=True):
@@ -560,8 +604,21 @@ def finish(ob, mirrored=False):
         o.modifiers.clear()
         o.data = me; me.name = o.name
         bpy.data.meshes.remove(old)
+        if not me.uv_layers:
+            me.uv_layers.new(name="UVMap")
+            smart_unwrap(o)
         PARTS.append(o)
     return obs
+
+
+def smart_unwrap(o, angle=66.0):
+    for x in bpy.context.selected_objects: x.select_set(False)
+    o.select_set(True); bpy.context.view_layer.objects.active = o
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=0.01)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    o.select_set(False)
 
 
 def obj_bvh(ob):

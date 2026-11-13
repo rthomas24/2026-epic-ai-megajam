@@ -53,8 +53,8 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.Guns = TDEnemyLib_MakeAttack(ETDEnemyAttack::Guns, TDEnemyWeaponIds::PulseGuns, 5.f, 1, 0.25f, 0.f, 9000.f, 10.f);
 		S.EngageRange = 11000.f;
 		S.BreakOffRange = 2200.f;
-		S.BreakOffSeconds = 2.0f;
-		S.AttackRunMaxSeconds = 3.5f;
+		S.BreakOffSeconds = 3.5f;	// ENG-27 spacing: shorter runs, longer passes away (accuracy untouched)
+		S.AttackRunMaxSeconds = 2.5f;
 		S.AimErrorDeg = 3.5f;
 		S.PackMin = 4;
 		S.PackMax = 8;
@@ -80,8 +80,8 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.Heavy = TDEnemyLib_MakeAttack(ETDEnemyAttack::Missile, TDEnemyWeaponIds::HomingMissile, 25.f, 1, 8.f, 0.8f, 16000.f, 35.f);
 		S.EngageRange = 14000.f;
 		S.BreakOffRange = 2500.f;
-		S.BreakOffSeconds = 1.6f;
-		S.AttackRunMaxSeconds = 4.f;
+		S.BreakOffSeconds = 3.f;	// ENG-27 spacing
+		S.AttackRunMaxSeconds = 3.f;
 		S.AimErrorDeg = 2.5f;
 		S.PackMin = 1;
 		S.PackMax = 2;

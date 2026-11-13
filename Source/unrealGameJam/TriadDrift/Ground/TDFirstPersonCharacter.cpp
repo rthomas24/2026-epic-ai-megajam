@@ -24,6 +24,18 @@
 #include "InputAction.h"
 #include "InputModifiers.h"
 #include "UObject/ConstructorHelpers.h"
+#include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimSequenceBase.h"
+#include "Materials/MaterialInterface.h"
+#include "Camera/PlayerCameraManager.h"
+#include "EngineUtils.h"
+#include "TriadDrift/Ground/Camera/TDThirdPersonCameraComponent.h"
+#include "Engine/StaticMeshSocket.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -74,6 +86,23 @@ ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& Objec
 
 	Blade = CreateDefaultSubobject<UTDEnergyBladeComponent>(TEXT("Blade"));
 
+	// ENG-32: T3's chase rig on the capsule, and the blade the body holds whenever the whole pilot is on screen.
+	ThirdPersonRig = CreateDefaultSubobject<UTDThirdPersonCameraComponent>(TEXT("ThirdPersonCamera"));
+	ThirdPersonRig->SetupAttachment(GetCapsuleComponent());
+	HandBladeHilt = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HandBladeHilt"));
+	HandBladeHilt->SetupAttachment(GetMesh());
+	HandBladeBeam = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HandBladeBeam"));
+	HandBladeBeam->SetupAttachment(HandBladeHilt);
+	for (UStaticMeshComponent* C : { HandBladeHilt.Get(), HandBladeBeam.Get() })
+	{
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCanEverAffectNavigation(false);
+		C->SetVisibility(false);
+	}
+	HandBladeBeam->SetCastShadow(false);
+	// hand_r of the pilot skeleton (retargeted Manny): the grip in the palm (set by eye, TD.Ground.HandBlade).
+	HandBladeOffset = FTransform(FRotator(-90.f, 0.f, 0.f), FVector(-9.f, -3.f, 0.f));
+
 	UCharacterMovementComponent* Move = GetCharacterMovement();
 	Move->MaxWalkSpeed = Tuning.RunSpeed;
 	Move->MaxAcceleration = 6000.f;            // arcade-snappy starts
@@ -104,14 +133,146 @@ void ATDFirstPersonCharacter::BeginPlay()
 	DashCharges = Tuning.DashCharges;
 
 	ApplyBladeVisuals();
+	ApplyPilotVisuals();
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
+
+	ThirdPersonRig->SetFirstPersonCamera(Camera);
+	if (UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this))
+	{
+		// The saved choice applies at start-up and after every level travel (a new pilot each level).
+		Options->OnOnFootCameraModeChanged.AddUniqueDynamic(this, &ATDFirstPersonCharacter::HandleCameraModeChanged);
+		SetThirdPerson(Options->GetOnFootCameraMode() == ETDOnFootCamera::ThirdPerson);
+	}
 
 	// No extra tick ordering: CharacterMovement already ticks before its owner (bTickBeforeOwner). Forced
 	// moves sweep the capsule themselves in our Tick, so they don't depend on the order.
 }
 
+bool ATDFirstPersonCharacter::HasBody() const
+{
+	return GetMesh() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->IsVisible();
+}
+
+int32 ATDFirstPersonCharacter::ChooseBodyLoop(float GroundSpeed)
+{
+	return GroundSpeed < 60.f ? 0 : GroundSpeed < 520.f ? 1 : 2; // run speed is 650, sprint 950
+}
+
+void ATDFirstPersonCharacter::ApplyPilotVisuals()
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	if (!Body)
+	{
+		return;
+	}
+	UTDPilotVisuals* V = PilotVisuals ? PilotVisuals.Get()
+		: Cast<UTDPilotVisuals>(ATDCrewCharacter::FindLookAsset(TEXT("DA_Pilot_Visuals"), UTDPilotVisuals::StaticClass()));
+	USkeletalMesh* SK = V && !V->SkeletalMesh.IsNull() ? V->SkeletalMesh.LoadSynchronous() : nullptr;
+	AppliedPilotVisuals = SK ? V : nullptr;
+	if (!SK)
+	{
+		Body->SetVisibility(false); // no look: first person as before, nothing else changes
+		return;
+	}
+	Body->SetSkeletalMesh(SK);
+	for (int32 i = 0; i < V->MaterialOverrides.Num(); ++i)
+	{
+		if (UMaterialInterface* Mat = V->MaterialOverrides[i].LoadSynchronous())
+		{
+			Body->SetMaterial(i, Mat);
+		}
+	}
+	UClass* AnimClass = V->AnimBPClass.IsNull() ? nullptr : V->AnimBPClass.LoadSynchronous();
+	Body->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	Body->SetAnimInstanceClass(AnimClass ? AnimClass : UTDLoopBlendAnimInstance::StaticClass());
+	Body->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	Body->SetCastShadow(true);
+	Body->bCastHiddenShadow = true;
+	Body->SetOnlyOwnerSee(false);
+	Body->SetOwnerNoSee(false);
+	Body->SetVisibility(true);
+	bBodyViewKnown = false;
+	PlaceBody();
+	AttachHandBlade();
+	UpdateBody(0.f);
+}
+
+void ATDFirstPersonCharacter::PlaceBody()
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	const UTDPilotVisuals* V = AppliedPilotVisuals.Get();
+	if (!Body || !V)
+	{
+		return;
+	}
+	const float Back = bBodyFirstPerson ? FirstPersonBodyBack : 0.f;
+	const FVector Loc(-Back, 0.f, -GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight());
+	const FRotator Rot(0.f, V->MeshYaw, 0.f);
+	Body->SetRelativeLocationAndRotation(Loc, Rot);
+	Body->SetRelativeScale3D(FVector(FMath::Max(0.01f, V->MeshScale)));
+	CacheInitialMeshOffset(Loc, Rot); // crouch and slide keep the feet on the floor from here
+}
+
+void ATDFirstPersonCharacter::SetBodyFirstPersonView(bool bFirstPerson)
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	const UTDPilotVisuals* V = AppliedPilotVisuals.Get();
+	if (!Body || !V || (bBodyViewKnown && bFirstPerson == bBodyFirstPerson))
+	{
+		return;
+	}
+	bBodyViewKnown = true;
+	bBodyFirstPerson = bFirstPerson;
+	if (!V->HeadBone.IsNone() && Body->GetBoneIndex(V->HeadBone) != INDEX_NONE)
+	{
+		if (bFirstPerson)
+		{
+			Body->HideBoneByName(V->HeadBone, PBO_None);
+		}
+		else
+		{
+			Body->UnHideBoneByName(V->HeadBone);
+		}
+	}
+	if (!Body->IsSimulatingPhysics())
+	{
+		PlaceBody();
+	}
+}
+
+void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	const UTDPilotVisuals* V = AppliedPilotVisuals.Get();
+	if (!Body || !V)
+	{
+		return;
+	}
+	// The owner's own view is first person only while the camera is ours (director shots, death and boarding cut away).
+	const APlayerController* PC = Cast<APlayerController>(GetController());
+	const bool bFirstPerson = PC && PC->PlayerCameraManager && PC->PlayerCameraManager->GetViewTarget() == this && !IsDead() && !IsThirdPersonView();
+	SetBodyFirstPersonView(bFirstPerson);
+	if (UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(Body->GetAnimInstance()))
+	{
+		const UCharacterMovementComponent* Move = GetCharacterMovement();
+		const bool bAir = Move && Move->IsFalling();
+		const int32 Want = bAir && Loops->GetLoop() ? -1 : ChooseBodyLoop((float)GetVelocity().Size2D());
+		UAnimSequenceBase* Fall = bAir && !bMantling ? LoadPilotAnim(TEXT("A_Pilot_FallLoop")) : nullptr;
+		UAnimSequenceBase* Loop = Fall ? Fall : Want == 0 ? V->Idle.LoadSynchronous() : Want == 1 ? V->Walk.LoadSynchronous() : Want == 2 ? V->Run.LoadSynchronous() : Loops->GetLoop();
+		if (!Loop)
+		{
+			Loop = V->Idle.LoadSynchronous(); // a look with fewer loops still moves
+		}
+		const float Speed = (float)GetVelocity().Size2D();
+		const float Ref = Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f;
+		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f); // in the air: the fall loop, else the last loop slowed
+		Loops->SetLoop(Loop, Rate);
+	}
+}
+
 void ATDFirstPersonCharacter::ApplyBladeVisuals()
 {
+	ApplyHandBladeVisuals(); // the blade in the body's hand follows the same FX
 	const UTDBladeFX* FX = Blade ? Blade->BladeFX.Get() : nullptr;
 	if (FX && !FX->BladeMesh.IsNull())
 	{
@@ -185,8 +346,311 @@ void ATDFirstPersonCharacter::UpdateBladePose(float DeltaSeconds)
 
 void ATDFirstPersonCharacter::HandleBladeRetract(bool bRetracted)
 {
-	BladePlaceholder->SetVisibility(!bRetracted);
-	BladeHilt->SetVisibility(!bRetracted && !bBladeMeshFromArt);
+	const bool bShow = !bRetracted && !IsThirdPersonView();
+	BladePlaceholder->SetVisibility(bShow);
+	BladeHilt->SetVisibility(bShow && !bBladeMeshFromArt);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Third person (ENG-32): T3's rig, the facing rule, aim through the crosshair, the blade in the hand, readable moves
+// ------------------------------------------------------------------------------------------------
+
+void ATDFirstPersonCharacter::SetThirdPerson(bool bWanted)
+{
+	if (ThirdPersonRig)
+	{
+		ThirdPersonRig->SetThirdPerson(bWanted);
+	}
+}
+
+bool ATDFirstPersonCharacter::IsThirdPersonView() const
+{
+	return ThirdPersonRig && ThirdPersonRig->IsThirdPersonActive();
+}
+
+UCameraComponent* ATDFirstPersonCharacter::GetViewCamera() const
+{
+	UCameraComponent* Rig = ThirdPersonRig ? ThirdPersonRig->GetViewCamera() : nullptr;
+	return Rig ? Rig : Camera.Get();
+}
+
+void ATDFirstPersonCharacter::HandleCameraModeChanged(ETDOnFootCamera NewMode)
+{
+	SetThirdPerson(NewMode == ETDOnFootCamera::ThirdPerson);
+	// From the pause page our Tick is not running but the rig switches at once: apply the body side now too
+	// (no headless pilot or floating first-person blade until resume).
+	ApplyViewState();
+}
+
+void ATDFirstPersonCharacter::ApplyViewState()
+{
+	const bool bThird = IsThirdPersonView();
+	bUseControllerRotationYaw = !bThird;
+	if (BladeGrip && BladeGrip->IsVisible() == bThird)
+	{
+		BladeGrip->SetVisibility(!bThird, false);
+		HandleBladeRetract(Blade ? Blade->IsRetracted() : false); // the camera-rig blade only in first person
+	}
+	UpdateBody(0.f);       // head shown / hidden, body placed for the view
+	UpdateHandBlade(0.f);  // the hand blade shows with the whole body
+}
+
+void ATDFirstPersonCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
+{
+	Super::GetActorEyesViewPoint(OutLocation, OutRotation);
+	const UCameraComponent* Chase = IsThirdPersonView() ? ThirdPersonRig->GetThirdPersonCamera() : nullptr;
+	const UWorld* World = GetWorld();
+	if (!Chase || !World)
+	{
+		return; // first person: the eye looks where the camera does
+	}
+	// Third person: the crosshair is the chase lens's centre. Aim from the eye at whatever that centre ray is on
+	// (melee targeting, the deflect return and interaction then go where the player points, as in first person).
+	const FVector Lens = Chase->GetComponentLocation();
+	const FVector Ray = Chase->GetForwardVector();
+	const float Near = FMath::Max(0.f, (float)FVector::DotProduct(OutLocation - Lens, Ray)); // nothing behind the pilot
+	const float Far = 5000.f;
+	FVector Target = Lens + Ray * Far;
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDThirdPersonAim), false, this);
+	if (World->LineTraceSingleByChannel(Hit, Lens + Ray * Near, Target, ECC_Visibility, Params))
+	{
+		Target = Hit.ImpactPoint;
+	}
+	const FVector Aim = Target - OutLocation;
+	if (Aim.Size() > 100.f && FVector::DotProduct(Aim.GetSafeNormal(), Ray) > 0.5f)
+	{
+		OutRotation = Aim.Rotation();
+	}
+	else
+	{
+		OutRotation = Ray.Rotation(); // something right against the pilot: straight along the crosshair
+	}
+}
+
+void ATDFirstPersonCharacter::UpdateFacing(float DeltaSeconds)
+{
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	FVector MoveVector = bForcedMove ? ForcedVelocity : (Move ? Move->GetCurrentAcceleration() : FVector::ZeroVector);
+	MoveVector.Z = 0.f;
+	const bool bCombat = Blade && (Blade->IsAttacking() || Blade->IsBlocking() || Blade->GetBladeState() == ETDBladeState::Blocking);
+	const float CameraYaw = (float)GetControlRotation().Yaw;
+	const float Current = (float)GetActorRotation().Yaw;
+	float Desired = UTDThirdPersonCameraComponent::GetDesiredActorYaw(MoveVector, CameraYaw, bCombat, Current);
+	const bool bStill = MoveVector.SizeSquared() < 1.f && !bCombat;
+	if (bStill && FMath::Abs(FMath::FindDeltaAngleDegrees(Current, CameraYaw)) > 60.f)
+	{
+		bIdleTurnToCamera = true;
+	}
+	if (bIdleTurnToCamera)
+	{
+		// The rule starts the turn past 60 deg; finish it, so the body ends up facing the camera, not 60 deg off.
+		bIdleTurnToCamera = bStill && FMath::Abs(FMath::FindDeltaAngleDegrees(Current, CameraYaw)) > 1.f;
+		Desired = bIdleTurnToCamera ? CameraYaw : Desired;
+	}
+	// A new attack snaps to the camera at once (no frames of swing the wrong way); blocking turns twice as fast.
+	const bool bAttacking = Blade && Blade->IsAttacking();
+	const bool bSnap = bAttacking && !bFacingWasAttacking;
+	bFacingWasAttacking = bAttacking;
+	const float Rate = ThirdPersonTurnRate * (bCombat ? 2.f : 1.f);
+	SetActorRotation(FRotator(0.f, bSnap ? CameraYaw : FMath::FixedTurn(Current, Desired, Rate * DeltaSeconds), 0.f));
+}
+
+void ATDFirstPersonCharacter::AttachHandBlade()
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	if (!Body || !HandBladeHilt)
+	{
+		return;
+	}
+	const FName Socket = Body->DoesSocketExist(TEXT("BladeSocket")) ? FName(TEXT("BladeSocket")) : FName(TEXT("hand_r"));
+	HandBladeHilt->AttachToComponent(Body, FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
+	if (Socket == TEXT("hand_r"))
+	{
+		HandBladeHilt->SetRelativeTransform(HandBladeOffset);
+	}
+	// The body is scaled (MeshScale): keep the blade at its authored size.
+	const FVector BodyScale = Body->GetComponentScale();
+	HandBladeHilt->SetRelativeScale3D(FVector(1.f / FMath::Max(0.01f, (float)BodyScale.X)));
+}
+
+void ATDFirstPersonCharacter::ApplyHandBladeVisuals()
+{
+	const UTDBladeFX* FX = Blade ? Blade->BladeFX.Get() : nullptr;
+	if (FX && !FX->BladeMesh.IsNull())
+	{
+		if (UStaticMesh* ArtMesh = FX->BladeMesh.LoadSynchronous())
+		{
+			// Nick's blade wins: authored with its pivot in the hand and the blade up its +Z; turned onto the hilt's +X.
+			HandBladeHilt->SetStaticMesh(nullptr);
+			HandBladeBeam->SetStaticMesh(ArtMesh);
+			HandBladeBeam->AttachToComponent(HandBladeHilt, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			HandBladeBeam->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+			return;
+		}
+	}
+	static const TCHAR* HiltPath = TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeHilt.SM_TD_BladeHilt");
+	static const TCHAR* BeamPath = TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam");
+	UStaticMesh* Hilt = LoadObject<UStaticMesh>(nullptr, HiltPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UStaticMesh* Beam = LoadObject<UStaticMesh>(nullptr, BeamPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!Beam)
+	{
+		Beam = BladePlaceholder ? BladePlaceholder->GetStaticMesh() : nullptr; // no art: the engine cube, as in first person
+	}
+	HandBladeHilt->SetStaticMesh(Hilt);
+	HandBladeBeam->SetStaticMesh(Beam);
+	const bool bEmitter = Hilt && Hilt->FindSocket(TEXT("BladeEmitter"));
+	HandBladeBeam->AttachToComponent(HandBladeHilt, FAttachmentTransformRules::SnapToTargetNotIncludingScale, bEmitter ? FName(TEXT("BladeEmitter")) : NAME_None);
+	if (!bEmitter)
+	{
+		HandBladeBeam->SetRelativeLocation(FVector(Hilt ? 19.3f : 6.f, 0.f, 0.f));
+	}
+	const FLinearColor Color = FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f);
+	if (Beam && Beam->GetName() == TEXT("SM_TD_BladeBeam"))
+	{
+		if (UMaterialInstanceDynamic* MID = HandBladeBeam->CreateDynamicMaterialInstance(0))
+		{
+			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
+		}
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(HandBladeBeam, Color, 1.4f);
+	}
+}
+
+void ATDFirstPersonCharacter::UpdateHandBlade(float DeltaSeconds)
+{
+	if (!HandBladeBeam || !HandBladeHilt)
+	{
+		return;
+	}
+	const bool bRetracted = !Blade || Blade->IsRetracted();
+	HandBladeExtend = FMath::Clamp(HandBladeExtend + (bRetracted ? -1.f : 1.f) * DeltaSeconds / 0.15f, 0.f, 1.f);
+	// Shown whenever the whole pilot is (third person, director shots, the death view), never in first person.
+	const bool bShow = HasBody() && !bBodyFirstPerson;
+	HandBladeHilt->SetVisibility(bShow && HandBladeHilt->GetStaticMesh() != nullptr);
+	HandBladeBeam->SetVisibility(bShow && HandBladeExtend > 0.01f);
+	const UStaticMesh* Beam = HandBladeBeam->GetStaticMesh();
+	const bool bFromFX = Blade && Blade->BladeFX && !Blade->BladeFX->BladeMesh.IsNull();
+	if (bFromFX)
+	{
+		HandBladeBeam->SetRelativeScale3D(FVector(1.f, 1.f, FMath::Max(HandBladeExtend, 0.001f))); // retract along its +Z
+		return;
+	}
+	const float Authored = Beam ? FMath::Max(1.f, (float)Beam->GetBoundingBox().GetSize().X) : 100.f;
+	const bool bArtBeam = Beam && Beam->GetName() == TEXT("SM_TD_BladeBeam");
+	const float Length = HandBladeLength * FMath::Max(HandBladeExtend, 0.001f);
+	if (bArtBeam)
+	{
+		HandBladeBeam->SetRelativeScale3D(FVector(Length / Authored, 1.f, 1.f)); // origin at the emitter: grows out of it
+	}
+	else
+	{
+		// The placeholder cube is centred: push it out by half its length.
+		HandBladeBeam->SetRelativeScale3D(FVector(Length / Authored, 0.03f, 0.015f));
+		HandBladeBeam->SetRelativeLocation(FVector(6.f + Length * 0.5f, 0.f, 0.f));
+	}
+}
+
+UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
+{
+	if (Anim.IsNone())
+	{
+		return nullptr;
+	}
+	const FString Name = Anim.ToString();
+	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/%s"), *Name);
+	const FString Path = Package + TEXT(".") + Name;
+	UAnimSequenceBase* Seq = FindObject<UAnimSequenceBase>(nullptr, *Path);
+	if (!Seq && FPackageName::DoesPackageExist(Package))
+	{
+		Seq = LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	}
+	return Seq ? TDMakePlayable(Seq) : nullptr;
+}
+
+void ATDFirstPersonCharacter::PlayBodyAction(FName Anim, float Rate, bool bUpperOnly)
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	UTDLoopBlendAnimInstance* Loops = Body && HasBody() ? Cast<UTDLoopBlendAnimInstance>(Body->GetAnimInstance()) : nullptr;
+	UAnimSequenceBase* Seq = Loops ? LoadPilotAnim(Anim) : nullptr;
+	if (Seq)
+	{
+		Loops->PlayOneShot(Seq, Rate, bUpperOnly);
+		BodyActionName = Anim;
+	}
+}
+
+void ATDFirstPersonCharacter::UpdateCloseCombat(float DeltaSeconds)
+{
+	if (!ThirdPersonRig)
+	{
+		return;
+	}
+	CloseCombatScan -= DeltaSeconds;
+	if (CloseCombatScan <= 0.f)
+	{
+		CloseCombatScan = 0.15f; // a few crew at most: a cheap scan, not every frame
+		bEnemyClose = false;
+		const FVector Here = GetActorLocation();
+		for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It && !bEnemyClose; ++It)
+		{
+			bEnemyClose = !It->IsDead() && FVector::DistSquared(It->GetActorLocation(), Here) < FMath::Square(CloseCombatRange);
+		}
+	}
+	const bool bBladeBusy = Blade && (Blade->IsAttacking() || Blade->IsBlocking());
+	const bool bClose = !IsDead() && (bEnemyClose || bBladeBusy);
+	if (bClose != bLastCloseCombat)
+	{
+		bLastCloseCombat = bClose;
+		ThirdPersonRig->SetCloseCombat(bClose);
+	}
+}
+
+void ATDFirstPersonCharacter::UpdateBodyActions()
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	UTDLoopBlendAnimInstance* Loops = Body && HasBody() ? Cast<UTDLoopBlendAnimInstance>(Body->GetAnimInstance()) : nullptr;
+	if (!Loops || !Blade || IsDead())
+	{
+		return;
+	}
+	// Moving: swings play from the spine up so the legs keep running; standing: the whole body commits.
+	const bool bMoving = GetVelocity().Size2D() > 150.f;
+	const ETDBladeState State = Blade->GetBladeState();
+	if (State != LastBodyBladeState)
+	{
+		switch (State)
+		{
+		case ETDBladeState::Light1: PlayBodyAction(TEXT("A_Pilot_Light1"), 1.6f, bMoving); break;
+		case ETDBladeState::Light2: PlayBodyAction(TEXT("A_Pilot_Light2"), 1.6f, bMoving); break;
+		case ETDBladeState::Light3: PlayBodyAction(TEXT("A_Pilot_Light3"), 1.5f, bMoving); break;
+		case ETDBladeState::HeavyLunge:
+		case ETDBladeState::DashStrike: PlayBodyAction(TEXT("A_Pilot_Heavy"), 1.4f, false); break;
+		case ETDBladeState::AirSlam: PlayBodyAction(TEXT("A_Pilot_Light3"), 1.2f, false); break;
+		case ETDBladeState::GuardBroken: PlayBodyAction(TEXT("A_Pilot_HitReact_Front"), 1.f, true); break;
+		default: break;
+		}
+		LastBodyBladeState = State;
+	}
+	// The guard is held on the upper body for as long as the block is.
+	Loops->SetUpperLoop(State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block")) : nullptr);
+	if (bDashing && !bLastBodyDashing && !Blade->IsAttacking())
+	{
+		PlayBodyAction(TEXT("A_Pilot_Dash"), 1.8f, false);
+	}
+	if (bSliding && !bLastBodySliding)
+	{
+		PlayBodyAction(TEXT("A_Pilot_Dash"), 0.8f, false);
+	}
+	if (bMantling && !bLastBodyMantling)
+	{
+		PlayBodyAction(TEXT("A_Pilot_JumpStart"), 1.4f, false);
+	}
+	bLastBodyDashing = bDashing;
+	bLastBodySliding = bSliding;
+	bLastBodyMantling = bMantling;
 }
 
 bool ATDFirstPersonCharacter::IsDead() const
@@ -472,6 +936,21 @@ void ATDFirstPersonCharacter::RespawnAt(const FTransform& Where)
 	{
 		C->SetControlRotation(Where.Rotator());
 	}
+	if (USkeletalMeshComponent* Body = GetMesh(); Body && Body->IsSimulatingPhysics())
+	{
+		// Back from the ragdoll: the body rejoins the capsule.
+		Body->SetSimulatePhysics(false);
+		Body->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+		Body->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bBodyViewKnown = false;
+		PlaceBody();
+		AttachHandBlade();
+	}
+	if (UTDLoopBlendAnimInstance* Loops = GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr)
+	{
+		Loops->StopOneShot(); // a new take starts clean (no swing or flinch carried over)
+		Loops->SetUpperLoop(nullptr);
+	}
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	Health->Revive(1.f, 1.f);
@@ -563,6 +1042,13 @@ void ATDFirstPersonCharacter::PingObjective()
 void ATDFirstPersonCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
 {
 	UE_LOG(LogTriadDrift, Verbose, TEXT("Pilot hit: %.0f %s from %s, hull %.0f"), HullDamage, *UEnum::GetValueAsString(Info.Kind), *GetNameSafe(Info.Causer), InHealth ? InHealth->GetHull() : 0.f);
+	if (HullDamage > 0.f && InHealth && InHealth->IsAlive() && Blade && !Blade->IsAttacking())
+	{
+		// A flinch the camera can read in third person: front or back by where the hit came from.
+		const AActor* From = Info.Causer ? Info.Causer.Get() : Info.Instigator.Get();
+		const bool bFromBehind = From && FVector::DotProduct((From->GetActorLocation() - GetActorLocation()).GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
+		PlayBodyAction(bFromBehind ? TEXT("A_Pilot_HitReact_Back") : TEXT("A_Pilot_HitReact_Front"), 1.2f, true);
+	}
 	const ATDInteractableActor* Held = Cast<ATDInteractableActor>(HoldTarget.Get());
 	if (ShieldDamage + HullDamage > 0.f && !(Held && Held->bHoldSurvivesDamage))
 	{
@@ -587,6 +1073,12 @@ void ATDFirstPersonCharacter::HandleDeath(UTDHealthComponent* InHealth, const FT
 	}
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
+	if (USkeletalMeshComponent* Body = GetMesh(); Body && HasBody() && Body->GetPhysicsAsset())
+	{
+		SetBodyFirstPersonView(false); // the death view sees the whole pilot fall
+		Body->SetCollisionProfileName(TEXT("Ragdoll"));
+		Body->SetSimulatePhysics(true);
+	}
 	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
 	{
 		Flow->ReportPlayerDefeated(); // CUT! The scene restarts as the next take.
@@ -620,7 +1112,11 @@ void ATDFirstPersonCharacter::UpdateMoveSpeed()
 {
 	UCharacterMovementComponent* Move = GetCharacterMovement();
 	const bool bBladeBusy = Blade && (Blade->IsBlocking() || Blade->IsAttacking());
-	bSprinting = bSprintHeld && MoveInput.Y > 0.1f && !bCarrying && !bBladeBusy && !bSliding;
+	if (bSprintToggled && MoveInput.Size() < SprintToggleMinStick)
+	{
+		bSprintToggled = false; // the pad sprint ends when the stick is let go (or eased right down)
+	}
+	bSprinting = (bSprintHeld || bSprintToggled) && MoveInput.Y > 0.1f && !bCarrying && !bBladeBusy && !bSliding;
 	const float Scale = Blade ? Blade->GetMoveSpeedScale() : 1.f;
 	Move->MaxWalkSpeed = (bSprinting ? Tuning.SprintSpeed : Tuning.RunSpeed) * Scale;
 }
@@ -798,6 +1294,7 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 		}
 		UpdateMoveSpeed();
 		TickForcedMove(DeltaSeconds);
+		UpdateBody(DeltaSeconds);
 		TickSlide(DeltaSeconds);
 		TickMantle(DeltaSeconds);
 		TickInteract(DeltaSeconds);
@@ -805,6 +1302,16 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 	}
 	TickDash(DeltaSeconds);
 	PingTimeLeft = FMath::Max(0.f, PingTimeLeft - DeltaSeconds);
+
+	// Third person: the body turns by the facing rule instead of with the mouse; first person: as before.
+	ApplyViewState();
+	if (IsThirdPersonView() && !IsDead() && !bMantling)
+	{
+		UpdateFacing(DeltaSeconds);
+	}
+	UpdateBodyActions();
+	UpdateHandBlade(DeltaSeconds);
+	UpdateCloseCombat(DeltaSeconds);
 
 	// Mirror state for animation and HUD.
 	BladeState = GetBladeState();
@@ -846,8 +1353,10 @@ void ATDFirstPersonCharacter::BuildInput()
 	using V = EInputActionValueType;
 	IA_Move = MakeAction(this, TEXT("IA_Ground_Move"), V::Axis2D);
 	IA_Look = MakeAction(this, TEXT("IA_Ground_Look"), V::Axis2D);
+	IA_LookStick = MakeAction(this, TEXT("IA_Ground_LookStick"), V::Axis2D);
 	IA_Jump = MakeAction(this, TEXT("IA_Ground_Jump"), V::Boolean);
 	IA_Sprint = MakeAction(this, TEXT("IA_Ground_Sprint"), V::Boolean);
+	IA_SprintToggle = MakeAction(this, TEXT("IA_Ground_SprintToggle"), V::Boolean);
 	IA_Dash = MakeAction(this, TEXT("IA_Ground_Dash"), V::Boolean);
 	IA_Crouch = MakeAction(this, TEXT("IA_Ground_Crouch"), V::Boolean);
 	IA_Attack = MakeAction(this, TEXT("IA_Ground_Attack"), V::Boolean);
@@ -874,16 +1383,11 @@ void ATDFirstPersonCharacter::BuildInput()
 		AddModifier<UInputModifierDeadZone>(Stick, C);
 	}
 	C->MapKey(IA_Look, EKeys::Mouse2D);
-	{
-		FEnhancedActionKeyMapping& Stick = C->MapKey(IA_Look, EKeys::Gamepad_Right2D);
-		AddModifier<UInputModifierDeadZone>(Stick, C);
-		UInputModifierScalar* Scale = AddModifier<UInputModifierScalar>(Stick, C);
-		Scale->Scalar = FVector(3.f, 3.f, 1.f);
-	}
+	C->MapKey(IA_LookStick, EKeys::Gamepad_Right2D); // dead zone, scale and invert come from the settings (ShapeLook)
 	C->MapKey(IA_Jump, EKeys::SpaceBar);
 	C->MapKey(IA_Jump, EKeys::Gamepad_FaceButton_Bottom);
 	C->MapKey(IA_Sprint, EKeys::LeftShift);
-	C->MapKey(IA_Sprint, EKeys::Gamepad_LeftThumbstick);
+	C->MapKey(IA_SprintToggle, EKeys::Gamepad_LeftThumbstick); // click to sprint (T1's pad pass); Shift is held
 	C->MapKey(IA_Dash, EKeys::Q);
 	C->MapKey(IA_Dash, EKeys::Gamepad_FaceButton_Right);
 	C->MapKey(IA_Crouch, EKeys::LeftControl);
@@ -913,9 +1417,11 @@ void ATDFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ATDFirstPersonCharacter::OnMove);
 	EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &ATDFirstPersonCharacter::OnMoveReleased);
 	EIC->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ATDFirstPersonCharacter::OnLook);
+	EIC->BindAction(IA_LookStick, ETriggerEvent::Triggered, this, &ATDFirstPersonCharacter::OnLookStick);
 	EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnJumpPressed);
 	EIC->BindAction(IA_Sprint, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnSprintPressed);
 	EIC->BindAction(IA_Sprint, ETriggerEvent::Completed, this, &ATDFirstPersonCharacter::OnSprintReleased);
+	EIC->BindAction(IA_SprintToggle, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnSprintTogglePressed);
 	EIC->BindAction(IA_Dash, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnDashPressed);
 	EIC->BindAction(IA_Crouch, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnCrouchPressed);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnAttackPressed);
@@ -963,6 +1469,7 @@ void ATDFirstPersonCharacter::UnPossessed()
 	}
 	MoveInput = FVector2D::ZeroVector;
 	bSprintHeld = false;
+	bSprintToggled = false;
 	if (Blade)
 	{
 		Blade->SetBlockHeld(false);
@@ -977,11 +1484,41 @@ void ATDFirstPersonCharacter::OnMove(const FInputActionValue& Value)
 	SetMoveInput(Value.Get<FVector2D>());
 }
 
+FVector2D ATDFirstPersonCharacter::ShapeLook(const FVector2D& Raw, bool bGamepad, const FTDPlayerSettings& S)
+{
+	if (!bGamepad)
+	{
+		const float Sens = FMath::Max(0.f, S.MouseSensitivity);
+		return FVector2D(Raw.X * Sens, -Raw.Y * Sens * (S.bInvertMouseY ? -1.f : 1.f));
+	}
+	// Radial dead zone, the rest rescaled to 0..1 so a small push past it is a small turn.
+	const float Len = (float)Raw.Size();
+	const float Dead = FMath::Clamp(S.GamepadDeadzone, 0.f, 0.95f);
+	if (Len <= Dead || Len <= KINDA_SMALL_NUMBER)
+	{
+		return FVector2D::ZeroVector;
+	}
+	const FVector2D Live = Raw / Len * FMath::Min(1.f, (Len - Dead) / (1.f - Dead));
+	const float Sens = StickLookScale * FMath::Max(0.f, S.GamepadSensitivity);
+	return FVector2D(Live.X * Sens, -Live.Y * Sens * (S.bInvertGamepadY ? -1.f : 1.f));
+}
+
+void ATDFirstPersonCharacter::ApplyLookInput(const FVector2D& Raw, bool bGamepad)
+{
+	const UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this);
+	const FVector2D Look = ShapeLook(Raw, bGamepad, Options ? Options->GetSettings() : FTDPlayerSettings());
+	AddControllerYawInput(Look.X);
+	AddControllerPitchInput(Look.Y);
+}
+
 void ATDFirstPersonCharacter::OnLook(const FInputActionValue& Value)
 {
-	const FVector2D V = Value.Get<FVector2D>();
-	AddControllerYawInput(V.X);
-	AddControllerPitchInput(-V.Y);
+	ApplyLookInput(Value.Get<FVector2D>(), false);
+}
+
+void ATDFirstPersonCharacter::OnLookStick(const FInputActionValue& Value)
+{
+	ApplyLookInput(Value.Get<FVector2D>(), true);
 }
 
 void ATDFirstPersonCharacter::OnAttackPressed()

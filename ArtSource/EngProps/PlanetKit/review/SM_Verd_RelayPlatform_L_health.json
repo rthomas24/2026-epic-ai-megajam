@@ -1,0 +1,177 @@
+{
+  "asset": "SM_Verd_RelayPlatform_L",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 19208,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4815,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -500.0,
+      -500.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      500.0,
+      500.0,
+      330.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        10.0,
+        10.0,
+        3.3
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        10.0,
+        10.0,
+        3.3
+      ]
+    },
+    "edge_area_share": 0.0425,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4815,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_RelayPlatform_L",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_L\\T_Verd_RelayPlatform_L_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_L\\T_Verd_RelayPlatform_L_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_L\\T_Verd_RelayPlatform_L_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_L\\T_Verd_RelayPlatform_L_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_RelayPlatform_L_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 84.36
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6669
+    },
+    "detail_uv": "UVDetail (channel 1), 4 m per tile",
+    "build_seconds": 93.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.2041,
+        0.2446,
+        0.2996
+      ],
+      "min": 0.0,
+      "max": 0.6667
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5004,
+        0.4996,
+        1.0
+      ],
+      "min": 0.298,
+      "max": 1.0,
+      "std_rg": [
+        0.0219,
+        0.0226
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.4093,
+        0.6248,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.882
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0291,
+        0.1308,
+        0.115
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0152,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Verd_RelayPlatform_L",
+      "message": "72 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 274,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.02178
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_RelayPlatform_L_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_RelayPlatform_L_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

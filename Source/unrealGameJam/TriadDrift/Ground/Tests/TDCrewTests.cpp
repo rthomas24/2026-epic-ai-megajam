@@ -17,6 +17,15 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EngineUtils.h"
+#include "UObject/StrongObjectPtr.h"
+#if WITH_EDITOR
+#include "SkinnedAssetCompiler.h"
+#endif
+#include "Animation/AnimSequence.h"
+#include "Rendering/SkeletalMeshRenderData.h"
+#include "AnimationRuntime.h"
+#include "TriadDrift/Ground/TDPilotAnim.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "UObject/Package.h"
 #include "Misc/ScopeExit.h"
 #include "Materials/MaterialInterface.h"
@@ -160,12 +169,16 @@ bool FTDCrewTrooper::RunTest(const FString& Parameters)
 	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
 	ATDCrewCharacter* Tr = TDCrewTest::SpawnCrew(W, ETDCrewType::Trooper, FVector(400.f, 0.f, 95.f), FRotator(0.f, 180.f, 0.f));
 	if (!TestNotNull(TEXT("trooper"), Tr)) { return false; }
-	int32 MaxBolts = 0;
+	int32 MaxBolts = 0, AttackFrames = 0;
 	for (int32 i = 0; i < 60 * 5; ++i)
 	{
 		W.Tick(1.f / 60.f);
+		AttackFrames += Tr->IsAttacking() ? 1 : 0;
 		MaxBolts = FMath::Max(MaxBolts, TDCrewTest::LiveEnemyBolts(W.GetWorld()));
 	}
+	const FVector ToP = (P->GetActorLocation() - Tr->GetActorLocation()).GetSafeNormal2D();
+	AddInfo(FString::Printf(TEXT("trooper look %s, attacking frames %d, muzzle %s (actor %s), max bolts %d"), *GetNameSafe(Tr->GetMesh()->GetSkeletalMeshAsset()),
+		AttackFrames, *Tr->GetMuzzleLocation(ToP).ToCompactString(), *Tr->GetActorLocation().ToCompactString(), MaxBolts));
 	const float Dist = (float)FVector::Dist2D(Tr->GetActorLocation(), P->GetActorLocation());
 	TestTrue(FString::Printf(TEXT("backs off to 900+ cm (%.0f)"), Dist), Dist >= 850.f);
 	TestTrue(TEXT("3-round burst in the air"), MaxBolts >= 2);
@@ -408,7 +421,10 @@ bool FTDCrewDeath::RunTest(const FString& Parameters)
 	TestTrue(TEXT("blade killed the grunt"), G->IsDead());
 	TestEqual(TEXT("kill counted"), GI->GetProgressRef().Stats.Kills, 1);
 	TestEqual(TEXT("capsule collision off"), (int32)G->GetCapsuleComponent()->GetCollisionEnabled(), (int32)ECollisionEnabled::NoCollision);
-	TestTrue(TEXT("placeholder ragdoll simulates"), G->GetBody()->IsSimulatingPhysics());
+	// The grunt may wear the trooper's look (when that asset exists): then it falls by animation or ragdoll.
+	const bool bFalls = G->GetBody()->IsSimulatingPhysics() || G->IsToppling()
+		|| (G->GetMesh()->IsVisible() && G->GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode);
+	TestTrue(TEXT("dies visibly (placeholder ragdoll, a topple or a death animation)"), bFalls);
 	TestTrue(TEXT("corpse cleans itself up"), G->GetLifeSpan() > 0.f);
 	return true;
 }
@@ -421,13 +437,29 @@ bool FTDCrewVisuals::RunTest(const FString& Parameters)
 	TDGroundTest::SpawnFloor(W);
 	ATDCrewCharacter* G = TDCrewTest::SpawnCrew(W, ETDCrewType::Grunt, FVector(0.f, 0.f, 95.f));
 	if (!TestNotNull(TEXT("grunt"), G)) { return false; }
-	TestNull(TEXT("no DA_Crew_Grunt_Visuals yet"), G->Visuals.Get());
-	TestTrue(TEXT("placeholder visible"), G->IsPlaceholderVisible());
+	const UTDEnemyVisuals* TrooperLook = ATDCrewCharacter::FindCrewVisuals(TEXT("Trooper"));
+	// The project now ships a grunt look of its own (engineering-made, Gameplay/Characters/NullGrunt): the
+	// test must hold with or without that content on disk.
+	if (const UTDEnemyVisuals* GruntLook = ATDCrewCharacter::FindCrewVisuals(TEXT("Grunt")))
+	{
+		TestTrue(TEXT("the grunt wears its own look"), G->Visuals.Get() == GruntLook && !G->IsPlaceholderVisible());
+	}
+	else if (TrooperLook && !TrooperLook->SkeletalMesh.IsNull())
+	{
+		TestTrue(TEXT("no grunt look: the grunt wears the trooper's"), G->Visuals.Get() == TrooperLook && G->GetMesh()->IsVisible() && !G->IsPlaceholderVisible());
+		TestEqual(TEXT("sized to a grunt"), G->GetLookScale(), 0.96f, 0.001f); // always, own look or borrowed
+	}
+	else
+	{
+		TestNull(TEXT("no DA_Crew_Grunt_Visuals yet"), G->Visuals.Get());
+		TestTrue(TEXT("placeholder visible"), G->IsPlaceholderVisible());
+	}
 	UTDEnemyVisuals* V = NewObject<UTDEnemyVisuals>(G);
 	V->Mesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/BasicShapes/Sphere.Sphere")));
 	G->Visuals = V;
 	G->ApplyVisuals();
 	TestFalse(TEXT("assigned mesh hides the placeholder"), G->IsPlaceholderVisible());
+	TestFalse(TEXT("and any skeletal look"), G->GetMesh()->IsVisible());
 	TestEqual(TEXT("mesh applied"), G->GetBody()->GetStaticMesh()->GetName(), FString(TEXT("Sphere")));
 	return true;
 }
@@ -559,12 +591,12 @@ bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the skeletal look is shown, the block hidden"), Tr->GetMesh()->IsVisible() && !Tr->IsPlaceholderVisible());
 	TestTrue(TEXT("no AnimBP in the look: the template mannequin set drives it"), Tr->UsesFallbackAnimation());
 	UAnimInstance* Anim = Tr->GetMesh()->GetAnimInstance();
-	TestTrue(*FString::Printf(TEXT("animated by ABP_Unarmed (%s)"), *GetNameSafe(Anim ? Anim->GetClass() : nullptr)), Anim && Anim->GetClass()->GetName().Contains(TEXT("ABP_Unarmed")));
+	TestTrue(*FString::Printf(TEXT("the C++ loop player drives it (%s)"), *GetNameSafe(Anim ? Anim->GetClass() : nullptr)), Cast<UTDLoopBlendAnimInstance>(Anim) != nullptr);
 	TestEqual(TEXT("mannequin-skeleton meshes face forward (-90 yaw)"), (float)Tr->GetMesh()->GetRelativeRotation().Yaw, -90.f, 0.01f);
 	TestTrue(TEXT("material overrides apply to the skeletal look"), Tr->GetMesh()->GetMaterial(0) == Mat);
 	const FVector Dir = (P->GetActorLocation() - Tr->GetActorLocation()).GetSafeNormal();
-	TestTrue(TEXT("no Muzzle socket: bolts leave from in front of the capsule"),
-		FVector::DistSquared(Tr->GetMuzzleLocation(Dir), Tr->GetActorLocation() + FVector(0.f, 0.f, Tr->Spec.CapsuleHalfHeight * 0.4f) + Dir * (Tr->Spec.CapsuleRadius + 35.f)) < 1.f);
+	TestTrue(TEXT("no Muzzle socket: shots start in front of the body toward the player (the hand when it is there)"),
+		FVector::DotProduct(Tr->GetMuzzleLocation(Dir) - Tr->GetActorLocation(), Dir) >= Tr->Spec.CapsuleRadius);
 	// A look with its own yaw keeps it.
 	Look->SkeletalMeshYaw = 0.f;
 	Tr->ApplyVisuals();
@@ -573,7 +605,170 @@ bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
 	FTDDamageInfo Kill;
 	Tr->GetHealth()->Kill(P, ETDDamageKind::Melee);
 	W.Tick(1.f / 60.f);
-	TestEqual(TEXT("dies into a death animation"), Tr->GetMesh()->GetAnimationMode(), EAnimationMode::AnimationSingleNode);
+	TestTrue(TEXT("dies visibly: the crew set's death animation, else it topples over"),
+		Tr->GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode || Tr->IsToppling());
+	const FVector FeetBefore = Tr->GetMesh()->GetComponentLocation();
+	for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); }
+	const float Tilt = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(Tr->GetMesh()->GetUpVector(), FVector::UpVector)));
+	TestTrue(*FString::Printf(TEXT("lies down where it stood (tilt %.0f deg, moved %.0f cm)"), Tilt, FVector::Dist(FeetBefore, Tr->GetMesh()->GetComponentLocation())),
+		Tr->GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode || (Tilt > 70.f && FVector::Dist(FeetBefore, Tr->GetMesh()->GetComponentLocation()) < 50.f));
+	return true;
+}
+
+#if WITH_EDITOR // USkeletalMesh::AddSocket is editor-only: a packaged Development game compiles the tests too
+// ------------------------------------------------------------------------------------------------
+// A look with a Muzzle socket on the hand (the re-imported NullTrooper): the socket is only where shots start;
+// they are aimed from there at the target and land. A socket that sits beside or behind the body falls back to
+// the chest-front point. Covered with a runtime socket on the template mannequin, both placements.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewMuzzleSocket, "TriadDrift.Ground.Crew.MuzzleSocketShotsStillLand", TD_TEST_FLAGS)
+bool FTDCrewMuzzleSocket::RunTest(const FString& Parameters)
+{
+	USkeletalMesh* Manny = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
+	if (!TestNotNull(TEXT("template mannequin mesh"), Manny)) { return false; }
+	for (const FVector& SocketOffset : { FVector(0.f, 20.f, 0.f), FVector(0.f, -60.f, 0.f) }) // along the hand, then well off it
+	{
+		FTDTestWorld W; // first: making a world collects garbage, which would take the transient look below
+		// One socketed copy for the whole session, held strongly and fully compiled before any use: a fresh duplicate
+		// per pass was still building on a worker thread when the pass's world was torn down (IsValidIndex(-1) crash).
+		static TStrongObjectPtr<USkeletalMesh> SharedCopy;
+		if (!SharedCopy.IsValid())
+		{
+			USkeletalMesh* Dup = DuplicateObject<USkeletalMesh>(Manny, GetTransientPackage());
+			USkeletalMeshSocket* NewSocket = NewObject<USkeletalMeshSocket>(Dup);
+			NewSocket->SocketName = TEXT("Muzzle");
+			NewSocket->BoneName = TEXT("hand_r");
+			Dup->AddSocket(NewSocket);
+			SharedCopy.Reset(Dup);
+		}
+		USkeletalMesh* WithSocket = SharedCopy.Get();
+#if WITH_EDITOR
+		{
+			TArray<USkinnedAsset*> Pending{ WithSocket };
+			FSkinnedAssetCompilingManager::Get().FinishCompilation(Pending);
+		}
+#endif
+		USkeletalMeshSocket* Socket = WithSocket->FindSocket(TEXT("Muzzle"));
+		if (!TestNotNull(TEXT("socket"), Socket)) { return false; }
+		Socket->RelativeLocation = SocketOffset;
+		TStrongObjectPtr<UTDEnemyVisuals> Look(NewObject<UTDEnemyVisuals>(GetTransientPackage()));
+		Look->SkeletalMesh = WithSocket;
+
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+		const FTransform Xf(FRotator(0.f, 180.f, 0.f), FVector(900.f, 0.f, 95.f));
+		ATDCrewCharacter* Tr = W.GetWorld()->SpawnActorDeferred<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		Tr->CrewType = ETDCrewType::Trooper;
+		Tr->Visuals = Look.Get();
+		Tr->FinishSpawning(Xf);
+		W.Tick(1.f / 60.f);
+		if (!TestTrue(TEXT("the socketed look is on"), Tr->GetMesh()->IsVisible() && Tr->GetMesh()->DoesSocketExist(TEXT("Muzzle")))) { return false; }
+		const FVector ToPlayer = (P->GetActorLocation() - Tr->GetActorLocation()).GetSafeNormal2D();
+		const FVector Start = Tr->GetMuzzleLocation(ToPlayer);
+		TestTrue(*FString::Printf(TEXT("socket %s: shots start in front of the trooper toward the player"), *SocketOffset.ToCompactString()),
+			FVector::DotProduct(Start - Tr->GetActorLocation(), ToPlayer) >= Tr->Spec.CapsuleRadius);
+		int32 MaxBolts = 0;
+		for (int32 i = 0; i < 60 * 5; ++i)
+		{
+			W.Tick(1.f / 60.f);
+			MaxBolts = FMath::Max(MaxBolts, TDCrewTest::LiveEnemyBolts(W.GetWorld()));
+		}
+		const float Taken = 100.f - TDGroundTest::Hull(P);
+		TestTrue(*FString::Printf(TEXT("socket %s: bursts fly (%d in the air)"), *SocketOffset.ToCompactString(), MaxBolts), MaxBolts >= 2);
+		TestTrue(*FString::Printf(TEXT("socket %s: bolts land, 10 each (%.0f)"), *SocketOffset.ToCompactString(), Taken), Taken >= 10.f && FMath::IsNearlyZero(FMath::Fmod(Taken, 10.f), 0.1f));
+	}
+	return true;
+}
+
+#endif // WITH_EDITOR
+// ------------------------------------------------------------------------------------------------
+// Playtest 17e0437: a live grunt lay collapsed (every bone at the floor) while tests passed, because they checked an
+// animation mode, not the pose. Every crew type with its real look stands: head above the pelvis and above
+// 140 cm x look scale over the feet, standing and walking, sampled across a second.
+namespace TDCrewUprightTest
+{
+	inline bool Upright(FAutomationTestBase& T, const ACharacter* C, const FString& What, float MinHead)
+	{
+		const USkeletalMeshComponent* M = C->GetMesh();
+		const float Feet = (float)(C->GetActorLocation().Z - C->GetSimpleCollisionHalfHeight());
+		const float Head = (float)M->GetBoneLocation(TEXT("head")).Z - Feet;
+		const float Pelvis = (float)M->GetBoneLocation(TEXT("pelvis")).Z - Feet;
+		T.AddInfo(FString::Printf(TEXT("%s: head %.0f cm, pelvis %.0f cm"), *What, Head, Pelvis));
+		return T.TestTrue(*FString::Printf(TEXT("%s stands: head %.0f cm (min %.0f), pelvis %.0f cm"), *What, Head, MinHead, Pelvis), Head > Pelvis + 30.f && Head > MinHead);
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewUpright, "TriadDrift.Ground.Crew.EveryRealLookStandsUpright", TD_TEST_FLAGS)
+bool FTDCrewUpright::RunTest(const FString& Parameters)
+{
+	int32 Checked = 0;
+	for (const ETDCrewType Type : { ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Heavy })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		TDGroundTest::SpawnPlayer(W, FVector(-3000.f, 0.f, 95.f)); // far: no fight, just standing and walking
+		ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, Type, FVector(0.f, 0.f, 120.f));
+		const FString Name = UEnum::GetValueAsString(Type);
+		if (!C->GetMesh()->IsVisible() || !C->GetMesh()->GetSkeletalMeshAsset())
+		{
+			AddInfo(FString::Printf(TEXT("%s: no skeletal look on this branch (placeholder block)"), *Name));
+			continue;
+		}
+		++Checked;
+		C->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones; // nothing renders in tests
+		if (AController* AI = C->GetController()) { AI->UnPossess(); }
+		const float MinHead = 140.f * C->GetLookScale();
+		for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); } // the Lead's rule: judged after 1 s
+		for (int32 i = 0; i < 60; ++i)
+		{
+			W.Tick(1.f / 60.f);
+			if (i % 20 == 19) { TDCrewUprightTest::Upright(*this, C, Name + TEXT(" standing"), MinHead); }
+		}
+		for (int32 i = 0; i < 60; ++i)
+		{
+			C->AddMovementInput(FVector::ForwardVector, 1.f);
+			W.Tick(1.f / 60.f);
+			if (i % 20 == 19) { TDCrewUprightTest::Upright(*this, C, Name + TEXT(" walking"), MinHead); }
+		}
+		if (C->IsLookPoseFrozen())
+		{
+			AddWarning(FString::Printf(TEXT("%s: %s collapses under the mannequin animations - shown standing in its reference pose (asset needs a re-import)"),
+				*Name, *GetNameSafe(C->GetMesh()->GetSkeletalMeshAsset())));
+		}
+		C->StartAttack(Type == ETDCrewType::Grunt ? ETDCrewAttack::Melee : ETDCrewAttack::Burst, nullptr);
+		for (int32 i = 0; i < 30; ++i) { W.Tick(1.f / 60.f); }
+		TDCrewUprightTest::Upright(*this, C, Name + TEXT(" attacking"), MinHead * 0.85f);
+	}
+	if (Checked == 0) { AddInfo(TEXT("no real crew looks on this branch: covered by SkeletalLookWithoutAnimBPStillAnimates")); }
+	return true;
+}
+
+// A killed crew member with a real look lies where it fell for its corpse time (live Nov 13: corpses vanished at once).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewCorpseStays, "TriadDrift.Ground.Crew.CorpseLiesWhereItFell", TD_TEST_FLAGS)
+bool FTDCrewCorpseStays::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-800.f, 0.f, 95.f));
+	ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, ETDCrewType::Heavy, FVector(0.f, 0.f, 120.f));
+	TWeakObjectPtr<ATDCrewCharacter> Weak(C);
+	for (int32 i = 0; i < 30; ++i) { W.Tick(1.f / 60.f); }
+	const FVector At = C->GetActorLocation();
+	C->GetHealth()->Kill(P, ETDDamageKind::Environmental);
+	for (int32 i = 0; i < 60; ++i)
+	{
+		W.Tick(1.f / 60.f);
+		if (i % 10 == 9)
+		{
+			const ATDCrewCharacter* Cur = Weak.Get();
+			AddInfo(FString::Printf(TEXT("t=%.2f valid %d destroying %d at %s mesh visible %d mesh at %s toppling %d"), (i + 1) / 60.f, Cur != nullptr, Cur ? Cur->IsActorBeingDestroyed() : -1,
+				Cur ? *Cur->GetActorLocation().ToCompactString() : TEXT("-"), Cur ? Cur->GetMesh()->IsVisible() : -1, Cur ? *Cur->GetMesh()->GetComponentLocation().ToCompactString() : TEXT("-"), Cur ? Cur->IsToppling() : -1));
+		}
+	}
+	TestTrue(TEXT("the corpse is still there after 1 s"), Weak.IsValid() && !Weak->IsActorBeingDestroyed());
+	if (Weak.IsValid())
+	{
+		TestTrue(TEXT("where it fell"), FVector::Dist2D(Weak->GetMesh()->GetComponentLocation(), At) < 150.f);
+	}
 	return true;
 }
 

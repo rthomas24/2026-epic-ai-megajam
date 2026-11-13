@@ -31,6 +31,9 @@ enum class ETDPowerInput : uint8
 	Ability
 };
 
+class UTDHintComponent;
+struct FTDPlayerSettings;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponInput, ETDWeaponSlot, Slot, bool, bHeld);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnPowerInput, ETDPowerInput, Power);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnHoldInput, bool, bHeld);
@@ -73,6 +76,12 @@ public:
 	FVector2D GetVirtualStick() const { return VirtualStick; }
 	float GetMouseSensitivity() const { return MouseSensitivity; }
 	bool IsMousePitchInverted() const { return bInvertMousePitch; }
+	float GetStickDeadzone() const { return StickDeadzone; }
+	float GetStickSensitivity() const { return StickSensitivity; }
+	bool IsStickPitchInverted() const { return bInvertStickPitch; }
+
+	/** Player options (UTDSettingsSubsystem): sensitivities scale this class's defaults; dead zone and inverts replace them. */
+	void ApplyPlayerSettings(const FTDPlayerSettings& Settings);
 
 	/** The aim the ship is currently steering with (-1..1), after deadzone, from mouse or gamepad. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
@@ -106,6 +115,10 @@ public:
 	UInputMappingContext* GetCommonContext() const { return IMC_SpaceCommon; }
 	UInputMappingContext* GetSpaceContext() const { return IMC_Space; }
 	UInputMappingContext* GetAtmosphereContext() const { return IMC_Atmosphere; }
+	/** On foot only (ENG-32): V / View toggles first / third person. */
+	UInputMappingContext* GetOnFootContext() const { return IMC_OnFoot; }
+	/** Always on: O / Y opens the Settings page while the game is paused. */
+	UInputMappingContext* GetGlobalContext() const { return IMC_Global; }
 	UInputAction* FindActionByName(FName ActionName) const;
 
 	// ---- Routed-input events -----------------------------------------------------------------------
@@ -152,6 +165,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Pause")
 	bool TogglePlayerPause() { return SetPlayerPaused(!bPausedByPlayer); }
 
+	/** First-minute control hints (Input/TDHintComponent.h). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints")
+	UTDHintComponent* GetHints() const { return Hints; }
+
 	/** The game is paused because the player paused it (not a loading or engine pause). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Pause")
 	bool IsGamePausedByPlayer() const { return bPausedByPlayer; }
@@ -167,6 +184,15 @@ public:
 	/** Whether a pause is allowed right now, and why not. */
 	bool CanPauseNow(FText* OutReason = nullptr) const;
 
+	/**
+	 * Other systems that must not be paused over (T3's intro, cutscenes) register a check here, so the pause key
+	 * can't reach the game through any binding while they play. Return true (and a reason) to refuse a pause.
+	 * Register once (e.g. a subsystem's Initialize), unregister in Deinitialize. Ids are unique; re-registering replaces.
+	 */
+	using FTDPauseBlocker = TFunction<bool(const UObject* WorldContext, FText& OutReason)>;
+	static void RegisterPauseBlocker(FName Id, FTDPauseBlocker Blocker);
+	static void UnregisterPauseBlocker(FName Id);
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Input")
 	FTDOnSimpleInput OnGalaxyMapInput;
 
@@ -177,6 +203,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupInputComponent() override;
+	virtual bool InputKey(const FInputKeyEventArgs& Params) override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 
@@ -212,6 +239,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Gamepad")
 	bool bInvertStickPitch = false;
+
+	/** Player option: shaped right-stick aim is multiplied by this (clamped to full deflection). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Gamepad", meta = (ClampMin = "0.25", ClampMax = "3"))
+	float StickSensitivity = 1.f;
 
 	/** W / RT above neutral raise the ship's top speed by up to this fraction of cruise (0 = W does nothing). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input", meta = (ClampMin = "0", ClampMax = "1"))
@@ -297,6 +328,8 @@ private:
 	/** Hold F / A: land on a pad in reach, or take off again from a landed ship. True if it acted. */
 	bool RouteLand();
 	void OnPause(const FInputActionValue& Value);
+	void OnFootCameraToggle(const FInputActionValue& Value);
+	void OnOpenSettings(const FInputActionValue& Value);
 	/** Space (IA_Pause) and foot (T5's IA_Ground_Pause) both broadcast OnPauseInput; this is the one toggle. */
 	UFUNCTION()
 	void HandlePauseInput();
@@ -314,6 +347,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_SpaceCommon;
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_Space;
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_Atmosphere;
+	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_OnFoot;
+	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> IMC_Global;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_OnFootCameraToggle;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_OpenSettings;
 	UPROPERTY(Transient) TArray<TObjectPtr<UInputAction>> Actions;
 
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Throttle;
@@ -367,10 +404,16 @@ private:
 	void ReleaseHeldPowers();
 
 	friend struct FTDSpaceControllerTestAccess;
+	friend struct FTDHintTestAccess;
+	friend struct FTDSettingsTestAccess;
 	double RadialPressTime = -1.0;
 	double LandPressTime = -1.0;
 	bool bLandFired = false;
 	bool bRadialOpen = false;
 	bool bFirePrimaryHeld = false;
 	bool bFireSecondaryHeld = false;
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Hints")
+	TObjectPtr<UTDHintComponent> Hints;
 };

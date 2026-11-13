@@ -1,6 +1,8 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Enemies/TDCarrierBay.h"
@@ -22,6 +24,10 @@
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/WorldSettings.h"
 
 ATDEnemyShip::ATDEnemyShip()
 {
@@ -51,11 +57,12 @@ ATDEnemyShip::ATDEnemyShip()
 		return C;
 	};
 	UStaticMesh* Sphere = SphereMesh.Succeeded() ? SphereMesh.Object : nullptr;
-	PlaceholderEyeLeft = MakePart(TEXT("PlaceholderEyeLeft"), Sphere, FVector(70.f, -32.f, 22.f), FRotator::ZeroRotator, FVector(0.42f));
-	PlaceholderEyeRight = MakePart(TEXT("PlaceholderEyeRight"), Sphere, FVector(70.f, 32.f, 22.f), FRotator::ZeroRotator, FVector(0.42f));
+	// One stretched glowing "visor" for the two eyes (wave 5 primitive count: one component, not two).
+	PlaceholderEyeLeft = MakePart(TEXT("PlaceholderEyes"), Sphere, FVector(70.f, 0.f, 22.f), FRotator::ZeroRotator, FVector(0.38f, 1.05f, 0.3f));
+	PlaceholderEyeRight = nullptr;
 	// A thin disc across the nose: the gunship's frontal shield (shown only while it is up).
 	PlaceholderShieldPlate = MakePart(TEXT("PlaceholderShieldPlate"), CylinderMesh.Succeeded() ? CylinderMesh.Object : nullptr,
-		FVector(240.f, 0.f, 0.f), FRotator(90.f, 0.f, 0.f), FVector(2.6f, 2.6f, 0.04f));
+		FVector(240.f, 0.f, 0.f), FRotator(90.f, 0.f, 0.f), FVector(1.4f, 1.4f, 0.03f));	// live check: 2.6 hid the fight
 	PlaceholderShieldPlate->SetVisibility(false);
 }
 
@@ -324,19 +331,27 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 					Hull->SetMaterial(i, Mat);
 				}
 			}
-			if (PlaceholderWings) { PlaceholderWings->SetVisibility(false); }
-			for (UStaticMeshComponent* C : { PlaceholderEyeLeft.Get(), PlaceholderEyeRight.Get(), PlaceholderShieldPlate.Get() })
+			// T1's placeholder wings and the white engine-glow cube would sit on top of the real mesh (the cube showed
+			// between the fighter's nozzles): hide both and stop the throttle stretch; the art's own emissive engines glow.
+			SetPlaceholderPartsVisible(false);
+			// Real art: the placeholder parts go away entirely (no hidden primitives left per ship).
+			for (UStaticMeshComponent* C : { PlaceholderEyeLeft.Get(), PlaceholderShieldPlate.Get() })	// wings are T1's: hidden above, not destroyed
 			{
-				if (C) { C->SetVisibility(false); }
+				if (C) { C->DestroyComponent(); }
 			}
+			PlaceholderEyeLeft = nullptr;
+			PlaceholderShieldPlate = nullptr;
 			if (HullPivot) { HullPivot->SetRelativeScale3D(FVector::OneVector); }
+			BaseVisualScale = FVector::OneVector;
+			EngineGlowMID = nullptr;
+			ApplyVisualScale();
 			bPlaceholderLook = false;
 			return;
 		}
 	}
 
 	// Placeholder: T1's cone + wings, scaled as one by the gameplay radius (220 cm = default) and tinted.
-	if (PlaceholderWings) { PlaceholderWings->SetVisibility(true); }
+	SetPlaceholderPartsVisible(true);
 	if (HullPivot)
 	{
 		// One silhouette per role, so types read apart before the art lands (playtest: all cones looked alike).
@@ -352,22 +367,30 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 		// Placeholder-only readability scale (collision keeps the gameplay radius).
 		const float Readable = Spec.Size == ETDEnemySize::Small ? PlaceholderSmallShipScale
 			: (Spec.Size == ETDEnemySize::Medium ? PlaceholderMediumShipScale : PlaceholderLargeShipScale);
-		HullPivot->SetRelativeScale3D(Shape * FMath::Max(0.2f, Spec.Radius / 220.f) * Readable);
+		BaseVisualScale = Shape * FMath::Max(0.2f, Spec.Radius / 220.f) * Readable;
+		ApplyVisualScale();
 	}
 	// The colour code on its own, on black space (Lead playtest 3: lit hulls were dark specks): a glowing
 	// red-orange body that blooms, dark-red wings for the silhouette, two white glowing "eyes" at the nose,
 	// a white-hot engine, and the gunship's shield as a cyan plate while it is up.
 	UTDStatics::TintPlaceholder(Hull, Spec.PlaceholderColor, PlaceholderBodyGlow);
 	UTDStatics::TintPlaceholder(PlaceholderWings, FLinearColor(0.35f, 0.03f, 0.02f), 0.6f);
-	UTDStatics::TintPlaceholder(GetEngineGlow(), FLinearColor(1.f, 0.95f, 0.9f), PlaceholderEmissiveBoost);
+	// Red-orange engine streak (the spacecraft stretches it with speed); white stays for the eyes.
+	EngineGlowBase = FLinearColor(1.f, 0.32f, 0.06f) * PlaceholderEmissiveBoost;
+	EngineGlowMID = UTDStatics::TintPlaceholder(GetEngineGlow(), FLinearColor(1.f, 0.32f, 0.06f), PlaceholderEmissiveBoost);
 	for (UStaticMeshComponent* Eye : { PlaceholderEyeLeft.Get(), PlaceholderEyeRight.Get() })
 	{
-		if (Eye) { Eye->SetVisibility(true); UTDStatics::TintPlaceholder(Eye, FLinearColor::White, PlaceholderEmissiveBoost); }
+		if (Eye) { Eye->SetVisibility(true); UTDStatics::TintPlaceholder(Eye, FLinearColor::White, PlaceholderEyeGlow); }
 	}
 	bPlaceholderLook = true;
+	if (PlaceholderShieldPlate && !HasFrontalShield())
+	{
+		PlaceholderShieldPlate->DestroyComponent();	// only gunships carry the plate
+		PlaceholderShieldPlate = nullptr;
+	}
 	if (PlaceholderShieldPlate)
 	{
-		UTDStatics::TintPlaceholder(PlaceholderShieldPlate, FLinearColor(0.1f, 0.5f, 0.8f), 0.7f);
+		UTDStatics::TintPlaceholder(PlaceholderShieldPlate, FLinearColor(0.1f, 0.5f, 0.8f), 0.45f);
 		PlaceholderShieldPlate->SetVisibility(HasFrontalShield() && IsFrontalShieldUp());
 	}
 }
@@ -792,6 +815,8 @@ void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float 
 	{
 		return;
 	}
+	bHasMountedParts = true;
+	if (RangeScale != 1.f) { RangeScale = 1.f; ApplyVisualScale(); }
 	// Snap (not KeepRelative) so a freshly spawned part doesn't inherit our world rotation twice.
 	Part->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true));
 	// Outside our own blocking sphere, so shots and rams reach the part instead of the hull.
@@ -829,12 +854,12 @@ void ATDEnemyShip::SpawnCarrierParts()
 	{
 		ATDCarrierBay* Bay = World->SpawnActor<ATDCarrierBay>(ATDCarrierBay::StaticClass(), FTransform::Identity, Params);
 		if (!Bay) { continue; }
+		Bay->Visuals = Visuals;	// before Init, which applies the bay art
 		const FVector Dir = BayDirs[i % UE_ARRAY_COUNT(BayDirs)].RotateAngleAxis(25.f * (i / 3), FVector::UpVector);
 		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f);
 		const float FirstDelay = Spec.Heavy.Interval * 0.5f + i * 2.f;
 		Bay->Init(this, Spec.BayHull, Spec.Heavy.Count, Spec.Heavy.Interval, Spec.Heavy.TelegraphSeconds, FirstDelay);
 		Bay->MaxLaunches = Spec.MaxLaunchesPerBay;
-		Bay->Visuals = Visuals;
 		Bays.Add(Bay);
 	}
 
@@ -843,11 +868,11 @@ void ATDEnemyShip::SpawnCarrierParts()
 	{
 		ATDEnemyTurret* Turret = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!Turret) { continue; }
+		Turret->Visuals = Visuals;	// before Init, which applies the turret art
 		const float Angle = (PI * 0.5f) * i + PI * 0.25f;
 		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f);
 		Turret->Init(Spec.TurretGuns, Spec.TurretHull);
 		Turret->SetDamageMultiplier(DifficultyDamage);
-		Turret->Visuals = Visuals;
 		Turrets.Add(Turret);
 	}
 }
@@ -968,7 +993,22 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 		Weapons->SetTriggerHeld(ETDWeaponSlot::Secondary, false);
 	}
 	DestroyCarrierParts();
-	DeathTimer = Spec.DeathTumbleSeconds;
+	// Capped so a big hulk explodes in view (T2's death captures: carriers tumbled 2.5 s past the camera).
+	DeathTimer = FMath::Min(Spec.DeathTumbleSeconds, MaxDeathTumbleSeconds);
+	// The hulk drifts on its own velocity, never toward the player's view: the flight model lets go of it.
+	{
+		DeathDrift = GetVelocity();
+		if (const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && PC->PlayerCameraManager)
+		{
+			const FVector ToCam = (PC->PlayerCameraManager->GetCameraLocation() - GetActorLocation()).GetSafeNormal();
+			const float Toward = FVector::DotProduct(DeathDrift, ToCam);
+			if (Toward > 0.f) { DeathDrift -= ToCam * Toward; }	// strip the part heading at the camera
+			DeathDrift -= ToCam * DeathDriftAwaySpeed;				// and ease away from it
+		}
+		DeathDrift = DeathDrift.GetClampedToMaxSize(6000.f);
+		DeathSpin = FRotator(FMath::FRandRange(-60.f, 60.f), FMath::FRandRange(-40.f, 40.f), FMath::FRandRange(90.f, 160.f) * (FMath::RandBool() ? 1.f : -1.f));
+		if (UTDShipMovementComponent* Move = GetShipMovement()) { Move->SetComponentTickEnabled(false); }
+	}
 
 	// The tumbling wreck is scenery: ships fly through it (no 60-hull ram from a dead fighter).
 	if (USphereComponent* Sphere = GetCollisionSphere())
@@ -1015,6 +1055,20 @@ void ATDEnemyShip::Explode()
 	if (Visuals)
 	{
 		UTDStatics::PlayCue(this, Visuals->Explosion, GetActorLocation(), GetActorRotation());
+	}
+	// No explosion art yet: T2's pooled placeholder burst, sized to the visible hull (enemies must not vanish).
+	{
+		FVector Origin, Extent;
+		GetActorBounds(true, Origin, Extent);
+		const float VisibleRadius = FMath::Max(Spec.Radius, Extent.GetMax());
+		const bool bBig = Spec.Size == ETDEnemySize::Large || Spec.Size == ETDEnemySize::Boss;
+		if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->Explosion))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), FMath::Max(400.f, VisibleRadius * 2.5f), Spec.PlaceholderColor, bBig ? 14 : 8);
+		}
+	}
 	}
 	OnEnemyExploded.Broadcast(this, LastKiller.Get());
 	Destroy();
@@ -1103,17 +1157,70 @@ void ATDEnemyShip::TickTimers(float DeltaSeconds)
 	}
 }
 
+float ATDEnemyShip::RangeScaleFor(float DistanceCm, float NearCm, float FarCm, float MaxScale)
+{
+	if (FarCm <= NearCm) { return DistanceCm > NearCm ? MaxScale : 1.f; }
+	const float T = FMath::Clamp((DistanceCm - NearCm) / (FarCm - NearCm), 0.f, 1.f);
+	return FMath::Lerp(1.f, FMath::Max(1.f, MaxScale), T);
+}
+
+void ATDEnemyShip::ApplyVisualScale()
+{
+	// HullPivot sits at the actor centre and carries only visuals (no collision): scaling it scales about the
+	// aim point and never touches the collision sphere or the mounted hit parts.
+	if (HullPivot) { HullPivot->SetRelativeScale3D(BaseVisualScale * RangeScale); }
+	AppliedRangeScale = RangeScale;
+	if (EngineGlowMID && bPlaceholderLook)
+	{
+		const float T = RangeScaleMax > 1.f ? (RangeScale - 1.f) / (RangeScaleMax - 1.f) : 0.f;
+		const FLinearColor Glow = EngineGlowBase * FMath::Lerp(1.f, RangeEngineGlowMax, FMath::Clamp(T, 0.f, 1.f));
+		EngineGlowMID->SetVectorParameterValue(TEXT("Color"), Glow);
+		EngineGlowMID->SetVectorParameterValue(TEXT("EmissiveColor"), Glow);
+	}
+}
+
+void ATDEnemyShip::UpdateRangeScale(const FVector& ViewLocation, bool bAllowed, float RealDeltaSeconds)
+{
+	const float Target = (bAllowed && !bHasMountedParts)
+		? RangeScaleFor(FVector::Dist(ViewLocation, GetActorLocation()), RangeScaleNearCm, RangeScaleFarCm, RangeScaleMax) : 1.f;
+	RangeScale = FMath::FInterpTo(RangeScale, Target, FMath::Max(0.f, RealDeltaSeconds), RangeScaleSmoothing);
+	if (FMath::Abs(RangeScale - AppliedRangeScale) > 0.004f || (RangeScale == 1.f && AppliedRangeScale != 1.f))
+	{
+		ApplyVisualScale();
+	}
+}
+
+void ATDEnemyShip::TickRangeScale(float DeltaSeconds)
+{
+	UWorld* World = GetWorld();
+	if (!World || !World->IsGameWorld()) { return; }
+	APlayerController* PC = World->GetFirstPlayerController();
+	if (!PC || !PC->PlayerCameraManager) { return; }
+	// True scale whenever the camera is not the player's own chase cam (T3's intro and showcase cameras) or a
+	// director money shot is running.
+	const UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this);
+	const bool bAllowed = PC->GetViewTarget() == PC->GetPawn() && !(Director && Director->IsShotActive());
+	const float Dilation = FMath::Max(0.01f, World->GetWorldSettings() ? World->GetWorldSettings()->GetEffectiveTimeDilation() : 1.f);
+	UpdateRangeScale(PC->PlayerCameraManager->GetCameraLocation(), bAllowed, DeltaSeconds / Dilation);
+}
+
 void ATDEnemyShip::Tick(float DeltaSeconds)
 {
 	if (bDying)
 	{
-		// Tumble: spin out, bleed speed.
-		FTDFlightInput Tumble;
-		Tumble.Throttle = -1.f;
-		Tumble.Aim = FVector2D(0.35f, 0.8f);
-		Tumble.Roll = 1.f;
-		SetFlightInput(Tumble);
+		// The hulk drifts and spins on its own (the flight model is off): never toward the player's view.
 		Super::Tick(DeltaSeconds);
+		DeathDrift *= FMath::Exp(-0.6f * DeltaSeconds);	// bleed speed
+		AddActorWorldOffset(DeathDrift * DeltaSeconds, false);
+		AddActorLocalRotation(DeathSpin * DeltaSeconds);
+		// Too close to (or behind) the camera to read: explode now, in view.
+		if (const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && PC->PlayerCameraManager && !bExploded)
+		{
+			const FVector Cam = PC->PlayerCameraManager->GetCameraLocation();
+			const FVector Fwd = PC->PlayerCameraManager->GetCameraRotation().Vector();
+			const FVector ToHulk = GetActorLocation() - Cam;
+			if (ToHulk.Size() < FMath::Max(4000.f, Spec.Radius * 3.f) || FVector::DotProduct(ToHulk, Fwd) < 0.f) { DeathTimer = 0.f; }
+		}
 		TickDeath(DeltaSeconds);
 		return;
 	}
@@ -1129,6 +1236,7 @@ void ATDEnemyShip::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	TickTimers(DeltaSeconds);
+	TickRangeScale(DeltaSeconds);
 
 	if (bPlaceholderLook && PlaceholderShieldPlate && HasFrontalShield())
 	{

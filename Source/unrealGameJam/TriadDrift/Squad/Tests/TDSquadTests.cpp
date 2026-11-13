@@ -43,6 +43,8 @@
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 
 namespace TDSquadTests
 {
@@ -150,7 +152,7 @@ bool FTDSquadShipSpecs::RunTest(const FString& Parameters)
 	const FTDShipSpec& B = UTDShipLibrary::Get(ETDShipId::Bastion);
 
 	TestEqual(TEXT("Rift hull"), R.MaxHull, 100.f);      TestEqual(TEXT("Rift shield"), R.MaxShield, 100.f);
-	TestEqual(TEXT("Lancer hull"), L.MaxHull, 70.f);     TestEqual(TEXT("Lancer shield"), L.MaxShield, 80.f);
+	TestEqual(TEXT("Lancer hull"), L.MaxHull, 70.f);     TestEqual(TEXT("Lancer shield"), L.MaxShield, 96.f);	// x1.2, T4 sweep (Nov 13)
 	TestEqual(TEXT("Bastion hull"), B.MaxHull, 180.f);   TestEqual(TEXT("Bastion shield"), B.MaxShield, 160.f);
 	TestEqual(TEXT("Rift cruise"), R.CruiseSpeed, 6000.f);     TestEqual(TEXT("Rift boost"), R.BoostSpeed, 11000.f);
 	TestEqual(TEXT("Lancer cruise"), L.CruiseSpeed, 7500.f);   TestEqual(TEXT("Lancer boost"), L.BoostSpeed, 15000.f);
@@ -1188,8 +1190,8 @@ bool FTDSquadEvadeOnShieldBreak::RunTest(const FString& Parameters)
 		AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
 		F.W.Advance(2.f, Step);
 		TestTrue(TEXT("engaged") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Engage);
-		// Break Lancer's 80-point shield with a real hit.
-		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 85.f, ETDDamageKind::Energy, Enemy, Enemy);
+		// Break Lancer's 96-point shield with a real hit (80 before T4's Nov 13 balance pass).
+		UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 101.f, ETDDamageKind::Energy, Enemy, Enemy);
 		F.W.Tick(Step);
 		F.W.Tick(Step);
 		TestTrue(TEXT("evades when the shield breaks") + Fps, F.Wing(ETDShipId::Lancer)->GetWingmanState() == ETDWingmanState::Evade);
@@ -1270,7 +1272,7 @@ bool FTDSquadDomeDrift::RunTest(const FString& Parameters)
 	FSquadFixture F;
 	F.W.Advance(0.5f);
 	// Hurt Lancer below 40% with a real hit, then raise a player dome off to the side.
-	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 110.f, ETDDamageKind::Energy, F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f), nullptr);
+	UTDStatics::ApplyTDDamage(F.Ship(ETDShipId::Lancer), 126.f, ETDDamageKind::Energy, F.SpawnEnemy(FVector(0.f, 0.f, 900000.f), 1.f), nullptr);	// 96 shield + 30 hull
 	TestTrue(TEXT("Lancer hurt"), UTDStatics::GetHealth(F.Ship(ETDShipId::Lancer))->GetHull01() < 0.6f);
 	AActor* DomeAnchor = F.W.Spawn<AActor>(F.Ship(ETDShipId::Rift)->GetActorLocation() + FVector(9000.f, -9000.f, 0.f));
 	USceneComponent* Root = NewObject<USceneComponent>(DomeAnchor, TEXT("Root"));
@@ -2133,6 +2135,61 @@ bool FTDSquadLandPrompt::RunTest(const FString& Parameters)
 	return Pad != nullptr;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadPromptOrder, "TriadDrift.Squad.HUD.PromptOrderLandThenRefusalThenHint", TD_TEST_FLAGS)
+bool FTDSquadPromptOrder::RunTest(const FString& Parameters)
+{
+	// One prompt line on the HUD: landing prompt > switch-lock reason > T1's control hint.
+	FTDTestWorld W;
+	ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("space controller"), PC) || !TestNotNull(TEXT("pad"), Pad))
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FVector(-300000.f, 0.f, 0.f)));
+	UTDHintComponent* Hints = PC->GetHints();
+	if (!TestNotNull(TEXT("hints"), Hints))
+	{
+		return false;
+	}
+	Hints->UseMemoryOnlyForTests();
+	W.Advance(0.5f);
+	TestTrue(TEXT("no hint yet: empty"), Squad->GetInteractPrompt().IsEmpty());
+
+	UTDEventBus::Get(W.GetWorld())->BroadcastWaveStarted(1, 0.2f);
+	for (float T = 0.f; T < 4.f && Hints->GetCurrentHint() == ETDHint::None; T += 1.f / 60.f)
+	{
+		W.Tick();
+	}
+	if (!TestNotEqual(TEXT("a hint comes up with wave 1"), Hints->GetCurrentHint(), ETDHint::None))
+	{
+		return false;
+	}
+	TestEqual(TEXT("alone, the hint reaches the HUD"), Squad->GetInteractPrompt().ToString(), Hints->GetCurrentText().ToString());
+
+	// A switch refused mid-spool beats the hint, then the hint comes back.
+	UTDHyperdriveComponent* Hyper = Squad->GetActiveShip()->GetHyperdrive();
+	TestTrue(TEXT("spool"), Hyper && Hyper->StartSpool());
+	TestFalse(TEXT("switch refused"), Squad->RequestSwitchTo(Squad->GetActiveShipId() == ETDShipId::Rift ? ETDShipId::Lancer : ETDShipId::Rift));
+	TestEqual(TEXT("the lock reason beats the hint"), Squad->GetInteractPrompt().ToString(), Squad->GetLastRefusalText().ToString());
+	Hyper->CancelSpool();
+	W.Advance(1.6f);
+	TestEqual(TEXT("reason gone: the hint again"), Squad->GetInteractPrompt().ToString(), Hints->GetCurrentText().ToString());
+
+	// Near a pad, slow: the landing prompt beats both.
+	ATDShip* Ship = Squad->GetActiveShip();
+	Ship->TeleportSpacecraft(FVector(-1500.f, 0.f, 1500.f), FRotator::ZeroRotator, false);
+	Ship->GetShipMovement()->SetForwardSpeedImmediate(1500.f);
+	W.Tick();
+	W.Tick();
+	const FText Land = Ship->GetLanding()->GetLandPrompt();
+	TestFalse(TEXT("a landing prompt"), Land.IsEmpty());
+	TestEqual(TEXT("the landing prompt beats the hint"), Squad->GetInteractPrompt().ToString(), Land.ToString());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadObjectiveText, "TriadDrift.Squad.HUD.ObjectiveTextFollowsTheFlow", TD_TEST_FLAGS)
 bool FTDSquadObjectiveText::RunTest(const FString& Parameters)
 {
@@ -2864,6 +2921,10 @@ bool FTDSquadStrikeAndFocusFeedback::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the strike ship pulses (placeholder aura)"), P->GetPlayingFlashCount() > 0);
 	F.W.Advance(1.9f);
 	TestEqual(TEXT("half the window left after 2 s"), F.Squad->GetSwitchStrikeRemaining01(), 0.5f, 0.05f);
+	{
+		const ITDHUDData* Hud = F.Squad; // Core's HUD contract, as the HUDs read it
+		TestEqual(TEXT("through ITDHUDData::GetSwitchStrike01"), Hud->GetSwitchStrike01(), F.Squad->GetSwitchStrikeRemaining01());
+	}
 	F.W.Advance(2.2f);
 	TestEqual(TEXT("over after 4 s"), F.Squad->GetSwitchStrikeRemaining01(), 0.f);
 
@@ -2876,6 +2937,10 @@ bool FTDSquadStrikeAndFocusFeedback::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the target is marked"), P->CountPlayingFlashesNear(Enemy->GetActorLocation(), 500.f) > 0);
 	F.W.Advance(4.f);
 	TestEqual(TEXT("half the order left after 4 s"), F.Squad->GetFocusRemaining01(), 0.5f, 0.05f);
+	{
+		const ITDHUDData* Hud = F.Squad;
+		TestTrue(TEXT("through ITDHUDData: the target and the time left"), Hud->GetFocusTarget() == Enemy && FMath::IsNearlyEqual(Hud->GetFocusRemaining01(), 0.5f, 0.05f));
+	}
 	F.W.Advance(4.2f);
 	TestEqual(TEXT("expired after 8 s"), F.Squad->GetFocusRemaining01(), 0.f);
 	return true;

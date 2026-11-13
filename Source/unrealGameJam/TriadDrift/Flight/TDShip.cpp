@@ -277,6 +277,47 @@ USceneComponent* ATDShip::GetEngineAttach(FName& OutSocket) const
 	return bHasRealArt ? static_cast<USceneComponent*>(HullMesh) : static_cast<USceneComponent*>(EngineGlow);
 }
 
+FVector ATDShip::GetEngineExhaustLocation() const
+{
+	FName Socket;
+	const USceneComponent* Attach = GetEngineAttach(Socket);
+	if (Attach && !Socket.IsNone())
+	{
+		return Attach->GetSocketLocation(Socket);
+	}
+	if (Attach && Attach == EngineGlow)
+	{
+		// The rear face of the placeholder glow box (100 cm cube scaled along X).
+		return Attach->GetComponentLocation() - Attach->GetForwardVector() * (50.f * Attach->GetComponentScale().X);
+	}
+	if (Attach && Attach != HullMesh)
+	{
+		return Attach->GetComponentLocation(); // an Engine part: its origin is the nozzle
+	}
+	const FBoxSphereBounds B = HullMesh ? HullMesh->Bounds : GetRootComponent()->Bounds;
+	return B.Origin - GetActorForwardVector() * B.BoxExtent.X;
+}
+
+void ATDShip::GetEngineExhaustLocations(TArray<FVector>& Out) const
+{
+	Out.Reset();
+	static const FName Names[] = { TEXT("Engine_0"), TEXT("Engine_1"), TEXT("Engine_2"), TEXT("Engine_3") };
+	if (bHasRealArt && HullMesh)
+	{
+		for (const FName& Name : Names)
+		{
+			if (HullMesh->DoesSocketExist(Name))
+			{
+				Out.Add(HullMesh->GetSocketLocation(Name));
+			}
+		}
+	}
+	if (Out.Num() == 0)
+	{
+		Out.Add(GetEngineExhaustLocation());
+	}
+}
+
 FTDFXCue ATDShip::ForThisShip(const FTDFXCue& Cue) const
 {
 	FTDFXCue Out = Cue;
@@ -602,8 +643,23 @@ FQuat ATDShip::ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeco
 	// Bank is measured against a reference "up" that tracks world up (rate-limited, held while the
 	// nose is near vertical), so barrel rolls and loops never make the target jump.
 	const FQuat ShipQuat = GetActorQuat();
-	const FVector Forward = ShipQuat.GetForwardVector();
+	FVector Forward = ShipQuat.GetForwardVector();
 	const FVector ShipUp = ShipQuat.GetUpVector();
+
+	// Drift: yaw partway toward where the ship is actually going (eased), so a boosted drift spin keeps it framed.
+	const float DriftW = CameraTuning.DriftYawFollow * FMath::SmoothStep(0.f, 1.f, DriftCamBlend);
+	if (DriftW > KINDA_SMALL_NUMBER)
+	{
+		const FVector Slide = FVector::VectorPlaneProject(GetVelocity(), ShipUp).GetSafeNormal();
+		if (!Slide.IsNearlyZero())
+		{
+			// Follows the slip up to 90 deg, then back down to 0 at 180: flying backwards the sign of the slip flips,
+			// and a plain clamp would swing the camera from one side to the other in a single frame.
+			const float Raw = TDShipCamera::SignedAngle(Forward, Slide, ShipUp);
+			const float Slip = FMath::Abs(Raw) <= 90.f ? Raw : FMath::Sign(Raw) * (180.f - FMath::Abs(Raw));
+			Forward = TDShipCamera::Rotate(Forward, ShipUp, DriftW * Slip).GetSafeNormal();
+		}
+	}
 
 	FVector Current = TDShipCamera::Perp(InOutRefUp, Forward);
 	FVector Target = FMath::Abs(Forward.Z) < CameraTuning.VerticalHoldLimit ? TDShipCamera::Perp(FVector::UpVector, Forward) : Current;
@@ -638,7 +694,7 @@ FTransform ATDShip::GetChaseCameraTransformNow() const
 	{
 		const FVector Rates = ShipMovement->GetAngularRate();
 		const float TurnRef = FMath::Max(ShipMovement->GetFlightTuning().TurnRate, 1.f);
-		const FRotator Look(FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle,
+		const FRotator Look(FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle * CameraTuning.LookAheadPitchScale,
 			FMath::Clamp(Rates.Z / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle, 0.f);
 		CameraQuat = ArmQuat * Look.Quaternion();
 	}
@@ -668,7 +724,16 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 		SpringArm->bEnableCameraRotationLag = CameraTuning.RotationLag > 0.f;
 		SpringArm->CameraLagSpeed = CameraTuning.LocationLag;
 		SpringArm->CameraRotationLagSpeed = CameraTuning.RotationLag;
+		SpringArm->CameraLagMaxDistance = CameraTuning.LagMaxDistance;
+		SpringArm->TargetArmLength = CameraTuning.ArmLength;
+		SpringArm->SocketOffset = FVector(0.f, 0.f, CameraTuning.Height);
 	}
+
+	// --- Drift blend: in over DriftBlendSeconds while drifting above cruise speed, out on release --------
+	const bool bDriftCam = IsDrifting() && GetVelocity().Size() > ShipMovement->GetCruiseCapSpeed() * CameraTuning.DriftMinSpeedFraction && bPlayerControlled;
+	const float DriftTarget = bDriftCam ? 1.f : 0.f;
+	DriftCamBlend = bSnap ? DriftTarget
+		: FMath::FInterpConstantTo(DriftCamBlend, DriftTarget, DeltaSeconds, 1.f / FMath::Max(CameraTuning.DriftBlendSeconds, 0.01f));
 
 	// --- Arm rotation: ship forward, with only RollFollow of its bank -------------------------------
 	ChaseTargetQuat = ComputeChaseQuat(CameraRefUp, bSnap, DeltaSeconds, CameraRoll);
@@ -681,7 +746,7 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	const FVector2D TargetLook(FMath::Clamp(Rates.Z / TurnRef, -1.f, 1.f), FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f));
 	LookAhead = bSnap ? TargetLook : FMath::Vector2DInterpTo(LookAhead, TargetLook, DeltaSeconds, CameraTuning.LookAheadResponse);
 	const FRotator Kick = FlightFeedback ? FlightFeedback->GetCameraOffset() : FRotator::ZeroRotator; // no-art camera kicks
-	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle, LookAhead.X * CameraTuning.LookAheadAngle, 0.f) + Kick);
+	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle * CameraTuning.LookAheadPitchScale, LookAhead.X * CameraTuning.LookAheadAngle, 0.f) + Kick);
 
 	// --- FOV widens with speed -------------------------------------------------------------------------
 	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01());

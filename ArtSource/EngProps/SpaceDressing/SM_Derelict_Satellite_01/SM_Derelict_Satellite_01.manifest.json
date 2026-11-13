@@ -1,0 +1,63 @@
+{
+  "asset": "SM_Derelict_Satellite_01",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Derelict_Satellite_01\\SM_Derelict_Satellite_01.fbx",
+  "tris": 5738,
+  "size_cm": [
+    251.3,
+    1515.9,
+    764.5
+  ],
+  "pivot": "root object origin (SM_Derelict_Satellite_01~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Derelict_Satellite_01"
+  ],
+  "material_params": [
+    {
+      "name": "M_Derelict_Satellite_01",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Derelict_Satellite_01_BC.png",
+    "T_Derelict_Satellite_01_E.png",
+    "T_Derelict_Satellite_01_N.png",
+    "T_Derelict_Satellite_01_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Derelict_Satellite_01_00",
+    "UCX_SM_Derelict_Satellite_01_01",
+    "UCX_SM_Derelict_Satellite_01_02"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 35,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Derelict_Satellite_01.fbx",
+  "texture_size": 2048,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "family": "derelict_satellite"
+}

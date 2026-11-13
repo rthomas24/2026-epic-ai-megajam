@@ -1,6 +1,8 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -42,7 +44,19 @@ void ATDCarrierBay::Init(ATDEnemyShip* InCarrier, float Hull, int32 InFightersPe
 	{
 		Health->InitMaxValues(FMath::Max(1.f, Hull), 0.f, true);
 	}
-	UTDStatics::TintPlaceholder(Mesh, FLinearColor(1.f, 0.35f, 0.05f), 2.f);	// glowing orange bay doors: the weak point
+	if (Visuals && !Visuals->BayMesh.IsNull())
+	{
+		if (UStaticMesh* Art = Visuals->BayMesh.LoadSynchronous())
+		{
+			Mesh->SetStaticMesh(Art);
+			Mesh->SetRelativeScale3D(FVector::OneVector);
+			Mesh->EmptyOverrideMaterials();
+		}
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(Mesh, FLinearColor(1.f, 0.35f, 0.05f), 2.f);	// glowing orange bay doors: the weak point
+	}
 }
 
 void ATDCarrierBay::BeginPlay()
@@ -117,6 +131,13 @@ void ATDCarrierBay::HandleDeath(UTDHealthComponent* /*InHealth*/, const FTDDamag
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	if (Visuals) { UTDStatics::PlayCue(this, Visuals->BayDestroyed, GetActorLocation(), GetActorRotation()); }
+	if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->BayDestroyed))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), 900.f, FLinearColor(1.f, 0.35f, 0.05f), 8);
+		}
+	}
 	OnBayDestroyed.Broadcast(this);
 }
 

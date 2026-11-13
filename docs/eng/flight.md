@@ -89,17 +89,62 @@ Hyperdrive, atmosphere and landing are in [travel.md](travel.md).
 
 ### Chase camera (`FTDChaseCameraTuning` on `ATDShip`)
 - arm 1400 cm, height 280 cm
-- rotation lag 8, location lag 12 (max lag distance 1800 cm)
+- rotation lag 8, location lag 18 (max lag distance 1000 cm); flight-feel pass below
 - FOV 90 → 110 with `Speed01`
 - **Roll follow is 30% of the bank, measured against a reference "up".**
   - The reference tracks world up at no more than 120°/s and holds while the nose is near vertical.
   - The follow eases back to 0 past 90° of bank.
   - So barrel rolls and loops never whip the camera; the tests check this.
-- leans up to 7° into turns (look-ahead)
+- leans up to 7° into yaw turns (look-ahead), and 20% of that (1.4°) into pitch (`LookAheadPitchScale`)
 - `SnapCamera()` makes a hard cut. It runs automatically on switch-in and teleport.
 - Cockpit camera: V toggles `SetCockpitView`. The placeholder hull is hidden from the pilot's own view.
 - Motion blur is off in space by default (`MotionBlurAmount` / `MotionBlurMax` = 0), because any
   camera-rotation blur turns stars into dashes.
+
+### Flight-feel pass (Nov 13, T1)
+How it was judged: a 60 s chase-cam run per ship (cruise, boost, a hard right turn, a boosted hard left turn,
+a drifting turn, a full pull-up, barrel roll, then a switch cut), offscreen 1920x1080 on `L_Galaxy`.
+- Captures were taken as fast as the MCP allows (about one every 0.8 s).
+- `TD.Flight.Cam rec 60` logged the camera numbers every 0.1 s.
+- The same script ran with the old values and the new values in one session.
+- Before/after strips: `.wt/t1/Saved/TDShots/feel_sheets/strip_*.png` (local, not in git).
+
+| Measured | Old (lag 12 / max 1800 / pitch lead 7°) | New (lag 18 / max 1000 / pitch lead 1.4°) |
+|---|---|---|
+| Ship centre in a 110-120°/s pull-up (screen height, 0 = top) | 0.71-0.73: on the HUD cards | 0.64-0.65: above the HUD band |
+| Camera distance at cruise (Rift / Lancer / Bastion, cm) | 1900 / 2160 / 1870 | 1780 / 1880 / 1710 |
+| Camera distance at boost, peak (cm) | 2390 / 2730 / 2170: the Lancer shrank to a speck | 2010 / 2210 / 1880 |
+| Furthest off-centre in a turn (x, 0.5 = centre) | 0.68 for the Lancer: it left the screen during a high-speed drift spin | 0.26 |
+
+Kept as they were:
+- FOV 90 → 110: the speed read is good.
+- Boost still pulls the camera back about 2 m.
+- Yaw look-ahead of 7°: the ship sits 10-14% off-centre on hard turns, which reads as leaning in.
+- Roll follow 30%: about 12° of horizon tilt in a banked turn, and up to about 27° in a barrel roll. That is lively but readable.
+- Dust density: all 120 motes at every speed above the minimum.
+- Switch cut: a hard cut. The new ship is framed on the first frame, with no lag swing.
+
+**Drift camera (Nov 13, Lead's decision).**
+- While drifting above cruise speed (`DriftMinSpeedFraction` 1), the chase camera's yaw follows `DriftYawFollow` = 40% of the slip angle toward the ship's actual motion. It eases in and out over `DriftBlendSeconds` = 0.3 s.
+- The followed slip rises to 90° and falls back to 0 at 180°: flying backwards the slip's sign flips, and a plain clamp jumped the camera 72° in a frame (the test caught it at 4485°/s).
+- The reticle and the shots both come from this camera, so they always agree. The nose keeps 60% of its sideways angle, so you still fly one way and shoot another.
+- Measured on the TD.Flight.Cam trace: boost, drift with a 0.7 s stick flick (nose ~90°), hold the slide; both directions plus a drift at cruise; every ship; old vs new in one session.
+
+| Fast drift (above cruise) | Worst off-centre x (Rift / Lancer / Bastion) | Mean | Samples in the HUD band (centre below 72%) |
+|---|---|---|---|
+| Before (follow 0) | 0.17 / 0.23 / 0.13 | 0.13 / 0.17 / 0.09 | 0 / 4 / 0 |
+| After (follow 0.4) | 0.16 / 0.16 / 0.08 | 0.13 / 0.12 / 0.05 | 0 / 0 / 0 |
+
+- Pinned by `TriadDrift.Flight.Camera.DriftFollowsTheSlide`: 40% of the slip after 0.3 s; a held spin stays continuous (< 600°/s); release puts the camera back behind the nose; nothing below cruise.
+- Still open: a drift sheds speed below cruise within about a second, and as the ship slows the lagged camera closes in, so the ship sits lower. At cruise the Lancer's centre reaches 0.72, its wings touching the HUD top. Lowering the gate to 0.3 of cruise made this worse (44 samples in the band), so the gate stays at cruise. Fixing it would mean holding the camera distance while drifting.
+
+Scripted-playtest tip: in the test script, `TD.KillAll` right after a switch triggered the director's multi-kill shot (FOV 65, long lens), which made two switch frames look like a broken cut. Kill enemies before switching (also in the ue-cpp-gameplay skill).
+
+Dev tool: `TD.Flight.Cam [tag]` prints what the player sees: ship screen position, FOV, camera and ship roll, the camera's
+offset in ship space, speed, boost and drift, turn rates, and dust.
+- `TD.Flight.Cam rec <s> [tag]` logs it every 0.1 s.
+- `TD.Flight.Cam set <Cam|FB> <Field> <Value>` changes a chase-camera or feedback tuning value on every squad ship live, so you can tune without rebuilding.
+- It is not in Shipping builds.
 
 ### State for presentation and the HUD
 On the spacecraft and its movement component:
@@ -211,7 +256,7 @@ Captures are in `Saved/TDShots/feedback/` (live game on port 8011, Nov 12).
 | Hyperdrive spool (`HyperdriveSpool`) | nothing but the HUD charge bar | the view tightens (FOV −7) and shakes harder as the charge builds | `07_spool` |
 | Jump (`HyperdriveTunnel`) | FOV at max (speed) | FOV +12 punch, held +10 in the tunnel; side flares; dust becomes a streaking tunnel | `08_jump` |
 | Drop-out (`HyperdriveDropOut`) | a cut to the new spot | FOV −8 snap, 1.2° shake, a flash | (log: `HyperdriveDropOut=1`) |
-| Portal gate / Rift portal transit (`PortalTransit`) | a camera snap only | FOV +12, roll flick, shake, a violet flash. It fires only when the ship left from inside a gate's or portal's bounds, never for arrivals, squad placement, retakes or dev teleports | test `Feedback.PortalTransitKickOnlyFromAPortal` (no live transit captured, see Known gaps) |
+| Portal gate / Rift portal transit (`PortalTransit`) | a camera snap only | FOV +12, roll flick, shake, a violet flash. It fires only when the ship left from inside a gate's or portal's bounds, never for arrivals, squad placement, retakes or dev teleports | `20`–`25_gate_*`: a live transit of Gate_Verdance_Zone both ways (A→B and back), `PortalTransit` counted each time, wingmen on screen in formation after each (`TD.Squad.Frame`) |
 | Atmosphere entry (`AtmosphericEntry`) | nothing until the map loads | heat shake and FOV swell on a bell over the entry, an orange re-entry glow on the nose | `10_entry` shows the entry haze only; the glow flashes fired (log `AtmosphereEntry=9`) but none was in frame at capture |
 | Landing touchdown (`LandingDust`) | the ship settles | 2° dip, shake, a flat dust disc under the hull | `11_touchdown` |
 | Take-off (`TakeOff`) | the ship rises | lift shake, FOV +3, a flat squad-colour thrust disc under the hull | `12_takeoff` |
@@ -237,6 +282,180 @@ and how many times each placeholder fired.
 | `Feedback.BoostBrakeHyperdriveRead` | boost start and brake fire once with a FOV punch / dip; the spool tightens the view; the jump kicks |
 | `Feedback.PortalTransitKickOnlyFromAPortal` | a placement away from portals gives no kick; a transit out of a gate does |
 | `Feedback.SpeedDustOnlyForThePlayerAtSpeed` | 120 motes for the flown ship, none for wingmen or when not flown; tick under 0.3 ms |
+
+## First-minute control hints (`UTDHintComponent` on `ATDSpacePlayerController`)
+
+The hints teach one control at a time, each finished by doing it. The text goes through `ITDHUDData::GetInteractPrompt`
+(`ATDSquadManager` returns `UTDHintComponent::GetHintText` last, after the land prompt and the switch refusal; T3 wires it
+in once 8aa5c70 is on main).
+- **Core, from wave 1** (first hint 2 s after `OnWaveStarted(1)`, 1.2 s between hints):
+  1. aim/throttle (1 s of steering)
+  2. fire (LMB / RB)
+  3. boost
+  4. dodge
+  5. switch ship (`OnShipSwitched`)
+  6. signature power (Q / X)
+  7. target cycle
+- **Later, when they first apply:**
+  - drift: T4's `Tip_Drift`, or wave 2+
+  - hyperdrive: `Tip_Hyperdrive`, the first planet marker; a spool completes it
+  - each unlocked ability: `OnAbilityUnlocked`, named; E / Y completes it
+  - landing already has its own prompt.
+- **Rules:**
+  - Anything the player already did is never shown, so an experienced pilot sees nothing.
+  - A hint ignored for 20 s counts as seen.
+  - Each hint shows once per profile: slot `TD_Hints`, separate from the run save; tests never touch it.
+  - Nothing shows (and the clock stops) while paused, on foot, landing or with the land prompt up, during atmosphere entry,
+    or with the hyperdrive running.
+  - Wording follows the last input device.
+  - Off with `SetHintsEnabled(false)` (a menu setting, saved) or `TD.Hints 0`. `TD.Hints.Reset` and `TD.Hints.Status` are
+    dev commands.
+- **Wave-1 grace (T4):** enemies deal ×0.5 for the first 15 s of wave 1 whatever the player does, so fire, boost and
+  dodge can be tried safely.
+- **Tests:** `Input.Hints.CoreSequenceCompletesByDoingIt` (real keys and mouse through the squad: every core step),
+  `Input.Hints.LaterHintsWhenTheyApply` (experienced pilot sees none; drift, hyperdrive and ability by real input),
+  `Input.Hints.OncePriorityTimeoutDeviceAndSetting`.
+
+## Player options (`UTDSettingsSubsystem`, a game-instance subsystem)
+
+There is one object for every menu: Get Game Instance → Get Subsystem (TDSettingsSubsystem), or
+`UTDSettingsSubsystem::GetTDSettings(this)` in C++. Each setter applies at once and saves to slot `TD_Settings`
+(separate from the run save and the hint profile).
+
+| Option | Call | Range | Takes effect |
+|---|---|---|---|
+| Mouse sensitivity | `SetMouseSensitivity` | ×0.25–3 of the class default | `MouseSensitivity` on every space controller |
+| Invert mouse Y | `SetInvertMouseY` | bool | `bInvertMousePitch` |
+| Gamepad sensitivity | `SetGamepadSensitivity` | ×0.25–3 | shaped right-stick aim × this, clamped to full deflection |
+| Gamepad dead zone | `SetGamepadDeadzone` | 0–0.5 (default 0.15) | `StickDeadzone` |
+| Invert gamepad Y | `SetInvertGamepadY` | bool | `bInvertStickPitch` |
+| Hints | `SetHintsEnabled` | bool | `UTDHintComponent` |
+| Difficulty | `SetDifficulty` (row "Difficulty": Story / Standard / Ace) | T4's presets | `UTDGameInstance::SetDifficulty` (saved with a committed run). Enemies and waves read it when they spawn, so ships already fighting keep their strength. The row shows the difficulty in play (the run's after a Continue), with a line under the page describing it from T4's tables |
+| Master volume | `SetMasterVolume` | 0–1 | the main audio device's transient primary volume |
+| Music / effects volume | `SetMusicVolume` / `SetEffectsVolume` | 0–1 | a runtime sound mix over `SC_TD_Music` / `SC_TD_SFX`, once Nick's classes exist (kept until then) |
+| Window mode / resolution | `SetWindowMode` / `SetResolution` (0,0 = desktop), `GetSupportedResolutions` | | `UGameUserSettings`, saved |
+
+- **Start-up:** controls apply when each `ATDSpacePlayerController` begins play, and audio applies when the game instance
+  starts.
+- **Video at start-up:** video applies only once the player has chosen it (`bVideoChosen`). A first start keeps the engine's
+  window, and `-windowed` / `-ResX` on the command line always win at start-up. The first version forced windowed
+  fullscreen on every start and broke agent sessions launched with `-ResX`.
+- **Never touched:** the editor window, headless runs and tests (tests use their own slot).
+- **Difficulty:** the saved choice is the New Game default.
+  - It is applied at start-up (not in tests) and by `UTDGameInstance::StartNewRun` (`ApplyPreferredDifficulty`, also after a Continue of an older run).
+  - Continue restores the run's own difficulty (`ApplySave`).
+  - Reset returns Standard.
+  - T2's pause screen shows the difficulty in play.
+- **Layer:** the page draws at viewport layer `UTDSettingsSubsystem::PageZOrder` (1000), above every HUD and T2's pause screen (UI host ZOrder + 100), which opens it.
+- **Focus:** the selected row has T5's front-end focus frame.
+- **Other calls:** `ResetToDefaults`, `ApplyAll(FTDPlayerSettings)`.
+- **Dev command:** `TD.Settings [key value]`, with keys MouseSens, InvertMouse, PadSens, PadDeadzone, InvertPad, Hints,
+  Master, Music, Effects, `Window 0-2` and `Res W H`.
+- **Played live (Nov 12, -game):** windowed 1600×900 and 1280×720 resized the window, and windowed fullscreen filled the
+  desktop. T5 builds the OPTIONS page.
+- **Tests:** `Input.Settings.PersistAndApplyAtStartup`, `Input.Settings.EachControlTakesEffect` (mouse and stick aim
+  through the controller's handlers: sensitivity, invert, dead zone).
+
+## Shipping builds (what `!UE_BUILD_SHIPPING` removes in Flight / Input / Travel)
+
+Audit of Nov 12. The Shipping game target (`unrealGameJam Win64 Shipping`) compiles. Only these are compiled out, and
+none of them is needed by a player:
+- `Flight/TDFlightDebug.cpp`: the `TD.Flight.Threats` and `TD.Flight.Feedback` readouts.
+- `Flight/TDShipMovementComponent.cpp`: the silent-move warning log and callstack. The counting itself stays.
+- `Flight/TDSpacecraft.cpp`: the long-teleport log and callstack.
+- `Input/TDInputDebug.cpp`: the `TD.Input.*` agent commands. `TDActivateInputToolset` has an empty Shipping body, so the
+  controller still links.
+- `Travel/TDTravelDebug.cpp`: the `TD.Travel.*` commands.
+
+Gameplay code in this lane has no `check()` / `verify()` with side effects, no `WITH_EDITOR` paths and no editor-only
+calls. The hints, the no-art feedback, the options, the approach assist and every prompt are compiled in every
+configuration.
+
+## On-foot camera setting and the Settings page (ENG-32, engineering side)
+
+- **Camera setting:** `UTDSettingsSubsystem` holds `OnFootCameraMode` (`ETDOnFootCamera` FirstPerson / ThirdPerson,
+  default first person), saved with the other options.
+  - `GetOnFootCameraMode`, `SetOnFootCameraMode` and `ToggleOnFootCameraMode` are Blueprint-callable.
+  - `OnOnFootCameraModeChanged` fires on every real change, including from Reset and ApplyAll.
+  - The ground character (T5) binds it, reads the mode at BeginPlay, and applies it once a director shot or the
+    death cam ends.
+- **Keys:** `IMC_OnFoot` exists only while the possessed pawn isn't a spacecraft. In it, V and Gamepad_Special_Left
+  (View) toggle the mode. In space, V stays the cockpit camera. `IMC_Global` (always on) maps O and pad Y to open
+  the Settings page, but only while the game is paused.
+- **Settings page:** `UTDSettingsSubsystem::OpenSettingsPage(this)`, plus `CloseSettingsPage` and
+  `IsSettingsPageOpen`.
+  - If `UTDUIStyle::SettingsWidgetClass` is set in DA_UI_Style, that widget opens instead. It is read by name, so it
+    works however Core declares it.
+  - Otherwise the code-built `STDSettingsPage` (Input/TDSettingsPage.h) opens. Its rows: on-foot camera, mouse
+    sensitivity, invert mouse Y, gamepad sensitivity, gamepad dead zone, invert gamepad Y, control hints, master /
+    music / effects volume, window mode, resolution, Reset to defaults, Back.
+  - Keys: Up / Down (W / S, D-pad, left stick) select; Left / Right (A / D, D-pad, stick) change; Enter / Space / pad A
+    activate; Esc / Backspace / pad B close. The mouse clicks rows and their < > arrows.
+  - Every change applies at once and is saved.
+  - The page keeps keyboard and pad focus while it is open and closes on any map change. Esc through the game's
+    pause input closes the page before it unpauses.
+- **Hooks in other files:**
+  - Main menu (T5, `ATDMenuGameMode`): a SETTINGS button between CONTINUE and QUIT, plus `KeepMenuFocus` leaves the
+    page alone.
+  - Pause line (Lead, TDDebugHUD): "O / Y SETTINGS".
+- **Tests:** `Input.SettingsPage.CameraModePersistsAndBroadcasts`,
+  `Input.SettingsPage.NavigatesWithKeysAndPadAndEveryRowChanges`, `Input.SettingsPage.SettingsWidgetClassOverride`,
+  `Input.SettingsPage.VAndViewToggleOnFootOnly` (real keys: V and View toggle on foot, never in space, and not again
+  after re-boarding).
+- **Played (Nov 13, about 00:30, agent):**
+  - Pause, O, the page opened; keys changed rows (camera, mouse, master); Reset worked; the page closed.
+  - On Verdance, V and View toggled the mode (log).
+  - No screenshots: the display was off overnight, so the viewport had no drawable area.
+
+## Landing pad art
+
+`ATDLandingPad::PadArt` (soft) defaults to `/Game/TriadDrift/Gameplay/Props/Planet/SM_LandingPad`. While the asset is
+missing, the cylinder shows.
+- **Footprint:** a disc 1000 cm across (500 cm radius), centred on the actor, with its walkable face on top (+Z) at
+  `DeckHeight` = 40 cm above the actor origin. Pivot at the bottom centre; +X is the landing facing.
+- **Collision is unchanged:** the cylinder keeps colliding (hidden) and the art mesh never collides, so the art's top
+  must sit at 40 cm.
+- **Cooking:** pads are spawned at run time by the planet rig, so nothing on a map references the mesh. The folder
+  must be in the cook list (Lead) or the packaged game shows the cylinder.
+- **Test:** `Travel.Landing.PadArtSwapsTheLookNotTheCollision`.
+
+## Combat music director (N-029, `UTDMusicDirectorSubsystem`, a world subsystem in Input/)
+
+The director plays `UTDUIStyle::CombatMusic` (Nick's slot, read by name) through one 2D UI-sound audio component per
+map, using the sound's own class and volume. The options' Music slider reaches it through `SC_MenuTheme_Music`
+(or `SC_TD_Music` once that exists).
+- **When it plays:** while a fight is on, meaning any of `FTDAudioState::bWaveActive`, the DominionAssault phase, or
+  any `ATDEncounterVolume::IsActive()`.
+- **Fades:** a 2 s fade in. When the fight ends, a 6 s hold at full volume, then a 4 s fade out. A new fight during the
+  hold carries on; during the fade out the music swells back up without restarting.
+- **1 s stop:** on a level travel (any flow travel, quit to menu included), on the Victory phase and on a CUT. After a
+  CUT it stays silent until the retake starts (`OnTakeStarted`), then plays from the top.
+- **Never plays** with an empty slot or on the menu map. The component belongs to the map, so the menu's own music
+  can never overlap it.
+- **Why a world subsystem:** it ticks with the world (also when paused, in real seconds), its one component dies with
+  the map, and tests drive it with a test world.
+- **Tests (test sound):** `Input.Music.FadeInHoldAndFadeOut`, `Input.Music.NewFightInHoldOrFadeCarriesOn`,
+  `Input.Music.OneSecondStopOnCutTravelVictory`, `Input.Music.TriggersAndEmptySlot` (real Dominion phase and a real
+  encounter volume).
+- **Not yet:** heard in the game. The track isn't in the slot on this branch, and nobody has listened; Nicholas
+  approves by ear.
+
+## Placeholder engine trail
+
+Every squad ship draws a short ribbon of glow segments in its squad colour behind the exhaust
+(`UTDFlightFeedbackComponent`, `Tuning.TrailSegments` = 10 samples, 0.03 s apart).
+- The segments follow the exhaust's actual path, so the ribbon bends through turns. It tapers from 55 cm to nothing,
+  and boost makes it 40 % thicker and longer (it is speed × 0.3 s long: about 18 m at cruise).
+- It never draws across a teleport, and it hides when the ship is hidden, parked, landed with engines off, or when
+  `UTDShipVisuals::EngineTrail` has a VFX.
+- Exhaust point: the art `Engine` socket or part, else the rear of the hull or the placeholder glow
+  (`ATDShip::GetEngineExhaustLocation`).
+- **Test:** `Flight.Feedback.EngineTrailRibbonWithNoArt` (19 m at 60 m/s, longer on boost, no streak across a
+  400 m jump).
+- **Seen live:** only from the chase camera, where the player's own trail is end-on and hidden behind the hull. The
+  side view is for T3's intro capture.
+
+Settings page captures (offscreen, Nov 13): `Saved/TDShots/settings/{720p,1080p}_0N_*.png`.
 
 ## How to try it
 
@@ -276,9 +495,11 @@ To capture screenshots:
 | `Input.InjectedActionsAndPowerRouting` | actions injected through `UEnhancedPlayerInput` reach the ship; stick shaping; LT brake threshold; W bonus; device-switch hysteresis; Q tap/hold against real power components; E ability; disabled input leaves scripted input alone; Pause works while paused |
 
 ## Known gaps
-- **No-art feedback:** a live gate transit wasn't captured (`TD.World.Goto Gate` followed by flying forward didn't cross the
-  gate within 8 s). The kick is covered by a test. The placeholders are "technically verified" only; Nicholas decides whether
-  they stay as they are until art lands.
+- **No-art feedback:** the placeholders are "technically verified" only; Nicholas decides whether they stay as they are until
+  art lands. The gate captures were taken about 0.5 s after the transit, so the 0.6 s kick has mostly decayed in them.
+- **Gate arrival block (for testers):** `TD.World.Goto Gate` puts the ship 91 m from the gate at speed, inside the gate's 5 s
+  arrival block, so it passes straight through without a transit. Fly away and come back, as `gate_live2.py` does. In play,
+  the return points sit 700 m from the gates (T4), about 11 s at cruise, so a player never meets the block.
 - **Needs a hand check:**
   - Shift+Tab, since headless tests have no key state for `IsInputKeyDown`.
   - The overall feel (mouse sensitivity, camera, drift and boost numbers). The tests prove the numbers, not the fun.

@@ -1,0 +1,65 @@
+{
+  "asset": "SM_Verd_Wreck_Engine",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Engine\\SM_Verd_Wreck_Engine.fbx",
+  "tris": 17457,
+  "size_cm": [
+    900.0,
+    700.0,
+    700.0
+  ],
+  "pivot": "bottom",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Verd_Wreck_Engine"
+  ],
+  "material_params": [
+    {
+      "name": "M_Verd_Wreck_Engine",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Verd_Wreck_Engine_BC.png",
+    "T_Verd_Wreck_Engine_E.png",
+    "T_Verd_Wreck_Engine_N.png",
+    "T_Verd_Wreck_Engine_ORM.png"
+  ],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 50,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Verd_Wreck_Engine.fbx",
+  "texture_size": 2048,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "family": "verdance",
+  "footprint_cm": [
+    900.0,
+    700.0,
+    700.0
+  ],
+  "detail_uv": false
+}

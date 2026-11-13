@@ -6,6 +6,9 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Waves/TDWarpInMarker.h"
@@ -55,7 +58,7 @@ bool FTDRetakeAfterVoidedClear::RunTest(const FString& Parameters)
 	ATDWaveDirector* D = Director(W);
 	GI->Progress.WavesCleared = 1;
 	D->StartWave(1);	// wave 2
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	const FName Scene = D->GetWaveInfo().SceneId;
 
 	// The squad died ("CUT!"); during the delay the last enemy dies too, so the wave finishes...
@@ -67,7 +70,7 @@ bool FTDRetakeAfterVoidedClear::RunTest(const FString& Parameters)
 	UTDEventBus::Get(W.GetWorld())->BroadcastTakeStarted(Scene, 2);
 	TestTrue(TEXT("the retake runs wave 2 again"), D->GetState() == ETDWaveState::WarpingIn || D->GetState() == ETDWaveState::Active);
 	TestEqual(TEXT("still wave 2"), D->GetWaveInfo().WaveNumber, 2);
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	TestTrue(*FString::Printf(TEXT("with enemies alive (%d)"), D->GetLivingEnemies().Num()), D->GetLivingEnemies().Num() > 0);
 	TestFalse(TEXT("and the hyperdrive locked"), LockReason(W).IsEmpty());
 
@@ -126,7 +129,7 @@ bool FTDNoClearDuringCut::RunTest(const FString& Parameters)
 	ATDWaveDirector* D = Director(W);
 	GI->Progress.WavesCleared = 1;
 	D->StartWave(1);
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	const FName Scene = D->GetWaveInfo().SceneId;
 	const int32 ReportsBefore = GI->ReportedWaves.Num();
 	UTDEventBus::Get(W.GetWorld())->BroadcastSceneCut(Scene, 2, 1.75f);	// the squad wiped
@@ -135,7 +138,7 @@ bool FTDNoClearDuringCut::RunTest(const FString& Parameters)
 	TestTrue(TEXT("still the running wave (not cleared)"), D->GetWaveInfo().bWaveActive);
 	TestEqual(TEXT("no wave-cleared report to the flow"), GI->ReportedWaves.Num(), ReportsBefore);
 	UTDEventBus::Get(W.GetWorld())->BroadcastTakeStarted(Scene, 2);
-	W.Advance(D->WarpInSeconds + 6.f);
+	W.Advance(D->WarpInSeconds + 26.f);	// past wave 2's last pack (24 s)
 	TestTrue(*FString::Printf(TEXT("the retake runs wave 2 with enemies (%d)"), D->GetLivingEnemies().Num()), D->GetLivingEnemies().Num() > 0 && D->GetWaveInfo().WaveNumber == 2);
 	KillAll(D);
 	W.Tick();
@@ -154,6 +157,7 @@ bool FTDBreatherRepairOnce::RunTest(const FString& Parameters)
 	Squad->SetSquadPlayerController(PC);
 	Squad->SpawnSquad(FTransform::Identity);
 	ATDWaveDirector* D = Director(W);
+	D->OpeningGraceSeconds = 0.f;	// this test is about breather repair; the wave-1 opening has its own test
 	W.Tick();
 	ATDShip* Ship = Squad->GetActiveShip();
 	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
@@ -174,6 +178,74 @@ bool FTDBreatherRepairOnce::RunTest(const FString& Parameters)
 	W.Advance(1.f);
 	const float PerSecond = (H->GetHull() - Start) / H->MaxHull;
 	TestEqual(TEXT("8% of max hull per second, once"), PerSecond, 0.08f, 0.012f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeClearsMinesAndTurretFire, "TriadDrift.Waves.Retake.MinesAndTurretFireCleared", TD_TEST_FLAGS)
+bool FTDRetakeClearsMinesAndTurretFire::RunTest(const FString& Parameters)
+{
+	using namespace TDWaveRetakeTest;
+	// T3's retake audit: a real bomber's mines and a real carrier's point-defence fire must not survive into the
+	// next take (a mine sitting on the respawn line is a cheap death).
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	for (ATDShip* S : Squad->GetLivingShips()) { if (S && S->GetHealth()) { S->GetHealth()->SetInvulnerable(true); } }
+	ATDEnemyShip* Bomber = W.Spawn<ATDEnemyShip>(FVector(9000.f, 2000.f, 0.f), FRotator(0.f, 180.f, 0.f));
+	Bomber->InitFromSpec(TEXT("MaulBomber"));
+	ATDEnemyShip* Carrier = W.Spawn<ATDEnemyShip>(FVector(14000.f, -6000.f, 0.f), FRotator(0.f, 160.f, 0.f));
+	Carrier->InitFromSpec(TEXT("HiveCarrier"));
+	UTDProjectileSubsystem* Proj = UTDProjectileSubsystem::Get(W.GetWorld());
+	auto EnemyShots = [Proj]()
+	{
+		int32 N = 0;
+		for (const ATDProjectile* P : Proj->GetLiveProjectiles()) { N += (P && P->GetTeam() == ETDTeam::Enemy) ? 1 : 0; }
+		return N;
+	};
+	int32 Peak = 0;
+	for (int32 i = 0; i < 60 * 10; ++i) { W.Tick(); Peak = FMath::Max(Peak, EnemyShots()); }
+	TestTrue(*FString::Printf(TEXT("the bomber and the carrier fired (peak %d enemy shots and mines)"), Peak), Peak > 0);
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	Bus->BroadcastSceneCut(TEXT("Wave4"), 2, 1.75f);
+	TestEqual(TEXT("cleared on the CUT"), EnemyShots(), 0);
+	W.Advance(1.75f);	// the enemies are still alive during the delay and may fire again
+	Bus->BroadcastTakeStarted(TEXT("Wave4"), 2);
+	TestEqual(TEXT("cleared again on the retake: nothing waits on the respawn line"), EnemyShots(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDOpeningGrace, "TriadDrift.Waves.OpeningGraceProtectsAnIdlePlayer", TD_TEST_FLAGS)
+bool FTDOpeningGrace::RunTest(const FString& Parameters)
+{
+	// Lead requirement: in the first 30 s of wave 1 a player who does nothing loses no ship and no squad ship
+	// drops below 50% hull to enemy fire. Real squad, real enemy ships (the director's own factory).
+	for (const float Fps : { 30.f, 60.f })
+	{
+		FTDTestWorld W;
+		APlayerController* PC = W.SpawnPlayerController();
+		ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+		Squad->SetSquadPlayerController(PC);
+		Squad->SpawnSquad(FTransform::Identity);
+		ATDWaveDirector* D = W.Spawn<ATDWaveDirector>();	// real enemy ships and AI
+		W.Tick(1.f / Fps);
+		D->StartWave(0);
+		float MinHull01 = 1.f;
+		bool bGraceSeen = false;
+		for (int32 i = 0; i < FMath::RoundToInt(Fps * 29.f); ++i)
+		{
+			W.Tick(1.f / Fps);
+			bGraceSeen |= D->IsOpeningGraceActive();
+			for (ATDShip* S : Squad->GetLivingShips())
+			{
+				if (const UTDHealthComponent* H = S ? S->GetHealth() : nullptr) { MinHull01 = FMath::Min(MinHull01, H->GetHull01()); }
+			}
+		}
+		TestTrue(*FString::Printf(TEXT("@%.0f: the opening grace ran"), Fps), bGraceSeen);
+		TestEqual(*FString::Printf(TEXT("@%.0f: no ship down in the first 30 s"), Fps), Squad->GetLivingShips().Num(), 3);
+		TestTrue(*FString::Printf(TEXT("@%.0f: no squad ship below 50%% hull (lowest %.0f%%)"), Fps, MinHull01 * 100.f), MinHull01 >= 0.49f);
+	}
 	return true;
 }
 

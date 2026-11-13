@@ -226,7 +226,8 @@ ATDPlaceholderFlash::ATDPlaceholderFlash()
 	SetCanBeDamaged(false);
 }
 
-ATDPlaceholderFlash* ATDPlaceholderFlash::SpawnRingFlash(UWorld* World, const FVector& Location, float Radius, FLinearColor Color, float Seconds)
+ATDPlaceholderFlash* ATDPlaceholderFlash::SpawnRingFlash(UWorld* World, const FVector& Location, float Radius, FLinearColor Color, float Seconds,
+	const FRotator& Rotation, float StartScale)
 {
 	if (!World)
 	{
@@ -234,10 +235,11 @@ ATDPlaceholderFlash* ATDPlaceholderFlash::SpawnRingFlash(UWorld* World, const FV
 	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	ATDPlaceholderFlash* Flash = World->SpawnActor<ATDPlaceholderFlash>(ATDPlaceholderFlash::StaticClass(), Location, FRotator::ZeroRotator, Params);
+	ATDPlaceholderFlash* Flash = World->SpawnActor<ATDPlaceholderFlash>(ATDPlaceholderFlash::StaticClass(), Location, Rotation, Params);
 	if (Flash)
 	{
 		Flash->Life = FMath::Max(Seconds, 0.05f);
+		Flash->StartScale = FMath::Clamp(StartScale, 0.01f, 1.f);
 		FTDPowerPresentation::AddRingLattice(Flash, nullptr, Radius, 3, 48, 80.f, Color, 6.f);
 	}
 	return Flash;
@@ -247,9 +249,9 @@ void ATDPlaceholderFlash::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	Age += DeltaSeconds;
-	// Expand from 60% to 100% of the radius so the pulse reads as a wave.
+	// Expand from StartScale to 100% of the radius (ease-out) so the pulse reads as a wave leaving its source.
 	const float T = FMath::Clamp(Age / Life, 0.f, 1.f);
-	GetRootComponent()->SetRelativeScale3D(FVector(FMath::Lerp(0.6f, 1.f, T)));
+	GetRootComponent()->SetRelativeScale3D(FVector(FMath::Lerp(StartScale, 1.f, 1.f - FMath::Square(1.f - T))));
 	if (Age >= Life)
 	{
 		Destroy();

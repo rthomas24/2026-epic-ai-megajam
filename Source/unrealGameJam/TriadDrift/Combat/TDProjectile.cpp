@@ -236,8 +236,11 @@ void ATDProjectile::UpdatePlaceholderLook()
 		const FLinearColor Color = FTDCombatPlaceholders::ProjectileColor(Spec, Team, Shooter.Get(), DeflectCount > 0);
 		LookColor = Color;
 		bOnFootLook = TDProjIsOnFootShot(GetWorld(), Shooter.Get());
-		const FTDStreakLook Look = bOnFootLook ? FTDCombatPlaceholders::ComputeOnFootStreak(Spec) : FTDCombatPlaceholders::ComputeStreak(Spec);
+		const FTDStreakLook Look = bOnFootLook ? FTDCombatPlaceholders::ComputeOnFootStreak(Spec)
+			: Team == ETDTeam::Player ? FTDCombatPlaceholders::ComputeSquadStreak(Spec) : FTDCombatPlaceholders::ComputeStreak(Spec);
 		StreakLook = Look;
+		bTracerTip = !bOnFootLook && Team == ETDTeam::Player && Look.bStreak && !Look.bHead;
+		AppliedLength = 0.f;
 		AppliedGrowth = 1.f;
 		bAppliedIncoming = false;
 		if (!GlowMaterial)
@@ -245,7 +248,8 @@ void ATDProjectile::UpdatePlaceholderLook()
 			GlowMaterial = UTDStatics::GetPlaceholderGlowMaterial(); // project M_TD_PlaceholderGlow, always cooked
 		}
 		UMaterialInterface* Base = GlowMaterial ? GlowMaterial.Get() : DefaultMaterial.Get();
-		const FLinearColor Final = GlowMaterial ? Color * FTDCombatPlaceholders::StreakGlow : Color;
+		const float GlowScale = bOnFootLook ? FTDCombatPlaceholders::OnFootGlow : FTDCombatPlaceholders::StreakGlow;
+		const FLinearColor Final = GlowMaterial ? Color * GlowScale : Color;
 		if (!PlaceholderMID && Base)
 		{
 			PlaceholderMID = UMaterialInstanceDynamic::Create(Base, this);
@@ -261,15 +265,14 @@ void ATDProjectile::UpdatePlaceholderLook()
 		}
 		if (Look.bStreak)
 		{
-			PlaceholderMesh->SetRelativeScale3D(FVector(Look.Length, Look.Thickness, Look.Thickness) / 100.f);
-			PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * Look.Length + 0.5f * Look.Thickness, 0.f, 0.f));
+			ApplyStreakTransform(1.f, false);
 		}
 		else
 		{
 			PlaceholderMesh->SetRelativeScale3D(Spec.PlaceholderScale);
 			PlaceholderMesh->SetRelativeLocation(FVector::ZeroVector);
 		}
-		if (Look.bHead || Team == ETDTeam::Enemy)
+		if (Look.bHead || Team == ETDTeam::Enemy || bTracerTip)
 		{
 			if (!HeadMID && Base)
 			{
@@ -280,12 +283,20 @@ void ATDProjectile::UpdatePlaceholderLook()
 			{
 				// Hot core: the team colour pushed towards white and brighter than the trail.
 				// Stays in squad / enemy colour (playtest: 0.45 white read as a white ball); incoming enemy fire burns hotter.
-				const float HeadGlow = (Team == ETDTeam::Enemy && !bOnFootLook) ? 1.3f : 0.8f;
-				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? FTDCombatPlaceholders::StreakGlow * HeadGlow : 1.f);
+				// The squad's heavy heads glow softer (stacked over the reticle they bloomed into a pale ball); the squad
+				// tracer tip is near-white so the shot never vanishes against a sky of its own colour.
+				const float HeadGlow = bOnFootLook ? 1.f : Team == ETDTeam::Enemy ? FTDCombatPlaceholders::EnemyHeadGlow : bTracerTip ? 0.9f : 0.6f;
+				// Enemy and on-foot heads stay pure team colour: any white tips red-orange to pale pink (live, both).
+				const float White = (bOnFootLook || Team == ETDTeam::Enemy) ? 0.f : bTracerTip ? FTDCombatPlaceholders::TipWhite : 0.15f;
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, White) * (GlowMaterial ? GlowScale * HeadGlow : 1.f);
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
 			}
-			PlaceholderHead->SetRelativeScale3D(FVector(Look.HeadDiameter / 100.f));
+			if (!bTracerTip)
+			{
+				PlaceholderHead->SetRelativeScale3D(FVector(Look.HeadDiameter / 100.f));
+				PlaceholderHead->SetRelativeLocation(FVector::ZeroVector);
+			}
 		}
 	}
 
@@ -313,7 +324,7 @@ void ATDProjectile::UpdatePlaceholderLook()
 
 	// With a tracer and no art mesh, the trail is the look; otherwise show the mesh. The head is placeholder-only.
 	PlaceholderMesh->SetVisibility(ArtMesh != nullptr || Tracer == nullptr);
-	PlaceholderHead->SetVisibility(!ArtMesh && !Tracer && StreakLook.bHead);
+	PlaceholderHead->SetVisibility(!ArtMesh && !Tracer && (StreakLook.bHead || bTracerTip));
 }
 
 void ATDProjectile::Deactivate()
@@ -495,33 +506,62 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	{
 		return;
 	}
+	float Grow = AppliedGrowth;
+	bool bIncoming = bAppliedIncoming;
 	const UWorld* World = GetWorld();
 	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
-	if (!PC || !PC->PlayerCameraManager)
+	if (PC && PC->PlayerCameraManager)
 	{
-		return;
+		const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+		const float Distance = FVector::Dist(Camera, GetActorLocation());
+		CameraDistance = Distance;
+		bIncoming = !bOnFootLook && Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
+		Grow = bOnFootLook ? FTDCombatPlaceholders::OnFootDistanceGrowth(StreakLook, Distance) : bIncoming
+			? FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance, FTDCombatPlaceholders::MinIncomingStreakPixels)
+			: FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
 	}
-	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
-	const float Distance = FVector::Dist(Camera, GetActorLocation());
-	const bool bIncoming = !bOnFootLook && Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
-	const float Grow = bOnFootLook ? FTDCombatPlaceholders::OnFootDistanceGrowth(StreakLook, Distance) : bIncoming
-		? FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance, FTDCombatPlaceholders::MinIncomingStreakPixels)
-		: FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance);
-	if (bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
+	// A streak still growing out of the muzzle is updated every tick; after that only visible changes are.
+	const bool bGrowing = AppliedLength < StreakLook.Length - 1.f;
+	// Close to the camera the head cap changes with every metre: keep updating there.
+	const bool bNearCamera = CameraDistance > 0.f && CameraDistance < 5000.f && (StreakLook.bHead || bIncoming);
+	if (!bGrowing && !bNearCamera && bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
 	{
 		return; // cheap at 150+ live shots: no transform update for a change nobody can see
 	}
+	ApplyStreakTransform(Grow, bIncoming);
+}
+
+void ATDProjectile::ApplyStreakTransform(float Grow, bool bIncoming)
+{
 	AppliedGrowth = Grow;
 	bAppliedIncoming = bIncoming;
 	const float Thickness = StreakLook.Thickness * Grow;
-	PlaceholderMesh->SetRelativeScale3D(FVector(StreakLook.Length, Thickness, Thickness) / 100.f);
-	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * StreakLook.Length + 0.5f * Thickness, 0.f, 0.f));
+	// Only the distance flown is drawn: a long tracer never reaches back through the ship or past the camera.
+	const float Flown = Age * FMath::Max(Velocity.Size(), Spec.Speed);
+	AppliedLength = FTDCombatPlaceholders::VisibleLength(StreakLook, Flown);
+	const float Length = FMath::Max(AppliedLength, Thickness);
+	PlaceholderMesh->SetRelativeScale3D(FVector(Length, Thickness, Thickness) / 100.f);
+	PlaceholderMesh->SetRelativeLocation(FVector(-0.5f * Length + 0.5f * Thickness, 0.f, 0.f));
+	if (bTracerTip)
+	{
+		const float TipThick = Thickness * FTDCombatPlaceholders::TipThickness;
+		const float Tip = FMath::Max(FTDCombatPlaceholders::TipLength(StreakLook, AppliedLength) * Grow, TipThick);
+		PlaceholderHead->SetVisibility(HeadMID != nullptr);
+		PlaceholderHead->SetRelativeScale3D(FVector(Tip, TipThick, TipThick) / 100.f);
+		PlaceholderHead->SetRelativeLocation(FVector(-0.5f * Tip + 0.5f * TipThick, 0.f, 0.f));
+		return;
+	}
 	const bool bShowHead = StreakLook.bHead || bIncoming;
 	PlaceholderHead->SetVisibility(bShowHead && HeadMID != nullptr);
 	if (bShowHead)
 	{
-		const float Head = FMath::Max(StreakLook.HeadDiameter, StreakLook.Thickness * (bIncoming ? FTDCombatPlaceholders::IncomingHeadScale : 0.f));
-		PlaceholderHead->SetRelativeScale3D(FVector(Head * Grow / 100.f));
+		float Head = FMath::Max(StreakLook.HeadDiameter, StreakLook.Thickness * (bIncoming ? FTDCombatPlaceholders::IncomingHeadScale : 0.f)) * Grow;
+		if (CameraDistance > 0.f)
+		{
+			Head = FMath::Min(Head, FMath::Max(CameraDistance * FTDCombatPlaceholders::MaxHeadPerCameraDistance, 1.f));
+		}
+		PlaceholderHead->SetRelativeScale3D(FVector(Head / 100.f));
+		PlaceholderHead->SetRelativeLocation(FVector::ZeroVector);
 	}
 }
 
@@ -926,7 +966,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 		UTDStatics::PlayCue(this, Cue, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 		bImpactArt = FTDCombatPlaceholders::HasVisualArt(Cue) || (Spec.SplashRadius > 0.f && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	}
-	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt);
+	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt, VictimHealth, Hit.ImpactNormal);
 
 	if (Victim && CanDamage(Victim))
 	{
@@ -949,6 +989,21 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	Deactivate();
 }
 
+void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt, const UTDHealthComponent* VictimHealth, const FVector& Normal) const
+{
+	// Something with health, hit by a light shot in space: shield puff vs hull sparks. Explosive shots and on-foot bolts
+	// keep their own looks.
+	if (!bCueHasArt && VictimHealth && !bOnFootLook && Spec.SplashRadius <= 0.f && !Spec.bIsMissile)
+	{
+		if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
+		{
+			Subsystem->PlayPlaceholderHit(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), VictimHealth->IsShieldUp(), Normal);
+			return;
+		}
+	}
+	PlayPlaceholderImpact(Location, bCueHasArt);
+}
+
 void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt) const
 {
 	if (bCueHasArt)
@@ -958,6 +1013,14 @@ void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasA
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 	{
 		const FLinearColor Color = LookColor;
+		if (bOnFootLook)
+		{
+			// On foot the hit is often a metre from the camera (a pellet on the player): a small spark at the on-foot
+			// glow, not the 140 cm space pop at glow 14 that hid the Heavy in the live check.
+			const float Dim = FTDCombatPlaceholders::OnFootGlow / FTDCombatPlaceholders::FlashGlow;
+			Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::OnFootImpactRadius(StreakLook), Color * Dim, 0.1f);
+			return;
+		}
 		if (Spec.SplashRadius > 0.f || Spec.bIsMissile)
 		{
 			// Rockets, missiles, flak and mines: a real explosion read (core, shell, debris), not a pop.
@@ -965,7 +1028,11 @@ void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasA
 		}
 		else
 		{
-			Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.14f);
+			// Near the camera (a hit on a carrier hull a few metres away) a hit flash is capped like an explosion shell.
+			if (ATDCombatFlash* Flash = Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.14f))
+			{
+				Flash->SetCameraCap(ATDCombatFlash::MaxShellRadiusPerCameraDistance);
+			}
 		}
 	}
 }

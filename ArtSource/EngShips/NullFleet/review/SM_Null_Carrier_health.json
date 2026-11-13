@@ -1,0 +1,208 @@
+{
+  "asset": "SM_Null_Carrier",
+  "tag": "e1",
+  "checks": {
+    "tris": 33706,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 12,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 4,
+    "size_cm": [
+      3955.6,
+      4643.4,
+      2506.3
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0038",
+        0.11
+      ],
+      [
+        "part_0042",
+        0.101
+      ],
+      [
+        "part_0046",
+        0.11
+      ],
+      [
+        "part_0050",
+        0.101
+      ],
+      [
+        "part_0054",
+        0.092
+      ],
+      [
+        "part_0081",
+        0.196
+      ],
+      [
+        "part_0089",
+        0.196
+      ]
+    ],
+    "com_shift_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "centre_of_mass_m": [
+      0.002,
+      0.389,
+      1.624
+    ],
+    "edge_area_share": 0.0827,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 24
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3454,
+      "overlap_pixels": 12,
+      "overlap_share_of_covered": 3.3e-05,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_Carrier",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_E.png"
+      },
+      "size": 4096,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_Carrier_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 202.23
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7699
+    },
+    "build_seconds": 242.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.0716,
+        0.0689,
+        0.0743
+      ],
+      "min": 0.0,
+      "max": 0.4
+    },
+    "N": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.5,
+        0.5,
+        1.0
+      ],
+      "min": 0.1451,
+      "max": 1.0,
+      "std_rg": [
+        0.0123,
+        0.0131
+      ]
+    },
+    "ORM": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.3087,
+        0.3147,
+        0.3294
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.694
+      ],
+      "metallic_mean": 0.318
+    },
+    "E": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.0837,
+        0.0251,
+        0.0106
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0326,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_Carrier",
+      "message": "285 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 215,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.09892
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_e1_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_e1_clay_sheet.png",
+    "ortho_cm_per_px": 11.6086,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 33706,
+    "size_cm": [
+      4643.4,
+      3955.6,
+      2506.3
+    ],
+    "collision": [
+      "UCX_SM_Null_Carrier_00",
+      "UCX_SM_Null_Carrier_01",
+      "UCX_SM_Null_Carrier_02",
+      "UCX_SM_Null_Carrier_03"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_Carrier"
+    ],
+    "textures": [
+      "T_Null_Carrier_BC.png",
+      "T_Null_Carrier_E.png",
+      "T_Null_Carrier_N.png",
+      "T_Null_Carrier_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

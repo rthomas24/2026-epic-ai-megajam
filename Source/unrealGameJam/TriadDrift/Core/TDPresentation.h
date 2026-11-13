@@ -230,6 +230,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	TArray<TSoftObjectPtr<UMaterialInterface>> MaterialOverrides;
 
+	/** Carrier launch bay (Carrier visuals; real size, scale 1, +X = outward). Replaces the orange box. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> BayMesh;
+
+	/** Point-defence / Dominion turret (real size, scale 1, +Z = up). Replaces the cylinder. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> TurretMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue EngineTrail;
 
@@ -330,6 +338,22 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	TSoftObjectPtr<UStaticMesh> ReactorMesh;
+
+	/** Optional structural pieces; each replaces its basic-shape stand-in when set (authored at real size, scale 1,
+	 *  pivot where the stand-in sits: bridge on top of the hull, each trench wall at its own centre). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> BridgeMesh;
+
+	/** One trench wall, authored as the LEFT wall; the right wall uses it mirrored. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> TrenchMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> ShieldEmitterMesh;
+
+	/** The generator's glowing weak point (the pylon is GeneratorMesh). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> GeneratorCoreMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arrival")
 	FTDFXCue WarpIn;
@@ -514,6 +538,105 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
 	TSoftClassPtr<UUserWidget> PauseWidgetClass;
+
+	/**
+	 * Shown on the menu map after a won run INSTEAD of MainMenuWidgetClass (optional). Empty = the code-built
+	 * victory screen (run time, kills, ships lost, cuts, takes per scene, return to menu). A main-menu widget is
+	 * therefore never asked to show the victory statistics (N-023).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> VictoryWidgetClass;
+
+	/**
+	 * The Settings page (optional): opened from the main menu and the pause menu. Empty = the code-built page.
+	 * A styled page calls the same UTDSettingsSubsystem functions (ENG-32).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> SettingsWidgetClass;
+
+	/** The on-foot HUD (optional). Empty = engineering's styled native on-foot HUD. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> GroundHUDWidgetClass;
+
+	/**
+	 * Combat music (optional; N-029): played by engineering's music director while a fight is on (space waves,
+	 * the Dominion assault, active on-foot encounters), faded in and out; the sound's own class and volume apply.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> CombatMusic;
+
+	/**
+	 * Combat feedback sounds (optional): played as 2D UI sounds by the HUD host when a squad shot lands
+	 * (OnHitConfirmed) and when it kills. The sound's own class, volume and concurrency apply; silent when unset.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat Feedback")
+	FTDFXCue HitConfirm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat Feedback")
+	FTDFXCue KillConfirm;
+
+	/**
+	 * Interface sounds (optional, 2D): a selection moves, a value is confirmed or changed, a page closes, the game
+	 * pauses and resumes. Played by the menus, the Settings page and the pause toggle; silent when unset.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue UIMove;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue UIConfirm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue UIBack;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue PauseIn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue PauseOut;
+
+	/**
+	 * Director's Cut and progress stings (optional, 2D): the scene slate, the "CUT!" call, slow motion in and out
+	 * for a money shot, an objective completed. Silent when unset.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue SlateClap;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue CutSting;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue SlowMoIn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue SlowMoOut;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue ObjectiveComplete;
+
+	/** Ambience beds (optional, looping, 2D): one per place, cross-faded by the music director's owner. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ambience")
+	TSoftObjectPtr<USoundBase> AmbienceSpace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ambience")
+	TSoftObjectPtr<USoundBase> AmbienceVerdance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ambience")
+	TSoftObjectPtr<USoundBase> AmbienceCinder;
+
+	/**
+	 * The intro (ENG-33), optional. When set, this Level Sequence plays on New Game instead of the code-driven
+	 * shots, with the same skip and hand-off rules.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
+	TSoftObjectPtr<UObject> IntroSequence;
+
+	/** Music for the intro, swelling into wave 1 (optional; silence when empty). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
+	TSoftObjectPtr<USoundBase> IntroMusic;
+
+	/** One optional voice line per narration line of the intro, in order (silence for a missing entry). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
+	TArray<TSoftObjectPtr<USoundBase>> IntroNarrationVoice;
 
 	/**
 	 * Music for the main menu (optional). The menu game mode plays it 2D and fades it out when the game

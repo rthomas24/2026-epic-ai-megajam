@@ -1,6 +1,8 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDPortalGate.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "Misc/PackageName.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -34,6 +36,10 @@ ATDPortalGate::ATDPortalGate()
 		if (Cube.Succeeded()) { Bar->SetStaticMesh(Cube.Object); }
 		Frame.Add(Bar);
 	}
+
+	// Engineering membrane until Nick's PortalIdle VFX lands (hard reference: always cooked).
+	static ConstructorHelpers::FObjectFinderOptional<UMaterialInterface> Membrane(TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_PortalMembrane.M_TD_PortalMembrane"));
+	MembraneMaterial = Membrane.Get();
 
 	Surface = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Surface"));
 	Surface->SetupAttachment(Root);
@@ -78,13 +84,17 @@ void ATDPortalGate::LayoutParts()
 	Surface->SetRelativeScale3D(FVector(Radius * 2.f / 100.f, Radius * 2.f / 100.f, 0.05f));
 
 	// Art: a frame mesh replaces the four placeholder bars (bar 0 carries it, keeping collision).
-	if (!FrameMeshOverride.IsNull())
+	if (!FrameMeshOverride.IsNull() && FPackageName::DoesPackageExist(FrameMeshOverride.ToSoftObjectPath().GetLongPackageName()))
 	{
 		if (UStaticMesh* Art = FrameMeshOverride.LoadSynchronous())
 		{
 			Frame[0]->SetStaticMesh(Art);
 			Frame[0]->SetRelativeLocation(FVector::ZeroVector);
-			Frame[0]->SetRelativeScale3D(FVector::OneVector);
+			Frame[0]->SetRelativeRotation(FRotator::ZeroRotator);
+			// One round frame: scale its opening to the transit disc (the disc stays the gameplay truth).
+			const float RingScale = FrameMeshInnerDiameter > 0.f ? (Radius * 2.f) / FrameMeshInnerDiameter : 1.f;
+			Frame[0]->SetRelativeScale3D(FVector(RingScale));
+			Frame[0]->EmptyOverrideMaterials();
 			for (int32 i = 1; i < Frame.Num(); ++i)
 			{
 				Frame[i]->SetVisibility(false);
@@ -173,7 +183,30 @@ void ATDPortalGate::UpdateLook()
 		if (!FrameMeshOverride.IsNull()) { break; }	// art keeps its own materials
 		UTDStatics::TintPlaceholder(Bar, Col, IsGateActive() ? 3.f : 0.f);
 	}
-	UTDStatics::TintPlaceholder(Surface, FLinearColor(0.7f, 0.2f, 1.f), 2.f);
+	if (MembraneMaterial)
+	{
+		// Translucent swirl with a bright rim and a see-through centre, tinted per gate (not an opaque disc).
+		if (!MembraneMID) { MembraneMID = Surface->CreateDynamicMaterialInstance(0, MembraneMaterial); }
+		if (MembraneMID)
+		{
+			MembraneMID->SetVectorParameterValue(TEXT("Tint"), GetMembraneTint());
+			MembraneMID->SetScalarParameterValue(TEXT("Brightness"), MembraneBrightness);
+		}
+		Surface->SetCastShadow(false);
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(Surface, FLinearColor(0.7f, 0.2f, 1.f), 2.f);
+	}
+}
+
+FLinearColor ATDPortalGate::GetMembraneTint() const
+{
+	// The destination's colour: Verdance teal, Cinder ember, anything else (the flank pair) portal magenta.
+	const FString Id = GateId.ToString();
+	if (Id.Contains(TEXT("Verdance"))) { return FLinearColor(0.2f, 1.f, 0.8f); }
+	if (Id.Contains(TEXT("Cinder"))) { return FLinearColor(1.f, 0.45f, 0.1f); }
+	return FLinearColor(1.f, 0.35f, 1.f);
 }
 
 bool& ATDPortalGate::TransitInProgressFlag()
@@ -313,6 +346,21 @@ void ATDPortalGate::Tick(float DeltaSeconds)
 			{
 				TryTransit(A, DeltaSeconds);
 			}
+		}
+	}
+}
+
+void ATDPortalGate::PlayTransitFlare(const FVector& Where)
+{
+	if (TravelFX)
+	{
+		UTDStatics::PlayCue(this, TravelFX->PortalTransit, Where, GetActorRotation());
+	}
+	if (!TravelFX || !FTDCombatPlaceholders::HasVisualArt(TravelFX->PortalTransit))
+	{
+		if (UTDProjectileSubsystem* Proj = UTDProjectileSubsystem::Get(this))
+		{
+			Proj->PlayPlaceholderFlash(Where, Radius * 0.6f, FLinearColor(1.f, 0.35f, 1.f) * 6.f, 0.6f);
 		}
 	}
 }

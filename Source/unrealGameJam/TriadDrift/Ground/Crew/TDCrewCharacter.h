@@ -100,14 +100,27 @@ public:
 	 *  /Game/TriadDrift/Gameplay/Characters (engineering-made crew looks). Null when neither has it. */
 	static class UTDEnemyVisuals* FindCrewVisuals(FName VisualsId);
 
+	/** The shared look lookup (crew and pilot): Presentation/<Name> first, else <Name> of Class anywhere under
+	 *  /Game/TriadDrift/Gameplay/Characters. Null when neither exists. */
+	static UObject* FindLookAsset(const FString& Name, UClass* Class);
+
 	/** Where bolts and the tell come from: the mesh's "Muzzle" socket when the skeletal look has one, else in front of the capsule. */
 	FVector GetMuzzleLocation(const FVector& AimDirection) const;
 
 	/** The anim blueprint in use on the skeletal look came from the template fallback (the visuals had none). */
 	bool UsesFallbackAnimation() const { return bFallbackAnim; }
 
-	/** Template mannequin animations used when a skeletal look has no AnimBP of its own (also cooked: see docs/eng/ground.md). */
-	static const TCHAR* FallbackAnimBP;
+	/** Template mannequin loops for a skeletal look with no AnimBP, played by the C++ loop player (the template anim
+	 *  blueprints collapse the pose on our crew: they expect the template's own character classes). 0 idle, 1 walk, 2 run. */
+	static const TCHAR* FallbackLoopFor(ETDCrewType Type, int32 Loop);
+	/** The crew's own copy of a template sequence (Gameplay/Characters/Crew/Anims/<same name>), or empty when it doesn't
+	 *  exist. The template sequences themselves are never played on crew meshes: compressed, they collapse every bone
+	 *  to the root (Nov 13 probes), so without the crew set a look stands in its reference pose. */
+	static FString CrewAnimPath(const TCHAR* TemplatePath);
+	static FString CrewAnimPath(ETDCrewType Type, int32 Loop) { return CrewAnimPath(FallbackLoopFor(Type, Loop)); }
+
+	/** Scale of the skeletal look (a type borrowing another type's look is sized to its own capsule). */
+	float GetLookScale() const { return LookScale; }
 
 	FTDOnCrewAttack OnAttackStarted;   // wind-up begins (telegraph)
 	FTDOnCrewAttack OnAttackReleased;  // the hit / shots go out
@@ -191,6 +204,33 @@ private:
 	int32 BossPhase = 1;
 	int32 SummonsLeft = -1;
 	bool bFallbackAnim = false;
+	void UpdateFallbackLoop();
+	/** A skeletal look with no death animation topples over about its feet (no physics: PA_Mannequin on our crew
+	 *  meshes exploded the ragdoll 15 m in 0.4 s, Nov 13 live). */
+	void TickTopple(float DeltaSeconds);
+	bool bToppling = false;
+	float ToppleAlpha = 0.f;
+	FVector ToppleAxis = FVector::RightVector;
+	FQuat ToppleStart = FQuat::Identity;
+public:
+	bool IsToppling() const { return bToppling; }
+private:
+	/** A look whose bones don't map onto the mannequin animations collapses to the floor under them (playtest
+	 *  17e0437, SK_NullHeavy): detect it and show the look in its standing reference pose instead. */
+	void GuardAgainstCollapse(float DeltaSeconds);
+	float RefHeadHeight = 0.f;
+	float CollapseCheckTimer = 0.f;
+	int32 CollapseStrikes = 0;
+	int32 CollapseRetries = 0;
+	float FrozenRetryLeft = 0.f;
+public:
+	/** The skeletal look fell back to its reference pose because the animations collapsed it. */
+	bool IsLookPoseFrozen() const { return bLookPoseFrozen; }
+	/** Tests and probes can switch the collapse guard off. */
+	static bool bCollapseGuard;
+private:
+	bool bLookPoseFrozen = false;
+	float LookScale = 1.f;
 	void PlayFallbackAnim(const TCHAR* AssetPath, float Rate = 1.f);
 	const TCHAR* FallbackDeathAnim(const FVector& HitDirection) const;
 	float OpeningGraceLeft = 0.f;

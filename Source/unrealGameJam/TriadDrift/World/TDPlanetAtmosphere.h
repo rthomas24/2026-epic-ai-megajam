@@ -21,6 +21,26 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDAtmosphereOpenSignature, ATDPlan
  * fires OnShipEnteredAtmosphere; T1's ENG-20 entry/landing binds that. Until ENG-20 takes over
  * (SetAutoTravel(false)), it calls Flow->TravelTo(Destination, ReturnPoint) after EntryDelaySeconds.
  */
+/** A planet's look: surface, atmosphere shell and optional ring, each with an optional material. Every mesh is
+ *  authored around a planet of radius 100 cm at scale 1 and scaled from the planet's radius. Collision stays the
+ *  gameplay sphere. Empty or missing assets fall back to the tinted placeholder sphere. */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDPlanetLook
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TSoftObjectPtr<UStaticMesh> Surface;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TSoftObjectPtr<UMaterialInterface> SurfaceMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TSoftObjectPtr<UStaticMesh> Atmosphere;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TSoftObjectPtr<UMaterialInterface> AtmosphereMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TSoftObjectPtr<UStaticMesh> Ring;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TSoftObjectPtr<UMaterialInterface> RingMaterial;
+	/** Ring tilt (degrees about the planet's forward axis). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") float RingTiltDeg = 20.f;
+	/** Self-rotation (degrees per second); 0.3 = one turn per 20 minutes. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") float SpinDegPerSecond = 0.3f;
+};
+
 UCLASS(Blueprintable)
 class UNREALGAMEJAM_API ATDPlanetAtmosphere : public AActor
 {
@@ -79,6 +99,10 @@ public:
 	/** Hide the placeholder sphere (keeps its collision). */
 	void SetPlaceholderVisible(bool bVisible);
 
+	/** Optional art (surface / atmosphere / ring). Set before BeginPlay (the galaxy layout passes its spec's Look). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet")
+	FTDPlanetLook Look;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Planet", meta = (ClampMin = "0"))
 	float EntryDelaySeconds = 1.f;
 
@@ -106,7 +130,34 @@ protected:
 	TObjectPtr<USphereComponent> Atmosphere;
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Planet")
-	TObjectPtr<UStaticMeshComponent> PlanetMesh;
+	TObjectPtr<UStaticMeshComponent> PlanetMesh;	// gameplay collision (and the placeholder look)
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Planet")
+	TObjectPtr<USceneComponent> SpinPivot;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Planet")
+	TObjectPtr<UStaticMeshComponent> SurfaceLook;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Planet")
+	TObjectPtr<UStaticMeshComponent> AtmosphereLook;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Planet")
+	TObjectPtr<USceneComponent> RingPivot;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Planet")
+	TObjectPtr<UStaticMeshComponent> RingLook;
+
+	bool bArtLook = false;
+	bool bSunSynced = false;
+	float SunSyncTimer = 0.f;
+	void ApplyLook();
+	/** Sets the surface material's SunDirection to the space sun; false until a sun light exists. */
+	bool SyncSunDirection();
+
+public:
+	/** The sun planets light from: the atmosphere sun light, else the brightest visible directional light. */
+	static class UDirectionalLightComponent* FindActiveSun(UWorld* World);
+protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Planet")
 	ETDDestination Destination = ETDDestination::Verdance;
@@ -125,4 +176,8 @@ protected:
 	float PollTimer = 0.f;
 	bool bOpen = false;
 	bool bEntered = false;
+	/** The squad ship's entry this planet started (T1, review M1): when it goes back to idle without travelling
+	 *  (Pause > Restart Scene, death, a failed or timed-out travel) the planet re-arms once the ship is outside. */
+	TWeakObjectPtr<class UTDAtmosphereEntryComponent> EntryInFlight;
+	bool bRearmOnExit = false;
 };

@@ -978,7 +978,13 @@ namespace TDPlayedTest
 		/** Walk up to an interactable, look at it and hold E (tap when Hold is 0). */
 		bool Use(AActor* A, float Hold, const FVector& LookPoint = FVector::ZeroVector)
 		{
-			if (!RunTo(A->GetActorLocation(), 170.f, 30.f, false)) { return false; }
+			// Stand at the console's side, as a player does (consoles have a steep cap: nobody stands on one).
+			FVector Origin, Extent;
+			A->GetActorBounds(true, Origin, Extent);
+			const float Half = (float)FMath::Max(Extent.X, Extent.Y);
+			FVector Side = (FP->GetActorLocation() - A->GetActorLocation()).GetSafeNormal2D();
+			if (Side.IsNearlyZero()) { Side = FVector(-1.f, 0.f, 0.f); }
+			if (!RunTo(A->GetActorLocation() + Side * (Half + 70.f), 80.f, 30.f, false)) { return false; }
 			LookAt(LookPoint.IsZero() ? A->GetActorLocation() : LookPoint);
 			Tick(0.1f);
 			Key(EKeys::E, true);
@@ -1086,7 +1092,8 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 				if (N->LinkedObjective != Relay || N->LinkedStep != 1 || N->WasUsed()) { continue; }
 				const FVector Dir = (N->GetActorLocation() - FVector(9200.f, -8200.f, 0.f)).GetSafeNormal2D();
 				P.RunTo(FVector(9200.f, -8200.f, 0.f) + Dir * 450.f, 80.f, 10.f, false);
-				P.JumpTo(N->GetActorLocation(), true, false, 0.6f);                   // onto the stub (+180)
+				// Onto the stub's rim in front of the console (+180), as a player does: not onto the 60 cm console itself.
+				P.JumpTo(N->GetActorLocation() - Dir * 105.f, true, false, 0.6f);
 				P.LookAt(N->GetActorLocation());
 				P.Tap(EKeys::E);
 				P.Tick(0.3f);

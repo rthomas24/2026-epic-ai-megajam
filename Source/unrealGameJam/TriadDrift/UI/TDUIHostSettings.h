@@ -43,4 +43,18 @@ public:
 
 	/** True when the space HUD should be used: TD.UI.NativeHUD if set (0/1), else bUseNativeSpaceHUD. */
 	static bool IsNativeSpaceHUDEnabled();
+
+	/** Show the engineering on-foot HUD (UTDGroundHUDWidget, or UTDUIStyle::GroundHUDWidgetClass) on foot. */
+	UPROPERTY(Config, EditAnywhere, Category = "Ground HUD")
+	bool bUseNativeGroundHUD = true;
+
+	/** Show the pause screen (UTDPauseMenuWidget, or UTDUIStyle::PauseWidgetClass) while the player has paused. */
+	UPROPERTY(Config, EditAnywhere, Category = "Pause")
+	bool bUseNativePauseScreen = true;
+
+	/** TD.UI.GroundHUD if set (0/1), else bUseNativeGroundHUD. Off = the dev HUD's text read-out on foot. */
+	static bool IsNativeGroundHUDEnabled();
+
+	/** TD.UI.PauseScreen if set (0/1), else bUseNativePauseScreen. Off = the dev HUD's PAUSED line. */
+	static bool IsNativePauseScreenEnabled();
 };

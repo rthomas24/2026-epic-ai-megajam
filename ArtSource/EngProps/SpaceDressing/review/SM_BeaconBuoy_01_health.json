@@ -1,0 +1,199 @@
+{
+  "asset": "SM_BeaconBuoy_01",
+  "tag": "r2",
+  "checks": {
+    "tris": 4256,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 2,
+    "collision_hulls": 2,
+    "size_cm": [
+      314.0,
+      314.0,
+      514.0
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0033",
+        0.052
+      ],
+      [
+        "part_0034",
+        0.072
+      ],
+      [
+        "part_0037",
+        0.057
+      ],
+      [
+        "part_0038",
+        0.059
+      ]
+    ],
+    "com_shift_m": [
+      0.00027010461781173944,
+      0.0006388798938132823,
+      -0.4348115622997284
+    ],
+    "edge_area_share": 0.0017,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.304,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "BeaconBuoy_01",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_BeaconBuoy_01\\T_BeaconBuoy_01_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_BeaconBuoy_01\\T_BeaconBuoy_01_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_BeaconBuoy_01\\T_BeaconBuoy_01_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_BeaconBuoy_01\\T_BeaconBuoy_01_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_BeaconBuoy_01_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 17.85
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.5933
+    },
+    "build_seconds": 113.4
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.4147,
+        0.3896,
+        0.314
+      ],
+      "min": 0.0,
+      "max": 0.8902
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5007,
+        0.4995,
+        0.9995
+      ],
+      "min": 0.2431,
+      "max": 1.0,
+      "std_rg": [
+        0.018,
+        0.018
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.4988,
+        0.3387,
+        0.4109
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.529
+      ],
+      "metallic_mean": 0.411
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0213,
+        0.0866,
+        0.0709
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0649,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_BeaconBuoy_01",
+      "message": "36 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_BeaconBuoy_01",
+      "message": "19 zero-area faces; dissolve degenerate"
+    },
+    {
+      "severity": "info",
+      "object": "SM_BeaconBuoy_01",
+      "message": "28 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 40,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01019
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_BeaconBuoy_01_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_BeaconBuoy_01_r2_clay_sheet.png",
+    "ortho_cm_per_px": 1.285,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 4184,
+    "size_cm": [
+      314.0,
+      314.0,
+      514.0
+    ],
+    "collision": [
+      "UCX_SM_BeaconBuoy_01_00",
+      "UCX_SM_BeaconBuoy_01_01"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_BeaconBuoy_01"
+    ],
+    "textures": [
+      "T_BeaconBuoy_01_BC.png",
+      "T_BeaconBuoy_01_E.png",
+      "T_BeaconBuoy_01_N.png",
+      "T_BeaconBuoy_01_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -1,0 +1,390 @@
+{
+ "import": [
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Drift_Release_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Release_01",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Drift_Release_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Release_02",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Dodge_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_01",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Dodge_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_02",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Dodge_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_03",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Collision_Scrape_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Collision_Scrape_01",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Collision_Scrape_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Collision_Scrape_02",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Ship/SFX_Alarm_LowHull_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_UI",
+    "volume": 0.2512,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Ship/SFX_Shield_Break_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ],
+    "volume": 0.4467,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Ship/SFX_Shield_Restore_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Restore_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ],
+    "volume": 0.2512,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/UI/SFX_UI_HitConfirm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_HitConfirm_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_UI",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_UITick"
+    ],
+    "volume": 0.1995,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/UI/SFX_UI_KillConfirm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_KillConfirm_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_UI",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_UITick"
+    ],
+    "volume": 0.2818,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_WarpIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_WarpIn_01",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_WarpIn_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_WarpIn_02",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_Telegraph_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Telegraph_01",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_Telegraph_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Telegraph_02",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_Stunned_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ],
+    "volume": 0.2239,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_DeathTumble_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_DeathTumble_01",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_DeathTumble_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_DeathTumble_02",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Carrier_BayLaunch_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Carrier_BayLaunch_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ],
+    "volume": 0.3162,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Ship/SFX_Squad_RespawnWarpIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Squad_RespawnWarpIn_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Ship"
+    ],
+    "volume": 0.3162,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Dominion/SFX_Dominion_WarpIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ],
+    "volume": 0.631,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Dominion/SFX_Dominion_ShieldSectionDown_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ],
+    "volume": 0.5623,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Dominion/SFX_Dominion_ShieldCollapse_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldCollapse_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ],
+    "volume": 0.7079,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Dominion/SFX_Dominion_ReactorExposed_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorExposed_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ],
+    "volume": 0.631,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Dominion/SFX_Dominion_ReactorPhaseChange_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorPhaseChange_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ],
+    "volume": 0.5623,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Powers/SFX_Power_Ram_Windup_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_Windup_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.3548,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Powers/SFX_Power_Ram_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.631,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Powers/SFX_Power_Ram_End_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_End_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.2512,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Powers/SFX_Power_PortalShot_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_PortalShot_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.631,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Travel/SFX_Portal_Open_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Open_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.3548,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Travel/SFX_Portal_Idle_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Idle_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Loop"
+    ],
+    "volume": 0.1585,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Travel/SFX_Portal_Close_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Close_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.2818,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Travel/SFX_Portal_Transit_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_01",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Travel/SFX_Portal_Transit_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_02",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Travel/SFX_Portal_Transit_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_03",
+   "properties": null
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Powers/SFX_Power_Swarm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Swarm_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.631,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Powers/SFX_Power_Dome_Up_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Up_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.5623,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Powers/SFX_Power_Dome_Down_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Down_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.2818,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Abilities/SFX_Ability_Cloak_On_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_On_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.5623,
+    "bLooping": false
+   }
+  }
+ ]
+}

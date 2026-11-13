@@ -1,0 +1,83 @@
+{
+  "asset": "SM_Null_CarrierBay",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_CarrierBay\\SM_Null_CarrierBay.fbx",
+  "tris": 4772,
+  "size_cm": [
+    356.4,
+    648.5,
+    465.2
+  ],
+  "pivot": "root object origin (SM_Null_CarrierBay~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Null_CarrierBay"
+  ],
+  "material_params": [
+    {
+      "name": "M_Null_CarrierBay",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Null_CarrierBay_BC.png",
+    "T_Null_CarrierBay_E.png",
+    "T_Null_CarrierBay_N.png",
+    "T_Null_CarrierBay_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Null_CarrierBay_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Launch"
+  ],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Null_CarrierBay.fbx",
+  "texture_size": 1024,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "role": "carrier_bay",
+  "ue_box_cm": [
+    300,
+    600,
+    400
+  ],
+  "ue_sockets": [
+    {
+      "name": "Launch",
+      "blender_m": [
+        0.0,
+        -1.6,
+        0.0
+      ],
+      "ue_cm": [
+        160.0,
+        -0.0,
+        0.0
+      ]
+    }
+  ]
+}

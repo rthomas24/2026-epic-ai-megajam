@@ -1,0 +1,179 @@
+{
+  "asset": "SM_DebrisCluster_01",
+  "tag": "r2",
+  "checks": {
+    "tris": 4022,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 1046,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 3,
+    "collision_hulls": 1,
+    "size_cm": [
+      1551.2,
+      1406.2,
+      891.1
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "post_scale": 1.6,
+    "com_shift_m": [
+      -0.3819076716899872,
+      0.12964114546775818,
+      0.9837097525596619
+    ],
+    "edge_area_share": 0.0053,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 21
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4504,
+      "overlap_pixels": 1046,
+      "overlap_share_of_covered": 0.002215,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "DebrisCluster_01",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_DebrisCluster_01\\T_DebrisCluster_01_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_DebrisCluster_01\\T_DebrisCluster_01_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_DebrisCluster_01\\T_DebrisCluster_01_ORM.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 0.0,
+      "preview_material": "M_DebrisCluster_01_Baked",
+      "notes": [
+        "No emission in source materials"
+      ],
+      "warnings": [],
+      "seconds": 68.9
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.601
+    },
+    "build_seconds": 127.1
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3727,
+        0.4093,
+        0.349
+      ],
+      "min": 0.0,
+      "max": 0.8863
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.4998,
+        0.9969
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0197,
+        0.0213
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5022,
+        0.3336,
+        0.2846
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.525
+      ],
+      "metallic_mean": 0.284
+    }
+  },
+  "emissive_surface_share": 0.0,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_DebrisCluster_01",
+      "message": "7 non-manifold edges (edges shared by 3+ faces)"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_DebrisCluster_01",
+      "message": "8 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_DebrisCluster_01",
+      "message": "2 zero-area faces; dissolve degenerate"
+    },
+    {
+      "severity": "info",
+      "object": "SM_DebrisCluster_01",
+      "message": "78 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "info",
+      "object": "SM_DebrisCluster_01",
+      "message": "16 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 10,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.03413
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_DebrisCluster_01_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_DebrisCluster_01_r2_clay_sheet.png",
+    "ortho_cm_per_px": 3.878,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 4006,
+    "size_cm": [
+      1406.2,
+      1551.2,
+      891.1
+    ],
+    "collision": [
+      "UCX_SM_DebrisCluster_01_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_DebrisCluster_01"
+    ],
+    "textures": [
+      "T_DebrisCluster_01_BC.png",
+      "T_DebrisCluster_01_N.png",
+      "T_DebrisCluster_01_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

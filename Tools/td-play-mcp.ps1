@@ -25,7 +25,9 @@ param(
     [int]$MaxSeconds = 900,
     [switch]$Editor,
     [switch]$Audio,
-    [switch]$Stop
+    [switch]$Offscreen,
+    [switch]$Stop,
+    [int]$StartTimeoutSeconds = 600
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "td-common.ps1")
@@ -92,12 +94,13 @@ if ($Editor) {
     # Full editor, hidden: every enabled editor toolset (Blueprint, Niagara, automation tests, cheats in PIE...).
     $arguments = @("`"$project`"", $Map, "-RenderOffscreen") + $common
 } else {
-    # The game itself. -TDQuit is a safety net so a forgotten session does not run forever.
     $arguments = @("`"$project`"", $Map, "-game", "-windowed", "-ResX=$ResX", "-ResY=$ResY", "-TDQuit=$MaxSeconds") + $common
+    # -Offscreen: render without a visible window, so captures work while the display is off or locked (overnight runs).
+    if ($Offscreen) { $arguments += @("-RenderOffscreen", "-ForceRes") }
 }
 $started = Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Minimized -PassThru
 
-$deadline = (Get-Date).AddSeconds(180)
+$deadline = (Get-Date).AddSeconds($StartTimeoutSeconds)
 $ready = $false
 while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds 2

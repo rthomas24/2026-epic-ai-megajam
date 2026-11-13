@@ -1,0 +1,177 @@
+{
+  "asset": "SM_Squad_Rift",
+  "tag": "r7",
+  "checks": {
+    "tris": 16768,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 1,
+    "size_cm": [
+      493.5,
+      500.0,
+      119.2
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "centre_of_mass_m_before": [
+      -0.001,
+      0.437,
+      0.05
+    ],
+    "com_shift_m": [
+      -0.002579331398010254,
+      0.0,
+      0.29117897152900696
+    ],
+    "pivot": "bbox_centre",
+    "edge_area_share": 0.0103,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3594,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Squad_Rift",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Rift\\T_Squad_Rift_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Rift\\T_Squad_Rift_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Rift\\T_Squad_Rift_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Rift\\T_Squad_Rift_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Squad_Rift_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 107.24
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.756
+    },
+    "build_seconds": 128.8
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3808,
+        0.2719,
+        0.3907
+      ],
+      "min": 0.0,
+      "max": 0.9333
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.5,
+        0.9999
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0087,
+        0.0086
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3201,
+        0.283,
+        0.2862
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.451
+      ],
+      "metallic_mean": 0.282
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0704,
+        0.0118,
+        0.0592
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0378,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Squad_Rift",
+      "message": "110 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 106,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01069
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Rift_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Rift_r7_clay_sheet.png",
+    "ortho_cm_per_px": 1.25,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 16768,
+    "size_cm": [
+      500.0,
+      493.5,
+      119.2
+    ],
+    "collision": [
+      "UCX_SM_Squad_Rift_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Squad_Rift"
+    ],
+    "textures": [
+      "T_Squad_Rift_BC.png",
+      "T_Squad_Rift_E.png",
+      "T_Squad_Rift_N.png",
+      "T_Squad_Rift_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

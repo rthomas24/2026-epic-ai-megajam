@@ -1,0 +1,225 @@
+{
+  "asset": "SM_Verd_Log",
+  "tag": "r16",
+  "family": "verdance",
+  "checks": {
+    "tris": 9923,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3614,
+      "overlap_pixels": 4142,
+      "overlap_share_of_covered": 0.010931,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 1,
+    "bounds_min_cm": [
+      -250.0,
+      -55.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      250.0,
+      55.0,
+      140.0
+    ],
+    "fit": {
+      "scale": [
+        0.9755,
+        1.0459,
+        0.9021
+      ],
+      "warn_axes": [
+        1,
+        2
+      ],
+      "size_before_m": [
+        5.126,
+        1.052,
+        1.552
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0482",
+        "part_0483",
+        0.064
+      ],
+      [
+        "part_0484",
+        "part_0485",
+        "part_0520",
+        0.098
+      ],
+      [
+        "part_0490",
+        "part_0491",
+        "part_0492",
+        0.108
+      ],
+      [
+        "part_0502",
+        "part_0503",
+        0.075
+      ],
+      [
+        "part_0512",
+        "part_0513",
+        0.061
+      ],
+      [
+        "part_0527",
+        0.06
+      ]
+    ],
+    "fit": {
+      "scale": [
+        0.9755,
+        1.0459,
+        0.9021
+      ],
+      "warn_axes": [
+        1,
+        2
+      ],
+      "size_before_m": [
+        5.126,
+        1.052,
+        1.552
+      ]
+    },
+    "edge_area_share": 0.0,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 24
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3614,
+      "overlap_pixels": 4142,
+      "overlap_share_of_covered": 0.010931,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_Log",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_Log_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 13.52
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6055
+    },
+    "build_seconds": 41.5
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.1973,
+        0.1873,
+        0.2417
+      ],
+      "min": 0.0,
+      "max": 0.8549
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5007,
+        0.4993,
+        0.9999
+      ],
+      "min": 0.0039,
+      "max": 1.0,
+      "std_rg": [
+        0.019,
+        0.016
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5127,
+        0.7287,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.302,
+        0.929
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0446,
+        0.0956,
+        0.1064
+      ],
+      "min": 0.0,
+      "max": 0.9294
+    }
+  },
+  "emissive_surface_share": 0.0501,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Verd_Log",
+      "message": "9 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Log",
+      "message": "167 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Log",
+      "message": "297 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 148,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00796
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r16_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r16_clay_sheet.png",
+    "warnings": []
+  }
+}

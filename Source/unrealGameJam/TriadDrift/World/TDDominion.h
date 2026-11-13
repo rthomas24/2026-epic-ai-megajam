@@ -102,6 +102,29 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	ATDDominionReactor* GetReactor() const { return Reactor; }
 
+	/** Where launched fighters appear (world space). */
+	FVector GetHangarLocation() const;
+
+	/**
+	 * ENG-33 (T3's intro / showcase shots): show only the hull, bridge, trench walls and hull detail (no generators,
+	 * turrets, reactor, shield, emitters or launches), optionally at Override. No state change, no collision.
+	 * Refused (returns false) while the assault runs (WarpingIn..Breakup); a real state change ends it.
+	 * SetShowcase(false) restores the previous visibility, collision and transform.
+	 */
+	bool SetShowcase(bool bShow, const FTransform* Override = nullptr);
+
+	bool IsShowcasing() const { return bShowcase; }
+
+	/**
+	 * Where a journey stage starts the squad, from the hull's real size (art or placeholder): the approach is front-
+	 * right and a little above, 2.5 hull radii out (well outside the hull, the shield and the generator ring),
+	 * facing the Dominion; the trench start is 200 m off the actual bow on the trench line, facing aft.
+	 */
+	FTransform GetStageStart(bool bTrench) const;
+
+	/** The hull, bridge and trench walls' extent in the Dominion's local space (art collision included). */
+	FBox GetLocalHullBounds() const;
+
 	/** Living fighters launched by the Dominion. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	int32 GetLaunchedAlive() const;
@@ -126,6 +149,11 @@ public:
 	 *  radius here: jumps drop out at the well, then the lock holds for the fight). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	float HyperdriveLockRadius = 60000.f;
+
+	/** Hull material until a hull mesh exists (dark panelled armour). Default: the builder's panel material; missing =
+	 *  the placeholder tint (#1a1b1e) with seam lines and eye lights built in code. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSoftObjectPtr<UMaterialInterface> HullMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Dominion/MI_TD_DominionPanel.MI_TD_DominionPanel")));
 
 	/** The flow's scene for the whole assault (UTDGameInstance::DominionScene); its retakes reset the fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
@@ -269,6 +297,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<UStaticMeshComponent> HullMesh;
 
+	/** Placeholder hull detail: red-orange seam lines and white eye lights (hidden under a hull mesh). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
+	TObjectPtr<class UInstancedStaticMeshComponent> HullSeams;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
+	TObjectPtr<class UInstancedStaticMeshComponent> HullEyes;
+
+	void BuildHullDetail(bool bShow);
+
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<UStaticMeshComponent> BridgeMesh;
 
@@ -284,6 +321,25 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<USceneComponent> HangarPoint;
+
+	/** Placeholder breakup while Nick's BreakupSequence has no VFX: explosion chain, final blast, hull gone. */
+	void TickPlaceholderBreakup(float DeltaSeconds);
+	bool bPlaceholderBreakup = false;
+	bool bBreakupFinalBlast = false;
+	float BreakupBoomTimer = 0.f;
+	int32 BreakupBooms = 0;
+
+public:
+	int32 GetBreakupBoomCount() const { return BreakupBooms; }
+	bool HasBreakupFinalBlast() const { return bBreakupFinalBlast; }
+protected:
+
+	bool bShowcase = false;
+	bool bShowcasePrevHidden = true;
+	bool bShowcasePrevCollision = false;
+	FTransform ShowcasePrevTransform;
+	TArray<TPair<TWeakObjectPtr<UPrimitiveComponent>, bool>> ShowcaseComponentVisibility;
+	TArray<TPair<TWeakObjectPtr<AActor>, bool>> ShowcaseActorHidden;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDShieldGenerator>> Generators;

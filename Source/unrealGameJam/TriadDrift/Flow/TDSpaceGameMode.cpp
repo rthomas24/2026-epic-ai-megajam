@@ -29,6 +29,8 @@
 #include "Camera/PlayerCameraManager.h"
 #include "EngineUtils.h"
 #include "TimerManager.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/World/TDSkySphere.h"
 
 namespace TDSandbox
 {
@@ -127,20 +129,62 @@ void ATDSpaceGameMode::StartPlay()
 	// Local players logged in before StartPlay: hand them the active ship, clear any login pawn.
 	HandOverPlayers();
 
+	EnterLevel();
+}
+
+void ATDSpaceGameMode::EnterLevel()
+{
+	// ENG-33: New Game plays the cinematic intro once. The run stays in Intro, and the first waves wait for it.
+	// When it does not play (Continue, a retake, td.Intro 0, headless) everything below runs exactly as before.
+	bool bIntroPlaying = false;
+	if (UTDGameInstance* GI = UTDGameInstance::Get(this); GI && GI->ConsumeIntroPending() && GI->GetProgress().Phase == ETDGamePhase::Intro)
+	{
+		UTDIntroDirector* Intro = UTDIntroDirector::Get(this);
+		bIntroPlaying = Intro && Intro->Play(FSimpleDelegate::CreateWeakLambda(this, [this]() { BeginFirstWaves(); }));
+	}
+
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
-		if (GI->GetProgress().Phase == ETDGamePhase::Intro)
+		if (!bIntroPlaying && GI->GetProgress().Phase == ETDGamePhase::Intro)
 		{
 			GI->SetPhase(ETDGamePhase::Waves1to2);
 		}
 		GI->NotifyLevelEntered(Destination);
+		GI->OnSceneRestart.Remove(SceneRestartHandle);
 		SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDSpaceGameMode::HandleSceneRestart);
+		if (bIntroPlaying)
+		{
+			bRunTimerPausedBeforeIntro = GI->IsRunTimerPaused();
+			GI->SetRunTimerPaused(true); // the intro is not play time: watched or skipped, the run time is the same
+		}
 	}
 	else
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("Sandbox: GameInstanceClass is not UTDGameInstance; progress, checkpoints and takes are off."));
 	}
 
+	if (!bIntroPlaying)
+	{
+		ArmFirstWaveTimer();
+	}
+}
+
+void ATDSpaceGameMode::BeginFirstWaves()
+{
+	// The intro's OnFinished (watched or skipped): the same phase change and timer as a run without it.
+	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
+	{
+		if (GI->GetProgress().Phase == ETDGamePhase::Intro)
+		{
+			GI->SetPhase(ETDGamePhase::Waves1to2);
+		}
+		GI->SetRunTimerPaused(bRunTimerPausedBeforeIntro); // the run time starts now, exactly as without the intro
+	}
+	ArmFirstWaveTimer();
+}
+
+void ATDSpaceGameMode::ArmFirstWaveTimer()
+{
 	GetWorldTimerManager().SetTimer(FirstWaveTimer, this, &ATDSpaceGameMode::StartWaves, FMath::Max(0.01f, FirstWaveDelaySeconds), false);
 }
 
@@ -363,9 +407,11 @@ void ATDSpaceGameMode::SpawnEnvironment()
 	{
 		SpawnedEnvironment.Add(Sky);
 	}
-	if (!ATDPlaceholderSky::Scan(World).bTaggedSky)
+	// A real skybox (Nick's, or the galaxy layout's engineering nebula sky) brings its own stars.
+	const bool bEngineeringSky = GalaxyLayout && GalaxyLayout->bSpawnSky && ATDSkySphere::IsArtAvailable();
+	if (!ATDPlaceholderSky::Scan(World).bTaggedSky && !bEngineeringSky)
 	{
-		SpawnStarBackdrop(); // a real skybox brings its own stars
+		SpawnStarBackdrop();
 	}
 	if (!GalaxyLayout)
 	{
@@ -469,7 +515,14 @@ void ATDSpaceGameMode::CheckStarBackdrop()
 		GetWorldTimerManager().ClearTimer(StarWatchTimer);
 		return;
 	}
-	if (ATDPlaceholderSky::Scan(GetWorld()).bTaggedSky)
+	// Rule: the placeholder stars only show while no real sky does. Nick's tagged sky, or the engineering nebula sky
+	// once it is in the world and showing, replaces them (also when it appears after the stars).
+	bool bEngineeringSky = false;
+	for (TActorIterator<ATDSkySphere> It(GetWorld()); It && !bEngineeringSky; ++It)
+	{
+		bEngineeringSky = !It->IsActorBeingDestroyed() && !It->IsYielding();
+	}
+	if (bEngineeringSky || ATDPlaceholderSky::Scan(GetWorld()).bTaggedSky)
 	{
 		StarBackdrop->Destroy();
 		StarBackdrop = nullptr;

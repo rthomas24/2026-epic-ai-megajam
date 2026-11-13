@@ -235,6 +235,22 @@ void ATDEnemyAIController::UpdateOpeningPass(ATDEnemyShip& Ship, float DeltaSeco
 	}
 }
 
+int32 ATDEnemyAIController::CountAttackersOn(const AActor* InTarget) const
+{
+	int32 N = 0;
+	if (!InTarget) { return 0; }
+	if (const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
+	{
+		for (const TWeakObjectPtr<AActor>& Weak : Registry->GetAll())
+		{
+			const APawn* P = Cast<APawn>(Weak.Get());
+			const ATDEnemyAIController* Other = P ? Cast<ATDEnemyAIController>(P->GetController()) : nullptr;
+			if (Other && Other != this && Other->GetTarget() == InTarget && Other->GetAIState() == ETDEnemyAIState::AttackRun) { ++N; }
+		}
+	}
+	return N;
+}
+
 FVector ATDEnemyAIController::GetOpeningPassPoint() const
 {
 	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
@@ -428,6 +444,11 @@ void ATDEnemyAIController::TryHeavyAttacks(ATDEnemyShip& Ship, AActor& InTarget)
 	const FVector Dir = Dist > KINDA_SMALL_NUMBER ? To / Dist : Ship.GetActorForwardVector();
 	const float Dot = FVector::DotProduct(Dir, Ship.GetActorForwardVector());
 
+	// ENG-27 attack slots cover the heavy attacks too: a missile, volley or salvo needs a free slot on its target.
+	if (AttackSlotsPerTarget > 0 && CountAttackersOn(&InTarget) >= AttackSlotsPerTarget)
+	{
+		return;
+	}
 	for (const FTDEnemyAttackSpec* A : { &Spec.Heavy, &Spec.Heavy2 })
 	{
 		if (!A->IsValid() || A->Kind == ETDEnemyAttack::MineTrail || A->Kind == ETDEnemyAttack::LaunchFighters)
@@ -555,6 +576,39 @@ void ATDEnemyAIController::TickApproach(ATDEnemyShip& Ship, float DeltaSeconds)
 	// Start the run where the guns can already land: a target closing head-on meets the bolts further out.
 	if (Dist <= FMath::Max(Spec.EngageRange, Ship.GetGunFireRange(T)))
 	{
+		// Attack slots: when enough pilots are already pressing this ship, hold a visible orbit around it.
+		if (AttackSlotsPerTarget > 0 && CountAttackersOn(T) >= AttackSlotsPerTarget)
+		{
+			bHoldingForSlot = true;
+			HoldAngle += DeltaSeconds * 0.35f;
+			const FVector Up = FVector::UpVector;
+			FVector Around;
+			const APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+			// Queue in the player's view whenever the fight is near the player (its wingmen fly beside it): the
+			// target is still T, but the waiting spot is ahead of the player's nose.
+			const bool bNearPlayer = PlayerPawn && FVector::DistSquared(T->GetActorLocation(), PlayerPawn->GetActorLocation()) < FMath::Square(20000.f);
+			if (bNearPlayer)
+			{
+				// Waiting for a slot on the player's ship: queue AHEAD of it, inside +-35 degrees of its nose, drifting
+				// across the frame (live check: an orbit all round the player put most of the queue off-screen).
+				const float Sweep = 35.f * FMath::Sin(HoldAngle + OpeningPassSideSign);
+				Around = PlayerPawn->GetActorForwardVector().RotateAngleAxis(Sweep, Up);
+			}
+			else
+			{
+				const FVector Out = (Ship.GetActorLocation() - T->GetActorLocation()).GetSafeNormal2D();
+				Around = Out.RotateAngleAxis(25.f, Up);	// keep sliding round, not parking
+			}
+			const FVector HoldOrigin = bNearPlayer ? PlayerPawn->GetActorLocation() : T->GetActorLocation();
+			const FVector Hold = HoldOrigin + Around * AttackSlotHoldDistance + Up * 1500.f;
+			SteerToward(Ship, Hold, 0.8f, false);
+			const FVector ToT = T->GetActorLocation() - Ship.GetActorLocation();
+			// Long-range potshots only if lined up (no run): keeps the pressure readable.
+			Ship.SetGunsFiring(false, nullptr);
+			(void)ToT;
+			return;
+		}
+		bHoldingForSlot = false;
 		SetState(ETDEnemyAIState::AttackRun);
 	}
 }

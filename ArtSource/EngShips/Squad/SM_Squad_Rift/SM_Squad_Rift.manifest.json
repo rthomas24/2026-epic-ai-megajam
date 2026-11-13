@@ -1,0 +1,200 @@
+{
+  "asset": "SM_Squad_Rift",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Rift\\SM_Squad_Rift.fbx",
+  "tris": 16768,
+  "size_cm": [
+    500.0,
+    493.5,
+    119.2
+  ],
+  "pivot": "root object origin (SM_Squad_Rift~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Squad_Rift"
+  ],
+  "material_params": [
+    {
+      "name": "M_Squad_Rift",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Squad_Rift_BC.png",
+    "T_Squad_Rift_E.png",
+    "T_Squad_Rift_N.png",
+    "T_Squad_Rift_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Squad_Rift_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Cockpit",
+    "SOCKET_Engine",
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1",
+    "SOCKET_Portal",
+    "SOCKET_WingTip_L",
+    "SOCKET_WingTip_R"
+  ],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Squad_Rift.fbx",
+  "texture_size": 2048,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "ship": "Rift",
+  "ue_radius_cm": 220,
+  "surface_share_by_role": {
+    "White": 0.401,
+    "Accent": 0.267,
+    "Graphite": 0.224,
+    "Metal": 0.042,
+    "Glow": 0.038,
+    "Glass": 0.026,
+    "Dark": 0.003
+  },
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "blender_m": [
+        0.3326,
+        -2.52,
+        -0.3912
+      ],
+      "ue_cm": [
+        252.0,
+        -33.3,
+        -39.1
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "blender_m": [
+        -0.3274,
+        -2.52,
+        -0.3912
+      ],
+      "ue_cm": [
+        252.0,
+        32.7,
+        -39.1
+      ]
+    },
+    {
+      "name": "Engine",
+      "blender_m": [
+        0.0026,
+        2.52,
+        -0.3112
+      ],
+      "ue_cm": [
+        -252.0,
+        -0.3,
+        -31.1
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "blender_m": [
+        0.4426,
+        2.52,
+        -0.3112
+      ],
+      "ue_cm": [
+        -252.0,
+        -44.3,
+        -31.1
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "blender_m": [
+        -0.4374,
+        2.52,
+        -0.3112
+      ],
+      "ue_cm": [
+        -252.0,
+        43.7,
+        -31.1
+      ]
+    },
+    {
+      "name": "Portal",
+      "blender_m": [
+        0.0026,
+        -2.02,
+        -0.0912
+      ],
+      "ue_cm": [
+        202.0,
+        -0.3,
+        -9.1
+      ]
+    },
+    {
+      "name": "Cockpit",
+      "blender_m": [
+        0.0026,
+        -0.75,
+        0.2288
+      ],
+      "ue_cm": [
+        75.0,
+        -0.3,
+        22.9
+      ]
+    },
+    {
+      "name": "WingTip_L",
+      "blender_m": [
+        2.4326,
+        -1.86,
+        0.1588
+      ],
+      "ue_cm": [
+        186.0,
+        -243.3,
+        15.9
+      ]
+    },
+    {
+      "name": "WingTip_R",
+      "blender_m": [
+        -2.4274,
+        -1.86,
+        0.1588
+      ],
+      "ue_cm": [
+        186.0,
+        242.7,
+        15.9
+      ]
+    }
+  ]
+}

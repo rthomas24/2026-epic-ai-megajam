@@ -1,0 +1,180 @@
+{
+  "asset": "SM_Null_Fighter",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Fighter\\SM_Null_Fighter.fbx",
+  "tris": 7282,
+  "size_cm": [
+    548.6,
+    467.6,
+    163.1
+  ],
+  "pivot": "root object origin (SM_Null_Fighter~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Null_Fighter"
+  ],
+  "material_params": [
+    {
+      "name": "M_Null_Fighter",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Null_Fighter_BC.png",
+    "T_Null_Fighter_E.png",
+    "T_Null_Fighter_N.png",
+    "T_Null_Fighter_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Null_Fighter_00",
+    "UCX_SM_Null_Fighter_01",
+    "UCX_SM_Null_Fighter_02"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1"
+  ],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Null_Fighter.fbx",
+  "texture_size": 2048,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "role": "fighter",
+  "ue_radius_cm": 220,
+  "eye_m": [
+    [
+      -0.5,
+      -1.522,
+      0.17
+    ],
+    [
+      -0.4,
+      -1.724,
+      0.178
+    ],
+    [
+      -0.3,
+      -1.865,
+      0.186
+    ],
+    [
+      -0.2,
+      -1.936,
+      0.194
+    ],
+    [
+      -0.1,
+      -2.007,
+      0.202
+    ],
+    [
+      0.0,
+      -2.052,
+      0.21
+    ],
+    [
+      0.1,
+      -2.007,
+      0.202
+    ],
+    [
+      0.2,
+      -1.937,
+      0.194
+    ],
+    [
+      0.3,
+      -1.865,
+      0.186
+    ],
+    [
+      0.4,
+      -1.676,
+      0.178
+    ],
+    [
+      0.5,
+      -1.468,
+      0.17
+    ]
+  ],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "blender_m": [
+        0.6,
+        -1.9453,
+        -0.2802
+      ],
+      "ue_cm": [
+        194.5,
+        -60.0,
+        -28.0
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "blender_m": [
+        -0.6,
+        -1.9453,
+        -0.2802
+      ],
+      "ue_cm": [
+        194.5,
+        60.0,
+        -28.0
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "blender_m": [
+        0.4,
+        2.6147,
+        -0.2002
+      ],
+      "ue_cm": [
+        -261.5,
+        -40.0,
+        -20.0
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "blender_m": [
+        -0.4,
+        2.6147,
+        -0.2002
+      ],
+      "ue_cm": [
+        -261.5,
+        40.0,
+        -20.0
+      ]
+    }
+  ]
+}

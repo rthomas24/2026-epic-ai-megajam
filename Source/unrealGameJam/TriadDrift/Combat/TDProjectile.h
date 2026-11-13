@@ -105,6 +105,9 @@ public:
 	/** The placeholder streak in use (tests). */
 	const FTDStreakLook& GetStreakLook() const { return StreakLook; }
 
+	/** Squad light shots in space carry a near-white tracer tip (tests). */
+	bool HasTracerTip() const { return bTracerTip; }
+
 	/**
 	 * Where this projectile was at the start of its last step (its launch point before the first step, the
 	 * arrival point right after a teleport). Portals and gates test Prev -> Cur against their plane with
@@ -162,6 +165,8 @@ private:
 	void UpdatePlaceholderDistanceScale();
 	/** Placeholder impact flash, unless the cue the art would play there has content. */
 	void PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt) const;
+	/** As above for a hit on something with health: a shield puff or hull sparks (lasers and cannons; not on foot). */
+	void PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt, const class UTDHealthComponent* VictimHealth, const FVector& Normal) const;
 
 	UPROPERTY(VisibleAnywhere, Category = "Projectile")
 	TObjectPtr<USceneComponent> Root;
@@ -188,6 +193,14 @@ private:
 	bool bAppliedIncoming = false;
 	FLinearColor LookColor = FLinearColor::White;
 	bool bOnFootLook = false;
+	/** A squad light shot in space: the head is drawn as the near-white tracer tip. */
+	bool bTracerTip = false;
+	/** Length the streak was last drawn at (it grows with the distance flown). */
+	float AppliedLength = 0.f;
+	/** Sets the streak (and its head or tip) for the distance flown and Grow. */
+	void ApplyStreakTransform(float Grow, bool bIncoming);
+	/** Distance to the player's camera at the last scale update (<0 = unknown). */
+	float CameraDistance = -1.f;
 
 	/** Project glow material (UTDStatics::GetPlaceholderGlowMaterial, always cooked). Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)

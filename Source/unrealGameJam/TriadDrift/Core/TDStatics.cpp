@@ -404,16 +404,29 @@ UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf
 	{
 		if (IAssetRegistry* Registry = IAssetRegistry::Get())
 		{
-			TArray<FAssetData> Found;
-			Registry->GetAssetsByPath(FName(TEXT("/Game/TriadDrift/Gameplay/Characters")), Found, /*bRecursive*/ true);
 			const FName Wanted(*AssetName);
-			for (const FAssetData& Data : Found)
+			auto Search = [Registry, &Wanted]() -> UObject*
 			{
-				if (Data.AssetName == Wanted)
+				TArray<FAssetData> Found;
+				Registry->GetAssetsByPath(FName(TEXT("/Game/TriadDrift/Gameplay/Characters")), Found, /*bRecursive*/ true);
+				for (const FAssetData& Data : Found)
 				{
-					Asset = Data.GetSoftObjectPath().TryLoad();
-					break;
+					if (Data.AssetName == Wanted)
+					{
+						return Data.GetSoftObjectPath().TryLoad();
+					}
 				}
+				return nullptr;
+			};
+			Asset = Search();
+			// A -game / first-start world can begin play (and spawn the squad) before the background scan has gathered
+			// this folder: scan it synchronously once and look again, so the first lookup never misses for good.
+			static bool bCharactersScanned = false;
+			if (!Asset && !bCharactersScanned)
+			{
+				bCharactersScanned = true;
+				Registry->ScanPathsSynchronous({ TEXT("/Game/TriadDrift/Gameplay/Characters") }, /*bForceRescan*/ false);
+				Asset = Search();
 			}
 		}
 	}
@@ -425,7 +438,11 @@ UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf
 	}
 	if (!Asset)
 	{
-		MissTimes.Add(AssetName, Now);
+		const IAssetRegistry* Registry = IAssetRegistry::Get();
+		if (!Registry || !Registry->IsLoadingAssets())
+		{
+			MissTimes.Add(AssetName, Now); // never remember a miss while the registry is still scanning
+		}
 		return nullptr;
 	}
 	MissTimes.Remove(AssetName);

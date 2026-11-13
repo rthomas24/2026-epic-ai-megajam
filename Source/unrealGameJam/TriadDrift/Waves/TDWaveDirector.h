@@ -45,6 +45,8 @@ using FTDEnemySpawnFactory = TFunction<AActor*(UWorld* World, FName EnemyId, con
  * Numbering: StartWave takes a 0-based table index; every event and FTDWaveInfo use 1-based
  * wave numbers (Core rule).
  */
+class ATDEnemyShip;
+
 UCLASS(Blueprintable)
 class UNREALGAMEJAM_API ATDWaveDirector : public AActor
 {
@@ -131,6 +133,34 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
 	float BreatherSeconds = 6.f;	// clamped to >= 2 s at runtime (longer than the 1.75 s CUT delay)
+
+	/** ENG-27: attack slots per wave (index 0 = wave 1): how many pilots may press the same squad ship at once.
+	 *  0 = unlimited. Tuned with the Evader balance pilot as the reference player. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves")
+	TArray<int32> AttackSlotsByWave = { 0, 1, 1, 1, 2 };
+
+	/**
+	 * Wave 1 is where a new player learns the controls (Lead, Nov 12). For its first OpeningGraceSeconds, until the
+	 * player fires or boosts, wave-1 enemies deal OpeningGraceDamage x their damage and no squad ship is let below
+	 * OpeningGraceHullFloor01 of its hull by enemy fire. Then normal pressure. Waves 2+ are unchanged.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
+	float OpeningGraceSeconds = 30.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0", ClampMax = "1"))
+	float OpeningGraceDamage = 0.5f;
+
+	/** The reduced damage lasts at least this long into wave 1 even after the player acts (T1's control hints run
+	 *  in the first ~15-25 s: fire, boost and dodge are tried against reduced fire). The hull floor still ends
+	 *  as soon as the player fires or boosts. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
+	float OpeningGraceMinDamageSeconds = 15.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0", ClampMax = "1"))
+	float OpeningGraceHullFloor01 = 0.5f;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
+	bool IsOpeningGraceActive() const { return bOpeningGrace; }
 
 	/** Red warp-in telegraph before a group appears. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Waves", meta = (ClampMin = "0"))
@@ -244,9 +274,30 @@ protected:
 	int32 CurrentWave = INDEX_NONE;
 	float LockSyncTimer = 0.f;
 	bool bCutPending = false;
+	bool bOpeningGrace = false;
+	bool bOpeningFloor = false;
+	float OpeningGraceLeft = 0.f;
+	int32 OpeningGraceShotBaseline = 0;
+	void TickOpeningGrace(float DeltaSeconds);
+	void EndOpeningGrace();
+	int32 PlayerShotsFired() const;
 	UFUNCTION()
 	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
 	void SpawnWarpInMarker(const FVector& Location, float EnemyRadius);
+
+public:
+	/**
+	 * ENG-33 (T3's showcase shots): an enemy ship for the camera only. No AI, never registered with a wave, invulnerable,
+	 * not targetable, weapons blocked, no collision, no movement (place it yourself), tagged "TD.Showcase". Its carrier
+	 * parts get the same treatment. Destroy it when the shot ends.
+	 */
+	static ATDEnemyShip* SpawnShowcaseShip(UWorld* World, FName EnemyId, const FTransform& Where);
+
+	/** ENG-33: the enemy warp-in telegraph alone (Nick's EnemyWarpIn cue, or the placeholder marker). Size in cm. */
+	static void PlayShowcaseWarpIn(UWorld* World, const FVector& Location, float Size);
+
+	static const FName ShowcaseTag;	// "TD.Showcase"
+protected:
 	int32 EnemiesTotal = 0;
 	int32 CurrentTake = 1;
 	bool bTakeAnnouncedByFlow = false;

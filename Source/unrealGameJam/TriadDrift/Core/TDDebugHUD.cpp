@@ -157,6 +157,12 @@ void ATDDebugHUD::DrawHUD()
 	{
 		return;
 	}
+	// A cinematic (the intro) hides every HUD: the real widget is hidden on purpose then, so this fallback must not
+	// read that as "no real HUD" and draw its full readout over the letterboxed shot.
+	if (const UTDUIHostSubsystem* UIHost = UTDUIHostSubsystem::Get(this); UIHost && UIHost->IsCinematicHidden())
+	{
+		return;
+	}
 	// A real HUD widget is up: draw only what it does not show yet (R-017), so no gameplay information is
 	// lost while presentation catches up. Each surface switches off the moment the widget claims it.
 	const bool bSupplement = IsRealHUDActive(GetWorld());
@@ -193,7 +199,7 @@ void ATDDebugHUD::DrawHUD()
 
 	if (const UWorld* World = GetWorld(); World && World->IsPaused() && !Covered(ETDHUDSurface::Pause))
 	{
-		const FString Paused(TEXT("PAUSED - ESC TO RESUME"));
+		const FString Paused(TEXT("PAUSED - ESC TO RESUME   ·   O / Y  SETTINGS"));
 		float W = 0.f, H = 0.f;
 		GetTextSize(Paused, W, H, nullptr, 2.2f);
 		DrawText(Paused, FLinearColor::White, (Canvas->SizeX - W) * 0.5f, Canvas->SizeY * 0.42f, nullptr, 2.2f);

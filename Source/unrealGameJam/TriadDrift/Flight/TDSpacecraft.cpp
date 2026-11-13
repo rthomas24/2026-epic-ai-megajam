@@ -204,6 +204,13 @@ float ATDSpacecraft::GetAltitudeMeters() const
 	{
 		return -1.f;
 	}
+	// Altitude only means something over a planet's ground (atmosphere flight). In space a straight-down trace
+	// beside a planet sphere hits its curved side at wildly changing distances (T4 read 320 m -> 1964 m in 0.5 s
+	// while the ship slid along a closed planet at 60 m/s), so space reports none.
+	if (ShipMovement && !ShipMovement->IsInAtmosphere())
+	{
+		return -1.f;
+	}
 	const FVector Start = GetActorLocation();
 	const FVector End = Start - FVector(0.f, 0.f, 2000000.f);
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDAltitude), false, this);
@@ -225,7 +232,7 @@ void ATDSpacecraft::TeleportSpacecraft(const FVector& Location, const FRotator& 
 	{
 		UE_LOG(LogTriadDrift, Log, TEXT("TD teleport: %s %.0f m (%s -> %s). Caller:"), *GetName(), FVector::Dist(From, Location) / 100.f,
 			*From.ToCompactString(), *Location.ToCompactString());
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Log);
+		if (!GIsAutomationTesting) { FDebug::DumpStackTraceToLog(ELogVerbosity::Log); } // tests: the line is enough (a stack reads like a crash in test logs)
 	}
 #endif
 	if (ShipMovement) { ShipMovement->SetMoveAnnounced(true); }
