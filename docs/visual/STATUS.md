@@ -43,3 +43,5 @@ Audio P1 milestone: fresh CombatMusic reload PID2956/OS0/13.797s/minfree3.817GiB
 Audio verified Wave feature publication f5d9cf9d pushed/LFSuploaded: exact native1110b703, four-file scoped commit/clean worktree, reload evidence published. Ryan notified on MESSAGEBOARD N029/N034 arrival explicitly FEATURE-ONLY; Main binding/actual battle/playback/listening/Shipping remain open.
 
 Nebula private import PASS PID8548/OS0/errors[],1SM1M3T; prior29 preserved, total34. Not a project transfer/native branch publication/visual acceptance. Native slot released. MESSAGEBOARD N035 gives Ryan exact feature and private asset locations, with stage boundaries; current integration gates remain open.
+
+GothicStoneArchWall private import PASS PID16364/OS0, six packages/9763tri/UV1;34 unchanged, private total40, no project transfer. Nine older imports remain including held Cybernetic, selected36 unstarted. Slot released; N035 path addendum published.
