@@ -1,0 +1,32 @@
+{
+  "size": [
+    8192,
+    4096
+  ],
+  "render_s": 388,
+  "total_s": 421,
+  "mean_rgb": [
+    0.0489,
+    0.0426,
+    0.0585
+  ],
+  "share_lum_below_0.05": 0.851,
+  "share_lum_below_0.15": 0.932,
+  "share_lum_above_1": 0.00714,
+  "max": 574.71,
+  "exr_mb": 70.2,
+  "png_mb": 15.4,
+  "sun_yaw_pitch_ue": [
+    35.0,
+    18.0
+  ],
+  "planet_ue": [
+    126.0,
+    4.0,
+    10.0
+  ],
+  "brightest_px_yaw_pitch_ue": [
+    35.0,
+    18.0
+  ]
+}

@@ -183,3 +183,26 @@ When the pilot dies on foot, the CUT plays on a third-person director camera:
 - Perfect deflect stays the first-person FOV punch.
 
 Tests: `Director.Camera.OnFootDeathCutsToThirdPerson` (real `ATDFirstPersonCharacter`, real death, real retake) and `Director.Camera.OnFootDeathWithoutABodyStaysFirstPerson`.
+
+## ENG-32: the on-foot third-person camera (T3 builds the rig, T5 wires the pilot)
+
+The rig lives in `Ground/Camera/TDThirdPersonCameraComponent.{h,cpp}`. It is one component, attached to the capsule, and it makes its own lens at BeginPlay.
+
+- **Chase view:** arm 320 cm, shoulder right 55 cm / up 65 cm, location lag 12, rotation lag 18, FOV 85. It looks along the control rotation, so the crosshair stays centred.
+- **Collision:** a 12 cm probe is swept from the pivot (inside the capsule) to the shoulder, then down the arm.
+  - It checks ECC_Camera for the level, and object types Pawn and PhysicsBody for crew, which ignore the camera channel.
+  - The arm snaps in to the first hit, so no frame has the lens inside anything, and eases back out at speed 5.
+  - A probe that starts inside a crewman pressed against the pilot looks past him instead of stopping.
+  - If a corner blocks the straight line from the lens to the pilot, the arm shortens until the pilot is in sight.
+  - Dressing built with NoCollision (scattered flora) cannot be detected. To keep the camera out of it, give it a camera-only profile: query only, block Camera, ignore everything else.
+- **Body:** within 60 cm of the capsule, the pilot's meshes are set HiddenInGame, and shown again past 70 cm. This flag is separate from the SetVisibility that T5's body code drives.
+- **Switching:** `SetThirdPerson` / `ToggleThirdPerson` blends in 0.15 s, in real time, and swaps the active camera. While a director shot, the death cam or any other view target owns the view, the change waits.
+- **Facing:** `GetDesiredActorYaw(Move, CameraYaw, bCombatAction, CurrentYaw)`. Running faces the movement; combat actions face the camera; standing idle with the camera more than 60° off turns to it.
+
+Tests (`TriadDrift.Ground.ThirdPerson.*`):
+- FacingRule
+- SwitchesWithAShortBlend
+- PullsInAtAWallAndEasesOut (includes crew)
+- HidesThePilotWhenTooClose
+- NoViewChangeWhileTheDirectorOwnsIt (the real death cam, and a foreign view target)
+- NeverInsideThePlanetCourses: T5's real Verdance and Cinder builders, with 300 and 555 camera poses beside 23 and 37 colliding pieces, and 0 lens-inside or line-of-sight failures.
