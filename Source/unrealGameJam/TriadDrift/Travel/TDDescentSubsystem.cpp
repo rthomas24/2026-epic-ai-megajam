@@ -13,6 +13,10 @@
 #include "Components/AudioComponent.h"
 #include "Components/MeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NiagaraComponent.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
@@ -141,6 +145,7 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 }
 
 const FName UTDDescentSubsystem::HeatGlowParam(TEXT("HeatGlow"));
+const FName UTDDescentSubsystem::IntensityParam(TEXT("User.Intensity"));
 
 void UTDDescentSubsystem::Tick(float DeltaTime)
 {
@@ -414,7 +419,7 @@ void UTDDescentSubsystem::ClearHeat()
 	TickHeat(0.f); // apply now
 }
 
-int32 UTDDescentSubsystem::ApplyHeatToShip(ATDShip* Ship, float InHeat)
+int32 UTDDescentSubsystem::SetShipMaterialScalar(ATDShip* Ship, FName Param, float Value)
 {
 	int32 Set = 0;
 	if (!Ship) { return 0; }
@@ -426,17 +431,30 @@ int32 UTDDescentSubsystem::ApplyHeatToShip(ATDShip* Ship, float InHeat)
 			UMaterialInterface* M = Mesh->GetMaterial(i);
 			if (!M) { continue; }
 			float Current = 0.f;
-			if (!M->GetScalarParameterValue(FHashedMaterialParameterInfo(HeatGlowParam), Current)) { continue; } // no HeatGlow: leave it alone
+			if (!M->GetScalarParameterValue(FHashedMaterialParameterInfo(Param), Current)) { continue; } // not exposed: leave it alone
 			UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(M);
 			if (!MID)
 			{
-				if (InHeat <= 0.f) { continue; } // never heated: no instance needed
+				if (Value == Current) { continue; } // nothing to change: no instance needed
 				MID = Mesh->CreateDynamicMaterialInstance(i, M);
 			}
-			if (MID) { MID->SetScalarParameterValue(HeatGlowParam, InHeat); ++Set; }
+			if (MID) { MID->SetScalarParameterValue(Param, Value); ++Set; }
 		}
 	}
 	return Set;
+}
+
+int32 UTDDescentSubsystem::GetBurnFXCount() const
+{
+	int32 N = 0;
+	for (const auto& P : BurnFX) { if (P.Value.IsValid() && P.Value->IsActive()) { ++N; } }
+	return N;
+}
+
+void UTDDescentSubsystem::StopBurnFX()
+{
+	for (auto& P : BurnFX) { if (UNiagaraComponent* FX = P.Value.Get()) { FX->Deactivate(); } }
+	BurnFX.Reset();
 }
 
 void UTDDescentSubsystem::TickHeat(float Dt)
@@ -453,10 +471,26 @@ void UTDDescentSubsystem::TickHeat(float Dt)
 	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
 	if (!World) { return; }
 	// Every frame while hot: ships spawn (the planet squad) and the player can switch; values are cheap to set.
+	const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
 	for (TActorIterator<ATDShip> It(World); It; ++It)
 	{
-		ApplyHeatToShip(*It, Heat);
+		ATDShip* Ship = *It;
+		ApplyHeatToShip(Ship, Heat);
+		// The burn on every squad ship (the flown ship and the wingmen), on both sides of the load: User.Intensity = heat.
+		TWeakObjectPtr<UNiagaraComponent>& Slot = BurnFX.FindOrAdd(Ship);
+		if (Heat > 0.f && !Slot.IsValid() && FX)
+		{
+			FTDFXCue Cue = bBurnExit ? FX->AtmosphericExit : FX->AtmosphericEntry;
+			Cue.Sound.Reset(); // sound: the roar (covered route) or the entry component's own (legacy)
+			UAudioComponent* NoAudio = nullptr;
+			Slot = UTDStatics::PlayCueAttachedLoop(Cue, Ship->GetRootComponent(), NAME_None, NoAudio);
+		}
+		if (UNiagaraComponent* NC = Slot.Get())
+		{
+			NC->SetVariableFloat(IntensityParam, Heat);
+		}
 	}
+	if (Heat <= 0.f) { StopBurnFX(); }
 	AppliedHeat = Heat;
 }
 

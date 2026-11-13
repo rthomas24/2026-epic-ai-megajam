@@ -153,6 +153,8 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	if (TravelFX)
 	{
 		FTDFXCue Cue = TravelFX->AtmosphericEntry;
+		Cue.VFX.Reset(); // the burn is UTDDescentSubsystem's (every squad ship, both sides of the load, User.Intensity)
+		if (Descent) { Descent->SetBurnIsExit(false); }
 		if (bCoveredEntry)
 		{
 			USoundBase* RoarSound = !TravelFX->DescentRoar.Sound.IsNull() ? TravelFX->DescentRoar.Sound.LoadSynchronous() : Cue.Sound.LoadSynchronous();

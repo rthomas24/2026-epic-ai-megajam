@@ -117,7 +117,19 @@ public:
 	static const FName HeatGlowParam; // "HeatGlow"
 	static constexpr float HeatDecaySeconds = 2.f;
 	/** Sets HeatGlow on one ship's materials that expose it (makes dynamic instances on first use). Returns slots set. */
-	static int32 ApplyHeatToShip(class ATDShip* Ship, float Heat);
+	static int32 ApplyHeatToShip(class ATDShip* Ship, float Heat) { return SetShipMaterialScalar(Ship, HeatGlowParam, Heat); }
+	/**
+	 * Any material scalar on a ship (HeatGlow, Rift's PortalPower for T2): only on the materials that expose it, with
+	 * a dynamic instance made on first non-zero use. Returns the number of slots set.
+	 */
+	static int32 SetShipMaterialScalar(class ATDShip* Ship, FName Param, float Value);
+
+	// ---- The burn (ENG-38): the entry / exit Niagara loop on every squad ship, its User.Intensity = the heat curve.
+	/** The climb out (exit) instead of the dive: the burn uses UTDTravelFX::AtmosphericExit. */
+	void SetBurnIsExit(bool bExit) { if (bBurnExit != bExit) { bBurnExit = bExit; StopBurnFX(); } }
+	int32 GetBurnFXCount() const;
+	static const FName IntensityParam; // "User.Intensity"
+	void StopBurnFX();
 
 	// ---- Tuning
 	static constexpr float CoverRampSeconds = 0.35f;   // a travel with no entry ramp in front of it (take-off, dev)
@@ -169,6 +181,8 @@ private:
 	float Heat = 0.f;
 	float AppliedHeat = -1.f;
 	float HeatFedLeft = 0.f;
+	bool bBurnExit = false;
+	TMap<TWeakObjectPtr<class ATDShip>, TWeakObjectPtr<class UNiagaraComponent>> BurnFX;
 	TWeakObjectPtr<UWorld> HeatWorld;
 
 	ETDDescentCover CoverPhase = ETDDescentCover::Off;
