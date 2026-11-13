@@ -124,9 +124,21 @@ Kept as they were:
 - Dust density: all 120 motes at every speed above the minimum.
 - Switch cut: a hard cut. The new ship is framed on the first frame, with no lag swing.
 
-Open points:
-- A long drift spin at boost speed (150°/s) still swings the ship to about a quarter of the screen width, and briefly into the HUD band. Fixing it properly means aiming the camera along the velocity while drifting, which moves the aim reticle, so it is a design call, not a tuning value.
-- In the test script, `TD.KillAll` right after a switch triggers the director's multi-kill shot (FOV 65, long lens). That made two switch frames look like a broken cut. It is a script artefact, not the switch.
+**Drift camera (Nov 13, Lead's decision).**
+- While drifting above cruise speed (`DriftMinSpeedFraction` 1), the chase camera's yaw follows `DriftYawFollow` = 40% of the slip angle toward the ship's actual motion. It eases in and out over `DriftBlendSeconds` = 0.3 s.
+- The followed slip rises to 90° and falls back to 0 at 180°: flying backwards the slip's sign flips, and a plain clamp jumped the camera 72° in a frame (the test caught it at 4485°/s).
+- The reticle and the shots both come from this camera, so they always agree. The nose keeps 60% of its sideways angle, so you still fly one way and shoot another.
+- Measured on the TD.Flight.Cam trace: boost, drift with a 0.7 s stick flick (nose ~90°), hold the slide; both directions plus a drift at cruise; every ship; old vs new in one session.
+
+| Fast drift (above cruise) | Worst off-centre x (Rift / Lancer / Bastion) | Mean | Samples in the HUD band (centre below 72%) |
+|---|---|---|---|
+| Before (follow 0) | 0.17 / 0.23 / 0.13 | 0.13 / 0.17 / 0.09 | 0 / 4 / 0 |
+| After (follow 0.4) | 0.16 / 0.16 / 0.08 | 0.13 / 0.12 / 0.05 | 0 / 0 / 0 |
+
+- Pinned by `TriadDrift.Flight.Camera.DriftFollowsTheSlide`: 40% of the slip after 0.3 s; a held spin stays continuous (< 600°/s); release puts the camera back behind the nose; nothing below cruise.
+- Still open: a drift sheds speed below cruise within about a second, and as the ship slows the lagged camera closes in, so the ship sits lower. At cruise the Lancer's centre reaches 0.72, its wings touching the HUD top. Lowering the gate to 0.3 of cruise made this worse (44 samples in the band), so the gate stays at cruise. Fixing it would mean holding the camera distance while drifting.
+
+Scripted-playtest tip: in the test script, `TD.KillAll` right after a switch triggered the director's multi-kill shot (FOV 65, long lens), which made two switch frames look like a broken cut. Kill enemies before switching (also in the ue-cpp-gameplay skill).
 
 Dev tool: `TD.Flight.Cam [tag]` prints what the player sees: ship screen position, FOV, camera and ship roll, the camera's
 offset in ship space, speed, boost and drift, turn rates, and dust.
