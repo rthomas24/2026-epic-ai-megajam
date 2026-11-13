@@ -175,12 +175,15 @@ bool FTDWorldLayoutTravel::RunTest(const FString& Parameters)
 	UTDWorldSubsystem* WS = UTDWorldSubsystem::Get(W.GetWorld());
 	const int32 Obstacles = WS->GetObstacleCount();
 	G->SetHidePlaceholderDressing(true);
-	const UInstancedStaticMeshComponent* Ast = G->FindComponentByClass<UInstancedStaticMeshComponent>();
-	TestTrue(TEXT("asteroid meshes hidden"), Ast && !Ast->IsVisible());
+	const UInstancedStaticMeshComponent* Ast = G->GetAsteroidCollision();
+	const UInstancedStaticMeshComponent* Rock = G->GetAsteroidLooks().Num() > 0 ? G->GetAsteroidLooks()[0].Get() : nullptr;
+	TestTrue(TEXT("asteroid look hidden"), Rock && !Rock->IsVisible());
+	TestTrue(TEXT("collision spheres hidden"), Ast && !Ast->IsVisible());
 	TestTrue(TEXT("collision kept"), Ast && Ast->IsCollisionEnabled());
 	TestEqual(TEXT("obstacles unchanged"), WS->GetObstacleCount(), Obstacles);
 	G->SetHidePlaceholderDressing(false);
-	TestTrue(TEXT("visible again"), Ast && Ast->IsVisible());
+	TestTrue(TEXT("rock look visible again"), Rock && Rock->IsVisible());
+	TestTrue(TEXT("collision spheres stay hidden under the rock look"), Ast && !Ast->IsVisible());
 	return true;
 }
 
@@ -215,6 +218,47 @@ bool FTDWorldPlanetEntry::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the atmosphere started the ENG-20 entry (seen committed at least once)"), bEntered || GI->Travels.Num() == 1);
 	TestTrue(*FString::Printf(TEXT("the dive stops above the surface (closest %.0f cm from the centre, surface %.0f)"), Closest, P->GetPlanetRadius()), Closest > P->GetPlanetRadius());
 	TestEqual(TEXT("exactly one travel to Verdance"), GI->Travels.Num(), 1);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldLayoutRocks, "TriadDrift.World.Layout.AsteroidMeshesAreDeterministic", TD_TEST_FLAGS)
+bool FTDWorldLayoutRocks::RunTest(const FString& Parameters)
+{
+	// The engineering asteroid meshes: same field twice from one seed, a valid mesh and material on every
+	// instanced component, the asteroid count unchanged, collision still on the hidden spheres.
+	TArray<FTransform> First;
+	int32 FirstCount = 0;
+	for (int32 Run = 0; Run < 2; ++Run)
+	{
+		FTDTestWorld W;
+		ATDGalaxyLayout* G = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+		if (!TestNotNull(TEXT("layout"), G)) { return false; }
+		TestEqual(TEXT("four rock meshes"), G->GetAsteroidLooks().Num(), 4);
+		TestEqual(TEXT("three debris meshes"), G->GetDebrisLooks().Num(), 3);
+		for (const UInstancedStaticMeshComponent* Look : G->GetAsteroidLooks())
+		{
+			TestTrue(TEXT("rock look has a mesh and a material"), Look && Look->GetStaticMesh() && Look->GetMaterial(0));
+			TestTrue(TEXT("rock look does not collide"), Look && Look->GetCollisionEnabled() == ECollisionEnabled::NoCollision);
+		}
+		for (const UInstancedStaticMeshComponent* Look : G->GetDebrisLooks())
+		{
+			TestTrue(TEXT("debris has a mesh and a material"), Look && Look->GetStaticMesh() && Look->GetMaterial(0));
+			TestTrue(TEXT("debris does not collide"), Look && Look->GetCollisionEnabled() == ECollisionEnabled::NoCollision);
+		}
+		TestEqual(TEXT("one look instance per collision sphere"), G->GetAsteroidLookCount(), G->GetAsteroidCount());
+		TestTrue(TEXT("collision spheres still collide"), G->GetAsteroidCollision()->GetCollisionEnabled() != ECollisionEnabled::NoCollision);
+		TestFalse(TEXT("collision spheres hidden"), G->GetAsteroidCollision()->IsVisible());
+		TArray<FTransform> Xfs;
+		for (const UInstancedStaticMeshComponent* Look : G->GetAsteroidLooks())
+		{
+			for (int32 i = 0; i < Look->GetInstanceCount(); ++i) { FTransform X; Look->GetInstanceTransform(i, X, false); Xfs.Add(X); }
+		}
+		if (Run == 0) { First = Xfs; FirstCount = G->GetAsteroidCount(); continue; }
+		TestEqual(TEXT("same asteroid count from the same seed"), G->GetAsteroidCount(), FirstCount);
+		bool bSame = First.Num() == Xfs.Num();
+		for (int32 i = 0; bSame && i < Xfs.Num(); ++i) { bSame = First[i].Equals(Xfs[i], 0.01f); }
+		TestTrue(TEXT("the same rocks (mesh, place, rotation, size) from the same seed"), bSame);
+	}
 	return true;
 }
 

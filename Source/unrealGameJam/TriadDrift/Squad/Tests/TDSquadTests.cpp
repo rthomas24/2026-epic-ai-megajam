@@ -24,6 +24,7 @@
 #include "EnhancedPlayerInput.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/Squad/TDSquadBarks.h"
 #include "TriadDrift/Squad/Tests/TDSquadTestListener.h"
@@ -2631,6 +2632,22 @@ bool FTDSquadShieldRegenFromSpec::RunTest(const FString& Parameters)
 	TestTrue(TEXT("no regen inside the 5 s delay"), L->GetShield01() < 0.01f);
 	F.W.Advance(2.5f);
 	TestEqual(TEXT("about 20% after 2 s at 10%/s"), L->GetShield01(), 0.2f, 0.06f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadDodgeOnHUD, "TriadDrift.Squad.HUD.DodgeReadiness", TD_TEST_FLAGS)
+bool FTDSquadDodgeOnHUD::RunTest(const FString& Parameters)
+{
+	// The HUD's dodge pip for the player's ship: T1's readiness, 0 right after a dodge, back to 1.
+	FSquadFixture F;
+	F.W.Advance(1.f);
+	ATDShip* Rift = F.Ship(ETDShipId::Rift);
+	TestEqual(TEXT("ready before any dodge"), TDSquad::GetDodgeReady01(Rift), 1.f);
+	TestTrue(TEXT("dodge"), Rift->GetShipMovement()->RequestDodge(1.f));
+	F.W.Tick();
+	TestTrue(TEXT("spent right after"), TDSquad::GetDodgeReady01(Rift) < 0.2f);
+	F.W.Advance(5.f);
+	TestEqual(TEXT("ready again"), TDSquad::GetDodgeReady01(Rift), 1.f);
 	return true;
 }
 

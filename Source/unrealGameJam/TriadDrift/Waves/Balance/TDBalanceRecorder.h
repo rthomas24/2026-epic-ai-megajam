@@ -48,6 +48,8 @@ struct UNREALGAMEJAM_API FTDBalanceWaveStats
 	/** Seconds from the wave start to the first enemy on screen (-1 = never). */
 	float FirstContactSeconds = -1.f;
 	float SecondsTotal = 0.f;
+	/** Hull lost by the ship the player was flying when hit, as a fraction of that ship's max hull (sum). */
+	float ActiveHullLost01 = 0.f;
 	int32 Switches = 0;
 };
 
@@ -116,6 +118,9 @@ private:
 struct UNREALGAMEJAM_API FTDBalancePilot
 {
 	FTDPilotSkill Skill;
+
+	/** Distribution runs: a different (still deterministic) pilot per seed. */
+	void Reseed(int32 Seed) { Rng.Initialize(Seed); }
 	/** Fires the primary when the target is within the skill's cone and this range (cm). */
 	float FireRange = 25000.f;
 	/** Secondary FireOnce every this many seconds when lined up. */

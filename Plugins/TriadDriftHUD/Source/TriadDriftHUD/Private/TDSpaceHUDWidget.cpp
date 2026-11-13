@@ -86,6 +86,16 @@ bool Bool(UObject* O,FName Name)
     FResult R(O,Name); const FBoolProperty* P=CastField<FBoolProperty>(R.Return);
     return P && R.Value() && P->GetPropertyValue(R.Value());
 }
+bool Text(UObject* O,FName Name,FText& Out)
+{
+    UFunction* Function=IsValid(O)?O->FindFunction(Name):nullptr;
+    const FTextProperty* Return=Function?CastField<FTextProperty>(Function->GetReturnProperty()):nullptr;
+    if(!Return) return false;
+    FResult R(O,Name); // Also refuses any input/output parameter besides the return value.
+    if(!R.Value()) return false;
+    Out=Return->GetPropertyValue(R.Value());
+    return true;
+}
 UActorComponent* Component(AActor* Actor,const TCHAR* ClassPath)
 {
     UClass* Class=FindObject<UClass>(nullptr,ClassPath);
@@ -130,6 +140,7 @@ struct FPainter
     float Scale;
     FVector2D Origin;
     const FTDHUDStyle& Style;
+    bool bRefined = false;
     FPainter(const FGeometry& InG, FSlateWindowElementList& InList, int32 InLayer, const FTDHUDStyle& InStyle,
         FVector2D Design = FVector2D(1920,1080)) : G(InG), List(InList), Layer(InLayer), Style(InStyle)
     {
@@ -140,10 +151,52 @@ struct FPainter
     { return G.ToPaintGeometry(Size * Scale, FSlateLayoutTransform(Pos * Scale + Origin)); }
     void Box(float X,float Y,float W,float H,FLinearColor C) const
     { FSlateDrawElement::MakeBox(List, Layer, Geo({X,Y},{W,H}), FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None,C); }
+    void Gradient(float X,float Y,float W,float H,FLinearColor A,FLinearColor B,bool bVertical=true) const
+    {
+        TArray<FSlateGradientStop> Stops;
+        Stops.Emplace(FVector2f(0,0),A); Stops.Emplace(FVector2f(W*Scale,H*Scale),B);
+        // Slate's orientation names describe the stop line, not the direction of interpolation.
+        FSlateDrawElement::MakeGradient(List,Layer,Geo({X,Y},{W,H}),MoveTemp(Stops),bVertical?Orient_Horizontal:Orient_Vertical);
+    }
+    void Frame(float X,float Y,float W,float H,FLinearColor C,float Opacity=1) const
+    {
+        const float Cut=8;
+        TArray<FVector2D> Points;
+        for(const FVector2D Q : {FVector2D(X+Cut,Y),FVector2D(X+W,Y),FVector2D(X+W,Y+H-Cut),FVector2D(X+W-Cut,Y+H),FVector2D(X,Y+H),FVector2D(X,Y+Cut),FVector2D(X+Cut,Y)})
+            Points.Add(Q*Scale+Origin);
+        FSlateDrawElement::MakeLines(List,Layer+1,G.ToPaintGeometry(),Points,ESlateDrawEffect::None,C.CopyWithNewOpacity(Opacity),true,Scale);
+    }
+    void Glass(float X,float Y,float W,float H,FLinearColor C,bool bEmphasis=false) const
+    {
+        // Two small edge halos, no blur, scene sampling, textures, materials or full-screen effect.
+        Gradient(X-3,Y-3,W+6,H+6,C.CopyWithNewOpacity(bEmphasis?.055f:.025f),FLinearColor(0,0,0,.08f));
+        Gradient(X,Y,W,H,FLinearColor(.018f,.043f,.073f,.91f),FLinearColor(.0025f,.008f,.016f,.94f));
+        Gradient(X+1,Y+1,W-2,32,C.CopyWithNewOpacity(bEmphasis?.13f:.065f),C.CopyWithNewOpacity(0));
+        Frame(X,Y,W,H,C,bEmphasis?.55f:.30f);
+        Frame(X+4,Y+4,W-8,H-8,C,.09f);
+        Line({X+12,Y+1},{X+W*.62f,Y+1},Style.Ink.CopyWithNewOpacity(bEmphasis?.65f:.30f));
+        Line({X+W-1,Y+H-37},{X+W-1,Y+H-12},C.CopyWithNewOpacity(.85f),1.5f);
+        Line({X+1,Y+12},{X+1,Y+35},C.CopyWithNewOpacity(.75f),1.5f);
+        Line({X+12,Y+H-1},{X+40,Y+H-1},C.CopyWithNewOpacity(.6f),1.5f);
+        // Quiet etching stays outside text and meter regions.
+        for(int32 I=0;I<3;++I) Line({X+W-36+I*7,Y+7},{X+W-39+I*7,Y+11},C.CopyWithNewOpacity(.28f));
+    }
     void Text(float X,float Y,const FString& S,int32 Size,FLinearColor C,bool bBold=false) const
     {
         FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(bBold ? "Bold" : "Regular",FMath::Max(8,FMath::RoundToInt(Size*Scale*Style.TextScale)));
         FSlateDrawElement::MakeText(List, Layer+1, Geo({X,Y},{1,1}), S, Font, ESlateDrawEffect::None,C);
+    }
+    void Label(float X,float Y,const FString& S,int32 Size,FLinearColor C,int32 Tracking=70) const
+    {
+        FSlateFontInfo Font=FCoreStyle::GetDefaultFontStyle("Medium",FMath::Max(8,FMath::RoundToInt(Size*Scale*Style.TextScale)));
+        Font.LetterSpacing=Tracking;
+        FSlateDrawElement::MakeText(List,Layer+1,Geo({X,Y},{1,1}),S,Font,ESlateDrawEffect::None,C);
+    }
+    void Title(float X,float Y,const FString& S,int32 Size,FLinearColor C) const
+    {
+        FSlateFontInfo Font=FCoreStyle::GetDefaultFontStyle("BoldCondensed",FMath::Max(8,FMath::RoundToInt(Size*Scale*Style.TextScale)));
+        Font.LetterSpacing=25;
+        FSlateDrawElement::MakeText(List,Layer+1,Geo({X,Y},{1,1}),S,Font,ESlateDrawEffect::None,C);
     }
     void CenteredText(float CenterX,float Y,const FString& S,int32 Size,FLinearColor C,bool bBold=false) const
     {
@@ -183,7 +236,28 @@ struct FPainter
         FSlateDrawElement::MakeLines(List,Layer+1,G.ToPaintGeometry(),Points,ESlateDrawEffect::None,Color,true,Width*Scale);
     }
     void Meter(float X,float Y,float W,float Value,FLinearColor Color,float Height=4) const
-    { Box(X,Y,W,Height,FLinearColor(.05f,.10f,.14f,.95f)); if(Value>0) Box(X,Y,W*Unit(Value),Height,Color); }
+    {
+        Box(X,Y,W,Height,FLinearColor(.05f,.10f,.14f,.95f));
+        if(!bRefined) { if(Value>0) Box(X,Y,W*Unit(Value),Height,Color); return; }
+        Gradient(X,Y,W,Height,FLinearColor(.008f,.021f,.033f),FLinearColor(.024f,.048f,.065f));
+        Line({X,Y+Height+1},{X+W,Y+Height+1},Style.Ink.CopyWithNewOpacity(.13f),.6f);
+        const float Fill=W*Unit(Value);
+        if(Fill<=0) return;
+        Gradient(X,Y,Fill,Height,Color*.42f,Color,false);
+        Gradient(X,Y-2,Fill,2,Color.CopyWithNewOpacity(0),Color.CopyWithNewOpacity(.16f));
+        Line({X,Y+.5f},{X+Fill,Y+.5f},Style.Ink.CopyWithNewOpacity(.6f),.65f);
+        Box(X+FMath::Max(0.f,Fill-1),Y,1,Height,Style.Ink.CopyWithNewOpacity(.8f));
+        // Dark separators preserve the meter silhouette; no animated scanning stripes.
+        if(Height>=7) for(int32 I=1;I<10;++I) if(W*I/10.f<Fill-2) Box(X+W*I/10.f,Y,1,Height,FLinearColor(.003f,.012f,.022f,.35f));
+    }
+    void RamIcon(float X,float Y,float R,FLinearColor C) const
+    {
+        Arc({X,Y},R,.27f,C,1.2f,PI*.1f); Arc({X,Y},R,.27f,C,1.2f,PI*1.1f);
+        const FVector2D A(X,Y-R*.65f), B(X-R*.35f,Y+R*.35f), D(X+R*.35f,Y+R*.35f);
+        Line(A,B,C,1.8f); Line(B,{X,Y+R*.16f},C,1.8f); Line({X,Y+R*.16f},D,C,1.8f); Line(D,A,C,1.8f);
+        for(int32 I:{-1,1}) { Line({X+I*R*.6f,Y+R*.1f},{X+I*R*.8f,Y+R*.6f},C.CopyWithNewOpacity(.55f)); }
+        Line({X,Y+R*.48f},{X,Y+R*.8f},C,1.4f);
+    }
     void Brackets(FVector2D C,float Radius,FLinearColor Color) const
     {
         for(int32 X : {-1,1}) for(int32 Y : {-1,1})
@@ -221,17 +295,27 @@ struct FPainter
     void Card(float X,float Y,int32 Index,const FTDUIShip& S,const FTDUIShip& Smooth) const
     {
         const FLinearColor C=Style.ShipColor(Index), Dim=Style.Muted;
-        Box(X,Y,356,196,Style.Panel);
-        Box(X,Y,356,S.bActive?4:1,S.bActive?C:FLinearColor(.12f,.2f,.28f));
+        // M03 never propagates the new card treatment to Rift or Bastion.
+        const bool Refine=bRefined && Index==1 && S.bActive;
+        if(Refine) Glass(X,Y,356,196,C,true);
+        else { Box(X,Y,356,196,Style.Panel); Box(X,Y,356,S.bActive?4:1,S.bActive?C:FLinearColor(.12f,.2f,.28f)); }
         if(S.bActive)
         {
-            Box(X,Y,5,196,C); Box(X+5,Y+4,351,35,FLinearColor(C.R,C.G,C.B,.14f));
-            Box(X+280,Y+10,58,27,C); Text(X+287,Y+11,TEXT("YOU"),15,FLinearColor(.008f,.02f,.03f),true);
+            if(Refine)
+            {
+                Line({X,Y+44},{X,Y+151},C,2.5f);
+                Gradient(X+1,Y+1,354,38,C.CopyWithNewOpacity(.12f),C.CopyWithNewOpacity(0));
+                Gradient(X+280,Y+10,58,27,C*.64f,C,false);
+            }
+            else { Box(X,Y,5,196,C); Box(X+5,Y+4,351,35,FLinearColor(C.R,C.G,C.B,.14f)); Box(X+280,Y+10,58,27,C); }
+            Text(X+287,Y+11,TEXT("YOU"),15,FLinearColor(.008f,.02f,.03f),true);
         }
         else Text(X+249,Y+17,S.bAlive?TEXT("WINGMAN"):TEXT("OFFLINE"),12,Dim,true);
-        Text(X+18,Y+10,FString::Printf(TEXT("0%d  %s"),Index+1,Names[Index]),S.bActive?22:20,Style.Ink,true);
+        if(Refine) Title(X+18,Y+9,FString::Printf(TEXT("0%d  %s"),Index+1,Names[Index]),25,Style.Ink);
+        else Text(X+18,Y+10,FString::Printf(TEXT("0%d  %s"),Index+1,Names[Index]),S.bActive?22:20,Style.Ink,true);
         Text(X+18,Y+43,Pilots[Index],11,Dim);
-        ShipIcon(X+313,Y+94,Index,C);
+        if(Refine) { Arc({X+313,Y+94},31,1,C.CopyWithNewOpacity(.13f),1); ShipIcon(X+313,Y+94,Index,C.CopyWithNewOpacity(.95f)); }
+        else ShipIcon(X+313,Y+94,Index,C);
         if(!S.bAvailable) { Text(X+18,Y+85,TEXT("AWAITING TELEMETRY"),15,Dim); return; }
         if(!S.bAlive)
         {
@@ -242,13 +326,17 @@ struct FPainter
         const FLinearColor HealthColor=S.Hull<.25f?Style.Hostile:Style.Ink;
         HealthIcon(X+26,Y+73,HealthColor); Text(X+44,Y+62,TEXT("HEALTH"),Style.EssentialLabelSize,HealthColor,true);
         Text(X+183,Y+59,FString::Printf(TEXT("%d%%"),FMath::RoundToInt(S.Hull*100)),Style.StatusNumberSize,HealthColor,true);
-        Meter(X+18,Y+87,238,Smooth.Hull,HealthColor,Style.HealthBarThickness);
+        // A local painter keeps inactive cards byte-for-byte on the established M02 styling.
+        FPainter MeterPainter=*this; MeterPainter.bRefined=Refine;
+        MeterPainter.Meter(X+18,Y+87,238,Smooth.Hull,HealthColor,Style.HealthBarThickness);
+        if(Refine && Smooth.Hull>S.Hull+.005f) Box(X+18+238*S.Hull,Y+87,238*(Smooth.Hull-S.Hull),Style.HealthBarThickness,Style.Hostile.CopyWithNewOpacity(.55f));
         ShieldIcon(X+26,Y+113,Style.Lancer); Text(X+44,Y+102,TEXT("SHIELD"),Style.EssentialLabelSize,Style.Lancer,true);
         Text(X+183,Y+99,FString::Printf(TEXT("%d%%"),FMath::RoundToInt(S.Shield*100)),Style.StatusNumberSize,Style.Lancer,true);
-        Meter(X+18,Y+130,238,Smooth.Shield,Style.Lancer,Style.ShieldBarThickness);
+        MeterPainter.Meter(X+18,Y+130,238,Smooth.Shield,Style.Lancer,Style.ShieldBarThickness);
+        if(Refine && Smooth.Shield>S.Shield+.005f) Box(X+18+238*S.Shield,Y+130,238*(Smooth.Shield-S.Shield),Style.ShieldBarThickness,Style.Ink.CopyWithNewOpacity(.45f));
         Text(X+18,Y+145,Powers[Index],10,Dim);
         Text(X+249,Y+142,S.Power>=.999?TEXT("READY"):FString::Printf(TEXT("%d%%"),FMath::RoundToInt(S.Power*100)),13,C,true);
-        Meter(X+18,Y+164,318,Smooth.Power,C,3);
+        MeterPainter.Meter(X+18,Y+164,318,Smooth.Power,C,3);
         Text(X+18,Y+176, S.bUnlocked ? FString::Printf(TEXT("%s  %s"),Abilities[Index],S.Ability>=.999?TEXT("READY"):TEXT("CHARGING")) : FString::Printf(TEXT("%s  LOCKED"),Abilities[Index]),11, S.bUnlocked?C:Dim);
         Text(X+249,Y+176,FString::Printf(TEXT("AMMO %02d"),S.Ammo),11,Style.Ink);
         if(Index==2) { Arc({X+313,Y+94},32,1,Dim,1); Arc({X+313,Y+94},32,S.Power2,C,3); Text(X+277,Y+130,FString::Printf(TEXT("DOME %d%%"),FMath::RoundToInt(S.Power2*100)),9,Dim); }
@@ -307,7 +395,7 @@ void UTDSpaceHUDWidget::BindEvents(bool bBind)
 void UTDSpaceHUDWidget::SetDataSource(UObject* Source)
 {
     bPreview=false; DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset();
-    ObjectivePrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
+    ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
     UClass* Contract=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDHUDData"));
     if(IsValid(Source) && Contract && Source->GetClass()->ImplementsInterface(Contract)) DataSource=Source;
     RefreshData();
@@ -317,6 +405,13 @@ void UTDSpaceHUDWidget::RefreshData()
     if(bPreview) return;
     TArray<FTDUIShip> Next; Next.SetNum(3);
     UObject* O=DataSource.Get();
+    // Seed late-created widgets from the authoritative current line, including an explicit clear.
+    // Older sources without a compatible getter retain the existing OnObjectiveUpdated fallback.
+    FText CurrentObjective;
+    if(TDHUD::Text(O,TEXT("GetObjectiveText"),CurrentObjective)) ObjectivePrompt=MoveTemp(CurrentObjective);
+    // Interaction has no event fallback: unavailable/empty data must never leave a stale landing hint.
+    InteractPrompt=FText::GetEmpty();
+    TDHUD::Text(O,TEXT("GetInteractPrompt"),InteractPrompt);
     TDHUD::FResult R(O,TEXT("GetSquadHUD"));
     const FArrayProperty* Array=CastField<FArrayProperty>(R.Return);
     const FStructProperty* Item=Array?CastField<FStructProperty>(Array->Inner):nullptr;
@@ -387,6 +482,11 @@ void UTDSpaceHUDWidget::ApplySquadSnapshot(const TArray<FTDUIShip>& Snapshot)
         { ReadyPrompt=FText::FromString(FString::Printf(TEXT("%s / %s READY"),TDHUD::Names[I],TDHUD::Powers[I])); ReadyLeft=2; ReadyShip=I; }
     }
     if(NewActive!=ActiveIndex && NewActive!=INDEX_NONE) SwitchLeft=Style.SwitchSeconds;
+    if(Style.bLancerVisualBenchmark && NewActive==1 && ActiveIndex==1 && Ships.IsValidIndex(1))
+    {
+        if(Next[1].Power<.05f && Ships[1].Power>.5f) ActivationLeft=.32f;
+        if(Next[1].Hull<Ships[1].Hull-.001f || Next[1].Shield<Ships[1].Shield-.001f) DamageLeft=.35f;
+    }
     ActiveIndex=NewActive; Ships=MoveTemp(Next);
     if(Display.Num()!=3) Display=Ships;
 }
@@ -398,7 +498,8 @@ void UTDSpaceHUDWidget::HandleObjective(FName Id,int32 Step,FText Text) { if(!bP
 void UTDSpaceHUDWidget::SetPreviewMode(bool bEnabled)
 {
     bPreview=bEnabled;
-    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
+    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
+    AcquisitionLeft=ActivationLeft=DamageLeft=0;
     if(!bEnabled) { RefreshData(); return; }
     DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset(); Hostiles.Reset(); bHasTargetHealth=bHasGameplayLead=false; IncomingMissiles=0;
     TArray<FTDUIShip> Demo; Demo.SetNum(3);
@@ -435,6 +536,9 @@ void UTDSpaceHUDWidget::NativeTick(const FGeometry& G,float Dt)
 {
     Super::NativeTick(G,Dt); Dt=FMath::Clamp(Dt,0.f,.1f); Elapsed+=Dt;
     SwitchLeft=FMath::Max(0.f,SwitchLeft-Dt); HitLeft=FMath::Max(0.f,HitLeft-Dt); WarningLeft=FMath::Max(0.f,WarningLeft-Dt); ReadyLeft=FMath::Max(0.f,ReadyLeft-Dt);
+    AcquisitionLeft=FMath::Max(0.f,AcquisitionLeft-Dt); ActivationLeft=FMath::Max(0.f,ActivationLeft-Dt); DamageLeft=FMath::Max(0.f,DamageLeft-Dt);
+    if(Target!=VisualTarget || bPreview!=bVisualPreviewTarget)
+    { VisualTarget=Target; bVisualPreviewTarget=bPreview; AcquisitionLeft=.18f; }
     if(bPreview)
     {
         auto Next=Ships;
@@ -468,8 +572,10 @@ bool UTDSpaceHUDWidget::SolveIntercept(const FVector& P,const FVector& V,float S
 
 int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,const FSlateRect& R,FSlateWindowElementList& L,int32 Z,const FWidgetStyle& W,bool E) const
 {
+    const double PaintStart=bPreview?FPlatformTime::Seconds():0;
     const int32 Base=Super::NativePaint(A,G,R,L,Z,W,E);
     TDHUD::FPainter P(G,L,Base+1,Style);
+    const bool Refined=IsLancerBenchmarkActive(); P.bRefined=Refined;
     const FLinearColor Accent=Style.ShipColor(FMath::Max(0,ActiveIndex)), Dim=Style.Muted, Ink=Style.Ink;
     if(bPreview)
     {
@@ -480,13 +586,30 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
         P.Text(66,33,TEXT("HUD PREVIEW / MOCK DATA"),13,Style.Bastion,true);
     }
     else if(!DataSource.IsValid()) P.Text(66,33,TEXT("TELEMETRY OFFLINE / CONNECT ITDHUDData"),13,Dim);
+    if(Refined)
+    {
+        P.Glass(707,53,506,92,Accent);
+        P.Glass(66,724,268,238,Accent);
+        P.Glass(1560,696,294,78,Accent);
+        // Fine objective rail suggests a holographic plane, contained within its existing region.
+        for(int32 I=0;I<11;++I) P.Line({721.f+I*46,136},{729.f+I*44,143},Accent.CopyWithNewOpacity(.09f),.6f);
+    }
     P.Box(66,72,4,49,Accent); P.Text(86,68,TEXT("TRIAD / DRIFT"),23,Ink,true);
     P.Text(87,104,TEXT("SQUADRON 03     /     COMBAT LINK"),11,Dim);
     P.Text(1540,70,Wave>0?FString::Printf(TEXT("WAVE %02d"),Wave):TEXT("WAVE --"),24,Ink,true);
     P.Text(1540,108,bPreview||DataSource.IsValid()?FString::Printf(TEXT("%02d HOSTILES REMAINING"),Enemies):TEXT("HOSTILES --"),12,Dim);
-    P.Text(727,66,TEXT("O B J E C T I V E"),11,Accent,true);
-    P.Text(727,91,ObjectivePrompt.IsEmpty()?TEXT("AWAITING MISSION DATA"):ObjectivePrompt.ToString().Left(62),17,Ink,true);
-    P.Line({727,128},{1193,128},FLinearColor(.15f,.26f,.34f));
+    if(Refined)
+    {
+        P.Label(727,66,TEXT("OBJECTIVE"),11,Accent,150);
+        P.Title(727,90,ObjectivePrompt.IsEmpty()?TEXT("AWAITING MISSION DATA"):ObjectivePrompt.ToString().Left(62),20,Ink);
+        P.Line({727,128},{1193,128},Accent.CopyWithNewOpacity(.2f));
+    }
+    else
+    {
+        P.Text(727,66,TEXT("O B J E C T I V E"),11,Accent,true);
+        P.Text(727,91,ObjectivePrompt.IsEmpty()?TEXT("AWAITING MISSION DATA"):ObjectivePrompt.ToString().Left(62),17,Ink,true);
+        P.Line({727,128},{1193,128},FLinearColor(.15f,.26f,.34f));
+    }
 
     const FVector2D Center(960,540);
     P.Arc(Center,26,.20f,Accent,1.5,PI*.15f); P.Arc(Center,26,.20f,Accent,1.5,PI*1.15f);
@@ -494,6 +617,12 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     P.Line(Center+FVector2D(4,0),Center+FVector2D(10,0),Ink,1.5);
     P.Line(Center+FVector2D(0,4),Center+FVector2D(0,10),Ink,1.5);
     P.Box(959,539,2,2,Ink);
+    if(Refined)
+    {
+        P.Arc(Center,33,.14f,Accent.CopyWithNewOpacity(.28f),.8f,PI*.18f);
+        P.Arc(Center,33,.14f,Accent.CopyWithNewOpacity(.28f),.8f,PI*1.18f);
+        for(int32 Sign:{-1,1}) P.Line(Center+FVector2D(Sign*40,0),Center+FVector2D(Sign*44,0),Accent.CopyWithNewOpacity(.35f));
+    }
 
     auto Project=[&](AActor* Actor,FVector2D& Out)->bool
     {
@@ -507,14 +636,28 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     if(bPreview) TargetPos={1156,397};
     if(bTarget && TargetPos.X>110 && TargetPos.X<1810 && TargetPos.Y>175 && TargetPos.Y<755)
     {
-        P.Brackets(TargetPos,48,Style.Hostile);
-        P.Text(TargetPos.X-48,TargetPos.Y-76,bPreview?TEXT("NULL / INTERCEPTOR"):TEXT("HOSTILE TARGET"),12,Style.Hostile,true);
+        const float Acquire=Refined && !Style.bReducedMotion?AcquisitionLeft/.18f:0;
+        P.Brackets(TargetPos,48+6*Acquire,Style.Hostile);
+        if(Refined)
+        {
+            P.Arc(TargetPos,73,1,Accent.CopyWithNewOpacity(.22f),.7f);
+            P.Arc(TargetPos,77,.18f,Accent.CopyWithNewOpacity(.55f),1,PI*1.15f);
+            P.Arc(TargetPos,77,.18f,Accent.CopyWithNewOpacity(.35f),1,PI*.15f);
+            for(int32 I=0;I<12;++I)
+            {
+                const float T=I*PI/6;
+                const FVector2D D(FMath::Cos(T),FMath::Sin(T));
+                P.Line(TargetPos+D*69,TargetPos+D*(I%3?71:74),Accent.CopyWithNewOpacity(.36f),.7f);
+            }
+            P.Line(TargetPos+FVector2D(-48,-56),TargetPos+FVector2D(48,-56),Style.Hostile.CopyWithNewOpacity(.25f));
+        }
+        P.Text(TargetPos.X-48,TargetPos.Y-(Refined?101:76),bPreview?TEXT("NULL / INTERCEPTOR"):TEXT("HOSTILE TARGET"),12,Style.Hostile,true);
         if(bPreview || bHasTargetHealth)
-        { P.Meter(TargetPos.X-48,TargetPos.Y+62,96,bPreview?.68f:TargetHull,Style.Hostile,3); P.Meter(TargetPos.X-48,TargetPos.Y+68,96,bPreview?.25f:TargetShield,Style.Lancer,2); }
+        { P.Meter(TargetPos.X-48,TargetPos.Y+(Refined?84:62),96,bPreview?.68f:TargetHull,Style.Hostile,3); P.Meter(TargetPos.X-48,TargetPos.Y+(Refined?90:68),96,bPreview?.25f:TargetShield,Style.Lancer,2); }
         if(Target.IsValid())
         {
             const double Distance=GetOwningPlayer()->GetPawn()?FVector::Dist(Target->GetActorLocation(),GetOwningPlayer()->GetPawn()->GetActorLocation())*.01:0;
-            P.Text(TargetPos.X-48,TargetPos.Y+72,FString::Printf(TEXT("%.0f m"),Distance),12,Dim);
+            P.Text(TargetPos.X-48,TargetPos.Y+(Refined?96:72),FString::Printf(TEXT("%.0f m"),Distance),12,Dim);
         }
         FVector2D Lead=FVector2D::ZeroVector;
         bool bLead=bPreview;
@@ -529,7 +672,7 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
             { FVector2D UI; bLead=UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(),Eye+Aim,UI,true); Lead=(UI-P.Origin)/P.Scale; }
         }
         if(bLead) { P.Arc(Lead,8,1,Accent,1.5f); P.Line(Lead+FVector2D(13,0),TargetPos,Dim,.6f); }
-        if(bPreview || Locked.Contains(Target)) { P.Arc(TargetPos,58,.88f,Style.Hostile,1,0); P.Text(TargetPos.X-29,TargetPos.Y+91,TEXT("LOCKED"),11,Style.Hostile,true); }
+        if(bPreview || Locked.Contains(Target)) { P.Arc(TargetPos,58,.88f,Style.Hostile,1,0); P.Text(TargetPos.X-29,TargetPos.Y+(Refined?115:91),TEXT("LOCKED"),11,Style.Hostile,true); }
     }
     else if(Target.IsValid())
     {
@@ -568,8 +711,14 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     const FTDUIShip* Active=Ships.IsValidIndex(ActiveIndex)?&Ships[ActiveIndex]:nullptr;
     if(Active)
     {
-        P.Text(87,743,TEXT("FLIGHT TELEMETRY"),11,Dim,true);
-        P.Text(87,770,FString::Printf(TEXT("%03d"),FMath::RoundToInt(Speed01*100)),42,Ink,true); P.Text(194,798,TEXT("% SPEED"),11,Dim);
+        if(Refined)
+        {
+            P.Label(87,743,TEXT("FLIGHT TELEMETRY"),11,Accent,90);
+            P.Title(87,768,FString::Printf(TEXT("%03d"),FMath::RoundToInt(Speed01*100)),46,Ink);
+            P.Line({87,824},{313,824},Accent.CopyWithNewOpacity(.15f));
+        }
+        else { P.Text(87,743,TEXT("FLIGHT TELEMETRY"),11,Dim,true); P.Text(87,770,FString::Printf(TEXT("%03d"),FMath::RoundToInt(Speed01*100)),42,Ink,true); }
+        P.Text(194,798,TEXT("% SPEED"),11,Dim);
         P.Text(87,839,TEXT("BOOST"),14,Ink); P.Meter(87,867,227,Active->Boost,Accent,7);
         P.Text(87,901,TEXT("HYPERDRIVE"),14,Ink); P.Meter(87,929,227,Hyperdrive01,Dim,5);
         P.Text(1580,711,TEXT("WEAPON HEAT"),13,Ink); P.Text(1757,708,FString::Printf(TEXT("%d%%"),FMath::RoundToInt(Active->Heat*100)),18,Active->Heat>.85f?Style.Hostile:Ink,true);
@@ -579,23 +728,50 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
         // A named, actionable active power; cooldown is readiness, not invented remaining seconds.
         const FString Key=(bGamepadGlyphs?SignatureGamepadKey:SignatureKeyboardKey).ToString().Left(3);
         const bool Ready=Active->Power>=.999f;
-        P.Box(1560,779,294,221,Style.Panel); P.Box(1560,779,294,3,Accent);
-        P.Text(1580,792,TEXT("SIGNATURE POWER"),13,Ink,true);
-        P.Text(1580,824,TDHUD::Powers[ActiveIndex],18,Ink,true);
-        P.Box(1797,789,39,33,Accent); P.Text(1805,790,Key,22,FLinearColor(.008f,.02f,.03f),true);
+        if(Refined)
+        {
+            P.Glass(1560,779,294,221,Accent,true);
+            P.Label(1580,792,TEXT("SIGNATURE POWER"),12,Accent,65);
+            P.Title(1580,825,TDHUD::Powers[ActiveIndex],21,Ink);
+            P.Gradient(1797,789,39,33,Accent*.55f,Accent,false);
+            P.Line({1798,790},{1835,790},Ink.CopyWithNewOpacity(.8f));
+            P.Line({1580,856},{1834,856},Accent.CopyWithNewOpacity(.18f));
+            P.RamIcon(1814,884,18,(Ready?Accent:Dim).CopyWithNewOpacity(.9f));
+            const float Activation=Style.bReducedMotion?0:ActivationLeft/.32f;
+            if(Activation>0) P.Frame(1560,779,294,221,Ink,Activation*.7f);
+        }
+        else
+        {
+            P.Box(1560,779,294,221,Style.Panel); P.Box(1560,779,294,3,Accent);
+            P.Text(1580,792,TEXT("SIGNATURE POWER"),13,Ink,true);
+            P.Text(1580,824,TDHUD::Powers[ActiveIndex],18,Ink,true);
+            P.Box(1797,789,39,33,Accent);
+        }
+        P.Text(1805,790,Key,22,FLinearColor(.008f,.02f,.03f),true);
         P.Arc({1590,886},9,1,Ready?Accent:Dim,1.6f);
         if(Ready) { P.Line({1585,886},{1589,890},Accent,2); P.Line({1589,890},{1596,881},Accent,2); }
         else { P.Line({1590,881},{1590,886},Dim,1.5f); P.Line({1590,886},{1594,888},Dim,1.5f); }
         P.Text(1611,871,Ready?TEXT("READY"):TEXT("COOLDOWN"),23,Ready?Accent:Ink,true);
-        P.Meter(1580,918,254,Active->Power,Accent,9);
+        P.Meter(1580,918,254,Refined && Display.IsValidIndex(ActiveIndex)?Display[ActiveIndex].Power:Active->Power,Accent,9);
         P.Text(1580,950,Ready?FString::Printf(TEXT("PRESS [%s] TO ACTIVATE"),*Key):FString::Printf(TEXT("RECHARGING / %d%%"),FMath::RoundToInt(Active->Power*100)),14,Ink,true);
         if(Active->Hull<=LowHullThreshold) { P.Text(772,714,TEXT("LOW HULL / SWITCH SHIP"),17,Style.Hostile,true); }
     }
     for(int32 I=0;I<3;++I) if(Ships.IsValidIndex(I) && Display.IsValidIndex(I))
     {
         P.Card(398+I*374,804,I,Ships[I],Display[I]);
-        if(Ships[I].bActive) P.Text(398+I*374,777,TEXT("PLAYER CONTROLLED"),14,Style.ShipColor(I),true);
+        if(Ships[I].bActive)
+        {
+            if(Refined)
+            {
+                P.Label(398+I*374,777,TEXT("PLAYER CONTROLLED"),14,Style.ShipColor(I),55);
+                if(DamageLeft>0 && !Style.bReducedMotion) P.Frame(398+I*374,804,356,196,Style.Hostile,DamageLeft/.35f*.7f);
+                if(SwitchLeft>0 && !Style.bReducedMotion) P.Line({772,800},{1128,800},Ink.CopyWithNewOpacity(.5f*SwitchLeft/FMath::Max(.05f,Style.SwitchSeconds)),1.5f);
+            }
+            else P.Text(398+I*374,777,TEXT("PLAYER CONTROLLED"),14,Style.ShipColor(I),true);
+        }
     }
+    // Existing footer gap: cards end at1000, controls start at1031. Keep guidance out of combat sightlines.
+    if(Active && DataSource.IsValid() && !InteractPrompt.IsEmpty()) P.Text(66,1004,InteractPrompt.ToString(),14,Ink,true);
     if(HitLeft>0)
     {
         const FLinearColor C=bKillConfirmed?Style.Bastion:Ink;
@@ -604,7 +780,8 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     }
     if(bOutOfBounds || IncomingMissiles>0 || WarningLeft>0)
     {
-        P.Box(704,640,512,42,Style.Panel); P.Box(704,640,3,42,Style.Hostile);
+        if(Refined) P.Glass(704,640,512,42,Style.Hostile);
+        else { P.Box(704,640,512,42,Style.Panel); P.Box(704,640,3,42,Style.Hostile); }
         const FString Message=bOutOfBounds?TEXT("BOUNDARY / RETURN TO COMBAT"):IncomingMissiles>0?FString::Printf(TEXT("INCOMING MISSILE x%d / EVADE"),IncomingMissiles):Warning.ToString().Left(46);
         P.Text(729,649,Message,18,Style.Hostile,true);
     }
@@ -618,5 +795,15 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     const FString Hint=bPreview?(bGamepadGlyphs?TEXT("PREVIEW / [LB / RB] SWITCH   [B] DAMAGE   [X] SIGNATURE   [Y] KILL"):TEXT("PREVIEW / [1 / 2 / 3] SWITCH SHIP   [Q] SIGNATURE")):(bGamepadGlyphs?GamepadHint.ToString():KeyboardHint.ToString());
     P.Text(66,1031,Hint,12,Dim);
     if(bPreview) P.Text(995,1031,TEXT("[H] DAMAGE   [K] KILL   [R] RESPAWN   [F5] RESET   [F6] MOTION"),11,Dim);
+    if(bPreview)
+    {
+        const double Micros=(FPlatformTime::Seconds()-PaintStart)*1000000;
+        PaintTotalMicros+=Micros; PaintMaxMicros=FMath::Max(PaintMaxMicros,Micros); ++PaintSamples;
+    }
     return Base+4;
 }
+
+void UTDSpaceHUDWidget::ResetBenchmarkPaintMetrics() const
+{ PaintSamples=0; PaintTotalMicros=PaintMaxMicros=0; }
+FString UTDSpaceHUDWidget::GetBenchmarkPaintMetrics() const
+{ return FString::Printf(TEXT("samples=%d mean_us=%.2f max_us=%.2f"),PaintSamples,PaintSamples?PaintTotalMicros/PaintSamples:0,PaintMaxMicros); }

@@ -1,0 +1,8 @@
+Warning: Plugin 'Fab' does not list plugin 'ToolsetRegistry' as a dependency, but module 'FabToolset' depends on module 'ToolsetRegistry'.
+[Adaptive Build] Excluded from TriadDriftHUD unity file: TDHUDPreview.cpp, TDHUDTests.cpp, TDSpaceHUDWidget.cpp
+[9/17] Compile [x64] TDHUDPreview.cpp
+[10/17] Compile [x64] TDHUDTests.cpp
+[11/17] Compile [x64] TDSpaceHUDWidget.cpp
+[17/17] WriteMetadata unrealGameJamEditor.target [NoUba]
+Total time in Unreal Build Accelerator local executor: 120.97 seconds
+Result: Succeeded
