@@ -361,6 +361,12 @@ namespace TDUIHost
 				ViewPC->GetViewportSize(ViewW, ViewH);
 			}
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: viewport=%dx%d"), ViewW, ViewH);
+			if (Target && ViewPC && ViewPC->GetPawn())
+			{
+				const FVector ToTarget = Target->GetActorLocation() - ViewPC->GetPawn()->GetActorLocation();
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target wyaw=%.1f wpitch=%.1f dist=%.0f"),
+					FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Y, ToTarget.X)), FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Z, ToTarget.Size2D())), ToTarget.Size());
+			}
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target=%s onscreen=%d at (%.0f, %.0f), locked=%d, markers=%d"),
 				Target ? *Target->GetName() : TEXT("none"), bOnScreen ? 1 : 0, Screen.X, Screen.Y,
 				Data->GetLockedTargets().Num(), Data->GetTargetMarkers().Num());
@@ -377,9 +383,13 @@ namespace TDUIHost
 				FVector ViewLoc; FRotator ViewRot;
 				if (ViewPC) { ViewPC->GetPlayerViewPoint(ViewLoc, ViewRot); }
 				const FVector Local = ViewRot.UnrotateVector(Hostile->GetActorLocation() - ViewLoc);
-				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: nearest=%s dist=%.0f onscreen=%d at (%.0f, %.0f) yaw=%.1f pitch=%.1f"),
+				// World bearing from the player's ship (for TD.Input.TurnToward <YawDeg> <PitchDeg>).
+				const APawn* Ship = ViewPC ? ViewPC->GetPawn() : nullptr;
+				const FVector ToHostile = Hostile->GetActorLocation() - (Ship ? Ship->GetActorLocation() : ViewLoc);
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: nearest=%s dist=%.0f onscreen=%d at (%.0f, %.0f) yaw=%.1f pitch=%.1f wyaw=%.1f wpitch=%.1f"),
 					*Hostile->GetName(), M.Distance, bOn ? 1 : 0, At.X, At.Y,
-					FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X)), FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.Size2D())));
+					FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X)), FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.Size2D())),
+					FMath::RadiansToDegrees(FMath::Atan2(ToHostile.Y, ToHostile.X)), FMath::RadiansToDegrees(FMath::Atan2(ToHostile.Z, ToHostile.Size2D())));
 				break;
 			}
 			const FTDWaveInfo Wave = Data->GetWaveInfo();
