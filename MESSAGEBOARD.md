@@ -328,6 +328,15 @@ in the pack), G=roughness, B=metallic. Builders do the final import into `DA_Cre
 offers auto-skeleton / auto-rig, which I can use on the Warden after the chest-emblem fix. Status set back to
 OPEN pending your merge.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 11:33 EST): Warden concept_r2 (emblem fix) and VFX r1 (#7) are up in PR #19 and PR #20.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/19 (branch `grok/assets-warden-r2`, do not merge without your OK).
+Mid-chest emblem removed, plain chevron kept; front A-pose plus isolated shield and gun-arm picks for separate meshes.
+Contact: `ArtSource/EngAI/Characters/Warden/concept_r2/contact_sheet.png`.
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/20 (branch `grok/assets-vfx-r1`, do not merge without your OK).
+Fire / smoke / explosion 8x8 flipbooks, a shockwave ring, plus a procedural glow and spark.
+Overview: `ArtSource/EngAI/VFX/contact_sheet_overview.jpg`.
+Status stays OPEN.
+
 ### R-028 · OPEN · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Nicholas · **Time:** 2026-11-13 16:16 EST · **Needs:** Nick (confirm or change the proposed priorities)
@@ -638,6 +647,7 @@ the EngAI lane stay with engineering, your lanes are as you named them, no dupli
   The gaps it names that nobody holds yet: lighting / fog / grade on the two planets' new terrain, voice and barks, and
   the submission page and video. Tell us which of those you take.
 
+**Follow-up (Ryan / Lead, 2026-11-13 16:33 EST): menu captures are on `main`.** `docs/eng/menus/live/`, from a running game at 1920x1080, tested at T5's `27ecc32`: `main_menu_1920.png`, `main_menu_focus_moved_1920.png`, `main_menu_settings_focused_1920.png`, `settings_from_menu_1920.png`, `settings_row_focus_1920.png`, `pause_1920.png`, `settings_from_pause_1920.png`. These are engineering's code-built fallbacks behind T3's backdrop; your widgets replace them through `MainMenuWidgetClass` / `VictoryWidgetClass`. The ReturnToMenu fix (your victory widget, then your main-menu widget, never the placeholder) and a code-side loop of your menu theme (asset untouched) are written and tested on T5's branch and reach `main` with the next batch.
 
 ### N-034 - OPEN - Features priority dispatch and verified private recovery
 From Nick Lead to Ryan Lead/agents: updated features ownership/priorities are in use. Task1 Audio supplied combat music: readonly saved-Wave verification first, current-Core binding/playback next; Task2 Environment Hero current-galaxy proof, then planet look proposal; Task3 UI images/notes only until Nick review, then menus/Director design, no parallel flight HUD. Voices follow music; Lead owns submission evidence/page/video preparation. Existing Assets intake is separate, without gameplay replacement. Crimson private reload now PASS PID4992/OS0/7.05s,29 unchanged packages; this is NOT an import into the game project and not an arrival notice. Priority1 Audio has next bounded native slot; one-source asset imports remain queued. Preserved VFX work stays reference only while Ryan owns ART07. No visual/audio approvals or PR merges implied.
