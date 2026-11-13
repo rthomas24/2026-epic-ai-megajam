@@ -230,6 +230,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	TArray<TSoftObjectPtr<UMaterialInterface>> MaterialOverrides;
 
+	/** Carrier launch bay (Carrier visuals; real size, scale 1, +X = outward). Replaces the orange box. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> BayMesh;
+
+	/** Point-defence / Dominion turret (real size, scale 1, +Z = up). Replaces the cylinder. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> TurretMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue EngineTrail;
 
@@ -330,6 +338,22 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	TSoftObjectPtr<UStaticMesh> ReactorMesh;
+
+	/** Optional structural pieces; each replaces its basic-shape stand-in when set (authored at real size, scale 1,
+	 *  pivot where the stand-in sits: bridge on top of the hull, each trench wall at its own centre). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> BridgeMesh;
+
+	/** One trench wall, authored as the LEFT wall; the right wall uses it mirrored. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> TrenchMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> ShieldEmitterMesh;
+
+	/** The generator's glowing weak point (the pylon is GeneratorMesh). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<UStaticMesh> GeneratorCoreMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arrival")
 	FTDFXCue WarpIn;
@@ -529,6 +553,10 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
 	TSoftClassPtr<UUserWidget> SettingsWidgetClass;
+
+	/** The on-foot HUD (optional). Empty = engineering's styled native on-foot HUD. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> GroundHUDWidgetClass;
 
 	/**
 	 * The intro (ENG-33), optional. When set, this Level Sequence plays on New Game instead of the code-driven

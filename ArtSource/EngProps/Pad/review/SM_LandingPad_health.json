@@ -1,0 +1,177 @@
+{
+  "asset": "SM_LandingPad",
+  "tag": "r1",
+  "checks": {
+    "tris": 8024,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 3,
+    "size_cm_blender_xyz": [
+      1074.0,
+      1000.0,
+      40.7
+    ],
+    "export_status": "ok",
+    "bbox_min_m": [
+      -5.37,
+      -5.0,
+      0.0
+    ],
+    "bbox_max_m": [
+      5.37,
+      5.0,
+      0.4075
+    ]
+  },
+  "info": {
+    "edge_face_share": 0.7259,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5542,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "LandingPad",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Pad\\SM_LandingPad\\T_LandingPad_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Pad\\SM_LandingPad\\T_LandingPad_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Pad\\SM_LandingPad\\T_LandingPad_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Pad\\SM_LandingPad\\T_LandingPad_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_LandingPad_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 75.73
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.4072
+    }
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1942,
+        0.1897,
+        0.1832
+      ],
+      "min": 0.0,
+      "max": 0.9529
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.4999,
+        0.9999
+      ],
+      "min": 0.2275,
+      "max": 1.0,
+      "std_rg": [
+        0.0118,
+        0.0115
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.6161,
+        0.3166,
+        0.2604
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.557
+      ],
+      "metallic_mean": 0.26
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0059,
+        0.0218,
+        0.0239
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.004,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_LandingPad",
+      "message": "16 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 59,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.02202
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Pad\\review\\SM_LandingPad_r1_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Pad\\review\\SM_LandingPad_r1_clay_sheet.png",
+    "ortho_cm_per_px": 2.685,
+    "warnings": []
+  },
+  "export": {
+    "status": null,
+    "tris": 8024,
+    "size_cm": [
+      1000.0,
+      1074.0,
+      40.7
+    ],
+    "collision": [
+      "UCX_SM_LandingPad_00",
+      "UCX_SM_LandingPad_01",
+      "UCX_SM_LandingPad_02"
+    ],
+    "sockets": [],
+    "materials": [
+      "M_LandingPad"
+    ],
+    "textures": [
+      "T_LandingPad_BC.png",
+      "T_LandingPad_E.png",
+      "T_LandingPad_N.png",
+      "T_LandingPad_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  },
+  "seconds": 96.5
+}

@@ -93,6 +93,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TSoftObjectPtr<UStaticMesh> FrameMeshOverride;
 
+	/** Inner diameter of FrameMeshOverride at scale 1 (cm). A ring mesh (e.g. SM_GateRing_01, 12 000 cm inside, facing
+	 *  +X) is scaled so its opening matches the 2 x Radius transit disc. 0 = use the mesh at scale 1. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "0"))
+	float FrameMeshInnerDiameter = 12000.f;
+
 	/** Nick's travel FX: PortalIdle (attached loop; hides the placeholder disc), PortalTransit at both ends. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDTravelFX> TravelFX;

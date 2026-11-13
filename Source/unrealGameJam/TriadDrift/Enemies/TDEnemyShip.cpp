@@ -53,8 +53,9 @@ ATDEnemyShip::ATDEnemyShip()
 		return C;
 	};
 	UStaticMesh* Sphere = SphereMesh.Succeeded() ? SphereMesh.Object : nullptr;
-	PlaceholderEyeLeft = MakePart(TEXT("PlaceholderEyeLeft"), Sphere, FVector(70.f, -32.f, 22.f), FRotator::ZeroRotator, FVector(0.42f));
-	PlaceholderEyeRight = MakePart(TEXT("PlaceholderEyeRight"), Sphere, FVector(70.f, 32.f, 22.f), FRotator::ZeroRotator, FVector(0.42f));
+	// One stretched glowing "visor" for the two eyes (wave 5 primitive count: one component, not two).
+	PlaceholderEyeLeft = MakePart(TEXT("PlaceholderEyes"), Sphere, FVector(70.f, 0.f, 22.f), FRotator::ZeroRotator, FVector(0.38f, 1.05f, 0.3f));
+	PlaceholderEyeRight = nullptr;
 	// A thin disc across the nose: the gunship's frontal shield (shown only while it is up).
 	PlaceholderShieldPlate = MakePart(TEXT("PlaceholderShieldPlate"), CylinderMesh.Succeeded() ? CylinderMesh.Object : nullptr,
 		FVector(240.f, 0.f, 0.f), FRotator(90.f, 0.f, 0.f), FVector(1.4f, 1.4f, 0.03f));	// live check: 2.6 hid the fight
@@ -327,10 +328,13 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 				}
 			}
 			if (PlaceholderWings) { PlaceholderWings->SetVisibility(false); }
-			for (UStaticMeshComponent* C : { PlaceholderEyeLeft.Get(), PlaceholderEyeRight.Get(), PlaceholderShieldPlate.Get() })
+			// Real art: the placeholder parts go away entirely (no hidden primitives left per ship).
+			for (UStaticMeshComponent* C : { PlaceholderEyeLeft.Get(), PlaceholderShieldPlate.Get() })	// wings are T1's: hidden above, not destroyed
 			{
-				if (C) { C->SetVisibility(false); }
+				if (C) { C->DestroyComponent(); }
 			}
+			PlaceholderEyeLeft = nullptr;
+			PlaceholderShieldPlate = nullptr;
 			if (HullPivot) { HullPivot->SetRelativeScale3D(FVector::OneVector); }
 			bPlaceholderLook = false;
 			return;
@@ -367,6 +371,11 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 		if (Eye) { Eye->SetVisibility(true); UTDStatics::TintPlaceholder(Eye, FLinearColor::White, PlaceholderEmissiveBoost); }
 	}
 	bPlaceholderLook = true;
+	if (PlaceholderShieldPlate && !HasFrontalShield())
+	{
+		PlaceholderShieldPlate->DestroyComponent();	// only gunships carry the plate
+		PlaceholderShieldPlate = nullptr;
+	}
 	if (PlaceholderShieldPlate)
 	{
 		UTDStatics::TintPlaceholder(PlaceholderShieldPlate, FLinearColor(0.1f, 0.5f, 0.8f), 0.45f);
