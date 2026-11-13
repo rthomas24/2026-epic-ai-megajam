@@ -80,3 +80,8 @@ Audio & Music agent used existing PlaceHolder Inc 50 Free Game Sounds Pack `Guns
 
 - **Etherial Pulse**: Nicholas Tosti's selected Suno song, https://suno.com/song/b8ea12f4-b5a1-4bf2-811e-8d94f2acf26c. Nick confirmed authorship and Pro/Premier active at generation. Official MP3 preserved; existing ffmpeg/ffprobe produced an exact107s48kHz stereo16bit cut with ending fade. Audio agent's source/rights/processing record is local ignored Saved/AudioMusic/PrototypeV1/MenuTheme01/checkpoint.json; raw media is not published by this documentation update. No purchase/new generation. Native import, menu playback and in-game acceptance are unfinished. Rejected primary/switch prototypes remain historical references, not approved game audio.
 - **Suno** is an AI music tool used by Nicholas for this supplied track; disclose it with other jam tools if the track ships.
+
+
+### Nick-provided Sentinel Armor review sample - November12,2026
+
+Nick supplied Meshy_AI_Sentinel_Armor_Turnaround_20261113_animated_ue5_mannequin_All_animation.glb and explicitly requested transfer to Ryan for inspection. Original bytes preserved under ArtSource/Characters/Samples/SentinelArmor/. Filename identifies Meshy AI; generation account, underlying provenance and usage terms have not been independently verified. Review-only sample, not imported or shipped. Lead performed GLB-container/size/SHA checks and Git LFS transfer only; no modeling or animation acceptance claimed.
