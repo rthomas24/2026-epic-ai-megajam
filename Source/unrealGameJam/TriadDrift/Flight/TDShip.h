@@ -78,6 +78,11 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float DriftMinSpeedFraction = 1.f;
 
+	/** While drifting (at any speed) the chase camera holds the distance it had when the drift began: a drift sheds
+	 *  speed, the lagged camera would close in and the ship would sink into the HUD band. 0 = off, 1 = full hold. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float DriftHoldDistance = 1.f;
+
 	/** Max distance the location lag may trail the ship (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float LagMaxDistance = 1000.f;
@@ -260,6 +265,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	float GetCameraRoll() const { return CameraRoll; }
 
+	/** Extra arm length the drift distance hold adds right now (cm). */
+	float GetDriftHoldExtra() const { return DriftHoldExtra; }
+
 	/** How far the drift camera blend is in (0 none .. 1 full DriftYawFollow), before easing. */
 	float GetDriftCameraBlend() const { return DriftCamBlend; }
 
@@ -374,5 +382,9 @@ private:
 	FQuat ChaseTargetQuat = FQuat::Identity;
 	float CameraRoll = 0.f;
 	float DriftCamBlend = 0.f;
+	float DriftHoldBlend = 0.f;
+	float DriftHoldStartDist = 0.f;
+	float DriftHoldExtra = 0.f;
+	bool bDriftHoldWasDrifting = false;
 	FVector2D LookAhead = FVector2D::ZeroVector;
 };

@@ -136,7 +136,11 @@ Kept as they were:
 | After (follow 0.4) | 0.16 / 0.16 / 0.08 | 0.13 / 0.12 / 0.05 | 0 / 0 / 0 |
 
 - Pinned by `TriadDrift.Flight.Camera.DriftFollowsTheSlide`: 40% of the slip after 0.3 s; a held spin stays continuous (< 600°/s); release puts the camera back behind the nose; nothing below cruise.
-- Still open: a drift sheds speed below cruise within about a second, and as the ship slows the lagged camera closes in, so the ship sits lower. At cruise the Lancer's centre reaches 0.72, its wings touching the HUD top. Lowering the gate to 0.3 of cruise made this worse (44 samples in the band), so the gate stays at cruise. Fixing it would mean holding the camera distance while drifting.
+- **Drift distance hold** (`DriftHoldDistance` 1, Lead's decision):
+  - Why: in any drift the nose swings across the slide, so the location-lagged camera drifts beside the ship instead of behind it, and the drift sheds speed. Both close the camera in, and the ship sank into the HUD band.
+  - What it does: the camera records its distance when the drift begins, and lengthens the arm by whatever is lost (capped at `LagMaxDistance`, smoothed). It eases out over 0.3 s on release.
+  - Live (same script, hold off/on): the closest camera distance in a drift went 1227 -> 1671 cm. The ship's lowest point on screen went Rift 0.70 -> 0.66, Lancer 0.66 -> 0.65, Bastion 0.66 -> 0.64 at cruise drift. An earlier run without the hold reached 0.73 (in the band).
+  - Pinned by `TriadDrift.Flight.Camera.DriftHoldsTheCameraDistance`.
 
 Scripted-playtest tip: in the test script, `TD.KillAll` right after a switch triggered the director's multi-kill shot (FOV 65, long lens), which made two switch frames look like a broken cut. Kill enemies before switching (also in the ue-cpp-gameplay skill).
 

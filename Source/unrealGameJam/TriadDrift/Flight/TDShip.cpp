@@ -735,6 +735,29 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	DriftCamBlend = bSnap ? DriftTarget
 		: FMath::FInterpConstantTo(DriftCamBlend, DriftTarget, DeltaSeconds, 1.f / FMath::Max(CameraTuning.DriftBlendSeconds, 0.01f));
 
+	// --- Drift distance hold: in a drift the nose swings across the slide, the location-lagged camera ends up beside
+	// the ship instead of behind it, and the drift sheds speed: the camera closes in and the ship sinks down the
+	// screen into the HUD band. Hold the camera distance the drift began with by lengthening the arm by what has
+	// been lost (smoothed; eased out on release).
+	{
+		const bool bDrifting = IsDrifting() && bPlayerControlled;
+		const float Dist = FVector::Dist(ChaseCamera->GetComponentLocation(), GetActorLocation());
+		if (bDrifting && !bDriftHoldWasDrifting)
+		{
+			DriftHoldStartDist = Dist;
+		}
+		bDriftHoldWasDrifting = bDrifting;
+		DriftHoldBlend = bSnap ? (bDrifting ? 1.f : 0.f)
+			: FMath::FInterpConstantTo(DriftHoldBlend, bDrifting ? 1.f : 0.f, DeltaSeconds, 1.f / FMath::Max(CameraTuning.DriftBlendSeconds, 0.01f));
+		const float Lost = FMath::Clamp(DriftHoldStartDist - (Dist - DriftHoldExtra), 0.f, CameraTuning.LagMaxDistance);
+		const float Want = CameraTuning.DriftHoldDistance * FMath::SmoothStep(0.f, 1.f, DriftHoldBlend) * Lost;
+		DriftHoldExtra = bSnap ? 0.f : FMath::FInterpTo(DriftHoldExtra, Want, DeltaSeconds, 8.f);
+		if (!bSnap)
+		{
+			SpringArm->TargetArmLength = CameraTuning.ArmLength + DriftHoldExtra;
+		}
+	}
+
 	// --- Arm rotation: ship forward, with only RollFollow of its bank -------------------------------
 	ChaseTargetQuat = ComputeChaseQuat(CameraRefUp, bSnap, DeltaSeconds, CameraRoll);
 	SpringArm->SetWorldRotation(ChaseTargetQuat);
