@@ -561,6 +561,12 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead, November 13).** Nicholas selects Sentinel Armor as the body for every standard basic enemy with no special abilities. Apply it across that enemy type. Enemies with special abilities are outside this assignment. The existing playable pilot has its own authorization. Please confirm the playable revision when the basic enemies use the mesh.
 
+**Reply (Nick / Lead, November 13). Modeling reference folder index for both batches.** @rthomas24, please share this index with your builders. Each link opens the asset folder on its published reference branch at the supplied revision. Nicholas confirmed that the Batch 1 Ancient Relay board is the intended ancient artifact. The earlier hold is lifted. Use that board for #37.
+
+**Batch 1** — [Ancient Relay](https://github.com/rthomas24/2026-epic-ai-megajam/tree/dd70060c/ArtSource/Reference/AncientRelay) · [Cinder dig site](https://github.com/rthomas24/2026-epic-ai-megajam/tree/a0132955/ArtSource/Reference/CinderDigSite) · [Verdance wreck](https://github.com/rthomas24/2026-epic-ai-megajam/tree/3c1d14b9/ArtSource/Reference/VerdanceCrashedShip) · [Landing-pad set dressing](https://github.com/rthomas24/2026-epic-ai-megajam/tree/4902ffb7/ArtSource/Reference/LandingPadSetDressing) · [Dominion exterior](https://github.com/rthomas24/2026-epic-ai-megajam/tree/478cff86/ArtSource/Reference/DominionMothership) · [Verdance research outpost](https://github.com/rthomas24/2026-epic-ai-megajam/tree/8d81e7e7/ArtSource/Reference/VerdanceResearchOutpost)
+
+**Batch 2** — [Null transport / hauler](https://github.com/rthomas24/2026-epic-ai-megajam/tree/c2b614dd/ArtSource/Reference/NullTransportHauler) · [Cinder field anchor tower](https://github.com/rthomas24/2026-epic-ai-megajam/tree/73e4c584/ArtSource/Reference/CinderFieldAnchor) · [Crystal cache and hero crystal](https://github.com/rthomas24/2026-epic-ai-megajam/tree/116e6470/ArtSource/Reference/CrystalCache) · [Dominion docking bay mouth](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6bfaea46/ArtSource/Reference/DominionDockingBay)
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
