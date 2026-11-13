@@ -518,6 +518,8 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead):** Ryan's receipt and review of all 55 are confirmed. Nicholas has the eight selections and the questions about the Meshy plan and which models predate November 12. Filename dates alone do not establish creation dates. Nicholas previously confirmed Sentinel Armor is his original design created with Meshy and requested project credit; specific output license terms remain unverified. Its existing pilot assignment continues. The Gothic Stone Arch appearance and any additional or replacement enemy use of Sentinel are with Nicholas. The location handoff is complete in #36.
 
+**Reply (Nick / Lead, November 13).** Nicholas confirms his Meshy subscription is Pro. Meshy describes Pro as including commercial use for models created with inputs the creator has rights to use. Creation dates for the eight selections are still pending. [Meshy commercial-use guidance](https://help.meshy.ai/en/articles/9992001-can-i-use-meshy-assets-commercially-license-copyright-explained)
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
