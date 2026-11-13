@@ -281,6 +281,22 @@ public:
 
 	bool bPlaceholderLook = false;
 
+	// --- Death: the hulk drifts away from the camera and explodes in view ---
+public:
+	/** Longest death tumble (s): big ships used 1.2-2.5 s and drifted out of frame before exploding. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float MaxDeathTumbleSeconds = 1.f;
+
+	/** The hulk eases away from the camera at this speed (cm/s), on top of its own velocity minus any part toward it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation", meta = (ClampMin = "0"))
+	float DeathDriftAwaySpeed = 800.f;
+
+	FVector GetDeathDrift() const { return DeathDrift; }
+
+protected:
+	FVector DeathDrift = FVector::ZeroVector;
+	FRotator DeathSpin = FRotator::ZeroRotator;
+
 	// --- Range readability (Lead, art audit): the visual mesh grows with camera distance; collision never does ---
 public:
 	/** Visual scale is 1 inside this camera distance (cm)... */

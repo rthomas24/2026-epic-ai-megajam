@@ -13,6 +13,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
 
 namespace TDEnemyRangeScaleTest
 {
@@ -160,6 +161,27 @@ bool FTDEnemyRangeScaleParts::RunTest(const FString&)
 	}
 	Settle(Carrier, FVector(60000.f, 0.f, 0.f), true);
 	TestEqual(TEXT("a carrier with bays stays at true scale (bays sit on the hull)"), Carrier->GetRangeScale(), 1.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemyDeathInView, "TriadDrift.Enemies.Death.BigShipsExplodeWithinTheCap", TD_TEST_FLAGS)
+bool FTDEnemyDeathInView::RunTest(const FString&)
+{
+	using namespace TDEnemyRangeScaleTest;
+	FTDTestWorld W;
+	for (const FName Id : { TDEnemyIds::WallGunship, TDEnemyIds::HiveCarrier, TDEnemyIds::ShardFighter })
+	{
+		ATDEnemyShip* E = SpawnShip(W, Id);
+		if (!TestNotNull(*Id.ToString(), E)) { continue; }
+		const float Cap = E->MaxDeathTumbleSeconds;
+		const TWeakObjectPtr<ATDEnemyShip> Weak(E);
+		UTDStatics::ApplyTDDamage(E, 1000000.f, ETDDamageKind::Explosive, nullptr, nullptr);
+		float T = 0.f;
+		auto Gone = [&Weak] { return !Weak.IsValid() || Weak->IsActorBeingDestroyed(); };
+		while (!Gone() && T < 5.f) { W.Tick(1.f / 60.f); T += 1.f / 60.f; }
+		const bool bExploded = Gone();
+		TestTrue(*FString::Printf(TEXT("%s explodes within the %.1f s cap (took %.2f s)"), *Id.ToString(), Cap, T), bExploded && T <= Cap + 0.05f);
+	}
 	return true;
 }
 

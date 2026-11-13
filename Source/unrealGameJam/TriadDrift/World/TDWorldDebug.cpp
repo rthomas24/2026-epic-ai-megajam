@@ -6,6 +6,7 @@
 //   TD.Spawn <Id> [count] [distance]                                live, piloted enemies ahead of the player
 
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "Materials/MaterialInterface.h"
 #include "Engine/StaticMesh.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -218,6 +219,24 @@ namespace TDWorldDebug
 					}
 				}
 			}
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdKillNearest(TEXT("TD.World.KillNearest"), TEXT("Kill the nearest live enemy ship through the real damage path (its death and explosion play): [max distance m = 1000]."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			if (!Pawn) { return; }
+			const float MaxCm = (Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1000.f) * 100.f;
+			ATDEnemyShip* Best = nullptr;
+			float BestD = MaxCm;
+			for (TActorIterator<ATDEnemyShip> It(World); It; ++It)
+			{
+				const float D = FVector::Dist(It->GetActorLocation(), Pawn->GetActorLocation());
+				if (It->IsAliveEnemy() && D < BestD) { Best = *It; BestD = D; }
+			}
+			if (!Best) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.KillNearest: no live enemy in range")); return; }
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.KillNearest: %s at %.0f m"), *Best->GetName(), BestD / 100.f);
+			UTDStatics::ApplyTDDamage(Best, 1000000.f, ETDDamageKind::Explosive, Pawn, Pawn);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdDressing(TEXT("TD.World.Dressing"), TEXT("Space dressing (landmarks, lane rocks, ruin art) on or off: <0|1>."),
