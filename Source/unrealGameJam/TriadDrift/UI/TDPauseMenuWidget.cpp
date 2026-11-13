@@ -240,26 +240,16 @@ void UTDPauseMenuWidget::Execute(ETDPauseItem Item)
 		}
 		break;
 	case ETDPauseItem::Settings:
-	{
-		// T1's settings page (UTDUIStyle::SettingsWidgetClass if Nick sets one, else T1's code-built page).
-		UFunction* Open = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("OpenSettingsPage"));
-		LastAction = Open ? TEXT("settings") : TEXT("settings-missing");
-		if (!Open)
+		// T1's settings page (UTDUIStyle::SettingsWidgetClass if Nick sets one, else T1's code-built page), over this screen.
+		LastAction = TEXT("settings");
+		if (bExecuteActions && !UTDSettingsSubsystem::OpenSettingsPage(this))
 		{
-			Toast = TEXT("SETTINGS ARE NOT AVAILABLE IN THIS BUILD");
+			LastAction = TEXT("settings-missing");
+			Toast = TEXT("SETTINGS COULD NOT OPEN");
 			ToastUntil = FPlatformTime::Seconds() + 2.0;
-			UE_LOG(LogTDPauseMenu, Warning, TEXT("UTDSettingsSubsystem::OpenSettingsPage not found; SETTINGS does nothing."));
-		}
-		else if (bExecuteActions)
-		{
-			struct FParams
-			{
-				const UObject* WorldContextObject;
-			} Params{ this };
-			UTDSettingsSubsystem::StaticClass()->GetDefaultObject()->ProcessEvent(Open, &Params);
+			UE_LOG(LogTDPauseMenu, Warning, TEXT("UTDSettingsSubsystem::OpenSettingsPage refused (no viewport)."));
 		}
 		break;
-	}
 	case ETDPauseItem::RestartScene:
 		LastAction = TEXT("restart");
 		if (bExecuteActions)

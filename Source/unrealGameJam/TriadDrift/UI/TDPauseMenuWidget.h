@@ -47,7 +47,7 @@ public:
 	/** Handles a key as the widget would; true when consumed. */
 	bool HandleKey(const FKey& Key);
 
-	/** What the last activation did (tests): "resume", "settings", "settings-missing", "restart", "quit". */
+	/** What the last activation did (tests): "resume", "settings", "settings-missing" (the page refused), "restart", "quit". */
 	FString LastAction;
 
 	/** False in tests: activations are recorded but not executed (no unpause, travel or retake). */
