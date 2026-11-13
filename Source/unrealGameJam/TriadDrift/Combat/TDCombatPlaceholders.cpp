@@ -269,9 +269,20 @@ void ATDCombatFlash::Apply(float Alpha)
 {
 	if (bDebris)
 	{
-		// A stretched streak along its flight, thinning as it fades.
+		// A stretched streak along its flight, thinning as it fades. Near the camera (a hulk exploding as it drifts past)
+		// it is capped like the shell: live, a bomber's debris crossed the frame as metre-wide bars.
 		const float Shrink = 1.f - 0.6f * Alpha;
-		SetActorScale3D(FVector(DebrisLength * Shrink, Radius * 2.f * Shrink, Radius * 2.f * Shrink) / 100.f);
+		float Length = DebrisLength * Shrink;
+		float Thick = Radius * 2.f * Shrink;
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (PC && PC->PlayerCameraManager)
+		{
+			const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
+			Thick = FMath::Min(Thick, FMath::Max(Distance * MaxDebrisThicknessPerCameraDistance, 1.f));
+			Length = FMath::Min(Length, FMath::Max(Distance * MaxDebrisLengthPerCameraDistance, Thick));
+		}
+		SetActorScale3D(FVector(Length, Thick, Thick) / 100.f);
 	}
 	else
 	{

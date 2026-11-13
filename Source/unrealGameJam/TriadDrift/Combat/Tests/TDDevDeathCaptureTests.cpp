@@ -35,7 +35,7 @@ bool FTDDevDeathCaptureHolds::RunTest(const FString& Parameters)
 	Bus->BroadcastActorKilled(Victim, nullptr, ETDDamageKind::Energy);
 	TestEqual(TEXT("caught the death"), Capture->GetCaught(), 1);
 	TestTrue(TEXT("holding"), Capture->IsHolding());
-	TestTrue(TEXT("world nearly frozen"), FMath::IsNearlyEqual(W.GetWorld()->GetWorldSettings()->TimeDilation, UTDDevDeathCapture::HoldDilation, 0.001f));
+	TestTrue(TEXT("world slowed to the hold dilation"), FMath::IsNearlyEqual(W.GetWorld()->GetWorldSettings()->TimeDilation, Capture->GetHoldDilation(), 0.001f));
 	Bus->BroadcastActorKilled(Victim, nullptr, ETDDamageKind::Energy);
 	TestEqual(TEXT("a death during a hold is not a second catch"), Capture->GetCaught(), 1);
 	Capture->EndHold();

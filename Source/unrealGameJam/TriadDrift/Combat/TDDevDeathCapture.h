@@ -12,8 +12,8 @@ class UWorld;
 
 /**
  * TD.Dev.CaptureOnDeath <class|any|off> [count=1] [hold seconds=3]: the next `count` deaths of an actor whose class name
- * contains `class` (case-insensitive; "any" matches every kill) drop the world to near-zero time dilation for `hold` real
- * seconds and request an engine screenshot (Saved/Screenshots/.../TDDeath_<class>_<n>.png), so the death explosion
+ * contains `class` (or whose enemy id does; case-insensitive; "any" matches every kill) slow the world for `hold` real
+ * seconds (time dilation 0.2 by default) and request an engine screenshot (Saved/Screenshots/.../TDDeath_<class>_<n>.png), so the death explosion
  * can be seen and captured (also with the MCP CaptureGameViewport while it holds). Logs each catch:
  * "TD.Dev.CaptureOnDeath: caught <victim> (<class>) ...". The command is compiled out of Shipping.
  */
@@ -24,7 +24,8 @@ class UNREALGAMEJAM_API UTDDevDeathCapture : public UObject
 
 public:
 	/** Arms on World's event bus (replaces an armed capture). Returns the capture object, or null without a bus. */
-	static UTDDevDeathCapture* Arm(UWorld* World, const FString& ClassFilter, int32 Count, float HoldSeconds, bool bRequestScreenshots = true);
+	static UTDDevDeathCapture* Arm(UWorld* World, const FString& ClassFilter, int32 Count, float HoldSeconds, bool bRequestScreenshots = true,
+		float Dilation = DefaultHoldDilation);
 	/** Disarms and restores time dilation if a hold is running. */
 	static void Disarm();
 	/** The armed capture (tests), or null. */
@@ -39,8 +40,12 @@ public:
 	/** "ShardFighter" for an enemy ship, else the class name (logs). */
 	static FString DescribeVictim(const AActor* Victim);
 
-	/** Time dilation during a hold. */
-	static constexpr float HoldDilation = 0.03f;
+	/**
+	 * Time dilation during a hold. 0.2: a hold of 6 real seconds plays 1.2 s of the death (live, 0.03 froze the frame before
+	 * the enemies' tumble-then-explode sequence reached the explosion).
+	 */
+	static constexpr float DefaultHoldDilation = 0.2f;
+	float GetHoldDilation() const { return HoldDilation; }
 
 	int32 GetCaught() const { return Caught; }
 	int32 GetRemaining() const { return Remaining; }
@@ -59,6 +64,7 @@ private:
 	int32 Remaining = 0;
 	int32 Caught = 0;
 	float HoldSeconds = 3.f;
+	float HoldDilation = DefaultHoldDilation;
 	bool bScreenshots = true;
 	bool bHolding = false;
 	float DilationBefore = 1.f;

@@ -29,7 +29,8 @@ namespace TDDevDeathCaptureImpl
 	}
 }
 
-UTDDevDeathCapture* UTDDevDeathCapture::Arm(UWorld* InWorld, const FString& ClassFilter, int32 Count, float InHoldSeconds, bool bRequestScreenshots)
+UTDDevDeathCapture* UTDDevDeathCapture::Arm(UWorld* InWorld, const FString& ClassFilter, int32 Count, float InHoldSeconds, bool bRequestScreenshots,
+	float Dilation)
 {
 	Disarm();
 	UTDEventBus* EventBus = InWorld ? UTDEventBus::Get(InWorld) : nullptr;
@@ -43,6 +44,7 @@ UTDDevDeathCapture* UTDDevDeathCapture::Arm(UWorld* InWorld, const FString& Clas
 	Capture->Remaining = FMath::Max(Count, 1);
 	Capture->HoldSeconds = FMath::Clamp(InHoldSeconds, 0.f, 30.f);
 	Capture->bScreenshots = bRequestScreenshots;
+	Capture->HoldDilation = FMath::Clamp(Dilation, 0.001f, 1.f);
 	Capture->World = InWorld;
 	Capture->Bus = EventBus;
 	EventBus->OnActorKilled.AddUniqueDynamic(Capture, &UTDDevDeathCapture::HandleActorKilled);
@@ -214,7 +216,7 @@ void UTDDevDeathCapture::EndHold()
 namespace TDDevDeathCaptureImpl
 {
 	static FAutoConsoleCommandWithWorldAndArgs CmdCaptureOnDeath(TEXT("TD.Dev.CaptureOnDeath"),
-		TEXT("TD.Dev.CaptureOnDeath <class|any|off> [count=1] [hold seconds=3]: freeze (time dilation 0.03) and screenshot the next deaths of a class."),
+		TEXT("TD.Dev.CaptureOnDeath <class|enemy id|any|off> [count=1] [hold seconds=3] [dilation=0.2]: slow the world and screenshot the next deaths."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			if (Args.Num() == 0 || Args[0].Equals(TEXT("off"), ESearchCase::IgnoreCase))
@@ -225,7 +227,8 @@ namespace TDDevDeathCaptureImpl
 			}
 			const int32 Count = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 1;
 			const float Hold = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 3.f;
-			UTDDevDeathCapture::Arm(World, Args[0], Count, Hold);
+			const float Dilation = Args.Num() > 3 ? FCString::Atof(*Args[3]) : UTDDevDeathCapture::DefaultHoldDilation;
+			UTDDevDeathCapture::Arm(World, Args[0], Count, Hold, true, Dilation);
 		}));
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdKillCentral(TEXT("TD.Dev.KillCentral"),
