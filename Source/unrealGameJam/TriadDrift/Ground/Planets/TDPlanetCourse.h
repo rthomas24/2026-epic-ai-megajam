@@ -179,6 +179,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<AActor> InteriorExposure;
 	/** The final record (story 07-09): the reactor door opens only once it has played (or was skipped). */
 	UPROPERTY(Transient) TObjectPtr<class ATDDoor> ReactorDoor;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ParkedShip;
+	int32 ConduitsDown = 0;
 	UPROPERTY(Transient) TObjectPtr<AActor> FinalRecordConsole;
 	float FinalRecordElapsed = -1.f;
 	float FinalRecordQuiet = 0.f;
@@ -191,6 +193,8 @@ public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnFinalRecord, AActor*);
 	static FTDOnFinalRecord OnFinalRecordStarted;
 	bool IsFinalRecordDone() const { return bFinalRecordDone; }
+	/** The interior: the boarding pilot's ship on the hangar pad (null when its art is missing). */
+	UStaticMeshComponent* GetParkedShip() const { return ParkedShip; }
 	AActor* GetFinalRecordConsole() const { return FinalRecordConsole; }
 	/** Seconds the reactor door waits at most for the record (the queue can be long; a skip ends it early). */
 	float FinalRecordMaxSeconds = 90.f;

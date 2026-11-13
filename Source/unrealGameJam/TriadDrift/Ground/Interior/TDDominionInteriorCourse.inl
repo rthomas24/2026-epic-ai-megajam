@@ -222,6 +222,25 @@ void ATDPlanetCourse::BuildInterior()
 	// --- Shell ----------------------------------------------------------------------------------------
 	Room(HX0, HX1, HY, 2, false, true);
 	Kit(TEXT("SM_DI_Hangar_Pad"), FVector(-200.f, 0.f, 0.5f), 0.f, FBox(FVector(-600.f, -600.f, -40.f), FVector(600.f, 600.f, 0.f))); // where the ship sits
+	// The ship the player docked with stands on the pad (the boarding pilot's own; the escape run returns to it).
+	if (const UTDShipVisuals* ShipArt = UTDShipLibrary::LoadVisuals(UTDShipLibrary::Get(ATDFirstPersonCharacter::GetOnFootPilotShip(this))))
+	{
+		if (UStaticMesh* ShipMesh = ShipArt->Mesh.LoadSynchronous())
+		{
+			const FBox B = ShipMesh->GetBoundingBox();
+			if (UStaticMeshComponent* Parked = NewObject<UStaticMeshComponent>(Dressing))
+			{
+				Parked->SetMobility(EComponentMobility::Movable);
+				Parked->SetStaticMesh(ShipMesh);
+				Parked->SetupAttachment(Dressing->GetRootComponent());
+				Parked->SetRelativeLocationAndRotation(FVector(-200.f, 0.f, 1.f - B.Min.Z), FRotator(0.f, 180.f, 0.f)); // nose to the bay
+				Parked->SetCollisionProfileName(TEXT("BlockAll"));
+				Parked->RegisterComponent();
+				Dressing->AddInstanceComponent(Parked);
+				ParkedShip = Parked;
+			}
+		}
+	}
 	CorridorRun(HX1, CX1);
 	Room(CX1, AX1, AY, 1, true, true);
 	CorridorRun(AX1, L1X1);
@@ -519,12 +538,13 @@ void ATDPlanetCourse::HandleStoryConsole(AActor* Interactable, AActor* Interacto
 	if (Interactable == FinalRecordConsole && FinalRecordElapsed < 0.f)
 	{
 		FinalRecordElapsed = 0.f; // the reactor door waits for the record to end (TickFinalRecord)
+		UTDStorySubsystem::Fire(this, TEXT("G7_Wren_FullRecord")); // queued after the record (T3)
 		FinalRecordQuiet = 0.f;
 		OnFinalRecordStarted.Broadcast(Interactable);
 	}
-	else if (*Id == TEXT("A4_Recording_Barracks"))
+	else if (*Id == TEXT("A4_Recording_Corridor"))
 	{
-		UTDStorySubsystem::Fire(this, TEXT("G7_Moss_MyVoice")); // queued after it
+		UTDStorySubsystem::Fire(this, TEXT("G7_Moss_MyVoice")); // queued after it (T3)
 	}
 	// The kit console's screen (slot 2) lights once its recording has played.
 	if (const ATDInteractableActor* Console = Cast<ATDInteractableActor>(Interactable))
@@ -574,8 +594,10 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 		Beat(TEXT("C7_Kato_Archive"));
 		Beat(TEXT("C7_Wren_Record"));
 	}
+	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
+	else if (Id == Core && StepIndex == 0) { Beat(TEXT("G8_Wren_ConduitsFirst")); }
 	else if (Id == Core && StepIndex == 1) { Beat(TEXT("G8_Kato_HeartExposed")); }
-	else if (Id == Escape && StepIndex == 0) { Beat(TEXT("A5_Escape")); }
+	else if (Id == Escape && StepIndex == 0) { Beat(TEXT("A5_Escape")); Beat(TEXT("G9_Moss_HoldingWayOut")); }
 	// The core's shield is up while its conduits stand, and drops for the heart (a retake raises it again).
 	if (Id == Core && CoreShield)
 	{
@@ -640,10 +662,11 @@ void ATDPlanetCourse::OpenReactorDoor()
 	{
 		ReactorDoor->Open();
 	}
-	UTDStorySubsystem::Fire(this, TEXT("A5_Choice")); // re-timed to the end of the scene (story 07-09)
+	// T3's Cinematic 08 carries the decision lines now (no A5_Choice here).
 }
 
 void ATDPlanetCourse::HandleConduitDown(UTDHealthComponent* Health, const FTDDamageInfo& Info)
 {
-	UTDStorySubsystem::Fire(this, TEXT("G8_Kato_ConduitDown")); // T3: once per run (the first conduit)
+	++ConduitsDown;
+	UTDStorySubsystem::Fire(this, ConduitsDown == 1 ? TEXT("G8_Kato_ConduitDown") : TEXT("G8_Moss_KeepMoving")); // T3: the first, then the second
 }

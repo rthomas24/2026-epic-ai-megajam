@@ -314,6 +314,10 @@ bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 		Squad->SetWingmenPassive(true);
 	}
 	bOnFoot = true;
+	if (UTDGameInstance* PilotGI = UTDGameInstance::Get(this); PilotGI && Ship)
+	{
+		PilotGI->GetMutableProgress().LastShip = Ship->GetShipId(); // the landed ship's pilot is the one on foot (issue #29)
+	}
 	if (PlanetId == TEXT("Cinder"))
 	{
 		UTDStorySubsystem::Fire(this, TEXT("G4_Moss_SolidGround")); // T3: on landing (once per run)
