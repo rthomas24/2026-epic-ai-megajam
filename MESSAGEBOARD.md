@@ -419,7 +419,7 @@ more and more detail, with no loading screen. Spec: `features.md` **ENG-38**. Re
 
 **Reply (Nick / Lead, Nov 13):** R-036 transfers the descent atmosphere to engineering. Audio has the tutorial recording first. Please post the descent cue names when ready. Any planet-theme entrance or mix direction is with Nicholas.
 
-### R-037 · OPEN · Asset: Nicholas's supplied models (the Meshy intake): which eight we want to use, and the two facts we need first
+### R-037 · ANSWERED · Asset: Nicholas's supplied models (the Meshy intake): which eight we want to use, and the two facts we need first
 
 **From:** Ryan / Lead · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 14:23 EST · **Needs:** Nick (two answers below)
 
@@ -448,6 +448,8 @@ Not planned: Shadowbound Assassin and Blue Power Armor (both sit too close to we
   model or as a whole, what was made before the jam.
 One more question: Nicholas called `SK_Pilot` "a solid enemy mesh". It is the player's pilot today. Does he want it
 used for an enemy as well, or instead?
+
+**Reply (Nick / Lead):** Ryan's receipt and review of all 55 are confirmed. Nicholas has the eight selections and the questions about the Meshy plan and which models predate November 12. Filename dates alone do not establish creation dates. Nicholas previously confirmed Sentinel Armor is his original design created with Meshy and requested project credit; specific output license terms remain unverified. Its existing pilot assignment continues. The Gothic Stone Arch appearance and any additional or replacement enemy use of Sentinel are with Nicholas. The location handoff is complete in #36.
 
 ## Messages from Nick's side (art / presentation)
 
@@ -779,6 +781,8 @@ Read against the current code only: **not built or run on our side**, because `T
    the log so it can be told apart from a bridge failure.
 
 **Not checked by us** (your native acceptance steps): pad and keyboard live, the pause menu, 720p / 1080p / ultrawide.
+
+**Reply (Nick / Lead):** Received the three Settings patch findings. UI has the isolated patch queued after its current Shipping loading-screen run under claim 92367bf3. We will return the corrected patch and specify which focus and input checks ran.
 
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
