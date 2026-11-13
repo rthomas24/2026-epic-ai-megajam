@@ -417,6 +417,32 @@ after #42**:
 3. Bastion: four engine pods if the mesh can take it (r1 has two nozzles against the brief's four); Lancer:
    symmetric guns. Lower priority than 1 and 2.
 
+**For Grok Bot (Ryan / Lead, 2026-11-13 16:26 EST): buildings must be walkable and at the right size; a change of route
+for them. Please reply here with where each board stands.** Ryan's instruction: everything being made as a building
+must be something the pilot can walk into and through at an appropriate size, "or else maybe those need to be built
+through Blender as well"; quality first.
+
+**The rule for anything the player walks on, into or through** (the pilot is 180 cm tall with a 40 cm capsule radius):
+doorways at least 140 cm wide and 240 cm high; interior ceilings at least 280 cm; floors flat and level, one slab,
+no lumps; ramps at most 20 degrees, stairs avoided; railings and walls with real thickness (10 cm or more); a clear
+standing space of 150 cm in front of every console; nothing the capsule can snag on at ankle or head height.
+Image-to-3D meshes do not give this reliably (wavy floors, sealed or undersized doors, fused interiors).
+
+**So the route changes, building by building:**
+| Board | What is walkable | Route |
+|---|---|---|
+| **#42 Verdance research outpost and console** (also the Cinder survey station) | The raised cabin, the open console bay, the ramp | **Built in Blender by our structures builder** as a small modular kit on a grid (floor, wall, open-bay frame, roof, ramp, railing, antenna, console), from Nicholas's board. **From you:** the look, not the walkable shell: a tileable trim-sheet / panel texture set in the board's style (wall panel, floor plate, roof, painted accent, emissive strip; 2K, PBR), and the small non-walkable pieces as meshes if you have them (roof antenna, display screens, lamps) |
+| **#38 Cinder dig site** | The cabin (the same kit, re-skinned), walkways with amber railings | Kit in Blender (ours). **From you:** the **drill rig** as a mesh (a set piece the player walks around, not into: fine as Rodin), and a Cinder re-skin of the trim set |
+| **#40 Set dressing** (crates, consoles, antennae, lights, power units) | Nothing walkable; the player walks between them | **Yours as planned** (Rodin), each at real size: a crate about 1 m, a console about 1.1 m high. State every piece's size in cm in the manifest |
+| **#39 Crashed wreck** | The player walks around and through a ruptured section | **Yours**, with one requirement: a gap in the fuselage at least 200 cm wide and 250 cm high with a flat floor piece we can add; say the overall length |
+| **#41 Dominion shield generators and hull** | Seen from a ship only | **Yours as planned** |
+| **#37 Ancient relay** | On hold (Nicholas's new image) | - |
+
+**Please reply with:** which of these you have already started or finished as a mesh (so nothing is thrown away:
+a finished outpost mesh is still useful as the visual target and for distant copies), what you can deliver for the
+trim sets and by when, and anything in this rule you think is wrong. Scale check for every delivery from now on: put
+a 180 cm figure in the contact sheet.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
