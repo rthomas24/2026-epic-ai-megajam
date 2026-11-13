@@ -12,6 +12,7 @@ class UTDTargetingComponent;
 class UTDHyperdriveComponent;
 class UTDLandingComponent;
 class UTDAtmosphereEntryComponent;
+class UTDFlightFeedbackComponent;
 class UTDShipVisuals;
 class UNiagaraComponent;
 class UAudioComponent;
@@ -185,6 +186,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	UTDAtmosphereEntryComponent* GetAtmosphereEntry() const { return AtmosphereEntry; }
 
+	/** No-art flight feel: placeholder camera kicks, glow bursts and speed dust (docs/eng/flight.md). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
+	UTDFlightFeedbackComponent* GetFlightFeedback() const { return FlightFeedback; }
+
 	/** Cockpit view (optional camera, ENG-01). The chase camera is the default. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
 	void SetCockpitView(bool bCockpit);
@@ -314,6 +319,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
 	TObjectPtr<UTDAtmosphereEntryComponent> AtmosphereEntry;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Ship")
+	TObjectPtr<UTDFlightFeedbackComponent> FlightFeedback;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TriadDrift|Camera")
 	TObjectPtr<UCameraComponent> CockpitCamera;
