@@ -24,6 +24,11 @@
 #include "HAL/IConsoleManager.h"
 #include "InputCoreTypes.h"
 #include "TimerManager.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 
 namespace TDGroundDebug
 {
@@ -162,6 +167,31 @@ namespace TDGroundDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Teleport));
 	static FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.Ground.Spawn"), TEXT("TD.Ground.Spawn <CrewType> [Distance]: spawn crew facing the player."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Spawn));
+}
+
+namespace TDGroundDebug
+{
+	// TD.Ground.Bones: is every skeletal look standing? Head and pelvis heights above the feet, anim mode, montage.
+	static void Bones(const TArray<FString>& Args, UWorld* World)
+	{
+		for (TActorIterator<ACharacter> It(World); It; ++It)
+		{
+			const USkeletalMeshComponent* M = It->GetMesh();
+			if (!M || !M->GetSkeletalMeshAsset() || !(It->IsA<ATDCrewCharacter>() || It->IsA<ATDFirstPersonCharacter>()))
+			{
+				continue;
+			}
+			const float Feet = (float)(It->GetActorLocation().Z - It->GetSimpleCollisionHalfHeight());
+			auto Z = [M, Feet](const TCHAR* Bone) { return M->GetBoneIndex(Bone) != INDEX_NONE ? (float)M->GetBoneLocation(Bone).Z - Feet : -1.f; };
+			const UAnimInstance* A = M->GetAnimInstance();
+			const UAnimMontage* Mont = A ? A->GetCurrentActiveMontage() : nullptr;
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Bones %s mesh=%s visible=%d mode=%d anim=%s montage=%s head=%.0f pelvis=%.0f root=%.0f sim=%d scale=%.2f"),
+				*It->GetName(), *GetNameSafe(M->GetSkeletalMeshAsset()), M->IsVisible(), (int32)M->GetAnimationMode(), *GetNameSafe(A ? A->GetClass() : nullptr),
+				*GetNameSafe(Mont), Z(TEXT("head")), Z(TEXT("pelvis")), Z(TEXT("root")), M->IsSimulatingPhysics(), (float)M->GetComponentScale().Z);
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdBones(TEXT("TD.Ground.Bones"), TEXT("Log head / pelvis heights and anim state of every skeletal crew and pilot body."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Bones));
 }
 
 #endif // !UE_BUILD_SHIPPING

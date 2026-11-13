@@ -17,6 +17,10 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EngineUtils.h"
+#include "Animation/AnimSequence.h"
+#include "Rendering/SkeletalMeshRenderData.h"
+#include "AnimationRuntime.h"
+#include "TriadDrift/Ground/TDPilotAnim.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "UObject/Package.h"
 #include "Misc/ScopeExit.h"
@@ -439,7 +443,7 @@ bool FTDCrewVisuals::RunTest(const FString& Parameters)
 	else if (TrooperLook && !TrooperLook->SkeletalMesh.IsNull())
 	{
 		TestTrue(TEXT("no grunt look: the grunt wears the trooper's"), G->Visuals.Get() == TrooperLook && G->GetMesh()->IsVisible() && !G->IsPlaceholderVisible());
-		TestEqual(TEXT("sized to a grunt"), G->GetLookScale(), 0.96f, 0.001f);
+		TestEqual(TEXT("sized to a grunt"), G->GetLookScale(), 0.96f, 0.001f); // always, own look or borrowed
 	}
 	else
 	{
@@ -583,7 +587,7 @@ bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the skeletal look is shown, the block hidden"), Tr->GetMesh()->IsVisible() && !Tr->IsPlaceholderVisible());
 	TestTrue(TEXT("no AnimBP in the look: the template mannequin set drives it"), Tr->UsesFallbackAnimation());
 	UAnimInstance* Anim = Tr->GetMesh()->GetAnimInstance();
-	TestTrue(*FString::Printf(TEXT("a trooper is animated by the template rifle set (%s)"), *GetNameSafe(Anim ? Anim->GetClass() : nullptr)), Anim && Anim->GetClass()->GetName().Contains(TEXT("ABP_TP_Rifle")));
+	TestTrue(*FString::Printf(TEXT("the C++ loop player drives it (%s)"), *GetNameSafe(Anim ? Anim->GetClass() : nullptr)), Cast<UTDLoopBlendAnimInstance>(Anim) != nullptr);
 	TestEqual(TEXT("mannequin-skeleton meshes face forward (-90 yaw)"), (float)Tr->GetMesh()->GetRelativeRotation().Yaw, -90.f, 0.01f);
 	TestTrue(TEXT("material overrides apply to the skeletal look"), Tr->GetMesh()->GetMaterial(0) == Mat);
 	const FVector Dir = (P->GetActorLocation() - Tr->GetActorLocation()).GetSafeNormal();
@@ -597,7 +601,8 @@ bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
 	FTDDamageInfo Kill;
 	Tr->GetHealth()->Kill(P, ETDDamageKind::Melee);
 	W.Tick(1.f / 60.f);
-	TestEqual(TEXT("dies into a death animation"), Tr->GetMesh()->GetAnimationMode(), EAnimationMode::AnimationSingleNode);
+	TestTrue(TEXT("dies visibly: the crew set's death animation, else a ragdoll on the mesh's physics asset"),
+		Tr->GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode || Tr->GetMesh()->IsSimulatingPhysics());
 	return true;
 }
 
@@ -612,6 +617,7 @@ bool FTDCrewMuzzleSocket::RunTest(const FString& Parameters)
 	if (!TestNotNull(TEXT("template mannequin mesh"), Manny)) { return false; }
 	for (const FVector& SocketOffset : { FVector(0.f, 20.f, 0.f), FVector(0.f, -60.f, 0.f) }) // along the hand, then well off it
 	{
+		FTDTestWorld W; // first: making a world collects garbage, which would take the transient look below
 		USkeletalMesh* WithSocket = DuplicateObject<USkeletalMesh>(Manny, GetTransientPackage());
 		USkeletalMeshSocket* Socket = NewObject<USkeletalMeshSocket>(WithSocket);
 		Socket->SocketName = TEXT("Muzzle");
@@ -620,8 +626,10 @@ bool FTDCrewMuzzleSocket::RunTest(const FString& Parameters)
 		WithSocket->AddSocket(Socket);
 		UTDEnemyVisuals* Look = NewObject<UTDEnemyVisuals>(GetTransientPackage());
 		Look->SkeletalMesh = WithSocket;
+		WithSocket->AddToRoot(); // only a soft pointer holds it: keep it through the test's collections
+		Look->AddToRoot();
+		ON_SCOPE_EXIT { WithSocket->RemoveFromRoot(); Look->RemoveFromRoot(); };
 
-		FTDTestWorld W;
 		TDGroundTest::SpawnFloor(W);
 		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
 		const FTransform Xf(FRotator(0.f, 180.f, 0.f), FVector(900.f, 0.f, 95.f));
@@ -645,6 +653,68 @@ bool FTDCrewMuzzleSocket::RunTest(const FString& Parameters)
 		TestTrue(*FString::Printf(TEXT("socket %s: bursts fly (%d in the air)"), *SocketOffset.ToCompactString(), MaxBolts), MaxBolts >= 2);
 		TestTrue(*FString::Printf(TEXT("socket %s: bolts land, 10 each (%.0f)"), *SocketOffset.ToCompactString(), Taken), Taken >= 10.f && FMath::IsNearlyZero(FMath::Fmod(Taken, 10.f), 0.1f));
 	}
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+// Playtest 17e0437: a live grunt lay collapsed (every bone at the floor) while tests passed, because they checked an
+// animation mode, not the pose. Every crew type with its real look stands: head above the pelvis and above
+// 140 cm x look scale over the feet, standing and walking, sampled across a second.
+namespace TDCrewUprightTest
+{
+	inline bool Upright(FAutomationTestBase& T, const ACharacter* C, const FString& What, float MinHead)
+	{
+		const USkeletalMeshComponent* M = C->GetMesh();
+		const float Feet = (float)(C->GetActorLocation().Z - C->GetSimpleCollisionHalfHeight());
+		const float Head = (float)M->GetBoneLocation(TEXT("head")).Z - Feet;
+		const float Pelvis = (float)M->GetBoneLocation(TEXT("pelvis")).Z - Feet;
+		T.AddInfo(FString::Printf(TEXT("%s: head %.0f cm, pelvis %.0f cm"), *What, Head, Pelvis));
+		return T.TestTrue(*FString::Printf(TEXT("%s stands: head %.0f cm (min %.0f), pelvis %.0f cm"), *What, Head, MinHead, Pelvis), Head > Pelvis + 30.f && Head > MinHead);
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewUpright, "TriadDrift.Ground.Crew.EveryRealLookStandsUpright", TD_TEST_FLAGS)
+bool FTDCrewUpright::RunTest(const FString& Parameters)
+{
+	int32 Checked = 0;
+	for (const ETDCrewType Type : { ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Heavy })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		TDGroundTest::SpawnPlayer(W, FVector(-3000.f, 0.f, 95.f)); // far: no fight, just standing and walking
+		ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, Type, FVector(0.f, 0.f, 120.f));
+		const FString Name = UEnum::GetValueAsString(Type);
+		if (!C->GetMesh()->IsVisible() || !C->GetMesh()->GetSkeletalMeshAsset())
+		{
+			AddInfo(FString::Printf(TEXT("%s: no skeletal look on this branch (placeholder block)"), *Name));
+			continue;
+		}
+		++Checked;
+		C->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones; // nothing renders in tests
+		if (AController* AI = C->GetController()) { AI->UnPossess(); }
+		const float MinHead = 140.f * C->GetLookScale();
+		for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); } // the Lead's rule: judged after 1 s
+		for (int32 i = 0; i < 60; ++i)
+		{
+			W.Tick(1.f / 60.f);
+			if (i % 20 == 19) { TDCrewUprightTest::Upright(*this, C, Name + TEXT(" standing"), MinHead); }
+		}
+		for (int32 i = 0; i < 60; ++i)
+		{
+			C->AddMovementInput(FVector::ForwardVector, 1.f);
+			W.Tick(1.f / 60.f);
+			if (i % 20 == 19) { TDCrewUprightTest::Upright(*this, C, Name + TEXT(" walking"), MinHead); }
+		}
+		if (C->IsLookPoseFrozen())
+		{
+			AddWarning(FString::Printf(TEXT("%s: %s collapses under the mannequin animations - shown standing in its reference pose (asset needs a re-import)"),
+				*Name, *GetNameSafe(C->GetMesh()->GetSkeletalMeshAsset())));
+		}
+		C->StartAttack(Type == ETDCrewType::Grunt ? ETDCrewAttack::Melee : ETDCrewAttack::Burst, nullptr);
+		for (int32 i = 0; i < 30; ++i) { W.Tick(1.f / 60.f); }
+		TDCrewUprightTest::Upright(*this, C, Name + TEXT(" attacking"), MinHead * 0.85f);
+	}
+	if (Checked == 0) { AddInfo(TEXT("no real crew looks on this branch: covered by SkeletalLookWithoutAnimBPStillAnimates")); }
 	return true;
 }
 
