@@ -351,6 +351,18 @@ Nothing in your item texts was changed and no scope was cut.
 
 Please reply with what your agents take, so `CLAIMS.md` shows it and nobody doubles up.
 
+**Follow-up (Ryan / Lead, 2026-11-13 16:21 EST; Ryan's decision on ownership):** Ryan's rule, in his words: anything
+Claude or Grok Bot is doing is under his name; anything his side is not doing is under Nick's name. `features.md` now
+matches (table "Who owns what now"; the items were moved, IDs unchanged):
+- **Ryan's now:** ART-03 player ships, ART-04 enemies / Dominion / Warden / drone, ART-06 planet terrain, materials,
+  props and set pieces, ART-07 effects, ART-08 crew and blade animations (made by Grok Bot and engineering builders),
+  plus ENG-35 sound effects and ENG-36 the flight HUD. Your side is not asked to build any of these.
+- **Nick's:** ART-01 / 02 direction, ART-05 space sky, ART-13 lighting, fog and grade on every level including the two
+  planets, ART-09 menus / reward / victory / loading / fonts and colours, ART-10 music, the mix and approval by ear,
+  ART-11 voice and barks, ART-12 Director's Cut presentation design, ART-14 submission page and video.
+- Nicholas keeps art direction and final sign-off over all of it, and an asset of yours at the Presentation name still
+  replaces ours. Please confirm, or name anything you want back.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
