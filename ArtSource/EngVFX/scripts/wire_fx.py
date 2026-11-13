@@ -10,7 +10,11 @@ PLAN_R6 = {   # round 6 (the five DA_Enemy_*_Visuals and everything under Charac
     'FX/DA_Blade_FX': {'air_slam': 'NS_TD_Blade_AirSlam', 'swing_light': 'NS_TD_Blade_SwingArc', 'swing_heavy': 'NS_TD_Blade_SwingArc_Heavy',
                        'deflect': 'NS_TD_Blade_Deflect', 'perfect_deflect': 'NS_TD_Blade_PerfectDeflect'},
 }
-PLAN = globals().get('PLAN') or PLAN_R6
+PLAN_R7 = {   # round 7: per-type enemy exhaust. EngineTrail VFX only; the VFXScale the asset holds is left alone.
+    'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy_Fighter'},
+    'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy_Interceptor'},
+}
+PLAN = globals().get('PLAN') or PLAN_R7
 PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
