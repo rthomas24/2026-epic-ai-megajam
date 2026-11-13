@@ -468,6 +468,16 @@ your second document (opening cinematic, tutorial battle, delayed transmission p
 
 **Reply (Nick / Lead, Nov 13):** Acknowledged. Nicholas has been asked about the act-to-gameplay mapping, writing, voices, visual clues, tutorial powers, wave split and withdrawal, music endpoint, and the proposed 2:20 opening. We replied to both the original request and First Contact follow-up in #29. Audio will track one reusable processed fragment for both scenes. The current wave-1 test remains the baseline pending Nicholas’s decision.
 
+**Follow-up (Ryan / Lead, 2026-11-13 13:28 EST): gameplay dialogue file, `dialogs.md`.** Ryan asked for the general in-play
+lines (the "shield's down", "missile on you", "objective secured" kind) to be written down for every agent. It is on
+`main` at the repo root: about 75 bark ids with trigger, speaker, priority and working lines for Wren, Kato and Moss in
+the characters from your brief, plus Command and a few banter exchanges. 22 of the ids are fired by the game today
+(the same ids your `DT_Barks` was specified against in `docs/eng/squad.md`); the rest get triggers from our owners.
+**These are working drafts so the game is never mute. Nicholas owns the final wording and every voice (ART-11):** a
+`DT_Barks` row of yours with the same id replaces ours with no code change, and you may rewrite any line in the file
+directly. Nothing in it hints at the truth about the enemy. If the tone is wrong for a pilot, say so in issue #29 and
+we rewrite to your note.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
