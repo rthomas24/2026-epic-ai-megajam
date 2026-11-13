@@ -3,6 +3,7 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -82,6 +83,10 @@ void ATDMenuGameMode::Tick(float DeltaSeconds)
 
 void ATDMenuGameMode::KeepMenuFocus()
 {
+	if (UTDSettingsSubsystem::IsSettingsPageOpen(this))
+	{
+		return; // the Settings page owns focus while it is up
+	}
 	const TSharedPtr<SWidget> Button = FocusButton.Pin();
 	if (!Placeholder.IsValid() || !Button.IsValid() || !FSlateApplication::IsInitialized())
 	{
@@ -285,6 +290,7 @@ void ATDMenuGameMode::ShowPlaceholder()
 		];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("NEW GAME"), [](ATDMenuGameMode* M) { M->NewGame(); }, true)];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("CONTINUE"), [](ATDMenuGameMode* M) { M->ContinueGame(); }, CanContinue())];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SETTINGS"), [](ATDMenuGameMode* M) { UTDSettingsSubsystem::OpenSettingsPage(M); }, true)];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("QUIT"), [](ATDMenuGameMode* M) { M->QuitGame(); }, true)];
 	}
 	Placeholder = SNew(SBorder)
