@@ -1,0 +1,161 @@
+// Triad Drift - player options (controls, hints, audio, video): one object the menus call. Owner: Teammate 1 (Input).
+//
+// Every setter applies at once and saves to its own slot ("TD_Settings", separate from the run save and the hint
+// profile). The saved options are applied at start-up (video and audio when the game instance starts; controls on
+// every ATDSpacePlayerController as it begins play). Menus (Nick's, T5's placeholder OPTIONS page) call the
+// BlueprintCallable functions below: Get Game Instance -> Get Subsystem (TDSettingsSubsystem).
+//
+// Audio: master volume is the main audio device's transient primary volume (works with no assets). Music and effects
+// scale the sound classes SC_TD_Music and SC_TD_SFX (/Game/TriadDrift/Audio/Mix/, Nick's names) through a runtime sound
+// mix; until those classes exist, the values are kept and applied as soon as they do (start-up / next change).
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Subsystems/GameInstanceSubsystem.h"
+#include "GameFramework/SaveGame.h"
+#include "TDSettingsSubsystem.generated.h"
+
+class ATDSpacePlayerController;
+class USoundMix;
+class USoundClass;
+
+UENUM(BlueprintType)
+enum class ETDWindowMode : uint8
+{
+	Fullscreen,
+	WindowedFullscreen,
+	Windowed
+};
+
+/** Every player option. Sensitivities are multipliers of the shipped tuning (1 = as designed). */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDPlayerSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls", meta = (ClampMin = "0.25", ClampMax = "3"))
+	float MouseSensitivity = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls")
+	bool bInvertMouseY = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls", meta = (ClampMin = "0.25", ClampMax = "3"))
+	float GamepadSensitivity = 1.f;
+
+	/** Right-stick dead zone (0..0.5 of full deflection). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls", meta = (ClampMin = "0", ClampMax = "0.5"))
+	float GamepadDeadzone = 0.15f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls")
+	bool bInvertGamepadY = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
+	bool bHintsEnabled = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Audio", meta = (ClampMin = "0", ClampMax = "1"))
+	float MasterVolume = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Audio", meta = (ClampMin = "0", ClampMax = "1"))
+	float MusicVolume = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Audio", meta = (ClampMin = "0", ClampMax = "1"))
+	float EffectsVolume = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
+	ETDWindowMode WindowMode = ETDWindowMode::WindowedFullscreen;
+
+	/** 0,0 = the desktop resolution. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
+	FIntPoint Resolution = FIntPoint::ZeroValue;
+};
+
+UCLASS()
+class UNREALGAMEJAM_API UTDSettingsSave : public USaveGame
+{
+	GENERATED_BODY()
+
+public:
+	static constexpr int32 CurrentVersion = 1;
+
+	UPROPERTY(SaveGame)
+	int32 Version = CurrentVersion;
+
+	UPROPERTY(SaveGame)
+	FTDPlayerSettings Settings;
+};
+
+UCLASS()
+class UNREALGAMEJAM_API UTDSettingsSubsystem : public UGameInstanceSubsystem
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static UTDSettingsSubsystem* GetTDSettings(const UObject* WorldContextObject);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings")
+	const FTDPlayerSettings& GetSettings() const { return Settings; }
+
+	// ---- Controls
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetMouseSensitivity(float Multiplier);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetInvertMouseY(bool bInvert);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetGamepadSensitivity(float Multiplier);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetGamepadDeadzone(float Deadzone);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetInvertGamepadY(bool bInvert);
+
+	// ---- Gameplay
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetHintsEnabled(bool bEnabled);
+
+	// ---- Audio (0..1)
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetMasterVolume(float Volume);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetMusicVolume(float Volume);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetEffectsVolume(float Volume);
+
+	// ---- Video
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetWindowMode(ETDWindowMode Mode);
+	/** 0,0 = desktop resolution. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetResolution(FIntPoint Resolution);
+	/** The fullscreen resolutions the display offers (for a menu list). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") TArray<FIntPoint> GetSupportedResolutions() const;
+
+	/** Everything back to the shipped defaults (applied and saved). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void ResetToDefaults();
+
+	/** Replace every option at once (a menu's Apply button). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void ApplyAll(const FTDPlayerSettings& NewSettings);
+
+	/** Pushes the control options into one controller (called from its BeginPlay and on every change). */
+	void ApplyToController(ATDSpacePlayerController* PC) const;
+
+	/** Tests: use another slot (and no video changes) so the player's options are never touched. */
+	void UseSlotForTests(const FString& SlotName);
+	/** Tests: read the slot again, as a fresh start-up would. */
+	void ReloadForTests() { Load(); }
+
+	/** What audio actually received (tests): master on the device, and the class overrides found. */
+	float GetAppliedMasterVolume() const { return AppliedMaster; }
+	bool HasMusicClass() const { return MusicClass != nullptr; }
+	bool HasEffectsClass() const { return EffectsClass != nullptr; }
+
+	static constexpr const TCHAR* DefaultSlot = TEXT("TD_Settings");
+
+private:
+	void Changed(bool bVideo = false, bool bAudio = false);
+	void Load();
+	void Save() const;
+	void ApplyAudio();
+	void ApplyVideo();
+	void ApplyControls();
+
+	FTDPlayerSettings Settings;
+	FString SlotName = DefaultSlot;
+	bool bApplyVideo = true;
+	float AppliedMaster = 1.f;
+
+	UPROPERTY(Transient) TObjectPtr<USoundMix> VolumeMix;
+	UPROPERTY(Transient) TObjectPtr<USoundClass> MusicClass;
+	UPROPERTY(Transient) TObjectPtr<USoundClass> EffectsClass;
+};
