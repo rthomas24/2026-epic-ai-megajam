@@ -255,7 +255,9 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 		{
 			SetTriggers(false, false);
 			const FVector Slot = S->GetFormationSlotLocation(ShipId);
-			Ship->SetActorLocationAndRotation(Slot, Leader->GetActorRotation(), false, nullptr, ETeleportType::TeleportPhysics);
+			// T1's TeleportSpacecraft, not a raw SetActorLocation: the movement state is told, and T1's
+			// silent-move watchdog stays clean.
+			TDSquad::TeleportShip(Ship, Slot, Leader->GetActorRotation(), /*bKeepSpeed*/ false);
 			TDSquad::SetVelocity(Ship, TDSquad::GetVelocity(Leader));
 			TDSquad::SendFlightInput(Ship, 0.f, 0.f, 0.f, CruiseS, false);
 			CurrentTarget.Reset();

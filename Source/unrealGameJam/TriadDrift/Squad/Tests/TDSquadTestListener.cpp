@@ -18,6 +18,7 @@ void UTDSquadTestListener::Listen(UTDEventBus* Bus)
 	Bus->OnPowerUsed.AddDynamic(this, &UTDSquadTestListener::OnPowerUsed);
 	Bus->OnHighlightMoment.AddDynamic(this, &UTDSquadTestListener::OnHighlight);
 	Bus->OnBarkRequested.AddDynamic(this, &UTDSquadTestListener::OnBark);
+	Bus->OnSpacecraftTeleported.AddDynamic(this, &UTDSquadTestListener::OnTeleported);
 }
 
 void UTDSquadTestListener::StopListening()
@@ -31,6 +32,7 @@ void UTDSquadTestListener::StopListening()
 		Bus->OnPowerUsed.RemoveAll(this);
 		Bus->OnHighlightMoment.RemoveAll(this);
 		Bus->OnBarkRequested.RemoveAll(this);
+		Bus->OnSpacecraftTeleported.RemoveAll(this);
 	}
 	BoundBus.Reset();
 }

@@ -159,8 +159,8 @@ Gameplay asks for a line through `ITDGameFlow::RequestBark(BarkId, Speaker)` (re
 | Bark id | When | Speaker | Priority / cooldown |
 |---|---|---|---|
 | `Bark_SquadSwitchIn` | a manual switch lands | the pilot you switched to | normal, 6 s |
-| `Bark_SquadShipDownRift` / `...Lancer` / `...Bastion` | a ship goes down (not in a full wipe) | the healthiest survivor | high, 8 s |
-| `Bark_SquadRespawn` | a downed ship warps back | that pilot | normal, 8 s |
+| `Bark_SquadShipDownRift` / `...Lancer` / `...Bastion` | a ship goes down (not in a full wipe) | the healthiest survivor | high, 8 s per id, and at most one ship-down line (any ship) per 10 s |
+| `Bark_SquadRespawn` | a downed ship warps back | that pilot | normal, 20 s |
 | `Bark_SquadFocusAck` | "focus my target" | the first living wingman | normal, 5 s |
 | `Bark_SquadWingmanKill` | a wingman kills a hostile | that wingman | normal, 12 s |
 | `Bark_SquadLowHull` | a living ship's hull drops below 30 % (re-armed above 55 % or on respawn) | that pilot | normal, 20 s |
