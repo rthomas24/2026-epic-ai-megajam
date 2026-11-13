@@ -49,6 +49,11 @@ static TAutoConsoleVariable<int32> CVarTDIntro(
 	TEXT("ENG-33 cinematic intro on New Game: 1 = play (default), 0 = never."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<int32> CVarTDIntroSunFromLight(
+	TEXT("td.Intro.SunFromLight"), 0,
+	TEXT("Intro eclipse: 0 = the sky's sun (yaw 35, pitch 18), 1 = the brightest directional light in the level."),
+	ECVF_Default);
+
 namespace TDIntro
 {
 	/** Super 35 width: the focal lengths in the shot list mean what they mean on a cinema camera. */
@@ -293,6 +298,11 @@ APlayerController* UTDIntroDirector::GetPlayer() const
 
 FVector UTDIntroDirector::SunDirection() const
 {
+	// The art direction's sun (the sky sphere's sun: yaw 35, pitch 18), unless the level carries its own light.
+	if (CVarTDIntroSunFromLight.GetValueOnGameThread() == 0)
+	{
+		return FRotator(18.f, 35.f, 0.f).Vector();
+	}
 	// Toward the sun: the brightest directional light in the level.
 	FVector Best = FVector(0.35f, -0.55f, 0.75f).GetSafeNormal();
 	float BestIntensity = -1.f;
@@ -614,8 +624,8 @@ void UTDIntroDirector::BuildShots()
 		S.SquadTo = Gate + Dir * 5000.f;
 		// The lens tracks in behind the squad and settles beside the ring, outside it (never through the membrane),
 		// so the wing flies on through the gate toward Cinder.
-		S.CamFrom = S.SquadFrom - Dir * 2800.f + Side * 1300.f + Up * 450.f;
-		S.CamTo = Gate - Dir * 1600.f + Side * 3600.f + Up * 700.f;
+		S.CamFrom = S.SquadFrom - Dir * 3000.f + Side * 1800.f + Up * 600.f;
+		S.CamTo = Gate - Dir * 4500.f + Side * 7500.f + Up * 1400.f; // the whole ring in frame, Cinder beyond it
 		S.LookFrom = S.SquadFrom + Dir * 6000.f;
 		S.LookTo = Gate + Dir * 9000.f;
 		S.FocalFrom = S.FocalTo = 35.f;
