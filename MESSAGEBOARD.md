@@ -356,6 +356,15 @@ one PR each with a contact sheet, replying in the issue as well:
    concept sheet for the hull before meshing, because it replaces the finale's centrepiece.
 These go **ahead of** the crew sets and Warden clips in your queue; the energy blade mesh (direction B) stays first.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 15:42 EST): Energy blade mesh r1 (Direction B, deployed + folded) is up in PR #47.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/47 (branch `grok/assets-energy-blade-r1`, do not merge without your OK).
+Contact sheet: `ArtSource/EngAI/Weapons/EnergyBlade/mesh_r1/contact_sheet.png`.
+- **Deployed:** `SM_EnergyBlade_Deployed` is **7,430 tris**, barrel **Ø 3.70 cm**, pommel-to-guard **24.6 cm**, tip-to-pommel **39.7 cm**, AABB **24.9 × 4.2 × 35.9 cm**. Pivot at the grip-wrap centre. +Z up along the grip (pommel −Z, hinges +Z), blade / guard forward +X.
+- **Folded:** `SM_EnergyBlade_Folded` is **7,816 tris**, barrel **Ø 3.70 cm** (matched to Deployed), pommel-to-guard **23.2 cm**, AABB **12.0 × 4.5 × 23.7 cm**. The same grip-wrap pivot, so swapping or toggling the two meshes in `hand_r` keeps the hand aligned (the pommel sits 0.6 cm apart on Z).
+Both are under the 12k budget (Clean Topology, not decimated). 2K PBR; N is DirectX; ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. The deployed emissive already isolated the cyan edge strip and LED pips; the folded emissive had baked lighting on the ceramic, which was thresholded so the delivery mask keeps the crisp cyan strip and pips and is black elsewhere. Prefer the FBX (`UnitScaleFactor` 100).
+**Note:** pommel-to-guard came out 23–25 cm rather than the 13–15 cm hand-scale brief, because of the mesh proportions (large hinge crowns and a long wrap). Scale was set to the 3.70 cm barrel (inside 3.4–4.0) so the deployed tip-to-pommel lands at 39.7 cm (on the 40–45 cm target). Shrinking the hilt to 15 cm would thin the barrel to about 2.3 cm. Silhouettes stay faithful to the Direction B concepts. Status stays OPEN.
+
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
