@@ -271,6 +271,53 @@ in once 8aa5c70 is on main).
   `Input.Hints.LaterHintsWhenTheyApply` (experienced pilot sees none; drift, hyperdrive and ability by real input),
   `Input.Hints.OncePriorityTimeoutDeviceAndSetting`.
 
+## Player options (`UTDSettingsSubsystem`, a game-instance subsystem)
+
+There is one object for every menu: Get Game Instance → Get Subsystem (TDSettingsSubsystem), or
+`UTDSettingsSubsystem::GetTDSettings(this)` in C++. Each setter applies at once and saves to slot `TD_Settings`
+(separate from the run save and the hint profile).
+
+| Option | Call | Range | Takes effect |
+|---|---|---|---|
+| Mouse sensitivity | `SetMouseSensitivity` | ×0.25–3 of the class default | `MouseSensitivity` on every space controller |
+| Invert mouse Y | `SetInvertMouseY` | bool | `bInvertMousePitch` |
+| Gamepad sensitivity | `SetGamepadSensitivity` | ×0.25–3 | shaped right-stick aim × this, clamped to full deflection |
+| Gamepad dead zone | `SetGamepadDeadzone` | 0–0.5 (default 0.15) | `StickDeadzone` |
+| Invert gamepad Y | `SetInvertGamepadY` | bool | `bInvertStickPitch` |
+| Hints | `SetHintsEnabled` | bool | `UTDHintComponent` |
+| Master volume | `SetMasterVolume` | 0–1 | the main audio device's transient primary volume |
+| Music / effects volume | `SetMusicVolume` / `SetEffectsVolume` | 0–1 | a runtime sound mix over `SC_TD_Music` / `SC_TD_SFX`, once Nick's classes exist (kept until then) |
+| Window mode / resolution | `SetWindowMode` / `SetResolution` (0,0 = desktop), `GetSupportedResolutions` | | `UGameUserSettings`, saved |
+
+- **Start-up:** controls apply when each `ATDSpacePlayerController` begins play, and audio applies when the game instance
+  starts.
+- **Video at start-up:** video applies only once the player has chosen it (`bVideoChosen`). A first start keeps the engine's
+  window, and `-windowed` / `-ResX` on the command line always win at start-up. The first version forced windowed
+  fullscreen on every start and broke agent sessions launched with `-ResX`.
+- **Never touched:** the editor window, headless runs and tests (tests use their own slot).
+- **Other calls:** `ResetToDefaults`, `ApplyAll(FTDPlayerSettings)`.
+- **Dev command:** `TD.Settings [key value]`, with keys MouseSens, InvertMouse, PadSens, PadDeadzone, InvertPad, Hints,
+  Master, Music, Effects, `Window 0-2` and `Res W H`.
+- **Played live (Nov 12, -game):** windowed 1600×900 and 1280×720 resized the window, and windowed fullscreen filled the
+  desktop. T5 builds the OPTIONS page.
+- **Tests:** `Input.Settings.PersistAndApplyAtStartup`, `Input.Settings.EachControlTakesEffect` (mouse and stick aim
+  through the controller's handlers: sensitivity, invert, dead zone).
+
+## Shipping builds (what `!UE_BUILD_SHIPPING` removes in Flight / Input / Travel)
+
+Audit of Nov 12. The Shipping game target (`unrealGameJam Win64 Shipping`) compiles. Only these are compiled out, and
+none of them is needed by a player:
+- `Flight/TDFlightDebug.cpp`: the `TD.Flight.Threats` and `TD.Flight.Feedback` readouts.
+- `Flight/TDShipMovementComponent.cpp`: the silent-move warning log and callstack. The counting itself stays.
+- `Flight/TDSpacecraft.cpp`: the long-teleport log and callstack.
+- `Input/TDInputDebug.cpp`: the `TD.Input.*` agent commands. `TDActivateInputToolset` has an empty Shipping body, so the
+  controller still links.
+- `Travel/TDTravelDebug.cpp`: the `TD.Travel.*` commands.
+
+Gameplay code in this lane has no `check()` / `verify()` with side effects, no `WITH_EDITOR` paths and no editor-only
+calls. The hints, the no-art feedback, the options, the approach assist and every prompt are compiled in every
+configuration.
+
 ## How to try it
 
 Tests:
