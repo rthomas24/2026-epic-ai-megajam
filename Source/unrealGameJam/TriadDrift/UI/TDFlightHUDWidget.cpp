@@ -4,6 +4,7 @@
 
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "GameFramework/PlayerController.h"
+#include "HAL/IConsoleManager.h"
 #include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
@@ -191,11 +192,20 @@ void UTDFlightHUDWidget::RefreshData()
 	Sample(0.f);
 }
 
+static TAutoConsoleVariable<int32> CVarTDUIForceGlyphs(
+	TEXT("TD.UI.ForceGlyphs"), -1,
+	TEXT("Engineering space HUD glyphs (dev, captures): -1 = follow the controller's device detection, 0 = keyboard, 1 = gamepad."),
+	ECVF_Default);
+
 bool UTDFlightHUDWidget::IsUsingGamepad() const
 {
 	if (ForceGamepad >= 0)
 	{
 		return ForceGamepad > 0;
+	}
+	if (const int32 Forced = CVarTDUIForceGlyphs.GetValueOnGameThread(); Forced >= 0)
+	{
+		return Forced > 0;
 	}
 	const ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(GetOwningPlayer());
 	return PC && PC->IsUsingGamepad();
@@ -320,11 +330,19 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		StripRight = FMath::Max(StripRight, float(Chip.Pos.X + Chip.Size.X));
 		StripTop = FMath::Min(StripTop, float(Chip.Pos.Y));
 	}
-	auto AvoidStrip = [StripRight, StripTop](FVector2D Pos)
+	// ...nor inside the objective pill (P2 capture: a wing chevron on the top edge sat in the pill).
+	const float PillHalf = ObjectiveExpandedWidth * .5f + 14.f;
+	const float PillBottom = SafeY + FMath::Lerp(ObjectiveHeight, ObjectiveExpandedHeight, View.ObjectiveExpand) + 14.f;
+	const bool bPill = !View.Objective.IsEmpty();
+	auto AvoidStrip = [StripRight, StripTop, PillHalf, PillBottom, bPill](FVector2D Pos)
 	{
 		if (StripRight > 0.f && Pos.X <= StripRight + 14.f && Pos.Y >= StripTop - 14.f)
 		{
 			Pos.Y = StripTop - 16.f;
+		}
+		if (bPill && FMath::Abs(Pos.X - CenterX) <= PillHalf && Pos.Y <= PillBottom)
+		{
+			Pos.Y = PillBottom + 2.f;
 		}
 		return Pos;
 	};
