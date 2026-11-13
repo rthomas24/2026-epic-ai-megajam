@@ -1,0 +1,221 @@
+{
+  "asset": "SM_Squad_Bastion",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Bastion\\SM_Squad_Bastion.fbx",
+  "tris": 27838,
+  "size_cm": [
+    524.0,
+    488.0,
+    144.6
+  ],
+  "pivot": "root object origin (SM_Squad_Bastion~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Squad_Bastion"
+  ],
+  "material_params": [
+    {
+      "name": "M_Squad_Bastion",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Squad_Bastion_BC.png",
+    "T_Squad_Bastion_E.png",
+    "T_Squad_Bastion_N.png",
+    "T_Squad_Bastion_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Squad_Bastion_00",
+    "UCX_SM_Squad_Bastion_01",
+    "UCX_SM_Squad_Bastion_02"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Cockpit",
+    "SOCKET_Dome",
+    "SOCKET_Engine",
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Engine_3",
+    "SOCKET_MissilePod_L",
+    "SOCKET_MissilePod_R",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1"
+  ],
+  "welded_verts": 0,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Squad_Bastion.fbx",
+  "texture_size": 2048,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "ship": "Bastion",
+  "ue_radius_cm": 220,
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "blender_m": [
+        0.36,
+        -2.64,
+        -0.5903
+      ],
+      "ue_cm": [
+        264.0,
+        -36.0,
+        -59.0
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "blender_m": [
+        -0.36,
+        -2.64,
+        -0.5903
+      ],
+      "ue_cm": [
+        264.0,
+        36.0,
+        -59.0
+      ]
+    },
+    {
+      "name": "Engine",
+      "blender_m": [
+        0.0,
+        2.6,
+        -0.3003
+      ],
+      "ue_cm": [
+        -260.0,
+        -0.0,
+        -30.0
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "blender_m": [
+        0.46,
+        2.6,
+        -0.2803
+      ],
+      "ue_cm": [
+        -260.0,
+        -46.0,
+        -28.0
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "blender_m": [
+        -0.46,
+        2.6,
+        -0.2803
+      ],
+      "ue_cm": [
+        -260.0,
+        46.0,
+        -28.0
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "blender_m": [
+        1.62,
+        2.28,
+        -0.3403
+      ],
+      "ue_cm": [
+        -228.0,
+        -162.0,
+        -34.0
+      ]
+    },
+    {
+      "name": "Engine_3",
+      "blender_m": [
+        -1.62,
+        2.28,
+        -0.3403
+      ],
+      "ue_cm": [
+        -228.0,
+        162.0,
+        -34.0
+      ]
+    },
+    {
+      "name": "Dome",
+      "blender_m": [
+        0.0,
+        0.73,
+        0.5997
+      ],
+      "ue_cm": [
+        -73.0,
+        -0.0,
+        60.0
+      ]
+    },
+    {
+      "name": "Cockpit",
+      "blender_m": [
+        0.0,
+        -1.42,
+        0.3597
+      ],
+      "ue_cm": [
+        142.0,
+        -0.0,
+        36.0
+      ]
+    },
+    {
+      "name": "MissilePod_L",
+      "blender_m": [
+        1.62,
+        -1.72,
+        -0.3203
+      ],
+      "ue_cm": [
+        172.0,
+        -162.0,
+        -32.0
+      ]
+    },
+    {
+      "name": "MissilePod_R",
+      "blender_m": [
+        -1.62,
+        -1.72,
+        -0.3203
+      ],
+      "ue_cm": [
+        172.0,
+        162.0,
+        -32.0
+      ]
+    }
+  ]
+}

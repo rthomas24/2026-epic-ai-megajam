@@ -1,0 +1,194 @@
+{
+  "asset": "SM_Squad_Lancer",
+  "tag": "r6",
+  "checks": {
+    "tris": 15912,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 1,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 1,
+    "size_cm": [
+      317.6,
+      524.0,
+      163.6
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0091",
+        0.052
+      ],
+      [
+        "part_0092",
+        0.052
+      ],
+      [
+        "part_0091",
+        0.074
+      ],
+      [
+        "part_0092",
+        0.074
+      ]
+    ],
+    "centre_of_mass_m_before": [
+      -0.0,
+      0.445,
+      0.026
+    ],
+    "com_shift_m": [
+      0.0,
+      -0.10000002384185791,
+      0.44219541549682617
+    ],
+    "pivot": "bbox_centre",
+    "edge_area_share": 0.0108,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3834,
+      "overlap_pixels": 1,
+      "overlap_share_of_covered": 2e-06,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Squad_Lancer",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Lancer\\T_Squad_Lancer_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Lancer\\T_Squad_Lancer_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Lancer\\T_Squad_Lancer_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Lancer\\T_Squad_Lancer_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Squad_Lancer_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 87.17
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7704
+    },
+    "build_seconds": 143.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.256,
+        0.3231,
+        0.3743
+      ],
+      "min": 0.0,
+      "max": 0.9333
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5,
+        0.4999,
+        0.9999
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0105,
+        0.01
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3187,
+        0.3095,
+        0.3443
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.455
+      ],
+      "metallic_mean": 0.34
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0122,
+        0.0455,
+        0.0501
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0324,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Squad_Lancer",
+      "message": "121 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 135,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00951
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Lancer_r6_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Lancer_r6_clay_sheet.png",
+    "ortho_cm_per_px": 1.31,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 15912,
+    "size_cm": [
+      524.0,
+      317.6,
+      163.6
+    ],
+    "collision": [
+      "UCX_SM_Squad_Lancer_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Squad_Lancer"
+    ],
+    "textures": [
+      "T_Squad_Lancer_BC.png",
+      "T_Squad_Lancer_E.png",
+      "T_Squad_Lancer_N.png",
+      "T_Squad_Lancer_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}
