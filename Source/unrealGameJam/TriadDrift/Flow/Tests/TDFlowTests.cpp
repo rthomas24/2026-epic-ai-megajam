@@ -5,6 +5,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/World/TDSkySphere.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDSaveGame.h"
@@ -1146,7 +1147,16 @@ bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
 		FTDTestWorld W(UTDGameInstance::StaticClass(), ATDSpaceGameMode::StaticClass());
 		ATDSpaceGameMode* GM = W.GetWorld()->GetAuthGameMode<ATDSpaceGameMode>();
 		TWeakObjectPtr<AActor> Stars = GM ? GM->GetStarBackdrop() : nullptr;
-		TestTrue(TEXT("space mode spawned the star backdrop"), Stars.IsValid());
+		if (ATDSkySphere::IsArtAvailable())
+		{
+			// The galaxy layout's nebula sky (T4, art audit) brings its own stars: no placeholder backdrop then.
+			TestFalse(TEXT("the engineering nebula sky replaces the star backdrop"), Stars.IsValid());
+			return true;
+		}
+		if (!TestTrue(TEXT("space mode spawned the star backdrop"), Stars.IsValid()))
+		{
+			return false;
+		}
 		// Stars read from every direction: unlit glow material, and instances all around the sky.
 		TestNotNull(TEXT("glow material referenced on the mode (cooks)"), GM ? GM->GetStarMaterial() : nullptr);
 		TInlineComponentArray<UInstancedStaticMeshComponent*> Layers(Stars.Get());
@@ -1174,7 +1184,7 @@ bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
 		if (APlayerController* PC = W.SpawnLocalPlayerController())
 		{
 			W.Advance(0.2f);
-			if (PC->PlayerCameraManager)
+			if (PC->PlayerCameraManager && TestTrue(TEXT("stars still there after a tick"), Stars.IsValid()))
 			{
 				TestTrue(TEXT("star shell centred on the camera"), FVector::Dist(Stars->GetActorLocation(), PC->PlayerCameraManager->GetCameraLocation()) < 100.f);
 			}
