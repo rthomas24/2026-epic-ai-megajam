@@ -1509,3 +1509,12 @@ and 32; where they differ from the text above, **that file wins**).
 **Still with Nicholas:** the gunship kill requirement, the opening's length (49 s built, 2 min 20 s proposed), the
 tutorial's final run time, COMMAND or Control, the three-pulse definition.
 
+**Correction, Nov 13 about 17:15 EST: Nicholas's approved opening decision replaces the first bullet above**
+(issues #29 and #24). **The tutorial battle ends when the player crosses the escape boundary during Command's ordered
+withdrawal, with the gunship alive or destroyed.** Destroying the gunship is optional and carries no gate or reward.
+Command orders the withdrawal after the encounter has taught the starting combat tools; crossing the boundary
+completes the tutorial and hands off to *Aftermath*; wave 1's clear or the gunship's destruction alone ends nothing.
+The opening stays 49 seconds. Built by T4 (the withdrawal, the boundary, pursuers that stop, one completion event),
+T3 (the `TB_*` and `S2_*` lines on that event), T1 (the escape vector and the tutorial music's fade on that event)
+and T2 (the waypoint).
+
