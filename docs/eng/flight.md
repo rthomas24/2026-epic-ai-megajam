@@ -124,9 +124,25 @@ Kept as they were:
 - Dust density: all 120 motes at every speed above the minimum.
 - Switch cut: a hard cut. The new ship is framed on the first frame, with no lag swing.
 
-Open points:
-- A long drift spin at boost speed (150°/s) still swings the ship to about a quarter of the screen width, and briefly into the HUD band. Fixing it properly means aiming the camera along the velocity while drifting, which moves the aim reticle, so it is a design call, not a tuning value.
-- In the test script, `TD.KillAll` right after a switch triggers the director's multi-kill shot (FOV 65, long lens). That made two switch frames look like a broken cut. It is a script artefact, not the switch.
+**Drift camera (Nov 13, Lead's decision).**
+- While drifting above cruise speed (`DriftMinSpeedFraction` 1), the chase camera's yaw follows `DriftYawFollow` = 40% of the slip angle toward the ship's actual motion. It eases in and out over `DriftBlendSeconds` = 0.3 s.
+- The followed slip rises to 90° and falls back to 0 at 180°: flying backwards the slip's sign flips, and a plain clamp jumped the camera 72° in a frame (the test caught it at 4485°/s).
+- The reticle and the shots both come from this camera, so they always agree. The nose keeps 60% of its sideways angle, so you still fly one way and shoot another.
+- Measured on the TD.Flight.Cam trace: boost, drift with a 0.7 s stick flick (nose ~90°), hold the slide; both directions plus a drift at cruise; every ship; old vs new in one session.
+
+| Fast drift (above cruise) | Worst off-centre x (Rift / Lancer / Bastion) | Mean | Samples in the HUD band (centre below 72%) |
+|---|---|---|---|
+| Before (follow 0) | 0.17 / 0.23 / 0.13 | 0.13 / 0.17 / 0.09 | 0 / 4 / 0 |
+| After (follow 0.4) | 0.16 / 0.16 / 0.08 | 0.13 / 0.12 / 0.05 | 0 / 0 / 0 |
+
+- Pinned by `TriadDrift.Flight.Camera.DriftFollowsTheSlide`: 40% of the slip after 0.3 s; a held spin stays continuous (< 600°/s); release puts the camera back behind the nose; nothing below cruise.
+- **Drift distance hold** (`DriftHoldDistance` 1, Lead's decision):
+  - Why: in any drift the nose swings across the slide, so the location-lagged camera drifts beside the ship instead of behind it, and the drift sheds speed. Both close the camera in, and the ship sank into the HUD band.
+  - What it does: the camera records its distance when the drift begins, and lengthens the arm by whatever is lost (capped at `LagMaxDistance`, smoothed). It eases out over 0.3 s on release.
+  - Live (same script, hold off/on): the closest camera distance in a drift went 1227 -> 1671 cm. The ship's lowest point on screen went Rift 0.70 -> 0.66, Lancer 0.66 -> 0.65, Bastion 0.66 -> 0.64 at cruise drift. An earlier run without the hold reached 0.73 (in the band).
+  - Pinned by `TriadDrift.Flight.Camera.DriftHoldsTheCameraDistance`.
+
+Scripted-playtest tip: in the test script, `TD.KillAll` right after a switch triggered the director's multi-kill shot (FOV 65, long lens), which made two switch frames look like a broken cut. Kill enemies before switching (also in the ue-cpp-gameplay skill).
 
 Dev tool: `TD.Flight.Cam [tag]` prints what the player sees: ship screen position, FOV, camera and ship roll, the camera's
 offset in ship space, speed, boost and drift, turn rates, and dust.
@@ -318,6 +334,7 @@ There is one object for every menu: Get Game Instance → Get Subsystem (TDSetti
 | Gamepad dead zone | `SetGamepadDeadzone` | 0–0.5 (default 0.15) | `StickDeadzone` |
 | Invert gamepad Y | `SetInvertGamepadY` | bool | `bInvertStickPitch` |
 | Hints | `SetHintsEnabled` | bool | `UTDHintComponent` |
+| Difficulty | `SetDifficulty` (row "Difficulty": Story / Standard / Ace) | T4's presets | `UTDGameInstance::SetDifficulty` (saved with a committed run). Enemies and waves read it when they spawn, so ships already fighting keep their strength. The row shows the difficulty in play (the run's after a Continue), with a line under the page describing it from T4's tables |
 | Master volume | `SetMasterVolume` | 0–1 | the main audio device's transient primary volume |
 | Music / effects volume | `SetMusicVolume` / `SetEffectsVolume` | 0–1 | a runtime sound mix over `SC_TD_Music` / `SC_TD_SFX`, once Nick's classes exist (kept until then) |
 | Window mode / resolution | `SetWindowMode` / `SetResolution` (0,0 = desktop), `GetSupportedResolutions` | | `UGameUserSettings`, saved |
@@ -328,6 +345,13 @@ There is one object for every menu: Get Game Instance → Get Subsystem (TDSetti
   window, and `-windowed` / `-ResX` on the command line always win at start-up. The first version forced windowed
   fullscreen on every start and broke agent sessions launched with `-ResX`.
 - **Never touched:** the editor window, headless runs and tests (tests use their own slot).
+- **Difficulty:** the saved choice is the New Game default.
+  - It is applied at start-up (not in tests) and by `UTDGameInstance::StartNewRun` (`ApplyPreferredDifficulty`, also after a Continue of an older run).
+  - Continue restores the run's own difficulty (`ApplySave`).
+  - Reset returns Standard.
+  - T2's pause screen shows the difficulty in play.
+- **Layer:** the page draws at viewport layer `UTDSettingsSubsystem::PageZOrder` (1000), above every HUD and T2's pause screen (UI host ZOrder + 100), which opens it.
+- **Focus:** the selected row has T5's front-end focus frame.
 - **Other calls:** `ResetToDefaults`, `ApplyAll(FTDPlayerSettings)`.
 - **Dev command:** `TD.Settings [key value]`, with keys MouseSens, InvertMouse, PadSens, PadDeadzone, InvertPad, Hints,
   Master, Music, Effects, `Window 0-2` and `Res W H`.
@@ -486,3 +510,22 @@ To capture screenshots:
 - **Mapping contexts** are added through the local-player subsystem, which headless tests don't have. The injection tests drive actions directly.
 - **No presentation calls yet.** Camera shakes and boost, drift and impact FX from `UTDShipVisuals` are left to whoever binds the delegates above.
 - **Rebinding and invert options** are fields on the controller (`bInvertMousePitch`, `bInvertStickPitch`, sensitivities), but there's no settings UI.
+
+## Audio hooks (ENG-35, engineering fallback sound set; T1, Nov 13)
+- **UI sounds:** `UTDSettingsSubsystem::PlayUISound(WorldContext, ETDUISound::Move | Confirm | Back | PauseIn | PauseOut)` is the one path for front-end sounds.
+  - It plays DA_UI_Style's `UIMove` / `UIConfirm` / `UIBack` / `PauseIn` / `PauseOut` cue as a 2D UI sound (`bIsUISound`, so it is heard while paused). The sound's own class and concurrency apply, and it is silent when a slot is unset.
+  - The Settings page plays Move on a row change, Confirm on a value change and on Reset, and Back when the page closes.
+  - `ATDSpacePlayerController::SetPlayerPaused` plays PauseIn / PauseOut, which also covers T2's pause screen opening and closing.
+  - T2's pause list and T5's menus call the same function.
+- **Effects slider:** besides Nick's `SC_TD_SFX`, it now also drives `/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_Master`, the parent of the engineering SFX / UI / Cine / Ambience classes, applied to its children.
+- **Music slider:** reaches the fallback music through `SC_MenuTheme_Music`.
+- **Ambience bed:** `UTDMusicDirectorSubsystem` plays the map's bed as a 2D loop under the music, chosen by map name.
+  - L_Galaxy plays `AmbienceSpace`, the Verdance map `AmbienceVerdance`, the Cinder map `AmbienceCinder`. The menu has none.
+  - It fades in over 2 s and fades out over 2 s on travel, victory and the menu.
+- **Low-hull alarm:** `UTDShipVisuals::LowHullLoop` runs attached to the ship the player flies while its hull is below `LowHullAlarmFraction` (0.35, with 0.02 of hysteresis).
+  - It stops above that, on death and on a switch. Wingmen never sound it.
+- **Shield break:** every squad ship plays its `ShieldBreak` cue when its shield reaches zero (`UTDHealthComponent::OnShieldBroken`).
+- **Tests:**
+  - `TriadDrift.Input.AudioHooks.*` covers the UI sound requests (page and pause) and the ambience envelope and slots.
+  - `TriadDrift.Flight.AudioHooks.LowHullAlarmOnTheFlownShipOnly` covers the alarm on, off, switch, hysteresis and death, plus ShieldBreak once.
+  - Tests count the requests; they never play assets.

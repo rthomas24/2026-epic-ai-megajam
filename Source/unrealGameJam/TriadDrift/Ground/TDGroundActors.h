@@ -95,6 +95,13 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Interact")
 	TObjectPtr<UStaticMeshComponent> Mesh;
 
+	/**
+	 * Invisible column on the console's top (pawns only), taller than any jump: nobody perches on a console out of every
+	 * melee crewman's reach (Lead, Nov 13). Covers the whole top at any console size.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Interact")
+	TObjectPtr<UStaticMeshComponent> TopCap;
+
 	/** Art in place of the cube (fitted to its box; the cube stays the collision and the interact target). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art")
 	TSoftObjectPtr<UStaticMesh> ConsoleMesh;

@@ -1,0 +1,3275 @@
+{
+ "waves": [
+  {
+   "file": "wav/Music/MUS_Music_Combat_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Combat_01",
+   "cat": "music"
+  },
+  {
+   "file": "wav/Music/MUS_Music_Intro_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Intro_01",
+   "cat": "music"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_NeedleCannons_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_NeedleCannons_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_NeedleCannons_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_NeedleCannons_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_NeedleCannons_05.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_05",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_PhasePulseLasers_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_PhasePulseLasers_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_PhasePulseLasers_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_PhasePulseLasers_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_SplitterBolt_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_SplitterBolt_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_SplitterBolt_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_SpikeRockets_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_SpikeRockets_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_SpikeRockets_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_BreakerBlaster_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_BreakerBlaster_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_BreakerBlaster_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_BreakerBlaster_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_FlakBurst_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_FlakBurst_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_FlakBurst_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_MissileSwarm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_MissileSwarm_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_MissileSwarm_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Weapons/SFX_Weapon_MissileSwarm_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_PulseGuns_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_PulseGuns_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_PulseGuns_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_PulseGuns_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_HeavyBolt_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_HeavyBolt_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_HeavyBolt_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_Missile_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_Missile_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_Missile_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_MineDrop_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_MineDrop_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_MineDrop_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_MineDrop_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_PointDefense_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_PointDefense_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_PointDefense_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Hull_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Hull_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Hull_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Hull_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Shield_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Shield_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Shield_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_Shield_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_World_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_World_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Impact_World_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Detonation_Rocket_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Detonation_Rocket_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Detonation_Rocket_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Detonation_Flak_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Detonation_Flak_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Detonation_Flak_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Deflected_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Deflected_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Deflected_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Small_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Small_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Small_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Small_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Medium_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Medium_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Medium_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Large_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Large_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Explosions/SFX_Explosion_Large_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Large_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Dominion/SFX_Dominion_Breakup_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_Breakup_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Engines/SFX_Engine_Lancer_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Lancer_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Engines/SFX_Engine_Rift_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Rift_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Engines/SFX_Engine_Bastion_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Bastion_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Engines/SFX_Boost_Start_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Start_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Engines/SFX_Boost_Start_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Start_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Engines/SFX_Boost_Loop_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Loop_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Engines/SFX_Drift_Loop_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Loop_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Engines/SFX_Drift_Release_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Release_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Engines/SFX_Drift_Release_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Release_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Engines/SFX_Dodge_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Engines/SFX_Dodge_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Engines/SFX_Dodge_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Collision_Scrape_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Collision_Scrape_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Collision_Scrape_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Collision_Scrape_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Ship/SFX_Alarm_LowHull_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Ship/SFX_Shield_Break_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Ship/SFX_Shield_Restore_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Restore_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/UI/SFX_UI_HitConfirm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_HitConfirm_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/UI/SFX_UI_KillConfirm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_KillConfirm_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_WarpIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_WarpIn_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_WarpIn_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_WarpIn_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_Telegraph_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Telegraph_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_Telegraph_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Telegraph_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_Stunned_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_DeathTumble_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_DeathTumble_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Enemy_DeathTumble_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_DeathTumble_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Enemies/SFX_Carrier_BayLaunch_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Carrier_BayLaunch_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Ship/SFX_Squad_RespawnWarpIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Squad_RespawnWarpIn_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Dominion/SFX_Dominion_WarpIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Dominion/SFX_Dominion_ShieldSectionDown_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Dominion/SFX_Dominion_ShieldCollapse_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldCollapse_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Dominion/SFX_Dominion_ReactorExposed_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorExposed_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Dominion/SFX_Dominion_ReactorPhaseChange_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorPhaseChange_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Powers/SFX_Power_Ram_Windup_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_Windup_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Powers/SFX_Power_Ram_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Powers/SFX_Power_Ram_End_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_End_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Powers/SFX_Power_PortalShot_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_PortalShot_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Portal_Open_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Open_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Portal_Idle_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Idle_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Travel/SFX_Portal_Close_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Close_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Portal_Transit_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Portal_Transit_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Portal_Transit_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Powers/SFX_Power_Swarm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Swarm_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Powers/SFX_Power_Dome_Up_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Up_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Powers/SFX_Power_Dome_Down_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Down_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_Cloak_On_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_On_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_Cloak_Off_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_Off_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_EMP_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_EMP_Zap_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_Zap_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_EMP_Zap_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_Zap_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_EMP_Zap_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_Zap_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_GravityWell_On_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_On_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_GravityWell_Loop_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_Loop_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Abilities/SFX_Ability_GravityWell_End_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_End_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Cine/SFX_Switch_Rift_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Rift_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Cine/SFX_Switch_Lancer_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Lancer_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Cine/SFX_Switch_Bastion_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Bastion_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Cine/SFX_Cine_Slate_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Slate_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Cine/SFX_Cine_Cut_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Cut_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Cine/SFX_Cine_SlowMoIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoIn_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Cine/SFX_Cine_SlowMoOut_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoOut_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Travel/SFX_Hyperdrive_Spool_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Spool_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Travel/SFX_Hyperdrive_Tunnel_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Tunnel_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Travel/SFX_Hyperdrive_DropOut_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_DropOut_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Travel/SFX_Hyperdrive_Refused_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Refused_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_AtmosphericEntry_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_AtmosphericEntry_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_LandingDust_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_LandingDust_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_TakeOff_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_TakeOff_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/UI/SFX_UI_Move_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Move_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/UI/SFX_UI_Confirm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Confirm_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/UI/SFX_UI_Back_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Back_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/UI/SFX_UI_PauseIn_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseIn_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/UI/SFX_UI_PauseOut_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseOut_01",
+   "cat": "ui"
+  },
+  {
+   "file": "wav/UI/SFX_Objective_Complete_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_Objective_Complete_01",
+   "cat": "sting"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Ignite_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Ignite_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Retract_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Retract_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_SwingLight_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_SwingLight_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_SwingLight_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_SwingLight_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_SwingHeavy_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingHeavy_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_SwingHeavy_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingHeavy_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Hit_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Hit_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Hit_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Hit_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Hit_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Hit_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Block_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Block_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Block_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Block_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Deflect_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Deflect_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_Deflect_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_PerfectDeflect_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_PerfectDeflect_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_GuardBreak_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_GuardBreak_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Blade/SFX_Blade_AirSlam_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_AirSlam_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Hit_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Hit_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Hit_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Stagger_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Stagger_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Death_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Death_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Death_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Death_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Melee_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Melee_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_Melee_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Melee_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_RifleShot_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_RifleShot_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_RifleShot_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Crew_RifleShot_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Crew/SFX_Drone_Hum_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Drone_Hum_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Soil_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Soil_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Soil_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Soil_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Rock_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Rock_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Rock_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Step_Rock_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Dash_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Dash_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Dash_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Dash_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Jump_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Jump_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Jump_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Jump_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Land_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Foot_Land_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Player_Hurt_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Player_Hurt_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Foot/SFX_Player_Hurt_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Ambience/AMB_Ambience_Space_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Space_01",
+   "cat": "ambience"
+  },
+  {
+   "file": "wav/Ambience/AMB_Ambience_Verdance_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Verdance_01",
+   "cat": "ambience"
+  },
+  {
+   "file": "wav/Ambience/AMB_Ambience_Cinder_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Cinder_01",
+   "cat": "ambience"
+  }
+ ],
+ "assets": [
+  {
+   "name": "Music_Combat",
+   "cat": "music",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Combat_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Combat_01"
+   ],
+   "volume_db": -9.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "Music",
+   "slots": [
+    "DA_UI_Style.CombatMusic"
+   ],
+   "note": "Combat bed: 128 BPM, 32 bars = exactly 60 s, A minor (Am F C G, two bars each). Four 8-bar sections build: drums + bass + arp, then snare + pad, then the lead, then everything; a snare fill and riser lead back to the top. Seamless loop."
+  },
+  {
+   "name": "Music_Intro",
+   "cat": "music",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Intro_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Intro_01"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Music",
+   "slots": [
+    "DA_UI_Style.IntroMusic"
+   ],
+   "note": "Intro bed, played once: an A drone opening over 34 s, a slow pulse from 10 s, a rising arpeggio from 20 s, a swell into one hit at 34 s (the hand-over to wave 1) and a ringing A minor ninth chord. 40 s."
+  },
+  {
+   "name": "Weapon_NeedleCannons",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_NeedleCannons",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_01",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_02",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_03",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_04",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_05"
+   ],
+   "volume_db": -6.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Weapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_NeedleCannons_FX.Muzzle"
+   ],
+   "note": "Lancer primary, the anchor: a tight, dry needle. Fires most often, so it is short and has no tail."
+  },
+  {
+   "name": "Weapon_PhasePulseLasers",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_PhasePulseLasers",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_01",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_02",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_03",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_04"
+   ],
+   "volume_db": -6.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Weapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_PhasePulseLasers_FX.Muzzle"
+   ],
+   "note": "Rift primary: bright and phasey. Detuned saws with FM, a shimmer on top."
+  },
+  {
+   "name": "Weapon_SplitterBolt",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_SplitterBolt",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_01",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_02",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_03"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Weapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_SplitterBolt_FX.Muzzle"
+   ],
+   "note": "Rift secondary: three rising chirps (the bolt that splits) over one body."
+  },
+  {
+   "name": "Weapon_SpikeRockets",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_SpikeRockets",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_01",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_02",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_03"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Weapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_SpikeRockets_FX.Muzzle"
+   ],
+   "note": "Lancer secondary: a launch thunk and a rocket hiss leaving."
+  },
+  {
+   "name": "Weapon_BreakerBlaster",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_BreakerBlaster",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_01",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_02",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_03",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_04"
+   ],
+   "volume_db": -6.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Weapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_BreakerBlaster_FX.Muzzle"
+   ],
+   "note": "Bastion primary: a heavy thump. Low sine drop, a dark saw body, a short crack."
+  },
+  {
+   "name": "Weapon_FlakBurst",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_FlakBurst",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_01",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_02",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_03"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Weapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_FlakBurst_FX.Muzzle"
+   ],
+   "note": "Bastion secondary: a dull mortar poomp."
+  },
+  {
+   "name": "Weapon_MissileSwarm",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_MissileSwarm",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_01",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_02",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_03",
+    "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_04"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Weapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_MissileSwarm_FX.Muzzle"
+   ],
+   "note": "Bastion swarm: one small missile leaving the rack; many of these overlap."
+  },
+  {
+   "name": "Enemy_PulseGuns",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_PulseGuns",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_02",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_03",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_04"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "EnemyWeapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_PulseGuns_FX.Muzzle"
+   ],
+   "note": "Null Armada fighter guns: darker and growlier than any squad weapon (sub-octave FM)."
+  },
+  {
+   "name": "Enemy_HeavyBolt",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_HeavyBolt",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_02",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_03"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "EnemyWeapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_HeavyBolt_FX.Muzzle"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Enemy_Missile",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Missile",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_02",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_03"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "EnemyWeapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_HomingMissile_FX.Muzzle",
+    "DA_Enemy_SalvoMissile_FX.Muzzle"
+   ],
+   "note": "Interceptor / gunship missile launch."
+  },
+  {
+   "name": "Enemy_MineDrop",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_MineDrop",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_MineDrop_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_MineDrop_02"
+   ],
+   "volume_db": -13.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "EnemyWeapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_PlasmaMines_FX.Muzzle"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Enemy_PointDefense",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_PointDefense",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_02",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_03"
+   ],
+   "volume_db": -13.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "EnemyWeapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_PointDefense_FX.Muzzle"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Impact_Hull",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_PhasePulseLasers_FX.ImpactHull",
+    "DA_SplitterBolt_FX.ImpactHull",
+    "DA_NeedleCannons_FX.ImpactHull",
+    "DA_SpikeRockets_FX.ImpactHull",
+    "DA_BreakerBlaster_FX.ImpactHull",
+    "DA_FlakBurst_FX.ImpactHull",
+    "DA_MissileSwarm_FX.ImpactHull"
+   ],
+   "note": "A shot on armour: a thud plus three inharmonic metal partials that change per take."
+  },
+  {
+   "name": "Impact_Hull_Taken",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_PulseGuns_FX.ImpactHull",
+    "DA_Enemy_HeavyBolt_FX.ImpactHull",
+    "DA_Enemy_HomingMissile_FX.ImpactHull",
+    "DA_Enemy_SalvoMissile_FX.ImpactHull",
+    "DA_Enemy_PlasmaMines_FX.ImpactHull",
+    "DA_Enemy_PointDefense_FX.ImpactHull"
+   ],
+   "note": "Same takes, louder: enemy fire landing on the squad must be noticed."
+  },
+  {
+   "name": "Impact_Hull_Far",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.GeneratorHit",
+    "DA_Dominion_Visuals.ReactorHit"
+   ],
+   "note": "Same takes with the far attenuation: hits on the Dominion's generators and reactor."
+  },
+  {
+   "name": "Impact_Shield",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04"
+   ],
+   "volume_db": -13.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_PhasePulseLasers_FX.ImpactShield",
+    "DA_SplitterBolt_FX.ImpactShield",
+    "DA_NeedleCannons_FX.ImpactShield",
+    "DA_SpikeRockets_FX.ImpactShield",
+    "DA_BreakerBlaster_FX.ImpactShield",
+    "DA_FlakBurst_FX.ImpactShield",
+    "DA_MissileSwarm_FX.ImpactShield"
+   ],
+   "note": "A shot on an energy shield: glassy, rising, no thud."
+  },
+  {
+   "name": "Impact_Shield_Taken",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_PulseGuns_FX.ImpactShield",
+    "DA_Enemy_HeavyBolt_FX.ImpactShield",
+    "DA_Enemy_HomingMissile_FX.ImpactShield",
+    "DA_Enemy_SalvoMissile_FX.ImpactShield",
+    "DA_Enemy_PlasmaMines_FX.ImpactShield",
+    "DA_Enemy_PointDefense_FX.ImpactShield"
+   ],
+   "note": "A shot on an energy shield: glassy, rising, no thud."
+  },
+  {
+   "name": "Impact_Shield_Far",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Far",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.ShieldHit"
+   ],
+   "note": "A shot on an energy shield: glassy, rising, no thud."
+  },
+  {
+   "name": "Impact_World",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_03"
+   ],
+   "volume_db": -14.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_PhasePulseLasers_FX.ImpactWorld",
+    "DA_SplitterBolt_FX.ImpactWorld",
+    "DA_NeedleCannons_FX.ImpactWorld",
+    "DA_SpikeRockets_FX.ImpactWorld",
+    "DA_BreakerBlaster_FX.ImpactWorld",
+    "DA_FlakBurst_FX.ImpactWorld",
+    "DA_MissileSwarm_FX.ImpactWorld",
+    "DA_Enemy_PulseGuns_FX.ImpactWorld",
+    "DA_Enemy_HeavyBolt_FX.ImpactWorld",
+    "DA_Enemy_PointDefense_FX.ImpactWorld"
+   ],
+   "note": "A shot on rock or structure: a dull crack."
+  },
+  {
+   "name": "Detonation_Rocket",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_03"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_SpikeRockets_FX.Detonation",
+    "DA_MissileSwarm_FX.Detonation",
+    "DA_Enemy_HomingMissile_FX.Detonation",
+    "DA_Enemy_SalvoMissile_FX.Detonation",
+    "DA_Enemy_PlasmaMines_FX.Detonation"
+   ],
+   "note": "Rocket, missile and mine warheads: a sharp small blast."
+  },
+  {
+   "name": "Detonation_Flak",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Flak",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_03"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_FlakBurst_FX.Detonation"
+   ],
+   "note": "Flak: a crackling burst rather than one boom."
+  },
+  {
+   "name": "Deflected",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_03"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_PhasePulseLasers_FX.Deflected",
+    "DA_SplitterBolt_FX.Deflected",
+    "DA_NeedleCannons_FX.Deflected",
+    "DA_SpikeRockets_FX.Deflected",
+    "DA_BreakerBlaster_FX.Deflected",
+    "DA_FlakBurst_FX.Deflected",
+    "DA_MissileSwarm_FX.Deflected",
+    "DA_Enemy_PulseGuns_FX.Deflected",
+    "DA_Enemy_HeavyBolt_FX.Deflected",
+    "DA_Enemy_HomingMissile_FX.Deflected",
+    "DA_Enemy_SalvoMissile_FX.Deflected",
+    "DA_Enemy_PointDefense_FX.Deflected"
+   ],
+   "note": "A shot turned aside: a rising metallic ping."
+  },
+  {
+   "name": "Explosion_Small",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_03",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_04"
+   ],
+   "volume_db": -7.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Fighter_Visuals.Explosion",
+    "DA_Enemy_Interceptor_Visuals.Explosion",
+    "DA_Enemy_Carrier_Visuals.TurretDestroyed",
+    "DA_DominionTurret_Visuals.TurretDestroyed",
+    "DA_DominionTurret_Visuals.Explosion"
+   ],
+   "note": "Fighter / interceptor / turret: crack, falling body, sub drop, crackling debris."
+  },
+  {
+   "name": "Explosion_Medium",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_03"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Gunship_Visuals.Explosion",
+    "DA_Enemy_Bomber_Visuals.Explosion",
+    "DA_Enemy_Carrier_Visuals.BayDestroyed",
+    "DA_Rift_Visuals.Explosion",
+    "DA_Lancer_Visuals.Explosion",
+    "DA_Bastion_Visuals.Explosion"
+   ],
+   "note": "Gunship / bomber / a squad ship lost."
+  },
+  {
+   "name": "Explosion_Large",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Large_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Large_02"
+   ],
+   "volume_db": -3.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Carrier_Visuals.Explosion",
+    "DA_Dominion_Visuals.GeneratorExplosion",
+    "DA_Dominion_Visuals.ReactorDestroyed"
+   ],
+   "note": "Carrier, shield generator, reactor: two booms and a long low tail."
+  },
+  {
+   "name": "Dominion_Breakup",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_Breakup_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_Breakup_01"
+   ],
+   "volume_db": -2.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.BreakupSequence"
+   ],
+   "note": "The mothership coming apart: six staggered booms, a metal groan, a long rumble. The loudest thing in the game."
+  },
+  {
+   "name": "Engine_Lancer",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Lancer_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Lancer_01"
+   ],
+   "volume_db": -12.0,
+   "looping": true,
+   "att": "Space_Near",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [
+    "DA_Lancer_Visuals.EngineLoop"
+   ],
+   "note": "Interceptor: a tight mid whine over a fast flutter. Gameplay pitches it 0.8x to 1.4x by speed."
+  },
+  {
+   "name": "Engine_Rift",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Rift_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Rift_01"
+   ],
+   "volume_db": -12.0,
+   "looping": true,
+   "att": "Space_Near",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.EngineLoop"
+   ],
+   "note": "Trickster: hollow odd harmonics, wide detune and a slow phasing hiss."
+  },
+  {
+   "name": "Engine_Bastion",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Bastion_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Bastion_01"
+   ],
+   "volume_db": -11.0,
+   "looping": true,
+   "att": "Space_Near",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [
+    "DA_Bastion_Visuals.EngineLoop"
+   ],
+   "note": "Heavy: a low throb with a rumble bed."
+  },
+  {
+   "name": "Boost_Start",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Boost_Start",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Start_01",
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Start_02"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Ship",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.BoostStart",
+    "DA_Lancer_Visuals.BoostStart",
+    "DA_Bastion_Visuals.BoostStart"
+   ],
+   "note": "Afterburner kick: a thump and a rising rush."
+  },
+  {
+   "name": "Boost_Loop",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Loop_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Loop_01"
+   ],
+   "volume_db": -9.0,
+   "looping": true,
+   "att": "Space_Near",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.BoostLoop",
+    "DA_Lancer_Visuals.BoostLoop",
+    "DA_Bastion_Visuals.BoostLoop"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Drift_Loop",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Loop_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Loop_01"
+   ],
+   "volume_db": -12.0,
+   "looping": true,
+   "att": "Space_Near",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.DriftLoop",
+    "DA_Lancer_Visuals.DriftLoop",
+    "DA_Bastion_Visuals.DriftLoop"
+   ],
+   "note": "Drift: a strained, fluttering energy screech (kept under 6.5 kHz so it does not tire)."
+  },
+  {
+   "name": "Drift_Release",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Drift_Release",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Release_01",
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Release_02"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Ship",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.DriftRelease",
+    "DA_Lancer_Visuals.DriftRelease",
+    "DA_Bastion_Visuals.DriftRelease"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Dodge",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Dodge",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_01",
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_02",
+    "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Dodge_03"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Ship",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.Dodge",
+    "DA_Lancer_Visuals.Dodge",
+    "DA_Bastion_Visuals.Dodge"
+   ],
+   "note": "Side-thruster burst."
+  },
+  {
+   "name": "Collision_Scrape",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Collision_Scrape",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Collision_Scrape_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Collision_Scrape_02"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.CollisionScrape",
+    "DA_Lancer_Visuals.CollisionScrape",
+    "DA_Bastion_Visuals.CollisionScrape"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Alarm_LowHull",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01"
+   ],
+   "volume_db": -12.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.LowHullLoop",
+    "DA_Lancer_Visuals.LowHullLoop",
+    "DA_Bastion_Visuals.LowHullLoop"
+   ],
+   "note": "Low-hull warning: two soft notes every half second over a quiet bed. NOT wired: ATDShip never plays LowHullLoop (and would have to gate and stop it)."
+  },
+  {
+   "name": "Shield_Break",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01"
+   ],
+   "volume_db": -7.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Gunship_Visuals.FrontalShieldBreak",
+    "DA_Rift_Visuals.ShieldBreak",
+    "DA_Lancer_Visuals.ShieldBreak",
+    "DA_Bastion_Visuals.ShieldBreak"
+   ],
+   "note": "A shield failing: a glassy FM fall and crackle."
+  },
+  {
+   "name": "Shield_Restore",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Restore_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Restore_01"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Gunship_Visuals.FrontalShieldRestore"
+   ],
+   "note": ""
+  },
+  {
+   "name": "UI_HitConfirm",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_HitConfirm_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_HitConfirm_01"
+   ],
+   "volume_db": -14.0,
+   "looping": false,
+   "att": null,
+   "con": "UITick",
+   "cls": "UI",
+   "slots": [
+    "DA_UI_Style.HitConfirm"
+   ],
+   "note": "A shot landed: one tiny tick. NOT played yet: nothing reads UTDUIStyle::HitConfirm."
+  },
+  {
+   "name": "UI_KillConfirm",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_KillConfirm_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_KillConfirm_01"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": null,
+   "con": "UITick",
+   "cls": "UI",
+   "slots": [
+    "DA_UI_Style.KillConfirm"
+   ],
+   "note": "A kill: two rising bell notes (E6, B6)."
+  },
+  {
+   "name": "Enemy_WarpIn",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_WarpIn",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_WarpIn_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_WarpIn_02"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.EnemyWarpIn"
+   ],
+   "note": "An enemy arriving: a swelling growl that snaps into a thud."
+  },
+  {
+   "name": "Enemy_Telegraph",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Telegraph_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Telegraph_02"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "EnemyWeapon",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Fighter_Visuals.Telegraph",
+    "DA_Enemy_Interceptor_Visuals.Telegraph",
+    "DA_Enemy_Gunship_Visuals.Telegraph",
+    "DA_Enemy_Bomber_Visuals.Telegraph",
+    "DA_Enemy_Carrier_Visuals.Telegraph",
+    "DA_DominionTurret_Visuals.Telegraph",
+    "DA_Enemy_Carrier_Visuals.BayLaunchTelegraph"
+   ],
+   "note": "The wind-up before a big enemy attack: a rising, pulsing warning that has to cut through a dogfight."
+  },
+  {
+   "name": "Enemy_Stunned",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01"
+   ],
+   "volume_db": -13.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Fighter_Visuals.Stunned",
+    "DA_Enemy_Interceptor_Visuals.Stunned",
+    "DA_Enemy_Gunship_Visuals.Stunned",
+    "DA_Enemy_Bomber_Visuals.Stunned",
+    "DA_Enemy_Carrier_Visuals.Stunned"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Enemy_DeathTumble",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_DeathTumble_01",
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_DeathTumble_02"
+   ],
+   "volume_db": -14.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Fighter_Visuals.DeathTumble",
+    "DA_Enemy_Interceptor_Visuals.DeathTumble",
+    "DA_Enemy_Gunship_Visuals.DeathTumble",
+    "DA_Enemy_Bomber_Visuals.DeathTumble",
+    "DA_Enemy_Carrier_Visuals.DeathTumble"
+   ],
+   "note": "A crippled ship spinning out: a falling, wobbling whine with sputter."
+  },
+  {
+   "name": "Carrier_BayLaunch",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Carrier_BayLaunch_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Carrier_BayLaunch_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Enemy_Carrier_Visuals.BayLaunch"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Squad_RespawnWarpIn",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Squad_RespawnWarpIn_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Squad_RespawnWarpIn_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Ship",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.RespawnWarpIn",
+    "DA_Lancer_Visuals.RespawnWarpIn",
+    "DA_Bastion_Visuals.RespawnWarpIn"
+   ],
+   "note": "A squad ship returning: a rising rush that lands on a bright bell (friendly, unlike the enemy warp)."
+  },
+  {
+   "name": "Dominion_WarpIn",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01"
+   ],
+   "volume_db": -4.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.WarpIn"
+   ],
+   "note": "The mothership arrives: a boom under a slow, detuned low horn (root and fifth)."
+  },
+  {
+   "name": "Dominion_ShieldSectionDown",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.ShieldSectionDown"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Dominion_ShieldCollapse",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldCollapse_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldCollapse_01"
+   ],
+   "volume_db": -3.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.ShieldCollapse"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Dominion_ReactorExposed",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorExposed_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorExposed_01"
+   ],
+   "volume_db": -4.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.ReactorExposed"
+   ],
+   "note": "The reactor laid bare: power building to a hit."
+  },
+  {
+   "name": "Dominion_ReactorPhaseChange",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorPhaseChange_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorPhaseChange_01"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_Dominion_Visuals.ReactorPhaseChange"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Power_Ram_Windup",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_Windup_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_Windup_01"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Lancer_Visuals.PowerWindup"
+   ],
+   "note": "Lancer afterburner ram, charge: a fast rising whine."
+  },
+  {
+   "name": "Power_Ram",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_01"
+   ],
+   "volume_db": -4.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Lancer_Visuals.PowerActive"
+   ],
+   "note": "Lancer ram: a hard afterburner blast that tears past."
+  },
+  {
+   "name": "Power_Ram_End",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_End_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_End_01"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Lancer_Visuals.PowerEnd"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Power_PortalShot",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_PortalShot_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_PortalShot_01"
+   ],
+   "volume_db": -4.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Rift_Visuals.PowerActive"
+   ],
+   "note": "Rift portal blaster firing: a deep, phasey vwoop."
+  },
+  {
+   "name": "Portal_Open",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Open_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Open_01"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.PortalOpen"
+   ],
+   "note": "A portal tearing open: a swell that blooms into a bell."
+  },
+  {
+   "name": "Portal_Idle",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Idle_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Idle_01"
+   ],
+   "volume_db": -16.0,
+   "looping": true,
+   "att": "Space_Near",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.PortalIdle"
+   ],
+   "note": "An open portal or gate: a hollow, slowly phasing hum with a faint sparkle."
+  },
+  {
+   "name": "Portal_Close",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Close_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Close_01"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.PortalClose"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Portal_Transit",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/MSS_Portal_Transit",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_01",
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_02",
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Transit_03"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.PortalTransit"
+   ],
+   "note": "Something passing through a portal or gate (a ship, or a missile sent back): up then down, quick."
+  },
+  {
+   "name": "Power_Swarm",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Swarm_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Swarm_01"
+   ],
+   "volume_db": -4.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Bastion_Visuals.PowerActive"
+   ],
+   "note": "Bastion missile swarm: racks unlock (clunk, two ticks) and the salvo rush starts; each missile then has its own launch."
+  },
+  {
+   "name": "Power_Dome_Up",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Up_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Up_01"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Bastion_Visuals.Power2Active"
+   ],
+   "note": "Bastion shield dome raising: a wide shimmer swell on a low anchor."
+  },
+  {
+   "name": "Power_Dome_Down",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Down_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Down_01"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Bastion_Visuals.PowerEnd"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Ability_Cloak_On",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_On_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_On_01"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Ability_Cloak_FX.Activate"
+   ],
+   "note": "Rift cloak: the ship shimmers away (falling, fluttering glass)."
+  },
+  {
+   "name": "Ability_Cloak_Off",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_Off_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_Off_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Ability_Cloak_FX.End"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Ability_EMP",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_01"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Ability_EMPPulse_FX.Activate"
+   ],
+   "note": "Lancer EMP pulse: a sub thump with a wide electric crackle."
+  },
+  {
+   "name": "Ability_EMP_Zap",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/MSS_Ability_EMP_Zap",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_Zap_01",
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_Zap_02",
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_Zap_03"
+   ],
+   "volume_db": -15.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Ability_EMPPulse_FX.AffectedTarget"
+   ],
+   "note": "One hostile caught by the EMP; several play together, so it is short and quiet."
+  },
+  {
+   "name": "Ability_GravityWell_On",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_On_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_On_01"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Ability_GravityWell_FX.Activate"
+   ],
+   "note": "Bastion gravity well: everything is pulled down and in, then a boom."
+  },
+  {
+   "name": "Ability_GravityWell_Loop",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_Loop_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_Loop_01"
+   ],
+   "volume_db": -12.0,
+   "looping": true,
+   "att": "Space_Medium",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [
+    "DA_Ability_GravityWell_FX.Loop"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Ability_GravityWell_End",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_End_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_End_01"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Ability_GravityWell_FX.End"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Switch_Rift",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Rift_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Rift_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Cine",
+   "slots": [
+    "DA_Rift_Visuals.SwitchIn"
+   ],
+   "note": "The switch cut to Rift. All three share one splice (whoosh + shutter click); the tone names the ship: Rift a bright rising FM blip."
+  },
+  {
+   "name": "Switch_Lancer",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Lancer_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Lancer_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Cine",
+   "slots": [
+    "DA_Lancer_Visuals.SwitchIn"
+   ],
+   "note": "The switch cut to Lancer: two hard, quick ticks (A6, E7)."
+  },
+  {
+   "name": "Switch_Bastion",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Bastion_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Bastion_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Cine",
+   "slots": [
+    "DA_Bastion_Visuals.SwitchIn"
+   ],
+   "note": "The switch cut to Bastion: a low, falling thud tone (G3 to C3)."
+  },
+  {
+   "name": "Cine_Slate",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Slate_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Slate_01"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Cine",
+   "slots": [],
+   "note": "Take start: a clapperboard. A soft hinge flick, then a dry woody crack in a small room. NOT wired: no cue slot exists for the slate."
+  },
+  {
+   "name": "Cine_Cut",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Cut_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Cut_01"
+   ],
+   "volume_db": -7.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Cine",
+   "slots": [],
+   "note": "\"CUT!\" without a voice: the slate crack, a stage buzzer, and the scene winding down like stopped tape. NOT wired: no cue slot exists."
+  },
+  {
+   "name": "Cine_SlowMoIn",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoIn_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoIn_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Cine",
+   "slots": [],
+   "note": "Into a slow-motion money shot: everything sinks. NOT wired: no cue slot exists."
+  },
+  {
+   "name": "Cine_SlowMoOut",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoOut_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoOut_01"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "Cine",
+   "slots": [],
+   "note": ""
+  },
+  {
+   "name": "Hyperdrive_Spool",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Spool_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Spool_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.HyperdriveSpool"
+   ],
+   "note": "Hyperdrive wind-up (the spool lasts 1.2 s): a detuned riser and a rising rush."
+  },
+  {
+   "name": "Hyperdrive_Tunnel",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Tunnel_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Tunnel_01"
+   ],
+   "volume_db": -8.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.HyperdriveTunnel"
+   ],
+   "note": "Inside the jump: a rushing bed with a slow swirl and a high shimmer. 2D."
+  },
+  {
+   "name": "Hyperdrive_DropOut",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_DropOut_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_DropOut_01"
+   ],
+   "volume_db": -7.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.HyperdriveDropOut"
+   ],
+   "note": "Dropping out of the jump: a boom and a fast deceleration."
+  },
+  {
+   "name": "Hyperdrive_Refused",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Refused_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Refused_01"
+   ],
+   "volume_db": -16.0,
+   "looping": false,
+   "att": null,
+   "con": "UITick",
+   "cls": "UI",
+   "slots": [
+    "DA_Travel_FX.HyperdriveRefused"
+   ],
+   "note": "Hyperdrive locked: a low double knock (consonant = good, low knock = no)."
+  },
+  {
+   "name": "Travel_AtmosphericEntry",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_AtmosphericEntry_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_AtmosphericEntry_01"
+   ],
+   "volume_db": -8.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.AtmosphericEntry"
+   ],
+   "note": "Atmospheric entry: buffeting wind roar. 2D."
+  },
+  {
+   "name": "Travel_LandingDust",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_LandingDust_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_LandingDust_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Ground_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.LandingDust"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Travel_TakeOff",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_TakeOff_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_TakeOff_01"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Ground_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.TakeOff"
+   ],
+   "note": ""
+  },
+  {
+   "name": "UI_Move",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Move_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Move_01"
+   ],
+   "volume_db": -26.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "UI",
+   "slots": [],
+   "note": "Menu move: one soft tick (E6). NOT wired: menus have no sound slot."
+  },
+  {
+   "name": "UI_Confirm",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Confirm_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Confirm_01"
+   ],
+   "volume_db": -16.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "UI",
+   "slots": [],
+   "note": "Confirm: A5 up to E6."
+  },
+  {
+   "name": "UI_Back",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Back_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Back_01"
+   ],
+   "volume_db": -18.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "UI",
+   "slots": [],
+   "note": "Back: C6 down to G5."
+  },
+  {
+   "name": "UI_PauseIn",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseIn_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseIn_01"
+   ],
+   "volume_db": -16.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "UI",
+   "slots": [],
+   "note": "Pause: the world dips (A5 gliding down an octave)."
+  },
+  {
+   "name": "UI_PauseOut",
+   "cat": "ui",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseOut_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseOut_01"
+   ],
+   "volume_db": -16.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "UI",
+   "slots": [],
+   "note": ""
+  },
+  {
+   "name": "Objective_Complete",
+   "cat": "sting",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/UI/SW_Objective_Complete_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/UI/SW_Objective_Complete_01"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "UI",
+   "slots": [],
+   "note": "Objective complete: A4 C5 E5 A5 bells rising. NOT wired: no cue slot exists."
+  },
+  {
+   "name": "Blade_Ignite",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Ignite_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Ignite_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.Ignite"
+   ],
+   "note": "Energy blade on: a snap, a rising buzz that settles."
+  },
+  {
+   "name": "Blade_Retract",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Retract_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Retract_01"
+   ],
+   "volume_db": -14.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.Retract"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Blade_SwingLight",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_SwingLight",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_01",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_02",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_03",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingLight_04"
+   ],
+   "volume_db": -14.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.SwingLight"
+   ],
+   "note": "Light swing: the hum sweeping past."
+  },
+  {
+   "name": "Blade_SwingHeavy",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_SwingHeavy",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingHeavy_01",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_SwingHeavy_02"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.SwingHeavy"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Blade_Hit",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Hit",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Hit_01",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Hit_02",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Hit_03"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.Hit"
+   ],
+   "note": "Blade lands: a crackling zap and a thud."
+  },
+  {
+   "name": "Blade_Block",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Block",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Block_01",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Block_02"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.Block"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Blade_Deflect",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Deflect",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_01",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_02",
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_03"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.Deflect"
+   ],
+   "note": "A bolt deflected: a bright rising ping."
+  },
+  {
+   "name": "Blade_PerfectDeflect",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_PerfectDeflect_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_PerfectDeflect_01"
+   ],
+   "volume_db": -7.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.PerfectDeflect"
+   ],
+   "note": "Perfect deflect, a signature: a full bell (A6 with fifth and octave) over a thump."
+  },
+  {
+   "name": "Blade_GuardBreak",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_GuardBreak_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_GuardBreak_01"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.GuardBreak"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Blade_AirSlam",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_AirSlam_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_AirSlam_01"
+   ],
+   "volume_db": -7.0,
+   "looping": false,
+   "att": "Ground_Medium",
+   "con": "Blade",
+   "cls": "SFX",
+   "slots": [
+    "DA_Blade_FX.AirSlam"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Crew_Hit",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Hit",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_01",
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_02",
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_03"
+   ],
+   "volume_db": -14.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Crew_Grunt_Visuals.HullHit",
+    "DA_Crew_Trooper_Visuals.HullHit",
+    "DA_Crew_Heavy_Visuals.HullHit"
+   ],
+   "note": "A crew trooper's armour taking a hit: a short thwack (plays with the blade's own hit, so it is quiet)."
+  },
+  {
+   "name": "Crew_ShieldHit",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_ShieldHit",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04"
+   ],
+   "volume_db": -13.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Crew_Grunt_Visuals.ShieldHit",
+    "DA_Crew_Trooper_Visuals.ShieldHit",
+    "DA_Crew_Heavy_Visuals.ShieldHit"
+   ],
+   "note": "A shot on an energy shield: glassy, rising, no thud."
+  },
+  {
+   "name": "Crew_Stagger",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Stagger_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Stagger_01"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Crew_Grunt_Visuals.Stagger",
+    "DA_Crew_Trooper_Visuals.Stagger",
+    "DA_Crew_Heavy_Visuals.Stagger"
+   ],
+   "note": ""
+  },
+  {
+   "name": "Crew_Death",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Death",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Death_01",
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Death_02"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Crew_Grunt_Visuals.Death",
+    "DA_Crew_Trooper_Visuals.Death",
+    "DA_Crew_Heavy_Visuals.Death"
+   ],
+   "note": "A Null trooper going down: its suit powers down, then a thud. No voice."
+  },
+  {
+   "name": "Crew_Melee",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Melee",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Melee_01",
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Melee_02"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Ground_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Crew_Grunt_Visuals.Explosion",
+    "DA_Crew_Trooper_Visuals.Explosion",
+    "DA_Crew_Heavy_Visuals.Explosion"
+   ],
+   "note": "A crew melee / slam landing: a whoosh into a ground thud."
+  },
+  {
+   "name": "Crew_RifleShot",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_RifleShot",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_01",
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_02",
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_03",
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_04"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Ground_Medium",
+   "con": "EnemyWeapon",
+   "cls": "SFX",
+   "slots": [],
+   "note": "Trooper blaster rifle. NOT wired: the crew's bolt has no weapon FX asset to carry a Muzzle sound."
+  },
+  {
+   "name": "Drone_Hum",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Drone_Hum_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Drone_Hum_01"
+   ],
+   "volume_db": -12.0,
+   "looping": true,
+   "att": "Ground_Medium",
+   "con": "Loop",
+   "cls": "SFX",
+   "slots": [],
+   "note": "Crew drone rotor hum. NOT wired: crew characters have no loop slot."
+  },
+  {
+   "name": "Foot_Step_Soil",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Step_Soil",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_02",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_03",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_04"
+   ],
+   "volume_db": -22.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Footstep",
+   "cls": "SFX",
+   "slots": [],
+   "note": "Footstep on Verdance: a soft thud with leaf crunch. NOT wired: no footstep slot exists."
+  },
+  {
+   "name": "Foot_Step_Rock",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Step_Rock",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_02",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_03",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_04"
+   ],
+   "volume_db": -22.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Footstep",
+   "cls": "SFX",
+   "slots": [],
+   "note": "Footstep on Cinder: a harder click with grit. NOT wired."
+  },
+  {
+   "name": "Foot_Dash",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Dash",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Dash_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Dash_02"
+   ],
+   "volume_db": -14.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Footstep",
+   "cls": "SFX",
+   "slots": [],
+   "note": "NOT wired."
+  },
+  {
+   "name": "Foot_Jump",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Jump",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Jump_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Jump_02"
+   ],
+   "volume_db": -20.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Footstep",
+   "cls": "SFX",
+   "slots": [],
+   "note": "NOT wired."
+  },
+  {
+   "name": "Foot_Land",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Land",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_02"
+   ],
+   "volume_db": -16.0,
+   "looping": false,
+   "att": "Ground_Near",
+   "con": "Footstep",
+   "cls": "SFX",
+   "slots": [],
+   "note": "NOT wired."
+  },
+  {
+   "name": "Player_Hurt",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Player_Hurt",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_02",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_03"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [],
+   "note": "The player hit on foot: a body thud and a faint ring. No voice. NOT wired."
+  },
+  {
+   "name": "Ambience_Space",
+   "cat": "ambience",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Space_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Space_01"
+   ],
+   "volume_db": -24.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "Ambience",
+   "slots": [],
+   "note": "Space room tone: a very low bed, a slow drone, a distant shimmer. NOT wired: no ambience slot exists."
+  },
+  {
+   "name": "Ambience_Verdance",
+   "cat": "ambience",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Verdance_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Verdance_01"
+   ],
+   "volume_db": -24.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "Ambience",
+   "slots": [],
+   "note": "Verdance, bioluminescent jungle: air through leaves, an insect shimmer that comes and goes, a soft glow hum, scattered chirps and drips. NOT wired."
+  },
+  {
+   "name": "Ambience_Cinder",
+   "cat": "ambience",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Cinder_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Cinder_01"
+   ],
+   "volume_db": -24.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "Ambience",
+   "slots": [],
+   "note": "Cinder, volcanic: a deep rumble, hot wind, lava pops and crackle. NOT wired."
+  }
+ ]
+}

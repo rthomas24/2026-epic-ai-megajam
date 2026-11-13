@@ -978,7 +978,13 @@ namespace TDPlayedTest
 		/** Walk up to an interactable, look at it and hold E (tap when Hold is 0). */
 		bool Use(AActor* A, float Hold, const FVector& LookPoint = FVector::ZeroVector)
 		{
-			if (!RunTo(A->GetActorLocation(), 170.f, 30.f, false)) { return false; }
+			// Stand at the console's side, as a player does (consoles have a steep cap: nobody stands on one).
+			FVector Origin, Extent;
+			A->GetActorBounds(true, Origin, Extent);
+			const float Half = (float)FMath::Max(Extent.X, Extent.Y);
+			FVector Side = (FP->GetActorLocation() - A->GetActorLocation()).GetSafeNormal2D();
+			if (Side.IsNearlyZero()) { Side = FVector(-1.f, 0.f, 0.f); }
+			if (!RunTo(A->GetActorLocation() + Side * (Half + 70.f), 80.f, 30.f, false)) { return false; }
 			LookAt(LookPoint.IsZero() ? A->GetActorLocation() : LookPoint);
 			Tick(0.1f);
 			Key(EKeys::E, true);

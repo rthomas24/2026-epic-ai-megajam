@@ -133,11 +133,28 @@ ATDInteractableActor::ATDInteractableActor()
 	Mesh->SetRelativeScale3D(FVector(0.6f, 0.6f, 1.2f));
 	Mesh->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 	Mesh->SetCollisionResponseToChannel(TDCollision::Interactable, ECR_Block);
-	// A console is not ground: no stepping up onto it, its top is not walkable (third-person playthrough, Nov 13: a pilot
-	// on the wreck console was out of every melee crewman's reach). Known gap: a pilot who jumps up still perches on the
-	// flat top (a push-off broke the played tests' console use; open item in ground.md).
+	// A console is not ground: no stepping up onto it, its top is not walkable, and a steep cap (below) makes a pilot who
+	// jumps up slide off (third-person playthrough, Nov 13: a pilot on the wreck console was out of every melee crewman's
+	// reach and the site fight never ended).
 	Mesh->SetWalkableSlopeOverride(FWalkableSlopeOverride(EWalkableSlopeBehavior::WalkableSlope_Unwalkable, 0.f));
 	Mesh->CanCharacterStepUpOn = ECB_No;
+	TopCap = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TopCap"));
+	TopCap->SetupAttachment(Mesh);
+	TopCap->SetStaticMesh(TDGroundShapes::Cylinder());
+	TopCap->SetHiddenInGame(true);
+	TopCap->SetCastShadow(false);
+	TopCap->SetCanEverAffectNavigation(false);
+	TopCap->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	TopCap->SetCollisionObjectType(ECC_WorldStatic);
+	TopCap->SetCollisionResponseToAllChannels(ECR_Ignore); // traces, the camera, bolts and interaction pass through
+	TopCap->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	TopCap->SetWalkableSlopeOverride(FWalkableSlopeOverride(EWalkableSlopeBehavior::WalkableSlope_Unwalkable, 0.f));
+	TopCap->CanCharacterStepUpOn = ECB_No;
+	// In the console's own unit-cube space: a column inside the square top (never wider than the console, so nothing
+	// walking past - a charging Warden, a strafing pilot - catches on it), 2.5 console-heights tall: its top is far above
+	// the pilot's double-jump reach (~2.2 m), and the corners left beside it are too small to stand on. (A steep cone
+	// still let a character rest on its flank: CharacterMovement can sit still on an unwalkable slope while falling.)
+	TopCap->SetRelativeScale3D(FVector(1.f, 1.f, 2.5f));
 	ConsoleMesh = TDPropArt::Default(TEXT("SM_Console"));
 }
 
@@ -145,7 +162,17 @@ void ATDInteractableActor::BeginPlay()
 {
 	Super::BeginPlay();
 	TDGroundShapes::Tint(Mesh, FLinearColor(0.1f, 0.7f, 0.9f)); // readable cyan console, solid
-	TDPropArt::Dress(Mesh, TDPropArt::Load(ConsoleMesh));
+	// A console whose own art is missing (the board point's SM_BoardPoint does not exist yet) wears the kit console,
+	// never the bare cyan placeholder box (it filled the bottom of the view at the pads).
+	UStaticMesh* Art = TDPropArt::Load(ConsoleMesh);
+	TDPropArt::Dress(Mesh, Art ? Art : TDPropArt::Load(TDPropArt::Default(TEXT("SM_Console"))));
+	if (TopCap && TopCap->GetStaticMesh() && Mesh->GetStaticMesh())
+	{
+		// The column's base sits on the console's top face (both in the console mesh's local space).
+		const float Top = (float)Mesh->GetStaticMesh()->GetBoundingBox().Max.Z;
+		const float ConeBottom = (float)TopCap->GetStaticMesh()->GetBoundingBox().Min.Z * (float)TopCap->GetRelativeScale3D().Z;
+		TopCap->SetRelativeLocation(FVector(0.f, 0.f, Top - ConeBottom));
+	}
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
 		Scene->RegisterInteractable(this); // a retake makes it usable again while its objective is unfinished

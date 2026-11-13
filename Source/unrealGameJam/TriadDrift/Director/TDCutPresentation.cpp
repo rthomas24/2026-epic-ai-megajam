@@ -1,6 +1,7 @@
 // Triad Drift - Director (Teammate 3). C-03 fallback presentation (see header).
 
 #include "TriadDrift/Director/TDCutPresentation.h"
+#include "TriadDrift/Director/TDDirectorSounds.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "Fonts/FontMeasure.h"
@@ -186,6 +187,7 @@ void UTDCutPresentation::PreviewFirstSlate(FName SceneId)
 	Slate = MakeSlateText(SceneId, 1, 1);
 	SlateStart = Now();
 	PreviewSlateAt = SlateStart;
+	FTDDirectorSounds::Play(OwnerWorld.Get(), ETDDirectorSound::SlateClap);
 }
 
 void UTDCutPresentation::EnsureViewportWidget()
@@ -315,6 +317,7 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 
 void UTDCutPresentation::HandleSceneCut(float DelaySeconds)
 {
+	FTDDirectorSounds::Play(OwnerWorld.Get(), ETDDirectorSound::CutSting); // ENG-35: with the card, drawn by us or by Nick
 	if (bHandledExternally)
 	{
 		return;
@@ -326,9 +329,14 @@ void UTDCutPresentation::HandleSceneCut(float DelaySeconds)
 
 void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 {
-	if (bHandledExternally || SceneId.IsNone())
+	if (SceneId.IsNone())
 	{
 		return; // a death outside any scene has no slate
+	}
+	if (bHandledExternally)
+	{
+		FTDDirectorSounds::Play(OwnerWorld.Get(), ETDDirectorSound::SlateClap); // Nick's widget draws the slate; the clap is ours
+		return;
 	}
 	if (IsSuppressedByIntro())
 	{
@@ -348,6 +356,7 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 	}
 	CutStart = -1000.0; // the take replaces the CUT! card
 	SlateStart = Now();
+	FTDDirectorSounds::Play(OwnerWorld.Get(), ETDDirectorSound::SlateClap); // ENG-35: the clap as the slate comes up
 	// The scene's number in this run and, for a planet objective, the planet: from the game flow.
 	int32 SceneNumber = 0;
 	FString Place;

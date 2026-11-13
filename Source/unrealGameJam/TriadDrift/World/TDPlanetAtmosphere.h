@@ -176,4 +176,8 @@ protected:
 	float PollTimer = 0.f;
 	bool bOpen = false;
 	bool bEntered = false;
+	/** The squad ship's entry this planet started (T1, review M1): when it goes back to idle without travelling
+	 *  (Pause > Restart Scene, death, a failed or timed-out travel) the planet re-arms once the ship is outside. */
+	TWeakObjectPtr<class UTDAtmosphereEntryComponent> EntryInFlight;
+	bool bRearmOnExit = false;
 };

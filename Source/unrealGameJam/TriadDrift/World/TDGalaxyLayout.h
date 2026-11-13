@@ -136,6 +136,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Galaxy", meta = (WorldContext = "WorldContext"))
 	static ATDGalaxyLayout* Get(const UObject* WorldContext);
+	/** Re-applies each gate pair's open phases now (also every second); planet orbit gates close while a wave runs. */
+	void UpdateGatePhases();
 
 	/** The one call for the game mode: the existing layout, or a new one with the default galaxy. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Galaxy", meta = (WorldContext = "WorldContext"))
@@ -256,7 +258,6 @@ protected:
 
 	void BuildPlanets();
 	void BuildGates();
-	void UpdateGatePhases();
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
 	TObjectPtr<UInstancedStaticMeshComponent> Asteroids;

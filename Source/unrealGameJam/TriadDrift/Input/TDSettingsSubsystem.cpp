@@ -4,6 +4,11 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/GameInstance.h"
@@ -22,6 +27,9 @@ namespace TDSettings
 {
 	static const TCHAR* MusicClassPath = TEXT("/Game/TriadDrift/Audio/Mix/SC_TD_Music.SC_TD_Music");
 	static const TCHAR* EffectsClassPath = TEXT("/Game/TriadDrift/Audio/Mix/SC_TD_SFX.SC_TD_SFX");
+	// ENG-35 engineering fallback sounds: parent of SC_TDE_SFX / _UI / _Cine / _Ambience (the class reaches a cooked
+	// game through the sounds that use it).
+	static const TCHAR* EngEffectsClassPath = TEXT("/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_Master.SC_TDE_Master");
 
 	static USoundClass* LoadClassIfPresent(const TCHAR* ObjectPath)
 	{
@@ -56,6 +64,10 @@ void UTDSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		bApplyVideo = false;
 	}
 	Load();
+	if (!GIsAutomationTesting)
+	{
+		ApplyPreferredDifficulty(); // the run that starts from the menu uses the player's choice (Continue restores its own)
+	}
 	ApplyVideo(true);
 	ApplyAudio();
 	// A level travel (menu -> galaxy, planet trips) never carries the page into the next map.
@@ -132,6 +144,94 @@ void UTDSettingsSubsystem::SetGamepadSensitivity(float V) { Settings.GamepadSens
 void UTDSettingsSubsystem::SetGamepadDeadzone(float V) { Settings.GamepadDeadzone = V; Changed(); }
 void UTDSettingsSubsystem::SetInvertGamepadY(bool b) { Settings.bInvertGamepadY = b; Changed(); }
 void UTDSettingsSubsystem::SetHintsEnabled(bool b) { Settings.bHintsEnabled = b; Changed(); }
+
+void UTDSettingsSubsystem::SetDifficulty(ETDDifficulty Difficulty)
+{
+	Settings.Difficulty = Difficulty;
+	Changed();
+	ApplyPreferredDifficulty();
+}
+
+ETDDifficulty UTDSettingsSubsystem::GetDifficultyInPlay()
+{
+	return UTDDifficultySettings::GetCurrent();
+}
+
+void UTDSettingsSubsystem::ApplyPreferredDifficulty()
+{
+	// Through the game instance when there is one: it also writes the run's save slot (Continue keeps it).
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(GetGameInstance()))
+	{
+		GI->SetDifficulty(Settings.Difficulty);
+	}
+	else
+	{
+		UTDDifficultySettings::SetCurrent(Settings.Difficulty);
+	}
+	UE_LOG(LogTriadDrift, Log, TEXT("TD settings: difficulty %s"), *DifficultyName(Settings.Difficulty).ToString());
+}
+
+namespace TDUISounds
+{
+	static int32 Requests[5] = { 0, 0, 0, 0, 0 };
+}
+
+void UTDSettingsSubsystem::PlayUISound(const UObject* WorldContextObject, ETDUISound Sound)
+{
+	const int32 Index = FMath::Clamp((int32)Sound, 0, 4);
+	++TDUISounds::Requests[Index];
+	UWorld* World = (GEngine && WorldContextObject) ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::ReturnNull) : nullptr;
+	if (!World || GIsAutomationTesting)
+	{
+		return; // tests count the request; they never load or play sound assets
+	}
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	if (!Style)
+	{
+		return;
+	}
+	const FTDFXCue* Cue = nullptr;
+	switch (Sound)
+	{
+	case ETDUISound::Move: Cue = &Style->UIMove; break;
+	case ETDUISound::Confirm: Cue = &Style->UIConfirm; break;
+	case ETDUISound::Back: Cue = &Style->UIBack; break;
+	case ETDUISound::PauseIn: Cue = &Style->PauseIn; break;
+	case ETDUISound::PauseOut: Cue = &Style->PauseOut; break;
+	}
+	if (Cue && !Cue->Sound.IsNull())
+	{
+		if (USoundBase* Wave = Cue->Sound.LoadSynchronous())
+		{
+			// Pause sounds play while the game is paused: UI sounds are 2D and ignore pause (bIsUISound).
+			UGameplayStatics::PlaySound2D(World, Wave, 1.f, 1.f, 0.f, nullptr, nullptr, /*bIsUISound*/ true);
+		}
+	}
+}
+
+int32 UTDSettingsSubsystem::GetUISoundRequestsForTests(ETDUISound Sound)
+{
+	return TDUISounds::Requests[FMath::Clamp((int32)Sound, 0, 4)];
+}
+
+FText UTDSettingsSubsystem::DifficultyName(ETDDifficulty Difficulty)
+{
+	switch (Difficulty)
+	{
+	case ETDDifficulty::Story: return NSLOCTEXT("TDSettings", "Story", "Story");
+	case ETDDifficulty::Ace: return NSLOCTEXT("TDSettings", "Ace", "Ace");
+	default: return NSLOCTEXT("TDSettings", "Standard", "Standard");
+	}
+}
+
+FText UTDSettingsSubsystem::DifficultyDescription(ETDDifficulty Difficulty)
+{
+	const FTDDifficultyScale& S = UTDDifficultySettings::GetScaleFor(Difficulty);
+	auto Pct = [](float V) { return FMath::RoundToInt(V * 100.f); };
+	const TCHAR* Mood = Difficulty == ETDDifficulty::Story ? TEXT("Relaxed.") : Difficulty == ETDDifficulty::Ace ? TEXT("Brutal.") : TEXT("As designed.");
+	return FText::FromString(FString::Printf(TEXT("%s Enemy toughness %d%%, enemy damage %d%%, wave size %d%%. Applies as new enemies arrive."),
+		Mood, Pct(S.EnemyHull), Pct(S.EnemyDamage), Pct(S.WaveSize)));
+}
 void UTDSettingsSubsystem::SetMasterVolume(float V) { Settings.MasterVolume = V; Changed(false, true); }
 void UTDSettingsSubsystem::SetMusicVolume(float V) { Settings.MusicVolume = V; Changed(false, true); }
 void UTDSettingsSubsystem::SetEffectsVolume(float V) { Settings.EffectsVolume = V; Changed(false, true); }
@@ -140,18 +240,20 @@ void UTDSettingsSubsystem::SetResolution(FIntPoint Resolution) { Settings.Resolu
 
 void UTDSettingsSubsystem::ResetToDefaults()
 {
-	const ETDOnFootCamera Before = Settings.OnFootCameraMode;
-	Settings = FTDPlayerSettings();
-	Changed(true, true);
-	BroadcastCameraIfChanged(Before);
+	ApplyAll(FTDPlayerSettings());
 }
 
 void UTDSettingsSubsystem::ApplyAll(const FTDPlayerSettings& NewSettings)
 {
 	const ETDOnFootCamera Before = Settings.OnFootCameraMode;
+	const bool bDifficulty = NewSettings.Difficulty != GetDifficultyInPlay() || NewSettings.Difficulty != Settings.Difficulty;
 	Settings = NewSettings;
 	Changed(true, true);
 	BroadcastCameraIfChanged(Before);
+	if (bDifficulty)
+	{
+		ApplyPreferredDifficulty();
+	}
 }
 
 void UTDSettingsSubsystem::SetOnFootCameraMode(ETDOnFootCamera Mode)
@@ -237,7 +339,8 @@ void UTDSettingsSubsystem::ApplyAudio()
 	if (!MusicClass) { MusicClass = TDSettings::LoadClassIfPresent(TDSettings::MusicClassPath); }
 	if (!MusicClass) { MusicClass = TDSettings::LoadClassIfPresent(TEXT("/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music")); } // menu + combat music (N-029)
 	if (!EffectsClass) { EffectsClass = TDSettings::LoadClassIfPresent(TDSettings::EffectsClassPath); }
-	if (!MusicClass && !EffectsClass)
+	if (!EngEffectsClass) { EngEffectsClass = TDSettings::LoadClassIfPresent(TDSettings::EngEffectsClassPath); }
+	if (!MusicClass && !EffectsClass && !EngEffectsClass)
 	{
 		return; // Nick's sound classes don't exist yet: master only
 	}
@@ -248,6 +351,8 @@ void UTDSettingsSubsystem::ApplyAudio()
 	}
 	if (MusicClass) { Device->SetSoundMixClassOverride(VolumeMix, MusicClass, Settings.MusicVolume, 1.f, 0.f, true); }
 	if (EffectsClass) { Device->SetSoundMixClassOverride(VolumeMix, EffectsClass, Settings.EffectsVolume, 1.f, 0.f, true); }
+	// The effects slider also reaches the engineering sound set (with its children), alongside Nick's classes.
+	if (EngEffectsClass) { Device->SetSoundMixClassOverride(VolumeMix, EngEffectsClass, Settings.EffectsVolume, 1.f, 0.f, true); }
 }
 
 void UTDSettingsSubsystem::ApplyVideo(bool bStartup)

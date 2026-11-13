@@ -92,6 +92,10 @@ void ATDShip::BeginPlay()
 		ShipMovement->OnDriftReleased.AddDynamic(this, &ATDShip::HandleDriftEnded);
 		ShipMovement->OnFlightImpact.AddDynamic(this, &ATDShip::HandleFlightImpactCue);
 	}
+	if (UTDHealthComponent* H = GetHealth())
+	{
+		H->OnShieldBroken.AddUniqueDynamic(this, &ATDShip::HandleShieldBrokenCue);
+	}
 
 	SpringArm->TargetArmLength = CameraTuning.ArmLength;
 	SpringArm->SocketOffset = FVector(0.f, 0.f, CameraTuning.Height);
@@ -636,6 +640,35 @@ void ATDShip::Tick(float DeltaSeconds)
 	AudioDrift01 = FMath::FInterpConstantTo(AudioDrift01, IsDrifting() ? 1.f : 0.f, DeltaSeconds, AudioEaseRate);
 	ApplyEngineAudioParams(EngineLoopAudio.Get());
 	ApplyEngineAudioParams(EngineTrailAudio.Get());
+	UpdateLowHullAlarm();
+}
+
+void ATDShip::UpdateLowHullAlarm()
+{
+	static const FName Slot(TEXT("LowHullLoop"));
+	const UTDHealthComponent* H = GetHealth();
+	const bool bOn = ActiveLoops.Contains(Slot);
+	const float Hull01 = H ? H->GetHull01() : 1.f;
+	const bool bWant = Visuals && H && !H->IsDead() && IsPlayerFlown()
+		&& Hull01 < LowHullAlarmFraction + (bOn ? 0.02f : 0.f); // a little hysteresis: no flicker at the line
+	if (bWant && !bOn)
+	{
+		StartLoop(Slot, Visuals->LowHullLoop, LowHullFX, LowHullAudio);
+	}
+	else if (!bWant && bOn)
+	{
+		StopLoop(Slot, LowHullFX, LowHullAudio);
+	}
+}
+
+void ATDShip::HandleShieldBrokenCue(UTDHealthComponent* BrokenHealth, const FTDDamageInfo& Info)
+{
+	// Any squad ship's shield reaching zero (ENG-35): the ship's own ShieldBreak cue, on the hull.
+	NoteCue(TEXT("ShieldBreak"));
+	if (Visuals)
+	{
+		UTDStatics::PlayCueAttached(ForThisShip(Visuals->ShieldBreak), HullMesh);
+	}
 }
 
 FQuat ATDShip::ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeconds, float& OutRoll) const
@@ -643,8 +676,23 @@ FQuat ATDShip::ComputeChaseQuat(FVector& InOutRefUp, bool bSnap, float DeltaSeco
 	// Bank is measured against a reference "up" that tracks world up (rate-limited, held while the
 	// nose is near vertical), so barrel rolls and loops never make the target jump.
 	const FQuat ShipQuat = GetActorQuat();
-	const FVector Forward = ShipQuat.GetForwardVector();
+	FVector Forward = ShipQuat.GetForwardVector();
 	const FVector ShipUp = ShipQuat.GetUpVector();
+
+	// Drift: yaw partway toward where the ship is actually going (eased), so a boosted drift spin keeps it framed.
+	const float DriftW = CameraTuning.DriftYawFollow * FMath::SmoothStep(0.f, 1.f, DriftCamBlend);
+	if (DriftW > KINDA_SMALL_NUMBER)
+	{
+		const FVector Slide = FVector::VectorPlaneProject(GetVelocity(), ShipUp).GetSafeNormal();
+		if (!Slide.IsNearlyZero())
+		{
+			// Follows the slip up to 90 deg, then back down to 0 at 180: flying backwards the sign of the slip flips,
+			// and a plain clamp would swing the camera from one side to the other in a single frame.
+			const float Raw = TDShipCamera::SignedAngle(Forward, Slide, ShipUp);
+			const float Slip = FMath::Abs(Raw) <= 90.f ? Raw : FMath::Sign(Raw) * (180.f - FMath::Abs(Raw));
+			Forward = TDShipCamera::Rotate(Forward, ShipUp, DriftW * Slip).GetSafeNormal();
+		}
+	}
 
 	FVector Current = TDShipCamera::Perp(InOutRefUp, Forward);
 	FVector Target = FMath::Abs(Forward.Z) < CameraTuning.VerticalHoldLimit ? TDShipCamera::Perp(FVector::UpVector, Forward) : Current;
@@ -712,6 +760,35 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 		SpringArm->CameraLagMaxDistance = CameraTuning.LagMaxDistance;
 		SpringArm->TargetArmLength = CameraTuning.ArmLength;
 		SpringArm->SocketOffset = FVector(0.f, 0.f, CameraTuning.Height);
+	}
+
+	// --- Drift blend: in over DriftBlendSeconds while drifting above cruise speed, out on release --------
+	const bool bDriftCam = IsDrifting() && GetVelocity().Size() > ShipMovement->GetCruiseCapSpeed() * CameraTuning.DriftMinSpeedFraction && bPlayerControlled;
+	const float DriftTarget = bDriftCam ? 1.f : 0.f;
+	DriftCamBlend = bSnap ? DriftTarget
+		: FMath::FInterpConstantTo(DriftCamBlend, DriftTarget, DeltaSeconds, 1.f / FMath::Max(CameraTuning.DriftBlendSeconds, 0.01f));
+
+	// --- Drift distance hold: in a drift the nose swings across the slide, the location-lagged camera ends up beside
+	// the ship instead of behind it, and the drift sheds speed: the camera closes in and the ship sinks down the
+	// screen into the HUD band. Hold the camera distance the drift began with by lengthening the arm by what has
+	// been lost (smoothed; eased out on release).
+	{
+		const bool bDrifting = IsDrifting() && bPlayerControlled;
+		const float Dist = FVector::Dist(ChaseCamera->GetComponentLocation(), GetActorLocation());
+		if (bDrifting && !bDriftHoldWasDrifting)
+		{
+			DriftHoldStartDist = Dist;
+		}
+		bDriftHoldWasDrifting = bDrifting;
+		DriftHoldBlend = bSnap ? (bDrifting ? 1.f : 0.f)
+			: FMath::FInterpConstantTo(DriftHoldBlend, bDrifting ? 1.f : 0.f, DeltaSeconds, 1.f / FMath::Max(CameraTuning.DriftBlendSeconds, 0.01f));
+		const float Lost = FMath::Clamp(DriftHoldStartDist - (Dist - DriftHoldExtra), 0.f, CameraTuning.LagMaxDistance);
+		const float Want = CameraTuning.DriftHoldDistance * FMath::SmoothStep(0.f, 1.f, DriftHoldBlend) * Lost;
+		DriftHoldExtra = bSnap ? 0.f : FMath::FInterpTo(DriftHoldExtra, Want, DeltaSeconds, 8.f);
+		if (!bSnap)
+		{
+			SpringArm->TargetArmLength = CameraTuning.ArmLength + DriftHoldExtra;
+		}
 	}
 
 	// --- Arm rotation: ship forward, with only RollFollow of its bank -------------------------------

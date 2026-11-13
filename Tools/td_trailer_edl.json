@@ -2,7 +2,7 @@
   "_about": "First cut of the jam video (td_trailer.py cut). Clips are Builds/trailer/raw/<clip>.mp4; in / out in seconds of the raw clip. Gameplay from frame one; the title card mid-way; hard cuts (a director's cut), short fades only into and out of the cards.",
   "shots": [
     { "clip": "dogfight", "in": 1.0, "out": 6.0 },
-    { "clip": "dogfight", "in": 6.0, "out": 9.5 },
+    { "clip": "dogfight", "in": 6.0, "out": 8.5 },
     { "clip": "ram", "in": 0.8, "out": 4.3 },
     { "clip": "dogfight", "in": 12.0, "out": 16.0 },
     { "clip": "bastion", "in": 0.5, "out": 4.5 },
@@ -11,8 +11,10 @@
     { "clip": "waveclear", "in": 6.6, "out": 10.0 },
     { "card": [ { "text": "TRIAD DRIFT", "size": 140 } ], "seconds": 2.5, "fade": 0.3 },
     { "clip": "approach", "in": 2.0, "out": 6.0, "fade": 0.3 },
-    { "clip": "onfoot", "in": 0.5, "out": 8.5 },
+    { "clip": "onfoot", "in": 0.5, "out": 7.5 },
     { "clip": "dominion", "in": 0.0, "out": 5.0 },
+    { "clip": "reactor", "in": 2.5, "out": 5.0 },
+    { "clip": "victory", "in": 2.0, "out": 6.0, "fade": 0.3 },
     { "card": [ { "text": "TRIAD DRIFT", "size": 120 }, { "text": "THREE SHIPS. ONE LEAD. EVERY TAKE COUNTS.", "size": 40 } ], "seconds": 3.5, "fade": 0.4 }
   ]
 }

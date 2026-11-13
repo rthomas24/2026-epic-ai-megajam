@@ -14,6 +14,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameFramework/SaveGame.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TDSettingsSubsystem.generated.h"
 
 class ATDSpacePlayerController;
@@ -29,6 +30,16 @@ enum class ETDOnFootCamera : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnFootCameraModeChanged, ETDOnFootCamera, NewMode);
+
+UENUM(BlueprintType)
+enum class ETDUISound : uint8
+{
+	Move,     // selection moves (rows, menu and pause lists)
+	Confirm,  // activate / change a value
+	Back,     // close a page / back out
+	PauseIn,  // the game pauses
+	PauseOut  // the game resumes
+};
 
 UENUM(BlueprintType)
 enum class ETDWindowMode : uint8
@@ -66,6 +77,10 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
 	bool bHintsEnabled = true;
+
+	/** The player's chosen difficulty: the default for New Game. A continued run keeps the one saved with it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
+	ETDDifficulty Difficulty = ETDDifficulty::Standard;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Audio", meta = (ClampMin = "0", ClampMax = "1"))
 	float MasterVolume = 1.f;
@@ -131,6 +146,9 @@ public:
 	FTDOnFootCameraModeChanged OnOnFootCameraModeChanged;
 
 	// ---- The Settings page (ENG-32): Nick's UTDUIStyle::SettingsWidgetClass if set, else the code-built page.
+	/** Viewport layer of the settings page: above every HUD and the pause screen (UI host ZOrder + 100), which opens it. */
+	static constexpr int32 PageZOrder = 1000;
+
 	/** Opens the page over the menu or the pause screen. False when there is no viewport to show it in. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
 	static bool OpenSettingsPage(const UObject* WorldContextObject);
@@ -154,6 +172,34 @@ public:
 
 	// ---- Gameplay
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetHintsEnabled(bool bEnabled);
+
+	/**
+	 * Difficulty (features.md Settings; T4's UTDDifficultySettings presets). Saved here as the New Game default and
+	 * written to the current run through the game instance. Enemies read it when they spawn, so ships already in the
+	 * fight keep their strength: it takes effect as new enemies and waves arrive.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetDifficulty(ETDDifficulty Difficulty);
+
+	/** The difficulty in play now (the run's; may differ from the saved preference after a Continue). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings") static ETDDifficulty GetDifficultyInPlay();
+
+	/** Makes the saved preference the difficulty in play (start-up and New Game). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void ApplyPreferredDifficulty();
+
+	/**
+	 * One path for every front-end and pause sound (ENG-35): plays DA_UI_Style's UIMove / UIConfirm / UIBack /
+	 * PauseIn / PauseOut cue as a 2D sound (the sound's own class and concurrency apply). Silent when unset.
+	 * Used by the Settings page and the pause toggle here, T2's pause list and T5's menus.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static void PlayUISound(const UObject* WorldContextObject, ETDUISound Sound);
+
+	/** Tests: how many times each UI sound was asked for (whether or not a sound asset exists). */
+	static int32 GetUISoundRequestsForTests(ETDUISound Sound);
+
+	/** "Story" / "Standard" / "Ace", and a one-line description of what that preset changes (from T4's tables). */
+	static FText DifficultyName(ETDDifficulty Difficulty);
+	static FText DifficultyDescription(ETDDifficulty Difficulty);
 
 	// ---- Audio (0..1)
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetMasterVolume(float Volume);
@@ -185,6 +231,7 @@ public:
 	float GetAppliedMasterVolume() const { return AppliedMaster; }
 	bool HasMusicClass() const { return MusicClass != nullptr; }
 	bool HasEffectsClass() const { return EffectsClass != nullptr; }
+	bool HasEngEffectsClass() const { return EngEffectsClass != nullptr; }
 
 	static constexpr const TCHAR* DefaultSlot = TEXT("TD_Settings");
 
@@ -212,4 +259,5 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USoundMix> VolumeMix;
 	UPROPERTY(Transient) TObjectPtr<USoundClass> MusicClass;
 	UPROPERTY(Transient) TObjectPtr<USoundClass> EffectsClass;
+	UPROPERTY(Transient) TObjectPtr<USoundClass> EngEffectsClass;
 };

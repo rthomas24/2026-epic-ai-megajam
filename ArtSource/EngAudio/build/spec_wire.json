@@ -1,0 +1,1320 @@
+{
+ "folder": "/Game/TriadDrift/Gameplay/Characters/FX",
+ "create": {
+  "TDWeaponFX": [
+   "DA_PhasePulseLasers_FX",
+   "DA_SplitterBolt_FX",
+   "DA_NeedleCannons_FX",
+   "DA_SpikeRockets_FX",
+   "DA_BreakerBlaster_FX",
+   "DA_FlakBurst_FX",
+   "DA_MissileSwarm_FX",
+   "DA_Enemy_PulseGuns_FX",
+   "DA_Enemy_HeavyBolt_FX",
+   "DA_Enemy_HomingMissile_FX",
+   "DA_Enemy_SalvoMissile_FX",
+   "DA_Enemy_PlasmaMines_FX",
+   "DA_Enemy_PointDefense_FX"
+  ],
+  "TDAbilityFX": [
+   "DA_Ability_Cloak_FX",
+   "DA_Ability_EMPPulse_FX",
+   "DA_Ability_GravityWell_FX"
+  ],
+  "TDTravelFX": [
+   "DA_Travel_FX"
+  ],
+  "TDBladeFX": [
+   "DA_Blade_FX"
+  ],
+  "TDUIStyle": [
+   "DA_UI_Style"
+  ]
+ },
+ "slots": [
+  {
+   "asset": "DA_UI_Style",
+   "field": "CombatMusic",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Combat_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "IntroMusic",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Intro_01"
+  },
+  {
+   "asset": "DA_NeedleCannons_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_NeedleCannons"
+  },
+  {
+   "asset": "DA_PhasePulseLasers_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_PhasePulseLasers"
+  },
+  {
+   "asset": "DA_SplitterBolt_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_SplitterBolt"
+  },
+  {
+   "asset": "DA_SpikeRockets_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_SpikeRockets"
+  },
+  {
+   "asset": "DA_BreakerBlaster_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_BreakerBlaster"
+  },
+  {
+   "asset": "DA_FlakBurst_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_FlakBurst"
+  },
+  {
+   "asset": "DA_MissileSwarm_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Weapons/MSS_Weapon_MissileSwarm"
+  },
+  {
+   "asset": "DA_Enemy_PulseGuns_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_PulseGuns"
+  },
+  {
+   "asset": "DA_Enemy_HeavyBolt_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_HeavyBolt"
+  },
+  {
+   "asset": "DA_Enemy_HomingMissile_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Missile"
+  },
+  {
+   "asset": "DA_Enemy_SalvoMissile_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Missile"
+  },
+  {
+   "asset": "DA_Enemy_PlasmaMines_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_MineDrop"
+  },
+  {
+   "asset": "DA_Enemy_PointDefense_FX",
+   "field": "Muzzle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_PointDefense"
+  },
+  {
+   "asset": "DA_PhasePulseLasers_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull"
+  },
+  {
+   "asset": "DA_SplitterBolt_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull"
+  },
+  {
+   "asset": "DA_NeedleCannons_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull"
+  },
+  {
+   "asset": "DA_SpikeRockets_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull"
+  },
+  {
+   "asset": "DA_BreakerBlaster_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull"
+  },
+  {
+   "asset": "DA_FlakBurst_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull"
+  },
+  {
+   "asset": "DA_MissileSwarm_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull"
+  },
+  {
+   "asset": "DA_Enemy_PulseGuns_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken"
+  },
+  {
+   "asset": "DA_Enemy_HeavyBolt_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken"
+  },
+  {
+   "asset": "DA_Enemy_HomingMissile_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken"
+  },
+  {
+   "asset": "DA_Enemy_SalvoMissile_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken"
+  },
+  {
+   "asset": "DA_Enemy_PlasmaMines_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken"
+  },
+  {
+   "asset": "DA_Enemy_PointDefense_FX",
+   "field": "ImpactHull",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "GeneratorHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "ReactorHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far"
+  },
+  {
+   "asset": "DA_PhasePulseLasers_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield"
+  },
+  {
+   "asset": "DA_SplitterBolt_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield"
+  },
+  {
+   "asset": "DA_NeedleCannons_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield"
+  },
+  {
+   "asset": "DA_SpikeRockets_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield"
+  },
+  {
+   "asset": "DA_BreakerBlaster_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield"
+  },
+  {
+   "asset": "DA_FlakBurst_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield"
+  },
+  {
+   "asset": "DA_MissileSwarm_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield"
+  },
+  {
+   "asset": "DA_Enemy_PulseGuns_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken"
+  },
+  {
+   "asset": "DA_Enemy_HeavyBolt_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken"
+  },
+  {
+   "asset": "DA_Enemy_HomingMissile_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken"
+  },
+  {
+   "asset": "DA_Enemy_SalvoMissile_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken"
+  },
+  {
+   "asset": "DA_Enemy_PlasmaMines_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken"
+  },
+  {
+   "asset": "DA_Enemy_PointDefense_FX",
+   "field": "ImpactShield",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "ShieldHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Far"
+  },
+  {
+   "asset": "DA_PhasePulseLasers_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_SplitterBolt_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_NeedleCannons_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_SpikeRockets_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_BreakerBlaster_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_FlakBurst_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_MissileSwarm_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_Enemy_PulseGuns_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_Enemy_HeavyBolt_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_Enemy_PointDefense_FX",
+   "field": "ImpactWorld",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World"
+  },
+  {
+   "asset": "DA_SpikeRockets_FX",
+   "field": "Detonation",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket"
+  },
+  {
+   "asset": "DA_MissileSwarm_FX",
+   "field": "Detonation",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket"
+  },
+  {
+   "asset": "DA_Enemy_HomingMissile_FX",
+   "field": "Detonation",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket"
+  },
+  {
+   "asset": "DA_Enemy_SalvoMissile_FX",
+   "field": "Detonation",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket"
+  },
+  {
+   "asset": "DA_Enemy_PlasmaMines_FX",
+   "field": "Detonation",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket"
+  },
+  {
+   "asset": "DA_FlakBurst_FX",
+   "field": "Detonation",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Flak"
+  },
+  {
+   "asset": "DA_PhasePulseLasers_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_SplitterBolt_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_NeedleCannons_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_SpikeRockets_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_BreakerBlaster_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_FlakBurst_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_MissileSwarm_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_Enemy_PulseGuns_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_Enemy_HeavyBolt_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_Enemy_HomingMissile_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_Enemy_SalvoMissile_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_Enemy_PointDefense_FX",
+   "field": "Deflected",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected"
+  },
+  {
+   "asset": "DA_Enemy_Fighter_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small"
+  },
+  {
+   "asset": "DA_Enemy_Interceptor_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "TurretDestroyed",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small"
+  },
+  {
+   "asset": "DA_DominionTurret_Visuals",
+   "field": "TurretDestroyed",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small"
+  },
+  {
+   "asset": "DA_DominionTurret_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small"
+  },
+  {
+   "asset": "DA_Enemy_Gunship_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium"
+  },
+  {
+   "asset": "DA_Enemy_Bomber_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "BayDestroyed",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "GeneratorExplosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "ReactorDestroyed",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "BreakupSequence",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_Breakup_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "EngineLoop",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Lancer_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "EngineLoop",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Rift_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "EngineLoop",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Bastion_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "BoostStart",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Boost_Start"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "BoostStart",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Boost_Start"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "BoostStart",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Boost_Start"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "BoostLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Loop_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "BoostLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Loop_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "BoostLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Loop_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "DriftLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Loop_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "DriftLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Loop_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "DriftLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Loop_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "DriftRelease",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Drift_Release"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "DriftRelease",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Drift_Release"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "DriftRelease",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Drift_Release"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "Dodge",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Dodge"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "Dodge",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Dodge"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "Dodge",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Engines/MSS_Dodge"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "CollisionScrape",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Collision_Scrape"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "CollisionScrape",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Collision_Scrape"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "CollisionScrape",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Collision_Scrape"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "LowHullLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "LowHullLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "LowHullLoop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01"
+  },
+  {
+   "asset": "DA_Enemy_Gunship_Visuals",
+   "field": "FrontalShieldBreak",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "ShieldBreak",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "ShieldBreak",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "ShieldBreak",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01"
+  },
+  {
+   "asset": "DA_Enemy_Gunship_Visuals",
+   "field": "FrontalShieldRestore",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Restore_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "HitConfirm",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_HitConfirm_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "KillConfirm",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_KillConfirm_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "EnemyWarpIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_WarpIn"
+  },
+  {
+   "asset": "DA_Enemy_Fighter_Visuals",
+   "field": "Telegraph",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph"
+  },
+  {
+   "asset": "DA_Enemy_Interceptor_Visuals",
+   "field": "Telegraph",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph"
+  },
+  {
+   "asset": "DA_Enemy_Gunship_Visuals",
+   "field": "Telegraph",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph"
+  },
+  {
+   "asset": "DA_Enemy_Bomber_Visuals",
+   "field": "Telegraph",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "Telegraph",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph"
+  },
+  {
+   "asset": "DA_DominionTurret_Visuals",
+   "field": "Telegraph",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "BayLaunchTelegraph",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph"
+  },
+  {
+   "asset": "DA_Enemy_Fighter_Visuals",
+   "field": "Stunned",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01"
+  },
+  {
+   "asset": "DA_Enemy_Interceptor_Visuals",
+   "field": "Stunned",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01"
+  },
+  {
+   "asset": "DA_Enemy_Gunship_Visuals",
+   "field": "Stunned",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01"
+  },
+  {
+   "asset": "DA_Enemy_Bomber_Visuals",
+   "field": "Stunned",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "Stunned",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01"
+  },
+  {
+   "asset": "DA_Enemy_Fighter_Visuals",
+   "field": "DeathTumble",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble"
+  },
+  {
+   "asset": "DA_Enemy_Interceptor_Visuals",
+   "field": "DeathTumble",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble"
+  },
+  {
+   "asset": "DA_Enemy_Gunship_Visuals",
+   "field": "DeathTumble",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble"
+  },
+  {
+   "asset": "DA_Enemy_Bomber_Visuals",
+   "field": "DeathTumble",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "DeathTumble",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble"
+  },
+  {
+   "asset": "DA_Enemy_Carrier_Visuals",
+   "field": "BayLaunch",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Carrier_BayLaunch_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "RespawnWarpIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Squad_RespawnWarpIn_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "RespawnWarpIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Squad_RespawnWarpIn_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "RespawnWarpIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Squad_RespawnWarpIn_01"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "WarpIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "ShieldSectionDown",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "ShieldCollapse",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldCollapse_01"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "ReactorExposed",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorExposed_01"
+  },
+  {
+   "asset": "DA_Dominion_Visuals",
+   "field": "ReactorPhaseChange",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorPhaseChange_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "PowerWindup",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_Windup_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "PowerActive",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "PowerEnd",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Ram_End_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "PowerActive",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_PortalShot_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "PortalOpen",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Open_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "PortalIdle",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Idle_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "PortalClose",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Portal_Close_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "PortalTransit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/MSS_Portal_Transit"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "PowerActive",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Swarm_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "Power2Active",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Up_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "PowerEnd",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Powers/SW_Power_Dome_Down_01"
+  },
+  {
+   "asset": "DA_Ability_Cloak_FX",
+   "field": "Activate",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_On_01"
+  },
+  {
+   "asset": "DA_Ability_Cloak_FX",
+   "field": "End",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_Cloak_Off_01"
+  },
+  {
+   "asset": "DA_Ability_EMPPulse_FX",
+   "field": "Activate",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_EMP_01"
+  },
+  {
+   "asset": "DA_Ability_EMPPulse_FX",
+   "field": "AffectedTarget",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Abilities/MSS_Ability_EMP_Zap"
+  },
+  {
+   "asset": "DA_Ability_GravityWell_FX",
+   "field": "Activate",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_On_01"
+  },
+  {
+   "asset": "DA_Ability_GravityWell_FX",
+   "field": "Loop",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_Loop_01"
+  },
+  {
+   "asset": "DA_Ability_GravityWell_FX",
+   "field": "End",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Abilities/SW_Ability_GravityWell_End_01"
+  },
+  {
+   "asset": "DA_Rift_Visuals",
+   "field": "SwitchIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Rift_01"
+  },
+  {
+   "asset": "DA_Lancer_Visuals",
+   "field": "SwitchIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Lancer_01"
+  },
+  {
+   "asset": "DA_Bastion_Visuals",
+   "field": "SwitchIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Switch_Bastion_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "SlateClap",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Slate_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "CutSting",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_Cut_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "SlowMoIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoIn_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "SlowMoOut",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Cine/SW_Cine_SlowMoOut_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "HyperdriveSpool",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Spool_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "HyperdriveTunnel",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Tunnel_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "HyperdriveDropOut",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_DropOut_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "HyperdriveRefused",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Hyperdrive_Refused_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "AtmosphericEntry",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_AtmosphericEntry_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "LandingDust",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_LandingDust_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "TakeOff",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_TakeOff_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "UIMove",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Move_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "UIConfirm",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Confirm_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "UIBack",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_Back_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "PauseIn",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseIn_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "PauseOut",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_UI_PauseOut_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "ObjectiveComplete",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/UI/SW_Objective_Complete_01"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "Ignite",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Ignite_01"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "Retract",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Retract_01"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "SwingLight",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_SwingLight"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "SwingHeavy",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_SwingHeavy"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "Hit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Hit"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "Block",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Block"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "Deflect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Deflect"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "PerfectDeflect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_PerfectDeflect_01"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "GuardBreak",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_GuardBreak_01"
+  },
+  {
+   "asset": "DA_Blade_FX",
+   "field": "AirSlam",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_AirSlam_01"
+  },
+  {
+   "asset": "DA_Crew_Grunt_Visuals",
+   "field": "HullHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Hit"
+  },
+  {
+   "asset": "DA_Crew_Trooper_Visuals",
+   "field": "HullHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Hit"
+  },
+  {
+   "asset": "DA_Crew_Heavy_Visuals",
+   "field": "HullHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Hit"
+  },
+  {
+   "asset": "DA_Crew_Grunt_Visuals",
+   "field": "ShieldHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_ShieldHit"
+  },
+  {
+   "asset": "DA_Crew_Trooper_Visuals",
+   "field": "ShieldHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_ShieldHit"
+  },
+  {
+   "asset": "DA_Crew_Heavy_Visuals",
+   "field": "ShieldHit",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_ShieldHit"
+  },
+  {
+   "asset": "DA_Crew_Grunt_Visuals",
+   "field": "Stagger",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Stagger_01"
+  },
+  {
+   "asset": "DA_Crew_Trooper_Visuals",
+   "field": "Stagger",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Stagger_01"
+  },
+  {
+   "asset": "DA_Crew_Heavy_Visuals",
+   "field": "Stagger",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Stagger_01"
+  },
+  {
+   "asset": "DA_Crew_Grunt_Visuals",
+   "field": "Death",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Death"
+  },
+  {
+   "asset": "DA_Crew_Trooper_Visuals",
+   "field": "Death",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Death"
+  },
+  {
+   "asset": "DA_Crew_Heavy_Visuals",
+   "field": "Death",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Death"
+  },
+  {
+   "asset": "DA_Crew_Grunt_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Melee"
+  },
+  {
+   "asset": "DA_Crew_Trooper_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Melee"
+  },
+  {
+   "asset": "DA_Crew_Heavy_Visuals",
+   "field": "Explosion",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Melee"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "AmbienceSpace",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Space_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "AmbienceVerdance",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Verdance_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "AmbienceCinder",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Cinder_01"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "MenuMusic",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01"
+  }
+ ],
+ "keep": [
+  {
+   "asset": "DA_Blade_FX",
+   "field": "BladeColor",
+   "color": [
+    0.1,
+    0.65,
+    1.0,
+    1.0
+   ]
+  }
+ ]
+}

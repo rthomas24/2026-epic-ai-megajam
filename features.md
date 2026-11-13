@@ -25,6 +25,7 @@ editing the same files.
 - **Added Nov 12 (Ryan), core:** a high-quality cinematic intro of space, the squad, worlds and the Armada (ENG-33).
 - **Added Nov 13 (Ryan), core:** both planets become large explorable worlds with procedural terrain and mountains (ENG-34), and engineering supplies a fallback sound set so the game is never silent (ENG-35).
 - **Added Nov 13 (Ryan), core:** the HUD is redesigned: modern, sleek, small, and clear to a beginner (ENG-36).
+- **Added Nov 13 (Ryan), core:** AAA projectiles, engine flames and particle effects across the whole game (ENG-37).
 - **Protect above all:** the three-ship switching mechanic and satisfying combat.
 - **C++ first;** use Blueprints when they are clearly faster or necessary.
 - Keep a playable build at all times, coordinate shared-file edits before starting, verify licences
@@ -847,6 +848,37 @@ it's easy to utilize, and even the beginner gamer can understand it."
 - **Acceptance:** before / after captures in every state above; the coverage measured; a fresh reviewer playing the
   "first five minutes" checklist can name each element's meaning; tests for every data binding.
 - Owner: T2 (build), Lead (research, design, review).
+
+#### ENG-37 · Projectiles, engines and particle effects at AAA quality (CORE, added Nov 13 by Ryan) · `🟨`
+Ryan, Nov 13: "really focus on projectiles across the entire game, from the blast of the engine to shooting.
+Everything kind of looks pixely and AI generated right now ... AAA quality projectiles ... you can see the flames
+coming out and there's movement ... a bunch of particles, and everything that makes a game look really solid."
+- **What:** real particle effects (Niagara) replace the flat glow shapes everywhere something fires, burns, hits or
+  explodes. Each effect has a core, motion and secondary particles, in the squad / enemy colour code:
+  - **Projectiles:** each weapon's shot has a hot core, a soft glow, a tapered trail that lingers, and sparks or
+    plasma wisps shed along the path: Rift bolts (magenta, phasing), Lancer needles (cyan, tight and fast), Bastion
+    shells and missiles (amber, heavy, with smoke trails and a flickering motor flame), enemy fire (red-orange),
+    turret and Dominion fire, crew blaster bolts on foot.
+  - **Muzzle flashes** on every weapon: a brief shaped flash, sparks, a light pulse.
+  - **Engines:** layered exhaust on every ship: a bright inner flame cone with turbulence, heat shimmer, a longer soft
+    plume, boost afterburner rings and sparks, idle flicker; enemies in red-orange; wingman trails as thin ribbons.
+  - **Impacts:** shield hits (a ripple on the shield surface and blue sparks), hull hits (sparks, debris flecks, a
+    scorch flash), ricochets, on-foot hits and deflects.
+  - **Explosions and deaths:** fireball with rolling motion, shockwave ring, sparks and hull chunks on the ship's
+    velocity, smoke, embers; larger and multi-stage for big ships and the Dominion breakup.
+  - **Powers and travel:** ram wake, portal rims and missile return, swarm launches, dome, cloak shimmer, EMP wave,
+    gravity well, hyperdrive streaks and exit flash, gate transit, warp-ins.
+- **Quality bar:** nothing reads as a flat disc, a billboard square or a low-resolution sprite at any gameplay
+  distance; effects move (turbulence, flicker, stretch by velocity), fade smoothly, and stay readable in a 40-ship
+  fight without hiding targets; HDR emissive tuned to the game's exposure and bloom so cores are hot but not blown out.
+- **Performance:** effects are pooled, GPU-simulated where the count is high, bounded per system, and scale down by
+  distance; a full wave-5 fight stays inside the ENG-28 frame budget.
+- **Wiring:** through the existing cue slots (`FTDFXCue::VFX`) and engineering fallback data assets; the code
+  placeholders stay as the fallback when an effect is missing; an effect of Nick's in the same slot always wins.
+- **Acceptance:** before / after captures of every effect at gameplay distance and in slow motion; a fresh reviewer
+  scores effects at 4 of 5 or better; frame-time measured in a wave-5 fight.
+- Owner: Lead (effects builder sub-agents), T2 (combat cues and placeholders), T1 (engines and trails), T4 (enemy,
+  Dominion and world cues), T5 (on-foot cues).
 
 ### STRETCH: boarding finale
 

@@ -1,0 +1,256 @@
+{
+ "import": [
+  {
+   "file": "../wav/Blade/SFX_Blade_Block_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Block_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Blade/SFX_Blade_Deflect_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Blade/SFX_Blade_Deflect_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Blade/SFX_Blade_Deflect_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_Deflect_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Blade/SFX_Blade_PerfectDeflect_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_PerfectDeflect_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Blade"
+    ],
+    "volume": 0.4467,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Blade/SFX_Blade_GuardBreak_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_GuardBreak_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Blade"
+    ],
+    "volume": 0.3981,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Blade/SFX_Blade_AirSlam_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Blade/SW_Blade_AirSlam_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Blade"
+    ],
+    "volume": 0.4467,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Hit_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Hit_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Hit_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Hit_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Stagger_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Stagger_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ],
+    "volume": 0.2512,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Death_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Death_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Death_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Death_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Melee_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Melee_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_Melee_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_Melee_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_RifleShot_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_RifleShot_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_RifleShot_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Crew_RifleShot_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Crew_RifleShot_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Crew/SFX_Drone_Hum_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Crew/SW_Drone_Hum_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Loop"
+    ],
+    "volume": 0.2512,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Soil_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Soil_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Soil_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Soil_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Soil_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Rock_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Rock_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Rock_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Step_Rock_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Step_Rock_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Dash_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Dash_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Dash_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Dash_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Jump_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Jump_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Jump_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Jump_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Land_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Foot_Land_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Player_Hurt_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Player_Hurt_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Foot/SFX_Player_Hurt_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Ambience/AMB_Ambience_Space_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Space_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_Ambience",
+    "volume": 0.0631,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "../wav/Ambience/AMB_Ambience_Verdance_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Verdance_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_Ambience",
+    "volume": 0.0631,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "../wav/Ambience/AMB_Ambience_Cinder_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Cinder_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_Ambience",
+    "volume": 0.0631,
+    "bLooping": true
+   }
+  }
+ ]
+}

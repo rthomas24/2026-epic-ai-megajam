@@ -433,7 +433,10 @@ void ATDMagmaVolume::BeginPlay()
 	// Deep red-orange at a modest glow: at 3x the placeholder bloomed to flat over-bright yellow from the arrival
 	// altitude (Lead's audit, Nov 13). Until a SM_Cind_MagmaSurface exists (the slot dresses it automatically).
 	UTDStatics::TintPlaceholder(Surface, FLinearColor(0.85f, 0.12f, 0.02f), 1.1f);
-	TDPropArt::Dress(Surface, TDPropArt::Load(SurfaceMesh));
+	if (UStaticMeshComponent* Art = TDPropArt::Dress(Surface, TDPropArt::Load(SurfaceMesh)))
+	{
+		Art->SetCastShadow(false); // a glowing surface lifted 2 cm by its WPO: its shadow drew a dark line along the edges
+	}
 	Box->OnComponentBeginOverlap.AddUniqueDynamic(this, &ATDMagmaVolume::HandleOverlap);
 }
 

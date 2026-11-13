@@ -10,6 +10,8 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
@@ -1126,6 +1128,65 @@ bool FTDTravelReviewBoundaryInward::RunTest(const FString& Parameters)
 	TestTrue(TEXT("spool"), Ship->GetHyperdrive()->StartSpool());
 	W.Advance(2.f);
 	TestEqual(TEXT("jumping inward from the edge keeps going"), Ship->GetHyperdrive()->GetState(), ETDHyperdriveState::Jumping);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelPlanetRearms, "TriadDrift.Travel.Safety.PlanetAcceptsTheShipAgainAfterAnAbortedEntry", TD_TEST_FLAGS)
+bool FTDTravelPlanetRearms::RunTest(const FString& Parameters)
+{
+	// Review M1: Pause > Restart Scene during the 2.5 s entry aborted it and handed the ship back, but the planet kept
+	// bEntered and never accepted the ship again for the rest of the session. Entered through the planet ACTOR here.
+	FTDTestWorld W;
+	ATDPlanetAtmosphere* Planet = W.GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(ATDPlanetAtmosphere::StaticClass(), FTransform::Identity,
+		nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (!TestNotNull(TEXT("planet"), Planet)) { return false; }
+	Planet->Configure(ETDDestination::Verdance, NAME_None, 30000.f, 66000.f, FLinearColor::Green);
+	Planet->SetAutoTravel(false);
+	Planet->FinishSpawning(FTransform::Identity);
+	Planet->SetOpen(true);
+	const FVector Outside(120000.f, 0.f, 0.f);
+	const FVector Inside(50000.f, 0.f, 0.f);
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W, Outside);
+	UTDAtmosphereEntryComponent* Entry = Ship ? Ship->GetAtmosphereEntry() : nullptr;
+	if (!TestNotNull(TEXT("ship entry"), Entry)) { return false; }
+	W.SpawnLocalPlayerController(Ship); // the planet finds the player's pawn as the game does
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	TestFalse(TEXT("outside: no entry"), Entry->IsEntering());
+
+	auto EnterFromOutside = [&](const TCHAR* Tag)
+	{
+		Ship->TeleportSpacecraft(Outside, FRotator(0.f, 180.f, 0.f), false);
+		W.Tick();
+		W.Tick();
+		Ship->TeleportSpacecraft(Inside, FRotator(0.f, 180.f, 0.f), false);
+		for (int32 i = 0; i < 3 && !Entry->IsEntering(); ++i) { W.Tick(); }
+		TestTrue(*FString::Printf(TEXT("%s: flying into the atmosphere starts the entry through the planet"), Tag), Entry->IsEntering());
+	};
+	EnterFromOutside(TEXT("first visit"));
+
+	// Abort mid-entry (what Pause > Restart Scene and a death do), with the ship still inside the atmosphere.
+	W.Advance(0.5f);
+	Entry->AbortEntry();
+	Ship->TeleportSpacecraft(Inside, FRotator(0.f, 180.f, 0.f), false);
+	bool bReDived = false;
+	for (int32 i = 0; i < 60; ++i) { W.Tick(); bReDived = bReDived || Entry->IsEntering(); }
+	TestFalse(TEXT("left inside after the abort: no automatic re-dive loop"), bReDived);
+
+	// Fly out and back in: the planet takes the ship again.
+	EnterFromOutside(TEXT("after the abort"));
+
+	// And a second abort/return still works (not a one-shot fix).
+	Entry->AbortEntry();
+	W.Tick();
+	EnterFromOutside(TEXT("after a second abort"));
+	Entry->AbortEntry();
+
+	// Closing the planet clears everything; reopening accepts the ship again.
+	Planet->SetOpen(false);
+	Planet->SetOpen(true);
+	EnterFromOutside(TEXT("after close/reopen"));
+	Entry->AbortEntry();
 	return true;
 }
 

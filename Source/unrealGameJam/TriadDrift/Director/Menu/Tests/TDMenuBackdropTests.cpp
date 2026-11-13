@@ -111,4 +111,67 @@ bool FTDMenuBackdropOff::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMenuBackdropVictory, "TriadDrift.Director.MenuBackdrop.VictoryDominionBreaksUp", TD_TEST_FLAGS)
+bool FTDMenuBackdropVictory::RunTest(const FString& Parameters)
+{
+	// After a win the same scene plays the wrap: the Dominion burning and listing beside Verdance, the squad flying away
+	// from it past the lens, a slow push-in.
+	FTDTestWorld W(nullptr, ATDMenuGameMode::StaticClass());
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	AGameModeBase* Mode = W.GetWorld()->GetAuthGameMode();
+	if (ATDMenuBackdrop* Menu = TDMenuBackdropTest::Find(W.GetWorld()))
+	{
+		TestNull(TEXT("the menu scene has no Dominion"), Menu->GetDominion());
+		Menu->Destroy();
+	}
+	W.Tick();
+	ATDMenuBackdrop* B = ATDMenuBackdrop::SpawnFor(Mode, ETDBackdropScene::Victory);
+	W.Tick();
+	if (!TestNotNull(TEXT("victory backdrop"), B) || !TestNotNull(TEXT("player"), PC))
+	{
+		return false;
+	}
+	AActor* Dominion = B->GetDominion();
+	if (!TestNotNull(TEXT("the Dominion"), Dominion))
+	{
+		return false;
+	}
+	const ACameraActor* Cam = B->GetCamera();
+	TestTrue(TEXT("the lens has the view"), Cam && PC->GetViewTarget() == Cam);
+	TestTrue(TEXT("the Dominion in frame"), TDMenuBackdropTest::InFrame(Cam, Dominion->GetActorLocation()));
+	TestTrue(TEXT("Verdance in frame"), TDMenuBackdropTest::InFrame(Cam, B->GetPlanet()->GetActorLocation()));
+	const FVector Cam0 = Cam->GetActorLocation();
+	const FRotator Hull0 = Dominion->GetActorRotation();
+	const float Dist0 = FVector::Dist(Cam0, Dominion->GetActorLocation());
+
+	// The squad leaves the wreck and comes home past the lens.
+	W.Advance(B->FirstFlybySeconds + 0.2f, 1.f / 30.f);
+	TestTrue(TEXT("the squad flies"), B->IsFlybyActive());
+	const float Start = FVector::Dist(B->GetSquadMeshes()[0]->GetComponentLocation(), Dominion->GetActorLocation());
+	int32 InFrameTicks = 0;
+	int32 Ticks = 0;
+	for (float T = 0.f; T < B->FlybySeconds - 0.6f; T += 1.f / 30.f)
+	{
+		W.Tick(1.f / 30.f);
+		++Ticks;
+		InFrameTicks += TDMenuBackdropTest::InFrame(Cam, B->GetSquadMeshes()[0]->GetComponentLocation()) ? 1 : 0;
+	}
+	const float End = FVector::Dist(B->GetSquadMeshes()[0]->GetComponentLocation(), Dominion->GetActorLocation());
+	TestTrue(FString::Printf(TEXT("away from the Dominion (%.0f -> %.0f)"), Start, End), End > Start);
+	TestTrue(FString::Printf(TEXT("in frame for most of it (%d of %d)"), InFrameTicks, Ticks), InFrameTicks > Ticks / 2);
+
+	// Fires along the hull; it lists; the lens pushes in.
+	W.Advance(20.f, 1.f / 30.f);
+	TestTrue(FString::Printf(TEXT("fires on the hull (%d)"), B->GetFireCount()), B->GetFireCount() >= 30);
+	TestTrue(TEXT("the hull lists"), !Dominion->GetActorRotation().Equals(Hull0, 2.f));
+	const float Dist1 = FVector::Dist(Cam->GetActorLocation(), Dominion->GetActorLocation());
+	TestTrue(FString::Printf(TEXT("pushing in (%.0f -> %.0f)"), Dist0, Dist1), Dist1 < Dist0);
+	TestTrue(TEXT("the Dominion still in frame"), TDMenuBackdropTest::InFrame(Cam, Dominion->GetActorLocation()));
+
+	B->Destroy();
+	W.Tick();
+	TestFalse(TEXT("the Dominion goes with the backdrop"), IsValid(Dominion));
+	return true;
+}
+
 #endif

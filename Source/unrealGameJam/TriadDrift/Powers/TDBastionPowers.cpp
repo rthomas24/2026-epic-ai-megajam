@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Bastion: Missile Swarm and Shield Dome.
 
 #include "TriadDrift/Powers/TDBastionPowers.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -105,6 +106,9 @@ bool UTDMissileSwarmPower::OnActivate()
 	Fwd.FindBestAxisVectors(Up, Right);
 	const float Cone = FMath::DegreesToRadians(LaunchConeDeg);
 	const ETDTeam Team = GetOwnerTeam();
+	// Switch Strike's +25% applies to the swarm too (second review minor).
+	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+	const float Strike = Squad ? Squad->GetDamageMultiplier(Owner) : 1.f;
 
 	for (int32 i = 0; i < MissileCount; ++i)
 	{
@@ -113,7 +117,7 @@ bool UTDMissileSwarmPower::OnActivate()
 		const FVector Dir = (Fwd * FMath::Cos(Cone) + (Up * FMath::Cos(Around) + Right * FMath::Sin(Around)) * FMath::Sin(Cone)).GetSafeNormal();
 		AActor* Target = Targets.Num() > 0 ? Targets[i % Targets.Num()] : nullptr;
 		ATDProjectile* P = ATDProjectile::Launch(World, MissileSpec, FTransform(Dir.Rotation(), Origin + Dir * 200.f), Owner, Team, Target,
-			Owner->GetVelocity(), 1.f, IsOwnerPlayerControlled());
+			Owner->GetVelocity(), Strike, IsOwnerPlayerControlled());
 		(void)P;
 	}
 	return true;

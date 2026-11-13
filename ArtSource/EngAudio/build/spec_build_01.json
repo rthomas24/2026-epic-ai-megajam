@@ -1,0 +1,212 @@
+{
+ "import": [
+  {
+   "file": "../wav/Music/MUS_Music_Combat_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Combat_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music",
+    "volume": 0.3548,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "../wav/Music/MUS_Music_Intro_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Intro_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music",
+    "volume": 0.3548,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_NeedleCannons_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_NeedleCannons_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_NeedleCannons_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_NeedleCannons_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_NeedleCannons_05.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_NeedleCannons_05",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_PhasePulseLasers_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_PhasePulseLasers_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_PhasePulseLasers_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_PhasePulseLasers_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_PhasePulseLasers_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_SplitterBolt_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_SplitterBolt_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_SplitterBolt_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SplitterBolt_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_SpikeRockets_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_SpikeRockets_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_SpikeRockets_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_SpikeRockets_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_BreakerBlaster_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_BreakerBlaster_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_BreakerBlaster_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_BreakerBlaster_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_BreakerBlaster_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_FlakBurst_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_FlakBurst_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_FlakBurst_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_FlakBurst_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_MissileSwarm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_MissileSwarm_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_MissileSwarm_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Weapons/SFX_Weapon_MissileSwarm_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Weapons/SW_Weapon_MissileSwarm_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_PulseGuns_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_PulseGuns_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_PulseGuns_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_PulseGuns_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PulseGuns_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_HeavyBolt_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_HeavyBolt_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_HeavyBolt_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_HeavyBolt_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_Missile_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_Missile_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_Missile_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Missile_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_MineDrop_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_MineDrop_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Enemies/SFX_Enemy_MineDrop_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_MineDrop_02",
+   "properties": null
+  }
+ ]
+}

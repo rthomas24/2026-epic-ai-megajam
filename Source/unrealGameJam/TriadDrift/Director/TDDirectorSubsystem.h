@@ -253,6 +253,7 @@ private:
 	double LastTickRealTime = -1.0;
 
 	FTDDirectorShot CurrentShot;
+	bool bSlowMoSounding = false; // ENG-35: SlowMoIn played, SlowMoOut owed
 	double ShotEndRealTime = -1000.0;
 	double GlobalCooldownEndRealTime = -1000.0;
 	TMap<ETDHighlightKind, double> KindCooldownEnd;
