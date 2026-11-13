@@ -1,0 +1,25 @@
+diff --git a/Source/unrealGameJam/TriadDrift/World/TDGlobeBake.cpp b/Source/unrealGameJam/TriadDrift/World/TDGlobeBake.cpp
+index 18662992..9c504278 100644
+--- a/Source/unrealGameJam/TriadDrift/World/TDGlobeBake.cpp
++++ b/Source/unrealGameJam/TriadDrift/World/TDGlobeBake.cpp
+@@ -40,10 +40,10 @@ namespace
+ 			// by slope, tinted lichen on the highest ground only: no white), so the globe and the ground are one world.
+ 			const FLinearColor Jungle(0.02f, 0.17f, 0.15f), Moss(0.05f, 0.30f, 0.10f), Rock(0.15f, 0.17f, 0.23f), Snow(0.36f, 0.56f, 0.50f);
+ 			Base = FMath::Lerp(Jungle, Moss, FMath::Clamp(Broad, 0.f, 1.f));
+-			Base = FMath::Lerp(Base, Rock, FMath::Clamp(FMath::Max((Slope - 0.12f) / 0.2f, (HeightM - 1000.f) / 900.f), 0.f, 1.f));
++			Base = FMath::Lerp(Base, Rock, FMath::Clamp(FMath::Max((Slope - 0.2f) / 0.3f, (HeightM - 1000.f) / 900.f), 0.f, 1.f));
+ 			Base = FMath::Lerp(Base, Snow, FMath::Clamp((HeightM - 1450.f) / 550.f, 0.f, 1.f));
+ 			// Bioluminescent jungle patches at night, by biome (not by height: the carved arrival corridor must not show).
+-			Glow = FMath::Lerp(FLinearColor(0.f, 0.16f, 0.18f), FLinearColor(0.10f, 0.03f, 0.20f), FMath::Clamp((Broad - 0.35f) * 3.f, 0.f, 1.f))
++			Glow = FMath::Lerp(FLinearColor(0.f, 0.06f, 0.065f), FLinearColor(0.03f, 0.012f, 0.06f), FMath::Clamp((Broad - 0.35f) * 3.f, 0.f, 1.f))
+ 				* FMath::Clamp(FMath::Abs(Broad - 0.5f) * 5.f, 0.15f, 1.f) * FMath::Clamp(1.f - HeightM / 900.f, 0.f, 1.f);
+ 		}
+ 		Base *= 1.f - 0.2f * FMath::Clamp(Slope, 0.f, 1.f);	// cliffs a little darker: the ranges show their relief
+@@ -95,6 +95,7 @@ namespace
+ 			const float X = FMath::Cos(Lon) * D, Y = FMath::Sin(Lon) * D;
+ 			const FTDTerrainSample S = Field.Sample(X, Y, 2000.f);
+ 			TDGlobeBake_Shade(bCinder, (S.Height - Field.GetStyle().BasinFloor) / 100.f, S.Slope, S.BroadMask, S.Height < Field.GetStyle().SeaLevel, LocalBase, LocalGlow);
++			if (!bCinder) { LocalBase *= 0.86f + 0.28f * S.FineMask; }	// canopy grain: the flats are not one flat colour from orbit
+ 		}
+ 		FLinearColor GlobalBase = FLinearColor::Black, GlobalGlow = FLinearColor::Black;
+ 		if (GlobalW > 0.f)
