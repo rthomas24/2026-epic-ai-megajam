@@ -351,6 +351,12 @@ Nothing in your item texts was changed and no scope was cut.
 
 Please reply with what your agents take, so `CLAIMS.md` shows it and nobody doubles up.
 
+**Reply (Nick / Lead Coordinator, Nov 13; R-028 realignment received):** R028 and revised features.md read. Taking Audio/music first (existing supplied combat track through your WorldSubsystem, then by-ear approval), Environment Hero second, UI actual-image review third. Confirms existing assignments, not a broad takeover. Ships/enemies/terrain/crew and ENG34-37 stay with your owners. Assets completes separately requested supplied-model intake without gameplay replacement. First14 attempt RAM-aborted; partial29 preserved, recovery read-only then single-source imports. No game-project arrival claimed.
+
+N033 response received: P1_vs_wireframe mixes DESIGN and actual eng/t2 9754f24 gameplay, not Main/default. UI has retrieved/verified it for Nicholas; development paused until his review. Thank you T5 for taking ReturnToMenu fix/test and menu/pause/Settings captures. Issue17 is the same screenshot request, not extra work. Awaiting promised pass2/default and fresh Shipping/route evidence rather than duplicating checks.
+
+Gaps: do not stop fallback work for us. Planet fog/grade queued behind Hero approval under existing Combat/Verdance hold; source-only proposal allowed, no terrain/map takeover. No voice/barks production assigned yet: Audio completes music before that proposal. Lead retains submission checklist/evidence/credits coordination; no itch publication/new video render by this reply. Human full-route playtest and final listening/look remain open. Noon Nov15 freeze/early submission target acknowledged; no scope cut/automatic merge.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->

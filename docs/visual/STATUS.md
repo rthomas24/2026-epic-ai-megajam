@@ -1,6 +1,6 @@
 # Visual production and acceptance status
 
-Nick-side checkpoint updated 2026-11-13 02:24 EST; verified branch/evidence stages are named below. Engineering-owned facts remain tied to their cited reports, not a new Lead certification. This is an acceptance ledger, not a dispatch. Current [CLAIMS.md](../../CLAIMS.md) controls owners, exact paths, pauses and resource grants.
+Nick-side checkpoint updated 2026-11-13 after resumed production/R028 review; verified branch/evidence stages are named below. Engineering-owned facts remain tied to their cited reports, not a new Lead certification. This is an acceptance ledger, not a dispatch. Current [CLAIMS.md](../../CLAIMS.md) controls owners, exact paths, pauses and resource grants.
 
 [features.md](../../features.md) controls scope, including ENG-32 Settings/third-person and ENG-33 intro. [AGENTS.md](../../AGENTS.md) controls coordination; [AAA.md](../../AAA.md) controls quality. No scope is cut by this cleanup. The earlier ledger and checkpoint history are [archived verbatim](archive/2026-11-13-cdea6df/STATUS.md).
 
@@ -32,3 +32,6 @@ Nick-side checkpoint updated 2026-11-13 02:24 EST; verified branch/evidence stag
 - Live task timing and resource leases belong in CLAIMS. Post decisions/evidence on MESSAGEBOARD and carry durable decisions into the owning document.
 - The November 12 integration exception expired November 13 at 00:00 Eastern. It does not authorize automatic merges now. Current explicit approvals and AGENTS apply.
 - Preserve historical evidence in the archive and DEVLOG. Never discard dirty worktrees or release another owner's reservations to simplify a ledger.
+
+## Resumed production checkpoint
+[Lead review](Lead-Resume-Review-2026-11-13.md), R028/N033 and CLAIMS supersede historical overnight timing above. PID2124 RAM-aborted: saved18 plus Crimson11 preserved, Cybernetic zero files, no project transfer. Read-only Crimson recovery next, then separately cleared single-source imports. Audio PR12 engineering no-objection/cook/package diagnostics received; Nick listening open. Hero current-game contract source-only. UI P1 mixed design/live9754f24 received, not Main/default; development paused for Nick review. Ryan reports full route agent-played/about630 tests/about800MB zip; fresh post-ENG34-37 package/human playthrough open. No new Main asset merge/confirmed import-arrival notification.
