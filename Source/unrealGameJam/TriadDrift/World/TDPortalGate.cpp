@@ -125,7 +125,18 @@ void ATDPortalGate::HandleSpacecraftTeleported(AActor* Spacecraft, FVector /*Fro
 	// Only arrivals caused by a transit through our partner (the traveller itself, or wingmen
 	// follow-warping after their leader). A ship merely spawned near a gate is not guarded.
 	const UWorld* World = GetWorld();
-	if (!Spacecraft || !World || !Partner || World->GetTimeSeconds() - Partner->LastTransitTime > ArrivalGuardSeconds)
+	if (!Spacecraft || !World)
+	{
+		return;
+	}
+	// Any arrival that is NOT a gate transit (level travel, a stage jump, a retake respawn, a cheat): this ship
+	// can't take ANY gate for ArrivalNoTransitSeconds, so a spawn point in front of a gate never pops the player.
+	if (!ATDPortalGate::IsTransitInProgress())
+	{
+		ArrivalBlockedUntil.Add(Spacecraft, World->GetTimeSeconds() + ArrivalNoTransitSeconds);
+		return;
+	}
+	if (!Partner || World->GetTimeSeconds() - Partner->LastTransitTime > ArrivalGuardSeconds)
 	{
 		return;
 	}
@@ -165,6 +176,12 @@ void ATDPortalGate::UpdateLook()
 	UTDStatics::TintPlaceholder(Surface, FLinearColor(0.7f, 0.2f, 1.f), 2.f);
 }
 
+bool& ATDPortalGate::TransitInProgressFlag()
+{
+	static bool bInTransit = false;
+	return bInTransit;
+}
+
 bool ATDPortalGate::SegmentCrossesGate(const FTransform& GateTransform, float InRadius, const FVector& From, const FVector& To, bool& bOutForward)
 {
 	const FVector P = GateTransform.GetLocation();
@@ -190,6 +207,11 @@ bool ATDPortalGate::SegmentCrossesGate(const FTransform& GateTransform, float In
 bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 {
 	if (!IsValid(Traveller) || !Partner || !UTDPortalTransit::CanTransit(Traveller, TransitParams.ReentryCooldownSeconds))
+	{
+		return false;
+	}
+	// A freshly spawned ship (level travel, respawn) gets the same grace before any gate takes it.
+	if (Traveller->IsA<ATDSpacecraft>() && Traveller->GetGameTimeSinceCreation() < ArrivalNoTransitSeconds)
 	{
 		return false;
 	}
@@ -225,6 +247,7 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 	// (inside this call), and the partner gate must already know a transit is happening to guard them.
 	const double PrevTransitTime = LastTransitTime;
 	LastTransitTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	TGuardValue<bool> InTransit(ATDPortalGate::TransitInProgressFlag(), true);	// our own teleport is a gate transit
 	if (!UTDPortalTransit::TransitActor(Traveller, Entry, Exit, this, TransitParams))
 	{
 		LastTransitTime = PrevTransitTime;

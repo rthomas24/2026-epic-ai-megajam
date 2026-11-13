@@ -171,14 +171,14 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 	// Gates: combat zone <-> each orbit, and a flank pair that opens for waves 3-5.
 	const FVector VerdanceOrbit = L.ReturnPoints[TDReturnPoints::VerdanceOrbit].GetLocation();
 	const FVector CinderOrbit = L.ReturnPoints[TDReturnPoints::CinderOrbit].GetLocation();
-	// Orbit gates sit OFF the line from the orbit return point to the combat zone (25 000 cm to the side): a ship
+	// Orbit gates sit OFF the line from the orbit return point to the combat zone (70 000 cm to the side): a ship
 	// leaving orbit flies straight home and never takes the gate by accident (T1 / T5 playtests: it did, 3 s
 	// after every return, and popped out near the centre). Taking the gate is a choice the HUD marker offers.
 	auto OrbitGateAt = [&L](const FVector& Orbit)
 	{
 		const FVector Home = (L.CombatZoneCenter - Orbit).GetSafeNormal();
 		const FVector Side = FVector::CrossProduct(FVector::UpVector, Home).GetSafeNormal();
-		return Orbit + Side * 25000.f + Home * 5000.f;
+		return Orbit + Side * 70000.f + Home * 5000.f;	// clear of 10 s of cruise (60 000 cm) plus the disc
 	};
 	L.Gates.Add(TDGalaxy_GatePair(TEXT("Gate_Verdance_Zone"), FVector(30000.f, 18000.f, 0.f), TEXT("Gate_Verdance_Orbit"), OrbitGateAt(VerdanceOrbit), Verdance.Location));
 	L.Gates.Add(TDGalaxy_GatePair(TEXT("Gate_Cinder_Zone"), FVector(-30000.f, 18000.f, 0.f), TEXT("Gate_Cinder_Orbit"), OrbitGateAt(CinderOrbit), Cinder.Location));
@@ -260,6 +260,14 @@ ATDPortalGate* ATDGalaxyLayout::FindGate(FName GateId) const
 		if (G && G->GateId == GateId) { return G; }
 	}
 	return nullptr;
+}
+
+TArray<FTransform> ATDGalaxyLayout::GetSpawnPoints() const
+{
+	TArray<FTransform> Out;
+	Out.Add(GetPlayerStart());
+	for (const TPair<FName, FTransform>& KV : Layout.ReturnPoints) { Out.Add(KV.Value * GetActorTransform()); }
+	return Out;
 }
 
 int32 ATDGalaxyLayout::GetAsteroidLookCount() const
