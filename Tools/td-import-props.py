@@ -37,7 +37,7 @@ def log(message):
     unreal.log("TDPY: " + message)
 
 
-def ensure_master_material():
+def ensure_master_material(default_orm):
     """Lit material driven by a baked set: BaseColorTex, ORMTex (AO / roughness / metallic), NormalTex, EmissiveTex * EmissiveStrength."""
     assets = unreal.EditorAssetLibrary
     lib = unreal.MaterialEditingLibrary
@@ -69,7 +69,9 @@ def ensure_master_material():
 
     st = unreal.MaterialSamplerType
     base = sample("BaseColorTex", "/Engine/EngineResources/DefaultTexture", st.SAMPLERTYPE_COLOR, -700, -300)
-    orm = sample("ORMTex", "/Engine/EngineResources/DefaultTexture", st.SAMPLERTYPE_MASKS, -700, 0)
+    # The default must itself be a Masks texture: with the engine's sRGB DefaultTexture here the master failed
+    # to compile ("Sampler type is Masks, should be Color") and every prop drew with the default material.
+    orm = sample("ORMTex", default_orm, st.SAMPLERTYPE_MASKS, -700, 0)
     normal = sample("NormalTex", "/Engine/EngineMaterials/DefaultNormal", st.SAMPLERTYPE_NORMAL, -700, 300)
     emissive = sample("EmissiveTex", "/Engine/EngineResources/Black", st.SAMPLERTYPE_COLOR, -700, 600)
     strength = lib.create_material_expression(material, unreal.MaterialExpressionScalarParameter, -700, 850)
@@ -190,10 +192,31 @@ def import_kit(skill, source_rel, dest, emissive_scale, self_illum):
     return good, bad
 
 
+def first_orm(skill):
+    """Import one kit ORM texture first, so the master material has a valid Masks default."""
+    for source_rel, dest, _, _ in KITS:
+        source = os.path.join(REPO, *source_rel.split("/"))
+        files = sorted(glob.glob(os.path.join(source, "**", "T_*_ORM.png"), recursive=True))
+        if files:
+            if not unreal.EditorAssetLibrary.does_directory_exist(dest):
+                unreal.EditorAssetLibrary.make_directory(dest)
+            textures = skill["import_textures"](files[:1], dest, [])
+            name = os.path.splitext(os.path.basename(files[0]))[0]
+            path = "%s/%s" % (dest, name)
+            if unreal.EditorAssetLibrary.does_asset_exist(path):
+                return path
+    return None
+
+
 def main():
-    if not ensure_master_material():
-        return
     skill = load_skill()
+    default_orm = first_orm(skill)
+    if default_orm is None:
+        log("FAILED: no ORM texture found to use as the master default")
+        return
+    log("master ORM default: " + default_orm)
+    if not ensure_master_material(default_orm):
+        return
     total_good = total_bad = 0
     for source_rel, dest, emissive_scale, self_illum in KITS:
         good, bad = import_kit(skill, source_rel, dest, emissive_scale, self_illum)
