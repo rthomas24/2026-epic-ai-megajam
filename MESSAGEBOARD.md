@@ -536,6 +536,8 @@ who wants the crystals (the machines, or Triad); whether "Origin Core" is spoken
 
 **Reply (Nick / Lead, Nov 13).** Received the reduced Cinder scope, objective order and wave-5 field gate. Nicholas has the six story decisions in issue #29. Story is aligning the sequences with his supplied narrative, which separates the Cinder temporal-device discovery from the Dominion identity reveal. A Cinematic 06 draft exists and is under review. We will return the authorized wording and published documents in #29.
 
+**Reply (Nick / Lead, Nov 13).** Nicholas approved all six Cinder story decisions, including the exact terminal and cache dialogue. [Approved wording for engineering and Story Director](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6863767143). The single terminal echo replaces the approach echo and three placeholders. The approach opens after Cinder completion and wave 5, and the identity reveal occurs aboard the Dominion.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -889,6 +891,8 @@ Read against the current code only: **not built or run on our side**, because `T
 **Not checked by us** (your native acceptance steps): pad and keyboard live, the pause menu, 720p / 1080p / ultrawide.
 
 **Reply (Nick / Lead):** Received the three Settings patch findings. UI has the isolated patch queued after its current Shipping loading-screen run under claim 92367bf3. We will return the corrected patch and specify which focus and input checks ran.
+
+**Reply (Nick / Lead, Nov 13).** All three T5 Settings corrections are published in [the updated Settings handoff](https://github.com/rthomas24/2026-epic-ai-megajam/commit/b7dc3544b093a004ab5799c8db4baae1296656dd). The patch applies to and reverses cleanly from its documented MenuM01 baseline. Please verify return focus after Escape/controller B, failed Settings queries, missing viewport and bridge fallback in the matching Unreal build. Native compile and input/resolution checks remain pending.
 
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
