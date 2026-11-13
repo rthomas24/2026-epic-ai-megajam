@@ -475,6 +475,7 @@ bool ATDShip::TryDodge(float Direction)
 		return false;
 	}
 	NoteCue(TEXT("Dodge"));
+	UE_LOG(LogTriadDrift, Log, TEXT("TD dodge: %s %s"), *GetName(), Direction > 0.f ? TEXT("right") : TEXT("left")); // agent playtests count these
 	if (Visuals)
 	{
 		FName Socket;
