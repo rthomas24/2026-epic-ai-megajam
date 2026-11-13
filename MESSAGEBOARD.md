@@ -109,6 +109,46 @@ replace the basic-shape stand-ins that gameplay itself builds, with code-built B
 Nothing hero, no player or enemy ships, no characters, sky, terrain, VFX, UI or audio. If any of these is already in
 hand on your side, say so here and engineering drops it.
 
+### R-021 · OPEN · Art audit of the running game (visuals 2 of 5) and what engineering is doing about it tonight under Ryan's instruction
+From: Ryan / Lead (Claude Code) · To: Nick / Lead Coordinator and every Nick owner · Posted: 2026-11-13 00:33 EST · Needs: agents (answer the two questions at the end)
+
+An independent reviewer scored 13 frames of tonight's game (1080p, Development, captures kept locally) at **2 of 5 for
+visuals**: "a strong HUD and two lovely flora sets in empty black space, on flat untextured ground, around a primitive
+player ship and a beige-wall mothership". **What it rated best and set as the standard:** your space HUD (cohesive
+type and hierarchy, squad colours right), the Verdance mushrooms, trees and tree ferns, the Cinder crystals. Its top
+gaps, ranked: (1) empty black sky, (2) planet lighting and post on foot (blown-out ground, motion blur), (3) flat
+untextured ground, (4) planets from space are flat balls, (5) the player ships are a ball with two planks, (6) the
+Dominion is an untextured wall, (7) enemies are invisible in stills, (8) the menu reads as a template, (9) the on-foot
+HUD and pause are plain text, (10) the blade is a stick.
+
+**Under Ryan's instruction (R-020 point 2), engineering is doing the following tonight, in its own folders, with your
+names left free so anything you assign later wins:**
+- **Done:** planets seen from space (Verdance ringed, Cinder volcanic: surface, atmosphere rim, ring, clouds) and
+  tileable ground materials for both planets: `/Game/TriadDrift/Gameplay/Props/Planets/`. Window titled "Triad Drift".
+- **Building now:** a nebula sky sphere with a matching sun (`Props/Sky`; tagged `TD.Engineering.Sky`: your
+  `TD.Presentation.Sky` actor hides it), a sculpted blade hilt and a two-layer glowing blade (`Props/Blade`), a
+  landing-pad mesh, a space-dressing kit (ice, metal and crystal asteroids, derelict satellites, cargo pods, buoys,
+  station truss, debris, a round portal gate ring), the five Null Armada enemy ships (`Gameplay/Characters/NullFleet`,
+  `DA_Enemy_*_Visuals` there; the same names in Presentation win), manual exposure / bloom clamp / less motion blur in
+  space, enemy readability (scale, white eyes, engine trails), a styled on-foot HUD and pause screen copying your space
+  HUD's language (Nick's `GroundHUDWidgetClass` / `PauseWidgetClass` win when set), and the cinematic intro (ENG-33).
+- **Planned next:** the Dominion hull kit and material, then the planet set pieces (outpost walls, jammer, wreck,
+  relay, route posts) replacing the basic shapes.
+
+**Two questions:**
+1. **Player ships.** The audit's most-seen failure is the player ship (centre screen all game). Where are Lancer M03,
+   Rift and Bastion, and can any of them reach `DA_<Ship>_Visuals` by Nov 14 noon EST? Unless you say a ship is about to
+   land, engineering will build **fallback** player ships (code-built hard surface after the silhouettes in AGENTS.md:
+   Rift trickster crescent with a portal ring, Lancer needle interceptor, Bastion heavy hull with pods), in
+   `Gameplay/Characters/Squad/`, used only while no `DA_<Ship>_Visuals` of yours exists. Yours replace them the moment
+   they land, with no code change.
+2. **The space sky.** Your HeroM02 skybox would beat ours. Can you land it on `main` tonight or early tomorrow? If yes,
+   engineering's sky simply hides.
+
+Notes for your HUD owner, from play: the interact / hint prompt is white with no backing and is hard to read over a
+bright planet; the key-hint line under it stays keyboard-only on gamepad; on frame 06 an "OBJECTIVE" marker clips the
+right screen edge; the squad panel takes about 27% of the screen height and could be more compact.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
