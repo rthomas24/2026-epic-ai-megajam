@@ -15,9 +15,11 @@ VARIANT = argv[argv.index("--variant") + 1] if "--variant" in argv else "trooper
 # what each enemy type carries (same body, same skeleton)
 F = dict(pack=True, pack_scale=1.0, lames=("A", "B", "C"), pauldron_scale=1.0, thigh_outer=True, thigh_back=True, shin_low=True, calf=True,
          shin_off=0.0, thigh_off=0.0, fins=0.15, crest=False, ovals="both", wrist_band=False, scapula=True, flank=True, upperarm=True, hip=True,
-         hoses=True, pouches=(42, 72, 112, 142), gorget=False, chest2=False, shield=False, shin_stripes=True)
+         hoses=True, pouches=(42, 72, 112, 142), gorget=False, chest2=False, shield=False, shin_stripes=True, crest_blade=False, ear_r=0.06,
+         bracer=True, elbow=True)
 if VARIANT == "grunt":      # melee, fast, fragile: less armour, more undersuit, short fins, glowing right wrist band
-    F.update(pack=False, lames=("A",), thigh_outer=False, thigh_back=False, shin_low=False, calf=False, shin_off=-0.008, fins=0.08, ovals="none",
+    F.update(pack=False, lames=("A",), pauldron_scale=0.6, crest_blade=True, ear_r=0.04, bracer=False,
+             thigh_outer=False, thigh_back=False, shin_low=False, calf=False, shin_off=-0.008, fins=0.0, ovals="none",
              wrist_band=True, scapula=False, flank=False, upperarm=False, hip=False, hoses=False, pouches=(42, 142), shin_stripes=False)
 elif VARIANT == "heavy":    # shielded, slow, tough: bigger pauldrons, gorget, second chest plate, left forearm shield, crest instead of fins
     F.update(pack_scale=1.25, lames=("A", "B", "C", "D"), pauldron_scale=1.3, shin_off=0.008, thigh_off=0.008, fins=0.0, crest=True, ovals="right",
@@ -441,10 +443,11 @@ def build_arm():
     top_f = V(0, -0.35, 1.0)
     F_ = lambda th0, th1, u0, u1: L.sweep(el, wr, top_f, out_f, th0, th1, u0, u1)
     flare = lambda s, t: 0.006 * max(0.0, 1 - t / 0.2) ** 2
-    br = L.shell("NT_Bracer_L", F_(0, 360, [(0, 0.16), (0.25, 0.10), (0.5, 0.16), (0.75, 0.22), (1, 0.16)], const_s(0.95)),
-                 16, 5, body, reg, offset=lambda s, t: 0.019 - 0.009 * t, smooth=4, wrap=True, bulge=flare, bone={"lowerarm_l": 1.0}, bevel=0.004,
-                 grooves=[('t', 0.3, 0.02, 0.003), ('t', 0.85, 0.02, 0.003)])
-    fin(br, True)
+    if F["bracer"]:
+        br = L.shell("NT_Bracer_L", F_(0, 360, [(0, 0.16), (0.25, 0.10), (0.5, 0.16), (0.75, 0.22), (1, 0.16)], const_s(0.95)),
+                     16, 5, body, reg, offset=lambda s, t: 0.019 - 0.009 * t, smooth=4, wrap=True, bulge=flare, bone={"lowerarm_l": 1.0}, bevel=0.004,
+                     grooves=[('t', 0.3, 0.02, 0.003), ('t', 0.85, 0.02, 0.003)])
+        fin(br, True)
     # long oval emissive panel (about 22 x 6 cm) on the outer face, hex grid only here
     oval = []
     for q in range(14):
@@ -553,8 +556,11 @@ def build_helmet():
                 bone=hb, bevel=0.0015, mat="emis"))
     # ear discs with a raised glowing ring
     ec = V(RX - 0.016, -0.014, 1.688)
-    fin(L.lathe("NT_Ear_L", ec, LEFT, [(0, 0.06), (0.022, 0.06), (0.029, 0.054), (0.029, 0.047), (0.035, 0.045), (0.035, 0.034), (0.029, 0.032),
-                                        (0.029, 0.02), (0.034, 0.018), (0.034, 0)], segs=20, ring_mats={4: "emis"}, bone=hb, bevel=0.0), True)
+    er = F["ear_r"]; ek = er / 0.06
+    eh = 0.022 if er >= 0.06 else 0.008
+    fin(L.lathe("NT_Ear_L", ec, LEFT, [(0, er), (eh, er), (eh + 0.007, er * 0.9), (eh + 0.007, er * 0.78), (eh + 0.013 * ek, er * 0.75), (eh + 0.013 * ek, er * 0.57),
+                                        (eh + 0.007, er * 0.53), (eh + 0.007, er * 0.33), (eh + 0.012 * ek, er * 0.3), (eh + 0.012 * ek, 0)],
+                segs=20, ring_mats={4: "emis"}, bone=hb, bevel=0.0), True)
     # antenna fins: blades rooted at the top of the ear disc, 15 cm long, 4.5 cm wide at the root, 8 mm thick, swept back 38 degrees
     if F["fins"] > 0:
         sw = math.radians(38)
@@ -575,8 +581,17 @@ def build_helmet():
                 q = c + pr * off
                 pts += [(q.x - th - 0.0012, q.y, q.z), (q.x + th + 0.0012, q.y, q.z)]
         fin(L.hull("NT_FinEdge_L", pts, bone=hb, bevel=0.0, mat="emis"), True)
+    if F["crest_blade"]:    # the Grunt: one short swept-back centre blade, 6 cm tall, 14 mm thick, emissive trailing edge
+        prof = ((-0.035, 1.845, 0.007), (0.06, 1.815, 0.007), (0.075, 1.88, 0.007), (0.118, 1.928, 0.004), (0.128, 1.918, 0.004))
+        fin(L.hull("NT_CrestBlade", [(sx * th, y_, z_) for (y_, z_, th) in prof for sx in (-1, 1)], bone=hb, bevel=0.0015, angle=20))
+        edge = ((0.06, 1.815), (0.128, 1.918))
+        pts = []
+        for (y_, z_) in ((0.062, 1.83), (0.128, 1.918)):
+            for dy, dz in ((0.0, 0.0), (0.005, -0.004)):
+                pts += [(-0.0082, y_ + dy, z_ + dz), (0.0082, y_ + dy, z_ + dz)]
+        fin(L.hull("NT_CrestBladeEdge", pts, bone=hb, bevel=0.0, mat="emis"))
     if F["crest"]:      # the Heavy: no fins, a 3 cm central crest
-        fin(L.shell("NT_HelmCrest", Sd(-200, -12, [(0, -2.2), (0.5, -3.2), (1, -3.0)], [(0, 2.2), (0.5, 3.2), (1, 3.0)]), 2, 18,
+        fin(L.shell("NT_HelmCrest", Sd(-150, -12, [(0, -2.2), (0.5, -3.2), (1, -3.0)], [(0, 2.2), (0.5, 3.2), (1, 3.0)]), 2, 18,
                     shape=lambda o, d: H(o, d) + 0.034, bulge=lambda s, t: -0.03 * max(0.0, abs(t - 0.5) * 2 - 0.55) / 0.45,
                     thick=0.034, bone=hb, bevel=0.004,
                     grooves=[('s', 0.5, 0.2, 0.0008, (0.08, 0.92), 'stripe')]))
@@ -590,11 +605,15 @@ def build_helmet():
 # ------------------------------------------------------------------ Heavy only: gorget, second chest plate, left forearm shield
 def build_heavy():
     reg = L.R_TORSO_ARMS
-    if F["gorget"]:     # raised neck guard reaching ear height, open at the front
-        g = L.shell("NT_Gorget", T(58, 302, const_s(1.465), [(0, 1.60), (0.2, 1.68), (0.5, 1.70), (0.8, 1.68), (1, 1.60)]), 20, 4,
-                    shape=lambda o, d: 0.165 + 0.02 * abs(d.x), bulge=lambda s, t: 0.02 * t, thick=0.014, inner=True, bone={"spine_05": 1.0}, bevel=0.004,
-                    grooves=[('t', 0.5, 0.05, 0.003)])
-        fin(g)
+    if F["gorget"]:     # raised neck guard to ear height: two stepped lames, chamfered top edges, open at the front
+        g0 = L.shell("NT_GorgetLow", T(54, 306, const_s(1.462), [(0, 1.55), (0.2, 1.60), (0.5, 1.615), (0.8, 1.60), (1, 1.55)]), 20, 3,
+                     shape=lambda o, d: 0.212 + 0.012 * abs(d.x), bulge=lambda s, t: 0.008 * t, thick=0.016, inner=True, bone={"spine_05": 1.0}, bevel=0.006,
+                     grooves=[('s', 0.5, 0.01, 0.003)])
+        fin(g0)
+        g1 = L.shell("NT_GorgetHigh", T(64, 296, const_s(1.585), [(0, 1.635), (0.2, 1.685), (0.5, 1.70), (0.8, 1.685), (1, 1.635)]), 20, 3,
+                     shape=lambda o, d: 0.2 + 0.008 * abs(d.x), bulge=lambda s, t: 0.006 * t, thick=0.014, inner=True, bone={"spine_05": 1.0}, bevel=0.006,
+                     grooves=[('t', 0.82, 0.05, 0.0008, None, 'stripe')])
+        fin(g1)
     if F["chest2"]:     # second layered chest plate over the pectorals
         c2 = L.shell("NT_ChestOver_L", T([(0, 27), (1, 22)], [(0, 60), (0.5, 68), (1, 52)], [(0, 1.31), (0.5, 1.30), (1, 1.35)], [(0, 1.44), (0.5, 1.47), (1, 1.45)]),
                      10, 7, body, reg, offset=0.054, smooth=5, bone={"spine_05": 1.0}, bevel=0.005, edge_drop=0.005, cross=True,
@@ -611,8 +630,11 @@ def build_heavy():
         hexa = lambda a_, b_, m_: [(-a_ + m_, 0.0), (-a_ * 0.62, b_ - m_), (a_ * 0.62, b_ - m_), (a_ - m_, 0.0), (a_ * 0.62, -b_ + m_), (-a_ * 0.62, -b_ + m_)]
         bn = {"lowerarm_l": 1.0}
         fin(L.prism("NT_ShieldRim", hexa(0.225, 0.15, 0.0), c, ax, wide, nrm, 0.016, bone=bn, bevel=0.003, mat="emis"))
-        fin(L.prism("NT_ShieldFace", hexa(0.225, 0.15, 0.014), c - nrm * 0.004, ax, wide, nrm, 0.026, taper=0.97, bone=bn, bevel=0.004))
-        fin(L.prism("NT_ShieldBoss", hexa(0.1, 0.07, 0.0), c + nrm * 0.018, ax, wide, nrm, 0.014, taper=0.85, bone=bn, bevel=0.004, mat="armor2"))
+        fin(L.prism("NT_ShieldFace", hexa(0.225, 0.15, 0.014), c - nrm * 0.004, ax, wide, nrm, 0.026, taper=0.97, bone=bn, bevel=0.004, mat="armorflat"))
+        fin(L.prism("NT_ShieldBoss", hexa(0.105, 0.072, 0.0), c + nrm * 0.018, ax, wide, nrm, 0.02, taper=0.8, bone=bn, bevel=0.005, mat="armorflat"))
+        fin(L.prism("NT_ShieldBossCap", hexa(0.05, 0.034, 0.0), c + nrm * 0.036, ax, wide, nrm, 0.006, taper=0.9, bone=bn, bevel=0.002, mat="armor2"))
+        for q, off in enumerate((-0.15, 0.15)):      # two scribed lines across the face
+            fin(L.box("NT_ShieldLine%d" % q, c + ax * off + nrm * 0.0205, wide, ax, nrm, 0.2 if abs(off) > 0.1 else 0.26, 0.004, 0.0022, bone=bn, bevel=0.0, mat="armor2"))
         fin(L.prism("NT_ShieldMount", [(-0.07, -0.03), (0.07, -0.03), (0.07, 0.03), (-0.07, 0.03)], c - nrm * 0.05, ax, wide, nrm, 0.05, bone=bn, bevel=0.004, mat="armor2"))
 
 

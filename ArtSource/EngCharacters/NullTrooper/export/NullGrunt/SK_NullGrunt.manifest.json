@@ -2,13 +2,13 @@
  "asset": "SK_NullGrunt",
  "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
  "physics_asset": "/Game/Characters/Mannequins/Rigs/PA_Mannequin",
- "tris": 42584,
- "verts": 22946,
+ "tris": 41444,
+ "verts": 22340,
  "bones_in_fbx": 89,
  "size_cm": [
   112.7,
   46.9,
-  187.4
+  192.7
  ],
  "material_slots": [
   "M_NullGrunt"

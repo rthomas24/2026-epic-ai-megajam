@@ -60,6 +60,7 @@ def material(key):
             "emisglow": ("M_NT_EmissiveGlow", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (0.2, 0.014, 0.003, 1)),
             "emiscore": ("M_NT_EmissiveCore", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (0.6, 0.04, 0.008, 1)),
             "emisline": ("M_NT_EmissiveLine", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (0.1, 0.007, 0.002, 1)),
+            "armorflat": ("M_NT_ArmorFlat", (0.030, 0.032, 0.036, 1), 0.9, 0.5, None),
             "rubber": ("M_NT_Rubber", (0.009, 0.009, 0.01, 1), 0.0, 0.7, None),
             "emishex": ("M_NT_EmissiveHex", (0.02, 0.004, 0.002, 1), 0.0, 0.5, (1.0, 0.068, 0.013, 1)),
             "stripe": ("M_NT_Stripe", (0.55, 0.03, 0.01, 1), 0.0, 0.5, None)}[key]

@@ -430,7 +430,13 @@ bool FTDCrewVisuals::RunTest(const FString& Parameters)
 	ATDCrewCharacter* G = TDCrewTest::SpawnCrew(W, ETDCrewType::Grunt, FVector(0.f, 0.f, 95.f));
 	if (!TestNotNull(TEXT("grunt"), G)) { return false; }
 	const UTDEnemyVisuals* TrooperLook = ATDCrewCharacter::FindCrewVisuals(TEXT("Trooper"));
-	if (TrooperLook && !TrooperLook->SkeletalMesh.IsNull() && !ATDCrewCharacter::FindCrewVisuals(TEXT("Grunt")))
+	// The project now ships a grunt look of its own (engineering-made, Gameplay/Characters/NullGrunt): the
+	// test must hold with or without that content on disk.
+	if (const UTDEnemyVisuals* GruntLook = ATDCrewCharacter::FindCrewVisuals(TEXT("Grunt")))
+	{
+		TestTrue(TEXT("the grunt wears its own look"), G->Visuals.Get() == GruntLook && !G->IsPlaceholderVisible());
+	}
+	else if (TrooperLook && !TrooperLook->SkeletalMesh.IsNull())
 	{
 		TestTrue(TEXT("no grunt look: the grunt wears the trooper's"), G->Visuals.Get() == TrooperLook && G->GetMesh()->IsVisible() && !G->IsPlaceholderVisible());
 		TestEqual(TEXT("sized to a grunt"), G->GetLookScale(), 0.96f, 0.001f);
