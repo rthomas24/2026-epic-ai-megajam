@@ -42,12 +42,14 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	static FTDStreakLook ComputeStreak(const FTDProjectileSpec& Spec);
 
 	/**
-	 * On foot the camera is a metre or two from the shot, so the space streak (35+ cm thick, 2.2x incoming head)
-	 * reads as a glowing ball (T5's journey check). On-foot bolts: 90-220 cm long, 8-16 cm thick, a head 1.6x the
-	 * thickness; they grow at most OnFootMaxGrowth with distance and get no incoming boost.
+	 * On foot the camera is a metre or two from the shot, so the space streak (35+ cm thick, 2.2x incoming head, glow 10)
+	 * reads as a glowing ball (T5's journey check; the Lead's Heavy pellets at 5 m). On-foot bolts: 40-80 cm long
+	 * (0.02 s of flight), 5-9 cm thick, a head 1.4x the thickness, glow OnFootGlow so red-orange does not bloom to white;
+	 * they grow at most OnFootMaxGrowth with distance and get no incoming boost.
 	 */
 	static FTDStreakLook ComputeOnFootStreak(const FTDProjectileSpec& Spec);
 	static constexpr float MinOnFootStreakPixels = 5.f;
+	static constexpr float OnFootGlow = 3.f;
 	static constexpr float OnFootMaxGrowth = 3.f;
 	static float OnFootDistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
 
