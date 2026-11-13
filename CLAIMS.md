@@ -24,6 +24,8 @@ Maintainer: Nick's Lead Coordinator. This section is the single live ownership v
 
 Nick releases all Environment, VFX, asset-management and intake claims and reservations to Ryan, including the post-Audio AirSlam slot, its Presentation blade VFX fields, and every related path listed below. This release supersedes the earlier entries for these lanes. Their published branches are preserved for reference. No Nick agent is writing those paths or running a native job there. Ryan owns the finished effect and floor-contact integration. Audio keeps the tutorial score and gameplay capture; UI gets the next available native slot after Audio releases it.
 
+Audio has the next exclusive Unreal recording slot once Ryan posts the corrected #24 commit and matching editor binaries. UI released the machine after the Loading01 capture. Audio will record the normal control handoff, 57-second loop, full 20-second exit and a separate skip entry. The first run findings are published at nick/audio-prototype-v1@854cabfc.
+
 ### Active presentation assignments, Nov 13
 
 Nicholas has restarted his presentation team under the Nov 13 realignment. These rows supersede the historical assignments below. Each next item starts under a refreshed claim. Nicholas approves appearance and sound.
