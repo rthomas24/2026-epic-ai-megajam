@@ -1,0 +1,160 @@
+{
+  "stage": "Menu loop and travel functionally verified in current-game host; Shipping and final loop-listening pending",
+  "host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\unrealGameJam.uproject",
+  "loop_period_s": 107,
+  "wave_sha256": "c5354faa6c9776deaa1df8d51f7da3e03f1688f534aa6ffe205a1e867096b8f8",
+  "style_sha256": "0a1fa00da9771737cc36e3f0db16ef746fb284b784d210c8537acdc9a2d07df0",
+  "source_wav_unchanged": "a1ca5d252040e93cc1e720853275cb901ad6f6e3c626fe53a068692287ed2ff4",
+  "long_run": {
+    "engine": {
+      "pid": 31884,
+      "exit_code": 125,
+      "reason": "no_progress",
+      "duration_s": 207.8,
+      "log": {
+        "errors": 10,
+        "warnings": 27,
+        "errors_by_category": {
+          "LogRun": 2,
+          "LogOutputDevice": 8
+        },
+        "warnings_by_category": {
+          "LogModelContextProtocol": 1,
+          "LogEditorDataStorageUI": 23,
+          "LogLinker": 3
+        },
+        "first_errors": [
+          "LogRun: watchdog: no_progress after 207.7 s (game thread without a heartbeat for 0.0 s)",
+          "LogOutputDevice: watchdog: stack of the watchdog thread",
+          "LogOutputDevice: ",
+          "LogOutputDevice: [Callstack] 0x00007ff8cd042a71 UnrealEditor-Core.dll!UnknownFunction []",
+          "LogOutputDevice: [Callstack] 0x00007ff8cd2a9348 UnrealEditor-Core.dll!UnknownFunction []",
+          "LogOutputDevice: [Callstack] 0x00007ff8cd2a20e5 UnrealEditor-Core.dll!UnknownFunction []",
+          "LogOutputDevice: [Callstack] 0x00007ff92facdda7 KERNEL32.DLL!UnknownFunction []",
+          "LogOutputDevice: [Callstack] 0x00007ff9308d9c5c ntdll.dll!UnknownFunction []",
+          "LogRun: watchdog (no_progress): game thread stack:\n0x00007ff8df2b3c52 UnrealEditor-ApplicationCore.dll!UnknownFunction []\r\n0x00007ff8cb152750 UnrealEditor-Slate.dll!UnknownFunction []\r\n0x00007ff8cb151dba UnrealEditor-Slate.dll!UnknownFunction []\r\n0x00007ff69e836933 UnrealEditor.exe!UnknownFunction []\r\n0x00007ff69e81ea2c UnrealEditor.exe!UnknownFunction []\r\n0x00007ff69e81eb5a UnrealEditor.exe!Unkno"
+        ]
+      },
+      "suppressed_dialogs": []
+    },
+    "guard": {
+      "pid": 31884,
+      "exit_code": 125,
+      "reason": "completed",
+      "minimum_free_gib": 1.6747093200683594,
+      "protected_unchanged": true,
+      "content_unchanged": true,
+      "original_saves_unchanged": true,
+      "duration_wall_s": 210.3352362000005
+    },
+    "actual_world_times": {
+      "before_wrap": 104.07508879801026,
+      "after_wrap": 111.07623469730606,
+      "no_duplicate": 118.06611709942808,
+      "galaxy_after_newgame": 6.436014097183943,
+      "menu_reentry": 6.040712099522352
+    },
+    "voice_counts": [
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    "limitation": "Exit125/no_progress after60quietseconds following probes; functionalobservations retained separately, no overall runPASS"
+  },
+  "clean_confirmation": {
+    "engine": {
+      "pid": 19412,
+      "exit_code": 0,
+      "reason": "ok",
+      "duration_s": 61.5,
+      "log": {
+        "errors": 0,
+        "warnings": 27,
+        "errors_by_category": {},
+        "warnings_by_category": {
+          "LogModelContextProtocol": 1,
+          "LogEditorDataStorageUI": 23,
+          "LogLinker": 3
+        },
+        "first_errors": []
+      },
+      "suppressed_dialogs": []
+    },
+    "guard": {
+      "pid": 19412,
+      "exit_code": 0,
+      "reason": "completed",
+      "minimum_free_gib": 1.908660888671875,
+      "protected_unchanged": true,
+      "content_unchanged": true,
+      "original_saves_unchanged": true,
+      "duration_wall_s": 64.29713899999479
+    },
+    "voice_counts": [
+      1,
+      0,
+      1
+    ],
+    "actions": [
+      "ActualTD.UI.KeyEnterNewGame",
+      "L_Transition thenL_Galaxy",
+      "ConsoleopenL_MainMenu",
+      "Explicitnormalquit"
+    ]
+  },
+  "audio_device": "Headphones(XboxController),WASAPI48kHzstereo",
+  "focus_volume": "Runtimeau.DisableAppVolume1 only; noConfig/OSvolumechange",
+  "mix_limitations": "OneAudioBufferUnderrunDisplaynoticedinlongrun; no PCMrecordingofjoinor measuredfadeenvelope. Currentcode requests1sfade; observedmusicgoneaftertravel.",
+  "human_review": "Nickapprovedinitialtracklisteningandrequestedloop; notclaimingnewloopjoinapprovalfromvoiceactivity",
+  "proposed_main_asset_scope": [
+    "Content/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.uasset",
+    "Content/TriadDrift/Presentation/DA_UI_Style.uasset"
+  ],
+  "pending": [
+    "Leadapprovedexactbinarycopy/publication",
+    "RyanShippingcookandplayback",
+    "Nicklistenstoloopjoin"
+  ],
+  "evidence_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\MenuTheme01",
+  "loop_reload": {
+    "engine": {
+      "exit_code": 0,
+      "reason": "ok",
+      "pid": 21588,
+      "duration_s": 17.1,
+      "log": {
+        "errors": 0,
+        "warnings": 0,
+        "errors_by_category": {},
+        "warnings_by_category": {},
+        "first_errors": []
+      }
+    },
+    "guard": {
+      "pid": 21588,
+      "exit_code": 0,
+      "reason": "completed",
+      "minimum_free_gib": 3.824878692626953,
+      "protected_count": 326,
+      "protected_unchanged": true,
+      "changed_existing_content": [],
+      "new_content": []
+    },
+    "fields": {
+      "looping": true,
+      "duration_s": 107,
+      "unchanged_package_sha256": "c5354faa6c9776deaa1df8d51f7da3e03f1688f534aa6ffe205a1e867096b8f8",
+      "style_reference_correct": true,
+      "stage": "Read-only reload; actual loop/travel pending"
+    }
+  },
+  "branch_copy": {
+    "wave_bytes": 13058727,
+    "wave_sha256": "c5354faa6c9776deaa1df8d51f7da3e03f1688f534aa6ffe205a1e867096b8f8",
+    "old_branch_backup": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\MenuTheme01\\branch_nonlooping_before_publication.uasset",
+    "style_and_class_unchanged": true,
+    "scope": "Own feature branch only; not Main or Shipping acceptance"
+  }
+}
