@@ -19,6 +19,16 @@
 #include "CoreMinimal.h"
 
 #if !UE_BUILD_SHIPPING
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Powers/TDAbilityComponent.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 
 #include "HAL/IConsoleManager.h"
 #include "Containers/Ticker.h"
@@ -406,9 +416,64 @@ void TDActivateInputToolset(ULocalPlayer* LocalPlayer)
 	}
 }
 
+namespace TDInputStateDebug
+{
+	// One line of everything a pad playtest needs to check: device, flight input, ship states, powers, weapons, pause,
+	// the settings page, and on foot the pilot's move / blade / block / dash state.
+	static void State(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDSpacePlayerController* PC = World ? Cast<ATDSpacePlayerController>(World->GetFirstPlayerController()) : nullptr;
+		if (!PC) { UE_LOG(LogTriadDrift, Log, TEXT("TD.Input.State: no space controller")); return; }
+		const FString Tag = Args.Num() > 0 ? Args[0] : TEXT("-");
+		FString Line = FString::Printf(TEXT("[%s] pad %d paused %d settings %d hint '%s'"), *Tag, PC->IsUsingGamepad() ? 1 : 0,
+			PC->IsGamePausedByPlayer() ? 1 : 0, UTDSettingsSubsystem::IsSettingsPageOpen(World) ? 1 : 0,
+			PC->GetHints() ? *PC->GetHints()->GetCurrentText().ToString() : TEXT(""));
+		if (const ATDShip* Ship = Cast<ATDShip>(PC->GetPawn()))
+		{
+			const FTDFlightInput& In = PC->GetCurrentFlightInput();
+			Line += FString::Printf(TEXT(" | ship %s throttle %.2f aim %.2f,%.2f roll %.2f strafe %.2f,%.2f boost %d drift %d brake %d dodging %d cockpit %d"),
+				*UEnum::GetDisplayValueAsText(Ship->GetShipId()).ToString(), In.Throttle, In.Aim.X, In.Aim.Y, In.Roll, In.Strafe.X, In.Strafe.Y,
+				Ship->IsBoosting() ? 1 : 0, Ship->IsDrifting() ? 1 : 0, In.bBrake ? 1 : 0,
+				Ship->GetShipMovement() && Ship->GetShipMovement()->IsDodging() ? 1 : 0, Ship->IsCockpitView() ? 1 : 0);
+			if (const UTDWeaponComponent* W = Ship->FindComponentByClass<UTDWeaponComponent>())
+			{
+				Line += FString::Printf(TEXT(" | heat %.2f ammo %d"), W->GetHeat01(ETDWeaponSlot::Primary), W->GetAmmo(ETDWeaponSlot::Secondary));
+			}
+			TInlineComponentArray<UTDPowerComponent*> Powers(Ship);
+			for (const UTDPowerComponent* P : Powers)
+			{
+				Line += FString::Printf(TEXT(" | %s active %d cd %.2f"), *P->GetPowerName().ToString(), P->IsPowerActive() ? 1 : 0, P->GetCooldown01());
+			}
+			if (const UTDHyperdriveComponent* H = Ship->GetHyperdrive())
+			{
+				Line += FString::Printf(TEXT(" | hyper %d"), (int32)H->GetState());
+			}
+		}
+		else if (const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(PC->GetPawn()))
+		{
+			const UTDEnergyBladeComponent* Blade = Pilot->GetBlade();
+			Line += FString::Printf(TEXT(" | foot vel %.0f sprint %d dash %d charges %d block %d attack %d combo %d interact %.2f jumps %d third %d"),
+				(float)Pilot->GetVelocity().Size2D(), Pilot->IsSprinting() ? 1 : 0, Pilot->IsDashing() ? 1 : 0, Pilot->GetDashCharges(),
+				Pilot->IsBlocking() ? 1 : 0, Blade && Blade->IsAttacking() ? 1 : 0, Blade ? Blade->GetComboIndex() : -1,
+				Pilot->GetInteractProgress01(), Pilot->GetJumpsUsed(), Pilot->IsThirdPersonView() ? 1 : 0);
+			if (const UTDSettingsSubsystem* S = UTDSettingsSubsystem::GetTDSettings(World))
+			{
+				Line += FString::Printf(TEXT(" mode %d"), (int32)S->GetOnFootCameraMode());
+			}
+		}
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Input.State: %s"), *Line);
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdState(TEXT("TD.Input.State"),
+		TEXT("TD.Input.State [label]: one line of controller / ship / power / weapon / pilot state (pad playtests)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&State));
+}
+
+
 #else
 
 class ULocalPlayer;
 void TDActivateInputToolset(ULocalPlayer*) {}
+
 
 #endif // !UE_BUILD_SHIPPING
