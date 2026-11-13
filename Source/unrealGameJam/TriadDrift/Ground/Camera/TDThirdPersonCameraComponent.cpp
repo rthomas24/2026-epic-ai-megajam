@@ -266,7 +266,10 @@ FVector UTDThirdPersonCameraComponent::SafePoint(const FVector& From, const FVec
 FVector UTDThirdPersonCameraComponent::ShoulderFor(const FVector& Anchor, const FRotator& View) const
 {
 	const FRotator Yaw(0.f, View.Yaw, 0.f);
-	return SafePoint(Anchor, Anchor + Yaw.RotateVector(FVector(0.f, ShoulderRight, 0.f)) + FVector::UpVector * ShoulderUp);
+	const float E = CombatBlend * CombatBlend * (3.f - 2.f * CombatBlend);
+	const float Right = FMath::Lerp(ShoulderRight, CombatShoulderRight, E);
+	const float Up = FMath::Lerp(ShoulderUp, CombatShoulderUp, E);
+	return SafePoint(Anchor, Anchor + Yaw.RotateVector(FVector(0.f, Right, 0.f)) + FVector::UpVector * Up);
 }
 
 FVector UTDThirdPersonCameraComponent::ResolveChaseLocation(const FVector& Pivot, const FRotator& View, float& OutSafeArm) const
@@ -374,6 +377,14 @@ void UTDThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Ti
 		BlendAlpha = FMath::Min(1.f, BlendAlpha + DeltaTime / Dilation / FMath::Max(BlendSeconds, 0.01f));
 	}
 
+	if (CombatBlendSeconds > 0.f)
+	{
+		CombatBlend = FMath::FInterpConstantTo(CombatBlend, bCloseCombat ? 1.f : 0.f, DeltaTime / Dilation, 1.f / CombatBlendSeconds);
+	}
+	else
+	{
+		CombatBlend = bCloseCombat ? 1.f : 0.f;
+	}
 	UpdateChase(DeltaTime, false);
 	FVector TargetLocation = ChaseLocation;
 	FQuat TargetRotation = LaggedRotation.Quaternion();

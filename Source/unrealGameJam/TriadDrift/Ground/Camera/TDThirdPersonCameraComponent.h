@@ -60,6 +60,17 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	static float GetDesiredActorYaw(const FVector& MoveVector, float CameraYaw, bool bCombatAction, float CurrentYaw);
 
+	/**
+	 * Melee framing (ENG-32 review): while true (a live enemy within sword range, or the blade attacking / blocking),
+	 * the shoulder eases out to CombatShoulderRight / CombatShoulderUp in CombatBlendSeconds so the pilot's body no
+	 * longer covers the enemy and its tell; false eases back. The probe, the arm and the body hide are unchanged.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
+	void SetCloseCombat(bool bClose) { bCloseCombat = bClose; }
+	bool IsCloseCombat() const { return bCloseCombat; }
+	/** 0 = the travel shoulder, 1 = the melee shoulder (eased). */
+	float GetCombatFraming01() const { return CombatBlend; }
+
 	/** Optional: the first-person camera to blend from and to (default: the owner's other camera component). */
 	void SetFirstPersonCamera(UCameraComponent* InCamera);
 
@@ -80,6 +91,13 @@ public:
 	float ShoulderRight = 55.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
 	float ShoulderUp = 65.f;
+	/** The shoulder at sword range (SetCloseCombat). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
+	float CombatShoulderRight = 80.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
+	float CombatShoulderUp = 90.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "s"))
+	float CombatBlendSeconds = 0.2f;
 	/** Pivot location lag (interp speed); 0 = none. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person")
 	float LocationLagSpeed = 12.f;
@@ -130,6 +148,8 @@ private:
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<UPrimitiveComponent>> HiddenByUs;
 
 	bool bWantThirdPerson = false;
+	bool bCloseCombat = false;
+	float CombatBlend = 0.f;
 	bool bThirdPersonActive = false;
 	/** Blending back to first person: our lens still shows, moving to the first-person eye. */
 	bool bBlendingOut = false;

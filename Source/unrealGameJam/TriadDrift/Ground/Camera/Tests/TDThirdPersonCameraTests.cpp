@@ -465,4 +465,35 @@ bool FTDThirdPersonCourses::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDThirdPersonMelee, "TriadDrift.Ground.ThirdPerson.MeleeFramingClearsTheEnemy", TD_TEST_FLAGS)
+bool FTDThirdPersonMelee::RunTest(const FString& Parameters)
+{
+	// ENG-32 review: at sword range the shoulder eases out (right 80, up 90 in 0.2 s) so the pilot's body does not
+	// cover the crewman and his tell; it eases back when clear.
+	FTDTestWorld W;
+	TDThirdPersonCamTest::FPilot P(W);
+	if (!TestTrue(TEXT("pilot, player and rig"), P.Ok()))
+	{
+		return false;
+	}
+	P.Rig->SetThirdPerson(true);
+	W.Advance(0.5f);
+	FVector Off = P.Lens() - P.Rig->GetComponentLocation();
+	TestNearlyEqual(TEXT("travel shoulder: right 55"), static_cast<float>(Off.Y), 55.f, 3.f);
+	P.Rig->SetCloseCombat(true);
+	W.Tick(1.f / 60.f);
+	Off = P.Lens() - P.Rig->GetComponentLocation();
+	TestTrue(FString::Printf(TEXT("eases, no jump (%.0f cm right after one frame)"), Off.Y), Off.Y > 54.f && Off.Y < 65.f);
+	W.Advance(0.4f);
+	Off = P.Lens() - P.Rig->GetComponentLocation();
+	TestNearlyEqual(TEXT("melee shoulder: right 80"), static_cast<float>(Off.Y), 80.f, 3.f);
+	TestNearlyEqual(TEXT("melee shoulder: up 90"), static_cast<float>(Off.Z), 90.f, 3.f);
+	TestNearlyEqual(TEXT("the arm is unchanged"), P.Rig->GetCurrentArmLength(), 320.f, 3.f);
+	P.Rig->SetCloseCombat(false);
+	W.Advance(0.4f);
+	Off = P.Lens() - P.Rig->GetComponentLocation();
+	TestNearlyEqual(TEXT("back to the travel shoulder"), static_cast<float>(Off.Y), 55.f, 3.f);
+	return true;
+}
+
 #endif
