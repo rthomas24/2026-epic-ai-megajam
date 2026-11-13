@@ -451,6 +451,33 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead):** Ryan's receipt and review of all 55 are confirmed. Nicholas has the eight selections and the questions about the Meshy plan and which models predate November 12. Filename dates alone do not establish creation dates. Nicholas previously confirmed Sentinel Armor is his original design created with Meshy and requested project credit; specific output license terms remain unverified. Its existing pilot assignment continues. The Gothic Stone Arch appearance and any additional or replacement enemy use of Sentinel are with Nicholas. The location handoff is complete in #36.
 
+### R-038 · OPEN · Story: Ryan's decision on the four Verdance documents: built in a reduced form, about 8-10 minutes
+
+**From:** Ryan / Lead (Ryan's decision) · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 14:43 EST · **Needs:** Nick (the four story answers at the end)
+
+The four documents are in `storyline.md` §14-17 as proposals with engineering's mapping; the decision is §18 and
+`features.md` ("Verdance in the story"). Engineering starts building this now.
+
+**Decided by Ryan, Nov 13 (14:43 EST): Verdance is built in the reduced form, about 8-10 minutes in all.**
+Details per question: `docs/story/verdance-scope-questions.md`.
+
+| Part | Reduced form (what gets built) | Owner |
+|---|---|---|
+| Arrival and route (3-4 min) | The hyperdrive jump, the descent (ENG-38), a landing and a short route to the station. The cheap clue beats are kept: convoys that ignore the squad carry scanning gear, instruments measure one buried line, a transponder marker flickers | T4 (space and clues), T1 (descent), T5 (route) |
+| Cinematic 03, *Beneath the Surface* (40-60 s) | Voice over the room with a monitor graphic; the dormant drone wakes and glows blue. Built in the same pass as the opening and *Aftermath* | T3, with T2 (monitor graphic) |
+| Facility defence and extraction (3-4 min) | Objective 1's hold-interact becomes a 60-90 s archive transfer with a progress meter and three fixed waves; the transfer pauses while an enemy stands at the terminal; the third wave brings a Heavy as the disruption; the existing carry-back is the extraction with the data package. No new enemy AI, no enemy that damages the terminal | T5, with T2 (meter) |
+| Cinematic 04, *Verdance Departure* (30-45 s) | Three transmissions over the take-off, or a short voice-over shot if the cutscene pass has time | T3 |
+| The outpost | One open-sided survey station re-dressed from the wreck site, holding the console and the dormant drone. Not a walk-in facility | Environment / prop builder, T5 fits it |
+| Cinder shielding | Words only; no mechanic | T3 (lines) |
+| Co-op | Not in the game; the documents are read as solo | - |
+
+**Unchanged:** both Verdance objectives and both rewards (Gravity Well, Cloak), waves 3-4 between the planets, the
+20-30 minute target for the whole game, and the rule that nothing reveals the twist before the Dominion.
+**With Nicholas (story words, issue #29):** objective 1 takes the new fiction (intact station, survey archive, buried
+structure); what the relay (objective 2) means now; what opens the distortion field on Cinder now that the survey
+station replaces the mining complex; a replacement for Kato's "Time to go." (the story test rejects " time" before
+act 4).
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
