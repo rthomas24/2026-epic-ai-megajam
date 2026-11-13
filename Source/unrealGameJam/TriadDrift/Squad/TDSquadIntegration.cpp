@@ -599,6 +599,12 @@ namespace TDSquad
 		return H ? H->MaxHull + H->MaxShield : 0.f;
 	}
 
+	float GetDodgeReady01(const ATDShip* Ship)
+	{
+		const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+		return Move ? Move->GetDodgeReady01() : 1.f;
+	}
+
 	FText GetLandPrompt(const ATDShip* Ship)
 	{
 		const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;

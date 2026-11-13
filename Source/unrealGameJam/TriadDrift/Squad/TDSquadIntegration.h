@@ -120,6 +120,8 @@ namespace TDSquad
 	bool HoldOutOfGates(const AActor* Ship, float LookAheadSeconds);
 	/** HUD: T1's landing prompt for this ship, empty when none. */
 	FText GetLandPrompt(const ATDShip* Ship);
+	/** HUD: T1's dodge readiness, 0 right after a dodge, 1 ready (1 without a movement component). */
+	float GetDodgeReady01(const ATDShip* Ship);
 	/** Subscribe Squad->HandleShipDamaged to Ship's health OnDamaged (idempotent). */
 	void BindShipDamaged(ATDSquadManager* Squad, ATDShip* Ship);
 	/** Max hull + max shield (the scale for a damage indicator's strength). */
