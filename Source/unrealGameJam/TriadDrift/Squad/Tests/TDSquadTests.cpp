@@ -723,7 +723,10 @@ bool FTDSquadHyperdriveFollow::RunTest(const FString& Parameters)
 		// The real hyperdrive: spool 1.2 s, then the jump at 80 000 cm/s. Wingmen ride in their slots.
 		UTDHyperdriveComponent* Hyper = Leader->GetHyperdrive();
 		TestTrue(TEXT("spool") + Fps, Hyper && Hyper->StartSpool());
+		const int32 LancerTeleportsBefore = F.Events->Teleports.FindRef(F.Ship(ETDShipId::Lancer));
 		F.W.Advance(3.f, Step);
+		// The ride in the slot goes through T1's TeleportSpacecraft (its watchdog sees no silent move).
+		TestTrue(TEXT("jump follow uses TeleportSpacecraft") + Fps, F.Events->Teleports.FindRef(F.Ship(ETDShipId::Lancer)) > LancerTeleportsBefore);
 		TestTrue(TEXT("jumping") + Fps, Hyper && Hyper->IsJumping() && Leader->GetShipMovement()->GetSpeed() > 60000.f);
 		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
 		{
@@ -1681,9 +1684,18 @@ bool FTDSquadThroughGate::RunTest(const FString& Parameters)
 		return false;
 	}
 	ATDPortalGate::LinkGates(A, B);
-	F.Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(-6000.f, 0.f, 0.f)));
-	F.W.Advance(3.f);
+	// T4's gate rule: no transit for 5 s after a ship spawns or teleports. Spawn 400 m out, so at cruise
+	// (6000 cm/s) the squad reaches A after the grace and flies through under the real rule.
+	F.Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(-40000.f, 0.f, 0.f)));
 	ATDShip* Leader = F.Ship(ETDShipId::Rift);
+	float Arrived = -1.f;
+	for (int32 i = 0; i < 60 * 15 && A->GetTransitCount() == 0; ++i)
+	{
+		F.W.Tick();
+		Arrived = i / 60.f;
+	}
+	TestTrue(FString::Printf(TEXT("the leader transited A after the 5 s arrival grace (%.1f s)"), Arrived), A->GetTransitCount() > 0 && Arrived > 5.f);
+	F.W.Advance(1.f);
 	TestTrue(TEXT("leader came out of B"), FVector::Dist(Leader->GetActorLocation(), B->GetActorLocation()) < 30000.f);
 	const int32 TransitsAfterJump = A->GetTransitCount() + B->GetTransitCount();
 	F.W.Advance(3.f);
@@ -2648,6 +2660,153 @@ bool FTDSquadDodgeOnHUD::RunTest(const FString& Parameters)
 	TestTrue(TEXT("spent right after"), TDSquad::GetDodgeReady01(Rift) < 0.2f);
 	F.W.Advance(5.f);
 	TestEqual(TEXT("ready again"), TDSquad::GetDodgeReady01(Rift), 1.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadSwitchStress, "TriadDrift.Squad.Switch.RealKeysInAwkwardMomentsWithinOneFrame", TD_TEST_FLAGS)
+bool FTDSquadSwitchStress::RunTest(const FString& Parameters)
+{
+	// Lead item 4 (the switch, protected above everything): real Tab / 1-2-3 keys through Enhanced Input
+	// on the real space controller, in every awkward state we can build headless. Each switch must land
+	// within one tick, with the controller possessing the new ship and viewing it (or the director cam).
+	for (const float Step : GFrameSteps)
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		FTDTestWorld W;
+		ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+		ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+		if (!TestNotNull(TEXT("local space controller"), PC)) { return false; }
+		Squad->SetSquadPlayerController(PC);
+		Squad->SpawnSquad(FTransform::Identity);
+		for (int32 i = 0; i < 10; ++i) { W.Tick(Step); }
+		for (int32 i = 0; i < 4; ++i)
+		{
+			TDPowerTest::SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(20000.f + 3000.f * i, (i - 2) * 4000.f, 0.f));
+		}
+
+		int32 Count = 0;
+		const FKey Keys[] = { EKeys::Tab, EKeys::One, EKeys::Two, EKeys::Three };
+		auto Press = [&](const FKey& Key, const FString& When)
+		{
+			W.Advance(0.45f, Step); // past the 0.4 s cooldown
+			const ETDShipId Before = Squad->GetActiveShipId();
+			ETDShipId Expect = Before;
+			if (Key == EKeys::One) { Expect = ETDShipId::Rift; }
+			else if (Key == EKeys::Two) { Expect = ETDShipId::Lancer; }
+			else if (Key == EKeys::Three) { Expect = ETDShipId::Bastion; }
+			if (Key == EKeys::Tab || Expect == Before)
+			{
+				// Tab cycles; for a number key aimed at the current ship, aim at the next one instead.
+				return;
+			}
+			FTDTestWorld::InjectKey(PC, Key, true);
+			W.Tick(Step);
+			FTDTestWorld::InjectKey(PC, Key, false);
+			++Count;
+			const FString Label = When + TEXT(" / ") + Key.ToString() + Fps;
+			TestTrue(TEXT("switched within one tick: ") + Label, Squad->GetActiveShipId() == Expect);
+			TestTrue(TEXT("possessing the new ship: ") + Label, PC->GetPawn() == Squad->GetActiveShip());
+			const AActor* View = PC->GetViewTarget();
+			TestTrue(TEXT("viewing the new ship: ") + Label, View == Squad->GetActiveShip());
+		};
+		auto Tab = [&](const FString& When)
+		{
+			W.Advance(0.45f, Step);
+			const ETDShipId Before = Squad->GetActiveShipId();
+			FTDTestWorld::InjectKey(PC, EKeys::Tab, true);
+			W.Tick(Step);
+			FTDTestWorld::InjectKey(PC, EKeys::Tab, false);
+			++Count;
+			const FString Label = When + TEXT(" / Tab") + Fps;
+			TestTrue(TEXT("Tab switched within one tick: ") + Label, Squad->GetActiveShipId() != Before);
+			TestTrue(TEXT("possessing the new ship: ") + Label, PC->GetPawn() == Squad->GetActiveShip() && PC->GetViewTarget() == Squad->GetActiveShip());
+		};
+		auto Number = [&](const FString& When)
+		{
+			const ETDShipId Cur = Squad->GetActiveShipId();
+			Press(Cur == ETDShipId::Lancer ? EKeys::Three : EKeys::Two, When);
+		};
+
+		for (int32 i = 0; i < 3; ++i) { Tab(TEXT("plain")); Number(TEXT("plain")); }
+		// Mid-fire: the primary held through the switch.
+		FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, true);
+		W.Advance(0.2f, Step);
+		Tab(TEXT("mid-fire"));
+		Number(TEXT("mid-fire"));
+		FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, false);
+		// Mid-boost.
+		FTDTestWorld::InjectKey(PC, EKeys::LeftShift, true);
+		W.Advance(0.2f, Step);
+		Tab(TEXT("mid-boost"));
+		Number(TEXT("mid-boost"));
+		FTDTestWorld::InjectKey(PC, EKeys::LeftShift, false);
+		// Mid-dodge (the burst lasts 0.25 s; switch inside it).
+		for (int32 i = 0; i < 2; ++i)
+		{
+			W.Advance(2.f, Step); // dodge cooldown
+			Squad->GetActiveShip()->GetShipMovement()->RequestDodge(1.f);
+			W.Tick(Step);
+			const ETDShipId Before = Squad->GetActiveShipId();
+			FTDTestWorld::InjectKey(PC, EKeys::Tab, true);
+			W.Tick(Step);
+			FTDTestWorld::InjectKey(PC, EKeys::Tab, false);
+			++Count;
+			TestTrue(TEXT("Tab mid-dodge switched within one tick") + Fps, Squad->GetActiveShipId() != Before && PC->GetPawn() == Squad->GetActiveShip());
+		}
+		// During slow motion.
+		UTDFeelSubsystem::Get(W.GetWorld())->RequestSlowMo(3.f, 0.2f);
+		Tab(TEXT("slow-mo"));
+		Number(TEXT("slow-mo"));
+		TestTrue(TEXT("still in slow-mo") + Fps, UTDFeelSubsystem::Get(W.GetWorld())->IsSlowMoActive());
+		W.Advance(3.5f, Step);
+		// At the instant the player's ship dies (inside the tumble): the switch is taken, no second cut after.
+		W.Advance(0.5f, Step);
+		UTDStatics::GetHealth(Squad->GetActiveShip())->Kill();
+		W.Tick(Step);
+		{
+			const ETDShipId Dying = Squad->GetActiveShipId();
+			FTDTestWorld::InjectKey(PC, EKeys::Tab, true);
+			W.Tick(Step);
+			FTDTestWorld::InjectKey(PC, EKeys::Tab, false);
+			++Count;
+			const ETDShipId Landed = Squad->GetActiveShipId();
+			TestTrue(TEXT("Tab during the death tumble switched within one tick") + Fps, Landed != Dying && PC->GetPawn() == Squad->GetActiveShip());
+			W.Advance(1.f, Step);
+			TestTrue(TEXT("no second cut when the tumble ends") + Fps, Squad->GetActiveShipId() == Landed);
+		}
+		AddInfo(FString::Printf(TEXT("%d real-key switches%s"), Count, *Fps));
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadBarksUnderHeavyLosses, "TriadDrift.Squad.Barks.NotChattyUnderHeavyLosses", TD_TEST_FLAGS)
+bool FTDSquadBarksUnderHeavyLosses::RunTest(const FString& Parameters)
+{
+	// Wave 5 playtest: a ship goes down every ~12 s; 23 lines in 120 s, mostly ship-down / respawn.
+	// Here a ship dies every 6 s for 60 s: at most one ship-down line per 10 s, one respawn line per
+	// 20 s, and the squad never talks more than one line per 4 s on average.
+	FSquadFixture F;
+	const ETDShipId Order[] = { ETDShipId::Lancer, ETDShipId::Bastion, ETDShipId::Rift };
+	for (int32 i = 0; i < 10; ++i)
+	{
+		const ETDShipId Victim = Order[i % 3];
+		if (F.Squad->IsShipAlive(Victim) && F.Squad->GetLivingShips().Num() > 1)
+		{
+			F.Kill(Victim);
+		}
+		F.W.Advance(6.f);
+	}
+	int32 Downs = 0, Respawns = 0;
+	for (const TPair<FName, FName>& B : F.Events->Barks)
+	{
+		Downs += B.Key.ToString().StartsWith(TEXT("Bark_SquadShipDown")) ? 1 : 0;
+		Respawns += B.Key == TDBarkIds::Respawn ? 1 : 0;
+	}
+	AddInfo(FString::Printf(TEXT("60 s, ~9 deaths: %d lines (%d ship-down, %d respawn)"), F.Events->Barks.Num(), Downs, Respawns));
+	TestTrue(TEXT("ship-down lines: at most one per 10 s"), Downs <= 6);
+	TestTrue(TEXT("ship-down lines still called"), Downs >= 3);
+	TestTrue(TEXT("respawn lines: at most one per 20 s"), Respawns <= 3);
+	TestTrue(TEXT("not chatty: <= one line per 4 s"), F.Events->Barks.Num() <= 15);
 	return true;
 }
 

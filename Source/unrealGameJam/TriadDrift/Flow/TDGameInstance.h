@@ -269,6 +269,7 @@ private:
 	TArray<TWeakObjectPtr<AActor>> FlowMarkers;
 	void SyncMarkers(bool bClearAll);
 	float ObjectiveCheckLeft = 0.f;
+	float VictoryTravelLeft = -1.f; // >= 0: travel to the victory screen when it runs out
 	float ObjectiveForceLeft = -1.f; // >= 0: force a re-broadcast when it runs out (a HUD made on BeginPlay misses the first)
 
 	FName CurrentSceneId;

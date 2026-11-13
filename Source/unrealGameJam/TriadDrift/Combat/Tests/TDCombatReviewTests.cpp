@@ -251,4 +251,29 @@ bool FTDReviewRealShipDrift::RunTest(const FString& Parameters)
 	return true;
 }
 
+/**
+ * Agent playtest finding: with every enemy beyond targeting range the HUD had no direction to the fight. Hostiles
+ * out to MarkerRange get a marker (edge arrow with distance) but never become the target.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewFarMarkers, "TriadDrift.Combat.Review.FarHostilesStillGetAnArrow", TD_TEST_FLAGS)
+bool FTDReviewFarMarkers::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	AActor* Ship = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+	UTDTargetingComponent* Targeting = TDCombatTest::AddTargeting(Ship);
+	AActor* Far = TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(100000.f, 0.f, 0.f), FVector(100.f));
+	AActor* TooFar = TDCombatTest::SpawnBody(W, ETDTeam::Enemy, FVector(-(Targeting->MarkerRange + 10000.f), 0.f, 0.f), FVector(100.f));
+	W.Advance(0.5f);
+	auto HasMarker = [Targeting](const AActor* A)
+	{
+		return Targeting->K2_GetMarkers().ContainsByPredicate([A](const FTDTargetMarker& M) { return M.Actor.Get() == A; });
+	};
+	TestTrue(TEXT("a hostile at 1 km (beyond targeting range) has a marker"), HasMarker(Far));
+	TestFalse(TEXT("but is not the target"), Targeting->GetCurrentTarget() == Far);
+	Targeting->CycleTarget();
+	TestFalse(TEXT("and can't be cycled to"), Targeting->GetCurrentTarget() == Far);
+	TestFalse(TEXT("beyond MarkerRange: no marker"), HasMarker(TooFar));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
