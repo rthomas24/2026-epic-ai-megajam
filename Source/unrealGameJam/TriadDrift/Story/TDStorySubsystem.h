@@ -76,6 +76,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float GapSeconds = 0.5f;
 
+	/** Seconds after arriving back in the galaxy from a finished planet before its departure transmissions start. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
+	float DepartureDelaySeconds = 2.f;
+
+	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
+	static const TArray<FName>& DepartureSet(ETDDestination Planet);
+
 #if WITH_DEV_AUTOMATION_TESTS
 	/** Tests: use this set instead of DA_Story_Transmissions. */
 	static TWeakObjectPtr<const UTDTransmissionSet> SetOverrideForTests;
@@ -91,6 +98,7 @@ public:
 private:
 	UFUNCTION() void HandleWaveStarted(int32 WaveNumber, float Intensity01);
 	UFUNCTION() void HandleWaveCleared(int32 WaveNumber);
+	void UpdateDepartures(double Now);
 	double RealNow() const;
 	bool IsHeld() const;
 	void StartNext();
@@ -106,6 +114,9 @@ private:
 	double NextAllowed = 0.0;
 	/** Played this run when there is no TD game instance (tests, bare worlds). */
 	TSet<FName> LocalPlayed;
+	/** Cinematics 04 and 06 (transmissions over the take-off): checked once per galaxy world, after the arrival settles. */
+	bool bDeparturesChecked = false;
+	double DeparturesAt = -1.0;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAudioComponent> Voice;
