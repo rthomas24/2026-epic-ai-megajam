@@ -243,9 +243,12 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 	{
 		// Clear near the player, thick at the horizon: the edge and the distance melt into a planet-tinted haze.
 		HorizonFog->SetWorldLocation(FVector::ZeroVector);
-		HorizonFog->SetFogDensity(bVerdance ? 0.018f : 0.022f);
-		HorizonFog->SetFogHeightFalloff(0.12f);
-		HorizonFog->SetStartDistance(6000.f);
+		// Thick only near the ground and far away: a steep falloff (density halves every ~0.4 km of height) keeps the
+		// view down from the arrival altitude (~220 m) clear, and the start distance keeps the arrival's ground
+		// (lava cracks, spires, the outpost) out of the haze; the horizon still melts into the tint.
+		HorizonFog->SetFogDensity(bVerdance ? 0.03f : 0.035f);
+		HorizonFog->SetFogHeightFalloff(1.8f);
+		HorizonFog->SetStartDistance(25000.f);
 		HorizonFog->SetFogMaxOpacity(1.f);
 		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.10f, 0.32f, 0.28f) : FLinearColor(0.42f, 0.16f, 0.05f));
 		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.35f, 0.45f, 0.35f) : FLinearColor(0.6f, 0.3f, 0.12f));
