@@ -313,6 +313,22 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		return OutDesign.X >= SafeX && OutDesign.X <= 1920.f - SafeX && OutDesign.Y >= SafeY && OutDesign.Y <= 1080.f - SafeY;
 	};
 
+	// Edge arrows never sit on the squad strip (first P2 capture: a chevron landed on the Rift chip): lift them above it.
+	float StripRight = 0.f, StripTop = 1080.f;
+	for (const FChip& Chip : View.Chips)
+	{
+		StripRight = FMath::Max(StripRight, float(Chip.Pos.X + Chip.Size.X));
+		StripTop = FMath::Min(StripTop, float(Chip.Pos.Y));
+	}
+	auto AvoidStrip = [StripRight, StripTop](FVector2D Pos)
+	{
+		if (StripRight > 0.f && Pos.X <= StripRight + 14.f && Pos.Y >= StripTop - 14.f)
+		{
+			Pos.Y = StripTop - 16.f;
+		}
+		return Pos;
+	};
+
 	// Hostiles and missiles.
 	View.Marks.Reset();
 	const AActor* Current = Data.GetCurrentTarget();
@@ -335,7 +351,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		if (!Mark.bOnScreen)
 		{
 			const FVector2D Dir = M.ScreenDirection.IsNearlyZero() ? FVector2D(0, 1) : M.ScreenDirection.GetSafeNormal();
-			Mark.Pos = OnSafeFrame(Dir);
+			Mark.Pos = AvoidStrip(OnSafeFrame(Dir));
 			Mark.Angle = FMath::Atan2(Dir.Y, Dir.X);
 		}
 		if (Mark.bCurrent)
@@ -375,7 +391,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 		FWingArrow& W = View.Wings.AddDefaulted_GetRef();
 		W.Ship = S.Ship;
-		W.Pos = OnSafeFrame(Dir);
+		W.Pos = AvoidStrip(OnSafeFrame(Dir));
 		W.Angle = FMath::Atan2(Dir.Y, Dir.X);
 		const FChip* Chip = View.Chips.FindByPredicate([&S](const FChip& C) { return C.Ship == S.Ship; });
 		W.bTrouble = Chip && Chip->bTrouble;
@@ -419,9 +435,13 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 
 	// The lower lane: one message at a time. Interact / landing prompt, then a blocked jump (3 s after the press), then a hint.
 	BlockedLeft = FMath::Max(0.f, BlockedLeft - Dt);
-	const FString Prompt = Data.GetInteractPrompt().ToString();
+	FString Prompt = Data.GetInteractPrompt().ToString();
 	const FString Blocked = Data.GetHyperdriveBlockText().ToString();
 	const FString Hint = UTDHintComponent::GetHintText(this).ToString();
+	if (!Hint.IsEmpty() && Prompt == Hint)
+	{
+		Prompt.Reset(); // today the control hints also arrive as the interact prompt: show them as a hint (T3, Nov 13)
+	}
 	if (!Prompt.IsEmpty())
 	{
 		View.Lane = ELane::Prompt;
@@ -577,6 +597,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 	const FPaint P(AllottedGeometry, OutDrawElements, Base + 1);
 	const FVector2D C(CenterX, CenterY);
+	float Area = 224.f * 116.f; // the reticle cluster's box (spec 3.1); the rest is added as it is drawn
 	const FLinearColor Accent = T::Ship(View.Flown);
 
 	// ---- reticle: 2 px dot, four 8 px ticks starting 8 px out
@@ -776,6 +797,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		const FLinearColor LaneC = View.Lane == ELane::HyperdriveBlocked ? T::Warning() : T::Neutral();
 		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", 17, 50)) + 48.f, 240.f, 760.f);
+		Area += LaneW * 36.f;
 		P.Plate(CenterX - LaneW * .5f, 838.f, LaneW, 36.f, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : .65f));
 		if (View.Lane == ELane::HyperdriveBlocked)
 		{
@@ -871,6 +893,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const float W = FMath::Lerp(FMath::Max(ObjectiveWidth, FitW), FMath::Max(ObjectiveExpandedWidth, BigW), E);
 		const float H = FMath::Lerp(ObjectiveHeight, ObjectiveExpandedHeight, E);
 		const float X = CenterX - W * .5f, Y = SafeY;
+		Area += W * H;
 		P.Plate(X, Y, W, H, 14.f, T::Plate().CopyWithNewOpacity(FMath::Lerp(.45f, .7f, E)));
 		const float TextO = FMath::Lerp(.7f, 1.f, E);
 		const FVector2D Dia(X + 18.f, Y + FMath::Lerp(14.f, 26.f, E)); // centred on the 17 px line, then on the 28 px title
@@ -892,5 +915,18 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Words(X + W - 16.f, Y + 5.f, View.Counter, 15, T::Neutral().CopyWithNewOpacity(TextO), "Bold", 1.f, 40);
 		}
 	}
+	// ---- coverage (spec 3.3: bounding boxes of what was drawn this frame)
+	for (const FChip& Chip : View.Chips)
+	{
+		Area += Chip.Size.X * Chip.Size.Y;
+	}
+	for (const FMark& M : View.Marks)
+	{
+		Area += !M.bOnScreen ? 18.f * 18.f : M.bMissile ? 18.f * 18.f : M.bCurrent ? M.Size * (M.Size + 34.f) : 14.f * 12.f;
+	}
+	Area += View.Wings.Num() * 18.f * 18.f + (View.bHasLead ? 14.f * 14.f : 0.f) + View.Hits.Num() * 131.f * 16.f;
+	Area += (View.Missile != ETDMissileWarning::None ? 150.f * 28.f : 0.f) + (View.Boundary.IsEmpty() ? 0.f : 520.f * 28.f);
+	Area += (View.bShowBoost ? 168.f * 8.f : 0.f) + (View.Hyperdrive > 0.f ? 240.f * 6.f : 0.f);
+	LastCoverage01 = Area / (1920.f * 1080.f);
 	return Base + 4;
 }

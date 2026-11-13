@@ -176,6 +176,12 @@ public:
 
 	UObject* GetDataSource() const { return Source.Get(); }
 
+	/**
+	 * Screen coverage the spec's way (docs/eng/hud-redesign.md 3.3): the sum of the drawn elements' bounding boxes over the
+	 * 1920x1080 design area, from the last paint. Budget 8%; the spec's steady combat is about 3.2%.
+	 */
+	float GetCoverage01() const { return LastCoverage01; }
+
 	/** Re-reads the data source and advances the timers by DeltaSeconds (the tick calls this every frame). */
 	void Sample(float DeltaSeconds);
 
@@ -253,6 +259,8 @@ private:
 	void BindController();
 
 	FVector2D ViewportSize = FVector2D(1920, 1080);
+	/** Written by NativePaint (const): what the last frame drew. */
+	mutable float LastCoverage01 = 0.f;
 	float BlockedLeft = 0.f;
 	float BoostFullFor = 1e6f;
 	TWeakObjectPtr<class ATDSpacePlayerController> BoundPC;

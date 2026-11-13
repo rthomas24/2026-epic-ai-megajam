@@ -26,6 +26,7 @@
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 
@@ -606,6 +607,12 @@ namespace TDUIHost
 		// Without the native HUD (dev HUD on), read the squad manager directly.
 		UObject* Source = Host->GetDataSource() ? Host->GetDataSource() : static_cast<UObject*>(ATDSquadManager::Get(World));
 		APlayerController* ViewPC = HUD && HUD->GetOwningPlayer() ? HUD->GetOwningPlayer() : World->GetFirstPlayerController();
+		if (const UTDFlightHUDWidget* Flight = Cast<UTDFlightHUDWidget>(HUD))
+		{
+			const UTDFlightHUDWidget::FView& V = Flight->GetView();
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD coverage=%.2f%% marks=%d wings=%d hits=%d lane=%d hull=%.2f shield=%.2f gamepad=%d"),
+				Flight->GetCoverage01() * 100.f, V.Marks.Num(), V.Wings.Num(), V.Hits.Num(), static_cast<int32>(V.Lane), V.Hull, V.Shield, V.bUsingGamepad ? 1 : 0);
+		}
 		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: choice=%s enabled=%d shown=%d class=%s source=%s"),
 			*StaticEnum<ETDSpaceHUDChoice>()->GetNameStringByValue(static_cast<int64>(UTDUIHostSettings::GetSpaceHUDChoice())),
 			UTDUIHostSettings::IsNativeSpaceHUDEnabled() ? 1 : 0, HUD ? 1 : 0,
@@ -726,6 +733,30 @@ namespace TDUIHost
 	FAutoConsoleCommand CmdTDUICovers(TEXT("TD.UI.Covers"),
 		TEXT("TD.UI.Covers <Surface> <-1|0|1>: dev override of which HUD surfaces the native space HUD covers (-1 = ask the widget)."),
 		FConsoleCommandWithArgsDelegate::CreateStatic(&SetCoverOverride));
+
+	/** TD.UI.DevHurt <amount> [fromYawDeg]: real damage to the player's ship from a side (HUD captures: hull bands, hit arcs). */
+	void DevHurt(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn || Args.Num() < 1)
+		{
+			UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.DevHurt <amount> [fromYawDeg, relative to the ship: 0 = ahead, 90 = right]"));
+			return;
+		}
+		const float Amount = FCString::Atof(*Args[0]);
+		const float Yaw = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f;
+		const FVector From = Pawn->GetActorRotation().RotateVector(FRotator(0.f, Yaw, 0.f).Vector());
+		const FVector HitAt = Pawn->GetActorLocation() + From * 300.f;
+		UTDStatics::ApplyTDDamage(Pawn, Amount, ETDDamageKind::Energy, nullptr, nullptr, HitAt, -From, false);
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(Pawn);
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.DevHurt: %.0f from %.0f deg -> hull %.2f shield %.2f"), Amount, Yaw,
+			Health ? Health->GetHull01() : -1.f, Health ? Health->GetShield01() : -1.f);
+	}
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIDevHurt(TEXT("TD.UI.DevHurt"),
+		TEXT("TD.UI.DevHurt <amount> [fromYawDeg]: damage the player's ship from a side (dev, HUD captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&DevHurt));
 
 	FAutoConsoleCommandWithWorld CmdTDUIStatus(TEXT("TD.UI.Status"),
 		TEXT("TD.UI.Status: log the space HUD host state, its data source's current target and the widget's decoded squad cards."),

@@ -536,6 +536,8 @@ bool FTDFlightHUDPaints::RunTest(const FString& Parameters)
 	PaintOnce(TEXT("objective fully expanded"));
 	F.HUD->Sample(3.f);
 	PaintOnce(TEXT("collapsed"));
+	AddInfo(FString::Printf(TEXT("coverage with every alert element up: %.2f%%"), F.HUD->GetCoverage01() * 100.f));
+	TestTrue(TEXT("coverage under the 8% budget even in the alert state"), F.HUD->GetCoverage01() > 0.f && F.HUD->GetCoverage01() < .08f);
 	F.Src->Card(ETDShipId::Lancer).PowerCooldown01 = 1.f;
 	F.HUD->Sample(.016f);
 	F.HUD->Sample(.1f);
