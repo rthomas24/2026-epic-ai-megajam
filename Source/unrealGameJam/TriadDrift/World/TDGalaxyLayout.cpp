@@ -102,8 +102,72 @@ ATDGalaxyLayout::ATDGalaxyLayout()
 		UStaticMesh* Rocks[] = { Rock1.Object, Rock2.Object, Rock3.Object, Rock4.Object };
 		for (UStaticMesh* M : Rocks)
 		{
-			if (M) { AsteroidLooks.Add(MakeLook(*FString::Printf(TEXT("AsteroidLook%d"), AsteroidLooks.Num() + 1), M, 250000.f, 320000.f, false)); }
+			if (M)
+			{
+				AsteroidLooks.Add(MakeLook(*FString::Printf(TEXT("AsteroidLook%d"), AsteroidLooks.Num() + 1), M, 250000.f, 320000.f, false));
+				AsteroidLookFamily.Add(0);
+				AsteroidLookNorm.Add(1.f);	// authored around a 100 cm sphere
+			}
 		}
+		// Space dressing kit rocks (real scale): normalised so their bounding sphere is 100 cm, like the classic rocks.
+		struct FKitRock { const TCHAR* Path; uint8 Family; };
+		static const FKitRock KitRocks[] = {
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Ice_01.SM_Ast_Ice_01"), 1 },
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Ice_02.SM_Ast_Ice_02"), 1 },
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Ice_03.SM_Ast_Ice_03"), 1 },
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Metal_01.SM_Ast_Metal_01"), 2 },
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Metal_02.SM_Ast_Metal_02"), 2 },
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Metal_03.SM_Ast_Metal_03"), 2 },
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Crystal_01.SM_Ast_Crystal_01"), 3 },
+			{ TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Crystal_02.SM_Ast_Crystal_02"), 4 },
+		};
+		for (const FKitRock& K : KitRocks)
+		{
+			ConstructorHelpers::FObjectFinderOptional<UStaticMesh> Found(K.Path);
+			UStaticMesh* M = Found.Get();
+			const float R = M ? M->GetBounds().SphereRadius : 0.f;
+			if (M && R > 1.f)
+			{
+				AsteroidLooks.Add(MakeLook(*FString::Printf(TEXT("AsteroidLook%d"), AsteroidLooks.Num() + 1), M, 250000.f, 320000.f, false));
+				AsteroidLookFamily.Add(K.Family);
+				AsteroidLookNorm.Add(50.f / R);
+			}
+		}
+		// Ruin art, debris clusters and landmarks: visual only, no collision.
+		auto Kit = [&MakeLook](TArray<TObjectPtr<UInstancedStaticMeshComponent>>& Into, const TCHAR* Prefix, std::initializer_list<const TCHAR*> Paths, float CullStart, float CullEnd)
+		{
+			for (const TCHAR* P : Paths)
+			{
+				ConstructorHelpers::FObjectFinderOptional<UStaticMesh> Found(P);
+				if (UStaticMesh* M = Found.Get())
+				{
+					Into.Add(MakeLook(*FString::Printf(TEXT("%s%d"), Prefix, Into.Num() + 1), M, CullStart, CullEnd, true));
+				}
+			}
+		};
+		Kit(RuinArtLooks, TEXT("RuinArt"), {
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_StationTruss_01.SM_StationTruss_01"),	// girders
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_StationTruss_03.SM_StationTruss_03"),	// modules (hub)
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_StationTruss_02.SM_StationTruss_02") }, 250000.f, 320000.f);
+		Kit(DebrisClusterLooks, TEXT("DebrisCluster"), {
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_DebrisCluster_01.SM_DebrisCluster_01"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_DebrisCluster_02.SM_DebrisCluster_02") }, 120000.f, 160000.f);
+		Kit(SatelliteLooks, TEXT("Satellite"), {
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Derelict_Satellite_01.SM_Derelict_Satellite_01"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Derelict_Satellite_02.SM_Derelict_Satellite_02") }, 100000.f, 140000.f);
+		Kit(CargoLooks, TEXT("CargoPod"), {
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_CargoPod_01.SM_CargoPod_01"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_CargoPod_02.SM_CargoPod_02"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_CargoPod_03.SM_CargoPod_03") }, 80000.f, 110000.f);
+		Kit(LaneRockLooks, TEXT("LaneRock"), {
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Ice_03.SM_Ast_Ice_03"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Metal_02.SM_Ast_Metal_02"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Metal_03.SM_Ast_Metal_03"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_Ast_Crystal_02.SM_Ast_Crystal_02"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_02.SM_Asteroid_02"),
+			TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_04.SM_Asteroid_04") }, 150000.f, 200000.f);
+		Kit(BuoyLooks, TEXT("Buoy"), {
+			TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_BeaconBuoy_01.SM_BeaconBuoy_01") }, 120000.f, 160000.f);
 		UStaticMesh* Bits[] = { Debris1.Object, Debris2.Object, Debris3.Object };
 		for (UStaticMesh* M : Bits)
 		{
@@ -140,9 +204,17 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 
 	// Combat zone: a belt with a clear dogfighting pocket, plus a denser flank field for cover.
 	L.AsteroidFields.Add(TDGalaxy_Field(FVector::ZeroVector, 42000.f, 60, 11, /*Clear*/ 14000.f));
+	L.AsteroidFields.Last().MetalShare = 0.35f;	// combat belt: dense metal cover rocks with a few crystal accents
+	L.AsteroidFields.Last().CrystalShare = 0.08f;
 	L.AsteroidFields.Add(TDGalaxy_Field(FVector(30000.f, -60000.f, 5000.f), 22000.f, 35, 23, 0.f, 800.f, 4500.f));
+	L.AsteroidFields.Last().MetalShare = 0.3f;
 	L.AsteroidFields.Add(TDGalaxy_Field(FVector(220000.f, 130000.f, 0.f), 30000.f, 30, 37));	// Verdance approach
+	L.AsteroidFields.Last().IceShare = 0.45f;	// the cold side: ice with teal crystals
+	L.AsteroidFields.Last().CrystalShare = 0.15f;
+	L.AsteroidFields.Last().bTealCrystal = true;
 	L.AsteroidFields.Add(TDGalaxy_Field(FVector(-210000.f, 170000.f, 20000.f), 30000.f, 30, 41, 0.f, 1000.f, 5000.f));	// Cinder approach
+	L.AsteroidFields.Last().MetalShare = 0.3f;	// near Cinder: metal and violet crystal
+	L.AsteroidFields.Last().CrystalShare = 0.3f;
 
 	// Station ruins around the pocket: long girders and broken modules as cover.
 	const float RuinRing = 22000.f;
@@ -423,7 +495,8 @@ void ATDGalaxyLayout::SetHidePlaceholderDressing(bool bHide)
 	if (Asteroids) { Asteroids->SetVisibility(!bHide && !bRockLooks); }
 	for (UInstancedStaticMeshComponent* Look : AsteroidLooks) { if (Look) { Look->SetVisibility(!bHide); } }
 	for (UInstancedStaticMeshComponent* Look : DebrisLooks) { if (Look) { Look->SetVisibility(!bHide); } }
-	if (RuinBlocks) { RuinBlocks->SetVisibility(!bHide); }
+	if (RuinBlocks) { RuinBlocks->SetVisibility(!bHide && !UsesRuinArt()); }
+	for (UInstancedStaticMeshComponent* C : GetDressingComponents()) { C->SetVisibility(!bHide); }
 	for (ATDPlanetAtmosphere* P : Planets)
 	{
 		if (P) { P->SetPlaceholderVisible(!bHide); }
@@ -494,8 +567,10 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 			if (bRockLooks)
 			{
 				// Same 100 cm bounding sphere as the collision sphere: the rock never pokes out of its collision.
-				AsteroidLooks[LookRng.RandHelper(AsteroidLooks.Num())]->AddInstance(
-					FTransform(FRotator(LookRng.FRandRange(-180, 180), LookRng.FRandRange(-180, 180), LookRng.FRandRange(-180, 180)), Local, RockXf.GetScale3D()));
+				const int32 L = PickRockLook(F, LookRng);
+				AsteroidLooks[L]->AddInstance(
+					FTransform(FRotator(LookRng.FRandRange(-180, 180), LookRng.FRandRange(-180, 180), LookRng.FRandRange(-180, 180)), Local,
+						RockXf.GetScale3D() * (AsteroidLookNorm.IsValidIndex(L) ? AsteroidLookNorm[L] : 1.f)));
 			}
 			Placed.Add(FSphere(Local, Radius));
 			if (WorldSys) { WorldSys->AddObstacle(Xf.TransformPosition(Local), Radius); }
@@ -552,6 +627,193 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 	{
 		UTDStatics::TintPlaceholder(RuinBlocks, FLinearColor(0.35f, 0.35f, 0.4f), 0.f);
 	}
+	BuildDressing();
+}
+
+bool ATDGalaxyLayout::UsesRuinArt() const
+{
+	return bSpaceDressing && RuinMesh.IsNull() && RuinArtLooks.Num() > 0;
+}
+
+TArray<UInstancedStaticMeshComponent*> ATDGalaxyLayout::GetDressingComponents() const
+{
+	TArray<UInstancedStaticMeshComponent*> Out;
+	for (const TArray<TObjectPtr<UInstancedStaticMeshComponent>>* Group : { &RuinArtLooks, &DebrisClusterLooks, &SatelliteLooks, &CargoLooks, &BuoyLooks, &LaneRockLooks })
+	{
+		for (UInstancedStaticMeshComponent* C : *Group) { if (C) { Out.Add(C); } }
+	}
+	return Out;
+}
+
+void ATDGalaxyLayout::BuildDressing()
+{
+	for (UInstancedStaticMeshComponent* C : GetDressingComponents()) { C->ClearInstances(); }
+	const bool bRuinArt = UsesRuinArt();
+	// The cube ruins stay as collision; with art over them they stop drawing.
+	if (RuinBlocks) { RuinBlocks->SetVisibility(!bRuinArt && !bHidePlaceholderDressing); }
+	if (!bSpaceDressing)
+	{
+		return;
+	}
+	auto Bounds = [](const UInstancedStaticMeshComponent* C) { return C && C->GetStaticMesh() ? C->GetStaticMesh()->GetBounds().BoxExtent : FVector(100.f); };
+	auto RandRot = [](FRandomStream& R) { return FRotator(R.FRandRange(-180, 180), R.FRandRange(-180, 180), R.FRandRange(-180, 180)); };
+
+	// 1) Ruins: truss art over each collision box, its long axis on the box's long axis, uniformly scaled to the box's
+	//    length; 2-3 debris clusters drifting around it.
+	FRandomStream RuinRng(9137);
+	for (const FTDRuinSpec& R : Layout.Ruins)
+	{
+		if (bRuinArt)
+		{
+			UInstancedStaticMeshComponent* Art = RuinArtLooks[R.bModule && RuinArtLooks.Num() > 1 ? 1 : 0];
+			const FVector B = Bounds(Art);
+			// The hub (module) is authored longest along Y: turn it so its long axis lies on the box's X.
+			const bool bTurn = B.Y > B.X;
+			const float Long = FMath::Max(B.X, B.Y);
+			const float S = FMath::Max(0.05f, R.Extent.X / FMath::Max(1.f, Long));
+			const FQuat Rot = R.Rotation.Quaternion() * (bTurn ? FRotator(0.f, 90.f, 0.f).Quaternion() : FQuat::Identity);
+			Art->AddInstance(FTransform(Rot, R.Location, FVector(S)));
+			if (!R.bModule && RuinArtLooks.Num() > 2 && RuinRng.FRand() < 0.5f)
+			{
+				// A torn hull panel hanging off some girders.
+				UInstancedStaticMeshComponent* Panel = RuinArtLooks[2];
+				const FVector Off = R.Rotation.RotateVector(FVector(RuinRng.FRandRange(-0.6f, 0.6f) * R.Extent.X, R.Extent.Y + 600.f, 0.f));
+				Panel->AddInstance(FTransform(RandRot(RuinRng), R.Location + Off, FVector(RuinRng.FRandRange(0.8f, 1.2f))));
+			}
+		}
+		if (DebrisClusterLooks.Num() > 0)
+		{
+			const int32 N = 2 + RuinRng.RandHelper(2);
+			for (int32 i = 0; i < N; ++i)
+			{
+				const FVector Off = RuinRng.GetUnitVector() * (R.Extent.GetMax() + RuinRng.FRandRange(1500.f, 4000.f));
+				const FVector P = R.Location + Off;
+				if (IsInKeepOut(P, 2500.f)) { continue; }
+				DebrisClusterLooks[RuinRng.RandHelper(DebrisClusterLooks.Num())]->AddInstance(FTransform(RandRot(RuinRng), P, FVector(RuinRng.FRandRange(0.7f, 1.4f))));
+			}
+		}
+	}
+
+	// 2) Landmarks, sparse, never in the dogfight pocket.
+	const float Pocket = Layout.CombatZoneRadius;
+	auto Clear = [this, Pocket](const FVector& P, float R) { return !IsInKeepOut(P, R) && FVector::Dist(P, Layout.CombatZoneCenter) > Pocket; };
+	FRandomStream MarkRng(5521);
+	// Satellites: a pair in high orbit around each planet, on the far side from the orbit return point's lane.
+	if (SatelliteLooks.Num() > 0)
+	{
+		for (const FTDPlanetSpec& Pl : Layout.Planets)
+		{
+			const FVector ToZone = (Layout.CombatZoneCenter - Pl.Location).GetSafeNormal();
+			const FVector Side = FVector::CrossProduct(ToZone, FVector::UpVector).GetSafeNormal();
+			for (int32 i = 0; i < 2; ++i)
+			{
+				const FVector Dir = (ToZone * 0.5f + Side * (i == 0 ? 1.f : -1.f) + FVector(0, 0, 0.35f)).GetSafeNormal();
+				const FVector P = Pl.Location + Dir * Pl.AtmosphereRadius * 1.25f;
+				if (!Clear(P, 2000.f)) { continue; }
+				SatelliteLooks[i % SatelliteLooks.Num()]->AddInstance(FTransform(RandRot(MarkRng), P, FVector(MarkRng.FRandRange(0.9f, 1.2f))));
+			}
+		}
+	}
+	// Cargo pods: a spilled cluster at a third and two thirds of each lane from the zone to a planet / the Dominion.
+	if (CargoLooks.Num() > 0)
+	{
+		TArray<FVector> LaneEnds;
+		for (const FTDPlanetSpec& Pl : Layout.Planets) { LaneEnds.Add(Pl.Location); }
+		LaneEnds.Add(Layout.Dominion.GetLocation());
+		for (const FVector& End : LaneEnds)
+		{
+			const FVector Dir = (End - Layout.CombatZoneCenter).GetSafeNormal();
+			const FVector Side = FVector::CrossProduct(Dir, FVector::UpVector).GetSafeNormal();
+			for (const float T : { 0.33f, 0.66f })
+			{
+				const FVector Centre = FMath::Lerp(Layout.CombatZoneCenter, End, T) + Side * 6000.f;
+				const int32 N = 4 + MarkRng.RandHelper(5);
+				for (int32 i = 0; i < N; ++i)
+				{
+					const FVector P = Centre + MarkRng.GetUnitVector() * MarkRng.FRandRange(300.f, 2500.f);
+					if (!Clear(P, 1000.f)) { continue; }
+					CargoLooks[MarkRng.RandHelper(CargoLooks.Num())]->AddInstance(FTransform(RandRot(MarkRng), P, FVector(MarkRng.FRandRange(0.8f, 1.2f))));
+				}
+			}
+		}
+	}
+	// Lane rocks: a hollow tube of small rocks and debris along every lane out of the combat zone, so travel never
+	// crosses empty space; the lane's centre line, the pocket, gates and spawn points stay clear.
+	if (LaneRockLooks.Num() > 0 && LaneRocksPerLane > 0)
+	{
+		TArray<FVector> LaneEnds;
+		for (const FTDPlanetSpec& Pl : Layout.Planets) { LaneEnds.Add(Pl.Location - (Pl.Location - Layout.CombatZoneCenter).GetSafeNormal() * Pl.AtmosphereRadius * 1.6f); }
+		LaneEnds.Add(Layout.Dominion.GetLocation() - (Layout.Dominion.GetLocation() - Layout.CombatZoneCenter).GetSafeNormal() * 80000.f);
+		for (const FTDGatePairSpec& G : Layout.Gates)
+		{
+			LaneEnds.Add(G.A.GetLocation());
+			LaneEnds.Add(G.B.GetLocation());
+		}
+		FRandomStream LaneRng(4271);
+		for (const FVector& End : LaneEnds)
+		{
+			const FVector Dir = (End - Layout.CombatZoneCenter).GetSafeNormal();
+			const FVector Side = FVector::CrossProduct(Dir, FVector::UpVector).GetSafeNormal();
+			const FVector Up = FVector::CrossProduct(Side, Dir).GetSafeNormal();
+			int32 Placed = 0;
+			for (int32 Attempt = 0; Placed < LaneRocksPerLane && Attempt < LaneRocksPerLane * 4; ++Attempt)
+			{
+				const float T = LaneRng.FRandRange(0.f, 1.f);
+				const float Ang = LaneRng.FRandRange(0.f, 2.f * PI);
+				const float Rad = LaneClearRadius + LaneRng.FRandRange(0.f, 22000.f) * FMath::Sqrt(LaneRng.FRand());
+				const FVector P = FMath::Lerp(Layout.CombatZoneCenter, End, T) + (Side * FMath::Cos(Ang) + Up * FMath::Sin(Ang) * 0.5f) * Rad;
+				if (!Clear(P, 1500.f)) { continue; }
+				// Mostly small (3-12 m), a few bigger (to 25 m); the kit rocks are real scale, so size by bounds.
+				UInstancedStaticMeshComponent* Look = LaneRockLooks[LaneRng.RandHelper(LaneRockLooks.Num())];
+				const float Want = FMath::Lerp(300.f, 2500.f, FMath::Pow(LaneRng.FRand(), 3.f));
+				const float R = FMath::Max(1.f, Look->GetStaticMesh() ? Look->GetStaticMesh()->GetBounds().SphereRadius : 50.f);
+				Look->AddInstance(FTransform(RandRot(LaneRng), P, FVector(Want * 0.5f / R)));
+				++Placed;
+			}
+		}
+	}
+	// Buoys: lining both sides of every gate approach, 300 m apart, out to 900 m.
+	if (BuoyLooks.Num() > 0)
+	{
+		for (const FTDGatePairSpec& G : Layout.Gates)
+		{
+			for (const FTransform& End : { G.A, G.B })
+			{
+				for (const float Along : { -90000.f, -60000.f, -30000.f, 30000.f, 60000.f, 90000.f })
+				{
+					for (const float Side : { -1.f, 1.f })
+					{
+						const FVector P = End.TransformPosition(FVector(Along, Side * (G.Radius + 4000.f), 0.f));
+						if (!Clear(P, 500.f)) { continue; }
+						BuoyLooks[0]->AddInstance(FTransform(End.GetRotation(), P, FVector(1.f)));
+					}
+				}
+			}
+		}
+	}
+}
+
+int32 ATDGalaxyLayout::PickRockLook(const FTDAsteroidFieldSpec& F, FRandomStream& Rng) const
+{
+	// Family by the field's shares, then any look of that family (classic when the family has none).
+	const float Roll = Rng.FRand();
+	uint8 Family = 0;
+	if (bSpaceDressing)
+	{
+		if (Roll < F.IceShare) { Family = 1; }
+		else if (Roll < F.IceShare + F.MetalShare) { Family = 2; }
+		else if (Roll < F.IceShare + F.MetalShare + F.CrystalShare) { Family = F.bTealCrystal ? 4 : 3; }
+	}
+	TArray<int32, TInlineAllocator<8>> Pool;
+	for (int32 i = 0; i < AsteroidLooks.Num(); ++i)
+	{
+		if (AsteroidLookFamily.IsValidIndex(i) && AsteroidLookFamily[i] == Family) { Pool.Add(i); }
+	}
+	if (Pool.Num() == 0)
+	{
+		for (int32 i = 0; i < AsteroidLooks.Num(); ++i) { if (!AsteroidLookFamily.IsValidIndex(i) || AsteroidLookFamily[i] == 0) { Pool.Add(i); } }
+	}
+	return Pool.Num() > 0 ? Pool[Rng.RandHelper(Pool.Num())] : Rng.RandHelper(AsteroidLooks.Num());
 }
 
 void ATDGalaxyLayout::OnConstruction(const FTransform& Transform)

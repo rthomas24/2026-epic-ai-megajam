@@ -66,6 +66,22 @@ same code.
   a soft shadowless violet fill (1.2 vs the sun's 8).
 - The player start (250 m out) is turned to yaw 10: the opening frame holds the sun and the magenta nebula.
 
+### Space dressing (Nov 13, the SpaceDressing kit)
+- Everything is instanced, visual only (no collision), Static, culled like the belt; `bSpaceDressing` turns it off,
+  `TD.World.Dressing 0|1` toggles it live (dev builds).
+- Belt variety: each `FTDAsteroidFieldSpec` has `IceShare`, `MetalShare`, `CrystalShare`, `bTealCrystal`; kit rocks
+  join `AsteroidLooks`, normalised so their bounding sphere matches the collision sphere. Combat belt: metal + a few
+  violet crystals; Verdance approach: ice + teal crystals; Cinder approach: metal + violet crystals.
+- Ruins: truss art (`SM_StationTruss_01` girders, `_03` hub modules, `_02` panels on some girders) over the cube
+  collision boxes, which stop drawing; 2-3 debris clusters around each ruin. Nick's `RuinMesh` wins.
+- Landmarks: a satellite pair in high orbit around each planet; cargo pod clusters at a third and two thirds of each
+  lane (zone to planets and the Dominion); beacon buoys lining both sides of every gate approach (300 m apart).
+- Lane rocks: `LaneRocksPerLane` (70) small kit rocks in a hollow tube along every lane (zone to each planet, gate
+  end and the Dominion); `LaneClearRadius` (90 m) keeps the lane itself open.
+- Never: in the dogfight pocket (`CombatZoneRadius`), at the player start / return points, in a gate opening or its
+  approach (`TriadDrift.World.Layout.SpaceDressingFillsButNeverBlocks`). Cost measured: about +1 ms GPU at the start
+  view (offscreen 1080p).
+
 ## ENG-16: `ATDPortalGate`
 - **Transit:** a permanent two-way pair built on T2's shared `UTDPortalTransit::TransitActor`, so
   ships, enemies and projectiles follow the same rules as Rift's portals:

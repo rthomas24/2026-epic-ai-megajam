@@ -155,7 +155,8 @@ bool FTDJourneyDominionFraming::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("facing the Dominion (dot %.2f)"), Dot), Dot > 0.9f);
 	const float AngleOff = FMath::RadiansToDegrees(FMath::Acos(Dot));
 	TestTrue(FString::Printf(TEXT("Dominion inside the view (%.0f deg off, half fov %.0f)"), AngleOff, HalfFov), AngleOff < HalfFov);
-	const float HullAngle = FMath::RadiansToDegrees(FMath::Atan(Dominion->HullExtent.X / ToDom.Size()));
+	// The real hull (art or placeholder), not the placeholder box: the r8 art hull is much longer.
+	const float HullAngle = FMath::RadiansToDegrees(FMath::Atan(FMath::Max(Dominion->HullExtent.X, (float)Dominion->GetLocalHullBounds().GetExtent().X) / ToDom.Size()));
 	TestTrue(FString::Printf(TEXT("hull fills a good part of the frame (half-size %.0f deg)"), HullAngle), HullAngle > HalfFov * 0.35f);
 	TestTrue(TEXT("outside the main shield"), ToDom.Size() > Dominion->ShieldRadius * 1.2f);
 	TestTrue(TEXT("ship at the stage start, not the galaxy start"), ToDom.Size() < Dominion->ShieldRadius * 3.f);

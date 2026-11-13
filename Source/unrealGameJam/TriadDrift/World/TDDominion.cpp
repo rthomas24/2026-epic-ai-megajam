@@ -266,6 +266,38 @@ bool ATDDominion::SetShowcase(bool bShow, const FTransform* Override)
 	return true;
 }
 
+FBox ATDDominion::GetLocalHullBounds() const
+{
+	FBox Box(ForceInit);
+	const FTransform Xf = GetActorTransform();
+	for (const UStaticMeshComponent* C : { HullMesh.Get(), BridgeMesh.Get(), TrenchWallLeft.Get(), TrenchWallRight.Get() })
+	{
+		if (!C || !C->GetStaticMesh()) { continue; }
+		// The mesh's own box in the Dominion's frame (world-axis bounds would grow with the Dominion's yaw).
+		Box += C->GetStaticMesh()->GetBoundingBox().TransformBy(C->GetComponentTransform().GetRelativeTransform(Xf));
+	}
+	if (!Box.IsValid) { Box = FBox(-HullExtent, HullExtent); }
+	return Box;
+}
+
+FTransform ATDDominion::GetStageStart(bool bTrench) const
+{
+	const FTransform D = GetActorTransform();
+	const FBox B = GetLocalHullBounds();
+	if (bTrench)
+	{
+		// Off the real bow on the trench line, facing aft: the reactor is straight ahead.
+		const FVector Loc = D.TransformPosition(FVector(B.Max.X + 20000.f, 0.f, HullExtent.Z + 1500.f));
+		return FTransform((-D.GetUnitAxis(EAxis::X)).Rotation(), Loc);
+	}
+	// Front-right and a little above, 2.5 hull radii out: the hull fills a good part of the frame and there are ~7 s
+	// at cruise before anything solid (the old 2.4 x HullExtent.X put the r8 art hull ~5 s away).
+	const float Radius = FMath::Max(B.GetExtent().Size(), HullExtent.Size());
+	const float Dist = FMath::Max(ShieldRadius * 2.f, Radius * 2.5f);
+	const FVector Loc = D.TransformPosition(FVector(0.75f, 0.6f, 0.25f).GetSafeNormal() * Dist);
+	return FTransform((D.GetLocation() - Loc).Rotation(), Loc);
+}
+
 FVector ATDDominion::GetHangarLocation() const
 {
 	return HangarPoint ? HangarPoint->GetComponentLocation() : GetActorLocation();

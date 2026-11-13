@@ -29,6 +29,12 @@ struct UNREALGAMEJAM_API FTDAsteroidFieldSpec
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") int32 Seed = 1;
 	/** Keep this radius around the centre clear (a dogfighting pocket). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") float ClearRadius = 0.f;
+	/** Rock families (space dressing kit), as shares of the field; the rest are the classic rocks. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "0", ClampMax = "1")) float IceShare = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "0", ClampMax = "1")) float MetalShare = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "0", ClampMax = "1")) float CrystalShare = 0.f;
+	/** Crystal rocks are teal (Verdance side) instead of violet (Cinder side). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") bool bTealCrystal = false;
 };
 
 /** A box of station ruin used as cover. */
@@ -271,10 +277,62 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
 	TArray<TObjectPtr<UInstancedStaticMeshComponent>> DebrisLooks;
 
+	/** Parallel to AsteroidLooks: the family (0 classic, 1 ice, 2 metal, 3 violet crystal, 4 teal crystal) and the
+	 *  scale that makes the mesh's bounding sphere 100 cm across (the dressing kit is real-scale). */
+	TArray<uint8> AsteroidLookFamily;
+	TArray<float> AsteroidLookNorm;
+
+	/** Space dressing kit (visual only, no collision): ruin art over the hidden ruin collision boxes (girder truss,
+	 *  hub, hull panel), debris clusters around the ruins, and sparse landmarks along the routes (satellites in high
+	 *  orbit, cargo pod clusters on the lanes, beacon buoys lining the gate approaches). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> RuinArtLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> DebrisClusterLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> SatelliteLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> CargoLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> BuoyLooks;
+
+	/** Small visual-only rocks lining the travel lanes (a hollow tube: the lane itself stays open). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> LaneRockLooks;
+
+	void BuildDressing();
+	int32 PickRockLook(const FTDAsteroidFieldSpec& F, FRandomStream& Rng) const;
+	bool UsesRuinArt() const;
+
 public:
 	/** Debris pieces per asteroid field, as a fraction of its asteroid count. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
 	float DebrisPerAsteroid = 0.8f;
+
+	/** Visual-only rocks per lane (zone to each planet, gate and the Dominion). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
+	int32 LaneRocksPerLane = 70;
+
+	/** The lane itself stays open within this distance of its centre line (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
+	float LaneClearRadius = 9000.f;
+
+	/** Space dressing on/off (landmarks, ruin art, debris clusters, rock families). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
+	bool bSpaceDressing = true;
+
+	/** Turn the landmarks, lane rocks and ruin art on or off at runtime (dev captures: TD.World.Dressing). */
+	void SetSpaceDressing(bool bOn) { bSpaceDressing = bOn; BuildDressing(); }
+
+	/** Every space-dressing component (tests: visual only, no collision). */
+	TArray<UInstancedStaticMeshComponent*> GetDressingComponents() const;
+	/** The family of each asteroid look (see AsteroidLookFamily) and its normalising scale. */
+	const TArray<uint8>& GetAsteroidLookFamilies() const { return AsteroidLookFamily; }
+	const TArray<float>& GetAsteroidLookNorms() const { return AsteroidLookNorm; }
 
 	/** Instanced components carrying the asteroid look (tests: valid mesh and material on each). */
 	const TArray<TObjectPtr<UInstancedStaticMeshComponent>>& GetAsteroidLooks() const { return AsteroidLooks; }

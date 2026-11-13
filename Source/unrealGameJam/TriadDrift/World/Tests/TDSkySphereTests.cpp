@@ -98,7 +98,38 @@ bool FTDSkyPlanetSunDirection::RunTest(const FString&)
 		const FVector ToSun = -Sky->Sun->GetForwardVector();
 		TestTrue(*FString::Printf(TEXT("%s SunDirection %s points at the sun %s"), *P->GetName(), *FVector(Dir).ToCompactString(), *ToSun.ToCompactString()),
 			FVector(Dir).GetSafeNormal().Equals(ToSun, 0.01f));
+		UStaticMeshComponent* Atmo = nullptr;
+		for (UStaticMeshComponent* M : Meshes) { if (M->GetName() == TEXT("AtmosphereLook")) { Atmo = M; } }
+		if (Atmo && Atmo->GetStaticMesh() && Atmo->IsVisible())
+		{
+			UMaterialInstanceDynamic* AMID = Cast<UMaterialInstanceDynamic>(Atmo->GetMaterial(0));
+			FLinearColor ADir;
+			TestTrue(*FString::Printf(TEXT("%s atmosphere has SunDirection"), *P->GetName()),
+				AMID && AMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("SunDirection")), ADir));
+			TestTrue(*FString::Printf(TEXT("%s atmosphere limb faces the sun"), *P->GetName()), AMID && FVector(ADir).GetSafeNormal().Equals(ToSun, 0.01f));
+		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSkyActiveSun, "TriadDrift.World.Sky.PlanetsFollowWhicheverSunIsActive", TD_TEST_FLAGS)
+bool FTDSkyActiveSun::RunTest(const FString&)
+{
+	FTDTestWorld W;
+	TestNull(TEXT("no light, no sun"), ATDPlanetAtmosphere::FindActiveSun(W.GetWorld()));
+	// A skybox-style rig: a plain directional light, not flagged as the atmosphere sun.
+	AActor* Rig = W.Spawn<AActor>(FVector::ZeroVector, FRotator::ZeroRotator);
+	UDirectionalLightComponent* Plain = NewObject<UDirectionalLightComponent>(Rig, TEXT("PlainSun"));
+	Rig->SetRootComponent(Plain);
+	Plain->SetAtmosphereSunLight(false);
+	Plain->SetIntensity(5.f);
+	Plain->RegisterComponent();
+	TestTrue(TEXT("a lone plain directional light is the sun"), ATDPlanetAtmosphere::FindActiveSun(W.GetWorld()) == Plain);
+	// The atmosphere sun wins over a brighter plain light.
+	ATDPlaceholderSky* Sky = W.Spawn<ATDPlaceholderSky>(FVector::ZeroVector, FRotator::ZeroRotator);
+	Sky->ApplyStyle(ETDPlaceholderSkyStyle::Space);
+	Plain->SetIntensity(50.f);
+	TestTrue(TEXT("the atmosphere sun light wins"), ATDPlanetAtmosphere::FindActiveSun(W.GetWorld()) == Sky->Sun);
 	return true;
 }
 
