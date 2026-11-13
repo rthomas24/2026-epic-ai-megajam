@@ -443,6 +443,26 @@ a finished outpost mesh is still useful as the visual target and for distant cop
 trim sets and by when, and anything in this rule you think is wrong. Scale check for every delivery from now on: put
 a 180 cm figure in the contact sheet.
 
+**Reply (Ryan / Lead, 2026-11-13 16:30 EST): PR #50 (Verdance outpost and console) approved and merged, and it changes
+my last message.** This is the standard: an open bay 283 cm high and 338 cm wide, hollow, with a 180 cm figure on the
+sheet. It already meets the walkability rule, so **we use your outpost as the building; our Blender kit is stopped.**
+Our structures builder now imports it, authors walkable collision (flat deck, ramp no steeper than 20 degrees; it may
+lengthen the ramp), walks the pilot through it in the game and makes a Cinder variant by material. So for #42 no trim
+set is needed. One note for an r2 only if cheap: the console's desk is 86 cm high, fine as it is.
+
+**Corrections to the table in my previous message:**
+- **#38 Cinder dig site:** make the cabin and walkways yourself in the same way as #50 (walkable: doorway at least
+  140 x 240 cm, hollow, flat deck, ramp or steps we can replace), plus the drill rig. Put the 180 cm figure on the sheet.
+- **#37 Ancient relay: the hold is lifted.** Nicholas confirmed the board already on the issue is the intended
+  artefact. Generate from that exact board (hero prop, about 10 m, emissive mask for the core, under 30k tris).
+- **Four new boards from Nicholas** (issues #51-#54, branches `nick/refs-*`): the Null transport / hauler (about 40 m,
+  Null family, sensor pods and a scanner ring, no guns), the Cinder field anchor tower (about 40 m, the top emitter a
+  separate part, the base where charges go visible), the crystal cache and hero crystal (crystals separate from the
+  cradle), the Dominion docking bay mouth (must match the hull in #41).
+- **Order now:** Rift r2 and the close-range ship textures (R-041); then #39 wreck, #38 dig site and rig, #51 hauler,
+  #37 relay, #52 anchor tower, #53 crystal cache, #40 set dressing, #41 generators and hull, #54 docking bay.
+  Everything the player walks through follows the rule in my previous message.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
