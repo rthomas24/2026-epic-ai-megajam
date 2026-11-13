@@ -1,0 +1,142 @@
+[
+  {
+    "file": "01-lancer-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 340111,
+    "sha256": "c73b9caceebb2e1f13ac8a1bc5433ae73fa01c47eeb557c7192a3b5834031e39"
+  },
+  {
+    "file": "02-target-info-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 354069,
+    "sha256": "5db6650b237621b0eb8d5d00b28d42f64e48a858b06bed5c3ff1c160169575f0"
+  },
+  {
+    "file": "03-combat-after-fire-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 339676,
+    "sha256": "ecbe89473c71555d40816eb8a76c19ba3c14371650405e606f260a00460c4be3"
+  },
+  {
+    "file": "04-heat-ammo-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 357272,
+    "sha256": "71ed06635ed4db1cdce5640b2c6ecac74df164a67ca021e971c7e378f657c4f4"
+  },
+  {
+    "file": "05-lancer-live-720p.png",
+    "width": 1280,
+    "height": 720,
+    "bytes": 257614,
+    "sha256": "189484698b0b8ba65d56bec53cfa5ffece24598a08724d7079cc09868b9afd63"
+  },
+  {
+    "file": "06-lancer-live-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 419849,
+    "sha256": "68673f1f50be7b10788a2430eb64e290d7d38e3678756d39f7507b39acebc224"
+  },
+  {
+    "file": "07-ship-down-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 430355,
+    "sha256": "209ec2db9e4c59cc9f51cd602def2d1cff924d3d8222b0e21a39a575359220c3"
+  },
+  {
+    "file": "08-control-transfer-early-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 965670,
+    "sha256": "e0bdbf5aab10017d2f6c06125ec6b684731590e2daf3f4f74b4265afb42c9117"
+  },
+  {
+    "file": "09-control-transfer-late-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 390015,
+    "sha256": "5a199fefdf72d6d22c926d08b36deee53bdcf90e1ec8af1ce0293432658abcdd"
+  },
+  {
+    "file": "10-recovery-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 399979,
+    "sha256": "77a14083d72c24d70a69bf9c2897f40638e4c7abb5db1daeeee4d4d9d200c0dd"
+  },
+  {
+    "file": "focused/11-focused-before-fire-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 426096,
+    "sha256": "25885e40bc2c9bf5289a95fd0102356cd7152908ec052d241506f63e812d77d6"
+  },
+  {
+    "file": "focused/12-focused-after-fire-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 401940,
+    "sha256": "1735ef3c8e4eca0cfbb4a6032bdd6e14ff961f6a61c7f12ecc77d807fe14c75e"
+  },
+  {
+    "file": "focused/focused-projectile-00-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 472271,
+    "sha256": "1da976a432fb8708d53fce4b6d6b693d4f076a28aa5b11bec1290fcb5e017afc"
+  },
+  {
+    "file": "focused/focused-projectile-01-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 662402,
+    "sha256": "9aa60a576852fbeddc832f6990abfc38ef04c4e83a4468c97c19d30771b5d03a"
+  },
+  {
+    "file": "focused/focused-projectile-02-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 449090,
+    "sha256": "06f82aea422895ad1665b49b83433689ec3a3b82e7107d38a1c778759356f7d1"
+  },
+  {
+    "file": "focused/focused-projectile-03-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 509135,
+    "sha256": "0c17493b5d32cf63fa2e1451a37b25582a026259912eee6f1a8bacbb9b886131"
+  },
+  {
+    "file": "focused/focused-projectile-04-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 462086,
+    "sha256": "7bb3c88993ddaebfe6e08ae22312bebff61e3cf376649dd0ad5d80a64dcf2935"
+  },
+  {
+    "file": "focused/focused-projectile-05-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 334908,
+    "sha256": "04b424919521e17657e58e475ad580af177bfbf997179f06ba467252f199b3ce"
+  },
+  {
+    "file": "focused/focused-projectile-06-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 348946,
+    "sha256": "274e447e02daef8b59c4ddb9372867f93d8fe6baa8e94846f3604071ad3e23a1"
+  },
+  {
+    "file": "focused/focused-projectile-07-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 446095,
+    "sha256": "c7d46aabe2eec883c15548ecde2f635dbf0012d55c99ce922698ffb8ee96f770"
+  }
+]

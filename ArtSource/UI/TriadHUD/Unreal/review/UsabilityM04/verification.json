@@ -1,0 +1,46 @@
+{
+  "build-01": {
+    "pass": true,
+    "phase": "build",
+    "duration_s": 183.8142574,
+    "protected_changed": [],
+    "failure": null,
+    "os_exit_code": 0,
+    "head": "5a1382d39d2da5c564f6a2d53e65d58d66987025",
+    "passed_ui_tests": 0,
+    "guard_free_gib": 5.007030487060547
+  },
+  "tests-01": {
+    "pass": true,
+    "passed_ui_tests": 14,
+    "os_exit_code": 0,
+    "duration_s": 35.3968776,
+    "head": "5a1382d39d2da5c564f6a2d53e65d58d66987025",
+    "phase": "tests",
+    "protected_changed": [],
+    "failure": null,
+    "guard_free_gib": 5.004177093505859
+  },
+  "game-01": {
+    "protected_changed": [],
+    "pass": true,
+    "os_exit_code": 0,
+    "head": "5a1382d39d2da5c564f6a2d53e65d58d66987025",
+    "phase": "game",
+    "guard_free_gib": 5.888343811035156,
+    "passed_ui_tests": 0,
+    "failure": null,
+    "duration_s": 49.1798339
+  },
+  "game-02": {
+    "protected_changed": [],
+    "head": "5a1382d39d2da5c564f6a2d53e65d58d66987025",
+    "os_exit_code": 0,
+    "duration_s": 31.0170494,
+    "phase": "game",
+    "passed_ui_tests": 0,
+    "pass": true,
+    "failure": null,
+    "guard_free_gib": 5.326580047607422
+  }
+}
