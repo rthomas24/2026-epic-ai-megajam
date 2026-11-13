@@ -30,6 +30,7 @@ public:
 	float Focus = 0.f;
 	float Altitude = -1.f;
 	float Hyperdrive = 0.f;
+	TArray<AActor*> Waypoints;
 
 	virtual TArray<FTDShipHUD> GetSquadHUD() const override { return Cards; }
 	virtual FTDWaveInfo GetWaveInfo() const override { return Wave; }
@@ -44,6 +45,7 @@ public:
 	virtual float GetFocusRemaining01() const override { return Focus; }
 	virtual float GetAltitude() const override { return Altitude; }
 	virtual float GetHyperdriveCharge01() const override { return Hyperdrive; }
+	virtual TArray<AActor*> GetObjectiveMarkers() const override { return Waypoints; }
 
 	FTDTargetMarker& AddMarker(bool bOnScreen, FVector2D Screen01, FVector2D Dir, float DistanceCm)
 	{

@@ -1,0 +1,110 @@
+[
+ {
+  "name": "A_Pilot_Light1_v2",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Light1_v2",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Light1",
+  "len": 0.5333,
+  "frames": 16,
+  "why": "source frames 8-24: the wind-up before the swing is cut. Hand at full speed 0.12 s after the press and at full reach at 0.23 s at rate 1.0 (was 0.24 / 0.31 s at rate 1.6, i.e. after the 0.28 s swing was over).",
+  "status": "new"
+ },
+ {
+  "name": "A_Pilot_Light2_v2",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Light2_v2",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Light2",
+  "len": 0.5333,
+  "frames": 16,
+  "why": "as Light1_v2 (peak 0.12 s, reach 0.20 s at rate 1.0).",
+  "status": "new"
+ },
+ {
+  "name": "A_Pilot_Light3_v2",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Light3_v2",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Light3",
+  "len": 0.6667,
+  "frames": 20,
+  "why": "source frames 7-27: peak 0.12 s, reach 0.23 s inside the 0.36 s swing at rate 1.0.",
+  "status": "new"
+ },
+ {
+  "name": "A_Pilot_Heavy_v2",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Heavy_v2",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Heavy",
+  "len": 0.7333,
+  "frames": 22,
+  "why": "source frames 28-50: the release only. Peak 0.15 s, reach 0.27 s after the lunge starts (lunge lasts 0.2 s). The original hits 0.77 s after the lunge starts at rate 1.4.",
+  "status": "new"
+ },
+ {
+  "name": "A_Pilot_Heavy_Windup",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Heavy_Windup",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Heavy",
+  "len": 0.4667,
+  "frames": 14,
+  "why": "source frames 14-28 (0.467 s): the wind-up alone, for the 0.35 s the attack button is held before the lunge fires (play at 1.33).",
+  "status": "new"
+ },
+ {
+  "name": "A_Pilot_AirSlam_Fall",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_AirSlam_Fall",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Heavy",
+  "len": 0.5,
+  "frames": 15,
+  "why": "the wound-up pose of the heavy held for 0.5 s (a loop): the pose to fall in during an air slam.",
+  "status": "new"
+ },
+ {
+  "name": "A_Pilot_AirSlam_Land",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_AirSlam_Land",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Heavy",
+  "len": 0.9,
+  "frames": 27,
+  "why": "source frames 28-55: release on landing with the full recovery (0.9 s).",
+  "status": "new"
+ },
+ {
+  "name": "A_Crew_Grunt_Attack_01",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims/A_Crew_Grunt_Attack_01",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Attack_01",
+  "len": 1.1333,
+  "frames": 34,
+  "why": "MM_Attack_01 with the wind-up stretched so the fist is at full reach at 0.60 s = the grunt MeleeWindup (was 0.47 s: the punch landed 0.13 s before the damage).",
+  "status": "new"
+ },
+ {
+  "name": "A_Crew_Heavy_Bash",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims/A_Crew_Heavy_Bash",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Attack_01",
+  "len": 1.2333,
+  "frames": 37,
+  "why": "MM_Attack_01 with the wind-up stretched so the hit is at 0.70 s = the heavy MeleeWindup.",
+  "status": "new"
+ },
+ {
+  "name": "A_Pilot_HitReact_Front_v2",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_HitReact_Front_v2",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_HitReact_Front",
+  "len": 0.7667,
+  "frames": 23,
+  "status": "new",
+  "why": "full-pose (non-additive) copy: the original is flagged additive, and UTDLoopBlendAnimInstance::PlayOneShot refuses additive sequences, so the pilot flinch never plays."
+ },
+ {
+  "name": "A_Pilot_HitReact_Back_v2",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_HitReact_Back_v2",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_HitReact_Back",
+  "len": 0.8667,
+  "frames": 26,
+  "status": "new",
+  "why": "full-pose (non-additive) copy: the original is flagged additive, and UTDLoopBlendAnimInstance::PlayOneShot refuses additive sequences, so the pilot flinch never plays."
+ },
+ {
+  "name": "A_Pilot_Dash_v2",
+  "path": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Dash_v2",
+  "source": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Dash",
+  "len": 0.2333,
+  "frames": 7,
+  "why": "source frames 5-12 (0.233 s): only the forward dive of the dash clip, so at rate 1.0 it covers the 0.18 s dash and fades out (0.1 s) into the run. The original at rate 1.8 lasts 0.54 s: the leap and landing play after the dash is over.",
+  "status": "new"
+ }
+]

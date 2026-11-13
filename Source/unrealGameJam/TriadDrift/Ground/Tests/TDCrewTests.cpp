@@ -566,7 +566,12 @@ bool FTDCrewLookLookup::RunTest(const FString& Parameters)
 	UTDEnemyVisuals* Nick = TDCrewLookTest::MakeAsset(TEXT("/Game/TriadDrift/Presentation"), FString::Printf(TEXT("DA_Crew_%s_Visuals"), *Both.ToString()));
 	ON_SCOPE_EXIT { TDCrewLookTest::Drop(Eng); TDCrewLookTest::Drop(EngBoth); TDCrewLookTest::Drop(Nick); };
 	TestTrue(TEXT("an engineering look under Gameplay/Characters is found (any depth)"), ATDCrewCharacter::FindCrewVisuals(OnlyEng) == Eng);
-	TestTrue(TEXT("Presentation wins when both exist"), ATDCrewCharacter::FindCrewVisuals(Both) == Nick);
+	// Both exist: the loader hands out the Presentation asset with its unset fields filled from the engineering one
+	// (a merged transient copy, R-029), never the engineering asset itself.
+	const UTDEnemyVisuals* Found = ATDCrewCharacter::FindCrewVisuals(Both);
+	TestTrue(TEXT("Presentation wins when both exist"), Found != nullptr && Found != EngBoth
+		&& (Found == Nick || Found->GetOutermost() == GetTransientPackage()));
+	TestTrue(TEXT("the same object is returned on a second lookup"), ATDCrewCharacter::FindCrewVisuals(Both) == Found);
 	TestNull(TEXT("neither: null (the placeholder block)"), ATDCrewCharacter::FindCrewVisuals(FName(*(TEXT("T5None") + Stamp))));
 	return true;
 }

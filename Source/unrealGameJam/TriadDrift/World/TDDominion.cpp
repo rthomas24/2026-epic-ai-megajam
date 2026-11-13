@@ -317,13 +317,36 @@ void ATDDominion::TickPlaceholderBreakup(float DeltaSeconds)
 			FRandomStream R(7919 + BreakupBooms * 31);
 			const FVector Local(R.FRandRange(B.Min.X, B.Max.X), R.FRandRange(B.Min.Y, B.Max.Y) * 0.8f, R.FRandRange(B.Min.Z, B.Max.Z) * 0.8f);
 			const FLinearColor Col = R.FRand() < 0.5f ? FLinearColor(1.f, 0.45f, 0.1f) : FLinearColor(1.f, 0.8f, 0.4f);
-			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(Local), FMath::Lerp(2500.f, 7000.f, T) * R.FRandRange(0.7f, 1.2f), Col, 10);
+			const float Radius = FMath::Lerp(2500.f, 7000.f, T) * R.FRandRange(0.7f, 1.2f);
+			const FVector Where = Xf.TransformPosition(Local);
+			// ENG-37: Nick's / the effects builder's section explosion when it has VFX (authored for a 50 m radius).
+			if (Visuals && FTDCombatPlaceholders::HasVisualArt(Visuals->HullSectionExplosion))
+			{
+				FTDFXCue Cue = Visuals->HullSectionExplosion;
+				Cue.VFXScale *= Radius / 5000.f;
+				UTDStatics::PlayCue(this, Cue, Where, FRotator(R.FRandRange(-180.f, 180.f), R.FRandRange(-180.f, 180.f), 0.f));
+			}
+			else
+			{
+				Booms->PlayPlaceholderExplosion(Where, Radius, Col, 10);
+			}
 			++BreakupBooms;
 		}
 		if (StateTime >= FinalAt)
 		{
 			bBreakupFinalBlast = true;
-			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(B.GetCenter()), B.GetExtent().Size() * 1.2f, FLinearColor(1.f, 0.85f, 0.6f), 16);
+			const float Radius = B.GetExtent().Size() * 1.2f;
+			const FVector Where = Xf.TransformPosition(B.GetCenter());
+			if (Visuals && FTDCombatPlaceholders::HasVisualArt(Visuals->BreakupFinalBlast))
+			{
+				FTDFXCue Cue = Visuals->BreakupFinalBlast;
+				Cue.VFXScale *= Radius / 50000.f;	// authored for a 500 m radius
+				UTDStatics::PlayCue(this, Cue, Where, GetActorRotation());
+			}
+			else
+			{
+				Booms->PlayPlaceholderExplosion(Where, Radius, FLinearColor(1.f, 0.85f, 0.6f), 16);
+			}
 			if (Reactor) { Reactor->SetActorHiddenInGame(true); }
 			ShowHull(false);	// the ship is gone in the flash
 		}

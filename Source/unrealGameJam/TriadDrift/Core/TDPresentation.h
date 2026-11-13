@@ -393,6 +393,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue BreakupSequence;
 
+	/**
+	 * One explosion of the breakup chain on a hull section (runs when BreakupSequence has no VFX): a burst every
+	 * 0.45 s down to 0.12 s, walking out from the reactor. Author it for a 50 m radius; gameplay multiplies VFXScale
+	 * by each burst's size (25-70 m radius, so about 0.5x to 1.7x). No VFX = the engineering placeholder burst.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue HullSectionExplosion;
+
+	/**
+	 * The last flash of the breakup chain that swallows the ship (the hull hides under it). Author it for a 500 m
+	 * radius; gameplay scales VFXScale to the real hull. No VFX = the engineering placeholder burst.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue BreakupFinalBlast;
+
 	/** Stretch: the docking bay opening (ENG-29). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue DockingBayOpen;

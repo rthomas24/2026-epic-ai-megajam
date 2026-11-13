@@ -115,6 +115,24 @@ FBox2D UTDPauseMenuWidget::ConfirmRect(int32 Choice)
 
 // ------------------------------------------------------------------------------------------ navigation
 
+FString UTDPauseMenuWidget::GetFooterText() const
+{
+	// The footer follows the device in use (T1's gamepad pass): pad glyphs on a pad, keys on mouse and keyboard.
+	bool bPad = ForceGamepad >= 0 ? ForceGamepad > 0 : false;
+	if (ForceGamepad < 0)
+	{
+		if (const ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(GetOwningPlayer()))
+		{
+			bPad = PC->IsUsingGamepad();
+		}
+	}
+	if (bPad)
+	{
+		return bConfirming ? TEXT("[D-PAD] CHOOSE     [A] OK     [B] BACK") : TEXT("[D-PAD] SELECT     [A] CHOOSE     [START] RESUME");
+	}
+	return bConfirming ? TEXT("[A/D] CHOOSE     [ENTER] OK     [BACKSPACE] BACK") : TEXT("[W/S] SELECT     [ENTER] CHOOSE     [ESC] RESUME");
+}
+
 bool UTDPauseMenuWidget::PlayUISound(const TCHAR* Which)
 {
 	++UISoundRequests.FindOrAdd(Which);
@@ -453,7 +471,6 @@ int32 UTDPauseMenuWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		P.CenteredText(PanelX + PanelW * .5f, PanelY + PanelH - 70, Toast, 13, Hostile, true);
 	}
 	P.Line({ RowX, PanelY + PanelH - 44 }, { RowX + RowW, PanelY + PanelH - 44 }, Accent.CopyWithNewOpacity(.15f));
-	P.Text(RowX, PanelY + PanelH - 34, bConfirming ? TEXT("[A/D] CHOOSE     [ENTER] OK     [BACKSPACE] BACK") : TEXT("[W/S] SELECT     [ENTER] CHOOSE     [ESC] RESUME"),
-		12, Dim);
+	P.Text(RowX, PanelY + PanelH - 34, GetFooterText(), 12, Dim);
 	return Base + 3;
 }

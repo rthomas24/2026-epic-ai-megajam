@@ -28,6 +28,8 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 	if (Planet == ETDDestination::Cinder)
 	{
 		S.Seed = 7331;
+		S.BasinCentre = FVector2D(8500.f, -500.f);			// T5's Cinder ground box x -3100..20100, y -10600..9600
+		S.BasinHalfExtent = FVector2D(11600.f, 10100.f);
 		S.HillHeight = 12000.f;
 		S.HillScale = 160000.f;
 		S.MountainHeight = 125000.f;
@@ -50,11 +52,13 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 	else
 	{
 		S.Seed = 4242;
+		S.BasinCentre = FVector2D(5500.f, -250.f);			// T5's Verdance ground box x -3100..14100, y -10600..10100
+		S.BasinHalfExtent = FVector2D(8600.f, 10350.f);
 		S.HillHeight = 22000.f;
 		S.HillScale = 240000.f;
-		S.MountainHeight = 115000.f;
-		S.MountainScale = 340000.f;
-		S.Sharpness = 0.6f;
+		S.MountainHeight = 135000.f;
+		S.MountainScale = 300000.f;
+		S.Sharpness = 0.85f;
 		S.Warp = 140000.f;
 		S.GullyAmount = 0.16f;
 		// The massif: a great ridged mountain east of the course.
@@ -113,13 +117,16 @@ float FTDTerrainField::Ridged(float X, float Y, int32 Octaves, int32 Seed, float
 	return Sum / FMath::Max(Norm, KINDA_SMALL_NUMBER);	// 0..1
 }
 
+float FTDTerrainField::BasinWeightAt(float X, float Y, float Blend) const
+{
+	const float DX = FMath::Max(0.f, FMath::Abs(X - (float)Style.BasinCentre.X) - (float)Style.BasinHalfExtent.X);
+	const float DY = FMath::Max(0.f, FMath::Abs(Y - (float)Style.BasinCentre.Y) - (float)Style.BasinHalfExtent.Y);
+	return TDTerrainFieldImpl::SmootherStep(FMath::Clamp(FMath::Sqrt(DX * DX + DY * DY) / FMath::Max(1.f, Blend), 0.f, 1.f));
+}
+
 float FTDTerrainField::BasinWeight(float X, float Y) const
 {
-	const float DX = FMath::Max(0.f, FMath::Abs(X) - Style.BasinHalfExtent.X);
-	const float DY = FMath::Max(0.f, FMath::Abs(Y) - Style.BasinHalfExtent.Y);
-	const float D = FMath::Sqrt(DX * DX + DY * DY);
-	const float T = FMath::Clamp(D / FMath::Max(1.f, Style.BasinBlend), 0.f, 1.f);
-	return TDTerrainFieldImpl::SmootherStep(T);
+	return BasinWeightAt(X, Y, Style.BasinBlend);
 }
 
 float FTDTerrainField::RawHeight(float X, float Y) const
@@ -198,7 +205,7 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 	if (Style.RiverDepth > 0.f)
 	{
 		// Lava-river valleys: carve along the zero contour of a meandering noise.
-		const float RN = Fbm(WX / 300000.f, WY / 300000.f, 3, S + 61);
+		const float RN = RiverNoise(X, Y);
 		const float River = FMath::Exp(-FMath::Square(RN * 9.f));
 		H -= River * Style.RiverDepth * (0.4f + 0.6f * (1.f - RangeMask));
 	}
@@ -228,9 +235,16 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 			}
 			else
 			{
-				// A great ridged massif: a broad dome shaped by the ranges' own ridges.
-				const float Dome = FMath::Square(FMath::Cos(D * HALF_PI));
-				H = FMath::Max(H, Dome * Style.HeroHeight * (0.55f + 0.45f * Mount) + H * 0.3f);
+				// An alpine massif: a broken summit line of arêtes and spires, buttress ridges running down into the
+				// jungle. A falloff envelope times sharp ridged noise at the massif's own scale, plus radial buttresses.
+				const FVector2D Rel = FVector2D(X, Y) - Style.HeroCentre;
+				const float Env = FMath::Pow(FMath::Clamp(1.f - D, 0.f, 1.f), 1.25f);
+				const float Alp = Ridged(Rel.X / (Style.HeroRadius * 0.32f), Rel.Y / (Style.HeroRadius * 0.32f), 5, S + 121, 1.f);
+				const float Ang = FMath::Atan2(Rel.Y, Rel.X);
+				const float Buttress = FMath::Pow(FMath::Abs(FMath::Cos(Ang * 3.5f + Noise2D(Rel.X / 90000.f, Rel.Y / 90000.f, S + 123) * 1.2f)), 6.f);
+				const float Spires = FMath::Pow(FMath::Max(0.f, Noise2D(Rel.X / 26000.f, Rel.Y / 26000.f, S + 125)), 3.f);
+				const float Shape = Env * (0.45f + 0.4f * Alp + 0.25f * Buttress * (1.f - Env * 0.6f)) + Spires * Env * Env * 0.25f;
+				H = FMath::Max(H, FMath::Min(Shape, 1.f) * Style.HeroHeight);
 			}
 		}
 	}
@@ -246,6 +260,20 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 		H += (Near * 0.45f + FarWall) * Style.HorizonRise;
 	}
 	return H;
+}
+
+float FTDTerrainField::RiverNoise(float X, float Y) const
+{
+	const int32 S = Style.Seed;
+	const float WX = X + Style.Warp * Noise2D(X / 500000.f, Y / 500000.f, S + 11);
+	const float WY = Y + Style.Warp * Noise2D(X / 500000.f + 31.7f, Y / 500000.f - 12.3f, S + 13);
+	return Fbm(WX / 300000.f, WY / 300000.f, 3, S + 61);
+}
+
+float FTDTerrainField::ReliefMeters() const
+{
+	const float Low = FMath::Min(Style.SeaLevel - Style.BasinDepth, -Style.RiftDepth);
+	return (Style.HeroHeight - Low) / 100.f;
 }
 
 float FTDTerrainField::RegionWeight(float X, float Y, float Bearing) const
@@ -270,7 +298,44 @@ float FTDTerrainField::Height(float X, float Y) const
 {
 	const float W = BasinWeight(X, Y);
 	if (W <= 0.f) { return Style.BasinFloor; }
-	return FMath::Lerp(Style.BasinFloor, RawHeight(X, Y), W);
+	// Never below the course floor near the course: the course slab's edge would show as a raised table (Verdance
+	// from 5 km). Depressions (seas, canyons) only start well beyond the blend.
+	const float Raw = RawHeight(X, Y);
+	const float DX = FMath::Max(0.f, FMath::Abs(X - (float)Style.BasinCentre.X) - (float)Style.BasinHalfExtent.X);
+	const float DY = FMath::Max(0.f, FMath::Abs(Y - (float)Style.BasinCentre.Y) - (float)Style.BasinHalfExtent.Y);
+	const float Near = 1.f - FMath::SmoothStep(250000.f, 450000.f, FMath::Sqrt(DX * DX + DY * DY));	// floored to 2.5 km beyond, gone by 4.5
+	const float Floored = FMath::Lerp(Raw, FMath::Max(Raw, Style.BasinFloor + 300.f * W), Near);
+	float H = FMath::Lerp(Style.BasinFloor, Floored, W);
+	// A valley that frames the hero peak from the pad: toward it, the ground stays under the sightline to its summit.
+	{
+		const FVector2D Q(X, Y);
+		const float HeroDist = (float)Style.HeroCentre.Size();
+		const float R = (float)Q.Size();
+		const float Foot = HeroDist - Style.HeroRadius * 0.85f;
+		if (R > 1.f && R < Foot && HeroDist > 1.f)
+		{
+			const float Off = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp((float)FVector2D::DotProduct(Q / R, Style.HeroCentre / HeroDist), -1.f, 1.f)));
+			if (Off < 9.f)
+			{
+				const float Sight = 200.f + (Style.HeroHeight * 0.55f - 200.f) * (R / HeroDist) - 6000.f;
+				const float Edge = (1.f - FMath::SmoothStep(5.f, 9.f, Off)) * (1.f - FMath::SmoothStep(Foot * 0.85f, Foot, R));	// SmoothStep needs A < B
+				H = FMath::Lerp(H, FMath::Min(H, FMath::Max(Sight, Style.BasinFloor)), Edge);
+			}
+		}
+	}
+	// The arrival corridor: under the glide slope (27 deg up from the pad) inside a cone behind the pad (-X).
+	if (X < 0.f)
+	{
+		const float R = FMath::Sqrt(X * X + Y * Y);
+		const float Off = FMath::RadiansToDegrees(FMath::Atan2(FMath::Abs(Y), -X));
+		if (R < Style.ApproachLength && Off < Style.ApproachHalfAngleDeg)
+		{
+			const float Glide = R * 0.51f - Style.ApproachClearance;	// tan(27 deg)
+			const float Edge = (1.f - FMath::SmoothStep(Style.ApproachHalfAngleDeg * 0.7f, Style.ApproachHalfAngleDeg, Off)) * (1.f - FMath::SmoothStep(Style.ApproachLength * 0.8f, Style.ApproachLength, R));
+			H = FMath::Lerp(H, FMath::Min(H, FMath::Max(Glide, Style.BasinFloor)), Edge);
+		}
+	}
+	return H;
 }
 
 FTDTerrainSample FTDTerrainField::Sample(float X, float Y, float Step) const
@@ -280,9 +345,14 @@ FTDTerrainSample FTDTerrainField::Sample(float X, float Y, float Step) const
 	const float HX = Height(X + Step, Y) - Height(X - Step, Y);
 	const float HY = Height(X, Y + Step) - Height(X, Y - Step);
 	const FVector N = FVector(-HX, -HY, 2.f * Step).GetSafeNormal();
+	S.Normal = N;
 	S.Slope = FMath::Clamp(1.f - N.Z, 0.f, 1.f);
 	S.Height01 = FMath::Clamp((S.Height - Style.BasinFloor) / FMath::Max(1.f, MaxHeight()), 0.f, 1.f);
-	S.BroadMask = Fbm(X / 400000.f, Y / 400000.f, 3, Style.Seed + 71) * 0.5f + 0.5f;
+	// Cinder: the material's lava follows the carved river beds (Lead's M_TD_Terrain, ValleyWidth ~0.35);
+	// elsewhere a broad biome mask.
+	S.BroadMask = Style.RiverDepth > 0.f
+		? FMath::Clamp(0.5f + RiverNoise(X, Y) * 4.5f, 0.f, 1.f)
+		: Fbm(X / 400000.f, Y / 400000.f, 3, Style.Seed + 71) * 0.5f + 0.5f;
 	S.FineMask = Noise2D(X / 6000.f, Y / 6000.f, Style.Seed + 73) * 0.5f + 0.5f;
 	return S;
 }

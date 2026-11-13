@@ -6,6 +6,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Blueprint/UserWidget.h"
+#include "Engine/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "Input/HittestGrid.h"
@@ -13,6 +14,9 @@
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
@@ -342,9 +346,9 @@ bool FTDFlightHUDMarks::RunTest(const FString& Parameters)
 	TestEqual(TEXT("current: distance in metres"), Marks[0].Distance, 412.f, .5f);
 	TestTrue(TEXT("other hostile: a tick, not the bracket"), Marks[1].bOnScreen && !Marks[1].bCurrent);
 	TestFalse(TEXT("off right: edge chevron"), Marks[2].bOnScreen);
-	TestEqual(TEXT("off right: on the safe frame's right edge"), (float)Marks[2].Pos.X, 1920.f - UTDFlightHUDWidget::SafeX, 1.f);
+	TestEqual(TEXT("off right: on the safe frame's right edge"), (float)Marks[2].Pos.X, 1920.f - UTDFlightHUDWidget::SafeX - 12.f, 1.f); // inset so the whole marker is inside
 	TestEqual(TEXT("off right: pointing right"), Marks[2].Angle, 0.f, .01f);
-	TestTrue(TEXT("missile above: flagged, on the top edge"), Marks[3].bMissile && FMath::IsNearlyEqual((float)Marks[3].Pos.Y, UTDFlightHUDWidget::SafeY, 1.f));
+	TestTrue(TEXT("missile above: flagged, on the top edge"), Marks[3].bMissile && FMath::IsNearlyEqual((float)Marks[3].Pos.Y, UTDFlightHUDWidget::SafeY + 12.f, 1.f));
 	return true;
 }
 
@@ -483,6 +487,226 @@ bool FTDFlightHUDCombatStates::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Review M3: objective waypoints (planets, gates, generators, the landing pad) are drawn by this HUD, with range.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDWaypoints, "TriadDrift.UI.FlightHUD.Review.ObjectiveWaypoints", TD_TEST_FLAGS)
+bool FTDFlightHUDWaypoints::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	AActor* Pad = F.W.Spawn<AStaticMeshActor>(FVector(1600000.f, 0.f, 0.f)); // 16 km
+	AActor* Gate = F.W.Spawn<AStaticMeshActor>(FVector(0.f, 45000.f, 0.f));
+	F.Src->Waypoints = { Pad, Gate, nullptr };
+	F.HUD->Sample(.016f);
+	const auto& Wps = F.V().Waypoints;
+	if (!TestEqual(TEXT("two waypoints (null skipped)"), Wps.Num(), 2))
+	{
+		return false;
+	}
+	TestEqual(TEXT("pad range, metres"), Wps[0].Distance, 16000.f, 1.f);
+	TestEqual(TEXT("gate range"), Wps[1].Distance, 450.f, 1.f);
+	for (const auto& Wp : Wps)
+	{
+		const bool bInFrame = Wp.Pos.X >= UTDFlightHUDWidget::SafeX - .5f && Wp.Pos.X <= 1920.f - UTDFlightHUDWidget::SafeX + .5f
+			&& Wp.Pos.Y >= UTDFlightHUDWidget::SafeY - .5f && Wp.Pos.Y <= 1080.f - UTDFlightHUDWidget::SafeY + .5f;
+		TestTrue(TEXT("off-screen waypoint sits on the safe frame"), Wp.bOnScreen || bInFrame);
+	}
+	TestTrue(TEXT("claims the ObjectiveMarkers surface"), GetDefault<UTDFlightHUDWidget>()->bCoversObjectiveMarkers);
+	return true;
+}
+
+// Review M4: the onboarding card through the real hint component: the second essential (Fire) reads "2 / 4".
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHintCard, "TriadDrift.UI.FlightHUD.Review.HintCardStep", TD_TEST_FLAGS)
+bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("controller"), PC))
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 20000.f)));
+	UTDHintComponent* Hints = PC->GetHints();
+	if (!TestNotNull(TEXT("hints"), Hints))
+	{
+		return false;
+	}
+	Hints->UseMemoryOnlyForTests();
+	Hints->TimeoutSeconds = 2.f;
+	W.Advance(.5f);
+	UTDFlightHUDWidget* HUD = CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass());
+	HUD->ForceGamepad = 0;
+	HUD->SetDataSource(Squad);
+	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld()))
+	{
+		Bus->BroadcastWaveStarted(1, .2f);
+	}
+	auto WaitFor = [&](ETDHint Hint)
+	{
+		for (float T = 0.f; T < 5.f && !(Hints->GetCurrentHint() == Hint && Hints->GetCurrentHintState() == ETDHintState::Showing); T += 1.f / 60.f)
+		{
+			W.Tick();
+		}
+		return Hints->GetCurrentHint() == Hint;
+	};
+	TestTrue(TEXT("fly first"), WaitFor(ETDHint::Fly));
+	W.Advance(2.1f); // fly ignored: it comes back later
+	TestTrue(TEXT("fire next"), WaitFor(ETDHint::Fire));
+	HUD->Sample(.016f);
+	const auto& V = HUD->GetView();
+	TestTrue(TEXT("card shown"), V.bHintCard && V.Lane == UTDFlightHUDWidget::ELane::Hint);
+	TestEqual(TEXT("card key"), V.HintKey, FString(TEXT("LMB")));
+	TestEqual(TEXT("card action"), V.HintAction, FString(TEXT("FIRE")));
+	TestTrue(FString::Printf(TEXT("card counter reads 2 / 4 (got %d / %d)"), V.HintStep, V.HintCount), V.HintStep == 2 && V.HintCount == 4);
+	FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, true);
+	W.Advance(.1f);
+	FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, false);
+	W.Tick();
+	HUD->Sample(.016f);
+	TestTrue(TEXT("fired: the card ticks off"), HUD->GetView().bHintDone);
+	return true;
+}
+
+// Review M5 and m9: a ship with no secondary ammo shows no number; with no flown ship nothing stale is drawn.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDNoAmmoNoFlown, "TriadDrift.UI.FlightHUD.Review.NoAmmoAndNoFlownShip", TD_TEST_FLAGS)
+bool FTDFlightHUDNoAmmoNoFlown::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestFalse(TEXT("no ammo on this ship: no number"), F.V().bUsesAmmo);
+	F.Src->Card(ETDShipId::Lancer).SecondaryAmmo = 2;
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("ammo: shown"), F.V().bUsesAmmo && F.V().Ammo == 2);
+	F.Src->Card(ETDShipId::Lancer).SecondaryAmmo = 0;
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("ran dry: still shown (as 0)"), F.V().bUsesAmmo && F.V().Ammo == 0);
+	F.Src->SetSquad(ETDShipId::Rift);
+	F.HUD->Sample(.016f);
+	TestFalse(TEXT("Rift never had ammo: no number"), F.V().bUsesAmmo);
+
+	for (FTDShipHUD& Card : F.Src->Cards)
+	{
+		Card.bPlayerControlled = false; // the flown ship is down before the retake
+	}
+	F.Src->Card(ETDShipId::Rift).bAlive = false;
+	F.HUD->Sample(.016f);
+	TestFalse(TEXT("no flown ship"), F.V().bHasFlown);
+	TestFalse(TEXT("no flown ship: no ability, dome, ammo or boost"), F.V().bHasAbility || F.V().bHasPower2 || F.V().bUsesAmmo || F.V().bShowBoost);
+	return true;
+}
+
+// Review: every surface has exactly one drawer. Engineering HUD: it claims all but subtitles and pause (dev HUD /
+// pause screen draw those). Dev HUD: no widget, the dev HUD's full read-out draws everything.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCoverMatrix, "TriadDrift.UI.FlightHUD.Review.CoverMatrix", TD_TEST_FLAGS)
+bool FTDFlightHUDCoverMatrix::RunTest(const FString& Parameters)
+{
+	// What ATDDebugHUD draws in supplement mode when a surface is NOT claimed (Core/TDDebugHUD.cpp DrawHUD); the pause
+	// line is the pause screen's (its widget claims Pause while open).
+	const TSet<ETDHUDSurface> DevSupplement = { ETDHUDSurface::DamageIndicators, ETDHUDSurface::SquadMarkers, ETDHUDSurface::HyperdriveBlockText,
+		ETDHUDSurface::Altitude, ETDHUDSurface::Subtitles, ETDHUDSurface::Pause, ETDHUDSurface::CombatStates, ETDHUDSurface::ObjectiveMarkers };
+	const UEnum* Surfaces = StaticEnum<ETDHUDSurface>();
+	const UTDFlightHUDWidget* CDO = GetDefault<UTDFlightHUDWidget>();
+	for (int32 I = 0; I < Surfaces->NumEnums() - 1; ++I)
+	{
+		const ETDHUDSurface Surface = static_cast<ETDHUDSurface>(Surfaces->GetValueByIndex(I));
+		const FBoolProperty* Claim = FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface));
+		const bool bWidget = Claim && Claim->GetPropertyValue_InContainer(CDO);
+		const bool bDev = !bWidget && DevSupplement.Contains(Surface);
+		TestTrue(FString::Printf(TEXT("engineering HUD: %s has exactly one drawer (widget %d, dev %d)"), *Surfaces->GetNameStringByIndex(I),
+					 bWidget ? 1 : 0, bDev ? 1 : 0),
+			bWidget != bDev);
+	}
+	return true;
+}
+
+// Review: layout at 1280x720, 2560x1080 and 3440x1440: every drawn element inside the safe frame, the vignette at the
+// screen edge (the whole widget), coverage in budget.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDLayouts, "TriadDrift.UI.FlightHUD.Review.LayoutsAndVignette", TD_TEST_FLAGS)
+bool FTDFlightHUDLayouts::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.Src->Card(ETDShipId::Lancer).Health01 = .2f;	// vignette on
+	F.Src->Card(ETDShipId::Lancer).SecondaryAmmo = 3;
+	F.Src->Card(ETDShipId::Lancer).Boost01 = .5f;
+	F.Src->Objective = FText::FromString(TEXT("Clear the Null Armada"));
+	F.Src->Wave.WaveNumber = 2;
+	F.Src->Wave.bWaveActive = true;
+	F.Src->Wave.EnemiesAlive = 6;
+	F.Src->AddMarker(true, FVector2D(.55f, .45f), FVector2D(.3f, -.2f), 30000.f).bIsCurrentTarget = true;
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(-1.f, .1f), 90000.f);
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(.1f, 1.f), 90000.f);	// bottom edge: must avoid the strip
+	F.Src->Missile = ETDMissileWarning::Tracking;
+	F.Src->Boundary = FText::FromString(TEXT("Edge of the combat zone"));
+	F.Src->Hyperdrive = .4f;
+	F.Src->Waypoints = { F.W.Spawn<AStaticMeshActor>(FVector(-50000.f, 0.f, 0.f)) };
+	F.HUD->HandleHyperdriveInput(false);
+	F.Src->Blocked = FText::FromString(TEXT("Hyperdrive locked - enemies in range"));
+	F.HUD->HandleHyperdriveInput(true);
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	for (const FVector2D Res : { FVector2D(1280, 720), FVector2D(2560, 1080), FVector2D(3440, 1440) })
+	{
+		const FString Tag = FString::Printf(TEXT(" @ %.0fx%.0f"), Res.X, Res.Y);
+		F.HUD->Sample(.016f);
+		F.HUD->Sample(4.f); // objective collapsed
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(Res);
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		const FPaintArgs Args(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f);
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(Args, FGeometry::MakeRoot(Res, FSlateLayoutTransform()), FSlateRect(0, 0, Res.X, Res.Y), List, 0, FWidgetStyle(), true);
+		const FBox2D Safe(FVector2D(UTDFlightHUDWidget::SafeX - .5f, UTDFlightHUDWidget::SafeY - .5f),
+			FVector2D(1920.f - UTDFlightHUDWidget::SafeX + .5f, 1080.f - UTDFlightHUDWidget::SafeY + .5f));
+		for (const TPair<FName, FBox2D>& Box : F.HUD->LastBoxes)
+		{
+			if (Box.Key == TEXT("hitarc") || Box.Key == TEXT("switchstrike"))
+			{
+				continue; // rings around the reticle, centred well inside the frame
+			}
+			TestTrue(FString::Printf(TEXT("%s inside the safe frame%s"), *Box.Key.ToString(), *Tag), Safe.IsInside(Box.Value));
+		}
+		const FBox2D Vig = F.HUD->LastVignetteRect;
+		TestTrue(TEXT("vignette spans the whole screen") + Tag, Vig.bIsValid && Vig.Min.IsNearlyZero() && Vig.Max.Equals(Res, 1.f));
+		// The strip and an edge arrow never overlap.
+		FBox2D Strip(ForceInit);
+		for (const auto& Box : F.HUD->LastBoxes)
+		{
+			if (Box.Key == TEXT("chip")) { Strip += Box.Value; }
+		}
+		for (const auto& Box : F.HUD->LastBoxes)
+		{
+			if (Box.Key == TEXT("edge") || Box.Key == TEXT("waypoint_edge"))
+			{
+				TestFalse(TEXT("edge marker clear of the squad strip") + Tag, Strip.Intersect(Box.Value));
+			}
+		}
+		TestTrue(TEXT("coverage under 8%") + Tag, F.HUD->GetCoverage01() < .08f);
+	}
+	return true;
+}
+
+// Hit feel at the reticle: a hit tick, a kill X that a later hit never cuts short, both timing out.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHitMarks, "TriadDrift.UI.FlightHUD.HitAndKillMarkers", TD_TEST_FLAGS)
+bool FTDFlightHUDHitMarks::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("idle: no marks"), F.V().HitMark + F.V().KillMark, 0.f);
+	F.HUD->HandleHitConfirmed(nullptr, false);
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("hit: tick showing"), F.V().HitMark > 0.f && F.V().HitMark < 1.f);
+	F.HUD->Sample(UTDFlightHUDWidget::HitMarkSeconds);
+	TestEqual(TEXT("hit tick gone after 0.15 s"), F.V().HitMark, 0.f);
+	F.HUD->HandleHitConfirmed(F.Src, true);
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("kill: X showing"), F.V().KillMark > 0.f);
+	F.HUD->HandleHitConfirmed(nullptr, false);
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("a hit during the kill X does not replace it"), F.V().KillMark > 0.f && F.V().HitMark == 0.f);
+	F.HUD->Sample(UTDFlightHUDWidget::KillMarkSeconds);
+	TestEqual(TEXT("kill X gone after 0.35 s"), F.V().KillMark, 0.f);
+	return true;
+}
+
 // The host's cover answer both ways: the engineering HUD claims CombatStates (the dev HUD's line goes), Nick's does not.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCombatCover, "TriadDrift.UI.FlightHUD.P2.CombatStatesCoverBothWays", TD_TEST_FLAGS)
 bool FTDFlightHUDCombatCover::RunTest(const FString& Parameters)
@@ -575,6 +799,9 @@ bool FTDFlightHUDPaints::RunTest(const FString& Parameters)
 	F.Src->Card(ETDShipId::Lancer).Boost01 = .5f;
 	F.Src->Card(ETDShipId::Lancer).SecondaryAmmo = 4;
 	F.HUD->HandleHyperdriveInput(true);
+	F.HUD->HandleHitConfirmed(F.Src, true); // the kill X
+	F.Src->SwitchStrike = 1.f;				// the Switch Strike burst
+	F.Src->Focus = .5f;
 
 	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
 	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
@@ -588,8 +815,18 @@ bool FTDFlightHUDPaints::RunTest(const FString& Parameters)
 		const int32 Layer = Slate->Paint(Args, Geometry, FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
 		TestTrue(FString::Printf(TEXT("%s: painted (layer %d)"), Label, Layer), Layer > 0);
 	};
+	// Each element must actually be drawn (review: Layer > 0 alone would pass on an empty widget).
+	auto Drew = [&](const TCHAR* Label, std::initializer_list<const TCHAR*> Names)
+	{
+		for (const TCHAR* Name : Names)
+		{
+			TestTrue(FString::Printf(TEXT("%s: drew %s"), Label, Name),
+				F.HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); }));
+		}
+	};
 	F.HUD->Sample(.016f);
 	PaintOnce(TEXT("expanding objective, trouble, down, cooling"));
+	Drew(TEXT("alert state"), { TEXT("reticle"), TEXT("arcs"), TEXT("pip"), TEXT("chip"), TEXT("objective"), TEXT("bracket"), TEXT("tick"), TEXT("edge"), TEXT("missile_edge"), TEXT("hitarc"), TEXT("missile"), TEXT("boundary"), TEXT("boost"), TEXT("hyperdrive"), TEXT("lane"), TEXT("ability"), TEXT("heat"), TEXT("ammo"), TEXT("altitude"), TEXT("switchstrike"), TEXT("focus"), TEXT("killmark") });
 	F.HUD->Sample(1.f);
 	PaintOnce(TEXT("objective fully expanded"));
 	F.HUD->Sample(3.f);
@@ -606,9 +843,11 @@ bool FTDFlightHUDPaints::RunTest(const FString& Parameters)
 	F.Src->SetSquad(ETDShipId::Bastion);
 	F.HUD->Sample(.016f);
 	PaintOnce(TEXT("Bastion: second power pip"));
+	Drew(TEXT("Bastion"), { TEXT("power2"), TEXT("pip") });
 	F.Src->Cards.Reset();
 	F.HUD->Sample(.016f);
 	PaintOnce(TEXT("no squad"));
+	TestFalse(TEXT("no squad: no arcs or pip"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("arcs") || B.Key == TEXT("pip"); }));
 	return true;
 }
 

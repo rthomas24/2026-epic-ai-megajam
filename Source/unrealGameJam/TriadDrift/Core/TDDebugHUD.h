@@ -28,7 +28,8 @@ private:
 	void DrawSquad(float& Y);
 	void DrawWave();
 	void DrawTargets();
-	void DrawObjective();
+	/** bText false: only the markers and edge arrows (supplement mode, when the real HUD shows the text itself). */
+	void DrawObjective(bool bText = true);
 	void DrawWingmen();
 	void DrawDamageIndicators();
 

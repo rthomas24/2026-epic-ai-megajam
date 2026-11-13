@@ -111,7 +111,40 @@ void UTDProjectileSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleSceneCut);
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleTakeStarted);
+		Bus->OnActorKilled.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleActorKilled);
 	}
+}
+
+bool UTDProjectileSubsystem::IsBigKill(const AActor* Victim) const
+{
+	if (!Victim)
+	{
+		return false;
+	}
+	FVector Origin, Extent;
+	Victim->GetActorBounds(true, Origin, Extent, false);
+	return Extent.GetMax() >= BigKillRadiusCm;
+}
+
+void UTDProjectileSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
+{
+	// Only the player's own kills: a wingman's kill freezing the player's screen reads as lag.
+	const APawn* KillerPawn = Cast<APawn>(Killer);
+	if (!KillerPawn && Killer)
+	{
+		KillerPawn = Killer->GetInstigator();
+	}
+	if (!KillerPawn || !KillerPawn->IsPlayerControlled() || Kind == ETDDamageKind::Ram || !IsBigKill(Victim))
+	{
+		return; // the ram requests its own kill hit-stop
+	}
+	UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this);
+	if (!Feel || Feel->IsSlowMoActive())
+	{
+		return; // a director money shot is already slowing time: it is the bigger beat, don't stack a freeze on it
+	}
+	Feel->RequestHitStop(BigKillHitStopSeconds, BigKillHitStopDilation);
+	++BigKillHitStops;
 }
 
 void UTDProjectileSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds)
