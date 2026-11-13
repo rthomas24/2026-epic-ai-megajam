@@ -1,0 +1,133 @@
+{
+  "blender": "5.1.1",
+  "beauty_engine": "BLENDER_EEVEE",
+  "beauty_color_view": "Khronos PBR Neutral",
+  "diagnostic_engines": "BLENDER_WORKBENCH",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1868771,
+      "pixel_std": 0.11930318176746368,
+      "title": "Front three-quarter / neutral bright studio",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    },
+    {
+      "file": "02_front.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1800675,
+      "pixel_std": 0.10320067405700684,
+      "title": "Front orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1807983,
+      "pixel_std": 0.12432074546813965,
+      "title": "Rear orthographic",
+      "azimuth_deg": 180,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "04_left.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1762653,
+      "pixel_std": 0.10299744457006454,
+      "title": "Left orthographic",
+      "azimuth_deg": -90,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "05_right.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1767783,
+      "pixel_std": 0.10107213258743286,
+      "title": "Right orthographic",
+      "azimuth_deg": 90,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1870474,
+      "pixel_std": 0.12666450440883636,
+      "title": "Top orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": 90,
+      "perspective": false
+    },
+    {
+      "file": "07_bottom.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1812559,
+      "pixel_std": 0.11357927322387695,
+      "title": "Bottom orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": -90,
+      "perspective": false
+    },
+    {
+      "file": "08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1918955,
+      "pixel_std": 0.1438155621290207,
+      "title": "Rear three-quarter",
+      "azimuth_deg": 215,
+      "elevation_deg": 22,
+      "perspective": true
+    },
+    {
+      "file": "09_weapon_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1941679,
+      "pixel_std": 0.19110621511936188,
+      "title": "Port cannon and flush rocket bay",
+      "azimuth_deg": 35,
+      "elevation_deg": -10,
+      "perspective": true
+    },
+    {
+      "file": "10_canopy_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1791684,
+      "pixel_std": 0.10354826599359512,
+      "title": "Framed canopy",
+      "azimuth_deg": 35,
+      "elevation_deg": 20,
+      "perspective": true
+    },
+    {
+      "file": "11_dark_studio.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1782859,
+      "pixel_std": 0.05904574319720268,
+      "title": "Dark lighting / same model and emission",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    }
+  ],
+  "full_review": true,
+  "render_threads": 2,
+  "source_mesh_geometry_unchanged_for_render": true,
+  "elapsed_seconds": 10.567024799995124
+}

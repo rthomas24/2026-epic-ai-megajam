@@ -1,0 +1,11 @@
+{
+  "pid": 6392,
+  "exit_code": 1,
+  "started_utc": "2026-11-13T00:19:41.5476920Z",
+  "elapsed_seconds": 10.776,
+  "peak_working_set_mib": 690.62,
+  "launch_free_gib": 4.994,
+  "minimum_free_gib": 4.322,
+  "abort_reason": "none",
+  "threads": 2
+}

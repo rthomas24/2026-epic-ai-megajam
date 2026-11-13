@@ -322,6 +322,9 @@ bool UTDUIHostSubsystem::ReadSnapshot(const UUserWidget* HUD, TArray<FTDHostShip
 		View.Power2 = TDUIHost::ReadUIShipNumber(S, V, TEXT("Power2"));
 		View.Ability = TDUIHost::ReadUIShipNumber(S, V, TEXT("Ability"));
 		View.RespawnSeconds = TDUIHost::ReadUIShipNumber(S, V, TEXT("RespawnSeconds"));
+		View.Boost = TDUIHost::ReadUIShipNumber(S, V, TEXT("Boost"));
+		View.Heat = TDUIHost::ReadUIShipNumber(S, V, TEXT("Heat"));
+		View.Ammo = FMath::RoundToInt(TDUIHost::ReadUIShipNumber(S, V, TEXT("Ammo")));
 		View.bActive = TDUIHost::ReadUIShipFlag(S, V, TEXT("bActive"));
 		View.bAlive = TDUIHost::ReadUIShipFlag(S, V, TEXT("bAlive"));
 		View.bUnlocked = TDUIHost::ReadUIShipFlag(S, V, TEXT("bUnlocked"));
@@ -411,11 +414,41 @@ namespace TDUIHost
 		TArray<FTDHostShipView> Cards;
 		if (UTDUIHostSubsystem::ReadSnapshot(HUD, Cards))
 		{
+			// What the widget decoded vs what the data source says now: a MISMATCH line names every field that differs.
+			const ITDHUDData* Src = Cast<ITDHUDData>(Source);
+			const TArray<FTDShipHUD> Truth = Src ? Src->GetSquadHUD() : TArray<FTDShipHUD>();
 			for (int32 I = 0; I < Cards.Num(); ++I)
 			{
 				const FTDHostShipView& C = Cards[I];
-				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: card %d active=%d alive=%d unlocked=%d hull=%.2f shield=%.2f power=%.2f ability=%.2f"),
-					I, C.bActive, C.bAlive, C.bUnlocked, C.Hull, C.Shield, C.Power, C.Ability);
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: card %d active=%d alive=%d unlocked=%d hull=%.2f shield=%.2f power=%.2f ability=%.2f boost=%.2f heat=%.2f ammo=%d"),
+					I, C.bActive, C.bAlive, C.bUnlocked, C.Hull, C.Shield, C.Power, C.Ability, C.Boost, C.Heat, C.Ammo);
+				const FTDShipHUD* T = Truth.FindByPredicate([I](const FTDShipHUD& H) { return static_cast<int32>(H.Ship) == I; });
+				if (!T)
+				{
+					continue;
+				}
+				FString Diff;
+				auto Num = [&Diff](const TCHAR* Name, float Shown, float Real, float Tol)
+				{
+					if (FMath::Abs(Shown - Real) > Tol)
+					{
+						Diff += FString::Printf(TEXT(" %s %.2f vs %.2f"), Name, Shown, Real);
+					}
+				};
+				// The widget samples every 0.1 s and eases meters: allow a little slack on continuous values.
+				Num(TEXT("hull"), C.Hull, T->bAlive ? T->Health01 : 0.f, 0.06f);
+				Num(TEXT("shield"), C.Shield, T->bAlive ? T->Shield01 : 0.f, 0.08f);
+				Num(TEXT("power"), C.Power, T->PowerCooldown01, 0.06f);
+				Num(TEXT("ability"), C.Ability, T->AbilityCooldown01, 0.06f);
+				Num(TEXT("heat"), C.Heat, T->Heat01, 0.08f);
+				Num(TEXT("ammo"), (float)C.Ammo, (float)T->SecondaryAmmo, 0.5f);
+				if (C.bActive != T->bPlayerControlled) { Diff += TEXT(" active"); }
+				if (C.bAlive != T->bAlive) { Diff += TEXT(" alive"); }
+				if (C.bUnlocked != (T->Ability != ETDAbilityId::None)) { Diff += TEXT(" unlocked"); }
+				if (!Diff.IsEmpty())
+				{
+					UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: MISMATCH card %d:%s"), I, *Diff);
+				}
 			}
 		}
 	}

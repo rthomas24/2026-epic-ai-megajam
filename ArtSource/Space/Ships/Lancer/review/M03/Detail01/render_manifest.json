@@ -1,0 +1,23 @@
+{
+  "blender": "5.1.1",
+  "beauty_engine": "BLENDER_EEVEE",
+  "beauty_color_view": "Khronos PBR Neutral",
+  "diagnostic_engines": "BLENDER_WORKBENCH",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1879814,
+      "pixel_std": 0.12655656039714813,
+      "title": "Front three-quarter / neutral bright studio",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    }
+  ],
+  "full_review": false,
+  "render_threads": 2,
+  "source_mesh_geometry_unchanged_for_render": true,
+  "elapsed_seconds": 2.648073700001987
+}

@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "ok": true,
+  "tolerance_m": 0.002,
+  "objects": [
+    "SM_LancerM03_Hull",
+    "SM_LancerM03_Detail_Hull",
+    "SM_LancerM03_Wing_L",
+    "SM_LancerM03_Detail_Wing_L",
+    "SM_LancerM03_Wing_R",
+    "SM_LancerM03_Detail_Wing_R",
+    "SM_LancerM03_Canopy",
+    "SM_LancerM03_Detail_Canopy",
+    "SM_LancerM03_Primary_L",
+    "SM_LancerM03_Detail_Primary_L",
+    "SM_LancerM03_Primary_R",
+    "SM_LancerM03_Detail_Primary_R",
+    "SM_LancerM03_Rotor_L",
+    "SM_LancerM03_Rotor_R",
+    "SM_LancerM03_Secondary_L",
+    "SM_LancerM03_Secondary_R",
+    "SM_LancerM03_Engine_L",
+    "SM_LancerM03_Detail_Engine_L",
+    "SM_LancerM03_Engine_R",
+    "SM_LancerM03_Detail_Engine_R"
+  ],
+  "islands": 135,
+  "groups": 1,
+  "main_body_tris": 34516,
+  "floating": [],
+  "hint": "All parts are connected."
+}

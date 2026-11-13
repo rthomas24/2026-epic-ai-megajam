@@ -6,6 +6,7 @@
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Components/StaticMeshComponent.h"
@@ -68,6 +69,7 @@ ATDShip::ATDShip()
 	Hyperdrive = CreateDefaultSubobject<UTDHyperdriveComponent>(TEXT("Hyperdrive"));
 	Landing = CreateDefaultSubobject<UTDLandingComponent>(TEXT("Landing"));
 	AtmosphereEntry = CreateDefaultSubobject<UTDAtmosphereEntryComponent>(TEXT("AtmosphereEntry"));
+	FlightFeedback = CreateDefaultSubobject<UTDFlightFeedbackComponent>(TEXT("FlightFeedback"));
 
 	CockpitCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CockpitCamera"));
 	CockpitCamera->SetupAttachment(HullPivot);
@@ -108,7 +110,8 @@ void ATDShip::BeginPlay()
 			Cam->PostProcessBlendWeight = 1.f;
 		}
 	}
-	ChaseCamera->SetFieldOfView(CurrentFOV);
+	const float FOVKick = FlightFeedback ? FlightFeedback->GetFOVOffset() : 0.f;
+	ChaseCamera->SetFieldOfView(FMath::Clamp(CurrentFOV + FOVKick, 5.f, 170.f));
 
 	SetPlayerControlled(bPlayerControlled);
 	UpdateChaseCamera(0.f, true);
@@ -481,6 +484,10 @@ bool ATDShip::TryDodge(float Direction)
 		FName Socket;
 		UTDStatics::PlayCueAttached(ForThisShip(Visuals->Dodge), GetEngineAttach(Socket), Socket);
 	}
+	if (FlightFeedback)
+	{
+		FlightFeedback->PlayDodge(Direction); // placeholder burst / camera kick while the Dodge cue has no art
+	}
 	return true;
 }
 
@@ -673,7 +680,8 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	const float TurnRef = FMath::Max(Tuning.TurnRate, 1.f);
 	const FVector2D TargetLook(FMath::Clamp(Rates.Z / TurnRef, -1.f, 1.f), FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f));
 	LookAhead = bSnap ? TargetLook : FMath::Vector2DInterpTo(LookAhead, TargetLook, DeltaSeconds, CameraTuning.LookAheadResponse);
-	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle, LookAhead.X * CameraTuning.LookAheadAngle, 0.f));
+	const FRotator Kick = FlightFeedback ? FlightFeedback->GetCameraOffset() : FRotator::ZeroRotator; // no-art camera kicks
+	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle, LookAhead.X * CameraTuning.LookAheadAngle, 0.f) + Kick);
 
 	// --- FOV widens with speed -------------------------------------------------------------------------
 	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01());
