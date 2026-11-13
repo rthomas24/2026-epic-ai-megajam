@@ -1,0 +1,37 @@
+{
+  "checkpoint": "5fde8c35208075e62253d714f7c40c8dfc8e5003",
+  "mount_owner": "Lead only; test scripts never mount or copy packages",
+  "review_map_excluded": true,
+  "packages": [
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/HeroM02/BP_GalaxySkybox_HeroM02.uasset",
+      "bytes": 29904,
+      "sha256": "305d1c510933036ef48a34cc1811737394d6c502a93a787561a5906efc939387"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/HeroM02/MI_HeroM02_Benchmark.uasset",
+      "bytes": 2991,
+      "sha256": "4266b5233ea6ab259c704ea49ec1a3d31c7abed2270bb339cdfdb105ceb7f31c"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/HeroM02/M_HeroM02_Nebula.uasset",
+      "bytes": 17512,
+      "sha256": "819b4b912ee1d7d5f0347ae48e00c9b61629132fcfd0cabf1e4aa07b72b0f263"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Back.uasset",
+      "bytes": 15199123,
+      "sha256": "a4c5f396ed600ca173b2f1901c21f7ec49371960dbe023d3fbef9f33c9a76fd3"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Front.uasset",
+      "bytes": 4053653,
+      "sha256": "1dd1eeddc81e51f8d07cef2d40ea8179c94f76268a1d030eb381b903c3520f46"
+    },
+    {
+      "path": "Content/TriadDrift/Environment/SpaceFoundation/HeroM02/T_HeroM02_Stars.uasset",
+      "bytes": 4290463,
+      "sha256": "bc3345a3c739e9a4f37a3be563ca2e045aabec12396ca1043cd03dcf5f0d9e04"
+    }
+  ]
+}
