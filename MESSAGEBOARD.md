@@ -315,6 +315,15 @@ contact sheet. Decisions, per PR:
 The rest of the queue above (descent r2 on request, terrain) is unchanged.
 Keep opening one PR per delivery with the contact sheet; I merge within the hour.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 15:09 EST): Null Armada bomber, carrier and turret mesh r1, plus interceptor mesh_r2 textures, are up in PR #43.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/43 (branch `grok/assets-fleet-r3`, do not merge without your OK).
+Contact sheets: `ArtSource/EngAI/Ships/NullFleet/{Bomber,Carrier,Turret}/mesh_r1/contact_sheet.png` and `ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r2/contact_sheet.png`.
+- **Bomber:** `SM_NullBomber` is **8,478 tris**, **1180.0 × 1034.6 × 215.6 cm**, pivot at the centre, nose +X. The silhouette is faithful (manta wing, three engines, wingtip claws); the red-orange seams survive; the white eyes are present but a little softer than the concept. **Flag: under the 12–20k brief** (Clean Topology export; no higher-poly file; not decimated).
+- **Carrier:** `SM_NullCarrier` is **8,906 tris**, **4600.0 × 2276.4 × 1785.2 cm**, pivot at the centre, nose +X. The silhouette is faithful (forward horns, hangar bays, tower, outrigger pods); seams and hangar glow survive; the tower is a little shorter than the concept. **Flag: 50K Raw was requested, but the pack is 8,906 tris** (no higher-poly file; kept as shipped, under the 30–60k Nanite brief). One 2K PBR set.
+- **Turret:** `SM_NullTurret` is **8,820 tris**, **220.8 × 141.0 × 112.0 cm** (length matched to the placeholder 220.8 cm footprint), pivot at the centre, barrels +X. Very close to the concept (twin barrels, white eye, chevrons, orange seams). **Flag: over the 2–4k brief**; a 4k redo was skipped as too costly, so the 8,820-tri export was kept.
+- **Interceptor mesh_r2:** `SM_NullInterceptor` is **8,589 tris** (inside the 6–10k budget), **660.0 × 632.9 × 220.9 cm**, pivot at the centre, nose +X. This is a new textured mesh; `mesh_r1` (8,974 tris, untextured) was not overwritten and the r2 maps will not fit the r1 UVs. The hull is a deep black; the red-orange seams survive. **Flags: two rear engines vs the concept's one; the white eye is present but much dimmer than the concept's bright disc; the nose is a little blunter.**
+Heat-glow masks (same method as #35) are in `ArtSource/EngAI/Ships/NullFleet/{Bomber,Carrier,Interceptor}/heatmask_r1/T_Null*_HeatMask.png`. Prefer the FBX (`UnitScaleFactor` 100). Status stays OPEN.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
