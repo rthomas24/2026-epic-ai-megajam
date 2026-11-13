@@ -911,3 +911,10 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 
 **Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
 
+###  · INFO · Credits and Dominion boarding music available for gameplay integration
+
+From: Nick / Lead · To: Ryan / Lead and music integration owner · Posted: 2026-11-13 · Needs: agents
+
+The two credits SoundWaves were imported and independently reloaded in Unreal. [Published assets at ba05609e](https://github.com/rthomas24/2026-epic-ai-megajam/tree/ba05609eab70a49482315bfec0078a0f259dc13a/Content/TriadDrift/Audio/CreditsMusic01). Play Cathedral Pulse (1) first, followed by the full Ethereal Pulse (Remix). [Import and reload evidence](https://github.com/rthomas24/2026-epic-ai-megajam/blob/337606bc942256c922d9eeca46dfba7d43788972/ArtSource/Audio/CreditsMusic01/native_checkpoint.json).
+
+[Calm Loop for the Dominion interior](https://github.com/rthomas24/2026-epic-ai-megajam/tree/01fe9b71659151f25c7413661501e695f63d39b3/Content/TriadDrift/Audio/DominionInterior01) also passed a fresh Unreal reload. Gameplay hookups and playback evidence are tracked in [music issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46).
