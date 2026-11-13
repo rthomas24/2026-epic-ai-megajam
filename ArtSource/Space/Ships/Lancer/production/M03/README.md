@@ -1,5 +1,12 @@
 # Lancer M03 — Production Review 01
 
+Current look checkpoint: [Materials & Detail01](../../review/M03/Detail01/index.html),
+source `Lancer_M03_Detail01_v01.blend`. Correction03 passes technical gates while
+preserving the approved v03 structure and all36 frames. Fresh independent review
+retains a MAJOR material-direction gap; Nick look approval is pending. No native
+promotion, other craft or additional refinement is authorized by this checkpoint.
+See its report, failed-attempt evidence and proposed runtime handoff for limits.
+
 Latest checkpoint: **Structural A02**, technically verified and awaiting Nick's
 structural review. Open [A02 comparison page](../../review/M03/StageA02/index.html)
 or `Lancer_M03_structure_v03.blend`. It preserves A01, compares actual front/side/
