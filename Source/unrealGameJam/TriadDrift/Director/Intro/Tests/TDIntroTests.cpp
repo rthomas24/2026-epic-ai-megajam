@@ -13,6 +13,7 @@
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "HAL/IConsoleManager.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 
 namespace TDIntroTest
 {
@@ -189,6 +190,10 @@ bool FTDIntroWatched::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the shot camera has the view"), F.PC->GetViewTarget() == F.Intro->GetShotCamera());
 	TestFalse(TEXT("a second Play while playing is refused"), F.Intro->PlayForTests(FSimpleDelegate()));
 	TestTrue(TEXT("move and look input ignored"), F.PC->IsMoveInputIgnored() && F.PC->IsLookInputIgnored());
+	const UTDUIHostSubsystem* UIHost = UTDUIHostSubsystem::Get(F.W.GetWorld());
+	TestTrue(TEXT("every HUD hidden (T2)"), UIHost && UIHost->IsCinematicHidden());
+	const ATDSpacePlayerController* SpacePC = Cast<ATDSpacePlayerController>(F.PC);
+	TestTrue(TEXT("no pause while it plays (T1)"), SpacePC && !SpacePC->CanPauseNow());
 	F.Run(10.f);
 	TestTrue(TEXT("the squad is frozen: no AI, no flight, no collision"), !F.Squad->GetShip(ETDShipId::Lancer)->GetActorEnableCollision()
 		&& !F.Squad->GetShip(ETDShipId::Lancer)->GetShipMovement()->IsComponentTickEnabled());
@@ -203,6 +208,8 @@ bool FTDIntroWatched::RunTest(const FString& Parameters)
 	TestFalse(TEXT("not a skip"), F.Intro->WasSkipped());
 	TestTrue(TEXT("the chase camera: the player's ship"), F.PC->GetViewTarget() == F.PC->GetPawn() && Cast<ATDShip>(F.PC->GetPawn()));
 	TestFalse(TEXT("input given back"), F.PC->IsMoveInputIgnored() || F.PC->IsLookInputIgnored());
+	TestFalse(TEXT("the HUDs come back"), UIHost && UIHost->IsCinematicHidden());
+	TestTrue(TEXT("pause allowed again"), SpacePC && SpacePC->CanPauseNow());
 	F.CheckRestored(*this, TEXT("watched"));
 	F.Run(2.f);
 	TestEqual(TEXT("never fires again"), F.Finished, 1);

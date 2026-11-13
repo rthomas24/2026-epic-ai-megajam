@@ -161,6 +161,9 @@ private:
 	void SpawnShowcase();
 	void ClearShowcase();
 	void SetKeyLight(const FVector& At, float Radius, float Intensity);
+	void SpawnDominionStandIn(const FTransform& At);
+	/** The Dominion hull's radius (cm) from its art, for framing. */
+	static float DominionRadius();
 	void RestoreGateSurface();
 	void ApplyLens(float FocalMm, float FStop, float FocusDistance);
 	void PlayNarrationVoice(int32 Line);
@@ -181,6 +184,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Music;
 	/** Shot 6: a red-orange key light on the fleet (it would read black against space otherwise). */
 	UPROPERTY(Transient) TObjectPtr<AActor> KeyLight;
+	/** Shot 6 until T4's ATDDominion::SetShowcase: the Dominion's art (DA_Dominion_Visuals) on a transient actor. */
+	UPROPERTY(Transient) TObjectPtr<AActor> DominionStandIn;
 	/** Shot 5: the gate's membrane, hidden so the ring frames Cinder instead of covering it. */
 	TWeakObjectPtr<class UPrimitiveComponent> HiddenSurface;
 	UPROPERTY(Transient) TObjectPtr<ULevelSequencePlayer> SequencePlayer;
@@ -200,7 +205,6 @@ private:
 		bool bHidden = false;
 	};
 	TArray<FHeldShip> Held;
-	bool bHUDWasShown = true;
 
 	bool bPlaying = false;
 	bool bAllowWithoutViewport = false;
@@ -222,4 +226,6 @@ private:
 	bool bGateFlared = false;
 	bool bDominionShown = false;
 	bool bDebugFrozen = false;
+	/** Shot 6b: close fighters spawned so far (one every 0.45 s). */
+	int32 CloseSpawned = 0;
 };

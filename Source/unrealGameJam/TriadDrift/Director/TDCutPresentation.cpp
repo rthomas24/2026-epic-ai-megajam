@@ -30,6 +30,7 @@ using TDCutPresentationPrivate::MeasureText;
 #include "Styling/CoreStyle.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "Widgets/SLeafWidget.h"
 
 #define LOCTEXT_NAMESPACE "TDCutPresentation"
@@ -55,7 +56,7 @@ namespace TDCutPresentationPrivate
 			FSlateWindowElementList& Out, int32 Layer, const FWidgetStyle& Style, bool bParentEnabled) const override
 		{
 			const UTDCutPresentation* M = Model.Get();
-			if (!M || M->IsHandledExternally())
+			if (!M || M->IsHandledExternally() || M->IsSuppressedByIntro())
 			{
 				return Layer;
 			}
@@ -167,6 +168,11 @@ double UTDCutPresentation::Now() const
 {
 	const UWorld* World = OwnerWorld.Get();
 	return World ? World->GetRealTimeSeconds() : 0.0;
+}
+
+bool UTDCutPresentation::IsSuppressedByIntro() const
+{
+	return UTDIntroDirector::IsIntroPlaying(OwnerWorld.Get());
 }
 
 void UTDCutPresentation::EnsureViewportWidget()
