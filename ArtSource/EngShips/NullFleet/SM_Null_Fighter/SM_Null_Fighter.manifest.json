@@ -1,11 +1,11 @@
 {
   "asset": "SM_Null_Fighter",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Fighter\\SM_Null_Fighter.fbx",
-  "tris": 7258,
+  "tris": 7282,
   "size_cm": [
-    522.9,
-    471.8,
-    164.0
+    548.6,
+    467.6,
+    163.1
   ],
   "pivot": "root object origin (SM_Null_Fighter~exp)",
   "forward": "+X (authoring front -Y rotated)",

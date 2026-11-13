@@ -1,28 +1,41 @@
 {
   "asset": "SM_Null_Fighter",
-  "tag": "r4",
+  "tag": "e2",
   "checks": {
-    "tris": 7258,
+    "tris": 7282,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv_inside_0_1": true,
-    "uv_overlap_pixels": 24,
+    "uv_overlap_pixels": 21,
     "asset_report_errors": 0,
     "asset_report_warnings": 0,
     "collision_hulls": 3,
     "size_cm": [
-      471.8,
-      522.9,
-      164.0
+      467.6,
+      548.6,
+      163.1
     ],
     "export_status": "ok"
   },
   "info": {
-    "snapped_floating_groups": [],
+    "snapped_floating_groups": [
+      [
+        "part_0014",
+        0.06
+      ],
+      [
+        "part_0019",
+        0.06
+      ],
+      [
+        "part_0039",
+        0.054
+      ]
+    ],
     "centre_of_mass_m_before": [
       0.0,
-      0.027,
+      0.047,
       0.06
     ],
     "com_shift_m": [
@@ -30,17 +43,17 @@
       -0.13469207286834717,
       0.1601601541042328
     ],
-    "pivot": "bbox_centre",
-    "edge_area_share": 0.0159,
+    "pivot": "fixed (pinned to the r3-r5 pivot)",
+    "edge_area_share": 0.0165,
     "uv_unwrap": {
       "margin": 0.0035,
-      "faces_detached_for_overlap": 2
+      "faces_detached_for_overlap": 18
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.4185,
-      "overlap_pixels": 24,
-      "overlap_share_of_covered": 5.5e-05,
+      "coverage": 0.4468,
+      "overlap_pixels": 21,
+      "overlap_share_of_covered": 4.5e-05,
       "raster": 1024
     },
     "bake": {
@@ -58,13 +71,13 @@
       "preview_material": "M_Null_Fighter_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 36.73
+      "seconds": 101.78
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.7247
+      "share_tinted": 0.7052
     },
-    "build_seconds": 61.2
+    "build_seconds": 253.2
   },
   "textures": {
     "BC": {
@@ -73,9 +86,9 @@
         2048
       ],
       "mean_rgb": [
-        0.0701,
-        0.067,
-        0.0747
+        0.0719,
+        0.0696,
+        0.0781
       ],
       "min": 0.0,
       "max": 0.3765
@@ -86,15 +99,15 @@
         2048
       ],
       "mean_rgb": [
-        0.5001,
-        0.4999,
-        0.9988
+        0.5006,
+        0.4998,
+        0.9985
       ],
       "min": 0.0,
       "max": 1.0,
       "std_rg": [
-        0.0094,
-        0.0147
+        0.013,
+        0.0118
       ]
     },
     "ORM": {
@@ -103,9 +116,9 @@
         2048
       ],
       "mean_rgb": [
-        0.3577,
-        0.3312,
-        0.3381
+        0.3733,
+        0.3421,
+        0.3548
       ],
       "min": 0.0,
       "max": 1.0,
@@ -113,7 +126,7 @@
         0.0,
         0.518
       ],
-      "metallic_mean": 0.339
+      "metallic_mean": 0.355
     },
     "E": {
       "size": [
@@ -121,15 +134,15 @@
         2048
       ],
       "mean_rgb": [
-        0.1319,
-        0.0457,
-        0.0265
+        0.0909,
+        0.0385,
+        0.024
       ],
       "min": 0.0,
       "max": 1.0
     }
   },
-  "emissive_surface_share": 0.0905,
+  "emissive_surface_share": 0.0585,
   "asset_report_issues": [
     {
       "severity": "info",
@@ -139,24 +152,24 @@
   ],
   "assembly": {
     "ok": true,
-    "islands": 55,
+    "islands": 53,
     "groups": 1,
     "floating": [],
-    "tolerance_m": 0.01085
+    "tolerance_m": 0.01109
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Fighter_r4_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Fighter_r4_clay_sheet.png",
-    "ortho_cm_per_px": 1.3073,
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Fighter_e2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Fighter_e2_clay_sheet.png",
+    "ortho_cm_per_px": 1.3716,
     "warnings": []
   },
   "export": {
     "status": "ok",
-    "tris": 7258,
+    "tris": 7282,
     "size_cm": [
-      522.9,
-      471.8,
-      164.0
+      548.6,
+      467.6,
+      163.1
     ],
     "collision": [
       "UCX_SM_Null_Fighter_00",

@@ -1,10 +1,10 @@
 {
   "asset": "SM_Null_Carrier",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\SM_Null_Carrier.fbx",
-  "tris": 33546,
+  "tris": 33706,
   "size_cm": [
-    4489.2,
-    3964.8,
+    4643.4,
+    3955.6,
     2506.3
   ],
   "pivot": "root object origin (SM_Null_Carrier~exp)",
