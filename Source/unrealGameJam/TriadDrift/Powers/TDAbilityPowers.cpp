@@ -42,9 +42,10 @@ void ATDGravityWell::Launch(AActor* InOwner, ETDTeam InTeam, const FVector& InDi
 	}
 	if (!FX || !FTDPowerPresentation::HasArt(FX->Loop))
 	{
-		// Shipping-safe placeholder: a glowing violet core (the ring appears when the vortex opens).
-		FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Sphere, FVector(6.f), FRotator::ZeroRotator,
-			FLinearColor(0.55f, 0.2f, 1.f), 6.f);
+		// Shipping-safe placeholder: a glowing violet core (the ring appears when the vortex opens). 1.8 m at glow 1.5: live, the
+		// old 6 m core at glow 6, launched 4 m ahead of the ship, covered Bastion as a pale lilac ball from the chase camera.
+		FTDPowerPresentation::AddShape(this, nullptr, FTDPowerPresentation::EShape::Sphere, FVector(1.8f), FRotator::ZeroRotator,
+			FLinearColor(0.55f, 0.2f, 1.f), 1.5f);
 	}
 	if (OrbSeconds <= 0.f)
 	{
@@ -204,7 +205,12 @@ void ATDGravityWell::TickVortex(float DeltaSeconds)
 	if (!bRingBuilt && (!FX || !FTDPowerPresentation::HasArt(FX->Loop)))
 	{
 		bRingBuilt = true;
-		FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 48, 30.f, FLinearColor(0.55f, 0.2f, 1.f), 4.f);
+		// Across the launch direction, so it faces the chase camera: live, the horizontal ring read as one white line
+		// slicing the frame edge-on.
+		if (USceneComponent* Ring = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 1, 48, 30.f, FLinearColor(0.55f, 0.2f, 1.f), 4.f))
+		{
+			Ring->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+		}
 	}
 }
 

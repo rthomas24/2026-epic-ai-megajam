@@ -51,6 +51,23 @@ bool FTDPresPlaceholders::RunTest(const FString& Parameters)
 	TestTrue(TEXT("well orb has a core"), Well->GetLastWell() && FTDPowerPresentation::CountPlaceholders(Well->GetLastWell()) == 1);
 	W.Advance(1.f, PowerFrameStep());
 	TestTrue(TEXT("vortex adds its ring"), Well->GetLastWell() && FTDPowerPresentation::CountPlaceholders(Well->GetLastWell()) == 2);
+	if (AActor* WellActor = Well->GetLastWell())
+	{
+		// Live: a horizontal ring read as a line slicing the frame from the chase camera; the core was a 6 m pale ball.
+		bool bFacingRing = false;
+		float CoreScale = 0.f;
+		TInlineComponentArray<USceneComponent*> Parts(WellActor);
+		for (const USceneComponent* Part : Parts)
+		{
+			bFacingRing |= Part != WellActor->GetRootComponent() && FMath::IsNearlyEqual(Part->GetRelativeRotation().Pitch, 90.f, 1.f);
+			if (const UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(Part); Mesh && Mesh->GetRelativeScale3D().IsUniform())
+			{
+				CoreScale = FMath::Max(CoreScale, Mesh->GetRelativeScale3D().X);
+			}
+		}
+		TestTrue(TEXT("vortex ring lies across the launch direction (faces the chase camera)"), bFacingRing);
+		TestTrue(FString::Printf(TEXT("well core is small (%.1f m)"), CoreScale), CoreScale > 0.f && CoreScale <= 3.f);
+	}
 
 	// EMP: a short ring flash actor.
 	AActor* Lancer = SpawnBody(W, ETDTeam::Player, FVector(0.f, 30000.f, 0.f), FVector(100.f));
