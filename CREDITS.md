@@ -72,6 +72,8 @@ separate-branch/M01-only notes above describe historical checkpoints.
   - Cinder props: `SM_Cind_Crystal_01` to `_04`, `SM_Cind_Basalt_01` to `_03`, `SM_Cind_BasaltColumn_01`, `_02`. Tool: Blender 5.2 headless. Sources `ArtSource/EngProps/Cinder/`.
   - Verdance trees: 18 meshes `SM_TDVeg_<Species>_S<stage>_<seed>` (kapok, Brazil nut, trumpet tree, walking palm, tree fern, cacao as structural analogues). Tool: Unreal Engine 5.9 Procedural Vegetation Editor driven through the engine's MCP server. Botanical figures (heights, crown shapes) were read from Useful Tropical Plants and Wikipedia, with each value's source recorded in `.claude/skills/procedural-trees/biomes/verdance.json`; no media was taken from them.
   - `Content/TriadDrift/Gameplay/Materials/M_TD_PropTextured`: original material built by script (`Tools/td-import-props.py`).
+- Null Armada trooper character (`Content/TriadDrift/Gameplay/Characters/NullTrooper/`, sources `ArtSource/EngCharacters/NullTrooper/`): armour and undersuit modelled in Blender 5.2 (headless Python, Claude Code sub-agent) on Epic's UE5 mannequin body and skeleton from the project template, after a concept image supplied by Ryan (`refs/enemy1.png`; **the tool that generated the concept image is to be stated by Ryan**). In progress, Nov 12.
+- On-foot player body trial (`Content/TriadDrift/Gameplay/Characters/Pilot/`): Sentinel Armor, a custom Triad Drift project asset supplied by Nicholas Tosti from his original character design and image (`ArtSource/Characters/Samples/SentinelArmor/`, board N-021). Nicholas confirms it as his original custom-owned model and explicitly authorizes immediate gameplay integration. Meshy AI was used in its creation. Specific subscription/license terms have not been independently verified; no exclusive legal-ownership conclusion is asserted by this credit.
 
 ## Primary-fire realism M02 — offline review only
 
@@ -80,3 +82,8 @@ Audio & Music agent used existing PlaceHolder Inc 50 Free Game Sounds Pack `Guns
 
 - **Etherial Pulse**: Nicholas Tosti's selected Suno song, https://suno.com/song/b8ea12f4-b5a1-4bf2-811e-8d94f2acf26c. Nick confirmed authorship and Pro/Premier active at generation. Official MP3 preserved; existing ffmpeg/ffprobe produced an exact107s48kHz stereo16bit cut with ending fade. Audio agent's source/rights/processing record is local ignored Saved/AudioMusic/PrototypeV1/MenuTheme01/checkpoint.json; raw media is not published by this documentation update. No purchase/new generation. Native import, menu playback and in-game acceptance are unfinished. Rejected primary/switch prototypes remain historical references, not approved game audio.
 - **Suno** is an AI music tool used by Nicholas for this supplied track; disclose it with other jam tools if the track ships.
+
+
+### Custom Triad Drift Sentinel Armor - November12,2026
+
+Nick supplied Meshy_AI_Sentinel_Armor_Turnaround_20261113_animated_ue5_mannequin_All_animation.glb. Original bytes are preserved under ArtSource/Characters/Samples/SentinelArmor/. Following the initial inspection transfer, Nick confirmed his original design, custom Triad Drift ownership attribution and Meshy AI creation tool, then expressly authorized immediate gameplay integration with no further licensing questions or development interruption. Ryan owns the playable-body import/integration in Gameplay/Characters/Pilot. Lead verified GLB container/size/SHA and Git LFS transfer only; actual import, animation and gameplay verification are reported separately by engineering.

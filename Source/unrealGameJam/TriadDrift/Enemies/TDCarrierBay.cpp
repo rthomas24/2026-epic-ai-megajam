@@ -1,6 +1,8 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -117,6 +119,13 @@ void ATDCarrierBay::HandleDeath(UTDHealthComponent* /*InHealth*/, const FTDDamag
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	if (Visuals) { UTDStatics::PlayCue(this, Visuals->BayDestroyed, GetActorLocation(), GetActorRotation()); }
+	if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->BayDestroyed))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), 900.f, FLinearColor(1.f, 0.35f, 0.05f), 8);
+		}
+	}
 	OnBayDestroyed.Broadcast(this);
 }
 

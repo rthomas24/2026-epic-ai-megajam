@@ -182,6 +182,37 @@ bool FTDFinaleRetakeReset::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T3 live finding: can anything kill the reactor before the generators are down? Real squad, real weapons
+// fired at the shielded reactor for 10 s (the combat helper's flight and trigger): hull unchanged. A direct
+// Kill() (a dev cheat) revives it: the finale can't be skipped.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFinaleShieldedReactor, "TriadDrift.World.Finale.ShieldedReactorTakesNoDamage", TD_TEST_FLAGS)
+bool FTDFinaleShieldedReactor::RunTest(const FString& Parameters)
+{
+	using namespace TDFinaleReview;
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	ATDDominion* Dom = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(150000.f, 0.f, 3000.f)));
+	GI->Progress.bDominionRevealed = true;
+	GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	W.Advance(Dom->ProgressPollSeconds + Dom->WarpInSeconds + 0.5f);
+	ATDDominionReactor* R = Dom->GetReactor();
+	if (!TestNotNull(TEXT("reactor"), R) || !TestFalse(TEXT("shielded"), R->IsExposed())) { return false; }
+	const float Full = R->GetHealth()->GetHull();
+	const FVector StandOff = R->GetActorLocation() + Dom->GetActorForwardVector() * 9000.f + FVector(0.f, 0.f, 4000.f);
+	TDFinaleCombat::Attack(W, R, StandOff, 60.f, 10.f, [] { return false; });
+	TDFinaleCombat::Release(W);
+	TestEqual(TEXT("real weapons did nothing to the shielded reactor"), R->GetHealth()->GetHull(), Full, 0.01f);
+	R->GetHealth()->Kill(nullptr, ETDDamageKind::Explosive);	// what a cheat does
+	W.Tick();
+	TestTrue(TEXT("a direct kill is undone while shielded"), R->IsAlive() && R->GetHealth()->IsAlive());
+	TestEqual(TEXT("the finale is still on"), (int32)Dom->GetState(), (int32)ETDDominionState::ShieldsUp);
+	return true;
+}
+
 // World review MAJOR (tests): the finale fought for real. A real squad (squad manager, three ships, wingman
 // AI), each generator and every reactor phase destroyed by the active ship's real weapons fired from flight
 // (the reactor down the trench mouth), then the breakup and victory, at 30 / 60 / 120 fps.

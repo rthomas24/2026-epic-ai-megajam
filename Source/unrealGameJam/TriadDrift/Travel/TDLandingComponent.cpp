@@ -286,9 +286,9 @@ FText UTDLandingComponent::GetLandPrompt() const
 	{
 		return Available->GetPromptText();
 	}
-	if (const ATDLandingPad* Assisting = AssistPad.Get())
+	if (AssistPad.IsValid())
 	{
-		return Assisting->GetPromptText();
+		return NSLOCTEXT("TDLanding", "AssistActive", "LANDING ASSIST - TAP F OR BOOST TO TAKE CONTROL");
 	}
 	if (const ATDLandingPad* Assist = GetAssistPad())
 	{

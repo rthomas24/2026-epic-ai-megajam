@@ -179,6 +179,50 @@ The rule: **a fight the player keeps losing eases, one notch at a time, and only
 | `Ground.Course.WardenEasesOnRetakes` | The real Cinder arena through real CUT retakes. Takes 1 and 2 are the full Warden. Takes 3 and 4 are at 75% with one summon. Take 5 is at 50% with none, and a summon is refused. |
 | `Ground.Played.Cinder` | The machine-played run asserts only the outcome (outpost cleared, Warden down). Mercy is what keeps a losing streak from running out its tries. |
 
+## Fight sizes (take 1) and standing-still damage
+
+Rule: no on-foot fight's take 1 is a spike. A pilot who stands still takes about 25 damage per second at most, and every
+fight has a checkpoint that refills the pilot when reached. Mercy tiers (above) are for a player who keeps losing,
+not the baseline.
+- **Model:** every attacker fires on its cooldown, at most 2 grunts swing at once (attack tokens), every shot hits.
+- **Per crew:** grunt 15 / 2.0 s = 7.5 dps; trooper 3 x 10 / about 3.0 s = 10 dps; heavy about 10 dps (shotgun 6 x 5 at
+  2.6–11 m, or bash 25); drone 5 / 1.15 s = 4.3 dps; Warden about 20 dps (bolt fan, slam 30).
+- **Pilot:** 100 HP; regen 15/s after 4 s without damage. Reaching a checkpoint restores full health.
+- **Note:** because of the token cap, a third grunt adds time to kill (60 HP) and another body flanking, not damage
+  per second.
+
+| Planet | Fight | Crew (take 1) | Standing-still dps | Checkpoint | Mercy |
+|---|---|---|---|---|---|
+| Verdance | wreck trail ambush | Trooper, Grunt, Grunt | about 25 (measured: 100 to 0 in 5.1 s) | none (step 0) | take 3: one fewer, take 5: two fewer |
+| Verdance | wreck site | Grunt, Grunt, Heavy (was one more Grunt) | about 25 | site edge (new) | take 3: no Heavy, take 5: one Grunt |
+| Verdance | extraction waves | Grunt, Grunt, then Trooper + Drone | about 15, then about 14 | at the wreck | none |
+| Verdance | relay drones | 3 Drones | about 13 | plateau | none |
+| Cinder | outpost gate guards | Grunt, Trooper, Grunt | about 25 | none (step 0) | none |
+| Cinder | yard / barracks / command | G G T / H G G / T D T | about 25 / 25 / 24 | each door | none |
+| Cinder | Warden | Warden (+1 summon) | about 20 | arena door | take 3: 75% and one summon, take 5: 50% and none |
+| Cinder | jammer defence | Trooper, Grunt, Grunt (was + Drone, about 29) | about 25 | far bank | take 3: one fewer, take 5: two fewer |
+
+Every encounter also has the 1.2 s opening grace and the wind-up tell (below), so damage starts about 1.6 s after
+the crew appear.
+
+## Reading an enemy shot (the deflect skill)
+
+Deflecting is the core on-foot skill, so every shot is announced and slow enough to time a block against:
+- **Opening grace:** encounter crew hold fire 1.2 s after they appear.
+- **Wind-up tell:** for every crew attack, an Armada red-orange glow at the muzzle grows over the wind-up (35 cm to
+  90 cm). Ranged attacks also draw a thin red-orange aim line to the target.
+  - This is placeholder only: it's hidden when the crew's `DA_Crew_*_Visuals` supply a `Telegraph` cue, and gone when
+    the attack releases.
+  - Test: `Ground.Crew.PlaceholderTellBeforeEveryShot`.
+  - Captures: `Saved/TDShots/mcp/journey/TELL_trooper_windup.png`, `TELL_bolt_in_flight.png`.
+- **Trooper burst:** wind-up 0.4 s, then 3 bolts 0.18 s apart, 10 damage each. Bolt speed 2200 cm/s: 0.55 s to cross
+  12 m, 0.68 s for 15 m.
+- **Block:** a 120° frontal arc, 3 s of stamina.
+- **Perfect deflect:** a block started up to 0.2 s before the hit (`PerfectWindow`) returns the bolt at the shooter
+  for double damage, with a director's slow-motion beat.
+- So from the crew appearing, the player has 1.2 s of grace, then a 0.4 s tell, then about 0.55 s of bolt flight:
+  about 2 s to turn to the shooter and block.
+
 ## Known gaps
 - **Input:** real key injection can't run headless. The harness's PlayerController has no local player, so the tests
   possess the character with an AIController and drive the same public move API that the input handlers call.

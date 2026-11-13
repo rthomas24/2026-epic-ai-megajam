@@ -1,6 +1,8 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDShieldGenerator.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -134,6 +136,15 @@ void ATDShieldGenerator::HandleDeath(UTDHealthComponent* /*InHealth*/, const FTD
 	if (Visuals)
 	{
 		UTDStatics::PlayCue(this, Visuals->GeneratorExplosion, GetActorLocation(), GetActorRotation());
+	}
+	{
+		if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->GeneratorExplosion))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), 1500.f, FLinearColor(0.3f, 0.8f, 1.f), 12);
+		}
+	}
 	}
 	OnGeneratorDestroyed.Broadcast(this, KillingBlow.Instigator);
 }

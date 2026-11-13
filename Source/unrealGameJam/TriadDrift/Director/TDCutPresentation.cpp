@@ -3,6 +3,23 @@
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "Fonts/FontMeasure.h"
+#include "Framework/Application/SlateApplication.h"
+
+namespace TDCutPresentationPrivate
+{
+	/** Real text size (the font measure service), with a rough fallback when Slate isn't up. */
+	static FVector2D MeasureText(const FText& T, const FSlateFontInfo& Font)
+	{
+		if (FSlateApplication::IsInitialized())
+		{
+			const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+			return Measure->Measure(T, Font);
+		}
+		return FVector2D(Font.Size * 0.62f * T.ToString().Len(), Font.Size * 1.3f);
+	}
+}
+using TDCutPresentationPrivate::MeasureText;
 #include "TriadDrift/UI/TDUIHostSettings.h"
 
 #include "Engine/Engine.h"
@@ -58,7 +75,7 @@ namespace TDCutPresentationPrivate
 			auto Text = [&](const FText& T, int32 FontSize, const FVector2D& Center, const FLinearColor& Color, bool bCentered)
 			{
 				const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FontSize);
-				const FVector2D Measure(FontSize * 0.62f * T.ToString().Len(), FontSize * 1.3f);
+				const FVector2D Measure = MeasureText(T, Font);
 				const FVector2D Pos = bCentered ? Center - Measure * 0.5f : Center;
 				// Drop shadow for readability over bright space.
 				FSlateDrawElement::MakeText(Out, Layer + 1, Geo.ToPaintGeometry(Measure, FSlateLayoutTransform(Pos + FVector2D(3.f, 3.f))),
@@ -88,7 +105,8 @@ namespace TDCutPresentationPrivate
 			// Slate, top centre under the bar.
 			if (S.SlateAlpha > 0.f)
 			{
-				const FBox2D R = UTDCutPresentation::SlateRect(Size, S.Letterbox);
+				const FVector2D TextSize = MeasureText(S.SlateText, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 28));
+				const FBox2D R = UTDCutPresentation::SlateRect(Size, S.Letterbox, TextSize.X);
 				Box(R.Min, R.GetSize(), FLinearColor(0.f, 0.f, 0.f, 0.65f * S.SlateAlpha));
 				Text(S.SlateText, 28, R.GetCenter(), FLinearColor(1.f, 1.f, 1.f, S.SlateAlpha), true);
 			}
@@ -218,9 +236,10 @@ void UTDCutPresentation::ClearAll()
 	State = FTDCutPresentationState();
 }
 
-FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox)
+FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox, float TextWidth)
 {
-	const FVector2D Half(300.f, 32.f);
+	// Fits its text (the numbered titles run long: "SCENE 6 · CINDER · OUTPOST · TAKE 1"), never off screen.
+	const FVector2D Half(FMath::Min(FMath::Max(300.f, TextWidth * 0.5f + 40.f), Size.X * 0.45f), 32.f);
 	const float CentreY = FMath::Max(Size.Y * 0.27f, Size.Y * Letterbox + Half.Y + 16.f);
 	const FVector2D C(Size.X * 0.5f, CentreY);
 	return FBox2D(C - Half, C + Half);
@@ -269,7 +288,8 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 	SwitchTiming.NameCardSeconds += DebugHold;
 	bQuickCut = Cut.bQuickCut;
 	FlashFramesLeft = FMath::Max(0, Cut.Timing.FlashFrames);
-	NameCard = Cut.NameCardText;
+	NameCard = Cut.bSwitchStrike
+		? FText::Format(NSLOCTEXT("TDDirector", "StrikeCard", "{0}  ·  STRIKE +25%"), Cut.NameCardText) : Cut.NameCardText;
 	NameColor = Cut.SquadColor;
 	State.FlashAlpha = FlashFramesLeft > 0 ? 1.f : 0.f; // visible on the very next paint
 }

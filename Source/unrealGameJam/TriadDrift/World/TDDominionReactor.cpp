@@ -1,6 +1,8 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDDominionReactor.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -35,6 +37,7 @@ void ATDDominionReactor::BeginPlay()
 	{
 		Health->InitMaxValues(PhaseHull * PhaseCount, 0.f, true);
 		Health->SetTargetable(bExposed);
+		Health->SetInvulnerable(!bExposed);	// belt and braces with the damage filter: nothing hurts it under the shield
 		Health->DamageFilter.BindUObject(this, &ATDDominionReactor::FilterDamage);
 		Health->OnDamaged.AddUniqueDynamic(this, &ATDDominionReactor::HandleDamaged);
 		Health->OnDeath.AddUniqueDynamic(this, &ATDDominionReactor::HandleDeath);
@@ -70,6 +73,7 @@ void ATDDominionReactor::SetExposed(bool bInExposed, bool bPlayCue)
 	if (Health)
 	{
 		Health->SetTargetable(bExposed && !bDestroyed);
+		Health->SetInvulnerable(!bExposed && !bDestroyed);
 	}
 	if (bExposed && Visuals && bPlayCue)
 	{
@@ -149,6 +153,15 @@ void ATDDominionReactor::HandleDamaged(UTDHealthComponent* /*InHealth*/, const F
 		{
 			UTDStatics::PlayCue(this, Visuals->ReactorPhaseChange, GetActorLocation(), GetActorRotation());
 		}
+		{
+			if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->ReactorPhaseChange))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), 2000.f, FLinearColor(1.f, 0.7f, 0.15f), 10);
+		}
+	}
+		}
 		OnPhaseChanged.Broadcast(this, Phase);
 	}
 }
@@ -159,12 +172,30 @@ void ATDDominionReactor::HandleDeath(UTDHealthComponent* /*InHealth*/, const FTD
 	{
 		return;
 	}
+	if (!bExposed && Health)
+	{
+		// Only a direct Kill() (a dev cheat) bypasses the filter and invulnerability: the shielded reactor can't
+		// die, so the finale can't be skipped. Back to full; the shield is still up.
+		Health->Revive(1.f, 0.f);
+		Health->SetInvulnerable(true);
+		UE_LOG(LogTriadDrift, Warning, TEXT("ATDDominionReactor: killed while shielded (cheat?) - revived; destroy the generators first"));
+		return;
+	}
 	bDestroyed = true;
 	Phase = PhaseCount + 1;
 	if (Health) { Health->SetTargetable(false); }
 	if (Visuals)
 	{
 		UTDStatics::PlayCue(this, Visuals->ReactorDestroyed, GetActorLocation(), GetActorRotation());
+	}
+	// The war is won: two bursts (the debris count caps at 16 per burst).
+	if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->ReactorDestroyed))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), 4000.f, FLinearColor(1.f, 0.75f, 0.2f), 16);
+			Booms->PlayPlaceholderExplosion(GetActorLocation() + FVector(0.f, 0.f, 1200.f), 2400.f, FLinearColor(1.f, 0.4f, 0.1f), 8);
+		}
 	}
 	OnReactorDestroyed.Broadcast(this, KillingBlow.Instigator);
 }

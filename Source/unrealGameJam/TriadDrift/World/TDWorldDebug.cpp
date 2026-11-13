@@ -3,6 +3,7 @@
 //   TD.World.SpawnEnemy <ShardFighter|HookInterceptor|WallGunship|MaulBomber|HiveCarrier> [dist] [pilot 0/1] [side]
 //                                                                   an enemy in front of the player, facing it
 //   TD.World.Dominion <Reveal|DropShields>                          drive the finale for captures
+//   TD.Spawn <Id> [count] [distance]                                live, piloted enemies ahead of the player
 
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDDominion.h"
@@ -103,6 +104,34 @@ namespace TDWorldDebug
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.World.SpawnEnemy: %s at %s (player at %s)"), *Id.ToString(), *Loc.ToString(), *Pawn->GetActorLocation().ToString());
 	}
 
+	/** TD.Spawn <Id> [count] [distance]: live, piloted enemies ahead of the player, spread in a fan (for playing
+	 *  the never-seen-running power cases: flak, portal returns, dome, EMP, cloak, ram). */
+	void SpawnLive(const TArray<FString>& Args, UWorld* World)
+	{
+		APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+		const FName Id = Args.Num() > 0 ? FName(*Args[0]) : TDEnemyIds::ShardFighter;
+		if (!Pawn || !World || !UTDEnemyLibrary::HasEnemy(Id))
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Spawn <ShardFighter|HookInterceptor|WallGunship|MaulBomber|HiveCarrier> [count=1] [distance cm=12000]"));
+			return;
+		}
+		const int32 Count = Args.Num() > 1 ? FMath::Clamp(FCString::Atoi(*Args[1]), 1, 40) : 1;
+		const float Dist = Args.Num() > 2 ? FMath::Max(1000.f, FCString::Atof(*Args[2])) : 12000.f;
+		for (int32 i = 0; i < Count; ++i)
+		{
+			const float Spread = Count > 1 ? FMath::Lerp(-40.f, 40.f, float(i) / (Count - 1)) : 0.f;
+			const FVector Dir = Pawn->GetActorForwardVector().RotateAngleAxis(Spread, FVector::UpVector);
+			const FVector Loc = Pawn->GetActorLocation() + Dir * Dist + FVector(0.f, 0.f, (i % 3 - 1) * 800.f);
+			FActorSpawnParameters P;
+			P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			if (ATDEnemyShip* E = World->SpawnActor<ATDEnemyShip>(ATDEnemyShip::StaticClass(), Loc, (Pawn->GetActorLocation() - Loc).Rotation(), P))
+			{
+				E->InitFromSpec(Id);
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Spawn: %d x %s at %.0f cm ahead of %s"), Count, *Id.ToString(), Dist, *Pawn->GetName());
+	}
+
 	void Dominion(const TArray<FString>& Args, UWorld* World)
 	{
 		ATDDominion* D = ATDDominion::Get(World);
@@ -113,6 +142,7 @@ namespace TDWorldDebug
 
 	FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.World.Goto"), TEXT("Teleport the player's ship to Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.World.SpawnEnemy"), TEXT("Spawn an enemy in front of the player: <Id> [distance] [pilot 0/1]."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnEnemy));
+	FAutoConsoleCommandWithWorldAndArgs CmdSpawnLive(TEXT("TD.Spawn"), TEXT("Spawn live, piloted enemies ahead of the player: <Id> [count=1] [distance cm=12000]. Ids: ShardFighter, HookInterceptor, WallGunship, MaulBomber, HiveCarrier."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnLive));
 	FAutoConsoleCommandWithWorldAndArgs CmdDominion(TEXT("TD.World.Dominion"), TEXT("Reveal | DropShields"), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Dominion));
 }
 

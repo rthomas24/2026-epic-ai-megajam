@@ -24,6 +24,14 @@
 #include "InputAction.h"
 #include "InputModifiers.h"
 #include "UObject/ConstructorHelpers.h"
+#include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimSequenceBase.h"
+#include "Materials/MaterialInterface.h"
+#include "Camera/PlayerCameraManager.h"
 
 ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -104,10 +112,131 @@ void ATDFirstPersonCharacter::BeginPlay()
 	DashCharges = Tuning.DashCharges;
 
 	ApplyBladeVisuals();
+	ApplyPilotVisuals();
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
 
 	// No extra tick ordering: CharacterMovement already ticks before its owner (bTickBeforeOwner). Forced
 	// moves sweep the capsule themselves in our Tick, so they don't depend on the order.
+}
+
+bool ATDFirstPersonCharacter::HasBody() const
+{
+	return GetMesh() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->IsVisible();
+}
+
+int32 ATDFirstPersonCharacter::ChooseBodyLoop(float GroundSpeed)
+{
+	return GroundSpeed < 60.f ? 0 : GroundSpeed < 520.f ? 1 : 2; // run speed is 650, sprint 950
+}
+
+void ATDFirstPersonCharacter::ApplyPilotVisuals()
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	if (!Body)
+	{
+		return;
+	}
+	UTDPilotVisuals* V = PilotVisuals ? PilotVisuals.Get()
+		: Cast<UTDPilotVisuals>(ATDCrewCharacter::FindLookAsset(TEXT("DA_Pilot_Visuals"), UTDPilotVisuals::StaticClass()));
+	USkeletalMesh* SK = V && !V->SkeletalMesh.IsNull() ? V->SkeletalMesh.LoadSynchronous() : nullptr;
+	AppliedPilotVisuals = SK ? V : nullptr;
+	if (!SK)
+	{
+		Body->SetVisibility(false); // no look: first person as before, nothing else changes
+		return;
+	}
+	Body->SetSkeletalMesh(SK);
+	for (int32 i = 0; i < V->MaterialOverrides.Num(); ++i)
+	{
+		if (UMaterialInterface* Mat = V->MaterialOverrides[i].LoadSynchronous())
+		{
+			Body->SetMaterial(i, Mat);
+		}
+	}
+	UClass* AnimClass = V->AnimBPClass.IsNull() ? nullptr : V->AnimBPClass.LoadSynchronous();
+	Body->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	Body->SetAnimInstanceClass(AnimClass ? AnimClass : UTDLoopBlendAnimInstance::StaticClass());
+	Body->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	Body->SetCastShadow(true);
+	Body->bCastHiddenShadow = true;
+	Body->SetOnlyOwnerSee(false);
+	Body->SetOwnerNoSee(false);
+	Body->SetVisibility(true);
+	bBodyViewKnown = false;
+	PlaceBody();
+	UpdateBody(0.f);
+}
+
+void ATDFirstPersonCharacter::PlaceBody()
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	const UTDPilotVisuals* V = AppliedPilotVisuals.Get();
+	if (!Body || !V)
+	{
+		return;
+	}
+	const float Back = bBodyFirstPerson ? FirstPersonBodyBack : 0.f;
+	const FVector Loc(-Back, 0.f, -GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight());
+	const FRotator Rot(0.f, V->MeshYaw, 0.f);
+	Body->SetRelativeLocationAndRotation(Loc, Rot);
+	Body->SetRelativeScale3D(FVector(FMath::Max(0.01f, V->MeshScale)));
+	CacheInitialMeshOffset(Loc, Rot); // crouch and slide keep the feet on the floor from here
+}
+
+void ATDFirstPersonCharacter::SetBodyFirstPersonView(bool bFirstPerson)
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	const UTDPilotVisuals* V = AppliedPilotVisuals.Get();
+	if (!Body || !V || (bBodyViewKnown && bFirstPerson == bBodyFirstPerson))
+	{
+		return;
+	}
+	bBodyViewKnown = true;
+	bBodyFirstPerson = bFirstPerson;
+	if (!V->HeadBone.IsNone() && Body->GetBoneIndex(V->HeadBone) != INDEX_NONE)
+	{
+		if (bFirstPerson)
+		{
+			Body->HideBoneByName(V->HeadBone, PBO_None);
+		}
+		else
+		{
+			Body->UnHideBoneByName(V->HeadBone);
+		}
+	}
+	if (!Body->IsSimulatingPhysics())
+	{
+		PlaceBody();
+	}
+}
+
+void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	const UTDPilotVisuals* V = AppliedPilotVisuals.Get();
+	if (!Body || !V)
+	{
+		return;
+	}
+	// The owner's own view is first person only while the camera is ours (director shots, death and boarding cut away).
+	const APlayerController* PC = Cast<APlayerController>(GetController());
+	const bool bFirstPerson = PC && PC->PlayerCameraManager && PC->PlayerCameraManager->GetViewTarget() == this && !IsDead();
+	SetBodyFirstPersonView(bFirstPerson);
+	if (UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(Body->GetAnimInstance()))
+	{
+		const UCharacterMovementComponent* Move = GetCharacterMovement();
+		const bool bAir = Move && Move->IsFalling();
+		const int32 Want = bAir && Loops->GetLoop() ? -1 : ChooseBodyLoop((float)GetVelocity().Size2D());
+		UAnimSequenceBase* Loop = Want == 0 ? V->Idle.LoadSynchronous() : Want == 1 ? V->Walk.LoadSynchronous() : Want == 2 ? V->Run.LoadSynchronous() : Loops->GetLoop();
+		if (!Loop)
+		{
+			Loop = V->Idle.LoadSynchronous(); // a look with fewer loops still moves
+		}
+		const float Speed = (float)GetVelocity().Size2D();
+		const float Ref = Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f;
+		const float Rate = bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f); // in the air: keep the last loop, slowed
+		Loops->SetLoop(Loop, Rate);
+	}
 }
 
 void ATDFirstPersonCharacter::ApplyBladeVisuals()
@@ -472,6 +601,15 @@ void ATDFirstPersonCharacter::RespawnAt(const FTransform& Where)
 	{
 		C->SetControlRotation(Where.Rotator());
 	}
+	if (USkeletalMeshComponent* Body = GetMesh(); Body && Body->IsSimulatingPhysics())
+	{
+		// Back from the ragdoll: the body rejoins the capsule.
+		Body->SetSimulatePhysics(false);
+		Body->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+		Body->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bBodyViewKnown = false;
+		PlaceBody();
+	}
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	Health->Revive(1.f, 1.f);
@@ -587,6 +725,12 @@ void ATDFirstPersonCharacter::HandleDeath(UTDHealthComponent* InHealth, const FT
 	}
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
+	if (USkeletalMeshComponent* Body = GetMesh(); Body && HasBody() && Body->GetPhysicsAsset())
+	{
+		SetBodyFirstPersonView(false); // the death view sees the whole pilot fall
+		Body->SetCollisionProfileName(TEXT("Ragdoll"));
+		Body->SetSimulatePhysics(true);
+	}
 	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
 	{
 		Flow->ReportPlayerDefeated(); // CUT! The scene restarts as the next take.
@@ -798,6 +942,7 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 		}
 		UpdateMoveSpeed();
 		TickForcedMove(DeltaSeconds);
+		UpdateBody(DeltaSeconds);
 		TickSlide(DeltaSeconds);
 		TickMantle(DeltaSeconds);
 		TickInteract(DeltaSeconds);

@@ -59,9 +59,7 @@ Armoured, insectile, predatory.
 Characters are route A or B in the asset skill ("never code-model people from nothing"). Two tracks:
 1. **Now:** fitted armour built on the exported Manny body (the allowed mannequin route), so the character is on
    the right skeleton, at the right scale, animated and in the game.
-2. **If Ryan signs in to Hyper3D Rodin** (the team has Business credits; Rodin use also enters the partner prize):
-   image-to-3D from the four views for the hero-quality surface, cleaned up and bound to the same skeleton,
-   replacing track 1's mesh if it scores higher on the rubric.
+2. Hyper3D Rodin image-to-3D was offered and **declined by Ryan (Nov 12)**: track 1 is the character that ships.
 
 ## Open question
 The colour code in features.md says enemies have glowing **white** eyes; the concept has red-orange eye clusters.

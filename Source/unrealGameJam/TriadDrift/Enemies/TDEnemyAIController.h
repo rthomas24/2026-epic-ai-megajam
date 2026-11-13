@@ -144,6 +144,21 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
 	bool IsOnOpeningPass() const { return bOpeningPass; }
 
+	/**
+	 * Attack slots (ENG-27): at most this many pilots may be on an attack run against the same squad ship at
+	 * once. The rest hold a visible orbit at AttackSlotHoldDistance around it and take a slot when one frees.
+	 * The wave director sets it per wave (UTDWaveDirector::AttackSlotsPerTarget). 0 = unlimited.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	int32 AttackSlotsPerTarget = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float AttackSlotHoldDistance = 9000.f;
+
+	/** True while this pilot waits for an attack slot (holding its orbit). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
+	bool IsHoldingForSlot() const { return bHoldingForSlot; }
+
 	/** Keep at least this far from other Armada ships (cm). 0 = off. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
 	float SeparationRadius = 1400.f;
@@ -208,6 +223,10 @@ protected:
 	bool bCatchingUp = false;
 	bool bRunReachedGunRange = false;
 	bool bOpeningPass = false;
+	bool bHoldingForSlot = false;
+	float HoldAngle = 0.f;
+	/** How many other pilots are on an attack run against Target right now. */
+	int32 CountAttackersOn(const AActor* InTarget) const;
 	bool bOpeningPassChecked = false;
 	float OpeningPassTime = 0.f;
 	float OpeningPassSideSign = 1.f;
