@@ -18,7 +18,7 @@ def world():
     if not _world[0]:
         r = td_mcp.unwrap(c.tool('call_tool', {'toolset_name': TS, 'tool_name': 'ListWorlds', 'arguments': {}}))
         paths = re.findall(r'"refPath": "([^"]+)"', json.dumps(r))
-        pie = [p for p in paths if 'UEDPIE' in p] or [p for p in paths if 'L_Galaxy' in p] or paths
+        pie = [p for p in paths if 'UEDPIE' in p] or [p for p in paths if '/Maps/L_' in p] or paths
         _world[0] = pie[0]
     return _world[0]
 
@@ -32,6 +32,9 @@ for step in sys.argv[3:]:
     elif kind == 'cap':
         name, _, res = arg.partition(':')
         r = c.tool('call_tool', {'toolset_name': TS, 'tool_name': 'CaptureGameViewport', 'arguments': {'world': {'refPath': world()}, 'maxResolution': int(res or 1600)}})
+        if r.get('isError'):   # the map changed since the world was looked up (planet travel): look it up again, once
+            _world[0] = None
+            r = c.tool('call_tool', {'toolset_name': TS, 'tool_name': 'CaptureGameViewport', 'arguments': {'world': {'refPath': world()}, 'maxResolution': int(res or 1600)}})
         for b in r.get('content', []):
             if b.get('type') == 'image':
                 open(os.path.join(outdir, name + '.png'), 'wb').write(base64.b64decode(b['data'])); break

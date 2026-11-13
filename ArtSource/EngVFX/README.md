@@ -104,7 +104,7 @@ What changed and why, for whoever continues:
   component's scale), so the carrier's 2.5x explosion and every scaled Dominion break-up burst came out at 1x. Every size,
   radius and speed of a sprite / world-space emitter now multiplies by `SCL = User.Scale * Engine.Owner.Scale.x`
   (`build_tier1.py`). Local-space mesh particles keep `User.Scale` (the component already scales them).
-- **Wiring** (`scripts/wire_r5.py`; Sound fields read before and after, plus `scripts/sound_check.py <git rev>` which
+- **Wiring** (`scripts/wire_fx.py`; Sound fields read before and after, plus `scripts/sound_check.py <git rev>` which
   compares the audio asset paths stored in every data asset against a git revision): enemy `EngineTrail` =
   `NS_TD_Engine_Enemy` on all five Null fleet ships (VFXScale 1 / 1 / 2 gunship / 1.5 bomber / 5 carrier),
   `HullSectionExplosion`, `BreakupFinalBlast`, carrier `Explosion` VFXScale 2.5, Dominion `ShieldIdle` / `ShieldCollapse`.
@@ -136,3 +136,22 @@ What changed and why, for whoever continues:
 - The distortion field is wired (`ShieldIdle` / `ShieldCollapse`, VFXScale 0.46 = 460 m radius). From inside it overlays
   the sky with a faint violet marbling; lower the `Shell` / `Inner` brightness in `build_tier2.py` if that is too much.
 - Sheets: `review/tier1_r5_*` (real `-game` captures), `review/tier2_r5_*` (Play-In-Editor rows, except `_field_wired_game`).
+
+## Round 6 (Nov 13): planetary descent (ENG-38), blade cues
+- **Entry** (`build_tier2.py`, "planetary descent"): `NS_TD_Entry` is wired into `DA_Travel_FX.AtmosphericEntry` (the code
+  plays it as an attached loop on the ship root for the 2.5 s dive and sets no parameter). Contact ring and flash,
+  black-body flames round the nose and wing roots streaming back, a hot nose cap, heat streaks, embers, and debris
+  (sparks, dark ash that still reads on the white ramp, ice flecks). `User.Intensity` 0..1 scales everything; until code
+  sets it the system ramps itself in over 1.3 s of `Emitter.Age`. Parts also exist alone: `NS_TD_Entry_PlasmaSheath`,
+  `_HeatStreaks`, `_ShockCone`, `_Debris`, `_CloudPunch`, `_CloudWisps`; exit: `NS_TD_Exit` (fades itself out over 3 s),
+  `NS_TD_Exit_Breakaway`. All ship-local, +X = nose, so the same systems serve the climb out.
+- **Designed for the chase camera.** A shell round the ship (wide end forward, rim-lit) read as a white target ring from
+  behind; apex forward it read as a soap bubble. Fire particles do not have that problem.
+- **Not ours:** a white disc with a ring ahead of the ship during the dive stays with `showflag.niagara 0`.
+- Grok Bot's descent textures are imported as `T_TD_VFX_Grok_{PlasmaSheath_8x8,HeatStreak,ShockCone,CloudPunch_8x8,CloudWisp_8x8}`
+  (sources `ArtSource/EngAI/Descent/`).
+- **Blade** (`DA_Blade_FX`): AirSlam, Deflect, PerfectDeflect wired; SwingLight / SwingHeavy use `NS_TD_Blade_SwingArc`
+  (a camera-facing crescent in front of the chest), because the code plays swing cues attached to the character ROOT,
+  where a ribbon (`NS_TD_Blade_Swing`) would trail the body, not the blade.
+- `wire_r5.py` is now `wire_fx.py` (default plan = round 6; `PLAN_R5` kept). `play.py` re-finds the world after a map change.
+- Nine entry systems rebuilt in ONE editor session took it to 29.7 GB: split such batches.
