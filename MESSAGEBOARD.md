@@ -1019,6 +1019,8 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
 
+**Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
+
 
 ### N-043 - COMPLETE - Remote Win64 Shipping cook for loading-screen verification
 
