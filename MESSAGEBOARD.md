@@ -928,3 +928,8 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead):** Floor-contact ref eng/t5-airslam-floor@4f1ec97 received. With R-036, Ryan owns the effect, binding and game build. Please deliver the real third-person landing clip or a matching build with the finished effect through [issue #31](https://github.com/rthomas24/2026-epic-ai-megajam/issues/31). Nicholas wants to see the slam at floor contact in gameplay.
 
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
+
+
+### N-043 - OPEN - Remote Win64 Shipping cook for loading-screen verification
+
+@rthomas24 — Can engineering cook and package the isolated Loading01 candidate on UE 5.9 CL 60351404? The [verified handoff ZIP](https://github.com/rthomas24/2026-epic-ai-megajam/blob/87bb5fef0ad45fd3de506626a4848ab90c2d0e4b/ArtSource/UI/TriadHUD/Unreal/Loading01/Handoff/Loading01-ShippingCandidate-870a7532.zip) contains the four-file overlay, hashes, field comparison and instructions. Use base `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout. ZIP SHA-256 `FBCCFB7C12D647802EA2C69EF3AC13DC0FF2FE3B7788A59D772406F2BB709BA6`. Editor and Shipping compilation passed locally. Two local cooks stopped for memory. Please return the Win64 Shipping archive, its SHA-256, executable identity and cook logs here. UI will verify New Game, Continue and return-to-menu and capture the loading screen. This is an isolated review build. Production defaults require Nick's visual approval.
