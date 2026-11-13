@@ -330,6 +330,7 @@ There is one object for every menu: Get Game Instance → Get Subsystem (TDSetti
 | Gamepad dead zone | `SetGamepadDeadzone` | 0–0.5 (default 0.15) | `StickDeadzone` |
 | Invert gamepad Y | `SetInvertGamepadY` | bool | `bInvertStickPitch` |
 | Hints | `SetHintsEnabled` | bool | `UTDHintComponent` |
+| Difficulty | `SetDifficulty` (row "Difficulty": Story / Standard / Ace) | T4's presets | `UTDGameInstance::SetDifficulty` (saved with a committed run). Enemies and waves read it when they spawn, so ships already fighting keep their strength. The row shows the difficulty in play (the run's after a Continue), with a line under the page describing it from T4's tables |
 | Master volume | `SetMasterVolume` | 0–1 | the main audio device's transient primary volume |
 | Music / effects volume | `SetMusicVolume` / `SetEffectsVolume` | 0–1 | a runtime sound mix over `SC_TD_Music` / `SC_TD_SFX`, once Nick's classes exist (kept until then) |
 | Window mode / resolution | `SetWindowMode` / `SetResolution` (0,0 = desktop), `GetSupportedResolutions` | | `UGameUserSettings`, saved |
@@ -340,6 +341,13 @@ There is one object for every menu: Get Game Instance → Get Subsystem (TDSetti
   window, and `-windowed` / `-ResX` on the command line always win at start-up. The first version forced windowed
   fullscreen on every start and broke agent sessions launched with `-ResX`.
 - **Never touched:** the editor window, headless runs and tests (tests use their own slot).
+- **Difficulty:** the saved choice is the New Game default.
+  - It is applied at start-up (not in tests) and by `UTDGameInstance::StartNewRun` (`ApplyPreferredDifficulty`, also after a Continue of an older run).
+  - Continue restores the run's own difficulty (`ApplySave`).
+  - Reset returns Standard.
+  - T2's pause screen shows the difficulty in play.
+- **Layer:** the page draws at viewport layer `UTDSettingsSubsystem::PageZOrder` (1000), above every HUD and T2's pause screen (UI host ZOrder + 100), which opens it.
+- **Focus:** the selected row has T5's front-end focus frame.
 - **Other calls:** `ResetToDefaults`, `ApplyAll(FTDPlayerSettings)`.
 - **Dev command:** `TD.Settings [key value]`, with keys MouseSens, InvertMouse, PadSens, PadDeadzone, InvertPad, Hints,
   Master, Music, Effects, `Window 0-2` and `Res W H`.
