@@ -164,6 +164,23 @@ public:
 	/** Eye point and aim: in third person the eye aims at what the crosshair (the chase camera's centre) is on. */
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
+	// ------------------------------------------------------------------ sound (ENG-35)
+	/** Steps on soft ground (Verdance) and rock (Cinder, or any map named *Cinder*). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> StepSoilSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> StepRockSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> DashSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> JumpSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> LandSound;
+	/** 2D: the player's own hurt. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> HurtSound;
+	/** Ground covered between two steps (run / sprint). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio", meta = (Units = "cm")) float StepStride = 170.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio", meta = (Units = "cm")) float SprintStepStride = 220.f;
+	/** Rock steps instead of soil (set from the map at BeginPlay). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") bool bRockyGround = false;
+	/** The last sound events (StepSoil, StepRock, Dash, Jump, Land, Hurt): tests and TD.Ground.Sounds. */
+	const TArray<FName>& GetSoundEvents() const { return SoundEvents; }
+
 	/** Put back on the last solid ground stood on (magma). Floors tagged TD.Unsafe never count as safe. */
 	void ReturnToSafeGround();
 	FVector GetLastSafeLocation() const { return LastSafeLocation; }
@@ -301,6 +318,12 @@ private:
 	bool bIdleTurnToCamera = false;
 	/** Attacking last frame (third person): a new attack snaps the body to the camera at once. */
 	bool bFacingWasAttacking = false;
+	TArray<FName> SoundEvents;
+	float StepDistance = 0.f;
+	float FallStartZ = 0.f;
+	double LastHurtSoundTime = -10.0;
+	void PlayFootSound(const TSoftObjectPtr<class USoundBase>& Sound, FName Event, bool b2D = false);
+	void UpdateFootsteps(float DeltaSeconds);
 	/** T3's melee framing: a live crewman this close (or the blade attacking / blocking) lifts the chase shoulder. */
 	float CloseCombatRange = 400.f;
 	float CloseCombatScan = 0.f;
