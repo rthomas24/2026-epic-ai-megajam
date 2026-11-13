@@ -155,3 +155,19 @@ What changed and why, for whoever continues:
   where a ribbon (`NS_TD_Blade_Swing`) would trail the body, not the blade.
 - `wire_r5.py` is now `wire_fx.py` (default plan = round 6; `PLAN_R5` kept). `play.py` re-finds the world after a map change.
 - Nine entry systems rebuilt in ONE editor session took it to 29.7 GB: split such batches.
+
+## Round 7 (Nov 13): the entry at chase-camera scale, Rift's ring, per-type enemy exhaust
+- **Bow shock**: `SM_TD_VFX_BowArc` (`scripts/gen_meshes_r7.py`, Blender, real size in ship-local axes): six soft plasma
+  tubes from a point 4.2 m ahead of the nose sweeping out and back (7 m radius, 15 m long). `M_TD_VFX_BowArc`: white-blue
+  at the shock, orange in the wake. Two layers at different squash in `entry_bow()`, plus three world-space wake ribbons.
+  **Unreal flips V on import**: the apex is at `UV.y = 1` (the first build had the gradient backwards: white tails).
+  The first tubes (radius 0.16..0.96 m) read as a bundle of white sticks; they are now 0.07..0.49 m.
+- **Fire starts at the tail and wing tips** (`entry_sheath()`): born at the nose it buried the ship in a cream cloud. Over
+  the bright planet additive orange goes cream, so `ENTRY` is deeper (1.0, 0.42, 0.12) and the fire is tinted.
+- `import_meshes.py` takes `ONLY_MESH = [...]`; `build_tier2.py` takes `'=Name'` in `ONLY2` for an exact match (build
+  `NS_TD_Entry` alone with `rebuild_all.sh T2:=NS_TD_Entry`: it is 19 emitters and takes the editor to 22 GB).
+- **`NS_TD_Rift_RingIdle`** (unwired): +X along the ring's axis, `User.Radius` (cm, default 60), `User.Power` (0.5 idle,
+  1 with the portal blaster open): two counter-sized swirls (magenta, violet), a pulsing core, motes and streaks falling
+  inward, small arcs.
+- **Enemy exhaust per type**: `NS_TD_Engine_Enemy_Interceptor` (long, thin, white-yellow), `NS_TD_Engine_Enemy_Fighter`
+  (short, red), wired into the two `EngineTrail` fields (`wire_fx.py`, `PLAN_R7`). `engine()` takes `lm` / `wm`.

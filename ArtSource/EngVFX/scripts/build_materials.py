@@ -408,6 +408,21 @@ float core = smoothstep(0.87, 0.92, r)*smoothstep(0.985, 0.945, r);
 float a = arc*(band*0.6 + core*1.7)*(1.0 - Age*Age);
 float3 c = PC.rgb*a*1.4 + lerp(PC.rgb, float3(1,1,1), 0.8)*pow(a, 2.0)*0.9;
 return float4(c*Intensity, PC.a);""", {}),
+
+    # round 7: the bow shock's plasma streamers (SM_TD_VFX_BowArc: soft tubes, V = 0 at the shock .. 1 at the tail).
+    # White-blue at the shock, the particle colour in the wake, deep orange at the tail; turbulence flows back along it.
+    'M_TD_VFX_BowArc': ('additive', True, 1.0, 2.0, (0.0, 2.2), (0.13, 3.4), 0.10, """
+float f = saturate(1-Fres); float v = 1.0 - UV.y;   // Unreal flips V on import: the apex is at UV.y = 1
+float n = N.g*0.6 + N.r*0.4;
+float soft = pow(f, 1.5);
+float fadeTail = pow(saturate(1-v), 1.3); float fadeIn = smoothstep(0.0, 0.03, v);
+float turb = 0.40 + 1.25*n;
+float3 hot = float3(0.70, 0.88, 1.0)*1.25;
+float3 ramp = lerp(hot, PC.rgb*1.2, saturate(v*3.0));
+ramp = lerp(ramp, PC.rgb*float3(1.0, 0.42, 0.20), saturate(v*1.7 - 0.55));
+float core = pow(f, 5.0)*saturate(1 - v*1.4);
+float3 c = ramp*soft*turb*fadeTail*0.62 + float3(1,1,1)*core*0.22;
+return float4(c*fadeIn*Intensity, PC.a);""", {}),
 }
 
 
