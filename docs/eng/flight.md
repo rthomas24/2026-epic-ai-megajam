@@ -318,6 +318,54 @@ Gameplay code in this lane has no `check()` / `verify()` with side effects, no `
 calls. The hints, the no-art feedback, the options, the approach assist and every prompt are compiled in every
 configuration.
 
+## On-foot camera setting and the Settings page (ENG-32, engineering side)
+
+- **Camera setting:** `UTDSettingsSubsystem` holds `OnFootCameraMode` (`ETDOnFootCamera` FirstPerson / ThirdPerson,
+  default first person), saved with the other options.
+  - `GetOnFootCameraMode`, `SetOnFootCameraMode` and `ToggleOnFootCameraMode` are Blueprint-callable.
+  - `OnOnFootCameraModeChanged` fires on every real change, including from Reset and ApplyAll.
+  - The ground character (T5) binds it, reads the mode at BeginPlay, and applies it once a director shot or the
+    death cam ends.
+- **Keys:** `IMC_OnFoot` exists only while the possessed pawn isn't a spacecraft. In it, V and Gamepad_Special_Left
+  (View) toggle the mode. In space, V stays the cockpit camera. `IMC_Global` (always on) maps O and pad Y to open
+  the Settings page, but only while the game is paused.
+- **Settings page:** `UTDSettingsSubsystem::OpenSettingsPage(this)`, plus `CloseSettingsPage` and
+  `IsSettingsPageOpen`.
+  - If `UTDUIStyle::SettingsWidgetClass` is set in DA_UI_Style, that widget opens instead. It is read by name, so it
+    works however Core declares it.
+  - Otherwise the code-built `STDSettingsPage` (Input/TDSettingsPage.h) opens. Its rows: on-foot camera, mouse
+    sensitivity, invert mouse Y, gamepad sensitivity, gamepad dead zone, invert gamepad Y, control hints, master /
+    music / effects volume, window mode, resolution, Reset to defaults, Back.
+  - Keys: Up / Down (W / S, D-pad, left stick) select; Left / Right (A / D, D-pad, stick) change; Enter / Space / pad A
+    activate; Esc / Backspace / pad B close. The mouse clicks rows and their < > arrows.
+  - Every change applies at once and is saved.
+  - The page keeps keyboard and pad focus while it is open and closes on any map change. Esc through the game's
+    pause input closes the page before it unpauses.
+- **Hooks in other files:**
+  - Main menu (T5, `ATDMenuGameMode`): a SETTINGS button between CONTINUE and QUIT, plus `KeepMenuFocus` leaves the
+    page alone.
+  - Pause line (Lead, TDDebugHUD): "O / Y SETTINGS".
+- **Tests:** `Input.SettingsPage.CameraModePersistsAndBroadcasts`,
+  `Input.SettingsPage.NavigatesWithKeysAndPadAndEveryRowChanges`, `Input.SettingsPage.SettingsWidgetClassOverride`,
+  `Input.SettingsPage.VAndViewToggleOnFootOnly` (real keys: V and View toggle on foot, never in space, and not again
+  after re-boarding).
+- **Played (Nov 13, about 00:30, agent):**
+  - Pause, O, the page opened; keys changed rows (camera, mouse, master); Reset worked; the page closed.
+  - On Verdance, V and View toggled the mode (log).
+  - No screenshots: the display was off overnight, so the viewport had no drawable area.
+
+## Landing pad art
+
+`ATDLandingPad::PadArt` (soft) defaults to `/Game/TriadDrift/Gameplay/Props/Planet/SM_LandingPad`. While the asset is
+missing, the cylinder shows.
+- **Footprint:** a disc 1000 cm across (500 cm radius), centred on the actor, with its walkable face on top (+Z) at
+  `DeckHeight` = 40 cm above the actor origin. Pivot at the bottom centre; +X is the landing facing.
+- **Collision is unchanged:** the cylinder keeps colliding (hidden) and the art mesh never collides, so the art's top
+  must sit at 40 cm.
+- **Cooking:** pads are spawned at run time by the planet rig, so nothing on a map references the mesh. The folder
+  must be in the cook list (Lead) or the packaged game shows the cylinder.
+- **Test:** `Travel.Landing.PadArtSwapsTheLookNotTheCollision`.
+
 ## How to try it
 
 Tests:
