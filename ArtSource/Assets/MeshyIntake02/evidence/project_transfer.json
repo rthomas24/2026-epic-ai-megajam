@@ -1,0 +1,462 @@
+{
+  "passed": true,
+  "files": [
+    {
+      "relative": "Pilot/CrimsonTempest/CrimsonTempest.uasset",
+      "bytes": 382006,
+      "sha256": "e6dc1a3263b073c50e994a04bf90d2ab93e523132ceafd45ca84cb2a49445ba6"
+    },
+    {
+      "relative": "Pilot/CrimsonTempest/CrimsonTempest_material_0.uasset",
+      "bytes": 60695,
+      "sha256": "c0f6da04e8d0e7ad7fb2dc6c242450de6a92341d752b707f2effb6dc22a41151"
+    },
+    {
+      "relative": "Pilot/CrimsonTempest/CrimsonTempest_texture_0.uasset",
+      "bytes": 7467322,
+      "sha256": "42e834dda398f45b40179cb6aad397e54ad08eb1a0967fbe88bfb468050a5123"
+    },
+    {
+      "relative": "Pilot/CrimsonTempest/CrimsonTempest_texture_1.uasset",
+      "bytes": 4695057,
+      "sha256": "1c5310ccafb0053d43ceb491a0d47626bc74880f1a03ab6edbf5268d1f5b3a49"
+    },
+    {
+      "relative": "Pilot/CrimsonTempest/CrimsonTempest_texture_2.uasset",
+      "bytes": 7799618,
+      "sha256": "b4e690002f0d498319d0c15b0ff65d40f5579146160854526c690c9368d48c5c"
+    },
+    {
+      "relative": "Pilot/CrimsonTempest/CrimsonTempest_texture_3.uasset",
+      "bytes": 979766,
+      "sha256": "f9aa800a6f75a26690988604046e1aaaf11612a18e1ac920e09cdcf70163bfbd"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/BakedMaterial.uasset",
+      "bytes": 56833,
+      "sha256": "4d96219eea807529fb9a4d6e647c1319348c7cb1c1058fd7b34f64c5041c5d5c"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/normal.uasset",
+      "bytes": 7099270,
+      "sha256": "8f8958f169c0b8db0d22790689463ab56225a01b989d345b89f887a2435216a2"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmor.uasset",
+      "bytes": 9709729,
+      "sha256": "164552e73f7ee14e8b8b3a36c8a09a98bc62b7483494153c50d48f811e873316"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmor_Skeleton.uasset",
+      "bytes": 16808,
+      "sha256": "0e715b2ba7a421d344f7a31ef26ec12c0fad4ad38cbb6513f4e89a4c5d277472"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmorCasual_Walk.uasset",
+      "bytes": 898070,
+      "sha256": "c77e2aaf3563c5cce540be8c2be19e595c51f8dac849d95f628f581377d04068"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmorIdle_02.uasset",
+      "bytes": 447298,
+      "sha256": "e3b2bd4e298769572c996e8ab3a01810c310bda35cad0f0a24c627278371b6f7"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmorIdle_3.uasset",
+      "bytes": 1790422,
+      "sha256": "fa891b61157b0dd2a0ffb00a09888016712a32d4068f17fefe2b7d250a1f8c75"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmorIdle_6.uasset",
+      "bytes": 1168342,
+      "sha256": "8fccad7c5c53ae790ef73ffaae65ab40833b2fcdb7db2f1fafa14f02b669e331"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmorRunning.uasset",
+      "bytes": 350434,
+      "sha256": "b637091fb59d8ff5c4834d41c000bfda9661f488bb5714880c2116118ed0abc8"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/SentinelArmorWalking.uasset",
+      "bytes": 407650,
+      "sha256": "f5d2a3946756ca3848d9f9b1ed91636ef1d94d151801a6db5ac0efd78d8c8370"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/texture_0.uasset",
+      "bytes": 5303899,
+      "sha256": "6453894badc85898d1eb84df6d61296ffb1f68d7d1016ee165d2118731fb3ae5"
+    },
+    {
+      "relative": "Pilot/SentinelArmor/texture_0_metallic_roughness.uasset",
+      "bytes": 3568208,
+      "sha256": "a4c1864a5b2ed2a12466a810a9d74317e9281052a341070ead7b9b4ed07fa564"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/BakedMaterial.uasset",
+      "bytes": 57519,
+      "sha256": "fbd6c06d958857ad290e4fa681743993b2f6ef2deed1228bfd0a14e26adab5a4"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/CrimsonSentinel.uasset",
+      "bytes": 37193963,
+      "sha256": "027d2d6b450f3c06d73c703ddbfde0e316be81368df78358a761a0df896a8150"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/CrimsonSentinel_360_Power_Spin_Jump.uasset",
+      "bytes": 305175,
+      "sha256": "edc59656b8ad50c0b6ddccda42d69094d7092b200d7b1bf8890b72b65abeb439"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.uasset",
+      "bytes": 8064,
+      "sha256": "897043541bb50f4c5aead6dd3cc38c56ac5294a7cca6128c45a7ee23074fa271"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/CrimsonSentinelAgree_Gesture.uasset",
+      "bytes": 936583,
+      "sha256": "b4869affe9056358f34c9c2fb8a1ee9b2e37ba056c9f2f0e660977c65ca88602"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/CrimsonSentinelair_squat.uasset",
+      "bytes": 227474,
+      "sha256": "5660bac691b5993f99fef3b777050636d92e0e240d225d6ba495920d995866ad"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/CrimsonSentinelRunning.uasset",
+      "bytes": 155514,
+      "sha256": "6b2ce98851f360166b5c679c107d9c3b9100ff66aff2cd704ba8989841667073"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/CrimsonSentinelWalking.uasset",
+      "bytes": 182394,
+      "sha256": "b58155d8760e51a0e07941600b9b1964023ffb31c7d99f75d53d2bb593c41ee1"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/texture_0.uasset",
+      "bytes": 58881526,
+      "sha256": "790ab124612b3c7bfd0e5b258aa6d83e7155bc240c89035d2182eefb94c510e0"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/texture_0_metallic-texture_0_roughness.uasset",
+      "bytes": 14345103,
+      "sha256": "7f36cf44367e9ea857cf6d024a01f3ace21e2aa6af32f2c1d32a7101b15d0c88"
+    },
+    {
+      "relative": "Intake/CrimsonSentinel/texture_0_normal.uasset",
+      "bytes": 22640075,
+      "sha256": "37249e2a7f41f251f648f6d736b109e96c601a255af5600a70ac301a24ab37c1"
+    },
+    {
+      "relative": "Intake/CyberneticSentinel/base_color.uasset",
+      "bytes": 7112105,
+      "sha256": "22a1fc3528eb199f7f2b5051203f00847f8d03c252f43eb982e3a38e55b4bec4"
+    },
+    {
+      "relative": "Intake/CyberneticSentinel/CyberneticSentinel.uasset",
+      "bytes": 91371447,
+      "sha256": "ad30c9af775ca4f99d959884a3fb7bbab0ef9d181e6ba86d39bdb39b68caf222"
+    },
+    {
+      "relative": "Intake/CyberneticSentinel/material.uasset",
+      "bytes": 57026,
+      "sha256": "014292b79fbb006769b608503f03d825c1b328aba4f23332ebe45d26d8fed69d"
+    },
+    {
+      "relative": "Intake/CyberneticSentinel/metallic_roughness.uasset",
+      "bytes": 5880426,
+      "sha256": "b1d6eae4d6c47b5b4961992701d26f44361bac6ff5062deeebd1215345837740"
+    },
+    {
+      "relative": "Intake/CyberneticSentinel/normal.uasset",
+      "bytes": 6524406,
+      "sha256": "d375b1f018bdc61441a7ca3cc2d9b1839f0606f12255419a07bcbd9947f24743"
+    },
+    {
+      "relative": "Intake/EmeraldShadowstar/EmeraldShadowstar.uasset",
+      "bytes": 1570524,
+      "sha256": "cf7ac318896e3d45722b9ef5da9a10f0e2f2d50b335a81db598b28d6b176538a"
+    },
+    {
+      "relative": "Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.uasset",
+      "bytes": 57443,
+      "sha256": "507e7750f9030b5f2d9e0220073b0f9cb3aa4a71d5bb9e34cef598f1aa2e4c02"
+    },
+    {
+      "relative": "Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.uasset",
+      "bytes": 7215933,
+      "sha256": "f8d11af45f8e47d44d4dad70bf557dec78587394d568b794c66ac7c6db9d3014"
+    },
+    {
+      "relative": "Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.uasset",
+      "bytes": 5051921,
+      "sha256": "f014debbbe6b65dc08cae6bf85abd4bd5728e5c23c056541511c64c0e4331ab6"
+    },
+    {
+      "relative": "Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.uasset",
+      "bytes": 21651,
+      "sha256": "49c340cb9a144a08581187b6a6237f607cc4165b80f7bd9949805174a50c78a9"
+    },
+    {
+      "relative": "Intake/GothicStoneArchWall/Baked_BaseColor.uasset",
+      "bytes": 7212129,
+      "sha256": "76f4039be6b1626e3f8a7b3ddb138a81c7a04e4d6838b498f3ba9e96ba055d59"
+    },
+    {
+      "relative": "Intake/GothicStoneArchWall/Baked_Emit.uasset",
+      "bytes": 367566,
+      "sha256": "bcafe56e04168fe454dc7c4e3113445fee864a025eb0f794437301b59cf76487"
+    },
+    {
+      "relative": "Intake/GothicStoneArchWall/Baked_MetallicRoughness.uasset",
+      "bytes": 3532073,
+      "sha256": "f2837801b12cfcd185281fd27498649fd5eda6abda5464e381dd10504ab88a43"
+    },
+    {
+      "relative": "Intake/GothicStoneArchWall/GothicStoneArchWall.uasset",
+      "bytes": 516929,
+      "sha256": "d7bc86e92c63fc086096241fe79a431b4cff339ab421658be5885ded5c7f57d3"
+    },
+    {
+      "relative": "Intake/GothicStoneArchWall/Material_0_001.uasset",
+      "bytes": 60832,
+      "sha256": "07443804913fbdaff496c062f165591e8f00fa95122fed15f5245db27742ae70"
+    },
+    {
+      "relative": "Intake/GothicStoneArchWall/normal.uasset",
+      "bytes": 9915451,
+      "sha256": "74274015ec1094093eeb682eabb781a63048fcd48b9ec53c342084375f85f2ee"
+    },
+    {
+      "relative": "Intake/NebulaShadowfighter/NebulaShadowfighter.uasset",
+      "bytes": 300680,
+      "sha256": "952dd6d2d8411318c295dc78c47ca4c1589ec5d116a9e508afcc1348c0a1aa4c"
+    },
+    {
+      "relative": "Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.uasset",
+      "bytes": 57631,
+      "sha256": "586e98bc04b270ce782b814d05eca97d5649b2f56b7fb1d9220d4a1e27c4ec3d"
+    },
+    {
+      "relative": "Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.uasset",
+      "bytes": 6634130,
+      "sha256": "27de697eb017eda94517e928160de5fddee48951a18ed3553b30a5967bf5a61c"
+    },
+    {
+      "relative": "Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.uasset",
+      "bytes": 5647601,
+      "sha256": "e7a5e867cf7331c82b9cd287d945fe3fc226d184dde1f9a0bd2d004d3b4bea62"
+    },
+    {
+      "relative": "Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.uasset",
+      "bytes": 7910435,
+      "sha256": "bb7ae4120d2acd83abb8e9071f5d83373940246c13e1196f865f363181e264fa"
+    },
+    {
+      "relative": "Intake/NeonShadowEnforcer/base_color.uasset",
+      "bytes": 5691101,
+      "sha256": "0820d59fdf4d40555db1bf1df54ac5e9f03e2b31f96836b6f571b142775b68ad"
+    },
+    {
+      "relative": "Intake/NeonShadowEnforcer/emissive.uasset",
+      "bytes": 83376,
+      "sha256": "3bc3551680c66dccb7702eeada04503c5b0cc4fa3a23d4fe4d2ae9987794d866"
+    },
+    {
+      "relative": "Intake/NeonShadowEnforcer/material.uasset",
+      "bytes": 60576,
+      "sha256": "50b0f3f3f66786d673d64c196ca57ec391ef4e62090455db09e4ec9a300a795d"
+    },
+    {
+      "relative": "Intake/NeonShadowEnforcer/metallic_roughness.uasset",
+      "bytes": 4485320,
+      "sha256": "432d3b24acd4c7e0d32a9a851c5ab12070636aa55f0479bb9ca749ed40785d59"
+    },
+    {
+      "relative": "Intake/NeonShadowEnforcer/NeonShadowEnforcer.uasset",
+      "bytes": 868506,
+      "sha256": "a20c5729713e057d5edfc8d95b75c7bf07ad08ef384b2073f8cd6bc66a3c6510"
+    },
+    {
+      "relative": "Intake/NeonShadowEnforcer/normal.uasset",
+      "bytes": 5728517,
+      "sha256": "aaeb37b6641ec351b4b444e896f101f549af1d2efefc83f118153969b110c6dd"
+    },
+    {
+      "relative": "Intake/NeonVoidCruiser/NeonVoidCruiser.uasset",
+      "bytes": 465463,
+      "sha256": "2d66927dcf2997d74767b5592250fd809f210dae5f5cb9121918f25094e14cbc"
+    },
+    {
+      "relative": "Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.uasset",
+      "bytes": 60845,
+      "sha256": "8c044f8709148b2ee0ed466b345582e0165e000532e98d2e757efa2e7bd35263"
+    },
+    {
+      "relative": "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.uasset",
+      "bytes": 8116688,
+      "sha256": "c22546e94e3929164409750a58d6af39ea2c9e40bfbc917232ab662f5b4ad559"
+    },
+    {
+      "relative": "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.uasset",
+      "bytes": 4950304,
+      "sha256": "c27ff9e28b0e67a8fb9a93376d25c97ba250403f3dcc5e4d8f6c4296d71de7ba"
+    },
+    {
+      "relative": "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.uasset",
+      "bytes": 7939686,
+      "sha256": "46c5e19f926eed15cd1ef8c91c658713434918cdc44cf788c3095fb8f96d8634"
+    },
+    {
+      "relative": "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.uasset",
+      "bytes": 1073171,
+      "sha256": "b65ce5ca460d2414a0a04e58f606bb6356d39870d508e13ea42b6f8642aa1611"
+    },
+    {
+      "relative": "Intake/Ruinforged/Ruinforged.uasset",
+      "bytes": 11146894,
+      "sha256": "c11c5c3b774d5759c897f5f2e886a085e6884cbedb2f05f387fd31b3ce12ddef"
+    },
+    {
+      "relative": "Intake/Ruinforged/Ruinforged_material_0.uasset",
+      "bytes": 60285,
+      "sha256": "5a460a6983de57e67c9c2de35c5e34f9401852bfcaa88ae36e76fef495e1ba5f"
+    },
+    {
+      "relative": "Intake/Ruinforged/Ruinforged_texture_0.uasset",
+      "bytes": 7008081,
+      "sha256": "f8087886258393bdf26cc43aa2525a49d9b71cdf34b08c158edd3ed39be00c5c"
+    },
+    {
+      "relative": "Intake/Ruinforged/Ruinforged_texture_1.uasset",
+      "bytes": 4685891,
+      "sha256": "1a443e5be00252ca5b460164dabf5f7d229fb2a19d90e6212815628135a14d2c"
+    },
+    {
+      "relative": "Intake/Ruinforged/Ruinforged_texture_2.uasset",
+      "bytes": 8378888,
+      "sha256": "190156c6f79fe0892abf46231c3dec0f2532a317bffc9f9d420c0053deac9c00"
+    },
+    {
+      "relative": "Intake/Ruinforged/Ruinforged_texture_3.uasset",
+      "bytes": 22206,
+      "sha256": "4f33a9c354b4c209bd90121df285b814db7efbbaa8c6b59bd857548047e3bc18"
+    },
+    {
+      "relative": "Intake/ShadowboundAssassin/ShadowboundAssassin.uasset",
+      "bytes": 26179789,
+      "sha256": "7ee67c022045aad392c197ec53a0f0f5f54f0e1c7502e9bc798b0f5a1760fc7a"
+    },
+    {
+      "relative": "Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.uasset",
+      "bytes": 61293,
+      "sha256": "ecda555a399bc5a2125060febe961a252fb8fe8f1004566ff1e3a1ddbb24cd2d"
+    },
+    {
+      "relative": "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.uasset",
+      "bytes": 5385957,
+      "sha256": "63250f2afe3cd300fe488062b835d8f905a6568b010bcd6aa946c9d876dfa93e"
+    },
+    {
+      "relative": "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.uasset",
+      "bytes": 4235813,
+      "sha256": "95076e8373a076d1c83058539b4c4a5fcb5190484ad234470467fd66fc24aec3"
+    },
+    {
+      "relative": "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.uasset",
+      "bytes": 7223842,
+      "sha256": "8c22213e8b27bc001f3a0bff31604067ff4744491622814f431cc6a3f2dfbedb"
+    },
+    {
+      "relative": "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.uasset",
+      "bytes": 24912,
+      "sha256": "58d847fe7bc1b736c78bd6f0e2fe032a84273ea99f8a56dffdb2a4a60b10a197"
+    },
+    {
+      "relative": "Intake/Spaceship/Spaceship.uasset",
+      "bytes": 20867772,
+      "sha256": "b92d6554d3fdc8876398ff31478f49593216b4c7ad27249634f25fd36b468b83"
+    },
+    {
+      "relative": "Intake/Spaceship/Spaceship_material_0.uasset",
+      "bytes": 56691,
+      "sha256": "02bc370d01bbb48a879c0aff0f84bb4a5f47c98effcdc97b9a08f3f48ef96913"
+    },
+    {
+      "relative": "Intake/Spaceship/Spaceship_texture_0.uasset",
+      "bytes": 7529481,
+      "sha256": "3d04111bcf68609c0f3a8352baa25d1a1ee036b658ac4b274739648cde690c65"
+    },
+    {
+      "relative": "Intake/Spaceship/Spaceship_texture_1.uasset",
+      "bytes": 6283252,
+      "sha256": "e254dffd1fde0eb258161c3da1d10456a42a1aee62b91ce70e6e81b0d4221af6"
+    },
+    {
+      "relative": "Intake/Spaceship/Spaceship_texture_2.uasset",
+      "bytes": 8299278,
+      "sha256": "a041c8463556afb0a53b591f6306b759ee6722c7736f9e4833c2b7b91cc48246"
+    },
+    {
+      "relative": "Intake/TPoseRobot/TPoseRobot.uasset",
+      "bytes": 20992418,
+      "sha256": "89f7892144026165eb73fc61f5aa4857dade4132090554aa18e42bd0dbedec96"
+    },
+    {
+      "relative": "Intake/TPoseRobot/TPoseRobot_material_0.uasset",
+      "bytes": 60285,
+      "sha256": "a5f91668813da22838bf514fd6e6131fa8c0f3696de3e70772669ee8abdbfd4b"
+    },
+    {
+      "relative": "Intake/TPoseRobot/TPoseRobot_texture_0.uasset",
+      "bytes": 6765140,
+      "sha256": "a3cb1c00628b7cdff1c01180f665fc12ad816fd8ad10c7c0deda1630f2eb506f"
+    },
+    {
+      "relative": "Intake/TPoseRobot/TPoseRobot_texture_1.uasset",
+      "bytes": 6284865,
+      "sha256": "cfaf649929a71d0c12f54578622235790f1b94891789027513a2830811afcffb"
+    },
+    {
+      "relative": "Intake/TPoseRobot/TPoseRobot_texture_2.uasset",
+      "bytes": 8074698,
+      "sha256": "e1588d6a2e8666c189bbe9d376a6bba617e237113370e393c74d734e2d40a258"
+    },
+    {
+      "relative": "Intake/TPoseRobot/TPoseRobot_texture_3.uasset",
+      "bytes": 76285,
+      "sha256": "0a0d8cd863dc9f919d15ab6222b3e5998d304cd527fbe133b5088c07da570df5"
+    },
+    {
+      "relative": "Intake/MaleCharacter/MaleCharacter.uasset",
+      "bytes": 19060598,
+      "sha256": "b87a7db825e94cdafd4485c1c35244e2944f477356afb144b7bfffc015640660"
+    },
+    {
+      "relative": "Intake/MaleCharacter/MaleCharacter_material_0.uasset",
+      "bytes": 60621,
+      "sha256": "026633133fb0f1fc97e928b37b94beb5435851bd10f34ae922d323e38a02d1eb"
+    },
+    {
+      "relative": "Intake/MaleCharacter/MaleCharacter_texture_0.uasset",
+      "bytes": 27065953,
+      "sha256": "7a427329d3409c1702c6d43700dedebfcaf65f28bd198c88e2ec3a01f0593828"
+    },
+    {
+      "relative": "Intake/MaleCharacter/MaleCharacter_texture_1.uasset",
+      "bytes": 5295815,
+      "sha256": "03f77c55f816f37bfe52f6ce4049665c2a0ece43d6e98ad12ad800ac90902ca0"
+    },
+    {
+      "relative": "Intake/MaleCharacter/MaleCharacter_texture_2.uasset",
+      "bytes": 33242142,
+      "sha256": "3ea3f0f3438a800b2adb578ce65996b5f14916262502db8aa3a3d996f0cb7f09"
+    },
+    {
+      "relative": "Intake/MaleCharacter/MaleCharacter_texture_3.uasset",
+      "bytes": 253195,
+      "sha256": "689c75d5d1ed23ce860ff4671477bb13d776debccf233142d3f6f8c2c39d7fd5"
+    }
+  ],
+  "errors": [],
+  "native_clone_reload_pending": true
+}

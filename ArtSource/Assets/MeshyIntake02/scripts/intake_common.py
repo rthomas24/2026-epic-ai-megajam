@@ -19,7 +19,7 @@ def source_guard():
         assert original.stat().st_mtime_ns==row['original_mtime_ns'],'Original timestamp changed'
 def allowed_package(package):return any(package.startswith(p+'/') for p in DESTINATIONS)
 def owned_files(content):
-    return {str(p.relative_to(content)):p for rel in RELATIVE_ROOTS for p in (content/rel).rglob('*') if p.is_file()}
+    return {p.relative_to(content).as_posix():p for rel in RELATIVE_ROOTS for p in (content/rel).rglob('*') if p.is_file()}
 def verify_files(content,expected):
     actual=owned_files(content)
     assert set(actual)==set(expected),'Exact owned file set mismatch: '+str(content)

@@ -32,8 +32,8 @@
       "destination": "/Game/Pilot/CrimsonTempest",
       "project_folder": "Content/Pilot/CrimsonTempest",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -81,8 +81,8 @@
       "destination": "/Game/Pilot/SentinelArmor",
       "project_folder": "Content/Pilot/SentinelArmor",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -128,8 +128,8 @@
       "destination": "/Game/Intake/CrimsonSentinel",
       "project_folder": "Content/Intake/CrimsonSentinel",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -165,8 +165,8 @@
       "destination": "/Game/Intake/CyberneticSentinel",
       "project_folder": "Content/Intake/CyberneticSentinel",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -202,8 +202,8 @@
       "destination": "/Game/Intake/EmeraldShadowstar",
       "project_folder": "Content/Intake/EmeraldShadowstar",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -239,8 +239,8 @@
       "destination": "/Game/Intake/GothicStoneArchWall",
       "project_folder": "Content/Intake/GothicStoneArchWall",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -276,8 +276,8 @@
       "destination": "/Game/Intake/NebulaShadowfighter",
       "project_folder": "Content/Intake/NebulaShadowfighter",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -313,8 +313,8 @@
       "destination": "/Game/Intake/NeonShadowEnforcer",
       "project_folder": "Content/Intake/NeonShadowEnforcer",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -350,8 +350,8 @@
       "destination": "/Game/Intake/NeonVoidCruiser",
       "project_folder": "Content/Intake/NeonVoidCruiser",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -387,8 +387,8 @@
       "destination": "/Game/Intake/Ruinforged",
       "project_folder": "Content/Intake/Ruinforged",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -424,8 +424,8 @@
       "destination": "/Game/Intake/ShadowboundAssassin",
       "project_folder": "Content/Intake/ShadowboundAssassin",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -461,8 +461,8 @@
       "destination": "/Game/Intake/Spaceship",
       "project_folder": "Content/Intake/Spaceship",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -498,8 +498,8 @@
       "destination": "/Game/Intake/TPoseRobot",
       "project_folder": "Content/Intake/TPoseRobot",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -535,8 +535,8 @@
       "destination": "/Game/Intake/MaleCharacter",
       "project_folder": "Content/Intake/MaleCharacter",
       "source_verified": true,
-      "project_imported": false,
-      "project_clone_verified": false,
+      "project_imported": true,
+      "project_clone_verified": true,
       "source_material_features": [
         {
           "base_color_texture": true,
@@ -553,5 +553,7 @@
   "native_project_available": false,
   "rendered_appearance_accepted": false,
   "gameplay_bound": false,
-  "license_status": "User provided custom assets; per-asset source rights/model metadata not independently verified"
+  "license_status": "User provided custom assets; per-asset source rights/model metadata not independently verified",
+  "stage": "Technically verified feature-project Content copies and fresh independent host reload; not gameplay/visual/Shipping approved",
+  "verification_report": "evidence/project_verify01.json"
 }

@@ -1,0 +1,13 @@
+{
+  "attempt": "verify01",
+  "pid": 23984,
+  "exit_code": 0,
+  "started_utc": "2026-11-13T17:42:22.9239410Z",
+  "elapsed_seconds": 43.9557872,
+  "peak_working_set_mib": 3363.9375,
+  "minimum_free_gib": 2.542888641357422,
+  "abort": null,
+  "monitor_error": null,
+  "cpu_affinity": 3,
+  "project": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-meshy-intake02\\Saved\\I02V\\Host\\Intake02Verify.uproject"
+}

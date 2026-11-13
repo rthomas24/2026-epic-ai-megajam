@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "actual private40 incomplete batch",
+      "rejected": true
+    },
+    {
+      "case": "duplicate successful attempts",
+      "rejected": true
+    },
+    {
+      "case": "changed evidence pin",
+      "rejected": true
+    },
+    {
+      "case": "Passed=False",
+      "rejected": true
+    },
+    {
+      "case": "ExitCodeKnown=False",
+      "rejected": true
+    },
+    {
+      "case": "ActualExitCode=None",
+      "rejected": true
+    },
+    {
+      "case": "ActualExitCode=-1",
+      "rejected": true
+    },
+    {
+      "case": "ActualExitCode=False",
+      "rejected": true
+    },
+    {
+      "case": "Errors=None",
+      "rejected": true
+    },
+    {
+      "case": "Errors=['failure']",
+      "rejected": true
+    },
+    {
+      "case": "AbortReason=RAM",
+      "rejected": true
+    },
+    {
+      "case": "PID=None",
+      "rejected": true
+    },
+    {
+      "case": "actual killed batch despite reload stage PASS",
+      "rejected": true
+    }
+  ],
+  "native_launched": false,
+  "packages_copied": 0,
+  "complete91_acceptance": "pending actual records; not simulated"
+}

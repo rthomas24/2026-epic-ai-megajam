@@ -1,0 +1,3720 @@
+{
+  "passed": true,
+  "manager_root": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233",
+  "packages": {
+    "Pilot/CrimsonTempest/CrimsonTempest.uasset": {
+      "bytes": 382006,
+      "sha256": "e6dc1a3263b073c50e994a04bf90d2ab93e523132ceafd45ca84cb2a49445ba6"
+    },
+    "Pilot/CrimsonTempest/CrimsonTempest_material_0.uasset": {
+      "bytes": 60695,
+      "sha256": "c0f6da04e8d0e7ad7fb2dc6c242450de6a92341d752b707f2effb6dc22a41151"
+    },
+    "Pilot/CrimsonTempest/CrimsonTempest_texture_0.uasset": {
+      "bytes": 7467322,
+      "sha256": "42e834dda398f45b40179cb6aad397e54ad08eb1a0967fbe88bfb468050a5123"
+    },
+    "Pilot/CrimsonTempest/CrimsonTempest_texture_1.uasset": {
+      "bytes": 4695057,
+      "sha256": "1c5310ccafb0053d43ceb491a0d47626bc74880f1a03ab6edbf5268d1f5b3a49"
+    },
+    "Pilot/CrimsonTempest/CrimsonTempest_texture_2.uasset": {
+      "bytes": 7799618,
+      "sha256": "b4e690002f0d498319d0c15b0ff65d40f5579146160854526c690c9368d48c5c"
+    },
+    "Pilot/CrimsonTempest/CrimsonTempest_texture_3.uasset": {
+      "bytes": 979766,
+      "sha256": "f9aa800a6f75a26690988604046e1aaaf11612a18e1ac920e09cdcf70163bfbd"
+    },
+    "Pilot/SentinelArmor/BakedMaterial.uasset": {
+      "bytes": 56833,
+      "sha256": "4d96219eea807529fb9a4d6e647c1319348c7cb1c1058fd7b34f64c5041c5d5c"
+    },
+    "Pilot/SentinelArmor/normal.uasset": {
+      "bytes": 7099270,
+      "sha256": "8f8958f169c0b8db0d22790689463ab56225a01b989d345b89f887a2435216a2"
+    },
+    "Pilot/SentinelArmor/SentinelArmor.uasset": {
+      "bytes": 9709729,
+      "sha256": "164552e73f7ee14e8b8b3a36c8a09a98bc62b7483494153c50d48f811e873316"
+    },
+    "Pilot/SentinelArmor/SentinelArmor_Skeleton.uasset": {
+      "bytes": 16808,
+      "sha256": "0e715b2ba7a421d344f7a31ef26ec12c0fad4ad38cbb6513f4e89a4c5d277472"
+    },
+    "Pilot/SentinelArmor/SentinelArmorCasual_Walk.uasset": {
+      "bytes": 898070,
+      "sha256": "c77e2aaf3563c5cce540be8c2be19e595c51f8dac849d95f628f581377d04068"
+    },
+    "Pilot/SentinelArmor/SentinelArmorIdle_02.uasset": {
+      "bytes": 447298,
+      "sha256": "e3b2bd4e298769572c996e8ab3a01810c310bda35cad0f0a24c627278371b6f7"
+    },
+    "Pilot/SentinelArmor/SentinelArmorIdle_3.uasset": {
+      "bytes": 1790422,
+      "sha256": "fa891b61157b0dd2a0ffb00a09888016712a32d4068f17fefe2b7d250a1f8c75"
+    },
+    "Pilot/SentinelArmor/SentinelArmorIdle_6.uasset": {
+      "bytes": 1168342,
+      "sha256": "8fccad7c5c53ae790ef73ffaae65ab40833b2fcdb7db2f1fafa14f02b669e331"
+    },
+    "Pilot/SentinelArmor/SentinelArmorRunning.uasset": {
+      "bytes": 350434,
+      "sha256": "b637091fb59d8ff5c4834d41c000bfda9661f488bb5714880c2116118ed0abc8"
+    },
+    "Pilot/SentinelArmor/SentinelArmorWalking.uasset": {
+      "bytes": 407650,
+      "sha256": "f5d2a3946756ca3848d9f9b1ed91636ef1d94d151801a6db5ac0efd78d8c8370"
+    },
+    "Pilot/SentinelArmor/texture_0.uasset": {
+      "bytes": 5303899,
+      "sha256": "6453894badc85898d1eb84df6d61296ffb1f68d7d1016ee165d2118731fb3ae5"
+    },
+    "Pilot/SentinelArmor/texture_0_metallic_roughness.uasset": {
+      "bytes": 3568208,
+      "sha256": "a4c1864a5b2ed2a12466a810a9d74317e9281052a341070ead7b9b4ed07fa564"
+    },
+    "Intake/CrimsonSentinel/BakedMaterial.uasset": {
+      "bytes": 57519,
+      "sha256": "fbd6c06d958857ad290e4fa681743993b2f6ef2deed1228bfd0a14e26adab5a4"
+    },
+    "Intake/CrimsonSentinel/CrimsonSentinel.uasset": {
+      "bytes": 37193963,
+      "sha256": "027d2d6b450f3c06d73c703ddbfde0e316be81368df78358a761a0df896a8150"
+    },
+    "Intake/CrimsonSentinel/CrimsonSentinel_360_Power_Spin_Jump.uasset": {
+      "bytes": 305175,
+      "sha256": "edc59656b8ad50c0b6ddccda42d69094d7092b200d7b1bf8890b72b65abeb439"
+    },
+    "Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.uasset": {
+      "bytes": 8064,
+      "sha256": "897043541bb50f4c5aead6dd3cc38c56ac5294a7cca6128c45a7ee23074fa271"
+    },
+    "Intake/CrimsonSentinel/CrimsonSentinelAgree_Gesture.uasset": {
+      "bytes": 936583,
+      "sha256": "b4869affe9056358f34c9c2fb8a1ee9b2e37ba056c9f2f0e660977c65ca88602"
+    },
+    "Intake/CrimsonSentinel/CrimsonSentinelair_squat.uasset": {
+      "bytes": 227474,
+      "sha256": "5660bac691b5993f99fef3b777050636d92e0e240d225d6ba495920d995866ad"
+    },
+    "Intake/CrimsonSentinel/CrimsonSentinelRunning.uasset": {
+      "bytes": 155514,
+      "sha256": "6b2ce98851f360166b5c679c107d9c3b9100ff66aff2cd704ba8989841667073"
+    },
+    "Intake/CrimsonSentinel/CrimsonSentinelWalking.uasset": {
+      "bytes": 182394,
+      "sha256": "b58155d8760e51a0e07941600b9b1964023ffb31c7d99f75d53d2bb593c41ee1"
+    },
+    "Intake/CrimsonSentinel/texture_0.uasset": {
+      "bytes": 58881526,
+      "sha256": "790ab124612b3c7bfd0e5b258aa6d83e7155bc240c89035d2182eefb94c510e0"
+    },
+    "Intake/CrimsonSentinel/texture_0_metallic-texture_0_roughness.uasset": {
+      "bytes": 14345103,
+      "sha256": "7f36cf44367e9ea857cf6d024a01f3ace21e2aa6af32f2c1d32a7101b15d0c88"
+    },
+    "Intake/CrimsonSentinel/texture_0_normal.uasset": {
+      "bytes": 22640075,
+      "sha256": "37249e2a7f41f251f648f6d736b109e96c601a255af5600a70ac301a24ab37c1"
+    },
+    "Intake/CyberneticSentinel/base_color.uasset": {
+      "bytes": 7112105,
+      "sha256": "22a1fc3528eb199f7f2b5051203f00847f8d03c252f43eb982e3a38e55b4bec4"
+    },
+    "Intake/CyberneticSentinel/CyberneticSentinel.uasset": {
+      "bytes": 91371447,
+      "sha256": "ad30c9af775ca4f99d959884a3fb7bbab0ef9d181e6ba86d39bdb39b68caf222"
+    },
+    "Intake/CyberneticSentinel/material.uasset": {
+      "bytes": 57026,
+      "sha256": "014292b79fbb006769b608503f03d825c1b328aba4f23332ebe45d26d8fed69d"
+    },
+    "Intake/CyberneticSentinel/metallic_roughness.uasset": {
+      "bytes": 5880426,
+      "sha256": "b1d6eae4d6c47b5b4961992701d26f44361bac6ff5062deeebd1215345837740"
+    },
+    "Intake/CyberneticSentinel/normal.uasset": {
+      "bytes": 6524406,
+      "sha256": "d375b1f018bdc61441a7ca3cc2d9b1839f0606f12255419a07bcbd9947f24743"
+    },
+    "Intake/EmeraldShadowstar/EmeraldShadowstar.uasset": {
+      "bytes": 1570524,
+      "sha256": "cf7ac318896e3d45722b9ef5da9a10f0e2f2d50b335a81db598b28d6b176538a"
+    },
+    "Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.uasset": {
+      "bytes": 57443,
+      "sha256": "507e7750f9030b5f2d9e0220073b0f9cb3aa4a71d5bb9e34cef598f1aa2e4c02"
+    },
+    "Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.uasset": {
+      "bytes": 7215933,
+      "sha256": "f8d11af45f8e47d44d4dad70bf557dec78587394d568b794c66ac7c6db9d3014"
+    },
+    "Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.uasset": {
+      "bytes": 5051921,
+      "sha256": "f014debbbe6b65dc08cae6bf85abd4bd5728e5c23c056541511c64c0e4331ab6"
+    },
+    "Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.uasset": {
+      "bytes": 21651,
+      "sha256": "49c340cb9a144a08581187b6a6237f607cc4165b80f7bd9949805174a50c78a9"
+    },
+    "Intake/GothicStoneArchWall/Baked_BaseColor.uasset": {
+      "bytes": 7212129,
+      "sha256": "76f4039be6b1626e3f8a7b3ddb138a81c7a04e4d6838b498f3ba9e96ba055d59"
+    },
+    "Intake/GothicStoneArchWall/Baked_Emit.uasset": {
+      "bytes": 367566,
+      "sha256": "bcafe56e04168fe454dc7c4e3113445fee864a025eb0f794437301b59cf76487"
+    },
+    "Intake/GothicStoneArchWall/Baked_MetallicRoughness.uasset": {
+      "bytes": 3532073,
+      "sha256": "f2837801b12cfcd185281fd27498649fd5eda6abda5464e381dd10504ab88a43"
+    },
+    "Intake/GothicStoneArchWall/GothicStoneArchWall.uasset": {
+      "bytes": 516929,
+      "sha256": "d7bc86e92c63fc086096241fe79a431b4cff339ab421658be5885ded5c7f57d3"
+    },
+    "Intake/GothicStoneArchWall/Material_0_001.uasset": {
+      "bytes": 60832,
+      "sha256": "07443804913fbdaff496c062f165591e8f00fa95122fed15f5245db27742ae70"
+    },
+    "Intake/GothicStoneArchWall/normal.uasset": {
+      "bytes": 9915451,
+      "sha256": "74274015ec1094093eeb682eabb781a63048fcd48b9ec53c342084375f85f2ee"
+    },
+    "Intake/NebulaShadowfighter/NebulaShadowfighter.uasset": {
+      "bytes": 300680,
+      "sha256": "952dd6d2d8411318c295dc78c47ca4c1589ec5d116a9e508afcc1348c0a1aa4c"
+    },
+    "Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.uasset": {
+      "bytes": 57631,
+      "sha256": "586e98bc04b270ce782b814d05eca97d5649b2f56b7fb1d9220d4a1e27c4ec3d"
+    },
+    "Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.uasset": {
+      "bytes": 6634130,
+      "sha256": "27de697eb017eda94517e928160de5fddee48951a18ed3553b30a5967bf5a61c"
+    },
+    "Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.uasset": {
+      "bytes": 5647601,
+      "sha256": "e7a5e867cf7331c82b9cd287d945fe3fc226d184dde1f9a0bd2d004d3b4bea62"
+    },
+    "Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.uasset": {
+      "bytes": 7910435,
+      "sha256": "bb7ae4120d2acd83abb8e9071f5d83373940246c13e1196f865f363181e264fa"
+    },
+    "Intake/NeonShadowEnforcer/base_color.uasset": {
+      "bytes": 5691101,
+      "sha256": "0820d59fdf4d40555db1bf1df54ac5e9f03e2b31f96836b6f571b142775b68ad"
+    },
+    "Intake/NeonShadowEnforcer/emissive.uasset": {
+      "bytes": 83376,
+      "sha256": "3bc3551680c66dccb7702eeada04503c5b0cc4fa3a23d4fe4d2ae9987794d866"
+    },
+    "Intake/NeonShadowEnforcer/material.uasset": {
+      "bytes": 60576,
+      "sha256": "50b0f3f3f66786d673d64c196ca57ec391ef4e62090455db09e4ec9a300a795d"
+    },
+    "Intake/NeonShadowEnforcer/metallic_roughness.uasset": {
+      "bytes": 4485320,
+      "sha256": "432d3b24acd4c7e0d32a9a851c5ab12070636aa55f0479bb9ca749ed40785d59"
+    },
+    "Intake/NeonShadowEnforcer/NeonShadowEnforcer.uasset": {
+      "bytes": 868506,
+      "sha256": "a20c5729713e057d5edfc8d95b75c7bf07ad08ef384b2073f8cd6bc66a3c6510"
+    },
+    "Intake/NeonShadowEnforcer/normal.uasset": {
+      "bytes": 5728517,
+      "sha256": "aaeb37b6641ec351b4b444e896f101f549af1d2efefc83f118153969b110c6dd"
+    },
+    "Intake/NeonVoidCruiser/NeonVoidCruiser.uasset": {
+      "bytes": 465463,
+      "sha256": "2d66927dcf2997d74767b5592250fd809f210dae5f5cb9121918f25094e14cbc"
+    },
+    "Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.uasset": {
+      "bytes": 60845,
+      "sha256": "8c044f8709148b2ee0ed466b345582e0165e000532e98d2e757efa2e7bd35263"
+    },
+    "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.uasset": {
+      "bytes": 8116688,
+      "sha256": "c22546e94e3929164409750a58d6af39ea2c9e40bfbc917232ab662f5b4ad559"
+    },
+    "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.uasset": {
+      "bytes": 4950304,
+      "sha256": "c27ff9e28b0e67a8fb9a93376d25c97ba250403f3dcc5e4d8f6c4296d71de7ba"
+    },
+    "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.uasset": {
+      "bytes": 7939686,
+      "sha256": "46c5e19f926eed15cd1ef8c91c658713434918cdc44cf788c3095fb8f96d8634"
+    },
+    "Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.uasset": {
+      "bytes": 1073171,
+      "sha256": "b65ce5ca460d2414a0a04e58f606bb6356d39870d508e13ea42b6f8642aa1611"
+    },
+    "Intake/Ruinforged/Ruinforged.uasset": {
+      "bytes": 11146894,
+      "sha256": "c11c5c3b774d5759c897f5f2e886a085e6884cbedb2f05f387fd31b3ce12ddef"
+    },
+    "Intake/Ruinforged/Ruinforged_material_0.uasset": {
+      "bytes": 60285,
+      "sha256": "5a460a6983de57e67c9c2de35c5e34f9401852bfcaa88ae36e76fef495e1ba5f"
+    },
+    "Intake/Ruinforged/Ruinforged_texture_0.uasset": {
+      "bytes": 7008081,
+      "sha256": "f8087886258393bdf26cc43aa2525a49d9b71cdf34b08c158edd3ed39be00c5c"
+    },
+    "Intake/Ruinforged/Ruinforged_texture_1.uasset": {
+      "bytes": 4685891,
+      "sha256": "1a443e5be00252ca5b460164dabf5f7d229fb2a19d90e6212815628135a14d2c"
+    },
+    "Intake/Ruinforged/Ruinforged_texture_2.uasset": {
+      "bytes": 8378888,
+      "sha256": "190156c6f79fe0892abf46231c3dec0f2532a317bffc9f9d420c0053deac9c00"
+    },
+    "Intake/Ruinforged/Ruinforged_texture_3.uasset": {
+      "bytes": 22206,
+      "sha256": "4f33a9c354b4c209bd90121df285b814db7efbbaa8c6b59bd857548047e3bc18"
+    },
+    "Intake/ShadowboundAssassin/ShadowboundAssassin.uasset": {
+      "bytes": 26179789,
+      "sha256": "7ee67c022045aad392c197ec53a0f0f5f54f0e1c7502e9bc798b0f5a1760fc7a"
+    },
+    "Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.uasset": {
+      "bytes": 61293,
+      "sha256": "ecda555a399bc5a2125060febe961a252fb8fe8f1004566ff1e3a1ddbb24cd2d"
+    },
+    "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.uasset": {
+      "bytes": 5385957,
+      "sha256": "63250f2afe3cd300fe488062b835d8f905a6568b010bcd6aa946c9d876dfa93e"
+    },
+    "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.uasset": {
+      "bytes": 4235813,
+      "sha256": "95076e8373a076d1c83058539b4c4a5fcb5190484ad234470467fd66fc24aec3"
+    },
+    "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.uasset": {
+      "bytes": 7223842,
+      "sha256": "8c22213e8b27bc001f3a0bff31604067ff4744491622814f431cc6a3f2dfbedb"
+    },
+    "Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.uasset": {
+      "bytes": 24912,
+      "sha256": "58d847fe7bc1b736c78bd6f0e2fe032a84273ea99f8a56dffdb2a4a60b10a197"
+    },
+    "Intake/Spaceship/Spaceship.uasset": {
+      "bytes": 20867772,
+      "sha256": "b92d6554d3fdc8876398ff31478f49593216b4c7ad27249634f25fd36b468b83"
+    },
+    "Intake/Spaceship/Spaceship_material_0.uasset": {
+      "bytes": 56691,
+      "sha256": "02bc370d01bbb48a879c0aff0f84bb4a5f47c98effcdc97b9a08f3f48ef96913"
+    },
+    "Intake/Spaceship/Spaceship_texture_0.uasset": {
+      "bytes": 7529481,
+      "sha256": "3d04111bcf68609c0f3a8352baa25d1a1ee036b658ac4b274739648cde690c65"
+    },
+    "Intake/Spaceship/Spaceship_texture_1.uasset": {
+      "bytes": 6283252,
+      "sha256": "e254dffd1fde0eb258161c3da1d10456a42a1aee62b91ce70e6e81b0d4221af6"
+    },
+    "Intake/Spaceship/Spaceship_texture_2.uasset": {
+      "bytes": 8299278,
+      "sha256": "a041c8463556afb0a53b591f6306b759ee6722c7736f9e4833c2b7b91cc48246"
+    },
+    "Intake/TPoseRobot/TPoseRobot.uasset": {
+      "bytes": 20992418,
+      "sha256": "89f7892144026165eb73fc61f5aa4857dade4132090554aa18e42bd0dbedec96"
+    },
+    "Intake/TPoseRobot/TPoseRobot_material_0.uasset": {
+      "bytes": 60285,
+      "sha256": "a5f91668813da22838bf514fd6e6131fa8c0f3696de3e70772669ee8abdbfd4b"
+    },
+    "Intake/TPoseRobot/TPoseRobot_texture_0.uasset": {
+      "bytes": 6765140,
+      "sha256": "a3cb1c00628b7cdff1c01180f665fc12ad816fd8ad10c7c0deda1630f2eb506f"
+    },
+    "Intake/TPoseRobot/TPoseRobot_texture_1.uasset": {
+      "bytes": 6284865,
+      "sha256": "cfaf649929a71d0c12f54578622235790f1b94891789027513a2830811afcffb"
+    },
+    "Intake/TPoseRobot/TPoseRobot_texture_2.uasset": {
+      "bytes": 8074698,
+      "sha256": "e1588d6a2e8666c189bbe9d376a6bba617e237113370e393c74d734e2d40a258"
+    },
+    "Intake/TPoseRobot/TPoseRobot_texture_3.uasset": {
+      "bytes": 76285,
+      "sha256": "0a0d8cd863dc9f919d15ab6222b3e5998d304cd527fbe133b5088c07da570df5"
+    },
+    "Intake/MaleCharacter/MaleCharacter.uasset": {
+      "bytes": 19060598,
+      "sha256": "b87a7db825e94cdafd4485c1c35244e2944f477356afb144b7bfffc015640660"
+    },
+    "Intake/MaleCharacter/MaleCharacter_material_0.uasset": {
+      "bytes": 60621,
+      "sha256": "026633133fb0f1fc97e928b37b94beb5435851bd10f34ae922d323e38a02d1eb"
+    },
+    "Intake/MaleCharacter/MaleCharacter_texture_0.uasset": {
+      "bytes": 27065953,
+      "sha256": "7a427329d3409c1702c6d43700dedebfcaf65f28bd198c88e2ec3a01f0593828"
+    },
+    "Intake/MaleCharacter/MaleCharacter_texture_1.uasset": {
+      "bytes": 5295815,
+      "sha256": "03f77c55f816f37bfe52f6ce4049665c2a0ece43d6e98ad12ad800ac90902ca0"
+    },
+    "Intake/MaleCharacter/MaleCharacter_texture_2.uasset": {
+      "bytes": 33242142,
+      "sha256": "3ea3f0f3438a800b2adb578ce65996b5f14916262502db8aa3a3d996f0cb7f09"
+    },
+    "Intake/MaleCharacter/MaleCharacter_texture_3.uasset": {
+      "bytes": 253195,
+      "sha256": "689c75d5d1ed23ce860ff4671477bb13d776debccf233142d3f6f8c2c39d7fd5"
+    }
+  },
+  "objects": {
+    "/Game/Pilot/CrimsonTempest/CrimsonTempest.CrimsonTempest": {
+      "class": "StaticMesh",
+      "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest.CrimsonTempest",
+      "triangles": 11842,
+      "bounds_cm": {
+        "min": [
+          -90.99803924560547,
+          -95.30332946777344,
+          -24.461841583251953
+        ],
+        "max": [
+          90.60665130615234,
+          95.3033218383789,
+          24.461841583251953
+        ]
+      },
+      "vertices_inspection_error": "'NoneType' object has no attribute 'get_number_verts'",
+      "simple_collision_count_inspection_error": "'NoneType' object has no attribute 'get_simple_collision_count'",
+      "uv_channels_inspection_error": "'NoneType' object has no attribute 'get_num_uv_channels'",
+      "materials": [
+        "/Game/Pilot/CrimsonTempest/CrimsonTempest_material_0.CrimsonTempest_material_0"
+      ]
+    },
+    "/Game/Pilot/CrimsonTempest/CrimsonTempest_material_0.CrimsonTempest_material_0": {
+      "class": "Material",
+      "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_material_0.CrimsonTempest_material_0"
+    },
+    "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_0.CrimsonTempest_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_0.CrimsonTempest_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_1.CrimsonTempest_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_1.CrimsonTempest_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_2.CrimsonTempest_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_2.CrimsonTempest_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_3.CrimsonTempest_texture_3": {
+      "class": "Texture2D",
+      "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_3.CrimsonTempest_texture_3",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Pilot/SentinelArmor/BakedMaterial.BakedMaterial": {
+      "class": "Material",
+      "path": "/Game/Pilot/SentinelArmor/BakedMaterial.BakedMaterial"
+    },
+    "/Game/Pilot/SentinelArmor/normal.normal": {
+      "class": "Texture2D",
+      "path": "/Game/Pilot/SentinelArmor/normal.normal",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmor.SentinelArmor": {
+      "class": "SkeletalMesh",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmor.SentinelArmor",
+      "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+      "materials": [
+        "/Game/Pilot/SentinelArmor/BakedMaterial.BakedMaterial"
+      ],
+      "bone_count": 74,
+      "bones": [
+        "pelvis",
+        "spine_01",
+        "spine_02",
+        "spine_03",
+        "neck_01",
+        "head",
+        "head_end",
+        "Bone_027",
+        "Bone_026",
+        "Bone_029",
+        "Bone_028",
+        "Bone_031",
+        "Bone_030",
+        "Bone_033",
+        "Bone_032",
+        "headfront",
+        "clavicle_l",
+        "upperarm_l",
+        "lowerarm_l",
+        "hand_l",
+        "thumb_01_l",
+        "thumb_02_l",
+        "thumb_03_l",
+        "thumb_03_l_end",
+        "ring_01_l",
+        "ring_02_l",
+        "ring_03_l",
+        "ring_03_l_end",
+        "pinky_01_l",
+        "pinky_02_l",
+        "pinky_03_l",
+        "pinky_03_l_end",
+        "middle_01_l",
+        "middle_02_l",
+        "middle_03_l",
+        "middle_03_l_end",
+        "index_01_l",
+        "index_02_l",
+        "index_03_l",
+        "index_03_l_end",
+        "clavicle_r",
+        "upperarm_r",
+        "lowerarm_r",
+        "hand_r",
+        "thumb_01_r",
+        "thumb_02_r",
+        "thumb_03_r",
+        "thumb_03_r_end",
+        "pinky_01_r",
+        "pinky_02_r",
+        "pinky_03_r",
+        "pinky_03_r_end",
+        "ring_01_r",
+        "ring_02_r",
+        "ring_03_r",
+        "ring_03_r_end",
+        "middle_01_r",
+        "middle_02_r",
+        "middle_03_r",
+        "middle_03_r_end",
+        "index_01_r",
+        "index_02_r",
+        "index_03_r",
+        "index_03_r_end",
+        "thigh_l",
+        "calf_l",
+        "foot_l",
+        "ball_l",
+        "ball_l_end",
+        "thigh_r",
+        "calf_r",
+        "foot_r",
+        "ball_r",
+        "ball_r_end"
+      ],
+      "bounds_cm_inspection_error": "'SkeletalMeshComponent' object has no attribute 'get_local_bounds'",
+      "vertices": 43297
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton": {
+      "class": "Skeleton",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton"
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmorCasual_Walk.SentinelArmorCasual_Walk": {
+      "class": "AnimSequence",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmorCasual_Walk.SentinelArmorCasual_Walk",
+      "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+      "duration": 4.166666507720947,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            -0.03749099001288414,
+            -4.4015960693359375,
+            98.03974914550781
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.462675, y: -0.527973, z: 0.523852, w: 0.482447}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            3.4550232887268066,
+            -4.361072540283203,
+            98.80631256103516
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.482850, y: 0.524921, z: -0.535403, w: -0.452391}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            6.444815635681152,
+            -4.8289313316345215,
+            99.1062240600586
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: -0.493313, y: 0.525498, z: -0.535474, w: -0.440183}>"
+        }
+      ]
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmorIdle_02.SentinelArmorIdle_02": {
+      "class": "AnimSequence",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmorIdle_02.SentinelArmorIdle_02",
+      "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+      "duration": 1.8666666746139526,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            1.0775742530822754,
+            -12.059391021728516,
+            97.43498229980469
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.586891, y: 0.462966, z: -0.576607, w: -0.329765}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            1.2180712223052979,
+            -11.77360725402832,
+            97.04053497314453
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: -0.593466, y: 0.459647, z: -0.583315, w: -0.310268}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            1.1925119161605835,
+            -11.777914047241211,
+            96.66764068603516
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.594179, y: 0.455827, z: -0.588873, w: -0.303976}>"
+        }
+      ]
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmorIdle_3.SentinelArmorIdle_3": {
+      "class": "AnimSequence",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmorIdle_3.SentinelArmorIdle_3",
+      "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+      "duration": 9.966666221618652,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            0.09799407422542572,
+            -3.3881824016571045,
+            95.8550033569336
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.467412, y: -0.522358, z: 0.524502, w: 0.483286}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            1.0592126846313477,
+            -3.180737018585205,
+            95.46160888671875
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.471033, y: -0.522444, z: 0.519009, w: 0.485603}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            1.2865827083587646,
+            -3.049729108810425,
+            94.7742691040039
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.473051, y: -0.522028, z: 0.517450, w: 0.485752}>"
+        }
+      ]
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmorIdle_6.SentinelArmorIdle_6": {
+      "class": "AnimSequence",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmorIdle_6.SentinelArmorIdle_6",
+      "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+      "duration": 7.366666793823242,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            -0.26974278688430786,
+            -4.663973808288574,
+            93.47791290283203
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.495981, y: -0.605887, z: 0.388602, w: 0.485688}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            0.05668915435671806,
+            -3.4786858558654785,
+            93.64904022216797
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: -0.497969, y: 0.610894, z: -0.390022, w: -0.476148}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            0.3924468159675598,
+            -2.3365888595581055,
+            93.91557312011719
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.501955, y: 0.603884, z: -0.401657, w: -0.471208}>"
+        }
+      ]
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmorRunning.SentinelArmorRunning": {
+      "class": "AnimSequence",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmorRunning.SentinelArmorRunning",
+      "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+      "duration": 0.6333333253860474,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            0.4742193818092346,
+            -1.9318395853042603,
+            95.63916778564453
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.462390, y: -0.438292, z: 0.577383, w: 0.510612}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            -0.03345491737127304,
+            -4.8759636878967285,
+            94.64460754394531
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.334191, y: -0.513909, z: 0.575502, w: 0.541305}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            0.5786390900611877,
+            -3.8871567249298096,
+            95.55272674560547
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.460731, y: -0.434846, z: 0.580207, w: 0.511855}>"
+        }
+      ]
+    },
+    "/Game/Pilot/SentinelArmor/SentinelArmorWalking.SentinelArmorWalking": {
+      "class": "AnimSequence",
+      "path": "/Game/Pilot/SentinelArmor/SentinelArmorWalking.SentinelArmorWalking",
+      "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+      "duration": 1.0333333015441895,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            -0.02352823317050934,
+            -2.2347280979156494,
+            102.1775131225586
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.436801, y: -0.515232, z: 0.537447, w: 0.504868}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            3.116744041442871,
+            -0.41611483693122864,
+            96.23090362548828
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.462669, y: -0.494739, z: 0.548939, w: 0.489731}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            3.407085657119751,
+            -1.1922237873077393,
+            101.21527099609375
+          ],
+          "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.423035, y: -0.542505, z: 0.525076, w: 0.501024}>"
+        }
+      ]
+    },
+    "/Game/Pilot/SentinelArmor/texture_0.texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Pilot/SentinelArmor/texture_0.texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Pilot/SentinelArmor/texture_0_metallic_roughness.texture_0_metallic_roughness": {
+      "class": "Texture2D",
+      "path": "/Game/Pilot/SentinelArmor/texture_0_metallic_roughness.texture_0_metallic_roughness",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/CrimsonSentinel/BakedMaterial.BakedMaterial": {
+      "class": "Material",
+      "path": "/Game/Intake/CrimsonSentinel/BakedMaterial.BakedMaterial",
+      "graph_texture_references": [
+        "/Game/Intake/CrimsonSentinel/texture_0_normal.texture_0_normal",
+        "/Game/Intake/CrimsonSentinel/texture_0.texture_0",
+        "/Game/Intake/CrimsonSentinel/texture_0_metallic-texture_0_roughness.texture_0_metallic-texture_0_roughness"
+      ]
+    },
+    "/Game/Intake/CrimsonSentinel/CrimsonSentinel.CrimsonSentinel": {
+      "class": "SkeletalMesh",
+      "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinel.CrimsonSentinel",
+      "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+      "materials": [
+        "/Game/Intake/CrimsonSentinel/BakedMaterial.BakedMaterial"
+      ],
+      "bone_count": 28,
+      "bones": [
+        "mixamorig_Hips",
+        "mixamorig_Spine",
+        "mixamorig_Spine1",
+        "mixamorig_Spine2",
+        "mixamorig_Neck",
+        "mixamorig_Head",
+        "mixamorig_HeadTop_End",
+        "headfront",
+        "mixamorig_LeftShoulder",
+        "mixamorig_LeftArm",
+        "mixamorig_LeftForeArm",
+        "mixamorig_LeftHand",
+        "mixamorig_LeftHandMiddle4",
+        "mixamorig_RightShoulder",
+        "mixamorig_RightArm",
+        "mixamorig_RightForeArm",
+        "mixamorig_RightHand",
+        "mixamorig_RightHandMiddle4",
+        "mixamorig_LeftUpLeg",
+        "mixamorig_LeftLeg",
+        "mixamorig_LeftFoot",
+        "mixamorig_LeftToeBase",
+        "mixamorig_LeftToe_End",
+        "mixamorig_RightUpLeg",
+        "mixamorig_RightLeg",
+        "mixamorig_RightFoot",
+        "mixamorig_RightToeBase",
+        "mixamorig_RightToe_End"
+      ],
+      "bounds_cm": {
+        "origin": [
+          7.62939453125e-06,
+          1.9073486328125e-06,
+          85.0
+        ],
+        "extent": [
+          81.62508392333984,
+          18.841047286987305,
+          85.0
+        ]
+      },
+      "vertices": 155311
+    },
+    "/Game/Intake/CrimsonSentinel/CrimsonSentinel_360_Power_Spin_Jump.CrimsonSentinel_360_Power_Spin_Jump": {
+      "class": "AnimSequence",
+      "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_360_Power_Spin_Jump.CrimsonSentinel_360_Power_Spin_Jump",
+      "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+      "duration": 3.0333333015441895,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            0.01322174072265625,
+            0.11812926083803177,
+            92.33323669433594
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.045785, y: -0.021279, z: -0.287257, w: 0.956522}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            4.7929463386535645,
+            -8.095003431662917e-05,
+            87.62208557128906
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.008551, y: 0.135275, z: -0.752717, w: 0.644240}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            0.8261067867279053,
+            5.0748982429504395,
+            85.5408935546875
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.034759, y: 0.152671, z: -0.748331, w: 0.644580}>"
+        }
+      ]
+    },
+    "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton": {
+      "class": "Skeleton",
+      "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton"
+    },
+    "/Game/Intake/CrimsonSentinel/CrimsonSentinelAgree_Gesture.CrimsonSentinelAgree_Gesture": {
+      "class": "AnimSequence",
+      "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelAgree_Gesture.CrimsonSentinelAgree_Gesture",
+      "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+      "duration": 13.0,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            0.8667572140693665,
+            -1.517780065536499,
+            92.0892562866211
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: 0.094244, y: 0.018210, z: 0.139550, w: 0.985552}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            1.095426082611084,
+            -1.6010671854019165,
+            92.1125259399414
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.093559, y: 0.017810, z: 0.145699, w: 0.984734}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            1.3492634296417236,
+            -1.4114278554916382,
+            92.10860443115234
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: 0.092570, y: 0.018990, z: 0.145554, w: 0.984827}>"
+        }
+      ]
+    },
+    "/Game/Intake/CrimsonSentinel/CrimsonSentinelair_squat.CrimsonSentinelair_squat": {
+      "class": "AnimSequence",
+      "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelair_squat.CrimsonSentinelair_squat",
+      "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+      "duration": 1.8666666746139526,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            0.4153883457183838,
+            -0.2202654927968979,
+            92.83901977539062
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.000880, y: 0.002974, z: 0.032120, w: 0.999479}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            0.2793078124523163,
+            -6.543017864227295,
+            85.20849609375
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.056462, y: 0.013608, z: 0.034760, w: 0.997707}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            0.2196454554796219,
+            -10.776289939880371,
+            61.380836486816406
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.107502, y: 0.031407, z: 0.024105, w: 0.993416}>"
+        }
+      ]
+    },
+    "/Game/Intake/CrimsonSentinel/CrimsonSentinelRunning.CrimsonSentinelRunning": {
+      "class": "AnimSequence",
+      "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelRunning.CrimsonSentinelRunning",
+      "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+      "duration": 0.6333333253860474,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            0.5589498281478882,
+            0.8875653147697449,
+            91.44732666015625
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.040033, y: 0.039084, z: 0.046432, w: 0.997353}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            0.7676287293434143,
+            -1.7658531665802002,
+            90.03082275390625
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.074918, y: -0.053386, z: -0.068958, w: 0.993369}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            0.6558611989021301,
+            -1.0505802631378174,
+            91.34637451171875
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.044731, y: 0.039276, z: 0.047838, w: 0.997080}>"
+        }
+      ]
+    },
+    "/Game/Intake/CrimsonSentinel/CrimsonSentinelWalking.CrimsonSentinelWalking": {
+      "class": "AnimSequence",
+      "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelWalking.CrimsonSentinelWalking",
+      "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+      "duration": 1.0333333015441895,
+      "root_motion_enabled": false,
+      "pelvis_samples": [
+        {
+          "time": 0.0,
+          "translation": [
+            0.4097669720649719,
+            0.9366987943649292,
+            97.93624114990234
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.012238, y: 0.001077, z: -0.016968, w: 0.999781}>"
+        },
+        {
+          "time": 0.3,
+          "translation": [
+            3.3196144104003906,
+            2.6101667881011963,
+            92.14442443847656
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: 0.014732, y: 0.012994, z: 0.019115, w: 0.999624}>"
+        },
+        {
+          "time": 0.6,
+          "translation": [
+            3.9206016063690186,
+            2.066410779953003,
+            97.00630187988281
+          ],
+          "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.028315, y: -0.016681, z: -0.039905, w: 0.998663}>"
+        }
+      ]
+    },
+    "/Game/Intake/CrimsonSentinel/texture_0.texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/CrimsonSentinel/texture_0.texture_0",
+      "size": [
+        8192,
+        8192
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/CrimsonSentinel/texture_0_metallic-texture_0_roughness.texture_0_metallic-texture_0_roughness": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/CrimsonSentinel/texture_0_metallic-texture_0_roughness.texture_0_metallic-texture_0_roughness",
+      "size": [
+        4096,
+        4096
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/CrimsonSentinel/texture_0_normal.texture_0_normal": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/CrimsonSentinel/texture_0_normal.texture_0_normal",
+      "size": [
+        4096,
+        4096
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/CyberneticSentinel/base_color.base_color": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/CyberneticSentinel/base_color.base_color",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/CyberneticSentinel/CyberneticSentinel.CyberneticSentinel": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/CyberneticSentinel/CyberneticSentinel.CyberneticSentinel",
+      "triangles": 1995134,
+      "bounds_cm": {
+        "min": [
+          -45.59400177001953,
+          -18.684099197387695,
+          -95.21080017089844
+        ],
+        "max": [
+          45.48979949951172,
+          19.129899978637695,
+          95.11799621582031
+        ]
+      },
+      "vertices": 1046406,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/CyberneticSentinel/material.material"
+      ]
+    },
+    "/Game/Intake/CyberneticSentinel/material.material": {
+      "class": "Material",
+      "path": "/Game/Intake/CyberneticSentinel/material.material",
+      "graph_texture_references": [
+        "/Game/Intake/CyberneticSentinel/normal.normal",
+        "/Game/Intake/CyberneticSentinel/base_color.base_color",
+        "/Game/Intake/CyberneticSentinel/metallic_roughness.metallic_roughness"
+      ]
+    },
+    "/Game/Intake/CyberneticSentinel/metallic_roughness.metallic_roughness": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/CyberneticSentinel/metallic_roughness.metallic_roughness",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/CyberneticSentinel/normal.normal": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/CyberneticSentinel/normal.normal",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar.EmeraldShadowstar": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar.EmeraldShadowstar",
+      "triangles": 49874,
+      "bounds_cm": {
+        "min": [
+          -95.4625015258789,
+          -95.67910766601562,
+          -19.827503204345703
+        ],
+        "max": [
+          94.35050201416016,
+          95.47431182861328,
+          19.282102584838867
+        ]
+      },
+      "vertices": 33035,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.EmeraldShadowstar_material_0"
+      ]
+    },
+    "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.EmeraldShadowstar_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.EmeraldShadowstar_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.EmeraldShadowstar_texture_2",
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.EmeraldShadowstar_texture_0",
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.EmeraldShadowstar_texture_1"
+      ]
+    },
+    "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.EmeraldShadowstar_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.EmeraldShadowstar_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.EmeraldShadowstar_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.EmeraldShadowstar_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.EmeraldShadowstar_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.EmeraldShadowstar_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/GothicStoneArchWall/Baked_BaseColor.Baked_BaseColor": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/GothicStoneArchWall/Baked_BaseColor.Baked_BaseColor",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/GothicStoneArchWall/Baked_Emit.Baked_Emit": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/GothicStoneArchWall/Baked_Emit.Baked_Emit",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/GothicStoneArchWall/Baked_MetallicRoughness.Baked_MetallicRoughness": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/GothicStoneArchWall/Baked_MetallicRoughness.Baked_MetallicRoughness",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/GothicStoneArchWall/GothicStoneArchWall.GothicStoneArchWall": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/GothicStoneArchWall/GothicStoneArchWall.GothicStoneArchWall",
+      "triangles": 9763,
+      "bounds_cm": {
+        "min": [
+          -70.31310272216797,
+          -32.759193420410156,
+          -95.69280242919922
+        ],
+        "max": [
+          70.36880493164062,
+          31.798107147216797,
+          95.50060272216797
+        ]
+      },
+      "vertices": 14967,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/GothicStoneArchWall/Material_0_001.Material_0_001"
+      ]
+    },
+    "/Game/Intake/GothicStoneArchWall/Material_0_001.Material_0_001": {
+      "class": "Material",
+      "path": "/Game/Intake/GothicStoneArchWall/Material_0_001.Material_0_001",
+      "graph_texture_references": [
+        "/Game/Intake/GothicStoneArchWall/normal.normal",
+        "/Game/Intake/GothicStoneArchWall/Baked_Emit.Baked_Emit",
+        "/Game/Intake/GothicStoneArchWall/Baked_BaseColor.Baked_BaseColor",
+        "/Game/Intake/GothicStoneArchWall/Baked_MetallicRoughness.Baked_MetallicRoughness"
+      ]
+    },
+    "/Game/Intake/GothicStoneArchWall/normal.normal": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/GothicStoneArchWall/normal.normal",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter.NebulaShadowfighter": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter.NebulaShadowfighter",
+      "triangles": 7741,
+      "bounds_cm": {
+        "min": [
+          -89.43250274658203,
+          -95.30331420898438,
+          -26.418813705444336
+        ],
+        "max": [
+          89.43250274658203,
+          95.30330657958984,
+          26.02740478515625
+        ]
+      },
+      "vertices": 7711,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.NebulaShadowfighter_material_0"
+      ]
+    },
+    "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.NebulaShadowfighter_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.NebulaShadowfighter_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.NebulaShadowfighter_texture_2",
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.NebulaShadowfighter_texture_0",
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.NebulaShadowfighter_texture_1"
+      ]
+    },
+    "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.NebulaShadowfighter_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.NebulaShadowfighter_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.NebulaShadowfighter_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.NebulaShadowfighter_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.NebulaShadowfighter_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.NebulaShadowfighter_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/NeonShadowEnforcer/base_color.base_color": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonShadowEnforcer/base_color.base_color",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/NeonShadowEnforcer/emissive.emissive": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonShadowEnforcer/emissive.emissive",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/NeonShadowEnforcer/material.material": {
+      "class": "Material",
+      "path": "/Game/Intake/NeonShadowEnforcer/material.material",
+      "graph_texture_references": [
+        "/Game/Intake/NeonShadowEnforcer/normal.normal",
+        "/Game/Intake/NeonShadowEnforcer/emissive.emissive",
+        "/Game/Intake/NeonShadowEnforcer/base_color.base_color",
+        "/Game/Intake/NeonShadowEnforcer/metallic_roughness.metallic_roughness"
+      ]
+    },
+    "/Game/Intake/NeonShadowEnforcer/metallic_roughness.metallic_roughness": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonShadowEnforcer/metallic_roughness.metallic_roughness",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/NeonShadowEnforcer/NeonShadowEnforcer.NeonShadowEnforcer": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/NeonShadowEnforcer/NeonShadowEnforcer.NeonShadowEnforcer",
+      "triangles": 19428,
+      "bounds_cm": {
+        "min": [
+          -37.09870147705078,
+          -24.742612838745117,
+          -94.95861053466797
+        ],
+        "max": [
+          36.85770034790039,
+          24.408292770385742,
+          94.7787094116211
+        ]
+      },
+      "vertices": 13178,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/NeonShadowEnforcer/material.material"
+      ]
+    },
+    "/Game/Intake/NeonShadowEnforcer/normal.normal": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonShadowEnforcer/normal.normal",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser.NeonVoidCruiser": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser.NeonVoidCruiser",
+      "triangles": 12646,
+      "bounds_cm": {
+        "min": [
+          -95.30329895019531,
+          -95.30330657958984,
+          -30.33270263671875
+        ],
+        "max": [
+          94.52050018310547,
+          95.30330657958984,
+          30.332704544067383
+        ]
+      },
+      "vertices": 10407,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.NeonVoidCruiser_material_0"
+      ]
+    },
+    "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.NeonVoidCruiser_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.NeonVoidCruiser_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.NeonVoidCruiser_texture_2",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.NeonVoidCruiser_texture_3",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.NeonVoidCruiser_texture_0",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.NeonVoidCruiser_texture_1"
+      ]
+    },
+    "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.NeonVoidCruiser_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.NeonVoidCruiser_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.NeonVoidCruiser_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.NeonVoidCruiser_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.NeonVoidCruiser_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.NeonVoidCruiser_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.NeonVoidCruiser_texture_3": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.NeonVoidCruiser_texture_3",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/Ruinforged/Ruinforged.Ruinforged": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/Ruinforged/Ruinforged.Ruinforged",
+      "triangles": 359815,
+      "bounds_cm": {
+        "min": [
+          -37.43149948120117,
+          -27.771013259887695,
+          -95.06690979003906
+        ],
+        "max": [
+          37.470001220703125,
+          27.63129234313965,
+          94.85720825195312
+        ]
+      },
+      "vertices": 207426,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/Ruinforged/Ruinforged_material_0.Ruinforged_material_0"
+      ]
+    },
+    "/Game/Intake/Ruinforged/Ruinforged_material_0.Ruinforged_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/Ruinforged/Ruinforged_material_0.Ruinforged_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/Ruinforged/Ruinforged_texture_2.Ruinforged_texture_2",
+        "/Game/Intake/Ruinforged/Ruinforged_texture_3.Ruinforged_texture_3",
+        "/Game/Intake/Ruinforged/Ruinforged_texture_0.Ruinforged_texture_0",
+        "/Game/Intake/Ruinforged/Ruinforged_texture_1.Ruinforged_texture_1"
+      ]
+    },
+    "/Game/Intake/Ruinforged/Ruinforged_texture_0.Ruinforged_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/Ruinforged/Ruinforged_texture_0.Ruinforged_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/Ruinforged/Ruinforged_texture_1.Ruinforged_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/Ruinforged/Ruinforged_texture_1.Ruinforged_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/Ruinforged/Ruinforged_texture_2.Ruinforged_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/Ruinforged/Ruinforged_texture_2.Ruinforged_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/Ruinforged/Ruinforged_texture_3.Ruinforged_texture_3": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/Ruinforged/Ruinforged_texture_3.Ruinforged_texture_3",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin.ShadowboundAssassin": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin.ShadowboundAssassin",
+      "triangles": 824072,
+      "bounds_cm": {
+        "min": [
+          -44.6078987121582,
+          -29.420799255371094,
+          -95.04180145263672
+        ],
+        "max": [
+          44.08539962768555,
+          29.21310043334961,
+          94.8469009399414
+        ]
+      },
+      "vertices": 460680,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.ShadowboundAssassin_material_0"
+      ]
+    },
+    "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.ShadowboundAssassin_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.ShadowboundAssassin_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.ShadowboundAssassin_texture_2",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.ShadowboundAssassin_texture_3",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.ShadowboundAssassin_texture_0",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.ShadowboundAssassin_texture_1"
+      ]
+    },
+    "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.ShadowboundAssassin_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.ShadowboundAssassin_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.ShadowboundAssassin_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.ShadowboundAssassin_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.ShadowboundAssassin_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.ShadowboundAssassin_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.ShadowboundAssassin_texture_3": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.ShadowboundAssassin_texture_3",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/Spaceship/Spaceship.Spaceship": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/Spaceship/Spaceship.Spaceship",
+      "triangles": 697703,
+      "bounds_cm": {
+        "min": [
+          -95.04660034179688,
+          -62.180702209472656,
+          -23.617403030395508
+        ],
+        "max": [
+          94.84390258789062,
+          62.0232048034668,
+          23.035303115844727
+        ]
+      },
+      "vertices": 409586,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/Spaceship/Spaceship_material_0.Spaceship_material_0"
+      ]
+    },
+    "/Game/Intake/Spaceship/Spaceship_material_0.Spaceship_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/Spaceship/Spaceship_material_0.Spaceship_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/Spaceship/Spaceship_texture_2.Spaceship_texture_2",
+        "/Game/Intake/Spaceship/Spaceship_texture_0.Spaceship_texture_0",
+        "/Game/Intake/Spaceship/Spaceship_texture_1.Spaceship_texture_1"
+      ]
+    },
+    "/Game/Intake/Spaceship/Spaceship_texture_0.Spaceship_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/Spaceship/Spaceship_texture_0.Spaceship_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/Spaceship/Spaceship_texture_1.Spaceship_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/Spaceship/Spaceship_texture_1.Spaceship_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/Spaceship/Spaceship_texture_2.Spaceship_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/Spaceship/Spaceship_texture_2.Spaceship_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/TPoseRobot/TPoseRobot.TPoseRobot": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/TPoseRobot/TPoseRobot.TPoseRobot",
+      "triangles": 626135,
+      "bounds_cm": {
+        "min": [
+          -92.32270050048828,
+          -20.20579719543457,
+          -95.06391143798828
+        ],
+        "max": [
+          92.18180084228516,
+          20.103092193603516,
+          94.84910583496094
+        ]
+      },
+      "vertices": 366760,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/TPoseRobot/TPoseRobot_material_0.TPoseRobot_material_0"
+      ]
+    },
+    "/Game/Intake/TPoseRobot/TPoseRobot_material_0.TPoseRobot_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/TPoseRobot/TPoseRobot_material_0.TPoseRobot_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_2.TPoseRobot_texture_2",
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_3.TPoseRobot_texture_3",
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_0.TPoseRobot_texture_0",
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_1.TPoseRobot_texture_1"
+      ]
+    },
+    "/Game/Intake/TPoseRobot/TPoseRobot_texture_0.TPoseRobot_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_0.TPoseRobot_texture_0",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/TPoseRobot/TPoseRobot_texture_1.TPoseRobot_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_1.TPoseRobot_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/TPoseRobot/TPoseRobot_texture_2.TPoseRobot_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_2.TPoseRobot_texture_2",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/TPoseRobot/TPoseRobot_texture_3.TPoseRobot_texture_3": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_3.TPoseRobot_texture_3",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/MaleCharacter/MaleCharacter.MaleCharacter": {
+      "class": "StaticMesh",
+      "path": "/Game/Intake/MaleCharacter/MaleCharacter.MaleCharacter",
+      "triangles": 579530,
+      "bounds_cm": {
+        "min": [
+          -45.23509979248047,
+          -23.298601150512695,
+          -95.05030822753906
+        ],
+        "max": [
+          45.08150100708008,
+          23.228391647338867,
+          94.84910583496094
+        ]
+      },
+      "vertices": 333675,
+      "uv_channels": 1,
+      "materials": [
+        "/Game/Intake/MaleCharacter/MaleCharacter_material_0.MaleCharacter_material_0"
+      ]
+    },
+    "/Game/Intake/MaleCharacter/MaleCharacter_material_0.MaleCharacter_material_0": {
+      "class": "Material",
+      "path": "/Game/Intake/MaleCharacter/MaleCharacter_material_0.MaleCharacter_material_0",
+      "graph_texture_references": [
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_2.MaleCharacter_texture_2",
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_3.MaleCharacter_texture_3",
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_0.MaleCharacter_texture_0",
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_1.MaleCharacter_texture_1"
+      ]
+    },
+    "/Game/Intake/MaleCharacter/MaleCharacter_texture_0.MaleCharacter_texture_0": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_0.MaleCharacter_texture_0",
+      "size": [
+        4096,
+        4096
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/MaleCharacter/MaleCharacter_texture_1.MaleCharacter_texture_1": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_1.MaleCharacter_texture_1",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    },
+    "/Game/Intake/MaleCharacter/MaleCharacter_texture_2.MaleCharacter_texture_2": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_2.MaleCharacter_texture_2",
+      "size": [
+        4096,
+        4096
+      ],
+      "srgb": false,
+      "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+    },
+    "/Game/Intake/MaleCharacter/MaleCharacter_texture_3.MaleCharacter_texture_3": {
+      "class": "Texture2D",
+      "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_3.MaleCharacter_texture_3",
+      "size": [
+        2048,
+        2048
+      ],
+      "srgb": true,
+      "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+    }
+  },
+  "groups": [
+    {
+      "name": "CrimsonTempest",
+      "seconds": 0.9369999999980791,
+      "destination": "/Game/Pilot/CrimsonTempest",
+      "task_paths": [
+        "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_0.CrimsonTempest_texture_0",
+        "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_1.CrimsonTempest_texture_1",
+        "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_2.CrimsonTempest_texture_2",
+        "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_3.CrimsonTempest_texture_3",
+        "/Game/Pilot/CrimsonTempest/CrimsonTempest_material_0.CrimsonTempest_material_0",
+        "/Game/Pilot/CrimsonTempest/CrimsonTempest.CrimsonTempest"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest.CrimsonTempest",
+          "triangles": 11842,
+          "bounds_cm": {
+            "min": [
+              -90.99803924560547,
+              -95.30332946777344,
+              -24.461841583251953
+            ],
+            "max": [
+              90.60665130615234,
+              95.3033218383789,
+              24.461841583251953
+            ]
+          },
+          "vertices_inspection_error": "'NoneType' object has no attribute 'get_number_verts'",
+          "simple_collision_count_inspection_error": "'NoneType' object has no attribute 'get_simple_collision_count'",
+          "uv_channels_inspection_error": "'NoneType' object has no attribute 'get_num_uv_channels'",
+          "materials": [
+            "/Game/Pilot/CrimsonTempest/CrimsonTempest_material_0.CrimsonTempest_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_material_0.CrimsonTempest_material_0"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_0.CrimsonTempest_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_1.CrimsonTempest_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_2.CrimsonTempest_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Pilot/CrimsonTempest/CrimsonTempest_texture_3.CrimsonTempest_texture_3",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "import_checks_passed": true
+    },
+    {
+      "name": "SentinelArmor",
+      "seconds": 2.125,
+      "destination": "/Game/Pilot/SentinelArmor",
+      "task_paths": [
+        "/Game/Pilot/SentinelArmor/normal.normal",
+        "/Game/Pilot/SentinelArmor/texture_0.texture_0",
+        "/Game/Pilot/SentinelArmor/texture_0_metallic_roughness.texture_0_metallic_roughness",
+        "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+        "/Game/Pilot/SentinelArmor/BakedMaterial.BakedMaterial",
+        "/Game/Pilot/SentinelArmor/SentinelArmor.SentinelArmor",
+        "/Game/Pilot/SentinelArmor/SentinelArmorRunning.SentinelArmorRunning",
+        "/Game/Pilot/SentinelArmor/SentinelArmorWalking.SentinelArmorWalking",
+        "/Game/Pilot/SentinelArmor/SentinelArmorCasual_Walk.SentinelArmorCasual_Walk",
+        "/Game/Pilot/SentinelArmor/SentinelArmorIdle_02.SentinelArmorIdle_02",
+        "/Game/Pilot/SentinelArmor/SentinelArmorIdle_3.SentinelArmorIdle_3",
+        "/Game/Pilot/SentinelArmor/SentinelArmorIdle_6.SentinelArmorIdle_6"
+      ],
+      "assets": [
+        {
+          "class": "Material",
+          "path": "/Game/Pilot/SentinelArmor/BakedMaterial.BakedMaterial"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Pilot/SentinelArmor/normal.normal",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "class": "SkeletalMesh",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmor.SentinelArmor",
+          "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+          "materials": [
+            "/Game/Pilot/SentinelArmor/BakedMaterial.BakedMaterial"
+          ],
+          "bone_count": 74,
+          "bones": [
+            "pelvis",
+            "spine_01",
+            "spine_02",
+            "spine_03",
+            "neck_01",
+            "head",
+            "head_end",
+            "Bone_027",
+            "Bone_026",
+            "Bone_029",
+            "Bone_028",
+            "Bone_031",
+            "Bone_030",
+            "Bone_033",
+            "Bone_032",
+            "headfront",
+            "clavicle_l",
+            "upperarm_l",
+            "lowerarm_l",
+            "hand_l",
+            "thumb_01_l",
+            "thumb_02_l",
+            "thumb_03_l",
+            "thumb_03_l_end",
+            "ring_01_l",
+            "ring_02_l",
+            "ring_03_l",
+            "ring_03_l_end",
+            "pinky_01_l",
+            "pinky_02_l",
+            "pinky_03_l",
+            "pinky_03_l_end",
+            "middle_01_l",
+            "middle_02_l",
+            "middle_03_l",
+            "middle_03_l_end",
+            "index_01_l",
+            "index_02_l",
+            "index_03_l",
+            "index_03_l_end",
+            "clavicle_r",
+            "upperarm_r",
+            "lowerarm_r",
+            "hand_r",
+            "thumb_01_r",
+            "thumb_02_r",
+            "thumb_03_r",
+            "thumb_03_r_end",
+            "pinky_01_r",
+            "pinky_02_r",
+            "pinky_03_r",
+            "pinky_03_r_end",
+            "ring_01_r",
+            "ring_02_r",
+            "ring_03_r",
+            "ring_03_r_end",
+            "middle_01_r",
+            "middle_02_r",
+            "middle_03_r",
+            "middle_03_r_end",
+            "index_01_r",
+            "index_02_r",
+            "index_03_r",
+            "index_03_r_end",
+            "thigh_l",
+            "calf_l",
+            "foot_l",
+            "ball_l",
+            "ball_l_end",
+            "thigh_r",
+            "calf_r",
+            "foot_r",
+            "ball_r",
+            "ball_r_end"
+          ],
+          "bounds_cm_inspection_error": "'SkeletalMeshComponent' object has no attribute 'get_local_bounds'",
+          "vertices": 43297
+        },
+        {
+          "class": "Skeleton",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton"
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmorCasual_Walk.SentinelArmorCasual_Walk",
+          "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+          "duration": 4.166666507720947,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                -0.03749099001288414,
+                -4.4015960693359375,
+                98.03974914550781
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.462675, y: -0.527973, z: 0.523852, w: 0.482447}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                3.4550232887268066,
+                -4.361072540283203,
+                98.80631256103516
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.482850, y: 0.524921, z: -0.535403, w: -0.452391}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                6.444815635681152,
+                -4.8289313316345215,
+                99.1062240600586
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: -0.493313, y: 0.525498, z: -0.535474, w: -0.440183}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmorIdle_02.SentinelArmorIdle_02",
+          "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+          "duration": 1.8666666746139526,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                1.0775742530822754,
+                -12.059391021728516,
+                97.43498229980469
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.586891, y: 0.462966, z: -0.576607, w: -0.329765}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                1.2180712223052979,
+                -11.77360725402832,
+                97.04053497314453
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: -0.593466, y: 0.459647, z: -0.583315, w: -0.310268}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                1.1925119161605835,
+                -11.777914047241211,
+                96.66764068603516
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.594179, y: 0.455827, z: -0.588873, w: -0.303976}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmorIdle_3.SentinelArmorIdle_3",
+          "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+          "duration": 9.966666221618652,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                0.09799407422542572,
+                -3.3881824016571045,
+                95.8550033569336
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.467412, y: -0.522358, z: 0.524502, w: 0.483286}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                1.0592126846313477,
+                -3.180737018585205,
+                95.46160888671875
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.471033, y: -0.522444, z: 0.519009, w: 0.485603}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                1.2865827083587646,
+                -3.049729108810425,
+                94.7742691040039
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.473051, y: -0.522028, z: 0.517450, w: 0.485752}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmorIdle_6.SentinelArmorIdle_6",
+          "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+          "duration": 7.366666793823242,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                -0.26974278688430786,
+                -4.663973808288574,
+                93.47791290283203
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.495981, y: -0.605887, z: 0.388602, w: 0.485688}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                0.05668915435671806,
+                -3.4786858558654785,
+                93.64904022216797
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: -0.497969, y: 0.610894, z: -0.390022, w: -0.476148}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                0.3924468159675598,
+                -2.3365888595581055,
+                93.91557312011719
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: -0.501955, y: 0.603884, z: -0.401657, w: -0.471208}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmorRunning.SentinelArmorRunning",
+          "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+          "duration": 0.6333333253860474,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                0.4742193818092346,
+                -1.9318395853042603,
+                95.63916778564453
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.462390, y: -0.438292, z: 0.577383, w: 0.510612}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                -0.03345491737127304,
+                -4.8759636878967285,
+                94.64460754394531
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.334191, y: -0.513909, z: 0.575502, w: 0.541305}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                0.5786390900611877,
+                -3.8871567249298096,
+                95.55272674560547
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.460731, y: -0.434846, z: 0.580207, w: 0.511855}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Pilot/SentinelArmor/SentinelArmorWalking.SentinelArmorWalking",
+          "skeleton": "/Game/Pilot/SentinelArmor/SentinelArmor_Skeleton.SentinelArmor_Skeleton",
+          "duration": 1.0333333015441895,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                -0.02352823317050934,
+                -2.2347280979156494,
+                102.1775131225586
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.436801, y: -0.515232, z: 0.537447, w: 0.504868}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                3.116744041442871,
+                -0.41611483693122864,
+                96.23090362548828
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86690) {x: 0.462669, y: -0.494739, z: 0.548939, w: 0.489731}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                3.407085657119751,
+                -1.1922237873077393,
+                101.21527099609375
+              ],
+              "rotation": "<Struct 'Quat' (0x000001D03BC86730) {x: 0.423035, y: -0.542505, z: 0.525076, w: 0.501024}>"
+            }
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Pilot/SentinelArmor/texture_0.texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Pilot/SentinelArmor/texture_0_metallic_roughness.texture_0_metallic_roughness",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "counts": {
+        "AnimSequence": 6,
+        "Material": 1,
+        "SkeletalMesh": 1,
+        "Skeleton": 1,
+        "Texture2D": 3
+      },
+      "import_checks_passed": true
+    },
+    {
+      "name": "CrimsonSentinel",
+      "seconds": 0.0,
+      "destination": "/Game/Intake/CrimsonSentinel",
+      "task_paths": [],
+      "assets": [
+        {
+          "class": "Material",
+          "path": "/Game/Intake/CrimsonSentinel/BakedMaterial.BakedMaterial",
+          "graph_texture_references": [
+            "/Game/Intake/CrimsonSentinel/texture_0_normal.texture_0_normal",
+            "/Game/Intake/CrimsonSentinel/texture_0.texture_0",
+            "/Game/Intake/CrimsonSentinel/texture_0_metallic-texture_0_roughness.texture_0_metallic-texture_0_roughness"
+          ]
+        },
+        {
+          "class": "SkeletalMesh",
+          "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinel.CrimsonSentinel",
+          "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+          "materials": [
+            "/Game/Intake/CrimsonSentinel/BakedMaterial.BakedMaterial"
+          ],
+          "bone_count": 28,
+          "bones": [
+            "mixamorig_Hips",
+            "mixamorig_Spine",
+            "mixamorig_Spine1",
+            "mixamorig_Spine2",
+            "mixamorig_Neck",
+            "mixamorig_Head",
+            "mixamorig_HeadTop_End",
+            "headfront",
+            "mixamorig_LeftShoulder",
+            "mixamorig_LeftArm",
+            "mixamorig_LeftForeArm",
+            "mixamorig_LeftHand",
+            "mixamorig_LeftHandMiddle4",
+            "mixamorig_RightShoulder",
+            "mixamorig_RightArm",
+            "mixamorig_RightForeArm",
+            "mixamorig_RightHand",
+            "mixamorig_RightHandMiddle4",
+            "mixamorig_LeftUpLeg",
+            "mixamorig_LeftLeg",
+            "mixamorig_LeftFoot",
+            "mixamorig_LeftToeBase",
+            "mixamorig_LeftToe_End",
+            "mixamorig_RightUpLeg",
+            "mixamorig_RightLeg",
+            "mixamorig_RightFoot",
+            "mixamorig_RightToeBase",
+            "mixamorig_RightToe_End"
+          ],
+          "bounds_cm": {
+            "origin": [
+              7.62939453125e-06,
+              1.9073486328125e-06,
+              85.0
+            ],
+            "extent": [
+              81.62508392333984,
+              18.841047286987305,
+              85.0
+            ]
+          },
+          "vertices": 155311
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_360_Power_Spin_Jump.CrimsonSentinel_360_Power_Spin_Jump",
+          "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+          "duration": 3.0333333015441895,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                0.01322174072265625,
+                0.11812926083803177,
+                92.33323669433594
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.045785, y: -0.021279, z: -0.287257, w: 0.956522}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                4.7929463386535645,
+                -8.095003431662917e-05,
+                87.62208557128906
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.008551, y: 0.135275, z: -0.752717, w: 0.644240}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                0.8261067867279053,
+                5.0748982429504395,
+                85.5408935546875
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.034759, y: 0.152671, z: -0.748331, w: 0.644580}>"
+            }
+          ]
+        },
+        {
+          "class": "Skeleton",
+          "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton"
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelAgree_Gesture.CrimsonSentinelAgree_Gesture",
+          "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+          "duration": 13.0,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                0.8667572140693665,
+                -1.517780065536499,
+                92.0892562866211
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: 0.094244, y: 0.018210, z: 0.139550, w: 0.985552}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                1.095426082611084,
+                -1.6010671854019165,
+                92.1125259399414
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.093559, y: 0.017810, z: 0.145699, w: 0.984734}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                1.3492634296417236,
+                -1.4114278554916382,
+                92.10860443115234
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: 0.092570, y: 0.018990, z: 0.145554, w: 0.984827}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelair_squat.CrimsonSentinelair_squat",
+          "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+          "duration": 1.8666666746139526,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                0.4153883457183838,
+                -0.2202654927968979,
+                92.83901977539062
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.000880, y: 0.002974, z: 0.032120, w: 0.999479}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                0.2793078124523163,
+                -6.543017864227295,
+                85.20849609375
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.056462, y: 0.013608, z: 0.034760, w: 0.997707}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                0.2196454554796219,
+                -10.776289939880371,
+                61.380836486816406
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.107502, y: 0.031407, z: 0.024105, w: 0.993416}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelRunning.CrimsonSentinelRunning",
+          "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+          "duration": 0.6333333253860474,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                0.5589498281478882,
+                0.8875653147697449,
+                91.44732666015625
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.040033, y: 0.039084, z: 0.046432, w: 0.997353}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                0.7676287293434143,
+                -1.7658531665802002,
+                90.03082275390625
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: -0.074918, y: -0.053386, z: -0.068958, w: 0.993369}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                0.6558611989021301,
+                -1.0505802631378174,
+                91.34637451171875
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: -0.044731, y: 0.039276, z: 0.047838, w: 0.997080}>"
+            }
+          ]
+        },
+        {
+          "class": "AnimSequence",
+          "path": "/Game/Intake/CrimsonSentinel/CrimsonSentinelWalking.CrimsonSentinelWalking",
+          "skeleton": "/Game/Intake/CrimsonSentinel/CrimsonSentinel_Skeleton.CrimsonSentinel_Skeleton",
+          "duration": 1.0333333015441895,
+          "root_motion_enabled": false,
+          "pelvis_samples": [
+            {
+              "time": 0.0,
+              "translation": [
+                0.4097669720649719,
+                0.9366987943649292,
+                97.93624114990234
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.012238, y: 0.001077, z: -0.016968, w: 0.999781}>"
+            },
+            {
+              "time": 0.3,
+              "translation": [
+                3.3196144104003906,
+                2.6101667881011963,
+                92.14442443847656
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA7D0) {x: 0.014732, y: 0.012994, z: 0.019115, w: 0.999624}>"
+            },
+            {
+              "time": 0.6,
+              "translation": [
+                3.9206016063690186,
+                2.066410779953003,
+                97.00630187988281
+              ],
+              "rotation": "<Struct 'Quat' (0x00000173DC0EA730) {x: 0.028315, y: -0.016681, z: -0.039905, w: 0.998663}>"
+            }
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/CrimsonSentinel/texture_0.texture_0",
+          "size": [
+            8192,
+            8192
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/CrimsonSentinel/texture_0_metallic-texture_0_roughness.texture_0_metallic-texture_0_roughness",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/CrimsonSentinel/texture_0_normal.texture_0_normal",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "animation_pose_bone": "mixamorig_Hips",
+      "counts": {
+        "AnimSequence": 5,
+        "Material": 1,
+        "SkeletalMesh": 1,
+        "Skeleton": 1,
+        "Texture2D": 3
+      },
+      "import_checks_passed": true
+    },
+    {
+      "name": "NebulaShadowfighter",
+      "seconds": 0.7970000000000255,
+      "destination": "/Game/Intake/NebulaShadowfighter",
+      "task_paths": [
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.NebulaShadowfighter_texture_0",
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.NebulaShadowfighter_texture_1",
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.NebulaShadowfighter_texture_2",
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.NebulaShadowfighter_material_0",
+        "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter.NebulaShadowfighter"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter.NebulaShadowfighter",
+          "triangles": 7741,
+          "bounds_cm": {
+            "min": [
+              -89.43250274658203,
+              -95.30331420898438,
+              -26.418813705444336
+            ],
+            "max": [
+              89.43250274658203,
+              95.30330657958984,
+              26.02740478515625
+            ]
+          },
+          "vertices": 7711,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.NebulaShadowfighter_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_material_0.NebulaShadowfighter_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.NebulaShadowfighter_texture_2",
+            "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.NebulaShadowfighter_texture_0",
+            "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.NebulaShadowfighter_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_0.NebulaShadowfighter_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_1.NebulaShadowfighter_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NebulaShadowfighter/NebulaShadowfighter_texture_2.NebulaShadowfighter_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 3
+      },
+      "source_triangles": 7741,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "GothicStoneArchWall",
+      "seconds": 0.9529999999999745,
+      "destination": "/Game/Intake/GothicStoneArchWall",
+      "task_paths": [
+        "/Game/Intake/GothicStoneArchWall/Baked_Emit.Baked_Emit",
+        "/Game/Intake/GothicStoneArchWall/normal.normal",
+        "/Game/Intake/GothicStoneArchWall/Baked_BaseColor.Baked_BaseColor",
+        "/Game/Intake/GothicStoneArchWall/Baked_MetallicRoughness.Baked_MetallicRoughness",
+        "/Game/Intake/GothicStoneArchWall/Material_0_001.Material_0_001",
+        "/Game/Intake/GothicStoneArchWall/GothicStoneArchWall.GothicStoneArchWall"
+      ],
+      "assets": [
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/GothicStoneArchWall/Baked_BaseColor.Baked_BaseColor",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/GothicStoneArchWall/Baked_Emit.Baked_Emit",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/GothicStoneArchWall/Baked_MetallicRoughness.Baked_MetallicRoughness",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/GothicStoneArchWall/GothicStoneArchWall.GothicStoneArchWall",
+          "triangles": 9763,
+          "bounds_cm": {
+            "min": [
+              -70.31310272216797,
+              -32.759193420410156,
+              -95.69280242919922
+            ],
+            "max": [
+              70.36880493164062,
+              31.798107147216797,
+              95.50060272216797
+            ]
+          },
+          "vertices": 14967,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/GothicStoneArchWall/Material_0_001.Material_0_001"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/GothicStoneArchWall/Material_0_001.Material_0_001",
+          "graph_texture_references": [
+            "/Game/Intake/GothicStoneArchWall/normal.normal",
+            "/Game/Intake/GothicStoneArchWall/Baked_Emit.Baked_Emit",
+            "/Game/Intake/GothicStoneArchWall/Baked_BaseColor.Baked_BaseColor",
+            "/Game/Intake/GothicStoneArchWall/Baked_MetallicRoughness.Baked_MetallicRoughness"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/GothicStoneArchWall/normal.normal",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "source_triangles": 9763,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "NeonVoidCruiser",
+      "seconds": 0.9530000000004293,
+      "destination": "/Game/Intake/NeonVoidCruiser",
+      "task_paths": [
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.NeonVoidCruiser_texture_0",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.NeonVoidCruiser_texture_1",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.NeonVoidCruiser_texture_2",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.NeonVoidCruiser_texture_3",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.NeonVoidCruiser_material_0",
+        "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser.NeonVoidCruiser"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser.NeonVoidCruiser",
+          "triangles": 12646,
+          "bounds_cm": {
+            "min": [
+              -95.30329895019531,
+              -95.30330657958984,
+              -30.33270263671875
+            ],
+            "max": [
+              94.52050018310547,
+              95.30330657958984,
+              30.332704544067383
+            ]
+          },
+          "vertices": 10407,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.NeonVoidCruiser_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_material_0.NeonVoidCruiser_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.NeonVoidCruiser_texture_2",
+            "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.NeonVoidCruiser_texture_3",
+            "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.NeonVoidCruiser_texture_0",
+            "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.NeonVoidCruiser_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_0.NeonVoidCruiser_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_1.NeonVoidCruiser_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_2.NeonVoidCruiser_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonVoidCruiser/NeonVoidCruiser_texture_3.NeonVoidCruiser_texture_3",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "source_triangles": 12646,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "NeonShadowEnforcer",
+      "seconds": 0.875,
+      "destination": "/Game/Intake/NeonShadowEnforcer",
+      "task_paths": [
+        "/Game/Intake/NeonShadowEnforcer/emissive.emissive",
+        "/Game/Intake/NeonShadowEnforcer/normal.normal",
+        "/Game/Intake/NeonShadowEnforcer/base_color.base_color",
+        "/Game/Intake/NeonShadowEnforcer/metallic_roughness.metallic_roughness",
+        "/Game/Intake/NeonShadowEnforcer/material.material",
+        "/Game/Intake/NeonShadowEnforcer/NeonShadowEnforcer.NeonShadowEnforcer"
+      ],
+      "assets": [
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonShadowEnforcer/base_color.base_color",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonShadowEnforcer/emissive.emissive",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/NeonShadowEnforcer/material.material",
+          "graph_texture_references": [
+            "/Game/Intake/NeonShadowEnforcer/normal.normal",
+            "/Game/Intake/NeonShadowEnforcer/emissive.emissive",
+            "/Game/Intake/NeonShadowEnforcer/base_color.base_color",
+            "/Game/Intake/NeonShadowEnforcer/metallic_roughness.metallic_roughness"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonShadowEnforcer/metallic_roughness.metallic_roughness",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/NeonShadowEnforcer/NeonShadowEnforcer.NeonShadowEnforcer",
+          "triangles": 19428,
+          "bounds_cm": {
+            "min": [
+              -37.09870147705078,
+              -24.742612838745117,
+              -94.95861053466797
+            ],
+            "max": [
+              36.85770034790039,
+              24.408292770385742,
+              94.7787094116211
+            ]
+          },
+          "vertices": 13178,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/NeonShadowEnforcer/material.material"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/NeonShadowEnforcer/normal.normal",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "source_triangles": 19428,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "EmeraldShadowstar",
+      "seconds": 1.030999999999949,
+      "destination": "/Game/Intake/EmeraldShadowstar",
+      "task_paths": [
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.EmeraldShadowstar_texture_0",
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.EmeraldShadowstar_texture_1",
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.EmeraldShadowstar_texture_2",
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.EmeraldShadowstar_material_0",
+        "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar.EmeraldShadowstar"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar.EmeraldShadowstar",
+          "triangles": 49874,
+          "bounds_cm": {
+            "min": [
+              -95.4625015258789,
+              -95.67910766601562,
+              -19.827503204345703
+            ],
+            "max": [
+              94.35050201416016,
+              95.47431182861328,
+              19.282102584838867
+            ]
+          },
+          "vertices": 33035,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.EmeraldShadowstar_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_material_0.EmeraldShadowstar_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.EmeraldShadowstar_texture_2",
+            "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.EmeraldShadowstar_texture_0",
+            "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.EmeraldShadowstar_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_0.EmeraldShadowstar_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_1.EmeraldShadowstar_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/EmeraldShadowstar/EmeraldShadowstar_texture_2.EmeraldShadowstar_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 3
+      },
+      "source_triangles": 49874,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "Ruinforged",
+      "seconds": 4.203000000000429,
+      "destination": "/Game/Intake/Ruinforged",
+      "task_paths": [
+        "/Game/Intake/Ruinforged/Ruinforged_texture_0.Ruinforged_texture_0",
+        "/Game/Intake/Ruinforged/Ruinforged_texture_1.Ruinforged_texture_1",
+        "/Game/Intake/Ruinforged/Ruinforged_texture_2.Ruinforged_texture_2",
+        "/Game/Intake/Ruinforged/Ruinforged_texture_3.Ruinforged_texture_3",
+        "/Game/Intake/Ruinforged/Ruinforged_material_0.Ruinforged_material_0",
+        "/Game/Intake/Ruinforged/Ruinforged.Ruinforged"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/Ruinforged/Ruinforged.Ruinforged",
+          "triangles": 359815,
+          "bounds_cm": {
+            "min": [
+              -37.43149948120117,
+              -27.771013259887695,
+              -95.06690979003906
+            ],
+            "max": [
+              37.470001220703125,
+              27.63129234313965,
+              94.85720825195312
+            ]
+          },
+          "vertices": 207426,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/Ruinforged/Ruinforged_material_0.Ruinforged_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/Ruinforged/Ruinforged_material_0.Ruinforged_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/Ruinforged/Ruinforged_texture_2.Ruinforged_texture_2",
+            "/Game/Intake/Ruinforged/Ruinforged_texture_3.Ruinforged_texture_3",
+            "/Game/Intake/Ruinforged/Ruinforged_texture_0.Ruinforged_texture_0",
+            "/Game/Intake/Ruinforged/Ruinforged_texture_1.Ruinforged_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/Ruinforged/Ruinforged_texture_0.Ruinforged_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/Ruinforged/Ruinforged_texture_1.Ruinforged_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/Ruinforged/Ruinforged_texture_2.Ruinforged_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/Ruinforged/Ruinforged_texture_3.Ruinforged_texture_3",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "source_triangles": 359815,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "MaleCharacter",
+      "seconds": 7.967999999999847,
+      "destination": "/Game/Intake/MaleCharacter",
+      "task_paths": [
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_0.MaleCharacter_texture_0",
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_1.MaleCharacter_texture_1",
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_2.MaleCharacter_texture_2",
+        "/Game/Intake/MaleCharacter/MaleCharacter_texture_3.MaleCharacter_texture_3",
+        "/Game/Intake/MaleCharacter/MaleCharacter_material_0.MaleCharacter_material_0",
+        "/Game/Intake/MaleCharacter/MaleCharacter.MaleCharacter"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/MaleCharacter/MaleCharacter.MaleCharacter",
+          "triangles": 579530,
+          "bounds_cm": {
+            "min": [
+              -45.23509979248047,
+              -23.298601150512695,
+              -95.05030822753906
+            ],
+            "max": [
+              45.08150100708008,
+              23.228391647338867,
+              94.84910583496094
+            ]
+          },
+          "vertices": 333675,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/MaleCharacter/MaleCharacter_material_0.MaleCharacter_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/MaleCharacter/MaleCharacter_material_0.MaleCharacter_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/MaleCharacter/MaleCharacter_texture_2.MaleCharacter_texture_2",
+            "/Game/Intake/MaleCharacter/MaleCharacter_texture_3.MaleCharacter_texture_3",
+            "/Game/Intake/MaleCharacter/MaleCharacter_texture_0.MaleCharacter_texture_0",
+            "/Game/Intake/MaleCharacter/MaleCharacter_texture_1.MaleCharacter_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_0.MaleCharacter_texture_0",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_1.MaleCharacter_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_2.MaleCharacter_texture_2",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/MaleCharacter/MaleCharacter_texture_3.MaleCharacter_texture_3",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "source_triangles": 579530,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "TPoseRobot",
+      "seconds": 7.030999999999949,
+      "destination": "/Game/Intake/TPoseRobot",
+      "task_paths": [
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_0.TPoseRobot_texture_0",
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_1.TPoseRobot_texture_1",
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_2.TPoseRobot_texture_2",
+        "/Game/Intake/TPoseRobot/TPoseRobot_texture_3.TPoseRobot_texture_3",
+        "/Game/Intake/TPoseRobot/TPoseRobot_material_0.TPoseRobot_material_0",
+        "/Game/Intake/TPoseRobot/TPoseRobot.TPoseRobot"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/TPoseRobot/TPoseRobot.TPoseRobot",
+          "triangles": 626135,
+          "bounds_cm": {
+            "min": [
+              -92.32270050048828,
+              -20.20579719543457,
+              -95.06391143798828
+            ],
+            "max": [
+              92.18180084228516,
+              20.103092193603516,
+              94.84910583496094
+            ]
+          },
+          "vertices": 366760,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/TPoseRobot/TPoseRobot_material_0.TPoseRobot_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/TPoseRobot/TPoseRobot_material_0.TPoseRobot_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/TPoseRobot/TPoseRobot_texture_2.TPoseRobot_texture_2",
+            "/Game/Intake/TPoseRobot/TPoseRobot_texture_3.TPoseRobot_texture_3",
+            "/Game/Intake/TPoseRobot/TPoseRobot_texture_0.TPoseRobot_texture_0",
+            "/Game/Intake/TPoseRobot/TPoseRobot_texture_1.TPoseRobot_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_0.TPoseRobot_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_1.TPoseRobot_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_2.TPoseRobot_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/TPoseRobot/TPoseRobot_texture_3.TPoseRobot_texture_3",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "source_triangles": 626135,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "Spaceship",
+      "seconds": 7.671999999999571,
+      "destination": "/Game/Intake/Spaceship",
+      "task_paths": [
+        "/Game/Intake/Spaceship/Spaceship_texture_0.Spaceship_texture_0",
+        "/Game/Intake/Spaceship/Spaceship_texture_1.Spaceship_texture_1",
+        "/Game/Intake/Spaceship/Spaceship_texture_2.Spaceship_texture_2",
+        "/Game/Intake/Spaceship/Spaceship_material_0.Spaceship_material_0",
+        "/Game/Intake/Spaceship/Spaceship.Spaceship"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/Spaceship/Spaceship.Spaceship",
+          "triangles": 697703,
+          "bounds_cm": {
+            "min": [
+              -95.04660034179688,
+              -62.180702209472656,
+              -23.617403030395508
+            ],
+            "max": [
+              94.84390258789062,
+              62.0232048034668,
+              23.035303115844727
+            ]
+          },
+          "vertices": 409586,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/Spaceship/Spaceship_material_0.Spaceship_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/Spaceship/Spaceship_material_0.Spaceship_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/Spaceship/Spaceship_texture_2.Spaceship_texture_2",
+            "/Game/Intake/Spaceship/Spaceship_texture_0.Spaceship_texture_0",
+            "/Game/Intake/Spaceship/Spaceship_texture_1.Spaceship_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/Spaceship/Spaceship_texture_0.Spaceship_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/Spaceship/Spaceship_texture_1.Spaceship_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/Spaceship/Spaceship_texture_2.Spaceship_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 3
+      },
+      "source_triangles": 697703,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "ShadowboundAssassin",
+      "seconds": 9.061999999999898,
+      "destination": "/Game/Intake/ShadowboundAssassin",
+      "task_paths": [
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.ShadowboundAssassin_texture_0",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.ShadowboundAssassin_texture_1",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.ShadowboundAssassin_texture_2",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.ShadowboundAssassin_texture_3",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.ShadowboundAssassin_material_0",
+        "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin.ShadowboundAssassin"
+      ],
+      "assets": [
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin.ShadowboundAssassin",
+          "triangles": 824072,
+          "bounds_cm": {
+            "min": [
+              -44.6078987121582,
+              -29.420799255371094,
+              -95.04180145263672
+            ],
+            "max": [
+              44.08539962768555,
+              29.21310043334961,
+              94.8469009399414
+            ]
+          },
+          "vertices": 460680,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.ShadowboundAssassin_material_0"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_material_0.ShadowboundAssassin_material_0",
+          "graph_texture_references": [
+            "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.ShadowboundAssassin_texture_2",
+            "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.ShadowboundAssassin_texture_3",
+            "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.ShadowboundAssassin_texture_0",
+            "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.ShadowboundAssassin_texture_1"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_0.ShadowboundAssassin_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_1.ShadowboundAssassin_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_2.ShadowboundAssassin_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/ShadowboundAssassin/ShadowboundAssassin_texture_3.ShadowboundAssassin_texture_3",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 4
+      },
+      "source_triangles": 824072,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    },
+    {
+      "name": "CyberneticSentinel",
+      "seconds": 21.95300000000043,
+      "destination": "/Game/Intake/CyberneticSentinel",
+      "task_paths": [
+        "/Game/Intake/CyberneticSentinel/base_color.base_color",
+        "/Game/Intake/CyberneticSentinel/metallic_roughness.metallic_roughness",
+        "/Game/Intake/CyberneticSentinel/normal.normal",
+        "/Game/Intake/CyberneticSentinel/material.material",
+        "/Game/Intake/CyberneticSentinel/CyberneticSentinel.CyberneticSentinel"
+      ],
+      "assets": [
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/CyberneticSentinel/base_color.base_color",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "StaticMesh",
+          "path": "/Game/Intake/CyberneticSentinel/CyberneticSentinel.CyberneticSentinel",
+          "triangles": 1995134,
+          "bounds_cm": {
+            "min": [
+              -45.59400177001953,
+              -18.684099197387695,
+              -95.21080017089844
+            ],
+            "max": [
+              45.48979949951172,
+              19.129899978637695,
+              95.11799621582031
+            ]
+          },
+          "vertices": 1046406,
+          "uv_channels": 1,
+          "materials": [
+            "/Game/Intake/CyberneticSentinel/material.material"
+          ]
+        },
+        {
+          "class": "Material",
+          "path": "/Game/Intake/CyberneticSentinel/material.material",
+          "graph_texture_references": [
+            "/Game/Intake/CyberneticSentinel/normal.normal",
+            "/Game/Intake/CyberneticSentinel/base_color.base_color",
+            "/Game/Intake/CyberneticSentinel/metallic_roughness.metallic_roughness"
+          ]
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/CyberneticSentinel/metallic_roughness.metallic_roughness",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "class": "Texture2D",
+          "path": "/Game/Intake/CyberneticSentinel/normal.normal",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "counts": {
+        "Material": 1,
+        "StaticMesh": 1,
+        "Texture2D": 3
+      },
+      "source_triangles": 1995134,
+      "triangle_delta": 0,
+      "import_checks_passed": true
+    }
+  ],
+  "source_reports": [
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\import_results.json",
+      "sha256": "1696a96806be1c8df82e82b44e75d782a32cef13bc55d4585fea9787f8fa6325"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\process_result.json",
+      "sha256": "45747ef870acb4a5552e392087192fa63ad00f8d90e90710e153df8965787e0e"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T161259598Z_f45ae3ee\\pilot_reload.json",
+      "sha256": "a6e1a88b180638950a4e86a893582a5f2255a17756cea82eb564c2028c23b0ef"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T161259598Z_f45ae3ee\\process_result.json",
+      "sha256": "4c2b37440b4edf1bbbb8711aa04107b4df83b86ada4a3f7186a1a3fc324c97e6"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T162811996Z_a4a26c7c\\process_result.json",
+      "sha256": "d5dde6891f422ed964a1fd0db63b8c64ff27ca3b6c1f1598ac6b8d6d7b2d1d47"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T162811996Z_a4a26c7c\\intake_results.json",
+      "sha256": "ed10e78d5c4f81b8209ee70c6fdc62d7dd8dc3497226d7b932e1545d5fdd7a9c"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T162811996Z_a4a26c7c\\pilot_reload.json",
+      "sha256": "e1fc95604270441b73291f77f887431925017726cdebaf193c6b5f742b4b7c21"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T163259748Z_d1eb171e\\process_result.json",
+      "sha256": "9d533345154be009d7b16cb877cde3e34b7f161619f37ea780b494d0bde298b8"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T163259748Z_d1eb171e\\intake_results.json",
+      "sha256": "594b0acbb0949e28a22752acd414359c3845890296c650a005f3d8606f064301"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T163259748Z_d1eb171e\\pilot_reload.json",
+      "sha256": "e1fc95604270441b73291f77f887431925017726cdebaf193c6b5f742b4b7c21"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T163731951Z_ce102756\\process_result.json",
+      "sha256": "c7168d59882088b66878e28211ce985a5014af1f8d49481c9a1bafd5a3b47d8e"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T163731951Z_ce102756\\intake_results.json",
+      "sha256": "92725302a9429c619fb77bab677767c85f2e1ebaa32c29489f3b7a496a7cb4f4"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T163731951Z_ce102756\\pilot_reload.json",
+      "sha256": "27dea3fcc0326a564f9ac9bf93327057549bc9ec3eb3ec7d1fefc1212a10d1ff"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T172750921Z_89a87802\\process_result.json",
+      "sha256": "858ba9070ff867b9825cbf90632ba20980b0d6cec7d2f44900a257c56dc70592"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T172750921Z_89a87802\\intake_results.json",
+      "sha256": "d8f49ebd8c2513f32149960c4a42a07aa2af4c64a8cb09d44741e8d5b9b9f587"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T172750921Z_89a87802\\pilot_reload.json",
+      "sha256": "f2c64e8f7a11c602041e66d87172461b60f4abe1a7007bce6d0108f792932aa3"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173316453Z_38ccd66e\\process_result.json",
+      "sha256": "d9b8436b660b3ad0814ae63434df93a065936783bad68c110303e8eaf786249e"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173316453Z_38ccd66e\\intake_results.json",
+      "sha256": "d4212c69f72b96125ea94fce249301991068026636fadad21f5453a286fa96ea"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173316453Z_38ccd66e\\pilot_reload.json",
+      "sha256": "1f9a777c882197c8b5b5aebcc3186faec286c0f890e97d718cd0adcc4d8012b3"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173343782Z_d3682e63\\process_result.json",
+      "sha256": "5680d02cade5e970b3914aa8f9168a3b5162f8792ea6e14a5c4c2222ba41fe3c"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173343782Z_d3682e63\\intake_results.json",
+      "sha256": "aa6556868c8109a88607b6ed2d825e477ef054567d7518ca6955b874e28cb2e2"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173343782Z_d3682e63\\pilot_reload.json",
+      "sha256": "5e44912d9d842abd2201eabdc914a4e65f0078fbd9647577583b6644de49ddfd"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173410437Z_0629c877\\process_result.json",
+      "sha256": "dc47ce027dac3fc83af7ec7a705eef573a0d6ff7ad1bd7f7b2c05bc6ba5da7fd"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173410437Z_0629c877\\intake_results.json",
+      "sha256": "0440b7d8d0dfda7dc5d4b3122d2cbf3de1884a063577643963ab21db1911f9f8"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173410437Z_0629c877\\pilot_reload.json",
+      "sha256": "2c2ccb8149ce9ad504c105fef633d8fae5010efa8487fe82061d97273410967f"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173444486Z_9ab67a48\\process_result.json",
+      "sha256": "a6c156a3f26e3079bcf14ad447923ede4539c4bddbfacaa5da4d1324aa330d3f"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173444486Z_9ab67a48\\intake_results.json",
+      "sha256": "9bebc1d118fe56425795c09d10b7ab59c5432e1d8558b7a33172fd002b825028"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173444486Z_9ab67a48\\pilot_reload.json",
+      "sha256": "1d777caa226ab455f015a21d281c3060814d5844dc736bb53b2dcf7216928653"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173540609Z_0a020114\\process_result.json",
+      "sha256": "29d062b47fc5b890ed8b46b9d8d2c152c2e57aec6ae02f4809d366b35e925a2d"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173540609Z_0a020114\\intake_results.json",
+      "sha256": "b8233883d78ce69e5673ae1278079b249d715ef83ba457848e8f9418d2e54d49"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173540609Z_0a020114\\pilot_reload.json",
+      "sha256": "3e4109297dacebba8eb4f21f4928543367e8b85ba69e719f2e47bc88cd713d00"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173612615Z_6eacae28\\process_result.json",
+      "sha256": "a4a9d74da4f16c286c6a682be5f4d139ad57e7b272c18bd7b7cb0518b2c0842b"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173612615Z_6eacae28\\intake_results.json",
+      "sha256": "49cb100976103e86348d7ba869574b0e549ac5111af3d1a919dd869a4a9e389b"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173612615Z_6eacae28\\pilot_reload.json",
+      "sha256": "05eff8a0d9030184367ad12d049bf0ea8ed0f886f88070964269be3a561ac098"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173655637Z_6744f97a\\process_result.json",
+      "sha256": "edeca7fe88a79cde33236fad2d353d866ac296f8592e9fa174fe8a6e97b79810"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173655637Z_6744f97a\\intake_results.json",
+      "sha256": "a5f12b3b9d06611b8f9c79d1158ce7adb0d8c67e40339a3130ffa1fe8b6f9c2e"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173655637Z_6744f97a\\pilot_reload.json",
+      "sha256": "0edee10423f0d57bd88f6cc453e357e717f38b02db4df1d366ea8ac1bf56ad2a"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173924623Z_8099d008\\process_result.json",
+      "sha256": "87e2c7d3f6f517e929a704e3d2dd4af04663fcd71777a4954f6c4aa44e46fd6c"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173924623Z_8099d008\\intake_results.json",
+      "sha256": "432cf9ba21f6ef8936021db04ec43f27f32d9a51a955c7b7bf6102710ef7a1d4"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\Attempts\\20261113T173924623Z_8099d008\\pilot_reload.json",
+      "sha256": "85ae928c25453d93852b414cf72fe35225a86109384ad575ef4c9ec842a08a0e"
+    }
+  ],
+  "records_manifest": {
+    "path": "C:\\Users\\nicho\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Evidence\\intake02_process_records.json",
+    "sha256": "b22f938d7578a92ff1685bc0e5d76f0208f1386bd2a92426d67599079d973ebe"
+  },
+  "pilot_reload_evidence": "stage-only; failed parent process preserved, not promoted to PASS",
+  "project_transfer_pending": true
+}
