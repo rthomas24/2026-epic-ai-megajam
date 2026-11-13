@@ -1487,3 +1487,34 @@ threat or created the future that sent it back."
   - §5 act 5 and §8, the stinger: "a date decades ahead", in those words; no year.
   - §7 (scenes and takes): a CUT is the game's retry, "not a new explanation that every failed attempt creates a
     timeline".
+
+## Reconciliation of Nov 13 evening (Nicholas's commit fbc7240) and the Lead's decisions
+Nicholas's Story Director reconciled the campaign drafts: Gameplay 01 (the tutorial), *Aftermath*'s last shot,
+Gameplay 02 (Verdance arrival) and Gameplay 03 (facility defence) change; the rest only name their successors.
+The per-section corrections to this file and the engineering changes are in
+`docs/story/story-reconcile-fbc7240.md` (it gives replacement paragraphs for sections 12, 13, 14, 16, 24, 27, 29
+and 32; where they differ from the text above, **that file wins**).
+
+**Decided by Ryan's Lead under Ryan's delegation (reduced forms; Ryan can overrule):**
+- **The tutorial battle is waves 1 and 2**, and *Aftermath* fires when wave 2 clears; nothing is fought between
+  *Aftermath* and Verdance. Wave 2's gunship is the "HEAVY CONTACT"; whether killing it is required stays as built
+  (required) until Nicholas decides.
+- **The convoy scan is not an objective.** The lead hauler stays as an optional clue and Kato's line fires on
+  proximity, with no hold and no prompt.
+- **First play and repeat:** a profile flag marks the tutorial complete; on a later New Game the menu offers to skip
+  into *Aftermath*. Queued behind the reveal and ending lines.
+- **The `TB_*` tutorial lines and the `S2_*` *Aftermath* lines are fired by the game** (they existed but nothing
+  played them).
+- No co-op handling anywhere; no landing-zone interception or orbital battle before Verdance.
+**Still with Nicholas:** the gunship kill requirement, the opening's length (49 s built, 2 min 20 s proposed), the
+tutorial's final run time, COMMAND or Control, the three-pulse definition.
+
+**Correction, Nov 13 about 17:15 EST: Nicholas's approved opening decision replaces the first bullet above**
+(issues #29 and #24). **The tutorial battle ends when the player crosses the escape boundary during Command's ordered
+withdrawal, with the gunship alive or destroyed.** Destroying the gunship is optional and carries no gate or reward.
+Command orders the withdrawal after the encounter has taught the starting combat tools; crossing the boundary
+completes the tutorial and hands off to *Aftermath*; wave 1's clear or the gunship's destruction alone ends nothing.
+The opening stays 49 seconds. Built by T4 (the withdrawal, the boundary, pursuers that stop, one completion event),
+T3 (the `TB_*` and `S2_*` lines on that event), T1 (the escape vector and the tutorial music's fade on that event)
+and T2 (the waypoint).
+

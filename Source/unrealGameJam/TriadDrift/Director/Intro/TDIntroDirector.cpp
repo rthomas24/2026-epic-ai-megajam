@@ -302,18 +302,17 @@ namespace TDIntro
 					Box(FVector2D(Size.X * 0.5f - TS.X * 0.5f + W * i + 6.f, Size.Y * 0.5f + TS.Y * 0.55f), FVector2D(W - 12.f, 6.f * Scale), C, 5);
 				}
 			}
-			// Pilot name card (C-03 #1 style): lower third, left of centre, a squad-colour bar beside it.
+			// Pilot name card (C-03 #1 style): lower third, left, a squad-colour bar beside the name and the trait line.
+			// Measured and fitted (issue #49): inside the title-safe frame, above the subtitle band, clear of the skip prompt.
 			if (S.NameCardAlpha > 0.f && !S.NameCard.IsEmpty())
 			{
-				const FSlateFontInfo Big = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::RoundToInt(44.f * Scale));
-				const FSlateFontInfo Small = FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), FMath::RoundToInt(20.f * Scale));
-				const FVector2D At(Size.X * 0.22f, Size.Y - BarFull - 120.f * Scale);
-				const FVector2D NS = Measure->Measure(S.NameCard, Big);
+				const FTDIntroCardLayout L = UTDIntroDirector::LayoutNameCard(Size, S.NameCard, S.NameCardRole,
+					[&Measure](const FText& T, const FSlateFontInfo& F) { return Measure->Measure(T, F); });
 				FLinearColor C = S.NameCardColor;
 				C.A = S.NameCardAlpha;
-				Box(At - FVector2D(NS.X * 0.5f + 22.f * Scale, NS.Y * 0.5f), FVector2D(7.f * Scale, NS.Y * 1.9f), C, 3);
-				Text(S.NameCard, Big, At, FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), 3);
-				Text(S.NameCardRole, Small, At + FVector2D(0.f, NS.Y * 0.85f), FLinearColor(C.R, C.G, C.B, S.NameCardAlpha), 3);
+				Box(L.Bar.Min, L.Bar.GetSize(), C, 3);
+				Text(S.NameCard, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), L.NameFontSize), L.Name.GetCenter(), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), 3);
+				Text(S.NameCardRole, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), L.RoleFontSize), L.Role.GetCenter(), FLinearColor(C.R, C.G, C.B, S.NameCardAlpha), 3);
 			}
 			// HOLD TO SKIP, bottom right, with its fill.
 			if (S.SkipHintAlpha > 0.f)
@@ -345,6 +344,59 @@ bool UTDIntroDirector::IsIntroPlaying(const UObject* WorldContext)
 {
 	const UTDIntroDirector* Intro = Get(WorldContext);
 	return Intro && Intro->IsPlaying();
+}
+
+FTDIntroCardLayout UTDIntroDirector::LayoutNameCard(const FVector2D& Size, const FText& Name, const FText& Role,
+	TFunctionRef<FVector2D(const FText&, const FSlateFontInfo&)> Measure)
+{
+	FTDIntroCardLayout L;
+	const float BarFull = FMath::Max(0.f, (Size.Y - Size.X / TDIntro::CinemaAspect) * 0.5f);
+	L.Picture = FBox2D(FVector2D(0.f, BarFull), FVector2D(Size.X, Size.Y - BarFull));
+	const float Scale = Size.Y / 1080.f; // the overlay's own scale (the subtitle and the skip prompt use it too)
+
+	// The narration line: centred in the lower bar, or just above the frame edge without bars (as OnPaint draws it).
+	{
+		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Italic"), FMath::RoundToInt(39.f * Scale));
+		const float LineH = Measure(FText::FromString(TEXT("Ag")), Font).Y;
+		const float Y = Size.Y - FMath::Max(BarFull * 0.5f, 70.f * Scale);
+		const float Half = LineH * 0.5f + 10.f * Scale;
+		L.SubtitleBand = FBox2D(FVector2D(0.f, Y - Half), FVector2D(Size.X, Y + Half));
+	}
+	// HOLD TO SKIP, bottom right (same placement as OnPaint).
+	{
+		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::RoundToInt(16.f * Scale));
+		const FVector2D TS = Measure(LOCTEXT("HoldToSkip", "HOLD TO SKIP"), Font);
+		const FVector2D C(Size.X - 70.f * Scale - TS.X * 0.5f, Size.Y - FMath::Max(BarFull * 0.5f, 40.f * Scale));
+		L.Skip = FBox2D(C - TS * 0.5f, C + FVector2D(TS.X * 0.5f, TS.Y * 0.6f + 3.f * Scale));
+	}
+	// The card: title-safe left edge (6% of the width, or of a 16:9 frame centred on an ultrawide screen), the bar,
+	// then the text, left-aligned. Wider than the space up to the frame's middle: both lines shrink together.
+	const float Frame169 = FMath::Min(Size.X, Size.Y * 16.f / 9.f);
+	const float Left = (Size.X - Frame169) * 0.5f + Frame169 * 0.06f;
+	const float BarW = FMath::Max(2.f, 7.f * Scale);
+	const float TextX = Left + BarW + 16.f * Scale;
+	const float MaxW = FMath::Max(40.f, Size.X * 0.5f - TextX);
+	int32 NameSize = FMath::Max(8, FMath::RoundToInt(44.f * Scale));
+	int32 RoleSize = FMath::Max(8, FMath::RoundToInt(20.f * Scale));
+	FVector2D NS = Measure(Name, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), NameSize));
+	FVector2D RS = Measure(Role, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), RoleSize));
+	const float Widest = FMath::Max(NS.X, RS.X);
+	if (Widest > MaxW)
+	{
+		const float K = MaxW / Widest;
+		NameSize = FMath::Max(8, FMath::FloorToInt(NameSize * K));
+		RoleSize = FMath::Max(8, FMath::FloorToInt(RoleSize * K));
+		NS = Measure(Name, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), NameSize));
+		RS = Measure(Role, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), RoleSize));
+	}
+	// Stacked upward from just above the subtitle band (and inside the picture).
+	const float Bottom = FMath::Min(L.SubtitleBand.Min.Y, L.Picture.Max.Y) - 18.f * Scale;
+	L.Role = FBox2D(FVector2D(TextX, Bottom - RS.Y), FVector2D(TextX + RS.X, Bottom));
+	L.Name = FBox2D(FVector2D(TextX, L.Role.Min.Y - NS.Y), FVector2D(TextX + NS.X, L.Role.Min.Y));
+	L.Bar = FBox2D(FVector2D(Left, L.Name.Min.Y + NS.Y * 0.15f), FVector2D(Left + BarW, Bottom));
+	L.NameFontSize = NameSize;
+	L.RoleFontSize = RoleSize;
+	return L;
 }
 
 const TArray<FText>& UTDIntroDirector::NarrationLines()
@@ -419,6 +471,15 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 
 	Player = PC;
 	OnFinishedDelegate = MoveTemp(OnFinished);
+	// Issue #49: no engine debug text over the film (startup messages, map warnings); restored at Finish.
+	if (GEngine && !bScreenMessagesHidden)
+	{
+		bScreenMessagesHidden = true;
+		bWasScreenMessages = GEngine->bEnableOnScreenDebugMessagesDisplay;
+		bWasMapWarnings = GEngine->bSuppressMapWarnings;
+		GEngine->bEnableOnScreenDebugMessagesDisplay = false;
+		GEngine->bSuppressMapWarnings = true;
+	}
 	bPlaying = true;
 	bHandingOff = false;
 	bSkipped = false;
@@ -1749,6 +1810,12 @@ void UTDIntroDirector::Finish()
 	RemoveWidget();
 	bPlaying = false;
 	bHandingOff = false;
+	if (GEngine && bScreenMessagesHidden)
+	{
+		GEngine->bEnableOnScreenDebugMessagesDisplay = bWasScreenMessages;
+		GEngine->bSuppressMapWarnings = bWasMapWarnings;
+	}
+	bScreenMessagesHidden = false;
 	Overlay = FTDIntroOverlayState();
 	Overlay.Black = 0.f;
 	Overlay.Bars = 0.f;

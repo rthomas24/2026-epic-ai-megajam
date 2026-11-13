@@ -53,6 +53,8 @@ public:
 	const FTDTerrainField* GetField() const { return Field.Get(); }
 	/** The terrain's material (a MID with this planet's HeightRangeM): T5's course slab uses it so the two read as one ground. */
 	UMaterialInterface* GetTerrainMaterial() const { return TerrainMaterial; }
+	UProceduralMeshComponent* GetFarMesh() const { return FarMesh; }
+	class ATDPlanetScatter* GetScatter() const { return Scatter; }
 
 	/**
 	 * Half size (cm) of the walkable, collidable core: a square centred on this actor (which sits at the course
@@ -167,6 +169,9 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInterface> TerrainMaterial;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class ATDPlanetScatter> Scatter;
 	float ReplanTimer = 0.f;
 	bool bViewOverride = false;
 	FVector ViewOverride = FVector::ZeroVector;

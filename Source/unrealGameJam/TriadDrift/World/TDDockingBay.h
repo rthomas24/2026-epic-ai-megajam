@@ -67,6 +67,19 @@ public:
 	/** How many times this bay asked for the interior travel (tests: exactly one). */
 	int32 GetTravelRequests() const { return TravelRequests; }
 
+	/** Wingmen held in the orbit outside the bay while the player docks (Gameplay 06: the player enters alone). */
+	int32 GetHeldWingmenCount() const { return HeldWingmen.Num(); }
+
+	/** The orbit the wingmen hold (radius and how far out of the mouth its centre is, cm), and their speed (deg/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float WingmanOrbitRadius = 15000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float WingmanOrbitOut = 40000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float WingmanOrbitDegPerSec = 25.f;
+
 	/** Tests / dev: the ship the tractor acts on (default: the squad's active ship). */
 	void SetShipOverride(ATDShip* Ship);
 
@@ -120,6 +133,16 @@ protected:
 	void BeginGlide(ATDShip* Ship);
 	void FinishDocking();
 	void BuildPlaceholder();
+	void HoldWingmen(const ATDShip* Docking);
+	void ReleaseWingmen();
+	void TickWingmen(float DeltaSeconds);
+
+	struct FHeldWingman
+	{
+		TWeakObjectPtr<ATDShip> Ship;
+		float Angle = 0.f;	// deg around the orbit
+	};
+	TArray<FHeldWingman> HeldWingmen;
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Docking")
 	TObjectPtr<USceneComponent> Root;

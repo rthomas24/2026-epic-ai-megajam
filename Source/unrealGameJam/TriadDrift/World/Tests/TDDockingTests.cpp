@@ -11,6 +11,7 @@
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
@@ -176,6 +177,45 @@ bool FTDDominionStoryBeats::RunTest(const FString&)
 	{
 		const FName Id(*FString::Printf(TEXT("A4_GeneratorDown%d"), i));
 		TestTrue(*FString::Printf(TEXT("%s played"), *Id.ToString()), Story->HasPlayed(Id));
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingWingmen, "TriadDrift.World.Docking.WingmenHoldOutsideThePlayerEntersAlone", TD_TEST_FLAGS)
+bool FTDDockingWingmen::RunTest(const FString&)
+{
+	// Gameplay 06: when docking commits, the wingmen break off and orbit outside the bay; a retake hands them back.
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	const FVector Start = Bay->GetMouth() + Bay->GetOutward() * 20000.f;
+	Squad->SpawnSquad(FTransform((-Bay->GetOutward()).Rotation(), Start));
+	W.Advance(0.3f);
+	ATDShip* Lead = Squad->GetActiveShip();
+	if (!TestNotNull(TEXT("lead"), Lead)) { return false; }
+	Lead->SetActorLocation(Start);
+	Bay->SetShipOverride(Lead);
+	W.Advance(0.1f);
+	TestEqual(TEXT("gliding"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Gliding);
+	TestEqual(TEXT("both wingmen held outside"), Bay->GetHeldWingmenCount(), 2);
+	W.Advance(Bay->GlideSeconds * 0.5f);	// mid-glide (a docked bay ignores retakes: the travel is under way)
+	for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const ATDShip* S = Squad->GetShip(Id);
+		if (!S || S == Lead) { continue; }
+		const float Out = FVector::DotProduct(S->GetActorLocation() - Bay->GetMouth(), Bay->GetOutward());
+		TestTrue(*FString::Printf(TEXT("a wingman stays out of the bay (%.0f m out)"), Out / 100.f), Out > 15000.f);
+	}
+	Bay->ResetForNewTake();	// a CUT before the travel: they fly again
+	TestEqual(TEXT("released on a retake"), Bay->GetHeldWingmenCount(), 0);
+	for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const ATDShip* S = Squad->GetShip(Id);
+		if (S && S != Lead) { TestFalse(TEXT("a released wingman flies"), S->IsFlightParked()); }
 	}
 	return true;
 }

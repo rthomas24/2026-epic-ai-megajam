@@ -5,6 +5,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "GameFramework/Controller.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -98,6 +99,7 @@ void ATDDockingBay::ResetForNewTake()
 		return;	// the travel is already under way
 	}
 	ReleaseShip();
+	ReleaseWingmen();
 	if (DockingState == ETDDockingState::Gliding)
 	{
 		DockingState = ETDDockingState::Open;
@@ -167,6 +169,71 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 	UTDStorySubsystem::Fire(this, TEXT("G6_Wren_CoverTheBay"));	// the docking commit (once per run)
 	if (UTDHealthComponent* H = UTDStatics::GetHealth(Ship)) { H->SetInvulnerable(true); }
 	Held = Ship;
+	HoldWingmen(Ship);
+}
+
+void ATDDockingBay::HoldWingmen(const ATDShip* Docking)
+{
+	// Gameplay 06: the wingmen break off and hold a short orbit outside the bay, so the player goes in alone. Their AI
+	// pauses (it would follow its leader into the mouth) and the bay flies them; a retake hands them back.
+	ReleaseWingmen();
+	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+	if (!Squad)
+	{
+		return;
+	}
+	int32 k = 0;
+	for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		ATDShip* W = Squad->GetShip(Id);
+		const UTDHealthComponent* H = W ? UTDStatics::GetHealth(W) : nullptr;
+		if (!W || W == Docking || W->IsHidden() || (H && H->IsDead()))
+		{
+			continue;
+		}
+		if (AController* C = W->GetController()) { C->SetActorTickEnabled(false); }
+		W->SetFlightParked(true);
+		if (UTDHealthComponent* WH = UTDStatics::GetHealth(W)) { WH->SetInvulnerable(true); }
+		FHeldWingman Held1;
+		Held1.Ship = W;
+		Held1.Angle = 90.f + 180.f * k++;	// opposite sides of the orbit
+		HeldWingmen.Add(Held1);
+	}
+	TickWingmen(0.f);
+}
+
+void ATDDockingBay::ReleaseWingmen()
+{
+	for (const FHeldWingman& W : HeldWingmen)
+	{
+		ATDShip* Ship = W.Ship.Get();
+		if (!Ship) { continue; }
+		Ship->SetFlightParked(false);
+		if (AController* C = Ship->GetController()) { C->SetActorTickEnabled(true); }
+		if (UTDHealthComponent* H = UTDStatics::GetHealth(Ship)) { H->SetInvulnerable(false); }
+	}
+	HeldWingmen.Reset();
+}
+
+void ATDDockingBay::TickWingmen(float DeltaSeconds)
+{
+	const FVector Centre = GetMouth() + GetOutward() * WingmanOrbitOut;
+	const FVector Side = FVector::CrossProduct(FVector::UpVector, GetOutward()).GetSafeNormal();
+	const FVector Up = FVector::CrossProduct(GetOutward(), Side).GetSafeNormal();
+	for (FHeldWingman& W : HeldWingmen)
+	{
+		ATDShip* Ship = W.Ship.Get();
+		if (!Ship) { continue; }
+		W.Angle += WingmanOrbitDegPerSec * DeltaSeconds;
+		const float A = FMath::DegreesToRadians(W.Angle);
+		const FVector Radial = Side * FMath::Cos(A) + Up * FMath::Sin(A);
+		const FVector Tangent = -Side * FMath::Sin(A) + Up * FMath::Cos(A);
+		const FVector Target = Centre + Radial * WingmanOrbitRadius;
+		// Ease onto the orbit (they may be anywhere around the mouth when docking commits), nose along it.
+		const FVector Now = Ship->GetActorLocation();
+		const FVector Next = DeltaSeconds > 0.f ? FMath::VInterpTo(Now, Target, DeltaSeconds, 1.5f) : Now;
+		Ship->SetActorLocationAndRotation(Next, FMath::QInterpTo(Ship->GetActorQuat(), Tangent.ToOrientationQuat(), DeltaSeconds, 3.f));
+	}
 }
 
 void ATDDockingBay::FinishDocking()
@@ -211,6 +278,7 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 			return;
 		}
 		GlideTime += DeltaSeconds;
+		TickWingmen(DeltaSeconds);
 		const float T = FMath::Clamp(GlideTime / GlideSeconds, 0.f, 1.f);
 		const float E = FMath::InterpEaseInOut(0.f, 1.f, T, 2.f);
 		const FVector To = GetMouth() - GetOutward() * GlideDepth;
