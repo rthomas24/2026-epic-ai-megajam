@@ -1,0 +1,182 @@
+{
+  "asset": "SM_Derelict_Satellite_02",
+  "tag": "r2",
+  "checks": {
+    "tris": 5056,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 5,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 2,
+    "collision_hulls": 2,
+    "size_cm": [
+      825.4,
+      503.8,
+      286.0
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "com_shift_m": [
+      0.14250190556049347,
+      -0.030468154698610306,
+      0.014343311078846455
+    ],
+    "edge_area_share": 0.0036,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.55,
+      "overlap_pixels": 5,
+      "overlap_share_of_covered": 9e-06,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Derelict_Satellite_02",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Derelict_Satellite_02\\T_Derelict_Satellite_02_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Derelict_Satellite_02\\T_Derelict_Satellite_02_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Derelict_Satellite_02\\T_Derelict_Satellite_02_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Derelict_Satellite_02\\T_Derelict_Satellite_02_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Derelict_Satellite_02_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 61.26
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6411
+    },
+    "build_seconds": 73.1
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3908,
+        0.3495,
+        0.3131
+      ],
+      "min": 0.0,
+      "max": 0.9098
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.4998,
+        0.9993
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0237,
+        0.0239
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.4544,
+        0.3232,
+        0.4748
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.522
+      ],
+      "metallic_mean": 0.48
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0004,
+        0.0021,
+        0.0017
+      ],
+      "min": 0.0,
+      "max": 0.9608
+    }
+  },
+  "emissive_surface_share": 0.0012,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Derelict_Satellite_02",
+      "message": "57 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_Derelict_Satellite_02",
+      "message": "30 zero-area faces; dissolve degenerate"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Derelict_Satellite_02",
+      "message": "52 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 47,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01513
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Derelict_Satellite_02_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Derelict_Satellite_02_r2_clay_sheet.png",
+    "ortho_cm_per_px": 2.0635,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 4944,
+    "size_cm": [
+      503.8,
+      825.4,
+      286.0
+    ],
+    "collision": [
+      "UCX_SM_Derelict_Satellite_02_00",
+      "UCX_SM_Derelict_Satellite_02_01"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Derelict_Satellite_02"
+    ],
+    "textures": [
+      "T_Derelict_Satellite_02_BC.png",
+      "T_Derelict_Satellite_02_E.png",
+      "T_Derelict_Satellite_02_N.png",
+      "T_Derelict_Satellite_02_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "asset": "SM_Ast_Ice_03",
+  "tag": "r4",
+  "checks": {
+    "tris": 6500,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 1,
+    "size_cm": [
+      2600.0,
+      1555.8,
+      1344.3
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "family": "ice",
+    "deviation": {
+      "p99_m": 0.37250541538000315,
+      "max_m": 0.5181902050971985,
+      "game_to_source_p995_m": 0.3060601629316821,
+      "game_to_source_max_m": 0.4000883996486664
+    },
+    "cage_m": 0.6063187358617782,
+    "uv_islands": 36,
+    "uv_faces_detached": 0,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5551,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "curvature": {
+      "p05": -0.1196693506858814,
+      "p50": 0.005020866809970098,
+      "p95": 0.09513165838635419
+    },
+    "source_tris": 327680,
+    "bake": {
+      "status": "ok",
+      "asset": "Ast_Ice_03",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Ice_03\\T_Ast_Ice_03_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Ice_03\\T_Ast_Ice_03_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Ice_03\\T_Ast_Ice_03_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Ice_03\\T_Ast_Ice_03_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Ast_Ice_03_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 11.33
+    },
+    "bake_misses": {
+      "status": "ok",
+      "texels_missed": 342835,
+      "texels_left": 269099
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.3265
+    },
+    "build_seconds": 21.0
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.4364,
+        0.5739,
+        0.6763
+      ],
+      "min": 0.0,
+      "max": 0.9961
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5013,
+        0.5009,
+        0.9867
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0783,
+        0.0729
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.7046,
+        0.187,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.58
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0053,
+        0.0128,
+        0.0154
+      ],
+      "min": 0.0,
+      "max": 0.698
+    }
+  },
+  "emissive_surface_share": 0.0445,
+  "asset_report_issues": [],
+  "assembly": {
+    "ok": true,
+    "islands": 1,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.04972
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Ast_Ice_03_r4_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Ast_Ice_03_r4_clay_sheet.png",
+    "ortho_cm_per_px": 6.5,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 6500,
+    "size_cm": [
+      1555.8,
+      2600.0,
+      1344.3
+    ],
+    "collision": [
+      "UCX_SM_Ast_Ice_03_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Ast_Ice_03"
+    ],
+    "textures": [
+      "T_Ast_Ice_03_BC.png",
+      "T_Ast_Ice_03_E.png",
+      "T_Ast_Ice_03_N.png",
+      "T_Ast_Ice_03_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "asset": "SM_CargoPod_01",
+  "tag": "r2",
+  "checks": {
+    "tris": 4596,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 1,
+    "collision_hulls": 1,
+    "size_cm": [
+      332.1,
+      838.1,
+      341.1
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "com_shift_m": [
+      4.355976125225425e-05,
+      -0.007669032085686922,
+      0.0001523513055872172
+    ],
+    "edge_area_share": 0.012,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.441,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "CargoPod_01",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_CargoPod_01\\T_CargoPod_01_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_CargoPod_01\\T_CargoPod_01_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_CargoPod_01\\T_CargoPod_01_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_CargoPod_01\\T_CargoPod_01_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_CargoPod_01_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 17.35
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6179
+    },
+    "build_seconds": 22.7
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.292,
+        0.3085,
+        0.2854
+      ],
+      "min": 0.0,
+      "max": 0.8902
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5013,
+        0.4997,
+        0.9999
+      ],
+      "min": 0.2706,
+      "max": 1.0,
+      "std_rg": [
+        0.0167,
+        0.0195
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5188,
+        0.4359,
+        0.3834
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.525
+      ],
+      "metallic_mean": 0.385
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0005,
+        0.0027,
+        0.0022
+      ],
+      "min": 0.0,
+      "max": 0.9608
+    }
+  },
+  "emissive_surface_share": 0.0004,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_CargoPod_01",
+      "message": "16 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_CargoPod_01",
+      "message": "128 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 77,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01446
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_CargoPod_01_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_CargoPod_01_r2_clay_sheet.png",
+    "ortho_cm_per_px": 2.0952,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 4596,
+    "size_cm": [
+      838.1,
+      332.1,
+      341.1
+    ],
+    "collision": [
+      "UCX_SM_CargoPod_01_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_CargoPod_01"
+    ],
+    "textures": [
+      "T_CargoPod_01_BC.png",
+      "T_CargoPod_01_E.png",
+      "T_CargoPod_01_N.png",
+      "T_CargoPod_01_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

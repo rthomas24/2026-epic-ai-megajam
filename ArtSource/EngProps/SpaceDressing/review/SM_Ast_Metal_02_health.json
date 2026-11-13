@@ -1,0 +1,162 @@
+{
+  "asset": "SM_Ast_Metal_02",
+  "tag": "r2",
+  "checks": {
+    "tris": 9000,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 0,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 1,
+    "size_cm": [
+      3400.0,
+      1549.4,
+      1473.1
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "family": "metal",
+    "deviation": {
+      "p99_m": 0.17985942676663416,
+      "max_m": 0.27272889018058777,
+      "game_to_source_p995_m": 0.19792996622622042,
+      "game_to_source_max_m": 0.26059362292289734
+    },
+    "cage_m": 0.3272382237076759,
+    "uv_islands": 45,
+    "uv_faces_detached": 0,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5797,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "curvature": {
+      "p05": -0.024665730447578443,
+      "p50": 0.0011046540523009705,
+      "p95": 0.04306399311009938
+    },
+    "source_tris": 327680,
+    "bake": {
+      "status": "ok",
+      "asset": "Ast_Metal_02",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Metal_02\\T_Ast_Metal_02_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Metal_02\\T_Ast_Metal_02_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_Ast_Metal_02\\T_Ast_Metal_02_ORM.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 0.0,
+      "preview_material": "M_Ast_Metal_02_Baked",
+      "notes": [
+        "No emission in source materials"
+      ],
+      "warnings": [],
+      "seconds": 76.87
+    },
+    "bake_misses": {
+      "status": "ok",
+      "texels_missed": 1449958,
+      "texels_left": 1266067
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.3019
+    },
+    "build_seconds": 98.8
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.2443,
+        0.2171,
+        0.2018
+      ],
+      "min": 0.0,
+      "max": 0.9255
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.499,
+        0.4991,
+        0.9995
+      ],
+      "min": 0.149,
+      "max": 1.0,
+      "std_rg": [
+        0.0425,
+        0.0409
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.6965,
+        0.3132,
+        0.4249
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.561
+      ],
+      "metallic_mean": 0.418
+    }
+  },
+  "emissive_surface_share": 0.0,
+  "asset_report_issues": [],
+  "assembly": {
+    "ok": true,
+    "islands": 1,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.06024
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Ast_Metal_02_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_Ast_Metal_02_r2_clay_sheet.png",
+    "ortho_cm_per_px": 8.5,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 9000,
+    "size_cm": [
+      1549.4,
+      3400.0,
+      1473.1
+    ],
+    "collision": [
+      "UCX_SM_Ast_Metal_02_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Ast_Metal_02"
+    ],
+    "textures": [
+      "T_Ast_Metal_02_BC.png",
+      "T_Ast_Metal_02_N.png",
+      "T_Ast_Metal_02_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "asset": "SM_StationTruss_02",
+  "tag": "r2",
+  "checks": {
+    "tris": 7682,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 249,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 2,
+    "collision_hulls": 2,
+    "size_cm": [
+      2338.4,
+      1509.5,
+      1242.3
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0002",
+        0.253
+      ],
+      [
+        "part_0003",
+        0.252
+      ],
+      [
+        "part_0004",
+        0.253
+      ],
+      [
+        "part_0005",
+        0.254
+      ],
+      [
+        "part_0006",
+        0.25
+      ],
+      [
+        "part_0002",
+        0.097
+      ],
+      [
+        "part_0003",
+        0.097
+      ],
+      [
+        "part_0004",
+        0.097
+      ],
+      [
+        "part_0005",
+        0.099
+      ],
+      [
+        "part_0006",
+        0.096
+      ],
+      [
+        "part_0002",
+        0.096
+      ],
+      [
+        "part_0003",
+        0.097
+      ],
+      [
+        "part_0004",
+        0.096
+      ],
+      [
+        "part_0005",
+        0.098
+      ],
+      [
+        "part_0006",
+        0.096
+      ],
+      [
+        "part_0002",
+        0.095
+      ],
+      [
+        "part_0003",
+        0.096
+      ],
+      [
+        "part_0004",
+        0.095
+      ],
+      [
+        "part_0005",
+        0.097
+      ],
+      [
+        "part_0006",
+        0.095
+      ]
+    ],
+    "com_shift_m": [
+      -1.3784395456314087,
+      -0.5776916146278381,
+      2.7640814781188965
+    ],
+    "edge_area_share": 0.0029,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 162
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.2214,
+      "overlap_pixels": 249,
+      "overlap_share_of_covered": 0.001072,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "StationTruss_02",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_StationTruss_02\\T_StationTruss_02_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_StationTruss_02\\T_StationTruss_02_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_StationTruss_02\\T_StationTruss_02_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_StationTruss_02\\T_StationTruss_02_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_StationTruss_02_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 59.66
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.8435
+    },
+    "build_seconds": 78.8
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3047,
+        0.2712,
+        0.1915
+      ],
+      "min": 0.0,
+      "max": 0.8863
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5001,
+        0.4998,
+        0.9993
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0151,
+        0.0147
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.2654,
+        0.274,
+        0.2045
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.522
+      ],
+      "metallic_mean": 0.203
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0054,
+        0.005,
+        0.0042
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0065,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_StationTruss_02",
+      "message": "6 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_StationTruss_02",
+      "message": "4 zero-area faces; dissolve degenerate"
+    },
+    {
+      "severity": "info",
+      "object": "SM_StationTruss_02",
+      "message": "56 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "info",
+      "object": "SM_StationTruss_02",
+      "message": "90 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 32,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.04572
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_StationTruss_02_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_StationTruss_02_r2_clay_sheet.png",
+    "ortho_cm_per_px": 5.846,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 7670,
+    "size_cm": [
+      1509.5,
+      2338.4,
+      1242.3
+    ],
+    "collision": [
+      "UCX_SM_StationTruss_02_00",
+      "UCX_SM_StationTruss_02_01"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_StationTruss_02"
+    ],
+    "textures": [
+      "T_StationTruss_02_BC.png",
+      "T_StationTruss_02_E.png",
+      "T_StationTruss_02_N.png",
+      "T_StationTruss_02_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}
