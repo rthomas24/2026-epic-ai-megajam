@@ -2770,5 +2770,36 @@ bool FTDSquadSwitchStress::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadBarksUnderHeavyLosses, "TriadDrift.Squad.Barks.NotChattyUnderHeavyLosses", TD_TEST_FLAGS)
+bool FTDSquadBarksUnderHeavyLosses::RunTest(const FString& Parameters)
+{
+	// Wave 5 playtest: a ship goes down every ~12 s; 23 lines in 120 s, mostly ship-down / respawn.
+	// Here a ship dies every 6 s for 60 s: at most one ship-down line per 10 s, one respawn line per
+	// 20 s, and the squad never talks more than one line per 4 s on average.
+	FSquadFixture F;
+	const ETDShipId Order[] = { ETDShipId::Lancer, ETDShipId::Bastion, ETDShipId::Rift };
+	for (int32 i = 0; i < 10; ++i)
+	{
+		const ETDShipId Victim = Order[i % 3];
+		if (F.Squad->IsShipAlive(Victim) && F.Squad->GetLivingShips().Num() > 1)
+		{
+			F.Kill(Victim);
+		}
+		F.W.Advance(6.f);
+	}
+	int32 Downs = 0, Respawns = 0;
+	for (const TPair<FName, FName>& B : F.Events->Barks)
+	{
+		Downs += B.Key.ToString().StartsWith(TEXT("Bark_SquadShipDown")) ? 1 : 0;
+		Respawns += B.Key == TDBarkIds::Respawn ? 1 : 0;
+	}
+	AddInfo(FString::Printf(TEXT("60 s, ~9 deaths: %d lines (%d ship-down, %d respawn)"), F.Events->Barks.Num(), Downs, Respawns));
+	TestTrue(TEXT("ship-down lines: at most one per 10 s"), Downs <= 6);
+	TestTrue(TEXT("ship-down lines still called"), Downs >= 3);
+	TestTrue(TEXT("respawn lines: at most one per 20 s"), Respawns <= 3);
+	TestTrue(TEXT("not chatty: <= one line per 4 s"), F.Events->Barks.Num() <= 15);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
