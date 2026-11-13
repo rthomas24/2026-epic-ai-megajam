@@ -1,6 +1,8 @@
 #include "Misc/AutomationTest.h"
 #include "TDSpaceHUDWidget.h"
+#include "TDHUDLayout.h"
 #include "UObject/UnrealType.h"
+#include <limits>
 
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Engine/Engine.h"
@@ -271,6 +273,68 @@ bool FTDHUDInteractionTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("unavailable optional getter cannot preserve stale guidance"),HUD->InteractPrompt.IsEmpty());
     HUD->InteractPrompt=FText::FromString(TEXT("stale")); HUD->SetPreviewMode(true);
     TestTrue(TEXT("preview never leaks landing guidance"),HUD->InteractPrompt.IsEmpty());
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHUDCombatFeedbackTest,"TriadDrift.UI.CombatConfirmationLifecycle",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
+bool FTDHUDCombatFeedbackTest::RunTest(const FString& Parameters)
+{
+    UTDSpaceHUDWidget* HUD=NewObject<UTDSpaceHUDWidget>();
+    HUD->ConfirmHit(true);
+    TestEqual(TEXT("kill confirmation starts at one second"),HUD->KillConfirmLeft,1.f);
+    for(int32 I=0;I<6;++I) HUD->TickCombatFeedback(.1f);
+    TestTrue(TEXT("kill remains visible after the old brief hit marker expires"),HUD->KillConfirmLeft>.39f && HUD->HitLeft==0);
+    const float Remaining=HUD->KillConfirmLeft;
+    HUD->ConfirmHit(false);
+    TestEqual(TEXT("an ordinary hit cannot replace or shorten kill confirmation"),HUD->KillConfirmLeft,Remaining);
+    for(int32 I=0;I<5;++I) HUD->TickCombatFeedback(.1f);
+    TestEqual(TEXT("kill confirmation expires independently"),HUD->KillConfirmLeft,0.f);
+    HUD->ConfirmHit(true); HUD->SetDataSource(nullptr);
+    TestEqual(TEXT("provider removal clears old combat feedback"),HUD->KillConfirmLeft,0.f);
+    HUD->ConfirmHit(true); HUD->SetPreviewMode(true);
+    TestEqual(TEXT("preview reset clears old combat feedback"),HUD->KillConfirmLeft,0.f);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHUDTargetLayoutTest,"TriadDrift.UI.TargetInfoSafeLayout",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
+bool FTDHUDTargetLayoutTest::RunTest(const FString& Parameters)
+{
+    // Target positions cover the centre, warning band, panel corners and edges.
+    for(int32 X=120;X<=1800;X+=120) for(int32 Y=190;Y<=750;Y+=40)
+        for(bool Message:{false,true}) for(bool Kill:{false,true})
+        {
+            const FVector2D Anchor=TDHUD::TargetInfoAnchor(FVector2D(X,Y),Message,Kill);
+            const FBox2D Bounds(Anchor,Anchor+FVector2D(196,100));
+            if(!TestTrue(TEXT("target text stays above cards and inside the desktop playfield"),Bounds.Min.X>=110 && Bounds.Min.Y>=190 && Bounds.Max.X<=1810 && Bounds.Max.Y<=750)) return false;
+            TestFalse(TEXT("target metadata does not cover the aim point"),Bounds.Intersect(FBox2D(FVector2D(901,481),FVector2D(1019,599))));
+            if(Message) TestFalse(TEXT("target text does not cover missile/boundary feedback"),Bounds.Intersect(FBox2D(FVector2D(705,641),FVector2D(1215,682))));
+            if(Kill) TestFalse(TEXT("target text does not cover kill confirmation"),Bounds.Intersect(FBox2D(FVector2D(761,585),FVector2D(1159,627))));
+            TestFalse(TEXT("target text does not overlap weapon/ability panel"),Bounds.Intersect(FBox2D(FVector2D(1561,697),FVector2D(1853,999))));
+        }
+    TestFalse(TEXT("nonfinite text positions are never accepted"),TDHUD::TargetInfoIsClear(FVector2D(std::numeric_limits<double>::quiet_NaN(),400),true,true));
+    TestTrue(TEXT("invalid projections use the clear fallback lane"),TDHUD::TargetInfoIsClear(TDHUD::TargetInfoAnchor(FVector2D(std::numeric_limits<double>::quiet_NaN(),400),true,true),true,true));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHUDRecoveryTest,"TriadDrift.UI.RecoveryAndControlTransfer",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
+bool FTDHUDRecoveryTest::RunTest(const FString& Parameters)
+{
+    TestEqual(TEXT("zero is not a promised immediate respawn"),TDHUD::RecoveryLabel(0),FString(TEXT("AWAITING RECOVERY")));
+    TestEqual(TEXT("subsecond recovery never reads zero seconds"),TDHUD::RecoveryLabel(.02f),FString(TEXT("RECOVERY IN 1 s")));
+    TestEqual(TEXT("partial countdown rounds up"),TDHUD::RecoveryLabel(8.1f),FString(TEXT("RECOVERY IN 9 s")));
+    TestEqual(TEXT("invalid countdown is safely pending"),TDHUD::RecoveryLabel(std::numeric_limits<float>::quiet_NaN()),FString(TEXT("AWAITING RECOVERY")));
+    UTDSpaceHUDWidget* HUD=NewObject<UTDSpaceHUDWidget>();
+    TArray<FTDUIShip> Input; Input.SetNum(3);
+    for(auto& Ship:Input) Ship.bAvailable=Ship.bAlive=true;
+    Input[1].bActive=true; HUD->ApplySquadSnapshot(Input);
+    Input[1].bActive=false; Input[1].bAlive=false; HUD->ApplySquadSnapshot(Input);
+    TestEqual(TEXT("ship loss can precede the new control snapshot"),HUD->PendingDownedShip,1);
+    Input[2].bActive=true; HUD->ApplySquadSnapshot(Input);
+    TestTrue(TEXT("control transfer explains the observed ship loss"),HUD->bDownedControlTransfer);
+    TestTrue(TEXT("transfer cue stays readable for at least one second"),HUD->SwitchLeft>=1.f);
+    Input[2].bActive=false; Input[0].bActive=true; HUD->ApplySquadSnapshot(Input);
+    TestFalse(TEXT("later manual switching has the normal cut cue"),HUD->bDownedControlTransfer);
+    HUD->SetDataSource(nullptr); Input[0].bActive=false; Input[2].bActive=true; HUD->ApplySquadSnapshot(Input);
+    TestFalse(TEXT("provider replacement never replays an old ship-loss cue"),HUD->bDownedControlTransfer);
     return true;
 }
 #endif

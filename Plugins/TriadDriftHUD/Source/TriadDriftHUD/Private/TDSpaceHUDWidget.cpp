@@ -1,4 +1,5 @@
 #include "TDSpaceHUDWidget.h"
+#include "TDHUDLayout.h"
 #include "Engine/GameInstance.h"
 #include "Components/ActorComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -320,7 +321,7 @@ struct FPainter
         if(!S.bAlive)
         {
             Text(X+18,Y+81,TEXT("SHIP DOWN"),20,Style.Hostile,true);
-            Text(X+18,Y+115,FString::Printf(TEXT("RESPAWN  %.1f s"),S.RespawnSeconds),14,Style.Ink);
+            Text(X+18,Y+115,RecoveryLabel(S.RespawnSeconds),14,Style.Ink);
             return;
         }
         const FLinearColor HealthColor=S.Hull<.25f?Style.Hostile:Style.Ink;
@@ -395,7 +396,8 @@ void UTDSpaceHUDWidget::BindEvents(bool bBind)
 void UTDSpaceHUDWidget::SetDataSource(UObject* Source)
 {
     bPreview=false; DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset();
-    ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
+    ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=KillConfirmLeft=0;
+    bDownedControlTransfer=false; PendingDownedShip=INDEX_NONE;
     UClass* Contract=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDHUDData"));
     if(IsValid(Source) && Contract && Source->GetClass()->ImplementsInterface(Contract)) DataSource=Source;
     RefreshData();
@@ -481,7 +483,18 @@ void UTDSpaceHUDWidget::ApplySquadSnapshot(const TArray<FTDUIShip>& Snapshot)
         if(Ships.IsValidIndex(I) && Ships[I].bAvailable && Ships[I].Power<.999f && S.Power>=.999f)
         { ReadyPrompt=FText::FromString(FString::Printf(TEXT("%s / %s READY"),TDHUD::Names[I],TDHUD::Powers[I])); ReadyLeft=2; ReadyShip=I; }
     }
-    if(NewActive!=ActiveIndex && NewActive!=INDEX_NONE) SwitchLeft=Style.SwitchSeconds;
+    if(Ships.IsValidIndex(ActiveIndex) && Next.IsValidIndex(ActiveIndex)
+        && Ships[ActiveIndex].bAvailable && Ships[ActiveIndex].bAlive
+        && Next[ActiveIndex].bAvailable && !Next[ActiveIndex].bAlive)
+        PendingDownedShip=ActiveIndex;
+    if(Next.IsValidIndex(PendingDownedShip) && (!Next[PendingDownedShip].bAvailable || Next[PendingDownedShip].bAlive))
+        PendingDownedShip=INDEX_NONE;
+    if(NewActive!=ActiveIndex && NewActive!=INDEX_NONE)
+    {
+        bDownedControlTransfer=PendingDownedShip!=INDEX_NONE && PendingDownedShip!=NewActive;
+        PendingDownedShip=INDEX_NONE;
+        SwitchLeft=bDownedControlTransfer?FMath::Max(1.f,Style.SwitchSeconds):Style.SwitchSeconds;
+    }
     if(Style.bLancerVisualBenchmark && NewActive==1 && ActiveIndex==1 && Ships.IsValidIndex(1))
     {
         if(Next[1].Power<.05f && Ships[1].Power>.5f) ActivationLeft=.32f;
@@ -491,14 +504,24 @@ void UTDSpaceHUDWidget::ApplySquadSnapshot(const TArray<FTDUIShip>& Snapshot)
     if(Display.Num()!=3) Display=Ships;
 }
 void UTDSpaceHUDWidget::ShowWarning(FText Message) { Warning=Message; WarningLeft=WarningSeconds; }
-void UTDSpaceHUDWidget::ConfirmHit(bool bKill) { bKillConfirmed=bKill; HitLeft=bKill?.65f:.24f; }
+void UTDSpaceHUDWidget::ConfirmHit(bool bKill)
+{
+    bKillConfirmed=bKill; HitLeft=.24f;
+    if(bKill) KillConfirmLeft=1.f;
+}
+void UTDSpaceHUDWidget::TickCombatFeedback(float DeltaSeconds)
+{
+    const float Dt=FMath::Clamp(DeltaSeconds,0.f,.1f);
+    HitLeft=FMath::Max(0.f,HitLeft-Dt); KillConfirmLeft=FMath::Max(0.f,KillConfirmLeft-Dt);
+}
 void UTDSpaceHUDWidget::SetObjectivePrompt(FText Message) { ObjectivePrompt=Message; }
 void UTDSpaceHUDWidget::HandleHit(AActor* Actor,bool bKill) { if(!bPreview) ConfirmHit(bKill); }
 void UTDSpaceHUDWidget::HandleObjective(FName Id,int32 Step,FText Text) { if(!bPreview) SetObjectivePrompt(Text); }
 void UTDSpaceHUDWidget::SetPreviewMode(bool bEnabled)
 {
     bPreview=bEnabled;
-    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
+    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=KillConfirmLeft=0;
+    bDownedControlTransfer=false; PendingDownedShip=INDEX_NONE;
     AcquisitionLeft=ActivationLeft=DamageLeft=0;
     if(!bEnabled) { RefreshData(); return; }
     DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset(); Hostiles.Reset(); bHasTargetHealth=bHasGameplayLead=false; IncomingMissiles=0;
@@ -535,7 +558,8 @@ void UTDSpaceHUDWidget::PreviewPower()
 void UTDSpaceHUDWidget::NativeTick(const FGeometry& G,float Dt)
 {
     Super::NativeTick(G,Dt); Dt=FMath::Clamp(Dt,0.f,.1f); Elapsed+=Dt;
-    SwitchLeft=FMath::Max(0.f,SwitchLeft-Dt); HitLeft=FMath::Max(0.f,HitLeft-Dt); WarningLeft=FMath::Max(0.f,WarningLeft-Dt); ReadyLeft=FMath::Max(0.f,ReadyLeft-Dt);
+    SwitchLeft=FMath::Max(0.f,SwitchLeft-Dt); WarningLeft=FMath::Max(0.f,WarningLeft-Dt); ReadyLeft=FMath::Max(0.f,ReadyLeft-Dt);
+    TickCombatFeedback(Dt);
     AcquisitionLeft=FMath::Max(0.f,AcquisitionLeft-Dt); ActivationLeft=FMath::Max(0.f,ActivationLeft-Dt); DamageLeft=FMath::Max(0.f,DamageLeft-Dt);
     if(Target!=VisualTarget || bPreview!=bVisualPreviewTarget)
     { VisualTarget=Target; bVisualPreviewTarget=bPreview; AcquisitionLeft=.18f; }
@@ -651,13 +675,14 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
             }
             P.Line(TargetPos+FVector2D(-48,-56),TargetPos+FVector2D(48,-56),Style.Hostile.CopyWithNewOpacity(.25f));
         }
-        P.Text(TargetPos.X-48,TargetPos.Y-(Refined?101:76),bPreview?TEXT("NULL / INTERCEPTOR"):TEXT("HOSTILE TARGET"),12,Style.Hostile,true);
+        const FVector2D Info=TDHUD::TargetInfoAnchor(TargetPos,bOutOfBounds || IncomingMissiles>0 || WarningLeft>0 || ReadyLeft>0,KillConfirmLeft>0);
+        P.Text(Info.X,Info.Y,bPreview?TEXT("NULL / INTERCEPTOR"):TEXT("HOSTILE TARGET"),13,Style.Hostile,true);
         if(bPreview || bHasTargetHealth)
-        { P.Meter(TargetPos.X-48,TargetPos.Y+(Refined?84:62),96,bPreview?.68f:TargetHull,Style.Hostile,3); P.Meter(TargetPos.X-48,TargetPos.Y+(Refined?90:68),96,bPreview?.25f:TargetShield,Style.Lancer,2); }
+        { P.Meter(Info.X,Info.Y+25,160,bPreview?.68f:TargetHull,Style.Hostile,4); P.Meter(Info.X,Info.Y+33,160,bPreview?.25f:TargetShield,Style.Lancer,3); }
         if(Target.IsValid())
         {
             const double Distance=GetOwningPlayer()->GetPawn()?FVector::Dist(Target->GetActorLocation(),GetOwningPlayer()->GetPawn()->GetActorLocation())*.01:0;
-            P.Text(TargetPos.X-48,TargetPos.Y+(Refined?96:72),FString::Printf(TEXT("%.0f m"),Distance),12,Dim);
+            P.Text(Info.X,Info.Y+44,FString::Printf(TEXT("%.0f m"),Distance),13,Dim);
         }
         FVector2D Lead=FVector2D::ZeroVector;
         bool bLead=bPreview;
@@ -672,7 +697,7 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
             { FVector2D UI; bLead=UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(),Eye+Aim,UI,true); Lead=(UI-P.Origin)/P.Scale; }
         }
         if(bLead) { P.Arc(Lead,8,1,Accent,1.5f); P.Line(Lead+FVector2D(13,0),TargetPos,Dim,.6f); }
-        if(bPreview || Locked.Contains(Target)) { P.Arc(TargetPos,58,.88f,Style.Hostile,1,0); P.Text(TargetPos.X-29,TargetPos.Y+(Refined?115:91),TEXT("LOCKED"),11,Style.Hostile,true); }
+        if(bPreview || Locked.Contains(Target)) { P.Arc(TargetPos,58,.88f,Style.Hostile,1,0); P.Text(Info.X,Info.Y+66,TEXT("LOCKED"),13,Style.Hostile,true); }
     }
     else if(Target.IsValid())
     {
@@ -776,8 +801,8 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     {
         const FLinearColor C=bKillConfirmed?Style.Bastion:Ink;
         for(int32 X:{-1,1}) for(int32 Y:{-1,1}) P.Line(Center+FVector2D(X*14,Y*14),Center+FVector2D(X*21,Y*21),C,2);
-        if(bKillConfirmed) P.CenteredText(Center.X,591,TEXT("TARGET ELIMINATED"),15,C,true);
     }
+    if(KillConfirmLeft>0) P.CenteredText(Center.X,590,TEXT("TARGET ELIMINATED"),21,Style.Bastion,true);
     if(bOutOfBounds || IncomingMissiles>0 || WarningLeft>0)
     {
         if(Refined) P.Glass(704,640,512,42,Style.Hostile);
@@ -788,9 +813,10 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
     else if(ReadyLeft>0) P.Text(729,651,ReadyPrompt.ToString(),15,Style.ShipColor(ReadyShip),true);
     if(SwitchLeft>0 && Active)
     {
-        const float Offset=Style.bReducedMotion?0:18*FMath::Square(SwitchLeft/FMath::Max(.05f,Style.SwitchSeconds));
-        P.Box(66+Offset,169,4,42,Accent); P.Text(83+Offset,169,FString::Printf(TEXT("CUT TO / %s"),TDHUD::Names[ActiveIndex]),18,Ink,true);
-        P.Text(83+Offset,196,TDHUD::Pilots[ActiveIndex],11,Accent);
+        const float Offset=Style.bReducedMotion?0:18*FMath::Square(FMath::Clamp(SwitchLeft/FMath::Max(.05f,Style.SwitchSeconds),0.f,1.f));
+        P.Box(66+Offset,169,4,42,Accent);
+        P.Text(83+Offset,169,FString::Printf(TEXT("%s / %s"),bDownedControlTransfer?TEXT("CONTROL TRANSFER"):TEXT("CUT TO"),TDHUD::Names[ActiveIndex]),18,Ink,true);
+        P.Text(83+Offset,196,bDownedControlTransfer?TEXT("SHIP DOWN / CONTROL TRANSFERRED"):TDHUD::Pilots[ActiveIndex],11,Accent);
     }
     const FString Hint=bPreview?(bGamepadGlyphs?TEXT("PREVIEW / [LB / RB] SWITCH   [B] DAMAGE   [X] SIGNATURE   [Y] KILL"):TEXT("PREVIEW / [1 / 2 / 3] SWITCH SHIP   [Q] SIGNATURE")):(bGamepadGlyphs?GamepadHint.ToString():KeyboardHint.ToString());
     P.Text(66,1031,Hint,12,Dim);

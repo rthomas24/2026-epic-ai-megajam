@@ -113,6 +113,8 @@ protected:
 private:
     friend class FTDHUDObjectiveTextTest;
     friend class FTDHUDInteractionTest;
+    friend class FTDHUDCombatFeedbackTest;
+    friend class FTDHUDRecoveryTest;
     UPROPERTY(Transient) TArray<FTDUIShip> Ships;
     UPROPERTY(Transient) TArray<FTDUIShip> Display;
     TWeakObjectPtr<UObject> DataSource;
@@ -122,7 +124,7 @@ private:
     TArray<TWeakObjectPtr<AActor>> Objectives;
     FTimerHandle SampleTimer;
     TSharedPtr<IInputProcessor> InputObserver;
-    float Elapsed = 0, SwitchLeft = 0, HitLeft = 0, WarningLeft = 0;
+    float Elapsed = 0, SwitchLeft = 0, HitLeft = 0, WarningLeft = 0, KillConfirmLeft = 0;
     float Speed01 = 0, Hyperdrive01 = 0;
     float TargetHull = 0, TargetShield = 0, ReadyLeft = 0;
     float AcquisitionLeft = 0, ActivationLeft = 0, DamageLeft = 0;
@@ -137,7 +139,10 @@ private:
     TArray<TWeakObjectPtr<AActor>> Hostiles;
     int32 Wave = 0, Enemies = 0, ActiveIndex = INDEX_NONE, ReadyShip = 0;
     bool bPreview = false, bKillConfirmed = false, bOutOfBounds = false;
+    bool bDownedControlTransfer = false;
+    int32 PendingDownedShip = INDEX_NONE;
     FText Warning, ObjectivePrompt, InteractPrompt;
+    void TickCombatFeedback(float DeltaSeconds);
     void BindEvents(bool bBind);
     UFUNCTION() void HandleHit(AActor* Actor, bool bKill);
     UFUNCTION() void HandleObjective(FName Id, int32 Step, FText Text);

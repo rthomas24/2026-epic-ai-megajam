@@ -3,7 +3,8 @@
 Owner: Nicholas Tosti. Dedicated chat identity: **UI/UX & HUD Agent**.
 Role: native space-combat HUD, UI readability and presentation integration.
 Active worktree: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/hud-lancer-polish`.
-Active branch: `nick/hud-lancer-polish`. Work here only; never commit, push or merge to main.
+Active branch: `nick/hud-usability-20261112` (Lead prepared from15ae7cb).
+Work here only; never commit, push or merge to main. Historical nick/hud-lancer-polish is preserved.
 The original hud-native worktree / PR4 is frozen at 2f55512. Its staged legacy
 CLAIMS.md remains untouched there; this new worktree has no legacy claim edit.
 
@@ -25,6 +26,18 @@ Nick's MESSAGEBOARD.md replies under AGENTS.md 6.10. Route engineering questions
 through Lead. Never overwrite the current shared table from this old branch.
 Preserve/exclude the staged legacy root CLAIMS.md edit from implementation commits.
 The existing nick/hud branch is a read-only reference containing the browser study.
+
+Current Nov12 reassignment: exclusively UI/UX/HUD. Stop all character/mesh work;
+characters-lancer clean42bf37b and every existing asset stay preserved. No Blender
+jobs. Direct Nick task is three high-impact, realistic in-game UI improvements,
+with measurable implementation rather than planning-only work. Lead published
+renewed claims for the three roots below; no Source/Config/maps or DA_UI_Style
+edits (Audio owns its MenuMusic-only change). Current bounded pass: one-second
+kill confirmation independent of ordinary hits, target text avoiding reticle/
+combat banners/panels, and truthful downed recovery/control-transfer feedback.
+Source/owned tests are authorized; builds/tests/captures require fresh Lead heavy
+clearance. Lead alone handles synchronization and publication. No indefinite goal.
+Older milestone instructions below describe their historical scopes and evidence.
 No shared maps, Ryan-owned code, interfaces, config or project settings may change.
 Writable implementation paths: Plugins/TriadDriftHUD/, Content/TriadDrift/UI/TriadHUD/,
 ArtSource/UI/TriadHUD/Unreal/. No secondary menus before HUD verification.
