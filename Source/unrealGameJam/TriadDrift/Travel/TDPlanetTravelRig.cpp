@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -118,6 +119,16 @@ void ATDPlanetTravelRig::BuildRig()
 FTransform ATDPlanetTravelRig::GetDescentStart() const
 {
 	const FTransform PadXf = GetActorTransform();
+	// ENG-38: arrive where and how the squad went in on the globe (T4's mapping; course-local = the pad frame).
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this))
+	{
+		const ETDDestination Planet = PlanetId == TEXT("Cinder") ? ETDDestination::Cinder : ETDDestination::Verdance;
+		FTransform Arrival;
+		if (Descent->GetArrival(GetWorld(), Planet, PadXf, Arrival))
+		{
+			return Arrival;
+		}
+	}
 	const FVector Start = PadXf.TransformPosition(DescentStartOffset);
 	const FVector ToPad = (PadXf.GetLocation() + FVector(0.f, 0.f, 3000.f) - Start).GetSafeNormal();
 	return FTransform(ToPad.Rotation(), Start);
