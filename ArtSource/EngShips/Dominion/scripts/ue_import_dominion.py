@@ -307,7 +307,7 @@ INSTANCES = {
                            {"ColorDark": (0.006, 0.006, 0.007), "ColorLight": (0.016, 0.016, 0.018)}),
     "MI_TD_DominionArmor": ("panel", {"TileCm": 6400.0, "MacroTileCm": 38400.0, "Metallic": 0.5, "Roughness": 0.4,
                                        "MacroStrength": 0.3, "LightStrength": 0.0, "NormalStrength": 0.6},
-                            {"ColorDark": (0.016, 0.017, 0.020), "ColorLight": (0.05, 0.052, 0.058)}),
+                            {"ColorDark": (0.026, 0.027, 0.031), "ColorLight": (0.07, 0.072, 0.08)}),
     "MI_TD_DominionGlowRed": ("glow", {"GlowStrength": 30.0, "PulseAmount": 0.0}, {"GlowColor": (1.0, 0.14, 0.02)}),
     "MI_TD_DominionGlowWhite": ("glow", {"GlowStrength": 30.0, "PulseAmount": 0.06, "PulseRate": 0.8},
                                 {"GlowColor": (0.9, 0.95, 1.0)}),

@@ -1,0 +1,432 @@
+{
+  "tag": "r7",
+  "stage": "full",
+  "assets": {
+    "SM_Dominion_Bridge": {
+      "tris": 2730,
+      "budget": [
+        3000,
+        60000
+      ],
+      "ue_min_cm": [
+        -3700.0,
+        -1995.8,
+        -3000.0
+      ],
+      "ue_max_cm": [
+        3837.6,
+        1995.8,
+        5850.4
+      ],
+      "ucx": 3,
+      "slots": [
+        [
+          0,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          1,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_GlowWhite",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_GlowRed",
+          true
+        ]
+      ],
+      "glow_area_m2": 0.0,
+      "ucx_objects": 3,
+      "report_errors": 0,
+      "report_warnings": 1,
+      "issues": [
+        {
+          "severity": "warn",
+          "object": "SM_Dominion_Bridge",
+          "message": "2 duplicate vertices within 0.0001 m; merge by distance"
+        },
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Bridge",
+          "message": "6 n-gons; fine if planar, they get triangulated on export"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 2730,
+        "size_cm": [
+          7537.6,
+          3991.7,
+          8850.4
+        ],
+        "collision": [
+          "UCX_SM_Dominion_Bridge_00",
+          "UCX_SM_Dominion_Bridge_01",
+          "UCX_SM_Dominion_Bridge_02"
+        ],
+        "materials": [
+          "M_Dominion_Trim",
+          "M_Dominion_Panel",
+          "M_Dominion_GlowWhite",
+          "M_Dominion_GlowRed"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_Hull": {
+      "tris": 59712,
+      "budget": [
+        60000,
+        300000
+      ],
+      "ue_min_cm": [
+        -34175.0,
+        -16000.0,
+        -8000.0
+      ],
+      "ue_max_cm": [
+        40400.0,
+        16000.0,
+        8592.1
+      ],
+      "ucx": 57,
+      "slots": [
+        [
+          0,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          1,
+          "M_Dominion_Armor",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_GlowRed",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          4,
+          "M_Dominion_GlowEngine",
+          true
+        ],
+        [
+          5,
+          "M_Dominion_GlowWhite",
+          true
+        ]
+      ],
+      "glow_area_m2": 5522.4,
+      "ucx_objects": 57,
+      "report_errors": 0,
+      "report_warnings": 1,
+      "issues": [
+        {
+          "severity": "warn",
+          "object": "SM_Dominion_Hull",
+          "message": "21 duplicate vertices within 0.0001 m; merge by distance"
+        },
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Hull",
+          "message": "188 n-gons; fine if planar, they get triangulated on export"
+        },
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Hull",
+          "message": "1120 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "assembly_ok": false,
+      "floating": [
+        {
+          "object": "SM_Dominion_Hull",
+          "island": 67,
+          "tris": 12,
+          "center": [
+            90.571,
+            318.75,
+            49.571
+          ],
+          "gap_m": 3.2399
+        },
+        {
+          "object": "SM_Dominion_Hull",
+          "island": 70,
+          "tris": 12,
+          "center": [
+            -90.571,
+            318.75,
+            49.571
+          ],
+          "gap_m": 3.2399
+        }
+      ],
+      "export": {
+        "status": "ok",
+        "tris": 59694,
+        "size_cm": [
+          74575.0,
+          32000.0,
+          16592.1
+        ],
+        "collision": [
+          "UCX_SM_Dominion_Hull_00",
+          "UCX_SM_Dominion_Hull_01",
+          "UCX_SM_Dominion_Hull_02",
+          "UCX_SM_Dominion_Hull_03",
+          "UCX_SM_Dominion_Hull_04",
+          "UCX_SM_Dominion_Hull_05",
+          "UCX_SM_Dominion_Hull_06",
+          "UCX_SM_Dominion_Hull_07",
+          "UCX_SM_Dominion_Hull_08",
+          "UCX_SM_Dominion_Hull_09",
+          "UCX_SM_Dominion_Hull_10",
+          "UCX_SM_Dominion_Hull_11",
+          "UCX_SM_Dominion_Hull_12",
+          "UCX_SM_Dominion_Hull_13",
+          "UCX_SM_Dominion_Hull_14",
+          "UCX_SM_Dominion_Hull_15",
+          "UCX_SM_Dominion_Hull_16",
+          "UCX_SM_Dominion_Hull_17",
+          "UCX_SM_Dominion_Hull_18",
+          "UCX_SM_Dominion_Hull_19",
+          "UCX_SM_Dominion_Hull_20",
+          "UCX_SM_Dominion_Hull_21",
+          "UCX_SM_Dominion_Hull_22",
+          "UCX_SM_Dominion_Hull_23",
+          "UCX_SM_Dominion_Hull_24",
+          "UCX_SM_Dominion_Hull_25",
+          "UCX_SM_Dominion_Hull_26",
+          "UCX_SM_Dominion_Hull_27",
+          "UCX_SM_Dominion_Hull_28",
+          "UCX_SM_Dominion_Hull_29",
+          "UCX_SM_Dominion_Hull_30",
+          "UCX_SM_Dominion_Hull_31",
+          "UCX_SM_Dominion_Hull_32",
+          "UCX_SM_Dominion_Hull_33",
+          "UCX_SM_Dominion_Hull_34",
+          "UCX_SM_Dominion_Hull_35",
+          "UCX_SM_Dominion_Hull_36",
+          "UCX_SM_Dominion_Hull_37",
+          "UCX_SM_Dominion_Hull_38",
+          "UCX_SM_Dominion_Hull_39",
+          "UCX_SM_Dominion_Hull_40",
+          "UCX_SM_Dominion_Hull_41",
+          "UCX_SM_Dominion_Hull_42",
+          "UCX_SM_Dominion_Hull_43",
+          "UCX_SM_Dominion_Hull_44",
+          "UCX_SM_Dominion_Hull_45",
+          "UCX_SM_Dominion_Hull_46",
+          "UCX_SM_Dominion_Hull_47",
+          "UCX_SM_Dominion_Hull_48",
+          "UCX_SM_Dominion_Hull_49",
+          "UCX_SM_Dominion_Hull_50",
+          "UCX_SM_Dominion_Hull_51",
+          "UCX_SM_Dominion_Hull_52",
+          "UCX_SM_Dominion_Hull_53",
+          "UCX_SM_Dominion_Hull_54",
+          "UCX_SM_Dominion_Hull_55",
+          "UCX_SM_Dominion_Hull_56"
+        ],
+        "materials": [
+          "M_Dominion_Trim",
+          "M_Dominion_Armor",
+          "M_Dominion_GlowRed",
+          "M_Dominion_Panel",
+          "M_Dominion_GlowEngine",
+          "M_Dominion_GlowWhite"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_ShieldEmitter": {
+      "tris": 1784,
+      "budget": [
+        2000,
+        30000
+      ],
+      "ue_min_cm": [
+        -635.7,
+        -726.2,
+        -2000.0
+      ],
+      "ue_max_cm": [
+        729.2,
+        726.2,
+        1990.7
+      ],
+      "ucx": 0,
+      "slots": [
+        [
+          0,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          1,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_GlowRed",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_GlowWhite",
+          true
+        ]
+      ],
+      "glow_area_m2": 0.0,
+      "ucx_objects": 0,
+      "report_errors": 0,
+      "report_warnings": 0,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_ShieldEmitter",
+          "message": "20 n-gons; fine if planar, they get triangulated on export"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 1784,
+        "size_cm": [
+          1364.9,
+          1452.4,
+          3990.7
+        ],
+        "collision": [
+          "UCX_SM_Dominion_ShieldEmitter_00"
+        ],
+        "materials": [
+          "M_Dominion_Trim",
+          "M_Dominion_Panel",
+          "M_Dominion_GlowRed",
+          "M_Dominion_GlowWhite"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_TrenchWall": {
+      "tris": 8476,
+      "budget": [
+        5000,
+        60000
+      ],
+      "ue_min_cm": [
+        -21592.9,
+        -890.6,
+        -1500.0
+      ],
+      "ue_max_cm": [
+        21592.9,
+        317.7,
+        1721.7
+      ],
+      "ucx": 19,
+      "slots": [
+        [
+          0,
+          "M_Dominion_Panel",
+          true
+        ],
+        [
+          1,
+          "M_Dominion_Armor",
+          true
+        ],
+        [
+          2,
+          "M_Dominion_GlowRed",
+          true
+        ],
+        [
+          3,
+          "M_Dominion_Trim",
+          true
+        ],
+        [
+          4,
+          "M_Dominion_GlowWhite",
+          true
+        ]
+      ],
+      "glow_area_m2": 0.0,
+      "ucx_objects": 19,
+      "report_errors": 0,
+      "report_warnings": 0,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_TrenchWall",
+          "message": "4 n-gons; fine if planar, they get triangulated on export"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 8476,
+        "size_cm": [
+          43185.8,
+          1208.3,
+          3221.7
+        ],
+        "collision": [
+          "UCX_SM_Dominion_TrenchWall_00",
+          "UCX_SM_Dominion_TrenchWall_01",
+          "UCX_SM_Dominion_TrenchWall_02",
+          "UCX_SM_Dominion_TrenchWall_03",
+          "UCX_SM_Dominion_TrenchWall_04",
+          "UCX_SM_Dominion_TrenchWall_05",
+          "UCX_SM_Dominion_TrenchWall_06",
+          "UCX_SM_Dominion_TrenchWall_07",
+          "UCX_SM_Dominion_TrenchWall_08",
+          "UCX_SM_Dominion_TrenchWall_09",
+          "UCX_SM_Dominion_TrenchWall_10",
+          "UCX_SM_Dominion_TrenchWall_11",
+          "UCX_SM_Dominion_TrenchWall_12",
+          "UCX_SM_Dominion_TrenchWall_13",
+          "UCX_SM_Dominion_TrenchWall_14",
+          "UCX_SM_Dominion_TrenchWall_15",
+          "UCX_SM_Dominion_TrenchWall_16",
+          "UCX_SM_Dominion_TrenchWall_17",
+          "UCX_SM_Dominion_TrenchWall_18"
+        ],
+        "materials": [
+          "M_Dominion_Panel",
+          "M_Dominion_Armor",
+          "M_Dominion_GlowRed",
+          "M_Dominion_Trim",
+          "M_Dominion_GlowWhite"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    }
+  },
+  "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Dominion_r7_clay_sheet.png",
+  "views": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Dominion_r7_views.png"
+}
