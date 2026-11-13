@@ -50,6 +50,8 @@ PlasmaPistol03, ArmoredCombatTruck, ArmoredTechCase, AuroraLandingPad, AzureRail
 
 **ART-10 revised music direction.** Audio owns ArtSource/Audio/CombatMusic01/ and Content/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_Drop38_01.uasset in its feature project and isolated presentation-runtime-1113 host. Preserve f5d9cf9d. Start playback at source time 38 s when player control returns from the intro, fade in quickly (150 ms trial), loop continuously across fights until next-area transition. Priority is a real opening-sequence listening test. The isolated binding edits CombatMusic only. For the separate ART-12 intro score, Audio may prepare source under ArtSource/Audio/IntroMusic01/ using docs/eng/intro-beats.md (49 s). A serialized IntroMusic field handoff follows after source review. UI also owns the localized optional HUD plugin boundary wording fix requested under R029.
 
+Lead reserves only Content/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_Drop38_01.uasset and Content/TriadDrift/Presentation/DA_UI_Style.uasset in Worktrees/tutorial-music-drop38 on nick/tutorial-music-drop38, based on the existing PR11 listening candidate 6afb4b4a. Publish the exact reloaded Audio package bytes for engineering playback. Nicholas retains listening approval. No merge or gameplay-source change is assigned here.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
