@@ -1,0 +1,29 @@
+{
+  "source_pack": "Terminal User Interface Sound Effects Pack LITE Edition",
+  "publisher": "Hove Audio",
+  "listing": "https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf",
+  "source_status": "Previously acquired free pack in Nick Epic library, localVaultCache; no downloads/purchases",
+  "material": "Mechanical-category recorded appliance power engagement and computer power-button click; no synthesized UIBeep assets",
+  "license_reference": "https://www.fab.com/eula",
+  "handling": "Local deterministic DSP only; no material submitted to AI model/training/generator. Private project audition, not standalone public library redistribution. Jam credits viaLead. Exact acquired entitlement governed by existing project resource license.",
+  "sources": [
+    {
+      "asset_name": "MACHAppl_PowerUp_HA_TerminalUI_02_Wav",
+      "asset_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\Power\\MACHAppl_PowerUp_HA_TerminalUI_02_Wav.uasset",
+      "source_sha256": "16fcdf6b8ed1f7b090b4b3c4582d059088fc9d83a8264f144113aad58585dcc6",
+      "wav_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\AuthenticationPulse01\\source\\power.wav",
+      "wav_sha256": "9eefe0696efc2f0aedabc2ee816cc802ae9cc9a0f269e8d219e45a32c34148c0",
+      "method": "Oodle buffer; header CRC and block lengths verified",
+      "transform": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    },
+    {
+      "asset_name": "CMPTMisc_PowerButton_HA_TerminalUI_02_Wav",
+      "asset_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Terminal898ca54d9692V1\\data\\Content\\Wavs\\Mechanical\\Buttons\\Computer\\CMPTMisc_PowerButton_HA_TerminalUI_02_Wav.uasset",
+      "source_sha256": "bf849be81157a210e7c6788ebc06b48445492b0f626fa74d0f05feda5bc65a3d",
+      "wav_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\AuthenticationPulse01\\source\\button.wav",
+      "wav_sha256": "ce40cd65beafaa6aee624925f7eacebe76755643cedfd2701f8b4d8578820c08",
+      "method": "Oodle buffer; header CRC and block lengths verified",
+      "transform": "lossless UEWavComp reversal; full-sample inverse round-trip verified"
+    }
+  ]
+}

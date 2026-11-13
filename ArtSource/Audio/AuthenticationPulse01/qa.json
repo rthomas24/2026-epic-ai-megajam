@@ -1,0 +1,34 @@
+{
+ "category": "ui",
+ "mix": false,
+ "files": [
+  {
+   "file": "ArtSource/Audio/AuthenticationPulse01/export/UI_Authentication_ThreePulse_01.wav",
+   "codec": "pcm_s16le",
+   "sample_rate": 48000,
+   "channels": 1,
+   "bits": 16,
+   "duration": 0.6,
+   "loudness_lufs": -16.25,
+   "loudness_kind": "ungated",
+   "integrated_lufs": null,
+   "ungated_lufs": -16.25,
+   "lra_lu": null,
+   "true_peak_dbtp": -3.0,
+   "sample_peak_dbfs": -3.021467,
+   "rms_dbfs": -15.248712,
+   "lead_silence_s": 0.0,
+   "tail_silence_s": 0.0347,
+   "dc_offset": -3e-06,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

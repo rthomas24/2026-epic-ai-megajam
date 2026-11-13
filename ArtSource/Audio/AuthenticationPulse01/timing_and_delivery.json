@@ -1,0 +1,26 @@
+{
+  "duration_s": 0.6,
+  "rate": 48000,
+  "channels": 1,
+  "bit_depth": 16,
+  "pulse_onsets_ms": [
+    0,
+    200,
+    400
+  ],
+  "spacing_ms": [
+    200,
+    200
+  ],
+  "first_sample": 0.0,
+  "last_sample": 3.0517578125e-05,
+  "clipped_samples": 0,
+  "pulse_peak_dbfs": [
+    -3.0224823644443295,
+    -3.0217316068797433,
+    -3.022857767562186
+  ],
+  "sha256": "4cc8c7021ac2a0a2692b4ee873aa0aae57004c23716d3887d89a9cfda7c4ef76",
+  "wav_absolute": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\AuthenticationPulse01\\export\\UI_Authentication_ThreePulse_01.wav",
+  "stage": "Offline audition technically verified; no listening or game integration approval claimed"
+}
