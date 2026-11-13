@@ -40,7 +40,7 @@ checks.append('Four shader workers reserved from actual logical-core count')
 with mock.patch.object(runner.resource, 'free_ram', side_effect=AssertionError('No dry RAM query')), \
         mock.patch.object(runner.subprocess, 'Popen', side_effect=AssertionError('No dry process launch')), \
         mock.patch.object(runner.resource, 'ps', side_effect=AssertionError('No dry shell process')):
-    for stage in ('probe', 'materials', 'verify-materials'):
+    for stage in ('probe', 'materials', 'verify-materials', 'structure', 'verify-structure'):
         output = io.StringIO()
         with mock.patch.object(sys, 'argv', ['run_native.py', '--stage', stage]), contextlib.redirect_stdout(output):
             runner.main()
@@ -52,6 +52,7 @@ runner.validate_outputs('probe', {}, {})
 checks.append('Read-only probe has zero native outputs')
 rejects('Probe writes rejected', lambda: runner.validate_outputs('probe', {}, {'unexpected.uasset': 'x'}))
 rejects('Verification writes rejected', lambda: runner.validate_outputs('verify-materials', {'x': 'old'}, {'x': 'new'}))
+rejects('Structural reload writes rejected', lambda: runner.validate_outputs('verify-structure', {'x': 'old'}, {'x': 'new'}))
 rejects('Materials unexpected output rejected', lambda: runner.validate_outputs('materials', {}, {'extra.uasset': 'x'}))
 rejects('Existing native target never overwritten', lambda: runner.validate_outputs('materials', {'M_AirSlam_Ring.uasset': 'old'}, {}))
 with mock.patch.object(Path, 'read_bytes', return_value=bytes.fromhex('c1832a9e')):

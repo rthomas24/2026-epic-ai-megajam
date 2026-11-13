@@ -34,7 +34,7 @@ def shader_thread_reserve(logical_cores):
 
 
 def validate_outputs(stage, before, after):
-    if stage in ('probe', 'verify-materials'):
+    if stage in ('probe', 'verify-materials', 'verify-structure'):
         assert before == after, 'Read-only stage wrote native output'
     else:
         assert not NAMES.intersection(before), 'Preserve existing packages'
@@ -61,7 +61,7 @@ def stop_owned(process, out, reason):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--stage', choices=('probe', 'materials', 'verify-materials'), required=True)
+    parser.add_argument('--stage', choices=('probe', 'materials', 'verify-materials', 'structure', 'verify-structure'), required=True)
     parser.add_argument('--slot', default='')
     parser.add_argument('--pins-sha256', default='')
     parser.add_argument('--execute', action='store_true')
@@ -82,12 +82,13 @@ def main():
         "'(?i)^(UnrealEditor.*|unrealGameJam.*|blender.*|ShaderCompileWorker|UnrealBuildTool|cl|UnrealPak|dotnet)\\.exe$'} "
         "| Select-Object ProcessId,Name)} | ConvertTo-Json -Depth 4"))
     available = resource.free_ram()
-    assert available >= 5.5 and not busy['busy'], (available, busy)
+    structural = args.stage in ('probe', 'structure', 'verify-structure')
+    assert available >= (4.25 if structural else 5.5) and not busy['busy'], (available, busy)
     unused_threads = shader_thread_reserve(os.cpu_count())
     before_owned, before = resource.owned(), resource.protected()
-    if args.stage == 'materials':
+    if args.stage in ('materials', 'structure'):
         assert not NAMES.intersection(before_owned), 'Existing target: preserve, do not overwrite'
-    if args.stage == 'verify-materials':
+    if args.stage in ('verify-materials', 'verify-structure'):
         assert NAMES.issubset(before_owned), 'Missing materials'
     out = HERE / 'Saved/NativeRuns' / (args.stage + '_' + str(time.time_ns()))
     out.mkdir(parents=True, exist_ok=False)
@@ -97,7 +98,7 @@ def main():
     argv = [str(ENGINE / 'Binaries/Win64/UnrealEditor-Cmd.exe'), str(host.PROJECT), '-AgentMode',
         '-run=pythonscript', '-script=' + str(HERE / 'native_entry.py'),
         '-EnablePlugins=PythonScriptPlugin,EditorScriptingUtilities,NiagaraToolsets,AllToolsets',
-        '-AllowCommandletRendering', '-d3d12', '-sm6', '-DDC=AirSlamAuthoring', '-nosound',
+        '-DDC=AirSlamAuthoring', '-nosound',
         '-NoSourceControl', '-NoLiveCoding', '-ModelContextProtocolPort=8024',
         '-ExitTimeout=' + str(bound), '-NoProgressTimeout=300', '-HangTimeout=60',
         '-ini:Engine:[DevOptions.Shaders]:bAllowCompilingThroughWorkers=True',
@@ -106,15 +107,17 @@ def main():
         '-ini:Engine:[DevOptions.Shaders]:ShaderCompilerCoreCountThreshold=999',
         '-UserDir=' + str(out / 'RuntimeUser'), '-abslog=' + str(out / 'Engine.log'),
         '-ResultFile=' + str(out / 'Engine.result.json'), '-UERunMarkerLog=' + str(out / 'Engine.markers.log')]
+    argv.extend(['-nullrhi'] if structural else ['-AllowCommandletRendering', '-d3d12', '-sm6'])
     resource.write(out / 'launch.json', {'argv': argv, 'slot': args.slot, 'pins_sha256': resource.sha(pins_path),
                                        'free_gib': available, 'stage': args.stage,
-                                       'shader_workers': SHADER_WORKERS, 'logical_cores': os.cpu_count()})
+                                       'shader_workers': SHADER_WORKERS, 'logical_cores': os.cpu_count(),
+                                       'render_verification_requested': not structural})
     startup = subprocess.STARTUPINFO()
     startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     startup.wShowWindow = 0
     environment = dict(os.environ, TD_AIR_SLAM_REPORT=str(out / 'Author'), TD_AIR_SLAM_STAGE=args.stage)
     report = {'stage': args.stage, 'technical_pass': False, 'native_executed': True,
-              'niagara_system_complete': False, 'gameplay_bound': False, 'slot': args.slot}
+              'niagara_system_complete': False, 'gameplay_bound': False, 'render_validated': False, 'slot': args.slot}
     process = None
     samples, low_since = [available], None
     started = time.monotonic()
@@ -145,7 +148,8 @@ def main():
         validate_outputs(args.stage, before_owned, after_owned)
         engine_result = json.loads((out / 'Engine.result.json').read_text(encoding='utf-8-sig'))
         resource.check_engine(engine_result)
-        assert 'Using 4 local workers for shader compilation' in (out / 'Engine.log').read_text(errors='replace'), 'Native compiler worker profile not observed'
+        if not structural:
+            assert 'Using 4 local workers for shader compilation' in (out / 'Engine.log').read_text(errors='replace'), 'Native compiler worker profile not observed'
         report['engine_result_summary'] = {key: engine_result[key] for key in ('exit_code', 'reason', 'log')}
         digest = subprocess.run([sys.executable, '-B', str(ENGINE / 'Extras/AgentTools/ue_log_digest.py'),
             str(out / 'Engine.log'), '--json'], capture_output=True, text=True, timeout=30)
@@ -157,6 +161,9 @@ def main():
         expected = set() if args.stage == 'probe' else {
             '/Game/TriadDrift/VFX/CombatReadability01/AirSlam01/' + name[:-7] + '.' + name[:-7] for name in NAMES}
         assert set(result['assets']) == expected
+        if args.stage in ('structure', 'verify-structure'):
+            assert not result['statistics'] and set(result['structural_checks']) == expected
+            assert not result['render_validated']
         assert all(resource.sha(HERE / path) == sha for path, sha in pins['files'].items())
         report['structured_result'] = result
         report['technical_pass'] = True

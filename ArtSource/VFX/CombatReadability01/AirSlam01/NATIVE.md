@@ -59,3 +59,20 @@ ShaderCompiler.cpp1230-1268 defines this count as virtualcores minus reserved
 threads in commandlets. Validate the emitted native 'Using 4 local workers'
 message rather than assuming the profile took effect. This profile has not
 run natively yet; preserve both failed attempts and private cache.
+
+## Structural authoring route after RHI startup failures
+
+Four-worker run materials_1794593950181398100 was stopped by its owned memory
+guard at254.141s (initial5.599GiB, minimum1.683GiB), before Python. It produced
+no packages and no protected changes. PID25028 and its children exited. The
+private RHI cold start is not a viable next authoring step; do not repeat it.
+
+The next `structure` stage and `probe` use -nullrhi, without
+-AllowCommandletRendering/-d3d12/-sm6. `structure` authors the same two native
+material graphs but deliberately skips RecompileMaterial and GetStatistics.
+`verify-structure` fresh-loads their graphs without package writes. The entry
+records structural checks separately and keeps render_validated=false. This is
+native structural authoring, NEVER a shader/render or gameplay pass. The
+structural route requires4.25GiB and retains process/RAM/time guards. Shader
+and visual verification must happen later with graphics in the matching game
+host/cache; do not use a skipped shader check to claim a finished effect.

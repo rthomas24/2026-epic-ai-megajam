@@ -66,7 +66,7 @@ def statistics(material):
     return values
 
 
-def create_material(name, ring):
+def create_material(name, ring, compile_shader):
     obj = ue.AssetToolsHelpers.get_asset_tools().create_asset(name, DEST, ue.Material, ue.MaterialFactoryNew())
     assert obj
     obj.set_editor_property('blend_mode', ue.BlendMode.BLEND_ADDITIVE if ring else ue.BlendMode.BLEND_TRANSLUCENT)
@@ -101,9 +101,30 @@ def create_material(name, ring):
         rough = node(obj, ue.MaterialExpressionConstant, r=1.0)
         assert ML.connect_material_property(rough, '', ue.MaterialProperty.MP_ROUGHNESS)
     ML.layout_material_expressions(obj)
-    errors = ML.recompile_material(obj)
-    assert not errors, errors
+    if compile_shader:
+        errors = ML.recompile_material(obj)
+        assert not errors, errors
     return obj
+
+
+def graph_check(material, ring):
+    assert material.get_editor_property('blend_mode') == (ue.BlendMode.BLEND_ADDITIVE if ring else ue.BlendMode.BLEND_TRANSLUCENT)
+    assert material.get_editor_property('shading_model') == (ue.MaterialShadingModel.MSM_UNLIT if ring else ue.MaterialShadingModel.MSM_DEFAULT_LIT)
+    assert ML.get_num_material_expressions(material) >= 8
+    color_property = ue.MaterialProperty.MP_EMISSIVE_COLOR if ring else ue.MaterialProperty.MP_BASE_COLOR
+    color_node = ML.get_material_property_input_node(material, color_property)
+    opacity_node = ML.get_material_property_input_node(material, ue.MaterialProperty.MP_OPACITY)
+    assert isinstance(color_node, ue.MaterialExpressionComponentMask)
+    assert isinstance(opacity_node, ue.MaterialExpressionComponentMask)
+    color_inputs = ML.get_inputs_for_material_expression(material, color_node)
+    opacity_inputs = ML.get_inputs_for_material_expression(material, opacity_node)
+    assert len(color_inputs) == 1 and len(opacity_inputs) == 1
+    custom = color_inputs[0]
+    assert isinstance(custom, ue.MaterialExpressionCustom) and custom == opacity_inputs[0]
+    assert custom.get_editor_property('code') == (HERE / ('air_slam_ring.ush' if ring else 'air_slam_dust.ush')).read_text()
+    assert len(ML.get_inputs_for_material_expression(material, custom)) == 4
+    return {'graph_expressions': ML.get_num_material_expressions(material), 'shader_compile_attempted': False,
+            'color_and_opacity_connected_to_exact_source_kernel': True}
 
 
 def main():
@@ -116,25 +137,32 @@ def main():
     expected = HERE.parents[3] / 'Content/TriadDrift/VFX/CombatReadability01/AirSlam01'
     assert actual_output.resolve() == expected.resolve()
     report = {'stage': STAGE, 'engine': engine, 'niagara_system_authored': False,
-              'gameplay_bound': False, 'shared_paths_edited': False, 'assets': [], 'statistics': {}}
-    if STAGE in ('probe', 'materials'):
+              'gameplay_bound': False, 'shared_paths_edited': False, 'assets': [], 'statistics': {},
+              'render_validated': False, 'structural_checks': {}}
+    if STAGE in ('probe', 'materials', 'structure'):
         report['probe'] = probe()
-    if STAGE == 'materials':
+    if STAGE in ('materials', 'structure'):
         assert not any(ED.does_asset_exist(DEST + '/' + name) for name in NAMES), 'Preserve existing outputs'
         ED.make_directory(DEST)
-        assets = [create_material(name, i == 0) for i, name in enumerate(NAMES)]
-        for obj in assets:
-            report['statistics'][obj.get_path_name()] = statistics(obj)
+        assets = [create_material(name, i == 0, STAGE == 'materials') for i, name in enumerate(NAMES)]
+        for i, obj in enumerate(assets):
+            if STAGE == 'materials':
+                report['statistics'][obj.get_path_name()] = statistics(obj)
+            else:
+                report['structural_checks'][obj.get_path_name()] = graph_check(obj, i == 0)
         for obj in assets:
             assert obj.get_path_name().startswith(DEST + '/')
             assert ED.save_loaded_asset(obj, only_if_is_dirty=False)
             report['assets'].append(obj.get_path_name())
-    elif STAGE == 'verify-materials':
+    elif STAGE in ('verify-materials', 'verify-structure'):
         assets = [ED.load_asset(DEST + '/' + name) for name in NAMES]
         assert all(assets) and all(isinstance(obj, ue.Material) for obj in assets)
-        for obj in assets:
+        for i, obj in enumerate(assets):
             report['assets'].append(obj.get_path_name())
-            report['statistics'][obj.get_path_name()] = statistics(obj)
+            if STAGE == 'verify-materials':
+                report['statistics'][obj.get_path_name()] = statistics(obj)
+            else:
+                report['structural_checks'][obj.get_path_name()] = graph_check(obj, i == 0)
     write('result.json', report)
 
 
