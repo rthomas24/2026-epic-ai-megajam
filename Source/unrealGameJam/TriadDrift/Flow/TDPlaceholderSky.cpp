@@ -11,11 +11,15 @@
 #include "Misc/PackageName.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/PostProcessVolume.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "UObject/UObjectIterator.h"
+#include "Components/ExponentialHeightFogComponent.h"
 #include "TriadDrift/World/TDSkySphere.h"
 
 const FName ATDPlaceholderSky::PresentationSkyTag(TEXT("TD.Presentation.Sky"));
@@ -273,7 +277,8 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 		// Thick only near the ground and far away: a steep falloff (density halves every ~0.4 km of height) keeps the
 		// view down from the arrival altitude (~220 m) clear, and the start distance keeps the arrival's ground
 		// (lava cracks, spires, the outpost) out of the haze; the horizon still melts into the tint.
-		HorizonFog->SetFogDensity(bVerdance ? 0.03f : 0.035f);
+		BaseFogDensity = bVerdance ? 0.03f : 0.035f;
+		HorizonFog->SetFogDensity(BaseFogDensity);
 		HorizonFog->SetFogHeightFalloff(1.8f);
 		HorizonFog->SetStartDistance(25000.f);
 		HorizonFog->SetFogMaxOpacity(1.f);
@@ -333,5 +338,67 @@ void ATDPlaceholderSky::Tick(float DeltaSeconds)
 	{
 		RescanTimer = RescanInterval;
 		Refresh(); // a sky streamed in or spawned late takes over
+	}
+	TickDescentFog();
+}
+
+void ATDPlaceholderSky::TickDescentFog()
+{
+	// ENG-38 focus-in: high above the ground the haze is thick (the world below is still a soft shape); it thins to
+	// the planet's normal horizon fog between 6 km and 2 km up, so detail resolves on the way down without a pop.
+	if (!GetWorld())
+	{
+		return;
+	}
+	// The fog to drive: ours when it is up, else the level's own height fog (a tagged environment sky brings its own,
+	// and the placeholder's is removed). Its authored density is the "normal" one.
+	UExponentialHeightFogComponent* Fog = (HorizonFog && HorizonFog->IsVisible()) ? HorizonFog.Get() : DescentFog.Get();
+	if (!Fog)
+	{
+		DescentFogSearch -= GetWorld()->GetDeltaSeconds();
+		if (DescentFogSearch > 0.f || !FogTerrain.IsValid() && !TActorIterator<ATDPlanetTerrain>(GetWorld()))
+		{
+			return;
+		}
+		DescentFogSearch = 2.f;
+		for (TObjectIterator<UExponentialHeightFogComponent> It; It; ++It)
+		{
+			if (It->GetWorld() == GetWorld() && It->IsRegistered() && It->IsVisible() && *It != HorizonFog)
+			{
+				DescentFog = *It;
+				DescentFogBase = It->FogDensity;
+				break;
+			}
+		}
+		Fog = DescentFog.Get();
+		if (!Fog)
+		{
+			if (!bDescentFogLogged) { bDescentFogLogged = true; UE_LOG(LogTriadDrift, Log, TEXT("ATDPlaceholderSky: descent fog - no height fog in this level")); }
+			return;
+		}
+	}
+	const float Base = Fog == HorizonFog ? BaseFogDensity : DescentFogBase;
+	if (Base <= 0.f)
+	{
+		return;
+	}
+	if (!FogTerrain.IsValid())
+	{
+		for (TActorIterator<ATDPlanetTerrain> It(GetWorld()); It; ++It) { FogTerrain = *It; break; }
+		if (!FogTerrain.IsValid()) { return; }
+	}
+	const APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC || !PC->PlayerCameraManager)
+	{
+		return;
+	}
+	const FVector Cam = PC->PlayerCameraManager->GetCameraLocation();
+	const float Alt = Cam.Z - FogTerrain->GetHeightAt(Cam);
+	DescentFogScale = 1.f + (DescentFogMaxScale - 1.f) * FMath::SmoothStep(DescentFogLowCm, DescentFogHighCm, Alt);
+	Fog->SetFogDensity(Base * DescentFogScale);
+	if (!bDescentFogLogged)
+	{
+		bDescentFogLogged = true;
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDPlaceholderSky: descent fog drives %s (base density %.4f, x%.1f at %.0f m up)"), *Fog->GetPathName(), Base, DescentFogScale, Alt / 100.f);
 	}
 }

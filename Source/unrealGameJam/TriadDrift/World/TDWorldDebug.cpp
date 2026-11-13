@@ -8,6 +8,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDDistortionField.h"
+#include "TriadDrift/World/TDVerdanceApproach.h"
 #include "TimerManager.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Materials/MaterialInterface.h"
@@ -277,6 +278,79 @@ namespace TDWorldDebug
 			PlaceFacing(Pawn, P, R);
 		}));
 
+	FAutoConsoleCommandWithWorldAndArgs CmdPlanetView(TEXT("TD.World.PlanetView"), TEXT("Look at a planet's globe: <Verdance|Cinder> <x> <y> <z> (direction in the planet's frame) [radii out = 3]."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			if (!Pawn || Args.Num() < 4) { return; }
+			const bool bCinder = Args[0].Equals(TEXT("Cinder"), ESearchCase::IgnoreCase);
+			for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It)
+			{
+				if ((It->GetDestination() == ETDDestination::Cinder) != bCinder) { continue; }
+				const FVector Dir = It->GetGlobeQuat().RotateVector(FVector(FCString::Atof(*Args[1]), FCString::Atof(*Args[2]), FCString::Atof(*Args[3]))).GetSafeNormal();
+				const float Radii = Args.Num() > 4 ? FCString::Atof(*Args[4]) : 3.f;
+				const FVector P = It->GetPlanetCenter() + Dir * It->GetPlanetRadius() * Radii;
+				PlaceFacing(Pawn, P, (It->GetPlanetCenter() - P).Rotation());
+				if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Pawn)) { Craft->SetFlightParked(true); }
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.World.PlanetView: %s from (%s), baked %d"), *Args[0], *Dir.ToCompactString(), It->IsGlobeBaked() ? 1 : 0);
+				break;
+			}
+		}));
+	FAutoConsoleCommandWithWorldAndArgs CmdPhase(TEXT("TD.World.Phase"), TEXT("Set the run's phase in place (no travel): <Waves1to2|Verdance|Waves3to4|Cinder|Wave5|DominionAssault|Escape|...>."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const UEnum* E = StaticEnum<ETDGamePhase>();
+			ITDGameFlow* Flow = UTDStatics::GetGameFlow(World);
+			const int64 V = (E && Args.Num() > 0) ? E->GetValueByNameString(Args[0]) : INDEX_NONE;
+			if (!Flow || V == INDEX_NONE) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.Phase <Phase>")); return; }
+			Flow->SetPhase(static_cast<ETDGamePhase>(V));
+		}));
+	FAutoConsoleCommandWithWorldAndArgs CmdApproachView(TEXT("TD.World.ApproachView"), TEXT("The way to Verdance: put the ship near <0|1 (convoy)|beacon> [m off = 300] [side 0..1], facing it."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			const ATDGalaxyLayout* L = ATDGalaxyLayout::Get(World);
+			if (!Pawn || !L || Args.Num() < 1) { return; }
+			const float Off = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 300.f) * 100.f;
+			const float Side = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 0.6f;
+			int32 Convoy = 0;
+			for (AActor* A : L->GetVerdanceApproach())
+			{
+				FVector Target;
+				if (ATDArmadaConvoy* C = Cast<ATDArmadaConvoy>(A)) { if (Args[0] != FString::FromInt(Convoy++)) { continue; } Target = C->GetHaulerLocation(0); }
+				else if (Cast<ATDTransponderBeacon>(A) && Args[0].Equals(TEXT("beacon"), ESearchCase::IgnoreCase)) { Target = A->GetActorLocation(); }
+				else { continue; }
+				const FVector P = Target + FVector(-Off, Off * Side, Off * 0.25f);
+				PlaceFacing(Pawn, P, (Target - P).Rotation());
+				return;
+			}
+		}));
+	FAutoConsoleCommandWithWorldAndArgs CmdApproachEscort(TEXT("TD.World.ApproachEscort"), TEXT("Fly alongside the scannable hauler for <seconds> (the scan is a hold within 250 m)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			const ATDGalaxyLayout* L = ATDGalaxyLayout::Get(World);
+			ATDArmadaConvoy* C = nullptr;
+			for (AActor* A : L ? L->GetVerdanceApproach() : TArray<TObjectPtr<AActor>>()) { if (!C) { C = Cast<ATDArmadaConvoy>(A); } }
+			if (!Pawn || !C) { return; }
+			const float Secs = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 4.f;
+			TWeakObjectPtr<APawn> WP(Pawn);
+			TWeakObjectPtr<ATDArmadaConvoy> WC(C);
+			const double End = World->GetTimeSeconds() + Secs;
+			FTimerHandle H;
+			FTimerDelegate D;
+			D.BindLambda([WP, WC, End, World]()
+			{
+				if (!WP.IsValid() || !WC.IsValid() || World->GetTimeSeconds() > End) { return; }
+				const FVector T = WC->GetHaulerLocation(0);
+				WP->SetActorLocation(T + FVector(-6000.f, 12000.f, 3000.f));
+				WP->SetActorRotation((T - WP->GetActorLocation()).Rotation());
+			});
+			World->GetTimerManager().SetTimer(H, D, 0.02f, true);
+			FTimerHandle Stop;
+			World->GetTimerManager().SetTimer(Stop, FTimerDelegate::CreateLambda([World, H]() mutable { World->GetTimerManager().ClearTimer(H); }), Secs + 0.1f, false);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.ApproachEscort: %.1f s beside the lead hauler"), Secs);
+		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdFieldProbe(TEXT("TD.World.FieldProbe"), TEXT("Story field: put the player's ship <m> outside the distortion field, facing its centre (fly in with TD.World.Hold)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
