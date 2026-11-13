@@ -225,6 +225,10 @@ void ATDDebugHUD::HandleBarkRequested(FName BarkId, FName Speaker)
 		}
 		Spaced.AppendChar(FChar::ToLower(Text[i]));
 	}
+	if (Spaced.RemoveFromStart(TEXT("engage ")))
+	{
+		Spaced = TEXT("engaging, ") + Spaced;
+	}
 	BarkLine = FString::Printf(TEXT("%s: %s"), *Speaker.ToString().ToUpper(), *Spaced);
 	BarkUntil = World->GetRealTimeSeconds() + 2.5;
 }
