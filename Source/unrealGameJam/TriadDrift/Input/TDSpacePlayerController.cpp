@@ -1074,20 +1074,26 @@ void ATDSpacePlayerController::OnLand(const FInputActionValue&)
 	OnLandInput.Broadcast();
 	LandPressTime = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
 	bLandFired = false;
+	// F again while the approach assist flies the ship: the pilot takes back control (this press is spent).
+	if (const ATDShip* Ship = Cast<ATDShip>(GetPawn()))
+	{
+		if (UTDLandingComponent* Landing = Ship->GetLanding())
+		{
+			if (Landing->IsApproachAssisting())
+			{
+				Landing->StopApproachAssist();
+				bLandFired = true;
+			}
+		}
+	}
 }
 
 void ATDSpacePlayerController::OnLandReleased(const FInputActionValue&)
 {
 	LandPressTime = -1.0;
 	bLandFired = false;
-	// Letting go of F hands the approach back to the pilot (a started landing sequence carries on).
-	if (const ATDShip* Ship = Cast<ATDShip>(GetPawn()))
-	{
-		if (UTDLandingComponent* Landing = Ship->GetLanding())
-		{
-			Landing->StopApproachAssist();
-		}
-	}
+	// Letting go of F keeps an engaged approach assist flying: a first-time player who holds F for a moment on
+	// arrival (throttle still on) must not sail past the pad (T5's journey). Tap F again or boost to cancel.
 }
 
 void ATDSpacePlayerController::OnCameraToggle(const FInputActionValue&)
