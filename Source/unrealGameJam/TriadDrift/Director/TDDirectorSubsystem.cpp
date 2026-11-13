@@ -11,6 +11,8 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "Engine/World.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/Actor.h"
 
 FTDDirectorTuning::FTDDirectorTuning()
@@ -58,9 +60,15 @@ void UTDDirectorSubsystem::Tick(float DeltaTime)
 	const double Now = RealNow();
 	const float RealDelta = LastTickRealTime < 0.0 ? 0.f : static_cast<float>(Now - LastTickRealTime);
 	LastTickRealTime = Now;
+	EnsureDirectorWidget();
 	if (CutPresentation)
 	{
 		CutPresentation->SetHandledExternally(bCutPresentationHandledExternally);
+		CutPresentation->SetExternalRenderer(DirectorWidget != nullptr);
+		if (IsShotActive())
+		{
+			CutPresentation->SetShotKindName(FText::FromString(StaticEnum<ETDHighlightKind>()->GetNameStringByValue((int64)CurrentShot.Kind)));
+		}
 		const UTDGameInstance* GI = GetWorld() ? Cast<UTDGameInstance>(GetWorld()->GetGameInstance()) : nullptr;
 		if (GI && GI->IsTravelPending())
 		{
@@ -97,6 +105,62 @@ void UTDDirectorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	if (CutPresentation)
 	{
 		CutPresentation->Init(&InWorld);
+		CutPresentation->OnCardsChanged.AddUObject(this, &UTDDirectorSubsystem::RelayCards);
+	}
+}
+
+FTDDirectorCards UTDDirectorSubsystem::GetDirectorCards() const
+{
+	return CutPresentation ? CutPresentation->GetCards() : FTDDirectorCards();
+}
+
+FTDDirectorCards UTDDirectorSubsystem::GetDirectorCardsFor(const UObject* WorldContextObject)
+{
+	const UTDDirectorSubsystem* D = Get(WorldContextObject);
+	return D ? D->GetDirectorCards() : FTDDirectorCards();
+}
+
+void UTDDirectorSubsystem::RelayCards(const FTDDirectorCards& Cards)
+{
+	OnDirectorCardsChanged.Broadcast(Cards);
+}
+
+void UTDDirectorSubsystem::EnsureDirectorWidget()
+{
+	// N-038: Nick's renderer for the cards, made once per world for the first local player. The world takes it with it
+	// (travel), it never takes input, and the fallback overlay yields while it exists.
+	if (DirectorWidget || bDirectorWidgetLooked)
+	{
+		return;
+	}
+	UWorld* World = GetWorld();
+	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	if (!World || !World->IsGameWorld() || !PC || !PC->IsLocalController())
+	{
+		return; // try again next tick: the player isn't there yet
+	}
+	bDirectorWidgetLooked = true;
+	TSubclassOf<UUserWidget> Class = DirectorWidgetClassOverride;
+	if (!Class)
+	{
+		if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+		{
+			Class = Style->DirectorWidgetClass.LoadSynchronous();
+		}
+	}
+	if (!Class)
+	{
+		return; // no renderer: the fallback overlay draws the cards
+	}
+	DirectorWidget = CreateWidget<UUserWidget>(PC, Class);
+	if (DirectorWidget)
+	{
+		DirectorWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		if (World->GetGameViewport())
+		{
+			DirectorWidget->AddToViewport(UTDCutPresentation::OverlayZOrder(false));
+		}
+		UE_LOG(LogTriadDrift, Log, TEXT("Director: the cards are drawn by %s"), *Class->GetName());
 	}
 }
 

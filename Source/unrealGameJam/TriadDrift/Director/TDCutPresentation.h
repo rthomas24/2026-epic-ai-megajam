@@ -61,6 +61,90 @@ struct UNREALGAMEJAM_API FTDCutPresentationState
 	}
 };
 
+/** One Director's Cut card for a renderer (N-038): what it says, how far through it is, and how long it has left. */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDDirectorCard
+{
+	GENERATED_BODY()
+
+	/** Up this frame (its alpha may still be fading). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	bool bActive = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FText Text;
+
+	/** Second line where there is one: the pilot card's "LANCER · INTERCEPTOR", the money shot's kind. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FText SubText;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FLinearColor Color = FLinearColor::White;
+
+	/** The fallback's own fade (0..1): a renderer may use it or animate from Progress01. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	float Alpha = 0.f;
+
+	/** 0 at the start of the card, 1 at its end (real time: slow motion never stretches it). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	float Progress01 = 0.f;
+
+	/** Real seconds until it ends. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	float TimeLeft = 0.f;
+};
+
+/** Everything the Director's Cut shows right now, for a renderer widget (N-038). Read-only; real time. */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDDirectorCards
+{
+	GENERATED_BODY()
+
+	/** The ship switch as a camera cut: Text = the new pilot, Color = the squad colour; bQuickCut = no bars. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FTDDirectorCard SwitchCut;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	bool bQuickCut = false;
+
+	/** Counts every switch (a renderer can restart its animation when it changes). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	int32 SwitchCount = 0;
+
+	/** The pilot name card (with "STRIKE +25%" when the switch earned Switch Strike). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FTDDirectorCard NameCard;
+
+	/** "SCENE 3 · WAVE 3 · TAKE 2". */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FTDDirectorCard Slate;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FName SlateScene;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	int32 SlateTake = 0;
+
+	/** "CUT!" (the scene failed; the retake follows). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FTDDirectorCard Cut;
+
+	/** A money shot's slow motion and thin letterbox; SubText = its kind ("RamKill"). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	FTDDirectorCard MoneyShot;
+
+	/** The fallback's letterbox height per bar (fraction of the screen) and its 1-frame white flash. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	float Letterbox = 0.f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	float FlashAlpha = 0.f;
+
+	bool AnyActive() const { return SwitchCut.bActive || NameCard.bActive || Slate.bActive || Cut.bActive || MoneyShot.bActive; }
+	/** Changes only when a card comes, goes or changes its text (what OnDirectorCardsChanged reports). */
+	uint32 Signature() const;
+};
+
 /** Timing for the fallback cards (switch timing comes from FTDSwitchCut::Timing). */
 USTRUCT(BlueprintType)
 struct UNREALGAMEJAM_API FTDCutPresentationTuning
@@ -115,7 +199,16 @@ public:
 	/** Clear everything at once (travel, external HUD taking over). */
 	void ClearAll();
 
-	/** True while a real HUD draws these; the fallback then draws nothing. */
+	/** N-038: a renderer widget draws the cards. Timing and GetCards() stay alive; only the fallback overlay yields. */
+	void SetExternalRenderer(bool bRenderer) { bExternalRenderer = bRenderer; }
+	bool HasExternalRenderer() const { return bExternalRenderer; }
+	const FTDDirectorCards& GetCards() const { return Cards; }
+	/** Fired from Tick when the cards' Signature() changes. */
+	TMulticastDelegate<void(const FTDDirectorCards&)> OnCardsChanged;
+	/** The running money shot's kind, for the card (set by the director). */
+	void SetShotKindName(const FText& Kind) { ShotKindName = Kind; }
+
+	/** True while a real HUD draws these; the fallback then draws nothing (and the cards are cleared too). */
 	void SetHandledExternally(bool bHandled);
 	bool IsHandledExternally() const { return bHandledExternally; }
 	/** True while the ENG-33 intro plays: the intro owns the screen, nothing of ours draws over it. */
@@ -154,7 +247,13 @@ private:
 	int32 WidgetZOrder = 900;
 
 	FTDCutPresentationState State;
+	FTDDirectorCards Cards;
+	uint32 CardsSignature = 0;
 	bool bHandledExternally = false;
+	bool bExternalRenderer = false;
+	int32 SwitchCount = 0;
+	FText NameCardSub;
+	FText ShotKindName;
 
 	// switch
 	double SwitchStart = -1000.0;
@@ -173,6 +272,8 @@ private:
 	int32 PendingSlateTake = 0;
 	double PreviewSlateAt = -1000.0;
 	FText Slate;
+	FName SlateScene;
+	int32 SlateTake = 0;
 	// money shot
 	double ShotStart = -1000.0;
 	float ShotSeconds = 0.f;
