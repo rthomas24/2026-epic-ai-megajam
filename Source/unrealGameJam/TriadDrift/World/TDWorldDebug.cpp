@@ -23,12 +23,16 @@
 
 namespace TDWorldDebug
 {
-	void Place(APawn* Pawn, const FVector& Loc, const FVector& LookAt)
+	void PlaceFacing(APawn* Pawn, const FVector& Loc, const FRotator& Facing)
 	{
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.World.Goto: %s -> %s"), Pawn ? *Pawn->GetName() : TEXT("none"), *Loc.ToString());
-		const FRotator Facing = (LookAt - Loc).Rotation();
 		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Pawn)) { Craft->TeleportSpacecraft(Loc, Facing, false); }
 		else if (Pawn) { Pawn->SetActorLocationAndRotation(Loc, Facing); }
+	}
+
+	void Place(APawn* Pawn, const FVector& Loc, const FVector& LookAt)
+	{
+		PlaceFacing(Pawn, Loc, (LookAt - Loc).Rotation());
 	}
 
 	void Goto(const TArray<FString>& Args, UWorld* World)
@@ -58,7 +62,7 @@ namespace TDWorldDebug
 				const bool bMatch = (P->GetDestination() == ETDDestination::Verdance) == Where.Equals(TEXT("Verdance"), ESearchCase::IgnoreCase);
 				if (!bMatch) { continue; }
 				FTransform Orbit;
-				if (Layout->FindReturnPoint(P->GetReturnPoint(), Orbit)) { Place(Pawn, Orbit.GetLocation(), P->GetPlanetCenter()); }
+				if (Layout->FindReturnPoint(P->GetReturnPoint(), Orbit)) { PlaceFacing(Pawn, Orbit.GetLocation(), Orbit.Rotator()); }	// the orbit point's own facing (home), never into the planet
 			}
 		}
 		else if (Where.Equals(TEXT("Gate"), ESearchCase::IgnoreCase))
