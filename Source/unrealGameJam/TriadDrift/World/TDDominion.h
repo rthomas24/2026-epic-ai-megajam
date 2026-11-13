@@ -115,6 +115,16 @@ public:
 
 	bool IsShowcasing() const { return bShowcase; }
 
+	/**
+	 * Where a journey stage starts the squad, from the hull's real size (art or placeholder): the approach is front-
+	 * right and a little above, 2.5 hull radii out (well outside the hull, the shield and the generator ring),
+	 * facing the Dominion; the trench start is 200 m off the actual bow on the trench line, facing aft.
+	 */
+	FTransform GetStageStart(bool bTrench) const;
+
+	/** The hull, bridge and trench walls' extent in the Dominion's local space (art collision included). */
+	FBox GetLocalHullBounds() const;
+
 	/** Living fighters launched by the Dominion. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	int32 GetLaunchedAlive() const;
