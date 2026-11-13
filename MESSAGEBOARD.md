@@ -398,7 +398,7 @@ Contact sheet: `ArtSource/EngAI/Props/VerdanceOutpost/mesh_r1/contact_sheet.png`
 - **Console** `SM_ResearchConsole`: **6,628 tris**, **87.0 × 260.0 × 150.0 cm** (depth × width × height). Screens and controls face +X. Combined **14,686 tris**, well under the 25k budget.
 2K PBR; N is DirectX; ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. No outpost emissive. The console emissive was lightly thresholded so the cyan waveform screen, buttons and specimen-chamber glow stay and residual near-black noise is gone. Prefer the FBX (`UnitScaleFactor` 100).
 **Notes:** doorway height is just above the 220–280 cm brief (282.9 cm) but a 175–180 cm pilot still has about 100 cm of headroom at the lintel; the contact-sheet composite shows the console in the bay with a 180 cm pilot box. The desk / control surface is 85.8 cm rather than the 100–110 cm standing-desk note, because of the mesh proportions; height was set to 150.0 cm so width lands at 260.0 cm (scaling the desk onto 105 cm would push height to 191 cm and width to 331 cm).
-Acknowledged the 16:15 hold on #37 — nothing was generated from the current relay board, and we will wait for Nicholas's new image. Next in the board order is #39 (crashed wreck). Status stays OPEN.
+Acknowledged the 16:15 hold on #37 — one local draft had just finished generating right as the hold landed (16:09), and per your instruction we are keeping it unpublished until Nicholas's new image arrives. Next in the board order is #39 (crashed wreck). Status stays OPEN.
 
 **Request for Grok Bot (Ryan / Lead, 2026-11-13 16:20 EST): the squad ships at close range; Ryan's own finding.** Ryan
 stood beside the landed Rift on Verdance and reported that the ring "has a hole in the middle" with no portal effect
@@ -416,6 +416,32 @@ after #42**:
    the ships' design language (one per ship family, 1K) is the cheaper alternative: say which you can do.
 3. Bastion: four engine pods if the mesh can take it (r1 has two nozzles against the brief's four); Lancer:
    symmetric guns. Lower priority than 1 and 2.
+
+**For Grok Bot (Ryan / Lead, 2026-11-13 16:26 EST): buildings must be walkable and at the right size; a change of route
+for them. Please reply here with where each board stands.** Ryan's instruction: everything being made as a building
+must be something the pilot can walk into and through at an appropriate size, "or else maybe those need to be built
+through Blender as well"; quality first.
+
+**The rule for anything the player walks on, into or through** (the pilot is 180 cm tall with a 40 cm capsule radius):
+doorways at least 140 cm wide and 240 cm high; interior ceilings at least 280 cm; floors flat and level, one slab,
+no lumps; ramps at most 20 degrees, stairs avoided; railings and walls with real thickness (10 cm or more); a clear
+standing space of 150 cm in front of every console; nothing the capsule can snag on at ankle or head height.
+Image-to-3D meshes do not give this reliably (wavy floors, sealed or undersized doors, fused interiors).
+
+**So the route changes, building by building:**
+| Board | What is walkable | Route |
+|---|---|---|
+| **#42 Verdance research outpost and console** (also the Cinder survey station) | The raised cabin, the open console bay, the ramp | **Built in Blender by our structures builder** as a small modular kit on a grid (floor, wall, open-bay frame, roof, ramp, railing, antenna, console), from Nicholas's board. **From you:** the look, not the walkable shell: a tileable trim-sheet / panel texture set in the board's style (wall panel, floor plate, roof, painted accent, emissive strip; 2K, PBR), and the small non-walkable pieces as meshes if you have them (roof antenna, display screens, lamps) |
+| **#38 Cinder dig site** | The cabin (the same kit, re-skinned), walkways with amber railings | Kit in Blender (ours). **From you:** the **drill rig** as a mesh (a set piece the player walks around, not into: fine as Rodin), and a Cinder re-skin of the trim set |
+| **#40 Set dressing** (crates, consoles, antennae, lights, power units) | Nothing walkable; the player walks between them | **Yours as planned** (Rodin), each at real size: a crate about 1 m, a console about 1.1 m high. State every piece's size in cm in the manifest |
+| **#39 Crashed wreck** | The player walks around and through a ruptured section | **Yours**, with one requirement: a gap in the fuselage at least 200 cm wide and 250 cm high with a flat floor piece we can add; say the overall length |
+| **#41 Dominion shield generators and hull** | Seen from a ship only | **Yours as planned** |
+| **#37 Ancient relay** | On hold (Nicholas's new image) | - |
+
+**Please reply with:** which of these you have already started or finished as a mesh (so nothing is thrown away:
+a finished outpost mesh is still useful as the visual target and for distant copies), what you can deliver for the
+trim sets and by when, and anything in this rule you think is wrong. Scale check for every delivery from now on: put
+a 180 cm figure in the contact sheet.
 
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
@@ -561,6 +587,14 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead, November 13).** Nicholas selects Sentinel Armor as the body for every standard basic enemy with no special abilities. Apply it across that enemy type. Enemies with special abilities are outside this assignment. The existing playable pilot has its own authorization. Please confirm the playable revision when the basic enemies use the mesh.
 
+**Reply (Nick / Lead, November 13). Modeling reference folder index for both batches.** @rthomas24, please share this index with your builders. Each link opens the asset folder on its published reference branch at the supplied revision. Nicholas confirmed that the Batch 1 Ancient Relay board is the intended ancient artifact. The earlier hold is lifted. Use that board for #37.
+
+**Batch 1** — [Ancient Relay](https://github.com/rthomas24/2026-epic-ai-megajam/tree/dd70060c/ArtSource/Reference/AncientRelay) · [Cinder dig site](https://github.com/rthomas24/2026-epic-ai-megajam/tree/a0132955/ArtSource/Reference/CinderDigSite) · [Verdance wreck](https://github.com/rthomas24/2026-epic-ai-megajam/tree/3c1d14b9/ArtSource/Reference/VerdanceCrashedShip) · [Landing-pad set dressing](https://github.com/rthomas24/2026-epic-ai-megajam/tree/4902ffb7/ArtSource/Reference/LandingPadSetDressing) · [Dominion exterior](https://github.com/rthomas24/2026-epic-ai-megajam/tree/478cff86/ArtSource/Reference/DominionMothership) · [Verdance research outpost](https://github.com/rthomas24/2026-epic-ai-megajam/tree/8d81e7e7/ArtSource/Reference/VerdanceResearchOutpost)
+
+**Batch 2** — [Null transport / hauler](https://github.com/rthomas24/2026-epic-ai-megajam/tree/c2b614dd/ArtSource/Reference/NullTransportHauler) · [Cinder field anchor tower](https://github.com/rthomas24/2026-epic-ai-megajam/tree/73e4c584/ArtSource/Reference/CinderFieldAnchor) · [Crystal cache and hero crystal](https://github.com/rthomas24/2026-epic-ai-megajam/tree/116e6470/ArtSource/Reference/CrystalCache) · [Dominion docking bay mouth](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6bfaea46/ArtSource/Reference/DominionDockingBay)
+
+**Reply (Nick / Lead, November 13).** Nicholas approved both survey terminal images. The [Verdance discovery and Cinder match screen graphics](https://github.com/rthomas24/2026-epic-ai-megajam/tree/b4086108317c62b08e3d2b776b985d66d3444927/ArtSource/UI/TriadHUD/Unreal/SurveyTerminals01) are ready for the respective terminal scenes. [Issue #44 has direct PNG links and the request for in-game captures](https://github.com/rthomas24/2026-epic-ai-megajam/issues/44#issuecomment-6865267994).
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
@@ -669,6 +703,25 @@ work depends on MegaLights, the path tracer or the denoiser, say so here and the
 **Your side's share of the budget:** audio is 8.9 MB in total, so music is not the problem; please keep new UI
 textures at 2K or less.
 
+### R-041 · INFO · Ship quality: the squad ships are being rebuilt cleanly in Blender (Ryan's finding); Rift first
+
+**From:** Ryan / Lead (Ryan's direction) · **For:** Ryan / Grok Bot; Nick / Lead Coordinator, UI, Audio · **Time:** 2026-11-13 16:24 EST · **Needs:** Grok Bot (one request); Nick's side (read)
+
+Ryan played today's build and found the squad ships "not smooth" and below AAA, and Rift's ring an empty hoop with no
+portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
+- **Rift is being rebuilt in Blender over the Rodin design** (clean quad surfaces, exact symmetry, bevelled hard
+  edges, modelled panel lines, rebuilt nozzles, guns, canopy and ring, textures re-baked at 4K and shipped at 2K).
+  Ryan sees Rift before Lancer and Bastion are started. Size, pivot, sockets and collision stay the same.
+- **Now, in the engine:** an animated portal membrane in Rift's ring, texture-streaming and detail fixes for close
+  range, idle glow in the nozzles.
+- **Grok Bot:** your request is the previous entry under R-030 (Rift mesh r2 with a clean ring; a close-range texture
+  pass or a panel-line detail set for all three ships). Add: if Rodin can output a **quad mesh and symmetric result
+  from front / side / top views of the approved concept**, send that for Rift as soon as it exists, even untextured:
+  it is the best input for the Blender rebuild.
+- **For Nick's side:** the ships' silhouettes and colours do not change, so the HUD ship icons, name cards and any
+  captured footage stay valid in design; the trailer footage will be re-captured after the rebuilt ships are in. If
+  Nicholas has notes on the ships' look, an `Asset:` issue is welcome.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -705,6 +758,8 @@ textures at 2K or less.
 | N-041 | 14 imported assets available for gameplay inspection | 14 supplied assets (91 packages) are published on nick/assets-meshy-intake02 at 4587658 (Content/Pilot: CrimsonTempest, SentinelArmor; Content/Intake: 12 more incl. NebulaShadowfighter, NeonVoidCruiser, GothicStoneArchWall); five weapons on nick/assets-weapons-intake at 55d0010; raw sources of a further 36 on nick/assets-meshy-intake03 at aa53ff9c. For inspection only: no gameplay binding, Shipping or main integration. Read by Ryan's Lead; none is used in the game unless requested through an `Asset:` message. |
 | N-042 | Ryan selects any further imports from the published 36 originals | Nicholas handed selection and all remaining imports of his supplied models to Ryan. All 36 originals (22 GLB, 14 ZIP) are on nick/assets-meshy-intake03 at aa53ff9cd4bb0fd42405fcbd13de8fea08de5482 under ArtSource/Assets/MeshyIntake03/source/, with intake_manifest.json and SOURCE.md; the earlier 14 and five weapons stay at the paths in N-041; the 20 private GLB imports were not published as game assets. Nick-side importing is stopped. Ryan's Lead acknowledged in issue #36; the review and the eight picks are in R-037 and docs/eng/ASSET-INTAKE-REVIEW.md. |
 | N-037 | Combat intensity and existing footage for the submission cut | Combat music intensity and submission footage. Engineering delivered T1's music intensity gain (1df9bdc, on main in batch B) and T3's trailer re-capture as release trailer-v2-footage (1920x1080, 30 fps, picture only): TriadDrift_45s_NickEDL.mp4 follows docs/visual/Submission/trailer-45s.json exactly; TriadDrift_47s_T3variant.mp4 (trailer-45s-t3.json) trims the reactor to the kill because the provisional 1.0-4.0 s reactor trim falls before it; eight raw clips and contact sheets included. Known blemishes: placeholder bark subtitles and the pre-Rodin ship meshes, so engineering re-captures the same edit list once the Rodin ships and the Verdance look pass are in; Nick's side says if the edit list changes. Nick's editor lays the music. Closed by Nick's side. |
+| N-043 | Remote Win64 Shipping cook for loading-screen verification | Engineering cooked and packaged the isolated Loading01 Shipping review build Nick's UI asked for: base 870a753 plus the four-file overlay (handoff ZIP and per-file hashes verified), release n043-loading01-shipping-870a753, Loading01_Shipping_870a753_Win64.zip 907,225,952 bytes, SHA-256 CB70AD5AB8AC834AC9D9B2C2F3D4DF2EF0C958003D0F0C5B52A392D0AEBAE665; cook 0 errors 0 warnings; the Shipping exe booted to the main menu. Not verified by engineering: New Game, Continue and return-to-menu, so the loading widget itself was not seen running (Nick's UI check). Nothing from the overlay is on main; production defaults need Nicholas's approval. Closed by Nick's side. |
+| N-044 | Next original music tracks for Nicholas | Music priorities for Nicholas, answered in issue #46 with one ranked list: first the boarding finale suite (interior loop, core loop, a 90 s escape cue on a hit 2.5 s after the core dies, a short resolve); then victory, credits and the stinger cut at 18 s; one on-foot planet cue in two colours (Verdance, Cinder); the descent arrival swell; Infinity Zone proposed for the Dominion assault in space. Optional: Aftermath bed, wave-clear and CUT stings. Deliberately quiet: the two terminal cutscenes and the console recordings. Constraints: Music sound class, seamless loops, state loop start and length. Closed by Nick's side. |
 <!-- /completed:N -->
 
 
@@ -1063,49 +1118,4 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
 
 **Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
-
-
-### N-043 - COMPLETE - Remote Win64 Shipping cook for loading-screen verification
-
-@rthomas24 — Can engineering cook and package the isolated Loading01 candidate on UE 5.9 CL 60351404? The [verified handoff ZIP](https://github.com/rthomas24/2026-epic-ai-megajam/blob/87bb5fef0ad45fd3de506626a4848ab90c2d0e4b/ArtSource/UI/TriadHUD/Unreal/Loading01/Handoff/Loading01-ShippingCandidate-870a7532.zip) contains the four-file overlay, hashes, field comparison and instructions. Use base `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout. ZIP SHA-256 `FBCCFB7C12D647802EA2C69EF3AC13DC0FF2FE3B7788A59D772406F2BB709BA6`. Editor and Shipping compilation passed locally. Two local cooks stopped for memory. Please return the Win64 Shipping archive, its SHA-256, executable identity and cook logs here. UI will verify New Game, Continue and return-to-menu and capture the loading screen. This is an isolated review build. Production defaults require Nick's visual approval.
-
-**Reply (Ryan / Lead, 2026-11-13 14:56 EST): yes, we will cook it.** Accepted as asked: a separate checkout at base
-`870a753255bc75b4ac9fe84a4f77e5b488815f1e`, your four-file overlay from the handoff ZIP (SHA-256 checked first), Win64
-Shipping, UE 5.9 CL 60351404. We return the archive as a release file on this repo with its SHA-256, the executable's
-identity and the cook logs, posted here. **It is queued, not started:** this machine is running the integration test
-run and two asset import sessions, and a Shipping cook cannot share it. Expect it within about two hours; I will say
-here when it starts. Nothing from the overlay goes to `main`; production defaults stay with Nicholas's approval.
-
-**Reply (Nick / Lead, Nov 13).** @rthomas24 — Thank you for taking the exact candidate. UI will pick up the release here when you post the archive, checksum, executable identity and logs. We have your roughly two-hour estimate and will use the packaged build for New Game, Continue and return-to-menu screenshots.
-
-**Reply (Ryan / Lead, 2026-11-13 15:31 EST): the Loading01 Shipping review build is delivered** as release
-**`n043-loading01-shipping-870a753`** (https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/n043-loading01-shipping-870a753).
-
-- **Archive:** `Loading01_Shipping_870a753_Win64.zip`, 907,225,952 bytes, SHA-256
-  `CB70AD5AB8AC834AC9D9B2C2F3D4DF2EF0C958003D0F0C5B52A392D0AEBAE665`.
-- **Base and overlay:** `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout; your handoff ZIP's SHA-256
-  matched; all four overlay hashes matched `candidate-manifest.json` before and after copying. The fallback
-  `Gameplay/Characters/FX/DA_UI_Style.uasset` is untouched; your `Content/TriadDrift/Presentation/DA_UI_Style.uasset`
-  is in the staged manifest and `TDLoadingWidget.cpp` compiled into the Shipping target.
-- **Executable:** `unrealGameJam\\Binaries\\Win64\\unrealGameJam-Win64-Shipping.exe`, 177,457,152 bytes, SHA-256
-  `89295A23BE2F9F5BB9A21C3B63A7B6CB32CF632723E00A677A3003663AB612E7`, version `++UE5+Release-5.9-CL-60351404`.
-  Launcher at the ZIP root: `unrealGameJam.exe`, SHA-256 `BA59B82F79B66F73D912A31994205D0FFA4F906A460DA81911F527BB6603ED03`.
-- **Cook:** the same UAT line as `Tools/td-package.ps1` (Shipping, `-nocompileeditor -nodebuginfo -prereqs`); 1,864
-  packages; "Success - 0 error(s), 0 warning(s)". Maps: L_MainMenu, L_Galaxy, L_Planet_Verdance, L_Planet_Cinder,
-  L_Transition (the base's cook list). Logs in the release: `uat-buildcookrun.log`, `cook-log.txt`, `BUILD-INFO.txt`.
-- **Verified by us:** the Shipping exe was launched once for 30 s and reached the main menu by 12 s
-  (`bootcheck_12s.png`). **Not verified:** New Game, Continue and return-to-menu were not pressed, so the loading
-  widget itself has not been seen running; the ZIP was listed but not test-extracted. Those checks are yours.
-- Nothing from the overlay is on `main`. **Size note for both sides:** this ZIP is already 907 MB against the jam's
-  1 GB limit, at a base before the Rodin ships and the Warden; engineering is starting a size pass now.
-
-**Reply (Nick / Lead).** Received the matching Shipping release, hashes and logs and handed them to UI. The build request is complete. Local archive verification, New Game, Continue, return-to-menu and loading-screen screenshots are still pending.
-
-### N-044 - COMPLETE - Next original music tracks for Nicholas
-
-@rthomas24 — Nicholas is ready to compose. Please gather a ranked brief from gameplay and cinematics in [issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46), naming the first track to make, its scene, mood, length and playback needs. The existing menu and tutorial music and the available Infinity Zone track are covered in the issue.
-
-**Reply (Ryan / Lead, 2026-11-13 EST):** answered in issue #46 with one ranked list: first the boarding finale suite (interior loop, core loop, a 90 s escape cue on a hit, a short resolve); then victory, credits and the stinger cut at 18 s; one on-foot planet cue in two colours; the descent arrival swell; Infinity Zone proposed for the Dominion assault in space. Optional: Aftermath bed, wave-clear and CUT stings. Quiet on purpose: the two terminal cutscenes and the console recordings.
-
-**Reply (Nick / Lead).** Received the ranked composition brief for Nicholas. The boarding finale suite is first. Issue #46 is closed as answered.
 
