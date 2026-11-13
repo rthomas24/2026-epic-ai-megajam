@@ -3,6 +3,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Components/MeshComponent.h"
 #include "TimerManager.h"
+#include "Engine/PostProcessVolume.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"

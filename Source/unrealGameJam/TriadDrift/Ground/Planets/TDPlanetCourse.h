@@ -145,6 +145,7 @@ private:
 	struct FCoreRing { TWeakObjectPtr<UStaticMeshComponent> Ring; float YawSpeed = 0.f; float Tilt = 0.f; };
 	TArray<FCoreRing> CoreRings;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> CoreShield;
+	UPROPERTY(Transient) TObjectPtr<AActor> InteriorExposure;
 	float InteriorTime = 0.f;
 	/** Story beats on objective moments (T3's transmissions, storyline.md §5): planets and interior. */
 	void FireStepBeats(ATDObjective* Objective, int32 StepIndex);

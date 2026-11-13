@@ -237,6 +237,28 @@ void ATDPlanetCourse::BuildInterior()
 	Light(FVector((L1X1 + WX1) * 0.5f, 0.f, 520.f), 2200.f, FLinearColor(1.f, 0.6f, 0.5f), 3000.f);
 	Light(CoreAt + FVector(0.f, 0.f, 1500.f), 4200.f, CoreGlow, 8000.f);
 
+	// Fixed exposure (live captures, Nov 13: auto-exposure in the dark corridors blew the kit out to solid red and the
+	// room floors to white; with eye adaptation off it reads as designed, black with red strips). Exposure 1.0,
+	// no adaptation, over the whole interior.
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		if (APostProcessVolume* PP = GetWorld()->SpawnActor<APostProcessVolume>(APostProcessVolume::StaticClass(), GetActorTransform(), Params))
+		{
+			PP->bUnbound = true;
+			PP->Priority = 10.f;
+			FPostProcessSettings& S = PP->Settings;
+			S.bOverride_AutoExposureMethod = true;
+			S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
+			S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+			S.AutoExposureApplyPhysicalCameraExposure = false;
+			S.bOverride_AutoExposureBias = true;
+			S.AutoExposureBias = 0.f;
+			Spawned.Add(PP);
+			InteriorExposure = PP;
+		}
+	}
+
 	// --- The reactor core: body, two rings, the shield (drops when the conduits break) -----------------
 	Kit(TEXT("SM_DI_Core"), CoreAt, 0.f, FBox(FVector(-400.f, -400.f, 0.f), FVector(400.f, 400.f, 1200.f)));
 	if (UStaticMeshComponent* RingA = Kit(TEXT("SM_DI_Core_Ring_A"), CoreAt + FVector(0.f, 0.f, 600.f), 0.f, FBox(FVector(-500.f, -500.f, -30.f), FVector(500.f, 500.f, 30.f)), false))
