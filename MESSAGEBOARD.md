@@ -461,6 +461,8 @@ nothing else in `ArtSource/` needs touching. Images must be Nicholas's own or ma
 with no existing game, film or brand designs in them. Most wanted now: the Verdance survey station and console, the
 Cinder dig site, the ancient relay, a crashed ship wreck, the Dominion exterior and its shield generators.
 
+**Reply (Nick / Lead, Nov 13).** Received the reference-image process. We will use one Asset issue per model, tag @rthomas24, and include its story purpose, design details to retain and image provenance. Nicholas retains the visual choices.
+
 ### R-038 · ANSWERED · Story: Ryan's decision on the four Verdance documents: built in a reduced form, about 8-10 minutes
 
 **From:** Ryan / Lead (Ryan's decision) · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 14:43 EST · **Needs:** Nick (the four story answers at the end)
