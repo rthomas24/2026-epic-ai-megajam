@@ -14,6 +14,7 @@
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 
 void UTDGroundHUDWidget::NativeConstruct()
@@ -164,6 +165,26 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 		}
 	}
 	View.Hostiles = Hostiles.Num();
+
+	// Verdance: the survey archive transfer (T5). Progress never goes down; the fill eases toward it.
+	Time += DeltaSeconds;
+	float Progress = 0.f;
+	bool bPaused = false;
+	FText Unused;
+	const bool bWasTransfer = View.bTransfer;
+	if (ForceTransfer01 >= 0.f)
+	{
+		View.bTransfer = true;
+		Progress = ForceTransfer01;
+		bPaused = bForceTransferPaused;
+	}
+	else
+	{
+		View.bTransfer = ATDArchiveTransfer::GetArchiveTransfer(this, Progress, bPaused, Unused);
+	}
+	View.Transfer01 = FMath::Clamp(Progress, 0.f, 1.f);
+	View.bTransferPaused = View.bTransfer && bPaused;
+	SmoothTransfer = !bWasTransfer ? View.Transfer01 : FMath::Lerp(SmoothTransfer, View.Transfer01, Alpha);
 }
 
 // ------------------------------------------------------------------------------------------ paint
@@ -205,6 +226,30 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		P.Label(727, 66, TEXT("OBJECTIVE"), 11, Accent, 150);
 		P.Title(727, 90, View.Objective.ToUpper().Left(62), 20, Ink);
 		P.Line({ 727, 128 }, { 1193, 128 }, Accent.CopyWithNewOpacity(.2f));
+	}
+
+	// Archive transfer meter, under the objective panel: "ARCHIVE TRANSFER 63%", a 360 x 10 bar with the checkpoint tick
+	// at 50%; paused, the bar and its line pulse amber with the reason (a crewman at the terminal).
+	LastBoxes.Reset();
+	if (View.bTransfer)
+	{
+		const float X = 760.f, Y = 156.f, W = 400.f, H = 62.f;
+		const FLinearColor Amber = FTDUIPalette::Bastion();
+		const float Pulse = .55f + .45f * FMath::Abs(FMath::Sin(Time * PI * 1.6f));
+		const FLinearColor C = View.bTransferPaused ? Amber.CopyWithNewOpacity(Pulse) : Accent;
+		P.Glass(X, Y, W, H, View.bTransferPaused ? Amber : Accent);
+		LastBoxes.Emplace(TEXT("transfer"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		const int32 Pct = FMath::FloorToInt(View.Transfer01 * 100.f + KINDA_SMALL_NUMBER);
+		P.Label(X + 20, Y + 10, TEXT("ARCHIVE TRANSFER"), 11, View.bTransferPaused ? Amber : Accent, 150);
+		const FString PctText = FString::Printf(TEXT("%d%%"), Pct);
+		const float PctW = P.MeasureText(PctText, 16, true);
+		P.Text(X + W - 20 - (PctW > 0 ? PctW : 40.f), Y + 6, PctText, 16, Ink, true);
+		P.Meter(X + 20, Y + 32, 360, SmoothTransfer, C, 10);
+		P.Line({ X + 20 + 180, Y + 28 }, { X + 20 + 180, Y + 46 }, Ink.CopyWithNewOpacity(View.Transfer01 >= .5f ? .9f : .4f), 1.5f);
+		if (View.bTransferPaused)
+		{
+			P.CenteredText(960, Y + H + 8, TEXT("PAUSED  /  HOSTILE AT TERMINAL"), 15, Amber.CopyWithNewOpacity(Pulse), true);
+		}
 	}
 
 	// Reticle.

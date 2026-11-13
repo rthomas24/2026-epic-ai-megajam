@@ -43,8 +43,19 @@ public:
 		int32 Hostiles = 0;
 		float Deflect = 0.f;
 		bool bPerfect = false;
+		/** Verdance's archive transfer (T5's ATDArchiveTransfer::GetArchiveTransfer): meter shown while it runs. */
+		bool bTransfer = false;
+		float Transfer01 = 0.f;
+		bool bTransferPaused = false;
 	};
 	const FView& GetView() const { return View; }
+
+	/** Tests: >= 0 forces a running transfer at this progress (no ATDArchiveTransfer needed); -1 reads the world. */
+	float ForceTransfer01 = -1.f;
+	bool bForceTransferPaused = false;
+
+	/** Named boxes painted last frame (tests: "transfer" for the meter plate). */
+	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
 
 	/** Re-reads the pawn now (the tick does this every frame). */
 	void Sample(float DeltaSeconds);
@@ -82,6 +93,8 @@ private:
 	float SmoothHealth = 1.f;
 	float SmoothBlock = 1.f;
 	float DamageFlash = 0.f;
+	float SmoothTransfer = 0.f;
+	float Time = 0.f;
 	TArray<FTDGroundHit> Hits;
 	TArray<TWeakObjectPtr<AActor>> Hostiles;
 	TWeakObjectPtr<APawn> BoundPawn;
