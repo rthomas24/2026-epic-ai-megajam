@@ -48,7 +48,13 @@ GROK = {'T_TD_VFX_Grok_Explosion_8x8': 'Explosion/r1/T_VFX_Explosion_8x8.png',
         'T_TD_VFX_Grok_PlasmaBolt': 'PlasmaBolt/r1/T_VFX_PlasmaBolt.png',
         'T_TD_VFX_Grok_ShieldHexRipple_8x8': 'ShieldHexRipple/r1/T_VFX_ShieldHexRipple_8x8.png',
         'T_TD_VFX_Grok_ElectricArc_8x8': 'ElectricArc/r1/T_VFX_ElectricArc_8x8.png',
-        'T_TD_VFX_Grok_DebrisChunks_4x4': 'DebrisChunks/r1/T_VFX_DebrisChunks_4x4.png'}
+        'T_TD_VFX_Grok_DebrisChunks_4x4': 'DebrisChunks/r1/T_VFX_DebrisChunks_4x4.png',
+        # round 6: descent textures, in git under ArtSource/EngAI/Descent/<Kind>/r1/
+        'T_TD_VFX_Grok_PlasmaSheath_8x8': '../Descent/PlasmaSheath/r1/T_Descent_PlasmaSheath_8x8.png',
+        'T_TD_VFX_Grok_HeatStreak': '../Descent/HeatStreak/r1/T_Descent_HeatStreak.png',
+        'T_TD_VFX_Grok_ShockCone': '../Descent/ShockCone/r1/T_Descent_ShockCone.png',
+        'T_TD_VFX_Grok_CloudPunch_8x8': '../Descent/CloudPunch/r1/T_Descent_CloudPunch_8x8.png',
+        'T_TD_VFX_Grok_CloudWisp_8x8': '../Descent/CloudWisp/r1/T_Descent_CloudWisp_8x8.png'}
 _proj = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 for _tn, _rel in GROK.items():
     if EAL.does_asset_exist(TEX + '/' + _tn):
@@ -79,6 +85,12 @@ for _tn, _rel in GROK.items():
 FLIP = {'M_TD_VFX_FlipExplosion': ('T_TD_VFX_Grok_Explosion_8x8', 8, 8, 'Age*62.0', False),
         'M_TD_VFX_FlipSmoke': ('T_TD_VFX_Grok_Smoke_8x8', 8, 8, 'frac(Age*0.45 + Rnd)*64.0', True),
         'M_TD_VFX_FlipRing': ('T_TD_VFX_Grok_ShockwaveRing', 1, 1, '0.0', False),
+        'M_TD_VFX_Sheath': ('T_TD_VFX_Grok_PlasmaSheath_8x8', 8, 8, 'frac(Age*3.0 + Rnd)*64.0', True,
+                            'float2(0.5 + (abs(UV.x*2.0 - 1.0) - 0.5)*0.9, clamp((1.0 - UV.y)*0.92 + 0.04, 0.004, 0.996))'),
+        'M_TD_VFX_HeatStreak': ('T_TD_VFX_Grok_HeatStreak', 1, 1, '0.0', False, 'float2(clamp(1.0 - UV.y, 0.01, 0.99), clamp(UV.x, 0.01, 0.99))'),
+        'M_TD_VFX_FlipShockCone': ('T_TD_VFX_Grok_ShockCone', 1, 1, '0.0', False),
+        'M_TD_VFX_CloudPunch': ('T_TD_VFX_Grok_CloudPunch_8x8', 8, 8, 'Age*62.0', False),
+        'M_TD_VFX_CloudWisp': ('T_TD_VFX_Grok_CloudWisp_8x8', 8, 8, 'frac(Age*0.6 + Rnd)*64.0', True),
         'M_TD_VFX_FlipArc': ('T_TD_VFX_Grok_ElectricArc_8x8', 8, 8, 'frac(Age*1.5 + Rnd)*64.0', True),
         'M_TD_VFX_FlipShield': ('T_TD_VFX_Grok_ShieldHexRipple_8x8', 8, 8, 'Age*62.0', False),
         'M_TD_VFX_FlipDebris': ('T_TD_VFX_Grok_DebrisChunks_4x4', 4, 4, 'floor(Rnd*15.99)', False, 'clamp(UV, 0.07, 0.93)'),
@@ -340,6 +352,62 @@ float a = arms*smoothstep(1.0, 0.55, r)*smoothstep(0.03, 0.30, r)*(0.45 + 1.1*N.
 float core = pow(saturate(1-r*2.2), 2.0);
 float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.7)*pow(a, 2.5)*0.8 + PC.rgb*core*Core;
 return float4(c*Intensity, PC.a);''', {'Arms': 3.0, 'Core': 0.6}),
+
+    # ------------------------------------------------------------------ round 6: planetary descent (Grok Bot's Descent textures)
+    # Bow-shock sheath on SM_TD_VFX_Flame used apex FORWARD (the mesh's tip ahead of the nose, its base behind the hull):
+    # the plasma-sheath flipbook wrapped round it, hot at the apex, fading to nothing at the open back. Walls seen at a
+    # grazing angle are bright, faces turned to the camera dim: from the chase camera it is a tunnel of plasma round the
+    # ship. (First version was wide end forward and rim-lit: from behind it read as a white target ring.)
+    'M_TD_VFX_Sheath': ('additive', True, 1.0, 2.0, (0.0, 1.9), (0.0, 3.1), 0.09, """
+float v = 1.0 - UV.y;
+float4 t = lerp(FA, FB, frac({FP}));
+float l = dot(t.rgb, float3(0.4,0.4,0.3));
+float n = N.g*0.65 + N.r*0.35;
+float fadeBack = pow(saturate(1-v*1.6), 1.6); float fadeIn = smoothstep(0.0, 0.05, v);   // gone before the mesh's bulge: no outline from behind
+float wall = 0.12 + 0.88*pow(Fres, 0.8);
+float body = wall*(0.30 + 1.3*l)*(0.45 + 1.0*n)*fadeBack;
+float nose = pow(saturate(1-v*3.0), 2.0);
+float3 c = t.rgb*PC.rgb*body*1.5 + PC.rgb*body*0.35 + lerp(PC.rgb, float3(1,1,1), 0.75)*nose*wall*1.4;
+return float4(c*fadeIn*Intensity, PC.a);""", {}),
+
+    # Heat streak sheet on a velocity-aligned sprite (the sheet's long axis along the sprite's).
+    'M_TD_VFX_HeatStreak': ('additive', False, 1, 1, (0, 0), (0, 0), 0, '''
+float4 t = FA;
+float l = dot(t.rgb, float3(0.33,0.33,0.33));
+float3 c = (t.rgb*PC.rgb*1.5 + PC.rgb*l*0.6)*t.a;
+return float4(c*Intensity, PC.a);''', {}),
+
+    # Front-on Mach ring (still), additive.
+    'M_TD_VFX_FlipShockCone': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float4 t = FA;
+float3 c = t.rgb*t.a*lerp(float3(1,1,1), PC.rgb, 0.5)*1.8;
+return float4(c*smoothstep(1.0, 0.9, r)*Intensity, PC.a);''', {}),
+
+    # Flying through a cloud wall (8x8 one shot over the particle's life), translucent white.
+    'M_TD_VFX_CloudPunch': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float4 t = lerp(FA, FB, frac({FP}));
+float l = dot(t.rgb, float3(0.33,0.33,0.33));
+float a = saturate(t.a*1.6)*smoothstep(1.0, 0.75, r);
+return float4(PC.rgb*(0.70 + 0.55*l)*Intensity, saturate(a*PC.a));''', {}),
+
+    # Vapour wisps (8x8 loop), translucent white, fading in and out over the particle's life.
+    'M_TD_VFX_CloudWisp': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float4 t = lerp(FA, FB, frac({FP}));
+float l = dot(t.rgb, float3(0.33,0.33,0.33));
+float a = saturate(t.a*1.5)*smoothstep(1.0, 0.7, r)*smoothstep(0.0, 0.15, Age)*saturate((1-Age)*3.0);
+return float4(PC.rgb*(0.75 + 0.5*l)*Intensity, saturate(a*PC.a));''', {}),
+
+    # Blade swing: a crescent swept left to right across the top half of a camera-facing sprite over the particle's life.
+    'M_TD_VFX_Slash': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
+float ang = atan2(p.x, -p.y);
+float lead = lerp(-1.35, 1.35, saturate(Age*1.7));
+float behind = lead - ang;
+float arc = smoothstep(0.0, 0.07, behind)*saturate(1.0 - behind/1.6)*step(abs(ang), 1.45);
+float band = smoothstep(0.60, 0.88, r)*smoothstep(1.0, 0.94, r);
+float core = smoothstep(0.87, 0.92, r)*smoothstep(0.985, 0.945, r);
+float a = arc*(band*0.6 + core*1.7)*(1.0 - Age*Age);
+float3 c = PC.rgb*a*1.4 + lerp(PC.rgb, float3(1,1,1), 0.8)*pow(a, 2.0)*0.9;
+return float4(c*Intensity, PC.a);""", {}),
 }
 
 

@@ -1,11 +1,17 @@
 # Triad Drift ENG-37 round 5: wiring that became possible with T1/T4's code (nozzle sockets, Throttle/Boost, break-up cues).
 # Sets ONLY cue.vfx and cue.vfx_scale; reads every Sound field before and after and refuses to save on any difference.
-#   python ArtSource/EngVFX/scripts/run_editor_py.py 8017 ArtSource/EngVFX/scripts/wire_r5.py
+#   python ArtSource/EngVFX/scripts/run_editor_py.py 8017 ArtSource/EngVFX/scripts/wire_fx.py
 # PLAN value: system name, or (system name, uniform VFXScale), or (None, scale) to change the scale only.
 SYS = '/Game/TriadDrift/Gameplay/VFX/Systems/'
 CH = '/Game/TriadDrift/Gameplay/Characters/'
 SAVE = globals().get('SAVE', True)
-PLAN = globals().get('PLAN') or {
+PLAN_R6 = {   # round 6 (the five DA_Enemy_*_Visuals and everything under Characters/Squad are NOT to be saved this round)
+    'FX/DA_Travel_FX': {'atmospheric_entry': 'NS_TD_Entry'},
+    'FX/DA_Blade_FX': {'air_slam': 'NS_TD_Blade_AirSlam', 'swing_light': 'NS_TD_Blade_SwingArc', 'swing_heavy': 'NS_TD_Blade_SwingArc_Heavy',
+                       'deflect': 'NS_TD_Blade_Deflect', 'perfect_deflect': 'NS_TD_Blade_PerfectDeflect'},
+}
+PLAN = globals().get('PLAN') or PLAN_R6
+PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Gunship_Visuals': {'engine_trail': ('NS_TD_Engine_Enemy', 2.0)},

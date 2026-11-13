@@ -226,6 +226,122 @@ S2('NS_TD_Core_Destroyed', U(FIRE, 2.2), [
     spin(shed('Smoke', 'M_TD_VFX_SmokeRim', 0, (1.6, 2.8), (420, 640), (250, 1100), radius=200.0, drag=2.0, curl=500.0, rgb=(0.34, 0.30, 0.28), alpha=0.8,
               burst=8, dur=3.0, power=0.7, fade_in=6.0, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.2', sort=True))])
 
+# ============================================================================================= planetary descent (ENG-38, round 6)
+# Grok Bot's descent textures (ArtSource/EngAI/Descent). Everything is attached at the ship's origin, +X forward.
+# User.Intensity (0..1, default 1) is for T1's entry curve; until code sets it the systems ramp themselves in over
+# 1.3 s of emitter age, so the plain AtmosphericEntry cue (attached loop, no parameters) already builds up.
+ENTRY = (1.0, 0.55, 0.22, 1.0)
+RAMP = '(User.Intensity*saturate(Emitter.Age/1.3))'
+EFLK = '(0.90 + 0.20*frac(sin(Engine.Time*%s)*43758.5))'
+
+
+def ramped(e):
+    """Fade a persistent emitter's particle with the entry strength (particle alpha; every VFX material multiplies by it)."""
+    if not any(a[1].endswith('ScaleColor') for a in e['add']):
+        e['add'].append((PU, 'Update/Color/ScaleColor'))
+        e['set'].append((PU, 'ScaleColor', 'ScaleRGB', False))
+    e['set'] += [(PU, 'ScaleColor', 'ScaleA', True), (PU, 'ScaleColor', 'Scale Alpha', X(RAMP))]
+    return e
+
+
+def entry_sheath():
+    # Seen from the chase camera (behind and above, looking along +X) a shell round the ship reads as a soap bubble or a
+    # target ring (both tried, both seen in play). So the sheath is fire: flames born round the nose and the wing roots
+    # that stream back over the hull and grow, a small hot shock cap on the nose (flame mesh, apex forward, faded out
+    # before its widest point), a point of white heat and a soft halo that rim-lights the silhouette.
+    grow_ = 'float3(0.75 + 0.25*%s, 0.80 + 0.20*%s, 0.80 + 0.20*%s)*%s'
+    return [ramped(mesh_single('Cap', 'SM_TD_VFX_Flame', 'M_TD_VFX_Sheath', '5.0, 3.4, 3.4', 1.2, None, offset=(-120, 0, 0),
+                               live_scale=grow_ % (RAMP, RAMP, RAMP, EFLK % 87.7))),
+            ramped(single('Nose', 'M_TD_VFX_Glow', 230, 0.8, 71.3, offset=(270, 0, 0))),
+            ramped(single('Halo', 'M_TD_VFX_Glow', 1100, 0.28, 13.7, offset=(60, 0, 0))),
+            # black-body fire (white-hot at birth, orange, deep red as it erodes); M_TD_VFX_Fire read as pale dust puffs in play
+            offset(spin(shed('Flames', 'M_TD_VFX_Fireball', 0, (0.30, 0.55), (150, 280), (1600, 3400), radius=170.0, drag=0.6, curl=1800.0, local=True, rgb=(1.0, 1.0, 1.0),
+                             cone=((-1.0, 0.0, 0.0), 14.0), growth='0.6 + Particles.NormalizedAge*1.5', rate_expr='170.0*' + RAMP)), 230),
+            offset(spin(shed('WingFlames', 'M_TD_VFX_Fireball', 0, (0.25, 0.45), (90, 180), (1600, 3200), radius=330.0, drag=0.6, curl=1600.0, local=True, rgb=(1.0, 1.0, 1.0),
+                             cone=((-1.0, 0.0, 0.0), 10.0), growth='0.6 + Particles.NormalizedAge*1.4', rate_expr='110.0*' + RAMP)), 120)]
+
+
+def entry_streaks():
+    return [offset(shed('Streaks', 'M_TD_VFX_HeatStreak', 0, (0.25, 0.50), (24, 52), (5000, 11000), k=1.5, radius=340.0, drag=0.0, local=True,
+                        stretch=9, cone=((-1.0, 0.0, 0.0), 5.0), rate_expr='150.0*' + RAMP, fade_in=8.0), 260),
+            offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.30, 0.70), (8, 20), (3000, 8000), k=1.4, radius=300.0, drag=0.3, curl=1500.0, local=True,
+                        cone=((-1.0, 0.0, 0.0), 10.0), rate_expr='120.0*' + RAMP, power=2.0), 260),
+            offset(shed('Licks', 'M_TD_VFX_Fire', 0, (0.12, 0.25), (90, 170), (2500, 5000), k=0.7, radius=220.0, drag=1.0, curl=2000.0, local=True,
+                        cone=((-1.0, 0.0, 0.0), 8.0), growth='1.0 + Particles.NormalizedAge*0.8', rate_expr='110.0*' + RAMP), 240)]
+
+
+def entry_cone():
+    # The moment of contact: a Mach ring opening round the ship, a second one behind it, a flash.
+    return [mesh_flash('Cone', 'SM_TD_VFX_Disc', 'M_TD_VFX_FlipShockCone', '1.0, 16.0, 16.0', 0.45, 0.9, growth='float3(1,1,1)*(0.15 + pow(Particles.NormalizedAge, 0.5)*0.85)', power=1.2),
+            mesh_flash('Cone2', 'SM_TD_VFX_Disc', 'M_TD_VFX_FlipShockCone', '1.0, 26.0, 26.0', 0.60, 0.5, growth='float3(1,1,1)*(0.10 + pow(Particles.NormalizedAge, 0.6)*0.90)', power=1.4, delay=0.12),
+            flash('Flash', 'M_TD_VFX_Glow', 1400, 0.25, 0.6, growth='0.5 + Particles.NormalizedAge*0.7')]
+
+
+# Slot: UTDTravelFX.AtmosphericEntry (attached loop on the ship root for the 2.5 s dive): contact ring, sheath, streaks.
+# (NS_TD_Entry itself is specified further down, once the debris exists)
+# The parts on their own (for separate slots / other timing):
+S2('NS_TD_Entry_PlasmaSheath', U(ENTRY, 1.0, Intensity=1.0), entry_sheath())
+S2('NS_TD_Entry_HeatStreaks', U(ENTRY, 1.0, Intensity=1.0), entry_streaks()[:2])
+S2('NS_TD_Entry_ShockCone', U(ENTRY, 1.0, Intensity=1.0), entry_cone())
+# Slot wanted (T1): a one-shot at the ship as it breaks through the cloud deck, +X forward. Authored for a 30 m cloud wall.
+S2('NS_TD_Entry_CloudPunch', U(WHITE4, 1.0, Intensity=1.0), [
+    shed('Punch', 'M_TD_VFX_CloudPunch', 0, (0.9, 1.2), (2600, 3600), (0, 200), radius=300.0, drag=0.0, rgb=(1.0, 1.0, 1.0), alpha=0.9,
+         burst=3, dur=1.3, power=0.5, growth='0.8 + Particles.NormalizedAge*0.9', sort=True),
+    spin(shed('Shreds', 'M_TD_VFX_CloudWisp', 0, (0.4, 0.9), (500, 1100), (3000, 9000), radius=900.0, drag=0.5, rgb=(1.0, 1.0, 1.0), alpha=0.7,
+              cone=((-1.0, 0.0, 0.0), 25.0), burst=26, dur=1.0, power=0.8, sort=True))])
+# Slot wanted (T1): a loop attached to the ship while it descends under the deck: vapour streaming back past the camera.
+S2('NS_TD_Entry_CloudWisps', U(WHITE4, 1.0, Intensity=1.0), [
+    offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.5, 0.9), (900, 2200), (9000, 16000), radius=2600.0, drag=0.0, local=True, rgb=(1.0, 1.0, 1.0), alpha=0.55,
+                     cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='26.0*' + RAMP, power=0.8, fade_in=5.0, sort=True)), 6000),
+    offset(shed('Mist', 'M_TD_VFX_Spark', 0, (0.25, 0.45), (5, 10), (14000, 24000), k=0.5, radius=1800.0, drag=0.0, local=True, stretch=40,
+                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='90.0*' + RAMP, fade_in=6.0), 5000)])
+
+# ---- round 6, item 1b (Ryan): debris streaking past during the burn, and the same look for the EXIT (take-off to space).
+# Everything is ship-local (+X = the nose), so one set of systems serves both directions as long as the nose points along
+# the flight path. User.Intensity 0..1 scales every rate and brightness; nothing needs the velocity vector.
+def entry_debris():
+    return [offset(shed('Sparks', 'M_TD_VFX_Spark', 0, (0.20, 0.45), (5, 11), (7000, 15000), k=1.7, radius=420.0, drag=0.0, local=True, stretch=16,
+                        cone=((-1.0, 0.0, 0.0), 7.0), rate_expr='170.0*' + RAMP, fade_in=8.0), 420),
+            offset(shed('HullSparks', 'M_TD_VFX_Spark', 0, (0.15, 0.40), (4, 8), (2500, 7000), k=1.6, radius=160.0, drag=0.6, local=True, stretch=12,
+                        cone=((-1.0, 0.0, 0.0), 26.0), rate_expr='70.0*' + RAMP), 150),
+            # dark ash: translucent near-black streaks, so the debris still reads when the screen ramps to white
+            offset(shed('Ash', 'M_TD_VFX_Smoke', 0, (0.22, 0.45), (7, 16), (6000, 13000), radius=520.0, drag=0.0, local=True, stretch=7, rgb=(0.05, 0.04, 0.04), alpha=0.85,
+                        cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='130.0*' + RAMP, power=0.6, fade_in=8.0), 450),
+            # ice / ablation flecks: pale blue-white points tumbling back
+            offset(shed('Ice', 'M_TD_VFX_Glow', 0, (0.25, 0.55), (6, 15), (4000, 10000), k=1.0, radius=380.0, drag=0.2, curl=1200.0, local=True, rgb=(0.75, 0.92, 1.0),
+                        cone=((-1.0, 0.0, 0.0), 9.0), rate_expr='60.0*' + RAMP, power=1.5), 380)]
+
+
+S2('NS_TD_Entry_Debris', U(ENTRY, 1.0, Intensity=1.0), entry_debris())
+S2('NS_TD_Entry', U(ENTRY, 1.0, Intensity=1.0), entry_cone() + entry_sheath() + entry_streaks()[:2] + entry_debris())
+
+# Exit (slot wanted from T1, e.g. UTDTravelFX.AtmosphericExit: attached loop on the ship root while it climbs out): the
+# same fire, streaks and debris, thinning out over 3 s on their own, or driven down by User.Intensity.
+_RAMP_IN = RAMP
+RAMP = '(User.Intensity*saturate(1.0 - Emitter.Age/3.0))'
+S2('NS_TD_Exit', U(ENTRY, 1.0, Intensity=1.0), entry_sheath()[1:] + entry_streaks()[:2] + entry_debris())
+RAMP = _RAMP_IN
+# Exit breakaway (slot wanted, one shot on the ship as it leaves the atmosphere, +X forward): a Mach ring, a flash, and
+# embers falling away behind.
+S2('NS_TD_Exit_Breakaway', U(ENTRY, 1.0, Intensity=1.0), [
+    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_FlipShockCone', '1.0, 22.0, 22.0', 0.55, 1.0, growth='float3(1,1,1)*(0.12 + pow(Particles.NormalizedAge, 0.5)*0.88)', power=1.2),
+    flash('Flash', 'M_TD_VFX_Flare', 1500, 0.14, 1.0, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 1800, 0.30, 0.5, growth='0.5 + Particles.NormalizedAge*0.7'),
+    shed('Embers', 'M_TD_VFX_Glow', 0, (0.6, 1.4), (10, 24), (1500, 6000), k=1.3, radius=250.0, drag=1.2, curl=1200.0, cone=((-1.0, 0.0, 0.0), 30.0), burst=70, dur=1.6, power=2.0),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.3, 0.8), (5, 11), (3000, 9000), k=1.6, radius=200.0, drag=1.5, stretch=16, cone=((-1.0, 0.0, 0.0), 35.0), burst=50, dur=1.0)])
+
+# Slots: UTDBladeFX.SwingLight / SwingHeavy. The code plays these ATTACHED TO THE CHARACTER ROOT (not the blade tip), so
+# a ribbon would trail the body: this is a self-contained crescent in front of the chest instead (camera-facing).
+def swing(size, k):
+    arc = offset(flash('Arc', 'M_TD_VFX_Slash', size, 0.20, k, power=0.3), 95, 0, 35)
+    arc['props'] = {'bLocalSpace': True}
+    glint = offset(shed('Glints', 'M_TD_VFX_Glow', 0, (0.12, 0.3), (2, 5), (60, 420), k=1.3, radius=40.0, drag=2.5, local=True, burst=10, dur=0.4, power=2.0), 95, 0, 60)
+    return [arc, glint]
+
+
+S2('NS_TD_Blade_SwingArc', U(BLADE), swing(230, 1.4))
+S2('NS_TD_Blade_SwingArc_Heavy', U(BLADE), swing(320, 1.9))
+
 fx2 = tdvfx.Builder(call_tool)
 for _name, _user, _emitters in SYSTEMS2:
     await fx2.system(_name, _emitters, user=_user)
