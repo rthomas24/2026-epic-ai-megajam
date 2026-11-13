@@ -24,12 +24,12 @@ DEFAULTS = dict(SunIntensity=2.5, NightAmbient=0.10, TerminatorSoftness=0.12, Ni
 # light and specular); night ambient ~3-4% of that (Cinder more, its basalt albedo is very dark).
 INSTANCE_VALUES = {
     "Verdance": dict(scalars=dict(SunIntensity=3.0, NightAmbient=0.10, EmissiveStrength=4.5, NightGlowMask=1.0,
-                                  CloudGlowOcclusion=0.8, TerminatorSoftness=0.12),
-                     vectors=dict(SunColor=(1.0, 0.95, 0.86), AmbientColor=(0.45, 0.60, 1.0))),
+                                  CloudGlowOcclusion=0.8, TerminatorSoftness=0.12, DetailStrength=0.9),
+                     vectors=dict(SunColor=(1.0, 0.95, 0.86), AmbientColor=(0.45, 0.60, 1.0), DetailTint=(1.35, 1.15, 0.55))),
     # Cinder's albedo is dark (basalt): more ambient so the silhouette reads, stronger lava at night.
     "Cinder": dict(scalars=dict(SunIntensity=3.6, NightAmbient=0.30, EmissiveStrength=9.0, NightGlowMask=1.0,
-                                CloudGlowOcclusion=0.6, TerminatorSoftness=0.12),
-                   vectors=dict(SunColor=(1.0, 0.92, 0.82), AmbientColor=(0.70, 0.50, 1.0))),
+                                CloudGlowOcclusion=0.6, TerminatorSoftness=0.12, DetailStrength=0.6),
+                   vectors=dict(SunColor=(1.0, 0.92, 0.82), AmbientColor=(0.70, 0.50, 1.0), DetailTint=(1.25, 0.9, 0.75))),
 }
 ATMO_VALUES = dict(SunMaskAmount=0.92)
 
@@ -51,6 +51,27 @@ def build_surface_graph(b, t):
     cl = b.tex("CloudTex", t["T_Planet_Verdance_Clouds"], ST.SAMPLERTYPE_MASKS, cuv)
     ca = b.mul(cl, b.scalar("CloudOpacity", 0.9), "R")
     albedo = b.lerp(bc, b.vector("CloudColor", (1, 1, 1)), ca, "RGB")
+    # Close-range detail (environment builder, Nov 13): diving in, the globe fills the frame and the 2K bake reads as one
+    # flat colour. Two noise octaves in the globe's own UV (2:1 equirect) break up value and hue, faded in only when
+    # the camera is within ~2 radii (d = camera distance / object radius) and kept off the clouds.
+    if t.get("T_Ground_MacroNoise") is not None:
+        cam = b.e(unreal.MaterialExpressionCameraPositionWS)
+        obj = b.e(unreal.MaterialExpressionObjectPositionWS)
+        dist = b.e(unreal.MaterialExpressionDistance)
+        b.c(cam, "", dist, "A")
+        b.c(obj, "", dist, "B")
+        dr = b.div(dist, b.e(unreal.MaterialExpressionObjectRadius))
+        close = b.one_minus(b.sat(b.div(b.sub(dr, b.scalar("DetailNearR", 1.05)), b.scalar("DetailRangeR", 1.2))))
+        tile = b.scalar("DetailTile", 24.0)
+        uva = b.mul(uv, b.append(b.mul(tile, b.const(2.0)), tile))
+        uvb = b.add(b.mul(uva, b.const(4.3)), b.const2(0.37, 0.61))
+        na = b.tex("DetailNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, uva)
+        nb = b.tex("DetailNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, uvb)
+        dv = b.add(b.mul(b.sub(b.mask(na, True), b.const(0.5)), b.const(0.9)), b.mul(b.sub(b.mask(nb, False, True), b.const(0.5)), b.const(0.6)))
+        k = b.mul(b.mul(close, b.one_minus(ca)), b.scalar("DetailStrength", 0.8))
+        albedo = b.mul(albedo, b.add(b.const(1.0), b.mul(dv, k)))
+        hue = b.sat(b.mul(b.sub(b.mask(na, False, False, True), b.const(0.45)), b.const(3.0)))
+        albedo = b.lerp(albedo, b.mul(albedo, b.mask(b.vector("DetailTint", (1.3, 1.1, 0.6)), True, True, True)), b.mul(hue, k))
 
     # light vector and the two normals: geometric (terminator, glow mask) and detail (relief on the day side)
     sun = b.vector("SunDirection", SUN_DIR)

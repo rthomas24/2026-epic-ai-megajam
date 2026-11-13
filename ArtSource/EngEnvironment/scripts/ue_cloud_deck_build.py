@@ -8,7 +8,8 @@
 #                                passes through (the whiteout itself is the descent code's), fills to a solid layer far
 #                                away so it closes the horizon from above, darker seen from below
 #   MI_CloudDeck_Verdance / MI_CloudDeck_Cinder
-# It is one quad: put /Engine/BasicShapes/Plane at the deck altitude, scale 2000 (200 km), no collision, no shadow.
+# Placed by ATDCloudDeck (Source/unrealGameJam/TriadDrift/World/TDCloudDeck.*): a 60 km disc at the deck altitude,
+# bent down with the terrain's far ring; td.CloudDeck 0 = none. Fog is computed per pixel (the disc has few vertices).
 #   powershell -File ArtSource\EngShips\Dominion\scripts\run_ue_rendered.ps1 -Script ArtSource\EngEnvironment\scripts\ue_cloud_deck_build.py
 import os
 import sys
@@ -32,14 +33,17 @@ problems = []
 # name: (default / Verdance, Cinder)
 SCALARS = {
     "TileA": (900000.0, 900000.0), "TileB": (2300000.0, 2300000.0), "DriftX": (900.0, 1400.0), "DriftY": (350.0, -500.0),
-    "Coverage": (0.15, 0.3), "Contrast": (1.6, 1.4), "Opacity": (0.92, 0.85),
+    "Coverage": (0.12, 0.25), "Contrast": (1.6, 1.4), "Opacity": (0.92, 0.85),
+    # r2: over the dressed zone (radius from the deck's centre = the pad) only wisps, so the zone shows from the
+    # ceiling; thickening outward over the rim and solid over the undressed plain beyond
+    "ZoneCoverage": (-0.3, -0.22), "ZoneRadius": (350000.0, 350000.0), "ZoneFade": (350000.0, 350000.0),
     "SoftDepth": (6000.0, 6000.0), "NearFadeStart": (3000.0, 3000.0), "NearFadeRange": (20000.0, 20000.0),
     "FarFillStart": (1200000.0, 1000000.0), "FarFillRange": (2500000.0, 2000000.0), "BelowDarken": (0.45, 0.4),
     "Glow": (1.0, 1.0),
 }
 VECTORS = {
-    "LitColor": ((0.80, 0.95, 0.90), (0.95, 0.52, 0.30)),
-    "ShadowColor": ((0.10, 0.30, 0.32), (0.22, 0.07, 0.04)),
+    "LitColor": ((0.80, 0.95, 0.90), (0.70, 0.47, 0.36)),     # Cinder r2: smoky ash, less saturated tan
+    "ShadowColor": ((0.10, 0.30, 0.32), (0.17, 0.08, 0.05)),
 }
 
 
@@ -103,7 +107,13 @@ def build(b, tex):
     ta = b.tex("DeckTex", tex, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR, uva)
     tb = b.tex("DeckTex", tex, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR, uvb)
     # cover: the fine sheet shaped by the broad one, pushed by Coverage, sharpened by Contrast
-    cover = sat(mul(sub(add(mul((ta, "A"), 0.6), mul((tb, "A"), 0.7)), sub(0.5, S("Coverage"))), S("Contrast")))
+    obj = b.e(E.MaterialExpressionObjectPositionWS)
+    rxy = mask(sub(wp, obj), r=True, g=True)
+    rlen = b.e(E.MaterialExpressionLength)
+    b.c(rxy, "", rlen, "")
+    zone = sat(div(sub(rlen, S("ZoneRadius")), S("ZoneFade")))                # 0 over the dressed zone, 1 beyond
+    cov = lerp(S("ZoneCoverage"), S("Coverage"), zone)
+    cover = sat(mul(sub(add(mul((ta, "A"), 0.6), mul((tb, "A"), 0.7)), sub(0.5, cov)), S("Contrast")))
     lum = sat(add(mul((ta, "R"), 0.6), mul((tb, "R"), 0.4)))
     depth = b.e(E.MaterialExpressionPixelDepth)
     fill = sat(div(sub(depth, S("FarFillStart")), S("FarFillRange")))          # a solid layer towards the horizon
@@ -142,6 +152,10 @@ def main():
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_TRANSLUCENT)
     mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
     mat.set_editor_property("two_sided", True)
+    try:
+        mat.set_editor_property("compute_fog_per_pixel", True)
+    except Exception as e:  # noqa: BLE001
+        problems.append("compute_fog_per_pixel: %s" % e)
     build(ue_mat_builder.MB(mat, problems), tex)
     mel.recompile_material(mat)
     mel.layout_material_expressions(mat)

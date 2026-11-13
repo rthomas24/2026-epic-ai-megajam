@@ -32,7 +32,18 @@ SCALARS = {
     "HeightRangeM": (2900.0, 2900.0),      # set by the terrain code (unused by this graph; kept so the call is valid)
     "TileSize": (400.0, 400.0), "FarScale": (7.3, 7.3),
     "FarStart": (1500.0, 1500.0), "FarRange": (6000.0, 6000.0),          # near tile -> far tile (camera depth, cm)
-    "MeanStart": (30000.0, 30000.0), "MeanRange": (120000.0, 120000.0),  # far tile -> plain mean
+    # R3: the far tile is gone by ~550 m (it read as a knitted grid from the air); beyond that, colour is procedural only
+    "MeanStart": (12000.0, 12000.0), "MeanRange": (45000.0, 45000.0),    # far tile -> plain mean
+    # R3: distance at which the small noises (37 m / 230 m, which repeat) hand over to the large ones and the terrain's
+    # own non-repeating masks (broad ~4 km, fine ~60 m per vertex)
+    "SmallFadeStart": (35000.0, 35000.0), "SmallFadeRange": (150000.0, 150000.0),
+    # R3: biome regions readable from 1-5 km (Verdance: dark rainforest floor where the scatter puts rainforest
+    # (broad > 0.55), moss in the mixed band, open bright meadow below 0.4; uplands paler; lowlands dark and wet)
+    "BroadHue": (2.2, 0.3), "FarVar": (0.7, 0.6),
+    "UplandStartM": (420.0, 500.0), "UplandRangeM": (520.0, 500.0), "UplandAmount": (0.8, 0.55),
+    "LowlandTopM": (60.0, 40.0), "LowlandFadeM": (160.0, 120.0), "LowlandAmount": (0.75, 0.5),
+    "JungleBroad": (0.55, 2.0), "JungleSoft": (0.12, 0.1), "JungleAmount": (0.85, 0.0),
+    "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (1.15, 1.3),
     "HueKeep": (0.45, 0.6),                # how much of the texture's own hue variation survives the retint
     "DetailContrast": (1.0, 1.0),
     "NoiseS": (3700.0, 3700.0), "NoiseM": (23000.0, 23000.0), "NoiseL": (190000.0, 190000.0), "NoiseXL": (730000.0, 730000.0),
@@ -43,7 +54,7 @@ SCALARS = {
     "RockSlopeStart": (0.17, 0.15), "RockSlopeRange": (0.13, 0.12),
     "PeakStartM": (1450.0, 1300.0), "PeakRangeM": (550.0, 700.0), "PeakSlopeMax": (0.4, 0.36), "PeakSlopeRange": (0.3, 0.28),
     "LowTopM": (-260.0, 10.0), "LowFadeM": (130.0, 120.0), "LowAmount": (0.85, 0.7),
-    "PatchThreshold": (0.72, 0.66), "PatchSoft": (0.06, 0.08), "PatchTopM": (700.0, 900.0), "PatchFadeM": (300.0, 300.0),
+    "PatchThreshold": (0.79, 0.66), "PatchSoft": (0.06, 0.08), "PatchTopM": (700.0, 900.0), "PatchFadeM": (300.0, 300.0),
     "WetDarken": (0.6, 0.85), "WetRoughness": (0.7, 0.6),
     # roughness / specular / normal
     "FlatRoughness": (0.86, 0.9), "PatchRoughness": (0.7, 0.22), "LowRoughness": (0.9, 0.8), "RockRoughness": (0.82, 0.78),
@@ -56,19 +67,23 @@ SCALARS = {
     "ValleyHeatGain": (3.0, 2.2), "ValleyCrust": (0.0, 1.15), "ValleyBaseBlend": (1.0, 1.0), "ValleyRoughness": (0.05, 0.35),
     "FlowTile": (9000.0, 6000.0), "FlowX": (0.0, 35.0), "FlowY": (12.0, 60.0),
     # veins and glows
-    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (6.0, 14.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (1.2, 1.8),
+    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 14.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 1.8),
     "VeinTopM": (500.0, 250.0), "VeinFadeM": (400.0, 200.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),
     "VeinPatchiness": (1.0, 1.0),
 }
 VECTORS = {
-    "FlatTintA": ((0.012, 0.090, 0.080), (0.012, 0.012, 0.015)),
-    "FlatTintB": ((0.020, 0.135, 0.055), (0.030, 0.027, 0.028)),
-    "FlatTintC": ((0.010, 0.055, 0.075), (0.050, 0.022, 0.014)),
-    "PatchTint": ((0.030, 0.140, 0.150), (0.008, 0.008, 0.012)),
+    # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade
+    "FlatTintA": ((0.014, 0.085, 0.060), (0.012, 0.012, 0.015)),
+    "FlatTintB": ((0.050, 0.150, 0.030), (0.030, 0.027, 0.028)),
+    "FlatTintC": ((0.012, 0.060, 0.090), (0.050, 0.022, 0.014)),
+    "JungleTint": ((0.008, 0.042, 0.026), (0.020, 0.020, 0.022)),     # under the rainforest canopy: dark, rich
+    "UplandTint": ((0.075, 0.110, 0.070), (0.060, 0.045, 0.040)),     # paler sage / ash-brown uplands
+    "LowlandTint": ((0.012, 0.035, 0.032), (0.016, 0.013, 0.012)),    # wet dark lowlands
+    "PatchTint": ((0.016, 0.060, 0.075), (0.008, 0.008, 0.012)),
     "PatchGlowColor": ((0.10, 0.85, 1.00), (0.0, 0.0, 0.0)),
     "LowTint": ((0.020, 0.019, 0.016), (0.018, 0.014, 0.013)),
-    "RockTintA": ((0.035, 0.040, 0.060), (0.020, 0.015, 0.014)),
-    "RockTintB": ((0.095, 0.105, 0.135), (0.070, 0.042, 0.028)),
+    "RockTintA": ((0.035, 0.040, 0.060), (0.024, 0.020, 0.020)),
+    "RockTintB": ((0.095, 0.105, 0.135), (0.085, 0.050, 0.032)),
     "PeakTint": ((0.200, 0.330, 0.310), (0.210, 0.180, 0.160)),
     "ValleyCoreColor": ((0.25, 1.0, 0.9), (1.0, 0.36, 0.04)),
     "ValleyEdgeColor": ((0.05, 0.45, 0.6), (0.80, 0.05, 0.008)),
@@ -196,20 +211,31 @@ def build_graph(b, t, means):
     def c(n, ch):
         return (n, ch)
 
-    val = add(1.0, mul(S("ValueVar"), add(add(mul(sub(c(nM, "R"), 0.5), 0.5), mul(sub(c(nL, "R"), 0.5), 0.9)),
-                                          mul(sub(c(nXL, "G"), 0.5), 0.6))))
-    hsel = sat(add(0.5, mul(S("HueContrast"), add(add(mul(sub(c(nL, "G"), 0.5), 0.6), mul(sub(c(nXL, "R"), 0.5), 0.5)),
-                                                  mul(sub(c(nM, "G"), 0.5), 0.2)))))
+    # R3: the 37 m and 230 m noises repeat, so they only act near (sn = 1 near, 0 far); far away the variation comes from
+    # the 1.9 km / 7.3 km noises and the terrain's own masks, which never repeat.
+    sn = inv(ramp(depth, S("SmallFadeStart"), S("SmallFadeRange")))
+    near_v = add(mul(sub(c(nM, "R"), 0.5), 0.5), mul(sub(fine, 0.5), 0.3))
+    far_v = add(add(mul(sub(fine, 0.5), S("FarVar")), mul(sub(c(nXL, "G"), 0.5), 0.6)), mul(sub(broad, 0.5), 0.3))
+    val = add(1.0, mul(S("ValueVar"), add(lerp(far_v, near_v, sn), mul(sub(c(nL, "R"), 0.5), 0.9))))
+    hsel = sat(add(0.5, mul(S("HueContrast"), add(add(add(mul(sub(c(nL, "G"), 0.5), 0.45), mul(sub(c(nXL, "R"), 0.5), 0.4)),
+                                                      mul(mul(sub(c(nM, "G"), 0.5), 0.2), sn)),
+                                                  mul(sub(0.5, broad), mul(S("BroadHue"), 0.25))))))
     csel = ramp(add(mul(c(nXL, "B"), 0.6), mul(c(nL, "B"), 0.4)), S("TintCThreshold"), S("TintCSoft"))
 
     # ---------------------------------------------------------------- layer weights
-    j = add(mul(sub(fine, 0.5), 0.6), mul(sub(c(nS, "G"), 0.5), 0.4))            # -0.5 .. 0.5 breakup
+    j = add(mul(sub(fine, 0.5), 0.6), mul(mul(sub(c(nS, "G"), 0.5), 0.4), sn))   # -0.5 .. 0.5 breakup
     hj = add(add(hm, mul(j, S("HeightBreakM"))), mul(sub(broad, 0.5), S("BiomeBreakM")))
     sj = add(slope, mul(j, S("SlopeBreak")))
     rock_w = ramp(sj, S("RockSlopeStart"), S("RockSlopeRange"))
     peak_w = mul(ramp(hj, S("PeakStartM"), S("PeakRangeM")), inv(ramp(slope, S("PeakSlopeMax"), S("PeakSlopeRange"))))
     low_w = mul(inv(ramp(hj, S("LowTopM"), S("LowFadeM"))), S("LowAmount"))
-    patch_n = add(add(mul(c(nM, "B"), 0.55), mul(c(nL, "R"), 0.45)), mul(j, 0.12))
+    # R3 biome regions on the flats (same inputs as the scatter: broad mask, height above the pad)
+    jungle_w = mul(ramp(add(broad, mul(j, 0.08)), S("JungleBroad"), S("JungleSoft")), S("JungleAmount"))
+    upland_w = mul(ramp(hj, S("UplandStartM"), S("UplandRangeM")), S("UplandAmount"))
+    lowland_w = mul(inv(ramp(hj, S("LowlandTopM"), S("LowlandFadeM"))), S("LowlandAmount"))
+    # glowing groves: R3 uses the 1.9 km and 7.3 km noises (patches of a few hundred metres, not 230 m blobs)
+    patch_n = add(add(add(mul(c(nL, "B"), 0.5), mul(c(nXL, "B"), 0.25)), mul(mul(c(nM, "B"), 0.25), sn)),
+                  add(mul(j, 0.12), mul(mul(sub(0.5, broad), 0.2), inv(sn))))
     patch_w = mul(ramp(patch_n, S("PatchThreshold"), S("PatchSoft")), inv(ramp(hj, S("PatchTopM"), S("PatchFadeM"))))
     band = sat(inv(div(vabs(sub(add(broad, mul(j, S("ValleyBreak"))), S("ValleyCenter"))), S("ValleyWidth"))))
     valley_w = mul(mul(band, inv(ramp(slope, 0.0, S("ValleySlopeMax")))),
@@ -234,7 +260,11 @@ def build_graph(b, t, means):
     patch_d, patch_n_ = top("Patch")
     low_d, low_n = top("Low")
     peak_d, peak_n = top("Peak")
-    flat_c = mul(lerp(lerp(Vp("FlatTintA"), Vp("FlatTintB"), hsel), Vp("FlatTintC"), csel), flat_d)
+    flat_t = lerp(lerp(Vp("FlatTintA"), Vp("FlatTintB"), hsel), Vp("FlatTintC"), csel)
+    flat_t = lerp(flat_t, Vp("JungleTint"), jungle_w)
+    flat_t = lerp(flat_t, Vp("UplandTint"), upland_w)
+    flat_t = lerp(flat_t, Vp("LowlandTint"), lowland_w)
+    flat_c = mul(flat_t, flat_d)
     patch_c = mul(Vp("PatchTint"), patch_d)
     low_c = mul(Vp("LowTint"), low_d)
     peak_c = mul(Vp("PeakTint"), peak_d)
@@ -253,7 +283,13 @@ def build_graph(b, t, means):
     r_far = lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_x)), wsel)
     r_nrm = lerp(rgb(tex("RockN", rnr, ST.SAMPLERTYPE_NORMAL, uv_y)), rgb(tex("RockN", rnr, ST.SAMPLERTYPE_NORMAL, uv_x)), wsel)
     rock_d = detail(r_near, r_far, "Rock")
-    rock_c = mul(lerp(Vp("RockTintA"), Vp("RockTintB"), sat(add(mul(sub(c(nM, "R"), 0.5), 1.6), 0.5))), rock_d)
+    # R3: cliff colour from horizontal strata (a noise stretched along the ground, squeezed in height) instead of the
+    # top-down 230 m noise, which smeared down every slope into stripes
+    along = mul(add(wx, wy), 0.7071)
+    uv_st = app(div(along, mul(S("StrataAlongM"), 100.0)), div(wz, mul(S("StrataScaleM"), 100.0)))
+    strata = tex("MacroNoiseTex", "T_Ground_MacroNoise", ST.SAMPLERTYPE_MASKS, uv_st)
+    rsel = sat(add(mul(sub(add(mul(c(strata, "R"), 0.7), mul(c(nL, "G"), 0.3)), 0.5), S("StrataContrast")), 0.5))
+    rock_c = mul(lerp(Vp("RockTintA"), Vp("RockTintB"), rsel), rock_d)
 
     # ---------------------------------------------------------------- river / pool band: flow, heat
     time = b.e(E.MaterialExpressionTime)
@@ -272,7 +308,7 @@ def build_graph(b, t, means):
     rough = lerp(lerp(S("FlatRoughness"), S("PatchRoughness"), patch_w), S("LowRoughness"), low_w)
     rough = lerp(rough, S("WetRoughness"), mul(wet, c(nS, "R")))
     rough = lerp(lerp(rough, S("RockRoughness"), rock_w), S("PeakRoughness"), peak_w)
-    rough = add(rough, mul(sub(c(nM, "R"), 0.5), S("RoughVar")))
+    rough = add(rough, mul(sub(lerp(fine, c(nM, "R"), sn), 0.5), S("RoughVar")))
     b.out(base, "", MP.MP_BASE_COLOR)
     b.out(sat(lerp(rough, S("ValleyRoughness"), molten)), "", MP.MP_ROUGHNESS)
     b.out(K(0.0), "", MP.MP_METALLIC)
@@ -292,10 +328,10 @@ def build_graph(b, t, means):
         r = sat(inv(mul(vabs(sub(v, 0.5)), sharp)))
         return mul(r, r)
     vein_near = ridge(c(nS, "B"), S("VeinSharpNear"))
-    vein_far = mul(ridge(add(mul(c(nM, "B"), 0.6), mul(c(nL, "B"), 0.4)), S("VeinSharpFar")), S("VeinFarBoost"))
+    vein_far = mul(ridge(add(mul(c(nL, "B"), 0.7), mul(c(nXL, "G"), 0.3)), S("VeinSharpFar")), S("VeinFarBoost"))   # R3: 1.9 km scale
     vein = add(mul(vein_near, inv(ramp(depth, 4000.0, 12000.0))), mul(vein_far, lerp(0.1, 1.0, fm)))   # thin veins only within ~150 m
     # only in some regions (the 230 m and 1.9 km noise), never on rock, peaks, water or high ground
-    region = lerp(1.0, sat(mul(sub(add(mul(c(nL, "G"), 0.6), mul(c(nM, "R"), 0.4)), 0.42), 5.0)), S("VeinPatchiness"))
+    region = lerp(1.0, sat(mul(sub(add(mul(c(nL, "G"), 0.6), mul(lerp(c(nXL, "R"), c(nM, "R"), sn), 0.4)), 0.42), 5.0)), S("VeinPatchiness"))
     vmask = mul(mul(mul(inv(rock_w), inv(peak_w)), mul(inv(molten), region)), inv(ramp(hj, S("VeinTopM"), S("VeinFadeM"))))
     vcol = lerp(Vp("VeinColorA"), Vp("VeinColorB"), sat(mul(sub(c(nXL, "B"), 0.45), 4.0)))
     e_vein = mul(vcol, mul(mul(vein, vmask), mul(S("VeinStrength"), add(0.55, mul(c(nS, "R"), 0.9)))))

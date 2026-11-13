@@ -11,6 +11,7 @@
 #include "Misc/PackageName.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/World/TDCloudDeck.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
@@ -122,6 +123,7 @@ ATDPlaceholderSky* ATDPlaceholderSky::SpawnIfNeeded(UWorld* World, ETDPlaceholde
 	if (Style == ETDPlaceholderSkyStyle::Verdance || Style == ETDPlaceholderSkyStyle::Cinder)
 	{
 		ATDPlanetTerrain::EnsureForWorld(World, Style == ETDPlaceholderSkyStyle::Verdance ? ETDDestination::Verdance : ETDDestination::Cinder);
+		ATDCloudDeck::EnsureForWorld(World, Style == ETDPlaceholderSkyStyle::Verdance ? ETDDestination::Verdance : ETDDestination::Cinder);	// environment builder: the cloud deck
 	}
 	if (Sky.ProvidesLighting() && Sky.ProvidesExposure())
 	{
