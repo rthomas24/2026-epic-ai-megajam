@@ -566,6 +566,64 @@ public:
 	TSoftObjectPtr<USoundBase> CombatMusic;
 
 	/**
+	 * Combat feedback sounds (optional): played as 2D UI sounds by the HUD host when a squad shot lands
+	 * (OnHitConfirmed) and when it kills. The sound's own class, volume and concurrency apply; silent when unset.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat Feedback")
+	FTDFXCue HitConfirm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat Feedback")
+	FTDFXCue KillConfirm;
+
+	/**
+	 * Interface sounds (optional, 2D): a selection moves, a value is confirmed or changed, a page closes, the game
+	 * pauses and resumes. Played by the menus, the Settings page and the pause toggle; silent when unset.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue UIMove;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue UIConfirm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue UIBack;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue PauseIn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI Sounds")
+	FTDFXCue PauseOut;
+
+	/**
+	 * Director's Cut and progress stings (optional, 2D): the scene slate, the "CUT!" call, slow motion in and out
+	 * for a money shot, an objective completed. Silent when unset.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue SlateClap;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue CutSting;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue SlowMoIn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue SlowMoOut;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue ObjectiveComplete;
+
+	/** Ambience beds (optional, looping, 2D): one per place, cross-faded by the music director's owner. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ambience")
+	TSoftObjectPtr<USoundBase> AmbienceSpace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ambience")
+	TSoftObjectPtr<USoundBase> AmbienceVerdance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ambience")
+	TSoftObjectPtr<USoundBase> AmbienceCinder;
+
+	/**
 	 * The intro (ENG-33), optional. When set, this Level Sequence plays on New Game instead of the code-driven
 	 * shots, with the same skip and hand-off rules.
 	 */

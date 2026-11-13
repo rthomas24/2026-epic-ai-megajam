@@ -1,6 +1,7 @@
 // Triad Drift - game instance (ENG-19, C-03 #3). Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDDebugMenu.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -722,6 +723,11 @@ void UTDGameInstance::StartNewRun()
 	ResetRunState();
 	bRunCommitted = true;
 	bIntroPending = true; // ENG-33: the galaxy plays the intro once, then the first waves
+	// The player's chosen difficulty (Settings page) starts every new run, even after a Continue of an older one (T1).
+	if (UTDSettingsSubsystem* Settings = GetSubsystem<UTDSettingsSubsystem>())
+	{
+		Settings->ApplyPreferredDifficulty();
+	}
 }
 
 bool UTDGameInstance::ConsumeIntroPending()

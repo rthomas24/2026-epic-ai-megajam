@@ -9,6 +9,7 @@
 class UStaticMeshComponent;
 class UStaticMesh;
 class UTDTravelFX;
+class UMaterialInterface;
 class ATDPortalGate;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDGateTransitSignature, ATDPortalGate*, Gate, AActor*, Traveller);
@@ -67,6 +68,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
 	FName GateId = NAME_None;
 
+	/** Membrane brightness (engineering M_TD_PortalMembrane, used until Nick's PortalIdle VFX exists). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Portal", meta = (ClampMin = "0"))
+	float MembraneBrightness = 1.2f;
+
+	/** The membrane's tint for this gate (by destination). */
+	FLinearColor GetMembraneTint() const;
+
+	/** The membrane in use (null when the material is missing; tests). */
+	UMaterialInterface* GetMembraneMaterial() const { return MembraneMaterial; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate")
 	TObjectPtr<ATDPortalGate> Partner;
 
@@ -106,6 +117,12 @@ public:
 	/** Nick's travel FX: PortalIdle (attached loop; hides the placeholder disc), PortalTransit at both ends. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TObjectPtr<UTDTravelFX> TravelFX;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInterface> MembraneMaterial;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> MembraneMID;
 
 	/** Ships teleported to within this depth of the gate plane (and inside 1.5x the radius) ignore it for ArrivalGuardSeconds. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Gate", meta = (ClampMin = "0"))

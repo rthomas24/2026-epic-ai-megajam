@@ -164,6 +164,62 @@ ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Loca
 	return Flash;
 }
 
+int32 UTDProjectileSubsystem::PlayPlaceholderHit(const FVector& Location, float Radius, bool bShield, const FVector& Normal)
+{
+	int32 Used = 0;
+	const float Cap = ATDCombatFlash::MaxShellRadiusPerCameraDistance;
+	if (bShield)
+	{
+		FTDFlashLook Shield;
+		Shield.Hot = FLinearColor(0.85f, 0.97f, 1.f);
+		Shield.Mid = ShieldHitColor();
+		Shield.Cool = FLinearColor(0.1f, 0.3f, 0.9f);
+		Shield.Glow = 2.2f;
+		Shield.GlowExponent = 1.5f;
+		Shield.GrowFrom = 0.6f;
+		Shield.GrowTo = 1.f;
+		Shield.EdgePower = 0.9f;
+		if (ATDCombatFlash* Flash = AcquireFlash(Location))
+		{
+			Flash->PlayLook(Location, Radius * 1.4f, 0.2f, Shield);
+			Flash->SetCameraCap(Cap);
+			++Used;
+		}
+		return Used;
+	}
+	FTDFlashLook Hull;
+	Hull.Hot = FLinearColor::White;
+	Hull.Mid = FLinearColor(1.f, 0.75f, 0.3f);
+	Hull.Cool = FLinearColor(1.f, 0.35f, 0.05f);
+	Hull.Glow = 3.f;
+	Hull.GlowExponent = 2.f;
+	Hull.GrowFrom = 0.5f;
+	Hull.GrowTo = 0.9f;
+	Hull.EdgePower = 1.6f;
+	if (ATDCombatFlash* Flash = AcquireFlash(Location))
+	{
+		Flash->PlayLook(Location, Radius * 0.8f, 0.13f, Hull);
+		Flash->SetCameraCap(Cap);
+		++Used;
+	}
+	FTDFlashLook Spark = Hull;
+	Spark.Hot = FLinearColor(1.f, 0.9f, 0.6f);
+	Spark.Glow = 3.f;
+	Spark.GlowExponent = 1.2f;
+	const FVector Out = Normal.IsNearlyZero() ? FVector::UpVector : Normal.GetSafeNormal();
+	for (int32 I = 0; I < 3; ++I)
+	{
+		const FVector Dir = (Out + FMath::VRand() * 0.8f).GetSafeNormal();
+		if (ATDCombatFlash* Flash = AcquireFlash(Location))
+		{
+			Flash->PlayDebrisLook(Location, Dir * Radius * FMath::FRandRange(4.f, 7.f), Radius * 0.6f, FMath::Clamp(Radius * 0.06f, 5.f, 14.f),
+				FMath::FRandRange(0.18f, 0.3f), Spark);
+			++Used;
+		}
+	}
+	return Used;
+}
+
 int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount)
 {
 	// An arcade explosion until Nick's FX Death lands (the Lead, after T4's frame-by-frame: a flat peach disc and flat

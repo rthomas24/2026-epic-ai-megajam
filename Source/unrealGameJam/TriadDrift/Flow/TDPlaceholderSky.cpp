@@ -9,6 +9,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Misc/PackageName.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/PostProcessVolume.h"
 #include "Engine/World.h"
@@ -216,8 +219,33 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 	SkyLight->RecaptureSky();
 }
 
+// Ryan's standing rule (keep the old look recoverable): td.PlanetTerrain 0 = today's flat slab + far ground, no terrain.
+static TAutoConsoleVariable<int32> CVarTDPlanetTerrain(TEXT("td.PlanetTerrain"), 1,
+	TEXT("ENG-34 planet worlds: 1 = procedural terrain and mountains (default), 0 = the earlier flat ground and far plane (applies on the next planet load)."));
+
+void ATDPlaceholderSky::TrySpawnTerrain()
+{
+	const bool bPlanet = AppliedStyle == ETDPlaceholderSkyStyle::Verdance || AppliedStyle == ETDPlaceholderSkyStyle::Cinder;
+	if (!bPlanet || !bSpawnTerrain || Terrain || !GetWorld() || CVarTDPlanetTerrain.GetValueOnGameThread() == 0) { return; }
+	// The course sits at the landing pad (spawned by the planet director, maybe after us): the world centres on it.
+	AActor* Course = nullptr;
+	for (TActorIterator<ATDPlanetCourse> It(GetWorld()); It && !Course; ++It) { Course = *It; }
+	if (!Course) { return; }
+	const bool bVerdance = AppliedStyle == ETDPlaceholderSkyStyle::Verdance;
+	const FSoftObjectPath Path(bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance")
+		: TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder"));
+	UMaterialInterface* M = FPackageName::DoesPackageExist(Path.GetLongPackageName()) ? Cast<UMaterialInterface>(Path.TryLoad()) : nullptr;
+	Terrain = ATDPlanetTerrain::SpawnForPlanet(GetWorld(), bVerdance ? ETDDestination::Verdance : ETDDestination::Cinder, Course->GetActorTransform(), M);
+	if (Terrain && FarGround)
+	{
+		FarGround->DestroyComponent();	// the terrain carries the ground to the horizon now
+		FarGround = nullptr;
+	}
+}
+
 void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 {
+	AppliedStyle = Style;
 	const bool bPlanet = Style == ETDPlaceholderSkyStyle::Verdance || Style == ETDPlaceholderSkyStyle::Cinder;
 	if (!bPlanet)
 	{
@@ -243,9 +271,12 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 	{
 		// Clear near the player, thick at the horizon: the edge and the distance melt into a planet-tinted haze.
 		HorizonFog->SetWorldLocation(FVector::ZeroVector);
-		HorizonFog->SetFogDensity(bVerdance ? 0.018f : 0.022f);
-		HorizonFog->SetFogHeightFalloff(0.12f);
-		HorizonFog->SetStartDistance(6000.f);
+		// Thick only near the ground and far away: a steep falloff (density halves every ~0.4 km of height) keeps the
+		// view down from the arrival altitude (~220 m) clear, and the start distance keeps the arrival's ground
+		// (lava cracks, spires, the outpost) out of the haze; the horizon still melts into the tint.
+		HorizonFog->SetFogDensity(bVerdance ? 0.03f : 0.035f);
+		HorizonFog->SetFogHeightFalloff(1.8f);
+		HorizonFog->SetStartDistance(25000.f);
 		HorizonFog->SetFogMaxOpacity(1.f);
 		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.10f, 0.32f, 0.28f) : FLinearColor(0.42f, 0.16f, 0.05f));
 		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.35f, 0.45f, 0.35f) : FLinearColor(0.6f, 0.3f, 0.12f));
@@ -255,7 +286,7 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 
 bool ATDPlaceholderSky::HasHorizon() const
 {
-	return FarGround && FarGround->IsVisible() && HorizonFog && HorizonFog->IsVisible();
+	return ((FarGround && FarGround->IsVisible()) || Terrain) && HorizonFog && HorizonFog->IsVisible();
 }
 
 bool ATDPlaceholderSky::HasLights() const
@@ -271,6 +302,11 @@ bool ATDPlaceholderSky::HasExposure() const
 void ATDPlaceholderSky::Refresh()
 {
 	const FWorldSky Sky = Scan(GetWorld());
+	if (Sky.bTaggedSky && Terrain)
+	{
+		Terrain->Destroy();	// Nick's environment brings its own world
+		Terrain = nullptr;
+	}
 	if (Sky.bTaggedSky)
 	{
 		// Nick's environment brings its own ground and atmosphere.
@@ -303,5 +339,6 @@ void ATDPlaceholderSky::Tick(float DeltaSeconds)
 	{
 		RescanTimer = RescanInterval;
 		Refresh(); // a sky streamed in or spawned late takes over
+		TrySpawnTerrain();
 	}
 }

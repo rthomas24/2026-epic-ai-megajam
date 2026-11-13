@@ -222,6 +222,10 @@ By hand in the sandbox:
 - **Atmospheric entry:**
   - It's refused for wingmen, dead ships, while an entry is already running, and while a retake or level travel is pending.
   - A death during entry aborts it cleanly: override and invulnerability released, no travel.
+  - **The planet accepts the ship again after an aborted entry** (Pause > Restart Scene, a death, a failed or timed-out travel; review M1, Nov 13).
+    - `ATDPlanetAtmosphere` keeps the entry it started.
+    - When that entry returns to Idle without travelling, the planet re-arms as soon as the player's ship is outside the atmosphere, so a ship left inside doesn't re-dive in a loop.
+    - The test flies in through the planet actor (`PlanetAcceptsTheShipAgainAfterAnAbortedEntry`).
   - The dive stays above the planet surface.
 - **Level travel** goes through `UTDTravelSubsystem::RequestLevelTravel`: at most once per level, never over a pending travel or retake.
 - **Timing:** landing (4.9 s), take-off (3.5 s) and entry (2.5 s) are the same at 30, 60 and 120 fps.

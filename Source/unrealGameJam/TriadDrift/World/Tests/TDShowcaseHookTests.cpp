@@ -121,4 +121,21 @@ bool FTDShowcaseFX::RunTest(const FString&)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalMembrane, "TriadDrift.World.Portal.MembraneIsTranslucentAndTinted", TD_TEST_FLAGS)
+bool FTDPortalMembrane::RunTest(const FString&)
+{
+	FTDTestWorld W;
+	ATDPortalGate* Gate = W.Spawn<ATDPortalGate>(FVector::ZeroVector);
+	if (!TestNotNull(TEXT("gate"), Gate)) { return false; }
+	UMaterialInterface* M = Gate->GetMembraneMaterial();
+	if (!M) { AddInfo(TEXT("M_TD_PortalMembrane not in this checkout")); return true; }
+	TestTrue(TEXT("membrane is additive (see-through, not an opaque disc)"), M->GetBlendMode() == BLEND_Additive);
+	TestTrue(TEXT("membrane is unlit"), M->GetShadingModels().HasShadingModel(MSM_Unlit));
+	Gate->GateId = TEXT("Gate_Verdance_Zone");
+	TestTrue(TEXT("Verdance gates are teal"), Gate->GetMembraneTint().G > Gate->GetMembraneTint().R);
+	Gate->GateId = TEXT("Gate_Cinder_Orbit");
+	TestTrue(TEXT("Cinder gates are ember"), Gate->GetMembraneTint().R > Gate->GetMembraneTint().B);
+	return true;
+}
+
 #endif

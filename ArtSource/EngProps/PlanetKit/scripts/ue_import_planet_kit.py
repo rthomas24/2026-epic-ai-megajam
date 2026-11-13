@@ -277,6 +277,12 @@ def mesh_triangles(mesh, notes):
 
 def main():
     manifests = sorted(glob.glob(os.path.join(KIT, "SM_*", "SM_*.manifest.json")))
+    # assets with their own importer (SM_Cind_MagmaSurface: ue_import_magma_surface.py, master M_TD_Magma, no Nanite)
+    # are never re-imported here, so a full kit rebuild cannot re-parent them onto M_TD_PlanetKit
+    def _custom(path):
+        with open(path, encoding="utf-8") as fh:
+            return bool(json.load(fh).get("custom_importer"))
+    manifests = [m for m in manifests if not _custom(m)]
     # optional subset: PK_ONLY=SM_A,SM_B (env var, or a pk_only.txt next to this script) re-imports only those
     only = os.environ.get("PK_ONLY", "")
     only_file = os.path.join(HERE, "pk_only.txt")

@@ -158,6 +158,11 @@ powershell -File Tools\td-play-mcp.ps1 -Stop
   (Blueprint, Niagara, MetaSound, automation tests, cheats in PIE, asset import).
 - From Git Bash, `export MSYS_NO_PATHCONV=1` before passing `/Game/...` arguments, and pass JSON
   arguments from a file with `@args.json` when quoting gets in the way.
+- Kill enemies *before* a ship switch in a scripted playtest, not right after it: `TDKillAll` just after a switch fires the
+  director's multi-kill shot (FOV 65, long lens), which looks like a broken switch cut in the captures.
+- To judge camera feel with numbers rather than eyeballing captures, use `TD.Flight.Cam rec <seconds> <tag>`. It logs the
+  ship's screen position, FOV, roll, camera offset, speed and drift every 0.1 s. `TD.Flight.Cam set Cam <Field> <Value>`
+  tries a chase-camera value live, without rebuilding.
 - Also run a packaged build now and then (`Tools\td-package.ps1 -Configuration Development`): the
   Development game target compiles the tests differently from the editor and has caught errors
   the editor build missed.

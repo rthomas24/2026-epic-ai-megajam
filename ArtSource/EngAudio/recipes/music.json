@@ -1,0 +1,22 @@
+{
+ "about": "Triad Drift ENG-35 fallback music. Original compositions rendered by scripts/td_music.py. MIDI note numbers (57 = A3).",
+ "sounds": [
+  {"name": "Music_Combat", "group": "Music", "cat": "music", "kind": "music", "piece": "combat",
+   "note": "Combat bed: 128 BPM, 32 bars = exactly 60 s, A minor (Am F C G, two bars each). Four 8-bar sections build: drums + bass + arp, then snare + pad, then the lead, then everything; a snare fill and riser lead back to the top. Seamless loop.",
+   "spec": {"bpm": 128, "bars": 32,
+            "roots": [33, 29, 36, 31],
+            "chords": [[0, 3, 7], [0, 4, 7], [0, 4, 7], [0, 4, 7]],
+            "arp": [0, 1, 2, 3, 2, 1, 4, 2, 0, 2, 3, 5, 3, 2, 1, 2],
+            "bass_walk": [0, 3, 5, 7],
+            "lead": [
+              [[0, 76, 3], [4, 79, 2], [6, 81, 6], [14, 79, 2], [16, 76, 4], [22, 74, 2], [24, 76, 6]],
+              [[0, 77, 3], [4, 76, 2], [6, 72, 6], [14, 74, 2], [16, 76, 8], [26, 72, 4]],
+              [[0, 79, 3], [4, 76, 2], [6, 72, 4], [12, 74, 2], [14, 76, 2], [16, 79, 6], [24, 84, 6]],
+              [[0, 74, 3], [4, 71, 2], [6, 74, 4], [12, 79, 4], [16, 81, 4], [20, 79, 4], [24, 74, 6]]]},
+   "ue": {"att": null, "con": null, "cls": "Music", "db": -9}, "slots": ["DA_UI_Style.CombatMusic"]},
+  {"name": "Music_Intro", "group": "Music", "cat": "music", "kind": "music", "piece": "intro",
+   "note": "Intro bed, played once: an A drone opening over 34 s, a slow pulse from 10 s, a rising arpeggio from 20 s, a swell into one hit at 34 s (the hand-over to wave 1) and a ringing A minor ninth chord. 40 s.",
+   "spec": {"seconds": 40.0, "hit_at": 34.0, "bpm": 64, "root": 33, "pulse_from": 10.0, "arp_from": 20.0, "arp": [0, 7, 12, 15, 19, 24, 19, 15]},
+   "ue": {"att": null, "con": null, "cls": "Music", "db": -9}, "slots": ["DA_UI_Style.IntroMusic"]}
+ ]
+}

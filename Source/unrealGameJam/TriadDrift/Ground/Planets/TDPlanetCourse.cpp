@@ -814,7 +814,7 @@ void ATDPlanetCourse::BuildVerdance()
 	UTDStatics::TintPlaceholder(RelayCore->Mesh, RelayStone, 2.5f);
 	Block(EShape::Cylinder, Plateau + FVector(0.f, 0.f, PlateauTop + 1400.f), FVector(80.f, 80.f, 1800.f), RelayStone, 2.f, FRotator::ZeroRotator, false);
 
-	Checkpoint(Relay, 1, Plateau + FVector(0.f, 0.f, PlateauTop), 0.f); // no re-climb for a death on the plateau
+	Checkpoint(Relay, 1, Plateau + FVector(-450.f, 0.f, PlateauTop), 0.f); // no re-climb for a death on the plateau; beside the altar, never in it
 	FinishObjective(Relay,
 		{ LOCTEXT("R0", "CLIMB TO THE ANCIENT RELAY"), LOCTEXT("R1", "WAKE THE RESONANCE NODES  0 / 3"), LOCTEXT("R2", "AWAKEN THE RELAY · HOLD [E]") },
 		{ Climb, Nodes, RelayCore });
@@ -1024,7 +1024,7 @@ void ATDPlanetCourse::BuildCinder()
 	Arena->MercyTiers = { Mercy3, Mercy5 };
 
 	// Screen toward the way the pilot comes in (the kit console's screen faces its +X).
-	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0, 70.f), FRotator(0.f, 180.f, 0.f));
+	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0 + 700.f, 70.f), FRotator(0.f, 180.f, 0.f)); // off the arena line (the Warden fight crosses it)
 	Prototype->ConsoleMesh = TDPropArt::Default(TEXT("SM_Cind_PrototypeConsole")); // 160 x 160 x 140, the scale below
 	Prototype->Prompt = LOCTEXT("ClaimEmp", "Claim the EMP prototype");
 	Prototype->HoldTime = 1.5f;
