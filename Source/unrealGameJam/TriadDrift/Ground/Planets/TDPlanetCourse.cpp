@@ -803,14 +803,16 @@ void ATDPlanetCourse::BuildVerdance()
 	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
 
 	// The survey terminal: a tap starts the archive transfer (and Cinematic 03, T3's hook).
-	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f), FRotator(0.f, 180.f, 0.f));
+	// The console's origin is its box centre: 60 x 120 x 130 cm standing on the 30 cm deck (T2's live check: at deck height
+	// it sat half sunk and only took the interact trace looking 40 degrees down).
+	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
 	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Connect the device");
 	Terminal->HoldTime = 0.f;
 	Terminal->LinkedObjective = Wreck;
 	Terminal->LinkedStep = 2;
 	Terminal->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
 	TDCourseImpl::FinishProp(Terminal);
-	Terminal->SetActorScale3D(FVector(1.f, 1.4f, 1.3f));
+	Terminal->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f)); // the cube is 60 x 60 x 120 at scale 1
 	UTDStatics::TintPlaceholder(Terminal->Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.5f);
 
 	// The transfer (60-90 s, here 75): three fixed waves dropping in around the station, the third with the Heavy (the
