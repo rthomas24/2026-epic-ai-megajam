@@ -1,0 +1,38 @@
+// Local shield strike: interrupted energy arcs with a faint trailing ripple.
+// UV/Age/Tint/Intensity/Variation. One normalized-age sprite, no world clock.
+float age = saturate(Age);
+float seed = frac(Variation);
+float2 p = (UV - 0.5) * 2.0;
+float footprint = max(length(ddx(p)), length(ddy(p)));
+float support = 1.0 - smoothstep(0.98 - max(0.10, footprint * 0.7), 0.98, length(p));
+float orientation = seed * 6.2831853;
+float2 axis = float2(cos(orientation), sin(orientation));
+float2 q = float2(dot(p, axis), dot(p, float2(-axis.y, axis.x)));
+q.y *= 1.18;
+float radius = length(q);
+float angle = radius > 0.00001 ? atan2(q.y, q.x) : 0.0;
+float waveRadius = lerp(0.045, 0.79, pow(age, 0.68));
+float warp = sin(angle * 3.0 + seed * 5.1) * 0.013
+           + sin(angle * 7.0 - age * 4.0 + seed) * 0.007;
+float gateSignal = sin(angle * 3.0 + seed * 6.0) * 0.65
+                 + sin(angle * 5.0 - seed * 3.0) * 0.35;
+float arcGate = smoothstep(-0.28, 0.38, gateSignal);
+float width = lerp(0.024, 0.009, age);
+float variance = width * width + footprint * footprint * 0.25;
+float energy = width * rsqrt(variance);
+float distance = radius - waveRadius - warp;
+float front = exp(-distance * distance / variance) * arcGate * energy;
+float innerDistance = radius - waveRadius * 0.73 + warp * 0.45;
+float innerGate = smoothstep(-0.18, 0.48, -gateSignal);
+float inner = exp(-innerDistance * innerDistance / (variance * 0.8))
+            * innerGate * energy * 0.22;
+float coreVariance = 0.0035 + footprint * footprint * 0.18;
+float core = exp(-dot(p,p) / coreVariance) * (0.0035 / coreVariance)
+           * pow(saturate(1.0 - age * 5.0), 4.0);
+float waveFade = pow(saturate(1.0 - age), 1.65);
+float field = exp(-radius * radius / max(waveRadius * waveRadius, 0.004))
+            * 0.045 * pow(saturate(1.0 - age * 1.4), 2.0);
+float alpha = saturate(core + (front + inner) * waveFade + field) * support;
+float crest = saturate(core + front * 0.3);
+float3 color = lerp(Tint, float3(0.82, 0.94, 1.0), crest * 0.48);
+return float4(color * max(Intensity, 0.0), alpha);

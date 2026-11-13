@@ -1,0 +1,29 @@
+{
+  "stage": "SOURCE_PROTOTYPE_NATIVE_NOT_RUN",
+  "effect": "Localized interrupted shield ripple, distinct from molten hull strikes",
+  "destination": "/Game/TriadDrift/VFX/CombatReadability01/ShieldImpact01",
+  "spawn_count": 1,
+  "sprite_diameter_cm": 56.0,
+  "lifetime_seconds": 0.16,
+  "intensity": 1.6,
+  "shader": "shield_impact.ush",
+  "variation_by_palette": {"Rift": 0.17, "Lancer": 0.47, "Bastion": 0.71},
+  "palettes": {
+    "Rift": [1.0, 0.025, 0.48, 1.0],
+    "Lancer": [0.025, 0.76, 1.0, 1.0],
+    "Bastion": [1.0, 0.37, 0.035, 1.0]
+  },
+  "native_recipe_pending_review": {
+    "sim_target": "CPUSim",
+    "local_space": true,
+    "particle_position_cm": [2.0, 0.0, 0.0],
+    "placement_contract": "Existing ImpactShield cue passes hit-normal rotation; local+X offset is an emitter authoring task.",
+    "material": "Additive/unlit, ParticleRelativeTime to Age, Color/Intensity/Variation parameters",
+    "no_dynamic_lights_collision_ribbons_full_shield_mesh_volumetrics": true
+  },
+  "runtime_binding_proposal_only": {
+    "field": "ImpactShield.VFX",
+    "data_asset_edited": false,
+    "preserve_fields": "All Sound, shake, hull/world impacts, Muzzle, detonation and gameplay fields"
+  }
+}

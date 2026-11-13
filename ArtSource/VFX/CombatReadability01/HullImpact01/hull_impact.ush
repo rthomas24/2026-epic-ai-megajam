@@ -1,0 +1,40 @@
+// Compact hull strike: hot contact core, four irregular molten streaks, faint ejecta.
+// UV/Age/Tint/Intensity/Variation. Normalized particle age; no world-time handshake.
+float age = saturate(Age);
+float seed = frac(Variation);
+float2 p = (UV - 0.5) * 2.0;
+float footprint = max(length(ddx(p)), length(ddy(p)));
+float support = 1.0 - smoothstep(0.98 - max(0.12, footprint * 0.7), 0.98, length(p));
+float coreVariance = 0.011 + footprint * footprint * 0.18;
+float core = exp(-dot(p, p) / coreVariance) * (0.011 / coreVariance);
+core *= pow(saturate(1.0 - age * 5.0), 3.0);
+float sparks = 0.0;
+[unroll] for (int i = 0; i < 4; ++i)
+{
+    float h = frac((seed + float(i) * 0.1973 + 0.147) * 17.173);
+    float angle = 6.2831853 * frac(seed + float(i) * 0.618034 + h * 0.19);
+    float2 direction = float2(cos(angle), sin(angle));
+    float2 side = float2(-direction.y, direction.x);
+    float travel = lerp(0.035, lerp(0.48, 0.80, h), 1.0 - exp(-age * 4.2));
+    float streakLength = lerp(0.025, lerp(0.08, 0.14, h), smoothstep(0.0, 0.25, age));
+    float along = dot(p, direction) - travel + streakLength * 0.5;
+    float across = dot(p, side) - (h - 0.5) * age * age * 0.06;
+    float2 distanceToSegment = float2(max(abs(along) - streakLength * 0.5, 0.0), across);
+    float width = lerp(0.009, 0.016, h);
+    float variance = width * width + footprint * footprint * 0.18;
+    float energy = width * rsqrt(variance);
+    float fade = pow(saturate(1.0 - age / lerp(0.66, 1.0, h)), 1.8);
+    sparks += exp(-dot(distanceToSegment, distanceToSegment) / variance) * energy * fade;
+}
+float angle = seed * 6.2831853;
+float2 axis = float2(cos(angle), sin(angle));
+float2 gasUV = float2(dot(p, axis), dot(p, float2(-axis.y, axis.x)));
+float gasRadius = lerp(0.08, 0.29, smoothstep(0.0, 0.55, age));
+float2 gasShape = (gasUV - float2(age * 0.06, -age * 0.025)) / float2(gasRadius, gasRadius * 0.64);
+float gas = exp(-dot(gasShape, gasShape) * 2.3) * 0.16
+          * pow(saturate(1.0 - age * 1.4), 2.0);
+float alpha = saturate(core + sparks * 0.72 + gas) * support;
+float heat = saturate(core + sparks * 0.7);
+float3 color = lerp(Tint, float3(1.0, 0.78, 0.42), heat * 0.65);
+color = lerp(color, float3(1.0, 0.96, 0.86), core * 0.8);
+return float4(color * max(Intensity, 0.0), alpha);

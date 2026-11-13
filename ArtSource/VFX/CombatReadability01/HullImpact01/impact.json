@@ -1,0 +1,31 @@
+{
+  "stage": "SOURCE_PROTOTYPE_NATIVE_NOT_RUN",
+  "effect": "Compact hull strike; contact core and four projected molten streaks in one sprite",
+  "destination": "/Game/TriadDrift/VFX/CombatReadability01/HullImpact01",
+  "spawn_count": 1,
+  "sprite_diameter_cm": 40.0,
+  "lifetime_seconds": 0.12,
+  "intensity": 2.0,
+  "variation_by_palette": {"Rift": 0.17, "Lancer": 0.47, "Bastion": 0.71},
+  "palettes": {
+    "Rift": [1.0, 0.025, 0.48, 1.0],
+    "Lancer": [0.025, 0.76, 1.0, 1.0],
+    "Bastion": [1.0, 0.37, 0.035, 1.0]
+  },
+  "native_recipe_pending_review": {
+    "template_system": "/Niagara/DefaultAssets/Templates/Systems/RadialBurst",
+    "template_emitter": "/Niagara/DefaultAssets/Templates/Emitters/SimpleSpriteBurst",
+    "sim_target": "CPUSim",
+    "local_space": true,
+    "particle_position_cm": [2.0, 0.0, 0.0],
+    "placement_contract": "Existing impact cue rotates local +X to hit normal; offset outward in particle spawn, no gameplay position edit.",
+    "material": "Additive/unlit, ParticleRelativeTime to Age; Tint, Intensity and Variation instance parameters",
+    "no_dynamic_lights_collision_ribbons_decals_volumetrics": true
+  },
+  "runtime_binding_proposal_only": {
+    "field": "ImpactHull.VFX",
+    "vfx_scale": [1.0, 1.0, 1.0],
+    "data_asset_edited": false,
+    "preserve_fields": "Sound, shake, ImpactShield, ImpactWorld, Muzzle, detonation and gameplay fields"
+  }
+}
