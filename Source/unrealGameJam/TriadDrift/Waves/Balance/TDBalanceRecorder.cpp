@@ -137,6 +137,7 @@ void UTDBalanceRecorder::HandleKilled(AActor* Victim, AActor* Killer, ETDDamageK
 void UTDBalanceRecorder::HandleShipDowned(ETDShipId Ship)
 {
 	++Current.ShipDowns;
+	if (Current.FirstDownSeconds < 0.f) { Current.FirstDownSeconds = Current.SecondsTotal; }
 	if (Ship == LastActiveShip) { ++Current.ActiveShipDowns; }
 }
 

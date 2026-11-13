@@ -25,6 +25,8 @@ struct UNREALGAMEJAM_API FTDBalanceWaveStats
 	int32 ShipDowns = 0;
 	/** Downs of the ship the player was flying (the rest are wingmen). */
 	int32 ActiveShipDowns = 0;
+	/** Seconds into the wave of the first squad ship down (-1 = none). */
+	float FirstDownSeconds = -1.f;
 	TMap<ETDShipId, int32> KillsByShip;
 	TMap<ETDDamageKind, int32> KillsByKind;
 
