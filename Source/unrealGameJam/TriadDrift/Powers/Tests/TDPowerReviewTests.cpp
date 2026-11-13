@@ -18,6 +18,8 @@
 #include "TriadDrift/Powers/TDAbilityPowers.h"
 #include "TriadDrift/Powers/TDBastionPowers.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Powers/TDRamPower.h"
 #include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Powers/Tests/TDPowerTestCommon.h"
 
@@ -184,6 +186,54 @@ bool FTDPowerReviewRealSwarm::RunTest(const FString& Parameters)
 		Far->SetActorLocation(Bastion->GetActorLocation() + Bastion->GetActorForwardVector() * (Swarm->MissileSpec.Range + 5000.f));
 		W.Tick(Step);
 		TestFalse(TEXT("a lock beyond the swarm's range drops") + Fps, Targeting->GetLockedTargets().Contains(Far));
+	}
+	return true;
+}
+
+/** Audit pass 2: spec sentences that had no test. Ram 7 s cooldown; swarm 200 cm splash; well stops fighters firing. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPowerAuditGaps, "TriadDrift.Powers.Review.SpecSentencesWithoutATest", TD_TEST_FLAGS)
+bool FTDPowerAuditGaps::RunTest(const FString& Parameters)
+{
+	for (const float Step : TDPowerTest::kPowerFrameSteps)
+	{
+		TDPowerTest::FScopedPowerFrameStep StepScope(Step);
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		// Ram: 7 s cooldown, counted from the press (wind-up + dash 1.5 s included).
+		{
+			FTDTestWorld W;
+			ATDSpacecraft* Lancer = W.Spawn<ATDSpacecraft>(FVector::ZeroVector, FRotator::ZeroRotator);
+			Lancer->SetTeam(ETDTeam::Player);
+			UTDRamPower* Ram = TDPowerTest::AddPower<UTDRamPower>(Lancer);
+			TestTrue(TEXT("ram starts") + Fps, Ram->TryActivate());
+			W.Advance(6.8f, Step);
+			TestFalse(TEXT("not ready at 6.8 s") + Fps, Ram->CanActivate());
+			W.Advance(0.5f, Step);
+			TestTrue(TEXT("ready by 7.3 s") + Fps, Ram->CanActivate());
+		}
+		// Swarm: 18 per missile with a 200 cm splash (the splash mechanics themselves: Combat.Projectile.SplashRadius).
+		{
+			FTDTestWorld W;
+			AActor* Bastion = TDPowerTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+			const UTDMissileSwarmPower* Swarm = TDPowerTest::AddPower<UTDMissileSwarmPower>(Bastion);
+			TestEqual(TEXT("swarm missile damage 18") + Fps, Swarm->MissileSpec.Damage, 18.f);
+			TestEqual(TEXT("swarm splash radius 200 cm") + Fps, Swarm->MissileSpec.SplashRadius, 200.f);
+			TestEqual(TEXT("swarm splash damage 18") + Fps, Swarm->MissileSpec.GetSplashDamage(), 18.f);
+			TestEqual(TEXT("twelve missiles") + Fps, Swarm->MissileCount, 12);
+		}
+		// Gravity well: an enemy FIGHTER inside the vortex can't fire (turrets were already covered).
+		{
+			FTDTestWorld W;
+			AActor* Bastion = TDPowerTest::SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(100.f), 100000.f, 0.f);
+			UTDGravityWellPower* Well = TDPowerTest::AddPower<UTDGravityWellPower>(Bastion);
+			ATDEnemyShip* Fighter = TDPowerTest::SpawnEnemyShip(W, TDEnemyIds::ShardFighter, FVector(4000.f, 1200.f, 0.f));
+			Fighter->GetHealth()->InitMaxValues(100000.f, 0.f, true);
+			TestTrue(TEXT("fighter can fire before") + Fps, Fighter->CanFire());
+			TestTrue(TEXT("well launched") + Fps, Well->TryActivate());
+			W.Advance(1.5f, Step);
+			TestFalse(TEXT("fighter inside the vortex can't fire") + Fps, Fighter->CanFire());
+			W.Advance(5.f, Step);
+			TestTrue(TEXT("fighter can fire again after the vortex") + Fps, Fighter->CanFire());
+		}
 	}
 	return true;
 }
