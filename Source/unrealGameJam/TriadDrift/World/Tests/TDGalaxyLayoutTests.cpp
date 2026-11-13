@@ -233,7 +233,7 @@ bool FTDWorldLayoutRocks::RunTest(const FString& Parameters)
 		FTDTestWorld W;
 		ATDGalaxyLayout* G = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
 		if (!TestNotNull(TEXT("layout"), G)) { return false; }
-		TestEqual(TEXT("four rock meshes"), G->GetAsteroidLooks().Num(), 4);
+		TestTrue(TEXT("the four classic rock meshes plus the dressing kit families"), G->GetAsteroidLooks().Num() >= 4);
 		TestEqual(TEXT("three debris meshes"), G->GetDebrisLooks().Num(), 3);
 		for (const UInstancedStaticMeshComponent* Look : G->GetAsteroidLooks())
 		{
@@ -290,6 +290,69 @@ bool FTDWorldLayoutSpawnsClearOfGates::RunTest(const FString& Parameters)
 			TestFalse(*FString::Printf(TEXT("%s is not in %s's approach cone (along %.0f, lateral %.0f)"), *From.ToString(), *Gate->GateId.ToString(), Along, Lateral), bInCone);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldLayoutDressing, "TriadDrift.World.Layout.SpaceDressingFillsButNeverBlocks", TD_TEST_FLAGS)
+bool FTDWorldLayoutDressing::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDGalaxyLayout* G = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	if (!TestNotNull(TEXT("layout spawned"), G)) { return false; }
+	const TArray<UInstancedStaticMeshComponent*> Dressing = G->GetDressingComponents();
+	if (Dressing.Num() == 0) { AddInfo(TEXT("space dressing kit not in this checkout")); return true; }
+	const FTDGalaxyLayoutData& L = G->GetLayout();
+	const FTransform Xf = G->GetActorTransform();
+	int32 Total = 0;
+	int32 InPocket = 0;
+	int32 InKeepOut = 0;
+	for (UInstancedStaticMeshComponent* C : Dressing)
+	{
+		TestFalse(*FString::Printf(TEXT("%s is visual only"), *C->GetName()), C->IsCollisionEnabled());
+		for (int32 i = 0; i < C->GetInstanceCount(); ++i)
+		{
+			FTransform T;
+			C->GetInstanceTransform(i, T, false);
+			++Total;
+			const FVector P = T.GetLocation();
+			// Ruin art and its debris sit on the ruins (cover around the pocket); the landmarks never enter the pocket.
+			if (!C->GetName().StartsWith(TEXT("RuinArt")) && !C->GetName().StartsWith(TEXT("DebrisCluster")) && FVector::Dist(P, L.CombatZoneCenter) < L.CombatZoneRadius) { ++InPocket; }
+			if (FVector::Dist(P, L.PlayerStart.GetLocation()) < 5000.f) { ++InKeepOut; }
+			for (const FTDGatePairSpec& Gate : L.Gates)
+			{
+				for (const FTransform& E : { Gate.A, Gate.B })
+				{
+					// Nothing inside a gate's opening or its 100 m approach tube.
+					const FVector Local = E.InverseTransformPosition(P);
+					if (FMath::Abs(Local.X) < 10000.f && FVector2D(Local.Y, Local.Z).Size() < Gate.Radius + 1000.f) { ++InKeepOut; }
+				}
+			}
+		}
+	}
+	TestTrue(*FString::Printf(TEXT("the space is dressed (%d props)"), Total), Total > 400);
+	TestEqual(TEXT("no landmark or lane rock in the dogfight pocket"), InPocket, 0);
+	TestEqual(TEXT("nothing at the player start or in a gate opening / approach"), InKeepOut, 0);
+
+	// Kit rocks are normalised to the collision sphere (100 cm bounds at scale 1), like the classic rocks.
+	const TArray<TObjectPtr<UInstancedStaticMeshComponent>>& Looks = G->GetAsteroidLooks();
+	for (int32 i = 0; i < Looks.Num(); ++i)
+	{
+		const UStaticMesh* M = Looks[i] ? Looks[i]->GetStaticMesh() : nullptr;
+		if (!M || !G->GetAsteroidLookNorms().IsValidIndex(i)) { continue; }
+		const float R = M->GetBounds().SphereRadius * G->GetAsteroidLookNorms()[i];
+		if (G->GetAsteroidLookFamilies()[i] != 0)
+		{
+			TestTrue(*FString::Printf(TEXT("%s fits its collision sphere (%.1f cm vs 50)"), *M->GetName(), R), FMath::IsNearlyEqual(R, 50.f, 1.f));
+		}
+	}
+	TestEqual(TEXT("one rock look per collision sphere"), G->GetAsteroidLookCount(), G->GetAsteroidCount());
+	int32 Families[5] = { 0, 0, 0, 0, 0 };
+	for (int32 i = 0; i < Looks.Num(); ++i)
+	{
+		if (Looks[i] && G->GetAsteroidLookFamilies().IsValidIndex(i)) { Families[G->GetAsteroidLookFamilies()[i]] += Looks[i]->GetInstanceCount(); }
+	}
+	TestTrue(*FString::Printf(TEXT("belt variety: classic %d, ice %d, metal %d, violet %d, teal %d"), Families[0], Families[1], Families[2], Families[3], Families[4]),
+		Families[0] > 0 && Families[1] > 0 && Families[2] > 0 && Families[3] > 0 && Families[4] > 0);
 	return true;
 }
 

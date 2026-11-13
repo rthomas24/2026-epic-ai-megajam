@@ -527,9 +527,11 @@ bool FTDGapMeshOffset::RunTest(const FString& Parameters)
 	P->Kill(false);
 	ATDProjectile* Reused = ATDProjectile::Spawn(W.GetWorld(), UTDWeaponLibrary::Get(TDWeaponIds::NeedleCannons).Projectile, At, Lancer, ETDTeam::Player);
 	const UStaticMeshComponent* Mesh2 = Reused ? Reused->FindComponentByClass<UStaticMeshComponent>() : nullptr;
-	// Reuse without art: the art offset is gone; the placeholder streak sits at its own trailing offset.
-	const FTDStreakLook Look = FTDCombatPlaceholders::ComputeStreak(UTDWeaponLibrary::Get(TDWeaponIds::NeedleCannons).Projectile);
-	const FVector StreakOffset(-0.5f * Look.Length + 0.5f * Look.Thickness, 0.f, 0.f);
+	// Reuse without art: the art offset is gone; the placeholder streak sits at its own trailing offset (at launch the
+	// squad tracer has flown nothing, so it is drawn at its thickness, centred on the muzzle).
+	const FTDStreakLook Look = FTDCombatPlaceholders::ComputeSquadStreak(UTDWeaponLibrary::Get(TDWeaponIds::NeedleCannons).Projectile);
+	const float Drawn = FMath::Max(FTDCombatPlaceholders::VisibleLength(Look, 0.f), Look.Thickness);
+	const FVector StreakOffset(-0.5f * Drawn + 0.5f * Look.Thickness, 0.f, 0.f);
 	TestTrue(TEXT("pooled reuse drops the art offset"), Reused == P && Mesh2 && Mesh2->GetRelativeLocation().Equals(StreakOffset, 0.01f));
 	return true;
 }

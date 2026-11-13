@@ -1,0 +1,202 @@
+{
+  "asset": "SM_Null_Bomber",
+  "tag": "e2",
+  "checks": {
+    "tris": 11800,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 29,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 5,
+    "size_cm": [
+      1221.5,
+      1176.9,
+      256.9
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0016",
+        0.084
+      ],
+      [
+        "part_0021",
+        0.084
+      ],
+      [
+        "part_0025",
+        0.073
+      ],
+      [
+        "part_0046",
+        0.065
+      ],
+      [
+        "part_0047",
+        0.065
+      ]
+    ],
+    "centre_of_mass_m_before": [
+      -0.002,
+      1.223,
+      -0.012
+    ],
+    "com_shift_m": [
+      0.0,
+      0.14136028289794922,
+      -0.16573476791381836
+    ],
+    "pivot": "fixed (pinned to the r3-r5 pivot)",
+    "edge_area_share": 0.0837,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 26
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4355,
+      "overlap_pixels": 29,
+      "overlap_share_of_covered": 6.4e-05,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_Bomber",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Bomber\\T_Null_Bomber_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Bomber\\T_Null_Bomber_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Bomber\\T_Null_Bomber_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Bomber\\T_Null_Bomber_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_Bomber_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 85.67
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6811
+    },
+    "build_seconds": 198.3
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0908,
+        0.089,
+        0.098
+      ],
+      "min": 0.0,
+      "max": 0.4
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5001,
+        0.4996,
+        0.9993
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0131,
+        0.0151
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.406,
+        0.3349,
+        0.3956
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.518
+      ],
+      "metallic_mean": 0.397
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1032,
+        0.0391,
+        0.018
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0602,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_Bomber",
+      "message": "156 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 78,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.02573
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Bomber_e2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Bomber_e2_clay_sheet.png",
+    "ortho_cm_per_px": 3.0539,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 11800,
+    "size_cm": [
+      1176.9,
+      1221.5,
+      256.9
+    ],
+    "collision": [
+      "UCX_SM_Null_Bomber_00",
+      "UCX_SM_Null_Bomber_01",
+      "UCX_SM_Null_Bomber_02",
+      "UCX_SM_Null_Bomber_03",
+      "UCX_SM_Null_Bomber_04"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_Bomber"
+    ],
+    "textures": [
+      "T_Null_Bomber_BC.png",
+      "T_Null_Bomber_E.png",
+      "T_Null_Bomber_N.png",
+      "T_Null_Bomber_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -1,6 +1,7 @@
 // Triad Drift - game instance (ENG-19, C-03 #3). Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDDebugMenu.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -690,12 +691,26 @@ void UTDGameInstance::ResetRunState()
 	RetakeTimeLeft = -1.f;
 	RetakeScene = NAME_None;
 	bRunTimerPaused = false;
+	bIntroPending = false;
 }
 
 void UTDGameInstance::StartNewRun()
 {
 	ResetRunState();
 	bRunCommitted = true;
+	bIntroPending = true; // ENG-33: the galaxy plays the intro once, then the first waves
+	// The player's chosen difficulty (Settings page) starts every new run, even after a Continue of an older one (T1).
+	if (UTDSettingsSubsystem* Settings = GetSubsystem<UTDSettingsSubsystem>())
+	{
+		Settings->ApplyPreferredDifficulty();
+	}
+}
+
+bool UTDGameInstance::ConsumeIntroPending()
+{
+	const bool bWas = bIntroPending;
+	bIntroPending = false;
+	return bWas;
 }
 
 bool UTDGameInstance::IsPristine() const
@@ -718,6 +733,7 @@ bool UTDGameInstance::HasContinue() const
 
 bool UTDGameInstance::ContinueRun()
 {
+	bIntroPending = false; // Continue never plays the intro
 	UTDSaveGame* Save = nullptr;
 	if (!ReadSaveSlot(Save) || (Save && Save->Checkpoint.Progress.Phase == ETDGamePhase::Victory) || !ApplySave(*Save))
 	{
@@ -959,6 +975,7 @@ bool UTDGameInstance::ApplySave(const UTDSaveGame& Save)
 	{
 		return false;
 	}
+	bIntroPending = false; // a loaded run never replays the intro
 	RetakeTimeLeft = -1.f;
 	RetakeScene = NAME_None;
 	LastCheckpoint = Save.Checkpoint;

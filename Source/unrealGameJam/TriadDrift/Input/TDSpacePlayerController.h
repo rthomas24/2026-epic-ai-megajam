@@ -184,6 +184,15 @@ public:
 	/** Whether a pause is allowed right now, and why not. */
 	bool CanPauseNow(FText* OutReason = nullptr) const;
 
+	/**
+	 * Other systems that must not be paused over (T3's intro, cutscenes) register a check here, so the pause key
+	 * can't reach the game through any binding while they play. Return true (and a reason) to refuse a pause.
+	 * Register once (e.g. a subsystem's Initialize), unregister in Deinitialize. Ids are unique; re-registering replaces.
+	 */
+	using FTDPauseBlocker = TFunction<bool(const UObject* WorldContext, FText& OutReason)>;
+	static void RegisterPauseBlocker(FName Id, FTDPauseBlocker Blocker);
+	static void UnregisterPauseBlocker(FName Id);
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Input")
 	FTDOnSimpleInput OnGalaxyMapInput;
 
@@ -194,6 +203,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupInputComponent() override;
+	virtual bool InputKey(const FInputKeyEventArgs& Params) override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 

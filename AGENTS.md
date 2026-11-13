@@ -595,6 +595,13 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   replaces any of it, and a mesh assigned through his presentation data assets always wins.
   **Exception (Ryan, Nov 12, R-019):** the Null Armada enemy trooper character is built by engineering from Ryan's
   concept, in `ArtSource/EngCharacters/NullTrooper/**` and `Content/TriadDrift/Gameplay/Characters/NullTrooper/**`.
+- **Engineering may take over presentation tasks while Nick's side is stopped** (Ryan, Nov 13, R-024): when Nick's
+  agents are paused or asleep, Ryan's Lead may take a presentation task that is not being worked on (art, environment
+  and terrain, VFX, audio, UI), **announced on `MESSAGEBOARD.md` and `CLAIMS.md` before the work starts**. The work goes
+  in engineering folders (`Source/`, `Content/TriadDrift/Gameplay/**`, `ArtSource/Eng*/**`), never overwrites or edits a
+  binary or path Nick's side has claimed, and reaches the game only as a fallback: an asset of Nick's at the Presentation
+  name, or his tagged scene, always wins with no code change. Nicholas keeps art, visual and audio direction and final
+  sign-off, and takes any task back by saying so on the board.
 - **Headless first** (proposed by Nick's side in N-017, Nov 12): default to headless, background or command-line runs
   for automation, asset processing, Blender, builds, tests and Git; use a GUI only for inspection, interaction or
   gameplay validation that needs one. Headless is not the same as light: save work and checkpoints first, check free

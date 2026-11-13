@@ -5,9 +5,18 @@
 #include "Components/SkyLightComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/PostProcessComponent.h"
+#include "Components/ExponentialHeightFogComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Misc/PackageName.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Engine/PostProcessVolume.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "TriadDrift/World/TDSkySphere.h"
 
 const FName ATDPlaceholderSky::PresentationSkyTag(TEXT("TD.Presentation.Sky"));
 const FName ATDPlaceholderSky::PlaceholderTag(TEXT("TD.Placeholder.Sky"));
@@ -37,6 +46,20 @@ ATDPlaceholderSky::ATDPlaceholderSky()
 
 	Atmosphere = CreateDefaultSubobject<USkyAtmosphereComponent>(TEXT("Atmosphere"));
 	Atmosphere->SetupAttachment(RootComponent);
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> PlaneMesh(TEXT("/Engine/BasicShapes/Plane.Plane"));
+	FarGround = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FarGround"));
+	FarGround->SetupAttachment(RootComponent);
+	FarGround->SetMobility(EComponentMobility::Movable);	// placed when the style is applied
+	FarGround->SetCollisionProfileName(TEXT("BlockAll"));	// nothing falls into a void past the course slab
+	FarGround->SetCastShadow(false);
+	FarGround->bAffectDistanceFieldLighting = false;
+	FarGround->SetVisibility(false);
+	if (PlaneMesh.Succeeded()) { FarGround->SetStaticMesh(PlaneMesh.Object); }
+
+	HorizonFog = CreateDefaultSubobject<UExponentialHeightFogComponent>(TEXT("HorizonFog"));
+	HorizonFog->SetupAttachment(RootComponent);
+	HorizonFog->SetVisibility(false);
 
 	Exposure = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Exposure"));
 	Exposure->SetupAttachment(RootComponent);
@@ -109,14 +132,19 @@ ATDPlaceholderSky* ATDPlaceholderSky::SpawnIfNeeded(UWorld* World, ETDPlaceholde
 
 void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 {
+	ApplyHorizon(Style);
 	if (Style == ETDPlaceholderSkyStyle::Space)
 	{
-		Sun->SetWorldRotation(FRotator(-35.f, 40.f, 0.f));
+		// The sun shines from the one baked into the nebula sky (ATDSkySphere::SunYawDeg / SunPitchDeg); planets read
+		// this light (atmosphere sun) for their night side.
+		Sun->SetWorldRotation(ATDSkySphere::SunLightRotation());
 		Sun->SetIntensity(8.f);
 		Sun->SetLightColor(FLinearColor(1.f, 0.93f, 0.82f));
-		Fill->SetWorldRotation(FRotator(25.f, 220.f, 0.f));
-		Fill->SetIntensity(1.5f);
-		Fill->SetLightColor(FLinearColor(0.55f, 0.35f, 1.f));
+		Sun->SetAtmosphereSunLight(true);
+		// Soft shadowless fill from below and behind the sun, nebula violet: the shade side reads as shape, not black.
+		Fill->SetWorldRotation(FRotator(20.f, ATDSkySphere::SunYawDeg, 0.f));
+		Fill->SetIntensity(1.2f);
+		Fill->SetLightColor(FLinearColor(0.5f, 0.4f, 1.f));
 		SkyLight->SetIntensity(1.f);
 		SkyLight->bLowerHemisphereIsBlack = false;
 		SkyLight->SetLightColor(FLinearColor(0.6f, 0.7f, 1.f));
@@ -130,8 +158,17 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
 		S.AutoExposureBias = 0.f;
+		// Bloom only from real emitters (engines, eyes, bolts, explosions) and capped, so a mass explosion never
+		// whites out the screen (playtest: TD.KillAll in wave 5).
 		S.bOverride_BloomIntensity = true;
-		S.BloomIntensity = 1.2f;
+		S.BloomIntensity = 0.8f;
+		S.bOverride_BloomThreshold = true;
+		S.BloomThreshold = 1.5f;
+		// A touch of motion blur sells speed without smearing the targets.
+		S.bOverride_MotionBlurAmount = true;
+		S.MotionBlurAmount = 0.2f;
+		S.bOverride_MotionBlurMax = true;
+		S.MotionBlurMax = 2.f;
 	}
 	else
 	{
@@ -182,6 +219,76 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 	SkyLight->RecaptureSky();
 }
 
+// Ryan's standing rule (keep the old look recoverable): td.PlanetTerrain 0 = today's flat slab + far ground, no terrain.
+static TAutoConsoleVariable<int32> CVarTDPlanetTerrain(TEXT("td.PlanetTerrain"), 1,
+	TEXT("ENG-34 planet worlds: 1 = procedural terrain and mountains (default), 0 = the earlier flat ground and far plane (applies on the next planet load)."));
+
+void ATDPlaceholderSky::TrySpawnTerrain()
+{
+	const bool bPlanet = AppliedStyle == ETDPlaceholderSkyStyle::Verdance || AppliedStyle == ETDPlaceholderSkyStyle::Cinder;
+	if (!bPlanet || !bSpawnTerrain || Terrain || !GetWorld() || CVarTDPlanetTerrain.GetValueOnGameThread() == 0) { return; }
+	// The course sits at the landing pad (spawned by the planet director, maybe after us): the world centres on it.
+	AActor* Course = nullptr;
+	for (TActorIterator<ATDPlanetCourse> It(GetWorld()); It && !Course; ++It) { Course = *It; }
+	if (!Course) { return; }
+	const bool bVerdance = AppliedStyle == ETDPlaceholderSkyStyle::Verdance;
+	const FSoftObjectPath Path(bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance")
+		: TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder"));
+	UMaterialInterface* M = FPackageName::DoesPackageExist(Path.GetLongPackageName()) ? Cast<UMaterialInterface>(Path.TryLoad()) : nullptr;
+	Terrain = ATDPlanetTerrain::SpawnForPlanet(GetWorld(), bVerdance ? ETDDestination::Verdance : ETDDestination::Cinder, Course->GetActorTransform(), M);
+	if (Terrain && FarGround)
+	{
+		FarGround->DestroyComponent();	// the terrain carries the ground to the horizon now
+		FarGround = nullptr;
+	}
+}
+
+void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
+{
+	AppliedStyle = Style;
+	const bool bPlanet = Style == ETDPlaceholderSkyStyle::Verdance || Style == ETDPlaceholderSkyStyle::Cinder;
+	if (!bPlanet)
+	{
+		if (FarGround) { FarGround->DestroyComponent(); FarGround = nullptr; }
+		if (HorizonFog) { HorizonFog->DestroyComponent(); HorizonFog = nullptr; }
+		return;
+	}
+	const bool bVerdance = Style == ETDPlaceholderSkyStyle::Verdance;
+	if (FarGround)
+	{
+		// 200 km, 0.5 m under the course slab's top (z = 0): invisible under the slab, the ground beyond it.
+		FarGround->SetWorldLocationAndRotation(FVector(0.f, 0.f, -50.f), FRotator::ZeroRotator);
+		FarGround->SetWorldScale3D(FVector(200000.f, 200000.f, 1.f));
+		const FSoftObjectPath Path(bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance")
+			: TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder"));
+		if (FPackageName::DoesPackageExist(Path.GetLongPackageName()))
+		{
+			if (UMaterialInterface* M = Cast<UMaterialInterface>(Path.TryLoad())) { FarGround->SetMaterial(0, M); }
+		}
+		FarGround->SetVisibility(true);
+	}
+	if (HorizonFog)
+	{
+		// Clear near the player, thick at the horizon: the edge and the distance melt into a planet-tinted haze.
+		HorizonFog->SetWorldLocation(FVector::ZeroVector);
+		// Thick only near the ground and far away: a steep falloff (density halves every ~0.4 km of height) keeps the
+		// view down from the arrival altitude (~220 m) clear, and the start distance keeps the arrival's ground
+		// (lava cracks, spires, the outpost) out of the haze; the horizon still melts into the tint.
+		HorizonFog->SetFogDensity(bVerdance ? 0.03f : 0.035f);
+		HorizonFog->SetFogHeightFalloff(1.8f);
+		HorizonFog->SetStartDistance(25000.f);
+		HorizonFog->SetFogMaxOpacity(1.f);
+		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.10f, 0.32f, 0.28f) : FLinearColor(0.42f, 0.16f, 0.05f));
+		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.35f, 0.45f, 0.35f) : FLinearColor(0.6f, 0.3f, 0.12f));
+		HorizonFog->SetVisibility(true);
+	}
+}
+
+bool ATDPlaceholderSky::HasHorizon() const
+{
+	return ((FarGround && FarGround->IsVisible()) || Terrain) && HorizonFog && HorizonFog->IsVisible();
+}
+
 bool ATDPlaceholderSky::HasLights() const
 {
 	return (Sun && Sun->IsRegistered()) || (Fill && Fill->IsRegistered()) || (SkyLight && SkyLight->IsRegistered());
@@ -195,6 +302,17 @@ bool ATDPlaceholderSky::HasExposure() const
 void ATDPlaceholderSky::Refresh()
 {
 	const FWorldSky Sky = Scan(GetWorld());
+	if (Sky.bTaggedSky && Terrain)
+	{
+		Terrain->Destroy();	// Nick's environment brings its own world
+		Terrain = nullptr;
+	}
+	if (Sky.bTaggedSky)
+	{
+		// Nick's environment brings its own ground and atmosphere.
+		if (FarGround) { FarGround->DestroyComponent(); FarGround = nullptr; }
+		if (HorizonFog) { HorizonFog->DestroyComponent(); HorizonFog = nullptr; }
+	}
 	if (Sky.ProvidesLighting())
 	{
 		if (Sun) { Sun->DestroyComponent(); Sun = nullptr; }
@@ -207,7 +325,7 @@ void ATDPlaceholderSky::Refresh()
 		Exposure->DestroyComponent();
 		Exposure = nullptr;
 	}
-	if (!HasLights() && !HasExposure())
+	if (!HasLights() && !HasExposure() && !HasHorizon())
 	{
 		Destroy();
 	}
@@ -221,5 +339,6 @@ void ATDPlaceholderSky::Tick(float DeltaSeconds)
 	{
 		RescanTimer = RescanInterval;
 		Refresh(); // a sky streamed in or spawned late takes over
+		TrySpawnTerrain();
 	}
 }

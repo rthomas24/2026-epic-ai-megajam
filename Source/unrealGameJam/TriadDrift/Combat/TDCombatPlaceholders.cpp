@@ -12,6 +12,10 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Misc/PackageName.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Engine/World.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -49,6 +53,24 @@ FTDStreakLook FTDCombatPlaceholders::ComputeOnFootStreak(const FTDProjectileSpec
 	Look.Length = FMath::Clamp(Spec.Speed * 0.02f, 40.f, 80.f);
 	Look.Thickness = FMath::Clamp(Spec.CollisionRadius * 0.35f, 5.f, 9.f);
 	Look.HeadDiameter = Look.Thickness * 1.4f;
+	return Look;
+}
+
+FTDStreakLook FTDCombatPlaceholders::ComputeSquadStreak(const FTDProjectileSpec& Spec)
+{
+	FTDStreakLook Look = ComputeStreak(Spec);
+	if (!Look.bStreak)
+	{
+		return Look;
+	}
+	if (Look.bHeavy)
+	{
+		Look.HeadDiameter = Look.bHead ? Look.Thickness * 1.15f : 0.f;
+	}
+	else
+	{
+		Look.Length = FMath::Clamp(Spec.Speed * SquadTracerSeconds, Look.Length, MaxSquadTracerCm);
+	}
 	return Look;
 }
 
@@ -192,6 +214,13 @@ void ATDCombatFlash::Play(const FVector& Location, float InRadius, const FLinear
 		MID = Mesh->CreateDynamicMaterialInstance(0, GlowMaterial);
 	}
 	bDebris = false;
+	bStyled = false;
+	DelayLeft = 0.f;
+	if (MID && Mesh->GetMaterial(0) != MID)
+	{
+		Mesh->SetMaterial(0, MID);
+	}
+	CameraCap = MaxRadiusPerCameraDistance;
 	SetActorRotation(FRotator::ZeroRotator);
 	Radius = FMath::Max(InRadius, 1.f);
 	Color = InColor;
@@ -214,6 +243,66 @@ void ATDCombatFlash::PlayDebris(const FVector& Location, const FVector& Velocity
 	Apply(0.f);
 }
 
+UMaterialInterface* ATDCombatFlash::GetFlashGlowMaterial()
+{
+	static TWeakObjectPtr<UMaterialInterface> Cached;
+	static bool bLooked = false;
+	if (!Cached.IsValid() && !bLooked)
+	{
+		bLooked = true;
+		static const TCHAR* Path = TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_FlashGlow.M_TD_FlashGlow");
+		if (FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(FString(Path))))
+		{
+			Cached = LoadObject<UMaterialInterface>(nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+		}
+	}
+	return Cached.Get();
+}
+
+void ATDCombatFlash::UseStyledMaterial()
+{
+	if (!AdditiveMID)
+	{
+		if (UMaterialInterface* Additive = GetFlashGlowMaterial())
+		{
+			AdditiveMID = UMaterialInstanceDynamic::Create(Additive, this);
+		}
+	}
+	UMaterialInstanceDynamic* Want = AdditiveMID ? AdditiveMID.Get() : MID.Get();
+	if (Want && Mesh->GetMaterial(0) != Want)
+	{
+		Mesh->SetMaterial(0, Want);
+	}
+	if (AdditiveMID)
+	{
+		AdditiveMID->SetScalarParameterValue(TEXT("Opacity"), 1.f);
+		AdditiveMID->SetScalarParameterValue(TEXT("EdgePower"), StyledLook.EdgePower);
+	}
+}
+
+void ATDCombatFlash::PlayLook(const FVector& Location, float InRadius, float Seconds, const FTDFlashLook& InLook)
+{
+	Play(Location, InRadius, InLook.Hot, Seconds, nullptr);
+	bStyled = true;
+	StyledLook = InLook;
+	DelayLeft = FMath::Max(InLook.Delay, 0.f);
+	UseStyledMaterial();
+	Mesh->SetVisibility(DelayLeft <= 0.f);
+	Apply(0.f);
+}
+
+void ATDCombatFlash::PlayDebrisLook(const FVector& Location, const FVector& Velocity, float Length, float Thickness, float Seconds,
+	const FTDFlashLook& InLook)
+{
+	PlayDebris(Location, Velocity, Length, Thickness, InLook.Hot, Seconds);
+	bStyled = true;
+	StyledLook = InLook;
+	DelayLeft = FMath::Max(InLook.Delay, 0.f);
+	UseStyledMaterial();
+	Mesh->SetVisibility(DelayLeft <= 0.f);
+	Apply(0.f);
+}
+
 void ATDCombatFlash::Stop()
 {
 	bPlaying = false;
@@ -228,6 +317,16 @@ void ATDCombatFlash::Tick(float DeltaSeconds)
 	if (!bPlaying)
 	{
 		return;
+	}
+	if (DelayLeft > 0.f)
+	{
+		// A staggered pop: hidden until its turn, then it plays its whole life.
+		DelayLeft -= DeltaSeconds;
+		if (DelayLeft > 0.f)
+		{
+			return;
+		}
+		Mesh->SetVisibility(true);
 	}
 	Age += DeltaSeconds;
 	if (Age >= Life)
@@ -247,21 +346,58 @@ void ATDCombatFlash::Apply(float Alpha)
 {
 	if (bDebris)
 	{
-		// A stretched streak along its flight, thinning as it fades.
+		// A stretched streak along its flight, thinning as it fades. Near the camera (a hulk exploding as it drifts past)
+		// it is capped like the shell: live, a bomber's debris crossed the frame as metre-wide bars.
 		const float Shrink = 1.f - 0.6f * Alpha;
-		SetActorScale3D(FVector(DebrisLength * Shrink, Radius * 2.f * Shrink, Radius * 2.f * Shrink) / 100.f);
+		float Length = DebrisLength * Shrink;
+		float Thick = Radius * 2.f * Shrink;
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (PC && PC->PlayerCameraManager)
+		{
+			const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
+			Thick = FMath::Min(Thick, FMath::Max(Distance * MaxDebrisThicknessPerCameraDistance, 1.f));
+			Length = FMath::Min(Length, FMath::Max(Distance * MaxDebrisLengthPerCameraDistance, Thick));
+		}
+		SetActorScale3D(FVector(Length, Thick, Thick) / 100.f);
 	}
 	else
 	{
 		// Swells from 60% to 120% of its radius in the first 30%, then collapses as the glow falls off. The glow material
 		// is opaque unlit, so a fading colour reads darker, not clearer: a shell that kept its size turned into a dark
 		// disc near the camera (T3's death playtest). Collapsing, the dim end is small.
-		const float Size = Alpha < 0.3f ? Radius * (0.6f + 2.f * Alpha) : FMath::Max(Radius * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		// Far away a flash keeps a readable size (hit sparks were ~10 px at 300 m); near the camera it never fills the frame
+		// (at most MaxRadiusPerCameraDistance of its distance: the Lead's frame-10 white-out; T3's death shell peaks at 0.24).
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		const float Distance = (PC && PC->PlayerCameraManager) ? FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation()) : -1.f;
+		const float R = Distance > 0.f ? FMath::Max(Radius, Distance * FTDCombatPlaceholders::MinFlashRadiusPerCameraDistance) : Radius;
+		float Size = bStyled
+			? FMath::Max(R * FMath::Lerp(StyledLook.GrowFrom, StyledLook.GrowTo, 1.f - FMath::Square(1.f - Alpha)), 1.f)
+			: Alpha < 0.3f ? R * (0.6f + 2.f * Alpha) : FMath::Max(R * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		if (Distance > 0.f)
+		{
+			Size = FMath::Min(Size, FMath::Max(Distance * CameraCap, 1.f));
+		}
 		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
 	}
-	if (MID)
+	if (bStyled)
+	{
+		// Hot -> Mid over the first 40% of its life, Mid -> Cool after; glow falls off (or swells and dies for an ember).
+		const FTDFlashLook& L = StyledLook;
+		const FLinearColor Tint = Alpha < 0.4f ? FMath::Lerp(L.Hot, L.Mid, Alpha / 0.4f) : FMath::Lerp(L.Mid, L.Cool, (Alpha - 0.4f) / 0.6f);
+		const float Glow = L.bEmber ? L.Glow * FMath::Sin(PI * FMath::Clamp(Alpha, 0.f, 1.f)) : L.Glow * FMath::Pow(FMath::Max(1.f - Alpha, 0.f), L.GlowExponent);
+		LastColor = Tint * Glow;
+		if (UMaterialInstanceDynamic* Target = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0)))
+		{
+			Target->SetVectorParameterValue(TEXT("Color"), LastColor);
+			Target->SetVectorParameterValue(TEXT("EmissiveColor"), LastColor);
+		}
+	}
+	else if (MID)
 	{
 		const FLinearColor Glow = Color * (FTDCombatPlaceholders::FlashGlow * FMath::Square(1.f - Alpha));
+		LastColor = Glow;
 		MID->SetVectorParameterValue(TEXT("Color"), Glow);
 		MID->SetVectorParameterValue(TEXT("EmissiveColor"), Glow);
 	}

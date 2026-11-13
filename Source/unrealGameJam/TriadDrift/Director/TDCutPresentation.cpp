@@ -30,6 +30,7 @@ using TDCutPresentationPrivate::MeasureText;
 #include "Styling/CoreStyle.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "Widgets/SLeafWidget.h"
 
 #define LOCTEXT_NAMESPACE "TDCutPresentation"
@@ -55,7 +56,7 @@ namespace TDCutPresentationPrivate
 			FSlateWindowElementList& Out, int32 Layer, const FWidgetStyle& Style, bool bParentEnabled) const override
 		{
 			const UTDCutPresentation* M = Model.Get();
-			if (!M || M->IsHandledExternally())
+			if (!M || M->IsHandledExternally() || M->IsSuppressedByIntro())
 			{
 				return Layer;
 			}
@@ -167,6 +168,24 @@ double UTDCutPresentation::Now() const
 {
 	const UWorld* World = OwnerWorld.Get();
 	return World ? World->GetRealTimeSeconds() : 0.0;
+}
+
+bool UTDCutPresentation::IsSuppressedByIntro() const
+{
+	// The intro owns the screen, except its last second (the hand-off), when the slate comes up.
+	const UTDIntroDirector* Intro = UTDIntroDirector::Get(OwnerWorld.Get());
+	return Intro && Intro->IsPlaying() && !Intro->IsHandingOff();
+}
+
+void UTDCutPresentation::PreviewFirstSlate(FName SceneId)
+{
+	if (bHandledExternally || SceneId.IsNone())
+	{
+		return;
+	}
+	Slate = MakeSlateText(SceneId, 1, 1);
+	SlateStart = Now();
+	PreviewSlateAt = SlateStart;
 }
 
 void UTDCutPresentation::EnsureViewportWidget()
@@ -311,6 +330,22 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 	{
 		return; // a death outside any scene has no slate
 	}
+	if (IsSuppressedByIntro())
+	{
+		PendingSlateScene = SceneId; // shown when the intro ends
+		PendingSlateTake = TakeNumber;
+		return;
+	}
+	// Scene one's first take right after the intro already had its slate at the hand-off.
+	if (TakeNumber == 1 && Now() - PreviewSlateAt < 8.0)
+	{
+		const UTDGameInstance* GIForScene = UTDGameInstance::Get(OwnerWorld.Get());
+		if (!GIForScene || GIForScene->GetSceneNumber(SceneId) <= 1)
+		{
+			PreviewSlateAt = -1000.0;
+			return;
+		}
+	}
 	CutStart = -1000.0; // the take replaces the CUT! card
 	SlateStart = Now();
 	// The scene's number in this run and, for a planet objective, the planet: from the game flow.
@@ -341,6 +376,12 @@ void UTDCutPresentation::HandleShotStarted(float RealSeconds)
 
 void UTDCutPresentation::Tick(double RealNow)
 {
+	if (!PendingSlateScene.IsNone() && !IsSuppressedByIntro())
+	{
+		const FName Scene = PendingSlateScene;
+		PendingSlateScene = NAME_None;
+		HandleTakeStarted(Scene, PendingSlateTake);
+	}
 	// The real HUD can come and go (TD.UI.NativeHUD, travel): keep the overlay on the right layer.
 	if (Widget.IsValid() && OverlayZOrder(ATDDebugHUD::IsRealHUDActive(OwnerWorld.Get())) != WidgetZOrder)
 	{

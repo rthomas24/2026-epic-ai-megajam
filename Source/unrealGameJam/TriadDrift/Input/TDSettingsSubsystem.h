@@ -14,6 +14,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameFramework/SaveGame.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TDSettingsSubsystem.generated.h"
 
 class ATDSpacePlayerController;
@@ -66,6 +67,10 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
 	bool bHintsEnabled = true;
+
+	/** The player's chosen difficulty: the default for New Game. A continued run keeps the one saved with it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
+	ETDDifficulty Difficulty = ETDDifficulty::Standard;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Audio", meta = (ClampMin = "0", ClampMax = "1"))
 	float MasterVolume = 1.f;
@@ -131,6 +136,9 @@ public:
 	FTDOnFootCameraModeChanged OnOnFootCameraModeChanged;
 
 	// ---- The Settings page (ENG-32): Nick's UTDUIStyle::SettingsWidgetClass if set, else the code-built page.
+	/** Viewport layer of the settings page: above every HUD and the pause screen (UI host ZOrder + 100), which opens it. */
+	static constexpr int32 PageZOrder = 1000;
+
 	/** Opens the page over the menu or the pause screen. False when there is no viewport to show it in. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
 	static bool OpenSettingsPage(const UObject* WorldContextObject);
@@ -154,6 +162,23 @@ public:
 
 	// ---- Gameplay
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetHintsEnabled(bool bEnabled);
+
+	/**
+	 * Difficulty (features.md Settings; T4's UTDDifficultySettings presets). Saved here as the New Game default and
+	 * written to the current run through the game instance. Enemies read it when they spawn, so ships already in the
+	 * fight keep their strength: it takes effect as new enemies and waves arrive.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetDifficulty(ETDDifficulty Difficulty);
+
+	/** The difficulty in play now (the run's; may differ from the saved preference after a Continue). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings") static ETDDifficulty GetDifficultyInPlay();
+
+	/** Makes the saved preference the difficulty in play (start-up and New Game). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void ApplyPreferredDifficulty();
+
+	/** "Story" / "Standard" / "Ace", and a one-line description of what that preset changes (from T4's tables). */
+	static FText DifficultyName(ETDDifficulty Difficulty);
+	static FText DifficultyDescription(ETDDifficulty Difficulty);
 
 	// ---- Audio (0..1)
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetMasterVolume(float Volume);

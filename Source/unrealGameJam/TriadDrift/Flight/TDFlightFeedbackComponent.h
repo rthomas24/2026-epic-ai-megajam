@@ -84,6 +84,62 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0"))
 	float DustGlow = 1.2f;
+
+	// ---- Engine trail placeholder (every squad ship, while UTDShipVisuals::EngineTrail has no VFX) ----
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail")
+	bool bEngineTrail = true;
+
+	/** Glow segments in the ribbon, each one sample of the exhaust's recent path. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "2", ClampMax = "32"))
+	int32 TrailSegments = 10;
+
+	/** Seconds between path samples: the ribbon is TrailSegments x this long in time (1.5 s = 90 m at cruise, longer at boost). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0.005"))
+	float TrailSampleSeconds = 0.15f;
+
+	/** Thickness at the nozzle (cm, no wider than a nozzle); it tapers (quadratically) to nothing at the tail. Boost: +25%. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "1"))
+	float TrailThickness = 18.f;
+
+	/** Emissive strength of the ribbon: kept low so it reads as a thin light streak, not a solid bar. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float TrailGlow = 1.6f;
+
+	/** The flown ship's flame thickness at the nozzle (cm) and its glow (a short hot flame). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "1"))
+	float PlayerFlameThickness = 22.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float PlayerFlameGlow = 1.2f;
+
+	/** The flown ship's own ribbon in the chase view stops this far behind the nozzle (cm); wingmen keep the full length. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float PlayerTrailMax = 300.f;
+
+	/** ...and never reaches lower on screen than this fraction of the viewport height (0 top, 1 bottom), so the
+	 *  flame stays clear of the HUD band whatever the ship's size, nozzle layout or camera distance. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0.5", ClampMax = "1"))
+	float PlayerFlameScreenLimit = 0.70f;
+
+	/** Ships with more than two engines (the Bastion's four) get this share of the flown flame length. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0.1", ClampMax = "1"))
+	float PlayerFlameManyEnginesScale = 0.6f;
+
+	/** Wingman and other non-flown ribbons fade to nothing within this distance of the camera (cm)... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float TrailCameraFadeStart = 1500.f;
+
+	/** ...and are fully drawn again from this distance (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float TrailCameraFadeEnd = 2500.f;
+
+	/** Non-flown ribbons fade out over the screen band from this height (0 top, 1 bottom)... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0", ClampMax = "1"))
+	float TrailHudBandFadeStart = 0.66f;
+
+	/** ...and are gone below this one (the HUD band), so a wingman passing close never paints across the HUD. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0", ClampMax = "1"))
+	float TrailHudBandLimit = 0.72f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
@@ -100,6 +156,11 @@ public:
 
 	/** True when the cue has no VFX, so a placeholder glow should stand in. */
 	static bool WantsVisualPlaceholder(const FTDFXCue* Cue);
+
+	/** Visibility (0..1) of a non-flown ribbon segment from its distance to the camera (cm) and its projected
+	 *  height on screen (0 top, 1 bottom; any value above 1 = off the bottom or behind the eye; negative = unknown,
+	 *  e.g. no viewport). */
+	static float TrailFadeAt(const FTDFlightFeedbackTuning& Tuning, float DistToEye, float ScreenY);
 	/** True when the cue has no camera shake, so a placeholder camera kick should stand in. */
 	static bool WantsCameraPlaceholder(const FTDFXCue* Cue);
 
@@ -125,6 +186,11 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
 	int32 GetVisibleDustCount() const { return bDustVisible ? DustPositions.Num() : 0; }
+
+	/** Placeholder engine trail: segments drawn now over every engine (0 = hidden), and the first ribbon's length (cm). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
+	int32 GetVisibleTrailSegments() const { return bTrailVisible ? TrailTransforms.Num() : 0; }
+	float GetTrailLength() const { return TrailLength; }
 
 	/** Average game-thread cost of this component's tick over the last ~2 s, in milliseconds. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
@@ -163,6 +229,7 @@ private:
 	void UpdateBursts(float DeltaTime);
 	void UpdateDust(float DeltaTime);
 	void EnsureDust();
+	void UpdateTrail(float DeltaTime);
 	FBurst* AcquireBurst();
 
 	UFUNCTION()
@@ -183,6 +250,18 @@ private:
 	TArray<FVector> DustPositions;
 	TArray<FTransform> DustTransforms;
 	bool bDustVisible = false;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInstancedStaticMeshComponent> Trail;
+	TArray<TArray<FVector>> TrailHistory; // per engine, newest first; [0] is the live nozzle position
+	TArray<FVector> TrailNozzles;
+	UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> TrailMID;
+	float TrailMIDGlow = -1.f;
+	bool bTrailTranslucent = false; // M_TD_TrailGlow present: per-segment fade through instance custom data
+	TArray<FTransform> TrailTransforms;
+	float TrailClock = 0.f;
+	float TrailLength = 0.f;
+	bool bTrailVisible = false;
 
 	FRotator CameraOffset = FRotator::ZeroRotator;
 	float FOVOffset = 0.f;

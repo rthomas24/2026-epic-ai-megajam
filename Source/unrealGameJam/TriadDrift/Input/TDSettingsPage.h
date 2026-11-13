@@ -24,6 +24,7 @@ enum class ETDSettingsRow : uint8
 	GamepadDeadzone,
 	InvertGamepadY,
 	Hints,
+	Difficulty,
 	MasterVolume,
 	MusicVolume,
 	EffectsVolume,
@@ -58,6 +59,8 @@ public:
 
 	static FText RowLabel(ETDSettingsRow Row);
 	FText RowValue(ETDSettingsRow Row) const;
+	/** One line under the rows about the selected row (difficulty), else empty. */
+	FText SelectedRowHint() const;
 
 	/** The resolutions offered (0,0 = desktop first). Tests may replace the list. */
 	TArray<FIntPoint> Resolutions;

@@ -6,10 +6,15 @@
 # Run: powershell -File Tools\td-python.ps1 -Script ArtSource\EngProps\Planets\scripts\ue_import_planets.py
 import json
 import os
+import sys
 
 import unreal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ue_mat_builder  # noqa: E402
+import ue_planet_surface as surf  # noqa: E402
+import ue_ground_material as ground_mat  # noqa: E402
 ROOT = os.path.dirname(HERE)
 TEX = os.path.join(ROOT, "textures")
 MESH = os.path.join(ROOT, "meshes")
@@ -36,18 +41,13 @@ def lin(h):
 
 # ------------------------------------------------------------------ look values (mirror the Blender review)
 PLANET = {
-    "Verdance": dict(cloud_color=lin("#F4FBFF"), cloud_opacity=0.92, emissive=6.0, rim=lin("#40E8FF"), rim_strength=0.5,
+    "Verdance": dict(cloud_color=lin("#F4FBFF"), cloud_opacity=0.92, rim=lin("#40E8FF"), rim_strength=0.5,
                      atmo=lin("#3CF2D0"), atmo_intensity=3.0, rim_power=4.0, cloud_pan=0.0015),
-    "Cinder": dict(cloud_color=lin("#8C8086"), cloud_opacity=0.80, emissive=8.0, rim=lin("#FF6A2A"), rim_strength=0.25,
+    "Cinder": dict(cloud_color=lin("#8C8086"), cloud_opacity=0.80, rim=lin("#FF6A2A"), rim_strength=0.25,
                    atmo=lin("#FF7A2A"), atmo_intensity=2.6, rim_power=4.5, cloud_pan=0.0010),
 }
-SUN_DIR = (0.8, -0.45, 0.35)        # default: direction TOWARDS the sun; set per level (negated light forward vector)
-GROUND = {
-    "Verdance": dict(emissive=4.0, tint_a=(0.80, 0.80, 0.72), tint_b=(1.0, 1.15, 1.05)),
-    "Cinder": dict(emissive=6.0, tint_a=(0.85, 0.82, 0.82), tint_b=(1.1, 1.0, 0.95)),
-}
-MACRO = dict(scale1=7.3, scale2=31.7, angle1=37.0, angle2=-61.0, strength=0.6, mip=6,
-             b_scale=1.37, b_offset=(0.31, 0.57), blend_contrast=1.5, glow_macro=0.8)
+SUN_DIR = surf.SUN_DIR              # default: direction TOWARDS the sun (ATDSkySphere's baked sun); code sets it per level
+# Ground look values (GROUND / MACRO) live in ue_ground_material.py.
 
 
 # ------------------------------------------------------------------ textures
@@ -57,6 +57,7 @@ def import_textures():
         names += ["T_Planet_%s_%s" % (p, s) for s in ("BC", "N", "ORM", "E", "Clouds")]
         names += ["T_Ground_%s_%s" % (p, s) for s in ("BC", "N", "ORM", "E")]
     names.append("T_PlanetRing_Verdance")
+    names.append("T_Ground_MacroNoise")          # build_ground_noise.py
     tasks = []
     for n in names:
         t = unreal.AssetImportTask()
@@ -78,7 +79,7 @@ def import_textures():
             tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP)
             tex.set_editor_property("srgb", False)
             tex.set_editor_property("flip_green_channel", False)
-        elif sfx in ("ORM", "Clouds"):
+        elif sfx in ("ORM", "Clouds", "MacroNoise"):
             tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_MASKS)
             tex.set_editor_property("srgb", False)
         else:
@@ -151,91 +152,10 @@ def _tri_count(mesh):
         return "n/a"
 
 
-# ------------------------------------------------------------------ material graph helpers
-class MB:
+# ------------------------------------------------------------------ material graph helpers (ue_mat_builder.py)
+class MB(ue_mat_builder.MB):
     def __init__(self, mat):
-        self.m = mat
-        self.y = 0
-
-    def e(self, cls, x=-800, **props):
-        self.y += 120
-        n = mel.create_material_expression(self.m, cls, x, self.y)
-        for k, v in props.items():
-            n.set_editor_property(k, v)
-        return n
-
-    def c(self, a, ao, b, bi):
-        if not mel.connect_material_expressions(a, ao, b, bi):
-            problems.append("%s: could not connect %s.%s -> %s.%s" % (self.m.get_name(), a.get_name(), ao, b.get_name(), bi))
-
-    def out(self, a, ao, prop):
-        if not mel.connect_material_property(a, ao, prop):
-            problems.append("%s: could not connect %s.%s -> %s" % (self.m.get_name(), a.get_name(), ao, prop))
-
-    def scalar(self, name, v):
-        return self.e(unreal.MaterialExpressionScalarParameter, parameter_name=name, default_value=float(v))
-
-    def vector(self, name, rgb):
-        return self.e(unreal.MaterialExpressionVectorParameter, parameter_name=name,
-                      default_value=unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1.0))
-
-    def const(self, v):
-        return self.e(unreal.MaterialExpressionConstant, r=float(v))
-
-    def const2(self, a, b):
-        return self.e(unreal.MaterialExpressionConstant2Vector, r=float(a), g=float(b))
-
-    def const3(self, a, b, c):
-        return self.e(unreal.MaterialExpressionConstant3Vector, constant=unreal.LinearColor(a, b, c, 1.0))
-
-    def tex(self, name, texture, sampler, uv=None, uv_out=""):
-        n = self.e(unreal.MaterialExpressionTextureSampleParameter2D, parameter_name=name)
-        n.set_editor_property("texture", texture)          # default texture type must match the sampler type
-        n.set_editor_property("sampler_type", sampler)
-        if uv is not None:
-            self.c(uv, uv_out, n, "UVs")
-        return n
-
-    def op(self, cls, a, b, ao="", bo=""):
-        n = self.e(cls)
-        self.c(a, ao, n, "A")
-        self.c(b, bo, n, "B")
-        return n
-
-    def mul(self, a, b, ao="", bo=""): return self.op(unreal.MaterialExpressionMultiply, a, b, ao, bo)
-    def add(self, a, b, ao="", bo=""): return self.op(unreal.MaterialExpressionAdd, a, b, ao, bo)
-    def sub(self, a, b, ao="", bo=""): return self.op(unreal.MaterialExpressionSubtract, a, b, ao, bo)
-    def div(self, a, b, ao="", bo=""): return self.op(unreal.MaterialExpressionDivide, a, b, ao, bo)
-    def dot(self, a, b, ao="", bo=""): return self.op(unreal.MaterialExpressionDotProduct, a, b, ao, bo)
-    def append(self, a, b, ao="", bo=""): return self.op(unreal.MaterialExpressionAppendVector, a, b, ao, bo)
-
-    def lerp(self, a, b, alpha, ao="", bo="", alo=""):
-        n = self.e(unreal.MaterialExpressionLinearInterpolate)
-        self.c(a, ao, n, "A")
-        self.c(b, bo, n, "B")
-        self.c(alpha, alo, n, "Alpha")
-        return n
-
-    def unary(self, cls, a, ao=""):
-        n = self.e(cls)
-        self.c(a, ao, n, "")
-        return n
-
-    def sat(self, a, ao=""): return self.unary(unreal.MaterialExpressionSaturate, a, ao)
-    def frac(self, a, ao=""): return self.unary(unreal.MaterialExpressionFrac, a, ao)
-    def norm(self, a, ao=""): return self.unary(unreal.MaterialExpressionNormalize, a, ao)
-    def one_minus(self, a, ao=""): return self.unary(unreal.MaterialExpressionOneMinus, a, ao)
-
-    def pow(self, a, b, ao=""):
-        n = self.e(unreal.MaterialExpressionPower)
-        self.c(a, ao, n, "Base")
-        self.c(b, "", n, "Exponent")
-        return n
-
-    def mask(self, a, r=True, g=False, b=False, ao=""):
-        n = self.e(unreal.MaterialExpressionComponentMask, r=r, g=g, b=b, a=False)
-        self.c(a, ao, n, "")
-        return n
+        super().__init__(mat, problems)
 
 
 def new_master(name):
@@ -269,37 +189,11 @@ def sun_terms(b):
 
 
 def build_planet_master(t):
+    # Unlit, lights itself from SunDirection: clear terminator, glow only on the night side (ue_planet_surface.py).
     mat, kept = new_master("M_TD_Planet")
     if kept:
         return kept
-    b = MB(mat)
-    uv = b.e(unreal.MaterialExpressionTextureCoordinate)
-    bc = b.tex("BaseColorTex", t["T_Planet_Verdance_BC"], ST.SAMPLERTYPE_COLOR, uv)
-    nn = b.tex("NormalTex", t["T_Planet_Verdance_N"], ST.SAMPLERTYPE_NORMAL, uv)
-    orm = b.tex("ORMTex", t["T_Planet_Verdance_ORM"], ST.SAMPLERTYPE_MASKS, uv)
-    em = b.tex("EmissiveTex", t["T_Planet_Verdance_E"], ST.SAMPLERTYPE_COLOR, uv)
-    # clouds: U offset = frac(time * CloudPanSpeed)
-    tm = b.e(unreal.MaterialExpressionTime)
-    pan = b.frac(b.mul(tm, b.scalar("CloudPanSpeed", 0.0015)))
-    cuv = b.add(uv, b.append(pan, b.const(0.0)))
-    cl = b.tex("CloudTex", t["T_Planet_Verdance_Clouds"], ST.SAMPLERTYPE_MASKS, cuv)
-    ca = b.mul(cl, b.scalar("CloudOpacity", 0.9), "R")
-    base = b.lerp(bc, b.vector("CloudColor", (1, 1, 1)), ca, "RGB")
-    b.out(base, "", MP.MP_BASE_COLOR)
-    b.out(b.lerp(orm, b.const(0.9), ca, "G"), "", MP.MP_ROUGHNESS)
-    b.out(orm, "R", MP.MP_AMBIENT_OCCLUSION)
-    b.out(b.const(0.0), "", MP.MP_METALLIC)
-    b.out(b.lerp(nn, b.const3(0, 0, 1), ca, "RGB"), "", MP.MP_NORMAL)
-    ndl = sun_terms(b)
-    night = b.sat(b.mul(b.sub(b.const(0.15), ndl), b.const(3.0)))
-    glowmask = b.lerp(b.const(1.0), night, b.scalar("NightGlowMask", 0.5))
-    e = b.mul(b.mul(em, b.scalar("EmissiveStrength", 6.0), "RGB"), glowmask)
-    e = b.mul(e, b.one_minus(ca))
-    fres = b.e(unreal.MaterialExpressionFresnel, exponent=4.0, base_reflect_fraction=0.0)
-    b.c(b.e(unreal.MaterialExpressionVertexNormalWS), "", fres, "Normal")
-    day = b.sat(b.add(b.mul(ndl, b.const(1.2)), b.const(0.25)))
-    rim = b.mul(b.mul(b.vector("SurfaceRimColor", (0.2, 0.8, 1.0)), b.scalar("SurfaceRimStrength", 0.5)), b.mul(fres, day))
-    b.out(b.add(e, rim), "", MP.MP_EMISSIVE_COLOR)
+    surf.build_surface_graph(MB(mat), t)
     return finish(mat)
 
 
@@ -341,58 +235,11 @@ def build_ring_master(t):
 
 
 def build_ground_master(t):
+    # Anti-tiling ground graph lives in ue_ground_material.py (also used by ue_ground_rebuild.py).
     mat, kept = new_master("M_TD_Ground")
     if kept:
         return kept
-    b = MB(mat)
-    wp = b.e(unreal.MaterialExpressionWorldPosition)
-    xy = b.mask(wp, True, True, False)
-    tile = b.scalar("TileSize", 400.0)
-    uva = b.div(xy, tile)
-    uvb = b.add(b.div(xy, b.mul(tile, b.scalar("BScale", MACRO["b_scale"]))), b.const2(*MACRO["b_offset"]))
-    import math as _m
-
-    def rot_uv(angle, scale_name, scale):
-        a = _m.radians(angle)
-        u = b.dot(xy, b.const2(_m.cos(a), -_m.sin(a)))
-        v = b.dot(xy, b.const2(_m.sin(a), _m.cos(a)))
-        return b.div(b.append(u, v), b.mul(tile, b.scalar(scale_name, scale)))
-    maps = (("BaseColorTex", "T_Ground_Verdance_BC", ST.SAMPLERTYPE_COLOR), ("NormalTex", "T_Ground_Verdance_N", ST.SAMPLERTYPE_NORMAL),
-            ("ORMTex", "T_Ground_Verdance_ORM", ST.SAMPLERTYPE_MASKS), ("EmissiveTex", "T_Ground_Verdance_E", ST.SAMPLERTYPE_COLOR))
-    A = {p: b.tex(p, t[d], s, uva) for p, d, s in maps}
-    B = {p: b.tex(p, t[d], s, uvb) for p, d, s in maps}
-    lumw = b.const3(0.2126, 0.7152, 0.0722)
-
-    def macro(angle, sname, scale):
-        n = b.tex("BaseColorTex", t["T_Ground_Verdance_BC"], ST.SAMPLERTYPE_COLOR, rot_uv(angle, sname, scale))
-        try:
-            n.set_editor_property("mip_value_mode", unreal.TextureMipValueMode.TMVM_MIP_LEVEL)
-            n.set_editor_property("const_mip_value", MACRO["mip"])
-        except Exception as e:
-            problems.append("macro mip level: %s" % e)
-        lum = b.dot(n, lumw, "RGB")
-        return b.mul(b.sub(lum, b.scalar("MacroMean", 0.05)), b.scalar("MacroK", 10.0))   # ~ -1..1
-    d1 = macro(MACRO["angle1"], "MacroScale1", MACRO["scale1"])
-    d2 = macro(MACRO["angle2"], "MacroScale2", MACRO["scale2"])
-    blend = b.sat(b.add(b.mul(d2, b.scalar("BlendContrast", MACRO["blend_contrast"])), b.const(0.5)))
-    bc = b.lerp(A["BaseColorTex"], B["BaseColorTex"], blend, "RGB", "RGB")
-    nn = b.lerp(A["NormalTex"], B["NormalTex"], blend, "RGB", "RGB")
-    orm = b.lerp(A["ORMTex"], B["ORMTex"], blend, "RGB", "RGB")
-    em = b.lerp(A["EmissiveTex"], B["EmissiveTex"], blend, "RGB", "RGB")
-    factor = b.add(b.const(1.0), b.mul(d1, b.mul(b.scalar("MacroStrength", MACRO["strength"]), b.const(0.35))))
-    tint = b.lerp(b.vector("MacroTintA", (0.8, 0.8, 0.8)), b.vector("MacroTintB", (1, 1, 1)),
-                  b.sat(b.add(b.mul(d1, b.const(0.5)), b.const(0.5))))
-    ao = b.mask(orm, True, False, False)
-    aob = b.lerp(b.const(1.0), ao, b.scalar("AOToBaseColor", 1.0))
-    base = b.mul(b.mul(b.mul(bc, factor), tint), aob)
-    b.out(base, "", MP.MP_BASE_COLOR)
-    b.out(b.mask(orm, False, True, False), "", MP.MP_ROUGHNESS)
-    b.out(ao, "", MP.MP_AMBIENT_OCCLUSION)
-    b.out(b.const(0.0), "", MP.MP_METALLIC)
-    b.out(b.norm(nn), "", MP.MP_NORMAL)
-    gm = b.sat(b.add(b.mul(d1, b.const(1.2)), b.const(0.6)))
-    glow = b.lerp(b.const(1.0), gm, b.scalar("GlowMacro", MACRO["glow_macro"]))
-    b.out(b.mul(b.mul(em, b.scalar("EmissiveStrength", 4.0)), glow), "", MP.MP_EMISSIVE_COLOR)
+    ground_mat.build_ground_graph(MB(mat), t)
     return finish(mat)
 
 
@@ -436,25 +283,20 @@ def main():
     m_ground = build_ground_master(t)
     for p, c in PLANET.items():
         mi("MI_Planet_" + p, m_planet,
-           scalars=dict(CloudOpacity=c["cloud_opacity"], EmissiveStrength=c["emissive"], SurfaceRimStrength=c["rim_strength"],
-                        CloudPanSpeed=c["cloud_pan"], NightGlowMask=0.5),
-           vectors=dict(CloudColor=c["cloud_color"], SurfaceRimColor=c["rim"], SunDirection=SUN_DIR),
+           scalars=dict(dict(CloudOpacity=c["cloud_opacity"], SurfaceRimStrength=c["rim_strength"], CloudPanSpeed=c["cloud_pan"]),
+                        **surf.INSTANCE_VALUES[p]["scalars"]),
+           vectors=dict(dict(CloudColor=c["cloud_color"], SurfaceRimColor=c["rim"], SunDirection=SUN_DIR),
+                        **surf.INSTANCE_VALUES[p]["vectors"]),
            textures=dict(BaseColorTex=t["T_Planet_%s_BC" % p], NormalTex=t["T_Planet_%s_N" % p], ORMTex=t["T_Planet_%s_ORM" % p],
                          EmissiveTex=t["T_Planet_%s_E" % p], CloudTex=t["T_Planet_%s_Clouds" % p]))
         mi("MI_PlanetAtmo_" + p, m_atmo,
-           scalars=dict(AtmoIntensity=c["atmo_intensity"], RimPower=c["rim_power"], EdgeSoftness=4.5, SunMaskAmount=0.7),
+           scalars=dict(AtmoIntensity=c["atmo_intensity"], RimPower=c["rim_power"], EdgeSoftness=4.5, SunMaskAmount=surf.ATMO_VALUES["SunMaskAmount"]),
            vectors=dict(AtmoColor=c["atmo"], SunDirection=SUN_DIR))
     mi("MI_PlanetRing_Verdance", m_ring, scalars=dict(Brightness=1.2, Opacity=0.85), vectors=dict(RingTint=(1, 1, 1)),
        textures=dict(RingTex=t["T_PlanetRing_Verdance"]))
-    for g, c in GROUND.items():
-        with open(os.path.join(TEX, "T_Ground_%s_stats.json" % g)) as f:
-            st = json.load(f)
-        k = 1.0 / (2.0 * st["macro_std_rel"] * st["macro_mean_lum"])
-        mi("MI_Ground_" + g, m_ground,
-           scalars=dict(TileSize=400.0, MacroMean=st["macro_mean_lum"], MacroK=k, EmissiveStrength=c["emissive"],
-                        MacroStrength=MACRO["strength"], BlendContrast=MACRO["blend_contrast"], GlowMacro=MACRO["glow_macro"],
-                        MacroScale1=MACRO["scale1"], MacroScale2=MACRO["scale2"], BScale=MACRO["b_scale"], AOToBaseColor=1.0),
-           vectors=dict(MacroTintA=c["tint_a"], MacroTintB=c["tint_b"]),
+    for g in ground_mat.GROUND:
+        scalars, vectors = ground_mat.instance_values(g)
+        mi("MI_Ground_" + g, m_ground, scalars=scalars, vectors=vectors,
            textures=dict(BaseColorTex=t["T_Ground_%s_BC" % g], NormalTex=t["T_Ground_%s_N" % g],
                          ORMTex=t["T_Ground_%s_ORM" % g], EmissiveTex=t["T_Ground_%s_E" % g]))
     # default materials on the meshes

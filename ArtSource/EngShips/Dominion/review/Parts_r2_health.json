@@ -1,0 +1,193 @@
+{
+  "tag": "r2",
+  "stage": "full",
+  "assets": {
+    "SM_Dominion_Generator": {
+      "tris": 3720,
+      "budget": [
+        3000,
+        40000
+      ],
+      "ue_min_cm": [
+        -590.3,
+        -589.0,
+        -989.3
+      ],
+      "ue_max_cm": [
+        590.3,
+        600.0,
+        1673.5
+      ],
+      "ucx": 2,
+      "slots": [
+        "M_Dominion_Trim",
+        "M_Dominion_Panel",
+        "M_Dominion_GlowRed",
+        "M_Dominion_GlowWhite"
+      ],
+      "area_share": {
+        "M_Dominion_GlowRed": 0.036,
+        "M_Dominion_GlowWhite": 0.007,
+        "M_Dominion_Panel": 0.432,
+        "M_Dominion_Trim": 0.524
+      },
+      "ucx_objects": 2,
+      "report_errors": 0,
+      "report_warnings": 0,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Generator",
+          "message": "18 n-gons; fine if planar, they get triangulated on export"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 3720,
+        "size_cm": [
+          1180.5,
+          1189.0,
+          2662.9
+        ],
+        "collision": [
+          "UCX_SM_Dominion_Generator_00",
+          "UCX_SM_Dominion_Generator_01"
+        ],
+        "materials": [
+          "M_Dominion_Trim",
+          "M_Dominion_Panel",
+          "M_Dominion_GlowRed",
+          "M_Dominion_GlowWhite"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_GeneratorCore": {
+      "tris": 3472,
+      "budget": [
+        300,
+        10000
+      ],
+      "ue_min_cm": [
+        -394.3,
+        -394.3,
+        650.0
+      ],
+      "ue_max_cm": [
+        394.3,
+        394.3,
+        1630.0
+      ],
+      "ucx": 0,
+      "slots": [
+        "M_Dominion_GlowCyan",
+        "M_Dominion_Trim"
+      ],
+      "area_share": {
+        "M_Dominion_GlowCyan": 0.47,
+        "M_Dominion_Trim": 0.53
+      },
+      "ucx_objects": 0,
+      "report_errors": 0,
+      "report_warnings": 0,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_GeneratorCore",
+          "message": "16 n-gons; fine if planar, they get triangulated on export"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 3472,
+        "size_cm": [
+          788.6,
+          788.6,
+          980.0
+        ],
+        "collision": [],
+        "materials": [
+          "M_Dominion_GlowCyan",
+          "M_Dominion_Trim"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    },
+    "SM_Dominion_Reactor": {
+      "tris": 14936,
+      "budget": [
+        8000,
+        60000
+      ],
+      "ue_min_cm": [
+        -1163.5,
+        -1256.0,
+        -1565.0
+      ],
+      "ue_max_cm": [
+        1163.5,
+        1256.0,
+        1054.6
+      ],
+      "ucx": 2,
+      "slots": [
+        "M_Dominion_GlowReactor",
+        "M_Dominion_Panel",
+        "M_Dominion_Trim",
+        "M_Dominion_GlowRed",
+        "M_Dominion_GlowWhite"
+      ],
+      "area_share": {
+        "M_Dominion_GlowReactor": 0.154,
+        "M_Dominion_GlowRed": 0.019,
+        "M_Dominion_GlowWhite": 0.002,
+        "M_Dominion_Panel": 0.418,
+        "M_Dominion_Trim": 0.408
+      },
+      "ucx_objects": 2,
+      "report_errors": 0,
+      "report_warnings": 0,
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Dominion_Reactor",
+          "message": "20 n-gons; fine if planar, they get triangulated on export"
+        }
+      ],
+      "assembly_ok": true,
+      "floating": [],
+      "export": {
+        "status": "ok",
+        "tris": 14936,
+        "size_cm": [
+          2327.1,
+          2512.0,
+          2619.6
+        ],
+        "collision": [
+          "UCX_SM_Dominion_Reactor_00",
+          "UCX_SM_Dominion_Reactor_01"
+        ],
+        "materials": [
+          "M_Dominion_GlowReactor",
+          "M_Dominion_Panel",
+          "M_Dominion_Trim",
+          "M_Dominion_GlowRed",
+          "M_Dominion_GlowWhite"
+        ],
+        "warnings": [],
+        "errors": []
+      }
+    }
+  },
+  "generator_clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Parts_r2_generator_clay_sheet.png",
+  "reactor_clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Parts_r2_reactor_clay_sheet.png",
+  "generator_views": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Parts_r2_generator_views.png",
+  "reactor_views": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Dominion\\review\\Parts_r2_reactor_views.png"
+}

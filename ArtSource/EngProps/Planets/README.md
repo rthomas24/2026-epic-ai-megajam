@@ -11,7 +11,7 @@ AI-generated source assets.
 | `SM_Planet_Sphere` | UV sphere, radius 100 cm at scale 1, 192 x 96 segments, 36,480 tris, equirectangular UVs, simple sphere collision | The planet surface. **Verdance: uniform scale 600** (60 000 cm radius). **Cinder: uniform scale 550** (55 000 cm). |
 | `SM_Planet_Atmosphere` | UV sphere, radius 102.5 cm, normals outward, 16,128 tris, no collision | Same transform as the planet (scale 600 / 550). Front faces only, so it disappears once the player is inside the atmosphere. |
 | `SM_Planet_Ring` | Flat annulus in the XY plane, inner 140 cm, outer 230 cm (1.4 and 2.3 planet radii at scale 1), 512 tris, UV U = radial, V = around | Verdance only, same transform as the planet (scale 600, so 840 m to 1380 m). Equatorial: tilt the planet actor, not the ring. |
-| `M_TD_Planet` | Lit opaque surface: BC / N / ORM / E + cloud layer panning in U, emissive with a night-side term, day-side limb in-scatter | parent of `MI_Planet_*` |
+| `M_TD_Planet` | **Unlit** opaque surface that lights itself from `SunDirection` (Nov 13 night-side pass): BC / N / ORM / E + cloud layer panning in U, wrapped-Lambert day side, dim ambient night side, emissive glow only on the night side, day-side limb in-scatter | parent of `MI_Planet_*` |
 | `MI_Planet_Verdance`, `MI_Planet_Cinder` | instances | on `SM_Planet_Sphere` |
 | `M_TD_PlanetAtmosphere` | Unlit, additive, fresnel rim glow, bright at the limb, transparent centre, dimmer on the night side | parent of `MI_PlanetAtmo_*` |
 | `MI_PlanetAtmo_Verdance` (cyan-green), `MI_PlanetAtmo_Cinder` (orange) | instances | on `SM_Planet_Atmosphere` |
@@ -32,10 +32,22 @@ Cinder actor's components.
   is offset by `frac(Time * CloudPanSpeed)` in U, so 0.0015 is one full lap in about 11 minutes. 0 freezes the clouds.
 - `CloudOpacity`, `CloudColor` (Verdance white, Cinder ash grey), `EmissiveStrength` (6 / 8; tune in the level),
   `SurfaceRimColor`, `SurfaceRimStrength`.
-- **`SunDirection`** (vector, direction from the planet TOWARDS the sun, world space) and `NightGlowMask` (0..1).
-  The glow is multiplied by `lerp(1, nightTerm, NightGlowMask)`; at the default 0.5 it glows everywhere and twice as
-  bright on the night side. For the full effect set `SunDirection` to the negated forward vector of the level's
-  directional light and `NightGlowMask` to 0.85. The same `SunDirection` also drives the atmosphere instance.
+- **`SunDirection`** (vector, direction from the planet TOWARDS the sun, world space; `ATDPlanetAtmosphere` sets it
+  on the surface from the atmosphere-sun directional light). The surface is unlit on purpose: the space light rig's
+  violet fill shines from the anti-sun side and the sky light adds more, which lit the night side of the old lit
+  material almost like the day side. Now:
+  `albedo * (SunColor * SunIntensity * wrapLambert * AO + AmbientColor * NightAmbient) + glow + rim`.
+  `SunIntensity` (3.0 / 3.6), `SunColor`, `NightAmbient` (0.10 / 0.30, the night side's dim fill, ~3-5% of the day
+  side), `AmbientColor`, `TerminatorSoftness` (0.12, wrap of the terminator).
+- **Night glow**: `EmissiveTex * EmissiveStrength (4.5 / 9) * lerp(1, night, NightGlowMask) * (1 - clouds * CloudGlowOcclusion)`;
+  `night` ramps from 0 at `dot(N, Sun) = NightGlowStart` (0.05) to 1 over `1 / NightGlowSharpness` (4). `NightGlowMask`
+  1 = glow only on the night side (0 brings back glow everywhere).
+- Graph source: `scripts/ue_planet_surface.py` (values per planet in `INSTANCE_VALUES`). To change it on the existing
+  asset, run `scripts/ue_rebuild_planet_surface.py` with a renderer (`ArtSource/EngShips/Dominion/scripts/run_ue_rendered.ps1`);
+  it rebuilds the master in place and keeps the instances. Review renders: `scripts/ue_render_planet_review.py`
+  (`PL_REVIEW_TAG`), written to `Saved/PlanetNight/<tag>/`; delete the throwaway `Planets/Review/` level after it.
+- The atmosphere instances have their own `SunDirection` (default = the baked sky sun (0.779, 0.546, 0.309));
+  `SunMaskAmount` 0.92 (night limb at 8% of the lit limb).
 
 `M_TD_PlanetAtmosphere`: `AtmoColor`, `AtmoIntensity`, `RimPower` (inner falloff), `EdgeSoftness` (outer fade,
 4.5 matches the 1.025 shell), `SunMaskAmount`, `SunDirection`.

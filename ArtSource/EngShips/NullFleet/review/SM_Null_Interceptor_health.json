@@ -1,0 +1,188 @@
+{
+  "asset": "SM_Null_Interceptor",
+  "tag": "e2",
+  "checks": {
+    "tris": 6986,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 62,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 3,
+    "size_cm": [
+      443.2,
+      661.2,
+      205.6
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0017",
+        0.059
+      ],
+      [
+        "part_0021",
+        0.059
+      ]
+    ],
+    "centre_of_mass_m_before": [
+      0.177,
+      0.052,
+      -0.029
+    ],
+    "com_shift_m": [
+      0.0,
+      -0.009296536445617676,
+      -0.1691438853740692
+    ],
+    "pivot": "fixed (pinned to the r3-r5 pivot)",
+    "edge_area_share": 0.0228,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 22
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4049,
+      "overlap_pixels": 62,
+      "overlap_share_of_covered": 0.000146,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_Interceptor",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_Interceptor_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 125.65
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.652
+    },
+    "build_seconds": 243.8
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0732,
+        0.0716,
+        0.0802
+      ],
+      "min": 0.0,
+      "max": 0.4
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.4998,
+        0.999
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0139,
+        0.017
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.4282,
+        0.3417,
+        0.3542
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.627
+      ],
+      "metallic_mean": 0.355
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.081,
+        0.031,
+        0.0169
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0563,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_Interceptor",
+      "message": "143 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 62,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01233
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Interceptor_e2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Interceptor_e2_clay_sheet.png",
+    "ortho_cm_per_px": 1.653,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 6986,
+    "size_cm": [
+      661.2,
+      443.2,
+      205.6
+    ],
+    "collision": [
+      "UCX_SM_Null_Interceptor_00",
+      "UCX_SM_Null_Interceptor_01",
+      "UCX_SM_Null_Interceptor_02"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_Interceptor"
+    ],
+    "textures": [
+      "T_Null_Interceptor_BC.png",
+      "T_Null_Interceptor_E.png",
+      "T_Null_Interceptor_N.png",
+      "T_Null_Interceptor_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

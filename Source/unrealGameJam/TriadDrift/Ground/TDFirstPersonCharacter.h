@@ -7,12 +7,15 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Ground/TDGroundTypes.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TDFirstPersonCharacter.generated.h"
 
 class UCameraComponent;
 class UStaticMeshComponent;
 class UTDHealthComponent;
 class UTDEnergyBladeComponent;
+class UTDThirdPersonCameraComponent;
+class UAnimSequenceBase;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -46,6 +49,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
 	void SetSprintHeld(bool bHeld) { bSprintHeld = bHeld; }
+
+	/** Pad (L3 click): sprint on until the stick is released or eased under SprintToggleMinStick. Shift stays hold. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
+	void ToggleSprint() { bSprintToggled = !bSprintToggled; }
+	bool IsSprintToggled() const { return bSprintToggled; }
+	/** Stick deflection under which a toggled sprint ends. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ground")
+	float SprintToggleMinStick = 0.3f;
 
 	/** Jump from the ground, or double jump once in the air. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ground")
@@ -114,6 +125,44 @@ public:
 	/** First person: head hidden, body pushed back. Other views (director shots, death, boarding): the full body. */
 	void SetBodyFirstPersonView(bool bFirstPerson);
 	bool IsBodyFirstPersonView() const { return bBodyFirstPerson; }
+
+	// ------------------------------------------------------------------ third person (ENG-32)
+	/** Third person (true) or first person: the rig applies it now, or when a director shot / the death cam ends. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
+	void SetThirdPerson(bool bWanted);
+	/** The chase camera is the view (the body is shown whole, the blade is in the hand, facing follows the rule). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	bool IsThirdPersonView() const;
+	UTDThirdPersonCameraComponent* GetThirdPersonRig() const { return ThirdPersonRig; }
+	/** The camera aimed from now: the chase camera in third person, else the first-person one. */
+	UCameraComponent* GetViewCamera() const;
+	/** The hand blade shown in third person (hilt and beam), and how far the beam is out (0 retracted .. 1). */
+	UStaticMeshComponent* GetHandBladeBeam() const { return HandBladeBeam; }
+	UStaticMeshComponent* GetHandBladeHilt() const { return HandBladeHilt; }
+	float GetHandBladeExtend01() const { return HandBladeExtend; }
+	/** Turn rate toward the facing rule's yaw in third person (deg/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Camera", meta = (Units = "deg"))
+	float ThirdPersonTurnRate = 900.f;
+	/** Beam length in the hand (the art is 100 cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm"))
+	float HandBladeLength = 95.f;
+	/** Where the hilt sits on the hand bone when the mesh has no BladeSocket (set by eye on SK_Pilot). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body")
+	FTransform HandBladeOffset;
+	/** The pilot animation that plays for a blade state / move right now (tests, TD.Ground.Bones). */
+	FName GetBodyActionName() const { return BodyActionName; }
+	/**
+	 * Look input shaped by the player's settings (Settings page rows, ENG-32 review): mouse sensitivity and invert Y,
+	 * or for the stick its dead zone (radial, rescaled), sensitivity and invert Y. Returns (yaw, pitch) to add.
+	 */
+	static FVector2D ShapeLook(const FVector2D& Raw, bool bGamepad, const struct FTDPlayerSettings& Settings);
+	/** Base stick turn per frame at full deflection (sensitivity 1). */
+	static constexpr float StickLookScale = 3.f;
+	/** Apply a look input as the player's device would (public for tests and agents). */
+	void ApplyLookInput(const FVector2D& Raw, bool bGamepad);
+
+	/** Eye point and aim: in third person the eye aims at what the crosshair (the chase camera's centre) is on. */
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
 	/** Put back on the last solid ground stood on (magma). Floors tagged TD.Unsafe never count as safe. */
 	void ReturnToSafeGround();
@@ -213,6 +262,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Ground")
 	TObjectPtr<UTDEnergyBladeComponent> Blade;
 
+	/** ENG-32 rig (T3): the chase camera, its collision and the director-safe switch. */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Camera")
+	TObjectPtr<UTDThirdPersonCameraComponent> ThirdPersonRig;
+
+	/** The blade in the body's right hand (third person and every view that shows the whole pilot). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Body")
+	TObjectPtr<UStaticMeshComponent> HandBladeHilt;
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Body")
+	TObjectPtr<UStaticMeshComponent> HandBladeBeam;
+
 private:
 	void UpdateMoveSpeed();
 	void TickDash(float DeltaSeconds);
@@ -227,6 +286,35 @@ private:
 	void HandleBladeRetract(bool bRetracted);
 	void UpdateBladePose(float DeltaSeconds);
 	bool bBladeMeshFromArt = false;
+	// third person
+	UFUNCTION()
+	void HandleCameraModeChanged(ETDOnFootCamera NewMode);
+	void UpdateFacing(float DeltaSeconds);
+	void AttachHandBlade();
+	void ApplyHandBladeVisuals();
+	void UpdateHandBlade(float DeltaSeconds);
+	void UpdateBodyActions();
+	void PlayBodyAction(FName Anim, float Rate = 1.f, bool bUpperOnly = false);
+	UAnimSequenceBase* LoadPilotAnim(FName Anim) const;
+	float HandBladeExtend = 1.f;
+	/** Standing still, the camera went > 60 deg off: keep turning until the body faces it (not just back under 60). */
+	bool bIdleTurnToCamera = false;
+	/** Attacking last frame (third person): a new attack snaps the body to the camera at once. */
+	bool bFacingWasAttacking = false;
+	/** T3's melee framing: a live crewman this close (or the blade attacking / blocking) lifts the chase shoulder. */
+	float CloseCombatRange = 400.f;
+	float CloseCombatScan = 0.f;
+	bool bEnemyClose = false;
+	/** What the pilot last asked the rig for (only changes are sent: a test or the director may set it too). */
+	bool bLastCloseCombat = false;
+	void UpdateCloseCombat(float DeltaSeconds);
+	/** Body, head, blades and turning for the current view (Tick, and at once on a mode change, even paused). */
+	void ApplyViewState();
+	ETDBladeState LastBodyBladeState = ETDBladeState::Idle;
+	bool bLastBodyDashing = false;
+	bool bLastBodySliding = false;
+	bool bLastBodyMantling = false;
+	FName BodyActionName;
 
 	UFUNCTION()
 	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
@@ -256,6 +344,7 @@ protected:
 
 	FVector2D MoveInput = FVector2D::ZeroVector;
 	bool bSprintHeld = false;
+	bool bSprintToggled = false;
 	bool bCarrying = false;
 	FVector LastSafeLocation = FVector::ZeroVector;
 	float SafeSampleTimer = 0.f;
@@ -289,8 +378,13 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<UInputMappingContext> InputContext;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Move;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Look;
+	/** The right stick, apart from the mouse: its own sensitivity, dead zone and invert (the Settings page rows). */
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_LookStick;
+	void OnLookStick(const FInputActionValue& Value);
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Jump;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Sprint;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_SprintToggle;
+	void OnSprintTogglePressed() { ToggleSprint(); }
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Dash;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Crouch;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Attack;

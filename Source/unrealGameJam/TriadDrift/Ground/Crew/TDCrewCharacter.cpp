@@ -23,24 +23,145 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
+#include "TriadDrift/Ground/TDPilotAnim.h"
+#include "AnimationRuntime.h"
 
-// Template mannequin set (Content/Characters/Mannequins): the stand-in for a crew look that has a skeletal mesh but no
-// AnimBP. Cooked through DirectoriesToAlwaysCook (/Game/Characters/Mannequins/Anims).
-const TCHAR* ATDCrewCharacter::FallbackAnimBPFor(ETDCrewType Type)
+// The crew set (Gameplay/Characters/Crew/Anims, retargeted onto SKEL_NullCrew with ACL, Nov 13): what a crew look with a
+// skeletal mesh but no AnimBP plays. Cooked through DirectoriesToAlwaysCook (/Game/TriadDrift/Gameplay/Characters).
+FString ATDCrewCharacter::CrewAnimPath(const TCHAR* TemplatePath)
 {
-	return Type == ETDCrewType::Grunt ? TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed_C")
-		: TEXT("/Game/Variant_Shooter/Anims/ABP_TP_Rifle.ABP_TP_Rifle_C");
+	if (!TemplatePath)
+	{
+		return FString();
+	}
+	const FString Template(TemplatePath);
+	const FString Name = FPackageName::GetShortName(Template.Left(Template.Find(TEXT("."))));
+	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Name);
+	if (!FindPackage(nullptr, *Package) && !FPackageName::DoesPackageExist(Package))
+	{
+		return FString();
+	}
+	return Package + TEXT(".") + Name;
+}
+
+const TCHAR* ATDCrewCharacter::FallbackLoopFor(ETDCrewType Type, int32 Loop)
+{
+	if (Type == ETDCrewType::Grunt)
+	{
+		return Loop == 0 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Idle.MM_Idle")
+			: Loop == 1 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd")
+			: TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Unarmed_Jog_Fwd.MF_Unarmed_Jog_Fwd");
+	}
+	return Loop == 0 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Rifle_Idle_ADS.MF_Rifle_Idle_ADS")
+		: Loop == 1 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Rifle_Walk_Fwd.MF_Rifle_Walk_Fwd")
+		: TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Rifle_Jog_Fwd.MF_Rifle_Jog_Fwd");
+}
+
+bool ATDCrewCharacter::bCollapseGuard = true;
+
+void ATDCrewCharacter::GuardAgainstCollapse(float DeltaSeconds)
+{
+	USkeletalMeshComponent* M = GetMesh();
+	if (bLookPoseFrozen && CollapseRetries < 0 && M) // retries disabled: each one showed the collapse again
+	{
+		// Standing in the reference pose for now: try the animation again (an async compression may have landed).
+		FrozenRetryLeft -= DeltaSeconds;
+		if (FrozenRetryLeft <= 0.f)
+		{
+			bLookPoseFrozen = false;
+			bFallbackAnim = true;
+			CollapseStrikes = 0;
+			M->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+			M->SetAnimInstanceClass(UTDLoopBlendAnimInstance::StaticClass());
+			UpdateFallbackLoop();
+		}
+		return;
+	}
+	if (!bCollapseGuard || !bFallbackAnim || bLookPoseFrozen || RefHeadHeight < 50.f || !M || !M->IsVisible())
+	{
+		return;
+	}
+	CollapseCheckTimer -= DeltaSeconds;
+	// Only a pose that was actually evaluated counts (bones are refreshed when rendered, or always when asked to).
+	const bool bFresh = M->WasRecentlyRendered(0.2f) || M->VisibilityBasedAnimTickOption == EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+	if (CollapseCheckTimer > 0.f || !bFresh || M->GetBoneIndex(TEXT("head")) == INDEX_NONE)
+	{
+		return;
+	}
+	CollapseCheckTimer = 0.25f;
+	const float Feet = (float)(GetActorLocation().Z - GetSimpleCollisionHalfHeight());
+	const float Head = (float)M->GetBoneLocation(TEXT("head")).Z - Feet;
+	CollapseStrikes = Head < RefHeadHeight * 0.35f ? CollapseStrikes + 1 : 0;
+	if (CollapseStrikes >= 2)
+	{
+		bLookPoseFrozen = true;
+		++CollapseRetries;
+		FrozenRetryLeft = 1.f;
+		// No usable animation data for this look: pose it procedurally (C++, from the reference pose).
+		if (UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(M->GetAnimInstance()))
+		{
+			Loops->bProcedural = true;
+			Loops->Current = nullptr;
+			Loops->Previous = nullptr;
+			Loops->Shot = nullptr;
+		}
+		else
+		{
+			bFallbackAnim = false;
+			M->SetAnimInstanceClass(nullptr);
+			M->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+			M->SetAnimation(nullptr);
+		}
+		UE_LOG(LogTriadDrift, Warning, TEXT("Crew look %s collapsed under its animation (head %.0f cm, expected %.0f): procedural pose from now on."),
+			*GetNameSafe(M->GetSkeletalMeshAsset()), Head, RefHeadHeight);
+	}
+}
+
+void ATDCrewCharacter::UpdateFallbackLoop()
+{
+	UTDLoopBlendAnimInstance* Loops = bFallbackAnim && GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr;
+	if (!Loops)
+	{
+		return;
+	}
+	const float Speed = (float)GetVelocity().Size2D();
+	if (Loops->bProcedural)
+	{
+		const float Dt = GetWorld() ? GetWorld()->GetDeltaSeconds() : 0.f;
+		Loops->ProcForwardCS = GetMesh()->GetComponentTransform().InverseTransformVectorNoScale(GetActorForwardVector());
+		Loops->ProcSpeed01 = FMath::FInterpTo(Loops->ProcSpeed01, FMath::Clamp(Speed / 500.f, 0.f, 1.f), Dt, 8.f);
+		Loops->ProcPhase += Dt * (Speed > 40.f ? Speed / 55.f : 2.f); // a stride every ~3.5 m; slow breathing at rest
+		const float Wind = IsTelegraphing() ? 1.f : (IsAttacking() ? -0.4f : 0.f);
+		Loops->ProcAttack = FMath::FInterpTo(Loops->ProcAttack, Wind, Dt, 10.f);
+		Loops->ProcFlinch = FMath::FInterpTo(Loops->ProcFlinch, 0.f, Dt, 6.f);
+		return;
+	}
+	const int32 Want = Speed < 40.f ? 0 : Speed < 300.f ? 1 : 2;
+	const FString Path = CrewAnimPath(Spec.Type, Want);
+	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!Loop && Want != 0)
+	{
+		const FString IdlePath = CrewAnimPath(Spec.Type, 0);
+		Loop = IdlePath.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *IdlePath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	}
+	if (!Loop)
+	{
+		Loops->bProcedural = true; // no crew set on disk: pose it in C++ rather than stand in the T-pose
+		return;
+	}
+	const float Ref = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
+	Loops->SetLoop(Loop, Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f);
 }
 namespace TDCrewAnims
 {
-	static const TCHAR* Melee = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01.MM_Attack_01");
-	static const TCHAR* Slam = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_ChargedAttack.MM_ChargedAttack");
-	static const TCHAR* Fire = TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Fire.MM_Rifle_Fire");
-	static const TCHAR* Hit = TEXT("/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01.MM_HitReact_Front_Lgt_01");
-	static const TCHAR* DeathFront = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01.MM_Death_Front_01");
-	static const TCHAR* DeathBack = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Back_01.MM_Death_Back_01");
-	static const TCHAR* DeathLeft = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Left_01.MM_Death_Left_01");
-	static const TCHAR* DeathRight = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Right_01.MM_Death_Right_01");
+	static const TCHAR* Melee = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Attack_01.MM_Attack_01");
+	static const TCHAR* Slam = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_ChargedAttack.MM_ChargedAttack");
+	static const TCHAR* Fire = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Rifle_Fire.MM_Rifle_Fire");
+	static const TCHAR* Hit = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_HitReact_Front_Lgt_01.MM_HitReact_Front_Lgt_01");
+	static const TCHAR* DeathFront = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Front_01.MM_Death_Front_01");
+	static const TCHAR* DeathBack = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Back_01.MM_Death_Back_01");
+	static const TCHAR* DeathLeft = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Left_01.MM_Death_Left_01");
+	static const TCHAR* DeathRight = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Right_01.MM_Death_Right_01");
 }
 
 namespace TDCrewImpl
@@ -218,14 +339,14 @@ void ATDCrewCharacter::LoadDefaultVisuals()
 {
 	// Core's one loader: quiet when Nick hasn't made the asset yet, cooked in packaged builds.
 	Visuals = FindCrewVisuals(Spec.VisualsId);
-	LookScale = 1.f;
+	// Build: a heavy is bulkier, a grunt slighter, whether the look is their own or borrowed (Lead, 17e0437).
+	LookScale = Spec.Type == ETDCrewType::Heavy ? 1.08f : Spec.Type == ETDCrewType::Grunt ? 0.96f : 1.f;
 	// Until each type has its own look, grunts and heavies wear the trooper's, sized to their build (R-019).
 	if (!Visuals && (Spec.Type == ETDCrewType::Grunt || Spec.Type == ETDCrewType::Heavy))
 	{
 		if (UTDEnemyVisuals* Trooper = FindCrewVisuals(TEXT("Trooper")); Trooper && !Trooper->SkeletalMesh.IsNull())
 		{
 			Visuals = Trooper;
-			LookScale = Spec.Type == ETDCrewType::Heavy ? 1.12f : 0.96f;
 		}
 	}
 }
@@ -319,11 +440,12 @@ void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
 	{
 		return;
 	}
-	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
-	UAnimSequenceBase* Seq = LoadObject<UAnimSequenceBase>(nullptr, AssetPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
-	if (Anim && Seq)
+	UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance());
+	const FString Own = CrewAnimPath(AssetPath);
+	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Own, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (Loops && Seq)
 	{
-		Anim->PlaySlotAnimationAsDynamicMontage(Seq, FName(TEXT("DefaultSlot")), 0.1f, 0.15f, Rate);
+		Loops->PlayOneShot(Seq, Rate);
 	}
 }
 
@@ -355,13 +477,10 @@ void ATDCrewCharacter::ApplyVisuals()
 			bFallbackAnim = false;
 			if (!AnimClass)
 			{
-				// A mesh with no AnimBP would stand frozen in its reference pose: drive it with the template mannequin set.
-				AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBPFor(Spec.Type), nullptr, LOAD_Quiet | LOAD_NoWarn);
-				if (!AnimClass && Spec.Type != ETDCrewType::Grunt)
-				{
-					AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBPFor(ETDCrewType::Grunt), nullptr, LOAD_Quiet | LOAD_NoWarn);
-				}
-				bFallbackAnim = AnimClass != nullptr;
+				// A mesh with no AnimBP would stand frozen in its reference pose: the C++ loop player drives it with the
+				// template mannequin loops (playtest 17e0437: the template ABPs collapsed every bone to the floor).
+				AnimClass = UTDLoopBlendAnimInstance::StaticClass();
+				bFallbackAnim = true;
 			}
 			if (AnimClass)
 			{
@@ -379,6 +498,12 @@ void ATDCrewCharacter::ApplyVisuals()
 			GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -Spec.CapsuleHalfHeight));
 			GetMesh()->SetRelativeRotation(FRotator(0.f, Visuals->SkeletalMeshYaw, 0.f));
 			GetMesh()->SetRelativeScale3D(FVector(LookScale));
+			const FReferenceSkeleton& Ref = SK->GetRefSkeleton();
+			const int32 HeadIndex = Ref.FindBoneIndex(TEXT("head"));
+			RefHeadHeight = HeadIndex != INDEX_NONE ? (float)FAnimationRuntime::GetComponentSpaceTransformRefPose(Ref, HeadIndex).GetLocation().Z * LookScale : 0.f;
+			CollapseStrikes = 0;
+			bLookPoseFrozen = false;
+			UpdateFallbackLoop();
 			Body->SetVisibility(false);
 			Eyes->SetVisibility(false);
 			return;
@@ -450,8 +575,9 @@ void ATDCrewCharacter::UpdateTell()
 	if (!bTellTinted)
 	{
 		// Enemy red-orange (Armada colour code), bright enough to read against the planets' glow.
-		UTDStatics::TintPlaceholder(TellGlow, FLinearColor(1.f, 0.28f, 0.04f), 12.f);
-		UTDStatics::TintPlaceholder(TellLine, FLinearColor(1.f, 0.28f, 0.04f), 8.f);
+		// Pure Armada red-orange, dim enough never to bloom to white or hide the enemy (Lead, 17e0437 playtest).
+		UTDStatics::TintPlaceholder(TellGlow, FLinearColor(1.f, 0.22f, 0.02f), 1.5f);
+		UTDStatics::TintPlaceholder(TellLine, FLinearColor(1.f, 0.22f, 0.02f), 1.2f);
 		bTellTinted = true;
 	}
 	const float Windup = FMath::Max(0.05f, CurrentAttack == ETDCrewAttack::Melee ? Spec.MeleeWindup : CurrentAttack == ETDCrewAttack::ChargeSlam ? Spec.ChargeWindup : Spec.BurstWindup);
@@ -460,7 +586,7 @@ void ATDCrewCharacter::UpdateTell()
 	const FVector Dir = AimAt(Target);
 	const FVector Muzzle = GetMuzzleLocation(Dir);
 	TellGlow->SetWorldLocation(Muzzle);
-	TellGlow->SetWorldScale3D(FVector(FMath::Lerp(0.35f, 0.9f, Alpha)));
+	TellGlow->SetWorldScale3D(FVector(FMath::Lerp(0.1f, 0.25f, Alpha))); // 10 -> 25 cm
 	TellGlow->SetHiddenInGame(false);
 	const bool bRanged = CurrentAttack == ETDCrewAttack::Burst || CurrentAttack == ETDCrewAttack::Shotgun || CurrentAttack == ETDCrewAttack::BoltFan;
 	if (bRanged && Target)
@@ -469,7 +595,7 @@ void ATDCrewCharacter::UpdateTell()
 		const float Len = FMath::Min((float)To.Size(), 4000.f);
 		TellLine->SetWorldLocation(Muzzle + To.GetSafeNormal() * Len * 0.5f);
 		TellLine->SetWorldRotation(To.Rotation());
-		TellLine->SetWorldScale3D(FVector(Len / 100.f, 0.05f, 0.05f));
+		TellLine->SetWorldScale3D(FVector(Len / 100.f, 0.02f, 0.02f)); // 2 cm
 		TellLine->SetHiddenInGame(false);
 	}
 	else
@@ -814,7 +940,14 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 		PlayCrewCue(TEXT("HullHit"), Visuals ? Visuals->HullHit : FTDFXCue(), false, Info.HitLocation);
 		if (!IsDead() && !IsAttacking())
 		{
-			PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
+			if (UTDLoopBlendAnimInstance* Loops = GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr; Loops && Loops->bProcedural)
+			{
+				Loops->ProcFlinch = 1.f;
+			}
+			if (Spec.Type != ETDCrewType::Grunt) // the hit react holds a rifle: wrong on an unarmed grunt
+			{
+				PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
+			}
 		}
 	}
 	if (Spec.Type == ETDCrewType::Warden && BossPhase == 1 && !IsDead() && Health->GetHull01() <= Spec.Phase2HealthFraction)
@@ -879,10 +1012,20 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 
 	// Ragdoll: the skeletal mesh if Nick's art has a physics asset, otherwise the placeholder block tumbles.
 	const FVector Push = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection.GetSafeNormal()) * 450.f + FVector(0.f, 0.f, 250.f);
-	UAnimSequenceBase* DeathAnim = bFallbackAnim ? LoadObject<UAnimSequenceBase>(nullptr, FallbackDeathAnim(KillingBlow.HitDirection), nullptr, LOAD_Quiet | LOAD_NoWarn) : nullptr;
+	const FString DeathPath = bFallbackAnim ? CrewAnimPath(FallbackDeathAnim(KillingBlow.HitDirection)) : FString();
+	UAnimSequenceBase* DeathAnim = DeathPath.IsEmpty() ? nullptr : TDMakePlayable(LoadObject<UAnimSequenceBase>(nullptr, *DeathPath, nullptr, LOAD_Quiet | LOAD_NoWarn));
 	if (GetMesh()->IsVisible() && DeathAnim)
 	{
 		GetMesh()->PlayAnimation(DeathAnim, false); // falls the way the killing shot came from, then holds
+	}
+	else if (GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset())
+	{
+		// No death animation for this look yet: topple over about the feet, away from the killing shot.
+		const FVector Away = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection).GetSafeNormal2D();
+		ToppleAxis = FVector::CrossProduct(FVector::UpVector, Away).GetSafeNormal();
+		ToppleStart = GetMesh()->GetComponentQuat();
+		ToppleAlpha = 0.f;
+		bToppling = !ToppleAxis.IsNearlyZero();
 	}
 	else if (GetMesh()->IsVisible() && GetMesh()->GetPhysicsAsset())
 	{
@@ -904,11 +1047,33 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 
 // ------------------------------------------------------------------------------------------------
 
+void ATDCrewCharacter::TickTopple(float DeltaSeconds)
+{
+	if (!bToppling || !GetMesh())
+	{
+		return;
+	}
+	ToppleAlpha = FMath::Min(1.f, ToppleAlpha + DeltaSeconds / 0.6f);
+	const float Ease = ToppleAlpha * ToppleAlpha; // a body falls: slow, then fast
+	const FQuat Fall(ToppleAxis, FMath::DegreesToRadians(85.f * Ease));
+	GetMesh()->SetWorldRotation(Fall * ToppleStart); // the mesh's origin is its feet: it pivots there
+	if (ToppleAlpha >= 1.f)
+	{
+		bToppling = false;
+	}
+}
+
 void ATDCrewCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickTopple(DeltaSeconds);
 	OpeningGraceLeft = FMath::Max(0.f, OpeningGraceLeft - DeltaSeconds);
 	UpdateTell();
+	if (!IsDead())
+	{
+		UpdateFallbackLoop();
+		GuardAgainstCollapse(DeltaSeconds);
+	}
 	if (DeltaSeconds <= 0.f || IsDead())
 	{
 		return;

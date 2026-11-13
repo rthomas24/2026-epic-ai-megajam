@@ -48,6 +48,35 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 * they grow at most OnFootMaxGrowth with distance and get no incoming boost.
 	 */
 	static FTDStreakLook ComputeOnFootStreak(const FTDProjectileSpec& Spec);
+
+	/**
+	 * Squad shots in space ("bright weapon trails"): seen from the chase camera a shot flies away end-on, so a short
+	 * streak reads as a dot. Light shots become long tracers, SquadTracerSeconds of flight (up to MaxSquadTracerCm), that
+	 * grow out of the muzzle as they fly (never reaching back past the ship or the camera) and carry a near-white tip so
+	 * they never vanish against a sky of their own colour. The squad's heavy shots keep their length with a smaller
+	 * head (stacked 1.8x heads made a pale ball over the reticle).
+	 */
+	static FTDStreakLook ComputeSquadStreak(const FTDProjectileSpec& Spec);
+	static constexpr float SquadTracerSeconds = 0.04f;
+	static constexpr float MaxSquadTracerCm = 2500.f;
+	/** The part of a streak drawn so far: the distance flown, between the thickness and the full length. */
+	static float VisibleLength(const FTDStreakLook& Look, float FlownCm) { return FMath::Clamp(FlownCm, Look.Thickness, FMath::Max(Look.Length, Look.Thickness)); }
+	/** The near-white tracer tip: a fifth of the visible streak, 1.5x the thickness to 400 cm. */
+	static float TipLength(const FTDStreakLook& Look, float Visible) { return FMath::Clamp(Visible * 0.2f, Look.Thickness * 1.5f, 400.f); }
+	static constexpr float TipWhite = 0.45f;
+	static constexpr float TipThickness = 0.85f;
+
+	/** Muzzle, impact and explosion flashes keep at least this radius per cm of camera distance (~20 px at 300 m, 1080p). */
+	static constexpr float MinFlashRadiusPerCameraDistance = 0.007f;
+
+	/**
+	 * A projectile head (missiles, heavy shells, incoming hostile fire) is never wider than this fraction of its distance to
+	 * the camera (~50 px at 1080p): live in a wave-5 furball an incoming bolt passing a few metres from the camera drew its
+	 * 2.2x head as a pale ball over the player's ship.
+	 */
+	static constexpr float MaxHeadPerCameraDistance = 0.045f;
+	/** Enemy heads in space: pure Armada colour at this glow (x StreakGlow), not pushed toward white. */
+	static constexpr float EnemyHeadGlow = 0.7f;
 	static constexpr float MinOnFootStreakPixels = 5.f;
 	/** Live on Cinder, glow 3 tonemapped to (255, 231, 225), a pale pink-white dot; the lit floor is about 0.18. 1.2 stays
 	 *  saturated red-orange and still stands well clear of the ground. */
@@ -113,9 +142,31 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 };
 
 /**
- * A short glowing sphere that swells and fades: the muzzle / impact flash placeholder. Pooled by
- * UTDProjectileSubsystem::PlayPlaceholderFlash; never spawn it directly. The engine sphere is hard-referenced by the
- * class default object; the glow is Core's always-cooked M_TD_PlaceholderGlow.
+ * A styled flash (explosion parts): drawn with the additive M_TD_FlashGlow (soft-edged, fades to transparent) when the
+ * project has it, its colour running Hot -> Mid -> Cool over its life (40% / 60%) and its glow falling off, or rising
+ * and falling for an ember afterglow. Size eases out from GrowFrom to GrowTo x the radius. Delay hides it first.
+ */
+struct FTDFlashLook
+{
+	FLinearColor Hot = FLinearColor::White;
+	FLinearColor Mid = FLinearColor(1.f, 0.6f, 0.15f);
+	FLinearColor Cool = FLinearColor(0.5f, 0.05f, 0.02f);
+	float Glow = 8.f;
+	/** Glow x (1 - t)^GlowExponent (ignored for an ember). */
+	float GlowExponent = 1.5f;
+	/** Glow x sin(pi t): an afterglow that swells in and dies away. */
+	bool bEmber = false;
+	float GrowFrom = 0.4f;
+	float GrowTo = 1.f;
+	float Delay = 0.f;
+	/** M_TD_FlashGlow edge falloff (higher = softer edge, smaller bright centre). */
+	float EdgePower = 1.5f;
+};
+
+/**
+ * A short glowing sphere that swells and fades: the muzzle / impact flash placeholder, and the parts of a placeholder
+ * explosion (PlayLook). Pooled by UTDProjectileSubsystem; never spawn it directly. The engine sphere is hard-referenced
+ * by the class default object; the glows are M_TD_PlaceholderGlow (Core) and M_TD_FlashGlow, both always cooked.
  */
 UCLASS(NotBlueprintable)
 class UNREALGAMEJAM_API ATDCombatFlash : public AActor
@@ -128,6 +179,37 @@ public:
 	void Play(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds, USceneComponent* AttachTo);
 	/** A debris streak: flies at Velocity, stretched along it (Length x Thickness), shrinking as it fades. */
 	void PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& Color, float Seconds);
+	/** A styled sphere (explosion core, shell, pop, ember). */
+	void PlayLook(const FVector& Location, float Radius, float Seconds, const FTDFlashLook& Look);
+	/** A styled debris spark. */
+	void PlayDebrisLook(const FVector& Location, const FVector& Velocity, float Length, float Thickness, float Seconds, const FTDFlashLook& Look);
+	/** The additive soft glow (/Game/TriadDrift/Gameplay/Materials/M_TD_FlashGlow, always cooked), or null if missing. */
+	static UMaterialInterface* GetFlashGlowMaterial();
+	bool IsStyled() const { return bStyled; }
+	bool IsDelayed() const { return bPlaying && DelayLeft > 0.f; }
+	/** Emissive written last (tests). */
+	FLinearColor GetLastColor() const { return LastColor; }
+	bool UsesAdditiveGlow() const { return bStyled && AdditiveMID && Mesh->GetMaterial(0) == AdditiveMID; }
+	/** A flash sphere's radius never exceeds this fraction of its distance to the player's camera (default cap). */
+	static constexpr float MaxRadiusPerCameraDistance = 0.3f;
+	/**
+	 * Explosion shells: radius at most this fraction of the camera distance, about 25% of the screen height at 16:9 and
+	 * 90 degrees horizontal FOV (tan(7.3 deg)). The Lead: a near death must not fill more than ~25% of the screen height.
+	 */
+	static constexpr float MaxShellRadiusPerCameraDistance = 0.128f;
+	/** Debris streaks near the camera: thickness and length at most these fractions of the camera distance. */
+	static constexpr float MaxDebrisThicknessPerCameraDistance = 0.02f;
+	static constexpr float MaxDebrisLengthPerCameraDistance = 0.25f;
+	/** This play's camera cap (Play resets it to MaxRadiusPerCameraDistance). */
+	void SetCameraCap(float RadiusPerCameraDistance)
+	{
+		CameraCap = FMath::Max(RadiusPerCameraDistance, 0.01f);
+		if (bPlaying)
+		{
+			Apply(FMath::Clamp(Age / Life, 0.f, 1.f)); // at once, also for a delayed part still waiting its turn
+		}
+	}
+	float GetCameraCap() const { return CameraCap; }
 	bool IsPlaying() const { return bPlaying; }
 	float GetRadius() const { return Radius; }
 	void Stop();
@@ -149,7 +231,17 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> MID;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> AdditiveMID;
+
+	void UseStyledMaterial();
+	bool bStyled = false;
+	FTDFlashLook StyledLook;
+	float DelayLeft = 0.f;
+	FLinearColor LastColor = FLinearColor::Black;
+
 	FLinearColor Color = FLinearColor::White;
+	float CameraCap = MaxRadiusPerCameraDistance;
 	FVector DebrisVelocity = FVector::ZeroVector;
 	float DebrisLength = 0.f;
 	bool bDebris = false;

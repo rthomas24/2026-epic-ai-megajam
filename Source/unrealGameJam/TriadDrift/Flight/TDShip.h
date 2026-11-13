@@ -36,7 +36,7 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	float RotationLag = 8.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
-	float LocationLag = 12.f;
+	float LocationLag = 18.f; // flight-feel pass Nov 13 (was 12): see docs/eng/flight.md
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "5", ClampMax = "170"))
 	float MinFOV = 90.f;
@@ -59,9 +59,28 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float LookAheadResponse = 5.f;
 
+	/** Share of LookAheadAngle used for pitch. Leading a pull-up drops the ship down the screen into the HUD band
+	 *  (the flight-feel pass measured the ship's centre at 72% of screen height in a 120 deg/s loop at full lead). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float LookAheadPitchScale = 0.2f;
+
+	/** While drifting above cruise speed the camera's yaw follows the ship's velocity by this fraction of the slip
+	 *  angle, so a sliding spin keeps the ship on screen. The reticle and the shots stay together (both use this
+	 *  camera); the nose keeps the rest of the slip, so you still fly one way and shoot another. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float DriftYawFollow = 0.4f;
+
+	/** Ease in at drift start and out at release (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float DriftBlendSeconds = 0.3f;
+
+	/** The drift camera works above this fraction of cruise speed (1 = only above cruise). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float DriftMinSpeedFraction = 1.f;
+
 	/** Max distance the location lag may trail the ship (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
-	float LagMaxDistance = 1800.f;
+	float LagMaxDistance = 1000.f;
 
 	/** Above this |forward.Z| the camera holds its reference "up" instead of tracking world up (loops). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
@@ -154,6 +173,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Ship")
 	bool IsPlayerFlown() const { return bPlayerControlled; }
 
+	/** World position of the engine exhaust (art socket / Engine part, else the rear of the hull or the placeholder glow). */
+	FVector GetEngineExhaustLocation() const;
+
+	/** Every exhaust: the art's Engine_0..Engine_3 sockets when it has them, else the single exhaust above. */
+	void GetEngineExhaustLocations(TArray<FVector>& Out) const;
+
+	/** Engines are lit (alive, not parked or hidden, not landed with engines off). */
+	bool AreEnginesRunning() const { return ShouldEnginesRun(); }
+
 	/**
 	 * True while the player must not switch away from this ship: hyperdrive spooling / jumping /
 	 * dropping out, a landing or take-off in progress, landed (on foot), or atmospheric entry.
@@ -231,6 +259,9 @@ public:
 	/** Camera roll relative to its reference up (deg): RollFollow x the ship's bank, folded past 90 deg. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	float GetCameraRoll() const { return CameraRoll; }
+
+	/** How far the drift camera blend is in (0 none .. 1 full DriftYawFollow), before easing. */
+	float GetDriftCameraBlend() const { return DriftCamBlend; }
 
 	const FTDChaseCameraTuning& GetCameraTuning() const { return CameraTuning; }
 
@@ -342,5 +373,6 @@ private:
 	FVector CameraRefUp = FVector::ZeroVector;
 	FQuat ChaseTargetQuat = FQuat::Identity;
 	float CameraRoll = 0.f;
+	float DriftCamBlend = 0.f;
 	FVector2D LookAhead = FVector2D::ZeroVector;
 };

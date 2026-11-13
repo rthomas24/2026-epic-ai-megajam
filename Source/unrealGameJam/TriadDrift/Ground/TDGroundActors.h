@@ -23,6 +23,24 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnEncounterCleared, AActor*, Enco
 
 // ================================================================================================
 /** Tap or hold to use (console, relay node, charge site). Can complete a step of an objective. */
+/**
+ * Art for the code-built shapes (Ryan: no basic shapes visible). Every shape keeps its footprint and its collision;
+ * when its art mesh exists (Gameplay/Props/Planet/<Name>, or a slot set per spawn) the art is shown in its place,
+ * fitted to the shape's exact box, with no collision, and follows the shape's visibility switches.
+ */
+namespace TDPropArt
+{
+	/** /Game/TriadDrift/Gameplay/Props/Planet/<Name>.<Name> */
+	UNREALGAMEJAM_API TSoftObjectPtr<UStaticMesh> Default(const TCHAR* Name);
+	/** The slot's mesh if its package exists (quiet when it doesn't yet). */
+	UNREALGAMEJAM_API UStaticMesh* Load(const TSoftObjectPtr<UStaticMesh>& Slot);
+	/** Show Art in Shape's place; Shape is hidden in game but keeps its collision and visibility switches reach the art.
+	 *  Fitted (default): the art is stretched to the shape's exact box (turned 90 deg when its long horizontal axis
+	 *  runs the other way). Placed: true scale, its bottom-centre on the shape's bottom-centre (combined pieces such as
+	 *  the trailhead or the jammer tower that cover several shapes). */
+	UNREALGAMEJAM_API UStaticMeshComponent* Dress(UStaticMeshComponent* Shape, UStaticMesh* Art, bool bFit = true);
+}
+
 UCLASS()
 class UNREALGAMEJAM_API ATDInteractableActor : public AActor, public ITDInteractable
 {
@@ -77,6 +95,17 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Interact")
 	TObjectPtr<UStaticMeshComponent> Mesh;
 
+	/**
+	 * Invisible column on the console's top (pawns only), taller than any jump: nobody perches on a console out of every
+	 * melee crewman's reach (Lead, Nov 13). Covers the whole top at any console size.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Interact")
+	TObjectPtr<UStaticMeshComponent> TopCap;
+
+	/** Art in place of the cube (fitted to its box; the cube stays the collision and the interact target). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art")
+	TSoftObjectPtr<UStaticMesh> ConsoleMesh;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -113,6 +142,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Door")
 	TObjectPtr<UStaticMeshComponent> Mesh;
+
+	/** Art for the door leaf (fitted to its box; the box stays the collision and slides as before). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art")
+	TSoftObjectPtr<UStaticMesh> DoorMesh;
 
 protected:
 	virtual void BeginPlay() override;

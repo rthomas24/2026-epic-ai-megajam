@@ -1,6 +1,8 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDDominion.h"
 
+#include "Misc/PackageName.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
@@ -16,6 +18,7 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
@@ -69,6 +72,21 @@ ATDDominion::ATDDominion()
 
 	// Placeholder hull: one long slab, a bridge tower and two trench walls (engine cubes are 100 cm).
 	HullMesh = TDDominion_MakePart(this, Root, TEXT("Hull"), CubeMesh, true);
+	{
+		static ConstructorHelpers::FObjectFinder<UStaticMesh> DetailSphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+		auto MakeDetail = [this](const TCHAR* Name, UStaticMesh* Mesh)
+		{
+			UInstancedStaticMeshComponent* D = CreateDefaultSubobject<UInstancedStaticMeshComponent>(Name);
+			D->SetupAttachment(Root);
+			D->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			D->SetGenerateOverlapEvents(false);
+			D->SetCastShadow(false);
+			D->SetStaticMesh(Mesh);
+			return D;
+		};
+		HullSeams = MakeDetail(TEXT("HullSeams"), CubeMesh);
+		HullEyes = MakeDetail(TEXT("HullEyes"), DetailSphere.Succeeded() ? DetailSphere.Object : nullptr);
+	}
 	BridgeMesh = TDDominion_MakePart(this, Root, TEXT("Bridge"), CubeMesh, true);
 	TrenchWallLeft = TDDominion_MakePart(this, Root, TEXT("TrenchWallL"), CubeMesh, true);
 	TrenchWallRight = TDDominion_MakePart(this, Root, TEXT("TrenchWallR"), CubeMesh, true);
@@ -148,6 +166,175 @@ void ATDDominion::OnConstruction(const FTransform& Transform)
 	LayoutParts();	// a placed Dominion shows its real shape in the editor
 }
 
+void ATDDominion::BuildHullDetail(bool bShow)
+{
+	if (!HullSeams || !HullEyes) { return; }
+	HullSeams->ClearInstances();
+	HullEyes->ClearInstances();
+	HullSeams->SetVisibility(bShow);
+	HullEyes->SetVisibility(bShow);
+	if (!bShow) { return; }
+	const FVector E = HullExtent;
+	const float Line = 60.f;	// seam thickness (cm)
+	// Long seams down both flanks at two heights, and across the top every 6000 cm: a panel grid.
+	for (const float Side : { -1.f, 1.f })
+	{
+		for (const float Zf : { -0.35f, 0.35f })
+		{
+			HullSeams->AddInstance(FTransform(FRotator::ZeroRotator, FVector(0.f, Side * (E.Y + Line * 0.5f), E.Z * Zf),
+				FVector(E.X * 2.f, Line, Line) / 100.f));
+		}
+	}
+	for (float X = -E.X + 3000.f; X < E.X; X += 6000.f)
+	{
+		HullSeams->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, 0.f, E.Z + Line * 0.5f), FVector(Line, E.Y * 2.f, Line) / 100.f));
+		for (const float Side : { -1.f, 1.f })
+		{
+			HullSeams->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (E.Y + Line * 0.5f), 0.f), FVector(Line, Line, E.Z * 2.f) / 100.f));
+		}
+	}
+	// White eye lights along both flanks, a row just under the top edge.
+	for (float X = -E.X + 2500.f; X < E.X; X += 5000.f)
+	{
+		for (const float Side : { -1.f, 1.f })
+		{
+			HullEyes->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (E.Y + 150.f), E.Z * 0.6f), FVector(3.f)));
+		}
+	}
+	UTDStatics::TintPlaceholder(HullSeams, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
+	UTDStatics::TintPlaceholder(HullEyes, FLinearColor::White, 12.f);
+}
+
+bool ATDDominion::SetShowcase(bool bShow, const FTransform* Override)
+{
+	if (!bShow)
+	{
+		if (!bShowcase) { return true; }
+		for (const TPair<TWeakObjectPtr<UPrimitiveComponent>, bool>& P : ShowcaseComponentVisibility)
+		{
+			if (P.Key.IsValid()) { P.Key->SetVisibility(P.Value); }
+		}
+		for (const TPair<TWeakObjectPtr<AActor>, bool>& P : ShowcaseActorHidden)
+		{
+			if (P.Key.IsValid()) { P.Key->SetActorHiddenInGame(P.Value); }
+		}
+		ShowcaseComponentVisibility.Reset();
+		ShowcaseActorHidden.Reset();
+		bShowcase = false;
+		SetActorTransform(ShowcasePrevTransform, false, nullptr, ETeleportType::TeleportPhysics);
+		SetActorHiddenInGame(bShowcasePrevHidden);
+		SetActorEnableCollision(bShowcasePrevCollision);
+		return true;
+	}
+	if (State != ETDDominionState::Hidden && State != ETDDominionState::Finished)
+	{
+		return false;	// the assault owns the ship
+	}
+	if (!bShowcase)
+	{
+		bShowcase = true;
+		ShowcasePrevTransform = GetActorTransform();
+		bShowcasePrevHidden = IsHidden();
+		bShowcasePrevCollision = GetActorEnableCollision();
+		// Only the silhouette: everything else on the actor and every attached part actor goes dark.
+		const TSet<const UPrimitiveComponent*> Keep = { HullMesh.Get(), BridgeMesh.Get(), TrenchWallLeft.Get(), TrenchWallRight.Get(), HullSeams.Get(), HullEyes.Get() };
+		TInlineComponentArray<UPrimitiveComponent*> Prims(this);
+		for (UPrimitiveComponent* P : Prims)
+		{
+			if (P && !Keep.Contains(P))
+			{
+				ShowcaseComponentVisibility.Emplace(P, P->GetVisibleFlag());
+				P->SetVisibility(false);
+			}
+		}
+		TArray<AActor*> Attached;
+		GetAttachedActors(Attached, true, true);
+		for (AActor* A : Attached)
+		{
+			if (A)
+			{
+				ShowcaseActorHidden.Emplace(A, A->IsHidden());
+				A->SetActorHiddenInGame(true);
+			}
+		}
+	}
+	if (Override)
+	{
+		SetActorTransform(*Override, false, nullptr, ETeleportType::TeleportPhysics);
+	}
+	SetActorEnableCollision(false);
+	SetActorHiddenInGame(false);
+	return true;
+}
+
+FBox ATDDominion::GetLocalHullBounds() const
+{
+	FBox Box(ForceInit);
+	const FTransform Xf = GetActorTransform();
+	for (const UStaticMeshComponent* C : { HullMesh.Get(), BridgeMesh.Get(), TrenchWallLeft.Get(), TrenchWallRight.Get() })
+	{
+		if (!C || !C->GetStaticMesh()) { continue; }
+		// The mesh's own box in the Dominion's frame (world-axis bounds would grow with the Dominion's yaw).
+		Box += C->GetStaticMesh()->GetBoundingBox().TransformBy(C->GetComponentTransform().GetRelativeTransform(Xf));
+	}
+	if (!Box.IsValid) { Box = FBox(-HullExtent, HullExtent); }
+	return Box;
+}
+
+FTransform ATDDominion::GetStageStart(bool bTrench) const
+{
+	const FTransform D = GetActorTransform();
+	const FBox B = GetLocalHullBounds();
+	if (bTrench)
+	{
+		// Off the real bow on the trench line, facing aft: the reactor is straight ahead.
+		const FVector Loc = D.TransformPosition(FVector(B.Max.X + 20000.f, 0.f, HullExtent.Z + 1500.f));
+		return FTransform((-D.GetUnitAxis(EAxis::X)).Rotation(), Loc);
+	}
+	// Front-right and a little above, 2.5 hull radii out: the hull fills a good part of the frame and there are ~7 s
+	// at cruise before anything solid (the old 2.4 x HullExtent.X put the r8 art hull ~5 s away).
+	const float Radius = FMath::Max(B.GetExtent().Size(), HullExtent.Size());
+	const float Dist = FMath::Max(ShieldRadius * 2.f, Radius * 2.5f);
+	const FVector Loc = D.TransformPosition(FVector(0.75f, 0.6f, 0.25f).GetSafeNormal() * Dist);
+	return FTransform((D.GetLocation() - Loc).Rotation(), Loc);
+}
+
+void ATDDominion::TickPlaceholderBreakup(float DeltaSeconds)
+{
+	UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this);
+	if (!Booms) { return; }
+	const FBox B = GetLocalHullBounds();
+	const FTransform Xf = GetActorTransform();
+	const float FinalAt = FMath::Max(1.f, BreakupSeconds - 1.5f);
+	if (!bBreakupFinalBlast)
+	{
+		// Explosions walk from the reactor outward, faster and bigger as the breakup builds.
+		BreakupBoomTimer -= DeltaSeconds;
+		if (BreakupBoomTimer <= 0.f && StateTime < FinalAt)
+		{
+			const float T = FMath::Clamp(StateTime / FinalAt, 0.f, 1.f);
+			BreakupBoomTimer = FMath::Lerp(0.45f, 0.12f, T);
+			FRandomStream R(7919 + BreakupBooms * 31);
+			const FVector Local(R.FRandRange(B.Min.X, B.Max.X), R.FRandRange(B.Min.Y, B.Max.Y) * 0.8f, R.FRandRange(B.Min.Z, B.Max.Z) * 0.8f);
+			const FLinearColor Col = R.FRand() < 0.5f ? FLinearColor(1.f, 0.45f, 0.1f) : FLinearColor(1.f, 0.8f, 0.4f);
+			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(Local), FMath::Lerp(2500.f, 7000.f, T) * R.FRandRange(0.7f, 1.2f), Col, 10);
+			++BreakupBooms;
+		}
+		if (StateTime >= FinalAt)
+		{
+			bBreakupFinalBlast = true;
+			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(B.GetCenter()), B.GetExtent().Size() * 1.2f, FLinearColor(1.f, 0.85f, 0.6f), 16);
+			if (Reactor) { Reactor->SetActorHiddenInGame(true); }
+			ShowHull(false);	// the ship is gone in the flash
+		}
+	}
+}
+
+FVector ATDDominion::GetHangarLocation() const
+{
+	return HangarPoint ? HangarPoint->GetComponentLocation() : GetActorLocation();
+}
+
 void ATDDominion::LayoutParts()
 {
 	// Lay the placeholder out from HullExtent so tuning the size keeps everything consistent.
@@ -169,8 +356,13 @@ void ATDDominion::LayoutParts()
 	}
 	HangarPoint->SetRelativeLocation(FVector(E.X + 3000.f, 0.f, -E.Z * 0.4f));
 
-	// Black armour with red trim, glowing shield emitters (Null Armada colour code).
-	UTDStatics::TintPlaceholder(HullMesh, FLinearColor(0.05f, 0.04f, 0.045f), 0.f);
+	// Dark armour #1a1b1e (linear ~0.010/0.011/0.013) with red-orange seams and white eye lights; the builder's panel
+	// material replaces the flat tint when it exists.
+	UMaterialInterface* Panel = (!HullMaterial.IsNull() && FPackageName::DoesPackageExist(HullMaterial.ToSoftObjectPath().GetLongPackageName()))
+		? HullMaterial.LoadSynchronous() : nullptr;
+	if (Panel) { HullMesh->SetMaterial(0, Panel); }
+	else { UTDStatics::TintPlaceholder(HullMesh, FLinearColor(0.0103f, 0.0109f, 0.0129f), 0.f); }
+	BuildHullDetail(true);
 	UTDStatics::TintPlaceholder(BridgeMesh, FLinearColor(0.35f, 0.04f, 0.03f), 0.f);
 	UTDStatics::TintPlaceholder(TrenchWallLeft, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
 	UTDStatics::TintPlaceholder(TrenchWallRight, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
@@ -184,7 +376,11 @@ void ATDDominion::LayoutParts()
 		{
 			HullMesh->SetStaticMesh(Custom);
 			HullMesh->SetRelativeScale3D(FVector::OneVector);
+			// The art hull keeps its authored slots: the placeholder's panel material / tint on slot 0 would otherwise
+			// survive the mesh swap (art audit 5: the stern blocks rendered flat grey with the panel material).
+			HullMesh->EmptyOverrideMaterials();
 			BridgeMesh->SetVisibility(false);
+			BuildHullDetail(false);	// the hull mesh brings its own detail
 		}
 	}
 
@@ -244,6 +440,10 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ATDDominion::SetState(ETDDominionState NewState)
 {
+	if (bShowcase && NewState != State)
+	{
+		SetShowcase(false);	// the real Dominion takes over (reveal, retake, victory)
+	}
 	StateTime = 0.f;
 	if (State != NewState)
 	{
@@ -466,12 +666,12 @@ void ATDDominion::BuildParts()
 	{
 		ATDEnemyTurret* T = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!T) { return; }
+		T->Visuals = TurretVisuals;	// before Init: Init applies the art (BeginPlay already ran in SpawnActor)
 		T->AttachToActor(this, Attach);
 		T->SetActorRelativeLocation(Local);
 		const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
 		T->Init(TurretGuns, TurretHull * Difficulty.EnemyHull);
 		T->SetDamageMultiplier(Difficulty.EnemyDamage);
-		T->Visuals = TurretVisuals;
 		T->SetActorScale3D(FVector(4.f));
 		Into.Add(T);
 	};
@@ -806,6 +1006,11 @@ void ATDDominion::HandleReactorDestroyed(ATDDominionReactor* InReactor, AActor* 
 	{
 		UTDStatics::PlayCue(this, Visuals->BreakupSequence, GetActorLocation(), GetActorRotation());
 	}
+	// No breakup art yet: a placeholder chain of explosions walks the hull, then one big blast and the hull is gone.
+	bPlaceholderBreakup = !Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->BreakupSequence);
+	BreakupBoomTimer = 0.f;
+	BreakupBooms = 0;
+	bBreakupFinalBlast = false;
 	OnBreakupStarted.Broadcast(this, State);
 }
 
@@ -862,6 +1067,7 @@ void ATDDominion::Tick(float DeltaSeconds)
 		break;
 
 	case ETDDominionState::Breakup:
+		if (bPlaceholderBreakup) { TickPlaceholderBreakup(DeltaSeconds); }
 		if (StateTime >= BreakupSeconds)
 		{
 			SetState(ETDDominionState::Finished);

@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TDGalaxyLayout.generated.h"
 
 class UInstancedStaticMeshComponent;
@@ -28,6 +29,12 @@ struct UNREALGAMEJAM_API FTDAsteroidFieldSpec
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") int32 Seed = 1;
 	/** Keep this radius around the centre clear (a dogfighting pocket). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") float ClearRadius = 0.f;
+	/** Rock families (space dressing kit), as shares of the field; the rest are the classic rocks. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "0", ClampMax = "1")) float IceShare = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "0", ClampMax = "1")) float MetalShare = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "0", ClampMax = "1")) float CrystalShare = 0.f;
+	/** Crystal rocks are teal (Verdance side) instead of violet (Cinder side). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") bool bTealCrystal = false;
 };
 
 /** A box of station ruin used as cover. */
@@ -56,8 +63,8 @@ struct UNREALGAMEJAM_API FTDPlanetSpec
 	/** Return point used when coming back from the planet (also registered as a named return point). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FName ReturnPoint = NAME_None;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FLinearColor Color = FLinearColor(0.1f, 0.9f, 0.5f);
-	/** Optional planet mesh, normalised to a 100 cm bounding sphere (like the asteroids); scaled to PlanetRadius. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") TSoftObjectPtr<UStaticMesh> PlanetMesh;
+	/** The planet's look (surface / atmosphere / ring); defaults point at the engineering planet props. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout") FTDPlanetLook Look;
 };
 
 USTRUCT(BlueprintType)
@@ -173,6 +180,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
 	bool bBuildOnBeginPlay = true;
 
+	/** Spawn the engineering nebula sky (SM_TD_SkySphere) when its art exists; Nick's TD.Presentation.Sky wins. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
+	bool bSpawnSky = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
 	bool bSpawnDominion = true;
 
@@ -204,9 +215,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
 	TSoftObjectPtr<UStaticMesh> RuinModuleMesh;
 
-	/** Optional art mesh for each gate frame. */
+	/** Optional art mesh for each gate frame: one ring (inner diameter ATDPortalGate::FrameMeshInnerDiameter at
+	 *  scale 1). Defaults to the engineering ring; missing = the four placeholder bars. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
-	TSoftObjectPtr<UStaticMesh> GateFrameMesh;
+	TSoftObjectPtr<UStaticMesh> GateFrameMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/SpaceDressing/SM_GateRing_01.SM_GateRing_01")));
 
 	/** No asteroid within this distance of a gate, return point or the player start (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
@@ -265,10 +277,62 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
 	TArray<TObjectPtr<UInstancedStaticMeshComponent>> DebrisLooks;
 
+	/** Parallel to AsteroidLooks: the family (0 classic, 1 ice, 2 metal, 3 violet crystal, 4 teal crystal) and the
+	 *  scale that makes the mesh's bounding sphere 100 cm across (the dressing kit is real-scale). */
+	TArray<uint8> AsteroidLookFamily;
+	TArray<float> AsteroidLookNorm;
+
+	/** Space dressing kit (visual only, no collision): ruin art over the hidden ruin collision boxes (girder truss,
+	 *  hub, hull panel), debris clusters around the ruins, and sparse landmarks along the routes (satellites in high
+	 *  orbit, cargo pod clusters on the lanes, beacon buoys lining the gate approaches). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> RuinArtLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> DebrisClusterLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> SatelliteLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> CargoLooks;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> BuoyLooks;
+
+	/** Small visual-only rocks lining the travel lanes (a hollow tube: the lane itself stays open). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Galaxy")
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> LaneRockLooks;
+
+	void BuildDressing();
+	int32 PickRockLook(const FTDAsteroidFieldSpec& F, FRandomStream& Rng) const;
+	bool UsesRuinArt() const;
+
 public:
 	/** Debris pieces per asteroid field, as a fraction of its asteroid count. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
 	float DebrisPerAsteroid = 0.8f;
+
+	/** Visual-only rocks per lane (zone to each planet, gate and the Dominion). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
+	int32 LaneRocksPerLane = 70;
+
+	/** The lane itself stays open within this distance of its centre line (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy", meta = (ClampMin = "0"))
+	float LaneClearRadius = 9000.f;
+
+	/** Space dressing on/off (landmarks, ruin art, debris clusters, rock families). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Galaxy")
+	bool bSpaceDressing = true;
+
+	/** Turn the landmarks, lane rocks and ruin art on or off at runtime (dev captures: TD.World.Dressing). */
+	void SetSpaceDressing(bool bOn) { bSpaceDressing = bOn; BuildDressing(); }
+
+	/** Every space-dressing component (tests: visual only, no collision). */
+	TArray<UInstancedStaticMeshComponent*> GetDressingComponents() const;
+	/** The family of each asteroid look (see AsteroidLookFamily) and its normalising scale. */
+	const TArray<uint8>& GetAsteroidLookFamilies() const { return AsteroidLookFamily; }
+	const TArray<float>& GetAsteroidLookNorms() const { return AsteroidLookNorm; }
 
 	/** Instanced components carrying the asteroid look (tests: valid mesh and material on each). */
 	const TArray<TObjectPtr<UInstancedStaticMeshComponent>>& GetAsteroidLooks() const { return AsteroidLooks; }
@@ -294,6 +358,10 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<ATDDominion> Dominion;
+
+	/** The engineering nebula sky (camera-centred), when its art exists. */
+	UPROPERTY(Transient)
+	TObjectPtr<class ATDSkySphere> SkySphere;
 
 	float PhaseTimer = 0.f;
 	bool bBuilt = false;

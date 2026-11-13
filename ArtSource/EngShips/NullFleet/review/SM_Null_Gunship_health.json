@@ -1,0 +1,195 @@
+{
+  "asset": "SM_Null_Gunship",
+  "tag": "e2",
+  "checks": {
+    "tris": 17586,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 50,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 2,
+    "size_cm": [
+      1708.6,
+      1524.3,
+      677.4
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0021",
+        0.08
+      ],
+      [
+        "part_0025",
+        0.08
+      ],
+      [
+        "part_0029",
+        0.08
+      ],
+      [
+        "part_0033",
+        0.08
+      ]
+    ],
+    "centre_of_mass_m_before": [
+      -0.001,
+      -1.132,
+      0.432
+    ],
+    "com_shift_m": [
+      -0.0008077544043771923,
+      -1.1682953834533691,
+      0.43138551712036133
+    ],
+    "pivot": "fixed (pinned to the r3-r5 pivot)",
+    "edge_area_share": 0.075,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 14
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4384,
+      "overlap_pixels": 50,
+      "overlap_share_of_covered": 0.000109,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_Gunship",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Gunship\\T_Null_Gunship_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Gunship\\T_Null_Gunship_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Gunship\\T_Null_Gunship_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Gunship\\T_Null_Gunship_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_Gunship_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 95.3
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7187
+    },
+    "build_seconds": 146.8
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0874,
+        0.085,
+        0.0939
+      ],
+      "min": 0.0,
+      "max": 0.4039
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5003,
+        0.4997,
+        0.9997
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0126,
+        0.0129
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3828,
+        0.3715,
+        0.3806
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.706
+      ],
+      "metallic_mean": 0.383
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1074,
+        0.0383,
+        0.0188
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0554,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_Gunship",
+      "message": "124 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 102,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.03582
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Gunship_e2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Gunship_e2_clay_sheet.png",
+    "ortho_cm_per_px": 4.2715,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 17586,
+    "size_cm": [
+      1524.3,
+      1708.6,
+      677.4
+    ],
+    "collision": [
+      "UCX_SM_Null_Gunship_00",
+      "UCX_SM_Null_Gunship_01"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_Gunship"
+    ],
+    "textures": [
+      "T_Null_Gunship_BC.png",
+      "T_Null_Gunship_E.png",
+      "T_Null_Gunship_N.png",
+      "T_Null_Gunship_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

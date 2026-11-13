@@ -449,7 +449,8 @@ bool FTDReviewCamera::RunTest(const FString& Parameters)
 	W.Tick();
 	TestTrue(TEXT("lag back on after the cut"), Arm->bEnableCameraLag && Arm->bEnableCameraRotationLag);
 	TestEqual(TEXT("rotation lag 8"), Arm->CameraRotationLagSpeed, 8.f);
-	TestEqual(TEXT("location lag 12"), Arm->CameraLagSpeed, 12.f);
+	TestEqual(TEXT("location lag 18 (flight-feel pass)"), Arm->CameraLagSpeed, 18.f);
+	TestEqual(TEXT("lag never trails more than 10 m"), Arm->CameraLagMaxDistance, 1000.f);
 
 	// FOV: 90 at min speed, 110 at boost.
 	FTDFlightInput Slow;
@@ -500,10 +501,103 @@ bool FTDReviewCamera::RunTest(const FString& Parameters)
 	float LoopRoll = 0.f;
 	const float LoopRate = MaxStepDegPerSec(Loop, 4.f, LoopRoll);
 	TestTrue(FString::Printf(TEXT("loop: camera target stays continuous (max %.0f deg/s)"), LoopRate), LoopRate < 260.f);
+	// Pitch lead is a fraction of the turn lead: a pull-up must not drop the ship into the HUD band.
+	const FTDChaseCameraTuning& CT = Ship->GetCameraTuning();
+	const float LeadPitch = FMath::Abs(Ship->GetChaseCamera()->GetRelativeRotation().Pitch);
+	TestTrue(FString::Printf(TEXT("loop: pitch lead %.2f deg stays within %.2f (scale %.2f of %.0f)"), LeadPitch, CT.LookAheadAngle * CT.LookAheadPitchScale, CT.LookAheadPitchScale, CT.LookAheadAngle),
+		LeadPitch <= CT.LookAheadAngle * CT.LookAheadPitchScale + 0.25f && CT.LookAheadPitchScale < 0.5f);
 
 	// Teleport snaps the camera too.
 	Ship->TeleportSpacecraft(FVector(500000.f, 0.f, 0.f), FRotator::ZeroRotator, true);
 	TestFalse(TEXT("teleport is a hard cut"), Arm->bEnableCameraLag);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewDriftCamera, "TriadDrift.Flight.Camera.DriftFollowsTheSlide", TD_TEST_FLAGS)
+bool FTDReviewDriftCamera::RunTest(const FString& Parameters)
+{
+	// A fast drift slides one way with the nose another: the camera yaws DriftYawFollow of the slip toward the slide
+	// (eased over DriftBlendSeconds), only above cruise speed, never jumps in a held spin, and lets go on release.
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	const FTDChaseCameraTuning& CT = Ship->GetCameraTuning();
+	const float Cruise = Ship->GetShipMovement()->GetCruiseCapSpeed();
+	auto CamOffsetFromNose = [Ship]()
+	{
+		const FVector Up = Ship->GetActorUpVector();
+		const FVector Cam = FVector::VectorPlaneProject(Ship->GetChaseTargetQuat().GetForwardVector(), Up).GetSafeNormal();
+		const FVector Nose = Ship->GetActorForwardVector();
+		return FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Nose, Cam), Up), FVector::DotProduct(Nose, Cam)));
+	};
+	auto Slip = [Ship]()
+	{
+		const FVector Up = Ship->GetActorUpVector();
+		const FVector V = FVector::VectorPlaneProject(Ship->GetVelocity(), Up).GetSafeNormal();
+		const FVector Nose = Ship->GetActorForwardVector();
+		return FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Nose, V), Up), FVector::DotProduct(Nose, V)));
+	};
+
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	In.bBoost = true;
+	Ship->SetFlightInput(In);
+	W.Advance(2.f);
+	TestTrue(FString::Printf(TEXT("boosting above cruise (%.0f > %.0f)"), (float)Ship->GetVelocity().Size(), Cruise), Ship->GetVelocity().Size() > Cruise);
+	TestEqual(TEXT("no drift: no blend"), Ship->GetDriftCameraBlend(), 0.f);
+
+	// Drift and swing the nose ~60-90 deg, then hold the slide.
+	In.bDrift = true;
+	In.Aim = FVector2D(1.f, 0.f);
+	Ship->SetFlightInput(In);
+	W.Advance(0.5f);
+	In.Aim = FVector2D::ZeroVector;
+	Ship->SetFlightInput(In);
+	W.Advance(0.4f);
+	const float SlipNow = Slip();
+	const float Offset = CamOffsetFromNose();
+	AddInfo(FString::Printf(TEXT("drifting %d speed %.0f slip %.1f camera offset %.1f blend %.2f"), Ship->IsDrifting() ? 1 : 0, (float)Ship->GetVelocity().Size(), SlipNow, Offset, Ship->GetDriftCameraBlend()));
+	TestTrue(TEXT("drifting with a real slip"), Ship->IsDrifting() && FMath::Abs(SlipNow) > 15.f);
+	TestEqual(TEXT("blend fully in after DriftBlendSeconds"), Ship->GetDriftCameraBlend(), 1.f, 0.01f);
+	const float Expected = CT.DriftYawFollow * (FMath::Abs(SlipNow) <= 90.f ? SlipNow : FMath::Sign(SlipNow) * (180.f - FMath::Abs(SlipNow)));
+	TestTrue(FString::Printf(TEXT("camera yaws %.1f of the expected %.1f deg toward the slide"), Offset, Expected),
+		FMath::Abs(Offset - Expected) < 6.f && FMath::Sign(Offset) == FMath::Sign(SlipNow));
+
+	// Held spin: continuous, no flip when the slip passes 180 deg.
+	In.Aim = FVector2D(1.f, 0.f);
+	Ship->SetFlightInput(In);
+	FQuat Prev = Ship->GetChaseTargetQuat();
+	float MaxRate = 0.f;
+	const float Dt = 1.f / 60.f;
+	for (float T = 0.f; T < 3.f; T += Dt)
+	{
+		W.Tick(Dt);
+		const FQuat Cur = Ship->GetChaseTargetQuat();
+		MaxRate = FMath::Max(MaxRate, FMath::RadiansToDegrees(Cur.AngularDistance(Prev)) / Dt);
+		Prev = Cur;
+	}
+	TestTrue(FString::Printf(TEXT("held drift spin: camera target turns smoothly (max %.0f deg/s)"), MaxRate), MaxRate < 600.f);
+
+	// Release: the blend eases out and the camera is back behind the nose.
+	In.bDrift = false;
+	In.Aim = FVector2D::ZeroVector;
+	Ship->SetFlightInput(In);
+	W.Advance(CT.DriftBlendSeconds + 0.1f);
+	TestEqual(TEXT("released: blend out"), Ship->GetDriftCameraBlend(), 0.f);
+	TestTrue(FString::Printf(TEXT("released: camera behind the nose (%.1f deg)"), CamOffsetFromNose()), FMath::Abs(CamOffsetFromNose()) < 1.f);
+
+	// At or below cruise speed the drift camera stays on the nose.
+	In.bBoost = false;
+	In.Throttle = -1.f;
+	Ship->SetFlightInput(In);
+	W.Advance(4.f);
+	In.bDrift = true;
+	In.Aim = FVector2D(1.f, 0.f);
+	Ship->SetFlightInput(In);
+	W.Advance(0.6f);
+	TestTrue(FString::Printf(TEXT("slow drift (%.0f <= %.0f): no blend"), (float)Ship->GetVelocity().Size(), Cruise), Ship->GetDriftCameraBlend() == 0.f || Ship->GetVelocity().Size() > Cruise);
 	return true;
 }
 

@@ -1,0 +1,178 @@
+{
+  "asset": "SM_Cind_ChokeRock_B",
+  "tag": "r7",
+  "family": "cinder",
+  "checks": {
+    "tris": 10866,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5025,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -200.0,
+      -700.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      200.0,
+      700.0,
+      600.0
+    ],
+    "fit": {
+      "scale": [
+        0.9838,
+        1.0076,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        4.066,
+        13.894,
+        6.0
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "fit": {
+      "scale": [
+        0.9838,
+        1.0076,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        4.066,
+        13.894,
+        6.0
+      ]
+    },
+    "edge_area_share": 0.1148,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5025,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Cind_ChokeRock_B",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_ChokeRock_B\\T_Cind_ChokeRock_B_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_ChokeRock_B\\T_Cind_ChokeRock_B_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_ChokeRock_B\\T_Cind_ChokeRock_B_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_ChokeRock_B\\T_Cind_ChokeRock_B_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Cind_ChokeRock_B_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 73.8
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.8242
+    },
+    "detail_uv": "UVDetail (channel 1), 4 m per tile",
+    "build_seconds": 78.9
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1454,
+        0.1337,
+        0.1311
+      ],
+      "min": 0.0,
+      "max": 0.6196
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5006,
+        0.4996,
+        0.9999
+      ],
+      "min": 0.3059,
+      "max": 1.0,
+      "std_rg": [
+        0.0244,
+        0.0241
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3103,
+        0.6356,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.847
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0717,
+        0.1059,
+        0.0869
+      ],
+      "min": 0.0,
+      "max": 0.9294
+    }
+  },
+  "emissive_surface_share": 0.0784,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Cind_ChokeRock_B",
+      "message": "183 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 126,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.02362
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_ChokeRock_B_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_ChokeRock_B_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

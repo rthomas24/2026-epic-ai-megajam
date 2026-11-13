@@ -89,17 +89,62 @@ Hyperdrive, atmosphere and landing are in [travel.md](travel.md).
 
 ### Chase camera (`FTDChaseCameraTuning` on `ATDShip`)
 - arm 1400 cm, height 280 cm
-- rotation lag 8, location lag 12 (max lag distance 1800 cm)
+- rotation lag 8, location lag 18 (max lag distance 1000 cm); flight-feel pass below
 - FOV 90 → 110 with `Speed01`
 - **Roll follow is 30% of the bank, measured against a reference "up".**
   - The reference tracks world up at no more than 120°/s and holds while the nose is near vertical.
   - The follow eases back to 0 past 90° of bank.
   - So barrel rolls and loops never whip the camera; the tests check this.
-- leans up to 7° into turns (look-ahead)
+- leans up to 7° into yaw turns (look-ahead), and 20% of that (1.4°) into pitch (`LookAheadPitchScale`)
 - `SnapCamera()` makes a hard cut. It runs automatically on switch-in and teleport.
 - Cockpit camera: V toggles `SetCockpitView`. The placeholder hull is hidden from the pilot's own view.
 - Motion blur is off in space by default (`MotionBlurAmount` / `MotionBlurMax` = 0), because any
   camera-rotation blur turns stars into dashes.
+
+### Flight-feel pass (Nov 13, T1)
+How it was judged: a 60 s chase-cam run per ship (cruise, boost, a hard right turn, a boosted hard left turn,
+a drifting turn, a full pull-up, barrel roll, then a switch cut), offscreen 1920x1080 on `L_Galaxy`.
+- Captures were taken as fast as the MCP allows (about one every 0.8 s).
+- `TD.Flight.Cam rec 60` logged the camera numbers every 0.1 s.
+- The same script ran with the old values and the new values in one session.
+- Before/after strips: `.wt/t1/Saved/TDShots/feel_sheets/strip_*.png` (local, not in git).
+
+| Measured | Old (lag 12 / max 1800 / pitch lead 7°) | New (lag 18 / max 1000 / pitch lead 1.4°) |
+|---|---|---|
+| Ship centre in a 110-120°/s pull-up (screen height, 0 = top) | 0.71-0.73: on the HUD cards | 0.64-0.65: above the HUD band |
+| Camera distance at cruise (Rift / Lancer / Bastion, cm) | 1900 / 2160 / 1870 | 1780 / 1880 / 1710 |
+| Camera distance at boost, peak (cm) | 2390 / 2730 / 2170: the Lancer shrank to a speck | 2010 / 2210 / 1880 |
+| Furthest off-centre in a turn (x, 0.5 = centre) | 0.68 for the Lancer: it left the screen during a high-speed drift spin | 0.26 |
+
+Kept as they were:
+- FOV 90 → 110: the speed read is good.
+- Boost still pulls the camera back about 2 m.
+- Yaw look-ahead of 7°: the ship sits 10-14% off-centre on hard turns, which reads as leaning in.
+- Roll follow 30%: about 12° of horizon tilt in a banked turn, and up to about 27° in a barrel roll. That is lively but readable.
+- Dust density: all 120 motes at every speed above the minimum.
+- Switch cut: a hard cut. The new ship is framed on the first frame, with no lag swing.
+
+**Drift camera (Nov 13, Lead's decision).**
+- While drifting above cruise speed (`DriftMinSpeedFraction` 1), the chase camera's yaw follows `DriftYawFollow` = 40% of the slip angle toward the ship's actual motion. It eases in and out over `DriftBlendSeconds` = 0.3 s.
+- The followed slip rises to 90° and falls back to 0 at 180°: flying backwards the slip's sign flips, and a plain clamp jumped the camera 72° in a frame (the test caught it at 4485°/s).
+- The reticle and the shots both come from this camera, so they always agree. The nose keeps 60% of its sideways angle, so you still fly one way and shoot another.
+- Measured on the TD.Flight.Cam trace: boost, drift with a 0.7 s stick flick (nose ~90°), hold the slide; both directions plus a drift at cruise; every ship; old vs new in one session.
+
+| Fast drift (above cruise) | Worst off-centre x (Rift / Lancer / Bastion) | Mean | Samples in the HUD band (centre below 72%) |
+|---|---|---|---|
+| Before (follow 0) | 0.17 / 0.23 / 0.13 | 0.13 / 0.17 / 0.09 | 0 / 4 / 0 |
+| After (follow 0.4) | 0.16 / 0.16 / 0.08 | 0.13 / 0.12 / 0.05 | 0 / 0 / 0 |
+
+- Pinned by `TriadDrift.Flight.Camera.DriftFollowsTheSlide`: 40% of the slip after 0.3 s; a held spin stays continuous (< 600°/s); release puts the camera back behind the nose; nothing below cruise.
+- Still open: a drift sheds speed below cruise within about a second, and as the ship slows the lagged camera closes in, so the ship sits lower. At cruise the Lancer's centre reaches 0.72, its wings touching the HUD top. Lowering the gate to 0.3 of cruise made this worse (44 samples in the band), so the gate stays at cruise. Fixing it would mean holding the camera distance while drifting.
+
+Scripted-playtest tip: in the test script, `TD.KillAll` right after a switch triggered the director's multi-kill shot (FOV 65, long lens), which made two switch frames look like a broken cut. Kill enemies before switching (also in the ue-cpp-gameplay skill).
+
+Dev tool: `TD.Flight.Cam [tag]` prints what the player sees: ship screen position, FOV, camera and ship roll, the camera's
+offset in ship space, speed, boost and drift, turn rates, and dust.
+- `TD.Flight.Cam rec <s> [tag]` logs it every 0.1 s.
+- `TD.Flight.Cam set <Cam|FB> <Field> <Value>` changes a chase-camera or feedback tuning value on every squad ship live, so you can tune without rebuilding.
+- It is not in Shipping builds.
 
 ### State for presentation and the HUD
 On the spacecraft and its movement component:
@@ -285,6 +330,7 @@ There is one object for every menu: Get Game Instance → Get Subsystem (TDSetti
 | Gamepad dead zone | `SetGamepadDeadzone` | 0–0.5 (default 0.15) | `StickDeadzone` |
 | Invert gamepad Y | `SetInvertGamepadY` | bool | `bInvertStickPitch` |
 | Hints | `SetHintsEnabled` | bool | `UTDHintComponent` |
+| Difficulty | `SetDifficulty` (row "Difficulty": Story / Standard / Ace) | T4's presets | `UTDGameInstance::SetDifficulty` (saved with a committed run). Enemies and waves read it when they spawn, so ships already fighting keep their strength. The row shows the difficulty in play (the run's after a Continue), with a line under the page describing it from T4's tables |
 | Master volume | `SetMasterVolume` | 0–1 | the main audio device's transient primary volume |
 | Music / effects volume | `SetMusicVolume` / `SetEffectsVolume` | 0–1 | a runtime sound mix over `SC_TD_Music` / `SC_TD_SFX`, once Nick's classes exist (kept until then) |
 | Window mode / resolution | `SetWindowMode` / `SetResolution` (0,0 = desktop), `GetSupportedResolutions` | | `UGameUserSettings`, saved |
@@ -295,6 +341,13 @@ There is one object for every menu: Get Game Instance → Get Subsystem (TDSetti
   window, and `-windowed` / `-ResX` on the command line always win at start-up. The first version forced windowed
   fullscreen on every start and broke agent sessions launched with `-ResX`.
 - **Never touched:** the editor window, headless runs and tests (tests use their own slot).
+- **Difficulty:** the saved choice is the New Game default.
+  - It is applied at start-up (not in tests) and by `UTDGameInstance::StartNewRun` (`ApplyPreferredDifficulty`, also after a Continue of an older run).
+  - Continue restores the run's own difficulty (`ApplySave`).
+  - Reset returns Standard.
+  - T2's pause screen shows the difficulty in play.
+- **Layer:** the page draws at viewport layer `UTDSettingsSubsystem::PageZOrder` (1000), above every HUD and T2's pause screen (UI host ZOrder + 100), which opens it.
+- **Focus:** the selected row has T5's front-end focus frame.
 - **Other calls:** `ResetToDefaults`, `ApplyAll(FTDPlayerSettings)`.
 - **Dev command:** `TD.Settings [key value]`, with keys MouseSens, InvertMouse, PadSens, PadDeadzone, InvertPad, Hints,
   Master, Music, Effects, `Window 0-2` and `Res W H`.
@@ -365,6 +418,44 @@ missing, the cylinder shows.
 - **Cooking:** pads are spawned at run time by the planet rig, so nothing on a map references the mesh. The folder
   must be in the cook list (Lead) or the packaged game shows the cylinder.
 - **Test:** `Travel.Landing.PadArtSwapsTheLookNotTheCollision`.
+
+## Combat music director (N-029, `UTDMusicDirectorSubsystem`, a world subsystem in Input/)
+
+The director plays `UTDUIStyle::CombatMusic` (Nick's slot, read by name) through one 2D UI-sound audio component per
+map, using the sound's own class and volume. The options' Music slider reaches it through `SC_MenuTheme_Music`
+(or `SC_TD_Music` once that exists).
+- **When it plays:** while a fight is on, meaning any of `FTDAudioState::bWaveActive`, the DominionAssault phase, or
+  any `ATDEncounterVolume::IsActive()`.
+- **Fades:** a 2 s fade in. When the fight ends, a 6 s hold at full volume, then a 4 s fade out. A new fight during the
+  hold carries on; during the fade out the music swells back up without restarting.
+- **1 s stop:** on a level travel (any flow travel, quit to menu included), on the Victory phase and on a CUT. After a
+  CUT it stays silent until the retake starts (`OnTakeStarted`), then plays from the top.
+- **Never plays** with an empty slot or on the menu map. The component belongs to the map, so the menu's own music
+  can never overlap it.
+- **Why a world subsystem:** it ticks with the world (also when paused, in real seconds), its one component dies with
+  the map, and tests drive it with a test world.
+- **Tests (test sound):** `Input.Music.FadeInHoldAndFadeOut`, `Input.Music.NewFightInHoldOrFadeCarriesOn`,
+  `Input.Music.OneSecondStopOnCutTravelVictory`, `Input.Music.TriggersAndEmptySlot` (real Dominion phase and a real
+  encounter volume).
+- **Not yet:** heard in the game. The track isn't in the slot on this branch, and nobody has listened; Nicholas
+  approves by ear.
+
+## Placeholder engine trail
+
+Every squad ship draws a short ribbon of glow segments in its squad colour behind the exhaust
+(`UTDFlightFeedbackComponent`, `Tuning.TrailSegments` = 10 samples, 0.03 s apart).
+- The segments follow the exhaust's actual path, so the ribbon bends through turns. It tapers from 55 cm to nothing,
+  and boost makes it 40 % thicker and longer (it is speed × 0.3 s long: about 18 m at cruise).
+- It never draws across a teleport, and it hides when the ship is hidden, parked, landed with engines off, or when
+  `UTDShipVisuals::EngineTrail` has a VFX.
+- Exhaust point: the art `Engine` socket or part, else the rear of the hull or the placeholder glow
+  (`ATDShip::GetEngineExhaustLocation`).
+- **Test:** `Flight.Feedback.EngineTrailRibbonWithNoArt` (19 m at 60 m/s, longer on boost, no streak across a
+  400 m jump).
+- **Seen live:** only from the chase camera, where the player's own trail is end-on and hidden behind the hull. The
+  side view is for T3's intro capture.
+
+Settings page captures (offscreen, Nov 13): `Saved/TDShots/settings/{720p,1080p}_0N_*.png`.
 
 ## How to try it
 

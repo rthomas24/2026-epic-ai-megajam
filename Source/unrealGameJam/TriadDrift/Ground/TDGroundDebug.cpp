@@ -24,6 +24,16 @@
 #include "HAL/IConsoleManager.h"
 #include "InputCoreTypes.h"
 #include "TimerManager.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInterface.h"
 
 namespace TDGroundDebug
 {
@@ -162,6 +172,182 @@ namespace TDGroundDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Teleport));
 	static FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.Ground.Spawn"), TEXT("TD.Ground.Spawn <CrewType> [Distance]: spawn crew facing the player."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Spawn));
+}
+
+namespace TDGroundDebug
+{
+	// TD.Ground.Bones: is every skeletal look standing? Head and pelvis heights above the feet, anim mode, montage.
+	static void Bones(const TArray<FString>& Args, UWorld* World)
+	{
+		for (TActorIterator<ACharacter> It(World); It; ++It)
+		{
+			const USkeletalMeshComponent* M = It->GetMesh();
+			if (!M || !M->GetSkeletalMeshAsset() || !(It->IsA<ATDCrewCharacter>() || It->IsA<ATDFirstPersonCharacter>()))
+			{
+				continue;
+			}
+			const float Feet = (float)(It->GetActorLocation().Z - It->GetSimpleCollisionHalfHeight());
+			auto Z = [M, Feet](const TCHAR* Bone) { return M->GetBoneIndex(Bone) != INDEX_NONE ? (float)M->GetBoneLocation(Bone).Z - Feet : -1.f; };
+			const UAnimInstance* A = M->GetAnimInstance();
+			const UAnimMontage* Mont = A ? A->GetCurrentActiveMontage() : nullptr;
+			const UTDLoopBlendAnimInstance* L = Cast<UTDLoopBlendAnimInstance>(A);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Bones %s mesh=%s visible=%d mode=%d anim=%s montage=%s head=%.0f pelvis=%.0f root=%.0f sim=%d scale=%.2f loop=%s shot=%s upper=%s proc=%d"),
+				*It->GetName(), *GetNameSafe(M->GetSkeletalMeshAsset()), M->IsVisible(), (int32)M->GetAnimationMode(), *GetNameSafe(A ? A->GetClass() : nullptr),
+				*GetNameSafe(Mont), Z(TEXT("head")), Z(TEXT("pelvis")), Z(TEXT("root")), M->IsSimulatingPhysics(), (float)M->GetComponentScale().Z,
+				*GetNameSafe(L ? L->GetLoop() : nullptr), *GetNameSafe(L ? L->GetOneShot() : nullptr), *GetNameSafe(L ? L->GetUpperLoop() : nullptr), L ? (int32)L->bProcedural : -1);
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdBones(TEXT("TD.Ground.Bones"), TEXT("Log head / pelvis heights and anim state of every skeletal crew and pilot body."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Bones));
+
+	static ATDFirstPersonCharacter* Pilot(UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		return PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
+	}
+
+	// TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (toggles without an argument). Not saved.
+	static void ThirdPerson(const TArray<FString>& Args, UWorld* World)
+	{
+		if (ATDFirstPersonCharacter* P = Pilot(World))
+		{
+			const bool bWant = Args.Num() > 0 ? FCString::Atoi(*Args[0]) != 0 : !P->IsThirdPersonView();
+			P->SetThirdPerson(bWant);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.ThirdPerson want=%d"), bWant);
+		}
+	}
+	// TD.Ground.HandBlade X Y Z Pitch Yaw Roll: place the hand blade on hand_r live (to set HandBladeOffset by eye).
+	static void HandBlade(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDFirstPersonCharacter* P = Pilot(World);
+		if (!P || !P->GetHandBladeHilt())
+		{
+			return;
+		}
+		if (Args.Num() >= 6)
+		{
+			const FTransform T(FRotator(FCString::Atof(*Args[3]), FCString::Atof(*Args[4]), FCString::Atof(*Args[5])),
+				FVector(FCString::Atof(*Args[0]), FCString::Atof(*Args[1]), FCString::Atof(*Args[2])));
+			P->HandBladeOffset = T;
+			P->GetHandBladeHilt()->SetRelativeLocationAndRotation(T.GetLocation(), T.Rotator());
+		}
+		const UStaticMeshComponent* Beam = P->GetHandBladeBeam();
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.HandBlade offset=%s hilt=%s visible=%d beam=%s visible=%d tip=%s extend=%.2f"),
+			*P->HandBladeOffset.ToString(), *GetNameSafe(P->GetHandBladeHilt()->GetStaticMesh()), P->GetHandBladeHilt()->IsVisible(),
+			*GetNameSafe(Beam->GetStaticMesh()), Beam->IsVisible(),
+			*(Beam->GetComponentTransform().TransformPosition(FVector(100.f, 0.f, 0.f))).ToCompactString(), P->GetHandBladeExtend01());
+	}
+	// TD.Ground.Art: every code-built shape dressed with kit art (TDPropArt::Dress): art vs collision box, tops and centres.
+	static void Art(const TArray<FString>& Args, UWorld* World)
+	{
+		int32 N = 0, Bad = 0;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TArray<UStaticMeshComponent*> Comps;
+			It->GetComponents(Comps);
+			for (UStaticMeshComponent* ArtC : Comps)
+			{
+				UStaticMeshComponent* Shape = Cast<UStaticMeshComponent>(ArtC ? ArtC->GetAttachParent() : nullptr);
+				const UStaticMesh* Mesh = ArtC ? ArtC->GetStaticMesh() : nullptr;
+				if (!Shape || !Mesh || !Shape->bHiddenInGame || !Mesh->GetPathName().StartsWith(TEXT("/Game/TriadDrift/Gameplay/Props/")))
+				{
+					continue;
+				}
+				const FBox S = Shape->Bounds.GetBox();
+				const FBox A = ArtC->Bounds.GetBox();
+				const float TopDiff = (float)(A.Max.Z - S.Max.Z);
+				const float BottomDiff = (float)(A.Min.Z - S.Min.Z);
+				const float CentreXY = (float)FVector::Dist2D(A.GetCenter(), S.GetCenter());
+				const bool bCollide = Shape->GetCollisionEnabled() != ECollisionEnabled::NoCollision;
+				const bool bOff = bCollide && (FMath::Abs(TopDiff) > 5.f || CentreXY > 25.f);
+				Bad += bOff ? 1 : 0;
+				++N;
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Art %s%s on %s.%s at %s shape=%s art=%s top%+.0f bottom%+.0f centre %.0f collide=%d visible=%d"),
+					bOff ? TEXT("CHECK ") : TEXT(""), *Mesh->GetName(), *It->GetName(), *Shape->GetName(), *S.GetCenter().ToCompactString(),
+					*S.GetSize().ToCompactString(), *A.GetSize().ToCompactString(), TopDiff, BottomDiff, CentreXY, bCollide, ArtC->IsVisible());
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Art total=%d check=%d"), N, Bad);
+	}
+	// TD.Ground.Near X Y Z [Radius]: every rendered primitive whose bounds touch a sphere (what is that thing on screen?).
+	static void Near(const TArray<FString>& Args, UWorld* World)
+	{
+		if (Args.Num() < 3)
+		{
+			return;
+		}
+		const FVector At(FCString::Atof(*Args[0]), FCString::Atof(*Args[1]), FCString::Atof(*Args[2]));
+		const float R = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 400.f;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TArray<UPrimitiveComponent*> Prims;
+			It->GetComponents(Prims);
+			for (const UPrimitiveComponent* P : Prims)
+			{
+				if (!P || !P->IsVisible() || P->bHiddenInGame || !P->IsRegistered())
+				{
+					continue;
+				}
+				const FBox B = P->Bounds.GetBox();
+				if (B.ComputeSquaredDistanceToPoint(At) > R * R || B.GetSize().GetMax() > 20000.f)
+				{
+					continue;
+				}
+				const UStaticMeshComponent* SM = Cast<UStaticMeshComponent>(P);
+				const UMaterialInterface* Mat = P->GetNumMaterials() > 0 ? P->GetMaterial(0) : nullptr;
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Near %s.%s (%s) mesh=%s mat=%s centre=%s size=%s"), *It->GetName(), *P->GetName(), *P->GetClass()->GetName(),
+					*GetNameSafe(SM ? SM->GetStaticMesh() : nullptr), *GetNameSafe(Mat), *B.GetCenter().ToCompactString(), *B.GetSize().ToCompactString());
+			}
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdNear(TEXT("TD.Ground.Near"), TEXT("TD.Ground.Near X Y Z [Radius]: list rendered primitives near a point."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Near));
+	// TD.Ground.CourseBounds: everything the course placed (its own shapes and every spawned actor), in world space and
+	// in the course's (pad's) local frame, with the overall box: what procedural terrain must keep flat (ENG-34, T4).
+	static void CourseBounds(const TArray<FString>& Args, UWorld* World)
+	{
+		for (TActorIterator<ATDPlanetCourse> It(World); It; ++It)
+		{
+			const FTransform Xf = It->GetActorTransform();
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Course %s at %s yaw %.1f"), *It->GetName(), *Xf.GetLocation().ToCompactString(), Xf.Rotator().Yaw);
+			FBox All(ForceInit);
+			auto Report = [&](const AActor* A, const UPrimitiveComponent* P)
+			{
+				const FBox B = P->Bounds.GetBox();
+				if (B.GetSize().GetMax() > 30000.f) { return; } // the ground slab
+				All += B;
+				const FVector L = Xf.InverseTransformPosition(B.GetCenter());
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseItem %s.%s %s world=%s size=%s local=%s zmin=%.0f zmax=%.0f collide=%d"), *A->GetName(), *P->GetName(),
+					*A->GetClass()->GetName(), *B.GetCenter().ToCompactString(), *B.GetSize().ToCompactString(), *L.ToCompactString(), (float)B.Min.Z, (float)B.Max.Z,
+					P->GetCollisionEnabled() != ECollisionEnabled::NoCollision);
+			};
+			TArray<UPrimitiveComponent*> Own;
+			It->GetComponents(Own);
+			for (const UPrimitiveComponent* P : Own) { if (P && P->IsRegistered()) { Report(*It, P); } }
+			for (const TObjectPtr<AActor>& A : It->GetSpawned())
+			{
+				if (!A) { continue; }
+				TArray<UPrimitiveComponent*> Prims;
+				A->GetComponents(Prims);
+				FBox ActorBox(ForceInit);
+				for (const UPrimitiveComponent* P : Prims) { if (P && P->IsRegistered() && P->Bounds.GetBox().GetSize().GetMax() < 30000.f) { ActorBox += P->Bounds.GetBox(); } }
+				if (!ActorBox.IsValid) { UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseItem %s %s at %s (no shape)"), *A->GetName(), *A->GetClass()->GetName(), *A->GetActorLocation().ToCompactString()); continue; }
+				All += ActorBox;
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseItem %s %s world=%s size=%s local=%s zmin=%.0f zmax=%.0f"), *A->GetName(), *A->GetClass()->GetName(),
+					*ActorBox.GetCenter().ToCompactString(), *ActorBox.GetSize().ToCompactString(), *Xf.InverseTransformPosition(ActorBox.GetCenter()).ToCompactString(),
+					(float)ActorBox.Min.Z, (float)ActorBox.Max.Z);
+			}
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseAll world min=%s max=%s size=%s"), *All.Min.ToCompactString(), *All.Max.ToCompactString(), *All.GetSize().ToCompactString());
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdCourseBounds(TEXT("TD.Ground.CourseBounds"), TEXT("Log every course shape and spawned actor with bounds (world and course-local)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CourseBounds));
+	static FAutoConsoleCommandWithWorldAndArgs CmdArt(TEXT("TD.Ground.Art"), TEXT("Log every kit-dressed shape: art vs collision box (tops, bottoms, centres)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Art));
+	static FAutoConsoleCommandWithWorldAndArgs CmdThird(TEXT("TD.Ground.ThirdPerson"), TEXT("TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (not saved)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&ThirdPerson));
+	static FAutoConsoleCommandWithWorldAndArgs CmdHandBlade(TEXT("TD.Ground.HandBlade"), TEXT("TD.Ground.HandBlade [X Y Z Pitch Yaw Roll]: place / report the hand blade."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&HandBlade));
 }
 
 #endif // !UE_BUILD_SHIPPING

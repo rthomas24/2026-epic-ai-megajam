@@ -1,0 +1,231 @@
+{
+  "asset": "SM_Verd_Wreck_Engine",
+  "tag": "r11",
+  "family": "verdance",
+  "checks": {
+    "tris": 17457,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.238,
+      "overlap_pixels": 2486,
+      "overlap_share_of_covered": 0.00996,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 1,
+    "bounds_min_cm": [
+      -450.0,
+      -350.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      450.0,
+      350.0,
+      700.0
+    ],
+    "fit": {
+      "scale": [
+        1.0036,
+        0.9416,
+        0.9794
+      ],
+      "warn_axes": [
+        1
+      ],
+      "size_before_m": [
+        8.968,
+        7.434,
+        7.147
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0528",
+        0.233
+      ],
+      [
+        "part_0530",
+        0.233
+      ],
+      [
+        "part_0542",
+        "part_0543",
+        "part_0544",
+        0.066
+      ],
+      [
+        "part_0550",
+        "part_0551",
+        0.107
+      ],
+      [
+        "part_0554",
+        "part_0555",
+        0.111
+      ],
+      [
+        "part_0556",
+        "part_0557",
+        0.063
+      ],
+      [
+        "part_0570",
+        "part_0571",
+        0.11
+      ],
+      [
+        "part_0554",
+        "part_0555",
+        0.067
+      ]
+    ],
+    "fit": {
+      "scale": [
+        1.0036,
+        0.9416,
+        0.9794
+      ],
+      "warn_axes": [
+        1
+      ],
+      "size_before_m": [
+        8.968,
+        7.434,
+        7.147
+      ]
+    },
+    "edge_area_share": 0.0065,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 14
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.238,
+      "overlap_pixels": 2486,
+      "overlap_share_of_covered": 0.00996,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_Wreck_Engine",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Engine\\T_Verd_Wreck_Engine_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Engine\\T_Verd_Wreck_Engine_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Engine\\T_Verd_Wreck_Engine_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Engine\\T_Verd_Wreck_Engine_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_Wreck_Engine_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 129.31
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7343
+    },
+    "build_seconds": 168.7
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.2257,
+        0.2585,
+        0.2564
+      ],
+      "min": 0.0,
+      "max": 0.8431
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5001,
+        0.4996,
+        0.9996
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0152,
+        0.0183
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3643,
+        0.4066,
+        0.2578
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.941
+      ],
+      "metallic_mean": 0.257
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0154,
+        0.038,
+        0.0399
+      ],
+      "min": 0.0,
+      "max": 0.9294
+    }
+  },
+  "emissive_surface_share": 0.0172,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Verd_Wreck_Engine",
+      "message": "53 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Wreck_Engine",
+      "message": "197 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Wreck_Engine",
+      "message": "367 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 242,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.02007
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Engine_r11_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Engine_r11_clay_sheet.png",
+    "warnings": []
+  }
+}

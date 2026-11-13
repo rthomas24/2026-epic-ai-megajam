@@ -168,4 +168,69 @@ bool FTDFeedbackPortal::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFeedbackTrail, "TriadDrift.Flight.Feedback.EngineTrailRibbonWithNoArt", TD_TEST_FLAGS)
+bool FTDFeedbackTrail::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Wingman = TDFeedbackTest::SpawnFlying(W, false); // every squad ship has one, not only the player's
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Wingman->SetFlightInput(In);
+	W.Advance(1.5f);
+	UTDFlightFeedbackComponent* FB = Wingman->GetFlightFeedback();
+	TestEqual(TEXT("cruising: the whole ribbon draws"), FB->GetVisibleTrailSegments(), FB->Tuning.TrailSegments);
+	const float Expected = (float)Wingman->GetVelocity().Size() * FB->Tuning.TrailSegments * FB->Tuning.TrailSampleSeconds;
+	AddInfo(FString::Printf(TEXT("trail %.0f cm at %.0f cm/s (expected about %.0f)"), FB->GetTrailLength(), (float)Wingman->GetVelocity().Size(), Expected));
+	TestTrue(TEXT("its length follows the speed"), FB->GetTrailLength() > Expected * 0.6f && FB->GetTrailLength() < Expected * 1.4f);
+	const float CruiseLength = FB->GetTrailLength();
+	In.bBoost = true;
+	Wingman->SetFlightInput(In);
+	W.Advance(1.f);
+	TestTrue(TEXT("boost: a longer streak"), FB->GetTrailLength() > CruiseLength * 1.3f);
+
+	// A portal jump never draws a streak across space.
+	Wingman->TeleportSpacecraft(Wingman->GetActorLocation() + FVector(0.f, 400000.f, 0.f), FRotator::ZeroRotator, true);
+	W.Tick();
+	TestTrue(TEXT("teleport: no streak across the jump"), FB->GetTrailLength() < 20000.f);
+	W.Advance(0.5f);
+	TestEqual(TEXT("and it grows back from the new spot"), FB->GetVisibleTrailSegments(), FB->Tuning.TrailSegments);
+
+	// Art wins: an EngineTrail VFX hides the placeholder.
+	UTDShipVisuals* Visuals = NewObject<UTDShipVisuals>();
+	Visuals->EngineTrail.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TEXT("/Game/TriadDrift/VFX/NS_Anything.NS_Anything")));
+	FB->Tuning.bEngineTrail = true;
+	// Only the decision is asserted here (no Niagara asset loads in tests).
+	TestFalse(TEXT("an EngineTrail VFX replaces the placeholder"), UTDFlightFeedbackComponent::WantsVisualPlaceholder(&Visuals->EngineTrail));
+
+	// Stopped engines: no trail.
+	In = FTDFlightInput();
+	In.Throttle = -1.f;
+	Wingman->SetFlightInput(In);
+	Wingman->SetActorHiddenInGame(true);
+	W.Tick();
+	TestEqual(TEXT("hidden ship: no trail"), FB->GetVisibleTrailSegments(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFeedbackTrailFade, "TriadDrift.Flight.Feedback.WingmanTrailFadesNearCameraAndHud", TD_TEST_FLAGS)
+bool FTDFeedbackTrailFade::RunTest(const FString& Parameters)
+{
+	// A wingman passing close to the camera, or low on screen, must never paint its ribbon across the HUD band.
+	const FTDFlightFeedbackTuning T;
+	auto Fade = [&T](float Dist, float Y) { return UTDFlightFeedbackComponent::TrailFadeAt(T, Dist, Y); };
+	TestEqual(TEXT("far and mid-screen: fully drawn"), Fade(5000.f, 0.5f), 1.f);
+	TestEqual(TEXT("within the camera clear distance: gone"), Fade(T.TrailCameraFadeStart * 0.9f, 0.5f), 0.f);
+	TestEqual(TEXT("right at the eye: gone"), Fade(10.f, 0.5f), 0.f);
+	const float Half = Fade(0.5f * (T.TrailCameraFadeStart + T.TrailCameraFadeEnd), 0.5f);
+	TestTrue(TEXT("fades in between"), Half > 0.2f && Half < 0.8f);
+	TestEqual(TEXT("below the HUD band limit: gone"), Fade(5000.f, T.TrailHudBandLimit + 0.01f), 0.f);
+	TestEqual(TEXT("bottom of the screen: gone"), Fade(5000.f, 0.95f), 0.f);
+	TestEqual(TEXT("behind the eye / off screen: gone"), Fade(5000.f, 2.f), 0.f);
+	const float Edge = Fade(5000.f, 0.5f * (T.TrailHudBandFadeStart + T.TrailHudBandLimit));
+	TestTrue(TEXT("fades out over the band edge"), Edge > 0.2f && Edge < 0.8f);
+	TestEqual(TEXT("no viewport (headless): only distance counts"), Fade(5000.f, -1.f), 1.f);
+	TestTrue(TEXT("limit sits at ~72% of the screen"), FMath::IsNearlyEqual(T.TrailHudBandLimit, 0.72f, 0.02f));
+	return true;
+}
+
 #endif

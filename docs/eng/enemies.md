@@ -89,6 +89,15 @@ field is tunable. Ids live in `TDEnemyIds::*`. The weapon ids in `TDEnemyWeaponI
 - **Bays:** each bay has its own 300 HP. It telegraphs, then launches every 12 s (first launches at
   6, 8 and 10 s) and stops once destroyed. `BreakDoors()` or any Ram hit doubles the damage it takes.
 
+#### Range readability (art audit, Nov 13)
+- The visual mesh (`HullPivot`, which carries no collision) grows with camera distance: 1x at 60 m, linear to
+  2.5x at 250 m, capped (`RangeScaleNearCm`, `RangeScaleFarCm`, `RangeScaleMax`), smoothed in real time
+  (`RangeScaleSmoothing`), so it never pops. It scales about the actor centre: the aim point, the collision
+  sphere and every hit zone stay exactly as they are (`TriadDrift.Enemies.RangeScale`).
+- The placeholder engine glow brightens up to `RangeEngineGlowMax` (2x) at range: a red-orange spark with a white eye.
+- Off (true scale) whenever the view target is not the player's pawn (T3's intro and showcase cameras), during a
+  director money shot, and on ships with mounted hit parts (carrier bays, gunship turrets sit on the hull).
+
 ### `ATDEnemyAIController`
 It flies only through `SetFlightInput`.
 - **States:** Approach → AttackRun → BreakOff → re-approach, plus Formation, Idle and Stunned.

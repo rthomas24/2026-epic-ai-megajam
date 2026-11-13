@@ -88,6 +88,8 @@ ATDPlanetCourse::ATDPlanetCourse()
 		const FString Short = FPackageName::GetShortName(Path);
 		PropRefs.Add(FName(*Short), TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("%s.%s"), Path, *Short))));
 	}
+	GroundMaterialVerdance = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance")));
+	GroundMaterialCinder = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder")));
 	CubeMesh = Cube.Object;
 	CylinderMesh = Cyl.Object;
 	SphereMesh = Sph.Object;
@@ -142,7 +144,20 @@ void ATDPlanetCourse::BeginPlay()
 // Helpers
 // ------------------------------------------------------------------------------------------------
 
-UStaticMeshComponent* ATDPlanetCourse::Block(EShape Shape, const FVector& Center, const FVector& SizeCm, const FLinearColor& Color, float Glow, const FRotator& Rot, bool bCollide)
+UStaticMesh* ATDPlanetCourse::ArtFor(FName Name)
+{
+	if (Name.IsNone())
+	{
+		return nullptr;
+	}
+	if (const TSoftObjectPtr<UStaticMesh>* Set = PropRefs.Find(Name))
+	{
+		return TDPropArt::Load(*Set);
+	}
+	return TDPropArt::Load(TDPropArt::Default(*Name.ToString()));
+}
+
+UStaticMeshComponent* ATDPlanetCourse::Block(EShape Shape, const FVector& Center, const FVector& SizeCm, const FLinearColor& Color, float Glow, const FRotator& Rot, bool bCollide, FName Art)
 {
 	if (!Dressing)
 	{
@@ -161,12 +176,13 @@ UStaticMeshComponent* ATDPlanetCourse::Block(EShape Shape, const FVector& Center
 	C->RegisterComponent();
 	Dressing->AddInstanceComponent(C);
 	UTDStatics::TintPlaceholder(C, Color, Glow);
+	TDPropArt::Dress(C, ArtFor(Art));
 	return C;
 }
 
-UStaticMeshComponent* ATDPlanetCourse::Platform(const FVector& XY, float Top, const FVector& SizeCm, const FLinearColor& Color, float Glow)
+UStaticMeshComponent* ATDPlanetCourse::Platform(const FVector& XY, float Top, const FVector& SizeCm, const FLinearColor& Color, float Glow, FName Art)
 {
-	return Block(EShape::Cube, FVector(XY.X, XY.Y, Top - SizeCm.Z * 0.5f), SizeCm, Color, Glow);
+	return Block(EShape::Cube, FVector(XY.X, XY.Y, Top - SizeCm.Z * 0.5f), SizeCm, Color, Glow, FRotator::ZeroRotator, true, Art);
 }
 
 void ATDPlanetCourse::Route(const TArray<FVector>& Points, const FLinearColor& Color, float Spacing)
@@ -186,8 +202,9 @@ void ATDPlanetCourse::Route(const TArray<FVector>& Points, const FLinearColor& C
 			for (const float S : { -1.f, 1.f })
 			{
 				const FVector Base = FVector(P.X, P.Y, 0.f) + Side * S * 450.f;
-				Block(EShape::Cylinder, Base + FVector(0.f, 0.f, 60.f), FVector(18.f, 18.f, 120.f), FLinearColor(0.05f, 0.05f, 0.06f), 0.f, FRotator::ZeroRotator, false);
-				Block(EShape::Sphere, Base + FVector(0.f, 0.f, 130.f), FVector(34.f), Color, 3.f, FRotator::ZeroRotator, false);
+				UStaticMeshComponent* Post = Block(EShape::Cylinder, Base + FVector(0.f, 0.f, 60.f), FVector(18.f, 18.f, 120.f), FLinearColor(0.05f, 0.05f, 0.06f), 0.f, FRotator::ZeroRotator, false);
+				UStaticMeshComponent* Bulb = Block(EShape::Sphere, Base + FVector(0.f, 0.f, 130.f), FVector(34.f), Color, 3.f, FRotator::ZeroRotator, false);
+				if (TDPropArt::Dress(Post, ArtFor(TEXT("SM_RoutePost")), false) && Bulb) { Bulb->SetHiddenInGame(true); } // one mesh: post and bulb
 			}
 		}
 	}
@@ -352,6 +369,27 @@ void ATDPlanetCourse::MarkRoutes(FName MeshName, float Spacing, float Offset, co
 	ISM->AddInstances(Xfs, false, false);
 }
 
+namespace TDCourseImpl
+{
+	/**
+	 * Finish a deferred spawn without applying the class's root scale twice. FinishSpawning composes the transform it is
+	 * given with the root's template transform; passing GetActorTransform() (which already has that scale) squared it:
+	 * the 60 x 60 x 120 console came out 36 x 36 x 144, and the kit console was squeezed to fit it.
+	 */
+	static void FinishProp(AActor* A)
+	{
+		if (!A)
+		{
+			return;
+		}
+		const AActor* Template = A->GetClass()->GetDefaultObject<AActor>();
+		const USceneComponent* TemplateRoot = Template ? Template->GetRootComponent() : nullptr;
+		const FVector TemplateScale = TemplateRoot ? TemplateRoot->GetRelativeScale3D() : FVector::OneVector;
+		const FVector Scale = A->GetActorScale3D() / TemplateScale.ComponentMax(FVector(KINDA_SMALL_NUMBER));
+		A->FinishSpawning(FTransform(A->GetActorQuat(), A->GetActorLocation(), Scale));
+	}
+}
+
 template <class T>
 T* ATDPlanetCourse::SpawnProp(const FVector& Location, const FRotator& Rotation)
 {
@@ -394,7 +432,7 @@ void ATDPlanetCourse::FinishObjective(ATDObjective* Obj, const TArray<FText>& St
 		Obj->Steps[i].Text = StepTexts.IsValidIndex(i) ? StepTexts[i] : FText::GetEmpty();
 		Obj->Steps[i].Waypoint = Waypoints.IsValidIndex(i) ? Waypoints[i] : nullptr;
 	}
-	Obj->FinishSpawning(Obj->GetActorTransform());
+	TDCourseImpl::FinishProp(Obj);
 	Obj->OnStepStarted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStepStarted);
 	Obj->OnCompleted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleObjectiveCompleted);
 }
@@ -413,7 +451,7 @@ ATDEncounterVolume* ATDPlanetCourse::Encounter(ATDObjective* Obj, int32 LinkedSt
 	E->LinkedObjective = Obj;
 	E->LinkedStep = LinkedStep;
 	E->bTriggerOnOverlap = bOnOverlap;
-	E->FinishSpawning(E->GetActorTransform());
+	TDCourseImpl::FinishProp(E);
 	if (E->Box)
 	{
 		E->Box->SetBoxExtent(Extent);
@@ -428,7 +466,7 @@ AActor* ATDPlanetCourse::Marker(const FVector& At, float Yaw)
 	{
 		USceneComponent* Root = NewObject<USceneComponent>(M, TEXT("Root"));
 		M->SetRootComponent(Root);
-		M->FinishSpawning(M->GetActorTransform());
+		TDCourseImpl::FinishProp(M);
 		Root->RegisterComponent();
 		M->SetActorTransform(FTransform(GetActorRotation() + FRotator(0.f, Yaw, 0.f), W(At)));
 	}
@@ -447,15 +485,20 @@ void ATDPlanetCourse::Checkpoint(ATDObjective* Obj, int32 Step, const FVector& A
 void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const FLinearColor& Color, const FText& Name)
 {
 	// A glowing totem: a dark plinth, a tall light column and a floating crown.
-	Platform(At, 40.f, FVector(500.f, 500.f, 40.f), FLinearColor(0.05f, 0.05f, 0.06f));
-	Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(22.f, 22.f, 440.f), Color, 2.f, FRotator::ZeroRotator, false); // thin: readable without filling the view up close
-	Block(EShape::Cone, At + FVector(0.f, 0.f, 600.f), FVector(160.f, 160.f, 200.f), Color, 3.f, FRotator(180.f, 0.f, 0.f), false);
+	UStaticMeshComponent* Plinth = Platform(At, 40.f, FVector(500.f, 500.f, 40.f), FLinearColor(0.05f, 0.05f, 0.06f));
+	UStaticMeshComponent* Column = Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(22.f, 22.f, 440.f), Color, 2.f, FRotator::ZeroRotator, false); // thin: readable without filling the view up close
+	UStaticMeshComponent* Crown = Block(EShape::Cone, At + FVector(0.f, 0.f, 600.f), FVector(160.f, 160.f, 200.f), Color, 3.f, FRotator(180.f, 0.f, 0.f), false);
+	if (TDPropArt::Dress(Plinth, ArtFor(TEXT("SM_Trailhead")), false)) // one mesh: plinth, column and crown on the plinth's base
+	{
+		if (Column) { Column->SetHiddenInGame(true); }
+		if (Crown) { Crown->SetHiddenInGame(true); }
+	}
 	AActor* Marker = SpawnProp<AActor>(At + FVector(0.f, 0.f, 300.f));
 	if (Marker)
 	{
 		USceneComponent* Root = NewObject<USceneComponent>(Marker, TEXT("Root"));
 		Marker->SetRootComponent(Root);
-		Marker->FinishSpawning(Marker->GetActorTransform());
+		TDCourseImpl::FinishProp(Marker);
 		Root->RegisterComponent();
 		Marker->SetActorLocation(W(At + FVector(0.f, 0.f, 300.f)));
 	}
@@ -620,7 +663,13 @@ void ATDPlanetCourse::BuildVerdance()
 {
 	using namespace TDCourseColors;
 	// Ground: one lit slab, 4 km, top at the pad (z = 0). The rig's grey slab is switched off.
-	Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), VerdanceGround);
+	if (UStaticMeshComponent* Ground = Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), VerdanceGround))
+	{
+		if (UMaterialInterface* GroundArt = GroundMaterialVerdance.IsNull() ? nullptr : (FPackageName::DoesPackageExist(GroundMaterialVerdance.ToSoftObjectPath().GetLongPackageName()) ? GroundMaterialVerdance.LoadSynchronous() : nullptr))
+		{
+			Ground->SetMaterial(0, GroundArt); // world-aligned tiling ground (Lead's MI_Ground_*)
+		}
+	}
 
 	// ---- Obj 1: the wreck core (-> Gravity Well on Bastion). North-east. ----
 	const FVector WreckHead(2600.f, 2600.f, 0.f);
@@ -634,7 +683,7 @@ void ATDPlanetCourse::BuildVerdance()
 	TArray<AActor*> AmbushCover;
 	for (const FVector& L : { FVector(5600.f, 4100.f, 0.f), FVector(6700.f, 5200.f, 0.f), FVector(6900.f, 4000.f, 0.f), FVector(5700.f, 5300.f, 0.f) })
 	{
-		Block(EShape::Cube, L + FVector(0.f, 0.f, 70.f), FVector(500.f, 110.f, 140.f), Trunk, 0.f, FRotator(0.f, 35.f, 0.f));
+		Block(EShape::Cube, L + FVector(0.f, 0.f, 70.f), FVector(500.f, 110.f, 140.f), Trunk, 0.f, FRotator(0.f, 35.f, 0.f), true, TEXT("SM_Verd_Log"));
 	}
 	ATDEncounterVolume* AmbushFight = Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
 		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight: one shooter (playtest: 4 crew killed a non-blocker in ~4 s)
@@ -646,19 +695,24 @@ void ATDPlanetCourse::BuildVerdance()
 	// The wreck: a broken hull nose-down in the ground, glowing breaks, debris to fight around.
 	// Collidable pieces turn in yaw only (a tilted box left an overhang the pilot got wedged under in playtest);
 	// the broken, tilted look comes from the non-colliding glow pieces.
-	Block(EShape::Cube, WreckSite + FVector(-600.f, 900.f, 350.f), FVector(2600.f, 900.f, 700.f), WreckMetal, 0.f, FRotator(0.f, 25.f, 0.f));
-	Block(EShape::Cube, WreckSite + FVector(-700.f, 900.f, 780.f), FVector(1800.f, 700.f, 160.f), WreckMetal, 0.f, FRotator(-12.f, 25.f, 8.f), false);
-	Block(EShape::Cylinder, WreckSite + FVector(900.f, -700.f, 350.f), FVector(700.f, 700.f, 700.f), WreckMetal, 0.f, FRotator(0.f, -30.f, 0.f));
-	Block(EShape::Cylinder, WreckSite + FVector(1100.f, -900.f, 700.f), FVector(500.f, 500.f, 900.f), WreckMetal, 0.f, FRotator(70.f, -30.f, 0.f), false);
-	Block(EShape::Cube, WreckSite + FVector(-900.f, -500.f, 120.f), FVector(600.f, 160.f, 240.f), WreckMetal, 0.f, FRotator(0.f, 70.f, 0.f));
-	Block(EShape::Cube, WreckSite + FVector(500.f, 800.f, 110.f), FVector(500.f, 160.f, 220.f), WreckMetal, 0.f, FRotator(0.f, -20.f, 0.f));
+	// The hull's collision hugs the art (Lead, Nov 13: the round-2 dropship's flanks sit 0.8-1.4 m inside a 9 m box
+	// at chest height, invisible walls): 7.5 m wide, the art kept at its true 26 x 9 x 7 m on the same base.
+	if (UStaticMeshComponent* Hull = Block(EShape::Cube, WreckSite + FVector(-600.f, 900.f, 350.f), FVector(2600.f, 750.f, 700.f), WreckMetal, 0.f, FRotator(0.f, 25.f, 0.f), true))
+	{
+		TDPropArt::Dress(Hull, ArtFor(TEXT("SM_Verd_Wreck_Hull")), false);
+	}
+	Block(EShape::Cube, WreckSite + FVector(-700.f, 900.f, 780.f), FVector(1800.f, 700.f, 160.f), WreckMetal, 0.f, FRotator(-12.f, 25.f, 8.f), false, TEXT("SM_Verd_Wreck_Wing"));
+	Block(EShape::Cylinder, WreckSite + FVector(900.f, -700.f, 350.f), FVector(700.f, 700.f, 700.f), WreckMetal, 0.f, FRotator(0.f, -30.f, 0.f), true, TEXT("SM_Verd_Wreck_Engine"));
+	Block(EShape::Cylinder, WreckSite + FVector(1100.f, -900.f, 700.f), FVector(500.f, 500.f, 900.f), WreckMetal, 0.f, FRotator(70.f, -30.f, 0.f), false, TEXT("SM_Verd_Wreck_Engine"));
+	Block(EShape::Cube, WreckSite + FVector(-900.f, -500.f, 120.f), FVector(600.f, 160.f, 240.f), WreckMetal, 0.f, FRotator(0.f, 70.f, 0.f), true, TEXT("SM_Verd_Wreck_Wing"));
+	Block(EShape::Cube, WreckSite + FVector(500.f, 800.f, 110.f), FVector(500.f, 160.f, 220.f), WreckMetal, 0.f, FRotator(0.f, -20.f, 0.f), true, TEXT("SM_Verd_Wreck_Fin"));
 	Block(EShape::Sphere, WreckSite + FVector(-500.f, 700.f, 500.f), FVector(500.f, 260.f, 200.f), Ember, 3.f, FRotator(0.f, 25.f, 0.f), false);
 	Block(EShape::Sphere, WreckSite + FVector(1100.f, -850.f, 300.f), FVector(300.f), Ember, 3.f, FRotator::ZeroRotator, false);
 
 	ATDStepTrigger* Beacon = SpawnProp<ATDStepTrigger>(FVector(9300.f, 6300.f, 0.f));
 	Beacon->LinkedObjective = Wreck;
 	Beacon->LinkedStep = 0;
-	Beacon->FinishSpawning(Beacon->GetActorTransform());
+	TDCourseImpl::FinishProp(Beacon);
 
 	// Explicit spawn points clear of the hull (a ring point landed inside it: an unreachable, unkillable grunt).
 	ATDEncounterVolume* SiteFight = Encounter(Wreck, 1, WreckSite + FVector(0.f, 0.f, 200.f), FVector(2600.f, 2600.f, 700.f),
@@ -673,18 +727,18 @@ void ATDPlanetCourse::BuildVerdance()
 	// Two waves drop in on the extraction (spawned high: they fall in).
 	ATDEncounterVolume* WaveA = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1100.f); // (machine playtest: 3+3 during a 4 s hold killed the pilot 20 times)
 	ATDEncounterVolume* WaveB = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Trooper, ETDCrewType::Drone }, false, 1300.f);
-	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(WreckSite + FVector(0.f, 0.f, 70.f));
+	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(WreckSite + FVector(0.f, 0.f, 60.f));
 	Core->LinkedObjective = Wreck;
 	Core->LinkedStep = 2;
 	Core->WaveA = WaveA;
 	Core->WaveB = WaveB;
-	Core->FinishSpawning(Core->GetActorTransform());
+	TDCourseImpl::FinishProp(Core);
 
 	ATDStepTrigger* Ship = SpawnProp<ATDStepTrigger>(FVector(300.f, 0.f, 0.f));
 	Ship->LinkedObjective = Wreck;
 	Ship->LinkedStep = 3;
 	Ship->bRequireCarrying = true;
-	Ship->FinishSpawning(Ship->GetActorTransform());
+	TDCourseImpl::FinishProp(Ship);
 	Ship->Box->SetBoxExtent(FVector(1400.f, 1400.f, 400.f));
 
 	Checkpoint(Wreck, 1, FVector(8300.f, 5800.f, 0.f), 30.f); // dying in the site fight: back at its edge, not at the pad (outside its box)
@@ -704,24 +758,24 @@ void ATDPlanetCourse::BuildVerdance()
 	// A +110 jump -> B +180 double jump / mantle -> a 7 m gap: jump + dash onto C, a deep 10 m landing (a 12 m
 	// dash must not overshoot it) -> plateau +270 jump + mantle. C (330) can't be climbed from the ground, so a
 	// miss means back to A: platforming, not a wall walk.
-	Platform(FVector(5700.f, -5500.f, 0.f), 110.f, FVector(600.f, 600.f, 110.f), RelayStone, 0.4f);
-	Platform(FVector(6400.f, -6050.f, 0.f), 290.f, FVector(600.f, 600.f, 290.f), RelayStone, 0.4f);
-	Platform(FVector(7550.f, -7000.f, 0.f), 330.f, FVector(1000.f, 1000.f, 330.f), RelayStone, 0.4f);
-	Block(EShape::Cube, FVector(6950.f, -6500.f, -40.f), FVector(700.f, 300.f, 20.f), Magenta, 2.f, FRotator(0.f, -40.f, 0.f), false); // glowing hint under the gap
+	Platform(FVector(5700.f, -5500.f, 0.f), 110.f, FVector(600.f, 600.f, 110.f), RelayStone, 0.4f, TEXT("SM_Verd_RelayPlatform_S"));
+	Platform(FVector(6400.f, -6050.f, 0.f), 290.f, FVector(600.f, 600.f, 290.f), RelayStone, 0.4f, TEXT("SM_Verd_RelayPlatform_M"));
+	Platform(FVector(7550.f, -7000.f, 0.f), 330.f, FVector(1000.f, 1000.f, 330.f), RelayStone, 0.4f, TEXT("SM_Verd_RelayPlatform_L"));
+	// (the gap-hint glow sat under the ground top and was never visible: dropped, Lead Nov 13) // glowing hint under the gap
 	const FVector Plateau(9200.f, -8200.f, 0.f);
 	const float PlateauTop = 600.f;
-	Platform(Plateau, PlateauTop, FVector(2600.f, 2600.f, PlateauTop), VerdanceRock);
+	Platform(Plateau, PlateauTop, FVector(2600.f, 2600.f, PlateauTop), VerdanceRock, 0.f, TEXT("SM_Verd_Plateau"));
 	// Ruined pillars around the plateau edge.
 	for (int32 i = 0; i < 8; ++i)
 	{
 		const float A = i * PI / 4.f;
-		Block(EShape::Cylinder, Plateau + FVector(FMath::Cos(A) * 1200.f, FMath::Sin(A) * 1200.f, PlateauTop + 300.f), FVector(120.f, 120.f, 600.f), VerdanceRock);
+		Block(EShape::Cylinder, Plateau + FVector(FMath::Cos(A) * 1200.f, FMath::Sin(A) * 1200.f, PlateauTop + 300.f), FVector(120.f, 120.f, 600.f), VerdanceRock, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_RuinPillar"));
 	}
 
 	ATDStepTrigger* Climb = SpawnProp<ATDStepTrigger>(Plateau + FVector(0.f, 0.f, PlateauTop));
 	Climb->LinkedObjective = Relay;
 	Climb->LinkedStep = 0;
-	Climb->FinishSpawning(Climb->GetActorTransform());
+	TDCourseImpl::FinishProp(Climb);
 	Climb->Box->SetBoxExtent(FVector(1300.f, 1300.f, 300.f));
 
 	// Three resonance nodes on stone stubs around the plateau (+180: double jump or mantle), drones guarding.
@@ -730,18 +784,18 @@ void ATDPlanetCourse::BuildVerdance()
 	Nodes->LinkedStep = 1;
 	Nodes->Required = 3;
 	Nodes->BaseText = LOCTEXT("Nodes", "WAKE THE RESONANCE NODES");
-	Nodes->FinishSpawning(Nodes->GetActorTransform());
+	TDCourseImpl::FinishProp(Nodes);
 	for (int32 i = 0; i < 3; ++i)
 	{
 		const float A = PI * 0.3f + i * PI * 2.f / 3.f;
 		const FVector Stub = Plateau + FVector(FMath::Cos(A) * 800.f, FMath::Sin(A) * 800.f, 0.f);
-		Platform(Stub, PlateauTop + 180.f, FVector(320.f, 320.f, 180.f), RelayStone, 0.6f);
-		ATDInteractableActor* Node = SpawnProp<ATDInteractableActor>(Stub + FVector(0.f, 0.f, PlateauTop + 180.f + 70.f));
+		Platform(Stub, PlateauTop + 180.f, FVector(320.f, 320.f, 180.f), RelayStone, 0.6f, TEXT("SM_Verd_NodeStub"));
+		ATDInteractableActor* Node = SpawnProp<ATDInteractableActor>(Stub + FVector(0.f, 0.f, PlateauTop + 180.f + 60.f));
 		Node->Prompt = LOCTEXT("NodePrompt", "Wake the node");
 		Node->LinkedObjective = Relay;
 		Node->LinkedStep = 1;
 		Node->bCompleteLinkedStep = false;
-		Node->FinishSpawning(Node->GetActorTransform());
+		TDCourseImpl::FinishProp(Node);
 		UTDStatics::TintPlaceholder(Node->Mesh, Magenta, 2.f);
 		Nodes->WatchInteractable(Node);
 	}
@@ -749,17 +803,18 @@ void ATDPlanetCourse::BuildVerdance()
 		{ ETDCrewType::Drone, ETDCrewType::Drone, ETDCrewType::Drone }, false, 900.f);
 	StepEncounters.Add({ Relay, 1, Drones });
 
-	ATDInteractableActor* RelayCore = SpawnProp<ATDInteractableActor>(Plateau + FVector(0.f, 0.f, PlateauTop + 90.f));
+	ATDInteractableActor* RelayCore = SpawnProp<ATDInteractableActor>(Plateau + FVector(0.f, 0.f, PlateauTop + 75.f)); // 150 tall (scaled below), standing on the plateau
+	RelayCore->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_RelayAltar")); // 200 x 200 x 150, the scale below
 	RelayCore->Prompt = LOCTEXT("RelayPrompt", "Awaken the relay");
 	RelayCore->HoldTime = 1.5f;
 	RelayCore->LinkedObjective = Relay;
 	RelayCore->LinkedStep = 2;
-	RelayCore->FinishSpawning(RelayCore->GetActorTransform());
+	TDCourseImpl::FinishProp(RelayCore);
 	RelayCore->SetActorScale3D(FVector(2.f, 2.f, 1.5f));
 	UTDStatics::TintPlaceholder(RelayCore->Mesh, RelayStone, 2.5f);
 	Block(EShape::Cylinder, Plateau + FVector(0.f, 0.f, PlateauTop + 1400.f), FVector(80.f, 80.f, 1800.f), RelayStone, 2.f, FRotator::ZeroRotator, false);
 
-	Checkpoint(Relay, 1, Plateau + FVector(0.f, 0.f, PlateauTop), 0.f); // no re-climb for a death on the plateau
+	Checkpoint(Relay, 1, Plateau + FVector(-450.f, 0.f, PlateauTop), 0.f); // no re-climb for a death on the plateau; beside the altar, never in it
 	FinishObjective(Relay,
 		{ LOCTEXT("R0", "CLIMB TO THE ANCIENT RELAY"), LOCTEXT("R1", "WAKE THE RESONANCE NODES  0 / 3"), LOCTEXT("R2", "AWAKEN THE RELAY · HOLD [E]") },
 		{ Climb, Nodes, RelayCore });
@@ -807,14 +862,20 @@ void ATDPlanetCourse::BuildVerdance()
 void ATDPlanetCourse::BuildCinder()
 {
 	using namespace TDCourseColors;
-	Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), CinderGround);
+	if (UStaticMeshComponent* Ground = Block(EShape::Cube, FVector(0.f, 0.f, -100.f), FVector(600000.f, 600000.f, 200.f), CinderGround))
+	{
+		if (UMaterialInterface* GroundArt = GroundMaterialCinder.IsNull() ? nullptr : (FPackageName::DoesPackageExist(GroundMaterialCinder.ToSoftObjectPath().GetLongPackageName()) ? GroundMaterialCinder.LoadSynchronous() : nullptr))
+		{
+			Ground->SetMaterial(0, GroundArt); // world-aligned tiling ground (Lead's MI_Ground_*)
+		}
+	}
 
 	auto Magma = [this](const FVector& Center, const FVector& Size)
 	{
 		ATDMagmaVolume* M = SpawnProp<ATDMagmaVolume>(Center);
 		if (M)
 		{
-			M->FinishSpawning(M->GetActorTransform());
+			TDCourseImpl::FinishProp(M);
 			M->SetSize(Size);
 		}
 		return M;
@@ -825,7 +886,7 @@ void ATDPlanetCourse::BuildCinder()
 		if (G)
 		{
 			G->Phase = Phase;
-			G->FinishSpawning(G->GetActorTransform());
+			TDCourseImpl::FinishProp(G);
 		}
 		return G;
 	};
@@ -840,7 +901,7 @@ void ATDPlanetCourse::BuildCinder()
 	Magma(FVector(5600.f, 4800.f, 0.f), FVector(1600.f, 7000.f, 300.f));
 	for (int32 i = 0; i < 3; ++i)
 	{
-		Platform(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), 60.f, FVector(280.f, 280.f, 160.f), Basalt);
+		Platform(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), 60.f, FVector(280.f, 280.f, 160.f), Basalt, 0.f, TEXT("SM_Cind_SteppingStone"));
 	}
 	// A geyser row on the far bank, rippling.
 	for (int32 i = 0; i < 3; ++i)
@@ -856,13 +917,22 @@ void ATDPlanetCourse::BuildCinder()
 		const float Half = 1800.f;
 		if (GapHalf <= 0.f)
 		{
-			Block(EShape::Cube, FVector(X, Y0, 300.f), FVector(150.f, Half * 2.f, 600.f), TDCourseColors::Steel);
+			Block(EShape::Cube, FVector(X, Y0, 300.f), FVector(150.f, Half * 2.f, 600.f), TDCourseColors::Steel, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Cind_OutpostWall"));
 			return;
 		}
 		const float Len = Half - GapHalf;
-		Block(EShape::Cube, FVector(X, Y0 + GapHalf + Len * 0.5f, 300.f), FVector(150.f, Len, 600.f), TDCourseColors::Steel);
-		Block(EShape::Cube, FVector(X, Y0 - GapHalf - Len * 0.5f, 300.f), FVector(150.f, Len, 600.f), TDCourseColors::Steel);
-		Block(EShape::Cube, FVector(X, Y0, 580.f), FVector(160.f, GapHalf * 2.f, 40.f), TDCourseColors::ArmadaRed, 1.5f, FRotator::ZeroRotator, false);
+		Block(EShape::Cube, FVector(X, Y0 + GapHalf + Len * 0.5f, 300.f), FVector(150.f, Len, 600.f), TDCourseColors::Steel, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Cind_OutpostWall"));
+		Block(EShape::Cube, FVector(X, Y0 - GapHalf - Len * 0.5f, 300.f), FVector(150.f, Len, 600.f), TDCourseColors::Steel, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Cind_OutpostWall"));
+		UStaticMeshComponent* Lintel = Block(EShape::Cube, FVector(X, Y0, 580.f), FVector(160.f, GapHalf * 2.f, 40.f), TDCourseColors::ArmadaRed, 1.5f, FRotator::ZeroRotator, false);
+		if (UStaticMesh* Frame = ArtFor(TEXT("SM_Cind_OutpostWall_Doorway")))
+		{
+			// The doorway frame fills the whole gap (150 x 600 x 600, lintel built in): carried by a no-collision box there.
+			UStaticMeshComponent* Gap = Block(EShape::Cube, FVector(X, Y0, 300.f), FVector(150.f, GapHalf * 2.f, 600.f), TDCourseColors::Steel, 0.f, FRotator::ZeroRotator, false);
+			if (TDPropArt::Dress(Gap, Frame) && Lintel)
+			{
+				Lintel->SetHiddenInGame(true);
+			}
+		}
 	};
 	const float XGate = 9600.f, XBarracks = 11800.f, XCommand = 13800.f, XArena = 15800.f, XEnd = 18200.f;
 	for (const float X : { XGate, XBarracks, XCommand, XArena })
@@ -873,7 +943,7 @@ void ATDPlanetCourse::BuildCinder()
 	// Side walls.
 	for (const float S : { -1.f, 1.f })
 	{
-		Block(EShape::Cube, FVector((XGate + XEnd) * 0.5f, Y0 + S * 1800.f, 300.f), FVector(XEnd - XGate, 150.f, 600.f), Steel);
+		Block(EShape::Cube, FVector((XGate + XEnd) * 0.5f, Y0 + S * 1800.f, 300.f), FVector(XEnd - XGate, 150.f, 600.f), Steel, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Cind_OutpostWall"));
 	}
 	auto Door = [this, Y0](float X)
 	{
@@ -881,7 +951,7 @@ void ATDPlanetCourse::BuildCinder()
 		if (D)
 		{
 			D->OpenHeight = 650.f;
-			D->FinishSpawning(D->GetActorTransform());
+			TDCourseImpl::FinishProp(D);
 			D->Mesh->SetRelativeScale3D(FVector(0.3f, 6.2f, 6.f));
 			D->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 300.f));
 			UTDStatics::TintPlaceholder(D->Mesh, TDCourseColors::ArmadaRed, 0.4f);
@@ -899,7 +969,7 @@ void ATDPlanetCourse::BuildCinder()
 	Conduits->LinkedStep = 0;
 	Conduits->Required = 2;
 	Conduits->BaseText = LOCTEXT("Conduits", "BREACH THE GATE · DESTROY THE CONDUITS");
-	Conduits->FinishSpawning(Conduits->GetActorTransform());
+	TDCourseImpl::FinishProp(Conduits);
 	for (const float S : { -1.f, 1.f })
 	{
 		ATDShatterCrystal* C = SpawnProp<ATDShatterCrystal>(FVector(XGate - 300.f, Y0 + S * 650.f, 0.f));
@@ -907,10 +977,11 @@ void ATDPlanetCourse::BuildCinder()
 		C->LinkedStep = 0;
 		C->Color = FLinearColor(1.f, 0.1f, 0.05f);
 		C->MaxHealth = 60.f;
-		C->FinishSpawning(C->GetActorTransform());
-		C->Mesh->SetStaticMesh(CylinderMesh);
+		C->CrystalMesh = TDPropArt::Default(TEXT("SM_Cind_Conduit"));
+		C->Mesh->SetStaticMesh(CylinderMesh); // before FinishSpawning: the art is fitted to this shape at BeginPlay
 		C->Mesh->SetRelativeScale3D(FVector(1.f, 1.f, 3.f));
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
+		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
 	}
 	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 1400.f, Y0, 200.f), FVector(1600.f, 1800.f, 600.f),
@@ -924,7 +995,7 @@ void ATDPlanetCourse::BuildCinder()
 		for (int32 i = 0; i < 4; ++i)
 		{
 			const FVector At(FMath::Lerp(X0 + 400.f, X1 - 400.f, R.FRand()), Y0 + R.FRandRange(-1300.f, 1300.f), 0.f);
-			Block(EShape::Cube, At + FVector(0.f, 0.f, 70.f), FVector(R.FRandRange(220.f, 360.f), R.FRandRange(150.f, 300.f), 140.f), TDCourseColors::Steel);
+			Block(EShape::Cube, At + FVector(0.f, 0.f, 70.f), FVector(R.FRandRange(220.f, 360.f), R.FRandRange(150.f, 300.f), 140.f), TDCourseColors::Steel, 0.f, FRotator::ZeroRotator, true, R.FRand() < 0.5f ? FName(TEXT("SM_Cind_Crate_A")) : FName(TEXT("SM_Cind_Crate_B")));
 		}
 	};
 	Crates(XGate, XBarracks, 31);
@@ -952,12 +1023,14 @@ void ATDPlanetCourse::BuildCinder()
 	FTDRetakeMercyTier Mercy5; Mercy5.FromTake = 5; Mercy5.HealthScale = 0.5f; Mercy5.MaxSummons = 0;
 	Arena->MercyTiers = { Mercy3, Mercy5 };
 
-	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0, 80.f));
+	// Screen toward the way the pilot comes in (the kit console's screen faces its +X).
+	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0 + 700.f, 70.f), FRotator(0.f, 180.f, 0.f)); // off the arena line (the Warden fight crosses it)
+	Prototype->ConsoleMesh = TDPropArt::Default(TEXT("SM_Cind_PrototypeConsole")); // 160 x 160 x 140, the scale below
 	Prototype->Prompt = LOCTEXT("ClaimEmp", "Claim the EMP prototype");
 	Prototype->HoldTime = 1.5f;
 	Prototype->LinkedObjective = Outpost;
 	Prototype->LinkedStep = 5;
-	Prototype->FinishSpawning(Prototype->GetActorTransform());
+	TDCourseImpl::FinishProp(Prototype);
 	Prototype->SetActorScale3D(FVector(1.6f, 1.6f, 1.4f));
 	UTDStatics::TintPlaceholder(Prototype->Mesh, FLinearColor(0.3f, 0.8f, 1.f), 2.5f);
 
@@ -986,11 +1059,11 @@ void ATDPlanetCourse::BuildCinder()
 		C->LinkedObjective = Jammer;
 		C->LinkedStep = 0;
 		C->Color = Crystal;
-		C->FinishSpawning(C->GetActorTransform());
+		TDCourseImpl::FinishProp(C);
 	}
 	// Rock walls either side of the crystal choke so it can't be walked round.
-	Block(EShape::Cube, FVector(4600.f, -3200.f, 300.f), FVector(400.f, 1200.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f));
-	Block(EShape::Cube, FVector(5100.f, -5400.f, 300.f), FVector(400.f, 1400.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f));
+	Block(EShape::Cube, FVector(4600.f, -3200.f, 300.f), FVector(400.f, 1200.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f), true, TEXT("SM_Cind_ChokeRock_A"));
+	Block(EShape::Cube, FVector(5100.f, -5400.f, 300.f), FVector(400.f, 1400.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f), true, TEXT("SM_Cind_ChokeRock_B"));
 
 	// The magma lake and the collapsing crystal bridge: one continuous walkway of slabs (no jumps), each
 	// falling 1.1 s after you step on it: keep running.
@@ -1002,13 +1075,13 @@ void ATDPlanetCourse::BuildCinder()
 		const float X = LakeX0 + 250.f + i * ((LakeX1 - LakeX0 - 500.f) / (Segments - 1));
 		ATDCollapsingPlatform* P = SpawnProp<ATDCollapsingPlatform>(FVector(X, LakeY + (i % 2 ? 60.f : -60.f), 80.f));
 		P->LinkedObjective = Jammer;
-		P->FinishSpawning(P->GetActorTransform());
+		TDCourseImpl::FinishProp(P);
 		P->SetSize(FVector((LakeX1 - LakeX0 - 500.f) / (Segments - 1) + 30.f, 320.f, 60.f)); // overlapping: no gaps
 	}
 	ATDStepTrigger* FarBank = SpawnProp<ATDStepTrigger>(FVector(LakeX1 + 600.f, LakeY, 0.f));
 	FarBank->LinkedObjective = Jammer;
 	FarBank->LinkedStep = 0;
-	FarBank->FinishSpawning(FarBank->GetActorTransform());
+	TDCourseImpl::FinishProp(FarBank);
 
 	// The jammer tower and its three charge sites, defended.
 	const FVector Tower(12600.f, LakeY, 0.f);
@@ -1017,7 +1090,7 @@ void ATDPlanetCourse::BuildCinder()
 	{
 		USceneComponent* Root = NewObject<USceneComponent>(TowerActor, TEXT("Root"));
 		TowerActor->SetRootComponent(Root);
-		TowerActor->FinishSpawning(TowerActor->GetActorTransform());
+		TDCourseImpl::FinishProp(TowerActor);
 		Root->SetMobility(EComponentMobility::Movable);
 		Root->RegisterComponent();
 		TowerActor->SetActorLocation(W(Tower));
@@ -1033,18 +1106,23 @@ void ATDPlanetCourse::BuildCinder()
 			C->RegisterComponent();
 			TowerActor->AddInstanceComponent(C);
 			UTDStatics::TintPlaceholder(C, Color, Glow);
+			return C;
 		};
-		Part(EShape::Cylinder, FVector(0.f, 0.f, 1500.f), FVector(500.f, 500.f, 3000.f), TDCourseColors::Steel, 0.f);
-		Part(EShape::Cone, FVector(0.f, 0.f, 3400.f), FVector(400.f, 400.f, 800.f), TDCourseColors::ArmadaRed, 1.5f);
-		Part(EShape::Cube, FVector(0.f, 0.f, 2600.f), FVector(1600.f, 80.f, 80.f), TDCourseColors::ArmadaRed, 2.5f);
-		Part(EShape::Cube, FVector(0.f, 0.f, 2200.f), FVector(80.f, 1400.f, 80.f), TDCourseColors::ArmadaRed, 2.5f);
+		UStaticMeshComponent* Shaft = Part(EShape::Cylinder, FVector(0.f, 0.f, 1500.f), FVector(500.f, 500.f, 3000.f), TDCourseColors::Steel, 0.f);
+		UStaticMeshComponent* Tip = Part(EShape::Cone, FVector(0.f, 0.f, 3400.f), FVector(400.f, 400.f, 800.f), TDCourseColors::ArmadaRed, 1.5f);
+		UStaticMeshComponent* BarX = Part(EShape::Cube, FVector(0.f, 0.f, 2600.f), FVector(1600.f, 80.f, 80.f), TDCourseColors::ArmadaRed, 2.5f);
+		UStaticMeshComponent* BarY = Part(EShape::Cube, FVector(0.f, 0.f, 2200.f), FVector(80.f, 1400.f, 80.f), TDCourseColors::ArmadaRed, 2.5f);
+		if (TDPropArt::Dress(Shaft, ArtFor(TEXT("SM_Cind_JammerTower")), false)) // one rigid mesh on the shaft's base; it sinks with the tower actor
+		{
+			for (UStaticMeshComponent* Other : { Tip, BarX, BarY }) { if (Other) { Other->SetHiddenInGame(true); } }
+		}
 	}
 	ATDStepCounter* Charges = SpawnProp<ATDStepCounter>(Tower);
 	Charges->LinkedObjective = Jammer;
 	Charges->LinkedStep = 1;
 	Charges->Required = 3;
 	Charges->BaseText = LOCTEXT("Charges", "PLANT THE CHARGES");
-	Charges->FinishSpawning(Charges->GetActorTransform());
+	TDCourseImpl::FinishProp(Charges);
 	for (int32 i = 0; i < 3; ++i)
 	{
 		const float A = PI + (i - 1) * 0.9f;
@@ -1054,7 +1132,7 @@ void ATDPlanetCourse::BuildCinder()
 		Site->LinkedObjective = Jammer;
 		Site->LinkedStep = 1;
 		Site->bCompleteLinkedStep = false;
-		Site->FinishSpawning(Site->GetActorTransform());
+		TDCourseImpl::FinishProp(Site);
 		UTDStatics::TintPlaceholder(Site->Mesh, FLinearColor(1.f, 0.85f, 0.1f), 2.f);
 		Charges->WatchInteractable(Site);
 	}
@@ -1067,11 +1145,11 @@ void ATDPlanetCourse::BuildCinder()
 
 	// The run: back along the lake's south shore (solid ground), debris falling, out of the tower's reach.
 	const FVector Exit(LakeX0 - 600.f, LakeY - 3400.f, 0.f);
-	Platform(FVector((LakeX0 + LakeX1 + 1600.f) * 0.5f, LakeY - 3300.f, 0.f), 30.f, FVector(LakeX1 - LakeX0 + 2400.f, 1200.f, 30.f), Basalt);
+	Platform(FVector((LakeX0 + LakeX1 + 1600.f) * 0.5f, LakeY - 3300.f, 0.f), 30.f, FVector(LakeX1 - LakeX0 + 2400.f, 1200.f, 30.f), Basalt, 0.f, TEXT("SM_Cind_EscapeShore"));
 	ATDStepTrigger* Clear = SpawnProp<ATDStepTrigger>(Exit);
 	Clear->LinkedObjective = Jammer;
 	Clear->LinkedStep = 2;
-	Clear->FinishSpawning(Clear->GetActorTransform());
+	TDCourseImpl::FinishProp(Clear);
 	Clear->Box->SetBoxExtent(FVector(900.f, 900.f, 400.f));
 	ATDCollapseRun* Run = SpawnProp<ATDCollapseRun>(FVector((LakeX0 + LakeX1) * 0.5f + 1500.f, LakeY - 2400.f, 0.f));
 	Run->LinkedObjective = Jammer;
@@ -1079,7 +1157,7 @@ void ATDPlanetCourse::BuildCinder()
 	Run->Seconds = 22.f;
 	Run->Tower = TowerActor;
 	Run->DebrisExtent = FVector(3500.f, 1200.f, 0.f);
-	Run->FinishSpawning(Run->GetActorTransform());
+	TDCourseImpl::FinishProp(Run);
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 
 	Checkpoint(Jammer, 1, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f); // the charges: from the far bank, out of the defence's drop

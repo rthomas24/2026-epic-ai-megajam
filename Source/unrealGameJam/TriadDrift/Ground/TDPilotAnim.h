@@ -9,6 +9,15 @@
 
 class UAnimSequenceBase;
 
+/**
+ * Make an animation ready to evaluate. In an uncooked build the engine compresses animations asynchronously after
+ * load; evaluated before that finishes, a sequence gives an empty pose (every bone at the root: the collapsed crew of
+ * playtest 17e0437). What fixes it is keeping each sequence loaded for the session once used: a sequence collected
+ * and loaded again evaluated empty in every later world (see .cpp).
+ */
+UNREALGAMEJAM_API UAnimSequenceBase* TDLoadPlayableAnim(const FSoftObjectPath& Path);
+UNREALGAMEJAM_API UAnimSequenceBase* TDMakePlayable(UAnimSequenceBase* Anim);
+
 UCLASS(Transient, NotBlueprintable)
 class UNREALGAMEJAM_API UTDLoopBlendAnimInstance : public UAnimInstance
 {
@@ -19,14 +28,61 @@ public:
 	void SetLoop(UAnimSequenceBase* Loop, float Rate = 1.f);
 
 	UAnimSequenceBase* GetLoop() const { return Current; }
+
+	/**
+	 * Play Shot once over the loop (attack, flinch): fades in, plays to its end, fades back to the loop.
+	 * bUpperBodyOnly: only UpperRootBone and its children take it (the legs keep walking). bHold: stay on its last
+	 * frame until StopOneShot or another shot (a pose held on purpose, not a montage left playing).
+	 */
+	void PlayOneShot(UAnimSequenceBase* Shot, float Rate = 1.f, bool bUpperBodyOnly = false, bool bHold = false);
+	void StopOneShot() { Shot = nullptr; ShotAlpha = 0.f; bShotHold = false; }
+	UAnimSequenceBase* GetOneShot() const { return Shot; }
+	bool IsOneShotUpperBody() const { return bShotUpper; }
+
+	/** Loop on the upper body only (the block guard) over whatever the legs do; null fades it back out (0.12 s). */
+	void SetUpperLoop(UAnimSequenceBase* Loop);
+	UAnimSequenceBase* GetUpperLoop() const { return bUpperWanted ? Upper.Get() : nullptr; }
+	float GetUpperAlpha() const { return UpperAlpha; }
+	/** The first bone of the upper-body layer (it and every child take the upper loop / an upper-body shot). */
+	FName UpperRootBone = TEXT("spine_01");
 	float GetBlendAlpha() const { return Alpha; }
 	float GetRate() const { return PlayRate; }
 
 	float BlendSeconds = 0.2f;
 
+	// ---- procedural pose (no animation data): built from the reference pose in C++. Used for crew meshes whose
+	// sequences evaluate collapsed (Nov 13: SK_Mannequin compressed data on the Null crew meshes).
+	/** Pose the body procedurally instead of playing loops. */
+	bool bProcedural = false;
+	/** Arms lowered out of the A-pose (degrees). */
+	float ProcArmDown = 55.f;
+	/** 0 standing .. 1 running: stride amplitude and pace. */
+	float ProcSpeed01 = 0.f;
+	/** Stride phase in radians (advanced by the owner from its ground speed). */
+	float ProcPhase = 0.f;
+	/** 0..1 right arm raised for an attack (wind-up) / swung through (release, negative). */
+	float ProcAttack = 0.f;
+	/** 0..1 spine flinch from a hit. */
+	float ProcFlinch = 0.f;
+	/** Sign flips per axis for skeletons whose local conventions differ (tuned by eye on SK_Mannequin). */
+	float ProcSideSign = 1.f;
+	float ProcForwardSign = 1.f;
+	/** The body's facing in COMPONENT space (set by the owner from its actor forward); swing axes derive from it. */
+	FVector ProcForwardCS = FVector(0.f, 1.f, 0.f);
+
 	// Read by the proxy before each update (game thread).
 	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Current;
 	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Previous;
+	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Shot;
+	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Upper;
+	double ShotTime = 0.0;
+	float ShotRate = 1.f;
+	float ShotAlpha = 0.f;
+	bool bShotUpper = false;
+	bool bShotHold = false;
+	double UpperTime = 0.0;
+	float UpperAlpha = 0.f;
+	bool bUpperWanted = false;
 	double CurrentTime = 0.0;
 	double PreviousTime = 0.0;
 	float Alpha = 1.f;

@@ -157,6 +157,12 @@ void ATDDebugHUD::DrawHUD()
 	{
 		return;
 	}
+	// A cinematic (the intro) hides every HUD: the real widget is hidden on purpose then, so this fallback must not
+	// read that as "no real HUD" and draw its full readout over the letterboxed shot.
+	if (const UTDUIHostSubsystem* UIHost = UTDUIHostSubsystem::Get(this); UIHost && UIHost->IsCinematicHidden())
+	{
+		return;
+	}
 	// A real HUD widget is up: draw only what it does not show yet (R-017), so no gameplay information is
 	// lost while presentation catches up. Each surface switches off the moment the widget claims it.
 	const bool bSupplement = IsRealHUDActive(GetWorld());

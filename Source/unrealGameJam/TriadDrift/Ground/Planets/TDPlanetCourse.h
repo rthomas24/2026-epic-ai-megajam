@@ -121,9 +121,15 @@ private:
 
 	// --- Building helpers (all positions relative to the course actor = the pad) ---
 	enum class EShape : uint8 { Cube, Cylinder, Sphere, Cone };
-	UStaticMeshComponent* Block(EShape Shape, const FVector& Center, const FVector& SizeCm, const FLinearColor& Color, float Glow = 0.f, const FRotator& Rot = FRotator::ZeroRotator, bool bCollide = true);
+	UStaticMeshComponent* Block(EShape Shape, const FVector& Center, const FVector& SizeCm, const FLinearColor& Color, float Glow = 0.f, const FRotator& Rot = FRotator::ZeroRotator, bool bCollide = true, FName Art = NAME_None);
+	/** Art for a code-built block: PropRefs[Name] when set, else Gameplay/Props/Planet/<Name> (shown fitted to the block). */
+	UStaticMesh* ArtFor(FName Name);
+
+	/** The ground slab's material per planet (world-aligned tiling); the slab keeps its placeholder look without it. */
+	UPROPERTY(EditAnywhere, Category = "Art") TSoftObjectPtr<UMaterialInterface> GroundMaterialVerdance;
+	UPROPERTY(EditAnywhere, Category = "Art") TSoftObjectPtr<UMaterialInterface> GroundMaterialCinder;
 	/** A walkable box whose TOP is at Top (cm). */
-	UStaticMeshComponent* Platform(const FVector& XY, float Top, const FVector& SizeCm, const FLinearColor& Color, float Glow = 0.f);
+	UStaticMeshComponent* Platform(const FVector& XY, float Top, const FVector& SizeCm, const FLinearColor& Color, float Glow = 0.f, FName Art = NAME_None);
 	void Route(const TArray<FVector>& Points, const FLinearColor& Color, float Spacing = 700.f);
 	void ScatterFlora(int32 Count, float Radius, uint32 Seed);
 

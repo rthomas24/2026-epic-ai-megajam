@@ -4,6 +4,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
@@ -61,6 +62,23 @@ bool FTDDifficultyScales::RunTest(const FString& Parameters)
 		for (const FTDWaveGroup& Gr : D->GetWaveDef(4)->Groups) { if (Gr.EnemyId == TDEnemyIds::HiveCarrier) { Carriers += Gr.Total(); } }
 		TestEqual(TEXT("big ships aren't multiplied"), Carriers, 2);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceRiftRegen, "TriadDrift.Waves.Balance.RiftShieldRegenTuned", TD_TEST_FLAGS)
+bool FTDBalanceRiftRegen::RunTest(const FString& Parameters)
+{
+	// TDBalance.Sweep.EvaderShieldRegen (Nov 13): Rift at 2 s / 35% per second matched Bastion in waves 3-4.
+	const FTDShipSpec& Rift = UTDShipLibrary::Get(ETDShipId::Rift);
+	TestEqual(TEXT("Rift shield regen delay"), Rift.ShieldRegenDelay, 2.f);
+	TestEqual(TEXT("Rift shield regen rate"), Rift.ShieldRegenFractionPerSecond, 0.35f);
+	// TDBalance.Sweep.EvaderLancerShield: x1.2 shield (80 -> 96) brought wave-5 downs near Bastion; hull stays 70.
+	const FTDShipSpec& Lancer = UTDShipLibrary::Get(ETDShipId::Lancer);
+	TestEqual(TEXT("Lancer max shield"), Lancer.MaxShield, 96.f);
+	TestEqual(TEXT("Lancer hull unchanged (fragile-fast)"), Lancer.MaxHull, 70.f);
+	TestTrue(TEXT("Lancer still the least total protection"), Lancer.MaxHull + Lancer.MaxShield < UTDShipLibrary::Get(ETDShipId::Rift).MaxHull + UTDShipLibrary::Get(ETDShipId::Rift).MaxShield);
+	const FTDShipSpec& Bastion = UTDShipLibrary::Get(ETDShipId::Bastion);
+	TestTrue(TEXT("Bastion (the reference) unchanged"), Bastion.ShieldRegenDelay == 3.f && Bastion.ShieldRegenFractionPerSecond == 0.25f);
 	return true;
 }
 

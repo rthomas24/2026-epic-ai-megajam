@@ -1,6 +1,7 @@
 // Triad Drift - space player controller and runtime Enhanced Input setup (ENG-02). Owner: Teammate 1.
 
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "InputKeyEventArgs.h"
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -195,6 +196,7 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IA_OnFootCameraToggle = MakeAction(TEXT("IA_OnFootCameraToggle"), V::Boolean);
 	IA_OpenSettings = MakeAction(TEXT("IA_OpenSettings"), V::Boolean);
 	IA_OpenSettings->bTriggerWhenPaused = true;
+	IA_OpenSettings->bConsumeInput = false; // pad Y is also the ability: never swallow it (it only acts while paused)
 
 	IMC_SpaceCommon = NewObject<UInputMappingContext>(this, TEXT("IMC_SpaceCommon"));
 	IMC_Space = NewObject<UInputMappingContext>(this, TEXT("IMC_Space"));
@@ -362,9 +364,36 @@ void ATDSpacePlayerController::HandlePauseInput()
 	TogglePlayerPause();
 }
 
+namespace TDPauseBlockers
+{
+	static TMap<FName, ATDSpacePlayerController::FTDPauseBlocker>& Map()
+	{
+		static TMap<FName, ATDSpacePlayerController::FTDPauseBlocker> Blockers;
+		return Blockers;
+	}
+}
+
+void ATDSpacePlayerController::RegisterPauseBlocker(FName Id, FTDPauseBlocker Blocker)
+{
+	TDPauseBlockers::Map().Add(Id, MoveTemp(Blocker));
+}
+
+void ATDSpacePlayerController::UnregisterPauseBlocker(FName Id)
+{
+	TDPauseBlockers::Map().Remove(Id);
+}
+
 bool ATDSpacePlayerController::CanPauseNow(FText* OutReason) const
 {
 	auto No = [OutReason](const FText& Why) { if (OutReason) { *OutReason = Why; } return false; };
+	for (const TPair<FName, FTDPauseBlocker>& Blocker : TDPauseBlockers::Map())
+	{
+		FText Why;
+		if (Blocker.Value && Blocker.Value(this, Why))
+		{
+			return No(Why.IsEmpty() ? FText::FromName(Blocker.Key) : Why);
+		}
+	}
 	const UWorld* World = GetWorld();
 	if (const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr)
 	{
@@ -854,6 +883,35 @@ void ATDSpacePlayerController::OnThrottle(const FInputActionValue& Value)
 void ATDSpacePlayerController::OnThrottleReleased(const FInputActionValue&)
 {
 	ThrottleAxis = 0.f;
+}
+
+bool ATDSpacePlayerController::InputKey(const FInputKeyEventArgs& Params)
+{
+	// On foot there's no stick-aim action to tell the devices apart, so the raw keys do it: any pad button, or a pad
+	// axis past the stick deadzone, means "using gamepad"; any key or mouse button press, or a real mouse move,
+	// means mouse and keyboard. On-foot prompts read IsUsingGamepad() to switch their wording. In flight the
+	// stick/mouse aim hysteresis above stays in charge.
+	if (GetPawn() != nullptr && GetSpacecraft() == nullptr)
+	{
+		const FKey& K = Params.Key;
+		if (K.IsGamepadKey())
+		{
+			if (K.IsAxis1D() || K.IsAxis2D() ? FMath::Abs(Params.AmountDepressed) > StickDeadzone : Params.Event == IE_Pressed)
+			{
+				bUsingGamepad = true;
+			}
+		}
+		else if (!K.IsTouch())
+		{
+			const bool bMouseMove = K == EKeys::MouseX || K == EKeys::MouseY;
+			if (bMouseMove ? FMath::Abs(Params.AmountDepressed) >= MouseTakeOverThreshold
+				: (!K.IsAxis1D() && !K.IsAxis2D() && Params.Event == IE_Pressed))
+			{
+				bUsingGamepad = false;
+			}
+		}
+	}
+	return Super::InputKey(Params);
 }
 
 void ATDSpacePlayerController::OnMouseAim(const FInputActionValue& Value)

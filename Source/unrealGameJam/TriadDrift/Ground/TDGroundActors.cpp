@@ -1,6 +1,8 @@
 // Triad Drift - ground gameplay actors (ENG-24). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "Misc/PackageName.h"
+#include "Engine/StaticMesh.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
@@ -56,6 +58,72 @@ namespace TDGroundShapes
 // Interactable
 // ================================================================================================
 
+TSoftObjectPtr<UStaticMesh> TDPropArt::Default(const TCHAR* Name)
+{
+	return TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/Planet/%s.%s"), Name, Name)));
+}
+
+UStaticMesh* TDPropArt::Load(const TSoftObjectPtr<UStaticMesh>& Slot)
+{
+	if (Slot.IsNull())
+	{
+		return nullptr;
+	}
+	if (UStaticMesh* Loaded = Slot.Get())
+	{
+		return Loaded;
+	}
+	const FString Package = Slot.ToSoftObjectPath().GetLongPackageName();
+	return FPackageName::DoesPackageExist(Package) ? Slot.LoadSynchronous() : nullptr;
+}
+
+UStaticMeshComponent* TDPropArt::Dress(UStaticMeshComponent* Shape, UStaticMesh* Art, bool bFit)
+{
+	if (!Shape || !Art || !Shape->GetStaticMesh() || !Shape->GetOwner())
+	{
+		return nullptr;
+	}
+	// Fit in the shape's own (unscaled) space, so the shape's scale, later resizes and moves all carry over.
+	const FBox ShapeBox = Shape->GetStaticMesh()->GetBoundingBox();
+	const FBox ArtBox = Art->GetBoundingBox();
+	const FVector ArtSize = ArtBox.GetSize().ComponentMax(FVector(1.f));
+	UStaticMeshComponent* A = NewObject<UStaticMeshComponent>(Shape->GetOwner());
+	A->SetStaticMesh(Art);
+	A->SetMobility(EComponentMobility::Movable);
+	A->SetupAttachment(Shape);
+	if (bFit)
+	{
+		// The shape's size in world-axis terms (its own scale applied), to compare long axes with the art's.
+		const FVector Scale = Shape->GetRelativeScale3D();
+		const FVector ShapeWorld = ShapeBox.GetSize() * Scale;
+		// Turn only when both have a clear long horizontal axis and they disagree (a round or square art never turns).
+		const bool bTurn = FMath::Abs(ShapeWorld.X - ShapeWorld.Y) > 1.f && FMath::Abs(ArtSize.X - ArtSize.Y) > 1.f
+			&& (ShapeWorld.X > ShapeWorld.Y) != (ArtSize.X > ArtSize.Y);
+		const FVector ArtAxes = bTurn ? FVector(ArtSize.Y, ArtSize.X, ArtSize.Z) : ArtSize; // art size along the shape's X/Y after the turn
+		const FVector Fit = ShapeBox.GetSize() / ArtAxes;
+		const FVector FitArt = bTurn ? FVector(Fit.Y, Fit.X, Fit.Z) : Fit; // the art's own axes
+		const FRotator Turn(0.f, bTurn ? 90.f : 0.f, 0.f);
+		A->SetRelativeRotation(Turn);
+		A->SetRelativeScale3D(FitArt);
+		A->SetRelativeLocation(ShapeBox.GetCenter() - Turn.RotateVector(ArtBox.GetCenter() * FitArt));
+	}
+	else
+	{
+		const FVector Inv = FVector(1.f) / Shape->GetComponentScale().ComponentMax(FVector(KINDA_SMALL_NUMBER));
+		const FVector ShapeBottom(ShapeBox.GetCenter().X, ShapeBox.GetCenter().Y, ShapeBox.Min.Z);
+		const FVector ArtBottom(ArtBox.GetCenter().X, ArtBox.GetCenter().Y, ArtBox.Min.Z);
+		A->SetRelativeScale3D(Inv); // true size in the world
+		A->SetRelativeLocation(ShapeBottom - ArtBottom * Inv);
+	}
+	A->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName); // the shape stays the gameplay collision
+	A->SetCanEverAffectNavigation(false);
+	A->SetVisibility(Shape->IsVisible());
+	A->RegisterComponent();
+	Shape->GetOwner()->AddInstanceComponent(A);
+	Shape->SetHiddenInGame(true); // still blocks, still the trace target; visibility switches propagate to the art
+	return A;
+}
+
 ATDInteractableActor::ATDInteractableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -65,12 +133,43 @@ ATDInteractableActor::ATDInteractableActor()
 	Mesh->SetRelativeScale3D(FVector(0.6f, 0.6f, 1.2f));
 	Mesh->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 	Mesh->SetCollisionResponseToChannel(TDCollision::Interactable, ECR_Block);
+	// A console is not ground: no stepping up onto it, its top is not walkable, and a steep cap (below) makes a pilot who
+	// jumps up slide off (third-person playthrough, Nov 13: a pilot on the wreck console was out of every melee crewman's
+	// reach and the site fight never ended).
+	Mesh->SetWalkableSlopeOverride(FWalkableSlopeOverride(EWalkableSlopeBehavior::WalkableSlope_Unwalkable, 0.f));
+	Mesh->CanCharacterStepUpOn = ECB_No;
+	TopCap = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TopCap"));
+	TopCap->SetupAttachment(Mesh);
+	TopCap->SetStaticMesh(TDGroundShapes::Cylinder());
+	TopCap->SetHiddenInGame(true);
+	TopCap->SetCastShadow(false);
+	TopCap->SetCanEverAffectNavigation(false);
+	TopCap->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	TopCap->SetCollisionObjectType(ECC_WorldStatic);
+	TopCap->SetCollisionResponseToAllChannels(ECR_Ignore); // traces, the camera, bolts and interaction pass through
+	TopCap->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	TopCap->SetWalkableSlopeOverride(FWalkableSlopeOverride(EWalkableSlopeBehavior::WalkableSlope_Unwalkable, 0.f));
+	TopCap->CanCharacterStepUpOn = ECB_No;
+	// In the console's own unit-cube space: a column inside the square top (never wider than the console, so nothing
+	// walking past - a charging Warden, a strafing pilot - catches on it), 2.5 console-heights tall: its top is far above
+	// the pilot's double-jump reach (~2.2 m), and the corners left beside it are too small to stand on. (A steep cone
+	// still let a character rest on its flank: CharacterMovement can sit still on an unwalkable slope while falling.)
+	TopCap->SetRelativeScale3D(FVector(1.f, 1.f, 2.5f));
+	ConsoleMesh = TDPropArt::Default(TEXT("SM_Console"));
 }
 
 void ATDInteractableActor::BeginPlay()
 {
 	Super::BeginPlay();
 	TDGroundShapes::Tint(Mesh, FLinearColor(0.1f, 0.7f, 0.9f)); // readable cyan console, solid
+	TDPropArt::Dress(Mesh, TDPropArt::Load(ConsoleMesh));
+	if (TopCap && TopCap->GetStaticMesh() && Mesh->GetStaticMesh())
+	{
+		// The column's base sits on the console's top face (both in the console mesh's local space).
+		const float Top = (float)Mesh->GetStaticMesh()->GetBoundingBox().Max.Z;
+		const float ConeBottom = (float)TopCap->GetStaticMesh()->GetBoundingBox().Min.Z * (float)TopCap->GetRelativeScale3D().Z;
+		TopCap->SetRelativeLocation(FVector(0.f, 0.f, Top - ConeBottom));
+	}
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
 		Scene->RegisterInteractable(this); // a retake makes it usable again while its objective is unfinished
@@ -127,6 +226,7 @@ ATDDoor::ATDDoor()
 	Mesh->SetRelativeScale3D(FVector(0.3f, 4.f, 4.f));
 	Mesh->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
 	Mesh->SetMobility(EComponentMobility::Movable);
+	DoorMesh = TDPropArt::Default(TEXT("SM_Door"));
 }
 
 void ATDDoor::BeginPlay()
@@ -137,6 +237,7 @@ void ATDDoor::BeginPlay()
 	Open01 = bStartOpen ? 1.f : 0.f;
 	Mesh->SetRelativeLocation(ClosedRelative + FVector(0.f, 0.f, OpenHeight * Open01));
 	TDGroundShapes::Tint(Mesh, FLinearColor(0.9f, 0.35f, 0.1f));
+	TDPropArt::Dress(Mesh, TDPropArt::Load(DoorMesh));
 }
 
 void ATDDoor::Open() { bWantOpen = true; }
