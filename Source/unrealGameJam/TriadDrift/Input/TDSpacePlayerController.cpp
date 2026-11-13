@@ -3,6 +3,7 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "InputKeyEventArgs.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
@@ -884,6 +885,16 @@ void ATDSpacePlayerController::OnThrottle(const FInputActionValue& Value)
 void ATDSpacePlayerController::OnThrottleReleased(const FInputActionValue&)
 {
 	ThrottleAxis = 0.f;
+}
+
+void ATDSpacePlayerController::ClientStartCameraShake_Implementation(TSubclassOf<UCameraShakeBase> Shake, float Scale, ECameraShakePlaySpace PlaySpace, FRotator UserPlaySpaceRot)
+{
+	const float User = UTDFlightFeedbackComponent::UserShakeScale;
+	if (User <= 0.f)
+	{
+		return; // "Camera shake: 0%" means none
+	}
+	Super::ClientStartCameraShake_Implementation(Shake, Scale * User, PlaySpace, UserPlaySpaceRot);
 }
 
 bool ATDSpacePlayerController::InputKey(const FInputKeyEventArgs& Params)
