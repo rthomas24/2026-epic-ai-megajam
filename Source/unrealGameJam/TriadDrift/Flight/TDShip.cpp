@@ -679,7 +679,7 @@ FTransform ATDShip::GetChaseCameraTransformNow() const
 	{
 		const FVector Rates = ShipMovement->GetAngularRate();
 		const float TurnRef = FMath::Max(ShipMovement->GetFlightTuning().TurnRate, 1.f);
-		const FRotator Look(FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle,
+		const FRotator Look(FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle * CameraTuning.LookAheadPitchScale,
 			FMath::Clamp(Rates.Z / TurnRef, -1.f, 1.f) * CameraTuning.LookAheadAngle, 0.f);
 		CameraQuat = ArmQuat * Look.Quaternion();
 	}
@@ -709,6 +709,9 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 		SpringArm->bEnableCameraRotationLag = CameraTuning.RotationLag > 0.f;
 		SpringArm->CameraLagSpeed = CameraTuning.LocationLag;
 		SpringArm->CameraRotationLagSpeed = CameraTuning.RotationLag;
+		SpringArm->CameraLagMaxDistance = CameraTuning.LagMaxDistance;
+		SpringArm->TargetArmLength = CameraTuning.ArmLength;
+		SpringArm->SocketOffset = FVector(0.f, 0.f, CameraTuning.Height);
 	}
 
 	// --- Arm rotation: ship forward, with only RollFollow of its bank -------------------------------
@@ -722,7 +725,7 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	const FVector2D TargetLook(FMath::Clamp(Rates.Z / TurnRef, -1.f, 1.f), FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f));
 	LookAhead = bSnap ? TargetLook : FMath::Vector2DInterpTo(LookAhead, TargetLook, DeltaSeconds, CameraTuning.LookAheadResponse);
 	const FRotator Kick = FlightFeedback ? FlightFeedback->GetCameraOffset() : FRotator::ZeroRotator; // no-art camera kicks
-	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle, LookAhead.X * CameraTuning.LookAheadAngle, 0.f) + Kick);
+	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle * CameraTuning.LookAheadPitchScale, LookAhead.X * CameraTuning.LookAheadAngle, 0.f) + Kick);
 
 	// --- FOV widens with speed -------------------------------------------------------------------------
 	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01());
