@@ -53,8 +53,8 @@ BEATS = {
     # T4's framing: hold the ship still in front of the reactor, aim at it, then three kills ~1 s apart (one phase each;
     # the third starts the breakup, now with the placeholder breakup explosions and the round-4 effects).
     "reactor": {"setup": [("TD.God", 0.5), ("TD.Stage ReactorExposed", 2.5), ("TD.World.Hold 20", 0.3), ("TD.World.AimAt Reactor 1.5", 1.8)],
-                "seconds": 14, "timeline": [(0.8, "TD.Director.ReactorKill"), (2.3, "TD.Director.ReactorKill"), (3.8, "TD.Director.ReactorKill"),
-                                            (5.3, "TD.Director.ReactorKill")]},  # 1.5 s apart: each phase opens after a beat
+                "seconds": 16, "timeline": [(0.8, "TD.Director.ReactorKill"), (3.0, "TD.Director.ReactorKill"), (5.2, "TD.Director.ReactorKill"),
+                                            (7.4, "TD.Director.ReactorKill"), (9.6, "TD.Director.ReactorKill")]},  # 2.2 s apart: each phase opens after its beat
     "victory": {"setup": [("TD.Stage Victory", 12.0)], "map": "MainMenu", "seconds": 12, "timeline": []},
 }
 
@@ -94,6 +94,7 @@ def record_beat(port, name, beat):
     print("== beat", name)
     console(port, "TD.UI.NativeHUD -1")  # the game's own HUD (an agent pilot may have left the dev HUD on)
     console(port, "TD.UI.SpaceHUD 2")     # the shipping default: engineering's flight HUD (wins over the pilot's legacy switch)
+    console(port, "TD.Hints 0")           # no onboarding cards in the footage
     for c, wait in beat.get("setup", []):
         console(port, c)
         time.sleep(wait)
