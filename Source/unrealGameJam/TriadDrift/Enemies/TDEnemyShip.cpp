@@ -3,6 +3,7 @@
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Enemies/TDCarrierBay.h"
@@ -270,6 +271,12 @@ void ATDEnemyShip::UpdateExhaustParams()
 	for (UNiagaraComponent* FX : ExtraExhaustFX) { if (FX) { Feed(FX); } }
 }
 
+namespace
+{
+	bool TDEnemyShip_IsProjectileHit(const FTDDamageInfo& Info) { return Info.Causer && Info.Causer->IsA<ATDProjectile>(); }
+	FRotator TDEnemyShip_HitFacing(const FTDDamageInfo& Info) { return Info.HitDirection.IsNearlyZero() ? FRotator::ZeroRotator : (-Info.HitDirection).Rotation(); }
+}
+
 void ATDEnemyShip::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float /*ShieldDamage*/, float HullDamage)
 {
 	if (!Visuals || bDying || HullDamage <= 0.f)
@@ -277,10 +284,12 @@ void ATDEnemyShip::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageIn
 		return;
 	}
 	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
-	if (Now - LastHullHitCueTime > 0.08)
+	// A projectile already played its weapon's impact at this point (ATDProjectile::HandleImpact): the ship's own cue
+	// is for everything else (rams, beams, splash, melee), facing back along the hit.
+	if (Now - LastHullHitCueTime > 0.08 && !TDEnemyShip_IsProjectileHit(Info))
 	{
 		LastHullHitCueTime = Now;
-		UTDStatics::PlayCue(this, Visuals->HullHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
+		UTDStatics::PlayCue(this, Visuals->HullHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation, TDEnemyShip_HitFacing(Info));
 	}
 	if (!DamagedSmokeFX && InHealth && InHealth->GetHull01() < 0.5f)
 	{
@@ -854,9 +863,9 @@ float ATDEnemyShip::FilterIncomingDamage(const FTDDamageInfo& Info)
 		FrontalShieldRecoverRemaining = Spec.FrontalShieldRecoverSeconds;
 		OnFrontalShieldBroken.Broadcast(this);
 	}
-	if (Visuals && Absorbed > 0.f)
+	if (Visuals && Absorbed > 0.f && !TDEnemyShip_IsProjectileHit(Info))
 	{
-		UTDStatics::PlayCue(this, Visuals->ShieldHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
+		UTDStatics::PlayCue(this, Visuals->ShieldHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation, TDEnemyShip_HitFacing(Info));
 	}
 	return Amount;
 }
