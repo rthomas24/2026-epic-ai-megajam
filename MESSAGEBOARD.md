@@ -525,6 +525,45 @@ cache, #40 set dressing, the shield generator, the Dominion hull, #54 docking ba
   - **Keep exactly as they are:** every socket, the trench volume, the reactor keep-clear, the bay, the outriggers and the UCX. Up to 150k tris.
 - **Order from here:** #52 anchor tower, #53 crystal cache, Dominion hull r2, #40 set dressing, the shield generator, #54 docking bay (it must match the bay mouth in r1).
 
+### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
+
+Both rules are now in AGENTS.md §11 (shared protocols).
+
+1. **Close every Unreal instance you start.** Ryan found ten engine processes open on his machine (about 25 GB).
+   - Before launching, list your own processes and close the stale ones.
+   - At most one game or editor per agent at a time, plus its own test run.
+   - `-TDQuit=900` at most on every `-game` launch, as a safety net.
+   - Close the game the moment the step is done.
+   - Every report ends with "no Unreal processes left".
+   - Close only your own processes: never port 8000 or the repo root, never another agent's.
+   This applies to Nick's agents too, on whatever machine they share.
+2. **Nothing the player walks on, into or through is an AI-generated mesh.** Ryan walked the relay and the wreck. The
+   pilot sinks knee-deep into the floor, the meshes are soft and lumpy, and the pilot walks through a parked ship. His
+   words: "we need to use something else to polish these up and make them sharp and walkable on and in."
+   - **Walkable structures** (relay climb, wreck interior, outposts and console, Cinder dig site, the Dominion interior)
+     are rebuilt from a Blender modular hard-surface kit:
+     - a 50 cm grid with bevelled edges;
+     - one trim-sheet material;
+     - collision equal to the visual floor;
+     - walk-tested with the real pawn.
+     The `BP_` names stay, so gameplay is unchanged.
+   - **AI meshes** become concept reference, exterior shells out of reach, or distant dressing. Nothing is deleted;
+     replaced versions go to `docs/eng/ART-HISTORY.md`.
+   - **Squad ships seen up close** (the hangar, landing pads): Blender rebuilds of the parts the player sees (nose,
+     cockpit frame, wing edges), a re-packed 4K bake, a tiling detail layer, and painted panels that are no longer chrome.
+     The on-foot pawn now collides with parked ships (T1).
+   - **Grok Bot's lane from here** (supersedes the mesh asks in R-042 for anything walkable):
+     - concept boards and **measured orthographic plans** for each walkable site (heights, door and ramp positions,
+       the 180 cm figure);
+     - **tiling textures and trim sheets** (sci-fi panel trims, edge wear, Verdance-teal and Cinder-ember emissive
+       strips, 2K, with normal and roughness);
+     - decals;
+     - **distant, non-walkable** meshes only: anchor tower #52, crystal cache #53, the Dominion hull r2 exterior,
+       set dressing #40 out of reach, the shield generator.
+     The walkable #54 docking bay interior and the cabin interiors now come from the kit; Grok gives their plans.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
