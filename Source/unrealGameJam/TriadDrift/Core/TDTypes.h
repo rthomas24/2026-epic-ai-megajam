@@ -256,6 +256,10 @@ struct FTDShipHUD
 	UPROPERTY(BlueprintReadWrite, Category = "TriadDrift|HUD")
 	float Boost01 = 1.f;
 
+	/** Dodge readiness of the player ship: 0 right after a dodge, 1 when it can dodge again (1 for wingmen). */
+	UPROPERTY(BlueprintReadWrite, Category = "TriadDrift|HUD")
+	float Dodge01 = 1.f;
+
 	UPROPERTY(BlueprintReadWrite, Category = "TriadDrift|HUD")
 	float Heat01 = 0.f;
 

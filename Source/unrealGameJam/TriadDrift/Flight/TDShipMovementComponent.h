@@ -145,6 +145,21 @@ public:
 	/** Re-orients the flight state after a teleport. bKeepSpeed keeps the speed along the new facing. */
 	void NotifyTeleported(const FQuat& NewFacing, bool bKeepSpeed);
 
+	// ---- Silent-move watchdog ----------------------------------------------------------------------
+	/**
+	 * Moves of the ship over SilentMoveDistance that are neither its own flight step nor an announced teleport
+	 * (ATDSpacecraft::TeleportSpacecraft) are counted; for the player's ship a warning with the mover's callstack is
+	 * logged (dev builds). Tests: TestEqual(TEXT("no silent teleport"), Ship->GetShipMovement()->GetSilentMoveCount(), 0).
+	 */
+	int32 GetSilentMoveCount() const { return SilentMoveCount; }
+	float GetLargestSilentMove() const { return LargestSilentMove; }
+
+	/** Wrap a deliberate placement (checkpoint snap) so the watchdog doesn't count it. */
+	void SetMoveAnnounced(bool bAnnounced) { bMoveAnnounced = bAnnounced; if (!bAnnounced && UpdatedComponent) { WatchLastLocation = UpdatedComponent->GetComponentLocation(); } }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Flight", meta = (ClampMin = "0"))
+	float SilentMoveDistance = 5000.f;
+
 	/**
 	 * Adds an instant velocity change (knockback, explosions). The flight model's grip pulls the ship
 	 * back onto its nose afterwards. Writing UMovementComponent::Velocity directly works too: external
@@ -291,6 +306,13 @@ protected:
 private:
 	/** In atmosphere: trace the ground below / ahead for the flight model's soft floor and terrain look-ahead. */
 	void MeasureGroundClearance();
+	void HandleTransformUpdated(USceneComponent* Component, EUpdateTransformFlags Flags, ETeleportType Teleport);
+	FVector WatchLastLocation = FVector::ZeroVector;
+	bool bWatchReady = false;
+	bool bInOwnMove = false;
+	bool bMoveAnnounced = false;
+	int32 SilentMoveCount = 0;
+	float LargestSilentMove = 0.f;
 	void ResolveMove(const FVector& Delta, float DeltaTime);
 	void HandleShipImpact(const FHitResult& Hit, float DeltaTime);
 	/** Resting contact: swing the nose along the surface and keep a minimum slide speed (never stuck at 0 m/s). */

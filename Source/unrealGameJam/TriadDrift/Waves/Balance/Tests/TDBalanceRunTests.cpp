@@ -9,6 +9,7 @@
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Waves/Balance/TDBalanceRecorder.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -34,8 +35,9 @@ namespace TDBalanceRun
 	};
 
 	/** Plays every wave; a squad wipe counts as a new take of that wave. */
-	FRunResult Play(FAutomationTestBase& Test, ETDDifficulty Difficulty, const FTDPilotSkill& Skill, float Step, float MaxSecondsPerWave)
+	FRunResult Play(FAutomationTestBase& Test, ETDDifficulty Difficulty, const FTDPilotSkill& Skill, float Step, float MaxSecondsPerWave, int32 Seed = 0)
 	{
+		ATDEnemyShip::SpawnSeedSalt() = Seed;
 		FRunResult Result;
 		const ETDDifficulty Prev = UTDDifficultySettings::GetCurrent();
 		UTDDifficultySettings::SetCurrent(Difficulty);
@@ -50,10 +52,12 @@ namespace TDBalanceRun
 		Squad->SetSquadPlayerController(PC);
 		Squad->SpawnSquad(FTransform::Identity);
 		ATDWaveDirector* D = W.Spawn<ATDWaveDirector>();
+		if (Seed != 0) { D->RandomSeed = 1337 + 7 * Seed; }
 		W.Tick(Step);
 		Rec->WatchSquad(Squad);
 
 		FTDBalancePilot Pilot;
+		Pilot.Reseed(2026 + 13 * Seed);
 		Pilot.Skill = Skill;
 		for (int32 Index = 0; Index < D->GetWaveCount(); ++Index)
 		{
@@ -96,6 +100,7 @@ namespace TDBalanceRun
 
 		Rec->End();
 		Rec->RemoveFromRoot();
+		ATDEnemyShip::SpawnSeedSalt() = 0;
 		UTDDifficultySettings::SetCurrent(Prev);
 		return Result;
 	}
@@ -206,6 +211,48 @@ bool FTDBalanceStandardAverageNoCross::RunTest(const FString& Parameters)
 	const bool bOk = TDBalanceRun::RunOne(*this, ETDDifficulty::Standard, Skill);
 	if (CVar) { CVar->Set(Prev); }
 	return bOk;
+}
+
+// ENG-27 (Lead, Nov 12): is the game able to take a ship off the player? Ten seeded runs of waves 1-5 on
+// Standard with the Average pilot; per wave: the share of runs where at least one squad ship went down, the
+// share with a squad wipe ("CUT!"), and hull lost per minute by the ship the player was flying.
+// Writes Saved/Balance/distribution_Standard_Average_<time>.md. Measurement only: no assertions on the numbers.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceDistribution, "TDBalance.Distribution.StandardAverage", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceDistribution::RunTest(const FString& Parameters)
+{
+	constexpr int32 Runs = 10;
+	const float Step = 1.f / 30.f;
+	struct FAgg { int32 Runs = 0; int32 WithDown = 0; int32 WithWipe = 0; int32 Cleared = 0; float HullPerMin = 0.f; float Seconds = 0.f; float Downs = 0.f; };
+	TArray<FAgg> Agg;
+	Agg.SetNum(5);
+	for (int32 Seed = 1; Seed <= Runs; ++Seed)
+	{
+		const TDBalanceRun::FRunResult R = TDBalanceRun::Play(*this, ETDDifficulty::Standard, FTDPilotSkill::Average(), Step, 300.f, Seed);
+		for (const FTDBalanceWaveStats& S : R.Waves)
+		{
+			if (!Agg.IsValidIndex(S.WaveNumber - 1)) { continue; }
+			FAgg& A = Agg[S.WaveNumber - 1];
+			++A.Runs;
+			A.WithDown += S.ShipDowns > 0 ? 1 : 0;
+			A.WithWipe += S.Takes > 1 ? 1 : 0;
+			A.Cleared += S.bCleared ? 1 : 0;
+			A.Downs += S.ShipDowns;
+			A.Seconds += S.Seconds;
+			A.HullPerMin += S.SecondsTotal > 0.f ? 100.f * S.ActiveHullLost01 / (S.SecondsTotal / 60.f) : 0.f;
+		}
+	}
+	FString Md = FString::Printf(TEXT("# Ship-down distribution: Standard, Average pilot, %d seeded runs\n\n| Wave | Runs with a ship down | Runs with a wipe (CUT) | Avg ship downs | Active ship hull lost / min | Avg time (s) | Cleared |\n|---|---|---|---|---|---|---|\n"), Runs);
+	for (int32 i = 0; i < Agg.Num(); ++i)
+	{
+		const FAgg& A = Agg[i];
+		const float N = FMath::Max(1, A.Runs);
+		Md += FString::Printf(TEXT("| %d | %d of %d (%.0f%%) | %d of %d (%.0f%%) | %.1f | %.0f%% | %.0f | %d of %d |\n"), i + 1, A.WithDown, A.Runs, 100.f * A.WithDown / N,
+			A.WithWipe, A.Runs, 100.f * A.WithWipe / N, A.Downs / N, A.HullPerMin / N, A.Seconds / N, A.Cleared, A.Runs);
+	}
+	const FString Path = FPaths::ProjectSavedDir() / TEXT("Balance") / FString::Printf(TEXT("distribution_Standard_Average_%s.md"), *FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")));
+	FFileHelper::SaveStringToFile(Md, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+	AddInfo(FString::Printf(TEXT("Distribution report: %s"), *Path));
+	return true;
 }
 
 #endif // WITH_DEV_AUTOMATION_TESTS

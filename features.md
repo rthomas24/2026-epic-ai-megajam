@@ -249,10 +249,16 @@ presentation-heavy, and build on the switching mechanic. #4 and #5 are not plann
    a hard camera cut with a 1-frame flash, a quick letterbox snap and the pilot's name card
    ("WREN · RIFT"). It stays instant, with no lost control. 🟦 switch event + timing · 🟩 cut
    transition, card, sound.
+   **(Nov 12)** While Nick's space HUD is up it draws the name card ("CUT TO / LANCER"); the fallback
+   card hides and the fallback overlay sits under his HUD (N-007).
 2. **Director cam "money shots"** *(BUILD)*. Big moments fire `OnHighlightMoment`: ram kills,
    portal missile returns, multi-kills, generator and reactor kills. Each triggers a 0.5–1 s
    slow-motion beat from a cinematic angle, rate-limited. 🟦 events + time dilation · 🟩 camera rigs,
    framing, grade.
+   **(Nov 12, as built)** Also produced: carrier kills, Switch Strike kills and the on-foot perfect
+   deflect (0.15 s, deliberately a parry flash rather than a beat). Limits: time dilation 0.4 at the
+   lowest importance down to 0.2 at the highest; 3 s global cooldown and 6 s per kind; importance 0.8
+   or higher bypasses the cooldowns; multi-kills are capped at importance 0.7.
 3. **Scenes and takes, not lives** *(BUILD)*.
    - Each wave or objective is a "scene" opened by a slate card ("SCENE 3 · CINDER · TAKE 1").
    - Dying calls "CUT!" and the scene restarts as TAKE 2.
@@ -330,7 +336,8 @@ shooting backwards feels great.
 | Pause / Galaxy map | Esc / M | Start / Select |
 
 #### ENG-03 · Health, shields, death and respawn · `🟨`
-- **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s.
+- **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s. **(Nov 12)** Set per
+  ship in `FTDShipSpec` (`ShieldRegenDelay`, `ShieldRegenFractionPerSecond`); those are the defaults.
 - **Hull:** doesn't regenerate in combat, but repairs at 8% per second in the breather between waves.
 - **Death:** a 0.6 s tumble, then an explosion (`UTDShipVisuals` tier), then **auto-switch** to the
   healthiest living ship. A downed ship warps back in after 12 s. There are 2 s of invulnerability
@@ -355,8 +362,9 @@ shooting backwards feels great.
 | Signature | Portal Blaster | Afterburner Ram | Missile Swarm + Shield Dome |
 | Unlockable | Cloak | EMP Pulse | Gravity Well |
 
-`BP_Ship_Rift/Lancer/Bastion` (children of `ATDShip`) + `DA_ShipStats_*`. Each ship's look comes from
-its `DA_Ship_*_Visuals` (Nick, ART-03).
+**(Nov 12, as built)** Stats are `FTDShipSpec` in `UTDShipLibrary` (C++), overridable per ship on
+`ATDSquadManager` (`ShipSpecOverrides`); no `BP_Ship_*` children or `DA_ShipStats_*` assets are needed.
+Each ship's look comes from its `DA_Ship_*_Visuals` (Nick, ART-03).
 
 #### ENG-05 · Ship weapons · `🟨`
 | Weapon | Ship | Type | Damage | Rate | Speed | Range | Resource | Notes |
@@ -366,9 +374,9 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
 | Needle Cannons | Lancer | Rapid kinetic | 4 | 20/s | 55 000 | 30 000 | Heat: 5 s | 1.2° spread |
 | Spike Rockets | Lancer | Dumb-fire salvo of 4 | 25 each, 300 cm splash | 1 per 1.5 s | 30 000 | 40 000 | 8 salvos, +1 per 5 s | |
 | Breaker Blaster | Bastion | Heavy plasma | 30, 250 cm splash | 2.5/s | 28 000 | 35 000 | Heat: 6 s | Knocks back fighters |
-| Flak Burst | Bastion | Proximity flak | 15 per fragment, 800 cm | 1 per 1.2 s | 22 000 | 20 000 | 10 shells, +1 per 3 s | **Shoots down missiles** |
+| Flak Burst | Bastion | Proximity flak | 15 splash over 800 cm, 500 cm proximity fuse | 1 per 1.2 s | 22 000 | 20 000 | 10 shells, +1 per 3 s | **Shoots down missiles** |
 
-- `UTDWeaponComponent` + `UTDWeaponData`; all projectiles derive from `ATDProjectile` (C++,
+- `UTDWeaponComponent` + `UTDWeaponLibrary` (the `FTDWeaponSpec` table, C++; looks in `UTDWeaponFX`); all projectiles derive from `ATDProjectile` (C++,
   implements `ITDDeflectable`).
 - Lead indicator data for the HUD; `OnHitConfirmed` for hit and kill markers; 40 ms hit-stop on
   kills.
@@ -409,7 +417,9 @@ its `DA_Ship_*_Visuals` (Nick, ART-03).
 
 #### ENG-08 · Wingman AI (PROTECT) · `🟨`
 - States: Formation → Engage → Evade → Regroup → Downed.
-  - Formation: a loose V at 1500–2500 cm offsets; boosts to catch up beyond 8000 cm.
+  - Formation: a loose V at 1500–2500 cm offsets; boosts to catch up beyond 8000 cm. **(Nov 12)** The V is
+    swept forward (both wingmen ahead and outboard of the player, at different depths) so the chase
+    camera shows it.
   - Engage: attacks whoever threatens the player first, then the nearest, then the lowest health;
     primary and secondary weapons only.
   - Evade: kicks in on shield break or an incoming missile.
@@ -458,10 +468,10 @@ and on `OnAbilityUnlocked`.
 | Ability | Ship | Unlocked by | Behaviour | Cooldown |
 |---|---|---|---|---|
 | **Gravity Well** | Bastion | Verdance Obj 1 | A slow orb that becomes a 5000 cm vortex for 5 s, pulling enemies and their projectiles in. Enemies inside take 10 dps and can't fire; it ends with a 120-damage implosion | 18 s |
-| **Cloak** | Rift | Verdance Obj 2 | 6 s invisible: AI loses lock and missiles lose tracking. The first shot out does **3× damage**; firing or ramming breaks it | 15 s |
+| **Cloak** | Rift | Verdance Obj 2 | 6 s untargetable (how it looks is Nick's, `DA_Ability_Cloak_FX`): AI loses lock and missiles lose tracking. The first shot out does **3× damage**; firing or using another power breaks it | 15 s |
 | **EMP Pulse** | Lancer | Cinder Obj 3 | A 6000 cm pulse: stuns enemies for 3 s, drops gunship shields for 5 s, fizzles missiles. Stunned enemies take +25% damage | 14 s |
 
-`UTDAbilityBase` + three children. Visuals: `UTDAbilityFX` (Nick).
+`UTDAbilityComponent` (the slot) installs one `UTDPowerComponent` child per ability (`UTDGravityWellPower`, `UTDCloakPower`, `UTDEMPPower`). Visuals: `UTDAbilityFX` (Nick).
 
 **Powers and ship switching (decided Nov 12):** a power or ability that is running when the player
 switches away (cloak, shield dome, an open portal pair, a gravity well) keeps running on that ship

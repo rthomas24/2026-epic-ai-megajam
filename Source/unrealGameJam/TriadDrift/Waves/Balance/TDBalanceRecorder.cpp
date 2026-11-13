@@ -1,6 +1,7 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Waves/Balance/TDBalanceRecorder.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
@@ -124,10 +125,14 @@ void UTDBalanceRecorder::HandleSquadWiped()
 	++Wipes;
 }
 
-void UTDBalanceRecorder::HandleDamaged(UTDHealthComponent* /*Health*/, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
+void UTDBalanceRecorder::HandleDamaged(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
 {
 	const float D = ShieldDamage + HullDamage;
 	Current.DamageTaken += D;
+	if (Health && Health->MaxHull > 0.f && Health->GetOwner() && Health->GetOwner() == UGameplayStatics::GetPlayerPawn(Health, 0))
+	{
+		Current.ActiveHullLost01 += HullDamage / Health->MaxHull;
+	}
 	FName Source = TEXT("Collision/Other");
 	const AActor* By = Info.Instigator ? Info.Instigator.Get() : nullptr;
 	if (!By)
