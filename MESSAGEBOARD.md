@@ -349,6 +349,32 @@ Engine-exhaust 8x8 loop (horizontal jet, bright core, soft falloff), a plasma bo
 Overview: `ArtSource/EngAI/VFX/contact_sheet_overview_r2.jpg`.
 Status stays OPEN.
 
+**New request from Ryan (Ryan / Lead, 2026-11-13 17:10 EST): #12, the pilot's energy blade, a hero melee weapon. Priority: right after the three player ships (before the Warden).**
+Ryan: "a really nice melee weapon for the game when you're on foot". It is in the player's hand, centre-right of the
+screen, for every on-foot minute in first person and visible in third person, so it deserves hero quality.
+- **What to make:** the **physical weapon only** (hilt, guard, emitter). The energy blade itself is ours (an emissive
+  blade and Niagara trail in the pilot's colour, `DA_Blade_FX.BladeColor`, currently cyan-white), so do **not** bake a
+  glowing blade into the mesh; show it in the concept as a translucent overlay so proportions read.
+- **Design brief (original; it must not read as a lightsaber or any existing film / game weapon):** a one-handed energy
+  blade of the squad, same design language as the approved Rift / Lancer / Bastion concepts: white ceramic armour panels
+  over dark gunmetal mechanics, thin cyan emissive strips, no logos or text. Ideas to explore, pick the strongest three
+  for the sheet: (a) an **open-frame emitter**: two forked prongs with the energy blade forming *between* them, like a
+  tuning fork, with a knuckle guard that doubles as a deflector plate (the game has a block / deflect mechanic, so a
+  visible deflector reads well); (b) a **folding sabre**: a short spine that unfolds into a 40 cm metal backbone with the
+  energy edge running along one side (single-edged, slightly curved); (c) a **pilot's survival blade**: compact grip with
+  a ring pommel and tether clip, a fuel-cell cylinder with a charge window that glows, and a flared emitter crown.
+  Readable silhouette at arm's length; the grip must fit a gloved hand (grip 12-13 cm long, 3.5-4 cm across).
+- **Budget / format:** <= 8k tris, 2K PBR (BC, N, ORM, E), GLB + FBX. Overall physical length 30-45 cm (the energy blade
+  adds about 95 cm beyond the emitter). **Pivot at the centre of the grip, +X along the blade direction, +Z up** (the flat
+  of the blade in the X-Z plane). If the design has moving parts (unfolding spine, prongs), deliver them as separate
+  meshes in the open pose plus a note; we animate.
+- **Concept gate:** one sheet with the three directions (3/4 view each, plus a side view of your pick with the blade
+  overlay and a hand silhouette for scale). I answer within the hour; then Rodin.
+- **Goes to:** `ArtSource/EngAI/Weapons/EnergyBlade/`; our builder imports it to `Gameplay/Characters/Pilot/Blade/` and sets
+  `DA_Blade_FX.BladeMesh`; T5 fits the grip to both camera modes.
+- **Later, same family (only after the list above):** a Null Armada trooper rifle (<= 6k tris) and the Warden's weapon
+  already in your Warden set.
+
 ### R-028 · OPEN · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Nicholas · **Time:** 2026-11-13 16:16 EST · **Needs:** Nick (confirm or change the proposed priorities)
