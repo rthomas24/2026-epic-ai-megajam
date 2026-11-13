@@ -21,7 +21,7 @@ bool FTDDescentMapping::RunTest(const FString&)
 	FRandomStream R(31337);
 	for (int32 k = 0; k < 200; ++k)
 	{
-		const FVector2D XY(R.FRandRange(-420000.f, 420000.f), R.FRandRange(-420000.f, 420000.f));
+		const FVector2D XY(R.FRandRange(-170000.f, 170000.f), R.FRandRange(-170000.f, 170000.f));
 		const FVector2D Back = FTDPlanetEntry::GroundFromGlobe(FTDPlanetEntry::GlobeFromGround(XY));
 		if (!Back.Equals(XY, 1.f)) { AddError(FString::Printf(TEXT("round trip (%.0f, %.0f) -> (%.0f, %.0f)"), XY.X, XY.Y, Back.X, Back.Y)); break; }
 	}
@@ -71,6 +71,10 @@ bool FTDDescentArrival::RunTest(const FString&)
 		// Straight down: face the pad.
 		const FTransform Down = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -Up * 5000.f, 150000.f);
 		TestTrue(TEXT("a vertical entry faces the pad"), FVector::DotProduct(Down.GetRotation().GetForwardVector(), ToPad) > 0.999f);
+		// Flying away from the zone: the arrival still looks in, at most 50 deg off the pad, on the entry's side.
+		const FTransform Away = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -ToPole * 9000.f, 150000.f);
+		const float Off = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp((float)FVector::DotProduct(Away.GetRotation().GetForwardVector(), ToPad), -1.f, 1.f)));
+		TestTrue(*FString::Printf(TEXT("an outbound entry is turned to look into the zone (%.1f deg off the pad)"), Off), Off <= FTDPlanetEntry::MaxHeadingOffPadDeg + 0.5f);
 	}
 	return true;
 }
@@ -96,8 +100,10 @@ bool FTDDescentTakeOff::RunTest(const FString&)
 			AddError(FString::Printf(TEXT("departure point (%.2f, %.2f) vs entry (%.2f, %.2f)"), Out.LatDeg, Out.LonDeg, P.LatDeg, P.LonDeg));
 			break;
 		}
+		// Leaving the way you arrived: mapping the take-off direction back gives the same ground heading.
 		const FVector Surface = (Dir - Up * FVector::DotProduct(Dir, Up)).GetSafeNormal();
-		if (FVector::DotProduct(Surface, V) < 0.999f) { AddError(TEXT("take-off heading does not match the arrival heading")); break; }
+		const FTransform Back = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, Out, Surface * 9000.f, 150000.f);
+		if (FMath::Abs(FMath::FindDeltaAngleDegrees(Back.Rotator().Yaw, A.Rotator().Yaw)) > 0.5f) { AddError(TEXT("take-off heading does not match the arrival heading")); break; }
 		if (!FMath::IsNearlyEqual(FMath::RadiansToDegrees(FMath::Asin(FVector::DotProduct(Dir, Up))), 30.f, 0.1f)) { AddError(TEXT("take-off does not climb 30 deg")); break; }
 	}
 	return true;

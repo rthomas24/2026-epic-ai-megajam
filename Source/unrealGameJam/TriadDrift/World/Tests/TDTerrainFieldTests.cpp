@@ -7,6 +7,8 @@
 #include "TriadDrift/World/TDTerrainField.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "ProceduralMeshComponent.h"
+#include "Materials/Material.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Flow/TDPlaceholderSky.h"
 #include "Engine/World.h"
@@ -357,6 +359,20 @@ bool FTDTerrainGolden::RunTest(const FString&)
 				bHit && FMath::Abs(Hit.ImpactPoint.Z - T->GetField()->GetStyle().BasinFloor) < 1.f);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTerrainFarRingMaterial, "TriadDrift.World.Terrain.FarRingUsesThePlanetsMaterialInstance", TD_TEST_FLAGS)
+bool FTDTerrainFarRingMaterial::RunTest(const FString&)
+{
+	// Review finding: the far ring got the BASE material, not the per-planet instance carrying HeightRangeM, and its
+	// ranges rendered flat white. It must share the chunks' instance.
+	FTDTestWorld W;
+	UMaterialInterface* Base = UMaterial::GetDefaultMaterial(MD_Surface);
+	ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform::Identity, Base);
+	if (!TestNotNull(TEXT("terrain"), T) || !TestNotNull(TEXT("far ring"), T->GetFarMesh())) { return false; }
+	TestTrue(TEXT("the terrain made its own instance"), T->GetTerrainMaterial() && T->GetTerrainMaterial() != Base);
+	TestTrue(TEXT("the far ring draws with it"), T->GetFarMesh()->GetMaterial(0) == T->GetTerrainMaterial());
 	return true;
 }
 
