@@ -1,6 +1,7 @@
 // Triad Drift - zero-asset playable space sandbox (ENG-19). Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
+#include "TriadDrift/World/SpaceField/TDSpaceField.h"
 #include "TriadDrift/Flow/TDJourney.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "UObject/ConstructorHelpers.h"
@@ -103,6 +104,10 @@ void ATDSpaceGameMode::StartPlay()
 		{
 			SquadOrigin = ResolveSquadOrigin();
 			UE_LOG(LogTriadDrift, Log, TEXT("Space mode: squad origin at level start %s"), *SquadOrigin.GetLocation().ToCompactString());
+			if (bSpawnSpaceField)
+			{
+				ATDSpaceField::SpawnFor(GalaxyLayout); // belts, clusters, debris fields, wrecks, buoys (WORLD-DENSITY-PLAN 3.3)
+			}
 		}
 	}
 	if (bSpawnEnvironment)
