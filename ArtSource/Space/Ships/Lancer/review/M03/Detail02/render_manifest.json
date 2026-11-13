@@ -1,0 +1,155 @@
+{
+  "blender": "5.1.1",
+  "beauty_engine": "BLENDER_EEVEE",
+  "beauty_color_view": "Khronos PBR Neutral",
+  "diagnostic_engines": "BLENDER_WORKBENCH",
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1863385,
+      "pixel_std": 0.10690341144800186,
+      "title": "Front three-quarter / neutral bright studio",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    },
+    {
+      "file": "02_front.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1798849,
+      "pixel_std": 0.09809732437133789,
+      "title": "Front orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1803127,
+      "pixel_std": 0.1106661781668663,
+      "title": "Rear orthographic",
+      "azimuth_deg": 180,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "04_left.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1756288,
+      "pixel_std": 0.0962287113070488,
+      "title": "Left orthographic",
+      "azimuth_deg": -90,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "05_right.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1760799,
+      "pixel_std": 0.09498441964387894,
+      "title": "Right orthographic",
+      "azimuth_deg": 90,
+      "elevation_deg": 0,
+      "perspective": false
+    },
+    {
+      "file": "06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1849994,
+      "pixel_std": 0.10817664861679077,
+      "title": "Top orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": 90,
+      "perspective": false
+    },
+    {
+      "file": "07_bottom.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1793603,
+      "pixel_std": 0.09153717011213303,
+      "title": "Bottom orthographic",
+      "azimuth_deg": 0,
+      "elevation_deg": -90,
+      "perspective": false
+    },
+    {
+      "file": "08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1911263,
+      "pixel_std": 0.12219144403934479,
+      "title": "Rear three-quarter",
+      "azimuth_deg": 215,
+      "elevation_deg": 22,
+      "perspective": true
+    },
+    {
+      "file": "09_weapon_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1929895,
+      "pixel_std": 0.1905684620141983,
+      "title": "Port cannon and flush rocket bay",
+      "azimuth_deg": 35,
+      "elevation_deg": -10,
+      "perspective": true
+    },
+    {
+      "file": "10_canopy_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1787612,
+      "pixel_std": 0.1017407476902008,
+      "title": "Framed canopy",
+      "azimuth_deg": 35,
+      "elevation_deg": 20,
+      "perspective": true
+    },
+    {
+      "file": "12_wing_service.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1780849,
+      "pixel_std": 0.07622791081666946,
+      "title": "Fitted wing access hatch and shoulder cooling grille",
+      "azimuth_deg": 35,
+      "elevation_deg": 52,
+      "perspective": true
+    },
+    {
+      "file": "13_engine_service.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1863393,
+      "pixel_std": 0.1127135157585144,
+      "title": "Engine service saddle, pipes, clamps and fasteners",
+      "azimuth_deg": 245,
+      "elevation_deg": 12,
+      "perspective": true
+    },
+    {
+      "file": "11_dark_studio.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1776926,
+      "pixel_std": 0.05614963546395302,
+      "title": "Dark lighting / same model and emission",
+      "azimuth_deg": 35,
+      "elevation_deg": 24,
+      "perspective": true
+    }
+  ],
+  "full_review": true,
+  "render_threads": 2,
+  "source_mesh_geometry_unchanged_for_render": true,
+  "elapsed_seconds": 13.243087100003322
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "name": "M_LancerM03_Graphite",
+    "base_color_srgb": "#24282D",
+    "metallic": 0,
+    "roughness": 0.56,
+    "coat_weight": 0,
+    "emissive_strength": 0,
+    "specular_ior_level": 0.35
+  },
+  {
+    "name": "M_LancerM03_Gunmetal",
+    "base_color_srgb": "#465460",
+    "metallic": 1,
+    "roughness": 0.44,
+    "coat_weight": 0,
+    "emissive_strength": 0
+  },
+  {
+    "name": "M_LancerM03_Titanium",
+    "base_color_srgb": "#A8B4BD",
+    "metallic": 1,
+    "roughness": 0.31,
+    "coat_weight": 0,
+    "emissive_strength": 0
+  },
+  {
+    "name": "M_LancerM03_Composite",
+    "base_color_srgb": "#151D23",
+    "metallic": 0,
+    "roughness": 0.76,
+    "coat_weight": 0,
+    "emissive_strength": 0
+  },
+  {
+    "name": "M_LancerM03_Canopy",
+    "base_color_srgb": "#0B2532",
+    "metallic": 0,
+    "roughness": 0.15,
+    "coat_weight": 0.65,
+    "emissive_strength": 0
+  },
+  {
+    "name": "M_LancerM03_Blue",
+    "base_color_srgb": "#16BEE8",
+    "metallic": 0,
+    "roughness": 0.33,
+    "coat_weight": 0,
+    "emissive_strength": 1.8
+  }
+]

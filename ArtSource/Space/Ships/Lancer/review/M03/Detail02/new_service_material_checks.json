@@ -1,0 +1,34 @@
+[
+  {
+    "group": "Service_Wing_L",
+    "passed": true,
+    "triangles": 2768,
+    "roles": [
+      "M_LancerM03_Gunmetal",
+      "M_LancerM03_Graphite",
+      "M_LancerM03_Titanium",
+      "M_LancerM03_Composite"
+    ]
+  },
+  {
+    "group": "Service_Wing_R",
+    "passed": true,
+    "triangles": 2768,
+    "roles": [
+      "M_LancerM03_Gunmetal",
+      "M_LancerM03_Graphite",
+      "M_LancerM03_Titanium",
+      "M_LancerM03_Composite"
+    ]
+  },
+  {
+    "group": "Service_Engine",
+    "passed": true,
+    "triangles": 3000,
+    "roles": [
+      "M_LancerM03_Gunmetal",
+      "M_LancerM03_Titanium",
+      "M_LancerM03_Composite"
+    ]
+  }
+]

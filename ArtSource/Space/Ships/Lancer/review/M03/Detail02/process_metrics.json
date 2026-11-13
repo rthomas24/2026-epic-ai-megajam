@@ -1,0 +1,12 @@
+{
+  "pid": 26608,
+  "exit_code": 0,
+  "started_utc": "2026-11-13T03:29:22.2464593Z",
+  "elapsed_seconds": 21.4508704,
+  "peak_working_set_mib": 1013.9140625,
+  "minimum_free_gib": 4.225006103515625,
+  "abort": "none",
+  "threads": 2,
+  "low_ram_abort_gib": 1.5,
+  "low_ram_sustain_seconds": 10
+}

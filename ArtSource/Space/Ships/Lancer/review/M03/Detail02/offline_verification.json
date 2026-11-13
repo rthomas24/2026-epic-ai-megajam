@@ -1,0 +1,178 @@
+{
+  "checks": {
+    "png_count": 23,
+    "json_count": 21,
+    "python_ast_count": 3,
+    "local_link_references": 59,
+    "distinct_local_links": 28,
+    "prior_source_hashes_unchanged": true,
+    "material04_material05_source_hashes_unchanged": true,
+    "new_source_sha256": "f5c335050c4cf95a594cc76915d6bda97e44a2d52a63b407bfc93bb3caa8481b",
+    "new_source_bytes": 1266699,
+    "png_crc_iend_zlib_pass": true,
+    "passed": true
+  },
+  "images": [
+    {
+      "file": "01_hero_front_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1863385,
+      "sha256": "5342d64ad262ba4ccea0814668e06001cfba09b816056d951d0f5e3009265be6"
+    },
+    {
+      "file": "02_front.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1798849,
+      "sha256": "c56c20d97ccdd62634dadae56b5418283af79598d8c4cee38265bc389035509a"
+    },
+    {
+      "file": "03_rear.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1803127,
+      "sha256": "39f0041f6f68336a4bf40af856e4dfb2c31344c1500b27329effce2ea4c9190d"
+    },
+    {
+      "file": "04_left.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1756288,
+      "sha256": "b6c5808e15c6ebe90d32528a8636e7e06d799ff2ee7491a4b3269ced06b35a25"
+    },
+    {
+      "file": "05_right.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1760799,
+      "sha256": "eb23c73d876e6508c5e0ef82764f20745d55454c3d85f438c706dc49607ef6fb"
+    },
+    {
+      "file": "06_top.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1849994,
+      "sha256": "c1ba3c91ff1d3bf3c6cf3014092b82d2790084f024525abe5445592b6731c50f"
+    },
+    {
+      "file": "07_bottom.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1793603,
+      "sha256": "2ac88e66d8f4197547141005384378eff38a80e693a0fb48981f5c22c8ac5318"
+    },
+    {
+      "file": "08_rear_3q.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1911263,
+      "sha256": "d45ac59817edb0ccb8e4b3b48b8a0097a5821a35ec5a15c992caa65e5b253309"
+    },
+    {
+      "file": "09_weapon_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1929895,
+      "sha256": "f3e4090098ebc2cafa1625399b9ec930b9098be04795b39c86ddb0c95895bbae"
+    },
+    {
+      "file": "10_canopy_detail.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1787612,
+      "sha256": "b6e21d521eaff46e1da18c1d0c98db829c9b03c4440c6e7d1396604560cb3688"
+    },
+    {
+      "file": "11_dark_studio.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1776926,
+      "sha256": "1a91b51c0c677b403ea6807098115229e1955a13ff3f3d0ca94ed049b53f9794"
+    },
+    {
+      "file": "12_wing_service.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1780849,
+      "sha256": "d97969c038852bcab5c678e8b9bbfa19e79f20ba41c896d910b42922717cdcc2"
+    },
+    {
+      "file": "13_engine_service.png",
+      "width": 1800,
+      "height": 1200,
+      "bytes": 1863393,
+      "sha256": "47aa7f0e8c0ebe3a86bfba2a6911f408cb34c154ebbedb0bb6da4039f44ab6dc"
+    },
+    {
+      "file": "Lancer_M03_clay_sheet.png",
+      "width": 2124,
+      "height": 1418,
+      "bytes": 849417,
+      "sha256": "7b7b8eed4f050f134f66e2795eaa7ed32ea7a0a0637865b51e96422be283429c"
+    },
+    {
+      "file": "Lancer_M03_overview.png",
+      "width": 2472,
+      "height": 2858,
+      "bytes": 3181026,
+      "sha256": "82214ba422e6e85da3b019f02867381e82d175e7dc928b323f39d4d46467ed86"
+    },
+    {
+      "file": "Lancer_M03_silhouette_sheet.png",
+      "width": 840,
+      "height": 292,
+      "bytes": 50328,
+      "sha256": "f00cc93eda24b7d48460658c0c2ea6694bf4b393f6fe5df1ccb894e00bfd1d98"
+    },
+    {
+      "file": "Lancer_M03_wire_sheet.png",
+      "width": 2172,
+      "height": 536,
+      "bytes": 835012,
+      "sha256": "ad8de9546580c4a904c7d81bd56e1a9f4127fdd4fab56b918dcf6d17a01b0d8f"
+    },
+    {
+      "file": "silhouette_128_front_3q.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 9000,
+      "sha256": "525eb1b3f46e8f62fb6447ce13b137426ff59acddc48a224e1f4d391c7e70e8b"
+    },
+    {
+      "file": "silhouette_128_side.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 8653,
+      "sha256": "a6516d6a9720dfb3138642ef471b575c6fbabef3a7f501536482f5bad5c9d2d4"
+    },
+    {
+      "file": "silhouette_128_top.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 9123,
+      "sha256": "ac7966fa67727aac105ceae8372c1ea7c323f149ed4ee65a850da548472f964c"
+    },
+    {
+      "file": "wire_front_3q.png",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 1279469,
+      "sha256": "4ca312dcd69a1b9c6f0ee397e5447f8ada2f4a373313282648dff8c32acced6c"
+    },
+    {
+      "file": "wire_top.png",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 1320486,
+      "sha256": "f070a6eb679dd6b20d209afedc04dba253cfe9906cee2d389a5d6eb00415490f"
+    },
+    {
+      "file": "wire_underside.png",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 1226253,
+      "sha256": "fbca571eaddf7fff6a5e73d57aeeced0d3d5c002b4a05f8a7f0e244235b80ee3"
+    }
+  ]
+}

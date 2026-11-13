@@ -1,0 +1,14 @@
+{
+  "scope": "Frozen prepared-build review only; not export or native readiness",
+  "duplicate_vertex_positions": 48,
+  "duplicate_location": "24 each in Service_Wing_L and Service_Wing_R",
+  "back_to_back_pairs_total": 166,
+  "back_to_back_pairs_inherited": 24,
+  "back_to_back_pairs_new": 142,
+  "reason_for_review_acceptance": "No geometry errors, z-fighting or floating islands; preserve the one-shot prepared-build evidence and expose its closed service-part boundary/internal-join warnings honestly for manual inspection.",
+  "required_before_export": "Weld appropriate duplicate service-part boundary vertices and remove hidden opposing interior faces in new service layers without altering approved base geometry or attachment contracts; rerun full QA.",
+  "flight_origin_ground_warning": "Intentional non-grounded spacecraft origin, preserved",
+  "cleanup_performed": false,
+  "export_ready": false,
+  "native_imported": false
+}

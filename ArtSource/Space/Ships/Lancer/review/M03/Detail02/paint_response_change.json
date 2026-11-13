@@ -1,0 +1,17 @@
+{
+  "before_base_linear": [
+    0.012983032502233982,
+    0.021219009533524513,
+    0.03189603239297867,
+    1.0
+  ],
+  "before_specular": 0.5,
+  "after_base_linear": [
+    0.017641954123973846,
+    0.021219009533524513,
+    0.026241222396492958,
+    1.0
+  ],
+  "after_specular": 0.3499999940395355,
+  "reason": "Less blue charcoal paint with F0 about0.028; satin roughness.56/zero coat retained. Exposed metal/glass/cyan unchanged."
+}
