@@ -1,0 +1,47 @@
+{
+  "pid": 30364,
+  "exit_code": 0,
+  "reason": "completed",
+  "failure": null,
+  "minimum_free_gib": 2.2905426025390625,
+  "duration_s": 18.769874500001606,
+  "protected_count": 1106,
+  "protected_unchanged": true,
+  "changed_protected": [],
+  "new_content": {
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Presentation\\DA_NeedleCannons_FX.uasset": "1c2413527616882104afc798170d096970654338676bfa238b45dc2fbd181729",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\MSS_Hull.uasset": "c4bf9e6432207ed27fae6ad5fe0b55a1031581c8fdfc0748dad60595c3220b83",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\MSS_NeedleCannon.uasset": "1d00e0b927dd183002bf116e10eaf036989f18ce3ffb700070370206ace4ee88",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\MSS_Shield.uasset": "efae935c7b9ef00edf32806d2964d3c2284adefa084a7f04b8f79f655c478752",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Mix\\ATT_Combat01_Medium.uasset": "d654b0f26c829efe5683e88d74d4d3373cd530b6567b9fcb9c2c40ce4edb305a",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Mix\\SCON_Combat01_Impact.uasset": "133a1723e7a7d2cb901ee3ca5e2a200c4b9d51218065b4b30fd9ea28d1744f94",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Mix\\SCON_Combat01_Weapon.uasset": "f5737d3b01f14eddecd471fc4224f896461dfe0750583012a264f41c253b84c5",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Mix\\SC_Combat01_SFX.uasset": "b541874ed629f4bf41c3d72debf98426bf116f530ffde7bb63439c5d02fb52c0",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_Hull_01.uasset": "75c6d98243ceefdab3539c879afdb09c167b7d58ed264cd8551545253f05ce0b",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_Hull_02.uasset": "1364d151f165c799f2f452023864997dda67cdc9ff8edfa17e16f766f8a5c2db",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_Hull_03.uasset": "84d93256f5ce77d85d95034f0507fd6317af7278a90020dfc6eb28aa8022d3b9",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_NeedleCannon_01.uasset": "93f228741579178c75fecd5107abd2738fbdf04bd76cd64dabcf695669b21f06",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_NeedleCannon_02.uasset": "4359b72556f39de5c5f1693a56f4344fbdb191f045970237cbe7dca1cc717eed",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_NeedleCannon_03.uasset": "a9b3f8e6019dc40440367655e8a23446cc7067ec0b3722c1db9e0a70cfcc089e",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_Shield_01.uasset": "b450410712dd40e4d5106bf50a34d6e95aa3b80444c4b5a3368d7193d4c74201",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_Shield_02.uasset": "2ae917fc3713b43d5cc8e36cb337ff6547c4e58b9b095f693cda67978f998955",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\Combat01\\Waves\\SW_Shield_03.uasset": "f348bf0f7f997089d214c0e681824f771c77e3ccda58eed0f4c09793edd56d04"
+  },
+  "unexpected_content": [],
+  "structured_engine_result_present": true,
+  "stage": "Native assets created and three Sound slots assigned. Reload, actual playback, listening and Shipping pending.",
+  "engine_errors": 0,
+  "engine_warnings": 1,
+  "editor_clean_exit": true,
+  "binding": {
+    "asset": "/Game/TriadDrift/Presentation/DA_NeedleCannons_FX.DA_NeedleCannons_FX",
+    "sound_slots": {
+      "muzzle": "/Game/TriadDrift/Audio/Combat01/MSS_NeedleCannon.MSS_NeedleCannon",
+      "impact_hull": "/Game/TriadDrift/Audio/Combat01/MSS_Hull.MSS_Hull",
+      "impact_shield": "/Game/TriadDrift/Audio/Combat01/MSS_Shield.MSS_Shield"
+    },
+    "all_visual_and_other_defaults_preserved": true,
+    "stage": "Sound slots assigned; reload/real firing/hits/cook/listening pending"
+  },
+  "evidence_directory": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\Combat01\\Author02"
+}

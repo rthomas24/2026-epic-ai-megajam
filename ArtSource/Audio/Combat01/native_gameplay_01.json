@@ -1,0 +1,243 @@
+{
+  "pid": 28068,
+  "exit_code": 0,
+  "reason": "completed",
+  "failure": null,
+  "minimum_free_gib": 1.5530357360839844,
+  "duration_s": 39.72139230000175,
+  "protected_count": 1123,
+  "protected_unchanged": true,
+  "changed_protected": [],
+  "new_content": {},
+  "unexpected_content": [],
+  "structured_engine_result_present": false,
+  "stage": "Actual Lancer firing and hull/shield impact cues observed in the game. Subjective approval and Shipping pending.",
+  "engine_errors": 0,
+  "output_device": "Headphones (Xbox Controller)",
+  "mixer": "WASAPIMixer",
+  "sample_rate_hz": 48000,
+  "output_channels": 2,
+  "actual_game": "/Game/TriadDrift/Maps/L_Galaxy",
+  "real_input": "TD.Input.Key Two 0.1 followed by LeftMouseButton bursts",
+  "debug_targets": [
+    "ShardFighter 3000 0 0",
+    "HookInterceptor 3000 0 0"
+  ],
+  "evidence_directory": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\Combat01\\Gameplay01",
+  "capture_confirms": "Lancer marked YOU; weapon heat 67 percent",
+  "pcm_output_captured": false,
+  "clipping_in_game_measured": false,
+  "presentation_approved": false,
+  "shipping_verified": false,
+  "cue_evidence": {
+    "MSS_NeedleCannon": {
+      "first_log_line": 1956,
+      "dump_entries": 126
+    },
+    "MSS_Hull": {
+      "first_log_line": 2036,
+      "dump_entries": 4
+    },
+    "MSS_Shield": {
+      "first_log_line": 2194,
+      "dump_entries": 10
+    }
+  },
+  "observed_max_cues_per_dump": {
+    "MSS_NeedleCannon": 8,
+    "MSS_Hull": 1,
+    "MSS_Shield": 2
+  },
+  "active_sound_dumps": [
+    {
+      "line": 1954,
+      "total": 3,
+      "cues": {
+        "MSS_NeedleCannon": 3,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 1965,
+      "total": 5,
+      "cues": {
+        "MSS_NeedleCannon": 5,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 1980,
+      "total": 7,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 1999,
+      "total": 7,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2026,
+      "total": 5,
+      "cues": {
+        "MSS_NeedleCannon": 4,
+        "MSS_Hull": 1,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2041,
+      "total": 6,
+      "cues": {
+        "MSS_NeedleCannon": 5,
+        "MSS_Hull": 1,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2058,
+      "total": 6,
+      "cues": {
+        "MSS_NeedleCannon": 5,
+        "MSS_Hull": 1,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2075,
+      "total": 8,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 1,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2096,
+      "total": 7,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2115,
+      "total": 8,
+      "cues": {
+        "MSS_NeedleCannon": 8,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2136,
+      "total": 7,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2155,
+      "total": 8,
+      "cues": {
+        "MSS_NeedleCannon": 8,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2184,
+      "total": 6,
+      "cues": {
+        "MSS_NeedleCannon": 5,
+        "MSS_Hull": 0,
+        "MSS_Shield": 1
+      }
+    },
+    {
+      "line": 2201,
+      "total": 6,
+      "cues": {
+        "MSS_NeedleCannon": 4,
+        "MSS_Hull": 0,
+        "MSS_Shield": 2
+      }
+    },
+    {
+      "line": 2218,
+      "total": 7,
+      "cues": {
+        "MSS_NeedleCannon": 5,
+        "MSS_Hull": 0,
+        "MSS_Shield": 2
+      }
+    },
+    {
+      "line": 2237,
+      "total": 9,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 2
+      }
+    },
+    {
+      "line": 2260,
+      "total": 9,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 2
+      }
+    },
+    {
+      "line": 2283,
+      "total": 8,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 1
+      }
+    },
+    {
+      "line": 2304,
+      "total": 7,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2323,
+      "total": 7,
+      "cues": {
+        "MSS_NeedleCannon": 7,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    },
+    {
+      "line": 2347,
+      "total": 4,
+      "cues": {
+        "MSS_NeedleCannon": 4,
+        "MSS_Hull": 0,
+        "MSS_Shield": 0
+      }
+    }
+  ],
+  "concurrency_limit_note": "Configured weapon cap 6, impacts cap 8, with 30ms stealing fade. Active-sound dumps may include retiring voices; these counts are not rendered voice counts."
+}

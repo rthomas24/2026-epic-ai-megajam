@@ -1,0 +1,29 @@
+{
+  "pid": 2760,
+  "exit_code": 0,
+  "reason": "completed",
+  "failure": null,
+  "minimum_free_gib": 1.835174560546875,
+  "duration_s": 18.821869699997478,
+  "protected_count": 1123,
+  "protected_unchanged": true,
+  "changed_protected": [],
+  "new_content": {},
+  "unexpected_content": [],
+  "structured_engine_result_present": true,
+  "stage": "Fresh read-only reload verified; actual playback, listening and Shipping pending.",
+  "engine_errors": 0,
+  "engine_warnings": 1,
+  "validation": {
+    "loaded_assets": 17,
+    "sound_class_attenuation_concurrency_refs_verified": true,
+    "sound_slots": {
+      "muzzle": "/Game/TriadDrift/Audio/Combat01/MSS_NeedleCannon.MSS_NeedleCannon",
+      "impact_hull": "/Game/TriadDrift/Audio/Combat01/MSS_Hull.MSS_Hull",
+      "impact_shield": "/Game/TriadDrift/Audio/Combat01/MSS_Shield.MSS_Shield"
+    },
+    "all_visual_and_other_defaults_preserved": true,
+    "stage": "Read-only reload validation; runtime playback, listening and Shipping still required"
+  },
+  "evidence_directory": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\Combat01\\Reload01"
+}
