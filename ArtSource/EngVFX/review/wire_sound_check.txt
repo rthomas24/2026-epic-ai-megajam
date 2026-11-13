@@ -1192,3 +1192,114 @@ Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Carrier_Visuals.uasset
 Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Fighter_Visuals.uasset | audio asset paths before=4 after=4 | SAME
 Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Gunship_Visuals.uasset | audio asset paths before=6 after=6 | SAME
 Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Interceptor_Visuals.uasset | audio asset paths before=4 after=4 | SAME
+==== wire_r5 run: 110 sound fields read, 0 changed
+NullFleet/DA_Enemy_Fighter_Visuals | bay_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | bay_launch.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | bay_launch_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | damaged_smoke.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | death.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | death_tumble.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | engine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | explosion.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small' (0x000001A2F26CDC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small' (0x000001A2F26CDC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | frontal_shield_break.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | frontal_shield_restore.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | hull_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | shield_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | stagger.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | stunned.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | telegraph.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | telegraph_heavy_bolt.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | telegraph_mine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | telegraph_missile.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | telegraph_salvo.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | turret_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | turret_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Fighter_Visuals | warp_in.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | bay_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | bay_launch.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | bay_launch_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | damaged_smoke.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | death.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | death_tumble.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | engine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | explosion.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small' (0x000001A2F26CDC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small' (0x000001A2F26CDC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | frontal_shield_break.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | frontal_shield_restore.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | hull_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | shield_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | stagger.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | stunned.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | telegraph.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | telegraph_heavy_bolt.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | telegraph_mine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | telegraph_missile.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | telegraph_salvo.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | turret_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | turret_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Interceptor_Visuals | warp_in.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | bay_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | bay_launch.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | bay_launch_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | damaged_smoke.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | death.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | death_tumble.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | engine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | explosion.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium.MSS_Explosion_Medium' (0x000001A2F3D65000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium.MSS_Explosion_Medium' (0x000001A2F3D65000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | frontal_shield_break.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01.SW_Shield_Break_01' (0x000001A2EE1FAA00) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Break_01.SW_Shield_Break_01' (0x000001A2EE1FAA00) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | frontal_shield_restore.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Restore_01.SW_Shield_Restore_01' (0x000001A2EE1FE600) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Ship/SW_Shield_Restore_01.SW_Shield_Restore_01' (0x000001A2EE1FE600) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | hull_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | shield_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | stagger.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | stunned.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | telegraph.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | telegraph_heavy_bolt.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | telegraph_mine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | telegraph_missile.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | telegraph_salvo.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | turret_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | turret_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Gunship_Visuals | warp_in.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | bay_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | bay_launch.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | bay_launch_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | damaged_smoke.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | death.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | death_tumble.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | engine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | explosion.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium.MSS_Explosion_Medium' (0x000001A2F3D65000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium.MSS_Explosion_Medium' (0x000001A2F3D65000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | frontal_shield_break.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | frontal_shield_restore.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | hull_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | shield_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | stagger.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | stunned.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | telegraph.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | telegraph_heavy_bolt.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | telegraph_mine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | telegraph_missile.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | telegraph_salvo.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | turret_destroyed.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | turret_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Bomber_Visuals | warp_in.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | bay_destroyed.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium.MSS_Explosion_Medium' (0x000001A2F3D65000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium.MSS_Explosion_Medium' (0x000001A2F3D65000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | bay_launch.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Carrier_BayLaunch_01.SW_Carrier_BayLaunch_01' (0x000001A2EE1F7800) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Carrier_BayLaunch_01.SW_Carrier_BayLaunch_01' (0x000001A2EE1F7800) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | bay_launch_telegraph.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | damaged_smoke.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | death.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | death_tumble.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble' (0x000001A2F2A5DC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | engine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | explosion.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large.MSS_Explosion_Large' (0x000001A2F3D67800) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large.MSS_Explosion_Large' (0x000001A2F3D67800) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | frontal_shield_break.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | frontal_shield_restore.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | hull_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | shield_hit.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | stagger.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | stunned.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01' (0x000001A2F230B400) Class 'SoundWave'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | telegraph.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph' (0x000001A2EF2F0000) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | telegraph_heavy_bolt.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | telegraph_mine_trail.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | telegraph_missile.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | telegraph_salvo.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | turret_destroyed.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small' (0x000001A2F26CDC00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small' (0x000001A2F26CDC00) Class 'MetaSoundSource'> | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | turret_telegraph.sound | before=None | after=None | SAME
+NullFleet/DA_Enemy_Carrier_Visuals | warp_in.sound | before=None | after=None | SAME

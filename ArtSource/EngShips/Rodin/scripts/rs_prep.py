@@ -42,10 +42,20 @@ SOCKETS = {
         "Muzzle_0": (268, -57, -38), "Muzzle_1": (268, 57, -38),
         "Engine_0": (-277, -63, -14), "Engine_1": (-277, 63, -14), "Engine_2": (-275, 0, -14),
     },
-    "NullInterceptor": {
-        "Muzzle_0": (220, -56, -43), "Muzzle_1": (220, 56, -43),
-        "Muzzle_2": (178, -124, -43), "Muzzle_3": (142, 124, -43),
-        "Engine_0": (-308, 0, 26),
+    "NullInterceptor": {       # mesh_r2 (textured)
+        "Muzzle_0": (320, -72, -55), "Muzzle_1": (320, 72, -55),      # chin guns; this mesh has no missile pods
+        "Engine_0": (-332, -80, -13), "Engine_1": (-332, 80, -13), "Engine_2": (-332, 0, -15),
+    },
+    "NullBomber": {
+        "Muzzle_0": (-100, 0, -105),
+        "Engine_0": (-563, -165, -10), "Engine_1": (-563, 165, -10), "Engine_2": (-592, 0, 15),
+    },
+    "NullCarrier": {
+        "Engine_0": (-1514, -805, 50), "Engine_1": (-1514, 805, 50),
+        "Engine_2": (-370, -1040, -290), "Engine_3": (-370, 1040, -290),
+    },
+    "NullTurret": {
+        "Muzzle_0": (110, -11, 9), "Muzzle_1": (108, 23, 12),
     },
     "NullGunship": {
         "Muzzle_0": (748, -280, 295), "Muzzle_1": (748, -210, 300),
@@ -201,7 +211,7 @@ def main():
                 man = json.load(fh)
             result["export"] = {k: man.get(k) for k in ("tris", "size_cm", "collision", "welded_verts", "errors", "warnings")}
             man["ue_sockets"] = [{"name": n, "ue_cm": list(p)} for n, p in SOCKETS[ship].items()]
-            man["source"] = os.path.relpath(s["src"], C.REPO).replace("\\", "/")
+            man["source"] = os.path.relpath(s.get("rel", s["src"]), C.REPO).replace("\\", "/")
             man["texture_dir"] = man["source"]
             man["heat_mask"] = os.path.relpath(s["heat"], C.REPO).replace("\\", "/") if s["heat"] else None
             man["max_texture_size"] = s["tex"]
