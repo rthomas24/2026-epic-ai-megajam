@@ -88,6 +88,9 @@ open) · `done` (on `main`, tests pass, review closed).
 
 | Item | Owner | State | Started (EST) | Finished / on `main` | Shared paths touched |
 |---|---|---|---|---|---|
+| Engineering art (R-021): Null Armada fleet, fallback squad ships, Dominion exterior kit, crew in cm on `SKEL_NullCrew` | Lead + builder sub-agents | in review | Nov 13 01:00 | Nov 13 03:45 (`f98124f`); scores 3-3.3/5, below the hero bar; live checks with T1/T4/T5 | none (engineering folders only; Presentation assets win) |
+| Planet set-piece kit (outpost walls, jammer, wreck, relay, landing pads) | Lead builder sub-agent | in progress | Nov 13 01:30 | - | none (`Gameplay/Props/Planet`, `ArtSource/EngProps/PlanetKit`) |
+| Ship and enemy art seen live (T1 squad art, T4 fleet range scale + placeholder parts hidden), crew loops live (T5), intro re-shoot (T3) | T1, T3, T4, T5 | in progress | Nov 13 03:00 | - | none |
 | C-02 Core contracts (types, interfaces, event bus, health, registry, statics, test harness) | Lead | done | Nov 12 | `1cf7fe1` | none outside lane |
 | Core: dev HUD (`ATDDebugHUD`), placeholder tint, pooled cues | Lead | done | Nov 12 12:20 | Nov 12 12:45, this push | none |
 | Independent code review of Squad + Director | Lead | done | Nov 12 12:43 | Nov 12 13:05; findings with T3, T1, T2, T4 | none |
