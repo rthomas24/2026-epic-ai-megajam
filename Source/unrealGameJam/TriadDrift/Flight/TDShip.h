@@ -191,6 +191,22 @@ public:
 	/** Every exhaust: the art's Engine_0..Engine_3 sockets when it has them, else the single exhaust above. */
 	void GetEngineExhaustLocations(TArray<FVector>& Out) const;
 
+	/**
+	 * ENG-37: every engine nozzle the exhaust effect attaches to: the hull's "Engine" and "Engine_0".."Engine_7" /
+	 * "Engine_1".."Engine_8" sockets that exist, in that order; else the single engine attach (visual part, socket or
+	 * placeholder glow). One EngineTrail effect runs per nozzle; the sound runs once, on the first.
+	 */
+	void GetEngineNozzles(TArray<TPair<USceneComponent*, FName>>& Out) const;
+
+	/** What the exhaust effects are fed each frame as Niagara user parameters "Throttle" (0..1) and "Boost" (0/1). */
+	float GetExhaustThrottle01() const { return ExhaustThrottle01; }
+	bool GetExhaustBoost() const { return bExhaustBoost; }
+	/** Exhaust effect components running now (0 without art or with no EngineTrail VFX). */
+	int32 GetExhaustEffectCount() const;
+
+	/** Sets a Niagara user float only when the system exposes it (a system without the parameter is left alone). */
+	static bool SetExhaustParamIfExposed(UNiagaraComponent* FX, FName Param, float Value);
+
 	/** Engines are lit (alive, not parked or hidden, not landed with engines off). */
 	bool AreEnginesRunning() const { return ShouldEnginesRun(); }
 
@@ -335,6 +351,10 @@ protected:
 
 	TMap<FName, int32> CueRequests;
 	TWeakObjectPtr<UNiagaraComponent> EngineTrailFX, BoostLoopFX, DriftLoopFX;
+	TArray<TWeakObjectPtr<UNiagaraComponent>> ExtraExhaustFX; // nozzles 2..N (VFX only)
+	float ExhaustThrottle01 = 0.f;
+	bool bExhaustBoost = false;
+	void UpdateExhaustParams();
 	TWeakObjectPtr<UAudioComponent> EngineTrailAudio, BoostLoopAudio, DriftLoopAudio, LowHullAudio;
 	TWeakObjectPtr<UNiagaraComponent> LowHullFX;
 
