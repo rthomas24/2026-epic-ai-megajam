@@ -82,6 +82,12 @@ elif kind == 'pickups':   # ('pickups', dist, gap[, names]): the four pickup idl
         loc = unreal.MathLibrary.transform_location(xf, unreal.Vector(dist, (i - (len(names) - 1) / 2.0) * gap, 0.0))
         c = tag(NFL.spawn_system_at_location(world, load(names[i]), loc, unreal.Rotator(0, 0, 0), unreal.Vector(1, 1, 1), True, True, unreal.NCPoolMethod.NONE, True))
         out.append('%s %s' % (names[i], 'ok' if c and c.is_active() else 'NOT ACTIVE'))
+elif kind == 'spread_pickups':   # ('spread_pickups', gap): line T2's live pickups up across the view, in spawn order
+    ps = sorted(unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDPickup), key=lambda a: a.get_name())
+    right = pawn.get_actor_right_vector()
+    for i, a in enumerate(ps):
+        a.set_actor_location(a.get_actor_location() + right * ((i - (len(ps) - 1) / 2.0) * CMD[1]), False, True)
+    out.append('spread %d pickups' % len(ps))
 elif kind == 'at_enemies':
     n = 0
     for a in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDEnemyShip):

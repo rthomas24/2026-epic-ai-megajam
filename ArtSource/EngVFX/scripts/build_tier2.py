@@ -511,25 +511,27 @@ S2('NS_TD_Pickup_Power', U(PK_POWER), pk_common(400) + [
     arcs('Arcs', 6.0, (70, 140), 60, life=(0.08, 0.2), k=1.2)])
 # Overcharge: a spiked gold-white star that throws sparks outward all the time.
 S2('NS_TD_Pickup_Overcharge', U(PK_OVER), pk_common(440) + [
-    looping(single('Star', 'M_TD_VFX_Flare', '(330*%s)' % (PULSE % 6.3), 1.0, None), 0.5),
-    looping(single('Star2', 'M_TD_VFX_Flare', 210, 1.3, None), 0.33),
-    single('Core', 'M_TD_VFX_Glow', 100, 1.6, 67.1),
+    looping(single('Star', 'M_TD_VFX_Flare', '(470*%s)' % (PULSE % 6.3), 1.2, None), 0.5),   # 330 / 210 / 100 read as a dot at 200 m beside the others
+    looping(single('Star2', 'M_TD_VFX_Flare', 300, 1.4, None), 0.33),
+    single('Core', 'M_TD_VFX_Glow', 160, 1.5, 67.1),
     shed('Sparks', 'M_TD_VFX_Spark', 34.0, (0.25, 0.5), (3.0, 6.5), (200, 520), k=1.6, radius=20.0, drag=1.0, local=True, stretch=11, power=1.0)])
 SCL = _SCL_STD
 
 
 def pk_collect(extra=()):
-    return [flash('Flash', 'M_TD_VFX_Flare', 320, 0.10, 1.3, growth='0.5 + Particles.NormalizedAge'),
-            flash('Glow', 'M_TD_VFX_Glow', 420, 0.22, 0.6, growth='0.5 + Particles.NormalizedAge*0.8'),
-            flash('Ring', 'M_TD_VFX_Shock', 520, 0.32, 1.1, growth='0.10 + pow(Particles.NormalizedAge, 0.5)*0.90', power=1.3),
+    # Played attached to the collecting ship (T2), seen from the chase camera 17 m behind: in play the first build was a thin
+    # white ring round the ship with no colour. Now a coloured bloom and a coloured noise ring around the white shock ring.
+    return [flash('Flash', 'M_TD_VFX_Flare', 520, 0.10, 1.3, growth='0.5 + Particles.NormalizedAge'),
+            flash('Glow', 'M_TD_VFX_Glow', 950, 0.26, 0.95, growth='0.5 + Particles.NormalizedAge*0.8'),
+            flash('Ring', 'M_TD_VFX_Shock', 620, 0.32, 0.9, growth='0.10 + pow(Particles.NormalizedAge, 0.5)*0.90', power=1.3),
+            flash('ColorRing', 'M_TD_VFX_Ring', 900, 0.40, 1.6, growth='0.15 + pow(Particles.NormalizedAge, 0.6)*0.85', power=1.1),
             shed('Sparks', 'M_TD_VFX_Spark', 0, (0.20, 0.50), (2.5, 5.5), (500, 2200), k=1.7, radius=20.0, drag=2.6, stretch=12, burst=30, dur=0.6),
             shed('Motes', 'M_TD_VFX_Glow', 0, (0.5, 1.1), (4, 10), (80, 520), k=1.2, radius=40.0, drag=1.8, curl=500.0, burst=22, dur=1.2, power=1.6)] + list(extra)
 
 
 # Collect bursts (a one-shot at the pickup, short: flash, ring, sparks, the type's own shape thrown out).
 S2('NS_TD_Pickup_Hull_Collect', U(PK_HULL), pk_collect([
-    flash('BarH', 'M_TD_VFX_Glow', 1, 0.28, 1.6, growth='float2(4.2, 0.9)*(0.4 + Particles.NormalizedAge*0.9)*60.0', power=1.0),
-    flash('BarV', 'M_TD_VFX_Glow', 1, 0.28, 1.6, growth='float2(0.9, 4.2)*(0.4 + Particles.NormalizedAge*0.9)*60.0', power=1.0)]))
+    flash('Plus', 'M_TD_VFX_Plus', 420, 0.35, 1.5, growth='0.5 + Particles.NormalizedAge*0.9', power=1.0)]))
 S2('NS_TD_Pickup_Shield_Collect', U(PK_SHIELD), pk_collect([
     flash('Hex', 'M_TD_VFX_Hex', 420, 0.35, 1.2, growth='0.35 + Particles.NormalizedAge*0.65', power=0.8),
     shell_flash('Bubble', 60, 0.35, 'float3(1,1,1)*(1.0 + 2.2*pow(Particles.NormalizedAge, 0.6))', k=0.9, power=1.2)]))
