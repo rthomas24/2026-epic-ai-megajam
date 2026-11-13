@@ -2,6 +2,9 @@
 
 #include "Misc/AutomationTest.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#if WITH_EDITOR
+#include "StaticMeshCompiler.h"
+#endif
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -447,6 +450,14 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		ATDDominion* D = W.Spawn<ATDDominion>(FVector(40000.f, 0.f, 0.f));
 		D->WarpInSeconds = 0.f;
 		D->WarpIn();
+		// Order-dependent (found by T1), root cause: in the editor the first load of the art hull mesh in a process builds it
+		// asynchronously (static mesh compilation), and the hull gets its physics body only when that build finishes. Manual
+		// test ticks never finish it, so the portal's sweep saw no hull and opened at full range inside the hull's box. In the
+		// full suite an earlier test had already finished the build. Finish pending mesh builds first, as the editor's own
+		// frame loop does. Packaged builds ship built meshes, so play is not affected.
+#if WITH_EDITOR
+		FStaticMeshCompilingManager::Get().FinishAllCompilation();
+#endif
 		W.Tick(PowerFrameStep());
 		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);
@@ -454,6 +465,7 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		Power->HandleInputPressed();
 		ATDPortal* P = Power->GetPortals().Num() ? Power->GetPortals()[0].Get() : nullptr;
 		TestTrue(TEXT("portal placed"), P != nullptr);
+		AddInfo(FString::Printf(TEXT("portal at x = %.0f, hull face at x = %.0f"), P ? P->GetActorLocation().X : -1.f, 40000.f - D->HullExtent.X));
 		TestTrue(TEXT("portal is in front of the hull, not inside it"), P && P->GetActorLocation().X < 40000.f - D->HullExtent.X);
 	}
 	// A dynamic blocker dropped on B's exit: no transit, the ship flies on.
