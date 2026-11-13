@@ -81,10 +81,10 @@ bool FTDInteriorBuilt::RunTest(const FString& Parameters)
 	TestEqual(TEXT("all recognise the pilot"), Known, Doors);
 	// One recording console per room, each with its own id; using one asks for its beat.
 	const TMap<TObjectPtr<AActor>, FName>& Consoles = I.Course->GetStoryConsoles();
-	TestEqual(TEXT("five story consoles"), Consoles.Num(), 5);
+	TestEqual(TEXT("four story consoles (T3's ids)"), Consoles.Num(), 4);
 	TSet<FName> Ids;
 	for (const TPair<TObjectPtr<AActor>, FName>& C : Consoles) { Ids.Add(C.Value); }
-	TestEqual(TEXT("distinct ids"), Ids.Num(), 5);
+	TestEqual(TEXT("distinct ids"), Ids.Num(), 4);
 	TestTrue(TEXT("hangar recording id"), Ids.Contains(TEXT("A4_Recording_Hangar")));
 	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, I.Course->GetInteriorStart().GetLocation());
 	for (const TPair<TObjectPtr<AActor>, FName>& C : Consoles)

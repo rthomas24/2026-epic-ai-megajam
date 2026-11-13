@@ -159,7 +159,8 @@ bool FTDJourney::Go(UWorld* World, ETDJourneyStage Stage, int32 Wave)
 		Bus->BroadcastPhaseChanged(GI->GetProgressRef().Phase);
 	}
 
-	if (Dest == ETDDestination::Galaxy && GI->GetCurrentDestination() == ETDDestination::Galaxy)
+	// The escape flight needs a fresh galaxy (T4: the Dominion switches to EscapeFlight only from Hidden).
+	if (Dest == ETDDestination::Galaxy && GI->GetCurrentDestination() == ETDDestination::Galaxy && Stage != ETDJourneyStage::EscapeFlight)
 	{
 		ApplyGalaxyInPlace(World, Stage);
 		GI->SaveCheckpoint();

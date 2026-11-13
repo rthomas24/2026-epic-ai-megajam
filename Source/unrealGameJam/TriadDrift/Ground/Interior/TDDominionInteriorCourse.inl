@@ -55,56 +55,106 @@ void ATDPlanetCourse::BuildInterior()
 	using namespace TDInteriorImpl;
 
 	// --- Shell helpers -------------------------------------------------------------------------------
-	// A room: floor tiles on the grid (each its own kit tile), one ceiling slab, red strips along the walls.
-	auto Floor = [this](float X0, float X1, float Y0, float Y1, float CeilingH)
+	// The kit (lead/int 9e54fb8, ArtSource/EngProps/DominionInterior/README.md) is placed BY PIVOT at scale 1 with its own
+	// collision: floor top at z = 0, 600 cm per storey, walls centred on their plane and tiling along their Y. A piece
+	// whose mesh is missing falls back to a placeholder block of its size, so the layout always plays.
+	auto KitMesh = [](const TCHAR* Name) -> UStaticMesh*
 	{
-		for (float X = X0; X < X1 - 1.f; X += Grid)
+		return TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/%s.%s"), Name, Name))));
+	};
+	// Box: the piece's bounds from its pivot (README table), for the placeholder.
+	auto Kit = [this, KitMesh](const TCHAR* Name, const FVector& At, float Yaw, const FBox& Box, bool bCollide = true) -> UStaticMeshComponent*
+	{
+		if (!Dressing)
 		{
-			for (float Y = Y0; Y < Y1 - 1.f; Y += Grid)
+			return nullptr;
+		}
+		const FRotator Rot(0.f, Yaw, 0.f);
+		UStaticMesh* M = KitMesh(Name);
+		if (!M)
+		{
+			return Block(EShape::Cube, At + Rot.RotateVector(Box.GetCenter()), Box.GetSize(), Hull, 0.f, Rot, bCollide);
+		}
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Dressing);
+		C->SetMobility(EComponentMobility::Movable);
+		C->SetStaticMesh(M);
+		C->SetupAttachment(Dressing->GetRootComponent());
+		C->SetRelativeLocationAndRotation(At, Rot);
+		C->SetCollisionProfileName(bCollide ? TEXT("BlockAll") : TEXT("NoCollision"));
+		C->SetCanEverAffectNavigation(bCollide);
+		C->RegisterComponent();
+		Dressing->AddInstanceComponent(C);
+		return C;
+	};
+	const FBox FloorBox(FVector(-200.f, -200.f, -20.f), FVector(200.f, 200.f, 0.f));
+	const FBox CeilBox(FVector(-200.f, -200.f, 600.f), FVector(200.f, 200.f, 620.f));
+	const FBox WallBox(FVector(-30.f, -200.f, 0.f), FVector(30.f, 200.f, 600.f));
+	// A room on the grid: X0..X1, |Y| <= HalfY (HalfY an odd multiple of 200, so a doorway at y = 0 is one wall piece),
+	// Storeys x 600 high. The end walls leave the ground-floor piece at y = 0 for a doorway when asked.
+	auto Room = [&](float X0, float X1, float HalfY, int32 Storeys, bool bDoorAtX0, bool bDoorAtX1)
+	{
+		for (float X = X0 + 200.f; X < X1; X += Grid)
+		{
+			for (float Y = -HalfY + 200.f; Y < HalfY; Y += Grid)
 			{
-				Platform(FVector(X + Grid * 0.5f, Y + Grid * 0.5f, 0.f), 0.f, FVector(Grid, Grid, 20.f), Deck, 0.f, TEXT("SM_DI_Room_Floor"));
+				Kit(TEXT("SM_DI_Room_Floor"), FVector(X, Y, 0.f), 0.f, FloorBox);
+				Kit(TEXT("SM_DI_Room_Ceiling"), FVector(X, Y, (Storeys - 1) * 600.f), 0.f, CeilBox);
 			}
 		}
-		Block(EShape::Cube, FVector((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f, CeilingH + 20.f), FVector(X1 - X0, Y1 - Y0, 40.f), Hull);
-	};
-	// A straight wall from A to B (axis-aligned) in 400 cm kit pieces, leaving a 400 cm gap at each doorway centre.
-	auto Wall = [this](const FVector2D& A, const FVector2D& B, float H, const TArray<float>& Gaps)
-	{
-		const bool bAlongX = FMath::Abs(B.X - A.X) > FMath::Abs(B.Y - A.Y);
-		const float L0 = bAlongX ? FMath::Min(A.X, B.X) : FMath::Min(A.Y, B.Y);
-		const float L1 = bAlongX ? FMath::Max(A.X, B.X) : FMath::Max(A.Y, B.Y);
-		const float Fixed = bAlongX ? A.Y : A.X;
-		for (float L = L0; L < L1 - 1.f; L += Grid)
+		for (int32 S = 0; S < Storeys; ++S)
 		{
-			const float C = L + Grid * 0.5f;
-			bool bGap = false;
-			for (const float G : Gaps) { bGap |= FMath::Abs(C - G) < Grid * 0.5f; }
-			if (bGap)
+			const float Z = S * 600.f;
+			for (float X = X0 + 200.f; X < X1; X += Grid)
 			{
+				Kit(TEXT("SM_DI_Room_Wall"), FVector(X, -HalfY, Z), 90.f, WallBox);
+				Kit(TEXT("SM_DI_Room_Wall"), FVector(X, HalfY, Z), 90.f, WallBox);
+			}
+			for (float Y = -HalfY + 200.f; Y < HalfY; Y += Grid)
+			{
+				const bool bMiddle = S == 0 && FMath::Abs(Y) < 1.f;
+				if (!(bMiddle && bDoorAtX0)) { Kit(TEXT("SM_DI_Room_Wall"), FVector(X0, Y, Z), 0.f, WallBox); }
+				if (!(bMiddle && bDoorAtX1)) { Kit(TEXT("SM_DI_Room_Wall"), FVector(X1, Y, Z), 0.f, WallBox); }
+			}
+		}
+	};
+	// A corridor along X (clear width 340, height 600): one kit straight per cell.
+	auto CorridorRun = [&](float X0, float X1)
+	{
+		const bool bKit = KitMesh(TEXT("SM_DI_Corridor_Straight")) != nullptr;
+		for (float X = X0 + 200.f; X < X1; X += Grid)
+		{
+			if (bKit)
+			{
+				Kit(TEXT("SM_DI_Corridor_Straight"), FVector(X, 0.f, 0.f), 0.f, FloorBox);
 				continue;
 			}
-			const FVector Center = bAlongX ? FVector(C, Fixed, H * 0.5f) : FVector(Fixed, C, H * 0.5f);
-			Block(EShape::Cube, Center, FVector(60.f, Grid, H), Hull, 0.f, bAlongX ? FRotator(0.f, 90.f, 0.f) : FRotator::ZeroRotator, true, TEXT("SM_DI_Room_Wall"));
-			// The red strip at shoulder height, both faces (placeholder look; the kit wall has its own).
-			if (!ArtFor(TEXT("SM_DI_Room_Wall")))
-			{
-				Block(EShape::Cube, Center + FVector(0.f, 0.f, 50.f - H * 0.5f + 220.f), bAlongX ? FVector(Grid, 70.f, 10.f) : FVector(70.f, Grid, 10.f), Strip, 3.f, FRotator::ZeroRotator, false);
-			}
+			// Placeholder floor, walls and ceiling at the kit's inner faces.
+			Block(EShape::Cube, FVector(X, 0.f, -10.f), FVector(Grid, Grid, 20.f), Deck);
+			Block(EShape::Cube, FVector(X, -185.f, 300.f), FVector(Grid, 30.f, 600.f), Hull);
+			Block(EShape::Cube, FVector(X, 185.f, 300.f), FVector(Grid, 30.f, 600.f), Hull);
+			Block(EShape::Cube, FVector(X, 0.f, 610.f), FVector(Grid, Grid, 20.f), Hull);
 		}
 	};
-	// A doorway in a wall across X at X: frame (two posts and a lintel, collision) and a door that knows the pilot.
-	auto Doorway = [this](float X, float Y, bool bRecognise) -> ATDDoor*
+	// A doorway on a cell seam across X, and its door at the same transform (it slides +Z by 400), knowing the pilot.
+	auto Doorway = [&](float X, bool bRecognise) -> ATDDoor*
 	{
-		Block(EShape::Cube, FVector(X, Y - 175.f, 300.f), FVector(60.f, 50.f, 600.f), Hull);
-		Block(EShape::Cube, FVector(X, Y + 175.f, 300.f), FVector(60.f, 50.f, 600.f), Hull);
-		Block(EShape::Cube, FVector(X, Y, 500.f), FVector(60.f, 300.f, 200.f), Hull, 0.f, FRotator::ZeroRotator, true, TEXT("SM_DI_Doorway"));
-		ATDDoor* D = SpawnProp<ATDDoor>(FVector(X, Y, 0.f));
+		if (!KitMesh(TEXT("SM_DI_Doorway")))
+		{
+			Block(EShape::Cube, FVector(X, -175.f, 300.f), FVector(60.f, 50.f, 600.f), Hull);
+			Block(EShape::Cube, FVector(X, 175.f, 300.f), FVector(60.f, 50.f, 600.f), Hull);
+			Block(EShape::Cube, FVector(X, 0.f, 500.f), FVector(60.f, 300.f, 200.f), Hull);
+		}
+		else
+		{
+			Kit(TEXT("SM_DI_Doorway"), FVector(X, 0.f, 0.f), 0.f, WallBox);
+		}
+		ATDDoor* D = SpawnProp<ATDDoor>(FVector(X, 0.f, 0.f));
 		if (D)
 		{
-			D->OpenHeight = 420.f;
+			D->OpenHeight = 400.f;
 			D->bRecognisesPilot = bRecognise;
-			D->DoorMesh = TDPropArt::Default(TEXT("SM_DI_Door"));
-			D->Mesh->SetRelativeScale3D(FVector(0.3f, 3.f, 4.f)); // 30 x 300 x 400 (the kit door), before BeginPlay
+			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Door.SM_DI_Door")));
+			D->Mesh->SetRelativeScale3D(FVector(0.3f, 3.f, 4.f)); // the kit door's box, 30 x 300 x 400 (fitted exactly), before BeginPlay
 			D->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
 			TDCourseImpl::FinishProp(D);
 			UTDStatics::TintPlaceholder(D->Mesh, Strip, 0.6f);
@@ -128,6 +178,7 @@ void ATDPlanetCourse::BuildInterior()
 		L->RegisterComponent();
 	};
 	// One story console per room (storyline.md act 4: a recording in each room, older and older-sounding voices).
+	// The kit console's screen faces -X, where its user stands: Yaw turns that side toward the room.
 	auto StoryConsole = [this](const FVector& At, float Yaw, const TCHAR* Room)
 	{
 		ATDInteractableActor* C = SpawnProp<ATDInteractableActor>(At, FRotator(0.f, Yaw, 0.f));
@@ -138,8 +189,9 @@ void ATDPlanetCourse::BuildInterior()
 		C->Prompt = LOCTEXT("StoryConsole", "Play the recording");
 		C->HoldTime = 0.f;
 		C->bSingleUse = true;
-		C->ConsoleMesh = TDPropArt::Default(TEXT("SM_DI_Console"));
+		C->ConsoleMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Console.SM_DI_Console")));
 		TDCourseImpl::FinishProp(C);
+		C->SetActorScale3D(FVector(0.6f, 1.2f, 1.3f)); // the kit console's 60 x 120 x 130 box
 		UTDStatics::TintPlaceholder(C->Mesh, FLinearColor(0.3f, 0.85f, 1.f), 1.5f);
 		C->OnInteracted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStoryConsole);
 		StoryConsoles.Add(C, FName(*FString::Printf(TEXT("A4_Recording_%s"), Room)));
@@ -149,63 +201,56 @@ void ATDPlanetCourse::BuildInterior()
 		InteriorEntries.Add(Id, FTransform(FRotator(0.f, Yaw, 0.f), At + FVector(0.f, 0.f, 100.f)));
 	};
 
-	// --- Coordinates ----------------------------------------------------------------------------------
-	const float HX0 = -1200.f, HX1 = 1200.f, HY = 1200.f;        // hangar
-	const float CX1 = 5200.f, CY = 200.f;                         // deflect corridor (4 m wide)
-	const float AX1 = 7600.f, AY = 1200.f;                        // arena
+	// --- Coordinates (cell seams on the 400 grid; half widths odd multiples of 200) ---------------------
+	const float HX0 = -1200.f, HX1 = 1200.f, HY = 1400.f;        // hangar, 24 x 28 m, two storeys
+	const float CX1 = 5200.f;                                     // deflect corridor, 40 m (clear width 3.4 m)
+	const float AX1 = 7600.f, AY = 1400.f;                        // arena, 24 x 28 m
 	const float L1X1 = 8400.f;                                    // link
-	const float WX1 = 10400.f, WY = 1000.f;                       // Warden room
+	const float WX1 = 10400.f, WY = 1000.f;                       // Warden room, 20 x 20 m
 	const float L2X1 = 11200.f;                                   // link
-	const float KX1 = 14400.f, KY = 1600.f;                       // core chamber
+	const float KX1 = 14800.f, KY = 1800.f;                       // core chamber, 36 x 36 m, three storeys
+	const float CY = 170.f;                                       // corridor clear half width
 	const FVector CoreAt((L2X1 + KX1) * 0.5f, 0.f, 0.f);
 
 	// --- Shell ----------------------------------------------------------------------------------------
-	Floor(HX0, HX1, -HY, HY, 1000.f);
-	Platform(FVector(-200.f, 0.f, 0.f), 40.f, FVector(1200.f, 1200.f, 40.f), Deck, 0.f, TEXT("SM_DI_Hangar_Pad")); // where the ship sits
-	Floor(HX1, CX1, -CY, CY, WallH);
-	Floor(CX1, AX1, -AY, AY, 900.f);
-	Floor(AX1, L1X1, -CY, CY, WallH);
-	Floor(L1X1, WX1, -WY, WY, 900.f);
-	Floor(WX1, L2X1, -CY, CY, WallH);
-	Floor(L2X1, KX1, -KY, KY, 1600.f);
-
-	// Side walls.
-	Wall(FVector2D(HX0, -HY), FVector2D(HX1, -HY), 1000.f, {}); Wall(FVector2D(HX0, HY), FVector2D(HX1, HY), 1000.f, {});
-	Wall(FVector2D(HX0, -HY), FVector2D(HX0, HY), 1000.f, {}); // the bay (T4's ship came in through here; sealed on foot)
-	Wall(FVector2D(HX1, -CY), FVector2D(CX1, -CY), WallH, {}); Wall(FVector2D(HX1, CY), FVector2D(CX1, CY), WallH, {});
-	Wall(FVector2D(CX1, -AY), FVector2D(AX1, -AY), 900.f, {}); Wall(FVector2D(CX1, AY), FVector2D(AX1, AY), 900.f, {});
-	Wall(FVector2D(AX1, -CY), FVector2D(L1X1, -CY), WallH, {}); Wall(FVector2D(AX1, CY), FVector2D(L1X1, CY), WallH, {});
-	Wall(FVector2D(L1X1, -WY), FVector2D(WX1, -WY), 900.f, {}); Wall(FVector2D(L1X1, WY), FVector2D(WX1, WY), 900.f, {});
-	Wall(FVector2D(WX1, -CY), FVector2D(L2X1, -CY), WallH, {}); Wall(FVector2D(WX1, CY), FVector2D(L2X1, CY), WallH, {});
-	Wall(FVector2D(L2X1, -KY), FVector2D(KX1, -KY), 1600.f, {}); Wall(FVector2D(L2X1, KY), FVector2D(KX1, KY), 1600.f, {});
-	Wall(FVector2D(KX1, -KY), FVector2D(KX1, KY), 1600.f, {});
-	// End walls with a doorway in the middle (y = 0); the corridors meet them there.
-	auto EndWall = [&](float X, float HalfY, float H)
-	{
-		Wall(FVector2D(X, -HalfY), FVector2D(X, HalfY), H, { 0.f });
-		Block(EShape::Cube, FVector(X, 0.f, (WallH + H) * 0.5f), FVector(60.f, Grid, H - WallH), Hull); // over the doorway
-	};
-	EndWall(HX1, HY, 1000.f);
-	EndWall(CX1, AY, 900.f); EndWall(AX1, AY, 900.f);
-	EndWall(L1X1, WY, 900.f); EndWall(WX1, WY, 900.f);
-	EndWall(L2X1, KY, 1600.f);
-	ATDDoor* HangarDoor = Doorway(HX1, 0.f, true);
-	ATDDoor* ArenaIn = Doorway(CX1, 0.f, true);
-	ATDDoor* ArenaOut = Doorway(AX1, 0.f, true);
-	ATDDoor* WardenIn = Doorway(L1X1, 0.f, true);
-	ATDDoor* WardenOut = Doorway(WX1, 0.f, true);
-	ATDDoor* CoreIn = Doorway(L2X1, 0.f, true);
+	Room(HX0, HX1, HY, 2, false, true);
+	Kit(TEXT("SM_DI_Hangar_Pad"), FVector(-200.f, 0.f, 0.5f), 0.f, FBox(FVector(-600.f, -600.f, -40.f), FVector(600.f, 600.f, 0.f))); // where the ship sits
+	CorridorRun(HX1, CX1);
+	Room(CX1, AX1, AY, 1, true, true);
+	CorridorRun(AX1, L1X1);
+	Room(L1X1, WX1, WY, 1, true, true);
+	CorridorRun(WX1, L2X1);
+	Room(L2X1, KX1, KY, 3, true, false);
+	ATDDoor* HangarDoor = Doorway(HX1, true);
+	ATDDoor* ArenaIn = Doorway(CX1, true);
+	ATDDoor* ArenaOut = Doorway(AX1, true);
+	ATDDoor* WardenIn = Doorway(L1X1, true);
+	ATDDoor* WardenOut = Doorway(WX1, true);
+	ATDDoor* CoreIn = Doorway(L2X1, true);
 
 	// Lights: cold white overhead, red in the corridors, the core's orange glow.
-	Light(FVector(0.f, 0.f, 850.f), 3000.f, FLinearColor(0.8f, 0.85f, 1.f), 4000.f);
+	Light(FVector(0.f, 0.f, 1000.f), 3200.f, FLinearColor(0.8f, 0.85f, 1.f), 4000.f);
 	for (float X = HX1 + 600.f; X < CX1; X += 1200.f) { Light(FVector(X, 0.f, 520.f), 900.f, Strip, 900.f); }
-	Light(FVector((CX1 + AX1) * 0.5f, 0.f, 780.f), 2600.f, FLinearColor(0.85f, 0.9f, 1.f), 4000.f);
-	Light(FVector((L1X1 + WX1) * 0.5f, 0.f, 780.f), 2200.f, FLinearColor(1.f, 0.6f, 0.5f), 3000.f);
-	Light(CoreAt + FVector(0.f, 0.f, 1300.f), 3800.f, CoreGlow, 8000.f);
+	Light(FVector((CX1 + AX1) * 0.5f, 0.f, 520.f), 2600.f, FLinearColor(0.85f, 0.9f, 1.f), 4000.f);
+	Light(FVector((L1X1 + WX1) * 0.5f, 0.f, 520.f), 2200.f, FLinearColor(1.f, 0.6f, 0.5f), 3000.f);
+	Light(CoreAt + FVector(0.f, 0.f, 1500.f), 4200.f, CoreGlow, 8000.f);
 
-	// --- The reactor core (the heart; the fight's art and phases come in step 4) ------------------------
-	Block(EShape::Cylinder, CoreAt + FVector(0.f, 0.f, 600.f), FVector(800.f, 800.f, 1200.f), Hull, 0.f, FRotator::ZeroRotator, true, TEXT("SM_DI_Core"));
-	Block(EShape::Sphere, CoreAt + FVector(0.f, 0.f, 700.f), FVector(500.f, 500.f, 500.f), CoreGlow, 4.f, FRotator::ZeroRotator, false);
+	// --- The reactor core: body, two rings, the shield (drops when the conduits break) -----------------
+	Kit(TEXT("SM_DI_Core"), CoreAt, 0.f, FBox(FVector(-400.f, -400.f, 0.f), FVector(400.f, 400.f, 1200.f)));
+	if (UStaticMeshComponent* RingA = Kit(TEXT("SM_DI_Core_Ring_A"), CoreAt + FVector(0.f, 0.f, 600.f), 0.f, FBox(FVector(-500.f, -500.f, -30.f), FVector(500.f, 500.f, 30.f)), false))
+	{
+		CoreRings.Add({ RingA, 14.f, 8.f });
+	}
+	if (UStaticMeshComponent* RingB = Kit(TEXT("SM_DI_Core_Ring_B"), CoreAt + FVector(0.f, 0.f, 600.f), 0.f, FBox(FVector(-575.f, -566.f, -24.f), FVector(575.f, 566.f, 24.f)), false))
+	{
+		CoreRings.Add({ RingB, -9.f, -12.f });
+	}
+	CoreShield = Kit(TEXT("SM_DI_Core_Shield"), CoreAt, 0.f, FBox(FVector(-640.f, -640.f, 0.f), FVector(640.f, 640.f, 1380.f)));
+	if (CoreShield && !KitMesh(TEXT("SM_DI_Core_Shield")))
+	{
+		CoreShield->SetCollisionProfileName(TEXT("BlockAll"));
+		UTDStatics::TintPlaceholder(CoreShield, CoreGlow, 0.5f);
+	}
 
 	// --- Objectives, in order -------------------------------------------------------------------------
 	Entry(NAME_None, FVector(-600.f, 0.f, 40.f), 0.f); // the hangar start (T4's docking travels to "Hangar")
@@ -214,10 +259,8 @@ void ATDPlanetCourse::BuildInterior()
 	ATDObjective* Lesson = MakeObjective(Corridor, LOCTEXT("DICorridorTitle", "Into the Dominion"), ETDAbilityId::None, ETDShipId::Rift, 2);
 	AddTrailhead(Lesson, FVector(600.f, 0.f, 0.f), Strip, LOCTEXT("DIHangarDoor", "THE HANGAR DOOR"));
 	StepDoors.Add({ Lesson, 0, HangarDoor });
-	for (const float Y : { -110.f, 110.f })
-	{
-		Block(EShape::Cube, FVector(CX1 - 700.f, Y, 55.f), FVector(60.f, 160.f, 110.f), Hull, 0.f, FRotator::ZeroRotator, true, TEXT("SM_DI_Cover_Low"));
-	}
+	const FBox CoverBox(FVector(-30.f, -100.f, 0.f), FVector(30.f, 100.f, 110.f));
+	Kit(TEXT("SM_DI_Cover_Low"), FVector(CX1 - 700.f, -70.f, 0.f), 0.f, CoverBox); // the troopers' cover; a 1.4 m gap on +Y
 	ATDEncounterVolume* Lane = Encounter(Lesson, 0, FVector((HX1 + CX1) * 0.5f, 0.f, 200.f), FVector((CX1 - HX1) * 0.5f, CY, 400.f),
 		{ ETDCrewType::Trooper, ETDCrewType::Trooper }, false, 0.f, { FVector(CX1 - 450.f, -100.f, 100.f), FVector(CX1 - 450.f, 100.f, 100.f) });
 	StepEncounters.Add({ Lesson, 0, Lane });
@@ -230,8 +273,8 @@ void ATDPlanetCourse::BuildInterior()
 	Checkpoint(Lesson, 0, FVector(HX1 - 300.f, 0.f, 0.f), 0.f);
 	FinishObjective(Lesson, { LOCTEXT("DIC0", "RETURN THEIR FIRE · BLOCK [RMB] AS IT HITS"), LOCTEXT("DIC1", "GO THROUGH") }, { nullptr, IntoArena });
 	// No entry for the corridor: a Continue before it starts on the hangar floor.
-	StoryConsole(FVector(-900.f, 900.f, 0.f), -45.f, TEXT("Hangar"));
-	StoryConsole(FVector(HX1 + 900.f, 150.f, 0.f), -90.f, TEXT("Corridor"));
+	StoryConsole(FVector(-900.f, 900.f, 0.f), 180.f, TEXT("Hangar"));
+	StoryConsole(FVector(CX1 + 250.f, -AY + 300.f, 0.f), 180.f, TEXT("Corridor")); // just inside the arena: the lane stays clear
 
 	// 2. The arena: three waves, one new threat each.
 	ATDObjective* Fight = MakeObjective(Arena, LOCTEXT("DIArenaTitle", "Hold the Deck"), ETDAbilityId::None, ETDShipId::Rift, 3);
@@ -245,14 +288,14 @@ void ATDPlanetCourse::BuildInterior()
 	for (int32 i = 0; i < 4; ++i)
 	{
 		const FVector At(CX1 + 700.f + (i % 2) * 1000.f, (i < 2 ? -1 : 1) * 500.f, 55.f);
-		Block(EShape::Cube, At, FVector(60.f, 200.f, 110.f), Hull, 0.f, FRotator(0.f, 90.f * (i % 2), 0.f), true, TEXT("SM_DI_Cover_Low"));
+		Kit(TEXT("SM_DI_Cover_Low"), At - FVector(0.f, 0.f, 55.f), 90.f * (i % 2), CoverBox);
 	}
 	CompletionDoors.Add({ Fight, 0, ArenaOut });
 	Checkpoint(Fight, 1, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
 	Checkpoint(Fight, 2, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
 	FinishObjective(Fight, { LOCTEXT("DIA0", "CLEAR THE DECK"), LOCTEXT("DIA1", "THEY'RE SENDING MORE"), LOCTEXT("DIA2", "LAST WAVE") }, {});
 	Entry(Arena, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
-	StoryConsole(FVector(AX1 - 500.f, AY - 400.f, 0.f), -135.f, TEXT("Arena"));
+	StoryConsole(FVector(AX1 - 300.f, AY - 300.f, 0.f), 0.f, TEXT("Barracks")); // T3's id for this room
 
 	// 3. The Warden at the gate.
 	ATDObjective* Gate = MakeObjective(Warden, LOCTEXT("DIWardenTitle", "The Warden's Gate"), ETDAbilityId::None, ETDShipId::Rift, 1);
@@ -272,7 +315,6 @@ void ATDPlanetCourse::BuildInterior()
 	Checkpoint(Gate, 0, FVector(L1X1 + 300.f, 0.f, 0.f), 0.f);
 	FinishObjective(Gate, { LOCTEXT("DIW0", "DEFEAT THE WARDEN") }, {});
 	Entry(Warden, FVector(L1X1 - 300.f, 0.f, 0.f), 0.f);
-	StoryConsole(FVector(WX1 - 400.f, WY - 350.f, 0.f), -135.f, TEXT("Warden"));
 
 	// 4. The core: break the four shield conduits, then strike the heart (the orbs, the laser and the deflect-only
 	// heart come in step 4 of the plan; this is the finishable skeleton).
@@ -294,7 +336,7 @@ void ATDPlanetCourse::BuildInterior()
 		C->LinkedStep = 0;
 		C->Color = Strip;
 		C->MaxHealth = 80.f;
-		C->CrystalMesh = TDPropArt::Default(TEXT("SM_DI_Conduit"));
+		C->CrystalMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Conduit.SM_DI_Conduit")));
 		C->Mesh->SetStaticMesh(CylinderMesh);
 		C->Mesh->SetRelativeScale3D(FVector(1.2f, 1.2f, 3.f));
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
@@ -313,7 +355,7 @@ void ATDPlanetCourse::BuildInterior()
 	Checkpoint(Reactor, 0, FVector(L2X1 + 300.f, 0.f, 0.f), 0.f);
 	FinishObjective(Reactor, { LOCTEXT("DIK0", "BREAK THE SHIELD CONDUITS  0 / 4"), LOCTEXT("DIK1", "STRIKE THE HEART") }, { Conduits, Heart });
 	Entry(Core, FVector(L2X1 - 300.f, 0.f, 0.f), 0.f);
-	StoryConsole(FVector(L2X1 + 400.f, -KY + 400.f, 0.f), 45.f, TEXT("Core"));
+	StoryConsole(FVector(L2X1 + 400.f, -KY + 400.f, 0.f), 180.f, TEXT("Core"));
 
 	// 5. The escape run: back to the ship against the clock, debris falling (a CUT restarts the run, not the fight).
 	ATDObjective* Run = MakeObjective(Escape, LOCTEXT("DIEscapeTitle", "Get Out"), ETDAbilityId::None, ETDShipId::Rift, 1);
@@ -328,6 +370,7 @@ void ATDPlanetCourse::BuildInterior()
 	Collapse->Seconds = EscapeSeconds;
 	Collapse->RunText = LOCTEXT("DIRun", "GET BACK TO YOUR SHIP · {0}");
 	Collapse->DebrisExtent = FVector((KX1 - HX0) * 0.5f, 150.f, 0.f); // down the spine of the route
+	Collapse->DebrisMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Debris_A.SM_DI_Debris_A")));
 	TDCourseImpl::FinishProp(Collapse);
 	Checkpoint(Run, 0, FVector(L2X1 + 300.f, 0.f, 0.f), 180.f);
 	FinishObjective(Run, { LOCTEXT("DIE0", "GET BACK TO YOUR SHIP") }, { Ship });
@@ -402,7 +445,69 @@ void ATDPlanetCourse::HandleStoryConsole(AActor* Interactable, AActor* Interacto
 		return;
 	}
 	LastStoryBeat = *Id;
-	// T3's transmission system plays the recording (Nicholas's words and voices through Presentation); until it is
-	// in, the beat is logged so the hook can be checked.
-	UE_LOG(LogTemp, Log, TEXT("TDDominionInterior: story beat %s"), *Id->ToString());
+	UTDStorySubsystem::Fire(this, *Id); // T3's transmissions: Nicholas's words and voices through Presentation
+	// The kit console's screen (slot 2) lights once its recording has played.
+	if (const ATDInteractableActor* Console = Cast<ATDInteractableActor>(Interactable))
+	{
+		TInlineComponentArray<UStaticMeshComponent*> Meshes(Console);
+		for (UStaticMeshComponent* M : Meshes)
+		{
+			if (M && M != Console->Mesh && M->GetNumMaterials() > 2)
+			{
+				if (UMaterialInstanceDynamic* Screen = M->CreateDynamicMaterialInstance(2))
+				{
+					Screen->SetScalarParameterValue(TEXT("GlowStrength"), 9.f);
+				}
+			}
+		}
+	}
+}
+
+// ------------------------------------------------------------------------------------------------
+// Story beats (T3's UTDStorySubsystem, ids agreed Nov 13; once per run, queued, Nicholas's words)
+// ------------------------------------------------------------------------------------------------
+
+void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
+{
+	using namespace TDInteriorImpl;
+	if (!Objective)
+	{
+		return;
+	}
+	const FName Id = Objective->ObjectiveId;
+	auto Beat = [this](const TCHAR* Beat) { UTDStorySubsystem::Fire(this, FName(Beat)); };
+	// Cinder: the enemy's transmissions echo the squad, one pilot at a time (act 3).
+	if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("A3_EchoWren")); }
+	else if (Id == TEXT("Obj_Outpost") && StepIndex == 3) { Beat(TEXT("A3_EchoKato")); }
+	else if (Id == TEXT("Obj_Jammer") && StepIndex == 0) { Beat(TEXT("A3_EchoMoss")); }
+	// The Dominion (acts 4 and 5).
+	else if (Id == Corridor && StepIndex == 0) { Beat(TEXT("A4_DoorsKnowUs")); } // the first door opens to the pilot's ID
+	else if (Id == Core && StepIndex == 0) { Beat(TEXT("A5_Choice")); }
+	else if (Id == Escape && StepIndex == 0) { Beat(TEXT("A5_Escape")); }
+	// The core's shield is up while its conduits stand, and drops for the heart (a retake raises it again).
+	if (Id == Core && CoreShield)
+	{
+		const bool bUp = StepIndex == 0;
+		CoreShield->SetVisibility(bUp);
+		CoreShield->SetCollisionEnabled(bUp ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+	}
+}
+
+void ATDPlanetCourse::FireCompletionBeats(ATDObjective* Objective)
+{
+	if (!Objective)
+	{
+		return;
+	}
+	const FName Id = Objective->ObjectiveId;
+	auto Beat = [this](const TCHAR* Beat) { UTDStorySubsystem::Fire(this, FName(Beat)); };
+	auto Done = [this](const TCHAR* Other) { const ATDObjective* O = FindObjective(FName(Other)); return O && O->IsComplete(); };
+	if (Id == TEXT("Obj_WreckCore")) { Beat(TEXT("A2_DeviceFound")); }
+	else if (Id == TEXT("Obj_Relay")) { Beat(TEXT("A2_Voices")); } // static, then human voices that should not be there
+	else if (Id == TEXT("Obj_Outpost")) { Beat(TEXT("A3_CrystalsFound")); }
+	else if (Id == TEXT("Obj_Jammer")) { Beat(TEXT("A3_PassageOpen")); }
+	if ((Id == TEXT("Obj_WreckCore") || Id == TEXT("Obj_Relay")) && Done(TEXT("Obj_WreckCore")) && Done(TEXT("Obj_Relay")))
+	{
+		Beat(TEXT("A2_TrailToCinder")); // the data points to Cinder
+	}
 }

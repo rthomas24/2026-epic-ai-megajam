@@ -3,6 +3,8 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Components/MeshComponent.h"
 #include "TimerManager.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Components/PointLightComponent.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
@@ -620,6 +622,14 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 void ATDPlanetCourse::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	InteriorTime += DeltaSeconds;
+	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
+	{
+		if (UStaticMeshComponent* Ring = R.Ring.Get())
+		{
+			Ring->SetRelativeRotation(FRotator(R.Tilt * FMath::Sin(InteriorTime * 0.35f), InteriorTime * R.YawSpeed, R.Tilt * 0.5f * FMath::Cos(InteriorTime * 0.27f)));
+		}
+	}
 	const APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	const ATDFirstPersonCharacter* P = PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
 	if (!P || P->IsDead() || IsAnyObjectiveRunning())
@@ -643,6 +653,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 
 void ATDPlanetCourse::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 {
+	FireStepBeats(Objective, StepIndex);
 	for (const FTDStepEncounter& S : StepEncounters)
 	{
 		if (S.Objective == Objective && S.Step == StepIndex && S.Encounter && !S.Encounter->IsActive() && !S.Encounter->IsCleared())
@@ -665,6 +676,7 @@ void ATDPlanetCourse::HandleObjectiveCompleted(ATDObjective* Objective)
 	{
 		if (D.Objective == Objective && D.Door) { D.Door->Open(); }
 	}
+	FireCompletionBeats(Objective);
 	if (IsInterior())
 	{
 		HandleInteriorObjectiveCompleted(Objective);

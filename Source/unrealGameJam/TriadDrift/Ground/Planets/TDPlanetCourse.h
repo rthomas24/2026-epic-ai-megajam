@@ -142,6 +142,16 @@ private:
 	void HandleInteriorObjectiveCompleted(ATDObjective* Objective);
 	void StartEscape();
 	UPROPERTY(Transient) TMap<TObjectPtr<AActor>, FName> StoryConsoles;
+	struct FCoreRing { TWeakObjectPtr<UStaticMeshComponent> Ring; float YawSpeed = 0.f; float Tilt = 0.f; };
+	TArray<FCoreRing> CoreRings;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> CoreShield;
+	float InteriorTime = 0.f;
+	/** Story beats on objective moments (T3's transmissions, storyline.md §5): planets and interior. */
+	void FireStepBeats(ATDObjective* Objective, int32 StepIndex);
+	void FireCompletionBeats(ATDObjective* Objective);
+public:
+	UStaticMeshComponent* GetCoreShield() const { return CoreShield; }
+private:
 	/** Doors opened when an objective completes (interior room exits); kept open when loaded complete. */
 	UPROPERTY(Transient) TArray<FTDStepDoor> CompletionDoors;
 	/** Interior: where each objective's room is entered (Continue starts at the first one not done). */
