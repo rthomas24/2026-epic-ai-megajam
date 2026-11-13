@@ -33,7 +33,7 @@ struct UNREALGAMEJAM_API FTDTerrainStyle
 	float ApproachHalfAngleDeg = 32.f;
 	float ApproachLength = 250000.f;
 	float ApproachClearance = 6000.f;
-	float BasinFloor = -60.f;
+	float BasinFloor = 0.f;	// exactly T5's slab top: the slab hides (collision kept) and this mesh is the one floor drawn
 	float BasinBlend = 150000.f;
 	/** Walkable / flyable core half size, and the far ring where ranges rise to close the horizon. */
 	float CoreHalfSize = 800000.f;
@@ -77,6 +77,7 @@ struct UNREALGAMEJAM_API FTDTerrainSample
 	float Height01 = 0.f;	// normalised over the planet's range
 	float BroadMask = 0.f;	// 0..1 biome / lava-valley mask
 	float FineMask = 0.f;	// 0..1 breakup
+	FVector Normal = FVector::UpVector;
 };
 
 class UNREALGAMEJAM_API FTDTerrainField

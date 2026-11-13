@@ -115,6 +115,10 @@ ATDPlaceholderSky* ATDPlaceholderSky::SpawnIfNeeded(UWorld* World, ETDPlaceholde
 		return nullptr;
 	}
 	const FWorldSky Sky = Scan(World);
+	if (Style == ETDPlaceholderSkyStyle::Verdance || Style == ETDPlaceholderSkyStyle::Cinder)
+	{
+		ATDPlanetTerrain::EnsureForWorld(World, Style == ETDPlaceholderSkyStyle::Verdance ? ETDDestination::Verdance : ETDDestination::Cinder);
+	}
 	if (Sky.ProvidesLighting() && Sky.ProvidesExposure())
 	{
 		return nullptr;
@@ -226,24 +230,13 @@ static TAutoConsoleVariable<int32> CVarTDPlanetTerrain(TEXT("td.PlanetTerrain"),
 void ATDPlaceholderSky::TrySpawnTerrain()
 {
 	const bool bPlanet = AppliedStyle == ETDPlaceholderSkyStyle::Verdance || AppliedStyle == ETDPlaceholderSkyStyle::Cinder;
-	if (!bPlanet || !bSpawnTerrain || Terrain || !GetWorld() || CVarTDPlanetTerrain.GetValueOnGameThread() == 0) { return; }
-	// The course sits at the landing pad (spawned by the planet director, maybe after us): the world centres on it.
-	AActor* Course = nullptr;
-	for (TActorIterator<ATDPlanetCourse> It(GetWorld()); It && !Course; ++It) { Course = *It; }
-	if (!Course) { return; }
-	const bool bVerdance = AppliedStyle == ETDPlaceholderSkyStyle::Verdance;
-	// The Lead's slope/height terrain material when it exists (reads the terrain's vertex channels), else the ground MI.
-	UMaterialInterface* M = nullptr;
-	for (const TCHAR* P : { bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Verdance.MI_Terrain_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Cinder.MI_Terrain_Cinder"),
-		bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder") })
-	{
-		const FSoftObjectPath Path(P);
-		if (!M && FPackageName::DoesPackageExist(Path.GetLongPackageName())) { M = Cast<UMaterialInterface>(Path.TryLoad()); }
-	}
-	Terrain = ATDPlanetTerrain::SpawnForPlanet(GetWorld(), bVerdance ? ETDDestination::Verdance : ETDDestination::Cinder, Course->GetActorTransform(), nullptr);	// it picks MI_Terrain_* / MI_Ground_*
+	if (!bPlanet || !bSpawnTerrain || Terrain || !GetWorld() || IsActorBeingDestroyed() || CVarTDPlanetTerrain.GetValueOnGameThread() == 0) { return; }
+	// The world is owned by the terrain itself (once per planet map, never destroyed by a sky rescan): just make sure
+	// it exists and drop the flat far ground once it does.
+	Terrain = ATDPlanetTerrain::EnsureForWorld(GetWorld(), AppliedStyle == ETDPlaceholderSkyStyle::Verdance ? ETDDestination::Verdance : ETDDestination::Cinder);
 	if (Terrain && FarGround)
 	{
-		FarGround->DestroyComponent();	// the terrain carries the ground to the horizon now
+		FarGround->DestroyComponent();
 		FarGround = nullptr;
 	}
 }
@@ -251,6 +244,7 @@ void ATDPlaceholderSky::TrySpawnTerrain()
 void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 {
 	AppliedStyle = Style;
+	TrySpawnTerrain();
 	const bool bPlanet = Style == ETDPlaceholderSkyStyle::Verdance || Style == ETDPlaceholderSkyStyle::Cinder;
 	if (!bPlanet)
 	{
@@ -307,11 +301,6 @@ bool ATDPlaceholderSky::HasExposure() const
 void ATDPlaceholderSky::Refresh()
 {
 	const FWorldSky Sky = Scan(GetWorld());
-	if (Sky.bTaggedSky && Terrain)
-	{
-		Terrain->Destroy();	// Nick's environment brings its own world
-		Terrain = nullptr;
-	}
 	if (Sky.bTaggedSky)
 	{
 		// Nick's environment brings its own ground and atmosphere.
@@ -344,6 +333,5 @@ void ATDPlaceholderSky::Tick(float DeltaSeconds)
 	{
 		RescanTimer = RescanInterval;
 		Refresh(); // a sky streamed in or spawned late takes over
-		TrySpawnTerrain();
 	}
 }
