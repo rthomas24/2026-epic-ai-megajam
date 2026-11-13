@@ -723,7 +723,10 @@ bool FTDSquadHyperdriveFollow::RunTest(const FString& Parameters)
 		// The real hyperdrive: spool 1.2 s, then the jump at 80 000 cm/s. Wingmen ride in their slots.
 		UTDHyperdriveComponent* Hyper = Leader->GetHyperdrive();
 		TestTrue(TEXT("spool") + Fps, Hyper && Hyper->StartSpool());
+		const int32 LancerTeleportsBefore = F.Events->Teleports.FindRef(F.Ship(ETDShipId::Lancer));
 		F.W.Advance(3.f, Step);
+		// The ride in the slot goes through T1's TeleportSpacecraft (its watchdog sees no silent move).
+		TestTrue(TEXT("jump follow uses TeleportSpacecraft") + Fps, F.Events->Teleports.FindRef(F.Ship(ETDShipId::Lancer)) > LancerTeleportsBefore);
 		TestTrue(TEXT("jumping") + Fps, Hyper && Hyper->IsJumping() && Leader->GetShipMovement()->GetSpeed() > 60000.f);
 		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
 		{
