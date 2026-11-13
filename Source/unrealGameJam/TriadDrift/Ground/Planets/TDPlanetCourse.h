@@ -166,6 +166,25 @@ private:
 	bool IsOnRoute(const FVector& Local, float Clearance) const;
 
 	UPROPERTY(Transient) TArray<TObjectPtr<AActor>> Spawned;
+
+	/**
+	 * The walkable ground slab (top z = 0): the gameplay box plus ~600 m (ENG-34: T4's terrain basin matches it and
+	 * its hills start at its edge). Course-local. Dressing stays inside it, so nothing floats over or sinks into a hill.
+	 */
+	FBox2D GroundBox = FBox2D(FVector2D(-300000.f, -300000.f), FVector2D(300000.f, 300000.f));
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GroundSlab;
+	/** Give the slab the procedural terrain's own material (one ground), retrying while the terrain is spawned. */
+	void AdoptTerrainMaterial();
+	int32 TerrainMaterialTries = 0;
+	FTimerHandle TerrainMaterialTimer;
+	bool IsOnGround(const FVector& Local, float Margin) const
+	{
+		return GroundBox.ExpandBy(-Margin).IsInside(FVector2D(Local.X, Local.Y));
+	}
+public:
+	const FBox2D& GetGroundBox() const { return GroundBox; }
+	UStaticMeshComponent* GetGroundSlab() const { return GroundSlab; }
+private:
 	UPROPERTY(Transient) TArray<TObjectPtr<ATDObjective>> Objectives;
 	UPROPERTY(Transient) TArray<FTDTrailhead> Trailheads;
 	UPROPERTY(Transient) TArray<FTDStepEncounter> StepEncounters;
