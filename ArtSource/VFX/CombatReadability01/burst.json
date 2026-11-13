@@ -5,6 +5,11 @@
   "sprite_diameter_cm": 36.0,
   "spawn_count": 1,
   "intensity": 2.5,
+  "variation_by_palette": {
+    "Rift": 0.17,
+    "Lancer": 0.47,
+    "Bastion": 0.71
+  },
   "palettes": {
     "Rift": [1.0, 0.025, 0.48, 1.0],
     "Lancer": [0.025, 0.76, 1.0, 1.0],

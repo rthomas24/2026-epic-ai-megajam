@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import sys
 import time
+import traceback
 
 sys.dont_write_bytecode = True
 import unreal as ue
@@ -22,6 +23,14 @@ ML = ue.MaterialEditingLibrary
 TOOLS = ue.AssetToolsHelpers.get_asset_tools()
 NIAGARA = 'NiagaraToolsets.NiagaraToolset_System'
 EVENTS = []
+RUN_DIR = None
+
+
+def record(event):
+    EVENTS.append(event)
+    if RUN_DIR is not None:
+        with (RUN_DIR / 'operations.jsonl').open('a', encoding='utf-8') as output:
+            output.write(json.dumps(event) + '\n')
 
 
 def ref(path):
@@ -29,12 +38,15 @@ def ref(path):
 
 
 def tool(name, **arguments):
+    record({'phase': 'begin', 'tool': name, 'arguments': arguments})
     result = ue.ToolsetRegistry.execute_tool(NIAGARA, name, json.dumps(arguments))
+    record({'phase': 'returned', 'tool': name, 'is_complete': result.is_complete,
+            'error': str(result.error)})
     assert result.is_complete, name + ' requires an editor tick; stop and preserve diagnostics'
     assert not result.error, str(result.error)
     result = json.loads(result.value)
     assert 'returnValue' in result or name.startswith(('Set', 'Remove'))
-    EVENTS.append({'tool': name, 'arguments': arguments, 'result': result})
+    record({'phase': 'complete', 'tool': name, 'arguments': arguments, 'result': result})
     return result.get('returnValue')
 
 
@@ -58,7 +70,7 @@ def shader_material():
     ML.set_material_usage(material, ue.MaterialUsage.MATUSAGE_NIAGARA_SPRITES)
     custom = ML.create_material_expression(material, ue.MaterialExpressionCustom)
     inputs = []
-    for name in ('UV', 'Age', 'Tint', 'Intensity'):
+    for name in ('UV', 'Age', 'Tint', 'Intensity', 'Variation'):
         item = ue.CustomInput()
         item.set_editor_property('input_name', name)
         inputs.append(item)
@@ -73,8 +85,12 @@ def shader_material():
     intensity = ML.create_material_expression(material, ue.MaterialExpressionScalarParameter)
     intensity.set_editor_property('parameter_name', 'Intensity')
     intensity.set_editor_property('default_value', CONFIG['intensity'])
+    variation = ML.create_material_expression(material, ue.MaterialExpressionScalarParameter)
+    variation.set_editor_property('parameter_name', 'Variation')
+    variation.set_editor_property('default_value', 0.47)
     for source, pin, output in ((uv, 'UV', ''), (age, 'Age', ''),
-                                (tint, 'Tint', 'RGB'), (intensity, 'Intensity', '')):
+                                (tint, 'Tint', 'RGB'), (intensity, 'Intensity', ''),
+                                (variation, 'Variation', '')):
         assert ML.connect_material_expressions(source, output, custom, pin)
     for channels, prop in ((('r', 'g', 'b'), ue.MaterialProperty.MP_EMISSIVE_COLOR),
                            (('a',), ue.MaterialProperty.MP_OPACITY)):
@@ -146,7 +162,11 @@ def build_system(label, material_path):
                 if 'EmitterState' in module_path and key == 'loopbehavior':
                     current = tool('GetStackInputData', stackInputRef=target)
                     enum_name = current.get('value', {}).get('enumName', '')
-                    assert enum_name.split('::')[-1].lower() == 'once', 'Template must be one-shot; inspect before changing lifecycle'
+                    display_name = current.get('value', {}).get('displayName', '')
+                    record({'phase': 'verify_one_shot', 'system': system,
+                            'enum_name': enum_name, 'display_name': display_name})
+                    native_token = enum_name.split('::')[-1] if isinstance(enum_name, str) else None
+                    assert native_token == 'Once' or display_name == 'Once', 'Template must be one-shot; inspect before changing lifecycle'
                     once_verified = True
                 if 'SpawnBurst' in module_path and key in ('spawncount', 'count'):
                     literal_input(target, '/Script/Niagara.NiagaraInt32', CONFIG['spawn_count'])
@@ -171,6 +191,8 @@ def main():
     assert ue.SystemLibrary.get_engine_version().startswith('5.9.0-60351404')
     assert CONFIG['spawn_count'] == 1 and 0 < CONFIG['lifetime_seconds'] <= 0.06
     assert 0 < CONFIG['sprite_diameter_cm'] <= 36 and 0 < CONFIG['intensity'] <= 2.5
+    assert set(CONFIG['palettes']) == set(CONFIG['variation_by_palette']) == {'Rift', 'Lancer', 'Bastion'}
+    assert all(0 <= value < 1 for value in CONFIG['variation_by_palette'].values())
     actual = (Path(ue.Paths.project_content_dir()) / 'TriadDrift/VFX/CombatReadability01').resolve()
     expected = (REPO / 'Content/TriadDrift/VFX/CombatReadability01').resolve()
     assert actual == expected, 'Lead must mount only the owned VFX output folder before authoring'
@@ -187,6 +209,7 @@ def main():
         assert instance
         ML.set_material_instance_parent(instance, material)
         ML.set_material_instance_vector_parameter_value(instance, 'Color', ue.LinearColor(*color))
+        ML.set_material_instance_scalar_parameter_value(instance, 'Variation', CONFIG['variation_by_palette'][label])
         ML.update_material_instance(instance)
         assets.append(instance)
         assets.append(build_system(label, instance.get_path_name()))
@@ -199,11 +222,23 @@ def main():
               'source_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               'assets': [obj.get_path_name() for obj in assets], 'operations': EVENTS,
               'presentation_data_asset_edited': False, 'gameplay_validated': False}
-    output = HERE / 'Saved' / ('author_' + str(time.time_ns()) + '.json')
-    output.parent.mkdir(parents=True, exist_ok=True)
+    output = RUN_DIR / 'result.json'
     output.write_text(json.dumps(report, indent=2) + '\n')
     ue.log('COMPACT_MUZZLE_AUTHORED ' + str(output))
 
 
 if __name__ == '__main__':
-    main()
+    RUN_DIR = HERE / 'Saved' / ('author_' + str(time.time_ns()))
+    RUN_DIR.mkdir(parents=True, exist_ok=False)
+    (RUN_DIR / 'inputs.json').write_text(json.dumps({
+        'engine': ue.SystemLibrary.get_engine_version(),
+        'source_sha256': {name: hashlib.sha256((HERE / name).read_bytes()).hexdigest()
+                          for name in ('build_muzzle.py', 'burst.json', 'muzzle_burst.ush')},
+        'config': CONFIG}, indent=2) + '\n')
+    try:
+        main()
+    except Exception:
+        (RUN_DIR / 'failure.json').write_text(json.dumps({
+            'stage': 'failed_native_authoring', 'traceback': traceback.format_exc(),
+            'successful_native_save_not_assumed': True, 'operations': EVENTS}, indent=2) + '\n')
+        raise

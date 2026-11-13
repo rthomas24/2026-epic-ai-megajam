@@ -1,15 +1,24 @@
 # Compact muzzle burst — first combat VFX family
 
 Stage: **source implemented; native assets, compile/reload and gameplay unverified**.
-Owned paths were published by Lead in claims `e320f9c`. Primary Hero gameplay lighting
-verification runs first; this preparation uses no native slot.
+Owned paths were published by Lead in claims `e320f9c`. Nick's latest instruction
+defers the blocked Hero test and continues this existing VFX family. Audio's separate
+exclusive lease and fresh Lead native-review/resource grants still apply.
 
-One texture-free six-ray flash replaces the StarterKit material's world-time
-handshake with Niagara `ParticleRelativeTime`. It fades over 0.06 seconds, with a
-small warm core, restrained emission and soft outer cutoff. One CPU sprite per
-trigger, 36 cm diameter; no dynamic light, collision, ribbon, volumetrics or tick
-Blueprint. Material instances expose `Color` and `Intensity`. Existing approved
+The source quality pass replaces the regular six-ray star with a hot core and
+asymmetric gas wisps, two scales of edge breakup and a brief expansion phase.
+Niagara `ParticleRelativeTime` drives the shape/fade without a world-time handshake.
+Pixel derivatives filter unresolved noise toward its average and soften the core
+and outer edge at distance, reducing small-sprite sparkle without growing bounds.
+It fades over 0.06 seconds with restrained emission and a fixed outer cutoff.
+One CPU sprite per trigger, 36 cm diameter; no dynamic light, collision, ribbon, volumetrics or tick
+Blueprint. Material instances expose `Color`, `Intensity` and `Variation`; each
+palette has a deterministic variation seed for reproducible review. Existing approved
 magenta/cyan/amber variants are retained; future Rift redesign colors are not adopted.
+The earlier source remains preserved at `28c51fb`. This shader revision has not
+been compiled or visually reviewed in Unreal; its instruction cost is unmeasured.
+Standalone DXC syntax validation is kept separate from native material, Niagara,
+performance and appearance acceptance.
 
 `build_muzzle.py` creates only seven assets under
 `/Game/TriadDrift/VFX/CombatReadability01/`: `M_MuzzleBurst`, three
@@ -20,6 +29,9 @@ removes extra particle-spawn/update shaping, limits count/size and overrides lif
 It refuses an unverified one-shot lifecycle, missing/noneditable template inputs,
 non-sprite renderer, existing output or output mount outside this lane. A failure
 is inspected before any retry; no template, shared asset, data asset or map is saved.
+Every authoring attempt now creates a unique ignored `Saved/author_<id>/` directory
+with input hashes, append-only operation records and a success result or failure
+traceback. A failure before package saving still preserves the attempted operation.
 
 The Niagara editor toolset's installed reflected API and typed JSON converters are
 used directly through ToolsetRegistry. The `struct.refPath`/`value` literal format

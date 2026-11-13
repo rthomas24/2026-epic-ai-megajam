@@ -1,13 +1,46 @@
-// Original StarterKit muzzle structure, now driven by Niagara normalized age.
-// No world-time clock, StartTime handshake, textures or dynamic light.
-float2 p = (UV - 0.5) * 2.0;
-float radius = length(p);
-float angle = atan2(p.y, p.x);
-float rays = pow(abs(cos(angle * 3.0)), 18.0);
-float core = exp(-radius * 18.0);
-float plume = exp(-radius * 7.0) + rays * exp(-radius * 6.0) * 0.38;
-float fade = pow(saturate(1.0 - Age), 3.0);
-float edge = 1.0 - smoothstep(0.72, 0.98, radius);
-float alpha = saturate((plume + core * 0.3) * fade * edge);
-float3 color = lerp(Tint, float3(1.0, 0.96, 0.88), core * 0.35);
+// Compact hot core and asymmetric gas wisps; normalized particle age only.
+// Fixed support stays inside the authored sprite. No world clock or textures.
+float age = saturate(Age);
+float seed = frac(Variation);
+float2 uv = (UV - 0.5) * 2.0;
+float footprintUV = max(length(ddx(uv)), length(ddy(uv)));
+float support = 1.0 - smoothstep(0.98 - max(0.20, footprintUV * 0.7), 0.98, length(uv));
+float angle = seed * 6.2831853;
+float2 axis = float2(cos(angle), sin(angle));
+float2 p = float2(dot(uv, axis), dot(uv, float2(-axis.y, axis.x)));
+p /= lerp(0.62, 1.0, smoothstep(0.0, 0.24, age));
+float footprint = max(length(ddx(p)), length(ddy(p)));
+float turbulence = 0.0;
+[unroll] for (int octave = 0; octave < 2; ++octave)
+{
+    float frequency = octave == 0 ? 7.0 : 15.0;
+    float2 domain = p * frequency + seed * float2(53.0, 97.0)
+                  + age * float2(1.4, -0.8);
+    float2 cell = floor(domain);
+    float2 f = frac(domain);
+    f = f * f * (3.0 - 2.0 * f);
+    float2 corners[4] = {cell, cell + float2(1,0), cell + float2(0,1), cell + 1.0};
+    float h[4];
+    [unroll] for (int corner = 0; corner < 4; ++corner)
+    {
+        float3 q = frac(float3(corners[corner].x, corners[corner].y, corners[corner].x)
+                        * float3(0.1031, 0.11369, 0.13787));
+        q += dot(q, q.yzx + 19.19);
+        h[corner] = frac((q.x + q.y) * q.z);
+    }
+    float noise = lerp(lerp(h[0], h[1], f.x), lerp(h[2], h[3], f.x), f.y);
+    float resolved = 1.0 - smoothstep(0.35, 0.90, footprint * frequency);
+    turbulence += lerp(0.5, noise, resolved) * (octave == 0 ? 0.68 : 0.32);
+}
+float coreVariance = 0.0077 + footprint * footprint * 0.18;
+float core = exp(-dot(p,p) / coreVariance) * (0.0077 / coreVariance);
+float2 stretched = p * float2(1.0, 2.4);
+float body = exp(-dot(stretched, stretched) * 5.2);
+float2 offset = (p - float2(0.19, -0.045)) * float2(1.6, 3.0);
+float wisp = exp(-dot(offset, offset) * 5.8) * 0.36;
+float brokenGas = smoothstep(0.14, 0.72, turbulence) * (body + wisp);
+float coreFade = pow(saturate(1.0 - age * 1.65), 3.0);
+float gasFade = pow(saturate(1.0 - age), 2.0);
+float alpha = saturate(core * coreFade + brokenGas * gasFade) * support;
+float3 color = lerp(Tint, float3(1.0, 0.96, 0.86), core * 0.72);
 return float4(color * max(Intensity, 0.0), alpha);
