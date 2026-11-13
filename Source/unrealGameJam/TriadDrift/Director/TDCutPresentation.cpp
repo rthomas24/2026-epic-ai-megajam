@@ -22,6 +22,8 @@ namespace TDCutPresentationPrivate
 }
 using TDCutPresentationPrivate::MeasureText;
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "Blueprint/UserWidget.h"
 
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -99,8 +101,9 @@ namespace TDCutPresentationPrivate
 			{
 				FLinearColor C = S.NameCardColor;
 				C.A = S.NameCardAlpha;
-				const float BarH = Size.Y * FMath::Max(S.Letterbox, 0.08f);
-				const float Y = Size.Y - BarH - 30.f;
+				// T2's flight HUD spec: the switch card sits centred in the lower third (~y 760 of 1080), above its lower lane
+				// (the tutorial card, 830+) and the boost bar (792).
+				const float Y = Size.Y * 0.70f;
 				Text(S.NameCardText, 30, FVector2D(Size.X * 0.5f, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
 				Box(FVector2D(Size.X * 0.5f - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
 			}
@@ -206,6 +209,21 @@ void UTDCutPresentation::EnsureViewportWidget()
 	Widget = SNew(STDCutOverlay, this);
 	WidgetZOrder = OverlayZOrder(ATDDebugHUD::IsRealHUDActive(World));
 	GEngine->GameViewport->AddViewportWidgetContent(Widget.ToSharedRef(), WidgetZOrder);
+}
+
+bool UTDCutPresentation::IsNameCardClaimedByHUD(const UWorld* World)
+{
+	const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+	const UUserWidget* HUD = Host ? Host->GetSpaceHUD() : nullptr;
+	if (!HUD)
+	{
+		return false; // the dev HUD draws no pilot card
+	}
+	if (const FBoolProperty* Claim = FindFProperty<FBoolProperty>(HUD->GetClass(), TEXT("bCoversNameCard")))
+	{
+		return Claim->GetPropertyValue_InContainer(HUD);
+	}
+	return UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Nick; // his widget has its own "CUT TO" card
 }
 
 int32 UTDCutPresentation::OverlayZOrder(bool bRealHUDActive)
@@ -481,9 +499,10 @@ void UTDCutPresentation::Tick(double RealNow)
 	Card(C.NameCard, SwitchStart, SwitchTiming.NameCardSeconds, CardA, NameCard);
 	C.NameCard.SubText = NameCardSub;
 	C.NameCard.Color = NameColor;
-	// N-007 (Lead): Nick's real HUD draws its own "CUT TO" card; ours would sit on top of it. Flash,
-	// letterbox, CUT! and the slate stay ours until bCutPresentationHandledExternally.
-	if (CardA > 0.f && !ATDDebugHUD::IsRealHUDActive(OwnerWorld.Get()))
+	// N-007 (Lead): Nick's real HUD draws its own "CUT TO" card; ours would sit on top of it. It steps aside only for a
+	// HUD that really draws one (Nick's, or one that claims bCoversNameCard); under engineering's default flight HUD
+	// (ENG-36) the card is ours. Flash, letterbox, CUT! and the slate stay ours until bCutPresentationHandledExternally.
+	if (CardA > 0.f && !IsNameCardClaimedByHUD(OwnerWorld.Get()))
 	{
 		S.NameCardText = NameCard;
 		S.NameCardColor = NameColor;

@@ -177,8 +177,8 @@ namespace TDStory
 			const FVector2D TagSize = Measure(TagText, TagFont);
 			const FVector2D LineSize = Measure(V.Text, LineFont);
 			const float W = TagSize.X + LineSize.X;
-			// Centred at 68% height: above the tutorial card (77-84%) and the boost / hyperdrive bars (73%).
-			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * 0.68f - LineSize.Y * 0.5f);
+			// Centred at 62% height: above the pilot name card (70%), the boost bar (73%) and the tutorial card (77-84%).
+			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * 0.62f - LineSize.Y * 0.5f);
 			float A = V.Alpha;
 			if (V.Style == ETDTransmissionStyle::Static)
 			{
