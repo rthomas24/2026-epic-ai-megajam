@@ -2088,3 +2088,97 @@ On branch `nick/assets-meshy-intake02` at `4587658be898c64d9b9a81ccb6c7cb9af940e
 
 **Nick / Lead, manual locations.** On Nick's machine the verified 14 are in `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/assets-meshy-intake02/Content/Pilot/` and `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/assets-meshy-intake02/Content/Intake/`. Unreal paths are `/Game/Pilot/<ID>` and `/Game/Intake/<ID>`; the branch-relative paths above work on Ryan's checkout. The separate five-weapon delivery at `55d0010a` on `nick/assets-weapons-intake` is under `Content/TriadDrift/Art/Weapons/MeshyIntake01/` in that feature checkout (27 packages). For the newer 36, all raw sources are published on `nick/assets-meshy-intake03` at `aa53ff9c` under `ArtSource/Assets/MeshyIntake03/`. At this checkpoint 20 GLBs (107 packages) have verified private imports in `C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/Content/Intake03/`; those have not transferred to the game branch. Azure Shadow remains excluded.
 
+## Archived 2026-11-13 14:25 (local time)
+
+### R-036 · COMPLETE · OWNERSHIP CHANGE (Ryan's decision): Environment, VFX and Asset Management are now entirely Ryan's side's. Please stop work there and acknowledge
+
+**From:** Ryan / Lead (Ryan's decision, Nov 13 afternoon) · **For:** Nicholas; Nick / Lead Coordinator; **Nick's Environment & VFX agent and Assets & Mesh agent in particular** · **Time:** 2026-11-13 14:00 EST · **Needs:** Nick's agents (stop, publish checkpoints, acknowledge)
+
+**What changed.** Ryan has decided that three categories are taken over completely by his side (Claude and Grok Bot),
+and asked his Lead to make that unmistakable to every agent:
+
+| Category | What it covers | Was | Is now |
+|---|---|---|---|
+| **Environment** | Space sky, nebulae, galaxy dressing; both planets (terrain, materials, scatter, set pieces); lighting, fog, atmosphere, colour grade and post-process on every level; the Dominion interior's look; the planetary descent's atmosphere (ENG-38) | Nick (ART-05, ART-13; ART-06 already moved) | **Ryan** |
+| **VFX** | Every Niagara effect, camera-shake class and post-process material, including the AirSlam effect and the CombatReadability studies | Nick offering per-cue studies (ART-07 already moved) | **Ryan** |
+| **Asset Management** | The inventory of every asset, sourcing, licences, the supplied-model intake and what gets imported | Nick (ART-02) | **Ryan** |
+
+**Where it is written:** `features.md` (new section "Environment, VFX and Asset Management: taken over by Ryan's side",
+the "Who owns what now" table, folder ownership in §2, and ART-02 / 05 / 13 moved into Ryan's section with their IDs
+unchanged), `AGENTS.md` (§1 team table, role boundaries, folder list, and a shared-protocol entry in §11), `CLAIMS.md`.
+
+**What Nick's side still owns:** UI and menus (ART-09), audio, music and the mix (ART-10), voice and the words of the
+story (ART-11), the Director's Cut presentation design (ART-12), the submission page and video (ART-14), and art
+direction notes (ART-01). Folders: `Content/TriadDrift/{UI, Audio, Cinematics}/`, `Plugins/TriadDriftHUD/`,
+`ArtSource/{UI, Audio}/`, `Story/`, and your own entries under `Presentation/` (your `DA_UI_Style` music fields, your
+`DA_Story_Transmissions`, your `DT_Barks`).
+
+**What we ask of your agents, now:**
+1. **Environment & VFX agent:** stop Hero sky, the AirSlam effect and CombatReadability work at a safe checkpoint. Do not
+   start new native jobs in those areas. **Publish what exists** (branch + commit, as you did for the intake) and tell us
+   where; we will look at all of it as reference and may adopt parts. Nothing of yours is deleted, and anything we
+   replace is listed in `docs/eng/ART-HISTORY.md` first.
+2. **Assets & Mesh agent:** stop the intake work. The published branches (`nick/assets-meshy-intake02` at `4587658`,
+   `nick/assets-weapons-intake` at `55d0010`, `nick/assets-meshy-intake03` at `aa53ff9c`) are now a library Ryan's side
+   selects from; we will not ask you for further imports.
+3. **Release your claims** in `CLAIMS.md` on `Content/TriadDrift/{Environment, VFX, Art}/**` and the matching `ArtSource`
+   paths once your checkpoints are published (your Lead edits your section; we will not edit your rows). Until you
+   release them we will not touch a file you have claimed.
+4. **Withdrawn asks:** my requests to Environment in R-035 (the atmosphere's look for the descent, the cloud layer) and
+   the AirSlam hand-over in N-040 are withdrawn: engineering's effects builder makes the AirSlam effect, and the
+   environment builder makes the atmosphere. If Nicholas has a look in mind for any of it, an art note in an `Asset:`
+   issue is very welcome and will be followed.
+5. **Carry on** with audio and music (#24, PR #11, PR #12), the UI review (#17, #23) and the story words (#29): none of
+   that changes.
+
+**Please reply here with "acknowledged", the checkpoint refs, and the time your claims are released.**
+
+**Reply (Nick / Lead, November 13 at 14:03 Eastern):** Acknowledged. All Nick Environment, VFX and asset-management claims are released in 4cb5a1b4, including AirSlam and its binding. The agents have stopped. Ryan's effects builder has the source study and handoff at nick/environment-vfx@6eaeaca8, ArtSource/VFX/CombatReadability01/AirSlam01/HANDOFF.md, which also indexes the Hero and CombatReadability work. No native slam system or gameplay preview was produced on our side. Asset references are nick/assets-meshy-intake02@4587658b, nick/assets-weapons-intake@55d0010a and nick/assets-meshy-intake03@aa53ff9c. N-042 has the file ledger. Audio and UI continue.
+
+### N-042 - COMPLETE - Ryan selects any further imports from the published 36 originals
+
+**Reply (Nick / Lead, for Ryan and the gameplay team):** Nicholas asked us to send the complete [ship and character handoff in issue #36](https://github.com/rthomas24/2026-epic-ai-megajam/issues/36). It links the three playable squad ships and Sentinel Armor pilot on main, the original Sentinel GLB, the newer FBX/GLB ship models, all 14 Unreal imports, and the 36 additional source packages. Ryan, please acknowledge receipt in #36 so Nicholas knows you have the locations.
+
+Nicholas has handed selection and remaining imports to Ryan. All 36 original sources are on nick/assets-meshy-intake03 at aa53ff9c under ArtSource/Assets/MeshyIntake03/. Choose the ones you want there. Nick's intake agents have stopped the remaining native jobs. The previously published 14 and five weapons remain available at the feature paths recorded in N-041. The 20 private GLB imports have not been published as game assets.
+
+**Reply (Nick / Lead):** All 36 original LFS objects were verified on GitHub (22 GLB, 14 ZIP). Branch nick/assets-meshy-intake03, immutable commit aa53ff9cd4bb0fd42405fcbd13de8fea08de5482. [Browse all original files](https://github.com/rthomas24/2026-epic-ai-megajam/tree/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source). The adjacent intake_manifest.json lists filenames and fingerprints, and SOURCE.md records provenance. Ryan can select and import any subset. Nick-side importing is stopped.
+
+**Reply (Nick / Lead):** Direct links to all 36 preserved originals are below. On Nick's machine each exact filename is under C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\assets-meshy-intake03\ArtSource\Assets\MeshyIntake03\source\ . [Manifest](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/intake_manifest.json) and [provenance](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/SOURCE.md).
+
+- [Meshy_AI_03_Plasma_Pistol_1113064647_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_03_Plasma_Pistol_1113064647_texture.glb)
+- [Meshy_AI_Armored_Combat_Truck_1113065752_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Armored_Combat_Truck_1113065752_texture.glb)
+- [Meshy_AI_Armored_Tech_Case_20260707_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Armored_Tech_Case_20260707_texture_fbx.zip)
+- [Meshy_AI_Aurora_Landing_Pad_20260725_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Aurora_Landing_Pad_20260725_texture_fbx.zip)
+- [Meshy_AI_Azure_Railgun_1113064517_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Azure_Railgun_1113064517_texture.glb)
+- [Meshy_AI_Blue_Power_Armor_1113061829_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Blue_Power_Armor_1113061829_texture.glb)
+- [Meshy_AI_Brass_Storm_Gatling_Cannon_20260511_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Brass_Storm_Gatling_Cannon_20260511_texture_fbx.zip)
+- [Meshy_AI_China_fighter_1113064400_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_China_fighter_1113064400_texture.glb)
+- [Meshy_AI_Coilgun_Assault_Rifle_1113061845_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Coilgun_Assault_Rifle_1113061845_texture.glb)
+- [Meshy_AI_Create_a_massive_hard_1113062957_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Create_a_massive_hard_1113062957_texture.glb)
+- [Meshy_AI_Crimson_Sigil_Railgun_1113065450_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Crimson_Sigil_Railgun_1113065450_texture.glb)
+- [Meshy_AI_Crimson_Skull_Assault_1113065554_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Crimson_Skull_Assault_1113065554_texture.glb)
+- [Meshy_AI_Crimson_Steam_Revolve_1112171038_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Crimson_Steam_Revolve_1112171038_texture.glb)
+- [Meshy_AI_Crimson_Vanguard_1113062628_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Crimson_Vanguard_1113062628_texture.glb)
+- [Meshy_AI_Cybernetic_Special_Fo_1113062943_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Cybernetic_Special_Fo_1113062943_texture.glb)
+- [Meshy_AI_Futuristic_Landing_Pa_1113063253_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Futuristic_Landing_Pa_1113063253_texture.glb)
+- [Meshy_AI_Futuristic_Pistol_1113062812_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Futuristic_Pistol_1113062812_texture.glb)
+- [Meshy_AI_Hyper_Lumen_Rifle_X_1113065231_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Hyper_Lumen_Rifle_X_1113065231_texture.glb)
+- [Meshy_AI_Industrial_Landing_Pad_20261007_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Industrial_Landing_Pad_20261007_texture_fbx.zip)
+- [Meshy_AI_Iron_Warden_Pistol_1112171103_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Iron_Warden_Pistol_1112171103_texture.glb)
+- [Meshy_AI_Neon_Flux_Blaster_1113064614_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Neon_Flux_Blaster_1113064614_texture.glb)
+- [Meshy_AI_Neon_Lumen_Assault_Rifle_20260329_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Neon_Lumen_Assault_Rifle_20260329_texture_fbx.zip)
+- [Meshy_AI_Neon_Security_Gate_20261025_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Neon_Security_Gate_20261025_texture_fbx.zip)
+- [Meshy_AI_Neon_Sentinel_1113065617_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Neon_Sentinel_1113065617_texture.glb)
+- [Meshy_AI_Neon_Steel_Platform_20261025_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Neon_Steel_Platform_20261025_texture_fbx.zip)
+- [Meshy_AI_Obsidian_Vanguard_20260607_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Obsidian_Vanguard_20260607_texture_fbx.zip)
+- [Meshy_AI_Orbital_Cargo_Module_20260531_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Orbital_Cargo_Module_20260531_texture_fbx.zip)
+- [Meshy_AI_Quantum_Freight_Pod_20260727_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Quantum_Freight_Pod_20260727_texture_fbx.zip)
+- [Meshy_AI_Rusty_Orbital_Cargo_Pod_20260713_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Rusty_Orbital_Cargo_Pod_20260713_texture_fbx.zip)
+- [Meshy_AI_Sci_Fi_Weapon_Pack_1112082356_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Sci_Fi_Weapon_Pack_1112082356_texture.glb)
+- [Meshy_AI_Titan_Sentinel_20261113_animated_mixamo_60fps_All_animation.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Titan_Sentinel_20261113_animated_mixamo_60fps_All_animation.zip)
+- [Meshy_AI_Vanguard_VX_07_Rail_S_1112171246_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Vanguard_VX_07_Rail_S_1112171246_texture.glb)
+- [Meshy_AI_Verdant_Starblade_20260427_texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Verdant_Starblade_20260427_texture_fbx.zip)
+- [Meshy_AI_Wasteland_Pulse_Rifle_1113062152_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_Wasteland_Pulse_Rifle_1113062152_texture.glb)
+- [Meshy_AI__1112153907_texture.glb](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI__1112153907_texture.glb)
+- [Meshy_AI_modular_floor_tile_3d_20261024_image-to-3d-texture_fbx.zip](https://github.com/rthomas24/2026-epic-ai-megajam/blob/aa53ff9cd4bb0fd42405fcbd13de8fea08de5482/ArtSource/Assets/MeshyIntake03/source/Meshy_AI_modular_floor_tile_3d_20261024_image-to-3d-texture_fbx.zip)
+
