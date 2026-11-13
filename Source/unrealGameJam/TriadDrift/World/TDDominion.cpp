@@ -18,6 +18,7 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
@@ -298,6 +299,37 @@ FTransform ATDDominion::GetStageStart(bool bTrench) const
 	return FTransform((D.GetLocation() - Loc).Rotation(), Loc);
 }
 
+void ATDDominion::TickPlaceholderBreakup(float DeltaSeconds)
+{
+	UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this);
+	if (!Booms) { return; }
+	const FBox B = GetLocalHullBounds();
+	const FTransform Xf = GetActorTransform();
+	const float FinalAt = FMath::Max(1.f, BreakupSeconds - 1.5f);
+	if (!bBreakupFinalBlast)
+	{
+		// Explosions walk from the reactor outward, faster and bigger as the breakup builds.
+		BreakupBoomTimer -= DeltaSeconds;
+		if (BreakupBoomTimer <= 0.f && StateTime < FinalAt)
+		{
+			const float T = FMath::Clamp(StateTime / FinalAt, 0.f, 1.f);
+			BreakupBoomTimer = FMath::Lerp(0.45f, 0.12f, T);
+			FRandomStream R(7919 + BreakupBooms * 31);
+			const FVector Local(R.FRandRange(B.Min.X, B.Max.X), R.FRandRange(B.Min.Y, B.Max.Y) * 0.8f, R.FRandRange(B.Min.Z, B.Max.Z) * 0.8f);
+			const FLinearColor Col = R.FRand() < 0.5f ? FLinearColor(1.f, 0.45f, 0.1f) : FLinearColor(1.f, 0.8f, 0.4f);
+			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(Local), FMath::Lerp(2500.f, 7000.f, T) * R.FRandRange(0.7f, 1.2f), Col, 10);
+			++BreakupBooms;
+		}
+		if (StateTime >= FinalAt)
+		{
+			bBreakupFinalBlast = true;
+			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(B.GetCenter()), B.GetExtent().Size() * 1.2f, FLinearColor(1.f, 0.85f, 0.6f), 16);
+			if (Reactor) { Reactor->SetActorHiddenInGame(true); }
+			ShowHull(false);	// the ship is gone in the flash
+		}
+	}
+}
+
 FVector ATDDominion::GetHangarLocation() const
 {
 	return HangarPoint ? HangarPoint->GetComponentLocation() : GetActorLocation();
@@ -344,6 +376,9 @@ void ATDDominion::LayoutParts()
 		{
 			HullMesh->SetStaticMesh(Custom);
 			HullMesh->SetRelativeScale3D(FVector::OneVector);
+			// The art hull keeps its authored slots: the placeholder's panel material / tint on slot 0 would otherwise
+			// survive the mesh swap (art audit 5: the stern blocks rendered flat grey with the panel material).
+			HullMesh->EmptyOverrideMaterials();
 			BridgeMesh->SetVisibility(false);
 			BuildHullDetail(false);	// the hull mesh brings its own detail
 		}
@@ -631,12 +666,12 @@ void ATDDominion::BuildParts()
 	{
 		ATDEnemyTurret* T = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!T) { return; }
+		T->Visuals = TurretVisuals;	// before Init: Init applies the art (BeginPlay already ran in SpawnActor)
 		T->AttachToActor(this, Attach);
 		T->SetActorRelativeLocation(Local);
 		const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
 		T->Init(TurretGuns, TurretHull * Difficulty.EnemyHull);
 		T->SetDamageMultiplier(Difficulty.EnemyDamage);
-		T->Visuals = TurretVisuals;
 		T->SetActorScale3D(FVector(4.f));
 		Into.Add(T);
 	};
@@ -971,6 +1006,11 @@ void ATDDominion::HandleReactorDestroyed(ATDDominionReactor* InReactor, AActor* 
 	{
 		UTDStatics::PlayCue(this, Visuals->BreakupSequence, GetActorLocation(), GetActorRotation());
 	}
+	// No breakup art yet: a placeholder chain of explosions walks the hull, then one big blast and the hull is gone.
+	bPlaceholderBreakup = !Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->BreakupSequence);
+	BreakupBoomTimer = 0.f;
+	BreakupBooms = 0;
+	bBreakupFinalBlast = false;
 	OnBreakupStarted.Broadcast(this, State);
 }
 
@@ -1027,6 +1067,7 @@ void ATDDominion::Tick(float DeltaSeconds)
 		break;
 
 	case ETDDominionState::Breakup:
+		if (bPlaceholderBreakup) { TickPlaceholderBreakup(DeltaSeconds); }
 		if (StateTime >= BreakupSeconds)
 		{
 			SetState(ETDDominionState::Finished);
