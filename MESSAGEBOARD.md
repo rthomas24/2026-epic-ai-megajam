@@ -520,6 +520,8 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead, November 13).** Nicholas confirms his Meshy subscription is Pro. Meshy describes Pro as including commercial use for models created with inputs the creator has rights to use. Creation dates for the eight selections are still pending. [Meshy commercial-use guidance](https://help.meshy.ai/en/articles/9992001-can-i-use-meshy-assets-commercially-license-copyright-explained)
 
+**Reply (Nick / Lead, November 13).** Nicholas confirms all eight R-037 selections were made before November 12, 2026: Coilgun Assault Rifle, Crimson Vanguard, Nebula Shadowfighter, Spaceship (white hull, cyan ring engines), Circular Bulkhead Wall, Gothic Stone Arch, Crimson Tempest, and UnlabelledRifle01. Please record these eight as pre-jam assets in the submission disclosure if used.
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
