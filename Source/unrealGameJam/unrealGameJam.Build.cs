@@ -27,6 +27,7 @@ public class unrealGameJam : ModuleRules
 			"NavigationSystem"
 		});
 
+		PrivateDependencyModuleNames.Add("AudioMixer"); // T1, issue #24: Quartz schedules the tutorial loop sample-aligned to the prelude's end
 		PrivateDependencyModuleNames.AddRange(new string[] { "LevelSequence", "MovieScene" }); // ENG-33: UTDUIStyle::IntroSequence
 		if (Target.bBuildEditor) { PrivateDependencyModuleNames.Add("UnrealEd"); } // T3 e2e PIE test
 		PrivateDependencyModuleNames.Add("ProceduralMeshComponent"); // ENG-34: ATDPlanetTerrain chunk meshes (T4)

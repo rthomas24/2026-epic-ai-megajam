@@ -80,6 +80,24 @@ struct UNREALGAMEJAM_API FTDShipSpec
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (Units = "s"))
 	float BoostRegenSeconds = 2.5f;
 
+	// --- Per-ship handling weight (T1's ship-feel review, Nov 13). Used only while TD.Flight.ShipFeel is 1 (OFF by
+	// default until Ryan A/Bs it); off, every ship flies on the shared FTDFlightTuning defaults below. ---
+	/** Forward acceleration (cm/s^2). Shared default 9000. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Feel")
+	float FeelAcceleration = 9000.f;
+
+	/** How fast the nose answers the stick (1/s). Shared default 12; lower feels heavier. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Feel")
+	float FeelAngularResponse = 12.f;
+
+	/** Turn-rate multiplier while drifting. Shared default 1.5. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Feel")
+	float FeelDriftTurnMultiplier = 1.5f;
+
+	/** Seconds between dodges. Shared default 1.5. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight|Feel", meta = (Units = "s"))
+	float FeelDodgeCooldown = 1.5f;
+
 	// --- Weapons (ids resolve through T2's UTDWeaponLibrary) ---
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
 	FName PrimaryWeapon;

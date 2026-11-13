@@ -12,6 +12,8 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Quartz/AudioMixerClockHandle.h"
+#include "Quartz/QuartzSubsystem.h"
 #include "Sound/SoundBase.h"
 
 void UTDTutorialMusicSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -37,7 +39,7 @@ void UTDTutorialMusicSubsystem::ArmForNewRun()
 	StopVoice();
 	State = ETDTutorialMusicState::Armed;
 	Clock = 0.f;
-	PreludeStartClock = LoopStartClock = ControlClock = PreludeIntroTime = -1.f;
+	PreludeStartClock = LoopStartClock = LoopScheduledClock = ControlClock = PreludeIntroTime = -1.f;
 	PreludeStartOffset = 0.f;
 	FadeElapsed = 0.f;
 	Volume = 1.f;
@@ -63,6 +65,27 @@ void UTDTutorialMusicSubsystem::SetSoundsForTests(USoundBase* Prelude, USoundBas
 	TestLoop = Loop;
 	TestPreludeSeconds = InPreludeSeconds;
 	TestFadeSeconds = InFadeSeconds;
+}
+
+bool UTDTutorialMusicSubsystem::OwnsOpeningMusic() const
+{
+	if (State != ETDTutorialMusicState::Armed && State != ETDTutorialMusicState::Prelude && State != ETDTutorialMusicState::Loop)
+	{
+		return false;
+	}
+	// Tests set their (possibly null) sounds explicitly: that counts as configured.
+	return bTestSounds || PreludeSound() || LoopSound();
+}
+
+bool UTDTutorialMusicSubsystem::ShouldIntroPlayIntroMusic(const UObject* WorldContext)
+{
+	const UTDTutorialMusicSubsystem* T = Get(WorldContext);
+	if (T && T->OwnsOpeningMusic())
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: owns the opening; the intro's IntroMusic is not started"));
+		return false;
+	}
+	return true;
 }
 
 USoundBase* UTDTutorialMusicSubsystem::PreludeSound() const
@@ -99,10 +122,22 @@ void UTDTutorialMusicSubsystem::HandleIntroFinished(bool bPlayed, bool bSkipped)
 	{
 		return;
 	}
-	// The control frame: the loop's first beat. A prelude still playing (a skip) is cut.
 	ControlClock = Clock;
-	StartVoice(LoopSound(), 0.f, BoundWorld.Get());
-	LoopStartClock = Clock;
+	if (State == ETDTutorialMusicState::Prelude && !bSkipped && bLoopQueued)
+	{
+		// Watched: the loop was queued for the prelude's last sample; it carries on, nothing restarts here.
+		LoopStartClock = LoopScheduledClock;
+		if (!bLoopOnAudioClock && Voice && !Voice->IsPlaying())
+		{
+			Voice->Play(0.f); // audio device without Quartz: the old game-frame start
+		}
+	}
+	else
+	{
+		// Skipped, or no intro: a prelude still playing is cut; the loop's first beat is on the control frame.
+		StartVoice(LoopSound(), 0.f, BoundWorld.Get());
+		LoopStartClock = Clock;
+	}
 	State = ETDTutorialMusicState::Loop;
 	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: loop at control (%s)"), !bPlayed ? TEXT("no intro") : bSkipped ? TEXT("intro skipped") : TEXT("intro watched"));
 }
@@ -171,10 +206,17 @@ void UTDTutorialMusicSubsystem::Step(UWorld* World, float Dt, bool bMenuMap)
 				PreludeStartOffset = FMath::Max(0.f, Director->GetIntroTime() - StartAt);
 				PreludeIntroTime = Director->GetIntroTime();
 				PreludeStartClock = Clock;
-				StartVoice(PreludeSound(), PreludeStartOffset, World);
+				StartPreludeAndQueueLoop(World, PreludeStartOffset);
 				State = ETDTutorialMusicState::Prelude;
 			}
 		}
+	}
+
+	// The prelude ends on its own on the loop's first sample: release it afterwards.
+	if (PreludeVoice && !PreludeVoice->IsPlaying() && State != ETDTutorialMusicState::Prelude)
+	{
+		PreludeVoice->DestroyComponent();
+		PreludeVoice = nullptr;
 	}
 
 	if (State == ETDTutorialMusicState::FadingOut)
@@ -210,21 +252,92 @@ void UTDTutorialMusicSubsystem::StartVoice(USoundBase* Sound, float StartSeconds
 	}
 }
 
+void UTDTutorialMusicSubsystem::StartPreludeAndQueueLoop(UWorld* World, float Offset)
+{
+	StopVoice();
+	VoicesStarted += 2; // the prelude, and the loop queued behind it (it is not started again at control)
+	Volume = 1.f;
+	const float Remaining = FMath::Max(PreludeSeconds() - Offset, 0.01f);
+	LoopScheduledClock = Clock + Remaining;
+	bLoopQueued = true;
+	bLoopOnAudioClock = false;
+	USoundBase* Prelude = PreludeSound();
+	USoundBase* Loop = LoopSound();
+	if (!World || (!Prelude && !Loop))
+	{
+		return; // no asset (or tests): the timing still runs
+	}
+	// Both persist across level travel (owned by the audio device), kept alive by these UPROPERTYs.
+	PreludeVoice = Prelude ? UGameplayStatics::CreateSound2D(World, Prelude, 1.f, 1.f, Offset, nullptr, true, false) : nullptr;
+	Voice = Loop ? UGameplayStatics::CreateSound2D(World, Loop, 1.f, 1.f, 0.f, nullptr, true, false) : nullptr;
+	if (!PreludeVoice && !Voice)
+	{
+		return; // no audio device (-nosound, tests)
+	}
+
+	// One audio clock whose single tick is the prelude's remaining length: the prelude fires on the clock's start, the
+	// loop on its first tick, both on the audio render thread, so the loop's first sample follows the prelude's last.
+	UQuartzSubsystem* Quartz = UQuartzSubsystem::Get(World);
+	FQuartzClockSettings Settings;
+	Settings.bIgnoreLevelChange = true;
+	AudioClock = Quartz ? Quartz->CreateNewClock(World, TEXT("TDTutorialMusic"), Settings, /*bOverride*/ true, /*bUseAudioEngineClockManager*/ true) : nullptr;
+	if (UQuartzClockHandle* Clk = AudioClock.Get())
+	{
+		const FQuartzQuantizationBoundary Now(EQuartzCommandQuantization::None);
+		Clk->SetSecondsPerTick(World, Now, FOnQuartzCommandEventBP(), Clk, Remaining);
+		if (PreludeVoice)
+		{
+			FQuartzQuantizationBoundary AtStart(EQuartzCommandQuantization::Tick, 1.f, EQuarztQuantizationReference::TransportRelative, /*bFireOnClockStart*/ true);
+			PreludeVoice->PlayQuantized(World, Clk, AtStart, FOnQuartzCommandEventBP(), Offset);
+		}
+		if (Voice)
+		{
+			FQuartzQuantizationBoundary AtEnd(EQuartzCommandQuantization::Tick, 1.f, EQuarztQuantizationReference::TransportRelative, /*bFireOnClockStart*/ false);
+			Voice->PlayQuantized(World, Clk, AtEnd, FOnQuartzCommandEventBP(), 0.f);
+		}
+		Clk->StartClock(World, Clk);
+		bLoopOnAudioClock = Voice != nullptr;
+		UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: prelude at %.2f s, loop queued on the audio clock in %.3f s"), Offset, Remaining);
+	}
+	else if (PreludeVoice)
+	{
+		PreludeVoice->Play(Offset); // no Quartz: the loop starts on the control frame (HandleIntroFinished)
+	}
+}
+
 void UTDTutorialMusicSubsystem::StopVoice()
 {
-	if (Voice)
+	for (TObjectPtr<UAudioComponent>* Slot : { &Voice, &PreludeVoice })
 	{
-		Voice->Stop();
-		Voice->DestroyComponent();
-		Voice = nullptr;
+		if (UAudioComponent* C = Slot->Get())
+		{
+			C->Stop();
+			C->DestroyComponent();
+		}
+		*Slot = nullptr;
 	}
+	if (UQuartzClockHandle* Clk = AudioClock.Get())
+	{
+		if (UWorld* World = BoundWorld.Get())
+		{
+			Clk->StopClock(World, /*CancelPendingEvents*/ true, Clk);
+			if (UQuartzSubsystem* Quartz = UQuartzSubsystem::Get(World))
+			{
+				Quartz->DeleteClockByHandle(World, Clk);
+			}
+		}
+		AudioClock = nullptr;
+	}
+	bLoopQueued = false;
+	bLoopOnAudioClock = false;
 }
 
 int32 UTDTutorialMusicSubsystem::GetLiveVoiceCount() const
 {
-	if (Voice && Voice->IsPlaying())
+	const int32 Playing = (Voice && Voice->IsPlaying() ? 1 : 0) + (PreludeVoice && PreludeVoice->IsPlaying() ? 1 : 0);
+	if (Playing > 0)
 	{
-		return 1;
+		return Playing;
 	}
 	// No audio device (tests, -nosound): the logical voice.
 	return (State == ETDTutorialMusicState::Prelude || State == ETDTutorialMusicState::Loop || State == ETDTutorialMusicState::FadingOut) ? 1 : 0;
@@ -254,9 +367,9 @@ namespace TDTutorialMusicDebug
 		{
 			const UTDTutorialMusicSubsystem* T = UTDTutorialMusicSubsystem::Get(World);
 			if (!T) { UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial.Status: no subsystem")); return; }
-			UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial.Status: %s clock %.2f | prelude at intro %.2f s (clock %.2f, offset %.2f) | control %.2f loop %.2f | volume %.2f | voices started %d live %d"),
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial.Status: %s clock %.2f | prelude at intro %.2f s (clock %.2f, offset %.2f) | control %.2f loop %.2f (queued for %.2f, audio clock %d) | volume %.2f | voices started %d live %d"),
 				*UEnum::GetValueAsString(T->GetState()), T->GetClock(), T->GetPreludeIntroTime(), T->GetPreludeStartClock(), T->GetPreludeStartOffset(),
-				T->GetControlClock(), T->GetLoopStartClock(), T->GetFadeVolume(), T->GetVoicesStarted(), T->GetLiveVoiceCount());
+				T->GetControlClock(), T->GetLoopStartClock(), T->GetLoopScheduledClock(), T->IsLoopOnAudioClock() ? 1 : 0, T->GetFadeVolume(), T->GetVoicesStarted(), T->GetLiveVoiceCount());
 		}));
 }
 #endif

@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
 
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
@@ -459,8 +460,10 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 		Narration.Add(UTDStorySubsystem::GetText(FName(*FString::Printf(TEXT("Intro_N%d"), i)), NarrationLines()[i]));
 	}
 
-	// Music (presentation slot; the asset carries its own class and volume).
-	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+	// Music (presentation slot; the asset carries its own class and volume). T1, issue #24: not while the tutorial
+	// music (prelude / loop) owns a New Game's opening; IntroMusic stays for runs without it.
+	bIntroMusicSuppressed = !UTDTutorialMusicSubsystem::ShouldIntroPlayIntroMusic(this);
+	if (const UTDUIStyle* Style = bIntroMusicSuppressed ? nullptr : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
 	{
 		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
 		{

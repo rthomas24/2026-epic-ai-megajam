@@ -208,6 +208,13 @@ public:
 	/** Exhaust effect components running now (0 without art or with no EngineTrail VFX). */
 	int32 GetExhaustEffectCount() const;
 
+	/**
+	 * Ship-feel A/B (T1's review, Nov 13; OFF by default until Ryan decides): when true, the squad's per-ship handling
+	 * weight (FTDShipSpec Feel* fields: acceleration, nose response, drift turn, dodge cooldown) replaces the shared
+	 * flight defaults. TD.Flight.ShipFeel 0|1 flips it live on every squad ship.
+	 */
+	static bool bPerShipFeel;
+
 	/** Sets a Niagara user float only when the system exposes it (a system without the parameter is left alone). */
 	static bool SetExhaustParamIfExposed(UNiagaraComponent* FX, FName Param, float Value);
 
