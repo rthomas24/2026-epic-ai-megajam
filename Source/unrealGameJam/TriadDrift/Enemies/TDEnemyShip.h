@@ -432,7 +432,18 @@ protected:
 	void Explode();
 	const FTDEnemyAttackSpec* FindAttack(ETDEnemyAttack Attack) const;
 	void SpawnCarrierParts();
-	void MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up);
+	/** Mounts a carrier part: at the hull mesh's Socket when it has one (+X out), else outside the collision sphere. */
+	void MountPart(AActor* Part, const FVector& LocalDirection, float PartHalfExtent, float Up, FName Socket = NAME_None);
+	/** Socket-mounted parts sit on the hull itself: the blocking sphere shrinks to the hull's thinnest half-extent so
+	 *  shots and rams reach them, and the hull mesh blocks projectiles so its ends stay hittable. Once. */
+	void FitCollisionToSocketedHull();
+	bool bSocketMounts = false;
+	bool bFittedToSockets = false;
+
+public:
+	/** Carrier parts mounted at the hull's own sockets (Bay_0..2, Turret_0..3), not around the sphere. */
+	bool HasSocketMountedParts() const { return bSocketMounts; }
+protected:
 	void DestroyCarrierParts();
 	void FireSecondaryShot(FName WeaponId, AActor* Target);
 	void TickTimers(float DeltaSeconds);
