@@ -1,0 +1,104 @@
+[
+  {
+    "group": "Hull",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Composite": 416,
+      "M_LancerM03_Gunmetal": 880,
+      "M_LancerM03_Graphite": 220
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Composite": 416,
+      "M_LancerM03_Gunmetal": 880,
+      "M_LancerM03_Graphite": 220
+    }
+  },
+  {
+    "group": "Wing_L",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Graphite": 886,
+      "M_LancerM03_Gunmetal": 220
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Graphite": 886,
+      "M_LancerM03_Gunmetal": 220
+    }
+  },
+  {
+    "group": "Wing_R",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Graphite": 886,
+      "M_LancerM03_Gunmetal": 220
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Graphite": 886,
+      "M_LancerM03_Gunmetal": 220
+    }
+  },
+  {
+    "group": "Canopy",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Canopy": 224,
+      "M_LancerM03_Graphite": 1872
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Canopy": 224,
+      "M_LancerM03_Graphite": 1872
+    }
+  },
+  {
+    "group": "Primary",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Gunmetal": 244,
+      "M_LancerM03_Graphite": 188
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Gunmetal": 244,
+      "M_LancerM03_Graphite": 188
+    }
+  },
+  {
+    "group": "Rotor",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Titanium": 672,
+      "M_LancerM03_Gunmetal": 1040,
+      "M_LancerM03_Blue": 384
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Titanium": 672,
+      "M_LancerM03_Gunmetal": 1040,
+      "M_LancerM03_Blue": 384
+    }
+  },
+  {
+    "group": "Secondary",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Graphite": 1596
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Graphite": 1596
+    }
+  },
+  {
+    "group": "Engine",
+    "passed": true,
+    "before_role_face_counts": {
+      "M_LancerM03_Gunmetal": 512,
+      "M_LancerM03_Titanium": 896,
+      "M_LancerM03_Blue": 512,
+      "M_LancerM03_Composite": 256
+    },
+    "after_role_face_counts": {
+      "M_LancerM03_Gunmetal": 512,
+      "M_LancerM03_Titanium": 896,
+      "M_LancerM03_Blue": 512,
+      "M_LancerM03_Composite": 256
+    }
+  }
+]

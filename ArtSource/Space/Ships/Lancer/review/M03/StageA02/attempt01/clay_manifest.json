@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "sheet": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\StageA02\\Lancer_M03_clay_sheet.png",
+  "mode": "clay",
+  "engine": "BLENDER_WORKBENCH",
+  "layout": {
+    "columns": 3,
+    "order": [
+      "front_3q",
+      "front",
+      "right",
+      "top",
+      "back_3q",
+      "low_3q"
+    ]
+  },
+  "ortho_cm_per_px": 1.2864,
+  "views": [
+    {
+      "view": "front_3q",
+      "coverage": 0.194,
+      "touches_edge": false,
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\StageA02\\Lancer_M03_clay_front_3q.png"
+    },
+    {
+      "view": "front",
+      "coverage": 0.073,
+      "touches_edge": false,
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\StageA02\\Lancer_M03_clay_front.png"
+    },
+    {
+      "view": "right",
+      "coverage": 0.105,
+      "touches_edge": false,
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\StageA02\\Lancer_M03_clay_right.png"
+    },
+    {
+      "view": "top",
+      "coverage": 0.355,
+      "touches_edge": false,
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\StageA02\\Lancer_M03_clay_top.png"
+    },
+    {
+      "view": "back_3q",
+      "coverage": 0.27,
+      "touches_edge": false,
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\StageA02\\Lancer_M03_clay_back_3q.png"
+    },
+    {
+      "view": "low_3q",
+      "coverage": 0.165,
+      "touches_edge": false,
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\review\\M03\\StageA02\\Lancer_M03_clay_low_3q.png"
+    }
+  ],
+  "bbox_min_m": [
+    -3.6,
+    -4.02,
+    -0.8899
+  ],
+  "bbox_max_m": [
+    3.6,
+    4.02,
+    0.867
+  ],
+  "size_cm": [
+    720.0,
+    804.0,
+    175.69
+  ],
+  "objects": [
+    "SM_LancerM03_Hull",
+    "SM_LancerM03_Wing_L",
+    "SM_LancerM03_Wing_R",
+    "SM_LancerM03_Canopy",
+    "SM_LancerM03_Primary_L",
+    "SM_LancerM03_Primary_R",
+    "SM_LancerM03_Rotor_L",
+    "SM_LancerM03_Rotor_R",
+    "SM_LancerM03_Secondary_L",
+    "SM_LancerM03_Secondary_R",
+    "SM_LancerM03_Engine_L",
+    "SM_LancerM03_Engine_R"
+  ],
+  "warnings": [],
+  "seconds": 1.04
+}

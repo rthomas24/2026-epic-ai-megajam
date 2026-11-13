@@ -1,0 +1,10 @@
+{
+  "pid": 1152,
+  "exit_code": 0,
+  "started_utc": "2026-11-12T23:52:55.0544744Z",
+  "elapsed_seconds": 11.344,
+  "peak_working_set_mib": 753.98,
+  "minimum_free_gib": 4.286,
+  "hard_timeout": false,
+  "threads": 2
+}

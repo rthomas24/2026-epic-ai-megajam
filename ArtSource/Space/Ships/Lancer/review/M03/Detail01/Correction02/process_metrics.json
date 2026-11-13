@@ -1,0 +1,10 @@
+{
+  "pid": 27448,
+  "exit_code": 1,
+  "started_utc": "2026-11-13T00:28:49.1709163Z",
+  "elapsed_seconds": 8.62,
+  "peak_working_set_mib": 700.78,
+  "minimum_free_gib": 3.544,
+  "abort_reason": "none",
+  "threads": 2
+}

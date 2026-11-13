@@ -1,0 +1,9 @@
+{
+  "task_started_utc": "2026-11-12T21:13:54Z",
+  "reference_file": "refs/Lancer_M03_authority.png",
+  "reference_sha256": "5d5d00b43d9fa1383c66c5462197f2096aee23718f9ff1eb3c950a16e4ccb166",
+  "legacy_attachment_sha256": "9a174e782ec03a663c6679da79d82f0679cb09b31f0f0612afa1c56c98e2482f",
+  "source_route": "reference-led repository MIT hard-surface kit, features ART03; prior sources preserved",
+  "model_effort_usage": "exact metrics unavailable",
+  "queued_goal": "Bastion M03 only after Nick approves Lancer review; no Bastion/Rift/enemy edits"
+}

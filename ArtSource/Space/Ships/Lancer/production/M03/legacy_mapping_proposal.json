@@ -1,0 +1,1055 @@
+{
+  "status": "SOURCE_ONLY_proposal_Lead_accepted_routine_frame_preservation_not_native_adoption",
+  "claim": "bcdd260",
+  "legacy_sha256": "9a174e782ec03a663c6679da79d82f0679cb09b31f0f0612afa1c56c98e2482f",
+  "units": "cm +Xforward +Yright +Zup",
+  "legacy_socket_count": 33,
+  "legacy_frames": [
+    {
+      "legacy_parent": "Hull",
+      "name": "Mount_Primary_L",
+      "local_position_cm": [
+        30,
+        -100,
+        -42
+      ],
+      "root_position_cm": [
+        30,
+        -100,
+        -42
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        30,
+        -100,
+        -42
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Mount_Secondary_L",
+      "local_position_cm": [
+        -90,
+        -220,
+        -44
+      ],
+      "root_position_cm": [
+        -90,
+        -220,
+        -44
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        -90,
+        -220,
+        -44
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Primary_L",
+      "name": "Rotor_Pivot",
+      "local_position_cm": [
+        35,
+        0,
+        -15
+      ],
+      "root_position_cm": [
+        65,
+        -100,
+        -57
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Primary_L",
+      "M03_local_position_cm": [
+        35,
+        0,
+        -15
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Primary_L",
+      "name": "Muzzle_Primary_L",
+      "local_position_cm": [
+        174,
+        0,
+        -15
+      ],
+      "root_position_cm": [
+        204,
+        -100,
+        -57
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Primary_L",
+      "M03_local_position_cm": [
+        174,
+        0,
+        -15
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_L",
+      "name": "Barrel_01",
+      "local_position_cm": [
+        138,
+        12,
+        0
+      ],
+      "root_position_cm": [
+        203,
+        -88,
+        -57
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_L",
+      "M03_local_position_cm": [
+        138,
+        12,
+        0
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_L",
+      "name": "Barrel_02",
+      "local_position_cm": [
+        138,
+        6.000000000000002,
+        10.392304845413264
+      ],
+      "root_position_cm": [
+        203,
+        -94.0,
+        -46.607695154586736
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_L",
+      "M03_local_position_cm": [
+        138,
+        6.000000000000002,
+        10.392304845413264
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_L",
+      "name": "Barrel_03",
+      "local_position_cm": [
+        138,
+        -5.999999999999997,
+        10.392304845413264
+      ],
+      "root_position_cm": [
+        203,
+        -106.0,
+        -46.607695154586736
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_L",
+      "M03_local_position_cm": [
+        138,
+        -5.999999999999997,
+        10.392304845413264
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_L",
+      "name": "Barrel_04",
+      "local_position_cm": [
+        138,
+        -12,
+        1.4695761589768238e-15
+      ],
+      "root_position_cm": [
+        203,
+        -112,
+        -57.0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_L",
+      "M03_local_position_cm": [
+        138,
+        -12,
+        1.4695761589768238e-15
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_L",
+      "name": "Barrel_05",
+      "local_position_cm": [
+        138,
+        -6.000000000000005,
+        -10.392304845413262
+      ],
+      "root_position_cm": [
+        203,
+        -106.0,
+        -67.39230484541326
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_L",
+      "M03_local_position_cm": [
+        138,
+        -6.000000000000005,
+        -10.392304845413262
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_L",
+      "name": "Barrel_06",
+      "local_position_cm": [
+        138,
+        6.000000000000002,
+        -10.392304845413264
+      ],
+      "root_position_cm": [
+        203,
+        -94.0,
+        -67.39230484541326
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_L",
+      "M03_local_position_cm": [
+        138,
+        6.000000000000002,
+        -10.392304845413264
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_L",
+      "name": "Muzzle_Secondary_L_01",
+      "local_position_cm": [
+        112,
+        -16,
+        -9
+      ],
+      "root_position_cm": [
+        22,
+        -236,
+        -53
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_L",
+      "M03_local_position_cm": [
+        112,
+        -16,
+        -9
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_L",
+      "name": "Muzzle_Secondary_L_02",
+      "local_position_cm": [
+        112,
+        -16,
+        -39
+      ],
+      "root_position_cm": [
+        22,
+        -236,
+        -83
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_L",
+      "M03_local_position_cm": [
+        112,
+        -16,
+        -39
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_L",
+      "name": "Muzzle_Secondary_L_03",
+      "local_position_cm": [
+        112,
+        16,
+        -9
+      ],
+      "root_position_cm": [
+        22,
+        -204,
+        -53
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_L",
+      "M03_local_position_cm": [
+        112,
+        16,
+        -9
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_L",
+      "name": "Muzzle_Secondary_L_04",
+      "local_position_cm": [
+        112,
+        16,
+        -39
+      ],
+      "root_position_cm": [
+        22,
+        -204,
+        -83
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_L",
+      "M03_local_position_cm": [
+        112,
+        16,
+        -39
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Thruster_L",
+      "local_position_cm": [
+        -402,
+        -111,
+        -3
+      ],
+      "root_position_cm": [
+        -402,
+        -111,
+        -3
+      ],
+      "forward": [
+        -1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        -402,
+        -111,
+        -3
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Mount_Primary_R",
+      "local_position_cm": [
+        30,
+        100,
+        -42
+      ],
+      "root_position_cm": [
+        30,
+        100,
+        -42
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        30,
+        100,
+        -42
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Mount_Secondary_R",
+      "local_position_cm": [
+        -90,
+        220,
+        -44
+      ],
+      "root_position_cm": [
+        -90,
+        220,
+        -44
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        -90,
+        220,
+        -44
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Primary_R",
+      "name": "Rotor_Pivot",
+      "local_position_cm": [
+        35,
+        0,
+        -15
+      ],
+      "root_position_cm": [
+        65,
+        100,
+        -57
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Primary_R",
+      "M03_local_position_cm": [
+        35,
+        0,
+        -15
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Primary_R",
+      "name": "Muzzle_Primary_R",
+      "local_position_cm": [
+        174,
+        0,
+        -15
+      ],
+      "root_position_cm": [
+        204,
+        100,
+        -57
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Primary_R",
+      "M03_local_position_cm": [
+        174,
+        0,
+        -15
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_R",
+      "name": "Barrel_01",
+      "local_position_cm": [
+        138,
+        12,
+        0
+      ],
+      "root_position_cm": [
+        203,
+        112,
+        -57
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_R",
+      "M03_local_position_cm": [
+        138,
+        12,
+        0
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_R",
+      "name": "Barrel_02",
+      "local_position_cm": [
+        138,
+        6.000000000000002,
+        10.392304845413264
+      ],
+      "root_position_cm": [
+        203,
+        106.0,
+        -46.607695154586736
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_R",
+      "M03_local_position_cm": [
+        138,
+        6.000000000000002,
+        10.392304845413264
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_R",
+      "name": "Barrel_03",
+      "local_position_cm": [
+        138,
+        -5.999999999999997,
+        10.392304845413264
+      ],
+      "root_position_cm": [
+        203,
+        94.0,
+        -46.607695154586736
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_R",
+      "M03_local_position_cm": [
+        138,
+        -5.999999999999997,
+        10.392304845413264
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_R",
+      "name": "Barrel_04",
+      "local_position_cm": [
+        138,
+        -12,
+        1.4695761589768238e-15
+      ],
+      "root_position_cm": [
+        203,
+        88,
+        -57.0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_R",
+      "M03_local_position_cm": [
+        138,
+        -12,
+        1.4695761589768238e-15
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_R",
+      "name": "Barrel_05",
+      "local_position_cm": [
+        138,
+        -6.000000000000005,
+        -10.392304845413262
+      ],
+      "root_position_cm": [
+        203,
+        94.0,
+        -67.39230484541326
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_R",
+      "M03_local_position_cm": [
+        138,
+        -6.000000000000005,
+        -10.392304845413262
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Rotor_R",
+      "name": "Barrel_06",
+      "local_position_cm": [
+        138,
+        6.000000000000002,
+        -10.392304845413264
+      ],
+      "root_position_cm": [
+        203,
+        106.0,
+        -67.39230484541326
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Rotor_R",
+      "M03_local_position_cm": [
+        138,
+        6.000000000000002,
+        -10.392304845413264
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_R",
+      "name": "Muzzle_Secondary_R_01",
+      "local_position_cm": [
+        112,
+        -16,
+        -9
+      ],
+      "root_position_cm": [
+        22,
+        204,
+        -53
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_R",
+      "M03_local_position_cm": [
+        112,
+        -16,
+        -9
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_R",
+      "name": "Muzzle_Secondary_R_02",
+      "local_position_cm": [
+        112,
+        -16,
+        -39
+      ],
+      "root_position_cm": [
+        22,
+        204,
+        -83
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_R",
+      "M03_local_position_cm": [
+        112,
+        -16,
+        -39
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_R",
+      "name": "Muzzle_Secondary_R_03",
+      "local_position_cm": [
+        112,
+        16,
+        -9
+      ],
+      "root_position_cm": [
+        22,
+        236,
+        -53
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_R",
+      "M03_local_position_cm": [
+        112,
+        16,
+        -9
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Secondary_R",
+      "name": "Muzzle_Secondary_R_04",
+      "local_position_cm": [
+        112,
+        16,
+        -39
+      ],
+      "root_position_cm": [
+        22,
+        236,
+        -83
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Secondary_R",
+      "M03_local_position_cm": [
+        112,
+        16,
+        -39
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Thruster_R",
+      "local_position_cm": [
+        -402,
+        111,
+        -3
+      ],
+      "root_position_cm": [
+        -402,
+        111,
+        -3
+      ],
+      "forward": [
+        -1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        -402,
+        111,
+        -3
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Ability_Overdrive",
+      "local_position_cm": [
+        -205,
+        0,
+        61
+      ],
+      "root_position_cm": [
+        -205,
+        0,
+        61
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        -205,
+        0,
+        61
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Ability_EMP",
+      "local_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "root_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        0,
+        0,
+        0
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    },
+    {
+      "legacy_parent": "Hull",
+      "name": "Ram_Visual",
+      "local_position_cm": [
+        404,
+        0,
+        0
+      ],
+      "root_position_cm": [
+        404,
+        0,
+        0
+      ],
+      "forward": [
+        1,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ],
+      "M03_parent": "Hull",
+      "M03_local_position_cm": [
+        404,
+        0,
+        0
+      ],
+      "status": "preserved_exact_no_canonical_change"
+    }
+  ],
+  "part_aliases": {
+    "MountPrimary_L": "Primary_L mount structure, same origin",
+    "MountPrimary_R": "Primary_R mount structure, same origin",
+    "MountSecondary_L": "Secondary_L flush bay support, same origin",
+    "MountSecondary_R": "Secondary_R flush bay support, same origin",
+    "Rotor_L": "single open-bore Barrel at original rotor pivot; 6 barrel points retained as technical aliases",
+    "Rotor_R": "single open-bore Barrel at original rotor pivot; 6 barrel points retained as technical aliases"
+  },
+  "new_parts": [
+    "Wing_L",
+    "Wing_R",
+    "Canopy",
+    "Engine_L",
+    "Engine_R"
+  ],
+  "rocket_visual_offset_cm": [
+    54,
+    0,
+    0
+  ],
+  "collision_or_gameplay_changed": false,
+  "equipment": "Two reference-faithful cannons plus discreet underwing bays retaining all8rocket exitpoints",
+  "native_adoption": "requires Nick review and Lead/Ryan export/import/binding gate"
+}
