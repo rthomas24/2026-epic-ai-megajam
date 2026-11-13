@@ -1,0 +1,25 @@
+{
+  "verified_on_exported_pcm": true,
+  "first_pass_matches_import_exactly": true,
+  "repeated_body_matches_source12toend_exactly": true,
+  "return_frames": [
+    1923840,
+    3271680
+  ],
+  "return_times_s": [
+    40.08,
+    68.16
+  ],
+  "fade_frames": 960000,
+  "fade_duration_s": 20,
+  "final_samples": [
+    0,
+    0
+  ],
+  "seam_jump_pcm16": [
+    80,
+    87
+  ],
+  "seam_step_dbfs": -51.51861364682198,
+  "clipped_samples_full_preview": 0
+}

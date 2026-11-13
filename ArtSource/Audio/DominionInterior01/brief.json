@@ -1,0 +1,15 @@
+{
+  "source": "C:/Users/nicho/Downloads/Calm Loop.mp3",
+  "user_direction": "Play normally from0; onend loopbackto12s untilboarding/interiorgameplaysequenceends, thenlongfade",
+  "initial_pass_s": [
+    0,
+    40.08
+  ],
+  "loop_s": [
+    12,
+    40.08
+  ],
+  "proposed_exit_fade_s": 20,
+  "claim": "3a69877b",
+  "scope": "Offline audition/source handoff. GameplayhookandnativeauthoringremaincoordinatedviaLead; no gameplaycodechanges."
+}

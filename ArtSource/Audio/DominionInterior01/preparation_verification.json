@@ -1,0 +1,63 @@
+{
+  "stage": "Offline prepared and measured; Nicklisten/nativeimport/runtimehookpending",
+  "source_path": "C:\\Users\\nicho\\Downloads\\Calm Loop.mp3",
+  "source_sha256": "ddc2a8bcb9d37b6a76a0f94e39283fd9abb29acc534d275925a5e30fa527b67d",
+  "source_untouched": true,
+  "source_duration_s": 40.08,
+  "loop_start_s": 12,
+  "loop_duration_s": 28.08,
+  "initial_play_s": 40.08,
+  "loop_crossfade_s": 2,
+  "crossfade_method": "Equal-power fade fromfinal2s into source10\u201312s; atwrapresume12, preserving incoming adjacent sample step. No silence, duplicatehead, pitchchange, timestretch or compression.",
+  "global_gain_db": -0.7,
+  "attack_fade_ms": 5,
+  "seam_step_dbfs": -51.52112186230602,
+  "seam_equals_original_adjacent_step_at12": true,
+  "preview_loop_returns_s": [
+    40.08,
+    68.16
+  ],
+  "preview_fade_start_s": 68.16,
+  "preview_fade_duration_s": 20,
+  "preview_duration_s": 88.16,
+  "files": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionInterior01\\export\\MUS_DominionInterior_Calm_Continuous40_01.wav",
+      "bits": 24,
+      "duration_s": 40.08,
+      "sha256": "59299a4e7e5d2b5ac4ff86ac2922fa0e594a6d059a7b2a38f7e706c1cdcb2017",
+      "sample_peak_dbfs": -4.9668059255926975
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionInterior01\\export\\MUS_DominionInterior_Calm_Import16_01.wav",
+      "bits": 16,
+      "duration_s": 40.08,
+      "sha256": "33a0792214143a37efcdea4716e7e5caf957c5370b600b53ff8ef8483fdad69a",
+      "sample_peak_dbfs": -4.9668059255926975
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionInterior01\\export\\DominionInterior_LoopAndFade_Audition01.wav",
+      "bits": 16,
+      "duration_s": 88.16,
+      "sha256": "f01590e5270260adca4f05f4a85a7c51d1532b3ce259653dcdedfc140cb43750",
+      "sample_peak_dbfs": -4.9668059255926975
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionInterior01\\export\\DominionInterior_Seam_Audition01.wav",
+      "bits": 16,
+      "duration_s": 14.0,
+      "sha256": "01c7d493edd3f3ea28a3c7d9fd099703eb0213b48d1968ad771d8638f6edfa22",
+      "sample_peak_dbfs": -5.467639127296048
+    }
+  ],
+  "runtime_contract": {
+    "music_entry_source_s": 0,
+    "single_wave_loop_start_s": 12,
+    "single_wave_loop_duration_s": 28.08,
+    "gameplay_completion": "Engineering exactSequence07completion/quietconsoletransitioncontractpending viaLead",
+    "exit_fade_proposed_s": 20,
+    "no_other_music_during_active_cue": true,
+    "runtime_gain": "ApplyMusicclass/slider; auditionfilegainisnotingamelevelapproval"
+  },
+  "limitations": "Crossfade harmony/phrasing and finalincontextmix needNicklistening. NativeUnrealimport/gamehooknotdone."
+}
