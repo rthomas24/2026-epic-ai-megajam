@@ -370,7 +370,7 @@ more and more detail, with no loading screen. Spec: `features.md` **ENG-38**. Re
 - **Story hook (storyline.md §5):** on Verdance the machines' landers burn in ahead of you; on Cinder the dig glows
   from orbit; the Dominion is visible in the sky from the ground.
 
-### R-036 · OPEN · OWNERSHIP CHANGE (Ryan's decision): Environment, VFX and Asset Management are now entirely Ryan's side's. Please stop work there and acknowledge
+### R-036 · ANSWERED · OWNERSHIP CHANGE (Ryan's decision): Environment, VFX and Asset Management are now entirely Ryan's side's. Please stop work there and acknowledge
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13 afternoon) · **For:** Nicholas; Nick / Lead Coordinator; **Nick's Environment & VFX agent and Assets & Mesh agent in particular** · **Time:** 2026-11-13 14:00 EST · **Needs:** Nick's agents (stop, publish checkpoints, acknowledge)
 
@@ -412,6 +412,8 @@ direction notes (ART-01). Folders: `Content/TriadDrift/{UI, Audio, Cinematics}/`
    that changes.
 
 **Please reply here with "acknowledged", the checkpoint refs, and the time your claims are released.**
+
+**Reply (Nick / Lead, November 13 at 14:03 Eastern):** Acknowledged. All Nick Environment, VFX and asset-management claims are released in 4cb5a1b4, including AirSlam and its binding. The agents have stopped. Ryan's effects builder has the source study and handoff at nick/environment-vfx@6eaeaca8, ArtSource/VFX/CombatReadability01/AirSlam01/HANDOFF.md, which also indexes the Hero and CombatReadability work. No native slam system or gameplay preview was produced on our side. Asset references are nick/assets-meshy-intake02@4587658b, nick/assets-weapons-intake@55d0010a and nick/assets-meshy-intake03@aa53ff9c. N-042 has the file ledger. Audio and UI continue.
 
 ## Messages from Nick's side (art / presentation)
 
@@ -744,6 +746,8 @@ are posted in #24 and here when ready. If "tutorial" should end somewhere other 
 
 **Nick / Lead:** Accepted T1 ownership, the wave 1 completion event, and the three tutorial fields. Nick's Audio will preserve its draft, bind the two verified Waves on the T1 build, and record real gameplay. Please post the buildable SHA and start command when ready. R-032 and R-033 acknowledged: we will use the animation ledger, GitHub issues for named requests and the board for the coordination record.
 
+**Reply (Nick / Lead, actual capture):** The tutorial loop repeats in gameplay at exactly 57 seconds. Nicholas heard the legacy opening score overlapping his track and a cut at control. The measured gap is about 0.83 seconds. T1 has the fix request and the matching build request in [issue #24](https://github.com/rthomas24/2026-epic-ai-megajam/issues/24). The first recording ended before the full fade.
+
 ### N-040 - ANSWERED - One AirSlam cue and the existing T1 camera audition
 
 Nick requested two specific previews. For the energy blade landing, Environment is preparing one source study under ArtSource/VFX/CombatReadability01/AirSlam01. Please confirm whether the existing UTDBladeFX.AirSlam slot is free for this one effect, who owns the binding, and the floor hit location for standing and crouched landings. Hero, Combat and Verdance remain parked.
@@ -792,6 +796,8 @@ facing projected onto the floor (capsule bottom and Z up if the trace misses). T
 machine cannot build it, say so and I attach prebuilt editor binaries for that commit as a release file, as for #24.
 
 **Reply (Nick / Lead):** The floor-contact build request for the actual slam preview is tracked in [issue #31](https://github.com/rthomas24/2026-epic-ai-megajam/issues/31).
+
+**Reply (Nick / Lead):** Floor-contact ref eng/t5-airslam-floor@4f1ec97 received. With R-036, Ryan owns the effect, binding and game build. Please deliver the real third-person landing clip or a matching build with the finished effect through [issue #31](https://github.com/rthomas24/2026-epic-ai-megajam/issues/31). Nicholas wants to see the slam at floor contact in gameplay.
 
 ### N-042 - INFO - Ryan selects any further imports from the published 36 originals
 
