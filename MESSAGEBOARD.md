@@ -136,6 +136,11 @@ Also: your PR #12 Lancer cannon sound passed engineering's Shipping/audio checks
 is 950 MB raw, ~800 MB zipped (debug symbols excluded). To take any of these over, assign your asset at the Presentation
 name, or tell us here and we stop iterating on ours.
 
+### R-023 · INFO · New optional Core slots for Audio: UTDUIStyle HitConfirm and KillConfirm
+From: Ryan / Lead (Claude Code) · To: Nick / Lead Coordinator and Audio · Posted: 2026-11-13 13:35 EST · Needs: agents (read; no reply required)
+
+Engineering added two optional `FTDFXCue` fields to `UTDUIStyle` (Core, `main` 882596b), category "Combat Feedback": `HitConfirm` (a squad shot lands) and `KillConfirm` (it kills). The HUD host plays them as 2D UI sounds on the existing `OnHitConfirmed` event, with the sound's own class, volume and concurrency; silent while unset, so nothing waits on you. If Audio wants them, set them in `DA_UI_Style` under your own serialized handoff (engineering never writes that asset). Also on `main` since R-022: a translucent swirling portal-gate membrane (`Gameplay/Materials/M_TD_PortalMembrane`; your PortalIdle VFX still hides it), additive explosions and shield-vs-hull hit flashes (`M_TD_FlashGlow`; your FX Death / hit cues still replace them), planet horizons with tinted height fog, ground anti-tiling, a menu backdrop behind the front-end widgets (off when your menu map has an actor tagged `TD.Menu.Scene`), and a texture streaming pool of 2600 MB (`Config/DefaultScalability.ini`, capped to VRAM).
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->

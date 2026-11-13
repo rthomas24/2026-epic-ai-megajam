@@ -449,7 +449,8 @@ bool FTDReviewCamera::RunTest(const FString& Parameters)
 	W.Tick();
 	TestTrue(TEXT("lag back on after the cut"), Arm->bEnableCameraLag && Arm->bEnableCameraRotationLag);
 	TestEqual(TEXT("rotation lag 8"), Arm->CameraRotationLagSpeed, 8.f);
-	TestEqual(TEXT("location lag 12"), Arm->CameraLagSpeed, 12.f);
+	TestEqual(TEXT("location lag 18 (flight-feel pass)"), Arm->CameraLagSpeed, 18.f);
+	TestEqual(TEXT("lag never trails more than 10 m"), Arm->CameraLagMaxDistance, 1000.f);
 
 	// FOV: 90 at min speed, 110 at boost.
 	FTDFlightInput Slow;
@@ -500,6 +501,11 @@ bool FTDReviewCamera::RunTest(const FString& Parameters)
 	float LoopRoll = 0.f;
 	const float LoopRate = MaxStepDegPerSec(Loop, 4.f, LoopRoll);
 	TestTrue(FString::Printf(TEXT("loop: camera target stays continuous (max %.0f deg/s)"), LoopRate), LoopRate < 260.f);
+	// Pitch lead is a fraction of the turn lead: a pull-up must not drop the ship into the HUD band.
+	const FTDChaseCameraTuning& CT = Ship->GetCameraTuning();
+	const float LeadPitch = FMath::Abs(Ship->GetChaseCamera()->GetRelativeRotation().Pitch);
+	TestTrue(FString::Printf(TEXT("loop: pitch lead %.2f deg stays within %.2f (scale %.2f of %.0f)"), LeadPitch, CT.LookAheadAngle * CT.LookAheadPitchScale, CT.LookAheadPitchScale, CT.LookAheadAngle),
+		LeadPitch <= CT.LookAheadAngle * CT.LookAheadPitchScale + 0.25f && CT.LookAheadPitchScale < 0.5f);
 
 	// Teleport snaps the camera too.
 	Ship->TeleportSpacecraft(FVector(500000.f, 0.f, 0.f), FRotator::ZeroRotator, true);
