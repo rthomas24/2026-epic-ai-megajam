@@ -364,6 +364,11 @@ Contact sheet: `ArtSource/EngAI/Weapons/EnergyBlade/mesh_r1/contact_sheet.png`.
 Both are under the 12k budget (Clean Topology, not decimated). 2K PBR; N is DirectX; ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. The deployed emissive already isolated the cyan edge strip and LED pips; the folded emissive had baked lighting on the ceramic, which was thresholded so the delivery mask keeps the crisp cyan strip and pips and is black elsewhere. Prefer the FBX (`UnitScaleFactor` 100).
 **Note:** pommel-to-guard came out 23–25 cm rather than the 13–15 cm hand-scale brief, because of the mesh proportions (large hinge crowns and a long wrap). Scale was set to the 3.70 cm barrel (inside 3.4–4.0) so the deployed tip-to-pommel lands at 39.7 cm (on the 40–45 cm target). Shrinking the hilt to 15 cm would thin the barrel to about 2.3 cm. Silhouettes stay faithful to the Direction B concepts. Status stays OPEN.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 15:43 EST): `Cinder_Basalt` r2 is up in PR #48.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/48 (branch `grok/assets-cinder-basalt-r2`, do not merge without your OK).
+Contact sheet: `ArtSource/EngAI/Terrain/Cinder_Basalt/r2/contact_sheet.png` (includes a side-by-side r1 vs r2 BC 2×2 so you can see the fix at a glance). This redo replaces the uniform hex pavers with natural organic Giant's Causeway / Icelandic columnar basalt: irregular 4-to-7-sided columns of varying width and uneven stepped heights, weathered charcoal-black faces, ash in the crevices. All four 2K maps passed the seamless wrap-around edge test and range checks. Normals are DirectX; ORM is R=AO, G=roughness, B=metallic (metallic at 0). 22 credits used, 768 left on the Pro plan. r1 files are untouched. Status stays OPEN.
+
+
 
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
