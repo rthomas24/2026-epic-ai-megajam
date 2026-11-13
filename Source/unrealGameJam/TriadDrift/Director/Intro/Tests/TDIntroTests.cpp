@@ -14,6 +14,10 @@
 #include "Camera/CameraComponent.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDCutPresentation.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "LevelSequence.h"
 #include "MovieScene.h"
 
@@ -340,6 +344,85 @@ bool FTDIntroSequence::RunTest(const FString& Parameters)
 	TestEqual(TEXT("our bars are back for the code shots"), F.Intro->GetOverlay().Bars, 1.f);
 	F.Intro->SetSequenceOverrideForTests(nullptr);
 	F.Intro->Skip();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroSkipKeys, "TriadDrift.Director.Intro.SkipCountsHeldButtonsOnly", TD_TEST_FLAGS)
+bool FTDIntroSkipKeys::RunTest(const FString& Parameters)
+{
+	// Review m9: releasing one of two held buttons never cancels the skip; a stick pushed is not a button.
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()) || !TestTrue(TEXT("plays"), F.Play()))
+	{
+		return false;
+	}
+	F.Run(1.2f);
+	FTDTestWorld::InjectKey(F.PC, EKeys::Gamepad_LeftStick_Up, true);
+	F.Run(0.8f);
+	FTDTestWorld::InjectKey(F.PC, EKeys::Gamepad_LeftStick_Up, false);
+	F.W.Tick(1.f / 30.f);
+	TestTrue(TEXT("a stick held over the dead zone is not a skip"), F.Intro->IsPlaying());
+	TestFalse(TEXT("nor a skip hint"), F.Intro->GetOverlay().SkipProgress > 0.f);
+
+	FTDTestWorld::InjectKey(F.PC, EKeys::SpaceBar, true);
+	FTDTestWorld::InjectKey(F.PC, EKeys::Gamepad_FaceButton_Bottom, true);
+	F.Run(0.25f);
+	FTDTestWorld::InjectKey(F.PC, EKeys::Gamepad_FaceButton_Bottom, false); // one let go, the other still held
+	F.Run(0.4f);
+	TestFalse(TEXT("skipped: the other button kept the hold"), F.Intro->IsPlaying());
+	FTDTestWorld::InjectKey(F.PC, EKeys::SpaceBar, false);
+	F.W.Tick(1.f / 30.f);
+	TestEqual(TEXT("finished once"), F.Finished, 1);
+	TestTrue(TEXT("sticks and the wheel are not skip keys"), !UTDIntroDirector::IsSkipKey(EKeys::Gamepad_RightStick_Left)
+		&& !UTDIntroDirector::IsSkipKey(EKeys::MouseScrollUp) && !UTDIntroDirector::IsSkipKey(EKeys::MouseX)
+		&& UTDIntroDirector::IsSkipKey(EKeys::Gamepad_FaceButton_Right) && UTDIntroDirector::IsSkipKey(EKeys::Escape));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroSlate, "TriadDrift.Director.Intro.ThenTheSlate", TD_TEST_FLAGS)
+bool FTDIntroSlate::RunTest(const FString& Parameters)
+{
+	// Review m11: scene one's slate at the hand-off ("then the slate"), not repeated by the real first take; a slate
+	// that fires while the intro owns the screen is shown after it, not lost.
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()) || !TestTrue(TEXT("plays"), F.Play()))
+	{
+		return false;
+	}
+	UTDCutPresentation* Cut = UTDDirectorSubsystem::Get(F.W.GetWorld())->GetCutPresentation();
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("cut presentation"), Cut) || !TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	// A take starts mid-intro (another system's scene): held, not drawn over the intro.
+	F.Run(2.f);
+	Bus->BroadcastTakeStarted(TEXT("Obj_Outpost"), 2);
+	F.Run(0.5f);
+	TestEqual(TEXT("not over the intro"), Cut->GetState().SlateAlpha, 0.f);
+	F.Run(0.4f);
+	F.Intro->Skip();
+	F.Run(0.3f);
+	TestTrue(TEXT("shown once the intro is over"), Cut->GetState().SlateAlpha > 0.f && Cut->GetState().SlateText.ToString().Contains(TEXT("TAKE 2")));
+	F.Run(3.f);
+
+	// Watched to the end: the slate comes up during the hand-off.
+	TestTrue(TEXT("plays again"), F.Play());
+	F.Intro->DebugJumpToShot(F.Intro->GetShots().Num() - 1);
+	bool bSlateInHandOff = false;
+	for (float T = 0.f; T < 8.f && F.Intro->IsPlaying(); T += 1.f / 30.f)
+	{
+		F.W.Tick(1.f / 30.f);
+		bSlateInHandOff = bSlateInHandOff || (F.Intro->IsHandingOff() && Cut->GetState().SlateAlpha > 0.5f);
+	}
+	TestTrue(TEXT("then the slate: up during the hand-off"), bSlateInHandOff);
+	TestTrue(TEXT("it is scene one, take one"), Cut->GetState().SlateText.ToString().Contains(TEXT("SCENE 1")) && Cut->GetState().SlateText.ToString().Contains(TEXT("TAKE 1")));
+	// The wave's own first take moments later does not repeat it.
+	F.Run(1.6f);
+	TestEqual(TEXT("the slate has faded"), Cut->GetState().SlateAlpha, 0.f);
+	Bus->BroadcastTakeStarted(UTDGameInstance::WaveSceneId(1), 1);
+	F.Run(0.3f);
+	TestEqual(TEXT("not repeated by the real first take"), Cut->GetState().SlateAlpha, 0.f);
 	return true;
 }
 

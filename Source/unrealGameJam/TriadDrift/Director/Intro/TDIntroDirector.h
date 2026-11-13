@@ -20,6 +20,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Tickable.h"
+#include "InputCoreTypes.h"
 #include "TDIntroDirector.generated.h"
 
 class ACameraActor;
@@ -112,6 +113,10 @@ public:
 	}
 
 	bool IsPlaying() const { return bPlaying; }
+	/** The last second: the lens eases into the chase camera (the scene slate shows now). */
+	bool IsHandingOff() const { return bPlaying && bHandingOff; }
+	/** A button that may skip (not an axis, a virtual stick button or the mouse wheel). */
+	static bool IsSkipKey(const FKey& Key);
 	/** True while presentation's Level Sequence plays instead of the code shots. */
 	bool IsPlayingSequence() const { return bPlaying && bSequenceMode; }
 	/** Tests: play this sequence as if UTDUIStyle::IntroSequence pointed at it. */
@@ -176,8 +181,8 @@ private:
 	void PlayNarrationVoice(int32 Line);
 	void EnsureWidget();
 	void RemoveWidget();
-	void HandleSkipPressed();
-	void HandleSkipReleased();
+	void HandleSkipPressed(FKey Key);
+	void HandleSkipReleased(FKey Key);
 	APlayerController* GetPlayer() const;
 	FVector SunDirection() const;
 
@@ -219,6 +224,7 @@ private:
 	bool bHandingOff = false;
 	bool bSkipped = false;
 	bool bSkipHeld = false;
+	TSet<FKey> SkipKeysHeld;
 	bool bSkipConsumed = false;
 	float SkipHeldFor = 0.f;
 	float Elapsed = 0.f;

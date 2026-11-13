@@ -46,6 +46,9 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDCutPresentation.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
@@ -413,8 +416,15 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	SkipInput = NewObject<UInputComponent>(PC, TEXT("TDIntroSkip"), RF_Transient);
 	SkipInput->bBlockInput = true;
 	SkipInput->Priority = 10000;
-	SkipInput->BindKey(EKeys::AnyKey, IE_Pressed, this, &UTDIntroDirector::HandleSkipPressed);
-	SkipInput->BindKey(EKeys::AnyKey, IE_Released, this, &UTDIntroDirector::HandleSkipReleased);
+	{
+		FInputKeyBinding Pressed(FInputChord(EKeys::AnyKey), IE_Pressed);
+		Pressed.KeyDelegate.BindDelegate(this, &UTDIntroDirector::HandleSkipPressed);
+		SkipInput->KeyBindings.Add(Pressed);
+		FInputKeyBinding Released(FInputChord(EKeys::AnyKey), IE_Released);
+		Released.KeyDelegate.BindDelegate(this, &UTDIntroDirector::HandleSkipReleased);
+		SkipInput->KeyBindings.Add(Released);
+	}
+	SkipKeysHeld.Reset();
 	PC->PushInputComponent(SkipInput);
 	PC->SetIgnoreMoveInput(true);
 	PC->SetIgnoreLookInput(true);
@@ -693,8 +703,7 @@ void UTDIntroDirector::BuildShots()
 		S.SquadTo = S.SquadFrom + BestDir * 24000.f;
 		S.bTrackSquad = true;
 		S.FocalFrom = S.FocalTo = 50.f;
-		S.FStop = 5.6f;
-		S.Handheld = 2.f;
+		S.FStop = 5.6f; // wide: no handheld
 		S.Narration = 3;
 		Shots.Add(S);
 	}
@@ -734,8 +743,7 @@ void UTDIntroDirector::BuildShots()
 		S.LookTo = Gate + Dir * 9000.f;
 		S.FocalFrom = S.FocalTo = 35.f;
 		S.FStop = 4.f;
-		S.FocusDistance = 3200.f;
-		S.Handheld = 3.f;
+		S.FocusDistance = 3200.f; // wide: no handheld
 		Shots.Add(S);
 	}
 	// 6a. The threat from far away: 135 mm, the Dominion's silhouette sliding across the stars, red warp flashes.
@@ -1367,16 +1375,40 @@ void UTDIntroDirector::PlayNarrationVoice(int32 Line)
 	}
 }
 
-void UTDIntroDirector::HandleSkipPressed()
+bool UTDIntroDirector::IsSkipKey(const FKey& Key)
 {
-	bSkipHeld = true;
-	SkipHeldFor = 0.f;
+	// Real buttons only: AnyKey also reports analog axes and their virtual "stick pushed" buttons (a resting thumb
+	// drifting across a dead zone must neither skip nor cancel a skip), and the mouse wheel.
+	if (!Key.IsValid() || Key.IsAnalog() || Key.IsAxis1D() || Key.IsAxis2D() || Key.IsAxis3D())
+	{
+		return false;
+	}
+	const FString Name = Key.GetFName().ToString();
+	return !Name.Contains(TEXT("Stick_")) && !Name.Contains(TEXT("MouseScroll")) && !Name.Contains(TEXT("MouseWheel"));
 }
 
-void UTDIntroDirector::HandleSkipReleased()
+void UTDIntroDirector::HandleSkipPressed(FKey Key)
 {
-	bSkipHeld = false;
-	SkipHeldFor = 0.f;
+	if (!IsSkipKey(Key))
+	{
+		return;
+	}
+	if (SkipKeysHeld.IsEmpty())
+	{
+		SkipHeldFor = 0.f;
+	}
+	SkipKeysHeld.Add(Key);
+	bSkipHeld = true;
+}
+
+void UTDIntroDirector::HandleSkipReleased(FKey Key)
+{
+	SkipKeysHeld.Remove(Key);
+	if (SkipKeysHeld.IsEmpty())
+	{
+		bSkipHeld = false; // only when every held button is up: letting go of one never cancels another
+		SkipHeldFor = 0.f;
+	}
 }
 
 void UTDIntroDirector::UpdateSkip(float RealDelta)
@@ -1417,6 +1449,15 @@ void UTDIntroDirector::BeginHandOff()
 {
 	bHandingOff = true;
 	HandOffElapsed = 0.f;
+	// Then the slate (C-03): scene one's card comes up as the lens settles behind the ship, not seconds later
+	// with the wave. The real first take's slate does not repeat it.
+	if (UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this))
+	{
+		if (UTDCutPresentation* Cut = Director->GetCutPresentation())
+		{
+			Cut->PreviewFirstSlate(UTDGameInstance::WaveSceneId(1));
+		}
+	}
 	if (APlayerController* PC = GetPlayer())
 	{
 		if (APawn* Pawn = PC->GetPawn())
