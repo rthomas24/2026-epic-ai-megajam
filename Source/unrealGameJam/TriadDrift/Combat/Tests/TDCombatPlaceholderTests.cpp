@@ -13,6 +13,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "GameFramework/Character.h"
 #include "TriadDrift/Ground/Crew/TDCrewTypes.h"
+#include "EngineUtils.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 namespace TDCombatPlaceholderTest
@@ -498,12 +499,48 @@ bool FTDCombatPlaceholderOnFootBolts::RunTest(const FString& Parameters)
 		const float Peak = FMath::Max3(Drawn.R, Drawn.G, Drawn.B);
 		TestTrue(FString::Printf(TEXT("%s: glow %.1f, no heavy bloom (<= %.1f)"), *C.Name, Peak, FTDCombatPlaceholders::OnFootGlow), Peak > 0.f
 			&& Peak <= FTDCombatPlaceholders::OnFootGlow + 0.01f);
+		const float Spark = FTDCombatPlaceholders::OnFootImpactRadius(Look);
+		TestTrue(FString::Printf(TEXT("%s: impact spark %.0f cm radius (<= 30)"), *C.Name, Spark), Spark <= 30.f);
 		if (C.Name.StartsWith(TEXT("Heavy")))
 		{
 			TestTrue(FString::Printf(TEXT("Heavy pellet about 6 cm thick (%.1f)"), Look.Thickness), FMath::IsNearlyEqual(Look.Thickness, 6.f, 1.f));
 		}
 		P->Kill(false);
 	}
+
+	// A real hit: a Heavy pellet into a body a few metres away plays a small, dim spark, not the space impact pop.
+	AActor* Target = TDCombatTest::SpawnBody(W, ETDTeam::Player, FVector(400.f, 0.f, 1000.f), FVector(40.f));
+	FTDProjectileSpec Pellet;
+	Pellet.Speed = Heavy.BoltSpeed;
+	Pellet.CollisionRadius = 16.f;
+	Pellet.Damage = 5.f;
+	Pellet.bInheritShooterVelocity = false;
+	ATDProjectile::Launch(W.GetWorld(), Pellet, FTransform(FVector(0.f, 0.f, 1000.f)), Crew, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
+	float BiggestCm = 0.f, BrightestGlow = 0.f;
+	int32 Sparks = 0;
+	for (int32 Frame = 0; Frame < 30 && Sparks == 0; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+		{
+			if (It->IsPlaying())
+			{
+				++Sparks;
+				BiggestCm = FMath::Max(BiggestCm, It->GetActorScale3D().X * 50.f);
+				const UMaterialInstanceDynamic* FMID = Cast<UMaterialInstanceDynamic>(It->FindComponentByClass<UStaticMeshComponent>()->GetMaterial(0));
+				FLinearColor G = FLinearColor::Black;
+				if (FMID)
+				{
+					FMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), G);
+				}
+				BrightestGlow = FMath::Max(BrightestGlow, FMath::Max3(G.R, G.G, G.B));
+			}
+		}
+	}
+	TestTrue(TEXT("pellet hit the body"), Target && UTDStatics::GetHealth(Target)->GetShield() < UTDStatics::GetHealth(Target)->MaxShield);
+	TestTrue(TEXT("pellet hit plays a spark"), Sparks > 0);
+	TestTrue(FString::Printf(TEXT("spark radius %.0f cm (<= 36)"), BiggestCm), BiggestCm <= 36.f);
+	TestTrue(FString::Printf(TEXT("spark glow %.1f (<= on-foot glow)"), BrightestGlow), BrightestGlow <= FTDCombatPlaceholders::OnFootGlow + 0.01f);
 	return true;
 }
 

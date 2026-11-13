@@ -52,6 +52,8 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	static constexpr float OnFootGlow = 3.f;
 	static constexpr float OnFootMaxGrowth = 3.f;
 	static float OnFootDistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
+	/** On-foot impact spark radius: 3x the bolt's thickness, 15-30 cm (space impacts are 140-200 cm). */
+	static float OnFootImpactRadius(const FTDStreakLook& Look) { return FMath::Clamp(Look.Thickness * 3.f, 15.f, 30.f); }
 
 	/**
 	 * Colour code (AGENTS.md "Look and feel"): squad shots in their ship's colour, every enemy shot in Armada

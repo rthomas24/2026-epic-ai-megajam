@@ -959,6 +959,14 @@ void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasA
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 	{
 		const FLinearColor Color = LookColor;
+		if (bOnFootLook)
+		{
+			// On foot the hit is often a metre from the camera (a pellet on the player): a small spark at the on-foot
+			// glow, not the 140 cm space pop at glow 14 that hid the Heavy in the live check.
+			const float Dim = FTDCombatPlaceholders::OnFootGlow / FTDCombatPlaceholders::FlashGlow;
+			Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::OnFootImpactRadius(StreakLook), Color * Dim, 0.1f);
+			return;
+		}
 		if (Spec.SplashRadius > 0.f || Spec.bIsMissile)
 		{
 			// Rockets, missiles, flak and mines: a real explosion read (core, shell, debris), not a pop.
