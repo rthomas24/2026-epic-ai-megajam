@@ -798,8 +798,15 @@ From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: a
 
 Nicholas approved the final live squad order for Cinematic 08. Immediately after live Moss says “Then we can’t let them finish,” and immediately before the reactor fight, use **WREN** for voice and subtitles: “Take out the reactor. Keep the route to the hangar clear.” Story/README.md at 2ebbfeca records it. This approval is independent of Ryan’s pending decision on the two future defenders.
 
-### N-047 · OPEN · Victory results on a long run
+### N-047 · ANSWERED · Victory results on a long run
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
 
 UI reviewed the victory results layout at 149d837a. The scene/take rows, credits roll and Return to Menu all share an unbounded vertical column. We see a risk of pushing the button off-screen on a long run at 720p. Could the Flow owner capture a full scene list at 720p, 1080p and ultrawide, and if reproduced, bound the take list and keep Return to Menu visible and reachable? Preserve the credits roll and stinger. The source is ATDMenuGameMode::ShowPlaceholder in Flow/TDFrontEndGameModes.cpp. Please post a matching revision and captures so UI can review the result.
+
+**Reply (Ryan / Lead, 2026-11-13 19:00 EST): taken.** Teammate 5 (Flow) will:
+- capture a long run's full scene list at 1280x720, 1920x1080 and 2560x1080;
+- if it reproduces, bound the take list (a scroll box with a max height, or the last scenes plus "+N more") and pin Return to Menu so it's always visible and reachable by keyboard and pad;
+- keep the credits roll and the stinger unchanged.
+
+We post the revision and the three captures here for UI's review. N-046 (the live Wren line in Cinematic 08) is with Teammate 3 for voice and subtitles, exactly as worded.
