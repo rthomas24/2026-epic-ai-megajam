@@ -1,0 +1,81 @@
+{
+  "stage": "Private preparation ready; native import and actual combat binding not yet performed",
+  "title": "Ethereal Pulse (Remix)",
+  "native_wave": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01",
+  "reuse_music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music",
+  "new_native_packages": 1,
+  "proposal_01": "WITHDRAWN and preserved; never executed; do not create its extra music class",
+  "final_proposal": "02 audio specification; 03 guarded runner",
+  "user_rights": "User explicitly affirms original AI-generated track ownership and game-use permission. No further licensing questions requested.",
+  "runtime_requirement": "2D singleton playback on space combat/wave and active ground encounters; smooth fades/loop/dedup/cleanup; same Music volume control",
+  "integration_candidates": [
+    "TDAudioState bWaveActive and Combat01",
+    "ATDEncounterVolume IsActive/GetAliveCount",
+    "New optional UTDUIStyle.CombatMusic reference and native consumer by Core, subject to Lead coordination"
+  ],
+  "files": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\import_combat_music_02.py",
+      "bytes": 3907,
+      "sha256": "c418079939bef70405abf358350a5cdb23b9a4b4a446ac9c7b6c14f7b3ac1b9a"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\manifest_02.json",
+      "bytes": 626,
+      "sha256": "c7a6555880532af4d7e254b589c5bfb9939907765960f4ec8d1c78df2eee26d7"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\MUS_Combat_EtherealPulseRemix_01.wav",
+      "bytes": 26726572,
+      "sha256": "a705d8a00948cbf96bb4bbd33911cffa35e1cad102c7abaa1a839739df2a44a5"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\qa_01.json",
+      "bytes": 784,
+      "sha256": "c88645b4902120ef918540e8006863bfc9f2e1d45009429745f403d7d48cf051"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\prepared_receipt.json",
+      "bytes": 685,
+      "sha256": "d0f407ca547a30e4e9620188a4a35907a18eea067439181e6869495b61f11e32"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\source_receipt.json",
+      "bytes": 800,
+      "sha256": "b10185b0b12980bc0dde3b71d6f653b20c07b1f338e32b89c1b1500d1c77b9fd"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\mix_qa_01.json",
+      "bytes": 817,
+      "sha256": "a8f2206abebdb4b1d784ac03fa740c3cc4749304811196dbb69aaf40b31c45ca"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\mix_qa_02.json",
+      "bytes": 762,
+      "sha256": "1ca6ea543b266699b4e19147eb0c1a5940bc0c5b2476b55374954cb30b68dd8b"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\mix_preview_receipt.json",
+      "bytes": 610,
+      "sha256": "6b469e6430ef214df3f88bf4bcf67c3aad1294635ff0798ef3f3807e4b3ada43"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\mix_preview_receipt_02.json",
+      "bytes": 618,
+      "sha256": "ec7892564f33be787bb090f563d299424cd3e0aeb31f0cd3ebb811f5e3926ae0"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\import_job_03.py",
+      "bytes": 5008,
+      "sha256": "5e62796fc0b5fcd82ae9b32320bcb2be5656660a84f362d9e7c2a22c93c137e1"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\PrototypeV1\\MenuTheme01\\guarded_import.py",
+      "bytes": 7110,
+      "sha256": "85340b2eae4453e943c708601686bcfc389068e41901837a4779182585182ed5"
+    }
+  ],
+  "final_runner": "import_job_03.py",
+  "previous_ready_02_sha256": "772df4e5c80c36c53f2a686d56c8996d999c378f7a295004cbb321fdb5fbcab6",
+  "runner_changes": "Pinned dependency before loading, explicit MCP8025, own-PID cleanup in finally with monitor/cleanup error evidence; no audio/importer changes"
+}

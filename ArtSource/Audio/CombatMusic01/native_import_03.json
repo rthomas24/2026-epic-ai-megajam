@@ -1,0 +1,30 @@
+{
+  "pid": 300,
+  "exit_code": 0,
+  "reason": "completed",
+  "monitor_error": null,
+  "cleanup_error": null,
+  "cleanup_return_code": null,
+  "minimum_free_gib": 3.2323379516601562,
+  "duration_s": 34.85899999999674,
+  "protected_count": 1123,
+  "protected_unchanged": true,
+  "changed_protected": [],
+  "new_content": {
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\CombatMusic01\\MUS_Combat_EtherealPulseRemix_01.uasset": "1110b70395c6ce3b7423245dfa435ba68be4baf31e4d93f4c579dbb8842117aa"
+  },
+  "unexpected_content": [],
+  "stage": "Native Wave imported only. Fresh reload, Core combat consumer binding, real activation and Shipping pending.",
+  "engine_reason": "ok",
+  "engine_errors": 0,
+  "engine_warnings": 0,
+  "suppressed_dialogs": [],
+  "native": {
+    "wave": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01",
+    "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+    "duration_s": 139.1999969482422,
+    "looping": true,
+    "stage": "Imported only; game playback, cook and human review pending"
+  },
+  "evidence_directory": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\CombatMusic01\\Import03"
+}

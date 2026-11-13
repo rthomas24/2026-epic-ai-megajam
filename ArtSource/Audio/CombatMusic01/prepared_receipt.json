@@ -1,0 +1,20 @@
+{
+  "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\MUS_Combat_EtherealPulseRemix_01.wav",
+  "sha256": "a705d8a00948cbf96bb4bbd33911cffa35e1cad102c7abaa1a839739df2a44a5",
+  "frames": 6681600,
+  "duration_s": 139.2,
+  "first_sample": [
+    0.0,
+    0.0
+  ],
+  "last_sample": [
+    0.0,
+    0.0
+  ],
+  "loop_boundary_jump_dbfs": -240.0,
+  "loop_note": "Sample boundary is clean. Full-track musical restart remains a listening check; no beat-perfect edit claimed.",
+  "applied_gain_db": -1.65,
+  "attack_fade_ms": 5,
+  "release_fade_ms": 50,
+  "requested_combat_runtime_gain": 0.5
+}

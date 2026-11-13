@@ -1,0 +1,12 @@
+{
+  "prepared_file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\MUS_Combat_EtherealPulseRemix_01.wav",
+  "sha256": "a705d8a00948cbf96bb4bbd33911cffa35e1cad102c7abaa1a839739df2a44a5",
+  "native_root": "/Game/TriadDrift/Audio/CombatMusic01",
+  "title": "Ethereal Pulse (Remix)",
+  "frames": 6681600,
+  "duration_s": 139.2,
+  "runtime_volume": 0.5,
+  "looping": true,
+  "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music",
+  "music_class_sha256": "813d76de263314464d0ad6f698a751bec6c99ae85d262601b1df85d80e0600c7"
+}

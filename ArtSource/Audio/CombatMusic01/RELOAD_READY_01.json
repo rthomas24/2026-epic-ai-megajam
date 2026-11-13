@@ -1,0 +1,39 @@
+{
+  "stage": "Read-only native reload proposal; no playback/style/Core changes",
+  "expected_new_content": 0,
+  "expected_reports": [
+    "Saved/AudioMusic/CombatMusic01/reload_01.json"
+  ],
+  "files": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\reload_job_01.py",
+      "bytes": 5103,
+      "sha256": "6aae37a3648f1877967de5fe1fb56a53ccddca5bb6a0f741596107cdf47f2d2d"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CombatMusic01\\verify_combat_music.py",
+      "bytes": 1974,
+      "sha256": "5f4587694dd06fecd6d96c081407e170a3820c25d23e42a88fe9218af25f08b3"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\manifest_02.json",
+      "bytes": 626,
+      "sha256": "c7a6555880532af4d7e254b589c5bfb9939907765960f4ec8d1c78df2eee26d7"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\PrototypeV1\\MenuTheme01\\guarded_import.py",
+      "bytes": 7110,
+      "sha256": "85340b2eae4453e943c708601686bcfc389068e41901837a4779182585182ed5"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\CombatMusic01\\MUS_Combat_EtherealPulseRemix_01.uasset",
+      "bytes": 17294337,
+      "sha256": "1110b70395c6ce3b7423245dfa435ba68be4baf31e4d93f4c579dbb8842117aa"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\MenuTheme01\\SC_MenuTheme_Music.uasset",
+      "bytes": 1268,
+      "sha256": "813d76de263314464d0ad6f698a751bec6c99ae85d262601b1df85d80e0600c7"
+    }
+  ]
+}

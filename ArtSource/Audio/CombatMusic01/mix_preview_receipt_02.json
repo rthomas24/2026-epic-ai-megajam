@@ -1,0 +1,7 @@
+{
+  "music_window_start_s": 130,
+  "music_gain": 0.5,
+  "sfx_file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\stress_20hz_final.wav",
+  "preview": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\combat_mix_preview_02.wav",
+  "note": "Offline constant-power mono-to-stereo SFX model (0.707 each channel), music gain0.5. Not actual game PCM. Initial full-volume stereo duplication model preserved separately with -15.6LUFS mix-range flag and no clipping."
+}

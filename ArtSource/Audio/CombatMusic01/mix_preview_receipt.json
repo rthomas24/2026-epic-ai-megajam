@@ -1,0 +1,7 @@
+{
+  "music_window_start_s": 130,
+  "music_gain": 0.5,
+  "sfx_file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\stress_20hz_final.wav",
+  "preview": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\combat_mix_preview_01.wav",
+  "note": "Offline conservative balance preview only. Most energetic 5s music window plus full-level SFX stress sent to both channels; no normalizer, limiter, attenuation or concurrency trimming. Not a game mixer capture."
+}

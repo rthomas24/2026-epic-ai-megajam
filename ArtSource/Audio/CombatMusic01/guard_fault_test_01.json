@@ -1,0 +1,10 @@
+{
+  "runner_sha256": "5e62796fc0b5fcd82ae9b32320bcb2be5656660a84f362d9e7c2a22c93c137e1",
+  "injected_error": "RuntimeError('injected monitoring failure')",
+  "reason": "monitor_exception",
+  "test_child_pid": 13240,
+  "test_child_exit_code": 1,
+  "cleanup_return_code": 0,
+  "child_stopped": true,
+  "note": "Exact monitor block, harmless owned sleeping Python child, injected free_gib exception. No Unreal or asset operation."
+}
