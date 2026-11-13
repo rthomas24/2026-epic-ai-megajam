@@ -21,7 +21,7 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 Maintainer: Nick's Lead Coordinator. This section is the single live ownership view; [superseded Nick checkpoints](docs/coordination/archive/CLAIMS-Nick-2026-11-13-d1672ec.md) are preserved verbatim and authorize no work. The latest direct human instruction and this published scope control dispatch; a reserved path, historical goal or expired resource lease is not permission to start. Acceptance evidence belongs in [visual STATUS](docs/visual/STATUS.md); questions/decisions belong in [MESSAGEBOARD](MESSAGEBOARD.md).
 
 ### STOPPED by Nick - November13 latest instruction
-All Nick agents and Lead production are STOPPED after safe checkpoint. All queued tasks/native grants/resource tokens are REVOKED; previous RESUMED rows below preserve ownership/history only and authorize no work. No goal is active in Lead or the responding specialists. Do not resume goals, imports, audits, screenshots, source preparation, host work or production without Nick's further instruction. Preserve all dirty/private/published work. Ryan's team has been asked to checkpoint/stop through N036; their actual stop requires their own confirmation.
+All Nick agents and Lead production are STOPPED after safe checkpoint. All queued tasks/native grants/resource tokens are REVOKED; previous RESUMED rows below preserve ownership/history only and authorize no work. No goal is active in Lead or the responding specialists. Do not resume goals, imports, audits, screenshots, source preparation, host work or production without Nick's further instruction. Preserve all dirty/private/published work. N036 applies only to Nick's agents and processes.
 
 ### Current lanes
 
