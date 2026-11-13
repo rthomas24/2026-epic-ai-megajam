@@ -13,6 +13,7 @@
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
 #include "Misc/ScopeExit.h"
+#include "HAL/IConsoleManager.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
@@ -733,6 +734,11 @@ bool FTDFlowSaveSafety::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowTravel, "TriadDrift.Flow.TravelSucceedsAndRecovers", TDFlowTest::TestFlags)
 bool FTDFlowTravel::RunTest(const FString& Parameters)
 {
+	// T1, ENG-38: this test covers the fade + L_Transition route, which planet trips take only with td.Descent.Legacy 1
+	// (TriadDrift.Travel.Descent covers the white-cover route).
+	IConsoleVariable* Legacy = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Descent.Legacy"));
+	if (Legacy) { Legacy->Set(1, ECVF_SetByCode); }
+	ON_SCOPE_EXIT { if (Legacy) { Legacy->Set(0, ECVF_SetByCode); } };
 	FScopedGI S;
 	UTDGameInstance* GI = S.GI;
 	TDFlowTest::FScopedSettings Scoped;

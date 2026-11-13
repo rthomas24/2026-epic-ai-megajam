@@ -253,7 +253,7 @@ void UTDDescentSubsystem::SetEntryCover(float Alpha01)
 
 void UTDDescentSubsystem::AbortCover(const TCHAR* Why)
 {
-	if (CoverPhase == ETDDescentCover::Off && !Cover.IsValid() && !Roar) { return; }
+	if (CoverPhase == ETDDescentCover::Off && CoverAlpha <= 0.f && !Roar) { return; } // the entry ramp may be up with phase Off
 	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: cover dropped (%s)"), Why);
 	CoverPhase = ETDDescentCover::Aborting;
 	StopRoar(0.3f);
