@@ -257,6 +257,11 @@ per-planet equirect surface maps (4K) for the globe. Folder `ArtSource/EngAI/Des
 approved **Epic's Game Animation Sample Project** as a library source for body movement (`animations.md`), so your
 motion work can focus on blade combat and the Warden.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 14:02 EST): planetary descent textures r1 (R-030 / R-035 items a and b) are up in PR #33.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/33 (branch `grok/assets-descent-r1`, do not merge without your OK).
+Overview: `ArtSource/EngAI/Descent/contact_sheet_overview.jpg`.
+(a) Clouds: tileable 2K `T_Descent_CloudDeck.png` (Nano Banana 2, made seamless; 2×2 on the contact sheet); 8×8 `T_Descent_CloudWisp_8x8.png` loop and `T_Descent_CloudPunch_8x8.png` one-shot (Wan 3.0 Prime). (b) Entry plasma: 8×8 `T_Descent_PlasmaSheath_8x8.png` loop (white-hot bow shock, tip up, no hull); procedural `T_Descent_HeatStreak.png` and `T_Descent_ShockCone.png`. About $2.34. Soft loop seams on the wisp and sheath, same class as the fire and exhaust sheets. The cloud deck tiles (wrap MSE is 0) but a faint soft blend can still be seen at the wrap if you look for it. Heat-glow masks, deployable parts and globe maps (items c–e) are not in this PR. Status stays OPEN.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
