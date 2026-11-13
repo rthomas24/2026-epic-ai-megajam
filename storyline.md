@@ -150,3 +150,34 @@ Nicholas for every line, voice and the score.
 2. Today's waves 1-2 become the tutorial battle: wave 1 = evasion, weapons, switching; wave 2 = the larger craft and the
    withdrawal. Is that the split you want, and does the tutorial music (#24) end at the withdrawal?
 3. The intro grows from 49 s to about 2:20: confirm the length (a skip stays available from the first second).
+
+## 12. Sequence 02: *Aftermath* (Nicholas's brief, received Nov 13)
+Original documents from Nicholas are in [`Story/`](Story/) (the three `.docx` files and his README); readable copies
+and our build notes are here and in `docs/story/`. This sequence answers how the tutorial battle ends.
+
+**When:** immediately after the player wins the opening tutorial battle and escapes the Dominion's defence perimeter.
+**Length:** 75-100 seconds, in-engine: existing ships, cockpit / HUD close-ups, radio dialogue, a distant Dominion. No
+faces. Skippable after a first viewing.
+**Its job:** change the assignment from "identify the vessel" to "follow its forces to Verdance", show that the enemy is
+running a purposeful search, and plant one quiet clue.
+
+| Time | On screen | Beat |
+|---|---|---|
+| 0:00-0:20 | Triad regroups beyond a faint boundary of interference; the last drones peel away; alarms settle; the HUD returns to normal | They survived; the mission has changed. Kato: "They're not pursuing us." |
+| 0:20-0:45 | A tactical display: hostile contacts leaving the Dominion in disciplined lanes toward Verdance; some never targeted Triad. **A faint pulse; the player's navigation display briefly marks the corridor the drones use, then clears. Nobody comments** | The attackers follow an objective. The clue: the Dominion's systems can anticipate Triad |
+| 0:45-1:10 | Mission Control reconnects through static: a research outpost on Verdance has gone dark near a restricted survey zone | New orders: avoid the mothership, reach Verdance, find the outpost, recover its survey data |
+| 1:10-1:30 | Triad plots a course; the camera lingers on the Dominion; **a row of its exterior lights changes in the same rhythm as the pulse on the HUD**; match cut from the jump to Verdance | The connection is visible but unexplained |
+
+**Rules from the brief:** the Dominion never speaks plainly here; the fleet defends its route then resumes its
+operation; **the "Don't-" fragment is NOT repeated here** (it is kept for the finale); Command does not know what the
+Dominion is; the outpost's name, the planetary resource and the future catastrophe are undecided and must not be
+presented as lore.
+
+**What it means for the game:** the first playable stretch is ONE tutorial battle (today's wave 1, shaped as the
+*First Contact* tutorial: evasion, weapons, switching, a larger craft, the withdrawal where drones stop at a boundary),
+then this sequence, then Verdance. Today's wave 2 becomes part of that battle or the approach to Verdance (T4 and T3
+propose; Nicholas confirms in issue #29). New needs: a simple animated tactical display of drone lanes (T2, in the new
+HUD's style), the navigation pulse on the HUD (T2), the Dominion's light row pulsing in the same rhythm (T4 / effects
+builder), the lines as transmissions `S2_*` (T3). **Built once, with the opening, after the art is in** (same gate as
+§11); T3 adds it to the shot plan now.
+
