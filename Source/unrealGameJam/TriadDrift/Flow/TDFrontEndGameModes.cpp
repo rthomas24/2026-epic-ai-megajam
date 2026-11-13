@@ -246,9 +246,14 @@ void ATDMenuGameMode::ShowPlaceholder()
 		];
 		const FTDProgress& P = GI->GetProgressRef();
 		const int32 Seconds = FMath::RoundToInt(P.RunTimeSeconds);
+		int32 Cuts = 0; // a CUT is a scene restarted: every take after the first (Stats.Deaths counts ships lost, which a squad survives)
+		for (const FTDSceneTakes& Row : GI->GetSceneTakes())
+		{
+			Cuts += FMath::Max(0, Row.Takes - 1);
+		}
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f)
 		[
-			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths)))
+			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   SHIPS LOST %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths, Cuts)))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18))
 		];
 		for (const FTDSceneTakes& Row : GI->GetSceneTakes())

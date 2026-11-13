@@ -593,6 +593,8 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   Nick's list. Sources go in `ArtSource/EngProps/**`, Unreal assets in `Content/TriadDrift/Gameplay/{Props,Vegetation}/**`.
   Nothing hero, no ships, characters, sky, terrain, VFX, UI or audio. Nicholas keeps art direction: he approves, restyles or
   replaces any of it, and a mesh assigned through his presentation data assets always wins.
+  **Exception (Ryan, Nov 12, R-019):** the Null Armada enemy trooper character is built by engineering from Ryan's
+  concept, in `ArtSource/EngCharacters/NullTrooper/**` and `Content/TriadDrift/Gameplay/Characters/NullTrooper/**`.
 - **Headless first** (proposed by Nick's side in N-017, Nov 12): default to headless, background or command-line runs
   for automation, asset processing, Blender, builds, tests and Git; use a GUI only for inspection, interaction or
   gameplay validation that needs one. Headless is not the same as light: save work and checkpoints first, check free

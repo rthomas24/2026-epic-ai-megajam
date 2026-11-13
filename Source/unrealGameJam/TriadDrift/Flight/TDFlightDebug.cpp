@@ -2,6 +2,7 @@
 //
 //   TD.Flight.Threats   log the player ship's hull / shield, damage taken since the last call, the nearest enemy and how
 //                       many enemies are within 1 km / 2 km (pilot's-eye view of a fight: am I being chased, am I hit)
+//   TD.Flight.Feedback  log the no-art feedback: tick cost, frame time, dust motes, bursts, camera kick, placeholder counts
 
 #include "CoreMinimal.h"
 
@@ -14,9 +15,33 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
+#include "Misc/App.h"
 
 namespace TDFlightDebug
 {
+	void Feedback(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		ATDShip* Ship = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+		UTDFlightFeedbackComponent* FB = Ship ? Ship->GetFlightFeedback() : nullptr;
+		if (!FB)
+		{
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Feedback: no player ship"));
+			return;
+		}
+		FString Counts;
+		for (const TCHAR* M : { TEXT("Dodge"), TEXT("BoostStart"), TEXT("DriftRelease"), TEXT("Brake"), TEXT("HyperdriveJump"),
+			TEXT("HyperdriveDropOut"), TEXT("PortalTransit"), TEXT("AtmosphereEntry"), TEXT("Touchdown"), TEXT("TakeOff") })
+		{
+			Counts += FString::Printf(TEXT(" %s=%d"), M, FB->GetPlaceholderCount(M));
+		}
+		const FRotator Off = FB->GetCameraOffset();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Feedback: tick %.4f ms | frame %.2f ms | dust %d | bursts %d | cam P%.2f Y%.2f R%.2f FOV%+.2f |%s"),
+			FB->GetAverageTickMs(), FApp::GetDeltaTime() * 1000.0, FB->GetVisibleDustCount(), FB->GetActiveBurstCount(),
+			Off.Pitch, Off.Yaw, Off.Roll, FB->GetFOVOffset(), *Counts);
+	}
+
 	void Threats(const TArray<FString>& Args, UWorld* World)
 	{
 		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
@@ -60,5 +85,9 @@ namespace TDFlightDebug
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightThreatsCmd(TEXT("TD.Flight.Threats"),
 	TEXT("Log the player ship's hull/shield, damage since the last call, and nearby enemies (agent feel playtests)"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Threats));
+
+static FAutoConsoleCommandWithWorldAndArgs GTDFlightFeedbackCmd(TEXT("TD.Flight.Feedback"),
+	TEXT("Log the no-art flight feedback: its tick cost, dust motes shown, active bursts, camera kick and placeholder counts."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Feedback));
 
 #endif // !UE_BUILD_SHIPPING

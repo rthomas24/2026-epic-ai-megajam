@@ -805,6 +805,9 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   combo ×3, lunge, air slam, block, deflect flourish, guard break; interact and carry; climb into
   and out of the cockpit.
 - **Energy blade:** emissive core and trail, scorch decals, the perfect-deflect flash.
+- **(Nov 12)** The Null Armada trooper model (Trooper, then Grunt and Heavy variants) is built by engineering
+  from Ryan's concept (`ArtSource/EngCharacters/NullTrooper/`, `MESSAGEBOARD.md` R-019); the rest of this item
+  stays with Nick.
 - **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
   deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
 

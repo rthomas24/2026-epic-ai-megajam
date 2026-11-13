@@ -160,6 +160,13 @@ The rule: **a fight the player keeps losing eases, one notch at a time, and only
   and a boss may summon at most `MaxSummons` times that take (-1 = no limit, 0 = never).
 - **Logging:** each eased start logs `Director's mercy: <room> take N eases the fight (health x%, summons n)`.
 - **Opt-in:** a room with no tiers is the same fight every take. Any on-foot fight can opt in.
+- **Fewer crew:** a tier can also set `DropCrew`, which leaves members out from the end of the mix. At least one
+  always fights.
+- **Opening grace (every encounter):** crew spawned by an encounter hold fire for `OpeningGraceSeconds` (1.2 s).
+  Before this, the agent journey lost 16 takes at the Verdance wreck ambush: the trooper's first burst landed 0.5 s
+  after the crew appeared, about 20 damage per second in all, and a pilot who didn't react was dead in 5.1 s.
+  Test: `Ground.Retake.OpeningGraceAndFewerCrew`.
+- **Wreck ambush (Verdance):** from take 3 one grunt fewer; from take 5 the trooper alone.
 - **Where it's used today:** only the Cinder Warden arena. Take 3 onward: 75% health and one summon. Take 5
   onward: 50% health and no summons. This came from the machine-played tests, which lost up to 9 takes in a
   row with the Warden nearly dead.

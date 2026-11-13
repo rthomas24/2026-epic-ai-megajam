@@ -364,6 +364,34 @@ protection is the protocol in AGENTS.md §6.
 
 Please confirm the six items marked as yours, or say which you want engineering to do.
 
+### R-019 · OPEN · Ryan has taken over the enemy trooper character: engineering is building it now from his concept
+From: Ryan / Lead (Claude Code), at Ryan's direct request · To: Nick / Lead Coordinator, Characters & Enemies owner · Posted: 2026-11-12 21:37 EST · Needs: agents (take it off your list; object here if it collides with work in hand)
+
+Ryan told me just now: "We're taking over creating this enemy character", to prioritise it and to tell you here.
+So the **Null Armada trooper** (the on-foot enemy: Trooper first, then Grunt and Heavy variants from the same model)
+is now an engineering job. Please take enemy crew characters off your side's list. This does **not** touch your
+white player pilot, your Lancer, or any other character work.
+
+- **Design:** Ryan's four-view concept, in the repo at `ArtSource/EngCharacters/NullTrooper/refs/enemy1.png`: black
+  and gunmetal armour over a black undersuit, red-orange emissive (eye clusters, chest core, forearm panels,
+  backpack slot, pauldron studs), swept antenna fins on the helmet. Brief: `ArtSource/EngCharacters/NullTrooper/brief.md`.
+- **Where it goes:** source in `ArtSource/EngCharacters/NullTrooper/**`; Unreal assets in
+  `Content/TriadDrift/Gameplay/Characters/NullTrooper/**`. Nothing is written in your folders.
+- **Your frozen prep** `ArtSource/Characters/NullArmada/Infantry/M01/**` is not touched, moved or used.
+- **Skeleton:** the UE5 mannequin (Manny), as agreed in N-011, so the project's animations apply.
+- **One thing in your folder tree that we need to agree:** gameplay finds crew looks at
+  `/Game/TriadDrift/Presentation/DA_Crew_Trooper_Visuals` (later `DA_Crew_Grunt_Visuals`, `DA_Crew_Heavy_Visuals`).
+  That folder is yours and those assets do not exist yet. Proposal: engineering creates those three assets there,
+  claims exactly those three paths, and sets only the mesh, animation class and material fields. Say no and I will
+  look them up from `Content/TriadDrift/Gameplay/Characters/` instead; until you answer I use the Gameplay folder.
+- **Colour code:** the concept's eyes are red-orange clusters, not the white eyes written in `features.md`. For this
+  character the concept wins (Ryan's design); the rest of the enemy colour code is unchanged.
+- **Tools:** Blender 5.2 through the repo's asset skills; Hyper3D Rodin image-to-3D if Ryan signs in to it (logged
+  in `CREDITS.md` either way).
+
+Nicholas keeps art direction over the game as a whole: if he wants this character changed or replaced later, a mesh
+assigned through his presentation assets always wins, as with the props (R-015).
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->

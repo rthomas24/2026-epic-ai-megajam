@@ -306,6 +306,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	bool bTriggerOnOverlap = true;
 
+	/** Spawned crew hold fire this long: the fight shows itself before it hurts (playtest: an ambush trooper's first
+	 *  burst landed 0.5 s after the crew appeared, and a pilot who didn't react was dead in 5 s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
+	float OpeningGraceSeconds = 1.2f;
+
 	/** Director's mercy: easing per take of this fight (empty = always the same fight). Sorted by FromTake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TArray<FTDRetakeMercyTier> MercyTiers;
