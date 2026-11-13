@@ -220,7 +220,7 @@ void ATDDebugHUD::DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool b
 		const FString Prompt = Data->GetInteractPrompt().ToString();
 		if (!Prompt.IsEmpty())
 		{
-			Centred(Prompt, 0.70f, 1.5f, FLinearColor::White);
+			Centred(Prompt, 0.665f, 1.5f, FLinearColor::White);
 		}
 	}
 	FString Line;
@@ -234,7 +234,7 @@ void ATDDebugHUD::DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool b
 	}
 	if (!Line.IsEmpty())
 	{
-		Centred(Line, 0.735f, 1.2f, ColorDim);
+		Centred(Line, 0.705f, 1.2f, ColorDim);
 	}
 }
 
