@@ -14,7 +14,7 @@ spec = importlib.util.spec_from_file_location("td_mcp", os.path.join(REPO, "Tool
 td = importlib.util.module_from_spec(spec); spec.loader.exec_module(td)
 PORT = int(sys.argv[1])
 LOG = os.path.join(REPO, "Saved", "Logs", "td-play-mcp_%d.log" % PORT)
-OUT = os.path.join(KIT, "review", "game")
+OUT = os.environ.get("TD_SHOT_DIR") or os.path.join(KIT, "review", "game")   # Relay / Wreck set their own review/game
 client = td.McpClient("http://127.0.0.1:%d/mcp" % PORT, 180)
 client.connect()
 

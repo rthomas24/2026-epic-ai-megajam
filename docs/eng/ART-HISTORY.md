@@ -73,6 +73,8 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | | mannequin-skeleton versions | `17e0437` and earlier | same |
 | Pilot blade clips (light 1-3, heavy, dash, hit react front / back) | Grok Bot HY-Motion set, retargeted (current on `lead/int`; not committed at hand-over) | Lead's commit | `Content/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_{Light1,Light2,Light3,Heavy,Dash,HitReact_Front,HitReact_Back}`; sources `A_Pilot_Blade_*`; scripts `ArtSource/EngAnim/PilotBlade` |
 | | template-mannequin boxing and rifle versions (the re-timed `*_v2` copies are kept too) | `1050b21` and earlier | same folder, as `A_Pilot_{Light1,Light2,Light3,Heavy,Dash,HitReact_Front,HitReact_Back}_v1`; to go back, copy `_v1` over the name |
+| Walkable planet props: survey outpost, Ancient Relay, Verdance wreck | Grok Bot's Rodin meshes made walkable, r2 (relay stairs re-sloped to 20 deg, relay emissive on RelayPower^2, wreck ramps on both sides and exact deck collision in source; the r2 wreck deck fix and relay emissive are in the scripts but not re-imported). Being replaced (Ryan, Nov 13 evening) by the engineering modular kit wherever the pilot walks; these meshes stay as reference and out-of-reach exterior dressing | WIP commit after `b9a1a624` ("props: WIP r2 relay and wreck ...") | `Content/TriadDrift/Gameplay/Props/{Outpost,Relay,Wreck}`, `ArtSource/EngProps/Outpost/**` (`export/*_Site.manifest.json`, `*/review/game/*.png`) |
+| | r1 (outpost walked; relay and wreck imported, not walked) | `b9a1a624` | same |
 
 Earlier versions of anything: `git log --oneline -- <path>`. Local review renders and capture sets that are not in
 git (`Saved/TDShots/**`, `Saved/*/` builder scratch) are kept on Ryan's machine and are not cleaned up.
