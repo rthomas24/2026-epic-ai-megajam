@@ -1,0 +1,82 @@
+{
+  "stage": "Prelude imported and fresh-reload verified; tutorial hooks and final gameplay video pending",
+  "claim_commit": "7ef0f435",
+  "host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\presentation-runtime-1113",
+  "build_commit": "dae4943af133bd21407f2d9c07a2ee575f31eb55",
+  "reports": {
+    "import": {
+      "guard": {
+        "pid": 25512,
+        "exit_code": 0,
+        "reason": "completed",
+        "monitor_error": null,
+        "cleanup_error": null,
+        "minimum_free_gib": 3.677356719970703,
+        "duration_s": 13.860000000000582,
+        "protected_count": 1693,
+        "changed_protected": [],
+        "unexpected_changes": [],
+        "new_content": [
+          "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\presentation-runtime-1113\\Content\\TriadDrift\\Audio\\CombatMusic01\\MUS_Tutorial_EtherealPulse_Prelude38_01.uasset"
+        ],
+        "style_sha256": "5ce634e54470596acc70ed3ed403be802b47435eb301fe10c1729a895ec775a8",
+        "source_pins": {
+          "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\native_prelude.py": "eb1cce5142194735001a9cf8d2822a2410ba87c0a42b913ca661dc0b3c3c39c2"
+        }
+      },
+      "engine_reason": "ok",
+      "engine_errors": 0,
+      "engine_warnings": 0,
+      "asset_check": {
+        "stage": "Native prelude only; real tutorial synchronization and final video pending",
+        "mode": "import",
+        "asset": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Tutorial_EtherealPulse_Prelude38_01.MUS_Tutorial_EtherealPulse_Prelude38_01",
+        "sha256": "9b843cd44cd1a3f377ab002c8213b023b135a1be7ce702c1993fe9af6fe431f9",
+        "bytes": 4629609,
+        "duration_s": 38,
+        "looping": false,
+        "volume": 0.5,
+        "pitch": 1,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+        "style_loop_original_class_unchanged": true
+      }
+    },
+    "reload": {
+      "guard": {
+        "pid": 20492,
+        "exit_code": 0,
+        "reason": "completed",
+        "monitor_error": null,
+        "cleanup_error": null,
+        "minimum_free_gib": 3.7988929748535156,
+        "duration_s": 12.890999999999622,
+        "protected_count": 1694,
+        "changed_protected": [],
+        "unexpected_changes": [],
+        "new_content": [],
+        "style_sha256": "5ce634e54470596acc70ed3ed403be802b47435eb301fe10c1729a895ec775a8",
+        "source_pins": {
+          "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\native_prelude.py": "eb1cce5142194735001a9cf8d2822a2410ba87c0a42b913ca661dc0b3c3c39c2"
+        }
+      },
+      "engine_reason": "ok",
+      "engine_errors": 0,
+      "engine_warnings": 0,
+      "asset_check": {
+        "stage": "Native prelude only; real tutorial synchronization and final video pending",
+        "mode": "reload",
+        "asset": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Tutorial_EtherealPulse_Prelude38_01.MUS_Tutorial_EtherealPulse_Prelude38_01",
+        "sha256": "9b843cd44cd1a3f377ab002c8213b023b135a1be7ce702c1993fe9af6fe431f9",
+        "bytes": 4629609,
+        "duration_s": 38,
+        "looping": false,
+        "volume": 0.5,
+        "pitch": 1,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+        "style_loop_original_class_unchanged": true
+      }
+    }
+  },
+  "style_unchanged": true,
+  "native_slot_released": true
+}
