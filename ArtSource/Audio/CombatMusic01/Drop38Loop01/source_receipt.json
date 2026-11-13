@@ -1,0 +1,37 @@
+{
+  "stage": "Offline loop prepared; native import, runtime handoff and Nick listening pending",
+  "original_prepared_sha256": "a705d8a00948cbf96bb4bbd33911cffa35e1cad102c7abaa1a839739df2a44a5",
+  "source_start_s": 38,
+  "source_end_s": 95,
+  "period_s": 57,
+  "crossfade_ms": 120,
+  "crossfade_type": "Equal-power tail into source37.88..38s pre-roll",
+  "initial_fade_ms": 150,
+  "initial_fade_scope": "Preview only; runtime director must apply150ms once per start, not per loop",
+  "asset": {
+    "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\Drop38Loop01\\MUS_Combat_EtherealPulseRemix_Drop38_01.wav",
+    "sha256": "94531142baeaefac8b75bc661342b7a63b111a2c4ed5d2a203bb25f7f158f8d6",
+    "frames": 2736000,
+    "duration_s": 57.0
+  },
+  "two_loop_preview": {
+    "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\Drop38Loop01\\Drop38_TwoLoops_114s.wav",
+    "sha256": "29a022d263e0b2d4c8f2298a147fd6cfd26204a04c8595c366bb1797c650bfcc",
+    "frames": 5472000,
+    "duration_s": 114.0
+  },
+  "join_preview": {
+    "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\Drop38Loop01\\Drop38_JoinPreview_6s.wav",
+    "sha256": "1fceaab64f5590d7b3e920c017cf4b426bab2d2c8a4ba1cbeb344982fd9f4123",
+    "frames": 288000,
+    "duration_s": 6.0
+  },
+  "boundary_delta_pcm": [
+    355,
+    1787
+  ],
+  "boundary_is_original_adjacent_samples": true,
+  "source_unchanged": true,
+  "sample_peak_dbfs": -6.640185098435374,
+  "clipped_samples": 0
+}

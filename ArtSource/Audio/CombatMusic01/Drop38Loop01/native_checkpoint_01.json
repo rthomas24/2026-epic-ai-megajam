@@ -1,0 +1,168 @@
+{
+  "stage": "Native imported, isolated CombatMusic-only binding and fresh reload verified; tutorial code and actual audio/video pending",
+  "host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\presentation-runtime-1113",
+  "build_commit": "dae4943af133bd21407f2d9c07a2ee575f31eb55",
+  "claim_commit": "7c1c625e",
+  "reports": {
+    "import_guard": {
+      "pid": 3060,
+      "exit_code": 0,
+      "reason": "completed",
+      "monitor_error": null,
+      "cleanup_error": null,
+      "minimum_free_gib": 4.076084136962891,
+      "duration_s": 19.95299999999952,
+      "protected_count": 1687,
+      "changed_protected": [],
+      "unexpected_changes": [],
+      "new_content": [
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\presentation-runtime-1113\\Content\\TriadDrift\\Audio\\CombatMusic01\\MUS_Combat_EtherealPulseRemix_Drop38_01.uasset"
+      ],
+      "style_sha256": "6cfe3e6c3ed711b6e7421c82793180094703272966aa56b72b3e3e2b09d34822",
+      "source_pins": {
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\import_drop38.py": "2450db39262fec5aab87f86de2c3c5a47a31676520c6654a0a909af09a0bc1aa"
+      }
+    },
+    "import": {
+      "stage": "New Wave imported only; fresh reload/binding/runtime/listening pending",
+      "asset": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_Drop38_01.MUS_Combat_EtherealPulseRemix_Drop38_01",
+      "sha256": "d2166e8e1a311161560ee7dab3c6d775e62c63ac1f3a66a1a13379e074a4cae5",
+      "bytes": 7546344,
+      "duration_s": 57.0,
+      "looping": true,
+      "volume": 0.5,
+      "class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+      "source_preserved": true,
+      "old_wave_preserved": true
+    },
+    "bind_guard": {
+      "pid": 8936,
+      "exit_code": 0,
+      "reason": "completed",
+      "monitor_error": null,
+      "cleanup_error": null,
+      "minimum_free_gib": 4.2654876708984375,
+      "duration_s": 16.063000000000102,
+      "protected_count": 1688,
+      "changed_protected": [
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\presentation-runtime-1113\\Content\\TriadDrift\\Presentation\\DA_UI_Style.uasset"
+      ],
+      "unexpected_changes": [],
+      "new_content": [],
+      "style_sha256": "5ce634e54470596acc70ed3ed403be802b47435eb301fe10c1729a895ec775a8",
+      "source_pins": {
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\native_operations.py": "d76746c95eaefccbf7caac216363da89743c91d8cd42f78084496edf783d5b02"
+      }
+    },
+    "binding": {
+      "mode": "bind",
+      "style_sha_before": "6cfe3e6c3ed711b6e7421c82793180094703272966aa56b72b3e3e2b09d34822",
+      "style_sha_after": "5ce634e54470596acc70ed3ed403be802b47435eb301fe10c1729a895ec775a8",
+      "all_other_exported_fields_unchanged": true,
+      "wave_sha256": "d2166e8e1a311161560ee7dab3c6d775e62c63ac1f3a66a1a13379e074a4cae5",
+      "wave": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_Drop38_01.MUS_Combat_EtherealPulseRemix_Drop38_01",
+      "duration_s": 57,
+      "looping": true,
+      "volume": 0.5,
+      "full_original_and_class_preserved": true,
+      "stage": "Isolated native check only; real tutorial timing/fade/video pending"
+    },
+    "reload_guard": {
+      "pid": 3920,
+      "exit_code": 0,
+      "reason": "completed",
+      "monitor_error": null,
+      "cleanup_error": null,
+      "minimum_free_gib": 3.8826866149902344,
+      "duration_s": 12.983999999999469,
+      "protected_count": 1688,
+      "changed_protected": [],
+      "unexpected_changes": [],
+      "new_content": [],
+      "style_sha256": "5ce634e54470596acc70ed3ed403be802b47435eb301fe10c1729a895ec775a8",
+      "source_pins": {
+        "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\native_operations.py": "d76746c95eaefccbf7caac216363da89743c91d8cd42f78084496edf783d5b02"
+      }
+    },
+    "reload": {
+      "mode": "reload",
+      "style_sha256": "5ce634e54470596acc70ed3ed403be802b47435eb301fe10c1729a895ec775a8",
+      "all_exported_values_match_binding": true,
+      "wave_sha256": "d2166e8e1a311161560ee7dab3c6d775e62c63ac1f3a66a1a13379e074a4cae5",
+      "wave": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_Drop38_01.MUS_Combat_EtherealPulseRemix_Drop38_01",
+      "duration_s": 57,
+      "looping": true,
+      "volume": 0.5,
+      "full_original_and_class_preserved": true,
+      "stage": "Isolated native check only; real tutorial timing/fade/video pending"
+    },
+    "import_engine": {
+      "exit_code": 0,
+      "reason": "ok",
+      "duration_s": 16.1,
+      "log_counts": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    "bind_engine": {
+      "exit_code": 0,
+      "reason": "ok",
+      "duration_s": 12.4,
+      "log_counts": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    "reload_engine": {
+      "exit_code": 0,
+      "reason": "ok",
+      "duration_s": 9.9,
+      "log_counts": {
+        "errors": 0,
+        "warnings": 0
+      }
+    }
+  },
+  "recorder": {
+    "exe": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\ProcessCapture01\\Build01\\process_capture.exe",
+    "sha256": "6ddf888d3e52c3ec6ff243c5940b56969f4ba403efa74e59a5ac7ee589299ee2",
+    "compiled": true,
+    "api_activation_tested": false
+  },
+  "runtime_required": {
+    "control_drop_source_s": 38,
+    "loop_end_source_s": 95,
+    "loop_duration_s": 57,
+    "quick_entry_s": 0.15,
+    "tutorial_end_fade_s": 20,
+    "quiet_gaps_keep_loop": true,
+    "actual_tutorial_video_produced": false
+  },
+  "source_freeze": [
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\import_drop38.py",
+      "sha256": "2450db39262fec5aab87f86de2c3c5a47a31676520c6654a0a909af09a0bc1aa"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\manifest.json",
+      "sha256": "17475d5dc64b91a82d4348b3b722d9d6a503d3e69a3fe4a1caa43ebda9826b52"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\native_operations.py",
+      "sha256": "d76746c95eaefccbf7caac216363da89743c91d8cd42f78084496edf783d5b02"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\qa.json",
+      "sha256": "68e49386e34ad9d049ed22bfb6e6aea062bf5e6294a94363778ed1e6b8e262cf"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\source_receipt.json",
+      "sha256": "ad3bdf049c7599a6440f63e426f70b484035fce8d094cbeabc0987c7bf122925"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\Drop38Loop01\\TUTORIAL_HANDOFF.md",
+      "sha256": "3a78de85b8fa899ce7054355fa27bc44943c16a244d055935afcd80506b4f731"
+    }
+  ]
+}

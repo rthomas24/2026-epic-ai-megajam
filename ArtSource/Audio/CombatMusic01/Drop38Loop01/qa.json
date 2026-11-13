@@ -1,0 +1,34 @@
+{
+  "category": "music",
+  "mix": false,
+  "files": [
+    {
+      "file": "Saved/AudioMusic/PrototypeV1/CombatMusic01/Drop38Loop01/MUS_Combat_EtherealPulseRemix_Drop38_01.wav",
+      "codec": "pcm_s16le",
+      "sample_rate": 48000,
+      "channels": 2,
+      "bits": 16,
+      "duration": 57.0,
+      "loudness_lufs": -17.3,
+      "loudness_kind": "integrated",
+      "integrated_lufs": -17.3,
+      "ungated_lufs": null,
+      "lra_lu": 2.4,
+      "true_peak_dbtp": -6.6,
+      "sample_peak_dbfs": -6.63992,
+      "rms_dbfs": -18.724125,
+      "lead_silence_s": 0.0,
+      "tail_silence_s": 0.0,
+      "dc_offset": 7.5e-05,
+      "flat_factor": 0.0,
+      "peak_count": 2,
+      "clipped": false,
+      "silent": false,
+      "seam_jump_db": null,
+      "seam_level_db": null,
+      "fails": []
+    }
+  ],
+  "group_fails": [],
+  "failures": 0
+}

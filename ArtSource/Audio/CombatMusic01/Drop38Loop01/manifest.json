@@ -1,0 +1,16 @@
+{
+  "prepared_file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\CombatMusic01\\Drop38Loop01\\MUS_Combat_EtherealPulseRemix_Drop38_01.wav",
+  "sha256": "94531142baeaefac8b75bc661342b7a63b111a2c4ed5d2a203bb25f7f158f8d6",
+  "asset_path": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_Drop38_01",
+  "frames": 2736000,
+  "duration_s": 57,
+  "source_range_s": [
+    38,
+    95
+  ],
+  "looping": true,
+  "volume": 0.5,
+  "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music",
+  "initial_runtime_fade_s": 0.15,
+  "loop_crossfade_s": 0.12
+}
