@@ -120,6 +120,8 @@ public:
 	bool IsHandledExternally() const { return bHandledExternally; }
 	/** True while the ENG-33 intro plays: the intro owns the screen, nothing of ours draws over it. */
 	bool IsSuppressedByIntro() const;
+	/** ENG-33: scene one's slate at the intro's hand-off; the real first take then does not repeat it. */
+	void PreviewFirstSlate(FName SceneId);
 
 	const FTDCutPresentationState& GetState() const { return State; }
 	bool HasViewportWidget() const { return Widget.IsValid(); }
@@ -166,6 +168,10 @@ private:
 	float CutSeconds = 0.f;
 	// slate
 	double SlateStart = -1000.0;
+	/** A slate that came while the intro owned the screen: shown when it ends (never lost). */
+	FName PendingSlateScene;
+	int32 PendingSlateTake = 0;
+	double PreviewSlateAt = -1000.0;
 	FText Slate;
 	// money shot
 	double ShotStart = -1000.0;

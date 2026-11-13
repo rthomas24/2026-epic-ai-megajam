@@ -141,4 +141,34 @@ bool FTDDominionArtCollision::RunTest(const FString&)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionStageStarts, "TriadDrift.World.Dominion.StageStartsInOpenSpace", TD_TEST_FLAGS)
+bool FTDDominionStageStarts::RunTest(const FString&)
+{
+	using namespace TDDominionArtTest;
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true;
+	GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f), FRotator(0.f, 37.f, 0.f));
+	if (!TestNotNull(TEXT("dominion"), D)) { return false; }
+	W.Advance(D->WarpInSeconds + 0.5f);
+	const TArray<UPrimitiveComponent*> Prims = Blockers(D);
+	const FBox Local = D->GetLocalHullBounds();
+	TestTrue(*FString::Printf(TEXT("hull bounds measured (%s)"), *Local.GetSize().ToCompactString()), Local.IsValid && Local.GetSize().X > 10000.f);
+
+	const FTransform Approach = D->GetStageStart(false);
+	const FVector ALocal = D->GetActorTransform().InverseTransformPosition(Approach.GetLocation());
+	TestFalse(TEXT("approach start is outside the hull's box"), Local.ExpandBy(10000.f).IsInside(ALocal));
+	// At cruise toward the Dominion's centre, several seconds before anything solid.
+	const FString Hit = FirstBlock(Prims, Approach.GetLocation(), Approach.GetLocation() + Approach.GetRotation().GetForwardVector() * 50000.f, 300.f);
+	TestTrue(*FString::Printf(TEXT("the first 500 m ahead of the approach start are open (first block: %s)"), *Hit), Hit.IsEmpty());
+	TestTrue(TEXT("approach faces the Dominion"), FVector::DotProduct(Approach.GetRotation().GetForwardVector(), (D->GetActorLocation() - Approach.GetLocation()).GetSafeNormal()) > 0.99f);
+
+	const FTransform Trench = D->GetStageStart(true);
+	const FVector TLocal = D->GetActorTransform().InverseTransformPosition(Trench.GetLocation());
+	TestTrue(TEXT("trench start is off the real bow"), TLocal.X > Local.Max.X + 10000.f);
+	TestTrue(*FString::Printf(TEXT("trench start is clear (inside %s)"), *Inside(Prims, Trench.GetLocation(), 600.f)), Inside(Prims, Trench.GetLocation(), 600.f).IsEmpty());
+	return true;
+}
+
 #endif

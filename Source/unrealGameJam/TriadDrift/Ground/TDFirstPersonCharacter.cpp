@@ -431,9 +431,12 @@ void ATDFirstPersonCharacter::UpdateFacing(float DeltaSeconds)
 		bIdleTurnToCamera = bStill && FMath::Abs(FMath::FindDeltaAngleDegrees(Current, CameraYaw)) > 1.f;
 		Desired = bIdleTurnToCamera ? CameraYaw : Desired;
 	}
-	// Combat turns twice as fast: the swing starts facing the crosshair.
+	// A new attack snaps to the camera at once (no frames of swing the wrong way); blocking turns twice as fast.
+	const bool bAttacking = Blade && Blade->IsAttacking();
+	const bool bSnap = bAttacking && !bFacingWasAttacking;
+	bFacingWasAttacking = bAttacking;
 	const float Rate = ThirdPersonTurnRate * (bCombat ? 2.f : 1.f);
-	SetActorRotation(FRotator(0.f, FMath::FixedTurn(Current, Desired, Rate * DeltaSeconds), 0.f));
+	SetActorRotation(FRotator(0.f, bSnap ? CameraYaw : FMath::FixedTurn(Current, Desired, Rate * DeltaSeconds), 0.f));
 }
 
 void ATDFirstPersonCharacter::AttachHandBlade()
@@ -1308,6 +1311,7 @@ void ATDFirstPersonCharacter::BuildInput()
 	using V = EInputActionValueType;
 	IA_Move = MakeAction(this, TEXT("IA_Ground_Move"), V::Axis2D);
 	IA_Look = MakeAction(this, TEXT("IA_Ground_Look"), V::Axis2D);
+	IA_LookStick = MakeAction(this, TEXT("IA_Ground_LookStick"), V::Axis2D);
 	IA_Jump = MakeAction(this, TEXT("IA_Ground_Jump"), V::Boolean);
 	IA_Sprint = MakeAction(this, TEXT("IA_Ground_Sprint"), V::Boolean);
 	IA_Dash = MakeAction(this, TEXT("IA_Ground_Dash"), V::Boolean);
@@ -1336,12 +1340,7 @@ void ATDFirstPersonCharacter::BuildInput()
 		AddModifier<UInputModifierDeadZone>(Stick, C);
 	}
 	C->MapKey(IA_Look, EKeys::Mouse2D);
-	{
-		FEnhancedActionKeyMapping& Stick = C->MapKey(IA_Look, EKeys::Gamepad_Right2D);
-		AddModifier<UInputModifierDeadZone>(Stick, C);
-		UInputModifierScalar* Scale = AddModifier<UInputModifierScalar>(Stick, C);
-		Scale->Scalar = FVector(3.f, 3.f, 1.f);
-	}
+	C->MapKey(IA_LookStick, EKeys::Gamepad_Right2D); // dead zone, scale and invert come from the settings (ShapeLook)
 	C->MapKey(IA_Jump, EKeys::SpaceBar);
 	C->MapKey(IA_Jump, EKeys::Gamepad_FaceButton_Bottom);
 	C->MapKey(IA_Sprint, EKeys::LeftShift);
@@ -1375,6 +1374,7 @@ void ATDFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ATDFirstPersonCharacter::OnMove);
 	EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &ATDFirstPersonCharacter::OnMoveReleased);
 	EIC->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ATDFirstPersonCharacter::OnLook);
+	EIC->BindAction(IA_LookStick, ETriggerEvent::Triggered, this, &ATDFirstPersonCharacter::OnLookStick);
 	EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnJumpPressed);
 	EIC->BindAction(IA_Sprint, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnSprintPressed);
 	EIC->BindAction(IA_Sprint, ETriggerEvent::Completed, this, &ATDFirstPersonCharacter::OnSprintReleased);
@@ -1439,11 +1439,41 @@ void ATDFirstPersonCharacter::OnMove(const FInputActionValue& Value)
 	SetMoveInput(Value.Get<FVector2D>());
 }
 
+FVector2D ATDFirstPersonCharacter::ShapeLook(const FVector2D& Raw, bool bGamepad, const FTDPlayerSettings& S)
+{
+	if (!bGamepad)
+	{
+		const float Sens = FMath::Max(0.f, S.MouseSensitivity);
+		return FVector2D(Raw.X * Sens, -Raw.Y * Sens * (S.bInvertMouseY ? -1.f : 1.f));
+	}
+	// Radial dead zone, the rest rescaled to 0..1 so a small push past it is a small turn.
+	const float Len = (float)Raw.Size();
+	const float Dead = FMath::Clamp(S.GamepadDeadzone, 0.f, 0.95f);
+	if (Len <= Dead || Len <= KINDA_SMALL_NUMBER)
+	{
+		return FVector2D::ZeroVector;
+	}
+	const FVector2D Live = Raw / Len * FMath::Min(1.f, (Len - Dead) / (1.f - Dead));
+	const float Sens = StickLookScale * FMath::Max(0.f, S.GamepadSensitivity);
+	return FVector2D(Live.X * Sens, -Live.Y * Sens * (S.bInvertGamepadY ? -1.f : 1.f));
+}
+
+void ATDFirstPersonCharacter::ApplyLookInput(const FVector2D& Raw, bool bGamepad)
+{
+	const UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this);
+	const FVector2D Look = ShapeLook(Raw, bGamepad, Options ? Options->GetSettings() : FTDPlayerSettings());
+	AddControllerYawInput(Look.X);
+	AddControllerPitchInput(Look.Y);
+}
+
 void ATDFirstPersonCharacter::OnLook(const FInputActionValue& Value)
 {
-	const FVector2D V = Value.Get<FVector2D>();
-	AddControllerYawInput(V.X);
-	AddControllerPitchInput(-V.Y);
+	ApplyLookInput(Value.Get<FVector2D>(), false);
+}
+
+void ATDFirstPersonCharacter::OnLookStick(const FInputActionValue& Value)
+{
+	ApplyLookInput(Value.Get<FVector2D>(), true);
 }
 
 void ATDFirstPersonCharacter::OnAttackPressed()

@@ -88,9 +88,9 @@ open) · `done` (on `main`, tests pass, review closed).
 
 | Item | Owner | State | Started (EST) | Finished / on `main` | Shared paths touched |
 |---|---|---|---|---|---|
-| Engineering art (R-021): Null Armada fleet, fallback squad ships, Dominion exterior kit, crew in cm on `SKEL_NullCrew` | Lead + builder sub-agents | in review | Nov 13 01:00 | Nov 13 03:45 (`f98124f`); scores 3-3.3/5, below the hero bar; live checks with T1/T4/T5 | none (engineering folders only; Presentation assets win) |
-| Planet set-piece kit (outpost walls, jammer, wreck, relay, landing pads) | Lead builder sub-agent | in progress | Nov 13 01:30 | - | none (`Gameplay/Props/Planet`, `ArtSource/EngProps/PlanetKit`) |
-| Ship and enemy art seen live (T1 squad art, T4 fleet range scale + placeholder parts hidden), crew loops live (T5), intro re-shoot (T3) | T1, T3, T4, T5 | in progress | Nov 13 03:00 | - | none |
+| Engineering art (R-021, summary R-022): Null Armada fleet + engine plumes, fallback squad ships + colour pass, Dominion exterior r9 + generator + reactor, crew in cm on `SKEL_NullCrew`, planet night side | Lead + builder sub-agents | in review | Nov 13 01:00 | Nov 13 06:20 (`3a6c3ff` and earlier); scores 2.9-3.75/5; seen live 05:55 (Dominion glow fixed) | none (engineering folders only; Presentation assets win) |
+| Planet set-piece kit, 28 pieces (round 2: wreck set, altar, prototype console, door fix) | Lead builder sub-agent + T5 hookups | in review | Nov 13 01:30 | Nov 13 06:05 (`db8d405`, T5 `0181000`) | none (`Gameplay/Props/Planet`) |
+| Live checks and review fixes: T1 trails (done `a3d01cc`), pad pass, `Gameplay/Materials/M_TD_TrailGlow` (T1); T2 death captures, ENG-11/12 live; T3 ENG-32/33 review fixes + intro reshoot; T4 Dominion stage start + range captures; T5 on-foot look settings + planet playthroughs | T1-T5 | in progress | Nov 13 06:00 | - | none |
 | C-02 Core contracts (types, interfaces, event bus, health, registry, statics, test harness) | Lead | done | Nov 12 | `1cf7fe1` | none outside lane |
 | Core: dev HUD (`ATDDebugHUD`), placeholder tint, pooled cues | Lead | done | Nov 12 12:20 | Nov 12 12:45, this push | none |
 | Independent code review of Squad + Director | Lead | done | Nov 12 12:43 | Nov 12 13:05; findings with T3, T1, T2, T4 | none |

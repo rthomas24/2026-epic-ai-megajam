@@ -16,6 +16,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Misc/PackageName.h"
 #include "Engine/StaticMesh.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTime.h"
@@ -587,7 +588,22 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 			Trail->SetUsingAbsoluteScale(true);
 			Trail->RegisterComponent();
 			Trail->SetWorldTransform(FTransform::Identity);
-			TrailMID = UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
+			// Translucent trail glow when the project has it (Tools/td-make-trail-material.py), else the opaque glow.
+			static const TCHAR* TrailMatPath = TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_TrailGlow.M_TD_TrailGlow");
+			UMaterialInterface* TrailMat = FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(FString(TrailMatPath)))
+				? LoadObject<UMaterialInterface>(nullptr, TrailMatPath, nullptr, LOAD_NoWarn | LOAD_Quiet) : nullptr;
+			if (TrailMat)
+			{
+				TrailMID = UMaterialInstanceDynamic::Create(TrailMat, Trail);
+				Trail->SetMaterial(0, TrailMID);
+				Trail->SetNumCustomDataFloats(1);
+				bTrailTranslucent = true;
+				TrailMID->SetVectorParameterValue(TEXT("Color"), UTDStatics::ShipColor(Ship->GetShipId()) * Tuning.TrailGlow);
+			}
+			else
+			{
+				TrailMID = UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
+			}
 			TrailMIDGlow = Tuning.TrailGlow;
 		}
 		Trail->ClearInstances();
@@ -666,6 +682,10 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 			const float T = FMath::Max(0.01f, Thick * Taper * Near / 100.f);
 			const FQuat Q = Len > KINDA_SMALL_NUMBER ? FRotationMatrix::MakeFromX(D / Len).ToQuat() : Ship->GetActorQuat();
 			TrailTransforms[e * N + i] = FTransform(Q, (A + B) * 0.5f, FVector(FMath::Max(0.01f, Len / 100.f), T, T));
+			if (bTrailTranslucent)
+			{
+				Trail->SetCustomDataValue(e * N + i, 0, Lin, false); // fades out along the ribbon
+			}
 			Length += Len;
 		}
 		if (e == 0) { FirstLength = Length; }

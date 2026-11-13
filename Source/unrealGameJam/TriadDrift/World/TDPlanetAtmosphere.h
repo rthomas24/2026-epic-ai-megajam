@@ -149,9 +149,15 @@ protected:
 
 	bool bArtLook = false;
 	bool bSunSynced = false;
+	float SunSyncTimer = 0.f;
 	void ApplyLook();
 	/** Sets the surface material's SunDirection to the space sun; false until a sun light exists. */
 	bool SyncSunDirection();
+
+public:
+	/** The sun planets light from: the atmosphere sun light, else the brightest visible directional light. */
+	static class UDirectionalLightComponent* FindActiveSun(UWorld* World);
+protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Planet")
 	ETDDestination Destination = ETDDestination::Verdance;

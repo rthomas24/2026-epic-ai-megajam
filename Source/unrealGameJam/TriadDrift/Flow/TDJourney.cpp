@@ -38,24 +38,8 @@ bool FTDJourney::FindStageStart(UWorld* World, FName ReturnPoint, FTransform& Ou
 	{
 		if (const ATDDominion* Dominion = ATDDominion::Get(World))
 		{
-			const FTransform D = Dominion->GetActorTransform();
-			const FVector E = Dominion->HullExtent;
-			if (ReturnPoint == DominionApproach)
-			{
-				// Front-right and a little above, outside the shield and generator ring, far enough that the
-				// whole hull is in frame and close enough that it fills a good part of it.
-				const FVector LocalDir = FVector(0.75f, 0.6f, 0.25f).GetSafeNormal();
-				const float Dist = FMath::Max(Dominion->ShieldRadius * 2.f, E.X * 2.4f); // ~12 s at cruise before the hull
-				const FVector Loc = D.TransformPosition(LocalDir * Dist);
-				Out = FTransform((D.GetLocation() - Loc).Rotation(), Loc);
-			}
-			else
-			{
-				// Off the bow on the trench line (walls at hull top + 1500), facing aft: the reactor sits near the
-				// bow end of the trench, straight ahead, and the stern bridge block is behind it, not in the way.
-				const FVector Loc = D.TransformPosition(FVector(E.X + 20000.f, 0.f, E.Z + 1500.f));
-				Out = FTransform((-D.GetUnitAxis(EAxis::X)).Rotation(), Loc);
-			}
+			// From the hull's real size (the r8 art hull is much bigger than the old box): T4's ATDDominion owns it.
+			Out = Dominion->GetStageStart(ReturnPoint == DominionTrench);
 			return true;
 		}
 	}
