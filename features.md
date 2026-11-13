@@ -239,6 +239,33 @@ Everyone has a part: T1 flight and entry, T4 the globe and the focus-in, T5 the 
 camera, the effects and audio builders, Grok Bot for cloud, plasma and planet-surface assets, Nick for the
 atmosphere's look. It is built in three stages; stage 1 (the entry sequence at full quality) comes first.
 
+### Worlds that read as real places (Ryan, Nov 13 evening): ENG-39
+**Ryan's direction (16:19 EST).** The planets and space must stop looking like one dressed spot in an empty map.
+- **Planets: one richly dressed play zone each, not a dressed globe.** Wherever the player enters the atmosphere,
+  from any side of the planet, the arrival is routed to the same zone around the landing pad and objectives, with a
+  different approach corridor and first view per side. Inside the zone it must be fully true: several ground
+  materials, lots of trees and rocks, buildings and points of interest in every direction the player can look or fly.
+  The rest is disguised so the player never notices: haze, the cloud deck, the curvature bend, ring terrain, cheap far
+  ground, and the flight-zone turn-back.
+- **Space: filled everywhere, generated continuously as you fly.** Asteroids, debris, wrecks, moving bodies, other
+  ships and power-ups, in streaming cells around the player, deterministic from a seed; no single dense area with
+  emptiness around it. Combat lanes stay readable. **Power-ups are new gameplay**: the smallest good version is
+  proposed to Ryan before it is built.
+- **Atmosphere entry and exit (ENG-38):** both directions get the piercing-the-atmosphere sequence: motion blur,
+  streaks, debris and embers past the camera, a heat sheath on the hull, the cloud punch.
+- **Plan and findings:** `docs/eng/WORLD-DENSITY-PLAN.md` (a fresh reviewer's audit; Ryan's Lead leads the review).
+  **Owners:** T4 (terrain scatter, points of interest, the space field, the arrival mapping), the environment builder
+  (materials, fog, sky, the edge disguise), the effects builder and T1 (entry and exit), Grok Bot (set pieces from
+  Nicholas's reference boards), T2 (pickup HUD), T5 (keep-out areas on foot).
+
+### Ship quality (Ryan, Nov 13 evening): see [docs/eng/SHIP-QUALITY.md](docs/eng/SHIP-QUALITY.md)
+Ryan played the build and found the squad ships "not smooth" and below AAA, and Rift's ring empty. The raw
+image-to-3D meshes are being **rebuilt cleanly in Blender over the Rodin design** (exact symmetry, bevelled hard
+edges, modelled panel lines, rebuilt nozzles, guns, canopy and ring, re-baked textures), **Rift first**, shown to
+Ryan before Lancer and Bastion. Meanwhile the ship builder adds a living portal in Rift's ring and an engine-side
+close-range pass on all three; Grok Bot regenerates sharper sources. Same size, sockets and collision: gameplay does
+not change. Old meshes are kept.
+
 ### Gameplay dialogue (added Nov 13): see [dialogs.md](dialogs.md)
 Every short line the pilots and Command say during play (targets, hits, powers, switching, travel, landing, on foot,
 the Dominion, banter) has a row in **`dialogs.md`**: id, when it fires, who speaks, priority, and working lines for

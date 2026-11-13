@@ -231,6 +231,66 @@ bool FTDDirectorCamCarrier::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamSafe, "TriadDrift.Director.Camera.NoHitWhileTheCameraIsAway", TD_TEST_FLAGS)
+bool FTDDirectorCamSafe::RunTest(const FString& Parameters)
+{
+	// AAA a23: the generator money shot takes the camera off the player while hull turrets keep firing. Nothing may
+	// land unseen: the flown ship takes no damage while the camera is away, nor for ReturnGraceSeconds after.
+	IConsoleVariable* Protect = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Director.ProtectPlayer"));
+	if (!TestNotNull(TEXT("td.Director.ProtectPlayer"), Protect))
+	{
+		return false;
+	}
+	ON_SCOPE_EXIT { Protect->Set(1, ECVF_SetByCode); };
+	for (const int32 bOn : { 0, 1 })
+	{
+		Protect->Set(bOn, ECVF_SetByCode);
+		FCamFixture F(UTDGameInstance::StaticClass());
+		Cast<UTDGameInstance>(F.W.GetGameInstance())->SetDominionState(true, false);
+		ATDDominion* D = F.W.Spawn<ATDDominion>(FVector(150000.f, 0.f, 0.f));
+		F.W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.3f);
+		F.RunUntilIdle(3.f);
+		ATDShieldGenerator* G = D->GetGenerators().Num() > 0 ? D->GetGenerators()[0] : nullptr;
+		UTDHealthComponent* H = UTDStatics::GetHealth(F.Player());
+		if (!TestNotNull(TEXT("real generator"), G) || !TestNotNull(TEXT("player health"), H))
+		{
+			return false;
+		}
+		UTDStatics::ApplyTDDamage(G, 100000.f, ETDDamageKind::Explosive, F.Player(), F.Player());
+		F.W.Tick();
+		TestTrue(TEXT("generator kill takes the view"), F.ViewIsDirector());
+		// A turret volley lands mid-shot.
+		const float Before = H->GetShield() + H->GetHull();
+		F.W.Tick();
+		UTDStatics::ApplyTDDamage(F.Player(), 40.f, ETDDamageKind::Kinetic, D, D);
+		const float Mid = H->GetShield() + H->GetHull();
+		if (bOn)
+		{
+			TestEqual(TEXT("protected: no damage while the camera is away"), Mid, Before);
+			TestTrue(TEXT("the director says so"), F.Director->IsProtectingPlayer());
+		}
+		else
+		{
+			TestTrue(TEXT("measured with protection off: the hit lands unseen"), Mid < Before);
+		}
+		F.RunUntilIdle(3.f);
+		TestTrue(TEXT("the view is back"), F.ViewIsPawn());
+		if (bOn)
+		{
+			// Just back: still inside the grace.
+			const float Back = H->GetShield() + H->GetHull();
+			UTDStatics::ApplyTDDamage(F.Player(), 40.f, ETDDamageKind::Kinetic, D, D);
+			TestEqual(TEXT("a moment after the return: still safe"), H->GetShield() + H->GetHull(), Back);
+			F.W.Advance(F.Director->Tuning.ReturnGraceSeconds + 0.2f);
+			const float Later = H->GetShield() + H->GetHull();
+			UTDStatics::ApplyTDDamage(F.Player(), 40.f, ETDDamageKind::Kinetic, D, D);
+			TestTrue(TEXT("after the grace: hits land again"), H->GetShield() + H->GetHull() < Later);
+			TestFalse(TEXT("and the protection is off"), F.Director->IsProtectingPlayer());
+		}
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamPortal, "TriadDrift.Director.Camera.PortalMissileReturn", TD_TEST_FLAGS)
 bool FTDDirectorCamPortal::RunTest(const FString& Parameters)
 {

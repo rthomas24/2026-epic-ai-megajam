@@ -128,6 +128,27 @@ def parse(text):
     return rows
 
 
+# The code fires one id per downed ship (TDBarkIds::ShipDownFor): Bark_SquadShipDownRift / Lancer / Bastion.
+# dialogs.md writes one "<Ship>" row whose lines each name a ship or its pilot; each line goes to that ship's id,
+# so a squadmate never mourns the wrong pilot (T2 found Rift's id had no row).
+SHIP_NAMES = {"Rift": ("Rift", "Wren"), "Lancer": ("Lancer", "Kato"), "Bastion": ("Bastion", "Moss")}
+
+
+def expand_ship_down(rows):
+    out = []
+    for bid, spk, prio, ls in rows:
+        if "<Ship>" not in bid:
+            out.append((bid, spk, prio, ls))
+            continue
+        for ship, names in SHIP_NAMES.items():
+            if spk == names[1]:
+                continue  # the downed pilot does not call their own loss
+            mine = [l for l in ls if any(n in l for n in names)]
+            if mine:
+                out.append((bid.replace("<Ship>", ship), spk, prio, mine))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
@@ -135,7 +156,7 @@ def main():
     ap.add_argument("--out", default=OUT)
     a = ap.parse_args()
     text = open(a.src, encoding="utf-8").read()
-    rows = parse(text)
+    rows = expand_ship_down(parse(text))
     seen = set()
     for r in rows:
         key = "%s__%s" % (r[0], r[1])

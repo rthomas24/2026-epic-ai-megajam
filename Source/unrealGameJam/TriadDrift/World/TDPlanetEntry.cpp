@@ -70,7 +70,10 @@ FTransform FTDPlanetEntry::ArrivalFromGlobe(ETDDestination Planet, const FTDGlob
 	{
 		Heading = FVector2D(GlobeVelocity.X, GlobeVelocity.Y);	// at the pole the globe's XY is the course's XY
 	}
-	if (Heading.IsNearlyZero(1e-4f))
+	// A near-radial dive (T1's live finding: TD.Travel.ToPlanet aims at the centre) has only a sliver of velocity along
+	// the surface, and its direction is noise: the same entry arrived 180 deg apart. Below 10% of the speed, face the pad.
+	const float Speed = GlobeVelocity.Size();
+	if (Heading.IsNearlyZero(1e-4f) || FVector2D(N, E).Size() < 0.1f * Speed)
 	{
 		Heading = XY.IsNearlyZero() ? FVector2D(1.f, 0.f) : -XY;	// straight down: face the pad
 	}

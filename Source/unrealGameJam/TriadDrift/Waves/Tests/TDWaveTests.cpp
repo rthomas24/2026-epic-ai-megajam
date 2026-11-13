@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -283,12 +284,35 @@ bool FTDWavesPhase::RunTest(const FString& Parameters)
 	W.Tick();
 	TestTrue(TEXT("Cinder marker revealed"), L->Markers.Contains(ETDDestination::Cinder));
 
+	for (const FName& Id : UTDFlowSettings::Get()->CinderObjectives) { GI->Progress.CompletedObjectives.Add(Id); }	// Cinder finished
 	D->StartWave(4);
 	TDWaveTest_SpawnEverything(W, D);
 	TDWaveTest_KillAll(D);
 	W.Tick();
-	TestTrue(TEXT("Dominion revealed after wave 5"), GI->Progress.bDominionRevealed && !GI->Progress.bDominionDefensesDown);
+	TestTrue(TEXT("Dominion revealed after wave 5 (with Cinder finished)"), GI->Progress.bDominionRevealed && !GI->Progress.bDominionDefensesDown);
 	TestTrue(TEXT("all waves complete"), D->GetState() == ETDWaveState::AllComplete);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesFieldRule, "TriadDrift.Waves.Phase.FieldOpensOnlyWithCinderAndWave5", TD_TEST_FLAGS)
+bool FTDWavesFieldRule::RunTest(const FString& Parameters)
+{
+	// Story rule: the approach's distortion field opens when Cinder is finished AND wave 5 is cleared - both.
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("fake flow"), GI)) { return false; }
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, TDWaveTest_SpawnPlayer(W));
+	GI->Progress.Phase = ETDGamePhase::Wave5;
+	GI->Progress.WavesCleared = 4;
+	TestFalse(TEXT("Cinder not finished"), ATDWaveDirector::IsCinderFinished(GI->Progress));
+	D->StartWave(4);	// wave 5 reached without Cinder (a stage, a cheat, an old save)
+	TDWaveTest_SpawnEverything(W, D);
+	TDWaveTest_KillAll(D);
+	W.Tick();
+	TestTrue(TEXT("wave 5 cleared"), GI->ReportedWaves.Contains(5));
+	TestFalse(TEXT("the field stays up: Cinder is not finished"), GI->Progress.bDominionRevealed);
+	for (const FName& Id : UTDFlowSettings::Get()->CinderObjectives) { GI->Progress.CompletedObjectives.Add(Id); }
+	TestTrue(TEXT("Cinder finished"), ATDWaveDirector::IsCinderFinished(GI->Progress));
 	return true;
 }
 

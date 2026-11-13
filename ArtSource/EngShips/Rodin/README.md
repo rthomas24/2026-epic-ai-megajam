@@ -91,3 +91,52 @@ the Nanite fallback meshes are 5-17k triangles.
 - The review sheets were rendered before two socket corrections (Lancer `Muzzle_1`, fighter `Engine_N` height).
 - The intro (`TDIntroDirector.cpp`) loads `SM_Null_Fighter` / `SM_Null_Interceptor` by path and still shows the
   old fighter.
+
+## Round 2 (Nov 13, later): fleet r3, white eyes, effects wiring
+
+**Sources.** `Interceptor/mesh_r2`, `Bomber/mesh_r1`, `Carrier/mesh_r1` and `Turret/mesh_r1` under
+`ArtSource/EngAI/Ships/NullFleet/`. When a source is on `main` but not merged into the checkout yet, set
+`TD_RODIN_AI_ROOT` to a folder that mirrors the repo tree (`<root>/ArtSource/EngAI/...`); `rs_prep.py` and the
+import read from there, and the manifests still record the repo-relative paths.
+
+| Ship | Size L x W x H (cm) | Tris | Sockets (Unreal cm) | In the game |
+|---|---|---|---|---|
+| NullInterceptor (mesh_r2) | 660 x 633 x 221 | 8,585 | `Muzzle_0/1` (320, -/+72, -55) chin guns; `Engine_0/1` (-332, -/+80, -13), `Engine_2` (-332, 0, -15) | yes, `DA_Enemy_Interceptor_Visuals` |
+| NullBomber | 1180 x 1035 x 216 | 8,471 | `Muzzle_0` (-100, 0, -105) under the belly (mines); `Engine_0/1` (-563, -/+165, -10), `Engine_2` (-592, 0, 15) | yes, `DA_Enemy_Bomber_Visuals` |
+| NullTurret | 221 x 141 x 112 | 8,819 | `Muzzle_0` (110, -11, 9), `Muzzle_1` (108, 23, 12) | yes: `TurretMesh` of `DA_Enemy_Carrier_Visuals` and of `Characters/Dominion/DA_DominionTurret_Visuals` |
+| NullCarrier | 4600 x 2276 x 1785 | 8,890 | `Engine_0/1` (-1514, -/+805, 50) rear outrigger pods, `Engine_2/3` (-370, -/+1040, -290) fore pods | **imported, not wired** (`wire=False`) |
+
+**Why the carrier is not wired.** `ATDEnemyShip::MountPart` puts the three bays 2100 cm out along +/-Y and
+(-0.3, 0, 1), and the four turrets 2070 cm out on the raised diagonals, around the r 1800 gameplay sphere. The old
+carrier has arms and horn pads exactly there. The Rodin hull is 1138 cm half-wide and 893 cm half-tall, so the
+bays and turrets float 9-11 m off it (seen in the running game). It needs the mounts to follow the mesh (sockets
+such as `Bay_0..2`, `Turret_0..3`) or a mesh built around the existing mounts. The carrier keeps `SM_Null_Carrier`.
+
+**White eyes.** `M_TD_Ship` now separates emissive texels by saturation: coloured texels (seams, engines) take
+`EmissiveTint`, near-white texels (eyes) are left untinted and take `EyeBoost`; `WhiteSharpness` (default 4) sets
+how neutral a texel must be to count as white. Squad ships use tint 1 / boost 1, so they are unchanged.
+
+| Ship | EmissiveStrength | BaseTint | EmissiveTint | EyeBoost | WhiteSharpness |
+|---|---|---|---|---|---|
+| NullFighter | 10 | 0.35 | (1, 0.55, 0.35) | 1.6 | 9 |
+| NullGunship | 8 | 0.6 | (1, 0.55, 0.35) | 1.6 | 4 |
+| NullInterceptor | 10 | 1 | (1, 0.55, 0.35) | 2.5 (the eye is dim in the texture) | 4 |
+| NullBomber | 9 | 1 | (1, 0.55, 0.35) | 2 | 4 |
+| NullTurret | 9 | 1 | (1, 0.55, 0.35) | 1.6 | 4 |
+| NullCarrier (unwired) | 3 | 1 | (1, 0.55, 0.35) | 2 | 4 |
+
+**Effects wiring.** `ue_rewire_enemy_fx.py` runs the enemy-visuals part of `ArtSource/EngVFX/scripts/wire_r5.py`
+(`EngineTrail` = `NS_TD_Engine_Enemy` at 1 / 1 / 2 / 1.5 / 5, carrier `Explosion` scale 2.5) and checks that
+`Mesh` and `MaterialOverrides` are unchanged. `NS_TD_Engine_Enemy` attaches one plume per `Engine_N` socket
+(`ATDShip::GetNozzleSockets`); enemy meshes carry only `Engine_N`, no bare `Engine`.
+
+**Capturing ships for review.** Offscreen dev-camera captures (`SceneCaptureToolset.Capture`) of a ship that is
+far from the player show smeared, blotchy textures because the texture streamer only knows the player's view:
+run `r.TextureStreaming 0` first. `TD.World.SpawnEnemy ... 0` ships still creep forward; `TD.Power.TimeScale 0.02`
+freezes them for a set of views.
+
+**Known limits, round 2.**
+- The Rodin interceptor has the fighter's silhouette (crescent wings, three engines): the two types are hard to
+  tell apart at range. It has no missile pods: it has two muzzles (the chin guns) where the old mesh had four; where its missiles leave from was not checked in play.
+- The fighter's seams are near-white in the Rodin emissive, so they read white-peach, not orange.
+- The review sheets for the Lancer and the fighter were re-rendered with the corrected sockets.

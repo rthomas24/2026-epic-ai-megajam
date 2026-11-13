@@ -63,6 +63,11 @@ bool FTDDescentArrival::RunTest(const FString&)
 		const FVector ToPad = (-FVector(L.X, L.Y, 0.f)).GetSafeNormal();
 		TestTrue(*FString::Printf(TEXT("planet %d: flying toward the landing zone faces the pad (%.3f)"), (int32)Planet, FVector::DotProduct(Fwd, ToPad)), FVector::DotProduct(Fwd, ToPad) > 0.999f);
 		TestTrue(TEXT("level (no pitch or roll)"), FMath::IsNearlyZero(A.Rotator().Pitch, 0.01f) && FMath::IsNearlyZero(A.Rotator().Roll, 0.01f));
+		// A near-radial dive (5% along the surface, either side): stable, facing the pad, never flipping.
+		const FTransform DiveA = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -Up * 10000.f + ToPole * 500.f, 150000.f);
+		const FTransform DiveB = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -Up * 10000.f - ToPole * 500.f, 150000.f);
+		TestTrue(TEXT("a near-radial dive faces the pad, whichever way the sliver points"),
+			FVector::DotProduct(DiveA.GetRotation().GetForwardVector(), ToPad) > 0.999f && FVector::DotProduct(DiveB.GetRotation().GetForwardVector(), ToPad) > 0.999f);
 		// Straight down: face the pad.
 		const FTransform Down = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -Up * 5000.f, 150000.f);
 		TestTrue(TEXT("a vertical entry faces the pad"), FVector::DotProduct(Down.GetRotation().GetForwardVector(), ToPad) > 0.999f);

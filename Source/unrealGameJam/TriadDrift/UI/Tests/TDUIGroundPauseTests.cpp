@@ -26,6 +26,7 @@
 #include "Input/HittestGrid.h"
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
+#include "UObject/StrongObjectPtr.h"
 
 namespace TDUIGroundPauseTests
 {
@@ -151,7 +152,8 @@ bool FTDUIGroundTransferMeter::RunTest(const FString& Parameters)
 	FTDTestWorld W;
 	ATDFirstPersonCharacter* Walker = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
 	APlayerController* PC = W.SpawnLocalPlayerController(Walker, ATDSpacePlayerController::StaticClass());
-	UTDGroundHUDWidget* HUD = PC ? CreateWidget<UTDGroundHUDWidget>(PC, UTDGroundHUDWidget::StaticClass()) : nullptr;
+	const TStrongObjectPtr<UTDGroundHUDWidget> Keep(PC ? CreateWidget<UTDGroundHUDWidget>(PC, UTDGroundHUDWidget::StaticClass()) : nullptr); // no GC mid-test
+	UTDGroundHUDWidget* HUD = Keep.Get();
 	if (!TestNotNull(TEXT("ground HUD"), HUD))
 	{
 		return false;
@@ -193,7 +195,8 @@ bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	APlayerController* PC = W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass());
-	UTDPauseMenuWidget* Menu = PC ? CreateWidget<UTDPauseMenuWidget>(PC, UTDPauseMenuWidget::StaticClass()) : nullptr;
+	const TStrongObjectPtr<UTDPauseMenuWidget> Keep(PC ? CreateWidget<UTDPauseMenuWidget>(PC, UTDPauseMenuWidget::StaticClass()) : nullptr); // no GC mid-test
+	UTDPauseMenuWidget* Menu = Keep.Get();
 	if (!TestNotNull(TEXT("pause menu"), Menu))
 	{
 		return false;

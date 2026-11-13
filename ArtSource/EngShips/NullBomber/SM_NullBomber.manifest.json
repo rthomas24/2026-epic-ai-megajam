@@ -1,0 +1,94 @@
+{
+  "asset": "SM_NullBomber",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullBomber\\SM_NullBomber.fbx",
+  "tris": 8471,
+  "size_cm": [
+    1180.0,
+    1034.6,
+    215.6
+  ],
+  "pivot": "root object origin (SM_NullBomber~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_NullBomber"
+  ],
+  "material_params": [
+    {
+      "name": "M_NullBomber",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_NullBomber_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Muzzle_0"
+  ],
+  "welded_verts": 6450,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        -100,
+        0,
+        -105
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -563,
+        -165,
+        -10
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -563,
+        165,
+        -10
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -592,
+        0,
+        15
+      ]
+    }
+  ],
+  "source": "ArtSource/EngAI/Ships/NullFleet/Bomber/mesh_r1",
+  "texture_dir": "ArtSource/EngAI/Ships/NullFleet/Bomber/mesh_r1",
+  "heat_mask": null,
+  "max_texture_size": 1024
+}

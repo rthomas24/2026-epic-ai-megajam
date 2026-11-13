@@ -162,6 +162,36 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
 	static bool ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds = 1.5f);
 
+	/**
+	 * A focus hold on the flight HUD, by reason (T1's atmosphere entry: e.g. Reason "Entry", Opacity 0.35, bHideCombat true).
+	 * While any hold is up the whole HUD eases to the lowest Opacity, and with bHideCombat the objective pill and waypoints
+	 * leave the screen. Pushing the same Reason again replaces it; PopHUDFocus ends it. Holds survive a widget re-creation
+	 * (ship switch) and end with the world. Cheap to call every frame.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static void PushHUDFocus(const UObject* WorldContext, FName Reason, float Opacity, bool bHideCombat);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static void PopHUDFocus(const UObject* WorldContext, FName Reason);
+
+	/** True while a hold asks for combat presentation to stay off screen: wave slates and combat cards check this (T3, T4). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool IsCombatPresentationHeld(const UObject* WorldContext);
+
+	/**
+	 * The scan monitor for Cinematic 03 and 05 (T3): Stage 1 the Verdance structure, 2 + scan sites, 3 + the Cinder
+	 * correlation, 4 the Cinder overlay with matching angles, 5 + the crystal cache and field anchor markers. Calling again
+	 * with a higher stage draws the new layers in. Seconds 0 = until HideScanMonitor. Its own widget: shows during a
+	 * cinematic that hides the HUD. False without a local player.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool ShowScanMonitor(const UObject* WorldContext, int32 Stage, float Seconds = 0.f);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static void HideScanMonitor(const UObject* WorldContext);
+
+	UUserWidget* GetScanMonitor() const { return ScanWidget; }
+
 	/** The tactical display while it plays (tests). */
 	UUserWidget* GetTacticalDisplay() const { return TacticalWidget; }
 
@@ -221,6 +251,18 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> TacticalWidget;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> ScanWidget;
+
+	struct FTDHUDFocus
+	{
+		float Opacity = 1.f;
+		bool bHideCombat = false;
+	};
+	TMap<FName, FTDHUDFocus> Focus;
+	/** Push the focus holds onto the live flight HUD (every tick, and on push / pop). */
+	void ApplyFocus();
 
 	TWeakObjectPtr<APlayerController> GroundOwner;
 	TWeakObjectPtr<APlayerController> PauseBoundTo;

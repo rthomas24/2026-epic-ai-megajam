@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -163,6 +164,7 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 	GlideFromRot = Ship->GetActorQuat();
 	Ship->ClearSpeedOverrideFor(TractorOverride);
 	Ship->SetFlightParked(true);	// controls locked: the bay has the ship now
+	UTDStorySubsystem::Fire(this, TEXT("G6_Wren_CoverTheBay"));	// the docking commit (once per run)
 	if (UTDHealthComponent* H = UTDStatics::GetHealth(Ship)) { H->SetInvulnerable(true); }
 	Held = Ship;
 }
