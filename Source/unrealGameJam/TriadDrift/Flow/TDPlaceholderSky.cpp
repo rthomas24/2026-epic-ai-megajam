@@ -8,6 +8,7 @@
 #include "Engine/PostProcessVolume.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "TriadDrift/World/TDSkySphere.h"
 
 const FName ATDPlaceholderSky::PresentationSkyTag(TEXT("TD.Presentation.Sky"));
 const FName ATDPlaceholderSky::PlaceholderTag(TEXT("TD.Placeholder.Sky"));
@@ -111,12 +112,16 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 {
 	if (Style == ETDPlaceholderSkyStyle::Space)
 	{
-		Sun->SetWorldRotation(FRotator(-35.f, 40.f, 0.f));
+		// The sun shines from the one baked into the nebula sky (ATDSkySphere::SunYawDeg / SunPitchDeg); planets read
+		// this light (atmosphere sun) for their night side.
+		Sun->SetWorldRotation(ATDSkySphere::SunLightRotation());
 		Sun->SetIntensity(8.f);
 		Sun->SetLightColor(FLinearColor(1.f, 0.93f, 0.82f));
-		Fill->SetWorldRotation(FRotator(25.f, 220.f, 0.f));
-		Fill->SetIntensity(1.5f);
-		Fill->SetLightColor(FLinearColor(0.55f, 0.35f, 1.f));
+		Sun->SetAtmosphereSunLight(true);
+		// Soft shadowless fill from below and behind the sun, nebula violet: the shade side reads as shape, not black.
+		Fill->SetWorldRotation(FRotator(20.f, ATDSkySphere::SunYawDeg, 0.f));
+		Fill->SetIntensity(1.2f);
+		Fill->SetLightColor(FLinearColor(0.5f, 0.4f, 1.f));
 		SkyLight->SetIntensity(1.f);
 		SkyLight->bLowerHemisphereIsBlack = false;
 		SkyLight->SetLightColor(FLinearColor(0.6f, 0.7f, 1.f));
@@ -130,8 +135,17 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
 		S.AutoExposureBias = 0.f;
+		// Bloom only from real emitters (engines, eyes, bolts, explosions) and capped, so a mass explosion never
+		// whites out the screen (playtest: TD.KillAll in wave 5).
 		S.bOverride_BloomIntensity = true;
-		S.BloomIntensity = 1.2f;
+		S.BloomIntensity = 0.8f;
+		S.bOverride_BloomThreshold = true;
+		S.BloomThreshold = 1.5f;
+		// A touch of motion blur sells speed without smearing the targets.
+		S.bOverride_MotionBlurAmount = true;
+		S.MotionBlurAmount = 0.2f;
+		S.bOverride_MotionBlurMax = true;
+		S.MotionBlurMax = 2.f;
 	}
 	else
 	{

@@ -53,6 +53,19 @@ same code.
 - **Keep-out:** no asteroid within `AsteroidKeepOut` (7000 cm) of a gate, return point or the player
   start. Asteroids are uniformly scaled, so the rock you see is the sphere you hit.
 
+### Nebula sky and space lighting (art audit, Nov 13)
+- `ATDSkySphere` (World/TDSkySphere): the builder's `SM_TD_SkySphere` + `MI_TD_NebulaSky`
+  (`/Game/TriadDrift/Gameplay/Props/Sky/`, README in `ArtSource/EngProps/Sky/`), 100 km radius, re-centred on the
+  camera every frame (post-update), unrotated, no collision, no shadow. Tagged `TD.Engineering.Sky`; hides while
+  an actor tagged `TD.Presentation.Sky` (Nick's) exists. The layout spawns it (`bSpawnSky`) when the art exists;
+  the space game mode then skips the placeholder star backdrop.
+- The one sun tunable: `ATDSkySphere::SunYawDeg` / `SunPitchDeg` (35 / 18, from the bake). The placeholder
+  space sun uses `SunLightRotation()` (Pitch -18, Yaw 215) and is the atmosphere sun light; each planet sets its
+  material's `SunDirection` from that light.
+- Space post: manual exposure, bloom 0.8 with threshold 1.5 (only emitters bloom; no whiteout), motion blur 0.2,
+  a soft shadowless violet fill (1.2 vs the sun's 8).
+- The player start (250 m out) is turned to yaw 10: the opening frame holds the sun and the magenta nebula.
+
 ## ENG-16: `ATDPortalGate`
 - **Transit:** a permanent two-way pair built on T2's shared `UTDPortalTransit::TransitActor`, so
   ships, enemies and projectiles follow the same rules as Rift's portals:

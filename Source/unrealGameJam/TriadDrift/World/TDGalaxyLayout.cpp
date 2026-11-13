@@ -20,6 +20,7 @@
 #include "EngineUtils.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
+#include "TriadDrift/World/TDSkySphere.h"
 
 namespace
 {
@@ -133,7 +134,9 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 	L.CombatZoneRadius = 45000.f;
 	L.BoundaryCenter = FVector(0.f, -50000.f, 0.f);
 	L.BoundaryRadius = 900000.f;
-	L.PlayerStart = FTransform(FRotator::ZeroRotator, FVector(-25000.f, 0.f, 0.f));
+	// 250 m out (clear of the ruin ring), turned to yaw 10: with the nebula sky unrotated the opening frame holds the
+	// baked sun (yaw 35, pitch 18) on the right and the magenta nebula (yaw -18) on the left, the zone just left of centre.
+	L.PlayerStart = FTransform(FRotator(0.f, 10.f, 0.f), FVector(-25000.f, 0.f, 0.f));
 
 	// Combat zone: a belt with a clear dogfighting pocket, plus a denser flank field for cover.
 	L.AsteroidFields.Add(TDGalaxy_Field(FVector::ZeroVector, 42000.f, 60, 11, /*Clear*/ 14000.f));
@@ -162,6 +165,15 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 	Verdance.AtmosphereRadius = 72000.f;
 	Verdance.ReturnPoint = TDReturnPoints::VerdanceOrbit;
 	Verdance.Color = FLinearColor(0.1f, 0.9f, 0.55f);
+	{
+		const FString Dir = TEXT("/Game/TriadDrift/Gameplay/Props/Planets/");
+		Verdance.Look.Surface = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(Dir + TEXT("SM_Planet_Sphere.SM_Planet_Sphere")));
+		Verdance.Look.SurfaceMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(Dir + TEXT("MI_Planet_Verdance.MI_Planet_Verdance")));
+		Verdance.Look.Atmosphere = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(Dir + TEXT("SM_Planet_Atmosphere.SM_Planet_Atmosphere")));
+		Verdance.Look.AtmosphereMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(Dir + TEXT("MI_PlanetAtmo_Verdance.MI_PlanetAtmo_Verdance")));
+		Verdance.Look.Ring = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(Dir + TEXT("SM_Planet_Ring.SM_Planet_Ring")));
+		Verdance.Look.RingMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(Dir + TEXT("MI_PlanetRing_Verdance.MI_PlanetRing_Verdance")));
+	}
 	L.Planets.Add(Verdance);
 
 	FTDPlanetSpec Cinder;
@@ -171,6 +183,13 @@ FTDGalaxyLayoutData ATDGalaxyLayout::MakeDefaultLayout()
 	Cinder.AtmosphereRadius = 66000.f;
 	Cinder.ReturnPoint = TDReturnPoints::CinderOrbit;
 	Cinder.Color = FLinearColor(0.9f, 0.3f, 0.05f);
+	{
+		const FString Dir = TEXT("/Game/TriadDrift/Gameplay/Props/Planets/");
+		Cinder.Look.Surface = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(Dir + TEXT("SM_Planet_Sphere.SM_Planet_Sphere")));
+		Cinder.Look.SurfaceMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(Dir + TEXT("MI_Planet_Cinder.MI_Planet_Cinder")));
+		Cinder.Look.Atmosphere = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(Dir + TEXT("SM_Planet_Atmosphere.SM_Planet_Atmosphere")));
+		Cinder.Look.AtmosphereMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(Dir + TEXT("MI_PlanetAtmo_Cinder.MI_PlanetAtmo_Cinder")));
+	}
 	L.Planets.Add(Cinder);
 
 	for (const FTDPlanetSpec& P : L.Planets)
@@ -336,6 +355,10 @@ void ATDGalaxyLayout::Build()
 		TravelFX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
 	}
 	BuildInstances(/*bRegisterObstacles*/ true);
+	if (bSpawnSky)
+	{
+		SkySphere = ATDSkySphere::SpawnIfAvailable(GetWorld());
+	}
 	BuildPlanets();
 	BuildGates();
 
@@ -593,7 +616,7 @@ void ATDGalaxyLayout::BuildPlanets()
 		ATDPlanetAtmosphere* Planet = GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(Cls, T, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (!Planet) { continue; }
 		Planet->Configure(P.Destination, P.ReturnPoint, P.PlanetRadius, P.AtmosphereRadius, P.Color);
-		Planet->PlanetArtMesh = P.PlanetMesh;	// optional, normalised to 100 cm, scaled to the planet
+		Planet->Look = P.Look;	// optional art; collision stays the sphere
 		Planet->FinishSpawning(T);
 		Planets.Add(Planet);
 	}

@@ -1,6 +1,7 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDPortalGate.h"
 
+#include "Misc/PackageName.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -78,7 +79,7 @@ void ATDPortalGate::LayoutParts()
 	Surface->SetRelativeScale3D(FVector(Radius * 2.f / 100.f, Radius * 2.f / 100.f, 0.05f));
 
 	// Art: a frame mesh replaces the four placeholder bars (bar 0 carries it, keeping collision).
-	if (!FrameMeshOverride.IsNull())
+	if (!FrameMeshOverride.IsNull() && FPackageName::DoesPackageExist(FrameMeshOverride.ToSoftObjectPath().GetLongPackageName()))
 	{
 		if (UStaticMesh* Art = FrameMeshOverride.LoadSynchronous())
 		{
