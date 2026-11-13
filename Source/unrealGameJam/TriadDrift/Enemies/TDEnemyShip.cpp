@@ -57,7 +57,7 @@ ATDEnemyShip::ATDEnemyShip()
 	PlaceholderEyeRight = MakePart(TEXT("PlaceholderEyeRight"), Sphere, FVector(70.f, 32.f, 22.f), FRotator::ZeroRotator, FVector(0.42f));
 	// A thin disc across the nose: the gunship's frontal shield (shown only while it is up).
 	PlaceholderShieldPlate = MakePart(TEXT("PlaceholderShieldPlate"), CylinderMesh.Succeeded() ? CylinderMesh.Object : nullptr,
-		FVector(240.f, 0.f, 0.f), FRotator(90.f, 0.f, 0.f), FVector(2.6f, 2.6f, 0.04f));
+		FVector(240.f, 0.f, 0.f), FRotator(90.f, 0.f, 0.f), FVector(1.4f, 1.4f, 0.03f));	// live check: 2.6 hid the fight
 	PlaceholderShieldPlate->SetVisibility(false);
 }
 
@@ -369,7 +369,7 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 	bPlaceholderLook = true;
 	if (PlaceholderShieldPlate)
 	{
-		UTDStatics::TintPlaceholder(PlaceholderShieldPlate, FLinearColor(0.1f, 0.5f, 0.8f), 0.7f);
+		UTDStatics::TintPlaceholder(PlaceholderShieldPlate, FLinearColor(0.1f, 0.5f, 0.8f), 0.45f);
 		PlaceholderShieldPlate->SetVisibility(HasFrontalShield() && IsFrontalShieldUp());
 	}
 }
