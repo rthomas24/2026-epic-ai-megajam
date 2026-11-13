@@ -374,14 +374,25 @@ bool FTDDirectorCamFraming::RunTest(const FString& Parameters)
 	{
 		FCamFixture F;
 		ATDShip* P = F.Player();
+		FVector Centroid = FVector::ZeroVector;
 		for (int32 i = 0; i < 3; ++i)
 		{
-			ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, P->GetActorLocation() + P->GetActorForwardVector() * (6000.f + 1500.f * i) + P->GetActorRightVector() * (i - 1) * 1500.f);
+			const FVector At = P->GetActorLocation() + P->GetActorForwardVector() * (6000.f + 1500.f * i) + P->GetActorRightVector() * (i - 1) * 1500.f;
+			Centroid += At / 3.f;
+			ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, At);
 			E->SetFlightParked(true);
 			UTDStatics::ApplyTDDamage(E, 1000000.f, ETDDamageKind::Energy, P, P);
 		}
-		F.W.Tick();
 		CheckFrame(*this, F, TEXT("multi-kill"));
+		// Its own framing (Lead): on the cluster of kills, pulled back, not a chase view of the killer.
+		if (!TestTrue(TEXT("multi-kill: a shot is running"), F.Rig()->IsActive() && F.Rig()->GetCameraActor() != nullptr))
+		{
+			return false;
+		}
+		TestTrue(FString::Printf(TEXT("multi-kill: holds on the cluster of kills (%.0f cm off)"), FVector::Dist(F.Rig()->GetLastFocus(), Centroid)), FVector::Dist(F.Rig()->GetLastFocus(), Centroid) < 800.f);
+		TestTrue(TEXT("multi-kill: pulled well back"), FVector::Dist(F.Rig()->GetCameraActor()->GetActorLocation(), Centroid) > 5000.f);
+		const FVector BehindPlayer = F.Player()->GetChaseCameraTransformNow().GetLocation();
+		TestTrue(TEXT("multi-kill: not the chase camera"), FVector::Dist(F.Rig()->GetCameraActor()->GetActorLocation(), BehindPlayer) > 2000.f);
 	}
 	{
 		FCamFixture F;

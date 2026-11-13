@@ -255,6 +255,10 @@ FVector UTDDirectorCameraRig::TrackedLocationFor(const FVector& Focus) const
 	Params.AddIgnoredActor(Subject.Get());
 	Params.AddIgnoredActor(Secondary.Get());
 	Params.AddIgnoredActor(PawnAtStart.Get());
+	for (const TWeakObjectPtr<AActor>& Extra : PlacementIgnore)
+	{
+		Params.AddIgnoredActor(Extra.Get());
+	}
 	// Squad wingmen are moving and steer clear of the shot camera themselves: pulling in for one put
 	// the camera right in front of it, filling the frame (live capture, ram kill).
 	if (const ATDSquadManager* Squad = ATDSquadManager::Get(World))
@@ -280,7 +284,7 @@ FVector UTDDirectorCameraRig::TrackedLocationFor(const FVector& Focus) const
 
 FVector UTDDirectorCameraRig::CurrentFocus() const
 {
-	if (bSubjectGone)
+	if (bSubjectGone || bStaticFocus)
 	{
 		return LastFocus;
 	}
@@ -356,6 +360,10 @@ bool UTDDirectorCameraRig::BeginShot(const FTDDirectorShot& Shot, double ShotEnd
 	Ignore.Add(Shot.Subject.Get());
 	Ignore.Add(Shot.Secondary.Get());
 	Ignore.Add(Ship);
+	for (const TWeakObjectPtr<AActor>& Extra : Shot.IgnoreForPlacement)
+	{
+		Ignore.Add(Extra.Get());
+	}
 	FVector Location;
 	if (!ResolveCameraLocation(World, Shot.FocusLocation, Shot.SuggestedCameraLocation, Ignore, Ship, Location))
 	{
@@ -399,6 +407,8 @@ bool UTDDirectorCameraRig::BeginShot(const FTDDirectorShot& Shot, double ShotEnd
 	Secondary = Shot.Secondary;
 	const UTDHealthComponent* SubjectHealth = UTDStatics::GetHealth(Shot.Subject.Get());
 	bSubjectAliveAtStart = Shot.Subject.IsValid() && (!SubjectHealth || SubjectHealth->IsAlive());
+	PlacementIgnore = Shot.IgnoreForPlacement;
+	bStaticFocus = Shot.bStaticFocus;
 	LastFocus = Shot.FocusLocation;
 	ShotLocation = Location;
 	ShotOffset = Location - Shot.FocusLocation;
