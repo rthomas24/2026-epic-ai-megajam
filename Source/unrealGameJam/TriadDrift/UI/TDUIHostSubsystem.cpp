@@ -853,6 +853,29 @@ namespace TDUIHost
 		TEXT("TD.UI.DevHurt <amount> [fromYawDeg]: damage the player's ship from a side (dev, HUD captures)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&DevHurt));
 
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUITactical(TEXT("TD.UI.Tactical"),
+		TEXT("TD.UI.Tactical [seconds=20]: show the Aftermath tactical display (dev, captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDUIHostSubsystem::ShowTacticalDisplay(World, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 20.f);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUINavPulse(TEXT("TD.UI.NavPulse"),
+		TEXT("TD.UI.NavPulse [seconds=1.5]: the Aftermath navigation pulse, a corridor from 1 km to 9 km ahead and to the right (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+			const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+			if (!Pawn)
+			{
+				return;
+			}
+			const FVector Fwd = Pawn->GetActorForwardVector(), Right = Pawn->GetActorRightVector();
+			const FVector From = Pawn->GetActorLocation() + Fwd * 100000.f - Pawn->GetActorUpVector() * 8000.f;
+			const FVector To = Pawn->GetActorLocation() + Fwd * 900000.f + Right * 250000.f;
+			UTDUIHostSubsystem::ShowNavigationPulse(World, From, To, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.5f);
+		}));
+
 	FAutoConsoleCommandWithWorld CmdTDUIStatus(TEXT("TD.UI.Status"),
 		TEXT("TD.UI.Status: log the space HUD host state, its data source's current target and the widget's decoded squad cards."),
 		FConsoleCommandWithWorldDelegate::CreateStatic(&LogHostStatus));

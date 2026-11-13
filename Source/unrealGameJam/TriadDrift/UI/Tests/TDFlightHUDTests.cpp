@@ -14,6 +14,7 @@
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDHintComponent.h"
@@ -785,7 +786,13 @@ bool FTDFlightHUDSubtitles::RunTest(const FString& Parameters)
 	Bus->OnBarkRequested.Broadcast(TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"));
 	F.HUD->Sample(.016f);
 	TestEqual(TEXT("bark: speaker"), F.V().Subtitle.Speaker, FString(TEXT("KATO")));
-	TestEqual(TEXT("bark: line"), F.V().Subtitle.Text, FString(TEXT("engage high left")));
+	{
+		// The real dialogs.md line (T3's FTDBarkLines returns the same line to every caller for 3 s), or no subtitle at all.
+		FText Real;
+		const bool bHasLine = FTDBarkLines::PickLine(F.W.GetWorld(), TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"), Real);
+		AddInfo(FString::Printf(TEXT("dialogs.md line: %s"), bHasLine ? *Real.ToString() : TEXT("(none)")));
+		TestEqual(TEXT("bark: the real line, not text made from the id"), F.V().Subtitle.Text, bHasLine ? Real.ToString() : FString());
+	}
 	F.HUD->ShowTransmission(TEXT("Unknown"), FText::FromString(TEXT("You have done this before. You will do it again, and you will not remember.")),
 		UTDFlightHUDWidget::ETransmissionStyle::Static, 4.f);
 	F.HUD->Sample(.016f);

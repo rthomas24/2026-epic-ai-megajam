@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
@@ -348,7 +349,14 @@ void UTDFlightHUDWidget::HandleBarkRequested(FName BarkId, FName Speaker)
 	{
 		return;
 	}
-	ShowTransmission(Speaker, FText::FromString(BarkText(BarkId)), ETransmissionStyle::Clean, BarkSeconds);
+	// The real line from dialogs.md (T3's FTDBarkLines: Nicholas's DT_Barks wins row by row; the same line every caller
+	// sees for 3 s, so this HUD and the dev HUD agree). No line, no subtitle: no more text made up from the id.
+	FText Line;
+	if (!FTDBarkLines::PickLine(this, BarkId, Speaker, Line) || Line.IsEmpty())
+	{
+		return;
+	}
+	ShowTransmission(Speaker, Line, ETransmissionStyle::Clean, BarkSeconds);
 	const FString& Who = View.Subtitle.Speaker;
 	View.Subtitle.TagColor = Who == TEXT("WREN") ? FTDFlightHUDTokens::Rift() : Who == TEXT("KATO") ? FTDFlightHUDTokens::Lancer()
 		: Who == TEXT("MOSS") ? FTDFlightHUDTokens::Bastion() : FTDFlightHUDTokens::Dim();
