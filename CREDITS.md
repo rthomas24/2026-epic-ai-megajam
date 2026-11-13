@@ -94,3 +94,7 @@ Audio & Music agent used existing PlaceHolder Inc 50 Free Game Sounds Pack `Guns
 ### Custom Triad Drift Sentinel Armor - November12,2026
 
 Nick supplied Meshy_AI_Sentinel_Armor_Turnaround_20261113_animated_ue5_mannequin_All_animation.glb. Original bytes are preserved under ArtSource/Characters/Samples/SentinelArmor/. Following the initial inspection transfer, Nick confirmed his original design, custom Triad Drift ownership attribution and Meshy AI creation tool, then expressly authorized immediate gameplay integration with no further licensing questions or development interruption. Ryan owns the playable-body import/integration in Gameplay/Characters/Pilot. Lead verified GLB container/size/SHA and Git LFS transfer only; actual import, animation and gameplay verification are reported separately by engineering.
+
+### Planet terrain materials (ENG-34) - November 13, 2026
+
+`M_TD_Terrain`, `MI_Terrain_Verdance`, `MI_Terrain_Cinder` and textures `T_Terrain_Rock_M/N`, `T_Terrain_Detail_M/N` in `Content/TriadDrift/Gameplay/Props/Planets/`. Made during the jam by Ryan's side with Claude Code: textures generated procedurally with numpy (`ArtSource/EngProps/Planets/scripts/build_terrain_textures.py`), material graph built by Unreal editor Python (`ue_terrain_material.py`, `ue_terrain_build.py`). No third-party or downloaded assets; reuses the project's own `T_Ground_*` textures. Licence: original work.
