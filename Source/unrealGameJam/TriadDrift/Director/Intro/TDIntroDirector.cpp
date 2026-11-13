@@ -658,67 +658,37 @@ void UTDIntroDirector::BuildShots()
 		S.Narration = 2;
 		Shots.Add(S);
 	}
-	// 4. Threading an asteroid field: 50 mm drifting through, the squad small ahead, rocks in the foreground.
+	// 4. Threading the Verdance lane: 50 mm drifting along T4's lane-rock tube past the cargo pods spilled a third of the
+	// way out (foreground parallax), the squad small ahead on the lane.
 	{
-		const FTDAsteroidFieldSpec* Field = Layout.AsteroidFields.Num() > 1 ? &Layout.AsteroidFields[1] : (Layout.AsteroidFields.Num() ? &Layout.AsteroidFields[0] : nullptr);
-		const FVector C = Field ? Field->Center : S0;
-		const float FR = Field ? Field->Radius : 20000.f;
-		// The clearest line through the field (camera and squad both), with the most rocks close to it.
-		const UInstancedStaticMeshComponent* Rocks = Galaxy ? Galaxy->GetAsteroidCollision() : nullptr;
-		FVector BestDir = F0;
-		float BestScore = -1.f;
-		for (int32 i = 0; i < 16; ++i)
-		{
-			const FVector Dir = F0.RotateAngleAxis(i * 22.5f, Up);
-			const FVector A = C - Dir * FR * 0.8f;
-			const FVector B = C + Dir * FR * 0.9f;
-			float Score = 0.f;
-			bool bBlocked = false;
-			if (Rocks)
-			{
-				for (int32 k = 0; k < Rocks->GetInstanceCount(); ++k)
-				{
-					FTransform T;
-					Rocks->GetInstanceTransform(k, T, true);
-					const float Radius = Rocks->GetStaticMesh() ? Rocks->GetStaticMesh()->GetBounds().SphereRadius * T.GetMaximumAxisScale() : 1000.f;
-					const float Dist = FMath::PointDistToSegment(T.GetLocation(), A, B) - Radius;
-					if (Dist < 900.f)
-					{
-						bBlocked = true;
-						break;
-					}
-					if (Dist < 6000.f)
-					{
-						Score += 1.f;
-					}
-				}
-			}
-			if (!bBlocked && Score > BestScore)
-			{
-				BestScore = Score;
-				BestDir = Dir;
-			}
-		}
+		const FTDPlanetSpec* V = Layout.Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Verdance; });
+		const FVector LaneEnd = V ? V->Location : FVector(450000.f, 260000.f, 0.f);
+		const FVector LaneDir = (LaneEnd - Layout.CombatZoneCenter).GetSafeNormal();
+		const FVector LaneSide = FVector::CrossProduct(LaneDir, Up).GetSafeNormal(); // the side the layout spills the pods
+		const FVector Cargo = FMath::Lerp(Layout.CombatZoneCenter, LaneEnd, 0.33f) + LaneSide * 6000.f;
+		const FVector OnLane = Cargo - LaneSide * 6000.f;
 		FTDIntroShot S;
 		S.Id = TEXT("Belt");
 		S.Duration = 6.f;
-		S.CamFrom = C - BestDir * FR * 0.8f + Up * 300.f;
-		S.CamTo = S.CamFrom + BestDir * 9000.f;
+		S.Anchor = Cargo;
+		S.CamFrom = OnLane - LaneDir * 14000.f + LaneSide * 3200.f + Up * 700.f;
+		S.CamTo = OnLane - LaneDir * 2000.f + LaneSide * 3400.f + Up * 900.f; // the pods slide past just off the lens
 		S.bSquad = true;
-		S.SquadFrom = S.CamFrom + BestDir * 9000.f;
-		S.SquadTo = S.SquadFrom + BestDir * 24000.f;
+		S.SquadFrom = OnLane - LaneDir * 2000.f;
+		S.SquadTo = OnLane + LaneDir * 22000.f;
 		S.bTrackSquad = true;
 		S.FocalFrom = S.FocalTo = 50.f;
 		S.FStop = 5.6f; // wide: no handheld
 		S.Narration = 3;
 		Shots.Add(S);
 	}
-	// 5. Cinder far off, beyond a portal gate ring: 35 mm tracking with the squad as it flies through.
+	// 5. Cinder far off, down a gate approach: the squad races along T4's beacon buoys on the gate's own axis and through
+	// the ring; 35 mm tracking beside them, the ring framing Cinder.
 	{
 		const FTDPlanetSpec* Cin = Layout.Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Cinder; });
 		const FVector PC = Cin ? Cin->Location : FVector(-420000.f, 330000.f, 40000.f);
 		// The zone gate nearest the line to Cinder.
-		FVector Gate = S0 + (PC - S0).GetSafeNormal() * 20000.f;
+		FTransform GateT(S0 + (PC - S0).GetSafeNormal() * 20000.f);
 		float BestDot = -2.f;
 		for (const FTDGatePairSpec& G : Layout.Gates)
 		{
@@ -729,27 +699,31 @@ void UTDIntroDirector::BuildShots()
 				if (Dot > BestDot && FVector::Dist(At, S0) < 150000.f)
 				{
 					BestDot = Dot;
-					Gate = At;
+					GateT = *T;
 				}
 			}
 		}
-		const FVector Dir = (PC - Gate).GetSafeNormal();
-		const FVector Side = FVector::CrossProduct(Up, Dir).GetSafeNormal();
+		const FVector Gate = GateT.GetLocation();
+		FVector Axis = GateT.GetRotation().GetForwardVector();
+		if (FVector::DotProduct(Axis, PC - Gate) < 0.f)
+		{
+			Axis = -Axis; // fly the approach toward Cinder
+		}
+		const FVector Side = FVector::CrossProduct(Up, Axis).GetSafeNormal();
 		FTDIntroShot S;
 		S.Id = TEXT("Gate");
 		S.Duration = 6.f;
+		S.Anchor = Gate;
 		S.bSquad = true;
-		S.SquadFrom = Gate - Dir * 11000.f;
-		S.SquadTo = Gate + Dir * 5000.f;
-		// The lens tracks in behind the squad and settles beside the ring, outside it (never through the membrane),
-		// so the wing flies on through the gate toward Cinder.
-		S.CamFrom = S.SquadFrom - Dir * 3000.f + Side * 1800.f + Up * 600.f;
-		S.CamTo = Gate - Dir * 4500.f + Side * 7500.f + Up * 1400.f; // the whole ring in frame, Cinder beyond it
-		S.LookFrom = S.SquadFrom + Dir * 6000.f;
-		S.LookTo = Gate + Dir * 9000.f;
+		S.SquadFrom = Gate - Axis * 40000.f; // past the buoy pairs at 90, 60 and 30 m out
+		S.SquadTo = Gate + Axis * 6000.f;
+		S.CamFrom = S.SquadFrom - Axis * 3500.f + Side * 2200.f + Up * 700.f;
+		S.CamTo = Gate - Axis * 8000.f + Side * 11000.f + Up * 2000.f; // settles beside the ring, outside it, the whole ring in frame
+		S.LookFrom = S.SquadFrom + Axis * 8000.f;
+		S.LookTo = Gate + Axis * 9000.f;
 		S.FocalFrom = S.FocalTo = 35.f;
 		S.FStop = 4.f;
-		S.FocusDistance = 3200.f; // wide: no handheld
+		S.FocusDistance = 4000.f; // wide: no handheld
 		Shots.Add(S);
 	}
 	// 6a. The threat from far away: 135 mm, the Dominion's silhouette sliding across the stars, red warp flashes.
@@ -873,8 +847,7 @@ void UTDIntroDirector::BeginShot(int32 Index)
 	if (S.Id == TEXT("Gate"))
 	{
 		// The ring frames Cinder: hide the gate's membrane for the shot (put back at the next cut).
-		const FVector Dir = (S.SquadTo - S.SquadFrom).GetSafeNormal();
-		const FVector GateAt = S.SquadFrom + Dir * 11000.f;
+		const FVector GateAt = S.Anchor;
 		if (const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this))
 		{
 			ATDPortalGate* Nearest = nullptr;
@@ -1095,7 +1068,7 @@ void UTDIntroDirector::UpdateShot(float T)
 	if (S.Id == TEXT("Gate") && !bGateFlared && Held.Num() && Held[0].Ship.IsValid())
 	{
 		const FVector Dir = (S.SquadTo - S.SquadFrom).GetSafeNormal();
-		const FVector Gate = S.SquadFrom + Dir * 11000.f;
+		const FVector Gate = S.Anchor;
 		if (FVector::DotProduct(Held[0].Ship->GetActorLocation() - Gate, Dir) > 0.f)
 		{
 			bGateFlared = true;

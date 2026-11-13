@@ -64,6 +64,8 @@ struct FTDIntroShot
 	FVector SquadTo = FVector::ZeroVector;
 	/** Track the squad (look at it, focus on it) instead of LookFrom / LookTo. */
 	bool bTrackSquad = false;
+	/** The shot's landmark (the gate the squad flies through, the cargo cluster it passes). */
+	FVector Anchor = FVector::ZeroVector;
 	/** Distance the focus is held at when nothing is tracked (cm); 0 = infinity-ish. */
 	float FocusDistance = 0.f;
 };
