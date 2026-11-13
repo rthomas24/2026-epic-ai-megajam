@@ -98,7 +98,20 @@ public:
 		float Distance = 0.f;
 		/** 0..1 when the marker has health (a Dominion generator), else -1. */
 		float Health = -1.f;
+		/** On screen but inside the player-ship zone: drawn at DrawPos (just above it) with a tether to Pos. */
+		bool bLifted = false;
+		FVector2D DrawPos = FVector2D::ZeroVector;
 	};
+
+	/** Design-space zone the chase camera's own ship covers (under the reticle cluster). */
+	static FBox2D ShipZone() { return FBox2D(FVector2D(790.f, 612.f), FVector2D(1130.f, 800.f)); }
+	/** Where an on-screen waypoint at Pos is drawn: just above the ship zone when inside it (returns true), else Pos. */
+	static bool LiftWaypoint(const FVector2D& Pos, FVector2D& OutDraw)
+	{
+		const bool bLift = ShipZone().IsInside(Pos);
+		OutDraw = bLift ? FVector2D(Pos.X, ShipZone().Min.Y - 14.f) : Pos;
+		return bLift;
+	}
 
 	/** P2: a wingman's arrow (off screen only, hollow chevron in its colour; pulses in trouble). */
 	struct FWingArrow
