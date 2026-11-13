@@ -246,6 +246,16 @@ https://github.com/rthomas24/2026-epic-ai-megajam/pull/30 (branch `grok/assets-a
 Contact sheet: `ArtSource/EngAI/Animations/PilotBlade/r1/contact_sheet.jpg`.
 fal Hunyuan Motion (HY-Motion 1.0), FBX 30 fps, 52-bone SMPL-H. 14 clips + a T-pose reference. In-place except HeavyLunge (root motion ~166 cm) and Dash (~384 cm). Builders retarget SMPL-H to `SKEL_Pilot`; the bone map is in `SOURCE.md`. Flags: Light1 hit is early (~0.23 s); Light3 foot-slides after the in-place bake; AirSlam is the weakest clip (jump ~6 m, reads as a wide landing not a tight smash); deaths collapse in place. $3.04 this batch. Status stays OPEN.
 
+**Queue addition (Ryan / Lead, 2026-11-13 13:47 EST): planetary descent assets (ENG-38, R-035).** After the player ships
+and the energy blade, before the fleet: (a) **clouds**: one tileable 2K cloud-deck sheet (top-down, soft, with alpha),
+an 8x8 wisp / vapour flipbook, an 8x8 "cloud punch" flipbook (flying through a cloud wall, camera-facing); (b) **entry
+plasma**: an 8x8 plasma-sheath flipbook (a bow shock wrapping a nose cone, white-hot core to orange, on black), a heat
+streak / ember sheet, a shock-cone ring; (c) **ship heat-glow masks**: per ship, an emissive mask for nose, leading
+edges and belly matching the Rodin UVs (deliver with each ship); (d) if the tool allows, per ship one **deployable
+part** (airbrake petals or a heat-shield plate) as a separate mesh in open and closed poses; (e) only if asked later:
+per-planet equirect surface maps (4K) for the globe. Folder `ArtSource/EngAI/Descent/`. Also for animation: Ryan
+approved **Epic's Game Animation Sample Project** as a library source for body movement (`animations.md`), so your
+motion work can focus on blade combat and the Warden.
 
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
@@ -319,6 +329,35 @@ directly. Nothing in it hints at the truth about the enemy. If the tone is wrong
 we rewrite to your note.
 
 **Reply (Nick / Lead, dialogue follow-up):** We have dialogs.md and its 22 live trigger IDs. Nicholas will review pilot tone and final wording against those IDs. Audio will preserve the same identifiers when replacing approved lines.
+
+### R-035 · OPEN · New core feature from Ryan: planetary descent (ENG-38), space to surface with no loading screen, "almost like No Man's Sky"
+
+**From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator, Environment and Audio; Ryan / Grok Bot · **Time:** 2026-11-13 13:47 EST · **Needs:** Nick's agents (read; Environment and Audio: see the asks), Grok Bot (queue)
+
+Ryan wants flying down into a world to be a centrepiece: orbit the planet's globe, enter the atmosphere **anywhere**,
+the ship visibly piercing it (plasma sheath, heat glow, shake), a cloud deck, then the world coming into focus in
+more and more detail, with no loading screen. Spec: `features.md` **ENG-38**. Research and the recommended architecture
+(No Man's Sky, Elite Dangerous, Unreal techniques, our current code): `docs/eng/planet-descent-research.md`, in progress.
+- **Engineering builds it** in three stages (entry sequence at full quality first; then orbiting and entering at a
+  chosen point that maps to a place on the terrain, with the globe showing the real terrain; landing anywhere as a
+  stretch). T1 flight and entry, T4 the globe and the focus-in, T5 the hidden load, T2 the HUD, T3 the camera, the effects
+  and audio builders.
+- **For Nick's Environment (ART-13, yours):** the atmosphere's look from orbit to ground is the heart of this: the
+  limb glow and scattering seen from space, the cloud layer, haze thinning on the way down, and light, fog and grade on
+  the surface. Engineering will put in a stand-in (Sky Atmosphere + a cloud layer + height fog, tagged so yours
+  replaces it). **Ask:** tell us (an `Asset:` or `Story:` issue, or here) the look you want per planet from orbit and on
+  the way down (Verdance: bioluminescent, teal haze? Cinder: ash, ember glow?), and whether you want to own the
+  cloud layer. If your Hero sky work can supply a planet-side sky, the same tag (`TD.Presentation.Sky`) wins.
+- **For Nick's Audio:** an entry sequence needs sound more than any other beat: thin-air hiss, the burn-through roar,
+  buffet, the boom and sudden clear air under the clouds, wind over the hull. Engineering adds stand-ins in cue slots
+  (I will post the slot names); yours win as always. Music: the descent is a natural place for each planet's theme to
+  come in on cloud break.
+- **For Grok Bot (added to the queue in R-030):** cloud textures and flipbooks (a tileable cloud-deck sheet, wisps,
+  a cloud-punch flipbook), plasma sheath and heat-streak textures, per-planet surface maps for the globe if baking from
+  our terrain field falls short, emissive heat-glow masks for the three ships (leading edges, nose, belly), and, if
+  the Rodin ships can take it, a deployable airbrake or heat-shield part per ship as a separate mesh.
+- **Story hook (storyline.md §5):** on Verdance the machines' landers burn in ahead of you; on Cinder the dig glows
+  from orbit; the Dominion is visible in the sky from the ground.
 
 ## Messages from Nick's side (art / presentation)
 
