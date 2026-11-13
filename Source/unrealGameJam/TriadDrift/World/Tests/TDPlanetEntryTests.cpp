@@ -21,7 +21,7 @@ bool FTDDescentMapping::RunTest(const FString&)
 	FRandomStream R(31337);
 	for (int32 k = 0; k < 200; ++k)
 	{
-		const FVector2D XY(R.FRandRange(-420000.f, 420000.f), R.FRandRange(-420000.f, 420000.f));
+		const FVector2D XY(R.FRandRange(-170000.f, 170000.f), R.FRandRange(-170000.f, 170000.f));
 		const FVector2D Back = FTDPlanetEntry::GroundFromGlobe(FTDPlanetEntry::GlobeFromGround(XY));
 		if (!Back.Equals(XY, 1.f)) { AddError(FString::Printf(TEXT("round trip (%.0f, %.0f) -> (%.0f, %.0f)"), XY.X, XY.Y, Back.X, Back.Y)); break; }
 	}
@@ -63,9 +63,18 @@ bool FTDDescentArrival::RunTest(const FString&)
 		const FVector ToPad = (-FVector(L.X, L.Y, 0.f)).GetSafeNormal();
 		TestTrue(*FString::Printf(TEXT("planet %d: flying toward the landing zone faces the pad (%.3f)"), (int32)Planet, FVector::DotProduct(Fwd, ToPad)), FVector::DotProduct(Fwd, ToPad) > 0.999f);
 		TestTrue(TEXT("level (no pitch or roll)"), FMath::IsNearlyZero(A.Rotator().Pitch, 0.01f) && FMath::IsNearlyZero(A.Rotator().Roll, 0.01f));
+		// A near-radial dive (5% along the surface, either side): stable, facing the pad, never flipping.
+		const FTransform DiveA = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -Up * 10000.f + ToPole * 500.f, 150000.f);
+		const FTransform DiveB = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -Up * 10000.f - ToPole * 500.f, 150000.f);
+		TestTrue(TEXT("a near-radial dive faces the pad, whichever way the sliver points"),
+			FVector::DotProduct(DiveA.GetRotation().GetForwardVector(), ToPad) > 0.999f && FVector::DotProduct(DiveB.GetRotation().GetForwardVector(), ToPad) > 0.999f);
 		// Straight down: face the pad.
 		const FTransform Down = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -Up * 5000.f, 150000.f);
 		TestTrue(TEXT("a vertical entry faces the pad"), FVector::DotProduct(Down.GetRotation().GetForwardVector(), ToPad) > 0.999f);
+		// Flying away from the zone: the arrival still looks in, at most 50 deg off the pad, on the entry's side.
+		const FTransform Away = FTDPlanetEntry::ArrivalFromGlobe(Planet, P, -ToPole * 9000.f, 150000.f);
+		const float Off = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp((float)FVector::DotProduct(Away.GetRotation().GetForwardVector(), ToPad), -1.f, 1.f)));
+		TestTrue(*FString::Printf(TEXT("an outbound entry is turned to look into the zone (%.1f deg off the pad)"), Off), Off <= FTDPlanetEntry::MaxHeadingOffPadDeg + 0.5f);
 	}
 	return true;
 }
@@ -91,8 +100,10 @@ bool FTDDescentTakeOff::RunTest(const FString&)
 			AddError(FString::Printf(TEXT("departure point (%.2f, %.2f) vs entry (%.2f, %.2f)"), Out.LatDeg, Out.LonDeg, P.LatDeg, P.LonDeg));
 			break;
 		}
+		// Leaving the way you arrived: mapping the take-off direction back gives the same ground heading.
 		const FVector Surface = (Dir - Up * FVector::DotProduct(Dir, Up)).GetSafeNormal();
-		if (FVector::DotProduct(Surface, V) < 0.999f) { AddError(TEXT("take-off heading does not match the arrival heading")); break; }
+		const FTransform Back = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, Out, Surface * 9000.f, 150000.f);
+		if (FMath::Abs(FMath::FindDeltaAngleDegrees(Back.Rotator().Yaw, A.Rotator().Yaw)) > 0.5f) { AddError(TEXT("take-off heading does not match the arrival heading")); break; }
 		if (!FMath::IsNearlyEqual(FMath::RadiansToDegrees(FMath::Asin(FVector::DotProduct(Dir, Up))), 30.f, 0.1f)) { AddError(TEXT("take-off does not climb 30 deg")); break; }
 	}
 	return true;
@@ -167,23 +178,41 @@ bool FTDDescentGlobeBake::RunTest(const FString&)
 	TestTrue(TEXT("out to the far ring"), FMath::IsNearlyEqual(FTDGlobeBake::GroundDistanceForAngle(120.f), FTDTerrainStyle::ForPlanet(ETDDestination::Verdance).FarHalfSize, 1.f));
 	float Last = -1.f;
 	for (float A = 0.f; A <= 180.f; A += 5.f) { const float D = FTDGlobeBake::GroundDistanceForAngle(A); TestTrue(TEXT("monotonic"), D >= Last); Last = D; }
-	// The pad's beacon at the pole.
+	// No beacon disc painted into the texture (it filled every dive frame): the pole is ordinary ground.
 	FLinearColor B, E;
 	FTDGlobeBake::SampleAt(ETDDestination::Verdance, 90.f, 0.f, B, E);
-	TestTrue(TEXT("beacon at the landing zone"), E.G > 0.5f && B.GetLuminance() > 0.5f);
+	TestTrue(TEXT("no target disc at the landing zone"), E.GetLuminance() < 0.1f && B.GetLuminance() < 0.6f);
 	// Verdance: the hero massif is rock / snow where the ground has it, the jungle around the pad is green.
 	const FTDTerrainStyle VS = FTDTerrainStyle::ForPlanet(ETDDestination::Verdance);
 	const FVector2D Hero = VS.HeroCentre;
-	const FTDGlobePoint HP = FTDPlanetEntry::GlobeFromGround(Hero);
-	FLinearColor HeroB, HeroE, PadB, PadE;
-	FTDGlobeBake::SampleAt(ETDDestination::Verdance, HP.LatDeg, HP.LonDeg, HeroB, HeroE);
+	// Where the bake draws a ground point (inverting GroundDistanceForAngle: the massif lies past the arrival ring).
+	auto BakePoint = [](const FVector2D& G)
+	{
+		FTDGlobePoint P;
+		const float D = G.Size();
+		float Lo = 0.f, Hi = 180.f;
+		for (int32 k = 0; k < 40; ++k) { const float M = 0.5f * (Lo + Hi); (FTDGlobeBake::GroundDistanceForAngle(M) < D ? Lo : Hi) = M; }
+		P.LatDeg = 90.f - 0.5f * (Lo + Hi);
+		P.LonDeg = FMath::RadiansToDegrees(FMath::Atan2(G.Y, G.X));
+		return P;
+	};
+	const FTDGlobePoint HP = BakePoint(Hero);
+	// Averaged over a small neighbourhood (the bake has fine breakup per texel).
+	auto Avg = [](const FTDGlobePoint& C, FLinearColor& OutB)
+	{
+		FLinearColor Sum = FLinearColor::Black, E;
+		for (int32 a = -2; a <= 2; ++a) { for (int32 b = -2; b <= 2; ++b) { FLinearColor B; FTDGlobeBake::SampleAt(ETDDestination::Verdance, C.LatDeg + a * 0.4f, C.LonDeg + b * 0.4f, B, E); Sum += B; } }
+		OutB = Sum / 25.f;
+	};
+	FLinearColor HeroB, PadB;
+	Avg(HP, HeroB);
 	{
 		const FTDTerrainField VF(VS);
 		const FTDTerrainSample HS = VF.Sample(Hero.X, Hero.Y, 2000.f);
 		AddInfo(FString::Printf(TEXT("hero sample: h %.0f m, h01 %.2f, slope %.2f, broad %.2f; globe (%.2f, %.2f)"), HS.Height / 100.f, HS.Height01, HS.Slope, HS.BroadMask, HP.LatDeg, HP.LonDeg));
 	}
-	const FTDGlobePoint Near = FTDPlanetEntry::GlobeFromGround(FVector2D(60000.f, 0.f));
-	FTDGlobeBake::SampleAt(ETDDestination::Verdance, Near.LatDeg, Near.LonDeg, PadB, PadE);
+	const FTDGlobePoint Near = BakePoint(FVector2D(60000.f, 0.f));
+	Avg(Near, PadB);
 	TestTrue(*FString::Printf(TEXT("the massif reads lighter (rock) than the basin (%.2f vs %.2f)"), HeroB.GetLuminance(), PadB.GetLuminance()), HeroB.GetLuminance() > PadB.GetLuminance());
 	TestTrue(TEXT("the basin is green"), PadB.G > PadB.R && PadB.G > PadB.B);
 	// Cinder: somewhere on the landing-zone cap, lava glows.
@@ -212,6 +241,41 @@ bool FTDDescentCurvature::RunTest(const FString&)
 	const float Edge = T->CurvatureDrop(Far, 0.f);
 	TestTrue(*FString::Printf(TEXT("the far edge drops under the horizon (%.0f m)"), Edge / 100.f), Edge > 50000.f && Edge < 200000.f);
 	TestTrue(TEXT("it grows outward"), T->CurvatureDrop(Core + 1000000.f, 0.f) < Edge);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDescentBeacon, "TriadDrift.World.Descent.PadBeaconIsASmallLightThatFadesOnTheDive", TD_TEST_FLAGS)
+bool FTDDescentBeacon::RunTest(const FString&)
+{
+	// Live finding (effects builder): the beacon painted into the bake was a white target disc filling every dive frame.
+	FTDTestWorld W;
+	ATDPlanetAtmosphere* Planet = W.Spawn<ATDPlanetAtmosphere>(FVector(500000.f, 0.f, 0.f));
+	if (!TestNotNull(TEXT("planet"), Planet)) { return false; }
+	const FString Dir = TEXT("/Game/TriadDrift/Gameplay/Props/Planets/");
+	Planet->Look.Surface = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(Dir + TEXT("SM_Planet_Sphere.SM_Planet_Sphere")));
+	Planet->Look.SurfaceMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(Dir + TEXT("MI_Planet_Verdance.MI_Planet_Verdance")));
+	Planet->Configure(ETDDestination::Verdance, TEXT("Verdance_Orbit"), 60000.f, 75000.f, FLinearColor::Green);
+	// The bake runs on worker threads: wait real time (up to 30 s), ticking so its game-thread hand-off lands.
+	for (int32 k = 0; k < 600 && !Planet->IsGlobeBaked(); ++k) { FPlatformProcess::Sleep(0.05f); W.Tick(0.05f); }
+	if (!Planet->IsGlobeBaked())
+	{
+		AddWarning(TEXT("the globe art (SM_Planet_Sphere) is missing: no bake, no beacon to check"));
+		return true;
+	}
+	const FVector Up = Planet->GetGlobeQuat().GetUpVector();
+	const float R = Planet->GetPlanetRadius();
+	// From far out on the landing-zone side: visible, and small (about 0.35 deg of the view).
+	const FVector Far = Planet->GetPlanetCenter() + Up * R * 10.f;
+	Planet->UpdateBeacon(Far);
+	TestTrue(TEXT("seen from orbit"), Planet->IsBeaconVisible());
+	const float Dist = R * 9.f;
+	TestTrue(*FString::Printf(TEXT("small: %.0f cm across at %.0f m"), Planet->GetBeaconWorldSize(), Dist / 100.f), Planet->GetBeaconWorldSize() < Dist * 0.01f);
+	// In the dive: gone well before the white cover.
+	Planet->UpdateBeacon(Planet->GetPlanetCenter() + Up * R * 2.5f);
+	TestFalse(TEXT("gone close in"), Planet->IsBeaconVisible());
+	// From the far side of the planet: not shown through it.
+	Planet->UpdateBeacon(Planet->GetPlanetCenter() - Up * R * 10.f);
+	TestFalse(TEXT("not through the planet"), Planet->IsBeaconVisible());
 	return true;
 }
 

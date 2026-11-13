@@ -70,9 +70,22 @@ FTransform FTDPlanetEntry::ArrivalFromGlobe(ETDDestination Planet, const FTDGlob
 	{
 		Heading = FVector2D(GlobeVelocity.X, GlobeVelocity.Y);	// at the pole the globe's XY is the course's XY
 	}
-	if (Heading.IsNearlyZero(1e-4f))
+	// A near-radial dive (T1's live finding: TD.Travel.ToPlanet aims at the centre) has only a sliver of velocity along
+	// the surface, and its direction is noise: the same entry arrived 180 deg apart. Below 10% of the speed, face the pad.
+	const float Speed = GlobeVelocity.Size();
+	if (Heading.IsNearlyZero(1e-4f) || FVector2D(N, E).Size() < 0.1f * Speed)
 	{
 		Heading = XY.IsNearlyZero() ? FVector2D(1.f, 0.f) : -XY;	// straight down: face the pad
+	}
+	// The edge, part 1 (world-density plan): the first view looks into the dressed zone. Keep the entry's heading
+	// when it is within MaxHeadingOffPadDeg of the pad, else turn it to that limit on the same side.
+	if (!XY.IsNearlyZero())
+	{
+		const float PadYaw = FMath::RadiansToDegrees(FMath::Atan2(-XY.Y, -XY.X));
+		const float EntryYaw = FMath::RadiansToDegrees(FMath::Atan2(Heading.Y, Heading.X));
+		const float Off = FMath::Clamp(FMath::FindDeltaAngleDegrees(PadYaw, EntryYaw), -MaxHeadingOffPadDeg, MaxHeadingOffPadDeg);
+		const float Clamped = FMath::DegreesToRadians(PadYaw + Off);
+		Heading = FVector2D(FMath::Cos(Clamped), FMath::Sin(Clamped));
 	}
 	const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(Heading.Y, Heading.X));
 	const FTDTerrainField Field(FTDTerrainStyle::ForPlanet(Planet));

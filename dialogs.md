@@ -116,7 +116,7 @@ Ids marked **(exists)** are fired by the game today; the rest are **(new)**: the
 |---|---|---|---|---|---|---|
 | `Bark_Dom_GeneratorHit` / `_GeneratorDown` (new, T4) | A field generator at half health / destroyed | a pilot | Normal / High | "It's cracking!" / "Generator's gone!" | "Generator failing." / "One down. {n} remain." | "Keep at it." / "That's another." |
 | `Bark_Dom_Turrets` (new, T4) | Turret fire first hits the flown ship | a wingman | High | "Turrets, watch the turrets!" | "Defensive fire. Stay low." | "They've got guns everywhere." |
-| `Bark_Dom_FieldDown` (new, T4) | All four generators destroyed | Kato | Critical | - | "The field is down. The bay is open." | - |
+| `Bark_Dom_FieldDown` (new, T4) | All four generators destroyed | Kato | Critical | - | "The shield is down. The bay is open." | - |
 | `Bark_Dom_Tractor` (new, T4) | The tractor assist takes hold | flown pilot | High | "Something's pulling us in." | "We are being guided. Controls limited." | "Easy. Let it take us." |
 | `Bark_Dom_Boarded` (new, T5) | First step in the hangar | radio | High | "Bring something back." | "We will hold outside." | "Careful in there." |
 | `Bark_Dom_CoreShield` / `_CoreOpen` (new, T5) | A conduit breaks / the heart is exposed | player's pilot | High | "Shield's dropping!" / "There's the heart!" | "Conduit down." / "Core exposed." | "One more like that." / "There it is." |

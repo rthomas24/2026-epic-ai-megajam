@@ -2235,3 +2235,49 @@ same edit list once they are in and the Verdance surface has had its look pass; 
 
 **Reply (Nick / Lead):** Both trailer cuts and the new-HUD footage have arrived in trailer-v2-footage. The alternate trim shows the reactor kill. We have the V2 edit list for the later ship and surface recapture. The listening and final editorial choices remain with Nicholas.
 
+## Archived 2026-11-13 16:28 (local time)
+
+### N-043 - COMPLETE - Remote Win64 Shipping cook for loading-screen verification
+
+@rthomas24 — Can engineering cook and package the isolated Loading01 candidate on UE 5.9 CL 60351404? The [verified handoff ZIP](https://github.com/rthomas24/2026-epic-ai-megajam/blob/87bb5fef0ad45fd3de506626a4848ab90c2d0e4b/ArtSource/UI/TriadHUD/Unreal/Loading01/Handoff/Loading01-ShippingCandidate-870a7532.zip) contains the four-file overlay, hashes, field comparison and instructions. Use base `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout. ZIP SHA-256 `FBCCFB7C12D647802EA2C69EF3AC13DC0FF2FE3B7788A59D772406F2BB709BA6`. Editor and Shipping compilation passed locally. Two local cooks stopped for memory. Please return the Win64 Shipping archive, its SHA-256, executable identity and cook logs here. UI will verify New Game, Continue and return-to-menu and capture the loading screen. This is an isolated review build. Production defaults require Nick's visual approval.
+
+**Reply (Ryan / Lead, 2026-11-13 14:56 EST): yes, we will cook it.** Accepted as asked: a separate checkout at base
+`870a753255bc75b4ac9fe84a4f77e5b488815f1e`, your four-file overlay from the handoff ZIP (SHA-256 checked first), Win64
+Shipping, UE 5.9 CL 60351404. We return the archive as a release file on this repo with its SHA-256, the executable's
+identity and the cook logs, posted here. **It is queued, not started:** this machine is running the integration test
+run and two asset import sessions, and a Shipping cook cannot share it. Expect it within about two hours; I will say
+here when it starts. Nothing from the overlay goes to `main`; production defaults stay with Nicholas's approval.
+
+**Reply (Nick / Lead, Nov 13).** @rthomas24 — Thank you for taking the exact candidate. UI will pick up the release here when you post the archive, checksum, executable identity and logs. We have your roughly two-hour estimate and will use the packaged build for New Game, Continue and return-to-menu screenshots.
+
+**Reply (Ryan / Lead, 2026-11-13 15:31 EST): the Loading01 Shipping review build is delivered** as release
+**`n043-loading01-shipping-870a753`** (https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/n043-loading01-shipping-870a753).
+
+- **Archive:** `Loading01_Shipping_870a753_Win64.zip`, 907,225,952 bytes, SHA-256
+  `CB70AD5AB8AC834AC9D9B2C2F3D4DF2EF0C958003D0F0C5B52A392D0AEBAE665`.
+- **Base and overlay:** `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout; your handoff ZIP's SHA-256
+  matched; all four overlay hashes matched `candidate-manifest.json` before and after copying. The fallback
+  `Gameplay/Characters/FX/DA_UI_Style.uasset` is untouched; your `Content/TriadDrift/Presentation/DA_UI_Style.uasset`
+  is in the staged manifest and `TDLoadingWidget.cpp` compiled into the Shipping target.
+- **Executable:** `unrealGameJam\\Binaries\\Win64\\unrealGameJam-Win64-Shipping.exe`, 177,457,152 bytes, SHA-256
+  `89295A23BE2F9F5BB9A21C3B63A7B6CB32CF632723E00A677A3003663AB612E7`, version `++UE5+Release-5.9-CL-60351404`.
+  Launcher at the ZIP root: `unrealGameJam.exe`, SHA-256 `BA59B82F79B66F73D912A31994205D0FFA4F906A460DA81911F527BB6603ED03`.
+- **Cook:** the same UAT line as `Tools/td-package.ps1` (Shipping, `-nocompileeditor -nodebuginfo -prereqs`); 1,864
+  packages; "Success - 0 error(s), 0 warning(s)". Maps: L_MainMenu, L_Galaxy, L_Planet_Verdance, L_Planet_Cinder,
+  L_Transition (the base's cook list). Logs in the release: `uat-buildcookrun.log`, `cook-log.txt`, `BUILD-INFO.txt`.
+- **Verified by us:** the Shipping exe was launched once for 30 s and reached the main menu by 12 s
+  (`bootcheck_12s.png`). **Not verified:** New Game, Continue and return-to-menu were not pressed, so the loading
+  widget itself has not been seen running; the ZIP was listed but not test-extracted. Those checks are yours.
+- Nothing from the overlay is on `main`. **Size note for both sides:** this ZIP is already 907 MB against the jam's
+  1 GB limit, at a base before the Rodin ships and the Warden; engineering is starting a size pass now.
+
+**Reply (Nick / Lead).** Received the matching Shipping release, hashes and logs and handed them to UI. The build request is complete. Local archive verification, New Game, Continue, return-to-menu and loading-screen screenshots are still pending.
+
+### N-044 - COMPLETE - Next original music tracks for Nicholas
+
+@rthomas24 — Nicholas is ready to compose. Please gather a ranked brief from gameplay and cinematics in [issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46), naming the first track to make, its scene, mood, length and playback needs. The existing menu and tutorial music and the available Infinity Zone track are covered in the issue.
+
+**Reply (Ryan / Lead, 2026-11-13 EST):** answered in issue #46 with one ranked list: first the boarding finale suite (interior loop, core loop, a 90 s escape cue on a hit, a short resolve); then victory, credits and the stinger cut at 18 s; one on-foot planet cue in two colours; the descent arrival swell; Infinity Zone proposed for the Dominion assault in space. Optional: Aftermath bed, wave-clear and CUT stings. Quiet on purpose: the two terminal cutscenes and the console recordings.
+
+**Reply (Nick / Lead).** Received the ranked composition brief for Nicholas. The boarding finale suite is first. Issue #46 is closed as answered.
+

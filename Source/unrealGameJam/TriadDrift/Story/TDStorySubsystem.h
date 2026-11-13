@@ -24,6 +24,7 @@ class SWidget;
 class UAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnTransmission, const FTDTransmissionView&, Transmission);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnStorySequenceFinished, FName, SequenceId, bool, bSkipped);
 
 UCLASS()
 class UNREALGAMEJAM_API UTDStorySubsystem : public UTickableWorldSubsystem
@@ -76,6 +77,36 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float GapSeconds = 0.5f;
 
+	/** Seconds after arriving back in the galaxy from a finished planet before its departure transmissions start. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
+	float DepartureDelaySeconds = 2.f;
+
+	/**
+	 * A story sequence: lines queued in order as one beat, with a skip (Cinematic 08 at T5's threshold console:
+	 * PlaySequence("Cinematic08"); open the reactor door on OnSequenceFinished). Ids: Cinematic08, Docking, HangarArrival,
+	 * FirstDoor, ClearSpace. Lines already heard this run are not replayed, so a sequence on a retake finishes at once.
+	 * False when unknown.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Story", meta = (WorldContext = "WorldContext"))
+	static bool PlaySequence(const UObject* WorldContext, FName SequenceId);
+	static const TArray<FName>& SequenceIds(FName SequenceId);
+	/** True while a sequence (or this one) still has a line on air or queued. */
+	bool IsSequencePlaying(FName SequenceId = NAME_None) const;
+	/** Skip the running sequence: its lines count as heard (saved), the rest are dropped, OnSequenceFinished(Id, true). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Story")
+	bool SkipSequence();
+	/** Once per sequence, when its last line has ended or it was skipped. */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Story")
+	FTDOnStorySequenceFinished OnSequenceFinished;
+
+	/** ETDSpeaker::Boarder becomes the pilot of the docked ship (Nicholas, issue #29); others pass through. */
+	static ETDSpeaker ResolveSpeaker(const UObject* WorldContext, ETDSpeaker Speaker);
+	/** T5 sets this to the travel record's docked ship; unset, the run's last flown ship is used. */
+	static TFunction<ETDShipId(const UObject*)> BoardingShipResolver;
+
+	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
+	static const TArray<FName>& DepartureSet(ETDDestination Planet);
+
 #if WITH_DEV_AUTOMATION_TESTS
 	/** Tests: use this set instead of DA_Story_Transmissions. */
 	static TWeakObjectPtr<const UTDTransmissionSet> SetOverrideForTests;
@@ -91,6 +122,10 @@ public:
 private:
 	UFUNCTION() void HandleWaveStarted(int32 WaveNumber, float Intensity01);
 	UFUNCTION() void HandleWaveCleared(int32 WaveNumber);
+	void UpdateDepartures(double Now);
+	void UpdateSequence();
+	void FinishSequence(bool bSkipped);
+	FName ActiveSequence = NAME_None;
 	double RealNow() const;
 	bool IsHeld() const;
 	void StartNext();
@@ -106,6 +141,9 @@ private:
 	double NextAllowed = 0.0;
 	/** Played this run when there is no TD game instance (tests, bare worlds). */
 	TSet<FName> LocalPlayed;
+	/** Cinematics 04 and 06 (transmissions over the take-off): checked once per galaxy world, after the arrival settles. */
+	bool bDeparturesChecked = false;
+	double DeparturesAt = -1.0;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAudioComponent> Voice;

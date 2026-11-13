@@ -53,6 +53,9 @@ class UNREALGAMEJAM_API ATDWaveDirector : public AActor
 	GENERATED_BODY()
 
 public:
+	/** Every Cinder objective is complete (UTDFlowSettings::CinderObjectives): half of the field-opening rule. */
+	static bool IsCinderFinished(const FTDProgress& Progress);
+
 	ATDWaveDirector();
 
 	/** The director in this world, or null. */

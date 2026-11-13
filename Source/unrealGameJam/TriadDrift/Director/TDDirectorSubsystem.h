@@ -109,6 +109,11 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (ClampMin = "0.05", ClampMax = "1"))
 	float DilationAtMaxImportance = 0.2f;
 
+	/** While the director's camera is away from the player's ship (a shot and its blend back), the ship takes no damage,
+	 *  and for this long after the camera is back (game seconds): a turret volley can never land unseen (AAA a23). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "s", ClampMin = "0"))
+	float ReturnGraceSeconds = 0.6f;
+
 	/** After a shot ends, no new shot for this long (real seconds)... */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "s"))
 	float GlobalCooldownSeconds = 3.f;
@@ -187,6 +192,9 @@ public:
 	/** True while a money shot's slow-mo is running. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
 	bool IsShotActive() const;
+
+	/** True while the camera is away from the player and the flown ship is held safe (a23). */
+	bool IsProtectingPlayer() const { return bProtectingPlayer; }
 
 	/** The current (or last) shot. Check IsShotActive. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
@@ -288,6 +296,9 @@ private:
 	FTDDirectorShot CurrentShot;
 	bool bSlowMoSounding = false; // ENG-35: SlowMoIn played, SlowMoOut owed
 	double ShotEndRealTime = -1000.0;
+	void UpdatePlayerProtection();
+	bool bProtectingPlayer = false;
+	float LastProtectedHealth = -1.f; // shield + hull of the flown ship, to log any hit that still lands
 	double GlobalCooldownEndRealTime = -1000.0;
 	TMap<ETDHighlightKind, double> KindCooldownEnd;
 

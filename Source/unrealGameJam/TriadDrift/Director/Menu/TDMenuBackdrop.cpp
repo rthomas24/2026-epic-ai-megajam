@@ -5,6 +5,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/Text/STextBlock.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/Engine.h"
 
@@ -272,34 +273,83 @@ void ATDMenuBackdrop::BuildVictory(UWorld* World)
 	FlybyEverySeconds = 16.f;
 }
 
+FText ATDMenuBackdrop::GetStingerCaption() const
+{
+	FTDTransmission E;
+	return UTDStorySubsystem::FindEntry(TEXT("A5_DistressSignal"), E) ? E.Text : FText::GetEmpty();
+}
+
+float ATDMenuBackdrop::PlayStinger()
+{
+	if (bStingerPlayed)
+	{
+		return 0.f;
+	}
+	bStingerPlayed = true;
+
+	UTDStorySubsystem::Fire(this, TEXT("A5_DistressSignal"));
+	// Cut to black: a black layer over the scene, under the victory panel (z 10) and the transmission line (905).
+	StingerStart = FPlatformTime::Seconds();
+	if (GEngine && GEngine->GameViewport && GEngine->GameViewport->GetWorld() == GetWorld() && !StingerBlack.IsValid())
+	{
+		TWeakObjectPtr<ATDMenuBackdrop> Weak(this);
+		// The caption is held on the black (top third, above the victory panel) while the three lines play under it.
+		const FText Caption = GetStingerCaption();
+		StingerBlack = SNew(SBorder)
+			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+			.Visibility(EVisibility::HitTestInvisible)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Top)
+			.Padding(FMargin(40.f, 120.f, 40.f, 0.f))
+			.BorderBackgroundColor_Lambda([Weak]()
+			{
+				const ATDMenuBackdrop* B = Weak.Get();
+				const float A = B ? FMath::Clamp(static_cast<float>(FPlatformTime::Seconds() - B->StingerStart) / 0.35f, 0.f, 1.f) : 1.f;
+				return FSlateColor(FLinearColor(0.f, 0.f, 0.f, A));
+			})
+			[
+				SNew(STextBlock)
+				.Text(Caption)
+				.Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 20))
+				.ColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.55f, 0.5f)))
+				.Justification(ETextJustify::Center)
+				.AutoWrapText(true)
+			];
+		GEngine->GameViewport->AddViewportWidgetContent(StingerBlack.ToSharedRef(), 5);
+	}
+	// Then the squad reads it: identifiers, the source, the date (Cinematic 09, the last three lines).
+	float Seconds = 0.35f;
+	for (const TCHAR* Id : { TEXT("A5_DistressSignal"), TEXT("C9_Kato_Identifiers"), TEXT("C9_Wren_Source"), TEXT("C9_Kato_Decades") })
+	{
+		if (Id != FString(TEXT("A5_DistressSignal")))
+		{
+			UTDStorySubsystem::Fire(this, Id);
+		}
+		FTDTransmission E;
+		if (UTDStorySubsystem::FindEntry(Id, E))
+		{
+			Seconds += UTDStorySubsystem::SecondsFor(E) + 0.5f;
+		}
+	}
+	return Seconds;
+}
+
 void ATDMenuBackdrop::UpdateBreakup(float Dt)
 {
 	if (!Dominion)
 	{
 		return;
 	}
-	// The ending stinger (storyline.md act 5): after the breakup, the squad's scanners take a distress signal bearing
-	// their own call signs, dated decades ahead. Cut to black under it; the victory panel stays usable.
+	// Cinematic 09: Moss, as the breakup completes behind the squad.
+	if (!bTakeThatPlayed && Time >= TakeThatSeconds && !bStingerPlayed)
+	{
+		bTakeThatPlayed = true;
+		UTDStorySubsystem::Fire(this, TEXT("C9_Moss_TakeThat"));
+	}
+	// The ending stinger (Cinematic 09): the distress signal bearing their own identifiers, dated decades ahead.
 	if (!bStingerPlayed && Time >= StingerSeconds)
 	{
-		bStingerPlayed = true;
-		UTDStorySubsystem::Fire(this, TEXT("A5_DistressSignal"));
-		// Cut to black: a black layer over the scene, under the victory panel (z 10) and the transmission line (905).
-		StingerStart = FPlatformTime::Seconds();
-		if (GEngine && GEngine->GameViewport && GEngine->GameViewport->GetWorld() == GetWorld() && !StingerBlack.IsValid())
-		{
-			TWeakObjectPtr<ATDMenuBackdrop> Weak(this);
-			StingerBlack = SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.Visibility(EVisibility::HitTestInvisible)
-				.BorderBackgroundColor_Lambda([Weak]()
-				{
-					const ATDMenuBackdrop* B = Weak.Get();
-					const float A = B ? FMath::Clamp(static_cast<float>(FPlatformTime::Seconds() - B->StingerStart) / 0.35f, 0.f, 1.f) : 1.f;
-					return FSlateColor(FLinearColor(0.f, 0.f, 0.f, A));
-				});
-			GEngine->GameViewport->AddViewportWidgetContent(StingerBlack.ToSharedRef(), 5);
-		}
+		PlayStinger();
 	}
 	// The parts drift apart and tumble (a wreck from the first frame).
 	for (const FWreckPiece& W : Wreck)

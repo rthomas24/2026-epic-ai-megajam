@@ -1,0 +1,61 @@
+{
+  "asset": "SM_Scatter_Cind_CharTree_02",
+  "fbx": "SM_Scatter_Cind_CharTree_02.fbx",
+  "tris": 235,
+  "size_cm": [
+    209.8,
+    163.8,
+    489.1
+  ],
+  "pivot": "root object origin (SM_Scatter_Cind_CharTree_02~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Scatter_Atlas"
+  ],
+  "material_params": [
+    {
+      "name": "M_Scatter_Atlas",
+      "textured": true,
+      "base_color": null,
+      "metallic": 0.0,
+      "roughness": 0.7,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Scatter_Atlas_BC.png",
+    "T_Scatter_Atlas_E.png"
+  ],
+  "collision": [
+    "UCX_SM_Scatter_Cind_CharTree_02_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "scatter": {
+    "group": "chartree",
+    "collision": "ucx",
+    "material_instance": "MI_Scatter_Char",
+    "two_sided": false,
+    "note": "4.5 m snapped trunk, three stubs"
+  }
+}

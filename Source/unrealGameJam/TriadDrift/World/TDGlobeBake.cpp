@@ -41,7 +41,7 @@ namespace
 			Base = FMath::Lerp(Base, Rock, FMath::Clamp((HeightM - 600.f) / 600.f, 0.f, 1.f));
 			Base = FMath::Lerp(Base, Snow, FMath::Clamp((HeightM - 1700.f) / 400.f, 0.f, 1.f));
 			// Bioluminescent jungle patches at night, by biome (not by height: the carved arrival corridor must not show).
-			Glow = FLinearColor(0.f, 0.05f, 0.04f) * FMath::Clamp((0.65f - Broad) * 4.f, 0.f, 1.f) * FMath::Clamp(1.f - HeightM / 900.f, 0.f, 1.f);
+			Glow = FLinearColor(0.f, 0.02f, 0.016f) * FMath::Clamp((0.65f - Broad) * 4.f, 0.f, 1.f) * FMath::Clamp(1.f - HeightM / 900.f, 0.f, 1.f);	// was a teal wash up close
 		}
 		Base *= 1.f - 0.2f * FMath::Clamp(Slope, 0.f, 1.f);	// cliffs a little darker: the ranges show their relief
 	}
@@ -92,6 +92,11 @@ namespace
 			const float X = FMath::Cos(Lon) * D, Y = FMath::Sin(Lon) * D;
 			const FTDTerrainSample S = Field.Sample(X, Y, 2000.f);
 			TDGlobeBake_Shade(bCinder, (S.Height - Field.GetStyle().BasinFloor) / 100.f, S.Slope, S.BroadMask, S.Height < Field.GetStyle().SeaLevel, LocalBase, LocalGlow);
+			// Close up in a dive the cap fills the frame: fine breakup (the field's own detail mask) in brightness and a
+			// little hue, so it never reads as one flat colour.
+			const float Fine = S.FineMask;
+			LocalBase *= 0.78f + 0.44f * Fine;
+			LocalBase = FMath::Lerp(LocalBase, LocalBase * FLinearColor(1.15f, 0.95f, 0.8f), FMath::Clamp((Fine - 0.6f) * 2.f, 0.f, 1.f) * 0.5f);
 		}
 		FLinearColor GlobalBase = FLinearColor::Black, GlobalGlow = FLinearColor::Black;
 		if (GlobalW > 0.f)
@@ -100,17 +105,8 @@ namespace
 		}
 		Base = FMath::Lerp(LocalBase, GlobalBase, GlobalW);
 		Glow = FMath::Lerp(LocalGlow, GlobalGlow, GlobalW);
-		// The pad's beacon: a bright core and a ring around it, so the landing site is findable from orbit.
-		if (Angle < 1.2f)
-		{
-			Base = FLinearColor(0.9f, 1.f, 1.f);
-			Glow = FLinearColor(0.6f, 1.f, 1.f);
-		}
-		else if (Angle > 2.f && Angle < 2.6f)
-		{
-			Base = FMath::Lerp(Base, FLinearColor(0.4f, 1.f, 1.f), 0.7f);
-			Glow = FLinearColor(0.3f, 0.9f, 1.f);
-		}
+		// No beacon in the texture (it became a white target disc filling every dive frame): the landing site's light
+		// is a small world-space marker on ATDPlanetAtmosphere that fades out as the ship closes.
 	}
 }
 

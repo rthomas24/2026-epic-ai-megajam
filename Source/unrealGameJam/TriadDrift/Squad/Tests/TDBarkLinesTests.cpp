@@ -156,6 +156,12 @@ bool FTDBarkTableFromDialogs::RunTest(const FString& Parameters)
 		&& Line.ToString().Contains(TEXT("low behind")));
 	TestTrue(TEXT("Command"), FTDBarkLines::FindRow(TEXT("Bark_Cmd_Retake"), TEXT("Command")) != nullptr);
 	TestTrue(TEXT("six banter exchanges"), FTDBarkLines::GetBanters().Num() == 6);
+	// One id per downed ship (TDBarkIds::ShipDownFor), each line naming the right pilot (T2: Rift's id had no row).
+	TestTrue(TEXT("Rift down: Kato says Wren"), FTDBarkLines::PickLine(W.GetWorld(), TDBarkIds::ShipDownFor(ETDShipId::Rift), TEXT("Kato"), Line)
+		&& Line.ToString().Contains(TEXT("Wren")));
+	TestTrue(TEXT("Lancer down: Wren says Kato"), FTDBarkLines::PickLine(W.GetWorld(), TDBarkIds::ShipDownFor(ETDShipId::Lancer), TEXT("Wren"), Line)
+		&& Line.ToString().Contains(TEXT("Kato")));
+	TestTrue(TEXT("Bastion down: Moss has no line for his own loss"), FTDBarkLines::FindRow(TDBarkIds::ShipDownFor(ETDShipId::Bastion), TEXT("Moss")) == nullptr);
 
 	// A garbage collection must not take the table away (T2: every bark went silent a minute into a run).
 	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS, true);

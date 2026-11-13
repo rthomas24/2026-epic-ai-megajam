@@ -8,6 +8,8 @@
 //   -> link -> core chamber (32 x 32 m, the reactor in the middle) ; the escape run goes back to the hangar.
 // Story (storyline.md act 4): every door opens to the pilot's ID; one console per room plays a recording.
 
+ATDPlanetCourse::FTDOnFieldAnchorDisabled ATDPlanetCourse::OnFieldAnchorDisabled;
+
 namespace TDInteriorImpl
 {
 	static const FLinearColor Hull(0.018f, 0.018f, 0.022f);     // gloss black
@@ -181,7 +183,8 @@ void ATDPlanetCourse::BuildInterior()
 	// The kit console's screen faces -X, where its user stands: Yaw turns that side toward the room.
 	auto StoryConsole = [this](const FVector& At, float Yaw, const TCHAR* Room)
 	{
-		ATDInteractableActor* C = SpawnProp<ATDInteractableActor>(At, FRotator(0.f, Yaw, 0.f));
+		// The origin is the box centre: 65 cm up so the 130 cm console stands on the deck.
+		ATDInteractableActor* C = SpawnProp<ATDInteractableActor>(At + FVector(0.f, 0.f, 65.f), FRotator(0.f, Yaw, 0.f));
 		if (!C)
 		{
 			return;
@@ -191,7 +194,7 @@ void ATDPlanetCourse::BuildInterior()
 		C->bSingleUse = true;
 		C->ConsoleMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Console.SM_DI_Console")));
 		TDCourseImpl::FinishProp(C);
-		C->SetActorScale3D(FVector(0.6f, 1.2f, 1.3f)); // the kit console's 60 x 120 x 130 box
+		C->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f)); // the kit console's 60 x 120 x 130 box (the cube is 60 x 60 x 120)
 		UTDStatics::TintPlaceholder(C->Mesh, FLinearColor(0.3f, 0.85f, 1.f), 1.5f);
 		C->OnInteracted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStoryConsole);
 		StoryConsoles.Add(C, FName(*FString::Printf(TEXT("A4_Recording_%s"), Room)));
@@ -518,10 +521,12 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 4) { Beat(TEXT("G3_Disruption")); }
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 5) { Beat(TEXT("G3_DataSecured")); }
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 6) { Beat(TEXT("G3_Command_Extraction")); }
-	// Cinder: the enemy's transmissions echo the squad, one pilot at a time (act 3).
-	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("A3_EchoWren")); }
-	else if (Id == TEXT("Obj_Outpost") && StepIndex == 3) { Beat(TEXT("A3_EchoKato")); }
-	else if (Id == TEXT("Obj_Jammer") && StepIndex == 0) { Beat(TEXT("A3_EchoMoss")); }
+	// Cinder (T3's ids): no echo on the route (story alignment a5 / a7); the only echo is in Cinematic 05 at the terminal.
+	else if (Id == TEXT("Obj_Survey") && StepIndex == 1) { Beat(TEXT("G4_Kato_TerminalAhead")); }
+	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("G5_Wren_ClearRoute")); }
+	else if (Id == TEXT("Obj_Outpost") && StepIndex == 4) { Beat(TEXT("G5_Moss_Guardian")); }
+	else if (Id == TEXT("Obj_Jammer") && StepIndex == 0) { Beat(TEXT("G5_Command_AnchorMarked")); }
+	else if (Id == TEXT("Obj_Jammer") && StepIndex == 2) { Beat(TEXT("G5_Wren_BackToShips")); }
 	// The Dominion (acts 4 and 5).
 	else if (Id == Corridor && StepIndex == 0) { Beat(TEXT("A4_DoorsKnowUs")); } // the first door opens to the pilot's ID
 	else if (Id == Core && StepIndex == 0) { Beat(TEXT("A5_Choice")); }
@@ -547,7 +552,11 @@ void ATDPlanetCourse::FireCompletionBeats(ATDObjective* Objective)
 	if (Id == TEXT("Obj_WreckCore")) { Beat(TEXT("A2_DeviceFound")); }
 	else if (Id == TEXT("Obj_Relay")) { Beat(TEXT("A2_Voices")); } // static, then human voices that should not be there
 	else if (Id == TEXT("Obj_Outpost")) { Beat(TEXT("A3_CrystalsFound")); }
-	else if (Id == TEXT("Obj_Jammer")) { Beat(TEXT("A3_PassageOpen")); }
+	else if (Id == TEXT("Obj_Jammer"))
+	{
+		Beat(TEXT("A3_PassageOpen"));
+		OnFieldAnchorDisabled.Broadcast(); // T2: the pending approach marker
+	}
 	if ((Id == TEXT("Obj_WreckCore") || Id == TEXT("Obj_Relay")) && Done(TEXT("Obj_WreckCore")) && Done(TEXT("Obj_Relay")))
 	{
 		Beat(TEXT("A2_TrailToCinder")); // the data points to Cinder

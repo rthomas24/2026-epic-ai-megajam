@@ -18,6 +18,8 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/DirectionalLightComponent.h"
 #include "EngineUtils.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/PlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "TriadDrift/World/TDGlobeBake.h"
 #include "Engine/Texture2D.h"
@@ -155,6 +157,7 @@ void ATDPlanetAtmosphere::Configure(ETDDestination InDestination, FName InReturn
 	PlanetMesh->SetRelativeScale3D(FVector(PlanetRadius * 2.f / 100.f));
 	UTDStatics::TintPlaceholder(PlanetMesh, Color, 0.f);
 	ApplyLook();
+	if (HasActorBegunPlay()) { StartGlobeBake(); }	// configured after spawning (layouts, tests): bake now (idempotent)
 }
 
 void ATDPlanetAtmosphere::BeginPlay()
@@ -269,9 +272,53 @@ void ATDPlanetAtmosphere::ApplyGlobeBake(TArray<FColor>&& Base, TArray<FColor>&&
 	MID->SetTextureParameterValue(TEXT("BaseColorTex"), GlobeBase);
 	if (GlobeEmissive) { MID->SetTextureParameterValue(TEXT("EmissiveTex"), GlobeEmissive); }
 	bGlobeBaked = true;
+	// The landing site's light: a small soft marker at the landing zone, outside the surface (UpdateBeacon sizes and fades it).
+	if (!PadBeacon)
+	{
+		PadBeacon = NewObject<UStaticMeshComponent>(this, TEXT("PadBeacon"));
+		if (UStaticMesh* Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"))) { PadBeacon->SetStaticMesh(Sphere); }
+		PadBeacon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PadBeacon->SetCastShadow(false);
+		PadBeacon->SetupAttachment(GetRootComponent());
+		PadBeacon->RegisterComponent();
+		UTDStatics::TintPlaceholder(PadBeacon, FLinearColor(0.6f, 1.f, 0.95f), 6.f);
+		PadBeacon->SetVisibility(false);
+	}
 	// The landing site stays put: no spin, the surface lined up with the globe frame (the descent mapping).
 	if (!bGlobeFacing) { SpinPivot->SetRelativeRotation(FRotator(0.f, GlobeYawOffsetDeg, 0.f)); }
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetAtmosphere: %s globe baked (%d x %d) from its terrain"), *GetWellId().ToString(), W, H);
+}
+
+bool ATDPlanetAtmosphere::IsBeaconVisible() const
+{
+	return PadBeacon && PadBeacon->IsVisible();
+}
+
+float ATDPlanetAtmosphere::GetBeaconWorldSize() const
+{
+	return PadBeacon ? PadBeacon->GetComponentScale().X * 100.f : 0.f;
+}
+
+void ATDPlanetAtmosphere::UpdateBeacon(const FVector& ViewLocation)
+{
+	if (!PadBeacon || !bGlobeBaked)
+	{
+		return;
+	}
+	const FVector Centre = GetPlanetCenter();
+	const FVector Site = Centre + GetGlobeQuat().GetUpVector() * PlanetRadius * 1.004f;
+	const float DistC = FVector::Dist(ViewLocation, Centre) / FMath::Max(PlanetRadius, 1.f);
+	// Fade by shrinking (the placeholder material is opaque): full size far out, nothing inside BeaconHideRadii.
+	const float Fade = FMath::Clamp((DistC - BeaconHideRadii) / FMath::Max(BeaconFullRadii - BeaconHideRadii, 0.01f), 0.f, 1.f);
+	const float Dist = FVector::Dist(ViewLocation, Site);
+	const float Size = 2.f * Dist * FMath::Tan(FMath::DegreesToRadians(BeaconAngularDeg * 0.5f)) * Fade;
+	const bool bShow = Size > 1.f && FVector::DotProduct(ViewLocation - Site, Site - Centre) > 0.f;	// the near side only
+	PadBeacon->SetVisibility(bShow);
+	if (bShow)
+	{
+		PadBeacon->SetWorldLocation(Site);
+		PadBeacon->SetWorldScale3D(FVector(Size / 100.f));
+	}
 }
 
 FName ATDPlanetAtmosphere::GetWellId() const
@@ -397,6 +444,11 @@ void ATDPlanetAtmosphere::Tick(float DeltaSeconds)
 	{
 		SunSyncTimer = 2.f;
 		bSunSynced = SyncSunDirection();
+	}
+	if (PadBeacon)
+	{
+		const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		if (PC && PC->PlayerCameraManager) { UpdateBeacon(PC->PlayerCameraManager->GetCameraLocation()); }
 	}
 	if (bArtLook && Look.SpinDegPerSecond != 0.f && !bGlobeBaked)
 	{

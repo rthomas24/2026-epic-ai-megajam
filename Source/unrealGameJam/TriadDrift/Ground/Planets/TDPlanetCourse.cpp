@@ -176,6 +176,149 @@ void ATDPlanetCourse::AdoptTerrainMaterial()
 	}
 }
 
+
+// ------------------------------------------------------------------------------------------------
+// Keep-out areas for the world scatter (T4, docs/eng/WORLD-DENSITY-PLAN.md)
+// ------------------------------------------------------------------------------------------------
+
+void ATDPlanetCourse::BuildKeepOuts() const
+{
+	KeepOutCache.Reset();
+	bKeepOutBuilt = true;
+	const FTransform Xf = GetActorTransform();
+	auto AddBox = [this](FName Kind, const FBox& B)
+	{
+		if (B.IsValid)
+		{
+			FTDCourseKeepOut K;
+			K.Kind = Kind;
+			K.Box = B;
+			KeepOutCache.Add(K);
+		}
+	};
+	// The pad and the parked squad.
+	{
+		const FVector C = Xf.GetLocation();
+		AddBox(TEXT("Pad"), FBox(C - FVector(PadClearRadius, PadClearRadius, 1000.f), C + FVector(PadClearRadius, PadClearRadius, 1000.f)));
+	}
+	// The routes between objectives: polylines with the walking width.
+	for (const TArray<FVector>& R : Routes)
+	{
+		FTDCourseKeepOut K;
+		K.Kind = TEXT("Route");
+		K.HalfWidth = RouteHalfWidth;
+		for (const FVector& L : R) { K.Points.Add(Xf.TransformPosition(L)); }
+		KeepOutCache.Add(K);
+	}
+	// The course's own hand-made keep-outs (magma, geysers, the compound, the lake...).
+	for (const FKeepOut& O : KeepOuts)
+	{
+		const FVector C = Xf.TransformPosition(O.Center);
+		AddBox(TEXT("Site"), FBox(C - FVector(O.Extent.X, O.Extent.Y, 1000.f), C + FVector(O.Extent.X, O.Extent.Y, 1000.f)));
+	}
+	// Everything the course spawned that play touches: objective props, interactables, triggers, doors, encounter
+	// volumes (and their crew spawn points), with a margin.
+	for (const TObjectPtr<AActor>& A : Spawned)
+	{
+		if (!A || A == Dressing)
+		{
+			continue;
+		}
+		if (const ATDEncounterVolume* E = Cast<ATDEncounterVolume>(A))
+		{
+			if (E->Box)
+			{
+				AddBox(TEXT("Encounter"), E->Box->Bounds.GetBox());
+			}
+			const FVector C = E->GetActorLocation();
+			TArray<FVector> Points = E->SpawnPoints;
+			if (Points.Num() == 0)
+			{
+				for (int32 i = 0; i < FMath::Max(E->Count, 1); ++i)
+				{
+					const float Angle = 2.f * PI * i / FMath::Max(E->Count, 1);
+					Points.Add(FVector(FMath::Cos(Angle) * E->RingRadius, FMath::Sin(Angle) * E->RingRadius, 0.f));
+				}
+			}
+			for (const FVector& P : Points)
+			{
+				AddBox(TEXT("Spawn"), FBox(C + P - FVector(250.f, 250.f, 1000.f), C + P + FVector(250.f, 250.f, 1000.f)));
+			}
+			continue;
+		}
+		if (A->IsA<ATDObjective>())
+		{
+			continue; // no shape of its own
+		}
+		FVector Origin, Extent;
+		A->GetActorBounds(false, Origin, Extent);
+		if (Extent.IsNearlyZero())
+		{
+			continue; // markers
+		}
+		AddBox(TEXT("Site"), FBox(Origin - Extent - FVector(300.f, 300.f, 0.f), Origin + Extent + FVector(300.f, 300.f, 0.f)));
+	}
+	// The course's own colliding structures (platforms, walls, the station, the relay climb...).
+	if (Dressing)
+	{
+		TInlineComponentArray<UStaticMeshComponent*> Meshes(Dressing);
+		for (const UStaticMeshComponent* M : Meshes)
+		{
+			if (M && M != GroundSlab && M->GetCollisionEnabled() != ECollisionEnabled::NoCollision)
+			{
+				FBox B = M->Bounds.GetBox();
+				if (B.GetSize().X > 20000.f || B.GetSize().Y > 20000.f)
+				{
+					continue; // ground-sized: the slab and the like
+				}
+				AddBox(TEXT("Structure"), B.ExpandBy(FVector(200.f, 200.f, 0.f)));
+			}
+		}
+	}
+}
+
+const TArray<FTDCourseKeepOut>& ATDPlanetCourse::GetKeepOuts() const
+{
+	if (!bKeepOutBuilt)
+	{
+		BuildKeepOuts();
+	}
+	return KeepOutCache;
+}
+
+bool ATDPlanetCourse::IsScatterAllowed(const FVector& WorldPoint, float Radius) const
+{
+	const FVector2D P(WorldPoint.X, WorldPoint.Y);
+	for (const FTDCourseKeepOut& K : GetKeepOuts())
+	{
+		if (K.Points.Num() > 1)
+		{
+			for (int32 i = 0; i + 1 < K.Points.Num(); ++i)
+			{
+				const FVector C = FMath::ClosestPointOnSegment(FVector(P, 0.f), FVector(K.Points[i].X, K.Points[i].Y, 0.f), FVector(K.Points[i + 1].X, K.Points[i + 1].Y, 0.f));
+				if (FVector2D::Distance(FVector2D(C.X, C.Y), P) < K.HalfWidth + Radius)
+				{
+					return false;
+				}
+			}
+		}
+		else if (K.Box.IsValid)
+		{
+			if (P.X > K.Box.Min.X - Radius && P.X < K.Box.Max.X + Radius && P.Y > K.Box.Min.Y - Radius && P.Y < K.Box.Max.Y + Radius)
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool ATDPlanetCourse::IsScatterAllowedAt(const UObject* WorldContextObject, const FVector& WorldPoint, float Radius)
+{
+	const ATDPlanetCourse* Course = Get(WorldContextObject);
+	return !Course || Course->IsScatterAllowed(WorldPoint, Radius);
+}
+
 // ------------------------------------------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------------------------------------------
@@ -755,8 +898,8 @@ void ATDPlanetCourse::BuildVerdance()
 	const FVector WreckHead(2600.f, 2600.f, 0.f);
 	const FVector Ambush(6200.f, 4600.f, 0.f);
 	const FVector WreckSite(11500.f, 7200.f, 0.f);
-	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Survey Archive"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 7);
-	AddTrailhead(Wreck, WreckHead, Cyan, LOCTEXT("TheWreck", "THE SURVEY STATION"));
+	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Signal-Analysis Device"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 7);
+	AddTrailhead(Wreck, WreckHead, Cyan, LOCTEXT("TheWreck", "THE RESEARCH SITE"));
 	Route({ FVector(900.f, 900.f, 0.f), WreckHead, Ambush, FVector(9300.f, 6300.f, 0.f), WreckSite }, Cyan);
 
 	// Ambush: fallen logs for cover, two troopers and two grunts waiting in the glow.
@@ -803,14 +946,16 @@ void ATDPlanetCourse::BuildVerdance()
 	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
 
 	// The survey terminal: a tap starts the archive transfer (and Cinematic 03, T3's hook).
-	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f), FRotator(0.f, 180.f, 0.f));
-	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Activate the survey terminal");
+	// The console's origin is its box centre: 60 x 120 x 130 cm standing on the 30 cm deck (T2's live check: at deck height
+	// it sat half sunk and only took the interact trace looking 40 degrees down).
+	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
+	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Connect the device");
 	Terminal->HoldTime = 0.f;
 	Terminal->LinkedObjective = Wreck;
 	Terminal->LinkedStep = 2;
 	Terminal->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
 	TDCourseImpl::FinishProp(Terminal);
-	Terminal->SetActorScale3D(FVector(1.f, 1.4f, 1.3f));
+	Terminal->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f)); // the cube is 60 x 60 x 120 at scale 1
 	UTDStatics::TintPlaceholder(Terminal->Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.5f);
 
 	// The transfer (60-90 s, here 75): three fixed waves dropping in around the station, the third with the Heavy (the
@@ -834,7 +979,7 @@ void ATDPlanetCourse::BuildVerdance()
 	Core->LinkedObjective = Wreck;
 	Core->LinkedStep = 5;
 	Core->HoldTime = 1.5f;
-	Core->Prompt = LOCTEXT("TakePackage", "Take the data package");
+	Core->Prompt = LOCTEXT("TakePackage", "Take the device and the archive");
 	Core->WaveA = Pursuit;
 	Core->WaveB = nullptr;
 	TDCourseImpl::FinishProp(Core);
@@ -850,9 +995,9 @@ void ATDPlanetCourse::BuildVerdance()
 	Checkpoint(Wreck, 4, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the transfer's midpoint
 	Checkpoint(Wreck, 5, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the package: back at the station
 	FinishObjective(Wreck,
-		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE SURVEY STATION"), LOCTEXT("W1", "CLEAR THE STATION"),
-		  LOCTEXT("W2", "ACTIVATE THE SURVEY TERMINAL · [E]"), LOCTEXT("W3", "PROTECT THE DATA TRANSFER"), LOCTEXT("W4", "PROTECT THE DATA TRANSFER"),
-		  LOCTEXT("W5", "TAKE THE DATA PACKAGE · HOLD [E]"), LOCTEXT("W6", "GET THE DATA BACK TO YOUR SHIP") },
+		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE RESEARCH SITE"), LOCTEXT("W1", "CLEAR THE RESEARCH SITE"),
+		  LOCTEXT("W2", "CONNECT THE DEVICE TO THE SURVEY CONSOLE · [E]"), LOCTEXT("W3", "PROTECT THE DATA TRANSFER"), LOCTEXT("W4", "PROTECT THE DATA TRANSFER"),
+		  LOCTEXT("W5", "TAKE THE DEVICE AND THE ARCHIVE · HOLD [E]"), LOCTEXT("W6", "GET BACK TO YOUR SHIP") },
 		{ Beacon, SiteFight, Terminal, Transfer, Transfer, Core, Ship });
 
 	// ---- Obj 2: the ancient relay (-> Cloak on Rift). South-east, up a ruined climb. ----
@@ -937,9 +1082,6 @@ void ATDPlanetCourse::BuildVerdance()
 	const FVector Mid(5000.f, 0.f, 0.f);
 	const bool bProps = ScatterMeshes({
 		// A canopy ring around the play space; a few giants as landmarks.
-		{ TEXT("SM_TDVeg_Kapok_S100_11"), 10, FVector2D(0.9f, 1.1f), false, 1500.f, Mid, FVector2D(17000.f, 24000.f), 20.f },
-		{ TEXT("SM_TDVeg_BrazilNut_S100_21"), 18, FVector2D(0.9f, 1.15f), false, 1500.f, Mid, FVector2D(15000.f, 24000.f), 20.f },
-		{ TEXT("SM_TDVeg_TrumpetTree_S100_31"), 30, FVector2D(0.85f, 1.2f), false, 1200.f, Mid, FVector2D(12000.f, 22000.f), 10.f },
 		{ TEXT("SM_TDVeg_StiltPalm_S100_41"), 30, FVector2D(0.8f, 1.2f), false, 1000.f, Mid, FVector2D(9000.f, 20000.f), 10.f },
 		{ TEXT("SM_TDVeg_Kapok_S070_12"), 3, FVector2D(1.f, 1.f), false, 2500.f, FVector(6000.f, 0.f, 0.f), FVector2D(5000.f, 9000.f), 20.f },
 		// The mid layer inside the play space.
@@ -1000,10 +1142,48 @@ void ATDPlanetCourse::BuildCinder()
 		return G;
 	};
 
+	// ---- Obj 0: the survey records (storyline.md sections 22 and 25: Cinder in the reduced form). A short marked route
+	// from the pad past one patrol to an open-sided survey station at the dig's rim (the Verdance station kit), whose
+	// terminal works once the patrol is dead or left behind; it is Cinematic 05's hook (T3). Then the excavation, then
+	// the anchor, in that order. ----
+	const FVector StationAt(3700.f, 0.f, 0.f);
+	ATDObjective* Survey = MakeObjective(TEXT("Obj_Survey"), LOCTEXT("SurveyTitle", "Access the Survey Records"), ETDAbilityId::None, ETDShipId::Rift, 2);
+	AddTrailhead(Survey, FVector(1300.f, 0.f, 0.f), Crystal, LOCTEXT("TheSurvey", "THE SURVEY STATION"));
+	Route({ FVector(700.f, 0.f, 0.f), FVector(2300.f, 0.f, 0.f), StationAt - FVector(900.f, 0.f, 0.f) }, Crystal);
+	{
+		const FLinearColor StationMetal(0.3f, 0.3f, 0.32f);
+		Platform(FVector(StationAt.X, StationAt.Y, 0.f), 30.f, FVector(1600.f, 1600.f, 30.f), StationMetal, 0.f, TEXT("SM_Verd_Station_Deck"));
+		for (const FVector2D& C : { FVector2D(-700.f, -700.f), FVector2D(700.f, -700.f), FVector2D(-700.f, 700.f), FVector2D(700.f, 700.f) })
+		{
+			Block(EShape::Cube, StationAt + FVector(C.X, C.Y, 260.f), FVector(60.f, 60.f, 460.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Post"));
+		}
+		Block(EShape::Cube, StationAt + FVector(0.f, 0.f, 520.f), FVector(1700.f, 1700.f, 40.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Roof"));
+		Block(EShape::Cube, StationAt + FVector(0.f, 760.f, 90.f), FVector(900.f, 60.f, 120.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Rack"));
+		Block(EShape::Cube, StationAt + FVector(0.f, 0.f, 505.f), FVector(1200.f, 60.f, 8.f), Ember, 3.f, FRotator::ZeroRotator, false); // the work light
+	}
+	// The patrol on the way (overlap: it starts when the pilot walks in; leaving it behind is allowed).
+	Encounter(Survey, INDEX_NONE, FVector(2000.f, 0.f, 200.f), FVector(700.f, 1100.f, 600.f), { ETDCrewType::Grunt, ETDCrewType::Trooper }, true, 650.f);
+	ATDStepTrigger* AtStation = SpawnProp<ATDStepTrigger>(StationAt - FVector(900.f, 0.f, 0.f));
+	AtStation->LinkedObjective = Survey;
+	AtStation->LinkedStep = 0;
+	TDCourseImpl::FinishProp(AtStation);
+	ATDSurveyTerminal* Records = SpawnProp<ATDSurveyTerminal>(StationAt + FVector(0.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
+	Records->Prompt = LOCTEXT("SurveyRecords", "Access the survey records");
+	Records->HoldTime = 0.f;
+	Records->LinkedObjective = Survey;
+	Records->LinkedStep = 1;
+	Records->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
+	TDCourseImpl::FinishProp(Records);
+	Records->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f));
+	UTDStatics::TintPlaceholder(Records->Mesh, FLinearColor(1.f, 0.55f, 0.15f), 1.5f);
+	FinishObjective(Survey, { LOCTEXT("S0", "INVESTIGATE THE MINING COMPLEX"), LOCTEXT("S1", "ACCESS THE SURVEY RECORDS · [E]") }, { AtStation, Records });
+	SurveyTerminal = Records;
+
 	// ---- Obj 3: the outpost (-> EMP Pulse on Lancer). North-east, over a magma river. ----
 	const FVector OutHead(2600.f, 2600.f, 0.f);
-	ATDObjective* Outpost = MakeObjective(TEXT("Obj_Outpost"), LOCTEXT("OutpostTitle", "Stop the Excavation"), ETDAbilityId::EMPPulse, ETDShipId::Lancer, 6);
-	AddTrailhead(Outpost, OutHead, Ember, LOCTEXT("TheOutpost", "THE MINING COMPLEX"));
+	ATDObjective* Outpost = MakeObjective(TEXT("Obj_Outpost"), LOCTEXT("OutpostTitle", "Secure the Excavation"), ETDAbilityId::EMPPulse, ETDShipId::Lancer, 6);
+	AddTrailhead(Outpost, OutHead, Ember, LOCTEXT("TheOutpost", "THE EXCAVATION"));
+	Trailheads.Last().After = Survey; // the fixed order: the records first
 	Route({ FVector(900.f, 900.f, 0.f), OutHead, FVector(5000.f, 4200.f, 0.f), FVector(7600.f, 6000.f, 0.f), FVector(9200.f, 6000.f, 0.f) }, Ember);
 
 	// The magma river with basalt stepping stones (3 m gaps: a jump).
@@ -1136,7 +1316,7 @@ void ATDPlanetCourse::BuildCinder()
 	// Screen toward the way the pilot comes in (the kit console's screen faces its +X).
 	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0 + 700.f, 70.f), FRotator(0.f, 180.f, 0.f)); // off the arena line (the Warden fight crosses it)
 	Prototype->ConsoleMesh = TDPropArt::Default(TEXT("SM_Cind_PrototypeConsole")); // 160 x 160 x 140, the scale below
-	Prototype->Prompt = LOCTEXT("ClaimEmp", "Take the crystals and the EMP prototype");
+	Prototype->Prompt = LOCTEXT("ClaimEmp", "Recover the crystals and the EMP prototype");
 	Prototype->HoldTime = 1.5f;
 	Prototype->LinkedObjective = Outpost;
 	Prototype->LinkedStep = 5;
@@ -1152,14 +1332,15 @@ void ATDPlanetCourse::BuildCinder()
 	Checkpoint(Outpost, 4, FVector(XArena - 600.f, Y0, 0.f), 0.f);
 	FinishObjective(Outpost,
 		{ LOCTEXT("O0", "BREACH THE GATE · DESTROY THE CONDUITS  0 / 2"), LOCTEXT("O1", "CLEAR THE YARD"), LOCTEXT("O2", "CLEAR THE BARRACKS"),
-		  LOCTEXT("O3", "CLEAR THE DIG"), LOCTEXT("O4", "DEFEAT THE WARDEN"), LOCTEXT("O5", "TAKE THE CRYSTALS AND THE EMP · HOLD [E]") },
+		  LOCTEXT("O3", "CLEAR THE DIG"), LOCTEXT("O4", "DEFEAT THE WARDEN"), LOCTEXT("O5", "RECOVER THE STABILISING CRYSTALS · HOLD [E]") },
 		{ Conduits, Yard, Barracks, Command, Arena, Prototype });
 	(void)GateGuards;
 
 	// ---- Obj 4: the jammer (-> reveals the Dominion). South-east, across a magma lake. ----
 	const FVector JamHead(2600.f, -2600.f, 0.f);
-	ATDObjective* Jammer = MakeObjective(TEXT("Obj_Jammer"), LOCTEXT("JammerTitle", "Destroy the Field Anchor"), ETDAbilityId::None, ETDShipId::Rift, 3);
+	ATDObjective* Jammer = MakeObjective(TEXT("Obj_Jammer"), LOCTEXT("JammerTitle", "Disable the Field Anchor"), ETDAbilityId::None, ETDShipId::Rift, 3);
 	AddTrailhead(Jammer, JamHead, Crystal, LOCTEXT("TheJammer", "THE FIELD ANCHOR"));
+	Trailheads.Last().After = Outpost; // then the anchor (the crystals before the anchor: the story needs them)
 	Route({ FVector(900.f, -900.f, 0.f), JamHead, FVector(5200.f, -4600.f, 0.f), FVector(6800.f, -5000.f, 0.f) }, Crystal);
 
 	// A crystal wall across the trail: slash through it.
@@ -1272,7 +1453,7 @@ void ATDPlanetCourse::BuildCinder()
 
 	Checkpoint(Jammer, 1, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f); // the charges: from the far bank, out of the defence's drop
 	FinishObjective(Jammer,
-		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "GET CLEAR OF THE ANCHOR") },
+		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "RETURN TO EXTRACTION") },
 		{ FarBank, Charges, Clear });
 
 	KeepOuts = {
