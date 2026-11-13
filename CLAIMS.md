@@ -60,6 +60,8 @@ Environment is assigned native AirSlam authoring under Content/TriadDrift/VFX/Co
 
 Nick directly authorized Audio to proceed with the tutorial hooks. In the separate Worktrees/tutorial-music-hooks on nick/tutorial-music-hooks from d4c42eff, Audio alone edits Source/unrealGameJam/TriadDrift/Input/TDMusicDirectorSubsystem.h and .cpp, Input/Tests/TDMusicDirectorTests.cpp and, if necessary, Director/Intro/TDIntroDirector.h and .cpp and Flow/TDSpaceGameMode.cpp under that same TriadDrift source root. These permissions cover the isolated feature checkout; Ryan retains the upstream gameplay implementation. Audio may author, build and capture privately with the verified eddf5e5b audio pair. Verify upstream changes before integrating, preserve intensity work, use a fresh native slot and report real game capture. No second director or main source push.
 
+Audio owns only the IntroMusic property update of Content/TriadDrift/Presentation/DA_UI_Style.uasset in isolated tutorial-music-hooks for this trial, based on verified eddf5e5b. Set it to the published nonlooping Prelude38, retain CombatMusic, MenuMusic and all other fields, verify by fresh reload. Default Intro playback yields only while the tutorial music director handles it. Use the Audio native slot for bind, targeted build/tests and real gameplay capture. This trial does not authorize merging the style or feature branch into main.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
