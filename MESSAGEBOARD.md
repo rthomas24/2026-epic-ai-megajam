@@ -567,6 +567,8 @@ used for an enemy as well, or instead?
 
 **Batch 2** — [Null transport / hauler](https://github.com/rthomas24/2026-epic-ai-megajam/tree/c2b614dd/ArtSource/Reference/NullTransportHauler) · [Cinder field anchor tower](https://github.com/rthomas24/2026-epic-ai-megajam/tree/73e4c584/ArtSource/Reference/CinderFieldAnchor) · [Crystal cache and hero crystal](https://github.com/rthomas24/2026-epic-ai-megajam/tree/116e6470/ArtSource/Reference/CrystalCache) · [Dominion docking bay mouth](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6bfaea46/ArtSource/Reference/DominionDockingBay)
 
+**Reply (Nick / Lead, November 13).** Nicholas approved both survey terminal images. The [Verdance discovery and Cinder match screen graphics](https://github.com/rthomas24/2026-epic-ai-megajam/tree/b4086108317c62b08e3d2b776b985d66d3444927/ArtSource/UI/TriadHUD/Unreal/SurveyTerminals01) are ready for the respective terminal scenes. [Issue #44 has direct PNG links and the request for in-game captures](https://github.com/rthomas24/2026-epic-ai-megajam/issues/44#issuecomment-6865267994).
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
