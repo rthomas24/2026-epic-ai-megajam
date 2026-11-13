@@ -1404,7 +1404,7 @@ void UTDIntroDirector::UpdateOverlay(float T)
 				const FTDShipSpec Spec = Squad ? Squad->GetSpec(Id) : UTDShipLibrary::GetShipSpec(Id);
 				Overlay.NameCard = FText::Format(LOCTEXT("PilotCard", "{0}"), Spec.PilotName);
 				const FText Trait = UTDStorySubsystem::PilotTrait(Id);
-				Overlay.NameCardRole = FText::Format(LOCTEXT("PilotRole", "{0}  ·  {1}"), Spec.ShipName, Trait.IsEmpty() ? Spec.RoleName : Trait);
+				Overlay.NameCardRole = Trait.IsEmpty() ? FText::Format(LOCTEXT("PilotRole", "{0}  ·  {1}"), Spec.ShipName, Spec.RoleName) : Trait;
 				Overlay.NameCardColor = UTDShipLibrary::GetSquadColor(Spec);
 				Overlay.NameCardAlpha = Alpha;
 			}
