@@ -8,6 +8,10 @@
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
+#include "Input/HittestGrid.h"
+#include "Layout/WidgetPath.h"
+#include "Rendering/DrawElements.h"
+#include "Widgets/SWindow.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
@@ -311,6 +315,300 @@ bool FTDFlightHUDObjective::RunTest(const FString& Parameters)
 	F.HUD->Sample(.016f);
 	F.HUD->Sample(.4f);
 	TestEqual(TEXT("new objective: expands again"), F.V().ObjectiveExpand, 1.f);
+	return true;
+}
+
+// P2: hostiles. A current target gets the bracket (48..160) and distance; others ticks; off screen = chevron on the
+// safe frame along the marker's direction; missiles flagged; locked and current carried through.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDMarks, "TriadDrift.UI.FlightHUD.P2.TargetsAndEdgeArrows", TD_TEST_FLAGS)
+bool FTDFlightHUDMarks::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	FTDTargetMarker& Cur = F.Src->AddMarker(true, FVector2D(.6f, .4f), FVector2D(.3f, -.2f), 41200.f);
+	Cur.bIsCurrentTarget = true;
+	Cur.bLocked = true;
+	F.Src->AddMarker(true, FVector2D(.3f, .3f), FVector2D(-.5f, -.5f), 90000.f);
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(1.f, 0.f), 120000.f);					// off right
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(0.f, -1.f), 50000.f).bIncomingMissile = true;	// missile above
+	F.HUD->Sample(.016f);
+	const auto& Marks = F.V().Marks;
+	if (!TestEqual(TEXT("four marks"), Marks.Num(), 4))
+	{
+		return false;
+	}
+	TestTrue(TEXT("current: on screen at 60% / 40% (design space)"), Marks[0].bOnScreen && Marks[0].Pos.Equals(FVector2D(1152, 432), 1.f));
+	TestTrue(TEXT("current: locked"), Marks[0].bCurrent && Marks[0].bLocked);
+	TestTrue(TEXT("current: bracket within 48..160"), Marks[0].Size >= UTDFlightHUDWidget::BracketMin && Marks[0].Size <= UTDFlightHUDWidget::BracketMax);
+	TestEqual(TEXT("current: distance in metres"), Marks[0].Distance, 412.f, .5f);
+	TestTrue(TEXT("other hostile: a tick, not the bracket"), Marks[1].bOnScreen && !Marks[1].bCurrent);
+	TestFalse(TEXT("off right: edge chevron"), Marks[2].bOnScreen);
+	TestEqual(TEXT("off right: on the safe frame's right edge"), (float)Marks[2].Pos.X, 1920.f - UTDFlightHUDWidget::SafeX, 1.f);
+	TestEqual(TEXT("off right: pointing right"), Marks[2].Angle, 0.f, .01f);
+	TestTrue(TEXT("missile above: flagged, on the top edge"), Marks[3].bMissile && FMath::IsNearlyEqual((float)Marks[3].Pos.Y, UTDFlightHUDWidget::SafeY, 1.f));
+	return true;
+}
+
+// P2: hit arcs (direction, strength, shield-only, fade), the low-hull vignette, missile warning states.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHits, "TriadDrift.UI.FlightHUD.P2.HitsVignetteMissile", TD_TEST_FLAGS)
+bool FTDFlightHUDHits::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	FTDDamageIndicator Right;
+	Right.WorldDirection = FVector(0, 1, 0);	// from the right (no controller: the view looks down +X)
+	Right.Strength01 = 1.f;
+	FTDDamageIndicator Behind;
+	Behind.WorldDirection = FVector(-1, 0, 0);
+	Behind.Strength01 = 0.f;
+	Behind.bShieldOnly = true;
+	Behind.AgeSeconds = .6f;
+	FTDDamageIndicator Old;
+	Old.AgeSeconds = 2.f;
+	F.Src->Hits = { Right, Behind, Old };
+	F.HUD->Sample(.016f);
+	const auto& Hits = F.V().Hits;
+	if (!TestEqual(TEXT("expired hit dropped"), Hits.Num(), 2))
+	{
+		return false;
+	}
+	TestEqual(TEXT("from the right: arc on the right"), Hits[0].Angle, 0.f, .01f);
+	TestEqual(TEXT("full strength, fresh: opaque"), Hits[0].Opacity, 1.f, .01f);
+	TestEqual(TEXT("from behind: arc at the bottom"), Hits[1].Angle, PI * .5f, .01f);
+	TestTrue(TEXT("shield-only"), Hits[1].bShieldOnly);
+	TestEqual(TEXT("weak, half faded"), Hits[1].Opacity, .4f * .5f, .01f);
+
+	TestEqual(TEXT("healthy: no vignette"), F.V().Vignette, 0.f);
+	F.Src->Card(ETDShipId::Lancer).Health01 = .2f;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("hull under 25%: vignette"), F.V().Vignette, 1.f);
+
+	F.Src->Missile = ETDMissileWarning::Imminent;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("missile warning carried"), F.V().Missile, ETDMissileWarning::Imminent);
+	return true;
+}
+
+// P2: ability pip, Bastion's second power, ammo, heat, Switch Strike, boost hide timer, dodge notch, hyperdrive bar.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDContext, "TriadDrift.UI.FlightHUD.P2.ContextualReadouts", TD_TEST_FLAGS)
+bool FTDFlightHUDContext::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestFalse(TEXT("no ability unlocked: no pip (never a padlock in flight)"), F.V().bHasAbility);
+	TestFalse(TEXT("Lancer: no second power"), F.V().bHasPower2);
+	TestFalse(TEXT("boost full at start: hidden"), F.V().bShowBoost);
+
+	FTDShipHUD& L = F.Src->Card(ETDShipId::Lancer);
+	L.Ability = ETDAbilityId::EMPPulse;
+	L.AbilityCooldown01 = .5f;
+	L.SecondaryAmmo = 6;
+	L.Heat01 = .95f;
+	L.Boost01 = .4f;
+	L.Dodge01 = .2f;
+	F.Src->SwitchStrike = .7f;
+	F.Src->Hyperdrive = .3f;
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("ability pip, cooling"), F.V().bHasAbility && F.V().Ability == .5f);
+	TestEqual(TEXT("ability glyph E"), F.V().AbilityGlyph, FString(TEXT("E")));
+	TestEqual(TEXT("ammo"), F.V().Ammo, 6);
+	TestEqual(TEXT("heat"), F.V().Heat, .95f);
+	TestTrue(TEXT("boosting: bar shown"), F.V().bShowBoost && F.V().Boost == .4f);
+	TestFalse(TEXT("dodge cooling: notch dark"), F.V().bDodgeReady);
+	TestEqual(TEXT("switch strike ring"), F.V().SwitchStrike, .7f);
+	TestEqual(TEXT("hyperdrive charging"), F.V().Hyperdrive, .3f);
+
+	L.Boost01 = 1.f;
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("just refilled: still shown"), F.V().bShowBoost);
+	F.HUD->Sample(UTDFlightHUDWidget::BoostHideSeconds + .1f);
+	TestFalse(TEXT("1.5 s after full: hidden"), F.V().bShowBoost);
+
+	F.Src->SetSquad(ETDShipId::Bastion);
+	F.Src->Card(ETDShipId::Bastion).Power2Cooldown01 = .25f;
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("Bastion: the dome pip"), F.V().bHasPower2 && F.V().Power2 == .25f);
+	return true;
+}
+
+// P2: the lower lane shows one message: prompt > blocked jump (3 s after a press only) > hint; plus boundary and altitude.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDLane, "TriadDrift.UI.FlightHUD.P2.LowerLaneAndWarnings", TD_TEST_FLAGS)
+bool FTDFlightHUDLane::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.Src->Blocked = FText::FromString(TEXT("Hyperdrive locked - enemies in range"));
+	F.HUD->Sample(.016f);
+	TestNotEqual(TEXT("blocked but no jump pressed: not shown"), F.V().Lane, UTDFlightHUDWidget::ELane::HyperdriveBlocked);
+	F.HUD->HandleHyperdriveInput(true);
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("jump pressed while blocked: shown"), F.V().Lane, UTDFlightHUDWidget::ELane::HyperdriveBlocked);
+	TestEqual(TEXT("caps"), F.V().LaneText, FString(TEXT("HYPERDRIVE LOCKED - ENEMIES IN RANGE")));
+	F.Src->Prompt = FText::FromString(TEXT("Press F to land"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("a prompt outranks it"), F.V().Lane, UTDFlightHUDWidget::ELane::Prompt);
+	F.Src->Prompt = FText::GetEmpty();
+	F.HUD->Sample(UTDFlightHUDWidget::BlockedSeconds);
+	TestNotEqual(TEXT("3 s later: gone"), F.V().Lane, UTDFlightHUDWidget::ELane::HyperdriveBlocked);
+	F.HUD->HandleHyperdriveInput(false);
+	F.HUD->Sample(.016f);
+	TestNotEqual(TEXT("a release does not show it"), F.V().Lane, UTDFlightHUDWidget::ELane::HyperdriveBlocked);
+
+	F.Src->Boundary = FText::FromString(TEXT("Edge of the combat zone"));
+	F.Src->Altitude = 45.f;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("boundary warning"), F.V().Boundary, FString(TEXT("EDGE OF THE COMBAT ZONE")));
+	TestEqual(TEXT("altitude"), F.V().Altitude, 45.f);
+	return true;
+}
+
+// Combat states: a Switch Strike window opening plays the reward pulse and drains; a focus order shows its own line.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCombatStates, "TriadDrift.UI.FlightHUD.P2.SwitchStrikeAndFocus", TD_TEST_FLAGS)
+bool FTDFlightHUDCombatStates::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("no window: no pulse"), F.V().SwitchStrikePulse, 0.f);
+	F.Src->SwitchStrike = 1.f;
+	F.HUD->Sample(.016f);
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("window opens: reward pulse running"), F.V().SwitchStrikePulse > 0.f && F.V().SwitchStrikePulse < 1.f);
+	F.Src->SwitchStrike = .6f;
+	F.HUD->Sample(UTDFlightHUDWidget::StrikePulseSeconds);
+	TestEqual(TEXT("draining: the pulse is over"), F.V().SwitchStrikePulse, 0.f);
+	TestEqual(TEXT("draining value"), F.V().SwitchStrike, .6f);
+	F.Src->SwitchStrike = 1.f;
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("re-armed: pulses again"), F.V().SwitchStrikePulse > 0.f);
+	F.Src->Focus = .4f;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("focus order"), F.V().Focus, .4f);
+	return true;
+}
+
+// The host's cover answer both ways: the engineering HUD claims CombatStates (the dev HUD's line goes), Nick's does not.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCombatCover, "TriadDrift.UI.FlightHUD.P2.CombatStatesCoverBothWays", TD_TEST_FLAGS)
+bool FTDFlightHUDCombatCover::RunTest(const FString& Parameters)
+{
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), -1);
+	TestEqual(TEXT("the default is the engineering HUD"), UTDUIHostSettings::GetSpaceHUDChoice(), ETDSpaceHUDChoice::Engineering);
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	W.Tick();
+	Space.Set(2);
+	Host->Evaluate();
+	TestTrue(TEXT("engineering HUD up"), Host->GetSpaceHUD() && Host->GetSpaceHUD()->IsA<UTDFlightHUDWidget>());
+	TestTrue(TEXT("engineering HUD: CombatStates covered (dev line off)"), UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(W.GetWorld(), ETDHUDSurface::CombatStates));
+	Space.Set(1);
+	Host->Evaluate();
+	if (Host->GetSpaceHUD())
+	{
+		TestFalse(TEXT("Nick's HUD: CombatStates not covered (dev line stays)"), UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(W.GetWorld(), ETDHUDSurface::CombatStates));
+	}
+	Space.Set(0);
+	Host->Evaluate();
+	TestFalse(TEXT("dev HUD: nothing covered"), UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(W.GetWorld(), ETDHUDSurface::CombatStates));
+	return true;
+}
+
+// The widget claims the dev HUD's surfaces it now draws (and leaves subtitles and pause alone).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCovers, "TriadDrift.UI.FlightHUD.P2.ClaimsDevHUDSurfaces", TD_TEST_FLAGS)
+bool FTDFlightHUDCovers::RunTest(const FString& Parameters)
+{
+	const UTDFlightHUDWidget* CDO = GetDefault<UTDFlightHUDWidget>();
+	for (const ETDHUDSurface Surface : { ETDHUDSurface::DamageIndicators, ETDHUDSurface::SquadMarkers, ETDHUDSurface::InteractPrompt,
+			 ETDHUDSurface::HyperdriveBlockText, ETDHUDSurface::Altitude, ETDHUDSurface::BoundaryWarning, ETDHUDSurface::CombatStates })
+	{
+		const FBoolProperty* Claim = FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface));
+		TestTrue(FString::Printf(TEXT("claims %s"), *UTDUIHostSubsystem::GetCoverPropertyName(Surface).ToString()), Claim && Claim->GetPropertyValue_InContainer(CDO));
+	}
+	for (const ETDHUDSurface Surface : { ETDHUDSurface::Subtitles, ETDHUDSurface::Pause })
+	{
+		TestNull(FString::Printf(TEXT("leaves %s"), *UTDUIHostSubsystem::GetCoverPropertyName(Surface).ToString()),
+			FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface)));
+	}
+	return true;
+}
+
+// Paints the widget once through Slate's real draw path in every P1 state (the first live run crashed in NativePaint, which
+// the sampling tests never reach). No renderer is needed: elements go to a window element list.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDPaints, "TriadDrift.UI.FlightHUD.PaintsEveryState", TD_TEST_FLAGS)
+bool FTDFlightHUDPaints::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.Src->Card(ETDShipId::Rift).Health01 = .3f;			// trouble badge + pulsing outline
+	F.Src->Card(ETDShipId::Bastion).bAlive = false;			// crossed icon + respawn seconds
+	F.Src->Card(ETDShipId::Bastion).RespawnSeconds = 3.f;
+	F.Src->Card(ETDShipId::Lancer).Health01 = .2f;			// red hull band
+	F.Src->Card(ETDShipId::Lancer).Shield01 = 0.f;
+	F.Src->Card(ETDShipId::Lancer).PowerCooldown01 = .3f;	// cooling pip
+	F.Src->Objective = FText::FromString(TEXT("WAVE 2 · Clear the Null Armada and keep the wing alive"));
+	F.Src->Wave.WaveNumber = 2;
+	F.Src->Wave.WaveCount = 5;
+	F.Src->Wave.bWaveActive = true;
+	F.Src->Wave.EnemiesAlive = 12;
+	// P2 elements, all at once.
+	FTDTargetMarker& Cur = F.Src->AddMarker(true, FVector2D(.6f, .4f), FVector2D(.3f, -.2f), 41200.f);
+	Cur.bIsCurrentTarget = true;
+	Cur.bLocked = true;
+	F.Src->AddMarker(true, FVector2D(.3f, .3f), FVector2D(-.5f, -.5f), 90000.f).bLocked = true;
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(1.f, .2f), 120000.f);
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(-.2f, -1.f), 50000.f).bIncomingMissile = true;
+	FTDDamageIndicator Hit;
+	Hit.WorldDirection = FVector(0, -1, 0);
+	Hit.Strength01 = .7f;
+	F.Src->Hits = { Hit };
+	F.Src->Missile = ETDMissileWarning::Imminent;
+	F.Src->Blocked = FText::FromString(TEXT("Hyperdrive locked - enemies in range"));
+	F.Src->Boundary = FText::FromString(TEXT("Edge of the combat zone"));
+	F.Src->SwitchStrike = .5f;
+	F.Src->Altitude = 30.f;
+	F.Src->Hyperdrive = .6f;
+	F.Src->Card(ETDShipId::Lancer).Ability = ETDAbilityId::EMPPulse;
+	F.Src->Card(ETDShipId::Lancer).Heat01 = .95f;
+	F.Src->Card(ETDShipId::Lancer).Boost01 = .5f;
+	F.Src->Card(ETDShipId::Lancer).SecondaryAmmo = 4;
+	F.HUD->HandleHyperdriveInput(true);
+
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	auto PaintOnce = [&](const TCHAR* Label)
+	{
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		const FGeometry Geometry = FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform());
+		const FPaintArgs Args(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f);
+		Slate->SlatePrepass(1.f);
+		const int32 Layer = Slate->Paint(Args, Geometry, FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		TestTrue(FString::Printf(TEXT("%s: painted (layer %d)"), Label, Layer), Layer > 0);
+	};
+	F.HUD->Sample(.016f);
+	PaintOnce(TEXT("expanding objective, trouble, down, cooling"));
+	F.HUD->Sample(1.f);
+	PaintOnce(TEXT("objective fully expanded"));
+	F.HUD->Sample(3.f);
+	PaintOnce(TEXT("collapsed"));
+	AddInfo(FString::Printf(TEXT("coverage with every alert element up: %.2f%%"), F.HUD->GetCoverage01() * 100.f));
+	TestTrue(TEXT("coverage under the 8% budget even in the alert state"), F.HUD->GetCoverage01() > 0.f && F.HUD->GetCoverage01() < .08f);
+	F.Src->Card(ETDShipId::Lancer).PowerCooldown01 = 1.f;
+	F.HUD->Sample(.016f);
+	F.HUD->Sample(.1f);
+	PaintOnce(TEXT("ready pulse"));
+	F.HUD->ForceGamepad = 1;
+	F.HUD->Sample(.016f);
+	PaintOnce(TEXT("pad glyphs, no keycaps"));
+	F.Src->SetSquad(ETDShipId::Bastion);
+	F.HUD->Sample(.016f);
+	PaintOnce(TEXT("Bastion: second power pip"));
+	F.Src->Cards.Reset();
+	F.HUD->Sample(.016f);
+	PaintOnce(TEXT("no squad"));
 	return true;
 }
 

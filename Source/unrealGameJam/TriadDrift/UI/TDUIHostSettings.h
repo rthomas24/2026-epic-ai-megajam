@@ -60,7 +60,7 @@ public:
 	 * bUseNativeSpaceHUD meaning. Console: TD.UI.SpaceHUD (-1 = settings, 0 = dev, 1 = Nick, 2 = engineering).
 	 */
 	UPROPERTY(Config, EditAnywhere, Category = "Space HUD")
-	ETDSpaceHUDChoice SpaceHUD = ETDSpaceHUDChoice::Unset;
+	ETDSpaceHUDChoice SpaceHUD = ETDSpaceHUDChoice::Engineering; // the default since Nov 13 (Ryan's ENG-36; Lead's OK)
 
 	/**
 	 * The space HUD in effect: TD.UI.SpaceHUD if set; else TD.UI.NativeHUD 1 forces Nick's (0 turns his off, to the dev

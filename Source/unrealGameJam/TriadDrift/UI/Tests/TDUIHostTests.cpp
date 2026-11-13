@@ -25,19 +25,24 @@
 
 namespace TDUIHostTests
 {
-	/** Forces TD.UI.NativeHUD for the scope of a test and restores it. */
+	/**
+	 * Forces Nick's HUD on (1) or the dev HUD (0) for the scope of a test and restores both switches. These tests are
+	 * about Nick's widget, so they pin TD.UI.SpaceHUD too: with the engineering HUD as the default (ENG-36), "Nick's off"
+	 * alone would show the engineering HUD instead of none.
+	 */
 	struct FScopedNativeHUD
 	{
 		IConsoleVariable* Var = nullptr;
+		IConsoleVariable* Choice = nullptr;
 		int32 Previous = -1;
+		int32 PreviousChoice = -1;
 		explicit FScopedNativeHUD(int32 Value)
 		{
 			Var = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.UI.NativeHUD"));
-			if (Var)
-			{
-				Previous = Var->GetInt();
-				Var->Set(Value, ECVF_SetByCode);
-			}
+			Choice = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.UI.SpaceHUD"));
+			Previous = Var ? Var->GetInt() : -1;
+			PreviousChoice = Choice ? Choice->GetInt() : -1;
+			Set(Value);
 		}
 		void Set(int32 Value) const
 		{
@@ -45,12 +50,20 @@ namespace TDUIHostTests
 			{
 				Var->Set(Value, ECVF_SetByCode);
 			}
+			if (Choice)
+			{
+				Choice->Set(Value > 0 ? 1 : 0, ECVF_SetByCode); // 1 = Nick's, 0 = dev
+			}
 		}
 		~FScopedNativeHUD()
 		{
 			if (Var)
 			{
 				Var->Set(Previous, ECVF_SetByCode);
+			}
+			if (Choice)
+			{
+				Choice->Set(PreviousChoice, ECVF_SetByCode);
 			}
 		}
 	};
