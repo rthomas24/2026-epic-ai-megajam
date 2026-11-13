@@ -14,6 +14,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "HAL/IConsoleManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/StaticMeshActor.h"
 #include "Engine/OverlapResult.h"
 
 namespace TDThirdPersonCamTest
@@ -136,7 +138,7 @@ bool FTDThirdPersonFacing::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDThirdPersonSwitch, "TriadDrift.Ground.ThirdPerson.SwitchesWithAShortBlend", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDThirdPersonSwitch, "TriadDrift.Ground.ThirdPerson.SwitchesInstantlyEvenWhilePaused", TD_TEST_FLAGS)
 bool FTDThirdPersonSwitch::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
@@ -151,13 +153,12 @@ bool FTDThirdPersonSwitch::RunTest(const FString& Parameters)
 	TestTrue(TEXT("aim from the first-person camera"), P.Rig->GetViewCamera() == FP);
 
 	P.Rig->SetThirdPerson(true);
-	W.Tick(1.f / 60.f);
-	TestTrue(TEXT("third person on the next frame"), P.Rig->IsThirdPersonActive() && P.Rig->GetThirdPersonCamera()->IsActive() && !FP->IsActive());
+	TestTrue(TEXT("third person at once (a cut, features.md)"), P.Rig->IsThirdPersonActive() && P.Rig->GetThirdPersonCamera()->IsActive() && !FP->IsActive());
 	TestTrue(TEXT("aim from the chase camera"), P.Rig->GetViewCamera() == P.Rig->GetThirdPersonCamera());
-	const float EarlyBack = -FVector::DotProduct(P.Lens() - P.Rig->GetComponentLocation(), FVector::ForwardVector);
-	TestTrue(FString::Printf(TEXT("blending, not a cut (%.0f cm back after one frame)"), EarlyBack), P.Rig->IsBlending() && EarlyBack < 200.f);
+	W.Tick(1.f / 60.f);
+	const float Back = -FVector::DotProduct(P.Lens() - P.Rig->GetComponentLocation(), FVector::ForwardVector);
+	TestTrue(FString::Printf(TEXT("the full chase view on the first frame (%.0f cm back)"), Back), !P.Rig->IsBlending() && Back > 300.f);
 	W.Advance(0.4f);
-	TestFalse(TEXT("the blend is over in 0.15 s"), P.Rig->IsBlending());
 	const FVector Off = P.Lens() - P.Rig->GetComponentLocation();
 	TestNearlyEqual(TEXT("arm 320 cm in the open"), P.Rig->GetCurrentArmLength(), 320.f, 2.f);
 	TestNearlyEqual(TEXT("over the right shoulder (55)"), static_cast<float>(Off.Y), 55.f, 3.f);
@@ -178,11 +179,18 @@ bool FTDThirdPersonSwitch::RunTest(const FString& Parameters)
 	TestNearlyEqual(TEXT("catches up"), static_cast<float>(P.Rig->GetThirdPersonCamera()->GetComponentRotation().Yaw), 90.f, 1.f);
 
 	P.Rig->SetThirdPerson(false);
-	W.Tick(1.f / 60.f);
-	TestFalse(TEXT("first person asked"), P.Rig->IsThirdPersonActive());
-	W.Advance(0.4f);
-	TestTrue(TEXT("back in first person"), FP->IsActive() && !P.Rig->GetThirdPersonCamera()->IsActive());
+	TestTrue(TEXT("back in first person at once"), !P.Rig->IsThirdPersonActive() && FP->IsActive() && !P.Rig->GetThirdPersonCamera()->IsActive());
 	TestTrue(TEXT("the view is the eye again"), P.ViewLocation().Equals(FP->GetComponentLocation(), 1.f));
+
+	// The Settings page while paused: the change shows at once and stays right while the game is paused.
+	UGameplayStatics::SetGamePaused(W.GetWorld(), true);
+	P.Rig->SetThirdPerson(true);
+	W.Tick(1.f / 60.f);
+	TestTrue(TEXT("paused: third person shows"), P.Rig->IsThirdPersonActive() && P.ViewLocation().Equals(P.Lens(), 1.f));
+	P.Rig->SetThirdPerson(false);
+	W.Tick(1.f / 60.f);
+	TestTrue(TEXT("paused: first person shows"), FP->IsActive() && P.ViewLocation().Equals(FP->GetComponentLocation(), 1.f));
+	UGameplayStatics::SetGamePaused(W.GetWorld(), false);
 	return true;
 }
 
@@ -264,6 +272,32 @@ bool FTDThirdPersonBodyHide::RunTest(const FString& Parameters)
 	Wall->Destroy();
 	W.Advance(2.f);
 	TestFalse(TEXT("shown again in the open"), P.Rig->IsBodyHiddenByCamera() || P.Pilot->GetMesh()->bHiddenInGame || P.Pilot->GetBladeMesh()->bHiddenInGame);
+
+	// Review M2: hidden against a wall, then the director (or the death cam) takes the view from outside the body:
+	// the pilot must be there in its shot, not an empty spot.
+	{
+		TestTrue(TEXT("wall"), TDGroundTest::SpawnBox(W, FVector(-80.f, 0.f, 300.f), FVector(40.f, 2000.f, 800.f)) != nullptr);
+		W.Advance(0.3f);
+		TestTrue(TEXT("hidden by the close lens"), P.Rig->IsBodyHiddenByCamera() && P.Pilot->GetMesh()->bHiddenInGame);
+		AActor* DirectorCam = W.Spawn<AActor>(FVector(400.f, 0.f, 200.f));
+		P.PC->SetViewTarget(DirectorCam);
+		W.Tick(1.f / 60.f);
+		TestFalse(TEXT("someone else has the view: the pilot is shown"), P.Rig->IsBodyHiddenByCamera() || P.Pilot->GetMesh()->bHiddenInGame || P.Pilot->GetBladeMesh()->bHiddenInGame);
+		P.PC->SetViewTarget(P.Pilot);
+		W.Tick(1.f / 60.f);
+		W.Tick(1.f / 60.f);
+		TestTrue(TEXT("our view again: hidden again"), P.Rig->IsBodyHiddenByCamera());
+		TArray<AActor*> Boxes;
+		UGameplayStatics::GetAllActorsOfClass(W.GetWorld(), AStaticMeshActor::StaticClass(), Boxes);
+		for (AActor* B : Boxes)
+		{
+			if (B->GetActorLocation().Equals(FVector(-80.f, 0.f, 300.f), 1.f))
+			{
+				B->Destroy();
+			}
+		}
+		W.Advance(2.f);
+	}
 
 	// Back to first person gives everything back too.
 	TestTrue(TEXT("wall again"), TDGroundTest::SpawnBox(W, FVector(-80.f, 0.f, 300.f), FVector(40.f, 2000.f, 800.f)) != nullptr);

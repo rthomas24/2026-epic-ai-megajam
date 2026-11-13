@@ -9,8 +9,8 @@
 // clear. Closer than 60 cm to the pilot it hides the pilot's meshes (SetHiddenInGame, which is separate from the
 // visibility T5's body code uses) and shows them again past 70 cm.
 //
-// Switching (SetThirdPerson) blends the lens between the first-person camera and the chase view in 0.15 s and
-// swaps which camera is active on the pawn. While the director owns the view (a director shot or the on-foot
+// Switching (SetThirdPerson) is instant (a cut, features.md ENG-32; BlendSeconds can add a blend) and swaps which
+// camera is active on the pawn, even while paused. While the director owns the view (a director shot or the on-foot
 // death cam, or anything else that took the view target), a change waits and applies when the view comes back.
 
 #pragma once
@@ -94,7 +94,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person")
 	float EaseOutSpeed = 5.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "s"))
-	float BlendSeconds = 0.15f;
+	float BlendSeconds = 0.f; // features.md ENG-32: the switch is instant (a cut)
 	/** Hide the pilot when the lens is closer than this to the capsule (shown again 10 cm further out). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
 	float HideBodyDistance = 60.f;

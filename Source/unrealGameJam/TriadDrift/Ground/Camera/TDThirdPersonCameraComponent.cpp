@@ -28,6 +28,7 @@ UTDThirdPersonCameraComponent::UTDThirdPersonCameraComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 	PrimaryComponentTick.TickGroup = TG_PostPhysics; // after the character moved; cameras update after all ticks
+	PrimaryComponentTick.bTickEvenWhenPaused = true; // a Settings-page change while paused shows at once
 }
 
 void UTDThirdPersonCameraComponent::OnRegister()
@@ -104,7 +105,22 @@ UCameraComponent* UTDThirdPersonCameraComponent::GetViewCamera() const
 
 void UTDThirdPersonCameraComponent::SetThirdPerson(bool bWanted)
 {
-	bWantThirdPerson = bWanted; // applied on the next tick when the view is ours (never mid director shot)
+	bWantThirdPerson = bWanted;
+	// Now if the view is ours (instant, even while paused); otherwise when the director gives it back.
+	if (Camera && bWantThirdPerson != bThirdPersonActive && IsViewOurs())
+	{
+		ApplyMode(bWantThirdPerson);
+		if (BlendSeconds <= 0.f && bBlendingOut)
+		{
+			bBlendingOut = false;
+			Camera->Deactivate();
+			if (UCameraComponent* FP = FirstPersonCamera.Get())
+			{
+				FP->Activate();
+			}
+			SetBodyHidden(false);
+		}
+	}
 }
 
 float UTDThirdPersonCameraComponent::GetDesiredActorYaw(const FVector& MoveVector, float CameraYaw, bool bCombatAction, float CurrentYaw)
@@ -389,7 +405,14 @@ void UTDThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Ti
 		SetBodyHidden(false);
 		return;
 	}
-	UpdateBodyHidden();
+	if (IsViewOurs())
+	{
+		UpdateBodyHidden();
+	}
+	else
+	{
+		SetBodyHidden(false); // the director / death cam frames the pilot from outside: never an empty spot (review M2)
+	}
 }
 
 void UTDThirdPersonCameraComponent::UpdateBodyHidden()
