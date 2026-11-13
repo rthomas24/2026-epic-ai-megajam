@@ -554,3 +554,14 @@ To capture screenshots:
   - a hit shakes; at 50% it shakes about half; at 0% not at all
   - a ship destroyed 30 m away shakes the camera; 200 m away doesn't
   - Speed FOV 0 holds the base FOV while boosting
+
+## Music follows the fight (N-037, T1, Nov 13)
+- **What:** the music director multiplies its fade envelope by a gain from `UTDAudioStateSubsystem`'s smoothed `MusicIntensity01`.
+  - The gain runs from `CalmGain` 0.55 at intensity 0 to `FightGain` 1.0 at intensity 1.
+  - It is rate-limited to `MaxGainRatePerSecond` 0.5 on top of the intensity's own smoothing.
+  - Project Settings > Game > Triad Drift Music (`UTDMusicSettings`, DefaultGame.ini). 1.0 / 1.0 = off.
+- **Unchanged:** the gate (fight on/off), the 2 s fade in, 6 s hold, 4 s fade out, and the 1 s stop on CUT / travel / victory. `GetEnvelope()` is still that gate; `GetAppliedVolume()` = envelope x gain.
+- **Test:** `TriadDrift.Input.Music.IntensityGainFollowsTheFight` at 30/60/120 fps.
+  - Quiet plays at the calm gain, a full fight at the authored volume.
+  - It is rate-limited: the volume never moves faster than 0.55/s.
+  - A CUT still silences it within 1 s, and a travel stays silent.

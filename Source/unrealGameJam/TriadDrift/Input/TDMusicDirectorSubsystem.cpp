@@ -1,6 +1,7 @@
 // Triad Drift - combat music director (N-029). Owner: Teammate 1.
 
 #include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
+#include "TriadDrift/Input/TDMusicSettings.h"
 #include "TriadDrift/Core/TDAudioState.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -199,6 +200,7 @@ void UTDMusicDirectorSubsystem::StartPlayback()
 		Audio->SetSound(Music);
 	}
 	Envelope = 0.f;
+	IntensityGain = TargetIntensityGain(); // silent at the start anyway: begin at the right level
 	ApplyEnvelope();
 	if (Audio)
 	{
@@ -222,11 +224,26 @@ void UTDMusicDirectorSubsystem::BeginStop(const TCHAR* Why)
 	UE_LOG(LogTriadDrift, Log, TEXT("TD music: 1 s stop (%s)"), Why);
 }
 
+float UTDMusicDirectorSubsystem::TargetIntensityGain() const
+{
+	const UTDMusicSettings* MS = UTDMusicSettings::Get();
+	float Intensity = 1.f;
+	if (IntensityOverride.IsSet())
+	{
+		Intensity = IntensityOverride.GetValue();
+	}
+	else if (const UTDAudioStateSubsystem* AudioState = UTDAudioStateSubsystem::Get(GetWorld()))
+	{
+		Intensity = AudioState->GetMusicIntensity01();
+	}
+	return FMath::Lerp(MS->CalmGain, MS->FightGain, FMath::Clamp(Intensity, 0.f, 1.f));
+}
+
 void UTDMusicDirectorSubsystem::ApplyEnvelope()
 {
 	if (Audio)
 	{
-		Audio->SetVolumeMultiplier(FMath::Max(Envelope, 0.001f));
+		Audio->SetVolumeMultiplier(FMath::Max(Envelope * IntensityGain, 0.001f));
 	}
 }
 
@@ -282,6 +299,9 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : TEXT("menu"));
 	}
 	TickAmbience(Dt, bTravelling || bVictory || bMenuMap);
+
+	// N-037: the fight's intensity sets the music's level, rate-limited on top of the intensity's own smoothing.
+	IntensityGain = FMath::FInterpConstantTo(IntensityGain, TargetIntensityGain(), Dt, UTDMusicSettings::Get()->MaxGainRatePerSecond);
 
 	StateTime += Dt;
 	switch (MusicState)

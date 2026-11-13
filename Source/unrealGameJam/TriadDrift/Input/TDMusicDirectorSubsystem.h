@@ -81,6 +81,15 @@ public:
 	/** Tests: the bed instead of the style slot (null = no bed). */
 	void SetAmbienceForTests(USoundBase* InBed) { AmbienceOverride = InBed; bUseAmbienceOverride = true; }
 
+	/**
+	 * N-037: the gain the fight's intensity puts on the music (UTDMusicSettings: CalmGain at intensity 0 .. FightGain
+	 * at 1, rate-limited). The component's volume = GetEnvelope() x this.
+	 */
+	float GetIntensityGain() const { return IntensityGain; }
+	float GetAppliedVolume() const { return Envelope * IntensityGain; }
+	/** Tests: force the music intensity (otherwise UTDAudioStateSubsystem's smoothed MusicIntensity01). */
+	void SetIntensityForTests(TOptional<float> InIntensity) { IntensityOverride = InIntensity; }
+
 	/** Tests: as if a level travel (any destination, the menu included) had been requested. */
 	void SetTravellingForTests() { bTravelling = true; }
 
@@ -107,6 +116,9 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceBed;
 	bool bUseAmbienceOverride = false;
 	float AmbienceEnvelope = 0.f;
+	float IntensityGain = 1.f;
+	TOptional<float> IntensityOverride;
+	float TargetIntensityGain() const;
 	float AmbienceRetry = 0.f;
 	USoundBase* ResolveAmbience() const;
 	void TickAmbience(float Dt, bool bStop);
