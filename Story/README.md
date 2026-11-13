@@ -16,7 +16,9 @@ This folder contains the official narrative development documents for Triad Drif
 6. [Gameplay Sequence 03 — Facility Defense](Triad_Drift_Gameplay_Sequence_03_Facility_Defense.docx) begins with the archive transfer incomplete; protect it, secure the data package, and reach extraction.
 7. [Cinematic 04 — Verdance Departure](Triad_Drift_Cinematic_Sequence_04_Verdance_Departure.docx) follows successful extraction and gives Triad its next reconnaissance assignment on Cinder.
 
-Next planned document: **Gameplay Sequence 04 — Cinder Approach** (not yet included).
+8. [Gameplay Sequence 04 — Cinder Approach](Triad_Drift_Gameplay_Sequence_04_Cinder_Approach.docx) covers travel to Cinder, descent, and investigation of the mining complex, ending at the survey terminal's geometric match with the Verdance archive.
+
+Next planned document: **Cinematic 05 — The Pattern** (proposed title; not yet included).
 
 ## Sequence dependencies and continuity
 
@@ -25,7 +27,8 @@ Next planned document: **Gameplay Sequence 04 — Cinder Approach** (not yet inc
 | Gameplay 02 — Verdance Arrival | Cinematic 02 ends with orders to investigate Verdance. | Activate the geological survey console to trigger Cinematic 03; preserve the terminal and dormant drone positions. |
 | Cinematic 03 — Beneath the Surface | Gameplay 02 reaches the survey terminal. | Return control in the same outpost with the transfer incomplete and reinforcements approaching; objective: “Protect the data transfer.” |
 | Gameplay 03 — Facility Defense | Cinematic 03 establishes the archive transfer and incoming attack. | Secure the complete archive and Cinder coordinates, then reach extraction before triggering Cinematic 04. Encounter retries should not replay Cinematic 03. |
-| Cinematic 04 — Verdance Departure | Gameplay 03 completes data recovery and extraction. | Depart Verdance with the recovered evidence and set course for Cinder; Gameplay 04 remains to be designed. |
+| Cinematic 04 — Verdance Departure | Gameplay 03 completes data recovery and extraction. | Depart Verdance with the recovered evidence and set course for Cinder; hand off to Gameplay 04. |
+| Gameplay 04 — Cinder Approach | Cinematic 04 ends with Triad following the recovered Cinder coordinates. | Land, reach the mining complex survey terminal, and interact outside active combat to trigger Cinematic 05. Preserve the player position for the return to Gameplay 05. Crystal recovery, the EMP unlock and the field-anchor assault belong to Gameplay 05. |
 
 Keep the Dominion's purpose mysterious and its recognition of Triad subtle. Cinematic 03's three-pulse authentication motif is reserved for a payoff during the Dominion finale. Do not reveal the future-self identity here or repeat the opening “Don't—” warning before its finale replay. Verdance yields survey evidence, not the buried structure or Origin Core.
 
@@ -33,6 +36,6 @@ Keep the Dominion's purpose mysterious and its recognition of Triad subtle. Cine
 
 These documents are narrative and gameplay design proposals, not confirmation of implemented mechanics. The supplied DOCX originals are preserved unchanged. [storyline.md](../storyline.md) records the adopted story; [features.md](../features.md) governs implementation scope and [dialogs.md](../dialogs.md) tracks gameplay dialogue. Resolve differences through Nicholas for story wording and Ryan's Lead for gameplay delivery before implementation.
 
-Open choices include the outpost name, insertion method, on-foot squad representation, encounter composition, and Cinder environmental protection. Co-op references and suggested mission durations are proposals; they do not establish supported multiplayer or change the campaign budget. Cinder's shielding component, exact resource and traversal requirements remain undecided.
+Open choices include the outpost name, insertion method, on-foot squad representation, encounter composition, and Cinder environmental protection. Co-op references and suggested mission durations are proposals; they do not establish supported multiplayer or change the campaign budget. Gameplay 04 follows the adopted storyline: Cinder's stabilising crystals help create a passage through the Dominion's distortion field. Cinematic 04's earlier heat-protection reference remains an equipment question and does not establish that the crystals are thermal shielding. No new heat meter or mandatory equipment hunt is specified. Cinematic 05's staging and the return position for Gameplay 05 remain to be documented.
 
 Future cinematic scripts, dialogue, mission narratives, and lore documents will be stored here.
