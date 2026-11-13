@@ -1,0 +1,409 @@
+{
+  "stage": "Imported reference foundation only; no original character armor or visual approval",
+  "environment": {
+    "ok": true,
+    "blender": "5.1.1",
+    "python": "3.13.9",
+    "background": true,
+    "file": null,
+    "engines": [
+      "BLENDER_EEVEE",
+      "BLENDER_WORKBENCH",
+      "CYCLES"
+    ],
+    "engine": "BLENDER_EEVEE",
+    "gpu": {
+      "backend": "NONE",
+      "devices": [
+        "NVIDIA GeForce RTX 5060"
+      ]
+    },
+    "addons_enabled": [
+      "bl_pkg",
+      "cycles",
+      "io_anim_bvh",
+      "io_curve_svg",
+      "io_mesh_uv_layout",
+      "io_scene_fbx",
+      "io_scene_gltf2",
+      "pose_library"
+    ],
+    "rigify_available": true,
+    "units": {
+      "system": "METRIC",
+      "scale_length": 1.0,
+      "length": "METERS"
+    },
+    "color": {
+      "view": "AgX",
+      "look": "None",
+      "display": "sRGB"
+    },
+    "frame_range": [
+      1,
+      250,
+      24
+    ],
+    "objects": {
+      "MESH": 1,
+      "LIGHT": 1,
+      "CAMERA": 1
+    },
+    "data": {
+      "meshes": 1,
+      "materials": 2,
+      "images": 2,
+      "actions": 0,
+      "node_groups": 0,
+      "collections": 1
+    }
+  },
+  "source_fbx_sha256": "2ceccfca8b62d7a2824048bc485e5f998790270722fc00dfda117b40cc6b03c3",
+  "blend_sha256": "6eaaed062f11d3dc37de22556d6492a0cb647b8b644d4757c2b65b0441e03607",
+  "world_bounds_m": {
+    "min": [
+      -0.5543702840805054,
+      -0.2809947431087494,
+      -0.000202838666155003
+    ],
+    "max": [
+      0.5543702840805054,
+      0.1439233422279358,
+      1.8052362203598022
+    ],
+    "size": [
+      1.1087405681610107,
+      0.4249180853366852,
+      1.8054390590259572
+    ]
+  },
+  "mesh_stats": [
+    {
+      "name": "SKM_Manny_Simple.001",
+      "vertices": 46091,
+      "triangles": 92178,
+      "materials": [
+        "M_HeadLegs",
+        "M_Torso"
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "uv_layers": [
+        "DiffuseUV"
+      ],
+      "modifiers": [
+        "ARMATURE"
+      ]
+    }
+  ],
+  "total_vertices": 46091,
+  "total_triangles": 92178,
+  "bone_count": 88,
+  "bone_names": [
+    "ball_l",
+    "ball_r",
+    "calf_l",
+    "calf_r",
+    "calf_twist_01_l",
+    "calf_twist_01_r",
+    "calf_twist_02_l",
+    "calf_twist_02_r",
+    "center_of_mass",
+    "clavicle_l",
+    "clavicle_r",
+    "foot_l",
+    "foot_r",
+    "hand_l",
+    "hand_r",
+    "head",
+    "ik_foot_l",
+    "ik_foot_r",
+    "ik_foot_root",
+    "ik_hand_gun",
+    "ik_hand_l",
+    "ik_hand_r",
+    "ik_hand_root",
+    "index_01_l",
+    "index_01_r",
+    "index_02_l",
+    "index_02_r",
+    "index_03_l",
+    "index_03_r",
+    "index_metacarpal_l",
+    "index_metacarpal_r",
+    "interaction",
+    "lowerarm_l",
+    "lowerarm_r",
+    "lowerarm_twist_01_l",
+    "lowerarm_twist_01_r",
+    "lowerarm_twist_02_l",
+    "lowerarm_twist_02_r",
+    "middle_01_l",
+    "middle_01_r",
+    "middle_02_l",
+    "middle_02_r",
+    "middle_03_l",
+    "middle_03_r",
+    "middle_metacarpal_l",
+    "middle_metacarpal_r",
+    "neck_01",
+    "neck_02",
+    "pelvis",
+    "pinky_01_l",
+    "pinky_01_r",
+    "pinky_02_l",
+    "pinky_02_r",
+    "pinky_03_l",
+    "pinky_03_r",
+    "pinky_metacarpal_l",
+    "pinky_metacarpal_r",
+    "ring_01_l",
+    "ring_01_r",
+    "ring_02_l",
+    "ring_02_r",
+    "ring_03_l",
+    "ring_03_r",
+    "ring_metacarpal_l",
+    "ring_metacarpal_r",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "spine_04",
+    "spine_05",
+    "thigh_l",
+    "thigh_r",
+    "thigh_twist_01_l",
+    "thigh_twist_01_r",
+    "thigh_twist_02_l",
+    "thigh_twist_02_r",
+    "thumb_01_l",
+    "thumb_01_r",
+    "thumb_02_l",
+    "thumb_02_r",
+    "thumb_03_l",
+    "thumb_03_r",
+    "upperarm_l",
+    "upperarm_r",
+    "upperarm_twist_01_l",
+    "upperarm_twist_01_r",
+    "upperarm_twist_02_l",
+    "upperarm_twist_02_r"
+  ],
+  "material_names": [
+    "M_HeadLegs",
+    "M_Torso"
+  ],
+  "source_root_audit": {
+    "fbx_sha256": "2ceccfca8b62d7a2824048bc485e5f998790270722fc00dfda117b40cc6b03c3",
+    "fbx_version": 7500,
+    "root_model_id": 2280096445968,
+    "root_name": "root",
+    "root_type": "Root",
+    "explicit_local_transform_properties": {},
+    "root_bind_matrices": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "limb_count": 88,
+    "limb_names": [
+      "ball_l",
+      "ball_r",
+      "calf_l",
+      "calf_r",
+      "calf_twist_01_l",
+      "calf_twist_01_r",
+      "calf_twist_02_l",
+      "calf_twist_02_r",
+      "center_of_mass",
+      "clavicle_l",
+      "clavicle_r",
+      "foot_l",
+      "foot_r",
+      "hand_l",
+      "hand_r",
+      "head",
+      "ik_foot_l",
+      "ik_foot_r",
+      "ik_foot_root",
+      "ik_hand_gun",
+      "ik_hand_l",
+      "ik_hand_r",
+      "ik_hand_root",
+      "index_01_l",
+      "index_01_r",
+      "index_02_l",
+      "index_02_r",
+      "index_03_l",
+      "index_03_r",
+      "index_metacarpal_l",
+      "index_metacarpal_r",
+      "interaction",
+      "lowerarm_l",
+      "lowerarm_r",
+      "lowerarm_twist_01_l",
+      "lowerarm_twist_01_r",
+      "lowerarm_twist_02_l",
+      "lowerarm_twist_02_r",
+      "middle_01_l",
+      "middle_01_r",
+      "middle_02_l",
+      "middle_02_r",
+      "middle_03_l",
+      "middle_03_r",
+      "middle_metacarpal_l",
+      "middle_metacarpal_r",
+      "neck_01",
+      "neck_02",
+      "pelvis",
+      "pinky_01_l",
+      "pinky_01_r",
+      "pinky_02_l",
+      "pinky_02_r",
+      "pinky_03_l",
+      "pinky_03_r",
+      "pinky_metacarpal_l",
+      "pinky_metacarpal_r",
+      "ring_01_l",
+      "ring_01_r",
+      "ring_02_l",
+      "ring_02_r",
+      "ring_03_l",
+      "ring_03_r",
+      "ring_metacarpal_l",
+      "ring_metacarpal_r",
+      "spine_01",
+      "spine_02",
+      "spine_03",
+      "spine_04",
+      "spine_05",
+      "thigh_l",
+      "thigh_r",
+      "thigh_twist_01_l",
+      "thigh_twist_01_r",
+      "thigh_twist_02_l",
+      "thigh_twist_02_r",
+      "thumb_01_l",
+      "thumb_01_r",
+      "thumb_02_l",
+      "thumb_02_r",
+      "thumb_03_l",
+      "thumb_03_r",
+      "upperarm_l",
+      "upperarm_r",
+      "upperarm_twist_01_l",
+      "upperarm_twist_01_r",
+      "upperarm_twist_02_l",
+      "upperarm_twist_02_r"
+    ],
+    "parent_models": [
+      "SKM_Manny_Simple"
+    ],
+    "child_models": [
+      "pelvis",
+      "ik_foot_root",
+      "ik_hand_root",
+      "interaction",
+      "center_of_mass"
+    ],
+    "importer_evidence": "import_fbx.py3412: only Limb/LimbNode flagged bone;2494: Root/Null parent of bones converted to armature object",
+    "scope": "Reference-only mapping;88actualbones+rootobject is NOT export-ready89bone skeleton"
+  },
+  "root_object_name": "root",
+  "root_object_matrix_world": [
+    [
+      0.009999999776482582,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.009999999776482582,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.009999999776482582,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "source_bone_count": 89,
+  "export_ready_skeleton": false,
+  "skeleton_limit": "88 actual bones plus root armature object; not an export-ready 89-bone skeleton. No bone rebuilt.",
+  "material_limit": "Unembedded template EnvSamplerTex is expected missing; imported slots are reference placeholders, not finished Lancer materials.",
+  "image_references": [
+    {
+      "name": "EnvSamplerTex",
+      "path": "//..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\EnvSamplerTex",
+      "packed": false
+    },
+    {
+      "name": "Render Result",
+      "path": "",
+      "packed": false
+    },
+    {
+      "name": "T_Manny_02_BN",
+      "path": "//..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\Program Files\\Epic Games\\temp\\render\\ttt\\M_tex\\Baked\\T_Manny_02_BN.TGA",
+      "packed": false
+    },
+    {
+      "name": "Viewer Node",
+      "path": "",
+      "packed": false
+    }
+  ],
+  "toe_direction_world": [
+    2.8312206268310547e-07,
+    -0.1492306888103485,
+    -0.07486800849437714
+  ],
+  "forward_axis_limit": "Toe vector recorded; no axis correction or retargeting performed",
+  "reference_collection": "REF_Manny_NotForExport",
+  "reference_render_hidden": true,
+  "export_allowed": false,
+  "rig_scale": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "rig_rotation": [
+    0.0,
+    -0.0,
+    0.0
+  ],
+  "new_rig_or_weights": false,
+  "topology_limit": "Inventory only; full armor QA and visual checks remain a later milestone"
+}

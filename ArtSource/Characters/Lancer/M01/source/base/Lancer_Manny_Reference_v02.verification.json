@@ -1,0 +1,17 @@
+{
+  "threads": 2,
+  "os_exit_code": 0,
+  "pass": true,
+  "timeout_s": 120,
+  "protected_inputs": {
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\base\\UE5_Manny_Simple_readonly_v02.export.json": "EFE7BC84AB85A0CEAEFB55503D6993BA178B9374FB98FB9DE12607A357AB0C75",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\base\\UE5_Manny_Simple_readonly_v02.fbx": "2CECCFCA8B62D7A2824048BC485E5F998790270722FC00DFDA117B40CC6B03C3",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\base\\UE5_Manny_Simple_readonly_v02.native.json": "BA5663C4EFC5DC1C785E201530E12E37326A0BAC1F70730952107C84718A7473",
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\characters-lancer\\ArtSource\\Characters\\Lancer\\M01\\source\\base\\UE5_Manny_Simple_readonly_v02.root-audit.json": "A8FBD9C106B815659EE1218C9550F51C7D3922B88D054A83F1D921C7A1883C9C"
+  },
+  "failure": null,
+  "head": "6cf1970a0411836787e664facf918234e7552ca1",
+  "duration_s": 2.0,
+  "guard_free_gib": 5.0503387451171875,
+  "changed": []
+}
