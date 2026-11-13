@@ -165,6 +165,45 @@ ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Loca
 	return Flash;
 }
 
+int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount)
+{
+	int32 Used = 0;
+	const float R = FMath::Max(Radius, 100.f);
+	// Hot core, then the slower glow shell in the team colour.
+	Used += PlayPlaceholderFlash(Location, R * 0.45f, FMath::Lerp(Color, FLinearColor::White, 0.6f), 0.25f) ? 1 : 0;
+	Used += PlayPlaceholderFlash(Location, R, FMath::Lerp(Color, FLinearColor::White, 0.15f), 0.6f) ? 1 : 0;
+	// Debris streaks, evenly spread on a jittered sphere so they read from any camera angle.
+	const int32 Count = FMath::Clamp(DebrisCount, 0, 16);
+	for (int32 I = 0; I < Count; ++I)
+	{
+		const float Y = 1.f - 2.f * (I + 0.5f) / Count;
+		const float RingR = FMath::Sqrt(FMath::Max(0.f, 1.f - Y * Y));
+		const float Phi = I * 2.39996f + FMath::FRandRange(-0.3f, 0.3f); // golden angle
+		const FVector Dir(FMath::Cos(Phi) * RingR, FMath::Sin(Phi) * RingR, Y);
+		const FVector Velocity = Dir * R * FMath::FRandRange(2.5f, 4.f);
+		ATDCombatFlash* Flash = nullptr;
+		Flashes.RemoveAll([](const TObjectPtr<ATDCombatFlash>& F) { return !IsValid(F); });
+		for (ATDCombatFlash* Candidate : Flashes)
+		{
+			if (!Candidate->IsPlaying())
+			{
+				Flash = Candidate;
+				break;
+			}
+		}
+		if (!Flash && Flashes.Num() < MaxFlashes)
+		{
+			Flash = PlayPlaceholderFlash(Location, 1.f, Color, 0.01f); // spawns (and parks) one more pooled actor
+		}
+		if (Flash)
+		{
+			Flash->PlayDebris(Location + Dir * R * 0.3f, Velocity, R * 0.6f, FMath::Clamp(R * 0.06f, 20.f, 90.f), Color, FMath::FRandRange(0.5f, 0.8f));
+			++Used;
+		}
+	}
+	return Used;
+}
+
 int32 UTDProjectileSubsystem::GetPlayingFlashCount() const
 {
 	int32 Count = 0;
