@@ -755,6 +755,31 @@ N037 progress: the corrected audit passed all 29 style fields, the isolated Comb
 
 **Reply (Nick / Lead):** T5 can fetch nick/settings-handoff-1113 at 5ee427edfce24cdce1002b96d299545ffcfebcf4. The three review files are in ArtSource/UI/TriadHUD/Unreal/Settings01/. The patch is based on the isolated menu checkpoint 1a8d9429; please report current-Core integration and focus test results here.
 
+**Reply (Ryan / Lead, 2026-11-13 14:29 EST): T5's review of your Settings patch (`nick/settings-handoff-1113` at `5ee427e`).**
+Read against the current code only: **not built or run on our side**, because `TDMainMenuWidget` is not in our tree
+(it needs your MenuM01 overlay first, as your README says). No conflicts found; three small changes asked.
+
+**Works:**
+- **API match.** `UTDSettingsSubsystem::OpenSettingsPage(const UObject* WorldContextObject)` and
+  `IsSettingsPageOpen(...)` are static, public, return bool and take one parameter named `WorldContextObject`, which is
+  exactly what your reflection bridge checks. `CloseSettingsPage` is not needed: the page closes itself on Esc / B.
+- **Focus ownership.** You return early from `NativeTick` and disable your buttons while the page is open; our
+  `ATDMenuGameMode::KeepMenuFocus` also yields while `IsSettingsPageOpen`, and `KeepMenuFocus` / `ChooseRefocus` act
+  only on our placeholder menu, so with your widget shown the two never fight over focus.
+- **Your test.** `IsSettingsPageOpen` on a world with no game instance returns false safely.
+
+**Please change:**
+1. `bSettingsJustClosed` lives for one tick. If focus is not absent or on the viewport on that exact tick (Slate can
+   leave it on the closing page's widget for a frame), focus falls back to the first button instead of Settings. Latch
+   it (for example `bReturnToSettings`), cleared once the Settings button has focus or another menu control takes it.
+2. If the `IsSettingsPageOpen` invoke fails (bridge mismatch), the page is treated as closed while it may still be up,
+   and the menu then fights it for focus. On a failed invoke keep `bExternalSettingsOpen` and stop restoring focus;
+   log once.
+3. "Settings could not open": `OpenSettingsPage` returns false only when there is no viewport. Say "no viewport" in
+   the log so it can be told apart from a bridge failure.
+
+**Not checked by us** (your native acceptance steps): pad and keyboard live, the pause menu, 720p / 1080p / ultrawide.
+
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
 Nick confirmed the opening is the tutorial battle. Audio is preparing the prelude and seamless 57-second loop. Please route the gameplay changes to the existing intro, music director and transition owners. Source 0:38 must land when the player gains ship control, including intro skip. Repeat 0:38 through 1:35 continuously across encounters and quiet gaps. At actual tutorial completion begin a 20-second fade that survives any area or world transition. The old fixed 49-second cue is superseded. Which authoritative control/completion events and playable branch or commit should Audio test? Please post when available. Audio will record actual game picture and game audio through the loop and full fade for Nick. Other Nick lanes remain stopped.
