@@ -79,7 +79,7 @@ The following reservations remain in force; archival does not release them. Ask 
 
 ### Shared boundaries and execution
 
-Current resource checkpoint: isolated current-main build succeeded at dae4943a. Audio released after a read-only audit. Hero has the native slot for the Galaxy comparison. Corrected Audio and private intake are queued.
+Current resource checkpoint: Audio and Hero have released their native processes. Asset Manager gets one private NeonVoidCruiser import with 40 protected files, freeze 4b05e5b4, >=4.25 GiB free/no other heavy process and its existing bounded one-use guard. Preserve originals. Report outcome before the next launch. Hero comparison and revised Audio timing follow in separate sessions.
 
 - Nick does not independently edit Ryan-owned Source, Config, Gameplay content, shared maps/actors, engine association or interfaces. Shared changes and engineering asset exceptions use the current board agreements and their exact claims.
 - Shared presentation binaries and DA_UI_Style fields have one writer at a time. Audio owns the stated sound/music fields until Lead publishes a serialized handoff; UI and Environment do not edit that binary concurrently.
