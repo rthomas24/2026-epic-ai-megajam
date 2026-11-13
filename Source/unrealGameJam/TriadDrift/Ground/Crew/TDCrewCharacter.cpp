@@ -268,18 +268,49 @@ UObject* ATDCrewCharacter::FindLookAsset(const FString& Name, UClass* Class)
 
 FVector ATDCrewCharacter::GetMuzzleLocation(const FVector& AimDirection) const
 {
+	// The computed chest-front point: always valid, always toward the aim.
+	const FVector Chest = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
+	const USkeletalMeshComponent* Look = GetMesh();
+	if (!Look || !Look->IsVisible() || !Look->GetSkeletalMeshAsset())
+	{
+		return Chest;
+	}
+	// The art's Muzzle socket (else the weapon hand) is only a START POSITION: the shot's direction is always aimed
+	// from it to the target (AimAt). A hand posed beside or behind the body would send bolts past the player, so a
+	// point that isn't in front of the body toward the aim falls back to the chest-front point.
 	static const FName MuzzleSocket(TEXT("Muzzle"));
-	if (GetMesh() && GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->DoesSocketExist(MuzzleSocket))
-	{
-		return GetMesh()->GetSocketLocation(MuzzleSocket);
-	}
-	// No socket yet: the weapon hand of a mannequin-skeleton look.
 	static const FName Hand(TEXT("hand_r"));
-	if (GetMesh() && GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->GetBoneIndex(Hand) != INDEX_NONE)
+	FVector Point;
+	if (Look->DoesSocketExist(MuzzleSocket))
 	{
-		return GetMesh()->GetBoneLocation(Hand) + AimDirection * 25.f;
+		Point = Look->GetSocketLocation(MuzzleSocket);
 	}
-	return GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
+	else if (Look->GetBoneIndex(Hand) != INDEX_NONE)
+	{
+		Point = Look->GetBoneLocation(Hand);
+	}
+	else
+	{
+		return Chest;
+	}
+	const FVector Aim2D = AimDirection.GetSafeNormal2D();
+	FVector Out = Point - GetActorLocation();
+	const float Ahead = (float)FVector::DotProduct(FVector(Out.X, Out.Y, 0.f), Aim2D);
+	const float Side = (float)(FVector(Out.X, Out.Y, 0.f) - Aim2D * Ahead).Size();
+	// Between waist and shoulder: a pose not evaluated yet (or a hand hanging low) reports near the feet, and a
+	// bolt started there hits the floor (seen with the socketed NullTrooper: Z 85 cm below the centre).
+	const bool bHeight = Out.Z > -Spec.CapsuleHalfHeight * 0.3f && Out.Z < Spec.CapsuleHalfHeight * 0.9f;
+	if (Aim2D.IsNearlyZero() || Ahead < 0.f || Side > Spec.CapsuleRadius + 40.f || !bHeight)
+	{
+		return Chest;
+	}
+	// Never inside our own capsule: at least just past its front along the aim.
+	const float MinAhead = Spec.CapsuleRadius + 20.f;
+	if (Ahead < MinAhead)
+	{
+		Point += Aim2D * (MinAhead - Ahead);
+	}
+	return Point;
 }
 
 void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
@@ -353,6 +384,7 @@ void ATDCrewCharacter::ApplyVisuals()
 			return;
 		}
 	}
+	GetMesh()->SetVisibility(false); // not a skeletal look (any more): the static mesh or the block below
 	if (Visuals && !Visuals->Mesh.IsNull())
 	{
 		if (UStaticMesh* SM = Visuals->Mesh.LoadSynchronous())
@@ -596,8 +628,16 @@ void ATDCrewCharacter::CancelAttack()
 
 FVector ATDCrewCharacter::AimAt(const AActor* At) const
 {
-	const FVector Muzzle = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f);
-	return At ? (At->GetActorLocation() - Muzzle).GetSafeNormal() : GetActorForwardVector();
+	if (!At)
+	{
+		return GetActorForwardVector();
+	}
+	// Aim from where the shot actually starts (socket, hand or chest), so it flies at the target, not beside it.
+	const FVector Chest = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f);
+	const FVector Rough = (At->GetActorLocation() - Chest).GetSafeNormal();
+	const FVector Start = GetMuzzleLocation(Rough);
+	const FVector Dir = (At->GetActorLocation() - Start).GetSafeNormal();
+	return Dir.IsNearlyZero() ? Rough : Dir;
 }
 
 void ATDCrewCharacter::DoMelee()
