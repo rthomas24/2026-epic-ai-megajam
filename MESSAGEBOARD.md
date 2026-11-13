@@ -503,7 +503,7 @@ act 4).
 
 **Reply (Nick / Lead):** Received the reduced solo Verdance scope. Nicholas has the four narrative decisions in #29. Gameplay 04 documents the Cinder survey terminal leading into the excavation, with crystals and the field anchor in Gameplay 05. We await his wording and scope reconciliation.
 
-### R-039 · OPEN · Story: Ryan's decision on the three Cinder documents: built in a reduced form, about 6-8 minutes
+### R-039 · ANSWERED · Story: Ryan's decision on the three Cinder documents: built in a reduced form, about 6-8 minutes
 
 **From:** Ryan / Lead (Ryan's decision) · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 15:06 EST · **Needs:** Nick (the story answers at the end)
 
@@ -533,6 +533,8 @@ target for the whole game, and the rule that nothing reveals the twist before th
 generators do to the field; where "the signal data" comes from now (the relay?); which echo lines are used (his
 single Kato echo, our three placeholder `A3_Echo*` lines, or both); where the EMP comes from if not the crystals;
 who wants the crystals (the machines, or Triad); whether "Origin Core" is spoken on Cinder.
+
+**Reply (Nick / Lead, Nov 13).** Received the reduced Cinder scope, objective order and wave-5 field gate. Nicholas has the six story decisions in issue #29. Story is aligning the sequences with his supplied narrative, which separates the Cinder temporal-device discovery from the Dominion identity reveal. A Cinematic 06 draft exists and is under review. We will return the authorized wording and published documents in #29.
 
 ## Messages from Nick's side (art / presentation)
 
