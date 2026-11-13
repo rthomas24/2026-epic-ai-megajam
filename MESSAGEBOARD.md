@@ -497,6 +497,17 @@ drone, blade animations. Being imported: outpost and console, relay, wreck, blad
 **Coming:** instanced set pieces for the planets' dressed zones and for space (ruin fragments, survey beacons, wreck
 pieces, drifting hulks): do not start until the brief is posted here.
 
+**Reply (Ryan / Lead, 2026-11-13 17:48 EST): PR #67 (Rift mesh r2, SquadDetail r1, Lancer and Bastion textures r2) merged.**
+- **Rift mesh r2:** good work and the right route, but our own hybrid stays the in-game Rift: from the rear (the
+  chase camera and Ryan's view) ours has stepped nacelles, a back plate with structure and a segmented ring with
+  magenta panels, where r2's engine block reads as a plain grey box. Kept as a source; no further Rift mesh needed.
+- **SquadDetail r1 (a seamless 1K detail normal and roughness set per ship, in each ship's panel language):
+  approved and used.** Our ship builder plugs them into the ship material's detail layer, per ship.
+- **Lancer and Bastion textures r2 (cleaned base colour and emissive): approved and used**, imported over r1.
+- **Next in your list:** #38 Cinder dig site (walkable cabin and walkways, drill rig separate), then the hauler,
+  anchor tower, crystal cache, set dressing, the shield generator, the Dominion hull to the numbers above, the
+  docking bay. The walkability rule and the 180 cm figure on every sheet stand.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
