@@ -772,3 +772,15 @@ Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Interceptor_Visuals.ua
 Content/TriadDrift/Gameplay/Characters/Squad/DA_Bastion_Visuals.uasset audio-path strings: 0 same=yes
 Content/TriadDrift/Gameplay/Characters/Squad/DA_Lancer_Visuals.uasset audio-path strings: 0 same=yes
 Content/TriadDrift/Gameplay/Characters/Squad/DA_Rift_Visuals.uasset audio-path strings: 0 same=yes
+==== CORRECTION: the "independent check after round 4" block above is void (the strings tool was missing, it compared nothing).
+==== independent check after round 4 wiring, redone in Python: /Game/.../Audio/... paths referenced in each changed data asset, git cb42aea vs HEAD: 10 files, 0 differ
+Content/TriadDrift/Gameplay/Characters/Dominion/DA_DominionTurret_Visuals.uasset | audio asset paths before=2 after=2 | SAME (old file 2239 bytes)
+Content/TriadDrift/Gameplay/Characters/Dominion/DA_Dominion_Visuals.uasset | audio asset paths before=9 after=9 | SAME (old file 5160 bytes)
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Bomber_Visuals.uasset | audio asset paths before=4 after=4 | SAME (old file 2575 bytes)
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Carrier_Visuals.uasset | audio asset paths before=7 after=7 | SAME (old file 3746 bytes)
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Fighter_Visuals.uasset | audio asset paths before=4 after=4 | SAME (old file 2581 bytes)
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Gunship_Visuals.uasset | audio asset paths before=6 after=6 | SAME (old file 3053 bytes)
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Interceptor_Visuals.uasset | audio asset paths before=4 after=4 | SAME (old file 2613 bytes)
+Content/TriadDrift/Gameplay/Characters/Squad/DA_Bastion_Visuals.uasset | audio asset paths before=15 after=15 | SAME (old file 5058 bytes)
+Content/TriadDrift/Gameplay/Characters/Squad/DA_Lancer_Visuals.uasset | audio asset paths before=15 after=15 | SAME (old file 5043 bytes)
+Content/TriadDrift/Gameplay/Characters/Squad/DA_Rift_Visuals.uasset | audio asset paths before=13 after=13 | SAME (old file 4572 bytes)
