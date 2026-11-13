@@ -301,7 +301,7 @@ both first-class.
 | Throttle | Analog forward speed, min → cruise | min 1500, cruise 6000 cm/s (per-ship multipliers in ENG-04) |
 | Aim (mouse / right stick) | The ship turns toward an aim reticle (mouse = virtual joystick with a deadzone) | 110°/s pitch and yaw |
 | Roll | Manual; auto-banks into turns | 180°/s |
-| Strafe (optional) | Lateral and vertical thrusters | 2500 cm/s |
+| Strafe (optional) | Lateral and vertical thrusters | 4000 cm/s |
 | **Boost** | Hold: big speed increase that drains the meter | +80% speed, 3 s meter, regen after 1.2 s |
 | **Drift** | Hold: velocity keeps its direction while the nose rotates freely. Release: snap to the nose plus a burst | 1.5× turn rate; +20% burst |
 | Brake | Hard deceleration to min speed | |
@@ -334,6 +334,12 @@ shooting backwards feels great.
 | Hyperdrive (hold) | H | D-pad down (hold) |
 | Squad command / Land / Interact | F | A |
 | Pause / Galaxy map | Esc / M | Start / Select |
+| Dodge **(Nov 12)** | Left Alt, or double-tap A / D | Left stick double flick |
+| Brake **(Nov 12)** | Space | LT fully pulled |
+| Strafe **(Nov 12)** | Arrow keys | Left stick Y |
+| Cockpit camera **(Nov 12)** | V | R3 (hold) |
+
+**(Nov 12)** The galaxy map key is hidden until its screen exists (ART-09).
 
 #### ENG-03 · Health, shields, death and respawn · `🟨`
 - **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s. **(Nov 12)** Set per
@@ -579,7 +585,7 @@ See §7.
   altitude data.
 - **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land").
   - Within 120 m of the pad at or below 60% of the atmosphere speed cap, F lands directly
-    (aligning takes 1.5 to 4 s by distance).
+    (aligning takes 1.5 to 4 s by distance, up to 6 s when the path arcs over a prop).
   - Within 400 m, holding F is an approach assist: it turns the nose onto the pad (150°/s), flies in
     at up to 60 m/s, brakes at 30 m/s² but never below 15 m/s, and hands over to the landing 25 m
     from the hover point. Releasing F, boost, hyperdrive, a switch, death or a retake ends it.

@@ -94,6 +94,7 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 	bool bLowHullBarkArmed = true;
 	/** Real time the hull first dipped low this time (the line only plays close to that moment). */
 	double LowHullSince = -1.0;
+	double NextLowHullTry = 0.0;
 	/** Real time of this wingman's last engage call. */
 	double LastEngageCallTime = -1000.0;
 };
@@ -383,6 +384,11 @@ public:
 	/** A low-hull line not played within this many real seconds of the dip is dropped (never late). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks", meta = (ClampMin = "0", Units = "s"))
 	float LowHullBarkWindowSeconds = 1.5f;
+
+	/** At most one ship-down line (any ship) per this many real seconds. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks", meta = (ClampMin = "0", Units = "s"))
+	float ShipDownBarkGapSeconds = 10.f;
+	double LastShipDownBarkTime = -1000.0;
 
 	/** A wingman just entered a fight: it calls where it is, seen from the player's camera. */
 	void NotifyWingmanEngaged(ETDShipId Ship);

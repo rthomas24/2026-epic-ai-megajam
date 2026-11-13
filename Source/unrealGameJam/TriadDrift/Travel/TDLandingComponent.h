@@ -101,6 +101,13 @@ struct UNREALGAMEJAM_API FTDLandingTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
 	float TakeOffClimb = 1500.f;
 
+	/** During GearUp (end of take-off) the ship eases this far forward and up before flight resumes (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float GearUpForward = 600.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
+	float GearUpClimb = 300.f;
+
 	/** Forward speed handed back to the flight model after take-off, as a fraction of cruise. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
 	float TakeOffSpeedFraction = 0.4f;
