@@ -655,6 +655,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0"))
 	float TutorialFadeOutSeconds = 20.f;
 
+	/**
+	 * Issue #24 (contract agreed with Audio): ONE continuous source (prelude + loop, 95 s) in a MetaSound Source whose
+	 * Wave Player loops source TutorialMusicDownbeatSeconds .. end (0:38 for 57 s) and whose Float input "StartTime"
+	 * (seconds into the source) feeds the Wave Player's Start Time. When set, it replaces TutorialPrelude / TutorialLoop:
+	 * a watched intro enters so the downbeat lands on the control frame; a skip (or no intro) enters at the downbeat
+	 * with TutorialMusicSkipFadeInSeconds. The asset carries its own gain and the Music sound class.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music")
+	TSoftObjectPtr<USoundBase> TutorialMusic;
+
+	/** Source time (s) of the downbeat that must coincide with control. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0", Units = "s"))
+	float TutorialMusicDownbeatSeconds = 38.f;
+
+	/** Fade-in (s) when the music enters at the downbeat on a skipped intro (Nicholas: 150 ms). Watched: none. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0", Units = "s"))
+	float TutorialMusicSkipFadeInSeconds = 0.15f;
+
 	/** Music for the intro, swelling into wave 1 (optional; silence when empty). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
 	TSoftObjectPtr<USoundBase> IntroMusic;
