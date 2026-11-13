@@ -399,24 +399,25 @@ FVector ATDCrewCharacter::GetMuzzleLocation(const FVector& AimDirection) const
 {
 	// The computed chest-front point: always valid, always toward the aim.
 	const FVector Chest = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
-	const USkeletalMeshComponent* Look = GetMesh();
-	if (!Look || !Look->IsVisible() || !Look->GetSkeletalMeshAsset())
-	{
-		return Chest;
-	}
-	// The art's Muzzle socket (else the weapon hand) is only a START POSITION: the shot's direction is always aimed
-	// from it to the target (AimAt). A hand posed beside or behind the body would send bolts past the player, so a
-	// point that isn't in front of the body toward the aim falls back to the chest-front point.
+	// The art's Muzzle socket (skeletal look, else the weapon hand; or a static-mesh look's Muzzle, the Rodin drone) is
+	// only a START POSITION: the shot's direction is always aimed from it to the target (AimAt). A point that isn't
+	// in front of the body toward the aim falls back to the chest-front point.
 	static const FName MuzzleSocket(TEXT("Muzzle"));
 	static const FName Hand(TEXT("hand_r"));
+	const USkeletalMeshComponent* Look = GetMesh();
+	const bool bSkeletal = Look && Look->IsVisible() && Look->GetSkeletalMeshAsset();
 	FVector Point;
-	if (Look->DoesSocketExist(MuzzleSocket))
+	if (bSkeletal && Look->DoesSocketExist(MuzzleSocket))
 	{
 		Point = Look->GetSocketLocation(MuzzleSocket);
 	}
-	else if (Look->GetBoneIndex(Hand) != INDEX_NONE)
+	else if (bSkeletal && Look->GetBoneIndex(Hand) != INDEX_NONE)
 	{
 		Point = Look->GetBoneLocation(Hand);
+	}
+	else if (!bSkeletal && Body && Body->IsVisible() && Body->DoesSocketExist(MuzzleSocket))
+	{
+		Point = Body->GetSocketLocation(MuzzleSocket);
 	}
 	else
 	{

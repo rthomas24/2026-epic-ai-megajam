@@ -3,6 +3,7 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "InputKeyEventArgs.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
@@ -886,19 +887,34 @@ void ATDSpacePlayerController::OnThrottleReleased(const FInputActionValue&)
 	ThrottleAxis = 0.f;
 }
 
+void ATDSpacePlayerController::ClientStartCameraShake_Implementation(TSubclassOf<UCameraShakeBase> Shake, float Scale, ECameraShakePlaySpace PlaySpace, FRotator UserPlaySpaceRot)
+{
+	const float User = UTDFlightFeedbackComponent::UserShakeScale;
+	if (User <= 0.f)
+	{
+		return; // "Camera shake: 0%" means none
+	}
+	Super::ClientStartCameraShake_Implementation(Shake, Scale * User, PlaySpace, UserPlaySpaceRot);
+}
+
 bool ATDSpacePlayerController::InputKey(const FInputKeyEventArgs& Params)
 {
-	// On foot there's no stick-aim action to tell the devices apart, so the raw keys do it: any pad button, or a pad
-	// axis past the stick deadzone, means "using gamepad"; any key or mouse button press, or a real mouse move,
-	// means mouse and keyboard. On-foot prompts read IsUsingGamepad() to switch their wording. In flight the
-	// stick/mouse aim hysteresis above stays in charge.
-	if (GetPawn() != nullptr && GetSpacecraft() == nullptr)
+	// The device the player is using, from the raw keys (on foot and in flight): any pad button, or a pad axis past
+	// the stick deadzone, means "using gamepad"; any key or mouse button press, or a real mouse move, means mouse and
+	// keyboard. Prompts and the HUD's glyphs read IsUsingGamepad(). In flight the right stick / mouse aim also flip
+	// it (OnStickAim / OnMouseAim); before, ONLY those did, so a pad player who hadn't touched the right stick yet
+	// (triggers, buttons, left stick) still saw keyboard glyphs (T2's HUD check, Nov 13).
+	if (GetPawn() != nullptr)
 	{
 		const FKey& K = Params.Key;
 		if (K.IsGamepadKey())
 		{
 			if (K.IsAxis1D() || K.IsAxis2D() ? FMath::Abs(Params.AmountDepressed) > StickDeadzone : Params.Event == IE_Pressed)
 			{
+				if (!bUsingGamepad && GetSpacecraft() != nullptr)
+				{
+					VirtualStick = FVector2D::ZeroVector; // the mouse reticle doesn't linger off-centre under pad play
+				}
 				bUsingGamepad = true;
 			}
 		}

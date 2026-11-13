@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
+#include "TriadDrift/Input/TDMusicSettings.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
@@ -172,6 +173,71 @@ bool FTDMusicTriggers::RunTest(const FString& Parameters)
 		T.W.Advance(2.5f);
 		TestEqual(TEXT("... and the music plays"), T.M->GetMusicState(), S::Playing);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicIntensityGain, "TriadDrift.Input.Music.IntensityGainFollowsTheFight", TD_TEST_FLAGS)
+bool FTDMusicIntensityGain::RunTest(const FString& Parameters)
+{
+	// N-037: the combat music's level follows the fight's smoothed intensity: CalmGain (0.55) when quiet, the
+	// authored volume (1.0) in a full fight, rate-limited (no clicks); gate, hold, CUT and travel unchanged.
+	using namespace TDMusicTest;
+	const UTDMusicSettings* MS = UTDMusicSettings::Get();
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		const float Dt = 1.f / Fps;
+		const FString Tag = FString::Printf(TEXT("%.0f fps: "), Fps);
+		FWorld T;
+		if (!TestTrue(*(Tag + TEXT("director")), T.Init())) { return false; }
+		auto Run = [&](float Seconds, float& MaxStep)
+		{
+			float Prev = T.M->GetAppliedVolume();
+			for (float t = 0.f; t < Seconds; t += Dt)
+			{
+				T.W.Tick(Dt);
+				MaxStep = FMath::Max(MaxStep, FMath::Abs(T.M->GetAppliedVolume() - Prev) / Dt);
+				Prev = T.M->GetAppliedVolume();
+			}
+		};
+		float MaxStep = 0.f;
+		T.M->SetIntensityForTests(0.f);
+		T.Combat(true);
+		Run(3.f, MaxStep);
+		TestEqual(*(Tag + TEXT("full envelope after the fade in")), T.M->GetEnvelope(), 1.f);
+		TestEqual(*(Tag + TEXT("quiet fight: the calm gain")), T.M->GetIntensityGain(), MS->CalmGain, 0.01f);
+		TestEqual(*(Tag + TEXT("... is what plays")), T.M->GetAppliedVolume(), MS->CalmGain, 0.01f);
+
+		T.M->SetIntensityForTests(1.f);
+		Run(0.5f, MaxStep);
+		TestTrue(*(Tag + TEXT("rate-limited: not there yet after 0.5 s")), T.M->GetIntensityGain() < MS->FightGain - 0.05f);
+		Run(1.f, MaxStep);
+		TestEqual(*(Tag + TEXT("full fight: the authored volume")), T.M->GetAppliedVolume(), MS->FightGain, 0.01f);
+		TestTrue(*(Tag + FString::Printf(TEXT("no clicks: volume never moves faster than the fades (%.2f /s)"), MaxStep)), MaxStep <= 0.55f);
+
+		// A CUT and a travel still stop it within 1 s, at any gain.
+		UTDEventBus* Bus = UTDEventBus::Get(T.W.GetWorld());
+		if (Bus) { Bus->OnSceneCut.Broadcast(TEXT("Wave_1"), 2, 1.f); }
+		Run(1.1f, MaxStep);
+		TestEqual(*(Tag + TEXT("CUT: silent within 1 s")), T.M->GetAppliedVolume(), 0.f, 0.001f);
+		T.M->SetTravellingForTests();
+		Run(0.5f, MaxStep);
+		TestEqual(*(Tag + TEXT("travel: stays silent")), T.M->GetMusicState(), S::Silent);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicNoPerFrameLookup, "TriadDrift.Input.Music.NoStyleLookupEveryFrameWhileSilent", TD_TEST_FLAGS)
+bool FTDMusicNoPerFrameLookup::RunTest(const FString& Parameters)
+{
+	// Review M10: while the music was silent Tick resolved the track every frame (LoadPresentation + LoadSynchronous).
+	FTDTestWorld W;
+	UTDMusicDirectorSubsystem* M = UTDMusicDirectorSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("director"), M)) { return false; }
+	M->SetCombatOverrideForTests(false);
+	const int32 Before = M->GetMusicLookupsForTests();
+	for (int32 i = 0; i < 120; ++i) { W.Tick(1.f / 60.f); } // 2 s of silence
+	const int32 Lookups = M->GetMusicLookupsForTests() - Before;
+	TestTrue(FString::Printf(TEXT("at most one lookup per 2 s while silent (%d in 120 frames)"), Lookups), Lookups <= 2);
 	return true;
 }
 

@@ -7,6 +7,10 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
+#include "Misc/ScopeExit.h"
+#include "Engine/StaticMeshActor.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -230,6 +234,64 @@ bool FTDFeedbackTrailFade::RunTest(const FString& Parameters)
 	TestTrue(TEXT("fades out over the band edge"), Edge > 0.2f && Edge < 0.8f);
 	TestEqual(TEXT("no viewport (headless): only distance counts"), Fade(5000.f, -1.f), 1.f);
 	TestTrue(TEXT("limit sits at ~72% of the screen"), FMath::IsNearlyEqual(T.TrailHudBandLimit, 0.72f, 0.02f));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFeedbackComfort, "TriadDrift.Flight.Feedback.HitAndExplosionShakeScaledByTheSettings", TD_TEST_FLAGS)
+bool FTDFeedbackComfort::RunTest(const FString& Parameters)
+{
+	// Camera feel pass: taking a hit and a ship blowing up nearby shake the flown ship's camera; the Settings
+	// "Camera shake" slider scales every shake and kick (0 = none) and "Speed FOV effect" the speed widening.
+	ON_SCOPE_EXIT { UTDFlightFeedbackComponent::UserShakeScale = 1.f; UTDFlightFeedbackComponent::UserSpeedFOVScale = 1.f; };
+	FTDTestWorld W;
+	ATDShip* Ship = TDFeedbackTest::SpawnFlying(W, true);
+	UTDFlightFeedbackComponent* FB = Ship->GetFlightFeedback();
+	UTDHealthComponent* H = Ship->GetHealth();
+	if (!TestNotNull(TEXT("feedback"), FB) || !TestNotNull(TEXT("health"), H)) { return false; }
+	H->ClearTimedInvulnerability();
+	H->SetInvulnerable(false);
+	W.Advance(0.5f);
+	auto ShakeNow = [FB]() { const FRotator O = FB->GetCameraOffset(); return FMath::Abs(O.Pitch) + FMath::Abs(O.Yaw) + FMath::Abs(O.Roll); };
+	auto PeakOver = [&](float Seconds) { float Peak = 0.f; for (float T = 0.f; T < Seconds; T += 1.f / 60.f) { W.Tick(); Peak = FMath::Max(Peak, ShakeNow()); } return Peak; };
+
+	FTDDamageInfo Hit;
+	Hit.Amount = 20.f;
+	H->ApplyDamage(Hit);
+	const float Full = PeakOver(0.35f);
+	TestTrue(FString::Printf(TEXT("a hit shakes the camera (peak %.2f deg)"), Full), Full > 0.2f);
+	TestTrue(TEXT("... counted"), FB->GetPlaceholderCount(TEXT("Hit")) >= 1);
+
+	UTDFlightFeedbackComponent::UserShakeScale = 0.5f;
+	H->ApplyDamage(Hit);
+	const float Half = PeakOver(0.35f);
+	TestTrue(FString::Printf(TEXT("Camera shake 50%%: about half (%.2f vs %.2f)"), Half, Full), Half < Full * 0.8f && Half > Full * 0.2f);
+
+	UTDFlightFeedbackComponent::UserShakeScale = 0.f;
+	H->ApplyDamage(Hit);
+	TestTrue(TEXT("Camera shake 0%: none at all"), PeakOver(0.35f) < 0.01f);
+	UTDFlightFeedbackComponent::UserShakeScale = 1.f;
+
+	// A ship destroyed 30 m away shakes it; one 200 m away doesn't.
+	// Beside the ship (it keeps flying forward), spawned right before each broadcast.
+	AActor* Far = W.Spawn<AStaticMeshActor>(Ship->GetActorLocation() + FVector(0.f, 20000.f, 0.f));
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("event bus"), Bus)) { return false; }
+	const int32 Booms = FB->GetPlaceholderCount(TEXT("Explosion"));
+	Bus->OnActorKilled.Broadcast(Far, nullptr, ETDDamageKind::Energy);
+	TestEqual(TEXT("far explosion: no shake"), FB->GetPlaceholderCount(TEXT("Explosion")), Booms);
+	AActor* Near = W.Spawn<AStaticMeshActor>(Ship->GetActorLocation() + FVector(0.f, 3000.f, 0.f));
+	Bus->OnActorKilled.Broadcast(Near, nullptr, ETDDamageKind::Energy);
+	TestEqual(TEXT("near explosion: a shake"), FB->GetPlaceholderCount(TEXT("Explosion")), Booms + 1);
+	TestTrue(TEXT("... felt"), PeakOver(0.4f) > 0.2f);
+
+	// Speed FOV 0: the view stays at the base FOV at full speed.
+	UTDFlightFeedbackComponent::UserSpeedFOVScale = 0.f;
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	In.bBoost = true;
+	Ship->SetFlightInput(In);
+	W.Advance(2.f);
+	TestEqual(TEXT("Speed FOV 0%: base FOV while boosting"), Ship->GetChaseCamera()->FieldOfView, Ship->GetCameraTuning().MinFOV, 1.f);
 	return true;
 }
 

@@ -52,9 +52,28 @@ MAJOR closed and the item *gameplay validated* (played in a running game, noted 
 | Audio support (skill, live state, engine loop parameters) | Lead + T1 | in review | `TriadDrift.Core.AudioState` (3), `TriadDrift.Flight.Visuals.EngineLoopAudioParameters` | - | Nothing heard by a person | Used by no audio yet |
 | ENG-32 on-foot third person + Settings page | T3 (rig) + T5 (pilot) + T1 (settings) | in review | `TriadDrift.Ground.ThirdPerson`, `TriadDrift.Ground.LookFollowsEverySettingsRow`, `TriadDrift.UI` | independent review + re-check: all MAJORs closed (`8e41112`), verdict acceptable; 2 new MINORs with T5 | Rooms cleared in third person by an agent; full pad pass (T1) | Human play |
 | ENG-33 cinematic intro | T3 (+ T4 showcase hooks) | in review | `TriadDrift.Director.Intro`, `TriadDrift.Flow.E2E.NewGameIntroWavesContinue` | independent review + re-check: all findings closed (`8e41112`), verdict acceptable | v10 contact sheet on real art incl. eclipse shot; E2E New Game run in PIE | Hand-off slate seen in a watched run; human watch |
+| ENG-34 planet worlds (procedural terrain) | T4 (+ T1 flight zone, T5 slab, Lead materials) | in progress | `TriadDrift.World.Terrain`, `TriadDrift.Travel.Safety` | independent review started Nov 13 12:30 | M1 on `main` (`71d11c5`); M2 peaks, materials, 17 km flight zone, atmosphere boost and slab fit on `lead/int`; T4 captures of both planets with the materials | Wiring commit from T4; scatter; streaming at 90 m/s; slab edge seen live; Grok PBR sets into the material; human play |
+| ENG-35 fallback sound set | Lead builders + T1-T5 hooks | in progress | `TriadDrift.Ground.Sound`, `TriadDrift.Flow` (menu loop), cue tests | independent review started Nov 13 12:30 (code side) | 200 sounds, 270 assets wired on `lead/int`; heard by Ryan once in a hand-launched session; nothing approved by ear | On `main` with batch A; each teammate's `-Audio` dump check; ear pass |
+| ENG-36 flight HUD redesign | T2 (+ T3 onboarding card) | in progress | `TriadDrift.UI.FlightHUD` (incl. `PaintsEveryState`), `TriadDrift.UI` | independent review started Nov 13 12:30; Nick's Lead reviewed the P2 sheet (two contrast notes) | P1 and P2 captured live at 1080p, 1440p, 21:9, gamepad glyphs (`docs/eng/hud-redesign/live/`); coverage 3.2-4.85% | Default on `lead/int` (`5df7a75`), reaches `main` with batch B; contrast pass; red hull, missile warning, downed wingman seen live; human play |
+| ENG-37 Niagara effects | Lead effects builder (+ T1 exhaust hook, T2, T4) | in progress | `TriadDrift.Flight.Exhaust` | - | Round 2 review sheets only (3 of 5); nothing wired on `main` | Wiring of tracers / explosions / hull impact; round 3 with Grok Bot's flipbooks; tiers 2-3 |
+| Rodin drone as the drone enemy | Lead builder (+ T5) | in review | `TriadDrift.Ground.Crew` | - | Captured in game on Verdance at 6 m | Real-damage kill shown live; hitbox 45 / 44 (T5); on `main` with batch B |
+| Presentation wins field by field (R-029) | Lead | in review | `TriadDrift.Core.Presentation.MergesFieldByField` | in the Nov 13 12:30 review | - | On `main` with batch B; then Nick's PR #11 / #12 can merge without silencing fallbacks |
+| Onboarding (first two minutes) | T3 (+ T2 card) | in review | `TriadDrift.Input.Hints` | - | Agent live check on Nick's HUD (`.wt/t3/Saved/TDShots/onboard2/strip.png`) | Seen on the new HUD; human play (a beginner) |
 | ENG-29 docking (stretch) | - | todo | | | | Only after core is solid |
 | ENG-30 interior + core fight (stretch) | - | todo | | | | |
 | ENG-31 escape (stretch) | - | todo | | | | |
+
+## State on Nov 13, 12:30 EST (read this before the older findings below)
+- Every core item ENG-01 to ENG-33 and C-03 is on `main`, tested, twice reviewed with all BLOCKERs and MAJORs closed and
+  re-checked, and played by an agent: `🟢 built and verified` in `features.md`. None is `DONE`: **no human has played.**
+  Ryan ran the game twice on Nov 13 (a guided tour and a free session); his notes are the first input to the polish list.
+- Second reviews of ENG-04..12 and ENG-13..20 / 27 (Nov 13 morning): no blockers; MAJORs fixed (cloak / wingman, waves 3-5
+  wait for the combat zone, difficulty selectable, planet re-entry); open minors: carrier launch count, Dominion gravity
+  well registration, fourth generator during the "CUT!" delay (T4).
+- Integration: batch A (sounds and morning batches) is in its gating run; batch B is on `lead/int` (see `CLAIMS.md`).
+  Test load rule since Nov 13 11:45: teammates run their own filter three times and the full suite once; the Lead's
+  integration run is the gate for `main`.
+- The findings below this line are the Nov 12 record; all BLOCKERs and MAJORs in them are closed.
 
 ## Open review findings (owner fixes, Lead re-verifies)
 Updated 2026-11-12 15:36 EST.

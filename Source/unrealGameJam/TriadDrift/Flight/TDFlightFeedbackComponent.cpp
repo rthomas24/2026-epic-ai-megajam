@@ -1,6 +1,8 @@
 // Triad Drift - flight feel that reads with NO art. Owner: Teammate 1 (Flight & Input).
 
 #include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -69,11 +71,55 @@ bool UTDFlightFeedbackComponent::WantsCameraPlaceholder(const FTDFXCue* Cue)
 	return TDFlightFeedback::CVarPlaceholders.GetValueOnGameThread() != 0 && (!Cue || Cue->Shake.IsNull());
 }
 
+float UTDFlightFeedbackComponent::UserShakeScale = 1.f;
+float UTDFlightFeedbackComponent::UserSpeedFOVScale = 1.f;
+
+void UTDFlightFeedbackComponent::HandleDamaged(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
+{
+	const ATDShip* Ship = GetShip();
+	const UTDShipVisuals* Visuals = Ship ? Ship->GetShipVisuals() : nullptr;
+	const FTDFXCue* Cue = Visuals ? (HullDamage > 0.f ? &Visuals->HullHit : &Visuals->ShieldHit) : nullptr;
+	if (!Ship || !Ship->IsPlayerFlown() || !WantsCameraPlaceholder(Cue))
+	{
+		return;
+	}
+	const float Strength = FMath::Clamp((ShieldDamage + HullDamage) / FMath::Max(Tuning.HitFullDamage, 1.f), 0.15f, 1.f);
+	// A hull hit lands harder than a shield hit.
+	const float Weight = HullDamage > 0.f ? 1.f : 0.6f;
+	AddCameraKick(0.f, -0.6f * Strength * Weight, 0.f, Tuning.HitShake * Strength * Weight, 0.3f);
+	Note(TEXT("Hit"));
+}
+
+void UTDFlightFeedbackComponent::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
+{
+	const ATDShip* Ship = GetShip();
+	if (!Ship || !Ship->IsPlayerFlown() || !Victim || Victim == Ship || Tuning.ExplosionShakeRadius <= 0.f || !WantsCameraPlaceholder(nullptr))
+	{
+		return;
+	}
+	const float D = FVector::Dist(Victim->GetActorLocation(), Ship->GetActorLocation());
+	if (D >= Tuning.ExplosionShakeRadius)
+	{
+		return;
+	}
+	const float Near = FMath::Square(1.f - D / Tuning.ExplosionShakeRadius);
+	AddCameraKick(0.f, 0.f, 1.5f * Near, Tuning.ExplosionShake * Near, 0.5f);
+	Note(TEXT("Explosion"));
+}
+
 void UTDFlightFeedbackComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnActorKilled.AddUniqueDynamic(this, &UTDFlightFeedbackComponent::HandleActorKilled);
+	}
 	if (ATDShip* Ship = GetShip())
 	{
+		if (UTDHealthComponent* H = Ship->GetHealth())
+		{
+			H->OnDamaged.AddUniqueDynamic(this, &UTDFlightFeedbackComponent::HandleDamaged);
+		}
 		Ship->OnTeleported.AddDynamic(this, &UTDFlightFeedbackComponent::HandleTeleported);
 		if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
 		{
@@ -418,14 +464,15 @@ void UTDFlightFeedbackComponent::UpdateCamera(float DeltaTime)
 		Shake += K.Shake * E;
 	}
 	ShakeTime += DeltaTime;
-	const float S = Shake * Tuning.CameraScale;
+	const float S = Shake * Tuning.CameraScale * UserShakeScale;
 	const float T = ShakeTime;
 	// Cheap procedural shake: incommensurate sines per axis (no camera-shake asset needed).
 	const float JPitch = S * (FMath::Sin(T * 41.f) + 0.5f * FMath::Sin(T * 73.f + 1.3f)) / 1.5f;
 	const float JYaw = S * (FMath::Sin(T * 37.f + 0.7f) + 0.5f * FMath::Sin(T * 89.f + 2.1f)) / 1.5f;
 	const float JRoll = S * 0.6f * FMath::Sin(T * 29.f + 0.4f);
-	CameraOffset = FRotator(Pitch * Tuning.CameraScale + JPitch, JYaw, Roll * Tuning.CameraScale + JRoll);
-	FOVOffset = (FOV + SustainedFOV) * Tuning.CameraScale;
+	const float K = Tuning.CameraScale * UserShakeScale;
+	CameraOffset = FRotator(Pitch * K + JPitch, JYaw, Roll * K + JRoll);
+	FOVOffset = (FOV + SustainedFOV) * Tuning.CameraScale * UserSpeedFOVScale;
 }
 
 void UTDFlightFeedbackComponent::UpdateBursts(float DeltaTime)

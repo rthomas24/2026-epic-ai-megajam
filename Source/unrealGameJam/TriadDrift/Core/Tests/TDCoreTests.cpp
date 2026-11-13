@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "NiagaraSystem.h"
+#include "Engine/StaticMesh.h"
 #include "Sound/SoundBase.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "EnhancedInputSubsystems.h"
@@ -296,6 +297,7 @@ bool FTDPresentationMergesFieldByField::RunTest(const FString& Parameters)
 	Ours->Muzzle.Sound = TSoftObjectPtr<USoundBase>(OurSound);
 	Ours->Muzzle.VFX = TSoftObjectPtr<UNiagaraSystem>(OurVFX);
 	Ours->ImpactHull.Sound = TSoftObjectPtr<USoundBase>(OurSound);
+	Ours->ImpactHull.VFX = TSoftObjectPtr<UNiagaraSystem>(OurVFX);
 	Ours->ImpactHull.VFXScale = FVector(2.0);
 
 	const UTDWeaponFX* Merged = Cast<UTDWeaponFX>(UTDStatics::MergePresentationWithFallback(Nick, Ours));
@@ -306,7 +308,7 @@ bool FTDPresentationMergesFieldByField::RunTest(const FString& Parameters)
 		TestEqual(TEXT("presentation's sound wins"), Merged->Muzzle.Sound.ToSoftObjectPath(), NickSound);
 		TestEqual(TEXT("fallback's effect fills the unset member of the same cue"), Merged->Muzzle.VFX.ToSoftObjectPath(), OurVFX);
 		TestEqual(TEXT("a cue presentation left empty comes from the fallback"), Merged->ImpactHull.Sound.ToSoftObjectPath(), OurSound);
-		TestEqual(TEXT("non-pointer members follow"), Merged->ImpactHull.VFXScale, FVector(2.0));
+		TestEqual(TEXT("the scale follows the effect it belongs to"), Merged->ImpactHull.VFXScale, FVector(2.0));
 		TestTrue(TEXT("the presentation asset itself is untouched"), Nick->Muzzle.VFX.IsNull() && Nick->ImpactHull.Sound.IsNull());
 	}
 
@@ -325,6 +327,38 @@ bool FTDPresentationMergesFieldByField::RunTest(const FString& Parameters)
 		TestEqual(TEXT("combat music stays from the fallback"), Style->CombatMusic.ToSoftObjectPath(), OurMusic);
 		TestEqual(TEXT("hit confirm stays from the fallback"), Style->HitConfirm.Sound.ToSoftObjectPath(), OurSound);
 	}
+
+	// The scale travels with its effect: the presentation side's effect is never shown at the fallback's scale.
+	UTDWeaponFX* NickVFX = NewObject<UTDWeaponFX>(GetTransientPackage());
+	UTDWeaponFX* OurScaled = NewObject<UTDWeaponFX>(GetTransientPackage());
+	const FSoftObjectPath NickEffect(TEXT("/Game/Test/NickVFX.NickVFX"));
+	NickVFX->Muzzle.VFX = TSoftObjectPtr<UNiagaraSystem>(NickEffect);
+	OurScaled->Muzzle.VFX = TSoftObjectPtr<UNiagaraSystem>(OurVFX);
+	OurScaled->Muzzle.VFXScale = FVector(3.0);
+	OurScaled->Muzzle.Sound = TSoftObjectPtr<USoundBase>(OurSound);
+	OurScaled->ImpactHull.VFX = TSoftObjectPtr<UNiagaraSystem>(OurVFX);
+	OurScaled->ImpactHull.VFXScale = FVector(3.0);
+	const UTDWeaponFX* Scaled = Cast<UTDWeaponFX>(UTDStatics::MergePresentationWithFallback(NickVFX, OurScaled));
+	TestNotNull(TEXT("merged scaled asset"), Scaled);
+	if (Scaled)
+	{
+		TestEqual(TEXT("presentation's effect wins"), Scaled->Muzzle.VFX.ToSoftObjectPath(), NickEffect);
+		TestEqual(TEXT("and keeps its own scale"), Scaled->Muzzle.VFXScale, FVector::OneVector);
+		TestEqual(TEXT("the sound of that cue still comes from the fallback"), Scaled->Muzzle.Sound.ToSoftObjectPath(), OurSound);
+		TestEqual(TEXT("a cue taken whole from the fallback keeps the fallback's scale"), Scaled->ImpactHull.VFXScale, FVector(3.0));
+	}
+
+	// Plain values at a level follow the fallback only when presentation set no asset at that level.
+	UTDBladeFX* NickBlade = NewObject<UTDBladeFX>(GetTransientPackage());
+	UTDBladeFX* OurBlade = NewObject<UTDBladeFX>(GetTransientPackage());
+	NickBlade->Hit.Sound = TSoftObjectPtr<USoundBase>(NickSound);	// a nested cue only
+	OurBlade->BladeColor = FLinearColor(0.1f, 0.65f, 1.f);
+	const UTDBladeFX* Blade = Cast<UTDBladeFX>(UTDStatics::MergePresentationWithFallback(NickBlade, OurBlade));
+	TestTrue(TEXT("sound-only blade asset keeps the fallback's colour"), Blade && Blade->BladeColor == OurBlade->BladeColor);
+	UTDBladeFX* NickBladeMesh = NewObject<UTDBladeFX>(GetTransientPackage());
+	NickBladeMesh->BladeMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/Test/NickBlade.NickBlade")));
+	const UTDBladeFX* Blade2 = Cast<UTDBladeFX>(UTDStatics::MergePresentationWithFallback(NickBladeMesh, OurBlade));
+	TestTrue(TEXT("a blade asset with its own mesh keeps its own (default) colour"), Blade2 && Blade2->BladeColor == FLinearColor::White);
 
 	// No fallback, or a fallback of another class: a plain copy.
 	const UTDWeaponFX* Alone = Cast<UTDWeaponFX>(UTDStatics::MergePresentationWithFallback(Nick, nullptr));
