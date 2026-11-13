@@ -1,13 +1,16 @@
 """Lead-scheduled additive detail pass on the immutable approved A02 structure."""
 from pathlib import Path
-import os, json, hashlib, runpy, shutil
+import os, json, hashlib, runpy, shutil, sys
 import bpy
 from mathutils import Vector
-P=Path(__file__).resolve().parent;ROOT=P.parents[1];OUT=ROOT/'review/M03/Detail01'
+P=Path(__file__).resolve().parent;ROOT=P.parents[1]
+correction02='--correction02' in sys.argv
+OUT=ROOT/('review/M03/Detail01/Correction02' if correction02 else 'review/M03/Detail01')
 SOURCE=P/'Lancer_M03_structure_v03.blend'
 SOURCE_SHA='3e05f82bd2ab265cb32cc91c072f4fb5060231a2c777945129350dbd41f921c2'
 os.environ['LANCER_M03_REVIEW_DIR']=str(OUT)
 os.environ['LANCER_M03_MATERIAL_PARAMS']=str(OUT/'material_parameters.json')
+os.environ['LANCER_M03_APPROVED_FRAME']='A02'
 
 def digest(value):return hashlib.sha256(json.dumps(value,separators=(',',':')).encode()).hexdigest()
 def signature(ob):
@@ -37,7 +40,7 @@ def run():
     roles=['Graphite','Gunmetal','Titanium','Composite','Canopy','Blue']
     model['MATS'].extend(bpy.data.materials['M_LancerM03_'+role] for role in roles)
     # Reuse six shared roles. Paint stays nonmetallic; bare metals remain metallic.
-    settings=[('#27313A',0,.46,.15,0),('#626D78',1,.39,0,0),('#A8B4BD',1,.31,0,0),
+    settings=[('#1E2832',0,.50,.08,0),('#465460',1,.44,0,0),('#A8B4BD',1,.31,0,0),
               ('#151D23',0,.76,0,0),('#0B2532',0,.15,.65,0),('#16BEE8',0,.33,0,1.8)]
     params=[]
     for role,mat,(color,metal,rough,coat,em) in zip(roles,model['MATS'],settings):
@@ -52,7 +55,46 @@ def run():
         params.append(dict(name=mat.name,base_color_srgb=color,metallic=metal,roughness=rough,coat_weight=coat,emissive_strength=em))
     (OUT/'material_parameters.json').write_text(json.dumps(params,indent=2),encoding='utf-8')
     # Add surface layers without rebuilding, moving or modifying any approved base mesh.
+    # Measured first-pass cap coincidences: keep the detail, separate its end planes.
+    g=model['refinement'].__globals__;original_strip=g['strip'];original_loft=g['loft'];trimmed=[]
+    def fitted_loft(group,name,sections,*args,**kwargs):
+        if name.startswith('DeckPlate'):
+            sections=[(x,w,.6,y,z+.15) for x,w,h,y,z in sections]
+        elif name.startswith('NoseService'):
+            sections=[(x,w,h,y,z-.5) for x,w,h,y,z in sections]
+        return original_loft(group,name,sections,*args,**kwargs)
+    def recessed_strip(group,name,path,width,depth,mat=0,tint=.9):
+        if name.startswith(('ContinuousBlueConduit','WingEdgeBlue')):
+            path=list(path)
+            path[0]=tuple(Vector(path[0])+(Vector(path[1])-Vector(path[0])).normalized()*2)
+            path[-1]=tuple(Vector(path[-1])+(Vector(path[-2])-Vector(path[-1])).normalized()*2)
+            trimmed.append(name)
+        return original_strip(group,name,path,width,depth,mat,tint)
+    g['strip']=recessed_strip;g['loft']=fitted_loft
     model['refinement']()
+    g['strip']=original_strip;g['loft']=original_loft
+    petals=[o for o in model['GROUPS']['Engine'] if 'NozzlePetal' in o.name]
+    assert len(petals)==12 and len(trimmed)==4
+    for ob in petals:
+        for v in ob.data.vertices:v.co.y-=.02  # UE +X 2cm; base engine remains untouched.
+    # Fit existing overlay surfaces; do not alter topology or any approved mesh.
+    engine_sections=[(3,38,37,0),(31,46,46,1),(118,46,46,3),(191,38,37,6),(215,27,26,8)]
+    for group,objects in model['GROUPS'].items():
+        for ob in objects:
+            if group.startswith('Wing_') and 'SRC_M03_Armor' in ob.name:
+                for v in ob.data.vertices:v.co.z-=.007
+            if group=='Engine' and 'DriveArmor' in ob.name:
+                import re
+                index=int(re.search(r'DriveArmor(\d+)',ob.name).group(1));a,b=[(40,87),(90,137),(140,184)][index]
+                for v in ob.data.vertices:
+                    x,y,z=-v.co.y*100,v.co.x*100,v.co.z*100
+                    old_center=44-(x-a)/(b-a);fraction=(z-old_center)/7
+                    for aa,bb in zip(engine_sections,engine_sections[1:]):
+                        if aa[0]-.001<=x<=bb[0]+.001:
+                            t=(x-aa[0])/(bb[0]-aa[0]);w,h,cz=[aa[i]+(bb[i]-aa[i])*t for i in (1,2,3)]
+                            roof=cz+h-max(0,abs(y)/w-.66)/.34*h*.5
+                            v.co.z=(roof-.2+fraction)/100;break
+                    else:raise RuntimeError('Cassette outside approved engine profile')
     for side in [-1,1]:
         path=[(-101,side*45,44.5),(-85,side*48,44.8)]
         model['strip']('Canopy','InstrumentHousing'+str(side),path,4,2,3,.9)
@@ -78,7 +120,8 @@ def run():
                     approved_geometry_uv_material_indices_and_transforms_unchanged=preserved,max_bounds_growth_m=max_growth,
                     envelope_pass=max_growth<=.05,instances=len(all_mesh),instance_budget_pass=len(all_mesh)<=24)
     (OUT/'approved_structure_checks.json').write_text(json.dumps(structural,indent=2),encoding='utf-8')
-    bpy.ops.wm.save_as_mainfile(filepath=str(P/'Lancer_M03_Detail01_work.blend'))
+    work_name='Lancer_M03_Detail01_Correction02_work.blend' if correction02 else 'Lancer_M03_Detail01_work.blend'
+    bpy.ops.wm.save_as_mainfile(filepath=str(P/work_name))
     q=runpy.run_path(str(P/'qa_m03.py'))['run']()
     checks=json.loads((OUT/'detail_material_assignment_checks.json').read_text())
     detail_roles=all(c['passed'] for c in checks)
