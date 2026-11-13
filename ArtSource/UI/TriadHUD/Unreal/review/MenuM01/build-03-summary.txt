@@ -1,0 +1,2 @@
+Total time in Unreal Build Accelerator local executor: 23.34 seconds
+Result: Succeeded

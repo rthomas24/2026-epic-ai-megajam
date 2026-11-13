@@ -38,6 +38,23 @@ combat banners/panels, and truthful downed recovery/control-transfer feedback.
 Source/owned tests are authorized; builds/tests/captures require fresh Lead heavy
 clearance. Lead alone handles synchronization and publication. No indefinite goal.
 Older milestone instructions below describe their historical scopes and evidence.
+MenuM01 verified follow-up: Nick explicitly reauthorized continuation/no repeated
+human approval. Final build04 passes, all17 UI tests04 pass, real game03 shows
+new menu at720p/1080p/ultrawide, Settings/reduced motion/Escape/NewGame->Galaxy
+and native HUD attachment. Review folder MenuM01 preserves every failure/result.
+All native PIDs released; Audio owns next slot. Freeze for Lead precommit/push;
+no further native/features in this milestone. Keep default/style/victory/Shipping/
+Ryan camera gates and ultrawide decorative alignment finding explicit.
+Next direct Nick task (attachment c132d33a), after clean8fbe607 evidence checkpoint:
+bounded60minute cinematic-menu campaign22:55–23:55EST Nov12, earlier stop if blocked,
+no extension. Lead published404d21f/4696842 continuing same three UI roots. Implement
+native main-menu presentation and existing host actions; no shared Source/camera/
+movement/config/maps/DA_UI_Style edits. Audio retains exact style ownership until
+serialized handoff. Development-only explicit TDUIMenuReview may use the verified
+MenuWidgetClass runtime instance field with existing real host; no asset save/default/Shipping
+activation or competing host. Preserve existing victory statistics through Ryan's
+agreed integration hook. Fresh exclusive native slot required; Assets & Mesh queued
+first. Source/test preparation alone does not establish build or visual acceptance.
 No shared maps, Ryan-owned code, interfaces, config or project settings may change.
 Writable implementation paths: Plugins/TriadDriftHUD/, Content/TriadDrift/UI/TriadHUD/,
 ArtSource/UI/TriadHUD/Unreal/. No secondary menus before HUD verification.

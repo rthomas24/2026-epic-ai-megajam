@@ -1,0 +1,107 @@
+[
+  {
+    "file": "baseline-fixture-failed/01-menu-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "3adebf88e8d77ec331f39ac338ee1b9caa7f1e6ca745e4132cd40f3a4febb5f8",
+    "bytes": 51117
+  },
+  {
+    "file": "baseline-fixture-failed/02-menu-720p.png",
+    "width": 1280,
+    "height": 720,
+    "sha256": "b6c041cfcfad6a2edc4025b1ee805abdd571abb817d79d927d2c44a2bb7115a0",
+    "bytes": 25905
+  },
+  {
+    "file": "baseline-fixture-failed/03-menu-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "sha256": "1509567145ae3c267da2e764e40ebf969664beb5dd515f6e9c201c9138e1cc9c",
+    "bytes": 63165
+  },
+  {
+    "file": "verified/01-menu-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "51b7867f12f4f86aaf782b527bfe87a2a54f06c41247d7b4f4adbc2bcac44426",
+    "bytes": 323846
+  },
+  {
+    "file": "verified/02-menu-720p.png",
+    "width": 1280,
+    "height": 720,
+    "sha256": "33524a8ea8f08a98664a2529672655caf1803d77af238dafa603dd9b5e6c58d5",
+    "bytes": 189819
+  },
+  {
+    "file": "verified/03-menu-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "sha256": "3bac6f639f6d7698efdf2a5256422777c43b8d8a232c818e54ae8091775cefc6",
+    "bytes": 404280
+  },
+  {
+    "file": "verified/04-menu-settings.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "71f442676b8db6cfd21e8377a7e494b51fa6ee222ede5e91dc364d97c2b00122",
+    "bytes": 332457
+  },
+  {
+    "file": "verified/05-menu-reduced-motion.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "78d78c487898a207ad82a4de5a7d6ef6f427fe0be994a77ec94d5a6d04ca99ff",
+    "bytes": 333505
+  },
+  {
+    "file": "verified/06-new-game-transition.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "021b6d0a8b62c3be6868b1a005021c82f91becff843a13cd41c80c0bed1283c0",
+    "bytes": 629943
+  },
+  {
+    "file": "visible-input-failed/01-menu-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "01a99abefabe5812aac1ad4d19280d351765cdd95e2ed3341f0b9a22a1a8c70e",
+    "bytes": 323845
+  },
+  {
+    "file": "visible-input-failed/02-menu-720p.png",
+    "width": 1280,
+    "height": 720,
+    "sha256": "d4626fe7460086d21405ec3fd596b5a59d0d5c4009bc1ae5cd97ad68a14a3d55",
+    "bytes": 189877
+  },
+  {
+    "file": "visible-input-failed/03-menu-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "sha256": "b15bb0f06c5006061b70230614cf2a89ba4f43874d11cbfcc6beabf2f8924e69",
+    "bytes": 404279
+  },
+  {
+    "file": "visible-input-failed/04-menu-settings.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "67fe431b0f250df2d7105b93a91937899a167651bec330a90e48ead7e0131df8",
+    "bytes": 323768
+  },
+  {
+    "file": "visible-input-failed/05-menu-reduced-motion.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "6748c76ab0dcf7cecd9439268f41d000d1a82c46f5a82078902562db67840b3f",
+    "bytes": 323868
+  },
+  {
+    "file": "visible-input-failed/06-new-game-transition.png",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "5078020f91b33cbcd2dff021e606c00edd85bcebe88175f0232f188c6a58dd1e",
+    "bytes": 323612
+  }
+]

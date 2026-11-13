@@ -1,0 +1,17 @@
+[2026.11.13-04.33.53:295][577]LogAutomationController: Display: Test Completed. Result={Success} Name={FrozenNames} Path={TriadDrift.UI.HUDHost.FrozenNames}
+[2026.11.13-04.33.56:316][522]LogAutomationController: Display: Test Completed. Result={Success} Name={N004AbilitySequence} Path={TriadDrift.UI.HUDHost.N004AbilitySequence}
+[2026.11.13-04.33.56:383][554]LogAutomationController: Display: Test Completed. Result={Success} Name={NoWidgetWithoutSquad} Path={TriadDrift.UI.HUDHost.NoWidgetWithoutSquad}
+[2026.11.13-04.33.56:503][740]LogAutomationController: Display: Test Completed. Result={Success} Name={ShowHideRules} Path={TriadDrift.UI.HUDHost.ShowHideRules}
+[2026.11.13-04.33.56:560][743]LogAutomationController: Display: Test Completed. Result={Success} Name={SurfaceCoverage} Path={TriadDrift.UI.HUDHost.SurfaceCoverage}
+[2026.11.13-04.33.56:584][746]LogAutomationController: Display: Test Completed. Result={Success} Name={HostContract} Path={TriadDrift.UI.Menu.HostContract}
+[2026.11.13-04.33.56:636][749]LogAutomationController: Display: Test Completed. Result={Success} Name={MotionAccessibility} Path={TriadDrift.UI.Menu.MotionAccessibility}
+[2026.11.13-04.33.56:654][751]LogAutomationController: Display: Test Completed. Result={Success} Name={RejectsIncompatibleHost} Path={TriadDrift.UI.Menu.RejectsIncompatibleHost}
+[2026.11.13-04.33.56:673][753]LogAutomationController: Display: Test Completed. Result={Success} Name={CombatConfirmationLifecycle} Path={TriadDrift.UI.CombatConfirmationLifecycle}
+[2026.11.13-04.33.56:688][755]LogAutomationController: Display: Test Completed. Result={Success} Name={ContractSchema} Path={TriadDrift.UI.ContractSchema}
+[2026.11.13-04.33.57:119][789]LogAutomationController: Display: Test Completed. Result={Success} Name={InteractionPromptLifecycle} Path={TriadDrift.UI.InteractionPromptLifecycle}
+[2026.11.13-04.33.57:136][791]LogAutomationController: Display: Test Completed. Result={Success} Name={Intercept} Path={TriadDrift.UI.Intercept}
+[2026.11.13-04.33.57:154][793]LogAutomationController: Display: Test Completed. Result={Success} Name={LancerBenchmarkIsolation} Path={TriadDrift.UI.LancerBenchmarkIsolation}
+[2026.11.13-04.33.57:206][795]LogAutomationController: Display: Test Completed. Result={Success} Name={ObjectiveLateAttach} Path={TriadDrift.UI.ObjectiveLateAttach}
+[2026.11.13-04.33.57:222][797]LogAutomationController: Display: Test Completed. Result={Success} Name={RecoveryAndControlTransfer} Path={TriadDrift.UI.RecoveryAndControlTransfer}
+[2026.11.13-04.33.57:239][799]LogAutomationController: Display: Test Completed. Result={Success} Name={SnapshotSafety} Path={TriadDrift.UI.SnapshotSafety}
+[2026.11.13-04.33.57:263][802]LogAutomationController: Display: Test Completed. Result={Success} Name={TargetInfoSafeLayout} Path={TriadDrift.UI.TargetInfoSafeLayout}

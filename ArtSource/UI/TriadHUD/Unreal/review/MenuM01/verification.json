@@ -1,0 +1,140 @@
+{
+  "build-01": {
+    "guard_free_gib": 4.442893981933594,
+    "passed_ui_tests": 0,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "phase": "build",
+    "os_exit_code": 6,
+    "duration_s": 54.1237512,
+    "failure": "Native build failed with exit 6",
+    "pass": false,
+    "protected_changed": []
+  },
+  "build-02": {
+    "guard_free_gib": 4.554389953613281,
+    "phase": "build",
+    "passed_ui_tests": 0,
+    "failure": null,
+    "duration_s": 10.8037371,
+    "os_exit_code": 0,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "protected_changed": [],
+    "pass": true
+  },
+  "build-03": {
+    "pass": true,
+    "guard_free_gib": 4.531467437744141,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "os_exit_code": 0,
+    "failure": null,
+    "protected_changed": [],
+    "passed_ui_tests": 0,
+    "phase": "build",
+    "duration_s": 25.401552
+  },
+  "build-04": {
+    "os_exit_code": 0,
+    "failure": null,
+    "guard_free_gib": 4.8961181640625,
+    "min_free_gib": 2.490283966064453,
+    "pass": true,
+    "duration_s": 66.6243597,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "passed_ui_tests": 0,
+    "phase": "build",
+    "protected_changed": []
+  },
+  "tests-01": {
+    "pass": true,
+    "duration_s": 38.2548806,
+    "guard_free_gib": 4.625797271728516,
+    "os_exit_code": 0,
+    "phase": "tests",
+    "protected_changed": [],
+    "passed_ui_tests": 17,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "failure": null
+  },
+  "tests-02": {
+    "passed_ui_tests": 0,
+    "phase": "tests",
+    "duration_s": 19.7333279,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "protected_changed": [],
+    "os_exit_code": -1,
+    "pass": false,
+    "guard_free_gib": 4.397773742675781,
+    "failure": "Own timeout/memory stop; preserve attempt, no automatic retry"
+  },
+  "tests-03": {
+    "duration_s": 20.7040832,
+    "min_free_gib": 1.6634140014648438,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "os_exit_code": 0,
+    "protected_changed": [],
+    "pass": true,
+    "guard_free_gib": 4.525104522705078,
+    "failure": null,
+    "passed_ui_tests": 17,
+    "phase": "tests"
+  },
+  "tests-04": {
+    "duration_s": 27.5434015,
+    "failure": null,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "phase": "tests",
+    "pass": true,
+    "protected_changed": [],
+    "os_exit_code": 0,
+    "passed_ui_tests": 17,
+    "min_free_gib": 0.9483184814453125,
+    "guard_free_gib": 4.563869476318359
+  },
+  "game-01": {
+    "phase": "game",
+    "passed_ui_tests": 0,
+    "failure": null,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "pass": true,
+    "protected_changed": [],
+    "guard_free_gib": 4.847476959228516,
+    "os_exit_code": 0,
+    "duration_s": 40.2189563
+  },
+  "game-02": {
+    "failure": null,
+    "phase": "game",
+    "os_exit_code": 0,
+    "pass": true,
+    "min_free_gib": 1.562286376953125,
+    "passed_ui_tests": 0,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "protected_changed": [],
+    "duration_s": 34.7733683,
+    "guard_free_gib": 4.648529052734375
+  },
+  "game-03": {
+    "passed_ui_tests": 0,
+    "min_free_gib": 1.4333686828613281,
+    "guard_free_gib": 4.162967681884766,
+    "head": "8fbe607cdef3e41fd56e851b996dac1a96d37310",
+    "phase": "game",
+    "failure": null,
+    "pass": true,
+    "protected_changed": [],
+    "duration_s": 46.0608348,
+    "os_exit_code": 0
+  },
+  "acceptance": {
+    "final_build": "build04 PASS",
+    "final_tests": "tests04 17/17 PASS",
+    "actual_game03": "PASS real host visible; Settings FULL->REDUCED, Escape, NewGame L_Transition->L_Galaxy, HUD shown1",
+    "shipping": "UNTESTED",
+    "production_activation": false,
+    "victory_statistics": "Existing host must retain fallback before production assignment",
+    "camera_effects": "No Ryan camera/movement/postprocess edits; hook coordination required",
+    "presentation": "Prototype technically verified; Nick visual review pending",
+    "known_presentation_issue": "Ultrawide backdrop decorations scale differently from foreground; essential labels/actions fit, accent alignment needs later polish",
+    "previous_failures": "build01 syntax corrected; tests02 instant-pressure abort corrected to agreed10s; game01 old fallback fixture; game02 viewport focus corrected"
+  }
+}

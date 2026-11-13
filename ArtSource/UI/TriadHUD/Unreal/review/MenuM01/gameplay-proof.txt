@@ -1,0 +1,18 @@
+[2026.11.13-04.34.20:398][  0]LogLoad: LoadMap: /Game/TriadDrift/Maps/L_MainMenu?Name=Player
+[2026.11.13-04.34.20:510][  0]LogTemp: Display: TD_MENU_REVIEW actual host instance=/Game/TriadDrift/Maps/L_MainMenu.L_MainMenu:PersistentLevel.TDMenuGameMode_0 widget=TDMainMenuWidget; no Shipping/default/style activation
+[2026.11.13-04.34.41:232][  0]LogHttpConnection: Error: errors.com.epicgames.httpserver.socket_send_failure
+[2026.11.13-04.34.45:877][265]LogTemp: TD.UI.Key Down (focus now SButton)
+[2026.11.13-04.34.46:043][275]LogTemp: TD.UI.Key Enter (focus now SButton)
+[2026.11.13-04.34.46:312][288]LogTemp: TD.UI.Key Enter (focus now SButton)
+[2026.11.13-04.34.46:582][301]LogTemp: TD.UI.Key Escape (focus now SButton)
+[2026.11.13-04.34.46:750][311]LogTemp: TD.UI.Key Enter (focus now SButton)
+[2026.11.13-04.34.47:363][348]LogLoad: LoadMap: /Game/TriadDrift/Maps/L_Transition
+[2026.11.13-04.34.48:365][406]LogLoad: LoadMap: /Game/TriadDrift/Maps/L_Galaxy
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: viewport=1920x1080
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: wave=0 alive=0
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: hits=0 newest=-1.00s
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: card 0 active=1 alive=1 unlocked=0 hull=1.00 shield=1.00 power=1.00 ability=0.00 boost=1.00 heat=0.00 ammo=6
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=1 unlocked=0 hull=1.00 shield=1.00 power=1.00 ability=0.00 boost=1.00 heat=0.00 ammo=8
+[2026.11.13-04.34.49:775][475]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 shield=1.00 power=1.00 ability=0.00 boost=1.00 heat=0.00 ammo=10

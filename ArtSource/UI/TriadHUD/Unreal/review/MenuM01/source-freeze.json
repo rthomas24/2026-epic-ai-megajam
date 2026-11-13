@@ -1,0 +1,172 @@
+[
+  {
+    "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDMainMenuWidget.h",
+    "sha256": "f8235676c559ac72d54bb0fa6a12ebb0d82724901e6aef5d1514300b4f4ff4f7",
+    "bytes": 2026
+  },
+  {
+    "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp",
+    "sha256": "f1ad7ecd199794d47f11425391129652335a2696749cf9edbac38f9b045f2887",
+    "bytes": 13868
+  },
+  {
+    "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMenuTests.cpp",
+    "sha256": "807d731248a54c941a2ca13a9d6e8a656e394e0539520f25105c9584efa27b5f",
+    "bytes": 3477
+  },
+  {
+    "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TriadDriftHUDModule.cpp",
+    "sha256": "35073a9c0cf7744abe07ec3028bd8d70d5433a2e3b386b376f8fd8c932334605",
+    "bytes": 3068
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/AGENTS.md",
+    "sha256": "dcd64ff2e05601e1cafac364b0174365c0019b5146ef8c6df2af019e06edf2d7",
+    "bytes": 8751
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/baseline-fixture-failed/01-menu-1080p.png",
+    "sha256": "3adebf88e8d77ec331f39ac338ee1b9caa7f1e6ca745e4132cd40f3a4febb5f8",
+    "bytes": 51117
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/baseline-fixture-failed/02-menu-720p.png",
+    "sha256": "b6c041cfcfad6a2edc4025b1ee805abdd571abb817d79d927d2c44a2bb7115a0",
+    "bytes": 25905
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/baseline-fixture-failed/03-menu-ultrawide.png",
+    "sha256": "1509567145ae3c267da2e764e40ebf969664beb5dd515f6e9c201c9138e1cc9c",
+    "bytes": 63165
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/build-01-summary.txt",
+    "sha256": "8500521c297818647271c6b8cb795a4041014a0de414e00c2d780b266229d36e",
+    "bytes": 1401
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/build-02-summary.txt",
+    "sha256": "d1ba693a21c5b26798bbf57365774032bd80acd2c0cdb28e638ca2183296cd8d",
+    "bytes": 88
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/build-03-summary.txt",
+    "sha256": "1756230db005edcbd92384a9b4664dbc3f14bdbab67faa3394a8a03aca14caae",
+    "bytes": 89
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/build-04-summary.txt",
+    "sha256": "7988ebe485d94ace7d1f1bfae017863e32cf5f3cfdf6144eb29726c31bf5a471",
+    "bytes": 89
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/capture-menu.py",
+    "sha256": "895009cacc880216b57fad9807b343bd15e490e1349139ef239e2bf9e39b850d",
+    "bytes": 3797
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/gameplay-proof.txt",
+    "sha256": "f69f6dd2d594c43761b8b9a2ee219d9b69336cb499e7e4365c11ac73f084f7de",
+    "bytes": 2007
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/preview.html",
+    "sha256": "a20101fe67480ad6cfe5ab1850c253f23a0db54d190df089ef89078565ff454e",
+    "bytes": 2504
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/README.md",
+    "sha256": "637a41c8e27f93148b2fe71077d2348cd62dfbd3fdfd24aca5804666b03263cf",
+    "bytes": 4246
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/screenshots.json",
+    "sha256": "5751f17e15157197418aaeb6fb61f9febe0733d00ac8dd885d6e6c747fa1e912",
+    "bytes": 3152
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/test-summary.txt",
+    "sha256": "37e9b0a05c06198de82cfc8af2fd3087e4155270e972d58559354b6885a9f6b8",
+    "bytes": 2853
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/timings-after-transition.json",
+    "sha256": "ca026d8c2c3aa6209fda6e740c0a021546413cdede88d7f1a6e3f3f33c6492d9",
+    "bytes": 310
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verification.json",
+    "sha256": "ac1f9662ce969e850b76d53c6399b7ed79de9e51d7d142dc02ed2932813429ba",
+    "bytes": 4464
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verified/01-menu-1080p.png",
+    "sha256": "51b7867f12f4f86aaf782b527bfe87a2a54f06c41247d7b4f4adbc2bcac44426",
+    "bytes": 323846
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verified/02-menu-720p.png",
+    "sha256": "33524a8ea8f08a98664a2529672655caf1803d77af238dafa603dd9b5e6c58d5",
+    "bytes": 189819
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verified/03-menu-ultrawide.png",
+    "sha256": "3bac6f639f6d7698efdf2a5256422777c43b8d8a232c818e54ae8091775cefc6",
+    "bytes": 404280
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verified/04-menu-settings.png",
+    "sha256": "71f442676b8db6cfd21e8377a7e494b51fa6ee222ede5e91dc364d97c2b00122",
+    "bytes": 332457
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verified/05-menu-reduced-motion.png",
+    "sha256": "78d78c487898a207ad82a4de5a7d6ef6f427fe0be994a77ec94d5a6d04ca99ff",
+    "bytes": 333505
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verified/06-new-game-transition.png",
+    "sha256": "021b6d0a8b62c3be6868b1a005021c82f91becff843a13cd41c80c0bed1283c0",
+    "bytes": 629943
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/verify-menu.ps1",
+    "sha256": "b0ce0ff32bd372d5df1ac3d92c97adc148a7198ea1992b5670ae9a5e473f0d79",
+    "bytes": 6270
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/visible-input-failed/01-menu-1080p.png",
+    "sha256": "01a99abefabe5812aac1ad4d19280d351765cdd95e2ed3341f0b9a22a1a8c70e",
+    "bytes": 323845
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/visible-input-failed/02-menu-720p.png",
+    "sha256": "d4626fe7460086d21405ec3fd596b5a59d0d5c4009bc1ae5cd97ad68a14a3d55",
+    "bytes": 189877
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/visible-input-failed/03-menu-ultrawide.png",
+    "sha256": "b15bb0f06c5006061b70230614cf2a89ba4f43874d11cbfcc6beabf2f8924e69",
+    "bytes": 404279
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/visible-input-failed/04-menu-settings.png",
+    "sha256": "67fe431b0f250df2d7105b93a91937899a167651bec330a90e48ead7e0131df8",
+    "bytes": 323768
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/visible-input-failed/05-menu-reduced-motion.png",
+    "sha256": "6748c76ab0dcf7cecd9439268f41d000d1a82c46f5a82078902562db67840b3f",
+    "bytes": 323868
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/visible-input-failed/06-new-game-transition.png",
+    "sha256": "5078020f91b33cbcd2dff021e606c00edd85bcebe88175f0232f188c6a58dd1e",
+    "bytes": 323612
+  },
+  {
+    "path": "ArtSource/UI/TriadHUD/Unreal/review/MenuM01/visible-input-failed/focus-failure.txt",
+    "sha256": "c01989e79ca641e0a9480dd9b07b33381c363a4646db6608be1c67a0b3328080",
+    "bytes": 390
+  }
+]

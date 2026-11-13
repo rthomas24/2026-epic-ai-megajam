@@ -1,0 +1,14 @@
+[
+  {
+    "label": "timings",
+    "result": {
+      "returnValue": {
+        "frameMs": 16.666702270507812,
+        "gameThreadMs": 3.7713000774383545,
+        "renderThreadMs": 30.209400177001953,
+        "rhiThreadMs": 5.010300159454346,
+        "gpuMs": 3.7334001064300537
+      }
+    }
+  }
+]

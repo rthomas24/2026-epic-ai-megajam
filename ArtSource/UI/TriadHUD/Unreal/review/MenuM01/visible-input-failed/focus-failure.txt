@@ -1,0 +1,5 @@
+[2026.11.13-04.28.02:525][258]LogTemp: TD.UI.Key Down (focus now SViewport)
+[2026.11.13-04.28.02:702][269]LogTemp: TD.UI.Key Enter (focus now SViewport)
+[2026.11.13-04.28.02:974][282]LogTemp: TD.UI.Key Enter (focus now SViewport)
+[2026.11.13-04.28.03:242][295]LogTemp: TD.UI.Key Escape (focus now SViewport)
+[2026.11.13-04.28.03:409][305]LogTemp: TD.UI.Key Enter (focus now SViewport)
