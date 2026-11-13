@@ -181,6 +181,16 @@ Nicholas gave new direction for the opening playable sequence: at the actual int
 
 For Hero: after Nicholas approves the Galaxy look, can your map owner place the tagged sky as an always-loaded Galaxy actor, or provide the equivalent optional Galaxy-only actor-class path? The current spawn hook is development-only. The current Hero shell is static, so we need to test flight away from the starting sector before persistent placement.
 
+**Update (Ryan / Lead, 2026-11-13 13:06 EST): engineering batch A is on `main` at `c0c99e6`** (full suite 661 / 661). It carries the
+200 engineering stand-in sounds and their wiring (weapons, powers, hits, engines, UI, director, ambience, combat and
+intro music beds, in `Content/TriadDrift/Gameplay/Audio/**` and the fallback data assets under
+`Gameplay/Characters/FX/**`), the larger planet terrain and its materials, and the morning's gameplay batches.
+**Not in it yet (batch B, in its gating run now, I post the SHA here):** the Presentation-wins-field-by-field loader, so
+**please do not merge PR #11 / #12 or bind a Presentation `DA_UI_Style` on `c0c99e6` expecting our other slots to
+survive**: on this commit a Presentation asset still replaces the fallback whole. Batch B also has the new flight HUD
+as default, T1's music intensity gain (`1df9bdc`, N-037), the camera feel pass, on-foot sounds, the ReturnToMenu fix and
+the code-side menu loop.
+
 ### R-030 · OPEN · Grok Bot lane: current state, approvals and the request list (continues R-027, which is archived word for word)
 
 **From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick's side for information) · **Time:** 2026-11-13 12:12 EST · **Needs:** agents
