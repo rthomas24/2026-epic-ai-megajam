@@ -118,6 +118,8 @@ public:
 	/** True while a real HUD draws these; the fallback then draws nothing. */
 	void SetHandledExternally(bool bHandled);
 	bool IsHandledExternally() const { return bHandledExternally; }
+	/** True while the ENG-33 intro plays: the intro owns the screen, nothing of ours draws over it. */
+	bool IsSuppressedByIntro() const;
 
 	const FTDCutPresentationState& GetState() const { return State; }
 	bool HasViewportWidget() const { return Widget.IsValid(); }

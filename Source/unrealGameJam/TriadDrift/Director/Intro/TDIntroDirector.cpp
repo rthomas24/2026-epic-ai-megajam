@@ -670,33 +670,38 @@ void UTDIntroDirector::BuildShots()
 	const FVector Dom = Layout.Dominion.GetLocation();
 	const FVector DomFwd = Layout.Dominion.GetRotation().GetForwardVector();
 	const FVector DomSide = FVector::CrossProduct(Up, DomFwd).GetSafeNormal();
-	const float DomR = 60000.f;
+	const float DomR = DominionRadius();
+	// 3/4, low, off the bow: the angle that makes a capital ship loom (the side reads as a slab).
+	const FVector Quarter = (DomFwd * 0.75f + DomSide * 0.55f - Up * 0.3f).GetSafeNormal();
 	{
 		FTDIntroShot S;
 		S.Id = TEXT("ThreatFar");
 		S.Duration = 5.5f;
-		S.CamFrom = Dom + DomFwd * (DomR * 4.5f) + DomSide * (DomR * 1.2f) + Up * (DomR * 0.2f);
-		S.CamTo = S.CamFrom - DomFwd * (DomR * 0.35f);
-		S.LookFrom = Dom + DomSide * (DomR * 0.9f);
-		S.LookTo = Dom - DomSide * (DomR * 0.5f);
+		// 135 mm: the whole hull (about 2 radii) across about 60% of the frame.
+		const float Dist = DomR * 9.f;
+		S.CamFrom = Dom + Quarter * Dist;
+		S.CamTo = S.CamFrom - Quarter * (Dist * 0.04f) - DomSide * (DomR * 0.5f);
+		S.LookFrom = Dom + DomFwd * (DomR * 0.35f);
+		S.LookTo = Dom - DomFwd * (DomR * 0.05f);
 		S.FocalFrom = 135.f;
 		S.FocalTo = 135.f;
 		S.FStop = 16.f;
-		S.FocusDistance = DomR * 4.5f;
+		S.FocusDistance = Dist;
 		S.FadeIn = 0.8f;
 		S.FadeOut = 0.f;
 		S.Narration = 4;
 		Shots.Add(S);
 	}
-	// 6b. Hard cut: 24 mm close, fighters screaming past the lens out of the dark.
+	// 6b. Hard cut: 24 mm under the bow, the hull filling the sky, fighters screaming past the lens.
 	{
+		const FVector Low = (DomFwd * 0.85f + DomSide * 0.25f - Up * 0.45f).GetSafeNormal();
 		FTDIntroShot S;
 		S.Id = TEXT("ThreatClose");
 		S.Duration = 4.5f;
-		S.CamFrom = Dom + DomFwd * (DomR * 2.6f) + DomSide * 1500.f;
-		S.CamTo = S.CamFrom + DomFwd * 500.f;
-		S.LookFrom = Dom + DomSide * 4000.f;
-		S.LookTo = Dom - DomSide * 2000.f;
+		S.CamFrom = Dom + Low * (DomR * 1.9f);
+		S.CamTo = S.CamFrom + DomFwd * 600.f;
+		S.LookFrom = Dom + DomFwd * (DomR * 0.6f) + Up * (DomR * 0.1f);
+		S.LookTo = Dom + DomFwd * (DomR * 0.4f) + Up * (DomR * 0.15f);
 		S.FocalFrom = S.FocalTo = 24.f;
 		S.FStop = 2.8f;
 		S.FocusDistance = 2500.f;
@@ -740,9 +745,14 @@ void UTDIntroDirector::BeginShot(int32 Index)
 	const FTDIntroShot& S = Shots[Index];
 	UWorld* World = GetWorld();
 
-	if (S.Id == TEXT("ThreatFar"))
+	if (S.Id == TEXT("ThreatFar") || S.Id == TEXT("ThreatClose"))
 	{
-		bDominionShown = TDIntro::ShowDominion(World, true, nullptr);
+		bDominionShown = bDominionShown || TDIntro::ShowDominion(World, true, nullptr);
+		if (!bDominionShown && !DominionStandIn)
+		{
+			const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this);
+			SpawnDominionStandIn(Galaxy ? Galaxy->GetLayout().Dominion : ATDGalaxyLayout::MakeDefaultLayout().Dominion);
+		}
 	}
 	RestoreGateSurface();
 	if (S.Id == TEXT("Gate"))
@@ -1079,6 +1089,11 @@ void UTDIntroDirector::ClearShowcase()
 	}
 	Showcase.Reset();
 	CloseSpawned = 0;
+	if (DominionStandIn)
+	{
+		DominionStandIn->Destroy();
+		DominionStandIn = nullptr;
+	}
 	if (KeyLight)
 	{
 		KeyLight->Destroy();
@@ -1090,6 +1105,62 @@ void UTDIntroDirector::ClearShowcase()
 		TDIntro::ShowDominion(GetWorld(), false, nullptr);
 		bDominionShown = false;
 	}
+}
+
+float UTDIntroDirector::DominionRadius()
+{
+	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+	if (const UStaticMesh* Hull = V ? V->HullMesh.LoadSynchronous() : nullptr)
+	{
+		return FMath::Max(5000.f, Hull->GetBounds().SphereRadius);
+	}
+	return 31000.f; // the placeholder hull: 600 x 160 x 100 m
+}
+
+void UTDIntroDirector::SpawnDominionStandIn(const FTransform& At)
+{
+	UWorld* World = GetWorld();
+	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+	UStaticMesh* Hull = V ? V->HullMesh.LoadSynchronous() : nullptr;
+	if (!World || !Hull)
+	{
+		return;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.ObjectFlags |= RF_Transient;
+	AActor* Ship = World->SpawnActor<AActor>(AActor::StaticClass(), At, Params);
+	if (!Ship)
+	{
+		return;
+	}
+	USceneComponent* Root = NewObject<USceneComponent>(Ship, TEXT("Root"));
+	Ship->SetRootComponent(Root);
+	Root->RegisterComponent();
+	Ship->SetActorTransform(At);
+	auto Piece = [Ship, Root](const TCHAR* Name, UStaticMesh* Mesh, const FVector& Location, const FVector& Scale)
+	{
+		if (!Mesh)
+		{
+			return;
+		}
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Ship, Name);
+		C->SetupAttachment(Root);
+		C->SetStaticMesh(Mesh);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetRelativeLocation(Location);
+		C->SetRelativeScale3D(Scale);
+		C->RegisterComponent();
+	};
+	// The same layout as ATDDominion's art path (hull at the pivot, the bridge and trench walls where its
+	// placeholders sit for the default hull extent).
+	const FVector E(30000.f, 8000.f, 5000.f);
+	Piece(TEXT("Hull"), Hull, FVector::ZeroVector, FVector::OneVector);
+	Piece(TEXT("Bridge"), V->BridgeMesh.LoadSynchronous(), FVector(-E.X * 0.65f, 0.f, E.Z * 1.6f), FVector::OneVector);
+	UStaticMesh* Trench = V->TrenchMesh.LoadSynchronous();
+	Piece(TEXT("TrenchL"), Trench, FVector(E.X * 0.1f, -2500.f, E.Z + 1500.f), FVector::OneVector);
+	Piece(TEXT("TrenchR"), Trench, FVector(E.X * 0.1f, 2500.f, E.Z + 1500.f), FVector(1.f, -1.f, 1.f));
+	DominionStandIn = Ship;
 }
 
 void UTDIntroDirector::SetKeyLight(const FVector& At, float Radius, float Intensity)
