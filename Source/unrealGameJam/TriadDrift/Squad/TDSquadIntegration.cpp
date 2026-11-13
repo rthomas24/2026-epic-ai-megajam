@@ -633,6 +633,15 @@ namespace TDSquad
 		return P->PlayPlaceholderExplosion(Ship->GetActorLocation(), Radius, UTDStatics::ShipColor(Id), bTrailPuff ? 1 : 12) > 0;
 	}
 
+	void PlayPlaceholderPulse(AActor* At, float Radius, const FLinearColor& Color)
+	{
+		UTDProjectileSubsystem* P = At ? UTDProjectileSubsystem::Get(At) : nullptr;
+		if (P)
+		{
+			P->PlayPlaceholderExplosion(At->GetActorLocation(), Radius, Color, 0);
+		}
+	}
+
 	FText GetLandPrompt(const ATDShip* Ship)
 	{
 		const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
