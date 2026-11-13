@@ -39,7 +39,7 @@ tests, independent review closed, played by an agent in the running game; **wait
 `✅ done` (all of that, and a human has played it and is happy) · `🐞 has bugs`
 
 **Where the game stands and who does what today: [Nov 13 realignment](#nov-13-realignment-status-and-plan).**
-Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
+Animation plan and ledger: [`animations.md`](animations.md). Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
 `docs/visual/STATUS.md` (presentation). Live ownership: `CLAIMS.md`.
 
 ### Contents
@@ -127,6 +127,7 @@ still replaces ours with no code change.
 | Flight HUD | ENG-36 | 🟦 **Ryan** | Claude (T2) | T2 |
 | Sound effects | ENG-35 | 🟦 **Ryan** | Claude audio builder | T1-T5 |
 | Space dressing, 8K sky stand-in, intro, capture pipeline for the video | ENG-17, ENG-33 | 🟦 **Ryan** | Claude | T3, T4 |
+| **Animation**, all of it (plan and ledger: `animations.md`): characters, mechanical parts, in-engine motion | ART-08 | 🟦 **Ryan** | Grok Bot (raw clips, rigged models); Lead's animation builder (retarget, clean, cut, blueprints) | T5 (which move plays when, hit and deflect timing) |
 | Art direction, style guide, sign-off | ART-01, ART-02 | 🟩 **Nick** | Nicholas | - |
 | Space sky (Hero), galaxy look | ART-05 | 🟩 **Nick** | Nick's Environment agent | Nick |
 | Lighting, fog, grade, post-process on every level, including the two planets | ART-13 | 🟩 **Nick** | Nick's Environment agent | Nick |
@@ -138,6 +139,13 @@ still replaces ours with no code change.
 
 If Nick's side does not pick up one of its rows by Nov 14 noon, Ryan's Lead takes it as a fallback and says so on
 the board (AGENTS.md §11).
+
+### Animation (Ryan's lane, added Nov 13): see [animations.md](animations.md)
+Every animation in the game has a row in **`animations.md`**: who makes it, by which route, where it lives and its
+state. Ryan's Lead leads it. Three routes: generated or library motion through Grok Bot and third-party tools, authored
+in Blender, or built in-engine (animation blueprints, blend spaces, Control Rig, code). Order of work: audit what
+exists, the pilot's blade set, pilot body mechanics (strafing, foot IK on the new slopes), crew sets, the Warden,
+interactions, mechanical parts. Nick's agents ask or send notes with an `Animation:` message on the board.
 
 ### Engineering today (Claude side)
 
@@ -154,12 +162,13 @@ the board (AGENTS.md §11).
 
 ### Asset generation today (Grok Bot), in this order
 1. **Rift, Lancer, Bastion** in 3D from the approved r2 concepts (Rodin). The single most visible upgrade.
-2. **Drone**, then **Warden** (emblem removed; rigged) for the Cinder boss fight.
-3. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
-4. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
-5. `Cinder_Basalt` r2 (natural columnar basalt), then **blade combat animations** for the pilot.
-6. Dominion shield generator and reactor; planet hero set pieces (crash wreck, relay altar, outpost gate, jammer tower).
-7. Key art, itch banner, menu still, trailer end card (Nicholas decides final use).
+2. **The pilot's energy blade** (hero melee weapon, the physical hilt and emitter; added by Ryan Nov 13, R-027 #12), **with the pilot's blade combat animations** (moved up Nov 13; R-030).
+3. **Warden** (emblem removed; rigged) for the Cinder boss fight. The drone is delivered and in the game.
+4. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
+5. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
+6. `Cinder_Basalt` r2 (natural columnar basalt), then **blade combat animations** for the pilot.
+7. Dominion shield generator and reactor; planet hero set pieces (crash wreck, relay altar, outpost gate, jammer tower).
+8. Key art, itch banner, menu still, trailer end card (Nicholas decides final use).
 
 Each delivery: raw files untouched, `SOURCE.md` with tool, prompt and licence, a contact sheet, a PR. Hero
 assets pass the concept gate first; Ryan's Lead answers within the hour.

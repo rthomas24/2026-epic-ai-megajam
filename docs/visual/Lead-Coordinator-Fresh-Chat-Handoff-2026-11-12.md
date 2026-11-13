@@ -1,3 +1,6 @@
+# Active presentation production, Nov 13
+Nicholas resumed the features.md presentation assignments. Current owners and next tasks are recorded in CLAIMS.md. The previous stop checkpoint preserves earlier work.
+
 # Lead Coordinator fresh-chat handoff: historical checkpoint
 
 The original November 12 record is [preserved verbatim in the archive](archive/2026-11-13-cdea6df/Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md). Its stop/resume state, agent roles, PR counts, asset stages and next-task instructions applied only at that checkpoint. It is not the current dispatch or startup state.

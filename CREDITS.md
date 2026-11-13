@@ -109,3 +109,7 @@ Made during the jam by Grok Bot (Ryan's asset-generation agent) on Ryan's own pa
 | Nine 2K seamless PBR terrain sets (Verdance moss, soil, cliff rock, peak lichen-frost; Cinder basalt, ash, obsidian, lava crust, cliff rock) in `ArtSource/EngAI/Terrain/**` (PR #16) | PBRgen (start texture: Nano Banana 2) | PBRgen Pro plan through the Epic AI MegaJam promo; commercial use included with a paid plan | Ryan / Grok Bot |
 
 Tools used (add to the submission's "Tools you used"): fal.ai, PBRgen, Hyper3D Rodin (planned for the 3D generation of the approved concepts).
+
+## Combat music candidate
+
+Nicholas Tosti supplied his original AI-generated composition **Ethereal Pulse (Remix)** for the combat soundtrack. The Audio agent prepared the stereo loop for Unreal Engine 5.9. Its source receipt and preparation notes are on the audio branch at f5d9cf9d in ArtSource/Audio/CombatMusic01. Final inclusion awaits in-game listening.
