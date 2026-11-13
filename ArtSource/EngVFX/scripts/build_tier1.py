@@ -1,4 +1,4 @@
-# Triad Drift ENG-37, tier 1: tracers, muzzle flashes, engine exhaust, impacts, explosions.
+# Triad Drift ENG-37, tier 1 (round 3): tracers, muzzle flashes, engine exhaust, impacts, explosions.
 # Run inside the editor:
 #   python ArtSource/EngVFX/scripts/run_editor_py.py 8017 ArtSource/EngVFX/scripts/build_tier1.py
 # Rebuilds every NS_TD_* system of this tier in place from the specs below (the specs are the source of truth).
@@ -133,12 +133,96 @@ def flash(name, mat, size, life, k=1.0, growth=None, power=1.0, delay=0.0, rot=T
     return e
 
 
-# --------------------------------------------------------------------------------------------- tracers
-def tracer(color, head_w, head_l, halo, rib_w, rib_life, wisp_mat='M_TD_VFX_Ribbon', spark_rate=40.0, flick=71.3, extra=()):
-    return [needle('Head', head_w, head_l, 1.0, flick),
-            single('Halo', 'M_TD_VFX_Glow', halo, 0.38, flick * 1.31, offset=(head_l * 0.38, 0, 0)),
-            ribbon('Trail', rib_w, rib_life, 0.9, mat=wisp_mat),
-            shed('Sparks', 'M_TD_VFX_Glow', spark_rate * 1.6, (0.18, 0.45), (14, 30), (40, 260), k=1.0, radius=14.0, drag=1.5, curl=900.0)] + list(extra)
+VFXROOT = '/Game/TriadDrift/Gameplay/VFX/'
+WHITE = (1.0, 1.0, 1.0, 1.0)
+
+
+def ref(path):
+    return {'refPath': path + '.' + path.split('/')[-1]}
+
+
+def meshed(e, mesh, mat):
+    """Turn an emitter spec into a mesh-particle emitter (mesh and material from the VFX folder)."""
+    e['rclass'] = '/Script/Niagara.NiagaraMeshRendererProperties'
+    e['rend_pre'] = {'bOverrideMaterials': True}
+    e['rend'] = {'Meshes': [{'mesh': ref(VFXROOT + 'Meshes/' + mesh), 'scale': {'x': 1, 'y': 1, 'z': 1}}],
+                 'OverrideMaterials': [{'explicitMat': ref(VFXROOT + 'Materials/' + mat)}], 'bCastShadows': False}
+    e.pop('mat', None)
+    e['set'] = [x for x in e['set'] if 'Sprite' not in x[2]]
+    return e
+
+
+def mesh_single(name, mesh, mat, scale, k=1.0, flicker=None, offset=None, live_scale=None):
+    """One persistent mesh particle in emitter-local space. scale = 'x, y, z' expression in units of the 100 cm mesh
+    (User.Scale applied). live_scale = float3 expression evaluated every frame (reads User.* live)."""
+    e = single(name, mat, 1, k, flicker, offset=offset)
+    meshed(e, mesh, mat)
+    e['set'] += [(PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')), (PS, INIT, 'Mesh Scale', X('float3(%s)*User.Scale' % scale))]
+    if live_scale:
+        e['add'].append((PU, 'Update/Size/ScaleMeshSize'))
+        e['set'].append((PU, 'ScaleMeshSize', 'Scale Factor', X(live_scale)))
+    return e
+
+
+def mesh_flash(name, mesh, mat, scale, life, k=1.0, growth=None, power=1.0, delay=0.0, rgb=None):
+    """One short-lived mesh particle in emitter-local space (so +X of the system is +X of the mesh)."""
+    e = flash(name, mat, 1, life, k, power=power, delay=delay)
+    e['props'] = {'bLocalSpace': True}
+    meshed(e, mesh, mat)
+    e['remove'] = [(PU, 'ScaleSpriteSize')]
+    e['set'] = [x for x in e['set'] if x[1] not in ('ScaleSpriteSize', 'ShapeLocation', 'AddVelocity')]
+    e['set'] += [(PS, 'ShapeLocation', 'Sphere Radius', 0.0), (PS, 'AddVelocity', 'Velocity Speed', 0.0),
+                 (PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')), (PS, INIT, 'Mesh Scale', X('float3(%s)*User.Scale' % scale))]
+    if rgb:
+        e['set'].append((PS, INIT, 'Color', X('float4(%s, %s, %s, 1.0)' % rgb)))
+    if growth:
+        e['add'] = e.get('add', []) + [(PU, 'Update/Size/ScaleMeshSize')]
+        e['set'].append((PU, 'ScaleMeshSize', 'Scale Factor', X(growth)))
+    return e
+
+
+def chunks(name, mesh, count, life, size, speed, drag=0.5, radius=60.0, cone=None, dur=3.0, spin=(0.5, 2.5)):
+    """Tumbling debris meshes: glowing edges that cool (M_TD_VFX_Debris), shrinking away at the end of their life."""
+    e = shed(name, 'M_TD_VFX_Debris', 0, life, (1, 1), speed, k=1.0, radius=radius, drag=drag, burst=count, dur=dur, cone=cone, power=0.01, rgb=(1.0, 1.0, 1.0))
+    meshed(e, mesh, 'M_TD_VFX_Debris')
+    e['remove'] = [(PU, 'ScaleSpriteSize')]
+    e['add'] = [(PS, 'Spawn/Orientation/V3/InitialMeshOrientation'), (PU, 'Update/Orientation/V3/UpdateMeshOrientation'), (PU, 'Update/Size/ScaleMeshSize')]
+    e['keep_solver_order'] = True
+    e['set'] += [(PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')),
+                 (PS, INIT, 'Mesh Scale', X('float3(1.0, 0.6 + 0.8*frac(Particles.MaterialRandom*7.13), 0.5 + 0.9*frac(Particles.MaterialRandom*3.71))*lerp(%s, %s, frac(Particles.MaterialRandom*5.77))*User.Scale' % size)),
+                 (PS, 'InitialMeshOrientation', 'Use Rotation Vector', True),
+                 (PS, 'InitialMeshOrientation', 'Rotation', X('float3(frac(Particles.MaterialRandom*11.3), frac(Particles.MaterialRandom*17.7), frac(Particles.MaterialRandom*23.9))')),
+                 (PU, 'UpdateMeshOrientation', 'Rotation Vector', X('normalize(float3(frac(Particles.MaterialRandom*3.3)-0.5, frac(Particles.MaterialRandom*9.1)-0.5, frac(Particles.MaterialRandom*13.7)-0.5))*lerp(%s, %s, Particles.MaterialRandom)' % spin)),
+                 (PU, 'ScaleMeshSize', 'Scale Factor', X('float3(1,1,1)*saturate((1.0 - Particles.NormalizedAge)*6.0)'))]
+    return e
+
+
+def light(name, radius, life, k=6.0, rgb=(1.0, 0.6, 0.25), delay=0.0):
+    """A brief point light (particle light renderer)."""
+    e = flash(name, 'M_TD_VFX_Glow', 1, life, 1.0, power=2.0, delay=delay)
+    e['rclass'] = '/Script/Niagara.NiagaraLightRendererProperties'
+    e['rend'] = {'RadiusScale': radius / 100.0, 'bAlphaScalesBrightness': True, 'bAffectsTranslucency': False}
+    e.pop('mat', None)
+    e['set'].append((PS, INIT, 'Color', X('float4(%s, %s, %s, 1.0)' % tuple(c * k for c in rgb))))
+    return e
+
+
+def trail(name, width, life, k=1.0, rate=180.0, taper=0.9, power=1.6):
+    """A short clean ribbon: no tiled noise (no seam), fades and narrows towards the tail."""
+    e = ribbon(name, width, life, k, rate, mat='M_TD_VFX_Ribbon_Trail', taper=taper, power=power)
+    e['rend'] = {'UV0Settings': {'distributionMode': 'ScaledUniformly'}}
+    return e
+
+
+def spin(e):
+    """Random sprite rotation (flipbook puffs must not all sit the same way up)."""
+    e['set'] += [(PS, INIT, 'Sprite Rotation Mode', E('Random'))]
+    return e
+
+
+def offset(e, x, y=0.0, z=0.0):
+    e['set'] += [(PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset', X('float3(%s,%s,%s)*User.Scale' % (x, y, z)))]
+    return e
 
 
 SYSTEMS = []
@@ -156,107 +240,152 @@ def U(color, scale=1.0, **kw):
     return d
 
 
-# Rift: a fat phasing plasma bolt: pulsing halo, wide wispy ribbon, plasma wisps shed sideways.
-S('NS_TD_Tracer_Rift', U(RIFT), tracer(RIFT, 70, 360, 230, 62, 0.085, spark_rate=30.0, flick=37.7, extra=[
-    shed('Wisps', 'M_TD_VFX_Fire', 70.0, (0.16, 0.30), (45, 95), (20, 160), k=0.9, radius=18.0, drag=1.0, curl=1600.0, growth='1.0 + Particles.NormalizedAge*0.8'),
-    single('Phase', 'M_TD_VFX_Ring', 150, 0.8, None, extra={'add': [(PU, 'Update/Size/ScaleSpriteSize')],
-           'set': grow('0.55 + 0.75*frac(Engine.Time*5.5)')})]))
-# Lancer: a tight fast needle with a thin streak that lingers.
-S('NS_TD_Tracer_Lancer', U(LANCER), tracer(LANCER, 34, 520, 120, 22, 0.11, wisp_mat='M_TD_VFX_Ribbon_Clean', spark_rate=26.0, flick=113.1))
-# Bastion: a heavy shell: flickering motor flame behind it and a short smoke trail.
-S('NS_TD_Tracer_Bastion', U(BASTION), tracer(BASTION, 80, 300, 210, 46, 0.07, spark_rate=45.0, flick=53.9, extra=[
-    needle('Motor', 95, 330, 0.9, 61.7, mat='M_TD_VFX_Jet', back=-190.0),
-    shed('Smoke', 'M_TD_VFX_Smoke', 55.0, (0.35, 0.6), (60, 110), (10, 90), radius=10.0, drag=1.0, curl=500.0, power=1.0, rgb=(0.30, 0.22, 0.16), alpha=0.16, fade_in=5.0,
-         growth='1.0 + Particles.NormalizedAge*1.6', sort=True)]))
-# Enemy: a red-orange bolt, shorter and rounder than the squad's, with embers.
-S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(ENEMY, 64, 300, 190, 44, 0.07, spark_rate=34.0, flick=47.1))
+# --------------------------------------------------------------------------------------------- tracers
+# The player sees his own shots from BEHIND (chase camera), so a tracer is built from things that have volume or face
+# the camera: a mesh bolt with a white-hot centre, a small white core sprite, a coloured sheath glow, then the ribbon
+# and the shed particles, which only show from the side.
+def tracer(length, width, sheath=3.2, rib_life=0.10, spark_rate=40.0, flick=71.3, extra=()):
+    L, W = length / 100.0, width / 100.0
+    return [mesh_single('Bolt', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '%s, %s, %s' % (L, W, W), 0.95, flick, offset=(-length * 0.30, 0, 0)),
+            single('Core', 'M_TD_VFX_Glow', width * 1.6, 1.3, flick * 1.31),
+            single('Sheath', 'M_TD_VFX_Glow', width * sheath, 0.55, flick * 0.77),
+            trail('Trail', width * 0.75, rib_life, 0.9),
+            shed('Sparks', 'M_TD_VFX_Glow', spark_rate, (0.15, 0.40), (width * 0.12, width * 0.30), (40, 300), k=1.2, radius=width * 0.3, drag=1.5, curl=900.0)] + list(extra)
+
+
+# Rift: a fat plasma bolt shedding plasma wisps.
+S('NS_TD_Tracer_Rift', U(RIFT), tracer(520, 90, sheath=3.6, spark_rate=34.0, flick=37.7, extra=[
+    shed('Wisps', 'M_TD_VFX_Fire', 60.0, (0.14, 0.28), (60, 120), (20, 160), k=0.9, radius=24.0, drag=1.0, curl=1600.0, growth='1.0 + Particles.NormalizedAge*0.8')]))
+# Lancer: a tight fast needle.
+S('NS_TD_Tracer_Lancer', U(LANCER), tracer(680, 60, sheath=3.8, rib_life=0.12, spark_rate=24.0, flick=113.1))
+# Bastion: a heavy shell with a motor flame and a smoke-and-fire trail.
+S('NS_TD_Tracer_Bastion', U(BASTION), tracer(420, 115, sheath=3.2, rib_life=0.08, spark_rate=40.0, flick=53.9, extra=[
+    mesh_single('Motor', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-3.2, 1.3, 1.3', 1.1, 61.7, offset=(-190, 0, 0)),
+    shed('FireTrail', 'M_TD_VFX_Fireball', 70.0, (0.18, 0.34), (90, 150), (10, 120), radius=12.0, drag=1.0, curl=600.0, rgb=(0.9, 0.9, 0.9),
+         growth='0.8 + Particles.NormalizedAge*0.9'),
+    spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 40.0, (0.5, 0.9), (130, 200), (10, 90), radius=12.0, drag=1.0, curl=500.0, power=0.8, rgb=(0.32, 0.28, 0.27), alpha=0.6,
+              growth='0.8 + Particles.NormalizedAge*1.6', sort=True))]))
+# Enemy: a red-orange bolt, rounder than the squad's.
+S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(400, 100, sheath=3.4, spark_rate=30.0, flick=47.1))
 
 # --------------------------------------------------------------------------------------------- muzzle flashes
-def muzzle(color, size, tongue, sparks):
-    return [flash('Flash', 'M_TD_VFX_Flare', size * 0.7, 0.07, 1.0, growth='0.6 + Particles.NormalizedAge*0.8'),
-            flash('Glow', 'M_TD_VFX_Glow', size * 0.8, 0.08, 0.3),
-            shed('Tongue', 'M_TD_VFX_Jet_Rev', 0, (0.06, 0.09), (tongue * 0.45, tongue * 0.6), (60, 120), k=1.2, radius=0.0, drag=0.0,
-                 aligned=True, cone=((1.0, 0.0, 0.0), 4.0), burst=2, dur=0.2, power=0.8),
-            shed('Sparks', 'M_TD_VFX_Spark', 0, (0.10, 0.26), (7, 13), (1500, 5200), k=1.4, radius=6.0, drag=3.0,
-                 stretch=9, cone=((1.0, 0.0, 0.0), 22.0), burst=sparks * 2, dur=0.4)]
+# Directional: a short flame cone along +X, a spiked star seen down the barrel, a few forward sparks. 2-3 frames.
+def muzzle(size, sparks):
+    k = size / 100.0
+    return [mesh_flash('Cone', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '%s, %s, %s' % (k * 2.6, k * 0.9, k * 0.9), 0.06, 1.5,
+                       growth='float3(0.6 + Particles.NormalizedAge*0.7, 1.15 - Particles.NormalizedAge*0.5, 1.15 - Particles.NormalizedAge*0.5)', power=0.7),
+            mesh_flash('Star', 'SM_TD_VFX_Disc', 'M_TD_VFX_Flare', '1.0, %s, %s' % (k * 2.2, k * 2.2), 0.05, 1.3,
+                       growth='float3(1,1,1)*(0.7 + Particles.NormalizedAge*0.6)'),
+            flash('Glow', 'M_TD_VFX_Glow', size * 1.3, 0.06, 0.5),
+            shed('Sparks', 'M_TD_VFX_Spark', 0, (0.08, 0.20), (6, 11), (2200, 6000), k=1.4, radius=6.0, drag=3.0,
+                 stretch=10, cone=((1.0, 0.0, 0.0), 14.0), burst=sparks, dur=0.3)]
 
 
-S('NS_TD_Muzzle_Rift', U(RIFT), muzzle(RIFT, 230, 300, 9))
-S('NS_TD_Muzzle_Lancer', U(LANCER), muzzle(LANCER, 170, 380, 8))
-S('NS_TD_Muzzle_Bastion', U(BASTION), muzzle(BASTION, 300, 340, 14))
-S('NS_TD_Muzzle_Enemy', U(ENEMY), muzzle(ENEMY, 200, 260, 7))
+S('NS_TD_Muzzle_Rift', U(RIFT), muzzle(150, 8))
+S('NS_TD_Muzzle_Lancer', U(LANCER), muzzle(110, 6))
+S('NS_TD_Muzzle_Bastion', U(BASTION), muzzle(200, 12))
+S('NS_TD_Muzzle_Enemy', U(ENEMY), muzzle(140, 6))
 
 # --------------------------------------------------------------------------------------------- engines
-THR = '(0.45 + 0.55*User.Throttle + 0.9*User.Boost)'
+# Attached at the nozzle, blowing along -X. User.Throttle (0..1, default 0.6) and User.Boost (0 or 1) are read every
+# frame: the flame grows longer, wider and brighter; Boost adds a long second flame with shock diamonds and sparks.
+THR = '(0.35 + 0.65*User.Throttle)'
+LEN = '(0.45 + 0.75*User.Throttle + 0.9*User.Boost)'
+FLK = '(0.92 + 0.16*frac(sin(Engine.Time*%s)*43758.5))'
 
 
-def engine(color):
-    jet = shed('Jet', 'M_TD_VFX_Jet_Rev', 55.0, (0.07, 0.11), (150, 190), (40, 60), k=0.60, radius=0.0, drag=0.0, local=True,
-               aligned=True, cone=((-1.0, 0.0, 0.0), 2.0), power=0.6)
-    for i, s in enumerate(jet['set']):
-        if s[2] == 'Uniform Sprite Size Min':
-            jet['set'][i] = (PS, INIT, 'Uniform Sprite Size Min', X('250*User.Scale*%s' % THR))
-        if s[2] == 'Uniform Sprite Size Max':
-            jet['set'][i] = (PS, INIT, 'Uniform Sprite Size Max', X('320*User.Scale*%s' % THR))
-    flame = shed('Flame', 'M_TD_VFX_Fire', 0, (0.08, 0.18), (40, 70), ('900*%s' % THR, '2100*%s' % THR), k=0.40, radius=10.0, drag=1.5,
-                 curl=2500.0, local=True, cone=((-1.0, 0.0, 0.0), 7.0), growth='1.0 - Particles.NormalizedAge*0.55',
-                 rate_expr='170.0*(0.5 + 0.5*User.Throttle + 0.6*User.Boost)')
-    plume = shed('Plume', 'M_TD_VFX_Glow', 0, (0.30, 0.50), (120, 180), ('700*%s' % THR, '1300*%s' % THR), k=0.10, radius=10.0, drag=0.6,
-                 local=True, cone=((-1.0, 0.0, 0.0), 5.0), growth='1.0 + Particles.NormalizedAge*0.9', rate_expr='34.0')
-    after = shed('Afterburn', 'M_TD_VFX_Spark', 0, (0.12, 0.30), (6, 11), (2600, 5200), k=1.5, radius=22.0, drag=1.0, local=True, stretch=10,
-                 cone=((-1.0, 0.0, 0.0), 11.0), rate_expr='110.0*User.Boost')
-    rings = shed('Rings', 'M_TD_VFX_Ring', 0, (0.16, 0.22), (120, 150), (1500, 1900), k=0.9, radius=0.0, drag=0.0, local=True,
-                 cone=((-1.0, 0.0, 0.0), 1.0), growth='0.7 + Particles.NormalizedAge*0.9', rate_expr='14.0*User.Boost')
-    return [single('Core', 'M_TD_VFX_Glow', '115*%s' % THR, 0.6, 83.3), jet, flame, plume, after, rings]
+def engine(boost_only=False):
+    outer = mesh_single('Flame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-4.2, 1.25, 1.25', 0.85, None,
+                        live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 61.3, THR, THR))
+    inner = mesh_single('Inner', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-2.3, 0.7, 0.7', 1.7, None,
+                        live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 97.1, THR, THR))
+    boost = mesh_single('BoostFlame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame_Boost', '-9.5, 1.0, 1.0', 1.3, None,
+                        live_scale='float3(1,1,1)*User.Boost*%s' % (FLK % 43.7))
+    glow = single('Glow', 'M_TD_VFX_Glow', '(260*%s + 160*User.Boost)' % THR, 0.6, 83.3)
+    hot = single('Hot', 'M_TD_VFX_Glow', '(110*%s + 60*User.Boost)' % THR, 1.6, 57.9)
+    wisps = shed('Wisps', 'M_TD_VFX_Fire', 0, (0.10, 0.22), (60, 110), ('1200*%s' % LEN, '2600*%s' % LEN), k=0.5, radius=18.0, drag=1.2,
+                 curl=2200.0, local=True, cone=((-1.0, 0.0, 0.0), 6.0), growth='1.0 - Particles.NormalizedAge*0.5',
+                 rate_expr='90.0*(0.3 + 0.7*User.Throttle + 0.6*User.Boost)')
+    embers = shed('Embers', 'M_TD_VFX_Glow', 0, (0.25, 0.6), (8, 20), ('900*%s' % LEN, '2400*%s' % LEN), k=1.3, radius=30.0, drag=0.8, curl=1500.0,
+                  local=True, cone=((-1.0, 0.0, 0.0), 9.0), power=2.0, rate_expr='40.0*(0.2 + 0.8*User.Throttle + User.Boost)')
+    after = shed('Afterburn', 'M_TD_VFX_Spark', 0, (0.12, 0.30), (6, 11), (3000, 6000), k=1.5, radius=26.0, drag=1.0, local=True, stretch=11,
+                 cone=((-1.0, 0.0, 0.0), 10.0), rate_expr='120.0*User.Boost')
+    if boost_only:
+        return [boost, after]
+    return [outer, inner, boost, glow, hot, wisps, embers, after]
 
 
 for _n, _c in (('Rift', RIFT), ('Lancer', LANCER), ('Bastion', BASTION), ('Enemy', ENEMY)):
-    S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=1.0, Boost=0.0), engine(_c))
-    # the same exhaust with the afterburner on: for the BoostLoop cue slot, which is a separate attached loop
-    S('NS_TD_EngineBoost_' + _n, U(_c, 1.0, Throttle=1.0, Boost=1.0), engine(_c)[3:])
+    S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=0.6, Boost=0.0), engine())
+    # the afterburner alone, always on: for the BoostLoop cue slot, which is a separate attached loop
+    S('NS_TD_EngineBoost_' + _n, U(_c, 1.0, Throttle=1.0, Boost=1.0), engine(True))
 
 # --------------------------------------------------------------------------------------------- impacts
+# +X of the system is the surface normal (gameplay passes ImpactNormal.Rotation()).
 S('NS_TD_Impact_Hull', U(FIRE), [
-    flash('Flash', 'M_TD_VFX_Flare', 260, 0.09, 1.2, growth='0.5 + Particles.NormalizedAge'),
-    flash('Glow', 'M_TD_VFX_Glow', 380, 0.16, 0.45),
-    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.18, 0.50), (6, 12), (900, 4200), k=1.5, radius=10.0, drag=2.2, stretch=10,
-         cone=((1.0, 0.0, 0.0), 62.0), burst=18, dur=0.7),
-    shed('Flecks', 'M_TD_VFX_Glow', 0, (0.35, 0.8), (10, 24), (200, 1300), k=0.9, radius=14.0, drag=1.6, curl=700.0,
+    flash('Flash', 'M_TD_VFX_Flare', 300, 0.07, 1.4, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 420, 0.14, 0.5),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.18, 0.55), (6, 13), (1200, 5200), k=1.6, radius=10.0, drag=2.2, stretch=11,
+         cone=((1.0, 0.0, 0.0), 55.0), burst=22, dur=0.7),
+    shed('Flecks', 'M_TD_VFX_Glow', 0, (0.35, 0.8), (10, 24), (200, 1500), k=1.0, radius=14.0, drag=1.6, curl=700.0,
          cone=((1.0, 0.0, 0.0), 80.0), burst=10, dur=1.0, power=2.0),
-    shed('Scorch', 'M_TD_VFX_Fire', 0, (0.16, 0.30), (90, 150), (60, 300), k=0.9, radius=20.0, drag=2.0,
+    chunks('Bits', 'SM_TD_VFX_Shard_A', 4, (0.5, 0.9), (0.10, 0.24), (500, 1900), drag=0.6, radius=10.0, cone=((1.0, 0.0, 0.0), 60.0), dur=1.0, spin=(1.5, 5.0)),
+    shed('Scorch', 'M_TD_VFX_Fireball', 0, (0.16, 0.30), (110, 180), (60, 320), radius=20.0, drag=2.0, rgb=(0.8, 0.8, 0.8),
          cone=((1.0, 0.0, 0.0), 70.0), burst=4, dur=0.5, growth='0.7 + Particles.NormalizedAge*0.9'),
-    shed('Smoke', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (90, 150), (60, 260), radius=20.0, drag=1.5, rgb=(0.20, 0.13, 0.10), alpha=0.30,
-         cone=((1.0, 0.0, 0.0), 60.0), burst=3, dur=1.0, power=1.0, fade_in=4.0, growth='1.0 + Particles.NormalizedAge*1.4', sort=True)])
+    spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (0.7, 1.2), (150, 240), (60, 260), radius=20.0, drag=1.5, rgb=(0.30, 0.27, 0.27), alpha=0.7,
+              cone=((1.0, 0.0, 0.0), 60.0), burst=3, dur=1.3, power=0.8, growth='0.8 + Particles.NormalizedAge*1.3', sort=True))])
 S('NS_TD_Impact_Shield', U(SHIELD), [
-    flash('Ripple', 'M_TD_VFX_Shield', 520, 0.38, 1.0, growth='0.55 + Particles.NormalizedAge*0.75', power=0.6),
-    flash('Glow', 'M_TD_VFX_Glow', 300, 0.14, 0.6),
-    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.14, 0.34), (6, 11), (700, 2800), k=1.5, radius=14.0, drag=2.5, stretch=8,
-         cone=((1.0, 0.0, 0.0), 85.0), burst=12, dur=0.5),
-    shed('Motes', 'M_TD_VFX_Glow', 0, (0.3, 0.6), (9, 20), (100, 700), k=1.0, radius=40.0, drag=2.0, curl=900.0, burst=8, dur=0.8, power=2.0)])
+    mesh_flash('Hex', 'SM_TD_VFX_Disc', 'M_TD_VFX_Hex', '1.0, 10.0, 10.0', 0.45, 1.2, growth='float3(1,1,1)*(0.75 + Particles.NormalizedAge*0.35)', power=0.5),
+    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_Shock', '1.0, 11.0, 11.0', 0.30, 0.8, growth='float3(1,1,1)*(0.10 + pow(Particles.NormalizedAge, 0.6)*0.95)', power=1.5),
+    flash('Glow', 'M_TD_VFX_Glow', 340, 0.12, 0.7),
+    shed('Motes', 'M_TD_VFX_Glow', 0, (0.3, 0.6), (9, 20), (300, 1400), k=1.1, radius=20.0, drag=2.5, curl=600.0, burst=12, dur=0.8, power=2.0,
+         cone=((1.0, 0.0, 0.0), 88.0))])
 
 # --------------------------------------------------------------------------------------------- explosions
-def explosion(n):
-    """n scales the particle counts (1 small, 2 medium, 3.2 large); User.Scale scales the size in the world."""
-    return [flash('Flash', 'M_TD_VFX_Glow', 1100, 0.08, 0.30, growth='0.5 + Particles.NormalizedAge*0.7', power=1.2),
-            flash('Star', 'M_TD_VFX_Flare', 1500, 0.10, 0.6, growth='0.5 + Particles.NormalizedAge'),
-            shed('Fireball', 'M_TD_VFX_Fire', 0, (0.55, 1.05), (400, 660), (400, 1500), k=0.16, radius=150.0, drag=3.2, curl=900.0,
-                 burst=int(9 * n), dur=1.4, power=0.7, growth='0.55 + pow(Particles.NormalizedAge, 0.45)*1.1'),
-            shed('Core', 'M_TD_VFX_Fire', 0, (0.25, 0.45), (380, 560), (40, 260), k=0.18, radius=60.0, drag=3.0,
-                 burst=int(3 * n), dur=0.6, power=0.6, growth='0.6 + Particles.NormalizedAge*0.7'),
-            flash('Shockwave', 'M_TD_VFX_Ring', 3000, 0.30, 0.28, growth='0.12 + pow(Particles.NormalizedAge, 0.55)*0.95', power=2.2),
-            shed('Sparks', 'M_TD_VFX_Spark', 0, (0.35, 0.95), (9, 20), (1800, 7500), k=1.6, radius=60.0, drag=1.9, stretch=14,
-                 burst=int(26 * n), dur=1.1, power=1.2),
-            shed('Chunks', 'M_TD_VFX_Spark', 0, (0.7, 1.3), (16, 30), (600, 2600), k=0.9, radius=80.0, drag=0.9, stretch=4,
-                 burst=int(7 * n), dur=1.4, power=1.0),
-            shed('Smoke', 'M_TD_VFX_Smoke', 0, (0.9, 1.5), (320, 480), (150, 700), radius=200.0, drag=2.2, curl=500.0, rgb=(0.20, 0.13, 0.10), alpha=0.32,
-                 burst=int(5 * n), dur=1.6, power=0.9, fade_in=3.0, growth='0.7 + Particles.NormalizedAge*1.2', sort=True),
-            shed('Embers', 'M_TD_VFX_Glow', 0, (0.8, 1.5), (12, 30), (150, 1500), k=1.1, radius=150.0, drag=1.4, curl=1300.0,
-                 burst=int(18 * n), dur=1.6, power=2.0)]
+# The blast, the smoke and the main ring use Grok Bot's textures (T_TD_VFX_Grok_*, sources ArtSource/EngAI/VFX); the rest
+# is procedural. Life of an explosion: a white flash and a brief light; a white-hot core; fire that cools white -> orange -> deep red as
+# it expands and erodes; a fast thin shockwave; streaking sparks and tumbling debris with glowing edges; dark smoke that
+# lingers and drifts. tier 1 small, 2 medium (more blasts and debris), 3 large (secondary blasts for 0.6 s).
+def pops():
+    """Secondary blasts for the large explosion: smaller flipbook blasts going off around the centre for 0.6 s.
+    One emitter on purpose: every extra emitter costs gigabytes of editor memory when the system is rebuilt."""
+    e = spin(shed('Pops', 'M_TD_VFX_FlipExplosion', 7.0, (0.7, 0.95), (650, 1000), (0, 80), radius=520.0, drag=2.0, rgb=(1.3, 1.3, 1.3),
+                  power=0.35, growth='0.6 + pow(Particles.NormalizedAge, 0.5)*0.6'))
+    e['set'] += [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', 0.6)]
+    return e
 
 
-S('NS_TD_Explosion_Small', U(FIRE, 0.45), explosion(1.0))
-S('NS_TD_Explosion_Medium', U(FIRE, 1.0), explosion(2.0))
-S('NS_TD_Explosion_Large', U(FIRE, 2.2), explosion(3.2))
+def explosion(tier):
+    n = {1: 1.0, 2: 1.8, 3: 2.6}[tier]
+    e = [flash('Flash', 'M_TD_VFX_Glow', 1500, 0.09, 0.9, growth='0.5 + Particles.NormalizedAge*0.7', power=1.2),
+         flash('Star', 'M_TD_VFX_Flare', 1700, 0.10, 0.7, growth='0.5 + Particles.NormalizedAge'),
+         light('Light', 4000, 0.30),
+         # the blast itself: Grok Bot's 8x8 explosion flipbook, played once over the particle's life
+         spin(shed('Blast', 'M_TD_VFX_FlipExplosion', 0, (1.0, 1.25), (1500, 1900), (0, 60), radius=40.0 * tier, drag=3.0, rgb=(1.3, 1.3, 1.3),
+                   burst=tier, dur=1.4, power=0.35, growth='0.62 + pow(Particles.NormalizedAge, 0.5)*0.55')),
+         shed('Core', 'M_TD_VFX_Fireball', 0, (0.25, 0.40), (420, 600), (40, 260), radius=60.0, drag=3.0, rgb=(1.6, 1.6, 1.6),
+              burst=int(2 * n), dur=0.6, power=0.6, growth='0.55 + Particles.NormalizedAge*0.8'),
+         shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.55, 1.1), (300, 520), (700, 2300), radius=140.0, drag=3.0, curl=900.0, rgb=(1.0, 1.0, 1.0),
+              burst=int(7 * n), dur=1.5, power=0.7, growth='0.5 + pow(Particles.NormalizedAge, 0.45)*1.15'),
+         flash('Shockwave', 'M_TD_VFX_FlipRing', 5200, 0.34, 1.0, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4),
+         shed('Sparks', 'M_TD_VFX_Spark', 0, (0.40, 1.05), (9, 20), (2200, 8500), k=1.7, radius=60.0, drag=1.8, stretch=16,
+              burst=int(30 * n), dur=1.2, power=1.2),
+         chunks('Chunks', 'SM_TD_VFX_Shard_A', int(4 * n), (1.2, 2.2), (0.35, 0.9), (700, 3000), radius=80.0),
+         chunks('Plates', 'SM_TD_VFX_Shard_B', int(3 * n), (1.2, 2.4), (0.35, 1.0), (500, 2400), radius=80.0),
+         spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (2.2, 3.6), (520, 760), (150, 700), radius=180.0, drag=1.5, curl=300.0, rgb=(0.30, 0.27, 0.27), alpha=0.85,
+                   burst=int(5 * n), dur=3.8, power=0.6, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
+         shed('Embers', 'M_TD_VFX_Glow', 0, (0.9, 1.8), (12, 30), (150, 1700), k=1.2, radius=150.0, drag=1.3, curl=1300.0,
+              burst=int(20 * n), dur=2.0, power=2.0)]
+    if tier >= 2:
+        e += [chunks('Lumps', 'SM_TD_VFX_Shard_C', int(2 * n), (1.4, 2.6), (0.4, 1.1), (400, 1800), radius=100.0)]
+    if tier >= 3:
+        e += [pops()]
+    return e
+
+
+S('NS_TD_Explosion_Small', U(FIRE, 0.45), explosion(1))
+S('NS_TD_Explosion_Medium', U(FIRE, 1.0), explosion(2))
+S('NS_TD_Explosion_Large', U(FIRE, 2.2), explosion(3))
 
 fx = tdvfx.Builder(call_tool)
 for _name, _user, _emitters in SYSTEMS:
