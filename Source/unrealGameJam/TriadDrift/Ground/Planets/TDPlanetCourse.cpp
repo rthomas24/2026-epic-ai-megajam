@@ -3,6 +3,11 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Components/MeshComponent.h"
 #include "TimerManager.h"
+#include "Engine/PostProcessVolume.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "Components/PointLightComponent.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -135,6 +140,10 @@ void ATDPlanetCourse::BeginPlay()
 	if (PlanetId == TEXT("Cinder"))
 	{
 		BuildCinder();
+	}
+	else if (IsInterior())
+	{
+		BuildInterior();
 	}
 	else
 	{
@@ -511,6 +520,17 @@ void ATDPlanetCourse::Checkpoint(ATDObjective* Obj, int32 Step, const FVector& A
 
 void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const FLinearColor& Color, const FText& Name)
 {
+	if (IsInterior())
+	{
+		// Inside the Dominion the doors show the way: the trailhead is only its marker (no totem on the deck).
+		AActor* Spot = Marker(At + FVector(0.f, 0.f, 300.f));
+		FTDTrailhead T;
+		T.Objective = Obj;
+		T.Marker = Spot;
+		T.Name = Name;
+		Trailheads.Add(T);
+		return;
+	}
 	// A glowing totem: a dark plinth, a tall light column and a floating crown.
 	UStaticMeshComponent* Plinth = Platform(At, 40.f, FVector(500.f, 500.f, 40.f), FLinearColor(0.05f, 0.05f, 0.06f));
 	UStaticMeshComponent* Column = Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(22.f, 22.f, 440.f), Color, 2.f, FRotator::ZeroRotator, false); // thin: readable without filling the view up close
@@ -571,6 +591,13 @@ bool ATDPlanetCourse::StartObjectiveAt(FName ObjectiveId)
 	{
 		return false; // one scene at a time
 	}
+	for (const FTDTrailhead& T : Trailheads)
+	{
+		if (T.Objective == O && T.After && !T.After->IsComplete())
+		{
+			return false; // an ordered course (the interior): the rooms come one after the other
+		}
+	}
 	O->StartObjective();
 	return O->IsActive();
 }
@@ -585,7 +612,7 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	TArray<FText> Names;
 	for (const FTDTrailhead& T : Trailheads)
 	{
-		if (T.Objective && !T.Objective->IsComplete())
+		if (T.Objective && !T.Objective->IsComplete() && (!T.After || T.After->IsComplete()))
 		{
 			Names.Add(T.Name);
 			if (T.Marker)
@@ -607,6 +634,14 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 void ATDPlanetCourse::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	InteriorTime += DeltaSeconds;
+	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
+	{
+		if (UStaticMeshComponent* Ring = R.Ring.Get())
+		{
+			Ring->SetRelativeRotation(FRotator(R.Tilt * FMath::Sin(InteriorTime * 0.35f), InteriorTime * R.YawSpeed, R.Tilt * 0.5f * FMath::Cos(InteriorTime * 0.27f)));
+		}
+	}
 	const APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	const ATDFirstPersonCharacter* P = PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
 	if (!P || P->IsDead() || IsAnyObjectiveRunning())
@@ -619,7 +654,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 	}
 	for (const FTDTrailhead& T : Trailheads)
 	{
-		if (T.Objective && T.Marker && !T.Objective->IsComplete()
+		if (T.Objective && T.Marker && !T.Objective->IsComplete() && (!T.After || T.After->IsComplete())
 			&& FVector::Dist2D(T.Marker->GetActorLocation(), P->GetActorLocation()) < TrailheadRadius)
 		{
 			StartObjectiveAt(T.Objective->ObjectiveId);
@@ -630,6 +665,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 
 void ATDPlanetCourse::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 {
+	FireStepBeats(Objective, StepIndex);
 	for (const FTDStepEncounter& S : StepEncounters)
 	{
 		if (S.Objective == Objective && S.Step == StepIndex && S.Encounter && !S.Encounter->IsActive() && !S.Encounter->IsCleared())
@@ -648,6 +684,16 @@ void ATDPlanetCourse::HandleStepStarted(ATDObjective* Objective, int32 StepIndex
 
 void ATDPlanetCourse::HandleObjectiveCompleted(ATDObjective* Objective)
 {
+	for (const FTDStepDoor& D : CompletionDoors)
+	{
+		if (D.Objective == Objective && D.Door) { D.Door->Open(); }
+	}
+	FireCompletionBeats(Objective);
+	if (IsInterior())
+	{
+		HandleInteriorObjectiveCompleted(Objective);
+		return;
+	}
 	// The relay wakes: a pulse ring grows over the plateau (the reward screen is Nick's).
 	if (Objective && Objective->ObjectiveId == TEXT("Obj_Relay"))
 	{
@@ -673,6 +719,10 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 			for (const FTDStepDoor& D : StepDoors)
 			{
 				if (D.Objective == O && D.Door) { D.Door->Open(); } // the breached gate stays breached
+			}
+			for (const FTDStepDoor& D : CompletionDoors)
+			{
+				if (D.Objective == O && D.Door) { D.Door->Open(); }
 			}
 		}
 	}
@@ -983,9 +1033,9 @@ void ATDPlanetCourse::BuildCinder()
 		if (D)
 		{
 			D->OpenHeight = 650.f;
-			TDCourseImpl::FinishProp(D);
-			D->Mesh->SetRelativeScale3D(FVector(0.3f, 6.2f, 6.f));
+			D->Mesh->SetRelativeScale3D(FVector(0.3f, 6.2f, 6.f)); // before BeginPlay: it records the closed spot
 			D->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 300.f));
+			TDCourseImpl::FinishProp(D);
 			UTDStatics::TintPlaceholder(D->Mesh, TDCourseColors::ArmadaRed, 0.4f);
 		}
 		return D;
@@ -1229,5 +1279,7 @@ void ATDPlanetCourse::BuildCinder()
 		ScatterFlora(120, 16000.f, 0xC1DE26);
 	}
 }
+
+#include "TriadDrift/Ground/Interior/TDDominionInteriorCourse.inl"
 
 #undef LOCTEXT_NAMESPACE

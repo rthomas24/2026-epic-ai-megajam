@@ -75,6 +75,7 @@ protected:
 	void SpawnEnvironment();
 	void SpawnTrainingGround();
 	void SpawnPlanetVisit();
+	void SpawnInterior();
 	AActor* SpawnBlock(const FVector& Center, const FVector& SizeCm, const FLinearColor& Color, const TCHAR* Label);
 	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 
@@ -92,6 +93,12 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<ATDDoor> RoomDoor;
 	UPROPERTY(Transient) TObjectPtr<class ATDPlanetDirector> PlanetDirector;
 	bool bPlanetMode = false;
+	bool bInteriorMode = false;
+	UPROPERTY(Transient) TObjectPtr<class ATDPlanetCourse> Interior;
+public:
+	/** The Dominion interior (L_Dominion_Interior), or null on other maps. */
+	class ATDPlanetCourse* GetInterior() const { return Interior; }
+private:
 	bool bWorldBuilt = false;
 	FTransform RespawnTransform;
 	bool bHasRespawnTransform = false;
