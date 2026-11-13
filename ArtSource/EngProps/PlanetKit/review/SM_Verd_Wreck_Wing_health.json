@@ -1,17 +1,17 @@
 {
   "asset": "SM_Verd_Wreck_Wing",
-  "tag": "r8",
+  "tag": "r11",
   "family": "verdance",
   "checks": {
-    "tris": 2068,
+    "tris": 9268,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.5305,
-      "overlap_pixels": 138,
-      "overlap_share_of_covered": 0.000248,
+      "coverage": 0.3204,
+      "overlap_pixels": 955,
+      "overlap_share_of_covered": 0.002843,
       "raster": 1024
     },
     "asset_report_errors": 0,
@@ -28,47 +28,48 @@
     ],
     "fit": {
       "scale": [
-        0.9966,
-        0.9144,
-        0.978
+        1.0034,
+        1.0451,
+        0.9719
       ],
       "warn_axes": [
         1
       ],
       "size_before_m": [
-        6.021,
-        1.75,
-        2.454
+        5.98,
+        1.531,
+        2.469
       ]
     },
     "export_status": null
   },
   "info": {
+    "snapped_floating_groups": [],
     "fit": {
       "scale": [
-        0.9966,
-        0.9144,
-        0.978
+        1.0034,
+        1.0451,
+        0.9719
       ],
       "warn_axes": [
         1
       ],
       "size_before_m": [
-        6.021,
-        1.75,
-        2.454
+        5.98,
+        1.531,
+        2.469
       ]
     },
-    "edge_area_share": 0.0,
+    "edge_area_share": 0.0001,
     "uv_unwrap": {
       "margin": 0.006,
-      "faces_detached_for_overlap": 6
+      "faces_detached_for_overlap": 35
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.5305,
-      "overlap_pixels": 138,
-      "overlap_share_of_covered": 0.000248,
+      "coverage": 0.3204,
+      "overlap_pixels": 955,
+      "overlap_share_of_covered": 0.002843,
       "raster": 1024
     },
     "bake": {
@@ -86,13 +87,13 @@
       "preview_material": "M_Verd_Wreck_Wing_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 12.38
+      "seconds": 29.06
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.4886
+      "share_tinted": 0.8066
     },
-    "build_seconds": 13.2
+    "build_seconds": 53.8
   },
   "textures": {
     "BC": {
@@ -101,12 +102,12 @@
         1024
       ],
       "mean_rgb": [
-        0.3632,
-        0.3949,
-        0.3585
+        0.2954,
+        0.3356,
+        0.3192
       ],
       "min": 0.0,
-      "max": 0.8353
+      "max": 0.8275
     },
     "N": {
       "size": [
@@ -114,15 +115,15 @@
         1024
       ],
       "mean_rgb": [
-        0.5003,
-        0.4996,
-        0.9979
+        0.5007,
+        0.4989,
+        0.9953
       ],
       "min": 0.0,
       "max": 1.0,
       "std_rg": [
-        0.0253,
-        0.026
+        0.02,
+        0.0194
       ]
     },
     "ORM": {
@@ -131,17 +132,17 @@
         1024
       ],
       "mean_rgb": [
-        0.5285,
-        0.3334,
-        0.1771
+        0.2697,
+        0.472,
+        0.3504
       ],
       "min": 0.0,
       "max": 1.0,
       "roughness_p5_p95": [
         0.0,
-        0.914
+        0.961
       ],
-      "metallic_mean": 0.178
+      "metallic_mean": 0.35
     },
     "E": {
       "size": [
@@ -149,42 +150,42 @@
         1024
       ],
       "mean_rgb": [
-        0.003,
-        0.0129,
-        0.0113
+        0.0096,
+        0.0218,
+        0.0237
       ],
       "min": 0.0,
       "max": 0.9294
     }
   },
-  "emissive_surface_share": 0.0117,
+  "emissive_surface_share": 0.0041,
   "asset_report_issues": [
     {
       "severity": "warn",
       "object": "SM_Verd_Wreck_Wing",
-      "message": "1 duplicate vertices within 0.0001 m; merge by distance"
+      "message": "2 duplicate vertices within 0.0001 m; merge by distance"
     },
     {
       "severity": "info",
       "object": "SM_Verd_Wreck_Wing",
-      "message": "2 n-gons; fine if planar, they get triangulated on export"
+      "message": "118 n-gons; fine if planar, they get triangulated on export"
     },
     {
       "severity": "info",
       "object": "SM_Verd_Wreck_Wing",
-      "message": "218 open boundary edges (mesh is not closed); OK for planes/cards"
+      "message": "408 open boundary edges (mesh is not closed); OK for planes/cards"
     }
   ],
   "assembly": {
     "ok": true,
-    "islands": 7,
+    "islands": 65,
     "groups": 1,
     "floating": [],
     "tolerance_m": 0.00999
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Wing_r8_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Wing_r8_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Wing_r11_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Wing_r11_clay_sheet.png",
     "warnings": []
   }
 }

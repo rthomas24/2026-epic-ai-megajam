@@ -10,8 +10,8 @@ assets replace these automatically the moment they exist.
 
 ```
 cd ArtSource/EngShips/Squad/scripts
-blender --background --factory-startup --python sq_build.py -- --asset SM_Squad_Rift --tag r6     # also _Lancer, _Bastion
-blender --background --factory-startup --python sq_silhouette.py -- --tag r6
+blender --background --factory-startup --python sq_build.py -- --asset SM_Squad_Rift --tag r7     # also _Lancer, _Bastion
+blender --background --factory-startup --python sq_silhouette.py -- --tag r7
 powershell -File Tools\td-python.ps1 -Script ArtSource\EngShips\Squad\scripts\ue_import_squad.py   # from the repo root
 ```
 
@@ -21,7 +21,7 @@ powershell -File Tools\td-python.ps1 -Script ArtSource\EngShips\Squad\scripts\ue
 - `sq_build.py`: the per-ship driver.
 - `ue_import_squad.py`: the Unreal import, idempotent.
 - Each `SM_Squad_<Ship>/` folder holds the `.blend`, the `.fbx`, the manifest and `T_Squad_<Ship>_BC|N|ORM|E.png` (2048).
-- `review/` holds the clay and material sheets for every round (b1–b3 blockout, r1–r6) and the silhouette sheets.
+- `review/` holds the clay and material sheets for every round (b1–b3 blockout, r1–r7) and the silhouette sheets.
 
 ## Conventions
 
@@ -32,7 +32,7 @@ powershell -File Tools\td-python.ps1 -Script ArtSource\EngShips\Squad\scripts\ue
     allows the art to be up to +20%.
 - **Material:** one slot, `MI_Squad_<Ship>`, from the master `M_TD_Squad`.
   - The master takes BaseColor, ORM (AO, roughness, metallic) and a DirectX normal map.
-  - Emissive is `EmissiveTex × EmissiveStrength` (8).
+  - Emissive is `EmissiveTex × EmissiveStrength` (6; lowered from 8 after the T1 live run showed strong bloom against black space).
 - **Collision:** UCX convex hulls are in the mesh, but gameplay uses only the sphere.
 
 ## Shared design language
@@ -51,7 +51,7 @@ Trickster: a crescent wing swept forward and up, and a magenta portal ring betwe
 | | |
 |---|---|
 | Size | 500 L × 494 W × 119 H |
-| Triangles | 16,788 |
+| Triangles | 16,768 |
 | Emissive | 3.8% of the surface |
 | Muzzle_0 / Muzzle_1 | (252, −33, −39) / (252, 33, −39) |
 | Engine | (−252, 0, −31) |
@@ -66,8 +66,8 @@ Interceptor: a needle hull with an armoured ram prow (four ridges, keel blade an
 | | |
 |---|---|
 | Size | 524 L × 318 W × 164 H |
-| Triangles | 15,912 |
-| Emissive | 3.2% of the surface |
+| Triangles | 16,388 |
+| Emissive | 3.0% of the surface |
 | Muzzle_0 / Muzzle_1 | (194, −40, −50) / (194, −40, −62) |
 | Muzzle_2 / Muzzle_3 | (194, 40, −50) / (194, 40, −62) |
 | Engine and Engine_0 | (−262, 0, −44) |
@@ -98,7 +98,20 @@ Heavy: a broad hull between two missile pods, which have amber-tipped tubes and 
 - The other sockets are informational ability and FX points.
 - Every socket's +X points forward.
 
-## Checks (r6)
+## Colour blocking (r7, after the T1 live run)
+
+The hulls read white at gameplay distance, so squad colour now covers bold panels on wings, nacelles, fins, decks and pods.
+Measured share of the whole surface (`sq_build.py` prints it as `SHARES`):
+
+| | White | Squad colour | Graphite | Other (metal, glass, glow) |
+|---|---|---|---|---|
+| Rift | 40% | 27% | 22% | 11% |
+| Lancer | 26% | 31% | 31% | 13% |
+| Bastion | 40% | 29% | 20% | 12% |
+
+The Lancer has the strongest blocking (cyan wings, fin, nacelles, dorsal and flank panels) and full-brightness small engines.
+
+## Checks (r7)
 
 - `asset_report`: 0 errors and 0 warnings on all three.
 - `assembly_check`: no floating parts.

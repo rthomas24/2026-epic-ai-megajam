@@ -1,17 +1,17 @@
 {
   "asset": "SM_Verd_Log",
-  "tag": "r7",
+  "tag": "r16",
   "family": "verdance",
   "checks": {
-    "tris": 2996,
+    "tris": 9923,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.5675,
-      "overlap_pixels": 0,
-      "overlap_share_of_covered": 0.0,
+      "coverage": 0.3614,
+      "overlap_pixels": 4142,
+      "overlap_share_of_covered": 0.010931,
       "raster": 1024
     },
     "asset_report_errors": 0,
@@ -28,17 +28,18 @@
     ],
     "fit": {
       "scale": [
-        0.9771,
-        1.0215,
-        1.0536
+        0.9755,
+        1.0459,
+        0.9021
       ],
       "warn_axes": [
+        1,
         2
       ],
       "size_before_m": [
-        5.117,
-        1.077,
-        1.329
+        5.126,
+        1.052,
+        1.552
       ]
     },
     "export_status": null
@@ -46,37 +47,63 @@
   "info": {
     "snapped_floating_groups": [
       [
-        "part_0789",
-        "part_0790",
-        "part_0791",
-        0.057
+        "part_0482",
+        "part_0483",
+        0.064
+      ],
+      [
+        "part_0484",
+        "part_0485",
+        "part_0520",
+        0.098
+      ],
+      [
+        "part_0490",
+        "part_0491",
+        "part_0492",
+        0.108
+      ],
+      [
+        "part_0502",
+        "part_0503",
+        0.075
+      ],
+      [
+        "part_0512",
+        "part_0513",
+        0.061
+      ],
+      [
+        "part_0527",
+        0.06
       ]
     ],
     "fit": {
       "scale": [
-        0.9771,
-        1.0215,
-        1.0536
+        0.9755,
+        1.0459,
+        0.9021
       ],
       "warn_axes": [
+        1,
         2
       ],
       "size_before_m": [
-        5.117,
-        1.077,
-        1.329
+        5.126,
+        1.052,
+        1.552
       ]
     },
     "edge_area_share": 0.0,
     "uv_unwrap": {
       "margin": 0.006,
-      "faces_detached_for_overlap": 0
+      "faces_detached_for_overlap": 24
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.5675,
-      "overlap_pixels": 0,
-      "overlap_share_of_covered": 0.0,
+      "coverage": 0.3614,
+      "overlap_pixels": 4142,
+      "overlap_share_of_covered": 0.010931,
       "raster": 1024
     },
     "bake": {
@@ -94,13 +121,13 @@
       "preview_material": "M_Verd_Log_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 18.82
+      "seconds": 13.52
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.2931
+      "share_tinted": 0.6055
     },
-    "build_seconds": 29.4
+    "build_seconds": 41.5
   },
   "textures": {
     "BC": {
@@ -109,12 +136,12 @@
         1024
       ],
       "mean_rgb": [
-        0.2383,
-        0.2044,
-        0.2942
+        0.1973,
+        0.1873,
+        0.2417
       ],
       "min": 0.0,
-      "max": 0.8863
+      "max": 0.8549
     },
     "N": {
       "size": [
@@ -122,15 +149,15 @@
         1024
       ],
       "mean_rgb": [
-        0.5001,
-        0.4994,
-        0.9998
+        0.5007,
+        0.4993,
+        0.9999
       ],
-      "min": 0.3412,
+      "min": 0.0039,
       "max": 1.0,
       "std_rg": [
-        0.0289,
-        0.0175
+        0.019,
+        0.016
       ]
     },
     "ORM": {
@@ -139,15 +166,15 @@
         1024
       ],
       "mean_rgb": [
-        0.7818,
-        0.7202,
+        0.5127,
+        0.7287,
         0.0
       ],
       "min": 0.0,
       "max": 1.0,
       "roughness_p5_p95": [
         0.302,
-        0.82
+        0.929
       ],
       "metallic_mean": 0.0
     },
@@ -157,42 +184,42 @@
         1024
       ],
       "mean_rgb": [
-        0.0171,
-        0.0449,
-        0.0463
+        0.0446,
+        0.0956,
+        0.1064
       ],
       "min": 0.0,
-      "max": 0.9059
+      "max": 0.9294
     }
   },
-  "emissive_surface_share": 0.0201,
+  "emissive_surface_share": 0.0501,
   "asset_report_issues": [
     {
       "severity": "warn",
       "object": "SM_Verd_Log",
-      "message": "7 duplicate vertices within 0.0001 m; merge by distance"
+      "message": "9 duplicate vertices within 0.0001 m; merge by distance"
     },
     {
       "severity": "info",
       "object": "SM_Verd_Log",
-      "message": "39 n-gons; fine if planar, they get triangulated on export"
+      "message": "167 n-gons; fine if planar, they get triangulated on export"
     },
     {
       "severity": "info",
       "object": "SM_Verd_Log",
-      "message": "52 open boundary edges (mesh is not closed); OK for planes/cards"
+      "message": "297 open boundary edges (mesh is not closed); OK for planes/cards"
     }
   ],
   "assembly": {
     "ok": true,
-    "islands": 43,
+    "islands": 148,
     "groups": 1,
     "floating": [],
     "tolerance_m": 0.00796
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r7_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r7_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r16_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r16_clay_sheet.png",
     "warnings": []
   }
 }

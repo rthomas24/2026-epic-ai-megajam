@@ -52,7 +52,8 @@ def main():
                "seconds": round(time.time() - t0, 1)}
     else:
         health = L.finish_hard_surface(P, a.asset, tex, a.tag, budget, ao_distance=ao, sockets=sockets,
-                                       recentre_com=(False if a.asset in S.KEEP_ORIGIN else
+                                       recentre_com=(S.PINNED_PIVOT[a.asset] if a.asset in S.PINNED_PIVOT else
+                                                     False if a.asset in S.KEEP_ORIGIN else
                                                      "bbox" if a.asset in S.BBOX_ORIGIN else True), extra_manifest=extra,
                                        samples=a.samples, tint=(0.55, 0.5, 0.5), tint_strength=0.6)
         res = {"asset": a.asset, "stage": "full", "checks": health["checks"],

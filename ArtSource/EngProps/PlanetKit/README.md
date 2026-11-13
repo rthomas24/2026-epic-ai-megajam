@@ -1,6 +1,6 @@
 # PlanetKit: on-foot set pieces for Verdance and Cinder
 
-26 static meshes that replace the engine basic shapes (cubes, cylinders, cones) gameplay used for the planet set
+28 static meshes that replace the engine basic shapes (cubes, cylinders, cones) gameplay used for the planet set
 pieces (features.md ENG-25 Verdance, ENG-26 Cinder). Engineering-made under the Nov 12 small-props rule (AGENTS.md
 section 11); Nicholas keeps art direction and may restyle or replace any of it. Brief: [`brief.md`](brief.md).
 
@@ -41,32 +41,34 @@ All under `/Game/TriadDrift/Gameplay/Props/Planet/` (the existing `SM_LandingPad
 |---|---|---|---|---|---|---|---|---|
 | `SM_Cind_ChokeRock_A` | 400 x 1200 x 600 | bottom centre | - | PASS | 9378 | 2048 | r7 | basalt column wall with amber vein cracks and crystal clusters |
 | `SM_Cind_ChokeRock_B` | 400 x 1400 x 600 | bottom centre | - | PASS | 10866 | 2048 | r7 | basalt column wall with amber vein cracks and crystal clusters |
-| `SM_Cind_CollapseSlab` | 610 x 320 x 60 | bottom centre | 60 | PASS | 1348 | 1024 | r7 | cracked basalt bridge slab, four pieces over a magma seam |
+| `SM_Cind_CollapseSlab` | 610 x 320 x 60 | bottom centre | 60 | PASS | 4798 | 1024 | r14 | columnar basalt bridge: 5-7 sided column tops (Voronoi), four settled pieces split by deep cracks with crystals below the walking surface, magma only at the lava line |
 | `SM_Cind_Crate_A` | 300 x 220 x 140 | bottom centre | 140 | PASS | 3300 | 1024 | r8 | armoured supply crate (cover) |
 | `SM_Cind_Crate_B` | 360 x 300 x 140 | bottom centre | 140 | PASS | 3300 | 1024 | r8 | armoured supply crate (cover) |
-| `SM_Cind_DebrisChunk` | 211 x 187 x 174 | centre | - | PASS | 5120 | 1024 | r7 | basalt chunk, physics debris |
+| `SM_Cind_DebrisChunk` | 125 x 150 x 126 | centre | - | PASS | 722 | 1024 | r12 | four fused basalt column shards with fracture planes and an amber crystal cluster, physics debris (largest dimension 150 cm) |
 | `SM_Cind_JammerTower` | 1400 x 1600 x 4200 | bottom centre | - | PASS | 13972 | 2048 | r7 | signal jammer: raked-leg base 5 x 5, 34 m shaft, raked antenna arms 16 m (Y) / 14 m (X), caged emitter crown |
 | `SM_Cind_OutpostWall` | 150 x 1500 x 600 | bottom centre | - | PASS | 10764 | 2048 | r8 | Null Armada outpost wall segment, tiles along Y; inner face -X flush, buttresses + raked blade merlons on +X |
+| `SM_Cind_PrototypeConsole` | 160 x 160 x 140 | bottom centre | - | PASS | 2420 | 1024 | r13 | Null prototype console: blade-cut base, raked spikes, crimson plates, raked head with a red-orange screen facing +X, caged glowing cell |
 | `SM_Cind_OutpostWall_Doorway` | 150 x 600 x 600 | bottom centre | - | PASS | 2240 | 2048 | r8 | door frame filling the 6 m gap between walls; opening 440 x 500 centred; lintel; lit framing |
 | `SM_Cind_SteppingStone` | 280 x 280 x 160 | bottom centre | 160 | PASS | 2296 | 1024 | r8 | hex basalt column cluster, magma glow at the base |
 | `SM_Console` | 60 x 60 x 120 | bottom centre | - | PASS | 932 | 1024 | r7 | neutral terminal, angled head with a glowing screen facing +X |
-| `SM_Door` | 30 x 620 x 600 | bottom centre | - | PASS | 2080 | 1024 | r7 | sliding outpost door, two interlocking halves, split seam lit |
+| `SM_Door` | 30 x 620 x 600 | bottom centre | - | PASS | 2064 | 1024 | r9 | sliding outpost door, two interlocking halves, split seam lit |
 | `SM_ExtractionCore` | 55 x 55 x 110 | centre | - | PASS | 1620 | 1024 | r7 | energy core canister (carried), guard bars, handle |
 | `SM_RoutePost` | 34 x 34 x 154 | bottom centre | - | PASS | 1196 | 1024 | r7 | slim three-vane post, teardrop glowing bulb in a cradle |
 | `SM_Trailhead` | 500 x 500 x 480 | bottom centre | 40 (plinth) | PASS | 1416 | 1024 | r7 | plinth + tapered marker column with glyph strips and a glowing crown |
-| `SM_Verd_Log` | 500 x 110 x 140 | bottom centre | - | PASS | 2996 | 1024 | r7 | fallen bioluminescent log with shelf fungus and glowing mushrooms |
+| `SM_Verd_Log` | 500 x 110 x 140 | bottom centre | - | PASS | 9923 | 1024 | r16 | gnarled log: bark fissures, root flare and roots, hollow splintered end with glowing mushrooms, tiered shelf fungus, soft moss sheet |
 | `SM_Verd_NodeStub` | 320 x 320 x 180 | bottom centre | 180 (rim; socket below) | PASS | 1864 | 1024 | r7 | octagonal node pedestal with a glowing core in a socket |
 | `SM_Verd_Plateau` | 2600 x 2600 x 600 | bottom centre | 600 | PASS | 26084 | 2048 | r7 | carved plateau: ashlar, pilasters, glyph band, 3 medallions per side, glyph rings on top |
+| `SM_Verd_RelayAltar` | 200 x 200 x 150 | bottom centre | 150 (rim; socket below) | PASS | 2992 | 1024 | r1 | relay awakening altar: steps, octagonal glyph drum, 2 x 2 m top slab round a funnel socket holding the glowing glyph core |
 | `SM_Verd_RelayPlatform_L` | 1000 x 1000 x 330 | bottom centre | 330 | PASS | 19208 | 2048 | r7 | relay platform: ashlar, glyph band, 3 medallions per side |
 | `SM_Verd_RelayPlatform_M` | 600 x 600 x 290 | bottom centre | 290 | PASS | 8576 | 2048 | r7 | relay platform: ashlar, glyph band, medallions |
 | `SM_Verd_RelayPlatform_S` | 600 x 600 x 110 | bottom centre | 110 | PASS | 3224 | 2048 | r7 | relay platform: ashlar courses, glyph band |
 | `SM_Verd_RuinPillar` | 120 x 120 x 600 | bottom centre | - | PASS | 1352 | 1024 | r7 | fluted pillar with a glowing band |
-| `SM_Verd_Wreck_Engine` | 900 x 700 x 700 | bottom centre | - | PASS | 20586 | 2048 | r7 | broken engine pod lying rolled: intake fan, breach, nozzle skirt, residual glow ring |
-| `SM_Verd_Wreck_Fin` | 500 x 160 x 220 | bottom centre | - | PASS | 2066 | 1024 | r8 | torn fin panel standing in the ground |
+| `SM_Verd_Wreck_Engine` | 900 x 700 x 700 | bottom centre | - | PASS | 17457 | 2048 | r11 | engine pod pitched and 1.2 m deep in soil: broken intake fan, top breach with drum and rings, exhaust end sheared off, torn livery band |
+| `SM_Verd_Wreck_Fin` | 500 x 160 x 220 | bottom centre | - | PASS | 8075 | 1024 | r12 | torn swept tail fin: airfoil with skin thickness, ribs, spars out of the torn root, hanging rudder, tip nav pod and antenna |
 | `SM_Verd_Wreck_Hull` | 2600 x 900 x 700 | bottom centre | - | PASS | 26038 | 2048 | r7 | half-buried torn hull section: chined skin, livery, windows, hatch, fin stub, moss, vines, glow caps |
-| `SM_Verd_Wreck_Wing` | 600 x 160 x 240 | bottom centre | - | PASS | 2068 | 1024 | r8 | torn wing panel standing in the ground |
+| `SM_Verd_Wreck_Wing` | 600 x 160 x 240 | bottom centre | - | PASS | 9268 | 1024 | r11 | torn wing: airfoil with skin thickness, ribs and I-beam spars at the torn root and a skin breach, hanging aileron, dark leading edge, tip nav pod |
 
-The jammer's footprint is its 500 x 500 base; 1400 x 1600 is the span of the crossbars. The debris chunk measures 211 x 187 x 174 cm (about 150 cm was asked; scale it 0.75 if it must be smaller).
+The jammer's footprint is its 500 x 500 base; 1400 x 1600 is the span of the crossbars. The debris chunk's largest dimension is 150 cm (footprint_check verifies it).
 
 ## Notes for gameplay
 
@@ -95,7 +97,9 @@ PlanetKit/
   scripts/pk_geo.py               geometry helpers
   scripts/pk_cinder.py            Null Armada outpost, jammer, crates, door, basalt pieces
   scripts/pk_verdance.py          relay stone, log, wing / fin
-  scripts/pk_wreck.py             wreck hull and engine (round-3 rebuild)
+  scripts/pk_wreck.py             wreck hull and engine (round-3 rebuild; superseded by pk_r9)
+  scripts/pk_r9.py                round 9+ rebuild: wreck hull / wing / fin / engine, log, collapse slab, debris;
+                                  new relay altar and prototype console (registered last, so these builders win)
   scripts/pk_small.py             console, extraction core, route post, trailhead
   scripts/footprint_check.py      measures every mesh against the footprint table (PASS / FAIL)
   scripts/make_detail_normal.py   the tileable detail normal
@@ -130,3 +134,20 @@ then `blender --background --factory-startup --python scripts/footprint_check.py
 - Not verified: the master material's shaders (compiled headless without a renderer; they compile on first editor
   load), the look under Unreal lighting, Nanite fallback quality, and anything in game. Gameplay still spawns its
   basic shapes; swapping them in is gameplay's change.
+
+## Rounds 9-17 (Nov 13): the weakest pieces rebuilt, two new pieces
+
+- `scripts/pk_r9.py` rebuilds the wreck hull (crashed lifting-body dropship: chines, ogive nose ploughed into a soil
+  mound, cockpit canopy as the focal point, dorsal spine, torn tail-fin root, stub wings with spars at the torn tips,
+  stern torn open with peeled plates, ribs, bulkhead and hanging conduits), wing and fin (real airfoils with skin
+  thickness, ribs, I-beam spars, hanging control surfaces), engine (pitched, 1.2 m deep, sheared exhaust end), log,
+  collapse slab (Voronoi basalt columns) and debris (fused column shards). Tears follow smooth curves; moss is a lifted
+  sheet whose zero crossing gives a soft outline and creeps up from the soil; soil berms are continuous mounds;
+  livery and panels are conforming shells; skins are solidified inward (`solidify_in`).
+- `SM_Door`: the right half's outline was self-crossing (bow-tie face: a pale twisted sliver and see-through holes
+  near the rails). Fixed in `pk_cinder.build_door`; a ray probe finds 0 see-through points (was 3,160).
+- New: `SM_Verd_RelayAltar` and `SM_Cind_PrototypeConsole` (they replace a stretched `SM_Console`).
+- Known gameplay trade-off: the hull's visible flanks sit about 0.8-1.4 m inside the 9 m box at chest height
+  (r7 tube: about 0.45 m); the log fills its box to about 1.15 m with the root flare to 1.4 m.
+- Independent review (fresh reviewer, rubric `aaa-quality-bar.md`): no piece reached 4 in every category; averages
+  in the integration report. Sheets: `review/*_r9*` to `*_r17*` (r9c/r9d/r9e/r11c are procedural clay rounds).

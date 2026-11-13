@@ -28,6 +28,7 @@ public class unrealGameJam : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "LevelSequence", "MovieScene" }); // ENG-33: UTDUIStyle::IntroSequence
+		if (Target.bBuildEditor) { PrivateDependencyModuleNames.Add("UnrealEd"); } // T3 e2e PIE test
 
 		PublicIncludePaths.AddRange(new string[] {
 			"unrealGameJam",

@@ -1,7 +1,7 @@
 {
   "asset": "SM_Cind_CollapseSlab",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_CollapseSlab\\SM_Cind_CollapseSlab.fbx",
-  "tris": 1348,
+  "tris": 4782,
   "size_cm": [
     610.0,
     320.0,
@@ -32,7 +32,7 @@
   "collision": [],
   "collision_source": "none",
   "sockets": [],
-  "welded_verts": 0,
+  "welded_verts": 8,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,

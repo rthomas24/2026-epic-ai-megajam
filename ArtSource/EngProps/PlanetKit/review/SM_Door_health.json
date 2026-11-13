@@ -1,17 +1,17 @@
 {
   "asset": "SM_Door",
-  "tag": "r7",
+  "tag": "r9",
   "family": "cinder",
   "checks": {
-    "tris": 2080,
+    "tris": 2064,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.464,
-      "overlap_pixels": 23397,
-      "overlap_share_of_covered": 0.048085,
+      "coverage": 0.4977,
+      "overlap_pixels": 1340,
+      "overlap_share_of_covered": 0.002568,
       "raster": 1024
     },
     "asset_report_errors": 0,
@@ -29,14 +29,14 @@
     "fit": {
       "scale": [
         1.0,
-        0.9968,
-        0.9915
+        1.0,
+        1.0
       ],
       "warn_axes": [],
       "size_before_m": [
         0.3,
-        6.22,
-        6.052
+        6.2,
+        6.0
       ]
     },
     "export_status": null
@@ -45,26 +45,26 @@
     "fit": {
       "scale": [
         1.0,
-        0.9968,
-        0.9915
+        1.0,
+        1.0
       ],
       "warn_axes": [],
       "size_before_m": [
         0.3,
-        6.22,
-        6.052
+        6.2,
+        6.0
       ]
     },
-    "edge_area_share": 0.0254,
+    "edge_area_share": 0.0219,
     "uv_unwrap": {
       "margin": 0.006,
-      "faces_detached_for_overlap": 22
+      "faces_detached_for_overlap": 8
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.464,
-      "overlap_pixels": 23397,
-      "overlap_share_of_covered": 0.048085,
+      "coverage": 0.4977,
+      "overlap_pixels": 1340,
+      "overlap_share_of_covered": 0.002568,
       "raster": 1024
     },
     "bake": {
@@ -82,13 +82,13 @@
       "preview_material": "M_Door_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 23.87
+      "seconds": 40.02
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.725
+      "share_tinted": 0.7017
     },
-    "build_seconds": 81.0
+    "build_seconds": 182.3
   },
   "textures": {
     "BC": {
@@ -97,9 +97,9 @@
         1024
       ],
       "mean_rgb": [
-        0.1468,
-        0.1075,
-        0.1257
+        0.1497,
+        0.1105,
+        0.1288
       ],
       "min": 0.0,
       "max": 0.7647
@@ -110,15 +110,15 @@
         1024
       ],
       "mean_rgb": [
-        0.4999,
-        0.4994,
-        0.9429
+        0.5,
+        0.4997,
+        0.9998
       ],
-      "min": 0.0,
+      "min": 0.2,
       "max": 1.0,
       "std_rg": [
-        0.0158,
-        0.0182
+        0.0177,
+        0.0163
       ]
     },
     "ORM": {
@@ -127,9 +127,9 @@
         1024
       ],
       "mean_rgb": [
-        0.361,
-        0.3149,
-        0.3665
+        0.3749,
+        0.3147,
+        0.3668
       ],
       "min": 0.0,
       "max": 1.0,
@@ -145,15 +145,15 @@
         1024
       ],
       "mean_rgb": [
-        0.079,
-        0.03,
-        0.0183
+        0.0938,
+        0.0342,
+        0.0198
       ],
       "min": 0.0,
       "max": 1.0
     }
   },
-  "emissive_surface_share": 0.0201,
+  "emissive_surface_share": 0.0169,
   "asset_report_issues": [
     {
       "severity": "info",
@@ -169,8 +169,8 @@
     "tolerance_m": 0.01295
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Door_r7_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Door_r7_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Door_r9_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Door_r9_clay_sheet.png",
     "warnings": []
   }
 }

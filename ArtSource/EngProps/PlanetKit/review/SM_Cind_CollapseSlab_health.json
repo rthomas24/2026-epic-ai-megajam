@@ -1,21 +1,21 @@
 {
   "asset": "SM_Cind_CollapseSlab",
-  "tag": "r7",
+  "tag": "r14",
   "family": "cinder",
   "checks": {
-    "tris": 1348,
+    "tris": 4798,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.6394,
-      "overlap_pixels": 5531,
-      "overlap_share_of_covered": 0.008249,
+      "coverage": 0.4905,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
       "raster": 1024
     },
     "asset_report_errors": 0,
-    "asset_report_warnings": 1,
+    "asset_report_warnings": 2,
     "bounds_min_cm": [
       -305.0,
       -160.0,
@@ -30,15 +30,13 @@
       "scale": [
         1.0,
         1.0,
-        0.9505
+        1.0003
       ],
-      "warn_axes": [
-        2
-      ],
+      "warn_axes": [],
       "size_before_m": [
         6.1,
         3.2,
-        0.631
+        0.6
       ]
     },
     "export_status": null
@@ -48,27 +46,25 @@
       "scale": [
         1.0,
         1.0,
-        0.9505
+        1.0003
       ],
-      "warn_axes": [
-        2
-      ],
+      "warn_axes": [],
       "size_before_m": [
         6.1,
         3.2,
-        0.631
+        0.6
       ]
     },
-    "edge_area_share": 0.0674,
+    "edge_area_share": 0.0133,
     "uv_unwrap": {
       "margin": 0.006,
-      "faces_detached_for_overlap": 28
+      "faces_detached_for_overlap": 0
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.6394,
-      "overlap_pixels": 5531,
-      "overlap_share_of_covered": 0.008249,
+      "coverage": 0.4905,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
       "raster": 1024
     },
     "bake": {
@@ -86,14 +82,14 @@
       "preview_material": "M_Cind_CollapseSlab_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 10.43
+      "seconds": 24.97
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.3507
+      "share_tinted": 0.8279
     },
     "detail_uv": "UVDetail (channel 1), 4 m per tile",
-    "build_seconds": 25.7
+    "build_seconds": 30.5
   },
   "textures": {
     "BC": {
@@ -102,12 +98,12 @@
         1024
       ],
       "mean_rgb": [
-        0.1834,
-        0.1566,
-        0.1568
+        0.1613,
+        0.1458,
+        0.1482
       ],
       "min": 0.0,
-      "max": 0.3647
+      "max": 0.7373
     },
     "N": {
       "size": [
@@ -115,15 +111,15 @@
         1024
       ],
       "mean_rgb": [
-        0.5004,
-        0.4994,
-        0.9996
+        0.5006,
+        0.4992,
+        0.9997
       ],
-      "min": 0.1216,
+      "min": 0.1059,
       "max": 1.0,
       "std_rg": [
-        0.0263,
-        0.0253
+        0.0237,
+        0.0237
       ]
     },
     "ORM": {
@@ -132,15 +128,15 @@
         1024
       ],
       "mean_rgb": [
-        0.7299,
-        0.648,
+        0.2418,
+        0.7132,
         0.0
       ],
       "min": 0.0,
       "max": 1.0,
       "roughness_p5_p95": [
-        0.0,
-        0.847
+        0.302,
+        0.851
       ],
       "metallic_mean": 0.0
     },
@@ -150,37 +146,42 @@
         1024
       ],
       "mean_rgb": [
-        0.1339,
-        0.0473,
-        0.0159
+        0.0141,
+        0.0196,
+        0.0165
       ],
       "min": 0.0,
-      "max": 0.9529
+      "max": 1.0
     }
   },
-  "emissive_surface_share": 0.1031,
+  "emissive_surface_share": 0.0043,
   "asset_report_issues": [
     {
       "severity": "warn",
       "object": "SM_Cind_CollapseSlab",
-      "message": "3 duplicate vertices within 0.0001 m; merge by distance"
+      "message": "8 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_Cind_CollapseSlab",
+      "message": "2 zero-area faces; dissolve degenerate"
     },
     {
       "severity": "info",
       "object": "SM_Cind_CollapseSlab",
-      "message": "14 n-gons; fine if planar, they get triangulated on export"
+      "message": "113 n-gons; fine if planar, they get triangulated on export"
     }
   ],
   "assembly": {
     "ok": true,
-    "islands": 7,
+    "islands": 77,
     "groups": 1,
     "floating": [],
     "tolerance_m": 0.01037
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_CollapseSlab_r7_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_CollapseSlab_r7_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_CollapseSlab_r14_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_CollapseSlab_r14_clay_sheet.png",
     "warnings": []
   }
 }

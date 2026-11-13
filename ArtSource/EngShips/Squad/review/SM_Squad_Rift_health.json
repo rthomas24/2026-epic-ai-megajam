@@ -1,13 +1,13 @@
 {
   "asset": "SM_Squad_Rift",
-  "tag": "r6",
+  "tag": "r7",
   "checks": {
-    "tris": 16788,
+    "tris": 16768,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv_inside_0_1": true,
-    "uv_overlap_pixels": 1,
+    "uv_overlap_pixels": 0,
     "asset_report_errors": 0,
     "asset_report_warnings": 0,
     "collision_hulls": 1,
@@ -26,21 +26,21 @@
       0.05
     ],
     "com_shift_m": [
-      -0.0025829076766967773,
+      -0.002579331398010254,
       0.0,
       0.29117897152900696
     ],
     "pivot": "bbox_centre",
-    "edge_area_share": 0.0102,
+    "edge_area_share": 0.0103,
     "uv_unwrap": {
       "margin": 0.0035,
       "faces_detached_for_overlap": 0
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.3533,
-      "overlap_pixels": 1,
-      "overlap_share_of_covered": 3e-06,
+      "coverage": 0.3594,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
       "raster": 1024
     },
     "bake": {
@@ -58,13 +58,13 @@
       "preview_material": "M_Squad_Rift_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 101.18
+      "seconds": 107.24
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.7587
+      "share_tinted": 0.756
     },
-    "build_seconds": 113.8
+    "build_seconds": 128.8
   },
   "textures": {
     "BC": {
@@ -73,9 +73,9 @@
         2048
       ],
       "mean_rgb": [
-        0.3404,
-        0.3111,
-        0.3762
+        0.3808,
+        0.2719,
+        0.3907
       ],
       "min": 0.0,
       "max": 0.9333
@@ -87,14 +87,14 @@
       ],
       "mean_rgb": [
         0.5002,
-        0.4999,
-        1.0
+        0.5,
+        0.9999
       ],
       "min": 0.0,
       "max": 1.0,
       "std_rg": [
         0.0087,
-        0.0084
+        0.0086
       ]
     },
     "ORM": {
@@ -103,17 +103,17 @@
         2048
       ],
       "mean_rgb": [
-        0.317,
-        0.2907,
-        0.2873
+        0.3201,
+        0.283,
+        0.2862
       ],
       "min": 0.0,
       "max": 1.0,
       "roughness_p5_p95": [
         0.0,
-        0.455
+        0.451
       ],
-      "metallic_mean": 0.285
+      "metallic_mean": 0.282
     },
     "E": {
       "size": [
@@ -121,20 +121,20 @@
         2048
       ],
       "mean_rgb": [
-        0.07,
+        0.0704,
         0.0118,
-        0.0588
+        0.0592
       ],
       "min": 0.0,
       "max": 1.0
     }
   },
-  "emissive_surface_share": 0.038,
+  "emissive_surface_share": 0.0378,
   "asset_report_issues": [
     {
       "severity": "info",
       "object": "SM_Squad_Rift",
-      "message": "114 n-gons; fine if planar, they get triangulated on export"
+      "message": "110 n-gons; fine if planar, they get triangulated on export"
     }
   ],
   "assembly": {
@@ -145,14 +145,14 @@
     "tolerance_m": 0.01069
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Rift_r6_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Rift_r6_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Rift_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Rift_r7_clay_sheet.png",
     "ortho_cm_per_px": 1.25,
     "warnings": []
   },
   "export": {
     "status": "ok",
-    "tris": 16788,
+    "tris": 16768,
     "size_cm": [
       500.0,
       493.5,

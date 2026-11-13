@@ -105,6 +105,16 @@ public:
 	/** Where launched fighters appear (world space). */
 	FVector GetHangarLocation() const;
 
+	/**
+	 * ENG-33 (T3's intro / showcase shots): show only the hull, bridge, trench walls and hull detail (no generators,
+	 * turrets, reactor, shield, emitters or launches), optionally at Override. No state change, no collision.
+	 * Refused (returns false) while the assault runs (WarpingIn..Breakup); a real state change ends it.
+	 * SetShowcase(false) restores the previous visibility, collision and transform.
+	 */
+	bool SetShowcase(bool bShow, const FTransform* Override = nullptr);
+
+	bool IsShowcasing() const { return bShowcase; }
+
 	/** Living fighters launched by the Dominion. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Dominion")
 	int32 GetLaunchedAlive() const;
@@ -301,6 +311,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<USceneComponent> HangarPoint;
+
+	bool bShowcase = false;
+	bool bShowcasePrevHidden = true;
+	bool bShowcasePrevCollision = false;
+	FTransform ShowcasePrevTransform;
+	TArray<TPair<TWeakObjectPtr<UPrimitiveComponent>, bool>> ShowcaseComponentVisibility;
+	TArray<TPair<TWeakObjectPtr<AActor>, bool>> ShowcaseActorHidden;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDShieldGenerator>> Generators;

@@ -1444,7 +1444,18 @@ def finish_hard_surface(part, asset, tex, tag, budget, ao_distance, tint=(0.62, 
             for i in range(len(h)):
                 h[i] = h[i] * post_scale
         info["post_scale"] = post_scale
-    if recentre_com == "bbox":
+    if isinstance(recentre_com, (tuple, list)):
+        # fixed pivot (design-space offset): keeps sockets and the mesh's placement identical across rebuilds
+        c_ = Vector([float(v) for v in recentre_com])
+        info["centre_of_mass_m_before"] = [round(float(v), 3) for v in center_of_mass(obj.data)]
+        obj.data.transform(Matrix.Translation(-c_))
+        obj.data.update()
+        for h_ in hulls:
+            for i_ in range(len(h_)):
+                h_[i_] = h_[i_] - c_
+        info["com_shift_m"] = [float(v) for v in c_]
+        info["pivot"] = "fixed (pinned to the r3-r5 pivot)"
+    elif recentre_com == "bbox":
         # pivot at the bounding-box centre (the collision sphere's centre in gameplay); COM reported
         pts_ = mesh_points(obj.data)
         c_ = Vector([float(v) for v in (pts_.max(axis=0) + pts_.min(axis=0)) * 0.5])
