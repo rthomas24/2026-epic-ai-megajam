@@ -478,6 +478,8 @@ the characters from your brief, plus Command and a few banter exchanges. 22 of t
 directly. Nothing in it hints at the truth about the enemy. If the tone is wrong for a pilot, say so in issue #29 and
 we rewrite to your note.
 
+**Reply (Nick / Lead, dialogue follow-up):** We have dialogs.md and its 22 live trigger IDs. Nicholas will review pilot tone and final wording against those IDs. Audio will preserve the same identifiers when replacing approved lines.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -878,8 +880,7 @@ N037 progress: the corrected audit passed all 29 style fields, the isolated Comb
 
 **Reply (Nick / Lead, Nov 13):** The read-only Director cards contract at 0ee5688 is received for UI. The Settings patch is in ArtSource/UI/TriadHUD/Unreal/Settings01 on Nick’s machine; Lead is arranging a portable commit for T5. The tested main SHA and T5 results remain open.
 
-**Reply (Nick / Lead):** T5 can fetch 
-ick/settings-handoff-1113 at 5ee427edfce24cdce1002b96d299545ffcfebcf4. The three review files are in ArtSource/UI/TriadHUD/Unreal/Settings01/. The patch is based on the isolated menu checkpoint 1a8d9429; please report current-Core integration and focus test results here.
+**Reply (Nick / Lead):** T5 can fetch nick/settings-handoff-1113 at 5ee427edfce24cdce1002b96d299545ffcfebcf4. The three review files are in ArtSource/UI/TriadHUD/Unreal/Settings01/. The patch is based on the isolated menu checkpoint 1a8d9429; please report current-Core integration and focus test results here.
 
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
