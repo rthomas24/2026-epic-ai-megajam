@@ -12,8 +12,8 @@ Saved/native_pins.json. This is integrity evidence, not an approval requirement.
 
 run_native.py is dry unless --execute is supplied with the current manifest
 SHA and a unique scheduler --slot. The scheduler serializes jobs on this16GB
-machine; it is not a visual approval gate. Fresh4.25GiB/no competing heavy job,
-one shader worker, matching5.9 engine, unique UserDir and owned-PID cleanup are
+machine; it is not a visual approval gate. Fresh5.5GiB/no competing heavy job,
+four bounded shader workers, matching5.9 engine, unique UserDir and owned-PID cleanup are
 enforced. Stop after freeRAM<1.75GiB for10s or an outer360s(probe)/480s(material)
 bound. No automatic retry; partial outputs and evidence are preserved.
 
@@ -48,3 +48,14 @@ native output and changed no protected input; minimumfree3.460GiB. One shader
 worker was active. The source progress limit is now300s to accommodate this
 startup, inside the unchanged420s engine/480s outer material-stage bounds.
 This is not a successful material compile; failed evidence and cache remain.
+
+The warm retry materials_1794593010106922300 also exited125/no_progress before
+Python, after308.938s, minimumfree3.219GiB and zero protected/package changes.
+The measured worker used~116MiB working set/~125MiB private memory and remained
+CPU active for282s. The next profile uses FOUR workers on the observed16logical
+cores (reserve12), not a longer timeout. Require5.5GiB free before launch and
+at least8logicalcores; the same1.75GiB runtime abort and all timing bounds stay.
+ShaderCompiler.cpp1230-1268 defines this count as virtualcores minus reserved
+threads in commandlets. Validate the emitted native 'Using 4 local workers'
+message rather than assuming the profile took effect. This profile has not
+run natively yet; preserve both failed attempts and private cache.

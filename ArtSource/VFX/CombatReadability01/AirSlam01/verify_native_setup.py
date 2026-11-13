@@ -33,6 +33,10 @@ for file in HERE.glob('*.py'):
 checks.append('Python syntax parses without importing Unreal')
 assert runner.resource.sha(HERE / '../Saved/NativeDraft02/run_native.py') == 'e10f617d9cf68938c7d6dacb22392f467b773a9c9308e2da5b7117bb9ebab9c3'
 checks.append('Frozen resource helper unchanged')
+assert runner.shader_thread_reserve(16) == 12
+assert runner.shader_thread_reserve(8) == 4
+rejects('Low-core machine cannot silently change compiler profile', lambda: runner.shader_thread_reserve(4))
+checks.append('Four shader workers reserved from actual logical-core count')
 with mock.patch.object(runner.resource, 'free_ram', side_effect=AssertionError('No dry RAM query')), \
         mock.patch.object(runner.subprocess, 'Popen', side_effect=AssertionError('No dry process launch')), \
         mock.patch.object(runner.resource, 'ps', side_effect=AssertionError('No dry shell process')):

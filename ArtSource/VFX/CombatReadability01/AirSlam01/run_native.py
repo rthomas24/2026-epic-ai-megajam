@@ -25,6 +25,12 @@ spec.loader.exec_module(resource)
 resource.ROOT, resource.HOST, resource.REPO = HERE, host.HOST, REPO
 resource.PROJECT, resource.OUTPUT = host.PROJECT, host.OUTPUT
 NAMES = {'M_AirSlam_Ring.uasset', 'M_AirSlam_Dust.uasset'}
+SHADER_WORKERS = 4
+
+
+def shader_thread_reserve(logical_cores):
+    assert isinstance(logical_cores, int) and logical_cores >= 8, 'Authoring profile needs at least eight logical cores'
+    return logical_cores - SHADER_WORKERS
 
 
 def validate_outputs(stage, before, after):
@@ -76,7 +82,8 @@ def main():
         "'(?i)^(UnrealEditor.*|unrealGameJam.*|blender.*|ShaderCompileWorker|UnrealBuildTool|cl|UnrealPak|dotnet)\\.exe$'} "
         "| Select-Object ProcessId,Name)} | ConvertTo-Json -Depth 4"))
     available = resource.free_ram()
-    assert available >= 4.25 and not busy['busy'], (available, busy)
+    assert available >= 5.5 and not busy['busy'], (available, busy)
+    unused_threads = shader_thread_reserve(os.cpu_count())
     before_owned, before = resource.owned(), resource.protected()
     if args.stage == 'materials':
         assert not NAMES.intersection(before_owned), 'Existing target: preserve, do not overwrite'
@@ -94,13 +101,14 @@ def main():
         '-NoSourceControl', '-NoLiveCoding', '-ModelContextProtocolPort=8024',
         '-ExitTimeout=' + str(bound), '-NoProgressTimeout=300', '-HangTimeout=60',
         '-ini:Engine:[DevOptions.Shaders]:bAllowCompilingThroughWorkers=True',
-        '-ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreads=15',
-        '-ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreadsDuringGame=15',
+        '-ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreads=' + str(unused_threads),
+        '-ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreadsDuringGame=' + str(unused_threads),
         '-ini:Engine:[DevOptions.Shaders]:ShaderCompilerCoreCountThreshold=999',
         '-UserDir=' + str(out / 'RuntimeUser'), '-abslog=' + str(out / 'Engine.log'),
         '-ResultFile=' + str(out / 'Engine.result.json'), '-UERunMarkerLog=' + str(out / 'Engine.markers.log')]
     resource.write(out / 'launch.json', {'argv': argv, 'slot': args.slot, 'pins_sha256': resource.sha(pins_path),
-                                       'free_gib': available, 'stage': args.stage})
+                                       'free_gib': available, 'stage': args.stage,
+                                       'shader_workers': SHADER_WORKERS, 'logical_cores': os.cpu_count()})
     startup = subprocess.STARTUPINFO()
     startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     startup.wShowWindow = 0
@@ -137,6 +145,7 @@ def main():
         validate_outputs(args.stage, before_owned, after_owned)
         engine_result = json.loads((out / 'Engine.result.json').read_text(encoding='utf-8-sig'))
         resource.check_engine(engine_result)
+        assert 'Using 4 local workers for shader compilation' in (out / 'Engine.log').read_text(errors='replace'), 'Native compiler worker profile not observed'
         report['engine_result_summary'] = {key: engine_result[key] for key in ('exit_code', 'reason', 'log')}
         digest = subprocess.run([sys.executable, '-B', str(ENGINE / 'Extras/AgentTools/ue_log_digest.py'),
             str(out / 'Engine.log'), '--json'], capture_output=True, text=True, timeout=30)
