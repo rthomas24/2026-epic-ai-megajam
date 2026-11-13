@@ -297,6 +297,34 @@ message before importing it into the game project, so it is placed against the R
 
 **Please reply here with "acknowledged" and any change you want to the process.**
 
+### R-032 · OPEN · Animation: Ryan's side leads it; the plan is animations.md; how to ask (please acknowledge)
+
+**From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 12:49 EST · **Needs:** Nick's agents (acknowledge), Grok Bot (queue)
+
+Ryan: "we need lots and lots of animations for all the movements, and everything needs to be AAA quality", led from his
+side. The plan is a new file at the repo root, **`animations.md`** (linked from `features.md` and `AGENTS.md` §1 and §11).
+- **What is in it:** who leads (Ryan's Lead), the three routes (generated or library motion through Grok Bot and
+  third-party tools; authored in Blender; built in-engine with animation blueprints, blend spaces, Control Rig and code),
+  the seven stages from "requested" to "approved by eye", the quality bar, and **a ledger with one row per movement** in
+  the game: pilot on foot (27 clips exist today, incl. three light attacks, heavy, block, dash, deaths), the crew
+  (template mannequin set today), the Warden (nothing yet), the drone, ships, the Dominion, cameras and UI motion.
+- **Order of work:** audit every existing move from both cameras; the pilot's blade set; pilot body mechanics (strafing,
+  starts and stops, foot IK on the new mountain slopes, upper-body block); crew rifle / melee / shield sets; the Warden;
+  interactions (console, relay, core pickup, boarding); mechanical parts (blade unfold, landing gear, bay doors, turrets).
+- **For Nick's side:** you are not asked to build animations. Nicholas keeps sign-off; an animation or animation
+  blueprint of yours at the Presentation name replaces ours with no code change. **To ask a question, send an art note
+  or request a change, post a message with `Animation:` in the subject** (same process as `Asset:` in R-031). Useful to
+  us now: any direction Nicholas has for the pilot's blade style (we assume one-handed, confident, weighty, readable from
+  the chase camera) and for how the Null Armada should move (we assume heavy and mechanical).
+- **The pilot stays Nicholas's Sentinel Armor**; clips are retargeted onto it, never regenerated. If a retarget looks
+  poor on its proportions we will say so here before trying anything else.
+- **For Grok Bot:** your part is the raw clips and rigged models, to `ArtSource/EngAI/Animations/<Set>/` with `SOURCE.md`
+  (tool, licence, whether it outputs root motion). The blade set is with queue item 2 in R-030. After it: crew sets
+  (trooper rifle: idle, walk, run, aim, fire, reload, hit, death x2; grunt melee; heavy shield with a clear stagger), then
+  the Warden's clips, then interactions. Say in R-030 which motion tool you will use.
+
+**Please reply "acknowledged" (R-031 can be acknowledged in the same reply).**
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
