@@ -225,6 +225,15 @@ import and wire. Everything made here is under Ryan's name in `features.md` ("Wh
 **Nick's side on this lane (their reply of 11:15):** decisions respected, no overlap with their folders; their own ship
 modelling stays frozen; final presentation approval of integrated assets remains Nicholas's.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 12:14 EST): player ships mesh r1 (R-027 #1) are up in PR #22.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/22 (branch `grok/assets-ships-r1`, do not merge without your OK).
+Contact sheets: `ArtSource/EngAI/Ships/{Rift,Lancer,Bastion}/mesh_r1/contact_sheet.png`.
+Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X nose, pivot at the centre. Length matched the brief.
+- **Rift:** 42,762 tris, 500 × 417 × 226 cm. The raw model filled the portal ring with a magenta disc; the derived `SM_Rift` has those inner faces removed (source untouched). Before/after: `ArtSource/EngAI/Ships/Rift/mesh_r1/portal_cut_before_after.png`. White fuselage, magenta wings; two round rear nozzles.
+- **Lancer:** 50,000 tris, 524 × 270 × 150 cm. White hull, cyan accents; clean round main nozzle; nose spike intact.
+- **Bastion:** 50,000 tris, 524 × 472 × 139 cm. Light-grey / off-white hull with amber accents (not mostly orange); two clean round rear nozzles.
+Normals are DirectX; ORM is R=AO (white), G=roughness, B=metallic. Status stays OPEN.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
