@@ -51,7 +51,7 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 	bool bSpeedDust = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0", ClampMax = "1000"))
-	int32 DustCount = 160;
+	int32 DustCount = 120;
 
 	/** Half size of the box of dust that travels with the ship (cm). Motes wrap around inside it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "500"))
@@ -63,20 +63,27 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 
 	/** Streak length = speed * this (s), clamped to DustStreakMax (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0"))
-	float DustStreakSeconds = 0.05f;
+	float DustStreakSeconds = 0.02f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "1"))
 	float DustStreakMax = 2200.f;
 
-	/** Mote thickness (cm) at full speed; motes shrink to nothing below DustMinSpeed. */
+	/** Mote thickness (cm) at DustFullSpeed and above; motes shrink to nothing at DustMinSpeed. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0"))
 	float DustThickness = 9.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0"))
 	float DustMinSpeed = 1500.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "1"))
+	float DustFullSpeed = 20000.f;
+
+	/** Motes closer than this to the camera shrink away, so none smears across the view (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0"))
-	float DustGlow = 1.6f;
+	float DustCameraClear = 1200.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dust", meta = (ClampMin = "0"))
+	float DustGlow = 1.2f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))

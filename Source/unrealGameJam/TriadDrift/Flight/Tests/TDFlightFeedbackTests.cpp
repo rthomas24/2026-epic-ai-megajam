@@ -14,6 +14,7 @@
 #include "Camera/CameraComponent.h"
 #include "Camera/CameraShakeBase.h"
 #include "NiagaraSystem.h"
+#include "TriadDrift/World/TDPortalGate.h"
 
 namespace TDFeedbackTest
 {
@@ -144,6 +145,26 @@ bool FTDFeedbackDust::RunTest(const FString& Parameters)
 	Ship->SetPlayerControlled(false);
 	W.Tick();
 	TestEqual(TEXT("not flown: dust hidden"), FB->GetVisibleDustCount(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFeedbackPortal, "TriadDrift.Flight.Feedback.PortalTransitKickOnlyFromAPortal", TD_TEST_FLAGS)
+bool FTDFeedbackPortal::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = TDFeedbackTest::SpawnFlying(W, true);
+	UTDFlightFeedbackComponent* FB = Ship->GetFlightFeedback();
+	W.Advance(1.5f);
+	Ship->TeleportSpacecraft(FVector(0.f, 0.f, 50000.f), FRotator::ZeroRotator, true);
+	W.Advance(0.08f);
+	TestEqual(TEXT("a placement away from any portal (arrival, squad, retake): no transit kick"), FB->GetPlaceholderCount(TEXT("PortalTransit")), 0);
+	W.Spawn<ATDPortalGate>(Ship->GetActorLocation());
+	W.Tick();
+	Ship->TeleportSpacecraft(FVector(300000.f, 0.f, 50000.f), FRotator::ZeroRotator, true);
+	W.Advance(0.08f);
+	TestEqual(TEXT("a transit while flying kicks"), FB->GetPlaceholderCount(TEXT("PortalTransit")), 1);
+	TestTrue(TEXT("transit: FOV punch"), FB->GetFOVOffset() > 2.f);
+	TestTrue(TEXT("transit: a flash"), FB->GetActiveBurstCount() > 0);
 	return true;
 }
 
