@@ -1,0 +1,162 @@
+{
+  "stage": "Offline preparation verified; no native execution",
+  "source_review_commit": "cb9c103c",
+  "style_fields": [
+    [
+      "SquadColors",
+      "squad_colors"
+    ],
+    [
+      "EnemyColor",
+      "enemy_color"
+    ],
+    [
+      "AbilityIcons",
+      "ability_icons"
+    ],
+    [
+      "MainMenuWidgetClass",
+      "main_menu_widget_class"
+    ],
+    [
+      "LoadingWidgetClass",
+      "loading_widget_class"
+    ],
+    [
+      "PauseWidgetClass",
+      "pause_widget_class"
+    ],
+    [
+      "VictoryWidgetClass",
+      "victory_widget_class"
+    ],
+    [
+      "SettingsWidgetClass",
+      "settings_widget_class"
+    ],
+    [
+      "GroundHUDWidgetClass",
+      "ground_hud_widget_class"
+    ],
+    [
+      "CombatMusic",
+      "combat_music"
+    ],
+    [
+      "HitConfirm",
+      "hit_confirm"
+    ],
+    [
+      "KillConfirm",
+      "kill_confirm"
+    ],
+    [
+      "UIMove",
+      "ui_move"
+    ],
+    [
+      "UIConfirm",
+      "ui_confirm"
+    ],
+    [
+      "UIBack",
+      "ui_back"
+    ],
+    [
+      "PauseIn",
+      "pause_in"
+    ],
+    [
+      "PauseOut",
+      "pause_out"
+    ],
+    [
+      "SlateClap",
+      "slate_clap"
+    ],
+    [
+      "CutSting",
+      "cut_sting"
+    ],
+    [
+      "SlowMoIn",
+      "slow_mo_in"
+    ],
+    [
+      "SlowMoOut",
+      "slow_mo_out"
+    ],
+    [
+      "ObjectiveComplete",
+      "objective_complete"
+    ],
+    [
+      "AmbienceSpace",
+      "ambience_space"
+    ],
+    [
+      "AmbienceVerdance",
+      "ambience_verdance"
+    ],
+    [
+      "AmbienceCinder",
+      "ambience_cinder"
+    ],
+    [
+      "IntroSequence",
+      "intro_sequence"
+    ],
+    [
+      "IntroMusic",
+      "intro_music"
+    ],
+    [
+      "IntroNarrationVoice",
+      "intro_narration_voice"
+    ],
+    [
+      "MenuMusic",
+      "menu_music"
+    ]
+  ],
+  "style_field_count": 29,
+  "media_count": 12,
+  "pr12_inputs_match_manifest": true,
+  "menu_and_combat_match_frozen_sources": true,
+  "html_local_links_exist": true,
+  "python_syntax_checked": true,
+  "morning_scripts_byte_identical": true,
+  "native_style_audit_executed": false,
+  "files": [
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\PresentationReview01\\audit_style.py",
+      "bytes": 3109,
+      "sha256": "f9243008cb249b9eadc53d1b634295d20b6f3a1b57d4cd371790d5cbd535dd9c"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\PresentationReview01\\bind_combat_music.py",
+      "bytes": 3856,
+      "sha256": "aaa1cd4a5e5608264d3a7d25f59bc59a4bcb83028bf6878ae1a545a606832f10"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\PresentationReview01\\build_listening_page.py",
+      "bytes": 5537,
+      "sha256": "67897dbf6a47c3b59395ff8b9d10dc4875dc1fd8ca72f63d6c96f1423787090c"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\PresentationReview01\\HANDOFF.md",
+      "bytes": 8342,
+      "sha256": "29063d061fee796c03a536032add824fde60ea43e06746932cc8a43990c8a97c"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\PresentationReview01\\observe_music.py",
+      "bytes": 3708,
+      "sha256": "5b6f3643ed58e79414048074705d0f33ca584902ee4dde57ac7e732c263e3c54"
+    },
+    {
+      "path": "ArtSource\\Audio\\CombatMusic01\\PresentationReview01\\verify_bound_music.py",
+      "bytes": 3043,
+      "sha256": "1a2bf3598f316911116894ae4be7f614a05c1c262b969a44a80f6f7196cb15ad"
+    }
+  ]
+}
