@@ -17,6 +17,7 @@ class USkeletalMesh;
 class UMaterialInterface;
 class UTexture2D;
 class UAnimInstance;
+class UAnimSequenceBase;
 class UUserWidget;
 
 /** One presentation moment: an effect, a sound and a camera shake, each optional. */
@@ -516,4 +517,49 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
 	TSoftObjectPtr<USoundBase> MenuMusic;
+};
+
+/**
+ * The on-foot player's body (optional). Looked up as DA_Pilot_Visuals in /Game/TriadDrift/Presentation, then in
+ * /Game/TriadDrift/Gameplay/Characters/Pilot. Empty = no body is drawn (first person, blade only).
+ * The body is drawn for shadows and third-person moments; in first person the owner sees it only below the
+ * neck (the head is hidden from the owner by gameplay). It may use any skeleton: gameplay plays the three
+ * loops below by speed when no AnimBPClass is given.
+ */
+UCLASS(BlueprintType)
+class UNREALGAMEJAM_API UTDPilotVisuals : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	TArray<TSoftObjectPtr<UMaterialInterface>> MaterialOverrides;
+
+	/** Optional animation blueprint. When empty the three loops below are played by speed. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TSoftClassPtr<UAnimInstance> AnimBPClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TSoftObjectPtr<UAnimSequenceBase> Idle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TSoftObjectPtr<UAnimSequenceBase> Walk;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TSoftObjectPtr<UAnimSequenceBase> Run;
+
+	/** Yaw applied to the mesh so it faces the capsule's forward (+X). Mannequin-style meshes face +Y: -90. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	float MeshYaw = -90.f;
+
+	/** Uniform scale. The gameplay capsule is 180 cm tall (half-height 90); the eye is at about 164 cm. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	float MeshScale = 1.f;
+
+	/** Bone hidden from the owner in first person so the camera does not sit inside the head. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+	FName HeadBone = TEXT("head");
 };
