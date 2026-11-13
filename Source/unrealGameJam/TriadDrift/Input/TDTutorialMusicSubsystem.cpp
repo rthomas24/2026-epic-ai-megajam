@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
 #include "TriadDrift/Input/TDMusicSettings.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -208,9 +209,15 @@ void UTDTutorialMusicSubsystem::HandleIntroFinished(bool bPlayed, bool bSkipped)
 
 void UTDTutorialMusicSubsystem::HandleWaveCleared(int32 WaveNumber)
 {
-	// Idempotent (Audio's source finding): only the first qualifying clear starts the fade; a later one never restarts it.
-	if (WaveNumber >= UTDMusicSettings::Get()->TutorialEndsAfterWave && (State == ETDTutorialMusicState::Prelude || State == ETDTutorialMusicState::Loop))
+	// Nicholas (issue #24): a wave clear alone never ends the tutorial; the escape does (NotifyTutorialEscaped).
+}
+
+void UTDTutorialMusicSubsystem::NotifyTutorialEscaped(const TCHAR* Why)
+{
+	// Idempotent (Audio's source finding): only the first escape starts the fade; nothing restarts it.
+	if (State == ETDTutorialMusicState::Prelude || State == ETDTutorialMusicState::Loop)
 	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: the tutorial battle ended (%s)"), Why);
 		BeginFade();
 	}
 }
@@ -281,6 +288,19 @@ void UTDTutorialMusicSubsystem::Step(UWorld* World, float Dt, bool bMenuMap)
 					StartVoice(PreludeSound(), PreludeStartOffset, World);
 				}
 				State = ETDTutorialMusicState::Prelude;
+			}
+		}
+	}
+
+	if (State == ETDTutorialMusicState::Loop)
+	{
+		// Fallback until T4's escape event is bound: the run leaving Waves1to2 (which follows the escape) ends it.
+		if (const UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance()))
+		{
+			const ETDGamePhase P = GI->GetProgressRef().Phase;
+			if (P != ETDGamePhase::Intro && P != ETDGamePhase::Waves1to2)
+			{
+				NotifyTutorialEscaped(TEXT("the run moved past the tutorial battle"));
 			}
 		}
 	}

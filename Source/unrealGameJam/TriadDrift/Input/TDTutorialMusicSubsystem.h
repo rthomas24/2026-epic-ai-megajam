@@ -11,8 +11,11 @@
 //    at 0:00 on the control frame (150 ms fade-in on a skip).
 //  - The music plays across the opening fights and the gaps between them; the combat-music gate and the intensity gain
 //    don't touch it; a CUT retake doesn't restart it.
-//  - Fade: once wave UTDMusicSettings::TutorialEndsAfterWave is cleared, TutorialFadeOutSeconds (default 20) on the
-//    same voice, carrying on across a level travel. The combat music waits until the fade has finished (finding 3).
+//  - Fade (Nicholas, issue #24): the tutorial battle ends when the player crosses the escape boundary during Command's
+//    ordered withdrawal (T4's ATDWaveDirector::OnTutorialEscaped -> NotifyTutorialEscaped), gunship alive or destroyed;
+//    a wave clear or a kill alone never starts it. Until T4's event exists the fallback is the run leaving Waves1to2,
+//    which follows the escape. TutorialFadeOutSeconds (default 20) on the same voice, carrying on across a level
+//    travel. The combat music waits until the fade has finished (finding 3).
 //  - While it owns the opening, the intro director does not start the legacy UTDUIStyle::IntroMusic (finding 1).
 //  - A Continue never plays it (only UTDGameInstance::StartNewRun arms it); the menu stops it.
 // Stepped by the music director (each game world's), so tests drive it with a test world.
@@ -50,6 +53,8 @@ public:
 
 	/** UTDGameInstance::StartNewRun: this run opens with the tutorial music. */
 	void ArmForNewRun();
+	/** The player crossed the escape boundary in the ordered withdrawal: the 20 s fade starts (once). */
+	void NotifyTutorialEscaped(const TCHAR* Why = TEXT("escape boundary"));
 	/** Stop at once (no fade). */
 	void Stop(const TCHAR* Why);
 
