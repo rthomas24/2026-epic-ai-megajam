@@ -48,8 +48,12 @@ BEATS = {
                             (7.8, "TD.Input.Key LeftMouseButton 0.15")]},
     "dominion": {"setup": [("TD.Stage DominionAssault", 10.0), ("TD.God", 0.5)], "map": "Galaxy", "seconds": 10,
                  "timeline": [(0.8, "TD.Director.GeneratorKill"), (5.5, "TD.Director.GeneratorKill")]},
-    "reactor": {"setup": [("TD.Stage ReactorExposed", 8.0)], "map": "Galaxy", "seconds": 14, "timeline": [(0.8, "TD.Director.ReactorKill")]},
-    "victory": {"setup": [("TD.Stage Victory", 12.0)], "map": "MainMenu", "seconds": 6, "timeline": []},
+    # T4's framing: the stage puts the squad 200 m off the bow facing the reactor (~350 m); at cruise it passes it in ~6 s, so
+    # aim at it and throttle down at once, then three kills ~1 s apart (one phase each; the third starts the breakup).
+    "reactor": {"setup": [("TD.God", 0.5), ("TD.Stage ReactorExposed", 2.5), ("TD.World.AimAt Reactor 1.5", 0.2), ("TD.Input.Keys S 3", 0.5)],
+                "seconds": 14, "timeline": [(0.6, "TD.Director.ReactorKill"), (1.7, "TD.Director.ReactorKill"), (2.8, "TD.Director.ReactorKill")]},
+    # The victory screen's own scene: the Dominion burning beside Verdance, the squad flying home past the lens.
+    "victory": {"setup": [("TD.Stage Victory", 12.0)], "map": "MainMenu", "seconds": 12, "timeline": []},
 }
 
 
@@ -142,7 +146,7 @@ def card(path, lines, seconds):
     draws, y = [], -sum(int(sz * 1.25) for _, sz in lines) // 2
     for text, size in lines:
         draws.append("drawtext=fontfile='%s':text='%s':fontcolor=white:fontsize=%d:x=(w-text_w)/2:y=(h/2)+(%d):alpha='min(1,t/0.4)*min(1,(%g-t)/0.4)'"
-                     % (FONT, text.replace("'", "").replace(":", "\:"), size, y, seconds))
+                     % (FONT, text.replace("'", "").replace(":", r"\:"), size, y, seconds))
         y += int(size * 1.25)
     bars = ["drawbox=x=(iw/2)-330+%d:y=(ih/2)+(%d):w=200:h=8:color=%s:t=fill" % (k * 230, y + 18, c)
             for k, c in enumerate(["0xFF33CC", "0x19E6FF", "0xFFA619"])]

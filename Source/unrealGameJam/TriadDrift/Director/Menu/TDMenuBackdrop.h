@@ -15,6 +15,14 @@ class ACameraActor;
 class AGameModeBase;
 class UStaticMeshComponent;
 
+/** Which scene: the main menu, or the victory screen (the Dominion breaking up, the squad flying home). */
+UENUM()
+enum class ETDBackdropScene : uint8
+{
+	Menu,
+	Victory
+};
+
 UCLASS()
 class UNREALGAMEJAM_API ATDMenuBackdrop : public AActor
 {
@@ -24,7 +32,11 @@ public:
 	ATDMenuBackdrop();
 
 	/** The menu mode's StartPlay calls this. Null when the backdrop is off (see the class comment). */
-	static ATDMenuBackdrop* SpawnFor(AGameModeBase* MenuMode);
+	static ATDMenuBackdrop* SpawnFor(AGameModeBase* MenuMode, ETDBackdropScene Scene = ETDBackdropScene::Menu);
+
+	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") ETDBackdropScene Scene = ETDBackdropScene::Menu;
+	AActor* GetDominion() const { return Dominion; }
+	int32 GetFireCount() const { return Fires; }
 
 	/** Tag on any actor of the menu map that is Nick's own menu scene: the backdrop stays off. */
 	static const FName MenuSceneTag; // "TD.Menu.Scene"
@@ -54,9 +66,12 @@ private:
 	void Build();
 	void UpdateCamera();
 	void UpdateFlyby(float Dt);
+	void BuildVictory(UWorld* World);
+	void UpdateBreakup(float Dt);
 
 	UPROPERTY(Transient) TObjectPtr<ACameraActor> Camera;
 	UPROPERTY(Transient) TObjectPtr<AActor> Planet;
+	UPROPERTY(Transient) TObjectPtr<AActor> Dominion;
 	UPROPERTY(Transient) TArray<TObjectPtr<AActor>> Spawned;
 	UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> SquadMeshes;
 
@@ -70,4 +85,10 @@ private:
 	int32 Flybys = 0;
 	FVector FlybyFrom = FVector::ZeroVector;
 	FVector FlybyTo = FVector::ZeroVector;
+	// Victory: the Dominion's breakup.
+	FTransform DominionStart = FTransform::Identity;
+	float DominionRadius = 31000.f;
+	float NextFire = 0.f;
+	int32 Fires = 0;
+	FRandomStream FireRng;
 };
