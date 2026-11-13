@@ -178,6 +178,20 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
 	static bool IsCombatPresentationHeld(const UObject* WorldContext);
 
+	/**
+	 * The scan monitor for Cinematic 03 and 05 (T3): Stage 1 the Verdance structure, 2 + scan sites, 3 + the Cinder
+	 * correlation, 4 the Cinder overlay with matching angles, 5 + the crystal cache and field anchor markers. Calling again
+	 * with a higher stage draws the new layers in. Seconds 0 = until HideScanMonitor. Its own widget: shows during a
+	 * cinematic that hides the HUD. False without a local player.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool ShowScanMonitor(const UObject* WorldContext, int32 Stage, float Seconds = 0.f);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static void HideScanMonitor(const UObject* WorldContext);
+
+	UUserWidget* GetScanMonitor() const { return ScanWidget; }
+
 	/** The tactical display while it plays (tests). */
 	UUserWidget* GetTacticalDisplay() const { return TacticalWidget; }
 
@@ -237,6 +251,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> TacticalWidget;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> ScanWidget;
 
 	struct FTDHUDFocus
 	{

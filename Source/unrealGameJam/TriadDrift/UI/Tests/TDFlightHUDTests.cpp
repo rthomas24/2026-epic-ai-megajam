@@ -25,6 +25,7 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
+#include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/UI/Tests/TDFlightHUDTestSource.h"
@@ -760,6 +761,75 @@ bool FTDFlightHUDApproach::RunTest(const FString& Parameters)
 	F.HUD->ForceApproach = 1;
 	F.HUD->Sample(.1f);
 	TestEqual(TEXT("no Dominion to point at: nothing drawn"), F.V().Approach, 0);
+	return true;
+}
+
+// Cinematic 03 / 05 scan monitor: through the host (its own widget), stages add layers that draw in, the markers sit
+// on the structure's outline and inside the panel, a higher stage advances in place, Hide fades it and the host
+// removes it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDScanMonitor, "TriadDrift.UI.ScanMonitor.StagesAndMarkers", TD_TEST_FLAGS)
+bool FTDFlightHUDScanMonitor::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	TestTrue(TEXT("shown"), UTDUIHostSubsystem::ShowScanMonitor(W.GetWorld(), 3));
+	UTDScanMonitorWidget* M = Cast<UTDScanMonitorWidget>(Host->GetScanMonitor());
+	if (!TestNotNull(TEXT("monitor widget"), M))
+	{
+		return false;
+	}
+	auto Paint = [&]()
+	{
+		TSharedRef<SWidget> Slate = M->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	};
+	auto Count = [&](const TCHAR* Name) { int32 N = 0; for (const TPair<FName, FBox2D>& B : M->LastBoxes) { N += B.Key == FName(Name) ? 1 : 0; } return N; };
+	TestEqual(TEXT("stage 3"), M->GetStage(), 3);
+	TestTrue(TEXT("layers draw in one after another"), M->GetLayer01(1) <= M->GetLayer01(1) && M->GetLayer01(3) == 0.f);
+	M->Advance(5.f);
+	TestTrue(TEXT("after 5 s all three layers are in"), M->GetLayer01(1) >= 1.f && M->GetLayer01(2) >= 1.f && M->GetLayer01(3) >= 1.f);
+	Paint();
+	TestEqual(TEXT("the structure"), Count(TEXT("structure")), 1);
+	TestEqual(TEXT("five scan sites"), Count(TEXT("site")), 5);
+	TestEqual(TEXT("the Cinder correlation tag"), Count(TEXT("cinder_tag")), 1);
+	TestEqual(TEXT("no Cinder layer yet"), Count(TEXT("cinder_layer")), 0);
+	const FBox2D Panel = UTDScanMonitorWidget::PanelBox();
+	const TArray<FVector2D> Outline = UTDScanMonitorWidget::StructureOutline();
+	for (const TPair<FName, FBox2D>& B : M->LastBoxes)
+	{
+		TestTrue(*FString::Printf(TEXT("%s inside the panel"), *B.Key.ToString()), Panel.IsInside(B.Value.Min) && Panel.IsInside(B.Value.Max) || B.Key == TEXT("panel"));
+		if (B.Key == TEXT("site"))
+		{
+			TestTrue(TEXT("a site sits on an outline vertex"), Outline.ContainsByPredicate([&](const FVector2D& V) { return B.Value.GetCenter().Equals(V, 1.f); }));
+		}
+	}
+
+	// Cinematic 05: advance to 5 on the same widget.
+	TestTrue(TEXT("advance"), UTDUIHostSubsystem::ShowScanMonitor(W.GetWorld(), 5, 3.f));
+	TestTrue(TEXT("same widget"), Host->GetScanMonitor() == M);
+	M->Advance(4.f);
+	Paint();
+	TestEqual(TEXT("the Cinder layer"), Count(TEXT("cinder_layer")), 1);
+	TestEqual(TEXT("the crystal cache"), Count(TEXT("cache")), 1);
+	TestEqual(TEXT("the field anchor"), Count(TEXT("anchor")), 1);
+	TestEqual(TEXT("the correlation tag gives way to the overlay"), Count(TEXT("cinder_tag")), 0);
+	// Seconds = 3 from the advance: it fades out by itself, and the host takes it down.
+	M->Advance(1.f);
+	TestTrue(TEXT("faded out"), M->IsFinished());
+	W.Tick();
+	TestNull(TEXT("host removed it"), Host->GetScanMonitor());
 	return true;
 }
 
