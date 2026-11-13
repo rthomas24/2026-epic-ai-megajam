@@ -1,0 +1,13 @@
+// Original StarterKit muzzle structure, now driven by Niagara normalized age.
+// No world-time clock, StartTime handshake, textures or dynamic light.
+float2 p = (UV - 0.5) * 2.0;
+float radius = length(p);
+float angle = atan2(p.y, p.x);
+float rays = pow(abs(cos(angle * 3.0)), 18.0);
+float core = exp(-radius * 18.0);
+float plume = exp(-radius * 7.0) + rays * exp(-radius * 6.0) * 0.38;
+float fade = pow(saturate(1.0 - Age), 3.0);
+float edge = 1.0 - smoothstep(0.72, 0.98, radius);
+float alpha = saturate((plume + core * 0.3) * fade * edge);
+float3 color = lerp(Tint, float3(1.0, 0.96, 0.88), core * 0.35);
+return float4(color * max(Intensity, 0.0), alpha);

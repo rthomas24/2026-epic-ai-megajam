@@ -1,0 +1,25 @@
+{
+  "effect": "Compact weapon muzzle burst, one CPU sprite per trigger",
+  "destination": "/Game/TriadDrift/VFX/CombatReadability01",
+  "lifetime_seconds": 0.06,
+  "sprite_diameter_cm": 36.0,
+  "spawn_count": 1,
+  "intensity": 2.5,
+  "palettes": {
+    "Rift": [1.0, 0.025, 0.48, 1.0],
+    "Lancer": [0.025, 0.76, 1.0, 1.0],
+    "Bastion": [1.0, 0.37, 0.035, 1.0]
+  },
+  "template_system": "/Niagara/DefaultAssets/Templates/Systems/RadialBurst",
+  "template_emitter": "/Niagara/DefaultAssets/Templates/Emitters/SimpleSpriteBurst",
+  "engine_template_use": "Duplicate lifecycle scaffolding into owned assets; replace render material and limit to one compact CPU sprite. Never modify engine templates.",
+  "runtime_binding_owner": "Lead after Audio releases the shared weapon data asset",
+  "runtime_binding": {
+    "data_asset": "/Game/TriadDrift/Presentation/DA_NeedleCannons_FX",
+    "field": "Muzzle.VFX",
+    "value": "/Game/TriadDrift/VFX/CombatReadability01/NS_MuzzleBurst_Rift",
+    "vfx_scale": [1.0, 1.0, 1.0],
+    "preserve_fields": "All Sound, shake, impact, detonation and gameplay fields; Audio owns SOUND edits."
+  },
+  "stage": "SOURCE_IMPLEMENTED_NATIVE_NOT_RUN"
+}
