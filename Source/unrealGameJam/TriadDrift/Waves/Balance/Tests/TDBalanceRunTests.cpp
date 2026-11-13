@@ -6,6 +6,9 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/World/TDDominionReactor.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/Tests/TDFinaleTestHelpers.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Waves/Balance/TDBalanceRecorder.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
@@ -13,6 +16,7 @@
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
@@ -51,6 +55,22 @@ namespace TDBalanceRun
 		ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
 		Squad->SetSquadPlayerController(PC);
 		Squad->SpawnSquad(FTransform::Identity);
+		// Sweeps: fly one chosen ship, optionally with different shield regen (reapplied after every "CUT!").
+		auto ApplyPilotShip = [&Skill, Squad]()
+		{
+			if (!Skill.bForceStartShip) { return; }
+			Squad->RequestSwitchTo(Skill.StartShip);
+			if (ATDShip* Flown = Squad->GetShip(Skill.StartShip))
+			{
+				if (UTDHealthComponent* H = Flown->GetHealth())
+				{
+					if (Skill.ShieldRegenDelayOverride >= 0.f) { H->ShieldRegenDelay = Skill.ShieldRegenDelayOverride; }
+					if (Skill.ShieldRegenFractionOverride >= 0.f) { H->ShieldRegenFractionPerSecond = Skill.ShieldRegenFractionOverride; }
+					if (Skill.MaxShieldScale != 1.f) { H->InitMaxValues(H->MaxHull, H->MaxShield * Skill.MaxShieldScale, true); }
+				}
+			}
+		};
+		ApplyPilotShip();
 		ATDWaveDirector* D = W.Spawn<ATDWaveDirector>();
 		if (Seed != 0) { D->RandomSeed = 1337 + 7 * Seed; }
 		W.Tick(Step);
@@ -84,6 +104,7 @@ namespace TDBalanceRun
 					// "CUT!": next take of this wave, squad back at full strength.
 					++Rec->Current.Takes;
 					Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, Squad->GetActiveShip() ? Squad->GetActiveShip()->GetActorLocation() : FVector::ZeroVector));
+					ApplyPilotShip();
 					D->RestartCurrentWave();
 				}
 			}
@@ -292,5 +313,105 @@ bool FTDBalanceDistributionIdle::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceDistributionDrifter, "TDBalance.Distribution.StandardDrifter", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
 bool FTDBalanceDistributionDrifter::RunTest(const FString& Parameters) { TDBalanceRun::Distribution(*this, FTDPilotSkill::Drifter()); return true; }
+
+// Lead (Nov 13): bring Rift and Lancer closer to Bastion. The Evader flies one ship the whole run; rows for each ship at
+// today's shield regen, then Rift and Lancer with faster regen. Six seeded runs each; measurement only.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceRegenSweep, "TDBalance.Sweep.EvaderShieldRegen", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceRegenSweep::RunTest(const FString& Parameters)
+{
+	struct FRow { ETDShipId Ship; const TCHAR* Tag; float Delay; float Frac; };
+	const FRow Rows[] = {
+		{ ETDShipId::Rift, TEXT("Rift"), -1.f, -1.f },
+		{ ETDShipId::Lancer, TEXT("Lancer"), -1.f, -1.f },
+		{ ETDShipId::Bastion, TEXT("Bastion"), -1.f, -1.f },
+		{ ETDShipId::Rift, TEXT("Rift_d2_f35"), 2.f, 0.35f },
+		{ ETDShipId::Lancer, TEXT("Lancer_d2_f35"), 2.f, 0.35f },
+		{ ETDShipId::Rift, TEXT("Rift_d15_f50"), 1.5f, 0.5f },
+		{ ETDShipId::Lancer, TEXT("Lancer_d15_f50"), 1.5f, 0.5f },
+	};
+	const int32 Only = Parameters.IsNumeric() ? FCString::Atoi(*Parameters) : -1;
+	for (int32 i = 0; i < UE_ARRAY_COUNT(Rows); ++i)
+	{
+		if (Only >= 0 && Only != i) { continue; }
+		FTDPilotSkill S = FTDPilotSkill::Evader();
+		S.bForceStartShip = true;
+		S.StartShip = Rows[i].Ship;
+		S.ShieldRegenDelayOverride = Rows[i].Delay;
+		S.ShieldRegenFractionOverride = Rows[i].Frac;
+		S.Name = FName(*FString::Printf(TEXT("Evader_%s"), Rows[i].Tag));
+		TDBalanceRun::Distribution(*this, S, 6);
+	}
+	return true;
+}
+
+// Dominion pressure pass (Lead): the real assault with a VULNERABLE squad. The pilot sits at each stand-off point and
+// holds fire (no evasion), so this is the upper bound on pressure. Per stage: seconds, squad damage by source, ship
+// downs. Measurement only; writes Saved/Balance/finale_pressure_<time>.md.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceFinalePressure, "TDBalance.Finale.Pressure", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceFinalePressure::RunTest(const FString& Parameters)
+{
+	const float Fps = 30.f;
+	FString Md = TEXT("# Dominion assault pressure (vulnerable squad, stand-off pilot, no evasion)\n\n| Seed | Stage | Seconds | Squad damage | Ship downs | Wiped | Top sources |\n|---|---|---|---|---|---|---|\n");
+	for (int32 Seed = 1; Seed <= 4; ++Seed)
+	{
+		ATDEnemyShip::SpawnSeedSalt() = Seed;
+		FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+		UTDBalanceRecorder* Rec = NewObject<UTDBalanceRecorder>();
+		Rec->AddToRoot();
+		Rec->Begin(W.GetWorld());
+		ATDDominion* Dom = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+		APlayerController* PC = W.SpawnPlayerController();
+		ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+		Squad->SetSquadPlayerController(PC);
+		Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(150000.f, 0.f, 3000.f)));
+		Rec->WatchSquad(Squad);
+		GI->Progress.bDominionRevealed = true;
+		GI->Progress.Phase = ETDGamePhase::DominionAssault;
+		W.Advance(Dom->ProgressPollSeconds + Dom->WarpInSeconds + 0.5f, 1.f / Fps);
+		auto Row = [&Md, Rec, Seed](const TCHAR* Stage, float Seconds, bool bWiped)
+		{
+			TArray<TPair<FName, float>> Sorted;
+			for (const TPair<FName, float>& KV : Rec->Current.DamageBySource) { Sorted.Add(KV); }
+			Sorted.Sort([](const TPair<FName, float>& X, const TPair<FName, float>& Y) { return X.Value > Y.Value; });
+			FString Top;
+			for (int32 k = 0; k < FMath::Min(3, Sorted.Num()); ++k) { Top += FString::Printf(TEXT("%s %.0f; "), *Sorted[k].Key.ToString(), Sorted[k].Value); }
+			Md += FString::Printf(TEXT("| %d | %s | %.0f | %.0f | %d | %s | %s |\n"), Seed, Stage, Seconds, Rec->Current.DamageTaken, Rec->Current.ShipDowns, bWiped ? TEXT("yes") : TEXT("no"), *Top);
+			Rec->Current = FTDBalanceWaveStats();
+		};
+		const double T0 = W.GetWorld()->GetTimeSeconds();
+		const bool bGens = TDFinaleCombat::DestroyGenerators(*this, W, Dom, 4, Fps, /*bInvulnerable*/ false);
+		const double T1 = W.GetWorld()->GetTimeSeconds();
+		Row(TEXT("4 generators"), (float)(T1 - T0), !bGens);
+		if (bGens)
+		{
+			W.Advance(0.5f, 1.f / Fps);
+			const bool bReactor = Dom->GetReactor() && Dom->GetReactor()->IsExposed() && TDFinaleCombat::DestroyReactorPhases(*this, W, Dom, 3, Fps, false);
+			Row(TEXT("reactor 3 phases"), (float)(W.GetWorld()->GetTimeSeconds() - T1), !bReactor);
+		}
+		Rec->RemoveFromRoot();
+	}
+	const FString Path = FPaths::ProjectSavedDir() / TEXT("Balance") / FString::Printf(TEXT("finale_pressure_%s.md"), *FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")));
+	FFileHelper::SaveStringToFile(Md, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+	AddInfo(FString::Printf(TEXT("Finale pressure report: %s"), *Path));
+	return true;
+}
+
+// Lead (Nov 13): Lancer's wave-5 losses did not respond to regen; try a little more max shield (hull unchanged) and pick the
+// smallest that brings wave-5 downs near Bastion's. Lancer must stay the fragile-fast ship.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBalanceLancerShieldSweep, "TDBalance.Sweep.EvaderLancerShield", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+bool FTDBalanceLancerShieldSweep::RunTest(const FString& Parameters)
+{
+	for (const float Scale : { 1.f, 1.1f, 1.15f, 1.2f })
+	{
+		FTDPilotSkill S = FTDPilotSkill::Evader();
+		S.bForceStartShip = true;
+		S.StartShip = ETDShipId::Lancer;
+		S.MaxShieldScale = Scale;
+		S.Name = FName(*FString::Printf(TEXT("Evader_Lancer_shield%03d"), FMath::RoundToInt(Scale * 100.f)));
+		TDBalanceRun::Distribution(*this, S, 6);
+	}
+	return true;
+}
 
 #endif // WITH_DEV_AUTOMATION_TESTS

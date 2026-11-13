@@ -85,6 +85,16 @@ struct UNREALGAMEJAM_API FTDPilotSkill
 	 *  closing head-on inside 3000 cm) breaks hard to one side with a boost for 1 s. */
 	bool bEvader = false;
 
+	/** Fly this ship from the start (balance sweeps: Evader-as-Lancer / -as-Bastion); off = the squad's default. */
+	bool bForceStartShip = false;
+	ETDShipId StartShip = ETDShipId::Rift;
+
+	/** Shield regen on the flown ship for sweeps (< 0 = the ship library's value). */
+	float ShieldRegenDelayOverride = -1.f;
+	float ShieldRegenFractionOverride = -1.f;
+	/** Max shield multiplier on the flown ship for sweeps (1 = the ship library's value). */
+	float MaxShieldScale = 1.f;
+
 	static FTDPilotSkill Weak();
 	static FTDPilotSkill Average() { return FTDPilotSkill(); }
 	static FTDPilotSkill Strong();
