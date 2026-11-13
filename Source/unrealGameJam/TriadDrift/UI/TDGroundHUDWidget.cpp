@@ -246,10 +246,7 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		P.Text(X + W - 20 - (PctW > 0 ? PctW : 40.f), Y + 6, PctText, 16, Ink, true);
 		P.Meter(X + 20, Y + 32, 360, SmoothTransfer, C, 10);
 		P.Line({ X + 20 + 180, Y + 28 }, { X + 20 + 180, Y + 46 }, Ink.CopyWithNewOpacity(View.Transfer01 >= .5f ? .9f : .4f), 1.5f);
-		if (View.bTransferPaused)
-		{
-			P.CenteredText(960, Y + H + 8, TEXT("PAUSED  /  HOSTILE AT TERMINAL"), 15, Amber.CopyWithNewOpacity(Pulse), true);
-		}
+		// Paused: the plate and bar pulse amber only; the objective panel above carries the reason (the Lead, Nov 13).
 	}
 
 	// Reticle.
