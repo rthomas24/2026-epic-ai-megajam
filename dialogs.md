@@ -61,7 +61,7 @@ Ids marked **(exists)** are fired by the game today; the rest are **(new)**: the
 | `Bark_AmmoLow` / `Bark_AmmoOut` (new, T2) | Missile ammo at 25% / empty | flown pilot (Moss mostly) | Normal / High | "Running light on missiles." / "I'm dry!" | "Ammunition low." / "Out. Guns only." | "Not many left." / "That's the last of them." |
 | `Bark_WeaponHot` (new, T2) | Weapon overheats | flown pilot | Normal | "Guns are cooking!" | "Overheat. Cooling." | "Too hot. Give it a second." |
 | `Bark_BoostEmpty` (new, T1) | Boost runs out while held | flown pilot | Flavour | "Out of burn!" | "Boost depleted." | "That's all she's got." |
-| `Bark_Boundary` (new, T1) | Leaving the flight area | Command | Critical | - | - | - · Command: "Triad, you're leaving the area. Turn back." |
+| `Bark_Boundary` (new, T1) | Leaving the flight area | Command, or a wingman | Critical | "Wide of the zone. Bring it round." | "You're drifting out. Come about." | "Nothing out there for us. Swing back." · Command: "Triad, you're leaving the area. Turn back." |
 | `Bark_WaveCleared` (exists) | A wave ends | a pilot, rotating | High | "That's all of them. For now." | "Area clear. No contacts." | "All quiet. Nice work, everyone." |
 | `Bark_WaveIncoming` (new, T4) | Next wave warps in | Command / Kato | High | "Here they come again." | "New contacts. Many." | "Round two. Stay close." · Command: "Triad, more contacts inbound." |
 | `Bark_Breather` (new, T3) | 4 s into the gap between waves | a wingman | Flavour | "Anyone else enjoying this?" | "They are not behaving like raiders." | "Check your gauges while it's calm." |

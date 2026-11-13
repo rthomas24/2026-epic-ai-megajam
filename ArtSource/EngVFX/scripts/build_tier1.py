@@ -336,11 +336,12 @@ LEN = '(0.20 + 1.00*User.Throttle + 0.9*User.Boost)'
 FLK = '(0.92 + 0.16*frac(sin(Engine.Time*%s)*43758.5))'
 
 
-def engine(boost_only=False, kk=1.0):
+def engine(boost_only=False, kk=1.0, lm=1.0, wm=1.0):
+    # lm / wm: length and width of the flames (round 7: per-type enemy exhausts).
     # kk < 1 keeps the flame's own colour (less white-hot core): the Null fleet's exhaust must read red-orange.
-    outer = mesh_single('Flame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-4.2, 1.25, 1.25', 0.85 * kk, None,
+    outer = mesh_single('Flame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '%s, %s, %s' % (-4.2 * lm, 1.25 * wm, 1.25 * wm), 0.85 * kk, None,
                         live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 61.3, THR, THR))
-    inner = mesh_single('Inner', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-2.3, 0.7, 0.7', 1.7 * kk * kk, None,
+    inner = mesh_single('Inner', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '%s, %s, %s' % (-2.3 * lm, 0.7 * wm, 0.7 * wm), 1.7 * kk * kk, None,
                         live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 97.1, THR, THR))
     boost = mesh_single('BoostFlame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame_Boost', '-9.5, 1.0, 1.0', 1.3, None,
                         live_scale='float3(1,1,1)*User.Boost*%s' % (FLK % 43.7))
@@ -364,6 +365,10 @@ for _n, _c in (('Rift', RIFT), ('Lancer', LANCER), ('Bastion', BASTION), ('Enemy
     S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=0.6, Boost=0.0), engine(kk=_kk))
     # the afterburner alone, always on: for the BoostLoop cue slot, which is a separate attached loop
     S('NS_TD_EngineBoost_' + _n, U(_c, 1.0, Throttle=1.0, Boost=1.0), engine(True))
+
+# Round 7: the interceptor and the fighter must be told apart by their exhaust alone.
+S('NS_TD_Engine_Enemy_Interceptor', U((1.0, 0.80, 0.30, 1.0), 1.0, Throttle=0.6, Boost=0.0), engine(kk=1.0, lm=2.1, wm=0.55))   # long, thin, hot white-yellow
+S('NS_TD_Engine_Enemy_Fighter', U((1.0, 0.05, 0.015, 1.0), 1.0, Throttle=0.6, Boost=0.0), engine(kk=0.55, lm=0.55, wm=1.0))    # short, red
 
 # --------------------------------------------------------------------------------------------- impacts
 # +X of the system is the surface normal (gameplay passes ImpactNormal.Rotation()).

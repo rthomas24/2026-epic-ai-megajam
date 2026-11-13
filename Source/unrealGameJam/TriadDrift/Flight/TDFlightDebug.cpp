@@ -319,7 +319,7 @@ static FAutoConsoleCommandWithWorldAndArgs GTDFlightShipFeelCmd(TEXT("TD.Flight.
 	}));
 
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightCamProfileCmd(TEXT("TD.Flight.CamProfile"),
-	TEXT("Issue #23 camera audition: TD.Flight.CamProfile Default (default) | Tuned | Audition | Report (composed peaks since the last switch)"),
+	TEXT("Issue #23 camera profiles: TD.Flight.CamProfile Audition (the player default) | Tuned | Default (the pre-#23 camera) | Report (composed peaks since the last switch)"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
 	{
 		using EP = UTDFlightFeedbackComponent::ECamProfile;

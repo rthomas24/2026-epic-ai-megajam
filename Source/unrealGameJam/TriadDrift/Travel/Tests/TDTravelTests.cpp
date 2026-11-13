@@ -5,6 +5,10 @@
 #include "GameFramework/WorldSettings.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
+#include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TriadDrift/Squad/TDSquadIntegration.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -425,7 +429,7 @@ bool FTDTravelLanding::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Landing01 = 1"), Land->GetLanding01(), 1.f);
 	const FVector Touch = Pad->GetBeaconLocation();
 	TestTrue(FString::Printf(TEXT("sitting on the pad (%s)"), *Ship->GetActorLocation().ToString()),
-		FVector::Dist2D(Ship->GetActorLocation(), Touch) < 10.f && FMath::Abs(Ship->GetActorLocation().Z - Touch.Z - 225.f) < 10.f);
+		FVector::Dist2D(Ship->GetActorLocation(), Touch) < 10.f && FMath::Abs(Ship->GetActorLocation().Z - Touch.Z - (UTDLandingComponent::HullBottomBelowOrigin(Ship) + UTDLandingComponent::ParkClearance)) < 10.f); // on its hull, not its collision sphere
 	TestTrue(TEXT("stationary"), Ship->GetVelocity().IsNearlyZero(1.f));
 	TestTrue(TEXT("wingman landed beside"), Mate->GetLanding()->IsLanded());
 
@@ -1104,6 +1108,39 @@ bool FTDTravelCameraNow::RunTest(const FString& Parameters)
 	Ship->SetPlayerControlled(true);
 	W.Tick();
 	TestTrue(TEXT("player ship: live camera transform"), Ship->GetChaseCameraTransformNow().Equals(Ship->GetChaseCamera()->GetComponentTransform(), 0.01f));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelParkedOnThePad, "TriadDrift.Travel.Landing.ParkedHullRestsOnThePad", TD_TEST_FLAGS)
+bool FTDTravelParkedOnThePad::RunTest(const FString& Parameters)
+{
+	// Ryan's screenshot (Nov 13): parked ships floated ~1 m over the pad (they rested on the flight collision sphere).
+	// Each squad ship, landed: the lowest point of its visible hull is within a few cm above the pad.
+	for (const ETDShipId Id : UTDShipLibrary::AllShips())
+	{
+		FTDTestWorld W;
+		ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+		ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector(-1500.f, 0.f, 1500.f));
+		if (!TestNotNull(TEXT("ship"), Ship) || !Pad) { return false; }
+		TDSquad::ApplySpec(Ship, UTDShipLibrary::Get(Id)); // the real squad mesh and scale
+		Ship->SetPlayerControlled(true);
+		W.Tick();
+		Ship->GetShipMovement()->SetForwardSpeedImmediate(2000.f);
+		const FString Name = UEnum::GetValueAsString(Id);
+		if (!TestTrue(*(Name + TEXT(": land")), Ship->GetLanding()->RequestLand())) { continue; }
+		W.Advance(5.2f);
+		if (!TestTrue(*(Name + TEXT(": landed")), Ship->GetLanding()->IsLanded())) { continue; }
+		float Lowest = TNumericLimits<float>::Max();
+		TInlineComponentArray<UStaticMeshComponent*> Meshes(Ship);
+		for (UStaticMeshComponent* M : Meshes)
+		{
+			if (M && M->GetStaticMesh() && M->IsVisible() && M != Ship->GetEngineGlow()) { Lowest = FMath::Min(Lowest, (float)M->Bounds.GetBox().Min.Z); }
+		}
+		const float Gap = Lowest - Pad->GetBeaconLocation().Z;
+		const float Sphere = Ship->GetCollisionSphere() ? Ship->GetCollisionSphere()->GetScaledSphereRadius() : 0.f;
+		AddInfo(FString::Printf(TEXT("%s: hull bottom %.1f cm over the pad (collision sphere radius %.0f cm; the old rest was radius + 5)"), *Name, Gap, Sphere));
+		TestTrue(*FString::Printf(TEXT("%s: the hull rests on the pad (%.1f cm, want 0..30)"), *Name, Gap), Gap >= -1.f && Gap <= 30.f);
+	}
 	return true;
 }
 

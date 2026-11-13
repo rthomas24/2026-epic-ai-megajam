@@ -1,0 +1,59 @@
+{
+  "asset": "SM_Scatter_Verd_Canopy_03",
+  "fbx": "SM_Scatter_Verd_Canopy_03.fbx",
+  "tris": 828,
+  "size_cm": [
+    7799.8,
+    8140.6,
+    5528.1
+  ],
+  "pivot": "root object origin (SM_Scatter_Verd_Canopy_03~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Scatter_Atlas"
+  ],
+  "material_params": [
+    {
+      "name": "M_Scatter_Atlas",
+      "textured": true,
+      "base_color": null,
+      "metallic": 0.0,
+      "roughness": 0.7,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Scatter_Atlas_BC.png",
+    "T_Scatter_Atlas_E.png"
+  ],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "scatter": {
+    "group": "canopy",
+    "collision": "none",
+    "material_instance": "MI_Scatter_Canopy",
+    "two_sided": false,
+    "note": "9 crowns with one emergent giant, up to 55 m tall"
+  }
+}

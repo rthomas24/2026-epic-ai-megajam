@@ -17,15 +17,22 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCameraProfiles, "TriadDrift.Flight.CameraPro
 bool FTDCameraProfiles::RunTest(const FString& Parameters)
 {
 	using EP = UTDFlightFeedbackComponent::ECamProfile;
-	ON_SCOPE_EXIT { UTDFlightFeedbackComponent::CamProfile = EP::Default; };
-	TestEqual(TEXT("Default is the default"), (int32)UTDFlightFeedbackComponent::CamProfile, (int32)EP::Default);
+	ON_SCOPE_EXIT { UTDFlightFeedbackComponent::CamProfile = UTDFlightFeedbackComponent::PlayerDefaultProfile; };
+	TestEqual(TEXT("Audition is the player default (Nicholas, issue #23)"), (int32)UTDFlightFeedbackComponent::CamProfile, (int32)EP::Audition);
 
 	struct FResult { TArray<float> FOVs; float MaxFOV = 0.f; float MaxBlur = 0.f; float TurnRoll = 0.f; float SettledRoll = 0.f; float CapFOV = 0.f; };
-	auto Run = [this](EP Profile)
+	auto Run = [this](EP Profile, float MotionScale = -1.f)
 	{
 		FResult R;
 		UTDFlightFeedbackComponent::CamProfile = Profile;
 		FTDTestWorld W;
+		if (MotionScale >= 0.f)
+		{
+			// After the world exists: the settings subsystem applies the saved sliders when a world starts.
+			UTDFlightFeedbackComponent::UserShakeScale = MotionScale;
+			UTDFlightFeedbackComponent::UserSpeedFOVScale = MotionScale;
+			UTDFlightFeedbackComponent::ComposedPeaks = UTDFlightFeedbackComponent::FComposedPeaks();
+		}
 		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 20000.f));
 		if (!Ship) { return R; }
 		Ship->SetPlayerControlled(true);
@@ -75,6 +82,19 @@ bool FTDCameraProfiles::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Audition: the camera tilts into a turn (up to 3 deg)"), A.TurnRoll > 1.f && A.TurnRoll <= 3.f + 0.5f);
 	TestTrue(TEXT("Default: no added turn tilt"), D.TurnRoll < 0.5f);
 	TestTrue(TEXT("Audition: settles when steering stops (no idle bob)"), A.SettledRoll < 0.15f);
+
+	// Reduced motion under the new default (both sliders at 0): no speed blur and no FOV punch beyond Default's.
+	{
+		const float OldShake = UTDFlightFeedbackComponent::UserShakeScale, OldSpeed = UTDFlightFeedbackComponent::UserSpeedFOVScale;
+		ON_SCOPE_EXIT { UTDFlightFeedbackComponent::UserShakeScale = OldShake; UTDFlightFeedbackComponent::UserSpeedFOVScale = OldSpeed; };
+		const FResult RM = Run(EP::Audition, 0.f);
+		float RMPunch = 0.f;
+		for (int32 i = 0; i < FMath::Min(D.FOVs.Num(), RM.FOVs.Num()); ++i) { RMPunch = FMath::Max(RMPunch, RM.FOVs[i] - D.FOVs[i]); }
+		AddInfo(FString::Printf(TEXT("reduced motion (Audition): blur %.3f, FOV over Default %.2f, shake peak %.3f"), RM.MaxBlur, RMPunch, UTDFlightFeedbackComponent::ComposedPeaks.Shake));
+		TestTrue(TEXT("reduced motion: no blur"), RM.MaxBlur < 0.001f);
+		TestTrue(TEXT("reduced motion: no FOV punch"), RMPunch < 0.1f);
+		TestTrue(TEXT("reduced motion: no shake"), UTDFlightFeedbackComponent::ComposedPeaks.Shake < 0.001f);
+	}
 	return true;
 }
 

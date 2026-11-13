@@ -1,16 +1,19 @@
 {
   "asset": "SM_Rift",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Rift\\SM_Rift.fbx",
-  "tris": 42371,
+  "tris": 46401,
   "size_cm": [
     500.0,
     417.4,
-    226.0
+    235.5
   ],
   "pivot": "root object origin (SM_Rift~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Rift.001"
+    "M_Rift.001",
+    "M_Rift_Glow",
+    "M_Rift_Portal",
+    "M_Rift_Ring"
   ],
   "material_params": [
     {
@@ -21,11 +24,65 @@
       "roughness": null,
       "emission_color": null,
       "emission_strength": 2.0
+    },
+    {
+      "name": "M_Rift_Glow",
+      "textured": false,
+      "base_color": [
+        1.0,
+        0.17,
+        0.84
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        1.0,
+        0.17,
+        0.84
+      ],
+      "emission_strength": 4.0
+    },
+    {
+      "name": "M_Rift_Portal",
+      "textured": false,
+      "base_color": [
+        0.8,
+        0.1,
+        1.0
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        0.8,
+        0.1,
+        1.0
+      ],
+      "emission_strength": 3.0
+    },
+    {
+      "name": "M_Rift_Ring",
+      "textured": false,
+      "base_color": [
+        0.03,
+        0.03,
+        0.035
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        0.03,
+        0.03,
+        0.035
+      ],
+      "emission_strength": 0.0
     }
   ],
   "textures": [],
   "collision": [
-    "UCX_SM_Rift_00"
+    "UCX_SM_Rift_00",
+    "UCX_SM_Rift_01",
+    "UCX_SM_Rift_02",
+    "UCX_SM_Rift_03"
   ],
   "collision_source": "auto convex hulls",
   "sockets": [
@@ -39,7 +96,7 @@
     "SOCKET_WingTip_L",
     "SOCKET_WingTip_R"
   ],
-  "welded_verts": 40173,
+  "welded_verts": 40148,
   "nanite_recommended": true,
   "unreal_import": {
     "uniform_scale": 1.0,
@@ -102,9 +159,9 @@
     {
       "name": "Portal",
       "ue_cm": [
-        -170,
+        -160,
         0,
-        55
+        44
       ]
     },
     {

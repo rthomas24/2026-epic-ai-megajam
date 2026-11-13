@@ -29,7 +29,7 @@
 
 namespace TDIntroE2E
 {
-	static constexpr double HardLimitSeconds = 120.0;
+	static constexpr double HardLimitSeconds = 180.0;
 	static const TCHAR* SlotName = TEXT("TD_E2E_IntroWaves");
 
 	struct FState
@@ -236,7 +236,9 @@ bool FTDIntroE2E::RunTest(const FString& Parameters)
 	}));
 
 	// 4. Past the first-second lock, hold a real key for 0.6 s.
-	ADD_LATENT_AUTOMATION_COMMAND(FStep(S, TEXT("hold to skip"), 6.0, [](FState& St)
+	// Held until the intro lets go (an event, not a fixed time): under a loaded gating run frames are long and the skip
+	// hold, which counts in steps of at most 0.1 s, needs more wall time than 0.8 s (T5 saw it time out).
+	ADD_LATENT_AUTOMATION_COMMAND(FStep(S, TEXT("hold to skip"), 30.0, [](FState& St)
 	{
 		UWorld* W = St.FirstGalaxy.Get();
 		UTDIntroDirector* Intro = UTDIntroDirector::Get(W);
@@ -255,16 +257,16 @@ bool FTDIntroE2E::RunTest(const FString& Parameters)
 			St.PressedAt = FPlatformTime::Seconds();
 			return false;
 		}
-		if (FPlatformTime::Seconds() - St.PressedAt < 0.8)
+		if (Intro->IsPlaying() && FPlatformTime::Seconds() - St.PressedAt < 25.0)
 		{
-			return false;
+			return false; // keep holding
 		}
 		FTDTestWorld::InjectKey(PC, EKeys::SpaceBar, false);
 		return true;
 	}));
 
 	// 5. Skipped: phase, HUD and pause are back.
-	ADD_LATENT_AUTOMATION_COMMAND(FStep(S, TEXT("skipped"), 5.0, [](FState& St)
+	ADD_LATENT_AUTOMATION_COMMAND(FStep(S, TEXT("skipped"), 20.0, [](FState& St)
 	{
 		UWorld* W = St.FirstGalaxy.Get();
 		UTDIntroDirector* Intro = UTDIntroDirector::Get(W);

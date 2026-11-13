@@ -21,6 +21,15 @@ class UAudioComponent;
 class USoundBase;
 class ATDPlanetAtmosphere;
 
+/** ENG-38: the squad as it left one map for the other (galaxy <-> planet): who was flown, and every ship's hull and shield. */
+struct FTDSquadCarry
+{
+	bool bValid = false;
+	ETDShipId Active = ETDShipId::Rift;
+	TMap<ETDShipId, float> Hull01;
+	TMap<ETDShipId, float> Shield01;
+};
+
 /** Cover phases of a covered (white) travel. */
 enum class ETDDescentCover : uint8 { Off, RampIn, Held, Revealing, Aborting };
 
@@ -81,10 +90,20 @@ public:
 	/** Arrival height above the ground under it. 1,000 m: under the 1.2 km take-off exit height and near the fitted
 	 *  zone ceiling (highest ground + 400 m) until stage 2's glide owns the altitude. */
 	static constexpr float ArrivalAltitudeCm = 100000.f;
-	/** Arrivals stay within 6 km of the pad, inside the zone's edge-warning band (T4's ring reaches 7 km). */
-	static constexpr float MaxArrivalRadiusCm = 600000.f;
 	/** Arrivals sit at least this far under the fitted zone ceiling (its warning band is 500 m). */
 	static constexpr float CeilingClearanceCm = 65000.f;
+
+	// ---- Squad carried through the travel (ENG-38; the Lead, Nov 13: the flown ship is the core mechanic).
+	/** At the entry commit and the take-off exit: the world's squad (its manager) as it leaves. */
+	void RecordSquad(UWorld* World);
+	void RecordSquadForTests(const FTDSquadCarry& Carry) { SquadCarry = Carry; SquadCarry.bValid = true; SquadCarryWorld.Reset(); }
+	/**
+	 * T3's ATDSquadManager::SpawnSquad asks this. The first spawn in a new world gets the flown ship and the hulls
+	 * (bOutFirstSpawnInWorld); later spawns in that world (retakes) get the flown ship only. False: no record (a
+	 * Continue, a dev jump): spawn as before.
+	 */
+	bool ConsumeSquadCarry(UWorld* World, FTDSquadCarry& Out, bool& bOutFirstSpawnInWorld);
+	void ClearSquadCarry() { SquadCarry = FTDSquadCarry(); SquadCarryWorld.Reset(); }
 
 	// ---- Hull heat (ENG-38): M_TD_Ship's HeatGlow 0..1 on every squad ship (player and wingmen), on dynamic instances
 	// made only for materials that expose the parameter. Rises with the dive, holds under the cover, decays over
@@ -143,6 +162,9 @@ private:
 	double PostLoadTime = -1.0;
 	double OpenLevelTime = -1.0;
 	TWeakObjectPtr<UWorld> LoadedWorld;
+
+	FTDSquadCarry SquadCarry;
+	TWeakObjectPtr<UWorld> SquadCarryWorld; // the world that consumed it (its retakes keep the flown ship)
 
 	float Heat = 0.f;
 	float AppliedHeat = -1.f;

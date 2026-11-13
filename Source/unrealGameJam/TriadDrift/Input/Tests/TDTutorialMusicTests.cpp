@@ -132,8 +132,12 @@ bool FTDTutorialLoopAndFade::RunTest(const FString& Parameters)
 		TestEqual(*(Tag + TEXT("still the loop after a retake and a gap")), R.T->GetState(), ETDTutorialMusicState::Loop);
 		TestEqual(*(Tag + TEXT("not restarted")), R.T->GetVoicesStarted(), Voices);
 
-		// Wave 1 cleared: a 20 s fade, carried on across a level travel (another world steps it).
+		// Wave 1 cleared: the tutorial goes on (Nicholas: only the escape ends it).
 		Bus->BroadcastWaveCleared(1);
+		R.Run(2.f, Dt);
+		TestEqual(*(Tag + TEXT("wave 1 clear alone: still the loop")), R.T->GetState(), ETDTutorialMusicState::Loop);
+		// The escape: a 20 s fade, carried on across a level travel (another world steps it).
+		R.T->NotifyTutorialEscaped();
 		R.Run(10.f, Dt);
 		TestEqual(*(Tag + TEXT("fading")), R.T->GetState(), ETDTutorialMusicState::FadingOut);
 		TestEqual(*(Tag + TEXT("half way after 10 s")), R.T->GetFadeVolume(), 0.5f, 0.02f);
@@ -262,15 +266,77 @@ bool FTDTutorialFadeIdempotent::RunTest(const FString& Parameters)
 	R.Run(0.2f, 1.f / 60.f);
 	UTDEventBus* Bus = UTDEventBus::Get(R.W.GetWorld());
 	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
-	Bus->BroadcastWaveCleared(1);
+	R.T->NotifyTutorialEscaped();
 	R.Run(10.f, 1.f / 60.f);
-	Bus->BroadcastWaveCleared(2); // another qualifying clear 10 s into the fade
+	R.T->NotifyTutorialEscaped(TEXT("test: again")); // a second escape event 10 s into the fade
+	Bus->BroadcastWaveCleared(2);
 	Bus->BroadcastWaveCleared(1);
 	R.Run(0.5f, 1.f / 60.f);
 	TestEqual(TEXT("one fade only"), R.T->GetFadesBegun(), 1);
 	TestEqual(TEXT("still 10.5 of 20 s in (not restarted)"), R.T->GetFadeVolume(), 1.f - 10.5f / FadeSeconds, 0.02f);
 	R.Run(10.f, 1.f / 60.f);
 	TestEqual(TEXT("silent at 20 s, as before"), R.T->GetState(), ETDTutorialMusicState::Off);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTutorialEndsOnEscape, "TriadDrift.Input.TutorialMusic.OnlyTheEscapeEndsIt", TD_TEST_FLAGS)
+bool FTDTutorialEndsOnEscape::RunTest(const FString& Parameters)
+{
+	// Nicholas (issue #24): the tutorial battle ends when the player crosses the escape boundary during the ordered
+	// withdrawal, gunship alive or destroyed. Wave 1's clear or the gunship's destruction alone never fade the loop.
+	using namespace TDTutorialMusicTest;
+	FRun R;
+	if (!TestTrue(TEXT("set up"), R.Init(false))) { return false; }
+	R.GI->SetPhase(ETDGamePhase::Waves1to2);
+	R.Run(0.2f, 1.f / 60.f);
+	R.Intro->NotifyRunStartedWithoutIntro();
+	R.Run(0.2f, 1.f / 60.f);
+	TestEqual(TEXT("loop"), R.T->GetState(), ETDTutorialMusicState::Loop);
+	UTDEventBus* Bus = UTDEventBus::Get(R.W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus)) { return false; }
+	Bus->BroadcastWaveCleared(1);
+	R.Run(3.f, 1.f / 60.f);
+	TestEqual(TEXT("wave 1 cleared: the loop goes on"), R.T->GetState(), ETDTutorialMusicState::Loop);
+	AActor* Gunship = R.W.Spawn<AActor>();
+	Bus->BroadcastActorKilled(Gunship, nullptr, ETDDamageKind::Energy); // the gunship destroyed
+	R.Run(3.f, 1.f / 60.f);
+	TestEqual(TEXT("gunship destroyed: the loop goes on"), R.T->GetState(), ETDTutorialMusicState::Loop);
+	TestEqual(TEXT("no fade yet"), R.T->GetFadesBegun(), 0);
+	R.T->NotifyTutorialEscaped();
+	R.Run(0.5f, 1.f / 60.f);
+	TestEqual(TEXT("the escape: the 20 s fade"), R.T->GetState(), ETDTutorialMusicState::FadingOut);
+
+	// Fallback until T4's event is bound: the run moving on to Verdance ends it too.
+	FRun R2;
+	if (!TestTrue(TEXT("set up 2"), R2.Init(false))) { return false; }
+	R2.GI->SetPhase(ETDGamePhase::Waves1to2);
+	R2.Run(0.2f, 1.f / 60.f);
+	R2.Intro->NotifyRunStartedWithoutIntro();
+	R2.Run(0.2f, 1.f / 60.f);
+	R2.GI->SetPhase(ETDGamePhase::Verdance);
+	R2.Run(0.5f, 1.f / 60.f);
+	TestEqual(TEXT("fallback: the run moved past the tutorial battle"), R2.T->GetState(), ETDTutorialMusicState::FadingOut);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTutorialPrimedAndRealClock, "TriadDrift.Input.TutorialMusic.PrimedAtArmAndRealTimeClock", TD_TEST_FLAGS)
+bool FTDTutorialPrimedAndRealClock::RunTest(const FString& Parameters)
+{
+	using namespace TDTutorialMusicTest;
+	FRun R;
+	if (!TestTrue(TEXT("set up"), R.Init(false))) { return false; }
+	USoundWave* Track = NewObject<USoundWave>(GetTransientPackage(), TEXT("TD_TestTutorialSingle"));
+	Track->Duration = 95.f;
+	R.T->SetSingleVoiceForTests(Track, 38.f, FadeSeconds, 0.15f);
+	R.GI->StartNewRun(); // arm again with the sound set
+	TestEqual(TEXT("primed at arm: the music is loaded and held before the intro"), R.T->GetPrimedCount(), 1);
+	// A hitch: the world's delta is clamped, the real time is not; the tutorial clock follows real time.
+	R.Run(0.2f, 1.f / 60.f);
+	const float Before = R.T->GetClock();
+	R.T->Step(R.W.GetWorld(), 1.5f, false); // a 1.5 s frame, as the music director now passes it (max of clamped and real)
+	TestEqual(TEXT("a 1.5 s hitch is 1.5 s on the clock"), R.T->GetClock() - Before, 1.5f, 0.001f);
+	R.T->Stop(TEXT("test"));
+	TestEqual(TEXT("released when the tutorial ends"), R.T->GetPrimedCount(), 0);
 	return true;
 }
 

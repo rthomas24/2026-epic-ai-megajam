@@ -167,6 +167,32 @@ public:
 		bool bInCut = false;
 		bool bInSlate = false;
 		bool bPaused = false;
+		/** A focus hold from the host (T1's atmosphere entry): combat objectives (pill, waypoints) off screen. */
+		bool bCombatHeld = false;
+		/**
+		 * The Dominion approach marker (storyline / alignment a13): 1 = pending (Cinder's field anchor is down, the field
+		 * still closed: a dashed amber diamond), 2 = open (the 8 s after wave 5's clear reveals the Dominion), 0 = none.
+		 */
+		int32 Approach = 0;
+		FWaypoint ApproachWp;
+		/** Space pickups (UTDPickupSubsystem) within PickupMarkRange: Type is uint8 ETDPickupType. */
+		struct FPickupMark
+		{
+			uint8 Type = 0;
+			FLinearColor Color = FLinearColor::White;
+			bool bOnScreen = false;
+			FVector2D Pos = FVector2D::ZeroVector;
+			float Angle = 0.f;
+			float Distance = 0.f;
+		};
+		TArray<FPickupMark> Pickups;
+		/** The collect toast ("+HULL", "SHIELD CELL", "POWER READY", "OVERCHARGE"): text, colour, 0..1 age. */
+		FString PickupToast;
+		FLinearColor PickupToastColor = FLinearColor::White;
+		float PickupToast01 = 0.f;
+		/** Overcharge time left 0..1 (the timer ring) and in seconds. */
+		float Overcharge01 = 0.f;
+		float OverchargeSeconds = 0.f;
 		// ---- P2
 		TArray<FMark> Marks;
 		TArray<FWaypoint> Waypoints;
@@ -306,6 +332,23 @@ public:
 	/** Tests: force the money-shot / paused state (-1 = read the feel subsystem / world). */
 	int32 ForceMoneyShot = -1;
 	int32 ForcePaused = -1;
+	/**
+	 * Set every tick by UTDUIHostSubsystem from its focus holds (PushHUDFocus): the whole HUD eases to at most FocusOpacity,
+	 * and bFocusHideCombat takes the objective pill and waypoints off screen. 1 / false = no hold.
+	 */
+	float FocusOpacity = 1.f;
+	bool bFocusHideCombat = false;
+
+	/** Tests: -1 reads the run's progress; 1 / 2 force the approach marker pending / open (0 = none). */
+	int32 ForceApproach = -1;
+	/** The objective whose completion means Cinder's field anchor is down (T5's course). */
+	static inline const FName AnchorObjectiveId = TEXT("Obj_Jammer");
+	static constexpr float ApproachOpenSeconds = 8.f;
+	/** Pickups get a marker within this many cm (800 m); the collect toast lasts PickupToastSeconds. */
+	static constexpr float PickupMarkRange = 80000.f;
+	static constexpr float PickupToastSeconds = 1.4f;
+	/** Where the approach marker points when no ATDDominion is in the world (tests). */
+	TOptional<FVector> ApproachTargetOverride;
 	static constexpr float SlateSeconds = 1.5f;
 	static constexpr float SlateOpacity = .4f;
 	static constexpr float PauseOpacity = .3f;
@@ -405,6 +448,13 @@ private:
 	float StrikePulseLeft = 0.f;
 	float CutLeft = 0.f;
 	float NavLeft = 0.f;
+	/** Approach marker: the reveal seen last sample (an edge opens the 8 s "open" state), its countdown, first-sample guard. */
+	/** Pickups: the collected counts last seen (a change = a toast) and the toast's clock. */
+	int32 PickupSeen[4] = { 0, 0, 0, 0 };
+	float PickupToastLeft = 0.f;
+	bool bApproachWasRevealed = false;
+	bool bApproachSeeded = false;
+	float ApproachOpenLeft = 0.f;
 	float NavSeconds = 0.f;
 	FVector NavWorldFrom = FVector::ZeroVector;
 	FVector NavWorldTo = FVector::ZeroVector;

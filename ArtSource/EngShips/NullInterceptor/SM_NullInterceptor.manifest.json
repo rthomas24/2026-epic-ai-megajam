@@ -32,6 +32,8 @@
     "SOCKET_Engine_0",
     "SOCKET_Engine_1",
     "SOCKET_Engine_2",
+    "SOCKET_Missile_0",
+    "SOCKET_Missile_1",
     "SOCKET_Muzzle_0",
     "SOCKET_Muzzle_1"
   ],
@@ -58,17 +60,33 @@
     {
       "name": "Muzzle_0",
       "ue_cm": [
-        320,
-        -72,
+        324,
+        -74,
         -55
       ]
     },
     {
       "name": "Muzzle_1",
       "ue_cm": [
-        320,
-        72,
+        324,
+        74,
         -55
+      ]
+    },
+    {
+      "name": "Missile_0",
+      "ue_cm": [
+        40,
+        -150,
+        -95
+      ]
+    },
+    {
+      "name": "Missile_1",
+      "ue_cm": [
+        40,
+        150,
+        -95
       ]
     },
     {

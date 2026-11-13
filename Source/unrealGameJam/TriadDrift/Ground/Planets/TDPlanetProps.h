@@ -417,3 +417,30 @@ private:
 	TArray<bool> Fired;
 	FText Label;
 };
+
+// ================================================================================================
+DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnSurveyRecordsAccessed, AActor*);
+
+/**
+ * Cinder's survey terminal (storyline.md sections 22 and 25, reduced form): usable only out of combat (no living crewman
+ * within ClearRadius), it completes its step and fires OnAnySurveyRecordsAccessed, T3's hook for Cinematic 05.
+ */
+UCLASS()
+class UNREALGAMEJAM_API ATDSurveyTerminal : public ATDInteractableActor
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact", meta = (Units = "cm")) float ClearRadius = 1500.f;
+	/** False for story consoles that only share the out-of-combat rule (the Dominion arena's recordings). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact") bool bAnnounceRecords = true;
+
+	/** The survey records were accessed (T3: Cinematic 05 at the terminal). */
+	static FTDOnSurveyRecordsAccessed OnAnySurveyRecordsAccessed;
+
+	/** A living crewman within ClearRadius: the terminal waits (the patrol must be dead or left behind). */
+	bool IsHostileNear() const;
+
+	virtual bool CanInteract(AActor* Interactor) const override;
+	virtual void Interact(AActor* Interactor) override;
+};

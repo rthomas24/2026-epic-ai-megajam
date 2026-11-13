@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 #if __has_include("TriadDrift/Squad/TDSquadManager.h")
 #include "TriadDrift/Squad/TDSquadManager.h"
@@ -529,12 +530,40 @@ void UTDLandingComponent::PauseFlight(bool bPause)
 	}
 }
 
+float UTDLandingComponent::HullBottomBelowOrigin(const ATDShip* Ship)
+{
+	// Parked ships sat on their flight collision sphere, ~1 m over the pad (Ryan's screenshot, Nov 13). Park on the
+	// visible hull instead: a "Skid" socket if a mesh has one, else the lowest point of the visible meshes' bounds, in the
+	// actor's own frame (landed ships are level). Bounds, not a fixed offset: the squad ships are being rebuilt.
+	if (!Ship) { return 200.f; }
+	TArray<const UStaticMeshComponent*> Meshes;
+	if (const UStaticMeshComponent* Hull = Ship->GetHullMesh()) { Meshes.Add(Hull); }
+	for (const UStaticMeshComponent* Part : Ship->GetVisualParts()) { Meshes.AddUnique(Part); }
+	const FTransform ActorXf = Ship->GetActorTransform();
+	float SkidZ = TNumericLimits<float>::Max(), MinZ = TNumericLimits<float>::Max();
+	for (const UStaticMeshComponent* M : Meshes)
+	{
+		if (!M || !M->GetStaticMesh() || !M->IsVisible() || M == Ship->GetEngineGlow()) { continue; }
+		if (M->DoesSocketExist(TEXT("Skid")))
+		{
+			SkidZ = FMath::Min(SkidZ, (float)ActorXf.InverseTransformPosition(M->GetSocketLocation(TEXT("Skid"))).Z);
+		}
+		const FBox B = M->CalcBounds(M->GetComponentTransform().GetRelativeTransform(ActorXf)).GetBox();
+		MinZ = FMath::Min(MinZ, (float)B.Min.Z);
+	}
+	const float Lowest = SkidZ < TNumericLimits<float>::Max() ? SkidZ : MinZ;
+	if (Lowest < TNumericLimits<float>::Max() && Lowest < 0.f)
+	{
+		return -Lowest;
+	}
+	return Ship->GetCollisionSphere() ? Ship->GetCollisionSphere()->GetScaledSphereRadius() : 200.f; // no visible mesh: as before
+}
+
 FVector UTDLandingComponent::TouchPoint() const
 {
 	const ATDLandingPad* P = Pad.Get();
 	const ATDShip* Ship = GetShip();
-	const float Radius = (Ship && Ship->GetCollisionSphere()) ? Ship->GetCollisionSphere()->GetScaledSphereRadius() : 200.f;
-	return P ? P->GetBeaconLocation() + FVector(0.f, 0.f, Radius + 5.f) : (Ship ? Ship->GetActorLocation() : FVector::ZeroVector);
+	return P ? P->GetBeaconLocation() + FVector(0.f, 0.f, HullBottomBelowOrigin(Ship) + ParkClearance) : (Ship ? Ship->GetActorLocation() : FVector::ZeroVector);
 }
 
 FVector UTDLandingComponent::HoverPoint() const

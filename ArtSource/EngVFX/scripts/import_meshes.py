@@ -7,6 +7,8 @@ src = os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.proje
 EAL = unreal.EditorAssetLibrary
 tasks = []
 for f in sorted(glob.glob(os.path.join(src, 'SM_TD_VFX_*.fbx'))):
+    if globals().get('ONLY_MESH') and os.path.basename(f)[:-4] not in ONLY_MESH:   # round 7: import just the named meshes
+        continue
     t = unreal.AssetImportTask()
     t.filename = f; t.destination_path = DEST; t.automated = True; t.replace_existing = True; t.save = True
     tasks.append(t)

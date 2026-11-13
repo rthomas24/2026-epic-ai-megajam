@@ -70,6 +70,21 @@ struct FTDIntroShot
 	float FocusDistance = 0.f;
 };
 
+/** Where the intro's overlay puts the pilot card, and the regions it must stay clear of (issue #49). Pixels in the
+ *  viewport's local space; computed from the measured text, so a long trait line or a narrow or ultrawide screen
+ *  scales the card down instead of clipping it. */
+struct FTDIntroCardLayout
+{
+	FBox2D Name = FBox2D(ForceInit);
+	FBox2D Role = FBox2D(ForceInit);
+	FBox2D Bar = FBox2D(ForceInit);
+	FBox2D SubtitleBand = FBox2D(ForceInit); // reserved for the narration line (full width)
+	FBox2D Skip = FBox2D(ForceInit);         // HOLD TO SKIP and its fill bar
+	FBox2D Picture = FBox2D(ForceInit);      // the frame inside the 2.39:1 bars
+	int32 NameFontSize = 0;
+	int32 RoleFontSize = 0;
+};
+
 /** What the overlay draws this frame (tests read it). */
 USTRUCT()
 struct FTDIntroOverlayState
@@ -167,6 +182,11 @@ public:
 	bool WasSkipped() const { return bSkipped; }
 	/** The narration lines, in order (localisable). */
 	static const TArray<FText>& NarrationLines();
+
+	/** Lays out the pilot card for a viewport (issue #49). Measure returns a text's size in a font (the Slate font
+	 *  service in the game; tests may pass an estimate when Slate has no renderer). */
+	static FTDIntroCardLayout LayoutNameCard(const FVector2D& ViewportSize, const FText& Name, const FText& Role,
+		TFunctionRef<FVector2D(const FText&, const struct FSlateFontInfo&)> Measure);
 	/** This play's narration (story table Intro_N*, else NarrationLines()). */
 	TArray<FText> Narration;
 	/** Jump to a shot (captures, debug): restarts that shot from its first frame. */
@@ -282,6 +302,9 @@ private:
 	bool bDebugFrozen = false;
 	/** Playing presentation's Level Sequence instead of the code shots (it owns framing: no bars). */
 	bool bSequenceMode = false;
+	bool bScreenMessagesHidden = false;
+	bool bWasScreenMessages = true;
+	bool bWasMapWarnings = false;
 	bool bSequenceStarted = false;
 	TWeakObjectPtr<ULevelSequence> SequenceOverrideForTests;
 	/** Shot 6b: close fighters spawned so far (one every 0.45 s). */

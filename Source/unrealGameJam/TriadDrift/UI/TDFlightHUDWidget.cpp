@@ -16,6 +16,8 @@
 #include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 
 namespace TDFlightHUD
 {
@@ -448,7 +450,9 @@ void UTDFlightHUDWidget::SampleDirector(float Dt)
 	// slow-mo itself scales world delta, so ease on the undilated step.
 	const float RealDt = World && World->GetWorldSettings() ? Dt / FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), .01f) : Dt;
 	View.MoneyShot = FMath::FInterpConstantTo(View.MoneyShot, bMoney ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
-	const float Target = View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f;
+	const float Target = FMath::Min(View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f,
+		FMath::Clamp(FocusOpacity, 0.f, 1.f));
+	View.bCombatHeld = bFocusHideCombat;
 	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
 	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
 	// Applied in NativePaint through the painter's Alpha (render opacity does not reach custom-painted elements).
@@ -664,6 +668,92 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		Wp.bLifted = Wp.bOnScreen && LiftWaypoint(Wp.Pos, Wp.DrawPos);
 		const UTDHealthComponent* Health = UTDStatics::GetHealth(Marker);
 		Wp.Health = Health && Health->IsAlive() ? Health->GetHull01() : -1.f;
+	}
+
+	// Dominion approach marker (alignment a13): pending once Cinder's anchor objective is in the run's progress and the
+	// field is still closed; on the reveal (wave 5 cleared) it reads open for 8 s, then the assault's own markers take over.
+	{
+		bool bAnchorDown = false, bRevealed = false;
+		if (const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+		{
+			const FTDProgress Progress = Flow->GetProgress();
+			bAnchorDown = Progress.CompletedObjectives.Contains(AnchorObjectiveId);
+			bRevealed = Progress.bDominionRevealed;
+		}
+		if (bApproachSeeded && bRevealed && !bApproachWasRevealed)
+		{
+			ApproachOpenLeft = ApproachOpenSeconds;
+		}
+		bApproachSeeded = true;
+		bApproachWasRevealed = bRevealed;
+		ApproachOpenLeft = FMath::Max(0.f, ApproachOpenLeft - Dt);
+		View.Approach = ForceApproach >= 0 ? ForceApproach : (ApproachOpenLeft > 0.f ? 2 : (bAnchorDown && !bRevealed ? 1 : 0));
+		const ATDDominion* Dominion = ATDDominion::Get(this);
+		const TOptional<FVector> Target = Dominion ? TOptional<FVector>(Dominion->GetActorLocation()) : ApproachTargetOverride;
+		if (View.Approach > 0 && Target.IsSet())
+		{
+			FWaypoint& Wp = View.ApproachWp;
+			FVector2D Dir;
+			Wp.bOnScreen = Project(Target.GetValue(), Wp.Pos, Dir);
+			if (!Wp.bOnScreen)
+			{
+				Wp.Pos = AvoidStrip(OnSafeFrame(Dir));
+				Wp.Angle = FMath::Atan2(Dir.Y, Dir.X);
+			}
+			Wp.Distance = FVector::Dist(From, Target.GetValue()) / 100.f;
+			Wp.DrawPos = Wp.Pos;
+			Wp.bLifted = Wp.bOnScreen && LiftWaypoint(Wp.Pos, Wp.DrawPos);
+		}
+		else
+		{
+			View.Approach = 0;
+		}
+	}
+
+	// Space pickups: a marker for each within 800 m, a toast when one is taken, the overcharge timer.
+	View.Pickups.Reset();
+	View.Overcharge01 = View.OverchargeSeconds = 0.f;
+	PickupToastLeft = FMath::Max(0.f, PickupToastLeft - Dt);
+	if (const UTDPickupSubsystem* Pickups = UTDPickupSubsystem::Get(this))
+	{
+		for (const ATDPickup* Pk : Pickups->GetPickups())
+		{
+			if (!IsValid(Pk) || FVector::DistSquared(From, Pk->GetActorLocation()) > FMath::Square(PickupMarkRange))
+			{
+				continue;
+			}
+			FView::FPickupMark& M = View.Pickups.AddDefaulted_GetRef();
+			M.Type = static_cast<uint8>(Pk->GetType());
+			M.Color = ATDPickup::ColorOf(Pk->GetType());
+			FVector2D Dir;
+			M.bOnScreen = Project(Pk->GetActorLocation(), M.Pos, Dir);
+			if (!M.bOnScreen)
+			{
+				M.Pos = AvoidStrip(OnSafeFrame(Dir));
+				M.Angle = FMath::Atan2(Dir.Y, Dir.X);
+			}
+			M.Distance = FVector::Dist(From, Pk->GetActorLocation()) / 100.f;
+		}
+		for (int32 I = 0; I < 4; ++I)
+		{
+			const int32 N = Pickups->GetCollected(static_cast<ETDPickupType>(I));
+			if (N > PickupSeen[I])
+			{
+				const ETDPickupType Type = static_cast<ETDPickupType>(I);
+				View.PickupToast = ATDPickup::WordOf(Type);
+				View.PickupToastColor = ATDPickup::ColorOf(Type);
+				PickupToastLeft = PickupToastSeconds;
+			}
+			PickupSeen[I] = N;
+		}
+		const float Total = Pickups->GetOverchargeSeconds();
+		View.OverchargeSeconds = Pickups->GetOverchargeRemaining();
+		View.Overcharge01 = Total > 0.f ? FMath::Clamp(View.OverchargeSeconds / Total, 0.f, 1.f) : 0.f;
+	}
+	View.PickupToast01 = PickupToastLeft > 0.f ? 1.f - PickupToastLeft / PickupToastSeconds : 0.f;
+	if (PickupToastLeft <= 0.f)
+	{
+		View.PickupToast.Reset();
 	}
 
 	// Navigation pulse: project the corridor; off screen or no view, a generic corridor from under the ship toward the
@@ -1139,7 +1229,105 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
 	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
-	for (const FWaypoint& Wp : View.Waypoints)
+	// ---- the Dominion approach: pending = a dashed amber diamond (the route is prepared, the passage still closed), open =
+	// a solid one for its first 8 s; "APPROACH  PENDING" / "APPROACH  OPEN" with the range. A marker only: no corridor.
+	if (View.Approach > 0)
+	{
+		const FWaypoint& Wp = View.ApproachWp;
+		const bool bOpen = View.Approach == 2;
+		const FLinearColor AppC = bOpen ? T::Neutral() : T::Warning().CopyWithNewOpacity(.8f);
+		const FVector2D At = Wp.bOnScreen ? Wp.DrawPos : Wp.Pos;
+		const float R = Wp.bOnScreen ? 13.f : 10.f;
+		const FVector2D Pts[4] = { { 0, -R }, { R, 0 }, { 0, R }, { -R, 0 } };
+		for (int32 i = 0; i < 4; ++i)
+		{
+			const FVector2D A = At + Pts[i], B = At + Pts[(i + 1) % 4];
+			if (bOpen)
+			{
+				P.Line(A, B, AppC, 2.5f);
+			}
+			else
+			{
+				// Two dashes per side: a gap at each corner and one in the middle.
+				P.Line(FMath::Lerp(A, B, .1f), FMath::Lerp(A, B, .4f), AppC, 2.f);
+				P.Line(FMath::Lerp(A, B, .6f), FMath::Lerp(A, B, .9f), AppC, 2.f);
+			}
+		}
+		if (Wp.bOnScreen && Wp.bLifted)
+		{
+			P.Line(At + FVector2D(0, R), Wp.Pos, AppC.CopyWithNewOpacity(.4f), 1.f);
+		}
+		const FString Word = bOpen ? TEXT("APPROACH  OPEN") : TEXT("APPROACH  PENDING");
+		if (Wp.bOnScreen)
+		{
+			P.BackedWords(At.X, At.Y + R + 6.f, Word, 13, AppC, .5f, 60);
+			P.BackedWords(At.X, At.Y + R + 26.f, Range(Wp.Distance), 13, AppC, .5f, 20);
+		}
+		else
+		{
+			const FVector2D F(FMath::Cos(Wp.Angle), FMath::Sin(Wp.Angle));
+			P.Line(At + F * (R + 2.f), At + F * (R + 8.f), AppC, 2.5f);
+			const FVector2D Label = At - F * 70.f;
+			P.BackedWords(Label.X, Label.Y - 18.f, Word, 13, AppC, .5f, 60);
+			P.BackedWords(Label.X, Label.Y + 2.f, Range(Wp.Distance), 13, AppC, .5f, 20);
+		}
+		Rec(TEXT("approach"), At.X - R, At.Y - R, 2.f * R, 2.f * R);
+		Area += 160.f * 60.f;
+	}
+
+	// ---- space pickups within 800 m: a small diamond in the pickup's colour with a dot (on screen: the range under it),
+	// an edge diamond with a pointer off screen. Smaller than an objective waypoint: a reward, not an order.
+	if (!View.bCombatHeld)
+	{
+		for (const FView::FPickupMark& M : View.Pickups)
+		{
+			// No marker on the reticle cluster or over the ship (live: three pickups dead ahead piled their labels onto the
+			// reticle); no range text either: the diamond in its colour is enough, the pickup itself is visible.
+			if (M.bOnScreen && (FVector2D::Distance(M.Pos, C) < 72.f || ShipZone().IsInside(M.Pos)))
+			{
+				continue;
+			}
+			const FLinearColor PkC = M.Color;
+			const float R = M.bOnScreen ? 8.f : 7.f;
+			P.Poly(M.Pos, { { 0, -R }, { R, 0 }, { 0, R }, { -R, 0 }, { 0, -R } }, PkC, 2.f);
+			P.Box(M.Pos.X - 2.f, M.Pos.Y - 2.f, 4.f, 4.f, PkC);
+			if (!M.bOnScreen)
+			{
+				const FVector2D F(FMath::Cos(M.Angle), FMath::Sin(M.Angle));
+				P.Line(M.Pos + F * (R + 2.f), M.Pos + F * (R + 7.f), PkC, 2.f);
+			}
+			Rec(M.bOnScreen ? TEXT("pickup") : TEXT("pickup_edge"), M.Pos.X - R, M.Pos.Y - R, 2.f * R, 2.f * R);
+			Area += 30.f * 30.f;
+		}
+	}
+
+	// ---- overcharge: a thin gold-white ring outside the shield arc running down clockwise, the seconds at its top
+	if (View.Overcharge01 > 0.f)
+	{
+		const FLinearColor Gold = ATDPickup::ColorOf(ETDPickupType::Overcharge);
+		const float RingR = ShieldRadius + 11.f;
+		P.ArcSpan(C, RingR, -PI * .5f, 2.f * PI, Gold.CopyWithNewOpacity(.18f), 2.f);
+		P.ArcSpan(C, RingR, -PI * .5f, 2.f * PI * View.Overcharge01, Gold, 2.5f);
+		P.BackedWords(C.X, C.Y - RingR - 22.f, FString::FromInt(FMath::CeilToInt(View.OverchargeSeconds)), 13, Gold, .5f, 20);
+		Rec(TEXT("overcharge"), C.X - RingR, C.Y - RingR, 2.f * RingR, 2.f * RingR);
+	}
+
+	// ---- the collect toast, just above the squad strip: the pickup's word in its colour, rising a little, then fading
+	if (!View.PickupToast.IsEmpty() && View.Chips.Num() > 0)
+	{
+		const float A = View.PickupToast01;
+		const float Fade = FMath::Clamp((1.f - A) / .3f, 0.f, 1.f);
+		const FVector2D Chip = View.Chips[0].Pos;
+		const float Y = Chip.Y - 40.f - 10.f * A;
+		const FString Text = View.PickupToast == TEXT("OVERCHARGE")
+			? FString::Printf(TEXT("OVERCHARGE  %d s"), FMath::CeilToInt(View.OverchargeSeconds)) : View.PickupToast;
+		P.BackedWords(Chip.X + 6.f, Y, Text, 20, View.PickupToastColor.CopyWithNewOpacity(Fade), 0.f, 60);
+		Rec(TEXT("pickup_toast"), Chip.X, Y - 4.f, 260.f, 32.f);
+	}
+
+	static const TArray<FWaypoint> NoWaypoints;
+	const TArray<FWaypoint>& ShownWaypoints = View.bCombatHeld ? NoWaypoints : View.Waypoints; // a focus hold: none
+	for (const FWaypoint& Wp : ShownWaypoints)
 	{
 		const FLinearColor Way = T::Neutral();
 		if (Wp.bOnScreen && Wp.bLifted)
@@ -1525,8 +1713,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		}
 	}
 
-	// ---- objective line: top-centre pill, diamond, caps, counter right; expands for 3 s on change
-	if (!View.Objective.IsEmpty())
+	// ---- objective line: top-centre pill, diamond, caps, counter right; expands for 3 s on change (held off by a focus hold)
+	if (!View.Objective.IsEmpty() && !View.bCombatHeld)
 	{
 		const float E = FMath::SmoothStep(0.f, 1.f, View.ObjectiveExpand);
 		// Grow to fit long text: diamond + text + gap + counter + padding (headless measures 0: the design sizes stand).

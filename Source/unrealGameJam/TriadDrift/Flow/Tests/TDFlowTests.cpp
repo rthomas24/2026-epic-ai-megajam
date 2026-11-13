@@ -1279,6 +1279,8 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 		TestTrue(TEXT("victory screen first"), Menu->IsShowingVictory());
 		TestFalse(TEXT("no Continue into a won run"), Menu->CanContinue());
 		Menu->ReturnToMenu();
+		// Leaving before the ending stinger plays it first (T3, Nov 13), then the menu.
+		for (int32 i = 0; i < 600 && Menu->IsShowingVictory(); ++i) { W.Tick(1.f / 30.f); }
 		TestFalse(TEXT("then the menu"), Menu->IsShowingVictory());
 	}
 	{
@@ -1309,6 +1311,7 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 		Menu->StartPlay();
 		TestTrue(TEXT("Nick's victory widget after a win"), Menu->GetShownWidgetClass() == UTDPauseMenuWidget::StaticClass());
 		Menu->ReturnToMenu();
+		for (int32 i = 0; i < 600 && Menu->IsShowingVictory(); ++i) { W.Tick(1.f / 30.f); }
 		TestTrue(TEXT("RETURN TO MENU: Nick's main-menu widget again"), Menu->GetShownWidgetClass() == UUserWidget::StaticClass());
 		TestFalse(TEXT("not the code-built menu"), Menu->UsesPlaceholderMenu());
 	}
