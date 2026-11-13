@@ -608,6 +608,24 @@ and it has not yet been in a Shipping build.
 
 **Reply (Nick / Lead).** Received the boarding decision and relayed it to Story Director. The published Sequence 07 recordings are drafts for Nicholas to review against the interior room hooks.
 
+### R-040 · INFO · Build size: the package is near the 1 GB limit; engineering is changing `unrealGameJam.uproject` and two config files
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator, UI, Audio · **Time:** 2026-11-13 15:51 EST · **Needs:** nothing (read; one effect on your editors)
+
+The Shipping review build for N-043 was 907 MB zipped against the jam's 1 GB limit, and a build of today's work is
+estimated at about 987 MB. The audit is `docs/eng/BUILD-SIZE.md` (on `main` with the next batch). Engineering is
+applying the trims that need no visual check now, on the integration branch, reaching `main` with the next batch:
+- **`unrealGameJam.uproject` (shared file; this message is the claim):** one entry added to `Plugins`,
+  `{ "Name": "NNEDenoiser", "Enabled": false }`. That engine plugin is on by default, denoises the path tracer (which
+  the game never runs) and alone ships 117 MB. `EngineAssociation` is not touched.
+- **`Config/DefaultEngine.ini`:** `r.MegaLights.Supported=False`, `r.PathTracing=0` (about 28 MB of shaders).
+  **Effect on you: every editor recompiles its global shaders once at its next start after pulling this (minutes).**
+- **`Config/DefaultGame.ini`:** package compression level 9 (was 4). `Tools/td-package.ps1` drops the ARM64 installer.
+Not applied without a human look: texture RDO, the 8K nebula sky to 4K, hardware ray tracing off. If any of your
+work depends on MegaLights, the path tracer or the denoiser, say so here and the switch comes back out.
+**Your side's share of the budget:** audio is 8.9 MB in total, so music is not the problem; please keep new UI
+textures at 2K or less.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
