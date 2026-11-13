@@ -10,6 +10,9 @@
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "TriadDrift/Core/TDPresentation.h"
 
 namespace TDEnemyRangeScaleTest
 {
@@ -92,6 +95,31 @@ bool FTDEnemyRangeScaleCollision::RunTest(const FString&)
 			TestTrue(*FString::Printf(TEXT("%s: hull back to its base scale"), *Id.ToString()), E->GetHullMesh()->GetComponentScale().Equals(BaseScale, 0.01f));
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEnemyRangeScaleArt, "TriadDrift.Enemies.RangeScale.ArtMeshScalesAndHidesThePlaceholderParts", TD_TEST_FLAGS)
+bool FTDEnemyRangeScaleArt::RunTest(const FString&)
+{
+	using namespace TDEnemyRangeScaleTest;
+	FTDTestWorld W;
+	int32 Checked = 0;
+	for (const FName Id : { TDEnemyIds::ShardFighter, TDEnemyIds::HookInterceptor, TDEnemyIds::MaulBomber })
+	{
+		ATDEnemyShip* E = SpawnShip(W, Id);
+		if (!E || !E->GetHullMesh() || E->GetHullMesh()->GetStaticMesh() == nullptr) { continue; }
+		const UTDEnemyVisuals* V = ATDEnemyShip::ResolveVisuals(UTDEnemyLibrary::Get(Id));
+		if (!V || V->Mesh.IsNull()) { continue; }
+		++Checked;
+		const FString N = Id.ToString();
+		TestFalse(*FString::Printf(TEXT("%s: no white engine-glow cube on the art"), *N), E->GetEngineGlow() && E->GetEngineGlow()->IsVisible());
+		const FVector Base = E->GetHullMesh()->GetComponentScale();
+		const float Radius = E->GetCollisionSphere()->GetScaledSphereRadius();
+		Settle(E, FVector(30000.f, 0.f, 0.f), true);
+		TestTrue(*FString::Printf(TEXT("%s: the art mesh grows at range"), *N), E->GetHullMesh()->GetComponentScale().X > Base.X * 2.4f);
+		TestEqual(*FString::Printf(TEXT("%s: collision unchanged"), *N), E->GetCollisionSphere()->GetScaledSphereRadius(), Radius);
+	}
+	if (Checked == 0) { AddInfo(TEXT("no enemy visuals asset in this checkout: art path not exercised")); }
 	return true;
 }
 

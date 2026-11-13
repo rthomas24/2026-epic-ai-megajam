@@ -204,6 +204,11 @@ void ATDDominion::BuildHullDetail(bool bShow)
 	UTDStatics::TintPlaceholder(HullEyes, FLinearColor::White, 12.f);
 }
 
+FVector ATDDominion::GetHangarLocation() const
+{
+	return HangarPoint ? HangarPoint->GetComponentLocation() : GetActorLocation();
+}
+
 void ATDDominion::LayoutParts()
 {
 	// Lay the placeholder out from HullExtent so tuning the size keeps everything consistent.

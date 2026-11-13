@@ -562,69 +562,103 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 		Hide();
 		return;
 	}
-	if (!Trail)
+	Ship->GetEngineExhaustLocations(TrailNozzles);
+	const int32 Engines = TrailNozzles.Num();
+	const int32 N = FMath::Max(2, Tuning.TrailSegments);
+	if (!Trail || TrailTransforms.Num() != N * Engines)
 	{
-		UStaticMesh* Cube = TDFlightFeedback::LoadShape(TEXT("/Engine/BasicShapes/Cube.Cube"));
-		if (!Cube || !Ship->GetRootComponent())
+		if (!Trail)
 		{
-			return;
+			UStaticMesh* Cube = TDFlightFeedback::LoadShape(TEXT("/Engine/BasicShapes/Cube.Cube"));
+			if (!Cube || !Ship->GetRootComponent())
+			{
+				return;
+			}
+			Trail = NewObject<UInstancedStaticMeshComponent>(Ship, TEXT("TDEngineTrail"), RF_Transient);
+			Trail->SetStaticMesh(Cube);
+			Trail->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Trail->SetGenerateOverlapEvents(false);
+			Trail->SetCastShadow(false);
+			Trail->SetCanEverAffectNavigation(false);
+			Trail->CanCharacterStepUpOn = ECB_No;
+			Trail->SetupAttachment(Ship->GetRootComponent());
+			Trail->SetUsingAbsoluteLocation(true);
+			Trail->SetUsingAbsoluteRotation(true);
+			Trail->SetUsingAbsoluteScale(true);
+			Trail->RegisterComponent();
+			Trail->SetWorldTransform(FTransform::Identity);
+			UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
 		}
-		Trail = NewObject<UInstancedStaticMeshComponent>(Ship, TEXT("TDEngineTrail"), RF_Transient);
-		Trail->SetStaticMesh(Cube);
-		Trail->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Trail->SetGenerateOverlapEvents(false);
-		Trail->SetCastShadow(false);
-		Trail->SetCanEverAffectNavigation(false);
-		Trail->CanCharacterStepUpOn = ECB_No;
-		Trail->SetupAttachment(Ship->GetRootComponent());
-		Trail->SetUsingAbsoluteLocation(true);
-		Trail->SetUsingAbsoluteRotation(true);
-		Trail->SetUsingAbsoluteScale(true);
-		Trail->RegisterComponent();
-		Trail->SetWorldTransform(FTransform::Identity);
-		UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
-		TrailTransforms.SetNum(FMath::Max(2, Tuning.TrailSegments));
+		Trail->ClearInstances();
+		TrailTransforms.SetNum(N * Engines);
 		for (FTransform& T : TrailTransforms) { T = FTransform(FQuat::Identity, Ship->GetActorLocation(), FVector(0.01f)); }
 		Trail->AddInstances(TrailTransforms, false, true);
+		TrailHistory.Reset();
 	}
 
-	// Path samples: [0] follows the nozzle every frame; a new sample is pushed every TrailSampleSeconds.
-	const int32 N = TrailTransforms.Num();
-	const FVector Nozzle = Ship->GetEngineExhaustLocation();
-	if (TrailHistory.Num() == 0)
+	// Path samples per engine: [0] follows the nozzle every frame; a new sample is pushed every TrailSampleSeconds.
+	if (TrailHistory.Num() != Engines)
 	{
-		TrailHistory.Init(Nozzle, N + 1);
+		TrailHistory.SetNum(Engines);
+		for (int32 e = 0; e < Engines; ++e) { TrailHistory[e].Init(TrailNozzles[e], N + 1); }
 	}
-	TrailHistory[0] = Nozzle;
 	TrailClock += DeltaTime;
-	if (TrailClock >= Tuning.TrailSampleSeconds)
-	{
-		TrailClock = 0.f;
-		TrailHistory.Insert(Nozzle, 0);
-		TrailHistory.SetNum(N + 1);
-	}
+	const bool bSample = TrailClock >= Tuning.TrailSampleSeconds;
+	if (bSample) { TrailClock = 0.f; }
 	// A teleport (portal, hyperdrive drop-out, respawn) never draws a streak across space.
 	const float MaxStep = FMath::Max(5000.f, (float)Move->Velocity.Size() * Tuning.TrailSampleSeconds * 3.f);
-	const float Thick = Tuning.TrailThickness * (Ship->IsBoosting() ? 1.4f : 1.f);
-	float Length = 0.f;
-	for (int32 i = 0; i < N; ++i)
+	// Several engines: thinner ribbons, so a five-engine Bastion doesn't drag a wall of light.
+	const float Thick = Tuning.TrailThickness * (Ship->IsBoosting() ? 1.4f : 1.f) * (Engines > 1 ? 0.65f : 1.f);
+	// Near the camera a ribbon would smear across the view (the chase camera sits right above the player's own
+	// trail): segments shrink to nothing as they come within DustCameraClear of the eye, as the dust does.
+	const APlayerController* ViewPC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const bool bHaveEye = ViewPC && ViewPC->PlayerCameraManager;
+	const FVector Eye = bHaveEye ? ViewPC->PlayerCameraManager->GetCameraLocation() : FVector::ZeroVector;
+	const float Clear = FMath::Max(1.f, Tuning.DustCameraClear);
+	// The flown ship in the chase view: the camera sits ~14 m behind, right above its own exhaust, so the ribbon
+	// stops PlayerTrailMax behind the nozzle (tapering over that length) instead of streaming under the camera.
+	const bool bOwnChase = Ship->IsPlayerFlown() && !Ship->IsCockpitView();
+	const float Cap = bOwnChase ? Tuning.PlayerTrailMax : TNumericLimits<float>::Max();
+	float FirstLength = 0.f;
+	for (int32 e = 0; e < Engines; ++e)
 	{
-		const FVector A = TrailHistory[i];
-		const FVector B = TrailHistory[i + 1];
-		const FVector D = A - B;
-		const float Len = D.Size();
-		if (Len > MaxStep)
+		TArray<FVector>& H = TrailHistory[e];
+		H[0] = TrailNozzles[e];
+		if (bSample)
 		{
-			Hide();
-			return;
+			H.Insert(TrailNozzles[e], 0);
+			H.SetNum(N + 1);
 		}
-		const float Taper = 1.f - (float)i / (float)N;
-		const float T = FMath::Max(0.01f, Thick * Taper / 100.f);
-		const FQuat Q = Len > KINDA_SMALL_NUMBER ? FRotationMatrix::MakeFromX(D / Len).ToQuat() : Ship->GetActorQuat();
-		TrailTransforms[i] = FTransform(Q, (A + B) * 0.5f, FVector(FMath::Max(0.01f, Len / 100.f), T, T));
-		Length += Len;
+		float Length = 0.f;
+		for (int32 i = 0; i < N; ++i)
+		{
+			const FVector A = H[i];
+			FVector B = H[i + 1];
+			FVector D = A - B;
+			float Len = D.Size();
+			if (Len > MaxStep)
+			{
+				Hide();
+				return;
+			}
+			if (Length + Len > Cap)
+			{
+				// Cut this segment at the cap; the rest of the ribbon draws nothing.
+				const float Keep = FMath::Max(0.f, Cap - Length);
+				B = Len > KINDA_SMALL_NUMBER ? A - D * (Keep / Len) : A;
+				D = A - B;
+				Len = Keep;
+			}
+			const float Taper = bOwnChase ? FMath::Clamp(1.f - Length / FMath::Max(Cap, 1.f), 0.f, 1.f) : 1.f - (float)i / (float)N;
+			const float Near = bHaveEye ? FMath::Clamp(FVector::Dist((A + B) * 0.5f, Eye) / Clear - 0.25f, 0.f, 1.f) : 1.f;
+			const float T = FMath::Max(0.01f, Thick * Taper * Near / 100.f);
+			const FQuat Q = Len > KINDA_SMALL_NUMBER ? FRotationMatrix::MakeFromX(D / Len).ToQuat() : Ship->GetActorQuat();
+			TrailTransforms[e * N + i] = FTransform(Q, (A + B) * 0.5f, FVector(FMath::Max(0.01f, Len / 100.f), T, T));
+			Length += Len;
+		}
+		if (e == 0) { FirstLength = Length; }
 	}
-	TrailLength = Length;
+	TrailLength = FirstLength;
 	Trail->BatchUpdateInstancesTransforms(0, TrailTransforms, false, false, true);
 	if (!bTrailVisible) { Trail->SetVisibility(true); }
 	bTrailVisible = true;

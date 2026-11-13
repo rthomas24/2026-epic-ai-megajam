@@ -1013,7 +1013,11 @@ void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasA
 		}
 		else
 		{
-			Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.14f);
+			// Near the camera (a hit on a carrier hull a few metres away) a hit flash is capped like an explosion shell.
+			if (ATDCombatFlash* Flash = Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.14f))
+			{
+				Flash->SetCameraCap(ATDCombatFlash::MaxShellRadiusPerCameraDistance);
+			}
 		}
 	}
 }

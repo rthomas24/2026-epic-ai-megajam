@@ -17,9 +17,85 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "Misc/App.h"
+#include "EngineUtils.h"
+#include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshSocket.h"
+#include "Materials/MaterialInterface.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDPresentation.h"
 
 namespace TDFlightDebug
 {
+
+	// Every squad ship's art: visuals asset, mesh, orientation and size against the collision, sockets, what still
+	// shows of the placeholder, and where the exhaust is.
+	void ShipArt(const TArray<FString>& Args, UWorld* World)
+	{
+		if (!World) { return; }
+		// Probe: does Core's loader find the squad visuals, and does the registry see them?
+		for (const TCHAR* Name : { TEXT("DA_Rift_Visuals"), TEXT("DA_Lancer_Visuals"), TEXT("DA_Bastion_Visuals") })
+		{
+			UObject* Loaded = UTDStatics::LoadPresentationAsset(Name, UTDShipVisuals::StaticClass());
+			int32 InCharacters = 0;
+			FString Where;
+			if (IAssetRegistry* Registry = IAssetRegistry::Get())
+			{
+				TArray<FAssetData> Found;
+				Registry->GetAssetsByPath(FName(TEXT("/Game/TriadDrift/Gameplay/Characters")), Found, true);
+				for (const FAssetData& D : Found)
+				{
+					if (D.AssetName == FName(Name))
+					{
+						++InCharacters;
+						UObject* Direct = D.GetSoftObjectPath().TryLoad();
+						Where = FString::Printf(TEXT("%s -> direct load %s (%s)"), *D.GetSoftObjectPath().ToString(), *GetNameSafe(Direct), Direct ? *Direct->GetClass()->GetName() : TEXT("-"));
+					}
+				}
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.ShipArt: probe %s: loader %s | registry: %d assets under Gameplay/Characters, match %d %s | still loading %d"),
+					Name, *GetNameSafe(Loaded), Found.Num(), InCharacters, *Where, Registry->IsLoadingAssets() ? 1 : 0);
+			}
+		}
+		for (TActorIterator<ATDShip> It(World); It; ++It)
+		{
+			ATDShip* Ship = *It;
+			const UStaticMeshComponent* Hull = Ship->GetHullMesh();
+			const UStaticMesh* Mesh = Hull ? Hull->GetStaticMesh() : nullptr;
+			const float Radius = Ship->GetCollisionSphere() ? Ship->GetCollisionSphere()->GetScaledSphereRadius() : 0.f;
+			FBox Local(ForceInit);
+			if (Mesh) { Local = Mesh->GetBoundingBox(); }
+			const FVector Size = Local.IsValid ? Local.GetSize() * (Hull ? Hull->GetComponentScale() : FVector::OneVector) : FVector::ZeroVector;
+			FString Sockets;
+			if (Mesh)
+			{
+				for (const UStaticMeshSocket* Sock : Mesh->Sockets)
+				{
+					if (Sock) { Sockets += FString::Printf(TEXT("%s(%.0f,%.0f,%.0f) "), *Sock->SocketName.ToString(), Sock->RelativeLocation.X, Sock->RelativeLocation.Y, Sock->RelativeLocation.Z); }
+				}
+			}
+			FString Visible;
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(Ship);
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				if (M && M->IsVisible() && M->GetStaticMesh() && !M->bHiddenInGame)
+				{
+					Visible += FString::Printf(TEXT("%s[%s] "), *M->GetName(), *M->GetStaticMesh()->GetName());
+				}
+			}
+			const FVector Exhaust = Ship->GetActorTransform().InverseTransformPosition(Ship->GetEngineExhaustLocation());
+			const UMaterialInterface* Mat = Hull ? Hull->GetMaterial(0) : nullptr;
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.ShipArt: %s %s player %d | visuals %s | real art %d | mesh %s size %.0f x %.0f x %.0f cm (long axis %s) | collision radius %.0f | hull rot %s | material %s"),
+				*Ship->GetName(), *UEnum::GetValueAsString(Ship->GetShipId()), Ship->IsPlayerFlown() ? 1 : 0, *GetNameSafe(Ship->GetShipVisuals()),
+				Ship->HasRealArt() ? 1 : 0, *GetNameSafe(Mesh), Size.X, Size.Y, Size.Z,
+				Size.X >= Size.Y && Size.X >= Size.Z ? TEXT("X") : (Size.Y >= Size.Z ? TEXT("Y") : TEXT("Z")), Radius,
+				Hull ? *Hull->GetRelativeRotation().ToCompactString() : TEXT("-"), *GetNameSafe(Mat));
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.ShipArt:   sockets %s"), *Sockets);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.ShipArt:   visible %s| exhaust local (%.0f, %.0f, %.0f)"), *Visible, Exhaust.X, Exhaust.Y, Exhaust.Z);
+		}
+	}
+
 	void Feedback(const TArray<FString>& Args, UWorld* World)
 	{
 		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
@@ -89,5 +165,9 @@ static FAutoConsoleCommandWithWorldAndArgs GTDFlightThreatsCmd(TEXT("TD.Flight.T
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightFeedbackCmd(TEXT("TD.Flight.Feedback"),
 	TEXT("Log the no-art flight feedback: its tick cost, dust motes shown, active bursts, camera kick and placeholder counts."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Feedback));
+
+static FAutoConsoleCommandWithWorldAndArgs GTDFlightShipArtCmd(TEXT("TD.Flight.ShipArt"),
+	TEXT("Log every squad ship's art: visuals, mesh size against the collision, sockets, visible parts, exhaust point."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::ShipArt));
 
 #endif // !UE_BUILD_SHIPPING
