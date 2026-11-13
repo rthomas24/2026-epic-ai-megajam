@@ -66,8 +66,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float BeltHalfThickness = 15000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<float> BeltTilts = { 12.f, -18.f };
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 BeltRocks = 900;
+	/** Clusters per shell; two shells (ClusterShells: inner and outer distance pairs, cm) so every bearing has one near and one far. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 Clusters = 30;
-	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 RocksPerCluster = 40;
+	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<FVector2D> ClusterShells = { FVector2D(220000.f, 420000.f), FVector2D(420000.f, 750000.f) };
+	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 RocksPerCluster = 32;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 DebrisFields = 5;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 PiecesPerDebrisField = 150;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float BuoySpacing = 50000.f;
@@ -80,8 +82,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float LaneCoreRadius = 9000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float LaneHittableRadius = 15000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float PointKeepOut = 20000.f;
-	UPROPERTY(EditAnywhere, Category = "SpaceField") float DominionKeepOut = 120000.f;
+	/** The Dominion, its distortion field (720 m), generators, trench, docking cone and escape path (T4: 3.5 km). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField") float DominionKeepOut = 350000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float AtmosphereKeepOutScale = 1.3f;
+	/** The Verdance convoys (Dominion -> Verdance, offsets up to 900 m): nothing hittable in this tube. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField") float ConvoyKeepOut = 120000.f;
+	/** Return points (orbit take-off, the transponder 300 m beside Verdance's): nothing hittable within this. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField") float ReturnPointKeepOut = 50000.f;
+
+	/** Slowly tumbling big rocks (rotation only: their collision sphere never moves). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 MaxTumblers = 60;
+	UPROPERTY(EditAnywhere, Category = "SpaceField") float TumbleFromSize = 3000.f;
+
+	/** Pickup caches: spawned when the flown ship comes this close, once per run each (collected = gone). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField") float CacheSpawnDistance = 80000.f;
 
 	/** May something of Size (cm) stand at this world point (bCollides: the stricter hittable rules)? */
 	bool IsPlacementAllowed(const FVector& WorldPoint, float Size, bool bCollides) const;
@@ -116,7 +130,7 @@ private:
 
 	/** Add one visual instance of a rock family mesh, sized (bounding diameter, cm). Returns false if not allowed. */
 	bool AddRock(const FVector& At, float Size, ETDSpaceFieldKind Kind, FRandomStream& Rng, int32 Family);
-	bool AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides);
+	bool AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides, bool bTumble = false);
 	UHierarchicalInstancedStaticMeshComponent* ComponentFor(UStaticMesh* Mesh, float Size);
 	float NormFor(UStaticMesh* Mesh) const;
 
@@ -135,6 +149,39 @@ private:
 	TArray<FVector> DebrisFieldCenters;
 	TArray<FTDSpaceFieldPiece> Pieces;
 	TArray<TArray<FVector>> Lanes; // world space, each a segment [A, B]
+	/** The first BuoyLanes lanes carry buoys (zone to planets, Dominion, gate ends); the rest are keep-outs only. */
+	int32 BuoyLanes = 0;
+	TArray<TArray<FVector>> ConvoyLanes;
+
+	// Tumblers: movable instanced components (one per mesh), every instance rotates about its own axis.
+	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>> TumbleComponents;
+	struct FTumbler { TObjectPtr<UInstancedStaticMeshComponent> Comp; FTransform Home; FVector Axis; float RadPerSec; };
+	TArray<FTumbler> Tumblers;
+	FRandomStream TumbleRng;
+	TArray<FTransform> TumbleScratch;
+
+	// Caches.
+	struct FCache { FVector Spot; uint8 Type = 0; bool bCollected = false; TWeakObjectPtr<AActor> Pickup; FVector LastPickupLocation = FVector::ZeroVector; };
+	TArray<FCache> Caches;
+	float CacheTimer = 0.f;
+	FVector LastShipLocation = FVector::ZeroVector;
+	void UpdateCaches();
+	void UpdateTumblers();
+
+public:
+	int32 GetTumblerCount() const { return Tumblers.Num(); }
+	TArray<UInstancedStaticMeshComponent*> GetTumbleComponents() const
+	{
+		TArray<UInstancedStaticMeshComponent*> Out;
+		for (const TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>>& T : TumbleComponents) { if (T.Value) { Out.Add(T.Value); } }
+		return Out;
+	}
+	int32 GetCachesCollected() const;
+	int32 GetCachesAlive() const;
+	/** Tests / dev: run the cache logic now as if the flown ship were at ShipLocation. */
+	void UpdateCachesAt(const FVector& ShipLocation);
+
+private:
 	int32 ObstaclesAdded = 0;
 	bool bEnabled = true;
 	float Clock = 0.f;

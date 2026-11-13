@@ -9,6 +9,10 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "HAL/IConsoleManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Pawn.h"
+#include "TriadDrift/Combat/Pickups/TDPickup.h"
+#include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 
 namespace TDSpaceFieldImpl
 {
@@ -79,6 +83,16 @@ void ATDSpaceField::BeginPlay()
 		Layout = ATDGalaxyLayout::Get(this);
 	}
 	Build();
+	// Caches: four per debris field, the types in turn (one use each per run).
+	Caches.Reset();
+	const TArray<FVector> Spots = GetCacheSpots(this);
+	for (int32 i = 0; i < Spots.Num(); ++i)
+	{
+		FCache C;
+		C.Spot = Spots[i];
+		C.Type = static_cast<uint8>(i % 4);
+		Caches.Add(C);
+	}
 	SetFieldEnabled(TDSpaceFieldImpl::GEnabled != 0);
 }
 
@@ -136,6 +150,18 @@ void ATDSpaceField::Build()
 		Lanes.Add({ Zone, Xf.TransformPosition(G.A.GetLocation()) });
 		Lanes.Add({ Zone, Xf.TransformPosition(G.B.GetLocation()) });
 	}
+	BuoyLanes = Lanes.Num();
+	// Keep-out only (no buoys): each gate pair's own line, and every return point back to the zone (take-offs).
+	for (const FTDGatePairSpec& G : L.Gates) { Lanes.Add({ Xf.TransformPosition(G.A.GetLocation()), Xf.TransformPosition(G.B.GetLocation()) }); }
+	for (const TPair<FName, FTransform>& RP : L.ReturnPoints) { Lanes.Add({ Xf.TransformPosition(RP.Value.GetLocation()), Zone }); }
+	// The Verdance convoys run from the Dominion's field to Verdance (TDGalaxyLayout::Build, offsets up to 900 m).
+	ConvoyLanes.Reset();
+	for (const FTDPlanetSpec& Pl : L.Planets)
+	{
+		if (Pl.Destination == ETDDestination::Verdance) { ConvoyLanes.Add({ Xf.TransformPosition(L.Dominion.GetLocation()), Xf.TransformPosition(Pl.Location) }); }
+	}
+	TumbleRng.Initialize(Seed * 977 + 5);
+	Tumblers.Reset();
 
 	// Hidden collision spheres for the big pieces (the visuals never collide).
 	if (SphereMesh)
@@ -186,6 +212,22 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 		if (D < LaneCoreRadius + Half || (bCollides && D < LaneHittableRadius + Half))
 		{
 			return false;
+		}
+	}
+	// The convoy lanes: visuals may line them, nothing hittable inside the tube.
+	for (const TArray<FVector>& Lane : ConvoyLanes)
+	{
+		const float D = DistToSegment(P, Lane[0], Lane[1]);
+		if (D < LaneCoreRadius + Half || (bCollides && D < ConvoyKeepOut + Half))
+		{
+			return false;
+		}
+	}
+	if (bCollides)
+	{
+		for (const TPair<FName, FTransform>& RP : L.ReturnPoints)
+		{
+			if (FVector::Dist(P, Xf.TransformPosition(RP.Value.GetLocation())) < ReturnPointKeepOut + Half) { return false; }
 		}
 	}
 	// Gates, return points, the player start (the layout's own zones).
@@ -244,14 +286,41 @@ UHierarchicalInstancedStaticMeshComponent* ATDSpaceField::ComponentFor(UStaticMe
 	return C;
 }
 
-bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides)
+bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides, bool bTumble)
 {
 	if (!Mesh || !IsPlacementAllowed(At, Size, bCollides))
 	{
 		return false;
 	}
-	UHierarchicalInstancedStaticMeshComponent* C = ComponentFor(Mesh, Size);
-	C->AddInstance(FTransform(Rot, At, FVector(Size * NormFor(Mesh))), true);
+	const FTransform PieceXf(Rot, At, FVector(Size * NormFor(Mesh)));
+	if (bTumble)
+	{
+		TObjectPtr<UInstancedStaticMeshComponent>& T = TumbleComponents.FindOrAdd(Mesh);
+		if (!T)
+		{
+			T = NewObject<UInstancedStaticMeshComponent>(this, *FString::Printf(TEXT("Tumble_%s"), *GetNameSafe(Mesh)));
+			T->SetupAttachment(RootComponent);
+			T->SetStaticMesh(Mesh);
+			T->SetMobility(EComponentMobility::Movable);
+			T->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			T->SetCanEverAffectNavigation(false);
+			T->SetCastShadow(true);
+			T->bAffectDistanceFieldLighting = false;
+			T->SetCullDistances(0, 900000);
+			T->RegisterComponent();
+		}
+		T->AddInstance(PieceXf, true);
+		FTumbler Tu;
+		Tu.Comp = T;
+		Tu.Home = PieceXf;
+		Tu.Axis = FVector(TumbleRng.GetUnitVector());
+		Tu.RadPerSec = FMath::DegreesToRadians(TumbleRng.FRandRange(1.5f, 5.f)) * (TumbleRng.FRand() < 0.5f ? -1.f : 1.f);
+		Tumblers.Add(Tu);
+	}
+	else
+	{
+		ComponentFor(Mesh, Size)->AddInstance(PieceXf, true);
+	}
 	FTDSpaceFieldPiece Piece;
 	Piece.Location = At;
 	Piece.Size = Size;
@@ -279,7 +348,10 @@ bool ATDSpaceField::AddRock(const FVector& At, float Size, ETDSpaceFieldKind Kin
 		return false;
 	}
 	UStaticMesh* Mesh = Pool[Rng.RandRange(0, Pool.Num() - 1)];
-	return AddPiece(Mesh, At, FRotator(Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f)), Size, Kind, Size >= CollideFromSize);
+	const FRotator Rot(Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f));
+	// A separate stream picks the tumblers, so placement never changes with MaxTumblers.
+	const bool bTumble = Size >= TumbleFromSize && Tumblers.Num() < MaxTumblers && TumbleRng.FRand() < 0.35f;
+	return AddPiece(Mesh, At, Rot, Size, Kind, Size >= CollideFromSize, bTumble);
 }
 
 void ATDSpaceField::BuildBelts(FRandomStream& Rng)
@@ -316,13 +388,17 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 	// Even directions (a Fibonacci sphere of exactly the count) so every bearing, up and down too, has something; a
 	// direction blocked at one distance tries others.
 	const int32 N = Clusters;
+	for (int32 Shell = 0; Shell < ClusterShells.Num(); ++Shell)
+	{
+	// The outer shell's directions are turned half a step, so its clusters sit between the inner shell's.
+	const FQuat ShellTurn(FVector::UpVector, Shell * PI * (3.f - FMath::Sqrt(5.f)) * 0.5f);
 	TArray<FVector> Dirs;
 	for (int32 i = 0; i < N; ++i)
 	{
 		const float Y = 1.f - 2.f * (i + 0.5f) / N;
 		const float R = FMath::Sqrt(FMath::Max(0.f, 1.f - Y * Y));
 		const float Phi = i * PI * (3.f - FMath::Sqrt(5.f));
-		Dirs.Add(FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y).GetSafeNormal());
+		Dirs.Add(ShellTurn.RotateVector(FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y)).GetSafeNormal());
 	}
 	int32 Made = 0;
 	for (const FVector& Dir : Dirs)
@@ -335,7 +411,7 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 		bool bFound = false;
 		for (int32 Try = 0; Try < 8 && !bFound; ++Try)
 		{
-			C = Zone + Dir * Rng.FRandRange(220000.f, 650000.f);
+			C = Zone + Dir * Rng.FRandRange(ClusterShells[Shell].X, ClusterShells[Shell].Y);
 			bFound = IsPlacementAllowed(C, 40000.f, false);
 		}
 		if (!bFound)
@@ -350,6 +426,7 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 			const FVector Off = FVector(Rng.GetUnitVector()) * Rng.FRandRange(0.f, 1.f) * Rng.FRandRange(0.3f, 1.f) * 25000.f;
 			Placed += AddRock(C + Off, PowerSize(Rng, 500.f, 12000.f, 8.f), ETDSpaceFieldKind::Cluster, Rng, Rng.FRand() < 0.7f ? Fam : Rng.RandRange(0, 3)) ? 1 : 0;
 		}
+	}
 	}
 }
 
@@ -426,8 +503,9 @@ void ATDSpaceField::BuildBuoys()
 		return;
 	}
 	// A blinking buoy every BuoySpacing beside every lane, alternating sides, outside the hittable band.
-	for (const TArray<FVector>& Lane : Lanes)
+	for (int32 LaneIndex = 0; LaneIndex < BuoyLanes && LaneIndex < Lanes.Num(); ++LaneIndex)
 	{
+		const TArray<FVector>& Lane = Lanes[LaneIndex];
 		const FVector Dir = (Lane[1] - Lane[0]).GetSafeNormal();
 		const FVector Side = FVector::CrossProduct(Dir, FVector::UpVector).GetSafeNormal();
 		const float Len = (float)FVector::Dist(Lane[0], Lane[1]);
@@ -481,6 +559,19 @@ void ATDSpaceField::SetFieldEnabled(bool bOn)
 	{
 		if (W) { W->SetVisibility(bOn); }
 	}
+	for (const TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>>& T : TumbleComponents)
+	{
+		if (T.Value) { T.Value->SetVisibility(bOn); }
+	}
+	if (!bOn)
+	{
+		// Off: no cache in space (an uncollected one comes back when the field is on again).
+		for (FCache& C : Caches)
+		{
+			if (AActor* P = C.Pickup.Get()) { P->Destroy(); }
+			C.Pickup.Reset();
+		}
+	}
 	if (Collision)
 	{
 		Collision->SetCollisionEnabled(bOn ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
@@ -498,6 +589,9 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+	UpdateTumblers();
+	// Every frame (about 20 distance checks): the magnet pulls a taken cache off its spot within a few frames.
+	UpdateCaches();
 	// The wrecks drift round a 30 m loop (about 1.6 m/s) and turn slowly: they never leave their keep-out-checked spot.
 	Clock += DeltaSeconds;
 	for (int32 i = 0; i < WreckComponents.Num(); ++i)
@@ -510,4 +604,88 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 		T.SetRotation(T.GetRotation() * FQuat(FVector(0.3f, 0.2f, 1.f).GetSafeNormal(), Clock * FMath::DegreesToRadians(1.5f + i * 0.4f)));
 		W->UpdateInstanceTransform(0, T, true, true, true);
 	}
+}
+
+void ATDSpaceField::UpdateTumblers()
+{
+	if (Tumblers.Num() == 0)
+	{
+		return;
+	}
+	// One batch per component; instances were added in tumbler order, so a component's tumblers are its instances 0..N.
+	for (const TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>>& Pair : TumbleComponents)
+	{
+		UInstancedStaticMeshComponent* Comp = Pair.Value;
+		if (!Comp) { continue; }
+		TumbleScratch.Reset();
+		for (const FTumbler& T : Tumblers)
+		{
+			if (T.Comp != Comp) { continue; }
+			FTransform X = T.Home;
+			X.SetRotation(FQuat(T.Axis, Clock * T.RadPerSec) * T.Home.GetRotation());
+			TumbleScratch.Add(X);
+		}
+		if (TumbleScratch.Num() == Comp->GetInstanceCount())
+		{
+			Comp->BatchUpdateInstancesTransforms(0, TumbleScratch, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
+		}
+	}
+}
+
+void ATDSpaceField::UpdateCaches()
+{
+	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (Pawn)
+	{
+		UpdateCachesAt(Pawn->GetActorLocation());
+	}
+}
+
+void ATDSpaceField::UpdateCachesAt(const FVector& Ship)
+{
+	if (!bEnabled || !UTDPickupSubsystem::IsEnabled())
+	{
+		return;
+	}
+	// The magnet pulls a pickup to the flown ship and collects it on contact. A cache that vanished after it was pulled
+	// off its spot (or with the ship right on it) was taken: never again this run. One that timed out (20 s) or was
+	// cleared by a CUT never moved: it comes back the next time the ship is near.
+	for (FCache& C : Caches)
+	{
+		if (C.bCollected) { continue; }
+		if (AActor* P = C.Pickup.Get())
+		{
+			C.LastPickupLocation = P->GetActorLocation();
+			continue;
+		}
+		if (!C.Pickup.IsExplicitlyNull())
+		{
+			C.Pickup.Reset();
+			if (FVector::Dist(C.LastPickupLocation, C.Spot) > 300.f || FVector::Dist(Ship, C.Spot) < 3000.f)
+			{
+				C.bCollected = true;
+				continue;
+			}
+		}
+		if (FVector::Dist(Ship, C.Spot) < CacheSpawnDistance)
+		{
+			C.Pickup = UTDPickupSubsystem::SpawnPickup(this, static_cast<ETDPickupType>(C.Type), C.Spot);
+			C.LastPickupLocation = C.Spot;
+		}
+	}
+	LastShipLocation = Ship;
+}
+
+int32 ATDSpaceField::GetCachesCollected() const
+{
+	int32 N = 0;
+	for (const FCache& C : Caches) { N += C.bCollected ? 1 : 0; }
+	return N;
+}
+
+int32 ATDSpaceField::GetCachesAlive() const
+{
+	int32 N = 0;
+	for (const FCache& C : Caches) { N += C.Pickup.IsValid() ? 1 : 0; }
+	return N;
 }
