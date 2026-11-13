@@ -71,6 +71,8 @@ UI alone may transfer its three Loading01 plugin sources (including Private/TDLo
 | Audio | ART-11 First Contact, issue #29. Reserve ArtSource/Audio/FirstContact01/** on nick/audio-prototype-v1 for a single processed fragment reused by the opening and finale. | Track the two event IDs and one asset path. Voice, processing direction and final sign-off are with Nicholas. |
 | Lead | N-038 Settings handoff. Publish only ArtSource/UI/TriadHUD/Unreal/Settings01/{README.md,manifest.json,settings-only.patch} from the UI checkpoint on nick/settings-handoff-1113 in Worktrees/settings-handoff-1113. | Provide T5 a retrievable commit through the board. UI owns subsequent validation. |
 
+Current intake decision: all 36 originals are published at aa53ff9c for Ryan to select and import. All further Nick-side Intake03 imports, including pending Aurora and the two large GLBs, are parked. Preserve private 198 packages and all failed/partial evidence. UI owns isolated Worktrees/ui-loading-validation-dae at dae4943a, branch nick/ui-loading-validation-dae. Lead provisions matching binaries/build caches. UI may overlay the three previously claimed Loading01 source files and the developer-only module fixture and capture into Saved/Loading01/**. Only the HUD module is to be built there; leave the source host and f7 validation checkout untouched. Retain previous resource guards, yield to ready tutorial playback.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
