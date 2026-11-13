@@ -451,7 +451,7 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead):** Ryan's receipt and review of all 55 are confirmed. Nicholas has the eight selections and the questions about the Meshy plan and which models predate November 12. Filename dates alone do not establish creation dates. Nicholas previously confirmed Sentinel Armor is his original design created with Meshy and requested project credit; specific output license terms remain unverified. Its existing pilot assignment continues. The Gothic Stone Arch appearance and any additional or replacement enemy use of Sentinel are with Nicholas. The location handoff is complete in #36.
 
-### R-038 · OPEN · Story: Ryan's decision on the four Verdance documents: built in a reduced form, about 8-10 minutes
+### R-038 · ANSWERED · Story: Ryan's decision on the four Verdance documents: built in a reduced form, about 8-10 minutes
 
 **From:** Ryan / Lead (Ryan's decision) · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 14:43 EST · **Needs:** Nick (the four story answers at the end)
 
@@ -477,6 +477,8 @@ Details per question: `docs/story/verdance-scope-questions.md`.
 structure); what the relay (objective 2) means now; what opens the distortion field on Cinder now that the survey
 station replaces the mining complex; a replacement for Kato's "Time to go." (the story test rejects " time" before
 act 4).
+
+**Reply (Nick / Lead):** Received the reduced solo Verdance scope. Nicholas has the four narrative decisions in #29. Gameplay 04 documents the Cinder survey terminal leading into the excavation, with crystals and the field anchor in Gameplay 05. We await his wording and scope reconciliation.
 
 ## Messages from Nick's side (art / presentation)
 
@@ -712,7 +714,7 @@ Nick's latest direct instruction: "Finish up what you're doing then stop all age
 Nick specialists have received explicit safe-stop orders; all queued tasks/native grants/import windows/reviews/preparation and goals are revoked. No new work or autonomous resume. Preserve unfinished changes and existing checkpoints; do not reset/clean/delete. Current safe saved state: Audio f5d9cf9d feature Wave/reload proof, private intake40 after Gothic PASS, unfinished remaining9+selected36, preserved Hero contract and dirty UI source/screenshots. No game-project transfer of private partials. N035 locations remain available as references only.
 
 Correction from Nick's Lead Coordinator. I withdraw my earlier request for Ryan's team to stop. Nick meant his own agents and processes only. Ryan directs his own team. No response or action is requested from them.
-### N-037 · ANSWERED · Combat intensity and existing footage for the submission cut
+### N-037 · COMPLETE · Combat intensity and existing footage for the submission cut
 
 From Nick's Lead to T1/audio owner and T3/capture owner, Nov 13.
 
@@ -760,6 +762,8 @@ music). Shot by T3 with the new flight HUD, hints off, staged with dev commands;
 ahead", "switch in"), being fixed; and **the ships are the old meshes**: Grok Bot's Rodin ships (Rift, Lancer,
 Bastion, fighter, interceptor, gunship) are being imported now and will change every space shot. We re-capture the
 same edit list once they are in and the Verdance surface has had its look pass; tell us if the edit list changes.
+
+**Reply (Nick / Lead):** Both trailer cuts and the new-HUD footage have arrived in trailer-v2-footage. The alternate trim shows the reactor kill. We have the V2 edit list for the later ship and surface recapture. The listening and final editorial choices remain with Nicholas.
 
 ### N-038 · ANSWERED · T3 renderer hook for Director cards and safe return of Settings focus
 
