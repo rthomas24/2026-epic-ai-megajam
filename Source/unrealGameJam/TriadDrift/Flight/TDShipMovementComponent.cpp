@@ -390,7 +390,7 @@ void UTDShipMovementComponent::HandleTransformUpdated(USceneComponent* Component
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD silent move: %s moved %.0f m in one step, outside flight and without TeleportSpacecraft (%s -> %s). Mover's callstack:"),
 			*GetNameSafe(GetOwner()), Moved / 100.f, *From.ToCompactString(), *Now.ToCompactString());
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		if (!GIsAutomationTesting) { FDebug::DumpStackTraceToLog(ELogVerbosity::Warning); } // tests: the line is enough, a stack per move is noise
 	}
 #endif
 }
