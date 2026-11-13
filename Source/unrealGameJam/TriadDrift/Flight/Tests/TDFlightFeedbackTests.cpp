@@ -212,4 +212,25 @@ bool FTDFeedbackTrail::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFeedbackTrailFade, "TriadDrift.Flight.Feedback.WingmanTrailFadesNearCameraAndHud", TD_TEST_FLAGS)
+bool FTDFeedbackTrailFade::RunTest(const FString& Parameters)
+{
+	// A wingman passing close to the camera, or low on screen, must never paint its ribbon across the HUD band.
+	const FTDFlightFeedbackTuning T;
+	auto Fade = [&T](float Dist, float Y) { return UTDFlightFeedbackComponent::TrailFadeAt(T, Dist, Y); };
+	TestEqual(TEXT("far and mid-screen: fully drawn"), Fade(5000.f, 0.5f), 1.f);
+	TestEqual(TEXT("within the camera clear distance: gone"), Fade(T.TrailCameraFadeStart * 0.9f, 0.5f), 0.f);
+	TestEqual(TEXT("right at the eye: gone"), Fade(10.f, 0.5f), 0.f);
+	const float Half = Fade(0.5f * (T.TrailCameraFadeStart + T.TrailCameraFadeEnd), 0.5f);
+	TestTrue(TEXT("fades in between"), Half > 0.2f && Half < 0.8f);
+	TestEqual(TEXT("below the HUD band limit: gone"), Fade(5000.f, T.TrailHudBandLimit + 0.01f), 0.f);
+	TestEqual(TEXT("bottom of the screen: gone"), Fade(5000.f, 0.95f), 0.f);
+	TestEqual(TEXT("behind the eye / off screen: gone"), Fade(5000.f, 2.f), 0.f);
+	const float Edge = Fade(5000.f, 0.5f * (T.TrailHudBandFadeStart + T.TrailHudBandLimit));
+	TestTrue(TEXT("fades out over the band edge"), Edge > 0.2f && Edge < 0.8f);
+	TestEqual(TEXT("no viewport (headless): only distance counts"), Fade(5000.f, -1.f), 1.f);
+	TestTrue(TEXT("limit sits at ~72% of the screen"), FMath::IsNearlyEqual(T.TrailHudBandLimit, 0.72f, 0.02f));
+	return true;
+}
+
 #endif
