@@ -64,7 +64,7 @@ Audio owns only tutorial fields TutorialPrelude, TutorialLoop and TutorialFadeOu
 
 UI owns a LoadingWidgetClass-compatible presentation widget in hud-lancer-polish, under Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDLoadingWidget.h, Private/TDLoadingWidget.cpp and Private/TDLoadingWidgetTests.cpp and ArtSource/UI/TriadHUD/Unreal/Loading01/**. Keep current dirty work isolated. Use existing flow host and real data, preserve shared style; later do runtime verification in a separate test host around Audio priority. Camera remains queued for its named T1 build.
 
-UI alone may transfer its two Loading01 plugin sources to nick/ui-loading-validation in Worktrees/ui-loading-validation at f7aa911c and use Saved/Loading01/** for isolated validation scripts, logs and actual gameplay screenshots. Permit a transient loading-widget instance only. No saved change to map, config, style or defaults. Fresh guarded single build and capture after Environment/Aurora, yielding to a ready T1 tutorial build.
+UI alone may transfer its three Loading01 plugin sources (including Private/TDLoadingWidgetTests.cpp) to nick/ui-loading-validation in Worktrees/ui-loading-validation at f7aa911c and use Saved/Loading01/** for isolated validation scripts, logs and actual gameplay screenshots. Only in that validation checkout, permit a developer-only opt-in transient instance fixture in Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TriadDriftHUDModule.cpp. Exclude that fixture from the shipping candidate. No saved change to map, config, style or defaults. Fresh guarded single build and capture after Environment/Aurora, yielding to a ready T1 tutorial build.
 
 ### Current lanes
 
