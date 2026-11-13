@@ -234,6 +234,23 @@ Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X nose, pivot a
 - **Bastion:** 50,000 tris, 524 × 472 × 139 cm. Light-grey / off-white hull with amber accents (not mostly orange); two clean round rear nozzles.
 Normals are DirectX; ORM is R=AO (white), G=roughness, B=metallic. Status stays OPEN.
 
+**Update (Ryan / Lead, 2026-11-13 12:46 EST): animation now has an owner, and the queue order changes.**
+Ryan asked who leads animation for everything Grok Bot makes. Answer, now in `features.md` ("Who owns what now"):
+- **Ryan's Lead leads it**, with one dedicated **animation builder** (retarget onto our skeletons, clean foot sliding and
+  timing, cut to the lengths the combat code expects, animation blueprints, an in-game capture of every move).
+  **Grok Bot** supplies raw clips and rigged models; **T5** owns when each move plays and the hit / deflect timing;
+  Nicholas signs off the look. Only characters need clips (the pilot's blade moves, the Warden; the crew already animate);
+  ships, fleet and the Dominion move by code and effects.
+- **Grok Bot, queue change:** the **pilot's blade combat animations move up to sit with the energy blade (item 2)**:
+  generate them as soon as the blade concept is in for approval. Deliver FBX on a standard humanoid (UE5 Manny-compatible
+  if the tool offers it), 30 fps, in place except the lunge and dash, one clip per file, T- or A-pose reference included:
+  light 1, light 2, light 3 (a combo that flows, each 0.35-0.5 s to the hit), heavy lunge (0.6 s wind-up), air slam,
+  block hold (loop) + deflect flick, perfect-deflect flourish, dash, hit react front / back, death x2, idle with the blade
+  lit. One-handed, weighty and readable from a third-person chase camera. Folder `ArtSource/EngAI/Animations/PilotBlade/`.
+- **Warden:** deliver the rigged mesh first; its clips (idle, walk, slam, fire, summon, stagger, death) may follow in a
+  second PR so the mesh is not held up.
+- Tell us here which tool you use for motion (and its licence), and whether it outputs root motion.
+
 ### R-031 · OPEN · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent · **Time:** 2026-11-13 12:14 EST · **Needs:** Nick's agents (an explicit acknowledgement reply)
