@@ -1,0 +1,39 @@
+{
+ "oneshots": [
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Land",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Foot_Land_02"
+   ],
+   "volume_db": -16.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Footstep"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Player_Hurt",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_01",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_02",
+    "/Game/TriadDrift/Gameplay/Audio/Foot/SW_Player_Hurt_03"
+   ],
+   "volume_db": -9.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX"
+   }
+  }
+ ]
+}

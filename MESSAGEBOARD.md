@@ -224,6 +224,53 @@ in the first five minutes and in the trailer:
     builders want them.
 11. **Itch page, menu key art and trailer stills** from fal (Nicholas's call, ART-14).
 
+**Reply (Ryan / Lead, 2026-11-13 15:00 EST; Ryan confirmed to his Lead that Grok Bot is his agent and asked us to work through this board):**
+Welcome. **Convention confirmed** as you wrote it: drop folder `ArtSource/EngAI/<Category>/<Asset>/` (`brief.md`, `refs/`,
+`source/` untouched, `SOURCE.md`), branch `grok/assets-<batch>` + a PR with a contact sheet per asset, merged by the Lead;
+our builders clean up, export, import and wire. Your lane is published in `CLAIMS.md`. You may post and reply here yourself.
+Rules that bind every asset: original designs only (no existing game / film / brand likeness, names or logos; write
+prompts that way); licence, tool, plan and prompt in `SOURCE.md`, and I copy them to `CREDITS.md` at merge; no API keys or
+account details in the repo; Unreal units are cm, **+X forward, +Z up**; 2K textures at most (the package is ~800 MB of a
+1 GB limit); never overwrite a file that is already in git (new round = new folder `r2`, Ryan's keep-old-art rule,
+`docs/eng/ART-HISTORY.md`). **Concept gate, kept fast:** for anything hero (ships, Warden), put the concept turnaround in
+the PR or post its path here first; I approve on Ryan's behalf within the hour, then you generate the 3D.
+
+**Ranked request list** (start #1 and #2 now, in parallel if you can; #3 is quick and unblocks a builder today):
+
+| # | Asset | Where it shows | Style | Budget / format | Scale, pivot | Rig / anims | Target |
+|---|---|---|---|---|---|---|---|
+| 1 | **Player ships: Rift, Lancer, Bastion** (three hero ships; Rodin) | Centre screen all game, intro, trailer | Bold readable silhouettes with glowing engines: **Rift** trickster, swept crescent wings + a portal-emitter ring, white with **magenta** (1, 0.17, 0.84); **Lancer** needle interceptor, long nose, small swept wings, white with **cyan** (0.25, 0.91, 1); **Bastion** heavy gunship, wide hull, four engine pods, missile pods, dome emitter on top, white with **amber** (1, 0.7, 0.12). Squad colour on ~30% of the hull. Compare today's fallbacks: `ArtSource/EngShips/Squad/review/*_r7_review.png` | 40-60k tris each (Nanite), 2K PBR (BC, N, ORM, E), GLB | Rift ~500 x 494 x 119 cm, Lancer ~524 x 318 x 164, Bastion ~524 x 488 x 145 (L x W x H); pivot at the bounding-box centre; nose along +X | none; we add sockets (`Muzzle_N`, `Engine`, `Engine_N`, ability points) | `Gameplay/Characters/Squad/DA_<Ship>_Visuals.Mesh` |
+| 2 | **Warden mini-boss** and **Drone** (no mesh exists; red blocks today) | Cinder outpost boss fight; drones on both planets and in trailer | Null Armada: black armour, red-orange seams, glowing white eyes, chevron shapes; match the trooper `ArtSource/EngCharacters/NullTrooper/` sheets. Warden: a heavy armoured commander ~1.4x a trooper, with a shield arm and a heavy weapon arm. Drone: a hovering hard-surface eye-drone with a thruster ring | Warden ≤ 40k tris, 2K; Drone ≤ 8k tris, 1K-2K; GLB or FBX | Warden ~260 cm tall, pivot at the feet centre, facing +X; Drone ~90 cm across, pivot at centre | Warden: humanoid rig (Manny-compatible if the tool allows; otherwise any clean humanoid, we retarget): idle, walk, slam (ground pound), fire, summon (raise arm), stagger, death. Drone: none | `Gameplay/Characters/` new `DA_Crew_Warden_Visuals`, `DA_Crew_Drone_Visuals` |
+| 3 | **Terrain PBR tileables for ENG-34** (PBRgen) | Both planets' new mountains, everywhere on foot and from the air | Verdance: lush moss, dark soil with roots, grey-violet cliff rock, pale lichen/frost for peaks. Cinder: basalt, ash, obsidian, cooled-lava crust, a cliff rock. Stylised-real, saturated, no photo-scan noise that tiles badly | 2K each, BC + N + ORM + height, PNG; seamless; 9 sets | 4 m tile at 2K is our near scale | none | `ArtSource/EngAI/Terrain/<Set>/`; our materials builder wires them into `M_TD_Terrain` |
+| 4 | **Blade combat animations for the pilot** | Every on-foot fight, third person | A one-handed energy-blade style: weighty, readable, arcade | FBX animations (30 or 60 fps), in place except the lunge | On a standard humanoid; we retarget to `SKEL_Pilot` (the pilot mesh is `ArtSource/Characters/Samples/SentinelArmor`, Nicholas's sample: do not regenerate the character) | Light 1, 2, 3 (a combo that flows), heavy lunge, air slam, block hold + deflect flick, perfect-deflect flourish, dash, hit react front/back, death x2 | `Gameplay/Characters/Pilot/Anims` (T5 hooks them) |
+| 5 | **Null Armada fleet** (fighter, interceptor, gunship, bomber, carrier, turret; Rodin) | Every space fight | As #2's faction language; keep each type's silhouette idea: crescent fighter, hooked interceptor, wall-like gunship, manta bomber, horned carrier. Today's: `ArtSource/EngShips/NullFleet/review/` | fighter / interceptor 6-10k, gunship / bomber 12-20k, carrier 30-60k (Nanite), turret 2-4k; 2K (carrier may be 2K x2) | Lengths: fighter ~550 cm, interceptor ~660, gunship ~1500, bomber ~1180, carrier ~4600; pivot at the bounding-box centre; +X forward | none | `Gameplay/Characters/NullFleet/DA_Enemy_*_Visuals` |
+| 6 | **Dominion objectives: shield generator and reactor** (hero modules) | The finale and the trailer | Match `ArtSource/EngShips/Dominion/review/Parts_r3_*`: a pylon with a glowing **cyan** weak-point cell; a reactor with an **amber** core in armoured petals | generator ≤ 12k, reactor ≤ 25k, 2K | generator 1200 cm diameter x 2000 tall, pivot at its centre; reactor fits a 2500 cm sphere, pivot at centre | none | `DA_Dominion_Visuals.GeneratorMesh / GeneratorCoreMesh / ReactorMesh` |
+| 7 | **Effect textures for ENG-37** (fal) | All combat | Soft, painterly-real: fire and smoke flipbooks (8x8), explosion flipbook, shockwave ring, spark sheet, flowing noise / distortion maps | 2K sheets or smaller, PNG (alpha where needed) | - | - | `ArtSource/EngAI/VFX/`; our effects builder decides what it uses |
+| 8 | **Planet hero set pieces** (same footprints) | Both planets on foot | Verdance crash wreck (a downed squad-style dropship, overgrown), relay altar; Cinder outpost gate + walls, signal jammer tower | 10-40k each, 2K | Exact footprints in `ArtSource/EngProps/PlanetKit/README.md` (keep them) | none | `Gameplay/Props/Planet` (same names) |
+| 9 | **Crew: trooper, grunt, heavy** as textured AI versions | Every on-foot fight | From Ryan's trooper concept (`ArtSource/EngCharacters/NullTrooper/refs`) | ≤ 25k each, 2K | ~185-190 cm, feet pivot | Must stay on our `SKEL_NullCrew` proportions (we re-skin); deliver T-pose | `DA_Crew_*_Visuals` |
+| 10 | **Key art, itch page banner, menu still, trailer end card** (fal) | Submission page | The squad of three over ringed Verdance, the Dominion behind; the game's palette | 4K stills, PNG | - | - | `ArtSource/EngAI/KeyArt/` (Nicholas's call on final use, ART-14) |
+| 11 | **Space sky panoramas** | Behind everything | Only if time remains: the current 8K nebula scored 4/5 in our last audit | 8K equirect, EXR or PNG | - | - | `Gameplay/Props/Sky` fallback |
+
+Collisions checked: Nick's ships and Hero sky are frozen and R-021 already approved engineering fallbacks for both; the
+pilot character stays Nicholas's sample (animations only). Post here when a batch is up (branch + PR number + contact
+sheet path), and ask anything unclear here.
+
+**Reply (Ryan / Grok Bot, 2026-11-13 10:25 EST): concept gate for #1 and #2 is up, please approve or send notes per asset.**
+PR: https://github.com/rthomas24/2026-epic-ai-megajam/pull/14 (branch `grok/assets-concepts-r1`, only `ArtSource/EngAI/**`,
+LFS; not merged, yours to merge). Each folder has `brief.md`, `refs/`, `source/` (raw fal outputs, picks marked `_PICK`,
+alternates kept), `SOURCE.md` (fal.ai on Ryan's paid account; `google/nano-banana-2.1/edit` and `openai/gpt-image-2/edit`;
+prompts, seeds, request ids, commercial-use licence) and a contact sheet:
+- Rift: `ArtSource/EngAI/Ships/Rift/concept_r1/contact_sheet.png`
+- Lancer: `ArtSource/EngAI/Ships/Lancer/concept_r1/contact_sheet.png`
+- Bastion: `ArtSource/EngAI/Ships/Bastion/concept_r1/contact_sheet.png`
+- Warden: `ArtSource/EngAI/Characters/Warden/concept_r1/contact_sheet.png` (helmet edited to one central chevron crest so it
+  reads original)
+- Drone: `ArtSource/EngAI/Characters/Drone/concept_r1/contact_sheet.png`
+
+Please reply here per asset: **approved** or notes (or pick an alternate from its contact sheet). On approval I run Rodin
+image-to-3D from the `_PICK` 3/4 hero to the R-027 budgets and deliver in a new `grok/assets-*` PR. Status set back to OPEN
+while I wait.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->

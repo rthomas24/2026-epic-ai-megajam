@@ -14,6 +14,7 @@
 #include "Styling/CoreStyle.h"
 #include "UObject/UnrealType.h"
 #include "Widgets/Input/SButton.h"
+#include "TriadDrift/Flow/TDFrontEndStyle.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/SBoxPanel.h"
@@ -83,6 +84,9 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	case ETDSettingsRow::GamepadDeadzone: S->SetGamepadDeadzone(TDSettingsPage::Step(P.GamepadDeadzone, 0.05f * D, 0.f, 0.5f)); break;
 	case ETDSettingsRow::InvertGamepadY: S->SetInvertGamepadY(!P.bInvertGamepadY); break;
 	case ETDSettingsRow::Hints: S->SetHintsEnabled(!P.bHintsEnabled); break;
+	case ETDSettingsRow::Difficulty:
+		S->SetDifficulty((ETDDifficulty)FMath::Clamp((int32)UTDSettingsSubsystem::GetDifficultyInPlay() + (Direction > 0 ? 1 : -1), 0, (int32)ETDDifficulty::Ace));
+		break;
 	case ETDSettingsRow::MasterVolume: S->SetMasterVolume(TDSettingsPage::Step(P.MasterVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::MusicVolume: S->SetMusicVolume(TDSettingsPage::Step(P.MusicVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::EffectsVolume: S->SetEffectsVolume(TDSettingsPage::Step(P.EffectsVolume, 0.1f * D, 0.f, 1.f)); break;
@@ -160,6 +164,7 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::GamepadDeadzone: return LOCTEXT("PadDead", "Gamepad dead zone");
 	case ETDSettingsRow::InvertGamepadY: return LOCTEXT("InvertPad", "Invert gamepad Y");
 	case ETDSettingsRow::Hints: return LOCTEXT("Hints", "Control hints");
+	case ETDSettingsRow::Difficulty: return LOCTEXT("Difficulty", "Difficulty");
 	case ETDSettingsRow::MasterVolume: return LOCTEXT("Master", "Master volume");
 	case ETDSettingsRow::MusicVolume: return LOCTEXT("Music", "Music volume");
 	case ETDSettingsRow::EffectsVolume: return LOCTEXT("Effects", "Effects volume");
@@ -169,6 +174,12 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::Back: return LOCTEXT("Back", "Back");
 	default: return FText::GetEmpty();
 	}
+}
+
+FText FTDSettingsPageModel::SelectedRowHint() const
+{
+	return GetSelectedRow() == ETDSettingsRow::Difficulty
+		? UTDSettingsSubsystem::DifficultyDescription(UTDSettingsSubsystem::GetDifficultyInPlay()) : FText::GetEmpty();
 }
 
 FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
@@ -189,6 +200,7 @@ FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
 	case ETDSettingsRow::GamepadDeadzone: return TDSettingsPage::Percent(P.GamepadDeadzone);
 	case ETDSettingsRow::InvertGamepadY: return TDSettingsPage::OnOff(P.bInvertGamepadY);
 	case ETDSettingsRow::Hints: return TDSettingsPage::OnOff(P.bHintsEnabled);
+	case ETDSettingsRow::Difficulty: return UTDSettingsSubsystem::DifficultyName(UTDSettingsSubsystem::GetDifficultyInPlay()); // the run's, after a Continue
 	case ETDSettingsRow::MasterVolume: return TDSettingsPage::Percent(P.MasterVolume);
 	case ETDSettingsRow::MusicVolume: return TDSettingsPage::Percent(P.MusicVolume);
 	case ETDSettingsRow::EffectsVolume: return TDSettingsPage::Percent(P.EffectsVolume);
@@ -218,7 +230,14 @@ void STDSettingsPage::Construct(const FArguments& InArgs)
 	{
 		Rows->AddSlot().AutoHeight().Padding(0.f, 2.f)[ MakeRow((ETDSettingsRow)i) ];
 	}
-	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 16.f, 0.f, 0.f)
+	// What the selected row does, when it needs saying (difficulty: what each preset changes, and when it applies).
+	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 10.f, 0.f, 0.f)
+	[
+		SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(1.f, 0.85f, 0.4f))
+		.WrapTextAt(740.f).Justification(ETextJustify::Center)
+		.Text_Lambda([this]() { return Model ? Model->SelectedRowHint() : FText::GetEmpty(); })
+	];
+	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 8.f, 0.f, 0.f)
 	[
 		SNew(STextBlock)
 			.Text(LOCTEXT("Help", "UP / DOWN  SELECT     LEFT / RIGHT  CHANGE     ENTER / A  SELECT     ESC / B  BACK"))
@@ -277,7 +296,11 @@ TSharedRef<SWidget> STDSettingsPage::MakeRow(ETDSettingsRow Row)
 		Line->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)[ Arrow(+1, TEXT(">")) ];
 	}
 
-	return SNew(SButton).IsFocusable(false)
+	// The front-end focus look (T5's TDFrontEndStyle): the row Enter / A acts on gets the squad-colour frame and
+	// grows a little; others keep a faint outline so the layout never jumps. Rows here are never Slate-focused (the
+	// page owns keyboard and pad navigation), so the frame follows the page's own selection, not Slate focus.
+	const float Grow = bAction ? 1.06f : 1.02f;
+	TSharedRef<SButton> Button = SNew(SButton).IsFocusable(false)
 		.ButtonColorAndOpacity_Lambda([Selected]() { return Selected() ? FLinearColor(0.15f, 0.3f, 0.4f, 0.95f) : FLinearColor(0.05f, 0.06f, 0.09f, 0.9f); })
 		.OnClicked_Lambda([this, WeakModel, Index, bAction]()
 		{
@@ -294,6 +317,21 @@ TSharedRef<SWidget> STDSettingsPage::MakeRow(ETDSettingsRow Row)
 			return FReply::Handled();
 		})
 		[ Line ];
+	return SNew(SBorder)
+		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+		.Padding(FMargin(3.f))
+		.BorderBackgroundColor_Lambda([Selected]()
+		{
+			return Selected() ? FSlateColor(TDFrontEndStyle::FocusColor()) : FSlateColor(FLinearColor(1.f, 1.f, 1.f, 0.08f));
+		})
+		.RenderTransformPivot(FVector2D(0.5f, 0.5f))
+		.RenderTransform_Lambda([Selected, Grow]()
+		{
+			return Selected() ? TOptional<FSlateRenderTransform>(FSlateRenderTransform(FScale2D(Grow))) : TOptional<FSlateRenderTransform>();
+		})
+		[
+			Button
+		];
 }
 
 FReply STDSettingsPage::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
@@ -378,7 +416,7 @@ bool UTDSettingsSubsystem::OpenSettingsPage(const UObject* WorldContextObject)
 		UUserWidget* Widget = PC ? CreateWidget<UUserWidget>(PC, WidgetClass) : CreateWidget<UUserWidget>(World, WidgetClass);
 		if (Widget)
 		{
-			Widget->AddToViewport(50);
+			Widget->AddToViewport(UTDSettingsSubsystem::PageZOrder);
 			Widget->SetKeyboardFocus();
 			S->PageWidget = Widget;
 			UE_LOG(LogTriadDrift, Log, TEXT("TD settings: page opened (%s)"), *WidgetClass->GetName());
@@ -389,7 +427,7 @@ bool UTDSettingsSubsystem::OpenSettingsPage(const UObject* WorldContextObject)
 	const UObject* Context = WorldContextObject;
 	TWeakObjectPtr<const UObject> WeakContext = Context;
 	S->Page = SNew(STDSettingsPage).Settings(WeakS).OnClose_Lambda([WeakContext]() { CloseSettingsPage(WeakContext.Get()); });
-	GEngine->GameViewport->AddViewportWidgetContent(S->Page.ToSharedRef(), 50);
+	GEngine->GameViewport->AddViewportWidgetContent(S->Page.ToSharedRef(), UTDSettingsSubsystem::PageZOrder);
 	S->Page->FocusPage();
 	UE_LOG(LogTriadDrift, Log, TEXT("TD settings: page opened (code-built)"));
 	return true;
