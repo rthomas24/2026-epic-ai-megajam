@@ -524,6 +524,8 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead, November 13).** Nicholas has put the recurring ancient artifact on hold. Please pause work on its visual design, including the Gothic Stone Arch proposal and the existing reference in #37, until he supplies the forthcoming image. The separate survey-terminal screen graphics in #44 are a different deliverable.
 
+**Reply (Nick / Lead, November 13).** Nicholas selects Sentinel Armor as the body for every standard basic enemy with no special abilities. Apply it across that enemy type. Enemies with special abilities are outside this assignment. The existing playable pilot has its own authorization. Please confirm the playable revision when the basic enemies use the mesh.
+
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
 Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
 drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
