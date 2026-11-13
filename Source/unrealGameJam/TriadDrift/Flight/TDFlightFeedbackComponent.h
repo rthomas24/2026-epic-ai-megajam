@@ -140,6 +140,20 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 	/** ...and are gone below this one (the HUD band), so a wingman passing close never paints across the HUD. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0", ClampMax = "1"))
 	float TrailHudBandLimit = 0.72f;
+
+	/** Taking damage on the flown ship: procedural shake (deg) at a full-strength hit (HitFullDamage or more), 0.3 s. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float HitShake = 0.9f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "1"))
+	float HitFullDamage = 25.f;
+
+	/** A ship destroyed near the flown ship: shake (deg) right next to it, fading to 0 at ExplosionShakeRadius (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float ExplosionShake = 1.4f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
+	float ExplosionShakeRadius = 9000.f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
@@ -180,6 +194,14 @@ public:
 	// ---- Read by the chase camera (and by tests) ----
 	FRotator GetCameraOffset() const { return CameraOffset; }
 	float GetFOVOffset() const { return FOVOffset; }
+
+	/**
+	 * The player's comfort options (Settings page): every camera shake and kick (these procedural ones and the
+	 * presentation cues' camera shakes, through the space controller) is multiplied by UserShakeScale (0 = none);
+	 * the speed FOV widening and the FOV punches by UserSpeedFOVScale (0 = a fixed FOV).
+	 */
+	static float UserShakeScale;
+	static float UserSpeedFOVScale;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Feedback")
 	int32 GetActiveBurstCount() const;
@@ -265,6 +287,8 @@ private:
 
 	FRotator CameraOffset = FRotator::ZeroRotator;
 	float FOVOffset = 0.f;
+	UFUNCTION() void HandleDamaged(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
+	UFUNCTION() void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
 	float SustainedFOV = 0.f;
 	float SustainedShake = 0.f;
 	float ShakeTime = 0.f;

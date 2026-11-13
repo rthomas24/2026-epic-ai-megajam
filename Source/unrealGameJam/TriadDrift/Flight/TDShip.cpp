@@ -903,7 +903,8 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle * CameraTuning.LookAheadPitchScale, LookAhead.X * CameraTuning.LookAheadAngle, 0.f) + Kick);
 
 	// --- FOV widens with speed -------------------------------------------------------------------------
-	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01());
+	// The Settings "Speed FOV" option scales how much the view widens with speed (0 = a fixed FOV).
+	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01() * FMath::Clamp(UTDFlightFeedbackComponent::UserSpeedFOVScale, 0.f, 1.f));
 	CurrentFOV = bSnap ? TargetFOV : FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, CameraTuning.FOVResponse);
 	ChaseCamera->SetFieldOfView(CurrentFOV);
 }

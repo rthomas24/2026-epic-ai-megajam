@@ -161,11 +161,12 @@ namespace TDFlightDebug
 		FCollisionQueryParams BlockParams(SCENE_QUERY_STAT(TDCamBlock), false, Ship);
 		const bool bBlocked = World->LineTraceSingleByChannel(Block, Ship->GetActorLocation(), Eye, ECC_Visibility, BlockParams);
 		const UTDFlightFeedbackComponent* FB = Ship->GetFlightFeedback();
-		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: [%s] %s screen %.3f %.3f | fov %.1f camroll %.1f shiproll %.1f | cam local %.0f %.0f %.0f dist %.0f | speed %.0f boost %d drift %d | yaw %.0f pitch %.0f deg/s | dust %d | alt %.0f m camblocked %d"),
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: [%s] %s screen %.3f %.3f | fov %.1f camroll %.1f shiproll %.1f | cam local %.0f %.0f %.0f dist %.0f | speed %.0f boost %d drift %d | yaw %.0f pitch %.0f deg/s | dust %d | alt %.0f m camblocked %d | shake %.2f fovkick %.1f"),
 			*Tag, *UEnum::GetValueAsString(Ship->GetShipId()), Screen.X, Screen.Y, PC->PlayerCameraManager->GetFOVAngle(),
 			Ship->GetCameraRoll(), Rot.Roll, Local.X, Local.Y, Local.Z, FVector::Dist(Eye, Ship->GetActorLocation()),
 			(float)Ship->GetVelocity().Size(), Ship->IsBoosting() ? 1 : 0, Ship->IsDrifting() ? 1 : 0, YawRate, PitchRate,
-			FB ? FB->GetVisibleDustCount() : -1, Ship->GetAltitudeMeters(), bBlocked ? 1 : 0);
+			FB ? FB->GetVisibleDustCount() : -1, Ship->GetAltitudeMeters(), bBlocked ? 1 : 0,
+			FB ? FMath::Abs(FB->GetCameraOffset().Pitch) + FMath::Abs(FB->GetCameraOffset().Yaw) + FMath::Abs(FB->GetCameraOffset().Roll) : 0.f, FB ? FB->GetFOVOffset() : 0.f);
 	}
 
 	static bool SetTuning(UWorld* World, const FString& Which, const FString& Field, float Value)

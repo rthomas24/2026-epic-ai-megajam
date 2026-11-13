@@ -3,6 +3,7 @@
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -49,6 +50,8 @@ namespace TDSettings
 		S.MasterVolume = FMath::Clamp(S.MasterVolume, 0.f, 1.f);
 		S.MusicVolume = FMath::Clamp(S.MusicVolume, 0.f, 1.f);
 		S.EffectsVolume = FMath::Clamp(S.EffectsVolume, 0.f, 1.f);
+		S.CameraShake = FMath::Clamp(S.CameraShake, 0.f, 1.f);
+		S.SpeedFOV = FMath::Clamp(S.SpeedFOV, 0.f, 1.f);
 		S.Resolution.X = FMath::Max(0, S.Resolution.X);
 		S.Resolution.Y = FMath::Max(0, S.Resolution.Y);
 		return S;
@@ -70,6 +73,7 @@ void UTDSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 	ApplyVideo(true);
 	ApplyAudio();
+	ApplyControls();
 	// A level travel (menu -> galaxy, planet trips) never carries the page into the next map.
 	PreLoadMapHandle = FCoreUObjectDelegates::PreLoadMap.AddWeakLambda(this, [this](const FString&) { ClosePageInternal(GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr); });
 }
@@ -144,6 +148,8 @@ void UTDSettingsSubsystem::SetGamepadSensitivity(float V) { Settings.GamepadSens
 void UTDSettingsSubsystem::SetGamepadDeadzone(float V) { Settings.GamepadDeadzone = V; Changed(); }
 void UTDSettingsSubsystem::SetInvertGamepadY(bool b) { Settings.bInvertGamepadY = b; Changed(); }
 void UTDSettingsSubsystem::SetHintsEnabled(bool b) { Settings.bHintsEnabled = b; Changed(); }
+void UTDSettingsSubsystem::SetCameraShake(float V) { Settings.CameraShake = V; Changed(); }
+void UTDSettingsSubsystem::SetSpeedFOV(float V) { Settings.SpeedFOV = V; Changed(); }
 
 void UTDSettingsSubsystem::SetDifficulty(ETDDifficulty Difficulty)
 {
@@ -289,6 +295,9 @@ TArray<FIntPoint> UTDSettingsSubsystem::GetSupportedResolutions() const
 
 void UTDSettingsSubsystem::ApplyControls()
 {
+	// Camera comfort options are global (every ship's camera, every presentation shake).
+	UTDFlightFeedbackComponent::UserShakeScale = Settings.CameraShake;
+	UTDFlightFeedbackComponent::UserSpeedFOVScale = Settings.SpeedFOV;
 	const UGameInstance* GI = GetGameInstance();
 	if (!GI)
 	{
@@ -398,6 +407,8 @@ namespace TDSettings
 				else if (K == TEXT("InvertPad")) { S->SetInvertGamepadY(B); }
 				else if (K == TEXT("Hints")) { S->SetHintsEnabled(B); }
 				else if (K == TEXT("Master")) { S->SetMasterVolume(V); }
+				else if (K == TEXT("CameraShake")) { S->SetCameraShake(V); }
+				else if (K == TEXT("SpeedFOV")) { S->SetSpeedFOV(V); }
 				else if (K == TEXT("Music")) { S->SetMusicVolume(V); }
 				else if (K == TEXT("Effects")) { S->SetEffectsVolume(V); }
 				else if (K == TEXT("Camera")) { S->SetOnFootCameraMode(B ? ETDOnFootCamera::ThirdPerson : ETDOnFootCamera::FirstPerson); }

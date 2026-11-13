@@ -529,3 +529,28 @@ To capture screenshots:
   - `TriadDrift.Input.AudioHooks.*` covers the UI sound requests (page and pause) and the ambience envelope and slots.
   - `TriadDrift.Flight.AudioHooks.LowHullAlarmOnTheFlownShipOnly` covers the alarm on, off, switch, hysteresis and death, plus ShieldBreak once.
   - Tests count the requests; they never play assets.
+
+## Camera feel and comfort (T1, Nov 13, the Lead's queue item 3)
+- **Two new Settings rows,** saved with the options:
+  - `Camera shake` (0-100%): scales every camera shake and kick, 0 = none.
+  - `Speed FOV effect` (0-100%): scales how much the view widens with speed and the FOV punches, 0 = a fixed 90°.
+  - Dev: `TD.Settings CameraShake 0.5`, `TD.Settings SpeedFOV 0`.
+- **What the sliders reach:**
+  - Every procedural kick in `UTDFlightFeedbackComponent`: dodge, drift burst, portal, boost punch, brake, hyperdrive, landing.
+  - Every presentation cue's camera shake: `ATDSpacePlayerController::ClientStartCameraShake_Implementation` scales the cue's `ShakeScale` and drops it at 0.
+  - The chase camera's speed FOV (`UTDFlightFeedbackComponent::UserShakeScale` / `UserSpeedFOVScale`, applied with the controls).
+- **New placeholder shakes** (only while the matching cue has no `Shake` of its own):
+  - Taking a hit on the flown ship: `HitShake` 0.9° at `HitFullDamage` 25 or more; a hull hit is heavier than a shield hit; 0.3 s.
+  - A ship destroyed within `ExplosionShakeRadius` 90 m: `ExplosionShake` 1.4° next to it, fading with distance², plus a 1.5° FOV pop.
+- **Kept as tuned:**
+  - Speed FOV 90 -> 110.
+  - Boost punch +6° FOV over 0.55 s (live peak +5.3°).
+  - Dodge +4° FOV with 6° of roll.
+- **Live** (Wave 5, offscreen 720p, god mode, numbers from `TD.Flight.Cam`, which now also shows shake and FOV kick):
+  - At 100% / 100%: the FOV runs 90-110, shake peaks at 1.05°, the boost punch at 5.3°.
+  - At 0% / 0%: the FOV stays at 90 while boosting, with no shake and no punch.
+  - Capture: `Saved/TDShots/feel_sheets/speedfov_100_vs_0.png`.
+- **Test:** `TriadDrift.Flight.Feedback.HitAndExplosionShakeScaledByTheSettings`:
+  - a hit shakes; at 50% it shakes about half; at 0% not at all
+  - a ship destroyed 30 m away shakes the camera; 200 m away doesn't
+  - Speed FOV 0 holds the base FOV while boosting
