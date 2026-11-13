@@ -285,9 +285,9 @@ void ATDProjectile::UpdatePlaceholderLook()
 				// Stays in squad / enemy colour (playtest: 0.45 white read as a white ball); incoming enemy fire burns hotter.
 				// The squad's heavy heads glow softer (stacked over the reticle they bloomed into a pale ball); the squad
 				// tracer tip is near-white so the shot never vanishes against a sky of its own colour.
-				const float HeadGlow = bOnFootLook ? 1.f : Team == ETDTeam::Enemy ? 1.3f : bTracerTip ? 0.9f : 0.6f;
-				// On foot the head stays pure team colour: any white tips red-orange to pink at first-person range.
-				const float White = bOnFootLook ? 0.f : bTracerTip ? FTDCombatPlaceholders::TipWhite : 0.15f;
+				const float HeadGlow = bOnFootLook ? 1.f : Team == ETDTeam::Enemy ? FTDCombatPlaceholders::EnemyHeadGlow : bTracerTip ? 0.9f : 0.6f;
+				// Enemy and on-foot heads stay pure team colour: any white tips red-orange to pale pink (live, both).
+				const float White = (bOnFootLook || Team == ETDTeam::Enemy) ? 0.f : bTracerTip ? FTDCombatPlaceholders::TipWhite : 0.15f;
 				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, White) * (GlowMaterial ? GlowScale * HeadGlow : 1.f);
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
@@ -514,6 +514,7 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	{
 		const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
 		const float Distance = FVector::Dist(Camera, GetActorLocation());
+		CameraDistance = Distance;
 		bIncoming = !bOnFootLook && Team == ETDTeam::Enemy && FTDCombatPlaceholders::IsIncoming(Velocity, GetActorLocation(), Camera);
 		Grow = bOnFootLook ? FTDCombatPlaceholders::OnFootDistanceGrowth(StreakLook, Distance) : bIncoming
 			? FTDCombatPlaceholders::DistanceGrowth(StreakLook, Distance, FTDCombatPlaceholders::MinIncomingStreakPixels)
@@ -521,7 +522,9 @@ void ATDProjectile::UpdatePlaceholderDistanceScale()
 	}
 	// A streak still growing out of the muzzle is updated every tick; after that only visible changes are.
 	const bool bGrowing = AppliedLength < StreakLook.Length - 1.f;
-	if (!bGrowing && bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
+	// Close to the camera the head cap changes with every metre: keep updating there.
+	const bool bNearCamera = CameraDistance > 0.f && CameraDistance < 5000.f && (StreakLook.bHead || bIncoming);
+	if (!bGrowing && !bNearCamera && bIncoming == bAppliedIncoming && FMath::Abs(Grow - AppliedGrowth) < 0.03f * AppliedGrowth)
 	{
 		return; // cheap at 150+ live shots: no transform update for a change nobody can see
 	}
@@ -552,8 +555,12 @@ void ATDProjectile::ApplyStreakTransform(float Grow, bool bIncoming)
 	PlaceholderHead->SetVisibility(bShowHead && HeadMID != nullptr);
 	if (bShowHead)
 	{
-		const float Head = FMath::Max(StreakLook.HeadDiameter, StreakLook.Thickness * (bIncoming ? FTDCombatPlaceholders::IncomingHeadScale : 0.f));
-		PlaceholderHead->SetRelativeScale3D(FVector(Head * Grow / 100.f));
+		float Head = FMath::Max(StreakLook.HeadDiameter, StreakLook.Thickness * (bIncoming ? FTDCombatPlaceholders::IncomingHeadScale : 0.f)) * Grow;
+		if (CameraDistance > 0.f)
+		{
+			Head = FMath::Min(Head, FMath::Max(CameraDistance * FTDCombatPlaceholders::MaxHeadPerCameraDistance, 1.f));
+		}
+		PlaceholderHead->SetRelativeScale3D(FVector(Head / 100.f));
 		PlaceholderHead->SetRelativeLocation(FVector::ZeroVector);
 	}
 }

@@ -515,7 +515,14 @@ void ATDSpaceGameMode::CheckStarBackdrop()
 		GetWorldTimerManager().ClearTimer(StarWatchTimer);
 		return;
 	}
-	if (ATDPlaceholderSky::Scan(GetWorld()).bTaggedSky)
+	// Rule: the placeholder stars only show while no real sky does. Nick's tagged sky, or the engineering nebula sky
+	// once it is in the world and showing, replaces them (also when it appears after the stars).
+	bool bEngineeringSky = false;
+	for (TActorIterator<ATDSkySphere> It(GetWorld()); It && !bEngineeringSky; ++It)
+	{
+		bEngineeringSky = !It->IsActorBeingDestroyed() && !It->IsYielding();
+	}
+	if (bEngineeringSky || ATDPlaceholderSky::Scan(GetWorld()).bTaggedSky)
 	{
 		StarBackdrop->Destroy();
 		StarBackdrop = nullptr;

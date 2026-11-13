@@ -197,6 +197,8 @@ private:
 	float AppliedLength = 0.f;
 	/** Sets the streak (and its head or tip) for the distance flown and Grow. */
 	void ApplyStreakTransform(float Grow, bool bIncoming);
+	/** Distance to the player's camera at the last scale update (<0 = unknown). */
+	float CameraDistance = -1.f;
 
 	/** Project glow material (UTDStatics::GetPlaceholderGlowMaterial, always cooked). Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)
