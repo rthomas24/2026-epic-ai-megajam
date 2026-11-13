@@ -292,6 +292,11 @@ Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X forward.
 - **Warden props (R-030 #3, the isolated meshes):** `SM_Warden_ShieldProp` is 7,106 tris, **181.0 cm** tall (matched to `SM_Warden_Shield` on the 260 cm Warden in PR #25), pivot at the back-face grip. Suggested socket: `hand_l_shield`. `SM_Warden_GunArm` is 8,188 tris, **122.6 cm** cuff-to-muzzle (matched to the welded gun arm on `SK_Warden`), pivot at the cuff opening. Suggested socket: `lowerarm_r` (or `hand_r_gun`). The front of both is faithful to the r2 concepts. The shield's back plate was invented by Rodin (the concept is a front 3/4) and came out rust-red rather than black armour; the grip is slightly off-centre and that is where the pivot sits.
 - **Null Armada Fighter (R-030 #4, first fleet ship):** `SM_NullFighter` is **8,926 tris** (inside the 6-10k budget), **550.0 × 502.6 × 170.5 cm**, pivot at the centre, nose +X. The red-orange seams survive on the wing inner edges, the dorsal chevron and the engine rings. The white eye bar is present as a pale / white chevron highlight on the nose rather than a single hard-edged bar. Two issues: the concept has two rear engines and the mesh has three; the hull is mid-grey / silver rather than a deep black, so contrast is a little softer in the front view. Later fleet ships will come in their own PRs. Status stays OPEN.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 13:28 EST): pilot blade combat animations r1 are up in PR #30.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/30 (branch `grok/assets-anim-pilotblade-r1`, do not merge without your OK).
+Contact sheet: `ArtSource/EngAI/Animations/PilotBlade/r1/contact_sheet.jpg`.
+fal Hunyuan Motion (HY-Motion 1.0), FBX 30 fps, 52-bone SMPL-H. 14 clips + a T-pose reference. In-place except HeavyLunge (root motion ~166 cm) and Dash (~384 cm). Builders retarget SMPL-H to `SKEL_Pilot`; the bone map is in `SOURCE.md`. Flags: Light1 hit is early (~0.23 s); Light3 foot-slides after the in-place bake; AirSlam is the weakest clip (jump ~6 m, reads as a wide landing not a tight smash); deaths collapse in place. $3.04 this batch. Status stays OPEN.
+
 
 ### R-031 · ANSWERED · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
 
