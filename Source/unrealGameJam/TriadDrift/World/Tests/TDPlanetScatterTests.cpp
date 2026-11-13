@@ -8,6 +8,7 @@
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDTerrainField.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterPlanRules, "TriadDrift.World.Scatter.DeterministicKeptOutOfTheCourseWithinBudget", TD_TEST_FLAGS)
 bool FTDScatterPlanRules::RunTest(const FString&)
@@ -48,6 +49,37 @@ bool FTDScatterPlanRules::RunTest(const FString&)
 	TestEqual(TEXT("nothing in the sea"), Sea, 0);
 	TestEqual(TEXT("nothing past the zone"), Out, 0);
 	TestEqual(TEXT("Cinder has no list yet (v1)"), FTDScatterPlan::ForPlanet(ETDDestination::Cinder).Kinds.Num(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterOnTheTerrain, "TriadDrift.World.Scatter.InstancesStandOnTheTerrainWhereverTheCourseIs", TD_TEST_FLAGS)
+bool FTDScatterOnTheTerrain::RunTest(const FString&)
+{
+	// Live finding: Static HISMs could not attach to the scatter's root, so the forest stood around the world origin.
+	FTDTestWorld W;
+	const FVector Origin(1900000.f, 1700000.f, 2500.f);	// the course origin, far from the world origin (and from L_Planet_Verdance's)
+	ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform(Origin), nullptr);
+	ATDPlanetScatter* S = T ? T->GetScatter() : nullptr;
+	if (!TestNotNull(TEXT("scatter"), S)) { return false; }
+	S->BuildNow();
+	TestTrue(TEXT("instances"), S->GetInstanceCount() > 1000);
+	TInlineComponentArray<UHierarchicalInstancedStaticMeshComponent*> Hisms(S);
+	int32 Checked = 0, Off = 0;
+	for (UHierarchicalInstancedStaticMeshComponent* H : Hisms)
+	{
+		TestTrue(TEXT("attached to the scatter"), H->GetAttachParent() == S->GetRootComponent());
+		TestTrue(TEXT("movable (a Static HISM cannot attach to the movable root)"), H->Mobility == EComponentMobility::Movable);
+		for (int32 i = 0; i < FMath::Min(5, H->GetInstanceCount()); ++i)
+		{
+			FTransform X;
+			H->GetInstanceTransform(i, X, /*bWorldSpace*/ true);
+			const float Ground = T->GetHeightAt(X.GetLocation());
+			++Checked;
+			Off += (FVector2D(X.GetLocation() - Origin).Size() > 500000.f || FMath::Abs(X.GetLocation().Z - Ground) > 3000.f) ? 1 : 0;
+		}
+	}
+	TestTrue(TEXT("checked some"), Checked > 10);
+	TestEqual(TEXT("every checked instance stands on the terrain around the course"), Off, 0);
 	return true;
 }
 
