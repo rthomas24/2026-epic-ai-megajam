@@ -57,6 +57,11 @@ void UTDAtmosphereEntryComponent::BeginPlay()
 			Health->OnDeath.AddDynamic(this, &UTDAtmosphereEntryComponent::HandleOwnerDeath);
 		}
 	}
+	// A CUT retake restarts the scene: an entry in progress is abandoned (no travel, flight handed back).
+	if (UTDGameInstance* GI = GetWorld() ? Cast<UTDGameInstance>(GetWorld()->GetGameInstance()) : nullptr)
+	{
+		SceneRestartHandle = GI->OnSceneRestart.AddWeakLambda(this, [this](FName, int32) { AbortEntry(); });
+	}
 	if (!TravelFX)
 	{
 		TravelFX = UTDTravelSubsystem::GetDefaultTravelFX(this);
@@ -197,6 +202,15 @@ void UTDAtmosphereEntryComponent::RestoreFlight()
 			}
 		}
 	}
+}
+
+void UTDAtmosphereEntryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UTDGameInstance* GI = GetWorld() ? Cast<UTDGameInstance>(GetWorld()->GetGameInstance()) : nullptr)
+	{
+		GI->OnSceneRestart.Remove(SceneRestartHandle);
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void UTDAtmosphereEntryComponent::AbortEntry()
