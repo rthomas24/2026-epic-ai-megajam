@@ -359,6 +359,82 @@ FString UTDStatics::GetPresentationFolder()
 	return TEXT("/Game/TriadDrift/Presentation");
 }
 
+namespace
+{
+	// Copies into Dest every property that Dest still has at its class default and Src has set. Structs are walked
+	// member by member, so a cue with only a Sound keeps the fallback's effect and the other way round.
+	void TDFillUnsetFrom(const UStruct* Struct, void* Dest, const void* Src, const void* Defaults)
+	{
+		for (TFieldIterator<FProperty> It(Struct); It; ++It)
+		{
+			const FProperty* Prop = *It;
+			if (Prop->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient))
+			{
+				continue;
+			}
+			if (const FStructProperty* StructProp = CastField<FStructProperty>(Prop); StructProp && Prop->ArrayDim == 1)
+			{
+				TDFillUnsetFrom(StructProp->Struct, StructProp->ContainerPtrToValuePtr<void>(Dest),
+					StructProp->ContainerPtrToValuePtr<void>(Src), StructProp->ContainerPtrToValuePtr<void>(Defaults));
+				continue;
+			}
+			if (Prop->Identical_InContainer(Dest, Defaults) && !Prop->Identical_InContainer(Src, Defaults))
+			{
+				Prop->CopyCompleteValue_InContainer(Dest, Src);
+			}
+		}
+	}
+
+	// Finds an engineering fallback of that name under the always-cooked Gameplay/Characters folder.
+	UObject* TDFindFallbackPresentationAsset(const FString& AssetName)
+	{
+		IAssetRegistry* Registry = IAssetRegistry::Get();
+		if (!Registry)
+		{
+			return nullptr;
+		}
+		const FName Wanted(*AssetName);
+		auto Search = [Registry, &Wanted]() -> UObject*
+		{
+			TArray<FAssetData> Found;
+			Registry->GetAssetsByPath(FName(TEXT("/Game/TriadDrift/Gameplay/Characters")), Found, /*bRecursive*/ true);
+			for (const FAssetData& Data : Found)
+			{
+				if (Data.AssetName == Wanted)
+				{
+					return Data.GetSoftObjectPath().TryLoad();
+				}
+			}
+			return nullptr;
+		};
+		UObject* Asset = Search();
+		// A -game / first-start world can begin play (and spawn the squad) before the background scan has gathered
+		// this folder: scan it synchronously once and look again, so the first lookup never misses for good.
+		static bool bCharactersScanned = false;
+		if (!Asset && !bCharactersScanned)
+		{
+			bCharactersScanned = true;
+			Registry->ScanPathsSynchronous({ TEXT("/Game/TriadDrift/Gameplay/Characters") }, /*bForceRescan*/ false);
+			Asset = Search();
+		}
+		return Asset;
+	}
+}
+
+UObject* UTDStatics::MergePresentationWithFallback(const UObject* Primary, const UObject* Fallback)
+{
+	if (!Primary)
+	{
+		return nullptr;
+	}
+	UObject* Merged = DuplicateObject<UObject>(Primary, GetTransientPackage());
+	if (Merged && Fallback && Fallback != Primary && Fallback->GetClass() == Primary->GetClass())
+	{
+		TDFillUnsetFrom(Merged->GetClass(), Merged, Fallback, Merged->GetClass()->GetDefaultObject());
+	}
+	return Merged;
+}
+
 UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf<UObject> ExpectedClass)
 {
 	if (AssetName.IsEmpty())
@@ -398,36 +474,44 @@ UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf
 
 	UObject* Asset = bExists ? ObjectPath.TryLoad() : nullptr;
 
-	// Second place to look: engineering-made character looks (R-019, N-021) live in an always-cooked
-	// Gameplay folder, one sub-folder per character. Presentation always wins when it has the asset.
+	// Second place to look: engineering-made fallbacks (R-019, N-021, R-024) live in an always-cooked Gameplay
+	// folder. Presentation wins FIELD BY FIELD (R-029): whatever the Presentation asset leaves at its default is
+	// filled from the fallback of the same name, so a sound-only or music-only asset from the presentation side
+	// never switches off the effects, sounds or meshes engineering supplies for the other fields.
 	if (!Asset)
 	{
-		if (IAssetRegistry* Registry = IAssetRegistry::Get())
+		Asset = TDFindFallbackPresentationAsset(AssetName);
+	}
+	else
+	{
+		struct FMergedEntry
 		{
-			const FName Wanted(*AssetName);
-			auto Search = [Registry, &Wanted]() -> UObject*
+			TWeakObjectPtr<UObject> Primary;
+			TWeakObjectPtr<UObject> Merged;
+		};
+		static TMap<FString, FMergedEntry> MergedCache;
+		FMergedEntry& Entry = MergedCache.FindOrAdd(AssetName);
+		if (Entry.Primary.Get() != Asset || !Entry.Merged.IsValid())
+		{
+			if (UObject* Old = Entry.Merged.Get(); Old && Old != Entry.Primary.Get())
 			{
-				TArray<FAssetData> Found;
-				Registry->GetAssetsByPath(FName(TEXT("/Game/TriadDrift/Gameplay/Characters")), Found, /*bRecursive*/ true);
-				for (const FAssetData& Data : Found)
-				{
-					if (Data.AssetName == Wanted)
-					{
-						return Data.GetSoftObjectPath().TryLoad();
-					}
-				}
-				return nullptr;
-			};
-			Asset = Search();
-			// A -game / first-start world can begin play (and spawn the squad) before the background scan has gathered
-			// this folder: scan it synchronously once and look again, so the first lookup never misses for good.
-			static bool bCharactersScanned = false;
-			if (!Asset && !bCharactersScanned)
-			{
-				bCharactersScanned = true;
-				Registry->ScanPathsSynchronous({ TEXT("/Game/TriadDrift/Gameplay/Characters") }, /*bForceRescan*/ false);
-				Asset = Search();
+				Old->RemoveFromRoot();
 			}
+			Entry.Primary = Asset;
+			Entry.Merged = Asset;	// nothing to merge: hand out the asset itself
+			const UObject* Fallback = TDFindFallbackPresentationAsset(AssetName);
+			if (Fallback && Fallback != Asset && Fallback->GetClass() == Asset->GetClass())
+			{
+				if (UObject* Merged = MergePresentationWithFallback(Asset, Fallback))
+				{
+					Merged->AddToRoot();	// lives for the session; callers keep raw pointers to presentation assets
+					Entry.Merged = Merged;
+				}
+			}
+		}
+		if (Entry.Merged.IsValid())
+		{
+			Asset = Entry.Merged.Get();
 		}
 	}
 	if (Asset && ExpectedClass && !Asset->IsA(ExpectedClass))

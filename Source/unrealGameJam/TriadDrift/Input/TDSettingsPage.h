@@ -25,6 +25,8 @@ enum class ETDSettingsRow : uint8
 	InvertGamepadY,
 	Hints,
 	Difficulty,
+	CameraShake,
+	SpeedFOV,
 	MasterVolume,
 	MusicVolume,
 	EffectsVolume,

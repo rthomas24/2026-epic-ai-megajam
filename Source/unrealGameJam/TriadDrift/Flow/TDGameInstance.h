@@ -83,6 +83,11 @@ public:
 	 */
 	bool ConsumeIntroPending();
 	bool IsIntroPending() const { return bIntroPending; }
+	/** This run was resumed with Continue (onboarding's control lessons stay off). A New Game clears it. */
+	bool IsRunFromContinue() const { return bRunFromContinue; }
+#if WITH_DEV_AUTOMATION_TESTS
+	void SetRunFromContinueForTests(bool b) { bRunFromContinue = b; }
+#endif
 
 	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
@@ -251,6 +256,7 @@ private:
 	void BindEventBus();
 	/** ENG-33: New Game plays the intro once (transient, never saved). */
 	bool bIntroPending = false;
+	bool bRunFromContinue = false;
 	bool TickRunTimer(float DeltaSeconds);
 	void ExecuteRetake();
 	void BeginLoad(const FString& PackageName);
