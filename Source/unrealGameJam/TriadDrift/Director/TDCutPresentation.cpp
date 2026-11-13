@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 
 #include "Engine/Engine.h"
@@ -225,9 +226,10 @@ FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox)
 	return FBox2D(C - Half, C + Half);
 }
 
-FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber)
+FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber, const FString& Place)
 {
 	FString Id = SceneId.ToString();
+	Id.RemoveFromStart(TEXT("Obj_")); // planet objectives: "Obj_Outpost" -> "OUTPOST"
 	FString Pretty;
 	for (int32 i = 0; i < Id.Len(); ++i)
 	{
@@ -239,7 +241,15 @@ FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber)
 		}
 		Pretty.AppendChar(C == TEXT('_') ? TEXT(' ') : C);
 	}
-	return FText::Format(LOCTEXT("Slate", "SCENE {0} · TAKE {1}"), FText::FromString(Pretty), FText::AsNumber(FMath::Max(1, TakeNumber)));
+	FString Title = Pretty.ToUpper();
+	if (!Place.IsEmpty() && !Title.StartsWith(Place.ToUpper()))
+	{
+		Title = Place.ToUpper() + TEXT(" · ") + Title;
+	}
+	const FText Take = FText::AsNumber(FMath::Max(1, TakeNumber));
+	return SceneNumber > 0
+		? FText::Format(LOCTEXT("SlateNumbered", "SCENE {0} · {1} · TAKE {2}"), FText::AsNumber(SceneNumber), FText::FromString(Title), Take)
+		: FText::Format(LOCTEXT("Slate", "{0} · TAKE {1}"), FText::FromString(Title), Take);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -283,7 +293,16 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 	}
 	CutStart = -1000.0; // the take replaces the CUT! card
 	SlateStart = Now();
-	Slate = MakeSlateText(SceneId, TakeNumber);
+	// The scene's number in this run and, for a planet objective, the planet: from the game flow.
+	int32 SceneNumber = 0;
+	FString Place;
+	if (const UTDGameInstance* GI = UTDGameInstance::Get(OwnerWorld.Get()))
+	{
+		SceneNumber = GI->GetSceneNumber(SceneId);
+		const ETDDestination Where = GI->GetCurrentDestination();
+		Place = Where == ETDDestination::Verdance ? TEXT("Verdance") : (Where == ETDDestination::Cinder ? TEXT("Cinder") : FString());
+	}
+	Slate = MakeSlateText(SceneId, TakeNumber, SceneNumber, Place);
 }
 
 void UTDCutPresentation::HandleShotStarted(float RealSeconds)
