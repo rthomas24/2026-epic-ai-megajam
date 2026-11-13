@@ -1,0 +1,17 @@
+{
+ "ok": [
+  "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Hit.MSS_Blade_Hit",
+  "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Block.MSS_Blade_Block",
+  "/Game/TriadDrift/Gameplay/Audio/Blade/MSS_Blade_Deflect.MSS_Blade_Deflect",
+  "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Hit.MSS_Crew_Hit",
+  "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_ShieldHit.MSS_Crew_ShieldHit",
+  "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Death.MSS_Crew_Death",
+  "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Melee.MSS_Crew_Melee",
+  "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_RifleShot.MSS_Crew_RifleShot",
+  "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Step_Soil.MSS_Foot_Step_Soil",
+  "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Step_Rock.MSS_Foot_Step_Rock",
+  "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Dash.MSS_Foot_Dash",
+  "/Game/TriadDrift/Gameplay/Audio/Foot/MSS_Foot_Jump.MSS_Foot_Jump"
+ ],
+ "errors": []
+}
