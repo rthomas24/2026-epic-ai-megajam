@@ -2,7 +2,27 @@
 
 Stage: Build01 failed before saving (pectoral outline missed body); Build02
 failed during batch prevalidation (lower crotch has no central torso surface).
-Build03 is corrected SOURCE PREPARATION ONLY; no third construction run yet.
+Build03 saved a DIAGNOSTIC blockout and five studio-color views. Technical QA
+and visual review FAILED; this is not a completed M01 or an approval candidate.
+
+Actual Build03: Blender5.1.1 background CLI,2threads, OS0/5.601933s,5.9875GiB
+free at start; render OS0/2.7363692s,5.9959GiB free. Input/reference hashes
+unchanged. Model39objects,3material roles,11,752evaluated original armor triangles,
+103,930total triangles. Asset report0errors/1warning; host QA6errors/20warnings;
+assembly fails for detached visor6.5mm. Five coplanar pairs: core/crown34triangle
+pairs, body/thigh right11,left8, body/back pectoral left2,right2. Other warnings
+include inherited Manny UV overlap, n-gons, visor duplicates, enclosed knees.
+Zero boundary/nonmanifold edges, degenerate faces or inconsistent normal edges
+does not override these assembly/presentation failures.
+
+All five720x960PNGs were opened. Chest/thigh body penetration, tubular armor,
+blocky bucket-like helmet and inadequate back/shoulder coverage visibly fail
+the approved white/cyan four-view reference. Lead independently agrees; a fresh
+independent critique is pending. Preserve these outputs unchanged for diagnosis.
+Next primary-form plan must restore reference-specific sculpted chest/back,
+anatomical faceted limb/shoulder forms and angular helmet/faceplate/ear silhouette,
+as well as measured surface clearance and visor seating. No secondary detail,
+rigging or Unreal work is authorized by this checkpoint.
 White reference2fa970f1 is the approved concept. One player humanoid only; no
 enemies/ships, rig, animation, gameplay hook or native integration in this pass.
 
@@ -33,7 +53,7 @@ editable source and numerical report. Errors/warnings must be reviewed, not
 hidden or treated as automatically accepted. New armor UV/final topology remain
 later work; no runtime/production-readiness claim from a saved blockout alone.
 
-Two separately granted jobs, each <=120s/two threads, fresh>=4GiB/no heavy job,
+The two separately granted jobs used <=120s/two threads, fresh>=4GiB/no heavy job,
 abort only its own process on pressure<1.5GiB/error. BUILD creates
 source/armor/Blockout03/{Lancer_Armor_Blockout_v03.blend,blockout-qa.json,surface-fit.json}.
 RENDER creates review/Blockout03/Lancer_Blockout03_{front,side,back,top,beauty}.png

@@ -1,0 +1,4442 @@
+{
+  "stage": "PRIMARY FORM REVIEW ONLY",
+  "technical_checks_passed": false,
+  "blend_sha256": "47bf7d6b3c5a7b56f6e98f8dc3691aa34e3e98820a06922e7a2a97acf01776e7",
+  "reference_sha256": "6eaaed062f11d3dc37de22556d6492a0cb647b8b644d4757c2b65b0441e03607",
+  "objects": [
+    "SM_Lancer_OwnedBase_StaticCopy",
+    "SM_Lancer_Front_Pectoral_L",
+    "SM_Lancer_Front_Pectoral_L_Mount",
+    "SM_Lancer_Front_Pectoral_R",
+    "SM_Lancer_Front_Pectoral_R_Mount",
+    "SM_Lancer_Front_AbdomenUpper",
+    "SM_Lancer_Front_AbdomenUpper_Mount",
+    "SM_Lancer_Front_AbdomenLower",
+    "SM_Lancer_Front_AbdomenLower_Mount",
+    "SM_Lancer_Back_Pectoral_L",
+    "SM_Lancer_Back_Pectoral_L_Mount",
+    "SM_Lancer_Back_Pectoral_R",
+    "SM_Lancer_Back_Pectoral_R_Mount",
+    "SM_Lancer_Back_AbdomenUpper",
+    "SM_Lancer_Back_AbdomenUpper_Mount",
+    "SM_Lancer_Back_AbdomenLower",
+    "SM_Lancer_Back_AbdomenLower_Mount",
+    "SM_Lancer_PelvisFront",
+    "SM_Lancer_PelvisFront_Mount",
+    "SM_Lancer_Shoulder_l",
+    "SM_Lancer_Bicep_l",
+    "SM_Lancer_Forearm_l",
+    "SM_Lancer_HipGuard_l",
+    "SM_Lancer_Thigh_l",
+    "SM_Lancer_Knee_l",
+    "SM_Lancer_Shin_l",
+    "SM_Lancer_Boot_l",
+    "SM_Lancer_Shoulder_r",
+    "SM_Lancer_Bicep_r",
+    "SM_Lancer_Forearm_r",
+    "SM_Lancer_HipGuard_r",
+    "SM_Lancer_Thigh_r",
+    "SM_Lancer_Knee_r",
+    "SM_Lancer_Shin_r",
+    "SM_Lancer_Boot_r",
+    "SM_Lancer_HelmetClosedCore",
+    "SM_Lancer_HelmetCrown",
+    "SM_Lancer_HelmetJaw",
+    "SM_Lancer_CyanVisor"
+  ],
+  "original_armor_objects": [
+    "SM_Lancer_Front_Pectoral_L",
+    "SM_Lancer_Front_Pectoral_L_Mount",
+    "SM_Lancer_Front_Pectoral_R",
+    "SM_Lancer_Front_Pectoral_R_Mount",
+    "SM_Lancer_Front_AbdomenUpper",
+    "SM_Lancer_Front_AbdomenUpper_Mount",
+    "SM_Lancer_Front_AbdomenLower",
+    "SM_Lancer_Front_AbdomenLower_Mount",
+    "SM_Lancer_Back_Pectoral_L",
+    "SM_Lancer_Back_Pectoral_L_Mount",
+    "SM_Lancer_Back_Pectoral_R",
+    "SM_Lancer_Back_Pectoral_R_Mount",
+    "SM_Lancer_Back_AbdomenUpper",
+    "SM_Lancer_Back_AbdomenUpper_Mount",
+    "SM_Lancer_Back_AbdomenLower",
+    "SM_Lancer_Back_AbdomenLower_Mount",
+    "SM_Lancer_PelvisFront",
+    "SM_Lancer_PelvisFront_Mount",
+    "SM_Lancer_Shoulder_l",
+    "SM_Lancer_Bicep_l",
+    "SM_Lancer_Forearm_l",
+    "SM_Lancer_HipGuard_l",
+    "SM_Lancer_Thigh_l",
+    "SM_Lancer_Knee_l",
+    "SM_Lancer_Shin_l",
+    "SM_Lancer_Boot_l",
+    "SM_Lancer_Shoulder_r",
+    "SM_Lancer_Bicep_r",
+    "SM_Lancer_Forearm_r",
+    "SM_Lancer_HipGuard_r",
+    "SM_Lancer_Thigh_r",
+    "SM_Lancer_Knee_r",
+    "SM_Lancer_Shin_r",
+    "SM_Lancer_Boot_r",
+    "SM_Lancer_HelmetClosedCore",
+    "SM_Lancer_HelmetCrown",
+    "SM_Lancer_HelmetJaw",
+    "SM_Lancer_CyanVisor"
+  ],
+  "original_armor_evaluated_triangles": 11752,
+  "model_material_roles": [
+    "M_Lancer_ArmorWhite",
+    "M_Lancer_FlexGraphite",
+    "M_Lancer_CyanOptics"
+  ],
+  "immutable_reference_excluded_from_model_budget": true,
+  "body_source": "Complete closed owned Manny static copy; no head/neck deletion",
+  "budget": {
+    "status": "ok",
+    "scene_units": {
+      "system": "METRIC",
+      "scale_length": 1.0,
+      "length_unit": "METERS"
+    },
+    "objects": [
+      {
+        "name": "SM_Lancer_OwnedBase_StaticCopy",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          110.87,
+          42.49,
+          180.54
+        ],
+        "hide_render": false,
+        "modifiers": [],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 46091,
+        "faces": 92178,
+        "tris": 92178,
+        "quads": 0,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "DiffuseUV"
+        ],
+        "faces_per_material_index": {
+          "0": 92178
+        },
+        "local_bbox_min": [
+          -0.55437,
+          -0.28099,
+          -0.0002
+        ],
+        "local_bbox_max": [
+          0.55437,
+          0.14392,
+          1.80524
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_Pectoral_L",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.17,
+          13.18,
+          23.6
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "quads": 70,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 72
+        },
+        "local_bbox_min": [
+          0.01816,
+          -0.16966,
+          1.2114
+        ],
+        "local_bbox_max": [
+          0.17987,
+          -0.03785,
+          1.44739
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_Pectoral_L_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          4.4,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.0915,
+          -0.16493,
+          1.31967
+        ],
+        "local_bbox_max": [
+          0.1155,
+          -0.12092,
+          1.34767
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_Pectoral_R",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.17,
+          13.19,
+          23.6
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "quads": 70,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 72
+        },
+        "local_bbox_min": [
+          -0.17987,
+          -0.16966,
+          1.2114
+        ],
+        "local_bbox_max": [
+          -0.01816,
+          -0.03779,
+          1.44739
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_Pectoral_R_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          4.4,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.1155,
+          -0.16493,
+          1.31967
+        ],
+        "local_bbox_max": [
+          -0.0915,
+          -0.12092,
+          1.34767
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_AbdomenUpper",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          17.93,
+          1.25,
+          8.5
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.08966,
+          -0.14143,
+          1.11583
+        ],
+        "local_bbox_max": [
+          0.08966,
+          -0.1289,
+          1.20083
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_AbdomenUpper_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          2.85,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.012,
+          -0.1675,
+          1.14433
+        ],
+        "local_bbox_max": [
+          0.012,
+          -0.13897,
+          1.17233
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_AbdomenLower",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          14.92,
+          1.27,
+          7.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.07459,
+          -0.14334,
+          1.03083
+        ],
+        "local_bbox_max": [
+          0.07459,
+          -0.13062,
+          1.10083
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Front_AbdomenLower_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          2.73,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.012,
+          -0.16009,
+          1.05183
+        ],
+        "local_bbox_max": [
+          0.012,
+          -0.13278,
+          1.07983
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_Pectoral_L",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.18,
+          10.4,
+          23.6
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "quads": 70,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 72
+        },
+        "local_bbox_min": [
+          0.01816,
+          0.0473,
+          1.21139
+        ],
+        "local_bbox_max": [
+          0.17993,
+          0.15125,
+          1.4474
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_Pectoral_L_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          3.89,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          0.092,
+          0.11143,
+          1.31967
+        ],
+        "local_bbox_max": [
+          0.116,
+          0.15038,
+          1.34767
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_Pectoral_R",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.18,
+          10.4,
+          23.6
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "quads": 70,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 72
+        },
+        "local_bbox_min": [
+          -0.17993,
+          0.04722,
+          1.21139
+        ],
+        "local_bbox_max": [
+          -0.01816,
+          0.15125,
+          1.4474
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_Pectoral_R_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          3.89,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.116,
+          0.11143,
+          1.31967
+        ],
+        "local_bbox_max": [
+          -0.092,
+          0.15038,
+          1.34767
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_AbdomenUpper",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          17.93,
+          1.07,
+          8.5
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.08966,
+          0.0672,
+          1.11583
+        ],
+        "local_bbox_max": [
+          0.08966,
+          0.07786,
+          1.20083
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_AbdomenUpper_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          3.02,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.012,
+          0.06196,
+          1.14433
+        ],
+        "local_bbox_max": [
+          0.012,
+          0.09215,
+          1.17233
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_AbdomenLower",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          14.92,
+          3.8,
+          7.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.07459,
+          0.06705,
+          1.03083
+        ],
+        "local_bbox_max": [
+          0.07459,
+          0.10504,
+          1.10083
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Back_AbdomenLower_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          3.16,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.012,
+          0.06741,
+          1.05183
+        ],
+        "local_bbox_max": [
+          0.012,
+          0.09897,
+          1.07983
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_PelvisFront",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          12.9,
+          2.8,
+          8.2
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.06448,
+          -0.13232,
+          0.84197
+        ],
+        "local_bbox_max": [
+          0.06448,
+          -0.10428,
+          0.92397
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_PelvisFront_Mount",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          2.4,
+          3.83,
+          2.8
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "quads": 54,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 54
+        },
+        "local_bbox_min": [
+          -0.012,
+          -0.1413,
+          0.86897
+        ],
+        "local_bbox_max": [
+          0.012,
+          -0.10304,
+          0.89697
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Shoulder_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.25,
+          14.5,
+          18.46
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 278,
+        "faces": 274,
+        "tris": 552,
+        "quads": 254,
+        "ngons": 12,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 22.833,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 274
+        },
+        "local_bbox_min": [
+          0.10627,
+          -0.08537,
+          1.30892
+        ],
+        "local_bbox_max": [
+          0.31875,
+          0.05962,
+          1.49353
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Bicep_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          18.26,
+          9.2,
+          17.86
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          0.19265,
+          -0.05279,
+          1.21079
+        ],
+        "local_bbox_max": [
+          0.37525,
+          0.03926,
+          1.38939
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Forearm_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          19.36,
+          18.91,
+          20.77
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          0.31377,
+          -0.17779,
+          1.02508
+        ],
+        "local_bbox_max": [
+          0.50739,
+          0.01128,
+          1.23282
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_HipGuard_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.51,
+          14.81,
+          5.44
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          -0.0067,
+          -0.14643,
+          0.88453
+        ],
+        "local_bbox_max": [
+          0.20844,
+          0.00171,
+          0.9389
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Thigh_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.41,
+          16.97,
+          32.97
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          0.00091,
+          -0.1436,
+          0.5592
+        ],
+        "local_bbox_max": [
+          0.21502,
+          0.02608,
+          0.88886
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Knee_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          15.92,
+          10.63,
+          10.51
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          0.04545,
+          -0.11802,
+          0.39901
+        ],
+        "local_bbox_max": [
+          0.20466,
+          -0.01176,
+          0.50414
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Shin_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          14.99,
+          12.19,
+          24.56
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          0.05576,
+          -0.09858,
+          0.14417
+        ],
+        "local_bbox_max": [
+          0.20562,
+          0.0233,
+          0.38973
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Boot_l",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.6,
+          30.02,
+          14.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 312,
+        "faces": 300,
+        "tris": 624,
+        "quads": 284,
+        "ngons": 16,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 25.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 300
+        },
+        "local_bbox_min": [
+          0.05788,
+          -0.22591,
+          0.015
+        ],
+        "local_bbox_max": [
+          0.22388,
+          0.07425,
+          0.155
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Shoulder_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.25,
+          14.5,
+          18.46
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 278,
+        "faces": 274,
+        "tris": 552,
+        "quads": 254,
+        "ngons": 12,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 22.833,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 274
+        },
+        "local_bbox_min": [
+          -0.31875,
+          -0.08537,
+          1.30892
+        ],
+        "local_bbox_max": [
+          -0.10627,
+          0.05962,
+          1.49353
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Bicep_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          18.26,
+          9.2,
+          17.86
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          -0.37525,
+          -0.05279,
+          1.21079
+        ],
+        "local_bbox_max": [
+          -0.19265,
+          0.03926,
+          1.38939
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Forearm_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          19.36,
+          18.91,
+          20.77
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          -0.50738,
+          -0.17779,
+          1.02508
+        ],
+        "local_bbox_max": [
+          -0.31377,
+          0.01128,
+          1.23282
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_HipGuard_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.51,
+          14.81,
+          5.44
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          -0.20844,
+          -0.14653,
+          0.88454
+        ],
+        "local_bbox_max": [
+          0.0067,
+          0.00162,
+          0.93891
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Thigh_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.41,
+          16.97,
+          32.97
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          -0.21502,
+          -0.14369,
+          0.55921
+        ],
+        "local_bbox_max": [
+          -0.00091,
+          0.02599,
+          0.88887
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Knee_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          15.92,
+          10.63,
+          10.51
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          -0.20466,
+          -0.11811,
+          0.39902
+        ],
+        "local_bbox_max": [
+          -0.04545,
+          -0.01185,
+          0.50414
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Shin_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          14.99,
+          12.19,
+          24.56
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "quads": 220,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 220
+        },
+        "local_bbox_min": [
+          -0.20562,
+          -0.09867,
+          0.14417
+        ],
+        "local_bbox_max": [
+          -0.05576,
+          0.02321,
+          0.38973
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_Boot_r",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          16.6,
+          30.02,
+          14.0
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 312,
+        "faces": 300,
+        "tris": 624,
+        "quads": 284,
+        "ngons": 16,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 25.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 300
+        },
+        "local_bbox_min": [
+          -0.22388,
+          -0.22591,
+          0.015
+        ],
+        "local_bbox_max": [
+          -0.05788,
+          0.07425,
+          0.155
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_HelmetClosedCore",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          20.1,
+          25.81,
+          21.65
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_FlexGraphite"
+        ],
+        "verts": 192,
+        "faces": 182,
+        "tris": 380,
+        "quads": 180,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 182
+        },
+        "local_bbox_min": [
+          -0.10049,
+          -0.15616,
+          1.60375
+        ],
+        "local_bbox_max": [
+          0.10049,
+          0.10192,
+          1.82024
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_HelmetCrown",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.26,
+          26.94,
+          7.36
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 300,
+        "faces": 294,
+        "tris": 600,
+        "quads": 286,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 24.5,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 294
+        },
+        "local_bbox_min": [
+          -0.1063,
+          -0.16181,
+          1.74663
+        ],
+        "local_bbox_max": [
+          0.1063,
+          0.10757,
+          1.82024
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_HelmetJaw",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          21.1,
+          20.96,
+          9.74
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_ArmorWhite"
+        ],
+        "verts": 286,
+        "faces": 282,
+        "tris": 568,
+        "quads": 278,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 0,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 23.5,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 282
+        },
+        "local_bbox_min": [
+          -0.10548,
+          -0.16231,
+          1.60808
+        ],
+        "local_bbox_max": [
+          0.10548,
+          0.04732,
+          1.7055
+        ],
+        "origin_placement": "custom"
+      },
+      {
+        "name": "SM_Lancer_CyanVisor",
+        "type": "MESH",
+        "parent": null,
+        "collections": [
+          "MODEL_Lancer_Blockout03_STATIC"
+        ],
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "XYZ",
+        "rotation_euler_deg": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions_cm": [
+          20.97,
+          10.43,
+          3.03
+        ],
+        "hide_render": false,
+        "modifiers": [
+          {
+            "name": "Bevel",
+            "type": "BEVEL",
+            "show_render": true
+          },
+          {
+            "name": "WeightedNormal",
+            "type": "WEIGHTED_NORMAL",
+            "show_render": true
+          }
+        ],
+        "materials": [
+          "M_Lancer_CyanOptics"
+        ],
+        "verts": 236,
+        "faces": 234,
+        "tris": 468,
+        "quads": 234,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "non_manifold_edges": 0,
+        "wire_edges": 0,
+        "flipped_winding_edges": 0,
+        "loose_verts": 0,
+        "zero_area_faces": 0,
+        "duplicate_verts": 38,
+        "closed": true,
+        "inside_out": false,
+        "smooth_face_ratio": 1.0,
+        "has_custom_normals": true,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "faces_per_material_index": {
+          "0": 234
+        },
+        "local_bbox_min": [
+          -0.10484,
+          -0.16544,
+          1.70983
+        ],
+        "local_bbox_max": [
+          0.10484,
+          -0.06119,
+          1.74014
+        ],
+        "origin_placement": "custom"
+      }
+    ],
+    "totals": {
+      "objects": 39,
+      "tris": 103930,
+      "errors": 0,
+      "warnings": 1
+    },
+    "issues": [
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Front_Pectoral_L",
+        "message": "2 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Front_Pectoral_R",
+        "message": "2 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Back_Pectoral_L",
+        "message": "2 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Back_Pectoral_R",
+        "message": "2 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Shoulder_l",
+        "message": "12 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Boot_l",
+        "message": "16 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Shoulder_r",
+        "message": "12 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_Boot_r",
+        "message": "16 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_HelmetClosedCore",
+        "message": "2 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_HelmetCrown",
+        "message": "8 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "info",
+        "object": "SM_Lancer_HelmetJaw",
+        "message": "4 n-gons; fine if planar, they get triangulated on export"
+      },
+      {
+        "severity": "warn",
+        "object": "SM_Lancer_CyanVisor",
+        "message": "38 duplicate vertices within 0.0001 m; merge by distance"
+      }
+    ]
+  },
+  "assembly": {
+    "status": "ok",
+    "ok": false,
+    "tolerance_m": 0.00326,
+    "objects": [
+      "SM_Lancer_OwnedBase_StaticCopy",
+      "SM_Lancer_Front_Pectoral_L",
+      "SM_Lancer_Front_Pectoral_L_Mount",
+      "SM_Lancer_Front_Pectoral_R",
+      "SM_Lancer_Front_Pectoral_R_Mount",
+      "SM_Lancer_Front_AbdomenUpper",
+      "SM_Lancer_Front_AbdomenUpper_Mount",
+      "SM_Lancer_Front_AbdomenLower",
+      "SM_Lancer_Front_AbdomenLower_Mount",
+      "SM_Lancer_Back_Pectoral_L",
+      "SM_Lancer_Back_Pectoral_L_Mount",
+      "SM_Lancer_Back_Pectoral_R",
+      "SM_Lancer_Back_Pectoral_R_Mount",
+      "SM_Lancer_Back_AbdomenUpper",
+      "SM_Lancer_Back_AbdomenUpper_Mount",
+      "SM_Lancer_Back_AbdomenLower",
+      "SM_Lancer_Back_AbdomenLower_Mount",
+      "SM_Lancer_PelvisFront",
+      "SM_Lancer_PelvisFront_Mount",
+      "SM_Lancer_Shoulder_l",
+      "SM_Lancer_Bicep_l",
+      "SM_Lancer_Forearm_l",
+      "SM_Lancer_HipGuard_l",
+      "SM_Lancer_Thigh_l",
+      "SM_Lancer_Knee_l",
+      "SM_Lancer_Shin_l",
+      "SM_Lancer_Boot_l",
+      "SM_Lancer_Shoulder_r",
+      "SM_Lancer_Bicep_r",
+      "SM_Lancer_Forearm_r",
+      "SM_Lancer_HipGuard_r",
+      "SM_Lancer_Thigh_r",
+      "SM_Lancer_Knee_r",
+      "SM_Lancer_Shin_r",
+      "SM_Lancer_Boot_r",
+      "SM_Lancer_HelmetClosedCore",
+      "SM_Lancer_HelmetCrown",
+      "SM_Lancer_HelmetJaw",
+      "SM_Lancer_CyanVisor"
+    ],
+    "islands": 39,
+    "groups": 2,
+    "main_body_tris": 103462,
+    "floating": [
+      {
+        "object": "SM_Lancer_CyanVisor",
+        "island": 0,
+        "tris": 468,
+        "center": [
+          0.0,
+          -0.113,
+          1.725
+        ],
+        "gap_m": 0.0065
+      }
+    ],
+    "hint": "Connect each floating island to the body (strut, pylon, overlap it slightly) or delete it."
+  },
+  "qa": {
+    "ok": true,
+    "pass": false,
+    "errors": [
+      "z-fighting: SM_Lancer_HelmetClosedCore<->SM_Lancer_HelmetCrown (34 overlapping coplanar tri pairs)",
+      "z-fighting: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Thigh_r (11 overlapping coplanar tri pairs)",
+      "z-fighting: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Thigh_l (8 overlapping coplanar tri pairs)",
+      "z-fighting: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Back_Pectoral_L (2 overlapping coplanar tri pairs)",
+      "z-fighting: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Back_Pectoral_R (2 overlapping coplanar tri pairs)",
+      "floating/detached part in SM_Lancer_CyanVisor (236 verts at [0.0, -0.113, 1.725])"
+    ],
+    "warnings": [
+      "SM_Lancer_OwnedBase_StaticCopy: ~23.97% UV overlap (ok only if mirrored/stacked on purpose; bakes break)",
+      "SM_Lancer_Front_Pectoral_L: 2 n-gons",
+      "SM_Lancer_Front_Pectoral_R: 2 n-gons",
+      "SM_Lancer_Back_Pectoral_L: 2 n-gons",
+      "SM_Lancer_Back_Pectoral_R: 2 n-gons",
+      "SM_Lancer_Shoulder_l: 12 n-gons",
+      "SM_Lancer_Boot_l: 16 n-gons",
+      "SM_Lancer_Shoulder_r: 12 n-gons",
+      "SM_Lancer_Boot_r: 16 n-gons",
+      "SM_Lancer_HelmetClosedCore: 2 n-gons",
+      "SM_Lancer_HelmetCrown: 8 n-gons",
+      "SM_Lancer_HelmetJaw: 4 n-gons",
+      "SM_Lancer_CyanVisor: duplicate verts=4 loose verts=0",
+      "hidden back-to-back faces: SM_Lancer_HelmetClosedCore<->SM_Lancer_HelmetCrown (8 pairs) - delete to save tris",
+      "hidden back-to-back faces: SM_Lancer_HelmetClosedCore<->SM_Lancer_HelmetJaw (6 pairs) - delete to save tris",
+      "hidden back-to-back faces: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Bicep_r (2 pairs) - delete to save tris",
+      "hidden back-to-back faces: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Bicep_l (2 pairs) - delete to save tris",
+      "hidden back-to-back faces: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Boot_r (1 pairs) - delete to save tris",
+      "hidden back-to-back faces: SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Boot_l (1 pairs) - delete to save tris",
+      "2 parts fully enclosed, not touching (eyes/internals?): ['SM_Lancer_Knee_l', 'SM_Lancer_Knee_r']"
+    ],
+    "ground_z": -0.0002,
+    "zfighting": [
+      {
+        "where": "SM_Lancer_HelmetClosedCore<->SM_Lancer_HelmetCrown",
+        "tri_pairs": 34
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Thigh_r",
+        "tri_pairs": 11
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Thigh_l",
+        "tri_pairs": 8
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Back_Pectoral_L",
+        "tri_pairs": 2
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Back_Pectoral_R",
+        "tri_pairs": 2
+      }
+    ],
+    "floating": [
+      {
+        "object": "SM_Lancer_CyanVisor",
+        "island_verts": 236,
+        "center": [
+          0.0,
+          -0.113,
+          1.725
+        ]
+      }
+    ],
+    "back_to_back": [
+      {
+        "where": "SM_Lancer_HelmetClosedCore<->SM_Lancer_HelmetCrown",
+        "tri_pairs": 8
+      },
+      {
+        "where": "SM_Lancer_HelmetClosedCore<->SM_Lancer_HelmetJaw",
+        "tri_pairs": 6
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Bicep_r",
+        "tri_pairs": 2
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Bicep_l",
+        "tri_pairs": 2
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Boot_r",
+        "tri_pairs": 1
+      },
+      {
+        "where": "SM_Lancer_OwnedBase_StaticCopy<->SM_Lancer_Boot_l",
+        "tri_pairs": 1
+      }
+    ],
+    "enclosed": [
+      {
+        "object": "SM_Lancer_Knee_l",
+        "island_verts": 222,
+        "center": [
+          0.125,
+          -0.065,
+          0.452
+        ]
+      },
+      {
+        "object": "SM_Lancer_Knee_r",
+        "island_verts": 222,
+        "center": [
+          -0.125,
+          -0.065,
+          0.452
+        ]
+      }
+    ],
+    "objects": {
+      "SM_Lancer_OwnedBase_StaticCopy": {
+        "verts": 46091,
+        "faces": 92178,
+        "tris": 92178,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 23.97,
+        "uv_coverage_pct": 47.9
+      },
+      "SM_Lancer_Front_Pectoral_L": {
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 31.4
+      },
+      "SM_Lancer_Front_Pectoral_L_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 48.2
+      },
+      "SM_Lancer_Front_Pectoral_R": {
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 31.4
+      },
+      "SM_Lancer_Front_Pectoral_R_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 48.2
+      },
+      "SM_Lancer_Front_AbdomenUpper": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 47.7
+      },
+      "SM_Lancer_Front_AbdomenUpper_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 55.1
+      },
+      "SM_Lancer_Front_AbdomenLower": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 47.1
+      },
+      "SM_Lancer_Front_AbdomenLower_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 56.0
+      },
+      "SM_Lancer_Back_Pectoral_L": {
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 27.3
+      },
+      "SM_Lancer_Back_Pectoral_L_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 48.7
+      },
+      "SM_Lancer_Back_Pectoral_R": {
+        "verts": 76,
+        "faces": 72,
+        "tris": 148,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 27.3
+      },
+      "SM_Lancer_Back_Pectoral_R_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 48.7
+      },
+      "SM_Lancer_Back_AbdomenUpper": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 49.9
+      },
+      "SM_Lancer_Back_AbdomenUpper_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 54.1
+      },
+      "SM_Lancer_Back_AbdomenLower": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 39.2
+      },
+      "SM_Lancer_Back_AbdomenLower_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 53.3
+      },
+      "SM_Lancer_PelvisFront": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 38.8
+      },
+      "SM_Lancer_PelvisFront_Mount": {
+        "verts": 56,
+        "faces": 54,
+        "tris": 108,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 50.5
+      },
+      "SM_Lancer_Shoulder_l": {
+        "verts": 278,
+        "faces": 274,
+        "tris": 552,
+        "ngons": 12,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 46.1
+      },
+      "SM_Lancer_Bicep_l": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 45.7
+      },
+      "SM_Lancer_Forearm_l": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 30.5
+      },
+      "SM_Lancer_HipGuard_l": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 59.1
+      },
+      "SM_Lancer_Thigh_l": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 54.3
+      },
+      "SM_Lancer_Knee_l": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 54.9
+      },
+      "SM_Lancer_Shin_l": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 50.8
+      },
+      "SM_Lancer_Boot_l": {
+        "verts": 312,
+        "faces": 300,
+        "tris": 624,
+        "ngons": 16,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 52.4
+      },
+      "SM_Lancer_Shoulder_r": {
+        "verts": 278,
+        "faces": 274,
+        "tris": 552,
+        "ngons": 12,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 46.4
+      },
+      "SM_Lancer_Bicep_r": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 45.8
+      },
+      "SM_Lancer_Forearm_r": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 30.7
+      },
+      "SM_Lancer_HipGuard_r": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 58.9
+      },
+      "SM_Lancer_Thigh_r": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 54.3
+      },
+      "SM_Lancer_Knee_r": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 54.6
+      },
+      "SM_Lancer_Shin_r": {
+        "verts": 222,
+        "faces": 220,
+        "tris": 440,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 50.5
+      },
+      "SM_Lancer_Boot_r": {
+        "verts": 312,
+        "faces": 300,
+        "tris": 624,
+        "ngons": 16,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 52.4
+      },
+      "SM_Lancer_HelmetClosedCore": {
+        "verts": 192,
+        "faces": 182,
+        "tris": 380,
+        "ngons": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 49.5
+      },
+      "SM_Lancer_HelmetCrown": {
+        "verts": 300,
+        "faces": 294,
+        "tris": 600,
+        "ngons": 8,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 47.2
+      },
+      "SM_Lancer_HelmetJaw": {
+        "verts": 286,
+        "faces": 282,
+        "tris": 568,
+        "ngons": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 0,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 55.7
+      },
+      "SM_Lancer_CyanVisor": {
+        "verts": 236,
+        "faces": 234,
+        "tris": 468,
+        "ngons": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "wire_edges": 0,
+        "loose_verts": 0,
+        "degenerate_faces": 0,
+        "zero_length_edges": 0,
+        "inconsistent_normals_edges": 0,
+        "duplicate_verts": 4,
+        "islands": 1,
+        "inside_out_islands": 0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "materials": 1,
+        "uv_maps": 1,
+        "uv_oob_pct": 0.0,
+        "uv_zero_area_faces": 0,
+        "uv_overlap_pct": 0.0,
+        "uv_coverage_pct": 43.6
+      }
+    }
+  },
+  "limits": [
+    "No rig/weights/animation/native changes",
+    "Armor UVs are basic individual face charts; final texel layout/baking later",
+    "UV/final texturing and production topology not accepted",
+    "Full visual and independent review required before secondary forms"
+  ]
+}
