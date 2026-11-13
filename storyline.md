@@ -418,3 +418,24 @@ hazardous orbit, secure environmental protection and locate the archived survey 
    opens the passage through the distortion field (Nicholas)? Until answered, §5 act 3 and ENG-26 stand.
 3. The shielding component: Command's line can ship as words only, with no mechanic, or be cut. Which?
 4. The length: 70-95 s. A 30-45 s cut (lift-off, the two shapes, the marker flash) keeps the three beats.
+
+## 18. Verdance scope: the decision on sections 14-17
+**Decided by Ryan, Nov 13 (14:43 EST): Verdance is built in the reduced form, about 8-10 minutes in all.**
+Details per question: `docs/story/verdance-scope-questions.md`.
+
+| Part | Reduced form (what gets built) | Owner |
+|---|---|---|
+| Arrival and route (3-4 min) | The hyperdrive jump, the descent (ENG-38), a landing and a short route to the station. The cheap clue beats are kept: convoys that ignore the squad carry scanning gear, instruments measure one buried line, a transponder marker flickers | T4 (space and clues), T1 (descent), T5 (route) |
+| Cinematic 03, *Beneath the Surface* (40-60 s) | Voice over the room with a monitor graphic; the dormant drone wakes and glows blue. Built in the same pass as the opening and *Aftermath* | T3, with T2 (monitor graphic) |
+| Facility defence and extraction (3-4 min) | Objective 1's hold-interact becomes a 60-90 s archive transfer with a progress meter and three fixed waves; the transfer pauses while an enemy stands at the terminal; the third wave brings a Heavy as the disruption; the existing carry-back is the extraction with the data package. No new enemy AI, no enemy that damages the terminal | T5, with T2 (meter) |
+| Cinematic 04, *Verdance Departure* (30-45 s) | Three transmissions over the take-off, or a short voice-over shot if the cutscene pass has time | T3 |
+| The outpost | One open-sided survey station re-dressed from the wreck site, holding the console and the dormant drone. Not a walk-in facility | Environment / prop builder, T5 fits it |
+| Cinder shielding | Words only; no mechanic | T3 (lines) |
+| Co-op | Not in the game; the documents are read as solo | - |
+
+**Unchanged:** both Verdance objectives and both rewards (Gravity Well, Cloak), waves 3-4 between the planets, the
+20-30 minute target for the whole game, and the rule that nothing reveals the twist before the Dominion.
+**With Nicholas (story words, issue #29):** objective 1 takes the new fiction (intact station, survey archive, buried
+structure); what the relay (objective 2) means now; what opens the distortion field on Cinder now that the survey
+station replaces the mining complex; a replacement for Kato's "Time to go." (the story test rejects " time" before
+act 4).
