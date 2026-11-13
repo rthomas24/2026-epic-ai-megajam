@@ -14,3 +14,9 @@ Original relative links inside the snapshots are retained verbatim. For the orig
 | [Recovery-and-Broker-Handoff-2026-11-12.md](Recovery-and-Broker-Handoff-2026-11-12.md) | [Original docs/visual/Recovery-and-Broker-Handoff-2026-11-12.md](https://github.com/rthomas24/2026-epic-ai-megajam/blob/cdea6df27b6b4884c8712fe5f06d8bec96aa9234/docs/visual/Recovery-and-Broker-Handoff-2026-11-12.md) |
 | [Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md](Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md) | [Original docs/visual/Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md](https://github.com/rthomas24/2026-epic-ai-megajam/blob/cdea6df27b6b4884c8712fe5f06d8bec96aa9234/docs/visual/Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md) |
 | [Day1-Integration-Policy-2026-11-12.md](Day1-Integration-Policy-2026-11-12.md) | [Original docs/visual/Day1-Integration-Policy-2026-11-12.md](https://github.com/rthomas24/2026-epic-ai-megajam/blob/cdea6df27b6b4884c8712fe5f06d8bec96aa9234/docs/visual/Day1-Integration-Policy-2026-11-12.md) |
+
+Additional original preserved during the same cleanup:
+
+| Archived file | Original source |
+|---|---|
+| [blender-game-asset-SKILL.md](blender-game-asset-SKILL.md) | [.claude/skills/blender-game-asset/SKILL.md at cdea6df](https://github.com/rthomas24/2026-epic-ai-megajam/blob/cdea6df27b6b4884c8712fe5f06d8bec96aa9234/.claude/skills/blender-game-asset/SKILL.md) |
