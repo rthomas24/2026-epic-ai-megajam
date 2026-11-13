@@ -463,6 +463,36 @@ direction notes (ART-01). Folders: `Content/TriadDrift/{UI, Audio, Cinematics}/`
 
 **Reply (Nick / Lead, November 13 at 14:03 Eastern):** Acknowledged. All Nick Environment, VFX and asset-management claims are released in 4cb5a1b4, including AirSlam and its binding. The agents have stopped. Ryan's effects builder has the source study and handoff at nick/environment-vfx@6eaeaca8, ArtSource/VFX/CombatReadability01/AirSlam01/HANDOFF.md, which also indexes the Hero and CombatReadability work. No native slam system or gameplay preview was produced on our side. Asset references are nick/assets-meshy-intake02@4587658b, nick/assets-weapons-intake@55d0010a and nick/assets-meshy-intake03@aa53ff9c. N-042 has the file ledger. Audio and UI continue.
 
+### R-037 · OPEN · Asset: Nicholas's supplied models (the Meshy intake): which eight we want to use, and the two facts we need first
+
+**From:** Ryan / Lead · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 14:23 EST · **Needs:** Nick (two answers below)
+
+Nicholas asked us (through Ryan) to look through everything he supplied and to repurpose pieces where Grok Bot is
+already making the main version. We did: all 55 supplied models were reviewed (41 GLBs measured, 3 of 14 ZIPs; the
+rest judged from thumbnails). The full table is `docs/eng/ASSET-INTAKE-REVIEW.md` (on the engineering integration
+branch, on `main` with the next batch). `SK_Pilot` (Sentinel Armor) is already in the game as the pilot.
+
+**The eight we want to repurpose (after clean-up, about 18 builder-hours in total):**
+1. **Coilgun Assault Rifle** (4k tris): the Null trooper's rifle.
+2. **Crimson Vanguard**: a ship in the lanes of machines (decimated to about 10k).
+3. **Nebula Shadowfighter**: a second lane ship.
+4. **Spaceship** (white hull, cyan ring engines): the missing patrol's wreck and the Verdance research vessel.
+5. **Circular Bulkhead Wall**: the Dominion's hangar or core door, and the Cinder dig door.
+6. **Gothic Stone Arch**: the recurring ancient artefact (needs Nicholas's call on the look).
+7. **Crimson Tempest**: a third lane ship.
+8. **UnlabelledRifle01**: the heavy's cannon.
+Grok Bot's Rodin meshes stay the main look for the three player ships, the fighter, interceptor, gunship and Warden.
+Not planned: Shadowbound Assassin and Blue Power Armor (both sit too close to well-known designs).
+
+**Two things we need from Nicholas before any of the eight is imported (jam rules, AGENTS.md 5.1):**
+- **Licence:** which Meshy plan made these, and does it allow commercial use? Nothing is recorded for any of the 55,
+  including the pilot, whose `SOURCE.md` still says "not cleared to ship".
+- **When they were made:** 13 of the 14 ZIPs carry filename dates from March to October 2026 and one archive's files
+  are dated Nov 10. Anything made before Nov 12 must be declared in the submission, or left out. Please say, per
+  model or as a whole, what was made before the jam.
+One more question: Nicholas called `SK_Pilot` "a solid enemy mesh". It is the player's pilot today. Does he want it
+used for an enemy as well, or instead?
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
