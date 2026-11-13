@@ -256,6 +256,9 @@ def fix_sockets(mesh, wanted, notes):
             sock.set_editor_property("relative_location", unreal.Vector(*s["ue_cm"]))
             mesh.add_socket(sock)
             notes.append("socket %s added from the manifest" % name)
+        # always (re)write the manifest position: a re-import keeps the previous mesh's sockets
+        sock.set_editor_property("relative_location", unreal.Vector(*s["ue_cm"]))
+        sock.set_editor_property("relative_rotation", unreal.Rotator(0.0, 0.0, 0.0))
         loc = sock.get_editor_property("relative_location")
         names.append("%s(%.0f,%.0f,%.0f)" % (name, loc.x, loc.y, loc.z))
     return names
