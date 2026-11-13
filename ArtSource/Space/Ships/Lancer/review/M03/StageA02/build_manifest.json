@@ -1,0 +1,13 @@
+{
+  "blender": "5.1.1",
+  "phase": "structural",
+  "assembly_triangles": 18424,
+  "parts": 12,
+  "mesh_roles": 8,
+  "materials": 6,
+  "legacy_sha256": "9a174e782ec03a663c6679da79d82f0679cb09b31f0f0612afa1c56c98e2482f",
+  "legacy_unchanged": true,
+  "elapsed_seconds": 0.38564279999991413,
+  "native_imported": false,
+  "visual_approved": false
+}

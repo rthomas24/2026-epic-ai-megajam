@@ -1,0 +1,42 @@
+00:01.218  blend            | Read blend: "C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\production\M03\Lancer_M03_structure_v03.blend"
+00:01.265  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+Info: Saved as "Lancer_M03_Detail01_Correction03_work.blend"
+LANCER_M03_QA {"technical_pass": true, "assembly_triangles": 34516, "geometry_errors": [], "contact_pass": true, "attachment_pass": true, "ray_clearance": [{"name": "Muzzle_Primary_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_01", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_02", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_03", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_L_04", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_L", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Primary_R", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_01", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_02", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_03", "clear": true, "hit": null, "distance_cm": null}, {"name": "Muzzle_Secondary_R_04", "clear": true, "hit": null, "distance_cm": null}, {"name": "Thruster_R", "clear": true, "hit": null, "distance_cm": null}]}
+Info: Saved as "Lancer_M03_Detail01_v01.blend"
+LANCER_M03_RENDER 01_hero_front_3q
+00:05.562  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\01_hero_front_3q.png'
+LANCER_M03_RENDER 02_front
+00:06.125  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\02_front.png'
+LANCER_M03_RENDER 03_rear
+00:06.656  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\03_rear.png'
+LANCER_M03_RENDER 04_left
+00:07.218  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\04_left.png'
+LANCER_M03_RENDER 05_right
+00:07.765  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\05_right.png'
+LANCER_M03_RENDER 06_top
+00:08.359  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\06_top.png'
+LANCER_M03_RENDER 07_bottom
+00:08.953  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\07_bottom.png'
+LANCER_M03_RENDER 08_rear_3q
+00:09.609  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\08_rear_3q.png'
+LANCER_M03_RENDER 09_weapon_detail
+00:10.281  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\09_weapon_detail.png'
+LANCER_M03_RENDER 10_canopy_detail
+00:10.937  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\10_canopy_detail.png'
+LANCER_M03_RENDER 11_dark_studio
+00:11.578  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\11_dark_studio.png'
+00:12.343  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\Lancer_M03_clay_front_3q.png'
+00:12.453  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\Lancer_M03_clay_front.png'
+00:12.500  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\Lancer_M03_clay_right.png'
+00:12.562  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\Lancer_M03_clay_top.png'
+00:12.656  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\Lancer_M03_clay_back_3q.png'
+00:12.796  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\Lancer_M03_clay_low_3q.png'
+00:13.828  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\wire_front_3q.png'
+00:14.265  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\wire_top.png'
+00:14.656  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\wire_underside.png'
+00:14.828  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\silhouette_128_top.png'
+00:14.843  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\silhouette_128_side.png'
+00:14.859  render           | Saved: 'C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\review\M03\Detail01\Correction03\silhouette_128_front_3q.png'
+Blender 5.1.1 (hash b70da489d7f4 built 2026-04-14 01:37:22)
+
+Blender quit

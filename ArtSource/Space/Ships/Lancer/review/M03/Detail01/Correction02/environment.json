@@ -1,0 +1,57 @@
+{
+  "ok": true,
+  "blender": "5.1.1",
+  "python": "3.13.9",
+  "background": true,
+  "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ships-lancer-m03\\ArtSource\\Space\\Ships\\Lancer\\production\\M03\\Lancer_M03_structure_v03.blend",
+  "engines": [
+    "BLENDER_EEVEE",
+    "BLENDER_WORKBENCH",
+    "CYCLES"
+  ],
+  "engine": "BLENDER_EEVEE",
+  "gpu": {
+    "backend": "NONE",
+    "devices": [
+      "NVIDIA GeForce RTX 5060"
+    ]
+  },
+  "addons_enabled": [
+    "bl_pkg",
+    "cycles",
+    "io_anim_bvh",
+    "io_curve_svg",
+    "io_mesh_uv_layout",
+    "io_scene_fbx",
+    "io_scene_gltf2",
+    "pose_library"
+  ],
+  "rigify_available": true,
+  "units": {
+    "system": "METRIC",
+    "scale_length": 1.0,
+    "length": "METERS"
+  },
+  "color": {
+    "view": "AgX",
+    "look": "None",
+    "display": "sRGB"
+  },
+  "frame_range": [
+    1,
+    250,
+    24
+  ],
+  "objects": {
+    "MESH": 12,
+    "EMPTY": 36
+  },
+  "data": {
+    "meshes": 8,
+    "materials": 7,
+    "images": 2,
+    "actions": 0,
+    "node_groups": 0,
+    "collections": 3
+  }
+}

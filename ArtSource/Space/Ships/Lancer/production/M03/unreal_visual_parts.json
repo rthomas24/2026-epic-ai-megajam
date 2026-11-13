@@ -1,0 +1,290 @@
+{
+  "primary_mesh": "SM_LancerM03_Hull",
+  "native_imported": false,
+  "parts": [
+    {
+      "PartName": "Wing_L",
+      "MeshSource": "SM_LancerM03_Wing_L",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Graphite",
+        "M_LancerM03_Gunmetal"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        0,
+        -70,
+        0
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Wing_R",
+      "MeshSource": "SM_LancerM03_Wing_R",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Graphite",
+        "M_LancerM03_Gunmetal"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        0,
+        70,
+        0
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Canopy",
+      "MeshSource": "SM_LancerM03_Canopy",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Canopy",
+        "M_LancerM03_Graphite"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        -112,
+        0,
+        63
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Primary_L",
+      "MeshSource": "SM_LancerM03_Primary",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Gunmetal",
+        "M_LancerM03_Graphite"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        30,
+        -100,
+        -42
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Primary_R",
+      "MeshSource": "SM_LancerM03_Primary",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Gunmetal",
+        "M_LancerM03_Graphite"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        30,
+        100,
+        -42
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Rotor_L",
+      "MeshSource": "SM_LancerM03_Rotor",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Titanium",
+        "M_LancerM03_Gunmetal",
+        "M_LancerM03_Blue"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        65,
+        -100,
+        -57
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Rotor_R",
+      "MeshSource": "SM_LancerM03_Rotor",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Titanium",
+        "M_LancerM03_Gunmetal",
+        "M_LancerM03_Blue"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        65,
+        100,
+        -57
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Secondary_L",
+      "MeshSource": "SM_LancerM03_Secondary",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Graphite"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        -90,
+        -220,
+        -44
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Secondary_R",
+      "MeshSource": "SM_LancerM03_Secondary",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Graphite"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        -90,
+        220,
+        -44
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Engine_L",
+      "MeshSource": "SM_LancerM03_Engine",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Gunmetal",
+        "M_LancerM03_Titanium",
+        "M_LancerM03_Blue",
+        "M_LancerM03_Composite"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        -402,
+        -111,
+        -3
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "PartName": "Engine_R",
+      "MeshSource": "SM_LancerM03_Engine",
+      "UnrealAssetPath": null,
+      "MaterialSlots": [
+        "M_LancerM03_Gunmetal",
+        "M_LancerM03_Titanium",
+        "M_LancerM03_Blue",
+        "M_LancerM03_Composite"
+      ],
+      "ParentSocket": null,
+      "translation_cm": [
+        -402,
+        111,
+        -3
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "rocket_visual_offset_cm": [
+    54,
+    0,
+    0
+  ]
+}
