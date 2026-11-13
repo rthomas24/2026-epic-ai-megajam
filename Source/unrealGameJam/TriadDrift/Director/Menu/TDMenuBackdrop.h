@@ -39,6 +39,13 @@ public:
 	/** Seconds into the victory scene before the distress-signal stinger (A5_DistressSignal) and the cut to black. */
 	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float StingerSeconds = 18.f;
 	bool HasPlayedStinger() const { return bStingerPlayed; }
+	/** The ending stinger now (at StingerSeconds; or at once when the player leaves the victory screen earlier: Lead,
+	 *  Nov 13). Once. Returns the seconds its lines need before the screen may change. */
+	float PlayStinger();
+	/** Seconds into the victory scene for Moss's "All three. I'll take that." (Cinematic 09, 0:08-0:18). */
+	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float TakeThatSeconds = 10.f;
+	/** The caption held on screen under the signal's three lines (A5_DistressSignal's text). */
+	FText GetStingerCaption() const;
 	int32 GetFireCount() const { return Fires; }
 
 	/** Tag on any actor of the menu map that is Nick's own menu scene: the backdrop stays off. */
@@ -94,6 +101,7 @@ private:
 	float NextFire = 0.f;
 	int32 Fires = 0;
 	bool bStingerPlayed = false;
+	bool bTakeThatPlayed = false;
 	struct FWreckPiece
 	{
 		TWeakObjectPtr<UStaticMeshComponent> Component;

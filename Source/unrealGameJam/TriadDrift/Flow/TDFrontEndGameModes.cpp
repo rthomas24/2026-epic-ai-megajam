@@ -1,6 +1,8 @@
 // Triad Drift - game modes for the non-gameplay maps. Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
+#include "TimerManager.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
 #include "TriadDrift/Director/Menu/TDCredits.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
@@ -249,6 +251,23 @@ void ATDMenuGameMode::QuitGame()
 
 void ATDMenuGameMode::ReturnToMenu()
 {
+	// Leaving the victory screen before the ending stinger: it plays first, then the menu (Lead, Nov 13: the player
+	// always receives the signal). Once.
+	if (bShowingVictory && !bReturnPending)
+	{
+		for (TActorIterator<ATDMenuBackdrop> It(GetWorld()); It; ++It)
+		{
+			if (It->Scene == ETDBackdropScene::Victory && !It->HasPlayedStinger())
+			{
+				const float Wait = It->PlayStinger();
+				bReturnPending = true;
+				FTimerHandle H;
+				GetWorldTimerManager().SetTimer(H, FTimerDelegate::CreateWeakLambda(this, [this]() { ReturnToMenu(); }), FMath::Max(Wait, 0.1f), false);
+				return;
+			}
+		}
+	}
+	bReturnPending = false;
 	bShowingVictory = false;
 	// Re-resolve, as at start-up: Nick's main-menu widget comes back after the victory screen (N-033), or the
 	// code-built menu when none is assigned.

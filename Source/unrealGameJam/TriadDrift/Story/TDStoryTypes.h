@@ -26,7 +26,10 @@ enum class ETDSpeaker : uint8
 	FutureKato,
 	FutureMoss,
 	Command,
-	PatrolSeven
+	PatrolSeven,
+	/** The pilot on foot aboard the Dominion: whoever flew the ship that docked (Nicholas, issue #29). Resolved when the
+	 *  line goes on air (UTDStorySubsystem::ResolveSpeaker); the two wingmen speak from outside. */
+	Boarder
 };
 
 /** How the line is presented (and how its audio should be treated). */
