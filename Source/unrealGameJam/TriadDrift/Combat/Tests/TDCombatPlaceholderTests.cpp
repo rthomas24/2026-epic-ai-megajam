@@ -10,6 +10,8 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 namespace TDCombatPlaceholderTest
 {
@@ -342,6 +344,107 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());
 	const auto Rocket = TDCombatPlaceholderTest::FireAndCountBySite(TDWeaponIds::SpikeRockets, NoArt.Get(), 1.f / 60.f);
 	TestTrue(FString::Printf(TEXT("rocket impact explodes (%d flashes at the wall)"), Rocket.Impact), Rocket.Impact >= 3);
+	return true;
+}
+
+// Colour code (T5's on-foot journey check: Trooper bolts drew in Rift magenta as 1 m balls). Squad shots in their ship's
+// colour, every enemy shot Armada red-orange, deflected shots in the deflector's colour; on-foot bolts read as bolts.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderColourCode, "TriadDrift.Combat.Placeholder.ColourCode", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderColourCode::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	auto DrawnColor = [](const ATDProjectile* P)
+	{
+		FLinearColor C = FLinearColor::Black;
+		const UMaterialInstanceDynamic* MID = P ? Cast<UMaterialInstanceDynamic>(P->GetPlaceholderMesh()->GetMaterial(0)) : nullptr;
+		if (MID)
+		{
+			MID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), C);
+		}
+		return C;
+	};
+	auto SameHue = [](const FLinearColor& Drawn, const FLinearColor& Want)
+	{
+		// Drawn = colour * glow: compare the normalised colour.
+		const float Scale = FMath::Max3(Drawn.R, Drawn.G, Drawn.B) / FMath::Max(FMath::Max3(Want.R, Want.G, Want.B), KINDA_SMALL_NUMBER);
+		return Scale > 0.f && Drawn.Equals(Want * Scale, 0.02f * Scale);
+	};
+	const FLinearColor Enemy = UTDStatics::TeamColor(ETDTeam::Enemy);
+
+	// 1. A Trooper-style bolt (the spec's default colour is Rift magenta) fired by a non-spacecraft: enemy colour, bolt size.
+	AActor* Trooper = W.Spawn<AActor>(FVector(0.f, 0.f, 100.f));
+	FTDProjectileSpec Bolt;
+	Bolt.Speed = 2200.f;
+	Bolt.CollisionRadius = 22.f;
+	Bolt.bInheritShooterVelocity = false;
+	ATDProjectile* P = ATDProjectile::Launch(W.GetWorld(), Bolt, FTransform(FVector(0.f, 0.f, 1000.f)), Trooper, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
+	if (!TestNotNull(TEXT("trooper bolt"), P))
+	{
+		return false;
+	}
+	TestTrue(TEXT("enemy bolt: look colour is the enemy colour"), P->GetPlaceholderLookColor().Equals(Enemy));
+	TestTrue(FString::Printf(TEXT("enemy bolt: drawn in the enemy colour (%s)"), *DrawnColor(P).ToString()), SameHue(DrawnColor(P), Enemy));
+	TestTrue(TEXT("enemy bolt: not Rift magenta"), !SameHue(DrawnColor(P), UTDStatics::ShipColor(ETDShipId::Rift)));
+	TestTrue(TEXT("on foot: bolt look"), P->UsesOnFootLook());
+	const FTDStreakLook& Look = P->GetStreakLook();
+	TestTrue(FString::Printf(TEXT("on foot: thin bolt (%.0f cm thick, %.0f long)"), Look.Thickness, Look.Length),
+		Look.bStreak && Look.Thickness <= 16.f && Look.Length >= 4.f * Look.Thickness);
+	const float HeadCm = P->GetPlaceholderHead()->GetRelativeScale3D().X * 100.f;
+	TestTrue(FString::Printf(TEXT("on foot: head %.0f cm, not a ball"), HeadCm), HeadCm <= 30.f);
+
+	// 2. Deflected by a non-ship (the blade): the blade's colour. Deflected by a ship (dome / portal): that ship's colour.
+	P->Deflect(Trooper, FVector(-1.f, 0.f, 0.f), ETDTeam::Player, 1.f);
+	TestTrue(TEXT("deflected by the blade: blade colour"), P->GetPlaceholderLookColor().Equals(FTDCombatPlaceholders::BladeColorOf(Trooper)));
+	TestTrue(TEXT("deflected by the blade: drawn in it"), SameHue(DrawnColor(P), FTDCombatPlaceholders::BladeColorOf(Trooper)));
+	P->Kill(false);
+
+	// 3. Every enemy weapon in space: Armada red-orange (mines were pink-red).
+	for (const FName Id : TDCombatPlaceholderTest::EnemyWeaponIds)
+	{
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(Id).Projectile;
+		Spec.FX = nullptr;
+		ATDProjectile* E = ATDProjectile::Spawn(W.GetWorld(), Spec, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Enemy);
+		if (E)
+		{
+			TestTrue(Id.ToString() + TEXT(": Armada hue"), FTDCombatPlaceholders::IsArmadaHue(E->GetPlaceholderLookColor()));
+			TestFalse(Id.ToString() + TEXT(": space look"), E->UsesOnFootLook());
+			E->Kill(false);
+		}
+	}
+
+	// 4. Squad shots: the firing ship's colour, whatever the spec says (wingmen too).
+	const ETDShipId Ships[] = { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion };
+	for (const ETDShipId Id : Ships)
+	{
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 3000.f * static_cast<int32>(Id), 0.f));
+		if (!TestNotNull(TEXT("ship"), Ship))
+		{
+			continue;
+		}
+		Ship->SetShipId(Id);
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile; // Rift's colour in the spec
+		Spec.FX = nullptr;
+		ATDProjectile* S = ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(Ship->GetActorLocation() + FVector(500.f, 0.f, 0.f)), Ship, ETDTeam::Player,
+			nullptr, FVector::ZeroVector, 1.f, false);
+		if (S)
+		{
+			const FLinearColor Want = UTDStatics::ShipColor(Id);
+			TestTrue(FString::Printf(TEXT("ship %d shot: ship colour"), static_cast<int32>(Id)), S->GetPlaceholderLookColor().Equals(Want));
+			TestTrue(FString::Printf(TEXT("ship %d shot: drawn in it"), static_cast<int32>(Id)), SameHue(DrawnColor(S), Want));
+			TestFalse(TEXT("ship shot: space look"), S->UsesOnFootLook());
+			// An enemy missile turned by this ship's dome flies back in this ship's colour.
+			FTDProjectileSpec MSpec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHomingMissile).Projectile;
+			MSpec.FX = nullptr;
+			ATDProjectile* M = ATDProjectile::Spawn(W.GetWorld(), MSpec, FTransform(Ship->GetActorLocation() + FVector(2000.f, 0.f, 0.f)), nullptr, ETDTeam::Enemy);
+			if (M)
+			{
+				M->Deflect(Ship, FVector(1.f, 0.f, 0.f), ETDTeam::Player, 1.f);
+				TestTrue(TEXT("dome-deflected missile: ship colour"), M->GetPlaceholderLookColor().Equals(Want));
+				M->Kill(false);
+			}
+			S->Kill(false);
+		}
+	}
 	return true;
 }
 

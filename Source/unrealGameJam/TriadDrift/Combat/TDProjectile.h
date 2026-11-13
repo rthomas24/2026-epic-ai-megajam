@@ -96,6 +96,15 @@ public:
 
 	virtual FVector GetVelocity() const override { return Velocity; }
 
+	/** The colour the placeholder streak is drawn in right now (FTDCombatPlaceholders::ProjectileColor). */
+	FLinearColor GetPlaceholderLookColor() const { return LookColor; }
+
+	/** Drawn with the small on-foot bolt look (the local player is on foot, or a non-spacecraft fired it). */
+	bool UsesOnFootLook() const { return bOnFootLook; }
+
+	/** The placeholder streak in use (tests). */
+	const FTDStreakLook& GetStreakLook() const { return StreakLook; }
+
 	/**
 	 * Where this projectile was at the start of its last step (its launch point before the first step, the
 	 * arrival point right after a teleport). Portals and gates test Prev -> Cur against their plane with
@@ -177,6 +186,8 @@ private:
 	float AppliedGrowth = 1.f;
 	/** Hostile shot currently flying toward the camera: drawn with a hot head and a bigger floor. */
 	bool bAppliedIncoming = false;
+	FLinearColor LookColor = FLinearColor::White;
+	bool bOnFootLook = false;
 
 	/** Project glow material (UTDStatics::GetPlaceholderGlowMaterial, always cooked). Streaks fall back to the lit material without it. */
 	UPROPERTY(Transient)
