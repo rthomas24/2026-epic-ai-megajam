@@ -635,6 +635,19 @@ bool FTDCombatPlaceholderFlashCap::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("near explosion shell capped: %.0f cm at 15 m (<= 193)"), ShellMax),
 		ShellMax > 0.f && ShellMax <= 1500.f * ATDCombatFlash::MaxShellRadiusPerCameraDistance + 1.f);
 
+	// A debris streak 15 m from the camera (a hulk exploding as it drifts past) stays a thin streak.
+	if (ATDCombatFlash* Debris = Projectiles->PlayPlaceholderFlash(Camera + FVector(1500.f, 300.f, 0.f), 1.f, FLinearColor::Red, 0.01f))
+	{
+		Debris->PlayDebris(Camera + FVector(1500.f, 300.f, 0.f), FVector(0.f, 10.f, 0.f), 600.f, 90.f, FLinearColor::Red, 0.6f);
+		W.Tick(1.f / 60.f);
+		const FVector Scale = Debris->GetActorScale3D() * 100.f;
+		const float Dist = FVector::Dist(Debris->GetActorLocation(), Camera);
+		TestTrue(FString::Printf(TEXT("near debris thickness %.0f cm (<= %.0f)"), Scale.Y, Dist * ATDCombatFlash::MaxDebrisThicknessPerCameraDistance),
+			Scale.Y <= Dist * ATDCombatFlash::MaxDebrisThicknessPerCameraDistance + 1.f);
+		TestTrue(FString::Printf(TEXT("near debris length %.0f cm (<= %.0f)"), Scale.X, Dist * ATDCombatFlash::MaxDebrisLengthPerCameraDistance),
+			Scale.X <= Dist * ATDCombatFlash::MaxDebrisLengthPerCameraDistance + 1.f);
+	}
+
 	// A small hit spark 300 m away keeps a readable size (~20 px at 1080p): radius >= 0.007 x distance at its peak.
 	ATDCombatFlash* Spark = Projectiles->PlayPlaceholderFlash(Camera + FVector(30000.f, 0.f, 0.f), 140.f, FLinearColor::White, 0.14f);
 	float SparkMax = 0.f;

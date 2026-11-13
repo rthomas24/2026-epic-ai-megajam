@@ -164,6 +164,9 @@ public:
 	 * 90 degrees horizontal FOV (tan(7.3 deg)). The Lead: a near death must not fill more than ~25% of the screen height.
 	 */
 	static constexpr float MaxShellRadiusPerCameraDistance = 0.128f;
+	/** Debris streaks near the camera: thickness and length at most these fractions of the camera distance. */
+	static constexpr float MaxDebrisThicknessPerCameraDistance = 0.02f;
+	static constexpr float MaxDebrisLengthPerCameraDistance = 0.25f;
 	/** This play's camera cap (Play resets it to MaxRadiusPerCameraDistance). */
 	void SetCameraCap(float RadiusPerCameraDistance) { CameraCap = FMath::Max(RadiusPerCameraDistance, 0.01f); }
 	float GetCameraCap() const { return CameraCap; }
