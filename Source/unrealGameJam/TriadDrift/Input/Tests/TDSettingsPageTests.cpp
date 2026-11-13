@@ -9,6 +9,7 @@
 #include "TriadDrift/Input/TDSettingsPage.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Input/Tests/TDInputTestHelpers.h"
+#include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -184,6 +185,55 @@ bool FTDOnFootToggleKeys::RunTest(const FString& Parameters)
 	FTDTestWorld::InjectKey(PC, EKeys::V, false);
 	W.Tick();
 	TestEqual(TEXT("re-boarded: V no longer changes the on-foot camera"), S->GetOnFootCameraMode(), ETDOnFootCamera::FirstPerson);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPadYAbility, "TriadDrift.Input.SettingsPage.PadYStillReachesTheAbilityInSpace", TD_TEST_FLAGS)
+bool FTDPadYAbility::RunTest(const FString& Parameters)
+{
+	// Pad Y opens Settings while paused (IMC_Global) and is the ship ability in flight (IMC_SpaceCommon): the
+	// settings mapping must not swallow it (the gamepad pass found Y doing nothing on all three ships).
+	FTDTestWorld W;
+	UTDSettingsSubsystem* S = TDSettingsPageTest::Fresh(W);
+	ON_SCOPE_EXIT { UGameplayStatics::DeleteGameInSlot(TDSettingsPageTest::Slot, 0); };
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 20000.f));
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+	if (!TestNotNull(TEXT("space controller"), PC) || !TestNotNull(TEXT("settings"), S)) { return false; }
+	Ship->SetPlayerControlled(true);
+	PC->GetHints()->UseMemoryOnlyForTests();
+	W.Tick();
+	TestFalse(TEXT("ability input not seen yet"), PC->GetHints()->IsHintDone(ETDHint::Ability));
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Top, true);
+	W.Tick();
+	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Top, false);
+	W.Tick();
+	TestTrue(TEXT("pad Y reached the ship's ability input"), PC->GetHints()->IsHintDone(ETDHint::Ability));
+	TestFalse(TEXT("... and opened no settings page in flight"), UTDSettingsSubsystem::IsSettingsPageOpen(W.GetWorld()));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSettingsMigrate, "TriadDrift.Input.SettingsPage.OldSaveVersionKeepsOptions", TD_TEST_FLAGS)
+bool FTDSettingsMigrate::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	UTDSettingsSubsystem* S = TDSettingsPageTest::Fresh(W);
+	if (!TestNotNull(TEXT("settings"), S)) { return false; }
+	ON_SCOPE_EXIT { UGameplayStatics::DeleteGameInSlot(TDSettingsPageTest::Slot, 0); };
+	UTDSettingsSave* Old = Cast<UTDSettingsSave>(UGameplayStatics::CreateSaveGameObject(UTDSettingsSave::StaticClass()));
+	Old->Version = 0; // an older layout
+	Old->Settings.MouseSensitivity = 2.5f;
+	Old->Settings.bInvertMouseY = true;
+	Old->Settings.MasterVolume = 0.3f;
+	Old->Settings.GamepadDeadzone = 0.9f; // out of today's range
+	TestTrue(TEXT("old slot written"), UGameplayStatics::SaveGameToSlot(Old, TDSettingsPageTest::Slot, 0));
+	S->ReloadForTests();
+	const FTDPlayerSettings& P = S->GetSettings();
+	TestEqual(TEXT("mouse kept"), P.MouseSensitivity, 2.5f);
+	TestTrue(TEXT("invert kept"), P.bInvertMouseY);
+	TestEqual(TEXT("master kept"), P.MasterVolume, 0.3f);
+	TestEqual(TEXT("out-of-range value clamped"), P.GamepadDeadzone, 0.5f);
+	const UTDSettingsSave* Again = Cast<UTDSettingsSave>(UGameplayStatics::LoadGameFromSlot(TDSettingsPageTest::Slot, 0));
+	TestTrue(TEXT("re-saved at today's version"), Again && Again->Version == UTDSettingsSave::CurrentVersion);
 	return true;
 }
 
