@@ -439,3 +439,213 @@ Details per question: `docs/story/verdance-scope-questions.md`.
 structure); what the relay (objective 2) means now; what opens the distortion field on Cinder now that the survey
 station replaces the mining complex; a replacement for Kato's "Time to go." (the story test rejects " time" before
 act 4).
+
+## 19. Gameplay Sequence 04: *Cinder Approach* (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Gameplay_Sequence_04_Cinder_Approach.docx`. Status in the document: "a narrative gameplay
+specification; implementation and playtest verification remain separate". It sits between Cinematic 04 (§17) and
+Cinematic 05 (§20): it starts as the squad sets course for Cinder and ends when the player activates the **mining
+complex survey terminal**, which shows a geometric match with the Verdance archive.
+**Suggested length: "a compact 5-7 minute first pass", subject to encounter tuning and the campaign budget.**
+**Player goal:** follow the recovered Verdance coordinates to Cinder, identify the excavation, and reach a survey
+station overlooking the dig. The player investigates the link between the two worlds "before committing to an
+assault". Crystal recovery, the Warden, the EMP unlock and the field anchor all belong to Gameplay 05 (§21).
+
+| Phase | Player does | Ends when | Story beat / draft line |
+|---|---|---|---|
+| 1 Follow the route | Flies toward the Cinder approach marker; **one bounded interception encounter** pressures the squad while transports continue toward the planet | The approach sector is reached and the transports' destination is identified (**checkpoint** at the Cinder approach) | A deliberate search: most enemy traffic carries excavation equipment to one site; the interceptors defend that route and do not chase Triad indefinitely. COMMAND: "Follow the survey coordinates. Identify the excavation before you engage." KATO: "Those transports are all heading for the same site." |
+| 2 Read the excavation | Uses the objective marker to inspect the mining complex from orbit; excavation lights and concentrated traffic single out one search site | The squad marks a safe landing route near the survey station | WREN: "Then that's where we start. Keep the landing route clear." |
+| 3 Descend and land | Flies through Cinder's atmosphere to the marked pad, with readable terrain and volcanic hazards on the approach | A safe landing; control passes to the on-foot character (**checkpoint** after landing) | MOSS: "Solid ground. Preferably the kind that stays solid." |
+| 4 Reach the survey station | Crosses a short industrial route with cover and a limited patrol encounter; inspects exposed ancient geometry beside the active dig | The survey terminal is used while outside active combat → Cinematic 05 | A familiar response: one intercepted transmission repeats a short phrase Kato has just used; he puts it down to feedback. The matching structure: the terminal compares the Verdance archive with Cinder's exposed geometry and stops at the visual match. KATO: "That pattern again. Get me to the survey terminal." |
+
+(The document lists the five radio lines without placing them in a phase; put in phases by us.)
+
+Objective text on screen: **"Investigate the mining complex,"** then **"Access the survey records."**
+
+**Rules from the proposal:** any space encounter after Verdance belongs inside this approach, "avoiding a separate,
+repeated travel battle"; the echoed phrase stays distorted and deniable, and no character identifies an older self; the
+Origin Core's function stays unexplained; Cinder's **stabilising crystals** will help create a passage through the
+distortion field, and Cinematic 04's heat protection "remains an equipment question" (the crystals are not thermal
+shielding); environmental danger shapes the route **without a mandatory heat meter or a new equipment hunt**; abilities
+earned on Verdance are kept; nothing here may require EMP Pulse; a ground retry restores the landed state without
+replaying the departure or the descent; patrol counts bounded and the safe route readable in solo play; not every pilot
+has to stand at the terminal; the terminal is offered when nearby hostiles are cleared or disengaged; on interaction the
+player's position is kept and hostile pressure is suspended; a skip applies its story flags once and returns to
+Gameplay 05 at the same site.
+
+**How it maps to the game today:**
+- **Exists:** waves 3-4 in the galaxy between the planets (ENG-13, 14: gunships, bombers); the hyperdrive jump and
+  gate to Cinder orbit (ENG-15, 16); the descent (ENG-38; §5 already asks for the dig's glow to show from orbit); the
+  landing and the wingmen landing beside the player (ENG-20); Cinder's hazards: magma, timed geysers, crystals that
+  shatter (ENG-26); the on-foot character, blade, crew enemies, route posts, markers, objective lines, interactables,
+  encounter volumes and scene checkpoints (ENG-21-24); transmissions by id, with an echo style already used by
+  `A3_EchoWren / Kato / Moss`.
+- **Matches the adopted story:** the mining complex, the crystals and the field anchor of §5 act 3 are all kept
+  (`Story/README.md`: "Gameplay 04 follows the adopted storyline"). This answers §17's open question 2: the survey
+  station does **not** replace the mining complex; it is a station **at** the complex, overlooking the dig.
+- **Does not match:** the document wants **one** bounded interception on the way to Cinder; the game has **two
+  waves** (3 and 4) there. The game has **no survey station or terminal on Cinder**, and nothing happens on Cinder
+  before objective 3: today the player lands and goes straight to the outpost or the jammer, in either order. There is
+  no "inspect from orbit" or "mark a landing route" action (as on Verdance, no scan action exists).
+- **New work if adopted:** transports that ignore the squad on the Cinder approach (the same non-hostile convoy lane
+  as §14 and the tutorial battle, built once) (T4); waves 3-4 told as the interception on the Cinder route, by lines
+  only (T3 / T4: *our suggestion*); "read the excavation" as the dig's glow and traffic seen from orbit plus one line,
+  with no new action (*our reading*) (T1 / T4, environment builder); a short route from the pad to a survey station
+  with one patrol (T5); the station itself and its terminal (the Verdance station kit re-used: *our suggestion*)
+  (prop builder, T5); the ancient-geometry prop beside the dig, which is the §6 artefact clue (Grok Bot / builders);
+  the terminal offered only when no enemy is engaged (T5); the first echo as a transmission (T3); the lines as
+  transmissions (suggested ids `G4_*`: *our suggestion*); Nicholas for every line and voice.
+- **Owners:** T1 the descent; T4 the transports and the interception; T5 the ground route, the terminal objective and
+  its checkpoints; T3 transmissions and the cinematic trigger; T2 objective lines and markers in the HUD.
+
+**Open questions:**
+1. Are waves 3-4 the document's "bounded interception", played where they are today and told as the Cinder route, or
+   is one of them cut or moved (Ryan for the flow, Nicholas for the telling)? This also settles §17's question 1.
+2. The length: 5-7 minutes before any Cinder objective starts (Ryan).
+3. Is the survey terminal a new stop before the two existing objectives, and does it lock their order (terminal, then
+   excavation, then anchor)? Today both objectives can be done in either order (Ryan / T5).
+4. The echo in play repeats a phrase "Kato has just used", so a line of Kato's must be chosen and fired first. Which
+   line, and does it replace `A3_EchoKato` (Nicholas)?
+5. The speaker is "COMMAND"; act 1-3 placeholders use Control (`A3_PassageOpen`). One name (Nicholas).
+
+## 20. Cinematic 05: *The Pattern* (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Cinematic_Sequence_05_The_Pattern.docx`. Status in the document: "narrative production
+proposal; no implementation or voice recording is implied".
+**When:** the player activates the survey terminal at the end of §19, outside active combat.
+**Length:** 90-110 seconds (target ending about 100 s); the existing terminal, a scan overlay, pilot radio and a view
+of the excavation; no new speaking character and no face animation.
+**Its job:** turn reconnaissance into a specific recovery mission. The same ancient geometry is on both worlds, and the
+mined crystals can stabilise a route through the Dominion's interference. It must not identify the voice in the echo,
+show future pilots or mention time travel.
+
+| Time | On screen | Lines (drafts) |
+|---|---|---|
+| 0:00-0:20 | **The matching shape.** Begins on the terminal where the player interacted. Kato aligns the Verdance outline with an exposed section beneath the mining complex; the scans agree at several distinctive angles; neither shows the complete structure | KATO: "Different worlds. Same construction. They knew where to dig." WREN: "And the survey records gave them the coordinates." |
+| 0:20-0:45 | **A usable lead.** The display overlays crystal readings from the excavation with the distortion readings recorded near the Dominion: a narrow, stable band appears inside the interference. The **crystal cache** and the rig's **field anchor** are marked on the local map | KATO: "These crystals hold a stable response inside the interference. With the signal data, we may have a way through." MOSS: "So we take a sample and get out?" WREN: "First we find out what's guarding it." |
+| 0:45-1:10 | **The echo.** A hostile transmission cuts across the squad channel: a filtered fragment repeats Kato's earlier words, **"Same construction."** The cadence is familiar but the processing prevents identification; the recording ends before Kato can isolate it | MOSS: "Was that you?" KATO: "No. Could be our channel feeding back. Keep the recording." |
+| 1:10-1:40 | **The guarded excavation.** Cut from the terminal map to the excavation beyond the station. The Warden guards the route to the secured crystal cache; an active field anchor distorts the outbound route on the display. The places shown are the ones the player uses next | KATO: "The rig's field anchor is interfering with the route out. We need the crystals, then we shut it down." COMMAND: "Recover the samples and preserve the survey data. Confirm a passage before approaching the Dominion." WREN: "We've got our route. Triad, move." |
+
+**Hand-off:** ends on the access route toward the excavation; control returns in the same survey-station area with the
+player facing the first objective and enemies still outside immediate attack range; the objective reads **"Secure the
+excavation."** The cache and anchor locations are recorded but neither objective is complete. Combat resumes only once
+the player can react.
+
+**Rules from the proposal:** skipping applies the same map markers, recorded-transmission state and objective once,
+and grants no crystals, EMP unlock or anchor completion; a later death retries the gameplay checkpoint and never
+replays this scene; the repeated phrase stays "an ambiguous interception or feedback event"; the squad does not
+identify the speaker or discuss time travel; no future pilots, decrypted personal records or explicit identity
+confirmation; **the three-pulse motif is not used here** (kept for its payoff) and **"Don't-" stays reserved for the
+finale**; the crystals stabilise passage through the distortion field and are not heat shielding; **the field anchor
+"prepares an approach corridor"; the Dominion's four defensive generators remain a later assault objective, and
+access to its interior still requires that assault and docking**; the Warden may be shown by its visible position or
+by a sensor contact; camera positions and the transmission treatment are production choices. Nicholas owns the final
+dialogue, tone and reveal timing; Ryan's Lead confirms the crystal and anchor feedback, the enemy activation point and
+the return position.
+
+**How it maps to the game today:**
+- **Exists:** transmissions by id with speaker, style (echo, static) and queueing, held during cutscenes (T3); the
+  director's cameras (C-03, ENG-33); interactables that fire an event (ENG-24); objective markers; the Warden
+  encounter with a checkpoint before it (ENG-26); the monitor graphic of the Verdance scan is already wanted for
+  Cinematic 03 (§18), so the Cinder overlay is a second layer on the same graphic.
+- **Does not match:** `A3_CrystalsFound` ("These crystals stabilise the field. They were digging a way through it.")
+  says the machines dig for the crystals; here the machines dig for the **structure** and the crystals are what Triad
+  takes. The three placeholder echoes `A3_EchoWren / Kato / Moss` use character phrases nobody has said in play; the
+  document has **one** echo, of words Kato said a minute earlier. §5 act 3 says destroying the anchor "gives the
+  passage through the distortion field"; here the crystals (with "the signal data") give the way through and the
+  anchor only interferes with "the route out". "The signal data" is from §5's old Verdance (the signal-analysis
+  device); §14-18 Verdance yields a **survey archive**, so the phrase needs a source (*our note*).
+- **New work if adopted:** the cutscene: terminal shot, the two-scan overlay, the stable band, the map with two
+  markers, the cut to the dig, skip, no replay on a retry (T3); the 2D graphics (T2, or a builder's material); the
+  echo: the same line played twice, the second through the echo treatment (T3 hook, Nicholas's audio); a "recording
+  kept" state for Cinematic 06 and the finale (a story flag: *our reading*) (T3); the Warden visible or marked from
+  the station (T5); the lines as transmissions (suggested ids `C5_*`: *our suggestion*); Nicholas for lines and voices.
+- **Staging note (ours):** as in §15, there are no pilot bodies on foot: the scene is voice over the terminal, the
+  graphic and the dig, which the document asks for.
+- **Owners:** T3 the sequence; T2 the overlay and the markers; T5 the trigger, the return position and where the
+  Warden stands; T4 nothing new.
+
+**Open questions:**
+1. The length: 90-110 s. A 40-50 s cut keeps all four beats (the match, the lead, the echo, the two targets).
+2. One echo (this document) or the three placeholder echoes of §5 (`A3_Echo*`), or both? Each extra one is a step
+   closer to the twist (Nicholas).
+3. "With the signal data": which Verdance object is that now, the survey archive (objective 1) or the relay
+   (objective 2)? If the relay, this is also the answer to §18's "what the relay means now" (Nicholas).
+4. What the player is told opens the way: crystals, anchor, generators, in that order? See §21's open question 1.
+5. Is the name "Origin Core" spoken on Cinder? §5 act 3 says the squad learns the enemy is after its parts or keys;
+   the Cinder documents only say its function stays unexplained (Nicholas).
+6. If the single cutscene pass (§11 gate) runs out of room, this scene falls back to five transmissions at the
+   terminal with the markers appearing (Ryan / T3).
+
+## 21. Gameplay Sequence 05: *Cinder Excavation* (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Gameplay_Sequence_05_Cinder_Excavation.docx`. Status in the document: "proposed gameplay
+specification; implementation and playtesting remain separate". It begins when Cinematic 05 (§20) returns control at
+the survey station and ends when the crystal package is secured, the field anchor is disabled and the player reaches
+extraction, which triggers **Cinematic 06, *The Path to Dominion*** (not written yet).
+**Suggested length: a "working pacing target" of 4-6 minutes, "to be tuned against Gameplay 04 and the full campaign
+rather than added as a fixed requirement".**
+**Player goal:** clear the mining complex, secure the stabilising crystals and disable the excavation rig's field
+anchor. "Combined with the Verdance signal data, the recovered material provides the means to attempt the Dominion
+approach."
+
+| Step | Player objective | Gate / feedback | Beat / draft line |
+|---|---|---|---|
+| 1 Secure the excavation | Follow the marked industrial route into the dig; clear a bounded defending force; defeat or disable the guarding **Warden** "through the existing encounter rules", with cover, blade, block and deflection where supported | Access to the secured crystal cache opens; the mining-complex objective is recorded (**checkpoint** on entry to the encounter) | A defended industrial site; the Warden forces movement around cover. WREN: "Clear the route to the cache. Watch the rig." MOSS: "That one's staying with the crystals." |
+| 2 Recover the crystals | Interact with the cache; the sample container is confirmed secured; Kato compares the sample with the survey readings | The recovered-crystals state is saved and **Lancer's EMP Pulse is awarded** "at completion of the mining-complex objective" (**checkpoint**) | A short pause to understand the reward. KATO: "Samples secured. Lancer's EMP is available." |
+| 3 Disable the field anchor | Advance to the rig's marked anchor and destroy or disable it "using the confirmed objective interaction" | The disruption ends; the navigation overlay shows a stable outbound corridor (**checkpoint** after shutdown) | Urgency returns; the shutdown visibly changes the route. COMMAND: "Field anchor marked. Shut it down and confirm your exit." KATO: "The interference is dropping. We have a corridor." |
+| 4 Reach extraction | Return by a readable route to the landing area, with "only a bounded pursuit if the encounter budget supports it" | Crystals held and anchor done are confirmed, then extraction is accepted → Cinematic 06 as Triad departs | The withdrawal feels earned. WREN: "Keep the samples intact. Back to the ships." |
+
+Objective text, in order: **"Secure the excavation" → "Recover the stabilising crystals" → "Disable the field
+anchor" → "Return to extraction."**
+
+**Rules from the proposal:** the reward is gameplay progression: "do not invent a claim that the crystals themselves
+create EMP technology"; show the EMP unlock and its real control prompt without a blocking explanation while the
+player is exposed; **EMP is Lancer's ship ability**: the on-foot character never has to use it on the anchor, no
+re-boarding is added just to demonstrate it, and its first use belongs after Cinder; Verdance abilities stay
+available; the anchor's shutdown prepares the route and **does not complete the mothership's four-generator assault**;
+retries never replay Cinematic 05; samples, EMP and the open route survive retries, and rewards and completion events
+apply once; a failed extraction returns to a safe ground checkpoint; reinforcement waves are bounded and cleared when
+their encounter ends; tuned for one active player; existing difficulty and checkpoint systems, **no new survival
+timer**; the echo recorded in Cinematic 05 is carried forward unexplained; **one access console may briefly recognise
+the squad before opening**, kept impersonal (no named future pilot, no human identity reveal, no replay of the opening
+warning); Cinematic 06 needs crystals, anchor and extraction all done and "does not grant unearned objectives or skip
+the later Dominion assault". Enemy counts, Warden tuning, the anchor interaction and the extraction transition are for
+Ryan's Lead; Nicholas finalises the dialogue and the next cinematic.
+
+**How it maps to the game today:**
+- **Exists, and is close:** Cinder objective 3, the outpost (ENG-26): breach the gate (2 conduits), 3 escalating
+  areas, the Warden with a checkpoint before it and the director's mercy tiers, then a claim that unlocks EMP Pulse:
+  that is steps 1 and 2. Objective 4, the jammer: collapsing crystal bridges, plant 3 charges under attack, then run
+  as the tower collapses: that is steps 3 and 4. §5 act 3 and ENG-26 already call them the mining complex ("Stop the
+  Excavation") and the field anchor ("Destroy the Field Anchor"). The board point, take-off (ENG-20, ENG-38),
+  per-objective scene checkpoints with "CUT!" retakes, rewards that apply once, and the reward screen with the
+  control prompt all exist. ENG-26 already plans one door at the dig that opens to the pilot's ID (§6).
+- **Does not match:** the claim at the end of objective 3 is "the EMP prototype"; the document's is a **crystal
+  cache**, with EMP awarded at the same moment and not explained by the crystals. Objective names differ from §5 and
+  ENG-26. Today the two objectives can be done in either order; the document fixes the order. In code today the
+  Dominion's arrival is set when **wave 5** clears (`bRevealsDominion` on the wave), not by Cinder objective 4; the
+  document never mentions wave 5. The Warden has no finished mesh yet.
+- **New work if adopted:** renames of objectives, markers and prompts to the document's four lines (T5); the claim
+  becomes the crystal cache, with a carried or flagged "samples" state (T5); the order gate: anchor only after the
+  crystals (T5); the anchor's shutdown feedback: the local distortion ends and a corridor marker appears on the HUD
+  (T2, effects builder); extraction refuses until both are done (already how the way back to space opens); the
+  recognising console at the dig gate (T5, small); the lines as transmissions (suggested ids `G5_*`: *our
+  suggestion*), Nicholas for lines and voices.
+- **The player is alone on foot today:** "Clear the route", "Back to the ships" and Kato's comparison are voices.
+- **Owners:** T5 the objectives, order, cache, console and checkpoints; T2 the corridor overlay and reward prompt; T3
+  lines and the hand-over to Cinematic 06; T4 the corridor's meaning in space (wave 5, the field, the approach).
+
+**Open questions:**
+1. **What opens the distortion field?** §5 act 3: destroying the anchor gives the passage. These documents: the
+   crystals plus the signal data give a way through, the anchor's shutdown gives "a stable outbound corridor", and
+   the four generators are still a later assault. §5 act 4: the four generators **are** the field. One sentence is
+   needed for what each of the three does (Nicholas), and one rule for when the built field stops pushing ships away
+   (Ryan / T4).
+2. Where wave 5 goes: the documents end at extraction and hand to Cinematic 06. Today wave 5 ("Dominion's Guard")
+   is fought after Cinder and its clear brings on the assault (Ryan for the flow; Nicholas so that Cinematic 06
+   leads into it).
+3. Where the EMP comes from in the fiction, if not from the crystals: a prototype stored at the complex (today's
+   claim), or awarded with no explanation (Nicholas)?
+4. Kato's "Samples secured. Lancer's EMP is available." names a game system in a pilot's voice; the reward screen
+   already announces it. Keep, or leave the announcement to the screen (Nicholas)?
+5. The length: 4-6 minutes; today's two objectives are not measured against it (T5 to time them on the new terrain).
+6. Cinematic 06 is not written; until it is, the departure carries `A3_PassageOpen` or its replacement (T3).
+7. The pursuit on the way out: today's "run as the tower collapses" stands in for it, with no extra spawns?
