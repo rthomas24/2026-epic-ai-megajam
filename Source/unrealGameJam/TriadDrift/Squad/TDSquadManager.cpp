@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Input/TDHintComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDSquad, Log, All);
 
@@ -1466,7 +1467,8 @@ FText ATDSquadManager::GetInteractPrompt() const
 	{
 		return LastRefusalText;
 	}
-	return FText::GetEmpty();
+	// Last: T1's first-minute control hint (empty between hints or when hints are off).
+	return UTDHintComponent::GetHintText(this);
 }
 
 FTDWaveInfo ATDSquadManager::GetWaveInfo() const
