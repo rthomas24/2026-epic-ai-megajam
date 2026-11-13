@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
+#include "TriadDrift/Director/Menu/TDCredits.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
@@ -319,6 +320,8 @@ void ATDMenuGameMode::ShowPlaceholder()
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(0.8f, 0.85f, 0.95f))
 			];
 		}
+		// T3: the credits roll (DA_Credits, else the CREDITS.md fallback), inside this panel: it goes with it.
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 14.f, 0.f, 0.f)[FTDCredits::MakeRoll()];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 18.f, 0.f, 0.f)[Button(TEXT("RETURN TO MENU"), [](ATDMenuGameMode* M) { M->ReturnToMenu(); }, true)];
 	}
 	else

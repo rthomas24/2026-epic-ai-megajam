@@ -3,6 +3,10 @@
 #include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Styling/CoreStyle.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Engine/GameViewportClient.h"
+#include "Engine/Engine.h"
 
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
@@ -234,9 +238,21 @@ void ATDMenuBackdrop::UpdateBreakup(float Dt)
 	{
 		bStingerPlayed = true;
 		UTDStorySubsystem::Fire(this, TEXT("A5_DistressSignal"));
-		if (APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && PC->PlayerCameraManager)
+		// Cut to black: a black layer over the scene, under the victory panel (z 10) and the transmission line (905).
+		StingerStart = FPlatformTime::Seconds();
+		if (GEngine && GEngine->GameViewport && GEngine->GameViewport->GetWorld() == GetWorld() && !StingerBlack.IsValid())
 		{
-			PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.35f, FLinearColor::Black, false, /*bHoldWhenFinished*/ true);
+			TWeakObjectPtr<ATDMenuBackdrop> Weak(this);
+			StingerBlack = SNew(SBorder)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.Visibility(EVisibility::HitTestInvisible)
+				.BorderBackgroundColor_Lambda([Weak]()
+				{
+					const ATDMenuBackdrop* B = Weak.Get();
+					const float A = B ? FMath::Clamp(static_cast<float>(FPlatformTime::Seconds() - B->StingerStart) / 0.35f, 0.f, 1.f) : 1.f;
+					return FSlateColor(FLinearColor(0.f, 0.f, 0.f, A));
+				});
+			GEngine->GameViewport->AddViewportWidgetContent(StingerBlack.ToSharedRef(), 5);
 		}
 	}
 	// The hull lists and sinks as it dies, over the first minute, then holds.
@@ -408,5 +424,10 @@ void ATDMenuBackdrop::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		}
 	}
 	Spawned.Reset();
+	if (StingerBlack.IsValid() && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(StingerBlack.ToSharedRef());
+	}
+	StingerBlack.Reset();
 	Super::EndPlay(EndPlayReason);
 }
