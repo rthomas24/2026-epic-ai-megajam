@@ -1,0 +1,340 @@
+[
+  {
+    "original": "Saved/M03Objective/01-lancer-mission-lateattach-1080p.png",
+    "file": "01-lancer-mission-lateattach-1080p.png",
+    "sha256": "b86ea5cbca14e203e6fd257674f409d9014c507b44dd488872b400f1199afcf1",
+    "bytes": 247480,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520276.8717177,
+    "observation": "Actual Lancer Wave1; current mission seeded after widget attachment. Real damaged vitals.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/02-lancer-wave5-objective.png",
+    "file": "02-wave5-scene-slate-transient.png",
+    "sha256": "da96b8eba9f47732d17ebd0f443ac6aea6877e9a5ffdf34bca6f74e5d8d8f222",
+    "bytes": 677475,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520278.337469,
+    "observation": "Transient Wave5 scene slate and letterbox. Diagnostic only; not a settled layout frame.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/03-verdance-arrival.png",
+    "file": "03-verdance-arrival.png",
+    "sha256": "297fdfd445afb58f28ba90b8b0f9102021b1611f11dfcda176f09a04cf793a2f",
+    "bytes": 1985518,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520288.3071077,
+    "observation": "Actual Verdance arrival and land-at-beacon mission.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/04-lancer-hold-f-1080p.png",
+    "file": "04-lancer-hold-f-1080p.png",
+    "sha256": "f0582142a45705ea7c98f31a6014f59637371e94062b561778cdf40282bec988",
+    "bytes": 1988056,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520313.716414,
+    "observation": "Lancer Hold F to land footer and pad marker, 1920x1080.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/05-lancer-hold-f-720p.png",
+    "file": "05-lancer-hold-f-720p.png",
+    "sha256": "dfd493857cf714ce364c7620549fb5a1505354838329dace2ddd48ae6bfe11eb",
+    "bytes": 901632,
+    "resolution": [
+      1280,
+      720
+    ],
+    "captured_unix": 1794520334.8439772,
+    "observation": "Lancer Hold F footer, 1280x720; no footer/card/control overlap.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/06-lancer-hold-f-ultrawide.png",
+    "file": "06-lancer-hold-f-ultrawide.png",
+    "sha256": "d4af6b1c9126acc39f72036a6a52481e7910e72a3b7d8045c96798aefaabdd7c",
+    "bytes": 2640029,
+    "resolution": [
+      2560,
+      1080
+    ],
+    "captured_unix": 1794520336.2126079,
+    "observation": "Lancer Hold F footer, 2560x1080; no footer/card/control overlap.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/07-lancer-slow-down-boosting.png",
+    "file": "07-boost-request-hold-f-diagnostic.png",
+    "sha256": "5e61507274ceae62eb6fcbf0ace04bd17ce110b96d5d2f089641ca635833b04d",
+    "bytes": 1811768,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520338.1581743,
+    "observation": "Boost requested in atmosphere; actual boosting remained false. Shows Hold F, NOT SLOW DOWN.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/08-lancer-slow-down-1080p.png",
+    "file": "08-boost-request-1080p-diagnostic.png",
+    "sha256": "edd49f534470e3b48c2f08d77e693bc0cc8dc5d68c93f97253c52c3ba832af4b",
+    "bytes": 1909115,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520389.0739872,
+    "observation": "Same boost diagnostic at1080p; NOT SLOW DOWN evidence.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/09-lancer-slow-down-720p.png",
+    "file": "09-boost-request-720p-diagnostic.png",
+    "sha256": "1090695c77d56dc791ca271f5b7b27d211dd98ff3f9bae98f2acea1bd1e01751",
+    "bytes": 895557,
+    "resolution": [
+      1280,
+      720
+    ],
+    "captured_unix": 1794520390.2150176,
+    "observation": "Same boost diagnostic at720p; NOT SLOW DOWN evidence.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/10-lancer-slow-down-ultrawide.png",
+    "file": "10-boost-request-ultrawide-diagnostic.png",
+    "sha256": "45be7eba2b82b82328d6fc57b7383386c14fb2a545055df7d68c2649040ee73c",
+    "bytes": 2596074,
+    "resolution": [
+      2560,
+      1080
+    ],
+    "captured_unix": 1794520391.6394386,
+    "observation": "Same boost diagnostic at ultrawide; NOT SLOW DOWN evidence.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/11-lancer-braking-hold-f.png",
+    "file": "11-lancer-braking-hold-f.png",
+    "sha256": "ae04b542fac7862fe13c3c385709d8ac2a39a52fdbbc13aaf45f8d470ba2a302",
+    "bytes": 1943716,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520394.0935867,
+    "observation": "Real brake input reduced actual speed4502 to1506cm/s; guidance remains Hold F.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/12-lancer-outside-pad-range.png",
+    "file": "12-lancer-outside-pad-range.png",
+    "sha256": "1986565db01d8ba5aea18bb114f6a9c8320146ccc037453fb968f5e247051e08",
+    "bytes": 1836983,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520507.93005,
+    "observation": "Outside real pad assist range; interaction prompt clears while mission persists.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/13-lancer-reentered-pad-range.png",
+    "file": "13-lancer-reentered-pad-range.png",
+    "sha256": "f52af0f310edc8728eb076451a48b28e973d24036e098985d8a5d5b3f84bd1c3",
+    "bytes": 1923384,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520508.9749236,
+    "observation": "Reentered real pad range; Hold F returns.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/14-bastion-switch-far-no-stale-prompt.png",
+    "file": "14-bastion-switch-far-no-stale-prompt.png",
+    "sha256": "8ea04d38f520d75d30b8ed383ba400c89e5e7ab58e5653a73de951db88d76bb8",
+    "bytes": 1785572,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520510.9737415,
+    "observation": "Switched to distant Bastion; no stale Lancer prompt.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/15-lancer-switched-back-hold-f.png",
+    "file": "15-lancer-switched-back-hold-f.png",
+    "sha256": "6f87306271dc7d1be70567118e0002d4a19b99cc9f3158c7367a486cab561e9a",
+    "bytes": 2025464,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520512.6902683,
+    "observation": "Switched back to near Lancer; Hold F restored.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/16-host-off.png",
+    "file": "16-host-off.png",
+    "sha256": "6a3caa12adf01a3ae10f8c69d813b3774d909d7b6bffe3138025db07d8fb244d",
+    "bytes": 2325563,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520513.8301528,
+    "observation": "Native host explicitly off; engineering fallback HUD visible.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/17-host-restored-mission-and-prompt.png",
+    "file": "17-host-restored-mission-and-prompt.png",
+    "sha256": "f72853e9b49d64fe25d4a8fd5fefb4d6a6abca5b10a628a1e2a4ea87644d1fc6",
+    "bytes": 2026832,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520514.8171062,
+    "observation": "Native host restored; current mission, pad marker and actual landing prompt seeded.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/18-real-f-approach-landing.png",
+    "file": "18-F-approach-assist.png",
+    "sha256": "2aebbcaf3aa8a8d49ee006ab435d27924998e8ac954c7b5cd8fd478cfe01067b",
+    "bytes": 1533931,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520543.2415707,
+    "observation": "First F approach-assist attempt, subsequently canceled by switching. Not completed landing.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/19-landing-switch-request.png",
+    "file": "19-switch-cancels-assist.png",
+    "sha256": "59ebab48c48d3427729c0d4abd5615a5418e77f6cbc03c08d62b4da2b39cc876",
+    "bytes": 1462524,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520544.2660117,
+    "observation": "Three ship-switch cancels approach assist and controls Bastion. Transient letterbox.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/20-after-real-f-landing.png",
+    "file": "20-after-assist-cancel-still-flying.png",
+    "sha256": "f08ac749327ff133316c233ff7aec60029c93c3362b6f392e9ce358795704b31",
+    "bytes": 1771023,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520549.1005285,
+    "observation": "After canceled approach; still flying Bastion. Not completed landing.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/21-lancer-real-direct-landing.png",
+    "file": "21-lancer-direct-landing-aligning.png",
+    "sha256": "89dbff1a75b23478995715dd05a8ed190ac26764abf22746a5f3d59437653a49",
+    "bytes": 1979004,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520601.463587,
+    "observation": "Second F attempt, actual direct landing Aligning1; Lancer controlled.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/22-real-landing-on-foot.png",
+    "file": "22-canopy-opening-before-handoff.png",
+    "sha256": "cd3ec48656e9630950f1b0d13f977ab44862490b9c3c070f8df681a09dc2965a",
+    "bytes": 1970195,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520607.3428743,
+    "observation": "CanopyOpening6, space HUD still shown. NOT on-foot/teardown proof.",
+    "diagnostic": true
+  },
+  {
+    "original": "Saved/M03Objective/23-real-landed-on-foot-host-removed.png",
+    "file": "23-real-landed-on-foot-host-removed.png",
+    "sha256": "819340fc617ec7cb04ccc0dac117a5afcff79151a508fe11e71e496cc1eaacb1",
+    "bytes": 2145268,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520650.8331614,
+    "observation": "Completed real landing: first-person blade/ground HUD; space HUD removed. Log confirms TDFirstPersonCharacter_0 and shown0.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/24-return-galaxy-mission-restored.png",
+    "file": "24-return-galaxy-mission-restored.png",
+    "sha256": "dc38a2c11b7fc2cfc264c2ad85e3c28d8d28e5e8d806cd2c5c07ac0d0bb1fd5e",
+    "bytes": 801332,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520655.993441,
+    "observation": "Return to Galaxy Wave5: Lancer native host restored with current mission. Scene slate still fading.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/25-galaxy-target-regression.png",
+    "file": "25-bastion-target-lock-regression.png",
+    "sha256": "32f53000648a674bb7c5860cef8e51bd832185001278e174e6ebe695da4e55dc",
+    "bytes": 415563,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520706.2480893,
+    "observation": "Real combat survival-switch to Bastion after Rift/Lancer deaths. Target acquired, lock3 in status, 41m target in capture.",
+    "diagnostic": false
+  },
+  {
+    "original": "Saved/M03Objective/26-galaxy-weapon-regression.png",
+    "file": "26-bastion-weapon-regression.png",
+    "sha256": "b41202420d77ea882871863b220e17d983c4772e7e63f8836718ad988d46b752",
+    "bytes": 738164,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "captured_unix": 1794520707.2557957,
+    "observation": "Bastion real firing: heat13%, secondary ammo10 to9, shield94% to88%. Not Lancer styling evidence.",
+    "diagnostic": false
+  }
+]

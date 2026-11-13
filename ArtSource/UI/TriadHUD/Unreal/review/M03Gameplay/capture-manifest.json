@@ -1,0 +1,130 @@
+[
+  {
+    "file": "01-rift-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 611822,
+    "sha256": "b8303c9ca2ec1395aa82c194f93332a055a34ee4e01edb20787e443519602a0d",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "02-lancer-m03-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 379697,
+    "sha256": "0f517f7c7ca77773baae863bbee208eacda04613e267d27f197554fc78195d02",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "03-lancer-target-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 417514,
+    "sha256": "7fc56cdabf16e28f6e59eed66f103abe2786c2ac9647c25cda773a4a0d6d6dcb",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "04-lancer-heat-ammo-live.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 274549,
+    "sha256": "2c9a9b2dcbf8ac0347207b5f06530ccebfc54c03b6f0cee988d3e2c0e3290cc4",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "05-lancer-signature-live.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 348625,
+    "sha256": "a1d839e9ee0599b5b7f69ea1a120bcfc7e59a9ffff78545e24405c3d2c6ca40c",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "06-lancer-ability-live.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 235547,
+    "sha256": "14e5d1b8b08d5ac9f8bdd5c9365d51370a0ed64fa083a37638fb3f8ac26ff8ab",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "07-lancer-boost-live.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 233438,
+    "sha256": "2f4093e9e0a40c5aa6ac046c8c1c510c880373e6768977021aae33ff5912759c",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "08-bastion-live.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 231586,
+    "sha256": "da7ac1578814cd6238d0308a52e64904aeec22ff2bfca537c3c57bc57ec53d73",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "09-rift-switched-live.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 231327,
+    "sha256": "89887d4282d07ab4a432066ecc4ec33ffdbe5933301793f98cad9e73bc757d1c",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "10-lancer-live-720p.png",
+    "width": 1280,
+    "height": 720,
+    "bytes": 158203,
+    "sha256": "549b09a8e4f46eb4abf3843a5220c221cdca87d6a23932801f1ee3dc632dc190",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "11-lancer-live-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 422353,
+    "sha256": "9221fb5ead8b77282e1ce89705cbfb618217f295f2308b94aab9dbf3705505e5",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "12-wave5-live-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 464139,
+    "sha256": "f2681ab4fe4f15f0d12aa0cb8ae835efb699c88e68b48b337fd8db48c26b7138",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "13-host-off.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 295275,
+    "sha256": "6ccd3136f6bb4490244768609ae73d1b7a3c379de48436219ece3d484824738e",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "14-host-restored.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 422311,
+    "sha256": "19c3bbd3ccc3123d022a259538094f01fde9ee6ead26979d30d48d00da734554",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "15-on-foot-spacehud-removed.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 2239499,
+    "sha256": "2d137ed45acae6f775f94fb599d8de83d70abad775137445dfaf884384623077",
+    "crc_iend_inflate": "pass"
+  },
+  {
+    "file": "16-return-to-space.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 879090,
+    "sha256": "01568f55032423d303f32f3e1e8918105a490da95cafb64b4e8610bf0f9ea329",
+    "crc_iend_inflate": "pass"
+  }
+]

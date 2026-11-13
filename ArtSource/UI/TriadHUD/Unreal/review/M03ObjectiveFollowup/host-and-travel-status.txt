@@ -1,0 +1,95 @@
+[2026.11.12-21.51.16:619][710]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.51.16:619][710]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=7
+[2026.11.12-21.51.16:619][710]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=0.20 power=1.00 ability=0.00
+[2026.11.12-21.51.16:619][710]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=0 hull=0.79 power=1.00 ability=0.00
+[2026.11.12-21.51.16:620][710]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.51.27:615][348]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 0 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank 0.0
+[2026.11.12-21.51.27:615][348]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.51.27:615][348]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(P=-24.23)
+[2026.11.12-21.51.27:615][348]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_0 at X=-34747.184 Y=0.000 Z=17710.771 speed 3653 atmosphere 1 hyperdrive 0 landing 0 altitude 175 m
+[2026.11.12-21.51.27:815][360]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.51.27:815][360]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-21.51.27:815][360]LogTDUIHost: Display: TD.UI.Status: card 0 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.51.27:815][360]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.51.27:815][360]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.51.53:100][860]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll 0.0 visual bank -0.0
+[2026.11.12-21.51.53:100][860]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.51.53:100][860]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(0)
+[2026.11.12-21.51.53:100][860]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-7652.220 Y=0.000 Z=2893.836 speed 1515 atmosphere 1 hyperdrive 0 landing 0 altitude 27 m
+[2026.11.12-21.51.53:249][869]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.51.53:249][869]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-21.51.53:249][869]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.51.53:249][869]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.51.53:249][869]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.52.17:713][281]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 1 drift 0 brake 0 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll 0.0 visual bank -0.0
+[2026.11.12-21.52.17:713][281]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.52.17:713][281]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(0)
+[2026.11.12-21.52.17:713][281]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-25716.774 Y=0.000 Z=4870.789 speed 4502 atmosphere 1 hyperdrive 0 landing 0 altitude 47 m
+[2026.11.12-21.53.08:516][313]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 1 drift 0 brake 0 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank -0.0
+[2026.11.12-21.53.08:516][313]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.53.08:516][313]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(0)
+[2026.11.12-21.53.08:516][313]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-16174.402 Y=1.989 Z=4905.764 speed 4502 atmosphere 1 hyperdrive 0 landing 0 altitude 47 m
+[2026.11.12-21.53.13:578][504]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank -0.0
+[2026.11.12-21.53.13:578][504]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.53.13:578][504]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(0)
+[2026.11.12-21.53.13:578][504]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-16199.292 Y=0.000 Z=4831.163 speed 1506 atmosphere 1 hyperdrive 0 landing 0 altitude 46 m
+[2026.11.12-21.55.07:434][314]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank -0.0
+[2026.11.12-21.55.07:434][314]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.55.07:434][314]LogTriadDrift: TD.Travel.Status: land prompt '' | rotation R(0)
+[2026.11.12-21.55.07:434][314]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-69494.853 Y=-0.001 Z=14934.854 speed 1496 atmosphere 1 hyperdrive 0 landing 0 altitude 147 m
+[2026.11.12-21.55.10:320][453]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.55.10:320][453]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-21.55.10:320][453]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.55.10:320][453]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.55.10:320][453]LogTDUIHost: Display: TD.UI.Status: card 2 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.55.10:486][463]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank -0.0
+[2026.11.12-21.55.10:486][463]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.55.10:486][463]LogTriadDrift: TD.Travel.Status: land prompt '' | rotation R(P=-0.00, Y=-0.00, R=-0.00)
+[2026.11.12-21.55.10:486][463]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_2 at X=-69066.823 Y=0.627 Z=14780.269 speed 1504 atmosphere 1 hyperdrive 0 landing 0 altitude 146 m
+[2026.11.12-21.55.12:186][548]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank 0.0
+[2026.11.12-21.55.12:186][548]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.55.12:186][548]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(P=0.00, Y=-0.00, R=-0.05)
+[2026.11.12-21.55.12:186][548]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-14510.048 Y=-15.689 Z=2966.828 speed 1488 atmosphere 1 hyperdrive 0 landing 0 altitude 27 m
+[2026.11.12-21.55.13:316][598]LogTDUIHost: Display: TD.UI.Status: enabled=0 shown=0 class=- source=-
+[2026.11.12-21.55.42:785][323]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 0 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll 0.8 visual bank 0.0
+[2026.11.12-21.55.42:785][323]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.55.42:785][323]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(P=0.90, Y=-94.99, R=0.84)
+[2026.11.12-21.55.42:785][323]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=33230.091 Y=-1749.189 Z=235.879 speed 5803 atmosphere 1 hyperdrive 0 landing 0 altitude 0 m
+[2026.11.12-21.55.48:459][634]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 0 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll 0.0 visual bank -0.0
+[2026.11.12-21.55.48:459][634]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.55.48:459][634]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(Y=-49.05, R=0.00)
+[2026.11.12-21.55.48:459][634]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_2 at X=26027.686 Y=-9133.435 Z=498.834 speed 2883 atmosphere 1 hyperdrive 0 landing 0 altitude 3 m
+[2026.11.12-21.55.48:626][644]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.55.48:626][644]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-21.55.48:626][644]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.55.48:626][644]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.55.48:626][644]LogTDUIHost: Display: TD.UI.Status: card 2 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.56.40:106][716]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank 0.0
+[2026.11.12-21.56.40:106][716]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.56.40:106][716]LogTriadDrift: TD.Travel.Status: land prompt 'Hold F to land' | rotation R(P=0.03)
+[2026.11.12-21.56.40:106][716]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-4255.628 Y=-314.708 Z=1422.112 speed 1505 atmosphere 1 hyperdrive 0 landing 0 altitude 12 m
+[2026.11.12-21.56.40:939][766]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll 0.0 visual bank 0.0
+[2026.11.12-21.56.40:939][766]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.56.40:939][766]LogTriadDrift: TD.Travel.Status: land prompt '' | rotation R(P=0.03)
+[2026.11.12-21.56.40:939][766]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=-3210.468 Y=-312.747 Z=1336.152 speed 0 atmosphere 1 hyperdrive 0 landing 1 altitude 11 m
+[2026.11.12-21.56.46:643][ 91]LogTriadDrift: TD.Travel.Status: input throttle 1.00 aim 0.00,0.00 roll 0.00 boost 0 drift 0 brake 1 | boost meter 1.00 boosting 0 drifting 0 out-of-bounds 0 near-boundary 1 | hull roll -0.0 visual bank 0.0
+[2026.11.12-21.56.46:643][ 91]LogTriadDrift: TD.Travel.Status: hyperdrive state 0 charge 0.00 block 'NO HYPERDRIVE IN ATMOSPHERE' player-flown 1
+[2026.11.12-21.56.46:643][ 91]LogTriadDrift: TD.Travel.Status: land prompt '' | rotation R(0)
+[2026.11.12-21.56.46:643][ 91]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance ship TDShip_1 at X=0.000 Y=0.000 Z=265.000 speed 0 atmosphere 1 hyperdrive 0 landing 6 altitude 0 m
+[2026.11.12-21.56.46:827][102]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.56.46:827][102]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-21.56.46:827][102]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.56.46:827][102]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.56.46:827][102]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-21.57.30:159][682]LogTriadDrift: TD.Travel.Status: map L_Planet_Verdance, no player ship (pawn: TDFirstPersonCharacter_0 at V(Y=320.00, Z=132.15), prompt '')
+[2026.11.12-21.57.30:327][692]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=0 class=- source=-
+[2026.11.12-21.57.35:667][985]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.57.35:667][985]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-21.57.35:667][985]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-21.57.35:667][985]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-21.57.35:667][985]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-21.58.25:961][996]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-21.58.25:961][996]LogTDUIHost: Display: TD.UI.Status: target=TDEnemyShip_34 onscreen=1 at (1027, 571), locked=3, markers=24
+[2026.11.12-21.58.25:961][996]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=0 unlocked=1 hull=0.00 power=1.00 ability=1.00
+[2026.11.12-21.58.25:961][996]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=0 unlocked=1 hull=0.00 power=1.00 ability=1.00
+[2026.11.12-21.58.25:961][996]LogTDUIHost: Display: TD.UI.Status: card 2 active=1 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
