@@ -21,6 +21,7 @@
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/UI/Tests/TDFlightHUDTestSource.h"
@@ -851,6 +852,80 @@ bool FTDFlightHUDStory::RunTest(const FString& Parameters)
 	F.HUD->HandleBarkRequested(TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"));
 	F.HUD->Sample(.016f);
 	TestEqual(TEXT("still the story line"), F.V().Subtitle.Text, Now.Text.ToString());
+	return true;
+}
+
+// Aftermath tactical display (storyline.md 12): disciplined lanes (evenly spaced, all moving), fades in / holds / out,
+// paints; the host shows it even during a cinematic and removes it when done.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTacticalDisplay, "TriadDrift.UI.Aftermath.TacticalDisplay", TD_TEST_FLAGS)
+bool FTDTacticalDisplay::RunTest(const FString& Parameters)
+{
+	// Evenly spaced on a lane, and moving forward with time.
+	const float A0 = UTDTacticalDisplayWidget::LaneProgress(0, 0, 0.f), A1 = UTDTacticalDisplayWidget::LaneProgress(0, 1, 0.f);
+	TestEqual(TEXT("contacts evenly spaced"), A1 - A0, 1.f / UTDTacticalDisplayWidget::ContactsPerLane, .001f);
+	TestTrue(TEXT("contacts move toward Verdance"), UTDTacticalDisplayWidget::LaneProgress(0, 0, 1.f) > A0);
+
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	Host->SetCinematicHidden(true); // the Aftermath plays as a cinematic
+	TestTrue(TEXT("shown"), UTDUIHostSubsystem::ShowTacticalDisplay(W.GetWorld(), 20.f));
+	UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(Host->GetTacticalDisplay());
+	if (!TestNotNull(TEXT("display widget"), Display))
+	{
+		return false;
+	}
+	TestEqual(TEXT("fades in from 0"), Display->GetVisibility01(), 0.f);
+	Display->Advance(1.f);
+	TestEqual(TEXT("full while it plays"), Display->GetVisibility01(), 1.f);
+	TSharedRef<SWidget> Slate = Display->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	const int32 Layer = Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f),
+		FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()), FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	TestTrue(TEXT("painted"), Layer > 0);
+	Display->Advance(19.5f);
+	TestTrue(TEXT("fading out at the end"), Display->GetVisibility01() < 1.f);
+	Display->Advance(1.f);
+	TestTrue(TEXT("finished"), Display->IsFinished());
+	Host->Tick(.016f);
+	TestNull(TEXT("the host removed it"), Host->GetTacticalDisplay());
+	Host->SetCinematicHidden(false);
+	return true;
+}
+
+// Aftermath navigation pulse: on for 1.5 s, drawn as a corridor, then clear; a story line holds the tutorial card back.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDNavPulse, "TriadDrift.UI.Aftermath.NavigationPulse", TD_TEST_FLAGS)
+bool FTDNavPulse::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("no pulse"), F.V().NavPulse, 0.f);
+	F.HUD->ShowNavigationPulse(FVector(10000.f, 0.f, 0.f), FVector(900000.f, 300000.f, 0.f));
+	F.HUD->Sample(.3f);
+	TestTrue(TEXT("pulsing"), F.V().NavPulse > 0.f && F.V().NavPulse < 1.f);
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	TestTrue(TEXT("corridor drawn"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("navpulse"); }));
+	F.HUD->Sample(UTDFlightHUDWidget::NavPulseSeconds);
+	TestEqual(TEXT("cleared after 1.5 s"), F.V().NavPulse, 0.f);
+
+	// A story transmission on air holds the tutorial card back (Lead's note: they crowded each other).
+	F.HUD->ShowTransmission(TEXT("Unknown"), FText::FromString(TEXT("...hold the line...")), UTDFlightHUDWidget::ETransmissionStyle::Static, 3.f);
+	F.HUD->Sample(.016f);
+	TestNotEqual(TEXT("no hint card under a story line"), F.V().Lane, UTDFlightHUDWidget::ELane::Hint);
 	return true;
 }
 

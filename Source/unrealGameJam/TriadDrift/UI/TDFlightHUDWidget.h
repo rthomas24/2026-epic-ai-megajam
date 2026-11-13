@@ -153,6 +153,10 @@ public:
 	/** Snapshot of what the widget draws. Updated every tick from the data source. */
 	struct FView
 	{
+		/** Navigation pulse: 0..1 through it (0 = none), and the corridor's ends in the design frame. */
+		float NavPulse = 0.f;
+		FVector2D NavFrom = FVector2D::ZeroVector;
+		FVector2D NavTo = FVector2D::ZeroVector;
 		/** The line in the subtitle slot (a bark or a story transmission); empty Text = nothing shown. */
 		FSubtitle Subtitle;
 		// ---- Director's Cut moments
@@ -275,6 +279,11 @@ public:
 	UFUNCTION()
 	void HandleHitConfirmed(AActor* Target, bool bKill);
 
+	// ---- Aftermath navigation pulse (storyline.md section 12): the HUD briefly marks the drones' corridor, then clears.
+	/** A faint corridor From -> To (world) for Seconds; it must read as sensor noise (nobody comments on it). */
+	void ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds = 1.5f);
+	static constexpr float NavPulseSeconds = 1.5f;
+
 	// ---- subtitles and story transmissions (T3's transmission system calls UTDUIHostSubsystem::ShowTransmission)
 	/** Shows Line in the subtitle slot for Seconds: speaker tag in the pilot's colour, style per voice. */
 	void ShowTransmission(FName Speaker, const FText& Line, ETransmissionStyle Style, float Seconds);
@@ -395,6 +404,10 @@ private:
 	float HintDoneAge = 0.f;
 	float StrikePulseLeft = 0.f;
 	float CutLeft = 0.f;
+	float NavLeft = 0.f;
+	float NavSeconds = 0.f;
+	FVector NavWorldFrom = FVector::ZeroVector;
+	FVector NavWorldTo = FVector::ZeroVector;
 	float SlateLeft = 0.f;
 	void SampleDirector(float Dt);
 	/** T3's story transmissions (UTDStorySubsystem): the current line drives the subtitle slot. */

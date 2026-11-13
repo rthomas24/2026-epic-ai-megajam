@@ -23,6 +23,7 @@
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -72,6 +73,11 @@ void UTDUIHostSubsystem::Deinitialize()
 	Hide();
 	HideGround();
 	HidePause();
+	if (TacticalWidget)
+	{
+		TacticalWidget->RemoveFromParent();
+		TacticalWidget = nullptr;
+	}
 	BindPause(nullptr);
 	BindHitSounds(false);
 	SetDevHUDSuppressed(false);
@@ -86,6 +92,11 @@ TStatId UTDUIHostSubsystem::GetStatId() const
 void UTDUIHostSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (const UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(TacticalWidget); Display && Display->IsFinished())
+	{
+		TacticalWidget->RemoveFromParent();
+		TacticalWidget = nullptr;
+	}
 	TimeUntilCheck -= DeltaTime;
 	if (TimeUntilCheck > 0.f)
 	{
@@ -262,6 +273,45 @@ void UTDUIHostSubsystem::SetCinematicHidden(bool bHidden)
 	}
 	UE_LOG(LogTDUIHost, Log, TEXT("All HUDs %s for a cinematic."), bHidden ? TEXT("hidden") : TEXT("restored"));
 	Evaluate();
+}
+
+bool UTDUIHostSubsystem::ShowTacticalDisplay(const UObject* WorldContext, float Seconds)
+{
+	UTDUIHostSubsystem* Host = Get(WorldContext);
+	APlayerController* PC = Host ? Host->FindLocalController() : nullptr;
+	if (!PC)
+	{
+		return false;
+	}
+	UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(Host->TacticalWidget);
+	if (!Display)
+	{
+		Display = CreateWidget<UTDTacticalDisplayWidget>(PC, UTDTacticalDisplayWidget::StaticClass());
+		if (!Display)
+		{
+			return false;
+		}
+		Host->TacticalWidget = Display;
+		const UWorld* World = Host->GetWorld();
+		if (Host->bAddToViewport && World && World->GetGameViewport())
+		{
+			Display->AddToViewport(UTDUIHostSettings::Get()->ZOrder + 50); // over the HUD and a cinematic, under menus
+		}
+	}
+	Display->Play(Seconds);
+	return true;
+}
+
+bool UTDUIHostSubsystem::ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	UTDFlightHUDWidget* Flight = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+	if (!Flight)
+	{
+		return false;
+	}
+	Flight->ShowNavigationPulse(From, To, Seconds);
+	return true;
 }
 
 bool UTDUIHostSubsystem::ShowTransmission(const UObject* WorldContext, FName Speaker, FText Line, uint8 Style, float Seconds)

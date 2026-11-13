@@ -386,6 +386,14 @@ void UTDFlightHUDWidget::SampleStory()
 	Sub.Age = Sub.Seconds * T.Progress01;
 }
 
+void UTDFlightHUDWidget::ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds)
+{
+	NavWorldFrom = From;
+	NavWorldTo = To;
+	NavSeconds = FMath::Max(.3f, Seconds);
+	NavLeft = NavSeconds;
+}
+
 void UTDFlightHUDWidget::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 {
 	CutLeft = 0.f; // the take starts: the slate card is up, the HUD sits at 40% behind it
@@ -638,6 +646,19 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		Wp.Health = Health && Health->IsAlive() ? Health->GetHull01() : -1.f;
 	}
 
+	// Navigation pulse: project the corridor; off screen or no view, a generic corridor from under the ship toward the
+	// screen's right third (it only has to read as a sensor flicker).
+	NavLeft = FMath::Max(0.f, NavLeft - Dt);
+	View.NavPulse = NavLeft > 0.f && NavSeconds > 0.f ? 1.f - NavLeft / NavSeconds : 0.f;
+	if (View.NavPulse > 0.f)
+	{
+		FVector2D A, B, DirA, DirB;
+		const bool bA = Project(NavWorldFrom, A, DirA);
+		const bool bB = Project(NavWorldTo, B, DirB);
+		View.NavFrom = bA ? A : FVector2D(CenterX, 760.f);
+		View.NavTo = bB ? B : OnSafeFrame(bA ? DirB : FVector2D(.8f, -.35f));
+	}
+
 	// Lead indicator (only with a current target).
 	FVector LeadWorld;
 	FVector2D LeadDir;
@@ -729,7 +750,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.Lane = ELane::HyperdriveBlocked;
 		View.LaneText = Blocked.ToUpper();
 	}
-	else if (!Hint.IsEmpty() || View.bHintCard)
+	else if ((!Hint.IsEmpty() || View.bHintCard) && !(View.Subtitle.bStory && !View.Subtitle.Text.IsEmpty()))
+	// (a story transmission on air holds the tutorial card back: the two crowded each other, Lead's note on #17's sheet)
 	{
 		View.Lane = ELane::Hint;
 		View.LaneText = Hint.ToUpper();
@@ -1068,6 +1090,33 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Line(Tick + FVector2D(0, -10), Tick + FVector2D(6, -14), T::Warning(), 2.f);
 		}
 	}
+	// ---- Aftermath navigation pulse: a faint corridor that flickers in and clears in 1.5 s, like sensor noise
+	if (View.NavPulse > 0.f)
+	{
+		const float T01 = View.NavPulse;
+		// Up fast (0.15 of the time), hold, then gone; with a high-frequency flicker so it reads as interference.
+		const float Env = FMath::Min(FMath::Clamp(T01 / .1f, 0.f, 1.f), FMath::Clamp((1.f - T01) / .35f, 0.f, 1.f));
+		const float Flicker = .55f + .45f * FMath::Abs(FMath::Sin(Now * 53.f) * FMath::Sin(Now * 31.f));
+		const FLinearColor Edge = T::Shield().CopyWithNewOpacity(.32f * Env * Flicker);
+		const FVector2D A = View.NavFrom, B = View.NavTo;
+		const FVector2D Along = (B - A).GetSafeNormal();
+		const FVector2D Side(-Along.Y, Along.X);
+		const float Jit = FMath::Sin(Now * 71.f) * 1.5f;
+		for (int32 S = 0; S < 24; S += 2) // two dashed rails, narrowing toward the far end
+		{
+			const float P0 = S / 24.f, P1 = (S + 1) / 24.f;
+			for (const float Sgn : { -1.f, 1.f })
+			{
+				const float W0 = FMath::Lerp(26.f, 8.f, P0) * Sgn + Jit, W1 = FMath::Lerp(26.f, 8.f, P1) * Sgn + Jit;
+				P.Line(FMath::Lerp(A, B, P0) + Side * W0, FMath::Lerp(A, B, P1) + Side * W1, Edge, 1.5f);
+			}
+		}
+		// A bright blip running down the corridor once.
+		const FVector2D Blip = FMath::Lerp(A, B, FMath::Clamp(T01 * 1.4f, 0.f, 1.f));
+		P.Box(Blip.X - 2.f, Blip.Y - 2.f, 4.f, 4.f, T::Neutral().CopyWithNewOpacity(.6f * Env));
+		Rec(TEXT("navpulse"), FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Abs(B.X - A.X), FMath::Abs(B.Y - A.Y));
+	}
+
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
 	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
 	for (const FWaypoint& Wp : View.Waypoints)
