@@ -1,0 +1,18 @@
+{
+  "stage": "source candidate; native build and gameplay verification pending",
+  "claim": "dfdd0d25",
+  "base": "33bc6d16e51a0b82165953d2c045f8fdfc563b0b",
+  "menu_baseline": "1a8d942907ab39928a68e791a810bd1c6219434a",
+  "settings_checkpoint": "b7dc3544b093a004ab5799c8db4baae1296656dd",
+  "changed_file": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp",
+  "before_sha256_lf": "b2a73e89ebb5722f5862201f19805ce46efb79301de47f34c756ed5c54b190d6",
+  "after_sha256_lf": "7d06dd02e353d232a7995ac10413519b24f25474d3a9e90b83aca60c1f387c47",
+  "patch_sha256": "9eab468e24d9fcf4d0eacf482427eec577669a4f69ac3443e1dee583a4f25d75",
+  "patch_bytes": 5173,
+  "roundtrip_patch_verified": true,
+  "settings_logic_unchanged": true,
+  "other_three_overlay_files_unchanged": true,
+  "native_build_verified": false,
+  "gameplay_verified": false,
+  "music_or_defaults_changed": false
+}

@@ -1,0 +1,73 @@
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp
+@@ -9,6 +9,7 @@
+ #include "Widgets/SOverlay.h"
+ #include "Widgets/SBoxPanel.h"
+ #include "Widgets/Layout/SBox.h"
++#include "Widgets/Layout/SBorder.h"
+ #include "Widgets/Layout/SScaleBox.h"
+ #include "Widgets/Input/SButton.h"
+ #include "Widgets/Text/STextBlock.h"
+@@ -101,10 +102,6 @@
+         Box({0,0},{640,1080},FLinearColor(.003f,.008f,.017f,.92f));
+         for(int32 I=0;I<24;++I)
+             Box({640.f+I*9.f,0},{10,1080},FLinearColor(.003f,.008f,.017f,.92f*(1.f-I/24.f)));
+-        Box({100,166},{3,74},Cyan);
+-        Box({100,871},{170,2},FLinearColor(.82f,.24f,.85f));
+-        Box({279,871},{170,2},Cyan);
+-        Box({458,871},{170,2},FLinearColor(.94f,.64f,.25f));
+         Line({{100,128},{1820,128}},Muted.CopyWithNewOpacity(.25f));
+         Line({{100,964},{1820,964}},Muted.CopyWithNewOpacity(.25f));
+         return Layer+1;
+@@ -139,11 +136,24 @@
+ TSharedRef<SWidget> UTDMainMenuWidget::MakeAction(const FText& Label,FName Action,bool bEnabled)
+ {
+     TSharedPtr<SButton> Button;
+-    TSharedRef<SWidget> Out=SNew(SBox).HeightOverride(68).Padding(FMargin(0,5))
+-    [ SAssignNew(Button,SButton).ButtonStyle(&ActionStyle).HAlign(HAlign_Left)
++    SAssignNew(Button,SButton).ButtonStyle(&ActionStyle).HAlign(HAlign_Left)
+       .IsEnabled_Lambda([Weak=TWeakObjectPtr<UTDMainMenuWidget>(this),bEnabled]() { return Weak.IsValid() && bEnabled && !Weak->bTransitionPending && !Weak->bExternalSettingsOpen; })
+       .OnClicked_Lambda([Weak=TWeakObjectPtr<UTDMainMenuWidget>(this),Action]() { return Weak.IsValid()?Weak->Activate(Action):FReply::Unhandled(); })
+-      [ SNew(STextBlock).Text(Label).Font(FCoreStyle::GetDefaultFontStyle("Bold",22)).ColorAndOpacity(TDMenu::Ink) ] ];
++      [ SNew(STextBlock).Text(Label).Font(FCoreStyle::GetDefaultFontStyle("Bold",22)).ColorAndOpacity(TDMenu::Ink) ];
++    TSharedRef<SWidget> Out=SNew(SBox).HeightOverride(68).Padding(FMargin(0,5))
++    [ SNew(SOverlay)
++      +SOverlay::Slot()[Button.ToSharedRef()]
++      // Direct focus restoration does not trigger Slate's navigation-only focus rectangle.
++      // Follow actual user focus instead; this layer never receives input or steals focus.
++      +SOverlay::Slot()[SNew(SBorder).Visibility(EVisibility::HitTestInvisible)
++        .BorderImage(FCoreStyle::Get().GetBrush("FocusRectangle"))
++        .BorderBackgroundColor_Lambda([WeakButton=TWeakPtr<SButton>(Button)]()
++        {
++            const TSharedPtr<SButton> Focused=WeakButton.Pin();
++            return Focused.IsValid() && Focused->IsEnabled() && Focused->HasUserFocus(0).IsSet()
++                ? TDMenu::Cyan : FLinearColor::Transparent;
++        })]
++    ];
+     if(bEnabled && !FirstButton) FirstButton=Button;
+     if(Action==TEXT("Settings")) SettingsButton=Button;
+     return Out;
+@@ -188,12 +198,23 @@
+     Left->AddSlot().AutoHeight().Padding(0,4,0,34)[SNew(STextBlock).Text(NSLOCTEXT("TDMenu","Motto","THREE SHIPS. ONE SQUADRON. YOUR CUT."))
+         .Font(FCoreStyle::GetDefaultFontStyle("Regular",16)).ColorAndOpacity(TDMenu::Muted)];
+     Left->AddSlot().AutoHeight()[SAssignNew(ActionsBox,SBox).WidthOverride(520)[BuildActions()]];
++    // Keep the squad rule attached to the actions, not the independently stretched backdrop.
++    TSharedRef<SHorizontalBox> SquadRule=SNew(SHorizontalBox);
++    const FLinearColor SquadColors[]={FLinearColor(.82f,.24f,.85f),TDMenu::Cyan,FLinearColor(.94f,.64f,.25f)};
++    for(int32 I=0;I<3;++I)
++        SquadRule->AddSlot().FillWidth(1).Padding(0,0,I<2?9.f:0.f,0)
++        [SNew(SBorder).Padding(0).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(SquadColors[I])];
++    Left->AddSlot().AutoHeight().Padding(0,16,0,0)
++        [SNew(SBox).HeightOverride(2)[SquadRule]];
+     Left->AddSlot().AutoHeight().Padding(0,16)[SAssignNew(StatusLabel,STextBlock).Text(FText::GetEmpty()).AutoWrapText(true)
+         .Font(FCoreStyle::GetDefaultFontStyle("Regular",15)).ColorAndOpacity(TDMenu::Cyan)];
+     return SNew(SOverlay)
+       +SOverlay::Slot()[SNew(SBox).HAlign(HAlign_Fill).VAlign(VAlign_Fill)[SNew(SScaleBox).Stretch(EStretch::ScaleToFill)[SNew(SBox).WidthOverride(1920).HeightOverride(1080)[Backdrop.ToSharedRef()]]]]
+       +SOverlay::Slot()[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)[SNew(SBox).WidthOverride(1920).HeightOverride(1080)
+         [SNew(SOverlay)
++          +SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(100,166,0,0)
++            [SNew(SBox).WidthOverride(3).HeightOverride(74)
++              [SNew(SBorder).Padding(0).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(TDMenu::Cyan)]]
+           +SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(120,180,0,0)[SNew(SBox).WidthOverride(520)[Left]]
+           +SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(100,0,0,66)[SNew(STextBlock).Text(NSLOCTEXT("TDMenu","Nav","MOUSE / ARROWS / D-PAD    SELECT: ENTER / A"))
+               .Font(FCoreStyle::GetDefaultFontStyle("Regular",14)).ColorAndOpacity(TDMenu::Muted)]
