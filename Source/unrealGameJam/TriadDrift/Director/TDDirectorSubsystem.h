@@ -16,6 +16,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Director/TDCutPresentation.h"
 #include "TDDirectorSubsystem.generated.h"
 
 /** Actor tags that mark objective kills worth a money shot (add them on the victim actor). */
@@ -161,6 +162,9 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDirectorShot, const FTDDirectorShot&, Shot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnDirectorCardsChanged, const FTDDirectorCards&, Cards);
+
+class UUserWidget;
 
 class UTDDirectorCameraRig;
 class UTDCutPresentation;
@@ -210,6 +214,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director")
 	bool bCutPresentationHandledExternally = false;
 
+	/**
+	 * N-038: everything the Director's Cut shows right now (switch cut, pilot name card, slate, CUT!, money-shot
+	 * letterbox), each with text, 0..1 progress, time left and an active flag. Real time; empty while the intro owns the
+	 * screen. Kept alive whoever draws it: the fallback overlay, or DA_UI_Style.DirectorWidgetClass.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
+	FTDDirectorCards GetDirectorCards() const;
+
+	/** The same for any world context (a widget's owning player, the HUD). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director", meta = (WorldContext = "WorldContextObject"))
+	static FTDDirectorCards GetDirectorCardsFor(const UObject* WorldContextObject);
+
+	/** Fired when a card comes, goes or changes its text (not every frame). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Director")
+	FTDOnDirectorCardsChanged OnDirectorCardsChanged;
+
+	/** The renderer widget made from DA_UI_Style.DirectorWidgetClass, if any (tests, diagnostics). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
+	UUserWidget* GetDirectorWidget() const { return DirectorWidget; }
+
+	/** Tests: use this class instead of DA_UI_Style.DirectorWidgetClass (null = the style's). */
+	TSubclassOf<UUserWidget> DirectorWidgetClassOverride;
+
 	/** The fallback cut / CUT! / slate presentation (C-03 #1, #3) and its state for tests. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
 	UTDCutPresentation* GetCutPresentation() const { return CutPresentation; }
@@ -249,6 +276,12 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTDCutPresentation> CutPresentation;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> DirectorWidget;
+	bool bDirectorWidgetLooked = false;
+	void EnsureDirectorWidget();
+	void RelayCards(const FTDDirectorCards& Cards);
 
 	double LastTickRealTime = -1.0;
 

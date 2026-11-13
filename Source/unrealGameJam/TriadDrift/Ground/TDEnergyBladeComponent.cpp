@@ -89,7 +89,7 @@ void UTDEnergyBladeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool bAttached, const FVector& Location)
+void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool bAttached, const FVector& Location, const FRotator* Rotation)
 {
 	OnCueRequested.Broadcast(Name);
 	if (!Cue || Cue->IsEmpty() || !GetOwner())
@@ -102,7 +102,7 @@ void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool
 	}
 	else
 	{
-		UTDStatics::PlayCue(this, *Cue, Location, GetOwner()->GetActorRotation());
+		UTDStatics::PlayCue(this, *Cue, Location, Rotation ? *Rotation : GetOwner()->GetActorRotation());
 	}
 }
 
@@ -382,7 +382,24 @@ void UTDEnergyBladeComponent::NotifyOwnerLanded()
 	}
 	AActor* Owner = GetOwner();
 	const FVector Center = Owner->GetActorLocation();
-	PlayBladeCue(TEXT("AirSlam"), BladeFX ? &BladeFX->AirSlam : nullptr, false, Center);
+	// The effect goes where the pilot actually hit the ground (slopes: the terrain is mountains), lying on it: the floor
+	// contact point under the capsule, X along the facing projected on the floor, Z up the floor normal (N-040).
+	FVector Impact = Center - FVector(0.f, 0.f, Owner->GetSimpleCollisionHalfHeight());
+	FVector Normal = FVector::UpVector;
+	if (const UWorld* World = GetWorld())
+	{
+		FHitResult Floor;
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDAirSlamFloor), false, Owner);
+		if (World->LineTraceSingleByChannel(Floor, Center, Impact - FVector(0.f, 0.f, 150.f), ECC_Visibility, Params))
+		{
+			Impact = Floor.ImpactPoint;
+			Normal = Floor.ImpactNormal;
+		}
+	}
+	LastSlamImpact = Impact;
+	LastSlamNormal = Normal;
+	const FRotator OnFloor = FRotationMatrix::MakeFromZX(Normal, Owner->GetActorForwardVector()).Rotator();
+	PlayBladeCue(TEXT("AirSlam"), BladeFX ? &BladeFX->AirSlam : nullptr, false, Impact, &OnFloor);
 	if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 	{
 		TArray<AActor*> Hostiles;

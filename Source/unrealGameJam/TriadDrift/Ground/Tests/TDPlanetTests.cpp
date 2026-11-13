@@ -384,7 +384,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TDCourseTest::FRun R(V, *this);
 	if (!R.Land()) { return false; }
 	R.Tick(0.6f);
-	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE WRECK")) && R.Line().Contains(TEXT("THE RELAY")));
+	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")) && R.Line().Contains(TEXT("THE RELAY")));
 	TestEqual(TEXT("both trailheads marked"), V.GI->GetFlowMarkers().Num(), 2);
 
 	ATDObjective* Relay = R.Course->FindObjective(TEXT("Obj_Relay"));
@@ -414,7 +414,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TestTrue(TEXT("relay done"), Relay->IsComplete());
 	TestEqual(TEXT("Cloak on Rift"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::Cloak), ETDShipId::Rift);
 	R.Tick(0.5f);
-	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE WRECK")));
+	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")));
 
 	// The wreck core.
 	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }

@@ -25,6 +25,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "UObject/ConstructorHelpers.h"
+#include "UObject/GCObject.h"
 
 // ---------------------------------------------------------------------------------------------- teams
 
@@ -363,6 +364,36 @@ FString UTDStatics::GetPresentationFolder()
 
 namespace
 {
+	// Keeps presentation assets, their fallbacks and the merged copies alive for the session WITHOUT rooting them: a
+	// rooted object cannot be marked as garbage (tests do that to their temporary assets, and the editor does it when an
+	// asset is deleted). Referenced objects that are marked as garbage are simply dropped at the next collection.
+	class FTDPresentationKeepAlive : public FGCObject
+	{
+	public:
+		static FTDPresentationKeepAlive& Get()
+		{
+			static FTDPresentationKeepAlive* Instance = new FTDPresentationKeepAlive();	// never deleted: outlives shutdown order
+			return *Instance;
+		}
+		void Keep(UObject* Object)
+		{
+			if (Object)
+			{
+				Objects.AddUnique(Object);
+			}
+		}
+		void Release(UObject* Object) { Objects.Remove(Object); }
+		virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+		{
+			Objects.RemoveAll([](const TObjectPtr<UObject>& O) { return O == nullptr; });
+			Collector.AddReferencedObjects(Objects);
+		}
+		virtual FString GetReferencerName() const override { return TEXT("FTDPresentationKeepAlive"); }
+
+	private:
+		TArray<TObjectPtr<UObject>> Objects;
+	};
+
 	bool TDIsReferenceProperty(const FProperty* Prop)
 	{
 		return Prop->IsA<FObjectPropertyBase>() || Prop->IsA<FArrayProperty>() || Prop->IsA<FMapProperty>()
@@ -505,7 +536,7 @@ namespace
 		}
 		if (Asset)
 		{
-			Asset->AddToRoot();
+			FTDPresentationKeepAlive::Get().Keep(Asset);
 			FallbackCache.Add(AssetName, Asset);
 		}
 		return Asset;
@@ -586,9 +617,9 @@ UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf
 		{
 			if (UObject* Old = Entry.Merged.Get(); Old && Old != Entry.Primary.Get())
 			{
-				Old->RemoveFromRoot();
+				FTDPresentationKeepAlive::Get().Release(Old);
 			}
-			Asset->AddToRoot();	// the original stays loaded too, or every collection would reload and re-merge it
+			FTDPresentationKeepAlive::Get().Keep(Asset);	// the original stays loaded too, or every collection would reload and re-merge it
 			Entry.Primary = Asset;
 			Entry.Merged = Asset;	// nothing to merge: hand out the asset itself
 			const UObject* Fallback = TDFindFallbackPresentationAsset(AssetName);
@@ -596,7 +627,7 @@ UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf
 			{
 				if (UObject* Merged = MergePresentationWithFallback(Asset, Fallback))
 				{
-					Merged->AddToRoot();	// lives for the session; callers keep raw pointers to presentation assets
+					FTDPresentationKeepAlive::Get().Keep(Merged);	// lives for the session; callers keep raw pointers to presentation assets
 					Entry.Merged = Merged;
 				}
 			}

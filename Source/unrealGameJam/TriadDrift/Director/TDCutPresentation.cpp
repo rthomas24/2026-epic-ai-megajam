@@ -2,6 +2,10 @@
 
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Director/TDDirectorSounds.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "EngineUtils.h"
+#include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "Fonts/FontMeasure.h"
@@ -22,6 +26,8 @@ namespace TDCutPresentationPrivate
 }
 using TDCutPresentationPrivate::MeasureText;
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "Blueprint/UserWidget.h"
 
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -99,10 +105,15 @@ namespace TDCutPresentationPrivate
 			{
 				FLinearColor C = S.NameCardColor;
 				C.A = S.NameCardAlpha;
-				const float BarH = Size.Y * FMath::Max(S.Letterbox, 0.08f);
-				const float Y = Size.Y - BarH - 30.f;
+				// T2's flight HUD spec: the switch card sits centred in the lower third (~y 760 of 1080), above its lower lane
+				// (the tutorial card, 830+) and the boost bar (792).
+				const float Y = Size.Y * 0.70f;
 				Text(S.NameCardText, 30, FVector2D(Size.X * 0.5f, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
 				Box(FVector2D(Size.X * 0.5f - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
+				if (!S.NameCardSubText.IsEmpty())
+				{
+					Text(S.NameCardSubText, 16, FVector2D(Size.X * 0.5f, Y + 40.f), C, true); // "RIFT · BOLD · INSTINCTIVE"
+				}
 			}
 			// Slate, top centre under the bar.
 			if (S.SlateAlpha > 0.f)
@@ -185,6 +196,8 @@ void UTDCutPresentation::PreviewFirstSlate(FName SceneId)
 		return;
 	}
 	Slate = MakeSlateText(SceneId, 1, 1);
+	SlateScene = SceneId;
+	SlateTake = 1;
 	SlateStart = Now();
 	PreviewSlateAt = SlateStart;
 	FTDDirectorSounds::Play(OwnerWorld.Get(), ETDDirectorSound::SlateClap);
@@ -204,6 +217,21 @@ void UTDCutPresentation::EnsureViewportWidget()
 	Widget = SNew(STDCutOverlay, this);
 	WidgetZOrder = OverlayZOrder(ATDDebugHUD::IsRealHUDActive(World));
 	GEngine->GameViewport->AddViewportWidgetContent(Widget.ToSharedRef(), WidgetZOrder);
+}
+
+bool UTDCutPresentation::IsNameCardClaimedByHUD(const UWorld* World)
+{
+	const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+	const UUserWidget* HUD = Host ? Host->GetSpaceHUD() : nullptr;
+	if (!HUD)
+	{
+		return false; // the dev HUD draws no pilot card
+	}
+	if (const FBoolProperty* Claim = FindFProperty<FBoolProperty>(HUD->GetClass(), TEXT("bCoversNameCard")))
+	{
+		return Claim->GetPropertyValue_InContainer(HUD);
+	}
+	return UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Nick; // his widget has its own "CUT TO" card
 }
 
 int32 UTDCutPresentation::OverlayZOrder(bool bRealHUDActive)
@@ -255,6 +283,19 @@ void UTDCutPresentation::ClearAll()
 	SwitchStart = CutStart = SlateStart = ShotStart = -1000.0;
 	FlashFramesLeft = 0;
 	State = FTDCutPresentationState();
+	Cards = FTDDirectorCards();
+	Cards.SwitchCount = SwitchCount;
+}
+
+uint32 FTDDirectorCards::Signature() const
+{
+	uint32 H = 0;
+	for (const FTDDirectorCard* C : { &SwitchCut, &NameCard, &Slate, &Cut, &MoneyShot })
+	{
+		H = HashCombine(H, C->bActive ? 1u : 0u);
+		H = HashCombine(H, GetTypeHash(C->bActive ? C->Text.ToString() : FString()));
+	}
+	return HashCombine(H, HashCombine(GetTypeHash(SwitchCount), GetTypeHash(SlateTake)));
 }
 
 FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox, float TextWidth)
@@ -266,8 +307,37 @@ FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox, flo
 	return FBox2D(C - Half, C + Half);
 }
 
-FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber, const FString& Place)
+FText UTDCutPresentation::FindSceneTitle(const UWorld* World, FName SceneId)
 {
+	if (!World || SceneId.IsNone())
+	{
+		return FText::GetEmpty();
+	}
+	for (TActorIterator<ATDObjective> It(const_cast<UWorld*>(World)); It; ++It)
+	{
+		if (It->ObjectiveId == SceneId && !It->Title.IsEmpty())
+		{
+			return It->Title;
+		}
+	}
+	return FText::GetEmpty();
+}
+
+FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber, const FString& Place, const FText& SceneTitle)
+{
+	if (!SceneTitle.IsEmpty())
+	{
+		// The story name (T5's objective titles, storyline.md): "SCENE 4 · VERDANCE · THE RESEARCH SITE · TAKE 2".
+		FString Title = SceneTitle.ToString().ToUpper();
+		if (!Place.IsEmpty() && !Title.StartsWith(Place.ToUpper()))
+		{
+			Title = Place.ToUpper() + TEXT(" · ") + Title;
+		}
+		const FText Take = FText::AsNumber(FMath::Max(1, TakeNumber));
+		return SceneNumber > 0
+			? FText::Format(LOCTEXT("SlateNumberedTitle", "SCENE {0} · {1} · TAKE {2}"), FText::AsNumber(SceneNumber), FText::FromString(Title), Take)
+			: FText::Format(LOCTEXT("SlateTitle", "{0} · TAKE {1}"), FText::FromString(Title), Take);
+	}
 	FString Id = SceneId.ToString();
 	Id.RemoveFromStart(TEXT("Obj_")); // planet objectives: "Obj_Outpost" -> "OUTPOST"
 	FString Pretty;
@@ -312,6 +382,9 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 	NameCard = Cut.bSwitchStrike
 		? FText::Format(NSLOCTEXT("TDDirector", "StrikeCard", "{0}  ·  STRIKE +25%"), Cut.NameCardText) : Cut.NameCardText;
 	NameColor = Cut.SquadColor;
+	const FText Trait = Cut.NewShipActor ? UTDStorySubsystem::PilotTrait(Cut.NewShipActor->GetShipId()) : FText::GetEmpty();
+	NameCardSub = FText::Format(NSLOCTEXT("TDDirector", "PilotSub", "{0}  ·  {1}"), Cut.ShipName, Trait.IsEmpty() ? Cut.RoleName : Trait);
+	++SwitchCount;
 	State.FlashAlpha = FlashFramesLeft > 0 ? 1.f : 0.f; // visible on the very next paint
 }
 
@@ -366,7 +439,9 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		const ETDDestination Where = GI->GetCurrentDestination();
 		Place = Where == ETDDestination::Verdance ? TEXT("Verdance") : (Where == ETDDestination::Cinder ? TEXT("Cinder") : FString());
 	}
-	Slate = MakeSlateText(SceneId, TakeNumber, SceneNumber, Place);
+	Slate = MakeSlateText(SceneId, TakeNumber, SceneNumber, Place, FindSceneTitle(OwnerWorld.Get(), SceneId));
+	SlateScene = SceneId;
+	SlateTake = TakeNumber;
 }
 
 void UTDCutPresentation::HandleShotStarted(float RealSeconds)
@@ -400,7 +475,7 @@ void UTDCutPresentation::Tick(double RealNow)
 	BindSquad();
 	if (bHandledExternally)
 	{
-		if (!State.IsEmpty())
+		if (!State.IsEmpty() || Cards.AnyActive())
 		{
 			ClearAll();
 		}
@@ -408,6 +483,22 @@ void UTDCutPresentation::Tick(double RealNow)
 	}
 
 	FTDCutPresentationState S;
+	FTDDirectorCards C;
+	C.SwitchCount = SwitchCount;
+	C.bQuickCut = bQuickCut;
+	auto Card = [RealNow](FTDDirectorCard& Out, double Start, float Seconds, float Alpha, const FText& Text)
+	{
+		const float T = static_cast<float>(RealNow - Start);
+		if (Alpha <= 0.f || T < 0.f || Seconds <= 0.f)
+		{
+			return;
+		}
+		Out.bActive = true;
+		Out.Alpha = Alpha;
+		Out.Text = Text;
+		Out.Progress01 = FMath::Clamp(T / Seconds, 0.f, 1.f);
+		Out.TimeLeft = FMath::Max(0.f, Seconds - T);
+	};
 
 	// Switch: 1-frame flash, letterbox in/hold/out, name card.
 	const float SwitchT = static_cast<float>(RealNow - SwitchStart);
@@ -433,13 +524,26 @@ void UTDCutPresentation::Tick(double RealNow)
 			A = 1.f - (SwitchT - T.LetterboxInSeconds - T.LetterboxHoldSeconds) / FMath::Max(T.LetterboxOutSeconds, KINDA_SMALL_NUMBER);
 		}
 		S.Letterbox = FMath::Max(S.Letterbox, Tuning.SwitchLetterbox * FMath::Clamp(A, 0.f, 1.f));
+		const float CutLen = T.LetterboxInSeconds + T.LetterboxHoldSeconds + T.LetterboxOutSeconds;
+		Card(C.SwitchCut, SwitchStart, CutLen, FMath::Clamp(A, 0.f, 1.f), NameCard);
+		C.SwitchCut.Color = NameColor;
+	}
+	else if (bQuickCut && SwitchT >= 0.f && SwitchT < 0.1f)
+	{
+		Card(C.SwitchCut, SwitchStart, 0.1f, 1.f, NameCard); // a quick cut: one beat, no bars
+		C.SwitchCut.Color = NameColor;
 	}
 	const float CardA = CardAlpha(RealNow, SwitchStart, SwitchTiming.NameCardSeconds, Tuning.CardFadeSeconds * 0.6f);
-	// N-007 (Lead): Nick's real HUD draws its own "CUT TO" card; ours would sit on top of it. Flash,
-	// letterbox, CUT! and the slate stay ours until bCutPresentationHandledExternally.
-	if (CardA > 0.f && !ATDDebugHUD::IsRealHUDActive(OwnerWorld.Get()))
+	Card(C.NameCard, SwitchStart, SwitchTiming.NameCardSeconds, CardA, NameCard);
+	C.NameCard.SubText = NameCardSub;
+	C.NameCard.Color = NameColor;
+	// N-007 (Lead): Nick's real HUD draws its own "CUT TO" card; ours would sit on top of it. It steps aside only for a
+	// HUD that really draws one (Nick's, or one that claims bCoversNameCard); under engineering's default flight HUD
+	// (ENG-36) the card is ours. Flash, letterbox, CUT! and the slate stay ours until bCutPresentationHandledExternally.
+	if (CardA > 0.f && !IsNameCardClaimedByHUD(OwnerWorld.Get()))
 	{
 		S.NameCardText = NameCard;
+		S.NameCardSubText = NameCardSub;
 		S.NameCardColor = NameColor;
 		S.NameCardAlpha = CardA;
 	}
@@ -447,6 +551,8 @@ void UTDCutPresentation::Tick(double RealNow)
 	// Money shot: thin bars.
 	const float ShotA = CardAlpha(RealNow, ShotStart, ShotSeconds + Tuning.ShotLetterboxEaseSeconds, Tuning.ShotLetterboxEaseSeconds);
 	S.Letterbox = FMath::Max(S.Letterbox, Tuning.ShotLetterbox * ShotA);
+	Card(C.MoneyShot, ShotStart, ShotSeconds + Tuning.ShotLetterboxEaseSeconds, ShotA, FText::GetEmpty());
+	C.MoneyShot.SubText = ShotKindName;
 
 	// "CUT!" with full bars.
 	const float CutA = CardAlpha(RealNow, CutStart, CutSeconds, Tuning.CardFadeSeconds * 0.4f);
@@ -454,6 +560,7 @@ void UTDCutPresentation::Tick(double RealNow)
 	{
 		S.CutCardText = LOCTEXT("Cut", "CUT!");
 		S.CutCardAlpha = CutA;
+		Card(C.Cut, CutStart, CutSeconds, CutA, S.CutCardText);
 		S.Letterbox = FMath::Max(S.Letterbox, Tuning.SwitchLetterbox * CutA);
 	}
 
@@ -467,9 +574,29 @@ void UTDCutPresentation::Tick(double RealNow)
 	{
 		S.SlateText = Slate;
 		S.SlateAlpha = SlateA;
+		Card(C.Slate, SlateStart, Tuning.SlateSeconds + Tuning.CardFadeSeconds, SlateA, Slate);
+		C.SlateScene = SlateScene;
+		C.SlateTake = SlateTake;
 	}
 
-	State = S;
+	C.Letterbox = S.Letterbox;
+	C.FlashAlpha = S.FlashAlpha;
+	// The intro owns the screen (its hand-off excepted): no cards for a renderer either; timing runs on.
+	if (IsSuppressedByIntro())
+	{
+		const int32 Count = C.SwitchCount;
+		C = FTDDirectorCards();
+		C.SwitchCount = Count;
+	}
+	Cards = C;
+	const uint32 Sig = Cards.Signature();
+	if (Sig != CardsSignature)
+	{
+		CardsSignature = Sig;
+		OnCardsChanged.Broadcast(Cards);
+	}
+	// N-038: a renderer widget draws them; the fallback overlay draws nothing.
+	State = bExternalRenderer ? FTDCutPresentationState() : S;
 	if (Widget.IsValid())
 	{
 		Widget->Invalidate(EInvalidateWidgetReason::Paint);

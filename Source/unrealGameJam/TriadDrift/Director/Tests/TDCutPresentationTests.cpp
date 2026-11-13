@@ -1,11 +1,14 @@
 // Fallback cut presentation (C-03 #1 / #2 / #3). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Director.CutPresentation
 
 #include "Misc/AutomationTest.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "GameFramework/PlayerController.h"
 #include "Misc/ScopeExit.h"
+#include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -72,14 +75,24 @@ bool FTDCutPresSwitch::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresRealHUD, "TriadDrift.Director.CutPresentation.RealHUDOwnsTheNameCard", TD_TEST_FLAGS)
 bool FTDCutPresRealHUD::RunTest(const FString& Parameters)
 {
-	// N-007: Nick's real HUD draws its own "CUT TO" card. While it is up, ours never shows; the
-	// flash and letterbox still play. With it off, nothing changes.
-	for (const bool bRealHUD : { true, false })
+	// N-007: Nick's HUD draws its own "CUT TO" card, so ours steps aside for it (or for any HUD claiming
+	// bCoversNameCard). Engineering's flight HUD, the default since ENG-36, draws none: the card is ours under it
+	// (the Lead's integration catch: with "any real HUD" the pilot card vanished from the game). The dev HUD: ours.
+	// The flash and the letterbox always play.
+	IConsoleVariable* Choice = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.UI.SpaceHUD"));
+	if (!TestNotNull(TEXT("TD.UI.SpaceHUD"), Choice))
 	{
-		const FString Case = bRealHUD ? TEXT(" (real HUD on)") : TEXT(" (real HUD off)");
+		return false;
+	}
+	ON_SCOPE_EXIT { Choice->Set(-1, ECVF_SetByCode); };
+	for (const int32 Hud : { 2, 0, 1 })
+	{
+		const FString Case = Hud == 2 ? TEXT(" (engineering HUD)") : (Hud == 1 ? TEXT(" (Nick's HUD)") : TEXT(" (dev HUD)"));
+		Choice->Set(Hud, ECVF_SetByCode);
 		FFixture F;
-		ATDDebugHUD::SetRealHUDActive(F.W.GetWorld(), bRealHUD);
-		ON_SCOPE_EXIT { ATDDebugHUD::SetRealHUDActive(F.W.GetWorld(), false); };
+		F.W.Tick();
+		const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(F.W.GetWorld());
+		const bool bHosted = Host && Host->GetSpaceHUD();
 		TestTrue(TEXT("switch") + Case, F.Squad->RequestSwitchTo(ETDShipId::Lancer));
 		F.W.Tick();
 		TestEqual(TEXT("flash still plays") + Case, F.S().FlashAlpha, 1.f);
@@ -91,13 +104,21 @@ bool FTDCutPresRealHUD::RunTest(const FString& Parameters)
 			MaxBars = FMath::Max(MaxBars, F.S().Letterbox);
 		}
 		TestTrue(TEXT("letterbox still plays") + Case, MaxBars > 0.1f);
-		if (bRealHUD)
+		if (Hud == 1)
 		{
-			TestEqual(TEXT("our name card never shows") + Case, MaxCard, 0.f);
+			if (bHosted)
+			{
+				TestEqual(TEXT("our name card never shows over Nick's") + Case, MaxCard, 0.f);
+			}
+			else
+			{
+				AddInfo(TEXT("Nick's HUD isn't hosted in this test world: its case is checked live"));
+			}
 		}
 		else
 		{
 			TestTrue(TEXT("our name card shows") + Case, MaxCard > 0.5f);
+			TestFalse(TEXT("nothing claims it") + Case, UTDCutPresentation::IsNameCardClaimedByHUD(F.W.GetWorld()));
 		}
 	}
 	return true;
@@ -211,6 +232,23 @@ bool FTDCutPresCutAndSlate::RunTest(const FString& Parameters)
 	TestEqual(TEXT("CamelCase objective"), UTDCutPresentation::MakeSlateText(TEXT("Obj_WreckCore"), 2, 4, TEXT("Verdance")).ToString(), FString(TEXT("SCENE 4 · VERDANCE · WRECK CORE · TAKE 2")));
 	TestEqual(TEXT("the finale"), UTDCutPresentation::MakeSlateText(TEXT("Dominion"), 1, 9).ToString(), FString(TEXT("SCENE 9 · DOMINION · TAKE 1")));
 	TestEqual(TEXT("no number known"), UTDCutPresentation::MakeSlateText(TEXT("Wave3"), 2).ToString(), FString(TEXT("WAVE 3 · TAKE 2")));
+	// The story name wins over the id (T5's renames: ids unchanged, titles new).
+	TestEqual(TEXT("objective title"), UTDCutPresentation::MakeSlateText(TEXT("Obj_WreckCore"), 2, 4, TEXT("Verdance"),
+		FText::FromString(TEXT("The Research Site"))).ToString(), FString(TEXT("SCENE 4 · VERDANCE · THE RESEARCH SITE · TAKE 2")));
+	TestEqual(TEXT("title without a number"), UTDCutPresentation::MakeSlateText(TEXT("Obj_Jammer"), 1, 0, FString(),
+		FText::FromString(TEXT("The Field Anchor"))).ToString(), FString(TEXT("THE FIELD ANCHOR · TAKE 1")));
+	{
+		FTDTestWorld TW;
+		ATDObjective* Obj = TW.Spawn<ATDObjective>(FVector::ZeroVector);
+		if (TestNotNull(TEXT("objective"), Obj))
+		{
+			Obj->ObjectiveId = TEXT("Obj_Outpost");
+			Obj->Title = FText::FromString(TEXT("The Mining Complex"));
+			TestEqual(TEXT("the slate finds the objective's title"), UTDCutPresentation::FindSceneTitle(TW.GetWorld(), TEXT("Obj_Outpost")).ToString(),
+				FString(TEXT("The Mining Complex")));
+			TestTrue(TEXT("a wave has no title: the id is used"), UTDCutPresentation::FindSceneTitle(TW.GetWorld(), TEXT("Wave3")).IsEmpty());
+		}
+	}
 	FFixture F;
 	F.Bus()->BroadcastSceneCut(TEXT("Wave3"), 2, 1.5f);
 	F.W.Advance(0.2f);

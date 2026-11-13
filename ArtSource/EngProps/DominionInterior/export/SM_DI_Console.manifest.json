@@ -1,0 +1,91 @@
+{
+  "asset": "SM_DI_Console",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\DominionInterior\\export\\SM_DI_Console.fbx",
+  "tris": 48,
+  "size_cm": [
+    60.0,
+    120.0,
+    130.0
+  ],
+  "pivot": "root object origin (SM_DI_Console~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_DI_Atlas",
+    "M_DI_GlowRed",
+    "M_DI_Screen"
+  ],
+  "material_params": [
+    {
+      "name": "M_DI_Atlas",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_DI_GlowRed",
+      "textured": false,
+      "base_color": [
+        0.01,
+        0.012,
+        0.016
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.14,
+        0.02
+      ],
+      "emission_strength": 6.0
+    },
+    {
+      "name": "M_DI_Screen",
+      "textured": false,
+      "base_color": [
+        0.01,
+        0.012,
+        0.016
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.1,
+        0.5,
+        0.6
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_DI_Console_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

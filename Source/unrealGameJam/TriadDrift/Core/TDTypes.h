@@ -236,6 +236,10 @@ struct FTDProgress
 	/** Director's Cut: scene id -> number of takes used (1 = first try). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Progress")
 	TMap<FName, int32> Takes;
+
+	/** Story transmissions already played this run (UTDStorySubsystem): kept across retakes, saved, never replayed. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Progress")
+	TSet<FName> StoryTransmissions;
 };
 
 /** One squad card on the HUD. */

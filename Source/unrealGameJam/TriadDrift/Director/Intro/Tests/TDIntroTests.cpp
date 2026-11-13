@@ -4,6 +4,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/Director/Intro/Tests/TDIntroTestListener.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
@@ -219,6 +220,56 @@ bool FTDIntroWatched::RunTest(const FString& Parameters)
 	F.CheckRestored(*this, TEXT("watched"));
 	F.Run(2.f);
 	TestEqual(TEXT("never fires again"), F.Finished, 1);
+	return true;
+}
+
+/** N-039: the control frame for the music director (watched, skipped, or no intro) and the intro's clock. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroControlFrame, "TriadDrift.Director.Intro.ControlFrameEventAndClockForMusic", TD_TEST_FLAGS)
+bool FTDIntroControlFrame::RunTest(const FString& Parameters)
+{
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()))
+	{
+		return false;
+	}
+	UTDIntroTestListener* L = NewObject<UTDIntroTestListener>();
+	L->AddToRoot();
+	L->Intro = F.Intro;
+	F.Intro->OnIntroFinished.AddDynamic(L, &UTDIntroTestListener::OnFinished);
+
+	// No intro: the event still marks the control moment.
+	F.Intro->NotifyRunStartedWithoutIntro();
+	TestTrue(TEXT("without the intro: fired, not played"), L->Count == 1 && !L->bLastPlayed && !L->bLastSkipped);
+
+	// Watched: the clock runs through the hand-off and the event lands on its end.
+	if (!TestTrue(TEXT("plays"), F.Play()))
+	{
+		L->RemoveFromRoot();
+		return false;
+	}
+	const float Length = F.Intro->GetIntroLength();
+	TestEqual(TEXT("length to control = shots + hand-off"), Length, F.Intro->GetTotalDuration() + UTDIntroDirector::HandOffSeconds, 0.001f);
+	TestEqual(TEXT("49 s today"), Length, 49.f, 0.001f);
+	F.Run(20.f);
+	TestEqual(TEXT("the clock follows"), F.Intro->GetIntroTime(), 20.f, 0.25f);
+	F.Intro->NotifyRunStartedWithoutIntro();
+	TestEqual(TEXT("no 'without intro' event while it plays"), L->Count, 1);
+	F.Run(F.Intro->GetTotalDuration() - 20.f + 0.5f);
+	TestTrue(TEXT("in the hand-off the clock counts on past the shots"), F.Intro->IsHandingOff() && F.Intro->GetIntroTime() > F.Intro->GetTotalDuration());
+	TestEqual(TEXT("not yet"), L->Count, 1);
+	F.Run(UTDIntroDirector::HandOffSeconds);
+	TestTrue(TEXT("watched: fired once at the control frame"), L->Count == 2 && L->bLastPlayed && !L->bLastSkipped);
+	TestFalse(TEXT("fired after the intro let go"), L->bStillPlayingWhenFired);
+	TestEqual(TEXT("clock 0 when not playing"), F.Intro->GetIntroTime(), 0.f);
+
+	// Skipped: fired at once.
+	if (TestTrue(TEXT("plays again"), F.Play()))
+	{
+		F.Run(1.5f);
+		TestTrue(TEXT("skip"), F.Intro->Skip());
+		TestTrue(TEXT("skipped: fired"), L->Count == 3 && L->bLastPlayed && L->bLastSkipped);
+	}
+	L->RemoveFromRoot();
 	return true;
 }
 

@@ -134,12 +134,9 @@ UTDShipVisuals* UTDShipLibrary::LoadVisuals(const FTDShipSpec& Spec)
 	{
 		return nullptr;
 	}
-	if (UTDShipVisuals* Loaded = Spec.Visuals.Get())
-	{
-		return Loaded;
-	}
-	// Core's single loader: quiet when Nick hasn't authored the asset yet, remembers misses, and works
-	// in packaged builds (the Presentation folder is always cooked).
+	// Always Core's single loader, never Spec.Visuals.Get(): it hands out the MERGED copy (Presentation wins field by
+	// field over the engineering fallback of the same name), while Get() would return the raw Presentation asset that
+	// the first load left in memory (review M7). Quiet when Nick hasn't authored it, remembers misses, works cooked.
 	return UTDStatics::LoadPresentation<UTDShipVisuals>(Spec.Visuals.GetAssetName());
 }
 

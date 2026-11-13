@@ -1,0 +1,73 @@
+{
+  "asset": "SM_DI_Room_Ceiling",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\DominionInterior\\export\\SM_DI_Room_Ceiling.fbx",
+  "tris": 28,
+  "size_cm": [
+    400.0,
+    400.0,
+    20.0
+  ],
+  "pivot": "root object origin (SM_DI_Room_Ceiling~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_DI_Atlas",
+    "M_DI_GlowWhite"
+  ],
+  "material_params": [
+    {
+      "name": "M_DI_Atlas",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_DI_GlowWhite",
+      "textured": false,
+      "base_color": [
+        0.01,
+        0.012,
+        0.016
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.9,
+        0.95,
+        1.0
+      ],
+      "emission_strength": 8.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_DI_Room_Ceiling_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

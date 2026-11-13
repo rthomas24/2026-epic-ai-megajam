@@ -36,6 +36,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") ETDBackdropScene Scene = ETDBackdropScene::Menu;
 	AActor* GetDominion() const { return Dominion; }
+	/** Seconds into the victory scene before the distress-signal stinger (A5_DistressSignal) and the cut to black. */
+	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float StingerSeconds = 18.f;
+	bool HasPlayedStinger() const { return bStingerPlayed; }
 	int32 GetFireCount() const { return Fires; }
 
 	/** Tag on any actor of the menu map that is Nick's own menu scene: the backdrop stays off. */
@@ -90,5 +93,6 @@ private:
 	float DominionRadius = 31000.f;
 	float NextFire = 0.f;
 	int32 Fires = 0;
+	bool bStingerPlayed = false;
 	FRandomStream FireRng;
 };

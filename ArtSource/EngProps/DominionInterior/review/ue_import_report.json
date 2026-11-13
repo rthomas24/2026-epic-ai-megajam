@@ -1,0 +1,621 @@
+[
+ {
+  "asset": "SM_DI_Bulkhead_Rib",
+  "ok": true,
+  "min_cm": [
+   -7.0,
+   -12.0,
+   -0.0
+  ],
+  "max_cm": [
+   7.0,
+   12.0,
+   600.0
+  ],
+  "size_cm": [
+   14.0,
+   24.0,
+   600.0
+  ],
+  "bounds_match": "same",
+  "tris": 18,
+  "slots": [
+   "0:Atlas"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Conduit",
+  "ok": true,
+  "min_cm": [
+   -60.0,
+   -60.0,
+   -0.0
+  ],
+  "max_cm": [
+   60.0,
+   60.0,
+   300.0
+  ],
+  "size_cm": [
+   120.0,
+   120.0,
+   300.0
+  ],
+  "bounds_match": "same",
+  "tris": 296,
+  "slots": [
+   "0:Atlas",
+   "1:Cell"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Console",
+  "ok": true,
+  "min_cm": [
+   -30.0,
+   -60.0,
+   -0.0
+  ],
+  "max_cm": [
+   30.0,
+   60.0,
+   130.0
+  ],
+  "size_cm": [
+   60.0,
+   120.0,
+   130.0
+  ],
+  "bounds_match": "same",
+  "tris": 48,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:Screen"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Core",
+  "ok": true,
+  "min_cm": [
+   -400.0,
+   -400.0,
+   -0.0
+  ],
+  "max_cm": [
+   400.0,
+   400.0,
+   1200.0
+  ],
+  "size_cm": [
+   800.0,
+   800.0,
+   1200.0
+  ],
+  "bounds_match": "same",
+  "tris": 6090,
+  "slots": [
+   "0:Atlas",
+   "1:CoreGlow",
+   "2:GlowRed"
+  ],
+  "hulls": 2,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Core_Ring_A",
+  "ok": true,
+  "min_cm": [
+   -495.5,
+   -495.5,
+   -30.0
+  ],
+  "max_cm": [
+   504.0,
+   495.5,
+   30.0
+  ],
+  "size_cm": [
+   999.5,
+   991.0,
+   60.0
+  ],
+  "bounds_match": "same",
+  "tris": 810,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:GlowWhite"
+  ],
+  "hulls": 0,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Core_Ring_B",
+  "ok": true,
+  "min_cm": [
+   -575.0,
+   -566.5,
+   -24.0
+  ],
+  "max_cm": [
+   575.0,
+   566.5,
+   24.0
+  ],
+  "size_cm": [
+   1150.0,
+   1133.0,
+   48.0
+  ],
+  "bounds_match": "same",
+  "tris": 796,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:GlowWhite"
+  ],
+  "hulls": 0,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Core_Shield",
+  "ok": true,
+  "min_cm": [
+   -640.0,
+   -640.0,
+   -0.0
+  ],
+  "max_cm": [
+   640.0,
+   640.0,
+   1380.0
+  ],
+  "size_cm": [
+   1280.0,
+   1280.0,
+   1380.0
+  ],
+  "bounds_match": "same",
+  "tris": 108,
+  "slots": [
+   "0:Shield"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Corridor_Corner",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   640.0
+  ],
+  "bounds_match": "same",
+  "tris": 162,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:GlowWhite"
+  ],
+  "hulls": 5,
+  "asymmetric_side": "+Y",
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Corridor_Straight",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   640.0
+  ],
+  "bounds_match": "same",
+  "tris": 152,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:GlowWhite"
+  ],
+  "hulls": 4,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Corridor_T",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   640.0
+  ],
+  "bounds_match": "same",
+  "tris": 124,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:GlowWhite"
+  ],
+  "hulls": 5,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Cover_Low",
+  "ok": true,
+  "min_cm": [
+   -30.0,
+   -100.0,
+   -0.0
+  ],
+  "max_cm": [
+   30.0,
+   100.0,
+   110.0
+  ],
+  "size_cm": [
+   60.0,
+   200.0,
+   110.0
+  ],
+  "bounds_match": "same",
+  "tris": 76,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Debris_A",
+  "ok": true,
+  "min_cm": [
+   -75.0,
+   -61.57,
+   0.0
+  ],
+  "max_cm": [
+   75.0,
+   61.57,
+   52.67
+  ],
+  "size_cm": [
+   150.0,
+   123.14,
+   52.67
+  ],
+  "bounds_match": "same",
+  "tris": 60,
+  "slots": [
+   "0:Atlas"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Debris_B",
+  "ok": true,
+  "min_cm": [
+   -75.0,
+   -72.56,
+   0.0
+  ],
+  "max_cm": [
+   75.0,
+   72.56,
+   96.86
+  ],
+  "size_cm": [
+   150.0,
+   145.12,
+   96.86
+  ],
+  "bounds_match": "same",
+  "tris": 56,
+  "slots": [
+   "0:Atlas"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Debris_C",
+  "ok": true,
+  "min_cm": [
+   -57.47,
+   -75.0,
+   0.0
+  ],
+  "max_cm": [
+   57.47,
+   75.0,
+   133.6
+  ],
+  "size_cm": [
+   114.94,
+   150.0,
+   133.6
+  ],
+  "bounds_match": "same",
+  "tris": 48,
+  "slots": [
+   "0:Atlas"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Door",
+  "ok": true,
+  "min_cm": [
+   -15.0,
+   -150.0,
+   -0.0
+  ],
+  "max_cm": [
+   15.0,
+   150.0,
+   400.0
+  ],
+  "size_cm": [
+   30.0,
+   300.0,
+   400.0
+  ],
+  "bounds_match": "same",
+  "tris": 48,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Doorway",
+  "ok": true,
+  "min_cm": [
+   -30.0,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   30.0,
+   200.0,
+   600.0
+  ],
+  "size_cm": [
+   60.0,
+   400.0,
+   600.0
+  ],
+  "bounds_match": "same",
+  "tris": 72,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:GlowWhite"
+  ],
+  "hulls": 3,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Hangar_Pad",
+  "ok": true,
+  "min_cm": [
+   -600.0,
+   -600.0,
+   -40.0
+  ],
+  "max_cm": [
+   600.0,
+   600.0,
+   0.0
+  ],
+  "size_cm": [
+   1200.0,
+   1200.0,
+   40.0
+  ],
+  "bounds_match": "same",
+  "tris": 90,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed",
+   "2:GlowWhite"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Ceiling",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   600.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   20.0
+  ],
+  "bounds_match": "same",
+  "tris": 28,
+  "slots": [
+   "0:Atlas",
+   "1:GlowWhite"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Floor",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   0.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   20.0
+  ],
+  "bounds_match": "same",
+  "tris": 18,
+  "slots": [
+   "0:Atlas"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Wall",
+  "ok": true,
+  "min_cm": [
+   -30.0,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   30.0,
+   200.0,
+   600.0
+  ],
+  "size_cm": [
+   60.0,
+   400.0,
+   600.0
+  ],
+  "bounds_match": "same",
+  "tris": 82,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Shaft",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   1200.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   1200.0
+  ],
+  "bounds_match": "same",
+  "tris": 128,
+  "slots": [
+   "0:Atlas",
+   "1:GlowWhite"
+  ],
+  "hulls": 4,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_DI_Walkway_Ring",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -150.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   150.0,
+   110.0
+  ],
+  "size_cm": [
+   400.0,
+   300.0,
+   130.0
+  ],
+  "bounds_match": "same",
+  "tris": 68,
+  "slots": [
+   "0:Atlas",
+   "1:GlowRed"
+  ],
+  "hulls": 2,
+  "asymmetric_side": "+Y",
+  "notes": []
+ }
+]

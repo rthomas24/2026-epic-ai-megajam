@@ -725,4 +725,73 @@ bool FTDGroundTickOrder::RunTest(const FString& Parameters)
 	return true;
 }
 
+// N-040: the air-slam effect plays where the pilot met the floor, lying on it (the slope's normal), not at the capsule middle.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDAirSlamOnTheFloor, "TriadDrift.Ground.Blade.AirSlamCuePlaysAtTheFloorHitAlongItsNormal", TD_TEST_FLAGS)
+bool FTDAirSlamOnTheFloor::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	// A 20 degree ramp to land on, away from the flat test.
+	AActor* Ramp = TDGroundTest::SpawnBox(W, FVector(3000.f, 0.f, 0.f), FVector(1200.f, 1200.f, 100.f));
+	if (Ramp) { Ramp->SetActorRotation(FRotator(20.f, 0.f, 0.f)); }
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+	if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+	W.Advance(0.2f); // the blade is ready a moment after spawn
+	auto Slam = [&](const FVector& From)
+	{
+		P->SetActorLocation(From, false, nullptr, ETeleportType::TeleportPhysics);
+		P->TryJump(); // the slam needs an airborne pilot (as AirSlamAoE: jump, then slam)
+		// Wait (in small steps, so a slow machine's frame times don't matter) until the pilot falls and the blade is free.
+		for (int32 i = 0; i < 20 && (!P->GetCharacterMovement()->IsFalling() || P->GetBlade()->IsAttacking()); ++i)
+		{
+			W.Advance(0.03f);
+		}
+		TestTrue(TEXT("airborne slam"), P->GetBlade()->AirSlam());
+		for (int32 i = 0; i < 60 && P->GetCharacterMovement()->IsFalling(); ++i)
+		{
+			W.Advance(0.05f);
+		}
+		W.Advance(0.6f);
+	};
+	Slam(FVector(0.f, 0.f, 600.f));
+	const FVector FlatHit = P->GetBlade()->GetLastSlamImpact();
+	TestTrue(*FString::Printf(TEXT("flat: at the floor (z %.1f), under the pilot"), FlatHit.Z), FMath::Abs(FlatHit.Z) < 3.f && FVector::Dist2D(FlatHit, P->GetActorLocation()) < 40.f);
+	TestTrue(TEXT("flat: lying on it (normal up)"), P->GetBlade()->GetLastSlamNormal().Z > 0.99f);
+	Slam(FVector(3000.f, 0.f, 900.f));
+	const FVector RampNormal = P->GetBlade()->GetLastSlamNormal();
+	const float Tilt = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp((float)RampNormal.Z, -1.f, 1.f)));
+	TestTrue(*FString::Printf(TEXT("slope: along the ramp's normal (%.1f deg)"), Tilt), FMath::Abs(Tilt - 20.f) < 3.f);
+	const float Feet = (float)(P->GetActorLocation().Z - P->GetSimpleCollisionHalfHeight());
+	TestTrue(*FString::Printf(TEXT("slope: at the contact, not the capsule middle (hit z %.0f, feet %.0f)"), P->GetBlade()->GetLastSlamImpact().Z, Feet),
+		FMath::Abs((float)P->GetBlade()->GetLastSlamImpact().Z - Feet) < 40.f);
+	return true;
+}
+
+// Story clue (storyline.md §6): a door that recognises the pilot lights "ACCESS GRANTED - ID RECOGNISED" when it opens,
+// once per opening, then the line goes out; an ordinary door never shows it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDoorRecognisesPilot, "TriadDrift.Ground.Door.RecognisesThePilotOnOpen", TD_TEST_FLAGS)
+bool FTDDoorRecognisesPilot::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDDoor* Known = W.Spawn<ATDDoor>(FVector(0.f, 0.f, 0.f));
+	ATDDoor* Plain = W.Spawn<ATDDoor>(FVector(0.f, 1000.f, 0.f));
+	if (!TestNotNull(TEXT("doors"), Known) || !TestNotNull(TEXT("doors"), Plain)) { return false; }
+	Known->bRecognisesPilot = true;
+	W.Advance(0.1f);
+	TestFalse(TEXT("closed: no line"), Known->IsAccessTextShown());
+	Known->Open();
+	Plain->Open();
+	Known->Open(); // already opening: no second greeting
+	W.Advance(0.5f);
+	TestTrue(TEXT("opening: the line is shown"), Known->IsAccessTextShown());
+	TestEqual(TEXT("greeted once"), Known->GetAccessGreetings(), 1);
+	TestTrue(TEXT("its text"), Known->AccessText.ToString().Contains(TEXT("ID RECOGNISED")));
+	TestFalse(TEXT("an ordinary door says nothing"), Plain->IsAccessTextShown());
+	TestEqual(TEXT("an ordinary door never greets"), Plain->GetAccessGreetings(), 0);
+	W.Advance(Known->AccessTextSeconds + 0.5f);
+	TestFalse(TEXT("then it goes out"), Known->IsAccessTextShown());
+	TestTrue(TEXT("and the door is open"), Known->IsOpen() && Known->GetOpen01() > 0.99f);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

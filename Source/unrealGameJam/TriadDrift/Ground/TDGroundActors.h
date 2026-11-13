@@ -147,6 +147,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art")
 	TSoftObjectPtr<UStaticMesh> DoorMesh;
 
+	/**
+	 * Story clue (storyline.md §6): the door recognises the pilot. When it opens it lights AccessText over the opening,
+	 * on both faces, for AccessTextSeconds. No explanation, ever (the Cinder dig door; every Dominion interior door).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Story")
+	bool bRecognisesPilot = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Story")
+	FText AccessText = NSLOCTEXT("TriadDrift", "DoorAccessRecognised", "ACCESS GRANTED - ID RECOGNISED");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Story", meta = (Units = "s"))
+	float AccessTextSeconds = 4.f;
+
+	/** True while the access line is shown (tests). */
+	UFUNCTION(BlueprintPure, Category = "Door|Story") bool IsAccessTextShown() const;
+	/** How many times this door has greeted the pilot. */
+	int32 GetAccessGreetings() const { return AccessGreetings; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -154,6 +172,10 @@ private:
 	bool bWantOpen = false;
 	float Open01 = 0.f;
 	FVector ClosedRelative = FVector::ZeroVector;
+	float AccessTextLeft = 0.f;
+	int32 AccessGreetings = 0;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UTextRenderComponent>> AccessLabels;
+	void ShowAccessText();
 };
 
 // ================================================================================================
