@@ -2,6 +2,8 @@
 
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Director/TDDirectorSounds.h"
+#include "EngineUtils.h"
+#include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "Fonts/FontMeasure.h"
@@ -299,8 +301,37 @@ FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox, flo
 	return FBox2D(C - Half, C + Half);
 }
 
-FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber, const FString& Place)
+FText UTDCutPresentation::FindSceneTitle(const UWorld* World, FName SceneId)
 {
+	if (!World || SceneId.IsNone())
+	{
+		return FText::GetEmpty();
+	}
+	for (TActorIterator<ATDObjective> It(const_cast<UWorld*>(World)); It; ++It)
+	{
+		if (It->ObjectiveId == SceneId && !It->Title.IsEmpty())
+		{
+			return It->Title;
+		}
+	}
+	return FText::GetEmpty();
+}
+
+FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber, const FString& Place, const FText& SceneTitle)
+{
+	if (!SceneTitle.IsEmpty())
+	{
+		// The story name (T5's objective titles, storyline.md): "SCENE 4 · VERDANCE · THE RESEARCH SITE · TAKE 2".
+		FString Title = SceneTitle.ToString().ToUpper();
+		if (!Place.IsEmpty() && !Title.StartsWith(Place.ToUpper()))
+		{
+			Title = Place.ToUpper() + TEXT(" · ") + Title;
+		}
+		const FText Take = FText::AsNumber(FMath::Max(1, TakeNumber));
+		return SceneNumber > 0
+			? FText::Format(LOCTEXT("SlateNumberedTitle", "SCENE {0} · {1} · TAKE {2}"), FText::AsNumber(SceneNumber), FText::FromString(Title), Take)
+			: FText::Format(LOCTEXT("SlateTitle", "{0} · TAKE {1}"), FText::FromString(Title), Take);
+	}
 	FString Id = SceneId.ToString();
 	Id.RemoveFromStart(TEXT("Obj_")); // planet objectives: "Obj_Outpost" -> "OUTPOST"
 	FString Pretty;
@@ -401,7 +432,7 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		const ETDDestination Where = GI->GetCurrentDestination();
 		Place = Where == ETDDestination::Verdance ? TEXT("Verdance") : (Where == ETDDestination::Cinder ? TEXT("Cinder") : FString());
 	}
-	Slate = MakeSlateText(SceneId, TakeNumber, SceneNumber, Place);
+	Slate = MakeSlateText(SceneId, TakeNumber, SceneNumber, Place, FindSceneTitle(OwnerWorld.Get(), SceneId));
 	SlateScene = SceneId;
 	SlateTake = TakeNumber;
 }
