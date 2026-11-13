@@ -1,6 +1,9 @@
 // Triad Drift - atmosphere entry and atmosphere flight zone (ENG-20). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/World/TDTerrainField.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -348,9 +351,52 @@ void ATDAtmosphereFlightZone::ApplyToShip(ATDShip* Ship, bool bExitOpen)
 	ManagedShips.AddUnique(Ship);
 }
 
+void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
+{
+	const FTDTerrainField* Field = Terrain ? Terrain->GetField() : nullptr;
+	if (!Field)
+	{
+		return;
+	}
+	const float Half = FMath::Max(10000.f, Field->GetStyle().CoreHalfSize - TerrainEdgeMargin);
+	const FVector O = Terrain->GetActorLocation();
+	// Highest ground in the zone (a coarse grid: ~200 m spacing; the clearance covers what falls between samples).
+	float MaxZ = O.Z;
+	constexpr int32 N = 80;
+	for (int32 iy = 0; iy <= N; ++iy)
+	{
+		for (int32 ix = 0; ix <= N; ++ix)
+		{
+			const FVector P(O.X - Half + 2.f * Half * ix / N, O.Y - Half + 2.f * Half * iy / N, O.Z);
+			MaxZ = FMath::Max(MaxZ, Terrain->GetHeightAt(P));
+		}
+	}
+	FBox Box = GetZoneBox();
+	Box.Min.X = FMath::Min(Box.Min.X, O.X - Half);
+	Box.Min.Y = FMath::Min(Box.Min.Y, O.Y - Half);
+	Box.Max.X = FMath::Max(Box.Max.X, O.X + Half);
+	Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
+	Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
+	SetActorLocation(Box.GetCenter());
+	SetZoneExtent(Box.GetExtent());
+	bFittedToTerrain = true;
+	UE_LOG(LogTriadDrift, Log, TEXT("TD travel: flight zone fitted to the terrain: %.1f x %.1f km, ground up to %.0f m, ceiling %.0f m (pad-relative heights from the zone floor)"),
+		Box.GetSize().X / 100000.f, Box.GetSize().Y / 100000.f, (MaxZ - O.Z) / 100.f, (Box.Max.Z - O.Z) / 100.f);
+}
+
 void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TerrainPoll -= DeltaSeconds;
+	if (!bFittedToTerrain && TerrainPoll <= 0.f)
+	{
+		TerrainPoll = 1.f;
+		for (TActorIterator<ATDPlanetTerrain> It(GetWorld()); It; ++It)
+		{
+			FitToTerrain(*It);
+			break;
+		}
+	}
 	const bool bExitOpen = IsExitAllowed();
 	const FBox Box = GetZoneBox();
 

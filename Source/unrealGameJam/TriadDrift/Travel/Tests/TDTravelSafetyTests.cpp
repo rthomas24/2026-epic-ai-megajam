@@ -10,6 +10,8 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/World/TDTerrainField.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -1187,6 +1189,41 @@ bool FTDTravelPlanetRearms::RunTest(const FString& Parameters)
 	Planet->SetOpen(true);
 	EnterFromOutside(TEXT("after close/reopen"));
 	Entry->AbortEntry();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelZoneFitsTerrain, "TriadDrift.Travel.Safety.FlightZoneFitsTheGeneratedTerrain", TD_TEST_FLAGS)
+bool FTDTravelZoneFitsTerrain::RunTest(const FString& Parameters)
+{
+	// ENG-34: the planet's flight zone was a +-2.5 km box around the pad, so every mountain of the new 16 km world sat
+	// behind "BOUNDARY / RETURN TO COMBAT" (live, Nov 13). The zone grows to the terrain core and clears its peaks.
+	FTDTestWorld W;
+	ATDAtmosphereFlightZone* Zone = W.Spawn<ATDAtmosphereFlightZone>(FVector(0.f, 0.f, 59500.f));
+	if (!TestNotNull(TEXT("zone"), Zone)) { return false; }
+	Zone->SetZoneExtent(FVector(250000.f, 250000.f, 60000.f)); // the rig's default
+	const FBox Before = Zone->GetZoneBox();
+	ATDPlanetTerrain* Terrain = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform::Identity, nullptr);
+	if (!TestNotNull(TEXT("terrain"), Terrain) || !Terrain->GetField()) { return false; }
+	W.Advance(1.2f);
+	TestTrue(TEXT("found and fitted within a second"), Zone->IsFittedToTerrain());
+	const FBox After = Zone->GetZoneBox();
+	const float Core = Terrain->GetField()->GetStyle().CoreHalfSize;
+	AddInfo(FString::Printf(TEXT("zone %.1f x %.1f km, z %.0f..%.0f m (was %.1f km, ceiling %.0f m)"), After.GetSize().X / 1e5f, After.GetSize().Y / 1e5f,
+		After.Min.Z / 100.f, After.Max.Z / 100.f, Before.GetSize().X / 1e5f, Before.Max.Z / 100.f));
+	TestTrue(TEXT("covers the terrain core minus the margin"), After.Max.X >= Core - Zone->TerrainEdgeMargin - 1.f && After.Min.Y <= -(Core - Zone->TerrainEdgeMargin) + 1.f);
+	TestTrue(TEXT("stays inside the collision core"), After.Max.X <= Core);
+	TestTrue(TEXT("the floor is unchanged"), FMath::IsNearlyEqual(After.Min.Z, Before.Min.Z, 1.f));
+	// No ground inside the zone reaches the ceiling (sampled finer than the fit).
+	float MaxGround = -1e9f;
+	for (int32 iy = -60; iy <= 60; ++iy)
+	{
+		for (int32 ix = -60; ix <= 60; ++ix)
+		{
+			const FVector P(After.Max.X * ix / 60.f, After.Max.Y * iy / 60.f, 0.f);
+			MaxGround = FMath::Max(MaxGround, Terrain->GetHeightAt(P));
+		}
+	}
+	TestTrue(FString::Printf(TEXT("ceiling %.0f m clears the highest ground %.0f m by 200 m+"), After.Max.Z / 100.f, MaxGround / 100.f), After.Max.Z >= MaxGround + 20000.f);
 	return true;
 }
 
