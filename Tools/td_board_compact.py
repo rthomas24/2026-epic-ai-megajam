@@ -28,7 +28,7 @@ BOARD = os.path.join(ROOT, "MESSAGEBOARD.md")
 ARCHIVE = os.path.join(ROOT, "docs", "coordination", "MESSAGEBOARD-ARCHIVE.md")
 ARCHIVE_REL = "docs/coordination/MESSAGEBOARD-ARCHIVE.md"
 
-HEADING = re.compile(r"^### ((?:R|N)-\d+) · ([A-Z]+) · (.*)$")
+HEADING = re.compile(r"^### ((?:R|N)-\d+) [·-] ([A-Z]+) [·-] (.*)$")  # both sides' separators
 TABLE_HEAD = "| Id | Subject | Outcome |\n|---|---|---|\n"
 
 
