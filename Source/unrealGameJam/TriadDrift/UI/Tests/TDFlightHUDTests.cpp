@@ -725,6 +725,44 @@ bool FTDFlightHUDFocusHold::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Alignment a13: the Dominion approach marker. Nothing before Cinder's anchor; pending (dashed amber, "APPROACH PENDING")
+// while the anchor is down and the field closed; open for 8 s on the reveal edge, then gone; pending is a marker only.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDApproach, "TriadDrift.UI.FlightHUD.ApproachMarkerPendingThenOpen", TD_TEST_FLAGS)
+bool FTDFlightHUDApproach::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->ApproachTargetOverride = FVector(0.f, 0.f, 0.f) + FVector(5000000.f, 0.f, 0.f); // 50 km ahead of the origin
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("no game flow progress: no marker"), F.V().Approach, 0);
+	F.HUD->ForceApproach = 1;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("pending"), F.V().Approach, 1);
+	TestTrue(TEXT("pending: a range in metres"), F.V().ApproachWp.Distance > 0.f);
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	const TPair<FName, FBox2D>* Box = F.HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("approach"); });
+	if (TestNotNull(TEXT("pending: painted"), Box))
+	{
+		TestTrue(TEXT("inside the frame"), Box->Value.Min.X >= 0.f && Box->Value.Max.X <= 1920.f && Box->Value.Min.Y >= 0.f && Box->Value.Max.Y <= 1080.f);
+	}
+	F.HUD->ForceApproach = 2;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("open"), F.V().Approach, 2);
+	F.HUD->ForceApproach = 0;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("cleared"), F.V().Approach, 0);
+	F.HUD->ApproachTargetOverride.Reset();
+	F.HUD->ForceApproach = 1;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("no Dominion to point at: nothing drawn"), F.V().Approach, 0);
+	return true;
+}
+
 // Review M5 and m9: a ship with no secondary ammo shows no number; with no flown ship nothing stale is drawn.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDNoAmmoNoFlown, "TriadDrift.UI.FlightHUD.Review.NoAmmoAndNoFlownShip", TD_TEST_FLAGS)
 bool FTDFlightHUDNoAmmoNoFlown::RunTest(const FString& Parameters)

@@ -16,6 +16,7 @@
 #include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
+#include "TriadDrift/World/TDDominion.h"
 
 namespace TDFlightHUD
 {
@@ -668,6 +669,46 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		Wp.Health = Health && Health->IsAlive() ? Health->GetHull01() : -1.f;
 	}
 
+	// Dominion approach marker (alignment a13): pending once Cinder's anchor objective is in the run's progress and the
+	// field is still closed; on the reveal (wave 5 cleared) it reads open for 8 s, then the assault's own markers take over.
+	{
+		bool bAnchorDown = false, bRevealed = false;
+		if (const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+		{
+			const FTDProgress Progress = Flow->GetProgress();
+			bAnchorDown = Progress.CompletedObjectives.Contains(AnchorObjectiveId);
+			bRevealed = Progress.bDominionRevealed;
+		}
+		if (bApproachSeeded && bRevealed && !bApproachWasRevealed)
+		{
+			ApproachOpenLeft = ApproachOpenSeconds;
+		}
+		bApproachSeeded = true;
+		bApproachWasRevealed = bRevealed;
+		ApproachOpenLeft = FMath::Max(0.f, ApproachOpenLeft - Dt);
+		View.Approach = ForceApproach >= 0 ? ForceApproach : (ApproachOpenLeft > 0.f ? 2 : (bAnchorDown && !bRevealed ? 1 : 0));
+		const ATDDominion* Dominion = ATDDominion::Get(this);
+		const TOptional<FVector> Target = Dominion ? TOptional<FVector>(Dominion->GetActorLocation()) : ApproachTargetOverride;
+		if (View.Approach > 0 && Target.IsSet())
+		{
+			FWaypoint& Wp = View.ApproachWp;
+			FVector2D Dir;
+			Wp.bOnScreen = Project(Target.GetValue(), Wp.Pos, Dir);
+			if (!Wp.bOnScreen)
+			{
+				Wp.Pos = AvoidStrip(OnSafeFrame(Dir));
+				Wp.Angle = FMath::Atan2(Dir.Y, Dir.X);
+			}
+			Wp.Distance = FVector::Dist(From, Target.GetValue()) / 100.f;
+			Wp.DrawPos = Wp.Pos;
+			Wp.bLifted = Wp.bOnScreen && LiftWaypoint(Wp.Pos, Wp.DrawPos);
+		}
+		else
+		{
+			View.Approach = 0;
+		}
+	}
+
 	// Navigation pulse: project the corridor; off screen or no view, a generic corridor from under the ship toward the
 	// screen's right third (it only has to read as a sensor flicker).
 	NavLeft = FMath::Max(0.f, NavLeft - Dt);
@@ -1141,6 +1182,52 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
 	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
+	// ---- the Dominion approach: pending = a dashed amber diamond (the route is prepared, the passage still closed), open =
+	// a solid one for its first 8 s; "APPROACH  PENDING" / "APPROACH  OPEN" with the range. A marker only: no corridor.
+	if (View.Approach > 0)
+	{
+		const FWaypoint& Wp = View.ApproachWp;
+		const bool bOpen = View.Approach == 2;
+		const FLinearColor AppC = bOpen ? T::Neutral() : T::Warning().CopyWithNewOpacity(.8f);
+		const FVector2D At = Wp.bOnScreen ? Wp.DrawPos : Wp.Pos;
+		const float R = Wp.bOnScreen ? 13.f : 10.f;
+		const FVector2D Pts[4] = { { 0, -R }, { R, 0 }, { 0, R }, { -R, 0 } };
+		for (int32 i = 0; i < 4; ++i)
+		{
+			const FVector2D A = At + Pts[i], B = At + Pts[(i + 1) % 4];
+			if (bOpen)
+			{
+				P.Line(A, B, AppC, 2.5f);
+			}
+			else
+			{
+				// Two dashes per side: a gap at each corner and one in the middle.
+				P.Line(FMath::Lerp(A, B, .1f), FMath::Lerp(A, B, .4f), AppC, 2.f);
+				P.Line(FMath::Lerp(A, B, .6f), FMath::Lerp(A, B, .9f), AppC, 2.f);
+			}
+		}
+		if (Wp.bOnScreen && Wp.bLifted)
+		{
+			P.Line(At + FVector2D(0, R), Wp.Pos, AppC.CopyWithNewOpacity(.4f), 1.f);
+		}
+		const FString Word = bOpen ? TEXT("APPROACH  OPEN") : TEXT("APPROACH  PENDING");
+		if (Wp.bOnScreen)
+		{
+			P.BackedWords(At.X, At.Y + R + 6.f, Word, 13, AppC, .5f, 60);
+			P.BackedWords(At.X, At.Y + R + 26.f, Range(Wp.Distance), 13, AppC, .5f, 20);
+		}
+		else
+		{
+			const FVector2D F(FMath::Cos(Wp.Angle), FMath::Sin(Wp.Angle));
+			P.Line(At + F * (R + 2.f), At + F * (R + 8.f), AppC, 2.5f);
+			const FVector2D Label = At - F * 70.f;
+			P.BackedWords(Label.X, Label.Y - 18.f, Word, 13, AppC, .5f, 60);
+			P.BackedWords(Label.X, Label.Y + 2.f, Range(Wp.Distance), 13, AppC, .5f, 20);
+		}
+		Rec(TEXT("approach"), At.X - R, At.Y - R, 2.f * R, 2.f * R);
+		Area += 160.f * 60.f;
+	}
+
 	static const TArray<FWaypoint> NoWaypoints;
 	const TArray<FWaypoint>& ShownWaypoints = View.bCombatHeld ? NoWaypoints : View.Waypoints; // a focus hold: none
 	for (const FWaypoint& Wp : ShownWaypoints)

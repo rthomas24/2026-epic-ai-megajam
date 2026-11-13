@@ -169,6 +169,12 @@ public:
 		bool bPaused = false;
 		/** A focus hold from the host (T1's atmosphere entry): combat objectives (pill, waypoints) off screen. */
 		bool bCombatHeld = false;
+		/**
+		 * The Dominion approach marker (storyline / alignment a13): 1 = pending (Cinder's field anchor is down, the field
+		 * still closed: a dashed amber diamond), 2 = open (the 8 s after wave 5's clear reveals the Dominion), 0 = none.
+		 */
+		int32 Approach = 0;
+		FWaypoint ApproachWp;
 		// ---- P2
 		TArray<FMark> Marks;
 		TArray<FWaypoint> Waypoints;
@@ -314,6 +320,14 @@ public:
 	 */
 	float FocusOpacity = 1.f;
 	bool bFocusHideCombat = false;
+
+	/** Tests: -1 reads the run's progress; 1 / 2 force the approach marker pending / open (0 = none). */
+	int32 ForceApproach = -1;
+	/** The objective whose completion means Cinder's field anchor is down (T5's course). */
+	static inline const FName AnchorObjectiveId = TEXT("Obj_Jammer");
+	static constexpr float ApproachOpenSeconds = 8.f;
+	/** Where the approach marker points when no ATDDominion is in the world (tests). */
+	TOptional<FVector> ApproachTargetOverride;
 	static constexpr float SlateSeconds = 1.5f;
 	static constexpr float SlateOpacity = .4f;
 	static constexpr float PauseOpacity = .3f;
@@ -413,6 +427,10 @@ private:
 	float StrikePulseLeft = 0.f;
 	float CutLeft = 0.f;
 	float NavLeft = 0.f;
+	/** Approach marker: the reveal seen last sample (an edge opens the 8 s "open" state), its countdown, first-sample guard. */
+	bool bApproachWasRevealed = false;
+	bool bApproachSeeded = false;
+	float ApproachOpenLeft = 0.f;
 	float NavSeconds = 0.f;
 	FVector NavWorldFrom = FVector::ZeroVector;
 	FVector NavWorldTo = FVector::ZeroVector;
