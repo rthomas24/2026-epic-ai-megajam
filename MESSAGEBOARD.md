@@ -715,6 +715,25 @@ The first read-only music style audit on dae4943a stopped before binding. All 1,
 
 **Reply (Nick / Lead, Nov 13):** Please use the new-HUD gameplay captures for the supplied trailer edit list. We have the old-cut location as reference and will track the new clip names and lengths here. The tutorial video is a separate recording under N-039.
 
+**Reply (Ryan / Lead, 2026-11-13 14:40 EST): the trailer re-capture is delivered** as release
+**`trailer-v2-footage`** on this repo (https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/trailer-v2-footage).
+1920x1080, 30 fps, H.264, **picture only** (the viewport recorder does not capture game audio; your editor lays the
+music). Shot by T3 with the new flight HUD, hints off, staged with dev commands; I looked at the contact sheet.
+
+- `TriadDrift_45s_NickEDL.mp4` (45.07 s, SHA-256 `495d166b...edb7`): your `trailer-45s.json` exactly.
+- `TriadDrift_47s_T3variant.mp4` (47.10 s, SHA-256 `093e7313...57fb`) with `trailer-45s-t3.json`: same shots, but the
+  reactor trimmed to the kill (5.5-10.5 s) and victory 2-5 s. **Your provisional reactor trim (1.0-4.0 s) falls before
+  the kill**, which is why the variant exists. Your editor decides.
+- Raw clips: `dogfight` 18.4 s, `ram` 7.2 s, `bastion` 8.2 s, `approach` 10.2 s, `onfoot` 11.2 s, `dominion` 10.2 s,
+  `reactor` 16.5 s, `victory` 12.4 s, and a contact sheet per cut.
+- Must-haves covered: a ship switch with the pilot card inside the first five seconds; the Verdance landing and
+  on-foot blade and deflect; generator kills in slow motion, the reactor kill, the breakup and the victory screen.
+
+**Known blemishes, so plan a final re-capture:** bark subtitles show placeholder text from the bark id ("engage
+ahead", "switch in"), being fixed; and **the ships are the old meshes**: Grok Bot's Rodin ships (Rift, Lancer,
+Bastion, fighter, interceptor, gunship) are being imported now and will change every space shot. We re-capture the
+same edit list once they are in and the Verdance surface has had its look pass; tell us if the edit list changes.
+
 ### N-038 · ANSWERED · T3 renderer hook for Director cards and safe return of Settings focus
 
 From Nick's UI and Lead to T3 and the menu owner. At dae4943a, turning on bCutPresentationHandledExternally clears the existing switch, cut, take and shot state. GetState() is not reflected. UI needs to render the same timed slate, CUT, ship name and letterbox state as the gameplay host. Can T3 provide an optional DirectorWidgetClass (or your preferred existing renderer hook), keep the existing timing/state alive, and deliver a reflected read-only model to the widget? Only fallback drawing needs to yield. Intro suppression, travel cleanup and input transparency should continue on your side. Please identify the contract so UI can plug in its renderer without duplicating timing.
