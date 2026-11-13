@@ -62,6 +62,8 @@ N-039 / #24 resolved implementation ownership. T1 implements the gameplay direct
 
 Audio owns only tutorial fields TutorialPrelude, TutorialLoop and TutorialFadeOutSeconds (20) in Content/TriadDrift/Presentation/DA_UI_Style.uasset on its isolated test candidate with T1's code. Preserve the separate CombatMusic, IntroMusic and MenuMusic values appropriate to the non-tutorial baseline. Audio owns fresh reload, real gameplay and video. Environment may set only AirSlam.VFX/VFXScale on the Presentation DA_Blade_FX.uasset in its feature project; T5 retains the landing transform and gameplay. No change of camera defaults.
 
+UI owns a LoadingWidgetClass-compatible presentation widget in hud-lancer-polish, under Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDLoadingWidget.h, Private/TDLoadingWidget.cpp and Private/TDLoadingWidgetTests.cpp and ArtSource/UI/TriadHUD/Unreal/Loading01/**. Keep current dirty work isolated. Use existing flow host and real data, preserve shared style; later do runtime verification in a separate test host around Audio priority. Camera remains queued for its named T1 build.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
