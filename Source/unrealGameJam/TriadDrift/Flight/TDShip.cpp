@@ -475,6 +475,11 @@ bool ATDShip::TryDodge(float Direction)
 		return false;
 	}
 	NoteCue(TEXT("Dodge"));
+	if (Visuals)
+	{
+		FName Socket;
+		UTDStatics::PlayCueAttached(ForThisShip(Visuals->Dodge), GetEngineAttach(Socket), Socket);
+	}
 	return true;
 }
 
