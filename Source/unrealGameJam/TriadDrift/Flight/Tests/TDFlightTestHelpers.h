@@ -61,6 +61,9 @@ public:
 		DamageByKind[K] += ShieldDamage + HullDamage;
 	}
 
+	int32 SimpleEvents = 0;
+	UFUNCTION() void HandleSimple() { ++SimpleEvents; }
+
 	int32 Dodges = 0;
 	float LastDodgeDir = 0.f;
 	UFUNCTION() void HandleDodge(float Direction) { ++Dodges; LastDodgeDir = Direction; }

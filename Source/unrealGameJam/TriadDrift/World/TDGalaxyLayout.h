@@ -263,6 +263,10 @@ public:
 	int32 GetAsteroidLookCount() const;
 	/** The collision spheres (hidden when the rocks carry the look). */
 	const UInstancedStaticMeshComponent* GetAsteroidCollision() const { return Asteroids; }
+	/** Every gate this layout spawned (both ends of every pair). */
+	const TArray<TObjectPtr<ATDPortalGate>>& GetGateActors() const { return GateActors; }
+	/** Every place a ship appears: the player start and all return points. */
+	TArray<FTransform> GetSpawnPoints() const;
 protected:
 
 	UPROPERTY(Transient)

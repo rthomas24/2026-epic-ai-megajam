@@ -65,6 +65,8 @@ double ATDSquadManager::RealNow() const
 
 void ATDSquadManager::Refuse(ETDSwitchRefusal Reason, ETDShipId Ship)
 {
+	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch to %s refused: %s frame=%llu"), *UEnum::GetDisplayValueAsText(Ship).ToString(),
+		*UEnum::GetDisplayValueAsText(Reason).ToString(), GFrameCounter);
 	OnSwitchRefused.Broadcast(Reason, Ship);
 }
 
@@ -514,8 +516,8 @@ bool ATDSquadManager::SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCau
 void ATDSquadManager::LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const
 {
 	// Every change of the player's ship, with why (T2's wave-5 run: "Rift became Lancer, nothing in the log").
-	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch %s -> %s cause=%s"), *UEnum::GetDisplayValueAsText(From).ToString(),
-		*UEnum::GetDisplayValueAsText(To).ToString(), *UEnum::GetDisplayValueAsText(Cause).ToString());
+	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch %s -> %s cause=%s frame=%llu"), *UEnum::GetDisplayValueAsText(From).ToString(),
+		*UEnum::GetDisplayValueAsText(To).ToString(), *UEnum::GetDisplayValueAsText(Cause).ToString(), GFrameCounter);
 }
 
 bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
@@ -880,10 +882,19 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 			{
 				Slot.LowHullSince = RealNow();
 			}
-			if (RealNow() - Slot.LowHullSince > LowHullBarkWindowSeconds || RequestSquadBark(TDBarkIds::LowHull, Slot.ShipId))
+			if (RealNow() - Slot.LowHullSince > LowHullBarkWindowSeconds)
 			{
 				Slot.bLowHullBarkArmed = false;
 				Slot.LowHullSince = -1.0;
+			}
+			else if (RealNow() >= Slot.NextLowHullTry)
+			{
+				Slot.NextLowHullTry = RealNow() + 0.25; // retry a few times in the window, not every frame
+				if (RequestSquadBark(TDBarkIds::LowHull, Slot.ShipId))
+				{
+					Slot.bLowHullBarkArmed = false;
+					Slot.LowHullSince = -1.0;
+				}
 			}
 		}
 		else if (!Slot.bLowHullBarkArmed && Hull > BarkTuning.LowHullRearmFraction)
@@ -994,7 +1005,13 @@ void ATDSquadManager::HandleShipDeath(ETDShipId Ship)
 		ETDShipId Caller = ETDShipId::Rift;
 		if (FindHealthiestLivingShip(Ship, Caller) && !TDSquad::IsDead(GetShip(Caller)))
 		{
-			RequestSquadBark(TDBarkIds::ShipDownFor(Ship), Caller, ETDBarkPriority::High);
+			// Wave 5 playtest (a ship down every ~12 s): one ship-down line per ShipDownBarkGapSeconds,
+			// whichever ship it is, so the comms aren't a stream of obituaries.
+			if (RealNow() - LastShipDownBarkTime >= ShipDownBarkGapSeconds
+				&& RequestSquadBark(TDBarkIds::ShipDownFor(Ship), Caller, ETDBarkPriority::High))
+			{
+				LastShipDownBarkTime = RealNow();
+			}
 		}
 	}
 }
@@ -1167,6 +1184,8 @@ TArray<FTDShipHUD> ATDSquadManager::GetSquadHUD() const
 		Card.SecondaryAmmo = Ship ? TDSquad::GetAmmo(Ship, ETDWeaponSlot::Secondary) : 0;
 		// N-004: only the ability the ship has EARNED, readiness 0 while locked.
 		TDSquad::GetEarnedAbility(Ship, Card.Ability, Card.AbilityCooldown01);
+		// The dodge pip is the player's: wingmen read ready.
+		Card.Dodge01 = (Id == ActiveShipId && Ship) ? TDSquad::GetDodgeReady01(Ship) : 1.f;
 		if (Ship)
 		{
 			TDSquad::GetPowerCooldowns(Ship, Card.PowerCooldown01, Card.Power2Cooldown01);

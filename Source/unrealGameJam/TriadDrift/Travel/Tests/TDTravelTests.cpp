@@ -740,6 +740,16 @@ bool FTDTravelAssistStops::RunTest(const FString& Parameters)
 	TestFalse(TEXT("retake: assist off"), Land->IsApproachAssisting());
 	TestFalse(TEXT("retake: no override comes back"), Move->HasSpeedOverrideFor(Assist));
 
+	// A ship switch (the player leaves this ship) ends it.
+	TestTrue(TEXT("assist restarts for the switch case"), Land->StartApproachAssist());
+	W.Tick();
+	Ship->SetPlayerControlled(false);
+	W.Tick();
+	TestFalse(TEXT("switch: assist off"), Land->IsApproachAssisting());
+	TestFalse(TEXT("switch: override cleared"), Move->HasSpeedOverrideFor(Assist));
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+
 	// Death ends it.
 	TestTrue(TEXT("assist restarts again"), Land->StartApproachAssist());
 	W.Tick();

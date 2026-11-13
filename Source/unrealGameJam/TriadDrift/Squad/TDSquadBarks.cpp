@@ -28,7 +28,7 @@ FTDBarkTuning::FTDBarkTuning()
 	CooldownById.Add(TDBarkIds::FocusAck, 5.f);
 	CooldownById.Add(TDBarkIds::WingmanKill, 12.f);
 	CooldownById.Add(TDBarkIds::LowHull, 20.f);
-	CooldownById.Add(TDBarkIds::Respawn, 8.f);
+	CooldownById.Add(TDBarkIds::Respawn, 20.f); // wave 5 (a death every ~12 s): one "back in" line per 20 s
 	CooldownById.Add(TDBarkIds::SquadWipe, 5.f);
 }
 

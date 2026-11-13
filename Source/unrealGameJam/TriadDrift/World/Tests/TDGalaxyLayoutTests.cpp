@@ -262,4 +262,35 @@ bool FTDWorldLayoutRocks::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldLayoutSpawnsClearOfGates, "TriadDrift.World.Layout.SpawnPointsClearOfGates", TD_TEST_FLAGS)
+bool FTDWorldLayoutSpawnsClearOfGates::RunTest(const FString& Parameters)
+{
+	// T1 / T5 playtest: a return point in front of a gate popped the player across the galaxy. No spawn point
+	// (player start, every return point) may sit in front of a gate's mouth (20 degrees, 30 000 cm), and 10 s of
+	// hands-off cruise from it (60 000 cm along its facing) never crosses any gate disc (1500 cm margin).
+	FTDTestWorld W;
+	ATDGalaxyLayout* G = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	if (!TestNotNull(TEXT("layout"), G) || !TestTrue(TEXT("gates"), G->GetGateActors().Num() >= 6)) { return false; }
+	const float ConeTan = FMath::Tan(FMath::DegreesToRadians(20.f));	// the mouth: 20 degrees, 30 000 cm (5 s of cruise)
+	for (const FTransform& P : G->GetSpawnPoints())
+	{
+		const FVector From = P.GetLocation();
+		const FVector To = From + P.GetRotation().GetForwardVector() * 60000.f;
+		for (const ATDPortalGate* Gate : G->GetGateActors())
+		{
+			if (!Gate) { continue; }
+			bool bFwd = true;
+			const FTransform GX(Gate->GetActorRotation(), Gate->GetActorLocation());
+			TestFalse(*FString::Printf(TEXT("10 s of cruise from %s never crosses %s"), *From.ToString(), *Gate->GateId.ToString()),
+				ATDPortalGate::SegmentCrossesGate(GX, Gate->Radius + 1500.f, From, To, bFwd));
+			const FVector D = From - Gate->GetActorLocation();
+			const float Along = FMath::Abs(FVector::DotProduct(D, Gate->GetActorForwardVector()));
+			const float Lateral = (D - Gate->GetActorForwardVector() * FVector::DotProduct(D, Gate->GetActorForwardVector())).Size();
+			const bool bInCone = Along < 30000.f && Lateral < FMath::Max(Gate->Radius + 1500.f, Along * ConeTan);
+			TestFalse(*FString::Printf(TEXT("%s is not in %s's approach cone (along %.0f, lateral %.0f)"), *From.ToString(), *Gate->GateId.ToString(), Along, Lateral), bInCone);
+		}
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
