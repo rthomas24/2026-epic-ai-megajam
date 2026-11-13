@@ -459,13 +459,71 @@ bool FTDFlightHUDLane::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Combat states: a Switch Strike window opening plays the reward pulse and drains; a focus order shows its own line.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCombatStates, "TriadDrift.UI.FlightHUD.P2.SwitchStrikeAndFocus", TD_TEST_FLAGS)
+bool FTDFlightHUDCombatStates::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("no window: no pulse"), F.V().SwitchStrikePulse, 0.f);
+	F.Src->SwitchStrike = 1.f;
+	F.HUD->Sample(.016f);
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("window opens: reward pulse running"), F.V().SwitchStrikePulse > 0.f && F.V().SwitchStrikePulse < 1.f);
+	F.Src->SwitchStrike = .6f;
+	F.HUD->Sample(UTDFlightHUDWidget::StrikePulseSeconds);
+	TestEqual(TEXT("draining: the pulse is over"), F.V().SwitchStrikePulse, 0.f);
+	TestEqual(TEXT("draining value"), F.V().SwitchStrike, .6f);
+	F.Src->SwitchStrike = 1.f;
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("re-armed: pulses again"), F.V().SwitchStrikePulse > 0.f);
+	F.Src->Focus = .4f;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("focus order"), F.V().Focus, .4f);
+	return true;
+}
+
+// The host's cover answer both ways: the engineering HUD claims CombatStates (the dev HUD's line goes), Nick's does not.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCombatCover, "TriadDrift.UI.FlightHUD.P2.CombatStatesCoverBothWays", TD_TEST_FLAGS)
+bool FTDFlightHUDCombatCover::RunTest(const FString& Parameters)
+{
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), -1);
+	TestEqual(TEXT("the default is the engineering HUD"), UTDUIHostSettings::GetSpaceHUDChoice(), ETDSpaceHUDChoice::Engineering);
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform::Identity);
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	W.Tick();
+	Space.Set(2);
+	Host->Evaluate();
+	TestTrue(TEXT("engineering HUD up"), Host->GetSpaceHUD() && Host->GetSpaceHUD()->IsA<UTDFlightHUDWidget>());
+	TestTrue(TEXT("engineering HUD: CombatStates covered (dev line off)"), UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(W.GetWorld(), ETDHUDSurface::CombatStates));
+	Space.Set(1);
+	Host->Evaluate();
+	if (Host->GetSpaceHUD())
+	{
+		TestFalse(TEXT("Nick's HUD: CombatStates not covered (dev line stays)"), UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(W.GetWorld(), ETDHUDSurface::CombatStates));
+	}
+	Space.Set(0);
+	Host->Evaluate();
+	TestFalse(TEXT("dev HUD: nothing covered"), UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(W.GetWorld(), ETDHUDSurface::CombatStates));
+	return true;
+}
+
 // The widget claims the dev HUD's surfaces it now draws (and leaves subtitles and pause alone).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDCovers, "TriadDrift.UI.FlightHUD.P2.ClaimsDevHUDSurfaces", TD_TEST_FLAGS)
 bool FTDFlightHUDCovers::RunTest(const FString& Parameters)
 {
 	const UTDFlightHUDWidget* CDO = GetDefault<UTDFlightHUDWidget>();
 	for (const ETDHUDSurface Surface : { ETDHUDSurface::DamageIndicators, ETDHUDSurface::SquadMarkers, ETDHUDSurface::InteractPrompt,
-			 ETDHUDSurface::HyperdriveBlockText, ETDHUDSurface::Altitude, ETDHUDSurface::BoundaryWarning })
+			 ETDHUDSurface::HyperdriveBlockText, ETDHUDSurface::Altitude, ETDHUDSurface::BoundaryWarning, ETDHUDSurface::CombatStates })
 	{
 		const FBoolProperty* Claim = FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface));
 		TestTrue(FString::Printf(TEXT("claims %s"), *UTDUIHostSubsystem::GetCoverPropertyName(Surface).ToString()), Claim && Claim->GetPropertyValue_InContainer(CDO));

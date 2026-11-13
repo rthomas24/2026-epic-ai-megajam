@@ -128,8 +128,24 @@ public:
 		float Hyperdrive = 0.f;
 		ELane Lane = ELane::None;
 		FString LaneText;
+		/**
+		 * Onboarding card (T3, with T1's UTDHintComponent): the lane's hint drawn as a card with a highlighted key glyph,
+		 * the action and a step counter, when the hint getters are in the build; plain LaneText otherwise.
+		 */
+		bool bHintCard = false;
+		FString HintKey;
+		FString HintAction;
+		int32 HintStep = 0;
+		int32 HintCount = 0;
+		/** The player just did it: the tick shows, then the card fades (0..1 through the 0.5 s done beat). */
+		bool bHintDone = false;
+		float HintDone01 = 0.f;
 		FString Boundary;
 		float SwitchStrike = 0.f;
+		/** 0..1 through the reward pulse when a Switch Strike window opens (0 when not pulsing). */
+		float SwitchStrikePulse = 0.f;
+		/** A focus-fire order: 1 when given, draining to 0. */
+		float Focus = 0.f;
 		/** Metres, -1 when not in atmosphere. */
 		float Altitude = -1.f;
 		/** The flown ship's ability (E / Y), second power (Bastion's dome, hold Q) and secondary ammo. */
@@ -206,6 +222,10 @@ public:
 	bool bCoversAltitude = true;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
 	bool bCoversBoundaryWarning = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversCombatStates = true;
+
+	static constexpr float StrikePulseSeconds = .35f;
 
 	static constexpr float BlockedSeconds = 3.f;
 	static constexpr float BoostHideSeconds = 1.5f;
@@ -262,6 +282,10 @@ private:
 	/** Written by NativePaint (const): what the last frame drew. */
 	mutable float LastCoverage01 = 0.f;
 	float BlockedLeft = 0.f;
+	float HintDoneAge = 0.f;
+	float StrikePulseLeft = 0.f;
+	/** Reads T3's hint getters (UTDHintComponent::GetHintKey / Action / Step / State) by reflection; false when absent. */
+	bool ReadHintCard();
 	float BoostFullFor = 1e6f;
 	TWeakObjectPtr<class ATDSpacePlayerController> BoundPC;
 

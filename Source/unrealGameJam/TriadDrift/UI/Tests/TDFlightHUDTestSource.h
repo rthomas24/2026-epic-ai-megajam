@@ -27,6 +27,7 @@ public:
 	FText Blocked;
 	FText Boundary;
 	float SwitchStrike = 0.f;
+	float Focus = 0.f;
 	float Altitude = -1.f;
 	float Hyperdrive = 0.f;
 
@@ -40,6 +41,7 @@ public:
 	virtual FText GetHyperdriveBlockText() const override { return Blocked; }
 	virtual FText GetBoundaryWarningText() const override { return Boundary; }
 	virtual float GetSwitchStrike01() const override { return SwitchStrike; }
+	virtual float GetFocusRemaining01() const override { return Focus; }
 	virtual float GetAltitude() const override { return Altitude; }
 	virtual float GetHyperdriveCharge01() const override { return Hyperdrive; }
 

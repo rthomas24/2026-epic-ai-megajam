@@ -258,6 +258,95 @@ void UTDFlightHUDWidget::HandleHyperdriveInput(bool bHeld)
 	}
 }
 
+namespace TDFlightHUD
+{
+	/** Calls a static UFUNCTION on UTDHintComponent whose first object parameter is the world context. */
+	struct FHintCall
+	{
+		UFunction* Function = nullptr;
+		TArray<uint8> Params;
+		bool Invoke(UObject* Context, const TCHAR* Name)
+		{
+			Function = UTDHintComponent::StaticClass()->FindFunctionByName(Name);
+			if (!Function)
+			{
+				return false;
+			}
+			Params.SetNumZeroed(FMath::Max<int32>(Function->ParmsSize, 16));
+			for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+			{
+				It->InitializeValue_InContainer(Params.GetData());
+				if (const FObjectPropertyBase* Obj = CastField<FObjectPropertyBase>(*It); Obj && !It->HasAnyPropertyFlags(CPF_OutParm | CPF_ReturnParm))
+				{
+					Obj->SetObjectPropertyValue_InContainer(Params.GetData(), Context);
+				}
+			}
+			UTDHintComponent::StaticClass()->GetDefaultObject()->ProcessEvent(Function, Params.GetData());
+			return true;
+		}
+		FString Text() const
+		{
+			const FTextProperty* Ret = Function ? CastField<FTextProperty>(Function->GetReturnProperty()) : nullptr;
+			return Ret ? Ret->GetPropertyValue_InContainer(Params.GetData()).ToString() : FString();
+		}
+		int64 Number(int32 Index) const // the Index-th int/enum/bool out or return value
+		{
+			int32 Seen = 0;
+			for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+			{
+				if (!It->HasAnyPropertyFlags(CPF_OutParm | CPF_ReturnParm))
+				{
+					continue;
+				}
+				const void* V = It->ContainerPtrToValuePtr<void>(Params.GetData());
+				int64 Value = 0;
+				if (const FNumericProperty* N = CastField<FNumericProperty>(*It); N && N->IsInteger()) { Value = N->GetSignedIntPropertyValue(V); }
+				else if (const FEnumProperty* E = CastField<FEnumProperty>(*It)) { Value = E->GetUnderlyingProperty()->GetSignedIntPropertyValue(V); }
+				else if (const FBoolProperty* B = CastField<FBoolProperty>(*It)) { Value = B->GetPropertyValue(V) ? 1 : 0; }
+				else { continue; }
+				if (Seen++ == Index)
+				{
+					return Value;
+				}
+			}
+			return 0;
+		}
+		~FHintCall()
+		{
+			if (Function)
+			{
+				for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+				{
+					It->DestroyValue_InContainer(Params.GetData());
+				}
+			}
+		}
+	};
+}
+
+bool UTDFlightHUDWidget::ReadHintCard()
+{
+	using TDFlightHUD::FHintCall;
+	FHintCall State, Key, Action, Step;
+	// ETDHintState: None = 0, Showing = 1, Done = 2 (T3, eng/t3 0de516a).
+	if (!State.Invoke(this, TEXT("GetHintState")) || !Key.Invoke(this, TEXT("GetHintKey")) || !Action.Invoke(this, TEXT("GetHintAction")))
+	{
+		View.bHintDone = false;
+		return false;
+	}
+	const int64 S = State.Number(0);
+	View.HintKey = Key.Text().ToUpper();
+	View.HintAction = Action.Text().ToUpper();
+	View.bHintDone = S == 2;
+	View.HintStep = View.HintCount = 0;
+	if (Step.Invoke(this, TEXT("GetHintStep")) && Step.Number(0) != 0) // return value first, then Step, Count
+	{
+		View.HintStep = static_cast<int32>(Step.Number(1));
+		View.HintCount = static_cast<int32>(Step.Number(2));
+	}
+	return S != 0 && !View.HintAction.IsEmpty();
+}
+
 FVector2D UTDFlightHUDWidget::ToDesign(const FVector2D& Local) const
 {
 	const float Scale = FMath::Min(ViewportSize.X / 1920.f, ViewportSize.Y / 1080.f);
@@ -453,6 +542,10 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 
 	// The lower lane: one message at a time. Interact / landing prompt, then a blocked jump (3 s after the press), then a hint.
 	BlockedLeft = FMath::Max(0.f, BlockedLeft - Dt);
+	const bool bWasDone = View.bHintDone;
+	View.bHintCard = ReadHintCard();
+	HintDoneAge = View.bHintDone ? (bWasDone ? HintDoneAge + Dt : 0.f) : 0.f;
+	View.HintDone01 = View.bHintDone ? FMath::Clamp(HintDoneAge / .5f, 0.f, 1.f) : 0.f;
 	FString Prompt = Data.GetInteractPrompt().ToString();
 	const FString Blocked = Data.GetHyperdriveBlockText().ToString();
 	const FString Hint = UTDHintComponent::GetHintText(this).ToString();
@@ -470,7 +563,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.Lane = ELane::HyperdriveBlocked;
 		View.LaneText = Blocked.ToUpper();
 	}
-	else if (!Hint.IsEmpty())
+	else if (!Hint.IsEmpty() || View.bHintCard)
 	{
 		View.Lane = ELane::Hint;
 		View.LaneText = Hint.ToUpper();
@@ -481,7 +574,15 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.LaneText.Reset();
 	}
 	View.Boundary = Data.GetBoundaryWarningText().ToString().ToUpper();
-	View.SwitchStrike = TDFlightHUD::Clamp01(Data.GetSwitchStrike01());
+	const float Strike = TDFlightHUD::Clamp01(Data.GetSwitchStrike01());
+	if (Strike > View.SwitchStrike + .05f)
+	{
+		StrikePulseLeft = StrikePulseSeconds; // a window just opened (or re-armed): the reward pulse
+	}
+	View.SwitchStrike = Strike;
+	StrikePulseLeft = FMath::Max(0.f, StrikePulseLeft - Dt);
+	View.SwitchStrikePulse = StrikePulseLeft > 0.f ? 1.f - StrikePulseLeft / StrikePulseSeconds : 0.f;
+	View.Focus = TDFlightHUD::Clamp01(Data.GetFocusRemaining01());
 	View.Altitude = Data.GetAltitude();
 }
 
@@ -751,7 +852,24 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// ---- around the reticle: Switch Strike ring, heat arc, ability pip, second power pip, ammo, altitude
 	if (View.SwitchStrike > 0.f)
 	{
-		P.Arc(C, 62.f, View.SwitchStrike, Accent.CopyWithNewOpacity(.85f), 2.f, -PI * .5f);
+		// The reward moment: on opening, a squad-colour ring bursts out from the reticle and fades (0.35 s); then the
+		// window drains clockwise, with "+25%" beside it.
+		if (View.SwitchStrikePulse > 0.f)
+		{
+			const float T01 = View.SwitchStrikePulse;
+			P.Arc(C, FMath::Lerp(62.f, 96.f, T01), 1.f, Accent.CopyWithNewOpacity(.8f * (1.f - T01)), FMath::Lerp(6.f, 1.5f, T01));
+		}
+		P.Arc(C, 62.f, View.SwitchStrike, Accent.CopyWithNewOpacity(.9f), 2.5f, -PI * .5f);
+		const float Pop = View.SwitchStrikePulse > 0.f ? 1.f + .25f * FMath::Sin(View.SwitchStrikePulse * PI) : 1.f;
+		P.Words(C.X + 70.f, C.Y - 74.f, TEXT("+25%"), FMath::RoundToInt(17 * Pop), Accent, "Bold", 0.f, 20);
+	}
+	Area += View.SwitchStrike > 0.f ? 60.f * 22.f : 0.f;
+	if (View.Focus > 0.f)
+	{
+		// A focus-fire order: a small amber line under the reticle cluster with its own drain bar.
+		P.Words(C.X, C.Y + 84.f, TEXT("FOCUS FIRE"), 14, T::Warning(), "Bold", .5f, 80);
+		P.Bar(C.X - 40.f, C.Y + 104.f, 80.f, 3.f, View.Focus, T::Warning(), .9f);
+		Area += 110.f * 26.f;
 	}
 	if (View.Heat >= .6f)
 	{
@@ -810,8 +928,40 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.Bar(CenterX - 120.f, 806.f, 240.f, 6.f, View.Hyperdrive, T::Shield(), .95f);
 	}
 
+	// ---- the onboarding card (T3): highlighted key + action at 24 px, "2 / 4", a tick when done, then a fade
+	if (View.Lane == ELane::Hint && View.bHintCard)
+	{
+		const float Fade = View.bHintDone ? 1.f - FMath::Clamp((View.HintDone01 - .5f) * 2.f, 0.f, 1.f) : 1.f;
+		const FSlateFontInfo KeyFont = P.Font("Bold", 20, 30);
+		const FSlateFontInfo ActFont = P.Font("Bold", 24, 60);
+		const float KeyW = FMath::Max(40.f, P.Measure(View.HintKey, KeyFont) + 22.f);
+		const float ActW = FMath::Max(120.f, P.Measure(View.HintAction, ActFont));
+		const bool bCounter = View.HintCount > 0;
+		const float CardW = FMath::Clamp(28.f + KeyW + 16.f + ActW + (bCounter ? 70.f : 0.f) + 28.f, 300.f, 900.f);
+		const float CardH = 60.f;
+		const float X = CenterX - CardW * .5f, Y = 830.f;
+		Area += CardW * CardH;
+		P.Plate(X, Y, CardW, CardH, 12.f, T::Plate().CopyWithNewOpacity(.72f * Fade));
+		P.Outline(X, Y, CardW, CardH, 12.f, 1.5f, (View.bHintDone ? Accent : T::Neutral()).CopyWithNewOpacity(.35f * Fade));
+		// The key: a filled plate in the flown ship's colour with dark text, the one thing to look at.
+		const float KX = X + 28.f, KY = Y + 13.f;
+		P.Plate(KX, KY, KeyW, 34.f, 7.f, Accent.CopyWithNewOpacity(Fade));
+		P.Words(KX + KeyW * .5f, KY + 5.f, View.HintKey, 20, T::Plate().CopyWithNewOpacity(Fade), "Bold", .5f, 30);
+		P.Words(KX + KeyW + 16.f, Y + 13.f, View.HintAction, 24, T::Neutral().CopyWithNewOpacity(Fade), "Bold", 0.f, 60);
+		if (bCounter)
+		{
+			P.Words(X + CardW - 24.f, Y + 19.f, FString::Printf(TEXT("%d / %d"), View.HintStep, View.HintCount), 15, T::Dim().CopyWithNewOpacity(Fade), "Bold", 1.f, 40);
+		}
+		if (View.bHintDone)
+		{
+			// The tick: a check mark over the key, popping in over the first half of the beat.
+			const float Pop = FMath::Clamp(View.HintDone01 * 4.f, 0.f, 1.f);
+			const FVector2D Tk(KX + KeyW * .5f, KY + 17.f);
+			P.Poly(Tk, { { -9, 0 }, { -3, 7 }, { 10, -8 } }, T::Neutral().CopyWithNewOpacity(Fade * Pop), 3.f, 1.f + .3f * (1.f - Pop));
+		}
+	}
 	// ---- the lower lane: one message
-	if (View.Lane != ELane::None && !View.LaneText.IsEmpty())
+	else if (View.Lane != ELane::None && !View.LaneText.IsEmpty())
 	{
 		const FLinearColor LaneC = View.Lane == ELane::HyperdriveBlocked ? T::Warning() : T::Neutral();
 		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", 17, 50)) + 48.f, 240.f, 760.f);
