@@ -66,6 +66,11 @@ UI owns a LoadingWidgetClass-compatible presentation widget in hud-lancer-polish
 
 UI alone may transfer its three Loading01 plugin sources (including Private/TDLoadingWidgetTests.cpp) to nick/ui-loading-validation in Worktrees/ui-loading-validation at f7aa911c and use Saved/Loading01/** for isolated validation scripts, logs and actual gameplay screenshots. Only in that validation checkout, permit a developer-only opt-in transient instance fixture in Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TriadDriftHUDModule.cpp. Exclude that fixture from the shipping candidate. No saved change to map, config, style or defaults. Fresh guarded single build and capture after Environment/Aurora, yielding to a ready T1 tutorial build.
 
+| Owner | Work, paths and delivery | Status |
+|---|---|---|
+| Audio | ART-11 First Contact, issue #29. Reserve ArtSource/Audio/FirstContact01/** on nick/audio-prototype-v1 for a single processed fragment reused by the opening and finale. | Track the two event IDs and one asset path. Voice, processing direction and final sign-off are with Nicholas. |
+| Lead | N-038 Settings handoff. Publish only ArtSource/UI/TriadHUD/Unreal/Settings01/{README.md,manifest.json,settings-only.patch} from the UI checkpoint on nick/settings-handoff-1113 in Worktrees/settings-handoff-1113. | Provide T5 a retrievable commit through the board. UI owns subsequent validation. |
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
