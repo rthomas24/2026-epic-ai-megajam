@@ -277,14 +277,29 @@ def mesh_triangles(mesh, notes):
 
 def main():
     manifests = sorted(glob.glob(os.path.join(KIT, "SM_*", "SM_*.manifest.json")))
+    # optional subset: PK_ONLY=SM_A,SM_B (env var, or a pk_only.txt next to this script) re-imports only those
+    only = os.environ.get("PK_ONLY", "")
+    only_file = os.path.join(HERE, "pk_only.txt")
+    if not only and os.path.isfile(only_file):
+        with open(only_file, encoding="utf-8") as fh:
+            only = fh.read()
+    only = [n.strip() for n in only.replace("\n", ",").split(",") if n.strip()]
+    if only:
+        manifests = [m for m in manifests if os.path.basename(m).split(".")[0] in only]
+        log("subset: " + ", ".join(only))
     if not manifests:
         log("FAILED: no manifests under " + KIT)
         return
     ensure_dir(DEST)
     ensure_dir(TEX_DEST)
-    first_orm = sorted(glob.glob(os.path.join(KIT, "SM_*", "T_*_ORM.png")))[:1]
-    first_e = sorted(glob.glob(os.path.join(KIT, "SM_*", "T_*_E.png")))[:1]
-    d = import_textures(first_orm + first_e + ([DETAIL_PNG] if os.path.isfile(DETAIL_PNG) else []), [])
+    folders = [os.path.dirname(m) for m in manifests]
+    first_orm = sorted(t for f in folders for t in glob.glob(os.path.join(f, "T_*_ORM.png")))[:1]
+    first_e = sorted(t for f in folders for t in glob.glob(os.path.join(f, "T_*_E.png")))[:1]
+    detail_path = "%s/T_PK_DetailStone_N" % TEX_DEST
+    keep_detail = bool(only) and eas.does_asset_exist(detail_path)     # subset run: don't re-save the shared map
+    d = import_textures(first_orm + first_e + ([DETAIL_PNG] if os.path.isfile(DETAIL_PNG) and not keep_detail else []), [])
+    if keep_detail:
+        d["N"] = eas.load_asset(detail_path)
     master = ensure_master(d.get("ORM"), d.get("E"), d.get("N"))
     if master is None:
         return

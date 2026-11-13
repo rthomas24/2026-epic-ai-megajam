@@ -33,6 +33,8 @@ BUILDERS.update(pk_cinder.BUILDERS)
 BUILDERS.update(pk_verdance.BUILDERS)
 BUILDERS.update(pk_small.BUILDERS)
 BUILDERS.update(pk_wreck.BUILDERS)      # round-3 rebuild of the hull and engine
+import pk_r9  # noqa: E402
+BUILDERS.update(pk_r9.BUILDERS)         # round-9 rebuild: wreck hull / wing / fin, log, collapse slab, debris
 
 
 def build_one(asset, tag, do_bake):

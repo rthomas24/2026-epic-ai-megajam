@@ -93,7 +93,14 @@ VIEWS = [  # name, camera (UE m), target (UE m)
 ]
 
 
-def render_views(path, cell=(960, 540)):
+LOWBOW_VIEWS = [  # name, camera (UE m), target (UE m), lens mm (36 mm sensor): the intro's framings + a belly view
+    ("bow_135mm_low_3q", (2350.0, 1350.0, -760.0), (150.0, 0.0, -20.0), 135.0),
+    ("under_bow_24mm", (440.0, 120.0, -150.0), (180.0, 0.0, -50.0), 24.0),
+    ("belly_400m", (-40.0, 260.0, -420.0), (0.0, 0.0, -30.0), 18.0),
+]
+
+
+def render_views(path, cell=(960, 540), views=None):
     scene = bpy.context.scene
     world = scene.world or bpy.data.worlds.new("World")
     scene.world = world
@@ -126,7 +133,14 @@ def render_views(path, cell=(960, 540)):
     except Exception:
         pass
     cells = []
-    for name, cp, tp in VIEWS:
+    for v in (views or VIEWS):
+        name, cp, tp = v[:3]
+        if len(v) > 3:
+            cam_d.lens_unit = "MILLIMETERS"
+            cam_d.sensor_width = 36.0
+            cam_d.lens = v[3]
+        else:
+            cam_d.angle = math.radians(90.0)
         c, t = T @ Vector(cp), T @ Vector(tp)
         cam.location = c
         cam.rotation_euler = (t - c).to_track_quat("-Z", "Y").to_euler()
@@ -137,11 +151,12 @@ def render_views(path, cell=(960, 540)):
         os.remove(p)
     w, h = cell
     gap = 6
-    sheet = np.full((2 * h + 3 * gap, 3 * w + 4 * gap, 4), 0.06, np.float32)
+    rows = (len(cells) + 2) // 3
+    sheet = np.full((rows * h + (rows + 1) * gap, 3 * w + 4 * gap, 4), 0.06, np.float32)
     sheet[..., 3] = 1.0
     for i, px in enumerate(cells):
         row, col = divmod(i, 3)
-        y0 = gap + (1 - row) * (h + gap)       # Blender rows run bottom-up: first row on top
+        y0 = gap + (rows - 1 - row) * (h + gap)       # Blender rows run bottom-up: first row on top
         x0 = gap + col * (w + gap)
         sheet[y0:y0 + h, x0:x0 + w] = px
     L._save_rgba(sheet, path)
@@ -159,6 +174,7 @@ def main():
     p.add_argument("--assets", nargs="*", default=sorted(S.BUILDERS))
     p.add_argument("--no-export", action="store_true")
     p.add_argument("--no-views", action="store_true")
+    p.add_argument("--views", default="game", choices=("game", "lowbow", "both"))
     a = p.parse_args(argv)
     t0 = time.time()
     clear_scene()
@@ -212,7 +228,10 @@ def main():
                         views=("front_3q", "right", "top", "back_3q", "low_3q", "front"), columns=3, resolution=520)
     res = {"tag": a.tag, "stage": a.stage, "assets": info, "clay": clay.get("sheet")}
     if not a.no_views:
-        res["views"] = render_views(os.path.join(L.REVIEW_DIR, label + "_views.png"))
+        if a.views in ("game", "both"):
+            res["views"] = render_views(os.path.join(L.REVIEW_DIR, label + "_views.png"))
+        if a.views in ("lowbow", "both"):
+            res["lowbow"] = render_views(os.path.join(L.REVIEW_DIR, label + "_lowbow.png"), views=LOWBOW_VIEWS)
     if a.stage == "full":
         blend = os.path.join(L.KIT, "Dominion.blend")
         for o in roots.values():

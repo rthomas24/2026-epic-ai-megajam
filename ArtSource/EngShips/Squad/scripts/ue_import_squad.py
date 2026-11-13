@@ -30,8 +30,8 @@ TEX_DEST = DEST + "/Textures"
 MASTER = DEST + "/Materials/M_TD_Squad"
 PIPELINE = DEST + "/Pipelines/PL_SQ_StaticMesh"
 # Blender bakes the emissive at strength 2; the placeholder engine glow runs at x8, and a white hull sits next
-# to the glow, so the squad runs at 2 x 4 = 8.
-EMISSIVE_SCALE = 4.0
+# to the glow; T1 saw strong bloom in game, so the squad runs at 2 x 3 = 6.
+EMISSIVE_SCALE = 3.0      # T1 live run: bloom is strong against black space; 2 x 3 = 6
 VISUALS = {  # data asset -> (hull mesh, squad colour = UTDStatics::ShipColor)
     "DA_Rift_Visuals": ("SM_Squad_Rift", (1.0, 0.17, 0.84)),
     "DA_Lancer_Visuals": ("SM_Squad_Lancer", (0.25, 0.91, 1.0)),

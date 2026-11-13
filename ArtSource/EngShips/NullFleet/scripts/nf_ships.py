@@ -22,7 +22,7 @@ from mathutils.bvhtree import BVHTree
 import nf_lib as L
 
 COLL = "NullFleet"
-GLOW_K = 1.6          # pinstripe thickness multiplier (r1 review: 1.0 vanished beyond 100 m)
+GLOW_K = 1.0          # pinstripe thickness multiplier (1.6 in r1-r5; thinned in e1/e2 to pay for the engine plumes)
 
 PAL = {
     "armour": "#16171B", "armour2": "#0E0F12",      # matte black gunmetal (dominant)
@@ -31,7 +31,7 @@ PAL = {
     "metal": "#3C3F46",                              # bare metal: nozzles, barrels, mechanisms
     "wear": "#6E737B",
     "glow": "#FF3C14",                               # red-orange seams
-    "engine": "#FF5A1E",                             # red-orange engine core
+    "engine": "#FF7A30",                             # hot red-orange engine core (e1: hotter, full level)
     "eye": "#F4F7FF",                                # white eyes
 }
 
@@ -278,7 +278,9 @@ def mats(prefix, scale, panel_spacing):
     m["metal"] = L.role_metal(prefix + "_Metal", PAL["metal"], rough=0.3, metallic=0.95, scale=scale, grime=0.2, seed=4)
     m["dark"] = L.role_paint(prefix + "_Dark", "#08080A", "#0B0B0E", metallic=0.2, rough=0.7, wear=0.0, grime=0.0,
                              scale=scale, seed=5, bump=0.2)
-    m["glow"] = L.role_glow(prefix + "_Glow", PAL["glow"], level=1.0, base="#120604")
+    # e1 (Lead: no engine glow at range): seams at half level in the E map, engines and eyes at full level, and
+    # the MI's EmissiveStrength doubled - seams stay as bright as before, engines and eyes read ~2x hotter.
+    m["glow"] = L.role_glow(prefix + "_Glow", PAL["glow"], level=0.5, base="#120604")
     m["engine"] = L.role_glow(prefix + "_Engine", PAL["engine"], level=1.0, base="#140804")
     m["eye"] = L.role_glow(prefix + "_Eye", PAL["eye"], level=1.0, base="#1A1B1E")
     return m
@@ -293,9 +295,12 @@ def nozzle(P, m, center, r, length, glow_inset=0.5, petals=0):
             (length, r * 0.88), (length * glow_inset, r * 0.8), (length * glow_inset, 0.0)]
     o = lathe_y(prof, segments=16, center=(cx, cy, cz))
     P.add(o, m["metal"], smooth=40.0)
-    core = lathe_y([(length * glow_inset - 0.02 * r, r * 0.8), (length * glow_inset + 0.12 * r, r * 0.74),
-                    (length * glow_inset + 0.2 * r, 0.0)], segments=16, center=(cx, cy, cz))
-    P.add(core, m["engine"], smooth=60.0)
+    # (e2: the separate core disc inside the bell is gone; the plume below starts inside the bell and fills it)
+    # exhaust plume stub: a glowing cone standing out of the bell, so the engine reads from the side and the
+    # front quarters at range, not only from straight behind (e1)
+    plume = lathe_y([(length * 0.8, r * 0.8), (length + r * 0.4, r * 0.66), (length + r * 0.8, r * 0.36),
+                     (length + r * 1.2, 0.0)], segments=16, center=(cx, cy, cz))
+    P.add(plume, m["engine"], smooth=60.0)
     # hot lip: a thin glowing ring just inside the bell's exit, so the engines read from the side too
     lip = lathe_y([(length * 0.9, r * 0.9), (length * 0.99, r * 0.97), (length * 0.99, r * 0.86),
                    (length * 0.9, r * 0.82), (length * 0.9, r * 0.9)], segments=16, center=(cx, cy, cz))
@@ -520,14 +525,12 @@ def build_fighter(asset, tag, stage):
     # red-orange pinstripes: hull chines, wing leading edges, canopy seam
     for sx in (1, -1):
         pts = [p + V(0, 0, 0.004) for p in chine_points(st[2:8], sx, push=0.006)]
-        glow_line(P, m, pts, 0.016)
+        glow_line(P, m, pts, 0.012)
         le = [V(sx * (x + 0.02), yle - 0.01, z) for x, yle, c, t, z in wst]
-        glow_line(P, m, le, 0.03)
+        glow_line(P, m, le, 0.022)
         # fin edges
         fe = [T(0.02, 0, 0.12) @ rot(-42, "Y") @ V(x, yle + c + 0.01, z) for x, yle, c, t, z in fst]
         glow_line(P, m, [V(sx * p.x, p.y, p.z) for p in fe], 0.02)
-        # large angular panel break across the wing, outlined in orange
-        glow_line(P, m, [V(sx * 1.0, 0.3, 0.07), V(sx * 1.55, -0.45, 0.02), V(sx * 2.05, -1.55, -0.15)], 0.016)
         # seam where wing meets fuselage (a short slanted stripe on the wing top)
         glow_line(P, m, [V(sx * 0.62, -0.5, 0.075), V(sx * 1.18, -0.68, 0.035), V(sx * 1.7, -1.12, 0.0)], 0.014)
     # dorsal spine plate + red seam behind the canopy
@@ -709,7 +712,7 @@ def build_gunship(asset, tag, stage):
     # glowing seams recessed in the two gaps between the bands
     if stage != "blockout":
         for za, zb in ((0.86, 1.04), (-0.89, -0.71)):
-            one(lambda za=za, zb=zb: wall_band(za, zb, 6.0, -6.35, 3.1, 0.3, 0.8, 0.22), P, m["glow"],
+            one(lambda za=za, zb=zb: wall_band(za, zb, 6.0, -6.35, 3.1, 0.3, 0.3, 0.22), P, m["glow"],
                  bevel=0.01, segments=1, angle=30.0)
     wall_objs = []
     for i, (z0, z1) in enumerate(bands):
@@ -893,10 +896,10 @@ def build_bomber(asset, tag, stage):
     muzzles = [("Muzzle_0", (0.0, 1.75, -1.1))]
     # pinstripes: body chine, wing leading edges, nacelle spines, slanted wing seams
     for sx in (1, -1):
-        glow_line(P, m, [p + V(0, 0, 0.004) for p in chine_points(st[2:], sx, push=0.01)], 0.03)
+        glow_line(P, m, [p + V(0, 0, 0.004) for p in chine_points(st[2:], sx, push=0.01)], 0.022)
         glow_line(P, m, [V(sx * (x + 0.02), yle - 0.01, z) for x, yle, c, t, z in wst[1:4]], 0.026)
-        glow_line(P, m, [V(sx * 2.05, 1.05, 0.75 + 0.012), V(sx * 2.05, 4.55, 0.82 + 0.012)], 0.028)
-        glow_line(P, m, [V(sx * 1.6, -1.6, 0.26), V(sx * 3.2, -0.3, 0.17), V(sx * 4.6, 0.95, -0.12)], 0.022)
+        glow_line(P, m, [V(sx * 2.05, 1.05, 0.75 + 0.012), V(sx * 2.05, 4.55, 0.82 + 0.012)], 0.02)
+        glow_line(P, m, [V(sx * 1.6, -1.6, 0.26), V(sx * 3.2, -0.3, 0.17), V(sx * 4.6, 0.95, -0.12)], 0.016)
         # crimson accent plates on the wing tops
         cp = poly_loft([[V(sx * 3.3, -0.2, 0.15), V(sx * 4.4, 0.55, 0.05), V(sx * 4.2, 1.6, 0.05), V(sx * 3.2, 1.3, 0.15)],
                         [V(sx * 3.3, -0.2, 0.26), V(sx * 4.4, 0.55, 0.16), V(sx * 4.2, 1.6, 0.16), V(sx * 3.2, 1.3, 0.26)]])
@@ -1178,7 +1181,7 @@ def build_turret(asset, tag, stage):
         muzzles.append(("Muzzle_%d" % i, (sx * 0.22, -1.47, 0.1)))
     if stage != "blockout":
         glow_line(P, m, [V(0.7 * math.cos(a), 0.7 * math.sin(a), -0.1) for a in
-                         [math.tau * k / 6 for k in range(7)]], 0.02)
+                         [math.tau * k / 6 for k in range(7)]], 0.014)
         surf = Surf(P.parts)
         loc, nrm = surf.hit((0, -2.0, 0.32), (0, 1, 0))
         lens(P, m, loc, nrm, 0.13)
@@ -1204,4 +1207,10 @@ BUILDERS = {
 }
 # Pivot at the bounding-box centre where the centre of mass would push the nose past 1.25 x the collision radius
 BBOX_ORIGIN = {"SM_Null_Fighter", "SM_Null_Interceptor", "SM_Null_Bomber"}
+# e1: pivots pinned to the values the r3-r5 builds computed (bbox centre for fighter / interceptor / bomber, centre
+# of mass for the gunship), so adding the engine plumes moves no socket and no placement.
+PINNED_PIVOT = {"SM_Null_Fighter": (0.0, -0.13469207286834717, 0.1601601541042328),
+                "SM_Null_Interceptor": (0.0, -0.009296536445617676, -0.1691438853740692),
+                "SM_Null_Bomber": (0.0, 0.14136028289794922, -0.16573476791381836),
+                "SM_Null_Gunship": (-0.0008077544043771923, -1.1682953834533691, 0.43138551712036133)}
 KEEP_ORIGIN = {"SM_Null_Carrier", "SM_Null_CarrierBay", "SM_Null_Turret"}   # mount points depend on the origin

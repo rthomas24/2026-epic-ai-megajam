@@ -1,7 +1,7 @@
 {
   "asset": "SM_Verd_Log",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\SM_Verd_Log.fbx",
-  "tris": 2996,
+  "tris": 9923,
   "size_cm": [
     500.0,
     110.0,
@@ -32,7 +32,7 @@
   "collision": [],
   "collision_source": "none",
   "sockets": [],
-  "welded_verts": 7,
+  "welded_verts": 9,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,

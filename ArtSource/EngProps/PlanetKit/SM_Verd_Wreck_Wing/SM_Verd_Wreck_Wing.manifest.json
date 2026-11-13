@@ -1,7 +1,7 @@
 {
   "asset": "SM_Verd_Wreck_Wing",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Wing\\SM_Verd_Wreck_Wing.fbx",
-  "tris": 2067,
+  "tris": 9268,
   "size_cm": [
     600.0,
     160.0,
@@ -32,7 +32,7 @@
   "collision": [],
   "collision_source": "none",
   "sockets": [],
-  "welded_verts": 1,
+  "welded_verts": 0,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,

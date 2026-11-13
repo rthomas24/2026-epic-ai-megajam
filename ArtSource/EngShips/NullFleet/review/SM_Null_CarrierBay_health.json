@@ -1,13 +1,13 @@
 {
   "asset": "SM_Null_CarrierBay",
-  "tag": "r3",
+  "tag": "e1",
   "checks": {
     "tris": 4772,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
     "uv_inside_0_1": true,
-    "uv_overlap_pixels": 21,
+    "uv_overlap_pixels": 23,
     "asset_report_errors": 0,
     "asset_report_warnings": 0,
     "collision_hulls": 1,
@@ -26,20 +26,20 @@
       0.0
     ],
     "centre_of_mass_m": [
-      -0.004,
-      0.055,
+      -0.003,
+      0.058,
       0.008
     ],
-    "edge_area_share": 0.1448,
+    "edge_area_share": 0.147,
     "uv_unwrap": {
       "margin": 0.006,
-      "faces_detached_for_overlap": 2
+      "faces_detached_for_overlap": 4
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.3819,
-      "overlap_pixels": 21,
-      "overlap_share_of_covered": 5.2e-05,
+      "coverage": 0.3838,
+      "overlap_pixels": 23,
+      "overlap_share_of_covered": 5.7e-05,
       "raster": 1024
     },
     "bake": {
@@ -57,13 +57,13 @@
       "preview_material": "M_Null_CarrierBay_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 14.61
+      "seconds": 15.03
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.6198
+      "share_tinted": 0.6196
     },
-    "build_seconds": 42.0
+    "build_seconds": 35.5
   },
   "textures": {
     "BC": {
@@ -73,8 +73,8 @@
       ],
       "mean_rgb": [
         0.1182,
-        0.1182,
-        0.1291
+        0.1184,
+        0.1295
       ],
       "min": 0.0,
       "max": 0.3765
@@ -85,15 +85,15 @@
         1024
       ],
       "mean_rgb": [
-        0.5003,
-        0.4994,
+        0.5005,
+        0.4995,
         0.9999
       ],
-      "min": 0.3333,
+      "min": 0.3059,
       "max": 1.0,
       "std_rg": [
-        0.0126,
-        0.0125
+        0.0122,
+        0.0117
       ]
     },
     "ORM": {
@@ -102,9 +102,9 @@
         1024
       ],
       "mean_rgb": [
-        0.4888,
-        0.3353,
-        0.4533
+        0.4923,
+        0.3347,
+        0.4548
       ],
       "min": 0.0,
       "max": 1.0,
@@ -112,7 +112,7 @@
         0.0,
         0.514
       ],
-      "metallic_mean": 0.454
+      "metallic_mean": 0.455
     },
     "E": {
       "size": [
@@ -120,15 +120,15 @@
         1024
       ],
       "mean_rgb": [
-        0.1119,
-        0.0289,
-        0.0121
+        0.0789,
+        0.0197,
+        0.0077
       ],
       "min": 0.0,
       "max": 1.0
     }
   },
-  "emissive_surface_share": 0.0787,
+  "emissive_surface_share": 0.0641,
   "asset_report_issues": [
     {
       "severity": "info",
@@ -144,8 +144,8 @@
     "tolerance_m": 0.01311
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_CarrierBay_r3_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_CarrierBay_r3_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_CarrierBay_e1_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_CarrierBay_e1_clay_sheet.png",
     "ortho_cm_per_px": 1.6213,
     "warnings": []
   },

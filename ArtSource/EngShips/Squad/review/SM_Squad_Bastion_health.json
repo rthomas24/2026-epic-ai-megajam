@@ -1,6 +1,6 @@
 {
   "asset": "SM_Squad_Bastion",
-  "tag": "r6",
+  "tag": "r7",
   "checks": {
     "tris": 27838,
     "tris_in_budget": true,
@@ -63,13 +63,13 @@
       "preview_material": "M_Squad_Bastion_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 146.23
+      "seconds": 49.57
     },
     "cavity": {
       "status": "ok",
       "share_tinted": 0.7565
     },
-    "build_seconds": 223.2
+    "build_seconds": 62.5
   },
   "textures": {
     "BC": {
@@ -78,9 +78,9 @@
         2048
       ],
       "mean_rgb": [
-        0.3631,
-        0.3487,
-        0.3502
+        0.4734,
+        0.3971,
+        0.3251
       ],
       "min": 0.0,
       "max": 0.9333
@@ -98,8 +98,8 @@
       "min": 0.2314,
       "max": 1.0,
       "std_rg": [
-        0.0094,
-        0.0121
+        0.0093,
+        0.012
       ]
     },
     "ORM": {
@@ -109,16 +109,16 @@
       ],
       "mean_rgb": [
         0.3787,
-        0.3352,
-        0.3665
+        0.3135,
+        0.3408
       ],
       "min": 0.0,
       "max": 1.0,
       "roughness_p5_p95": [
         0.0,
-        0.455
+        0.451
       ],
-      "metallic_mean": 0.36
+      "metallic_mean": 0.335
     },
     "E": {
       "size": [
@@ -150,8 +150,8 @@
     "tolerance_m": 0.01096
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Bastion_r6_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Bastion_r6_clay_sheet.png",
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Bastion_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\review\\SM_Squad_Bastion_r7_clay_sheet.png",
     "ortho_cm_per_px": 1.31,
     "warnings": []
   },

@@ -32,6 +32,12 @@ PIPELINE = DEST + "/Pipelines/PL_NF_StaticMesh"
 # Blender bakes the emissive at strength 2; at the game's exposure that is far too dim (SpaceDressing / SpaceRocks
 # needed x5). Black hulls must be found by their glow at 300 m, so the Null Fleet runs hotter: 2 x 6 = 12.
 EMISSIVE_SCALE = 6.0
+# e1 (Lead: no engine glow at range): the E map now holds seams at half level and engines / eyes at full level,
+# so each MI runs hotter; small ships hottest, since they are the ones that must read at 300 m.
+# EmissiveStrength = bake strength (2) x this.
+EMISSIVE_SCALE_PER_ASSET = {"SM_Null_Fighter": 15.0, "SM_Null_Interceptor": 15.0, "SM_Null_Bomber": 13.0,
+                            "SM_Null_Gunship": 12.0, "SM_Null_Carrier": 11.0, "SM_Null_CarrierBay": 10.0,
+                            "SM_Null_Turret": 12.0}
 VISUALS = {  # data asset -> (hull mesh, extra mesh properties)
     "DA_Enemy_Fighter_Visuals": ("SM_Null_Fighter", {}),
     "DA_Enemy_Interceptor_Visuals": ("SM_Null_Interceptor", {}),
@@ -346,7 +352,8 @@ def main():
         for pname, suffix in (("BaseColorTex", "BC"), ("ORMTex", "ORM"), ("NormalTex", "N"), ("EmissiveTex", "E")):
             if suffix in tex:
                 mel.set_material_instance_texture_parameter_value(mi, pname, tex[suffix])
-        strength = (man.get("emission_strength") or 0.0) * EMISSIVE_SCALE if "E" in tex else 0.0
+        strength = ((man.get("emission_strength") or 0.0) * EMISSIVE_SCALE_PER_ASSET.get(asset, EMISSIVE_SCALE)
+                    if "E" in tex else 0.0)
         mel.set_material_instance_scalar_parameter_value(mi, "EmissiveStrength", strength)
         mel.set_material_instance_scalar_parameter_value(mi, "BlinkAmount", 0.0)
         eas.save_loaded_asset(mi)

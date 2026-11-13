@@ -3,6 +3,9 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.Travel.Safety
 
 #include "Misc/AutomationTest.h"
+#include "Engine/StaticMeshActor.h"
+#include "Engine/StaticMesh.h"
+#include "Components/StaticMeshComponent.h"
 #include "GameFramework/WorldSettings.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -782,6 +785,55 @@ bool FTDTravelDodgeKeys::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("left stick double flick dodges"), Rec->Dodges, 3);
 	TestEqual(TEXT("to the left"), Rec->LastDodgeDir, -1.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelClosedPlanet, "TriadDrift.Travel.Safety.FlyingIntoAClosedPlanetNeverLaunches", TD_TEST_FLAGS)
+bool FTDTravelClosedPlanet::RunTest(const FString& Parameters)
+{
+	// T4's report: after TD.World.Goto Verdance (orbit point ~150 m above the surface, nose on the planet's centre) the
+	// ship "left at 3 km/s". It flies into the solid planet, slides along its curve at cruise, and the space HUD
+	// altitude (a straight-down trace beside a sphere) jumped. Neither may happen: no launch, no altitude in space.
+	FTDTestWorld W;
+	AStaticMeshActor* Planet = W.Spawn<AStaticMeshActor>(FVector::ZeroVector);
+	UStaticMesh* Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	if (!TestNotNull(TEXT("planet"), Planet) || !TestNotNull(TEXT("sphere mesh"), Sphere)) { return false; }
+	UStaticMeshComponent* Body = Planet->GetStaticMeshComponent();
+	Body->SetMobility(EComponentMobility::Movable);
+	Body->SetStaticMesh(Sphere);
+	Planet->SetActorScale3D(FVector(600.f)); // 300 m radius
+	Body->SetCollisionProfileName(TEXT("BlockAll"));
+	Body->RecreatePhysicsState();
+	W.Tick();
+	const FVector Start(-(30000.f + 15000.f), 0.f, 0.f); // 150 m above the surface, beside the sphere
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W);
+	Ship->TeleportSpacecraft(Start, FRotator::ZeroRotator, false); // nose on the centre, at cruise
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	Ship->SetFlightInput(In);
+	W.Tick();
+	TestFalse(TEXT("space flight"), Ship->GetShipMovement()->IsInAtmosphere());
+	const float Cruise = Ship->GetShipMovement()->GetFlightTuning().CruiseSpeed;
+	float MaxSpeed = 0.f;
+	float MaxStep = 0.f;
+	bool bTouched = false;
+	FVector Prev = Ship->GetActorLocation();
+	for (int32 i = 0; i < 60 * 8; ++i)
+	{
+		W.Tick();
+		const FVector Now = Ship->GetActorLocation();
+		MaxSpeed = FMath::Max(MaxSpeed, (float)Ship->GetVelocity().Size());
+		MaxStep = FMath::Max(MaxStep, (float)FVector::Dist(Now, Prev) * 60.f);
+		bTouched = bTouched || Now.Size() < 30000.f + 1000.f;
+		Prev = Now;
+		TestTrue(TEXT("space: no altitude readout beside a planet"), Ship->GetAltitudeMeters() < 0.f);
+	}
+	AddInfo(FString::Printf(TEXT("max speed %.0f, max step speed %.0f cm/s (cruise %.0f); final distance from the centre %.0f cm, end %s"),
+		MaxSpeed, MaxStep, Cruise, (float)Ship->GetActorLocation().Size(), *Ship->GetActorLocation().ToCompactString()));
+	TestTrue(TEXT("reached the planet"), bTouched);
+	TestTrue(TEXT("never faster than cruise"), MaxSpeed <= Cruise * 1.05f);
+	TestTrue(TEXT("never moved faster than cruise (no launch, no depenetration jump)"), MaxStep <= Cruise * 1.25f);
+	TestTrue(TEXT("never inside the planet"), Ship->GetActorLocation().Size() > 30000.f);
 	return true;
 }
 

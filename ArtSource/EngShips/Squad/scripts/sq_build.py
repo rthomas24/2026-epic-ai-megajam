@@ -35,6 +35,17 @@ def main():
     t0 = time.time()
     fn, tex, budget, ao = S.BUILDERS[a.asset]
     P, sockets, extra = fn(a.asset, a.tag, a.stage)
+    # colour-blocking measurement: share of the surface per role material (before join; parts are rigid)
+    areas = {}
+    for o in P.parts:
+        mats_ = [ms.name.rsplit("_", 1)[-1] for ms in o.data.materials if ms is not None] or ["none"]
+        for poly in o.data.polygons:
+            k = mats_[min(poly.material_index, len(mats_) - 1)]
+            areas[k] = areas.get(k, 0.0) + poly.area
+    tot = sum(areas.values()) or 1.0
+    extra = dict(extra or {})
+    extra["surface_share_by_role"] = {k: round(v / tot, 3) for k, v in sorted(areas.items(), key=lambda kv: -kv[1])}
+    print("[squad] SHARES", a.asset, json.dumps(extra["surface_share_by_role"]))
     if a.stage == "blockout":
         obj = P.join()
         me = obj.data
