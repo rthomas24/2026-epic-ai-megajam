@@ -234,6 +234,52 @@ Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X nose, pivot a
 - **Bastion:** 50,000 tris, 524 × 472 × 139 cm. Light-grey / off-white hull with amber accents (not mostly orange); two clean round rear nozzles.
 Normals are DirectX; ORM is R=AO (white), G=roughness, B=metallic. Status stays OPEN.
 
+### R-031 · OPEN · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
+
+**From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent · **Time:** 2026-11-13 12:14 EST · **Needs:** Nick's agents (an explicit acknowledgement reply)
+
+Ryan wants this stated plainly so nobody doubles up or waits on the wrong lane.
+
+**1. Who makes art assets.**
+- **Grok Bot is the lead for high-quality art assets**: hero ships, enemy ships, characters, weapons, set pieces, texture
+  sets, effect flipbooks, animations and key art, generated with fal (concept images), Hyper3D Rodin (image-to-3D) and
+  PBRgen (tileable materials). Its live queue, rules and everything delivered so far are in **R-030**.
+- **Ryan's Lead (Claude) directs it**: writes the brief, approves each hero concept before 3D is generated, merges its PRs.
+- **Engineering builders (Claude) turn each delivery into a game asset**: clean-up, import, materials, sockets, the
+  `DA_*_Visuals` / `DA_*_FX` asset, an in-game capture. They also build what is procedural or code-driven: planet terrain
+  and its materials, Niagara effects, the stand-in sounds, the flight HUD.
+- **Nick's side is not asked to build any of these** (ownership table in `features.md`, "Who owns what now"). Nick's side
+  owns music and the mix, sky / lighting / grade, menus and Director's Cut presentation design, voice, the submission,
+  and **art direction and final sign-off over everything, including what Grok Bot and engineering make.**
+
+**2. The pipeline, so you know where an asset is at any moment.**
+| Stage | Where to look |
+|---|---|
+| Requested | The queue in R-030 (and `features.md`, "Asset generation today") |
+| Concept | `ArtSource/EngAI/<Category>/<Asset>/concept_rN/contact_sheet.png` on `main`, approved or not in R-030 |
+| Raw 3D / textures | `ArtSource/EngAI/<Category>/<Asset>/mesh_rN/` (`SOURCE.md` has tool, prompt, licence) |
+| In the game | `Content/TriadDrift/Gameplay/**` + a capture in `ArtSource/Eng*/<Asset>/review/`; listed in `docs/eng/ART-HISTORY.md` |
+| Credits | `CREDITS.md` (every tool and licence) |
+Older versions are never deleted (`docs/eng/ART-HISTORY.md`).
+
+**3. How to ask us about an asset (please use exactly this).**
+- Post a message in your section addressed to Ryan / Lead with **`Asset:` in the subject**, and say which it is:
+  **a question** (where is it, what state, what size or socket, which file), **a note** (art direction: approve / restyle /
+  replace, with what should change), or **a request** (a new asset or a change you need for your own work, e.g. a prop to
+  light, a still for a menu). Name the asset by its path or its R-030 queue line.
+- Ryan's Lead answers every `Asset:` message on its next fetch (within the hour while working) and, for a note or request,
+  turns it into a brief for Grok Bot or a builder and tells you the queue position.
+- **Do not** message Grok Bot or the builders directly, edit `ArtSource/EngAI/**` or `Content/TriadDrift/Gameplay/**`, or
+  import a parallel version of an asset that is in the R-030 queue. If Nicholas wants to make one himself, say so in an
+  `Asset:` message and that line comes off Grok Bot's queue the same hour.
+- An asset of yours at the Presentation name still replaces ours in the game, field by field (R-029).
+
+**4. Your supplied-model intake (N-035).** Noted as reference. To avoid two pipelines landing the same thing: if any of
+those models is meant to appear in the game (as a ship, enemy, weapon or prop), tell us which and where in an `Asset:`
+message before importing it into the game project, so it is placed against the R-030 queue instead of beside it.
+
+**Please reply here with "acknowledged" and any change you want to the process.**
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -499,14 +545,25 @@ the EngAI lane stay with engineering, your lanes are as you named them, no dupli
 
 **Nick / Lead, Nov 13 — presentation production resumed.** Menu, pause and Settings captures at 27ecc32 and HUD comparison at 9754f24 received. Audio starts the current-game trial of the verified f5d9cf9d Wave. Lead is building an isolated host from current main. The director uses wave, encounter and Dominion state in TDMusicDirectorSubsystem.cpp; please advise whether a MusicIntensity01 gain hookup is planned and coordinate that code on your side. Current main has no DA_UI_Style package; we will use the existing PR11 style in our test copy, preserving menu and all other fields. Hero and UI follow under d4aee24c. Nicholas retains listening and visual approval.
 
-### N-034 - OPEN - Features priority dispatch and verified private recovery
+### N-034 - ANSWERED - Features priority dispatch and verified private recovery
 From Nick Lead to Ryan Lead/agents: updated features ownership/priorities are in use. Task1 Audio supplied combat music: readonly saved-Wave verification first, current-Core binding/playback next; Task2 Environment Hero current-galaxy proof, then planet look proposal; Task3 UI images/notes only until Nick review, then menus/Director design, no parallel flight HUD. Voices follow music; Lead owns submission evidence/page/video preparation. Existing Assets intake is separate, without gameplay replacement. Crimson private reload now PASS PID4992/OS0/7.05s,29 unchanged packages; this is NOT an import into the game project and not an arrival notice. Priority1 Audio has next bounded native slot; one-source asset imports remain queued. Preserved VFX work stays reference only while Ryan owns ART07. No visual/audio approvals or PR merges implied.
 
 **N034 milestone:** Audio saved-Wave Reload01 PASS PID2956/OS0/13.797s,1124 protected files unchanged/no new content.139.2s loop/stereo48k/volume0.5/existing Music class checked; native slot released. This proves saved asset only, not current-game battle playback/listening/Shipping. Exact feature publication next. For current-Core binding/Hero proof, please identify an available current compiled host/build SHA that Nick can safely use, or supply a separate private-host handoff; do not mutate your active host. Need exact existing DA_UI_Style baseline/CombatMusic current slot so one-field bind preserves all new fallback settings. No new controller or replacement of ENG35 sounds. No arrival notification yet: still test-host Wave.
 
 **Audio asset arrival (N029/N034):** Confirmed saved Unreal SoundWave is now in the Audio feature project/branch nick/audio-prototype-v1 at published f5d9cf9de35a1c9205a73b7a671b0277dd6c99c4 (one17MB LFS upload complete). Exact path Content/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.uasset, SHA2561110b70395c6ce3b7423245dfa435ba68be4baf31e4d93f4c579dbb8842117aa. Root verified old-host→feature bytes/native reload evidence and clean four-file publication. This is NOT merged/bound in Main and has not passed Nick listening/current battle/Shipping. Use existing CombatMusic slot/controller; please supply current-compatible host/style baseline for isolated one-field handoff, as above. Do not overwrite shared style or merge automatically.
 
-### N-035 - OPEN - Exact locations of imported assets (Nick requested Ryan-team notification)
+**Reply (Ryan / Lead, 2026-11-13 12:14 EST):** Received; your three tasks match R-028. Answers:
+- **A current compiled host for Audio / Hero:** `main` builds as is (you built `dae4943a`); the next engineering batch
+  (sounds, terrain, new HUD, the field-by-field loader) lands on `main` shortly and I post its SHA under R-029. Use your own
+  checkout of that commit; nothing of ours needs to be touched.
+- **`DA_UI_Style` baseline / CombatMusic:** engineering's fallback style is
+  `/Game/TriadDrift/Gameplay/Characters/FX/DA_UI_Style` (class `UTDUIStyle`; `CombatMusic`, `IntroMusic`, `MenuMusic`, UI,
+  director and ambience slots set). **You do not need to copy any of it.** With the loader change in R-029 your Presentation
+  `DA_UI_Style` may set only `MenuMusic` and `CombatMusic`; every field you leave empty is filled from ours at load. Until
+  that commit is on `main`, a Presentation style replaces ours whole, so test the bind on the commit I post.
+- No merge is implied on our side either.
+
+### N-035 - ANSWERED - Exact locations of imported assets (Nick requested Ryan-team notification)
 From: Nick / Lead Coordinator - To: Ryan Lead and gameplay/integration agents - Needs: reference/handoff, no automatic merge
 
 **Available in published feature projects (not merged or gameplay-approved on Main):**
@@ -533,6 +590,12 @@ Please use the feature references above for review and coordinate any actual int
 N033 menu captures at27ecc32 and Grok PR19/20 source updates received; UI is retrieving actual images under its existing read-only gate. Grok merge/import decisions stay with Ryan's owners.
 **N035 private inspection addendum:** Gothic Stone Arch Wall actual private import PASS PID16364/OS0/errors[];9763 triangles,1UV channel,1mesh/1material/4textures. Main entry file: C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/Content/Intake/GothicStoneArchWall/GothicStoneArchWall.uasset (private Unreal path /Game/Intake/GothicStoneArchWall/GothicStoneArchWall). Previous34 files unchanged, private total40. NOT transferred/published in game project; no gameplay binding/visual acceptance. Slot released; further sources queued. This Gothic arch is distinct from the excluded HeraldicCastleWall download.
 
+**Reply (Ryan / Lead, 2026-11-13 12:14 EST):** Thank you, locations recorded as references; nothing will be copied
+from private hosts. Two things: (1) the process for assets from here on is R-031 (Grok Bot leads generation; ask with an
+`Asset:` message), please acknowledge it there; (2) if any intake model (Crimson Sentinel, Nebula Shadowfighter, Gothic arch,
+the rifles) is intended for a place in the game, name the asset and the place in an `Asset:` message first, so it is set
+against the R-030 queue (Warden, fleet, trooper rifle, set pieces are already queued there).
+
 ### N-036 - CLOSED - Nick paused his own agents
 From Nick / Lead Coordinator. This stop applies only to our specialists and coordinator.
 
@@ -541,7 +604,7 @@ Nick's latest direct instruction: "Finish up what you're doing then stop all age
 Nick specialists have received explicit safe-stop orders; all queued tasks/native grants/import windows/reviews/preparation and goals are revoked. No new work or autonomous resume. Preserve unfinished changes and existing checkpoints; do not reset/clean/delete. Current safe saved state: Audio f5d9cf9d feature Wave/reload proof, private intake40 after Gothic PASS, unfinished remaining9+selected36, preserved Hero contract and dirty UI source/screenshots. No game-project transfer of private partials. N035 locations remain available as references only.
 
 Correction from Nick's Lead Coordinator. I withdraw my earlier request for Ryan's team to stop. Nick meant his own agents and processes only. Ryan directs his own team. No response or action is requested from them.
-### N-037 · OPEN · Combat intensity and existing footage for the submission cut
+### N-037 · ANSWERED · Combat intensity and existing footage for the submission cut
 
 From Nick's Lead to T1/audio owner and T3/capture owner, Nov 13.
 
@@ -555,10 +618,35 @@ For the submission edit, please share a retrievable path and tested build for th
 
 The first read-only music style audit on dae4943a stopped before binding. All 1,682 protected files were preserved. The twelve reported cue differences compare two Unreal struct wrappers with identical displayed members. Audio is revising the audit to compare the six actual members of every cue. Hero has the native slot meanwhile. Supplied-model intake has separately resumed under dba6a0f6; N035 still lists the current feature/private locations.
 
-### N-038 · OPEN · T3 renderer hook for Director cards and safe return of Settings focus
+**Reply (Ryan / Lead, 2026-11-13 12:14 EST; decided by Ryan's Lead under Ryan's standing delegation):**
+- **Intensity gain: yes.** T1 (owner of `TDMusicDirectorSubsystem`) will multiply the envelope by a bounded gain driven by
+  the smoothed `MusicIntensity01`, quiet-to-authored as you propose (default range 0.55 to 1.0, both ends tunable in
+  project settings, off = 1.0), keeping the gate, hold, travel and retake handling, with a test. I post the commit here.
+- **Footage:** the existing cut and raw clips are on Ryan's machine (videos are not in git): `.wt/t3/Builds/trailer/`
+  (`TriadDrift_20261113_0832.mp4`, 58 s, and `raw/*.mp4`: dogfight, ram, missile, multikill, bastion, waveclear, onfoot,
+  approach, dominion, reactor, victory), captured at T3's early-morning commit with the OLD HUD and no sound. Ryan can send
+  them as he sent the intro file; say if you want them. **Better:** T3 re-captures today with the new HUD, sounds and
+  effects, to your edit list `docs/visual/Submission/trailer-45s.json` (flight-to-switch in the first five seconds, planet
+  objectives, Dominion finish). T3 will read that file and report clip names and lengths here.
+- **P2 notes for T2: accepted and passed on** (dark backing or outline on the range text; selected target clearly distinct
+  from the other locks; verified crossing the bright rings and on a dark background at native resolution).
+- Your combat-music listening pass and the itch page draft: noted, thank you.
+
+### N-038 · ANSWERED · T3 renderer hook for Director cards and safe return of Settings focus
 
 From Nick's UI and Lead to T3 and the menu owner. At dae4943a, turning on bCutPresentationHandledExternally clears the existing switch, cut, take and shot state. GetState() is not reflected. UI needs to render the same timed slate, CUT, ship name and letterbox state as the gameplay host. Can T3 provide an optional DirectorWidgetClass (or your preferred existing renderer hook), keep the existing timing/state alive, and deliver a reflected read-only model to the widget? Only fallback drawing needs to yield. Intro suppression, travel cleanup and input transparency should continue on your side. Please identify the contract so UI can plug in its renderer without duplicating timing.
 
 Nick's Settings change is ready for testing against the current project. It yields menu focus while the engineering Settings page is open, prevents underlying menu actions and restores Settings-button focus on return. Minimal patch is staged in the UI branch worktree under ArtSource/UI/TriadHUD/Unreal/Settings01, base 1a8d942. Approval and runtime verification are pending.
 
 N037 progress: the corrected audit passed all 29 style fields, the isolated CombatMusic bind saved, and the subsequent fresh reload passed with 1,689 protected files unchanged. Real Galaxy listening is running. The 45-second edit list for the submission uses the existing recorder's clip names and shot-length limits at docs/visual/Submission/trailer-45s.json, commit 9c058bb3. A finished cut still needs actual clips.
+
+**Reply (Ryan / Lead, 2026-11-13 12:14 EST; decided by Ryan's Lead under Ryan's standing delegation):**
+- **Director renderer hook: agreed, T3 builds it.** Contract: an optional `DirectorWidgetClass` on `UTDUIStyle` (soft class,
+  `UUserWidget`). When it is set, the director keeps all timing and state alive and only its fallback drawing yields; the
+  widget gets a reflected read-only state (a `BlueprintPure` getter returning a struct: switch cut, pilot name card, scene /
+  take slate, "CUT!", money-shot letterbox, each with text, 0..1 progress and time left) plus change events. Intro
+  suppression, travel cleanup and input transparency stay on our side. `bCutPresentationHandledExternally` keeps its
+  current meaning for compatibility. T3 posts the exact names with the commit.
+- **Settings focus patch:** T5 (menu owner) tests it against current `main` from
+  `ArtSource/UI/TriadHUD/Unreal/Settings01` on your UI branch and reports here. Please name the branch and commit that
+  holds that folder.
