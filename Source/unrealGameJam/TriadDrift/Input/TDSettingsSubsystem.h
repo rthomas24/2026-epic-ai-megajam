@@ -20,6 +20,16 @@ class ATDSpacePlayerController;
 class USoundMix;
 class USoundClass;
 
+/** On-foot view (ENG-32). Space flight keeps its own chase / cockpit cameras. */
+UENUM(BlueprintType)
+enum class ETDOnFootCamera : uint8
+{
+	FirstPerson,
+	ThirdPerson
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnFootCameraModeChanged, ETDOnFootCamera, NewMode);
+
 UENUM(BlueprintType)
 enum class ETDWindowMode : uint8
 {
@@ -33,6 +43,10 @@ USTRUCT(BlueprintType)
 struct UNREALGAMEJAM_API FTDPlayerSettings
 {
 	GENERATED_BODY()
+
+	/** ENG-32: first or third person on foot. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera")
+	ETDOnFootCamera OnFootCameraMode = ETDOnFootCamera::FirstPerson;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls", meta = (ClampMin = "0.25", ClampMax = "3"))
 	float MouseSensitivity = 1.f;
@@ -106,6 +120,30 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings")
 	const FTDPlayerSettings& GetSettings() const { return Settings; }
 
+	// ---- On-foot camera (ENG-32). The ground character binds OnOnFootCameraModeChanged and reads the mode at BeginPlay.
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings") ETDOnFootCamera GetOnFootCameraMode() const { return Settings.OnFootCameraMode; }
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetOnFootCameraMode(ETDOnFootCamera Mode);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void ToggleOnFootCameraMode();
+
+	/** Fires on every change of the on-foot camera mode (menu, V / View, reset, ApplyAll). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Settings")
+	FTDOnFootCameraModeChanged OnOnFootCameraModeChanged;
+
+	// ---- The Settings page (ENG-32): Nick's UTDUIStyle::SettingsWidgetClass if set, else the code-built page.
+	/** Opens the page over the menu or the pause screen. False when there is no viewport to show it in. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static bool OpenSettingsPage(const UObject* WorldContextObject);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static void CloseSettingsPage(const UObject* WorldContextObject);
+
+	/** Menus keeping their own focus check this and leave the page alone while it is up. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static bool IsSettingsPageOpen(const UObject* WorldContextObject);
+
+	/** The widget class the page uses: UTDUIStyle::SettingsWidgetClass when the style asset has one, else null. */
+	static UClass* ResolveSettingsWidgetClass(const UObject* Style);
+
 	// ---- Controls
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetMouseSensitivity(float Multiplier);
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetInvertMouseY(bool bInvert);
@@ -161,6 +199,12 @@ private:
 	FString SlotName = DefaultSlot;
 	bool bApplyVideo = true;
 	float AppliedMaster = 1.f;
+
+	void BroadcastCameraIfChanged(ETDOnFootCamera Before);
+	TSharedPtr<class STDSettingsPage> Page;
+	UPROPERTY(Transient) TObjectPtr<class UUserWidget> PageWidget;
+	bool bPageCursorWasShown = false;
+	friend class STDSettingsPage;
 
 	UPROPERTY(Transient) TObjectPtr<USoundMix> VolumeMix;
 	UPROPERTY(Transient) TObjectPtr<USoundClass> MusicClass;
