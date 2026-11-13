@@ -170,7 +170,7 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 	int32 Used = 0;
 	const float R = FMath::Max(Radius, 100.f);
 	// Hot core, then the slower glow shell in the team colour.
-	Used += PlayPlaceholderFlash(Location, R * 0.45f, FMath::Lerp(Color, FLinearColor::White, 0.6f), 0.25f) ? 1 : 0;
+	Used += PlayPlaceholderFlash(Location, R * 0.45f, FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.25f) ? 1 : 0; // 0.6 white bloomed to a white ball (live)
 	Used += PlayPlaceholderFlash(Location, R, FMath::Lerp(Color, FLinearColor::White, 0.15f), 0.6f) ? 1 : 0;
 	// Debris streaks, evenly spread on a jittered sphere so they read from any camera angle.
 	const int32 Count = FMath::Clamp(DebrisCount, 0, 16);
