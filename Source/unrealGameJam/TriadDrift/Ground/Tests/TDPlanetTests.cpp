@@ -372,6 +372,20 @@ namespace TDCourseTest
 				for (ATDEncounterVolume* E : X->Waves) { if (E && E->IsActive()) { KillAll(E); } }
 				Tick(1.f);
 			}
+			if (X && Step(Obj) >= 3 && Step(Obj) <= 4)
+			{
+				// Diagnose a stuck transfer: who stands at the terminal, and from which encounter.
+				for (TActorIterator<ATDCrewCharacter> It(V.W.GetWorld()); It; ++It)
+				{
+					const float D = (float)FVector::Dist2D(It->GetActorLocation(), X->GetActorLocation());
+					if (D < X->PauseRadius * 2.f)
+					{
+						T.AddInfo(FString::Printf(TEXT("near the terminal: %s type %d dead %d at %.0f cm, owner %s"), *It->GetName(), (int32)It->CrewType, It->IsDead(), D,
+							*GetNameSafe(It->OwningEncounter.Get())));
+					}
+				}
+				T.AddInfo(FString::Printf(TEXT("transfer stuck at %.2f, paused %d, step %d"), X->GetProgress01(), X->IsPaused(), Step(Obj)));
+			}
 		}
 		FString Line() const { return V.GI->GetCurrentObjectiveText().ToString(); }
 
@@ -1279,6 +1293,7 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 	P.Report(bOk && Wreck->IsActive(), TEXT("wreck started at its trailhead"));
 	for (int32 Try = 0; Try < 6 && !Wreck->IsComplete(); ++Try)
 	{
+		P.Trace(Wreck, Try);
 		if (Wreck->GetCurrentStepIndex() == 0)
 		{
 			P.RunTo(FVector(6200.f, 4600.f, 0.f), 400.f);
@@ -1290,7 +1305,7 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 		{
 			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
 			{
-				if (It->LinkedObjective == Wreck && It->LinkedStep == 2 && !It->IsA<ATDExtractionSite>()) { P.Use(*It, It->HoldTime, It->GetActorLocation() + FVector(0.f, 0.f, 80.f)); }
+				if (It->LinkedObjective == Wreck && It->LinkedStep == 2 && !It->IsA<ATDExtractionSite>()) { P.Use(*It, It->HoldTime, It->GetActorLocation()); } // the console's origin is its box centre
 			}
 		}
 		// The transfer: fight each wave as it drops, keeping them off the terminal.
