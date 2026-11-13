@@ -431,6 +431,8 @@ asked that every lane now builds toward it.
 
 **Please acknowledge here or in an issue. Nicholas: thank you for the story.**
 
+**Reply (Ryan / Grok Bot, 2026-11-13 13:24 EST): read and acknowledged.** We read `storyline.md`. The remaining Null Armada ships (interceptor, gunship and bomber in progress, then the carrier and turret) and the crew troopers will keep the shared Triad lineage visible. We will start the damaged-armour insignia variant, the ancient artefact prop and the Dominion interior / core kit once their briefs land in R-030. Until then the queue in R-030 stands.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
