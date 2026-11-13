@@ -448,4 +448,48 @@ bool FTDCrewWardenAI::RunTest(const FString& Parameters)
 	return true;
 }
 
+// ------------------------------------------------------------------------------------------------
+// With no crew art, every wind-up shows a placeholder tell: a red-orange glow at the muzzle that grows until the shot,
+// plus an aim line to the target for ranged attacks. It is gone once the attack releases, and never shown when the
+// visuals carry their own Telegraph cue.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewTell, "TriadDrift.Ground.Crew.PlaceholderTellBeforeEveryShot", TD_TEST_FLAGS)
+bool FTDCrewTell::RunTest(const FString& Parameters)
+{
+	for (const bool bArtTell : { false, true })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+		ATDCrewCharacter* Tr = TDCrewTest::SpawnCrew(W, ETDCrewType::Trooper, FVector(1200.f, 0.f, 95.f), FRotator(0.f, 180.f, 0.f));
+		if (!TestNotNull(TEXT("trooper"), Tr)) { return false; }
+		if (bArtTell)
+		{
+			UTDEnemyVisuals* Art = NewObject<UTDEnemyVisuals>(GetTransientPackage());
+			Art->Telegraph.Sound = TSoftObjectPtr<USoundBase>(FSoftObjectPath(TEXT("/Engine/EngineSounds/WhiteNoise.WhiteNoise")));
+			Tr->Visuals = Art;
+		}
+		if (AController* AI = Tr->GetController()) { AI->UnPossess(); }
+		W.Tick(1.f / 60.f);
+		TestFalse(TEXT("no tell at rest"), Tr->IsTellShown());
+		if (!TestTrue(TEXT("burst starts"), Tr->StartAttack(ETDCrewAttack::Burst, P))) { return false; }
+		W.Tick(1.f / 60.f);
+		if (bArtTell)
+		{
+			TestFalse(TEXT("the art's Telegraph cue replaces the placeholder"), Tr->IsTellShown());
+			continue;
+		}
+		TestTrue(TEXT("tell up during the wind-up"), Tr->IsTellShown());
+		TestTrue(TEXT("aim line up for a ranged wind-up"), !Tr->GetTellLine()->bHiddenInGame);
+		const float Early = (float)Tr->GetTellGlow()->GetComponentScale().X;
+		for (int32 i = 0; i < FMath::RoundToInt(Tr->Spec.BurstWindup * 0.6f * 60.f); ++i) { W.Tick(1.f / 60.f); }
+		TestTrue(TEXT("tell sits at the muzzle (in front of the trooper, toward the player)"),
+			Tr->GetTellGlow()->GetComponentLocation().X < Tr->GetActorLocation().X - Tr->Spec.CapsuleRadius);
+		TestTrue(TEXT("the glow grows as the shot comes"), Tr->GetTellGlow()->GetComponentScale().X > Early + 0.05f);
+		for (int32 i = 0; i < 60 && Tr->IsTelegraphing(); ++i) { W.Tick(1.f / 60.f); }
+		W.Tick(1.f / 60.f);
+		TestFalse(TEXT("tell gone once the burst is out"), Tr->IsTellShown());
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

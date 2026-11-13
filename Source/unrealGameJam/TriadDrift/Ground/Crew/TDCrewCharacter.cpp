@@ -56,6 +56,30 @@ ATDCrewCharacter::ATDCrewCharacter(const FObjectInitializer& ObjectInitializer)
 	}
 	GetMesh()->SetVisibility(false);
 
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	TellGlow = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TellGlow"));
+	TellGlow->SetupAttachment(GetCapsuleComponent());
+	TellLine = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TellLine"));
+	TellLine->SetupAttachment(GetCapsuleComponent());
+	for (UStaticMeshComponent* Tell : { TellGlow.Get(), TellLine.Get() })
+	{
+		Tell->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+		Tell->SetCanEverAffectNavigation(false);
+		Tell->SetCastShadow(false);
+		Tell->SetHiddenInGame(true);
+		Tell->SetUsingAbsoluteLocation(true);
+		Tell->SetUsingAbsoluteRotation(true);
+		Tell->SetUsingAbsoluteScale(true);
+	}
+	if (Sphere.Succeeded())
+	{
+		TellGlow->SetStaticMesh(Sphere.Object);
+	}
+	if (Cube.Succeeded())
+	{
+		TellLine->SetStaticMesh(Cube.Object);
+	}
+
 	Health = CreateDefaultSubobject<UTDHealthComponent>(TEXT("Health"));
 	Health->MaxShield = 0.f;
 	Health->ShieldRegenFractionPerSecond = 0.f;
@@ -233,6 +257,56 @@ void ATDCrewCharacter::PlayCrewCue(FName Name, const FTDFXCue& Cue, bool bAttach
 	else
 	{
 		UTDStatics::PlayCue(this, Cue, Location, GetActorRotation());
+	}
+}
+
+bool ATDCrewCharacter::IsTellShown() const
+{
+	return TellGlow && !TellGlow->bHiddenInGame;
+}
+
+void ATDCrewCharacter::UpdateTell()
+{
+	if (!TellGlow || !TellLine)
+	{
+		return;
+	}
+	const bool bArtTell = Visuals && !Visuals->Telegraph.IsEmpty();
+	const bool bShow = !bArtTell && !IsDead() && IsTelegraphing();
+	if (!bShow)
+	{
+		TellGlow->SetHiddenInGame(true);
+		TellLine->SetHiddenInGame(true);
+		return;
+	}
+	if (!bTellTinted)
+	{
+		// Enemy red-orange (Armada colour code), bright enough to read against the planets' glow.
+		UTDStatics::TintPlaceholder(TellGlow, FLinearColor(1.f, 0.28f, 0.04f), 12.f);
+		UTDStatics::TintPlaceholder(TellLine, FLinearColor(1.f, 0.28f, 0.04f), 8.f);
+		bTellTinted = true;
+	}
+	const float Windup = FMath::Max(0.05f, CurrentAttack == ETDCrewAttack::Melee ? Spec.MeleeWindup : CurrentAttack == ETDCrewAttack::ChargeSlam ? Spec.ChargeWindup : Spec.BurstWindup);
+	const float Alpha = 1.f - FMath::Clamp(WindupLeft / Windup, 0.f, 1.f); // grows as the shot comes
+	const AActor* Target = AttackTarget.Get();
+	const FVector Dir = AimAt(Target);
+	const FVector Muzzle = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + Dir * (Spec.CapsuleRadius + 35.f);
+	TellGlow->SetWorldLocation(Muzzle);
+	TellGlow->SetWorldScale3D(FVector(FMath::Lerp(0.35f, 0.9f, Alpha)));
+	TellGlow->SetHiddenInGame(false);
+	const bool bRanged = CurrentAttack == ETDCrewAttack::Burst || CurrentAttack == ETDCrewAttack::Shotgun || CurrentAttack == ETDCrewAttack::BoltFan;
+	if (bRanged && Target)
+	{
+		const FVector To = Target->GetActorLocation() - Muzzle;
+		const float Len = FMath::Min((float)To.Size(), 4000.f);
+		TellLine->SetWorldLocation(Muzzle + To.GetSafeNormal() * Len * 0.5f);
+		TellLine->SetWorldRotation(To.Rotation());
+		TellLine->SetWorldScale3D(FVector(Len / 100.f, 0.05f, 0.05f));
+		TellLine->SetHiddenInGame(false);
+	}
+	else
+	{
+		TellLine->SetHiddenInGame(true);
 	}
 }
 
@@ -647,6 +721,7 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	OpeningGraceLeft = FMath::Max(0.f, OpeningGraceLeft - DeltaSeconds);
+	UpdateTell();
 	if (DeltaSeconds <= 0.f || IsDead())
 	{
 		return;

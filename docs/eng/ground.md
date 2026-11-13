@@ -179,6 +179,24 @@ The rule: **a fight the player keeps losing eases, one notch at a time, and only
 | `Ground.Course.WardenEasesOnRetakes` | The real Cinder arena through real CUT retakes. Takes 1 and 2 are the full Warden. Takes 3 and 4 are at 75% with one summon. Take 5 is at 50% with none, and a summon is refused. |
 | `Ground.Played.Cinder` | The machine-played run asserts only the outcome (outpost cleared, Warden down). Mercy is what keeps a losing streak from running out its tries. |
 
+## Reading an enemy shot (the deflect skill)
+
+Deflecting is the core on-foot skill, so every shot is announced and slow enough to time a block against:
+- **Opening grace:** encounter crew hold fire 1.2 s after they appear.
+- **Wind-up tell:** for every crew attack, an Armada red-orange glow at the muzzle grows over the wind-up (35 cm to
+  90 cm). Ranged attacks also draw a thin red-orange aim line to the target.
+  - This is placeholder only: it's hidden when the crew's `DA_Crew_*_Visuals` supply a `Telegraph` cue, and gone when
+    the attack releases.
+  - Test: `Ground.Crew.PlaceholderTellBeforeEveryShot`.
+  - Captures: `Saved/TDShots/mcp/journey/TELL_trooper_windup.png`, `TELL_bolt_in_flight.png`.
+- **Trooper burst:** wind-up 0.4 s, then 3 bolts 0.18 s apart, 10 damage each. Bolt speed 2200 cm/s: 0.55 s to cross
+  12 m, 0.68 s for 15 m.
+- **Block:** a 120° frontal arc, 3 s of stamina.
+- **Perfect deflect:** a block started up to 0.2 s before the hit (`PerfectWindow`) returns the bolt at the shooter
+  for double damage, with a director's slow-motion beat.
+- So from the crew appearing, the player has 1.2 s of grace, then a 0.4 s tell, then about 0.55 s of bolt flight:
+  about 2 s to turn to the shooter and block.
+
 ## Known gaps
 - **Input:** real key injection can't run headless. The harness's PlayerController has no local player, so the tests
   possess the character with an AIController and drive the same public move API that the input handlers call.
