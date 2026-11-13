@@ -345,28 +345,28 @@ FText UTDHintComponent::TextFor(ETDHint Hint, bool bGamepad, ETDAbilityId Abilit
 	switch (Hint)
 	{
 	case ETDHint::Fly:
-		return bGamepad ? LOCTEXT("FlyPad", "RIGHT STICK  AIM   ·   RT / LT  THROTTLE")
+		return bGamepad ? LOCTEXT("FlyPad", "R-STICK  AIM   ·   RT / LT  THROTTLE")
 			: LOCTEXT("FlyKey", "MOUSE  AIM   ·   W / S  THROTTLE");
 	case ETDHint::Fire:
 		return bGamepad ? LOCTEXT("FirePad", "RB  FIRE") : LOCTEXT("FireKey", "LEFT MOUSE  FIRE");
 	case ETDHint::Boost:
 		return bGamepad ? LOCTEXT("BoostPad", "CLICK LEFT STICK  BOOST") : LOCTEXT("BoostKey", "HOLD SHIFT  BOOST");
 	case ETDHint::Dodge:
-		return bGamepad ? LOCTEXT("DodgePad", "FLICK LEFT STICK SIDEWAYS  DODGE")
+		return bGamepad ? LOCTEXT("DodgePad", "DOUBLE-FLICK L-STICK  DODGE")
 			: LOCTEXT("DodgeKey", "DOUBLE-TAP A / D  (OR ALT)  DODGE");
 	case ETDHint::Switch:
-		return bGamepad ? LOCTEXT("SwitchPad", "D-PAD LEFT / RIGHT  SWITCH SHIP - THE OTHER TWO FIGHT ON THEIR OWN")
-			: LOCTEXT("SwitchKey", "1 / 2 / 3  SWITCH SHIP - THE OTHER TWO FIGHT ON THEIR OWN");
+		return bGamepad ? LOCTEXT("SwitchPad", "D-PAD LEFT / RIGHT  SWITCH SHIP")
+			: LOCTEXT("SwitchKey", "1 / 2 / 3  SWITCH SHIP");
 	case ETDHint::Power:
-		return bGamepad ? LOCTEXT("PowerPad", "X  SIGNATURE POWER   ·   HOLD X  SECOND POWER")
-			: LOCTEXT("PowerKey", "Q  SIGNATURE POWER   ·   HOLD Q  SECOND POWER");
+		return bGamepad ? LOCTEXT("PowerPad", "X  POWER   ·   HOLD X  2ND POWER")
+			: LOCTEXT("PowerKey", "Q  POWER   ·   HOLD Q  2ND POWER");
 	case ETDHint::TargetCycle:
 		return bGamepad ? LOCTEXT("TargetPad", "CLICK RIGHT STICK  NEXT TARGET") : LOCTEXT("TargetKey", "T  NEXT TARGET");
 	case ETDHint::Drift:
-		return bGamepad ? LOCTEXT("DriftPad", "HOLD B  DRIFT - KEEP YOUR SPEED, TURN TO SHOOT BEHIND")
-			: LOCTEXT("DriftKey", "HOLD C  DRIFT - KEEP YOUR SPEED, TURN TO SHOOT BEHIND");
+		return bGamepad ? LOCTEXT("DriftPad", "HOLD B  DRIFT  (TURN, KEEP SPEED)")
+			: LOCTEXT("DriftKey", "HOLD C  DRIFT  (TURN, KEEP SPEED)");
 	case ETDHint::Hyperdrive:
-		return bGamepad ? LOCTEXT("HyperPad", "HOLD D-PAD DOWN  HYPERDRIVE TO THE MARKER")
+		return bGamepad ? LOCTEXT("HyperPad", "HOLD D-PAD DOWN  HYPERDRIVE")
 			: LOCTEXT("HyperKey", "HOLD H  HYPERDRIVE TO THE MARKER");
 	case ETDHint::Ability:
 	{
