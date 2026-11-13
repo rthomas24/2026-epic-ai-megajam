@@ -1,0 +1,155 @@
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDMainMenuWidget.h
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDMainMenuWidget.h
+@@ -25,6 +25,7 @@
+ 
+     /** Strict zero-input reflected bool/void contract, shared with focused compatibility tests. */
+     static bool InvokeHost(UObject* Host, FName Action, bool& Result);
++    static bool InvokeSettingsPage(UObject* WorldContext, FName Action, bool& Result);
+ 
+ protected:
+     virtual TSharedRef<SWidget> RebuildWidget() override;
+@@ -44,9 +45,11 @@
+ 
+     FButtonStyle ActionStyle;
+     TSharedPtr<SButton> FirstButton;
++    TWeakPtr<SButton> SettingsButton;
+     TSharedPtr<STextBlock> StatusLabel;
+     TSharedPtr<class SBox> ActionsBox;
+     TSharedPtr<SWidget> Backdrop;
+     bool bSettingsOpen = false;
++    bool bExternalSettingsOpen = false;
+     bool bTransitionPending = false;
+ };
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp
+@@ -139,15 +139,17 @@
+     TSharedPtr<SButton> Button;
+     TSharedRef<SWidget> Out=SNew(SBox).HeightOverride(68).Padding(FMargin(0,5))
+     [ SAssignNew(Button,SButton).ButtonStyle(&ActionStyle).HAlign(HAlign_Left)
+-      .IsEnabled_Lambda([Weak=TWeakObjectPtr<UTDMainMenuWidget>(this),bEnabled]() { return Weak.IsValid() && bEnabled && !Weak->bTransitionPending; })
++      .IsEnabled_Lambda([Weak=TWeakObjectPtr<UTDMainMenuWidget>(this),bEnabled]() { return Weak.IsValid() && bEnabled && !Weak->bTransitionPending && !Weak->bExternalSettingsOpen; })
+       .OnClicked_Lambda([Weak=TWeakObjectPtr<UTDMainMenuWidget>(this),Action]() { return Weak.IsValid()?Weak->Activate(Action):FReply::Unhandled(); })
+       [ SNew(STextBlock).Text(Label).Font(FCoreStyle::GetDefaultFontStyle("Bold",22)).ColorAndOpacity(TDMenu::Ink) ] ];
+     if(bEnabled && !FirstButton) FirstButton=Button;
++    if(Action==TEXT("Settings")) SettingsButton=Button;
+     return Out;
+ }
+ TSharedRef<SWidget> UTDMainMenuWidget::BuildActions()
+ {
+     FirstButton.Reset();
++    SettingsButton.Reset();
+     TSharedRef<SVerticalBox> Box=SNew(SVerticalBox);
+     if(bSettingsOpen)
+     {
+@@ -197,22 +199,54 @@
+               .Font(FCoreStyle::GetDefaultFontStyle("Regular",15)).ColorAndOpacity(TDMenu::Muted)]
+         ]]];
+ }
++bool UTDMainMenuWidget::InvokeSettingsPage(UObject* WorldContext,FName Action,bool& Result)
++{
++    Result=false;
++    if(!IsValid(WorldContext) || (Action!=TEXT("OpenSettingsPage") && Action!=TEXT("IsSettingsPageOpen"))) return false;
++    UClass* Class=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDSettingsSubsystem"));
++    UFunction* Fn=Class?Class->FindFunctionByName(Action):nullptr;
++    if(!Fn || !Fn->HasAllFunctionFlags(FUNC_Static|FUNC_Public)) return false;
++    FBoolProperty* Return=CastField<FBoolProperty>(Fn->GetReturnProperty());
++    FObjectPropertyBase* Context=FindFProperty<FObjectPropertyBase>(Fn,TEXT("WorldContextObject"));
++    if(!Return || !Context || !Context->HasAnyPropertyFlags(CPF_Parm) ||
++        Context->HasAnyPropertyFlags(CPF_OutParm|CPF_ReturnParm) || !WorldContext->IsA(Context->PropertyClass)) return false;
++    for(TFieldIterator<FProperty> It(Fn);It;++It)
++        if(It->HasAnyPropertyFlags(CPF_Parm) && *It!=Return && *It!=Context) return false;
++    FStructOnScope Params(Fn);
++    Context->SetObjectPropertyValue_InContainer(Params.GetStructMemory(),WorldContext);
++    Class->GetDefaultObject()->ProcessEvent(Fn,Params.GetStructMemory());
++    Result=Return->GetPropertyValue_InContainer(Params.GetStructMemory());
++    return true;
++}
+ void UTDMainMenuWidget::NativeConstruct()
+ {
+     Super::NativeConstruct();
+     bTransitionPending=false;
++    bExternalSettingsOpen=false;
+     if(FirstButton && FSlateApplication::IsInitialized()) FSlateApplication::Get().SetAllUserFocus(FirstButton,EFocusCause::SetDirectly);
+ }
+ void UTDMainMenuWidget::NativeTick(const FGeometry& G,float DeltaSeconds)
+ {
+     Super::NativeTick(G,DeltaSeconds);
++    bool bSettingsJustClosed=false;
++    if(bExternalSettingsOpen)
++    {
++        bool Open=false;
++        // The engineering page owns keyboard/pad focus, including its close transition.
++        if(InvokeSettingsPage(this,TEXT("IsSettingsPageOpen"),Open) && Open) return;
++        bExternalSettingsOpen=false;
++        bSettingsJustClosed=true;
++    }
+     if(!FirstButton || bTransitionPending || !FSlateApplication::IsInitialized()) return;
+     FSlateApplication& App=FSlateApplication::Get();
+     const TSharedPtr<SWidget> Focus=App.GetUserFocusedWidget(0);
+     // Construction happens before viewport attachment. Restore only absent/viewport focus
+     // once mounted (and after a resize); never steal it from another menu control.
+     if(!Focus || Focus->GetType()==FName(TEXT("SViewport")))
+-        App.SetAllUserFocus(FirstButton,EFocusCause::SetDirectly);
++    {
++        const TSharedPtr<SButton> ReturnButton=bSettingsJustClosed?SettingsButton.Pin():FirstButton;
++        if(ReturnButton) App.SetAllUserFocus(ReturnButton,EFocusCause::SetDirectly);
++    }
+ }
+ void UTDMainMenuWidget::Status(const FText& Message) { if(StatusLabel) StatusLabel->SetText(Message); }
+ void UTDMainMenuWidget::ShowSettings(bool bShow)
+@@ -225,8 +259,18 @@
+ { bReducedMenuMotion=bReduced; if(Backdrop) Backdrop->Invalidate(EInvalidateWidgetReason::Paint); }
+ FReply UTDMainMenuWidget::Activate(FName Action)
+ {
+-    if(bTransitionPending) return FReply::Handled();
+-    if(Action==TEXT("Settings")) { ShowSettings(true); return FReply::Handled(); }
++    if(bTransitionPending || bExternalSettingsOpen) return FReply::Handled();
++    if(Action==TEXT("Settings"))
++    {
++        bool Opened=false;
++        if(InvokeSettingsPage(this,TEXT("OpenSettingsPage"),Opened))
++        {
++            bExternalSettingsOpen=Opened;
++            if(!Opened) Status(NSLOCTEXT("TDMenu","SettingsUnavailable","Settings could not open. Please try again."));
++        }
++        else ShowSettings(true); // Compatibility with the preserved older M01 host only.
++        return FReply::Handled();
++    }
+     if(Action==TEXT("Back")) { ShowSettings(false); return FReply::Handled(); }
+     if(Action==TEXT("ToggleMotion")) { SetReducedMenuMotion(!bReducedMenuMotion); ShowSettings(true); return FReply::Handled(); }
+     bool Accepted=false;
+@@ -250,4 +294,5 @@
+ {
+     Super::ReleaseSlateResources(bReleaseChildren);
+     FirstButton.Reset(); StatusLabel.Reset(); ActionsBox.Reset(); Backdrop.Reset();
+-}
++    SettingsButton.Reset();
++}
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMenuTests.cpp
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMenuTests.cpp
+@@ -2,8 +2,25 @@
+ #include "Misc/AutomationTest.h"
+ #include "UObject/UnrealType.h"
+ #include "UObject/StrongObjectPtr.h"
++#include "Engine/World.h"
+ 
+ #if WITH_DEV_AUTOMATION_TESTS
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMenuSettingsContract,"TriadDrift.UI.Menu.EngineeringSettings",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
++bool FTDMenuSettingsContract::RunTest(const FString&)
++{
++    bool Result=true;
++    TestFalse(TEXT("null settings context refused"),UTDMainMenuWidget::InvokeSettingsPage(nullptr,TEXT("OpenSettingsPage"),Result));
++    TestFalse(TEXT("no fabricated settings success"),Result);
++    TestFalse(TEXT("settings bridge cannot dispatch unrelated subsystem actions"),
++        UTDMainMenuWidget::InvokeSettingsPage(GetTransientPackage(),TEXT("ResetToDefaults"),Result));
++    UWorld* World=UWorld::CreateWorld(EWorldType::Game,false);
++    if(!TestNotNull(TEXT("valid settings world context"),World)) return false;
++    TestTrue(TEXT("current engineering public settings getter is compatible"),
++        UTDMainMenuWidget::InvokeSettingsPage(World,TEXT("IsSettingsPageOpen"),Result));
++    TestFalse(TEXT("no game instance means no settings page"),Result);
++    World->DestroyWorld(false);
++    return true;
++}
+ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMenuHostContract,"TriadDrift.UI.Menu.HostContract",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
+ bool FTDMenuHostContract::RunTest(const FString&)
+ {
