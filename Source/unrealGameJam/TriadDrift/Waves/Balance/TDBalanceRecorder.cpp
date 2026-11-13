@@ -1,6 +1,7 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Waves/Balance/TDBalanceRecorder.h"
 
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -75,6 +76,24 @@ FTDPilotSkill FTDPilotSkill::Weak()
 	return S;
 }
 
+FTDPilotSkill FTDPilotSkill::Drifter()
+{
+	FTDPilotSkill S = Weak();
+	S.Name = TEXT("Drifter");
+	S.bDrifter = true;
+	return S;
+}
+
+FTDPilotSkill FTDPilotSkill::Evader()
+{
+	FTDPilotSkill S;	// Average aim and reaction
+	S.Name = TEXT("Evader");
+	S.bEvader = true;
+	S.SwitchEverySeconds = 0.f;	// T2's pilot: one ship per run
+	S.PowerEverySeconds = 7.f;	// powers on a timer, not cleverly
+	return S;
+}
+
 FTDPilotSkill FTDPilotSkill::Passive()
 {
 	FTDPilotSkill S = Weak();
@@ -115,9 +134,11 @@ void UTDBalanceRecorder::HandleKilled(AActor* Victim, AActor* Killer, ETDDamageK
 	}
 }
 
-void UTDBalanceRecorder::HandleShipDowned(ETDShipId /*Ship*/)
+void UTDBalanceRecorder::HandleShipDowned(ETDShipId Ship)
 {
 	++Current.ShipDowns;
+	if (Current.FirstDownSeconds < 0.f) { Current.FirstDownSeconds = Current.SecondsTotal; }
+	if (Ship == LastActiveShip) { ++Current.ActiveShipDowns; }
 }
 
 void UTDBalanceRecorder::HandleSquadWiped()
@@ -235,6 +256,33 @@ void FTDBalancePilot::Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSec
 		return;
 	}
 
+	if (Skill.bDrifter)
+	{
+		// T2's script: cruise, a 35 degree turn (about 1 s at a quarter deflection) every 11 s, fire 2 s on / 1 s off.
+		StyleTimer += DeltaSeconds;
+		if (StyleTimer >= 11.f)
+		{
+			StyleTimer = 0.f;
+			TurnRemaining = 1.f;
+			TurnSign = Rng.FRand() < 0.5f ? -1.f : 1.f;
+		}
+		FTDFlightInput In;
+		In.Throttle = 0.f;
+		if (TurnRemaining > 0.f)
+		{
+			TurnRemaining -= DeltaSeconds;
+			In.Aim = FVector2D(0.35f * TurnSign, 0.f);
+		}
+		Ship->SetFlightInput(In);
+		if (UTDWeaponComponent* Wp = Ship->GetWeapons())
+		{
+			Wp->SetAimTarget(nullptr);
+			Wp->SetAimDirection(Ship->GetActorForwardVector());
+			Wp->SetTriggerHeld(ETDWeaponSlot::Primary, FMath::Fmod(StyleTimer, 3.f) < 2.f);
+		}
+		return;
+	}
+
 	// Reaction time: the pilot only re-picks its target every ReactionSeconds.
 	ReactionTimer -= DeltaSeconds;
 	if (ReactionTimer <= 0.f || !Target.IsValid() || !UTDStatics::GetHealth(Target.Get()) || !UTDStatics::GetHealth(Target.Get())->IsAlive())
@@ -282,6 +330,38 @@ void FTDBalancePilot::Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSec
 	In.Aim = ATDEnemyAIController::ComputeSteer(Ship->GetActorTransform(), Goal, 25.f);
 	In.Throttle = (Dist < 6000.f || (bBay && Dist < StandOffDistance * 1.3f)) ? 0.f : 1.f;
 	In.bBoost = Dist > 25000.f;
+	if (Skill.bEvader)
+	{
+		// T2's agent pilot rules (its live runs are the reference player): turn at most ~60 deg/s toward the
+		// target, no boost, a real dodge (T1's RequestDodge, its own 1.5 s cooldown) to alternating sides on a
+		// fresh hit, and a dodge pulse every ~6 s even without hits.
+		In.Aim.X = FMath::Clamp(In.Aim.X, -0.6f, 0.6f);
+		In.Aim.Y = FMath::Clamp(In.Aim.Y, -0.45f, 0.45f);
+		In.bBoost = false;
+		float HealthSum = -1.f;
+		if (const UTDHealthComponent* H = Ship->GetHealth()) { HealthSum = H->GetShield() + H->GetHull(); }
+		const bool bSameShip = LastShip.Get() == Ship;
+		const bool bHit = bSameShip && LastHealthSum >= 0.f && HealthSum < LastHealthSum - 0.5f;
+		LastShip = Ship;
+		LastHealthSum = HealthSum;
+		// DodgeTimer = reaction countdown after a fresh hit (-1 = none pending).
+		WeavePhase += DeltaSeconds;
+		if (bHit && DodgeTimer < 0.f) { DodgeTimer = Skill.ReactionSeconds; }
+		bool bDodgeNow = false;
+		if (DodgeTimer >= 0.f)
+		{
+			DodgeTimer -= DeltaSeconds;
+			if (DodgeTimer < 0.f) { bDodgeNow = true; DodgeTimer = -1.f; }
+		}
+		if (bDodgeNow || WeavePhase >= 6.f)
+		{
+			if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
+			{
+				if (Move->RequestDodge(DodgeSign)) { DodgeSign = -DodgeSign; }
+			}
+			WeavePhase = 0.f;
+		}
+	}
 	Ship->SetFlightInput(In);
 
 	if (Weapons)
@@ -290,7 +370,19 @@ void FTDBalancePilot::Tick(UWorld* World, ATDSquadManager* Squad, float DeltaSec
 		const bool bLinedUp = Dot >= FMath::Cos(FMath::DegreesToRadians(Skill.FireConeDeg)) && Dist <= FireRange;
 		Weapons->SetAimTarget(T);
 		Weapons->SetAimDirection(AimDir);
-		Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, bLinedUp);
+		if (Skill.bEvader)
+		{
+			const FVector Local = Ship->GetActorTransform().InverseTransformVectorNoScale(To.GetSafeNormal());
+			const float YawOff = FMath::RadiansToDegrees(FMath::Atan2(FMath::Abs(Local.Y), FMath::Max(KINDA_SMALL_NUMBER, Local.X)));
+			const float PitchOff = FMath::RadiansToDegrees(FMath::Atan2(FMath::Abs(Local.Z), FMath::Max(KINDA_SMALL_NUMBER, Local.X)));
+			StyleTimer += DeltaSeconds;
+			const bool bBurstOn = FMath::Fmod(StyleTimer, 1.2f) < 0.9f;
+			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, Local.X > 0.f && YawOff <= 20.f && PitchOff <= 15.f && Dist <= FireRange && bBurstOn);
+		}
+		else
+		{
+			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, bLinedUp);
+		}
 		SecondaryTimer += DeltaSeconds;
 		if (bLinedUp && SecondaryTimer >= SecondaryEverySeconds)
 		{

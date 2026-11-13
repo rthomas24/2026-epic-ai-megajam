@@ -1,6 +1,8 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
@@ -117,6 +119,13 @@ void ATDEnemyTurret::HandleDeath(UTDHealthComponent* /*InHealth*/, const FTDDama
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	if (Visuals) { UTDStatics::PlayCue(this, Visuals->TurretDestroyed, GetActorLocation(), GetActorRotation()); }
+	if (!Visuals || !FTDCombatPlaceholders::HasVisualArt(Visuals->TurretDestroyed))
+	{
+		if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
+		{
+			Booms->PlayPlaceholderExplosion(GetActorLocation(), 600.f, FLinearColor(1.f, 0.35f, 0.08f), 6);
+		}
+	}
 	OnTurretDestroyed.Broadcast(this);
 }
 
