@@ -1,0 +1,198 @@
+{
+  "asset": "SM_Verd_Log",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 2996,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5675,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 1,
+    "bounds_min_cm": [
+      -250.0,
+      -55.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      250.0,
+      55.0,
+      140.0
+    ],
+    "fit": {
+      "scale": [
+        0.9771,
+        1.0215,
+        1.0536
+      ],
+      "warn_axes": [
+        2
+      ],
+      "size_before_m": [
+        5.117,
+        1.077,
+        1.329
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0789",
+        "part_0790",
+        "part_0791",
+        0.057
+      ]
+    ],
+    "fit": {
+      "scale": [
+        0.9771,
+        1.0215,
+        1.0536
+      ],
+      "warn_axes": [
+        2
+      ],
+      "size_before_m": [
+        5.117,
+        1.077,
+        1.329
+      ]
+    },
+    "edge_area_share": 0.0,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5675,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_Log",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Log\\T_Verd_Log_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_Log_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 18.82
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.2931
+    },
+    "build_seconds": 29.4
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.2383,
+        0.2044,
+        0.2942
+      ],
+      "min": 0.0,
+      "max": 0.8863
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5001,
+        0.4994,
+        0.9998
+      ],
+      "min": 0.3412,
+      "max": 1.0,
+      "std_rg": [
+        0.0289,
+        0.0175
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.7818,
+        0.7202,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.302,
+        0.82
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0171,
+        0.0449,
+        0.0463
+      ],
+      "min": 0.0,
+      "max": 0.9059
+    }
+  },
+  "emissive_surface_share": 0.0201,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Verd_Log",
+      "message": "7 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Log",
+      "message": "39 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Log",
+      "message": "52 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 43,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00796
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Log_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

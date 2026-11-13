@@ -1,0 +1,176 @@
+{
+  "asset": "SM_Cind_OutpostWall_Doorway",
+  "tag": "r8",
+  "family": "cinder",
+  "checks": {
+    "tris": 2240,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4652,
+      "overlap_pixels": 92,
+      "overlap_share_of_covered": 0.000189,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -75.0,
+      -300.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      75.0,
+      300.0,
+      600.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        1.5,
+        6.0,
+        6.0
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        1.5,
+        6.0,
+        6.0
+      ]
+    },
+    "edge_area_share": 0.0328,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 6
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4652,
+      "overlap_pixels": 92,
+      "overlap_share_of_covered": 0.000189,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Cind_OutpostWall_Doorway",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_OutpostWall_Doorway\\T_Cind_OutpostWall_Doorway_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_OutpostWall_Doorway\\T_Cind_OutpostWall_Doorway_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_OutpostWall_Doorway\\T_Cind_OutpostWall_Doorway_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_OutpostWall_Doorway\\T_Cind_OutpostWall_Doorway_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Cind_OutpostWall_Doorway_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 75.35
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7265
+    },
+    "build_seconds": 105.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1216,
+        0.1059,
+        0.1188
+      ],
+      "min": 0.0,
+      "max": 0.6588
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5006,
+        0.4996,
+        0.9997
+      ],
+      "min": 0.2431,
+      "max": 1.0,
+      "std_rg": [
+        0.024,
+        0.018
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3313,
+        0.2797,
+        0.3701
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.478
+      ],
+      "metallic_mean": 0.368
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1001,
+        0.0342,
+        0.0185
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0424,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Cind_OutpostWall_Doorway",
+      "message": "26 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 47,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01293
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_OutpostWall_Doorway_r8_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_OutpostWall_Doorway_r8_clay_sheet.png",
+    "warnings": []
+  }
+}

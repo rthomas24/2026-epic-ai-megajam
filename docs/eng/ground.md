@@ -223,6 +223,43 @@ Deflecting is the core on-foot skill, so every shot is announced and slow enough
 - So from the crew appearing, the player has 1.2 s of grace, then a 0.4 s tell, then about 0.55 s of bolt flight:
   about 2 s to turn to the shooter and block.
 
+## Third person on foot (ENG-32): T3's rig wired into the pilot
+
+The pilot owns T3's `UTDThirdPersonCameraComponent` ("ThirdPersonCamera", on the capsule). See `director.md` for the rig itself.
+
+- **Switching:** the saved choice (`UTDSettingsSubsystem::OnFootCameraMode`) is read at BeginPlay, so it applies at start-up and after every level travel. The pilot also binds `OnOnFootCameraModeChanged`, so V / View (T1's controller) and the Settings page switch it live. The rig holds a change while a director shot or the death cam owns the view.
+- **Body:** in third person the whole pilot shows, head included. The camera-rig blade is hidden. The blade in the body's right hand (`HandBladeHilt` + `HandBladeBeam`) shows whenever the whole pilot is on screen: third person, director shots and the death view. It never shows in first person.
+- **Hand blade:**
+  - Meshes: `SM_TD_BladeHilt` and `SM_TD_BladeBeam`, with the beam on the hilt's `BladeEmitter` socket and `BladeColor` set on a dynamic `MI_TD_BladeBeam`. `UTDBladeFX::BladeMesh` wins if set.
+  - Placement: a mesh socket `BladeSocket` if one exists, else `hand_r` with `HandBladeOffset` (-9, -3, 0 cm; pitch -90). That offset was set by eye with `TD.Ground.HandBlade`.
+  - Retract scales the beam along its length over 0.15 s.
+- **Facing:** `bUseControllerRotationYaw` is off in third person. The body turns at 900 deg/s (twice that in combat) toward `GetDesiredActorYaw`. Once standing still with the camera more than 60 deg off, it keeps turning until it faces the camera (the rule alone would stop at 60).
+- **Aim:** `GetActorEyesViewPoint` keeps the eye position. In third person it aims at whatever the chase lens's centre ray hits within 50 m (behind the pilot doesn't count), so melee targeting, the deflect return and interaction go where the crosshair is.
+- **Moves on the body** (`Pilot/Anims`, through `UTDLoopBlendAnimInstance`):
+
+  | Move | Animation |
+  |---|---|
+  | Light 1 / 2 / 3 | `A_Pilot_Light1` / `2` / `3` (rate 1.5-1.6) |
+  | Heavy lunge, dash strike | `A_Pilot_Heavy` |
+  | Air slam | `A_Pilot_Light3` |
+  | Block | upper-body loop `A_Pilot_Block` |
+  | Guard break | `A_Pilot_HitReact_Front` (upper body) |
+  | Dash, slide | `A_Pilot_Dash` |
+  | Mantle | `A_Pilot_JumpStart` |
+  | Falling | `A_Pilot_FallLoop` |
+  | Hits | `A_Pilot_HitReact_Front` / `_Back` by direction (upper body) |
+  | Death | ragdoll on `PA_Pilot`, as before |
+
+  While moving faster than 150 cm/s, swings play from `spine_01` up, so the legs keep running.
+- **Dev commands:** `TD.Ground.ThirdPerson [0|1]` and `TD.Ground.HandBlade [X Y Z P Y R]`. `TD.Ground.Bones` now also prints the loop, the one-shot, the upper loop and the procedural flag.
+- **Tests:** `TriadDrift.Ground.ThirdPerson.*`:
+  - PilotFollowsTheSavedChoice
+  - PilotFacingRule
+  - MeleeAndAimThroughTheCrosshair
+  - EveryMoveReadsOnTheBody
+  - HandBladeRetractsOnDeathAndReturns
+  - T3's rig tests, which now run on the pilot's own rig
+
 ## Known gaps
 - **Input:** real key injection can't run headless. The harness's PlayerController has no local player, so the tests
   possess the character with an AIController and drive the same public move API that the input handlers call.

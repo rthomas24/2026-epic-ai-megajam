@@ -618,6 +618,23 @@ bool FTDCombatPlaceholderFlashCap::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("near flash capped: %.0f cm radius at 250 cm (<= 76)"), NearMax), NearMax > 0.f && NearMax <= 250.f * ATDCombatFlash::MaxRadiusPerCameraDistance + 1.f);
 	TestTrue(FString::Printf(TEXT("distant flash keeps its size: %.0f cm (> 600)"), FarMax), FarMax > 600.f);
 
+	// A big explosion right in front of the camera: its shell stays under ~25% of the screen height (0.128 x distance).
+	Projectiles->PlayPlaceholderExplosion(Camera + FVector(1500.f, 0.f, 0.f), 900.f, FLinearColor::Red, 0);
+	float ShellMax = 0.f;
+	for (int32 Frame = 0; Frame < 30; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+		{
+			if (It->IsPlaying() && FVector::Dist(It->GetActorLocation(), Camera + FVector(1500.f, 0.f, 0.f)) < 1.f)
+			{
+				ShellMax = FMath::Max(ShellMax, It->GetActorScale3D().X * 50.f);
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("near explosion shell capped: %.0f cm at 15 m (<= 193)"), ShellMax),
+		ShellMax > 0.f && ShellMax <= 1500.f * ATDCombatFlash::MaxShellRadiusPerCameraDistance + 1.f);
+
 	// A small hit spark 300 m away keeps a readable size (~20 px at 1080p): radius >= 0.007 x distance at its peak.
 	ATDCombatFlash* Spark = Projectiles->PlayPlaceholderFlash(Camera + FVector(30000.f, 0.f, 0.f), 140.f, FLinearColor::White, 0.14f);
 	float SparkMax = 0.f;

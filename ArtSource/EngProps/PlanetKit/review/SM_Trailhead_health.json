@@ -1,0 +1,177 @@
+{
+  "asset": "SM_Trailhead",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 1416,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5998,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -250.0,
+      -250.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      250.0,
+      250.0,
+      480.0
+    ],
+    "fit": {
+      "scale": [
+        1.0016,
+        1.0016,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        4.992,
+        4.992,
+        4.8
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0016,
+        1.0016,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        4.992,
+        4.992,
+        4.8
+      ]
+    },
+    "edge_area_share": 0.0698,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5998,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Trailhead",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Trailhead\\T_Trailhead_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Trailhead\\T_Trailhead_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Trailhead\\T_Trailhead_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Trailhead\\T_Trailhead_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Trailhead_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 27.94
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.3795
+    },
+    "detail_uv": "UVDetail (channel 1), 4 m per tile",
+    "build_seconds": 53.9
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.2318,
+        0.2585,
+        0.3235
+      ],
+      "min": 0.0,
+      "max": 0.6667
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5003,
+        0.4993,
+        0.9999
+      ],
+      "min": 0.3373,
+      "max": 1.0,
+      "std_rg": [
+        0.0201,
+        0.0198
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.6799,
+        0.6313,
+        0.0289
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.855
+      ],
+      "metallic_mean": 0.029
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0197,
+        0.0745,
+        0.0795
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0299,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Trailhead",
+      "message": "14 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 20,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01282
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Trailhead_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Trailhead_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

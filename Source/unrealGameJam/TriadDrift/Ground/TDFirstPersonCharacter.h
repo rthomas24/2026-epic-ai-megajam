@@ -7,12 +7,15 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Ground/TDGroundTypes.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TDFirstPersonCharacter.generated.h"
 
 class UCameraComponent;
 class UStaticMeshComponent;
 class UTDHealthComponent;
 class UTDEnergyBladeComponent;
+class UTDThirdPersonCameraComponent;
+class UAnimSequenceBase;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -115,6 +118,34 @@ public:
 	void SetBodyFirstPersonView(bool bFirstPerson);
 	bool IsBodyFirstPersonView() const { return bBodyFirstPerson; }
 
+	// ------------------------------------------------------------------ third person (ENG-32)
+	/** Third person (true) or first person: the rig applies it now, or when a director shot / the death cam ends. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Camera")
+	void SetThirdPerson(bool bWanted);
+	/** The chase camera is the view (the body is shown whole, the blade is in the hand, facing follows the rule). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
+	bool IsThirdPersonView() const;
+	UTDThirdPersonCameraComponent* GetThirdPersonRig() const { return ThirdPersonRig; }
+	/** The camera aimed from now: the chase camera in third person, else the first-person one. */
+	UCameraComponent* GetViewCamera() const;
+	/** The hand blade shown in third person (hilt and beam), and how far the beam is out (0 retracted .. 1). */
+	UStaticMeshComponent* GetHandBladeBeam() const { return HandBladeBeam; }
+	UStaticMeshComponent* GetHandBladeHilt() const { return HandBladeHilt; }
+	float GetHandBladeExtend01() const { return HandBladeExtend; }
+	/** Turn rate toward the facing rule's yaw in third person (deg/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Camera", meta = (Units = "deg"))
+	float ThirdPersonTurnRate = 900.f;
+	/** Beam length in the hand (the art is 100 cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm"))
+	float HandBladeLength = 95.f;
+	/** Where the hilt sits on the hand bone when the mesh has no BladeSocket (set by eye on SK_Pilot). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body")
+	FTransform HandBladeOffset;
+	/** The pilot animation that plays for a blade state / move right now (tests, TD.Ground.Bones). */
+	FName GetBodyActionName() const { return BodyActionName; }
+	/** Eye point and aim: in third person the eye aims at what the crosshair (the chase camera's centre) is on. */
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
+
 	/** Put back on the last solid ground stood on (magma). Floors tagged TD.Unsafe never count as safe. */
 	void ReturnToSafeGround();
 	FVector GetLastSafeLocation() const { return LastSafeLocation; }
@@ -213,6 +244,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Ground")
 	TObjectPtr<UTDEnergyBladeComponent> Blade;
 
+	/** ENG-32 rig (T3): the chase camera, its collision and the director-safe switch. */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Camera")
+	TObjectPtr<UTDThirdPersonCameraComponent> ThirdPersonRig;
+
+	/** The blade in the body's right hand (third person and every view that shows the whole pilot). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Body")
+	TObjectPtr<UStaticMeshComponent> HandBladeHilt;
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Body")
+	TObjectPtr<UStaticMeshComponent> HandBladeBeam;
+
 private:
 	void UpdateMoveSpeed();
 	void TickDash(float DeltaSeconds);
@@ -227,6 +268,24 @@ private:
 	void HandleBladeRetract(bool bRetracted);
 	void UpdateBladePose(float DeltaSeconds);
 	bool bBladeMeshFromArt = false;
+	// third person
+	UFUNCTION()
+	void HandleCameraModeChanged(ETDOnFootCamera NewMode);
+	void UpdateFacing(float DeltaSeconds);
+	void AttachHandBlade();
+	void ApplyHandBladeVisuals();
+	void UpdateHandBlade(float DeltaSeconds);
+	void UpdateBodyActions();
+	void PlayBodyAction(FName Anim, float Rate = 1.f, bool bUpperOnly = false);
+	UAnimSequenceBase* LoadPilotAnim(FName Anim) const;
+	float HandBladeExtend = 1.f;
+	/** Standing still, the camera went > 60 deg off: keep turning until the body faces it (not just back under 60). */
+	bool bIdleTurnToCamera = false;
+	ETDBladeState LastBodyBladeState = ETDBladeState::Idle;
+	bool bLastBodyDashing = false;
+	bool bLastBodySliding = false;
+	bool bLastBodyMantling = false;
+	FName BodyActionName;
 
 	UFUNCTION()
 	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);

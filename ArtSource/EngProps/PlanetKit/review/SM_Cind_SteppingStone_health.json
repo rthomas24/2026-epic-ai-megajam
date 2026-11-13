@@ -1,0 +1,181 @@
+{
+  "asset": "SM_Cind_SteppingStone",
+  "tag": "r8",
+  "family": "cinder",
+  "checks": {
+    "tris": 2296,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5614,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -140.0,
+      -140.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      140.0,
+      140.0,
+      160.0
+    ],
+    "fit": {
+      "scale": [
+        1.0428,
+        1.0064,
+        1.0
+      ],
+      "warn_axes": [
+        0
+      ],
+      "size_before_m": [
+        2.685,
+        2.782,
+        1.6
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0428,
+        1.0064,
+        1.0
+      ],
+      "warn_axes": [
+        0
+      ],
+      "size_before_m": [
+        2.685,
+        2.782,
+        1.6
+      ]
+    },
+    "edge_area_share": 0.1128,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5614,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Cind_SteppingStone",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_SteppingStone\\T_Cind_SteppingStone_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_SteppingStone\\T_Cind_SteppingStone_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_SteppingStone\\T_Cind_SteppingStone_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_SteppingStone\\T_Cind_SteppingStone_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Cind_SteppingStone_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 22.87
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7612
+    },
+    "detail_uv": "UVDetail (channel 1), 4 m per tile",
+    "build_seconds": 35.9
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.1486,
+        0.1335,
+        0.1362
+      ],
+      "min": 0.0,
+      "max": 0.7373
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5004,
+        0.4995,
+        0.9998
+      ],
+      "min": 0.3647,
+      "max": 1.0,
+      "std_rg": [
+        0.023,
+        0.023
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.3604,
+        0.6205,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.847
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0034,
+        0.0011,
+        0.0003
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0002,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Cind_SteppingStone",
+      "message": "28 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 14,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00641
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_SteppingStone_r8_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_SteppingStone_r8_clay_sheet.png",
+    "warnings": []
+  }
+}

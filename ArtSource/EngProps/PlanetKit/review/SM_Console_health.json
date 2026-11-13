@@ -1,0 +1,176 @@
+{
+  "asset": "SM_Console",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 932,
+    "tris_in_budget": false,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.6312,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -30.0,
+      -30.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      30.0,
+      30.0,
+      120.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        0.6,
+        0.6,
+        1.2
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        0.6,
+        0.6,
+        1.2
+      ]
+    },
+    "edge_area_share": 0.0556,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.6312,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Console",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Console\\T_Console_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Console\\T_Console_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Console\\T_Console_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Console\\T_Console_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Console_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 15.05
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.5822
+    },
+    "build_seconds": 24.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.3311,
+        0.3396,
+        0.345
+      ],
+      "min": 0.0,
+      "max": 0.8392
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5005,
+        0.4993,
+        0.9976
+      ],
+      "min": 0.2157,
+      "max": 1.0,
+      "std_rg": [
+        0.0393,
+        0.0323
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5257,
+        0.3671,
+        0.4668
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.49
+      ],
+      "metallic_mean": 0.465
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0159,
+        0.0601,
+        0.0658
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0735,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Console",
+      "message": "6 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 10,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.0022
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Console_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Console_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

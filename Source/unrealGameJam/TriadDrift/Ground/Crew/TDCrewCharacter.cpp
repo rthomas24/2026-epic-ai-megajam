@@ -26,8 +26,8 @@
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "AnimationRuntime.h"
 
-// Template mannequin set (Content/Characters/Mannequins): the stand-in for a crew look that has a skeletal mesh but no
-// AnimBP. Cooked through DirectoriesToAlwaysCook (/Game/Characters/Mannequins/Anims).
+// The crew set (Gameplay/Characters/Crew/Anims, retargeted onto SKEL_NullCrew with ACL, Nov 13): what a crew look with a
+// skeletal mesh but no AnimBP plays. Cooked through DirectoriesToAlwaysCook (/Game/TriadDrift/Gameplay/Characters).
 FString ATDCrewCharacter::CrewAnimPath(const TCHAR* TemplatePath)
 {
 	if (!TemplatePath)
@@ -48,13 +48,13 @@ const TCHAR* ATDCrewCharacter::FallbackLoopFor(ETDCrewType Type, int32 Loop)
 {
 	if (Type == ETDCrewType::Grunt)
 	{
-		return Loop == 0 ? TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle")
-			: Loop == 1 ? TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd")
-			: TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd.MF_Unarmed_Jog_Fwd");
+		return Loop == 0 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Idle.MM_Idle")
+			: Loop == 1 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd")
+			: TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Unarmed_Jog_Fwd.MF_Unarmed_Jog_Fwd");
 	}
-	return Loop == 0 ? TEXT("/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS.MF_Rifle_Idle_ADS")
-		: Loop == 1 ? TEXT("/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd.MF_Rifle_Walk_Fwd")
-		: TEXT("/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Fwd.MF_Rifle_Jog_Fwd");
+	return Loop == 0 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Rifle_Idle_ADS.MF_Rifle_Idle_ADS")
+		: Loop == 1 ? TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Rifle_Walk_Fwd.MF_Rifle_Walk_Fwd")
+		: TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MF_Rifle_Jog_Fwd.MF_Rifle_Jog_Fwd");
 }
 
 bool ATDCrewCharacter::bCollapseGuard = true;
@@ -154,14 +154,14 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 }
 namespace TDCrewAnims
 {
-	static const TCHAR* Melee = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01.MM_Attack_01");
-	static const TCHAR* Slam = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_ChargedAttack.MM_ChargedAttack");
-	static const TCHAR* Fire = TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Fire.MM_Rifle_Fire");
-	static const TCHAR* Hit = TEXT("/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01.MM_HitReact_Front_Lgt_01");
-	static const TCHAR* DeathFront = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01.MM_Death_Front_01");
-	static const TCHAR* DeathBack = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Back_01.MM_Death_Back_01");
-	static const TCHAR* DeathLeft = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Left_01.MM_Death_Left_01");
-	static const TCHAR* DeathRight = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Right_01.MM_Death_Right_01");
+	static const TCHAR* Melee = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Attack_01.MM_Attack_01");
+	static const TCHAR* Slam = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_ChargedAttack.MM_ChargedAttack");
+	static const TCHAR* Fire = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Rifle_Fire.MM_Rifle_Fire");
+	static const TCHAR* Hit = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_HitReact_Front_Lgt_01.MM_HitReact_Front_Lgt_01");
+	static const TCHAR* DeathFront = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Front_01.MM_Death_Front_01");
+	static const TCHAR* DeathBack = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Back_01.MM_Death_Back_01");
+	static const TCHAR* DeathLeft = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Left_01.MM_Death_Left_01");
+	static const TCHAR* DeathRight = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Death_Right_01.MM_Death_Right_01");
 }
 
 namespace TDCrewImpl

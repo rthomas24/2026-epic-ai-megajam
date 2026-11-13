@@ -1,0 +1,190 @@
+{
+  "asset": "SM_Verd_Wreck_Wing",
+  "tag": "r8",
+  "family": "verdance",
+  "checks": {
+    "tris": 2068,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5305,
+      "overlap_pixels": 138,
+      "overlap_share_of_covered": 0.000248,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 1,
+    "bounds_min_cm": [
+      -300.0,
+      -80.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      300.0,
+      80.0,
+      240.0
+    ],
+    "fit": {
+      "scale": [
+        0.9966,
+        0.9144,
+        0.978
+      ],
+      "warn_axes": [
+        1
+      ],
+      "size_before_m": [
+        6.021,
+        1.75,
+        2.454
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        0.9966,
+        0.9144,
+        0.978
+      ],
+      "warn_axes": [
+        1
+      ],
+      "size_before_m": [
+        6.021,
+        1.75,
+        2.454
+      ]
+    },
+    "edge_area_share": 0.0,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 6
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5305,
+      "overlap_pixels": 138,
+      "overlap_share_of_covered": 0.000248,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_Wreck_Wing",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Wing\\T_Verd_Wreck_Wing_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Wing\\T_Verd_Wreck_Wing_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Wing\\T_Verd_Wreck_Wing_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Wing\\T_Verd_Wreck_Wing_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_Wreck_Wing_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 12.38
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.4886
+    },
+    "build_seconds": 13.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.3632,
+        0.3949,
+        0.3585
+      ],
+      "min": 0.0,
+      "max": 0.8353
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5003,
+        0.4996,
+        0.9979
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0253,
+        0.026
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5285,
+        0.3334,
+        0.1771
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.914
+      ],
+      "metallic_mean": 0.178
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.003,
+        0.0129,
+        0.0113
+      ],
+      "min": 0.0,
+      "max": 0.9294
+    }
+  },
+  "emissive_surface_share": 0.0117,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Verd_Wreck_Wing",
+      "message": "1 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Wreck_Wing",
+      "message": "2 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Wreck_Wing",
+      "message": "218 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 7,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00999
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Wing_r8_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Wing_r8_clay_sheet.png",
+    "warnings": []
+  }
+}

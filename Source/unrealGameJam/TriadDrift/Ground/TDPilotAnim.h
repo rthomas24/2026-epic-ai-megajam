@@ -29,9 +29,22 @@ public:
 
 	UAnimSequenceBase* GetLoop() const { return Current; }
 
-	/** Play Shot once over the loop (attack, flinch): fades in, plays to its end, fades back to the loop. */
-	void PlayOneShot(UAnimSequenceBase* Shot, float Rate = 1.f);
+	/**
+	 * Play Shot once over the loop (attack, flinch): fades in, plays to its end, fades back to the loop.
+	 * bUpperBodyOnly: only UpperRootBone and its children take it (the legs keep walking). bHold: stay on its last
+	 * frame until StopOneShot or another shot (a pose held on purpose, not a montage left playing).
+	 */
+	void PlayOneShot(UAnimSequenceBase* Shot, float Rate = 1.f, bool bUpperBodyOnly = false, bool bHold = false);
+	void StopOneShot() { Shot = nullptr; ShotAlpha = 0.f; bShotHold = false; }
 	UAnimSequenceBase* GetOneShot() const { return Shot; }
+	bool IsOneShotUpperBody() const { return bShotUpper; }
+
+	/** Loop on the upper body only (the block guard) over whatever the legs do; null fades it back out (0.12 s). */
+	void SetUpperLoop(UAnimSequenceBase* Loop);
+	UAnimSequenceBase* GetUpperLoop() const { return bUpperWanted ? Upper.Get() : nullptr; }
+	float GetUpperAlpha() const { return UpperAlpha; }
+	/** The first bone of the upper-body layer (it and every child take the upper loop / an upper-body shot). */
+	FName UpperRootBone = TEXT("spine_01");
 	float GetBlendAlpha() const { return Alpha; }
 	float GetRate() const { return PlayRate; }
 
@@ -61,9 +74,15 @@ public:
 	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Current;
 	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Previous;
 	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Shot;
+	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Upper;
 	double ShotTime = 0.0;
 	float ShotRate = 1.f;
 	float ShotAlpha = 0.f;
+	bool bShotUpper = false;
+	bool bShotHold = false;
+	double UpperTime = 0.0;
+	float UpperAlpha = 0.f;
+	bool bUpperWanted = false;
 	double CurrentTime = 0.0;
 	double PreviousTime = 0.0;
 	float Alpha = 1.f;

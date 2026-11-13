@@ -1,0 +1,232 @@
+{
+  "asset": "SM_Verd_Wreck_Hull",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 26038,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.344,
+      "overlap_pixels": 34792,
+      "overlap_share_of_covered": 0.096445,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 2,
+    "bounds_min_cm": [
+      -1300.0,
+      -450.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      1300.0,
+      450.0,
+      700.0
+    ],
+    "fit": {
+      "scale": [
+        1.0121,
+        0.941,
+        0.969
+      ],
+      "warn_axes": [
+        1
+      ],
+      "size_before_m": [
+        25.688,
+        9.564,
+        7.224
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_2206",
+        "part_2207",
+        0.098
+      ],
+      [
+        "part_2292",
+        "part_2293",
+        0.077
+      ],
+      [
+        "part_2306",
+        "part_2307",
+        0.084
+      ],
+      [
+        "part_2308",
+        "part_2309",
+        0.054
+      ],
+      [
+        "part_2344",
+        "part_2345",
+        0.078
+      ],
+      [
+        "part_2358",
+        "part_2359",
+        0.072
+      ],
+      [
+        "part_2366",
+        "part_2367",
+        0.091
+      ]
+    ],
+    "fit": {
+      "scale": [
+        1.0121,
+        0.941,
+        0.969
+      ],
+      "warn_axes": [
+        1
+      ],
+      "size_before_m": [
+        25.688,
+        9.564,
+        7.224
+      ]
+    },
+    "edge_area_share": 0.0024,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 622
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.344,
+      "overlap_pixels": 34792,
+      "overlap_share_of_covered": 0.096445,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_Wreck_Hull",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Hull\\T_Verd_Wreck_Hull_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Hull\\T_Verd_Wreck_Hull_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Hull\\T_Verd_Wreck_Hull_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_Wreck_Hull\\T_Verd_Wreck_Hull_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_Wreck_Hull_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 52.03
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6668
+    },
+    "build_seconds": 79.7
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.2791,
+        0.3295,
+        0.3177
+      ],
+      "min": 0.0,
+      "max": 0.8431
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5001,
+        0.4994,
+        0.9978
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0214,
+        0.0217
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.4362,
+        0.5755,
+        0.2243
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.961
+      ],
+      "metallic_mean": 0.221
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0219,
+        0.0439,
+        0.0508
+      ],
+      "min": 0.0,
+      "max": 0.9294
+    }
+  },
+  "emissive_surface_share": 0.0073,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Verd_Wreck_Hull",
+      "message": "5 non-manifold edges (edges shared by 3+ faces)"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_Verd_Wreck_Hull",
+      "message": "82 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Wreck_Hull",
+      "message": "269 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Verd_Wreck_Hull",
+      "message": "86 open boundary edges (mesh is not closed); OK for planes/cards"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 437,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.04259
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Hull_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_Wreck_Hull_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

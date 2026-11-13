@@ -1,0 +1,170 @@
+{
+  "asset": "SM_Cind_DebrisChunk",
+  "tag": "r7",
+  "family": "cinder",
+  "checks": {
+    "tris": 5120,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4342,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -105.4,
+      -93.5,
+      -86.7
+    ],
+    "bounds_max_cm": [
+      105.4,
+      93.5,
+      86.7
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        2.107,
+        1.87,
+        1.735
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        2.107,
+        1.87,
+        1.735
+      ]
+    },
+    "edge_area_share": 0.0,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 24
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4342,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Cind_DebrisChunk",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_DebrisChunk\\T_Cind_DebrisChunk_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_DebrisChunk\\T_Cind_DebrisChunk_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_DebrisChunk\\T_Cind_DebrisChunk_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_DebrisChunk\\T_Cind_DebrisChunk_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Cind_DebrisChunk_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 18.07
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.2244
+    },
+    "build_seconds": 49.8
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.1967,
+        0.1783,
+        0.1834
+      ],
+      "min": 0.0,
+      "max": 0.6784
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5007,
+        0.4992,
+        0.9997
+      ],
+      "min": 0.3647,
+      "max": 1.0,
+      "std_rg": [
+        0.0246,
+        0.025
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.8267,
+        0.7053,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.851
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0034,
+        0.0011,
+        0.0003
+      ],
+      "min": 0.0,
+      "max": 0.9059
+    }
+  },
+  "emissive_surface_share": 0.0067,
+  "asset_report_issues": [],
+  "assembly": {
+    "ok": true,
+    "islands": 1,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00496
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_DebrisChunk_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_DebrisChunk_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

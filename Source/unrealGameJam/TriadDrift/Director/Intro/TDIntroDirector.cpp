@@ -41,6 +41,8 @@
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPortalGate.h"
 
@@ -111,13 +113,28 @@ namespace TDIntro
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		Params.ObjectFlags |= RF_Transient;
 		AStaticMeshActor* Dart = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), At, Params);
-		UStaticMesh* Cone = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cone.Cone"));
-		if (!Dart || !Cone)
+		if (!Dart)
 		{
-			return Dart;
+			return nullptr;
 		}
 		UStaticMeshComponent* Mesh = Dart->GetStaticMeshComponent();
 		Mesh->SetMobility(EComponentMobility::Movable);
+		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// The Null Armada's own fighters (engineering's fleet meshes, nose +X) until T4's showcase hook lands.
+		static int32 Variant = 0;
+		const TCHAR* Fleet = (Variant++ % 3 == 2)
+			? TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Interceptor.SM_Null_Interceptor")
+			: TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Fighter.SM_Null_Fighter");
+		if (UStaticMesh* Ship = LoadObject<UStaticMesh>(nullptr, Fleet))
+		{
+			Mesh->SetStaticMesh(Ship);
+			return Dart;
+		}
+		UStaticMesh* Cone = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cone.Cone"));
+		if (!Cone)
+		{
+			return Dart;
+		}
 		Mesh->SetStaticMesh(Cone);
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Mesh->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f)); // the cone's tip (+Z) along the actor's +X
@@ -372,10 +389,19 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	PC->SetIgnoreMoveInput(true);
 	PC->SetIgnoreLookInput(true);
 
-	if (AHUD* HUD = PC->GetHUD())
+	// T2: every HUD (Nick's space and ground HUDs, the fallback HUD's draw) hides for the intro and comes back by
+	// itself after; the pause screen cannot open meanwhile.
+	UTDUIHostSubsystem::SetCinematicHiddenIn(this, true);
+	// T1: no pause while it plays (registered once for every world; the blocker asks this world's intro).
+	static bool bPauseBlockerRegistered = false;
+	if (!bPauseBlockerRegistered)
 	{
-		bHUDWasShown = HUD->bShowHUD;
-		HUD->bShowHUD = false;
+		bPauseBlockerRegistered = true;
+		ATDSpacePlayerController::RegisterPauseBlocker(TEXT("Intro"), [](const UObject* Context, FText& OutReason)
+		{
+			OutReason = LOCTEXT("NoPause", "Intro");
+			return UTDIntroDirector::IsIntroPlaying(Context);
+		});
 	}
 
 	HoldSquad(true);
@@ -644,33 +670,38 @@ void UTDIntroDirector::BuildShots()
 	const FVector Dom = Layout.Dominion.GetLocation();
 	const FVector DomFwd = Layout.Dominion.GetRotation().GetForwardVector();
 	const FVector DomSide = FVector::CrossProduct(Up, DomFwd).GetSafeNormal();
-	const float DomR = 60000.f;
+	const float DomR = DominionRadius();
+	// 3/4, low, off the bow: the angle that makes a capital ship loom (the side reads as a slab).
+	const FVector Quarter = (DomFwd * 0.75f + DomSide * 0.55f - Up * 0.3f).GetSafeNormal();
 	{
 		FTDIntroShot S;
 		S.Id = TEXT("ThreatFar");
 		S.Duration = 5.5f;
-		S.CamFrom = Dom + DomFwd * (DomR * 7.f) + DomSide * (DomR * 1.6f) + Up * (DomR * 0.25f);
-		S.CamTo = S.CamFrom - DomFwd * (DomR * 0.35f);
-		S.LookFrom = Dom + DomSide * (DomR * 0.9f);
-		S.LookTo = Dom - DomSide * (DomR * 0.5f);
+		// 135 mm: the whole hull (about 2 radii) across about 60% of the frame.
+		const float Dist = DomR * 9.f;
+		S.CamFrom = Dom + Quarter * Dist;
+		S.CamTo = S.CamFrom - Quarter * (Dist * 0.04f) - DomSide * (DomR * 0.5f);
+		S.LookFrom = Dom + DomFwd * (DomR * 0.35f);
+		S.LookTo = Dom - DomFwd * (DomR * 0.05f);
 		S.FocalFrom = 135.f;
 		S.FocalTo = 135.f;
 		S.FStop = 16.f;
-		S.FocusDistance = DomR * 7.f;
+		S.FocusDistance = Dist;
 		S.FadeIn = 0.8f;
 		S.FadeOut = 0.f;
 		S.Narration = 4;
 		Shots.Add(S);
 	}
-	// 6b. Hard cut: 24 mm close, fighters screaming past the lens out of the dark.
+	// 6b. Hard cut: 24 mm under the bow, the hull filling the sky, fighters screaming past the lens.
 	{
+		const FVector Low = (DomFwd * 0.85f + DomSide * 0.25f - Up * 0.45f).GetSafeNormal();
 		FTDIntroShot S;
 		S.Id = TEXT("ThreatClose");
 		S.Duration = 4.5f;
-		S.CamFrom = Dom + DomFwd * (DomR * 2.6f) + DomSide * 1500.f;
-		S.CamTo = S.CamFrom + DomFwd * 500.f;
-		S.LookFrom = Dom + DomSide * 4000.f;
-		S.LookTo = Dom - DomSide * 2000.f;
+		S.CamFrom = Dom + Low * (DomR * 1.9f);
+		S.CamTo = S.CamFrom + DomFwd * 600.f;
+		S.LookFrom = Dom + DomFwd * (DomR * 0.6f) + Up * (DomR * 0.1f);
+		S.LookTo = Dom + DomFwd * (DomR * 0.4f) + Up * (DomR * 0.15f);
 		S.FocalFrom = S.FocalTo = 24.f;
 		S.FStop = 2.8f;
 		S.FocusDistance = 2500.f;
@@ -684,10 +715,10 @@ void UTDIntroDirector::BuildShots()
 		FTDIntroShot S;
 		S.Id = TEXT("Title");
 		S.Duration = 6.f;
-		S.CamFrom = S0 - F0 * 2600.f + Up * 700.f + R0 * 300.f;
-		S.CamTo = S0 - F0 * 1900.f + Up * 480.f;
-		S.LookFrom = S0 + F0 * 3000.f;
-		S.LookTo = S0 + F0 * 3000.f;
+		S.CamFrom = S0 - F0 * 2600.f + Up * 420.f + R0 * 300.f;
+		S.CamTo = S0 - F0 * 1900.f + Up * 260.f;
+		S.LookFrom = S0 + F0 * 2500.f - Up * 150.f;
+		S.LookTo = S0 + F0 * 2500.f;
 		S.FocalFrom = 35.f;
 		S.FocalTo = 28.f;
 		S.FStop = 4.f;
@@ -714,9 +745,14 @@ void UTDIntroDirector::BeginShot(int32 Index)
 	const FTDIntroShot& S = Shots[Index];
 	UWorld* World = GetWorld();
 
-	if (S.Id == TEXT("ThreatFar"))
+	if (S.Id == TEXT("ThreatFar") || S.Id == TEXT("ThreatClose"))
 	{
-		bDominionShown = TDIntro::ShowDominion(World, true, nullptr);
+		bDominionShown = bDominionShown || TDIntro::ShowDominion(World, true, nullptr);
+		if (!bDominionShown && !DominionStandIn)
+		{
+			const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this);
+			SpawnDominionStandIn(Galaxy ? Galaxy->GetLayout().Dominion : ATDGalaxyLayout::MakeDefaultLayout().Dominion);
+		}
 	}
 	RestoreGateSurface();
 	if (S.Id == TEXT("Gate"))
@@ -827,11 +863,7 @@ void UTDIntroDirector::DebugSetTime(float T, bool bFreeze)
 	BeginShot(Index);
 	if (Shots[Index].Id == TEXT("ThreatClose"))
 	{
-		bFleetSpawned = true;
-		for (int32 k = 0; k < 10; ++k)
-		{
-			Showcase.Add(nullptr); // the far wave is out of frame by now: the close wave spawns after it
-		}
+		bFleetSpawned = true; // the far wave is out of frame by now
 	}
 	const float Step = 1.f / 30.f;
 	LastDt = Step;
@@ -971,19 +1003,18 @@ void UTDIntroDirector::UpdateShot(float T)
 			bFleetSpawned = true;
 			SpawnShowcase();
 		}
-		if (S.Id == TEXT("ThreatClose") && Showcase.Num() < 16 && T > 0.15f && Showcase.Num() >= 10)
+		if (S.Id == TEXT("ThreatClose") && CloseSpawned < 6 && T > 0.15f + CloseSpawned * 0.45f)
 		{
-			// The close wave: out of the dark ahead of the lens, past it.
+			// The close wave: one at a time out of a warp flash ahead of the lens, screaming past it.
 			const FVector Fwd = (S.LookFrom - S.CamFrom).GetSafeNormal();
 			const FVector Side = FVector::CrossProduct(FVector::UpVector, Fwd).GetSafeNormal();
-			for (int32 k = 0; k < 6; ++k)
+			const int32 k = CloseSpawned++;
+			const FVector At = Camera->GetActorLocation() + Fwd * 9000.f + Side * ((k % 2 ? 1.f : -1.f) * (650.f + (k % 3) * 300.f)) + FVector::UpVector * ((k % 3) - 1) * 320.f;
+			TDIntro::WarpFlash(World, At, 2600.f);
+			if (AActor* F = TDIntro::SpawnFighter(World, FTransform((-Fwd).Rotation(), At)))
 			{
-				const FVector At = S.CamFrom + Fwd * (7000.f + k * 1800.f) + Side * ((k % 2 ? 1.f : -1.f) * (500.f + k * 260.f)) + FVector::UpVector * ((k % 3) - 1) * 380.f;
-				TDIntro::WarpFlash(World, At, 2600.f);
-				if (AActor* F = TDIntro::SpawnFighter(World, FTransform((-Fwd).Rotation(), At)))
-				{
-					Showcase.Add(F);
-				}
+				F->Tags.Add(TEXT("TDIntroClose"));
+				Showcase.Add(F);
 			}
 		}
 		// A red-orange key on the fleet, from the lens side, so the ships read against black.
@@ -1016,7 +1047,7 @@ void UTDIntroDirector::UpdateShot(float T)
 		{
 			if (AActor* F = Showcase[k])
 			{
-				const float Speed = k < 10 ? 9000.f : 8500.f;
+				const float Speed = F->Tags.Contains(TEXT("TDIntroClose")) ? 4200.f : 6000.f;
 				F->AddActorWorldOffset(F->GetActorForwardVector() * Speed * Dt);
 			}
 		}
@@ -1034,12 +1065,13 @@ void UTDIntroDirector::SpawnShowcase()
 	const FTDIntroShot& S = Shots[ShotIndex];
 	const FVector Toward = (S.CamFrom - S.LookFrom).GetSafeNormal();
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, Toward).GetSafeNormal();
-	const FVector Base = FMath::Lerp(S.LookFrom, S.LookTo, 0.35f) + Toward * 70000.f;
+	// Well in front of the Dominion, a third of the way to the lens: big enough to read at 135 mm.
+	const FVector Base = FMath::Lerp(S.LookFrom, S.LookTo, 0.35f) + Toward * (FVector::Dist(S.CamFrom, S.LookFrom) * 0.35f);
 	for (int32 k = 0; k < 10; ++k)
 	{
 		const FVector At = Base + Side * ((k - 4.5f) * 4200.f) + FVector::UpVector * FMath::Sin(k * 1.7f) * 3500.f + Toward * (k % 3) * 3000.f;
 		TDIntro::WarpFlash(World, At, 12000.f);
-		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(4.f))))
+		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(2.5f))))
 		{
 			Showcase.Add(F);
 		}
@@ -1056,6 +1088,12 @@ void UTDIntroDirector::ClearShowcase()
 		}
 	}
 	Showcase.Reset();
+	CloseSpawned = 0;
+	if (DominionStandIn)
+	{
+		DominionStandIn->Destroy();
+		DominionStandIn = nullptr;
+	}
 	if (KeyLight)
 	{
 		KeyLight->Destroy();
@@ -1067,6 +1105,62 @@ void UTDIntroDirector::ClearShowcase()
 		TDIntro::ShowDominion(GetWorld(), false, nullptr);
 		bDominionShown = false;
 	}
+}
+
+float UTDIntroDirector::DominionRadius()
+{
+	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+	if (const UStaticMesh* Hull = V ? V->HullMesh.LoadSynchronous() : nullptr)
+	{
+		return FMath::Max(5000.f, Hull->GetBounds().SphereRadius);
+	}
+	return 31000.f; // the placeholder hull: 600 x 160 x 100 m
+}
+
+void UTDIntroDirector::SpawnDominionStandIn(const FTransform& At)
+{
+	UWorld* World = GetWorld();
+	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+	UStaticMesh* Hull = V ? V->HullMesh.LoadSynchronous() : nullptr;
+	if (!World || !Hull)
+	{
+		return;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.ObjectFlags |= RF_Transient;
+	AActor* Ship = World->SpawnActor<AActor>(AActor::StaticClass(), At, Params);
+	if (!Ship)
+	{
+		return;
+	}
+	USceneComponent* Root = NewObject<USceneComponent>(Ship, TEXT("Root"));
+	Ship->SetRootComponent(Root);
+	Root->RegisterComponent();
+	Ship->SetActorTransform(At);
+	auto Piece = [Ship, Root](const TCHAR* Name, UStaticMesh* Mesh, const FVector& Location, const FVector& Scale)
+	{
+		if (!Mesh)
+		{
+			return;
+		}
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Ship, Name);
+		C->SetupAttachment(Root);
+		C->SetStaticMesh(Mesh);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetRelativeLocation(Location);
+		C->SetRelativeScale3D(Scale);
+		C->RegisterComponent();
+	};
+	// The same layout as ATDDominion's art path (hull at the pivot, the bridge and trench walls where its
+	// placeholders sit for the default hull extent).
+	const FVector E(30000.f, 8000.f, 5000.f);
+	Piece(TEXT("Hull"), Hull, FVector::ZeroVector, FVector::OneVector);
+	Piece(TEXT("Bridge"), V->BridgeMesh.LoadSynchronous(), FVector(-E.X * 0.65f, 0.f, E.Z * 1.6f), FVector::OneVector);
+	UStaticMesh* Trench = V->TrenchMesh.LoadSynchronous();
+	Piece(TEXT("TrenchL"), Trench, FVector(E.X * 0.1f, -2500.f, E.Z + 1500.f), FVector::OneVector);
+	Piece(TEXT("TrenchR"), Trench, FVector(E.X * 0.1f, 2500.f, E.Z + 1500.f), FVector(1.f, -1.f, 1.f));
+	DominionStandIn = Ship;
 }
 
 void UTDIntroDirector::SetKeyLight(const FVector& At, float Radius, float Intensity)
@@ -1344,6 +1438,7 @@ void UTDIntroDirector::HoldSquad(bool bHold)
 				H.Velocity = Move->Velocity;
 				H.bMovementTick = Move->IsComponentTickEnabled();
 				Move->SetComponentTickEnabled(false);
+				Move->SetMoveAnnounced(true); // the intro poses the ship on purpose: not a silent move (T1's watchdog)
 			}
 			if (AController* C = Ship->GetController(); C && !C->IsA<APlayerController>())
 			{
@@ -1367,6 +1462,7 @@ void UTDIntroDirector::HoldSquad(bool bHold)
 		{
 			Move->SetComponentTickEnabled(H.bMovementTick);
 			Move->Velocity = H.Velocity;
+			Move->SetMoveAnnounced(false); // back where it was; the watchdog resumes from here
 		}
 		if (AController* C = Ship->GetController(); C && !C->IsA<APlayerController>())
 		{
@@ -1410,12 +1506,9 @@ void UTDIntroDirector::Finish()
 				PC->SetViewTarget(Pawn); // a skip cuts straight to the chase camera
 			}
 		}
-		if (AHUD* HUD = PC->GetHUD())
-		{
-			HUD->bShowHUD = bHUDWasShown;
-		}
 	}
 	SkipInput = nullptr;
+	UTDUIHostSubsystem::SetCinematicHiddenIn(this, false);
 	if (Camera)
 	{
 		Camera->Destroy();
