@@ -34,6 +34,10 @@ Audio has the next exclusive Unreal recording slot once Ryan posts the corrected
 
 Audio owns private Worktrees/tutorial-music-t1-27ead2a at 27ead2af for read-only field reload and normal/skip gameplay capture in Saved/AudioMusic/** using the five hash-verified audio/style trial assets. UI yielded after its Editor build; style authoring and Shipping cook resume once Audio releases the machine. The earlier capture host and original recording remain preserved.
 
+| Owner | Exact paths | Next work |
+|---|---|---|
+| UI, queued after current Shipping verification | Worktrees/settings-handoff-1113 on nick/settings-handoff-1113, ArtSource/UI/TriadHUD/Unreal/Settings01/{README.md,manifest.json,settings-only.patch} | Address T5 review in N-038: latch return focus, keep external focus on a failed query and log once, distinguish no viewport from a failed bridge. Lead publishes. |
+
 ### Active presentation assignments, Nov 13
 
 Nicholas has restarted his presentation team under the Nov 13 realignment. These rows supersede the historical assignments below. Each next item starts under a refreshed claim. Nicholas approves appearance and sound.
