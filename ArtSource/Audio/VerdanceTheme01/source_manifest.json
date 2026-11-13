@@ -1,0 +1,21 @@
+{
+  "status": "Full first Verdance source prepared; no runtime behavior chosen",
+  "claim": "2bcc2ded",
+  "tracks": [
+    {
+      "order": 1,
+      "source": "C:\\Users\\nicho\\Downloads\\Verdance.mp3",
+      "source_sha256": "6041d1f61c77af187754fbe828882fa8cb50b579a5855fdab187b60ae4fcbb37",
+      "source_bytes": 4460663,
+      "wav": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\VerdanceTheme01\\export\\MUS_Verdance_Main_Full_01.wav",
+      "wav_sha256": "a4c0b2eabeb913d3e7e41b585c591c14f1619252f9ec08c4c3c5bab612be8fe1",
+      "decoded_pcm_frames": 9100800,
+      "decoded_pcm_duration_s": 189.6,
+      "asset_name": "MUS_Verdance_Main_Full_01",
+      "asset_path": "/Game/TriadDrift/Audio/VerdanceTheme01/MUS_Verdance_Main_Full_01"
+    }
+  ],
+  "processing": "Complete original decoded to48kHz stereo16PCM only; no trimming, gain, fades or looping",
+  "second_version": "Verdance2 catalogued separately; role/replacement/sequence unspecified",
+  "looping_and_transition": "Pending direction and engineering planet hooks"
+}

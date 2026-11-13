@@ -1,0 +1,56 @@
+{
+  "stage": "First Verdance full SoundWave imported and fresh-process readback verified; planet gameplay binding pending",
+  "claim": "2bcc2ded",
+  "native_host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9",
+  "import_guard": {
+    "pid": 22740,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 27.04699999999866,
+    "minimum_free_gib": 2.4446029663085938,
+    "protected_count": 2052,
+    "changed_protected": [],
+    "new_content": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\VerdanceTheme01\\MUS_Verdance_Main_Full_01.uasset": "36f95468e3160ae7ad8c3f0723e830877767920f68504a927d9bd8f9d024ec2b"
+    }
+  },
+  "reload_guard": {
+    "pid": 4992,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 12.828000000001339,
+    "minimum_free_gib": 2.6423072814941406,
+    "protected_count": 2053,
+    "changed_protected": [],
+    "new_content": {}
+  },
+  "readback": {
+    "stage": "Full Verdance Wave verified; runtime planet hook pending",
+    "mode": "reload",
+    "ordered_assets": [
+      {
+        "order": 1,
+        "asset": "/Game/TriadDrift/Audio/VerdanceTheme01/MUS_Verdance_Main_Full_01.MUS_Verdance_Main_Full_01",
+        "sha256": "36f95468e3160ae7ad8c3f0723e830877767920f68504a927d9bd8f9d024ec2b",
+        "bytes": 23695705,
+        "decoded_duration_s": 189.6,
+        "looping": false,
+        "volume": 0.5,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+      }
+    ],
+    "source_order_preserved": true,
+    "crossfade_or_repeat": "Not specified or implemented",
+    "second_version_not_assigned": true
+  },
+  "second_track": "Verdance 2 is catalogued separately; not imported or chosen asreplacement/sequence",
+  "unspecified": [
+    "Planet start/end hooks",
+    "Looping",
+    "Crossfade",
+    "Quietterminal/VOducking"
+  ],
+  "native_slot_released": true
+}

@@ -1,0 +1,34 @@
+{
+ "category": "music",
+ "mix": false,
+ "files": [
+  {
+   "file": "ArtSource/Audio/VerdanceTheme01/export\\MUS_Verdance_Main_Full_01.wav",
+   "codec": "pcm_s16le",
+   "sample_rate": 48000,
+   "channels": 2,
+   "bits": 16,
+   "duration": 189.6,
+   "loudness_lufs": -15.7,
+   "loudness_kind": "integrated",
+   "integrated_lufs": -15.7,
+   "ungated_lufs": null,
+   "lra_lu": 9.9,
+   "true_peak_dbtp": -4.4,
+   "sample_peak_dbfs": -4.422937,
+   "rms_dbfs": -18.779213,
+   "lead_silence_s": 0.0,
+   "tail_silence_s": 0.0,
+   "dc_offset": 0.000229,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}
