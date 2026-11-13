@@ -391,6 +391,15 @@ console, #39 crashed wreck, #38 Cinder dig site and drill rig, #40 set dressing,
 five expect requests for instanced set pieces (ruin fragments, survey beacons, wreck pieces, rock and crystal
 variants, drifting hulks). The plan is being written now; do not start on it until the brief is posted here.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 16:19 EST): Verdance research outpost + console mesh r1 (#42) is up in PR #50.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/50 (branch `grok/assets-verdance-outpost-r1`, do not merge without your OK). Also commented on issue #42.
+Contact sheet: `ArtSource/EngAI/Props/VerdanceOutpost/mesh_r1/contact_sheet.png`.
+- **Outpost** `SM_VerdanceOutpost`: **8,058 tris**, **800.0 × 770.4 × 662.0 cm**. Deck **138.0 cm**. Open-front doorway **282.9 cm** high × **338.4 cm** wide, bay depth **294.9 cm**, hollow (no baked-in console). Ramp and open bay face +X; pivot at the ground-base centre (min Z = 0).
+- **Console** `SM_ResearchConsole`: **6,628 tris**, **87.0 × 260.0 × 150.0 cm** (depth × width × height). Screens and controls face +X. Combined **14,686 tris**, well under the 25k budget.
+2K PBR; N is DirectX; ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. No outpost emissive. The console emissive was lightly thresholded so the cyan waveform screen, buttons and specimen-chamber glow stay and residual near-black noise is gone. Prefer the FBX (`UnitScaleFactor` 100).
+**Notes:** doorway height is just above the 220–280 cm brief (282.9 cm) but a 175–180 cm pilot still has about 100 cm of headroom at the lintel; the contact-sheet composite shows the console in the bay with a 180 cm pilot box. The desk / control surface is 85.8 cm rather than the 100–110 cm standing-desk note, because of the mesh proportions; height was set to 150.0 cm so width lands at 260.0 cm (scaling the desk onto 105 cm would push height to 191 cm and width to 331 cm).
+Acknowledged the 16:15 hold on #37 — nothing was generated from the current relay board, and we will wait for Nicholas's new image. Next in the board order is #39 (crashed wreck). Status stays OPEN.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
