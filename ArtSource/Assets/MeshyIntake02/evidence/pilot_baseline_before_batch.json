@@ -1,0 +1,95 @@
+{
+  "scope": "Private isolated pilot files only; no copy into game Content, no Git/LFS publication, no production availability",
+  "files": [
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\CrimsonTempest\\CrimsonTempest.uasset",
+      "bytes": 382006,
+      "sha256": "e6dc1a3263b073c50e994a04bf90d2ab93e523132ceafd45ca84cb2a49445ba6"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\CrimsonTempest\\CrimsonTempest_material_0.uasset",
+      "bytes": 60695,
+      "sha256": "c0f6da04e8d0e7ad7fb2dc6c242450de6a92341d752b707f2effb6dc22a41151"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\CrimsonTempest\\CrimsonTempest_texture_0.uasset",
+      "bytes": 7467322,
+      "sha256": "42e834dda398f45b40179cb6aad397e54ad08eb1a0967fbe88bfb468050a5123"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\CrimsonTempest\\CrimsonTempest_texture_1.uasset",
+      "bytes": 4695057,
+      "sha256": "1c5310ccafb0053d43ceb491a0d47626bc74880f1a03ab6edbf5268d1f5b3a49"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\CrimsonTempest\\CrimsonTempest_texture_2.uasset",
+      "bytes": 7799618,
+      "sha256": "b4e690002f0d498319d0c15b0ff65d40f5579146160854526c690c9368d48c5c"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\CrimsonTempest\\CrimsonTempest_texture_3.uasset",
+      "bytes": 979766,
+      "sha256": "f9aa800a6f75a26690988604046e1aaaf11612a18e1ac920e09cdcf70163bfbd"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\BakedMaterial.uasset",
+      "bytes": 56833,
+      "sha256": "4d96219eea807529fb9a4d6e647c1319348c7cb1c1058fd7b34f64c5041c5d5c"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\normal.uasset",
+      "bytes": 7099270,
+      "sha256": "8f8958f169c0b8db0d22790689463ab56225a01b989d345b89f887a2435216a2"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmor.uasset",
+      "bytes": 9709729,
+      "sha256": "164552e73f7ee14e8b8b3a36c8a09a98bc62b7483494153c50d48f811e873316"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmorCasual_Walk.uasset",
+      "bytes": 898070,
+      "sha256": "c77e2aaf3563c5cce540be8c2be19e595c51f8dac849d95f628f581377d04068"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmorIdle_02.uasset",
+      "bytes": 447298,
+      "sha256": "e3b2bd4e298769572c996e8ab3a01810c310bda35cad0f0a24c627278371b6f7"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmorIdle_3.uasset",
+      "bytes": 1790422,
+      "sha256": "fa891b61157b0dd2a0ffb00a09888016712a32d4068f17fefe2b7d250a1f8c75"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmorIdle_6.uasset",
+      "bytes": 1168342,
+      "sha256": "8fccad7c5c53ae790ef73ffaae65ab40833b2fcdb7db2f1fafa14f02b669e331"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmorRunning.uasset",
+      "bytes": 350434,
+      "sha256": "b637091fb59d8ff5c4834d41c000bfda9661f488bb5714880c2116118ed0abc8"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmorWalking.uasset",
+      "bytes": 407650,
+      "sha256": "f5d2a3946756ca3848d9f9b1ed91636ef1d94d151801a6db5ac0efd78d8c8370"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\SentinelArmor_Skeleton.uasset",
+      "bytes": 16808,
+      "sha256": "0e715b2ba7a421d344f7a31ef26ec12c0fad4ad38cbb6513f4e89a4c5d277472"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\texture_0.uasset",
+      "bytes": 5303899,
+      "sha256": "6453894badc85898d1eb84df6d61296ffb1f68d7d1016ee165d2118731fb3ae5"
+    },
+    {
+      "path": "C:\\Users\\nicho\\AppData\\Local\\TriadDriftAssetPilot\\Pilot_20261112_2233\\Content\\Pilot\\SentinelArmor\\texture_0_metallic_roughness.uasset",
+      "bytes": 3568208,
+      "sha256": "a4c1864a5b2ed2a12466a810a9d74317e9281052a341070ead7b9b4ed07fa564"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "engine_not_launched": true,
+  "long_counter_5gib_passed": true,
+  "actual_nonzero_child_exit": 7,
+  "injected_monitor_error_caught": true,
+  "owned_child_terminated": true,
+  "owned_child_pid": 17744
+}
