@@ -24,8 +24,9 @@ FLinearColor ATDPickup::ColorOf(ETDPickupType Type)
 	switch (Type)
 	{
 	case ETDPickupType::Hull: return FLinearColor(.25f, 1.f, .35f);
-	case ETDPickupType::Shield: return FLinearColor(.72f, .86f, 1.f);
-	case ETDPickupType::Power: return FLinearColor(.62f, .35f, 1.f);
+	// Live at 200 m the first shield (.72, .86, 1) and power (.62, .35, 1) glowed plain white: more saturated.
+	case ETDPickupType::Shield: return FLinearColor(.42f, .70f, 1.f);
+	case ETDPickupType::Power: return FLinearColor(.55f, .22f, 1.f);
 	default: return FLinearColor(1.f, .92f, .62f);
 	}
 }
@@ -73,7 +74,7 @@ void ATDPickup::Init(ETDPickupType InType, float InLifetime, float InBlinkSecond
 	if (UMaterialInterface* Base = UTDStatics::GetPlaceholderGlowMaterial())
 	{
 		Glow = UMaterialInstanceDynamic::Create(Base, this);
-		const FLinearColor C = ColorOf(Type) * 4.f; // glowing, like the combat placeholders
+		const FLinearColor C = ColorOf(Type) * 2.2f; // glowing; x4 saturated the blue and violet to white (live)
 		Glow->SetVectorParameterValue(TEXT("Color"), C);
 		Glow->SetVectorParameterValue(TEXT("EmissiveColor"), C);
 	}
@@ -94,8 +95,8 @@ void ATDPickup::Init(ETDPickupType InType, float InLifetime, float InBlinkSecond
 		AddPart(Sphere, FVector::ZeroVector, FRotator::ZeroRotator, FVector(.38f) * S);
 		break;
 	case ETDPickupType::Power: // two points, tip to tip outward (a double arrow)
-		AddPart(Cone, FVector(0.f, 0.f, .32f * Size), FRotator::ZeroRotator, FVector(.45f, .45f, .62f) * S);
-		AddPart(Cone, FVector(0.f, 0.f, -.32f * Size), FRotator(180.f, 0.f, 0.f), FVector(.45f, .45f, .62f) * S);
+		AddPart(Cone, FVector(0.f, 0.f, .3f * Size), FRotator::ZeroRotator, FVector(.7f, .7f, .6f) * S);
+		AddPart(Cone, FVector(0.f, 0.f, -.3f * Size), FRotator(180.f, 0.f, 0.f), FVector(.7f, .7f, .6f) * S);
 		break;
 	default: // a cube turned on its corner, with a smaller one inside the other way
 		AddPart(Cube, FVector::ZeroVector, FRotator(45.f, 0.f, 45.f), FVector(.62f) * S);

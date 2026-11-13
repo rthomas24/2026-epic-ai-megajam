@@ -1281,18 +1281,17 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		for (const FView::FPickupMark& M : View.Pickups)
 		{
+			// No marker on the reticle cluster or over the ship (live: three pickups dead ahead piled their labels onto the
+			// reticle); no range text either: the diamond in its colour is enough, the pickup itself is visible.
+			if (M.bOnScreen && (FVector2D::Distance(M.Pos, C) < 72.f || ShipZone().IsInside(M.Pos)))
+			{
+				continue;
+			}
 			const FLinearColor PkC = M.Color;
 			const float R = M.bOnScreen ? 8.f : 7.f;
 			P.Poly(M.Pos, { { 0, -R }, { R, 0 }, { 0, R }, { -R, 0 }, { 0, -R } }, PkC, 2.f);
 			P.Box(M.Pos.X - 2.f, M.Pos.Y - 2.f, 4.f, 4.f, PkC);
-			if (M.bOnScreen)
-			{
-				if (M.Distance > 60.f)
-				{
-					P.BackedWords(M.Pos.X, M.Pos.Y + 12.f, Range(M.Distance), 12, PkC, .5f, 20);
-				}
-			}
-			else
+			if (!M.bOnScreen)
 			{
 				const FVector2D F(FMath::Cos(M.Angle), FMath::Sin(M.Angle));
 				P.Line(M.Pos + F * (R + 2.f), M.Pos + F * (R + 7.f), PkC, 2.f);

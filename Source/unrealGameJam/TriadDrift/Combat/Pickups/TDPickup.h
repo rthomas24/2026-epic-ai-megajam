@@ -44,7 +44,7 @@ public:
 	static const TCHAR* WordOf(ETDPickupType Type);
 
 	/** Visible size (cm across): readable at range, small next to a ship. */
-	static constexpr float Size = 260.f;
+	static constexpr float Size = 340.f;
 
 private:
 	UPROPERTY(VisibleAnywhere)

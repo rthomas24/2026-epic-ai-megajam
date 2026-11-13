@@ -23,6 +23,8 @@ namespace TDPickups
 		TEXT("Space pickups (hull repair, shield cell, power cell, overcharge): 1 on, 0 off (today's game exactly)."), ECVF_Default);
 	static const FName OverchargeKey(TEXT("Overcharge"));
 	static TAutoConsoleVariable<int32> CVarLog(TEXT("td.Pickups.Log"), 0, TEXT("1: log each kill's drop decision."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarDevChance(TEXT("td.Pickups.DevChance"), -1.f,
+		TEXT("Dev / captures: >= 0 replaces every kill's drop chance (1 = every kill drops, caps still apply). -1 = the tuning."), ECVF_Default);
 }
 
 bool UTDPickupSubsystem::IsEnabled()
@@ -189,7 +191,8 @@ int32 UTDPickupSubsystem::HandleKill(AActor* Victim, AActor* Killer)
 	const FName Id = Enemy->GetEnemyId();
 	const bool bCarrier = Id == TDEnemyIds::HiveCarrier;
 	const int32 Tries = bCarrier ? Tuning.CarrierDrops : 1;
-	const float Chance = bCarrier ? 1.f : (Id == TDEnemyIds::ShardFighter ? Tuning.FighterChance : Tuning.MidChance);
+	const float DevChance = TDPickups::CVarDevChance.GetValueOnGameThread();
+	const float Chance = DevChance >= 0.f ? DevChance : bCarrier ? 1.f : (Id == TDEnemyIds::ShardFighter ? Tuning.FighterChance : Tuning.MidChance);
 	for (int32 T = 0; T < Tries; ++T)
 	{
 		ETDPickupType Type;
@@ -415,6 +418,9 @@ namespace TDPickups
 			const ETDPickupType Type = S.StartsWith(TEXT("S")) ? ETDPickupType::Shield : S.StartsWith(TEXT("P")) ? ETDPickupType::Power
 				: S.StartsWith(TEXT("O")) ? ETDPickupType::Overcharge : ETDPickupType::Hull;
 			const float Metres = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 40.f;
-			UTDPickupSubsystem::SpawnPickup(World, Type, Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * Metres * 100.f);
+			const float Right = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 0.f;
+			const float Up = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 0.f;
+			UTDPickupSubsystem::SpawnPickup(World, Type, Pawn->GetActorLocation() + (Pawn->GetActorForwardVector() * Metres
+				+ Pawn->GetActorRightVector() * Right + Pawn->GetActorUpVector() * Up) * 100.f);
 		}));
 }
