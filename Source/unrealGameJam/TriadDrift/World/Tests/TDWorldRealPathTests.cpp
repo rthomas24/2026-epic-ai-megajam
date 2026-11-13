@@ -4,7 +4,9 @@
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
+#include "TriadDrift/Flight/TDShip.h"
 
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
@@ -155,6 +157,44 @@ bool FTDWorldKeepOut::RunTest(const FString& Parameters)
 	TestEqual(TEXT("no asteroid inside a gate / return point / player-start keep-out (default seed)"), Violations, 0);
 	TestEqual(TEXT("asteroid scale is uniform (visible rock = its collision sphere)"), NonUniform, 0);
 	TestTrue(TEXT("still a proper belt"), Ast->GetInstanceCount() > 100);
+	return true;
+}
+
+// T1 / T5 playtest: ~3 s after arriving back at a planet orbit the ship popped to near the centre. Cause: the
+// orbit gate sat on the straight line home. With the real game instance and the real galaxy, a player ship
+// left hands-off at each orbit return point (the wave starting) never moves more than its own flight in a frame.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldNoPopAfterReturn, "TriadDrift.World.RealPath.NoPositionJumpAfterReturningFromAPlanet", TD_TEST_FLAGS)
+bool FTDWorldNoPopAfterReturn::RunTest(const FString& Parameters)
+{
+	for (const FName Return : { TDReturnPoints::VerdanceOrbit, TDReturnPoints::CinderOrbit })
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		if (!TestNotNull(TEXT("game instance"), GI)) { return false; }
+		GI->SetPhase(ETDGamePhase::Waves3to4);	// back from the planet: the next waves are on
+		ATDGalaxyLayout* G = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+		FTransform Orbit;
+		if (!TestTrue(TEXT("orbit return point"), G && G->FindReturnPoint(Return, Orbit))) { return false; }
+		ATDShip* Ship = W.Spawn<ATDShip>(Orbit.GetLocation(), Orbit.Rotator());
+		Ship->SetPlayerControlled(true);
+		W.SpawnPlayerController(Ship);
+		FTDFlightInput In;
+		In.Throttle = 0.f;	// cruise, hands off
+		Ship->SetFlightInput(In);
+		if (UTDHealthComponent* H = Ship->GetHealth()) { H->SetInvulnerable(true); }
+		float MaxJump = 0.f;
+		FVector Prev = Ship->GetActorLocation();
+		const float Step = 1.f / 60.f;
+		for (int32 i = 0; i < 60 * 12; ++i)
+		{
+			W.Tick(Step);
+			const float Moved = FVector::Dist(Prev, Ship->GetActorLocation());
+			MaxJump = FMath::Max(MaxJump, Moved - Ship->GetVelocity().Size() * Step);
+			Prev = Ship->GetActorLocation();
+		}
+		TestTrue(*FString::Printf(TEXT("%s: never jumps (largest move beyond its own flight: %.0f cm)"), *Return.ToString(), MaxJump), MaxJump < 500.f);
+		TestTrue(*FString::Printf(TEXT("%s: still on its way home, not at the centre"), *Return.ToString()), FVector::Dist(Ship->GetActorLocation(), Orbit.GetLocation()) < 120000.f);
+	}
 	return true;
 }
 

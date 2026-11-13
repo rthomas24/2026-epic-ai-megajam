@@ -406,7 +406,9 @@ bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
 	}
 	Pad = InPad;
 	PauseFlight(true);
+	if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetMoveAnnounced(true); }
 	Ship->SetActorLocationAndRotation(TouchPoint(), PadFacing(), false, nullptr, ETeleportType::TeleportPhysics);
+	if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetMoveAnnounced(false); }
 	bGearDown = true;
 	bEnginesOn = false;
 	bCanopyOpen = true;

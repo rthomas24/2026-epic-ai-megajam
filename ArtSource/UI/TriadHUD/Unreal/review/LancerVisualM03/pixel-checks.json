@@ -1,0 +1,33 @@
+{
+  "method": "Decoded final native PNG pixels; amber caption ink vs actual viewport/reticle anchor. Full inactive-card rectangles compared between matched before/after.",
+  "inactive_cards": [
+    {
+      "name": "Rift",
+      "pixels_compared": 69776,
+      "changed_pixels": 0
+    },
+    {
+      "name": "Bastion",
+      "pixels_compared": 69776,
+      "changed_pixels": 0
+    }
+  ],
+  "kill_caption_centering": [
+    {
+      "file": "05-lancer-activation-damage-1080p.png",
+      "min_x": 867,
+      "max_x": 1052,
+      "ink_center_x": 959.5,
+      "reticle_anchor_x": 960,
+      "error_px": -0.5
+    },
+    {
+      "file": "06-lancer-cooldown-720p.png",
+      "min_x": 579,
+      "max_x": 699,
+      "ink_center_x": 639.0,
+      "reticle_anchor_x": 640,
+      "error_px": -1.0
+    }
+  ]
+}

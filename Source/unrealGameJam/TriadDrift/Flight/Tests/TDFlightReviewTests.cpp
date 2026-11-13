@@ -2,6 +2,7 @@
 // collisions and events, camera, input routing. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Flight
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "Misc/ScopeExit.h"
@@ -1144,6 +1145,53 @@ bool FTDReviewDodge::RunTest(const FString& Parameters)
 		W.Tick();
 	}
 	TestTrue(TEXT("allowed again afterwards"), Ship->TryDodge(1.f));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewSilentMove, "TriadDrift.Flight.Review.SilentMoveWatchdog", TD_TEST_FLAGS)
+bool FTDReviewSilentMove::RunTest(const FString& Parameters)
+{
+	// For T4's hunt (a ship jumped ~3 km about 3 s after returning to orbit, with no hyperdrive or teleport event):
+	// any move over 50 m that is neither a flight step nor TeleportSpacecraft is counted (and logged with the
+	// mover's callstack for the player's ship).
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	In.bBoost = true;
+	Ship->SetFlightInput(In);
+	W.Advance(2.f);
+	TestEqual(TEXT("flying and boosting: nothing counted"), Move->GetSilentMoveCount(), 0);
+	Ship->TeleportSpacecraft(Ship->GetActorLocation() + FVector(300000.f, 0.f, 0.f), FRotator::ZeroRotator, true);
+	W.Tick();
+	TestEqual(TEXT("an announced teleport (portal, return point): not counted"), Move->GetSilentMoveCount(), 0);
+	Ship->SetPlayerControlled(true);
+	TestTrue(TEXT("hyperdrive spool"), Ship->GetHyperdrive()->RequestSpoolFromPilot());
+	W.Advance(3.f);
+	TestEqual(TEXT("a hyperdrive jump is flight: not counted"), Move->GetSilentMoveCount(), 0);
+	Ship->SetActorLocation(Ship->GetActorLocation() + FVector(0.f, 350000.f, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
+	W.Tick();
+	TestEqual(TEXT("a silent 3.5 km move is counted"), Move->GetSilentMoveCount(), 1);
+	TestEqual(TEXT("and measured"), Move->GetLargestSilentMove(), 350000.f, 100.f);
+	Ship->SetActorLocation(Ship->GetActorLocation() + FVector(0.f, 1000.f, 0.f));
+	TestEqual(TEXT("small nudges (landing steps, collisions) are not"), Move->GetSilentMoveCount(), 1);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewDodgeCue, "TriadDrift.Flight.Review.DodgeRequestsItsCue", TD_TEST_FLAGS)
+bool FTDReviewDodgeCue::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+	Ship->SetShipVisuals(NewObject<UTDShipVisuals>()); // empty slots: the request happens, nothing plays
+	Ship->SetPlayerControlled(true);
+	W.Tick();
+	TestEqual(TEXT("no dodge yet"), Ship->GetCueRequestCount(TEXT("Dodge")), 0);
+	TestTrue(TEXT("dodge"), Ship->TryDodge(1.f));
+	TestEqual(TEXT("the Dodge cue is requested once per dodge"), Ship->GetCueRequestCount(TEXT("Dodge")), 1);
+	TestFalse(TEXT("refused on cooldown"), Ship->TryDodge(1.f));
+	TestEqual(TEXT("no cue for a refused dodge"), Ship->GetCueRequestCount(TEXT("Dodge")), 1);
 	return true;
 }
 
