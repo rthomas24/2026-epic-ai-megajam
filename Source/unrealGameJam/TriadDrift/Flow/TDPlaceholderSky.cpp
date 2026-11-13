@@ -198,31 +198,49 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 	}
 	if (Style == ETDPlaceholderSkyStyle::Verdance && Atmosphere)
 	{
-		Sun->SetWorldRotation(FRotator(-9.f, 200.f, 0.f));
-		Sun->SetIntensity(4.f);
-		Sun->SetLightColor(FLinearColor(1.f, 0.78f, 0.62f));
+		// Environment pass (Nov 13): a late-afternoon sun high enough to light the valleys, a teal fill from the far side
+		// (the old fill came from the sun's side: every shadow was black), fixed exposure, squad colours stay readable.
+		Sun->SetWorldRotation(FRotator(-24.f, 200.f, 0.f));
+		Sun->SetIntensity(9.f);
+		Sun->SetLightColor(FLinearColor(1.f, 0.86f, 0.70f));
 		Atmosphere->SetRayleighScattering(FLinearColor(0.0035f, 0.02f, 0.03f));
-		if (Fill) { Fill->SetLightColor(FLinearColor(0.35f, 0.9f, 0.85f)); Fill->SetIntensity(1.2f); }
-		SkyLight->SetIntensity(1.f);
+		Atmosphere->SetAerialPespectiveViewDistanceScale(1.f);
+		Atmosphere->SetMieScatteringScale(0.0015f);
+		if (Fill) { Fill->SetWorldRotation(FRotator(-35.f, 20.f, 0.f)); Fill->SetLightColor(FLinearColor(0.30f, 0.80f, 0.90f)); Fill->SetIntensity(3.f); }
+		SkyLight->SetIntensity(2.f);
 		FPostProcessSettings& S = Exposure->Settings;
+		S.bOverride_AutoExposureMethod = true;
+		S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
+		S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
-		S.AutoExposureBias = -0.7f;
+		S.AutoExposureBias = 0.f;
 		S.bOverride_BloomIntensity = true;
-		S.BloomIntensity = 1.4f;
+		S.BloomIntensity = 0.9f;
+		S.bOverride_BloomThreshold = true;
+		S.BloomThreshold = 1.2f;
 	}
 	else if (Style == ETDPlaceholderSkyStyle::Cinder && Atmosphere)
 	{
+		// Environment pass (Nov 13): a red sun through ember haze, an ember fill from the far side, fixed exposure.
 		Sun->SetWorldRotation(FRotator(-22.f, 130.f, 0.f));
-		Sun->SetIntensity(6.f);
-		Sun->SetLightColor(FLinearColor(1.f, 0.55f, 0.35f));
+		Sun->SetIntensity(8.f);
+		Sun->SetLightColor(FLinearColor(1.f, 0.62f, 0.42f));
 		Atmosphere->SetRayleighScattering(FLinearColor(0.03f, 0.011f, 0.005f));
-		Atmosphere->SetMieScatteringScale(0.012f);
-		if (Fill) { Fill->SetLightColor(FLinearColor(1.f, 0.4f, 0.2f)); Fill->SetIntensity(1.2f); }
+		Atmosphere->SetMieScatteringScale(0.004f);
+		if (Fill) { Fill->SetWorldRotation(FRotator(-30.f, 310.f, 0.f)); Fill->SetLightColor(FLinearColor(0.8f, 0.45f, 0.35f)); Fill->SetIntensity(1.2f); }
+		SkyLight->SetIntensity(2.f);
 		FPostProcessSettings& S = Exposure->Settings;
+		S.bOverride_AutoExposureMethod = true;
+		S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
+		S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
-		S.AutoExposureBias = -0.4f;
+		S.AutoExposureBias = 0.f;
 		S.bOverride_BloomIntensity = true;
-		S.BloomIntensity = 1.3f;
+		S.BloomIntensity = 1.f;
+		S.bOverride_BloomThreshold = true;
+		S.BloomThreshold = 1.f;
 	}
 	SkyLight->RecaptureSky();
 }
@@ -277,13 +295,20 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 		// Thick only near the ground and far away: a steep falloff (density halves every ~0.4 km of height) keeps the
 		// view down from the arrival altitude (~220 m) clear, and the start distance keeps the arrival's ground
 		// (lava cracks, spires, the outpost) out of the haze; the horizon still melts into the tint.
-		BaseFogDensity = bVerdance ? 0.03f : 0.035f;
+		BaseFogDensity = bVerdance ? 0.006f : 0.008f;
 		HorizonFog->SetFogDensity(BaseFogDensity);
-		HorizonFog->SetFogHeightFalloff(1.8f);
-		HorizonFog->SetStartDistance(25000.f);
+		HorizonFog->SetFogHeightFalloff(bVerdance ? 0.08f : 0.06f);
+		HorizonFog->SetStartDistance(bVerdance ? 150000.f : 120000.f);
 		HorizonFog->SetFogMaxOpacity(1.f);
-		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.10f, 0.32f, 0.28f) : FLinearColor(0.42f, 0.16f, 0.05f));
-		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.35f, 0.45f, 0.35f) : FLinearColor(0.6f, 0.3f, 0.12f));
+		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.04f, 0.20f, 0.22f) : FLinearColor(0.16f, 0.05f, 0.025f));
+		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.10f, 0.20f, 0.18f) : FLinearColor(0.35f, 0.13f, 0.05f));
+		{
+			// Environment pass: the first layer is the valley mist (thins out ~125 m up); the second is the aerial haze
+			// that reaches flight altitude (thins out ~3 km up), so from 5 km the horizon fades instead of ending.
+			HorizonFog->SetSecondFogDensity(bVerdance ? 0.0016f : 0.0012f);
+			HorizonFog->SetSecondFogHeightFalloff(0.003f);
+			HorizonFog->SetSecondFogHeightOffset(0.f);
+		}
 		HorizonFog->SetVisibility(true);
 	}
 }
