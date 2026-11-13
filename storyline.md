@@ -649,3 +649,28 @@ Ryan's Lead; Nicholas finalises the dialogue and the next cinematic.
 5. The length: 4-6 minutes; today's two objectives are not measured against it (T5 to time them on the new terrain).
 6. Cinematic 06 is not written; until it is, the departure carries `A3_PassageOpen` or its replacement (T3).
 7. The pursuit on the way out: today's "run as the tower collapses" stands in for it, with no extra spawns?
+
+## 22. Cinder scope: the decision on sections 19-21
+**Decided by Ryan, Nov 13 (15:06 EST): Cinder is built in the reduced form, about 6-8 minutes from atmosphere to
+take-off.** Details per question: `docs/story/cinder-scope-questions.md`.
+
+| Part | Reduced form (what gets built) | Owner |
+|---|---|---|
+| Approach in space (no added length) | Waves 3-4 stay between the planets and are told, by lines only, as the interception on the Cinder route. Transports that ignore the squad fly past (the convoy lane shared with Verdance). No scan or route-marking action; the dig's glow shows from orbit | T4, T3 (lines) |
+| Descent and route to the station (1.5-2 min) | The descent (ENG-38), the landing, then a short marked route past one existing patrol to a survey station on the rim of the dig. One echo of a Kato line | T1, T5, T3 |
+| The survey station | One open-sided station re-using the Verdance station kit, holding the terminal; not a walk-in facility. The terminal is usable once the patrol is dead or left behind | Prop builder, T5 |
+| Cinematic 05, *The Pattern* (40-50 s) | Voice over the terminal with the Verdance monitor graphic plus a Cinder layer; the echo; the two markers. Built in the single cutscene pass, ranked below the opening and Cinematic 03 and above Cinematic 04. Fallback: five transmissions | T3, with T2 |
+| Secure the excavation, recover the crystals (2-2.5 min) | Today's outpost objective renamed: gate, the areas, the Warden, and the claim becomes the crystal cache, awarding EMP Pulse as now. No new enemy AI | T5 |
+| Disable the field anchor and extract (1.5-2 min) | Today's jammer objective renamed: bridges, three charges, and the run from the collapsing tower is the return to extraction. A corridor marker appears on the HUD at shutdown | T5, with T2 |
+| Order | Fixed: terminal, then excavation, then anchor (today the two objectives can be done in either order) | T5 |
+| Departure | Two or three transmissions over the take-off (Cinematic 06 is not written) | T3 |
+| Wave 5 and the field | Wave 5 stays after Cinder. **One rule: the distortion field opens when Cinder is finished and wave 5 is cleared**; no new corridor geometry. The four generators are still the Dominion's shield | T4 |
+| Heat or shielding, co-op | No mechanic; solo | - |
+
+**Unchanged:** both Cinder objectives, the Warden and its mercy tiers, the EMP reward, waves 3-5, the 20-30 minute
+target for the whole game, and the rule that nothing reveals the twist before the Dominion.
+**Correction to section 18:** the Cinder survey station sits at the mining complex; it does not replace it.
+**With Nicholas (story words, issue #29):** one sentence each for what the crystals, the anchor and the four
+generators do to the field; where "the signal data" comes from now (the relay?); which echo lines are used (his
+single Kato echo, our three placeholder `A3_Echo*` lines, or both); where the EMP comes from if not the crystals;
+who wants the crystals (the machines, or Triad); whether "Origin Core" is spoken on Cinder.
