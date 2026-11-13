@@ -44,8 +44,15 @@ def probe():
     for item in summary['emitters']:
         name = item['emitterName']
         target = {'system': {'refPath': template}, 'emitterName': name}
-        topologies[name] = {'topology': tool('GetEmitterTopology', emitterRef=target),
-                            'data': tool('GetEmitterData', emitterRef=target)}
+        topology = tool('GetEmitterTopology', emitterRef=target)
+        renderers = []
+        for renderer in topology['renderers']:
+            renderer_ref = dict(target, rendererIndex=renderer['rendererIndex'])
+            renderers.append({'reference': renderer_ref,
+                'data': tool('GetRendererData', rendererRef=renderer_ref),
+                'schema': tool('GetRendererSchema', rendererClass=renderer['rendererClass'])})
+        topologies[name] = {'topology': topology, 'data': tool('GetEmitterData', emitterRef=target),
+            'input_values': tool('GetEmitterInputValues', emitterRef=target), 'renderers': renderers}
     write('template_topologies.json', topologies)
     return {'template': template, 'emitters': [e['emitterName'] for e in summary['emitters']], 'engine_template_saved': False}
 
