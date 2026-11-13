@@ -113,7 +113,7 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 	// Far ring: one coarse grid from the core edge to the far edge (a hole in the middle), no collision.
 	{
 		const float Far = S.FarHalfSize;
-		const int32 N = 96;
+		const int32 N = FMath::Max(2, FMath::RoundToInt(2.f * Far / ChunkSize));	// 1 km cells: aligned with the core chunks
 		const float Step = 2.f * Far / N;
 		TArray<FVector> V; TArray<int32> Tri; TArray<FVector> Nrm; TArray<FVector2D> UV0, UV1; TArray<FColor> Col; TArray<FProcMeshTangent> Tan;
 		for (int32 j = 0; j <= N; ++j)
@@ -122,10 +122,12 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 			{
 				const float X = -Far + i * Step, Y = -Far + j * Step;
 				const FTDTerrainSample Sm = Field->Sample(X, Y, Step * 0.5f);
-				// Sink the inner part under the core so the two never fight.
-				const bool bInner = FMath::Max(FMath::Abs(X), FMath::Abs(Y)) < S.CoreHalfSize - Step;
-				V.Add(FVector(X, Y, bInner ? Sm.Height - 20000.f : Sm.Height));
-				Nrm.Add(FVector::UpVector);
+				// True heights everywhere (the old sunk inner part made slabs at the core edge: pale flat patches);
+				// the quads inside the core are skipped below, so the ring is a ring. Real normals.
+				V.Add(FVector(X, Y, Sm.Height));
+				const float HX = Field->Height(X + Step * 0.5f, Y) - Field->Height(X - Step * 0.5f, Y);
+				const float HY = Field->Height(X, Y + Step * 0.5f) - Field->Height(X, Y - Step * 0.5f);
+				Nrm.Add(FVector(-HX, -HY, Step).GetSafeNormal());
 				UV0.Add(FVector2D(X, Y) / 1000.f);
 				UV1.Add(FVector2D(Sm.Height / 100.f, Sm.Slope));
 				Col.Add(FLinearColor(Sm.Height01, Sm.Slope, Sm.BroadMask, Sm.FineMask).ToFColor(false));
@@ -135,6 +137,9 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 		{
 			for (int32 i = 0; i < N; ++i)
 			{
+				// Skip the quads inside the core: the grid is aligned to the chunks, so the ring's inner edge is the core's edge.
+				const float QX = -Far + (i + 0.5f) * Step, QY = -Far + (j + 0.5f) * Step;
+				if (FMath::Max(FMath::Abs(QX), FMath::Abs(QY)) < S.CoreHalfSize) { continue; }
 				const int32 A = j * (N + 1) + i, B = A + 1, C = A + N + 1, D = C + 1;
 				Tri.Append({ A, C, B, B, C, D });
 			}
@@ -260,7 +265,11 @@ int32 ATDPlanetTerrain::WantedLod(const FChunk& C, const FVector2D& View) const
 {
 	const FVector2D Centre((C.Cell.X + 0.5f) * ChunkSize, (C.Cell.Y + 0.5f) * ChunkSize);
 	const float D = FMath::Max(0.f, FVector2D::Distance(Centre, View) - ChunkSize * 0.7f);
-	return D < Lod0Distance ? 0 : (D < Lod1Distance ? 1 : 2);
+	const int32 Lod = D < Lod0Distance ? 0 : (D < Lod1Distance ? 1 : 2);
+	// Silhouettes the player looks at from the course keep their shape: the hero peak never drops below LOD1.
+	const FTDTerrainStyle& S = Field->GetStyle();
+	const bool bHero = FVector2D::Distance(Centre, S.HeroCentre) < S.HeroRadius + ChunkSize;
+	return bHero ? FMath::Min(Lod, 1) : Lod;
 }
 
 void ATDPlanetTerrain::Tick(float DeltaSeconds)

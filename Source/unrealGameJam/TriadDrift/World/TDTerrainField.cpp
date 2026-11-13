@@ -52,9 +52,9 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 		S.Seed = 4242;
 		S.HillHeight = 22000.f;
 		S.HillScale = 240000.f;
-		S.MountainHeight = 115000.f;
-		S.MountainScale = 340000.f;
-		S.Sharpness = 0.6f;
+		S.MountainHeight = 135000.f;
+		S.MountainScale = 300000.f;
+		S.Sharpness = 0.85f;
 		S.Warp = 140000.f;
 		S.GullyAmount = 0.16f;
 		// The massif: a great ridged mountain east of the course.
@@ -228,9 +228,16 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 			}
 			else
 			{
-				// A great ridged massif: a broad dome shaped by the ranges' own ridges.
-				const float Dome = FMath::Square(FMath::Cos(D * HALF_PI));
-				H = FMath::Max(H, Dome * Style.HeroHeight * (0.55f + 0.45f * Mount) + H * 0.3f);
+				// An alpine massif: a broken summit line of arêtes and spires, buttress ridges running down into the
+				// jungle. A falloff envelope times sharp ridged noise at the massif's own scale, plus radial buttresses.
+				const FVector2D Rel = FVector2D(X, Y) - Style.HeroCentre;
+				const float Env = FMath::Pow(FMath::Clamp(1.f - D, 0.f, 1.f), 1.25f);
+				const float Alp = Ridged(Rel.X / (Style.HeroRadius * 0.32f), Rel.Y / (Style.HeroRadius * 0.32f), 5, S + 121, 1.f);
+				const float Ang = FMath::Atan2(Rel.Y, Rel.X);
+				const float Buttress = FMath::Pow(FMath::Abs(FMath::Cos(Ang * 3.5f + Noise2D(Rel.X / 90000.f, Rel.Y / 90000.f, S + 123) * 1.2f)), 6.f);
+				const float Spires = FMath::Pow(FMath::Max(0.f, Noise2D(Rel.X / 26000.f, Rel.Y / 26000.f, S + 125)), 3.f);
+				const float Shape = Env * (0.45f + 0.4f * Alp + 0.25f * Buttress * (1.f - Env * 0.6f)) + Spires * Env * Env * 0.25f;
+				H = FMath::Max(H, FMath::Min(Shape, 1.f) * Style.HeroHeight);
 			}
 		}
 	}
