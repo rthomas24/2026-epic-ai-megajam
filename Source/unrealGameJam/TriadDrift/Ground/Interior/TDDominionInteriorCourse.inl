@@ -9,6 +9,7 @@
 // Story (storyline.md act 4): every door opens to the pilot's ID; one console per room plays a recording.
 
 ATDPlanetCourse::FTDOnFieldAnchorDisabled ATDPlanetCourse::OnFieldAnchorDisabled;
+ATDPlanetCourse::FTDOnFinalRecord ATDPlanetCourse::OnFinalRecordStarted;
 
 namespace TDInteriorImpl
 {
@@ -181,14 +182,16 @@ void ATDPlanetCourse::BuildInterior()
 	};
 	// One story console per room (storyline.md act 4: a recording in each room, older and older-sounding voices).
 	// The kit console's screen faces -X, where its user stands: Yaw turns that side toward the room.
-	auto StoryConsole = [this](const FVector& At, float Yaw, const TCHAR* Room)
+	auto StoryConsole = [this](const FVector& At, float Yaw, const TCHAR* Room) -> ATDInteractableActor*
 	{
-		// The origin is the box centre: 65 cm up so the 130 cm console stands on the deck.
-		ATDInteractableActor* C = SpawnProp<ATDInteractableActor>(At + FVector(0.f, 0.f, 65.f), FRotator(0.f, Yaw, 0.f));
+		// The origin is the box centre: 65 cm up so the 130 cm console stands on the deck. A recording never competes
+		// with a fight (story 07-09, b3): it answers only with no crewman within 15 m.
+		ATDSurveyTerminal* C = SpawnProp<ATDSurveyTerminal>(At + FVector(0.f, 0.f, 65.f), FRotator(0.f, Yaw, 0.f));
 		if (!C)
 		{
-			return;
+			return nullptr;
 		}
+		C->bAnnounceRecords = false;
 		C->Prompt = LOCTEXT("StoryConsole", "Play the recording");
 		C->HoldTime = 0.f;
 		C->bSingleUse = true;
@@ -198,6 +201,7 @@ void ATDPlanetCourse::BuildInterior()
 		UTDStatics::TintPlaceholder(C->Mesh, FLinearColor(0.3f, 0.85f, 1.f), 1.5f);
 		C->OnInteracted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStoryConsole);
 		StoryConsoles.Add(C, FName(*FString::Printf(TEXT("A4_Recording_%s"), Room)));
+		return C;
 	};
 	auto Entry = [this](FName Id, const FVector& At, float Yaw)
 	{
@@ -228,6 +232,10 @@ void ATDPlanetCourse::BuildInterior()
 	ATDDoor* ArenaIn = Doorway(CX1, true);
 	ATDDoor* ArenaOut = Doorway(AX1, true);
 	ATDDoor* WardenIn = Doorway(L1X1, true);
+	if (WardenIn)
+	{
+		WardenIn->AccessText = LOCTEXT("DIWardenDoor", "ACCESS GRANTED · WREN · KATO · MOSS"); // story 07-09: the security system knows all three
+	}
 	ATDDoor* WardenOut = Doorway(WX1, true);
 	ATDDoor* CoreIn = Doorway(L2X1, true);
 
@@ -281,9 +289,11 @@ void ATDPlanetCourse::BuildInterior()
 
 	// --- Objectives, in order -------------------------------------------------------------------------
 	Entry(NAME_None, FVector(-600.f, 0.f, 40.f), 0.f); // the hangar start (T4's docking travels to "Hangar")
+	// Kato on arrival in the hangar (first visit: the story fires once per run).
+	GetWorldTimerManager().SetTimerForNextTick([this]() { UTDStorySubsystem::Fire(this, TEXT("C7_Kato_Layout")); });
 
 	// 1. The deflect lesson: two troopers at the corridor's far end, behind low cover, firing down the lane.
-	ATDObjective* Lesson = MakeObjective(Corridor, LOCTEXT("DICorridorTitle", "Into the Dominion"), ETDAbilityId::None, ETDShipId::Rift, 2);
+	ATDObjective* Lesson = MakeObjective(Corridor, LOCTEXT("DICorridorTitle", "Reach the Command Archive"), ETDAbilityId::None, ETDShipId::Rift, 2);
 	AddTrailhead(Lesson, FVector(600.f, 0.f, 0.f), Strip, LOCTEXT("DIHangarDoor", "THE HANGAR DOOR"));
 	StepDoors.Add({ Lesson, 0, HangarDoor });
 	const FBox CoverBox(FVector(-30.f, -100.f, 0.f), FVector(30.f, 100.f, 110.f));
@@ -348,15 +358,25 @@ void ATDPlanetCourse::BuildInterior()
 
 	// 4. The core: break the four shield conduits, then strike the heart (the orbs, the laser and the deflect-only
 	// heart come in step 4 of the plan; this is the finishable skeleton).
-	ATDObjective* Reactor = MakeObjective(Core, LOCTEXT("DICoreTitle", "The Reactor Core"), ETDAbilityId::None, ETDShipId::Rift, 2);
-	AddTrailhead(Reactor, FVector(L2X1 + 500.f, 0.f, 0.f), CoreGlow, LOCTEXT("DICore", "THE CORE"));
+	ATDObjective* Reactor = MakeObjective(Core, LOCTEXT("DICoreTitle", "The Reactor"), ETDAbilityId::None, ETDShipId::Rift, 2);
+	AddTrailhead(Reactor, FVector(L2X1 + 500.f, 0.f, 0.f), CoreGlow, LOCTEXT("DICore", "THE REACTOR"));
 	Trailheads.Last().After = Gate;
-	StepDoors.Add({ Reactor, 0, CoreIn });
+	ReactorDoor = CoreIn; // opens when the final record has played (TickFinalRecord), not on the fight's start
+	{
+		ATDEncounterVolume* Drones = Encounter(Reactor, INDEX_NONE, CoreAt + FVector(0.f, 0.f, 700.f), FVector(10.f),
+			{ ETDCrewType::Drone, ETDCrewType::Drone }, false, 1400.f);
+		if (Drones)
+		{
+			FTDRetakeMercyTier DroneMercy3; DroneMercy3.FromTake = 3; DroneMercy3.DropCrew = 1;
+			Drones->MercyTiers = { DroneMercy3 };
+			StepEncounters.Add({ Reactor, 0, Drones });
+		}
+	}
 	ATDStepCounter* Conduits = SpawnProp<ATDStepCounter>(CoreAt);
 	Conduits->LinkedObjective = Reactor;
 	Conduits->LinkedStep = 0;
 	Conduits->Required = 4;
-	Conduits->BaseText = LOCTEXT("DIConduits", "BREAK THE SHIELD CONDUITS");
+	Conduits->BaseText = LOCTEXT("DIConduits", "BREAK THE REACTOR CONDUITS");
 	TDCourseImpl::FinishProp(Conduits);
 	for (int32 i = 0; i < 4; ++i)
 	{
@@ -372,6 +392,10 @@ void ATDPlanetCourse::BuildInterior()
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
+		if (UTDHealthComponent* H = UTDStatics::GetHealth(C))
+		{
+			H->OnDeath.AddUniqueDynamic(this, &ATDPlanetCourse::HandleConduitDown);
+		}
 	}
 	// Outside the kit core's base ring (live run, Nov 13: at -480 it sat buried inside the base, unreachable).
 	ATDShatterCrystal* Heart = SpawnProp<ATDShatterCrystal>(CoreAt + FVector(-760.f, 0.f, 0.f));
@@ -389,13 +413,17 @@ void ATDPlanetCourse::BuildInterior()
 	HeartDone->LinkedObjective = Reactor;
 	HeartDone->LinkedStep = 1;
 	HeartDone->Required = 1;
-	HeartDone->BaseText = LOCTEXT("DIHeart", "STRIKE THE HEART");
+	HeartDone->BaseText = LOCTEXT("DIHeart", "DESTROY THE REACTOR HEART");
 	TDCourseImpl::FinishProp(HeartDone);
 	HeartDone->WatchDestructible(Heart);
 	Checkpoint(Reactor, 0, FVector(L2X1 + 300.f, 0.f, 0.f), 0.f);
-	FinishObjective(Reactor, { LOCTEXT("DIK0", "BREAK THE SHIELD CONDUITS  0 / 4"), LOCTEXT("DIK1", "STRIKE THE HEART") }, { Conduits, Heart });
+	FinishObjective(Reactor, { LOCTEXT("DIK0", "BREAK THE REACTOR CONDUITS  0 / 4"), LOCTEXT("DIK1", "DESTROY THE REACTOR HEART") }, { Conduits, Heart });
 	Entry(Core, FVector(L2X1 - 300.f, 0.f, 0.f), 0.f);
-	StoryConsole(FVector(L2X1 + 400.f, -KY + 400.f, 0.f), 180.f, TEXT("Core"));
+	FinalRecordConsole = StoryConsole(FVector(WX1 - 350.f, -WY + 350.f, 0.f), 0.f, TEXT("Core")); // mandatory: on the main route, after the Warden
+	if (ATDInteractableActor* Rec = Cast<ATDInteractableActor>(FinalRecordConsole))
+	{
+		Rec->Prompt = LOCTEXT("FinalRecord", "Play the final record");
+	}
 
 	// 5. The escape run: back to the ship against the clock, debris falling (a CUT restarts the run, not the fight).
 	ATDObjective* Run = MakeObjective(Escape, LOCTEXT("DIEscapeTitle", "Get Out"), ETDAbilityId::None, ETDShipId::Rift, 1);
@@ -428,6 +456,7 @@ void ATDPlanetCourse::HandleInteriorObjectiveCompleted(ATDObjective* Objective)
 	}
 	if (Objective->ObjectiveId == Core)
 	{
+		UTDStorySubsystem::Fire(this, TEXT("G8_Command_ReactorLost"));
 		if (GI)
 		{
 			GI->GetMutableProgress().bReactorDestroyed = true; // T4 rebuilds the burning Dominion from this
@@ -441,6 +470,7 @@ void ATDPlanetCourse::HandleInteriorObjectiveCompleted(ATDObjective* Objective)
 	}
 	else if (Objective->ObjectiveId == Escape)
 	{
+		UTDStorySubsystem::Fire(this, TEXT("G9_Kato_HangarConfirmed")); // may be cut by the travel; T4 can repeat it at the flight's start
 		HandInteriorOver();
 		return;
 	}
@@ -486,6 +516,16 @@ void ATDPlanetCourse::HandleStoryConsole(AActor* Interactable, AActor* Interacto
 	}
 	LastStoryBeat = *Id;
 	UTDStorySubsystem::Fire(this, *Id); // T3's transmissions: Nicholas's words and voices through Presentation
+	if (Interactable == FinalRecordConsole && FinalRecordElapsed < 0.f)
+	{
+		FinalRecordElapsed = 0.f; // the reactor door waits for the record to end (TickFinalRecord)
+		FinalRecordQuiet = 0.f;
+		OnFinalRecordStarted.Broadcast(Interactable);
+	}
+	else if (*Id == TEXT("A4_Recording_Barracks"))
+	{
+		UTDStorySubsystem::Fire(this, TEXT("G7_Moss_MyVoice")); // queued after it
+	}
 	// The kit console's screen (slot 2) lights once its recording has played.
 	if (const ATDInteractableActor* Console = Cast<ATDInteractableActor>(Interactable))
 	{
@@ -528,8 +568,13 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	else if (Id == TEXT("Obj_Jammer") && StepIndex == 0) { Beat(TEXT("G5_Command_AnchorMarked")); }
 	else if (Id == TEXT("Obj_Jammer") && StepIndex == 2) { Beat(TEXT("G5_Wren_BackToShips")); }
 	// The Dominion (acts 4 and 5).
-	else if (Id == Corridor && StepIndex == 0) { Beat(TEXT("A4_DoorsKnowUs")); } // the first door opens to the pilot's ID
-	else if (Id == Core && StepIndex == 0) { Beat(TEXT("A5_Choice")); }
+	else if (Id == Corridor && StepIndex == 0)
+	{
+		Beat(TEXT("A4_DoorsKnowUs")); // the first door opens to the pilot's ID
+		Beat(TEXT("C7_Kato_Archive"));
+		Beat(TEXT("C7_Wren_Record"));
+	}
+	else if (Id == Core && StepIndex == 1) { Beat(TEXT("G8_Kato_HeartExposed")); }
 	else if (Id == Escape && StepIndex == 0) { Beat(TEXT("A5_Escape")); }
 	// The core's shield is up while its conduits stand, and drops for the heart (a retake raises it again).
 	if (Id == Core && CoreShield)
@@ -561,4 +606,44 @@ void ATDPlanetCourse::FireCompletionBeats(ATDObjective* Objective)
 	{
 		Beat(TEXT("A2_TrailToCinder")); // the data points to Cinder
 	}
+}
+
+// ------------------------------------------------------------------------------------------------
+// The final record (story 07-09, b2): mandatory, at the reactor's threshold, combat held
+// ------------------------------------------------------------------------------------------------
+
+void ATDPlanetCourse::TickFinalRecord(float DeltaSeconds)
+{
+	if (!IsInterior() || bFinalRecordDone || FinalRecordElapsed < 0.f)
+	{
+		return;
+	}
+	FinalRecordElapsed += DeltaSeconds;
+	// The door opens when T3's queue has played out (a skip empties it) and stayed quiet a moment, or at the cap.
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	const bool bOnAir = Story && (Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0);
+	FinalRecordQuiet = bOnAir ? 0.f : FinalRecordQuiet + DeltaSeconds;
+	if ((FinalRecordElapsed > 1.f && FinalRecordQuiet > 0.75f) || FinalRecordElapsed > FinalRecordMaxSeconds)
+	{
+		OpenReactorDoor();
+	}
+}
+
+void ATDPlanetCourse::OpenReactorDoor()
+{
+	if (bFinalRecordDone)
+	{
+		return;
+	}
+	bFinalRecordDone = true;
+	if (ReactorDoor)
+	{
+		ReactorDoor->Open();
+	}
+	UTDStorySubsystem::Fire(this, TEXT("A5_Choice")); // re-timed to the end of the scene (story 07-09)
+}
+
+void ATDPlanetCourse::HandleConduitDown(UTDHealthComponent* Health, const FTDDamageInfo& Info)
+{
+	UTDStorySubsystem::Fire(this, TEXT("G8_Kato_ConduitDown")); // T3: once per run (the first conduit)
 }

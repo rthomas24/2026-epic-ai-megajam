@@ -778,6 +778,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	InteriorTime += DeltaSeconds;
+	TickFinalRecord(DeltaSeconds);
 	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
 	{
 		if (UStaticMeshComponent* Ring = R.Ring.Get())
