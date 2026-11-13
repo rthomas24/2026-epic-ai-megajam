@@ -634,12 +634,10 @@ void ATDDebugHUD::DrawFlight()
 
 bool UTDDebugHUDSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
-#if UE_BUILD_SHIPPING
-	return false;
-#else
+	// Also in Shipping: until Nick's HUD is on by default this is the only HUD a player gets (seen Nov 12:
+	// the Shipping package had no HUD at all). It hides itself wherever a real HUD widget is up.
 	const UWorld* World = Cast<UWorld>(Outer);
 	return World && World->IsGameWorld();
-#endif
 }
 
 void UTDDebugHUDSubsystem::Tick(float DeltaTime)
