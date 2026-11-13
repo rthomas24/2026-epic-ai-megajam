@@ -28,6 +28,10 @@ public:
 	UPROPERTY(EditAnywhere, Config, BlueprintReadOnly, Category = "Intensity", meta = (ClampMin = "0.01"))
 	float MaxGainRatePerSecond = 0.5f;
 
+	/** N-039: the tutorial music fades once this wave is cleared (1 = the opening scene). */
+	UPROPERTY(EditAnywhere, Config, BlueprintReadOnly, Category = "Tutorial", meta = (ClampMin = "1"))
+	int32 TutorialEndsAfterWave = 1;
+
 	virtual FName GetCategoryName() const override { return TEXT("Game"); }
 
 	static const UTDMusicSettings* Get() { return GetDefault<UTDMusicSettings>(); }

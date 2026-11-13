@@ -44,6 +44,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
+#include "Widgets/Input/SButton.h"
 #include "Blueprint/UserWidget.h"
 
 namespace TDFlowTest
@@ -1273,6 +1274,16 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 		TestFalse(TEXT("no Continue into a won run"), Menu->CanContinue());
 		Menu->ReturnToMenu();
 		TestFalse(TEXT("then the menu"), Menu->IsShowingVictory());
+	}
+	{
+		// T1's pad pass: closing Settings returns focus to the button that opened it (SETTINGS), not to NEW GAME; a
+		// button that can no longer take focus hands it to the first.
+		TSharedRef<SButton> NewGame = SNew(SButton);
+		TSharedRef<SButton> Settings = SNew(SButton);
+		TestTrue(TEXT("back to SETTINGS"), ATDMenuGameMode::ChooseRefocus(Settings, NewGame) == Settings);
+		TestTrue(TEXT("nothing remembered: the first button"), ATDMenuGameMode::ChooseRefocus(nullptr, NewGame) == NewGame);
+		Settings->SetEnabled(false);
+		TestTrue(TEXT("a disabled one: the first button"), ATDMenuGameMode::ChooseRefocus(Settings, NewGame) == NewGame);
 	}
 	{
 		// N-033: with Nick's widgets assigned, a return to the menu after a win brings his MAIN MENU widget back

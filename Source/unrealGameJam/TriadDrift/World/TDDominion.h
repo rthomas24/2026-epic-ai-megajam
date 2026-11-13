@@ -17,6 +17,18 @@ class ATDDominionReactor;
 class ATDEnemyTurret;
 class ATDEnemyShip;
 class ATDDominion;
+class ATDDockingBay;
+
+/** ENG-29: which ending the generators' fall leads to. */
+UENUM(BlueprintType)
+enum class ETDBoardingMode : uint8
+{
+	/** Boarding when td.Finale.Boarding is 1 (default), the map is a real level (not a /Temp test world) and
+	 *  L_Dominion_Interior exists; otherwise the space reactor kill. */
+	Auto,
+	ForceOn,	// always board (tests)
+	ForceOff	// always the space reactor kill
+};
 
 UENUM(BlueprintType)
 enum class ETDDominionState : uint8
@@ -25,6 +37,7 @@ enum class ETDDominionState : uint8
 	WarpingIn,		// Nick's reveal plays; nothing fights yet
 	ShieldsUp,		// generators + turrets + launches; hull and reactor immune
 	ReactorExposed,	// all generators down: fly the trench, kill the reactor
+	DockingOpen,	// boarding finale (ENG-29): all generators down, the docking bay is open, the reactor stays shielded
 	Breakup,		// reactor dead; breakup sequence plays, then Victory
 	Finished		// TravelTo(Victory) requested
 };
@@ -210,9 +223,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
 	TSubclassOf<ATDEnemyShip> LaunchedShipClass;
 
-	/** Stretch ENG-29: when true, defenses down calls BeginDockingFinale() instead of exposing the reactor. */
+	/**
+	 * ENG-29: when the generators fall, board (the docking bay opens, BeginDockingFinale) or kill the reactor from
+	 * space. `td.Finale.Boarding 0` forces the space ending (our fallback). Decided when the defenses go down.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
-	bool bDockingFinale = false;
+	ETDBoardingMode BoardingMode = ETDBoardingMode::Auto;
+
+	/** True when the defenses' fall leads to boarding (BoardingMode, the cvar, the map). */
+	bool UsesBoardingFinale() const;
+
+	/** The docking bay (null until the boarding finale opens it). */
+	ATDDockingBay* GetDockingBay() const { return DockingBay; }
 
 	// --- Presentation (all optional) ------------------------------------------------------------
 
@@ -258,8 +280,11 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** Stretch hook (ENG-29). Default: logs and falls back to the core reactor ending. */
-	virtual void BeginDockingFinale();
+	/** ENG-29: opens the docking bay on the bow (bPlayCues false when resuming a save or a retake). */
+	virtual void BeginDockingFinale(bool bPlayCues = true);
+
+	UPROPERTY(Transient)
+	TObjectPtr<ATDDockingBay> DockingBay;
 
 	void SetState(ETDDominionState NewState);
 	/** Hyperdrive "Finale" lock: assault states AND a squad ship has been inside HyperdriveLockRadius. Idempotent. */

@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
 #include "TriadDrift/Input/TDMusicSettings.h"
+#include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
 #include "TriadDrift/Core/TDAudioState.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -295,7 +296,14 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	{
 		bVictory = AudioState->GetState().Phase == ETDGamePhase::Victory;
 	}
-	const bool bBlocked = bTravelling || bVictory || bMenuMap || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
+	// N-039: the tutorial voice (game-instance level) steps with the world; while it plays, the combat music waits.
+	UTDTutorialMusicSubsystem* Tutorial = UTDTutorialMusicSubsystem::Get(World);
+	if (Tutorial)
+	{
+		Tutorial->Step(World, Dt, bMenuMap);
+	}
+	const bool bTutorialHolds = Tutorial && Tutorial->IsHoldingCombatMusic();
+	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
 	bool bCombat = !bBlocked && IsCombatNow();
 	if (bWaitForTake && !bCombat)
 	{
@@ -304,7 +312,7 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	bCombat = bCombat && !bWaitForTake;
 	if (bBlocked)
 	{
-		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : TEXT("menu"));
+		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : bTutorialHolds ? TEXT("tutorial music") : TEXT("menu"));
 	}
 	TickAmbience(Dt, bTravelling || bVictory || bMenuMap);
 

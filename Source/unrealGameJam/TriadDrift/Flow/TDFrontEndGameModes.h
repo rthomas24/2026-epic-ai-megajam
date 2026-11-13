@@ -109,6 +109,13 @@ private:
 	void KeepMenuFocus();
 	TSharedPtr<class SWidget> Placeholder;
 	TWeakPtr<class SWidget> FocusButton;
+	/** The menu button that last had focus (SETTINGS after opening the page): focus comes back to it, not to the first. */
+	TWeakPtr<class SWidget> LastMenuFocus;
+public:
+	/** Where focus returns when it left the menu (the Settings page closed): the last focused menu button if it can
+	 *  still take focus, else the first one. Public for tests. */
+	static TSharedPtr<class SWidget> ChooseRefocus(const TSharedPtr<class SWidget>& LastFocused, const TSharedPtr<class SWidget>& First);
+private:
 	bool bShowingVictory = false;
 	bool bMusicStarted = false;
 	bool bPlaceholderWanted = false;
