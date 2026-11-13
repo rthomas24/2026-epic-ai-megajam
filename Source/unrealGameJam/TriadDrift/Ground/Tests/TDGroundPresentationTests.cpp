@@ -303,6 +303,7 @@ bool FTDGroundBindings::RunTest(const FString& Parameters)
 		{ TEXT("IA_Ground_Block"), EKeys::RightMouseButton }, { TEXT("IA_Ground_Interact"), EKeys::E }, { TEXT("IA_Ground_Ping"), EKeys::Tab },
 		{ TEXT("IA_Ground_Jump"), EKeys::Gamepad_FaceButton_Bottom }, { TEXT("IA_Ground_Attack"), EKeys::Gamepad_RightTrigger },
 		{ TEXT("IA_Ground_Pause"), EKeys::Escape }, { TEXT("IA_Ground_Pause"), EKeys::Gamepad_Special_Right },
+		{ TEXT("IA_Ground_Crouch"), EKeys::Gamepad_RightThumbstick },
 	};
 	for (const FExpect& E : Expected)
 	{

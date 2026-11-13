@@ -67,6 +67,8 @@ public:
 
 	/** True while the code-built placeholder menu is up (no widget assigned in DA_UI_Style). */
 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }
+	/** The code-built menu is used (no widget class resolved), whether or not a viewport exists to show it. */
+	bool UsesPlaceholderMenu() const { return bPlaceholderWanted; }
 
 	/** The menu music playing (DA_UI_Style.MenuMusic, 2D, UI sound); null when the style has none. */
 	class UAudioComponent* GetMusic() const { return Music; }
@@ -86,6 +88,7 @@ private:
 	TSharedPtr<class SWidget> Placeholder;
 	bool bShowingVictory = false;
 	bool bMusicStarted = false;
+	bool bPlaceholderWanted = false;
 	bool bMusicFading = false;
 	bool bQuitRequested = false;
 };

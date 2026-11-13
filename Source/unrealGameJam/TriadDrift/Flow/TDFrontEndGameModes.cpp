@@ -80,7 +80,8 @@ void ATDMenuGameMode::StartPlay()
 		GI->NotifyLevelEntered(bShowingVictory ? ETDDestination::Victory : ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
 	StartMusic();
-	UClass* Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::MainMenu);
+	UClass* Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : (StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle()), FTDFrontEndWidgets::EKind::MainMenu);
+	bPlaceholderWanted = !Widget;
 	TDFrontEnd::ShowWidget(GetWorld(), Widget, true);
 	if (!Widget)
 	{
@@ -92,13 +93,7 @@ void ATDMenuGameMode::StartMusic()
 {
 	// DA_UI_Style.MenuMusic (N-015): Nick's asset carries its own volume and class; no overrides here.
 	const UTDUIStyle* Style = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
-	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(UTDUIStyle::StaticClass()->FindPropertyByName(TEXT("MenuMusic"))) : nullptr;
-	if (!Prop)
-	{
-		return;
-	}
-	const FSoftObjectPtr& Soft = *Prop->ContainerPtrToValuePtr<FSoftObjectPtr>(Style);
-	USoundBase* Sound = Cast<USoundBase>(Soft.LoadSynchronous());
+	USoundBase* Sound = (Style && !Style->MenuMusic.IsNull()) ? Style->MenuMusic.LoadSynchronous() : nullptr;
 	if (!Sound)
 	{
 		return; // no music assigned: silence, nothing created
