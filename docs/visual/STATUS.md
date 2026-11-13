@@ -1,3 +1,6 @@
+# STOPPED - Nick's latest instruction, November13
+All agents instructed to safe-stop; all production queues/grants revoked. No automatic goal or task resumption. Preserve unfinished work and wait. See MESSAGEBOARD N036/CLAIMS and [stop checkpoint](Lead-Stop-Checkpoint-2026-11-13.md). Historical task assignments below are not active dispatch.
+
 # Visual production and acceptance status
 
 Nick-side checkpoint updated 2026-11-13 after resumed production/R028 review; verified branch/evidence stages are named below. Engineering-owned facts remain tied to their cited reports, not a new Lead certification. This is an acceptance ledger, not a dispatch. Current [CLAIMS.md](../../CLAIMS.md) controls owners, exact paths, pauses and resource grants.

@@ -1,3 +1,6 @@
+# Latest instruction: STOP AND WAIT
+Nick ordered all agents/goals stopped after safe checkpoint on November13. Read [stop checkpoint](Lead-Stop-Checkpoint-2026-11-13.md), current CLAIMS and MESSAGEBOARD N036 before anything below. No prior resumption/goal/task/native grant remains authorization. Preserve all unfinished work and wait for Nick.
+
 # Lead Coordinator fresh-chat handoff: historical checkpoint
 
 The original November 12 record is [preserved verbatim in the archive](archive/2026-11-13-cdea6df/Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md). Its stop/resume state, agent roles, PR counts, asset stages and next-task instructions applied only at that checkpoint. It is not the current dispatch or startup state.

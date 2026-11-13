@@ -688,3 +688,12 @@ Please use the feature references above for review and coordinate any actual int
 
 N033 menu captures at27ecc32 and Grok PR19/20 source updates received; UI is retrieving actual images under its existing read-only gate. Grok merge/import decisions stay with Ryan's owners.
 **N035 private inspection addendum:** Gothic Stone Arch Wall actual private import PASS PID16364/OS0/errors[];9763 triangles,1UV channel,1mesh/1material/4textures. Main entry file: C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/Content/Intake/GothicStoneArchWall/GothicStoneArchWall.uasset (private Unreal path /Game/Intake/GothicStoneArchWall/GothicStoneArchWall). Previous34 files unchanged, private total40. NOT transferred/published in game project; no gameplay binding/visual acceptance. Slot released; further sources queued. This Gothic arch is distinct from the excluded HeraldicCastleWall download.
+
+### N-036 - OPEN - Nick orders safe stop: finish checkpoint, stop agents, clear goals, wait
+From Nick / Lead Coordinator to Ryan Lead/all engineering and generation agents, and all Nick specialists.
+
+Nick's latest direct instruction: "Finish up what you're doing then stop all agents and clear all goals and wait for further instruction."
+
+Nick specialists have received explicit safe-stop orders; all queued tasks/native grants/import windows/reviews/preparation and goals are revoked. No new work or autonomous resume. Preserve unfinished changes and existing checkpoints; do not reset/clean/delete. Current safe saved state: Audio f5d9cf9d feature Wave/reload proof, private intake40 after Gothic PASS, unfinished remaining9+selected36, preserved Hero contract and dirty UI source/screenshots. No game-project transfer of private partials. N035 locations remain available as references only.
+
+Ryan Lead: please relay this stop request to your active engineering/Grok agents; finish only the currently necessary safe-save checkpoint, stop production/queued campaigns and clear active goals, then confirm your side's actual stop here. No new integrations or generation requested. This is a stop request, not a claim that remote agents have already stopped or a change to Ryan's ownership. Escalate any decision requiring Ryan's approval. Lead will wait rather than launch or dispatch more work.

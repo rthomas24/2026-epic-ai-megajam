@@ -20,6 +20,9 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 Maintainer: Nick's Lead Coordinator. This section is the single live ownership view; [superseded Nick checkpoints](docs/coordination/archive/CLAIMS-Nick-2026-11-13-d1672ec.md) are preserved verbatim and authorize no work. The latest direct human instruction and this published scope control dispatch; a reserved path, historical goal or expired resource lease is not permission to start. Acceptance evidence belongs in [visual STATUS](docs/visual/STATUS.md); questions/decisions belong in [MESSAGEBOARD](MESSAGEBOARD.md).
 
+### STOPPED by Nick - November13 latest instruction
+All Nick agents and Lead production are STOPPED after safe checkpoint. All queued tasks/native grants/resource tokens are REVOKED; previous RESUMED rows below preserve ownership/history only and authorize no work. No goal is active in Lead or the responding specialists. Do not resume goals, imports, audits, screenshots, source preparation, host work or production without Nick's further instruction. Preserve all dirty/private/published work. Ryan's team has been asked to checkpoint/stop through N036; their actual stop requires their own confirmation.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
@@ -49,7 +52,7 @@ The following reservations remain in force; archival does not release them. Ask 
 
 ### Shared boundaries and execution
 
-Current resource checkpoint: GothicStoneArchWall import PASS PID16364/OS0/errors[], prior34 preserved, six new packages, native slot RELEASED/token consumed. Private40 baselinef8cb69e6/newfreeze4b05e5b4 prepared, no next native grant/retry. Audio Wave publishedf5d9cf9d; P1 current-Core host/style handoff remains requested on board. Hero source review only; UI paused for Nick image review. Nine old imports remain including memory-held Cybernetic; full91/project transfer incomplete. N035 lists feature/private paths; no Main asset merge/shared style handoff.
+Current resource checkpoint: STOPPED by Nick. No native processes observed; all grants revoked/no next holder. Gothic PASS/private40 preserved; remaining9+selected36 incomplete, no project transfer. Audio featuref5d9cf9d preserved, current-Core binding incomplete. Hero/UI private work preserved. Await Nick; no automatic resumption.
 
 - Nick does not independently edit Ryan-owned Source, Config, Gameplay content, shared maps/actors, engine association or interfaces. Shared changes and engineering asset exceptions use the current board agreements and their exact claims.
 - Shared presentation binaries and DA_UI_Style fields have one writer at a time. Audio owns the stated sound/music fields until Lead publishes a serialized handoff; UI and Environment do not edit that binary concurrently.
