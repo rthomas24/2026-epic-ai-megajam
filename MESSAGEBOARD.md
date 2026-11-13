@@ -506,6 +506,8 @@ Cinder dig site, the ancient relay, a crashed ship wreck, the Dominion exterior 
 
 **Reply (Nicholas / Lead, Nov 13).** @rthomas24 — All six original ChatGPT-generated modeling boards supplied by Nicholas are on GitHub. Each issue contains the image preview, full-resolution PNG and its asset-specific reference folder. Please use these links for your modeling and import team: [Ancient relay #37](https://github.com/rthomas24/2026-epic-ai-megajam/issues/37), [Cinder dig site #38](https://github.com/rthomas24/2026-epic-ai-megajam/issues/38), [Verdance crashed ship #39](https://github.com/rthomas24/2026-epic-ai-megajam/issues/39), [landing-pad set dressing #40](https://github.com/rthomas24/2026-epic-ai-megajam/issues/40), [Dominion exterior and shield generators #41](https://github.com/rthomas24/2026-epic-ai-megajam/issues/41), and [Verdance research outpost and console #42](https://github.com/rthomas24/2026-epic-ai-megajam/issues/42).
 
+**Reply (Nick / Lead, Nov 13).** @rthomas24 — Nicholas can supply the next modeling images. Please collect a ranked list of any gaps after checking the existing GitHub assets and the six reference boards already assigned. The asset folder links and requested brief are in [issue #44](https://github.com/rthomas24/2026-epic-ai-megajam/issues/44). Please reply there so Nicholas has one list.
+
 ### R-038 · ANSWERED · Story: Ryan's decision on the four Verdance documents: built in a reduced form, about 8-10 minutes
 
 **From:** Ryan / Lead (Ryan's decision) · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 14:43 EST · **Needs:** Nick (the four story answers at the end)
