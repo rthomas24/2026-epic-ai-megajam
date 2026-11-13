@@ -493,6 +493,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			Wp.Angle = FMath::Atan2(Dir.Y, Dir.X);
 		}
 		Wp.Distance = FVector::Dist(From, Marker->GetActorLocation()) / 100.f;
+		Wp.DrawPos = Wp.Pos;
+		Wp.bLifted = Wp.bOnScreen && LiftWaypoint(Wp.Pos, Wp.DrawPos);
 		const UTDHealthComponent* Health = UTDStatics::GetHealth(Marker);
 		Wp.Health = Health && Health->IsAlive() ? Health->GetHull01() : -1.f;
 	}
@@ -916,7 +918,24 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	for (const FWaypoint& Wp : View.Waypoints)
 	{
 		const FLinearColor Way = T::Neutral();
-		if (Wp.bOnScreen)
+		if (Wp.bOnScreen && Wp.bLifted)
+		{
+			// Dead ahead on a planet the pad sits behind the player's own ship: draw it just above the ship zone, range
+			// above the diamond, with a thin tether down to the true point (Lead, Nov 13).
+			const FVector2D At = Wp.DrawPos;
+			P.Line(At + FVector2D(0, 11), Wp.Pos, Way.CopyWithNewOpacity(.45f), 1.f);
+			P.Poly(At, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
+			Rec(TEXT("waypoint"), At.X - 11.f, At.Y - 11.f, 22.f, 22.f);
+			P.Box(At.X - 1.5f, At.Y - 1.5f, 3.f, 3.f, Way);
+			// Range to the left (above it would sit on the arcs' lower ends, to the right on the power pip).
+			P.BackedWords(At.X - 18.f, At.Y - 9.f, Range(Wp.Distance), 14, Way, 1.f, 20);
+			if (Wp.Health >= 0.f)
+			{
+				P.Bar(At.X - 24.f, At.Y + 16.f, 48.f, 4.f, Wp.Health, T::Danger(), 1.f);
+			}
+			Area += 60.f * 60.f;
+		}
+		else if (Wp.bOnScreen)
 		{
 			P.Poly(Wp.Pos, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
 			Rec(TEXT("waypoint"), Wp.Pos.X - 11.f, Wp.Pos.Y - 11.f, 22.f, 22.f);

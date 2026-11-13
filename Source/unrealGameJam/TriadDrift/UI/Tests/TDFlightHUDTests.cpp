@@ -513,6 +513,21 @@ bool FTDFlightHUDWaypoints::RunTest(const FString& Parameters)
 	return true;
 }
 
+// The pad dead ahead sits behind the player's own ship: the waypoint is lifted just above the ship zone (Lead, Nov 13).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDWaypointLift, "TriadDrift.UI.FlightHUD.Review.WaypointLiftedAboveShip", TD_TEST_FLAGS)
+bool FTDFlightHUDWaypointLift::RunTest(const FString& Parameters)
+{
+	FVector2D Draw;
+	// Dead ahead, just below the reticle: where the chase camera's ship is (the Verdance capture at 5 km).
+	TestTrue(TEXT("pad behind the ship: lifted"), UTDFlightHUDWidget::LiftWaypoint(FVector2D(960, 700), Draw));
+	TestTrue(TEXT("drawn above the ship zone"), Draw.Y < UTDFlightHUDWidget::ShipZone().Min.Y);
+	TestEqual(TEXT("same column as the true point"), (float)Draw.X, 960.f, .01f);
+	TestTrue(TEXT("lifted point stays below the reticle cluster's arcs"), Draw.Y > UTDFlightHUDWidget::CenterY + UTDFlightHUDWidget::ShieldRadius);
+	TestFalse(TEXT("a waypoint elsewhere on screen: drawn where it is"), UTDFlightHUDWidget::LiftWaypoint(FVector2D(400, 300), Draw));
+	TestTrue(TEXT("...at its own spot"), Draw.Equals(FVector2D(400, 300)));
+	return true;
+}
+
 // Review M4: the onboarding card through the real hint component: the second essential (Fire) reads "2 / 4".
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHintCard, "TriadDrift.UI.FlightHUD.Review.HintCardStep", TD_TEST_FLAGS)
 bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
