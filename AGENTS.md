@@ -618,6 +618,11 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   gameplay validation that needs one. Headless is not the same as light: save work and checkpoints first, check free
   RAM and what heavy processes are already running, and on a 16 GB machine run one heavy job at a time, bounded and
   watched. This does not replace the real windowed playtests below.
+- **Close every Unreal instance you start** (Ryan, Nov 13, R-043): before launching, list your own processes (the
+  command line names your worktree) and close the stale ones; at most one game or editor per agent at a time, plus its
+  own test run; every `-game` launch carries `-TDQuit=900` at most as a safety net; close the game the moment the
+  capture, check or playtest step is done; every report ends with "no Unreal processes left" (or which is still running
+  and why). Close only your own processes: never the human's editor (port 8000, the repo root) or another agent's.
 - **Story** (Ryan, Nov 13, R-034): the game follows `storyline.md`. Nicholas owns the story, its words and voices;
   Ryan's side owns how each beat is played and exposes a hook with a placeholder line for every beat (objective
   lines, barks, transmissions, console recordings, the ending). Nothing reveals the twist before the Dominion.
@@ -643,6 +648,13 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   sign-off, and an animation of his at the Presentation name replaces ours.
 - **Asset questions** (Ryan, Nov 13, R-031): Grok Bot leads high-quality asset generation for Ryan's side; anyone asks
   about an asset with **`Asset:`** in a board message subject, never by importing a parallel version.
+- **Nothing the player walks on, into or through is an AI-generated mesh** (Ryan, Nov 13 evening, R-043): Rodin and
+  other image-to-3D meshes came out soft, lumpy and with floors the pilot sinks into. Walkable structures (relay climb,
+  wreck interior, outposts, dig site, Dominion interior) are built from a Blender modular hard-surface kit on a 50 cm
+  grid with bevelled edges, a trim-sheet material and collision that matches the visual floor exactly, and are walk-tested
+  with the real pawn. AI meshes stay as concept reference, exterior shells out of reach, or distant dressing. Hero ships
+  seen up close get Blender rebuilds of the parts the player sees (crisp edges), a re-packed 4K bake and a tiling detail
+  layer. Grok Bot supplies concepts, measured plans, tiling textures and trim sheets, and distant props.
 - **Presentation asset names** are fixed in `docs/visual/Presentation-Asset-Paths.md`; gameplay looks
   them up by those exact paths, optional and null-safe.
 
