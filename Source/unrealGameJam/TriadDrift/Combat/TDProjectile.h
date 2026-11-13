@@ -165,6 +165,8 @@ private:
 	void UpdatePlaceholderDistanceScale();
 	/** Placeholder impact flash, unless the cue the art would play there has content. */
 	void PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt) const;
+	/** As above for a hit on something with health: a shield puff or hull sparks (lasers and cannons; not on foot). */
+	void PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt, const class UTDHealthComponent* VictimHealth, const FVector& Normal) const;
 
 	UPROPERTY(VisibleAnywhere, Category = "Projectile")
 	TObjectPtr<USceneComponent> Root;

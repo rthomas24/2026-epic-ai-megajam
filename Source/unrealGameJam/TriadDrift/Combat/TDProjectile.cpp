@@ -966,7 +966,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 		UTDStatics::PlayCue(this, Cue, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 		bImpactArt = FTDCombatPlaceholders::HasVisualArt(Cue) || (Spec.SplashRadius > 0.f && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	}
-	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt);
+	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt, VictimHealth, Hit.ImpactNormal);
 
 	if (Victim && CanDamage(Victim))
 	{
@@ -987,6 +987,21 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	}
 	OnDetonated.Broadcast(this, Victim);
 	Deactivate();
+}
+
+void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt, const UTDHealthComponent* VictimHealth, const FVector& Normal) const
+{
+	// Something with health, hit by a light shot in space: shield puff vs hull sparks. Explosive shots and on-foot bolts
+	// keep their own looks.
+	if (!bCueHasArt && VictimHealth && !bOnFootLook && Spec.SplashRadius <= 0.f && !Spec.bIsMissile)
+	{
+		if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
+		{
+			Subsystem->PlayPlaceholderHit(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), VictimHealth->IsShieldUp(), Normal);
+			return;
+		}
+	}
+	PlayPlaceholderImpact(Location, bCueHasArt);
 }
 
 void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasArt) const
