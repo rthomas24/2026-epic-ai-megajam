@@ -29,3 +29,5 @@ Night handoff remains a preserved historical stop snapshot; it is superseded onl
 
 ## Follow-up: Ryan realignment b6eabeef
 R028/current features reviewed: full route agent-played/about630 tests/800MB are Ryan reports, not fresh Lead/human certification. N033 mixed design/live HUD9754f24 is not Main/default; UI paused until Nick review. T5 owns menu images/ReturnToMenu fix. PID2124 RAM-aborted,29 packages preserved, no project transfer. Read-only Crimson6562 lease supersedes failed attempt. Audio music, Hero sky, read-only UI and supplied-asset recovery remain assigned; voices/planet grade queued. R028 replied; completed audit stays closed.
+
+Priority dispatch per updated features ownership74efe90b: Audio P1 readonly reload73d865 now next native lease after Crimson6562 PASS PID4992/OS0,29 unchanged. Hero P2 source contract review; UI P3 paused for Nick images. ART03/04/06/07/08 belong to Ryan, Nick old work preserved; no parallel VFX natives. Single-source intake waits behind Audio. N034 records dispatch; supplied intake is not gameplay mapping.
