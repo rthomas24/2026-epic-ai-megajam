@@ -124,6 +124,22 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 	/** Ships with more than two engines (the Bastion's four) get this share of the flown flame length. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0.1", ClampMax = "1"))
 	float PlayerFlameManyEnginesScale = 0.6f;
+
+	/** Wingman and other non-flown ribbons fade to nothing within this distance of the camera (cm)... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float TrailCameraFadeStart = 1500.f;
+
+	/** ...and are fully drawn again from this distance (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
+	float TrailCameraFadeEnd = 2500.f;
+
+	/** Non-flown ribbons fade out over the screen band from this height (0 top, 1 bottom)... */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0", ClampMax = "1"))
+	float TrailHudBandFadeStart = 0.66f;
+
+	/** ...and are gone below this one (the HUD band), so a wingman passing close never paints across the HUD. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0", ClampMax = "1"))
+	float TrailHudBandLimit = 0.72f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))
@@ -140,6 +156,11 @@ public:
 
 	/** True when the cue has no VFX, so a placeholder glow should stand in. */
 	static bool WantsVisualPlaceholder(const FTDFXCue* Cue);
+
+	/** Visibility (0..1) of a non-flown ribbon segment from its distance to the camera (cm) and its projected
+	 *  height on screen (0 top, 1 bottom; any value above 1 = off the bottom or behind the eye; negative = unknown,
+	 *  e.g. no viewport). */
+	static float TrailFadeAt(const FTDFlightFeedbackTuning& Tuning, float DistToEye, float ScreenY);
 	/** True when the cue has no camera shake, so a placeholder camera kick should stand in. */
 	static bool WantsCameraPlaceholder(const FTDFXCue* Cue);
 
