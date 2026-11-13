@@ -286,6 +286,7 @@ bool FTDStoryTriggers::RunTest(const FString& Parameters)
 				&& Story->HasPlayed(TEXT("C9_Wren_Source")) && Story->HasPlayed(TEXT("C9_Kato_Decades")));
 			TestTrue(TEXT("the caption held on the black says decades ahead"), B->GetStingerCaption().ToString().Contains(TEXT("DECADES")));
 			TestEqual(TEXT("once"), B->PlayStinger(), 0.f);
+			TestFalse(TEXT("the signal's words appear once: no subtitle for A5 under the caption"), Story && Story->GetCurrentTransmission().Id == FName(TEXT("A5_DistressSignal")));
 		}
 		else
 		{

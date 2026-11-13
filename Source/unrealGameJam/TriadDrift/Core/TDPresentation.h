@@ -647,6 +647,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
 	TSoftClassPtr<UUserWidget> DirectorWidgetClass;
 
+	/** Issue #49 (concept A): the pilot insignia on the opening's name cards, white on transparent (tinted by the
+	 *  ship's colour). Empty: the code draws a crescent, a lance chevron and a hexagon. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftObjectPtr<UTexture2D> InsigniaRift;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftObjectPtr<UTexture2D> InsigniaLancer;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftObjectPtr<UTexture2D> InsigniaBastion;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;
 

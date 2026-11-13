@@ -812,6 +812,14 @@ void UTDStorySubsystem::StartNext()
 		OnAirSeconds = SecondsFor(OnAir);
 		Voice = UGameplayStatics::SpawnSound2D(this, Sound);
 	}
+	if (SoundOnly.Contains(OnAir.Id))
+	{
+		// Its words are on screen already: the sound only, holding the queue for the line's time.
+		Current = FTDTransmissionView();
+		NextAllowed = RealNow() + OnAirSeconds + GapSeconds;
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s (sound only, %.1f s)"), *OnAir.Id.ToString(), OnAirSeconds);
+		return;
+	}
 	Current = FTDTransmissionView();
 	Current.bActive = true;
 	Current.Id = OnAir.Id;

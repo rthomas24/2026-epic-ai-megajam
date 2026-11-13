@@ -33,6 +33,8 @@
 #include "Rendering/DrawElements.h"
 #include "Sound/SoundBase.h"
 #include "Styling/CoreStyle.h"
+#include "UObject/StrongObjectPtr.h"
+#include "Engine/Texture2D.h"
 #include "Widgets/SLeafWidget.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
@@ -302,17 +304,32 @@ namespace TDIntro
 					Box(FVector2D(Size.X * 0.5f - TS.X * 0.5f + W * i + 6.f, Size.Y * 0.5f + TS.Y * 0.55f), FVector2D(W - 12.f, 6.f * Scale), C, 5);
 				}
 			}
-			// Pilot name card (C-03 #1 style): lower third, left, a squad-colour bar beside the name and the trait line.
-			// Measured and fitted (issue #49): inside the title-safe frame, above the subtitle band, clear of the skip prompt.
+			// Pilot name card (issue #49, concept A "cinematic signature"): insignia, a thin accent, a large name, the ship
+			// and role, the trait line; the HUD palette per ship. Measured and fitted: inside the title-safe frame, above the
+			// subtitle band, clear of the skip prompt.
 			if (S.NameCardAlpha > 0.f && !S.NameCard.IsEmpty())
 			{
-				const FTDIntroCardLayout L = UTDIntroDirector::LayoutNameCard(Size, S.NameCard, S.NameCardRole,
+				const FTDIntroCardLayout L = UTDIntroDirector::LayoutNameCard(Size, S.NameCard, S.NameCardRole, S.NameCardTrait,
 					[&Measure](const FText& T, const FSlateFontInfo& F) { return Measure->Measure(T, F); });
-				FLinearColor C = S.NameCardColor;
+				FLinearColor C = UTDIntroDirector::CardColor(S.NameCardShip);
 				C.A = S.NameCardAlpha;
+				// A soft dark band behind the text block so it reads over bright nebulae (no hard box).
+				Box(FVector2D(L.Insignia.Min.X - 18.f * Scale, L.Name.Min.Y - 10.f * Scale),
+					FVector2D(FMath::Max3(L.Name.Max.X, L.Role.Max.X, L.Trait.Max.X) - L.Insignia.Min.X + 46.f * Scale, L.Trait.Max.Y - L.Name.Min.Y + 20.f * Scale),
+					FLinearColor(0.f, 0.f, 0.f, 0.32f * S.NameCardAlpha), 2);
+				DrawInsignia(Out, Layer + 3, Geo, L.Insignia, S.NameCardShip, C);
 				Box(L.Bar.Min, L.Bar.GetSize(), C, 3);
 				Text(S.NameCard, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), L.NameFontSize), L.Name.GetCenter(), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), 3);
-				Text(S.NameCardRole, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), L.RoleFontSize), L.Role.GetCenter(), FLinearColor(C.R, C.G, C.B, S.NameCardAlpha), 3);
+				if (!S.NameCardRole.IsEmpty())
+				{
+					FSlateFontInfo RoleFont = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), L.RoleFontSize);
+					Text(S.NameCardRole, RoleFont, L.Role.GetCenter(), C, 3);
+				}
+				if (!S.NameCardTrait.IsEmpty())
+				{
+					Text(S.NameCardTrait, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), L.TraitFontSize), L.Trait.GetCenter(),
+						FLinearColor(0.86f, 0.88f, 0.92f, 0.9f * S.NameCardAlpha), 3);
+				}
 			}
 			// HOLD TO SKIP, bottom right, with its fill.
 			if (S.SkipHintAlpha > 0.f)
@@ -329,8 +346,79 @@ namespace TDIntro
 			return Layer + 8;
 		}
 
+		/** Nick's insignia image when the UI style has one; else a shape in code: a crescent (Rift), a lance chevron
+		 *  (Lancer), a hexagon (Bastion). */
+		void DrawInsignia(FSlateWindowElementList& Out, int32 L, const FGeometry& Geo, const FBox2D& R, int32 Ship, const FLinearColor& C) const
+		{
+			const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+			const TSoftObjectPtr<UTexture2D>* Slot = !Style ? nullptr
+				: (Ship == 1 ? &Style->InsigniaLancer : (Ship == 2 ? &Style->InsigniaBastion : &Style->InsigniaRift));
+			if (Slot && !Slot->IsNull())
+			{
+				if (UTexture2D* Tex = Slot->LoadSynchronous())
+				{
+					FSlateBrush& B = Brushes.FindOrAdd(Ship);
+					if (B.GetResourceObject() != Tex)
+					{
+						B.SetResourceObject(Tex);
+						B.ImageSize = FVector2D(Tex->GetSizeX(), Tex->GetSizeY());
+						Textures.FindOrAdd(Ship) = TStrongObjectPtr<UTexture2D>(Tex);
+					}
+					FSlateDrawElement::MakeBox(Out, L, Geo.ToPaintGeometry(R.GetSize(), FSlateLayoutTransform(R.Min)), &B, ESlateDrawEffect::None, C);
+					return;
+				}
+			}
+			const FVector2D Ctr = R.GetCenter();
+			const float Rad = R.GetSize().Y * 0.46f;
+			const float W = FMath::Max(1.5f, Rad * 0.14f);
+			TArray<FVector2D> P;
+			auto Line = [&](const TArray<FVector2D>& Pts)
+			{
+				FSlateDrawElement::MakeLines(Out, L, Geo.ToPaintGeometry(), Pts, ESlateDrawEffect::None, C, true, W);
+			};
+			if (Ship == 1)
+			{
+				// Lancer: a lance chevron pointing forward (up), with the shaft.
+				Line({ Ctr + FVector2D(-Rad * 0.8f, Rad * 0.55f), Ctr + FVector2D(0.f, -Rad), Ctr + FVector2D(Rad * 0.8f, Rad * 0.55f) });
+				Line({ Ctr + FVector2D(0.f, -Rad * 0.35f), Ctr + FVector2D(0.f, Rad) });
+			}
+			else if (Ship == 2)
+			{
+				// Bastion: a hexagon (a shield cell) with a smaller one inside.
+				for (const float K : { 1.f, 0.55f })
+				{
+					P.Reset();
+					for (int32 i = 0; i <= 6; ++i)
+					{
+						const float A = FMath::DegreesToRadians(60.f * i - 90.f);
+						P.Add(Ctr + FVector2D(FMath::Cos(A), FMath::Sin(A)) * Rad * K);
+					}
+					Line(P);
+				}
+			}
+			else
+			{
+				// Rift: a crescent (two arcs meeting at the horns).
+				P.Reset();
+				for (int32 i = 0; i <= 24; ++i)
+				{
+					const float A = FMath::DegreesToRadians(-140.f + 280.f * i / 24.f);
+					P.Add(Ctr + FVector2D(-FMath::Cos(A), FMath::Sin(A)) * Rad);
+				}
+				for (int32 i = 24; i >= 0; --i)
+				{
+					const float A = FMath::DegreesToRadians(-140.f + 280.f * i / 24.f);
+					P.Add(Ctr + FVector2D(-FMath::Cos(A) * 0.45f + Rad * 0.002f, FMath::Sin(A) * 0.78f) * Rad + FVector2D(-Rad * 0.18f, 0.f));
+				}
+				P.Add(P[0]);
+				Line(P);
+			}
+		}
+
 	private:
 		TWeakObjectPtr<UTDIntroDirector> Model;
+		mutable TMap<int32, FSlateBrush> Brushes;
+		mutable TMap<int32, TStrongObjectPtr<UTexture2D>> Textures;
 	};
 }
 
@@ -346,7 +434,22 @@ bool UTDIntroDirector::IsIntroPlaying(const UObject* WorldContext)
 	return Intro && Intro->IsPlaying();
 }
 
-FTDIntroCardLayout UTDIntroDirector::LayoutNameCard(const FVector2D& Size, const FText& Name, const FText& Role,
+FLinearColor UTDIntroDirector::CardColor(int32 Ship)
+{
+	switch (Ship)
+	{
+	case 1: return FLinearColor::FromSRGBColor(FColor(0x79, 0xE5, 0xFF));
+	case 2: return FLinearColor::FromSRGBColor(FColor(0xFF, 0xCE, 0x77));
+	default: return FLinearColor::FromSRGBColor(FColor(0xF1, 0x8C, 0xFA));
+	}
+}
+
+int32 UTDIntroDirector::SquadSegment(float T, float ShotDuration)
+{
+	return FMath::Clamp(FMath::FloorToInt(T / FMath::Max(ShotDuration / 3.f, 0.01f)), 0, 2);
+}
+
+FTDIntroCardLayout UTDIntroDirector::LayoutNameCard(const FVector2D& Size, const FText& Name, const FText& Role, const FText& Trait,
 	TFunctionRef<FVector2D(const FText&, const FSlateFontInfo&)> Measure)
 {
 	FTDIntroCardLayout L;
@@ -369,33 +472,48 @@ FTDIntroCardLayout UTDIntroDirector::LayoutNameCard(const FVector2D& Size, const
 		const FVector2D C(Size.X - 70.f * Scale - TS.X * 0.5f, Size.Y - FMath::Max(BarFull * 0.5f, 40.f * Scale));
 		L.Skip = FBox2D(C - TS * 0.5f, C + FVector2D(TS.X * 0.5f, TS.Y * 0.6f + 3.f * Scale));
 	}
-	// The card: title-safe left edge (6% of the width, or of a 16:9 frame centred on an ultrawide screen), the bar,
-	// then the text, left-aligned. Wider than the space up to the frame's middle: both lines shrink together.
+	// Concept A, "cinematic signature": the insignia, a thin accent, then the type hierarchy (a large name, the ship
+	// and role in small caps, the trait line under it), left-aligned inside the title-safe 16:9 frame (centred on
+	// ultrawide). Too wide for the space to the frame's middle: every line shrinks together.
 	const float Frame169 = FMath::Min(Size.X, Size.Y * 16.f / 9.f);
 	const float Left = (Size.X - Frame169) * 0.5f + Frame169 * 0.06f;
-	const float BarW = FMath::Max(2.f, 7.f * Scale);
-	const float TextX = Left + BarW + 16.f * Scale;
+	int32 NameSize = FMath::Max(8, FMath::RoundToInt(56.f * Scale));
+	int32 RoleSize = FMath::Max(8, FMath::RoundToInt(19.f * Scale));
+	int32 TraitSize = FMath::Max(8, FMath::RoundToInt(16.f * Scale));
+	auto MeasureAll = [&](FVector2D& NS, FVector2D& RS, FVector2D& TS)
+	{
+		NS = Measure(Name, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), NameSize));
+		RS = Role.IsEmpty() ? FVector2D::ZeroVector : Measure(Role, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), RoleSize));
+		TS = Trait.IsEmpty() ? FVector2D::ZeroVector : Measure(Trait, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), TraitSize));
+	};
+	FVector2D NS, RS, TS;
+	MeasureAll(NS, RS, TS);
+	float Ins = NS.Y * 1.05f;                       // the insignia: as tall as the name line
+	float TextX = Left + Ins + 30.f * Scale;        // insignia, 12 px, accent, 16 px, text
 	const float MaxW = FMath::Max(40.f, Size.X * 0.5f - TextX);
-	int32 NameSize = FMath::Max(8, FMath::RoundToInt(44.f * Scale));
-	int32 RoleSize = FMath::Max(8, FMath::RoundToInt(20.f * Scale));
-	FVector2D NS = Measure(Name, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), NameSize));
-	FVector2D RS = Measure(Role, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), RoleSize));
-	const float Widest = FMath::Max(NS.X, RS.X);
+	const float Widest = FMath::Max3(NS.X, RS.X, TS.X);
 	if (Widest > MaxW)
 	{
 		const float K = MaxW / Widest;
 		NameSize = FMath::Max(8, FMath::FloorToInt(NameSize * K));
 		RoleSize = FMath::Max(8, FMath::FloorToInt(RoleSize * K));
-		NS = Measure(Name, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), NameSize));
-		RS = Measure(Role, FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), RoleSize));
+		TraitSize = FMath::Max(8, FMath::FloorToInt(TraitSize * K));
+		MeasureAll(NS, RS, TS);
+		Ins = NS.Y * 1.05f;
+		TextX = Left + Ins + 30.f * Scale;
 	}
-	// Stacked upward from just above the subtitle band (and inside the picture).
+	// Stacked upward from just above the subtitle band (and inside the picture): trait, role, name.
 	const float Bottom = FMath::Min(L.SubtitleBand.Min.Y, L.Picture.Max.Y) - 18.f * Scale;
-	L.Role = FBox2D(FVector2D(TextX, Bottom - RS.Y), FVector2D(TextX + RS.X, Bottom));
+	L.Trait = FBox2D(FVector2D(TextX, Bottom - TS.Y), FVector2D(TextX + TS.X, Bottom));
+	L.Role = FBox2D(FVector2D(TextX, L.Trait.Min.Y - RS.Y), FVector2D(TextX + RS.X, L.Trait.Min.Y));
 	L.Name = FBox2D(FVector2D(TextX, L.Role.Min.Y - NS.Y), FVector2D(TextX + NS.X, L.Role.Min.Y));
-	L.Bar = FBox2D(FVector2D(Left, L.Name.Min.Y + NS.Y * 0.15f), FVector2D(Left + BarW, Bottom));
+	const float AccentX = Left + Ins + 12.f * Scale;
+	L.Bar = FBox2D(FVector2D(AccentX, L.Name.Min.Y + NS.Y * 0.12f), FVector2D(AccentX + FMath::Max(1.f, 2.f * Scale), Bottom));
+	const float InsTop = L.Name.Min.Y + (NS.Y - Ins) * 0.5f;
+	L.Insignia = FBox2D(FVector2D(Left, InsTop), FVector2D(Left + Ins, InsTop + Ins));
 	L.NameFontSize = NameSize;
 	L.RoleFontSize = RoleSize;
+	L.TraitFontSize = TraitSize;
 	return L;
 }
 
@@ -741,9 +859,9 @@ void UTDIntroDirector::BuildShots()
 		S.SquadFrom = P3 - F0 * 9000.f;
 		S.SquadTo = P3 + F0 * 13400.f; // 2800 cm/s
 		S.bTrackSquad = true;
-		S.FocalFrom = S.FocalTo = 24.f;
-		S.FStop = 2.f;
-		S.Handheld = 6.f;
+		S.FocalFrom = S.FocalTo = 35.f; // steady frames: a 35 mm hero lens, no handheld (issue #49)
+		S.FStop = 2.8f;
+		S.Handheld = 0.f;
 		S.Narration = 2;
 		Shots.Add(S);
 	}
@@ -1124,7 +1242,32 @@ void UTDIntroDirector::UpdateShot(float T)
 	FVector Cam = FMath::Lerp(S.CamFrom, S.CamTo, S.bTrackSquad ? A : E);
 	FVector Look = FMath::Lerp(S.LookFrom, S.LookTo, E);
 	float Focus = S.FocusDistance > 0.f ? S.FocusDistance : 100000.f;
-	if (S.bTrackSquad && Held.Num())
+	if (S.Id == TEXT("Squad") && Held.Num())
+	{
+		// Issue #49 (Nicholas): one steady shot per ship, cut between them; no back-and-forth swings. Each frame is
+		// locked to its ship (a three-quarter hero angle, the ship large and right of frame, room for the card at the
+		// left) with a slow push-in; the lens holds its pose while the ship drifts and banks a little inside it.
+		const int32 K = SquadSegment(T, S.Duration);
+		const float Seg = S.Duration / 3.f;
+		const float U = FMath::Clamp((T - K * Seg) / Seg, 0.f, 1.f);
+		const ATDShip* Ship = Held.IsValidIndex(K) ? Held[K].Ship.Get() : nullptr;
+		const FVector At = Ship ? Ship->GetActorLocation() : SquadCentre;
+		const float R = Ship ? FMath::Clamp(Ship->GetComponentsBoundingBox(true).GetExtent().Size(), 300.f, 3000.f) : 900.f;
+		const FRotator Facing = (S.SquadTo - S.SquadFrom).Rotation();
+		const FVector Fwd = Facing.Vector();
+		const FVector Right = FRotationMatrix(Facing).GetUnitAxis(EAxis::Y);
+		const FVector UpV = FRotationMatrix(Facing).GetUnitAxis(EAxis::Z);
+		// Wren from ahead and below, Kato in profile, Moss low and heroic.
+		const FVector Local[3] = { FVector(2.1f, -1.5f, -0.35f), FVector(1.0f, -2.2f, 0.2f), FVector(2.2f, -1.35f, -0.5f) };
+		const float Push = FMath::Lerp(1.f, 0.9f, TDIntro::Smooth(U));
+		Cam = At + (Fwd * Local[K].X + Right * Local[K].Y + UpV * Local[K].Z) * R * 1.35f * Push;
+		const FVector Dir = (At - Cam).GetSafeNormal();
+		const FVector CamRight = FVector::CrossProduct(UpV, Dir).GetSafeNormal();
+		Look = At - CamRight * 0.5f * R - UpV * 0.15f * R; // the ship sits right of frame and a little high
+		Focus = FVector::Dist(Cam, At);
+		LastLook = (Look - Cam).GetSafeNormal();
+	}
+	else if (S.bTrackSquad && Held.Num())
 	{
 		// Follow the pilot whose card is up (whip-pan between them), focus on that ship.
 		int32 Target = 0;
@@ -1475,7 +1618,9 @@ void UTDIntroDirector::UpdateOverlay(float T)
 	Overlay.NameCardAlpha = 0.f;
 	if (S.Id == TEXT("Squad"))
 	{
-		const float Windows[3][2] = { { 2.2f, 3.9f }, { 3.9f, 5.3f }, { 5.3f, 7.4f } };
+		// One card per steady frame (issue #49): in after the cut settles, out before the next cut.
+		const float Seg = S.Duration / 3.f;
+		const float Windows[3][2] = { { 0.35f, Seg - 0.2f }, { Seg + 0.35f, 2.f * Seg - 0.2f }, { 2.f * Seg + 0.35f, S.Duration - 0.2f } };
 		const ATDSquadManager* Squad = ATDSquadManager::Get(this);
 		for (int32 i = 0; i < 3; ++i)
 		{
@@ -1486,8 +1631,10 @@ void UTDIntroDirector::UpdateOverlay(float T)
 				const FTDShipSpec Spec = Squad ? Squad->GetSpec(Id) : UTDShipLibrary::GetShipSpec(Id);
 				Overlay.NameCard = FText::Format(LOCTEXT("PilotCard", "{0}"), Spec.PilotName);
 				const FText Trait = UTDStorySubsystem::PilotTrait(Id);
-				Overlay.NameCardRole = Trait.IsEmpty() ? FText::Format(LOCTEXT("PilotRole", "{0}  ·  {1}"), Spec.ShipName, Spec.RoleName) : Trait;
-				Overlay.NameCardColor = UTDShipLibrary::GetSquadColor(Spec);
+				Overlay.NameCardRole = FText::FromString(FText::Format(LOCTEXT("PilotRole", "{0}  \u00b7  {1}"), Spec.ShipName, Spec.RoleName).ToString().ToUpper());
+				Overlay.NameCardTrait = Trait;
+				Overlay.NameCardShip = i;
+				Overlay.NameCardColor = UTDIntroDirector::CardColor(i);
 				Overlay.NameCardAlpha = Alpha;
 			}
 		}
