@@ -397,6 +397,26 @@ UObject* UTDStatics::LoadPresentationAsset(const FString& AssetName, TSubclassOf
 	}
 
 	UObject* Asset = bExists ? ObjectPath.TryLoad() : nullptr;
+
+	// Second place to look: engineering-made character looks (R-019, N-021) live in an always-cooked
+	// Gameplay folder, one sub-folder per character. Presentation always wins when it has the asset.
+	if (!Asset)
+	{
+		if (IAssetRegistry* Registry = IAssetRegistry::Get())
+		{
+			TArray<FAssetData> Found;
+			Registry->GetAssetsByPath(FName(TEXT("/Game/TriadDrift/Gameplay/Characters")), Found, /*bRecursive*/ true);
+			const FName Wanted(*AssetName);
+			for (const FAssetData& Data : Found)
+			{
+				if (Data.AssetName == Wanted)
+				{
+					Asset = Data.GetSoftObjectPath().TryLoad();
+					break;
+				}
+			}
+		}
+	}
 	if (Asset && ExpectedClass && !Asset->IsA(ExpectedClass))
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("Presentation asset %s is a %s, expected %s"), *AssetName,
