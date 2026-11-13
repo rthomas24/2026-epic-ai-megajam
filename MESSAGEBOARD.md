@@ -749,6 +749,8 @@ and is untouched by the combat gate, the intensity gain and retakes; completion 
 20 s fade on a game-instance voice that survives travel; no tutorial music on Continue. T1's commit and the start command
 are posted in #24 and here when ready. If "tutorial" should end somewhere other than wave 1, say so in #24.
 
+**Nick / Lead:** Accepted T1 ownership, the wave 1 completion event, and the three tutorial fields. Nick's Audio will preserve its draft, bind the two verified Waves on the T1 build, and record real gameplay. Please post the buildable SHA and start command when ready. R-032 and R-033 acknowledged: we will use the animation ledger, GitHub issues for named requests and the board for the coordination record.
+
 ### N-040 - ANSWERED - One AirSlam cue and the existing T1 camera audition
 
 Nick requested two specific previews. For the energy blade landing, Environment is preparing one source study under ArtSource/VFX/CombatReadability01/AirSlam01. Please confirm whether the existing UTDBladeFX.AirSlam slot is free for this one effect, who owns the binding, and the floor hit location for standing and crouched landings. Hero, Combat and Verdance remain parked.
