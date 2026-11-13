@@ -20,6 +20,7 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Input/SButton.h"
+#include "TriadDrift/Flow/TDFrontEndStyle.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
 #include "Framework/Application/SlateApplication.h"
@@ -243,13 +244,15 @@ void ATDMenuGameMode::ShowPlaceholder()
 	auto Button = [Weak, &FirstButton](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
 	{
 		TSharedPtr<SButton> Made;
+		SAssignNew(Made, SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
+			.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); })
+			[
+				SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
+			];
+		// The focused button lights up in the squad colour and grows a little: a pad player sees what A presses.
 		TSharedRef<SWidget> Out = SNew(SBox).WidthOverride(320.f).Padding(FMargin(0.f, 6.f))
 			[
-				SAssignNew(Made, SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
-				.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); })
-				[
-					SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
-				]
+				TDFrontEndStyle::FocusFrame(Made.ToSharedRef())
 			];
 		if (bEnabled && !FirstButton.IsValid())
 		{
@@ -298,12 +301,20 @@ void ATDMenuGameMode::ShowPlaceholder()
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SETTINGS"), [](ATDMenuGameMode* M) { UTDSettingsSubsystem::OpenSettingsPage(M); }, true)];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("QUIT"), [](ATDMenuGameMode* M) { M->QuitGame(); }, true)];
 	}
+	// A light veil over the whole screen and a darker panel behind the buttons only: the menu backdrop scene (T3)
+	// shows through while the text stays readable.
 	Placeholder = SNew(SBorder)
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FLinearColor(0.01f, 0.01f, 0.03f, 0.92f))
+		.BorderBackgroundColor(FLinearColor(0.01f, 0.01f, 0.03f, 0.3f))
 		.HAlign(HAlign_Center).VAlign(VAlign_Center)
 		[
-			Box
+			SNew(SBorder)
+			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+			.BorderBackgroundColor(FLinearColor(0.01f, 0.01f, 0.03f, 0.6f))
+			.Padding(FMargin(48.f, 32.f))
+			[
+				Box
+			]
 		];
 	GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);
 	FocusButton = FirstButton;

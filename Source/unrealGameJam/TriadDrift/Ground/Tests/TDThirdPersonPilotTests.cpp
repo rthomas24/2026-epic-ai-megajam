@@ -10,6 +10,8 @@
 #include "TriadDrift/Ground/Tests/TDGroundTestHelpers.h"
 #include "TriadDrift/Ground/Camera/TDThirdPersonCameraComponent.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -290,6 +292,96 @@ bool FTDGroundLookSettings::RunTest(const FString& Parameters)
 	TestTrue(*FString::Printf(TEXT("invert mouse Y flips the pitch (%.3f -> %.3f)"), UpBefore.Y, UpAfter.Y), UpBefore.Y * UpAfter.Y < 0.f);
 	T.S->SetGamepadDeadzone(0.5f);
 	TestTrue(TEXT("a small push inside the new dead zone does nothing"), Turn(FVector2D(0.3f, 0.f), true).IsNearlyZero(0.0001f));
+	return true;
+}
+
+// T1's pad pass: L3 clicks sprint on; it ends when the stick is let go or eased under 30%. Shift stays a hold.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundSprintToggle, "TriadDrift.Ground.PadSprintIsAClickToggle", TD_TEST_FLAGS)
+bool FTDGroundSprintToggle::RunTest(const FString& Parameters)
+{
+	TDThirdPersonPilotTest::FScene T(false);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	ATDFirstPersonCharacter* P = T.P;
+	P->SetMoveInput(FVector2D(0.f, 1.f));
+	P->ToggleSprint();
+	T.W.Advance(0.3f);
+	TestTrue(TEXT("click: sprinting with the stick held forward"), P->IsSprinting());
+	T.W.Advance(1.f);
+	TestTrue(TEXT("no need to hold anything"), P->IsSprinting() && P->IsSprintToggled());
+	P->SetMoveInput(FVector2D(0.f, 0.2f));
+	T.W.Advance(0.1f);
+	TestFalse(TEXT("eased under 30%: the sprint ends"), P->IsSprinting() || P->IsSprintToggled());
+	P->SetMoveInput(FVector2D(0.f, 1.f));
+	T.W.Advance(0.2f);
+	TestFalse(TEXT("and stays off until the next click"), P->IsSprinting());
+	P->ToggleSprint();
+	T.W.Advance(0.2f);
+	P->SetMoveInput(FVector2D::ZeroVector);
+	T.W.Advance(0.1f);
+	TestFalse(TEXT("letting go of the stick ends it too"), P->IsSprintToggled());
+	P->SetMoveInput(FVector2D(0.f, 1.f));
+	P->SetSprintHeld(true);
+	T.W.Advance(0.2f);
+	TestTrue(TEXT("Shift held still sprints"), P->IsSprinting());
+	P->SetSprintHeld(false);
+	T.W.Advance(0.1f);
+	TestFalse(TEXT("and stops on release"), P->IsSprinting());
+	return true;
+}
+
+// T3's melee framing, driven by the pilot: close combat while a live crewman is within 4 m or the blade is busy.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTPPilotCloseCombat, "TriadDrift.Ground.ThirdPerson.PilotDrivesMeleeFraming", TD_TEST_FLAGS)
+bool FTDTPPilotCloseCombat::RunTest(const FString& Parameters)
+{
+	TDThirdPersonPilotTest::FScene T(true);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	ATDFirstPersonCharacter* P = T.P;
+	UTDThirdPersonCameraComponent* Rig = P->GetThirdPersonRig();
+	T.W.Advance(0.3f);
+	TestFalse(TEXT("nobody near: the normal shoulder"), Rig->IsCloseCombat());
+	P->GetBlade()->SetBlockHeld(true);
+	T.W.Advance(0.2f);
+	TestTrue(TEXT("blocking: close combat"), Rig->IsCloseCombat());
+	P->GetBlade()->SetBlockHeld(false);
+	T.W.Advance(0.5f);
+	TestFalse(TEXT("guard down, nobody near: back"), Rig->IsCloseCombat());
+
+	const FTransform Xf(FRotator(0.f, 180.f, 0.f), P->GetActorLocation() + FVector(330.f, 0.f, 0.f));
+	ATDCrewCharacter* Crew = T.W.GetWorld()->SpawnActorDeferred<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (!TestNotNull(TEXT("crewman"), Crew)) { return false; }
+	Crew->CrewType = ETDCrewType::Grunt;
+	Crew->FinishSpawning(Xf);
+	T.W.Advance(0.3f);
+	TestTrue(TEXT("a crewman at 3.3 m: close combat"), Rig->IsCloseCombat());
+	UTDStatics::ApplyTDDamage(Crew, 100000.f, ETDDamageKind::Melee, P, P);
+	T.W.Advance(0.3f);
+	TestFalse(TEXT("he is down: the normal shoulder again"), Rig->IsCloseCombat());
+	return true;
+}
+
+// Review MINOR (Lead, Nov 13): switching from the pause page applies to the body at once, not on resume.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTPPilotPausedSwitch, "TriadDrift.Ground.ThirdPerson.SwitchWhilePausedUpdatesTheBody", TD_TEST_FLAGS)
+bool FTDTPPilotPausedSwitch::RunTest(const FString& Parameters)
+{
+	TDThirdPersonPilotTest::FScene T(false);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	ATDFirstPersonCharacter* P = T.P;
+	USkeletalMeshComponent* Body = P->GetMesh();
+	TestTrue(TEXT("first person: head hidden"), Body->IsBoneHiddenByName(TEXT("head")));
+	UGameplayStatics::SetGamePaused(T.W.GetWorld(), true);
+	T.S->SetOnFootCameraMode(ETDOnFootCamera::ThirdPerson); // the Settings page over the pause screen
+	T.W.Tick(1.f / 60.f); // paused: the pilot's own Tick does not run
+	TestTrue(TEXT("the view switched while paused"), P->IsThirdPersonView());
+	TestFalse(TEXT("head shown at once"), Body->IsBoneHiddenByName(TEXT("head")));
+	TestFalse(TEXT("the camera-rig blade hidden at once"), P->GetBladeMesh()->IsVisible());
+	TestTrue(TEXT("the hand blade shown at once"), P->GetHandBladeBeam()->IsVisible());
+	TestFalse(TEXT("the body no longer turns with the mouse"), P->bUseControllerRotationYaw);
+	T.S->SetOnFootCameraMode(ETDOnFootCamera::FirstPerson);
+	T.W.Tick(1.f / 60.f);
+	TestTrue(TEXT("back to first person while paused: head hidden"), Body->IsBoneHiddenByName(TEXT("head")));
+	TestTrue(TEXT("the camera-rig blade back"), P->GetBladeMesh()->IsVisible());
+	TestFalse(TEXT("no hand blade"), P->GetHandBladeBeam()->IsVisible());
+	UGameplayStatics::SetGamePaused(T.W.GetWorld(), false);
 	return true;
 }
 

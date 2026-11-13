@@ -430,7 +430,9 @@ void ATDMagmaVolume::SetSize(const FVector& Size)
 void ATDMagmaVolume::BeginPlay()
 {
 	Super::BeginPlay();
-	UTDStatics::TintPlaceholder(Surface, FLinearColor(1.f, 0.28f, 0.03f), 3.f);
+	// Deep red-orange at a modest glow: at 3x the placeholder bloomed to flat over-bright yellow from the arrival
+	// altitude (Lead's audit, Nov 13). Until a SM_Cind_MagmaSurface exists (the slot dresses it automatically).
+	UTDStatics::TintPlaceholder(Surface, FLinearColor(0.85f, 0.12f, 0.02f), 1.1f);
 	TDPropArt::Dress(Surface, TDPropArt::Load(SurfaceMesh));
 	Box->OnComponentBeginOverlap.AddUniqueDynamic(this, &ATDMagmaVolume::HandleOverlap);
 }

@@ -32,6 +32,7 @@
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
 #include "Camera/PlayerCameraManager.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Ground/Camera/TDThirdPersonCameraComponent.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -376,6 +377,22 @@ UCameraComponent* ATDFirstPersonCharacter::GetViewCamera() const
 void ATDFirstPersonCharacter::HandleCameraModeChanged(ETDOnFootCamera NewMode)
 {
 	SetThirdPerson(NewMode == ETDOnFootCamera::ThirdPerson);
+	// From the pause page our Tick is not running but the rig switches at once: apply the body side now too
+	// (no headless pilot or floating first-person blade until resume).
+	ApplyViewState();
+}
+
+void ATDFirstPersonCharacter::ApplyViewState()
+{
+	const bool bThird = IsThirdPersonView();
+	bUseControllerRotationYaw = !bThird;
+	if (BladeGrip && BladeGrip->IsVisible() == bThird)
+	{
+		BladeGrip->SetVisibility(!bThird, false);
+		HandleBladeRetract(Blade ? Blade->IsRetracted() : false); // the camera-rig blade only in first person
+	}
+	UpdateBody(0.f);       // head shown / hidden, body placed for the view
+	UpdateHandBlade(0.f);  // the hand blade shows with the whole body
 }
 
 void ATDFirstPersonCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
@@ -562,6 +579,32 @@ void ATDFirstPersonCharacter::PlayBodyAction(FName Anim, float Rate, bool bUpper
 	{
 		Loops->PlayOneShot(Seq, Rate, bUpperOnly);
 		BodyActionName = Anim;
+	}
+}
+
+void ATDFirstPersonCharacter::UpdateCloseCombat(float DeltaSeconds)
+{
+	if (!ThirdPersonRig)
+	{
+		return;
+	}
+	CloseCombatScan -= DeltaSeconds;
+	if (CloseCombatScan <= 0.f)
+	{
+		CloseCombatScan = 0.15f; // a few crew at most: a cheap scan, not every frame
+		bEnemyClose = false;
+		const FVector Here = GetActorLocation();
+		for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It && !bEnemyClose; ++It)
+		{
+			bEnemyClose = !It->IsDead() && FVector::DistSquared(It->GetActorLocation(), Here) < FMath::Square(CloseCombatRange);
+		}
+	}
+	const bool bBladeBusy = Blade && (Blade->IsAttacking() || Blade->IsBlocking());
+	const bool bClose = !IsDead() && (bEnemyClose || bBladeBusy);
+	if (bClose != bLastCloseCombat)
+	{
+		bLastCloseCombat = bClose;
+		ThirdPersonRig->SetCloseCombat(bClose);
 	}
 }
 
@@ -1069,7 +1112,11 @@ void ATDFirstPersonCharacter::UpdateMoveSpeed()
 {
 	UCharacterMovementComponent* Move = GetCharacterMovement();
 	const bool bBladeBusy = Blade && (Blade->IsBlocking() || Blade->IsAttacking());
-	bSprinting = bSprintHeld && MoveInput.Y > 0.1f && !bCarrying && !bBladeBusy && !bSliding;
+	if (bSprintToggled && MoveInput.Size() < SprintToggleMinStick)
+	{
+		bSprintToggled = false; // the pad sprint ends when the stick is let go (or eased right down)
+	}
+	bSprinting = (bSprintHeld || bSprintToggled) && MoveInput.Y > 0.1f && !bCarrying && !bBladeBusy && !bSliding;
 	const float Scale = Blade ? Blade->GetMoveSpeedScale() : 1.f;
 	Move->MaxWalkSpeed = (bSprinting ? Tuning.SprintSpeed : Tuning.RunSpeed) * Scale;
 }
@@ -1257,19 +1304,14 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 	PingTimeLeft = FMath::Max(0.f, PingTimeLeft - DeltaSeconds);
 
 	// Third person: the body turns by the facing rule instead of with the mouse; first person: as before.
-	const bool bThird = IsThirdPersonView();
-	bUseControllerRotationYaw = !bThird;
-	if (bThird && !IsDead() && !bMantling)
+	ApplyViewState();
+	if (IsThirdPersonView() && !IsDead() && !bMantling)
 	{
 		UpdateFacing(DeltaSeconds);
 	}
-	if (BladeGrip && BladeGrip->IsVisible() == bThird)
-	{
-		BladeGrip->SetVisibility(!bThird, false);
-		HandleBladeRetract(Blade ? Blade->IsRetracted() : false); // the camera-rig blade only in first person
-	}
 	UpdateBodyActions();
 	UpdateHandBlade(DeltaSeconds);
+	UpdateCloseCombat(DeltaSeconds);
 
 	// Mirror state for animation and HUD.
 	BladeState = GetBladeState();
@@ -1314,6 +1356,7 @@ void ATDFirstPersonCharacter::BuildInput()
 	IA_LookStick = MakeAction(this, TEXT("IA_Ground_LookStick"), V::Axis2D);
 	IA_Jump = MakeAction(this, TEXT("IA_Ground_Jump"), V::Boolean);
 	IA_Sprint = MakeAction(this, TEXT("IA_Ground_Sprint"), V::Boolean);
+	IA_SprintToggle = MakeAction(this, TEXT("IA_Ground_SprintToggle"), V::Boolean);
 	IA_Dash = MakeAction(this, TEXT("IA_Ground_Dash"), V::Boolean);
 	IA_Crouch = MakeAction(this, TEXT("IA_Ground_Crouch"), V::Boolean);
 	IA_Attack = MakeAction(this, TEXT("IA_Ground_Attack"), V::Boolean);
@@ -1344,7 +1387,7 @@ void ATDFirstPersonCharacter::BuildInput()
 	C->MapKey(IA_Jump, EKeys::SpaceBar);
 	C->MapKey(IA_Jump, EKeys::Gamepad_FaceButton_Bottom);
 	C->MapKey(IA_Sprint, EKeys::LeftShift);
-	C->MapKey(IA_Sprint, EKeys::Gamepad_LeftThumbstick);
+	C->MapKey(IA_SprintToggle, EKeys::Gamepad_LeftThumbstick); // click to sprint (T1's pad pass); Shift is held
 	C->MapKey(IA_Dash, EKeys::Q);
 	C->MapKey(IA_Dash, EKeys::Gamepad_FaceButton_Right);
 	C->MapKey(IA_Crouch, EKeys::LeftControl);
@@ -1378,6 +1421,7 @@ void ATDFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnJumpPressed);
 	EIC->BindAction(IA_Sprint, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnSprintPressed);
 	EIC->BindAction(IA_Sprint, ETriggerEvent::Completed, this, &ATDFirstPersonCharacter::OnSprintReleased);
+	EIC->BindAction(IA_SprintToggle, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnSprintTogglePressed);
 	EIC->BindAction(IA_Dash, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnDashPressed);
 	EIC->BindAction(IA_Crouch, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnCrouchPressed);
 	EIC->BindAction(IA_Attack, ETriggerEvent::Started, this, &ATDFirstPersonCharacter::OnAttackPressed);
@@ -1425,6 +1469,7 @@ void ATDFirstPersonCharacter::UnPossessed()
 	}
 	MoveInput = FVector2D::ZeroVector;
 	bSprintHeld = false;
+	bSprintToggled = false;
 	if (Blade)
 	{
 		Blade->SetBlockHeld(false);

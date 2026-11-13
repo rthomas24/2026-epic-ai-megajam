@@ -133,6 +133,11 @@ ATDInteractableActor::ATDInteractableActor()
 	Mesh->SetRelativeScale3D(FVector(0.6f, 0.6f, 1.2f));
 	Mesh->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 	Mesh->SetCollisionResponseToChannel(TDCollision::Interactable, ECR_Block);
+	// A console is not ground: no stepping up onto it, its top is not walkable (third-person playthrough, Nov 13: a pilot
+	// on the wreck console was out of every melee crewman's reach). Known gap: a pilot who jumps up still perches on the
+	// flat top (a push-off broke the played tests' console use; open item in ground.md).
+	Mesh->SetWalkableSlopeOverride(FWalkableSlopeOverride(EWalkableSlopeBehavior::WalkableSlope_Unwalkable, 0.f));
+	Mesh->CanCharacterStepUpOn = ECB_No;
 	ConsoleMesh = TDPropArt::Default(TEXT("SM_Console"));
 }
 
