@@ -34,21 +34,183 @@ editing the same files.
 All numbers are **starting tuning values** (Unreal units: cm, cm/s, seconds). Keep them in data
 assets or tables, not hard-coded.
 
-**Status key** (edit inline): `⬜ todo` · `🟨 in progress` · `✅ done` · `🐞 has bugs`
+**Status key** (edit inline): `⬜ todo` · `🟨 in progress` · `🟢 built and verified` (on `main`, automated
+tests, independent review closed, played by an agent in the running game; **waiting for a human to play it**) ·
+`✅ done` (all of that, and a human has played it and is happy) · `🐞 has bugs`
 
-**Engineering status (Nov 12, evening):** every core `ENG-xx` item is on `main` with automated tests and has
-had two independent reviews; none is `✅` yet, because nothing has been played by a human. Item by item, with
-open findings: `docs/eng/STATUS.md`. Rules decided during the day are written into the items below and marked
-"(Nov 12)".
+**Where the game stands and who does what today: [Nov 13 realignment](#nov-13-realignment-status-and-plan).**
+Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
+`docs/visual/STATUS.md` (presentation). Live ownership: `CLAIMS.md`.
 
 ### Contents
-0. [The game](#0-the-game) · 1. [The split](#1-the-split) · 2. [Folder & file ownership](#2-folder--file-ownership) ·
+[Nov 13 realignment](#nov-13-realignment-status-and-plan) · 0. [The game](#0-the-game) · 1. [The split](#1-the-split) · 2. [Folder & file ownership](#2-folder--file-ownership) ·
 3. [Shared contracts](#3-shared-contracts) · 4. [Shared setup](#4-shared-setup-c-xx) ·
 5. [🟦 Ryan: Gameplay & Engineering](#5--ryan-gameplay--engineering) ·
 6. [🟩 Nick: Art, Visuals & Player Experience](#6--nick-art-visuals--player-experience) ·
 7. [Landing: full sequence](#7-landing-full-sequence-core) · 8. [Boarding: full sequence](#8-boarding-full-sequence-stretch) ·
 9. [Integration points](#9-integration-points) · 10. [Dependency order](#10-dependency-order-no-dates) ·
 11. [Bugs & requests](#11-bugs--requests-append-only)
+
+---
+
+## Nov 13 realignment: status and plan
+
+Written Nov 13, late morning, by Ryan's Lead at Ryan's request, as a fresh start for the day. It marks what is
+built, says what is still weak, and gives each of the **three lanes** its work. The lists for Nick's agents are
+**Ryan's proposal**: Nicholas keeps art, visual and audio direction and confirms or changes them on
+`MESSAGEBOARD.md` (R-028). Nothing here cuts scope.
+
+### The clock
+| When (EST) | What |
+|---|---|
+| **Today, Nov 13** | Finish the content that is still missing (terrain worlds, new HUD, effects, real 3D ships and enemies, sounds wired). Every lane lands on `main` by tonight. First human playthrough. |
+| **Nov 14** | Polish day: the AAA list below, human playtests morning and evening, balance, performance, a packaged build played start to end, the gameplay video and the itch page drafted. |
+| **Nov 15, 12:00 PM** | Feature freeze. Only fixes after this. |
+| **Nov 15, about 3:00 PM** | Submit a build (the deadline is 8:59 PM; we do not wait for it). Improve and re-upload until 7 PM at the latest. |
+
+### Where the game stands
+The whole journey runs on `main`: main menu → intro → waves 1-2 → Verdance → waves 3-4 → Cinder → wave 5 →
+Dominion assault → reactor → victory, with an automated end-to-end test, Settings, save and Continue, a
+packaged Shipping build of about 800 MB zipped, and about 630 automated tests. Agents have played every part
+through the engine's MCP server. **No human has played it yet; that is the largest open risk in the project.**
+
+| Area | Items | State | What is still missing |
+|---|---|---|---|
+| Flight, input, three ships, switching, wingmen | ENG-01, 02, 03, 04, 07, 08 | 🟢 | A human's judgement of flight feel and switching. Low flight over the new terrain; boost in atmosphere (today) |
+| Weapons, targeting, powers, abilities | ENG-05, 06, 09, 10, 11, 12 | 🟢 | Hit feedback and effects are the weak part (ENG-37). Each ability used live once more after the effects land |
+| Enemies, waves, balance, difficulty | ENG-13, 14, 27 | 🟢 | Enemy ships read small and dark at range; a human run on each difficulty |
+| Hyperdrive, gates, galaxy, Dominion finale | ENG-15, 16, 17, 18 | 🟢 | The whole assault played to victory by a person; the breakup needs real effects |
+| Game flow, saves, landing, on foot, blade, crew, objectives | ENG-19, 20, 21, 22, 23, 24 | 🟢 | Deflect timing judged by a person; blade and crew animation quality; Warden and drone have no mesh |
+| The two planets | ENG-25, 26, 34 | 🟨 | Objectives are finishable; the worlds are being rebuilt as large terrain with mountains (shape on `main`, materials and scatter today); courses re-fitted and replayed on it |
+| Director's Cut (cut, money shots, scenes and takes), intro, third person, Settings | C-03, ENG-32, 33 | 🟢 | Seen with the new HUD and with sound; a person's eye |
+| Sound | ENG-35 (+ ART-10) | 🟨 | 200 fallback sounds built and wired, on `main` today. Nothing has been approved by ear. Music: menu theme only, one combat track not wired by Nick's side |
+| HUD | ENG-36 (+ ART-09) | 🟨 | New flight HUD: first pass matches the design, second pass today, then it becomes the default. Nick's HUD stays selectable |
+| Effects | ENG-37 (+ ART-07) | 🟨 | 21 Niagara systems, round 2 scored 3 of 5; tracers and explosions are being wired today, engines / shields / muzzle flashes need another round |
+| Ship, enemy, Dominion, crew, prop art | ART-03, 04, 06, 08 as engineering fallbacks | 🟨 | Everything has a model in the game (score about 3 of 5). Real hero ships, the fleet, Warden and drone are being generated from approved concepts (Grok Bot) |
+| Sky, lighting, look | ART-05, 13 | 🟨 | Engineering's 8K sky is in; Nick's Hero sky is parked; no lighting or grading pass per level |
+| Menus, reward screen, credits, loading | ART-09 | 🟨 | Engineering fallbacks work; styling is plain. Nick's menu is on a branch |
+| Barks, voice | ART-11 | ⬜ | Text barks only |
+| Submission (video, page, dev log, credits) | ART-14, ENG-28 | 🟨 | 58 s trailer pipeline exists (silent cut, old HUD); page not started; `CREDITS.md` and `DEVLOG.md` are current |
+| Boarding finale | ENG-29-31, ART-15, 16 | ⬜ STRETCH | Not started. Decision: **not before the polish list is done.** |
+
+Judges' categories, our own honest read today: gameplay 3.5, fun 3 (unproven without a human), theme 4,
+ambition 4, level design and progression 3, visuals 3, audio 2. **Today and tomorrow go to visuals, audio and
+feel, in that order of weakness.**
+
+### The three lanes
+
+| Lane | Who | Owns today | Writes in |
+|---|---|---|---|
+| **Engineering** | Ryan's Lead + teammates T1-T5 + builder sub-agents (Claude Code) | All gameplay code; integration to `main`; the takeovers Ryan ordered while Nick's side was stopped: planet worlds (ENG-34), fallback sounds (ENG-35), flight HUD (ENG-36), effects (ENG-37); cleaning up, importing and wiring every generated asset | `Source/`, `Config/`, `Content/TriadDrift/Gameplay/**`, `ArtSource/Eng*/**` |
+| **Asset generation** | Grok Bot (Ryan's agent; fal, Hyper3D Rodin, PBRgen) | Concepts and raw 3D, textures, animations and key art from the ranked list in R-027. Sources only; never Unreal assets, code or maps | `ArtSource/EngAI/**`, `grok/assets-*` branches, merged by Ryan's Lead |
+| **Presentation** | Nick's Lead + agents (Codex) | Direction and sign-off on everything seen and heard; music and the final mix; lighting and look per level; menus and the Director's Cut presentation; voice; the submission page and video | `Content/TriadDrift/{Art, Environment, VFX, UI, Audio, Cinematics, Presentation}/`, `Plugins/TriadDriftHUD/`, `ArtSource/` (not `Eng*`) |
+
+How the lanes meet, unchanged: gameplay reads `DA_*_Visuals` / `DA_*_FX` / `DA_UI_Style`. An asset of Nick's
+at the Presentation name always wins over an engineering fallback with no code change, so nothing engineering
+or Grok Bot makes blocks or overwrites Nick's work, and Nicholas can take any task back on the board.
+
+### Who owns what now (Nov 13, decided by Ryan)
+Ryan's rule: **anything Claude or Grok Bot is making is under Ryan's name; anything Ryan's side is not making is
+under Nick's name.** The items were moved in this file to match: `ART-03, 04, 06, 07, 08` now sit in Ryan's
+section (§5, "Art and assets made on Ryan's side"), with their IDs unchanged so older references still work.
+Nicholas keeps art direction and final sign-off on everything, and anything he makes at the Presentation name
+still replaces ours with no code change.
+
+| What | Item | Owner | Made by | Put in the game by |
+|---|---|---|---|---|
+| Player ships (Rift, Lancer, Bastion) | ART-03 | 🟦 **Ryan** | Grok Bot (Rodin, approved concepts) | Claude builders (clean-up, import, sockets), T1 |
+| Enemy ships and turrets | ART-04 | 🟦 **Ryan** | Grok Bot | Claude builders, T4 |
+| Dominion exterior, generators, reactor | ART-04 | 🟦 **Ryan** | Claude builders (exterior, in game); Grok Bot (generator, reactor) | T4 |
+| Crew, Warden, drone; blade animations | ART-04, ART-08 | 🟦 **Ryan** | Grok Bot (Warden, drone, animations); Claude builders (trooper, grunt, heavy) | T5 |
+| Planets: terrain, mountains, materials, rocks, trees, set pieces | ART-06, ENG-34 | 🟦 **Ryan** | Claude (T4 in code, builders); Grok Bot (texture sets, set pieces) | T4, T5 |
+| Effects: projectiles, engines, explosions, powers | ART-07, ENG-37 | 🟦 **Ryan** | Claude effects builder; Grok Bot (flipbook textures) | T1, T2, T4 |
+| Flight HUD | ENG-36 | 🟦 **Ryan** | Claude (T2) | T2 |
+| Sound effects | ENG-35 | 🟦 **Ryan** | Claude audio builder | T1-T5 |
+| Space dressing, 8K sky stand-in, intro, capture pipeline for the video | ENG-17, ENG-33 | 🟦 **Ryan** | Claude | T3, T4 |
+| Art direction, style guide, sign-off | ART-01, ART-02 | 🟩 **Nick** | Nicholas | - |
+| Space sky (Hero), galaxy look | ART-05 | 🟩 **Nick** | Nick's Environment agent | Nick |
+| Lighting, fog, grade, post-process on every level, including the two planets | ART-13 | 🟩 **Nick** | Nick's Environment agent | Nick |
+| Menus, reward, victory, credits, loading screens; fonts, icons, colours | ART-09 | 🟩 **Nick** | Nick's UI agent | Nick |
+| Music and the final mix; approval of every sound by ear | ART-10 | 🟩 **Nick** | Nick's Audio agent | Nick |
+| Voice and barks | ART-11 | 🟩 **Nick** | Nick's Audio agent | Nick |
+| Director's Cut presentation design (slate, CUT, name card, letterbox) | ART-12 | 🟩 **Nick** | Nick's UI agent | Nick |
+| Itch page, video edit, screenshots, dev log | ART-14 | 🟩 **Nick** | Nick's Lead | Nick + Ryan's Lead |
+
+If Nick's side does not pick up one of its rows by Nov 14 noon, Ryan's Lead takes it as a fallback and says so on
+the board (AGENTS.md §11).
+
+### Engineering today (Claude side)
+
+| Who | Now | Next |
+|---|---|---|
+| **Lead** | Integrate and push in batches (sounds, T1-T5, terrain, effects); approve Grok Bot's concepts and merge its PRs; keep `CLAIMS.md`, `docs/eng/STATUS.md`, `DEVLOG.md` current | Lead playtest of `main` and of a packaged build after each batch; a fresh independent review of ENG-34 to 37; hand Ryan a build to play tonight |
+| **T1** flight, input, travel | Boost in atmosphere (cap 60% of boost speed) so the mountains are reachable; camera and collisions against hillsides and ridges | Engine exhaust driven by throttle and boost, one per nozzle (for ENG-37); camera feel pass: speed FOV, boost kick, hit shake, all scaled by the Settings sliders; gamepad pass on every screen |
+| **T2** combat, powers, HUD | ENG-36 second pass: target bracket, lead marker, edge arrows, missile warning, hit arcs, boost and hyperdrive bars; then the new HUD becomes default | Hit feel: hit and kill confirms (sound + reticle), brief hit-stop on ram and big kills; every power with its real effect; on-foot HUD in the same style |
+| **T3** squad, director | Director sounds live (slate, CUT, slow motion); each money shot captured once with the new effects | Onboarding: the first two minutes teach fly, shoot, switch, power with one prompt at a time (a beginner must never be lost); re-cut the gameplay video with sound and the new HUD; victory and credits screen |
+| **T4** enemies, waves, world | ENG-34: wire the terrain materials, recapture both planets, biome scatter (rocks, crystals, trees), streaming at 90 m/s | Enemy readability at range (scale, glow, silhouette light); Dominion breakup with real explosions; review minors; frame-rate pass on both planets and wave 5 |
+| **T5** flow, ground | Course fit on the new terrain, both planets replayed in third person; footsteps, blade, crew and objective sounds; menu theme loops | Warden and drone meshes and blade animations when Grok Bot delivers; crew fights played end to end; pause, death and retake on foot polished |
+| **Effects builder** | Wire tracers, explosions, hull impact; round 3 on engines, shield impact, muzzle flashes | Tier 2: portal burst, ram streak, missile trails, EMP ring, dome, cloak, gravity well, hyperdrive streaks; tier 3: on-foot blade trail, deflect spark, crew bolts, lava and jungle ambient particles |
+| **Material / asset builders** | Swap Grok Bot's 2K PBR sets into `M_TD_Terrain` after T4's recapture | Clean up, import and socket each generated ship, enemy and character as it arrives (`blender-ai-mesh-cleanup`, `blender-unreal-export`), one review sheet per asset, old version kept (`docs/eng/ART-HISTORY.md`) |
+
+### Asset generation today (Grok Bot), in this order
+1. **Rift, Lancer, Bastion** in 3D from the approved r2 concepts (Rodin). The single most visible upgrade.
+2. **Drone**, then **Warden** (emblem removed; rigged) for the Cinder boss fight.
+3. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
+4. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
+5. `Cinder_Basalt` r2 (natural columnar basalt), then **blade combat animations** for the pilot.
+6. Dominion shield generator and reactor; planet hero set pieces (crash wreck, relay altar, outpost gate, jammer tower).
+7. Key art, itch banner, menu still, trailer end card (Nicholas decides final use).
+
+Each delivery: raw files untouched, `SOURCE.md` with tool, prompt and licence, a contact sheet, a PR. Hero
+assets pass the concept gate first; Ryan's Lead answers within the hour.
+
+### Presentation today (Nick's agents): proposed by Ryan
+Engineering and Grok Bot now cover models, terrain, effects and the flight HUD as fallbacks, so Nick's agents
+are most valuable where **an ear, an eye and taste** decide, and where nobody else is working:
+
+| Priority | Work | Item | Why it is yours |
+|---|---|---|---|
+| 1 | **Music and the mix.** Combat music that swells with the waves (`MusicIntensity01` is live in `UTDAudioStateSubsystem`), planet themes for Verdance and Cinder, Dominion assault, victory sting; merge the menu loop (PR #11) and the Lancer cues (PR #12); then the final mix by ear across music, effects and voice | ART-10 | Audio is our lowest score, and only Nicholas can approve sound by ear. Engineering's 200 sounds are stand-ins: keep, replace or re-level any of them through `DA_UI_Style` and the `DA_*_FX` Sound fields (yours win) |
+| 2 | **Lighting, sky and look per level.** Finish the Hero sky in the real galaxy map; sun, fog, exposure and colour grade for Verdance and Cinder now that they are large mountain worlds; a post-process look for space combat | ART-05, ART-13 | Biggest visual gain for the least risk, and it needs art direction, not code. Tag your sky `TD.Presentation.Sky` and the placeholder steps aside |
+| 3 | **Menus and the Director's Cut presentation.** Main menu, pause, Settings styling, ability reward screen, victory and credits, loading screens; slate card, "CUT!", pilot name card and letterbox as a designed set; fonts, icons and colour tokens that the new flight HUD then adopts | ART-09, ART-12 | Your menu branch (`1a8d942`) and HUD design language already exist. The flight HUD itself is ENG-36 by Ryan's instruction; review it and send notes |
+| 4 | **Voice and barks.** Pilot barks for Wren, Kato and Moss, a mission-control line per scene, intro narration | ART-11 | Hooks exist (`OnBarkRequested`, intro narration slot in `UTDUIStyle`); nothing uses them |
+| 5 | **Submission.** The itch page, screenshots, the 30-60 s gameplay video (engineering's capture pipeline `Tools/td-trailer.ps1` can supply footage), the dev log for Glass Box, "Tools used" | ART-14 | Has a hard deadline and nobody has started it |
+| 6 | **Art review, by eye.** Look at every engineering fallback and every Grok Bot delivery in the running game and say approve / restyle / replace on the board | ART-01 | Nicholas keeps sign-off; an hour of notes steers three lanes |
+
+Suggested to **leave parked** (already covered, to save your 16 GB machine): player ships, enemy ships,
+Dominion, crew, props, terrain, Niagara natives and the M04 flight HUD. Say on the board if you want any of
+them back and engineering stops that fallback the same hour.
+
+### The AAA polish list (both days, in priority order)
+Each line names the owner; a line is done when it is seen (or heard) in the running game, not when it compiles.
+
+**Feel (fun, gameplay)**
+1. A human plays the whole game and we fix what they hit first (Ryan tonight, Nicholas when awake).
+2. Hit feedback on every weapon: tracer, muzzle, impact, hit sound, reticle tick, kill confirm (T2, effects builder).
+3. Camera: speed FOV, boost kick, shake on hits and explosions, no clipping into terrain (T1).
+4. The first two minutes teach the game one prompt at a time; nothing on screen a beginner cannot read (T3, T2).
+5. Difficulty curve over five waves on Story / Standard / Ace; no dead time between waves (T4).
+6. On foot: blade swings with weight (animation, trail, hit-stop), deflect window readable (T5, Grok Bot, effects).
+
+**Look (visuals)**
+7. Real hero ships and fleet in the game with clean sockets and engine exhausts (Grok Bot → builders → T1, T4).
+8. Explosions, engines and shields at the level of the ships (effects builder).
+9. Planets: mountains with rock, peaks and lava; scatter; a sky and light that sell the scale (T4, builders, Nick).
+10. Dominion finale: generators, reactor and a breakup worth a trailer shot (T4, effects builder, Grok Bot).
+11. One consistent UI style from menu to HUD to victory (T2, Nick).
+12. Lighting and grade per level (Nick; engineering fallback if untouched by Nov 14 noon).
+
+**Sound (audio)**
+13. Every action has a sound and none is harsh or repetitive: an ear pass on the fallbacks (Ryan / Nicholas).
+14. Music for menu, combat (rising with the waves), each planet, the finale and victory (Nick; engineering fallback beds exist).
+15. Barks and a few voiced lines (Nick).
+
+**Finish (level design, progression, theme, submission)**
+16. Each scene opens with its slate and reads as a "take"; money shots fire on every big moment (T3).
+17. Both planets replayed start to end on the new terrain; objectives signposted (T5).
+18. 60 fps at 1080p on the mid-spec target through wave 5 and both planets; no hitch over 50 ms (T4, Lead).
+19. Packaged build played start to end every day; zip under 1 GB (Lead).
+20. Video, page, credits, tools list, dev log (Nick, T3, Lead).
 
 ---
 
@@ -99,7 +261,17 @@ Target length: 20–30 minutes.
 | **AI assistant** | Claude Code | OpenAI Codex |
 | **Mission** | Own the playable game systems, engineering integration and technical reliability, so the game stays fun, responsive and shippable | Own the visual identity, presentation quality and player-facing feel, compatible with the gameplay foundation and the 4-day window |
 | **Owns** | Flight and controls; three-ship switching and wingman AI; weapons, damage, shields, enemy AI, waves, targeting, balance, signature and unlockable power *mechanics*; objectives, encounter pacing, hyperdrive and level transitions, mission flow, win/lose and restart; first-person gameplay on the planets (character, blade combat, crew AI, objectives); C++ architecture and interfaces; profiling, testing, packaging, critical bugs | Visual direction; ships, enemies, Dominion and prop *visuals*; space and planet environments, lighting, atmosphere, materials; all VFX (Niagara); HUD, UI/UX, menus, onboarding, ship-switch feedback, targeting clarity; all audio and music; character and ship animation polish; cinematics and the Director's Cut presentation; performance-minded art; trailer and store page |
-| **Feature IDs** | `ENG-xx` | `ART-xx` |
+| **Feature IDs** | `ENG-xx`, and since Nov 13 `ART-03, 04, 06, 07, 08` | `ART-01, 02, 05, 09, 10, 11, 12, 13, 14` (stretch: 15, 16) |
+
+**A third lane since Nov 13: Grok Bot (Ryan's asset-generation agent).** It makes concepts, raw 3D models,
+textures, animations and key art with fal, Hyper3D Rodin and PBRgen, as source files only, in
+`ArtSource/EngAI/**` on `grok/assets-*` branches. Ryan's Lead sets its ranked list (`MESSAGEBOARD.md` R-027),
+approves hero concepts and merges; engineering builders clean up, import and wire the results as fallbacks.
+Nicholas keeps direction and sign-off over everything it makes.
+
+**Engineering fallbacks (Nov 12-13, Ryan's instructions, AGENTS.md §11):** while Nick's side is stopped,
+engineering may build presentation work in its own folders (models, terrain, sounds, effects, the flight
+HUD). These are fallbacks: an asset of Nick's at the Presentation name replaces one with no code change.
 
 **How you avoid stepping on each other:**
 - **Ryan makes it work. Nick makes it look, sound and read great.** They meet only through the
@@ -146,6 +318,14 @@ ArtSource/                         🟩 NICK: Blender sources, AI originals, exp
     <Category>/<Asset>/{brief.md, refs/, source/, <Asset>_vNN.blend, review/, export/}
 Template Content (Characters, FirstPerson, LevelPrototyping, Variant_*, Weapons): reference. Claim before editing.
 ```
+
+**Engineering's own art folders (fallbacks, Nov 12-13):**
+- `Content/TriadDrift/Gameplay/{Characters, Props, Materials, Vegetation, Audio, VFX}/**`: models, materials,
+  sounds, Niagara effects and the fallback `DA_*_Visuals` / `DA_*_FX` / `DA_UI_Style` (in `Gameplay/Characters/**`).
+  All always cooked.
+- `ArtSource/Eng{Ships, Props, Characters, Audio, VFX}/**`: their sources, scripts and review sheets.
+- `ArtSource/EngAI/**`: Grok Bot's generated sources (concepts, raw models, texture sets), never edited in place.
+- Replaced versions are kept and indexed in `docs/eng/ART-HISTORY.md`.
 
 **Rules**
 - Never edit the other person's folders. Ask through your humans, or add a line to §11.
@@ -234,7 +414,7 @@ Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for 
 
 ## 4. Shared setup (`C-xx`)
 
-### C-01 · Project bootstrap · 🟦 Ryan · `🟨`
+### C-01 · Project bootstrap · 🟦 Ryan · `✅`
 - [x] Create the UE project (`unrealGameJam`, First Person C++ template, UE 5.9.0) and record the engine version in AGENTS.md.
 - [x] `.gitignore` and Git LFS (`.uasset .umap .blend` + images, audio, meshes). Not `lockable`; we coordinate through `CLAIMS.md`.
 - [ ] Create the `Content/TriadDrift/...` and `Source/unrealGameJam/TriadDrift/...` trees from §2.
@@ -247,7 +427,7 @@ Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for 
 - [x] Nick checks that the presentation slots cover what he needs for ships, weapons, enemies, travel, blade and UI. (Done over `MESSAGEBOARD.md` R-003 to R-005 and N-001; further slots are added on request.)
 - [x] Push. **`Core/` is now frozen.**
 
-### C-03 · Theme: "Director's Cut" · both · `⬜` 🎬
+### C-03 · Theme: "Director's Cut" · both · `🟢` 🎬
 Theme fit is a judging category, so it must be **visible in gameplay**, not just the title.
 
 **Decision (Nov 12): we build #1, #2 and #3.** All three are core. They're cheap,
@@ -300,7 +480,7 @@ can start.
 
 ### Space core
 
-#### ENG-01 · Space flight model · `🟨`
+#### ENG-01 · Space flight model · `🟢`
 Arcade 6DOF-lite flight: fast, readable, with a signature **drift**. Gamepad and keyboard + mouse are
 both first-class.
 
@@ -325,7 +505,7 @@ both first-class.
 **Done when:** flying through an asteroid field is fun on its own, and drifting around a rock while
 shooting backwards feels great.
 
-#### ENG-02 · Space input map · `🟨`
+#### ENG-02 · Space input map · `🟢`
 `IMC_Space` (plus `IMC_Atmosphere`, which adds Land and removes Hyperdrive):
 
 | Action | KB/M | Gamepad |
@@ -349,7 +529,7 @@ shooting backwards feels great.
 
 **(Nov 12)** The galaxy map key is hidden until its screen exists (ART-09).
 
-#### ENG-03 · Health, shields, death and respawn · `🟨`
+#### ENG-03 · Health, shields, death and respawn · `🟢`
 - **Shield:** absorbs damage first; regenerates after 3 s without damage at 25%/s. **(Nov 12)** Set per
   ship in `FTDShipSpec` (`ShieldRegenDelay`, `ShieldRegenFractionPerSecond`); those are the defaults.
 - **Hull:** doesn't regenerate in combat, but repairs at 8% per second in the breather between waves.
@@ -365,7 +545,7 @@ shooting backwards feels great.
   retake or an in-place respawn every ship, including the one the player was flying, is flown by its AI
   again as soon as the player switches away.
 
-#### ENG-04 · The three ships (gameplay stats) · `🟨`
+#### ENG-04 · The three ships (gameplay stats) · `🟢`
 | | **Rift** (Trickster) | **Lancer** (Interceptor) | **Bastion** (Heavy) |
 |---|---|---|---|
 | Hull / Shield | 100 / 100 | 70 / 80 | 180 / 160 |
@@ -381,7 +561,7 @@ shooting backwards feels great.
 Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`,
 `DA_Bastion_Visuals`; Nick, ART-03; exact names in `docs/visual/Presentation-Asset-Paths.md`).
 
-#### ENG-05 · Ship weapons · `🟨`
+#### ENG-05 · Ship weapons · `🟢`
 | Weapon | Ship | Type | Damage | Rate | Speed | Range | Resource | Notes |
 |---|---|---|---|---|---|---|---|---|
 | Phase Pulse Lasers | Rift | Twin alternating bolts | 8 each | 8/s | 40 000 | 40 000 | Heat: 4 s to overheat, 1.5 s lockout | 3° aim assist |
@@ -397,7 +577,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
   kills.
 - Visuals and audio come from `UTDWeaponFX` (Nick).
 
-#### ENG-06 · Targeting & lock-on · `🟨`
+#### ENG-06 · Targeting & lock-on · `🟢`
 - Soft target = the enemy closest to screen centre within 25°, cycled by distance.
 - Bastion missile locks: targets inside the 25° cone are painted automatically, up to 6, at 0.25 s
   each. A lock is dropped when its target dies, becomes invalid (cloaked, wrong team), goes beyond the
@@ -420,7 +600,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - Pause: Escape / gamepad Start, in space and on foot (`OnPauseChanged` on the player controller;
   `UTDUIStyle.PauseWidgetClass` for the menu). Refused during level travel, a pending retake and victory.
 
-#### ENG-07 · Squad manager & instant switching (PROTECT) · `🟨`
+#### ENG-07 · Squad manager & instant switching (PROTECT) · `🟢`
 - `ATDSquadManager` spawns, tracks and respawns all three ships, and owns who the player controls.
   It implements `ITDHUDData`.
 - **Switching:** next, previous or direct; possesses the target instantly on the same frame; the ship
@@ -430,7 +610,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - A power started on one ship finishes after you switch away (portal stays open, dome stays up).
 - Fires `OnShipSwitched`, which drives Nick's "cut" presentation (C-03 #1).
 
-#### ENG-08 · Wingman AI (PROTECT) · `🟨`
+#### ENG-08 · Wingman AI (PROTECT) · `🟢`
 - States: Formation → Engage → Evade → Regroup → Downed.
   - Formation: a loose V at 1500–2500 cm offsets; boosts to catch up beyond 8000 cm. **(Nov 12)** The V is
     swept forward (both wingmen ahead and outboard of the player, at different depths) so the chase
@@ -449,7 +629,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
   under half the time, so the wing is made readable through the HUD (`GetSquadMarkers`: named arrows in
   squad colours) and short position calls (`Bark_SquadEngage...`), not by formation flying.
 
-#### ENG-09 · Rift: Portal Blaster · `🟨` ⚠️ highest risk
+#### ENG-09 · Rift: Portal Blaster · `🟢` ⚠️ highest risk
 - **Placement:** Fire 1 opens portal A where it hits or at max range (12 000 cm); Fire 2 opens B; a
   third shot recycles the oldest. Open for 12 s, then an 8 s cooldown.
 - **Ships:** pass through keeping their speed, take the exit's facing, and get 0.3 s of
@@ -461,14 +641,14 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
   missile-reflect field.
 - Visuals: `UTDTravelFX` portal slots (Nick).
 
-#### ENG-10 · Lancer: Afterburner Ram · `🟨`
+#### ENG-10 · Lancer: Afterburner Ram · `🟢`
 - 0.3 s wind-up, then a 1.2 s dash at 3× boost speed. Lancer is invulnerable and steers at 40%.
 - Deals **300 to whatever it touches**: passes through fighters, **breaks gunship shields** and
   carrier bay doors.
 - Hitting something big stops the dash with a 150-damage shockwave over 1500 cm.
 - 7 s cooldown. Exposes `PowerWindup01` for the wing-fold animation (Nick).
 
-#### ENG-11 · Bastion: Missile Swarm & Shield Dome · `🟨`
+#### ENG-11 · Bastion: Missile Swarm & Shield Dome · `🟢`
 - **Missile Swarm (tap):** 12 micro-missiles split across painted locks (or the soft target),
   18 damage each with a 200 cm splash; 9 s cooldown.
 - **Shield Dome (hold 0.5 s):** a 3000 cm radius for 6 s with a 16 s cooldown.
@@ -476,7 +656,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
   - Enemy shots are destroyed on the dome, and missiles are deflected back.
   - The dome follows Bastion slowly.
 
-#### ENG-12 · Unlockable abilities (CORE: powers aren't optional) · `🟨`
+#### ENG-12 · Unlockable abilities (CORE: powers aren't optional) · `🟢`
 One ability slot per ship (`IA_Ability`), filled from `GetProgress().UnlockedAbilities` on spawn
 and on `OnAbilityUnlocked`.
 
@@ -495,7 +675,7 @@ AI-flown ship never starts one. Two exceptions end at the switch (also on an aut
 death): the ram (wind-up cancelled, dash ended, no invulnerability left behind) and a portal blaster
 with only one portal placed (the lone portal closes).
 
-#### ENG-13 · Enemy ships & AI · `🟨`
+#### ENG-13 · Enemy ships & AI · `🟢`
 | Enemy | Role | HP / Shield | Speed | Weapons | Behaviour | Counter |
 |---|---|---|---|---|---|---|
 | Shard Fighter | Swarm | 30 / 0 | 7000 | Pulse guns (5, 4/s) | Packs of 4–8, strafing runs | Needles, Splitter, Flak |
@@ -518,7 +698,7 @@ with only one portal placed (the lone portal closes).
   little time to dodge); gunship bolts fire down to 15 m and its salvo from 40 m. Enemy ships do not use the
   planet gates. Placeholder ships glow red-orange with white eyes and are drawn larger than their collision.
 
-#### ENG-14 · Wave director · `🟨`
+#### ENG-14 · Wave director · `🟢`
 - `ATDWaveDirector` + `DT_Waves`. Waves spawn behind or flanking the player, with a 6 s breather
   between them.
 - Reads `GetProgress()` on load and resumes the right phase.
@@ -535,7 +715,7 @@ with only one portal placed (the lone portal closes).
 Tutorial beats fire `ShowTip`: switching (wave 1), each signature power (first time in each ship),
 drift, hyperdrive.
 
-#### ENG-15 · Hyperdrive · `🟨`
+#### ENG-15 · Hyperdrive · `🟢`
 - Hold to spool for 1.2 s; can't spool within 2 s of taking damage, and a hit cancels it.
 - Jump at 80 000 cm/s with 10% steering. Auto-drops out near markers and the Dominion. Wingmen jump
   too and arrive in formation.
@@ -546,19 +726,19 @@ drift, hyperdrive.
 - **Hyperdrive lock:** the hyperdrive is locked while a wave is active and during the Dominion
   assault, and free in the breather between waves and in the planet phases.
 
-#### ENG-16 · Portal gates (galaxy shortcuts) · `🟨`
+#### ENG-16 · Portal gates (galaxy shortcuts) · `🟢`
 Three permanent `ATDPortalGate` pairs: combat zone ↔ Verdance orbit, combat zone ↔ Cinder orbit, and
 a flank pair used in waves 3–5. They reuse ENG-09's transit logic, and wingmen follow. Shots pass
 through a gate unchanged: only Rift's own portals return enemy missiles.
 
-#### ENG-17 · Galaxy level: gameplay layout · `🟨`
+#### ENG-17 · Galaxy level: gameplay layout · `🟢`
 - **Zones:** the combat zone (asteroids, station ruins as cover), Verdance and Cinder orbits, and
   the Dominion approach.
 - **Gameplay actors:** `ATDPlanetAtmosphere` triggers, spawn zones, portal gates and return points
   (`Verdance_Orbit`, `Cinder_Orbit`, `Dominion_Hangar_Exit` for the stretch).
 - **Shared map:** Nick dresses the same map with art, lighting and VFX (One File Per Actor).
 
-#### ENG-18 · Dominion assault & space finale (CORE) · `🟨`
+#### ENG-18 · Dominion assault & space finale (CORE) · `🟢`
 - **Arrival:** when `bDominionRevealed` is set after wave 5, the Dominion warps in (Nick's reveal
   sequence plays).
 - **Assault:**
@@ -578,7 +758,7 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
 
 ### Game loop & progression
 
-#### ENG-19 · Game instance, progression, saves & travel · `🟨`
+#### ENG-19 · Game instance, progression, saves & travel · `🟢`
 - `UTDGameInstance` implements `ITDGameFlow` and holds `FTDProgress`.
 - **Travel:** `TravelTo` fades to `L_Transition` (Nick's loading screen widget), then the target
   level.
@@ -588,7 +768,7 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
 - **Debug menu** (F10, dev builds only): jump to any phase, unlock abilities, god mode, kill all,
   skip wave.
 
-#### ENG-20 · Atmosphere flight, landing & take-off (gameplay) · `🟨`
+#### ENG-20 · Atmosphere flight, landing & take-off (gameplay) · `🟢`
 See §7.
 - **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
   altitude data.
@@ -605,7 +785,7 @@ See §7.
 - **Landing and take-off:** auto-land (gear and canopy state exposed), wingmen land beside you, the
   exit hands off to first person, and boarding reverses it.
 
-#### ENG-21 · First-person character (planets: CORE) · `🟨`
+#### ENG-21 · First-person character (planets: CORE) · `🟢`
 Extends the template's first-person character.
 
 | Move | Input | Values |
@@ -621,7 +801,7 @@ Extends the template's first-person character.
 - 100 health, regenerating after 4 s at 15/s; death → checkpoint respawn.
 - Implements the ground side of `ITDHUDData`.
 
-#### ENG-22 · Energy blade combat (CORE, used on planets) · `🟨`
+#### ENG-22 · Energy blade combat (CORE, used on planets) · `🟢`
 | Move | Damage | Behaviour |
 |---|---|---|
 | Light combo ×3 | 25 / 25 / 45 | 180 cm, 100° arc sweeps; the third hit knocks back; 0.45 s combo window |
@@ -635,7 +815,7 @@ Extends the template's first-person character.
 
 Hit-stop: 50 ms on hit, 120 ms on kill. Visuals and audio: `UTDBladeFX` (Nick).
 
-#### ENG-23 · Crew enemies: AI & combat (CORE, planets) · `🟨`
+#### ENG-23 · Crew enemies: AI & combat (CORE, planets) · `🟢`
 | Enemy | HP | Attacks | Behaviour |
 |---|---|---|---|
 | Grunt | 60 | Telegraphed baton (15) | Groups of 3–5; flanks |
@@ -649,7 +829,7 @@ Hit-stop: 50 ms on hit, 120 ms on kill. Visuals and audio: `UTDBladeFX` (Nick).
 - Attack tokens: at most 2 grunts attack at once.
 - Ragdoll on death. Models and animations are Nick's (ART-08).
 
-#### ENG-24 · Objective framework · `🟨`
+#### ENG-24 · Objective framework · `🟢`
 `ATDObjective` (Id, steps, waypoint, reward ability and ship) and interactables (tap or hold;
 interrupted by damage). Fires `OnObjectiveUpdated` and calls `CompleteObjective`, which brings up
 Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its doors.
@@ -684,7 +864,7 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   wins first time never sees it. Any on-foot fight can opt in (`ATDEncounterVolume::MercyTiers`). Engineering-made props dress both planets
   (`Content/TriadDrift/Gameplay/Props`, trees in `Gameplay/Vegetation`) until Nick's art replaces them.
 
-#### ENG-27 · Balance & tuning · `🟨`
+#### ENG-27 · Balance & tuning · `🟢`
 Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20–30 minutes. Add a
 "Pilot / Ace" difficulty setting that scales enemy damage and accuracy.
 
@@ -703,7 +883,7 @@ Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20�
 - **Final zip:** `TeamName_GameName`, < 1 GB (otherwise use butler). Upload the build and fill in the
   submission form with Nick (ART-14).
 
-#### ENG-32 · On-foot third-person camera & the Settings page (CORE, added Nov 12 by Ryan) · `🟨`
+#### ENG-32 · On-foot third-person camera & the Settings page (CORE, added Nov 12 by Ryan) · `🟢`
 Ryan, Nov 12 (late): "a settings page, and you should be able to switch between first and third person ...
 when you're using a character on the ground". Space flight keeps its own cameras (chase, cockpit); this item is
 **on foot only** (planets, and the stretch interior).
@@ -746,7 +926,7 @@ when you're using a character on the ground". Space flight keeps its own cameras
 third person with readable attacks and blocks, the camera never clips through the level, the choice survives a
 restart, and tests cover the toggle, persistence, camera collision, facing rule and the space-only exclusion.
 
-#### ENG-33 · Cinematic intro (CORE, added Nov 12 by Ryan) · `🟨`
+#### ENG-33 · Cinematic intro (CORE, added Nov 12 by Ryan) · `🟢`
 Ryan, Nov 12 (late): the intro should be "really high definition cinematic views of space and the spacecraft going
 by and worlds". **Reference for the cinematic language only** (pacing, scale, framing, grade), not its content, world
 or style, which belong to another IP: the *Warhammer 40,000: Darktide* intro cutscene
@@ -880,6 +1060,70 @@ coming out and there's movement ... a bunch of particles, and everything that ma
 - Owner: Lead (effects builder sub-agents), T2 (combat cues and placeholders), T1 (engines and trails), T4 (enemy,
   Dominion and world cues), T5 (on-foot cues).
 
+### Art and assets made on Ryan's side (moved from Nick's section, Nov 13)
+
+Ryan's rule (Nov 13): what Claude or Grok Bot makes is under Ryan's name. These five items keep their `ART-xx`
+IDs and their original spec text; the first line of each says who makes it now. Nicholas keeps direction and
+sign-off, and an asset of his at the Presentation name replaces ours.
+
+#### ART-03 · Ship visuals: Rift, Lancer, Bastion · `🟨`
+**🟦 Ryan since Nov 13.** Made by Grok Bot (Rodin, R-027 #1) from the approved concepts; Ryan's builders clean up, import and wire into `Gameplay/Characters/Squad`; engineering's r7 ships are in the game until then. Paths in the text below that name Nick's folders now mean engineering's (`Gameplay/**`, `ArtSource/Eng*/**`).
+| | Rift | Lancer | Bastion |
+|---|---|---|---|
+| Silhouette | Crescent wing + ring-shaped portal emitter on the nose | Long needle fuselage, forward-swept wings | Wide, chunky hull, twin missile pods, dome emitter |
+| Colours | Violet `#6B2BD9` / magenta glow `#FF2BD6` | Ice white `#E8F4FF` / cyan `#12C8FF` | Amber gold `#F2A01E` / gunmetal |
+| Part animations | Portal ring spin-up, gear, canopy | **Wing fold for the ram**, gear, canopy | **Missile pods open**, dome emitter rises, gear, canopy |
+
+- Models via route A (concept → Rodin → cleanup) or the kits, passing the AAA rubric (the
+  `blender-game-asset` skill). Sockets: muzzles, engines, cockpit camera.
+- Delivered as `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`, `DA_Bastion_Visuals`; exact
+  names in `docs/visual/Presentation-Asset-Paths.md`, a differently named asset is silently ignored) (§3.5), with animations driven by the exposed state. **Readable as
+  black silhouettes at 64 px.**
+
+#### ART-04 · Enemy & Dominion visuals · `🟨`
+**🟦 Ryan since Nov 13.** Enemy ships, turret, Warden, drone, generator and reactor by Grok Bot (R-027 #2, #5, #6); Dominion exterior and crew by engineering, already in the game; T4 and T5 wire them.
+- **Null Armada ships:** Shard Fighter, Hook Interceptor, Wall Gunship (shield emitter), Maul Bomber,
+  Hive Carrier (animated bay doors).
+- **Dominion exterior:** a modular Nanite hull with rotating rings, shield generators, turrets, the
+  reactor trench (core ending) and the hangar mouth (stretch).
+- **Look:** angular, red/black/white-eye shape language. Telegraph glows tied to the gameplay states.
+
+#### ART-06 · Planet environments: Verdance & Cinder (CORE) · `🟨`
+**🟦 Ryan since Nov 13.** Terrain, mountains, materials, rocks, trees and set pieces: engineering (ENG-34) with Grok Bot's texture sets and set pieces (R-027 #3, #8). **Lighting, fog, sky and grade on the planets stay with Nick (ART-13).**
+- **Verdance:** bioluminescent jungle, giant mushrooms and ferns, waterfalls, mist, ringed moon,
+  pollen, critters, wreck-site and relay-spire art.
+- **Cinder:** basalt, magma rivers, cyan and amber crystal spires (crystal kits), falling ash, an
+  outpost kit, the jammer tower and its destruction.
+- **Across both:** terrain materials, foliage instancing, sky and atmosphere, lighting, and the
+  atmospheric-descent vista (canyons and clouds the ship flies through).
+
+#### ART-07 · Combat & travel VFX (Niagara) · `🟨`
+**🟦 Ryan since Nov 13.** Built as Niagara effects in `Gameplay/VFX` (ENG-37) with Grok Bot's flipbook textures (R-027 #7). Nick's side may hand over its own effect for any cue.
+- **Explosions** in 4 tiers; engine trails per squad colour; boost, drift and speed lines; warp-ins
+  (squad white-blue, Armada red tear).
+- **Every weapon's muzzle, tracer and impact** (hull, shield, rock); shield ripples; overheat vents;
+  missiles and flak.
+- **Powers:** portals (ring, swirl, transit flash), ram cone and sonic boom, missile swarm trails,
+  shield dome (hex, ripples, shatter).
+- **Abilities:** Gravity Well (lens distortion, accretion), Cloak (refraction shimmer), EMP (ring and
+  arcs).
+- **Travel:** hyperdrive (spool, tunnel, drop-out), atmospheric entry plasma, landing dust,
+  tractor beam (stretch).
+- **Readability rule:** nothing important hidden by bloom. Budgets: particle caps and significance
+  (ART-13).
+
+#### ART-08 · Ground visuals & animation · `🟨`
+**🟦 Ryan since Nov 13.** Crew models and rigs by engineering; blade combat animations by Grok Bot (R-027 #4), hooked up by T5. The pilot body stays Nicholas's Sentinel Armor.
+- **First-person arms:** idle, run, sprint, jump, slide, mantle and dash; blade ignite and retract;
+  combo ×3, lunge, air slam, block, deflect flourish, guard break; interact and carry; climb into
+  and out of the cockpit.
+- **Energy blade:** emissive core and trail, scorch decals, the perfect-deflect flash.
+- **(Nov 12)** The Null Armada trooper model (Trooper, then Grunt and Heavy variants) is built by engineering
+  from Ryan's concept (`ArtSource/EngCharacters/NullTrooper/`, `MESSAGEBOARD.md` R-019); the rest of this item
+  stays with Nick.
+- **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
+  deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
+
 ### STRETCH: boarding finale
 
 #### ENG-29 · Docking & boarding transition · `⬜` STRETCH
@@ -902,6 +1146,29 @@ coming out and there's movement ... a bunch of particles, and everything that ma
 ---
 
 ## 6. 🟩 Nick: Art, Visuals & Player Experience
+
+**Nov 13: read [the realignment](#presentation-today-nicks-agents-proposed-by-ryan) first.** It lists what
+engineering and Grok Bot now cover as fallbacks and proposes today's priorities for Nick's agents: music and
+the mix, lighting and look, menus and the Director's Cut presentation, voice, the submission, and art review.
+**Ownership changed Nov 13 (Ryan):** ART-03, 04, 06, 07 and 08 moved to Ryan's section (§5); what remains below is Nick's: ART-01, 02, 05, 09, 10, 11, 12, 13, 14 (and the stretch items).
+
+| Item | State Nov 13 | Owner now / stand-in from Ryan's side | For Nick's agents today |
+|---|---|---|---|
+| ART-01 direction | 🟨 palettes and colour code in use | - | Review and sign-off notes (priority 6) |
+| ART-02 inventory | 🟨 intake lists published | Grok Bot's ranked list (R-027) | Keep as the record |
+| ART-03 ships | 🟨 Lancer source parked | **🟦 Ryan** (moved to §5): Grok Bot + builders | Review only |
+| ART-04 enemies, Dominion | 🟨 | **🟦 Ryan** (moved to §5): Grok Bot + builders | Review only |
+| ART-05 space | 🟨 Hero sky parked | Engineering 8K sky and space dressing | **Priority 2:** Hero sky into the real galaxy |
+| ART-06 planets | 🟨 | **🟦 Ryan** (moved to §5): terrain, materials, props, trees | Review; the planets' light, fog, sky and grade are yours under ART-13 |
+| ART-07 VFX | 🟨 source only | **🟦 Ryan** (moved to §5): ENG-37 | Review only; offer per-cue studies |
+| ART-08 ground visuals | 🟨 Sentinel pilot in game | **🟦 Ryan** (moved to §5): crew, animations | Review only |
+| ART-09 HUD and menus | 🟨 M03 HUD on `main`, menu on a branch | ENG-36 flight HUD, fallback menus | **Priority 3:** menus, reward, victory, loading, fonts and tokens |
+| ART-10 audio and music | 🟨 menu theme on `main`, PR #11, PR #12, one combat track | ENG-35, 200 stand-in sounds | **Priority 1:** music, mix, ear approval |
+| ART-11 barks, voice | ⬜ | Text barks | **Priority 4** |
+| ART-12 cinematics, Director's Cut look | 🟨 | Fallback slate, CUT, name card, letterbox; ENG-33 intro | **Priority 3:** design them as a set |
+| ART-13 lighting, post, performance art | ⬜ | Placeholder sky rig per planet | **Priority 2** |
+| ART-14 submission | ⬜ | Trailer capture pipeline, `CREDITS.md`, `DEVLOG.md` | **Priority 5** |
+| ART-15, 16 boarding | ⬜ STRETCH | - | Not now |
 
 **Start here (role brief, Day 1 focus):** establish the art direction and the visual asset inventory,
 make the ships readable, and do a minimal combat presentation pass alongside Ryan's playable
@@ -932,26 +1199,6 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Status and credits:** track each asset's status here or in `ArtSource/inventory.md`, and log
   licences in `CREDITS.md`.
 
-#### ART-03 · Ship visuals: Rift, Lancer, Bastion · `⬜`
-| | Rift | Lancer | Bastion |
-|---|---|---|---|
-| Silhouette | Crescent wing + ring-shaped portal emitter on the nose | Long needle fuselage, forward-swept wings | Wide, chunky hull, twin missile pods, dome emitter |
-| Colours | Violet `#6B2BD9` / magenta glow `#FF2BD6` | Ice white `#E8F4FF` / cyan `#12C8FF` | Amber gold `#F2A01E` / gunmetal |
-| Part animations | Portal ring spin-up, gear, canopy | **Wing fold for the ram**, gear, canopy | **Missile pods open**, dome emitter rises, gear, canopy |
-
-- Models via route A (concept → Rodin → cleanup) or the kits, passing the AAA rubric (the
-  `blender-game-asset` skill). Sockets: muzzles, engines, cockpit camera.
-- Delivered as `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`, `DA_Bastion_Visuals`; exact
-  names in `docs/visual/Presentation-Asset-Paths.md`, a differently named asset is silently ignored) (§3.5), with animations driven by the exposed state. **Readable as
-  black silhouettes at 64 px.**
-
-#### ART-04 · Enemy & Dominion visuals · `⬜`
-- **Null Armada ships:** Shard Fighter, Hook Interceptor, Wall Gunship (shield emitter), Maul Bomber,
-  Hive Carrier (animated bay doors).
-- **Dominion exterior:** a modular Nanite hull with rotating rings, shield generators, turrets, the
-  reactor trench (core ending) and the hangar mouth (stretch).
-- **Look:** angular, red/black/white-eye shape language. Telegraph glows tied to the gameplay states.
-
 #### ART-05 · Space environment & galaxy dressing · `⬜`
 - **Space assets:**
   - `BP_GalaxySkybox`: layered nebula, stars, sun with lens flare.
@@ -959,39 +1206,6 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   - Nebula volumes, a speed-dust field, asteroid-field kits (`procedural_rocks.py`), station ruins.
 - **Galaxy map:** dress `L_Galaxy` on your own actors (One File Per Actor): lighting, post-process
   and scale cues.
-
-#### ART-06 · Planet environments: Verdance & Cinder (CORE) · `⬜`
-- **Verdance:** bioluminescent jungle, giant mushrooms and ferns, waterfalls, mist, ringed moon,
-  pollen, critters, wreck-site and relay-spire art.
-- **Cinder:** basalt, magma rivers, cyan and amber crystal spires (crystal kits), falling ash, an
-  outpost kit, the jammer tower and its destruction.
-- **Across both:** terrain materials, foliage instancing, sky and atmosphere, lighting, and the
-  atmospheric-descent vista (canyons and clouds the ship flies through).
-
-#### ART-07 · Combat & travel VFX (Niagara) · `⬜`
-- **Explosions** in 4 tiers; engine trails per squad colour; boost, drift and speed lines; warp-ins
-  (squad white-blue, Armada red tear).
-- **Every weapon's muzzle, tracer and impact** (hull, shield, rock); shield ripples; overheat vents;
-  missiles and flak.
-- **Powers:** portals (ring, swirl, transit flash), ram cone and sonic boom, missile swarm trails,
-  shield dome (hex, ripples, shatter).
-- **Abilities:** Gravity Well (lens distortion, accretion), Cloak (refraction shimmer), EMP (ring and
-  arcs).
-- **Travel:** hyperdrive (spool, tunnel, drop-out), atmospheric entry plasma, landing dust,
-  tractor beam (stretch).
-- **Readability rule:** nothing important hidden by bloom. Budgets: particle caps and significance
-  (ART-13).
-
-#### ART-08 · Ground visuals & animation · `⬜`
-- **First-person arms:** idle, run, sprint, jump, slide, mantle and dash; blade ignite and retract;
-  combo ×3, lunge, air slam, block, deflect flourish, guard break; interact and carry; climb into
-  and out of the cockpit.
-- **Energy blade:** emissive core and trail, scorch decals, the perfect-deflect flash.
-- **(Nov 12)** The Null Armada trooper model (Trooper, then Grunt and Heavy variants) is built by engineering
-  from Ryan's concept (`ArtSource/EngCharacters/NullTrooper/`, `MESSAGEBOARD.md` R-019); the rest of this item
-  stays with Nick.
-- **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
-  deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
 
 #### ART-09 · HUD & UI/UX · `⬜`
 - **`WBP_SpaceHUD`** (via `ITDHUDData`):
@@ -1142,11 +1356,22 @@ C-01 Project ─► C-02 Contracts (+ presentation hooks) ─┬─► 🟦 ENG-
 C-03 Theme decision ─► ENG event hooks + ART-12        STRETCH (after core is solid): ENG-29–31 + ART-15–16
 ```
 
+**Order from here (Nov 13):** the tree above is built except the planets' new worlds. What unblocks what now:
+```
+Grok Bot concepts (approved) ─► raw 3D ─► builders clean up + import ─► T1 / T4 / T5 sockets, exhausts, rigs ─► in game
+T4 terrain shape ─► terrain materials + PBR sets ─► scatter ─► T5 course fit ─► planets replayed ─► Nick lighting
+Effects builder (tracers, explosions ─► engines, shields ─► powers) ─► T2 hit feel ─► T3 money shots + video
+T2 HUD second pass ─► default HUD ─► Nick's fonts / tokens ─► on-foot HUD
+Fallback sounds on main ─► ear pass (Ryan / Nicholas) ─► Nick's music + mix
+Everything ─► human playthrough ─► fixes ─► packaged build ─► video + page ─► submit
+```
+
 **Biggest risks (start early):**
 - Ryan: ENG-01 flight feel, ENG-07 switching (protect it), ENG-09 portals.
 - Shared: ENG-20 + ART-07 landing hand-off, ENG-22 deflect.
 - Nick: ART-03 hero-ship quality.
 - Both: packaging (ENG-28). Package early and often.
+- **Nov 13:** nobody has played the game by hand; audio is unapproved; generated 3D must be cleaned up and in game by Nov 14 noon or the fallbacks ship.
 
 **Feature freeze: Nov 15, 12:00 PM EST.** Every major feature should be in by then; after that, only
 fixes, polish, packaging and submission.
