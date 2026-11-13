@@ -28,7 +28,7 @@ Audio has the next exclusive Unreal recording slot once Ryan posts the corrected
 
 | Nick-side owner | Assigned paths and task | Limits |
 |---|---|---|
-| Story Director | Story/README.md and Story/Triad_Drift_Gameplay_Sequence_02_Verdance_Arrival.docx, Story/Triad_Drift_Cinematic_Sequence_03_Beneath_the_Surface.docx, Story/Triad_Drift_Gameplay_Sequence_03_Facility_Defense.docx, Story/Triad_Drift_Cinematic_Sequence_04_Verdance_Departure.docx | Add verified originals and sequence dependencies in a documentation-only checkout. Preserve existing narratives. |
+| Story Director, complete and released at 377ed2dd | Story/README.md and Story/Triad_Drift_Gameplay_Sequence_02_Verdance_Arrival.docx, Story/Triad_Drift_Cinematic_Sequence_03_Beneath_the_Surface.docx, Story/Triad_Drift_Gameplay_Sequence_03_Facility_Defense.docx, Story/Triad_Drift_Cinematic_Sequence_04_Verdance_Departure.docx | Add verified originals and sequence dependencies in a documentation-only checkout. Preserve existing narratives. |
 | UI | Isolated Worktrees/ui-loading-shipping-01 based on 870a7532 with the three TDLoadingWidget files from 228fdc42. Candidate-only Content/TriadDrift/Presentation/DA_UI_Style.uasset LoadingWidgetClass and Saved/Loading01/** for packaging and real New Game, Continue and menu-return evidence | No production default or shared style changes. Audio has priority for its corrected-build capture; serialize the cook and capture. |
 | Audio | Existing ArtSource/Audio/CombatMusic01/ lane; planning for R-035 descent sound deferred until tutorial video and Ryan's cue names | No new sound or music direction assigned. |
 
