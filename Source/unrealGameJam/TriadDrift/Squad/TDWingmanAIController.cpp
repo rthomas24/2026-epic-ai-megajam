@@ -15,6 +15,14 @@
 // in the player's view (if within InViewMaxExtraBands of its best) and keeps out of the aim line.
 // T4's Weak balance run, 5 seeds each, kills/min per wingman vs the old targeting: w1 L +28% B -24%,
 // w3 L -2% B +18%, w5 L +42% B -10% (guard rail: no drop over a third). 0 = the old targeting, at once.
+// Wingman survival experiment. 1: a wingman below LowHullStayOut01 hull keeps out of fights until its
+// shield is back, and a burst of hull damage also triggers an evade. OFF by default: TDSquadSurvival
+// (5 runs x Weak/Average, waves 1-5) showed 85-95% of ship downs are the PLAYER's ship, wingman downs
+// were already low, and the rules made no measurable difference to either (Nov 12).
+static TAutoConsoleVariable<int32> CVarTDWingmenSurvival(TEXT("td.Wingmen.Survival"), 0,
+	TEXT("1: hurt wingmen stay out of fights until their shield is back; hull bursts trigger an evade. 0: off (default)."),
+	ECVF_Default);
+
 static TAutoConsoleVariable<int32> CVarTDWingmenInView(TEXT("td.Wingmen.InViewTargeting"), 1,
 	TEXT("1: wingmen prefer targets in the player's view (default). 0: classic nearest-first targeting."),
 	ECVF_Default);
@@ -276,9 +284,25 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 	const float Shield01 = TDSquad::GetShield01(Ship);
 	const bool bShieldBroke = PrevShield01 > 0.01f && Shield01 <= 0.01f;
 	PrevShield01 = Shield01;
+	// Hull taking a burst (survival): HullBurst01 lost within HullBurstWindowSeconds.
+	bool bHullBurst = false;
+	{
+		const float Hull01 = TDSquad::GetHull01(Ship);
+		if (T - HullWindowStart > HullBurstWindowSeconds || Hull01 > HullAtWindowStart)
+		{
+			HullWindowStart = T;
+			HullAtWindowStart = Hull01;
+		}
+		bHullBurst = CVarTDWingmenSurvival.GetValueOnGameThread() != 0 && HullAtWindowStart - Hull01 >= HullBurst01;
+		if (bHullBurst)
+		{
+			HullWindowStart = T;
+			HullAtWindowStart = Hull01;
+		}
+	}
 	if (State != ETDWingmanState::Evade && T >= NextEvadeAllowedTime)
 	{
-		if (bShieldBroke || TDSquad::IsMissileIncoming(Ship))
+		if (bShieldBroke || bHullBurst || TDSquad::IsMissileIncoming(Ship))
 		{
 			BeginEvade(Ship);
 		}
@@ -304,6 +328,12 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 // ---------------------------------------------------------------------------------------------
 // States
 // ---------------------------------------------------------------------------------------------
+
+bool ATDWingmanAIController::ShouldStayOutOfFights(const ATDShip* Ship) const
+{
+	return CVarTDWingmenSurvival.GetValueOnGameThread() != 0 && Ship
+		&& TDSquad::GetHull01(Ship) < LowHullStayOut01 && TDSquad::GetShield01(Ship) < ShieldBackIn01;
+}
 
 FVector ATDWingmanAIController::GetHomeLocation(ATDShip* Ship, ATDShip* Leader, bool& bOutIsDome) const
 {
@@ -336,7 +366,12 @@ void ATDWingmanAIController::UpdateFormation(float DeltaSeconds, ATDShip* Ship, 
 	if (T >= NextTargetEvalTime && !bHyperdriveFormUp)
 	{
 		NextTargetEvalTime = T + TargetReevaluateInterval;
-		if (AActor* Target = PickTarget(Ship, Leader))
+		AActor* Target = PickTarget(Ship, Leader);
+		if (Target && ShouldStayOutOfFights(Ship) && !(Squad.IsValid() && Target == Squad->GetFocusTarget()))
+		{
+			Target = nullptr; // hurt: hold the slot by the player until the shield is back
+		}
+		if (Target)
 		{
 			const bool bFocus = Squad.IsValid() && Target == Squad->GetFocusTarget();
 			const bool bCommitted = State == ETDWingmanState::Regroup && bRegroupCommitted && T - StateEnterTime < RegroupCommitSeconds;
@@ -432,7 +467,8 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 	}
 
 	AActor* Target = CurrentTarget.Get();
-	if (!Target || TDSquad::IsDead(Target))
+	const bool bFocusTarget = Target && Squad.IsValid() && Target == Squad->GetFocusTarget();
+	if (!Target || TDSquad::IsDead(Target) || (ShouldStayOutOfFights(Ship) && !bFocusTarget))
 	{
 		CurrentTarget.Reset();
 		SetState(ETDWingmanState::Regroup);
