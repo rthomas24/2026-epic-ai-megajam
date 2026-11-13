@@ -448,7 +448,9 @@ void UTDFlightHUDWidget::SampleDirector(float Dt)
 	// slow-mo itself scales world delta, so ease on the undilated step.
 	const float RealDt = World && World->GetWorldSettings() ? Dt / FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), .01f) : Dt;
 	View.MoneyShot = FMath::FInterpConstantTo(View.MoneyShot, bMoney ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
-	const float Target = View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f;
+	const float Target = FMath::Min(View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f,
+		FMath::Clamp(FocusOpacity, 0.f, 1.f));
+	View.bCombatHeld = bFocusHideCombat;
 	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
 	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
 	// Applied in NativePaint through the painter's Alpha (render opacity does not reach custom-painted elements).
@@ -1139,7 +1141,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
 	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
-	for (const FWaypoint& Wp : View.Waypoints)
+	static const TArray<FWaypoint> NoWaypoints;
+	const TArray<FWaypoint>& ShownWaypoints = View.bCombatHeld ? NoWaypoints : View.Waypoints; // a focus hold: none
+	for (const FWaypoint& Wp : ShownWaypoints)
 	{
 		const FLinearColor Way = T::Neutral();
 		if (Wp.bOnScreen && Wp.bLifted)
@@ -1525,8 +1529,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		}
 	}
 
-	// ---- objective line: top-centre pill, diamond, caps, counter right; expands for 3 s on change
-	if (!View.Objective.IsEmpty())
+	// ---- objective line: top-centre pill, diamond, caps, counter right; expands for 3 s on change (held off by a focus hold)
+	if (!View.Objective.IsEmpty() && !View.bCombatHeld)
 	{
 		const float E = FMath::SmoothStep(0.f, 1.f, View.ObjectiveExpand);
 		// Grow to fit long text: diamond + text + gap + counter + padding (headless measures 0: the design sizes stand).

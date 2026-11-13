@@ -97,6 +97,7 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 		TacticalWidget->RemoveFromParent();
 		TacticalWidget = nullptr;
 	}
+	ApplyFocus();
 	TimeUntilCheck -= DeltaTime;
 	if (TimeUntilCheck > 0.f)
 	{
@@ -104,6 +105,57 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 	}
 	TimeUntilCheck = TDUIHost::CheckInterval;
 	Evaluate();
+}
+
+void UTDUIHostSubsystem::ApplyFocus()
+{
+	float Opacity = 1.f;
+	bool bHideCombat = false;
+	for (const TPair<FName, FTDHUDFocus>& It : Focus)
+	{
+		Opacity = FMath::Min(Opacity, It.Value.Opacity);
+		bHideCombat |= It.Value.bHideCombat;
+	}
+	if (UTDFlightHUDWidget* Flight = Cast<UTDFlightHUDWidget>(Widget))
+	{
+		Flight->FocusOpacity = Opacity;
+		Flight->bFocusHideCombat = bHideCombat;
+	}
+}
+
+void UTDUIHostSubsystem::PushHUDFocus(const UObject* WorldContext, FName Reason, float Opacity, bool bHideCombat)
+{
+	if (UTDUIHostSubsystem* Host = Get(WorldContext))
+	{
+		Host->Focus.Add(Reason, { FMath::Clamp(Opacity, 0.f, 1.f), bHideCombat });
+		Host->ApplyFocus();
+	}
+}
+
+void UTDUIHostSubsystem::PopHUDFocus(const UObject* WorldContext, FName Reason)
+{
+	if (UTDUIHostSubsystem* Host = Get(WorldContext))
+	{
+		Host->Focus.Remove(Reason);
+		Host->ApplyFocus();
+	}
+}
+
+bool UTDUIHostSubsystem::IsCombatPresentationHeld(const UObject* WorldContext)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	if (!Host)
+	{
+		return false;
+	}
+	for (const TPair<FName, FTDHUDFocus>& It : Host->Focus)
+	{
+		if (It.Value.bHideCombat)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // ------------------------------------------------------------------------------------------ decide
@@ -861,6 +913,18 @@ namespace TDUIHost
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			UTDUIHostSubsystem::ShowTacticalDisplay(World, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 20.f);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIFocus(TEXT("TD.UI.Focus"),
+		TEXT("TD.UI.Focus <opacity 0..1> [hideCombat 0|1] | TD.UI.Focus off: the 'Dev' focus hold on the flight HUD (as T1's entry)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (Args.Num() == 0 || Args[0] == TEXT("off"))
+			{
+				UTDUIHostSubsystem::PopHUDFocus(World, TEXT("Dev"));
+				return;
+			}
+			UTDUIHostSubsystem::PushHUDFocus(World, TEXT("Dev"), FCString::Atof(*Args[0]), Args.Num() > 1 && FCString::Atoi(*Args[1]) != 0);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIBark(TEXT("TD.UI.Bark"),

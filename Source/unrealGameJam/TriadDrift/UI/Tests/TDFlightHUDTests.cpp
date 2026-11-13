@@ -655,6 +655,76 @@ bool FTDFlightHUDSurvivesGC::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T1's atmosphere entry hook: a focus hold dims the whole flight HUD to the lowest held opacity and, with bHideCombat,
+// takes the objective pill and waypoints off screen and tells slates to stay away; popping every hold restores it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDFocusHold, "TriadDrift.UI.FlightHUD.FocusHoldForEntry", TD_TEST_FLAGS)
+bool FTDFlightHUDFocusHold::RunTest(const FString& Parameters)
+{
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), 2);
+	FTDFlightScopedCVar Native(TEXT("TD.UI.NativeHUD"), -1);
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 20000.f)));
+	Host->bAddToViewport = false;
+	W.Advance(.2f);
+	Host->Evaluate();
+	UTDFlightHUDWidget* HUD = Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD());
+	if (!TestNotNull(TEXT("flight HUD"), HUD))
+	{
+		return false;
+	}
+	auto Paint = [&]()
+	{
+		TSharedRef<SWidget> Slate = HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	};
+	auto Has = [&](const TCHAR* Name) { return HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); }); };
+	HUD->Sample(1.f);
+	Paint();
+	const bool bObjectiveBefore = Has(TEXT("objective"));
+	TestFalse(TEXT("no hold: combat not held"), UTDUIHostSubsystem::IsCombatPresentationHeld(W.GetWorld()));
+
+	UTDUIHostSubsystem::PushHUDFocus(W.GetWorld(), TEXT("Entry"), .35f, true);
+	UTDUIHostSubsystem::PushHUDFocus(W.GetWorld(), TEXT("Other"), .6f, false);
+	for (int32 i = 0; i < 60; ++i)
+	{
+		HUD->Sample(1.f / 60.f);
+	}
+	TestTrue(FString::Printf(TEXT("held: eased to the lowest hold, 0.35 (got %.2f)"), HUD->GetView().HUDOpacity), FMath::IsNearlyEqual(HUD->GetView().HUDOpacity, .35f, .02f));
+	TestTrue(TEXT("held: combat objectives held"), HUD->GetView().bCombatHeld && UTDUIHostSubsystem::IsCombatPresentationHeld(W.GetWorld()));
+	Paint();
+	TestFalse(TEXT("held: no objective pill"), Has(TEXT("objective")));
+	TestFalse(TEXT("held: no waypoints"), Has(TEXT("waypoint")) || Has(TEXT("waypoint_edge")));
+	TestTrue(TEXT("held: the reticle stays"), Has(TEXT("reticle")));
+
+	W.Advance(.5f); // holds survive host ticks
+	TestTrue(TEXT("held across ticks"), HUD->bFocusHideCombat && FMath::IsNearlyEqual(HUD->FocusOpacity, .35f));
+	UTDUIHostSubsystem::PopHUDFocus(W.GetWorld(), TEXT("Entry"));
+	TestFalse(TEXT("Entry popped: combat back (Other never hid it)"), UTDUIHostSubsystem::IsCombatPresentationHeld(W.GetWorld()));
+	TestTrue(TEXT("Entry popped: Other's 0.6 is the floor now"), FMath::IsNearlyEqual(HUD->FocusOpacity, .6f));
+	UTDUIHostSubsystem::PopHUDFocus(W.GetWorld(), TEXT("Other"));
+	for (int32 i = 0; i < 60; ++i)
+	{
+		HUD->Sample(1.f / 60.f);
+	}
+	TestTrue(TEXT("all popped: full opacity again"), FMath::IsNearlyEqual(HUD->GetView().HUDOpacity, 1.f, .01f));
+	Paint();
+	TestEqual(TEXT("all popped: the objective pill as before"), Has(TEXT("objective")), bObjectiveBefore);
+	return true;
+}
+
 // Review M5 and m9: a ship with no secondary ammo shows no number; with no flown ship nothing stale is drawn.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDNoAmmoNoFlown, "TriadDrift.UI.FlightHUD.Review.NoAmmoAndNoFlownShip", TD_TEST_FLAGS)
 bool FTDFlightHUDNoAmmoNoFlown::RunTest(const FString& Parameters)

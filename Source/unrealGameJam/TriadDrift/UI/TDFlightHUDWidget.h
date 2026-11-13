@@ -167,6 +167,8 @@ public:
 		bool bInCut = false;
 		bool bInSlate = false;
 		bool bPaused = false;
+		/** A focus hold from the host (T1's atmosphere entry): combat objectives (pill, waypoints) off screen. */
+		bool bCombatHeld = false;
 		// ---- P2
 		TArray<FMark> Marks;
 		TArray<FWaypoint> Waypoints;
@@ -306,6 +308,12 @@ public:
 	/** Tests: force the money-shot / paused state (-1 = read the feel subsystem / world). */
 	int32 ForceMoneyShot = -1;
 	int32 ForcePaused = -1;
+	/**
+	 * Set every tick by UTDUIHostSubsystem from its focus holds (PushHUDFocus): the whole HUD eases to at most FocusOpacity,
+	 * and bFocusHideCombat takes the objective pill and waypoints off screen. 1 / false = no hold.
+	 */
+	float FocusOpacity = 1.f;
+	bool bFocusHideCombat = false;
 	static constexpr float SlateSeconds = 1.5f;
 	static constexpr float SlateOpacity = .4f;
 	static constexpr float PauseOpacity = .3f;

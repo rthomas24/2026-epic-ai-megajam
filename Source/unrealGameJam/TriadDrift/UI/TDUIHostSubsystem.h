@@ -162,6 +162,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
 	static bool ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds = 1.5f);
 
+	/**
+	 * A focus hold on the flight HUD, by reason (T1's atmosphere entry: e.g. Reason "Entry", Opacity 0.35, bHideCombat true).
+	 * While any hold is up the whole HUD eases to the lowest Opacity, and with bHideCombat the objective pill and waypoints
+	 * leave the screen. Pushing the same Reason again replaces it; PopHUDFocus ends it. Holds survive a widget re-creation
+	 * (ship switch) and end with the world. Cheap to call every frame.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static void PushHUDFocus(const UObject* WorldContext, FName Reason, float Opacity, bool bHideCombat);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static void PopHUDFocus(const UObject* WorldContext, FName Reason);
+
+	/** True while a hold asks for combat presentation to stay off screen: wave slates and combat cards check this (T3, T4). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool IsCombatPresentationHeld(const UObject* WorldContext);
+
 	/** The tactical display while it plays (tests). */
 	UUserWidget* GetTacticalDisplay() const { return TacticalWidget; }
 
@@ -221,6 +237,15 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> TacticalWidget;
+
+	struct FTDHUDFocus
+	{
+		float Opacity = 1.f;
+		bool bHideCombat = false;
+	};
+	TMap<FName, FTDHUDFocus> Focus;
+	/** Push the focus holds onto the live flight HUD (every tick, and on push / pop). */
+	void ApplyFocus();
 
 	TWeakObjectPtr<APlayerController> GroundOwner;
 	TWeakObjectPtr<APlayerController> PauseBoundTo;
