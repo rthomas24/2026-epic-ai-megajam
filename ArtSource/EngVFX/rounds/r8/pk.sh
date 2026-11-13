@@ -2,7 +2,7 @@
 # pk.sh <tag>: the pickup review in Play-In-Editor (editor on 8017): Waves1to2, the ship held, the four idles attached in a
 # row in front of the ship at 200 m, 45 m and 12 m, then the four collect bursts in slow motion. Captures: Saved/EngVFX/r8/
 cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/vfx; export MSYS_NO_PATHCONV=1
-G=ArtSource/EngVFX/rounds/r8/gpy.sh; P="python ArtSource/EngVFX/scripts/play.py 8017 Saved/EngVFX/r8"; T=${1:-b}
+G=ArtSource/EngVFX/rounds/r8/gpy.sh; P="python ArtSource/EngVFX/scripts/play.py ${TD_PORT:-21031} Saved/EngVFX/r8"; T=${1:-b}
 N="['NS_TD_Pickup_Hull', 'NS_TD_Pickup_Shield', 'NS_TD_Pickup_Power', 'NS_TD_Pickup_Overcharge']"
 C="['NS_TD_Pickup_Hull_Collect', 'NS_TD_Pickup_Shield_Collect', 'NS_TD_Pickup_Power_Collect', 'NS_TD_Pickup_Overcharge_Collect']"
 if [ "$2" != "nostart" ]; then bash $G "('pie_start',)"; sleep 25; $P con:"TD.Stage Waves1to2" sleep:12; fi

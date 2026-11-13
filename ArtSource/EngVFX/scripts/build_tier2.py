@@ -60,10 +60,29 @@ WHITE4 = (1.0, 1.0, 1.0, 1.0)
 # ============================================================================================= story
 # Slot: UTDDominionVisuals.ShieldIdle (looping, attached at the Dominion's centre). Authored as a 1 km radius shell at
 # Scale 1: set the cue's VFXScale to (field radius in km). Cheap: two sphere meshes, one sprite, about 14 arc sprites.
+# Round 8: the shell, the inner shell and the halo fade out when the camera is INSIDE the field (seen in play: from inside
+# the field overlaid the whole sky with violet marbling). OUTSIDE = 0 well inside, 1 from the shell outwards; the cue's
+# VFXScale scales the radius (Engine.Owner.Scale) and Engine.Owner.LODDistance is the camera's distance to the centre.
+OUTSIDE = 'saturate((Engine.Owner.LODDistance - 0.85*100000.0*User.Scale*Engine.Owner.Scale.x)/(0.15*100000.0*User.Scale*Engine.Owner.Scale.x))'
+
+
+def alpha_by(e, expr):
+    """Scale a persistent emitter's particle alpha every frame by expr (keeps an existing flicker on Scale RGB)."""
+    if not any(a[1].endswith('ScaleColor') for a in e['add']):   # the flickering halo already has one (Scale RGB)
+        e['add'].append((PU, 'Update/Color/ScaleColor'))
+        e['set'].append((PU, 'ScaleColor', 'ScaleRGB', False))
+    e['set'] = [x for x in e['set'] if x[2] != 'ScaleA'] + [(PU, 'ScaleColor', 'ScaleA', True), (PU, 'ScaleColor', 'Scale Alpha', X(expr))]
+    return e
+
+
+def outside_only(e):
+    return alpha_by(e, OUTSIDE)
+
+
 S2('NS_TD_Dominion_Field', U(FIELD), [
-    shell('Shell', 100000, 0.45, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))'),
-    shell('Inner', 97000, 0.15, pulse='float3(1,1,1)*(1.0 + 0.015*sin(Engine.Time*1.1 + 2.0))'),
-    single('Halo', 'M_TD_VFX_Glow', 330000, 0.10, 3.1),
+    outside_only(shell('Shell', 100000, 0.45, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))')),
+    outside_only(shell('Inner', 97000, 0.15, pulse='float3(1,1,1)*(1.0 + 0.015*sin(Engine.Time*1.1 + 2.0))')),
+    outside_only(single('Halo', 'M_TD_VFX_Glow', 330000, 0.10, 3.1)),
     arcs('Arcs', 26.0, (20000, 42000), 100000, life=(0.25, 0.6), k=0.9)])
 # Slot: UTDDominionVisuals.ShieldCollapse (one shot at the centre when the last generator dies). 1 km radius at Scale 1.
 S2('NS_TD_Dominion_FieldCollapse', U(FIELD), [
@@ -126,13 +145,19 @@ S2('NS_TD_ShieldDome', U(BASTION), [
     shed('Motes', 'M_TD_VFX_Glow', 40.0, (0.6, 1.4), (12, 30), (0, 120), k=1.0, radius=3000.0, drag=0.5, curl=400.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_Cloak_FX (looping, attached; the ship itself is faded by code). 6 m shimmer.
 S2('NS_TD_Cloak_Shimmer', U((0.55, 0.85, 1.0, 1.0)), [
-    shell('Shimmer', 600, 0.16, pulse='float3(1.25, 1.0, 0.45)*(1.0 + 0.03*sin(Engine.Time*5.0))'),
+    shell('Shimmer', 600, 0.035, pulse='float3(1.25, 1.0, 0.45)*(1.0 + 0.03*sin(Engine.Time*5.0))'),   # 0.16 and 0.09 read as a frosted grey saucer in play
     shed('Motes', 'M_TD_VFX_Glow', 26.0, (0.4, 0.9), (5, 12), (0, 160), k=0.8, radius=420.0, drag=1.0, curl=500.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_GravityWell_FX (looping, at the well). Authored for a 40 m pull radius.
+# Round 8, seen in play: the Bastion drops the well about 9 m away, so from the chase camera (26 m from it) the 70 m swirl
+# sprites covered the whole screen in violet. The swirls and the core now fade as the camera comes inside 50 m.
+# Second look: at 0.42 alpha the 70 m sprites still filled the view, so they are also capped to about 1.1x the camera
+# distance (an angle, not a size) and fade to 0.1 inside 30 m.
+WELL_NEAR = 'saturate((Engine.Owner.LODDistance - 3000.0*User.Scale)/(3000.0*User.Scale))*0.9 + 0.1'
+WCAP = 'min(1.0, 1.1*Engine.Owner.LODDistance/(%s*User.Scale))'
 S2('NS_TD_GravityWell', U((0.60, 0.30, 1.0, 1.0)), [
-    looping(single('Swirl', 'M_TD_VFX_Swirl', 7000, 1.1, None), 2.4),
-    looping(single('SwirlB', 'M_TD_VFX_Swirl', 4200, 0.9, None), 1.5),
-    single('Core', 'M_TD_VFX_Glow', 900, 1.3, 23.1),
+    alpha_by(looping(single('Swirl', 'M_TD_VFX_Swirl', '(7000*%s)' % (WCAP % 7000), 1.1, None), 2.4), WELL_NEAR),
+    alpha_by(looping(single('SwirlB', 'M_TD_VFX_Swirl', '(4200*%s)' % (WCAP % 4200), 0.9, None), 1.5), WELL_NEAR),
+    alpha_by(single('Core', 'M_TD_VFX_Glow', 900, 1.3, 23.1), WELL_NEAR),
     shed('Infall', 'M_TD_VFX_Spark', 120.0, (0.5, 0.9), (8, 16), (-5200, -3000), k=1.4, radius=4000.0, drag=0.0, local=True, stretch=16, power=0.6, fade_in=4.0),
     arcs('Arcs', 8.0, (500, 1100), 500, life=(0.1, 0.25), k=1.2)])
 # Slot: UTDTravelFX.HyperdriveTunnel (looping, attached to the ship, +X forward).

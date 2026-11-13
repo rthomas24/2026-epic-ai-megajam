@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Rift's ring review (round 8): NS_TD_Rift_RingIdle attached to the flown Rift's 'Portal' socket in Play-In-Editor
-(editor on 8017, Waves1to2, ship held), User.Power 0.5 then 1, User.Radius 44; scene captures from three cameras round
+(editor on $TD_PORT (21031), Waves1to2, ship held), User.Power 0.5 then 1, User.Radius 44; scene captures from three cameras round
 the ship. usage: python ring.py <tag> [radius cm]"""
 import os, sys, time, subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'scripts'))
