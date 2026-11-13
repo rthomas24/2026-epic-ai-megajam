@@ -1,0 +1,334 @@
+{
+  "assets": [
+    {
+      "asset": "SM_Scatter_Verd_Grass_01",
+      "tris": 144,
+      "size_cm": [
+        199.7,
+        202.3,
+        48.2
+      ],
+      "collision": [],
+      "group": "groundcover",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_Grass_01",
+          "message": "240 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        2.0,
+        2.02,
+        0.48
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Verd_Grass_02",
+      "tris": 180,
+      "size_cm": [
+        202.8,
+        217.6,
+        102.9
+      ],
+      "collision": [],
+      "group": "groundcover",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_Grass_02",
+          "message": "252 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        2.03,
+        2.18,
+        1.03
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Verd_Fern_01",
+      "tris": 154,
+      "size_cm": [
+        194.2,
+        173.8,
+        62.0
+      ],
+      "collision": [],
+      "group": "groundcover",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_Fern_01",
+          "message": "110 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        1.94,
+        1.74,
+        0.62
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Verd_GlowFlora_01",
+      "tris": 181,
+      "size_cm": [
+        90.7,
+        103.5,
+        91.0
+      ],
+      "collision": [],
+      "group": "groundcover",
+      "issues": [
+        {
+          "severity": "warn",
+          "object": "SM_Scatter_Verd_GlowFlora_01",
+          "message": "8 duplicate vertices within 0.0001 m; merge by distance"
+        },
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_GlowFlora_01",
+          "message": "131 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        0.91,
+        1.03,
+        0.91
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Verd_GlowFlora_02",
+      "tris": 162,
+      "size_cm": [
+        136.8,
+        118.1,
+        40.8
+      ],
+      "collision": [],
+      "group": "groundcover",
+      "issues": [
+        {
+          "severity": "warn",
+          "object": "SM_Scatter_Verd_GlowFlora_02",
+          "message": "36 duplicate vertices within 0.0001 m; merge by distance"
+        },
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_GlowFlora_02",
+          "message": "210 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        1.37,
+        1.18,
+        0.41
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Verd_Canopy_01",
+      "tris": 760,
+      "size_cm": [
+        4353.5,
+        4564.5,
+        3059.6
+      ],
+      "collision": [],
+      "group": "canopy",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_Canopy_01",
+          "message": "30 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        43.54,
+        45.65,
+        30.6
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Verd_Canopy_02",
+      "tris": 784,
+      "size_cm": [
+        6516.1,
+        5087.0,
+        3955.1
+      ],
+      "collision": [],
+      "group": "canopy",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_Canopy_02",
+          "message": "42 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        65.16,
+        50.87,
+        39.55
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Verd_Canopy_03",
+      "tris": 828,
+      "size_cm": [
+        7799.8,
+        8140.6,
+        5528.1
+      ],
+      "collision": [],
+      "group": "canopy",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Verd_Canopy_03",
+          "message": "54 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        78.0,
+        81.41,
+        55.28
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Any_Boulder_01",
+      "tris": 492,
+      "size_cm": [
+        521.2,
+        374.5,
+        339.2
+      ],
+      "collision": [
+        "UCX_SM_Scatter_Any_Boulder_01_00"
+      ],
+      "group": "boulder",
+      "issues": [],
+      "dims_m": [
+        5.21,
+        3.75,
+        3.39
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Any_Boulder_02",
+      "tris": 600,
+      "size_cm": [
+        821.9,
+        618.1,
+        411.1
+      ],
+      "collision": [
+        "UCX_SM_Scatter_Any_Boulder_02_00"
+      ],
+      "group": "boulder",
+      "issues": [],
+      "dims_m": [
+        8.22,
+        6.18,
+        4.11
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Any_Boulder_03",
+      "tris": 536,
+      "size_cm": [
+        1011.3,
+        814.8,
+        541.9
+      ],
+      "collision": [
+        "UCX_SM_Scatter_Any_Boulder_03_00"
+      ],
+      "group": "boulder",
+      "issues": [],
+      "dims_m": [
+        10.11,
+        8.15,
+        5.42
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Any_Boulder_04",
+      "tris": 788,
+      "size_cm": [
+        1199.4,
+        1104.7,
+        1018.6
+      ],
+      "collision": [
+        "UCX_SM_Scatter_Any_Boulder_04_00"
+      ],
+      "group": "boulder",
+      "issues": [],
+      "dims_m": [
+        11.99,
+        11.05,
+        10.19
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Cind_CharTree_01",
+      "tris": 325,
+      "size_cm": [
+        274.3,
+        310.8,
+        781.5
+      ],
+      "collision": [
+        "UCX_SM_Scatter_Cind_CharTree_01_00"
+      ],
+      "group": "chartree",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Cind_CharTree_01",
+          "message": "101 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        2.74,
+        3.11,
+        7.82
+      ]
+    },
+    {
+      "asset": "SM_Scatter_Cind_CharTree_02",
+      "tris": 235,
+      "size_cm": [
+        209.8,
+        163.8,
+        489.1
+      ],
+      "collision": [
+        "UCX_SM_Scatter_Cind_CharTree_02_00"
+      ],
+      "group": "chartree",
+      "issues": [
+        {
+          "severity": "info",
+          "object": "SM_Scatter_Cind_CharTree_02",
+          "message": "59 open boundary edges (mesh is not closed); OK for planes/cards"
+        }
+      ],
+      "dims_m": [
+        2.1,
+        1.64,
+        4.89
+      ]
+    }
+  ],
+  "sheets": [
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_groundcover_material_material_sheet.png",
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_groundcover_clay_clay_sheet.png",
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_canopy_material_material_sheet.png",
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_canopy_clay_clay_sheet.png",
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_boulder_material_material_sheet.png",
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_boulder_clay_clay_sheet.png",
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_chartree_material_material_sheet.png",
+    "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Scatter\\review\\scatter_chartree_clay_clay_sheet.png"
+  ]
+}

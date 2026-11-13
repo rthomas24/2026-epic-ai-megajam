@@ -1,0 +1,66 @@
+{
+  "asset": "SM_Scatter_Any_Boulder_02",
+  "fbx": "SM_Scatter_Any_Boulder_02.fbx",
+  "tris": 600,
+  "size_cm": [
+    821.9,
+    618.1,
+    411.1
+  ],
+  "pivot": "root object origin (SM_Scatter_Any_Boulder_02~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Scatter_Rock"
+  ],
+  "material_params": [
+    {
+      "name": "M_Scatter_Rock",
+      "textured": false,
+      "base_color": [
+        0.11,
+        0.115,
+        0.12
+      ],
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Scatter_Any_Boulder_02_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "scatter": {
+    "group": "boulder",
+    "collision": "ucx",
+    "material_instance": "MI_Scatter_Rock_Verdance",
+    "two_sided": false,
+    "note": "7 m boulder with two fallen pieces"
+  }
+}
