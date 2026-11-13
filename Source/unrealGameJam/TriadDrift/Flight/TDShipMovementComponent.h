@@ -125,7 +125,7 @@ public:
 
 	/** Box play space (atmosphere zones): soft walls and ceiling. Clear returns to the sphere. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
-	void SetBoxBoundary(const FBox& Box);
+	void SetBoxBoundary(const FBox& Box, float WallWarnDistance = -1.f);
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
 	void ClearBoxBoundary();

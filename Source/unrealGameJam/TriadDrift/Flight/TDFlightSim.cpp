@@ -167,8 +167,9 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 		const float Outside = FVector::Dist(Closest, S.Location);
 		// The warning band covers the walls and the ceiling only: an atmosphere zone's floor is the ground, and flying
 		// low over it is the whole point (it still pushes back if the ship goes under it).
-		const FBox WarnBox(C.BoundaryBox.Min + FVector(T.BoundaryWarnDistance, T.BoundaryWarnDistance, -1.f),
-			C.BoundaryBox.Max - FVector(T.BoundaryWarnDistance, T.BoundaryWarnDistance, T.BoundaryWarnDistance));
+		const float Wall = C.BoxWallWarnDistance > 0.f ? C.BoxWallWarnDistance : T.BoundaryWarnDistance;
+		const FBox WarnBox(C.BoundaryBox.Min + FVector(Wall, Wall, -1.f),
+			C.BoundaryBox.Max - FVector(Wall, Wall, T.BoundaryWarnDistance));
 		S.bNearBoundary = Outside > 0.f || !WarnBox.IsInsideOrOn(S.Location);
 		if (Outside > KINDA_SMALL_NUMBER)
 		{
@@ -206,6 +207,15 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 			}
 			const float MaxStep = FMath::DegreesToRadians(T.BoundarySteerRate * BoundaryStrength) * Dt;
 			S.Rotation = (FQuat(Axis, FMath::Min(Angle, MaxStep)) * S.Rotation).GetNormalized();
+			if (C.bBoxBoundary)
+			{
+				// Bank into the turn (up to 25 deg, 30 deg/s), so the turn-back reads as a banked turn rather than a shove.
+				const float Side = FVector::DotProduct(ToCenter, S.Rotation.GetRightVector());
+				const float WantRoll = FMath::Clamp(Side * 2.f, -1.f, 1.f) * 25.f * BoundaryStrength;
+				const float HaveRoll = S.Rotation.Rotator().Roll;
+				const float RollStep = FMath::Clamp(WantRoll - HaveRoll, -30.f * Dt, 30.f * Dt);
+				S.Rotation = (S.Rotation * FQuat(FVector::ForwardVector, FMath::DegreesToRadians(RollStep))).GetNormalized();
+			}
 		}
 	}
 

@@ -157,10 +157,11 @@ void UTDShipMovementComponent::SetBoundary(const FVector& Center, float Radius, 
 	Context.BoundaryRadius = FMath::Max(0.f, Radius);
 }
 
-void UTDShipMovementComponent::SetBoxBoundary(const FBox& Box)
+void UTDShipMovementComponent::SetBoxBoundary(const FBox& Box, float WallWarnDistance)
 {
 	Context.bBoxBoundary = Box.IsValid != 0;
 	Context.BoundaryBox = Box;
+	Context.BoxWallWarnDistance = WallWarnDistance;
 	Context.bBoundaryEnabled = true;
 }
 
