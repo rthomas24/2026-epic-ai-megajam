@@ -7,7 +7,7 @@ and gameplay validated are separate stages. AAA is a quality direction, not a
 verified label or authority to expand scope. All current new benchmarks require
 Nicholas's subjective review before propagation/integration.
 
-**Current checkpoint:** [Lead fresh-chat handoff](Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md). Continuous goal PAUSED; documentation transition only, no specialist restart. PR9 menu assets merged fae4c15; PR10 Lancer M03 SOURCE-ONLY merged 98187b9; N018 COMPLETE at 7c917f1. Zero open PRs reverified. The recovery report and dated notes below are historical, not current authorization.
+**Current checkpoint:** [Bounded cycle checkpoint](Production-Cycle-2026-11-12-2058.md). Cycle closed; native tests explicitly HELD by Nick. Ships9e59ddc Material05 appearance pending; character42bf37b Revision05 REJECTED/3clearances; Audio c6a60d5 style reload PASS but no audible game; Hero6d57357 test unrun. No production asset Main merge or goal resume.
 
 ## Nicholas's Lead delegation
 
@@ -34,18 +34,18 @@ presentation/readability, measured cost, integration and subjective approval.
 |---|---|---|
 | ART-01 Direction | Lead coordination; foundation palette/layout approved, AAA target raised | Preserve cyan/violet environment and ship identity; benchmark approval next |
 | ART-02 Inventory/sourcing | Lead + specialists; initial source inventory | Source package957b45e; every acquisition needs license/provenance before use |
-| ART-03 Ships | Ships; Detail01 technically verified, final material look MAJOR/open | a19f478 source-only merged98187b9 (PR10);34,516tris/6materials, preserved12approvedmeshes/36frames. Nick A02 structural approval remains; material04.py/QA update local unexecuted. No current M03 export/Unreal/gameplay or final-look approval. Paused |
+| ART-03 Ships | Material05 technically verified; final appearance pending | Branch9e59ddc,34,516tris/6materials/36frames unchanged;9actual same-angle/neutral views. Reference material/detail MAJORs remain. No export/import/runtime promotion |
 | ART-04 Enemies/Dominion | Ships & Weapons planning; production queued, not dispatched | Engine placeholders and optional presentation hooks only; no new art path claim |
 | ART-05 Space | Environment; HeroM02 technically published and look approved for controlled gameplay test |5fde8c3/22files/15LFS;6runtimepackages frozen. Next unsaved actualGalaxy/PIE readability A/B, no shared-map/config/Source save; independent native capture is not gameplay acceptance |
 | ART-06 Planets | Environment & VFX future terrain/look; engineering small props R015 | Nick terrain/hero dressing not dispatched. Ryan now owns separate unstarted small rocks/crystals/flora/tree kits in EngProps and Gameplay/Props/Vegetation; no existing Nick claim transferred, final look approval remains Nick's; no Nick shared-map edits |
 | ART-07 VFX | Environment & VFX planning; source prototypes only | Main957b45e;4material prototypes require Niagara wrappers/runtime checks; no combat-VFX task active before Hero benchmark |
-| ART-08 Ground visuals | Characters role in UI chat; actual diagnostic Blockout03, not accepted | Held branch8e5de0d: six QA errors/failed visual fit, no Main PR. Revision04 anatomical source fixes local/unexecuted; Manny reference not export-ready rig. White player priority retained but paused; no native player/hook acceptance |
+| ART-08 Ground visuals | Revision05 explicitly REJECTED by Nick | Branch42bf37b preserves models/views/source.21,504armor/113,682total tris,0hostQAerrors/assemblypass but3custom clearance findings below2mm. No accepted rig/native; method-change benchmark queued only |
 | ART-09 HUD | PR8 merged07610fe; Ryan reports Shipping native attachment/default-on | Lead10UItests/12captures/0errors on tested runtime; Ryan R017 ship_2100 808MB/0cookerrors/nativeHUDlive and menu screenshot, engineering e4e17f8 enables default; actual Config confirmed. Human fulljourney/readability and remaining surfaces/layout still open; no UI edit dispatched |
-| ART-10 Audio/music | Audio; two selected107s native packages available Main via PR9 fae4c15 | Exact11menu-only files, no rejected SFX. Import/reload0errors/78protected hashes unchanged. DA_UI_Style absent: inactive until separately granted currentgame creation/reload, engineering cook/menuplayback and Nick in-game listening. Three source preparation files local, paused |
+| ART-10 Audio/music | Music-only TDUIStyle created; fresh read-only reload verified | c6a60d5 on worker branch only;107s/Musicclass/nullwidgets and323protectedinputs/3hashes unchanged. First post-save registry error preserved; independent Reload01PASS. Audible launch never started dueRAM, then Nick held native tests. No Main style/cook/ear acceptance |
 | ART-11 Narrative/VO | Lead coordinates; implementation queued | No active narrative assignment; no voice/source acquisition authorized by ledger |
 | ART-12 Cinematics | Lead coordinates UI/Environment; queued implementation | Engineering switch-cut/director/scene/take hooks exist; runtime presentation not complete |
 | ART-13 Performance/look | Native Hero compiler/resource and synchronized capture evidence exists | Native textures~61.44MiB, not gameplay VRAM budget; capture timings not isolated GPU/FPS. Real-map readability/performance and human quality acceptance remain |
-| ART-14 Submission | Ryan packaging / Lead coordination; no human or complete current journey acceptance | R017 latest run evidence ship_2100 Shipping808MB/nativeHUDvisible; menu boot L_MainMenu confirmed. Last recorded503tests twice at c8128d1; not rerun for inactive asset batch. Current package/fulljourney verification remains Ryan-owned; deadlineNov15 20:59EST |
+| ART-14 Submission | Ryan N020 handoff adopted; no complete uninterrupted/human journey | main639fd6c/517tests twice reported; ship_2200 cf17cb6 Shipping808MB/menuEnter/Tab/Esc observed. Continuous no-skips run stopped atVerdance ambush; balance/fair pressure/fulljourney remain engineering blockers |
 | ART-15 Interior | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 | ART-16 Escape cinematics | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 

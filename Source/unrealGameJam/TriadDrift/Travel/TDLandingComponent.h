@@ -158,7 +158,8 @@ public:
 	/**
 	 * Approach assist (hold F within SlowDownPromptRange of the player pad): flies the ship to the pad's hover point,
 	 * nose on the pad, braking late and never below AssistEndSpeed, then starts the landing sequence. The pilot's
-	 * steering is ignored while it runs; releasing F stops it.
+	 * steering is ignored while it runs. Once engaged it carries on after F is released; pressing F again, boosting,
+	 * a switch, the hyperdrive, death or a retake stop it.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Landing")
 	bool StartApproachAssist();

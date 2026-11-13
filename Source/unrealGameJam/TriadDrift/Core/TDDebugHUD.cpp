@@ -223,6 +223,24 @@ void ATDDebugHUD::DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool b
 			Centred(Prompt, 0.665f, 1.5f, FLinearColor::White);
 		}
 	}
+	// Short-lived combat states no HUD shows yet: the Switch Strike window and a focus order.
+	{
+		FString State;
+		const float Strike = Data->GetSwitchStrike01();
+		if (Strike > 0.f)
+		{
+			State = FString::Printf(TEXT("SWITCH STRIKE +25%% %s"), *Bar(Strike, 8));
+		}
+		const float Focus = Data->GetFocusRemaining01();
+		if (Focus > 0.f)
+		{
+			State += FString::Printf(TEXT("%sFOCUS FIRE %s"), State.IsEmpty() ? TEXT("") : TEXT("     "), *Bar(Focus, 8));
+		}
+		if (!State.IsEmpty())
+		{
+			Centred(State, 0.17f, 1.3f, FLinearColor(1.f, 0.85f, 0.3f));
+		}
+	}
 	FString Line;
 	if (bHyperdriveBlock)
 	{
@@ -250,6 +268,7 @@ void ATDDebugHUD::DrawFull()
 	DrawObjective();
 	DrawCrosshair();
 	DrawFlight();
+	DrawSupplementText(false, false, false); // the Switch Strike / focus line only
 }
 
 void ATDDebugHUD::BeginPlay()

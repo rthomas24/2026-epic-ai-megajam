@@ -135,6 +135,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual TArray<FTDDamageIndicator> GetDamageIndicators() const { return TArray<FTDDamageIndicator>(); }
 
+	/** Switch Strike: 1 right after a switch arms the damage bonus, falling to 0 when the window ends. 0 = not armed. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual float GetSwitchStrike01() const { return 0.f; }
+
+	/** Squad focus order: 1 when given, falling to 0 when it expires. 0 = no order. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual float GetFocusRemaining01() const { return 0.f; }
+
+	/** The enemy the wing has been ordered to focus, or null. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
+	virtual AActor* GetFocusTarget() const { return nullptr; }
+
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|HUD")
 	virtual float GetSpeed01() const { return 0.f; }
 
