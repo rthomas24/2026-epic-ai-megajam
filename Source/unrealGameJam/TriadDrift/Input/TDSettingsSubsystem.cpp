@@ -16,6 +16,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Misc/PackageName.h"
 #include "HAL/IConsoleManager.h"
+#include "UObject/UObjectGlobals.h"
 
 namespace TDSettings
 {
@@ -57,6 +58,15 @@ void UTDSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Load();
 	ApplyVideo(true);
 	ApplyAudio();
+	// A level travel (menu -> galaxy, planet trips) never carries the page into the next map.
+	PreLoadMapHandle = FCoreUObjectDelegates::PreLoadMap.AddWeakLambda(this, [this](const FString&) { ClosePageInternal(GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr); });
+}
+
+void UTDSettingsSubsystem::Deinitialize()
+{
+	FCoreUObjectDelegates::PreLoadMap.Remove(PreLoadMapHandle);
+	ClosePageInternal(nullptr);
+	Super::Deinitialize();
 }
 
 UTDSettingsSubsystem* UTDSettingsSubsystem::GetTDSettings(const UObject* WorldContextObject)

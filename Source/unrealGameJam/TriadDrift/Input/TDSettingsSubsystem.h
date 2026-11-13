@@ -113,6 +113,7 @@ class UNREALGAMEJAM_API UTDSettingsSubsystem : public UGameInstanceSubsystem
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
 	static UTDSettingsSubsystem* GetTDSettings(const UObject* WorldContextObject);
@@ -204,6 +205,8 @@ private:
 	TSharedPtr<class STDSettingsPage> Page;
 	UPROPERTY(Transient) TObjectPtr<class UUserWidget> PageWidget;
 	bool bPageCursorWasShown = false;
+	FDelegateHandle PreLoadMapHandle;
+	void ClosePageInternal(UWorld* World);
 	friend class STDSettingsPage;
 
 	UPROPERTY(Transient) TObjectPtr<USoundMix> VolumeMix;
