@@ -3,9 +3,10 @@ from pathlib import Path
 import os, json, hashlib, runpy, shutil, sys
 import bpy
 from mathutils import Vector
+from mathutils.bvhtree import BVHTree
 P=Path(__file__).resolve().parent;ROOT=P.parents[1]
-correction02='--correction02' in sys.argv
-OUT=ROOT/('review/M03/Detail01/Correction02' if correction02 else 'review/M03/Detail01')
+correction_tag='Correction03' if '--correction03' in sys.argv else 'Correction02' if '--correction02' in sys.argv else ''
+OUT=ROOT/'review/M03/Detail01'/correction_tag
 SOURCE=P/'Lancer_M03_structure_v03.blend'
 SOURCE_SHA='3e05f82bd2ab265cb32cc91c072f4fb5060231a2c777945129350dbd41f921c2'
 os.environ['LANCER_M03_REVIEW_DIR']=str(OUT)
@@ -56,12 +57,43 @@ def run():
     (OUT/'material_parameters.json').write_text(json.dumps(params,indent=2),encoding='utf-8')
     # Add surface layers without rebuilding, moving or modifying any approved base mesh.
     # Measured first-pass cap coincidences: keep the detail, separate its end planes.
+    engine_mesh=bpy.data.objects['SM_LancerM03_Engine_L'].data
+    engine_bvh=BVHTree.FromPolygons([v.co.copy() for v in engine_mesh.vertices],[tuple(f.vertices) for f in engine_mesh.polygons],all_triangles=True)
+    engine_sections=[(3,38),(31,46),(118,46),(191,38),(215,27)]
+    def roof(x,y):
+        hit,normal,index,distance=engine_bvh.ray_cast(Vector((y/100,-x/100,10)),Vector((0,0,-1)),20)
+        if hit is None or normal.z<.2:raise RuntimeError('Cassette misses approved engine roof')
+        return hit.z,normal.z
     g=model['refinement'].__globals__;original_strip=g['strip'];original_loft=g['loft'];trimmed=[]
     def fitted_loft(group,name,sections,*args,**kwargs):
         if name.startswith('DeckPlate'):
-            sections=[(x,w,.6,y,z+.15) for x,w,h,y,z in sections]
+            xs=sorted({v[0] for v in sections}|{v[0] for v in g['HULL'] if sections[0][0]<v[0]<sections[-1][0]})
+            sections=[]
+            for x in xs:
+                w,h,z=g['hull_profile'](x);sections.append((x,w*.64,.6,0,z+h))
         elif name.startswith('NoseService'):
             sections=[(x,w,h,y,z-.5) for x,w,h,y,z in sections]
+        elif name.startswith('DriveArmor'):
+            a,b=sections[0][0],sections[-1][0]
+            xs=sorted({a,b}|{x for x,w in engine_sections if a<x<b});rows=[]
+            for x in xs:
+                t=(x-a)/(b-a);tile_width=35-3*t
+                for aa,bb in zip(engine_sections,engine_sections[1:]):
+                    if aa[0]<=x<=bb[0]:
+                        width=aa[1]+(bb[1]-aa[1])*(x-aa[0])/(bb[0]-aa[0]);break
+                rows.append((x,[-tile_width,-.66*width,0,.66*width,tile_width]))
+            vv=[];ff=[];n=len(rows)*5
+            for sign in [1,-1]:
+                for x,ys in rows:
+                    for y in ys:
+                        z,nz=roof(x,y);vv.append((x,y,(z+sign*.006/nz)*100))
+            for row in range(len(rows)-1):
+                for col in range(4):
+                    a0=row*5+col;b0=a0+1;d0=a0+5;e0=d0+1
+                    ff.extend([(a0,b0,e0,d0),(a0+n,d0+n,e0+n,b0+n)])
+            edge=list(range(5))+[r*5+4 for r in range(1,len(rows))]+list(range(n-2,n-6,-1))+[r*5 for r in range(len(rows)-2,0,-1)]
+            ff.extend((a0,a0+n,b0+n,b0) for a0,b0 in zip(edge,edge[1:]+edge[:1]))
+            return model['solid'](group,name,vv,ff,0,args[1],.15,.65,True)
         return original_loft(group,name,sections,*args,**kwargs)
     def recessed_strip(group,name,path,width,depth,mat=0,tint=.9):
         if name.startswith(('ContinuousBlueConduit','WingEdgeBlue')):
@@ -78,28 +110,27 @@ def run():
     for ob in petals:
         for v in ob.data.vertices:v.co.y-=.02  # UE +X 2cm; base engine remains untouched.
     # Fit existing overlay surfaces; do not alter topology or any approved mesh.
-    engine_sections=[(3,38,37,0),(31,46,46,1),(118,46,46,3),(191,38,37,6),(215,27,26,8)]
     for group,objects in model['GROUPS'].items():
-        for ob in objects:
-            if group.startswith('Wing_') and 'SRC_M03_Armor' in ob.name:
-                for v in ob.data.vertices:v.co.z-=.007
-            if group=='Engine' and 'DriveArmor' in ob.name:
-                import re
-                index=int(re.search(r'DriveArmor(\d+)',ob.name).group(1));a,b=[(40,87),(90,137),(140,184)][index]
-                for v in ob.data.vertices:
-                    x,y,z=-v.co.y*100,v.co.x*100,v.co.z*100
-                    old_center=44-(x-a)/(b-a);fraction=(z-old_center)/7
-                    for aa,bb in zip(engine_sections,engine_sections[1:]):
-                        if aa[0]-.001<=x<=bb[0]+.001:
-                            t=(x-aa[0])/(bb[0]-aa[0]);w,h,cz=[aa[i]+(bb[i]-aa[i])*t for i in (1,2,3)]
-                            roof=cz+h-max(0,abs(y)/w-.66)/.34*h*.5
-                            v.co.z=(roof-.2+fraction)/100;break
-                    else:raise RuntimeError('Cassette outside approved engine profile')
+        if group.startswith('Wing_'):
+            for ob in objects:
+                if 'SRC_M03_Armor' in ob.name:
+                    for v in ob.data.vertices:v.co.z-=.007
     for side in [-1,1]:
         path=[(-101,side*45,44.5),(-85,side*48,44.8)]
         model['strip']('Canopy','InstrumentHousing'+str(side),path,4,2,3,.9)
         model['strip']('Canopy','InstrumentStatus'+str(side),[(x,y,z+1.3) for x,y,z in path],1.5,1,5,1)
     overlays=model['combine']()
+    # Verify actual final beveled top surfaces against the approved mesh, not a proxy.
+    clearances=[];engine_overlay=overlays['Engine']
+    for face in engine_overlay.data.polygons:
+        points=[engine_overlay.data.vertices[i].co for i in face.vertices]
+        centre=sum(points,Vector())/len(points)
+        if face.normal.z<=.2 or -centre.y*100<39.8:continue
+        samples=points+[centre]+[(a+b)*.5 for a,b in zip(points,points[1:]+points[:1])]
+        for point in samples:
+            z,nz=roof(-point.y*100,point.x*100);clearances.append((point.z-z)*nz)
+    fit_pass=bool(clearances) and min(clearances)>=.002
+    (OUT/'cassette_surface_fit_checks.json').write_text(json.dumps(dict(samples=len(clearances),minimum_normal_clearance_m=min(clearances) if clearances else None,passed=fit_pass),indent=2))
     (OUT/'material_assignment_checks.json').rename(OUT/'detail_material_assignment_checks.json')
     shutil.copyfile(ROOT/'review/M03/StageA02/material_assignment_checks.json',OUT/'material_assignment_checks.json')
     coll=bpy.data.collections.new('DETAIL_Lancer_M03_Detail01');bpy.context.scene.collection.children.link(coll)
@@ -120,12 +151,12 @@ def run():
                     approved_geometry_uv_material_indices_and_transforms_unchanged=preserved,max_bounds_growth_m=max_growth,
                     envelope_pass=max_growth<=.05,instances=len(all_mesh),instance_budget_pass=len(all_mesh)<=24)
     (OUT/'approved_structure_checks.json').write_text(json.dumps(structural,indent=2),encoding='utf-8')
-    work_name='Lancer_M03_Detail01_Correction02_work.blend' if correction02 else 'Lancer_M03_Detail01_work.blend'
+    work_name=f'Lancer_M03_Detail01_{correction_tag}_work.blend' if correction_tag else 'Lancer_M03_Detail01_work.blend'
     bpy.ops.wm.save_as_mainfile(filepath=str(P/work_name))
     q=runpy.run_path(str(P/'qa_m03.py'))['run']()
     checks=json.loads((OUT/'detail_material_assignment_checks.json').read_text())
     detail_roles=all(c['passed'] for c in checks)
-    passed=q['technical_pass'] and preserved and structural['envelope_pass'] and structural['instance_budget_pass'] and detail_roles
+    passed=q['technical_pass'] and preserved and structural['envelope_pass'] and structural['instance_budget_pass'] and detail_roles and fit_pass
     (OUT/'milestone_gate.json').write_text(json.dumps(dict(passed=passed,detail_material_roles_pass=detail_roles),indent=2))
     if passed:
         bpy.ops.wm.save_as_mainfile(filepath=str(P/'Lancer_M03_Detail01_v01.blend'))
