@@ -1,0 +1,193 @@
+{
+  "asset": "SM_GateRing_01",
+  "tag": "r3",
+  "checks": {
+    "tris": 24608,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": "by design (repeated segments share UVs)",
+    "asset_report_errors": 0,
+    "asset_report_warnings": 1,
+    "collision_hulls": 16,
+    "size_cm": [
+      15840.0,
+      950.0,
+      15840.0
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "com_shift_m": [
+      1.0592292710498441e-05,
+      -0.0012952451361343265,
+      -2.189810220443178e-05
+    ],
+    "edge_area_share": 0.003,
+    "uv_unwrap": {
+      "unwrapped": "one segment, 8 rotated copies share it",
+      "uv_segment": {
+        "inside_0_1": true,
+        "coverage": 0.5071,
+        "overlap_pixels": 0,
+        "overlap_share_of_covered": 0.0,
+        "raster": 1024
+      }
+    },
+    "uv": {
+      "inside_0_1": true,
+      "overlap_pixels": "by design (repeated segments share UVs)"
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "GateRing_01",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_GateRing_01\\T_GateRing_01_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_GateRing_01\\T_GateRing_01_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_GateRing_01\\T_GateRing_01_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_GateRing_01\\T_GateRing_01_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_GateRing_01_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 78.68
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7575
+    },
+    "build_seconds": 79.0
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3605,
+        0.3248,
+        0.2597
+      ],
+      "min": 0.0,
+      "max": 0.9059
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5,
+        0.4996,
+        0.9993
+      ],
+      "min": 0.1686,
+      "max": 1.0,
+      "std_rg": [
+        0.03,
+        0.0302
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3771,
+        0.3395,
+        0.4331
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.537
+      ],
+      "metallic_mean": 0.439
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0075,
+        0.0461,
+        0.0377
+      ],
+      "min": 0.0,
+      "max": 0.9608
+    }
+  },
+  "emissive_surface_share": 0.0509,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_GateRing_01",
+      "message": "144 n-gons; fine if planar, they get triangulated on export"
+    },
+    {
+      "severity": "warn",
+      "object": null,
+      "message": "Total 25540 tris exceeds budget 25000"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 264,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.33632
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_GateRing_01_r3_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_GateRing_01_r3_clay_sheet.png",
+    "ortho_cm_per_px": 39.6,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 24608,
+    "size_cm": [
+      950.0,
+      15840.0,
+      15840.0
+    ],
+    "collision": [
+      "UCX_SM_GateRing_01_00",
+      "UCX_SM_GateRing_01_01",
+      "UCX_SM_GateRing_01_02",
+      "UCX_SM_GateRing_01_03",
+      "UCX_SM_GateRing_01_04",
+      "UCX_SM_GateRing_01_05",
+      "UCX_SM_GateRing_01_06",
+      "UCX_SM_GateRing_01_07",
+      "UCX_SM_GateRing_01_08",
+      "UCX_SM_GateRing_01_09",
+      "UCX_SM_GateRing_01_10",
+      "UCX_SM_GateRing_01_11",
+      "UCX_SM_GateRing_01_12",
+      "UCX_SM_GateRing_01_13",
+      "UCX_SM_GateRing_01_14",
+      "UCX_SM_GateRing_01_15"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_GateRing_01"
+    ],
+    "textures": [
+      "T_GateRing_01_BC.png",
+      "T_GateRing_01_E.png",
+      "T_GateRing_01_N.png",
+      "T_GateRing_01_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

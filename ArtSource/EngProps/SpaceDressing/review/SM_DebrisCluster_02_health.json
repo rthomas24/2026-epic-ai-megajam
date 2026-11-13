@@ -1,0 +1,177 @@
+{
+  "asset": "SM_DebrisCluster_02",
+  "tag": "r2",
+  "checks": {
+    "tris": 6032,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 971,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 2,
+    "size_cm": [
+      2802.4,
+      2295.2,
+      1848.8
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0015",
+        1.214
+      ],
+      [
+        "part_0025",
+        0.461
+      ],
+      [
+        "part_0026",
+        1.077
+      ],
+      [
+        "part_0027",
+        0.394
+      ]
+    ],
+    "post_scale": 1.85,
+    "com_shift_m": [
+      -0.4193989336490631,
+      -0.19077295064926147,
+      0.3291579484939575
+    ],
+    "edge_area_share": 0.0012,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 83
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.342,
+      "overlap_pixels": 971,
+      "overlap_share_of_covered": 0.002708,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "DebrisCluster_02",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_DebrisCluster_02\\T_DebrisCluster_02_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_DebrisCluster_02\\T_DebrisCluster_02_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\SM_DebrisCluster_02\\T_DebrisCluster_02_ORM.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 0.0,
+      "preview_material": "M_DebrisCluster_02_Baked",
+      "notes": [
+        "No emission in source materials"
+      ],
+      "warnings": [],
+      "seconds": 32.18
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6218
+    },
+    "build_seconds": 56.7
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3628,
+        0.3604,
+        0.3002
+      ],
+      "min": 0.0,
+      "max": 0.8902
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5003,
+        0.4998,
+        0.9992
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.016,
+        0.0161
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5011,
+        0.3375,
+        0.2887
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.541
+      ],
+      "metallic_mean": 0.287
+    }
+  },
+  "emissive_surface_share": 0.0,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_DebrisCluster_02",
+      "message": "89 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 27,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.061
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_DebrisCluster_02_r2_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\SpaceDressing\\review\\SM_DebrisCluster_02_r2_clay_sheet.png",
+    "ortho_cm_per_px": 7.006,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 6032,
+    "size_cm": [
+      2295.2,
+      2802.4,
+      1848.8
+    ],
+    "collision": [
+      "UCX_SM_DebrisCluster_02_00",
+      "UCX_SM_DebrisCluster_02_01"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_DebrisCluster_02"
+    ],
+    "textures": [
+      "T_DebrisCluster_02_BC.png",
+      "T_DebrisCluster_02_N.png",
+      "T_DebrisCluster_02_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

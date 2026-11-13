@@ -559,6 +559,13 @@ public:
 	TSoftClassPtr<UUserWidget> GroundHUDWidgetClass;
 
 	/**
+	 * Combat music (optional; N-029): played by engineering's music director while a fight is on (space waves,
+	 * the Dominion assault, active on-foot encounters), faded in and out; the sound's own class and volume apply.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> CombatMusic;
+
+	/**
 	 * The intro (ENG-33), optional. When set, this Level Sequence plays on New Game instead of the code-driven
 	 * shots, with the same skip and hand-off rules.
 	 */
