@@ -1,6 +1,7 @@
 // Triad Drift - game modes for the non-gameplay maps. Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
+#include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
@@ -114,6 +115,10 @@ void ATDMenuGameMode::StartPlay()
 		GI->NotifyLevelEntered(bShowingVictory ? ETDDestination::Victory : ETDDestination::MainMenu); // no checkpoint, clock stopped
 	}
 	StartMusic();
+	if (!bShowingVictory)
+	{
+		ATDMenuBackdrop::SpawnFor(this); // T3: the scene behind the menu (sky, Verdance, the squad); off if the map has its own
+	}
 	const UTDUIStyle* MenuStyle = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
 	UClass* Widget = nullptr;
 	if (bShowingVictory)

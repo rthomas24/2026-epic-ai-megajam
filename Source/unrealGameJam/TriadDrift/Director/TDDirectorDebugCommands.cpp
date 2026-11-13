@@ -50,6 +50,9 @@
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
+#include "Camera/CameraActor.h"
+#include "Components/StaticMeshComponent.h"
 
 namespace TDDirectorDebug
 {
@@ -538,6 +541,21 @@ namespace TDDirectorDebug
 			}
 		}
 	}
+	static void MenuAt(const TArray<FString>& Args, UWorld* World)
+	{
+		for (TActorIterator<ATDMenuBackdrop> It(World); It; ++It)
+		{
+			It->DebugSetTime(Args.Num() ? FCString::Atof(*Args[0]) : 0.f);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Menu.At: fly-by %d, camera %s"), It->IsFlybyActive(), It->GetCamera() ? *It->GetCamera()->GetActorLocation().ToCompactString() : TEXT("-"));
+			for (const UStaticMeshComponent* C : It->GetSquadMeshes())
+			{
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Menu.At:   %s at %s, visible %d, mesh %s, bounds %.0f"), *C->GetName(), *C->GetComponentLocation().ToCompactString(),
+					C->IsVisible(), *GetNameSafe(C->GetStaticMesh()), C->Bounds.SphereRadius);
+			}
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdMenuAt(TEXT("TD.Menu.At"), TEXT("TD.Menu.At <seconds>: jump the menu backdrop's loop (captures)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MenuAt));
 	static FAutoConsoleCommandWithWorldAndArgs CmdIntroProbe(TEXT("TD.Intro.Probe"), TEXT("TD.Intro.Probe <u> <v>: log what is at that screen point"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&IntroProbe));
 	static FAutoConsoleCommandWithWorldAndArgs CmdIntroPlay(TEXT("TD.Intro.Play"), TEXT("TD.Intro.Play: play the cinematic intro now"),
