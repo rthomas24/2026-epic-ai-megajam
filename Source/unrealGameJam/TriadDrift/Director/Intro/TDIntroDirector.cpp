@@ -150,7 +150,7 @@ namespace TDIntro
 
 	static void WarpFlash(UWorld* World, const FVector& Where, float Size)
 	{
-		Flash(World, Where, Size, FLinearColor(1.f, 0.12f, 0.05f), 0.45f);
+		Flash(World, Where, Size, FLinearColor(1.f, 0.12f, 0.05f), 0.3f);
 	}
 
 	static void GateFlare(AActor* Gate, const FVector& Where)
@@ -540,8 +540,9 @@ void UTDIntroDirector::BuildShots()
 		FTDIntroShot S;
 		S.Id = TEXT("Eclipse");
 		S.Duration = 6.f;
-		S.CamFrom = Base + Lat * (R * 0.78f) + Up * (R * 0.18f);
-		S.CamTo = Base + Lat * (R * 1.06f) + Up * (R * 0.2f);
+		// The sun creeps up to the limb and stays just behind it: a rim of light, never a flare.
+		S.CamFrom = Base + Lat * (R * 0.45f) + Up * (R * 0.18f);
+		S.CamTo = Base + Lat * (R * 0.74f) + Up * (R * 0.2f);
 		S.LookFrom = PV + Lat * (R * 0.35f);
 		S.LookTo = PV + Lat * (R * 0.5f);
 		S.FocalFrom = 85.f;
@@ -678,11 +679,11 @@ void UTDIntroDirector::BuildShots()
 		S.Id = TEXT("ThreatFar");
 		S.Duration = 5.5f;
 		// 135 mm: the whole hull (about 2 radii) across about 60% of the frame.
-		const float Dist = DomR * 9.f;
+		const float Dist = DomR * 10.f; // the whole hull in frame, stern inside the edge
 		S.CamFrom = Dom + Quarter * Dist;
 		S.CamTo = S.CamFrom - Quarter * (Dist * 0.04f) - DomSide * (DomR * 0.5f);
-		S.LookFrom = Dom + DomFwd * (DomR * 0.35f);
-		S.LookTo = Dom - DomFwd * (DomR * 0.05f);
+		S.LookFrom = Dom + DomFwd * (DomR * 0.18f);
+		S.LookTo = Dom - DomFwd * (DomR * 0.08f);
 		S.FocalFrom = 135.f;
 		S.FocalTo = 135.f;
 		S.FStop = 16.f;
@@ -790,7 +791,7 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		// The last beat eases into the chase camera: lift the exposure so the ship reads, not a black frame.
 		FPostProcessSettings& PP = Camera->GetCameraComponent()->PostProcessSettings;
 		PP.bOverride_AutoExposureBias = true;
-		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : 0.f);
+		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (S.Id == TEXT("Eclipse") ? -1.5f : 0.f));
 	}
 	if (S.Id == TEXT("Title"))
 	{
@@ -1010,7 +1011,7 @@ void UTDIntroDirector::UpdateShot(float T)
 			const FVector Side = FVector::CrossProduct(FVector::UpVector, Fwd).GetSafeNormal();
 			const int32 k = CloseSpawned++;
 			const FVector At = Camera->GetActorLocation() + Fwd * 9000.f + Side * ((k % 2 ? 1.f : -1.f) * (650.f + (k % 3) * 300.f)) + FVector::UpVector * ((k % 3) - 1) * 320.f;
-			TDIntro::WarpFlash(World, At, 2600.f);
+			TDIntro::WarpFlash(World, At, 1100.f);
 			if (AActor* F = TDIntro::SpawnFighter(World, FTransform((-Fwd).Rotation(), At)))
 			{
 				F->Tags.Add(TEXT("TDIntroClose"));
@@ -1066,12 +1067,12 @@ void UTDIntroDirector::SpawnShowcase()
 	const FVector Toward = (S.CamFrom - S.LookFrom).GetSafeNormal();
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, Toward).GetSafeNormal();
 	// Well in front of the Dominion, a third of the way to the lens: big enough to read at 135 mm.
-	const FVector Base = FMath::Lerp(S.LookFrom, S.LookTo, 0.35f) + Toward * (FVector::Dist(S.CamFrom, S.LookFrom) * 0.35f);
+	const FVector Base = FMath::Lerp(S.LookFrom, S.LookTo, 0.35f) + Toward * (FVector::Dist(S.CamFrom, S.LookFrom) * 0.6f);
 	for (int32 k = 0; k < 10; ++k)
 	{
-		const FVector At = Base + Side * ((k - 4.5f) * 4200.f) + FVector::UpVector * FMath::Sin(k * 1.7f) * 3500.f + Toward * (k % 3) * 3000.f;
-		TDIntro::WarpFlash(World, At, 12000.f);
-		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(2.5f))))
+		const FVector At = Base + Side * ((k - 4.5f) * 2600.f) + FVector::UpVector * FMath::Sin(k * 1.7f) * 2200.f + Toward * (k % 3) * 2500.f;
+		TDIntro::WarpFlash(World, At, 5000.f);
+		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(3.5f))))
 		{
 			Showcase.Add(F);
 		}
