@@ -870,7 +870,9 @@ bool ATDArchiveTransfer::IsHostileAtTerminal() const
 	const FVector At = GetActorLocation();
 	for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It; ++It)
 	{
-		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < PauseRadius)
+		// At the terminal = on its floor: a crewman on the station's roof (5 m up, out of reach) must never hold the
+		// transfer forever (a soft lock).
+		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < PauseRadius && FMath::Abs(It->GetActorLocation().Z - At.Z) < 250.f)
 		{
 			return true;
 		}
