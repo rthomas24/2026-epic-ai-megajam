@@ -49,9 +49,7 @@ namespace TDThirdPersonCamTest
 			PC = Pilot ? W.SpawnLocalPlayerController(Pilot) : nullptr;
 			if (Pilot)
 			{
-				Rig = NewObject<UTDThirdPersonCameraComponent>(Pilot, TEXT("ThirdPersonCamera"));
-				Rig->SetupAttachment(Pilot->GetCapsuleComponent());
-				Rig->RegisterComponent();
+				Rig = Pilot->GetThirdPersonRig(); // T5 wired it into the pilot (ENG-32): the real one, on the capsule
 			}
 			if (PC)
 			{
