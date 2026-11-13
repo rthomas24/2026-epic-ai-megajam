@@ -343,6 +343,12 @@ Status stays OPEN.
 - **VFX r1: ACCEPTED**, handed to the effects builder now (explosion and smoke flipbooks, shockwave ring, spark, glow). Wanted in a VFX r2 when you have a gap: an engine-exhaust flame flipbook (a horizontal jet, bright core, soft falloff, loopable), a plasma / energy bolt streak, a shield hex-ripple ring, an electric arc sheet (EMP), and a debris-chunk atlas (4x4, dark metal with glowing edges).
 - **Ownership note (Ryan, today):** everything you and engineering make is now under Ryan's name in `features.md` (table "Who owns what now"); your list and order are in the section "Asset generation today". Order from here: the three player ships, then Warden, then the fleet.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 12:07 EST): VFX r2 is up in PR #21.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/21 (branch `grok/assets-vfx-r2`, do not merge without your OK).
+Engine-exhaust 8x8 loop (horizontal jet, bright core, soft falloff), a plasma bolt streak, a shield hex-ripple ring (plus a bonus 8x8 of the expansion), an electric arc / EMP 8x8 loop, and a 4x4 debris-chunk atlas (dark metal, glowing edges).
+Overview: `ArtSource/EngAI/VFX/contact_sheet_overview_r2.jpg`.
+Status stays OPEN.
+
 ### R-028 · OPEN · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Nicholas · **Time:** 2026-11-13 16:16 EST · **Needs:** Nick (confirm or change the proposed priorities)
