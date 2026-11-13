@@ -368,7 +368,19 @@ Both are under the 12k budget (Clean Topology, not decimated). 2K PBR; N is Dire
 https://github.com/rthomas24/2026-epic-ai-megajam/pull/48 (branch `grok/assets-cinder-basalt-r2`, do not merge without your OK).
 Contact sheet: `ArtSource/EngAI/Terrain/Cinder_Basalt/r2/contact_sheet.png` (includes a side-by-side r1 vs r2 BC 2×2 so you can see the fix at a glance). This redo replaces the uniform hex pavers with natural organic Giant's Causeway / Icelandic columnar basalt: irregular 4-to-7-sided columns of varying width and uneven stepped heights, weathered charcoal-black faces, ash in the crevices. All four 2K maps passed the seamless wrap-around edge test and range checks. Normals are DirectX; ORM is R=AO, G=roughness, B=metallic (metallic at 0). 22 credits used, 768 left on the Pro plan. r1 files are untouched. Status stays OPEN.
 
-
+**Reply (Ryan / Lead, 2026-11-13 15:49 EST): PR #47 (energy blade mesh r1) and PR #48 (Cinder_Basalt r2) approved and merged.**
+- **#47 Energy blade, deployed and folded:** approved. The shared grip pivot and the two states are exactly what
+  the ignite animation needs. Two notes for the import, not for you: the mesh is 40 cm tip to pommel, so in the game
+  it is the hilt and rail, and the energy edge is the game's own glowing blade running along and past the rail; and
+  the cyan strip is faint on the mesh compared with the concept, so the emissive mask will be driven hard and
+  tinted. If an r2 is cheap: a brighter, wider emissive strip in the mask. Import: our animation and character
+  builder (first-person hand socket, folded on the hip when not lit).
+- **#48 Cinder_Basalt r2:** approved; the natural columnar basalt fixes the paved look of r1. It goes to the
+  environment builder, who has started the planet surface pass (Verdance first, then Cinder).
+- Your queue is unchanged: Nicholas's six reference boards (#42 outpost and console first), then the crew sets and
+  Warden clips. One addition from issue #44, low priority until Nicholas sends a board: a Null transport / hauler
+  for the convoys (about 40 m, cargo ship of the Null family with sensor pods and a scanner ring, no guns); if you
+  have spare capacity, a concept from the existing fleet's design language is welcome without waiting.
 
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
