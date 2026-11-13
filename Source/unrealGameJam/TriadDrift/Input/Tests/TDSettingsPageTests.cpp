@@ -6,6 +6,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
@@ -90,6 +91,9 @@ bool FTDSettingsPageKeys::RunTest(const FString& Parameters)
 	S->SetMasterVolume(0.5f);
 	S->SetMusicVolume(0.5f);
 	S->SetEffectsVolume(0.5f);
+	S->SetCameraShake(0.5f);
+	S->SetSpeedFOV(0.5f);
+	ON_SCOPE_EXIT { UTDFlightFeedbackComponent::UserShakeScale = 1.f; UTDFlightFeedbackComponent::UserSpeedFOVScale = 1.f; };
 	// Every value row changes its setting from the keyboard (Right) and the pad (stick left / A button).
 	for (int32 i = 0; i < (int32)ETDSettingsRow::Reset; ++i)
 	{

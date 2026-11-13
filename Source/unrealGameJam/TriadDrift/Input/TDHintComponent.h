@@ -37,6 +37,15 @@ enum class ETDHint : uint8
 	Ability
 };
 
+/** Where the hint on screen is in its life: being shown, or just done by the player (a short tick-off beat). */
+UENUM(BlueprintType)
+enum class ETDHintState : uint8
+{
+	None,
+	Showing,
+	Done
+};
+
 /** The hint profile (slot "TD_Hints"): which hints were seen, and the on/off setting. Separate from the run save. */
 UCLASS()
 class UNREALGAMEJAM_API UTDHintSave : public USaveGame
@@ -67,9 +76,45 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints", meta = (WorldContext = "WorldContextObject"))
 	static FText GetHintText(const UObject* WorldContextObject);
 
-	/** The hint showing now (None between hints, while suppressed or when disabled). */
+	/** The hint showing now (None between hints, while suppressed or when disabled). During its tick-off beat it is
+	 * still returned, with GetCurrentHintState() == Done. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints")
 	ETDHint GetCurrentHint() const;
+
+	/** Showing, or Done for DoneBeatSeconds after the player did it (the HUD ticks it off), or None. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints")
+	ETDHintState GetCurrentHintState() const;
+
+	/** Onboarding (T3): the four essentials (fly, fire, switch ship, power), how many are done of how many. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints")
+	void GetEssentialsProgress(int32& OutDone, int32& OutTotal) const;
+
+	/** Static HUD helpers: the first local player's hint state and essentials progress (0 / 0 when no hints). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints", meta = (WorldContext = "WorldContextObject"))
+	static ETDHintState GetHintStateFor(const UObject* WorldContextObject);
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints", meta = (WorldContext = "WorldContextObject"))
+	static void GetEssentialsProgressFor(const UObject* WorldContextObject, int32& OutDone, int32& OutTotal);
+
+	/**
+	 * T2's onboarding card (ENG-36 lower lane): the current hint split into its key glyph for the device ("LMB", "Q",
+	 * "RB") and its action words ("FIRE"); the essentials step ("2 / 4"), false outside the four essentials; and the
+	 * state (Done for DoneBeatSeconds after the player does it, for the tick).
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints", meta = (WorldContext = "WorldContextObject"))
+	static FText GetHintKey(const UObject* WorldContextObject);
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints", meta = (WorldContext = "WorldContextObject"))
+	static FText GetHintAction(const UObject* WorldContextObject);
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints", meta = (WorldContext = "WorldContextObject"))
+	static bool GetHintStep(const UObject* WorldContextObject, int32& OutStep, int32& OutCount);
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints", meta = (WorldContext = "WorldContextObject"))
+	static ETDHintState GetHintState(const UObject* WorldContextObject) { return GetHintStateFor(WorldContextObject); }
+
+	/** The key glyph and the action words of a hint for a device (tests and docs). */
+	static FText KeyFor(ETDHint Hint, bool bGamepad);
+	static FText ActionFor(ETDHint Hint, ETDAbilityId Ability);
+
+	/** Whether this hint was missed once already (a second timeout marks it seen). */
+	bool WasMissed(ETDHint Hint) const { return Missed.Contains(Hint); }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints")
 	FText GetCurrentText() const;
@@ -101,13 +146,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
 	float GapSeconds = 1.2f;
 
-	/** A hint the player ignores this long counts as seen (s). */
+	/** A hint the player ignores this long goes to the back of the queue once; the second time it counts as seen (s). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "1"))
 	float TimeoutSeconds = 20.f;
 
 	/** Seconds after wave 1 starts before the first hint (lets the slate card and the first enemies land). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
 	float FirstHintDelay = 2.f;
+
+	/** Seconds a done hint stays up as "done" before the next one (the HUD's tick-off). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
+	float DoneBeatSeconds = 0.5f; // T2's card: a 0.4 s tick, then the fade
 
 	/** Seconds of steering (aim input over 25%) that complete the Fly hint. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
@@ -117,7 +166,9 @@ private:
 	ATDSpacePlayerController* GetPC() const;
 	ATDShip* GetFlownShip() const;
 	bool IsSuppressed() const;
-	void Complete(ETDHint Hint);
+	void Complete(ETDHint Hint, bool bByPlayer = false);
+	void MissCurrent();
+	bool IsContinuedRun() const;
 	void Observe(ETDHint Hint);
 	void Load();
 	void Save() const;
@@ -132,6 +183,9 @@ private:
 	UFUNCTION() void HandleTargetCycle();
 
 	TSet<ETDHint> Done;
+	TSet<ETDHint> Missed; // timed out once this session (not saved)
+	ETDHint JustDone = ETDHint::None;
+	float JustDoneLeft = 0.f;
 	TArray<ETDHint> Queue;
 	ETDHint Current = ETDHint::None;
 	float CurrentAge = 0.f;

@@ -8,6 +8,7 @@
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Waves/TDWaveTypes.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,8 +24,10 @@ namespace TDHints
 	static TAutoConsoleVariable<int32> CVarHints(TEXT("TD.Hints"), 1,
 		TEXT("First-minute control hints: 1 on (default), 0 off for this session."));
 
-	static const ETDHint Core[] = { ETDHint::Fly, ETDHint::Fire, ETDHint::Boost, ETDHint::Dodge, ETDHint::Switch,
-		ETDHint::Power, ETDHint::TargetCycle };
+	// Onboarding (T3): the four essentials first (fly, shoot, switch, power), then the rest.
+	static const ETDHint Core[] = { ETDHint::Fly, ETDHint::Fire, ETDHint::Switch, ETDHint::Power, ETDHint::Boost,
+		ETDHint::Dodge, ETDHint::TargetCycle };
+	static const ETDHint Essentials[] = { ETDHint::Fly, ETDHint::Fire, ETDHint::Switch, ETDHint::Power };
 
 	static bool IsCore(ETDHint H)
 	{
@@ -101,6 +104,9 @@ void UTDHintComponent::UseMemoryOnlyForTests()
 {
 	bPersist = false;
 	Done.Reset();
+	Missed.Reset();
+	JustDone = ETDHint::None;
+	JustDoneLeft = 0.f;
 	Queue.Reset();
 	Current = ETDHint::None;
 	CurrentAge = 0.f;
@@ -145,6 +151,9 @@ void UTDHintComponent::SetHintsEnabled(bool bInEnabled)
 void UTDHintComponent::ResetHints()
 {
 	Done.Reset();
+	Missed.Reset();
+	JustDone = ETDHint::None;
+	JustDoneLeft = 0.f;
 	Queue.Reset();
 	Current = ETDHint::None;
 	Gap = 0.f;
@@ -167,7 +176,7 @@ void UTDHintComponent::Offer(ETDHint Hint)
 	}
 }
 
-void UTDHintComponent::Complete(ETDHint Hint)
+void UTDHintComponent::Complete(ETDHint Hint, bool bByPlayer)
 {
 	if (Hint == ETDHint::None || Done.Contains(Hint))
 	{
@@ -179,14 +188,47 @@ void UTDHintComponent::Complete(ETDHint Hint)
 	{
 		Current = ETDHint::None;
 		Gap = GapSeconds;
+		if (bByPlayer && DoneBeatSeconds > 0.f)
+		{
+			// Onboarding: the HUD ticks it off for a moment before the next one (the player sees they got it).
+			JustDone = Hint;
+			JustDoneLeft = DoneBeatSeconds;
+			Gap += DoneBeatSeconds;
+		}
 	}
 	Save();
+}
+
+void UTDHintComponent::MissCurrent()
+{
+	// Onboarding: a beginner who missed a hint gets it once more, after the others; a second miss counts as seen.
+	const ETDHint H = Current;
+	if (H == ETDHint::None)
+	{
+		return;
+	}
+	if (Missed.Contains(H))
+	{
+		Complete(H);
+		return;
+	}
+	Missed.Add(H);
+	Current = ETDHint::None;
+	Gap = GapSeconds;
+	Queue.Remove(H);
+	Queue.Add(H);
 }
 
 void UTDHintComponent::Observe(ETDHint Hint)
 {
 	// The player did it: done, whether its hint is up, queued or not offered yet (experienced players see nothing).
-	Complete(Hint);
+	Complete(Hint, /*bByPlayer*/ true);
+}
+
+bool UTDHintComponent::IsContinuedRun() const
+{
+	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	return GI && GI->IsRunFromContinue();
 }
 
 // ---- Event handlers
@@ -194,9 +236,14 @@ void UTDHintComponent::Observe(ETDHint Hint)
 void UTDHintComponent::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 {
 	const bool bFirstOffer = Queue.Num() == 0 && Current == ETDHint::None;
-	for (ETDHint H : TDHints::Core)
+	// Onboarding: a run resumed with Continue is someone who has played; the control lessons stay off (the contextual
+	// hints below still come when they apply).
+	if (!IsContinuedRun())
 	{
-		Offer(H);
+		for (ETDHint H : TDHints::Core)
+		{
+			Offer(H);
+		}
 	}
 	if (bFirstOffer && Queue.Num() > 0)
 	{
@@ -296,12 +343,20 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	{
 		return; // the clock stops: a hint never runs out behind a landing prompt or a pause
 	}
+	if (JustDoneLeft > 0.f)
+	{
+		JustDoneLeft -= DeltaTime;
+		if (JustDoneLeft <= 0.f)
+		{
+			JustDone = ETDHint::None;
+		}
+	}
 	if (Current != ETDHint::None)
 	{
 		CurrentAge += DeltaTime;
 		if (CurrentAge >= TimeoutSeconds)
 		{
-			Complete(Current); // ignored: counts as seen
+			MissCurrent(); // ignored: once more later, then it counts as seen
 		}
 		return;
 	}
@@ -322,7 +377,53 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 ETDHint UTDHintComponent::GetCurrentHint() const
 {
-	return IsSuppressed() ? ETDHint::None : Current;
+	if (IsSuppressed())
+	{
+		return ETDHint::None;
+	}
+	return Current != ETDHint::None ? Current : (JustDoneLeft > 0.f ? JustDone : ETDHint::None);
+}
+
+ETDHintState UTDHintComponent::GetCurrentHintState() const
+{
+	if (IsSuppressed())
+	{
+		return ETDHintState::None;
+	}
+	if (Current != ETDHint::None)
+	{
+		return ETDHintState::Showing;
+	}
+	return (JustDoneLeft > 0.f && JustDone != ETDHint::None) ? ETDHintState::Done : ETDHintState::None;
+}
+
+void UTDHintComponent::GetEssentialsProgress(int32& OutDone, int32& OutTotal) const
+{
+	OutTotal = UE_ARRAY_COUNT(TDHints::Essentials);
+	OutDone = 0;
+	for (ETDHint H : TDHints::Essentials)
+	{
+		OutDone += Done.Contains(H) ? 1 : 0;
+	}
+}
+
+ETDHintState UTDHintComponent::GetHintStateFor(const UObject* WorldContextObject)
+{
+	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	const UTDHintComponent* Hints = PC ? PC->FindComponentByClass<UTDHintComponent>() : nullptr;
+	return Hints ? Hints->GetCurrentHintState() : ETDHintState::None;
+}
+
+void UTDHintComponent::GetEssentialsProgressFor(const UObject* WorldContextObject, int32& OutDone, int32& OutTotal)
+{
+	OutDone = OutTotal = 0;
+	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	if (const UTDHintComponent* Hints = PC ? PC->FindComponentByClass<UTDHintComponent>() : nullptr)
+	{
+		Hints->GetEssentialsProgress(OutDone, OutTotal);
+	}
 }
 
 FText UTDHintComponent::GetCurrentText() const
@@ -377,6 +478,84 @@ FText UTDHintComponent::TextFor(ETDHint Hint, bool bGamepad, ETDAbilityId Abilit
 	default:
 		return FText::GetEmpty();
 	}
+}
+
+FText UTDHintComponent::KeyFor(ETDHint Hint, bool bGamepad)
+{
+	switch (Hint)
+	{
+	case ETDHint::Fly: return bGamepad ? LOCTEXT("KFlyPad", "R-STICK · RT/LT") : LOCTEXT("KFlyKey", "MOUSE  ·  W / S");
+	case ETDHint::Fire: return bGamepad ? LOCTEXT("KFirePad", "RB") : LOCTEXT("KFireKey", "LMB");
+	case ETDHint::Boost: return bGamepad ? LOCTEXT("KBoostPad", "L3") : LOCTEXT("KBoostKey", "SHIFT");
+	case ETDHint::Dodge: return bGamepad ? LOCTEXT("KDodgePad", "L-STICK x2") : LOCTEXT("KDodgeKey", "A A / D D");
+	case ETDHint::Switch: return bGamepad ? LOCTEXT("KSwitchPad", "D-PAD L / R") : LOCTEXT("KSwitchKey", "1  2  3");
+	case ETDHint::Power: return bGamepad ? LOCTEXT("KPowerPad", "X") : LOCTEXT("KPowerKey", "Q");
+	case ETDHint::TargetCycle: return bGamepad ? LOCTEXT("KTargetPad", "R3") : LOCTEXT("KTargetKey", "T");
+	case ETDHint::Drift: return bGamepad ? LOCTEXT("KDriftPad", "B") : LOCTEXT("KDriftKey", "C");
+	case ETDHint::Hyperdrive: return bGamepad ? LOCTEXT("KHyperPad", "D-PAD DOWN") : LOCTEXT("KHyperKey", "H");
+	case ETDHint::Ability: return bGamepad ? LOCTEXT("KAbilityPad", "Y") : LOCTEXT("KAbilityKey", "E");
+	default: return FText::GetEmpty();
+	}
+}
+
+FText UTDHintComponent::ActionFor(ETDHint Hint, ETDAbilityId Ability)
+{
+	switch (Hint)
+	{
+	case ETDHint::Fly: return LOCTEXT("AFly", "AIM  ·  THROTTLE");
+	case ETDHint::Fire: return LOCTEXT("AFire", "FIRE");
+	case ETDHint::Boost: return LOCTEXT("ABoost", "HOLD TO BOOST");
+	case ETDHint::Dodge: return LOCTEXT("ADodge", "DODGE");
+	case ETDHint::Switch: return LOCTEXT("ASwitch", "SWITCH SHIP");
+	case ETDHint::Power: return LOCTEXT("APower", "POWER  ·  HOLD FOR THE 2ND");
+	case ETDHint::TargetCycle: return LOCTEXT("ATarget", "NEXT TARGET");
+	case ETDHint::Drift: return LOCTEXT("ADrift", "HOLD TO DRIFT");
+	case ETDHint::Hyperdrive: return LOCTEXT("AHyper", "HOLD: HYPERDRIVE");
+	case ETDHint::Ability:
+		return Ability == ETDAbilityId::None ? LOCTEXT("AAbility", "NEW ABILITY")
+			: FText::FromString(StaticEnum<ETDAbilityId>()->GetDisplayNameTextByValue((int64)Ability).ToString().ToUpper());
+	default: return FText::GetEmpty();
+	}
+}
+
+namespace TDHints
+{
+	static const UTDHintComponent* FindFor(const UObject* WorldContextObject)
+	{
+		const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		return PC ? PC->FindComponentByClass<UTDHintComponent>() : nullptr;
+	}
+}
+
+FText UTDHintComponent::GetHintKey(const UObject* WorldContextObject)
+{
+	const UTDHintComponent* H = TDHints::FindFor(WorldContextObject);
+	const ATDSpacePlayerController* PC = H ? H->GetPC() : nullptr;
+	return H ? KeyFor(H->GetCurrentHint(), PC && PC->IsUsingGamepad()) : FText::GetEmpty();
+}
+
+FText UTDHintComponent::GetHintAction(const UObject* WorldContextObject)
+{
+	const UTDHintComponent* H = TDHints::FindFor(WorldContextObject);
+	return H ? ActionFor(H->GetCurrentHint(), H->LastAbility) : FText::GetEmpty();
+}
+
+bool UTDHintComponent::GetHintStep(const UObject* WorldContextObject, int32& OutStep, int32& OutCount)
+{
+	OutStep = OutCount = 0;
+	const UTDHintComponent* H = TDHints::FindFor(WorldContextObject);
+	const ETDHint Hint = H ? H->GetCurrentHint() : ETDHint::None;
+	for (int32 i = 0; i < UE_ARRAY_COUNT(TDHints::Essentials); ++i)
+	{
+		if (TDHints::Essentials[i] == Hint)
+		{
+			OutStep = i + 1;
+			OutCount = UE_ARRAY_COUNT(TDHints::Essentials);
+			return true;
+		}
+	}
+	return false;
 }
 
 // ---- Dev commands

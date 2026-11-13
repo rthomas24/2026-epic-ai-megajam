@@ -78,6 +78,14 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
 	bool bHintsEnabled = true;
 
+	/** Comfort: every camera shake and kick (0 = none, 1 = as designed). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float CameraShake = 1.f;
+
+	/** Comfort: how much the view widens with speed and punches on boost (0 = a fixed field of view). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float SpeedFOV = 1.f;
+
 	/** The player's chosen difficulty: the default for New Game. A continued run keeps the one saved with it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
 	ETDDifficulty Difficulty = ETDDifficulty::Standard;
@@ -172,6 +180,8 @@ public:
 
 	// ---- Gameplay
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetHintsEnabled(bool bEnabled);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetCameraShake(float Scale01);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetSpeedFOV(float Scale01);
 
 	/**
 	 * Difficulty (features.md Settings; T4's UTDDifficultySettings presets). Saved here as the New Game default and

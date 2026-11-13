@@ -116,11 +116,20 @@ public:
 	 * The one way gameplay loads a presentation data asset by its agreed name
 	 * (docs/visual/Presentation-Asset-Paths.md), e.g. "DA_Rift_Visuals" from
 	 * /Game/TriadDrift/Presentation/. Returns null quietly when the asset has not been authored yet
-	 * (no log warning in packaged builds) or is not of ExpectedClass. Misses are remembered: for the
+	 * (no log warning in packaged builds) or is not of ExpectedClass. When both a Presentation asset and an
+	 * engineering fallback of that name exist, the result is the Presentation asset with its unset fields
+	 * filled from the fallback (a transient merged copy; never save it). Misses are remembered: for the
 	 * whole session in packaged builds, for 10 s in the editor so new assets are picked up.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|FX")
 	static UObject* LoadPresentationAsset(const FString& AssetName, TSubclassOf<UObject> ExpectedClass);
+
+	/**
+	 * A transient copy of Primary in which every property Primary leaves at its class default is taken from
+	 * Fallback (same class), struct members one by one. LoadPresentationAsset uses it so a Presentation asset wins
+	 * field by field over the engineering fallback of the same name. Null when Primary is null.
+	 */
+	static UObject* MergePresentationWithFallback(const UObject* Primary, const UObject* Fallback);
 
 	template <typename T>
 	static T* LoadPresentation(const FString& AssetName)

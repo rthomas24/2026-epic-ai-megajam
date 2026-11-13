@@ -238,13 +238,22 @@ bool FTDTravelAtmosphereSim::RunTest(const FString& Parameters)
 	S.Velocity = FVector::ForwardVector * T.CruiseSpeed;
 	FTDFlightInput In;
 	In.Throttle = 1.f;
-	In.bBoost = true;
 	for (int32 i = 0; i < 240; ++i) { TDFlightSim::Advance(S, In, T, C, 1.f / 60.f); }
 
-	const float Horizontal = FVector(S.Velocity.X, S.Velocity.Y, 0.f).Size();
-	TestEqual(TEXT("speed capped at 60% of space cruise (3600)"), Horizontal, 0.6f * T.CruiseSpeed, 60.f);
-	TestFalse(TEXT("no boost in atmosphere"), S.bBoosting);
-	TestEqual(TEXT("boost meter untouched"), S.Boost01, 1.f, 0.001f);
+	float Horizontal = FVector(S.Velocity.X, S.Velocity.Y, 0.f).Size();
+	TestEqual(TEXT("cruise capped at 60% of space cruise (3600)"), Horizontal, 0.6f * T.CruiseSpeed, 60.f);
+
+	// ENG-34 (Lead, Nov 13): boost works in atmosphere, capped at 60% of boost speed, and spends the meter.
+	In.bBoost = true;
+	for (int32 i = 0; i < 120; ++i) { TDFlightSim::Advance(S, In, T, C, 1.f / 60.f); }
+	Horizontal = FVector(S.Velocity.X, S.Velocity.Y, 0.f).Size();
+	TestTrue(TEXT("boosting in atmosphere"), S.bBoosting);
+	TestEqual(TEXT("boost capped at 60% of boost speed"), Horizontal, 0.6f * T.BoostSpeed, 120.f);
+	TestTrue(TEXT("the boost meter drains"), S.Boost01 < 1.f);
+	In.bBoost = false;
+	for (int32 i = 0; i < 240; ++i) { TDFlightSim::Advance(S, In, T, C, 1.f / 60.f); }
+	Horizontal = FVector(S.Velocity.X, S.Velocity.Y, 0.f).Size();
+	TestEqual(TEXT("released: back to the 60% cruise cap"), Horizontal, 0.6f * T.CruiseSpeed, 80.f);
 	TestTrue(FString::Printf(TEXT("gravity: the ship sinks (vz %.0f cm/s)"), (float)S.Velocity.Z), S.Velocity.Z < -50.f && S.Velocity.Z > -400.f);
 
 	// Box boundary: above the ceiling the ship is turned and pushed back down.

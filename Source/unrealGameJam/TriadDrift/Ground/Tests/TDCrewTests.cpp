@@ -32,6 +32,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Animation/AnimInstance.h"
 #include "AssetRegistry/IAssetRegistry.h"
+#include "Engine/StaticMeshSocket.h"
 
 namespace TDCrewTest
 {
@@ -769,6 +770,45 @@ bool FTDCrewCorpseStays::RunTest(const FString& Parameters)
 	{
 		TestTrue(TEXT("where it fell"), FVector::Dist2D(Weak->GetMesh()->GetComponentLocation(), At) < 150.f);
 	}
+	return true;
+}
+
+// The Rodin drone (Lead, Nov 13): its 79 x 90 x 88 cm look is what the blade and deflected bolts must hit, and a static-mesh
+// look's Muzzle socket is where its shots start.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDroneLookAndMuzzle, "TriadDrift.Ground.Crew.DroneCapsuleCoversItsLookAndShootsFromItsMuzzle", TD_TEST_FLAGS)
+bool FTDDroneLookAndMuzzle::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+	UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (!TestNotNull(TEXT("pilot"), P) || !TestNotNull(TEXT("cube"), Cube)) { return false; }
+	static TStrongObjectPtr<UStaticMesh> Socketed;
+	if (!Socketed.IsValid())
+	{
+		UStaticMesh* Dup = DuplicateObject<UStaticMesh>(Cube, GetTransientPackage());
+		UStaticMeshSocket* S = NewObject<UStaticMeshSocket>(Dup);
+		S->SocketName = TEXT("Muzzle");
+		S->RelativeLocation = FVector(70.f, 0.f, 10.f); // out of the front, a little up
+		Dup->Sockets.Add(S);
+		Socketed.Reset(Dup);
+	}
+	TStrongObjectPtr<UTDEnemyVisuals> Look(NewObject<UTDEnemyVisuals>(GetTransientPackage()));
+	Look->Mesh = Socketed.Get();
+	const FTransform Xf(FRotator::ZeroRotator, FVector(800.f, 0.f, 300.f));
+	ATDCrewCharacter* D = W.GetWorld()->SpawnActorDeferred<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	D->CrewType = ETDCrewType::Drone;
+	D->Visuals = Look.Get();
+	D->FinishSpawning(Xf);
+	W.Tick(1.f / 60.f);
+	TestTrue(*FString::Printf(TEXT("capsule covers the 79 x 90 x 88 cm look (r %.0f, hh %.0f)"), D->Spec.CapsuleRadius, D->Spec.CapsuleHalfHeight),
+		D->Spec.CapsuleRadius >= 44.f && D->Spec.CapsuleHalfHeight >= 43.f);
+	const FVector Fwd = D->GetActorForwardVector();
+	const FVector Muzzle = D->GetMuzzleLocation(Fwd);
+	const UStaticMeshComponent* Body = D->FindComponentByClass<UStaticMeshComponent>();
+	const FVector Socket = Body && Body->DoesSocketExist(TEXT("Muzzle")) ? Body->GetSocketLocation(TEXT("Muzzle")) : FVector::ZeroVector;
+	TestTrue(*FString::Printf(TEXT("shots start at the look's Muzzle socket (%s vs %s)"), *Muzzle.ToCompactString(), *Socket.ToCompactString()),
+		!Socket.IsZero() && Muzzle.Equals(Socket, 2.f));
 	return true;
 }
 

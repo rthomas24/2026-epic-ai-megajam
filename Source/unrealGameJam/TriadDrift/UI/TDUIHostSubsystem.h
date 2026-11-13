@@ -24,7 +24,8 @@ enum class ETDHUDSurface : uint8
 	Altitude,		// atmosphere flight (GetAltitude)
 	Subtitles,		// bark subtitles
 	Pause,			// the PAUSED line / menu
-	BoundaryWarning		// edge-of-zone text (GetBoundaryWarningText)
+	BoundaryWarning,	// edge-of-zone text (GetBoundaryWarningText)
+	CombatStates		// the Switch Strike window and a focus-fire order (GetSwitchStrike01, GetFocusRemaining01)
 };
 
 /**

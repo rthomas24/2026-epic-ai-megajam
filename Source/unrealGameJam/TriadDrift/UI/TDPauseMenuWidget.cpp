@@ -115,14 +115,74 @@ FBox2D UTDPauseMenuWidget::ConfirmRect(int32 Choice)
 
 // ------------------------------------------------------------------------------------------ navigation
 
+bool UTDPauseMenuWidget::PlayUISound(const TCHAR* Which)
+{
+	++UISoundRequests.FindOrAdd(Which);
+	// T1's static UFUNCTION PlayUISound(WorldContext, ETDUISound), by name so this builds before it reaches main.
+	UFunction* Play = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("PlayUISound"));
+	if (!Play)
+	{
+		return false;
+	}
+	TArray<uint8> Params;
+	Params.SetNumZeroed(FMath::Max<int32>(Play->ParmsSize, 16));
+	bool bSoundSet = false;
+	for (TFieldIterator<FProperty> It(Play); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		if (It->HasAnyPropertyFlags(CPF_ReturnParm))
+		{
+			continue;
+		}
+		void* Value = It->ContainerPtrToValuePtr<void>(Params.GetData());
+		if (const FObjectPropertyBase* Obj = CastField<FObjectPropertyBase>(*It))
+		{
+			Obj->SetObjectPropertyValue(Value, this);
+		}
+		else if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(*It))
+		{
+			const int64 V = EnumProp->GetEnum()->GetValueByNameString(Which);
+			if (V != INDEX_NONE)
+			{
+				EnumProp->GetUnderlyingProperty()->SetIntPropertyValue(Value, V);
+				bSoundSet = true;
+			}
+		}
+		else if (const FByteProperty* ByteProp = CastField<FByteProperty>(*It); ByteProp && ByteProp->Enum)
+		{
+			const int64 V = ByteProp->Enum->GetValueByNameString(Which);
+			if (V != INDEX_NONE)
+			{
+				ByteProp->SetPropertyValue(Value, static_cast<uint8>(V));
+				bSoundSet = true;
+			}
+		}
+	}
+	if (!bSoundSet)
+	{
+		return false; // the enum has no such entry: stay silent rather than play the wrong sound
+	}
+	UTDSettingsSubsystem::StaticClass()->GetDefaultObject()->ProcessEvent(Play, Params.GetData());
+	return true;
+}
+
 void UTDPauseMenuWidget::MoveSelection(int32 Delta)
 {
 	if (bConfirming)
 	{
+		const int32 Before = ConfirmChoice;
 		ConfirmChoice = (ConfirmChoice + (Delta != 0 ? 1 : 0)) % 2;
+		if (ConfirmChoice != Before)
+		{
+			PlayUISound(TEXT("Move"));
+		}
 		return;
 	}
+	const int32 Before = Selected;
 	Selected = (Selected + Delta % ItemCount + ItemCount) % ItemCount;
+	if (Selected != Before)
+	{
+		PlayUISound(TEXT("Move"));
+	}
 }
 
 void UTDPauseMenuWidget::Back()
@@ -130,13 +190,15 @@ void UTDPauseMenuWidget::Back()
 	if (bConfirming)
 	{
 		bConfirming = false;
+		PlayUISound(TEXT("Back"));
 		return;
 	}
-	Execute(ETDPauseItem::Resume);
+	Execute(ETDPauseItem::Resume); // closing unpauses: PauseOut plays from the controller
 }
 
 void UTDPauseMenuWidget::Activate()
 {
+	PlayUISound(TEXT("Confirm"));
 	const ETDPauseItem Item = static_cast<ETDPauseItem>(Selected);
 	if (bConfirming)
 	{
@@ -230,7 +292,12 @@ FReply UTDPauseMenuWidget::NativeOnMouseMove(const FGeometry& InGeometry, const 
 	const int32 Hit = HitTest(InGeometry, InMouseEvent.GetScreenSpacePosition(), bConfirm);
 	if (Hit != INDEX_NONE)
 	{
-		(bConfirm ? ConfirmChoice : Selected) = Hit;
+		int32& Row = bConfirm ? ConfirmChoice : Selected;
+		if (Row != Hit)
+		{
+			Row = Hit;
+			PlayUISound(TEXT("Move")); // only when the highlight actually moves, not on every mouse event
+		}
 	}
 	return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
 }

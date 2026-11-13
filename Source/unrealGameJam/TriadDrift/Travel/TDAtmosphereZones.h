@@ -182,6 +182,22 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	bool IsShipInZone(const ATDShip* Ship) const;
 
+	/**
+	 * ENG-34: a planet with T4's generated terrain is explorable, so the zone grows (never shrinks) to the terrain's
+	 * whole collision core plus TerrainEdgeExtension (so the edge warning only starts at the edge of the 16 km world),
+	 * and its ceiling to TerrainCeilingClearance above the highest ground in it, so no mountain top sits above the
+	 * ceiling (or in the exit). Found automatically within a second. Past the collision core (T4's far ring is
+	 * visual only) the zone keeps ships above the generated ground itself.
+	 */
+	void FitToTerrain(const class ATDPlanetTerrain* Terrain);
+	bool IsFittedToTerrain() const { return bFittedToTerrain; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
+	float TerrainEdgeExtension = 50000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
+	float TerrainCeilingClearance = 40000.f;
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Atmosphere")
 	FTDOnAtmosphereExit OnExitTriggered;
 
@@ -194,6 +210,14 @@ protected:
 private:
 	void ApplyToShip(ATDShip* Ship, bool bExitOpen);
 
+	bool bFittedToTerrain = false;
+	TWeakObjectPtr<const class ATDPlanetTerrain> FittedTerrain;
+	float TerrainCoreHalf = 0.f;
+	/** The rig's original ceiling height above the zone floor (cm), kept when the zone grows over the terrain:
+	 *  once the exit is open the climb-out triggers this high above the ground under the ship (review m6). */
+	float ExitAltitudeAboveGround = -1.f;
+	void KeepAboveFarGround(class ATDShip* Ship) const;
+	float TerrainPoll = 0.f;
 	bool bExitOverride = false;
 	bool bExitAllowedOverride = false;
 	bool bExitTriggered = false;

@@ -1,6 +1,8 @@
 // Triad Drift - a squad ship with the chase camera (ENG-01). Owner: Teammate 1 (Flight & Input).
 
 #include "TriadDrift/Flight/TDShip.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -322,6 +324,81 @@ void ATDShip::GetEngineExhaustLocations(TArray<FVector>& Out) const
 	}
 }
 
+void ATDShip::GetEngineNozzles(TArray<TPair<USceneComponent*, FName>>& Out) const
+{
+	Out.Reset();
+	TArray<FName> Sockets;
+	GetNozzleSockets(HullMesh, Sockets);
+	for (const FName& Socket : Sockets) { Out.Emplace(HullMesh, Socket); }
+	if (Out.Num() == 0)
+	{
+		FName Socket;
+		if (USceneComponent* Attach = GetEngineAttach(Socket))
+		{
+			Out.Emplace(Attach, Socket);
+		}
+	}
+}
+
+void ATDShip::GetNozzleSockets(const UStaticMeshComponent* Mesh, TArray<FName>& Out)
+{
+	Out.Reset();
+	if (!Mesh || !Mesh->GetStaticMesh())
+	{
+		return;
+	}
+	if (Mesh->DoesSocketExist(TEXT("Engine"))) { Out.Add(TEXT("Engine")); }
+	for (int32 i = 0; i <= 8; ++i)
+	{
+		const FName Name(*FString::Printf(TEXT("Engine_%d"), i));
+		if (Mesh->DoesSocketExist(Name)) { Out.Add(Name); }
+	}
+}
+
+int32 ATDShip::GetExhaustEffectCount() const
+{
+	int32 N = EngineTrailFX.IsValid() ? 1 : 0;
+	for (const TWeakObjectPtr<UNiagaraComponent>& FX : ExtraExhaustFX) { N += FX.IsValid() ? 1 : 0; }
+	return N;
+}
+
+bool ATDShip::SetExhaustParamIfExposed(UNiagaraComponent* FX, FName Param, float Value)
+{
+	const UNiagaraSystem* System = FX ? FX->GetAsset() : nullptr;
+	if (!System)
+	{
+		return false;
+	}
+	const FNiagaraUserRedirectionParameterStore& Exposed = System->GetExposedParameters();
+	const FNiagaraVariable User(FNiagaraTypeDefinition::GetFloatDef(), FName(*(TEXT("User.") + Param.ToString())));
+	const FNiagaraVariable Plain(FNiagaraTypeDefinition::GetFloatDef(), Param);
+	if (!Exposed.FindParameterOffset(User) && !Exposed.FindParameterOffset(Plain))
+	{
+		return false; // this exhaust system doesn't take the parameter: leave it as authored
+	}
+	FX->SetVariableFloat(Param, Value);
+	return true;
+}
+
+void ATDShip::UpdateExhaustParams()
+{
+	ExhaustThrottle01 = ShipMovement ? FMath::Clamp((float)GetVelocity().Size() / FMath::Max(ShipMovement->GetCruiseCapSpeed(), 1.f), 0.f, 1.f) : 0.f;
+	bExhaustBoost = IsBoosting();
+	const UTDHealthComponent* H = GetHealth();
+	if ((H && H->IsDead()) || IsFlightParked() || (Landing && Landing->IsBusy() && !Landing->AreEnginesOn()))
+	{
+		ExhaustThrottle01 = 0.f; // engines off (dead, parked, gear down): the exhaust idles out
+		bExhaustBoost = false;
+	}
+	auto Feed = [this](UNiagaraComponent* FX)
+	{
+		SetExhaustParamIfExposed(FX, TEXT("Throttle"), ExhaustThrottle01);
+		SetExhaustParamIfExposed(FX, TEXT("Boost"), bExhaustBoost ? 1.f : 0.f);
+	};
+	Feed(EngineTrailFX.Get());
+	for (const TWeakObjectPtr<UNiagaraComponent>& FX : ExtraExhaustFX) { Feed(FX.Get()); }
+}
+
 FTDFXCue ATDShip::ForThisShip(const FTDFXCue& Cue) const
 {
 	FTDFXCue Out = Cue;
@@ -405,6 +482,11 @@ void ATDShip::ApplyEngineAudioParams(UAudioComponent* Audio) const
 void ATDShip::StopEngine()
 {
 	StopLoop(TEXT("EngineTrail"), EngineTrailFX, EngineTrailAudio);
+	for (const TWeakObjectPtr<UNiagaraComponent>& FX : ExtraExhaustFX)
+	{
+		if (UNiagaraComponent* N = FX.Get()) { N->Deactivate(); }
+	}
+	ExtraExhaustFX.Reset();
 	if (UAudioComponent* A = EngineLoopAudio.Get()) { A->FadeOut(0.3f, 0.f); }
 	EngineLoopAudio.Reset();
 	ActiveLoops.Remove(TEXT("EngineLoop"));
@@ -417,7 +499,31 @@ void ATDShip::StartEngineTrail()
 	{
 		return;
 	}
-	StartLoop(TEXT("EngineTrail"), Visuals->EngineTrail, EngineTrailFX, EngineTrailAudio);
+	// ENG-37: one exhaust per nozzle socket. The first carries the sound (and the bookkeeping); the rest are VFX only.
+	TArray<TPair<USceneComponent*, FName>> Nozzles;
+	GetEngineNozzles(Nozzles);
+	{
+		NoteCue(TEXT("EngineTrail"));
+		ActiveLoops.Add(TEXT("EngineTrail"));
+		UAudioComponent* Audio = nullptr;
+		if (Nozzles.Num() > 0)
+		{
+			EngineTrailFX = UTDStatics::PlayCueAttachedLoop(ForThisShip(Visuals->EngineTrail), Nozzles[0].Key, Nozzles[0].Value, Audio);
+		}
+		EngineTrailAudio = Audio;
+		FTDFXCue VFXOnly = Visuals->EngineTrail;
+		VFXOnly.Sound.Reset();
+		VFXOnly.Shake.Reset();
+		for (int32 i = 1; i < Nozzles.Num() && !VFXOnly.VFX.IsNull(); ++i)
+		{
+			UAudioComponent* None = nullptr;
+			if (UNiagaraComponent* FX = UTDStatics::PlayCueAttachedLoop(VFXOnly, Nozzles[i].Key, Nozzles[i].Value, None))
+			{
+				ExtraExhaustFX.Add(FX);
+			}
+		}
+		UpdateExhaustParams();
+	}
 	// The engine hum (UTDShipVisuals::EngineLoop): pitched by speed in Tick.
 	NoteCue(TEXT("EngineLoop"));
 	ActiveLoops.Add(TEXT("EngineLoop"));
@@ -427,7 +533,7 @@ void ATDShip::StartEngineTrail()
 		{
 			FName Socket;
 			USceneComponent* Attach = GetEngineAttach(Socket);
-			EngineLoopAudio = TestSpawnEngineLoop ? TestSpawnEngineLoop(Sound, Attach, Socket) : UGameplayStatics::SpawnSoundAttached(Sound, Attach, Socket);
+			EngineLoopAudio = TestSpawnEngineLoop ? TestSpawnEngineLoop(Sound, Attach, Socket) : UGameplayStatics::SpawnSoundAttached(Sound, Attach, Socket, FVector::ZeroVector, EAttachLocation::KeepRelativeOffset, /*bStopWhenAttachedToDestroyed*/ true);
 			ApplyEngineAudioParams(EngineLoopAudio.Get());
 		}
 	}
@@ -640,6 +746,7 @@ void ATDShip::Tick(float DeltaSeconds)
 	AudioDrift01 = FMath::FInterpConstantTo(AudioDrift01, IsDrifting() ? 1.f : 0.f, DeltaSeconds, AudioEaseRate);
 	ApplyEngineAudioParams(EngineLoopAudio.Get());
 	ApplyEngineAudioParams(EngineTrailAudio.Get());
+	UpdateExhaustParams();
 	UpdateLowHullAlarm();
 }
 
@@ -805,7 +912,8 @@ void ATDShip::UpdateChaseCamera(float DeltaSeconds, bool bSnap)
 	ChaseCamera->SetRelativeRotation(FRotator(LookAhead.Y * CameraTuning.LookAheadAngle * CameraTuning.LookAheadPitchScale, LookAhead.X * CameraTuning.LookAheadAngle, 0.f) + Kick);
 
 	// --- FOV widens with speed -------------------------------------------------------------------------
-	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01());
+	// The Settings "Speed FOV" option scales how much the view widens with speed (0 = a fixed FOV).
+	const float TargetFOV = FMath::Lerp(CameraTuning.MinFOV, CameraTuning.MaxFOV, ShipMovement->GetSpeed01() * FMath::Clamp(UTDFlightFeedbackComponent::UserSpeedFOVScale, 0.f, 1.f));
 	CurrentFOV = bSnap ? TargetFOV : FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, CameraTuning.FOVResponse);
 	ChaseCamera->SetFieldOfView(CurrentFOV);
 }
