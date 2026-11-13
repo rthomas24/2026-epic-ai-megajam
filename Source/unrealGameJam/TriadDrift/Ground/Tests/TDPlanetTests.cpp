@@ -664,6 +664,32 @@ bool FTDCourseNoFinishDuringCut::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Reaching a checkpoint refills the pilot (the wreck site fight starts from full after the ambush), and a death in
+// the site fight respawns at its edge, not at the pad.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseCheckpointRefill, "TriadDrift.Ground.Course.CheckpointRefillsAndSiteFightRespawnsAtItsEdge", TD_TEST_FLAGS)
+bool FTDCourseCheckpointRefill::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Wreck = R.Course->FindObjective(TEXT("Obj_WreckCore"));
+	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
+	R.FP->GetHealth()->SetInvulnerable(false);
+	R.FP->GetHealth()->SetInvulnerableFor(0.f);
+	UTDStatics::ApplyTDDamage(R.FP, 70.f, ETDDamageKind::Energy, nullptr, nullptr);
+	TestTrue(TEXT("hurt by the ambush"), R.FP->GetHealth()->GetHull01() < 0.5f);
+	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
+	TestEqual(TEXT("at the site fight"), R.Step(Wreck), 1);
+	TestEqual(TEXT("the site fight is a checkpoint"), Wreck->GetCheckpointStep(), 1);
+	TestTrue(TEXT("reaching it refilled the pilot"), R.FP->GetHealth()->GetHull01() > 0.99f);
+	V.GI->ReportPlayerDefeated();
+	R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.5f);
+	TestEqual(TEXT("take 2 still at the site fight"), R.Step(Wreck), 1);
+	TestTrue(*FString::Printf(TEXT("respawned at the site's edge, not the pad (%s)"), *R.FP->GetActorLocation().ToCompactString()),
+		FVector::Dist2D(R.FP->GetActorLocation(), FVector(8300.f, 5800.f, 0.f)) < 400.f);
+	return true;
+}
+
 // Director's mercy on the real Cinder Warden room through real retakes (CUT! -> checkpoint at the arena door):
 // take 1 and 2 the full Warden, take 3 at 75% with one summon, take 5 at 50% with none.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseWardenMercy, "TriadDrift.Ground.Course.WardenEasesOnRetakes", TD_TEST_FLAGS)
