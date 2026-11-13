@@ -62,3 +62,16 @@ What changed and why, for whoever continues:
   module compiled clean but never activated (`is_active()` false right after spawn). Removing that emitter fixed it; the
   cause was not found. After building, always spawn each system once and check it is active (`probe` in the notes below).
 - Calling the editor's Python from Git Bash: never put Python triple quotes in a heredoc, write the file instead.
+- **Second pass (Grok r2 textures)**: `T_TD_VFX_Grok_EngineExhaust_8x8` wrapped round the flame mesh (`M_TD_VFX_Flame`),
+  `_PlasmaBolt` as the head-to-tail profile of the bolt mesh (`M_TD_VFX_Bolt`), `_ShieldHexRipple_8x8`
+  (`M_TD_VFX_FlipShield`, shield impact), `_DebrisChunks_4x4` (`M_TD_VFX_FlipDebris`, explosion scrap).
+  `_ElectricArc_8x8` and `_Fire_8x8` are imported and unused (EMP, tier 2).
+- **Tracers scale with camera distance** (`Engine.Owner.LODDistance`, 0.5x near to 9x far) so a shot stays readable far
+  away and does not fill the screen when it passes the camera.
+- **Wiring** (`scripts/wire_tier1.py`): on by default for the weapon FX assets in `Gameplay/Characters/FX` (tracer,
+  impacts, detonation; `WIRE_MUZZLE`, `WIRE_SHIELD` add the muzzle and the shield impact). The ship visuals
+  (`Characters/Squad`, `Characters/NullFleet`: ship-death Explosion, HullHit, ShieldHit, EngineTrail, BoostLoop) are behind
+  `WIRE_SHIPS` / `WIRE_ENGINES` and were NOT written by the ENG-37 builder (outside its paths). `SAVE = False` wires in
+  memory only, for a Play-In-Editor preview. Stop any game using the assets first, or the saves fail.
+- Sheets: `review/tier1_r3_*.png` (side and behind views), `review/wired_r2_before_after.png`,
+  `review/wired_r3_before_after.png` (real game captures), `review/wire_sound_check.txt`.

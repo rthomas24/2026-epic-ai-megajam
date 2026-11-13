@@ -72,7 +72,9 @@ def main():
     for s in sys.argv[2:]:
         if s == 'explosions':
             ex = ['NS_TD_Explosion_Small', 'NS_TD_Explosion_Medium', 'NS_TD_Explosion_Large']
-            sheet(tag_, s, [shoot(tag_, s, ex, 4600, 13000, 7, 520, '0.12')])
+            a = shoot(tag_, s, ex, 4600, 13000, 5, 520, '0.12')              # the first 0.3 s
+            b = shoot(tag_, s + 'late', ex, 4600, 13000, 5, 520, '1.0')        # the next seconds: fire cooling, debris, smoke
+            sheet(tag_, s, [a, b])
         elif s == 'impacts':
             im = ['NS_TD_Impact_Hull', 'NS_TD_Impact_Shield']
             a = shoot(tag_, s, im, 1600, 4200, 4, 380, '0.05', rot=(0, -60, 0))      # normal turned 60 deg towards the camera

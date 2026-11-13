@@ -244,11 +244,26 @@ def U(color, scale=1.0, **kw):
 # The player sees his own shots from BEHIND (chase camera), so a tracer is built from things that have volume or face
 # the camera: a mesh bolt with a white-hot centre, a small white core sprite, a coloured sheath glow, then the ribbon
 # and the shed particles, which only show from the side.
+# A shot keeps a readable size on screen: the bolt grows with its distance from the camera (Engine.Owner.LODDistance,
+# the component's distance to the nearest view) and shrinks when it passes close by, like the placeholder streak did.
+DIST = 'clamp(Engine.Owner.LODDistance/2600.0, 0.5, 9.0)'
+SPRITE_SCALE = True   # also grow the two glow sprites with distance
+
+
+def glow_single(name, size, k, flick):
+    e = single(name, 'M_TD_VFX_Glow', size, k, flick)
+    if SPRITE_SCALE:
+        e['add'].append((PU, 'Update/Size/ScaleSpriteSize'))
+        e['set'] += grow(DIST)
+    return e
+
+
 def tracer(length, width, sheath=3.2, rib_life=0.10, spark_rate=40.0, flick=71.3, extra=()):
     L, W = length / 100.0, width / 100.0
-    return [mesh_single('Bolt', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '%s, %s, %s' % (L, W, W), 0.95, flick, offset=(-length * 0.30, 0, 0)),
-            single('Core', 'M_TD_VFX_Glow', width * 1.6, 1.3, flick * 1.31),
-            single('Sheath', 'M_TD_VFX_Glow', width * sheath, 0.55, flick * 0.77),
+    return [mesh_single('Bolt', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '%s, %s, %s' % (L, W, W), 0.95, flick, offset=(-length * 0.30, 0, 0),
+                        live_scale='float3(1,1,1)*' + DIST),
+            glow_single('Core', width * 1.6, 1.0, flick * 1.31),
+            glow_single('Sheath', width * sheath, 0.32, flick * 0.77),
             trail('Trail', width * 0.75, rib_life, 0.9),
             shed('Sparks', 'M_TD_VFX_Glow', spark_rate, (0.15, 0.40), (width * 0.12, width * 0.30), (40, 300), k=1.2, radius=width * 0.3, drag=1.5, curl=900.0)] + list(extra)
 
@@ -335,9 +350,10 @@ S('NS_TD_Impact_Hull', U(FIRE), [
     spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (0.7, 1.2), (150, 240), (60, 260), radius=20.0, drag=1.5, rgb=(0.30, 0.27, 0.27), alpha=0.7,
               cone=((1.0, 0.0, 0.0), 60.0), burst=3, dur=1.3, power=0.8, growth='0.8 + Particles.NormalizedAge*1.3', sort=True))])
 S('NS_TD_Impact_Shield', U(SHIELD), [
-    mesh_flash('Hex', 'SM_TD_VFX_Disc', 'M_TD_VFX_Hex', '1.0, 10.0, 10.0', 0.45, 1.2, growth='float3(1,1,1)*(0.75 + Particles.NormalizedAge*0.35)', power=0.5),
-    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_Shock', '1.0, 11.0, 11.0', 0.30, 0.8, growth='float3(1,1,1)*(0.10 + pow(Particles.NormalizedAge, 0.6)*0.95)', power=1.5),
-    flash('Glow', 'M_TD_VFX_Glow', 340, 0.12, 0.7),
+    # Grok Bot's hexagon ripple flipbook on a disc lying on the hit plane
+    mesh_flash('Hex', 'SM_TD_VFX_Disc', 'M_TD_VFX_FlipShield', '1.0, 6.0, 6.0', 0.50, 0.7, growth='float3(1,1,1)*(0.85 + Particles.NormalizedAge*0.25)', power=0.4),
+    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_Shock', '1.0, 5.0, 5.0', 0.30, 0.5, growth='float3(1,1,1)*(0.10 + pow(Particles.NormalizedAge, 0.6)*0.95)', power=1.5),
+    flash('Glow', 'M_TD_VFX_Glow', 260, 0.12, 0.45),
     shed('Motes', 'M_TD_VFX_Glow', 0, (0.3, 0.6), (9, 20), (300, 1400), k=1.1, radius=20.0, drag=2.5, curl=600.0, burst=12, dur=0.8, power=2.0,
          cone=((1.0, 0.0, 0.0), 88.0))])
 
@@ -371,7 +387,9 @@ def explosion(tier):
          shed('Sparks', 'M_TD_VFX_Spark', 0, (0.40, 1.05), (9, 20), (2200, 8500), k=1.7, radius=60.0, drag=1.8, stretch=16,
               burst=int(30 * n), dur=1.2, power=1.2),
          chunks('Chunks', 'SM_TD_VFX_Shard_A', int(4 * n), (1.2, 2.2), (0.35, 0.9), (700, 3000), radius=80.0),
-         chunks('Plates', 'SM_TD_VFX_Shard_B', int(3 * n), (1.2, 2.4), (0.35, 1.0), (500, 2400), radius=80.0),
+         # painted scrap from Grok Bot's debris atlas (camera-facing sprites), next to the tumbling meshes
+         spin(shed('Scrap', 'M_TD_VFX_FlipDebris', 0, (1.4, 2.6), (110, 260), (500, 2600), radius=80.0, drag=0.5, rgb=(1.0, 1.0, 1.0),
+                   burst=int(5 * n), dur=3.0, power=0.01, sort=True)),
          spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (2.2, 3.6), (520, 760), (150, 700), radius=180.0, drag=1.5, curl=300.0, rgb=(0.30, 0.27, 0.27), alpha=0.85,
                    burst=int(5 * n), dur=3.8, power=0.6, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
          shed('Embers', 'M_TD_VFX_Glow', 0, (0.9, 1.8), (12, 30), (150, 1700), k=1.2, radius=150.0, drag=1.3, curl=1300.0,

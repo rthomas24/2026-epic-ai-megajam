@@ -42,7 +42,13 @@ EAL.save_loaded_asset(noise)
 GROK = {'T_TD_VFX_Grok_Explosion_8x8': 'Explosion/r1/T_VFX_Explosion_8x8.png',
         'T_TD_VFX_Grok_Smoke_8x8': 'Smoke/r1/T_VFX_Smoke_8x8.png',
         'T_TD_VFX_Grok_Fire_8x8': 'Fire/r1/T_VFX_Fire_8x8.png',
-        'T_TD_VFX_Grok_ShockwaveRing': 'Shockwave/r1/T_VFX_ShockwaveRing.png'}
+        'T_TD_VFX_Grok_ShockwaveRing': 'Shockwave/r1/T_VFX_ShockwaveRing.png',
+        # r2
+        'T_TD_VFX_Grok_EngineExhaust_8x8': 'EngineExhaust/r1/T_VFX_EngineExhaust_8x8.png',
+        'T_TD_VFX_Grok_PlasmaBolt': 'PlasmaBolt/r1/T_VFX_PlasmaBolt.png',
+        'T_TD_VFX_Grok_ShieldHexRipple_8x8': 'ShieldHexRipple/r1/T_VFX_ShieldHexRipple_8x8.png',
+        'T_TD_VFX_Grok_ElectricArc_8x8': 'ElectricArc/r1/T_VFX_ElectricArc_8x8.png',
+        'T_TD_VFX_Grok_DebrisChunks_4x4': 'DebrisChunks/r1/T_VFX_DebrisChunks_4x4.png'}
 _proj = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 for _tn, _rel in GROK.items():
     if EAL.does_asset_exist(TEX + '/' + _tn):
@@ -67,11 +73,19 @@ for _tn, _rel in GROK.items():
         EAL.save_loaded_asset(_t)
         log.append(_tn + ' imported')
 
-# Flipbook materials: name -> (texture, columns, rows, frame position expression using Age / Rnd, loops).
+# Flipbook materials: name -> (texture, columns, rows, frame position expression using Age / Rnd, loops[, uv expression]).
+# The optional uv expression replaces the quad UV inside a frame (e.g. to wrap a side-view streak along a mesh).
 # The material body gets FA and FB (the two neighbouring frames, RGBA) and blends them by frac({FP}).
 FLIP = {'M_TD_VFX_FlipExplosion': ('T_TD_VFX_Grok_Explosion_8x8', 8, 8, 'Age*62.0', False),
         'M_TD_VFX_FlipSmoke': ('T_TD_VFX_Grok_Smoke_8x8', 8, 8, 'frac(Age*0.45 + Rnd)*64.0', True),
-        'M_TD_VFX_FlipRing': ('T_TD_VFX_Grok_ShockwaveRing', 1, 1, '0.0', False)}
+        'M_TD_VFX_FlipRing': ('T_TD_VFX_Grok_ShockwaveRing', 1, 1, '0.0', False),
+        'M_TD_VFX_FlipShield': ('T_TD_VFX_Grok_ShieldHexRipple_8x8', 8, 8, 'Age*62.0', False),
+        'M_TD_VFX_FlipDebris': ('T_TD_VFX_Grok_DebrisChunks_4x4', 4, 4, 'floor(Rnd*15.99)', False, 'clamp(UV, 0.07, 0.93)'),
+        # the side-view plasma streak read along the bolt's length (V of the mesh): its head-to-tail brightness profile
+        'M_TD_VFX_Bolt': ('T_TD_VFX_Grok_PlasmaBolt', 1, 1, '0.0', False, 'float2(clamp(UV.y, 0.01, 0.99), 0.5)'),
+        # the exhaust flipbook wrapped round the flame body: nozzle -> tip along V, mirrored round the circumference
+        'M_TD_VFX_Flame': ('T_TD_VFX_Grok_EngineExhaust_8x8', 8, 8, 'frac(Age*3.0 + Rnd)*64.0', True,
+                           'float2(clamp(UV.y*0.9, 0.004, 0.996), 0.5 + (abs(UV.x*2.0 - 1.0) - 0.5)*0.45)')}
 
 PRE = 'float2 p = UV*2-1; float r = length(p); float m = saturate(1-r); float lum = dot(PC.rgb, float3(0.3,0.5,0.2));\n'
 
@@ -153,17 +167,21 @@ return float4(c*Intensity, PC.a);''', {'FlipV': 0.0}),
     'M_TD_VFX_Bolt': ('additive', True, 1.0, 2.0, (0.0, 1.6), (0.0, 2.7), 0.06, '''
 float f = saturate(1-Fres); float lum = dot(PC.rgb, float3(0.3,0.5,0.2));
 float n = N.g*0.6 + N.r*0.4;
-float body = pow(f, 1.4); float core = pow(f, 4.5);
-float head = lerp(0.45, 1.0, smoothstep(0.15, 0.85, UV.y));
-float3 c = PC.rgb*body*(0.55 + n*0.9) + lerp(PC.rgb, float3(1,1,1), 0.9)*core*2.4*max(lum, 0.25);
-return float4(c*head*Intensity, PC.a);''', {}),
+float prof = saturate(dot(FA.rgb, float3(0.4,0.4,0.4))*FA.a*1.6);
+float body = pow(f, 3.0)*(0.35 + n*0.6)*(0.25 + prof);
+float core = pow(f, 7.0)*prof;
+float rim = pow(1-f, 2.0)*0.25*prof;
+float3 sat = PC.rgb*PC.rgb*1.4;
+float3 c = sat*(body*0.9 + rim) + lerp(PC.rgb, float3(1,1,1), 0.8)*core*1.2*max(lum, 0.25);
+return float4(c*0.42*Intensity, PC.a);''', {}),
 
     # Mesh flame (SM_TD_VFX_Flame, V runs nozzle -> tip): engine exhaust, motor flames, muzzle cones.
     'M_TD_VFX_Flame': ('additive', True, 1.0, 2.0, (0.0, -1.9), (0.0, -3.1), 0.09, '''
 float f = saturate(1-Fres); float v = UV.y; float lum = dot(PC.rgb, float3(0.3,0.5,0.2));
 float n = N.g*0.65 + N.r*0.35;
 float fadeTip = pow(saturate(1-v), 1.25); float fadeIn = smoothstep(0.0, 0.05, v);
-float body = pow(f, 1.15)*(0.40 + n*1.05)*fadeTip;
+float ex = dot(lerp(FA, FB, frac({FP})).rgb, float3(0.35,0.35,0.30));
+float body = pow(f, 1.15)*(0.40 + n*1.05)*fadeTip*(0.55 + 1.6*ex);
 float core = pow(f, 3.2)*pow(saturate(1-v*1.2), 1.8);
 float dia = Diamonds*pow(abs(sin(v*3.14159*5.5 - 0.4)), 5.0)*pow(saturate(1-v), 1.2)*pow(f, 1.6);
 float3 hot = lerp(PC.rgb, float3(1,1,1), 0.9);
@@ -240,6 +258,22 @@ float ember = pow(saturate(1-Age*2.6), 2.0);
 float3 c = PC.rgb*(0.25 + 2.2*l) + float3(1.0,0.38,0.07)*ember*(0.3 + 2.0*l);
 return float4(c*Intensity, saturate(a*PC.a));''', {}),
 
+    # Grok Bot's hexagon shield ripple (8x8, expands once over the particle's life), tinted.
+    'M_TD_VFX_FlipShield': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float4 t = lerp(FA, FB, frac({FP}));
+float l = dot(t.rgb, float3(0.33,0.33,0.33))*t.a;
+float3 c = PC.rgb*l*1.3 + float3(1,1,1)*pow(l, 3.0)*0.25;
+return float4(c*(1-Age*Age)*smoothstep(1.0, 0.9, r)*Intensity, PC.a);''', {}),
+
+    # Grok Bot's debris atlas (4x4, one random chunk per particle): painted metal whose hot edges cool, then it shrinks away.
+    'M_TD_VFX_FlipDebris': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, '''
+float4 t = FA;
+float heat = pow(saturate(1-Age*1.3), 2.0);
+float hot = saturate((t.r - t.b)*2.5);
+float3 c = t.rgb*(0.30 + 0.5*heat)*lerp(1.0, 0.3, hot*(1-heat)) + t.rgb*hot*heat*5.0;
+float a = smoothstep(0.35, 0.6, t.a)*saturate((1-Age)*6.0)*smoothstep(0.02, 0.10, Age);
+return float4(c*PC.rgb*Intensity, a*PC.a);''', {}),
+
     # Grok Bot's shockwave ring (still), additive.
     'M_TD_VFX_FlipRing': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
 float4 t = FA;
@@ -286,7 +320,8 @@ def build(name, spec):
         yy += 100
 
     if name in FLIP:
-        tname, cols, rows, fp, loops = FLIP[name]
+        tname, cols, rows, fp, loops = FLIP[name][:5]
+        uvx = FLIP[name][5] if len(FLIP[name]) > 5 else 'clamp(UV, 0.004, 0.996)'
         body = body.replace('{FP}', fp)
         ftex = unreal.load_asset(TEX + '/' + tname)
         nfr = cols*rows
@@ -295,8 +330,8 @@ def build(name, spec):
             cu.set_editor_property('output_type', unreal.CustomMaterialOutputType.CMOT_FLOAT2)
             cu.set_editor_property('inputs', [_ci(n) for n in ('UV', 'Age', 'Rnd')])
             nxt = ('fmod(f0 + 1.0, %d.0)' % nfr) if loops else ('min(f0 + 1.0, %d.0)' % (nfr - 1))
-            cu.set_editor_property('code', 'float fp = %s; float f0 = min(floor(fp), %d.0); float f = %s; float2 cell = float2(fmod(f, %d.0), floor(f/%d.0)); return (cell + clamp(UV, 0.004, 0.996))/float2(%d.0, %d.0);'
-                                   % (fp, nfr - 1, nxt if which else 'f0', cols, cols, cols, rows))
+            cu.set_editor_property('code', 'float fp = %s; float f0 = min(floor(fp), %d.0); float f = %s; float2 cell = float2(fmod(f, %d.0), floor(f/%d.0)); return (cell + %s)/float2(%d.0, %d.0);'
+                                   % (fp, nfr - 1, nxt if which else 'f0', cols, cols, uvx, cols, rows))
             for n, src in (('UV', uv), ('Age', age), ('Rnd', rnd)):
                 MEL.connect_material_expressions(src, '', cu, n)
             smp = node(unreal.MaterialExpressionTextureSample, -850, 1300 + which*200)

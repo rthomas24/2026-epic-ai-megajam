@@ -3,7 +3,7 @@
 # usage: seq_wired.sh <tag>   -> Saved/EngVFX/job1/<tag>_*.png
 HERE="$(cd "$(dirname "$0")" && pwd)"; ROOT="$(cd "$HERE/../../.." && pwd)"; cd "$ROOT"
 T="$1"; P="${TD_PORT:-8018}"; O=Saved/EngVFX/job1
-python "$HERE/play.py" $P $O "con:TD.God 1" "con:TD.Stage Wave1" sleep:5 "con:TD.Squad.Passive 1" \
+python ArtSource/EngVFX/scripts/play.py $P $O "con:TD.God 1" "con:TD.Stage Wave1" sleep:5 "con:TD.Squad.Passive 1" \
  "con:TD.Squad.Switch Rift" sleep:2 "con:TD.Input.Keys LeftMouseButton 3" sleep:1.3 "con:slomo 0.05" cap:${T}_rift "con:slomo 1" sleep:2 \
  "con:TD.Squad.Switch Lancer" sleep:2 "con:TD.Input.Keys LeftMouseButton 3" sleep:1.3 "con:slomo 0.05" cap:${T}_lancer "con:slomo 1" sleep:2 \
  "con:TD.Squad.Switch Bastion" sleep:2 "con:TD.Input.Keys LeftMouseButton 3" sleep:1.3 "con:slomo 0.05" cap:${T}_bastion "con:slomo 1" sleep:2 \

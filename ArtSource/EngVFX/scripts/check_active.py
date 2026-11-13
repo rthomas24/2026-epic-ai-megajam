@@ -4,7 +4,9 @@
 world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world()
 pawn = unreal.GameplayStatics.get_player_pawn(world, 0)
 bad, n = [], 0
-for p in sorted(unreal.EditorAssetLibrary.list_assets('/Game/TriadDrift/Gameplay/VFX/Systems')):
+ar = unreal.AssetRegistryHelpers.get_asset_registry()
+ar.scan_paths_synchronous(['/Game/TriadDrift/Gameplay/VFX/Systems'], True)
+for p in sorted(str(a.package_name) for a in ar.get_assets_by_path('/Game/TriadDrift/Gameplay/VFX/Systems', False)):
     s = unreal.load_asset(p)
     if not isinstance(s, unreal.NiagaraSystem):
         continue
