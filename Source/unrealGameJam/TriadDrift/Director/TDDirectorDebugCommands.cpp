@@ -16,6 +16,9 @@
 //   TD.Squad.Passive <0|1>        wingmen hold fire and formation (weapon checks without the wing stealing targets)
 //   TD.Squad.KillActive           kill the ship the player flies (the tumble, then the auto-switch)
 //   TD.Squad.Check <label>        log frame, active ship, possessed pawn, view target, slow-mo, pause (switch stress)
+//   TD.Intro.Play                 play the ENG-33 cinematic intro now (no waves are started by it here)
+//   TD.Intro.At <s> [hold]        jump to s seconds into the intro (replayed in 1/30 s steps); "hold" freezes it there
+//   TD.Intro.Run                  unfreeze;  TD.Intro.Skip  skip it (after the first second)
 //   TD.Squad.Frame                log where the wingmen and the nearest enemy are on screen (-1..1),
 //                                 for a scripted live pilot and for measuring "wingmen in frame"
 
@@ -45,6 +48,7 @@
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
 
 namespace TDDirectorDebug
 {
@@ -457,6 +461,48 @@ namespace TDDirectorDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&GeneratorKill));
 	static FAutoConsoleCommandWithWorldAndArgs CmdStatus(TEXT("TD.Director.Status"), TEXT("TD.Director.Status: log director state"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Status));
+
+	static void IntroPlay(const TArray<FString>& Args, UWorld* World)
+	{
+		UTDIntroDirector* Intro = UTDIntroDirector::Get(World);
+		const bool bOk = Intro && Intro->Play(FSimpleDelegate::CreateLambda([]() { UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro: finished")); }));
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro.Play: %s"), bOk ? TEXT("playing") : TEXT("nothing to play (td.Intro 0, no viewport, or already playing)"));
+	}
+	static void IntroAt(const TArray<FString>& Args, UWorld* World)
+	{
+		UTDIntroDirector* Intro = UTDIntroDirector::Get(World);
+		if (Intro && !Intro->IsPlaying())
+		{
+			IntroPlay(Args, World);
+		}
+		if (Intro && Intro->IsPlaying() && Args.Num() > 0)
+		{
+			Intro->DebugSetTime(FCString::Atof(*Args[0]), Args.Num() > 1 && Args[1].Equals(TEXT("hold"), ESearchCase::IgnoreCase));
+			const int32 Shot = Intro->GetShotIndex();
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro.At %.2f: shot %d (%s)%s"), Intro->GetElapsed(), Shot,
+				Intro->GetShots().IsValidIndex(Shot) ? *Intro->GetShots()[Shot].Id.ToString() : TEXT("-"), Intro->IsDebugFrozen() ? TEXT(", held") : TEXT(""));
+		}
+	}
+	static void IntroRun(const TArray<FString>& Args, UWorld* World)
+	{
+		if (UTDIntroDirector* Intro = UTDIntroDirector::Get(World); Intro && Intro->IsPlaying())
+		{
+			Intro->DebugSetTime(Intro->GetElapsed(), false);
+		}
+	}
+	static void IntroSkip(const TArray<FString>& Args, UWorld* World)
+	{
+		UTDIntroDirector* Intro = UTDIntroDirector::Get(World);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Intro.Skip: %s"), Intro && Intro->Skip() ? TEXT("skipped") : TEXT("not playing or in its first second"));
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdIntroPlay(TEXT("TD.Intro.Play"), TEXT("TD.Intro.Play: play the cinematic intro now"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&IntroPlay));
+	static FAutoConsoleCommandWithWorldAndArgs CmdIntroAt(TEXT("TD.Intro.At"), TEXT("TD.Intro.At <seconds> [hold]: jump into the intro (captures)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&IntroAt));
+	static FAutoConsoleCommandWithWorldAndArgs CmdIntroRun(TEXT("TD.Intro.Run"), TEXT("TD.Intro.Run: unfreeze the intro"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&IntroRun));
+	static FAutoConsoleCommandWithWorldAndArgs CmdIntroSkip(TEXT("TD.Intro.Skip"), TEXT("TD.Intro.Skip: skip the intro"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&IntroSkip));
 }
 
 #endif // !UE_BUILD_SHIPPING

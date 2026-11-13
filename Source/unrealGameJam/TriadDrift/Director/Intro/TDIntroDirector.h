@@ -130,6 +130,9 @@ public:
 	static const TArray<FText>& NarrationLines();
 	/** Jump to a shot (captures, debug): restarts that shot from its first frame. */
 	void DebugJumpToShot(int32 Index);
+	/** Captures: replay the intro's shot up to time T (s from the start) in 1/30 s steps; bFreeze holds it there. */
+	void DebugSetTime(float T, bool bFreeze);
+	bool IsDebugFrozen() const { return bDebugFrozen; }
 
 	/** Seconds after start before a skip is accepted, and how long the skip key must be held. */
 	static constexpr float SkipLockSeconds = 1.f;
@@ -209,4 +212,5 @@ private:
 	bool bFleetSpawned = false;
 	bool bGateFlared = false;
 	bool bDominionShown = false;
+	bool bDebugFrozen = false;
 };

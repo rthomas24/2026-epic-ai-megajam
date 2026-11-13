@@ -730,6 +730,48 @@ void UTDIntroDirector::DebugJumpToShot(int32 Index)
 	BeginShot(Index);
 }
 
+void UTDIntroDirector::DebugSetTime(float T, bool bFreeze)
+{
+	if (!bPlaying || Shots.IsEmpty())
+	{
+		return;
+	}
+	T = FMath::Clamp(T, 0.f, GetTotalDuration() - 0.01f);
+	int32 Index = 0;
+	float Start = 0.f;
+	while (Index + 1 < Shots.Num() && T >= Start + Shots[Index].Duration)
+	{
+		Start += Shots[Index].Duration;
+		++Index;
+	}
+	ClearShowcase();
+	bFleetSpawned = Index > 5; // the far wave belongs to shot 6a; 6b replays it from its own start
+	bGateFlared = false;
+	bHandingOff = false;
+	Elapsed = Start;
+	BeginShot(Index);
+	if (Shots[Index].Id == TEXT("ThreatClose"))
+	{
+		bFleetSpawned = true;
+		for (int32 k = 0; k < 10; ++k)
+		{
+			Showcase.Add(nullptr); // the far wave is out of frame by now: the close wave spawns after it
+		}
+	}
+	const float Step = 1.f / 30.f;
+	LastDt = Step;
+	while (Elapsed + Step <= T)
+	{
+		Elapsed += Step;
+		UpdateShot(Elapsed - ShotStart);
+		UpdateOverlay(Elapsed - ShotStart);
+	}
+	Elapsed = T;
+	UpdateShot(Elapsed - ShotStart);
+	UpdateOverlay(Elapsed - ShotStart);
+	bDebugFrozen = bFreeze;
+}
+
 void UTDIntroDirector::PlaceSquad(const FVector& Centre, const FRotator& Facing, float Time)
 {
 	const FTDIntroShot& S = Shots[ShotIndex];
@@ -1096,6 +1138,12 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		{
 			Finish();
 		}
+		return;
+	}
+	if (bDebugFrozen)
+	{
+		LastDt = 0.f;
+		UpdateShot(Elapsed - ShotStart); // hold the frame (captures)
 		return;
 	}
 	Elapsed += Dt;
