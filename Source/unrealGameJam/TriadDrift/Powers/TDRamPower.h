@@ -97,6 +97,7 @@ public:
 protected:
 	virtual void PlayActivationCues() override { PlayShipCue(0); }
 	virtual bool OnActivate() override;
+	virtual FName GetActivateBark(uint8& OutPriority) const override { OutPriority = static_cast<uint8>(ETDBarkPriority::Normal); return TDBarkIdsT2::RamGo; }
 	virtual void OnTickActive(float DeltaTime) override;
 	virtual void OnEnd(bool bInterrupted) override;
 	/**
@@ -131,6 +132,8 @@ private:
 	TObjectPtr<UStaticMeshComponent> PlaceholderCone;
 
 	TArray<TWeakObjectPtr<AActor>> HitThisDash;
+	/** Bark_Ram_Kill said this dash. */
+	bool bSaidRamKill = false;
 	/** Reused every tick (no per-frame allocation). */
 	TArray<AActor*> HostilesScratch;
 	FVector LastLocation = FVector::ZeroVector;

@@ -10,6 +10,8 @@
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Powers/TDAbilityComponent.h"
 
 UTDPowerComponent::UTDPowerComponent()
 {
@@ -49,6 +51,7 @@ void UTDPowerComponent::HandlePowersReset()
 {
 	EndPower(true);
 	CooldownRemaining = 0.f;
+	bSaidNotReady = false;
 }
 
 bool UTDPowerComponent::CanActivate() const
@@ -85,6 +88,13 @@ bool UTDPowerComponent::TryActivate()
 		}
 	}
 	PlayActivationCues();
+	bSaidNotReady = false;
+	uint8 BarkPriority = static_cast<uint8>(ETDBarkPriority::Normal);
+	const FName Bark = GetActivateBark(BarkPriority);
+	if (!Bark.IsNone())
+	{
+		FTDCombatBarks::SayAsPilot(GetOwner(), Bark, static_cast<ETDBarkPriority>(BarkPriority));
+	}
 	OnPowerActivated.Broadcast(this);
 
 	if (!bPowerActive)
@@ -187,6 +197,15 @@ void UTDPowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	if (!bCooldownFrozen && CooldownRemaining > 0.f)
 	{
 		CooldownRemaining = FMath::Max(0.f, CooldownRemaining - DeltaTime);
+		if (CooldownRemaining <= 0.f)
+		{
+			bSaidNotReady = false;
+			// dialogs.md Bark_PowerReady: the flown ship's signature power comes off cooldown, 1 in 2 (Flavour).
+			if (Slot == ETDPowerInput::Signature1 && FTDCombatBarks::IsPlayerFlown(GetOwner()) && (ReadyCount++ % 2) == 0)
+			{
+				FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT2::PowerReady, ETDBarkPriority::Flavour);
+			}
+		}
 	}
 	if (bPowerActive && bEndOnOwnerDeath)
 	{
@@ -236,7 +255,21 @@ bool UTDPowerComponent::RoutePowerInput(AActor* Ship, ETDPowerInput InSlot, bool
 	UTDPowerComponent* Power = FindPower(Ship, InSlot);
 	if (!Power)
 	{
+		// dialogs.md Bark_AbilityLocked: the player presses E before this ship has earned its ability.
+		if (bPressed && InSlot == ETDPowerInput::Ability)
+		{
+			if (UTDAbilityComponent* Ability = Ship ? Ship->FindComponentByClass<UTDAbilityComponent>() : nullptr)
+			{
+				Ability->NoteLockedPress();
+			}
+		}
 		return false;
+	}
+	// dialogs.md Bark_PowerNotReady: a press while the power cools down (not while it runs: portals take a second press).
+	if (bPressed && !Power->bPowerActive && Power->CooldownRemaining > 0.f && !Power->bSaidNotReady && FTDCombatBarks::IsPlayerFlown(Ship))
+	{
+		Power->bSaidNotReady = true;
+		FTDCombatBarks::SayAsPilot(Ship, TDBarkIdsT2::PowerNotReady, ETDBarkPriority::Normal);
 	}
 	bPressed ? Power->HandleInputPressed() : Power->HandleInputReleased();
 	return true;

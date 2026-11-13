@@ -50,6 +50,10 @@ struct UNREALGAMEJAM_API FTDWeaponSlotState
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	int32 Ammo = 0;
 
+	/** Bark_AmmoLow / Bark_AmmoOut asked; re-armed only when the rack is back above half (regen trickle doesn't repeat them). */
+	bool bSaidAmmoLow = false;
+	bool bSaidAmmoOut = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	float AmmoRegenProgress = 0.f;
 

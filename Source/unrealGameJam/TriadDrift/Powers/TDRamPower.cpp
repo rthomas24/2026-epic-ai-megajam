@@ -136,6 +136,7 @@ bool UTDRamPower::OnActivate()
 	}
 	ActiveSeconds = WindupSeconds + DashSeconds;
 	HitThisDash.Reset();
+	bSaidRamKill = false;
 	bDashStarted = false;
 	bStoppedByImpact = false;
 	DashDistance = 0.f;
@@ -336,6 +337,12 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
 		{
 			Feel->RequestHitStop();
+		}
+		// dialogs.md Bark_Ram_Kill: "Through and through." once per dash (a dash through three fighters says it once).
+		if (!bSaidRamKill)
+		{
+			bSaidRamKill = true;
+			FTDCombatBarks::SayAsPilot(Owner, TDBarkIdsT2::RamKill, ETDBarkPriority::High);
 		}
 	}
 
