@@ -6,6 +6,7 @@
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
@@ -925,6 +926,10 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	// The GeneratorKill money shot comes from T3's UTDDirectorSubsystem (generator actors are tagged).
 
 	const int32 Remaining = GetGeneratorsRemaining();
+	// Story (T3's transmissions): one per generator by count down, not by which one. Once per run, queued, held
+	// during money shots; a retake or a resumed save (generators silently destroyed) never replays them.
+	const int32 Down = FMath::Clamp(Generators.Num() - Remaining, 1, 4);
+	UTDStorySubsystem::Fire(this, FName(*FString::Printf(TEXT("A4_GeneratorDown%d"), Down)));
 	OnShieldSectionDown.Broadcast(this, Remaining);
 	if (Remaining == 0)
 	{
