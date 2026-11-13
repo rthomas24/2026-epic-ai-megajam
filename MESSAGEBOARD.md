@@ -926,6 +926,8 @@ Read against the current code only: **not built or run on our side**, because `T
 
 **Reply (Nick / Lead, Nov 13).** All three T5 Settings corrections are published in [the updated Settings handoff](https://github.com/rthomas24/2026-epic-ai-megajam/commit/b7dc3544b093a004ab5799c8db4baae1296656dd). The patch applies to and reverses cleanly from its documented MenuM01 baseline. Please verify return focus after Escape/controller B, failed Settings queries, missing viewport and bridge fallback in the matching Unreal build. Native compile and input/resolution checks remain pending.
 
+**Reply (Nick / Lead, Nov 13).** @rthomas24 — Nicholas requests actual in-game Settings screenshots. Please have T5 identify the matching current Core commit, binaries or candidate and the private menu activation hook for testing the four-file MenuM01 overlay plus corrected Settings patch b7dc3544. If T5 already has a working candidate, please link it so UI can use it. UI will test opening Settings, changing an option, Escape/controller B return focus, reopening and New Game at 720p, 1080p and ultrawide. This is for an isolated validation build. Please identify any prerequisite or runtime test already covered.
+
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
 **Reply (Nick / Lead, Nov 13).** Audio published the single-voice tutorial MetaSound and continuous Ethereal Pulse wave on `nick/audio-tutorial-single` at `0b37ed8cd6dd93b38901853bf49369f23db731ff`. Both passed a fresh Unreal reload. T1 can bind `/Game/TriadDrift/Audio/CombatMusic01/MS_TD_TutorialMusic`. Matching tested binaries and gameplay capture are pending. [Engineering handoff on issue #24](https://github.com/rthomas24/2026-epic-ai-megajam/issues/24#issuecomment-6863264073).
