@@ -2,6 +2,7 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.Powers.Presentation
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "UObject/StrongObjectPtr.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -56,6 +57,7 @@ bool FTDPresPlaceholders::RunTest(const FString& Parameters)
 		// Live: a horizontal ring read as a line slicing the frame from the chase camera; the core was a 6 m pale ball.
 		bool bFacingRing = false;
 		float CoreScale = 0.f;
+		bool bSoftCore = false;
 		TInlineComponentArray<USceneComponent*> Parts(WellActor);
 		for (const USceneComponent* Part : Parts)
 		{
@@ -63,10 +65,13 @@ bool FTDPresPlaceholders::RunTest(const FString& Parameters)
 			if (const UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(Part); Mesh && Mesh->GetRelativeScale3D().IsUniform())
 			{
 				CoreScale = FMath::Max(CoreScale, Mesh->GetRelativeScale3D().X);
+				UMaterialInterface* Mat = Mesh->GetMaterial(0);
+				bSoftCore |= Mat && ATDCombatFlash::GetFlashGlowMaterial() && Mat->GetBaseMaterial() == ATDCombatFlash::GetFlashGlowMaterial()->GetBaseMaterial();
 			}
 		}
 		TestTrue(TEXT("vortex ring lies across the launch direction (faces the chase camera)"), bFacingRing);
 		TestTrue(FString::Printf(TEXT("well core is small (%.1f m)"), CoreScale), CoreScale > 0.f && CoreScale <= 3.f);
+		TestTrue(TEXT("well core uses the soft additive glow (no flat disc)"), bSoftCore || !ATDCombatFlash::GetFlashGlowMaterial());
 	}
 
 	// EMP: a short ring flash actor.
