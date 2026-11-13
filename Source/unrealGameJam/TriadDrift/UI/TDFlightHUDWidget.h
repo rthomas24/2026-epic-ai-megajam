@@ -69,6 +69,19 @@ public:
 		FVector2D Size = FVector2D::ZeroVector;
 	};
 
+	/** How a transmission line is drawn (the story's voices: squad clean, "Unknown" through static, "Older" as an echo). */
+	enum class ETransmissionStyle : uint8 { Clean, Static, Echo };
+
+	/** One subtitle / transmission line in the slot under the lower lane. */
+	struct FSubtitle
+	{
+		FString Speaker;
+		FString Text;
+		ETransmissionStyle Style = ETransmissionStyle::Clean;
+		float Age = 0.f;
+		float Seconds = 0.f;
+	};
+
 	/** P2: one hostile or missile as drawn: a bracket / tick on screen, an edge chevron off screen. */
 	struct FMark
 	{
@@ -136,6 +149,8 @@ public:
 	/** Snapshot of what the widget draws. Updated every tick from the data source. */
 	struct FView
 	{
+		/** The line in the subtitle slot (a bark or a story transmission); empty Text = nothing shown. */
+		FSubtitle Subtitle;
 		// ---- Director's Cut moments
 		/** The whole HUD's opacity: 0 during a CUT, 0.4 behind a slate, 0.3 paused, fading back in over 0.25 s. */
 		float HUDOpacity = 1.f;
@@ -255,6 +270,20 @@ public:
 	/** The event bus's OnHitConfirmed (the player's hits): the reticle tick, or on a kill the X there and on the victim. */
 	UFUNCTION()
 	void HandleHitConfirmed(AActor* Target, bool bKill);
+
+	// ---- subtitles and story transmissions (T3's transmission system calls UTDUIHostSubsystem::ShowTransmission)
+	/** Shows Line in the subtitle slot for Seconds: speaker tag in the pilot's colour, style per voice. */
+	void ShowTransmission(FName Speaker, const FText& Line, ETransmissionStyle Style, float Seconds);
+	/** The event bus's OnBarkRequested: the squad's barks as subtitles (a readable line from the bark id). */
+	UFUNCTION()
+	void HandleBarkRequested(FName BarkId, FName Speaker);
+	/** "Bark_SquadEngageHighLeft" -> "engage high left" (until barks carry their dialogs.md text). */
+	static FString BarkText(FName BarkId);
+	static constexpr float BarkSeconds = 2.5f;
+	static constexpr float SubtitleY = 900.f;
+	static constexpr float SubtitleMaxWidth = 880.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversSubtitles = true;
 
 	// ---- Director's Cut moments (spec section 4; the theme is a judging category, the HUD gets out of the way)
 	UFUNCTION()

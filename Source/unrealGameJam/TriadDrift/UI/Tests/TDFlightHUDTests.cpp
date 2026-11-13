@@ -754,6 +754,50 @@ bool FTDFlightHUDDirector::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Subtitles and story transmissions: barks show as subtitles; a transmission keeps its speaker and style, splits to two
+// lines when long, is not replaced by a bark, and expires; the widget claims the Subtitles surface.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDSubtitles, "TriadDrift.UI.FlightHUD.P3.SubtitlesAndTransmissions", TD_TEST_FLAGS)
+bool FTDFlightHUDSubtitles::RunTest(const FString& Parameters)
+{
+	TestEqual(TEXT("bark text"), UTDFlightHUDWidget::BarkText(TEXT("Bark_SquadEngageHighLeft")), FString(TEXT("engage high left")));
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f); // binds the bus
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	Bus->OnBarkRequested.Broadcast(TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("bark: speaker"), F.V().Subtitle.Speaker, FString(TEXT("KATO")));
+	TestEqual(TEXT("bark: line"), F.V().Subtitle.Text, FString(TEXT("engage high left")));
+	F.HUD->ShowTransmission(TEXT("Unknown"), FText::FromString(TEXT("You have done this before. You will do it again, and you will not remember.")),
+		UTDFlightHUDWidget::ETransmissionStyle::Static, 4.f);
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("transmission: static style"), F.V().Subtitle.Style, UTDFlightHUDWidget::ETransmissionStyle::Static);
+	Bus->OnBarkRequested.Broadcast(TEXT("Bark_SquadEngageHighLeft"), TEXT("Moss"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("a bark does not replace a story transmission"), F.V().Subtitle.Speaker, FString(TEXT("UNKNOWN")));
+	// Painted: the slot is drawn, inside the safe frame.
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	const TPair<FName, FBox2D>* Box = F.HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("subtitle"); });
+	if (TestNotNull(TEXT("subtitle slot drawn"), Box))
+	{
+		TestTrue(TEXT("two lines (long transmission)"), Box->Value.GetSize().Y > 50.f);
+		TestTrue(TEXT("inside the safe frame"), Box->Value.Max.Y <= 1080.f - UTDFlightHUDWidget::SafeY);
+	}
+	F.HUD->Sample(4.f);
+	TestTrue(TEXT("expired after its seconds"), F.V().Subtitle.Text.IsEmpty());
+	TestTrue(TEXT("claims the Subtitles surface"), GetDefault<UTDFlightHUDWidget>()->bCoversSubtitles);
+	return true;
+}
+
 // The real event bus drives it (not only the handlers called directly).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDDirectorBus, "TriadDrift.UI.FlightHUD.P3.DirectorMomentsFromTheBus", TD_TEST_FLAGS)
 bool FTDFlightHUDDirectorBus::RunTest(const FString& Parameters)
@@ -844,7 +888,7 @@ bool FTDFlightHUDCovers::RunTest(const FString& Parameters)
 		const FBoolProperty* Claim = FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface));
 		TestTrue(FString::Printf(TEXT("claims %s"), *UTDUIHostSubsystem::GetCoverPropertyName(Surface).ToString()), Claim && Claim->GetPropertyValue_InContainer(CDO));
 	}
-	for (const ETDHUDSurface Surface : { ETDHUDSurface::Subtitles, ETDHUDSurface::Pause })
+	for (const ETDHUDSurface Surface : { ETDHUDSurface::Pause })
 	{
 		TestNull(FString::Printf(TEXT("leaves %s"), *UTDUIHostSubsystem::GetCoverPropertyName(Surface).ToString()),
 			FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface)));

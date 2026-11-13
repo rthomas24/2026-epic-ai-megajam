@@ -264,6 +264,20 @@ void UTDUIHostSubsystem::SetCinematicHidden(bool bHidden)
 	Evaluate();
 }
 
+bool UTDUIHostSubsystem::ShowTransmission(const UObject* WorldContext, FName Speaker, FText Line, uint8 Style, float Seconds)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	UTDFlightHUDWidget* Flight = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+	if (!Flight)
+	{
+		return false;
+	}
+	const UTDFlightHUDWidget::ETransmissionStyle S = Style == 1 ? UTDFlightHUDWidget::ETransmissionStyle::Static
+		: Style == 2 ? UTDFlightHUDWidget::ETransmissionStyle::Echo : UTDFlightHUDWidget::ETransmissionStyle::Clean;
+	Flight->ShowTransmission(Speaker, Line, S, Seconds);
+	return true;
+}
+
 void UTDUIHostSubsystem::SetCinematicHiddenIn(const UObject* WorldContext, bool bHidden)
 {
 	if (UTDUIHostSubsystem* Host = Get(WorldContext))

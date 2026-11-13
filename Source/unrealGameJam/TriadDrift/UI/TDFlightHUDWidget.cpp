@@ -248,6 +248,7 @@ void UTDFlightHUDWidget::NativeDestruct()
 		Bus->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
 		Bus->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
 		Bus->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Bus->OnBarkRequested.RemoveDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
 	BoundBus.Reset();
 	Super::NativeDestruct();
@@ -283,6 +284,7 @@ void UTDFlightHUDWidget::BindBus()
 		Old->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
 		Old->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
 		Old->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Old->OnBarkRequested.RemoveDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
 	BoundBus = Bus;
 	if (Bus)
@@ -290,7 +292,50 @@ void UTDFlightHUDWidget::BindBus()
 		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
 		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Bus->OnBarkRequested.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
+}
+
+FString UTDFlightHUDWidget::BarkText(FName BarkId)
+{
+	FString Id = BarkId.ToString();
+	Id.RemoveFromStart(TEXT("Bark_"));
+	Id.RemoveFromStart(TEXT("Squad"));
+	FString Out;
+	for (int32 I = 0; I < Id.Len(); ++I)
+	{
+		const TCHAR Ch = Id[I];
+		if (Ch == TEXT('_'))
+		{
+			Out += TEXT(' ');
+			continue;
+		}
+		if (I > 0 && FChar::IsUpper(Ch) && !Out.EndsWith(TEXT(" ")))
+		{
+			Out += TEXT(' ');
+		}
+		Out += FChar::ToLower(Ch);
+	}
+	return Out.TrimStartAndEnd();
+}
+
+void UTDFlightHUDWidget::ShowTransmission(FName Speaker, const FText& Line, ETransmissionStyle Style, float Seconds)
+{
+	View.Subtitle.Speaker = Speaker.IsNone() ? FString() : Speaker.ToString().ToUpper();
+	View.Subtitle.Text = Line.ToString();
+	View.Subtitle.Style = Style;
+	View.Subtitle.Age = 0.f;
+	View.Subtitle.Seconds = FMath::Max(.5f, Seconds);
+}
+
+void UTDFlightHUDWidget::HandleBarkRequested(FName BarkId, FName Speaker)
+{
+	// A story transmission on screen outranks a squad bark (it is the line the player must not miss).
+	if (!View.Subtitle.Text.IsEmpty() && View.Subtitle.Style != ETransmissionStyle::Clean)
+	{
+		return;
+	}
+	ShowTransmission(Speaker, FText::FromString(BarkText(BarkId)), ETransmissionStyle::Clean, BarkSeconds);
 }
 
 void UTDFlightHUDWidget::HandleTakeStarted(FName SceneId, int32 TakeNumber)
@@ -307,6 +352,14 @@ void UTDFlightHUDWidget::HandleSceneCut(FName SceneId, int32 NextTakeNumber, flo
 
 void UTDFlightHUDWidget::SampleDirector(float Dt)
 {
+	if (!View.Subtitle.Text.IsEmpty())
+	{
+		View.Subtitle.Age += Dt;
+		if (View.Subtitle.Age >= View.Subtitle.Seconds)
+		{
+			View.Subtitle = FSubtitle();
+		}
+	}
 	CutLeft = FMath::Max(0.f, CutLeft - Dt);
 	SlateLeft = FMath::Max(0.f, SlateLeft - Dt);
 	const UWorld* World = GetWorld();
@@ -1195,6 +1248,78 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Outline(L.X - 7.f, L.Y - 4.f, 14.f, 10.f, 2.f, 1.5f, LaneC);
 		}
 		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
+	}
+
+	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max
+	if (!View.Subtitle.Text.IsEmpty())
+	{
+		const FSubtitle& Sub = View.Subtitle;
+		const FString& Who = Sub.Speaker;
+		const FLinearColor Tag = Who == TEXT("WREN") ? T::Rift() : Who == TEXT("KATO") ? T::Lancer() : Who == TEXT("MOSS") ? T::Bastion()
+			: Who == TEXT("ARMADA") ? T::Danger() : Who == TEXT("OLDER") ? T::Shield() : T::Dim();
+		// Fade in 0.15 s, out over the last 0.3 s.
+		const float Fade = FMath::Min(FMath::Clamp(Sub.Age / .15f, 0.f, 1.f), FMath::Clamp((Sub.Seconds - Sub.Age) / .3f, 0.f, 1.f));
+		// Static: the line flickers and jitters like a bad channel; Echo: a faint late copy trails it.
+		const bool bStatic = Sub.Style == ETransmissionStyle::Static;
+		const bool bEcho = Sub.Style == ETransmissionStyle::Echo;
+		const float Flicker = bStatic ? .65f + .35f * FMath::Abs(FMath::Sin(Now * 37.f) * FMath::Cos(Now * 23.f)) : 1.f;
+		const float Jitter = bStatic ? FMath::Sin(Now * 61.f) * 2.f : 0.f;
+		// Two lines at most: split at the space nearest the middle when the line is long (78 chars fit at 22 px).
+		FString Line1 = Sub.Text, Line2;
+		const float FullW = P.Measure(Sub.Text, P.Font("Medium", 22, 10));
+		if ((FullW > SubtitleMaxWidth - 160.f) || (FullW <= 0.f && Sub.Text.Len() > 64))
+		{
+			int32 Split = INDEX_NONE;
+			for (int32 D = 0; D < Sub.Text.Len() / 2 && Split == INDEX_NONE; ++D)
+			{
+				for (const int32 I : { Sub.Text.Len() / 2 + D, Sub.Text.Len() / 2 - D })
+				{
+					if (Sub.Text.IsValidIndex(I) && Sub.Text[I] == TEXT(' '))
+					{
+						Split = I;
+						break;
+					}
+				}
+			}
+			if (Split != INDEX_NONE)
+			{
+				Line1 = Sub.Text.Left(Split);
+				Line2 = Sub.Text.Mid(Split + 1);
+			}
+		}
+		const float H = Line2.IsEmpty() ? 38.f : 64.f;
+		const float X = CenterX - SubtitleMaxWidth * .5f;
+		P.Plate(X, SubtitleY, SubtitleMaxWidth, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		Rec(TEXT("subtitle"), X, SubtitleY, SubtitleMaxWidth, H);
+		Area += SubtitleMaxWidth * H;
+		if (bStatic)
+		{
+			for (int32 S = 0; S < 3; ++S) // scan lines drifting through the plate
+			{
+				const float Y = SubtitleY + FMath::Fmod(Now * 40.f + S * 21.f, H);
+				P.Box(X + 6.f, Y, SubtitleMaxWidth - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
+			}
+		}
+		const float TextX = X + 22.f + Jitter;
+		if (!Who.IsEmpty())
+		{
+			P.Words(TextX, SubtitleY + 8.f, Who, 16, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
+		}
+		const float BodyX = TextX + (Who.IsEmpty() ? 0.f : 120.f);
+		const FLinearColor Body = T::Neutral().CopyWithNewOpacity(Fade * Flicker);
+		if (bEcho)
+		{
+			P.Words(BodyX + 4.f, SubtitleY + 9.f, Line1, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
+		}
+		P.Words(BodyX, SubtitleY + 6.f, Line1, 22, Body, "Medium", 0.f, 10);
+		if (!Line2.IsEmpty())
+		{
+			if (bEcho)
+			{
+				P.Words(BodyX + 4.f, SubtitleY + 35.f, Line2, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
+			}
+			P.Words(BodyX, SubtitleY + 32.f, Line2, 22, Body, "Medium", 0.f, 10);
+		}
 	}
 
 	// ---- squad strip, bottom-left of the safe frame, order 1 2 3
