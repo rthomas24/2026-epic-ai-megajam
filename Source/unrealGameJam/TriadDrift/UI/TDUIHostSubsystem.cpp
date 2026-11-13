@@ -274,7 +274,14 @@ void UTDUIHostSubsystem::SetCinematicHiddenIn(const UObject* WorldContext, bool 
 
 void UTDUIHostSubsystem::UpdateDevHUDSuppression()
 {
-	SetDevHUDSuppressed(Widget != nullptr || GroundWidget != nullptr || PauseWidget != nullptr);
+	// While a squad exists and a real space HUD is chosen, a frame where the pawn is briefly not a ship (a switch, a
+	// respawn) must not flash the dev HUD's full read-out for up to 0.2 s, packaged builds included (ENG-36 review m10).
+	const bool bSpaceHUDChosen = UTDUIHostSettings::GetSpaceHUDChoice() != ETDSpaceHUDChoice::Dev && !bCinematicHidden;
+	const APlayerController* PC = FindLocalController();
+	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	const bool bOnFoot = Pawn && !Pawn->IsA<ATDSpacecraft>() && Pawn->GetClass()->ImplementsInterface(UTDHUDData::StaticClass());
+	const bool bHoldForSquad = bSpaceHUDChosen && !bOnFoot && ATDSquadManager::Get(this) != nullptr;
+	SetDevHUDSuppressed(Widget != nullptr || GroundWidget != nullptr || PauseWidget != nullptr || bHoldForSquad);
 }
 
 // ------------------------------------------------------------------------------------------ on foot

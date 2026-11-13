@@ -314,95 +314,34 @@ void UTDFlightHUDWidget::HandleHyperdriveInput(bool bHeld)
 	}
 }
 
-namespace TDFlightHUD
-{
-	/** Calls a static UFUNCTION on UTDHintComponent whose first object parameter is the world context. */
-	struct FHintCall
-	{
-		UFunction* Function = nullptr;
-		TArray<uint8> Params;
-		bool Invoke(UObject* Context, const TCHAR* Name)
-		{
-			Function = UTDHintComponent::StaticClass()->FindFunctionByName(Name);
-			if (!Function)
-			{
-				return false;
-			}
-			Params.SetNumZeroed(FMath::Max<int32>(Function->ParmsSize, 16));
-			for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-			{
-				It->InitializeValue_InContainer(Params.GetData());
-				if (const FObjectPropertyBase* Obj = CastField<FObjectPropertyBase>(*It); Obj && !It->HasAnyPropertyFlags(CPF_OutParm | CPF_ReturnParm))
-				{
-					Obj->SetObjectPropertyValue_InContainer(Params.GetData(), Context);
-				}
-			}
-			UTDHintComponent::StaticClass()->GetDefaultObject()->ProcessEvent(Function, Params.GetData());
-			return true;
-		}
-		FString Text() const
-		{
-			const FTextProperty* Ret = Function ? CastField<FTextProperty>(Function->GetReturnProperty()) : nullptr;
-			return Ret ? Ret->GetPropertyValue_InContainer(Params.GetData()).ToString() : FString();
-		}
-		int64 Number(int32 Index) const // the Index-th int/enum/bool out or return value
-		{
-			int32 Seen = 0;
-			for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-			{
-				if (!It->HasAnyPropertyFlags(CPF_OutParm | CPF_ReturnParm))
-				{
-					continue;
-				}
-				const void* V = It->ContainerPtrToValuePtr<void>(Params.GetData());
-				int64 Value = 0;
-				if (const FNumericProperty* N = CastField<FNumericProperty>(*It); N && N->IsInteger()) { Value = N->GetSignedIntPropertyValue(V); }
-				else if (const FEnumProperty* E = CastField<FEnumProperty>(*It)) { Value = E->GetUnderlyingProperty()->GetSignedIntPropertyValue(V); }
-				else if (const FBoolProperty* B = CastField<FBoolProperty>(*It)) { Value = B->GetPropertyValue(V) ? 1 : 0; }
-				else { continue; }
-				if (Seen++ == Index)
-				{
-					return Value;
-				}
-			}
-			return 0;
-		}
-		~FHintCall()
-		{
-			if (Function)
-			{
-				for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-				{
-					It->DestroyValue_InContainer(Params.GetData());
-				}
-			}
-		}
-	};
-}
-
 bool UTDFlightHUDWidget::ReadHintCard()
 {
-	using TDFlightHUD::FHintCall;
-	FHintCall State, Key, Action, Step;
-	// ETDHintState: None = 0, Showing = 1, Done = 2 (T3, eng/t3 0de516a).
-	if (!State.Invoke(this, TEXT("GetHintState")) || !Key.Invoke(this, TEXT("GetHintKey")) || !Action.Invoke(this, TEXT("GetHintAction")))
+	// T3's getters on UTDHintComponent (direct calls; review M4: the reflection walk read the step and count in the wrong
+	// order). Key and action are upper-cased only when they change (review m8).
+	const ETDHintState State = UTDHintComponent::GetHintState(this);
+	View.bHintDone = State == ETDHintState::Done;
+	if (State == ETDHintState::None)
 	{
-		View.bHintDone = false;
 		return false;
 	}
-	const int64 S = State.Number(0);
-	View.HintKey = Key.Text().ToUpper();
-	View.HintAction = Action.Text().ToUpper();
-	View.bHintDone = S == 2;
-	View.HintStep = View.HintCount = 0;
-	if (Step.Invoke(this, TEXT("GetHintStep")) && Step.Number(0) != 0) // return value first, then Step, Count
+	const FString Key = UTDHintComponent::GetHintKey(this).ToString();
+	const FString Action = UTDHintComponent::GetHintAction(this).ToString();
+	if (Key != LastHintKeyRaw)
 	{
-		View.HintStep = static_cast<int32>(Step.Number(1));
-		View.HintCount = static_cast<int32>(Step.Number(2));
+		LastHintKeyRaw = Key;
+		View.HintKey = Key.ToUpper();
 	}
-	return S != 0 && !View.HintAction.IsEmpty();
+	if (Action != LastHintActionRaw)
+	{
+		LastHintActionRaw = Action;
+		View.HintAction = Action.ToUpper();
+	}
+	int32 Step = 0, Count = 0;
+	const bool bStep = UTDHintComponent::GetHintStep(this, Step, Count);
+	View.HintStep = bStep ? Step : 0;
+	View.HintCount = bStep ? Count : 0;
+	return !View.HintAction.IsEmpty();
 }
-
 FVector2D UTDFlightHUDWidget::ToDesign(const FVector2D& Local) const
 {
 	const float Scale = FMath::Min(ViewportSize.X / 1920.f, ViewportSize.Y / 1080.f);
@@ -418,11 +357,13 @@ FVector2D UTDFlightHUDWidget::OnSafeFrame(const FVector2D& InDir)
 {
 	const FVector2D Dir = InDir.IsNearlyZero() ? FVector2D(0, 1) : InDir.GetSafeNormal();
 	const FVector2D C(CenterX, CenterY);
+	// Inset so the whole edge marker (up to 18 px) stays inside the safe frame, not just its centre.
+	const float In = 12.f;
 	float T = TNumericLimits<float>::Max();
-	if (Dir.X > 1e-4f) { T = FMath::Min(T, float((1920.f - SafeX - C.X) / Dir.X)); }
-	if (Dir.X < -1e-4f) { T = FMath::Min(T, float((SafeX - C.X) / Dir.X)); }
-	if (Dir.Y > 1e-4f) { T = FMath::Min(T, float((1080.f - SafeY - C.Y) / Dir.Y)); }
-	if (Dir.Y < -1e-4f) { T = FMath::Min(T, float((SafeY - C.Y) / Dir.Y)); }
+	if (Dir.X > 1e-4f) { T = FMath::Min(T, float((1920.f - SafeX - In - C.X) / Dir.X)); }
+	if (Dir.X < -1e-4f) { T = FMath::Min(T, float((SafeX + In - C.X) / Dir.X)); }
+	if (Dir.Y > 1e-4f) { T = FMath::Min(T, float((1080.f - SafeY - In - C.Y) / Dir.Y)); }
+	if (Dir.Y < -1e-4f) { T = FMath::Min(T, float((SafeY + In - C.Y) / Dir.Y)); }
 	return C + Dir * T;
 }
 
@@ -611,6 +552,11 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.bHasPower2 = Flown->Ship == ETDShipId::Bastion; // the dome: hold Q (only Bastion has a second signature power)
 		View.Power2 = TDFlightHUD::Clamp01(Flown->Power2Cooldown01);
 		View.Ammo = FMath::Max(0, Flown->SecondaryAmmo);
+		if (View.Ammo > 0)
+		{
+			ShipsWithAmmo.Add(Flown->Ship);
+		}
+		View.bUsesAmmo = ShipsWithAmmo.Contains(Flown->Ship); // a ship that ran dry still shows "0"; one with none shows nothing
 		View.Heat = TDFlightHUD::Clamp01(Flown->Heat01);
 		View.Boost = TDFlightHUD::Clamp01(Flown->Boost01);
 		View.bDodgeReady = Flown->Dodge01 >= .999f;
@@ -740,6 +686,13 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 		LastShield = View.Shield;
 		LastFlown = Flown->Ship;
 	}
+	View.bHasFlown = Flown != nullptr;
+	if (!Flown)
+	{
+		// Nobody flown (the active ship is down before the retake): no stale arcs, pips or bars (review m9).
+		View.bHasAbility = View.bHasPower2 = View.bUsesAmmo = View.bShowBoost = false;
+		View.Heat = 0.f;
+	}
 	BindController();
 	BindBus();
 	SampleCombat(*Data, Flown, Dt);
@@ -750,26 +703,35 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	View.PowerGlyph = View.bUsingGamepad ? TEXT("X") : TEXT("Q");
 
 	// Objective line: the text in caps, the wave's enemies left as the counter; expanded for 3 s when the text changes.
-	const FString Objective = Data->GetObjectiveText().ToString().ToUpper();
-	if (Objective != LastObjective)
+	// Upper-cased and split only when the source text or wave changes (review m8), not every frame.
+	const FTDWaveInfo Wave = Data->GetWaveInfo();
+	const FString RawObjective = Data->GetObjectiveText().ToString();
+	const bool bWaveShown = Wave.WaveNumber > 0 && (Wave.bWaveActive || Wave.bInBreather);
+	if (RawObjective != LastObjective || Wave.WaveNumber != LastWaveNumber)
 	{
-		LastObjective = Objective;
-		ObjectiveAge = Objective.IsEmpty() ? 1e6f : 0.f;
+		if (RawObjective != LastObjective)
+		{
+			ObjectiveAge = RawObjective.IsEmpty() ? 1e6f : 0.f;
+		}
+		LastObjective = RawObjective;
+		LastWaveNumber = Wave.WaveNumber;
+		View.Objective = RawObjective.ToUpper();
+		// The squad manager writes "WAVE n · CLEAR ...": the wave belongs to the detail line. Strip exactly that prefix,
+		// built from FTDWaveInfo, not a parse of the text (review m11).
+		const FString Prefix = FString::Printf(TEXT("WAVE %d · "), Wave.WaveNumber);
+		if (Wave.WaveNumber > 0 && View.Objective.StartsWith(Prefix))
+		{
+			View.Objective = View.Objective.Mid(Prefix.Len());
+		}
 	}
 	else
 	{
 		ObjectiveAge += Dt;
 	}
-	// "WAVE 1 · CLEAR THE NULL ARMADA": the wave goes to the detail line (and the counter), the line keeps the instruction.
-	View.Objective = Objective;
-	int32 Dot = INDEX_NONE;
-	if (Objective.StartsWith(TEXT("WAVE ")) && Objective.FindChar(TCHAR(0x00B7), Dot))
-	{
-		View.Objective = Objective.Mid(Dot + 1).TrimStartAndEnd();
-	}
-	const FTDWaveInfo Wave = Data->GetWaveInfo();
+	const FString& Objective = View.Objective;
 	View.Counter = Wave.bWaveActive ? FString::Printf(TEXT("%d LEFT"), FMath::Max(0, Wave.EnemiesAlive)) : FString();
-	View.ObjectiveDetail = Wave.WaveNumber <= 0 ? FString()
+	// The wave line only while a wave is on or about to start (review m11).
+	View.ObjectiveDetail = !bWaveShown ? FString()
 		: Wave.WaveCount > 0 ? FString::Printf(TEXT("WAVE %d OF %d"), Wave.WaveNumber, Wave.WaveCount)
 							 : FString::Printf(TEXT("WAVE %d"), Wave.WaveNumber);
 	const float Ease = ObjectiveEaseSeconds;
@@ -808,6 +770,10 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	const FVector2D C(CenterX, CenterY);
 	float Area = 224.f * 116.f; // the reticle cluster's box (spec 3.1); the rest is added as it is drawn
 	const FLinearColor Accent = T::Ship(View.Flown);
+	LastBoxes.Reset();
+	LastVignetteRect = FBox2D(ForceInit);
+	auto Rec = [this](const TCHAR* Name, float X, float Y, float W, float H) { LastBoxes.Emplace(FName(Name), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H))); };
+	Rec(TEXT("reticle"), C.X - 16.f, C.Y - 16.f, 32.f, 32.f);
 
 	// ---- reticle: 2 px dot, four 8 px ticks starting 8 px out
 	const FLinearColor Ink = T::Neutral().CopyWithNewOpacity(.9f);
@@ -829,12 +795,18 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.ArcSpan(C, R, PI - Half, Sweep, Fill, Width);			// left: grows up from the bottom end
 		P.ArcSpan(C, R, Half - Sweep, Sweep, Fill, Width);		// right: ends at the bottom end
 	};
-	Pair(HullRadius, View.Hull, T::Hull(View.Hull), 5.f);
-	Pair(ShieldRadius, View.Shield, T::Shield(), 3.f);
+	if (View.bHasFlown) // nobody flown: no stale arcs or pip (review m9)
+	{
+		Pair(HullRadius, View.Hull, T::Hull(View.Hull), 5.f);
+		Pair(ShieldRadius, View.Shield, T::Shield(), 3.f);
+		Rec(TEXT("arcs"), C.X - ShieldRadius - 2.f, C.Y - 40.f, 2.f * ShieldRadius + 4.f, 80.f);
+	}
 
 	// ---- signature power pip: ship-colour ring + glyph when ready, grey ring refilling clockwise when cooling
+	if (View.bHasFlown)
 	{
 		const FVector2D Pip = C + FVector2D(PipOffsetX, PipOffsetY);
+		Rec(TEXT("pip"), Pip.X - PipRadius, Pip.Y - PipRadius, 2.f * PipRadius, 2.f * PipRadius);
 		const float Pulse = View.PowerPulse > 0.f ? FMath::Sin(View.PowerPulse * PI) * .25f : 0.f;
 		const float R = PipRadius * (1.f + Pulse);
 		P.Plate(Pip.X - R, Pip.Y - R, 2 * R, 2 * R, R, T::Plate().CopyWithNewOpacity(.55f));
@@ -859,12 +831,24 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// ---- low-hull vignette: a 10% red edge glow breathing at 1 Hz
 	if (View.Vignette > 0.f)
 	{
+		// Over the whole widget, not the centred 16:9 design frame: at 3440x1440 the frame-space version showed as two
+		// vertical bands about 170 px in from the sides (review M6). Band widths scale with the screen height.
 		const FLinearColor Edge = T::Danger().CopyWithNewOpacity(.10f * (.6f + .4f * FMath::Sin(Now * 2.f * PI)));
 		const FLinearColor Clear = T::Danger().CopyWithNewOpacity(0.f);
-		P.Gradient(-200, 0, 320, 1080, Edge, Clear, false);
-		P.Gradient(1800, 0, 320, 1080, Clear, Edge, false);
-		P.Gradient(0, -120, 1920, 220, Edge, Clear, true);
-		P.Gradient(0, 980, 1920, 220, Clear, Edge, true);
+		const FVector2D Full = AllottedGeometry.GetLocalSize();
+		const float Band = Full.Y * .2f;
+		auto Ramp = [&](const FVector2D& At, const FVector2D& Size, const FLinearColor& A, const FLinearColor& B, EOrientation Orient)
+		{
+			TArray<FSlateGradientStop> Stops;
+			Stops.Emplace(FVector2f(0, 0), A);
+			Stops.Emplace(FVector2f(Size), B);
+			FSlateDrawElement::MakeGradient(OutDrawElements, Base + 1, AllottedGeometry.ToPaintGeometry(Size, FSlateLayoutTransform(At)), MoveTemp(Stops), Orient);
+		};
+		Ramp(FVector2D(0, 0), FVector2D(Band, Full.Y), Edge, Clear, Orient_Vertical);
+		Ramp(FVector2D(Full.X - Band, 0), FVector2D(Band, Full.Y), Clear, Edge, Orient_Vertical);
+		Ramp(FVector2D(0, 0), FVector2D(Full.X, Band), Edge, Clear, Orient_Horizontal);
+		Ramp(FVector2D(0, Full.Y - Band), FVector2D(Full.X, Band), Clear, Edge, Orient_Horizontal);
+		LastVignetteRect = FBox2D(FVector2D::ZeroVector, Full);
 	}
 
 	// ---- hostiles: tick above each, the bracket + health + distance on the current target, chevrons off screen
@@ -875,6 +859,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		if (!M.bOnScreen)
 		{
 			P.Chevron(M.Pos, M.Angle, 18.f, Enemy.CopyWithNewOpacity(M.bMissile ? Pulse25 : .9f), true);
+			Rec(M.bMissile ? TEXT("missile_edge") : TEXT("edge"), M.Pos.X - 9.f, M.Pos.Y - 9.f, 18.f, 18.f);
 			continue;
 		}
 		if (M.bMissile)
@@ -887,6 +872,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		{
 			const float H = M.Size * .5f;
 			P.Brackets(M.Pos, H, Enemy, FMath::Clamp(M.Size * .22f, 8.f, 18.f));
+			Rec(TEXT("bracket"), M.Pos.X - H, M.Pos.Y - H - 10.f, M.Size, M.Size + 34.f);
 			if (M.Health >= 0.f)
 			{
 				P.Bar(M.Pos.X - H, M.Pos.Y - H - 10.f, M.Size, 4.f, M.Health, Enemy, 1.f);
@@ -913,6 +899,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		}
 		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
 		const FVector2D Tick(M.Pos.X, M.Pos.Y - 18.f);
+		Rec(TEXT("tick"), Tick.X - 7.f, Tick.Y - 6.f, 14.f, 12.f);
 		P.Poly(Tick, { { -7, -6 }, { 7, -6 }, { 0, 6 }, { -7, -6 } }, Enemy.CopyWithNewOpacity(.9f), 2.f);
 		if (M.bLocked)
 		{
@@ -932,6 +919,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		if (Wp.bOnScreen)
 		{
 			P.Poly(Wp.Pos, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
+			Rec(TEXT("waypoint"), Wp.Pos.X - 11.f, Wp.Pos.Y - 11.f, 22.f, 22.f);
 			P.Box(Wp.Pos.X - 1.5f, Wp.Pos.Y - 1.5f, 3.f, 3.f, Way);
 			P.BackedWords(Wp.Pos.X, Wp.Pos.Y + 16.f, Range(Wp.Distance), 14, Way, .5f, 20);
 			if (Wp.Health >= 0.f)
@@ -945,6 +933,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			// An edge diamond with a pointer notch toward the waypoint, and the range beside it.
 			const FVector2D F(FMath::Cos(Wp.Angle), FMath::Sin(Wp.Angle));
 			P.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Way, 2.5f);
+			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 9.f, Wp.Pos.Y - 9.f, 18.f, 18.f);
 			P.Line(Wp.Pos + F * 11.f, Wp.Pos + F * 17.f, Way, 2.5f);
 			const FVector2D Label = Wp.Pos - F * 30.f;
 			P.BackedWords(Label.X, Label.Y - 8.f, Range(Wp.Distance), 14, Way, .5f, 20);
@@ -965,24 +954,29 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		const float Pop = 1.f + .35f * FMath::Sin(FMath::Min(View.KillMark * 3.f, 1.f) * PI); // pops out, settles
 		Cross(C, 10.f * Pop, 24.f * Pop, T::Danger().CopyWithNewOpacity(1.f - View.KillMark * View.KillMark), 3.f);
+		Rec(TEXT("killmark"), C.X - 24.f, C.Y - 24.f, 48.f, 48.f);
 	}
 	else if (View.HitMark > 0.f)
 	{
 		Cross(C, 9.f, 17.f, T::Neutral().CopyWithNewOpacity(1.f - View.HitMark), 2.f);
+		Rec(TEXT("hitmark"), C.X - 17.f, C.Y - 17.f, 34.f, 34.f);
 	}
 	if (View.bKillAtTarget)
 	{
 		Cross(View.KillPos, 0.f, 16.f + 10.f * View.KillAtTarget, T::Danger().CopyWithNewOpacity(1.f - View.KillAtTarget), 3.f);
+		Rec(TEXT("killtarget"), View.KillPos.X - 18.f, View.KillPos.Y - 18.f, 36.f, 36.f);
 	}
 	if (View.bHasLead)
 	{
 		P.Arc(View.Lead, 7.f, 1.f, T::Neutral().CopyWithNewOpacity(.9f), 2.f);
+		Rec(TEXT("lead"), View.Lead.X - 7.f, View.Lead.Y - 7.f, 14.f, 14.f);
 	}
 	// ---- wingmen off screen: hollow chevron in squad colour, pulsing at 1 Hz in trouble
 	for (const FWingArrow& Wing : View.Wings)
 	{
 		const float O = Wing.bTrouble ? .5f + .5f * FMath::Sin(Now * 2.f * PI) : .85f;
 		P.Chevron(Wing.Pos, Wing.Angle, 18.f, T::Ship(Wing.Ship).CopyWithNewOpacity(O), false);
+		Rec(TEXT("wing"), Wing.Pos.X - 9.f, Wing.Pos.Y - 9.f, 18.f, 18.f);
 	}
 
 	// ---- hit direction arcs (radius 150, 50 degrees, 8 px)
@@ -990,6 +984,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		const float HalfWidth = FMath::DegreesToRadians(25.f);
 		P.ArcSpan(C, HitRadius, Hit.Angle - HalfWidth, 2.f * HalfWidth, (Hit.bShieldOnly ? T::Shield() : T::Danger()).CopyWithNewOpacity(Hit.Opacity), 8.f);
+		Rec(TEXT("hitarc"), C.X - HitRadius, C.Y - HitRadius, 2.f * HitRadius, 2.f * HitRadius);
 	}
 
 	// ---- around the reticle: Switch Strike ring, heat arc, ability pip, second power pip, ammo, altitude
@@ -1005,12 +1000,14 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.Arc(C, 62.f, View.SwitchStrike, Accent.CopyWithNewOpacity(.9f), 2.5f, -PI * .5f);
 		const float Pop = View.SwitchStrikePulse > 0.f ? 1.f + .25f * FMath::Sin(View.SwitchStrikePulse * PI) : 1.f;
 		P.Words(C.X + 70.f, C.Y - 74.f, TEXT("+25%"), FMath::RoundToInt(17 * Pop), Accent, "Bold", 0.f, 20);
+		Rec(TEXT("switchstrike"), C.X - 62.f, C.Y - 80.f, 140.f, 142.f);
 	}
 	Area += View.SwitchStrike > 0.f ? 60.f * 22.f : 0.f;
 	if (View.Focus > 0.f)
 	{
 		// A focus-fire order: a small amber line under the reticle cluster with its own drain bar.
 		P.Words(C.X, C.Y + 84.f, TEXT("FOCUS FIRE"), 14, T::Warning(), "Bold", .5f, 80);
+		Rec(TEXT("focus"), C.X - 55.f, C.Y + 84.f, 110.f, 24.f);
 		P.Bar(C.X - 40.f, C.Y + 104.f, 80.f, 3.f, View.Focus, T::Warning(), .9f);
 		Area += 110.f * 26.f;
 	}
@@ -1022,25 +1019,33 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		if (View.Heat >= .9f)
 		{
 			P.Words(C.X, C.Y + 34.f, TEXT("HOT"), 14, T::Danger(), "Bold", .5f, 60);
+			Rec(TEXT("heat"), C.X - 30.f, C.Y + 20.f, 60.f, 32.f);
 		}
 	}
 	if (View.bHasAbility)
 	{
 		P.Pip(C + FVector2D(-PipOffsetX, PipOffsetY), 14.f, View.Ability, View.Ability >= .999f, Accent, View.AbilityGlyph, 13);
+		Rec(TEXT("ability"), C.X - PipOffsetX - 14.f, C.Y + PipOffsetY - 14.f, 28.f, 28.f);
 	}
 	float AmmoX = C.X + PipOffsetX + PipRadius + 8.f;
 	if (View.bHasPower2)
 	{
 		const FVector2D P2(C.X + PipOffsetX + 40.f, C.Y + PipOffsetY);
 		P.Pip(P2, 12.f, View.Power2, View.Power2 >= .999f, Accent, View.PowerGlyph, 12);
+		Rec(TEXT("power2"), P2.X - 12.f, P2.Y - 12.f, 24.f, 24.f);
 		P.Words(P2.X, P2.Y + 13.f, TEXT("HOLD"), 10, T::Dim(), "Bold", .5f, 40);
 		AmmoX = P2.X + 12.f + 8.f;
 	}
-	P.Words(AmmoX, C.Y + PipOffsetY - 10.f, FString::FromInt(View.Ammo), 15, T::Neutral().CopyWithNewOpacity(View.Ammo > 0 ? .9f : .4f), "Bold", 0.f, 0);
+	if (View.bUsesAmmo)
+	{
+		P.Words(AmmoX, C.Y + PipOffsetY - 10.f, FString::FromInt(View.Ammo), 15, T::Neutral().CopyWithNewOpacity(View.Ammo > 0 ? .9f : .4f), "Bold", 0.f, 0);
+		Rec(TEXT("ammo"), AmmoX, C.Y + PipOffsetY - 10.f, 24.f, 18.f);
+	}
 	if (View.Altitude >= 0.f)
 	{
 		P.Words(C.X - 110.f, C.Y - 5.f, FString::Printf(TEXT("ALT %.0f m"), View.Altitude), 15, View.Altitude < 60.f ? T::Bastion() : T::Neutral(),
 			"Bold", 1.f, 20);
+		Rec(TEXT("altitude"), C.X - 200.f, C.Y - 5.f, 90.f, 18.f);
 	}
 
 	// ---- missile warning, centred above the reticle
@@ -1048,6 +1053,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		const float O = View.Missile == ETDMissileWarning::Imminent ? Pulse25 : 1.f;
 		P.Plate(CenterX - 75.f, 444.f, 150.f, 28.f, 6.f, T::Plate().CopyWithNewOpacity(.6f * O));
+		Rec(TEXT("missile"), CenterX - 75.f, 444.f, 150.f, 28.f);
 		P.Poly(FVector2D(CenterX - 56.f, 458.f), { { 0, -8 }, { 8, 6 }, { -8, 6 }, { 0, -8 } }, Enemy.CopyWithNewOpacity(O), 2.f);
 		P.Words(CenterX + 10.f, 449.f, TEXT("MISSILE"), 15, Enemy.CopyWithNewOpacity(O), "Bold", .5f, 80);
 	}
@@ -1056,6 +1062,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	if (!View.Boundary.IsEmpty())
 	{
 		P.Plate(CenterX - 260.f, 132.f, 520.f, 28.f, 14.f, T::Plate().CopyWithNewOpacity(.6f));
+		Rec(TEXT("boundary"), CenterX - 260.f, 132.f, 520.f, 28.f);
 		P.Poly(FVector2D(CenterX - 240.f, 146.f), { { 0, -8 }, { 8, 6 }, { -8, 6 }, { 0, -8 } }, T::Warning(), 2.f);
 		P.Words(CenterX + 8.f, 136.f, View.Boundary, 15, T::Warning(), "Bold", .5f, 40);
 	}
@@ -1064,11 +1071,13 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	if (View.bShowBoost)
 	{
 		P.Bar(CenterX - 80.f, 792.f, 160.f, 6.f, View.Boost, Accent, .9f);
+		Rec(TEXT("boost"), CenterX - 80.f, 791.f, 168.f, 8.f);
 		P.Box(CenterX + 84.f, 791.f, 2.f, 8.f, (View.bDodgeReady ? T::Neutral() : T::Dim()).CopyWithNewOpacity(View.bDodgeReady ? .95f : .4f));
 	}
 	if (View.Hyperdrive > 0.f)
 	{
 		P.Bar(CenterX - 120.f, 806.f, 240.f, 6.f, View.Hyperdrive, T::Shield(), .95f);
+		Rec(TEXT("hyperdrive"), CenterX - 120.f, 806.f, 240.f, 6.f);
 	}
 
 	// ---- the onboarding card (T3): highlighted key + action at 24 px, "2 / 4", a tick when done, then a fade
@@ -1085,6 +1094,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const float X = CenterX - CardW * .5f, Y = 830.f;
 		Area += CardW * CardH;
 		P.Plate(X, Y, CardW, CardH, 12.f, T::Plate().CopyWithNewOpacity(.72f * Fade));
+		Rec(TEXT("card"), X, Y, CardW, CardH);
 		P.Outline(X, Y, CardW, CardH, 12.f, 1.5f, (View.bHintDone ? Accent : T::Neutral()).CopyWithNewOpacity(.35f * Fade));
 		// The key: a filled plate in the flown ship's colour with dark text, the one thing to look at.
 		const float KX = X + 28.f, KY = Y + 13.f;
@@ -1110,6 +1120,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", 17, 50)) + 48.f, 240.f, 760.f);
 		Area += LaneW * 36.f;
 		P.Plate(CenterX - LaneW * .5f, 838.f, LaneW, 36.f, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : .65f));
+		Rec(TEXT("lane"), CenterX - LaneW * .5f, 838.f, LaneW, 36.f);
 		if (View.Lane == ELane::HyperdriveBlocked)
 		{
 			// A padlock: shackle arc + body.
@@ -1130,6 +1141,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const float S = StripScale;
 		// The shared backing, a step darker on wingman chips (their contents sit at 72%; they faded into bright nebula).
 		P.Plate(X, Y, W, H, 6.f * S, T::Plate().CopyWithNewOpacity(Chip.bActive ? FPaint::BackingOpacity : FPaint::BackingOpacity + .12f));
+		Rec(TEXT("chip"), X, Y, W, H);
 		if (Chip.bActive)
 		{
 			P.Outline(X, Y, W, H, 6.f * S, 1.5f, Ship.CopyWithNewOpacity(.9f));
@@ -1208,6 +1220,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		Area += W * H;
 		// The shared backing (was 45%: low contrast on bright nebula, Lead + N-037); text up to 85% collapsed.
 		P.Plate(X, Y, W, H, 14.f, T::Plate().CopyWithNewOpacity(FMath::Lerp(FPaint::BackingOpacity, .75f, E)));
+		Rec(TEXT("objective"), X, Y, W, H);
 		const float TextO = FMath::Lerp(.85f, 1.f, E);
 		const FVector2D Dia(X + 18.f, Y + FMath::Lerp(14.f, 26.f, E)); // centred on the 17 px line, then on the 28 px title
 		P.Poly(Dia, { { 0, -6 }, { 6, 0 }, { 0, 6 }, { -6, 0 }, { 0, -6 } }, T::Neutral().CopyWithNewOpacity(TextO), 2.f);

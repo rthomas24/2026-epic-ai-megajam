@@ -174,7 +174,11 @@ public:
 		bool bHasPower2 = false;
 		float Power2 = 1.f;
 		int32 Ammo = 0;
+		/** The flown ship has a secondary-ammo weapon (review M5). */
+		bool bUsesAmmo = false;
 		float Heat = 0.f;
+		/** A ship is under the player's control (review m9: none while the flown ship is down before the retake). */
+		bool bHasFlown = false;
 		// ---- P1
 		bool bHasData = false;
 		/** The flown ship (the reticle cluster's colour). */
@@ -310,6 +314,15 @@ private:
 	FVector2D ViewportSize = FVector2D(1920, 1080);
 	/** Written by NativePaint (const): what the last frame drew. */
 	mutable float LastCoverage01 = 0.f;
+public:
+	/** Where the last paint put the low-hull vignette, in widget-local units (tests: it spans the whole widget). */
+	mutable FBox2D LastVignetteRect = FBox2D(ForceInit);
+	/**
+	 * Every element's design-space box from the last paint, by name ("reticle", "strip", "objective", "lane", "boost",
+	 * "missile", "boundary", "waypoint", "mark", ...): the layout tests check each one lies in the safe frame.
+	 */
+	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
+private:
 	float BlockedLeft = 0.f;
 	float HintDoneAge = 0.f;
 	float StrikePulseLeft = 0.f;
@@ -319,8 +332,13 @@ private:
 	FVector KillWorld = FVector::ZeroVector;
 	TWeakObjectPtr<class UTDEventBus> BoundBus;
 	void BindBus();
-	/** Reads T3's hint getters (UTDHintComponent::GetHintKey / Action / Step / State) by reflection; false when absent. */
+	/** Reads T3's hint getters (UTDHintComponent::GetHintKey / Action / Step / State); false when no hint is up. */
 	bool ReadHintCard();
+	FString LastHintKeyRaw;
+	int32 LastWaveNumber = -1;
+	/** Ships seen with secondary ammo this session (review M5: a ship with none shows no ammo number). */
+	TSet<ETDShipId> ShipsWithAmmo;
+	FString LastHintActionRaw;
 	float BoostFullFor = 1e6f;
 	TWeakObjectPtr<class ATDSpacePlayerController> BoundPC;
 

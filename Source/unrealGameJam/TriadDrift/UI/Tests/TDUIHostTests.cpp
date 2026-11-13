@@ -299,12 +299,14 @@ bool FTDUIHostShowRules::RunTest(const FString& Parameters)
 	TestTrue(TEXT("snapshot decoded"), F.Sample(Cards));
 	TestTrue(TEXT("Rift is the active card"), Cards.Num() == 3 && Cards[0].bActive && !Cards[1].bActive && !Cards[2].bActive);
 
-	// On foot: the pawn isn't a ship.
+	// A pawn that isn't a ship (and isn't an on-foot HUD-data character): the space HUD goes, but with the squad still
+	// there the dev HUD stays suppressed, so its full read-out never flashes for a frame (ENG-36 review m10). A real
+	// on-foot character (ITDHUDData) gets the ground HUD instead: TriadDrift.UI.GroundHUD tests.
 	APawn* OnFoot = F.W.Spawn<APawn>(FVector(0.f, 0.f, 5000.f));
 	F.PC->Possess(OnFoot);
 	F.Host->Evaluate();
-	TestFalse(TEXT("on foot: removed"), F.Host->IsSpaceHUDShown());
-	TestFalse(TEXT("on foot: dev HUD back"), ATDDebugHUD::IsRealHUDActive(F.W.GetWorld()));
+	TestFalse(TEXT("not a ship: space HUD removed"), F.Host->IsSpaceHUDShown());
+	TestTrue(TEXT("not a ship, squad still there: dev HUD stays suppressed (no flash)"), ATDDebugHUD::IsRealHUDActive(F.W.GetWorld()));
 
 	// Back in a ship: re-created.
 	F.PC->Possess(F.Squad->GetShip(ETDShipId::Rift));
