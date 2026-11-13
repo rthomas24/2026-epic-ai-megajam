@@ -348,11 +348,17 @@ void ATDSpacePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		SetPlayerPaused(false); // never leave a world paused behind us
 	}
+	UTDSettingsSubsystem::CloseSettingsPage(this); // never carry the page into the next map
 	Super::EndPlay(EndPlayReason);
 }
 
 void ATDSpacePlayerController::HandlePauseInput()
 {
+	if (UTDSettingsSubsystem::IsSettingsPageOpen(this))
+	{
+		UTDSettingsSubsystem::CloseSettingsPage(this); // Esc / Start back out of Settings first, to the pause screen
+		return;
+	}
 	TogglePlayerPause();
 }
 

@@ -397,11 +397,15 @@ bool UTDSettingsSubsystem::OpenSettingsPage(const UObject* WorldContextObject)
 
 void UTDSettingsSubsystem::CloseSettingsPage(const UObject* WorldContextObject)
 {
-	UTDSettingsSubsystem* S = GetTDSettings(WorldContextObject);
-	if (!S)
+	if (UTDSettingsSubsystem* S = GetTDSettings(WorldContextObject))
 	{
-		return;
+		S->ClosePageInternal(WorldContextObject ? WorldContextObject->GetWorld() : nullptr);
 	}
+}
+
+void UTDSettingsSubsystem::ClosePageInternal(UWorld* World)
+{
+	UTDSettingsSubsystem* S = this;
 	const bool bWasOpen = S->Page.IsValid() || S->PageWidget != nullptr;
 	if (S->Page.IsValid() && GEngine && GEngine->GameViewport)
 	{
@@ -417,7 +421,6 @@ void UTDSettingsSubsystem::CloseSettingsPage(const UObject* WorldContextObject)
 	{
 		return;
 	}
-	UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
 	if (APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr)
 	{
 		PC->SetShowMouseCursor(S->bPageCursorWasShown);
