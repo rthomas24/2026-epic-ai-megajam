@@ -76,6 +76,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|AirSlam", meta = (Units = "cm"))
 	float AirSlamRadius = 300.f;
+	/** Where the last air slam met the floor and its normal (the effect plays there, lying on it). */
+	FVector GetLastSlamImpact() const { return LastSlamImpact; }
+	FVector GetLastSlamNormal() const { return LastSlamNormal; }
 
 	/** Downward speed of the plunge. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|AirSlam", meta = (Units = "cm/s"))
@@ -272,7 +275,7 @@ private:
 	bool HitActor(AActor* Victim, float Damage, const FVector& HitLocation, const FVector& HitDir, float Knockback);
 	void ScanForProjectiles(float DeltaTime);
 	void BreakGuard();
-	void PlayBladeCue(FName Name, const struct FTDFXCue* Cue, bool bAttached, const FVector& Location);
+	void PlayBladeCue(FName Name, const struct FTDFXCue* Cue, bool bAttached, const FVector& Location, const FRotator* Rotation = nullptr);
 	float FilterIncomingDamage(const FTDDamageInfo& Info);
 	void GetView(FVector& OutLocation, FVector& OutForward) const;
 	ETDTeam GetOwnerTeam() const;
@@ -303,4 +306,7 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTDHealthComponent> OwnerHealth;
 
+private:
+	FVector LastSlamImpact = FVector::ZeroVector;
+	FVector LastSlamNormal = FVector::UpVector;
 };

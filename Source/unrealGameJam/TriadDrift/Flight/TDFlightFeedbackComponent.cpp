@@ -72,6 +72,8 @@ bool UTDFlightFeedbackComponent::WantsCameraPlaceholder(const FTDFXCue* Cue)
 }
 
 float UTDFlightFeedbackComponent::UserShakeScale = 1.f;
+UTDFlightFeedbackComponent::ECamProfile UTDFlightFeedbackComponent::CamProfile = UTDFlightFeedbackComponent::ECamProfile::Default;
+UTDFlightFeedbackComponent::FComposedPeaks UTDFlightFeedbackComponent::ComposedPeaks;
 float UTDFlightFeedbackComponent::UserSpeedFOVScale = 1.f;
 
 void UTDFlightFeedbackComponent::HandleDamaged(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
@@ -441,6 +443,24 @@ void UTDFlightFeedbackComponent::PollMoments(float DeltaTime)
 	}
 	LastLandingState = LandState;
 
+	// ---- Audition profile (issue #23, opt-in): turn tilt that settles, light sustained shake, speed blur.
+	FVector2D TiltTarget = FVector2D::ZeroVector;
+	float BlurTarget = 0.f;
+	const bool bChase = bPlayer && !Ship->IsCockpitView();
+	if (CamProfile == ECamProfile::Audition && bChase)
+	{
+		const FVector Rates = Move->GetAngularRate(); // deg/s: X roll, Y pitch, Z yaw
+		const float TurnRef = FMath::Max(Move->GetFlightTuning().TurnRate, 1.f);
+		TiltTarget.X = FMath::Clamp(Rates.Z / TurnRef, -1.f, 1.f) * Tuning.AuditionTurnRoll;  // lean into the turn
+		TiltTarget.Y = FMath::Clamp(Rates.Y / TurnRef, -1.f, 1.f) * Tuning.AuditionTurnPitch;
+		const bool bHyper = HyperState == ETDHyperdriveState::Jumping;
+		Shake += bHyper ? Tuning.AuditionShakeHyper : Move->IsBoosting() ? Tuning.AuditionShakeBoost : Tuning.AuditionShakeCruise;
+		BlurTarget = bHyper ? Tuning.AuditionBlurHyper : Move->IsBoosting() ? Tuning.AuditionBlurBoost : 0.f;
+	}
+	AuditionTilt = FMath::Vector2DInterpTo(AuditionTilt, TiltTarget, DeltaTime, Tuning.AuditionSettleRate);
+	BlurAmount = FMath::FInterpTo(BlurAmount, BlurTarget * FMath::Clamp(UserSpeedFOVScale, 0.f, 1.f), DeltaTime, 6.f);
+	if (BlurAmount < 0.001f && BlurTarget <= 0.f) { BlurAmount = 0.f; }
+
 	SustainedFOV = FMath::FInterpTo(SustainedFOV, FOV, DeltaTime, 6.f);
 	SustainedShake = FMath::FInterpTo(SustainedShake, Shake, DeltaTime, 8.f);
 }
@@ -464,15 +484,30 @@ void UTDFlightFeedbackComponent::UpdateCamera(float DeltaTime)
 		Shake += K.Shake * E;
 	}
 	ShakeTime += DeltaTime;
-	const float S = Shake * Tuning.CameraScale * UserShakeScale;
+	const float RawS = Shake * Tuning.CameraScale * UserShakeScale;
+	const float S = IsFixedCameraPath() ? FMath::Min(RawS, Tuning.ComposedShakeCap) : RawS; // Default: as before
 	const float T = ShakeTime;
 	// Cheap procedural shake: incommensurate sines per axis (no camera-shake asset needed).
 	const float JPitch = S * (FMath::Sin(T * 41.f) + 0.5f * FMath::Sin(T * 73.f + 1.3f)) / 1.5f;
 	const float JYaw = S * (FMath::Sin(T * 37.f + 0.7f) + 0.5f * FMath::Sin(T * 89.f + 2.1f)) / 1.5f;
 	const float JRoll = S * 0.6f * FMath::Sin(T * 29.f + 0.4f);
 	const float K = Tuning.CameraScale * UserShakeScale;
-	CameraOffset = FRotator(Pitch * K + JPitch, JYaw, Roll * K + JRoll);
+	// Composed: every kick + the audition tilt + the shake, capped (the issue #23 caps apply to any profile).
+	const float RollCap = IsFixedCameraPath() ? Tuning.ComposedRollCap : TNumericLimits<float>::Max();
+	const float PitchCap = IsFixedCameraPath() ? Tuning.ComposedPitchCap : TNumericLimits<float>::Max();
+	const float ComposedRoll = FMath::Clamp((Roll + AuditionTilt.X) * K + JRoll, -RollCap, RollCap);
+	const float ComposedPitch = FMath::Clamp((Pitch + AuditionTilt.Y) * K + JPitch, -PitchCap, PitchCap);
+	CameraOffset = FRotator(ComposedPitch, JYaw, ComposedRoll);
 	FOVOffset = (FOV + SustainedFOV) * Tuning.CameraScale * UserSpeedFOVScale;
+	const ATDShip* Owner = GetShip();
+	if (Owner && Owner->IsPlayerFlown())
+	{
+		ComposedPeaks.Roll = FMath::Max(ComposedPeaks.Roll, FMath::Abs(ComposedRoll));
+		ComposedPeaks.Pitch = FMath::Max(ComposedPeaks.Pitch, FMath::Abs(ComposedPitch));
+		ComposedPeaks.Shake = FMath::Max(ComposedPeaks.Shake, S);
+		ComposedPeaks.FOV = FMath::Max(ComposedPeaks.FOV, FMath::Abs(FOVOffset));
+		ComposedPeaks.Blur = FMath::Max(ComposedPeaks.Blur, BlurAmount);
+	}
 }
 
 void UTDFlightFeedbackComponent::UpdateBursts(float DeltaTime)

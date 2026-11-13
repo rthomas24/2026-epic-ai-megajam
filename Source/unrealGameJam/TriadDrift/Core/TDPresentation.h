@@ -613,6 +613,15 @@ public:
 	 * Director's Cut and progress stings (optional, 2D): the scene slate, the "CUT!" call, slow motion in and out
 	 * for a money shot, an objective completed. Silent when unset.
 	 */
+	/**
+	 * N-038: Nick's widget for the Director's Cut cards (switch cut, pilot name card, scene / take slate, "CUT!",
+	 * money-shot letterbox). When set, the director keeps all timing and state and only its fallback drawing yields;
+	 * the widget reads UTDDirectorSubsystem::GetDirectorCards (BlueprintPure, an FTDDirectorCards struct) and binds
+	 * OnDirectorCardsChanged. Created by the director for the local player, hit-test invisible, gone with the world.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftClassPtr<UUserWidget> DirectorWidgetClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;
 
@@ -644,6 +653,22 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
 	TSoftObjectPtr<UObject> IntroSequence;
+
+	/**
+	 * Tutorial music (N-039, issue #24; optional). On New Game the prelude (non-looping) starts so it ends on the frame
+	 * the intro returns control (cut on a skip or with no intro); the loop (looping) starts at 0:00 on that frame and
+	 * plays across the opening fights and gaps (the combat gate and intensity gain don't touch it; a retake doesn't
+	 * restart it) until wave TutorialEndsAfterWave is cleared, then fades over TutorialFadeOutSeconds on a voice that
+	 * survives level travel. CombatMusic takes over from the next wave. A Continue never plays it.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music")
+	TSoftObjectPtr<USoundBase> TutorialPrelude;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music")
+	TSoftObjectPtr<USoundBase> TutorialLoop;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0"))
+	float TutorialFadeOutSeconds = 20.f;
 
 	/** Music for the intro, swelling into wave 1 (optional; silence when empty). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
@@ -704,4 +729,30 @@ public:
 	/** Bone hidden from the owner in first person so the camera does not sit inside the head. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	FName HeadBone = TEXT("head");
+};
+
+/**
+ * On-foot sounds (ENG-35, review M11): the pilot's steps, dash, jump, landing and hurt, the crew rifle shot and the drone
+ * hum, as cue slots. Looked up as DA_Ground_FX (Presentation, else the engineering copy under Gameplay/Characters/FX);
+ * an empty slot falls back to engineering's sound in code, so nothing goes silent. Owner of the class: Teammate 5.
+ */
+UCLASS(BlueprintType)
+class UNREALGAMEJAM_API UTDGroundFX : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	/** A step on soft ground (Verdance). Played at the feet every stride. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue StepSoil;
+	/** A step on rock (Cinder). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue StepRock;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Dash;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Jump;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Land;
+	/** The player's own hurt: its sound plays in 2D (one per burst of hits). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pilot") FTDFXCue Hurt;
+	/** A crew bolt leaving the muzzle (one per volley). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew") FTDFXCue CrewRifleShot;
+	/** The drone's hover loop, attached, faded out on death. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew") FTDFXCue DroneHum;
 };

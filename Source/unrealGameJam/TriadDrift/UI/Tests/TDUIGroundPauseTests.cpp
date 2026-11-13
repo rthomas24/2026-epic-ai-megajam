@@ -152,6 +152,13 @@ bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 	}
 	Menu->bExecuteActions = false;
 	TestEqual(TEXT("opens on RESUME"), Menu->GetSelected(), 0);
+	// The footer follows the device (T1's gamepad pass).
+	Menu->ForceGamepad = 0;
+	TestTrue(TEXT("keyboard footer"), Menu->GetFooterText().Contains(TEXT("[ENTER]")));
+	Menu->ForceGamepad = 1;
+	TestTrue(TEXT("pad footer: A / START, no keys"), Menu->GetFooterText().Contains(TEXT("[A]")) && Menu->GetFooterText().Contains(TEXT("[START]"))
+		&& !Menu->GetFooterText().Contains(TEXT("ENTER")));
+	Menu->ForceGamepad = -1;
 	// The difficulty in play (T1's API, read by reflection): a name when it is in this build, else no line.
 	const bool bDifficultyApi = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("GetDifficultyInPlay")) != nullptr;
 	TestEqual(TEXT("difficulty line iff the API is in the build"), !UTDPauseMenuWidget::ReadDifficultyInPlay().IsEmpty(), bDifficultyApi);
@@ -273,17 +280,27 @@ bool FTDUIHitConfirmSounds::RunTest(const FString& Parameters)
 	Style->HitConfirm.Sound = Hit;
 	Style->KillConfirm.Sound = Kill;
 	Bus->BroadcastHitConfirmed(nullptr, false);
+	W.Advance(.1f); // past the 60 ms hit-tick throttle
 	Bus->BroadcastHitConfirmed(nullptr, false);
 	Bus->BroadcastHitConfirmed(nullptr, true);
-	TestEqual(TEXT("two hits: two hit sounds"), Host->GetHitSoundsPlayed(), 2);
+	TestEqual(TEXT("two hits 0.1 s apart: two hit sounds"), Host->GetHitSoundsPlayed(), 2);
 	TestEqual(TEXT("one kill: one kill sound"), Host->GetKillSoundsPlayed(), 1);
+	// Rapid fire: hits inside 60 ms of the last tick are dropped; a kill in the same frame still plays.
+	const int32 Throttled = Host->GetHitSoundsThrottled();
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, true);
+	TestEqual(TEXT("rapid fire: no extra hit ticks"), Host->GetHitSoundsPlayed(), 2);
+	TestEqual(TEXT("rapid fire: both throttled"), Host->GetHitSoundsThrottled(), Throttled + 2);
+	TestEqual(TEXT("a kill is never throttled"), Host->GetKillSoundsPlayed(), 2);
+	W.Advance(.1f);
 
 	// Only the kill slot set: hits stay silent, kills still sound.
 	Style->HitConfirm.Sound = nullptr;
 	Bus->BroadcastHitConfirmed(nullptr, false);
 	Bus->BroadcastHitConfirmed(nullptr, true);
 	TestEqual(TEXT("hit slot unset: still two"), Host->GetHitSoundsPlayed(), 2);
-	TestEqual(TEXT("kill slot set: two kills"), Host->GetKillSoundsPlayed(), 2);
+	TestEqual(TEXT("kill slot set: three kills"), Host->GetKillSoundsPlayed(), 3);
 	return true;
 }
 

@@ -1706,6 +1706,16 @@ void UTDIntroDirector::Finish()
 	FSimpleDelegate Done = MoveTemp(OnFinishedDelegate);
 	OnFinishedDelegate.Unbind();
 	Done.ExecuteIfBound();
+	OnIntroFinished.Broadcast(/*bPlayed*/ true, bSkipped); // N-039: the control frame
+}
+
+void UTDIntroDirector::NotifyRunStartedWithoutIntro()
+{
+	if (bPlaying)
+	{
+		return;
+	}
+	OnIntroFinished.Broadcast(/*bPlayed*/ false, /*bSkipped*/ false);
 }
 
 void UTDIntroDirector::EnsureWidget()

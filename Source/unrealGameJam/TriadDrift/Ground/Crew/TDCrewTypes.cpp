@@ -39,9 +39,9 @@ namespace TDCrewSpecs
 		// Sentry drone: 30 HP, fast small bolts (5), hovers out of melee range.
 		FTDCrewSpec& D = T[(int32)ETDCrewType::Drone];
 		D.Type = ETDCrewType::Drone; D.VisualsId = TEXT("Drone");
-		D.MaxHealth = 30.f; D.MoveSpeed = 600.f; D.bFlying = true; D.HoverHeight = 220.f; // within a jump-slash (machine playtest: at 320 the blade could never reach one)
+		D.MaxHealth = 30.f; D.MoveSpeed = 380.f; /* live Nov 13: at 600 a running blade (no dash) never caught it in 3 x 40 s */ D.bFlying = true; D.HoverHeight = 220.f; // within a jump-slash (machine playtest: at 320 the blade could never reach one)
 		D.CapsuleRadius = 45.f; D.CapsuleHalfHeight = 44.f; // the Rodin drone is 79 x 90 x 88 cm: hits land on what is seen
-		D.PreferredRangeMin = 350.f; D.PreferredRangeMax = 600.f; D.StrafeScale = 0.6f; // live (Nov 13): at 0.8 a dash-and-slash missed it for 40 s
+		D.PreferredRangeMin = 300.f; D.PreferredRangeMax = 500.f; D.StrafeScale = 0.6f; // live (Nov 13): at 0.8 a dash-and-slash missed it for 40 s
 		D.BoltDamage = 5.f; D.BoltSpeed = 4000.f; D.BoltRadius = 14.f; D.BurstCount = 1; D.BurstWindup = 0.25f; D.BurstCooldown = 0.9f;
 		D.BodyScale = FVector(0.6f, 0.6f, 0.5f);
 		D.TeamColor = FLinearColor(1.f, 0.55f, 0.1f);

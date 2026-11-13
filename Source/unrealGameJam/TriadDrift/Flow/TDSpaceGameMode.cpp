@@ -166,6 +166,10 @@ void ATDSpaceGameMode::EnterLevel()
 	if (!bIntroPlaying)
 	{
 		ArmFirstWaveTimer();
+		if (UTDIntroDirector* Intro = UTDIntroDirector::Get(this))
+		{
+			Intro->NotifyRunStartedWithoutIntro(); // N-039: the music director's control moment, without an intro
+		}
 	}
 }
 
