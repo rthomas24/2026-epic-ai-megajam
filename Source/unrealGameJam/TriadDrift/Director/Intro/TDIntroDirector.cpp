@@ -1533,8 +1533,13 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		return;
 	}
 	UWorld* World = GetWorld();
+	// The intro runs on wall time (the music plays on the audio clock and lands its downbeat on control): the world's
+	// undilated, unclamped frame time, so a hitch skips intro frames instead of stretching the intro. DeltaTime is
+	// dilated and clamped by the world (MaxUndilatedFrameTime), so it is only the fallback.
 	const float Dilation = (World && World->GetWorldSettings()) ? FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), 0.01f) : 1.f;
-	const float Dt = FMath::Min(DeltaTime / Dilation, 0.1f);
+	const float RealDt = FMath::Max(0.f, World ? World->DeltaRealTimeSeconds : DeltaTime / Dilation);
+	// Smoothing (camera look, handheld, skip hold) keeps a bounded step: a 2 s frame must not overshoot a blend.
+	const float Dt = FMath::Min(RealDt, 0.1f);
 	LastDt = Dt;
 	UpdateSkip(Dt);
 	if (!bPlaying)
@@ -1543,7 +1548,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 	}
 	if (bHandingOff)
 	{
-		HandOffElapsed += Dt;
+		HandOffElapsed += RealDt;
 		Overlay.Black = 0.f;
 		Overlay.SubtitleAlpha = 0.f;
 		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
@@ -1559,7 +1564,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		UpdateShot(Elapsed - ShotStart); // hold the frame (captures)
 		return;
 	}
-	Elapsed += Dt;
+	Elapsed += RealDt;
 	if (bSequenceMode)
 	{
 		// Presentation's own Level Sequence: it owns the camera cuts; the hand-off follows its last frame.
@@ -1590,11 +1595,27 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		}
 		return;
 	}
+	// A long frame may cross several shots: each is closed at its own last frame and the next begun, in order, so no
+	// shot's events are lost or fired out of order; past the last shot the hand-off keeps the surplus time.
 	while (Shots.IsValidIndex(ShotIndex) && Elapsed >= ShotStart + Shots[ShotIndex].Duration)
 	{
+		if (RealDt > 0.1f)
+		{
+			UpdateShot(Shots[ShotIndex].Duration);
+		}
 		if (ShotIndex + 1 >= Shots.Num())
 		{
+			const float Surplus = Elapsed - (ShotStart + Shots[ShotIndex].Duration);
 			BeginHandOff();
+			HandOffElapsed = FMath::Max(0.f, Surplus);
+			Elapsed = GetTotalDuration();
+			Overlay.Black = 0.f;
+			Overlay.SubtitleAlpha = 0.f;
+			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+			if (bPlaying && HandOffElapsed >= HandOffSeconds)
+			{
+				Finish(); // once: Finish ends play, and a later Tick returns at !bPlaying
+			}
 			return;
 		}
 		BeginShot(ShotIndex + 1);
