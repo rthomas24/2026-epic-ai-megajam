@@ -17,6 +17,12 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EngineUtils.h"
+#include "UObject/Package.h"
+#include "Misc/ScopeExit.h"
+#include "Materials/MaterialInterface.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimInstance.h"
+#include "AssetRegistry/IAssetRegistry.h"
 
 namespace TDCrewTest
 {
@@ -489,6 +495,85 @@ bool FTDCrewTell::RunTest(const FString& Parameters)
 		W.Tick(1.f / 60.f);
 		TestFalse(TEXT("tell gone once the burst is out"), Tr->IsTellShown());
 	}
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+// Crew looks (R-019): DA_Crew_<Id>_Visuals is found in Presentation (always wins) or anywhere under
+// Gameplay/Characters; a skeletal look with no AnimBP is driven by the template mannequin set, faces forward
+// (-90 yaw by default), takes its material overrides, and falls by hit direction on death.
+namespace TDCrewLookTest
+{
+	inline UTDEnemyVisuals* MakeAsset(const FString& PackagePath, const FString& Name)
+	{
+		UPackage* Pkg = CreatePackage(*(PackagePath / Name));
+		UTDEnemyVisuals* V = NewObject<UTDEnemyVisuals>(Pkg, *Name, RF_Public | RF_Standalone); // not transient: the registry ignores transient objects
+		IAssetRegistry::Get()->AssetCreated(V);
+		return V;
+	}
+	inline void Drop(UTDEnemyVisuals* V)
+	{
+		if (V)
+		{
+			IAssetRegistry::Get()->AssetDeleted(V);
+			V->ClearFlags(RF_Public | RF_Standalone);
+			V->MarkAsGarbage();
+		}
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewLookLookup, "TriadDrift.Ground.Crew.LookFromPresentationElseGameplayCharacters", TD_TEST_FLAGS)
+bool FTDCrewLookLookup::RunTest(const FString& Parameters)
+{
+	const FString Stamp = FString::Printf(TEXT("%lld"), FDateTime::UtcNow().GetTicks() % 1000000000LL);
+	const FName OnlyEng(*(TEXT("T5Eng") + Stamp));
+	const FName Both(*(TEXT("T5Both") + Stamp));
+	UTDEnemyVisuals* Eng = TDCrewLookTest::MakeAsset(TEXT("/Game/TriadDrift/Gameplay/Characters/T5Test"), FString::Printf(TEXT("DA_Crew_%s_Visuals"), *OnlyEng.ToString()));
+	UTDEnemyVisuals* EngBoth = TDCrewLookTest::MakeAsset(TEXT("/Game/TriadDrift/Gameplay/Characters/T5Test/Deeper"), FString::Printf(TEXT("DA_Crew_%s_Visuals"), *Both.ToString()));
+	UTDEnemyVisuals* Nick = TDCrewLookTest::MakeAsset(TEXT("/Game/TriadDrift/Presentation"), FString::Printf(TEXT("DA_Crew_%s_Visuals"), *Both.ToString()));
+	ON_SCOPE_EXIT { TDCrewLookTest::Drop(Eng); TDCrewLookTest::Drop(EngBoth); TDCrewLookTest::Drop(Nick); };
+	TestTrue(TEXT("an engineering look under Gameplay/Characters is found (any depth)"), ATDCrewCharacter::FindCrewVisuals(OnlyEng) == Eng);
+	TestTrue(TEXT("Presentation wins when both exist"), ATDCrewCharacter::FindCrewVisuals(Both) == Nick);
+	TestNull(TEXT("neither: null (the placeholder block)"), ATDCrewCharacter::FindCrewVisuals(FName(*(TEXT("T5None") + Stamp))));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewLookSkeletalOnly, "TriadDrift.Ground.Crew.SkeletalLookWithoutAnimBPStillAnimates", TD_TEST_FLAGS)
+bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
+{
+	USkeletalMesh* Manny = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
+	UMaterialInterface* Mat = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"));
+	if (!TestNotNull(TEXT("template mannequin mesh"), Manny) || !TestNotNull(TEXT("a material"), Mat)) { return false; }
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+	UTDEnemyVisuals* Look = NewObject<UTDEnemyVisuals>(GetTransientPackage());
+	Look->SkeletalMesh = Manny;
+	Look->MaterialOverrides = { Mat };
+	const FTransform Xf(FRotator(0.f, 180.f, 0.f), FVector(600.f, 0.f, 95.f));
+	ATDCrewCharacter* Tr = W.GetWorld()->SpawnActorDeferred<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	Tr->CrewType = ETDCrewType::Trooper;
+	Tr->Visuals = Look;
+	Tr->FinishSpawning(Xf);
+	W.Tick(1.f / 60.f);
+	TestTrue(TEXT("the skeletal look is shown, the block hidden"), Tr->GetMesh()->IsVisible() && !Tr->IsPlaceholderVisible());
+	TestTrue(TEXT("no AnimBP in the look: the template mannequin set drives it"), Tr->UsesFallbackAnimation());
+	UAnimInstance* Anim = Tr->GetMesh()->GetAnimInstance();
+	TestTrue(*FString::Printf(TEXT("animated by ABP_Unarmed (%s)"), *GetNameSafe(Anim ? Anim->GetClass() : nullptr)), Anim && Anim->GetClass()->GetName().Contains(TEXT("ABP_Unarmed")));
+	TestEqual(TEXT("mannequin-skeleton meshes face forward (-90 yaw)"), (float)Tr->GetMesh()->GetRelativeRotation().Yaw, -90.f, 0.01f);
+	TestTrue(TEXT("material overrides apply to the skeletal look"), Tr->GetMesh()->GetMaterial(0) == Mat);
+	const FVector Dir = (P->GetActorLocation() - Tr->GetActorLocation()).GetSafeNormal();
+	TestTrue(TEXT("no Muzzle socket: bolts leave from in front of the capsule"),
+		FVector::DistSquared(Tr->GetMuzzleLocation(Dir), Tr->GetActorLocation() + FVector(0.f, 0.f, Tr->Spec.CapsuleHalfHeight * 0.4f) + Dir * (Tr->Spec.CapsuleRadius + 35.f)) < 1.f);
+	// A look with its own yaw keeps it.
+	Look->SkeletalMeshYaw = 0.f;
+	Tr->ApplyVisuals();
+	TestEqual(TEXT("SkeletalMeshYaw overrides the default"), (float)Tr->GetMesh()->GetRelativeRotation().Yaw, 0.f, 0.01f);
+	// Death: a fall picked from the hit direction (the mesh plays it instead of freezing).
+	FTDDamageInfo Kill;
+	Tr->GetHealth()->Kill(P, ETDDamageKind::Melee);
+	W.Tick(1.f / 60.f);
+	TestEqual(TEXT("dies into a death animation"), Tr->GetMesh()->GetAnimationMode(), EAnimationMode::AnimationSingleNode);
 	return true;
 }
 

@@ -96,6 +96,19 @@ public:
 	/** Applies Visuals (or the placeholder). Public so tests can assign a transient asset. */
 	void ApplyVisuals();
 
+	/** Where DA_Crew_<Id>_Visuals is found: /Game/TriadDrift/Presentation (Nick's, always wins), else anywhere under
+	 *  /Game/TriadDrift/Gameplay/Characters (engineering-made crew looks). Null when neither has it. */
+	static class UTDEnemyVisuals* FindCrewVisuals(FName VisualsId);
+
+	/** Where bolts and the tell come from: the mesh's "Muzzle" socket when the skeletal look has one, else in front of the capsule. */
+	FVector GetMuzzleLocation(const FVector& AimDirection) const;
+
+	/** The anim blueprint in use on the skeletal look came from the template fallback (the visuals had none). */
+	bool UsesFallbackAnimation() const { return bFallbackAnim; }
+
+	/** Template mannequin animations used when a skeletal look has no AnimBP of its own (also cooked: see docs/eng/ground.md). */
+	static const TCHAR* FallbackAnimBP;
+
 	FTDOnCrewAttack OnAttackStarted;   // wind-up begins (telegraph)
 	FTDOnCrewAttack OnAttackReleased;  // the hit / shots go out
 	FTDOnCrewAttack OnAttackFinished;  // recovered; tokens release here
@@ -177,6 +190,9 @@ private:
 	FVector ChargeVelocity = FVector::ZeroVector;
 	int32 BossPhase = 1;
 	int32 SummonsLeft = -1;
+	bool bFallbackAnim = false;
+	void PlayFallbackAnim(const TCHAR* AssetPath, float Rate = 1.f);
+	const TCHAR* FallbackDeathAnim(const FVector& HitDirection) const;
 	float OpeningGraceLeft = 0.f;
 	bool bSpecApplied = false;
 	TMap<ETDCrewAttack, float> Cooldowns;

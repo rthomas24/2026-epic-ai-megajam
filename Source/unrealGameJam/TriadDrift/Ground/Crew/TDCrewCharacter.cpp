@@ -18,6 +18,26 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Misc/PackageName.h"
 #include "UObject/ConstructorHelpers.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/IAssetRegistry.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimSequenceBase.h"
+#include "Materials/MaterialInterface.h"
+
+// Template mannequin set (Content/Characters/Mannequins): the stand-in for a crew look that has a skeletal mesh but no
+// AnimBP. Cooked through DirectoriesToAlwaysCook (/Game/Characters/Mannequins/Anims).
+const TCHAR* ATDCrewCharacter::FallbackAnimBP = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed_C");
+namespace TDCrewAnims
+{
+	static const TCHAR* Melee = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01.MM_Attack_01");
+	static const TCHAR* Slam = TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_ChargedAttack.MM_ChargedAttack");
+	static const TCHAR* Fire = TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Fire.MM_Rifle_Fire");
+	static const TCHAR* Hit = TEXT("/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01.MM_HitReact_Front_Lgt_01");
+	static const TCHAR* DeathFront = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01.MM_Death_Front_01");
+	static const TCHAR* DeathBack = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Back_01.MM_Death_Back_01");
+	static const TCHAR* DeathLeft = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Left_01.MM_Death_Left_01");
+	static const TCHAR* DeathRight = TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Right_01.MM_Death_Right_01");
+}
 
 namespace TDCrewImpl
 {
@@ -193,7 +213,80 @@ bool ATDCrewCharacter::IsDead() const
 void ATDCrewCharacter::LoadDefaultVisuals()
 {
 	// Core's one loader: quiet when Nick hasn't made the asset yet, cooked in packaged builds.
-	Visuals = UTDStatics::LoadPresentation<UTDEnemyVisuals>(FString::Printf(TEXT("DA_Crew_%s_Visuals"), *Spec.VisualsId.ToString()));
+	Visuals = FindCrewVisuals(Spec.VisualsId);
+}
+
+UTDEnemyVisuals* ATDCrewCharacter::FindCrewVisuals(FName VisualsId)
+{
+	const FString Name = FString::Printf(TEXT("DA_Crew_%s_Visuals"), *VisualsId.ToString());
+	// Nick's presentation asset always wins.
+	if (UTDEnemyVisuals* Art = UTDStatics::LoadPresentation<UTDEnemyVisuals>(Name))
+	{
+		return Art;
+	}
+	// Engineering-made crew looks (R-019): the same name anywhere under Gameplay/Characters (e.g. NullTrooper/).
+	IAssetRegistry* Registry = IAssetRegistry::Get();
+	if (!Registry)
+	{
+		return nullptr;
+	}
+	// By class, then by folder prefix: also finds assets in folders the registry has not scanned as paths yet.
+	FARFilter Filter;
+	Filter.ClassPaths.Add(UTDEnemyVisuals::StaticClass()->GetClassPathName());
+	TArray<FAssetData> Found;
+	Registry->GetAssets(Filter, Found);
+	for (const FAssetData& A : Found)
+	{
+		if (A.AssetName.ToString() == Name && A.PackagePath.ToString().StartsWith(TEXT("/Game/TriadDrift/Gameplay/Characters")))
+		{
+			if (UTDEnemyVisuals* V = Cast<UTDEnemyVisuals>(A.GetAsset()))
+			{
+				return V;
+			}
+		}
+	}
+	return nullptr;
+}
+
+FVector ATDCrewCharacter::GetMuzzleLocation(const FVector& AimDirection) const
+{
+	static const FName MuzzleSocket(TEXT("Muzzle"));
+	if (GetMesh() && GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset() && GetMesh()->DoesSocketExist(MuzzleSocket))
+	{
+		return GetMesh()->GetSocketLocation(MuzzleSocket);
+	}
+	return GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
+}
+
+void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
+{
+	if (!bFallbackAnim || !GetMesh() || !AssetPath)
+	{
+		return;
+	}
+	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
+	UAnimSequenceBase* Seq = LoadObject<UAnimSequenceBase>(nullptr, AssetPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (Anim && Seq)
+	{
+		Anim->PlaySlotAnimationAsDynamicMontage(Seq, FName(TEXT("DefaultSlot")), 0.1f, 0.15f, Rate);
+	}
+}
+
+const TCHAR* ATDCrewCharacter::FallbackDeathAnim(const FVector& HitDirection) const
+{
+	// HitDirection is the way the killing shot travelled; the side it came from picks the fall.
+	if (HitDirection.IsNearlyZero())
+	{
+		return TDCrewAnims::DeathFront;
+	}
+	const FVector From = -HitDirection.GetSafeNormal2D();
+	const float Fwd = FVector::DotProduct(From, GetActorForwardVector());
+	const float Right = FVector::DotProduct(From, GetActorRightVector());
+	if (FMath::Abs(Fwd) >= FMath::Abs(Right))
+	{
+		return Fwd >= 0.f ? TDCrewAnims::DeathFront : TDCrewAnims::DeathBack;
+	}
+	return Right >= 0.f ? TDCrewAnims::DeathRight : TDCrewAnims::DeathLeft;
 }
 
 void ATDCrewCharacter::ApplyVisuals()
@@ -203,15 +296,29 @@ void ATDCrewCharacter::ApplyVisuals()
 		if (USkeletalMesh* SK = Visuals->SkeletalMesh.LoadSynchronous())
 		{
 			GetMesh()->SetSkeletalMesh(SK);
-			if (!Visuals->AnimBPClass.IsNull())
+			UClass* AnimClass = Visuals->AnimBPClass.IsNull() ? nullptr : Visuals->AnimBPClass.LoadSynchronous();
+			bFallbackAnim = false;
+			if (!AnimClass)
 			{
-				if (UClass* AnimClass = Visuals->AnimBPClass.LoadSynchronous())
+				// A mesh with no AnimBP would stand frozen in its reference pose: drive it with the template mannequin set.
+				AnimClass = LoadClass<UAnimInstance>(nullptr, FallbackAnimBP, nullptr, LOAD_Quiet | LOAD_NoWarn);
+				bFallbackAnim = AnimClass != nullptr;
+			}
+			if (AnimClass)
+			{
+				GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+				GetMesh()->SetAnimInstanceClass(AnimClass);
+			}
+			for (int32 i = 0; i < Visuals->MaterialOverrides.Num(); ++i)
+			{
+				if (UMaterialInterface* Mat = Visuals->MaterialOverrides[i].LoadSynchronous())
 				{
-					GetMesh()->SetAnimInstanceClass(AnimClass);
+					GetMesh()->SetMaterial(i, Mat);
 				}
 			}
 			GetMesh()->SetVisibility(true);
 			GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -Spec.CapsuleHalfHeight));
+			GetMesh()->SetRelativeRotation(FRotator(0.f, Visuals->SkeletalMeshYaw, 0.f));
 			Body->SetVisibility(false);
 			Eyes->SetVisibility(false);
 			return;
@@ -290,7 +397,7 @@ void ATDCrewCharacter::UpdateTell()
 	const float Alpha = 1.f - FMath::Clamp(WindupLeft / Windup, 0.f, 1.f); // grows as the shot comes
 	const AActor* Target = AttackTarget.Get();
 	const FVector Dir = AimAt(Target);
-	const FVector Muzzle = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + Dir * (Spec.CapsuleRadius + 35.f);
+	const FVector Muzzle = GetMuzzleLocation(Dir);
 	TellGlow->SetWorldLocation(Muzzle);
 	TellGlow->SetWorldScale3D(FVector(FMath::Lerp(0.35f, 0.9f, Alpha)));
 	TellGlow->SetHiddenInGame(false);
@@ -391,6 +498,8 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	RecoverLeft = 0.f;
 	ShotsLeft = 0;
 	PlayCrewCue(TEXT("Telegraph"), Visuals ? Visuals->Telegraph : FTDFXCue(), true, GetActorLocation());
+	PlayFallbackAnim(Attack == ETDCrewAttack::Melee ? TDCrewAnims::Melee
+		: (Attack == ETDCrewAttack::ChargeSlam || Attack == ETDCrewAttack::Summon) ? TDCrewAnims::Slam : TDCrewAnims::Fire);
 	OnAttackStarted.Broadcast(this, Attack);
 	return true;
 }
@@ -495,7 +604,7 @@ void ATDCrewCharacter::FireBolt(const FVector& Direction, float Damage, float Sp
 	P.Range = Spec.RangedMaxRange * 1.5f;
 	P.CollisionRadius = Radius;
 	P.bInheritShooterVelocity = false;
-	const FVector Muzzle = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + Direction * (Spec.CapsuleRadius + 35.f);
+	const FVector Muzzle = GetMuzzleLocation(Direction);
 	ATDProjectile::Launch(World, P, FTransform(Direction.Rotation(), Muzzle), this, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
 }
 
@@ -634,6 +743,10 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 	if (HullDamage > 0.f)
 	{
 		PlayCrewCue(TEXT("HullHit"), Visuals ? Visuals->HullHit : FTDFXCue(), false, Info.HitLocation);
+		if (!IsDead() && !IsAttacking())
+		{
+			PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
+		}
 	}
 	if (Spec.Type == ETDCrewType::Warden && BossPhase == 1 && !IsDead() && Health->GetHull01() <= Spec.Phase2HealthFraction)
 	{
@@ -697,7 +810,12 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 
 	// Ragdoll: the skeletal mesh if Nick's art has a physics asset, otherwise the placeholder block tumbles.
 	const FVector Push = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection.GetSafeNormal()) * 450.f + FVector(0.f, 0.f, 250.f);
-	if (GetMesh()->IsVisible() && GetMesh()->GetPhysicsAsset())
+	UAnimSequenceBase* DeathAnim = bFallbackAnim ? LoadObject<UAnimSequenceBase>(nullptr, FallbackDeathAnim(KillingBlow.HitDirection), nullptr, LOAD_Quiet | LOAD_NoWarn) : nullptr;
+	if (GetMesh()->IsVisible() && DeathAnim)
+	{
+		GetMesh()->PlayAnimation(DeathAnim, false); // falls the way the killing shot came from, then holds
+	}
+	else if (GetMesh()->IsVisible() && GetMesh()->GetPhysicsAsset())
 	{
 		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
 		GetMesh()->SetSimulatePhysics(true);
@@ -740,6 +858,13 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 	}
 	if (WindupLeft > 0.f)
 	{
+		// Square up to the target during the wind-up (the body does not follow the AI's control rotation on its own:
+		// a grunt circling beside the pilot used to swing at the air forever - journey run 2, wreck core stall).
+		if (const AActor* T = AttackTarget.Get(); T && CurrentAttack != ETDCrewAttack::ChargeSlam)
+		{
+			const float Want = (T->GetActorLocation() - GetActorLocation()).Rotation().Yaw;
+			SetActorRotation(FRotator(0.f, FMath::FixedTurn(GetActorRotation().Yaw, Want, 720.f * DeltaSeconds), 0.f));
+		}
 		WindupLeft -= DeltaSeconds;
 		if (WindupLeft <= 0.f)
 		{
