@@ -130,6 +130,8 @@ protected:
 	TObjectPtr<UMaterialInterface> StarGlowMaterial;
 
 	FTimerHandle FirstWaveTimer;
+	/** ENG-33: the run timer's state when the intro paused it (restored at the first waves). */
+	bool bRunTimerPausedBeforeIntro = false;
 public:
 	/** Tests: enter the level again (what StartPlay does after the squad is handed over: intro or first waves). */
 	void EnterLevelForTests() { EnterLevel(); }

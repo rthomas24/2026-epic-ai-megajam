@@ -151,6 +151,11 @@ void ATDSpaceGameMode::EnterLevel()
 		GI->NotifyLevelEntered(Destination);
 		GI->OnSceneRestart.Remove(SceneRestartHandle);
 		SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDSpaceGameMode::HandleSceneRestart);
+		if (bIntroPlaying)
+		{
+			bRunTimerPausedBeforeIntro = GI->IsRunTimerPaused();
+			GI->SetRunTimerPaused(true); // the intro is not play time: watched or skipped, the run time is the same
+		}
 	}
 	else
 	{
@@ -166,9 +171,13 @@ void ATDSpaceGameMode::EnterLevel()
 void ATDSpaceGameMode::BeginFirstWaves()
 {
 	// The intro's OnFinished (watched or skipped): the same phase change and timer as a run without it.
-	if (UTDGameInstance* GI = UTDGameInstance::Get(this); GI && GI->GetProgress().Phase == ETDGamePhase::Intro)
+	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
-		GI->SetPhase(ETDGamePhase::Waves1to2);
+		if (GI->GetProgress().Phase == ETDGamePhase::Intro)
+		{
+			GI->SetPhase(ETDGamePhase::Waves1to2);
+		}
+		GI->SetRunTimerPaused(bRunTimerPausedBeforeIntro); // the run time starts now, exactly as without the intro
 	}
 	ArmFirstWaveTimer();
 }

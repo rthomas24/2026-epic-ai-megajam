@@ -186,6 +186,7 @@ public:
 
 	/** Pauses the run timer (menus, transitions, victory). */
 	void SetRunTimerPaused(bool bPaused) { bRunTimerPaused = bPaused; }
+	bool IsRunTimerPaused() const { return bRunTimerPaused; }
 
 	/** Read-only view without a copy (C++ callers on hot paths). */
 	const FTDProgress& GetProgressRef() const { return Progress; }
