@@ -93,7 +93,7 @@ def materials():
         "Armor": _panel_mat("M_Dominion_Armor", 64.0, (0.026, 0.027, 0.031), (0.07, 0.072, 0.08),
                             (0.002, 0.002, 0.003), 0.4, 0.5),
         "Trim": _panel_mat("M_Dominion_Trim", 12.0, (0.006, 0.006, 0.007), (0.016, 0.016, 0.018),
-                           (0.002, 0.002, 0.002), 0.34, 0.8),
+                           (0.002, 0.002, 0.002), 0.52, 0.6),
         "GlowRed": _glow_mat("M_Dominion_GlowRed", (1.0, 0.14, 0.02), 1.3),
         "GlowWhite": _glow_mat("M_Dominion_GlowWhite", (0.9, 0.95, 1.0), 1.6),
         "GlowEngine": _glow_mat("M_Dominion_GlowEngine", (1.0, 0.3, 0.05), 1.6),
@@ -356,8 +356,8 @@ def build_hull(asset, mats, stage):
         g, tops = [], []
         for x, y, z, t, h in JAW[:-1] + [(JAW[-1][0] - 6.0, JAW[-1][1] + 3.0, JAW[-1][2] - 1.5, 2.0, 5.0)]:
             yi = (y - 0.8 * t - 0.35) * sgn
-            g.append([(x, yi - 0.6 * sgn, z + h * 0.06), (x, yi + 0.6 * sgn, z + h * 0.06), (x, yi + 0.6 * sgn, z - h * 0.06),
-                      (x, yi - 0.6 * sgn, z - h * 0.06)])
+            g.append([(x, yi - 0.6 * sgn, z + h * 0.03), (x, yi + 0.6 * sgn, z + h * 0.03), (x, yi + 0.6 * sgn, z - h * 0.03),
+                      (x, yi - 0.6 * sgn, z - h * 0.03)])
             tops.append(Vector((x, y * sgn, z + h * 0.5 + 0.25)))
         K.add(loft3_bm(g), "GlowRed")
         for a0, a1 in zip(tops, tops[1:]):
@@ -380,11 +380,13 @@ def build_hull(asset, mats, stage):
     kl = [Vector((x, 0.0, zb - 0.2)) for x, t, zt, zb in ((60.0, 3.6, -44.0, -66.0), (200.0, 4.6, -48.0, -104.0),
                                                           (262.0, 4.2, -66.0, -112.0), (318.0, 0.8, -58.0, -94.0))]
     for sgn in (-1, 1):
-        for a0, a1 in zip(kl, kl[1:]):
-            q = [a0 + Vector((0, 0, 3.0)), a1 + Vector((0, 0, 3.0)), a1 + Vector((0, 0, 1.6)), a0 + Vector((0, 0, 1.6))]
-            K.add(slab_bm(q, Vector((0, sgn, 0)), 1.6, 0.0), "GlowRed")
+        for a0, a1 in zip(kl[1:], kl[2:]):
+            for f0, f1 in ((0.15, 0.3), (0.6, 0.75)):
+                b0, b1 = a0.lerp(a1, f0), a0.lerp(a1, f1)
+                q = [b0 + Vector((0, 0, 6.0)), b1 + Vector((0, 0, 6.0)), b1 + Vector((0, 0, 5.4)), b0 + Vector((0, 0, 5.4))]
+                K.add(slab_bm(q, Vector((0, sgn, 0)), 2.6, 0.0), "GlowRed")
     # ---- engines
-    K.add(loft_bm(ENGINE_BLOCK), "Armor", bevel=0.6, seg=2, angle=25.0)
+    K.add(loft_bm(ENGINE_BLOCK), "Trim", bevel=0.6, seg=2, angle=25.0)
     for i in range(len(ENGINE_BLOCK) - 1):
         K.hull_pts([(x, y, z) for x, poly in ENGINE_BLOCK[i:i + 2] for (y, z) in poly])
     engines = [(0.0, 10.0, 24.0, 30.0), (48.0, 6.0, 17.0, 24.0), (-48.0, 6.0, 17.0, 24.0), (24.0, -26.0, 11.0, 17.0),
@@ -401,7 +403,8 @@ def build_hull(asset, mats, stage):
               "GlowEngine", smooth=40.0)
         # collar with a red ring
         K.add(cyl_bm(R * 1.12, 6.0, 40, "X", (-299.0, y, z)), "Panel", bevel=0.3, seg=2, angle=40.0)
-        K.add(cyl_bm(R * 1.06, 1.2, 40, "X", (-302.6, y, z)), "GlowRed", smooth=40.0)
+        K.add(lathe_x_bm([(-301.6, R * 1.11), (-301.6, R * 1.15), (-302.6, R * 1.15), (-302.6, R * 1.11), (-301.6, R * 1.11)],
+                         48, (0.0, y, z)), "GlowRed", smooth=40.0)
         for a in range(12):
             ang = math.tau * a / 12
             eng_pts.append((-302.0 - Lb, y + R * math.cos(ang), z + R * math.sin(ang)))
@@ -410,7 +413,7 @@ def build_hull(asset, mats, stage):
     # stern cowl: deep hood, raked cheeks and a lower lip wrapping the engine cluster
     hood = loft3_bm([[(-299.0, -96.0, 40.0), (-299.0, 96.0, 40.0), (-299.0, 92.0, 56.0), (-299.0, -92.0, 56.0)],
                      [(-342.0, -80.0, 40.0), (-342.0, 80.0, 40.0), (-336.0, 80.0, 46.0), (-336.0, -80.0, 46.0)]])
-    K.add(hood, "Armor", bevel=0.5, seg=2, hull=True)
+    K.add(hood, "Trim", bevel=0.5, seg=2, hull=True)
     for sgn in (-1, 1):
         ch = loft3_bm([[(-299.0, 96.0 * sgn, -38.0), (-299.0, 104.0 * sgn, -38.0), (-299.0, 104.0 * sgn, 44.0), (-299.0, 96.0 * sgn, 44.0)],
                        [(-326.0, 94.0 * sgn, -30.0), (-326.0, 99.0 * sgn, -30.0), (-340.0, 98.0 * sgn, 42.0), (-340.0, 93.0 * sgn, 42.0)]])
@@ -488,21 +491,35 @@ def build_hull(asset, mats, stage):
                 K.add(wedge_bm(q, Vector((0, sgn, 0)), ta, tb, 1.0), "Armor", bevel=0.5, seg=2)
                 K.hull_pts([tuple(pp + Vector((0, sgn * t, 0))) for pp in q for t in (-1.0, tb)])
                 # edge outline: front raked edge + top edge (red), in the step's shadow
-                fe = [Vector((x1 + 1.4, w1 * sgn, za + 1.0)), Vector((x1 + 2.8, w1 * sgn, za + 1.0)),
-                      Vector((min(x1 + rake, 190.0) + 2.8, w1 * sgn, zb - 1.0)), Vector((min(x1 + rake, 190.0) + 1.4, w1 * sgn, zb - 1.0))]
-                K.add(slab_bm(fe, Vector((0, sgn, 0)), tb - 0.6, 0.4), "GlowRed")
-                te = [Vector((x0 + rake + 2.0, w0 * sgn, zb + 0.2)), Vector((min(x1 + rake, 190.0) - 2.0, w1 * sgn, zb + 0.2)),
-                      Vector((min(x1 + rake, 190.0) - 2.0, w1 * sgn, zb - 0.9)), Vector((x0 + rake + 2.0, w0 * sgn, zb - 0.9))]
-                tt_mid = (ta + tb) * 0.5
-                K.add(slab_bm(te, Vector((0, sgn, 0)), tt_mid + 0.3, 0.3), "GlowRed")
-                tier_glow += 1.4 * (zb - za) + 1.1 * (x1 - x0)
-                if tier == 0:
-                    for e in range(2):
-                        xe = x1 - 22.0 - e * 11.0
+                fe = [Vector((x1 + 1.75, w1 * sgn, za + 1.0)), Vector((x1 + 2.45, w1 * sgn, za + 1.0)),
+                      Vector((min(x1 + rake, 190.0) + 2.45, w1 * sgn, zb - 1.0)), Vector((min(x1 + rake, 190.0) + 1.75, w1 * sgn, zb - 1.0))]
+                # only a 1.2 m deep line at the outer lip of the step (a full-depth strip was a glowing fin seen from below)
+                fe = [pp + Vector((0.0, (tb - 1.4) * sgn, 0.0)) for pp in fe]
+                K.add(slab_bm(fe, Vector((0, sgn, 0)), 1.2, 0.0), "GlowRed")
+                tier_glow += 0.7 * (zb - za)
+                xs0, xs1 = x0 + rake + 3.0, min(x1 + rake, 190.0) - 3.0
+                n_d = max(2, int((xs1 - xs0) / 26.0))
+                for d_ in range(n_d):
+                    u0 = xs0 + (xs1 - xs0) * d_ / n_d + 2.0
+                    u1 = xs0 + (xs1 - xs0) * (d_ + 1) / n_d - 2.0
+
+                    def outer(u, inset):
+                        f = (u - (x0 + rake)) / max(1.0, (x1 - x0))
+                        w = w0 + (w1 - w0) * f
+                        t_ = ta + (tb - ta) * f
+                        return Vector((u, (w + t_ - inset) * sgn, zb + 0.06))
+                    q = [outer(u0, 0.9), outer(u1, 0.9), outer(u1, 0.3), outer(u0, 0.3)]
+                    K.add(slab_bm(q, Vector((0, 0, 1)), 0.25, 0.35), "GlowRed")
+                    tier_glow += 0.6 * (u1 - u0)
+                n_eyes = (4 if x1 - x0 > 70.0 else 2) if tier == 0 else 2
+                ez, eh = (34.0, 2.4) if tier == 0 else (8.0, 1.6)
+                if True:
+                    for e in range(n_eyes):
+                        xe = x1 - 22.0 - e * 11.0 - (8.0 if e >= 2 else 0.0)
                         tt = ta + (tb - ta) * (xe + 9.0 - x0) / (x1 - x0)
                         we = core_point(xe + 4.0, 1).y
-                        eq = [Vector((xe, (we + tt) * sgn, 34.0)), Vector((xe + 8.0, (we + tt) * sgn, 34.0)),
-                              Vector((xe + 9.5, (we + tt) * sgn, 31.6)), Vector((xe + 1.5, (we + tt) * sgn, 31.6))]
+                        eq = [Vector((xe, (we + tt) * sgn, ez)), Vector((xe + 8.0, (we + tt) * sgn, ez)),
+                              Vector((xe + 9.5, (we + tt) * sgn, ez - eh)), Vector((xe + 1.5, (we + tt) * sgn, ez - eh))]
                         K.add(slab_bm(eq, Vector((0, sgn, 0)), 0.4, 1.6), "GlowWhite")
                         tier_glow += 19.0
     # turret hardpoint blisters under the deck-edge pads (gameplay turrets at (+/-180, +/-80, 55))
@@ -571,8 +588,9 @@ def build_hull(asset, mats, stage):
                                 p0, p1 = strip_point(xs, k0, k1, 0.08, st), strip_point(min(xs + rk, xb), k0, k1, 0.92, st)
                             else:
                                 p0, p1 = strip_point(xs, k1, k0, 0.92, st), strip_point(min(xs + rk, xb), k1, k0, 0.08, st)
-                            gq = [p0 - Vector((0.65, 0, 0)), p0 + Vector((0.65, 0, 0)), p1 + Vector((0.65, 0, 0)), p1 - Vector((0.65, 0, 0))]
-                            K.add(slab_bm(gq, n1, 2.3 if not heavy else 2.8, 0.4), "GlowRed")
+                            gq = [p0 - Vector((0.32, 0, 0)), p0 + Vector((0.32, 0, 0)), p1 + Vector((0.32, 0, 0)), p1 - Vector((0.32, 0, 0))]
+                            gq = [pp + n1 * ((3.4 if not heavy else 4.2) - 1.3) for pp in gq]
+                            K.add(slab_bm(gq, n1, 1.0, 0.0), "GlowRed")
                             glow_area += 0.9 * (p1 - p0).length
 
     core_iv = [(-246.0, -180.0), (-180.0, -120.0), (-120.0, -30.0), (-30.0, 70.0), (70.0, 140.0), (140.0, 190.0)]
@@ -594,12 +612,12 @@ def build_hull(asset, mats, stage):
         # deck-edge light line, dashed every 40 m
         x = -236.0
         while x < 186.0:
-            xe = min(x + 38.0, 188.0)
+            xe = min(x + 24.0, 188.0)
             a0, a1 = core_point(x, 0), core_point(xe, 0)
-            q = [a0 + Vector((0, 0, -0.2)), a1 + Vector((0, 0, -0.2)), a1 + Vector((0, 0, -1.6)), a0 + Vector((0, 0, -1.6))]
+            q = [a0 + Vector((0, 0, -0.3)), a1 + Vector((0, 0, -0.3)), a1 + Vector((0, 0, -1.0)), a0 + Vector((0, 0, -1.0))]
             q = [Vector((pp.x, pp.y * (1 if sgn > 0 else -1), pp.z)) for pp in q]
             K.add(slab_bm(q, Vector((0, sgn, 0.3)), 1.6, 0.3), "GlowRed")
-            glow_area += 1.4 * (xe - x)
+            glow_area += 0.7 * (xe - x)
             x += 40.0
 
     def dz(x):
@@ -627,7 +645,7 @@ def build_hull(asset, mats, stage):
         K.add(box_bm((xf + 1.0, 0.0, zz), (0.6, 62.0, 1.4)), "GlowRed")
     for (c, sz) in (((xf + 7.0, 0.0, -2.0), (14.0, 80.0, 5.0)), ((xf + 5.0, 0.0, -46.0), (10.0, 76.0, 5.0)),
                     ((xf + 6.0, -36.5, -24.0), (12.0, 6.0, 44.0)), ((xf + 6.0, 36.5, -24.0), (12.0, 6.0, 44.0))):
-        K.add(box_bm(c, sz), "Armor", bevel=0.5, seg=2)
+        K.add(box_bm(c, sz), "Trim", bevel=0.5, seg=2)
     K.hull_pts([(xf + dx, y, z) for dx in (0.0, 14.0) for y in (-40.0, 40.0) for z in (-49.0, 0.5)])
     for i in range(7):    # internal bulkhead ribs (depth cues)
         y = -27.0 + 9.0 * i
@@ -702,11 +720,11 @@ def build_hull(asset, mats, stage):
                   "Trim", smooth=40.0)
     for (xa, xb) in ((tx0, 214.0), (216.0, tx1)):
         za, zb = core_point(xa, 0).z, core_point(xb, 0).z
-        q = [Vector((xa, -1.4, za)), Vector((xb, -1.4, zb)), Vector((xb, 1.4, zb)), Vector((xa, 1.4, za))]
+        q = [Vector((xa, -0.5, za)), Vector((xb, -0.5, zb)), Vector((xb, 0.5, zb)), Vector((xa, 0.5, za))]
         K.add(slab_bm(q, Vector((0, 0, 1)), 0.12, 0.3), "GlowRed")
-        glow_area += 2.8 * (xb - xa)
+        glow_area += 1.0 * (xb - xa)
         for sgn in (-1, 1):
-            q = [Vector((xa, sgn * 1.6, za)), Vector((xb, sgn * 1.6, zb)), Vector((xb, sgn * 2.8, zb)), Vector((xa, sgn * 2.8, za))]
+            q = [Vector((xa, sgn * 0.6, za)), Vector((xb, sgn * 0.6, zb)), Vector((xb, sgn * 2.8, zb)), Vector((xa, sgn * 2.8, za))]
             K.add(slab_bm(q, Vector((0, 0, 1)), 0.5, 0.3), "Trim")
     # trench landmarks: machinery blocks every 60 m (big / medium rhythm) and the reactor's cradle
     for j, xm in enumerate((-150.0, -90.0, -30.0, 30.0, 90.0)):
@@ -733,7 +751,11 @@ def build_hull(asset, mats, stage):
         K.add(arm, "Trim", bevel=0.2, seg=1)
         K.add(box_bm(tip - d * 0.8 + Vector((0, 0, -1.5)), (1.0, 1.0, 2.5)), "GlowRed")
     K.add(cyl_bm(14.0, 1.2, 32, "Z", (rc.x, rc.y, 50.6)), "Trim", bevel=0.2, seg=1, angle=40.0)
-    K.add(cyl_bm(12.0, 1.4, 32, "Z", (rc.x, rc.y, 50.8)), "GlowEngine", smooth=40.0)
+    for i in range(16):
+        a = math.tau * i / 16
+        d = Vector((math.cos(a), math.sin(a), 0.0))
+        K.add(box_bm(Vector((rc.x, rc.y, 51.25)) + d * 12.8, (1.2, 1.2, 0.5)), "GlowEngine",
+              place=None)
     # dorsal vents / greeble clusters near the emitters and the bridge base
     grng = random.Random(3)
     for cx, cy in ((165.0, 64.0), (-105.0, 64.0), (-262.0, 30.0), (230.0, 40.0)):
@@ -888,9 +910,9 @@ def build_wall(asset, mats, stage):
             K.add(box_bm((x + 7.0, hy + 0.12, 4.5), (11.0, 0.3, 6.5)), "Panel", bevel=0.12, seg=1)
             K.add(box_bm((x + 7.0, hy + 0.12, -6.5), (11.0, 0.3, 9.0)), "Panel", bevel=0.12, seg=1)
             K.add(box_bm((x + 7.0, hy + 0.35, 9.2), (1.2, 0.3, 0.7)), "GlowWhite")
+            K.add(box_bm((x + 7.0, hy + 0.2, -0.8), (5.0, 0.4, 0.5)), "GlowRed")
             x += 14.0
             k += 1
-        K.add(box_bm((0.0, hy + 0.25, -0.8), (2 * hx - 6.0, 0.4, 0.8)), "GlowRed")
         # outer face (-Y): buttresses standing on the deck, one red seam each
         x = -hx + 15.0
         while x < hx - 10.0:

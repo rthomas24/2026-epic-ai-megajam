@@ -473,8 +473,8 @@ def build_rift(asset, tag, stage):
                        {"y": 1.10, "w": 0.34, "ht": 0.16, "hb": 0.11, "x": 0.62, "z": 0.0, "groove": 0.008},
                        {"y": 1.75, "w": 0.24, "ht": 0.11, "hb": 0.09, "x": 0.58, "z": 0.0},
                        {"y": 1.95, "w": 0.0, "x": 0.54, "z": 0.0}], verts=20), P, m["white"], smooth=36.0)
-    both(lambda: wing_loft(wst[:3]), P, m["white"], bevel=0.01, segments=2, angle=30.0)
-    both(lambda: wing_loft([nudge(wst[2])] + wst[3:]), P, m["accent"], bevel=0.008, segments=2, angle=30.0)
+    both(lambda: wing_loft(wst[:2]), P, m["white"], bevel=0.01, segments=2, angle=30.0)
+    both(lambda: wing_loft([nudge(wst[1])] + wst[2:]), P, m["accent"], bevel=0.008, segments=2, angle=30.0)
     # engine nacelles + twin nozzles
     for sx in (1, -1):
         nac = hull([{"y": 0.9, "w": 0.0, "x": sx * 0.44, "z": -0.02},
@@ -482,7 +482,7 @@ def build_rift(asset, tag, stage):
                     {"y": 1.5, "w": 0.50, "ht": 0.27, "hb": 0.25, "x": sx * 0.44, "z": -0.02, "groove": 0.01},
                     {"y": 2.15, "w": 0.52, "ht": 0.27, "hb": 0.26, "x": sx * 0.44, "z": -0.02},
                     {"y": 2.24, "w": 0.48, "ht": 0.25, "hb": 0.24, "x": sx * 0.44, "z": -0.02}], verts=20)
-        P.add(nac, m["graphite"], smooth=36.0)
+        P.add(nac, m["accent"], smooth=36.0)
         nozzle(P, m, (sx * 0.44, 2.14, -0.02), 0.2, 0.36)
     # canted V tails over the nacelles
     fst = [(0.0, 0.95, 1.20, 0.09, 0.0), (0.48, 1.50, 0.70, 0.065, 0.0), (0.80, 1.98, 0.32, 0.04, 0.0)]
@@ -491,7 +491,7 @@ def build_rift(asset, tag, stage):
         o = wing_loft(fst)
         o.data.transform(T(0.40, 0, 0.14) @ rot(-62, "Y"))
         return o
-    both(fin, P, m["white"], bevel=0.008, segments=2, angle=30.0)
+    both(fin, P, m["accent"], bevel=0.008, segments=2, angle=30.0)
     # canopy (narrow) + dorsal livery spine
     squad_canopy(P, m, -1.35, 0.27, 1.0)
     spine(P, m, -0.12, 1.75, 0.30, 0.18, 0.36, 0.30)
@@ -533,7 +533,7 @@ def build_rift(asset, tag, stage):
         plate_on(P, m["graphite"], fus, (lo, hi), normal=(sx, 0, 0), min_dot=0.62)
     plate_on(P, m["graphite"], fus, ((-1, -1.7, -1), (1, 2.1, 0.0)), normal=(0, 0, -1), min_dot=0.62)
     for sx in (1, -1):
-        plate_on(P, m["graphite"], fus, ((min(sx * 0.2, sx * 0.62), 0.25, 0.1), (max(sx * 0.2, sx * 0.62), 1.75, 1.0)),
+        plate_on(P, m["accent"], fus, ((min(sx * 0.2, sx * 0.62), 0.25, 0.1), (max(sx * 0.2, sx * 0.62), 1.75, 1.0)),
                  normal=(0, 0, 1), min_dot=0.6)
     # greebles behind the canopy and at the engine roots
     surf = Surf(P.parts)
@@ -617,8 +617,8 @@ def build_lancer(asset, tag, stage):
     # short swept-back wings (white, cyan tips), drooping
     wst = [(0.38, 0.45, 1.55, 0.13, -0.06), (0.95, 0.98, 1.0, 0.10, -0.12), (1.50, 1.55, 0.42, 0.06, -0.24)]
     tipst = [nudge((0.95, 0.98, 1.0, 0.10, -0.12)), (1.50, 1.55, 0.42, 0.06, -0.24)]
-    both(lambda: wing_loft(wst[:2]), P, m["white"], bevel=0.01, segments=2, angle=30.0)
-    both(lambda: wing_loft(tipst), P, m["accent"], bevel=0.008, segments=2, angle=30.0)
+    both(lambda: wing_loft(wst[:2]), P, m["accent"], bevel=0.01, segments=2, angle=30.0)
+    both(lambda: wing_loft(tipst), P, m["white"], bevel=0.008, segments=2, angle=30.0)
     # small forward canards (silhouette: a needle with a second, smaller wing pair)
     cst = [(0.24, -0.95, 0.46, 0.05, 0.02), (0.62, -0.70, 0.22, 0.035, 0.0)]
     both(lambda: wing_loft(cst), P, m["graphite"], bevel=0.005, segments=1, angle=30.0)
@@ -629,8 +629,8 @@ def build_lancer(asset, tag, stage):
                     {"y": 1.0, "w": 0.2, "ht": 0.12, "hb": 0.11, "x": sx * 0.58, "z": -0.08},
                     {"y": 1.4, "w": 0.3, "ht": 0.16, "hb": 0.15, "x": sx * 0.58, "z": -0.08, "groove": 0.008},
                     {"y": 2.0, "w": 0.3, "ht": 0.16, "hb": 0.15, "x": sx * 0.58, "z": -0.08}], verts=16)
-        P.add(nac, m["graphite"], smooth=36.0)
-        nozzle(P, m, (sx * 0.58, 1.98, -0.08), 0.12, 0.24, segs=16, ribs=6, glow="glow_dim")
+        P.add(nac, m["accent"], smooth=36.0)
+        nozzle(P, m, (sx * 0.58, 1.98, -0.08), 0.12, 0.24, segs=16, ribs=6)
     # single tall dorsal fin, swept
     fst = [(0.0, 0.42, 1.75, 0.10, 0.0), (0.55, 1.08, 1.05, 0.08, 0.0), (1.0, 1.75, 0.45, 0.05, 0.0)]
     # ventral keel blade under the ram prow (graphite)
@@ -644,7 +644,7 @@ def build_lancer(asset, tag, stage):
         o.data.transform(T(0, 0, 0.26) @ rot(-90, "Y"))
         return o
     f = fin()
-    P.add(f, m["white"], bevel=0.008, segments=2, angle=30.0)
+    P.add(f, m["accent"], bevel=0.008, segments=2, angle=30.0)
     # canopy + spine
     squad_canopy(P, m, -0.95, 0.25, 1.0)
     spine(P, m, 0.22, 0.75, 0.26, 0.16, 0.34, 0.33)
@@ -669,7 +669,11 @@ def build_lancer(asset, tag, stage):
         loc, nrm = surf.hit((sx * 1.0, -0.2, 0.08), (-sx, 0, 0))
         if loc is not None:
             vents(P, m, loc, nrm, (0, 1, 0), 6, 0.08, 0.5, 0.12)
-    plate_on(P, m["accent"], fus, ((-0.5, 1.25, 0.1), (0.5, 1.82, 1.0)), normal=(0, 0, 1), min_dot=0.5)
+    plate_on(P, m["accent"], fus, ((-0.5, 0.40, 0.1), (0.5, 1.82, 1.0)), normal=(0, 0, 1), min_dot=0.5)
+    for sx in (1, -1):
+        lo = (0.1, -1.25, -0.5) if sx > 0 else (-1.0, -1.25, -0.5)
+        hi = (1.0, 0.40, 0.4) if sx > 0 else (-0.1, 0.40, 0.4)
+        plate_on(P, m["accent"], fus, (lo, hi), normal=(sx, 0, 0), min_dot=0.62)
     for sx in (1, -1):
         lo = (0.1, 0.5, -0.5) if sx > 0 else (-1.0, 0.5, -0.5)
         hi = (1.0, 1.8, 0.1) if sx > 0 else (-0.1, 1.8, 0.1)
@@ -723,7 +727,7 @@ def build_bastion(asset, tag, stage):
               {"y": 1.85, "w": 0.72, "ht": 0.35, "hb": 0.31, "x": sx * pod_x, "z": -0.08, "n": 3.4},
               {"y": 2.00, "w": 0.62, "ht": 0.30, "hb": 0.27, "x": sx * pod_x, "z": -0.08, "n": 3.4}]
         pod = hull(st)
-        P.add(pod, m["graphite"], smooth=36.0)
+        P.add(pod, m["accent"], smooth=36.0)
         P.hull_from([pod])
         pods.append(pod)
         # broad swept wing through the pod (white, amber tip beyond the pod)
@@ -759,7 +763,7 @@ def build_bastion(asset, tag, stage):
                  {"y": 1.40, "w": 1.24, "ht": 0.17, "hb": 0.12, "z": 0.50, "n": 3.4, "groove": 0.01},
                  {"y": 2.10, "w": 1.02, "ht": 0.12, "hb": 0.12, "z": 0.42, "n": 3.4},
                  {"y": 2.30, "w": 0.80, "ht": 0.06, "hb": 0.10, "z": 0.36, "n": 3.4}])
-    P.add(deck, m["graphite"], smooth=36.0)
+    P.add(deck, m["accent"], smooth=36.0)
     # dorsal shield-dome emitter: pedestal, raised ring on three struts, amber dish
     dc = V(0.0, 0.75, 0.62)
     ped = lathe_z([(-0.12, 0.46), (0.04, 0.46), (0.07, 0.40), (0.09, 0.30), (0.09, 0.0)], segments=40,
@@ -832,9 +836,9 @@ def build_bastion(asset, tag, stage):
             vents(P, m, loc, nrm, (0, 1, 0), 5, 0.1, 0.55, 0.14)
     # amber accent plates: nose chevron and the hull's rear deck around the dome
     plate_on(P, m["accent"], fus, ((-1.2, -2.2, 0.0), (1.2, -1.98, 1.0)), normal=(0, 0, 1), min_dot=0.35)
-    plate_on(P, m["accent"], pods[0], ((pod_x - 0.5, -1.6, 0.0), (pod_x + 0.5, -1.15, 1.0)), normal=(0, 0, 1),
+    plate_on(P, m["white"], pods[0], ((pod_x - 0.5, -1.6, 0.0), (pod_x + 0.5, -1.15, 1.0)), normal=(0, 0, 1),
              min_dot=0.3)
-    plate_on(P, m["accent"], pods[1], ((-pod_x - 0.5, -1.6, 0.0), (-pod_x + 0.5, -1.15, 1.0)), normal=(0, 0, 1),
+    plate_on(P, m["white"], pods[1], ((-pod_x - 0.5, -1.6, 0.0), (-pod_x + 0.5, -1.15, 1.0)), normal=(0, 0, 1),
              min_dot=0.3)
     for sx in (1, -1):
         lo = (0.25, 1.2, 0.1) if sx > 0 else (-0.95, 1.2, 0.1)

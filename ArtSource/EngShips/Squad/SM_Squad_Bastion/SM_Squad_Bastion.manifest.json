@@ -73,6 +73,15 @@
   "nanite": true,
   "ship": "Bastion",
   "ue_radius_cm": 220,
+  "surface_share_by_role": {
+    "White": 0.395,
+    "Accent": 0.285,
+    "Graphite": 0.202,
+    "Metal": 0.064,
+    "Glow": 0.035,
+    "Glass": 0.017,
+    "Dark": 0.001
+  },
   "ue_sockets": [
     {
       "name": "Muzzle_0",

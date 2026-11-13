@@ -1,7 +1,7 @@
 {
   "asset": "SM_Squad_Rift",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Rift\\SM_Squad_Rift.fbx",
-  "tris": 16788,
+  "tris": 16768,
   "size_cm": [
     500.0,
     493.5,
@@ -69,6 +69,15 @@
   "nanite": true,
   "ship": "Rift",
   "ue_radius_cm": 220,
+  "surface_share_by_role": {
+    "White": 0.401,
+    "Accent": 0.267,
+    "Graphite": 0.224,
+    "Metal": 0.042,
+    "Glow": 0.038,
+    "Glass": 0.026,
+    "Dark": 0.003
+  },
   "ue_sockets": [
     {
       "name": "Muzzle_0",

@@ -1,8 +1,8 @@
 {
   "asset": "SM_Null_Carrier",
-  "tag": "r4",
+  "tag": "e1",
   "checks": {
-    "tris": 33546,
+    "tris": 33706,
     "tris_in_budget": true,
     "material_slots": 1,
     "no_floating_parts": true,
@@ -12,8 +12,8 @@
     "asset_report_warnings": 0,
     "collision_hulls": 4,
     "size_cm": [
-      3964.8,
-      4489.2,
+      3955.6,
+      4643.4,
       2506.3
     ],
     "export_status": "ok"
@@ -21,12 +21,32 @@
   "info": {
     "snapped_floating_groups": [
       [
+        "part_0038",
+        0.11
+      ],
+      [
+        "part_0042",
+        0.101
+      ],
+      [
+        "part_0046",
+        0.11
+      ],
+      [
+        "part_0050",
+        0.101
+      ],
+      [
+        "part_0054",
+        0.092
+      ],
+      [
         "part_0081",
-        0.149
+        0.196
       ],
       [
         "part_0089",
-        0.148
+        0.196
       ]
     ],
     "com_shift_m": [
@@ -36,19 +56,19 @@
     ],
     "centre_of_mass_m": [
       0.002,
-      0.354,
-      1.626
+      0.389,
+      1.624
     ],
-    "edge_area_share": 0.0819,
+    "edge_area_share": 0.0827,
     "uv_unwrap": {
       "margin": 0.0035,
-      "faces_detached_for_overlap": 27
+      "faces_detached_for_overlap": 24
     },
     "uv": {
       "inside_0_1": true,
-      "coverage": 0.326,
+      "coverage": 0.3454,
       "overlap_pixels": 12,
-      "overlap_share_of_covered": 3.5e-05,
+      "overlap_share_of_covered": 3.3e-05,
       "raster": 1024
     },
     "bake": {
@@ -66,13 +86,13 @@
       "preview_material": "M_Null_Carrier_Baked",
       "notes": [],
       "warnings": [],
-      "seconds": 279.76
+      "seconds": 202.23
     },
     "cavity": {
       "status": "ok",
-      "share_tinted": 0.7762
+      "share_tinted": 0.7699
     },
-    "build_seconds": 362.3
+    "build_seconds": 242.2
   },
   "textures": {
     "BC": {
@@ -81,9 +101,9 @@
         4096
       ],
       "mean_rgb": [
-        0.0698,
-        0.0672,
-        0.072
+        0.0716,
+        0.0689,
+        0.0743
       ],
       "min": 0.0,
       "max": 0.4
@@ -95,14 +115,14 @@
       ],
       "mean_rgb": [
         0.5,
-        0.4999,
+        0.5,
         1.0
       ],
-      "min": 0.0706,
+      "min": 0.1451,
       "max": 1.0,
       "std_rg": [
-        0.0122,
-        0.0122
+        0.0123,
+        0.0131
       ]
     },
     "ORM": {
@@ -111,17 +131,17 @@
         4096
       ],
       "mean_rgb": [
-        0.3019,
-        0.2991,
-        0.3184
+        0.3087,
+        0.3147,
+        0.3294
       ],
       "min": 0.0,
       "max": 1.0,
       "roughness_p5_p95": [
         0.0,
-        0.69
+        0.694
       ],
-      "metallic_mean": 0.307
+      "metallic_mean": 0.318
     },
     "E": {
       "size": [
@@ -129,15 +149,15 @@
         4096
       ],
       "mean_rgb": [
-        0.1068,
-        0.0298,
-        0.0123
+        0.0837,
+        0.0251,
+        0.0106
       ],
       "min": 0.0,
       "max": 1.0
     }
   },
-  "emissive_surface_share": 0.0417,
+  "emissive_surface_share": 0.0326,
   "asset_report_issues": [
     {
       "severity": "info",
@@ -150,20 +170,20 @@
     "islands": 215,
     "groups": 1,
     "floating": [],
-    "tolerance_m": 0.09739
+    "tolerance_m": 0.09892
   },
   "review": {
-    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_r4_review.png",
-    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_r4_clay_sheet.png",
-    "ortho_cm_per_px": 11.223,
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_e1_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_e1_clay_sheet.png",
+    "ortho_cm_per_px": 11.6086,
     "warnings": []
   },
   "export": {
     "status": "ok",
-    "tris": 33546,
+    "tris": 33706,
     "size_cm": [
-      4489.2,
-      3964.8,
+      4643.4,
+      3955.6,
       2506.3
     ],
     "collision": [

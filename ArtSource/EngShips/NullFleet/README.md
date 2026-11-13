@@ -25,7 +25,7 @@ Everything is seeded: a re-run reproduces the asset.
 - Units cm in Unreal (metres in Blender, 1 m = 100 uu); **+X forward** in Unreal (authored nose toward
   Blender -Y; the exporter rotates it), +Z up; object scale 1.
 - One material slot per mesh, one baked texture set (BC sRGB, N DirectX, ORM masks, E emissive). In Unreal
-  `MI_Null_<ship>` of `M_TD_NullFleet`; `EmissiveStrength` = bake strength (2) x 6 = 12; eyes, seams and engine
+  `MI_Null_<ship>` of `M_TD_NullFleet`; `EmissiveStrength` per MI (20-30, see the engine glow pass below); eyes, seams and engine
   cores all live in the one E map, so one scalar drives the whole ship's glow.
 - Collision: 2-6 UCX convex hulls per mesh (gameplay uses its own sphere / box; these are for traces only).
 - Sockets: `Muzzle_0..n` are picked up automatically by `UTDWeaponComponent` (it fires from mesh sockets
@@ -38,13 +38,13 @@ Everything is seeded: a re-run reproduces the asset.
 
 | Asset | Gameplay size | Art size X x Y x Z (cm) | Tris | Texture | Pivot | Final sheet |
 |---|---|---|---|---|---|---|
-| `SM_Null_Fighter` | sphere r 220 | 523 x 472 x 164 | 7,258 | 2048 | bbox centre | `review/SM_Null_Fighter_r4_review.png` |
-| `SM_Null_Interceptor` | sphere r 260 | 638 x 443 x 206 | 6,922 | 2048 | bbox centre | `review/SM_Null_Interceptor_r5_review.png` |
-| `SM_Null_Gunship` | sphere r 700 | 1447 x 1709 x 677 | 17,458 | 2048 | centre of mass | `review/SM_Null_Gunship_r5_review.png` |
-| `SM_Null_Bomber` | sphere r 500 | 1092 x 1222 x 257 | 11,704 | 2048 | bbox centre | `review/SM_Null_Bomber_r3_review.png` |
-| `SM_Null_Carrier` | sphere r 1800 | 4489 x 3965 x 2506 | 33,546 | 4096 | design origin = actor origin | `review/SM_Null_Carrier_r4_review.png` |
-| `SM_Null_CarrierBay` | box 300 x 600 x 400 | 356 x 649 x 465 | 4,772 | 1024 | box centre | `review/SM_Null_CarrierBay_r3_review.png` |
-| `SM_Null_Turret` | cylinder 150 x 100 | 221 x 146 x 102 | 2,184 | 1024 | cylinder centre | `review/SM_Null_Turret_r4_review.png` |
+| `SM_Null_Fighter` | sphere r 220 | 549 x 468 x 163 | 7,282 | 2048 | bbox centre (pinned) | `review/SM_Null_Fighter_e2_review.png` |
+| `SM_Null_Interceptor` | sphere r 260 | 661 x 443 x 206 | 6,986 | 2048 | bbox centre (pinned) | `review/SM_Null_Interceptor_e2_review.png` |
+| `SM_Null_Gunship` | sphere r 700 | 1524 x 1709 x 677 | 17,586 | 2048 | centre of mass (pinned) | `review/SM_Null_Gunship_e2_review.png` |
+| `SM_Null_Bomber` | sphere r 500 | 1177 x 1222 x 257 | 11,800 | 2048 | bbox centre (pinned) | `review/SM_Null_Bomber_e2_review.png` |
+| `SM_Null_Carrier` | sphere r 1800 | 4643 x 3956 x 2506 | 33,706 | 4096 | design origin = actor origin | `review/SM_Null_Carrier_e1_review.png` |
+| `SM_Null_CarrierBay` | box 300 x 600 x 400 | 356 x 649 x 465 | 4,772 | 1024 | box centre | `review/SM_Null_CarrierBay_e1_review.png` |
+| `SM_Null_Turret` | cylinder 150 x 100 | 221 x 143 x 102 | 2,184 | 1024 | cylinder centre | `review/SM_Null_Turret_e2_review.png` |
 
 Pivot: the brief asked for the centre of mass. For the fighter, interceptor and bomber the volume centre of mass
 sits 15-150 cm off the bounding-box centre (engine mass at the back), which pushed the nose past 1.25 x the
@@ -115,13 +115,33 @@ barrels with hot muzzle rings. `Muzzle_0/1` (147, -/+22, 10).
 Blockouts `b1`-`b5` (clay), full rounds `r1`-`r5` (bake, review). Fresh-eyes reviews by separate agents after
 r1 and r2 (scores and fixes in the dev report); r3+ applied those fixes. Each full round writes
 `asset_report.py` and `assembly_check.py` results into `review/<asset>_health.json` (final: 0 errors,
-0 warnings, no floating parts on all seven).
+0 warnings, no floating parts on all seven). Emissive surface share after e2: Fighter 5.9 %, Interceptor 5.6 %,
+Gunship 5.5 %, Bomber 6.0 %, Carrier 3.3 %, Turret 6.7 %, Bay 6.4 % (its glowing doors are the weak point).
+
+## Engine glow pass (e1/e2, after the Lead's in-game check)
+
+The in-game check found no visible engine glow at range. Changes:
+- Every nozzle now carries an **exhaust plume stub**: a hot red-orange emissive cone that starts inside the bell
+  and stands 1.2 x the nozzle radius out of it, so the engine reads from the side and the front quarters as
+  well as from behind. The separate core disc inside the bell was removed (the plume fills it), plus the
+  glowing lip ring at the exit.
+- The E map now has **two levels**: seams and pinstripes at half level, engines (hotter colour `#FF7A30`) and
+  white eyes at full level. Pinstripes are thinner (`GLOW_K` 1.6 -> 1.0) to keep the emissive area down.
+- **EmissiveStrength per MI** (bake strength 2 x scale): Fighter 30, Interceptor 30, Bomber 26, Gunship 24,
+  Carrier 22, Turret 24, Bay 20 (was 12 for all). Seams therefore stay about as bright as before; engines and
+  eyes are 2-2.5x brighter.
+- Pivots are pinned to the earlier values (`PINNED_PIVOT`), so all sockets are unchanged. The plumes make each
+  ship a little longer at the back: fighter +26 cm, carrier +154 cm (46.4 m, 3 % over 1.25 x its collision
+  diameter). Thinner pinstripes no longer touch the hull everywhere; the pipeline's snap moved a few of them
+  5-20 cm onto the surface (no mount or socket moved).
+- Range strips: `review/<asset>_e0_range300.png` (before) and `_e2_range300.png` (after). These show the ship
+  at 2.5x (the gameplay range scale), 300 m, true pixel density, enlarged 4x. The three views are chase, side and front 3/4.
 
 ## Not verified / known limits
 
 - **Not seen in Unreal.** The import ran headless (no renderer): materials are not compiled there, nothing has
-  been looked at in a viewport, PIE or a packaged build, with bloom, at speed or in a wave. Emissive strength
-  12 is a guess from the SpaceDressing kit; tune `EmissiveStrength` on the `MI_Null_*` instances.
+  been looked at in a viewport, PIE or a packaged build, with bloom, at speed or in a wave. The per-MI
+  EmissiveStrength values (20-30) are judged from Blender renders; tune them on the `MI_Null_*` instances.
 - **Readability at range is limited by gameplay size.** At 1080p / 90 deg FOV a 5 m fighter is ~16 px long at
   300 m and ~5 px at 1 km whatever the art does; the review strips show this honestly. The placeholders were
   drawn 1.4-2.2x larger than their collision (`Placeholder*ShipScale`), but `UpdatePlaceholderLook` sets

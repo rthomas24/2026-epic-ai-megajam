@@ -1,7 +1,7 @@
 {
   "asset": "SM_Squad_Lancer",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Squad\\SM_Squad_Lancer\\SM_Squad_Lancer.fbx",
-  "tris": 15912,
+  "tris": 16388,
   "size_cm": [
     524.0,
     317.6,
@@ -72,6 +72,15 @@
   "nanite": true,
   "ship": "Lancer",
   "ue_radius_cm": 220,
+  "surface_share_by_role": {
+    "Graphite": 0.31,
+    "Accent": 0.305,
+    "White": 0.256,
+    "Metal": 0.067,
+    "Glow": 0.03,
+    "Glass": 0.029,
+    "Dark": 0.003
+  },
   "ue_sockets": [
     {
       "name": "Muzzle_0",

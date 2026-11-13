@@ -52,12 +52,14 @@ SPEC = {
     "SM_Cind_ChokeRock_B": ((400, 1400, 600), "bottom", None, [], None),
     "SM_Cind_SteppingStone": ((280, 280, 160), "bottom", 160, [], 0.45),
     "SM_Cind_CollapseSlab": ((610, 320, 60), "bottom", 60, ["-X", "+X", "-Y", "+Y"], 0.8),
-    "SM_Cind_DebrisChunk": ((None, None, None), "centre", None, [], None),
+    "SM_Cind_DebrisChunk": ((None, None, None), "centre", None, [], None, {}, 150),   # largest dimension 150 cm
     "SM_Console": ((60, 60, 120), "bottom", None, [], None),
     "SM_Door": ((30, 620, 600), "bottom", None, ["-X", "+X"], None),
     "SM_ExtractionCore": ((55, 55, 110), "centre", None, [], None),
     "SM_RoutePost": ((34, 34, 154), "bottom", None, [], None),
     "SM_Trailhead": ((500, 500, 480), "bottom", 40, [], [(-240, -60, -240, 240), (60, 240, -240, 240)]),
+    "SM_Verd_RelayAltar": ((200, 200, 150), "bottom", 150, [], [(-80, -45, -80, 80), (45, 80, -80, 80), (-45, 45, -80, -45), (-45, 45, 45, 80)]),
+    "SM_Cind_PrototypeConsole": ((160, 160, 140), "bottom", None, [], None),
 }
 TOL = 2.0
 
@@ -83,6 +85,10 @@ def analyse(name, spec):
         good = abs(size[i] - dims[i]) <= TOL
         dim_ok.append(bool(good))
         ok &= good
+    if len(spec) > 6 and spec[6]:                       # largest dimension (uniformly scaled pieces)
+        res["max_dim_cm"] = round(float(size.max()), 1)
+        res["max_dim_ok"] = bool(abs(size.max() - spec[6]) <= TOL)
+        ok &= res["max_dim_ok"]
     if pivot == "bottom":
         piv_ok = abs(lo[2]) <= 0.5 and abs(lo[0] + hi[0]) <= 1.0 and abs(lo[1] + hi[1]) <= 1.0
     else:
