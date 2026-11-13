@@ -88,6 +88,7 @@ open) · `done` (on `main`, tests pass, review closed).
 
 | Item | Owner | State | Started (EST) | Finished / on `main` | Shared paths touched |
 |---|---|---|---|---|---|
+| ENG-36 HUD redesign (modern, minimal, beginner-readable), engineering's own HUD on the existing data contracts; Nick's `Plugins/TriadDriftHUD` untouched and still selectable. Taken over under R-024 / R-025 | T2 (build), Lead (research, design) | in progress | Nov 13 10:00 | - | `Config/DefaultGame.ini` (`TDUIHostSettings` default HUD), none of Nick's paths |
 | ENG-34 planet worlds: large procedural terrain with mountains on Verdance and Cinder (runtime, in code; no map edits), terrain material and biome scatter. Taken over from the presentation side under R-024 | T4 (generation, scatter), T5 (course fitting), T1 (flight), Lead (material) | in progress | Nov 13 09:30 | - | none (`Source/**/World`, `Gameplay/Props/Planets`; Nick's tagged environment wins) |
 | ENG-35 engineering fallback sound set (weapons, powers, hits, explosions, engines, UI, on foot, ambience, combat bed). Taken over under R-024; fallbacks only | Lead builder sub-agents | in progress | Nov 13 09:30 | - | none (`ArtSource/EngAudio/**`, `Gameplay/Audio/**`; never `Content/TriadDrift/Audio/**` or `DA_UI_Style`) |
 | Difficulty row on the Settings page (Story / Standard / Ace; features.md Settings list) | T1 (+ T5 save, T4 tables) | in progress | Nov 13 09:20 | - | none |
