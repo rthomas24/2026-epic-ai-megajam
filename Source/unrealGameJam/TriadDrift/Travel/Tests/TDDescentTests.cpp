@@ -143,7 +143,7 @@ bool FTDT1DescentArrival::RunTest(const FString& Parameters)
 
 	// Four sides of the globe, each going in along a different surface heading: four arrival points and headings.
 	struct FCase { float Lat, Lon; FVector Vel; };
-	const FCase Cases[] = { { 20.f, 0.f, FVector(0.f, 1.f, -1.f) }, { 20.f, 90.f, FVector(1.f, 0.f, -1.f) }, { 20.f, 180.f, FVector(0.f, -1.f, -1.f) }, { 20.f, -90.f, FVector(-1.f, 0.f, -1.f) } };
+	const FCase Cases[] = { { 20.f, 0.f, FVector(0.f, 1.f, -1.f) }, { 20.f, 90.f, FVector(1.f, 0.f, -1.f) }, { 20.f, 180.f, FVector(0.f, -1.f, -1.f) }, { 20.f, -90.f, FVector(-1.f, 0.f, -1.f) }, { -60.f, 45.f, FVector(1.f, 1.f, -1.f) } };
 	TArray<FTransform> Got;
 	for (const FCase& C : Cases)
 	{
@@ -152,10 +152,17 @@ bool FTDT1DescentArrival::RunTest(const FString& Parameters)
 		D->RecordEntryGlobe(ETDDestination::Verdance, P, C.Vel);
 		FTransform Xf;
 		if (!TestTrue(TEXT("arrival from the record"), D->GetArrival(W.GetWorld(), ETDDestination::Verdance, Pad, Xf))) { return false; }
-		const FTransform Expect = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, P, C.Vel, UTDDescentSubsystem::ArrivalAltitudeCm) * Pad;
+		FTransform ExpectLocal = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, P, C.Vel, UTDDescentSubsystem::ArrivalAltitudeCm);
+		const FVector2D EXY(ExpectLocal.GetLocation());
+		if (EXY.Size() > UTDDescentSubsystem::MaxArrivalRadiusCm)
+		{
+			const FVector2D In = EXY.GetSafeNormal() * UTDDescentSubsystem::MaxArrivalRadiusCm;
+			ExpectLocal.SetLocation(FVector(In.X, In.Y, ExpectLocal.GetLocation().Z));
+		}
+		const FTransform Expect = ExpectLocal * Pad;
 		TestTrue(*FString::Printf(TEXT("lon %.0f: position = T4's mapping through the pad"), C.Lon), Xf.GetLocation().Equals(Expect.GetLocation(), 1.f));
 		TestEqual(*FString::Printf(TEXT("lon %.0f: heading = T4's mapping"), C.Lon), (float)Xf.Rotator().Yaw, (float)Expect.Rotator().Yaw, 0.1f);
-		TestTrue(*FString::Printf(TEXT("lon %.0f: inside the 7 km arrival ring"), C.Lon), FVector2D(Pad.InverseTransformPosition(Xf.GetLocation())).Size() <= FTDPlanetEntry::MaxArrivalRadius + 1.f);
+		TestTrue(*FString::Printf(TEXT("lon %.0f: within 6 km of the pad (clear of the edge warning)"), C.Lon), FVector2D(Pad.InverseTransformPosition(Xf.GetLocation())).Size() <= UTDDescentSubsystem::MaxArrivalRadiusCm + 1.f);
 		// A retake in the same visit: the same arrival; a later visit with no new entry: the fixed start.
 		FTransform Again;
 		TestTrue(TEXT("retake: same world, same arrival"), D->GetArrival(W.GetWorld(), ETDDestination::Verdance, Pad, Again) && Again.Equals(Xf));

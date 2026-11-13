@@ -361,7 +361,14 @@ bool UTDDescentSubsystem::GetArrival(UWorld* World, ETDDestination Planet, const
 	{
 		return false;
 	}
-	const FTransform Local = FTDPlanetEntry::ArrivalFromGlobe(Planet, ArrivalPoint, ArrivalGlobeVelocity, ArrivalAltitudeCm);
+	FTransform Local = FTDPlanetEntry::ArrivalFromGlobe(Planet, ArrivalPoint, ArrivalGlobeVelocity, ArrivalAltitudeCm);
+	// Keep the arrival out of the flight zone's edge-warning band (T4's ring is 7 km; the warning shows near 7 km).
+	const FVector2D XY(Local.GetLocation());
+	if (XY.Size() > MaxArrivalRadiusCm)
+	{
+		const FVector2D In = XY.GetSafeNormal() * MaxArrivalRadiusCm;
+		Local.SetLocation(FVector(In.X, In.Y, Local.GetLocation().Z)); // same height above the old point: still well clear
+	}
 	ArrivalCourseLocal = Local.GetLocation();
 	OutWorld = Local * CourseToWorld;
 	ArrivalWorldXf = OutWorld;
