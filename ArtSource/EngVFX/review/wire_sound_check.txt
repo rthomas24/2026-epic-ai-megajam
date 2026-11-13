@@ -761,3 +761,14 @@ Dominion/DA_Dominion_Visuals | shield_hit.sound | before=<Object '/Game/TriadDri
 Dominion/DA_Dominion_Visuals | shield_idle.sound | before=None | after=None | SAME
 Dominion/DA_Dominion_Visuals | shield_section_down.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01.SW_Dominion_ShieldSectionDown_01' (0x000001AE9540DC00) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01.SW_Dominion_ShieldSectionDown_01' (0x000001AE9540DC00) Class 'SoundWave'> | SAME
 Dominion/DA_Dominion_Visuals | warp_in.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01.SW_Dominion_WarpIn_01' (0x000001AE9540A000) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01.SW_Dominion_WarpIn_01' (0x000001AE9540A000) Class 'SoundWave'> | SAME
+==== independent check after round 4 wiring: audio asset path strings in each changed data asset, git cb42aea vs HEAD f77d40a: 10 files, 0 differ
+Content/TriadDrift/Gameplay/Characters/Dominion/DA_DominionTurret_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/Dominion/DA_Dominion_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Bomber_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Carrier_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Fighter_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Gunship_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Interceptor_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/Squad/DA_Bastion_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/Squad/DA_Lancer_Visuals.uasset audio-path strings: 0 same=yes
+Content/TriadDrift/Gameplay/Characters/Squad/DA_Rift_Visuals.uasset audio-path strings: 0 same=yes

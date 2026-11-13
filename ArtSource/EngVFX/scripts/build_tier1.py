@@ -388,9 +388,9 @@ S('NS_TD_Ship_ShieldHit', U(SHIELD_HIT), [
 def pops():
     """Secondary blasts for the large explosion: smaller flipbook blasts going off around the centre for 0.6 s.
     One emitter on purpose: every extra emitter costs gigabytes of editor memory when the system is rebuilt."""
-    e = spin(shed('Pops', 'M_TD_VFX_FlipExplosion', 7.0, (0.7, 0.95), (650, 1000), (0, 80), radius=520.0, drag=2.0, rgb=(1.3, 1.3, 1.3),
+    e = spin(shed('Pops', 'M_TD_VFX_FlipExplosion', 5.0, (0.7, 0.95), (650, 1000), (0, 80), radius=560.0, drag=2.0, rgb=(1.3, 1.3, 1.3),
                   power=0.35, growth='0.6 + pow(Particles.NormalizedAge, 0.5)*0.6'))
-    e['set'] += [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', 0.6)]
+    e['set'] += [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', 1.5)]   # round 4: staggered over 1.5 s
     return e
 
 
@@ -407,13 +407,14 @@ def explosion(tier):
          shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.55, 1.1), (300, 520), (700, 2300), radius=140.0, drag=3.0, curl=900.0, rgb=(1.0, 1.0, 1.0),
               burst=int(7 * n), dur=1.5, power=0.7, growth='0.5 + pow(Particles.NormalizedAge, 0.45)*1.15'),
          flash('Shockwave', 'M_TD_VFX_FlipRing', 5200, 0.34, 1.0, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4),
-         shed('Sparks', 'M_TD_VFX_Spark', 0, (0.40, 1.05), (9, 20), (2200, 8500), k=1.7, radius=60.0, drag=1.8, stretch=16,
-              burst=int(30 * n), dur=1.2, power=1.2),
+         # round 4: long streaking spark trails (velocity-aligned, 26:1) that slow down and fade
+         shed('Sparks', 'M_TD_VFX_Spark', 0, (0.45, 1.20), (9, 20), (2600, 10500), k=1.9, radius=60.0, drag=2.2, stretch=26,
+              burst=int(34 * n), dur=1.3, power=1.4),
          chunks('Chunks', 'SM_TD_VFX_Shard_A', int(4 * n), (1.2, 2.2), (0.35, 0.9), (700, 3000), radius=80.0),
          # painted scrap from Grok Bot's debris atlas (camera-facing sprites), next to the tumbling meshes
          spin(shed('Scrap', 'M_TD_VFX_FlipDebris', 0, (1.4, 2.6), (110, 260), (500, 2600), radius=80.0, drag=0.5, rgb=(1.0, 1.0, 1.0),
                    burst=int(5 * n), dur=3.0, power=0.01, sort=True)),
-         spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (2.2, 3.6), (520, 760), (150, 700), radius=180.0, drag=1.5, curl=300.0, rgb=(0.30, 0.27, 0.27), alpha=0.85,
+         spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (2.2, 3.6), (520, 760), (150, 700), radius=180.0, drag=1.5, curl=300.0, rgb=(0.52, 0.45, 0.40), alpha=0.85,
                    burst=int(5 * n), dur=3.8, power=0.6, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
          shed('Embers', 'M_TD_VFX_Glow', 0, (0.9, 1.8), (12, 30), (150, 1700), k=1.2, radius=150.0, drag=1.3, curl=1300.0,
               burst=int(20 * n), dur=2.0, power=2.0)]
@@ -427,6 +428,29 @@ def explosion(tier):
 S('NS_TD_Explosion_Small', U(FIRE, 0.45), explosion(1))
 S('NS_TD_Explosion_Medium', U(FIRE, 1.0), explosion(2))
 S('NS_TD_Explosion_Large', U(FIRE, 2.2), explosion(3))
+
+
+def explosion_cheap(final=False):
+    """Six sprite emitters, no meshes, no light: for chains of 20 at once (Dominion hull sections) and the final blast."""
+    e = [flash('Flash', 'M_TD_VFX_Glow', 1500, 0.10, 0.9, growth='0.5 + Particles.NormalizedAge*0.7', power=1.2),
+         spin(shed('Blast', 'M_TD_VFX_FlipExplosion', 0, (1.0, 1.3), (1500, 1900), (0, 60), radius=60.0, drag=3.0, rgb=(1.3, 1.3, 1.3),
+                   burst=3 if final else 1, dur=1.4, power=0.35, growth='0.62 + pow(Particles.NormalizedAge, 0.5)*0.55')),
+         shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.55, 1.1), (300, 520), (700, 2300), radius=140.0, drag=3.0, rgb=(1.0, 1.0, 1.0),
+              burst=10 if final else 5, dur=1.5, power=0.7, growth='0.5 + pow(Particles.NormalizedAge, 0.45)*1.15'),
+         flash('Shockwave', 'M_TD_VFX_FlipRing', 5200, 0.36, 0.9, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4),
+         shed('Sparks', 'M_TD_VFX_Spark', 0, (0.45, 1.20), (9, 20), (2600, 10500), k=1.9, radius=60.0, drag=2.2, stretch=26,
+              burst=40 if final else 14, dur=1.3, power=1.4),
+         spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (2.0, 3.2), (520, 760), (150, 700), radius=180.0, drag=1.5, rgb=(0.52, 0.45, 0.40), alpha=0.8,
+                   burst=6 if final else 2, dur=3.4, power=0.6, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True))]
+    if final:
+        e += [pops()]
+    return e
+
+
+# Dominion break-up (fields arrive with T4's commit): HullSectionExplosion is authored for a 50 m radius (gameplay scales
+# 0.5x-1.7x, about 20 in a chain); BreakupFinalBlast for a 500 m radius. At Scale 1 the blast sprite has a 9 m radius.
+S('NS_TD_Explosion_HullSection', U(FIRE, 5.5), explosion_cheap())
+S('NS_TD_Explosion_FinalBlast', U(FIRE, 55.0), explosion_cheap(True))
 
 fx = tdvfx.Builder(call_tool)
 for _name, _user, _emitters in SYSTEMS:

@@ -75,3 +75,26 @@ What changed and why, for whoever continues:
   memory only, for a Play-In-Editor preview. Stop any game using the assets first, or the saves fail.
 - Sheets: `review/tier1_r3_*.png` (side and behind views), `review/wired_r2_before_after.png`,
   `review/wired_r3_before_after.png` (real game captures), `review/wire_sound_check.txt`.
+
+## Round 4 (Nov 13)
+- **Shield impact is small** (`NS_TD_Impact_Shield`): ring 0.4 m to 2.5 m radius in 0.3 s at half brightness, a tinted
+  procedural hexagon ripple (`M_TD_VFX_Hex`; Grok's white hex flipbook is no longer used here), a small glow, 7 sparks.
+  `NEAR` (`Engine.Owner.LODDistance / 1700`, 0.28..1) shrinks a hit that lands close to the camera (a wingman beside the
+  chase camera, which sits 17 m behind the ship, FOV 99).
+- **Ship-level hit cues are their own light systems**: `NS_TD_Ship_HullHit` (sparks, flecks) and `NS_TD_Ship_ShieldHit`
+  (glow, motes). An enemy ship plays its own `HullHit` / `ShieldHit` cue in addition to the weapon's impact cue at the
+  same point and with no rotation, so wiring the full impact there doubled it.
+- **Tracers**: white-hot core (bolt driven over 1, white core sprite), saturated sheath, longer trail; the enemy bolt is a
+  short round ball (230 x 125) where the squad's are long needles. **Trap found in play:** a pooled projectile only
+  `Deactivate()`s its tracer on release, and the persistent (`single`) particles then hung in space where the shot ended
+  and filled the screen when the ship flew through them. Every `single` emitter now has Life Cycle Mode `Self` and
+  Inactive Response `Kill` (the input is hidden until the life cycle mode is `Self`).
+- **Wiring** (`wire_tier1.py` with `WIRE_SHIPS`, `WIRE_SHIELD`, `WIRE_ENGINES`, `WIRE_MUZZLE`): squad and Null fleet ship
+  visuals (Explosion, HullHit, ShieldHit; EngineTrail for the squad only), carrier `BayDestroyed` / `TurretDestroyed`,
+  `DA_DominionTurret_Visuals`, `DA_Dominion_Visuals` (GeneratorExplosion, ReactorPhaseChange, ReactorDestroyed).
+  `BoostLoop` is left empty: the engine system holds the boost flame and reads `User.Throttle` / `User.Boost`.
+- **Explosions**: 26:1 spark streaks, warm grey smoke, Large secondaries over 1.5 s. `NS_TD_Explosion_HullSection`
+  (50 m radius) and `NS_TD_Explosion_FinalBlast` (500 m radius) are six-emitter sprite-only variants for the Dominion
+  break-up (not wired: their fields arrive with a later code commit).
+- **Game captures**: `Saved/EngVFX/burst.sh`-style loops (slow motion 0.05, capture, resume) through `play.py`.
+  `TD.World.KillNearest` kills the NEAREST enemy, which is rarely the one just spawned: check the log line.
