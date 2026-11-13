@@ -17,7 +17,9 @@ def main():
     owned=Path(__file__).resolve().parent.parent
     source=owned/'source/base/UE5_Manny_Simple_readonly_v02.fbx'
     expected=json.loads(source.with_suffix('.export.json').read_text())
-    output=owned/'source/base/Lancer_Manny_Reference_v01.blend'
+    audit=json.loads(source.with_suffix('.root-audit.json').read_text())
+    assert audit['fbx_sha256']==expected['fbx']['sha256'] and audit['root_type']=='Root'
+    output=owned/'source/base/Lancer_Manny_Reference_v02.blend'
     inventory=output.with_suffix('.inventory.json')
     assert cfg['owned_root']==str(owned) and not output.exists() and not inventory.exists()
     assert sha(source)==expected['fbx']['sha256']
@@ -39,7 +41,13 @@ def main():
     assert meshes and len(rigs)==1 and len(bpy.data.actions)==0
     rig=rigs[0];names={b.name for b in rig.data.bones}
     expected_names={b['name'] for b in expected['bones']}
-    assert names==expected_names and len(names)==89, repr(dict(missing=sorted(expected_names-names),extra=sorted(names-expected_names)))
+    # Proven legacy importer mapping: FBX Root becomes the armature OBJECT, not a Blender bone.
+    assert names==expected_names-{'root'} and len(names)==88 and rig.name=='root', repr(dict(missing=sorted(expected_names-names),extra=sorted(names-expected_names),object=rig.name))
+    assert set(audit['limb_names'])==names
+    for entry in expected['bones']:
+        if entry['name']=='root':continue
+        actual=rig.data.bones[entry['name']].parent
+        assert (actual.name if actual else 'root')==entry['parent'], 'Non-root parent mismatch'
     reference=bpy.data.collections.new('REF_Manny_NotForExport');scene.collection.children.link(reference)
     reference['export_allowed']=False;reference['purpose']='Owned mannequin reference only, not finished Lancer art'
     reference.hide_render=True
@@ -70,6 +78,12 @@ def main():
                 total_vertices=sum(o['vertices'] for o in mesh_stats),
                 total_triangles=sum(o['triangles'] for o in mesh_stats),
                 bone_count=len(names),bone_names=sorted(names),material_names=material_names,
+                source_root_audit=audit,root_object_name=rig.name,
+                root_object_matrix_world=[list(row) for row in rig.matrix_world],
+                source_bone_count=89,export_ready_skeleton=False,
+                skeleton_limit='88 actual bones plus root armature object; not an export-ready 89-bone skeleton. No bone rebuilt.',
+                material_limit='Unembedded template EnvSamplerTex is expected missing; imported slots are reference placeholders, not finished Lancer materials.',
+                image_references=[dict(name=i.name,path=i.filepath,packed=bool(i.packed_file)) for i in bpy.data.images],
                 toe_direction_world=list(toes),forward_axis_limit='Toe vector recorded; no axis correction or retargeting performed',
                 reference_collection=reference.name,reference_render_hidden=True,export_allowed=False,
                 rig_scale=list(rig.scale),rig_rotation=list(rig.rotation_euler),new_rig_or_weights=False,

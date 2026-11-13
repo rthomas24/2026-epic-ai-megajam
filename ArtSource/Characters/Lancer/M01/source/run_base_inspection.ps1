@@ -10,10 +10,10 @@ if([IO.Path]::GetFullPath($taskExpected) -ne [IO.Path]::GetFullPath($taskOwned))
 $taskHeavy=@(Get-CimInstance Win32_Process -Filter "Name='UnrealEditor.exe' OR Name='UnrealEditor-Cmd.exe' OR Name='ShaderCompileWorker.exe' OR Name='blender.exe' OR Name='cl.exe'")
 $taskFree=(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1MB
 if($taskHeavy.Count -or $taskFree -lt 3){throw 'Resource guard failed; no launch'}
-$taskSaved=Join-Path $taskRoot 'Saved/Characters/Lancer/M01/BaseInspection01'
+$taskSaved=Join-Path $taskRoot 'Saved/Characters/Lancer/M01/BaseInspection02'
 if(Test-Path -LiteralPath $taskSaved){throw 'Attempt exists; no overwrite/retry'}
 $taskBase=Join-Path $taskOwned 'source/base'
-$taskBlend=Join-Path $taskBase 'Lancer_Manny_Reference_v01.blend'
+$taskBlend=Join-Path $taskBase 'Lancer_Manny_Reference_v02.blend'
 $taskInventory=$taskBlend -replace '\.blend$','.inventory.json'
 $taskNative=$taskBlend -replace '\.blend$','.verification.json'
 foreach($taskOutput in @($taskBlend,$taskInventory,$taskNative)){if(Test-Path -LiteralPath $taskOutput){throw 'Output exists'}}
@@ -28,7 +28,7 @@ try {
     $env:TD_LANCER_BASE_CONTEXT=$taskContext
     try {$taskProcess=Start-Process -FilePath 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -ArgumentList @('--background','--factory-startup','--threads','2','--python-exit-code','1','--python',('"{0}"' -f (Join-Path $PSScriptRoot 'inspect_manny_base.py'))) -WindowStyle Hidden -PassThru -WorkingDirectory $taskSaved -RedirectStandardOutput (Join-Path $taskSaved 'stdout.log') -RedirectStandardError (Join-Path $taskSaved 'stderr.log')}
     finally {$env:TD_LANCER_BASE_CONTEXT=$taskOld}
-    Write-Output "START BaseInspection01 PID=$($taskProcess.Id) guardGiB=$taskFree"
+    Write-Output "START BaseInspection02 PID=$($taskProcess.Id) guardGiB=$taskFree"
     @{pid=$taskProcess.Id;started_utc=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskSaved 'process.json')
     while(-not $taskProcess.WaitForExit(2000)){
         $taskAvailable=(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1MB
