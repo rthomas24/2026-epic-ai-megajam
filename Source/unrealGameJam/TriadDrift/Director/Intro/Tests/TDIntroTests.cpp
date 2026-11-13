@@ -3,6 +3,11 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Engine/Engine.h"
+#include "Rendering/SlateRenderer.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "Fonts/FontMeasure.h"
+#include "Framework/Application/SlateApplication.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Director/Intro/Tests/TDIntroTestListener.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
@@ -247,6 +252,7 @@ bool FTDIntroControlFrame::RunTest(const FString& Parameters)
 		L->RemoveFromRoot();
 		return false;
 	}
+	TestFalse(TEXT("no engine debug text over the film (issue #49)"), GEngine && GEngine->bEnableOnScreenDebugMessagesDisplay);
 	const float Length = F.Intro->GetIntroLength();
 	TestEqual(TEXT("length to control = shots + hand-off"), Length, F.Intro->GetTotalDuration() + UTDIntroDirector::HandOffSeconds, 0.001f);
 	TestEqual(TEXT("49 s today"), Length, 49.f, 0.001f);
@@ -261,6 +267,7 @@ bool FTDIntroControlFrame::RunTest(const FString& Parameters)
 	TestTrue(TEXT("watched: fired once at the control frame"), L->Count == 2 && L->bLastPlayed && !L->bLastSkipped);
 	TestFalse(TEXT("fired after the intro let go"), L->bStillPlayingWhenFired);
 	TestEqual(TEXT("clock 0 when not playing"), F.Intro->GetIntroTime(), 0.f);
+	TestTrue(TEXT("debug text restored after the intro"), GEngine && GEngine->bEnableOnScreenDebugMessagesDisplay);
 
 	// Skipped: fired at once.
 	if (TestTrue(TEXT("plays again"), F.Play()))
@@ -331,6 +338,54 @@ bool FTDIntroWallClock::RunTest(const FString& Parameters)
 		TestEqual(TEXT("no second event"), L->Count, 2);
 	}
 	L->RemoveFromRoot();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroCardFits, "TriadDrift.Director.Intro.NameCardsFitEveryScreen", TD_TEST_FLAGS)
+bool FTDIntroCardFits::RunTest(const FString& Parameters)
+{
+	// Issue #49 (Nicholas): the pilot names and trait lines were cut through by the colour bar and, on ultrawide, ran
+	// into the narration line. At 720p, 1080p and 21:9 (and a 4:3 window), every card's text sits inside the picture,
+	// clear of the subtitle band, the skip prompt and its own bar.
+	const bool bSlate = FSlateApplication::IsInitialized() && FSlateApplication::Get().GetRenderer();
+	auto Measure = [bSlate](const FText& T, const FSlateFontInfo& F) -> FVector2D
+	{
+		if (bSlate)
+		{
+			return FSlateApplication::Get().GetRenderer()->GetFontMeasureService()->Measure(T, F);
+		}
+		return FVector2D(T.ToString().Len() * F.Size * 0.62f, F.Size * 1.35f); // a generous estimate without a renderer
+	};
+	if (!bSlate)
+	{
+		AddInfo(TEXT("no Slate renderer: text sizes are estimated"));
+	}
+	const FVector2D Sizes[] = { FVector2D(1280.f, 720.f), FVector2D(1920.f, 1080.f), FVector2D(2560.f, 1080.f), FVector2D(1024.f, 768.f) };
+	for (const FVector2D& Size : Sizes)
+	{
+		for (int32 i = 0; i < 4; ++i)
+		{
+			const ETDShipId Id = static_cast<ETDShipId>(FMath::Min(i, 2));
+			const FTDShipSpec Spec = UTDShipLibrary::GetShipSpec(Id);
+			const FText Name = Spec.PilotName;
+			// The fourth: a deliberately long trait line (Nicholas may lengthen them through DA_Story_Transmissions).
+			const FText Role = i < 3 ? UTDStorySubsystem::PilotTrait(Id)
+				: FText::FromString(TEXT("INTERCEPTOR  ·  FASTEST IN THE WING  ·  PRECISE  ·  RESTLESS  ·  ALWAYS RECORDING"));
+			const FTDIntroCardLayout L = UTDIntroDirector::LayoutNameCard(Size, Name, Role, Measure);
+			const FString At = FString::Printf(TEXT("%.0fx%.0f %s"), Size.X, Size.Y, *Role.ToString().Left(24));
+			const FBox2D Safe(FVector2D(Size.X * 0.03f, L.Picture.Min.Y), FVector2D(Size.X * 0.97f, L.Picture.Max.Y));
+			for (const FBox2D* B : { &L.Name, &L.Role, &L.Bar })
+			{
+				TestTrue(At + TEXT(": inside the picture and the safe frame"), Safe.IsInside(B->Min) && Safe.IsInside(B->Max));
+				TestFalse(At + TEXT(": clear of the subtitle band"), B->Intersect(L.SubtitleBand));
+				TestTrue(At + TEXT(": a gap of at least 8 px above the subtitle backing"), L.SubtitleBand.Min.Y - B->Max.Y >= 8.f);
+				TestFalse(At + TEXT(": clear of HOLD TO SKIP"), B->Intersect(L.Skip));
+			}
+			TestTrue(At + TEXT(": the bar is beside the text, never across it"), L.Bar.Max.X < L.Name.Min.X && L.Bar.Max.X < L.Role.Min.X);
+			TestTrue(At + TEXT(": the name sits above its trait line"), L.Name.Max.Y <= L.Role.Min.Y + 0.5f);
+			TestTrue(At + TEXT(": readable sizes"), L.NameFontSize >= 12 && L.RoleFontSize >= 8);
+		}
+	}
 	return true;
 }
 

@@ -16,6 +16,7 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
 bool FTDStoryTable::RunTest(const FString& Parameters)
@@ -267,4 +268,52 @@ bool FTDStoryTriggers::RunTest(const FString& Parameters)
 	return true;
 }
 
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryDepartures, "TriadDrift.Story.Transmissions.DepartureSetsOverTheTakeOff", TD_TEST_FLAGS)
+bool FTDStoryDepartures::RunTest(const FString& Parameters)
+{
+	// Cinematics 04 and 06 are transmissions over the take-off: back in the galaxy after a finished planet, its set
+	// plays once, in order; Cinematic 06's last two lines wait for wave 5. A planet half done plays nothing.
+	struct FCase { bool bVerdance; bool bCinder; ETDDestination Expect; };
+	for (const FCase& C : { FCase{ false, false, ETDDestination::Galaxy }, FCase{ true, false, ETDDestination::Verdance },
+		FCase{ true, true, ETDDestination::Cinder } })
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+		{
+			return false;
+		}
+		const UTDFlowSettings* Flow = UTDFlowSettings::Get();
+		if (C.bVerdance) { for (const FName& Id : Flow->VerdanceObjectives) { GI->CompleteObjective(Id, ETDAbilityId::None, ETDShipId::Rift); } }
+		else if (Flow->VerdanceObjectives.Num() > 0) { GI->CompleteObjective(Flow->VerdanceObjectives[0], ETDAbilityId::None, ETDShipId::Rift); } // half done
+		if (C.bCinder) { for (const FName& Id : Flow->CinderObjectives) { GI->CompleteObjective(Id, ETDAbilityId::None, ETDShipId::Rift); } }
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		W.Advance(Story->DepartureDelaySeconds * 0.5f, 1.f / 30.f);
+		TestFalse(TEXT("nothing during the ascent"), Story->GetCurrentTransmission().bActive);
+		W.Advance(Story->DepartureDelaySeconds, 1.f / 30.f);
+		const TArray<FName>& Set = UTDStorySubsystem::DepartureSet(C.Expect);
+		const FString Case = C.bCinder ? TEXT("Cinder done") : (C.bVerdance ? TEXT("Verdance done") : TEXT("Verdance half done"));
+		if (Set.Num() == 0)
+		{
+			TestFalse(Case + TEXT(": no departure"), Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0);
+			continue;
+		}
+		TestTrue(Case + TEXT(": the first line is on air"), Story->GetCurrentTransmission().Id == Set[0]);
+		TestEqual(Case + TEXT(": the rest queued, in order"), Story->GetQueueLength(), Set.Num() - 1);
+		if (C.bCinder)
+		{
+			TestFalse(TEXT("Cinder done: Verdance's departure is not replayed late"), Story->HasPlayed(TEXT("C4_Moss_Trouble")));
+			if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld()))
+			{
+				Bus->BroadcastWaveStarted(5, 1.f);
+			}
+			TestEqual(TEXT("wave 5 adds the guard-line pair"), Story->GetQueueLength(), Set.Num() - 1 + 2);
+		}
+	}
+	return true;
+}
 #endif

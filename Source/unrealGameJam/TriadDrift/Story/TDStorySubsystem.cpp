@@ -7,6 +7,7 @@
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
@@ -417,6 +418,70 @@ void UTDStorySubsystem::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*
 	// Act 1, First Contact: the hail nobody answers; the field around the ship (storyline.md §5).
 	// (A1_FieldUnreachable is T4's: fired when the player first approaches the distortion field.)
 	if (WaveNumber == 1) { FireTransmission(TEXT("A1_HailNoAnswer")); }
+	// Cinematic 06's last two lines, as the guard line (wave 5) forms up (storyline.md §23).
+	else if (WaveNumber == 5)
+	{
+		FireTransmission(TEXT("C6_Moss_WholeFleet"));
+		FireTransmission(TEXT("C6_Wren_StayTogether"));
+	}
+}
+
+const TArray<FName>& UTDStorySubsystem::DepartureSet(ETDDestination Planet)
+{
+	// Cinematic 04, Verdance Departure (§17, §25) and Cinematic 06, The Path to Dominion (§23): transmissions over the
+	// existing take-off, no cutscene (Story/README.md: "transmissions over existing take-off transitions").
+	static const TArray<FName> Verdance = { TEXT("C4_Moss_Trouble"), TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SameSignature"),
+		TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SurveyStation"), TEXT("C4_Command_Proceed"), TEXT("C4_Moss_Volcanoes"),
+		TEXT("C4_Wren_SetCourse") };
+	static const TArray<FName> Cinder = { TEXT("C6_Moss_SamplesAboard"), TEXT("C6_Kato_GuardLine"), TEXT("C6_Kato_FourGenerators"),
+		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Command_FindOutWhy"), TEXT("C6_Wren_Understood") };
+	static const TArray<FName> None;
+	return Planet == ETDDestination::Verdance ? Verdance : (Planet == ETDDestination::Cinder ? Cinder : None);
+}
+
+void UTDStorySubsystem::UpdateDepartures(double Now)
+{
+	const UTDGameInstance* GI = Cast<UTDGameInstance>(GetWorld() ? GetWorld()->GetGameInstance() : nullptr);
+	if (!GI)
+	{
+		bDeparturesChecked = true; // a bare world: nothing to carry
+		return;
+	}
+	if (GI->GetCurrentDestination() != ETDDestination::Galaxy)
+	{
+		return; // a planet, the interior, the menu: wait (the game mode sets the destination at StartPlay)
+	}
+	if (DeparturesAt < 0.0)
+	{
+		DeparturesAt = Now + DepartureDelaySeconds; // let the ascent settle before the radio starts
+		return;
+	}
+	if (Now < DeparturesAt)
+	{
+		return;
+	}
+	bDeparturesChecked = true;
+	const UTDFlowSettings* Flow = UTDFlowSettings::Get();
+	const TSet<FName>& Done = GI->GetProgressRef().CompletedObjectives;
+	auto AllDone = [&Done](const TArray<FName>& Ids)
+	{
+		if (Ids.Num() == 0) { return false; }
+		for (const FName& Id : Ids) { if (!Done.Contains(Id)) { return false; } }
+		return true;
+	};
+	// Only the latest finished planet's set: a run continued after Cinder never hears Verdance's departure late.
+	const ETDDestination Planet = AllDone(Flow->CinderObjectives) ? ETDDestination::Cinder
+		: (AllDone(Flow->VerdanceObjectives) ? ETDDestination::Verdance : ETDDestination::Galaxy);
+	const TArray<FName>& Set = DepartureSet(Planet);
+	if (Set.Num() == 0 || HasPlayed(Set[0]))
+	{
+		return; // played already this run (once per run, kept in the save)
+	}
+	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s departure, %d transmissions"), Planet == ETDDestination::Cinder ? TEXT("Cinder") : TEXT("Verdance"), Set.Num());
+	for (const FName& Id : Set)
+	{
+		FireTransmission(Id);
+	}
 }
 
 void UTDStorySubsystem::HandleWaveCleared(int32 WaveNumber)
@@ -604,6 +669,10 @@ void UTDStorySubsystem::StartNext()
 void UTDStorySubsystem::Tick(float DeltaTime)
 {
 	const double Now = RealNow();
+	if (!bDeparturesChecked)
+	{
+		UpdateDepartures(Now);
+	}
 	if (Current.bActive)
 	{
 		const float T = static_cast<float>(Now - OnAirStart);
