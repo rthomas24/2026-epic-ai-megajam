@@ -330,7 +330,9 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 					Hull->SetMaterial(i, Mat);
 				}
 			}
-			if (PlaceholderWings) { PlaceholderWings->SetVisibility(false); }
+			// T1's placeholder wings and the white engine-glow cube would sit on top of the real mesh (the cube showed
+			// between the fighter's nozzles): hide both and stop the throttle stretch; the art's own emissive engines glow.
+			SetPlaceholderPartsVisible(false);
 			// Real art: the placeholder parts go away entirely (no hidden primitives left per ship).
 			for (UStaticMeshComponent* C : { PlaceholderEyeLeft.Get(), PlaceholderShieldPlate.Get() })	// wings are T1's: hidden above, not destroyed
 			{
@@ -348,7 +350,7 @@ void ATDEnemyShip::UpdatePlaceholderLook()
 	}
 
 	// Placeholder: T1's cone + wings, scaled as one by the gameplay radius (220 cm = default) and tinted.
-	if (PlaceholderWings) { PlaceholderWings->SetVisibility(true); }
+	SetPlaceholderPartsVisible(true);
 	if (HullPivot)
 	{
 		// One silhouette per role, so types read apart before the art lands (playtest: all cones looked alike).
