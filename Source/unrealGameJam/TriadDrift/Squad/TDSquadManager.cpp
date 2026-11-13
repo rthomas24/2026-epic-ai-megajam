@@ -65,6 +65,8 @@ double ATDSquadManager::RealNow() const
 
 void ATDSquadManager::Refuse(ETDSwitchRefusal Reason, ETDShipId Ship)
 {
+	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch to %s refused: %s frame=%llu"), *UEnum::GetDisplayValueAsText(Ship).ToString(),
+		*UEnum::GetDisplayValueAsText(Reason).ToString(), GFrameCounter);
 	OnSwitchRefused.Broadcast(Reason, Ship);
 }
 
@@ -514,8 +516,8 @@ bool ATDSquadManager::SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCau
 void ATDSquadManager::LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const
 {
 	// Every change of the player's ship, with why (T2's wave-5 run: "Rift became Lancer, nothing in the log").
-	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch %s -> %s cause=%s"), *UEnum::GetDisplayValueAsText(From).ToString(),
-		*UEnum::GetDisplayValueAsText(To).ToString(), *UEnum::GetDisplayValueAsText(Cause).ToString());
+	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD switch %s -> %s cause=%s frame=%llu"), *UEnum::GetDisplayValueAsText(From).ToString(),
+		*UEnum::GetDisplayValueAsText(To).ToString(), *UEnum::GetDisplayValueAsText(Cause).ToString(), GFrameCounter);
 }
 
 bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)

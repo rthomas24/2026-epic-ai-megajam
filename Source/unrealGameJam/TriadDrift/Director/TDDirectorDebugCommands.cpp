@@ -10,6 +10,8 @@
 //   TD.Director.Status            log the camera rig / presentation state
 //   TD.Director.MultiKill         the player's ship kills three live enemies in one beat (spawns fighters if needed)
 //   TD.Director.MissileReturn     Rift opens both portals; an enemy missile goes through and back at its shooter
+//   TD.Squad.KillActive           kill the ship the player flies (the tumble, then the auto-switch)
+//   TD.Squad.Check <label>        log frame, active ship, possessed pawn, view target, slow-mo, pause (switch stress)
 //   TD.Squad.Frame                log where the wingmen and the nearest enemy are on screen (-1..1),
 //                                 for a scripted live pilot and for measuring "wingmen in frame"
 
@@ -318,6 +320,35 @@ namespace TDDirectorDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MultiKill));
 	static FAutoConsoleCommandWithWorldAndArgs CmdMissile(TEXT("TD.Director.MissileReturn"), TEXT("TD.Director.MissileReturn: Rift sends a missile back through its portals"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&MissileReturn));
+	static FAutoConsoleCommandWithWorldAndArgs CmdKillActive(TEXT("TD.Squad.KillActive"), TEXT("TD.Squad.KillActive: kill the player's ship"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			ATDSquadManager* S = Squad(World);
+			ATDShip* Ship = S ? S->GetActiveShip() : nullptr;
+			if (UTDHealthComponent* H = UTDStatics::GetHealth(Ship))
+			{
+				H->Kill();
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Squad.KillActive: %s killed (frame %llu)"), *UEnum::GetDisplayValueAsText(S->GetActiveShipId()).ToString(), GFrameCounter);
+			}
+		}));
+	static FAutoConsoleCommandWithWorldAndArgs CmdCheck(TEXT("TD.Squad.Check"), TEXT("TD.Squad.Check <label>: log the switch-relevant state"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSquadManager* S = Squad(World);
+			APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+			if (!S || !PC)
+			{
+				return;
+			}
+			const ATDShip* Active = S->GetActiveShip();
+			const AActor* View = PC->GetViewTarget();
+			const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(World);
+			UE_LOG(LogTriadDrift, Display, TEXT("TDCHECK %s frame=%llu active=%s alive=%d pawnIsActive=%d view=%s slowmo=%d paused=%d dilation=%.2f"),
+				Args.Num() > 0 ? *Args[0] : TEXT("-"), GFrameCounter, *UEnum::GetDisplayValueAsText(S->GetActiveShipId()).ToString(),
+				S->IsShipAlive(S->GetActiveShipId()), PC->GetPawn() == Active,
+				!View ? TEXT("none") : (View == Active ? TEXT("active-ship") : (View->IsA<ATDDirectorCameraActor>() ? TEXT("director-cam") : *View->GetName())),
+				Feel && Feel->IsSlowMoActive(), World->IsPaused(), World->GetWorldSettings() ? World->GetWorldSettings()->GetEffectiveTimeDilation() : 1.f);
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdFrame(TEXT("TD.Squad.Frame"), TEXT("TD.Squad.Frame: log wingmen / nearest enemy screen positions"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Frame));
 	static FAutoConsoleCommandWithWorldAndArgs CmdSwitch(TEXT("TD.Squad.Switch"), TEXT("TD.Squad.Switch <Rift|Lancer|Bastion|Next|Prev>"),
