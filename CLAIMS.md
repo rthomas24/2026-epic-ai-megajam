@@ -75,6 +75,10 @@ Current intake decision: all 36 originals are published at aa53ff9c for Ryan to 
 
 Audio now tests the published T1 ref 35f37d61 in Worktrees/tutorial-music-t1 on nick/tutorial-music-t1. Audio owns its guarded one-at-a-time build, saved capture evidence and three tutorial fields in Content/TriadDrift/Presentation/DA_UI_Style.uasset. Retain the verified non-tutorial baseline 6cfe3e6c, full CombatMusic and menu dependencies. No gameplay source edits. Port 8025 with -NoLiveCoding. UI queues after the Audio session.
 
+| Owner | Work and reserved paths | Status |
+|---|---|---|
+| UI | Camera audition capture/review for issue #23 on eng/t1-camera-audition at 1b8a06f2, using an isolated test copy and Saved/CameraFeel01/** for evidence. Review the HUD evidence sheet from #17 in the existing UI lane. | T1 owns source. UI may use the engineering recording or capture in its agreed native slot after Audio. The default camera remains unchanged pending Nicholas's video review. |
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
