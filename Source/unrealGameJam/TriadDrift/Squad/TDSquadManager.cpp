@@ -223,6 +223,7 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		TDSquad::BindShipDamaged(this, Slot.Ship);
 	}
 	ClearDamageIndicators(); // a retake starts clean
+	PendingAutoSwitchAt = -1.0;
 
 	// M7: squad ships never physically block each other (the AI keeps them apart instead).
 	for (FTDSquadSlot& A : Slots)
@@ -599,6 +600,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 		PC->Possess(NewShip);
 	}
 	ClearDamageIndicators(); // the new ship starts clean
+	PendingAutoSwitchAt = -1.0;
 	LogSwitch(OldId, Ship, CurrentSwitchCause);
 	LastSwitchCause = CurrentSwitchCause;
 	ActiveShipId = Ship;
@@ -934,6 +936,12 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 				Tumbling->AddActorWorldOffset(Slot.TumbleVelocity * DeltaSeconds);
 				Tumbling->AddActorLocalRotation(DeathTumbleSpin * DeltaSeconds);
 				Slot.TumbleVelocity *= FMath::Exp(-DeathTumbleDrag * DeltaSeconds);
+				// A burning trail while it tumbles (placeholder until Nick's art): small squad-colour puffs.
+				if (T >= Slot.NextTumblePuffTime)
+				{
+					Slot.NextTumblePuffTime = T + DeathTumblePuffInterval;
+					TDSquad::PlayShipDeathPlaceholder(Tumbling, Slot.ShipId, /*bTrailPuff*/ true);
+				}
 			}
 			if (T >= Slot.DownedAtTime + DeathTumbleSeconds)
 			{
@@ -942,6 +950,10 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 			break;
 
 		case ETDSquadSlotState::Downed:
+			if (PendingAutoSwitchAt > 0.0 && T >= PendingAutoSwitchAt)
+			{
+				RunPendingAutoSwitch();
+			}
 			if (!bWipeHandledByFlow && T >= Slot.RespawnAtTime)
 			{
 				RespawnShip(Slot);
@@ -1023,6 +1035,8 @@ void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 	{
 		TDSquad::PlayShipCue(Slot.Ship, V->Explosion, false);
 	}
+	// Without explosion art: T2's placeholder (hot core, squad-colour shell, debris), sized to the ship.
+	TDSquad::PlayShipDeathPlaceholder(Slot.Ship, Slot.ShipId, /*bTrailPuff*/ false);
 	if (ATDShip* Ship = Slot.Ship)
 	{
 		TDSquad::SetTriggerHeld(Ship, ETDWeaponSlot::Primary, false);
@@ -1031,14 +1045,30 @@ void ATDSquadManager::FinishDying(FTDSquadSlot& Slot)
 		Ship->SetActorEnableCollision(false);
 	}
 
-	// The tumble is over: if the player was in this ship, cut to the healthiest survivor.
+	// The tumble is over: if the player was in this ship, hold on its explosion for a beat (ENG-03:
+	// tumble, then explosion, then auto-switch; live capture: cutting on the same frame meant the player
+	// never saw their own ship blow up), then cut to the healthiest survivor.
 	if (Slot.ShipId == ActiveShipId)
 	{
-		ETDShipId Best = ETDShipId::Rift;
-		if (FindHealthiestLivingShip(Slot.ShipId, Best))
+		PendingAutoSwitchAt = Now() + DeathExplosionHoldSeconds;
+		if (DeathExplosionHoldSeconds <= 0.f)
 		{
-			SwitchWithCause(Best, /*bForced*/ true, ETDSwitchCause::AutoOnDeath);
+			RunPendingAutoSwitch();
 		}
+	}
+}
+
+void ATDSquadManager::RunPendingAutoSwitch()
+{
+	PendingAutoSwitchAt = -1.0;
+	if (IsShipAlive(ActiveShipId))
+	{
+		return; // the player already switched away during the beat
+	}
+	ETDShipId Best = ETDShipId::Rift;
+	if (FindHealthiestLivingShip(ActiveShipId, Best))
+	{
+		SwitchWithCause(Best, /*bForced*/ true, ETDSwitchCause::AutoOnDeath);
 	}
 }
 

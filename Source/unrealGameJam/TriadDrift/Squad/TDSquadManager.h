@@ -95,6 +95,7 @@ struct UNREALGAMEJAM_API FTDSquadSlot
 	/** Real time the hull first dipped low this time (the line only plays close to that moment). */
 	double LowHullSince = -1.0;
 	double NextLowHullTry = 0.0;
+	double NextTumblePuffTime = 0.0;
 	/** Real time of this wingman's last engage call. */
 	double LastEngageCallTime = -1000.0;
 };
@@ -335,6 +336,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (ClampMin = "0"))
 	float DeathTumbleDrag = 1.5f;
+
+	/** Seconds between the placeholder trail puffs while a ship tumbles. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Death", meta = (ClampMin = "0.02", Units = "s"))
+	float DeathTumblePuffInterval = 0.12f;
+
+	/** The player's own ship: seconds the camera holds on its explosion before the auto-switch cut. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Death", meta = (ClampMin = "0", Units = "s"))
+	float DeathExplosionHoldSeconds = 0.35f;
+	double PendingAutoSwitchAt = -1.0;
+	void RunPendingAutoSwitch();
 
 	/** Measured from the moment the ship is downed. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Tuning", meta = (Units = "s"))
