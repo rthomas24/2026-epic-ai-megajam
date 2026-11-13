@@ -226,6 +226,7 @@ void UTDTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	{
 		// Selection runs at UpdateHz; brackets are re-projected every frame so they never lag the camera.
 		Hostiles.RemoveAll([](const AActor* A) { return !IsValid(A); });
+		FarHostiles.RemoveAll([](const TObjectPtr<AActor>& A) { return !IsValid(A); });
 		MissileScratch.RemoveAll([](const ATDProjectile* P) { return !IsValid(P) || !P->IsActive(); });
 		UpdateMarkers();
 	}
@@ -252,6 +253,25 @@ void UTDTargetingComponent::GatherHostiles()
 	{
 		Registry->GetHostilesOf(GetOwnerTeam(), Hostiles, false);
 	}
+	// Out of targeting range but within marker range: kept aside for markers only.
+	FarHostiles.Reset();
+	const AActor* Me = GetOwner();
+	if (Me && MarkerRange > MaxTargetRange)
+	{
+		const FVector Here = Me->GetActorLocation();
+		for (AActor* A : Hostiles)
+		{
+			const double D2 = IsValid(A) ? FVector::DistSquared(A->GetActorLocation(), Here) : 0.0;
+			if (D2 > FMath::Square(MaxTargetRange) && D2 <= FMath::Square(MarkerRange))
+			{
+				const UTDHealthComponent* Health = UTDStatics::GetHealth(A);
+				if (!Health || (!Health->IsDead() && Health->bTargetable))
+				{
+					FarHostiles.Add(A);
+				}
+			}
+		}
+	}
 	Hostiles.RemoveAllSwap([this](const AActor* A) { return !IsValidTarget(A); }, EAllowShrinking::No);
 
 	// Nearest first: cycling and markers rely on it.
@@ -259,6 +279,10 @@ void UTDTargetingComponent::GatherHostiles()
 	{
 		const FVector Here = Owner->GetActorLocation();
 		Hostiles.Sort([&Here](const AActor& A, const AActor& B)
+		{
+			return FVector::DistSquared(A.GetActorLocation(), Here) < FVector::DistSquared(B.GetActorLocation(), Here);
+		});
+		FarHostiles.Sort([&Here](const AActor& A, const AActor& B)
 		{
 			return FVector::DistSquared(A.GetActorLocation(), Here) < FVector::DistSquared(B.GetActorLocation(), Here);
 		});
@@ -663,6 +687,14 @@ void UTDTargetingComponent::UpdateMarkers()
 		if (!Priority.Contains(Hostiles[i]))
 		{
 			AddMarker(Hostiles[i], Hostiles[i]->GetActorLocation(), false);
+		}
+	}
+	// Then the nearest out-of-range hostiles (arrows to the fight), within what's left of the budget.
+	for (int32 i = 0; i < FarHostiles.Num() && Markers.Num() < ShipBudget; ++i)
+	{
+		if (AActor* Far = FarHostiles[i].Get())
+		{
+			AddMarker(Far, Far->GetActorLocation(), false);
 		}
 	}
 	for (ATDProjectile* P : MissileScratch)

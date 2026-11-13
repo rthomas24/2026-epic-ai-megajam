@@ -126,6 +126,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "cm"))
 	float MaxTargetRange = 40000.f;
 
+	/**
+	 * Hostiles out to this range still get a HUD marker (an edge arrow with distance) though they can't be
+	 * targeted yet, so the player can always find the fight (agent playtest: all enemies beyond 400 m = no
+	 * direction at all).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "cm"))
+	float MarkerRange = 200000.f;
+
 	/** CycleTarget picks among hostiles in this cone (front hemisphere by default). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "Degrees"))
 	float CycleConeDeg = 90.f;
@@ -218,6 +226,9 @@ private:
 	/** UPROPERTY so GC nulls destroyed actors between refreshes. */
 	UPROPERTY(Transient)
 	TArray<AActor*> Hostiles;
+	/** Hostiles beyond MaxTargetRange but within MarkerRange: markers (edge arrows) only, never targets. Nearest first. */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<AActor>> FarHostiles;
 	/** Mirror of LockedWeak, rebuilt every tick after pruning dead targets (safe to hand out by reference). */
 	UPROPERTY(Transient)
 	TArray<AActor*> LockedTargets;
