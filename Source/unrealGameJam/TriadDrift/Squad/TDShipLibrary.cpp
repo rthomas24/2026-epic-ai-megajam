@@ -22,6 +22,9 @@ namespace TDShipLibraryPrivate
 		S.RoleName = LOCTEXT("RiftRole", "Trickster");
 		S.MaxHull = 100.f;
 		S.MaxShield = 100.f;
+		// T4's regen sweep (Nov 13, Lead-approved): Rift lost the most ships in waves 3-5; 2 s / 35% brings it to Bastion.
+		S.ShieldRegenDelay = 2.f;
+		S.ShieldRegenFractionPerSecond = 0.35f;
 		S.CruiseSpeed = 6000.f;
 		S.BoostSpeed = 11000.f;
 		S.TurnRateDeg = 120.f;
