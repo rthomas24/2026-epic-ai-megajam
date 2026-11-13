@@ -94,6 +94,23 @@ public:
 	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat")
 	int32 MaxPooled = 256;
 
+	// ---- hit feel (Lead's polish list, Nov 13): a brief hit-stop when the player kills something big
+	/** A kill counts as big when the victim's bounds reach this radius (gunships, carriers, Dominion parts). */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat|Feel")
+	float BigKillRadiusCm = 900.f;
+	/** Real seconds and time dilation of the big-kill hit-stop (the ram's own kill hit-stop stays with the ram). */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat|Feel")
+	float BigKillHitStopSeconds = .07f;
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat|Feel")
+	float BigKillHitStopDilation = .05f;
+	/** Big-kill hit-stops requested so far (tests). */
+	int32 GetBigKillHitStops() const { return BigKillHitStops; }
+	/** True for a victim big enough to earn the hit-stop. */
+	bool IsBigKill(const AActor* Victim) const;
+
+	UFUNCTION()
+	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
+
 	// UWorldSubsystem
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
@@ -108,6 +125,8 @@ private:
 
 	UFUNCTION()
 	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+
+	int32 BigKillHitStops = 0;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDProjectile>> Pool;

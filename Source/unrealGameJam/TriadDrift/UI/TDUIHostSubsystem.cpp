@@ -274,7 +274,14 @@ void UTDUIHostSubsystem::SetCinematicHiddenIn(const UObject* WorldContext, bool 
 
 void UTDUIHostSubsystem::UpdateDevHUDSuppression()
 {
-	SetDevHUDSuppressed(Widget != nullptr || GroundWidget != nullptr || PauseWidget != nullptr);
+	// While a squad exists and a real space HUD is chosen, a frame where the pawn is briefly not a ship (a switch, a
+	// respawn) must not flash the dev HUD's full read-out for up to 0.2 s, packaged builds included (ENG-36 review m10).
+	const bool bSpaceHUDChosen = UTDUIHostSettings::GetSpaceHUDChoice() != ETDSpaceHUDChoice::Dev && !bCinematicHidden;
+	const APlayerController* PC = FindLocalController();
+	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	const bool bOnFoot = Pawn && !Pawn->IsA<ATDSpacecraft>() && Pawn->GetClass()->ImplementsInterface(UTDHUDData::StaticClass());
+	const bool bHoldForSquad = bSpaceHUDChosen && !bOnFoot && ATDSquadManager::Get(this) != nullptr;
+	SetDevHUDSuppressed(Widget != nullptr || GroundWidget != nullptr || PauseWidget != nullptr || bHoldForSquad);
 }
 
 // ------------------------------------------------------------------------------------------ on foot
@@ -392,6 +399,14 @@ void UTDUIHostSubsystem::HandleHitConfirmed(AActor* Target, bool bKill)
 	{
 		return;
 	}
+	// Rapid fire would play the hit tick every frame: at most one per HitSoundMinInterval (real time). Kills always play.
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetRealTimeSeconds() : 0.0;
+	if (!bKill && Now - LastHitSoundTime < HitSoundMinInterval)
+	{
+		++HitSoundsThrottled;
+		return;
+	}
 	const FTDFXCue& Cue = bKill ? Style->KillConfirm : Style->HitConfirm;
 	USoundBase* Sound = Cue.Sound.IsNull() ? nullptr : Cue.Sound.LoadSynchronous();
 	if (!Sound)
@@ -400,6 +415,10 @@ void UTDUIHostSubsystem::HandleHitConfirmed(AActor* Target, bool bKill)
 	}
 	UGameplayStatics::PlaySound2D(this, Sound); // 2D, no overrides: the asset's class, volume and concurrency apply
 	++(bKill ? KillSoundsPlayed : HitSoundsPlayed);
+	if (!bKill)
+	{
+		LastHitSoundTime = Now;
+	}
 }
 
 void UTDUIHostSubsystem::HandlePauseChanged(bool bPaused)

@@ -25,7 +25,8 @@ enum class ETDHUDSurface : uint8
 	Subtitles,		// bark subtitles
 	Pause,			// the PAUSED line / menu
 	BoundaryWarning,	// edge-of-zone text (GetBoundaryWarningText)
-	CombatStates		// the Switch Strike window and a focus-fire order (GetSwitchStrike01, GetFocusRemaining01)
+	CombatStates,		// the Switch Strike window and a focus-fire order (GetSwitchStrike01, GetFocusRemaining01)
+	ObjectiveMarkers	// waypoint diamonds: planets, gates, generators, landing pads (GetObjectiveMarkers)
 };
 
 /**
@@ -159,6 +160,10 @@ public:
 	/** Combat feedback sounds played so far (tests, diagnostics). */
 	int32 GetHitSoundsPlayed() const { return HitSoundsPlayed; }
 	int32 GetKillSoundsPlayed() const { return KillSoundsPlayed; }
+	int32 GetHitSoundsThrottled() const { return HitSoundsThrottled; }
+
+	/** The hit tick plays at most once per this many real seconds (the Lead: about 60 ms). Kills are never throttled. */
+	float HitSoundMinInterval = .06f;
 
 	/** The controller's OnPauseChanged: opens or closes the pause screen. */
 	UFUNCTION()
@@ -194,6 +199,8 @@ private:
 	TWeakObjectPtr<class UTDEventBus> HitBus;
 	int32 HitSoundsPlayed = 0;
 	int32 KillSoundsPlayed = 0;
+	int32 HitSoundsThrottled = 0;
+	double LastHitSoundTime = -1e9;
 
 	TWeakObjectPtr<APlayerController> Owner;
 	TWeakObjectPtr<UObject> DataSource;
