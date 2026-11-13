@@ -1,6 +1,10 @@
 // Triad Drift - Combat (Teammate 2). Projectile pool + live-projectile index.
 
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "Components/StaticMeshComponent.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -164,6 +168,28 @@ ATDCombatFlash* UTDProjectileSubsystem::PlayPlaceholderFlash(const FVector& Loca
 	return Flash;
 }
 
+AActor* UTDProjectileSubsystem::FindDyingHull(const FVector& Location, float Radius) const
+{
+	const UWorld* World = GetWorld();
+	AActor* Best = nullptr;
+	float BestDistSq = FMath::Square(Radius * 1.5f);
+	if (!World)
+	{
+		return nullptr;
+	}
+	for (TActorIterator<ATDSpacecraft> It(World); It; ++It)
+	{
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(*It);
+		const float DistSq = FVector::DistSquared(It->GetActorLocation(), Location);
+		if (Health && !Health->IsAlive() && DistSq <= BestDistSq)
+		{
+			BestDistSq = DistSq;
+			Best = *It;
+		}
+	}
+	return Best;
+}
+
 int32 UTDProjectileSubsystem::PlayPlaceholderHit(const FVector& Location, float Radius, bool bShield, const FVector& Normal)
 {
 	int32 Used = 0;
@@ -286,7 +312,63 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 	Ember.EdgePower = 1.6f;
 	Part(Location, R * 0.85f, 0.9f, Ember, ShellCap);
 
-	// 5. Thin hot debris sparks flung out on a jittered sphere, fading as they slow.
+	// 5. A shockwave: a thin bright ring, face-on to the camera, racing out to twice the fireball.
+	FTDFlashLook Shock;
+	Shock.Hot = FLinearColor(1.f, 0.9f, 0.7f);
+	Shock.Mid = FMath::Lerp(Team, FLinearColor::White, 0.3f);
+	Shock.Cool = Team * 0.3f;
+	Shock.Glow = 2.f;
+	Shock.GlowExponent = 1.3f;
+	Shock.GrowFrom = 0.15f;
+	Shock.GrowTo = 1.f;
+	Shock.EdgePower = 4.f;
+	Shock.bRim = true;
+	Shock.Squash = FVector(1.f, 1.f, 0.04f);
+	Shock.bFaceCamera = true;
+	Part(Location, R * 2.2f, 0.4f, Shock, ShellCap * 1.6f);
+
+	// 6. Smoke: a dark translucent puff rising after the ember, thinning out over a second and a half.
+	FTDFlashLook Smoke;
+	Smoke.bSmoke = true;
+	Smoke.Hot = FLinearColor(0.09f, 0.08f, 0.08f);
+	Smoke.Mid = FLinearColor(0.06f, 0.06f, 0.065f);
+	Smoke.Cool = FLinearColor(0.05f, 0.05f, 0.055f);
+	Smoke.Opacity = 0.55f;
+	Smoke.GrowFrom = 0.8f;
+	Smoke.GrowTo = 1.7f;
+	Smoke.Delay = 0.45f;
+	Smoke.EdgePower = 1.3f;
+	Part(Location, R * 0.95f, 1.3f, Smoke, ShellCap);
+
+	// 7. Hull chunks: small pieces in the dying ship's own material, flung out on its velocity, tumbling away.
+	AActor* Hull = FindDyingHull(Location, R);
+	UMaterialInterface* HullMaterial = nullptr;
+	FVector HullVelocity = FVector::ZeroVector;
+	if (Hull)
+	{
+		HullVelocity = Hull->GetVelocity();
+		TInlineComponentArray<UStaticMeshComponent*> Meshes(Hull);
+		for (const UStaticMeshComponent* M : Meshes)
+		{
+			if (M && M->IsVisible() && M->GetStaticMesh() && M->GetMaterial(0))
+			{
+				HullMaterial = M->GetMaterial(0);
+				break;
+			}
+		}
+	}
+	for (int32 I = 0; I < ExplosionChunks(R); ++I)
+	{
+		const FVector Dir = FMath::VRand();
+		if (ATDCombatFlash* Flash = AcquireFlash(Location))
+		{
+			Flash->PlayChunk(Location + Dir * R * 0.25f, HullVelocity + Dir * R * FMath::FRandRange(1.f, 2.5f), R * FMath::FRandRange(0.06f, 0.11f), HullMaterial,
+				FMath::FRandRange(1.f, 1.4f), FVector(FMath::FRandRange(-360.f, 360.f), FMath::FRandRange(-360.f, 360.f), FMath::FRandRange(-360.f, 360.f)));
+			++Used;
+		}
+	}
+
+	// 8. Thin hot debris sparks flung out on a jittered sphere, fading as they slow.
 	FTDFlashLook Spark;
 	Spark.Hot = FLinearColor(1.f, 0.95f, 0.75f);
 	Spark.Mid = FLinearColor(1.f, 0.6f, 0.15f);

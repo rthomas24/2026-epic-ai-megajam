@@ -353,7 +353,8 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	const FVector Here(5000.f, 0.f, 0.f);
 	const int32 Used = Projectiles->PlayPlaceholderExplosion(Here, 600.f, FLinearColor::Red, 8);
 	const int32 Pops = UTDProjectileSubsystem::ExplosionPops(600.f);
-	TestEqual(TEXT("core + shell + pops + ember + 8 sparks"), Used, 3 + Pops + 8);
+	const int32 Chunks = UTDProjectileSubsystem::ExplosionChunks(600.f);
+	TestEqual(TEXT("core + shell + pops + ember + shockwave + smoke + chunks + 8 sparks"), Used, 5 + Pops + Chunks + 8);
 	TestEqual(TEXT("a 6 m explosion has 2 staggered pops"), Pops, 2);
 	TestTrue(TEXT("additive soft glow (M_TD_FlashGlow) is in the project"), ATDCombatFlash::GetFlashGlowMaterial() != nullptr);
 
@@ -364,7 +365,8 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 		Delayed.Reset();
 		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
 		{
-			if (It->IsPlaying() && It->IsStyled() && It->GetActorRotation() == FRotator::ZeroRotator)
+			if (It->IsPlaying() && It->IsStyled() && It->GetActorRotation() == FRotator::ZeroRotator && !It->IsSmoke()
+				&& It->GetActorScale3D().Z > 0.1f * It->GetActorScale3D().X) // not the flat shockwave ring
 			{
 				(It->IsDelayed() ? Delayed : Live).Add(*It);
 			}
@@ -372,8 +374,26 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	};
 	TArray<ATDCombatFlash*> Live, Delayed;
 	Spheres(Live, Delayed);
-	TestEqual(TEXT("core and shell start at once"), Live.Num(), 2);
+	TestEqual(TEXT("core and shell start at once (the shockwave turns to the camera)"), Live.Num(), 2);
 	TestEqual(TEXT("pops and ember wait their turn"), Delayed.Num(), Pops + 1);
+	{
+		// The new layers: a camera-facing rim ring, a delayed smoke puff, tumbling hull chunks.
+		int32 Rings = 0, Smokes = 0, ChunkCount = 0;
+		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+		{
+			if (!It->IsPlaying())
+			{
+				continue;
+			}
+			Smokes += It->IsSmoke() ? 1 : 0;
+			ChunkCount += It->IsChunk() ? 1 : 0;
+			const FVector Scale = It->GetActorScale3D();
+			Rings += (It->IsStyled() && !It->IsDebris() && Scale.Z < 0.1f * Scale.X) ? 1 : 0;
+		}
+		TestEqual(TEXT("one shockwave ring (a flat disc)"), Rings, 1);
+		TestEqual(TEXT("one smoke puff"), Smokes, 1);
+		TestEqual(TEXT("hull chunks"), ChunkCount, Chunks);
+	}
 	for (const ATDCombatFlash* F : Live)
 	{
 		TestTrue(TEXT("explosion parts use the additive glow"), F->UsesAdditiveGlow());
@@ -397,8 +417,16 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	W.Advance(0.45f);
 	Spheres(Live, Delayed);
 	TestTrue(TEXT("the ember afterglow is still up at 0.75 s"), Live.Num() >= 1);
+	Spheres(Live, Delayed);
+	W.Advance(0.6f);
+	bool bSmokeUp = false;
+	for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+	{
+		bSmokeUp |= It->IsSmoke() && It->GetActorScale3D().X > 0.f;
+	}
+	TestTrue(TEXT("smoke still hangs at 1.35 s"), bSmokeUp);
 	W.Advance(0.8f);
-	TestEqual(TEXT("all gone by 1.6 s"), Projectiles->GetPlayingFlashCount(), 0);
+	TestEqual(TEXT("all gone by 2.2 s"), Projectiles->GetPlayingFlashCount(), 0);
 
 	// A rocket hitting a wall explodes (more than one flash at the wall), a laser only flashes.
 	const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());
@@ -644,7 +672,9 @@ bool FTDCombatPlaceholderFlashCap::RunTest(const FString& Parameters)
 		W.Tick(1.f / 60.f);
 		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
 		{
-			if (It->IsPlaying() && FVector::Dist(It->GetActorLocation(), Camera + FVector(1500.f, 0.f, 0.f)) < 1.f)
+			// Spheres only: the flat shockwave ring (its own, wider cap) is a thin rim, not a shell.
+			if (It->IsPlaying() && FVector::Dist(It->GetActorLocation(), Camera + FVector(1500.f, 0.f, 0.f)) < 1.f
+				&& It->GetActorScale3D().Z > 0.1f * It->GetActorScale3D().X)
 			{
 				ShellMax = FMath::Max(ShellMax, It->GetActorScale3D().X * 50.f);
 			}
