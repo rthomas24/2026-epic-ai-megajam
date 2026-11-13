@@ -613,6 +613,8 @@ used for an enemy as well, or instead?
 
 **Batch 2** — [Null transport / hauler](https://github.com/rthomas24/2026-epic-ai-megajam/tree/c2b614dd/ArtSource/Reference/NullTransportHauler) · [Cinder field anchor tower](https://github.com/rthomas24/2026-epic-ai-megajam/tree/73e4c584/ArtSource/Reference/CinderFieldAnchor) · [Crystal cache and hero crystal](https://github.com/rthomas24/2026-epic-ai-megajam/tree/116e6470/ArtSource/Reference/CrystalCache) · [Dominion docking bay mouth](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6bfaea46/ArtSource/Reference/DominionDockingBay)
 
+**Batch 3** — [Browse all 12 original modular interior images](https://github.com/rthomas24/2026-epic-ai-megajam/tree/31464c4d8943f1c169120181fcfdf36ff2ea824c/ArtSource/Reference/ModularInteriorKit). Seven asset issues link directly to the individual files: bridge #55, ceilings #56, column #57, crate #58, doors #59, floors #60 and wall #61. Nicholas supplied these for modeling reference. Level placement is unassigned.
+
 **Reply (Nick / Lead, November 13).** Nicholas approved both survey terminal images. The [Verdance discovery and Cinder match screen graphics](https://github.com/rthomas24/2026-epic-ai-megajam/tree/b4086108317c62b08e3d2b776b985d66d3444927/ArtSource/UI/TriadHUD/Unreal/SurveyTerminals01) are ready for the respective terminal scenes. [Issue #44 has direct PNG links and the request for in-game captures](https://github.com/rthomas24/2026-epic-ai-megajam/issues/44#issuecomment-6865267994).
 
 **Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
