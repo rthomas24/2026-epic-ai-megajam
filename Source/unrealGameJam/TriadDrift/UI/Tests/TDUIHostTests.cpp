@@ -25,19 +25,24 @@
 
 namespace TDUIHostTests
 {
-	/** Forces TD.UI.NativeHUD for the scope of a test and restores it. */
+	/**
+	 * Forces Nick's HUD on (1) or the dev HUD (0) for the scope of a test and restores both switches. These tests are
+	 * about Nick's widget, so they pin TD.UI.SpaceHUD too: with the engineering HUD as the default (ENG-36), "Nick's off"
+	 * alone would show the engineering HUD instead of none.
+	 */
 	struct FScopedNativeHUD
 	{
 		IConsoleVariable* Var = nullptr;
+		IConsoleVariable* Choice = nullptr;
 		int32 Previous = -1;
+		int32 PreviousChoice = -1;
 		explicit FScopedNativeHUD(int32 Value)
 		{
 			Var = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.UI.NativeHUD"));
-			if (Var)
-			{
-				Previous = Var->GetInt();
-				Var->Set(Value, ECVF_SetByCode);
-			}
+			Choice = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.UI.SpaceHUD"));
+			Previous = Var ? Var->GetInt() : -1;
+			PreviousChoice = Choice ? Choice->GetInt() : -1;
+			Set(Value);
 		}
 		void Set(int32 Value) const
 		{
@@ -45,12 +50,20 @@ namespace TDUIHostTests
 			{
 				Var->Set(Value, ECVF_SetByCode);
 			}
+			if (Choice)
+			{
+				Choice->Set(Value > 0 ? 1 : 0, ECVF_SetByCode); // 1 = Nick's, 0 = dev
+			}
 		}
 		~FScopedNativeHUD()
 		{
 			if (Var)
 			{
 				Var->Set(Previous, ECVF_SetByCode);
+			}
+			if (Choice)
+			{
+				Choice->Set(PreviousChoice, ECVF_SetByCode);
 			}
 		}
 	};
@@ -286,12 +299,14 @@ bool FTDUIHostShowRules::RunTest(const FString& Parameters)
 	TestTrue(TEXT("snapshot decoded"), F.Sample(Cards));
 	TestTrue(TEXT("Rift is the active card"), Cards.Num() == 3 && Cards[0].bActive && !Cards[1].bActive && !Cards[2].bActive);
 
-	// On foot: the pawn isn't a ship.
+	// A pawn that isn't a ship (and isn't an on-foot HUD-data character): the space HUD goes, but with the squad still
+	// there the dev HUD stays suppressed, so its full read-out never flashes for a frame (ENG-36 review m10). A real
+	// on-foot character (ITDHUDData) gets the ground HUD instead: TriadDrift.UI.GroundHUD tests.
 	APawn* OnFoot = F.W.Spawn<APawn>(FVector(0.f, 0.f, 5000.f));
 	F.PC->Possess(OnFoot);
 	F.Host->Evaluate();
-	TestFalse(TEXT("on foot: removed"), F.Host->IsSpaceHUDShown());
-	TestFalse(TEXT("on foot: dev HUD back"), ATDDebugHUD::IsRealHUDActive(F.W.GetWorld()));
+	TestFalse(TEXT("not a ship: space HUD removed"), F.Host->IsSpaceHUDShown());
+	TestTrue(TEXT("not a ship, squad still there: dev HUD stays suppressed (no flash)"), ATDDebugHUD::IsRealHUDActive(F.W.GetWorld()));
 
 	// Back in a ship: re-created.
 	F.PC->Possess(F.Squad->GetShip(ETDShipId::Rift));

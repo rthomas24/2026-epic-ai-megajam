@@ -58,6 +58,21 @@ public:
 	/** Reads the difficulty in play through reflection; empty when unavailable. */
 	static FString ReadDifficultyInPlay();
 
+	/**
+	 * UI sounds (T1's UTDSettingsSubsystem::PlayUISound, called by reflection until it is on main): Move when the
+	 * highlighted row or confirm button changes, Confirm when an item is chosen, Back when a confirm prompt is cancelled.
+	 * Opening and closing are not here: PauseIn / PauseOut play from ATDSpacePlayerController::SetPlayerPaused.
+	 * Returns true when the call reached the API.
+	 */
+	bool PlayUISound(const TCHAR* Which);
+	/** Requests so far, by kind (tests: counted whether or not the API is in this build). */
+	int32 GetUISoundRequests(const TCHAR* Which) const { const int32* N = UISoundRequests.Find(Which); return N ? *N : 0; }
+
+	/** The control footer for the device in use (pad glyphs on a gamepad, keys otherwise). */
+	FString GetFooterText() const;
+	/** Tests: force the footer's device (-1 = ask the owning controller). */
+	int32 ForceGamepad = -1;
+
 	/** False in tests: activations are recorded but not executed (no unpause, travel or retake). */
 	bool bExecuteActions = true;
 
@@ -85,4 +100,5 @@ private:
 	FString Toast;
 	FString DifficultyLine;
 	double ToastUntil = 0.0;
+	TMap<FString, int32> UISoundRequests;
 };

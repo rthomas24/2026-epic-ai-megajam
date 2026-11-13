@@ -1,6 +1,8 @@
 // Triad Drift - combat music director (N-029). Owner: Teammate 1.
 
 #include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
+#include "TriadDrift/Input/TDMusicSettings.h"
+#include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
 #include "TriadDrift/Core/TDAudioState.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -74,6 +76,13 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 	{
 		return MusicOverride;
 	}
+	// Review M10: found once and held (UPROPERTY); while missing, looked up again every 2 s, never every frame.
+	if (CachedMusic || MusicRetry > 0.f)
+	{
+		return CachedMusic;
+	}
+	MusicRetry = 2.f;
+	++MusicLookups;
 	// UTDUIStyle::CombatMusic, read by name (the slot lands in Core with the N-029 push).
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
 	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(Style->GetClass()->FindPropertyByName(TEXT("CombatMusic"))) : nullptr;
@@ -82,7 +91,8 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 		return nullptr;
 	}
 	const FSoftObjectPtr& Soft = Prop->GetPropertyValue_InContainer(Style);
-	return Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+	CachedMusic = Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+	return CachedMusic;
 }
 
 FName UTDMusicDirectorSubsystem::AmbienceSlotForMap(const FString& MapName)
@@ -199,6 +209,7 @@ void UTDMusicDirectorSubsystem::StartPlayback()
 		Audio->SetSound(Music);
 	}
 	Envelope = 0.f;
+	IntensityGain = TargetIntensityGain(); // silent at the start anyway: begin at the right level
 	ApplyEnvelope();
 	if (Audio)
 	{
@@ -222,11 +233,26 @@ void UTDMusicDirectorSubsystem::BeginStop(const TCHAR* Why)
 	UE_LOG(LogTriadDrift, Log, TEXT("TD music: 1 s stop (%s)"), Why);
 }
 
+float UTDMusicDirectorSubsystem::TargetIntensityGain() const
+{
+	const UTDMusicSettings* MS = UTDMusicSettings::Get();
+	float Intensity = 1.f;
+	if (IntensityOverride.IsSet())
+	{
+		Intensity = IntensityOverride.GetValue();
+	}
+	else if (const UTDAudioStateSubsystem* AudioState = UTDAudioStateSubsystem::Get(GetWorld()))
+	{
+		Intensity = AudioState->GetMusicIntensity01();
+	}
+	return FMath::Lerp(MS->CalmGain, MS->FightGain, FMath::Clamp(Intensity, 0.f, 1.f));
+}
+
 void UTDMusicDirectorSubsystem::ApplyEnvelope()
 {
 	if (Audio)
 	{
-		Audio->SetVolumeMultiplier(FMath::Max(Envelope, 0.001f));
+		Audio->SetVolumeMultiplier(FMath::Max(Envelope * IntensityGain, 0.001f));
 	}
 }
 
@@ -270,7 +296,14 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	{
 		bVictory = AudioState->GetState().Phase == ETDGamePhase::Victory;
 	}
-	const bool bBlocked = bTravelling || bVictory || bMenuMap || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
+	// N-039: the tutorial voice (game-instance level) steps with the world; while it plays, the combat music waits.
+	UTDTutorialMusicSubsystem* Tutorial = UTDTutorialMusicSubsystem::Get(World);
+	if (Tutorial)
+	{
+		Tutorial->Step(World, Dt, bMenuMap);
+	}
+	const bool bTutorialHolds = Tutorial && Tutorial->IsHoldingCombatMusic();
+	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
 	bool bCombat = !bBlocked && IsCombatNow();
 	if (bWaitForTake && !bCombat)
 	{
@@ -279,9 +312,13 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	bCombat = bCombat && !bWaitForTake;
 	if (bBlocked)
 	{
-		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : TEXT("menu"));
+		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : bTutorialHolds ? TEXT("tutorial music") : TEXT("menu"));
 	}
 	TickAmbience(Dt, bTravelling || bVictory || bMenuMap);
+
+	MusicRetry = FMath::Max(0.f, MusicRetry - Dt);
+	// N-037: the fight's intensity sets the music's level, rate-limited on top of the intensity's own smoothing.
+	IntensityGain = FMath::FInterpConstantTo(IntensityGain, TargetIntensityGain(), Dt, UTDMusicSettings::Get()->MaxGainRatePerSecond);
 
 	StateTime += Dt;
 	switch (MusicState)

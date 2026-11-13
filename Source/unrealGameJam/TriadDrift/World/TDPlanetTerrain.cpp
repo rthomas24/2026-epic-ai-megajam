@@ -8,6 +8,10 @@
 #include "HAL/PlatformTime.h"
 #include "Materials/MaterialInterface.h"
 #include "Async/Async.h"
+#include "EngineUtils.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -48,14 +52,36 @@ ATDPlanetTerrain* ATDPlanetTerrain::SpawnForPlanet(UWorld* World, ETDDestination
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	ATDPlanetTerrain* T = World->SpawnActor<ATDPlanetTerrain>(ATDPlanetTerrain::StaticClass(), FTransform(FRotator::ZeroRotator, Origin.GetLocation()), Params);
-	if (T) { T->Setup(Planet, Material); }
+	if (!T) { return nullptr; }
+	if (!Material)
+	{
+		// The Lead's slope / height terrain material (Gameplay/Props is always cooked), else the plain ground.
+		const bool bV = Planet != ETDDestination::Cinder;
+		for (const TCHAR* P : { bV ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Verdance.MI_Terrain_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Cinder.MI_Terrain_Cinder"),
+			bV ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder") })
+		{
+			const TSoftObjectPtr<UMaterialInterface> Soft{ FSoftObjectPath(P) };
+			if (!Material && FPackageName::DoesPackageExist(Soft.ToSoftObjectPath().GetLongPackageName())) { Material = Soft.LoadSynchronous(); }
+		}
+	}
+	T->Setup(Planet, Material);
+	return T;
 	return T;
 }
 
 void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material)
 {
 	Field = MakeShared<const FTDTerrainField, ESPMode::ThreadSafe>(FTDTerrainStyle::ForPlanet(Planet));
+	// One dynamic instance per terrain: the material's height bands use this planet's real relief.
 	TerrainMaterial = Material;
+	if (Material)
+	{
+		if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Material, this))
+		{
+			MID->SetScalarParameterValue(TEXT("HeightRangeM"), Field->ReliefMeters());
+			TerrainMaterial = MID;
+		}
+	}
 	const FTDTerrainStyle& S = Field->GetStyle();
 	const int32 Half = FMath::CeilToInt(S.CoreHalfSize / ChunkSize);
 	Chunks.Reset();
@@ -78,14 +104,16 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 		}
 	}
 	// Coarse world at once (first view ready before the arrival camera), then refine near the viewer.
-	// Coarse LOD of everything right away, in parallel: the first view is complete before the arrival camera.
+	// The first view at its final LOD around the course (M2: no pop on arrival), the rest coarse, all in parallel.
 	TArray<FChunkData> Coarse;
 	Coarse.SetNum(Chunks.Num());
-	ParallelFor(Chunks.Num(), [this, &Coarse](int32 i)
+	const FVector2D Pad = FVector2D::ZeroVector;	// this actor sits at the course origin
+	ParallelFor(Chunks.Num(), [this, &Coarse, Pad](int32 i)
 	{
-		GenerateChunk(*Field, Chunks[i].Cell, ChunkSize, QuadsLod2, Coarse[i]);
+		const int32 Lod = WantedLod(Chunks[i], Pad);
+		GenerateChunk(*Field, Chunks[i].Cell, ChunkSize, QuadsFor(Lod), Coarse[i]);
 		Coarse[i].Index = i;
-		Coarse[i].Lod = 2;
+		Coarse[i].Lod = Lod;
 	});
 	// Synchronous collision for the first world: the pad and the arrival have ground to stand on from frame one.
 	for (UProceduralMeshComponent* M : ChunkMeshes) { M->bUseAsyncCooking = false; }
@@ -113,7 +141,7 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 	// Far ring: one coarse grid from the core edge to the far edge (a hole in the middle), no collision.
 	{
 		const float Far = S.FarHalfSize;
-		const int32 N = 96;
+		const int32 N = FMath::Max(2, FMath::RoundToInt(2.f * Far / ChunkSize));	// 1 km cells: aligned with the core chunks
 		const float Step = 2.f * Far / N;
 		TArray<FVector> V; TArray<int32> Tri; TArray<FVector> Nrm; TArray<FVector2D> UV0, UV1; TArray<FColor> Col; TArray<FProcMeshTangent> Tan;
 		for (int32 j = 0; j <= N; ++j)
@@ -122,10 +150,12 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 			{
 				const float X = -Far + i * Step, Y = -Far + j * Step;
 				const FTDTerrainSample Sm = Field->Sample(X, Y, Step * 0.5f);
-				// Sink the inner part under the core so the two never fight.
-				const bool bInner = FMath::Max(FMath::Abs(X), FMath::Abs(Y)) < S.CoreHalfSize - Step;
-				V.Add(FVector(X, Y, bInner ? Sm.Height - 20000.f : Sm.Height));
-				Nrm.Add(FVector::UpVector);
+				// True heights everywhere (the old sunk inner part made slabs at the core edge: pale flat patches);
+				// the quads inside the core are skipped below, so the ring is a ring. Real normals.
+				V.Add(FVector(X, Y, Sm.Height));
+				const float HX = Field->Height(X + Step * 0.5f, Y) - Field->Height(X - Step * 0.5f, Y);
+				const float HY = Field->Height(X, Y + Step * 0.5f) - Field->Height(X, Y - Step * 0.5f);
+				Nrm.Add(FVector(-HX, -HY, Step).GetSafeNormal());
 				UV0.Add(FVector2D(X, Y) / 1000.f);
 				UV1.Add(FVector2D(Sm.Height / 100.f, Sm.Slope));
 				Col.Add(FLinearColor(Sm.Height01, Sm.Slope, Sm.BroadMask, Sm.FineMask).ToFColor(false));
@@ -135,6 +165,9 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 		{
 			for (int32 i = 0; i < N; ++i)
 			{
+				// Skip the quads inside the core: the grid is aligned to the chunks, so the ring's inner edge is the core's edge.
+				const float QX = -Far + (i + 0.5f) * Step, QY = -Far + (j + 0.5f) * Step;
+				if (FMath::Max(FMath::Abs(QX), FMath::Abs(QY)) < S.CoreHalfSize) { continue; }
 				const int32 A = j * (N + 1) + i, B = A + 1, C = A + N + 1, D = C + 1;
 				Tri.Append({ A, C, B, B, C, D });
 			}
@@ -157,11 +190,9 @@ void ATDPlanetTerrain::GenerateChunk(const FTDTerrainField& InField, FIntPoint C
 		for (int32 i = 0; i <= N; ++i)
 		{
 			const float X = X0 + i * Step, Y = Y0 + j * Step;
-			const FTDTerrainSample Sm = InField.Sample(X, Y, H);
+			const FTDTerrainSample Sm = InField.Sample(X, Y, H);	// height + normal + masks: 5 height evaluations
 			Out.V.Add(FVector(X, Y, Sm.Height));
-			const float HX = InField.Height(X + H, Y) - InField.Height(X - H, Y);
-			const float HY = InField.Height(X, Y + H) - InField.Height(X, Y - H);
-			Out.Nrm.Add(FVector(-HX, -HY, 2.f * H).GetSafeNormal());
+			Out.Nrm.Add(Sm.Normal);
 			Out.UV0.Add(FVector2D(X, Y) / 1000.f);
 			Out.UV1.Add(FVector2D(Sm.Height / 100.f, Sm.Slope));
 			Out.Col.Add(FLinearColor(Sm.Height01, Sm.Slope, Sm.BroadMask, Sm.FineMask).ToFColor(false));
@@ -213,6 +244,7 @@ void ATDPlanetTerrain::ApplyChunk(FChunkData& Data)
 {
 	if (!Chunks.IsValidIndex(Data.Index)) { return; }
 	FChunk& C = Chunks[Data.Index];
+	if (C.Building >= 0 && C.Building != Data.Lod) { return; }	// a newer LOD was requested meanwhile: drop this one
 	UProceduralMeshComponent* M = ChunkMeshes.IsValidIndex(Data.Index) ? ChunkMeshes[Data.Index].Get() : nullptr;
 	if (!M) { return; }
 	M->CreateMeshSection(0, Data.V, Data.Tri, Data.Nrm, Data.UV0, Data.UV1, TArray<FVector2D>(), TArray<FVector2D>(), Data.Col,
@@ -250,7 +282,8 @@ FVector2D ATDPlanetTerrain::ViewLocal() const
 {
 	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
 	FVector P = GetActorLocation();
-	if (PC && PC->PlayerCameraManager) { P = PC->PlayerCameraManager->GetCameraLocation(); }
+	if (bViewOverride) { P = ViewOverride; }
+	else if (PC && PC->PlayerCameraManager) { P = PC->PlayerCameraManager->GetCameraLocation(); }
 	else if (PC && PC->GetPawn()) { P = PC->GetPawn()->GetActorLocation(); }
 	const FVector L = GetActorTransform().InverseTransformPosition(P);
 	return FVector2D(L.X, L.Y);
@@ -260,12 +293,64 @@ int32 ATDPlanetTerrain::WantedLod(const FChunk& C, const FVector2D& View) const
 {
 	const FVector2D Centre((C.Cell.X + 0.5f) * ChunkSize, (C.Cell.Y + 0.5f) * ChunkSize);
 	const float D = FMath::Max(0.f, FVector2D::Distance(Centre, View) - ChunkSize * 0.7f);
-	return D < Lod0Distance ? 0 : (D < Lod1Distance ? 1 : 2);
+	const int32 Lod = D < Lod0Distance ? 0 : (D < Lod1Distance ? 1 : 2);
+	// Silhouettes the player looks at from the course keep their shape: the hero peak never drops below LOD1.
+	const FTDTerrainStyle& S = Field->GetStyle();
+	const bool bHero = FVector2D::Distance(Centre, S.HeroCentre) < S.HeroRadius + ChunkSize;
+	return bHero ? FMath::Min(Lod, 1) : Lod;
+}
+
+ATDPlanetTerrain* ATDPlanetTerrain::EnsureForWorld(UWorld* World, ETDDestination Planet)
+{
+	if (!World || IConsoleManager::Get().FindConsoleVariable(TEXT("td.PlanetTerrain")) && IConsoleManager::Get().FindConsoleVariable(TEXT("td.PlanetTerrain"))->GetInt() == 0)
+	{
+		return nullptr;
+	}
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { if (!It->IsActorBeingDestroyed()) { return *It; } }
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATDPlanetTerrain* T = World->SpawnActor<ATDPlanetTerrain>(ATDPlanetTerrain::StaticClass(), FTransform::Identity, Params);
+	if (T)
+	{
+		T->bAwaitingCourse = true;
+		T->PendingPlanet = Planet;
+	}
+	return T;
+}
+
+int32 ATDPlanetTerrain::GetChunkLodAt(const FVector& WorldPoint) const
+{
+	const FVector L = GetActorTransform().InverseTransformPosition(WorldPoint);
+	const FIntPoint Cell(FMath::FloorToInt(L.X / ChunkSize), FMath::FloorToInt(L.Y / ChunkSize));
+	for (const FChunk& C : Chunks) { if (C.Cell == Cell) { return C.Lod; } }
+	return -1;
 }
 
 void ATDPlanetTerrain::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bAwaitingCourse)
+	{
+		// The course sits at the landing pad (the planet director spawns it, maybe after us): the world centres on it.
+		AwaitSeconds += DeltaSeconds;
+		AActor* Course = nullptr;
+		for (TActorIterator<ATDPlanetCourse> It(GetWorld()); It && !Course; ++It) { Course = *It; }
+		if (Course || AwaitSeconds > 10.f)
+		{
+			bAwaitingCourse = false;
+			if (Course) { SetActorLocation(Course->GetActorLocation()); }
+			UMaterialInterface* M = nullptr;
+			const bool bV = PendingPlanet != ETDDestination::Cinder;
+			for (const TCHAR* P : { bV ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Verdance.MI_Terrain_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Cinder.MI_Terrain_Cinder"),
+				bV ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder") })
+			{
+				const TSoftObjectPtr<UMaterialInterface> Soft{ FSoftObjectPath(P) };
+				if (!M && FPackageName::DoesPackageExist(Soft.ToSoftObjectPath().GetLongPackageName())) { M = Soft.LoadSynchronous(); }
+			}
+			Setup(PendingPlanet, M);
+		}
+		return;
+	}
 	if (!Field) { return; }
 	const FVector2D View = ViewLocal();
 	ReplanTimer -= DeltaSeconds;
@@ -311,10 +396,13 @@ void ATDPlanetTerrain::Tick(float DeltaSeconds)
 	}
 	// Apply finished chunks within the frame budget (mesh upload; collision cooks async).
 	const double Start = FPlatformTime::Seconds();
+	int32 Lod0Applied = 0;
 	while (Ready.Num() > 0 && (FPlatformTime::Seconds() - Start) * 1000.0 < BudgetMs)
 	{
+		if (Ready[0]->Lod == 0 && Lod0Applied >= MaxLod0PerFrame) { break; }	// one dense upload per frame
 		TSharedPtr<FChunkData, ESPMode::ThreadSafe> D = Ready[0];
 		Ready.RemoveAt(0, EAllowShrinking::No);
+		Lod0Applied += D->Lod == 0 ? 1 : 0;
 		ApplyChunk(*D);
 	}
 }

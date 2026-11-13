@@ -114,9 +114,9 @@ struct FTDUIPainter
 	/** Width of S in design units (0 when Slate can't measure, e.g. headless). */
 	float Measure(const FString& S, const FSlateFontInfo& DesignFont) const
 	{
-		if (Scale <= 0 || !FSlateApplication::IsInitialized())
+		if (Scale <= 0 || !FSlateApplication::IsInitialized() || !FSlateApplication::Get().GetRenderer())
 		{
-			return 0.f;
+			return 0.f; // headless (-nullrhi): no renderer, no font measure service
 		}
 		const float DrawScale = G.GetAccumulatedLayoutTransform().GetScale();
 		if (DrawScale <= 0)

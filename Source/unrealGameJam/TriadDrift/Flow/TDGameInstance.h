@@ -84,6 +84,16 @@ public:
 	bool ConsumeIntroPending();
 	bool IsIntroPending() const { return bIntroPending; }
 
+	/** Story transmissions (T3): played once per run, kept across retakes and in the checkpoint a Continue loads. */
+	bool HasPlayedTransmission(FName Id) const { return Progress.StoryTransmissions.Contains(Id); }
+	void MarkTransmissionPlayed(FName Id);
+	void ForgetPlayedTransmissions();
+	/** This run was resumed with Continue (onboarding's control lessons stay off). A New Game clears it. */
+	bool IsRunFromContinue() const { return bRunFromContinue; }
+#if WITH_DEV_AUTOMATION_TESTS
+	void SetRunFromContinueForTests(bool b) { bRunFromContinue = b; }
+#endif
+
 	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	bool ContinueRun();
@@ -251,6 +261,7 @@ private:
 	void BindEventBus();
 	/** ENG-33: New Game plays the intro once (transient, never saved). */
 	bool bIntroPending = false;
+	bool bRunFromContinue = false;
 	bool TickRunTimer(float DeltaSeconds);
 	void ExecuteRetake();
 	void BeginLoad(const FString& PackageName);

@@ -1482,6 +1482,13 @@ bool UTDIntroDirector::Skip()
 	}
 	bSkipped = true;
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: skipped at %.1f s"), Elapsed);
+	// The score is cut to the picture: a skip fades it out over a second (watched, it plays to its own end, which
+	// lines up with the hand-off: docs/eng/intro-beats.md).
+	if (Music)
+	{
+		Music->FadeOut(1.f, 0.f);
+		Music = nullptr;
+	}
 	Finish();
 	return true;
 }
@@ -1699,6 +1706,16 @@ void UTDIntroDirector::Finish()
 	FSimpleDelegate Done = MoveTemp(OnFinishedDelegate);
 	OnFinishedDelegate.Unbind();
 	Done.ExecuteIfBound();
+	OnIntroFinished.Broadcast(/*bPlayed*/ true, bSkipped); // N-039: the control frame
+}
+
+void UTDIntroDirector::NotifyRunStartedWithoutIntro()
+{
+	if (bPlaying)
+	{
+		return;
+	}
+	OnIntroFinished.Broadcast(/*bPlayed*/ false, /*bSkipped*/ false);
 }
 
 void UTDIntroDirector::EnsureWidget()

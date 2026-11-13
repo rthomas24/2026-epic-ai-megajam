@@ -5,6 +5,8 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
+#include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
@@ -27,6 +29,12 @@
 #include "EngineUtils.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
+#include "HAL/IConsoleManager.h"
+
+static TAutoConsoleVariable<int32> CVarTDFinaleBoarding(
+	TEXT("td.Finale.Boarding"), 1,
+	TEXT("ENG-29 finale: 1 = board the Dominion through its docking bay when the generators fall (needs L_Dominion_Interior); ")
+	TEXT("0 = the space reactor kill (the fallback ending). Read when the defenses go down."));
 
 namespace
 {
@@ -317,13 +325,36 @@ void ATDDominion::TickPlaceholderBreakup(float DeltaSeconds)
 			FRandomStream R(7919 + BreakupBooms * 31);
 			const FVector Local(R.FRandRange(B.Min.X, B.Max.X), R.FRandRange(B.Min.Y, B.Max.Y) * 0.8f, R.FRandRange(B.Min.Z, B.Max.Z) * 0.8f);
 			const FLinearColor Col = R.FRand() < 0.5f ? FLinearColor(1.f, 0.45f, 0.1f) : FLinearColor(1.f, 0.8f, 0.4f);
-			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(Local), FMath::Lerp(2500.f, 7000.f, T) * R.FRandRange(0.7f, 1.2f), Col, 10);
+			const float Radius = FMath::Lerp(2500.f, 7000.f, T) * R.FRandRange(0.7f, 1.2f);
+			const FVector Where = Xf.TransformPosition(Local);
+			// ENG-37: Nick's / the effects builder's section explosion when it has VFX (authored for a 50 m radius).
+			if (Visuals && FTDCombatPlaceholders::HasVisualArt(Visuals->HullSectionExplosion))
+			{
+				FTDFXCue Cue = Visuals->HullSectionExplosion;
+				Cue.VFXScale *= Radius / 5000.f;
+				UTDStatics::PlayCue(this, Cue, Where, FRotator(R.FRandRange(-180.f, 180.f), R.FRandRange(-180.f, 180.f), 0.f));
+			}
+			else
+			{
+				Booms->PlayPlaceholderExplosion(Where, Radius, Col, 10);
+			}
 			++BreakupBooms;
 		}
 		if (StateTime >= FinalAt)
 		{
 			bBreakupFinalBlast = true;
-			Booms->PlayPlaceholderExplosion(Xf.TransformPosition(B.GetCenter()), B.GetExtent().Size() * 1.2f, FLinearColor(1.f, 0.85f, 0.6f), 16);
+			const float Radius = B.GetExtent().Size() * 1.2f;
+			const FVector Where = Xf.TransformPosition(B.GetCenter());
+			if (Visuals && FTDCombatPlaceholders::HasVisualArt(Visuals->BreakupFinalBlast))
+			{
+				FTDFXCue Cue = Visuals->BreakupFinalBlast;
+				Cue.VFXScale *= Radius / 50000.f;	// authored for a 500 m radius
+				UTDStatics::PlayCue(this, Cue, Where, GetActorRotation());
+			}
+			else
+			{
+				Booms->PlayPlaceholderExplosion(Where, Radius, FLinearColor(1.f, 0.85f, 0.6f), 16);
+			}
 			if (Reactor) { Reactor->SetActorHiddenInGame(true); }
 			ShowHull(false);	// the ship is gone in the flash
 		}
@@ -462,7 +493,7 @@ void ATDDominion::SyncHyperdriveLock()
 	// well where a jump drops out). Locking at the warp-in, 500 000 cm away, made the approach a sublight crawl.
 	// Sticky for the assault: flying back out of the well doesn't unlock the fight.
 	const bool bAssault = State == ETDDominionState::WarpingIn || State == ETDDominionState::ShieldsUp
-		|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::Breakup;
+		|| State == ETDDominionState::ReactorExposed || State == ETDDominionState::DockingOpen || State == ETDDominionState::Breakup;
 	if (!bAssault)
 	{
 		bSquadArrived = false;
@@ -512,7 +543,7 @@ void ATDDominion::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		}
 		return;
 	}
-	if (State == ETDDominionState::ShieldsUp || State == ETDDominionState::ReactorExposed)
+	if (State == ETDDominionState::ShieldsUp || State == ETDDominionState::ReactorExposed || State == ETDDominionState::DockingOpen)
 	{
 		ResetForNewTake();
 	}
@@ -551,6 +582,7 @@ void ATDDominion::ResetForNewTake()
 		for (ATDEnemyTurret* T : TrenchTurretActors) { Rearm(T); }
 	}
 	if (Reactor) { Reactor->RestartCurrentPhase(); }
+	if (DockingBay) { DockingBay->ResetForNewTake(); }	// the tractor lets go; the bay stays open
 }
 
 void ATDDominion::FinishAfterVictory()
@@ -579,6 +611,7 @@ void ATDDominion::FinishAfterVictory()
 	for (ATDEnemyTurret* T : TrenchTurretActors) { Retire(T); }
 	for (ATDShieldGenerator* G : Generators) { Retire(G); }
 	Retire(Reactor);
+	Retire(DockingBay);
 	ShowHull(false);
 	SetState(ETDDominionState::Finished);
 }
@@ -893,6 +926,10 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	// The GeneratorKill money shot comes from T3's UTDDirectorSubsystem (generator actors are tagged).
 
 	const int32 Remaining = GetGeneratorsRemaining();
+	// Story (T3's transmissions): one per generator by count down, not by which one. Once per run, queued, held
+	// during money shots; a retake or a resumed save (generators silently destroyed) never replays them.
+	const int32 Down = FMath::Clamp(Generators.Num() - Remaining, 1, 4);
+	UTDStorySubsystem::Fire(this, FName(*FString::Printf(TEXT("A4_GeneratorDown%d"), Down)));
 	OnShieldSectionDown.Broadcast(this, Remaining);
 	if (Remaining == 0)
 	{
@@ -925,19 +962,57 @@ void ATDDominion::OnDefensesDown(bool bFromSave)
 	{
 		UTDStatics::PlayCue(this, Visuals->ShieldCollapse, GetActorLocation(), GetActorRotation());
 	}
-	if (bDockingFinale)
+	if (UsesBoardingFinale())
 	{
-		BeginDockingFinale();
+		BeginDockingFinale(/*bPlayCues*/ !bFromSave);
 		return;
 	}
 	ExposeReactor(/*bPlayCues*/ !bFromSave);
 }
 
-void ATDDominion::BeginDockingFinale()
+bool ATDDominion::UsesBoardingFinale() const
 {
-	// ENG-29 (stretch) overrides this to open the docking bay and hand off to the boarding flow.
-	UE_LOG(LogTriadDrift, Warning, TEXT("ATDDominion: docking finale is not built (ENG-29); using the reactor ending."));
-	ExposeReactor(true);
+	if (BoardingMode != ETDBoardingMode::Auto)
+	{
+		return BoardingMode == ETDBoardingMode::ForceOn;
+	}
+	if (CVarTDFinaleBoarding.GetValueOnGameThread() == 0)
+	{
+		return false;
+	}
+	// A real level only: test worlds (/Temp/Untitled) keep the space ending every existing test plays.
+	const UWorld* World = GetWorld();
+	if (!World || World->GetOutermost()->GetName().StartsWith(TEXT("/Temp/")))
+	{
+		return false;
+	}
+	return FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Maps/L_Dominion_Interior"));
+}
+
+void ATDDominion::BeginDockingFinale(bool bPlayCues)
+{
+	// The reactor stays shielded inside (T5's core fight); the trench turrets stay down. The hull turrets and the
+	// launches keep the approach hot (stage 1 pressure).
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	if (!DockingBay)
+	{
+		// The mouth sits on the real bow (art or placeholder hull), low on the hull, facing out.
+		const FBox B = GetLocalHullBounds();
+		const FVector Local(B.Max.X, 0.f, FMath::Lerp(B.Min.Z, B.GetCenter().Z, 0.6f));
+		FActorSpawnParameters P;
+		P.Owner = this;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		DockingBay = World->SpawnActor<ATDDockingBay>(ATDDockingBay::StaticClass(), GetActorTransform().TransformPosition(Local), GetActorRotation(), P);
+		if (DockingBay) { DockingBay->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform); }
+	}
+	if (DockingBay) { DockingBay->Open(this, bPlayCues); }
+	SetState(ETDDominionState::DockingOpen);
+	ApplyStage(1);
+	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: boarding finale - the docking bay is open"));
 }
 
 void ATDDominion::ExposeReactor(bool bPlayCues)
@@ -1051,6 +1126,7 @@ void ATDDominion::Tick(float DeltaSeconds)
 
 	case ETDDominionState::ShieldsUp:
 	case ETDDominionState::ReactorExposed:
+	case ETDDominionState::DockingOpen:
 		PollTimer -= DeltaSeconds;
 		if (PollTimer <= 0.f)
 		{

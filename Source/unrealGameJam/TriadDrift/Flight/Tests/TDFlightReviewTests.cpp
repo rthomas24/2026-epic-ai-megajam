@@ -1097,9 +1097,11 @@ bool FTDReviewTerrainAhead::RunTest(const FString& Parameters)
 	const FCase Cases[] = { { TEXT("30 deg slope"), 30.f }, { TEXT("cliff"), 90.f } };
 	for (const FCase& C : Cases)
 	{
+		// ENG-34: boost works in atmosphere now (60% of boost speed), so the faster approach must still clear them.
+		for (const bool bBoost : { false, true })
 		for (const float Fps : { 30.f, 60.f, 120.f })
 		{
-			const FString Tag = FString::Printf(TEXT("%s @%.0f fps: "), C.Name, Fps);
+			const FString Tag = FString::Printf(TEXT("%s%s @%.0f fps: "), C.Name, bBoost ? TEXT(" boosting") : TEXT(""), Fps);
 			FTDTestWorld W;
 			AActor* Ground = TDReviewTest::SpawnWall(W, FVector(0.f, 0.f, -200.f));
 			Cast<UBoxComponent>(Ground->GetRootComponent())->SetBoxExtent(FVector(400000.f, 400000.f, 200.f));
@@ -1118,10 +1120,17 @@ bool FTDReviewTerrainAhead::RunTest(const FString& Parameters)
 			Counter->Bind(Move);
 			FTDFlightInput In;
 			In.Throttle = 1.f;
+			In.bBoost = bBoost;
+			float MaxSpeed = 0.f;
 			for (int32 i = 0; i < FMath::RoundToInt(Fps * 10.f); ++i)
 			{
 				Ship->SetFlightInput(In);
 				W.Tick(1.f / Fps);
+				MaxSpeed = FMath::Max(MaxSpeed, (float)Ship->GetVelocity().Size());
+			}
+			if (bBoost)
+			{
+				TestTrue(*(Tag + FString::Printf(TEXT("really boosting (max %.0f cm/s)"), MaxSpeed)), MaxSpeed > Ship->GetShipMovement()->GetFlightTuning().CruiseSpeed * 0.75f);
 			}
 			TestEqual(*(Tag + TEXT("no contact with the terrain")), Counter->Impacts, 0);
 			TestTrue(*(Tag + FString::Printf(TEXT("still flying (%.0f cm/s)"), Ship->GetVelocity().Size())), Ship->GetVelocity().Size() > 1000.f);

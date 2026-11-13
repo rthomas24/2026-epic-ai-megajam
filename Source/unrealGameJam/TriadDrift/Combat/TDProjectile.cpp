@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Swept, pooled projectile.
 
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "GameFramework/Character.h"
@@ -409,7 +410,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 
 	if (Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Deflected, GetActorLocation(), Dir.Rotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Deflected, ETDCombatCueKind::Deflected, Spec.FX, GetActorLocation(), Dir.Rotation());
 	}
 	UpdatePlaceholderLook(); // re-tint in the deflector's colour
 }
@@ -422,7 +423,7 @@ void ATDProjectile::Kill(bool bExplodeFX)
 	}
 	if (bExplodeFX && Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Detonation, GetActorLocation(), GetActorRotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Detonation, ETDCombatCueKind::Detonation, Spec.FX, GetActorLocation(), GetActorRotation());
 	}
 	if (bExplodeFX)
 	{
@@ -448,7 +449,7 @@ void ATDProjectile::Detonate()
 	}
 	if (Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Detonation, Here, GetActorRotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Detonation, ETDCombatCueKind::Detonation, Spec.FX, Here, GetActorRotation());
 	}
 	PlayPlaceholderImpact(Here, Spec.FX && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	OnDetonated.Broadcast(this, nullptr);
@@ -963,7 +964,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	if (Spec.FX)
 	{
 		const FTDFXCue& Cue = !VictimHealth ? Spec.FX->ImpactWorld : (VictimHealth->IsShieldUp() ? Spec.FX->ImpactShield : Spec.FX->ImpactHull);
-		UTDStatics::PlayCue(this, Cue, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+		FTDCombatCueLog::Play(this, Cue, !VictimHealth ? ETDCombatCueKind::ImpactWorld : (VictimHealth->IsShieldUp() ? ETDCombatCueKind::ImpactShield : ETDCombatCueKind::ImpactHull), Spec.FX, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 		bImpactArt = FTDCombatPlaceholders::HasVisualArt(Cue) || (Spec.SplashRadius > 0.f && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	}
 	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt, VictimHealth, Hit.ImpactNormal);
@@ -983,7 +984,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	}
 	if (Spec.SplashRadius > 0.f && Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Detonation, Here, Dir.Rotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Detonation, ETDCombatCueKind::Detonation, Spec.FX, Here, Dir.Rotation());
 	}
 	OnDetonated.Broadcast(this, Victim);
 	Deactivate();

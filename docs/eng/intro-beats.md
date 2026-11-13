@@ -20,6 +20,20 @@ Times are mm:ss.ff, where ff is frames at 30 fps. "Hit" means a picture event wo
 | 8 | Title | 00:42.00 | 6.0 s | Black. **TRIAD DRIFT** title fades in (00:42.09-00:42.27), holds, fades out by 00:44.15. From 00:44.18 the picture fades up (1 s) behind the player's ship; hold on the ship. | Title stinger: **hit at 00:42.09**. Then a breath and resolve as the ship appears. |
 | 9 | Hand-off | 00:48.00 | 1.0 s | The letterbox bars ease off and the camera settles into the chase camera. The slate "SCENE 1 · WAVE 1 · TAKE 1" comes up with the slate clap. Gameplay starts; wave 1's enemies arrive 3 s later (~00:52). | Out cleanly: ring out or button by **00:49.00**. |
 
+## Update (N-039): prelude + loop
+
+Nick's side has replaced the single 49 s IntroMusic cue with a **38 s prelude that lands on the control frame, then
+the tutorial / combat loop**. The music director hooks the intro through `UTDIntroDirector`:
+
+- `OnIntroFinished(bPlayed, bSkipped)` (BlueprintAssignable) fires on **the control frame**. After the hand-off when
+  the intro is watched (00:49.00); at once on a skip; and with bPlayed false when the galaxy is entered without the
+  intro (Continue, td.Intro 0).
+- `GetIntroLength()` (shots + hand-off, 49.0 today) and `GetIntroTime()` (seconds since the first frame, through the
+  hand-off): start a prelude of L seconds when `GetIntroTime() >= GetIntroLength() - L` (11.0 s for the 38 s prelude).
+- Seconds 0-11 play `DA_UI_Style.IntroMusic` only if it is set. Its 1 s fade-out on a skip stays.
+
+The original single-cue spec below still holds for IntroMusic if it is used.
+
 ## Delivering music that plays in game
 
 - **One file for the whole intro**, starting at frame 0, **49.0 s long**. A natural ring-out that ends inside the last

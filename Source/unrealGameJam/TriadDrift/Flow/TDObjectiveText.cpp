@@ -4,6 +4,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
@@ -62,6 +63,9 @@ namespace TDObjectiveTextImpl
 				return true;
 			case ETDDominionState::ReactorExposed:
 				Out = Line(TEXT("Dominion_Reactor"), 0, LOCTEXT("Reactor", "FLY THE TRENCH · DESTROY THE REACTOR"));
+				return true;
+			case ETDDominionState::DockingOpen:
+				Out = Line(TEXT("Dominion_Dock"), 0, LOCTEXT("Dock", "THE FIELD IS DOWN · DOCK WITH THE DOMINION"));
 				return true;
 			case ETDDominionState::Breakup:
 			case ETDDominionState::Finished:
@@ -216,6 +220,10 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 						Out.Add(G);
 					}
 				}
+			}
+			else if (D->GetState() == ETDDominionState::DockingOpen)
+			{
+				if (AActor* Bay = (AActor*)D->GetDockingBay()) { Out.Add(Bay); }	// ENG-29: the marker leads to the bay
 			}
 			else if (D->GetState() == ETDDominionState::ReactorExposed)
 			{

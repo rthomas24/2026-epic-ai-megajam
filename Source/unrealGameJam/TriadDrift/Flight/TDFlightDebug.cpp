@@ -156,12 +156,17 @@ namespace TDFlightDebug
 		LastRot.Add(Ship, Rot);
 		LastTime = Now;
 		const FVector Local = Ship->GetActorTransform().InverseTransformPosition(Eye);
+		// Is the view from the camera to the ship blocked (camera inside or behind a hillside)?
+		FHitResult Block;
+		FCollisionQueryParams BlockParams(SCENE_QUERY_STAT(TDCamBlock), false, Ship);
+		const bool bBlocked = World->LineTraceSingleByChannel(Block, Ship->GetActorLocation(), Eye, ECC_Visibility, BlockParams);
 		const UTDFlightFeedbackComponent* FB = Ship->GetFlightFeedback();
-		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: [%s] %s screen %.3f %.3f | fov %.1f camroll %.1f shiproll %.1f | cam local %.0f %.0f %.0f dist %.0f | speed %.0f boost %d drift %d | yaw %.0f pitch %.0f deg/s | dust %d"),
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: [%s] %s screen %.3f %.3f | fov %.1f camroll %.1f shiproll %.1f | cam local %.0f %.0f %.0f dist %.0f | speed %.0f boost %d drift %d | yaw %.0f pitch %.0f deg/s | dust %d | alt %.0f m camblocked %d | shake %.2f fovkick %.1f"),
 			*Tag, *UEnum::GetValueAsString(Ship->GetShipId()), Screen.X, Screen.Y, PC->PlayerCameraManager->GetFOVAngle(),
 			Ship->GetCameraRoll(), Rot.Roll, Local.X, Local.Y, Local.Z, FVector::Dist(Eye, Ship->GetActorLocation()),
 			(float)Ship->GetVelocity().Size(), Ship->IsBoosting() ? 1 : 0, Ship->IsDrifting() ? 1 : 0, YawRate, PitchRate,
-			FB ? FB->GetVisibleDustCount() : -1);
+			FB ? FB->GetVisibleDustCount() : -1, Ship->GetAltitudeMeters(), bBlocked ? 1 : 0,
+			FB ? FMath::Abs(FB->GetCameraOffset().Pitch) + FMath::Abs(FB->GetCameraOffset().Yaw) + FMath::Abs(FB->GetCameraOffset().Roll) : 0.f, FB ? FB->GetFOVOffset() : 0.f);
 	}
 
 	static bool SetTuning(UWorld* World, const FString& Which, const FString& Field, float Value)
@@ -195,6 +200,25 @@ namespace TDFlightDebug
 	void Cam(const TArray<FString>& Args, UWorld* World)
 	{
 		if (!World) { return; }
+		if (Args.Num() >= 3 && Args[0] == TEXT("goto"))
+		{
+			// Dev: put the player's ship at X Y (m) [Z m above that, else 60 m over the ground] [yaw deg]. For terrain checks.
+			APlayerController* PC = World->GetFirstPlayerController();
+			ATDShip* Ship = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+			if (!Ship) { UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: goto needs a player ship")); return; }
+			const float X = FCString::Atof(*Args[1]) * 100.f, Y = FCString::Atof(*Args[2]) * 100.f;
+			const float Yaw = Args.Num() >= 5 ? FCString::Atof(*Args[4]) : Ship->GetActorRotation().Yaw;
+			float Z = Ship->GetActorLocation().Z;
+			FHitResult Hit;
+			FCollisionQueryParams P(SCENE_QUERY_STAT(TDGoto), false, Ship);
+			const bool bGround = World->LineTraceSingleByChannel(Hit, FVector(X, Y, 1000000.f), FVector(X, Y, -1000000.f), ECC_Visibility, P);
+			if (Args.Num() >= 4) { Z = (bGround ? Hit.ImpactPoint.Z : 0.f) + FCString::Atof(*Args[3]) * 100.f; }
+			else if (bGround) { Z = Hit.ImpactPoint.Z + 6000.f; }
+			Ship->TeleportSpacecraft(FVector(X, Y, Z), FRotator(0.f, Yaw, 0.f), true);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: goto %.0f %.0f m, ground %s at %.0f m, ship at %.0f m"), X / 100.f, Y / 100.f,
+				bGround ? TEXT("found") : TEXT("none"), bGround ? Hit.ImpactPoint.Z / 100.f : 0.f, Z / 100.f);
+			return;
+		}
 		if (Args.Num() >= 4 && Args[0] == TEXT("set"))
 		{
 			const bool bOk = SetTuning(World, Args[1], Args[2], FCString::Atof(*Args[3]));
@@ -264,6 +288,25 @@ static FAutoConsoleCommandWithWorldAndArgs GTDFlightThreatsCmd(TEXT("TD.Flight.T
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightFeedbackCmd(TEXT("TD.Flight.Feedback"),
 	TEXT("Log the no-art flight feedback: its tick cost, dust motes shown, active bursts, camera kick and placeholder counts."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Feedback));
+
+static FAutoConsoleCommandWithWorldAndArgs GTDFlightCamProfileCmd(TEXT("TD.Flight.CamProfile"),
+	TEXT("Issue #23 camera audition: TD.Flight.CamProfile Default (default) | Tuned | Audition | Report (composed peaks since the last switch)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+	{
+		using EP = UTDFlightFeedbackComponent::ECamProfile;
+		const FString Want = Args.Num() ? Args[0] : TEXT("Report");
+		const bool bSet = Want.Equals(TEXT("Audition"), ESearchCase::IgnoreCase) || Want.Equals(TEXT("Tuned"), ESearchCase::IgnoreCase) || Want.Equals(TEXT("Default"), ESearchCase::IgnoreCase);
+		if (bSet)
+		{
+			UTDFlightFeedbackComponent::CamProfile = Want.Equals(TEXT("Audition"), ESearchCase::IgnoreCase) ? EP::Audition
+				: Want.Equals(TEXT("Tuned"), ESearchCase::IgnoreCase) ? EP::Tuned : EP::Default;
+			UTDFlightFeedbackComponent::ComposedPeaks = UTDFlightFeedbackComponent::FComposedPeaks();
+		}
+		const UTDFlightFeedbackComponent::FComposedPeaks& P = UTDFlightFeedbackComponent::ComposedPeaks;
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.CamProfile: %s | composed peaks: roll %.2f pitch %.2f shake %.3f deg, FOV kick %.2f deg, blur %.3f | shake scale %.2f speed scale %.2f"),
+			UTDFlightFeedbackComponent::CamProfileName(), P.Roll, P.Pitch, P.Shake, P.FOV, P.Blur,
+			UTDFlightFeedbackComponent::UserShakeScale, UTDFlightFeedbackComponent::UserSpeedFOVScale);
+	}));
 
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightCamCmd(TEXT("TD.Flight.Cam"),
 	TEXT("Chase-camera feel readout: [tag] once | rec <seconds> [tag] every 0.1 s | set <Cam|FB> <Field> <Value> on every squad ship (dev tuning)"),

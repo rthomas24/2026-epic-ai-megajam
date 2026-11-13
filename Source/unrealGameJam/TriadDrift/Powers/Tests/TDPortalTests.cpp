@@ -2,9 +2,6 @@
 
 #include "Misc/AutomationTest.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#if WITH_EDITOR
-#include "StaticMeshCompiler.h"
-#endif
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -450,14 +447,8 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		ATDDominion* D = W.Spawn<ATDDominion>(FVector(40000.f, 0.f, 0.f));
 		D->WarpInSeconds = 0.f;
 		D->WarpIn();
-		// Order-dependent (found by T1), root cause: in the editor the first load of the art hull mesh in a process builds it
-		// asynchronously (static mesh compilation), and the hull gets its physics body only when that build finishes. Manual
-		// test ticks never finish it, so the portal's sweep saw no hull and opened at full range inside the hull's box. In the
-		// full suite an earlier test had already finished the build. Finish pending mesh builds first, as the editor's own
-		// frame loop does. Packaged builds ship built meshes, so play is not affected.
-#if WITH_EDITOR
-		FStaticMeshCompilingManager::Get().FinishAllCompilation();
-#endif
+		// Order-dependent (found by T1): the first load of the art hull compiles in the background in the editor and has no
+		// collision until it finishes; FTDTestWorld::Tick now finishes pending mesh builds, as the editor's frame loop does.
 		W.Tick(PowerFrameStep());
 		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);

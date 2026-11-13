@@ -19,9 +19,43 @@ public:
 	FTDWaveInfo Wave;
 	FText Objective;
 
+	// P2
+	TArray<FTDTargetMarker> Markers;
+	TArray<FTDDamageIndicator> Hits;
+	ETDMissileWarning Missile = ETDMissileWarning::None;
+	FText Prompt;
+	FText Blocked;
+	FText Boundary;
+	float SwitchStrike = 0.f;
+	float Focus = 0.f;
+	float Altitude = -1.f;
+	float Hyperdrive = 0.f;
+	TArray<AActor*> Waypoints;
+
 	virtual TArray<FTDShipHUD> GetSquadHUD() const override { return Cards; }
 	virtual FTDWaveInfo GetWaveInfo() const override { return Wave; }
 	virtual FText GetObjectiveText() const override { return Objective; }
+	virtual TArray<FTDTargetMarker> GetTargetMarkers() const override { return Markers; }
+	virtual TArray<FTDDamageIndicator> GetDamageIndicators() const override { return Hits; }
+	virtual ETDMissileWarning GetMissileWarning() const override { return Missile; }
+	virtual FText GetInteractPrompt() const override { return Prompt; }
+	virtual FText GetHyperdriveBlockText() const override { return Blocked; }
+	virtual FText GetBoundaryWarningText() const override { return Boundary; }
+	virtual float GetSwitchStrike01() const override { return SwitchStrike; }
+	virtual float GetFocusRemaining01() const override { return Focus; }
+	virtual float GetAltitude() const override { return Altitude; }
+	virtual float GetHyperdriveCharge01() const override { return Hyperdrive; }
+	virtual TArray<AActor*> GetObjectiveMarkers() const override { return Waypoints; }
+
+	FTDTargetMarker& AddMarker(bool bOnScreen, FVector2D Screen01, FVector2D Dir, float DistanceCm)
+	{
+		FTDTargetMarker& M = Markers.AddDefaulted_GetRef();
+		M.bOnScreen = bOnScreen;
+		M.ScreenPosition01 = Screen01;
+		M.ScreenDirection = Dir;
+		M.Distance = DistanceCm;
+		return M;
+	}
 
 	/** Three healthy ships, Flown under the player's control, listed in a shuffled order (the strip must not care). */
 	void SetSquad(ETDShipId Flown)

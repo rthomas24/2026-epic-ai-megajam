@@ -820,7 +820,8 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
 #### ENG-20 · Atmosphere flight, landing & take-off (gameplay) · `🟢`
 See §7.
 - **Atmosphere flight mode:** gravity, speed capped at 60% of space cruise, no hyperdrive,
-  altitude data.
+  altitude data. Boost works in atmosphere too, capped at 60% of boost speed while boosting (Lead under Ryan's
+  delegation, Nov 13, for the ENG-34 worlds); cruise and the landing rule below are unchanged.
 - **Zone and pad actors:** `ATDAtmosphereFlightZone` and `ATDLandingPad` (beacon; "Hold F to land").
   - Within 120 m of the pad at or below 60% of the atmosphere speed cap, F lands directly
     (aligning takes 1.5 to 4 s by distance, up to 6 s when the path arcs over a prop).
@@ -1038,6 +1039,11 @@ one little section on the map ... a massive, massive map that you should be able
   slope and noise masks, instanced, never on the course's paths.
 - **Flight:** atmosphere flight (ENG-20) flies over and between the mountains; arrival and take-off stay as they are;
   the landing assist still finds the pad.
+  - (T1, Nov 13) The flight zone grows to the terrain's whole collision core plus 500 m (the edge warning starts at the
+    8 km edge) with its ceiling 400 m above the highest ground in it, so the whole world is flyable without a boundary
+    warning; past the collision core ships stay above the generated ground. Take-off: once the exit is open the climb-out
+    triggers at the old height above the ground under the ship (~1.2 km), not at the raised ceiling. Boost (60% of boost speed) crosses
+    it; the ground floor and terrain-ahead pull-up keep the ship off slopes and cliffs at boost speed too.
 - **Performance:** inside the ENG-28 budget on the target machine; generation is incremental (no hitch above 4 ms a
   frame) and the first view is ready before the arrival camera shows it.
 - **Acceptance:** from the pad the player sees mountains in every direction; a 2-minute walk or flight in any direction

@@ -204,6 +204,9 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupInputComponent() override;
 	virtual bool InputKey(const FInputKeyEventArgs& Params) override;
+	/** Every camera shake a presentation cue starts on this player comes through here: scaled by the Settings
+	 *  "Camera shake" option, dropped at 0. */
+	virtual void ClientStartCameraShake_Implementation(TSubclassOf<UCameraShakeBase> Shake, float Scale, ECameraShakePlaySpace PlaySpace, FRotator UserPlaySpaceRot) override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 

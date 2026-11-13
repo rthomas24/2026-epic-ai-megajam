@@ -69,9 +69,130 @@ public:
 		FVector2D Size = FVector2D::ZeroVector;
 	};
 
+	/** P2: one hostile or missile as drawn: a bracket / tick on screen, an edge chevron off screen. */
+	struct FMark
+	{
+		bool bOnScreen = false;
+		/** Design-space position (on screen) or the chevron's spot on the safe frame (off screen). */
+		FVector2D Pos = FVector2D::ZeroVector;
+		/** Off screen: the chevron's angle in radians (screen space, 0 = right, +PI/2 = down). */
+		float Angle = 0.f;
+		bool bCurrent = false;
+		bool bLocked = false;
+		bool bMissile = false;
+		bool bFocus = false;
+		/** Current target: bracket size (48..160) and its health 0..1 (-1 = unknown). */
+		float Size = 0.f;
+		float Health = -1.f;
+		/** Metres. */
+		float Distance = 0.f;
+	};
+
+	/** An objective waypoint (planet, gate, generator, landing pad): a white diamond on screen, an edge diamond off screen. */
+	struct FWaypoint
+	{
+		bool bOnScreen = false;
+		FVector2D Pos = FVector2D::ZeroVector;
+		float Angle = 0.f;
+		/** Metres. */
+		float Distance = 0.f;
+		/** 0..1 when the marker has health (a Dominion generator), else -1. */
+		float Health = -1.f;
+		/** On screen but inside the player-ship zone: drawn at DrawPos (just above it) with a tether to Pos. */
+		bool bLifted = false;
+		FVector2D DrawPos = FVector2D::ZeroVector;
+	};
+
+	/** Design-space zone the chase camera's own ship covers (under the reticle cluster). */
+	static FBox2D ShipZone() { return FBox2D(FVector2D(790.f, 612.f), FVector2D(1130.f, 800.f)); }
+	/** Where an on-screen waypoint at Pos is drawn: just above the ship zone when inside it (returns true), else Pos. */
+	static bool LiftWaypoint(const FVector2D& Pos, FVector2D& OutDraw)
+	{
+		const bool bLift = ShipZone().IsInside(Pos);
+		OutDraw = bLift ? FVector2D(Pos.X, ShipZone().Min.Y - 14.f) : Pos;
+		return bLift;
+	}
+
+	/** P2: a wingman's arrow (off screen only, hollow chevron in its colour; pulses in trouble). */
+	struct FWingArrow
+	{
+		ETDShipId Ship = ETDShipId::Rift;
+		FVector2D Pos = FVector2D::ZeroVector;
+		float Angle = 0.f;
+		bool bTrouble = false;
+	};
+
+	/** P2: one hit-direction arc around the reticle. */
+	struct FHitArc
+	{
+		float Angle = 0.f;
+		float Opacity = 0.f;
+		bool bShieldOnly = false;
+	};
+
+	/** What the one lower-lane message is (priority order). */
+	enum class ELane : uint8 { None, Prompt, HyperdriveBlocked, Hint };
+
 	/** Snapshot of what the widget draws. Updated every tick from the data source. */
 	struct FView
 	{
+		// ---- P2
+		TArray<FMark> Marks;
+		TArray<FWaypoint> Waypoints;
+		bool bHasLead = false;
+		FVector2D Lead = FVector2D::ZeroVector;
+		TArray<FWingArrow> Wings;
+		ETDMissileWarning Missile = ETDMissileWarning::None;
+		TArray<FHitArc> Hits;
+		/** Low-hull edge glow strength 0..1 (hull under 25%). */
+		float Vignette = 0.f;
+		/** Boost bar: shown while boosting or refilling, hidden 1.5 s after full. */
+		bool bShowBoost = false;
+		float Boost = 1.f;
+		bool bDodgeReady = true;
+		/** Hyperdrive charge bar while charging. */
+		float Hyperdrive = 0.f;
+		ELane Lane = ELane::None;
+		FString LaneText;
+		/**
+		 * Onboarding card (T3, with T1's UTDHintComponent): the lane's hint drawn as a card with a highlighted key glyph,
+		 * the action and a step counter, when the hint getters are in the build; plain LaneText otherwise.
+		 */
+		bool bHintCard = false;
+		FString HintKey;
+		FString HintAction;
+		int32 HintStep = 0;
+		int32 HintCount = 0;
+		/** The player just did it: the tick shows, then the card fades (0..1 through the 0.5 s done beat). */
+		bool bHintDone = false;
+		float HintDone01 = 0.f;
+		FString Boundary;
+		float SwitchStrike = 0.f;
+		/** 0..1 through the reward pulse when a Switch Strike window opens (0 when not pulsing). */
+		float SwitchStrikePulse = 0.f;
+		/** A focus-fire order: 1 when given, draining to 0. */
+		float Focus = 0.f;
+		/** Hit feel: 0..1 through the reticle hit tick / kill X (0 when idle), and the kill X at the victim's spot. */
+		float HitMark = 0.f;
+		float KillMark = 0.f;
+		bool bKillAtTarget = false;
+		FVector2D KillPos = FVector2D::ZeroVector;
+		float KillAtTarget = 0.f;
+		/** Metres, -1 when not in atmosphere. */
+		float Altitude = -1.f;
+		/** The flown ship's ability (E / Y), second power (Bastion's dome, hold Q) and secondary ammo. */
+		bool bHasAbility = false;
+		float Ability = 1.f;
+		FString AbilityGlyph;
+		bool bHasPower2 = false;
+		float Power2 = 1.f;
+		int32 Ammo = 0;
+		/** The flown ship has a secondary-ammo weapon (review M5). */
+		bool bUsesAmmo = false;
+		float Heat = 0.f;
+		/** A ship is under the player's control (review m9: none while the flown ship is down before the retake). */
+		bool bHasFlown = false;
+		// ---- P1
 		bool bHasData = false;
 		/** The flown ship (the reticle cluster's colour). */
 		ETDShipId Flown = ETDShipId::Rift;
@@ -107,11 +228,57 @@ public:
 
 	UObject* GetDataSource() const { return Source.Get(); }
 
+	/**
+	 * Screen coverage the spec's way (docs/eng/hud-redesign.md 3.3): the sum of the drawn elements' bounding boxes over the
+	 * 1920x1080 design area, from the last paint. Budget 8%; the spec's steady combat is about 3.2%.
+	 */
+	float GetCoverage01() const { return LastCoverage01; }
+
 	/** Re-reads the data source and advances the timers by DeltaSeconds (the tick calls this every frame). */
 	void Sample(float DeltaSeconds);
 
 	/** Tests: force the glyph device (-1 = ask the owning controller). */
 	int32 ForceGamepad = -1;
+
+	/** The player pressed the hyperdrive key: if it is blocked, the reason shows in the lower lane for 3 s (spec: only then). */
+	UFUNCTION()
+	void HandleHyperdriveInput(bool bHeld);
+
+	/** The event bus's OnHitConfirmed (the player's hits): the reticle tick, or on a kill the X there and on the victim. */
+	UFUNCTION()
+	void HandleHitConfirmed(AActor* Target, bool bKill);
+
+	static constexpr float HitMarkSeconds = .15f;
+	static constexpr float KillMarkSeconds = .35f;
+	static constexpr float KillAtTargetSeconds = .6f;
+
+	// Surfaces this widget draws, so the dev HUD stops drawing them (UTDUIHostSubsystem reads these by name). Subtitles
+	// and the pause line stay with the dev HUD / pause screen.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversDamageIndicators = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversSquadMarkers = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversInteractPrompt = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversHyperdriveBlockText = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversAltitude = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversBoundaryWarning = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversCombatStates = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversObjectiveMarkers = true;
+
+	static constexpr float StrikePulseSeconds = .35f;
+
+	static constexpr float BlockedSeconds = 3.f;
+	static constexpr float BoostHideSeconds = 1.5f;
+	static constexpr float HitSeconds = 1.2f;
+	static constexpr float HitRadius = 150.f;
+	static constexpr float BracketMin = 48.f;
+	static constexpr float BracketMax = 160.f;
 
 	static constexpr float TroubleHull = .35f;
 	static constexpr float ArcAwakeSeconds = 3.f;
@@ -142,6 +309,7 @@ public:
 	static constexpr float ObjectiveExpandedHeight = 72.f;
 
 protected:
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
 		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -149,6 +317,43 @@ protected:
 private:
 	bool IsUsingGamepad() const;
 	void LayoutChips();
+	void SampleCombat(const class ITDHUDData& Data, const FTDShipHUD* Flown, float Dt);
+	/** Viewport pixels -> design space (the same letterbox the painter uses). */
+	FVector2D ToDesign(const FVector2D& Pixels) const;
+	/** A point on the safe frame along Dir from the centre (edge chevrons). */
+	static FVector2D OnSafeFrame(const FVector2D& Dir);
+	void BindController();
+
+	FVector2D ViewportSize = FVector2D(1920, 1080);
+	/** Written by NativePaint (const): what the last frame drew. */
+	mutable float LastCoverage01 = 0.f;
+public:
+	/** Where the last paint put the low-hull vignette, in widget-local units (tests: it spans the whole widget). */
+	mutable FBox2D LastVignetteRect = FBox2D(ForceInit);
+	/**
+	 * Every element's design-space box from the last paint, by name ("reticle", "strip", "objective", "lane", "boost",
+	 * "missile", "boundary", "waypoint", "mark", ...): the layout tests check each one lies in the safe frame.
+	 */
+	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
+private:
+	float BlockedLeft = 0.f;
+	float HintDoneAge = 0.f;
+	float StrikePulseLeft = 0.f;
+	float HitLeft = 0.f;
+	float KillLeft = 0.f;
+	float KillAtLeft = 0.f;
+	FVector KillWorld = FVector::ZeroVector;
+	TWeakObjectPtr<class UTDEventBus> BoundBus;
+	void BindBus();
+	/** Reads T3's hint getters (UTDHintComponent::GetHintKey / Action / Step / State); false when no hint is up. */
+	bool ReadHintCard();
+	FString LastHintKeyRaw;
+	int32 LastWaveNumber = -1;
+	/** Ships seen with secondary ammo this session (review M5: a ship with none shows no ammo number). */
+	TSet<ETDShipId> ShipsWithAmmo;
+	FString LastHintActionRaw;
+	float BoostFullFor = 1e6f;
+	TWeakObjectPtr<class ATDSpacePlayerController> BoundPC;
 
 	FView View;
 	TWeakObjectPtr<UObject> Source;
