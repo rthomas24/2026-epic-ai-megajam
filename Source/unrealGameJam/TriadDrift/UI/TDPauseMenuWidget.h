@@ -68,6 +68,11 @@ public:
 	/** Requests so far, by kind (tests: counted whether or not the API is in this build). */
 	int32 GetUISoundRequests(const TCHAR* Which) const { const int32* N = UISoundRequests.Find(Which); return N ? *N : 0; }
 
+	/** The control footer for the device in use (pad glyphs on a gamepad, keys otherwise). */
+	FString GetFooterText() const;
+	/** Tests: force the footer's device (-1 = ask the owning controller). */
+	int32 ForceGamepad = -1;
+
 	/** False in tests: activations are recorded but not executed (no unpause, travel or retake). */
 	bool bExecuteActions = true;
 

@@ -152,6 +152,13 @@ bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 	}
 	Menu->bExecuteActions = false;
 	TestEqual(TEXT("opens on RESUME"), Menu->GetSelected(), 0);
+	// The footer follows the device (T1's gamepad pass).
+	Menu->ForceGamepad = 0;
+	TestTrue(TEXT("keyboard footer"), Menu->GetFooterText().Contains(TEXT("[ENTER]")));
+	Menu->ForceGamepad = 1;
+	TestTrue(TEXT("pad footer: A / START, no keys"), Menu->GetFooterText().Contains(TEXT("[A]")) && Menu->GetFooterText().Contains(TEXT("[START]"))
+		&& !Menu->GetFooterText().Contains(TEXT("ENTER")));
+	Menu->ForceGamepad = -1;
 	// The difficulty in play (T1's API, read by reflection): a name when it is in this build, else no line.
 	const bool bDifficultyApi = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("GetDifficultyInPlay")) != nullptr;
 	TestEqual(TEXT("difficulty line iff the API is in the build"), !UTDPauseMenuWidget::ReadDifficultyInPlay().IsEmpty(), bDifficultyApi);
