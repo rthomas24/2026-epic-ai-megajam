@@ -1,0 +1,98 @@
+{
+  "tests": {
+    "exit_code": 0,
+    "reason": "exit_request_forced",
+    "duration_s": 28.3,
+    "build": {
+      "branch": "++UE5+Release-5.9",
+      "changelist": 60351404,
+      "configuration": "Development"
+    },
+    "started_utc": "2026-11-12T20:39:18.668Z",
+    "ended_utc": "2026-11-12T20:39:46.970Z",
+    "raw_result_sha256": "a5554d0aedd83a92068b4e8d820f4a404891fdc8f98de02b133ababacaf80fbb"
+  },
+  "live": {
+    "exit_code": 0,
+    "reason": "ok",
+    "duration_s": 41.2,
+    "build": {
+      "branch": "++UE5+Release-5.9",
+      "changelist": 60351404,
+      "configuration": "Development"
+    },
+    "started_utc": "2026-11-12T20:40:36.619Z",
+    "ended_utc": "2026-11-12T20:41:17.792Z",
+    "raw_result_sha256": "a6be216c79ac4d926844096abceb0af5af583471c63cb4d6753304c9c2061f2f"
+  },
+  "passed_tests": [
+    "TriadDrift.UI.HUDHost.FrozenNames",
+    "TriadDrift.UI.HUDHost.N004AbilitySequence",
+    "TriadDrift.UI.HUDHost.NoWidgetWithoutSquad",
+    "TriadDrift.UI.HUDHost.ShowHideRules",
+    "TriadDrift.UI.ContractSchema",
+    "TriadDrift.UI.Intercept",
+    "TriadDrift.UI.LancerBenchmarkIsolation",
+    "TriadDrift.UI.SnapshotSafety"
+  ],
+  "live_errors": [],
+  "live_warning_counts": {
+    "LogEditorDataStorageUI": 23,
+    "LogModelContextProtocol": 1,
+    "LogLinker": 3
+  },
+  "five_capped_posttravel_timing_samples": [
+    {
+      "returnValue": {
+        "frameMs": 16.666698455810547,
+        "gameThreadMs": 3.4962000846862793,
+        "renderThreadMs": 31.077499389648438,
+        "rhiThreadMs": 4.254499912261963,
+        "gpuMs": 3.6080000400543213
+      }
+    },
+    {
+      "returnValue": {
+        "frameMs": 16.666702270507812,
+        "gameThreadMs": 2.731600046157837,
+        "renderThreadMs": 4.772299766540527,
+        "rhiThreadMs": 3.447200059890747,
+        "gpuMs": 3.6740000247955322
+      }
+    },
+    {
+      "returnValue": {
+        "frameMs": 16.666698455810547,
+        "gameThreadMs": 2.7460999488830566,
+        "renderThreadMs": 5.024600028991699,
+        "rhiThreadMs": 3.6893999576568604,
+        "gpuMs": 3.515899896621704
+      }
+    },
+    {
+      "returnValue": {
+        "frameMs": 16.666702270507812,
+        "gameThreadMs": 2.9386000633239746,
+        "renderThreadMs": 5.179599761962891,
+        "rhiThreadMs": 3.3787999153137207,
+        "gpuMs": 3.697700023651123
+      }
+    },
+    {
+      "returnValue": {
+        "frameMs": 16.666698455810547,
+        "gameThreadMs": 2.814300060272217,
+        "renderThreadMs": 5.0920000076293945,
+        "rhiThreadMs": 3.4851999282836914,
+        "gpuMs": 3.6867001056671143
+      }
+    }
+  ],
+  "build": {
+    "status": "pass",
+    "actions": 14,
+    "parallel_actions": 1,
+    "executor_seconds": 123.47,
+    "log_sha256": "3f94570394717113ddd942ce7c517808fac9ecc837d88d48c672ff05f29130d8"
+  }
+}

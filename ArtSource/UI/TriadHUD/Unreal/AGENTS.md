@@ -2,8 +2,10 @@
 
 Owner: Nicholas Tosti. Dedicated chat identity: **UI/UX & HUD Agent**.
 Role: native space-combat HUD, UI readability and presentation integration.
-Worktree: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/hud-native`.
-Branch: `nick/hud-native`. Work here only; never commit, push or merge to main.
+Active worktree: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/hud-lancer-polish`.
+Active branch: `nick/hud-lancer-polish`. Work here only; never commit, push or merge to main.
+The original hud-native worktree / PR4 is frozen at 2f55512. Its staged legacy
+CLAIMS.md remains untouched there; this new worktree has no legacy claim edit.
 
 Every completion, partial-completion, blocker or failure report begins with:
 
@@ -40,3 +42,50 @@ readiness, active-ship clarity and desktop contrast/text. Preserve M01 evidence.
 No provider rewrite, shared activation, menus, audio or other feature work.
 Unreal builds/captures require explicit current heavy-slot clearance from Lead.
 Present native screenshots for manual review before further visual polish.
+
+Lancer visual M03: Lead dispatched Nov12 after publishing d2a594e, new worktree
+base 1ca5a5a (verified M02 plus reviewed main). Same three exclusive HUD roots.
+Only controlled-Lancer opt-in styling; preserve layout, readability, controls and
+data contracts. Reference image guides glass, layered edges and restrained depth,
+not gameplay or environment changes. Matched before/after resolution and fixture.
+No Rift/Bastion active-state propagation before Nicholas's manual visual approval.
+No R011 director takeover or N004 producer workaround. Heavy build/capture needs
+the Lead's explicit current window; source preparation alone is cleared initially.
+
+Current task: Nicholas approved aca9334 M03 as the prototype UI and authorized live
+gameplay integration. Lead published eade758, clean-synced this branch at db3472e,
+and cleared only the native default flag, explicit opt-out test, docs and public-data
+audit. Preserve approved appearance/layout and historical evidence. Existing Ryan
+UTDUIHostSubsystem / TD.UI.NativeHUD switch is the only gameplay host; no duplicates,
+Source/Config/map edits or shared-default activation. Use the existing 0.1s sampler
+and event bus. Mission-state getter/markers gap must go to Ryan through Lead, with
+no fabricated mission state or new reflection contract before agreement. Heavy
+build/all8UItests/actual Galaxy captures on8023 require a fresh grant after Lead's
+baseline session releases. Send source checkpoint before functional API changes.
+
+Objective follow-up dispatch: Lead verified/pushed b21a98f, then clean-synced current
+main2310d19 at a4b91fb. Same HUD role/three roots only. Consume the agreed optional
+zero-input FText GetObjectiveText on the existing data source; retain event fallback,
+guard absent/incompatible functions, clear on valid empty text. Add a real late-attach
+regression using public bus/provider APIs without a game-module dependency. Inspect
+markers/interact prompt; no layout/provider rewrite/shared changes. Source preparation
+only until a fresh heavy grant; report before building. Character role/branch/claims
+remain undispatched. Do not duplicate Lead's completion sound.
+
+Lead's bounded functional follow-up also clears the existing landing-guidance MAJOR:
+consume optional public GetInteractPrompt at the same10Hz, clear empty/unavailable/
+provider changes, keep mission text separate. Actual-text line uses existing footer
+gap below cards/above controls; no new panel, target/player-ship overlap or critical
+warning takeover. Add real-pad lifecycle regression; expected10UItests now. Real pad
+entry/exit/braking/switch/source-removal and resolution captures remain mandatory
+after fresh resource clearance. No private gameplay state/API/host/config changes.
+
+Verified follow-up checkpoint Nov12: tested pinned2133997 after Lead's reviewed
+main29e091b merge. Final Editor build03 passes; all10UItests pass in tests02.
+Real windowed F landing reaches TDFirstPersonCharacter_0, native host shown0, then
+Galaxy return shown1.26actual captures archived in review/M03ObjectiveFollowup/.
+Build01 int-overload and tests01 abstract-fixture failures preserved/corrected only
+in owned tests. SLOWDOWN not reproduced (atmosphere blocks actual boost); report
+diagnostic captures honestly. No shared default-on/main merge authorization.
+Heavy slot released, no more heavy launches. Freeze for Lead review/commit/push;
+character production remains queued and requires explicit claim/branch activation.

@@ -1,0 +1,258 @@
+{
+  "stage": "Technically verified owned follow-up; manual acceptance/integration pending",
+  "branch": "nick/hud-lancer-polish",
+  "tested_base": "213399737c57ebe13b82ab02eead0457340b71b6",
+  "engine": "UE5.9.0 CL60351404",
+  "tests_passed": [
+    "TriadDrift.UI.HUDHost.FrozenNames",
+    "TriadDrift.UI.HUDHost.N004AbilitySequence",
+    "TriadDrift.UI.HUDHost.NoWidgetWithoutSquad",
+    "TriadDrift.UI.HUDHost.ShowHideRules",
+    "TriadDrift.UI.ContractSchema",
+    "TriadDrift.UI.InteractionPromptLifecycle",
+    "TriadDrift.UI.Intercept",
+    "TriadDrift.UI.LancerBenchmarkIsolation",
+    "TriadDrift.UI.ObjectiveLateAttach",
+    "TriadDrift.UI.SnapshotSafety"
+  ],
+  "attempts": [
+    {
+      "original": "Saved/Logs/M03Objective-build-01.result.json",
+      "sha256": "5cbcdc1f4816d39f75bc8c58206bd20575b9c5e4959d758d5e87399f5bb474a5",
+      "result": {
+        "exit_code": 6,
+        "duration_s": 159.86,
+        "guard_free_gib": 4.94,
+        "head": "213399737c57ebe13b82ab02eead0457340b71b6",
+        "original_log": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-build-01.txt"
+      }
+    },
+    {
+      "original": "Saved/Logs/M03Objective-build-02.result.json",
+      "sha256": "49868d2f24fa1966f473e5a46524c0cc0697114b3b8cb6882e4a152c7385aa46",
+      "result": {
+        "exit_code": 0,
+        "duration_s": 6.88,
+        "guard_free_gib": 5.75,
+        "head": "213399737c57ebe13b82ab02eead0457340b71b6",
+        "original_log": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-build-02.txt"
+      }
+    },
+    {
+      "original": "Saved/Logs/M03Objective-build-03.result.json",
+      "sha256": "db64b98351d31f42bb9da5f141e4f6f249cc59ad981861754564b2757a27818a",
+      "result": {
+        "exit_code": 0,
+        "duration_s": 6.74,
+        "guard_free_gib": 5.87,
+        "head": "213399737c57ebe13b82ab02eead0457340b71b6",
+        "original_log": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-build-03.txt"
+      }
+    },
+    {
+      "original": "Saved/Logs/M03Objective-game-01.result.json",
+      "sha256": "ce684250ceb2341b1de6d5ba411dee283815996836db71a3c110935593f1462e",
+      "result": {
+        "exit_code": 0,
+        "reason": "ok",
+        "duration_s": 479.6,
+        "pid": 240,
+        "started_utc": "2026-11-12T21:50:28.632Z",
+        "ended_utc": "2026-11-12T21:58:28.267Z",
+        "log": {
+          "errors": 0,
+          "warnings": 29,
+          "errors_by_category": {},
+          "warnings_by_category": {
+            "LogModelContextProtocol": 1,
+            "LogEditorDataStorageUI": 23,
+            "LogLinker": 3,
+            "LogMaterial": 2
+          },
+          "first_errors": []
+        },
+        "command_line": "/Game/TriadDrift/Maps/L_Galaxy -NoLiveCoding -nosound -nosplash -unattended -nopause -ModelContextProtocolPort=8023 -ModelContextProtocolStartServer -abslog=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-game-01.log -ResultFile=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-game-01.result.json -ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreads=15 -game -windowed -ResX=1920 -ResY=1080 -ForceRes -Seconds=600 -ExitTimeout=660 -NoProgressTimeout=0 -HangTimeout=60",
+        "fatal_message": null
+      }
+    },
+    {
+      "original": "Saved/Logs/M03Objective-tests-01.result.json",
+      "sha256": "a8c0adda0d98e7a85b4af080f8245be7f7c9e67ad6f1aceeaf8bbe5edd607089",
+      "result": {
+        "exit_code": 255,
+        "reason": "exit_request_forced",
+        "duration_s": 56.7,
+        "pid": 22116,
+        "started_utc": "2026-11-12T21:46:08.313Z",
+        "ended_utc": "2026-11-12T21:47:05.050Z",
+        "log": {
+          "errors": 53,
+          "warnings": 5,
+          "errors_by_category": {
+            "LogOutputDevice": 25,
+            "EnsureFailed": 1,
+            "LogAutomationController": 27
+          },
+          "warnings_by_category": {
+            "LogModelContextProtocol": 1,
+            "LogUObjectGlobals": 1,
+            "LogOutputDevice": 1,
+            "LogAutomationController": 2
+          },
+          "first_errors": [
+            "LogOutputDevice: === Handled ensure: ===",
+            "LogOutputDevice: ",
+            "LogOutputDevice: Ensure condition failed: false  [File:D:\\build\\++UE5\\Sync\\Engine\\Source\\Runtime\\CoreUObject\\Private\\UObject\\UObjectGlobals.cpp] [Line: 3299] ",
+            "LogOutputDevice: Class which was marked abstract was trying to be loaded in Outer /Engine/Transient.  It will be nulled out on save. None Object",
+            "LogOutputDevice: Stack: ",
+            "LogOutputDevice: [Callstack] 0x00007ff8a7190525 UnrealEditor-CoreUObject.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff8a6eeca51 UnrealEditor-CoreUObject.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff8a6eeb181 UnrealEditor-CoreUObject.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff8a6eed652 UnrealEditor-CoreUObject.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff82b215492 UnrealEditor-TriadDriftHUD.dll!FTDHUDInteractionTest::RunTest() [C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Plugins\\TriadDriftHUD\\Source\\TriadDriftHUD\\Private\\TDHUDTests.cpp:264]",
+            "LogOutputDevice: [Callstack] 0x00007ff8863e6176 UnrealEditor-Core.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff886406ab7 UnrealEditor-Core.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x000001f21e80f87a UnrealEditor-AutomationWorker.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x000001f21e80e66d UnrealEditor-AutomationWorker.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x000001f21e812eca UnrealEditor-AutomationWorker.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x000001f21e8014d1 UnrealEditor-AutomationWorker.dll!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff6205971bd UnrealEditor-Cmd.exe!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff62057ea2c UnrealEditor-Cmd.exe!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff62057eb5a UnrealEditor-Cmd.exe!UnknownFunction []",
+            "LogOutputDevice: [Callstack] 0x00007ff6205866d6 UnrealEditor-Cmd.exe!UnknownFunction []"
+          ]
+        },
+        "command_line": "-NoLiveCoding -nosound -nosplash -unattended -nopause -ModelContextProtocolPort=8023 -ModelContextProtocolStartServer -abslog=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-tests-01.log -ResultFile=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-tests-01.result.json -ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreads=15 -AgentMode -nullrhi -ExecCmds=\"Automation RunTests TriadDrift.UI; Quit\" -TestExit=\"Automation Test Queue Empty\" -ExitTimeout=180 -NoProgressTimeout=90 -HangTimeout=60 -JsonStdOut -FullStdOutLogOutput",
+        "fatal_message": null
+      }
+    },
+    {
+      "original": "Saved/Logs/M03Objective-tests-02.result.json",
+      "sha256": "a827e5712ebbf5845e146b16fdf7f70b464b3bdc83c691325ce8d4569fd542e8",
+      "result": {
+        "exit_code": 0,
+        "reason": "exit_request_forced",
+        "duration_s": 19.5,
+        "pid": 29200,
+        "started_utc": "2026-11-12T21:49:18.016Z",
+        "ended_utc": "2026-11-12T21:49:37.532Z",
+        "log": {
+          "errors": 0,
+          "warnings": 1,
+          "errors_by_category": {},
+          "warnings_by_category": {
+            "LogModelContextProtocol": 1
+          },
+          "first_errors": []
+        },
+        "command_line": "-NoLiveCoding -nosound -nosplash -unattended -nopause -ModelContextProtocolPort=8023 -ModelContextProtocolStartServer -abslog=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-tests-02.log -ResultFile=C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Saved\\Logs\\M03Objective-tests-02.result.json -ini:Engine:[DevOptions.Shaders]:NumUnusedShaderCompilingThreads=15 -AgentMode -nullrhi -ExecCmds=\"Automation RunTests TriadDrift.UI; Quit\" -TestExit=\"Automation Test Queue Empty\" -ExitTimeout=180 -NoProgressTimeout=90 -HangTimeout=60 -JsonStdOut -FullStdOutLogOutput",
+        "fatal_message": null
+      }
+    }
+  ],
+  "archive_logs": [
+    {
+      "file": "logs/M03Objective-build-01.txt",
+      "sha256": "8a42b8c4320ab03ac74c6f4478f1dd514f38d70b4233e03c3b14f76b1ce7c8d8",
+      "bytes": 4169
+    },
+    {
+      "file": "logs/M03Objective-build-02.txt",
+      "sha256": "69c5cdd8d94936e102d5412b39bbaa41177ad21ac7e3d06af189509fa262c551",
+      "bytes": 2157
+    },
+    {
+      "file": "logs/M03Objective-build-03.txt",
+      "sha256": "55cfbe06f03d70560dff46ad944eda6ede08e20656fe145763e0808c9dc91154",
+      "bytes": 2157
+    },
+    {
+      "file": "logs/M03Objective-game-01.digest.json",
+      "sha256": "e550cbe0cf94d68ed36bebee029ff048c909d1e1adcbde060b0c58f4547bd0bf",
+      "bytes": 11216
+    },
+    {
+      "file": "logs/M03Objective-game-01.log",
+      "sha256": "c805672a0205158ee14d2608c71efd4337c57a70d1e8643de90ca153ca038c9d",
+      "bytes": 414182
+    },
+    {
+      "file": "logs/M03Objective-tests-01.log",
+      "sha256": "5061eb613aa6cd51c66386ce8387f5c21fd1937281d62418f9c9800cfaf5f61d",
+      "bytes": 399951
+    },
+    {
+      "file": "logs/M03Objective-tests-02.log",
+      "sha256": "6ddeb19b0a6713f775ca4050ebce5a83d8fa825f40294e615c613810815e4f83",
+      "bytes": 387205
+    }
+  ],
+  "game_errors": [],
+  "game_warning_counts": {
+    "LogEditorDataStorageUI": 23,
+    "LogModelContextProtocol": 1,
+    "LogLinker": 3,
+    "LogMaterial": 2
+  },
+  "resource_states": [
+    {
+      "phase": "tests",
+      "guard_free_gib": 5.82,
+      "head": "213399737c57ebe13b82ab02eead0457340b71b6",
+      "pid": 29200,
+      "started_utc": "2026-11-12T21:49:17.7946358Z"
+    },
+    {
+      "pid": 240,
+      "head": "213399737c57ebe13b82ab02eead0457340b71b6",
+      "phase": "game",
+      "guard_free_gib": 5.98,
+      "started_utc": "2026-11-12T21:50:28.4489197Z"
+    }
+  ],
+  "perf_samples": [
+    {
+      "frameMs": 16.666799545288086,
+      "gameThreadMs": 2.5604000091552734,
+      "renderThreadMs": 4.887599945068359,
+      "rhiThreadMs": 2.9293999671936035,
+      "gpuMs": 4.291299819946289
+    },
+    {
+      "frameMs": 16.666799545288086,
+      "gameThreadMs": 2.5429000854492188,
+      "renderThreadMs": 4.5725998878479,
+      "rhiThreadMs": 2.601799964904785,
+      "gpuMs": 3.5090999603271484
+    },
+    {
+      "frameMs": 16.666900634765625,
+      "gameThreadMs": 2.5508999824523926,
+      "renderThreadMs": 4.431600093841553,
+      "rhiThreadMs": 2.8169000148773193,
+      "gpuMs": 3.4848999977111816
+    },
+    {
+      "frameMs": 16.66689682006836,
+      "gameThreadMs": 2.652400016784668,
+      "renderThreadMs": 4.3520002365112305,
+      "rhiThreadMs": 2.6963000297546387,
+      "gpuMs": 3.5973000526428223
+    },
+    {
+      "frameMs": 16.666702270507812,
+      "gameThreadMs": 2.617500066757202,
+      "renderThreadMs": 4.622099876403809,
+      "rhiThreadMs": 2.8380000591278076,
+      "gpuMs": 3.466900110244751
+    }
+  ],
+  "perf_limit": "Five capped60FPS samples only; no controlled before/after or sustained benchmark.",
+  "limitations": [
+    "SLOW DOWN not reproduced; public boost input is disabled by atmosphere condition in TDFlightSim.cpp108. Diagnostic captures show actual Hold F text.",
+    "No main merge or shared default activation.",
+    "No new character work; no new rigging/native asset.",
+    "Live signature cooldown and hyperdrive spool not re-exercised in this follow-up; prior immutable M03Gameplay evidence retains its original scope.",
+    "Existing planet emissive-instancing/HLOD warnings and bright-placeholder readability remain shared-scene concerns."
+  ]
+}

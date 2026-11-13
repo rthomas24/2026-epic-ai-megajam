@@ -1,0 +1,53 @@
+Using bundled DotNet SDK version: 10.0 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" unrealGameJamEditor Win64 Development -Project=C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\hud-lancer-polish\unrealGameJam.uproject -MaxParallelActions=1 -NoUBA -WaitMutex -NoHotReloadFromIDE
+Log file: C:\Users\nicho\AppData\Local\UnrealBuildTool\Log.txt
+Executing up to 1 actions based on MaxProcessorCount override
+Using 'git status' to determine working set for adaptive non-unity build (C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\hud-lancer-polish).
+UbaSessionServer - Disable remote execution (remote sessions will finish current processes)
+Invalidating makefile for unrealGameJamEditor (source file added)
+Warning: Plugin 'Fab' does not list plugin 'ToolsetRegistry' as a dependency, but module 'FabToolset' depends on module 'ToolsetRegistry'.
+UHT compiled-in object format Default
+UHT processed unrealGameJamEditor in 8.4726848 seconds (63 generated files written)
+Building unrealGameJamEditor...
+===== Toolchain Information =====
+Using ISPC compiler (C:\Program Files\Epic Games\UE_5.9\Engine\Source\ThirdParty\Intel\ISPC\bin\Windows\ispc.exe)
+  Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.24.0 (build commit  @ 20250404, LLVM 18.1.2) 
+Using Visual Studio 14.50.35739 toolchain (C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717) and Windows 10.0.26100.0 SDK (C:\Program Files (x86)\Windows Kits\10).
+[Adaptive Build] Excluded from TriadDriftHUD unity file: TDHUDTests.cpp, TDSpaceHUDWidget.cpp
+===== End Toolchain Information =====
+Using Unreal Build Accelerator local executor to run 15 action(s)
+  CPU 8 physical cores, 16 logical cores
+  Memory 15.61 GB physical, 20.45 GB/30.61 GB committed
+  UBA Storage capacity 40 GB
+[1/15] Compile [x64] Module.unrealGameJam.1.cpp [NoUba]
+[2/15] Compile [x64] Module.unrealGameJam.2.cpp [NoUba]
+[3/15] Compile [x64] Module.unrealGameJam.3.cpp [NoUba]
+[4/15] Compile [x64] Module.unrealGameJam.4.cpp [NoUba]
+[5/15] Compile [x64] Module.unrealGameJam.5.cpp [NoUba]
+[6/15] Compile [x64] Module.unrealGameJam.6.cpp [NoUba]
+[7/15] Compile [x64] Module.unrealGameJam.7.cpp [NoUba]
+[8/15] Link [x64] UnrealEditor-unrealGameJam.dll [NoUba]
+[9/15] Link [x64] UnrealEditor-unrealGameJam.lib [NoUba]
+[10/15] Compile [x64] Module.TriadDriftHUD.cpp [NoUba]
+[11/15] Compile [x64] TDHUDTests.cpp [NoUba]
+C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\hud-lancer-polish\Plugins\TriadDriftHUD\Source\TriadDriftHUD\Private\TDHUDTests.cpp(248,39): error C2668: 'FNumericProperty::SetIntPropertyValue': ambiguous call to overloaded function
+    ShipArg->GetUnderlyingProperty()->SetIntPropertyValue(ShipArg->ContainerPtrToValuePtr<void>(SwitchParams.GetStructMemory()),2);
+                                      ^
+C:\Program Files\Epic Games\UE_5.9\Engine\Source\Runtime\CoreUObject\Public\UObject\UnrealType.h(1878,22): note: could be 'void FNumericProperty::SetIntPropertyValue(void *,int64) const'
+	UE_API virtual void SetIntPropertyValue(void* Data, int64 Value) const;
+	                    ^
+C:\Program Files\Epic Games\UE_5.9\Engine\Source\Runtime\CoreUObject\Public\UObject\UnrealType.h(1871,22): note: or       'void FNumericProperty::SetIntPropertyValue(void *,uint64) const'
+	UE_API virtual void SetIntPropertyValue(void* Data, uint64 Value) const;
+	                    ^
+C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\hud-lancer-polish\Plugins\TriadDriftHUD\Source\TriadDriftHUD\Private\TDHUDTests.cpp(248,39): note: while trying to match the argument list '(ValueType *, int)'
+        with
+        [
+            ValueType=void
+        ]
+    ShipArg->GetUnderlyingProperty()->SetIntPropertyValue(ShipArg->ContainerPtrToValuePtr<void>(SwitchParams.GetStructMemory()),2);
+                                      ^
+[12/15] Compile [x64] TDSpaceHUDWidget.cpp [NoUba]
+Total time in Unreal Build Accelerator local executor: 146.88 seconds
+
+Result: Failed (OtherCompilationError)
+Trace written to file C:\Users\nicho\AppData\Local\UnrealBuildTool\Trace.uba with size 26.9kb
