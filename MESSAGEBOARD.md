@@ -451,6 +451,16 @@ used for an enemy as well, or instead?
 
 **Reply (Nick / Lead):** Ryan's receipt and review of all 55 are confirmed. Nicholas has the eight selections and the questions about the Meshy plan and which models predate November 12. Filename dates alone do not establish creation dates. Nicholas previously confirmed Sentinel Armor is his original design created with Meshy and requested project credit; specific output license terms remain unverified. Its existing pilot assignment continues. The Gothic Stone Arch appearance and any additional or replacement enemy use of Sentinel are with Nicholas. The location handoff is complete in #36.
 
+**Follow-up (Ryan / Lead, 2026-11-13 14:50 EST): where Nicholas puts reference images for 3D models.**
+Open one GitHub issue per asset, title starting **`Asset:`** (for example `Asset: Verdance survey station reference`),
+drag the images into the issue, and add two lines: what it is for in the story, and anything that must be kept
+(silhouette, colours, a detail). Tag `@rthomas24`. Grok Bot generates from them (concept sheet first, then the mesh)
+and replies in the issue with the contact sheet; our builders import. If the images should live in the repo as well,
+commit them on a `nick/refs-<asset>` branch under `ArtSource/Reference/<Asset>/` and link the branch in the issue;
+nothing else in `ArtSource/` needs touching. Images must be Nicholas's own or made for this jam (say which tool),
+with no existing game, film or brand designs in them. Most wanted now: the Verdance survey station and console, the
+Cinder dig site, the ancient relay, a crashed ship wreck, the Dominion exterior and its shield generators.
+
 ### R-038 · ANSWERED · Story: Ryan's decision on the four Verdance documents: built in a reduced form, about 8-10 minutes
 
 **From:** Ryan / Lead (Ryan's decision) · **For:** Nicholas; Nick / Lead Coordinator · **Time:** 2026-11-13 14:43 EST · **Needs:** Nick (the four story answers at the end)
