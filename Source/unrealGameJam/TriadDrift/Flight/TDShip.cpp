@@ -340,6 +340,8 @@ void ATDShip::GetEngineNozzles(TArray<TPair<USceneComponent*, FName>>& Out) cons
 	}
 }
 
+bool ATDShip::bPerShipFeel = false;
+
 void ATDShip::GetNozzleSockets(const UStaticMeshComponent* Mesh, TArray<FName>& Out)
 {
 	Out.Reset();

@@ -30,6 +30,11 @@ namespace TDShipLibraryPrivate
 		S.TurnRateDeg = 120.f;
 		S.BoostMeterSeconds = 3.f;
 		S.BoostRegenSeconds = 2.5f;
+		// Handling weight (TD.Flight.ShipFeel 1 only): the trickster: snappy nose, best drift, quickest dodge.
+		S.FeelAcceleration = 9000.f;
+		S.FeelAngularResponse = 16.f;
+		S.FeelDriftTurnMultiplier = 1.8f;
+		S.FeelDodgeCooldown = 1.0f;
 		S.PrimaryWeapon = TEXT("PhasePulseLasers");
 		S.SecondaryWeapon = TEXT("SplitterBolt");
 		S.SignaturePower = TEXT("PortalBlaster");
@@ -55,6 +60,11 @@ namespace TDShipLibraryPrivate
 		S.TurnRateDeg = 100.f;
 		S.BoostMeterSeconds = 4.f;
 		S.BoostRegenSeconds = 1.5f; // "fast regen"
+		// Handling weight (TD.Flight.ShipFeel 1 only): the interceptor: hardest acceleration.
+		S.FeelAcceleration = 12000.f;
+		S.FeelAngularResponse = 12.f;
+		S.FeelDriftTurnMultiplier = 1.3f;
+		S.FeelDodgeCooldown = 1.5f;
 		S.PrimaryWeapon = TEXT("NeedleCannons");
 		S.SecondaryWeapon = TEXT("SpikeRockets");
 		S.SignaturePower = TEXT("AfterburnerRam");
@@ -80,6 +90,11 @@ namespace TDShipLibraryPrivate
 		S.TurnRateDeg = 75.f;
 		S.BoostMeterSeconds = 2.5f;
 		S.BoostRegenSeconds = 2.5f;
+		// Handling weight (TD.Flight.ShipFeel 1 only): the heavy: slow to speed up, the nose lags.
+		S.FeelAcceleration = 6000.f;
+		S.FeelAngularResponse = 7.f;
+		S.FeelDriftTurnMultiplier = 1.2f;
+		S.FeelDodgeCooldown = 2.2f;
 		S.PrimaryWeapon = TEXT("BreakerBlaster");
 		S.SecondaryWeapon = TEXT("FlakBurst");
 		S.SignaturePower = TEXT("MissileSwarm");
