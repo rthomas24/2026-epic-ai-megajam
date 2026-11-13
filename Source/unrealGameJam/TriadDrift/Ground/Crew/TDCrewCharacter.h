@@ -76,6 +76,9 @@ public:
 
 	/** Director's mercy (ATDEncounterVolume::MercyTiers): health scaled now, summons capped for this life (-1 = no cap). */
 	void ApplyMercy(float HealthScale, int32 MaxSummons);
+	/** No attack may start for this long (an encounter's opening: the crew show themselves before they hurt). */
+	void SetOpeningGrace(float Seconds) { OpeningGraceLeft = FMath::Max(0.f, Seconds); }
+	float GetOpeningGraceLeft() const { return OpeningGraceLeft; }
 	/** Summons this member may still cast (-1 = no cap). */
 	int32 GetSummonsLeft() const { return SummonsLeft; }
 
@@ -159,6 +162,7 @@ private:
 	FVector ChargeVelocity = FVector::ZeroVector;
 	int32 BossPhase = 1;
 	int32 SummonsLeft = -1;
+	float OpeningGraceLeft = 0.f;
 	bool bSpecApplied = false;
 	TMap<ETDCrewAttack, float> Cooldowns;
 	TArray<TWeakObjectPtr<ATDCrewCharacter>> Summons;
