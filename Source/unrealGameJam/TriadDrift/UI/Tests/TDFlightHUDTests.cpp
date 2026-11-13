@@ -15,6 +15,11 @@
 #include "Widgets/SWindow.h"
 #include "UObject/StrongObjectPtr.h"
 #include "UObject/UObjectGlobals.h"
+#include "Engine/Texture2D.h"
+#include "Engine/StaticMesh.h"
+#include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Misc/ScopeExit.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -830,6 +835,59 @@ bool FTDFlightHUDScanMonitor::RunTest(const FString& Parameters)
 	TestTrue(TEXT("faded out"), M->IsFinished());
 	W.Tick();
 	TestNull(TEXT("host removed it"), Host->GetScanMonitor());
+	return true;
+}
+
+// Issue #62: with a scan texture (Nicholas's art in DA_UI_Style, here a stand-in) the monitor shows the image, revealed
+// by the stage's wipe, instead of the code layers; the terminal's screen mesh gets the same texture on a dynamic
+// instance; with no texture both keep their own look.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScanMonitorImage, "TriadDrift.UI.ScanMonitor.ImageAndScreen", TD_TEST_FLAGS)
+bool FTDScanMonitorImage::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	UTexture2D* StandIn = LoadObject<UTexture2D>(nullptr, TEXT("/Engine/EngineResources/DefaultTexture.DefaultTexture"));
+	if (!TestNotNull(TEXT("host"), Host) || !TestNotNull(TEXT("stand-in texture"), StandIn))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	ON_SCOPE_EXIT { UTDScanMonitorWidget::SetTextureOverride(nullptr); };
+	UTDScanMonitorWidget::SetTextureOverride(StandIn);
+	UTDUIHostSubsystem::ShowScanMonitor(W.GetWorld(), 3);
+	UTDScanMonitorWidget* M = Cast<UTDScanMonitorWidget>(Host->GetScanMonitor());
+	if (!TestNotNull(TEXT("monitor"), M))
+	{
+		return false;
+	}
+	TestTrue(TEXT("an image is shown"), M->IsShowingImage());
+	M->Advance(5.f);
+	TSharedRef<SWidget> Slate = M->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	auto Has = [&](const TCHAR* Name) { return M->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); }); };
+	TestTrue(TEXT("the image is painted"), Has(TEXT("image")));
+	TestFalse(TEXT("no code-drawn structure over it"), Has(TEXT("structure")) || Has(TEXT("site")));
+
+	// The terminal's screen: a cube with the engine material stands in for the console mesh (slot 0).
+	AActor* Console = W.Spawn<AActor>(FVector(500.f, 0.f, 0.f));
+	UStaticMeshComponent* Screen = NewObject<UStaticMeshComponent>(Console, TEXT("Screen"));
+	Console->SetRootComponent(Screen);
+	Screen->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")));
+	Screen->RegisterComponent();
+	TestTrue(TEXT("screen: shown"), UTDUIHostSubsystem::ShowScanOnScreen(Screen, NAME_None, false));
+	TestTrue(TEXT("screen: a dynamic instance on the slot"), Cast<UMaterialInstanceDynamic>(Screen->GetMaterial(0)) != nullptr);
+	TestFalse(TEXT("screen: an unknown slot is refused"), UTDUIHostSubsystem::ShowScanOnScreen(Screen, TEXT("NoSuchSlot"), false));
+	UTDScanMonitorWidget::SetTextureOverride(nullptr);
+	if (UTDScanMonitorWidget::ResolveScanTexture(false) == nullptr)
+	{
+		TestFalse(TEXT("no texture: the screen keeps its look"), UTDUIHostSubsystem::ShowScanOnScreen(Screen, NAME_None, false));
+	}
 	return true;
 }
 

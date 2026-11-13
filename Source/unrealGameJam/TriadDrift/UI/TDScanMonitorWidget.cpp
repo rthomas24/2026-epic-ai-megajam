@@ -4,6 +4,9 @@
 
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDUIPaint.h"
+#include "Engine/Texture2D.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
 
 namespace TDScanMonitor
 {
@@ -62,9 +65,43 @@ TArray<FVector2D> UTDScanMonitorWidget::StructureOutline()
 		C + FVector2D(W - Ch, H), C + FVector2D(-W + Ch, H), C + FVector2D(-W, H - Ch * .6f), C + FVector2D(-W, -H + Ch * .6f) };
 }
 
+namespace TDScanMonitor
+{
+	static TWeakObjectPtr<UTexture2D> TextureOverride;
+}
+
+void UTDScanMonitorWidget::SetTextureOverride(UTexture2D* Texture)
+{
+	TDScanMonitor::TextureOverride = Texture;
+}
+
+UTexture2D* UTDScanMonitorWidget::ResolveScanTexture(bool bCinder)
+{
+	if (UTexture2D* Override = TDScanMonitor::TextureOverride.Get())
+	{
+		return Override;
+	}
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	if (!Style)
+	{
+		return nullptr;
+	}
+	const TSoftObjectPtr<UTexture2D>& Soft = bCinder ? Style->ScanCinder : Style->ScanVerdance;
+	return Soft.IsNull() ? nullptr : Soft.LoadSynchronous();
+}
+
 void UTDScanMonitorWidget::Show(int32 InStage, float Seconds)
 {
 	InStage = FMath::Clamp(InStage, 1, MaxStage);
+	// Nicholas's art when DA_UI_Style has it (resolved on each Show: a style bound later is picked up).
+	VerdanceTex = ResolveScanTexture(false);
+	CinderTex = ResolveScanTexture(true);
+	for (TPair<FSlateBrush*, UTexture2D*> B : { TPair<FSlateBrush*, UTexture2D*>(&VerdanceBrush, VerdanceTex.Get()), TPair<FSlateBrush*, UTexture2D*>(&CinderBrush, CinderTex.Get()) })
+	{
+		B.Key->SetResourceObject(B.Value);
+		B.Key->ImageSize = FVector2D(1920.f, 1080.f);
+		B.Key->DrawAs = ESlateBrushDrawType::Image;
+	}
 	if (Stage == 0 || bHiding || IsFinished())
 	{
 		Stage = 0;
@@ -156,6 +193,28 @@ int32 UTDScanMonitorWidget::NativePaint(const FPaintArgs& Args, const FGeometry&
 	const bool bOverlay = Stage >= 4;
 	P.Label(Box.Min.X + 20.f, Box.Min.Y + 12.f, bOverlay ? TEXT("SURVEY OVERLAY  ·  VERDANCE  +  CINDER") : TEXT("SUBSURFACE SCAN  ·  VERDANCE"),
 		14, T::Neutral().CopyWithNewOpacity(.85f), 120);
+
+	// Nicholas's scan art (issue #62): the image fills the panel (16:9, centred), revealed by a left-to-right wipe over
+	// the stage's first layer with a scan line on the wipe's edge, then a slow scan line drifting down. No code layers on
+	// top: they would not line up with his drawing.
+	if (UTexture2D* Image = ImageFor(Stage))
+	{
+		const float AreaX = Box.Min.X + 12.f, AreaY = Box.Min.Y + 40.f, AreaW = Size.X - 24.f, AreaH = Size.Y - 52.f;
+		const float ImgW = FMath::Min(AreaW, AreaH * 16.f / 9.f), ImgH = ImgW * 9.f / 16.f;
+		const float ImgX = AreaX + (AreaW - ImgW) * .5f, ImgY = AreaY + (AreaH - ImgH) * .5f;
+		const float Reveal = Stage <= 3 ? GetLayer01(1) : GetLayer01(4);
+		P.Image(ImgX, ImgY, ImgW, ImgH, Stage <= 3 ? &VerdanceBrush : &CinderBrush);
+		if (Reveal < 1.f)
+		{
+			const float Edge = ImgX + ImgW * Reveal;
+			P.Box(Edge, ImgY, ImgX + ImgW - Edge, ImgH, T::Plate().CopyWithNewOpacity(.98f));
+			P.Line({ Edge, ImgY }, { Edge, ImgY + ImgH }, T::Shield(), 2.f);
+		}
+		const float ScanY = ImgY + ImgH * FMath::Fmod(Age * .18f, 1.f);
+		P.Line({ ImgX, ScanY }, { ImgX + ImgW, ScanY }, T::Shield().CopyWithNewOpacity(.22f), 1.5f);
+		Rec(TEXT("image"), FBox2D(FVector2D(ImgX, ImgY), FVector2D(ImgX + ImgW, ImgY + ImgH)));
+		return Base + 3;
+	}
 	// Depth scale on the left edge.
 	for (int32 I = 0; I < 6; ++I)
 	{
