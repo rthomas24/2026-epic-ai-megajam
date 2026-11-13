@@ -39,7 +39,7 @@
    "file": "../wav/Ship/SFX_Alarm_LowHull_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Ship/SW_Alarm_LowHull_01",
    "properties": {
-    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_UI",
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
     "volume": 0.2512,
     "bLooping": true
    }
