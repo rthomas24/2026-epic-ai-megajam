@@ -43,7 +43,7 @@ tests, independent review closed, played by an agent in the running game; **wait
 `✅ done` (all of that, and a human has played it and is happy) · `🐞 has bugs`
 
 **Where the game stands and who does what today: [Nov 13 realignment](#nov-13-realignment-status-and-plan).**
-Story: [`storyline.md`](storyline.md). Animation plan and ledger: [`animations.md`](animations.md). Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
+Story: [`storyline.md`](storyline.md). Gameplay dialogue: [`dialogs.md`](dialogs.md). Animation plan and ledger: [`animations.md`](animations.md). Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
 `docs/visual/STATUS.md` (presentation). Live ownership: `CLAIMS.md`.
 
 ### Contents
@@ -163,6 +163,14 @@ with a plain placeholder line for every beat. Nothing reveals the twist before t
 | **Opening cinematic redone to the *First Contact* brief** (2:20) and waves 1-2 shaped as its tutorial battle (evasion, weapons, switching, a larger craft, the withdrawal boundary, the Verdance distress call); the finale's command-deck payoff reusing the same "Don't-" audio | opening, 1, 4 | T3 (+ T4, T1, effects builder), Nicholas (lines, voice, score) | large; **queued until the models and effects are in, done once** |
 | Clues: enemy pre-empting a manoeuvre now and then; Triad's insignia shape under damaged enemy armour; one ancient-technology artefact on both planets and in the core | 1-4 | T4 (AI), Grok Bot / builders (assets) | small each |
 | Pilot characters per the story (Wren bold, Kato analytical, Moss steady) in every bark and name card | all | T3 (hooks), Nicholas (lines) | small |
+
+### Gameplay dialogue (added Nov 13): see [dialogs.md](dialogs.md)
+Every short line the pilots and Command say during play (targets, hits, powers, switching, travel, landing, on foot,
+the Dominion, banter) has a row in **`dialogs.md`**: id, when it fires, who speaks, priority, and working lines for
+Wren, Kato and Moss in character. About 75 ids, 22 of which the game fires today. T3 owns the bark system (lines loaded
+from a table generated from that file, rotation, a Flavour priority, the banter queue); each row's owner adds its
+trigger. The wording is a working draft from Ryan's side: **Nicholas owns the final lines and voices** (ART-11) and
+his `DT_Barks` rows replace ours by id.
 
 ### Animation (Ryan's lane, added Nov 13): see [animations.md](animations.md)
 Every animation in the game has a row in **`animations.md`**: who makes it, by which route, where it lives and its

@@ -30,6 +30,8 @@ agent commit to this same repo at the same time.**
 - **[storyline.md](storyline.md) is the story** (*The Paradox*, Nicholas's narrative, adopted by Ryan Nov 13): the
   premise, the hidden truth, and act by act the gameplay moment that carries each beat. Every objective name, line,
   set piece and asset serves it. Read it before naming or writing anything the player sees.
+- **[dialogs.md](dialogs.md) is the gameplay dialogue** (barks): every short line said during play, by id, with the
+  trigger, speaker, priority and working lines per pilot. Use an existing id or add a row before adding a line.
 - **[animations.md](animations.md) is the animation plan and ledger** (Ryan's lane, Nov 13): every movement in the
   game, who makes it, by which route (Grok Bot and third-party motion, Blender, or in-engine), and its state.
 - **[AAA.md](AAA.md) is the quality standard** every human and agent works to: build, verify, refine,
