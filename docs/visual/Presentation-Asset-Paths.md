@@ -1,81 +1,41 @@
-# Presentation integration decisions — November 12, 2026
+# Presentation asset lookup contracts
 
-Lead-coordinated response to MESSAGEBOARD R-001/002/003, technical replies published
-in `52d5a83`. This records naming and integration boundaries, not an asset dispatch.
-Existing CLAIMS.md ownership and human approval gates remain authoritative.
+These are stable lookup names and integration boundaries, not a task assignment or a statement that every asset exists. Current owner/path authorization is in [CLAIMS.md](../../CLAIMS.md); acceptance is in [STATUS.md](STATUS.md). The previous chronological plan is [archived](archive/2026-11-13-cdea6df/Presentation-Asset-Paths.md).
 
-## Planned instance paths
+## Lookup names
 
-First ship/weapon native files will use `Content/TriadDrift/Presentation/<Name>.uasset`, with object
-references `/Game/TriadDrift/Presentation/<Name>.<Name>`.
+Preferred project path: `Content/TriadDrift/Presentation/<Name>.uasset`, object reference `/Game/TriadDrift/Presentation/<Name>.<Name>`. Use the exact names below, not `DA_Ship_*_Visuals`. Optional empty slots preserve engineering fallbacks.
 
-| Class | Planned asset names |
+| Class | Exact names |
 |---|---|
 | UTDShipVisuals | DA_Rift_Visuals; DA_Lancer_Visuals; DA_Bastion_Visuals |
 | UTDWeaponFX | DA_PhasePulseLasers_FX; DA_SplitterBolt_FX; DA_NeedleCannons_FX; DA_SpikeRockets_FX; DA_BreakerBlaster_FX; DA_FlakBurst_FX |
-
-Weapon names match TDShipLibrary IDs reviewed at main `802aa8c`. No instances have
-been created or promised as present. Engineering defaults must remain optional and
-null-safe until exact paths are claimed, assets authored, and integration validated.
-Additional enemy/ability/travel/blade/UI names are agreed in the R005 table below;
-all remain optional until separately claimed and authored.
-
-## Current integration boundaries
-
-- Leave engineering placeholder planets/asteroids visible even with SpaceFoundation;
-  the background sky does not replace them. Current environment authoring is isolated.
-  Later shared placement needs published map/new-OFPA-actor claims, map-owner
-  sunlight/exposure coordination, and no World Settings, GameMode or shared umap save.
-- HUD at `6d9739e` is an isolated reflection/polling prototype, not a complete typed
-  provider. Its public current schema is TDSpaceHUDWidget.h; pushed squad data alone
-  is overwritten by its sampling timer. Typed provider/frame/event APIs require a
-  separately approved UI revision; engineering owns gameplay adapter/host. Ryan must
-  decide activation, dependencies, host lifecycle and packaging before integration.
-- SpaceFoundation needs no Presentation data asset. Material VFX prototypes need
-  Niagara wrappers before filling UNiagaraSystem fields; that work is not dispatched.
-- M02/M03 and RiftConcept01 are rejected/frozen comparison history, not active production. The selected MenuTheme01 track is the current bounded audio scope; see CLAIMS.md and N-017/N-018/N-020.
-  OnSwitchCut plus UTDShipVisuals.SwitchIn/SwitchOut are the future integration hooks;
-  choose one playback route to avoid double firing. No audio-system edits authorized.
-- N001 modular assembly and centre-pivot rocket offset decisions are recorded below.
-  Nick has made no socket, gameplay, collision or spawn logic changes.
-
-Board is an append-only communication log; this file records the technical plan.
-Human HUD activation and final art/audio acceptance remain unresolved approvals.
-
-## Engineering replies adopted during live audit
-
-R001–004 closed by Ryan's Lead on main8cd1561/e589416. Placeholder bodies stay
-visible; current Galaxy has no placed sunlight/exposure Actor, so future sky
-placement may own these after exact map/OFPA claims. No placement is assigned here.
-HUD reflected names/index order frozen by engineering; they own the AHUD/controller
-host. Activation/dependencies/cooking remain Ryan decisions, not granted by closure.
-Engineering plays SwitchIn/SwitchOut cues at the cut; do not also play widget audio.
-
-N001 decision acted on: Lancer can use Hull as primary Mesh plus10Parts with
-ParentSocket=None and existing ship-root instances[].position_cm transforms,
-identity rotations/unit scales. Ships confirmed static composition preserves all
-mesh pivots and33component-local locators. Dynamic rotor parenting and component
-muzzle lookup remain future engineering wiring. ProjectileMeshOffset=(54,0,0)
-on future DA_SpikeRockets_FX moves visual only; spawn/collision/socket unchanged.
-No native Lancer asset or gameplay changes are authored by this decision.
-
-R005 names accepted as flat optional paths under /Game/TriadDrift/Presentation/:
-
-| Class | Additional planned names |
-|---|---|
 | UTDEnemyVisuals, space | DA_Enemy_Fighter_Visuals; DA_Enemy_Interceptor_Visuals; DA_Enemy_Gunship_Visuals; DA_Enemy_Bomber_Visuals; DA_Enemy_Carrier_Visuals |
 | UTDDominionVisuals | DA_Dominion_Visuals |
 | UTDEnemyVisuals, crew | DA_Crew_Grunt_Visuals; DA_Crew_Trooper_Visuals; DA_Crew_Heavy_Visuals; DA_Crew_Drone_Visuals; DA_Crew_Warden_Visuals |
+| UTDPilotVisuals | DA_Pilot_Visuals |
 | UTDAbilityFX | DA_Ability_Cloak_FX; DA_Ability_EMPPulse_FX; DA_Ability_GravityWell_FX |
-| UTDTravelFX / UTDBladeFX / UTDUIStyle | DA_Travel_FX; DA_Blade_FX; DA_UI_Style |
+| UTDTravelFX | DA_Travel_FX |
+| UTDBladeFX | DA_Blade_FX |
+| UTDUIStyle | DA_UI_Style |
 
-Flat crew paths supersede the older R004 Crew/ suggestion. Names are optional
-lookup conventions, not a new asset dispatch or existing asset guarantee.
-Signature powers use ship PowerWindup/PowerActive/PowerEnd/Power2Active cues.
+The player uses **UTDPilotVisuals / DA_Pilot_Visuals**, not the earlier proposed DA_Player_Visuals or the crew class. Current Core documents a fallback lookup under `/Game/TriadDrift/Gameplay/Characters/Pilot`; engineering also supplies crew looks in Gameplay/Characters. Those published engineering assets do not transfer ownership of Nick's Presentation folder. Confirm current source lookup/fallback and cook behavior before adding an overriding instance.
 
-R004 frontend preference: optional style soft classes with engineering load/cook
-handling and game-mode fallback; MainMenuWidgetClass/LoadingWidgetClass, crew
-AnimBPClass/Stagger/Death and BladeMesh now exist per engineering's closed reply.
-Existing BladeColor/Retract reused; ragdoll remains gameplay-owned. No menu/crew/
-blade/dressing production assigned. Planet size/capsule/mantle/slope/cover supplied
-by engineering remain unchanged. Audio M02 and RiftConcept01 are rejected/frozen; only the selected MenuTheme01 readiness work is currently assigned.
+## Native/runtime contracts
+
+The current field definitions are [Core/TDPresentation.h](../../Source/unrealGameJam/TriadDrift/Core/TDPresentation.h); runtime consumers and [features.md section 3](../../features.md#3-shared-contracts) define behavior. Additive API changes are coordinated through Ryan's Lead under AGENTS; do not rename/remove established interfaces unilaterally.
+
+- **Ships:** Mesh or modular Parts; preserve agreed component-local frame names, units, axes and transforms. The legacy Lancer contract supports Hull plus ten Parts. The agreed `ProjectileMeshOffset=(54,0,0)` is a visual-only SpikeRocket offset, not a spawn/collision change. A new design still needs its own verified manifest/approval.
+- **Crew:** SkeletalMesh, AnimBPClass, Stagger and Death are published hooks. **Pilot:** its own optional mesh/animation contract; do not assume every imported skeleton is Manny-compatible.
+- **HUD:** engineering owns the host, data producers, default activation and fallback coverage. UI consumes the agreed public provider; each newly covered surface needs a coordinated coverage flag so fallback information is not duplicated or lost.
+- **Front end:** MainMenuWidgetClass, LoadingWidgetClass, PauseWidgetClass, VictoryWidgetClass and SettingsWidgetClass are separate style slots. MainMenuWidgetClass must not replace victory statistics. Preserve existing code-built fallbacks and verify the actual return-to-menu route when assigning a menu.
+- **Music:** MenuMusic is an optional soft SoundBase reference played by the menu game mode. The selected track/class lives under Audio/MenuTheme01; looping/style assignment readiness is tracked separately from PR9's asset availability. Preserve other style fields during serialized edits. Current music class is `SC_MenuTheme_Music`; the Combat01 SFX class is `SC_Combat01_SFX` under its claimed Mix root. Coordinate volume hookups without renaming approved packages.
+- **Intro:** IntroSequence, IntroMusic and IntroNarrationVoice are optional UTDUIStyle fields; their existence does not dispatch new cinematics or voice work.
+- **Sky:** SpaceFoundation does not require a Presentation DA. A real sky actor tagged `TD.Presentation.Sky` yields the engineering placeholder sky/lighting. Claim persistent placement/map actors before saving; a temporary dev-hook test is not persistent integration.
+- **VFX/audio:** Niagara slots require UNiagaraSystem assets; material prototypes cannot fill them. Each 3D sound carries its own attenuation/class/concurrency. SwitchIn/SwitchOut are played by gameplay; do not also fire the same switch cue from UI.
+
+## Ownership and acceptance
+
+Nick's presentation instances and assets, engineering fallback assets, shared maps and runtime Source/Config remain distinct ownership lanes. An absent instance does not grant write permission. Publish exact claims before edits and serialize shared binary/style field handoffs.
+
+`/Game/TriadDrift/Presentation` is always cooked with its references. Other packages require the appropriate references/cook rules; loading a path in an editor is not proof it will ship. Validate the target package and gameplay behavior before claiming integration or completion. Current production readiness is recorded once in STATUS, not duplicated here.
