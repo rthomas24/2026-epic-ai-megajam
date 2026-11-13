@@ -131,6 +131,9 @@ public:
 	FTDOnFootCameraModeChanged OnOnFootCameraModeChanged;
 
 	// ---- The Settings page (ENG-32): Nick's UTDUIStyle::SettingsWidgetClass if set, else the code-built page.
+	/** Viewport layer of the settings page: above every HUD and the pause screen (UI host ZOrder + 100), which opens it. */
+	static constexpr int32 PageZOrder = 1000;
+
 	/** Opens the page over the menu or the pause screen. False when there is no viewport to show it in. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
 	static bool OpenSettingsPage(const UObject* WorldContextObject);

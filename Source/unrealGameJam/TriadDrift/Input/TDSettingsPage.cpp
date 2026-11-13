@@ -14,6 +14,7 @@
 #include "Styling/CoreStyle.h"
 #include "UObject/UnrealType.h"
 #include "Widgets/Input/SButton.h"
+#include "TriadDrift/Flow/TDFrontEndStyle.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/SBoxPanel.h"
@@ -277,7 +278,11 @@ TSharedRef<SWidget> STDSettingsPage::MakeRow(ETDSettingsRow Row)
 		Line->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)[ Arrow(+1, TEXT(">")) ];
 	}
 
-	return SNew(SButton).IsFocusable(false)
+	// The front-end focus look (T5's TDFrontEndStyle): the row Enter / A acts on gets the squad-colour frame and
+	// grows a little; others keep a faint outline so the layout never jumps. Rows here are never Slate-focused (the
+	// page owns keyboard and pad navigation), so the frame follows the page's own selection, not Slate focus.
+	const float Grow = bAction ? 1.06f : 1.02f;
+	TSharedRef<SButton> Button = SNew(SButton).IsFocusable(false)
 		.ButtonColorAndOpacity_Lambda([Selected]() { return Selected() ? FLinearColor(0.15f, 0.3f, 0.4f, 0.95f) : FLinearColor(0.05f, 0.06f, 0.09f, 0.9f); })
 		.OnClicked_Lambda([this, WeakModel, Index, bAction]()
 		{
@@ -294,6 +299,21 @@ TSharedRef<SWidget> STDSettingsPage::MakeRow(ETDSettingsRow Row)
 			return FReply::Handled();
 		})
 		[ Line ];
+	return SNew(SBorder)
+		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+		.Padding(FMargin(3.f))
+		.BorderBackgroundColor_Lambda([Selected]()
+		{
+			return Selected() ? FSlateColor(TDFrontEndStyle::FocusColor()) : FSlateColor(FLinearColor(1.f, 1.f, 1.f, 0.08f));
+		})
+		.RenderTransformPivot(FVector2D(0.5f, 0.5f))
+		.RenderTransform_Lambda([Selected, Grow]()
+		{
+			return Selected() ? TOptional<FSlateRenderTransform>(FSlateRenderTransform(FScale2D(Grow))) : TOptional<FSlateRenderTransform>();
+		})
+		[
+			Button
+		];
 }
 
 FReply STDSettingsPage::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
@@ -378,7 +398,7 @@ bool UTDSettingsSubsystem::OpenSettingsPage(const UObject* WorldContextObject)
 		UUserWidget* Widget = PC ? CreateWidget<UUserWidget>(PC, WidgetClass) : CreateWidget<UUserWidget>(World, WidgetClass);
 		if (Widget)
 		{
-			Widget->AddToViewport(50);
+			Widget->AddToViewport(UTDSettingsSubsystem::PageZOrder);
 			Widget->SetKeyboardFocus();
 			S->PageWidget = Widget;
 			UE_LOG(LogTriadDrift, Log, TEXT("TD settings: page opened (%s)"), *WidgetClass->GetName());
@@ -389,7 +409,7 @@ bool UTDSettingsSubsystem::OpenSettingsPage(const UObject* WorldContextObject)
 	const UObject* Context = WorldContextObject;
 	TWeakObjectPtr<const UObject> WeakContext = Context;
 	S->Page = SNew(STDSettingsPage).Settings(WeakS).OnClose_Lambda([WeakContext]() { CloseSettingsPage(WeakContext.Get()); });
-	GEngine->GameViewport->AddViewportWidgetContent(S->Page.ToSharedRef(), 50);
+	GEngine->GameViewport->AddViewportWidgetContent(S->Page.ToSharedRef(), UTDSettingsSubsystem::PageZOrder);
 	S->Page->FocusPage();
 	UE_LOG(LogTriadDrift, Log, TEXT("TD settings: page opened (code-built)"));
 	return true;

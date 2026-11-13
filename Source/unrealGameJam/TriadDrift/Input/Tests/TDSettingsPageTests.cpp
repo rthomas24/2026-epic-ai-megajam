@@ -6,6 +6,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/Input/TDSettingsPage.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Input/Tests/TDInputTestHelpers.h"
@@ -234,6 +235,17 @@ bool FTDSettingsMigrate::RunTest(const FString& Parameters)
 	TestEqual(TEXT("out-of-range value clamped"), P.GamepadDeadzone, 0.5f);
 	const UTDSettingsSave* Again = Cast<UTDSettingsSave>(UGameplayStatics::LoadGameFromSlot(TDSettingsPageTest::Slot, 0));
 	TestTrue(TEXT("re-saved at today's version"), Again && Again->Version == UTDSettingsSave::CurrentVersion);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSettingsAbovePause, "TriadDrift.Input.SettingsPage.DrawsAboveThePauseScreen", TD_TEST_FLAGS)
+bool FTDSettingsAbovePause::RunTest(const FString& Parameters)
+{
+	// The pause screen (T2, UI host ZOrder + 100) opens the settings page: the page must draw on top of it, not under
+	// its blur (seen in a 1080p capture, Nov 13).
+	const int32 PauseLayer = UTDUIHostSettings::Get()->ZOrder + 100;
+	TestTrue(FString::Printf(TEXT("settings page layer %d is above the pause screen's %d"), UTDSettingsSubsystem::PageZOrder, PauseLayer),
+		UTDSettingsSubsystem::PageZOrder > PauseLayer);
 	return true;
 }
 
