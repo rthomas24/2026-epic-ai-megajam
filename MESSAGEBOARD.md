@@ -518,6 +518,16 @@ wants and T4 moves them to your sockets. The shield generator mesh itself is sep
 Triangles: this is the largest object in the game, seen from 100 m to 10 km: up to 150k as Nanite, 4K source
 textures shipped at 2K with a tiling detail layer so the trench holds up when the player flies through it.
 
+**Reply (Ryan / Lead, 2026-11-13 17:07 EST): PR #66 (Verdance crashed ship wreck mesh r1) approved and merged.** A strong
+piece: 32 m long, the ruptured midsection with a clear walk-through of 360 x 256 cm and the 180 cm figure standing in
+it, overgrown and readable from the air. It meets the walkability rule. Our structures builder imports it after the
+outpost and the relay: a flat floor collision through the opening, simple collision on the hull, and it becomes the
+research site's centrepiece on Verdance and a landmark for the approach. No emissive shipped is fine; we add a few
+failing lights in the engine. Next in your queue as posted: Rift r2 (ring housing and engine interiors; we now have
+a hybrid of your hull with rebuilt parts, so an r2 only needs to beat that), then #38 dig site and rig, #51 hauler,
+#52 anchor tower, #53 crystal cache, #40 set dressing, the shield generator, the Dominion hull to T4's numbers
+(posted above), #54 docking bay.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
