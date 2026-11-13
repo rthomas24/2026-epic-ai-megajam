@@ -30,6 +30,7 @@ editing the same files.
 - **Added Nov 13 (Ryan), core:** both planets become large explorable worlds with procedural terrain and mountains (ENG-34), and engineering supplies a fallback sound set so the game is never silent (ENG-35).
 - **Added Nov 13 (Ryan), core:** the HUD is redesigned: modern, sleek, small, and clear to a beginner (ENG-36).
 - **Added Nov 13 (Ryan), core:** AAA projectiles, engine flames and particle effects across the whole game (ENG-37).
+- **Added Nov 13 (Ryan), core:** flying from space down into a planet is seamless and AAA, in the spirit of No Man's Sky: orbit the globe, enter the atmosphere anywhere, a visible burn-in, the world coming into focus (ENG-38).
 - **Protect above all:** the three-ship switching mechanic and satisfying combat.
 - **C++ first;** use Blueprints when they are clearly faster or necessary.
 - Keep a playable build at all times, coordinate shared-file edits before starting, verify licences
@@ -95,6 +96,7 @@ through the engine's MCP server. **No human has played it yet; that is the large
 | Menus, reward screen, credits, loading | ART-09 | 🟨 | Engineering fallbacks work; styling is plain. Nick's menu is on a branch |
 | Barks, voice | ART-11 | ⬜ | Text barks only |
 | Submission (video, page, dev log, credits) | ART-14, ENG-28 | 🟨 | 58 s trailer pipeline exists (silent cut, old HUD); page not started; `CREDITS.md` and `DEVLOG.md` are current |
+| Planetary descent (space to surface, anywhere on the globe) | ENG-38 (+ ENG-20, ENG-34) | 🟨 | Added Nov 13. Today: a level change behind a short entry. Research in progress; stage 1 next |
 | Boarding finale | ENG-29-31, ART-15, 16 | 🟨 WANTED (Ryan, Nov 13) | Scoped plans in from T4 (docking, escape flight, about 14 h) and T5 (interior, core, escape run); the space-only ending stays as the fallback |
 | Story (The Paradox) | `storyline.md`; ENG-18, 25, 26, 29-31, 33; ART-11, 12 | 🟨 | Adopted Nov 13. Hooks and renames on Ryan's side; words, voice and the final say on story with Nicholas |
 
@@ -163,6 +165,14 @@ with a plain placeholder line for every beat. Nothing reveals the twist before t
 | **Opening cinematic redone to the *First Contact* brief** (2:20) and waves 1-2 shaped as its tutorial battle (evasion, weapons, switching, a larger craft, the withdrawal boundary, the Verdance distress call); the finale's command-deck payoff reusing the same "Don't-" audio | opening, 1, 4 | T3 (+ T4, T1, effects builder), Nicholas (lines, voice, score) | large; **queued until the models and effects are in, done once** |
 | Clues: enemy pre-empting a manoeuvre now and then; Triad's insignia shape under damaged enemy armour; one ancient-technology artefact on both planets and in the core | 1-4 | T4 (AI), Grok Bot / builders (assets) | small each |
 | Pilot characters per the story (Wren bold, Kato analytical, Moss steady) in every bark and name card | all | T3 (hooks), Nicholas (lines) | small |
+
+### Planetary descent (added Nov 13, Ryan): ENG-38
+Ryan wants the flight from space into a world to be a centrepiece: orbit the globe, enter the atmosphere anywhere, a
+visible burn-in on the ship, cloud deck, and the world coming into focus, with no loading screen, "almost like No
+Man's Sky". Spec in ENG-38; research and the recommended architecture in `docs/eng/planet-descent-research.md`.
+Everyone has a part: T1 flight and entry, T4 the globe and the focus-in, T5 the hidden load, T2 the HUD, T3 the
+camera, the effects and audio builders, Grok Bot for cloud, plasma and planet-surface assets, Nick for the
+atmosphere's look. It is built in three stages; stage 1 (the entry sequence at full quality) comes first.
 
 ### Gameplay dialogue (added Nov 13): see [dialogs.md](dialogs.md)
 Every short line the pilots and Command say during play (targets, hits, powers, switching, travel, landing, on foot,
@@ -1112,6 +1122,56 @@ coming out and there's movement ... a bunch of particles, and everything that ma
   scores effects at 4 of 5 or better; frame-time measured in a wave-5 fight.
 - Owner: Lead (effects builder sub-agents), T2 (combat cues and placeholders), T1 (engines and trails), T4 (enemy,
   Dominion and world cues), T5 (on-foot cues).
+
+#### ENG-38 · Planetary descent: fly from space into a world, anywhere on the globe (CORE, added Nov 13 by Ryan) · `🟨`
+**Ryan, Nov 13:** flying down into a world must be "super realistic, super high quality, AAA quality, make it almost
+look like No Man's Sky": a transition "where you hit the atmosphere and then your ship gets some type of animation
+showing you're piercing the atmosphere", "the world comes into focus as you get closer and closer", "extremely
+detailed", and "you should be able to enter a world from anywhere, flying around that globe of a planet".
+Research and the recommended design: `docs/eng/planet-descent-research.md` (No Man's Sky, Elite Dangerous, Unreal
+techniques, our current code path; in progress Nov 13). This item replaces the old arrival of ENG-20; the landing rule
+and the on-foot hand-over of ENG-20 stay.
+
+- **What the player does, with no loading screen at any point:**
+  1. **Approach and orbit.** The planet is a real globe in the galaxy; the player can fly around it, low over the
+     cloud tops, and choose where to go in. The globe shows the same world as the ground: the same continents,
+     mountain ranges, seas or lava, and the landing zone as a faint beacon.
+  2. **Atmosphere interface.** First wisps and a horizon glow; the HUD shows altitude, speed and an entry cue; the
+     hyperdrive and boost cut out; sound thins to a rising roar.
+  3. **Burning in.** The ship visibly pierces the atmosphere: a plasma sheath that grows from the nose (white core to
+     the ship's colour to orange), heat glow on the leading edges, streaks past the canopy, a shock cone, heavy
+     shake that eases as the air thickens, control authority reduced but never removed. Wingmen burn in alongside.
+  4. **Through the clouds.** A cloud deck swallows the ship; this is where the planet's level is brought in, hidden.
+  5. **The world comes into focus.** Break through the cloud base to the whole landscape: horizon curvature
+     flattening, aerial haze thinning, mountain ranges resolving first, then rivers of lava or water, forests and
+     rock fields, then set pieces and the landing zone, continuously, with no pop the eye can catch.
+  6. **Low flight and landing.** Fly anywhere over the terrain (ENG-34); land at the pad (ENG-20 rule) or, as a later
+     stage, on any flat ground.
+  7. **Take-off is the same in reverse**: climb, clouds, thin air, stars, the globe behind you.
+- **Enter anywhere.** Where the player crosses the atmosphere on the globe decides where they arrive over the
+  terrain and on what heading: the same latitude and longitude, the same sun angle. The landing zone is always
+  findable (objective waypoint and beacon) from wherever they come in.
+- **Quality bar:** indistinguishable from continuous at normal play (no black frame, no freeze over 100 ms, no
+  visible swap of globe for ground); the ship effect reads from the chase camera and in a still; at least 60 fps at
+  1080p through the whole descent on the target machine; works for all three ships and with a gamepad; a retake or
+  Continue during the descent restarts it cleanly.
+- **Stages** (the research report sets the final cut): **stage 1**: the entry sequence at full quality (effects,
+  camera, sound, HUD, the hidden load, the focus-in) from any approach direction, arriving on a matching heading;
+  **stage 2**: orbiting the globe and entering at a chosen point that maps to a place on the terrain, the globe
+  showing the real terrain, wingmen in the sequence; **stage 3 (stretch)**: landing anywhere, and day / night matching
+  the entry longitude.
+- **Owners:** T1 (flight: orbit and entry flight model, control authority, camera with T3, the hand-over), T4
+  (terrain: the globe-from-orbit view baked from the terrain field, focus-in LOD and fog schedule, arrival placement),
+  T5 (flow: bringing the planet level in without a loading screen, arrival state, retake and Continue), T2 (HUD:
+  altimeter, hull heat, entry cue), T3 (director: entry camera beats, a money shot on cloud break), Lead effects
+  builder (plasma sheath, heat glow, streaks, shock cone, cloud layer, wisps), Lead audio builder (entry roar,
+  burn-through, wind, boom), **Grok Bot** (cloud and plasma textures and flipbooks, planet surface maps, ship
+  heat-glow masks, any deployable part such as airbrakes or heat shields with its animation), **Nick** (the
+  atmosphere's look from orbit to ground: sky, light, fog and grade are his under ART-13; engineering supplies the
+  stand-in).
+- **Tests:** arrival position and heading as a function of the entry point (unit); no hitch over 100 ms across the
+  hidden load (measured in a rendered run); descent completes for each ship at 30 / 60 / 120 fps; retake and Continue
+  mid-descent; take-off reverses it. **Only a person can judge** whether it feels like piercing an atmosphere.
 
 ### Art and assets made on Ryan's side (moved from Nick's section, Nov 13)
 

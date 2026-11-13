@@ -65,6 +65,9 @@ no known origin). Its ground units are automated: armour with nobody inside that
 `td.Finale.Boarding 0`). The reveal then moves into the assault as transmissions that break through as each generator
 falls, the reactor shield opening to the squad's IDs, and the same stinger. Nothing else in the story changes.
 
+**Descent (ENG-38):** every landing is a flight from orbit through the atmosphere into the world, with no cut. Use it for the story: on Verdance the
+machines' landers are visible burning in ahead of you; on Cinder the dig's glow shows from orbit; the Dominion hangs in the sky from the ground.
+
 ## 6. Clues throughout play (reward attention, never give the twist away early)
 | Clue | Where | Owner |
 |---|---|---|

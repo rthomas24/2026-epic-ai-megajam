@@ -108,6 +108,7 @@ State values: `none`, `placeholder` (works, not good enough), `source in`, `in g
 |---|---|---|---|---|
 | Player ships: bank, pitch, drift lean, boost surge, dodge roll | flight model + camera | in game | C | T1: compare the three ships' feel; add control-surface / thruster motion if the Rodin ships have movable parts |
 | Ship switch, hyperdrive wind-up and jump, portal entry | camera and effects | in game | C | T1 / T3 with the effects builder |
+| **Atmospheric entry (ENG-38)**: ship attitude into the burn (nose-up angle of attack), buffet, control-surface or airbrake deployment, heat-shield plates if the Rodin ships have them; wingmen burning in alongside | level change behind a short entry | none | B + C | T1 (+ Grok Bot for deployable parts, effects builder for the plasma) |
 | Landing and take-off: gear, settle, lift | scripted path | placeholder | B + C | Landing gear and a settle bounce once the Rodin ships are in |
 | Wingmen formation motion | wingman AI | in game | C | T3 |
 | Enemy ships: attack runs, evasive rolls, death tumble, carrier bay doors, turret tracking | AI + physics | in game | C (+ B for doors) | T4: death tumble variety; turret barrels recoil |
