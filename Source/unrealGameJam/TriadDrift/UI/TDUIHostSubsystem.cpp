@@ -17,6 +17,12 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/UI/TDGroundHUDWidget.h"
+#include "TriadDrift/UI/TDPauseMenuWidget.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDUIHost, Log, All);
 
@@ -58,6 +64,10 @@ bool UTDUIHostSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UTDUIHostSubsystem::Deinitialize()
 {
 	Hide();
+	HideGround();
+	HidePause();
+	BindPause(nullptr);
+	SetDevHUDSuppressed(false);
 	Super::Deinitialize();
 }
 
@@ -121,6 +131,27 @@ bool UTDUIHostSubsystem::WantsSpaceHUD(APlayerController*& OutController, UObjec
 
 void UTDUIHostSubsystem::Evaluate()
 {
+	// On foot and pause first: independent of the space HUD's switch.
+	APlayerController* LocalPC = FindLocalController();
+	BindPause(LocalPC);
+	if (WantsGroundHUD(LocalPC))
+	{
+		if (!GroundWidget || GroundOwner.Get() != LocalPC)
+		{
+			HideGround();
+			ShowGround(LocalPC);
+		}
+	}
+	else
+	{
+		HideGround();
+	}
+	if (PauseWidget && !(GetWorld() && GetWorld()->IsPaused()))
+	{
+		HidePause(); // resumed by something that didn't broadcast (a retake, travel)
+	}
+	UpdateDevHUDSuppression();
+
 	APlayerController* PC = nullptr;
 	UObject* Source = nullptr;
 	if (!WantsSpaceHUD(PC, Source))
@@ -180,7 +211,7 @@ void UTDUIHostSubsystem::ShowFor(APlayerController* Controller, UObject* Source)
 		// SetDataSource ran before NativeConstruct bound the event bus; sample again now it's live.
 		CallRefreshData(Widget);
 	}
-	SetDevHUDSuppressed(true);
+	UpdateDevHUDSuppression();
 	UE_LOG(LogTDUIHost, Log, TEXT("Space HUD shown (%s) for %s."), *Class->GetName(), *Controller->GetName());
 }
 
@@ -193,7 +224,146 @@ void UTDUIHostSubsystem::Hide()
 	}
 	Owner.Reset();
 	DataSource.Reset();
-	SetDevHUDSuppressed(false);
+	UpdateDevHUDSuppression();
+}
+
+void UTDUIHostSubsystem::UpdateDevHUDSuppression()
+{
+	SetDevHUDSuppressed(Widget != nullptr || GroundWidget != nullptr || PauseWidget != nullptr);
+}
+
+// ------------------------------------------------------------------------------------------ on foot
+
+bool UTDUIHostSubsystem::WantsGroundHUD(APlayerController* PC) const
+{
+	if (!PC || !UTDUIHostSettings::IsNativeGroundHUDEnabled())
+	{
+		return false;
+	}
+	// The first-person character (planets, the Dominion interior): a HUD-data pawn that is not a ship.
+	const APawn* Pawn = PC->GetPawn();
+	return Pawn && !Pawn->IsA<ATDSpacecraft>() && Pawn->GetClass()->ImplementsInterface(UTDHUDData::StaticClass());
+}
+
+namespace TDUIHost
+{
+	/** A soft class slot on DA_UI_Style by name (reflection: GroundHUDWidgetClass may not be on this branch's Core yet). */
+	UClass* LoadStyleClass(FName Property)
+	{
+		const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+		const FSoftClassProperty* Slot = Style ? FindFProperty<FSoftClassProperty>(UTDUIStyle::StaticClass(), Property) : nullptr;
+		if (!Slot)
+		{
+			return nullptr;
+		}
+		const FSoftObjectPtr& Ptr = Slot->GetPropertyValue_InContainer(Style);
+		UClass* Class = Cast<UClass>(Ptr.IsNull() ? nullptr : Ptr.LoadSynchronous());
+		return Class && Class->IsChildOf(UUserWidget::StaticClass()) ? Class : nullptr;
+	}
+}
+
+UClass* UTDUIHostSubsystem::ResolveGroundWidgetClass()
+{
+	UClass* Class = TDUIHost::LoadStyleClass(TEXT("GroundHUDWidgetClass"));
+	return Class ? Class : UTDGroundHUDWidget::StaticClass();
+}
+
+UClass* UTDUIHostSubsystem::ResolvePauseWidgetClass()
+{
+	UClass* Class = TDUIHost::LoadStyleClass(TEXT("PauseWidgetClass"));
+	return Class ? Class : UTDPauseMenuWidget::StaticClass();
+}
+
+void UTDUIHostSubsystem::ShowGround(APlayerController* PC)
+{
+	UUserWidget* NewWidget = PC ? CreateWidget<UUserWidget>(PC, ResolveGroundWidgetClass()) : nullptr;
+	if (!NewWidget)
+	{
+		return;
+	}
+	GroundWidget = NewWidget;
+	GroundOwner = PC;
+	const UWorld* World = GetWorld();
+	if (bAddToViewport && World && World->GetGameViewport())
+	{
+		GroundWidget->AddToViewport(UTDUIHostSettings::Get()->ZOrder);
+	}
+	UpdateDevHUDSuppression();
+	UE_LOG(LogTDUIHost, Log, TEXT("Ground HUD shown (%s) for %s."), *NewWidget->GetClass()->GetName(), *PC->GetName());
+}
+
+void UTDUIHostSubsystem::HideGround()
+{
+	if (GroundWidget)
+	{
+		GroundWidget->RemoveFromParent();
+		GroundWidget = nullptr;
+	}
+	GroundOwner.Reset();
+	UpdateDevHUDSuppression();
+}
+
+// ------------------------------------------------------------------------------------------ pause
+
+void UTDUIHostSubsystem::BindPause(APlayerController* PC)
+{
+	if (PauseBoundTo.Get() == PC)
+	{
+		return;
+	}
+	if (ATDSpacePlayerController* Old = Cast<ATDSpacePlayerController>(PauseBoundTo.Get()))
+	{
+		Old->OnPauseChanged.RemoveDynamic(this, &UTDUIHostSubsystem::HandlePauseChanged);
+	}
+	PauseBoundTo = PC;
+	if (ATDSpacePlayerController* New = Cast<ATDSpacePlayerController>(PC))
+	{
+		New->OnPauseChanged.AddUniqueDynamic(this, &UTDUIHostSubsystem::HandlePauseChanged);
+	}
+}
+
+void UTDUIHostSubsystem::HandlePauseChanged(bool bPaused)
+{
+	if (bPaused && UTDUIHostSettings::IsNativePauseScreenEnabled())
+	{
+		ShowPause(PauseBoundTo.Get() ? PauseBoundTo.Get() : FindLocalController());
+	}
+	else
+	{
+		HidePause();
+	}
+}
+
+void UTDUIHostSubsystem::ShowPause(APlayerController* PC)
+{
+	if (PauseWidget || !PC)
+	{
+		return;
+	}
+	UUserWidget* NewWidget = CreateWidget<UUserWidget>(PC, ResolvePauseWidgetClass());
+	if (!NewWidget)
+	{
+		return;
+	}
+	PauseWidget = NewWidget;
+	const UWorld* World = GetWorld();
+	if (bAddToViewport && World && World->GetGameViewport())
+	{
+		PauseWidget->AddToViewport(UTDUIHostSettings::Get()->ZOrder + 100);
+		PauseWidget->SetUserFocus(PC);
+		PauseWidget->SetKeyboardFocus();
+	}
+	UpdateDevHUDSuppression();
+}
+
+void UTDUIHostSubsystem::HidePause()
+{
+	if (PauseWidget)
+	{
+		PauseWidget->RemoveFromParent();
+		PauseWidget = nullptr;
+	}
+	UpdateDevHUDSuppression();
 }
 
 void UTDUIHostSubsystem::SetDevHUDSuppressed(bool bSuppressed)
@@ -228,10 +398,9 @@ namespace TDUIHost
 bool UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(const UObject* WorldContext, ETDHUDSurface Surface)
 {
 	const UTDUIHostSubsystem* Host = Get(WorldContext);
-	const UUserWidget* HUD = Host ? Host->GetSpaceHUD() : nullptr;
-	if (!HUD)
+	if (!Host || (!Host->GetSpaceHUD() && !Host->GetGroundHUD() && !Host->GetPauseScreen()))
 	{
-		return false; // native HUD not up: the fallback HUD draws everything
+		return false; // no hosted widget up: the fallback HUD draws everything
 	}
 	if (const int32* Forced = TDUIHost::CoverOverrides().Find(Surface))
 	{
@@ -240,8 +409,16 @@ bool UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(const UObject* WorldContext
 			return *Forced > 0;
 		}
 	}
-	const FBoolProperty* Claim = FindFProperty<FBoolProperty>(HUD->GetClass(), GetCoverPropertyName(Surface));
-	return Claim && Claim->GetPropertyValue_InContainer(HUD);
+	const FName Name = GetCoverPropertyName(Surface);
+	for (const UUserWidget* HUD : { Host->GetSpaceHUD(), Host->GetGroundHUD(), Host->GetPauseScreen() })
+	{
+		const FBoolProperty* Claim = HUD ? FindFProperty<FBoolProperty>(HUD->GetClass(), Name) : nullptr;
+		if (Claim && Claim->GetPropertyValue_InContainer(HUD))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 UClass* UTDUIHostSubsystem::FindNativeWidgetClass()

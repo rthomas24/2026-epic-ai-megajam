@@ -14,6 +14,8 @@
 #include "GameFramework/Character.h"
 #include "TriadDrift/Ground/Crew/TDCrewTypes.h"
 #include "EngineUtils.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 namespace TDCombatPlaceholderTest
@@ -541,6 +543,43 @@ bool FTDCombatPlaceholderOnFootBolts::RunTest(const FString& Parameters)
 	TestTrue(TEXT("pellet hit plays a spark"), Sparks > 0);
 	TestTrue(FString::Printf(TEXT("spark radius %.0f cm (<= 36)"), BiggestCm), BiggestCm <= 36.f);
 	TestTrue(FString::Printf(TEXT("spark glow %.1f (<= on-foot glow)"), BrightestGlow), BrightestGlow <= FTDCombatPlaceholders::OnFootGlow + 0.01f);
+	return true;
+}
+
+// No placeholder flash fills the frame: a big explosion right in front of the camera is capped at 0.3x its distance
+// (the Lead's frame-10 white-out).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderFlashCap, "TriadDrift.Combat.Placeholder.FlashNeverFillsTheFrame", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderFlashCap::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("camera manager"), PC ? PC->PlayerCameraManager.Get() : nullptr)
+		|| !TestNotNull(TEXT("projectiles"), Projectiles))
+	{
+		return false;
+	}
+	W.Tick();
+	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+	const FVector At = Camera + FVector(250.f, 0.f, 0.f); // 2.5 m in front of the camera
+	ATDCombatFlash* Near = Projectiles->PlayPlaceholderFlash(At, 600.f, FLinearColor::Red, 0.6f);
+	const FVector Far = Camera + FVector(20000.f, 0.f, 0.f);
+	ATDCombatFlash* Distant = Projectiles->PlayPlaceholderFlash(Far, 600.f, FLinearColor::Red, 0.6f);
+	float NearMax = 0.f, FarMax = 0.f;
+	for (int32 Frame = 0; Frame < 30; ++Frame)
+	{
+		W.Tick(1.f / 60.f);
+		if (Near && Near->IsPlaying())
+		{
+			NearMax = FMath::Max(NearMax, Near->GetActorScale3D().X * 50.f);
+		}
+		if (Distant && Distant->IsPlaying())
+		{
+			FarMax = FMath::Max(FarMax, Distant->GetActorScale3D().X * 50.f);
+		}
+	}
+	TestTrue(FString::Printf(TEXT("near flash capped: %.0f cm radius at 250 cm (<= 76)"), NearMax), NearMax > 0.f && NearMax <= 250.f * ATDCombatFlash::MaxRadiusPerCameraDistance + 1.f);
+	TestTrue(FString::Printf(TEXT("distant flash keeps its size: %.0f cm (> 600)"), FarMax), FarMax > 600.f);
 	return true;
 }
 
