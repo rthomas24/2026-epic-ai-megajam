@@ -1,0 +1,34 @@
+{
+ "category": null,
+ "mix": false,
+ "files": [
+  {
+   "file": "Saved/AudioMusic/IncomingTracks/RitualFinalDance01/decoded_original.wav",
+   "codec": "pcm_s24le",
+   "sample_rate": 48000,
+   "channels": 2,
+   "bits": 24,
+   "duration": 127.6,
+   "loudness_lufs": -15.9,
+   "loudness_kind": "integrated",
+   "integrated_lufs": -15.9,
+   "ungated_lufs": null,
+   "lra_lu": 5.0,
+   "true_peak_dbtp": -4.7,
+   "sample_peak_dbfs": -4.703024,
+   "rms_dbfs": -18.747558,
+   "lead_silence_s": 0.0,
+   "tail_silence_s": 0.0,
+   "dc_offset": 0.000272,
+   "flat_factor": 0.0,
+   "peak_count": 2,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

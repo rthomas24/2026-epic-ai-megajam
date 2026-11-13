@@ -1,0 +1,46 @@
+{
+  "stage": "Offline arrangement proposals only, not approved or integrated",
+  "source_path": "C:\\Users\\nicho\\Downloads\\Ritual of the Final Dance.mp3",
+  "source_sha256": "097a7a13ff224084b33d8b2a862db4d1969d86c93de40b9251668c56a702de2e",
+  "full_original_preserved": true,
+  "run_candidate_source_s": [
+    15.2,
+    105.2
+  ],
+  "run_length_s": 90,
+  "flight_candidate_source_s": [
+    105.2,
+    127.6
+  ],
+  "flight_length_s": 22.4,
+  "entry_reason": "Energy attack around15.2s; NOT a verified musical bar/downbeat or subjective quality judgment",
+  "original_entry_option": "Keep source0 start if Nick prefers it. That leaves37.6s after90s; its relationship toflight timing would be arranged separately. No destructive trimming.",
+  "core_hit": "Gameplay brief requestshit2.5s aftercoredeath; exact playback/preroll scheduling pending engineering hook",
+  "early_transition_demo": {
+    "hypothetical_shiparrival_run_elapsed_s": 55,
+    "excerpt_transition_at_s": 6,
+    "crossfade_s": 1.5,
+    "outgoing_source_s": 70.2,
+    "incoming_source_s": 105.2,
+    "bar_alignment": "Unverified; demo is crossfade-only, not a timing-locked finalcue"
+  },
+  "boundary_treatment": "5ms attack/100ms release on audition endpoints; no EQ/compression/pitch/time stretch",
+  "outputs": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionEscape01\\export\\Escape_90Run_22Flight_Proposal01.wav",
+      "duration_s": 112.4,
+      "sha256": "f0a4a6520056ba6ff88975038a2f8120d80feab72610de9dc2e052879ac30e24"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionEscape01\\export\\Escape_EarlyFlight_Transition_Proposal01.wav",
+      "duration_s": 16.0,
+      "sha256": "91bee5e6e01a645daaa491009242e89829b1e138e4c6b78a55967ba018c66b87"
+    }
+  ],
+  "remaining": [
+    "Nick hears and chooses source start/phrasing",
+    "Ryan confirms actual core-hit/run/shiparrival/flight/victory hooks",
+    "Verify bar positions before any bar-quantized transition",
+    "Native import and gameplay/audio validation on matching build"
+  ]
+}

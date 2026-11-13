@@ -1,0 +1,231 @@
+{
+  "source_path": "C:\\Users\\nicho\\Downloads\\Ritual of the Final Dance.mp3",
+  "source_sha256": "097a7a13ff224084b33d8b2a862db4d1969d86c93de40b9251668c56a702de2e",
+  "duration_s": 127.6,
+  "decoded_private_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\IncomingTracks\\RitualFinalDance01\\decoded_original.wav",
+  "five_second_energy": [
+    {
+      "start_s": 0.0,
+      "rms_dbfs": -26.303698534868943,
+      "peak_dbfs": -11.822443624723416
+    },
+    {
+      "start_s": 5.0,
+      "rms_dbfs": -23.298434807611457,
+      "peak_dbfs": -5.385852160430261
+    },
+    {
+      "start_s": 10.0,
+      "rms_dbfs": -22.082442241786588,
+      "peak_dbfs": -6.971399538393143
+    },
+    {
+      "start_s": 15.0,
+      "rms_dbfs": -19.92573303928672,
+      "peak_dbfs": -6.536129691715015
+    },
+    {
+      "start_s": 20.0,
+      "rms_dbfs": -20.837445412576038,
+      "peak_dbfs": -5.911907367197339
+    },
+    {
+      "start_s": 25.0,
+      "rms_dbfs": -19.99734890488774,
+      "peak_dbfs": -6.528797498413902
+    },
+    {
+      "start_s": 30.0,
+      "rms_dbfs": -20.62100532157872,
+      "peak_dbfs": -6.955391409062858
+    },
+    {
+      "start_s": 35.0,
+      "rms_dbfs": -19.354417749736637,
+      "peak_dbfs": -6.26219369058012
+    },
+    {
+      "start_s": 40.0,
+      "rms_dbfs": -19.458764841956665,
+      "peak_dbfs": -6.035367461833683
+    },
+    {
+      "start_s": 45.0,
+      "rms_dbfs": -19.279619903071005,
+      "peak_dbfs": -6.252525724757164
+    },
+    {
+      "start_s": 50.0,
+      "rms_dbfs": -18.685538115047446,
+      "peak_dbfs": -5.869142912194246
+    },
+    {
+      "start_s": 55.0,
+      "rms_dbfs": -18.611613973466653,
+      "peak_dbfs": -6.129996655850246
+    },
+    {
+      "start_s": 60.0,
+      "rms_dbfs": -18.758205128901636,
+      "peak_dbfs": -5.742944882807395
+    },
+    {
+      "start_s": 65.0,
+      "rms_dbfs": -18.340014487184494,
+      "peak_dbfs": -5.969395448561156
+    },
+    {
+      "start_s": 70.0,
+      "rms_dbfs": -17.815926351659957,
+      "peak_dbfs": -5.450768247170091
+    },
+    {
+      "start_s": 75.0,
+      "rms_dbfs": -17.899666149124386,
+      "peak_dbfs": -5.835225414539183
+    },
+    {
+      "start_s": 80.0,
+      "rms_dbfs": -17.751355888620758,
+      "peak_dbfs": -5.817845820598192
+    },
+    {
+      "start_s": 85.0,
+      "rms_dbfs": -17.80683702647575,
+      "peak_dbfs": -5.552910448910109
+    },
+    {
+      "start_s": 90.0,
+      "rms_dbfs": -17.790263326027763,
+      "peak_dbfs": -5.585199541678775
+    },
+    {
+      "start_s": 95.0,
+      "rms_dbfs": -16.979609855443634,
+      "peak_dbfs": -5.810953841162342
+    },
+    {
+      "start_s": 100.0,
+      "rms_dbfs": -16.745293267313382,
+      "peak_dbfs": -5.370318325213478
+    },
+    {
+      "start_s": 105.0,
+      "rms_dbfs": -16.7060088728349,
+      "peak_dbfs": -4.94044881066579
+    },
+    {
+      "start_s": 110.0,
+      "rms_dbfs": -18.112089269294437,
+      "peak_dbfs": -5.6744652630732295
+    },
+    {
+      "start_s": 115.0,
+      "rms_dbfs": -17.52889661591186,
+      "peak_dbfs": -4.836872113663127
+    },
+    {
+      "start_s": 120.0,
+      "rms_dbfs": -16.935324765131284,
+      "peak_dbfs": -4.7030239505447184
+    },
+    {
+      "start_s": 125.0,
+      "rms_dbfs": -25.274342607553987,
+      "peak_dbfs": -9.517689547804121
+    }
+  ],
+  "strong_energy_attack_candidates": [
+    {
+      "time_s": 0.45,
+      "rise_over50ms_db": 68.88,
+      "rms_dbfs": -23.62
+    },
+    {
+      "time_s": 1.21,
+      "rise_over50ms_db": 12.53,
+      "rms_dbfs": -21.73
+    },
+    {
+      "time_s": 4.16,
+      "rise_over50ms_db": 10.14,
+      "rms_dbfs": -24.8
+    },
+    {
+      "time_s": 23.56,
+      "rise_over50ms_db": 9.62,
+      "rms_dbfs": -16.73
+    },
+    {
+      "time_s": 25.68,
+      "rise_over50ms_db": 9.38,
+      "rms_dbfs": -18.44
+    },
+    {
+      "time_s": 29.87,
+      "rise_over50ms_db": 11.05,
+      "rms_dbfs": -15.46
+    },
+    {
+      "time_s": 30.68,
+      "rise_over50ms_db": 8.5,
+      "rms_dbfs": -17.59
+    },
+    {
+      "time_s": 32.77,
+      "rise_over50ms_db": 9.03,
+      "rms_dbfs": -16.52
+    },
+    {
+      "time_s": 34.08,
+      "rise_over50ms_db": 9.05,
+      "rms_dbfs": -17.49
+    },
+    {
+      "time_s": 54.24,
+      "rise_over50ms_db": 9.19,
+      "rms_dbfs": -15.3
+    },
+    {
+      "time_s": 56.17,
+      "rise_over50ms_db": 8.42,
+      "rms_dbfs": -14.91
+    },
+    {
+      "time_s": 60.76,
+      "rise_over50ms_db": 9.96,
+      "rms_dbfs": -15.25
+    },
+    {
+      "time_s": 89.19,
+      "rise_over50ms_db": 8.86,
+      "rms_dbfs": -14.15
+    },
+    {
+      "time_s": 90.49,
+      "rise_over50ms_db": 13.21,
+      "rms_dbfs": -14.68
+    },
+    {
+      "time_s": 92.57,
+      "rise_over50ms_db": 10.05,
+      "rms_dbfs": -15.76
+    },
+    {
+      "time_s": 111.27,
+      "rise_over50ms_db": 9.31,
+      "rms_dbfs": -16.2
+    },
+    {
+      "time_s": 122.18,
+      "rise_over50ms_db": 10.42,
+      "rms_dbfs": -13.92
+    },
+    {
+      "time_s": 123.2,
+      "rise_over50ms_db": 10.35,
+      "rms_dbfs": -18.67
+    }
+  ],
+  "analysis_limit": "Energy landmarks are not confirmed musical downbeats/bars or listening judgments. Original preserved; no arrangement approved."
+}
