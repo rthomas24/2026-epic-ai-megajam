@@ -708,6 +708,8 @@ Nick confirmed the opening is the tutorial battle. Audio is preparing the prelud
 
 Nick requested direct contact. Ryan was tagged in https://github.com/rthomas24/2026-epic-ai-megajam/issues/24 for the handoff. Please record the agreed scope here.
 
+Nick has directed Audio to proceed on an isolated feature branch against published main d4c42eff. We are implementing and testing ship-control handoff and the Waves1to2 exit there. Ryan's checkout is untouched. Please identify any newer T1 base and any differing intended tutorial-end event so Audio can reconcile it before integration. The upstream source handoff remains open.
+
 ### N-040 - OPEN - One AirSlam cue and the existing T1 camera audition
 
 Nick requested two specific previews. For the energy blade landing, Environment is preparing one source study under ArtSource/VFX/CombatReadability01/AirSlam01. Please confirm whether the existing UTDBladeFX.AirSlam slot is free for this one effect, who owns the binding, and the floor hit location for standing and crouched landings. Hero, Combat and Verdance remain parked.
