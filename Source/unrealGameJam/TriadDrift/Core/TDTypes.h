@@ -221,6 +221,14 @@ struct FTDProgress
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Progress")
 	bool bDominionDefensesDown = false;
 
+	/** Boarding finale (ENG-29): set by UTDGameInstance::SetPhase(DominionInterior); docking travels in after it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Progress")
+	bool bDominionBoarded = false;
+
+	/** The interior's reactor core is dead (ENG-30): T4 rebuilds the burning Dominion for the escape flight from this. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Progress")
+	bool bReactorDestroyed = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Progress")
 	FName ReturnPoint = NAME_None;
 

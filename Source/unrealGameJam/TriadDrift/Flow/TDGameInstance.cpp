@@ -464,6 +464,15 @@ void UTDGameInstance::SetPhase(ETDGamePhase NewPhase)
 		return;
 	}
 	Progress.Phase = NewPhase;
+	// Boarding contract with T4: entering the interior marks the Dominion boarded; the escape implies the core is dead.
+	if (NewPhase == ETDGamePhase::DominionInterior || NewPhase == ETDGamePhase::Escape)
+	{
+		Progress.bDominionBoarded = true;
+	}
+	if (NewPhase == ETDGamePhase::Escape)
+	{
+		Progress.bReactorDestroyed = true;
+	}
 	if (NewPhase == ETDGamePhase::Victory)
 	{
 		CancelPendingRetake(); // a win is a win

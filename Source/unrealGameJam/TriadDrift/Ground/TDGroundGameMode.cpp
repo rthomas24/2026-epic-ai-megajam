@@ -1,6 +1,7 @@
 // Triad Drift - zero-asset ground sandbox (ENG-21/22/24). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDGroundGameMode.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -71,6 +72,13 @@ void ATDGroundGameMode::InitGame(const FString& MapName, const FString& Options,
 	// A real planet map (L_Planet_*) is a full visit: the squad flies in, lands, and the pilot gets out
 	// (ATDPlanetDirector). Anything else (Entry, test maps) stays the on-foot training ground.
 	bPlanetMode = Short.StartsWith(TEXT("L_Planet")) && (Destination == ETDDestination::Verdance || Destination == ETDDestination::Cinder);
+	// The Dominion interior (ENG-29): the pilot arrives on foot (T4's docking), the interior is built from code.
+	bInteriorMode = Short.StartsWith(TEXT("L_Dominion")) && Destination == ETDDestination::DominionInterior;
+	if (bInteriorMode)
+	{
+		bSpawnTrainingGround = false;
+		bSpawnEnvironment = false; // the interior has its own shell and lights
+	}
 	if (bPlanetMode)
 	{
 		DefaultPawnClass = nullptr; // the squad possesses its lead ship; the pilot appears on landing
@@ -127,6 +135,10 @@ void ATDGroundGameMode::StartPlay()
 	if (bPlanetMode)
 	{
 		SpawnPlanetVisit();
+	}
+	if (bInteriorMode)
+	{
+		SpawnInterior();
 	}
 	bWorldBuilt = true;
 	Super::StartPlay();
@@ -187,6 +199,20 @@ void ATDGroundGameMode::SpawnPlanetVisit()
 	}
 }
 
+void ATDGroundGameMode::SpawnInterior()
+{
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.bDeferConstruction = true;
+	Interior = GetWorld()->SpawnActor<ATDPlanetCourse>(ATDPlanetCourse::StaticClass(), FTransform::Identity, Params);
+	if (Interior)
+	{
+		Interior->PlanetId = TEXT("DominionInterior");
+		Interior->FinishSpawning(FTransform::Identity);
+		PlayerSpawn = Interior->GetInteriorStart(); // the hangar, or the next room after a Continue
+	}
+}
+
 void ATDGroundGameMode::HandleConsoleUsed(AActor* Interactable, AActor* Interactor)
 {
 	if (RoomDoor)
@@ -197,6 +223,23 @@ void ATDGroundGameMode::HandleConsoleUsed(AActor* Interactable, AActor* Interact
 
 void ATDGroundGameMode::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 {
+	// A scene of the interior with a checkpoint picks up there (the corridor, the arena's wave, the Warden's door).
+	if (Interior)
+	{
+		if (const ATDObjective* Obj = Interior->FindObjective(SceneId))
+		{
+			const AActor* Spot = Obj->GetCheckpointRespawn();
+			const FTransform Where = Spot ? Spot->GetActorTransform() : Interior->GetInteriorStart();
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			{
+				if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
+				{
+					Char->RespawnAt(Where);
+				}
+			}
+			return;
+		}
+	}
 	RespawnPlayer();
 }
 

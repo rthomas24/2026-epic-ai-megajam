@@ -154,6 +154,19 @@ bool FTDObjectiveText::Compute(UWorld* World, const FTDProgress& Progress, ETDDe
 		}
 		return true;
 	}
+	case ETDDestination::DominionInterior:
+	{
+		// Between rooms: "HEAD TO THE FLIGHT DECK" (the running room's objective owns the line otherwise).
+		TArray<AActor*> Unused;
+		const ATDPlanetCourse* Interior = ATDPlanetCourse::Get(World);
+		if (Interior && Interior->IsInterior() && Interior->GetIdleLine(Out.Text, Unused))
+		{
+			Out.Id = TEXT("Choose_Interior");
+			Out.Step = 0;
+			return true;
+		}
+		return false;
+	}
 	default:
 		return false;
 	}
@@ -237,6 +250,19 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 				FText Unused;
 				Planet->GetCourse()->GetIdleLine(Unused, Out); // the trailheads still open
 			}
+		}
+	}
+	if (Destination == ETDDestination::DominionInterior)
+	{
+		if (const UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(World))
+		{
+			Objectives->GetActiveWaypoints(Out);
+		}
+		const ATDPlanetCourse* Interior = ATDPlanetCourse::Get(World);
+		if (Out.Num() == 0 && Interior && Interior->IsInterior())
+		{
+			FText Unused;
+			Interior->GetIdleLine(Unused, Out); // the next room's door
 		}
 	}
 }

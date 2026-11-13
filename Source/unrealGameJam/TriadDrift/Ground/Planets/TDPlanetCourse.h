@@ -46,6 +46,8 @@ struct FTDTrailhead
 	UPROPERTY() TObjectPtr<AActor> Marker;
 	/** "THE RESEARCH SITE", "THE RELAY": used in the idle objective line. */
 	UPROPERTY() FText Name;
+	/** Ordered courses (the Dominion interior): this trailhead only starts once After is complete. */
+	UPROPERTY() TObjectPtr<ATDObjective> After;
 };
 
 /**
@@ -62,7 +64,7 @@ class UNREALGAMEJAM_API ATDPlanetCourse : public AActor
 public:
 	ATDPlanetCourse();
 
-	/** "Verdance" or "Cinder". Set before BeginPlay (SpawnActorDeferred). */
+	/** "Verdance", "Cinder" or "DominionInterior" (ENG-29, TDDominionInteriorCourse.cpp). Set before BeginPlay (SpawnActorDeferred). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet")
 	FName PlanetId = TEXT("Verdance");
 
@@ -89,6 +91,23 @@ public:
 
 	/** Start an objective now (the trailhead does this; tests and the debug menu too). */
 	bool StartObjectiveAt(FName ObjectiveId);
+
+	// --- Dominion interior (ENG-29/30/31) ---
+	bool IsInterior() const { return PlanetId == TEXT("DominionInterior"); }
+	/** Where the pilot starts: the hangar, or the entry of the first room not yet done (a Continue mid-interior). */
+	FTransform GetInteriorStart() const;
+	/** The interior's objectives, in play order (hangar corridor, arena, Warden, core, escape). */
+	static const TArray<FName>& InteriorObjectiveIds();
+	/** Story consoles (one per room): StoryId per console; using one plays its recording (T3's transmissions). */
+	const TMap<TObjectPtr<AActor>, FName>& GetStoryConsoles() const { return StoryConsoles; }
+	/** Tests: the last story beat a console asked for. */
+	FName GetLastStoryBeat() const { return LastStoryBeat; }
+	/** Seconds the escape run gives (features.md ENG-31: 90). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interior", meta = (Units = "s"))
+	float EscapeSeconds = 90.f;
+	/** Tests: no travel at the end of the escape run (the hand-off is still recorded in progress). */
+	bool bInteriorTravel = true;
+	bool HasHandedOff() const { return bHandedOff; }
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -117,6 +136,19 @@ private:
 
 	void BuildVerdance();
 	void BuildCinder();
+	void BuildInterior();
+	UFUNCTION() void HandleStoryConsole(AActor* Interactable, AActor* Interactor);
+	void HandInteriorOver();
+	void HandleInteriorObjectiveCompleted(ATDObjective* Objective);
+	void StartEscape();
+	UPROPERTY(Transient) TMap<TObjectPtr<AActor>, FName> StoryConsoles;
+	/** Doors opened when an objective completes (interior room exits); kept open when loaded complete. */
+	UPROPERTY(Transient) TArray<FTDStepDoor> CompletionDoors;
+	/** Interior: where each objective's room is entered (Continue starts at the first one not done). */
+	UPROPERTY(Transient) TMap<FName, FTransform> InteriorEntries;
+	FName LastStoryBeat;
+	bool bHandedOff = false;
+	FTimerHandle EscapeTimer;
 	void MarkCompletedFromProgress();
 
 	// --- Building helpers (all positions relative to the course actor = the pad) ---

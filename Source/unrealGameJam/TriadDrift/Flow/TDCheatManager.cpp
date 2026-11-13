@@ -382,7 +382,7 @@ namespace TDCheats
 	static FAutoConsoleCommandWithWorldAndArgs CmdDifficulty(TEXT("TD.Difficulty"), TEXT("TD.Difficulty <Story|Standard|Ace>: set the run's difficulty (kept in the save)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) { UTDCheatManager::DoDifficulty(World, Arg(Args, 0)); }));
 
-	static FAutoConsoleCommandWithWorldAndArgs CmdStage(TEXT("TD.Stage"), TEXT("TD.Stage <Waves1to2|VerdanceArrival|VerdanceOnFoot|Waves3to4|CinderArrival|CinderOnFoot|Wave5|DominionAssault|ReactorExposed|Victory>: progress and world jump to that journey stage."),
+	static FAutoConsoleCommandWithWorldAndArgs CmdStage(TEXT("TD.Stage"), TEXT("TD.Stage <Waves1to2|VerdanceArrival|VerdanceOnFoot|Waves3to4|CinderArrival|CinderOnFoot|Wave5|DominionAssault|ReactorExposed|DominionDocking|DominionInterior|EscapeFlight|Victory>: progress and world jump to that journey stage."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) { UTDCheatManager::DoStage(World, Arg(Args, 0)); }));
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdTake(TEXT("TD.Take"), TEXT("TD.Take: force CUT! and restart the current scene as the next take."),

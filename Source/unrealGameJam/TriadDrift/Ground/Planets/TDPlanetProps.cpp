@@ -753,7 +753,7 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 	if (Shown != LastShownSecond)
 	{
 		LastShownSecond = Shown;
-		LinkedObjective->UpdateStepText(FText::Format(LOCTEXT("Run", "GET CLEAR OF THE TOWER · {0}"), Shown));
+		LinkedObjective->UpdateStepText(FText::Format(RunText.IsEmpty() ? LOCTEXT("Run", "GET CLEAR OF THE ANCHOR · {0}") : RunText, Shown));
 	}
 	DebrisTimer -= DeltaSeconds;
 	if (DebrisTimer <= 0.f)

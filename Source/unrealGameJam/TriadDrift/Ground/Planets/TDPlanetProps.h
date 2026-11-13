@@ -332,6 +332,8 @@ public:
 	/** Debris lands at random points inside this box (relative to the actor). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FVector DebrisExtent = FVector(4000.f, 1500.f, 0.f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TObjectPtr<AActor> Tower;
+	/** The objective line while it runs; {0} = whole seconds left. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText RunText;
 
 	bool IsRunning() const { return TimeLeft >= 0.f; }
 	float GetTimeLeft() const { return TimeLeft; }
