@@ -20,6 +20,10 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 Maintainer: Nick's Lead Coordinator. This section is the single live ownership view; [superseded Nick checkpoints](docs/coordination/archive/CLAIMS-Nick-2026-11-13-d1672ec.md) are preserved verbatim and authorize no work. The latest direct human instruction and this published scope control dispatch; a reserved path, historical goal or expired resource lease is not permission to start. Acceptance evidence belongs in [visual STATUS](docs/visual/STATUS.md); questions/decisions belong in [MESSAGEBOARD](MESSAGEBOARD.md).
 
+### R-036 release, November 13 at 14:03 Eastern
+
+Nick releases all Environment, VFX, asset-management and intake claims and reservations to Ryan, including the post-Audio AirSlam slot, its Presentation blade VFX fields, and every related path listed below. This release supersedes the earlier entries for these lanes. Their published branches are preserved for reference. No Nick agent is writing those paths or running a native job there. Ryan owns the finished effect and floor-contact integration. Audio keeps the tutorial score and gameplay capture; UI gets the next available native slot after Audio releases it.
+
 ### Active presentation assignments, Nov 13
 
 Nicholas has restarted his presentation team under the Nov 13 realignment. These rows supersede the historical assignments below. Each next item starts under a refreshed claim. Nicholas approves appearance and sound.
