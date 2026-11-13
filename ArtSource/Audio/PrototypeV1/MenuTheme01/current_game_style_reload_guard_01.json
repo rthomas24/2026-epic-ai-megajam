@@ -1,0 +1,10 @@
+{
+  "pid": 26164,
+  "exit_code": 0,
+  "reason": "completed",
+  "minimum_free_gib": 1.8105392456054688,
+  "protected_count": 323,
+  "protected_unchanged": true,
+  "changed_existing_content": [],
+  "new_content": []
+}

@@ -1,0 +1,12 @@
+{
+  "pid": 24496,
+  "exit_code": 4294967295,
+  "reason": "completed",
+  "minimum_free_gib": 2.7617111206054688,
+  "protected_count": 322,
+  "protected_unchanged": true,
+  "changed_existing_content": [],
+  "new_content": [
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Presentation\\DA_UI_Style.uasset"
+  ]
+}

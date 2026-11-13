@@ -1,0 +1,93 @@
+{
+  "status": "NATIVE HOLD: all launch grants revoked by Nick; no automatic retry",
+  "source_commit": "9488a54ebfd6ef8f7c16840e2c12cedda306e0ac",
+  "test_host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\unrealGameJam.uproject",
+  "host_checkpoint": "f9a969f; runtime af914c7",
+  "style": {
+    "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Presentation\\DA_UI_Style.uasset",
+    "bytes": 1435,
+    "sha256": "0a1fa00da9771737cc36e3f0db16ef746fb284b784d210c8537acdc9a2d07df0",
+    "publication": "Created in Lead test host; branch/Main style adoption not claimed"
+  },
+  "create01": {
+    "pid": 24496,
+    "exit_code": 1,
+    "reason": "exit_request",
+    "duration_s": 47.6,
+    "failure": "Saved style then registry nullable dependency iteration failed; first attempt preserved, no recreation"
+  },
+  "reload01": {
+    "engine": {
+      "pid": 26164,
+      "exit_code": 0,
+      "reason": "ok",
+      "duration_s": 11.4,
+      "log": {
+        "errors": 0,
+        "warnings": 0,
+        "errors_by_category": {},
+        "warnings_by_category": {},
+        "first_errors": []
+      }
+    },
+    "guard": {
+      "pid": 26164,
+      "exit_code": 0,
+      "reason": "completed",
+      "minimum_free_gib": 1.8105392456054688,
+      "protected_count": 323,
+      "protected_unchanged": true,
+      "changed_existing_content": [],
+      "new_content": []
+    },
+    "validation": {
+      "before": {
+        "Content/TriadDrift/Presentation/DA_UI_Style.uasset": "0a1fa00da9771737cc36e3f0db16ef746fb284b784d210c8537acdc9a2d07df0",
+        "Content/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.uasset": "6253253fe891d364d0180bacada62b70cb723a08ecfe3f20909406c40adb1042",
+        "Content/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.uasset": "813d76de263314464d0ad6f698a751bec6c99ae85d262601b1df85d80e0600c7"
+      },
+      "passed": true,
+      "dependencies": {
+        "/Game/TriadDrift/Presentation/DA_UI_Style": [
+          "/Script/unrealGameJam",
+          "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01"
+        ],
+        "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01": [
+          "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music"
+        ],
+        "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music": []
+      },
+      "preserved_style_defaults": [
+        "squad_colors",
+        "enemy_color",
+        "ability_icons",
+        "main_menu_widget_class",
+        "loading_widget_class",
+        "pause_widget_class"
+      ],
+      "duration_s": 107.0,
+      "looping": false,
+      "stage": "Read-only reference validation only; cook and actual menu playback pending",
+      "after": {
+        "Content/TriadDrift/Presentation/DA_UI_Style.uasset": "0a1fa00da9771737cc36e3f0db16ef746fb284b784d210c8537acdc9a2d07df0",
+        "Content/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.uasset": "6253253fe891d364d0180bacada62b70cb723a08ecfe3f20909406c40adb1042",
+        "Content/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.uasset": "813d76de263314464d0ad6f698a751bec6c99ae85d262601b1df85d80e0600c7"
+      },
+      "packages_unchanged": true
+    }
+  },
+  "audible01": {
+    "launched": false,
+    "pid": null,
+    "reason": "Final immediate >=4GiB memory guard rejected before Popen; postrejection RAM2.83GiB",
+    "evidence": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\MenuTheme01\\Audible01\\protected_before.json"
+  },
+  "pending": [
+    "Actual audible menu start/107s endpoint/no restart",
+    "Volume/mute and travel/reentry cleanup",
+    "Shipping inclusion/playback via Ryan",
+    "Nick listening approval"
+  ],
+  "evidence_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\MenuTheme01",
+  "preservation": "Original song, two audio packages, saved style, all failed/success logs and mounts preserved. No native tests to resume without new explicit grant."
+}
