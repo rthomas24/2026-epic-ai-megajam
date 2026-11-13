@@ -161,6 +161,15 @@ struct FTDFlashLook
 	float Delay = 0.f;
 	/** M_TD_FlashGlow edge falloff (higher = softer edge, smaller bright centre). */
 	float EdgePower = 1.5f;
+	/** Brightest at the rim instead of the centre (the shockwave ring). */
+	bool bRim = false;
+	/** Per-axis scale on the sphere (a flat disc for the shockwave: (1, 1, 0.04)). */
+	FVector Squash = FVector::OneVector;
+	/** Turn the squashed axis toward the player's camera at the start (a ring seen face-on). */
+	bool bFaceCamera = false;
+	/** Dark translucent smoke (M_TD_SmokePuff): Cool..Hot is its colour, Opacity its peak, swelling in and fading out. */
+	bool bSmoke = false;
+	float Opacity = 0.55f;
 };
 
 /**
@@ -183,6 +192,17 @@ public:
 	void PlayLook(const FVector& Location, float Radius, float Seconds, const FTDFlashLook& Look);
 	/** A styled debris spark. */
 	void PlayDebrisLook(const FVector& Location, const FVector& Velocity, float Length, float Thickness, float Seconds, const FTDFlashLook& Look);
+	/**
+	 * A hull chunk: a small cube in HullMaterial (the dying ship's own material; dark grey when null) flung at Velocity,
+	 * tumbling at AngularDegPerSec and shrinking away over Seconds.
+	 */
+	void PlayChunk(const FVector& Location, const FVector& Velocity, float Size, UMaterialInterface* HullMaterial, float Seconds,
+		const FVector& AngularDegPerSec);
+	bool IsChunk() const { return bPlaying && bChunk; }
+	bool IsDebris() const { return bPlaying && bDebris; }
+	/** The translucent smoke material (/Game/TriadDrift/Gameplay/Materials/M_TD_SmokePuff), or null if missing. */
+	static UMaterialInterface* GetSmokeMaterial();
+	bool IsSmoke() const { return bPlaying && bStyled && StyledLook.bSmoke; }
 	/** The additive soft glow (/Game/TriadDrift/Gameplay/Materials/M_TD_FlashGlow, always cooked), or null if missing. */
 	static UMaterialInterface* GetFlashGlowMaterial();
 	bool IsStyled() const { return bStyled; }
@@ -220,6 +240,9 @@ public:
 	TObjectPtr<UStaticMesh> SphereMesh;
 
 	UPROPERTY()
+	TObjectPtr<UStaticMesh> CubeMesh;
+
+	UPROPERTY()
 	TObjectPtr<UMaterialInterface> GlowMaterial;
 
 private:
@@ -233,6 +256,15 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> AdditiveMID;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> SmokeMID;
+
+	bool bChunk = false;
+	float ChunkSize = 50.f;
+	/** A plate, not a cube: per-axis proportions picked per chunk. */
+	FVector ChunkAspect = FVector::OneVector;
+	FRotator ChunkSpin = FRotator::ZeroRotator;
 
 	void UseStyledMaterial();
 	bool bStyled = false;

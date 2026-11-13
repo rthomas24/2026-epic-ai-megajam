@@ -445,6 +445,7 @@ bool ATDSpacePlayerController::SetPlayerPaused(bool bPause)
 		}
 	}
 	UE_LOG(LogTriadDrift, Log, TEXT("TDInput: game %s by the player"), bPause ? TEXT("paused") : TEXT("resumed"));
+	UTDSettingsSubsystem::PlayUISound(this, bPause ? ETDUISound::PauseIn : ETDUISound::PauseOut);
 	OnPauseChanged.Broadcast(bPause);
 	return true;
 }

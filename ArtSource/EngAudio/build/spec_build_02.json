@@ -1,167 +1,167 @@
 {
  "import": [
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_PointDefense_01.wav",
+   "file": "../wav/Enemies/SFX_Enemy_PointDefense_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_PointDefense_02.wav",
+   "file": "../wav/Enemies/SFX_Enemy_PointDefense_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Enemies/SFX_Enemy_PointDefense_03.wav",
+   "file": "../wav/Enemies/SFX_Enemy_PointDefense_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_PointDefense_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Hull_01.wav",
+   "file": "../wav/Impacts/SFX_Impact_Hull_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Hull_02.wav",
+   "file": "../wav/Impacts/SFX_Impact_Hull_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Hull_03.wav",
+   "file": "../wav/Impacts/SFX_Impact_Hull_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Hull_04.wav",
+   "file": "../wav/Impacts/SFX_Impact_Hull_04.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Shield_01.wav",
+   "file": "../wav/Impacts/SFX_Impact_Shield_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Shield_02.wav",
+   "file": "../wav/Impacts/SFX_Impact_Shield_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Shield_03.wav",
+   "file": "../wav/Impacts/SFX_Impact_Shield_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_Shield_04.wav",
+   "file": "../wav/Impacts/SFX_Impact_Shield_04.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_World_01.wav",
+   "file": "../wav/Impacts/SFX_Impact_World_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_World_02.wav",
+   "file": "../wav/Impacts/SFX_Impact_World_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Impact_World_03.wav",
+   "file": "../wav/Impacts/SFX_Impact_World_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Detonation_Rocket_01.wav",
+   "file": "../wav/Explosions/SFX_Detonation_Rocket_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Detonation_Rocket_02.wav",
+   "file": "../wav/Explosions/SFX_Detonation_Rocket_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Detonation_Rocket_03.wav",
+   "file": "../wav/Explosions/SFX_Detonation_Rocket_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Detonation_Flak_01.wav",
+   "file": "../wav/Explosions/SFX_Detonation_Flak_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Detonation_Flak_02.wav",
+   "file": "../wav/Explosions/SFX_Detonation_Flak_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Detonation_Flak_03.wav",
+   "file": "../wav/Explosions/SFX_Detonation_Flak_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Deflected_01.wav",
+   "file": "../wav/Impacts/SFX_Deflected_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Deflected_02.wav",
+   "file": "../wav/Impacts/SFX_Deflected_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Impacts/SFX_Deflected_03.wav",
+   "file": "../wav/Impacts/SFX_Deflected_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Small_01.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Small_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Small_02.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Small_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Small_03.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Small_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Small_04.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Small_04.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_04",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Medium_01.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Medium_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Medium_02.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Medium_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Medium_03.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Medium_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_03",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Large_01.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Large_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Large_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Explosions/SFX_Explosion_Large_02.wav",
+   "file": "../wav/Explosions/SFX_Explosion_Large_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Large_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Dominion/SFX_Dominion_Breakup_01.wav",
+   "file": "../wav/Dominion/SFX_Dominion_Breakup_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_Breakup_01",
    "properties": {
     "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
@@ -174,7 +174,7 @@
    }
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Engine_Lancer_01.wav",
+   "file": "../wav/Engines/SFX_Engine_Lancer_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Lancer_01",
    "properties": {
     "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
@@ -187,7 +187,7 @@
    }
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Engine_Rift_01.wav",
+   "file": "../wav/Engines/SFX_Engine_Rift_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Rift_01",
    "properties": {
     "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
@@ -200,7 +200,7 @@
    }
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Engine_Bastion_01.wav",
+   "file": "../wav/Engines/SFX_Engine_Bastion_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Engine_Bastion_01",
    "properties": {
     "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
@@ -213,17 +213,17 @@
    }
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Boost_Start_01.wav",
+   "file": "../wav/Engines/SFX_Boost_Start_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Start_01",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Boost_Start_02.wav",
+   "file": "../wav/Engines/SFX_Boost_Start_02.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Start_02",
    "properties": null
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Boost_Loop_01.wav",
+   "file": "../wav/Engines/SFX_Boost_Loop_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Boost_Loop_01",
    "properties": {
     "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
@@ -236,7 +236,7 @@
    }
   },
   {
-   "file": "C:/Users/ryant/Documents/myRepos/game-jam/.wt/int/ArtSource/EngAudio/wav/Engines/SFX_Drift_Loop_01.wav",
+   "file": "../wav/Engines/SFX_Drift_Loop_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Engines/SW_Drift_Loop_01",
    "properties": {
     "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",

@@ -7,6 +7,20 @@
 #include "UObject/SoftObjectPath.h"
 #include "TDUIHostSettings.generated.h"
 
+/** Which space HUD the host shows in space gameplay (ENG-36). Every one stays selectable. */
+UENUM(BlueprintType)
+enum class ETDSpaceHUDChoice : uint8
+{
+	/** Not set: the legacy bUseNativeSpaceHUD decides (true = Nick, false = Dev). */
+	Unset,
+	/** Engineering's HUD (UTDFlightHUDWidget, ENG-36, docs/eng/hud-redesign.md). */
+	Engineering,
+	/** Nicholas's HUD (Plugins/TriadDriftHUD, WBP_SpaceHUD). */
+	Nick,
+	/** No widget: the dev HUD (ATDDebugHUD) draws its full read-out. */
+	Dev
+};
+
 /**
  * Project Settings > Game > Triad Drift UI Host.
  * Whether the engineering host puts Nick's native space HUD (Plugins/TriadDriftHUD) on screen in space
@@ -41,7 +55,20 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Space HUD")
 	int32 ZOrder = 10;
 
-	/** True when the space HUD should be used: TD.UI.NativeHUD if set (0/1), else bUseNativeSpaceHUD. */
+	/**
+	 * Which space HUD to show. Set SpaceHUD=Engineering (or Nick, Dev) in DefaultGame.ini; Unset keeps the legacy
+	 * bUseNativeSpaceHUD meaning. Console: TD.UI.SpaceHUD (-1 = settings, 0 = dev, 1 = Nick, 2 = engineering).
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Space HUD")
+	ETDSpaceHUDChoice SpaceHUD = ETDSpaceHUDChoice::Engineering; // the default since Nov 13 (Ryan's ENG-36; Lead's OK)
+
+	/**
+	 * The space HUD in effect: TD.UI.SpaceHUD if set; else TD.UI.NativeHUD 1 forces Nick's (0 turns his off, to the dev
+	 * HUD); else SpaceHUD; else bUseNativeSpaceHUD (Nick or Dev). Never Unset.
+	 */
+	static ETDSpaceHUDChoice GetSpaceHUDChoice();
+
+	/** GetSpaceHUDChoice() == Nick (Nicholas's widget is the one to show). */
 	static bool IsNativeSpaceHUDEnabled();
 
 	/** Show the engineering on-foot HUD (UTDGroundHUDWidget, or UTDUIStyle::GroundHUDWidgetClass) on foot. */

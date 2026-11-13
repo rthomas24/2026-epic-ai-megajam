@@ -1,6 +1,8 @@
 // Triad Drift - game instance (ENG-19, C-03 #3). Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "Sound/SoundBase.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDDebugMenu.h"
@@ -540,6 +542,17 @@ void UTDGameInstance::CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, 
 	if (!bAlreadyDone && Reward != ETDAbilityId::None)
 	{
 		UnlockAbility(Reward, ForShip);
+	}
+	if (!bAlreadyDone)
+	{
+		// ENG-35: the director's "objective complete" sting (2D, a UI sound; silent when the style has none).
+		++ObjectiveCompleteSounds;
+		const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+		USoundBase* Sting = Style && !Style->ObjectiveComplete.Sound.IsNull() ? Style->ObjectiveComplete.Sound.LoadSynchronous() : nullptr;
+		if (Sting && GetWorld())
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sting, 1.f, 1.f, 0.f, nullptr, nullptr, /*bIsUISound*/ true);
+		}
 	}
 	EndScene();
 	bRunCommitted = true;

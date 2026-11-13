@@ -47,12 +47,12 @@ UClass* FTDFrontEndWidgets::Resolve(UClass* Override, const UTDUIStyle* Style, E
 
 namespace TDFrontEnd
 {
-	static void ShowWidget(UWorld* World, UClass* Class, bool bCursor)
+	static UUserWidget* ShowWidget(UWorld* World, UClass* Class, bool bCursor)
 	{
 		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
 		if (!PC)
 		{
-			return;
+			return nullptr;
 		}
 		PC->SetShowMouseCursor(bCursor);
 		if (bCursor)
@@ -64,8 +64,10 @@ namespace TDFrontEnd
 			if (UUserWidget* W = CreateWidget<UUserWidget>(PC, TSubclassOf<UUserWidget>(Class)))
 			{
 				W->AddToViewport();
+				return W;
 			}
 		}
+		return nullptr;
 	}
 }
 
@@ -119,6 +121,18 @@ void ATDMenuGameMode::StartPlay()
 	// T3: the scene behind the menu or the victory screen (sky, Verdance, the squad; after a win the Dominion breaking
 	// up); off if the map has its own scene.
 	ATDMenuBackdrop::SpawnFor(this, bShowingVictory ? ETDBackdropScene::Victory : ETDBackdropScene::Menu);
+	ShowMenuUI();
+}
+
+void ATDMenuGameMode::ShowMenuUI()
+{
+	// Whatever is up goes first (a return to the menu from the victory screen comes through here too, N-033).
+	if (ShownWidget)
+	{
+		ShownWidget->RemoveFromParent();
+		ShownWidget = nullptr;
+	}
+	HidePlaceholder();
 	const UTDUIStyle* MenuStyle = StyleOverride ? StyleOverride.Get() : FTDFrontEndWidgets::LoadDefaultStyle();
 	UClass* Widget = nullptr;
 	if (bShowingVictory)
@@ -132,7 +146,8 @@ void ATDMenuGameMode::StartPlay()
 		Widget = FTDFrontEndWidgets::Resolve(MenuWidgetClass.Get(), MenuWidgetClass ? nullptr : MenuStyle, FTDFrontEndWidgets::EKind::MainMenu);
 	}
 	bPlaceholderWanted = !Widget;
-	TDFrontEnd::ShowWidget(GetWorld(), Widget, true);
+	ShownWidgetClass = Widget;
+	ShownWidget = TDFrontEnd::ShowWidget(GetWorld(), Widget, true);
 	if (!Widget)
 	{
 		ShowPlaceholder(); // no menu widget assigned yet: a plain working menu, so the game is always playable
@@ -155,8 +170,19 @@ void ATDMenuGameMode::StartMusic()
 	Music->bIsUISound = true;
 	Music->bAutoDestroy = false;
 	Music->RegisterComponentWithWorld(GetWorld());
+	// Nick's track is not a looping asset (MUS_Menu_EtherialPulse_01): loop it here, without touching his asset.
+	Music->OnAudioFinished.AddUniqueDynamic(this, &ATDMenuGameMode::HandleMusicFinished);
 	Music->Play();
 	bMusicStarted = true;
+}
+
+void ATDMenuGameMode::HandleMusicFinished()
+{
+	if (Music && !bMusicFading && !IsActorBeingDestroyed())
+	{
+		++MusicLoops;
+		Music->Play(0.f);
+	}
 }
 
 void ATDMenuGameMode::FadeOutMusic()
@@ -216,11 +242,9 @@ void ATDMenuGameMode::QuitGame()
 void ATDMenuGameMode::ReturnToMenu()
 {
 	bShowingVictory = false;
-	if (Placeholder.IsValid())
-	{
-		HidePlaceholder();
-		ShowPlaceholder();
-	}
+	// Re-resolve, as at start-up: Nick's main-menu widget comes back after the victory screen (N-033), or the
+	// code-built menu when none is assigned.
+	ShowMenuUI();
 }
 
 void ATDMenuGameMode::HidePlaceholder()

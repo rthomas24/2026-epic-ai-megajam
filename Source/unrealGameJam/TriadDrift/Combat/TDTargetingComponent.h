@@ -167,9 +167,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "s"))
 	float LockStaleSeconds = 1.5f;
 
-	/** A lock counts as out of view beyond LockConeDeg plus this margin. */
+	/** A lock counts as out of view beyond LockConeDeg plus this margin. 0: locks age outside the 25 degree cone itself
+	 *  (second review, ENG-06: the old 5 made it 30). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "Degrees"))
-	float LockStaleMarginDeg = 5.f;
+	float LockStaleMarginDeg = 0.f;
 
 	/** Cone the paint candidate must stay inside. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Targeting", meta = (Units = "Degrees"))

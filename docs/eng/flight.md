@@ -136,7 +136,11 @@ Kept as they were:
 | After (follow 0.4) | 0.16 / 0.16 / 0.08 | 0.13 / 0.12 / 0.05 | 0 / 0 / 0 |
 
 - Pinned by `TriadDrift.Flight.Camera.DriftFollowsTheSlide`: 40% of the slip after 0.3 s; a held spin stays continuous (< 600°/s); release puts the camera back behind the nose; nothing below cruise.
-- Still open: a drift sheds speed below cruise within about a second, and as the ship slows the lagged camera closes in, so the ship sits lower. At cruise the Lancer's centre reaches 0.72, its wings touching the HUD top. Lowering the gate to 0.3 of cruise made this worse (44 samples in the band), so the gate stays at cruise. Fixing it would mean holding the camera distance while drifting.
+- **Drift distance hold** (`DriftHoldDistance` 1, Lead's decision):
+  - Why: in any drift the nose swings across the slide, so the location-lagged camera drifts beside the ship instead of behind it, and the drift sheds speed. Both close the camera in, and the ship sank into the HUD band.
+  - What it does: the camera records its distance when the drift begins, and lengthens the arm by whatever is lost (capped at `LagMaxDistance`, smoothed). It eases out over 0.3 s on release.
+  - Live (same script, hold off/on): the closest camera distance in a drift went 1227 -> 1671 cm. The ship's lowest point on screen went Rift 0.70 -> 0.66, Lancer 0.66 -> 0.65, Bastion 0.66 -> 0.64 at cruise drift. An earlier run without the hold reached 0.73 (in the band).
+  - Pinned by `TriadDrift.Flight.Camera.DriftHoldsTheCameraDistance`.
 
 Scripted-playtest tip: in the test script, `TD.KillAll` right after a switch triggered the director's multi-kill shot (FOV 65, long lens), which made two switch frames look like a broken cut. Kill enemies before switching (also in the ue-cpp-gameplay skill).
 
@@ -506,3 +510,22 @@ To capture screenshots:
 - **Mapping contexts** are added through the local-player subsystem, which headless tests don't have. The injection tests drive actions directly.
 - **No presentation calls yet.** Camera shakes and boost, drift and impact FX from `UTDShipVisuals` are left to whoever binds the delegates above.
 - **Rebinding and invert options** are fields on the controller (`bInvertMousePitch`, `bInvertStickPitch`, sensitivities), but there's no settings UI.
+
+## Audio hooks (ENG-35, engineering fallback sound set; T1, Nov 13)
+- **UI sounds:** `UTDSettingsSubsystem::PlayUISound(WorldContext, ETDUISound::Move | Confirm | Back | PauseIn | PauseOut)` is the one path for front-end sounds.
+  - It plays DA_UI_Style's `UIMove` / `UIConfirm` / `UIBack` / `PauseIn` / `PauseOut` cue as a 2D UI sound (`bIsUISound`, so it is heard while paused). The sound's own class and concurrency apply, and it is silent when a slot is unset.
+  - The Settings page plays Move on a row change, Confirm on a value change and on Reset, and Back when the page closes.
+  - `ATDSpacePlayerController::SetPlayerPaused` plays PauseIn / PauseOut, which also covers T2's pause screen opening and closing.
+  - T2's pause list and T5's menus call the same function.
+- **Effects slider:** besides Nick's `SC_TD_SFX`, it now also drives `/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_Master`, the parent of the engineering SFX / UI / Cine / Ambience classes, applied to its children.
+- **Music slider:** reaches the fallback music through `SC_MenuTheme_Music`.
+- **Ambience bed:** `UTDMusicDirectorSubsystem` plays the map's bed as a 2D loop under the music, chosen by map name.
+  - L_Galaxy plays `AmbienceSpace`, the Verdance map `AmbienceVerdance`, the Cinder map `AmbienceCinder`. The menu has none.
+  - It fades in over 2 s and fades out over 2 s on travel, victory and the menu.
+- **Low-hull alarm:** `UTDShipVisuals::LowHullLoop` runs attached to the ship the player flies while its hull is below `LowHullAlarmFraction` (0.35, with 0.02 of hysteresis).
+  - It stops above that, on death and on a switch. Wingmen never sound it.
+- **Shield break:** every squad ship plays its `ShieldBreak` cue when its shield reaches zero (`UTDHealthComponent::OnShieldBroken`).
+- **Tests:**
+  - `TriadDrift.Input.AudioHooks.*` covers the UI sound requests (page and pause) and the ambience envelope and slots.
+  - `TriadDrift.Flight.AudioHooks.LowHullAlarmOnTheFlownShipOnly` covers the alarm on, off, switch, hysteresis and death, plus ShieldBreak once.
+  - Tests count the requests; they never play assets.

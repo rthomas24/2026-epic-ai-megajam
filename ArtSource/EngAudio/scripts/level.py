@@ -84,7 +84,7 @@ def main():
         take_assets = ["%s/SW_%s_%02d" % (folder, base["name"], t) for t in range(1, takes + 1)]
         if "alias" not in entry:
             for t in range(1, takes + 1):
-                waves.append({"file": os.path.join(ROOT, "wav", entry["group"], "%s_%s_%02d.wav" % (PREFIX[cat], name, t)).replace("\\", "/"),
+                waves.append({"file": "wav/%s/%s_%s_%02d.wav" % (entry["group"], PREFIX[cat], name, t),   # relative to ArtSource/EngAudio
                               "path": take_assets[t - 1], "cat": cat})
         ue = entry["ue"]
         one_shot = cat in ("sfx", "ui", "sting")

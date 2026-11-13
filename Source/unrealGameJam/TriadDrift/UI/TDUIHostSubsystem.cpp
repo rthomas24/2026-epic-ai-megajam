@@ -1,6 +1,9 @@
 // Triad Drift - engineering host for Nick's native space HUD (Teammate 2).
 
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Blueprint/UserWidget.h"
 #include "Engine/Engine.h"
@@ -19,9 +22,11 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
+#include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 
@@ -68,6 +73,7 @@ void UTDUIHostSubsystem::Deinitialize()
 	HideGround();
 	HidePause();
 	BindPause(nullptr);
+	BindHitSounds(false);
 	SetDevHUDSuppressed(false);
 	Super::Deinitialize();
 }
@@ -113,7 +119,7 @@ bool UTDUIHostSubsystem::WantsSpaceHUD(APlayerController*& OutController, UObjec
 {
 	OutController = nullptr;
 	OutSource = nullptr;
-	if (!UTDUIHostSettings::IsNativeSpaceHUDEnabled())
+	if (UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Dev)
 	{
 		return false;
 	}
@@ -135,6 +141,7 @@ void UTDUIHostSubsystem::Evaluate()
 	// On foot and pause first: independent of the space HUD's switch.
 	APlayerController* LocalPC = FindLocalController();
 	BindPause(LocalPC);
+	BindHitSounds(true);
 	if (WantsGroundHUD(LocalPC))
 	{
 		if (!GroundWidget || GroundOwner.Get() != LocalPC)
@@ -160,7 +167,7 @@ void UTDUIHostSubsystem::Evaluate()
 		Hide();
 		return;
 	}
-	if (Widget && Owner.Get() == PC)
+	if (Widget && Owner.Get() == PC && ShownChoice == UTDUIHostSettings::GetSpaceHUDChoice())
 	{
 		if (DataSource.Get() != Source)
 		{
@@ -177,7 +184,8 @@ void UTDUIHostSubsystem::Evaluate()
 
 void UTDUIHostSubsystem::ShowFor(APlayerController* Controller, UObject* Source)
 {
-	UClass* Class = ResolveWidgetClass();
+	const ETDSpaceHUDChoice Choice = UTDUIHostSettings::GetSpaceHUDChoice();
+	UClass* Class = Choice == ETDSpaceHUDChoice::Engineering ? UTDFlightHUDWidget::StaticClass() : ResolveWidgetClass();
 	if (!Class)
 	{
 		if (!bClassWarningLogged)
@@ -205,6 +213,7 @@ void UTDUIHostSubsystem::ShowFor(APlayerController* Controller, UObject* Source)
 	Widget = NewWidget;
 	Owner = Controller;
 	DataSource = Source;
+	ShownChoice = Choice;
 	const UWorld* World = GetWorld();
 	if (bAddToViewport && World && World->GetGameViewport())
 	{
@@ -356,6 +365,41 @@ void UTDUIHostSubsystem::BindPause(APlayerController* PC)
 	{
 		New->OnPauseChanged.AddUniqueDynamic(this, &UTDUIHostSubsystem::HandlePauseChanged);
 	}
+}
+
+void UTDUIHostSubsystem::BindHitSounds(bool bBind)
+{
+	UTDEventBus* Bus = bBind ? UTDEventBus::Get(this) : nullptr;
+	if (HitBus.Get() == Bus)
+	{
+		return;
+	}
+	if (UTDEventBus* Old = HitBus.Get())
+	{
+		Old->OnHitConfirmed.RemoveDynamic(this, &UTDUIHostSubsystem::HandleHitConfirmed);
+	}
+	HitBus = Bus;
+	if (Bus)
+	{
+		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDUIHostSubsystem::HandleHitConfirmed);
+	}
+}
+
+void UTDUIHostSubsystem::HandleHitConfirmed(AActor* Target, bool bKill)
+{
+	const UTDUIStyle* Style = StyleOverride ? StyleOverride.Get() : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	if (!Style)
+	{
+		return;
+	}
+	const FTDFXCue& Cue = bKill ? Style->KillConfirm : Style->HitConfirm;
+	USoundBase* Sound = Cue.Sound.IsNull() ? nullptr : Cue.Sound.LoadSynchronous();
+	if (!Sound)
+	{
+		return; // silent until Nick assigns the sound
+	}
+	UGameplayStatics::PlaySound2D(this, Sound); // 2D, no overrides: the asset's class, volume and concurrency apply
+	++(bKill ? KillSoundsPlayed : HitSoundsPlayed);
 }
 
 void UTDUIHostSubsystem::HandlePauseChanged(bool bPaused)
@@ -563,7 +607,14 @@ namespace TDUIHost
 		// Without the native HUD (dev HUD on), read the squad manager directly.
 		UObject* Source = Host->GetDataSource() ? Host->GetDataSource() : static_cast<UObject*>(ATDSquadManager::Get(World));
 		APlayerController* ViewPC = HUD && HUD->GetOwningPlayer() ? HUD->GetOwningPlayer() : World->GetFirstPlayerController();
-		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: enabled=%d shown=%d class=%s source=%s"),
+		if (const UTDFlightHUDWidget* Flight = Cast<UTDFlightHUDWidget>(HUD))
+		{
+			const UTDFlightHUDWidget::FView& V = Flight->GetView();
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD coverage=%.2f%% marks=%d wings=%d hits=%d lane=%d hull=%.2f shield=%.2f gamepad=%d"),
+				Flight->GetCoverage01() * 100.f, V.Marks.Num(), V.Wings.Num(), V.Hits.Num(), static_cast<int32>(V.Lane), V.Hull, V.Shield, V.bUsingGamepad ? 1 : 0);
+		}
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: choice=%s enabled=%d shown=%d class=%s source=%s"),
+			*StaticEnum<ETDSpaceHUDChoice>()->GetNameStringByValue(static_cast<int64>(UTDUIHostSettings::GetSpaceHUDChoice())),
 			UTDUIHostSettings::IsNativeSpaceHUDEnabled() ? 1 : 0, HUD ? 1 : 0,
 			HUD ? *HUD->GetClass()->GetName() : TEXT("-"), Source ? *Source->GetName() : TEXT("-"));
 		if (const ITDHUDData* Data = Cast<ITDHUDData>(Source))
@@ -672,7 +723,7 @@ namespace TDUIHost
 		const int64 Value = Args.Num() > 0 ? Enum->GetValueByNameString(Args[0]) : INDEX_NONE;
 		if (Value == INDEX_NONE || Args.Num() < 2)
 		{
-			UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.Covers <DamageIndicators|SquadMarkers|InteractPrompt|HyperdriveBlockText|Altitude|Subtitles|Pause|BoundaryWarning> <-1|0|1>"));
+			UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.Covers <DamageIndicators|SquadMarkers|InteractPrompt|HyperdriveBlockText|Altitude|Subtitles|Pause|BoundaryWarning|CombatStates> <-1|0|1>"));
 			return;
 		}
 		CoverOverrides().Add(static_cast<ETDHUDSurface>(Value), FCString::Atoi(*Args[1]));
@@ -682,6 +733,30 @@ namespace TDUIHost
 	FAutoConsoleCommand CmdTDUICovers(TEXT("TD.UI.Covers"),
 		TEXT("TD.UI.Covers <Surface> <-1|0|1>: dev override of which HUD surfaces the native space HUD covers (-1 = ask the widget)."),
 		FConsoleCommandWithArgsDelegate::CreateStatic(&SetCoverOverride));
+
+	/** TD.UI.DevHurt <amount> [fromYawDeg]: real damage to the player's ship from a side (HUD captures: hull bands, hit arcs). */
+	void DevHurt(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn || Args.Num() < 1)
+		{
+			UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.DevHurt <amount> [fromYawDeg, relative to the ship: 0 = ahead, 90 = right]"));
+			return;
+		}
+		const float Amount = FCString::Atof(*Args[0]);
+		const float Yaw = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f;
+		const FVector From = Pawn->GetActorRotation().RotateVector(FRotator(0.f, Yaw, 0.f).Vector());
+		const FVector HitAt = Pawn->GetActorLocation() + From * 300.f;
+		UTDStatics::ApplyTDDamage(Pawn, Amount, ETDDamageKind::Energy, nullptr, nullptr, HitAt, -From, false);
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(Pawn);
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.DevHurt: %.0f from %.0f deg -> hull %.2f shield %.2f"), Amount, Yaw,
+			Health ? Health->GetHull01() : -1.f, Health ? Health->GetShield01() : -1.f);
+	}
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIDevHurt(TEXT("TD.UI.DevHurt"),
+		TEXT("TD.UI.DevHurt <amount> [fromYawDeg]: damage the player's ship from a side (dev, HUD captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&DevHurt));
 
 	FAutoConsoleCommandWithWorld CmdTDUIStatus(TEXT("TD.UI.Status"),
 		TEXT("TD.UI.Status: log the space HUD host state, its data source's current target and the widget's decoded squad cards."),

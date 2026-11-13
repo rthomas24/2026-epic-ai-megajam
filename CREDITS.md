@@ -78,6 +78,8 @@ separate-branch/M01-only notes above describe historical checkpoints.
 - Dominion mothership exterior (`Content/TriadDrift/Gameplay/Props/Dominion/` meshes and triplanar panel materials, `Gameplay/Characters/Dominion/DA_Dominion_Visuals`; sources `ArtSource/EngShips/Dominion/`): original design, code-built in Blender 5.2 (headless Python, Claude Code sub-agent) with procedurally generated tileable textures; no third-party source. Engineering fallback until a Presentation `DA_Dominion_Visuals` exists. Added by Ryan / Lead (Claude Code), 2026-11-13.
 - Planet set-piece kit, 26 pieces (outpost walls and doorway, signal jammer, crates, Verdance wreck parts, relay platforms and plateau, ruin pillar, choke rocks, stepping stones, console, door, extraction core, route posts, trailhead) in `Content/TriadDrift/Gameplay/Props/Planet/`, sources `ArtSource/EngProps/PlanetKit/`: original designs, code-built in Blender 5.2 (headless Python, Claude Code sub-agent) with baked and procedural textures; no third-party source. Added by Ryan / Lead (Claude Code), 2026-11-13.
 - Cinder magma surface (`Content/TriadDrift/Gameplay/Props/Planet/SM_Cind_MagmaSurface`, `Materials/M_TD_Magma`, sources `ArtSource/EngProps/PlanetKit/SM_Cind_MagmaSurface/`): original, built by script in Blender 5.2 and Unreal (procedural tileable textures, world-space animated material); no third-party source. Added by Ryan / Lead (Claude Code), 2026-11-13.
+- Engineering fallback sound set (ENG-35; `Content/TriadDrift/Gameplay/Audio/`, sources and recipes `ArtSource/EngAudio/`): 113 sounds in 200 takes, including `Music_Combat` and `Music_Intro`. Original work: synthesised from recipes (numpy oscillators, noise, filters, convolution reverb) and levelled and measured with ffmpeg; no samples and no third-party audio. Tools: Python + numpy (Blender 5.2's bundled Python), ffmpeg, Claude Code. Added by Ryan / Lead (Claude Code sub-agent), 2026-11-13. Not yet approved by ear.
+- Engineering particle effects (ENG-37; `Content/TriadDrift/Gameplay/VFX/`, sources `ArtSource/EngVFX/`): `T_TD_VFX_Noise`, `M_TD_VFX_*` materials and `NS_TD_*` Niagara systems (tracers, muzzle flashes, engine exhaust, impacts, explosions). Original: generated procedurally (numpy script, shader maths) and assembled from Unreal Engine template emitters through the UE 5.9 Niagara toolset by Claude Code; no third-party assets. Added by Ryan / Lead (Claude Code sub-agent), 2026-11-13. Work in progress (round 2, reviewer 3/5).
 - On-foot player body trial (`Content/TriadDrift/Gameplay/Characters/Pilot/`): Sentinel Armor, a custom Triad Drift project asset supplied by Nicholas Tosti from his original character design and image (`ArtSource/Characters/Samples/SentinelArmor/`, board N-021). Nicholas confirms it as his original custom-owned model and explicitly authorizes immediate gameplay integration. Meshy AI was used in its creation. Specific subscription/license terms have not been independently verified; no exclusive legal-ownership conclusion is asserted by this credit.
 
 ## Primary-fire realism M02 — offline review only
@@ -92,3 +94,26 @@ Audio & Music agent used existing PlaceHolder Inc 50 Free Game Sounds Pack `Guns
 ### Custom Triad Drift Sentinel Armor - November12,2026
 
 Nick supplied Meshy_AI_Sentinel_Armor_Turnaround_20261113_animated_ue5_mannequin_All_animation.glb. Original bytes are preserved under ArtSource/Characters/Samples/SentinelArmor/. Following the initial inspection transfer, Nick confirmed his original design, custom Triad Drift ownership attribution and Meshy AI creation tool, then expressly authorized immediate gameplay integration with no further licensing questions or development interruption. Ryan owns the playable-body import/integration in Gameplay/Characters/Pilot. Lead verified GLB container/size/SHA and Git LFS transfer only; actual import, animation and gameplay verification are reported separately by engineering.
+
+### Planet terrain materials (ENG-34) - November 13, 2026
+
+`M_TD_Terrain`, `MI_Terrain_Verdance`, `MI_Terrain_Cinder` and textures `T_Terrain_Rock_M/N`, `T_Terrain_Detail_M/N` in `Content/TriadDrift/Gameplay/Props/Planets/`. Made during the jam by Ryan's side with Claude Code: textures generated procedurally with numpy (`ArtSource/EngProps/Planets/scripts/build_terrain_textures.py`), material graph built by Unreal editor Python (`ue_terrain_material.py`, `ue_terrain_build.py`). No third-party or downloaded assets; reuses the project's own `T_Ground_*` textures. Licence: original work.
+
+### AI-generated concept art and terrain textures (Grok Bot, R-027) - November 13, 2026
+
+Made during the jam by Grok Bot (Ryan's asset-generation agent) on Ryan's own paid accounts; every folder under `ArtSource/EngAI/**` has a `SOURCE.md` with the tool, endpoint, date, verbatim prompts, seeds and the licence text checked that day.
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| Concept turnarounds: Rift, Lancer, Bastion (r1, r2), Warden, Drone, Null Armada fleet (fighter, interceptor, gunship, bomber, carrier, turret) in `ArtSource/EngAI/{Ships,Characters}/**` (PRs #14, #15). Concepts only, used as image-to-3D inputs; not shipped in the game | fal.ai: OpenAI GPT Image 2 / 2.6 Edit, Google Nano Banana 2.1 Edit | fal model pages mark both "Commercial use"; pay-as-you-go credits incl. the Epic AI MegaJam fal coupon. Original designs, no logos or existing IP | Ryan / Grok Bot |
+| Nine 2K seamless PBR terrain sets (Verdance moss, soil, cliff rock, peak lichen-frost; Cinder basalt, ash, obsidian, lava crust, cliff rock) in `ArtSource/EngAI/Terrain/**` (PR #16) | PBRgen (start texture: Nano Banana 2) | PBRgen Pro plan through the Epic AI MegaJam promo; commercial use included with a paid plan | Ryan / Grok Bot |
+
+Tools used (add to the submission's "Tools you used"): fal.ai, PBRgen, Hyper3D Rodin (planned for the 3D generation of the approved concepts).
+
+### Null Armada Drone (first Rodin model in the game) - November 13, 2026
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| `SM_NullDrone`, `T_NullDrone_BC/N/ORM/E`, `MI_NullDrone`, `DA_Crew_Drone_Visuals` in `Content/TriadDrift/Gameplay/Characters/NullDrone/` | Hyper3D Rodin Gen-2.5 image-to-3D, from our own concept image (`Drone_hero_gptimg2_PICK.png`, fal.ai) | Hyper3D terms, paid Business plan, commercial use (see `ArtSource/EngAI/Characters/Drone/mesh_r1/SOURCE.md`) | Generated by Ryan / Grok Bot; imported by Claude Code (Ryan's side) |
+
+Tools used: **Hyper3D Rodin** (list it in the submission for the Rodin prize pool).
