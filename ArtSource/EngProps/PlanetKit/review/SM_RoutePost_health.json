@@ -1,0 +1,176 @@
+{
+  "asset": "SM_RoutePost",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 1196,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3814,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -17.0,
+      -17.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      17.0,
+      17.0,
+      154.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        0.34,
+        0.34,
+        1.54
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        0.34,
+        0.34,
+        1.54
+      ]
+    },
+    "edge_area_share": 0.0001,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3814,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "RoutePost",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_RoutePost\\T_RoutePost_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_RoutePost\\T_RoutePost_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_RoutePost\\T_RoutePost_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_RoutePost\\T_RoutePost_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_RoutePost_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 11.46
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.4917
+    },
+    "build_seconds": 17.5
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.2388,
+        0.2617,
+        0.2702
+      ],
+      "min": 0.0,
+      "max": 0.8392
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5008,
+        0.4993,
+        0.9996
+      ],
+      "min": 0.251,
+      "max": 1.0,
+      "std_rg": [
+        0.0153,
+        0.0188
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5505,
+        0.307,
+        0.333
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.486
+      ],
+      "metallic_mean": 0.332
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.041,
+        0.1518,
+        0.1663
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.3262,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_RoutePost",
+      "message": "6 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 10,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00242
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_RoutePost_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_RoutePost_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

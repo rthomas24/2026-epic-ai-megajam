@@ -1,0 +1,171 @@
+{
+  "asset": "SM_Verd_RelayPlatform_S",
+  "tag": "r7",
+  "family": "verdance",
+  "checks": {
+    "tris": 3224,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5388,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -300.0,
+      -300.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      300.0,
+      300.0,
+      110.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        6.0,
+        6.0,
+        1.1
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        6.0,
+        6.0,
+        1.1
+      ]
+    },
+    "edge_area_share": 0.0458,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.5388,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Verd_RelayPlatform_S",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_S\\T_Verd_RelayPlatform_S_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_S\\T_Verd_RelayPlatform_S_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_S\\T_Verd_RelayPlatform_S_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Verd_RelayPlatform_S\\T_Verd_RelayPlatform_S_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Verd_RelayPlatform_S_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 125.48
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6779
+    },
+    "detail_uv": "UVDetail (channel 1), 4 m per tile",
+    "build_seconds": 130.7
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1914,
+        0.2301,
+        0.2802
+      ],
+      "min": 0.0,
+      "max": 0.6667
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5002,
+        0.4998,
+        1.0
+      ],
+      "min": 0.349,
+      "max": 1.0,
+      "std_rg": [
+        0.0206,
+        0.0209
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.4119,
+        0.5958,
+        0.0
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.886
+      ],
+      "metallic_mean": 0.0
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0211,
+        0.0945,
+        0.0829
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0215,
+  "asset_report_issues": [],
+  "assembly": {
+    "ok": true,
+    "islands": 98,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01283
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_RelayPlatform_S_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Verd_RelayPlatform_S_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "asset": "SM_Door",
+  "tag": "r7",
+  "family": "cinder",
+  "checks": {
+    "tris": 2080,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.464,
+      "overlap_pixels": 23397,
+      "overlap_share_of_covered": 0.048085,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "bounds_min_cm": [
+      -15.0,
+      -310.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      15.0,
+      310.0,
+      600.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        0.9968,
+        0.9915
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        0.3,
+        6.22,
+        6.052
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        0.9968,
+        0.9915
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        0.3,
+        6.22,
+        6.052
+      ]
+    },
+    "edge_area_share": 0.0254,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 22
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.464,
+      "overlap_pixels": 23397,
+      "overlap_share_of_covered": 0.048085,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Door",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Door\\T_Door_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Door\\T_Door_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Door\\T_Door_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Door\\T_Door_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Door_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 23.87
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.725
+    },
+    "build_seconds": 81.0
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.1468,
+        0.1075,
+        0.1257
+      ],
+      "min": 0.0,
+      "max": 0.7647
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.4999,
+        0.4994,
+        0.9429
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0158,
+        0.0182
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.361,
+        0.3149,
+        0.3665
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.455
+      ],
+      "metallic_mean": 0.369
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.079,
+        0.03,
+        0.0183
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0201,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Door",
+      "message": "48 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 36,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01295
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Door_r7_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Door_r7_clay_sheet.png",
+    "warnings": []
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "asset": "SM_Cind_Crate_A",
+  "tag": "r8",
+  "family": "cinder",
+  "checks": {
+    "tris": 3300,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4938,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "asset_report_errors": 0,
+    "asset_report_warnings": 2,
+    "bounds_min_cm": [
+      -150.0,
+      -110.0,
+      0.0
+    ],
+    "bounds_max_cm": [
+      150.0,
+      110.0,
+      140.0
+    ],
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        3.0,
+        2.2,
+        1.4
+      ]
+    },
+    "export_status": null
+  },
+  "info": {
+    "fit": {
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "warn_axes": [],
+      "size_before_m": [
+        3.0,
+        2.2,
+        1.4
+      ]
+    },
+    "edge_area_share": 0.1021,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 0
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4938,
+      "overlap_pixels": 0,
+      "overlap_share_of_covered": 0.0,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Cind_Crate_A",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_Crate_A\\T_Cind_Crate_A_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_Crate_A\\T_Cind_Crate_A_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_Crate_A\\T_Cind_Crate_A_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\SM_Cind_Crate_A\\T_Cind_Crate_A_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Cind_Crate_A_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 20.18
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.5766
+    },
+    "build_seconds": 31.6
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.204,
+        0.1887,
+        0.2081
+      ],
+      "min": 0.0,
+      "max": 0.7569
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5012,
+        0.4995,
+        0.9997
+      ],
+      "min": 0.2784,
+      "max": 1.0,
+      "std_rg": [
+        0.0202,
+        0.0182
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5265,
+        0.3208,
+        0.5002
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.447
+      ],
+      "metallic_mean": 0.503
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.0549,
+        0.0186,
+        0.0099
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0146,
+  "asset_report_issues": [
+    {
+      "severity": "warn",
+      "object": "SM_Cind_Crate_A",
+      "message": "16 duplicate vertices within 0.0001 m; merge by distance"
+    },
+    {
+      "severity": "warn",
+      "object": "SM_Cind_Crate_A",
+      "message": "8 zero-area faces; dissolve degenerate"
+    },
+    {
+      "severity": "info",
+      "object": "SM_Cind_Crate_A",
+      "message": "8 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 43,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.00596
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_Crate_A_r8_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\PlanetKit\\review\\SM_Cind_Crate_A_r8_clay_sheet.png",
+    "warnings": []
+  }
+}
