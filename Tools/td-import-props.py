@@ -27,9 +27,9 @@ PIPELINE = "/Game/TriadDrift/Gameplay/Pipelines/PL_TD_StaticMesh"
 # against the game's exposure: seen in the running game, glowing parts rendered dark. The multiplier is what
 # makes the bioluminescence and the crystals actually glow and bloom.
 KITS = [
-    ("ArtSource/EngProps/SpaceRocks", "/Game/TriadDrift/Gameplay/Props/Space", 6.0),
-    ("ArtSource/EngProps/Verdance", "/Game/TriadDrift/Gameplay/Props/Verdance", 12.0),
-    ("ArtSource/EngProps/Cinder", "/Game/TriadDrift/Gameplay/Props/Cinder", 10.0),
+    ("ArtSource/EngProps/SpaceRocks", "/Game/TriadDrift/Gameplay/Props/Space", 6.0, 0.0),
+    ("ArtSource/EngProps/Verdance", "/Game/TriadDrift/Gameplay/Props/Verdance", 12.0, 0.9),
+    ("ArtSource/EngProps/Cinder", "/Game/TriadDrift/Gameplay/Props/Cinder", 10.0, 0.0),
 ]
 
 
@@ -41,11 +41,13 @@ def ensure_master_material():
     """Lit material driven by a baked set: BaseColorTex, ORMTex (AO / roughness / metallic), NormalTex, EmissiveTex * EmissiveStrength."""
     assets = unreal.EditorAssetLibrary
     lib = unreal.MaterialEditingLibrary
-    if assets.does_asset_exist(MASTER_TEXTURED):
-        return True
     folder, name = MASTER_TEXTURED.rsplit("/", 1)
     if not assets.does_directory_exist(folder):
         assets.make_directory(folder)
+    if assets.does_asset_exist(MASTER_TEXTURED):
+        # Editing a material that already has instances crashes the headless editor (no renderer). To change
+        # the graph below, delete M_TD_PropTextured.uasset and run this again: every instance is re-parented.
+        return True
     material = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
     if material is None:
         log("FAILED: could not create " + MASTER_TEXTURED)
@@ -74,6 +76,13 @@ def ensure_master_material():
     strength.set_editor_property("parameter_name", "EmissiveStrength")
     strength.set_editor_property("default_value", 0.0)
     multiply = lib.create_material_expression(material, unreal.MaterialExpressionMultiply, -350, 650)
+    # SelfIllum: the surface's own colour glows a little (bioluminescent flora that would otherwise be a
+    # black silhouette at dusk). 0 for rock and anything that should only be lit.
+    self_illum = lib.create_material_expression(material, unreal.MaterialExpressionScalarParameter, -700, 1000)
+    self_illum.set_editor_property("parameter_name", "SelfIllum")
+    self_illum.set_editor_property("default_value", 0.0)
+    glow = lib.create_material_expression(material, unreal.MaterialExpressionMultiply, -350, 900)
+    total = lib.create_material_expression(material, unreal.MaterialExpressionAdd, -150, 760)
 
     mp = unreal.MaterialProperty
     ok = True
@@ -84,7 +93,11 @@ def ensure_master_material():
     ok &= lib.connect_material_property(normal, "RGB", mp.MP_NORMAL)
     ok &= lib.connect_material_expressions(emissive, "RGB", multiply, "A")
     ok &= lib.connect_material_expressions(strength, "", multiply, "B")
-    ok &= lib.connect_material_property(multiply, "", mp.MP_EMISSIVE_COLOR)
+    ok &= lib.connect_material_expressions(base, "RGB", glow, "A")
+    ok &= lib.connect_material_expressions(self_illum, "", glow, "B")
+    ok &= lib.connect_material_expressions(multiply, "", total, "A")
+    ok &= lib.connect_material_expressions(glow, "", total, "B")
+    ok &= lib.connect_material_property(total, "", mp.MP_EMISSIVE_COLOR)
     if not ok:
         log("FAILED: could not wire " + MASTER_TEXTURED)
         return False
@@ -95,7 +108,7 @@ def ensure_master_material():
     if not assets.save_asset(MASTER_TEXTURED, only_if_is_dirty=False):
         log("FAILED: could not save " + MASTER_TEXTURED)
         return False
-    log("created " + MASTER_TEXTURED)
+    log("built " + MASTER_TEXTURED)
     return True
 
 
@@ -108,7 +121,7 @@ def load_skill():
     return scope
 
 
-def import_kit(skill, source_rel, dest, emissive_scale):
+def import_kit(skill, source_rel, dest, emissive_scale, self_illum):
     source = os.path.join(REPO, *source_rel.split("/"))
     if not os.path.isdir(source):
         log("skipped %s (not in this checkout yet)" % source_rel)
@@ -160,8 +173,12 @@ def import_kit(skill, source_rel, dest, emissive_scale):
         base_strength = max([p.get("emission_strength") or 0.0 for p in patched.get("material_params", [])] or [0.0])
         for mi_name in materials:
             mi = skill["eas"].load_asset("%s/%s" % (dest, mi_name))
-            if mi is not None and "E" in textures:
-                unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(mi, "EmissiveStrength", base_strength * emissive_scale)
+            if mi is not None:
+                if "E" in textures:
+                    unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(mi, "EmissiveStrength", base_strength * emissive_scale)
+                # Rocks stay lit-only even on a glowing planet.
+                glow = 0.0 if "Rock" in mi_name or "Basalt" in mi_name else self_illum
+                unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(mi, "SelfIllum", glow)
                 skill["eas"].save_loaded_asset(mi)
         skill["eas"].save_loaded_asset(mesh)
         bounds = mesh.get_bounds()
@@ -178,8 +195,8 @@ def main():
         return
     skill = load_skill()
     total_good = total_bad = 0
-    for source_rel, dest, emissive_scale in KITS:
-        good, bad = import_kit(skill, source_rel, dest, emissive_scale)
+    for source_rel, dest, emissive_scale, self_illum in KITS:
+        good, bad = import_kit(skill, source_rel, dest, emissive_scale, self_illum)
         total_good += good
         total_bad += bad
     log("imported %d asset(s), %d failed" % (total_good, total_bad))
