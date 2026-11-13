@@ -43,6 +43,8 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "TriadDrift/UI/TDPauseMenuWidget.h"
+#include "Blueprint/UserWidget.h"
 
 namespace TDFlowTest
 {
@@ -1272,6 +1274,27 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 		Menu->ReturnToMenu();
 		TestFalse(TEXT("then the menu"), Menu->IsShowingVictory());
 	}
+	{
+		// N-033: with Nick's widgets assigned, a return to the menu after a win brings his MAIN MENU widget back
+		// (it used to rebuild the code-built menu instead).
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationMenuWon2"));
+		GI->DeleteSave();
+		ON_SCOPE_EXIT { GI->SetSaveSlotOverride(FString()); };
+		GI->GetMutableProgress().Phase = ETDGamePhase::Victory;
+		UTDUIStyle* Style = NewObject<UTDUIStyle>(GetTransientPackage());
+		Style->MainMenuWidgetClass = UUserWidget::StaticClass(); // stands in for WBP_MainMenu
+		Style->VictoryWidgetClass = UTDPauseMenuWidget::StaticClass();
+		ATDMenuGameMode* Menu = W.GetWorld()->SpawnActorDeferred<ATDMenuGameMode>(ATDMenuGameMode::StaticClass(), FTransform::Identity);
+		Menu->StyleOverride = Style;
+		Menu->FinishSpawning(FTransform::Identity);
+		Menu->StartPlay();
+		TestTrue(TEXT("Nick's victory widget after a win"), Menu->GetShownWidgetClass() == UTDPauseMenuWidget::StaticClass());
+		Menu->ReturnToMenu();
+		TestTrue(TEXT("RETURN TO MENU: Nick's main-menu widget again"), Menu->GetShownWidgetClass() == UUserWidget::StaticClass());
+		TestFalse(TEXT("not the code-built menu"), Menu->UsesPlaceholderMenu());
+	}
 	return true;
 }
 
@@ -1314,9 +1337,14 @@ bool FTDFlowMenuMusic::RunTest(const FString& Parameters)
 		{
 			AddInfo(TEXT("no audio device in this run (-nosound): playback itself is checked in the running game"));
 		}
+		// The track is not a looping asset: when it ends, the menu plays it again from the top.
+		M->OnAudioFinished.Broadcast();
+		TestEqual(TEXT("the track ended: it starts again"), Menu->GetMusicLoops(), 1);
 		GI->OpenLevelOverride = [](const FString&) {};
 		TestTrue(TEXT("New Game"), Menu->NewGame());
 		TestTrue(TEXT("the music fades as the travel starts"), Menu->IsMusicFadingOut());
+		M->OnAudioFinished.Broadcast();
+		TestEqual(TEXT("fading out for the travel: not restarted"), Menu->GetMusicLoops(), 1);
 		GI->OpenLevelOverride = nullptr;
 	}
 	return true;

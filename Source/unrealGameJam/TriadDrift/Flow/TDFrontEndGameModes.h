@@ -78,11 +78,15 @@ public:
 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }
 	/** The code-built menu is used (no widget class resolved), whether or not a viewport exists to show it. */
 	bool UsesPlaceholderMenu() const { return bPlaceholderWanted; }
+	/** The widget class the menu resolved last (victory or main menu); null when the code-built screen is up. */
+	UClass* GetShownWidgetClass() const { return ShownWidgetClass.Get(); }
 
 	/** The menu music playing (DA_UI_Style.MenuMusic, 2D, UI sound); null when the style has none. */
 	class UAudioComponent* GetMusic() const { return Music; }
 	bool WasMusicStarted() const { return bMusicStarted; }
 	bool IsMusicFadingOut() const { return bMusicFading; }
+	/** How many times the menu music has restarted on its own (the track is not a looping asset). */
+	int32 GetMusicLoops() const { return MusicLoops; }
 
 	/** Tests: use this style instead of DA_UI_Style. */
 	UPROPERTY(Transient)
@@ -91,6 +95,13 @@ public:
 private:
 	void StartMusic();
 	void FadeOutMusic();
+	/** Show the screen for the current state: the victory widget / screen, or the main-menu widget / placeholder. */
+	void ShowMenuUI();
+	UPROPERTY(Transient) TObjectPtr<class UUserWidget> ShownWidget;
+	UPROPERTY(Transient) TObjectPtr<UClass> ShownWidgetClass;
+	/** The menu track ended: play it again from the top, unless it is fading out for a travel. */
+	UFUNCTION() void HandleMusicFinished();
+	int32 MusicLoops = 0;
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> Music;
 	void ShowPlaceholder();
 	void HidePlaceholder();
