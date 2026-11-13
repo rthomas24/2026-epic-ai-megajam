@@ -89,17 +89,50 @@ Hyperdrive, atmosphere and landing are in [travel.md](travel.md).
 
 ### Chase camera (`FTDChaseCameraTuning` on `ATDShip`)
 - arm 1400 cm, height 280 cm
-- rotation lag 8, location lag 12 (max lag distance 1800 cm)
+- rotation lag 8, location lag 18 (max lag distance 1000 cm); flight-feel pass below
 - FOV 90 → 110 with `Speed01`
 - **Roll follow is 30% of the bank, measured against a reference "up".**
   - The reference tracks world up at no more than 120°/s and holds while the nose is near vertical.
   - The follow eases back to 0 past 90° of bank.
   - So barrel rolls and loops never whip the camera; the tests check this.
-- leans up to 7° into turns (look-ahead)
+- leans up to 7° into yaw turns (look-ahead), and 20% of that (1.4°) into pitch (`LookAheadPitchScale`)
 - `SnapCamera()` makes a hard cut. It runs automatically on switch-in and teleport.
 - Cockpit camera: V toggles `SetCockpitView`. The placeholder hull is hidden from the pilot's own view.
 - Motion blur is off in space by default (`MotionBlurAmount` / `MotionBlurMax` = 0), because any
   camera-rotation blur turns stars into dashes.
+
+### Flight-feel pass (Nov 13, T1)
+How it was judged: a 60 s chase-cam run per ship (cruise, boost, a hard right turn, a boosted hard left turn,
+a drifting turn, a full pull-up, barrel roll, then a switch cut), offscreen 1920x1080 on `L_Galaxy`.
+- Captures were taken as fast as the MCP allows (about one every 0.8 s).
+- `TD.Flight.Cam rec 60` logged the camera numbers every 0.1 s.
+- The same script ran with the old values and the new values in one session.
+- Before/after strips: `.wt/t1/Saved/TDShots/feel_sheets/strip_*.png` (local, not in git).
+
+| Measured | Old (lag 12 / max 1800 / pitch lead 7°) | New (lag 18 / max 1000 / pitch lead 1.4°) |
+|---|---|---|
+| Ship centre in a 110-120°/s pull-up (screen height, 0 = top) | 0.71-0.73: on the HUD cards | 0.64-0.65: above the HUD band |
+| Camera distance at cruise (Rift / Lancer / Bastion, cm) | 1900 / 2160 / 1870 | 1780 / 1880 / 1710 |
+| Camera distance at boost, peak (cm) | 2390 / 2730 / 2170: the Lancer shrank to a speck | 2010 / 2210 / 1880 |
+| Furthest off-centre in a turn (x, 0.5 = centre) | 0.68 for the Lancer: it left the screen during a high-speed drift spin | 0.26 |
+
+Kept as they were:
+- FOV 90 → 110: the speed read is good.
+- Boost still pulls the camera back about 2 m.
+- Yaw look-ahead of 7°: the ship sits 10-14% off-centre on hard turns, which reads as leaning in.
+- Roll follow 30%: about 12° of horizon tilt in a banked turn, and up to about 27° in a barrel roll. That is lively but readable.
+- Dust density: all 120 motes at every speed above the minimum.
+- Switch cut: a hard cut. The new ship is framed on the first frame, with no lag swing.
+
+Open points:
+- A long drift spin at boost speed (150°/s) still swings the ship to about a quarter of the screen width, and briefly into the HUD band. Fixing it properly means aiming the camera along the velocity while drifting, which moves the aim reticle, so it is a design call, not a tuning value.
+- In the test script, `TD.KillAll` right after a switch triggers the director's multi-kill shot (FOV 65, long lens). That made two switch frames look like a broken cut. It is a script artefact, not the switch.
+
+Dev tool: `TD.Flight.Cam [tag]` prints what the player sees: ship screen position, FOV, camera and ship roll, the camera's
+offset in ship space, speed, boost and drift, turn rates, and dust.
+- `TD.Flight.Cam rec <s> [tag]` logs it every 0.1 s.
+- `TD.Flight.Cam set <Cam|FB> <Field> <Value>` changes a chase-camera or feedback tuning value on every squad ship live, so you can tune without rebuilding.
+- It is not in Shipping builds.
 
 ### State for presentation and the HUD
 On the spacecraft and its movement component:

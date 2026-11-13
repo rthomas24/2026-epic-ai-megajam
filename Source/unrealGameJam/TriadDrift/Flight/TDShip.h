@@ -36,7 +36,7 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	float RotationLag = 8.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
-	float LocationLag = 12.f;
+	float LocationLag = 18.f; // flight-feel pass Nov 13 (was 12): see docs/eng/flight.md
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "5", ClampMax = "170"))
 	float MinFOV = 90.f;
@@ -59,9 +59,14 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float LookAheadResponse = 5.f;
 
+	/** Share of LookAheadAngle used for pitch. Leading a pull-up drops the ship down the screen into the HUD band
+	 *  (the flight-feel pass measured the ship's centre at 72% of screen height in a 120 deg/s loop at full lead). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float LookAheadPitchScale = 0.2f;
+
 	/** Max distance the location lag may trail the ship (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
-	float LagMaxDistance = 1800.f;
+	float LagMaxDistance = 1000.f;
 
 	/** Above this |forward.Z| the camera holds its reference "up" instead of tracking world up (loops). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))

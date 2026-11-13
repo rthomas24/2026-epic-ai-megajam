@@ -26,6 +26,9 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDPresentation.h"
+#include "Containers/Ticker.h"
+#include "Camera/PlayerCameraManager.h"
+#include "UObject/UnrealType.h"
 
 namespace TDFlightDebug
 {
@@ -118,6 +121,102 @@ namespace TDFlightDebug
 			Off.Pitch, Off.Yaw, Off.Roll, FB->GetFOVOffset(), *Counts);
 	}
 
+	// Chase-camera feel readout for agent playtests: one line of what the player sees (ship on screen, FOV, roll,
+	// speed, turn rate). "TD.Flight.Cam" logs once; "TD.Flight.Cam rec <seconds>" logs every 0.1 s;
+	// "TD.Flight.Cam set <Cam|FB> <Field> <Value>" changes a chase-camera or feedback tuning value on every squad ship
+	// (dev only, to tune live; the chosen values go into the code defaults).
+	static void CamLine(UWorld* World, const FString& Tag)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		ATDShip* Ship = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+		if (!Ship || !PC->PlayerCameraManager)
+		{
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: [%s] no player ship"), *Tag);
+			return;
+		}
+		const FVector Eye = PC->PlayerCameraManager->GetCameraLocation();
+		FVector2D Screen(-1.f, -1.f);
+		int32 W = 0, H = 0;
+		PC->GetViewportSize(W, H);
+		if (W > 0 && H > 0 && PC->ProjectWorldLocationToScreen(Ship->GetActorLocation(), Screen, false))
+		{
+			Screen.X /= (float)W;
+			Screen.Y /= (float)H;
+		}
+		static TMap<TWeakObjectPtr<ATDShip>, FRotator> LastRot;
+		static double LastTime = 0.0;
+		const double Now = World->GetRealTimeSeconds();
+		const FRotator Rot = Ship->GetActorRotation();
+		float YawRate = 0.f, PitchRate = 0.f;
+		if (const FRotator* Prev = LastRot.Find(Ship); Prev && Now > LastTime)
+		{
+			YawRate = FMath::FindDeltaAngleDegrees(Prev->Yaw, Rot.Yaw) / float(Now - LastTime);
+			PitchRate = FMath::FindDeltaAngleDegrees(Prev->Pitch, Rot.Pitch) / float(Now - LastTime);
+		}
+		LastRot.Add(Ship, Rot);
+		LastTime = Now;
+		const FVector Local = Ship->GetActorTransform().InverseTransformPosition(Eye);
+		const UTDFlightFeedbackComponent* FB = Ship->GetFlightFeedback();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: [%s] %s screen %.3f %.3f | fov %.1f camroll %.1f shiproll %.1f | cam local %.0f %.0f %.0f dist %.0f | speed %.0f boost %d drift %d | yaw %.0f pitch %.0f deg/s | dust %d"),
+			*Tag, *UEnum::GetValueAsString(Ship->GetShipId()), Screen.X, Screen.Y, PC->PlayerCameraManager->GetFOVAngle(),
+			Ship->GetCameraRoll(), Rot.Roll, Local.X, Local.Y, Local.Z, FVector::Dist(Eye, Ship->GetActorLocation()),
+			(float)Ship->GetVelocity().Size(), Ship->IsBoosting() ? 1 : 0, Ship->IsDrifting() ? 1 : 0, YawRate, PitchRate,
+			FB ? FB->GetVisibleDustCount() : -1);
+	}
+
+	static bool SetTuning(UWorld* World, const FString& Which, const FString& Field, float Value)
+	{
+		int32 Count = 0;
+		for (TActorIterator<ATDShip> It(World); It; ++It)
+		{
+			ATDShip* Ship = *It;
+			UScriptStruct* Struct = nullptr;
+			void* Data = nullptr;
+			if (Which.Equals(TEXT("Cam"), ESearchCase::IgnoreCase))
+			{
+				const FStructProperty* Prop = CastField<FStructProperty>(ATDShip::StaticClass()->FindPropertyByName(TEXT("CameraTuning")));
+				if (!Prop) { return false; }
+				Struct = Prop->Struct;
+				Data = Prop->ContainerPtrToValuePtr<void>(Ship);
+			}
+			else if (UTDFlightFeedbackComponent* FB = Ship->GetFlightFeedback())
+			{
+				Struct = FTDFlightFeedbackTuning::StaticStruct();
+				Data = &FB->Tuning;
+			}
+			const FNumericProperty* Num = Struct ? CastField<FNumericProperty>(Struct->FindPropertyByName(FName(*Field))) : nullptr;
+			if (!Num || !Data) { return false; }
+			Num->SetFloatingPointPropertyValue(Num->ContainerPtrToValuePtr<void>(Data), Value);
+			++Count;
+		}
+		return Count > 0;
+	}
+
+	void Cam(const TArray<FString>& Args, UWorld* World)
+	{
+		if (!World) { return; }
+		if (Args.Num() >= 4 && Args[0] == TEXT("set"))
+		{
+			const bool bOk = SetTuning(World, Args[1], Args[2], FCString::Atof(*Args[3]));
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Flight.Cam: set %s.%s = %s %s"), *Args[1], *Args[2], *Args[3], bOk ? TEXT("ok") : TEXT("FAILED (unknown field)"));
+			return;
+		}
+		if (Args.Num() >= 2 && Args[0] == TEXT("rec"))
+		{
+			const double Until = FPlatformTime::Seconds() + FCString::Atof(*Args[1]);
+			const FString Tag = Args.Num() >= 3 ? Args[2] : TEXT("rec");
+			TWeakObjectPtr<UWorld> WeakWorld(World);
+			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([WeakWorld, Until, Tag](float) -> bool
+			{
+				if (!WeakWorld.IsValid() || FPlatformTime::Seconds() > Until) { return false; }
+				CamLine(WeakWorld.Get(), Tag);
+				return true;
+			}), 0.1f);
+			return;
+		}
+		CamLine(World, Args.Num() ? Args[0] : TEXT("now"));
+	}
+
 	void Threats(const TArray<FString>& Args, UWorld* World)
 	{
 		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
@@ -165,6 +264,10 @@ static FAutoConsoleCommandWithWorldAndArgs GTDFlightThreatsCmd(TEXT("TD.Flight.T
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightFeedbackCmd(TEXT("TD.Flight.Feedback"),
 	TEXT("Log the no-art flight feedback: its tick cost, dust motes shown, active bursts, camera kick and placeholder counts."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Feedback));
+
+static FAutoConsoleCommandWithWorldAndArgs GTDFlightCamCmd(TEXT("TD.Flight.Cam"),
+	TEXT("Chase-camera feel readout: [tag] once | rec <seconds> [tag] every 0.1 s | set <Cam|FB> <Field> <Value> on every squad ship (dev tuning)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDFlightDebug::Cam));
 
 static FAutoConsoleCommandWithWorldAndArgs GTDFlightShipArtCmd(TEXT("TD.Flight.ShipArt"),
 	TEXT("Log every squad ship's art: visuals, mesh size against the collision, sockets, visible parts, exhaust point."),
