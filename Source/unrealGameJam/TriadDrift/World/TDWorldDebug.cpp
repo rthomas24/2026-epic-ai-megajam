@@ -7,6 +7,7 @@
 
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/World/TDDistortionField.h"
 #include "TimerManager.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Materials/MaterialInterface.h"
@@ -276,6 +277,31 @@ namespace TDWorldDebug
 			PlaceFacing(Pawn, P, R);
 		}));
 
+	FAutoConsoleCommandWithWorldAndArgs CmdFieldProbe(TEXT("TD.World.FieldProbe"), TEXT("Story field: put the player's ship <m> outside the distortion field, facing its centre (fly in with TD.World.Hold)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDDistortionField* F = nullptr;
+			for (TActorIterator<ATDDistortionField> It(World); It && !F; ++It) { F = *It; }
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			if (!F || !Pawn) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.FieldProbe: no field (the passage is open) or no pawn")); return; }
+			const float Out = (Args.Num() > 0 ? FCString::Atof(*Args[0]) : 600.f) * 100.f;
+			const FVector Dir = (Pawn->GetActorLocation() - F->GetActorLocation()).GetSafeNormal();
+			const FVector P = F->GetActorLocation() + Dir * (F->GetFieldRadius() + Out);
+			PlaceFacing(Pawn, P, (F->GetActorLocation() - P).Rotation());
+		}));
+	FAutoConsoleCommandWithWorldAndArgs CmdFieldStatus(TEXT("TD.World.FieldStatus"), TEXT("Story field: log the field radius, every squad ship's distance to the shell, repels and the warning."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			for (TActorIterator<ATDDistortionField> It(World); It; ++It)
+			{
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.World.FieldStatus: radius %.0f m, repels %d, warning %d"), It->GetFieldRadius() / 100.f, It->GetRepelCount(), It->IsWarningShown() ? 1 : 0);
+				for (TActorIterator<ATDSpacecraft> S(World); S; ++S)
+				{
+					if (UTDStatics::GetTeam(*S) != ETDTeam::Player) { continue; }
+					UE_LOG(LogTriadDrift, Display, TEXT("  %s: %.0f m from the shell, %.0f m/s"), *S->GetName(), (FVector::Dist(S->GetActorLocation(), It->GetActorLocation()) - It->GetFieldRadius()) / 100.f, S->GetVelocity().Size() / 100.f);
+				}
+			}
+		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdDressing(TEXT("TD.World.Dressing"), TEXT("Space dressing (landmarks, lane rocks, ruin art) on or off: <0|1>."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{

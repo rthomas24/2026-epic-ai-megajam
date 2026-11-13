@@ -8,6 +8,7 @@
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDDistortionField.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
@@ -70,6 +71,40 @@ bool FTDFieldCollapses::RunTest(const FString&)
 	FText Reason;
 	const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(D);
 	TestFalse(TEXT("no field lock left"), Travel && Travel->IsHyperdriveLocked(Reason) && Reason.ToString().Contains(TEXT("DISTORTION FIELD")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFieldDeflects, "TriadDrift.World.Field.ShipsHeadingInAreTurnedAwayNotTrapped", TD_TEST_FLAGS)
+bool FTDFieldDeflects::RunTest(const FString&)
+{
+	// Live finding (52927a3): cruising ships drove back into the shell every frame and were pinned to it. The field
+	// now turns the nose away before contact, so the squad flies out on its own.
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(600000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + 0.2f);
+	ATDDistortionField* F = D->GetDistortionField();
+	if (!TestNotNull(TEXT("field"), F)) { return false; }
+	const FVector Start = D->GetActorLocation() + FVector(-(F->GetFieldRadius() + 10000.f), 0.f, 0.f);
+	ATDShip* Ship = W.Spawn<ATDShip>(Start);
+	Ship->SetActorRotation((D->GetActorLocation() - Start).Rotation());	// straight at it
+	Ship->SetPlayerControlled(true);
+	Ship->ResetFlightState(false);	// cruising along the nose
+	float MinGap = 1e9f;
+	FTDFlightInput In;
+	In.Throttle = 0.5f;	// cruising, no steering: only the field turns it
+	Ship->GetShipMovement()->SetVelocityImmediate(Ship->GetActorForwardVector() * 6000.f);
+	for (int32 k = 0; k < 150; ++k)
+	{
+		Ship->SetFlightInput(In);
+		W.Tick(1.f / 30.f);
+		MinGap = FMath::Min(MinGap, (float)FVector::Dist(Ship->GetActorLocation(), D->GetActorLocation()) - F->GetFieldRadius());
+	}
+	const float EndGap = FVector::Dist(Ship->GetActorLocation(), D->GetActorLocation()) - F->GetFieldRadius();
+	TestTrue(*FString::Printf(TEXT("never pinned inside (closest %.0f cm)"), MinGap), MinGap > -500.f);
+	TestTrue(*FString::Printf(TEXT("flying away after 5 s (%.0f m out)"), EndGap / 100.f), EndGap > 10000.f);
+	TestTrue(TEXT("one contact counted, not one per frame"), F->GetRepelCount() >= 1 && F->GetRepelCount() <= 2);
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
+	TestTrue(TEXT("A1_FieldUnreachable on the first approach"), Story && Story->HasPlayed(TEXT("A1_FieldUnreachable")));
 	return true;
 }
 

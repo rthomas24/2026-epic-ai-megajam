@@ -171,28 +171,55 @@ void ATDDistortionField::Tick(float DeltaSeconds)
 			const FVector Off = Craft->GetActorLocation() - C;
 			const float Dist = Off.Size();
 			bNear |= Dist <= FieldRadius * WarningRadiusScale;
-			if (Dist >= FieldRadius || Dist < KINDA_SMALL_NUMBER)
+			if (Dist >= FieldRadius + DeflectBuffer || Dist < KINDA_SMALL_NUMBER)
+			{
+				Touching.Remove(Craft);
+				continue;
+			}
+			const FVector Out = Off / Dist;
+			// One contact per approach: the shimmer where it turns the ship, and the transmission the first time.
+			if (!Touching.Contains(Craft) && (FVector::DotProduct(Craft->GetVelocity(), Out) < 0.f || Dist < FieldRadius))
+			{
+				Touching.Add(Craft);
+				++RepelCount;
+				if (const ATDDominion* D = Dominion.Get(); D && D->Visuals)
+				{
+					UTDStatics::PlayCue(this, D->Visuals->DistortionFieldContact, C + Out * FieldRadius, Out.Rotation());
+				}
+				if (!bToldUnreachable)
+				{
+					bToldUnreachable = true;
+					UTDStorySubsystem::Fire(this, TEXT("A1_FieldUnreachable"));
+				}
+			}
+			// Approaching: the field turns the nose away (the reflected heading, tipped outward), harder the closer it
+			// gets. Ships cruise along their nose, so turning it is what keeps them off the shell; gradual, so the
+			// chase camera follows instead of snapping, and wingmen follow their leader out.
+			const FVector Fwd = Craft->GetActorForwardVector();
+			const float Inward = -FVector::DotProduct(Fwd, Out);
+			if (Inward > -0.25f)
+			{
+				const FVector Reflected = Inward > 0.f ? Fwd + 2.f * Inward * Out : Fwd;
+				const FQuat Want = (Reflected + Out * 0.35f).GetSafeNormal().ToOrientationQuat();
+				const float Closeness = 1.f - FMath::Clamp((Dist - FieldRadius) / FMath::Max(DeflectBuffer, 1.f), 0.f, 1.f);
+				const float Angle = FMath::RadiansToDegrees(Craft->GetActorQuat().AngularDistance(Want));
+				if (Angle > 0.5f)
+				{
+					const float Step = FMath::Min(1.f, DeflectTurnRate * FMath::Max(Closeness, 0.2f) * DeltaSeconds / Angle);
+					Craft->SetActorRotation(FQuat::Slerp(Craft->GetActorQuat(), Want, Step));
+				}
+			}
+			if (Dist >= FieldRadius)
 			{
 				continue;
 			}
 			// Inside the shell: back out to it, the inward part of the velocity gone and a push outward.
-			const FVector Out = Off / Dist;
 			Craft->SetActorLocation(C + Out * FieldRadius * 1.002f);
 			if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 			{
 				const FVector Vel = Move->Velocity;
-				const FVector Tangent = Vel - Out * FVector::DotProduct(Vel, Out);
+				const FVector Tangent = Vel - Out * FMath::Min(0.f, (float)FVector::DotProduct(Vel, Out));
 				Move->SetVelocityImmediate(Tangent + Out * RepelSpeed);
-			}
-			++RepelCount;
-			if (const ATDDominion* D = Dominion.Get(); D && D->Visuals)
-			{
-				UTDStatics::PlayCue(this, D->Visuals->DistortionFieldContact, C + Out * FieldRadius, Out.Rotation());
-			}
-			if (!bToldUnreachable)
-			{
-				bToldUnreachable = true;
-				UTDStorySubsystem::Fire(this, TEXT("A1_FieldUnreachable"));
 			}
 		}
 	}

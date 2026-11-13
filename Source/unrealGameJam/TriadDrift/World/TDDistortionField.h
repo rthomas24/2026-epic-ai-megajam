@@ -55,6 +55,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Field", meta = (ClampMin = "0"))
 	float RepelSpeed = 4000.f;
 
+	/** Within this distance (cm) outside the shell, a ship heading in is turned away (smoothly: no camera snap). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Field", meta = (ClampMin = "0"))
+	float DeflectBuffer = 15000.f;
+
+	/** How fast (deg/s) the field turns a ship's nose away at the shell. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Field", meta = (ClampMin = "0"))
+	float DeflectTurnRate = 120.f;
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -85,4 +93,6 @@ protected:
 	bool bCollapsed = false;
 	bool bWarning = false;
 	bool bToldUnreachable = false;
+	/** Ships touching the shell now (a repel counts once per contact, not every frame). */
+	TSet<TWeakObjectPtr<AActor>> Touching;
 };
